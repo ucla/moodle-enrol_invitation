@@ -1,0 +1,20 @@
+<Files addCrosslist.php>
+AuthType shibboleth
+ShibRequireSession on
+#require eduPersonPPN logonid@ucla.edu logonid2@ucla.edu logonid3@ucla.edu
+require eduPersonPPN rdieckma@ucla.edu tumland@ucla.edu pdoma@ucla.edu salyards@ucla.edu orachat@ucla.edu rlorenzo@ucla.edu fkuo@ucla.edu tg24@ucla.edu hducla@ucla.edu balabis@ucla.edu mfranks@ucla.edu eblakeman@ucla.edu martinjbrennan@ucla.edu reinhart@ucla.edu xkv8r@ucla.edu sdicks@ucla.edu tgarrett@ucla.edu kearney@ucla.edu kimjieun@ucla.edu skim2@ucla.edu kimsteph@ucla.edu pkovaric@ucla.edu jinnie97@ucla.edu bobba@ucla.edu dmargolis@ucla.edu nmeir@ucla.edu chris@ucla.edu aapayne@ucla.edu paulp@ucla.edu aposner@ucla.edu jrodgers@ucla.edu arugg@ucla.edu nshemer@ucla.edu msimon@ucla.edu ctam11@ucla.edu jtan@ucla.edu moerderin@ucla.edu
+</Files>
+
+<Files course_requestor.php>
+AuthType shibboleth
+ShibRequireSession on
+#require eduPersonPPN logonid@ucla.edu logonid2@ucla.edu logonid3@ucla.edu
+require eduPersonPPN rdieckma@ucla.edu tumland@ucla.edu pdoma@ucla.edu salyards@ucla.edu orachat@ucla.edu rlorenzo@ucla.edu fkuo@ucla.edu tg24@ucla.edu hducla@ucla.edu balabis@ucla.edu mfranks@ucla.edu eblakeman@ucla.edu martinjbrennan@ucla.edu reinhart@ucla.edu xkv8r@ucla.edu sdicks@ucla.edu tgarrett@ucla.edu kearney@ucla.edu kimjieun@ucla.edu skim2@ucla.edu kimsteph@ucla.edu pkovaric@ucla.edu jinnie97@ucla.edu bobba@ucla.edu dmargolis@ucla.edu nmeir@ucla.edu chris@ucla.edu aapayne@ucla.edu paulp@ucla.edu aposner@ucla.edu jrodgers@ucla.edu arugg@ucla.edu nshemer@ucla.edu msimon@ucla.edu ctam11@ucla.edu jtan@ucla.edu moerderin@ucla.edu
+</Files>
+
+<Files build_dept.php>
+AuthType shibboleth
+ShibRequireSession on
+#require eduPersonPPN logonid@ucla.edu logonid2@ucla.edu logonid3@ucla.edu
+require eduPersonPPN rdieckma@ucla.edu tumland@ucla.edu pdoma@ucla.edu salyards@ucla.edu orachat@ucla.edu rlorenzo@ucla.edu fkuo@ucla.edu tg24@ucla.edu hducla@ucla.edu balabis@ucla.edu mfranks@ucla.edu eblakeman@ucla.edu martinjbrennan@ucla.edu reinhart@ucla.edu xkv8r@ucla.edu sdicks@ucla.edu tgarrett@ucla.edu kearney@ucla.edu kimjieun@ucla.edu skim2@ucla.edu kimsteph@ucla.edu pkovaric@ucla.edu jinnie97@ucla.edu bobba@ucla.edu dmargolis@ucla.edu nmeir@ucla.edu chris@ucla.edu aapayne@ucla.edu paulp@ucla.edu aposner@ucla.edu jrodgers@ucla.edu arugg@ucla.edu nshemer@ucla.edu msimon@ucla.edu ctam11@ucla.edu jtan@ucla.edu moerderin@ucla.edu
+</Files>
