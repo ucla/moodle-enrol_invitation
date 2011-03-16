@@ -1,8 +1,8 @@
 <?php
 
 $string['pluginname'] = 'Unified Departments of the UCLA Institution Theme';
-$string['region_side_post'] = 'Right';
-$string['region_side_pre'] = 'Left';
+$string['region-side-post'] = 'Right';
+$string['region-side-pre'] = 'Left';
 $string['choosereadme'] = 'The theme to be used by the shared electronic coursework upload system of the education institution of University of California, Los Angeles.';
 
 $string['foodis_contact_ccle'] = 'Contact CCLE';
