@@ -3,7 +3,17 @@
 /** Renderer for stuff. **/
 
 class theme_uclashared_core_renderer extends core_renderer {
-    // Stealing functionality from core_renderer->login_info()
+    private $sep = NULL;
+    private $theme = 'theme_uclashared';
+
+    function separator() {
+        if ($this->sep == NULL) {
+            $this->sep = get_string('separator__', $this->theme);
+        }
+
+        return $this->sep;
+    }
+
     function login_info() {
         $original = parent::login_info();
 
@@ -47,13 +57,39 @@ class theme_uclashared_core_renderer extends core_renderer {
         $login_info[$pr_haf] = $this->help_feedback_link();
 
         ksort($login_info);
-        $login_string = implode(' | ', $login_info);
+        $separator = $this->separator(); 
+        $login_string = implode($separator, $login_info);
 
         return $login_string;
     }
 
     function help_feedback_link() {
-        return "Help & Feedback";
+        // TODO use html_writer
+        $hf_link = get_string('help_n_feedback', $this->theme);
+
+        return $hf_link;
+    }
+
+    function weeks_display() {
+        return 'Weeks Section'; 
+    }
+
+    /**
+     *      Displays the text underneath the UCLA | CCLE logo.
+     *
+     *      Will reach into the settings to see if the hover over should be displayed.
+     **/
+    function sublogo() {
+        $display_text   = get_config($this->theme, 'logo_sub_text');
+
+        return $display_text;
+    }
+
+    function sublogo_dropdown() {
+        $enabled_js     = get_config($this->theme, 'logo_sub_dropdown');
+        $enabled_js = trim($enabled_js);
+
+        return $enabled_js;
     }
     
     // This function will be called only in class sites 
@@ -66,8 +102,53 @@ class theme_uclashared_core_renderer extends core_renderer {
 
         // Use html_writer to render the actual link
         // html_writer::tag(tagname, contents, attributes[])
-        $cp_button = get_string('control-panel', 'theme_uclashared');
+        $cp_text = get_string('control_panel', $this->theme);
+
+        // Make the DIV
+        $cp_button = $cp_text;
 
         return $cp_button;
+    }
+
+    function footer_links() {
+        global $CFG;
+
+        $links = array(
+            'contact_ccle', 
+            'about_ccle',
+            'privacy',
+            'copyright',
+            'school',
+            'separator',
+            'registrar',
+            'myucla'
+        );
+
+        $footer_string = '';
+        
+        $custom_text = get_config($this->theme, 'footer_links');
+
+        if ($custom_text != '') {
+            $footer_string = $custom_text . '&nbsp;' . $this->separator(); 
+        }
+
+        foreach ($links as $link) {
+            if ($link == 'separator') {
+                $footer_string .= $this->separator();
+            } else {
+                $link_display = get_string('foodis_' . $link, $this->theme);
+                $link_href = get_string('foolink-' . $link, $this->theme);
+
+                $link_a = html_writer::tag('a', $link_display, array('href' => $link_href));
+                
+                $footer_string .= '&nbsp;' . $link_a;
+            }
+        }
+
+        return $footer_string;
+    }
+
+    function copyright_info() {
+        return get_string('copyright_information', $this->theme);
     }
 }

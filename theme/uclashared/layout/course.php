@@ -1,5 +1,6 @@
 <?php
 
+// Process and simplify all the options
 $hasheading = ($PAGE->heading);
 $hasnavbar = (empty($PAGE->layout_options['nonavbar']) && $PAGE->has_navbar());
 $hasfooter = (empty($PAGE->layout_options['nofooter']));
@@ -8,13 +9,19 @@ $hassidepost = (empty($PAGE->layout_options['noblocks']) && $PAGE->blocks->regio
 $haslogininfo = (empty($PAGE->layout_options['nologininfo']));
 
 // START UCLA MODIFICATION CCLE-2452
-$showcontrolpanel = (empty($PAGE->layout_options['controlpanel'])); // TODO Add capability check
+$showcontrolpanel = (!empty($PAGE->layout_options['controlpanel'])); // TODO Add capability check
 
 $showsidepre = ($hassidepre && !$PAGE->blocks->region_completely_docked('side-pre', $OUTPUT));
 $showsidepost = ($hassidepost && !$PAGE->blocks->region_completely_docked('side-post', $OUTPUT));
 
 $custommenu = $OUTPUT->custom_menu();
 $hascustommenu = (empty($PAGE->layout_options['nocustommenu']) && !empty($custommenu));
+
+$dropdown = $OUTPUT->sublogo_dropdown();
+if ($dropdown != '') {
+    $drawdropdown = TRUE;
+}
+
 
 $bodyclasses = array();
 if ($showsidepre && !$showsidepost) {
@@ -27,6 +34,8 @@ if ($showsidepre && !$showsidepost) {
 if ($hascustommenu) {
     $bodyclasses[] = 'has_custom_menu';
 }
+
+// Do all drawing
 
 echo $OUTPUT->doctype() ?>
 <html <?php echo $OUTPUT->htmlattributes() ?>>
@@ -41,21 +50,47 @@ echo $OUTPUT->doctype() ?>
 <?php if ($hasheading || $hasnavbar) { ?>
     <div id="page-header">
         <?php if ($hasheading) { ?>
-        <h1 class="headermain"><?php echo $PAGE->heading ?></h1>
-        <!-- Placeholder for control panel -->
-        <!-- Placeholder for weeks -->
+        <div class="headermain">
+            <div id="uclalogo">
+                <img src="<?php echo $OUTPUT->pix_url('ucla_ccle_logo', 'theme') ?>" />
+            </div>
+            <div id="sublogo">
+            <?php 
+                echo $OUTPUT->sublogo(); 
+            ?>
+            </div>
+
+            <?php if (isset($drawdropdown)) { ?>
+            <div id="sublogo-dropdown">
+            <?php
+                echo $OUTPUT->sublogo_dropdown()
+            ?>
+            </div>
+            <?php } ?>
+        </div>
         <div class="headermenu"><?php
             if ($haslogininfo) {
                 echo $OUTPUT->login_info();
             }
 
-            if ($showcontrolpanel) {
-                echo $OUTPUT->control_panel_button();
+            if ($showcontrolpanel) { ?>
+            <div id="control-panel">
+            <?php echo $OUTPUT->control_panel_button() ?>
+            </div>
+            <?php
+
             }
 
+            ?>
+            <div id="weeks-display">
+            <?php echo $OUTPUT->weeks_display() ?>
+            </div>
+
+            <?php
             if (!empty($PAGE->layout_options['langmenu'])) {
                 echo $OUTPUT->lang_menu();
             }
+
             echo $PAGE->headingmenu
         ?></div><?php } ?>
         <?php if ($hascustommenu) { ?>
@@ -105,11 +140,18 @@ echo $OUTPUT->doctype() ?>
 <!-- START OF FOOTER -->
     <?php if ($hasfooter) { ?>
     <div id="page-footer" class="clearfix">
+    <!--
         <p class="helplink"><?php echo page_doc_link(get_string('moodledocslink')) ?></p>
-        <?php
-        echo $OUTPUT->home_link();
-        echo $OUTPUT->standard_footer_html();
-        ?>
+    -->
+        <span id="copyright-info">
+        <?php echo $OUTPUT->copyright_info() ?>
+        </span>
+
+        <span id="footer-links">
+        <?php echo $OUTPUT->footer_links() ?>
+        </span>
+
+        <?php echo $OUTPUT->standard_footer_html() ?>
     </div>
     <?php } ?>
 </div>
