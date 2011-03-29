@@ -53,7 +53,9 @@ echo $OUTPUT->doctype() ?>
                 <div id="region-main-wrap">
                     <div id="region-main">
                         <div class="region-content">
+                            <?php echo $OUTPUT->blocks_for_region('content-top') ?>
                             <?php echo core_renderer::MAIN_CONTENT_TOKEN ?>
+                            <?php echo $OUTPUT->blocks_for_region('content-bot') ?>
                         </div>
                     </div>
                 </div>
