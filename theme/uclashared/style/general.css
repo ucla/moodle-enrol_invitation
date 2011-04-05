@@ -5,29 +5,35 @@ a:hover {text-decoration:underline;}
 img.icon,
 img.iconhelp {vertical-align:middle;}
 
-html, body {background-color:#C8C9C7;}
+html, body {background-color:#eaeaea;}
 #page #page-content {background-color:#FFF;}
-#page-header {background-color: #536895; color:#FFF;border-bottom:5px solid #565656;}
+#page-header {background-color: #536895; color:#FFF;border-top:15px solid #565656;}
 .hasnavbar #page-header {border-bottom-width:0px;}
 
+#page-header .headermain {margin:0;margin-top:10px;margin-left:15px;margin-bottom:10px;}
+#page-header .headermain #sublogo {margin-left:20px;}
+#page-header .headermain #sublogo span { color: white;}
 #page-header .headermain span {color:#C8C9C7;}
+
 
 #page-header .navbar {background-color:#FFB300;width:100%;}
 #page-header .navbar {color:#000;}
-#page-header .headermenu a {text-decoration: underline ; color: #FFF}
+#page-header .headermenu a {text-decoration: underline ; color: #FFF; font-weight: bold;}
 #page-header .navbar a:link,
 #page-header .navbar a:visited {font-weight: bold; color:#536895;}
 #page-header .navbar .breadcrumb,
 #page-header .navbar .navbutton {margin:5px 1em;}
 
-#page-footer {background-color: #222; color:#FFF;}
-#page-footer #footer-links a {color: #7B9FDD}
+#page-footer {background-color: #565656; color:#FFF; height:30px;}
+#page-footer #footer-links a {color: #A3BFFD; margin-left: 5px; margin-right: 5px; font-weight:bold;}
+#page-footer #copyright-info {float: left; margin-top:5px; font-weight:bold;}
+#page-footer #footer-links {float: right; margin-top:5px;}
 
 /** General **/
 .generalbox {border: 1px solid #DDDDDD;}
 .generaltable td {border-width:0;}
 .sitetopic {border-width:0;}
-.headingblock {margin-bottom:10px;border-bottom:1px solid #697F55;background-color:#E3E3E3;padding:4px 5px;}
+.headingblock {margin-bottom:10px;border-bottom:1px solid #AFC5F0;background-color:#D1DBEF;padding:4px 5px;}
 
 .coursebox {width:100%;margin:10px 0px;border-bottom:1px solid #E3E3E3;overflow:hidden;padding-bottom:10px;}
 .coursebox .info {width:35%;float:left;}
@@ -69,7 +75,7 @@ html, body {background-color:#C8C9C7;}
 .loginbox .guestsub {margin-left:10%;margin-right:10%;padding:10px;margin-bottom:5px;border-top:1px solid #DDD;}
 
 /** Blocks **/
-.block {border:1px solid #C8C9C7;background-color: #E3E3E3;margin-bottom:10px;overflow:hidden;}
+.block {border:1px solid #AFC5F0;background-color: #D1DBEF;margin-bottom:10px;overflow:hidden;}
 .block h1,
 .block h2,
 .block h3,

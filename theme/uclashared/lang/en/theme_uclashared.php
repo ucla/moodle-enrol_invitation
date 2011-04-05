@@ -14,10 +14,10 @@ $string['foodis_registrar'] = 'Registrar';
 $string['foodis_myucla'] = 'MyUCLA';
 
 $string['control_panel'] = 'Control Panel';
-$string['help_n_feedback'] = 'Help & Feedback';
+$string['help_n_feedback'] = '<a href="www.google.com">Help & Feedback</a>';
 $string['copyright_information'] = '&copy; 2010 UC Regents';
 
-$string['separator__'] = '<span class="separator">|</span>';
+$string['separator__'] = ' | ';
 
 $string['setting_title_footer_links'] = 'Footer Links';
 $string['setting_desc_footer_links'] = 'This text will be displayed to the right of the set of links in the footer. A separator will be automatically added.';
