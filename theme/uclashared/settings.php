@@ -24,7 +24,7 @@ if ($ADMIN->fulltree) {
     $title = get_string('setting_title_' . $the_setting, $theme_name);
     $description = get_string('setting_desc_' . $the_setting, $theme_name);
     $default = get_string('setting_default_' . $the_setting, $theme_name);
-    $setting = new admin_setting_configtext($name, $title, $description, $default, PARAM_TEXT);
+    $setting = new admin_setting_configtextarea($name, $title, $description, $default, PARAM_RAW);
     $settings->add($setting);
 
     $the_setting = 'logo_sub_dropdown';

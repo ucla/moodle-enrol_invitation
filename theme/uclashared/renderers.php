@@ -114,6 +114,7 @@ class theme_uclashared_core_renderer extends core_renderer {
         global $CFG;
 
         $links = array(
+            'separator',
             'contact_ccle', 
             'about_ccle',
             'privacy',
@@ -129,19 +130,21 @@ class theme_uclashared_core_renderer extends core_renderer {
         $custom_text = get_config($this->theme, 'footer_links');
 
         if ($custom_text != '') {
-            $footer_string = $custom_text . '&nbsp;' . $this->separator(); 
+            $footer_string = $custom_text; 
         }
 
         foreach ($links as $link) {
             if ($link == 'separator') {
+                $footer_string .= '&nbsp;';
                 $footer_string .= $this->separator();
             } else {
                 $link_display = get_string('foodis_' . $link, $this->theme);
                 $link_href = get_string('foolink-' . $link, $this->theme);
 
                 $link_a = html_writer::tag('a', $link_display, array('href' => $link_href));
-                
+
                 $footer_string .= '&nbsp;' . $link_a;
+                
             }
         }
 
