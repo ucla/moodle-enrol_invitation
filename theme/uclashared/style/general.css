@@ -7,6 +7,8 @@ img.iconhelp {vertical-align:middle;}
 
 html, body {background-color:#eaeaea;}
 #page #page-content {background-color:#FFF;}
+
+/** Header **/
 #page-header {background-color: #536895; color:#FFF;border-top:15px solid #565656;}
 .hasnavbar #page-header {border-bottom-width:0px;}
 
@@ -24,6 +26,16 @@ html, body {background-color:#eaeaea;}
 #page-header .navbar .breadcrumb,
 #page-header .navbar .navbutton {margin:5px 1em;}
 
+/** Dropdown **/
+#page-header #sublogo .dropdown {width:110px; height:20px; overflow:hidden;position:relative;}
+#page-header #sublogo .dropdown p {font-weight: normal;width:110px; height:20px;margin-bottom:0px; 0 0 no-repeat;}
+#page-header #sublogo .dropdown ul {width:925px; background:#FFF;list-style-type:none;position:absolute;top:20px;left:0px;margin:0px;border:1px solid #536895;}
+#page-header #sublogo .dropdown span {display:inline;width:925px;color:#536895;font-size:11px;margin:5px;}
+#page-header #sublogo .dropdown li {list-style-type:none;float:left;width:185px;text-align:center;}
+#page-header #sublogo .dropdown:hover {overflow:visible;z-index:9999999999999; 0 0 no-repeat;}
+#page-header #sublogo .dropdown p:hover {0 0 no-repeat;}
+
+/** Footer **/
 #page-footer {background-color: #565656; color:#FFF; height:30px;}
 #page-footer #footer-links a {color: #A3BFFD; margin-left: 5px; margin-right: 5px; font-weight:bold;}
 #page-footer #copyright-info {float: left; margin-top:5px; font-weight:bold;}

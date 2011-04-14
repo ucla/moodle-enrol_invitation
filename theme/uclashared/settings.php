@@ -18,7 +18,7 @@ if ($ADMIN->fulltree) {
     $setting = new admin_setting_configtextarea($name, $title, $description, $default, PARAM_RAW);
     $settings->add($setting);
 
-    // 
+    // The sub text
     $the_setting = 'logo_sub_text';
     $name = $theme_name . '/' . $the_setting;
     $title = get_string('setting_title_' . $the_setting, $theme_name);
@@ -27,6 +27,7 @@ if ($ADMIN->fulltree) {
     $setting = new admin_setting_configtextarea($name, $title, $description, $default, PARAM_RAW);
     $settings->add($setting);
 
+    /*
     $the_setting = 'logo_sub_dropdown';
     $name = $theme_name . '/' . $the_setting;
     $title = get_string('setting_title_' . $the_setting, $theme_name);
@@ -34,4 +35,5 @@ if ($ADMIN->fulltree) {
     $default = get_string('setting_default_' . $the_setting, $theme_name);
     $setting = new admin_setting_configtextarea($name, $title, $description, $default, PARAM_RAW);
     $settings->add($setting);
+     */
 } 
