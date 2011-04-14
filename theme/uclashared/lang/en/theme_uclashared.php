@@ -25,7 +25,26 @@ $string['setting_default_footer_links'] = '';
 
 $string['setting_title_logo_sub_text'] = 'Text Under Logo';
 $string['setting_desc_logo_sub_text'] = 'This is the text displayed under the UCLA | CCLE logo. I.E. Social Sciences Computing.';
-$string['setting_default_logo_sub_text'] = 'Shared Server';
+$string['setting_default_logo_sub_text'] = '<div class="dropdown">
+<p>Shared Server</p>
+<ul>
+<li><span>Humanities</span></li>
+<li><span>Nursing</span></li>
+<li><span>Public Health</span></li>
+<li><span>Human Genetics</span></li>
+<li><span>Computer Science</span></li>
+<li><span>Physical Sciences</span></li>
+<li><span>Dentistry</span></li>
+<li><span>Education & Information Studies</span></li>
+<li><span>Engineering</span></li>
+<li><span>Public Affairs</span></li>
+<li><span>Life Sciences</span></li>
+<li><span>World Arts & Architecture</span></li>
+<li><span>Chemistry & Biochemistry</span></li>
+<li><span>Management</span></li>
+<li><span>Physics & Astronomy</span></li>
+</ul>
+</div>';
 
 $string['setting_title_logo_sub_dropdown'] = 'Dropdown Contents';
 $string['setting_desc_logo_sub_dropdown'] = 'This will be the contents of the dropdown menu. If this is blank, the dropdown functionality will be disabled.';

@@ -31,7 +31,6 @@ $THEME->parents = array('base');
 $THEME->sheets = array(
     'base',
     'general',
-    'browser'
 );
 
 $tf_general     = 'course.php';
