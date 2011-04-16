@@ -48,18 +48,16 @@ Written by SSC - CCLE - UCLA\n");
 array_shift($reg_argv);
 
 // Include the Moodle config
-$moodleroot = dirname(dirname(dirname(__FILE__))); 
+$moodleroot = dirname(dirname(dirname(dirname(__FILE__)))); 
 $config_file = $moodleroot . '/config.php';
 
 // Satisfy Moodle's requirement for running CLI scripts
 define('CLI_SCRIPT', TRUE);
 
 require($config_file);
+require(dirname(__FILE__) . '/uclacoursecreator.class.php');
 
-require(dirname(dirname(__FILE__)) . '/moodleblock.class.php');
-require(dirname(__FILE__) . '/block_course_creator.php');
-
-$bcc = new block_course_creator();
+$bcc = new uclacoursecreator();
 
 // This may take a while...
 @set_time_limit(0);

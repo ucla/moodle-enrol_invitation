@@ -11,17 +11,17 @@ class CourseCreatorException extends Exception {
  *  @todo Move to admin/report/
  *  @todo Include capability check.
  **/
-class block_course_creator extends block_base {
+class uclacoursecreator {
     /** Stuff for Logging **/
     // This is the huge text that will email to admins.
-    private $email_log = '';
+    public $email_log = '';
 
     // Contains the log file pointer.
     private $log_fp;
 
     // The path for the output files as parsed from the configuration, 
     // or defaulting to dataroot.
-    private $output_path;
+    public $output_path;
 
     /** Variants for the cron **/
     // Terms to be used by course creator.
@@ -42,15 +42,6 @@ class block_course_creator extends block_base {
 
     // Contains the root path to the MyUCLA URL update webservice.
     private $myucla_login = null;
-
-    // Called every time this module is loaded
-    function init() {
-        $this->title = get_string('pluginname', 'block_course_creator');
-        
-        if (!class_exists('enrol_plugin')) {
-            require($CFG->libdir . '/enrollib.php');
-        }
-    }
 
     // This is the course creator cron
     function cron() {
@@ -83,14 +74,6 @@ class block_course_creator extends block_base {
             return false;
         }
 
-        // Check the IMS settings 
-        $ims_settings = array();
-        foreach ($ims_settings as $conf_check => $ims_check) {
-            if (!get_config('', $conf_check)) {
-               // Check the configurations 
-            }
-        }
-
         $this->shell_date = date('Y-m-d-G-i');
         $this->full_date = date('r');
 
@@ -102,15 +85,13 @@ class block_course_creator extends block_base {
             $termlist[] = '10F';
         }
 
-        // These are the argument sent to insert_local_entry
-        $user_callback_object = new StdClass();
-        $user_callback_object->term_table = 'instructors';
-        $user_callback_object->key_field = 'ucla_id';
-
         // Wrong comments are worse than no comments.
         $reg_callback_object = new StdClass();
         $reg_callback_object->term_table = 'term_rci';
         $reg_callback_object->key_field = 'srs';
+
+        // This is for the sake of coding.
+        $this->reg_callback_object = $reg_callback_object;
 
         // This uses the fact that $this is a stateful entity,
         // So becareful when calling functions.
@@ -128,7 +109,7 @@ class block_course_creator extends block_base {
                     // Figure out data from Registrar
                     $this->retrieve_registrar_info(
                         'ccle_getClasses',
-                        $user_callback_object,
+                        $reg_callback_object,
                         'retrieve_registrar_crosslists'
                     );
 
@@ -141,11 +122,13 @@ class block_course_creator extends block_base {
                     // Update the URLs for the Registrar
                     $this->update_MyUCLA_urls();
 
-                    // Send emails to the instructors and the course requestors
+                    // Send emails to the instructors and the course 
+                    // requestors
                     $this->send_emails();
                 }
 
                 if ($this->get_debug()) {
+                    // Quit early
                     throw new CourseCreatorException('Debugging enabled!');
                 }
 
@@ -160,6 +143,8 @@ class block_course_creator extends block_base {
         }
 
         $this->handle_locking(false);
+
+        $this->finish_cron();
     }
 
     /** ******************* **/
@@ -253,10 +238,10 @@ class block_course_creator extends block_base {
     }
 
     /**
-     *  Returns an Array of terms to work for. If {@link set_terms} 
+     *  Returns an Array of terms to work for. If {@see set_terms()} 
      *  is used, then it will return whatever has been set already.
      *
-     *  Wrapper for {@link figure_terms}.
+     *  Wrapper for @see figure_terms().
      *
      *  May change state of object.
      *
@@ -273,7 +258,7 @@ class block_course_creator extends block_base {
     /**
      *  Returns the ADOConnection object for registrar connection.
      *
-     *  Wrapper for {@link open_registrar_connection}.
+     *  Wrapper for @see open_registrar_connection().
      *  
      *  May change state of object.
      *
@@ -338,6 +323,8 @@ class block_course_creator extends block_base {
      *  Callback after loading the imsenterprise library.
      *  This will check to make sure all the configurations for the plugin
      *  is valid.
+     * 
+     *  Called by {@see get_enrol_plugin()}.
      **/
     function post_enrol_imsenterprise_plugin() {
         // IMS plugin reference
@@ -562,6 +549,21 @@ class block_course_creator extends block_base {
         return $returner;
     }
 
+    /**
+     *  Return if the instructor should be emailed to people.
+     *
+     *  @param mixed $instructor The instructor from ccle_CourseInstructorGet
+     *  @param array $profcode_set A set of profcodes for the course.
+     **/
+    function get_viewable_status($instructor, $profcode_set) {
+        // @todo Use capabilities
+        return true;
+    }
+
+    function dump_cache() {
+        return $this->cron_term_cache;
+    }
+
     /** *********** **/
     /*  Closers      */
     /** *********** **/
@@ -655,8 +657,6 @@ class block_course_creator extends block_base {
         unset($this->cron_term_cache);
 
         $this->cron_term_cache = array();
-        $this->cron_term_cache['requests'] = array();
-        $this->cron_term_cache['term_rci'] = array();
 
         unset($this->cron_term);
     }
@@ -671,7 +671,7 @@ class block_course_creator extends block_base {
             return false;
         }
 
-        // @todo mark stuff either as finished or unfinished
+        // @todo mark stuff either as finished or unfinished in ucla_request_classes.
 
         if (!$done) {
             $this->revert_cron_term();
@@ -682,13 +682,15 @@ class block_course_creator extends block_base {
 
     /**
      *  This will attempt to undo all the changes in cron_term_cache.
-     *  It should also mark all the requests that are processing as pending.
+     *  It should also mark all the requests that are processing as 
+     *  pending.
      *      
      **/
      function revert_cron_term() {
         global $DB;
 
-        $this->println("Reverting data for " . $this->get_cron_term() . '...');
+        $this->println("Reverting data for " . $this->get_cron_term() 
+            . '...');
 
         if (isset($this->cron_term_cache['requests'])) {
             $ctcr = $this->cron_term_cache['requests'];
@@ -739,11 +741,11 @@ class block_course_creator extends block_base {
         ";
 
         // These are the regular and host courses
-        $course_set = $DB->get_records_select(
+        $course_requests = $DB->get_records_select(
             'ucla_request_classes', $sql_where, $sql_params
         );
 
-        if (empty($course_set)) {
+        if (empty($course_requests)) {
             $mesg = "No courses for $term.";
             $this->debugln($mesg);
 
@@ -754,14 +756,14 @@ class block_course_creator extends block_base {
         $crosslisted_courses = array();
 
         // Figure out crosslists and filter out faulty requests
-        foreach ($course_set as $key => $course_request) {
+        foreach ($course_requests as $key => $course_request) {
             $srs = trim($course_request->srs);
 
             if (strlen($srs) != 9) {
                 $this->debugln('Faulty SRS: ' . $course_request->course);
                 unset($line);
 
-                unset($course_set[$key]);
+                unset($course_requests[$key]);
                 continue;
             }
 
@@ -770,9 +772,17 @@ class block_course_creator extends block_base {
 
                 $crosslisted_courses[$key] = $srs;
 
-                $course_set[$key]->crosslisted = array();
+                $course_requests[$key]->crosslisted = array();
             }
         }
+
+        // Re-index
+        $course_set = array();
+        foreach ($course_requests as $cr) {
+            $course_set[$cr->srs] = $cr;
+        }
+
+        unset($course_requests);
     
         if (empty($crosslisted_courses)) {
             $this->insert_requests($course_set);
@@ -797,6 +807,12 @@ class block_course_creator extends block_base {
             $DB->get_records_select('ucla_request_crosslist', 
                 $sql_where, $sql_params);
 
+        if (empty($crosslisted_requests)) {
+            throw new CourseCreatorException(
+                $srs . ' is crosslisted but no ucla_request_crosslist found!'
+            );
+        }
+
         // Build the crosslisted set of courses
         foreach ($crosslisted_requests as $crosslisted_request) {
             $srs = trim($crosslisted_request->srs);
@@ -808,8 +824,13 @@ class block_course_creator extends block_base {
                 $course_set[$srs]->crosslisted[$crosslisted_srs] = 
                     $crosslisted_request;
             } else {
+                $debug = '';
+                foreach ($course_set as $c) {
+                    $debug .= $c->srs . ' ';
+                }
                 throw new CourseCreatorException(
                     'Could not find host course ' . $srs
+                    . ' dump: ' . $debug
                 );
             }
         }
@@ -837,25 +858,25 @@ class block_course_creator extends block_base {
     }
 
     /**
-     *  Will call a stored procedure and respond to each entry recieved from
-     *  the stored procedure with a specified function from this block.
+     *  Will call a stored procedure and respond to each entry recieved 
+     *  from the stored procedure with a specified function from this object.
+     *  
+     *  I apologize beforehand for the complexity of this function
      *
      *  Will change the state of the object.
      *
-     *  @todo Just pass an object instead of flattened variables?
-     *
      *  @param $stored_proc The stored procedure to call.
      *  @param $response_func_args
-     *      Sent to {@link insert_local_entry}.
-     *      Can be null, see defaults for {@link insert_local_entry}.
+     *      Sent to {@see insert_local_entry()}.
+     *      Can be null, see defaults for {@see insert_local_entry()}.
      *  @param $additional_func_obj
      *      ->function to call per row from the driving table.
      *      ->arguments to send as arguments.
-     *      Can be null.
+     *      Can be null, can be just a string (no arguments).
      *  @param $stored_proc_func_obj
-     *      ->function to call to generate the stored procedure statement.
+     *      ->function to call to generate the stored procedure statement.     
      *      ->arguments to send as arguments.
-     *      null defaults to sp_term_srs().
+     *      null defaults to @see sp_term_srs().
      *  @param $driving_data
      *      The table to drive the stored procedures with.
      *      null defaults to 'requests'.
@@ -889,6 +910,7 @@ class block_course_creator extends block_base {
                 $func_obj = ${$func_obj_name};
 
                 // Validate that the object was passed properly
+                // We can pass jsut a string as the function name
                 if (is_string($func_obj)) {
                     $func_name = $func_obj;
                     $func_obj = new StdClass();
@@ -905,8 +927,8 @@ class block_course_creator extends block_base {
                 // Validate that the function exists
                 if (!method_exists($this, $func_obj->function)) {
                     throw new CourseCreatorException(
-                        'Sorry, ' . get_class($this) . ' does not have method '
-                        .   ${$func}
+                        'Sorry, ' . get_class($this) 
+                        . ' does not have method ' . ${$func}
                     );
                 }
             } else {
@@ -922,7 +944,10 @@ class block_course_creator extends block_base {
             }
 
             // Flatten out function call
-            $flat_func_name = preg_replace('/(.*)_obj/', '$1', $func_obj_name);
+            $flat_func_name = preg_replace(
+                '/(.*)_obj/', '$1', $func_obj_name
+            );
+
             ${$flat_func_name} = ${$func_obj_name}->function;
 
             // Flatten out function argument
@@ -947,7 +972,8 @@ class block_course_creator extends block_base {
         $db_reg = $this->get_registrar_connection();
 
         foreach ($this->cron_term_cache[$driving_data] as $drive_course) {
-            // Using the callback function, figure out our EXECUTE statement
+            // Using the callback function, figure out our EXECUTE 
+            // statement
             $qr = $this->$stored_proc_func($drive_course, $stored_proc, 
                 $stored_proc_func_args);
 
@@ -961,7 +987,6 @@ class block_course_creator extends block_base {
                     try {
                         // Handle each row as specified in the 
                         // response function
-                        echo "Inserting";
                         $this->insert_local_entry($fields, $drive_course,
                             $response_func_args);
                     } catch (CourseCreatorException $e) {
@@ -977,7 +1002,8 @@ class block_course_creator extends block_base {
 
             // Do more stuff if necessary
             if ($additional_func !== null) {
-                $this->$additional_func($drive_course, $additional_func_args);
+                $this->$additional_func($drive_course, 
+                    $additional_func_args);
             }
         }
 
@@ -989,7 +1015,7 @@ class block_course_creator extends block_base {
     /**
      *  Will generate a simple EXECUTE statement with term then SRS.
      *
-     *  Used as a callback to {@link retrieve_registrar_info}.
+     *  Used as a callback to {@see retrieve_registrar_info()}.
      *
      *  @param $entry The object to use, must contain term and srs.
      *  @param $sp The stored procedure to use.
@@ -1011,7 +1037,7 @@ class block_course_creator extends block_base {
     /**
      *  Handles the crosslists for things.
      *
-     *  Used as a callback for {@link retrieve_registrar_info}.
+     *  Used as a callback for {@see retrieve_registrar_info()}.
      *
      *  @param $entry 
      *      The entry that has $entry.crosslisted = Array, and
@@ -1036,8 +1062,9 @@ class block_course_creator extends block_base {
                 $this->cron_term_cache[$ctc_key][$cl_srs] = $cl_entry;
             }
 
+            // Nydus canal!
             $this->retrieve_registrar_info('ccle_getClasses',
-                'insert_registrar_entry', null, $ctc_key);
+                $this->reg_callback_object, null, null, $ctc_key);
 
             unset($this->cron_term_cache[$ctc_key]);
         }
@@ -1047,7 +1074,7 @@ class block_course_creator extends block_base {
      *  Does a quick check on the entry and then inserts the data 
      *  into the object.
      *
-     *  Callback for {@link retrieve_registrar_info}.
+     *  Callback for {@see retrieve_registrar_info()}.
      *
      *  Will change the state of the object.
      *
@@ -1055,8 +1082,11 @@ class block_course_creator extends block_base {
      *  @param $original The corresponding request entry.
      *  @param $args Additional arguments.
      *      ->tests Array of tests to validate entry with the original.
+     *          defaults to checking srs and term.
      *      ->term_table string The table to insert into the term cache.
+     *          defaults to requests
      *      ->key_field string The field of the entry to use as a key.
+     *          defaults to srs
      **/
     function insert_local_entry($entry, $original, $args) {
         $entry = array_change_key_case($entry, CASE_LOWER);
@@ -1071,9 +1101,21 @@ class block_course_creator extends block_base {
             $tests = $args->tests;
         }
 
+        if (isset($args->test_func)) {
+            if (method_exists($this, $args->test_func)) {
+                $result = $this->{$args->test_func}($entry);
+
+                if (!$result) {
+                    // Eh, do nothing... effin' hell...
+                    return;
+                }
+            }
+        }
+
         // Make sure some basics exist
         foreach ($tests as $test => $o_test) {
-            if (!isset($entry[$test]) || $entry[$test] != $original->$o_test) {
+            if (!isset($entry[$test]) 
+              || $entry[$test] != $original->$o_test) {
                 throw new CourseCreatorException(
                     'Incorrect ' . $test . ' from Registrar ' 
                         . $original->$o_test
@@ -1083,30 +1125,64 @@ class block_course_creator extends block_base {
 
         $entry_object = (object) $entry; 
 
-        // Default fallback for backwards compatibility
-        if ($args == null) {
-            $ctc_table = 'term_rci';
-        } else {
-            if (!isset($args->term_table)) {
-                $ctc_table = 'term_rci';
-            } else {
-                $ctc_table = $args->term_table;
-            }
+        if ($args != null && isset($args->key_field) 
+          && method_exists($this, $args->key_field)) {
+            // This function should not be oriented this way,
+            // but currently, I am way too lazy...
+            $this->{$args->key_field}($entry_object);
 
-            if (!isset($args->key_field)) {
-                $table_key = $entry_object->srs;  
-            } else {
-                $table_key = $entry_object->{$args->key_field};
+            // We can just return
+            return true;
+        } 
+
+        // Insert with just the srs as the key
+        $key = $entry_object->srs;
+        if (isset($this->cron_term_cache['term_rci'][$key])) {
+            throw new CourseCreatorException(
+                'Repeated table term_rci key ' . $key
+            );
+        }
+
+        $this->cron_term_cache['term_rci'][$key] = $entry_object;
+    }
+
+    /**
+     *  Inserts the instructor into our local Arrays.
+     *  @todo duplicate handling?
+     *
+     *  Used as a callback in {@see insert_local_entry()}.
+     *
+     *  Will modify the state of the object.
+     *
+     *  @param $entry The entry from the Registrar.
+     *  @return string The Array key.
+     **/
+    function key_field_instructors($entry) {
+        // Save the instructor indexed by UID
+        $this->cron_term_cache['instructors'][$entry->srs][$entry->ucla_id] = 
+            $entry;
+
+        // Save the profcodes of the course
+        $this->cron_term_cache['profcodes'][$entry->srs][$entry->profcode] =
+            $entry->profcode;
+    }
+
+    /**
+     *  Checks that the object passed by has no empty fields.
+     *
+     *  Callback for {@see insert_local_entry()}.
+     *
+     *  @param $entry The object to check.
+     *  @return boolean If the object is not empty or not not empty.
+     **/
+    function no_empty($entry) {
+        foreach ($entry as $key => $data) {
+            if (empty($data)) {
+                return false;
             }
         }
 
-        if (isset($this->cron_term_cache[$ctc_table][$table_key])) {
-            throw new CourseCreatorException('Repeated table ' . $ctc_table 
-                . ' key ' . $table_key);
-        }
-
-        // @todo Log this data
-        $this->cron_term_cache[$ctc_table][$table_key] = $entry_object;
+        return true;
     }
 
     /**
@@ -1129,55 +1205,56 @@ class block_course_creator extends block_base {
         foreach ($this->cron_term_cache['term_rci'] as $rci_object) {
             unset($req_course);
 
-            $rci_srs = trim($rci_object->srs);
+            $ims_srs = trim($rci_object->srs);
 
             // See if we can get certain information from the requests
-            if (!isset($this->cron_term_cache['requests'][$rci_srs])) {
+            if (!isset($this->cron_term_cache['requests'][$ims_srs])) {
                 // This is a crosslisted child course
                 $req_course->visible = 0;
             } else {
                 $req_course = 
-                    $this->cron_term_cache['requests'][$rci_srs];
+                    $this->cron_term_cache['requests'][$ims_srs];
             }
 
-            $rci_type = rtrim($rci_object->acttype);
-            $rci_sess = rtrim($rci_object->session_group);
+            $ims_type = rtrim($rci_object->acttype);
+            $ims_sess = rtrim($rci_object->session_group);
 
-            $rci_desc = $rci_object->crs_desc;
+            $ims_desc = $rci_object->crs_desc;
 
             $subj = rtrim($rci_object->subj_area);
-            $rci_num  = rtrim($rci_object->coursenum);
-            $rci_sect = rtrim($rci_object->sectnum);
+            $ims_num  = rtrim($rci_object->coursenum);
+            $ims_sect = rtrim($rci_object->sectnum);
 
             // Get latter part of the shortname
-            $rci_course = $this->make_course_name($subj, $rci_num, $rci_sect);
+            $ims_course = $this->make_course_name($subj, $ims_num, 
+                $ims_sect);
 
-            $rci_visible = $req_course->visible;
+            $ims_visible = $req_course->visible;
 
-            $rci_title = $this->make_course_title(
+            $ims_title = $this->make_course_title(
                 trim($rci_object->coursetitle), 
                 trim($rci_object->sectiontitle)
             );
 
             // Get the long version of the subject area (for category)
-            $rci_subj = $this->get_subject_area_translation($subj);
+            $ims_subj = $this->get_subject_area_translation($subj);
 
             // This means that we have to build a master course
             if (isset($req_course->crosslisted) 
               && !empty($req_course->crosslisted)) {
-                $ims_lines[] = $this->course_IMS($rci_title, 
-                    build_idnumber($term, $rci_srs, TRUE), 
-                    $rci_sess, $rci_desc, $rci_course, $term,
-                    $rci_subj, 1);
+                $ims_lines[] = $this->course_IMS($ims_title, 
+                    build_idnumber($term, $ims_srs, TRUE), 
+                    $ims_sess, $ims_desc, $ims_course, $term,
+                    $ims_subj, 1);
 
-                $rci_course = $rci_course . 'c';
+                $ims_course = $ims_course . 'c';
             }
            
             // Make the child course or the regular course 
-            $ims_lines[] = $this->course_IMS($rci_title, 
-                build_idnumber($term, $rci_srs), 
-                $rci_sess, $rci_desc, $rci_course, $term,
-                $rci_subj, $rci_visible);
+            $ims_lines[] = $this->course_IMS($ims_title, 
+                build_idnumber($term, $ims_srs), 
+                $ims_sess, $ims_desc, $ims_course, $term,
+                $ims_subj, $ims_visible);
         }
 
         // Write the IMS file
@@ -1191,7 +1268,7 @@ class block_course_creator extends block_base {
 
     /**
      *  Run the IMS import.
-     *  Wrapper for {@link enrol_imsenterprise_plugin}.
+     *  Wrapper for {@see enrol_imsenterprise_plugin()}.
      **/
     function ims_cron() {
         if (!class_exists('enrol_imsenterprise_plugin')) {
@@ -1342,7 +1419,8 @@ class block_course_creator extends block_base {
                     $child_course = $created_courses_check[$cidn];
                     $cid = $child_course->id;
 
-                    $this->cron_term_cache['activate']['child'][$cid] = $cid;
+                    $this->cron_term_cache['activate']['child'][$cid] = 
+                        $cid;
 
                     $crli_cid_summary[$master][$cid] = TRUE;
                 }
@@ -1471,7 +1549,9 @@ class block_course_creator extends block_base {
             foreach ($srses as $srs => $url) {
 
                 $url_update_pull = $this->get_MyUCLA_service($term, $srs);
-                $url_update_push = $this->get_MyUCLA_service($term, $srs, $url);
+                $url_update_push = $this->get_MyUCLA_service($term, $srs, 
+                    $url);
+
                 if ($this->get_debug()) {
                     // Just print the statements
                     $this->println($url_update_pull);
@@ -1492,14 +1572,16 @@ class block_course_creator extends block_base {
                     // Let MyUCLA take a nap
                     sleep(1);
 
-                    $myucla_curl = file_get_contents($url_update_push);
+                    // @todo enable this when ready to put on production
+                    //$myucla_curl = file_get_contents($url_update_push);
                     $myucla_curl = $this->trim_strip_tags($myucla_curl);
 
                     $this->println(
                         "MyUCLA responded: $myucla_curl"
                     );
 
-                    if (strpos($myucla_curl, 'Update Successful') === false) {
+                    if (strpos($myucla_curl, 'Update Successful') === 
+                      false) {
                         $this->debugln(
                             "Warning: Could not update URL for $term-$srs:"
                                 . $course_url
@@ -1518,20 +1600,323 @@ class block_course_creator extends block_base {
     /**
      *  Sends emails to instructors and course requestors.
      *
+     *  @throws CourseCreatorException
      **/
     function send_emails() {
         if (empty($this->cron_term_cache['url_info'])) {
-            throw new CourseCreatorException('We have no URL information for E-Mails.');
+            throw new CourseCreatorException(
+                'We have no URL information for E-Mails.'
+            );
         }   
+        
+        // These are the argument sent to insert_local_entry
+        $user_callback_object = new StdClass();
+        $user_callback_object->term_table = 'instructors';
+        $user_callback_object->key_field = 'key_field_instructors';
 
-        retrieve_registrar_info('ccle_CourseInstructorGet', 'insert_instructor_entry');
+        // This should fill the term cache 'instructors' with data from 
+        // ccle_CourseInstructorsGet
+        retrieve_registrar_info('ccle_CourseInstructorGet', 
+            $user_callback_object);
 
         if (empty($this->cron_term_cache['instructors'])) {
             $this->debugln('No instructors for this term!');
             // @todo should we stop building the term in this case?
         }
 
-        // @todo do this.
+        // I would parse this out into other functions, but I'm lazy...
+        // I think the old version works pretty well...
+        $courses = $this->cron_term_cache['requests'];
+        $rci_objects = $this->cron_term_cache['term_rci'];
+        $instructors = $this->cron_term_cache['instructors'];
+        $profcodes = $this->cron_term_cache['profcodes'];
+        $course_urls = $this->cron_term_cache['url_info'];
+
+        $requestor_emails = array();
+        $no_emails = array();
+
+        foreach ($courses as $course) {
+            $csrs = $course->srs;
+            $term = $course->term;
+
+            $rci_course = $rci_objects[$csrs];
+            $dept = trim($rci_course->subj_area);
+
+            // @todo write term_to_text
+            $pretty_term = $this->term_to_text($term, $rci_course->session_group);
+
+            // Fall-back Look-up (if not in subj_trans, return dept)
+            $dept_full = $this->get_subject_area_translation($dept);
+
+            // Clean course number
+            $coursenum = trim($rci_course->coursenum);
+
+            // The course displayed in the email
+            $course_disp = trim($dept_full . ' ' . $coursenum . ' ' 
+                . $rci_course->acttype . ' ' . $rci_course->sectnum);
+
+            // This is the courses to display the email for
+            $course_c = array();
+            $course_c[] = $course_disp;
+
+            // Include the child courses in the email
+            if (isset($course->crosslisted) && !empty($course->crosslisted)) {
+                foreach ($course->crosslisted as $child) {
+                    $rci_course = $rci_objects[$child];
+
+                    $dept = trim($rci_course->subj_area);
+                    $dept_full = $this->get_subject_area_translation($dept);
+
+                    $coursenum = trim($rci_course->coursenum);
+
+                    $course_disp = trim($dept_full . ' ' . $coursenum . ' ' 
+                        . $rci_course->acttype . ' ' . $rci_course->sectnum);
+
+                    $course_c[] = $course_disp;
+                }
+            }
+
+            unset($rci_course);
+
+            $course_text = implode(' / ', $course_c);
+
+            // The instructors to be mailed email
+            $show_instructors = array();
+
+            $profcode_set = $profcodes[$csrs];
+            foreach ($instructors[$csrs] as $instructor) {
+                // @todo figure out which instructors to allow
+                $viewable = $this->get_viewable_status($instrutor, $profcode_set);
+
+                if ($viewable) {
+                    $show_instructors[] = $instructor;
+                }
+            }
+
+            if (empty($show_instructors)) {
+                $this->println("No instructors to email for $term $srs ($course_text)!");
+                continue;
+            }
+
+            $course_url = $course_urls[$term][$csrs];
+            $course_dept = $course->department;
+
+            foreach ($show_instructors as $instructor) {
+                $lastname = $this->format_name(trim($instructor->last_name_person));
+                $email = trim($instructor->ursa_email);
+
+                if ($email == '') {
+                    $no_emails[$instructor->ucla_id] = $instructor;
+                }
+
+                unset($email_ref);
+
+                $email_ref['lastname'] = $lastname;
+                $email_ref['to'] = $email;
+                $email_ref['coursenum-sect'] = $course_text;
+                $email_ref['dept'] = '';
+                $email_ref['url'] = 'https://'. $course_url;
+                $email_ref['term'] = $term;
+                $email_ref['nameterm'] = $pretty_term;
+
+                // These are not parsed
+                $email_ref['subjarea'] = $course_dept;
+                $email_ref['userid'] = $instructor->ucla_id;
+                $email_ref['srs'] = $csrs;
+                $emails[] = $email_ref;
+            }
+            
+            if (isset($course->contact) && !empty($course->contact)) {
+                $contact = $course->contact;
+                if (!isset($requestor_emails[$contact])) {
+                    if (validate_email($contact)) {
+                        $requestor_emails[$contact] = array();
+                    } else {
+                        $this->emailln("Requestor email $contact not valid for $term $csrs");
+                    }
+                }
+
+                if (isset($requestor_emails[$contact])) {
+                    $requestor_emails[$contact][$course_url] = $course_url;
+                }
+            }
+        }
+
+        // Try to check out local records for emails
+        // @todo move this chunk out into function get_users_idnumber()
+        $local_email = array();
+        if (!empty($no_emails)) {
+            $local_wheres = array();
+
+            foreach ($no_emails as $emailless) {
+                // Attempt to find user
+                $userid = $emailless->ucla_id;
+                $name = trim($emailless->first_name_person) . ' ' 
+                    . trim($emailless->last_name_person);
+                mylog("$name $userid has no email.");
+
+                $local_wheres[] = $userid;
+            }
+
+            // @todo find this index
+            $local_where = "('" . implode("', '", $local_wheres) . "')";
+
+            $sql = "
+                SELECT id, email, idnumber
+                FROM {$CFG->prefix}user
+                WHERE
+                    idnumber IN $local_where
+                ";
+
+            mylog("Searching local MoodleDB for idnumbers $local_where ...");
+            $local_users = get_records_sql($sql);
+
+            if (!empty($local_users)) {
+                foreach ($local_users as $local_user) {
+                    $email = trim($local_user->email);
+
+                    if ($email != '') {
+                        $idnumber = $local_user->idnumber;
+                        mylog("Found user $idnumber $email");
+                        $local_email[$local_user->idnumber] = $email;
+                    }
+                }
+            }
+
+            unset($local_users);
+        }
+
+        unset($no_emails);
+
+        // Parsed
+        $parsed_params = array();
+
+        $debugmode = $this->get_debug();
+
+        $email_summary_data = array();
+        foreach ($emails as $emailing) {
+            $add_subject = '';
+            $email_to = '';
+
+            // This is going to be used later
+            $csrs = $emailing['srs'];
+            unset($emailing['srs']);
+
+            // Filter out no emails
+            $userid = $emailing['userid'];
+
+            if (!isset($email_summary_data[$csrs])) {
+                $email_summary_data[$csrs] = array();
+            }
+
+            $email_summary_data[$csrs][$userid] = '';
+
+            if ($emailing['to'] == '') {
+                // Attempt to find user
+                if (!isset($local_email[$userid])) {
+                    $this->println("Cannot email $userid " . $emailing['lastname']);
+                    $email_summary_data[$csrs][$userid] .= "! " . $emailing['lastname']
+                        . "\t $userid \tFAILED - No email address.\n";
+                    continue;
+                } else {
+                    $emailing['to'] = $local_email[$userid];
+
+                    $email_summary_data[$csrs][$userid] .= '* ' . $emailing['lastname']
+                        . "\t $userid \t" . $local_email[$userid] 
+                        . " - Local email ONLY\n";
+                }
+            } 
+            
+            // Set the destination
+            $email_to = $emailing['to'];
+
+            if ($userid == '100399990') {
+                $email_to = '';
+                $add_subject = ' (THE STAFF)';
+            } else if ($userid == '200399999') {
+                $email_to = '';
+                $add_subject = ' (TA)';
+            }
+
+            unset($emailing['userid']);
+
+            // Parse the email
+            $subj = $emailing['subjarea'];
+
+            if (!isset($parsed_param[$subj])) {
+                $deptfile = $email_short . $subj . $email_suffix;
+
+                if (file_exists($deptfile)) {
+                    $file = $deptfile;
+                } else {
+                    $file = $default_email_file;
+                }
+
+                $parsed_param[$subj] = parsefile($file);
+            }
+
+            $used_param = $parsed_param[$subj];
+            unset($emailing['subjarea']);
+
+            $email_params = filltemplate($used_param, $emailing);
+
+            // Setup the email
+            $from = $email_params['from'];
+            $bcc = $email_params['bcc'];
+
+            $headers = "From: $from \r\n Bcc: $bcc \r\n";
+
+            $email_subject = $email_params['subject'];
+            $email_subject .= $add_subject;
+
+            $email_body = $email_params['body'];
+
+            $email_summary_data[$csrs][$userid] .= '. ' . $emailing['lastname']
+                . "\t $userid \t" . $email_to . " \t $email_subject\n";
+
+            if (isset($debugmode) && !$debugmode) {
+                $this->println("Emailing: $email_to");
+                //mail($email_to, $email_subject, $email_body, $headers);
+            } else {
+                $this->println("to: $email_to");
+                $this->println("headers: $headers");
+                $this->println("subj: $email_subject");
+
+                mail($CFG->course_creator_email, $email_subject, $email_body);
+            }
+        }
+
+        unset($emailing);
+
+        // @todo split this out
+        // Email course requestors
+        foreach ($requestor_emails as $requestor => $created_courses) {
+            $req_mes = $requestor_mesg_start 
+                . implode("\n", $created_courses) . $requestor_mesg_end;
+
+            $crecou_cnt = count($created_courses);
+            if ($crecou_cnt > 1) {
+                $req_subj_subj = $crecou_cnt . ' courses';
+            } else {
+                $req_subj_subj = reset($created_courses);
+            }
+
+            $req_subj = "Your request for $req_subj_subj has been processed.";
+
+            $req_summary = implode(',', $created_courses);
+
+            if (!$debugmode) {
+                die;
+                if (mail($requestor, $req_subj, $req_mes, $requestor_headers)) {
+                    $this->println("Emailed $requestor for $req_summary");
+                } else {
+                    $this->println("ERROR: course not email $requestor");
+                }
+            }
+
+            // @todo figure out where to put htis
+            $this->emailln("Emailed $requestor for $req_summary");
+        }
     }
 
     /**
@@ -1576,11 +1961,12 @@ class block_course_creator extends block_base {
 
     /**
      *  Will determine whether or not we can run this function.
-     *  @param $lock true for lock, false for unlock.
+     *  @param boolean $lock true for lock, false for unlock.
+     *  @param boolean $soft true for no file lock, false for a file lock
      *  @return boolean If we the action was successful or not.
      *  @since Moodle 2.0.
      **/
-    function handle_locking($lock) {
+    function handle_locking($lock, $soft=false) {
         global $DB;
 
         // @todo prevent more than one instance of this cron from running
@@ -1619,6 +2005,8 @@ class block_course_creator extends block_base {
         // @todo email admin
         // @todo close open databases
         // @todo close open files
+
+        echo "\ne-Mail:\n" . $this->email_log;
 
         return true;
     }
@@ -1674,6 +2062,19 @@ class block_course_creator extends block_base {
     }
 
     /**
+     *  Will figure out the email non-variants.
+     *
+     *  Will change the state of the object.
+     **/
+    function figure_email() {
+        // @todo
+        // course_creator_mailheaders
+    }
+
+    /** ************************ **/
+    /*  Global Function Wrappers  */
+    /** ************************ **/
+    /**
      *  Will figure out what to interpret as the webpage.
      *
      *  @param $course The course object.
@@ -1688,30 +2089,7 @@ class block_course_creator extends block_base {
     }
 
     /**
-     * Will figure out MyUCLA URL update non-variants.
-     *
-     * Will change the state of the object.
-     **/
-    function figure_myucla_url_login() {
-        // @todo
-    }
-
-    /**
-     *  Will figure out the email non-variants.
-     *
-     *  Will change the state of the object.
-     **/
-    function figure_email() {
-        // @todo
-        // course_creator_mailheaders
-    }
-
-    /** ************************ **/
-    /*  Global Function Wrappers  */
-    /** ************************ **/
-
-    /**
-     *  Wrapper for {@link get_config}
+     *  Wrapper for {@see get_config()}
      **/
     function get_config($config) {
         return get_config(NULL, $config);
@@ -1807,11 +2185,11 @@ class block_course_creator extends block_base {
             throw new CourseCreatorException('Registrar DB not set!');
         }
 
-        // Manually coded check for odbc functionality, since moodle doesn't seem to like
-        // exceptions
+        // Manually coded check for odbc functionality, since moodle doesn't 
+        // seem to like exceptions
         if (strpos($dbtype, 'odbc') !== false) {
             if (!function_exists('odbc_exec')) {
-                throw new CourseCreatorException('ODBC not installed!');
+                throw new Exception('FATAL ERROR: ODBC not installed!');
             }
         }
 
@@ -1852,8 +2230,53 @@ class block_course_creator extends block_base {
         return preg_match('/1$/', $term);
     }
 
+    /**
+     *  Quick wrapper for @see strip_tags and @see trim.
+     *
+     *  @param string The string to trim and strip_tags.
+     *  @return string The string, without HTML tags and with leading and 
+     *      trailing spaces removed.
+     **/
     function trim_strip_tags($string) {
         return trim(strip_tags($string), " \r\n\t");
+    }
+
+    /**
+     *  Format certain names properly.
+     *
+     *  @todo Handle McDonalds !!! FILLET O FISH
+     *  @param $name The name to format.
+     *  @return string The name with guessed capitals.
+     **/
+    function format_name($name) {
+        // @todo Actually do smart ones
+        return ucwords(strtolower($name));
+    }
+
+    /**
+     *  Format the term to look pretty.
+     *
+     *  @param $term The term.
+     *  @return string The pretty term.
+     **/
+    function term_to_text($term) {
+        $term_letter = substr($term, -1, 1);
+        $years = substr($term, 0, 2);
+
+        if ($term_letter == "F" || $term_letter == "f") {
+            $termtext = "20" . $years . " Fall";
+        } else if ($term_letter == "W" || $term_letter == "w") {
+            // W -> Winter
+            $termtext = "20" . $years . " Winter";
+        } else if ($term_letter == "S" || $term_letter == "s") {
+            // S -> Spring
+            $termtext = "20" . $years . " Spring";
+        } else {
+            // 1 -> Summer
+            $termtext = "20" . $years . " Summer Session " . $session;
+        }
+
+        return $termtext;
     }
 }
 
