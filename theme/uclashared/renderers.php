@@ -84,13 +84,6 @@ class theme_uclashared_core_renderer extends core_renderer {
 
         return $display_text;
     }
-
-    function sublogo_dropdown() {
-        $enabled_js     = get_config($this->theme, 'logo_sub_dropdown');
-        $enabled_js = trim($enabled_js);
-
-        return $enabled_js;
-    }
     
     // This function will be called only in class sites 
     function control_panel_button() {
@@ -114,7 +107,6 @@ class theme_uclashared_core_renderer extends core_renderer {
         global $CFG;
 
         $links = array(
-            'separator',
             'contact_ccle', 
             'about_ccle',
             'privacy',
@@ -131,6 +123,8 @@ class theme_uclashared_core_renderer extends core_renderer {
 
         if ($custom_text != '') {
             $footer_string = $custom_text; 
+
+            array_unshift($links, 'separator');
         }
 
         foreach ($links as $link) {
@@ -139,12 +133,11 @@ class theme_uclashared_core_renderer extends core_renderer {
                 $footer_string .= $this->separator();
             } else {
                 $link_display = get_string('foodis_' . $link, $this->theme);
-                $link_href = get_string('foolink-' . $link, $this->theme);
+                $link_href = get_string('foolin_' . $link, $this->theme);
 
                 $link_a = html_writer::tag('a', $link_display, array('href' => $link_href));
 
                 $footer_string .= '&nbsp;' . $link_a;
-                
             }
         }
 

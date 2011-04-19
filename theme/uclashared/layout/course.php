@@ -13,15 +13,11 @@ $showcontrolpanel = (!empty($PAGE->layout_options['controlpanel'])); // TODO Add
 
 $showsidepre = ($hassidepre && !$PAGE->blocks->region_completely_docked('side-pre', $OUTPUT));
 $showsidepost = ($hassidepost && !$PAGE->blocks->region_completely_docked('side-post', $OUTPUT));
+    
+//$PAGE->requires->yui_module('yui2-animation');
 
 $custommenu = $OUTPUT->custom_menu();
 $hascustommenu = (empty($PAGE->layout_options['nocustommenu']) && !empty($custommenu));
-
-$dropdown = $OUTPUT->sublogo_dropdown();
-if ($dropdown != '') {
-    $drawdropdown = TRUE;
-}
-
 
 $bodyclasses = array();
 if ($showsidepre && !$showsidepost) {
@@ -59,14 +55,6 @@ echo $OUTPUT->doctype() ?>
                 echo $OUTPUT->sublogo(); 
             ?>
             </div>
-
-            <?php if (isset($drawdropdown)) { ?>
-            <div id="sublogo-dropdown">
-            <?php
-                echo $OUTPUT->sublogo_dropdown()
-            ?>
-            </div>
-            <?php } ?>
         </div>
         <div class="headermenu"><?php
             if ($haslogininfo) {
