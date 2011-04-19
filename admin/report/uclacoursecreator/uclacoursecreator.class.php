@@ -1,14 +1,11 @@
 <?php 
 
-// @todo move to some other file
-class CourseCreatorException extends Exception {
-    // Nothing...
-}
+// Require the exception
+require_once(dirname(__FILE__) . '/CourseCreatorException.class.php');
 
 /**
  *  Course creator.
  *
- *  @todo Move to admin/report/
  *  @todo Include capability check.
  **/
 class uclacoursecreator {
@@ -22,6 +19,9 @@ class uclacoursecreator {
     // The path for the output files as parsed from the configuration, 
     // or defaulting to dataroot.
     public $output_path;
+
+    // Used to force debugging
+    private $force_debug = false;
 
     /** Variants for the cron **/
     // Terms to be used by course creator.
@@ -47,13 +47,7 @@ class uclacoursecreator {
     function cron() {
         global $CFG;
 
-        // @todo Disable cron if wanted
-
-        /** Check for proper configurations **/
-        $db_unid = $CFG->dbname;
-
-        $outpath = get_config('course_creator_outpath');
-
+        // @todo Disable cron if wanted...?
         if (!class_exists('enrol_plugin')) {
             require($CFG->libdir . '/enrollib.php');
         }
@@ -62,10 +56,9 @@ class uclacoursecreator {
         $this->get_enrol_plugin('meta');
         
         try {
-            // We cannot write, we cannot lock
+            // We cannot write, we cannot lock, we cannot do anything
             $this->check_write();
        
-            // Pseudo-Lock this process
             $this->handle_locking(true);
         } catch (CourseCreatorException $e) {
             $this->debugln($e->getMessage());
@@ -74,18 +67,22 @@ class uclacoursecreator {
             return false;
         }
 
-        $this->shell_date = date('Y-m-d-G-i');
-        $this->full_date = date('r');
-
         /** Run the course creator **/
         $termlist = $this->get_terms_creating();
 
         if (empty($termlist)) {
-            // @todo Empty terms error handler
-            $termlist[] = '10F';
+            $this->debugln('No terms to deal with, exiting...');
+
+            $this->handle_locking(false);
+
+            return false;
         }
 
+        // Make sure our email configurations are valid
+        $this->figure_email_vars();
+
         // Wrong comments are worse than no comments.
+        // This will insert things locally from the Registrar
         $reg_callback_object = new StdClass();
         $reg_callback_object->term_table = 'term_rci';
         $reg_callback_object->key_field = 'srs';
@@ -93,10 +90,14 @@ class uclacoursecreator {
         // This is for the sake of coding.
         $this->reg_callback_object = $reg_callback_object;
 
+        $this->println("---- Course Creator run at {$this->full_date} "
+            . "({$this->shell_date}) -----");
+
         // This uses the fact that $this is a stateful entity,
         // So becareful when calling functions.
         foreach ($termlist as $work_term) {
             try {
+                // Flush the cache
                 $this->start_cron_term($work_term);
 
                 // Properly generate the names of the IMS files
@@ -105,6 +106,7 @@ class uclacoursecreator {
                 // Get stuff from course requestor
                 $retrieved = $this->retrieve_requests();
 
+                // If we actually have entries to process
                 if ($retrieved) {
                     // Figure out data from Registrar
                     $this->retrieve_registrar_info(
@@ -118,13 +120,6 @@ class uclacoursecreator {
 
                     // From that create the courses, and validate them
                     $this->ims_cron();
-
-                    // Update the URLs for the Registrar
-                    $this->update_MyUCLA_urls();
-
-                    // Send emails to the instructors and the course 
-                    // requestors
-                    $this->send_emails();
                 }
 
                 if ($this->get_debug()) {
@@ -132,6 +127,17 @@ class uclacoursecreator {
                     throw new CourseCreatorException('Debugging enabled!');
                 }
 
+                if ($retrieved) {
+                    // Update the URLs for the Registrar
+                    $this->update_MyUCLA_urls();
+
+                    // Send emails to the instructors
+                    $this->send_emails();
+                }
+
+                // This will mark term as finished, insert entries into 
+                // ucla_reg_classinfo, mark the entries in 
+                // ucla_request_classes as done
                 $this->mark_cron_term(true);
             } catch (Exception $e) {
                 $this->debugln($e->getMessage());
@@ -156,8 +162,11 @@ class uclacoursecreator {
      *  @param $mesg The message to print.
      **/
     function println($mesg) {
-        // @todo
-        echo $mesg . "\n";
+        if (!isset($this->log_fp)) {
+            $this->log_fp = $this->get_course_creator_log_fp();
+        }
+
+        fwrite($this->log_fp, $mesg . "\n");
     }
 
     /**
@@ -165,7 +174,6 @@ class uclacoursecreator {
      *  @param $mesg The message to output.
      **/
     function emailln($mesg) {
-        // @todo
         $this->email_log = $this->email_log . $mesg . "\n";
     }
     
@@ -181,6 +189,25 @@ class uclacoursecreator {
     /** ************************ **/
     /*  Accessor Functions        */
     /** ************************ **/
+    
+    function get_course_creator_log_fp() {
+        if (isset($this->log_fp)) {
+            return $this->log_fp;
+        }
+
+        // This will set where all our files will be thrown
+        // @throws CourseCreatorException
+        if (!isset($this->output_path)) {
+            $this->check_write();
+        }
+
+        $log_file = $this->output_path . '/course_creator.' 
+            . $this->shell_date . '.' . $this->db_id . '.log';
+
+        $this->log_fp = fopen($log_file, 'a');
+
+        return $this->log_fp;
+    }
 
     /**
      *  Returns the long name of the subject area if found, 
@@ -196,9 +223,11 @@ class uclacoursecreator {
         if (!isset($this->subj_trans) || $this->subj_trans == null) {
             $subjareas = get_records('ucla_reg_subjectarea');
 
-            // @todo Index this, most likely
+            foreach ($subjareas as $subjarea) {
+                $indexed_sa[$subjarea->subjarea] = $subjarea->subj_area_full;
+            }
 
-            $this->subj_trans = $subjareas;
+            $this->subj_trans = $indexed_sa;
         }
 
         if (!isset($this->subj_trans[$subjarea])) { 
@@ -214,12 +243,14 @@ class uclacoursecreator {
      *  @return boolean Whether to display debug information.
      **/
     function get_debug() {
-        // @todo Use Moodle's debugging
-        if (!isset($this->debugmode)) {
-            // @todo figure out whether to enable debugging or not
+        if (debugging()) {
+            var_dump(debugging());
+            // @todo verify functionality
+            echo "DEBUGGING ENABLED!";
             return true;
         }
 
+        echo "DEBUGGING DISABLED ON MOODLE SIDE";
         return true;
     }
 
@@ -369,16 +400,21 @@ class uclacoursecreator {
                 'No term set, trying to create IMS files.'
             );
         }
+
+        if (!isset($this->output_path)) {
+            $this->check_write();
+        }
         
-        // Hmmm... We should already have done write checks.
         $ims_file = $this->output_path . '/integration.'
             . $this->shell_date . ".$term.xml";
 
+        $this->debugln('IMS File: ' . $ims_file);
         $this->cron_term_cache['ims_path'] = $ims_file;
 
-        $ims_log = $this->output_path . '/ims.' . $this->shell_date 
+        $ims_log = $this->output_path . '/ims-log.' . $this->shell_date 
             . ".$term.log";
 
+        $this->debugln('IMS Log : ' . $ims_log);
         $this->cron_term_cache['ims_log'] = $ims_log;
     }
    
@@ -462,11 +498,6 @@ class uclacoursecreator {
      *  @return Array The course default settings.
      **/
     function get_course_defaults() {
-        // @todo
-        // get_config('moodlecourse')
-        // default_format
-        // default_theme
-        // child_format = 'uclaredir'
         $term = $this->get_cron_term();
 
         if (!$term) {
@@ -482,7 +513,7 @@ class uclacoursecreator {
         }
         
         if ($this->match_summer($term)) {
-            // @todo make this configurable
+            // @todo make this configurable: number of section in the summer?
             $numsections = 6;
         } else {
             $numsections = $this->course_defaults->numsections;
@@ -560,6 +591,10 @@ class uclacoursecreator {
         return true;
     }
 
+    /**
+     *  Return the current cache.
+     *  @return Array The current state of the cache.
+     **/
     function dump_cache() {
         return $this->cron_term_cache;
     }
@@ -605,6 +640,23 @@ class uclacoursecreator {
         return true;
     }
 
+    /**
+     *  This will close the file pointer.
+     *
+     *  Will change the state of the function.
+     **/
+    function close_log_file_pointer() {
+        if (isset($this->log_fp)) {
+            fclose($this->log_fp);
+
+            unset($this->log_fp);
+
+            return true;
+        }
+
+        return false;
+    }
+
     /** *********** **/
     /*  Modifiers    */
     /** *********** **/
@@ -629,6 +681,15 @@ class uclacoursecreator {
         return true;
     }
 
+    /**
+     *  Forces debug to turn on / off.
+     *
+     *  @param boolean Turn debug on.
+     **/
+    function set_debug($bool) {
+        $this->force_debug = $bool;
+    }
+
     /** ************************** **/
     /*  Cron-Controller Functions   */
     /** ************************** **/
@@ -646,6 +707,8 @@ class uclacoursecreator {
                 'Could not set the term [' . $term . ']'
             );
         }
+
+        $this->debugln("-------- Starting $term ---------");
     }
 
     /**
@@ -667,15 +730,36 @@ class uclacoursecreator {
      *  @param $done If we should mark the requests as done or reset them
      **/
     function mark_cron_term($done) {
+        global $DB;
+
         if (!$this->get_cron_term()) {
             return false;
         }
 
-        // @todo mark stuff either as finished or unfinished in ucla_request_classes.
+        if ($done) {
+            // Figure out what to email the requestors.
+            $this->queue_requestors();
 
-        if (!$done) {
+            // Just mark the ones we've processed as done.
+            $ids = array();
+            foreach ($this->cron_term_cache['requests'] as $request) {
+                $ids[] = $request->srs;
+            }
+
+            list($sql_in, $params) = $DB->get_in_or_equal($ids);
+            $sql_where = 'id ' . $sql_in;
+
+            $DB->set_field_select('ucla_request_classes', 'status',
+                'done', $sql_where, $params);
+        } else {
             $this->revert_cron_term();
         }
+        
+        // Close files that may be open
+        $this->close_ims_file_pointer();
+
+        $this->debugln('-------- Finished ' . $this->get_cron_term() 
+            . ' --------');
 
         return true;
     }
@@ -683,7 +767,7 @@ class uclacoursecreator {
     /**
      *  This will attempt to undo all the changes in cron_term_cache.
      *  It should also mark all the requests that are processing as 
-     *  pending.
+     *  reverted.
      *      
      **/
      function revert_cron_term() {
@@ -706,7 +790,11 @@ class uclacoursecreator {
             $sql_where = 'id ' . $sql_where;
         
             $DB->set_field_select('ucla_request_classes', 'status', 
-                'reverted', $sql_where, $params);
+                'failed', $sql_where, $params);
+        }
+
+        if (isset($this->cron_term_cache['created_courses'])) {
+            $this->debugln('Attempting to revert courses...');
         }
      }
 
@@ -828,6 +916,7 @@ class uclacoursecreator {
                 foreach ($course_set as $c) {
                     $debug .= $c->srs . ' ';
                 }
+
                 throw new CourseCreatorException(
                     'Could not find host course ' . $srs
                     . ' dump: ' . $debug
@@ -851,7 +940,15 @@ class uclacoursecreator {
         foreach ($courses as $course) {
             $this->trim_object($course);
 
-            // @todo Log this data
+            $this->println('Received request: ' . $course->term . ' ' 
+                . $course->srs . ' ' . $course->course);
+
+            if ($course->crosslist == '1') {
+                foreach ($course->crosslisted as $cl_course) {
+                    $this->println('   X-listed with: '
+                        . $cl_course->term . ' ' . $cl_course->aliassrs); 
+                }
+            }
 
             $this->cron_term_cache['requests'][$course->srs] = $course;
         }
@@ -1045,9 +1142,7 @@ class uclacoursecreator {
      **/
     function retrieve_registrar_crosslists($entry) {
         // I don't think I need to check for bad data...
-        if (isset($entry->crosslisted) 
-          && !empty($entry->crosslisted)) {
-
+        if ($entry->crosslist == '1') {
             $e_srs = $entry->srs;
             $ctc_key = 'reg_cls_' . $e_srs;
             $this->cron_term_cache[$ctc_key] = array(); 
@@ -1073,6 +1168,8 @@ class uclacoursecreator {
     /**
      *  Does a quick check on the entry and then inserts the data 
      *  into the object.
+     *
+     *  This function should NEVER be called directly.
      *
      *  Callback for {@see retrieve_registrar_info()}.
      *
@@ -1148,7 +1245,6 @@ class uclacoursecreator {
 
     /**
      *  Inserts the instructor into our local Arrays.
-     *  @todo duplicate handling?
      *
      *  Used as a callback in {@see insert_local_entry()}.
      *
@@ -1177,7 +1273,7 @@ class uclacoursecreator {
      **/
     function no_empty($entry) {
         foreach ($entry as $key => $data) {
-            if (empty($data)) {
+            if (trim($data) == '') {
                 return false;
             }
         }
@@ -1240,8 +1336,7 @@ class uclacoursecreator {
             $ims_subj = $this->get_subject_area_translation($subj);
 
             // This means that we have to build a master course
-            if (isset($req_course->crosslisted) 
-              && !empty($req_course->crosslisted)) {
+            if ($req_course->crosslist == '1') {
                 $ims_lines[] = $this->course_IMS($ims_title, 
                     build_idnumber($term, $ims_srs, TRUE), 
                     $ims_sess, $ims_desc, $ims_course, $term,
@@ -1320,10 +1415,10 @@ class uclacoursecreator {
         $check_srs = array();
 
         // Local reference hierarched requests
-        $ctc_tr = $this->cron_term_cache['requests'];
+        $ctc_tr =& $this->cron_term_cache['requests'];
 
         // Local reference for RCI
-        $rci_courses = $this->cron_term_cache['term_rci'];
+        $rci_courses =& $this->cron_term_cache['term_rci'];
 
         // Foreach course we got courseInfo for, we are going to make sure
         // They are in the courses table
@@ -1337,8 +1432,7 @@ class uclacoursecreator {
             $srs_to_idnumber[$srs] = $idnumber;
 
             $request = $ctc_tr[$srs];
-            if (isset($request->crosslisted) 
-              && !empty($request->crosslisted)) {
+            if ($request->crosslist == '1') {
                 $master_idnumber = $this->make_idnumber($term, $srs, true);
 
                 $check_srs[$master_idnumber] = $srs;
@@ -1408,8 +1502,7 @@ class uclacoursecreator {
             $mshn = $master_course->shortname;
 
             // Sort into three groups, child, meta or regular
-            if (isset($request->crosslisted) 
-              && !empty($request->crosslisted)) {
+            if ($request->crosslist == '1') {
                 $child_srs = $request->crosslisted;
                 $child_srs[$parent] = $parent;
 
@@ -1511,8 +1604,9 @@ class uclacoursecreator {
         // Figure out what to build as the URL of the course
         $relevant_url_info = array();
 
-        $created = $this->cron_term_cache['created_courses'];
-        $requests = $this->cron_term_cache['requests'];
+        // Create references, not copies
+        $created =& $this->cron_term_cache['created_courses'];
+        $requests =& $this->cron_term_cache['requests'];
 
         // For each requested course, figure out the URL
         foreach ($requests as $request) {
@@ -1522,8 +1616,7 @@ class uclacoursecreator {
             $term = $request->term;
             
             $crc = false;
-            if (isset($request->crosslisted) 
-              && !empty($request->crosslisted)) {
+            if ($request->crosslist == '1') {
                 $idnumber = $this->build_idnumber($srs, $term, true);
                 $crc = true;
             } else {
@@ -1620,21 +1713,23 @@ class uclacoursecreator {
             $user_callback_object);
 
         if (empty($this->cron_term_cache['instructors'])) {
+            // TODO Maybe change the default behavior
             $this->debugln('No instructors for this term!');
-            // @todo should we stop building the term in this case?
         }
 
-        // I would parse this out into other functions, but I'm lazy...
         // I think the old version works pretty well...
-        $courses = $this->cron_term_cache['requests'];
-        $rci_objects = $this->cron_term_cache['term_rci'];
-        $instructors = $this->cron_term_cache['instructors'];
-        $profcodes = $this->cron_term_cache['profcodes'];
-        $course_urls = $this->cron_term_cache['url_info'];
+        // These are read-only, no need to duplicate contents 
+        $courses =& $this->cron_term_cache['requests'];
+        $rci_objects =& $this->cron_term_cache['term_rci'];
+        $instructors =& $this->cron_term_cache['instructors'];
+        $profcodes =& $this->cron_term_cache['profcodes'];
+        $course_urls =& $this->cron_term_cache['url_info'];
 
-        $requestor_emails = array();
-        $no_emails = array();
+        // This is to maintain people without reported URSA emails
+        $this->cron_term_cache['no_emails'] = array();
 
+        // These are the collection of people we are going to email
+        $emails = array();
         foreach ($courses as $course) {
             $csrs = $course->srs;
             $term = $course->term;
@@ -1642,8 +1737,8 @@ class uclacoursecreator {
             $rci_course = $rci_objects[$csrs];
             $dept = trim($rci_course->subj_area);
 
-            // @todo write term_to_text
-            $pretty_term = $this->term_to_text($term, $rci_course->session_group);
+            $pretty_term = $this->term_to_text($term, 
+                $rci_course->session_group);
 
             // Fall-back Look-up (if not in subj_trans, return dept)
             $dept_full = $this->get_subject_area_translation($dept);
@@ -1660,7 +1755,7 @@ class uclacoursecreator {
             $course_c[] = $course_disp;
 
             // Include the child courses in the email
-            if (isset($course->crosslisted) && !empty($course->crosslisted)) {
+            if ($course->crosslist == '1') {
                 foreach ($course->crosslisted as $child) {
                     $rci_course = $rci_objects[$child];
 
@@ -1685,8 +1780,8 @@ class uclacoursecreator {
 
             $profcode_set = $profcodes[$csrs];
             foreach ($instructors[$csrs] as $instructor) {
-                // @todo figure out which instructors to allow
-                $viewable = $this->get_viewable_status($instrutor, $profcode_set);
+                $viewable = $this->get_viewable_status($instrutor, 
+                    $profcode_set);
 
                 if ($viewable) {
                     $show_instructors[] = $instructor;
@@ -1694,7 +1789,8 @@ class uclacoursecreator {
             }
 
             if (empty($show_instructors)) {
-                $this->println("No instructors to email for $term $srs ($course_text)!");
+                $this->println("No instructors to email for "
+                    . "$term $srs ($course_text)!");
                 continue;
             }
 
@@ -1702,11 +1798,19 @@ class uclacoursecreator {
             $course_dept = $course->department;
 
             foreach ($show_instructors as $instructor) {
-                $lastname = $this->format_name(trim($instructor->last_name_person));
+                $lastname = $this->format_name(
+                    trim($instructor->last_name_person)
+                );
+
                 $email = trim($instructor->ursa_email);
 
-                if ($email == '') {
-                    $no_emails[$instructor->ucla_id] = $instructor;
+                $uid = $instructor->ucla_id;
+
+                // If they do not have an email from the Registrar, and we did
+                // not already find one locally, attempt to find one locally
+                if ($email == '' && !isset($this->local_emails[$uid])) {
+                    $this->cron_term_cache['no_emails'][$uid] = 
+                        $instructor;
                 }
 
                 unset($email_ref);
@@ -1721,78 +1825,24 @@ class uclacoursecreator {
 
                 // These are not parsed
                 $email_ref['subjarea'] = $course_dept;
-                $email_ref['userid'] = $instructor->ucla_id;
+                $email_ref['userid'] = $uid;
                 $email_ref['srs'] = $csrs;
                 $emails[] = $email_ref;
-            }
-            
-            if (isset($course->contact) && !empty($course->contact)) {
-                $contact = $course->contact;
-                if (!isset($requestor_emails[$contact])) {
-                    if (validate_email($contact)) {
-                        $requestor_emails[$contact] = array();
-                    } else {
-                        $this->emailln("Requestor email $contact not valid for $term $csrs");
-                    }
-                }
-
-                if (isset($requestor_emails[$contact])) {
-                    $requestor_emails[$contact][$course_url] = $course_url;
-                }
             }
         }
 
         // Try to check out local records for emails
-        // @todo move this chunk out into function get_users_idnumber()
-        $local_email = array();
-        if (!empty($no_emails)) {
-            $local_wheres = array();
+        $local_emails = array();
+        if (!empty($this->cron_term_cache['no_emails'])) {
+            $this->get_local_emails();
 
-            foreach ($no_emails as $emailless) {
-                // Attempt to find user
-                $userid = $emailless->ucla_id;
-                $name = trim($emailless->first_name_person) . ' ' 
-                    . trim($emailless->last_name_person);
-                mylog("$name $userid has no email.");
-
-                $local_wheres[] = $userid;
-            }
-
-            // @todo find this index
-            $local_where = "('" . implode("', '", $local_wheres) . "')";
-
-            $sql = "
-                SELECT id, email, idnumber
-                FROM {$CFG->prefix}user
-                WHERE
-                    idnumber IN $local_where
-                ";
-
-            mylog("Searching local MoodleDB for idnumbers $local_where ...");
-            $local_users = get_records_sql($sql);
-
-            if (!empty($local_users)) {
-                foreach ($local_users as $local_user) {
-                    $email = trim($local_user->email);
-
-                    if ($email != '') {
-                        $idnumber = $local_user->idnumber;
-                        mylog("Found user $idnumber $email");
-                        $local_email[$local_user->idnumber] = $email;
-                    }
-                }
-            }
-
-            unset($local_users);
+            $local_emails = $this->cron_term_cache['local_emails'];
         }
-
-        unset($no_emails);
 
         // Parsed
         $parsed_params = array();
 
-        $debugmode = $this->get_debug();
-
+        // This may take the most memory
         $email_summary_data = array();
         foreach ($emails as $emailing) {
             $add_subject = '';
@@ -1805,6 +1855,7 @@ class uclacoursecreator {
             // Filter out no emails
             $userid = $emailing['userid'];
 
+            // Preformat the email summary
             if (!isset($email_summary_data[$csrs])) {
                 $email_summary_data[$csrs] = array();
             }
@@ -1813,16 +1864,20 @@ class uclacoursecreator {
 
             if ($emailing['to'] == '') {
                 // Attempt to find user
-                if (!isset($local_email[$userid])) {
-                    $this->println("Cannot email $userid " . $emailing['lastname']);
-                    $email_summary_data[$csrs][$userid] .= "! " . $emailing['lastname']
+                if (!isset($local_emails[$userid])) {
+                    $this->println("Cannot email $userid " 
+                        . $emailing['lastname']);
+
+                    $email_summary_data[$csrs][$userid] .= "! " 
+                        . $emailing['lastname']
                         . "\t $userid \tFAILED - No email address.\n";
                     continue;
                 } else {
-                    $emailing['to'] = $local_email[$userid];
+                    $emailing['to'] = $local_emails[$userid];
 
-                    $email_summary_data[$csrs][$userid] .= '* ' . $emailing['lastname']
-                        . "\t $userid \t" . $local_email[$userid] 
+                    $email_summary_data[$csrs][$userid] .= '* ' 
+                        . $emailing['lastname']
+                        . "\t $userid \t" . $local_emails[$userid] 
                         . " - Local email ONLY\n";
                 }
             } 
@@ -1830,6 +1885,8 @@ class uclacoursecreator {
             // Set the destination
             $email_to = $emailing['to'];
 
+            // Handle special emails to THE STAFF and TA
+            // These are filler users 
             if ($userid == '100399990') {
                 $email_to = '';
                 $add_subject = ' (THE STAFF)';
@@ -1843,38 +1900,48 @@ class uclacoursecreator {
             // Parse the email
             $subj = $emailing['subjarea'];
 
-            if (!isset($parsed_param[$subj])) {
-                $deptfile = $email_short . $subj . $email_suffix;
+            // Figure out which email template to use
+            if (!isset($this->parsed_param[$subj])) {
+                if (!isset($this->email_prefix)) {
+                    $this->figure_email_vars();
+                }
+
+                $deptfile = $this->email_prefix . $subj . $this->email_suffix;
 
                 if (file_exists($deptfile)) {
                     $file = $deptfile;
                 } else {
-                    $file = $default_email_file;
+                    $file = $this->default_email_file;
                 }
 
-                $parsed_param[$subj] = parsefile($file);
+                $this->parsed_param[$subj] = $this->email_parse_file($file);
             }
 
-            $used_param = $parsed_param[$subj];
+            $used_param = $this->parsed_param[$subj];
             unset($emailing['subjarea']);
 
-            $email_params = filltemplate($used_param, $emailing);
+            $email_params = 
+                $this->email_fill_template($used_param, $emailing);
 
             // Setup the email
             $from = $email_params['from'];
             $bcc = $email_params['bcc'];
 
+            // Headers, include the Blind Carbon Copy
             $headers = "From: $from \r\n Bcc: $bcc \r\n";
-
+           
             $email_subject = $email_params['subject'];
+
+            // Append filler user explanations
             $email_subject .= $add_subject;
 
             $email_body = $email_params['body'];
 
-            $email_summary_data[$csrs][$userid] .= '. ' . $emailing['lastname']
-                . "\t $userid \t" . $email_to . " \t $email_subject\n";
+            $email_summary_data[$csrs][$userid] .= '. ' 
+                . $emailing['lastname'] . "\t $userid \t" 
+                . $email_to . " \t $email_subject\n";
 
-            if (isset($debugmode) && !$debugmode) {
+            if (!$this->get_debug()) {
                 $this->println("Emailing: $email_to");
                 //mail($email_to, $email_subject, $email_body, $headers);
             } else {
@@ -1885,12 +1952,161 @@ class uclacoursecreator {
                 mail($CFG->course_creator_email, $email_subject, $email_body);
             }
         }
+    }
 
-        unset($emailing);
+    /**
+     *  This will try to see if any instructors without emails from the
+     *  Registrar have accounts with emails on our local server.
+     *
+     *  Changes the state of the object.
+     **/
+    function get_local_emails() {
+        // Try to check out local records for emails
+        $no_emails =& $this->cron_term_cache['no_emails'];
 
-        // @todo split this out
+        $local_userids = array();
+
+        foreach ($no_emails as $emailless) {
+            // Attempt to find user
+            $userid = $emailless->ucla_id;
+            $name = trim($emailless->first_name_person) . ' ' 
+                . trim($emailless->last_name_person);
+            $this->println("$name $userid has no email.");
+
+            $local_userids[] = $userid;
+        }
+
+        list($sql_in, $params) = $DB->get_in_or_equal($local_userids);
+        $sql_where = 'idnumber IN ' . $sql_in;
+
+        $this->println("Searching local MoodleDB for idnumbers $sql_in...");
+
+        $local_users = $DB->get_records_select('users', $sql_where, $params);
+
+        if (!empty($local_users)) {
+            foreach ($local_users as $local_user) {
+                $email = trim($local_user->email);
+
+                if ($email != '') {
+                    $idnumber = $local_user->idnumber;
+                    $this->println("Found user $idnumber $email");
+                    $this->local_emails[$local_user->idnumber] = $email;
+                }
+            }
+        }
+    }
+
+    /**
+     *  Parses the reference file into an array.
+     *  @param The file location.
+     *  @return The elements of the email parsed into an array.
+     **/
+    function email_parse_file($file) {
+        $email_params = array();
+
+        $fp = fopen($file, 'r');
+
+        if (!$fp) {
+            echo "ERROR: could not open email template file $file \n";
+            return ;
+        }
+
+        echo "Parsing $file ...\n";
+        // first 3 lines are headers
+        for ($x = 0; $x < 3; $x++) {
+            $line = fgets($fp);
+            if (preg_match('/'.'^FROM:(.*)'.'/i',$line, $matches)) {
+                $email_params['from'] = trim($matches[1]);
+            } else if (preg_match('/'.'^BCC:(.*)'.'/i',$line, $matches)) {
+                $email_params['bcc'] = trim($matches[1]);
+            } else if (preg_match('/'.'^SUBJECT:(.*)'.'/i',$line,$matches)) {
+                $email_params['subject'] = $matches[1];
+            }
+        }
+        
+        if(sizeof($email_params) != 3) {
+            echo "ERROR: failed to parse headers in $file \n";
+            return false;
+        }
+        
+        $email_params['body'] = '';
+        
+        while (!feof($fp)) { //the rest of the file is the body
+            $email_params['body'] .= fread($fp, 8192);
+        }
+       
+        echo "Parsing $file successful \n";
+        fclose($fp);
+        
+        return $email_params;
+    }
+
+    /** 
+     *  Replaces values in the email with values provided in arguments.
+     *  @param The parsed email.
+     *  @param The values to replace the parsed entries with.
+     *  @return The reparsed emails.
+     **/
+    function email_fill_template($params, $arguments) {
+        foreach ($params as $key => $value) { 
+            // fill in template placeholders
+            foreach ($arguments as $akey => $avalue) {
+                $params[$key] = str_replace('#=' . $akey . '=#',
+                    $avalue, $params[$key]);
+            }
+
+            if (preg_match('/#=.*?=#/', $params[$key])) {
+                echo $params[$key];
+            }
+        }
+
+        return $params;
+    }
+    
+    /**
+     *  Gathers the information needed to mail to the requestors.
+     *
+     *  Changes the state of the function.
+     **/
+    function queue_requestors() {
+        if (!isset($this->cron_term_cache['requests'])) {
+            throw new CourseCreatorException(
+                'No requests to email requestors!'
+            );
+        }
+
+        // Gather requestors' courses
+        foreach ($this->cron_term_cache['requests'] as $course) {
+            if (isset($course->contact) && !empty($course->contact)) {
+                $contact = $course->contact;
+                if (!isset($this->requestor_emails[$contact])) {
+                    if (validate_email($contact)) {
+                        $this->requestor_emails[$contact] = array();
+                    } else {
+                        $this->emailln("Requestor email $contact not valid "
+                            . "for $term $csrs");
+                    }
+                }
+
+                if (isset($this->requestor_emails[$contact])) {
+                    $this->requestor_emails[$contact][$course_url] = 
+                        $course_url;
+                }
+            }
+        }
+    }
+
+    /**
+     *  This will mail the requestors with the information we gathered.
+     *
+     **/
+    function mail_requestors() {
+        if (empty($this->requestor_emails)) {
+            return false;
+        }
+
         // Email course requestors
-        foreach ($requestor_emails as $requestor => $created_courses) {
+        foreach ($this->requestor_emails as $requestor => $created_courses) {
             $req_mes = $requestor_mesg_start 
                 . implode("\n", $created_courses) . $requestor_mesg_end;
 
@@ -1905,40 +2121,41 @@ class uclacoursecreator {
 
             $req_summary = implode(',', $created_courses);
 
-            if (!$debugmode) {
+            if (!$this->get_debug) {
+                // @todo Do not actually die here
                 die;
-                if (mail($requestor, $req_subj, $req_mes, $requestor_headers)) {
+                if (mail($requestor, $req_subj, $req_mes, 
+                        $requestor_headers)) {
                     $this->println("Emailed $requestor for $req_summary");
                 } else {
                     $this->println("ERROR: course not email $requestor");
                 }
             }
 
-            // @todo figure out where to put htis
             $this->emailln("Emailed $requestor for $req_summary");
         }
     }
 
-    /**
-     *  Inserts the records into {ucla_reg_classinfo} and updates them as 
-     *  finished in {ucla_request_classes}.
-     *
-     **/
-    function finish_term_cron() {
-
-    }
+    /** ********************** **/
+    /*  More Global Functions   */
+    /** ********************** **/
 
     /**
-     *  Check that we have write priviledges, if not, we will use moodledata.
+     *  Check that we have an outpath set, if not, we will use moodledata.
+     *  Check that we have write priviledges to the outpath, if not, we will 
+     *      use moodledata.
      *
      *  Changes the state of the object.
      **/
     function check_write() {
         global $CFG;
-        // @todo check that we have write capability in the IMS output folder,
-        // otherwise revert to some moodledata folder
+
+        // Check if we have a path to write to
+        // Default to moodledata otherwise
         if (!$this->get_config('course_creator_outpath')) {
             $this->output_path = $CFG->dataroot . '/course_creator';
+
+            // This means we have no write priveledges to moodledata
             if (!file_exists($this->output_path)) {
                 if (!mkdir($this->output_path)) {
                     throw new CourseCreatorException('Could not make ' 
@@ -1949,14 +2166,19 @@ class uclacoursecreator {
             $this->output_path = $this->get_config('course_creator_outpath');
         }
 
+        // Test that we actually can write to the output path
         $test_file = $this->output_path . '/write_test.txt';
 
         if (!fopen($test_file, 'w')) {
             throw new CourseCreatorException('No write permissions to ' 
                 . $this->output_path);
-        } else {
-            unlink($test_file);
-        }
+        } 
+
+        unlink($test_file);
+
+        // This is saved for creating XML and log files
+        $this->shell_date = date('Y-m-d-G-i');
+        $this->full_date = date('r');
     }
 
     /**
@@ -1969,11 +2191,25 @@ class uclacoursecreator {
     function handle_locking($lock, $soft=false) {
         global $DB;
 
-        // @todo prevent more than one instance of this cron from running
+        $this->db_id = $this->cryptify($this->get_config('dbname'));
+
+        $cc_lock = $this->output_path . '/.lock-' . $this->db_id;
 
         // Prevent new requests that come in during course creation from 
         // affecting course creator
         if ($lock) {
+            // We sometimes want to do a file lock
+            if (!$soft) {
+                if (file_exists($cc_lock)) {
+                    throw new CourseCreatorException(
+                        'Lock file already exists!
+                    ');
+                }
+
+                $this->lockfp = fopen($cc_lock, 'x');
+            }
+
+            // @todo, maybe we should make this smarter?
             $sql_where = "
                 action LIKE '%uild'
                     AND
@@ -1982,18 +2218,37 @@ class uclacoursecreator {
 
             $DB->set_field_select('ucla_request_classes', 'status', 
                 'processing', $sql_where);
-        } 
+        } else {
+            if (!file_exists($cc_lock)) {
+                // By here, we've already marked everything as finished, so
+                // spit out a warning and just go about our day.
+                if (!$soft) {
+                    $this->debugln(
+                        'WARNING: Lock file disappeared during course'
+                        . 'creation!'
+                    );
+
+                    $this->debugln('!! Your tables may be volatile !!');
+                }
+            } else {
+                unlink($cc_lock);
+            }
+
+            // We're going to check for entries we missed
+            $missed = $DB->get_records('ucla_request_classes', 
+                array('status' => 'processing'));
+
+            if (!empty($missed)) {
+                foreach ($missed as $course) {
+                    $this->debugln("Could not create " . $course->term 
+                        . ' ' . $course->srs . ' ' . $course->course);
+                }
+            }
+        }
 
         return true;
     }
 
-    /**
-     *  Mails the requestors.
-     *
-     **/
-    function mail_requestors() {
-        // @todo
-    }
 
     /**
      *  Temporary wrapper for finishing up cron.
@@ -2002,13 +2257,24 @@ class uclacoursecreator {
      *  May not be necessary.
      **/
     function finish_cron() {
-        // @todo email admin
-        // @todo close open databases
-        // @todo close open files
+        $this->mail_requestors();
 
+        $this->println('---- Course creator end at ' . date('r') 
+            . ' ----');
+
+        // @todo actually send this email
         echo "\ne-Mail:\n" . $this->email_log;
 
+        $this->close_log_file_pointer();
+
         return true;
+    }
+    
+    /**
+     *  Quick wrapper for a cryptography function.
+     **/
+    function cryptify($string) {
+        return substr(md5($string), 0, 8);
     }
 
     /** ****************** **/
@@ -2035,7 +2301,6 @@ class uclacoursecreator {
     /**
      *  Will figure out the terms to work for.
      *  Currently only uses the config file as a source.
-     *  @todo Should check in the configuration what term to use to build.
      *
      *  Will change the state of the object.
      *
@@ -2062,13 +2327,23 @@ class uclacoursecreator {
     }
 
     /**
-     *  Will figure out the email non-variants.
+     *  This will figure out the paths for the email files using the config
+     *  variables.
      *
-     *  Will change the state of the object.
+     *  You just need to call this once.
      **/
-    function figure_email() {
-        // @todo
-        // course_creator_mailheaders
+    function figure_email_vars() {
+        if (!$this->get_config('course_creator_email_template_dir')) {
+            throw new CourseCreatorException('No email directory set!');
+        }
+
+        $this->email_prefix = 
+            $this->get_config('course_creator_email_template_dir');
+
+        $this->email_suffix = '_course_setup_email.txt';
+        
+        $this->default_email_file = $this->email_prefix . 'DEFAULT'
+            . $this->email_suffix;
     }
 
     /** ************************ **/
@@ -2092,7 +2367,13 @@ class uclacoursecreator {
      *  Wrapper for {@see get_config()}
      **/
     function get_config($config) {
-        return get_config(NULL, $config);
+        $ucc_config = get_config('uclacoursecreator', $config);
+
+        if (!$ucc_config) {
+            return get_config(NULL, $config);
+        }
+
+        return $ucc_config;
     }
 
     /**
@@ -2203,9 +2484,6 @@ class uclacoursecreator {
 
         if ($this->get_debug()) {
             $extdb->debug = true;
-            // @todo validate necessity
-            // start output buffer to allow later use of the page headers
-            //ob_start();
         }
 
         $extdb->Connect(
@@ -2249,7 +2527,6 @@ class uclacoursecreator {
      *  @return string The name with guessed capitals.
      **/
     function format_name($name) {
-        // @todo Actually do smart ones
         return ucwords(strtolower($name));
     }
 

@@ -56,6 +56,7 @@ define('CLI_SCRIPT', TRUE);
 
 require($config_file);
 require(dirname(__FILE__) . '/uclacoursecreator.class.php');
+global $CFG;
 
 $bcc = new uclacoursecreator();
 
@@ -67,9 +68,7 @@ ini_set('display_errors', '1');
 
 // Forcing debugging
 if (isset($ext_argv['--debug'])) {
-    // TODO Fix this to use Moodle's debugging
-    // Turn on Moodle's debug mode
-    $debugmode = TRUE;
+    $bcc->set_debug(true);
 }
 
 // Figure out which terms to run for
@@ -82,10 +81,14 @@ if (isset($ext_argv['--current-term'])) {
     $termlist = array($CFG->currentterm);
 }
 
+// Force a run, try unlocking first
+if (isset($ext_argv['--force'])) {
+    $bcc->handle_locking(false, true);
+}
+
 // Set the terms to be this value
 $bcc->set_terms($termlist);
 
-echo "Running cron...\n";
 $bcc->cron();
 
 /** End of CLI script **/
