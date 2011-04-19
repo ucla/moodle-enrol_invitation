@@ -152,8 +152,9 @@ $THEME->layouts = array(
 
 $THEME->rendererfactory = 'theme_overridden_renderer_factory';
 
-$dropdown_contents = trim(get_config('theme_' . $THEME->name, 'logo_sub_dropdown'));
-if ($dropdown_contents != NULL && $dropdown_contents != '') {
-    $THEME->javascripts[] = 'shared_server_dropdown'; 
+$dropdown_contents = get_config('theme_' . $THEME->name, 'logo_sub_dropdown');
+if ($dropdown_contents) {
+    $THEME->javascripts[] = 'jquery-1.5.2.min'; 
+    $THEME->javascripts[] = 'shared_server_dropdown';
 }
 

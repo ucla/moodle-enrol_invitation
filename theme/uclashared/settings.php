@@ -27,13 +27,11 @@ if ($ADMIN->fulltree) {
     $setting = new admin_setting_configtextarea($name, $title, $description, $default, PARAM_RAW);
     $settings->add($setting);
 
-    /*
     $the_setting = 'logo_sub_dropdown';
     $name = $theme_name . '/' . $the_setting;
     $title = get_string('setting_title_' . $the_setting, $theme_name);
     $description = get_string('setting_desc_' . $the_setting, $theme_name);
-    $default = get_string('setting_default_' . $the_setting, $theme_name);
-    $setting = new admin_setting_configtextarea($name, $title, $description, $default, PARAM_RAW);
+    $default = false; 
+    $setting = new admin_setting_configcheckbox($name, $title, $description, $default);
     $settings->add($setting);
-     */
 } 

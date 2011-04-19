@@ -14,7 +14,7 @@ html, body {background-color:#eaeaea;}
 
 #page-header .headermain {margin:0;margin-top:10px;margin-left:15px;margin-bottom:10px;}
 #page-header .headermain #sublogo {margin-left:20px;}
-#page-header .headermain #sublogo span { color: white;}
+#page-header .headermain #sublogo span { color: #CCC;}
 #page-header .headermain span {color:#C8C9C7;}
 
 
@@ -27,13 +27,13 @@ html, body {background-color:#eaeaea;}
 #page-header .navbar .navbutton {margin:5px 1em;}
 
 /** Dropdown **/
-#page-header #sublogo .dropdown {width:110px; height:20px; overflow:hidden;position:relative;}
-#page-header #sublogo .dropdown p {font-weight: normal;width:110px; height:20px;margin-bottom:0px; 0 0 no-repeat;}
-#page-header #sublogo .dropdown ul {width:925px; background:#FFF;list-style-type:none;position:absolute;top:20px;left:0px;margin:0px;border:1px solid #536895;}
-#page-header #sublogo .dropdown span {display:inline;width:925px;color:#536895;font-size:11px;margin:5px;}
-#page-header #sublogo .dropdown li {list-style-type:none;float:left;width:185px;text-align:center;}
-#page-header #sublogo .dropdown:hover {overflow:visible;z-index:9999999999999; 0 0 no-repeat;}
-#page-header #sublogo .dropdown p:hover {0 0 no-repeat;}
+#page-header #sublogo #dropdown {width:110px;cursor:pointer;cursor:hand;color:#CCC;}
+#page-header #sublogo .dropdownlist p {font-weight: normal;width:110px; height:20px;margin-bottom:0px; 0 0 no-repeat;}
+#page-header #sublogo .dropdownlist ul {width:925px; background:#536895;list-style-type:none;margin:0px;border:1px solid #536895;}
+#page-header #sublogo .dropdownlist span {display:inline;width:925px;color:#CCC;font-size:11px;margin:0px;font-weight:normal;font-style:italic;}
+#page-header #sublogo .dropdownlist li {list-style-type:none;float:left;width:185px;text-align:left;line-height:1em;}
+.RightArrow:before {content:'► ';}
+.DownArrow:before {content:'▼ ';}
 
 /** Footer **/
 #page-footer {background-color: #565656; color:#FFF; height:30px;}
