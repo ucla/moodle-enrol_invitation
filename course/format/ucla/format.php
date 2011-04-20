@@ -115,11 +115,13 @@ $thissection = $sections[$section];
 // repeating the first section
 unset($sections[0]);
 
+$coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+
 if ($thissection->summary or $thissection->sequence 
     or $PAGE->user_is_editing()) {
 
-    // Note, no need for a 'left side' cell or DIV.
-    // Note, 'right side' is BEFORE content.
+    // Note: no need for a 'left side' cell or DIV.
+    // Note: 'right side' is BEFORE content.
     echo html_writer::start_tag('li', array(
         'id' => 'section-0',
         'class' => 'section main clearfix'
@@ -134,7 +136,6 @@ if ($thissection->summary or $thissection->sequence
     }
 
     echo '<div class="summary">';
-    $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
 
     // @todo see what thell this function does
     $summarytext = file_rewrite_pluginfile_urls($thissection->summary, 
@@ -176,6 +177,15 @@ $timenow = time();
 $section = 1;
 $sectionmenu = array();
 
+// Non-Variants
+$has_capability_viewhidden = 
+    has_capability('moodle/course:viewhiddensections', $context);
+
+$has_capability_update = has_capability('moodle/course:update', 
+    $coursecontext);
+
+$get_accesshide = get_accesshide(get_string('currenttopic', 'access'));
+
 while ($section <= $course->numsections) {
 
     if (!empty($sections[$section])) {
@@ -193,20 +203,24 @@ while ($section <= $course->numsections) {
         $thissection->id = $DB->insert_record('course_sections', $thissection);
     }
 
-    $showsection = has_capability('moodle/course:viewhiddensections', $context) 
-        or $thissection->visible or !$course->hiddensections;
+    // Check viewing capabilities of this section
+    $showsection = $has_capability_viewhidden or $thissection->visible 
+        or !$course->hiddensections;
 
+    // If we are only displaying one section, save this section for the 
+    // pull down menu later
     if (!empty($displaysection) and $displaysection != $section) {  
-        // Check this topic is visible
+        // Show the section in the pull down only if we would've shown it
+        // otherwise
         if ($showsection) {
             $sectionmenu[$section] = get_section_name($course, $thissection);
         }
+
         $section++;
         continue;
     }
 
     if ($showsection) {
-
         $currenttopic = ($course->marker == $section);
 
         $currenttext = '';
@@ -214,30 +228,76 @@ while ($section <= $course->numsections) {
             $sectionstyle = ' hidden';
         } else if ($currenttopic) {
             $sectionstyle = ' current';
-            $currenttext = get_accesshide(get_string('currenttopic','access'));
+            $currenttext = $get_accesshide;
         } else {
             $sectionstyle = '';
         }
 
-        echo '<li id="section-'.$section.'" class="section main clearfix'.
-             $sectionstyle.'" >'; 
+       
+        $section_id = 'section-'.$section;
+        $class_text = 'section main clearfix '.$sectionstyle;
+        echo html_writer::start_tag('li', array(
+                'id' => $section_id,
+                'class' => $class_text
+            ));
 
-        echo '<div class="left side">'.$currenttext.$section.'</div>';
+        echo html_writer::tag('div', $currenttext.$section, array(
+                'class' => 'left side'
+            ));
+
         // Note, 'right side' is BEFORE content.
         echo '<div class="right side">';
 
+        $additional_controls = array();
+
+        $url_options = array('id' => $course->id);
+
         if ($displaysection == $section) {    // Show the zoom boxes
+            $url_options['topic'] = '0';
+
+            $link_options = array(
+                'title' => $strshowalltopics
+            );
+
+            $img_options = array(
+                'src' => $OUTPUT->pix_url('i/all'),
+                'class' => 'icon'
+                'alt' => $strshowalltopics
+            );
+
+            /*
             echo '<a href="view.php?id='.$course->id.'&amp;topic=0#section-'.
                  $section.'" title="'.$strshowalltopics.'">'.
                  '<img src="'.$OUTPUT->pix_url('i/all').'" class="icon" alt="'.
                  $strshowalltopics.'" /></a><br />';
+            */
         } else {
             $strshowonlytopic = get_string("showonlytopic", "", $section);
+
+            $url_options['topic'] = $section;
+
+            $link_options = array(
+                'title' => $strshowonlytopic
+            );
+
+            $img_options = array(
+                'src' => $OUTPUT->pix_url('i/one'),
+                'class' => 'icon',
+                'alt' => $strshowonlytopic
+            );
+
+            
             echo '<a href="view.php?id='.$course->id.'&amp;topic='.$section.
                  '" title="'.$strshowonlytopic.'">'.
                  '<img src="'.$OUTPUT->pix_url('i/one').'" class="icon" alt="'.
                  $strshowonlytopic.'" /></a><br />';
         }
+
+        $additional_controls[] = 
+            html_writer::link(new moodle_url('view.php', $url_options),
+                html_writer::empty_tag('img', $img_options),
+                $link_options);
+
 
         if ($PAGE->user_is_editing() && has_capability('moodle/course:update', 
                 get_context_instance(CONTEXT_COURSE, $course->id))) {
