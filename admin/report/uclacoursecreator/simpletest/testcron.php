@@ -1,4 +1,31 @@
 <?php
+// This file is a part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ *  A Unit test for uclacoursecreator.
+ *
+ *  This test is primarily a temporary testing component for the class
+ *  uclacoursecreator. It will test to make sure that certain parts
+ *  of the implementation works correctly.
+ *  Eventually this will test the happy path and all other extreme cases.
+ *
+ *  @package ucla
+ *  @subpackage course_creator
+ *  @copyright 2011 UCLA
+ **/
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
@@ -26,6 +53,9 @@ class UCLACCTest extends UnitTestCase {
 
         $this->course_creator = new uclacoursecreator(); 
 
+        // Force no log file
+        $this->course_creator->set_debug(false);
+
         global $DB;
 
         // Set up test scenario
@@ -33,7 +63,7 @@ class UCLACCTest extends UnitTestCase {
         $ignore_fields = array('action', 'status', 'course', 'department');
     
         $requests = array();
-        $req = array();  
+        $req = array();
        
         $req['srs'] = '105030200';
         $req['term'] = '10F';
@@ -59,8 +89,6 @@ class UCLACCTest extends UnitTestCase {
         $crosslists[] = $cl;
 
         $revert['ucla_request_crosslist'] = $crosslists;
-
-        // @todo check if we're overwriting values, save them
 
         echo '<pre>';
 
@@ -108,7 +136,7 @@ class UCLACCTest extends UnitTestCase {
         
         try {
             // @todo Get this to use a more independent model, maybe move into setUp
-            $this->course_creator->handle_locking(true, true);
+            $this->course_creator->handle_locking(true, false);
             $this->course_creator->start_cron_term('10F');
 
             // actual test
@@ -116,6 +144,7 @@ class UCLACCTest extends UnitTestCase {
 
             // try to make sure the state is not affected...
             $this->course_creator->mark_cron_term(true);
+            $this->course_creator->handle_locking(false, false);
         } catch (CourseCreatorException $e) {
             echo $e->getMessage();
             $assert = false;
