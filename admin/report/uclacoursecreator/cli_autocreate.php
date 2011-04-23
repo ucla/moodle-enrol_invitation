@@ -83,7 +83,7 @@ if (isset($ext_argv['--current-term'])) {
 
 // Force a run, try unlocking first
 if (isset($ext_argv['--force'])) {
-    $bcc->handle_locking(false, true);
+    $bcc->handle_locking(false, false);
 }
 
 // Set the terms to be this value

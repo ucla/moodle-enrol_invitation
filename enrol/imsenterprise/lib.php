@@ -321,6 +321,20 @@ function process_group_tag($tagcontents){
     if(preg_match('{<org>.*?<orgunit>(.*?)</orgunit>.*?</org>}is', $tagcontents, $matches)){
         $group->category = trim($matches[1]);
     }
+    // START UCLA MODIFICATION CCLE-2541: Course Creator
+    // Adding detection for the long long name of the course
+    if(preg_match('{<description>.*?<long>(<!\[CDATA\[)?(.*?)(\]\]>)?</long>.*?</description>}is', $tagcontents, $matches)){
+        $group->longdescription = trim($matches[2]);
+    } else {
+        $group->longdescription = '';
+    }
+    if(preg_match('{<description>.*?<full>(<!\[CDATA\[)?(.*?)(\]\]>)?</full>.*?</description>}is', $tagcontents, $matches)){
+        $group->summary = trim($matches[2]);
+    } else {
+        $group->summary = "";
+    }
+
+    // END UCLA MODIFICATION CCLE-2541
 
     $recstatus = ($this->get_recstatus($tagcontents, 'group'));
     //echo "<p>get_recstatus for this group returned $recstatus</p>";
@@ -357,11 +371,17 @@ function process_group_tag($tagcontents){
               } else {
                 // Create the (hidden) course(s) if not found
                 $course = new stdClass();
-                $course->fullname = $group->description;
-                $course->shortname = $coursecode;
+                // START UCLA MODIFICATION CCLE-2541: Course Creator port
+                // Making changes to certain parsed fields
+                $course->fullname = addslashes($group->longdescription);
+                $course->shortname = $group->description;
                 $course->idnumber = $coursecode;
+                $course->summary = addslashes($group->summary);
+                // This will be changed later in course creator
                 $course->format = 'topics';
                 $course->visible = 0;
+                // END UCLA MODIFICATION CCLE-2541
+
                 // Insert default names for teachers/students, from the current language
                 $site = get_site();
 
