@@ -10,6 +10,7 @@
  **/
 
 // Parse the arguments into extended and regular arguments
+// This isn't as smart as it should be...
 foreach ($argv as $arg) {
     if (substr($arg, 0, 2) == '--') {
         $ext_argv[$arg] = $arg;
@@ -69,6 +70,10 @@ ini_set('display_errors', '1');
 // Forcing debugging
 if (isset($ext_argv['--debug'])) {
     $bcc->set_debug(true);
+}
+
+if (isset($ext_argv['--stealth'])) {
+    $bcc->set_send_informations(false);
 }
 
 // Figure out which terms to run for
