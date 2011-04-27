@@ -110,7 +110,7 @@ class uclacoursecreator {
     private $myucla_login = null;
 
     // Send out information to MyUCLA, instructors and requestors?
-    private $send_informations = true;
+    private $send_informations = null;
 
     // ODBC
     // Holds onto the registrar connection object.
@@ -156,6 +156,7 @@ class uclacoursecreator {
         }
 
         /** Run the course creator **/
+        // Figure out what terms we're running
         $termlist = $this->get_terms_creating();
 
         if (empty($termlist)) {
@@ -165,6 +166,12 @@ class uclacoursecreator {
             $this->finish_cron();
 
             return false;
+        }
+
+        // Figure out the config variables, defaulting to quietest behavior
+        if ($this->send_informations == null) {
+            $this->send_informations = 
+                $this->get_config('course_creator_send_informations');
         }
 
         // This will remember things locally from the Registrar
@@ -206,18 +213,11 @@ class uclacoursecreator {
                     // From that create the courses, and validate them
                     $this->ims_cron();
 
-                    // Only send stuff out if we want to
-                    if ($this->get_send_informations()) {
-                        // Update the URLs for the Registrar
-                        $this->update_MyUCLA_urls();
+                    // Update the URLs for the Registrar
+                    $this->update_MyUCLA_urls();
 
-                        // Send emails to the instructors
-                        $this->send_emails();
-                    } else {
-                        $this->println("\n"
-                            . '!! Not sending out URLs or Emails... !!'
-                            . "\n");
-                    }
+                    // Send emails to the instructors
+                    $this->send_emails();
                 }
 
                 if ($this->get_debug()) {
@@ -719,8 +719,8 @@ class uclacoursecreator {
 
             $cc_url = $this->get_config('course_creator_url_service');
 
-            $cc_name = $this->get_config('course_creator_name');
-            $cc_email = $this->get_config('course_creator_email');
+            $cc_name = $this->get_config('course_creator_myucla_name');
+            $cc_email = $this->get_config('course_creator_myucla_email');
 
             $mu_url = $cc_url 
                 . '?name=' . urlencode($cc_name)
@@ -1283,12 +1283,12 @@ class uclacoursecreator {
         foreach ($courses as $course) {
             $this->trim_object($course);
 
-            $this->debugln('Received request: ' . $course->term . ' ' 
+            $this->println('Received request: ' . $course->term . ' ' 
                 . $course->srs . ' ' . $course->course);
 
             if ($course->crosslist == '1') {
                 foreach ($course->crosslisted as $cl_course) {
-                    $this->debugln('   X-listed with: '
+                    $this->println('   X-listed with: '
                         . $cl_course->term . ' ' . $cl_course->aliassrs); 
                 }
             }
@@ -1932,6 +1932,7 @@ class uclacoursecreator {
         }
 
         // We are going to link child to parent courses
+        // Here we are going to send stuff in the email summary
         foreach ($this->cron_term_cache['requests'] as $request) {
             $course_srs = $request->srs;
             $term = $request->term;
@@ -1941,6 +1942,9 @@ class uclacoursecreator {
                 // Get the course_srs course id
                 $master = $this->make_idnumber($term, $course_srs, true);
                 $master_course = $created_courses_check[$master];
+
+                $this->emailln('Created Master course: ' 
+                    . $master_course->shortname);
 
                 $mcid = $master_course->id;
 
@@ -1953,6 +1957,9 @@ class uclacoursecreator {
                     $child_course = $created_courses_check[$cidn];
                     $cid = $child_course->id;
 
+                    $this->emailln('Crosslisted with: '
+                        . $child_course->shortname);
+
                     $this->cron_term_cache['activate']['child'][$cid] = 
                         $cid;
 
@@ -1964,12 +1971,18 @@ class uclacoursecreator {
                 $regular = $this->make_idnumber($term, $course_srs);
                 $reg_course = $created_courses_check[$regular];
 
+                $this->emailln('Created regular course: '
+                    . $reg_course->shortname);
+
                 $rid = $reg_course->id;
 
                 $this->cron_term_cache['activate']['regular'][$course_srs] 
                     = $rid;
             }
         }
+
+        // Nice space
+        $this->emailln("\n");
 
         // Coding check
         foreach ($this->cron_term_cache['activate'] as $type => $nothing) {
@@ -2111,8 +2124,14 @@ class uclacoursecreator {
                     // Let MyUCLA take a nap
                     sleep(1);
 
-                    // @todo CCLE-2541 enable this when ready to put on production
-                    //$myucla_curl = file_get_contents($url_update_push);
+                    // If quiet mode, we will not send the update
+                    if ($this->get_send_informations()) {
+                        $myucla_curl = file_get_contents($url_update_push);
+                    } else {
+                        $this->println('Quiet mode, skipping.');
+                        continue;
+                    }
+
                     $myucla_curl = $this->trim_strip_tags($myucla_curl);
 
                     $this->println(
@@ -2125,8 +2144,6 @@ class uclacoursecreator {
                             "Warning: Could not update URL for $term-$srs:"
                                 . $course_url
                         );
-
-                        // We can continue still, even if we get some errors
                     }
                 }
             }
@@ -2228,28 +2245,26 @@ class uclacoursecreator {
             $show_instructors = array();
 
             if (!isset($profcodes[$csrs])) {
-                $this->println('No instructors for ' . "$term $csrs,"
-                    . " skipping...");
-                continue;
-            }
+                $this->debugln('No instructors for ' 
+                    . "$term $csrs $course_text.");
+            } else {
+                $profcode_set = $profcodes[$csrs];
 
-            $profcode_set = $profcodes[$csrs];
+                if (isset($instructors[$csrs])) {
+                    foreach ($instructors[$csrs] as $instructor) {
+                        $viewable = $this->get_viewable_status($instructor, 
+                            $profcode_set);
 
-            if (isset($instructors[$csrs])) {
-                foreach ($instructors[$csrs] as $instructor) {
-                    $viewable = $this->get_viewable_status($instructor, 
-                        $profcode_set);
-
-                    if ($viewable) {
-                        $show_instructors[] = $instructor;
+                        if ($viewable) {
+                            $show_instructors[] = $instructor;
+                        }
                     }
                 }
-            }
 
-            if (empty($show_instructors)) {
-                $this->println("No instructors to email for "
-                    . "$term $csrs ($course_text)!");
-                continue;
+                if (empty($show_instructors)) {
+                    $this->debugln("No instructors to email for "
+                        . "$term $csrs ($course_text)!");
+                }
             }
 
             $course_url = $course_urls[$term][$csrs];
@@ -2276,7 +2291,7 @@ class uclacoursecreator {
                 $email_ref['to'] = $email;
                 $email_ref['coursenum-sect'] = $course_text;
                 $email_ref['dept'] = '';
-                $email_ref['url'] = 'https://'. $course_url;
+                $email_ref['url'] = $course_url;
                 $email_ref['term'] = $term;
                 $email_ref['nameterm'] = $pretty_term;
 
@@ -2358,7 +2373,7 @@ class uclacoursecreator {
             $subj = $emailing['subjarea'];
 
             // Figure out which email template to use
-            if (!$this->get_debug() && !isset($this->parsed_param[$subj])) {
+            if (!isset($this->parsed_param[$subj])) {
                 if (!isset($this->email_prefix)) {
                     $this->figure_email_vars();
                 }
@@ -2378,15 +2393,17 @@ class uclacoursecreator {
             if (!isset($this->parsed_param[$subj])) {
                 $this->debugln('Emails failed for subject area ' 
                     . $subj . ', most likely because we do not '
-                    . 'have a default email template.');
+                    . 'have a DEFAULT email template.');
 
                 $this->println();
 
                 $headers = '-not parsed-';
-                $email_subject = $emailing['coursenum-sect'];
+                $email_subject = '-not parsed - ' 
+                    . $emailing['coursenum-sect'] . ' '
+                    . $emailing['url'];
 
+                $email_body = '!-not parsed-!';
             } else {
-
                 $used_param = $this->parsed_param[$subj];
                 unset($emailing['subjarea']);
 
@@ -2406,15 +2423,18 @@ class uclacoursecreator {
                 $email_subject .= $add_subject;
 
                 $email_body = $email_params['body'];
-
-                $email_summary_data[$csrs][$userid] .= '. ' 
-                    . $emailing['lastname'] . "\t $userid \t" 
-                    . $email_to . " \t $email_subject\n";
             }
+
+            $email_summary_data[$csrs][$userid] .= '. ' 
+                . $emailing['lastname'] . "\t $userid \t" 
+                . $email_to . " \t $email_subject\n";
 
             if (!$this->get_debug()) {
                 $this->println("Emailing: $email_to");
-                //mail($email_to, $email_subject, $email_body, $headers);
+
+                if ($this->get_send_informations()) {
+                    mail($email_to, $email_subject, $email_body, $headers);
+                }
             } else {
                 $this->println("to: $email_to");
                 $this->println("headers: $headers");
@@ -2422,7 +2442,15 @@ class uclacoursecreator {
 
                 $this->println();
 
-                //mail($CFG->course_creator_email, $email_subject, $email_body);
+                // If debugging, send to the admin
+                mail($this->get_config('course_creator_email'), 
+                    $email_subject, $email_body);
+            }
+        }
+
+        foreach ($email_summary_data as $srs => $course_data) {
+            foreach ($course_data as $instr_data) {
+                $this->emailln($instr_data);
             }
         }
     }
@@ -2613,15 +2641,15 @@ class uclacoursecreator {
 
             $req_summary = implode(',', $created_courses);
 
-            if (!$this->get_debug()) {
-                /* @todo CCLE-2541 uncomment
-                if (mail($requestor, $req_subj, $req_mes, 
-                        $requestor_headers)) {
+            if (!$this->get_debug() && $this->get_send_informations()) {
+                $resp = mail($requestor, $req_subj, $req_mes, 
+                    $requestor_headers);
+
+                if ($resp) {
                     $this->println("Emailed $requestor for $req_summary");
                 } else {
                     $this->println("ERROR: course not email $requestor");
                 }
-                */
             }
 
             $this->emailln("Emailed $requestor for $req_summary");
@@ -2747,8 +2775,9 @@ class uclacoursecreator {
         $this->println('---- Course creator end at ' . date('r') 
             . ' ----');
 
-        // @todo CCLE-2541 actually send this email
-        echo "\n-------------------------------- e-Mail:\n" . $this->email_log;
+        // Email the summary to the admin
+        mail($this->get_config('course_creator_email'), 
+            'Course Creator Summary ' . $this->shell_date, $this->email_log);
 
         $this->close_log_file_pointer();
 
