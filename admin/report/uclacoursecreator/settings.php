@@ -1,8 +1,6 @@
 <?php
 
-// The next comment is true.
-// The previous comment is false.
-// All previous statements are true.
+// Cannot open script independently
 defined('MOODLE_INTERNAL') || die;
 
 // Add UCLA course creator to the admin block

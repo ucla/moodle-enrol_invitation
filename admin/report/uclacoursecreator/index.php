@@ -19,8 +19,18 @@ if (!class_exists('uclacoursecreator')) {
 $coursecreator = new uclacoursecreator();
 
 // Course requestor stuff wrapper needed
-$requests = $DB->get_records_select('ucla_request_classes', "status <> 'done' ",
-    null, '', '*', $pagination, $pagination + $viewnation);
+$requests = array();
+
+// Stuff?
+$error = '';
+
+try {
+    $requests = $DB->get_records_select('ucla_request_classes', 
+        "status <> 'done' ", null, '', '*', $pagination, 
+        $pagination + $viewnation);
+} catch (dml_exception $e) {
+    $error = $e->debuginfo;
+}
 
 $sql_wheres = array();
 $params = array();
@@ -183,49 +193,55 @@ echo $OUTPUT->heading(
     get_string('uclacoursecreator', 'report_uclacoursecreator')
 );
 
-// Stolen from admin/report/courseoverview/index.php
-echo html_writer::start_tag('form', array('action' => '.',
-        'method' => 'post',
-        'id' => 'settingsform'));
-
-if (!empty($terms_list)) {
-    echo html_writer::tag('h3', 'Build Terms');
-    echo html_writer::table($tum);
-}
-
-if (isset($rum)) {
-    echo html_writer::tag('h3', 'Build Specific Courses');
-    echo html_writer::tag('p', 'If you selected a term above, choices '
-        . 'made in this section for that term will have no effect.');
-    echo html_writer::table($rum);
-    // Make a whole array of other options
+// @todo Enable this whenever you are ready
+$error = 'Course Creator GUI Disabled';
+if (strlen($error) != 0) {
+    echo html_writer::tag('p', $error);
 } else {
-    echo "No courses in the requstor queue.";
+    // Stolen from admin/report/courseoverview/index.php
+    echo html_writer::start_tag('form', array('action' => '.',
+            'method' => 'post',
+            'id' => 'settingsform'));
+
+    if (!empty($terms_list)) {
+        echo html_writer::tag('h3', 'Build Terms');
+        echo html_writer::table($tum);
+    }
+
+    if (isset($rum)) {
+        echo html_writer::tag('h3', 'Build Specific Courses');
+        echo html_writer::tag('p', 'If you selected a term above, choices '
+            . 'made in this section for that term will have no effect.');
+        echo html_writer::table($rum);
+        // Make a whole array of other options
+    } else {
+        echo "No courses in the requstor queue.";
+    }
+
+    echo html_writer::start_tag('p');
+
+    $value_str = get_string('create') . ' ' . get_string('courses');
+    $submit_btn = array(
+        'type' => 'submit',
+        'value' => $value_str
+    );
+
+    if (!isset($rum)) {
+        $submit_btn['disabled'] = '1';
+    }
+
+    echo html_writer::empty_tag('input', $submit_btn);
+
+    echo html_writer::empty_tag('input', array(
+            'type' => 'hidden',
+            'value' => '1',
+            'name' => 'run'
+        ));
+
+    echo html_writer::end_tag('p');
+
+    echo html_writer::end_tag('form');
 }
-
-echo html_writer::start_tag('p');
-
-$value_str = get_string('create') . ' ' . get_string('courses');
-$submit_btn = array(
-    'type' => 'submit',
-    'value' => $value_str
-);
-
-if (!isset($rum)) {
-    $submit_btn['disabled'] = '1';
-}
-
-echo html_writer::empty_tag('input', $submit_btn);
-
-echo html_writer::empty_tag('input', array(
-        'type' => 'hidden',
-        'value' => '1',
-        'name' => 'run'
-    ));
-
-echo html_writer::end_tag('p');
-
-echo html_writer::end_tag('form');
 
 echo $OUTPUT->box_end();
 

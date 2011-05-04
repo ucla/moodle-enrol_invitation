@@ -9,55 +9,82 @@
  *  to STDOUT. So far, I have not seen a way around this. 
  **/
 
-// Parse the arguments into extended and regular arguments
-// This isn't as smart as it should be...
-foreach ($argv as $arg) {
-    if (substr($arg, 0, 2) == '--') {
-        $ext_argv[$arg] = $arg;
-    } else if (substr($arg, 0, 1) == '-') {
-        $com_argv[$arg] = $arg;
-    } else {
-        $reg_argv[] = $arg;
-    }
-}
-
 // Display help message
-if (isset($com_argv['-h']) || isset($ext_argv['--help'])) {
-    die (
+
+define ('HELP_STRING', 
 "USAGE: " . __FILE__ . " ([TERM] ([TERM] ... ))
 This script will build courses in the terms specified in course requestor.
+
 You can specify as many terms as you would like.
 
 Other options:
 
---force
-    Ignore the locking mechanism and run course creator.
+-d, --debug:
+    Force debug mode. Emails are not send, URLs are not updated, and at the end of each term, an exception is thrown, forcing each term to fail. See reverting cron job.
 
---debug
-    Force debug mode, no emails are sent and URLs are not updated.
+--current-term:
+    Run for the term that is specified in the configuration as the current term.
 
---current-term
-    Run for the current term, as currently specified in the config file.
+-h, --help:
+    Show a help message.
 
--h, --help
-    Show this message.
+-r, --revert:
+    This will enable reverting of failed built courses. Whenever the course creator decides that a term built failed, instead of leaving the courses in the Moodle DB, it will attempt to delete them.
 
-Written by SSC - CCLE - UCLA\n");
-}
+-u, --unlock-first
+    Attempt to remove a lock that may have been placed by another failed course creator run.
 
-// Skip the regular first argument, which should be the file itself
-array_shift($reg_argv);
+  Written by SSC - CCLE - UCLA
+");
 
 // Include the Moodle config
 $moodleroot = dirname(dirname(dirname(dirname(__FILE__)))); 
 $config_file = $moodleroot . '/config.php';
 
 // Satisfy Moodle's requirement for running CLI scripts
-define('CLI_SCRIPT', TRUE);
+define('CLI_SCRIPT', true);
 
 require($config_file);
 require(dirname(__FILE__) . '/uclacoursecreator.class.php');
 global $CFG;
+
+require($CFG->libdir . '/clilib.php');
+
+list($ext_argv, $unrecog) = cli_get_params(
+    array(
+        'unlock-first' => false,
+        'debug' => false,
+        'current-term' => false,
+        'help' => false,
+        'revert' => false
+    ),
+    array(
+        'u' => 'unlock-first',
+        'd' => 'debug',
+        'h' => 'help',
+        'r' => 'revert'
+    )
+);
+
+if ($ext_argv['help']) {
+    die(HELP_STRING);
+}
+
+$goals = array();
+$cur_term = false;
+
+$reg_argv = array();
+foreach ($argv as $arg) {
+    if (strpos($arg, '-') !== false) {
+        continue;
+    }
+
+    if (strlen($arg) == 3) {
+        // If we have processed up to another TERM argument,
+        // and we have no SRS requested within that TERM
+        $reg_argv[] = $arg;
+    }
+}
 
 $bcc = new uclacoursecreator();
 
@@ -67,13 +94,13 @@ $bcc = new uclacoursecreator();
 // This may screw up...
 ini_set('display_errors', '1');
 
-// Forcing debugging
-if (isset($ext_argv['--debug'])) {
-    $bcc->set_debug(true);
+if (!empty($goals)) {
+    $bcc->set_srs_list($goals);
 }
 
-if (isset($ext_argv['--stealth'])) {
-    $bcc->set_send_informations(false);
+// Forcing debugging
+if ($ext_argv['debug']) {
+    $bcc->set_debug(true);
 }
 
 // Figure out which terms to run for
@@ -82,13 +109,19 @@ if (!empty($reg_argv)) {
     $termlist = $reg_argv;
 } 
 
-if (isset($ext_argv['--current-term'])) {
+if ($ext_argv['current-term']) {
     $termlist = array($CFG->currentterm);
 }
 
 // Force a run, try unlocking first
-if (isset($ext_argv['--force'])) {
+if ($ext_argv['unlock-first']) {
     $bcc->handle_locking(false, false);
+}
+
+// Force revertings
+if ($ext_argv['revert']) {
+    // Temporary change
+    $CFG->course_creator_revert_failed_cron = true;
 }
 
 // Set the terms to be this value

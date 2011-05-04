@@ -43,10 +43,12 @@ class UCLACCTest extends UnitTestCase {
     private $course_creator = null;
 
     // This contains the tables we wish to revert
+    private $reverter = array();
     private $revert = null;
 
     // Maybe if code coverage is included
-    public static $includecoverage = array('admin/report/uclacoursecreator/uclacoursecreator.class.php');
+    public static $includecoverage = 
+        array('admin/report/uclacoursecreator/uclacoursecreator.class.php');
 
     function setUp() {
         parent::setUp();
@@ -55,11 +57,11 @@ class UCLACCTest extends UnitTestCase {
 
         // Force no log file
         $this->course_creator->set_debug(false);
+        $this->course_creator->no_output(true);
 
         global $DB;
 
         // Set up test scenario
-
         $ignore_fields = array('action', 'status', 'course', 'department');
     
         $requests = array();
@@ -90,8 +92,6 @@ class UCLACCTest extends UnitTestCase {
 
         $revert['ucla_request_crosslist'] = $crosslists;
 
-        echo '<pre>';
-
         foreach ($revert as $table => $data) {
             $this->backupTable($table);
 
@@ -110,12 +110,11 @@ class UCLACCTest extends UnitTestCase {
 
     function tearDown() {
         $this->restoreTables();
-        echo '</pre>';
     }
 
     function restoreTables() {
         foreach ($this->revert as $table => $data) {
-            echo "Reverting $table... (current unimplemented)\n";
+            //echo "Reverting $table... (current unimplemented)\n";
         }
     }
 
@@ -124,8 +123,13 @@ class UCLACCTest extends UnitTestCase {
      *  @todo need to do this for ucla_request_classes and ucla_request_crosslist.
      **/
     function backupTable($table) {
+        global $DB;
         // @todo copy the table into a file
         // @todo empty the table
+        $this->reverters[$table] = $DB->get_records($table);
+
+        $DB->delete_records($table);
+
         return true;
     }
 
@@ -145,9 +149,8 @@ class UCLACCTest extends UnitTestCase {
             // try to make sure the state is not affected...
             $this->course_creator->mark_cron_term(true);
             $this->course_creator->handle_locking(false, false);
-        } catch (CourseCreatorException $e) {
-            echo $e->getMessage();
-            $assert = false;
+        } catch (course_creator_exception $e) {
+            throw $e;
         }
 
         // Using our revert data, we're going to do magic
@@ -164,6 +167,8 @@ class UCLACCTest extends UnitTestCase {
         $count = count($cc['requests']);
         $goal_count = count($this->revert['ucla_request_classes']);
         $this->assertEqual($count, $goal_count);
+
+        // TODO validate that the finished requests are marked as done
 
         // Final finishing message
         $this->assertTrue($assert, 'Finished testing retrieve_requests');
@@ -208,7 +213,7 @@ class UCLACCTest extends UnitTestCase {
     
         // Remember that term and srs have carried over from before
         $test_entry['ucla_id'] = 'Test';
-        $test_entry['profcode'] = '01';
+        $test_entry['role'] = '01';
 
         $args->test_func = 'no_empty';
         $args->key_field = 'key_field_instructors';
@@ -222,7 +227,7 @@ class UCLACCTest extends UnitTestCase {
        
         // Another test
         $test_entry['ucla_id'] = 'Second';
-        $test_entry['profcode'] = '01';
+        $test_entry['role'] = '01';
 
         $this->course_creator->insert_local_entry($test_entry, $test_orig, $args);
         
@@ -239,8 +244,9 @@ class UCLACCTest extends UnitTestCase {
         $caught = false;
 
         try {
-            $this->course_creator->insert_local_entry($test_entry, $test_orig, $nargs);
-        } catch (CourseCreatorException $e) {
+            $this->course_creator->insert_local_entry($test_entry, $test_orig, 
+                $nargs);
+        } catch (course_creator_exception $e) {
             $caught = true;
         }
 
@@ -249,7 +255,7 @@ class UCLACCTest extends UnitTestCase {
         // Test that no_empty works
         $test_entry['srs'] = $test_orig->srs;
         $test_entry['ucla_id'] = 'fail';
-        $test_entry['profcode'] = '';
+        $test_entry['role'] = '';
 
         // Use $args, which specify instructor insert
         $this->course_creator->insert_local_entry($test_entry, $test_orig, $args);
@@ -262,7 +268,19 @@ class UCLACCTest extends UnitTestCase {
     }
 
     function testRetrieveRegistrarInfo() {
-        $mockcc = new mock_uclacoursecreator();
+        // Do some kind of testing here?
+        $this->testRequests();
+        $this->course_creator->retrieve_registrar_info('ccle_getClasses');
+
+        $cc = $this->course_creator->dump_cache();
+
+        //print_object($cc);
+
+        foreach ($cc['requests'] as $request) {
+            $this->assertTrue(isset($cc['term_rci'][trim($request->srs)]),
+                'Requested course ' . $request->srs . ' did not get retrieved.'
+            );
+        }
     }
 }
 
