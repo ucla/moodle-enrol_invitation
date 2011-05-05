@@ -115,10 +115,7 @@ $thissection = $sections[$section];
 // repeating the first section
 unset($sections[0]);
 
-$coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
-
-if ($thissection->summary or $thissection->sequence 
-    or $PAGE->user_is_editing()) {
+if ($thissection->summary or $thissection->sequence or $editing()) {
 
     // Note: no need for a 'left side' cell or DIV.
     // Note: 'right side' is BEFORE content.
@@ -130,16 +127,17 @@ if ($thissection->summary or $thissection->sequence
     echo html_writer::tag('div', '&nbsp;', array('class' => 'left side'));
     echo html_writer::tag('div', '&nbsp;', array('class' => 'right side'));
 
-    echo '<div class="content">';
+    echo html_writer::start_tag('div', array('class' => 'content'));
+
     if (!is_null($thissection->name)) {
         echo $OUTPUT->heading($thissection->name, 3, 'sectionname');
     }
 
-    echo '<div class="summary">';
+    echo html_writer::start_tag('div', array('class' => 'summary'));
 
     // @todo see what thell this function does
     $summarytext = file_rewrite_pluginfile_urls($thissection->summary, 
-        'pluginfile.php', $coursecontext->id, 'course', 'section', 
+        'pluginfile.php', $context->id, 'course', 'section', 
         $thissection->id);
 
     $summaryformatoptions = new stdClass();
@@ -149,13 +147,13 @@ if ($thissection->summary or $thissection->sequence
         $summaryformatoptions);
 
     if ($PAGE->user_is_editing() 
-            && has_capability('moodle/course:update', $coursecontext)) {
+            && has_capability('moodle/course:update', $context)) {
         echo '<a title="'.$streditsummary.'" '.' href="editsection.php?id='.
              $thissection->id.'"><img src="'.$OUTPUT->pix_url('t/edit') . '" '.
              ' class="icon edit" alt="'.$streditsummary.'" /></a>';
     }
     // End class="summary"
-    echo '</div>';
+    echo html_writer::end_tag('div');
 
     // Print contents
     print_section($course, $thissection, $mods, $modnamesused);
@@ -165,10 +163,9 @@ if ($thissection->summary or $thissection->sequence
     }
 
     // End class="content"
-    echo '</div>';
-    echo "</li>\n";
+    echo html_writer::end_tag('div');
+    echo html_writer::end_tag('li') . "\n";
 }
-
 
 /// Now all the normal modules by topic
 /// Everything below uses "section" terminology - each "section" is a topic.
@@ -182,7 +179,7 @@ $has_capability_viewhidden =
     has_capability('moodle/course:viewhiddensections', $context);
 
 $has_capability_update = has_capability('moodle/course:update', 
-    $coursecontext);
+    $context);
 
 $get_accesshide = get_accesshide(get_string('currenttopic', 'access'));
 
@@ -246,14 +243,31 @@ while ($section <= $course->numsections) {
             ));
 
         // Note, 'right side' is BEFORE content.
-        echo '<div class="right side">';
+        echo html_writer::start_tag('div', array('class' => 'right side'));
 
         $additional_controls = array();
 
+        // Constants for the link HREF
         $url_options = array('id' => $course->id);
 
-        if ($displaysection == $section) {    // Show the zoom boxes
-            $url_options['topic'] = '0';
+        // Options for the link HREF
+        $add_url_options = array();
+
+        // This is additional option for the link (usually anchor)
+        $link_str = '';
+
+        // These are the options for the anchor tag
+        $link_options = array();
+
+        // These are the options for the img tag
+        $img_options = array();
+
+        // Draw the boxes to display this or all sections
+        if ($displaysection == $section) {    
+            // Show the zoom boxes
+            $add_url_options['topic'] = '0';
+
+            $link_str = '#section-'.$section;
 
             $link_options = array(
                 'title' => $strshowalltopics
@@ -261,20 +275,14 @@ while ($section <= $course->numsections) {
 
             $img_options = array(
                 'src' => $OUTPUT->pix_url('i/all'),
-                'class' => 'icon'
+                'class' => 'icon',
                 'alt' => $strshowalltopics
             );
 
-            /*
-            echo '<a href="view.php?id='.$course->id.'&amp;topic=0#section-'.
-                 $section.'" title="'.$strshowalltopics.'">'.
-                 '<img src="'.$OUTPUT->pix_url('i/all').'" class="icon" alt="'.
-                 $strshowalltopics.'" /></a><br />';
-            */
         } else {
             $strshowonlytopic = get_string("showonlytopic", "", $section);
 
-            $url_options['topic'] = $section;
+            $add_url_options['topic'] = $section;
 
             $link_options = array(
                 'title' => $strshowonlytopic
@@ -285,117 +293,222 @@ while ($section <= $course->numsections) {
                 'class' => 'icon',
                 'alt' => $strshowonlytopic
             );
-
-            
-            echo '<a href="view.php?id='.$course->id.'&amp;topic='.$section.
-                 '" title="'.$strshowonlytopic.'">'.
-                 '<img src="'.$OUTPUT->pix_url('i/one').'" class="icon" alt="'.
-                 $strshowonlytopic.'" /></a><br />';
         }
 
+        // Create the URL link
+        $moodle_url = new moodle_url('view.php' . $link_str, 
+            array_merge($url_options, $add_url_options));
+
         $additional_controls[] = 
-            html_writer::link(new moodle_url('view.php', $url_options),
+            html_writer::link($moodle_url,
                 html_writer::empty_tag('img', $img_options),
                 $link_options);
 
+        // This section is for editors
+        if ($editing && $has_capability_update) {
+            $url_options['sesskey'] = sesskey();
 
-        if ($PAGE->user_is_editing() && has_capability('moodle/course:update', 
-                get_context_instance(CONTEXT_COURSE, $course->id))) {
+            $add_url_options = array();
+            $img_options = array();
+            $link_options = array();
 
-            if ($course->marker == $section) {  // Show the "light globe" on/off
-                echo '<a href="view.php?id='.$course->id.
-                     '&amp;marker=0&amp;sesskey='.sesskey().'#section-'.
-                     $section.'" title="'.$strmarkedthistopic.'">'.
-                     '<img src="'.$OUTPUT->pix_url('i/marked').'" alt="'.
-                     $strmarkedthistopic.'" /></a><br />';
+            // Highlight section
+            if ($course->marker == $section) {
+                $img_options['src'] = $OUTPUT->pix_url('i/marked');
+                $img_options['alt'] = $strmarkedthistopic;
+
+                $link_options['title'] = $strmarkedthistopic;
+
+                $add_url_options['marker'] = '0';
+                $url_str = '#section-'.$section;
             } else {
-                echo '<a href="view.php?id='.$course->id.'&amp;marker='.
-                     $section.'&amp;sesskey='.sesskey().'#section-'.
-                     $section.'" title="'.$strmarkthistopic.'">'.'<img src="'.
-                     $OUTPUT->pix_url('i/marker').'" alt="'.$strmarkthistopic.
-                     '" /></a><br />';
+                $img_options['src'] = $OUTPUT->pix_url('i/marker');
+                $img_options['alt'] = $strmarkthistopic;
+                
+                $link_options['title'] = $strmarkthistopic;
+
+                $add_url_options['marker'] = $section;
+                $url_str = '';
             }
 
-            if ($thissection->visible) {        // Show the hide/show eye
-                echo '<a href="view.php?id='.$course->id.'&amp;hide='.$section.
-                     '&amp;sesskey='.sesskey().'#section-'.$section.'" title="'.
-                     $strtopichide.'">'.'<img src="'.$OUTPUT->pix_url('i/hide').
-                     '" class="icon hide" alt="'.$strtopichide.'" /></a><br />';
+            $moodle_url = new moodle_url('view.php' . $url_str,
+                array_merge($url_options, $add_url_options));
+
+            $additional_controls[] = 
+                html_writer::link($moodle_url,
+                    html_writer::empty_tag('img', $img_options),
+                    $link_options);
+
+            // // // // // // // // // // // // // // // // //
+            
+            $add_url_options = array();
+            $link_options = array();
+            $img_options = array();
+            $url_str = '';
+       
+            // Hide or show the section
+            if ($thissection->visible) {
+                $add_url_options['hide'] = $section;
+                $url_str = '#section-'.$section;
+
+                $link_options['title'] = $strtopichide;
+
+                $img_options['src'] = $OUTPUT->pix_url('i/hide');
+                $img_options['class'] = 'icon hide';
+                $img_options['alt'] = $strtopichide;
             } else {
-                echo '<a href="view.php?id='.$course->id.'&amp;show='.$section.
-                     '&amp;sesskey='.sesskey().'#section-'.$section.'" title="'.
-                     $strtopicshow.'">'.'<img src="'.$OUTPUT->pix_url('i/show').
-                     '" class="icon hide" alt="'.$strtopicshow.'" /></a><br />';
+                $add_url_options['show'] = $section;
+                $url_str = '#section-'.$section;
+                
+                $link_options['title'] = $strtopicshow;
+
+                $img_options['src'] = $OUTPUT->pix_url('i/show');
+                $img_options['class'] = 'icon hide';
+                $img_options['alt'] = $strtopicshow;
             }
 
-            if ($section > 1) {                // Add a arrow to move section up
-                echo '<a href="view.php?id='.$course->id.'&amp;random='.
-                     rand(1,10000).'&amp;section='.$section.
-                     '&amp;move=-1&amp;sesskey='.sesskey().'#section-'.
-                     ($section-1).'" title="'.$strmoveup.'">'.
-                     '<img src="'.$OUTPUT->pix_url('t/up').
-                     '" class="icon up" alt="'.$strmoveup.'" /></a><br />';
+            $moodle_url = new moodle_url('view.php' . $url_str,
+                array_merge($url_options, $add_url_options));
+
+            $additional_controls[] =
+                html_writer::link($moodle_url,
+                    html_writer::empty_tag('img', $img_options),
+                    $link_options);
+
+            // // // // // // // // // // // // // // // // // //
+
+            $add_url_options = array();
+            $link_options = array();
+            $img_options = array();
+            $url_str = '';
+
+            // Arrow to move section UP
+            if ($section > 1) {
+                $add_url_options['random'] = rand(1, 10000);
+                $add_url_options['section'] = $section;
+                $add_url_options['move'] = '-1';
+
+                $url_str = '#section-'.($section - 1);
+
+                $link_options['title'] = $strmoveup;
+
+                $img_options['src'] = $OUTPUT->pix_url('t/up');
+                $img_options['class'] = 'icon up';
+                $img_options['alt'] = $strmoveup;
+    
+                $moodle_url = new moodle_url('view.php' . $url_str,
+                    array_merge($url_options, $add_url_options));
+
+                
+                $additional_controls[] = 
+                    html_writer::link($moodle_url,
+                        html_writer::empty_tag('img', $img_options),
+                        $link_options);
             }
 
+            // // // // // // // // // // // // // // // // // //
+
+            $add_url_options = array();
+            $link_options = array();
+            $img_options = array();
+            $url_str = '';
+
+            // Add a arrow to move section down
             if ($section < $course->numsections) {
-                // Add a arrow to move section down
-                echo '<a href="view.php?id='.$course->id.'&amp;random='.
-                     rand(1,10000).'&amp;section='.$section.
-                     '&amp;move=1&amp;sesskey='.sesskey().'#section-'.
-                     ($section+1).'" title="'.$strmovedown.'">'.
-                     '<img src="'.$OUTPUT->pix_url('t/down').
-                     '" class="icon down" alt="'.$strmovedown.'" /></a><br />';
+                $add_url_options['random'] = rand(1, 10000);
+                $add_url_options['section'] = $section;
+                $add_url_options['move'] = '1';
+
+                $url_str = '#section-'.($section + 1);
+
+                $link_options['title'] = $strmovedown;
+
+                $img_options['src'] = $OUTPUT->pix_url('t/down');
+                $img_options['class'] = 'icon down';
+                $img_options['alt'] = $strmovedown;
+
+                $moodle_url = new moodle_url('view.php' . $url_str,
+                    array_merge($url_options, $add_url_options));
+                
+                $additional_controls[] = 
+                    html_writer::link($moodle_url,
+                        html_writer::empty_tag('img', $img_options),
+                        $link_options);
             }
         }
-        echo '</div>';
 
-        echo '<div class="content">';
-        if (!has_capability('moodle/course:viewhiddensections', $context) 
-                and !$thissection->visible) {   // Hidden for students
+        // Display all the additional controls
+        foreach ($additional_controls as $control) {
+            echo $control.html_writer::empty_tag('br')."\n";
+        }
+
+        echo html_writer::end_tag('div');
+
+        echo html_writer::start_tag('div', array('class' => 'content'));
+
+        // Do not display hidden sections to students
+        if (!$has_capability_viewhidden and !$thissection->visible) {
             echo get_string('notavailable');
         } else {
             if (!is_null($thissection->name)) {
                 echo $OUTPUT->heading($thissection->name, 3, 'sectionname');
             }
-            echo '<div class="summary">';
+
+            // Display the section
+            echo html_writer::start_tag('div', array('class' => 'summary'));
+
             if ($thissection->summary) {
-                $coursecontext = 
-                    get_context_instance(CONTEXT_COURSE, $course->id);
                 $summarytext = 
                     file_rewrite_pluginfile_urls($thissection->summary, 
-                        'pluginfile.php', $coursecontext->id, 'course', 
+                        'pluginfile.php', $context->id, 'course', 
                         'section', $thissection->id);
                 $summaryformatoptions = new stdClass();
                 $summaryformatoptions->noclean = true;
                 $summaryformatoptions->overflowdiv = true;
+
                 echo format_text($summarytext, $thissection->summaryformat, 
                     $summaryformatoptions);
             } else {
                echo '&nbsp;';
             }
 
-            if ($PAGE->user_is_editing() 
-                && has_capability('moodle/course:update', 
-                    get_context_instance(CONTEXT_COURSE, $course->id))) {
+            // Display the editing button
+            if ($PAGE->user_is_editing() && $has_capability_update) {
+                $url_options = array(
+                        'id' => $thissection->id,
+                    );
 
-                echo ' <a title="'.$streditsummary.
-                     '" href="editsection.php?id='.$thissection->id.'">'.
-                     '<img src="'.$OUTPUT->pix_url('t/edit').
-                     '" class="icon edit" alt="'.$streditsummary.
-                     '" /></a><br /><br />';
+                $link_options = array('title' => $streditsummary);
+
+                $moodle_url = new moodle_url('edisection.php', $url_options);
+
+                $img_options = array(
+                        'src' => $OUTPUT->pix_url('t/edit'),
+                        'class' => 'icon edit',
+                        'alt' => $streditsummary
+                    );
+
+                echo html_writer::link($moodle_url,
+                    html_writer::empty_tag('img', $img_options), 
+                    $link_options);
+
+                echo html_writer::empty_tag('br');
+                echo html_writer::empty_tag('br');
             }
 
-            echo '</div>';
+            echo html_writer::end_tag('div');
 
             print_section($course, $thissection, $mods, $modnamesused);
-            echo '<br />';
+
+            echo html_writer::empty_tag('br');
+
             if ($PAGE->user_is_editing()) {
                 print_section_add_menus($course, $section, $modnames);
             }
         }
 
-        echo '</div>';
-        echo "</li>\n";
+        echo html_writer::end_tag('div');
+        echo html_writer::end_tag('li') . "\n";
     }
 
     unset($sections[$section]);
@@ -404,29 +517,45 @@ while ($section <= $course->numsections) {
 
 // print stealth sections if present
 if (!$displaysection and $PAGE->user_is_editing() 
-    and has_capability('moodle/course:update', 
-        get_context_instance(CONTEXT_COURSE, $course->id))) {
+  and $has_capability_update) {
+
     $modinfo = get_fast_modinfo($course);
+
     foreach ($sections as $section=>$thissection) {
         if (empty($modinfo->sections[$section])) {
             continue;
         }
 
-        echo '<li id="section-'.$section.
-            '" class="section main clearfix orphaned hidden">'; 
-        //'<div class="left side">&nbsp;</div>';
+        echo html_writer::start_tag('li',
+            array(
+                    'id' => 'section-'.$section,
+                    'class' => 'section main clearfix orphaned hidden'
+                ));
 
-        echo '<div class="left side">';
-        echo '</div>';
-        // Note, 'right side' is BEFORE content.
-        echo '<div class="right side">';
-        echo '</div>';
-        echo '<div class="content">';
+        echo html_writer::start_tag('div',
+            array(
+                'class' => 'left side'
+            ));
+        echo html_writer::end_tag('div');
+           
+        // Note: 'right side' is BEFORE content.
+
+        echo html_writer::start_tag('div', array(
+                'class' => 'right side'
+            ));
+        echo html_writer::end_tag('div');
+
+        echo html_writer::start_tag('div', array(
+                'class' => 'content'
+            ));
+
         echo $OUTPUT->heading(get_string('orphanedactivities'), 3, 
             'sectionname');
+
         print_section($course, $thissection, $mods, $modnamesused);
-        echo '</div>';
-        echo "</li>\n";
+
+        echo html_writer::end_tag('div');
+        echo html_writer::end_tag('li') . "\n";
     }
 }
 
@@ -439,5 +568,6 @@ if (!empty($sectionmenu)) {
     $select->label = get_string('jumpto');
     $select->class = 'jumpmenu';
     $select->formid = 'sectionmenu';
+
     echo $OUTPUT->render($select);
 }
