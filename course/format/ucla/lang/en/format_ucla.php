@@ -16,13 +16,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Strings for component 'format_topics', language 'en', branch 'MOODLE_20_STABLE'
+ * Strings for component 'format_ucla'
  *
- * @package   format_topics
- * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   ucla
  */
 
 $string['sectionname'] = 'UCLA Unified';
 $string['pluginname'] = 'Unification format';
-$string['section0name'] = 'Information';
+$string['section0name'] = 'Class Information';

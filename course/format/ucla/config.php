@@ -7,5 +7,5 @@
 //
 // The default blocks layout for this course format:
 // @todo change to uclacoursemenu and whatnot
-    $format['defaultblocks'] = ':search_forums,news_items,calendar_upcoming,recent_activity';
-//
+
+$format['defaultblocks'] = ':';

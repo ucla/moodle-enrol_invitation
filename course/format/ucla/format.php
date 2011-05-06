@@ -41,7 +41,7 @@ require_once($CFG->libdir.'/completionlib.php');
 
 $topic = optional_param('topic', -1, PARAM_INT);
 
-// Determine which section to dipslay ( this maintains user history in the DB )
+// Determine which section to display ( this maintains user history in the DB )
 if ($topic != -1) {
     $displaysection = course_set_display($course->id, $topic);
 } else {
@@ -81,8 +81,9 @@ if ($editing) {
 $completioninfo = new completion_info($course);
 echo $completioninfo->display_help_icon();
 
-// Display the top of the inside of the middle
-echo $OUTPUT->heading($course->fullname, 2, 'headingblock header outline');
+// Display the top of the inside of the middle (the heading!)
+$heading_text = 'term'.' - '.'subjarea coursenum'.' - '.'instructor';
+echo $OUTPUT->heading($heading_text, 2, 'headingblock header outline');
 
 // Note, an ordered list would confuse - "1" could be the clipboard or summary.
 echo html_writer::start_tag('ul', array('class' => 'topics'))."\n";
@@ -108,72 +109,6 @@ if (ismoving($course->id)) {
     echo html_writer::end_tag('li')."\n";
 }
 
-/// Print Section 0 with general activities
-$section = 0;
-$thissection = $sections[$section];
-// This is done so that we can permute throught $sections later without
-// repeating the first section
-unset($sections[0]);
-
-if ($thissection->summary or $thissection->sequence or $editing()) {
-
-    // Note: no need for a 'left side' cell or DIV.
-    // Note: 'right side' is BEFORE content.
-    echo html_writer::start_tag('li', array(
-        'id' => 'section-0',
-        'class' => 'section main clearfix'
-    ));
-
-    echo html_writer::tag('div', '&nbsp;', array('class' => 'left side'));
-    echo html_writer::tag('div', '&nbsp;', array('class' => 'right side'));
-
-    echo html_writer::start_tag('div', array('class' => 'content'));
-
-    if (!is_null($thissection->name)) {
-        echo $OUTPUT->heading($thissection->name, 3, 'sectionname');
-    }
-
-    echo html_writer::start_tag('div', array('class' => 'summary'));
-
-    // @todo see what thell this function does
-    $summarytext = file_rewrite_pluginfile_urls($thissection->summary, 
-        'pluginfile.php', $context->id, 'course', 'section', 
-        $thissection->id);
-
-    $summaryformatoptions = new stdClass();
-    $summaryformatoptions->noclean = true;
-    $summaryformatoptions->overflowdiv = true;
-    echo format_text($summarytext, $thissection->summaryformat, 
-        $summaryformatoptions);
-
-    if ($PAGE->user_is_editing() 
-            && has_capability('moodle/course:update', $context)) {
-        echo '<a title="'.$streditsummary.'" '.' href="editsection.php?id='.
-             $thissection->id.'"><img src="'.$OUTPUT->pix_url('t/edit') . '" '.
-             ' class="icon edit" alt="'.$streditsummary.'" /></a>';
-    }
-    // End class="summary"
-    echo html_writer::end_tag('div');
-
-    // Print contents
-    print_section($course, $thissection, $mods, $modnamesused);
-
-    if ($PAGE->user_is_editing()) {
-        print_section_add_menus($course, $section, $modnames);
-    }
-
-    // End class="content"
-    echo html_writer::end_tag('div');
-    echo html_writer::end_tag('li') . "\n";
-}
-
-/// Now all the normal modules by topic
-/// Everything below uses "section" terminology - each "section" is a topic.
-
-$timenow = time();
-$section = 1;
-$sectionmenu = array();
-
 // Non-Variants
 $has_capability_viewhidden = 
     has_capability('moodle/course:viewhiddensections', $context);
@@ -183,11 +118,17 @@ $has_capability_update = has_capability('moodle/course:update',
 
 $get_accesshide = get_accesshide(get_string('currenttopic', 'access'));
 
-while ($section <= $course->numsections) {
+/// Now all the normal modules by topic
+/// Everything below uses "section" terminology - each "section" is a topic.
+$timenow = time();
+$section = 0;
+$sectionmenu = array();
 
+while ($section <= $course->numsections) {
+    // This will auto create sections if we have numsections set < than 
+    // the actual number of sections that exist
     if (!empty($sections[$section])) {
         $thissection = $sections[$section];
-
     } else {
         // Create a new section
         $thissection = new stdClass;
@@ -206,13 +147,14 @@ while ($section <= $course->numsections) {
 
     // If we are only displaying one section, save this section for the 
     // pull down menu later
-    if (!empty($displaysection) and $displaysection != $section) {  
+    if ($displaysection != -2 && $displaysection != $section) {  
         // Show the section in the pull down only if we would've shown it
         // otherwise
         if ($showsection) {
             $sectionmenu[$section] = get_section_name($course, $thissection);
         }
 
+        // Don't display sections that we are showing in the menu
         $section++;
         continue;
     }
@@ -233,17 +175,22 @@ while ($section <= $course->numsections) {
        
         $section_id = 'section-'.$section;
         $class_text = 'section main clearfix '.$sectionstyle;
+
+        /////// The actual Section /////
         echo html_writer::start_tag('li', array(
                 'id' => $section_id,
                 'class' => $class_text
             ));
 
-        echo html_writer::tag('div', $currenttext.$section, array(
+        //// (LEFT) State ////
+        $left_side = html_writer::tag('div', $currenttext.$section, array(
                 'class' => 'left side'
             ));
 
+        //// (RIGHT) Control ////
         // Note, 'right side' is BEFORE content.
-        echo html_writer::start_tag('div', array('class' => 'right side'));
+        $right_side = html_writer::start_tag('div', 
+            array('class' => 'right side'));
 
         $additional_controls = array();
 
@@ -265,7 +212,7 @@ while ($section <= $course->numsections) {
         // Draw the boxes to display this or all sections
         if ($displaysection == $section) {    
             // Show the zoom boxes
-            $add_url_options['topic'] = '0';
+            $add_url_options['topic'] = '-2';
 
             $link_str = '#section-'.$section;
 
@@ -299,13 +246,16 @@ while ($section <= $course->numsections) {
         $moodle_url = new moodle_url('view.php' . $link_str, 
             array_merge($url_options, $add_url_options));
 
+        $innards = html_writer::empty_tag('img', $img_options);
+
         $additional_controls[] = 
-            html_writer::link($moodle_url,
-                html_writer::empty_tag('img', $img_options),
-                $link_options);
+            html_writer::link($moodle_url, $innards, $link_options);
 
         // This section is for editors
         if ($editing && $has_capability_update) {
+            // Making things simpler by making things complex
+            $validators = array();
+
             $url_options['sesskey'] = sesskey();
 
             $add_url_options = array();
@@ -334,10 +284,10 @@ while ($section <= $course->numsections) {
             $moodle_url = new moodle_url('view.php' . $url_str,
                 array_merge($url_options, $add_url_options));
 
+            $innards = html_writer::empty_tag('img', $img_options);
+
             $additional_controls[] = 
-                html_writer::link($moodle_url,
-                    html_writer::empty_tag('img', $img_options),
-                    $link_options);
+                html_writer::link($moodle_url, $innards, $link_options);
 
             // // // // // // // // // // // // // // // // //
             
@@ -370,10 +320,10 @@ while ($section <= $course->numsections) {
             $moodle_url = new moodle_url('view.php' . $url_str,
                 array_merge($url_options, $add_url_options));
 
-            $additional_controls[] =
-                html_writer::link($moodle_url,
-                    html_writer::empty_tag('img', $img_options),
-                    $link_options);
+            $innards = html_writer::empty_tag('img', $img_options);
+
+            $additional_controls[] = 
+                html_writer::link($moodle_url, $innards, $link_options);
 
             // // // // // // // // // // // // // // // // // //
 
@@ -399,11 +349,10 @@ while ($section <= $course->numsections) {
                 $moodle_url = new moodle_url('view.php' . $url_str,
                     array_merge($url_options, $add_url_options));
 
-                
+                $innards = html_writer::empty_tag('img', $img_options);
+
                 $additional_controls[] = 
-                    html_writer::link($moodle_url,
-                        html_writer::empty_tag('img', $img_options),
-                        $link_options);
+                    html_writer::link($moodle_url, $innards, $link_options);
             }
 
             // // // // // // // // // // // // // // // // // //
@@ -414,7 +363,7 @@ while ($section <= $course->numsections) {
             $url_str = '';
 
             // Add a arrow to move section down
-            if ($section < $course->numsections) {
+            if ($section > 0 && $section < $course->numsections) {
                 $add_url_options['random'] = rand(1, 10000);
                 $add_url_options['section'] = $section;
                 $add_url_options['move'] = '1';
@@ -430,32 +379,37 @@ while ($section <= $course->numsections) {
                 $moodle_url = new moodle_url('view.php' . $url_str,
                     array_merge($url_options, $add_url_options));
                 
+                $innards = html_writer::empty_tag('img', $img_options);
+
                 $additional_controls[] = 
-                    html_writer::link($moodle_url,
-                        html_writer::empty_tag('img', $img_options),
-                        $link_options);
+                    html_writer::link($moodle_url, $innards, $link_options);
             }
         }
 
         // Display all the additional controls
         foreach ($additional_controls as $control) {
-            echo $control.html_writer::empty_tag('br')."\n";
+            $right_side .= $control."\n";
         }
 
-        echo html_writer::end_tag('div');
+        $right_side .= html_writer::end_tag('div');
 
-        echo html_writer::start_tag('div', array('class' => 'content'));
+        //////////////// Actual Section Content /////////////////////////
+        $center_content = html_writer::start_tag('div', 
+            array('class' => 'content'));
 
         // Do not display hidden sections to students
         if (!$has_capability_viewhidden and !$thissection->visible) {
-            echo get_string('notavailable');
+            $center_content .= get_string('notavailable');
         } else {
-            if (!is_null($thissection->name)) {
-                echo $OUTPUT->heading($thissection->name, 3, 'sectionname');
-            }
+            $section_name = get_section_name($course, $thissection);
+
+            // Print the section name
+            $center_content .= $OUTPUT->heading($section_name, 3, 
+                'sectionname');
 
             // Display the section
-            echo html_writer::start_tag('div', array('class' => 'summary'));
+            $center_content .= html_writer::start_tag('div', 
+                array('class' => 'summary'));
 
             if ($thissection->summary) {
                 $summarytext = 
@@ -466,21 +420,22 @@ while ($section <= $course->numsections) {
                 $summaryformatoptions->noclean = true;
                 $summaryformatoptions->overflowdiv = true;
 
-                echo format_text($summarytext, $thissection->summaryformat, 
+                $center_content .= format_text($summarytext, 
+                    $thissection->summaryformat, 
                     $summaryformatoptions);
             } else {
-               echo '&nbsp;';
+               $center_content .= '&nbsp;';
             }
 
             // Display the editing button
-            if ($PAGE->user_is_editing() && $has_capability_update) {
+            if ($editing && $has_capability_update) {
                 $url_options = array(
                         'id' => $thissection->id,
                     );
 
                 $link_options = array('title' => $streditsummary);
 
-                $moodle_url = new moodle_url('edisection.php', $url_options);
+                $moodle_url = new moodle_url('editsection.php', $url_options);
 
                 $img_options = array(
                         'src' => $OUTPUT->pix_url('t/edit'),
@@ -488,26 +443,37 @@ while ($section <= $course->numsections) {
                         'alt' => $streditsummary
                     );
 
-                echo html_writer::link($moodle_url,
-                    html_writer::empty_tag('img', $img_options), 
-                    $link_options);
+                $innards = html_writer::empty_tag('img', $img_options);
 
-                echo html_writer::empty_tag('br');
-                echo html_writer::empty_tag('br');
+                $center_content .= html_writer::link($moodle_url, 
+                    $innards, $link_options);
+
+                $center_content .= html_writer::empty_tag('br');
+                $center_content .= html_writer::empty_tag('br');
             }
 
-            echo html_writer::end_tag('div');
+            $center_content .= html_writer::end_tag('div');
 
+            ob_start();
             print_section($course, $thissection, $mods, $modnamesused);
+            $center_content .= ob_get_clean();
 
-            echo html_writer::empty_tag('br');
+            $center_content .= html_writer::empty_tag('br');
 
-            if ($PAGE->user_is_editing()) {
+            if ($editing) {
+                ob_start();
                 print_section_add_menus($course, $section, $modnames);
+                $center_content .= ob_get_clean();
             }
         }
 
-        echo html_writer::end_tag('div');
+        $center_content .= html_writer::end_tag('div');
+
+        echo $left_side;
+        echo $right_side;
+        echo $center_content;
+
+        // End of the section
         echo html_writer::end_tag('li') . "\n";
     }
 
@@ -515,9 +481,8 @@ while ($section <= $course->numsections) {
     $section++;
 }
 
-// print stealth sections if present
-if (!$displaysection and $PAGE->user_is_editing() 
-  and $has_capability_update) {
+// Orphaned activities (?) custom written sections
+if ($displaysection == -2 and $editing and $has_capability_update) {
 
     $modinfo = get_fast_modinfo($course);
 
@@ -558,7 +523,6 @@ if (!$displaysection and $PAGE->user_is_editing()
         echo html_writer::end_tag('li') . "\n";
     }
 }
-
 
 echo html_writer::end_tag('ul')."\n";
 
