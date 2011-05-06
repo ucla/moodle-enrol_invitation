@@ -43,20 +43,42 @@ $topic = optional_param('topic', -1, PARAM_INT);
 
 // Determine which section to display ( this maintains user history in the DB )
 if ($topic != -1) {
-    $displaysection = course_set_display($course->id, $topic);
+    // This means that a topic was explicitly declared
+    $requestsection = course_set_display($course->id, $topic);
 } else {
-    $displaysection = course_get_display($course->id);
+    // This should show the landing page, or the previously viewed page
+    // This defaults to '0', which we will interpret as the landing page
+    $requestsection = course_get_display($course->id);
 }
 
 $context = get_context_instance(CONTEXT_COURSE, $course->id);
 
 // Figure out which section we are highlighting. 
-if (($marker >=0) 
-        && has_capability('moodle/course:setcurrentsection', $context) 
-        && confirm_sesskey()) {
+if (($marker >= 0) 
+  && has_capability('moodle/course:setcurrentsection', $context) 
+  && confirm_sesskey()) {
+
     $course->marker = $marker;
-    $DB->set_field("course", "marker", $marker, array("id"=>$course->id));
+    $DB->set_field("course", "marker", $marker, 
+        array("id" => $course->id));
 }
+
+// Interpret what moodle thinks the section displayed should be with what
+// UCLA thinks the section displayed should be
+if ($requestsection == 0) {
+    // Implicit topic, goto landing page
+    $displaysection = $course->marker;
+} else if ($requestsection == -1) {
+    // Course Information 
+    $displaysection = 0;
+} else {
+    // Display all or display 1 section
+    $displaysection = $requestsection;
+}
+
+// Build our required forums
+$forum_new = forum_get_course_forum($course->id, 'news');
+$forum_gen = forum_get_course_forum($course->id, 'general');
 
 // Cache all these get_string(), because you know, they're cached already...
 $streditsummary   = get_string('editsummary');
@@ -83,7 +105,7 @@ echo $completioninfo->display_help_icon();
 
 // Display the top of the inside of the middle (the heading!)
 $heading_text = 'term'.' - '.'subjarea coursenum'.' - '.'instructor';
-echo $OUTPUT->heading($heading_text, 2, 'headingblock header outline');
+echo html_writer::tag('div', $heading_text, array('class' => 'course-details'));
 
 // Note, an ordered list would confuse - "1" could be the clipboard or summary.
 echo html_writer::start_tag('ul', array('class' => 'topics'))."\n";
@@ -142,12 +164,13 @@ while ($section <= $course->numsections) {
     }
 
     // Check viewing capabilities of this section
-    $showsection = $has_capability_viewhidden or $thissection->visible 
-        or !$course->hiddensections;
+    $showsection = ($has_capability_viewhidden 
+        or ($thissection->visible == '1')
+        or !$course->hiddensections);
 
     // If we are only displaying one section, save this section for the 
     // pull down menu later
-    if ($displaysection != -2 && $displaysection != $section) {  
+    if ($displaysection != -2 && $displaysection != $section) {
         // Show the section in the pull down only if we would've shown it
         // otherwise
         if ($showsection) {
@@ -401,11 +424,36 @@ while ($section <= $course->numsections) {
         if (!$has_capability_viewhidden and !$thissection->visible) {
             $center_content .= get_string('notavailable');
         } else {
+            // Callback to determine the section title displayed
             $section_name = get_section_name($course, $thissection);
 
-            // Print the section name
-            $center_content .= $OUTPUT->heading($section_name, 3, 
-                'sectionname');
+            if ($section == 0) {
+                // Course Information specific has a different section
+                // header
+                $center_content .= $OUTPUT->heading($course->fullname, 2,
+                    'sectionname headerblock outline');
+
+                $registrar_info = 'Registrar Information';
+
+                $center_content .= html_writer::tag('div',
+                    $registrar_info,
+                    array('class' => 'registrar-info'));
+
+                $center_content .= html_writer::tag('div', 
+                    format_text($course->summary),
+                    array('class' => 'course-summary'));
+    
+                $instr_info = 'Instructor Information';
+            
+                $center_content .= html_writer::tag('div',
+                    $instr_info, array('class' => 'instr-info'));
+                
+
+            } else {
+                // Print the section name
+                $center_content .= $OUTPUT->heading($section_name, 3, 
+                    'sectionname');
+            }
 
             // Display the section
             $center_content .= html_writer::start_tag('div', 
@@ -481,9 +529,8 @@ while ($section <= $course->numsections) {
     $section++;
 }
 
-// Orphaned activities (?) custom written sections
+// Orphaned activities custom written section
 if ($displaysection == -2 and $editing and $has_capability_update) {
-
     $modinfo = get_fast_modinfo($course);
 
     foreach ($sections as $section=>$thissection) {

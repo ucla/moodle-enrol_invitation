@@ -2923,6 +2923,15 @@ function forum_get_course_forum($courseid, $type) {
             $forum->assessed = 0;
             $forum->forcesubscribe = 0;
             break;
+        // Start UCLA Modification CCLE-2449: UCLA format requires another
+        // general discussion forum.
+        case "general":
+            $forum->name = get_string('discforum', 'format_ucla');
+            $forum->intro = get_string('introdisc', 'format_ucla');
+            $forum->assessed = 0;
+            $forum->forcesubscribe = 0;
+            break;
+        // End UCLA Modification CCLE-2449
         default:
             echo $OUTPUT->notification("That forum type doesn't exist!");
             return false;

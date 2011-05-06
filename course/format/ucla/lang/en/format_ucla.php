@@ -24,3 +24,6 @@
 $string['sectionname'] = 'UCLA Unified';
 $string['pluginname'] = 'Unification format';
 $string['section0name'] = 'Class Information';
+
+$string['discforum'] = 'Discussion forum';
+$string['introdisc'] = 'This is a general discussion forum.';
