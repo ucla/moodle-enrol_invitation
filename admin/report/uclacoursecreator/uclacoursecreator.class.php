@@ -1772,6 +1772,7 @@ class uclacoursecreator {
 
         // Shoudl we send the URL to MyUCLA?
         $validation_flags = array();
+        $no_validation_flags = array();
 
         // Create references, not copies
         $created =& $this->cron_term_cache['created_courses'];
@@ -1806,6 +1807,11 @@ class uclacoursecreator {
                 $forceupdate = ($request->force_urlupdate == '1');
             }
 
+            $forcenoupdate = false;
+            if (isset($request->force_no_urlupdate)) {
+                $forcenoupdate = ($request->force_no_urlupdate == '1');
+            }
+
             if ($crc) {
                 // For crosslisted courses, update the term-srs combo with
                 // the same url as the master course
@@ -1818,6 +1824,7 @@ class uclacoursecreator {
 
             $relevant_url_info[$term][$srs] = $url;
             $validation_flags[$term][$srs] = $forceupdate;
+            $no_validation_flags[$term][$srs] = $forcenoupdate;
         }
 
         foreach ($relevant_url_info as $term => $srses) {
@@ -1839,15 +1846,23 @@ class uclacoursecreator {
 
                     // If we are not forcing url update, do not update an
                     // already existing url
-                    if (strlen($myucla_curl) != 0 
-                        && !$validation_flags[$term][$srs]) {
+                    $because_no_overwrite = (strlen($myucla_curl) != 0 
+                        && !$validation_flags[$term][$srs]);
+
+                    $because_no_update = $no_validation_flags[$term][$srs];
+                    if ($because_no_overwrite || $because_no_update) {
 
                         $relevant_url_info[$term][$srs] = $url 
-                            . ' Not Updated';
-                    
-                        $this->println("Skipping URL, already exists: "
-                            . "$term-$srs: " . $myucla_curl);    
+                            . ' (Not Updated)';
+                   
+                        if ($because_no_update) {
+                            $reason = 'updating diabled';
+                        } else {
+                            $reason = 'overwriting disabled';
+                        }
 
+                        $this->println("Skipping URL update, $reason: "
+                            . "$term-$srs: " . $myucla_curl);    
                         continue;
                     }
 
