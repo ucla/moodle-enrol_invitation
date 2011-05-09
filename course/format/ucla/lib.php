@@ -93,7 +93,7 @@ function callback_ucla_get_section_name($course, $section) {
  */
 function callback_ucla_ajax_support() {
     $ajaxsupport = new stdClass();
-    $ajaxsupport->capable = false;
+    $ajaxsupport->capable = true;
     $ajaxsupport->testedbrowsers = array(
             'MSIE' => 6.0, 
             'Gecko' => 20061111, 
@@ -103,3 +103,4 @@ function callback_ucla_ajax_support() {
 
     return $ajaxsupport;
 }
+

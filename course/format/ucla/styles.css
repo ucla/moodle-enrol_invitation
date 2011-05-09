@@ -10,7 +10,7 @@
 }
 
 .course-content ul.topics li.section .content {
-    margin: 0 40px 0 0;
+    margin: 0 40px 0 40px;
 }
 
 .course-content ul.topics li.section .content .sectionname {
@@ -21,13 +21,14 @@
     width: 40px;
     float: left;
     text-align: center;
-    display: none;
+    /* display: none; */
 }
 
 .course-content ul.topics li.section .right {
     width: 40px;
     float: right;
     text-align: left;
+    /* display: none; */
 }
 
 .jumpmenu {

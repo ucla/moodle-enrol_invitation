@@ -39,6 +39,8 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir.'/filelib.php');
 require_once($CFG->libdir.'/completionlib.php');
 
+require_once($CFG->dirroot.'/enrol/locallib.php');
+
 $topic = optional_param('topic', -1, PARAM_INT);
 
 // Determine which section to display ( this maintains user history in the DB )
@@ -99,13 +101,94 @@ if ($editing) {
     $strmovedown        = get_string('movedown');
 }
 
+// Get instructor information
+// TODO see if there is an API call for this query
+$params = array();
+$params[] = $course->id;
+
+try {
+    if (!isset($roles) || empty($roles)) {
+        // Hardcoded defaults
+        $roles = array(
+            'editingteacher',
+            'teacher'
+        );
+    }
+
+    list($in_roles, $new_params) = $DB->get_in_or_equal($roles);
+
+    $additional_sql = ' AND r.shortname '.$in_roles;
+
+    $params = array_merge($params, $new_params);
+
+} catch (coding_exception $e) {
+    // Coding exception...
+    $additional_sql = '';
+}
+
+// This is going to be changed to JOIN on to office hours
+$sql = "
+    SELECT 
+        u.firstname,
+        u.lastname,
+        u.email,
+        r.shortname
+    FROM {course} c
+    JOIN {context} ct
+        ON (ct.instanceid = c.id)
+    JOIN {role_assignments} ra
+        ON (ra.contextid = ct.id)
+    JOIN {role} r
+        ON (ra.roleid = r.id)
+    JOIN {user} u
+        ON (u.id = ra.userid)
+    WHERE 
+        c.id = ?
+        $additional_sql
+    ";
+
+// Use this whenever you need to display instructors
+$instructors = $DB->get_records_sql($sql, $params);
+
+// Registrar information TODO
+$course_term = 'No Term';
+$course_subj = '';
+$course_coursenum = 'No Course Number';
+
+// Non-Variants
+$has_capability_viewhidden = 
+    has_capability('moodle/course:viewhiddensections', $context);
+
+$has_capability_update = has_capability('moodle/course:update', $context);
+$get_accesshide = get_accesshide(get_string('currenttopic', 'access'));
+
+// Start working on actually printing stuff
 // Print the Your progress icon if the track completion is enabled
 $completioninfo = new completion_info($course);
 echo $completioninfo->display_help_icon();
 
 // Display the top of the inside of the middle (the heading!)
-$heading_text = 'term'.' - '.'subjarea coursenum'.' - '.'instructor';
-echo html_writer::tag('div', $heading_text, array('class' => 'course-details'));
+$imploder = array();
+foreach ($instructors as $instructor) {
+    $imploder[] = $instructor->lastname;
+}
+
+if (empty($imploder)) {
+    $inst_text = 'N/A';
+} else {
+    $inst_text = implode(' / ', $imploder);
+}
+
+$heading_text = $course_term.' - '.$course_subj.' '.$course_coursenum.' - '.
+    $inst_text;
+
+$heading_text .= html_writer::empty_tag('br');
+
+$heading_text .= $OUTPUT->heading($course->fullname, 2);
+
+echo html_writer::tag('div', $heading_text, array(
+        'class' => ''
+    ));
 
 // Note, an ordered list would confuse - "1" could be the clipboard or summary.
 echo html_writer::start_tag('ul', array('class' => 'topics'))."\n";
@@ -130,15 +213,6 @@ if (ismoving($course->id)) {
     echo $stractivityclipboard.'&nbsp;&nbsp;('.$modlink.')';
     echo html_writer::end_tag('li')."\n";
 }
-
-// Non-Variants
-$has_capability_viewhidden = 
-    has_capability('moodle/course:viewhiddensections', $context);
-
-$has_capability_update = has_capability('moodle/course:update', 
-    $context);
-
-$get_accesshide = get_accesshide(get_string('currenttopic', 'access'));
 
 /// Now all the normal modules by topic
 /// Everything below uses "section" terminology - each "section" is a topic.
@@ -195,7 +269,6 @@ while ($section <= $course->numsections) {
             $sectionstyle = '';
         }
 
-       
         $section_id = 'section-'.$section;
         $class_text = 'section main clearfix '.$sectionstyle;
 
@@ -424,35 +497,98 @@ while ($section <= $course->numsections) {
         if (!$has_capability_viewhidden and !$thissection->visible) {
             $center_content .= get_string('notavailable');
         } else {
-            // Callback to determine the section title displayed
-            $section_name = get_section_name($course, $thissection);
+            $section_title_class = 'headerblock header outline';
 
+            // This is the class info stuff
             if ($section == 0) {
                 // Course Information specific has a different section
                 // header
-                $center_content .= $OUTPUT->heading($course->fullname, 2,
-                    'sectionname headerblock outline');
-
                 $registrar_info = 'Registrar Information';
 
-                $center_content .= html_writer::tag('div',
-                    $registrar_info,
+                $center_content .= html_writer::tag('div', $registrar_info,
                     array('class' => 'registrar-info'));
 
                 $center_content .= html_writer::tag('div', 
                     format_text($course->summary),
                     array('class' => 'course-summary'));
     
-                $instr_info = 'Instructor Information';
-            
-                $center_content .= html_writer::tag('div',
-                    $instr_info, array('class' => 'instr-info'));
-                
+                $instr_info = '';
 
+                $instructor_types = array(
+                    'Instructor' => array(
+                        'editingteacher',
+                        'teacher'
+                    ),
+
+                    'Teaching Assistant' => array()
+                );
+
+                if (!empty($instructors)) {
+                    foreach ($instructor_types as $title => $rolenames) {
+                        $goal_users = array();
+                        foreach ($instructors as $user) {
+                            if (in_array($user->shortname, $rolenames)) {
+                                $goal_users[] = $user;
+                            }
+                        }
+
+                        if (empty($goal_users)) {
+                            continue;
+                        }
+
+                        $table = new html_table();
+                        $table->width = '*';
+
+                        $desired_info = array(
+                            'fullname' => $title,
+                            'office' => 'Office',
+                            'phone' => 'Phone',
+                            'email' => 'E-Mail Address',
+                            'office_hours' => 'Office Hours'
+                        );
+                
+                        $cdi = count($desired_info);
+                        $aligns = array();
+                        for ($i = 0; $i < $cdi; $i++) {
+                            $aligns[] = 'left';
+                        }
+
+                        $table->align = $aligns;
+
+                        $table->attributes['class'] = 'boxalignleft';
+                        $table->data[] = $desired_info;
+
+                        foreach ($goal_users as $user) {
+                            $user_row = array();
+                            foreach ($desired_info as $field => $header) {
+                                $dest_data = '';
+                                if ($field == 'fullname') {
+                                    $dest_data = fullname($user);
+                                } else if (!isset($user->$field)) {
+                                    // Do nothing
+                                } else {
+                                    $dest_data = $user->$field;
+                                }
+
+                                $user_row[$field] = $dest_data;
+                            }
+
+                            $table->data[] = $user_row;
+                        }
+    
+                        $instr_info .= html_writer::table($table);
+                    }
+
+                    $center_content .= html_writer::tag('div', $instr_info, 
+                        array('class' => 'instr-info'));
+                }
             } else {
+                // Callback to determine the section title displayed
+                $section_name = get_section_name($course, $thissection);
+
                 // Print the section name
-                $center_content .= $OUTPUT->heading($section_name, 3, 
-                    'sectionname');
+                $center_content .= $OUTPUT->heading($section_name, 2, 
+                    $section_title_class);
             }
 
             // Display the section
@@ -476,7 +612,7 @@ while ($section <= $course->numsections) {
             }
 
             // Display the editing button
-            if ($editing && $has_capability_update) {
+            if ($section != 0 && $editing && $has_capability_update) {
                 $url_options = array(
                         'id' => $thissection->id,
                     );
