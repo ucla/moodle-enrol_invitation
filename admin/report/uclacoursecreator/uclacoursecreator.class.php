@@ -31,6 +31,9 @@ require_once(dirname(__FILE__) . '/course_creator_exception.class.php');
 // Require essential stuff... 
 require_once(dirname(__FILE__) . '/../../../course/lib.php');
 
+// Required for categories
+require_once(dirname(__FILE__) . '/../../../course/editcategory_form.php');
+
 /**
  *  Course creator.
  *
@@ -218,6 +221,9 @@ class uclacoursecreator {
                     // Get official data from Registrar
                     $this->requests_to_rci();
 
+                    // Prepare the categories
+                    $this->prepare_categories();
+
                     // Create the IMS entries
                     $this->generate_ims_entries();
 
@@ -349,39 +355,57 @@ class uclacoursecreator {
     }
 
     /**
-     *  Returns the long name of the subject area if found, 
-     *  otherwise just the short name.
-     *
-     *  Will alter the state of the object.
-     *
-     *  @param $subjarea The short name of the subject area.
-     *  @return The long name of the subject area, 
-     *      or the short name if no long name was found.
+     *  Aliases for @see get_registrar_translation().
      **/
-    function get_subject_area_translation($subjarea, $default=false) {
+    function get_subj_area_translation($subjarea) {
+        return $this->get_registrar_translation('ucla_subjectarea',
+            $subjarea, 'subjarea', 'subj_area_full');
+    }
+
+    function get_division_translation($division) {
+        return $this->get_registrar_translation('ucla_division', 
+            $division, 'code', 'fullname');
+    }
+
+    /**
+     *  Returns the long name of the target if found.
+     *  This is used for getting the long name for divisions and
+     *  subject areas.
+     *
+     *  May alter the state of the object.
+     *
+     *  @param $table The table to use.
+     *  @param $target The string we are translating.
+     *  @param $from_field The field that we are using to search if the 
+     *      target exists.
+     *  @param $to_field The field that we are going to return if we find
+     *      the target entry.
+     *  @return The long name of the target, or the short name if no long 
+     *      name was found.
+     **/
+    function get_registrar_translation($table, $target, $from_field, $to_field) {
         global $DB;
 
-        if (!isset($this->subj_trans) || $this->subj_trans == null) {
+        if (!isset($this->reg_trans[$table]) || $this->reg_trans == null) {
+            $this->reg_trans = array();
+
             $indexed_sa = array();
 
-            try {
-                $subjareas = $DB->get_records('ucla_reg_subjectarea');
-            } catch (dml_exception $e) {
-                $subjareas = $DB->get_records('ucla_subjectarea');
+            $translations = $DB->get_records($table);
+
+            foreach ($translations as $translate) {
+                $indexed_sa[$translate->$from_field] = 
+                    $translate->$to_field;
             }
 
-            foreach ($subjareas as $subjarea) {
-                $indexed_sa[$subjarea->subjarea] = $subjarea->subj_area_full;
-            }
-
-            $this->subj_trans = $indexed_sa;
+            $this->reg_trans[$table] = $indexed_sa;
         }
 
-        if (!isset($this->subj_trans[$subjarea])) { 
-            return $subjarea;
+        if (!isset($this->reg_trans[$table][$target])) { 
+            return $target;
         } 
 
-        return $this->subj_trans[$subjarea];
+        return $this->reg_trans[$table][$target];
     }
 
     /**
@@ -716,7 +740,8 @@ class uclacoursecreator {
             if ($res) {
                 $printstr = "Has $req_cap, will be emailed.";
             } else {
-                $printstr = "Does not have $req_cap, no email.";
+                $printstr = "Does not have capability [$req_cap], "
+                    . "not emailing.";
             }
 
             $this->println($printstr);
@@ -1228,6 +1253,7 @@ class uclacoursecreator {
             $this->trim_requests();
         }
 
+        // Run the Stored Procedure with the data
         $return = $this->registrar_conn['ccle_getclasses']
             ->retrieve_registrar_info(
                 $this->cron_term_cache['trim_requests']
@@ -1242,11 +1268,108 @@ class uclacoursecreator {
         $this->cron_term_cache['term_rci'] = $return;
     }
 
+    function prepare_categories() {
+        if (!isset($this->cron_term_cache['term_rci'])
+            || empty($this->cron_term_cache['term_rci'])) {
+            throw new course_creator_exception('No request data obtained '
+                . 'from the Registrar.');
+        }
+
+        if (!$this->get_config('course_creator_division_categories')) {
+            return true;
+        }
+
+        $rci_courses =& $this->cron_term_cache['term_rci'];
+   
+        // Get all categories and index them
+        $id_categories = get_categories();
+        $name_categories = array();
+
+        $forbidden_names = array();
+
+        foreach ($id_categories as $cat) {
+            $catname = $cat->name;
+            if (isset($name_categories[$catname])) {
+                $forbidden_names[$catname] = $catname;
+            }
+
+            $name_categories[$catname] = $cat;
+        }
+
+        unset($id_categories);
+
+        $nesting_order = array('division', 'subj_area');
+
+        foreach ($rci_courses as $rci_course) {
+            $immediate_parent_catid = 0;
+
+            foreach ($nesting_order as $type) {
+                $field = trim($rci_course->$type);
+
+                $function = 'get_' . $type . '_translation';
+
+                if (!method_exists($this, $function)) {
+                    throw new coding_exception($function
+                        . ' does not exist.');
+                }
+
+                $trans = $this->$function($field);
+
+                if (isset($forbidden_names[$trans])) {
+                    $this->debugln('Category name: '
+                        . $trans . ' is ambiguous as a '
+                        . $type);
+
+                    break;
+                }
+
+                if (!isset($name_categories[$trans])) {
+                    $newcategory = $this->new_category($trans,
+                        $immediate_parent_catid);
+
+                    $this->println('Created ' . $type . ' category: '
+                         . $trans);
+    
+                    $name_categories[$trans] = $newcategory;
+
+                    unset($newcategory);
+                }
+
+                $immediate_parent_catid = $name_categories[$trans]->id;
+            }
+        }
+
+        // Is this necessary?
+        fix_course_sortorder();
+    }
+
+    function new_category($name, $parent=0) {
+        global $CFG, $DB;
+
+        // This is how moodle creates categories...
+        $newcategory = new StdClass();
+        $newcategory->name = $name;
+        $newcategory->parent = 0;
+        $newcategory->sortorder = 999;
+
+        // This is because we're not going to add a description.
+        $newcategory->descriptionformat = 0;
+
+        $newcategory->id = $DB->insert_record('course_categories',
+            $newcategory);
+
+        $newcategory->context = get_context_instance(CONTEXT_COURSECAT, 
+            $newcategory->id);
+
+        mark_context_dirty($newcategory->context->path);
+
+        return $newcategory;
+    }
+
     /**
      *  Inserts the instructor into our local Arrays.
      *
-     *  Used as a callback in {@see insert_local_entry()}.
-     *
+     *  Used in @see send_emails.
      *  Will modify the state of the object.
      *
      *  @param $entry The entry from the Registrar.
@@ -1331,7 +1454,7 @@ class uclacoursecreator {
             );
 
             // Get the long version of the subject area (for category)
-            $ims_subj = $this->get_subject_area_translation($subj);
+            $ims_subj = $this->get_subj_area_translation($subj);
 
             // This means that we have to build a master course
             if ($req_course->crosslist == '1') {
@@ -1726,7 +1849,7 @@ class uclacoursecreator {
                 // @todo optimize
                 update_course($course_default);
 
-                $this->println('Setup ' . $course_default->id 
+                $this->println('Setup course id:' . $course_default->id 
                     . ' as ' . $course_type . ', format '
                     . $course_default->format . ' sections '
                     . $course_default->numsections);
@@ -1959,7 +2082,7 @@ class uclacoursecreator {
                 $rci_course->session_group);
 
             // Fall-back Look-up (if not in subj_trans, return dept)
-            $dept_full = $this->get_subject_area_translation($dept);
+            $dept_full = $this->get_subj_area_translation($dept);
 
             // Clean course number
             $coursenum = trim($rci_course->coursenum);
@@ -1981,7 +2104,7 @@ class uclacoursecreator {
                     $rci_course = $rci_objects[$child_srs];
 
                     $dept = trim($rci_course->subj_area);
-                    $dept_full = $this->get_subject_area_translation($dept);
+                    $dept_full = $this->get_subj_area_translation($dept);
 
                     $coursenum = trim($rci_course->coursenum);
 
@@ -2789,10 +2912,16 @@ class uclacoursecreator {
      *  Wrapper for {@see get_config()}
      **/
     function get_config($config) {
+        global $CFG;
+
         $ucc_config = get_config('uclacoursecreator', $config);
 
         if (!$ucc_config) {
-            return get_config(NULL, $config);
+            if (isset($CFG->$config)) {
+                return $CFG->$config;
+            }
+
+            return get_config(null, $config);
         }
 
         return $ucc_config;

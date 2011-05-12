@@ -19,6 +19,9 @@ You can specify as many terms as you would like.
 
 Other options:
 
+-c, --category:
+    Auto create division and subject area categories. If this option is disbaled, thebehavior will follow whatever has been specified in the IMS Enterprise configuration.
+
 -d, --debug:
     Force debug mode. Emails are not send, URLs are not updated, and at the end of each term, an exception is thrown, forcing each term to fail. See reverting cron job.
 
@@ -56,13 +59,15 @@ list($ext_argv, $unrecog) = cli_get_params(
         'debug' => false,
         'current-term' => false,
         'help' => false,
-        'revert' => false
+        'revert' => false,
+        'category' => false
     ),
     array(
         'u' => 'unlock-first',
         'd' => 'debug',
         'h' => 'help',
-        'r' => 'revert'
+        'r' => 'revert',
+        'c' => 'category'
     )
 );
 
@@ -122,6 +127,11 @@ if ($ext_argv['unlock-first']) {
 if ($ext_argv['revert']) {
     // Temporary change
     $CFG->course_creator_revert_failed_cron = true;
+}
+
+// Categories
+if ($ext_argv['category']) {
+    $CFG->course_creator_division_categories = true;
 }
 
 // Set the terms to be this value
