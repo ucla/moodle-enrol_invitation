@@ -681,7 +681,6 @@ class uclacoursecreator {
      **/
     function get_MyUCLA_service($term, $srs, $url=null) {
         if (!isset($this->myucla_login) || $this->myucla_login == null) {
-
             $cc_url = $this->get_config('course_creator_url_service');
 
             $cc_name = $this->get_config('course_creator_myucla_name');
@@ -1763,6 +1762,11 @@ class uclacoursecreator {
 
             // Technically, this should be $rcid
             $mcid = $root_course->id;
+            $mchide = $request->hidden;
+
+            $mc_obj = new StdClass();
+            $mc_obj->id = $mcid;
+            $mc_obj->hidden = $mchide;
 
             if ($master_course) {
                 $child_srs = $request->crosslisted;
@@ -1779,16 +1783,20 @@ class uclacoursecreator {
 
                     $this->emailln('Crosslisted with: '
                         . $child_course->shortname);
+
+                    $c_obj = new StdClass();
+                    $c_obj->id = $cid;
+                    $c_obj->hidden = $chid;
                    
                     $crli_cid_summary[$root_idn][$cid] = $cid;
 
                     // This means that we need to fail the entire set of
                     // courses related to this child course
-                    $this->cron_term_cache['activate']['child'][$cid] = $cid;
+                    $this->cron_term_cache['activate']['child'][$cid] = $c_obj;
                 }
             }
        
-            $this->cron_term_cache['activate'][$mode][$mcid] = $mcid;
+            $this->cron_term_cache['activate'][$mode][$mcid] = $mc_obj;
         }
 
         $this->emailln("\n");
@@ -1837,7 +1845,11 @@ class uclacoursecreator {
             $course_default = clone ($defaults[$course_type]);
 
             foreach ($courses as $course_id) {
-                $course_default->id = $course_id;
+                $course_default->id = $course_id->id;
+
+                if (isset($course_id->hidden)) {
+                    $course_default->hidden = $course_id->hidden;
+                }
 
                 // This uses the $bulk argument, but for mysql it does not
                 // do anything special
@@ -1852,7 +1864,8 @@ class uclacoursecreator {
                 $this->println('Setup course id:' . $course_default->id 
                     . ' as ' . $course_type . ', format '
                     . $course_default->format . ' sections '
-                    . $course_default->numsections);
+                    . $course_default->numsections . ' hidden '
+                    . $course_default->hidden);
             }
         }
     }
@@ -1882,6 +1895,9 @@ class uclacoursecreator {
 
     /**
      *  Sends the URLs of the courses to MyUCLA.
+     *
+     *  TODO Make more modular, do not make MyUCLA URL update dependent
+     *      on the existance of course creator.
      **/
     function update_MyUCLA_urls() {
         if (!isset($this->cron_term_cache['created_courses'])) {
@@ -2539,14 +2555,16 @@ class uclacoursecreator {
         try {
             $DB->execute($sql, $params);
         } catch (dml_exception $e) {
-            $this->debugln('Mass insert failed.');
+            $this->debugln('Registrar Class Info mass insert failed.');
 
             foreach ($term_rci as $rci_data) {
                 try {
                     $DB->insert_record('ucla_reg_classinfo',
                         $rci_data);
                 } catch (dml_exception $e) {
-                    $this->debugln($e->getMessage());
+                    $this->debugln('UCLA Reg Class Info Failed: '
+                        . $e->getMessage() . ' for: ' 
+                        . $rci_data->term . ' ' . $rci_data->srs);
                 }
             }
         }
