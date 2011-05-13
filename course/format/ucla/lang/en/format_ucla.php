@@ -27,3 +27,8 @@ $string['section0name'] = 'Class Information';
 
 $string['discforum'] = 'Discussion forum';
 $string['introdisc'] = 'This is a general discussion forum.';
+
+$string['reg_listing'] = 'For course location and time see Registrar Listing: ';
+$string['reg_finalcd'] = 'For official course description, final exam code'.
+    ' and other course information see: ';
+$string['reg_unavail'] = 'The Registrar links are unavailable at this time.';

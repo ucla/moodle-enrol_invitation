@@ -15,23 +15,12 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Evaluation topics format for course display - NO layout tables, for 
- * accessibility, etc.
- *
- * A duplicate course format to enable the Moodle development team to evaluate
- * CSS for the multi-column layout in place of layout tables.
- * Less risk for the Moodle 1.6 beta release.
- *   1. Straight copy of topics/format.php
- *   2. Replace <table> and <td> with DIVs; inline styles.
- *   3. Reorder columns so that in linear view content is first then blocks;
- * styles to maintain original graphical (side by side) view.
  *
  * @copyright UCLA 2011 - Stolen from: &copy; 2006 The Open University 
  * @author N.D.Freear@open.ac.uk, and others.
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
  * @package ucla
  * @subpackage format
- * @todo use html_writer
  */
 
 defined('MOODLE_INTERNAL') || die();
@@ -39,48 +28,83 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir.'/filelib.php');
 require_once($CFG->libdir.'/completionlib.php');
 
-require_once($CFG->dirroot.'/enrol/locallib.php');
+// Course preferences
+$course_prefs = new ucla_course_prefs($course->id);
 
-$topic = optional_param('topic', -1, PARAM_INT);
+// Default to section 0 (course info) if there are no preferences
+$landing_page = $course_prefs->get_preference('landing_page', 0);
 
-// Determine which section to display ( this maintains user history in the DB )
-if ($topic != -1) {
+define('DISPLAY_ALL', -1);
+define('DISPLAY_PREVIOUS', -2);
+define('DISPLAY_LANDING', -3);
+
+/**
+ *  Landing page and determining which section to display
+ **/
+$topic = optional_param('topic', DISPLAY_PREVIOUS, PARAM_INT);
+
+/**
+ *  New landing page and topic view control.
+ *  We want to make sure that if a user is coming from a different course
+ *  that they goto the landing page.
+ *
+ *  This code uses the fact that the $USER global is cached and carried through
+ *  the session. 
+ *  Also uses the fact that course_get_display() will clear $USER->display 
+ *  whenever we traverse to a new course.
+ **/
+
+$displaysection = null;
+$to_topic = null;
+
+if ($topic >= DISPLAY_ALL) {
     // This means that a topic was explicitly declared
-    $requestsection = course_set_display($course->id, $topic);
+    $to_topic = $topic;
 } else {
-    // This should show the landing page, or the previously viewed page
-    // This defaults to '0', which we will interpret as the landing page
-    $requestsection = course_get_display($course->id);
+    if ($topic == DISPLAY_LANDING || !isset($USER->display['course'])) {
+        // This means that we have come from a different course
+        $to_topic = $landing_page;
+    } else {
+        // This should show the landing page, or the previously viewed page
+        // This defaults to '0'
+        $displaysection = $USER->display[$course->id];
+    }
 }
 
-$context = get_context_instance(CONTEXT_COURSE, $course->id);
+if ($displaysection == null && $to_topic != null) {
+    $displaysection = course_set_display($course->id, $to_topic);
+}
 
-// Figure out which section we are highlighting. 
+// Leave in marker functionality, this isn't really used except visually
+// TODO maybe use it for other stuff
 if (($marker >= 0) 
   && has_capability('moodle/course:setcurrentsection', $context) 
   && confirm_sesskey()) {
-
     $course->marker = $marker;
-    $DB->set_field("course", "marker", $marker, 
-        array("id" => $course->id));
+    $DB->set_field("course", "marker", $marker, array("id" => $course->id));
 }
 
-// Interpret what moodle thinks the section displayed should be with what
-// UCLA thinks the section displayed should be
-if ($requestsection == 0) {
-    // Implicit topic, goto landing page
-    $displaysection = $course->marker;
-} else if ($requestsection == -1) {
-    // Course Information 
-    $displaysection = 0;
-} else {
-    // Display all or display 1 section
-    $displaysection = $requestsection;
-}
+// In our session-carried $USER variable, store the fact that we have marked
+// that we have come from the same course
+$USER->display['course'] = $course->id;
 
+/**
+ *  Required forums for the UCLA format.
+ **/
 // Build our required forums
 $forum_new = forum_get_course_forum($course->id, 'news');
 $forum_gen = forum_get_course_forum($course->id, 'general');
+
+/**
+ *  Important Non-Variants.
+ **/
+$context = get_context_instance(CONTEXT_COURSE, $course->id);
+
+$has_capability_viewhidden = 
+    has_capability('moodle/course:viewhiddensections', $context);
+
+$has_capability_update = has_capability('moodle/course:update', $context);
+$get_accesshide = get_accesshide(get_string('currenttopic', 'access'));
 
 // Cache all these get_string(), because you know, they're cached already...
 $streditsummary   = get_string('editsummary');
@@ -92,6 +116,7 @@ $strgroups        = get_string('groups');
 $strgroupmy       = get_string('groupmy');
 $editing          = $PAGE->user_is_editing();
 
+// If editing... just felt like a comment belongs here
 if ($editing) {
     $strtopichide       = get_string('hidetopicfromothers');
     $strtopicshow       = get_string('showtopicfromothers');
@@ -101,11 +126,33 @@ if ($editing) {
     $strmovedown        = get_string('movedown');
 }
 
-// Get instructor information
+/**
+ *  Get instructor information.
+ **/
 // TODO see if there is an API call for this query
+// TODO if not, move outside to library
 $params = array();
 $params[] = $course->id;
 
+// Instructor configuration, move out to config file 
+$instructor_types = array(
+    'Instructor' => array(
+        'editingteacher',
+        'teacher'
+    ),
+    'Teaching Assistant' => array(),
+    'Student' => array('student')
+);
+
+// map-reduce-able
+$roles = array();
+foreach ($instructor_types as $instructor) {
+    foreach ($instructor as $role) {
+        $roles[$role] = $role;
+    }
+}
+
+// Get the people with designated roles
 try {
     if (!isset($roles) || empty($roles)) {
         // Hardcoded defaults
@@ -120,7 +167,6 @@ try {
     $additional_sql = ' AND r.shortname '.$in_roles;
 
     $params = array_merge($params, $new_params);
-
 } catch (coding_exception $e) {
     // Coding exception...
     $additional_sql = '';
@@ -150,27 +196,24 @@ $sql = "
 // Use this whenever you need to display instructors
 $instructors = $DB->get_records_sql($sql, $params);
 
+/**
+ *  Registrar information Line
+ **/
 // Registrar information TODO
-$course_term = 'No Term';
+// Pretty version of term
+$course_reg_infos = false;
+
+$course_term = 'No Term'; 
+
 $course_subj = '';
-$course_coursenum = 'No Course Number';
+$course_coursenum = 'No Registrar Information';
 
-// Non-Variants
-$has_capability_viewhidden = 
-    has_capability('moodle/course:viewhiddensections', $context);
-
-$has_capability_update = has_capability('moodle/course:update', $context);
-$get_accesshide = get_accesshide(get_string('currenttopic', 'access'));
-
-// Start working on actually printing stuff
-// Print the Your progress icon if the track completion is enabled
-$completioninfo = new completion_info($course);
-echo $completioninfo->display_help_icon();
-
-// Display the top of the inside of the middle (the heading!)
+// Display the top of the inside of the middle (the heading)
 $imploder = array();
 foreach ($instructors as $instructor) {
-    $imploder[] = $instructor->lastname;
+    if (in_array($instructor->shortname, $instructor_types['Instructor'])) {
+        $imploder[] = $instructor->lastname;
+    }
 }
 
 if (empty($imploder)) {
@@ -183,16 +226,28 @@ $heading_text = $course_term.' - '.$course_subj.' '.$course_coursenum.' - '.
     $inst_text;
 
 $heading_text .= html_writer::empty_tag('br');
-
 $heading_text .= $OUTPUT->heading($course->fullname, 2);
 
 echo html_writer::tag('div', $heading_text, array(
         'class' => ''
     ));
 
+/**
+ *  Progress icon for track completion!
+ **/
+// Print the Your progress icon if the track completion is enabled
+$completioninfo = new completion_info($course);
+echo $completioninfo->display_help_icon();
+
+/**
+ *  Start printing the sections.
+ **/
 // Note, an ordered list would confuse - "1" could be the clipboard or summary.
 echo html_writer::start_tag('ul', array('class' => 'topics'))."\n";
 
+/**
+ *  The non-AJAX clipboard for moving resources.
+ **/
 /// If currently moving a file then show the current clipboard
 if (ismoving($course->id)) {
     $stractivityclipboard = 
@@ -214,8 +269,9 @@ if (ismoving($course->id)) {
     echo html_writer::end_tag('li')."\n";
 }
 
-/// Now all the normal modules by topic
-/// Everything below uses "section" terminology - each "section" is a topic.
+/**
+ *  This is where we start to draw the actual sections.
+ **/
 $timenow = time();
 $section = 0;
 $sectionmenu = array();
@@ -244,9 +300,10 @@ while ($section <= $course->numsections) {
 
     // If we are only displaying one section, save this section for the 
     // pull down menu later
-    if ($displaysection != -2 && $displaysection != $section) {
+    if ($displaysection != DISPLAY_ALL && $displaysection != $section) {
         // Show the section in the pull down only if we would've shown it
         // otherwise
+
         if ($showsection) {
             $sectionmenu[$section] = get_section_name($course, $thissection);
         }
@@ -308,7 +365,7 @@ while ($section <= $course->numsections) {
         // Draw the boxes to display this or all sections
         if ($displaysection == $section) {    
             // Show the zoom boxes
-            $add_url_options['topic'] = '-2';
+            $add_url_options['topic'] = DISPLAY_ALL;
 
             $link_str = '#section-'.$section;
 
@@ -490,9 +547,10 @@ while ($section <= $course->numsections) {
         $right_side .= html_writer::end_tag('div');
 
         //////////////// Actual Section Content /////////////////////////
+        $css_classes = 'content';
         $center_content = html_writer::start_tag('div', 
-            array('class' => 'content'));
-
+            array('class' => $css_classes));
+            
         // Do not display hidden sections to students
         if (!$has_capability_viewhidden and !$thissection->visible) {
             $center_content .= get_string('notavailable');
@@ -503,25 +561,53 @@ while ($section <= $course->numsections) {
             if ($section == 0) {
                 // Course Information specific has a different section
                 // header
-                $registrar_info = 'Registrar Information';
+                if ($course_reg_infos) {
+                    $registrar_info = get_string('reg_listing', 
+                        'format_ucla');
+                    $registrar_info .= html_writer::empty_tag('br');
+
+                    $registrar_info .= get_string('reg_finalcd', 
+                        'format_ucla');
+                    $registrar_info .= html_writer::empty_tag('br');
+                } else {
+                    $registrar_info = get_string('reg_unavail', 
+                        'format_ucla');
+                }
 
                 $center_content .= html_writer::tag('div', $registrar_info,
                     array('class' => 'registrar-info'));
 
                 $center_content .= html_writer::tag('div', 
                     format_text($course->summary),
-                    array('class' => 'course-summary'));
-    
+                    array('class' => 'summary'));
+                
+                // Editing button for course summary
+                if ($editing && $has_capability_update) {
+                    $url_options = array(
+                            'id' => $course->id,
+                        );
+
+                    $link_options = array('title' => $streditsummary);
+
+                    $moodle_url = new moodle_url('edit.php', $url_options);
+
+                    $img_options = array(
+                            'src' => $OUTPUT->pix_url('t/edit'),
+                            'class' => 'icon edit',
+                            'alt' => $streditsummary
+                        );
+
+                    $innards = html_writer::empty_tag('img', $img_options);
+
+                    $center_content .= html_writer::link($moodle_url, 
+                        $innards, $link_options);
+
+                    $center_content .= html_writer::empty_tag('br');
+                    $center_content .= html_writer::empty_tag('br');
+                }
+   
+                // Instructor informations
                 $instr_info = '';
-
-                $instructor_types = array(
-                    'Instructor' => array(
-                        'editingteacher',
-                        'teacher'
-                    ),
-
-                    'Teaching Assistant' => array()
-                );
 
                 if (!empty($instructors)) {
                     foreach ($instructor_types as $title => $rolenames) {
@@ -666,7 +752,7 @@ while ($section <= $course->numsections) {
 }
 
 // Orphaned activities custom written section
-if ($displaysection == -2 and $editing and $has_capability_update) {
+if ($displaysection == DISPLAY_ALL and $editing and $has_capability_update) {
     $modinfo = get_fast_modinfo($course);
 
     foreach ($sections as $section=>$thissection) {

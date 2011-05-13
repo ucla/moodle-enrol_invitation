@@ -82,7 +82,7 @@
         <FIELD NAME="modinfo" TYPE="text" LENGTH="big" NOTNULL="false" SEQUENCE="false" PREVIOUS="showgrades" NEXT="newsitems"/>
         <FIELD NAME="newsitems" TYPE="int" LENGTH="5" NOTNULL="true" UNSIGNED="true" DEFAULT="1" SEQUENCE="false" PREVIOUS="modinfo" NEXT="startdate"/>
         <FIELD NAME="startdate" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="newsitems" NEXT="numsections"/>
-        <FIELD NAME="numsections" TYPE="int" LENGTH="5" NOTNULL="true" UNSIGNED="true" DEFAULT="1" SEQUENCE="false" PREVIOUS="startdate" NEXT="marker"/>
+        <FIELD NAME="numsections" TYPE="int" LENGTH="5" NOTNULL="true" UNSIGNED="false" DEFAULT="1" SEQUENCE="false" PREVIOUS="startdate" NEXT="marker"/>
         <FIELD NAME="marker" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="numsections" NEXT="maxbytes"/>
         <FIELD NAME="maxbytes" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="marker" NEXT="legacyfiles"/>
         <FIELD NAME="legacyfiles" TYPE="int" LENGTH="4" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="course files are not necessary any more: 0 no legacy files, 1 legacy files disabled, 2 legacy files enabled" PREVIOUS="maxbytes" NEXT="showreports"/>

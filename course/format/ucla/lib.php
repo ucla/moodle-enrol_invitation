@@ -25,6 +25,9 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+/**  Course Preferences API **/
+require_once(dirname(__FILE__) . '/course_prefs_lib.php');
+
 /**
  * Indicates this format uses sections.
  *
@@ -45,8 +48,47 @@ function callback_ucla_uses_sections() {
  * @return bool Returns true
  */
 function callback_ucla_load_content(&$navigation, $course, $coursenode) {
+    global $CFG;
+
+    // Sort of a dirty hack, but this so far is the best way to manipulate the
+    // navbar since these callbacks are called before the format is included
+    $path = $CFG->wwwroot . '/course/view.php';
+    $ref_url = new moodle_url($path, array('id' => $course->id));
+
+    $supernode =& find_course_link_helper($navigation, $ref_url);
+
+    if ($supernode !== false) {
+        $supernode->action->params(array('topic' => '-3'));
+    }
+
     return $navigation->load_generic_course_sections($course, $coursenode, 
         'ucla');
+}
+
+/**
+ *  It's a depth-first search, which might not be the best solution...
+ **/
+function find_course_link_helper(&$navigation, $reference) {
+    if (!is_object($navigation)) {
+        return false;
+    }
+
+    if (isset($navigation->action) 
+      && get_class($navigation->action) == 'moodle_url') {
+        if ($navigation->action->compare($reference)) {
+            return $navigation;
+        }
+    }
+
+    foreach ($navigation->children as &$child) {
+        $res = find_course_link_helper($child, $reference);
+
+        if ($res !== false) {
+            return $res;
+        }
+    }
+
+    return false;
 }
 
 /**
@@ -81,7 +123,9 @@ function callback_ucla_get_section_name($course, $section) {
     } else if ($section->section == 0) {
         return get_string('section0name', 'format_ucla');
     } else {
-        return get_string('section').' '.$section->section;
+        $r = ''.get_string('section').' '.$section->section.'';
+
+        return html_writer::tag('span', $r, array('class' => 'defsection'));
     }
 }
 
@@ -92,6 +136,7 @@ function callback_ucla_get_section_name($course, $section) {
  * @return stdClass
  */
 function callback_ucla_ajax_support() {
+
     $ajaxsupport = new stdClass();
     $ajaxsupport->capable = true;
     $ajaxsupport->testedbrowsers = array(
