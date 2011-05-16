@@ -46,21 +46,21 @@ $string['setting_default_logo_sub_text'] =
 '<div id="dropdown">Shared Server</div>
 <div class="dropdownlist" style="display:none">
 <ul>
-    <li><span>Humanities</span></li>
-    <li><span>Nursing</span></li>
-    <li><span>Public Health</span></li>
-    <li><span>Human Genetics</span></li>
+    <li><span>Chemistry & Biochemistry</span></li>
     <li><span>Computer Science</span></li>
-    <li><span>Physical Sciences</span></li>
     <li><span>Dentistry</span></li>
     <li><span>Education & Information Studies</span></li>
     <li><span>Engineering</span></li>
-    <li><span>Public Affairs</span></li>
+    <li><span>Human Genetics</span></li>
+    <li><span>Humanities</span></li>
     <li><span>Life Sciences</span></li>
-    <li><span>World Arts & Architecture</span></li>
-    <li><span>Chemistry & Biochemistry</span></li>
     <li><span>Management</span></li>
+    <li><span>Nursing</span></li>
+    <li><span>Physical Sciences</span></li>
     <li><span>Physics & Astronomy</span></li>
+    <li><span>Public Affairs</span></li>
+    <li><span>Public Health</span></li>
+    <li><span>World Arts & Architecture</span></li>
 </ul>
 </div>';
 

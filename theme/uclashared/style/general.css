@@ -5,11 +5,15 @@ a:hover {text-decoration:underline;}
 img.icon,
 img.iconhelp {vertical-align:middle;}
 
-html, body {background-color:#eaeaea;}
-#page #page-content {background-color:#FFF;}
+html, body {background-color:#FFF; height:100%;}
+#page {height:100%;background-color:transparent;margin:0 auto -41px;}
+#page #page-content {background-color:#FFF; height:auto;}
 
 /** Header **/
-#page-header {background-color: #536895; color:#FFF;border-top:15px solid #565656;}
+#page-header {background-color: #536895; color:#FFF;border-top:15px solid #565656; 
+filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#536895', endColorstr='#444444'); /* for IE */
+background: -webkit-gradient(linear, left top, left bottom, from(#536895), to(#444444)); /* for webkit browsers */
+background: -moz-linear-gradient(top,  #536895,  #444444); /* for firefox 3.6+ */}
 .hasnavbar #page-header {border-bottom-width:0px;}
 
 #page-header .headermain {margin:0;margin-top:10px;margin-left:15px;margin-bottom:10px;}
@@ -27,19 +31,21 @@ html, body {background-color:#eaeaea;}
 #page-header .navbar .navbutton {margin:5px 1em;}
 
 /** Dropdown **/
-#page-header #sublogo #dropdown {width:110px;cursor:pointer;cursor:hand;color:#CCC;}
+#page-header #sublogo {margin-left:30px;margin-bottom:10px;}
+#page-header #sublogo #dropdown {width:110px;cursor:pointer;cursor:hand;color:#CCC;text-shadow: 0 1px 0 #000000;}
+#page-header #sublogo .dropdownlist {margin-bottom:10px;height:45px;}
 #page-header #sublogo .dropdownlist p {font-weight: normal;width:110px; height:20px;margin-bottom:0px; 0 0 no-repeat;}
-#page-header #sublogo .dropdownlist ul {width:925px; background:#536895;list-style-type:none;margin:0px;border:1px solid #536895;}
-#page-header #sublogo .dropdownlist span {display:inline;width:925px;color:#CCC;font-size:11px;margin:0px;font-weight:normal;font-style:italic;}
+#page-header #sublogo .dropdownlist ul {width:925px; background:#536895;list-style-type:none;margin:0px;}
+#page-header #sublogo .dropdownlist span {display:inline;width:925px;color:#CCC;font-size:11px;margin:0px;font-weight:normal;font-style:italic;text-shadow: 0 1px 0 #000000;}
 #page-header #sublogo .dropdownlist li {list-style-type:none;float:left;width:185px;text-align:left;line-height:1em;}
 .RightArrow:before {content:'► ';}
 .DownArrow:before {content:'▼ ';}
 
 /** Footer **/
-#page-footer {background-color: #565656; color:#FFF; height:30px;}
+#page-footer {background-color: #565656; color:#FFF; height:41px;}
 #page-footer #footer-links a {color: #A3BFFD; margin-left: 5px; margin-right: 5px; font-weight:bold;}
-#page-footer #copyright-info {float: left; margin-top:5px; font-weight:bold;}
-#page-footer #footer-links {float: right; margin-top:5px;}
+#page-footer #copyright-info {float: left; margin-top:10px; font-weight:bold;}
+#page-footer #footer-links {float: right; margin-top:10px;}
 
 /** General **/
 .generalbox {border: 1px solid #DDDDDD;}

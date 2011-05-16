@@ -50,13 +50,8 @@ echo $OUTPUT->doctype() ?>
             <div id="uclalogo">
                 <img src="<?php echo $OUTPUT->pix_url('ucla_ccle_logo', 'theme') ?>" />
             </div>
-            <div id="sublogo">
-            <?php 
-                echo $OUTPUT->sublogo(); 
-            ?>
-            </div>
         </div>
-        <div class="headermenu"><?php
+	<div class="headermenu"><?php
             if ($haslogininfo) {
                 echo $OUTPUT->login_info();
             }
@@ -80,7 +75,15 @@ echo $OUTPUT->doctype() ?>
             }
 
             echo $PAGE->headingmenu
-        ?></div><?php } ?>
+        ?>
+        </div>
+<div id="sublogo">
+            <?php
+                echo $OUTPUT->sublogo();
+            ?>
+            </div>
+
+        <?php } ?>
         <?php if ($hascustommenu) { ?>
         <div id="custommenu"><?php echo $custommenu; ?></div>
         <?php } ?>
@@ -124,10 +127,11 @@ echo $OUTPUT->doctype() ?>
             </div>
         </div>
     </div>
+</div>
 
-<!-- START OF FOOTER -->
+    <!-- START OF FOOTER -->
     <?php if ($hasfooter) { ?>
-    <div id="page-footer" class="clearfix">
+    <div id="page-footer" >
     <!--
         <p class="helplink"><?php echo page_doc_link(get_string('moodledocslink')) ?></p>
     -->
@@ -142,7 +146,7 @@ echo $OUTPUT->doctype() ?>
         <?php echo $OUTPUT->standard_footer_html() ?>
     </div>
     <?php } ?>
-</div>
+
 <?php echo $OUTPUT->standard_end_of_body_html() ?>
 </body>
 </html>
