@@ -28,6 +28,10 @@
 /**  Course Preferences API **/
 require_once(dirname(__FILE__) . '/course_prefs_lib.php');
 
+define('UCLA_FORMAT_DISPLAY_ALL', -1);
+define('UCLA_FORMAT_DISPLAY_PREVIOUS', -2);
+define('UCLA_FORMAT_DISPLAY_LANDING', -3);
+
 /**
  * Indicates this format uses sections.
  *
@@ -58,7 +62,9 @@ function callback_ucla_load_content(&$navigation, $course, $coursenode) {
     $supernode =& find_course_link_helper($navigation, $ref_url);
 
     if ($supernode !== false) {
-        $supernode->action->params(array('topic' => '-3'));
+        $supernode->action->params(array(
+            'topic' => UCLA_FORMAT_DISPLAY_LANDING
+        ));
     }
 
     return $navigation->load_generic_course_sections($course, $coursenode, 

@@ -32,16 +32,12 @@ require_once($CFG->libdir.'/completionlib.php');
 $course_prefs = new ucla_course_prefs($course->id);
 
 // Default to section 0 (course info) if there are no preferences
-$landing_page = $course_prefs->get_preference('landing_page', 0);
-
-define('DISPLAY_ALL', -1);
-define('DISPLAY_PREVIOUS', -2);
-define('DISPLAY_LANDING', -3);
+$landing_page = $course_prefs->get_preference('landing_page', false);
 
 /**
  *  Landing page and determining which section to display
  **/
-$topic = optional_param('topic', DISPLAY_PREVIOUS, PARAM_INT);
+$topic = optional_param('topic', UCLA_FORMAT_DISPLAY_PREVIOUS, PARAM_INT);
 
 /**
  *  New landing page and topic view control.
@@ -57,23 +53,34 @@ $topic = optional_param('topic', DISPLAY_PREVIOUS, PARAM_INT);
 $displaysection = null;
 $to_topic = null;
 
-if ($topic >= DISPLAY_ALL) {
+if ($topic >= UCLA_FORMAT_DISPLAY_ALL) {
     // This means that a topic was explicitly declared
     $to_topic = $topic;
 } else {
-    if ($topic == DISPLAY_LANDING || !isset($USER->display['course'])) {
+    if ($topic == UCLA_FORMAT_DISPLAY_LANDING 
+      || !isset($USER->display['course'])) {
+        debugging('UCLA Format: Landing page');
+
         // This means that we have come from a different course
-        $to_topic = $landing_page;
+        if ($landing_page === false) {
+            $to_topic = $marker;
+        } else {
+            $to_topic = $landing_page;
+        }
     } else {
-        // This should show the landing page, or the previously viewed page
+        debugging('UCLA Format: Previously viewed page');
+
+        // This should show the previously viewed page
         // This defaults to '0'
-        $displaysection = $USER->display[$course->id];
+        $displaysection = course_get_display($course->id);
     }
 }
 
-if ($displaysection == null && $to_topic != null) {
+if ($displaysection == null && $to_topic !== null) {
     $displaysection = course_set_display($course->id, $to_topic);
 }
+
+$USER->display['course'] = $course->id;
 
 // Leave in marker functionality, this isn't really used except visually
 // TODO maybe use it for other stuff
@@ -83,10 +90,6 @@ if (($marker >= 0)
     $course->marker = $marker;
     $DB->set_field("course", "marker", $marker, array("id" => $course->id));
 }
-
-// In our session-carried $USER variable, store the fact that we have marked
-// that we have come from the same course
-$USER->display['course'] = $course->id;
 
 /**
  *  Required forums for the UCLA format.
@@ -141,7 +144,6 @@ $instructor_types = array(
         'teacher'
     ),
     'Teaching Assistant' => array(),
-    'Student' => array('student')
 );
 
 // map-reduce-able
@@ -300,7 +302,7 @@ while ($section <= $course->numsections) {
 
     // If we are only displaying one section, save this section for the 
     // pull down menu later
-    if ($displaysection != DISPLAY_ALL && $displaysection != $section) {
+    if ($displaysection != UCLA_FORMAT_DISPLAY_ALL && $displaysection != $section) {
         // Show the section in the pull down only if we would've shown it
         // otherwise
 
@@ -365,7 +367,7 @@ while ($section <= $course->numsections) {
         // Draw the boxes to display this or all sections
         if ($displaysection == $section) {    
             // Show the zoom boxes
-            $add_url_options['topic'] = DISPLAY_ALL;
+            $add_url_options['topic'] = UCLA_FORMAT_DISPLAY_ALL;
 
             $link_str = '#section-'.$section;
 
@@ -569,9 +571,11 @@ while ($section <= $course->numsections) {
                     $registrar_info .= get_string('reg_finalcd', 
                         'format_ucla');
                     $registrar_info .= html_writer::empty_tag('br');
-                } else {
+                } else if ($editing && $has_capability_update) {
                     $registrar_info = get_string('reg_unavail', 
                         'format_ucla');
+                } else {
+                    $registrar_info = '';
                 }
 
                 $center_content .= html_writer::tag('div', $registrar_info,
@@ -625,6 +629,7 @@ while ($section <= $course->numsections) {
                         $table = new html_table();
                         $table->width = '*';
 
+                        // TODO make this more modular
                         $desired_info = array(
                             'fullname' => $title,
                             'office' => 'Office',
@@ -752,7 +757,7 @@ while ($section <= $course->numsections) {
 }
 
 // Orphaned activities custom written section
-if ($displaysection == DISPLAY_ALL and $editing and $has_capability_update) {
+if ($displaysection == UCLA_FORMAT_DISPLAY_ALL and $editing and $has_capability_update) {
     $modinfo = get_fast_modinfo($course);
 
     foreach ($sections as $section=>$thissection) {
