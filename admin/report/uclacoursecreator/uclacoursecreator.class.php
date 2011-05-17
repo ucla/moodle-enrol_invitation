@@ -34,6 +34,12 @@ require_once(dirname(__FILE__) . '/../../../course/lib.php');
 // Required for categories
 require_once(dirname(__FILE__) . '/../../../course/editcategory_form.php');
 
+// This is required for role mapping
+global $CFG;
+if (file_exists($CFG->libdir . '/uclalib.php')) {
+    include_once($CFG->libdir . '/uclalib.php');
+}
+
 /**
  *  Course creator.
  *
@@ -721,7 +727,7 @@ class uclacoursecreator {
 
             $printstr .= $moodleroleid . '. ';
 
-            $req_cap = '';
+            $req_cap = 'moodle/course:update';
             if (!isset($this->capcache)) {
                 $caps = get_roles_with_capability($req_cap);
 
@@ -3078,7 +3084,4 @@ class uclacoursecreator {
     }
 }
 
-function role_mapping($profcode, $other_roles, $subj_area) {
-    return 'ta';
-}
 /** End of file **/

@@ -20,7 +20,7 @@ You can specify as many terms as you would like.
 Other options:
 
 -c, --category:
-    Auto create division and subject area categories. If this option is disbaled, thebehavior will follow whatever has been specified in the IMS Enterprise configuration.
+    Auto create division and subject area categories. If this option is disabled, the behavior will follow whatever has been specified in the IMS Enterprise configuration.
 
 -d, --debug:
     Force debug mode. Emails are not send, URLs are not updated, and at the end of each term, an exception is thrown, forcing each term to fail. See reverting cron job.
@@ -115,7 +115,11 @@ if (!empty($reg_argv)) {
 } 
 
 if ($ext_argv['current-term']) {
-    $termlist = array($CFG->currentterm);
+    if (!isset($CFG->currentterm)) {
+        $termlist = array($CFG->currentterm);
+    } else {
+        echo '$CFG->currentterm is not set!' . "\n";
+    }
 }
 
 // Force a run, try unlocking first
