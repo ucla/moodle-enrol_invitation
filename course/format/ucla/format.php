@@ -177,6 +177,8 @@ try {
 // This is going to be changed to JOIN on to office hours
 $sql = "
     SELECT 
+        CONCAT(u.id, '-', r.id) as recordset_id,
+        u.id,
         u.firstname,
         u.lastname,
         u.email,
@@ -214,7 +216,7 @@ $course_coursenum = 'No Registrar Information';
 $imploder = array();
 foreach ($instructors as $instructor) {
     if (in_array($instructor->shortname, $instructor_types['Instructor'])) {
-        $imploder[] = $instructor->lastname;
+        $imploder[$instructor->id] = $instructor->lastname;
     }
 }
 
@@ -571,10 +573,11 @@ while ($section <= $course->numsections) {
                     $registrar_info .= get_string('reg_finalcd', 
                         'format_ucla');
                     $registrar_info .= html_writer::empty_tag('br');
-                } else if ($editing && $has_capability_update) {
+                } else {
                     $registrar_info = get_string('reg_unavail', 
                         'format_ucla');
-                } else {
+
+                    debugging($registrar_info);
                     $registrar_info = '';
                 }
 
@@ -618,7 +621,7 @@ while ($section <= $course->numsections) {
                         $goal_users = array();
                         foreach ($instructors as $user) {
                             if (in_array($user->shortname, $rolenames)) {
-                                $goal_users[] = $user;
+                                $goal_users[$user->id] = $user;
                             }
                         }
 

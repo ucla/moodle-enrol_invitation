@@ -26,7 +26,7 @@
  */
 
 /**  Course Preferences API **/
-require_once(dirname(__FILE__) . '/course_prefs_lib.php');
+require_once(dirname(__FILE__) . '/ucla_course_prefs.class.php');
 
 define('UCLA_FORMAT_DISPLAY_ALL', -1);
 define('UCLA_FORMAT_DISPLAY_PREVIOUS', -2);
@@ -66,13 +66,20 @@ function callback_ucla_load_content(&$navigation, $course, $coursenode) {
             'topic' => UCLA_FORMAT_DISPLAY_LANDING
         ));
     }
+    
+    // Add the course preferences
+    $course_pref = new moodle_url($CFG->wwwroot 
+        . '/course/format/ucla/edit.php',
+        array('courseid' => $course->id));
+
+    $supernode->add(get_string('course_pref', 'format_ucla'), $course_pref);
 
     return $navigation->load_generic_course_sections($course, $coursenode, 
         'ucla');
 }
 
 /**
- *  It's a depth-first search, which might not be the best solution...
+ *  It's a dfs, but a bfs is better.
  **/
 function find_course_link_helper(&$navigation, $reference) {
     if (!is_object($navigation)) {

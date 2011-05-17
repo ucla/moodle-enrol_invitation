@@ -21,14 +21,23 @@
  * @package   ucla
  */
 
-$string['sectionname'] = 'UCLA Unified';
-$string['pluginname'] = 'Unification format';
+// Moodle general format strings
+$string['sectionname'] = 'Section';
+$string['pluginname'] = 'UCLA Format';
 $string['section0name'] = 'Class Information';
 
+// SSC forum strings
 $string['discforum'] = 'Discussion forum';
 $string['introdisc'] = 'This is a general discussion forum.';
 
+// Registrar strings
 $string['reg_listing'] = 'For course location and time see Registrar Listing: ';
 $string['reg_finalcd'] = 'For official course description, final exam code'.
     ' and other course information see: ';
 $string['reg_unavail'] = 'The Registrar links are unavailable at this time.';
+
+// Course preferences strings
+$string['course_pref'] = 'Course Preferences';
+$string['course_pref_for'] = 'UCLA Format Course Preferences for {$a}';
+$string['landing_page'] = 'Landing Page';
+$string['show_all'] = 'Show All';

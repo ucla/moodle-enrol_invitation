@@ -15,7 +15,6 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- *
  * @copyright UCLA 2011
  * @author yangmungi@ucla.edu
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
@@ -25,7 +24,7 @@
  *
  * This file should be included from the format:
  * See moodle/format/ucla/lib.php
- */
+ **/
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -33,15 +32,18 @@ class ucla_course_prefs {
     // This maintains the preferences
     private $preferences;
 
+    private $courseid;
+
     // Constructor
     function __construct($courseid) {
+        $this->courseid = $courseid;
         $this->preferences = 
             ucla_course_prefs::get_course_preferences($courseid);
     }
 
     function get_preference($preference, $default=false) {
         if (isset($this->preferences[$preference])) {
-            return $this->preferences[$preference];
+            return $this->preferences[$preference]->value;
         }
 
         return $default;
@@ -49,10 +51,17 @@ class ucla_course_prefs {
 
     function set_preference($preference, $value, $commit=false) {
         if (!isset($this->preferences[$preference])) {
-            $this->preferences[$preference] = new StdClass();
+            $newpref = new StdClass();
+            $newpref->name = $preference;
+            $newpref->courseid = $this->courseid;
+        } else {
+            $newpref = $this->preferences[$preference];
         }
         
-        $this->preferences[$preference] = $value;
+        $newpref->value = $value;
+        $newpref->timestamp = time();
+
+        $this->preferences[$preference] = $newpref;
 
         if ($commit) {
             $this->commit_one($preference);
@@ -66,16 +75,18 @@ class ucla_course_prefs {
     }
 
     function commit_one($preference) {
-        if ($preferences == null || !isset($this->preferences[$preference])) {
+        global $DB;
+
+        if ($preference == null || !isset($this->preferences[$preference])) {
             return false;
         }
 
-        $obj = $this->preferences[$preference];
+        $obj =& $this->preferences[$preference];
         
         if (isset($obj->id)) {
-            $DB->update_record('ucla_course_pref', $obj);
+            $DB->update_record('ucla_course_prefs', $obj);
         } else {
-            $DB->insert_record('ucla_course_pref', $obj);
+            $obj->id = $DB->insert_record('ucla_course_prefs', $obj);
         }
     }
 
