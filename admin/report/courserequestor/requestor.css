@@ -1,0 +1,43 @@
+/* 
+    Document   : requestor
+    Created on : Apr 30, 2010, 6:21:06 PM
+    Author     : ARoman
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+/* 
+   TODO customize this sample style
+   Syntax recommendation http://www.w3.org/TR/REC-CSS2/
+*/
+
+root { 
+    display: block;
+}
+.crqpaddingbot{ margin-bottom:20px;}
+.crqcenterbox{ text-align:center; padding-bottom:20px;}
+.crqformodd{border:0px; background:#E3E3EC; padding: 10px;  }
+.crqformeven{border:0px; background:#D6D6DC; padding: 10px; }
+.crqfrmtxtboxodd{display:block; width:inherit; background:#E3E3EC; padding:5px;}
+.crqfrmtxtboxeven{display:block; width:inherit; background:#D6D6DC; padding:5px;}
+.crqfrmcrosslist{display:block; width:250px; border:1px solid #D6D6DC; padding:10px;
+    padding-right:22px;}
+.crqerrormsg{display:block; width:inherit; text-align:center; color:red;
+    border: 1px solid red; margin:5px; padding:5px; background:white}
+.crqtableodd{background:#D6D6DC; padding:5px;}
+.crqtableeven{background:#E3E3EC; padding:5px;}
+.crqtableunderline{font-size:12px; border-bottom:1px solid #D6D6DC; padding-bottom:2px; padding-top:2px; }
+.crqfrmoutput{padding:10px; margin:0 auto;width:800px}
+.crqbedlive{background:green; padding:2px; padding-left:6px; padding-right:6px; color:white; margin-left:4px; margin-right:4px;}
+.crqbedpreview{background:red; padding:2px; padding-left:6px; padding-right:6px; color:white; margin-left:4px; margin-right:4px;}
+.crqbedxlist{background:blue; padding:2px; padding-left:6px; padding-right:6px; color:white; margin-left:4px; margin-right:4px;}
+
+.crqgreenmsg{display:block; width:inherit; text-align:center; color:green;
+    border: 1px solid green; margin:5px; padding:5px; background:white}
+
+.crqbluemsg{display:block; width:inherit; text-align:center; color:blue;
+    border: 1px solid blue; margin:5px; padding:5px; background:white}
+
+
+.crqdivclear{display:block; float:left; width:100%; }
+.crqdivwrapper{display:block; float:left; }
