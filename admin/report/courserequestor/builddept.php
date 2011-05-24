@@ -1,7 +1,6 @@
 <?php
-
 /*
- * Now uses mdl_ucla_request_classes & mdl_ucla_request_crosslist tables
+Now uses mdl_ucla_request_classes & mdl_ucla_request_crosslist tables
  */
 
 require_once("../../../config.php");
@@ -9,7 +8,7 @@ require_once($CFG->libdir.'/adminlib.php');
 //require_once($CFG->dirroot.'/admin/report/configmanagement/configmanagementlib.php');
 
 // Connect to Registrar
-//$db_conn = odbc_connect($CFG->registrar_dbhost, $CFG->registrar_dbuser , $CFG->registrar_dbpass) or die( "ERROR: Connection to Registrar failed.");
+$db_conn = odbc_connect($CFG->registrar_dbhost, $CFG->registrar_dbuser , $CFG->registrar_dbpass) or die( "ERROR: Connection to Registrar failed.");
 $term = $CFG->currentterm;
 
 
@@ -77,7 +76,7 @@ admin_externalpage_print_header($adminroot);
         <?php
             // Begin Term & Subject Area form
         ?>
-        <form method="POST" action="<?php echo $_SERVER['PHP_SELF'] ?>">
+        <form method="POST" action="<?php echo $_SERVER['PHP_SELF']; ?>">
             <fieldset class="crqformodd" >
                 <legend></legend>
 
@@ -87,9 +86,11 @@ admin_externalpage_print_header($adminroot);
                 <label>SUBJECT AREA:
                     <select name="subjarea">
                     <?php
+
+		if(isset($_POST['term'])){
                     if ($_POST['term'] == "") {$_POST['term']="$CFG->currentterm";}
                     $term = $_POST['term'];
-
+			}
                     $qr= odbc_exec($db_conn, "EXECUTE CIS_subjectAreaGetAll '$term'");
                     $row = array();
                     $rows = array();
@@ -127,12 +128,12 @@ admin_externalpage_print_header($adminroot);
                     <select name="department" >
                         <option value=''>ALL</option>
                         <?php
-                        $rs=get_recordset_sql("select distinct department from mdl_ucla_request_classes order by department");
+                        $rs=$DB->get_records_sql("select distinct department from mdl_ucla_request_classes order by department");
 
-                        while ($row = rs_fetch_next_record($rs)) {
+                        foreach ($rs as $row) {
                                 echo "<option value='$row->department'>$row->department</option>";
                         }
-                        rs_close($rs);
+                        
                         ?>
                     </select>
                 </label>
@@ -157,12 +158,12 @@ admin_externalpage_print_header($adminroot);
 		<select name="department" >
                     <option value=''>ALL</option>
                     <?php
-                    $rs=get_recordset_sql("select distinct department from mdl_ucla_request_classes order by department");
+                    $rs=$DB->get_records_sql("select distinct department from mdl_ucla_request_classes order by department");
 
-                    while ($row = rs_fetch_next_record($rs)) {
+                    foreach($rs as $row) {
                             echo "<option value='$row->department'>$row->department</option>";
                     }
-                    rs_close($rs);
+                    
                     ?>
 		</select>
             </label>
@@ -175,7 +176,7 @@ admin_externalpage_print_header($adminroot);
         <?php
             // Begin View Preview Courses Form
         ?>
-        <form method="POST" action="<?echo $_SERVER['PHP_SELF'] ?>">
+        <form method="POST" action="<?php echo "${_SERVER['PHP_SELF']}"; ?>">
             <fieldset class="crqformeven">
                 <legend></legend>
             <label>TERM:
@@ -185,12 +186,12 @@ admin_externalpage_print_header($adminroot);
                 <select name="department" >
                     <option value=''>ALL</option>
                     <?php
-                    $rs=get_recordset_sql("select distinct department from mdl_ucla_request_classes order by department");
+                    $rs=$DB->get_records_sql("select distinct department from mdl_ucla_request_classes order by department");
 
-                    while ($row = rs_fetch_next_record($rs)) {
+                    foreach ($rs as $row) {
                             echo "<option value='$row->department'>$row->department</option>";
                     }
-                    rs_close($rs);
+                    
                     ?>
                 </select>
             </label>
@@ -210,26 +211,33 @@ admin_externalpage_print_header($adminroot);
 
 // CREATE A HASH OF ALREADY REQUESTED OR BUILT COURSES
 
-        $crs = get_recordset_sql("select srs from mdl_ucla_request_classes where term like '$_POST[term]' and action like 'Build' ");
-	while ($rows=rs_fetch_next_record($crs))
+	if((isset($_POST['term']))){
+        $crs = $DB->get_records_sql("select srs from mdl_ucla_request_classes where term like '$_POST[term]' and action like 'Build' ");
+	foreach ($crs as $rows)
 	{
 		$srs=rtrim($rows->srs);
 		$existingcourse[$srs]=1;
 	}
-
-        $crs1 = get_recordset_sql("select aliassrs from mdl_ucla_request_crosslist where term like '$_POST[term]' ");
-	while ($rows=rs_fetch_next_record($crs1))
+	}
+	
+	if((isset($_POST['term']))){
+        $crs1 = $DB->get_records_sql("select aliassrs from mdl_ucla_request_crosslist where term like '$_POST[term]' ");
+	foreach ($crs1 as $rows)
 	{
 		$srs=rtrim($rows->aliassrs);
 		$existingaliascourse[$srs]=1;
 	}
-
-
+	}
+	
+	 if((isset($_POST["action"]))){
 	if($_POST["action"]=="viewdept")
 	{
+		if(isset($_POST['subjarea']))
 		getCoursesInDept($_POST['term'],$_POST['subjarea'],$db_conn);
 	}
-
+	}
+	
+	 if((isset($_POST["action"])))
 	if($_POST["action"]=="builddept")
 	{
 		$count = $_POST["count"];
@@ -331,36 +339,45 @@ admin_externalpage_print_header($adminroot);
 
 	}
 
+	if((isset($_POST["action"]))){
         if($_POST["action"]=="viewcoursestobebuilt")
         {
             getCoursesToBeBuilt();
         }
+	}
+	
+	if((isset($_POST["action"]))){
         if($_POST["action"]=="viewlivecourses")
         {
             getLiveCourses();
         }
+	}
+	if((isset($_POST["action"]))){
         if($_POST["action"]=="viewpreviewcourses")
         {
             getPreviewCourses();
         }
+	}
+	if((isset($_POST["action"]))){
   	if($_POST["action"]=="deletecourse")
 	{
 		deleteCourseInQueue();
 	}
-
+	}
 	function getPreviewCourses()
 	{
+		global $DB;
 		$recflag=0;
 		$department=$_POST['department'];
 		echo $department;
 		$term = $_POST['term'];
 		if($department == "")
 		{
-                        if($rs=get_recordset_sql("select * from mdl_ucla_request_classes where (action like '%uild'or action like 'makelive') AND (status like 'done') and (preview = 1)  and term like '$term' order by department,course")){$recflag=1;}
+                        if($rs=$DB->get_records_sql("select * from mdl_ucla_request_classes where (action like '%uild'or action like 'makelive') AND (status like 'done') and (preview = 1)  and term like '$term' order by department,course")){$recflag=1;}
 		}
 		else
 		{
-                        if($rs=get_recordset_sql("SELECT * FROM `mdl_ucla_request_classes` WHERE (`department` LIKE '$department') and (action like '%uild' OR action like 'makelive') AND (`preview` = 1)   AND (`status` LIKE 'done') and term like '$term' order by department ")){$recflag=1;}
+                        if($rs=$DB->get_records_sql("SELECT * FROM `mdl_ucla_request_classes` WHERE (`department` LIKE '$department') and (action like '%uild' OR action like 'makelive') AND (`preview` = 1)   AND (`status` LIKE 'done') and term like '$term' order by department ")){$recflag=1;}
 		}
 	if($recflag==0) // why is this checking $recflag = 0 ?
         {
@@ -390,7 +407,7 @@ echo <<< END
                     </tr>
 END;
 
-			while($row=rs_fetch_next_record($rs))
+			foreach($rs as $row)
 				{
 					$srs=rtrim($row->srs);
 					$department=trim($row->department);
@@ -437,16 +454,17 @@ END;
 
         function getCoursesToBeBuilt()
 	{
+			global $DB;
 			$recflag=0;
 			$department=$_POST['department'];
 			$term = $_POST['term'];
 			if($department == "")
 			{
-                                if($rs=get_recordset_sql("select * from mdl_ucla_request_classes where action like '%uild' and (status like 'pending' or status like 'processing') and term like '$term' ")){$recflag=1;}
+                                if($rs=$DB->get_records_sql("select * from mdl_ucla_request_classes where action like '%uild' and (status like 'pending' or status like 'processing') and term like '$term' ")){$recflag=1;}
 			}
 			else
 			{
-                                if($rs=get_recordset_sql("SELECT * FROM `mdl_ucla_request_classes` WHERE `department` LIKE '$department'  AND  `action` LIKE 'build'  AND (status like 'pending' or status like 'processing') order by 'department' ")){$recflag=1;}
+                                if($rs=$DB->get_records_sql("SELECT * FROM `mdl_ucla_request_classes` WHERE `department` LIKE '$department'  AND  `action` LIKE 'build'  AND (status like 'pending' or status like 'processing') order by 'department' ")){$recflag=1;}
 			}
 			if($recflag == 0)   // $recflag = 0 ??
 			{
@@ -477,7 +495,7 @@ echo <<< END
                         <td class="crqtableodd"></td>
                     </tr>
 END;
-				while($row2=rs_fetch_next_record($rs))
+				foreach($rs as $row2)
 				{
 					$srs = rtrim($row2->srs);
 					echo "<form method=\"POST\" action=\"".$_SERVER['PHP_SELF']."\">";
@@ -513,16 +531,17 @@ END;
 
 function getLiveCourses()
 	{
+		global $DB;
 		$recflag=0;
 		$department=$_POST['department'];
 		$term = $_POST['term'];
 		if($department == "")
                 {
-                        if($rs=get_recordset_sql("select * from mdl_ucla_request_classes where status like 'done' and preview = 0 and term like '$term' order by department,course")){$recflag=1;}
+                        if($rs=$DB->get_records_sql("select * from mdl_ucla_request_classes where status like 'done' and preview = 0 and term like '$term' order by department,course")){$recflag=1;}
                 }
 		else
                 {
-                        if($rs=get_recordset_sql("SELECT * FROM `mdl_ucla_request_classes` WHERE `department` LIKE '$department'  AND `preview` = 0 AND `status` LIKE 'done' and term like '$term' order by 'department' ")){$recflag=1;}
+                        if($rs=$DB->get_records_sql("SELECT * FROM `mdl_ucla_request_classes` WHERE `department` LIKE '$department'  AND `preview` = 0 AND `status` LIKE 'done' and term like '$term' order by 'department' ")){$recflag=1;}
                 }
 		if($recflag==0 )    // why this this checking $recflag = 0 ?
                 {
@@ -555,7 +574,7 @@ echo <<< END
 
 END;
 				//echo "<p><table><tr><td width=100></td><td><table border=1><tr bgcolor=black><td width=100 align=center><font color=white> SRS </TD><td align=center><font color=white> COURSE </TD><td align=center><font color=white> DEPARTMENT </TD><td align=center><font color=white> INSTRUCTOR </TD><td align=center><font color = white> TYPE </td></TR><tr><td></td></tr>";
-				while($row2=rs_fetch_next_record($rs))
+				foreach($rs as $row2)
 					{
 						$srs = rtrim($row2->srs);
 						echo "<form method=\"POST\" action=\"".$_SERVER['PHP_SELF']."\">";
@@ -594,6 +613,7 @@ END;
 
 function getCoursesInDept($term,$subjarea,$db_conn){
 
+	global $CFG;
 	$term=rtrim($term);
 	$subjarea=rtrim($subjarea);
 
@@ -694,7 +714,7 @@ function getCourseDetails($term,$srs,$count,$db_conn){
 	$i=0;
 	$i = count($xlist_info);
 
-	while ($i >0)
+	while ($i >0 && isset($xlist_info[$i]))
 	{
             if(eregi('[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]',$xlist_info[$i]))
             {
@@ -765,7 +785,7 @@ function getCourseDetails($term,$srs,$count,$db_conn){
 			echo "</td><td>";
 			$aliascount=0;
 
-			while ($i!=0)
+			while ($i!=0 && isset($xlist_info[$i]))
 			{
 				if(eregi('[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]',$xlist_info[$i]))
 				{
@@ -818,3 +838,8 @@ function getCourseDetails($term,$srs,$count,$db_conn){
         </div>
     </div><!-- end form output -->
 </div><!-- end course requestor -->
+
+<?php
+echo $OUTPUT->footer();
+
+?>

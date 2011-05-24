@@ -12,7 +12,7 @@ require_once($CFG->libdir.'/adminlib.php');
 //require_once($CFG->dirroot.'/admin/report/configmanagement/configmanagementlib.php');
 
 // connect to Registrar
-$db_conn = odbc_connect($CFG->registrar_dbhost, $CFG->registrar_dbuser , $CFG->registrar_dbpass);// or die( "ERROR: Connection to Registrar failed.");
+$db_conn = odbc_connect($CFG->registrar_dbhost, $CFG->registrar_dbuser , $CFG->registrar_dbpass) or die( "ERROR: Connection to Registrar failed.");
 
 $term = $CFG->currentterm; 
 
@@ -759,3 +759,8 @@ END;
         </div>
     </div> <!-- end form output -->
 </div> <!-- end course requestor -->
+<?php
+echo $OUTPUT->footer();
+
+?>
+
