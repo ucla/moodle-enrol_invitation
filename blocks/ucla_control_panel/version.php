@@ -7,4 +7,4 @@
 // YYYYMMDD00
 $plugin->version = 2011052000;
 
-/** eof
+/** eof **/
