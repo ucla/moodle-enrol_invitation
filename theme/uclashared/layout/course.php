@@ -48,7 +48,7 @@ echo $OUTPUT->doctype() ?>
         <?php if ($hasheading) { ?>
         <div class="headermain">
             <div id="uclalogo">
-                <img src="<?php echo $OUTPUT->pix_url('ucla_ccle_logo', 'theme') ?>" />
+                <?php echo $OUTPUT->logo('ucla_ccle_logo', 'theme') ?>
             </div>
         </div>
 	<div class="headermenu"><?php

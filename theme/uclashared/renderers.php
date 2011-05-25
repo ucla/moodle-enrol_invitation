@@ -75,6 +75,31 @@ class theme_uclashared_core_renderer extends core_renderer {
     }
 
     /**
+     *  This a wrapper around pix().
+     *  
+     *  It will make a picture of the logo, and turn it into a link.
+     *
+     *  @param string $pix Passed to pix().
+     *  @param string $pix_loc Passed to pix().
+     *  @param moodle_url $address Destination of anchor.
+     *  @return string The logo HTML element.
+     **/
+    function logo($pix, $pix_loc, $address=null) {
+        global $CFG, $OUTPUT;
+
+        if ($address == null) {
+            $address = new moodle_url($CFG->wwwroot);
+        } 
+
+        $pix_url = $this->pix_url($pix, $pix_loc);
+
+        $logo_img = html_writer::empty_tag('img', array('src' => $pix_url));
+        $link = html_writer::link($address, $logo_img);
+
+        return $link;
+    }
+
+    /**
      *      Displays the text underneath the UCLA | CCLE logo.
      *
      *      Will reach into the settings to see if the hover over should be displayed.
@@ -87,18 +112,33 @@ class theme_uclashared_core_renderer extends core_renderer {
     
     // This function will be called only in class sites 
     function control_panel_button() {
-        // This is awesome.
-        $course = $this->page->course;
+        global $CFG;
 
-        // Text to control panel
-        $cp_dest = '';
+        $course = $this->page->course;
 
         // Use html_writer to render the actual link
         // html_writer::tag(tagname, contents, attributes[])
         $cp_text = get_string('control_panel', $this->theme);
 
-        // Make the DIV
-        $cp_button = $cp_text;
+        $cp_block = 'block_ucla_control_panel';
+
+        // Make the link
+        if (!class_exists($cp_block)) {
+            $cp_path = $CFG->dirroot
+                . '/blocks/ucla_control_panel/' . $cp_block . '.php';
+
+            if (file_exists($cp_path)) {
+                require($cp_path);
+            } else {
+                debugging('Control Panel Block not found.');
+                return '';
+            }
+        } 
+
+        $cp_link = $cp_block::create_control_panel_link($course);
+
+        $cp_button = html_writer::link($cp_link, $cp_text, 
+            array('class' => 'control-panel-button'));
 
         return $cp_button;
     }
