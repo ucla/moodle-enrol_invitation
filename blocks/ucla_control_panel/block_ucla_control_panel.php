@@ -1,5 +1,7 @@
 <?php
 
+require_once(dirname(__FILE__) . '/../moodleblock.class.php');
+
 class block_ucla_control_panel extends block_base {
     function init() {
         $this->title = get_string('pluginname', 'block_ucla_control_panel');
@@ -9,8 +11,7 @@ class block_ucla_control_panel extends block_base {
         if ($this->content !== NULL) {
             return $this->content;
         }
-        
-        $this->content = $this->create_control_panel_link(1);
+
         return $this->content;
     }
 
@@ -20,15 +21,21 @@ class block_ucla_control_panel extends block_base {
 
     function applicable_formats() {
         return array(
-            'site-index' => true,
-            'course-view' => true,
-            'my' => true,
-            'blocks-ucla_control_panel' => true
+            'site-index' => false,
+            'course-view' => false,
+            'my' => false,
+            'blocks-ucla_control_panel' => false
         );
     }
 
-    function create_control_panel_link($courseid) {
-        return 'Content';
+    /**
+        This will create a link to the control panel.
+    **/
+    static function create_control_panel_link($courseid) {
+        global $CFG;
+
+        return new moodle_url($CFG->wwwroot . '/blocks/ucla_control_panel/'
+            . 'view.php', array('courseid' => $courseid));
     }
 
     function parse_filter($filter) {
@@ -59,7 +66,6 @@ class block_ucla_control_panel extends block_base {
         The modules should have filenames ucla_cp_mod_<module>.php,
             with classes name ucla_cp_mod_<module>, each with a function
             control_panel_contents().
-
     **/
     const hook_fn = 'ucla_cp_hook';
     const mod_prefix = 'ucla_cp_mod_';
@@ -78,7 +84,7 @@ class block_ucla_control_panel extends block_base {
         foreach ($all_blocks as $block) {
             $block_name = $block->name;
 
-            if (in_array($block_name, $filters) 
+            if (isset($filters[$block_name]) 
               && method_exists($block_name, $static)) {
                 $cp_elements[$block_name] = $block->$static();
             }
@@ -101,7 +107,6 @@ class block_ucla_control_panel extends block_base {
 
         return $cp_elements;
     }
-
 }
 
 /** eof **/

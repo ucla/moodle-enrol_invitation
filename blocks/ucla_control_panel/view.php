@@ -10,20 +10,21 @@ require_once($CFG->dirroot.
     '/blocks/ucla_control_panel/block_ucla_control_panel.php');
 
 $course_id = required_param('courseid', PARAM_INT); // course ID
+$edit = optional_param('edit', -1, PARAM_BOOL);
 
 if (! $course = $DB->get_record('course', array('id'=>$course_id))) {
     print_error('coursemisconf');
 }
 
-$cpb = new block_ucla_control_panel();
+require_login($course, true);
+$context = get_context_instance(CONTEXT_COURSE, $course_id);
 
+$cpb = new block_ucla_control_panel();
 $elements = $cpb->load_cp_elements();
 
 // Initialize $PAGE
 $PAGE->set_url('/blocks/ucla_control_panel/view.php', 
     array('courseid' => $course_id));
-
-$context = get_context_instance(CONTEXT_SYSTEM);
 
 $page_title = $course->shortname.': '.get_string('pluginname',
     'block_ucla_control_panel');
@@ -32,31 +33,44 @@ $PAGE->set_context($context);
 $PAGE->set_title($page_title);
 
 $PAGE->set_heading($course->fullname);
-$PAGE->set_pagetype('course-*' . $course->format);
-$PAGE->set_pagelayout('course');
 
-if ($course_id == SITEID) {
-    $PAGE->navbar->add(get_string('pluginname','ucla_links'));
-} else {
-    $countcategories = $DB->count_records('course_categories');
-    if ($countcategories > 1 
-      || ($countcategories == 1 
-      && $DB->count_records('course') > 200)) {
-        $PAGE->navbar->add(get_string('categories'));
-    } else {
-        $PAGE->navbar->add(get_string('courses'), 
-            new moodle_url('/course/category.php?id='.$course->category));
-        $PAGE->navbar->add($course->shortname, 
-            new moodle_url('/course/view.php?id='.$course_id));
-        $PAGE->navbar->add($page_title);
+$PAGE->set_pagelayout('course');
+$PAGE->set_pagetype('course-view-' . $course->format);
+
+if ($PAGE->user_allowed_editing()) {
+    // Stolen from course/view.php
+    if ($edit != -1 && confirm_sesskey()) {
+        $USER->editing = $edit;
+
+        if ($edit == 0 && !empty($USER->activitycopy) 
+          && $USER->activitycoptycourse == $course->id) {
+            $USER->activitycopy = false;
+            $USER->activitycopycourse = NULL;
+        }
+
+        redirect($PAGE->url);
     }
+
+    $buttons = $OUTPUT->edit_button(
+        new moodle_url('/blocks/ucla_control_panel/view.php', array(
+            'courseid' => $course_id))
+        );
+
+    $PAGE->set_button($buttons);
 }
 
 // using core renderer
 echo $OUTPUT->header();
 
+// This is actually printing out each section of the control panel
 foreach ($elements as $section) {
-    echo $OUTPUT->box($section->control_panel_contents());
+    $contents = $section->control_panel_contents($course);
+
+    if ($contents != '') {
+        echo $OUTPUT->heading(get_string(get_class($section), 
+            'block_ucla_control_panel'), 2, 'main copan-title');
+        echo $OUTPUT->box($contents);
+    }
 }
 
 echo $OUTPUT->footer();
