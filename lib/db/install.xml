@@ -2762,12 +2762,14 @@
         <FIELD NAME="instructor" TYPE="char" LENGTH="50" NOTNULL="false" SEQUENCE="false" ENUM="false" PREVIOUS="department" NEXT="contact"/>
         <FIELD NAME="contact" TYPE="char" LENGTH="50" NOTNULL="false" SEQUENCE="false" ENUM="false" PREVIOUS="instructor" NEXT="crosslist"/>
         <FIELD NAME="crosslist" TYPE="int" LENGTH="1" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="contact" NEXT="added_at"/>
-	<FIELD NAME="added_at" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="crosslist" NEXT="preview"/>
-	<FIELD NAME="preview" TYPE="int" LENGTH="1" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="added_at" NEXT="action"/>
-        <FIELD NAME="action" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" ENUM="false" PREVIOUS="preview" NEXT="status"/>
-        <FIELD NAME="status" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" ENUM="false" PREVIOUS="action" NEXT="termext"/>
-        <FIELD NAME="termext" TYPE="int" LENGTH="2" NOTNULL="false" SEQUENCE="false" ENUM="false" DEFAULT="0" PREVIOUS="status" NEXT="mailinst"/>
-        <FIELD NAME="mailinst" TYPE="int" LENGTH="2" NOTNULL="false" SEQUENCE="false" ENUM="false" DEFAULT="0" PREVIOUS="termext"/>
+		<FIELD NAME="added_at" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="crosslist" NEXT="action"/>
+        <FIELD NAME="action" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" ENUM="false" PREVIOUS="added_at" NEXT="status"/>
+        <FIELD NAME="status" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" ENUM="false" PREVIOUS="action" NEXT="mailinst"/>
+        <FIELD NAME="mailinst" TYPE="int" LENGTH="2" NOTNULL="false" UNSIGNED="true" DEFAULT="1" SEQUENCE="false" ENUM="false"  PREVIOUS="status" NEXT="termext"/>
+		<FIELD NAME="termext" TYPE="int" LENGTH="2" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false"  PREVIOUS="mailinst" NEXT="hidden"/>
+		<FIELD NAME="hidden" TYPE="int" LENGTH="2" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false"  PREVIOUS="termext" NEXT="force_urlupdate"/>
+		<FIELD NAME="force_urlupdate" TYPE="int" LENGTH="2" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="hidden" NEXT="force_no_urlupdate"/>
+		<FIELD NAME="force_no_urlupdate" TYPE="int" LENGTH="2" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="force_urlupdate"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

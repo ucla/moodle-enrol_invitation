@@ -133,7 +133,7 @@ function clearform( btn )
             // echo "this".$SERVER['PHP_SELF'];
         ?>
 
-        <form method="GET" action="<?php echo $_SERVER['PHP_SELF'] ?>">
+        <form method="GET" action="<?php echo "${_SERVER['PHP_SELF']}"; ?>">
             <fieldset class="crqformodd" >
                 <legend></legend>
                 <label>TERM:
@@ -188,11 +188,11 @@ function clearform( btn )
 
     </div>
     <div class="crqdivclear">
-        <?php
+        <?php /*
             // SRS Look up for Courses that are in Preview Stage
         ?>
 
-	<form method="GET" action="<?php echo $_SERVER['PHP_SELF'] ?>">
+	<!-- <form method="GET" action="<?php echo $_SERVER['PHP_SELF'] ?>">
             <fieldset class="crqformodd">
                 <legend></legend>
                 <label>TERM:
@@ -207,13 +207,14 @@ function clearform( btn )
                         foreach($rs as $row) {
                                 echo "<option value='$row->department'>$row->department</option>";
                         }
+						*/
                         ?>
-                    </select>
+                <!--    </select>
                 </label>
 		<input type="hidden" name="action" value="viewpreviewcourses">
 		<input type="submit" value="View Preview Courses">
             </fieldset>
-        </form>
+        </form> -->
 
     </div>
 
@@ -329,7 +330,9 @@ function clearform( btn )
             
             odbc_free_result($result);
             
-            
+			$mailinst_default = $CFG->classrequestor_mailinst_default;
+			$sendurl_default = $CFG->classrequestor_sendurl_default;
+			$hidden_default = get_config('moodlecourse')->visible;
 
             echo "<tr><td class=\"crqtableodd\" colspan=\"2\">";
             
@@ -347,7 +350,10 @@ function clearform( btn )
                 echo "<div class=\"crqtableodd\">Instructor: <strong>" . $inst_full_display . "</strong></div>";
                 echo "<div class=\"crqtableeven\"><label>Action: <select name=\"actionrequest\">";
                 echo "<option value='build' selected>Build</option></select></label></div>";
-                echo "<div class=\"crqtableodd\">Preview:<label><input type=\"radio\" name=\"preview\" value=\"1\">yes</label> <label><input type=\"radio\" name=\"preview\" value=\"0\" checked>no</label></div>";
+                echo "<div class=\"crqtableodd\">
+				<label><input type=checkbox name=sendurl value=1 " . ($sendurl_default? "checked" : '') . ">&nbsp;Send URL</label>
+				<label><input type=checkbox name=hidden value=1 " . (!$hidden_default? "checked" : '') . ">&nbsp;Build as Hidden</label>				
+				</div>";
                 if ($subj == "") { 
                     $subj="NULL";
                 }
@@ -418,7 +424,7 @@ function clearform( btn )
                 echo "<label>Contact Info:<input style=\"color:gray;\" id=\"crqemail\" type=\"text\" name=\"contact\" width=\"10\" value=\"Enter email\" onfocus=\"if(this.value=='Enter email'){this.value='';this.style.color='black'}\" onblur=\"if(this.value==''){this.value='Enter email';this.style.color='gray'}\"></label><br>";
                 // moved in from class_requestor
                 $default = $CFG->classrequestor_mailinst_default;
-                echo "Email Instructors: <label><input type=\"radio\" name=\"mailinst\" value = \"1\" ". ($default? "checked" : '') .">yes</label> <label><input type=\"radio\" name=\"mailinst\" value = \"0\" ". (!$default?"checked":'') .">no</label><br>\n";
+                echo "<label><input type=checkbox name=mailinst value=1 " . ($mailinst_default? "checked" : '') . ">&nbsp;Send Email to Instructor(s)</label><br>\n";
 
                 echo "</td><td class=\"crqtableodd\" style=\"text-align:right\" ><input type=\"submit\" value=\"Submit Course\" onclick=\"if(form.crqemail.value=='Enter email')form.crqemail.value=''\" ";
                 if($subj == "NULL")echo "disabled=\"true\" ";
@@ -436,22 +442,27 @@ function clearform( btn )
 	{
 		getLiveCourses();
 	}
+	/*
 	if($_GET["action"]=="viewpreviewcourses")
 	{
 		getPreviewCourses();
-	}
+	}*/
+	/*
 	if($_GET["action"]=="previewtolive")
 	{
 		makeLive();
-	}
+	}*/
+	
 	if($_GET["action"]=="deletecourse")
 	{
 		deleteCourseInQueue();
 	}
+	/*
 	if($_GET["action"]=="converttopreview")
 	{
 		makePreview();
 	}
+	*/
 	if($_GET["action"]=="courserequest")
 	{
 		$term =  $_GET["term"];
@@ -475,7 +486,7 @@ function clearform( btn )
                 // modified query from class_requestor
                 // + Termext
                 // + mailinst
-                $query = "INSERT INTO mdl_ucla_request_classes values ('','$term','$srs','$course','$department','".addslashes($instructor)."','" .addslashes($contact). "',$crosslist,'$ctime',$preview,'$action','pending','','$mailinst')";
+                $query = "INSERT INTO mdl_ucla_request_classes(term,srs,course,department,instructor,contact,crosslist,added_at,preview,action,status,mailinst) values ('$term','$srs','$course','$department','".addslashes($instructor)."','" .addslashes($contact). "',$crosslist,'$ctime',$preview,'$action','pending','$mailinst')";
 
                 $DB->execute($query);
 		// CROSSLISTING: MANUAL or MULTIPLE host-alias ENTRY
@@ -510,6 +521,7 @@ function clearform( btn )
 
 	function makeLive()
 	{
+			global $DB;
             $srs = $_GET['srs'];
             $DB->execute("update mdl_ucla_request_classes set action = 'makelive', status='pending' where srs like '$srs' ");
             getPreviewCourses();
@@ -519,10 +531,12 @@ function clearform( btn )
 
 	function deleteCourseInQueue()
 	{
+			global $DB;
             $DB->execute("delete from mdl_ucla_request_classes where srs like '$_GET[srs]' ");
             getCoursesToBeBuilt();
 	}
 
+	/*
 	function makePreview()
 	{
             //$query= "update mdl_ucla_request_classes set action='makepreview', status='pending' where srs like '$_GET[srs]'";
@@ -608,6 +622,7 @@ END;
                         echo "</tbody></table>";
 		}
 	}
+	*/
 
         function getCoursesToBeBuilt()
 	{
@@ -665,6 +680,8 @@ END;
 						//$xlist= "<font color = blue><i> - crosslisted</i></font>";
                                                 $xlist= "<span class=\"crqbedxlist\">crosslisted</span>";
 					}
+					$coursetype=" <span class=\"crqbedlive\">Live</span>";
+					/*
 					if ($row2->preview == 0)
 					{
 						//$coursetype=" <font color=green><i>(Live)</i></font>";
@@ -674,7 +691,7 @@ END;
 					{
 						//$coursetype=" <font color=brown><i>(Preview)</i></font>";
                                                 $coursetype=" <span class=\"crqbedpreview\">Preview</span>";
-					}
+					}*/
 					echo "<tr class=\"crqtableunderline\"><td>".rtrim($row2->srs)."</td><td>".rtrim($row2->course)."</td><td>".rtrim($row2->department)."</td><td>".rtrim($row2->instructor)."</td><td>".$coursetype.$xlist."</td><td><input type=\"submit\" value=\"Delete\"></td></tr></form>";
 				}
 				//echo "</table></td></tr></table>";
@@ -737,6 +754,8 @@ END;
                                                 //$xlist= "<font color = blue><i> - crosslisted </i></font>";
                                                 $xlist= "<span class=\"crqbedxlist\">crosslisted</span>";
                                         }
+										$coursetype=" <span class=\"crqbedlive\">Live</span>";
+										/*
                                         if ($row2->preview == 0)
                                         {
                                                 //$coursetype=" <font color=green><i>(Live)</i></font>";
@@ -747,6 +766,7 @@ END;
                                                 //$coursetype=" <font color=brown><i>(Preview)</i></font>";
                                                 $coursetype=" <span class=\"crqbedpreview\">Preview</span>";
                                         }
+										*/
                                         echo "<tr class=\"crqtableunderline\"><td>".rtrim($row2->srs)."</td><td>".rtrim($row2->course)."</td><td>".rtrim($row2->department)."</td><td>".rtrim($row2->instructor)."</td><td>".$coursetype.$xlist."</td><td><input type=\"submit\" value=\"Make Preview\"></td></TR></form>";
                                 }
 				//echo "</table></td></tr></table>";

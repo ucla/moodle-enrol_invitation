@@ -173,7 +173,7 @@ admin_externalpage_print_header($adminroot);
         </form>
     </div>
     <div class="crqdivclear">
-        <?php
+       <!-- <?php /**
             // Begin View Preview Courses Form
         ?>
         <form method="POST" action="<?php echo "${_SERVER['PHP_SELF']}"; ?>">
@@ -191,14 +191,14 @@ admin_externalpage_print_header($adminroot);
                     foreach ($rs as $row) {
                             echo "<option value='$row->department'>$row->department</option>";
                     }
-                    
+                    **/
                     ?>
                 </select>
             </label>
             <input type="hidden" name="action" value="viewpreviewcourses">
             <input type="submit" value="View Preview Courses">
             </fieldset>
-        </form>
+        </form> -->
     </div>
     <div class="crqdivclear" >
         <div class="crqfrmoutput" align="center" >
@@ -212,7 +212,7 @@ admin_externalpage_print_header($adminroot);
 // CREATE A HASH OF ALREADY REQUESTED OR BUILT COURSES
 
 	if((isset($_POST['term']))){
-        $crs = $DB->get_records_sql("select srs from mdl_ucla_request_classes where term like '$_POST[term]' and action like 'Build' ");
+        $crs = $DB->get_records_sql("select srs from mdl_ucla_request_classes where term like '$_POST[term]' and action like 'build' ");
 	foreach ($crs as $rows)
 	{
 		$srs=rtrim($rows->srs);
@@ -224,6 +224,7 @@ admin_externalpage_print_header($adminroot);
         $crs1 = $DB->get_records_sql("select aliassrs from mdl_ucla_request_crosslist where term like '$_POST[term]' ");
 	foreach ($crs1 as $rows)
 	{
+	
 		$srs=rtrim($rows->aliassrs);
 		$existingaliascourse[$srs]=1;
 	}
@@ -237,12 +238,15 @@ admin_externalpage_print_header($adminroot);
 	}
 	}
 	
+	$cnt=1;
+	
 	 if((isset($_POST["action"])))
 	if($_POST["action"]=="builddept")
 	{
 		$count = $_POST["count"];
 		$crse = $_POST["course$cnt"];
 
+		/*
 		if($_POST["preview"])
                 {
                         $preview = '1';
@@ -251,10 +255,10 @@ admin_externalpage_print_header($adminroot);
                 {
                         $preview = '0';
                 }
+	*/
+		
 
-		$cnt=1;
-
-		while($cnt<=$count)
+		while($cnt<$count)
 		{
 			$aliascount=$_POST["aliascount$cnt"];
 			$isxlist=0;
@@ -267,11 +271,15 @@ admin_externalpage_print_header($adminroot);
 			$department=$_POST["department"];
 			$course=$_POST["course$cnt"];
 			$contact=$_POST["contact"];
-                        $addcourse = $_POST["addcourse$cnt"];
+			
+			if(isset($_POST["addcourse$cnt"]))
+            $addcourse = $_POST["addcourse$cnt"];
+			else
+			$addcourse = "";
 
 			if($addcourse != ""){
-
-				 if($existingcourse[$srs] || $existingaliascourse[$srs])
+					
+				 if(isset($existingcourse[$srs]) || isset($existingaliascourse[$srs]))
 				 {
 					//echo "<BR><FONT COLOR=RED>$course has either been submitted for course creation or is a child course </font>";
                                         echo "<table><tr ><td ><div class=\"crqerrormsg\">$course has either been submitted for course creation or is a child course</div></td></tr></table>";
@@ -294,10 +302,10 @@ admin_externalpage_print_header($adminroot);
                                         // modified query from class_requestor
                                         // + Termext
                                         // + mailinst
-                                        $query = "INSERT INTO mdl_ucla_request_classes values ('','$term','$srs','$course','$department','$instructor','$contact','$isxlist','','$preview','Build','pending','1','{$_POST['mailinst']}')";
+                                        $query = "INSERT INTO mdl_ucla_request_classes(term,srs,course,department,instructor,contact,crosslist,preview,action,status,termext,mailinst) values ('$term','$srs','$course','$department','$instructor','$contact','$isxlist','0','Build','pending','1','{$_POST['mailinst']}')";
 
 
-                                        execute_sql($query);
+                                        $DB->execute($query);
 
 					$existingcourse[$srs]=1;
 
@@ -320,7 +328,7 @@ admin_externalpage_print_header($adminroot);
                                                 }
                                                 else{
                                                     $query1 = "INSERT INTO mdl_ucla_request_crosslist values ('','$term','$srs','$als','joint')";
-                                                    execute_sql($query1);
+                                                    $DB->execute($query1);
 
                                                     $existingaliascourse[$als]=1;
 
@@ -352,18 +360,20 @@ admin_externalpage_print_header($adminroot);
             getLiveCourses();
         }
 	}
+	/*
 	if((isset($_POST["action"]))){
         if($_POST["action"]=="viewpreviewcourses")
         {
             getPreviewCourses();
         }
-	}
+	}*/
 	if((isset($_POST["action"]))){
   	if($_POST["action"]=="deletecourse")
 	{
 		deleteCourseInQueue();
 	}
 	}
+	/*
 	function getPreviewCourses()
 	{
 		global $DB;
@@ -451,7 +461,7 @@ END;
                                 echo "</tbody></table>";
 		}
 	}
-
+	*/
         function getCoursesToBeBuilt()
 	{
 			global $DB;
@@ -508,14 +518,15 @@ END;
 					{
 						$xlist= "<span class=\"crqbedxlist\">crosslisted</span>";
 					}
-					if ($row2->preview == 0)
+						$coursetype=" <span class=\"crqbedlive\">Live</span>";
+					/*if ($row2->preview == 0)
 					{
 						$coursetype=" <span class=\"crqbedlive\">Live</span>";
 					}
 					else
 					{
 						$coursetype=" <span class=\"crqbedpreview\">Preview</span>";
-					}
+					}*/
 					echo "<tr class=\"crqtableunderline\" >
                                                 <td width=\"90\">".rtrim($row2->srs)."</td>
                                                 <td width=\"100\">".rtrim($row2->course)."</td>
@@ -587,14 +598,16 @@ END;
 						{
 							$xlist= "<span class=\"crqbedxlist\">crosslisted</span>";
 						}
+						$coursetype=" <span class=\"crqbedlive\">Live</span>";
+						/*
 						if ($row2->preview == 0)
 						{
 							$coursetype=" <span class=\"crqbedlive\">Live</span>";
-                                                }
-                                                else
-                                                {
-                                                        $coursetype=" <span class=\"crqbedpreview\">Preview</span>";
-                                                }
+                        }
+                        else
+                        {
+                            $coursetype=" <span class=\"crqbedpreview\">Preview</span>";
+                         }*/
 						echo "<tr class=\"crqtableunderline\">
                                                         <td width=\"90\">".rtrim($row2->srs)."</td>
                                                         <td width=\"100\">".rtrim($row2->course)."</td>
@@ -627,20 +640,29 @@ function getCoursesInDept($term,$subjarea,$db_conn){
 	}
 	odbc_free_result($qr);
 
-        $default = $CFG->classrequestor_mailinst_default;
+        $mailinst_default = $CFG->classrequestor_mailinst_default;
+		$sendurl_default = $CFG->classrequestor_sendurl_default;
+		$hidden_default = get_config('moodlecourse')->visible;
+		
         echo "<form method=\"POST\" action=\"".$_SERVER['PHP_SELF']."\">";
 echo <<< END
 
         <table>
             <thead>
                 <tr>
+				
                     <td class="crqtableodd" colspan="4">DEPARTMENT: <strong> $subjarea </strong></td>
                 </tr>
                 <tr>
-                    <td class="crqtableeven" colspan="2">
-                        <label><input type=checkbox name=preview value=1>Build Department as Preview</label>
+					<td class="crqtableeven">
+END;
+					echo "<label><input type=checkbox name=mailinst value=1 " . ($mailinst_default? "checked" : '') . ">&nbsp;Send Email to Instructor(s)</label>
                     </td>
-                    <td class="crqtableeven" colspan="2">
+                    <td class=\"crqtableeven\">
+                        <label><input type=checkbox name=sendurl value=1 " . ($sendurl_default? "checked" : '') . ">&nbsp;Send URL</label>
+                    </td>";
+echo <<< END
+                    <td class="crqtableeven" colspan="2"  align="right">
                         <label>
                         Department Contact:<input style="color:gray;" type=test name=contact value='Enter email' id="crqemail" onfocus="if(this.value=='Enter email'){this.value='';this.style.color='black'}" onblur="if(this.value==''){this.value='Enter email';this.style.color='gray'}" >
                         </label>
@@ -648,13 +670,14 @@ echo <<< END
                 </tr>
                 <tr >
                     <td class="crqtableeven" colspan="2">
-                        <input type="submit" value="Build Department" onclick="if(form.crqemail.value=='Enter email')form.crqemail.value=''">
-                    </td>
-                    <td class="crqtableeven" colspan="2">
 END;
 
-                    echo "Email Instructors: <label><input type=\"radio\" name=\"mailinst\" value = \"1\" ". ($default? "checked" : '') .">yes</label> <label><input type=\"radio\" name=\"mailinst\" value = \"0\" ". (!$default?"checked":'') .">no</label>\n";
+                    echo "<label><input type=checkbox name=hidden value=1 " . (!$hidden_default? "checked" : '') . ">&nbsp;Build as Hidden</label>
+                    </td>";
 echo <<< END
+                    <td class="crqtableeven" colspan="2" align="right">
+<input type="submit" value="Build Department" onclick="if(form.crqemail.value=='Enter email')form.crqemail.value=''">
+                    
                     </td>
                 </tr>
             </thead>
@@ -662,7 +685,7 @@ echo <<< END
                 <tr>
                     <td class="crqtableodd" width="210"><strong>INSTRUCTOR</strong></td>
                     <td class="crqtableodd" width="150"><strong>COURSE</strong></td>
-                    <td class="crqtableodd"><strong>CROSSLITED WITH</strong></td>
+                    <td class="crqtableodd"><strong>CROSSLISTED WITH</strong></td>
                     <td class="crqtableodd"><strong>BUILD</strong></td>
                 </tr>
 
@@ -831,7 +854,8 @@ function getCourseDetails($term,$srs,$count,$db_conn){
 
 	function deleteCourseInQueue()
 	{
-                execute_sql("delete from mdl_ucla_request_classes where srs like '$_POST[srs]' ");
+	global $DB;
+                $DB->execute("delete from mdl_ucla_request_classes where srs like '$_POST[srs]' ");
 		getCoursesToBeBuilt();
 	}
 ?>
