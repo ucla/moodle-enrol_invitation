@@ -65,8 +65,8 @@ admin_externalpage_print_header($adminroot); **/
         $course_requestor =  $string."/admin/report/courserequestor/index.php";
         $addCrosslist = $string."/admin/report/courserequestor/addcrosslist.php";
 
-        echo "<a href=\"$build_dept\">".get_string('builddept', 'report_courserequestor')."</a> | ";
         echo "<a href=\"$course_requestor\">".get_string('buildcourse', 'report_courserequestor')."</a> | ";
+		echo "<a href=\"$build_dept\">".get_string('builddept', 'report_courserequestor')."</a> | ";
         echo "<a href=\"$addCrosslist\">".get_string('addcrosslist', 'report_courserequestor')."</a> ";
         ?>
     </div>
@@ -220,4 +220,3 @@ echo "</div>
 
 echo $OUTPUT->footer();
 ?>
-

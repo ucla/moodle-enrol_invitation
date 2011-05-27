@@ -33,7 +33,7 @@ function xmldb_report_courserequestor_upgrade($oldversion) {
 	
 	$result = true;
 
-	    if ($result && $oldversion < 2011052616) {
+	    if ($result && $oldversion < 2011052717) {
 
         // Define table ucla_request_classes to be created
         $table = new xmldb_table('ucla_request_classes');
@@ -64,10 +64,10 @@ function xmldb_report_courserequestor_upgrade($oldversion) {
         }
 
         // courserequestor savepoint reached
-        upgrade_plugin_savepoint(true, 2011052616, 'report', 'courserequestor');
+        upgrade_plugin_savepoint(true, 2011052717, 'report', 'courserequestor');
     }
 	
-	    if ($result && $oldversion < 2011052616) {
+	    if ($result && $oldversion < 2011052717) {
 
         // Define table ucla_request_crosslist to be created
         $table = new xmldb_table('ucla_request_crosslist');
@@ -78,7 +78,7 @@ function xmldb_report_courserequestor_upgrade($oldversion) {
         $table->add_field('srs', XMLDB_TYPE_CHAR, '9', null, XMLDB_NOTNULL, null, null);
         $table->add_field('aliassrs', XMLDB_TYPE_CHAR, '9', null, XMLDB_NOTNULL, null, null);
         $table->add_field('type', XMLDB_TYPE_CHAR, '20', null, null, null, null);
-
+		
         // Adding keys to table ucla_request_crosslist
         $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
 
@@ -88,7 +88,7 @@ function xmldb_report_courserequestor_upgrade($oldversion) {
         }
 
         // courserequestor savepoint reached
-        upgrade_plugin_savepoint(true, 2011052616, 'report', 'courserequestor');
+        upgrade_plugin_savepoint(true, 2011052717, 'report', 'courserequestor');
     }
 	
 	return $result;

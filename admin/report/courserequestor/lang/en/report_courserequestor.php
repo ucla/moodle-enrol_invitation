@@ -14,9 +14,8 @@ $string['builddept'] = "Build Entire Department";
 $string['buildcourse'] = "Build Individual Courses";
 $string['addcrosslist'] = "Add Crosslists";
 
-$string['viewtobebuilt'] = "viewing: courses to be built";
-$string['viewlivecourses'] = "viewing: live courses";
-$string['viewpreviewcourses'] = "viewing: preview courses";
+$string['viewtobebuilt'] = "Courses to be built";
+$string['viewlivecourses'] = "Live Courses";
 
 $string['courserequestor:view'] = "View UCLA course request (SRS)";
 ?>

@@ -85,8 +85,8 @@ function clearform( btn )
     $course_requestor =  $string."/admin/report/courserequestor/index.php";
     $addCrosslist = $string."/admin/report/courserequestor/addcrosslist.php";
 
-    echo "<a href=\"$build_dept\">".get_string('builddept', 'report_courserequestor')."</a> | ";
     echo "<a href=\"$course_requestor\">".get_string('buildcourse', 'report_courserequestor')."</a> | ";
+	echo "<a href=\"$build_dept\">".get_string('builddept', 'report_courserequestor')."</a> | ";
     echo "<a href=\"$addCrosslist\">".get_string('addcrosslist', 'report_courserequestor')."</a> ";
     
     
@@ -259,7 +259,7 @@ function clearform( btn )
         if((isset($existingcourse[$srs]) && $existingcourse[$srs]) 
             || (isset($existingaliascourse[$srs]) && $existingaliascourse[$srs]))
         {
-                echo "<tr><td class=\"crqtableodd\"><div class=\"crqerrormsg\">THIS SRS NUMBER HAS BEEN SUBMITTED TO CREATE A COURSE. <br/> PLEASE ENTER A NEW SRS NO.</div></td></tr>";
+                echo "<tr><td class=\"crqtableodd\" colspan=\"4\"><div class=\"crqerrormsg\">THIS SRS NUMBER HAS BEEN SUBMITTED TO CREATE A COURSE. <br /> PLEASE ENTER A NEW SRS NO.</div></td></tr></tbody></table>";
         }
         else
         {
@@ -555,7 +555,7 @@ function clearform( btn )
 	{
 			global $DB;
             $DB->execute("delete from mdl_ucla_request_classes where srs like '$_GET[srs]' ");
-			$DB->execute("delete from mdl_ucla_request_crosslist where srs like '$_POST[srs]' ");
+			$DB->execute("delete from mdl_ucla_request_crosslist where srs like '$_GET[srs]' ");
             getCoursesToBeBuilt();
 	}
 
@@ -793,7 +793,7 @@ END;
                                         echo "<tr class=\"crqtableunderline\"><td>".rtrim($row2->srs)."</td><td>".rtrim($row2->course)."</td><td>".rtrim($row2->department)."</td><td colspan='2'>".rtrim($row2->instructor)."</td><td>".$coursetype.$xlist."</td></TR></form>";
                                 }
 				//echo "</table></td></tr></table>";
-                                echo "</tbody</table>";
+                                echo "</tbody></table>";
 			}
 	}
 
@@ -806,4 +806,3 @@ END;
 echo $OUTPUT->footer();
 
 ?>
-
