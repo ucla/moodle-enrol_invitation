@@ -241,12 +241,14 @@ function clearform( btn )
 		$existingaliascourse[$srs]=1;
 	}
 
+	/*
     $crs1 = $DB->get_records_sql("select srs from mdl_ucla_request_classes where preview like '1' and term like '$_GET[term]'");
 	foreach($crs1 as $rows1)
 	{
 		$previewcourse[rtrim($rows1->srs)]=1;
 	}
-
+	*/
+	
     if($_GET["action"]=="fillform")
     {
         echo "<table style=\"width:90%\" ><tbody>";
@@ -331,7 +333,8 @@ function clearform( btn )
             odbc_free_result($result);
             
 			$mailinst_default = $CFG->classrequestor_mailinst_default;
-			$sendurl_default = $CFG->classrequestor_sendurl_default;
+			$forceurl_default = $CFG->classrequestor_forceurl_default;
+			$nourlupd_default = $CFG->classrequestor_nourlupd_default;
 			$hidden_default = get_config('moodlecourse')->visible;
 
             echo "<tr><td class=\"crqtableodd\" colspan=\"2\">";
@@ -349,10 +352,12 @@ function clearform( btn )
 
                 echo "<div class=\"crqtableodd\">Instructor: <strong>" . $inst_full_display . "</strong></div>";
                 echo "<div class=\"crqtableeven\"><label>Action: <select name=\"actionrequest\">";
-                echo "<option value='build' selected>Build</option></select></label></div>";
+                echo "<option value='build' selected>Build</option></select></label>
+				<label><input type=checkbox name=hidden value=1 " . (!$hidden_default? "checked" : '') . ">&nbsp;Build as Hidden</label>
+				</div>";
                 echo "<div class=\"crqtableodd\">
-				<label><input type=checkbox name=sendurl value=1 " . ($sendurl_default? "checked" : '') . ">&nbsp;Send URL</label>
-				<label><input type=checkbox name=hidden value=1 " . (!$hidden_default? "checked" : '') . ">&nbsp;Build as Hidden</label>				
+				<label><input type=checkbox name=forceurl value=1 " . ($forceurl_default? "checked" : '') . ">&nbsp;Force URL Update</label>
+				<label><input type=checkbox name=nourlupd value=1 " . ($nourlupd_default? "checked" : '') . ">&nbsp;Prevent URL Update</label>				
 				</div>";
                 if ($subj == "") { 
                     $subj="NULL";
@@ -384,11 +389,11 @@ function clearform( btn )
                 {
                     $aliascount=5;
                     echo "<label><input type=\"radio\" name=\"xlist\" value = \"1\" >yes</label> <label><input type=\"radio\" name=\"xlist\" value = \"0\" checked>no</label></div>";
-                    echo "<div class=\"crqtableodd\"> Alias SRS<input type=\"text\" name=\"alias1\" size=\"20\"></div>";
-                    echo "<div class=\"crqtableeven\"> Alias SRS<input type=\"text\" name=\"alias2\" size=\"20\"></div>";
-                    echo "<div class=\"crqtableodd\"> Alias SRS<input type=\"text\" name=\"alias3\" size=\"20\"></div>";
-                    echo "<div class=\"crqtableeven\"> Alias SRS<input type=\"text\" name=\"alias4\" size=\"20\"></div>";
-                    echo "<div class=\"crqtableodd\"> Alias SRS<input type=\"text\" name=\"alias5\" size=\"20\"></div>";
+                    echo "<div class=\"crqtableodd\"> Alias SRS<input type=\"text\" name=\"alias1\" size=\"20\" maxlength=\"9\"></div>";
+                    echo "<div class=\"crqtableeven\"> Alias SRS<input type=\"text\" name=\"alias2\" size=\"20\" maxlength=\"9\"></div>";
+                    echo "<div class=\"crqtableodd\"> Alias SRS<input type=\"text\" name=\"alias3\" size=\"20\" maxlength=\"9\"></div>";
+                    echo "<div class=\"crqtableeven\"> Alias SRS<input type=\"text\" name=\"alias4\" size=\"20\" maxlength=\"9\"></div>";
+                    echo "<div class=\"crqtableodd\"> Alias SRS<input type=\"text\" name=\"alias5\" size=\"20\" maxlength=\"9\"></div>";
                     echo "<input type=\"hidden\" name=\"aliascount\" value = \"$aliascount\" >";
                 }
                 else
@@ -473,7 +478,28 @@ function clearform( btn )
 	else
 	{
 		$instructor=$_GET["instname"];
-		$preview=$_GET["preview"];
+		// $preview=$_GET["preview"];
+		
+		if(isset($_GET["hidden"]))
+		$hidden = $_GET["hidden"];
+		else
+		$hidden = 0;
+		
+		if(isset($_GET["mailinst"]))
+		$mailinst = $_GET["mailinst"];
+		else
+		$mailinst = 0;
+		
+		if(isset($_GET["forceurl"]))
+		$forceurl = $_GET["forceurl"];
+		else
+		$forceurl = 0;
+		
+		if(isset($_GET["nourlupd"]))
+		$nourlupd = $_GET["nourlupd"];
+		else
+		$nourlupd = 0;	
+		
 		$crosslist=$_GET["xlist"];
 		$action=$_GET["actionrequest"];
 		$aliascount=$_GET["aliascount"];
@@ -481,12 +507,8 @@ function clearform( btn )
 		$course=$_GET["course"];
 		$contact=$_GET["contact"];
 		$ctime=time();
-                $mailinst = $_GET['mailinst'];
-
-                // modified query from class_requestor
-                // + Termext
-                // + mailinst
-                $query = "INSERT INTO mdl_ucla_request_classes(term,srs,course,department,instructor,contact,crosslist,added_at,preview,action,status,mailinst) values ('$term','$srs','$course','$department','".addslashes($instructor)."','" .addslashes($contact). "',$crosslist,'$ctime',$preview,'$action','pending','$mailinst')";
+                
+                $query = "INSERT INTO mdl_ucla_request_classes(term,srs,course,department,instructor,contact,crosslist,added_at,action,status,mailinst,hidden,force_urlupdate,force_no_urlupdate) values ('$term','$srs','$course','$department','".addslashes($instructor)."','" .addslashes($contact). "',$crosslist,'$ctime','$action','pending','$mailinst','$hidden','$forceurl','$nourlupd')";
 
                 $DB->execute($query);
 		// CROSSLISTING: MANUAL or MULTIPLE host-alias ENTRY
@@ -498,7 +520,7 @@ function clearform( btn )
                         $aliassrs=$_GET[$alias];
                         if($aliassrs != "")
                         {
-                            $query = "INSERT INTO mdl_ucla_request_crosslist values ('','$term','$srs','$aliassrs','joint')";
+                            $query = "INSERT INTO mdl_ucla_request_crosslist(term,srs,aliassrs,type) values ('$term','$srs','$aliassrs','joint')";
 
                             $DB->execute($query);
                         }
@@ -524,8 +546,8 @@ function clearform( btn )
 			global $DB;
             $srs = $_GET['srs'];
             $DB->execute("update mdl_ucla_request_classes set action = 'makelive', status='pending' where srs like '$srs' ");
-            getPreviewCourses();
-            $message = "$srs needs to be converted from preview to live";
+            //getPreviewCourses();
+            //$message = "$srs needs to be converted from preview to live";
             //mail('nthompson@oid.ucla.edu', 'CCLE:Preview to Live Request', $message);
 	}
 
@@ -533,6 +555,7 @@ function clearform( btn )
 	{
 			global $DB;
             $DB->execute("delete from mdl_ucla_request_classes where srs like '$_GET[srs]' ");
+			$DB->execute("delete from mdl_ucla_request_crosslist where srs like '$_POST[srs]' ");
             getCoursesToBeBuilt();
 	}
 
@@ -707,11 +730,11 @@ END;
 		$term = $_GET['term'];
 		if($department == "")
                 {
-                        if($rs=$DB->get_records_sql("select * from mdl_ucla_request_classes where status like 'done' and preview = 0 and term like '$term' order by department,course")){$recflag=1;}
+                        if($rs=$DB->get_records_sql("select * from mdl_ucla_request_classes where status like 'done' and term like '$term' order by department,course")){$recflag=1;}
                 }
 		else
                 {
-                        if($rs=$DB->get_records_sql("SELECT * FROM `mdl_ucla_request_classes` WHERE `department` LIKE '$department'  AND `preview` = 0 AND `status` LIKE 'done' and term like '$term' order by 'department' ")){$recflag=1;}
+                        if($rs=$DB->get_records_sql("SELECT * FROM `mdl_ucla_request_classes` WHERE `department` LIKE '$department' AND `status` LIKE 'done' and term like '$term' order by 'department' ")){$recflag=1;}
                 }
 		if($recflag=0 )
                 {
@@ -744,7 +767,7 @@ END;
                                 {
                                         $srs = rtrim($row2->srs);
                                         echo "<form method=\"GET\" action=\"".$_SERVER['PHP_SELF']."\">";
-                                        echo "<input type=\"hidden\" name=\"action\" value=\"converttopreview\">";
+                                        //echo "<input type=\"hidden\" name=\"action\" value=\"converttopreview\">";
                                         echo "<input type=\"hidden\" name=\"srs\" value=\"$row2->srs\">";
                                         echo "<input type=\"hidden\" name=\"department\" value=\"$department\">";
                                         echo "<input type=\"hidden\" name=\"term\" value=\"$term\">";
@@ -767,7 +790,7 @@ END;
                                                 $coursetype=" <span class=\"crqbedpreview\">Preview</span>";
                                         }
 										*/
-                                        echo "<tr class=\"crqtableunderline\"><td>".rtrim($row2->srs)."</td><td>".rtrim($row2->course)."</td><td>".rtrim($row2->department)."</td><td>".rtrim($row2->instructor)."</td><td>".$coursetype.$xlist."</td><td><input type=\"submit\" value=\"Make Preview\"></td></TR></form>";
+                                        echo "<tr class=\"crqtableunderline\"><td>".rtrim($row2->srs)."</td><td>".rtrim($row2->course)."</td><td>".rtrim($row2->department)."</td><td colspan='2'>".rtrim($row2->instructor)."</td><td>".$coursetype.$xlist."</td></TR></form>";
                                 }
 				//echo "</table></td></tr></table>";
                                 echo "</tbody</table>";

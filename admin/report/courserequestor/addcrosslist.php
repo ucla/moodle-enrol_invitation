@@ -13,6 +13,7 @@ include("cr_lib.php");
 require_login();
 global $USER;
 global $ME;
+global $DB;
 
 $term = $CFG->currentterm;
 
@@ -88,8 +89,7 @@ admin_externalpage_print_header($adminroot); **/
                 <label>
                     List of <strong>to be built</strong> Courses for the term <strong><?php if( empty($_POST['term']) ){echo $CFG->classrequestor_selected_term;} else {echo "${_POST['term']}";} ?></strong><br/><br/>
                     You can add crosslists while these couses are waiting in queue to be built<br/>
-                    <div class="crqfrmcrosslist">
-                        <select name="hostsrs" >
+                    <select name="hostsrs" >
                         <?php
 			
 			if(isset($_POST['term']))
@@ -117,49 +117,49 @@ admin_externalpage_print_header($adminroot); **/
             ADD ALIASES
             <input type="hidden" name="action" value="addalias">
             <div class="crqfrmtxtboxeven" >
-                <input type="text" name="alias1" size="20">
+                <input type="text" name="alias1" size="20" maxlength="9">
             </div>
             <div class="crqfrmtxtboxodd">
-                <input type="text" name="alias2" size="20">
+                <input type="text" name="alias2" size="20" maxlength="9">
             </div>
             <div class="crqfrmtxtboxeven">
-                <input type="text" name="alias3" size="20">
+                <input type="text" name="alias3" size="20" maxlength="9">
             </div>
             <div class="crqfrmtxtboxodd">
-                <input type="text" name="alias4" size="20">
+                <input type="text" name="alias4" size="20" maxlength="9">
             </div>
             <div class="crqfrmtxtboxeven">
-                <input type="text" name="alias5" size="20">
+                <input type="text" name="alias5" size="20" maxlength="9">
             </div>
             <div class="crqfrmtxtboxodd">
-                <input type="text" name="alias6" size="20">
+                <input type="text" name="alias6" size="20" maxlength="9">
             </div>
             <div class="crqfrmtxtboxeven">
-                <input type="text" name="alias7" size="20">
+                <input type="text" name="alias7" size="20" maxlength="9">
             </div>
             <div class="crqfrmtxtboxodd">
-                <input type="text" name="alias8" size="20">
+                <input type="text" name="alias8" size="20" maxlength="9">
             </div>
             <div class="crqfrmtxtboxeven">
-                <input type="text" name="alias9" size="20">
+                <input type="text" name="alias9" size="20" maxlength="9">
             </div>
             <div class="crqfrmtxtboxodd">
-                <input type="text" name="alias10" size="20">
+                <input type="text" name="alias10" size="20" maxlength="9">
             </div>
             <div class="crqfrmtxtboxeven">
-                <input type="text" name="alias11" size="20">
+                <input type="text" name="alias11" size="20" maxlength="9">
             </div>
             <div class="crqfrmtxtboxodd">
-                <input type="text" name="alias12" size="20">
+                <input type="text" name="alias12" size="20" maxlength="9">
             </div>
             <div class="crqfrmtxtboxeven">
-                <input type="text" name="alias13" size="20">
+                <input type="text" name="alias13" size="20" maxlength="9">
             </div>
             <div class="crqfrmtxtboxodd">
-                <input type="text" name="alias14" size="20">
+                <input type="text" name="alias14" size="20" maxlength="9">
             </div>
             <div class="crqfrmtxtboxeven">
-                <input type="text" name="alias15" size="20">
+                <input type="text" name="alias15" size="20" maxlength="9">
             </div>
             <!-- </div> -->
 
@@ -184,23 +184,23 @@ if(isset($_POST['action']))
 		{
                     if(eregi('[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]',$value))
                     {
-                        $query5 = "select aliassrs from mdl_ucla_request_crosslist where aliassrs like '$value' and term like '${_POST[term]}' and srs like '${_POST[hostsrs]}'";
+                        $query5 = "select aliassrs from mdl_ucla_request_crosslist where aliassrs like '$value' and term like '$_POST[term]' and srs like '$_POST[hostsrs]'";
 
-                        if(!$DB->get_records_sql($query5)){
+                        if($DB->get_records_sql($query5)){
                             echo "<div class=\"crqerrormsg\">";
                             echo "DUPLICATE ENTRY. Alias already inserted";
                             echo "</div>";
                         }
                         else{
-                            $query1 = "INSERT INTO mdl_ucla_request_crosslist values ('','${_POST[term]}','${_POST[hostsrs]}','$value','joint')";
-                            execute_sql($query1);
-                            echo "<table><tr ><td ><div class=\"crqgreenmsg\">New aliases submitted for crosslisting with host: '${_POST[hostsrs]}'</div></td></tr></table>";
+                            $query1 = "INSERT INTO mdl_ucla_request_crosslist(term,srs,aliassrs,type) values ('$_POST[term]','$_POST[hostsrs]','$value','joint')";
+                            $DB->execute($query1);
+                            echo "<table><tr ><td ><div class=\"crqgreenmsg\">New aliases submitted for crosslisting with host: '$_POST[hostsrs]'</div></td></tr></table>";
 
-                            $query2 = "update mdl_ucla_request_classes set crosslist=1 where srs like '${_POST[hostsrs]}' ";
-                            execute_sql($query2);
+                            $query2 = "update mdl_ucla_request_classes set crosslist=1 where srs like '$_POST[hostsrs]' ";
+                            $DB->execute($query2);
                             echo "<table><tr ><td ><div class=\"crqgreenmsg\">Submitted for crosslisting</div></td></tr></table>";
 
-                            $message = "New aliases submitted to be crosslisted with host: '${_POST[hostsrs]}' ";
+                            $message = "New aliases submitted to be crosslisted with host: '$_POST[hostsrs]' ";
                             //mail('nthompson@oid.ucla.edu', 'CCLE:New Crosslist Request', $message);
                         }
                     }

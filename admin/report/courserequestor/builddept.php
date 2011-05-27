@@ -11,7 +11,6 @@ require_once($CFG->libdir.'/adminlib.php');
 $db_conn = odbc_connect($CFG->registrar_dbhost, $CFG->registrar_dbuser , $CFG->registrar_dbpass) or die( "ERROR: Connection to Registrar failed.");
 $term = $CFG->currentterm;
 
-
 // update from class_requestor
 include("cr_lib.php");
 
@@ -257,8 +256,29 @@ admin_externalpage_print_header($adminroot);
                 }
 	*/
 		
-
-		while($cnt<$count)
+			if(isset($_GET["hidden"]))
+			$hidden = $_GET["hidden"];
+			else
+			$hidden = 0;
+		
+			if(isset($_GET["mailinst"]))
+			$mailinst = $_GET["mailinst"];
+			else
+			$mailinst = 0;
+		
+			if(isset($_GET["forceurl"]))
+			$forceurl = $_GET["forceurl"];
+			else
+			$forceurl = 0;
+		
+			if(isset($_GET["nourlupd"]))
+			$nourlupd = $_GET["nourlupd"];
+			else
+			$nourlupd = 0;
+		
+		
+		
+		while($cnt<$count && isset($_POST["srs$cnt"]))
 		{
 			$aliascount=$_POST["aliascount$cnt"];
 			$isxlist=0;
@@ -270,12 +290,14 @@ admin_externalpage_print_header($adminroot);
 			$instructor=$_POST["inst$cnt"];
 			$department=$_POST["department"];
 			$course=$_POST["course$cnt"];
-			$contact=$_POST["contact"];
+			$contact=$_POST["contact"];		
 			
 			if(isset($_POST["addcourse$cnt"]))
             $addcourse = $_POST["addcourse$cnt"];
 			else
 			$addcourse = "";
+			
+			$ctime=time();
 
 			if($addcourse != ""){
 					
@@ -299,10 +321,8 @@ admin_externalpage_print_header($adminroot);
                                             }
                                             $r++;
 					}
-                                        // modified query from class_requestor
-                                        // + Termext
-                                        // + mailinst
-                                        $query = "INSERT INTO mdl_ucla_request_classes(term,srs,course,department,instructor,contact,crosslist,preview,action,status,termext,mailinst) values ('$term','$srs','$course','$department','$instructor','$contact','$isxlist','0','Build','pending','1','{$_POST['mailinst']}')";
+
+                                        $query = "INSERT INTO mdl_ucla_request_classes(term,srs,course,department,instructor,contact,crosslist,added_at,action,status,mailinst,hidden,force_urlupdate,force_no_urlupdate) values ('$term','$srs','$course','$department','$instructor','$contact','$isxlist','$ctime','Build','pending','$mailinst','$hidden','$forceurl','$nourlupd')";
 
 
                                         $DB->execute($query);
@@ -322,12 +342,12 @@ admin_externalpage_print_header($adminroot);
                                                 $als = $_POST[$value];
                                                 //create a check so that the alias being entered is not a host for some other crosslist
                                                 //also check that the host srs is not an alias for some other crosslist
-                                                if($existingcourse[$als] || $existingaliascourse[$als]){
+                                                if(isset($existingcourse[$als]) || isset($existingaliascourse[$als])){
                                                         //echo "<br><br> <font color=red> Requested crosslist $als for $course is already submitted - Individually OR as a child course </font><br>";
                                                     echo "<table><tr ><td ><div class=\"crqerrormsg\">Requested crosslist $als for $course is already submitted - Individually OR as a child course</div></td></tr></table>";
                                                 }
-                                                else{
-                                                    $query1 = "INSERT INTO mdl_ucla_request_crosslist values ('','$term','$srs','$als','joint')";
+                                                else if($als != ""){
+                                                    $query1 = "INSERT INTO mdl_ucla_request_crosslist(term,srs,aliassrs,type) values ('$term','$srs','$als','joint')";
                                                     $DB->execute($query1);
 
                                                     $existingaliascourse[$als]=1;
@@ -548,11 +568,11 @@ function getLiveCourses()
 		$term = $_POST['term'];
 		if($department == "")
                 {
-                        if($rs=$DB->get_records_sql("select * from mdl_ucla_request_classes where status like 'done' and preview = 0 and term like '$term' order by department,course")){$recflag=1;}
+                        if($rs=$DB->get_records_sql("select * from mdl_ucla_request_classes where status like 'done' and term like '$term' order by department,course")){$recflag=1;}
                 }
 		else
                 {
-                        if($rs=$DB->get_records_sql("SELECT * FROM `mdl_ucla_request_classes` WHERE `department` LIKE '$department'  AND `preview` = 0 AND `status` LIKE 'done' and term like '$term' order by 'department' ")){$recflag=1;}
+                        if($rs=$DB->get_records_sql("SELECT * FROM `mdl_ucla_request_classes` WHERE `department` LIKE '$department' AND `status` LIKE 'done' and term like '$term' order by 'department' ")){$recflag=1;}
                 }
 		if($recflag==0 )    // why this this checking $recflag = 0 ?
                 {
@@ -589,7 +609,7 @@ END;
 					{
 						$srs = rtrim($row2->srs);
 						echo "<form method=\"POST\" action=\"".$_SERVER['PHP_SELF']."\">";
-						echo "<input type=\"hidden\" name=\"action\" value=\"converttopreview\">";
+						//echo "<input type=\"hidden\" name=\"action\" value=\"converttopreview\">";
 						echo "<input type=\"hidden\" name=\"srs\" value=\"$srs\">";
 						echo "<input type=\"hidden\" name=\"department\" value=\"$department\">";
 						echo "<input type=\"hidden\" name=\"term\" value=\"$term\">";
@@ -613,9 +633,8 @@ END;
                                                         <td width=\"100\">".rtrim($row2->course)."</td>
                                                         <td>".rtrim($row2->department)."</td>
                                                         <td width=\"150\">".rtrim($row2->instructor)."</td>
-                                                        <td align=\"right\">".$coursetype.$xlist."</td>
-                                                        <td><input type=\"submit\" value=\"Make Preview\"></td>
-                                                        </tr></form>";
+                                                        <td align=\"right\" colspan=\"2\">".$coursetype.$xlist."</td>
+														</tr></form>";
 					}
                                 echo "</tbody></table>";
 				//echo "</table></td></tr></table>";
@@ -633,7 +652,7 @@ function getCoursesInDept($term,$subjarea,$db_conn){
 	$qr= odbc_exec($db_conn, "EXECUTE CIS_courseGetAll '$term','$subjarea'") or die('access denied');
 
 	$rows = array();
-
+	
 	while ($row=odbc_fetch_object($qr))
 	{
             $rows[] = $row;
@@ -641,7 +660,8 @@ function getCoursesInDept($term,$subjarea,$db_conn){
 	odbc_free_result($qr);
 
         $mailinst_default = $CFG->classrequestor_mailinst_default;
-		$sendurl_default = $CFG->classrequestor_sendurl_default;
+		$forceurl_default = $CFG->classrequestor_forceurl_default;
+		$nourlupd_default = $CFG->classrequestor_nourlupd_default;
 		$hidden_default = get_config('moodlecourse')->visible;
 		
         echo "<form method=\"POST\" action=\"".$_SERVER['PHP_SELF']."\">";
@@ -659,7 +679,7 @@ END;
 					echo "<label><input type=checkbox name=mailinst value=1 " . ($mailinst_default? "checked" : '') . ">&nbsp;Send Email to Instructor(s)</label>
                     </td>
                     <td class=\"crqtableeven\">
-                        <label><input type=checkbox name=sendurl value=1 " . ($sendurl_default? "checked" : '') . ">&nbsp;Send URL</label>
+						<label><input type=checkbox name=hidden value=1 " . (!$hidden_default? "checked" : '') . ">&nbsp;Build as Hidden</label>
                     </td>";
 echo <<< END
                     <td class="crqtableeven" colspan="2"  align="right">
@@ -669,10 +689,16 @@ echo <<< END
                     </td>
                 </tr>
                 <tr >
-                    <td class="crqtableeven" colspan="2">
+                    <td class="crqtableeven" colspan="1">
 END;
 
-                    echo "<label><input type=checkbox name=hidden value=1 " . (!$hidden_default? "checked" : '') . ">&nbsp;Build as Hidden</label>
+                    echo "<label><input type=checkbox name=forceurl value=1 " . ($forceurl_default? "checked" : '') . ">&nbsp;Force URL Update</label>
+                    </td>";
+echo <<< END
+                    <td class="crqtableeven" colspan="1">
+END;
+
+                    echo "<label><input type=checkbox name=nourlupd value=1 " . ($nourlupd_default? "checked" : '') . ">&nbsp;Prevent URL Update</label>
                     </td>";
 echo <<< END
                     <td class="crqtableeven" colspan="2" align="right">
@@ -725,7 +751,6 @@ END;
         echo "</td></tr>";
         echo "</tfoot>";
         echo "</table>";
-
         echo "</form>";
         echo "</div>";
 }
@@ -842,12 +867,12 @@ function getCourseDetails($term,$srs,$count,$db_conn){
 			echo "<input type=\"hidden\" name=\"aliascount$count\" value = \"$aliascount\" >";
 		}
 		else{
-			echo "</td><td><input type=\"text\" name=\"alias1$count\" size=\"10\">";
-			echo "<input type=\"text\" name=\"alias2$count\" size=\"10\">";
-			echo "<input type=\"text\" name=\"alias3$count\" size=\"10\">";
+			echo "</td><td><input type=\"text\" name=\"alias1$count\" size=\"10\" maxlength=\"9\">";
+			echo "<input type=\"text\" name=\"alias2$count\" size=\"10\" maxlength=\"9\">";
+			echo "<input type=\"text\" name=\"alias3$count\" size=\"10\" maxlength=\"9\">";
 			echo "<input type=\"hidden\" name=\"aliascount$count\" value = \"3\" >";
 		}
-		echo "</td><td><input type=\"checkbox\" name=\"addcourse$count\" value=$srs checked >";
+		echo "</td><td><input type=\"checkbox\" name=\"addcourse$count\" value=$srs checked>";
 		echo "</td></tr>";
 	}
 }
@@ -856,6 +881,7 @@ function getCourseDetails($term,$srs,$count,$db_conn){
 	{
 	global $DB;
                 $DB->execute("delete from mdl_ucla_request_classes where srs like '$_POST[srs]' ");
+				$DB->execute("delete from mdl_ucla_request_crosslist where srs like '$_POST[srs]' ");
 		getCoursesToBeBuilt();
 	}
 ?>

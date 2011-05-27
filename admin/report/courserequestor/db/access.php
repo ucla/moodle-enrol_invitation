@@ -5,7 +5,7 @@
  * 
  */
 
-$report_courserequestor_capabilities = array(
+$capabilities = array(
     'report/courserequestor:view' => array(
         'riskbitmask' => RISK_CONFIG,
         'captype' => 'read',
