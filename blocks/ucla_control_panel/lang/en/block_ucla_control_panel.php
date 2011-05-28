@@ -35,7 +35,7 @@ $string['add_subheading'] = 'Add a Subheading';
 $string['add_subheading_post'] = 'Use subheadings within a section to organize links and files (e.g. Readings, Assignments).';
 
 $string['add_text'] = 'Add Text';
-$string['add_text_post'] = 'Add text to appear on a coruse site.';
+$string['add_text_post'] = 'Add text to appear on a course site.';
 
 $string['import_classweb'] = 'Import Clasweb Site';
 $string['import_classweb_post'] = 'Import content from a previous course on ClassWeb to this site.';

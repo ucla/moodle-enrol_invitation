@@ -1,12 +1,21 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-abstract class ucla_cp_module {
-    /** This is used designate which function to use to display the
-        data. **/
-    var $handler;
-
-    /** This designates column mode or rows mode **/
-    var $orientation;
+class ucla_cp_renderer {
+    private $history = array();
 
     /**
         get_content_array()
@@ -19,7 +28,37 @@ abstract class ucla_cp_module {
             <item>_pre represents strings that are printed before the link.
             <item>_post represents the string that is printed after the link.
     **/
-    abstract function get_content_array($course);
+    function get_content_array($contents, $size=2) {
+        $all_stuff = array();
+
+        foreach ($contents as $content) {
+            $action = $content->get_action();
+            $title = $content->item_name;
+
+            $all_stuff[$title] = $action;
+        }
+
+        ksort($all_stuff);
+
+        $disp_stuff = array();
+
+        $disp_cat = array();
+        foreach ($all_stuff as $title => $action) {
+            if (count($disp_cat) == $size) {
+                $disp_stuff[] = $disp_cat;
+                $disp_cat = array();
+            }
+
+            $disp_cat[$title] = $action;
+            // Figure out how the fuck to do this?
+        }
+
+        if (!empty($disp_cat[$title])) {
+            $disp_stuff[] = $disp_cat;
+        }
+
+        return $disp_stuff;
+    }
 
     /**
         Builds the string with the string and the descriptions, pre and post.
@@ -82,18 +121,21 @@ abstract class ucla_cp_module {
         array and generate the string that contains the contents
         in a div-split table.
     **/
-    function control_panel_contents($course) {
+    function control_panel_contents($contents, $format=false, 
+            $orient='col', $handler='general_descriptive_link') {
+        if ($format) {
+            $contents = $this->get_content_array($contents);
+        }
+
         $full_table = '';
         
-        $columns = ($this->orientation == 'col');
+        $columns = ($orient == 'col');
 
         // even odd toggle
         $eo = false;
 
         // left-right enable
         $lre = false;
-
-        $contents = $this->get_content_array($course);
 
         if ($columns && count($contents) == 2) {
             $lre = true;
@@ -114,8 +156,6 @@ abstract class ucla_cp_module {
 
             $add_class = '';
             foreach ($content_row as $content_item => $content_link) {
-                $handler = 'handler_' . $content_item;
- 
                 if (!$columns && $lre) {
                     if ($add_class == ' left') {
                         $add_class = ' right';
@@ -127,10 +167,8 @@ abstract class ucla_cp_module {
                 $the_output = html_writer::start_tag('div', 
                     array('class' => 'item' . $add_class));
 
-                if (method_exists($this, $handler)) {
-                    $the_output .= $this->$handler($course, $content_item);
-                } else if ($content_link != null) {
-                    $the_output .= $this->{$this->handler}($content_item, 
+                if ($content_link != null) {
+                    $the_output .= $this->$handler($content_item, 
                         $content_link);
                 } else {
                     debugging($content_item . ' is set incorrectly!');
@@ -154,7 +192,7 @@ abstract class ucla_cp_module {
             }
 
             $full_table .= html_writer::tag('div', $row_contents, 
-                array('class' => 'table' . $this->orientation . $evenodd));
+                array('class' => 'table' . $orient . $evenodd));
         }
 
         return $full_table;

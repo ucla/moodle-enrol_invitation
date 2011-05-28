@@ -1,11 +1,24 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 require_once(dirname(__FILE__).'/../../config.php');
 global $CFG;
 
 require_once($CFG->libdir.'/blocklib.php');
 require_once($CFG->dirroot.'/blocks/moodleblock.class.php');
-    
 require_once($CFG->dirroot.
     '/blocks/ucla_control_panel/block_ucla_control_panel.php');
 
@@ -19,8 +32,7 @@ if (! $course = $DB->get_record('course', array('id'=>$course_id))) {
 require_login($course, true);
 $context = get_context_instance(CONTEXT_COURSE, $course_id);
 
-$cpb = new block_ucla_control_panel();
-$elements = $cpb->load_cp_elements();
+$elements = block_ucla_control_panel::load_cp_elements($course, $context);
 
 // Initialize $PAGE
 $PAGE->set_url('/blocks/ucla_control_panel/view.php', 
@@ -63,14 +75,13 @@ if ($PAGE->user_allowed_editing()) {
 echo $OUTPUT->header();
 
 // This is actually printing out each section of the control panel
-foreach ($elements as $section) {
-    $contents = $section->control_panel_contents($course);
-
-    if ($contents != '') {
-        echo $OUTPUT->heading(get_string(get_class($section), 
+foreach ($elements as $section_title => $section_contents) {
+    echo $OUTPUT->heading(get_string($section_title,
             'block_ucla_control_panel'), 2, 'main copan-title');
-        echo $OUTPUT->box($contents);
-    }
+
+    var_dump($section_contents);
+
+    //    echo $OUTPUT->box($contents);
 }
 
 echo $OUTPUT->footer();
