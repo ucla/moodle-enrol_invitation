@@ -28,11 +28,19 @@ class ucla_cp_renderer {
             <item>_pre represents strings that are printed before the link.
             <item>_post represents the string that is printed after the link.
     **/
-    function get_content_array($contents, $size=2) {
+    static function get_content_array($contents, $size=null) {
         $all_stuff = array();
 
+        if ($size === null) {
+            $size = floor(count($contents) / 2) + 1;
+
+            if ($size == 0) {
+                $size = 1;
+            }
+        }
+
         foreach ($contents as $content) {
-            $action = $content->get_action();
+            $action = $content;
             $title = $content->item_name;
 
             $all_stuff[$title] = $action;
@@ -72,7 +80,8 @@ class ucla_cp_renderer {
             get_string($item . '_post', ... ).
         @return string The DOMs of the control panel description and link.
     **/
-    function general_descriptive_link($item, $link, $pre=false, $post=true) {
+    static function general_descriptive_link($item, $link, 
+            $pre=false, $post=true) {
         $fitem = '';
         
         $bucp = 'block_ucla_control_panel';
@@ -102,7 +111,8 @@ class ucla_cp_renderer {
         @return string The DOMs of the control panel, with an image
             and whatever is returned by @see general_descriptive_link.
     **/
-    function general_icon_link($item, $link, $pre=false, $post=false) {
+    static function general_icon_link($item, $link, 
+            $pre=false, $post=true) {
         global $OUTPUT;
 
         $bucp = 'block_ucla_control_panel';
@@ -111,7 +121,8 @@ class ucla_cp_renderer {
         $fitem .= html_writer::empty_tag('img', 
             array('src' => $OUTPUT->pix_url('cp_' . $item)));
 
-        $fitem .= $this->general_descriptive_link($item, $link, $pre, $post);
+        $fitem .= ucla_cp_renderer::general_descriptive_link($item, $link, 
+            $pre, $post);
 
         return $fitem;
     }
@@ -124,7 +135,7 @@ class ucla_cp_renderer {
     function control_panel_contents($contents, $format=false, 
             $orient='col', $handler='general_descriptive_link') {
         if ($format) {
-            $contents = $this->get_content_array($contents);
+            $contents = ucla_cp_renderer::get_content_array($contents);
         }
 
         $full_table = '';
@@ -166,10 +177,25 @@ class ucla_cp_renderer {
 
                 $the_output = html_writer::start_tag('div', 
                     array('class' => 'item' . $add_class));
-
-                if ($content_link != null) {
-                    $the_output .= $this->$handler($content_item, 
-                        $content_link);
+    
+                $content_action = $content_link->get_action();
+                if ($content_action != null) {
+                    // this part sucks
+                    if ($content_link->get_opts('pre') !== null) {
+                        if ($content_link->get_opts('post') !== null) {
+                            $the_output .= ucla_cp_renderer::$handler(
+                                $content_item, $content_action,
+                                $content_link->get_opts('pre'),
+                                $content_link->get_opts('post'));
+                        } else {
+                            $the_output .= ucla_cp_renderer::$hanlder(
+                                $content_item, $content_action,
+                                $content_link->get_opts('pre'));
+                        }
+                    } else {
+                        $the_output .= ucla_cp_renderer::$handler(
+                            $content_item, $content_action);
+                    }
                 } else {
                     debugging($content_item . ' is set incorrectly!');
                 }

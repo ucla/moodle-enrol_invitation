@@ -7,15 +7,19 @@ $string['pluginname'] = 'UCLA Control Panel';
 $string['ucla_cp_mod_common'] = 'Most Commonly Used';
 
 $string['add_link'] = 'Add a Link';
+$string['add_link_post'] = '';
 
 $string['email_students'] = 'E-mail Students';
 $string['email_students_post'] = '(via Announcements Forum)';
 
 $string['add_file'] = 'Upload a File';
+$string['add_file_post'] = '';
 
 $string['office_hours'] = 'Update Office Hours & Contact Info';
+$string['office_hours_post'] = '';
 
 $string['modify_sections'] = 'Modify Course Menu Sections';
+$string['modify_sections_post'] = '';
 
 $string['rearrange'] = 'Rearrange Course Materials';
 

@@ -84,11 +84,16 @@ class block_ucla_control_panel extends block_base {
     
         $sections = array();
         $tags = array();
+        // Figure out which elements of the control panel to display and
+        // which section to display the element in
         foreach ($modules as $module) {
             if ($module->validate($course, $context)) {
                 if ($module->tags != null) {
                     foreach ($module->tags as $section) {
                         $sections[$section][$module->item_name] = $module;
+
+                        // We only go into the first section
+                        break;
                     }
                 } else {
                     $tags[$module->item_name] = $module;

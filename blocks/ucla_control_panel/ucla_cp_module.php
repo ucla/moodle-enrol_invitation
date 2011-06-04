@@ -41,9 +41,26 @@ class ucla_cp_module {
     var $required_cap;
 
     /**
-     *  Currently cannot do nested categories...
+     *  @var moodle_url
      **/
-    function __construct($item_name=null, $tags=null, $capability=null) {
+    var $action;
+
+    /**
+     *  @var mixed
+     **/
+    var $options;
+
+    /**
+     *  Currently cannot do nested categories.
+     *
+     *  This will construct your object. 
+     *  If your action is simple (such as a link), you do not need to
+     *  do additional programming and just instantiate a ucla_cp_module.
+     *  
+     **/
+    function __construct($item_name=null, $action=null, $tags=null,
+            $capability=null, $options=null) {
+
         if ($item_name != null) {
             $this->item_name = $item_name;
         } else {
@@ -63,10 +80,27 @@ class ucla_cp_module {
             $this->tags = $tags;
         }
 
+        if ($action == null) {
+            // Tags have no actions, and tags have no tags.
+            if (!$this->is_tag() && $this->get_action() === null) {
+                throw new moodle_exception('You must specify an action '
+                    . 'if you are using the base ucla_cp_module '
+                    . 'class!');
+            }
+        } else {
+            $this->action = $action;
+        }
+
         if ($capability == null) {
             $this->required_cap = $this->autocap();
         } else {
             $this->required_cap = $capability;
+        }
+
+        if ($options === null) {
+            $this->options = $this->autoopts();
+        } else {
+            $this->options = $options;
         }
     }
 
@@ -90,6 +124,10 @@ class ucla_cp_module {
         return $hc;
     }
 
+    function is_tag() {
+        return (empty($this->tags));
+    }
+
     function autotag() {
         return null;
     }
@@ -98,7 +136,19 @@ class ucla_cp_module {
         return null;
     }
 
+    function autoopts() {
+        return array();
+    }
+
     function get_action() {
-        return null;
+        return $this->action;
+    }
+
+    function get_opts($option) {
+        if (!isset($this->options[$option])) {
+            return null;
+        }
+
+        return $this->options[$option];
     }
 }

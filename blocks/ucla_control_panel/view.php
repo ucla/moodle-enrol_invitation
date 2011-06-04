@@ -21,6 +21,8 @@ require_once($CFG->libdir.'/blocklib.php');
 require_once($CFG->dirroot.'/blocks/moodleblock.class.php');
 require_once($CFG->dirroot.
     '/blocks/ucla_control_panel/block_ucla_control_panel.php');
+require_once($CFG->dirroot.
+    '/blocks/ucla_control_panel/ucla_cp_renderer.php');
 
 $course_id = required_param('courseid', PARAM_INT); // course ID
 $edit = optional_param('edit', -1, PARAM_BOOL);
@@ -74,14 +76,30 @@ if ($PAGE->user_allowed_editing()) {
 // using core renderer
 echo $OUTPUT->header();
 
+if (empty($elements)) {
+    echo $OUTPUT->box('You have no available commands.');
+}
+
 // This is actually printing out each section of the control panel
 foreach ($elements as $section_title => $section_contents) {
     echo $OUTPUT->heading(get_string($section_title,
             'block_ucla_control_panel'), 2, 'main copan-title');
+    
+    if (has_capability('moodle/course:update', $context)) {
+        if ($section_title == 'ucla_cp_mod_common') {
 
-    var_dump($section_contents);
+            $section_contents = ucla_cp_renderer::get_content_array(
+                $section_contents, 2);
 
-    //    echo $OUTPUT->box($contents);
+            echo ucla_cp_renderer::control_panel_contents($section_contents, 
+                false, 'row', 'general_icon_link');
+            
+            continue;
+        }
+    }
+
+    
+    echo ucla_cp_renderer::control_panel_contents($section_contents, true);
 }
 
 echo $OUTPUT->footer();
