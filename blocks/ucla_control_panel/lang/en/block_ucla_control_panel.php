@@ -15,19 +15,19 @@ $string['email_students_post'] = '(via Announcements Forum)';
 $string['add_file'] = 'Upload a File';
 $string['add_file_post'] = '';
 
-$string['office_hours'] = 'Update Office Hours & Contact Info';
-$string['office_hours_post'] = '';
+$string['edit_office_hours'] = 'Update Office Hours & Contact Info';
+$string['edit_office_hours_post'] = '';
 
 $string['modify_sections'] = 'Modify Course Menu Sections';
 $string['modify_sections_post'] = '';
 
-$string['rearrange'] = 'Rearrange Course Materials';
+$string['modify_modules'] = 'Rearrange Course Materials';
 
 $string['turn_editing_on'] = 'Delete or Update Materials';
 $string['turn_editing_on_post'] = '(or Update, Hide, Make Public)';
 
 /** Stuff from other **/
-$string['ucla_cp_mod_other'] = 'Other';
+$string['ucla_cp_mod_other'] = 'Other Commands';
 
 $string['add_activity'] = 'Add an Activity';
 $string['add_activity_post'] = 'Add an Assignment, Forum, Quiz, Wiki or other activity to a specific section of your class site.';
@@ -52,5 +52,8 @@ $string['create_tasite_post'] = 'Create Teaching Assistant Sites.';
 
 $string['view_roster'] = 'View Participants';
 $string['view_roster_post'] = 'Lists most recent logins of all students, TAs, and instructors.';
+
+$string['edit_profile'] = 'Edit User Profile';
+$string['edit_profile_post'] = 'You can change your personal information, upload a picture, turn your email on or off, etc.';
 
 /** End of file **/

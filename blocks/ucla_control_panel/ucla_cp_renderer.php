@@ -32,7 +32,7 @@ class ucla_cp_renderer {
         $all_stuff = array();
 
         if ($size === null) {
-            $size = floor(count($contents) / 2) + 1;
+            $size = floor(count($contents) / 2);
 
             if ($size == 0) {
                 $size = 1;
@@ -148,7 +148,7 @@ class ucla_cp_renderer {
         // left-right enable
         $lre = false;
 
-        if ($columns && count($contents) == 2) {
+        if (!$columns && count($contents) == 2) {
             $lre = true;
         }
 
@@ -177,10 +177,11 @@ class ucla_cp_renderer {
 
                 $the_output = html_writer::start_tag('div', 
                     array('class' => 'item' . $add_class));
-    
+
                 $content_action = $content_link->get_action();
                 if ($content_action != null) {
-                    // this part sucks
+                    // this part sucks, checking if we should display
+                    // any pre-text or post-text
                     if ($content_link->get_opts('pre') !== null) {
                         if ($content_link->get_opts('post') !== null) {
                             $the_output .= ucla_cp_renderer::$handler(
@@ -196,6 +197,7 @@ class ucla_cp_renderer {
                         $the_output .= ucla_cp_renderer::$handler(
                             $content_item, $content_action);
                     }
+
                 } else {
                     debugging($content_item . ' is set incorrectly!');
                 }
@@ -209,9 +211,9 @@ class ucla_cp_renderer {
             
             if ($columns) {
                 if ($lre) {
-                    $evenodd = ' left';
-                } else {
                     $evenodd = ' right';
+                } else {
+                    $evenodd = ' left';
                 }
 
                 $lre = !$lre;

@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 require_once(dirname(__FILE__).'/../../config.php');
-global $CFG;
+global $CFG, $PAGE;
 
 require_once($CFG->libdir.'/blocklib.php');
 require_once($CFG->dirroot.'/blocks/moodleblock.class.php');
@@ -49,7 +49,7 @@ $PAGE->set_title($page_title);
 $PAGE->set_heading($course->fullname);
 
 $PAGE->set_pagelayout('course');
-$PAGE->set_pagetype('course-view-' . $course->format);
+$PAGE->set_pagetype('course-view-'.$course->format);
 
 if ($PAGE->user_allowed_editing()) {
     // Stolen from course/view.php
@@ -76,6 +76,9 @@ if ($PAGE->user_allowed_editing()) {
 // using core renderer
 echo $OUTPUT->header();
 
+// This has to be called manually... 
+$PAGE->navigation->initialise();
+
 if (empty($elements)) {
     echo $OUTPUT->box('You have no available commands.');
 }
@@ -98,7 +101,6 @@ foreach ($elements as $section_title => $section_contents) {
         }
     }
 
-    
     echo ucla_cp_renderer::control_panel_contents($section_contents, true);
 }
 

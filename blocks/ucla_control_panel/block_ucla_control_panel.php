@@ -15,6 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 require_once(dirname(__FILE__) . '/../moodleblock.class.php');
+require_once(dirname(__FILE__) . '/ucla_cp_module.php');
 
 class block_ucla_control_panel extends block_base {
     function init() {
@@ -84,6 +85,7 @@ class block_ucla_control_panel extends block_base {
     
         $sections = array();
         $tags = array();
+
         // Figure out which elements of the control panel to display and
         // which section to display the element in
         foreach ($modules as $module) {
@@ -100,10 +102,18 @@ class block_ucla_control_panel extends block_base {
                 }
             }
         }
+       
+        // Eliminate unvalidated sections
+        foreach ($sections as $tag => $modules) {
+            if (!isset($tags[$tag])) {
+                unset($sections[$tag]);
+            }
+        }
 
-        $final_sections = block_ucla_control_panel::load_cp_block_elements(); 
+        // The modular block sections
+        $block_sections = block_ucla_control_panel::load_cp_block_elements(); 
 
-        $return_sections = array_merge($final_sections, $sections);
+        $return_sections = array_merge($block_sections, $sections);
 
         return $return_sections;
     }

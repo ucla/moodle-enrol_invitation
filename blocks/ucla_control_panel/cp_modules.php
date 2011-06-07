@@ -1,6 +1,7 @@
 <?php
 
 require_once(dirname(__FILE__) . '/ucla_cp_module.php');
+global $CFG;
 
 $modules[] = new ucla_cp_module('ucla_cp_mod_common');
 
@@ -15,11 +16,11 @@ $modules[] = new ucla_cp_module('email_students', new moodle_url('view.php'),
     $temp_tag, $temp_cap);
 $modules[] = new ucla_cp_module('add_link', new moodle_url('view.php'), 
     $temp_tag, $temp_cap);
-$modules[] = new ucla_cp_module('office_hours', new moodle_url('view.php'), 
-    $temp_tag, $ta_cap);
+$modules[] = new ucla_cp_module('edit_office_hours', new moodle_url('view.php'), 
+    array('ucla_cp_mod_common', 'ucla_cp_mod_other'), $ta_cap);
 $modules[] = new ucla_cp_module('modify_sections', new moodle_url('view.php'), 
     $temp_tag, $temp_cap);
-$modules[] = new ucla_cp_module('rearrange', new moodle_url('view.php'), 
+$modules[] = new ucla_cp_module('modify_modules', new moodle_url('view.php'), 
     $temp_tag, $temp_cap, array('pre' => false, 'post' => false));
 $modules[] = new ucla_cp_module('turn_editing_on', new moodle_url('view.php'), 
     $temp_tag, $temp_cap);
@@ -31,6 +32,10 @@ $modules[] = new ucla_cp_module('add_activity', new moodle_url('view.php'),
     $temp_tag, $temp_cap);
 $modules[] = new ucla_cp_module('add_resource', new moodle_url('view.php'), 
     $temp_tag, $temp_cap);
+$modules[] = new ucla_cp_module('edit_profile', new moodle_url(
+        $CFG->wwwroot . '/user/edit.php'), 
+    $temp_tag, null);
+
 $modules[] = new ucla_cp_module('add_subheading', new moodle_url('view.php'), 
     $temp_tag, $temp_cap);
 $modules[] = new ucla_cp_module('add_text', new moodle_url('view.php'), 
