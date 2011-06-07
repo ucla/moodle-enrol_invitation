@@ -84,7 +84,11 @@ abstract class registrar_query {
 
                     if ($res !== false) {
                         $key = $this->get_key($fields);
-                        $direct_data[$key] = $res;
+                        if ($key == null) {
+                            $direct_data[] = $res;
+                        } else {
+                            $direct_data[$key] = $res;
+                        }
                     }
                 }
             } else {
@@ -110,7 +114,7 @@ abstract class registrar_query {
             return $fields['srs'];
         }
 
-        return 'null';
+        return null;
     }
 
     /**

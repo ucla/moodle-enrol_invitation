@@ -1102,10 +1102,10 @@ class uclacoursecreator {
         // Figure out crosslists and filter out faulty requests
         foreach ($course_requests as $key => $course_request) {
             $srs = trim($course_request->srs);
-
+            
+            // TODO Move this out into separate function
             if (strlen($srs) != 9) {
                 $this->debugln('Faulty SRS: ' . $course_request->course);
-                unset($line);
 
                 unset($course_requests[$key]);
                 continue;
@@ -1163,7 +1163,13 @@ class uclacoursecreator {
 
             if (isset($course_set[$srs])) {
                 $crosslisted_srs = trim($crosslisted_request->aliassrs);
-    
+                if (strlen($crosslisted_srs) != 9) {
+                    $this->debugln('Faulty Crosslisted SRS: ' 
+                        . $crosslisted_srs);
+
+                    continue;
+                }
+        
                 // Attach the crosslisted course to the host course
                 $course_set[$srs]->crosslisted[$crosslisted_srs] = 
                     $crosslisted_request;
