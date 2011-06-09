@@ -39,7 +39,8 @@ h2.main.copan-title {
 }
 
 .item {
-    height:50px;
+    min-height:50px;
+    padding: 4px 0;
 }
 
 .item span {
