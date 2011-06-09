@@ -112,7 +112,7 @@ class ucla_cp_renderer {
             and whatever is returned by @see general_descriptive_link.
     **/
     static function general_icon_link($item, $link, 
-            $pre=false, $post=true) {
+            $pre=false, $post=false) {
         global $OUTPUT;
 
         $bucp = 'block_ucla_control_panel';
@@ -130,10 +130,28 @@ class ucla_cp_renderer {
     /**
         This function will take the contents of a 2-layer deep
         array and generate the string that contains the contents
-        in a div-split table.
+        in a div-split table. It can also generate the contents.
+
+        @param array $contents - The contents to diplay using the renderer.
+        @param boolean $format - If this is true, then we will send the data
+            through {@link get_content_array}.
+        @param string $orient - Which orientation handler to use to render the
+            display. Currently accepts two options (defaults to rows) if the
+            option does not exist.
+
+            'col': This means that we expect an array containing 2 arrays of
+                the elements we wish to render.
+
+            'row': This means taht we expect an array containing arrays each
+                with 2 of the elements we wish to render.
+
+        @param string $handler - This is the callback function used to display
+            each element. Defaults to general_descriptive_link, and will crash
+            the script if you provide a non-existant function.
     **/
-    function control_panel_contents($contents, $format=false, 
+    static function control_panel_contents($contents, $format=false, 
             $orient='col', $handler='general_descriptive_link') {
+
         if ($format) {
             $contents = ucla_cp_renderer::get_content_array($contents);
         }

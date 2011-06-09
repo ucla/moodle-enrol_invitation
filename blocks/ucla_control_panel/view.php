@@ -88,17 +88,14 @@ foreach ($elements as $section_title => $section_contents) {
     echo $OUTPUT->heading(get_string($section_title,
             'block_ucla_control_panel'), 2, 'main copan-title');
     
-    if (has_capability('moodle/course:update', $context)) {
-        if ($section_title == 'ucla_cp_mod_common') {
+    if ($section_title == 'ucla_cp_mod_common') {
+        $section_contents = ucla_cp_renderer::get_content_array(
+            $section_contents, 2);
 
-            $section_contents = ucla_cp_renderer::get_content_array(
-                $section_contents, 2);
-
-            echo ucla_cp_renderer::control_panel_contents($section_contents, 
-                false, 'row', 'general_icon_link');
-            
-            continue;
-        }
+        echo ucla_cp_renderer::control_panel_contents($section_contents, 
+            false, 'row', 'general_icon_link');
+        
+        continue;
     }
 
     echo ucla_cp_renderer::control_panel_contents($section_contents, true);

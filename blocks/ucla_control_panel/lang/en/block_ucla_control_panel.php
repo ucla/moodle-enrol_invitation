@@ -16,7 +16,7 @@ $string['add_file'] = 'Upload a File';
 $string['add_file_post'] = '';
 
 $string['edit_office_hours'] = 'Update Office Hours & Contact Info';
-$string['edit_office_hours_post'] = '';
+$string['edit_office_hours_post'] = 'Update your office hours, office location and phone number.';
 
 $string['modify_sections'] = 'Modify Course Menu Sections';
 $string['modify_sections_post'] = '';

@@ -93,9 +93,6 @@ class block_ucla_control_panel extends block_base {
                 if ($module->tags != null) {
                     foreach ($module->tags as $section) {
                         $sections[$section][$module->item_name] = $module;
-
-                        // We only go into the first section
-                        break;
                     }
                 } else {
                     $tags[$module->item_name] = $module;
@@ -103,10 +100,24 @@ class block_ucla_control_panel extends block_base {
             }
         }
        
-        // Eliminate unvalidated sections
+        // Eliminate unvalidated sections as well as repeated-displayed
+        // sections
+        // Note that these sections appear in the order they were placed
+        // into cp_modules.php
+
+        $already_used = array();
         foreach ($sections as $tag => $modules) {
             if (!isset($tags[$tag])) {
                 unset($sections[$tag]);
+                continue;
+            }
+
+            foreach ($modules as $mkey => $module) {
+                if (isset($already_used[$mkey])) {
+                    unset($sections[$tag][$mkey]);
+                } else {
+                    $already_used[$mkey] = true;
+                }
             }
         }
 
