@@ -24,17 +24,22 @@ require_once($CFG->dirroot.
 require_once($CFG->dirroot.
     '/blocks/ucla_control_panel/ucla_cp_renderer.php');
 
+// Note that the unhiding of the Announcements forum is handled in
+// modules/email_students.php
+
+// Note that any logic unrelated to the display of the control panel should 
+// be handled within the module itself
+
 $course_id = required_param('courseid', PARAM_INT); // course ID
+$module_view = optional_param('module', 'default', PARAM_ALPHANUMEXT);
 $edit = optional_param('edit', -1, PARAM_BOOL);
 
-if (! $course = $DB->get_record('course', array('id'=>$course_id))) {
+if (! $course = $DB->get_record('course', array('id' => $course_id))) {
     print_error('coursemisconf');
 }
 
 require_login($course, true);
 $context = get_context_instance(CONTEXT_COURSE, $course_id);
-
-$elements = block_ucla_control_panel::load_cp_elements($course, $context);
 
 // Initialize $PAGE
 $PAGE->set_url('/blocks/ucla_control_panel/view.php', 
@@ -76,15 +81,52 @@ if ($PAGE->user_allowed_editing()) {
 // using core renderer
 echo $OUTPUT->header();
 
+// Get all the elements, unfortunately, this is where we check whether
+// we are supposed to display the elements at all.
+$elements = block_ucla_control_panel::load_cp_elements($course, $context);
+
+// These are the possible sets of elements that we can permute
+$views = block_ucla_control_panel::load_cp_views();
+
+// So here we need to check which tabs we can actually display
+$tabs = array();
+foreach ($views as $view => $contents) {
+    $view_valid = false;
+    foreach ($contents as $content) {
+        if (isset($elements[$content])) {
+            $view_valid = true;
+        }
+    }
+
+    if ($view_valid) {
+        $tabs[] = new tabobject($view, new moodle_url($PAGE->url,
+            array('module' => $view)), get_string($view, 
+            'block_ucla_control_panel'));
+    }
+}
+
+print_tabs(array($tabs), $module_view);
+
+if ($course->format != 'ucla') {
+    echo $OUTPUT->box(get_string('formatincompatible', 
+        'block_ucla_control_panel'));
+}
+
 // This has to be called manually... 
 $PAGE->navigation->initialise();
 
-if (empty($elements)) {
-    echo $OUTPUT->box('You have no available commands.');
-}
+// This is for showing a notice if there are no commands availble
+$no_elements = true;
 
 // This is actually printing out each section of the control panel
 foreach ($elements as $section_title => $section_contents) {
+    if (!isset($views[$module_view])
+     || !in_array($section_title, $views[$module_view])) {
+        continue;
+    }
+
+    $no_elements = false;
+
     echo $OUTPUT->heading(get_string($section_title,
             'block_ucla_control_panel'), 2, 'main copan-title');
     
@@ -100,6 +142,12 @@ foreach ($elements as $section_title => $section_contents) {
 
     echo ucla_cp_renderer::control_panel_contents($section_contents, true);
 }
+
+if ($no_elements) {
+    echo $OUTPUT->box(get_string('nocommands', 'block_ucla_control_panel', 
+        $module_view));
+}
+
 
 echo $OUTPUT->footer();
 

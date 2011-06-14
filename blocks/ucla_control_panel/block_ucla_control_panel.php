@@ -18,6 +18,11 @@ require_once(dirname(__FILE__) . '/../moodleblock.class.php');
 require_once(dirname(__FILE__) . '/ucla_cp_module.php');
 
 class block_ucla_control_panel extends block_base {
+    /** Static variables for the static function **/
+    const hook_fn = 'ucla_cp_hook';
+    const mod_prefix = 'ucla_cp_mod_';
+    const cp_module_blocks = '__blocks__';
+    
     function init() {
         $this->title = get_string('pluginname', 'block_ucla_control_panel');
     }
@@ -40,6 +45,42 @@ class block_ucla_control_panel extends block_base {
     }
 
     /**
+        This will return the views defined by a view file.
+    **/
+    static function load_cp_views($customloc=null) {
+        $default = '/cp_views.php';
+
+        if ($customloc != null) {
+            if (!preg_match('/.*\.php$/', $customloc)) {
+                $customloc = $default;
+            }
+        } else {
+            $customloc = $default;
+        }
+
+        $file = dirname(__FILE__) . $customloc;
+
+        if (!file_exists($file)) {
+            debugging('Could not find views file: ' . $file);
+        } else {
+            include($file);
+        }
+
+        if (!isset($views)) {
+            $views = array();
+        }
+
+        if (!isset($views['default'])) {
+            $views['default'] = array('ucla_cp_mod_common',
+                '__blocks__', 'ucla_cp_mod_other');
+        }
+
+        ksort($views);
+
+        return $views;
+    }
+
+    /**
         This will create a link to the control panel.
     **/
     static function create_control_panel_link($courseid) {
@@ -49,10 +90,12 @@ class block_ucla_control_panel extends block_base {
             . 'view.php', array('courseid' => $courseid));
     }
 
-    const hook_fn = 'ucla_cp_hook';
-    const mod_prefix = 'ucla_cp_mod_';
-    
-    static function load_cp_elements($course, $context=null) {
+    /**
+        This will load the custom control panel elements, as well as any blocks
+        that have the designated hook function to create elements.
+    **/
+    static function load_cp_elements($course, $context=null, 
+            $view='default') {
         if (!isset($course->id) && is_string($course)) {
             $course_id = $course;
 
@@ -69,6 +112,20 @@ class block_ucla_control_panel extends block_base {
             $context = get_context_instance(CONTEXT_COURSE, $course_id);
         }
 
+        // Grab the possible collections of modules to display
+        $views = block_ucla_control_panel::load_cp_views();
+
+        if (isset($views[$view])) {
+            $allowed_views = $views[$view];
+        }
+
+        if (!isset($allowed_views)) {
+            // This is a back-up default
+            $allowed_views = array('ucla_cp_mod_common',
+                '__blocks__', 'ucla_cp_mod_other');
+        }
+
+        // Load all the control panel modules.
         $file = dirname(__FILE__) . '/cp_modules.php';
         if (!file_exists($file)) {
             debugging('No control panel module list ' . $file);
@@ -90,12 +147,14 @@ class block_ucla_control_panel extends block_base {
         // which section to display the element in
         foreach ($modules as $module) {
             if ($module->validate($course, $context)) {
+                $module_name = $module->get_key();
+
                 if ($module->tags != null) {
                     foreach ($module->tags as $section) {
-                        $sections[$section][$module->item_name] = $module;
+                        $sections[$section][$module_name] = $module;
                     }
                 } else {
-                    $tags[$module->item_name] = $module;
+                    $tags[$module_name] = $module;
                 }
             }
         }
@@ -104,7 +163,6 @@ class block_ucla_control_panel extends block_base {
         // sections
         // Note that these sections appear in the order they were placed
         // into cp_modules.php
-
         $already_used = array();
         foreach ($sections as $tag => $modules) {
             if (!isset($tags[$tag])) {
@@ -123,7 +181,6 @@ class block_ucla_control_panel extends block_base {
 
         // The modular block sections
         $block_sections = block_ucla_control_panel::load_cp_block_elements(); 
-
         $return_sections = array_merge($block_sections, $sections);
 
         return $return_sections;

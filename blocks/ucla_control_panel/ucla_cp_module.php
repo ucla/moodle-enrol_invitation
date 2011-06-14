@@ -71,7 +71,7 @@ class ucla_cp_module {
                     . 'class!');
             }
 
-            $this->item_name = $this->figure_name(get_class($this));
+            $this->item_name = $this->figure_name();
         }
 
         if ($tags == null) {
@@ -80,14 +80,7 @@ class ucla_cp_module {
             $this->tags = $tags;
         }
 
-        if ($action == null) {
-            // Tags have no actions, and tags have no tags.
-            if (!$this->is_tag() && $this->get_action() === null) {
-                throw new moodle_exception('You must specify an action '
-                    . 'if you are using the base ucla_cp_module '
-                    . 'class!');
-            }
-        } else {
+        if ($action != null) {
             $this->action = $action;
         }
 
@@ -104,16 +97,28 @@ class ucla_cp_module {
         }
     }
 
-    function figure_name($orig_name) {
+    /**
+     *  This function is automatically called to generate some kind of name
+     *  if you want this class to be automatically named to the class name.
+     **/
+    function figure_name() {
+        $orig_name = get_class($this);
+
+        $parents = class_parents($this);
+
         foreach ($parents as $parent) {
             if (method_exists($parent, 'figure_name')) {
-                return substr($orig_name, strlen($parent));
+                return substr($orig_name, strlen($parent) + 1);
             } 
         }
 
         return $orig_name;
     }
 
+    /**
+     *  This is the default function that is used to check if the module
+     *  should be displayed or not.
+     **/
     function validate($course, $context) {
         $hc = true;
 
@@ -124,31 +129,91 @@ class ucla_cp_module {
         return $hc;
     }
 
+    /**
+     *  Simple wrapper function.
+     **/
     function is_tag() {
         return (empty($this->tags));
     }
 
+    
+    /**
+     *  This function can be overwritten to allow a child class to
+     *  define their tags in code instead when instantiated.
+     **/
     function autotag() {
         return null;
     }
 
+    /**
+     *  This is similar to {@see autotag}, except for the capability
+     *  that is used to check for validity.
+     **/
     function autocap() {
         return null;
     }
 
+    /**
+     *  This is similar to {@see autotag}, except for the options
+     *  that is set.
+     **/
     function autoopts() {
         return array();
     }
 
+    /**
+     *  Simple wrapper function.
+     **/
     function get_action() {
         return $this->action;
     }
 
-    function get_opts($option) {
+    /**
+     *  Simple function for differentiating different instances
+     *  of the same type of control panel module.
+     **/
+    function get_key() {
+        return $this->item_name;
+    }
+
+    /**
+     *  This is a wrapper to get a set option from the current class.
+     *  Options, unfortunately, are known by the viewer.
+     **/
+    function get_opt($option) {
         if (!isset($this->options[$option])) {
             return null;
         }
 
         return $this->options[$option];
+    }
+
+    /**
+     *  This is to set options.
+     **/
+    function set_opt($option, $value) {
+        $this->options[$option] = $value;
+    }
+
+    /**
+     *  Magic loader function.
+     **/
+    static function load($name) {
+        $module_path = dirname(__FILE__) . '/modules/';
+        if (!file_exists($module_path)) {
+            debugging(get_string('badsetup', 'block_ucla_control_panel'));
+            return false;
+        }
+
+        $file_path = $module_path . $name . '.php';
+
+        if (!file_exists($file_path)) {
+            debugging(get_string('badmodule', 'block_ucla_control_panel', 
+                $name));
+            return false;
+        }
+
+        require_once($file_path);
+        return true;
     }
 }

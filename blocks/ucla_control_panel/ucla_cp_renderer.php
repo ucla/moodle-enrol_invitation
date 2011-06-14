@@ -32,7 +32,7 @@ class ucla_cp_renderer {
         $all_stuff = array();
 
         if ($size === null) {
-            $size = floor(count($contents) / 2);
+            $size = floor(count($contents) / 2) + 1;
 
             if ($size == 0) {
                 $size = 1;
@@ -41,7 +41,7 @@ class ucla_cp_renderer {
 
         foreach ($contents as $content) {
             $action = $content;
-            $title = $content->item_name;
+            $title = $content->get_key();
 
             $all_stuff[$title] = $action;
         }
@@ -58,10 +58,9 @@ class ucla_cp_renderer {
             }
 
             $disp_cat[$title] = $action;
-            // Figure out how the fuck to do this?
         }
 
-        if (!empty($disp_cat[$title])) {
+        if (!empty($disp_cat)) {
             $disp_stuff[] = $disp_cat;
         }
 
@@ -70,32 +69,35 @@ class ucla_cp_renderer {
 
     /**
         Builds the string with the string and the descriptions, pre and post.
-        @param string $item - This is the identifier for the current control 
-            panel item.
-        @param moodle_url $link - This is the link that users should be
-            sent to with regards to the link.
-        @param boolean $pre - Whether we should enable displaying of the
-            get_string($item . '_pre', ... ).
-        @param boolean $post - Whether we should enable displaying of the
-            get_string($item . '_post', ... ).
+        @param ucla_cp_module $item_obj - This is the identifier for the 
+            current control panel item.
         @return string The DOMs of the control panel description and link.
     **/
-    static function general_descriptive_link($item, $link, 
-            $pre=false, $post=true) {
+    static function general_descriptive_link($item_obj) {
         $fitem = '';
         
         $bucp = 'block_ucla_control_panel';
 
-        if ($pre !== false) {
+        $item = $item_obj->item_name;
+        $link = $item_obj->get_action();
+
+        if ($item_obj->get_opt('pre')) {
             $fitem .= html_writer::tag('span', get_string($item . '_pre', 
-                $bucp), array('class' => 'pre-link'));
+                $bucp, $item_obj), array('class' => 'pre-link'));
         }
 
-        $fitem .= html_writer::link($link, get_string($item, $bucp));
+        if ($link === null) {
+            $fitem .= html_writer::tag('span', get_string($item, $bucp,
+                $item_obj), array('class' => 'disabled'));
+        } else {
+            $fitem .= html_writer::link($link, get_string($item, $bucp, 
+                $item_obj));
+        }
 
-        if ($post !== false) {
+        // One needs to explicitly hide the post description
+        if ($item_obj->get_opt('post') !== false) {
             $fitem .= html_writer::tag('span', get_string($item . '_post', 
-                $bucp), array('class' => 'post-link'));
+                $bucp, $item_obj), array('class' => 'post-link'));
         }
 
         return $fitem;
@@ -104,25 +106,26 @@ class ucla_cp_renderer {
     /**
         Adds an icon to the link and description.
 
-        @param string $item - @see general_descriptive_link.
-        @param moodle_url $link - @see general_descriptive_link.
-        @param boolean $pre - @see general_descriptive_link.
-        @param boolean $post - @see general_descriptive_link.
+        @param ucla_cp_modules $item_obj - The item to display.
         @return string The DOMs of the control panel, with an image
             and whatever is returned by @see general_descriptive_link.
     **/
-    static function general_icon_link($item, $link, 
-            $pre=false, $post=false) {
+    static function general_icon_link($item_obj) {
         global $OUTPUT;
 
         $bucp = 'block_ucla_control_panel';
+
+        $item = $item_obj->item_name;
 
         $fitem = '';
         $fitem .= html_writer::empty_tag('img', 
             array('src' => $OUTPUT->pix_url('cp_' . $item)));
 
-        $fitem .= ucla_cp_renderer::general_descriptive_link($item, $link, 
-            $pre, $post);
+        if ($item_obj->get_opt('post') === null) {
+            $item_obj->set_opt('post', false);
+        }
+
+        $fitem .= ucla_cp_renderer::general_descriptive_link($item_obj);
 
         return $fitem;
     }
@@ -196,29 +199,8 @@ class ucla_cp_renderer {
                 $the_output = html_writer::start_tag('div', 
                     array('class' => 'item' . $add_class));
 
-                $content_action = $content_link->get_action();
-                if ($content_action != null) {
-                    // this part sucks, checking if we should display
-                    // any pre-text or post-text
-                    if ($content_link->get_opts('pre') !== null) {
-                        if ($content_link->get_opts('post') !== null) {
-                            $the_output .= ucla_cp_renderer::$handler(
-                                $content_item, $content_action,
-                                $content_link->get_opts('pre'),
-                                $content_link->get_opts('post'));
-                        } else {
-                            $the_output .= ucla_cp_renderer::$hanlder(
-                                $content_item, $content_action,
-                                $content_link->get_opts('pre'));
-                        }
-                    } else {
-                        $the_output .= ucla_cp_renderer::$handler(
-                            $content_item, $content_action);
-                    }
-
-                } else {
-                    debugging($content_item . ' is set incorrectly!');
-                }
+                $the_output .= ucla_cp_renderer::$handler(
+                    $content_link);
 
                 $the_output .= html_writer::end_tag('div');
                 $row_contents .= $the_output;
