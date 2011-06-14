@@ -50,7 +50,7 @@ $modules[] = new ucla_cp_module('modify_modules', new moodle_url('view.php'),
 // Yes...
 $modules[] = new ucla_cp_module('turn_editing_on', new moodle_url(
         $CFG->wwwroot . '/course/view.php',
-        array('id' => $course->id, 'edit' => 'on')), 
+        array('id' => $course->id, 'edit' => 'on', 'sesskey' => sesskey())), 
     $temp_tag, $temp_cap, $spec_ops);
 
 // Other Functions
@@ -82,6 +82,10 @@ $modules[] = new ucla_cp_module('add_text', new moodle_url('view.php'),
 // Import from classweb!?
 $modules[] = new ucla_cp_module('import_classweb', new moodle_url('view.php'), 
     $temp_tag, $temp_cap);
+
+// Import from existing moodle course
+$modules[] = new ucla_cp_module('import_moodle', new moodle_url($CFG->wwwroot
+    . '/backup/import.php', array('id' => $course->id)), $temp_tag, $temp_cap);
 
 // Create a TA-Site TODO
 $modules[] = new ucla_cp_module('create_tasite', new moodle_url('view.php'), 
