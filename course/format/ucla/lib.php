@@ -136,7 +136,7 @@ function callback_ucla_get_section_name($course, $section) {
     } else if ($section->section == 0) {
         return get_string('section0name', 'format_ucla');
     } else {
-        $r = ''.get_string('section').' '.$section->section.'';
+        $r = ''.get_string('week').' '.$section->section.'';
 
         return html_writer::tag('span', $r, array('class' => 'defsection'));
     }
