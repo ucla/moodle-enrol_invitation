@@ -85,8 +85,10 @@ class block_ucla_control_panel extends block_base {
     /**
         This will create a link to the control panel.
     **/
-    static function create_control_panel_link($courseid) {
+    static function create_control_panel_link($course) {
         global $CFG;
+
+        $courseid = $course->id;
 
         return new moodle_url($CFG->wwwroot . '/blocks/ucla_control_panel/'
             . 'view.php', array('courseid' => $courseid));
