@@ -16,7 +16,7 @@
 
 /**
  *
- * @copyright UCLA 2011 - Stolen from: &copy; 2006 The Open University 
+ * @copyright UCLA 2011 &copy; 2006 The Open University 
  * @author N.D.Freear@open.ac.uk, and others.
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
  * @package ucla
