@@ -25,6 +25,7 @@ class block_ucla_control_panel extends block_base {
     
     function init() {
         $this->title = get_string('pluginname', 'block_ucla_control_panel');
+        $this->content_type = BLOCK_TYPE_TEXT;
     }
     
     function get_content() {
@@ -40,7 +41,8 @@ class block_ucla_control_panel extends block_base {
             'site-index' => false,
             'course-view' => false,
             'my' => false,
-            'blocks-ucla_control_panel' => false
+            'blocks-ucla_control_panel' => false,
+            'not-really-exists' => true
         );
     }
 
