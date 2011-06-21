@@ -928,18 +928,23 @@ class block_course_menu extends block_base {
         
         $this->course = $this->page->course;
         $this->check_default_config();
+
         $chapters = $this->config->chapters;
         $sections = $this->get_sections();
+
         $sectionNames = array();
         foreach ($sections as $section) {
             $sectionNames[] = $section['name'];
         }
+
         $this->check_redo_chaptering(count($sections));
+
         ob_start();
         include ("{$CFG->dirroot}/blocks/course_menu/css/styles.php");
         include ("{$CFG->dirroot}/blocks/course_menu/config/chapters.php");
         $cc = ob_get_contents();
         ob_end_clean();
+
         return $cc;
     }
 
@@ -961,7 +966,7 @@ class block_course_menu extends block_base {
     }
 
     function config_links() {
-        // Getting rid of links
+        // Getting rid of links ?
         global $CFG, $USER, $OUTPUT;
         
         $icons = $this->get_link_icons();
@@ -1082,6 +1087,9 @@ class block_course_menu extends block_base {
         return parent::instance_config_save($data, $nolongerused);
     }
 
+    /*
+     *  Moodle overridden function.
+     */
     function has_config() {
         return true;
     }
@@ -1107,10 +1115,10 @@ class block_course_menu extends block_base {
         }
 
         ob_start();
-        // Why this way? Because they want to output non-mform style objects
         include ("{$CFG->dirroot}/blocks/course_menu/config/global.php");
         $cc = ob_get_contents();
         ob_end_clean();
+
         return $cc;
     
     }
