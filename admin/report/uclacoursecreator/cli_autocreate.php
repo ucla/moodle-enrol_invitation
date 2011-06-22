@@ -1,5 +1,20 @@
 #!/bin/env php
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  *  PHP Version of autocreate.sh
  *  Now fully merged into 1 file, all the functionality of autocreate.
@@ -10,35 +25,6 @@
  **/
 
 // Display help message
-
-define ('HELP_STRING', 
-"USAGE: " . __FILE__ . " ([TERM] ([TERM] ... ))
-This script will build courses in the terms specified in course requestor.
-
-You can specify as many terms as you would like.
-
-Other options:
-
--c, --category:
-    Auto create division and subject area categories. If this option is disabled, the behavior will follow whatever has been specified in the IMS Enterprise configuration.
-
--d, --debug:
-    Force debug mode. Emails are not send, URLs are not updated, and at the end of each term, an exception is thrown, forcing each term to fail. See reverting cron job.
-
---current-term:
-    Run for the term that is specified in the configuration as the current term.
-
--h, --help:
-    Show a help message.
-
--r, --revert:
-    This will enable reverting of failed built courses. Whenever the course creator decides that a term built failed, instead of leaving the courses in the Moodle DB, it will attempt to delete them.
-
--u, --unlock-first
-    Attempt to remove a lock that may have been placed by another failed course creator run.
-
-  Written by SSC - CCLE - UCLA
-");
 
 // Include the Moodle config
 $moodleroot = dirname(dirname(dirname(dirname(__FILE__)))); 
@@ -72,7 +58,7 @@ list($ext_argv, $unrecog) = cli_get_params(
 );
 
 if ($ext_argv['help']) {
-    die(HELP_STRING);
+    die(get_string('cli_helpmsg', 'report_uclacoursecreator'));
 }
 
 $goals = array();
@@ -118,7 +104,7 @@ if ($ext_argv['current-term']) {
     if (!isset($CFG->currentterm)) {
         $termlist = array($CFG->currentterm);
     } else {
-        echo '$CFG->currentterm is not set!' . "\n";
+        echo get_string('current_term_not_set', 'report_uclacoursemenu') . "\n";
     }
 }
 

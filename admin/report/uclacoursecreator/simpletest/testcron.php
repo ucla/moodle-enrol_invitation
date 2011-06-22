@@ -51,6 +51,7 @@ class UCLACCTest extends UnitTestCase {
         array('admin/report/uclacoursecreator/uclacoursecreator.class.php');
 
     function setUp() {
+        // Do a better setup
         parent::setUp();
 
         $this->course_creator = new uclacoursecreator(); 

@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+defined('MOODLE_INTERNAL') || die();
 
 /**
  *  The course creator class.
@@ -134,7 +135,7 @@ class uclacoursecreator {
             static $cronuser;
 
             if (isset($cronuser)) {
-                echo "This is probably a cron... Quitting...";
+                echo get_string('cron_quit_out', 'report_uclacoursecreator');
                 return false;
             }
         }

@@ -32,7 +32,18 @@ class registrar_ccle_courseinstructorsget extends registrar_query {
     }
 
     function remote_call_generate($args) {
-        return "EXECUTE ccle_CourseInstructorsGet '".implode("', '", $args).
-            "' ";
+        if (preg_match('/[0-9]{2}[FWS1]/', $args[0])) {
+            $term = $args[0];
+        } else {
+            return false;
+        }
+
+        if (preg_match('/[0-9]{9}/', $args[1])) {
+            $srs = $args[1];
+        } else {
+            return false;
+        }
+
+        return "EXECUTE ccle_CourseInstructorsGet '$term', '$srs'";
     }
 }
