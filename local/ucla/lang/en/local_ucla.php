@@ -16,24 +16,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once(dirname(__FILE__) . '/../locallib.php');
+$string['access_failure'] = 'Your access control systems are not properly set up, configuration files in the "local/ucla/" directory may be web visible.';
 
-function xmldb_local_ucla_install() {
-    // Do stuff eventually
-    $result = ucla_verify_configuration_setup();
-
-    if (!$result) {
-        print_error('access_failure', 'local_ucla');
-    }
-
-    // Maybe add some tables we need?
-    return $result;
-}
-
-function xmldb_local_ucla_install_recovery() {
-    // Do stuff eventually
-
-    return true;
-}
-
-// EOF
+$string['curl_failure'] = 'cURL is not installed, your web visibility could not be tested!';

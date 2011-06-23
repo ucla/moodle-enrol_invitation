@@ -1,0 +1,5 @@
+# Nothing this folder and below needs to be web visible
+AllowOverride None
+
+Order Allow,Deny
+Deny All

@@ -23,7 +23,7 @@ function ucla_verify_configuration_setup() {
    global $CFG;
 
     if (!function_exists('curl_init')) {
-        throw new moodle_exception("cURL not installed, test failed!");
+        throw new moodle_exception('curl_failure', 'local_ucla');
     }
 
     ini_set('display_errors', '1');
