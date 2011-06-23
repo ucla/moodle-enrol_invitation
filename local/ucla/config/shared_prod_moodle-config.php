@@ -43,6 +43,7 @@ $CFG->dbtype    = 'mysqli';
 $CFG->dblibrary = 'native';
 $CFG->dbhost    = 'localhost';
 $CFG->dbname    = '';
+$CFG->dbuser    = '';
 $CFG->dbpass    = '';
 $CFG->prefix    = 'mdl_';
 $CFG->dboptions = array(
