@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -16,25 +15,22 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- *  This configuration file are additional settings that want to be
- *  injected into Moodle configurations for use in the UCLA instances
- *  of Moodle.
+ *  This configuration file has been preconfigured to set certain variables
+ *  such that launching and upgrades will run as smoothly as possible.
  *
  *  Currently, the plan is to symbolically link this file as such:
- *  moodle/config.php -> moodle/local/ucla/config/ssc_stage_moodle-config.php
- *
- *  If you still want to use the Moodle-generated configuration file,
- *  then you can rename it config-generated.php, and this script will
- *  attempt to include it first.
+ *  moodle/config.php -> moodle/local/ucla/config/<this file>
  *
  *  The original configuration file should not be used, as it does not have
  *  any capability of saying that another configuration file can be 
  *  included before starting the Moodle session.
+ *
+ *  If you want configurations to be not within revisioning, then place
+ *  your secrets @ moodle/config_private.php.
+ *
  **/
 
-// From the generated config.php
 unset($CFG);
-
 global $CFG;
 
 $CFG = new stdClass();
@@ -48,7 +44,7 @@ $CFG->dbpass    = '';
 $CFG->prefix    = 'mdl_';
 $CFG->dboptions = array(
     'dbpersist' => 0,
-    'dbsocket'  => 0 
+    'dbsocket'  => 1 
 );
 
 $CFG->wwwroot  = '';
@@ -64,8 +60,7 @@ $CFG->directorypermissions = 0777;
 $CFG->passwordsaltmain = '';
 
 // If you want to have un-revisioned configuration data, place in this file.
-$_private_ = dirname(__FILE__) . '/config_private.php';
-
+$_private_     = $CFG->wwwroot . '/config_private.php';
 if (file_exists($_private_)) {
     require_once($_private_);
 }
