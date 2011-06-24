@@ -31,7 +31,7 @@ function ucla_verify_configuration_setup() {
 
     $ch = curl_init();
 
-    $self = $CFG->wwwroot;
+    $self = $CFG->wwwroot . '/local/ucla/version.php';
     $address = $self;
 
     curl_setopt($ch, CURLOPT_URL, $address);
