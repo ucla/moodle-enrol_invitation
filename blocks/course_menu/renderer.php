@@ -28,9 +28,10 @@ class block_course_menu_renderer extends plugin_renderer_base {
 	private $session;
 	private $displaysection = 1000;
 	
-	public function render_chapter_tree($instance, $config, $chapters, $sections, $displaysection) {
+	public function render_chapter_tree($instance, $config, $chapters, 
+            $sections, $displaysection) {
 		$this->displaysection = $displaysection;
-		$this->session = $_SESSION['cm_tree'][$instance]['expanded_elements'];
+
 		if ($config->chapEnable) {
 			$this->topic_depth++;
 			if ($config->subChapEnable) {

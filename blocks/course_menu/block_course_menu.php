@@ -173,9 +173,11 @@ class block_course_menu extends block_base {
         $lis = '';
         $linkIndex = 0;
 
-        echo "<pre>";
-        print_r($this->config->elements);
-        echo "</pre>";
+        $expansionlimit = 1;
+
+        //echo "<pre>";
+        //print_r($this->config->elements);
+        //echo "</pre>";
 
         foreach ($this->config->elements as $element) {
             $element['name'] = $this->get_name($element['id']);
@@ -318,7 +320,7 @@ class block_course_menu extends block_base {
     function init_chapters() {
         $config->chapEnable         = 0;
         $config->subChapEnable      = 0;
-        $config->subChaptersCount   = 1;
+        $config->subchapterscount   = 1;
         $config->chapters           = array();
 
         $chapter = array();
@@ -328,7 +330,7 @@ class block_course_menu extends block_base {
         $child['type'] = "subchapter";
         $child['name'] = get_string("subchapter", $this->blockname) . " 1";
         $child['count'] = count($this->get_sections());
-        $chapter['childElements'] = array($child);
+        $chapter['childelements'] = array($child);
 
         return $chapter;
     }
@@ -340,27 +342,29 @@ class block_course_menu extends block_base {
     function init_default_config($save_it = true) {
         global $CFG, $USER, $OUTPUT;
 
-        // elements -------------------------------------------------------------------------
+        // elements -----------------------------
         $elements   = array();
 
         $e = 'tree';
         $elements[] = $this->create_element(
             $e, $this->get_name($e), '', 
-            '', 0);
+            '', 
+            0
+        );
 
-        // TODO user OUTPUT->pix_url for all these gifs...
         // showallsections
         $e = 'showallsections';
         $elements[] = $this->create_element(
             $e, $this->get_name($e), "", 
-            "{$CFG->wwwroot}/blocks/course_menu/icons/viewall.gif"
+            $OUTPUT->pix_url('viewall', 'block_course_menu')
         );
 
         // calendar
         $e = 'calendar';
         $elements[] = $this->create_element(
            $e, $this->get_name($e), "",
-           "{$CFG->wwwroot}/blocks/course_menu/icons/cal.gif", 1, 0
+           $OUTPUT->pix_url('cal', 'block_course_menu'), 
+           1, 0
         );
 
         // showgrades
@@ -368,7 +372,8 @@ class block_course_menu extends block_base {
             $e = 'showgrades';
             $elements[] = $this->create_element(
                 $e, $this->get_name($e), "",
-                $OUTPUT->pix_url('i/grades'), 1, 0
+                $OUTPUT->pix_url('i/grades'), 
+                1, 0
             );
         }
         
@@ -376,35 +381,40 @@ class block_course_menu extends block_base {
         $e = 'sitepages';
         $elements []= $this->create_element(
             $e, get_string($e), '', 
-            '', 1, 0, 1
+            '', 
+            1, 0, 1
         );
         
         // my profile
         $e = 'myprofile';
         $elements []= $this->create_element(
             $e, get_string($e), '', 
-            '', 1, 0, 1
+            '', 
+            1, 0, 1
         );
         
         //my course
         $e = 'mycourses';
         $elements []= $this->create_element(
             $e, get_string($e), '', 
-            '', 1, 0, 1
+            '', 
+            1, 0, 1
         );
         
         //my profile settings
         $e = 'myprofilesettings';
         $elements []= $this->create_element(
             $e, get_string($e, $this->blockname), '', 
-            '', 1, 0, 1
+            '', 
+            1, 0, 1
         );
         
         //course administration
         $e = 'courseadministration';
         $elements []= $this->create_element(
             $e, get_string($e, $this->blockname), '', 
-            '', 1, 0, 1
+            '', 
+            1, 0, 1
         );
         
         $config = new stdClass();
@@ -458,7 +468,6 @@ class block_course_menu extends block_base {
 
                 // chaptering --------------------------------------------------
                 $this->config->chapters[] = $this->init_chapters();
-                
                 $this->save_config_to_db();
             } else {
                 // Backup-backup configurations
@@ -469,80 +478,87 @@ class block_course_menu extends block_base {
 
     function check_redo_chaptering($sectcount) {
         // redo chaptering if the number of the sctions changed
-        $sumChapSections = 0;
-        $subChapterCount = 0;
+        $sumchapsections = 0;
+        $subchapcount = 0;
+        $chapcount = 0;
 
-        foreach ($this->config->chapters as $chapter) {
-            foreach ($chapter['childElements'] as $child) {
+        $chapters =& $this->config->chapters;
+
+        // Count the number of subchapters and sections
+        foreach ($chapters as $chapter) {
+            foreach ($chapter['childelements'] as $child) {
                 if ($child['type'] == "subchapter") {
-                    $subChapterCount ++;
-                    $sumChapSections += $child['count'];
+                    $subchapcount ++;
+                    $sumchapsections += $child['count'];
                 } else {
-                    $sumChapSections ++;
+                    $sumchapsections ++;
                 }
             }
+
+            $chapcount++;
+        }
+       
+        // This means our chapters are divided incorrectly
+        if ($sumchapsections == $sectcount) {
+            return true;
         }
 
-        $chapCount = count($this->config->chapters);
-        
-        if ($sumChapSections != $sectcount) {
-            if ($chapCount <= $sectcount) {
-                $c = floor($sectcount / $chapCount);
+        $divyupchapters = ($chapcount <= $sectcount);
+        if ($divyupchapters) {
+            // We want enough chapters to hold our sections
+            $sectionsperchapter = ceil($sectcount / $chapcount);
+            $chapcountminusone = $chapcount - 1;
+        }
 
-                if (($sectcount - ($c*($chapCount - 1)) > $c) && ($sectcount - (($c+1)*($chapCount - 1)) > 0)) {
-                    $c++;
-                }
+        for ($i = 0; $i < $chapcount; $i++) {
+            $j = 0;
+            while ($chapters[$i]['childelements'][$j]['type'] == "topic") {
+                $j++;
+            }
 
-                for ($i = 0; $i < $chapCount; $i++) {
-                    $temp = $i < $chapCount - 1 ? $c : $sectcount - ($c*($chapCount - 1));
-                    $j = 0;
-                    while ($this->config->chapters[$i]['childElements'][$j]['type'] == "topic") {
-                        $j++;
-                    }
-                    $newChild = $this->config->chapters[$i]['childElements'][$j];
-                    $newChild['count'] = $temp;
-                    $this->config->chapters[$i]['childElements'] = array();
-                    $this->config->chapters[$i]['childElements'][0] = $newChild;
-                }
+            $newchild = $chapters[$i]['childelements'][$j];
 
-
+            if ($diyupchapters) {
+                // Parition sections evenly, unless there are not enough 
+                // sections left to partition
+                $sectionsinchapter = $i < $chapcountminusone 
+                    ? $sectionsperchapter 
+                    : $sectcount - $sectionsperchapter * $chapcountminusone;
             } else {
-                // make 1 section / chapter; eliminate ($chapCount - $sectcount) chapters, from the last ones
-                for ($i = 0; $i < $sectcount; $i++) {
-                    $j = 0;
-                    while ($this->config->chapters[$i]['childElements'][$j]['type'] == "topic") {
-                        $j++;
-                    }
-                    $newChild = $this->config->chapters[$i]['childElements'][$j];
-                    $newChild['count'] = 1;
-                    $this->config->chapters[$i]['childElements'] = array();
-                    $this->config->chapters[$i]['childElements'][0] = $newChild;
-                }
-                for ($i = $sectcount; $i < $chapCount; $i++) {
-                    unset($this->config->chapters[$i]);
-                }
-                $chapCount = $sectcount;
+                $sectionsinchapter = 1;
             }
-            $this->config->subChaptersCount = count($this->config->chapters);
 
-            // the number of sections has changed so the chaptering has changed so write the new changes to the database
-            $this->save_config_to_db();
+            $newchild['count'] = $sectionsinchapter;
+            $chapters[$i]['childelements'] = array();
+            $chapters[$i]['childelements'][0] = $newchild;
         }
+
+        // Eliminate empty chapters
+        for ($i = $sectcount; $i < $chapcount; $i++) {
+            unset($this->config->chapters[$i]);
+        }
+
+        $this->config->subchapterscount = count($chapters);
+        $this->save_config_to_db();
     }
 
-    // truncates the description to fit within the given $max_size. Splitting on tags and \n's where possible
+    // truncates the description to fit within the given $max_size. 
+    // Splitting on tags and \n's where possible
     // @param $string: string to truncate
     // @param $max_size: length of largest piece when done
     // @param $trunc: string to append to truncated pieces
     function truncate_description($string, $max_size=20, $trunc = '...') {
-        $split_tags = array('<br>','<BR>','<Br>','<bR>','</dt>','</dT>','</Dt>','</DT>','</p>','</P>', '<BR />', '<br />', '<bR />', '<Br />');
+        $split_tags = array('<br>','<BR>','<Br>','<bR>',
+            '</dt>','</dT>','</Dt>','</DT>',
+            '</p>','</P>', '<BR />', '<br />', '<bR />', '<Br />');
+
         $temp = $string;
 
         foreach($split_tags as $tag) {
             list($temp) = explode($tag, $temp, 2);
         }
+        
         $rstring = strip_tags($temp);
-
         $rstring = html_entity_decode($rstring);
 
         if (strlen($rstring) > $max_size) {
@@ -551,17 +567,19 @@ class block_course_menu extends block_base {
             // catches new lines at the beginning
             if (trim($temp[0]) != '') {
                 $rstring = trim($temp[0]).$trunc;
-            }
-            else {
+            } else {
                $rstring = trim($temp[1]).$trunc;
             }
         }
+
         if (strlen($rstring) > $max_size) {
             $rstring = substr($rstring, 0, ($max_size - strlen($trunc))).$trunc;
         }
         elseif($rstring == '') {
-            // we chopped everything off... lets fall back to a failsafe but harsher truncation
-            $rstring = substr(trim(strip_tags($string)),0,($max_size - strlen($trunc))).$trunc;
+            // we chopped everything off... lets fall back to a 
+            // failsafe but harsher truncation
+            $rstring = substr(trim(strip_tags($string)),0,
+                ($max_size - strlen($trunc))).$trunc;
         }
 
         // single quotes need escaping
@@ -573,7 +591,12 @@ class block_course_menu extends block_base {
         return $newstring;
     }
 
-    function create_element($id, $name, $url, $icon = "", $canhide = 1, $visible = 1, $expandable = 0) {
+    /**
+     *  Takes each of the arguments passed int the function and turns them
+     *  into an array.
+     **/
+    function create_element($id, $name, $url, $icon="", $canhide=1, 
+            $visible=1, $expandable=0) {
         $elem = array();
         $elem['id']      = $id;
         $elem['name']    = $name;
@@ -591,35 +614,44 @@ class block_course_menu extends block_base {
         return $elem;
     }
 
-    function get_name($elementId) {
+    function get_name($elementid) {
         global $DB;
-        if (isset($this->instance->pageid)) {
-            $course = $DB->get_record('course', array('id' => $this->instance->pageid));
+        if (isset($this->page->course)) {
+            $format = $this->page->course->format;
+        } else if (isset($this->instance->pageid)) {
+            $course = $DB->get_record('course', 
+                array('id' => $this->instance->pageid));
             $format = $course->format;
         } else {
             $format = '';
         }
 
-        switch ($elementId) {
-            case 'calendar':     return get_string('calendar','calendar');
-            case 'showgrades':   return get_string('gradebook', 'grades');
-            case 'sectiongroup': return get_string("name".$format);
-            case 'tree':
-                if ($format == 'topics') {
-                    return get_string('topics', $this->blockname);
-                } elseif ($format == 'weeks') {
-                    return get_string('weeks', $this->blockname);
-                } else {
-                    return get_string('topicsweeks', $this->blockname);
-                }
-            default:
-                if (strstr($elementId, "link") !== false) {
-                    return get_string("link", $this->blockname);
-                }
-                if (in_array($elementId, array('sitepages', 'mycourses', 'myprofile'))) {
-                    return get_string($elementId);
-                }
-                return get_string($elementId, $this->blockname);
+        switch ($elementid) {
+        case 'calendar':     
+            return get_string('calendar','calendar');
+        case 'showgrades':   
+            return get_string('gradebook', 'grades');
+        case 'sectiongroup': 
+            return get_string("name".$format);
+        case 'tree':
+            if ($format == 'topics') {
+                return get_string('topics', $this->blockname);
+            } elseif ($format == 'weeks') {
+                return get_string('weeks', $this->blockname);
+            } else {
+                return get_string('topicsweeks', $this->blockname);
+            }
+        default:
+            if (strstr($elementid, "link") !== false) {
+                return get_string("link", $this->blockname);
+            }
+
+            if (in_array($elementid, 
+                    array('sitepages', 'mycourses', 'myprofile'))) {
+                return get_string($elementid);
+            }
+
+            return get_string($elementid, $this->blockname);
         }
     }
 
@@ -736,6 +768,7 @@ class block_course_menu extends block_base {
                     $instancename = $mod->modfullname;
                 }
 
+                // Why is there an arbitrary 200
                 $instancename = $this->truncate_description($instancename, 200);
 
                 if ($mod->modname == 'resource') {
@@ -759,7 +792,8 @@ class block_course_menu extends block_base {
                 $newsec['resources'][] = $resource;
             }
 
-            // hide hidden sections from students if the course settings say that - bug #212
+            // hide hidden sections from students if the course settings 
+            // say that - bug #212
             if ($canview || $section->visible == 1) {
                 $sections[] = $newsec;
             }
@@ -780,10 +814,10 @@ class block_course_menu extends block_base {
         $icons[0]['img']  = '';
 
         $icons[1]['name'] = get_string('linkfileorsite', $this->blockname);
-        $icons[1]['img']  = "{$CFG->wwwroot}/blocks/course_menu/icons/link.gif";
+        $icons[1]['img']  = $OUTPUT->pix_url('link', $this->blockname);
 
         $icons[2]['name'] = get_string('displaydirectory', $this->blockname);
-        $icons[2]['img']  = "{$CFG->wwwroot}/blocks/course_menu/icons/directory.gif";
+        $icons[2]['img']  = $OUTPUT->pix_url('directory', $this->blockname);
 
         $allmods = $DB->get_records("modules");
         foreach ($allmods as $mod) {
@@ -904,7 +938,6 @@ class block_course_menu extends block_base {
         }
         
         ob_start();
-        // Why this method?
         include ("{$CFG->dirroot}/blocks/course_menu/config/elements.php");
         $cc = ob_get_contents();
         ob_end_clean();
@@ -933,11 +966,13 @@ class block_course_menu extends block_base {
         if ($data->chapEnable == 0) {
             $data->subChapEnable = 0;
         }
+
+        var_dump($data);
         // TODO Fix this
         foreach ($_POST['chapterNames'] as $k => $name) {
             $chapter = array();
             $chapter['name'] = $name;
-            $chapter['childElements'] = array();
+            $chapter['childelements'] = array();
 
             for ($i = $lastIndex; $i < $lastIndex + $_POST['chapterChildElementsNumber'][$k]; $i++) {
                 $child = array();
@@ -958,7 +993,7 @@ class block_course_menu extends block_base {
                         $child['name'] = $_POST['childElementNames'][$i];
                     }
                 }
-                $chapter['childElements'][] = $child;
+                $chapter['childelements'][] = $child;
             }
             $lastIndex = $i;
             $chapters[] = $chapter;
