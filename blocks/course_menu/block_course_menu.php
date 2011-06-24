@@ -31,6 +31,8 @@
  *  - Move all graphics to pix/.
  *  - Consolidate code properly.
  */
+require_once($CFG->dirroot.'/mod/resource/lib.php');
+
 class block_course_menu extends block_base {
     /** @var int Trim characters from the right */
     const TRIM_RIGHT = 1;
@@ -50,6 +52,9 @@ class block_course_menu extends block_base {
     /** Cache maintainer **/
     private $contentgenerated = false;
     
+    /*
+     *  Overrides parent function.
+     */
     function init() {
         global $CFG;
         
@@ -57,43 +62,30 @@ class block_course_menu extends block_base {
         $this->title = get_string('pluginname', $this->blockname);
     }
 
+    /*
+     *  Overrides parent function.
+     */
     function instance_allow_multiple() {
         return false;
     }
 
+    /*
+     *  Overrides parent function.
+     */
     function instance_allow_config() {
         return true;
     }
 
+    /**
+     *  Returns the path to the format file.
+     **/
     function course_format_file($format) {
         global $CFG;
 
-        return $CFG->dirroot . "/course/format/$courseformat/lib.php";
+        return $CFG->dirroot . "/course/format/$format/lib.php";
     }
-    
-    function get_content() {
-        global $CFG, $USER, $DB;
-        
-        if ($this->contentgenerated) {
-            return $this->content;
-        }
-        
-        $this->course = $this->page->course;
 
-        $this->check_default_config();
-        
-        if (!$this->element_exists('sitepages')) {
-            $this->init_default_config();
-        }
-        
-        $sections = $this->get_sections();
-        
-        $this->page->navigation->initialise();
-        $navigation = array(clone($this->page->navigation));
-        $node_collection = $navigation[0]->children;
-        $settings = $this->page->settingsnav->children;
-        
-        // courseFormat TODO Fix this to be compatible with other FORMATs
+    function get_topic_get() {
         $courseformat = $this->course->format;
 
         // Attempt to load the file (if it is not already loaded) 
@@ -116,20 +108,39 @@ class block_course_menu extends block_base {
             debugging('Could not find the GET parameter for section!');
             // Or crash and burn...
         }
+
+        return $format_rk;
+    }
+    
+    /*
+     *  Overrides parent function.
+     */
+    function get_content() {
+        global $CFG, $USER, $DB;
+        
+        if ($this->contentgenerated) {
+            return $this->content;
+        }
+        
+        $this->course = $this->page->course;
+
+        $this->check_default_config();
+        
+        if (!$this->element_exists('sitepages')) {
+            $this->init_default_config();
+        }
+        
+        $sections = $this->get_sections();
+        
+        $this->page->navigation->initialise();
+        $navigation = array(clone($this->page->navigation));
+        $node_collection = $navigation[0]->children;
+        $settings = $this->page->settingsnav->children;
+        
+        $format_rk = $this->get_topic_get();
         
         // displaysection - current section
-        $week = optional_param($format_rk, -1, PARAM_INT);
-        
-        // TODO This section needs to be reprimanded and relocated.
-        if ($week != -1) {
-            $displaysection = course_set_display($this->course->id, $week);
-        } else {
-            if (isset($USER->display[$this->course->id])) {
-                $displaysection = $USER->display[$this->course->id];
-            } else {
-                $displaysection = course_set_display($this->course->id, 0);
-            }
-        }
+        $displaysection = optional_param($format_rk, -1, PARAM_INT);
 
         // section names
         foreach ($sections as $k => $section) {
@@ -150,74 +161,9 @@ class block_course_menu extends block_base {
         $chapters = $this->config->chapters;
         $sumSection = 0;
         $found = false;
-        foreach ($chapters as $k => $chapter) {
-            $chapters[$k]['expanded'] = 
-                in_array(md5($chapter['name']), $sessionVar);
-
-            foreach ($chapter['childElements'] as $i => $child) {
-                if ($child['type'] == "subchapter") {
-                    $chapters[$k]['childElements'][$i]['expanded'] = 
-                        in_array(md5($child['name']), $sessionVar);
-                    $sumSection += $child['count'];
-                } else {
-                    $sumSection++;
-                }
-
-                if ($sumSection >= $displaysection && !$found) {
-                    $found = true;
-                    $chapters[$k]['expanded'] = true;
-                    $chapters[$k]['childElements'][$i]['expanded'] = true;
-                }
-            }
-        }
-        
-        $expansionlimit = null;
-        if (!empty($this->config->expansionlimit)) {
-            $expansionlimit = $this->config->expansionlimit;
-            $navigation->set_expansion_limit($expansionlimit);
-        }
         
         $expandable = array();
-        $this->find_expandable($this->page->navigation, $expandable);
-        if ($expansionlimit) {
-            foreach ($expandable as $key=>$node) {
-                if ($node['type'] > $expansionlimit 
-                  && !($expansionlimit == navigation_node::TYPE_COURSE 
-                  && $node['type'] == $expansionlimit 
-                  && $node['branchid'] == SITEID)) {
-                    unset($expandable[$key]);
-                }
-            }
-        }
        
-        // YUI Javascript Initializations
-        $this->page->requires->yui2_lib('dom');
-        
-        $module = array(
-            'name' => 'block_course_menu', 
-            'fullpath' => '/blocks/course_menu/course_menu.js', 
-            'requires' => array(
-                'core_dock', 'io', 'node', 'dom', 'event-custom', 'json-parse'
-            ), 
-            'strings' => array(
-                array('viewallcourses', 'moodle')
-            )
-        );
-
-        $limit = 20;
-        $arguments = array(
-            $this->instance->id, 
-            array(
-                'expansions' => $expandable, 
-                'instance' => $this->instance->id, 
-                'candock' => $this->instance_can_be_docked(), 
-                'courselimit' => $limit
-            )
-        );
-
-        $this->page->requires->js_init_call(
-            'M.block_course_menu.init_add_tree', $arguments, false, $module);
-        
         // render output
         $renderer = $this->page->get_renderer('block_course_menu');
         $output = html_writer::start_tag('div', array(
@@ -227,11 +173,15 @@ class block_course_menu extends block_base {
         $lis = '';
         $linkIndex = 0;
 
+        echo "<pre>";
+        print_r($this->config->elements);
+        echo "</pre>";
+
         foreach ($this->config->elements as $element) {
             $element['name'] = $this->get_name($element['id']);
             $element['children'] = array();
 
-            if ($element['visible']) {
+            if ($element['visible'] || 1) {
                 $icon = $renderer->icon(
                     $element['icon'], 
                     $element['name'], 
@@ -242,6 +192,7 @@ class block_course_menu extends block_base {
                     case 'tree': 
                         // build chapter / subchapter / topic 
                         // / week structure
+                        echo "Rendering Tree";
                         $lis .= $renderer->render_chapter_tree(
                             $this->instance->id, $this->config, $chapters, 
                             $sections, $displaysection);
@@ -286,7 +237,6 @@ class block_course_menu extends block_base {
                             $lis .= $renderer->render_link($this->config->links[$linkIndex], $this->course->id);
                             $linkIndex++;
                         } else {
-                            //check for special links (navigation, settings)
                             if ($this->is_navigation_element($element['id'])) {
                                 $type = 0;
                                 if ($element['id'] == 'sitepages') {
@@ -340,6 +290,7 @@ class block_course_menu extends block_base {
                 }
             }
         }
+
         $output .= html_writer::tag('ul', $lis, array('class' => 'block_tree list'));
         $output .= '</div>';
         
@@ -376,7 +327,7 @@ class block_course_menu extends block_base {
         $child = array();
         $child['type'] = "subchapter";
         $child['name'] = get_string("subchapter", $this->blockname) . " 1";
-        $child['count'] = count($sections);
+        $child['count'] = count($this->get_sections());
         $chapter['childElements'] = array($child);
 
         return $chapter;
@@ -459,13 +410,13 @@ class block_course_menu extends block_base {
         $config = new stdClass();
         $config->elements = $elements;
 
-        // sections -------------------------------------------------------------------------
+        // sections -------------------------------
         $sections = $this->get_sections();
         
-        // chaptering -----------------------------------------------------------------------
+        // chaptering -----------------------------
         $config->chapters[] = $this->init_chapters();
 
-        // links ----------------------------------------------------------------------------
+        // links ----------------------------------
         $config->linksEnable = 0;
         $config->links       = array();
 
@@ -474,6 +425,7 @@ class block_course_menu extends block_base {
         $config->trimlength     = self::DEFAULT_TRIM_LENGTH;
 
         $this->config = $config;
+
         if ($save_it) {
             $this->save_config_to_db();
         }
@@ -515,13 +467,13 @@ class block_course_menu extends block_base {
         }
     }
 
-    function check_redo_chaptering($sectCount) {
+    function check_redo_chaptering($sectcount) {
         // redo chaptering if the number of the sctions changed
         $sumChapSections = 0;
         $subChapterCount = 0;
-        
-        foreach ($this->config->chapters as $k => $chapter) {
-            foreach ($chapter['childElements'] as $kk => $child) {
+
+        foreach ($this->config->chapters as $chapter) {
+            foreach ($chapter['childElements'] as $child) {
                 if ($child['type'] == "subchapter") {
                     $subChapterCount ++;
                     $sumChapSections += $child['count'];
@@ -530,20 +482,19 @@ class block_course_menu extends block_base {
                 }
             }
         }
+
         $chapCount = count($this->config->chapters);
         
-        if ($sumChapSections != $sectCount) {
+        if ($sumChapSections != $sectcount) {
+            if ($chapCount <= $sectcount) {
+                $c = floor($sectcount / $chapCount);
 
-            if ($chapCount <= $sectCount) {
-
-                $c = floor($sectCount / $chapCount);
-
-                if (($sectCount - ($c*($chapCount - 1)) > $c) && ($sectCount - (($c+1)*($chapCount - 1)) > 0)) {
+                if (($sectcount - ($c*($chapCount - 1)) > $c) && ($sectcount - (($c+1)*($chapCount - 1)) > 0)) {
                     $c++;
                 }
 
                 for ($i = 0; $i < $chapCount; $i++) {
-                    $temp = $i < $chapCount - 1 ? $c : $sectCount - ($c*($chapCount - 1));
+                    $temp = $i < $chapCount - 1 ? $c : $sectcount - ($c*($chapCount - 1));
                     $j = 0;
                     while ($this->config->chapters[$i]['childElements'][$j]['type'] == "topic") {
                         $j++;
@@ -556,8 +507,8 @@ class block_course_menu extends block_base {
 
 
             } else {
-                // make 1 section / chapter; eliminate ($chapCount - $sectCount) chapters, from the last ones
-                for ($i = 0; $i < $sectCount; $i++) {
+                // make 1 section / chapter; eliminate ($chapCount - $sectcount) chapters, from the last ones
+                for ($i = 0; $i < $sectcount; $i++) {
                     $j = 0;
                     while ($this->config->chapters[$i]['childElements'][$j]['type'] == "topic") {
                         $j++;
@@ -567,10 +518,10 @@ class block_course_menu extends block_base {
                     $this->config->chapters[$i]['childElements'] = array();
                     $this->config->chapters[$i]['childElements'][0] = $newChild;
                 }
-                for ($i = $sectCount; $i < $chapCount; $i++) {
+                for ($i = $sectcount; $i < $chapCount; $i++) {
                     unset($this->config->chapters[$i]);
                 }
-                $chapCount = $sectCount;
+                $chapCount = $sectcount;
             }
             $this->config->subChaptersCount = count($this->config->chapters);
 
@@ -617,7 +568,7 @@ class block_course_menu extends block_base {
         return str_replace("'", "\\'", $rstring);
     }
 
-    function clearEnters($string) {
+    function clear_enters($string) {
         $newstring = str_replace(chr(13),' ',str_replace(chr(10),' ',$string));
         return $newstring;
     }
@@ -674,156 +625,151 @@ class block_course_menu extends block_base {
 
     function get_sections() {
         global $CFG, $USER, $DB, $OUTPUT;
-        
-        if (!empty($this->instance)) {
-            get_all_mods($this->course->id, $mods, $modnames, $modnamesplural, 
-                $modnamesused);
-            
-            $context = get_context_instance(CONTEXT_COURSE, $this->course->id);
-            $isteacher = has_capability('moodle/course:update', $context);
-           
-            // TODO Fix this... to be more compatible with other formats
-            $courseFormat = $this->course->format == 'topics' ? 'topic' : 'week';
-
-            // displaysection - current section
-            $week = optional_param($courseFormat, -1, PARAM_INT);
-            if ($week != -1) {
-                $displaysection = course_set_display($this->course->id, $week);
-            } else {
-                if (isset($USER->display[$this->course->id])) {
-                    $displaysection = $USER->display[$this->course->id];
-                } else {
-                    $displaysection = course_set_display($this->course->id, 0);
-                }
-            }
-
-            $genericName = get_string("name" . $this->course->format, 
-                $this->blockname);
-
-            $allSections  = get_all_sections($this->course->id);
-            
-            $sections = array();
-            if ($this->course->format != 'social' 
-              && $this->course->format != 'scorm') {
-
-                foreach ($allSections as $k => $section) {
-                    // get_all_sections() may return sections that are in the 
-                    // db but not displayed because the number of the sections 
-                    // for this course was lowered - bug [CM-B10]
-                    if ($k <= $this->course->numsections) { 
-                        if (!empty($section)) {
-                            $newSec = array();
-                            $newSec['visible'] = $section->visible;
-
-                            if (!empty($section->name)) {
-                                $strsummary = trim($section->name);
-                            } else {
-                                // just a default name
-                                $strsummary = ucwords($genericName) . " " . $k;
-                            }
-
-                            $strsummary = $this->trim($strsummary);
-                            $strsummary = trim($this->clearEnters($strsummary));
-                            $newSec['name'] = $strsummary;
-
-                            // url
-                            if ($displaysection != 0) {
-                                $newSec['url'] = $CFG->wwwroot 
-                                    . "/course/view.php?id=" 
-                                    . $this->course->id . '&' . $courseFormat
-                                    . '=' . $k;
-                            } else {
-                                $newSec['url'] = "#section-$k";
-                            }
-
-                            // resources
-                            $modinfo = unserialize($this->course->modinfo);
-
-                            $newSec['resources'] = array();
-                            $sectionmods = explode(",", $section->sequence);
-                            foreach ($sectionmods as $modnumber) {
-                                if (empty($mods[$modnumber])) {
-                                    continue;
-                                }
-                                $mod = $mods[$modnumber];
-                                if ($mod->visible or $isteacher) {
-                                    $instancename = urldecode($modinfo[$modnumber]->name);
-                                    if (!empty($CFG->filterall)) {
-                                        $instancename = filter_text($instancename, $this->course->id);
-                                    }
-
-                                    if (!empty($modinfo[$modnumber]->extra)) {
-                                        $extra = urldecode($modinfo[$modnumber]->extra);
-                                    }
-                                    else {
-                                        $extra = "";
-                                    }
-
-                                    // don't do anything for labels
-                                    if ($mod->modname != 'label') {
-                                        // Normal activity
-                                        if ($mod->visible) {
-                                            if (!strlen(trim($instancename))) {
-                                                $instancename = $mod->modfullname;
-                                            }
-                                            $instancename = $this->truncate_description($instancename);
-
-                                            $resource = array();
-                                            if ($mod->modname != 'resource') {
-                                                $resource['name'] = $this->truncate_description($instancename, 200);
-                                                $resource['url']  = "$CFG->wwwroot/mod/$mod->modname/view.php?id=$mod->id";
-                                                $icon = $OUTPUT->pix_url("icon", $mod->modname);
-                                                if (is_object($icon)) {
-                                                    $resource['icon'] = $icon->__toString();
-                                                } else {
-                                                    $resource['icon'] = '';
-                                                }
-                                            } else {
-                                                require_once($CFG->dirroot.'/mod/resource/lib.php');
-                                                $info = resource_get_coursemodule_info($mod);
-                                                if (isset($info->icon)) {
-                                                    $resource['name'] = $this->truncate_description($info->name, 200);
-                                                    $resource['url']  = "$CFG->wwwroot/mod/$mod->modname/view.php?id=$mod->id";
-                                                    $icon = $OUTPUT->pix_url("icon", $mod->modname);
-                                                    if (is_object($icon)) {
-                                                        $resource['icon'] = $icon->__toString();
-                                                    } else {
-                                                        $resource['icon'] = '';
-                                                    }
-                                                } else if(!isset($info->icon)) {
-                                                    $resource['name'] = $this->truncate_description($info->name, 200);
-                                                    $resource['url']  = "$CFG->wwwroot/mod/$mod->modname/view.php?id=$mod->id";
-                                                    $icon = $OUTPUT->pix_url("icon", $mod->modname);
-                                                    if (is_object($icon)) {
-                                                        $resource['icon'] = $icon->__toString();
-                                                    } else {
-                                                        $resource['icon'] = $OUTPUT->pix_url("icon", $mod->modname);
-                                                    }
-                                                }
-                                            }
-                                            $newSec['resources'][] = $resource;
-                                        }
-                                    }
-
-                                }
-                            }
-                            //hide hidden sections from students if the course settings say that - bug #212
-                            $coursecontext = get_context_instance(CONTEXT_COURSE, $this->course->id);
-                            if (!($section->visible == 0 && !has_capability('moodle/course:viewhiddensections', $coursecontext))) {
-                                $sections[] = $newSec;
-                            }
-                        }
-                    }
-                }
-
-                // get rid of the first one
-                array_shift($sections);
-            }
-
-            return $sections;
+      
+        if (isset($this->sectionscache)) {
+            return $this->sectionscache;
         }
 
-        return array();
+        if (empty($this->instance)) {
+            return array();
+        }
+        
+        $this_format = $this->course->format;
+        if ($this_format == 'social' || $this_format == 'scorm') {
+            return array();
+        }
+
+        $course_id = $this->course->id;
+
+        get_all_mods($course_id, $mods, $modnames, $modnamesplural, 
+            $modnamesused);
+        
+        $context = get_context_instance(CONTEXT_COURSE, $course_id);
+        $isteacher = has_capability('moodle/course:update', $context);
+        $canview = has_capability('moodle/course:viewhiddensections', $context);
+       
+        $get_param = $this->get_topic_get();
+
+        // displaysection - current section
+        $week = optional_param($get_param, -1, PARAM_INT);
+        if (isset($USER->display[$course_id])) {
+            $displaysection = $USER->display[$course_id];
+        }
+
+        // TODO use the callback
+        $genericname = get_string("name" . $this_format, $this->blockname);
+        $allsections  = get_all_sections($course_id);
+        
+        $sections = array();
+        $modinfo = unserialize($this->course->modinfo);
+
+        $dont_filter = empty($CFG->filterall);
+
+        foreach ($allsections as $k => $section) {
+            // get_all_sections() may return sections that are in the 
+            // db but not displayed because the number of the sections 
+            // for this course was lowered - bug [CM-B10]
+            if ($k > $this->course->numsections) {
+                break;
+            }
+
+            if (empty($section)) {
+                continue;
+            }
+
+            $newsec = array();
+            $newsec['visible'] = $section->visible;
+
+            if (!empty($section->name)) {
+                $strsummary = trim($section->name);
+            } else {
+                // just a default name
+                $strsummary = ucwords($genericname) . " " . $k;
+            }
+
+            $strsummary = $this->trim($strsummary);
+            $strsummary = trim($this->clear_enters($strsummary));
+            $newsec['name'] = $strsummary;
+
+            // The URL link for the section 
+            if ($displaysection != 0) {
+                $newsec['url'] = $CFG->wwwroot 
+                    . "/course/view.php?id=" . $this->course->id 
+                    . '&' . $get_param . '=' . $k;
+            } else {
+                $newsec['url'] = "#section-$k";
+            }
+
+            // resources
+            $newsec['resources'] = array();
+
+            $sectionmods = explode(",", $section->sequence);
+
+            foreach ($sectionmods as $modnumber) {
+                if (empty($mods[$modnumber])) {
+                    continue;
+                }
+
+                $mod = $mods[$modnumber];
+                if (!$mod->visible) {
+                    continue;
+                }
+
+                // don't do anything for labels
+                if ($mod->modname == 'label') {
+                    continue;
+                }
+
+                $instancename = urldecode($modinfo[$modnumber]->name);
+                if (!$dont_filter) {
+                    $instancename = filter_text($instancename, $course_id);
+                }
+
+                if (!empty($modinfo[$modnumber]->extra)) {
+                    $extra = urldecode($modinfo[$modnumber]->extra);
+                } else {
+                    $extra = "";
+                }
+
+                // Backup name for section module.
+                if (strlen(trim($instancename)) === 0) {
+                    $instancename = $mod->modfullname;
+                }
+
+                $instancename = $this->truncate_description($instancename, 200);
+
+                if ($mod->modname == 'resource') {
+                    $info = resource_get_coursemodule_info($mod);
+                    $instancename = $this->truncate_description($info->name, 200);
+                }
+
+                $resource = array();
+
+                $resource['name'] = $instancename;
+                $resource['url'] = $CFG->wwwroot . '/mod/' . $mod->modname 
+                    . '/view.php?id=' . $mod->id;
+
+                $icon = $OUTPUT->pix_url("icon", $mod->modname);
+                if (is_object($icon)) {
+                    $resource['icon'] = $icon->__toString();
+                } else {
+                    $resource['icon'] = '';
+                }
+
+                $newsec['resources'][] = $resource;
+            }
+
+            // hide hidden sections from students if the course settings say that - bug #212
+            if ($canview || $section->visible == 1) {
+                $sections[] = $newsec;
+            }
+        }
+
+        // get rid of the first one why?
+        array_shift($sections);
+
+        $this->sectionscache = $sections;
+        return $sections;
     }
 
     function get_link_icons() {
