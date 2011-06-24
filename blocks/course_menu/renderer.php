@@ -1,27 +1,31 @@
 <?php
 /*
- * ---------------------------------------------------------------------------------------------------------------------
+ * ----------------------------------------------------------------------------
  *
  * This file is part of the Course Menu block for Moodle
  *
- * The Course Menu block for Moodle software package is Copyright 2008 onwards NetSapiensis AB and is provided under
- * the terms of the GNU GENERAL PUBLIC LICENSE Version 3 (GPL). This program is free software: you can redistribute it
- * and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation,
- * either version 3 of the License, or (at your option) any later version.
+ * The Course Menu block for Moodle software package is Copyright 2008 onwards
+ * NetSapiensis AB and is provided under the terms of the GNU GENERAL PUBLIC 
+ * LICENSE Version 3 (GPL). This program is free software: you can redistribute 
+ * it and/or modify it under the terms of the GNU General Public License as 
+ * published by the Free Software Foundation, either version 3 of the License, 
+ * or (at your option) any later version.
  *
- * This program is free software: you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version. This program is distributed in the hope that
- * it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
- * PARTICULAR PURPOSE.
+ * This program is free software: you can redistribute it and/or modify it under 
+ * the terms of the GNU General Public License as published by the Free Software 
+ * Foundation, either version 3 of the License, or (at your option) any later 
+ * version. This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * or FITNESS FOR A PARTICULAR PURPOSE.
  *
- * See the GNU General Public License for more details. You should have received a copy of the GNU General Public
- * License along with this program.
+ * See the GNU General Public License for more details. You should have received 
+ * a copy of the GNU General Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
- * ---------------------------------------------------------------------------------------------------------------------
+ * ----------------------------------------------------------------------------
  */
 
 class block_course_menu_renderer extends plugin_renderer_base {
+    // Default defaults
 	private $topic_depth = 1;
 	private $chapter_depth = 2;
 	private $subchater_depth = 3;
@@ -32,9 +36,9 @@ class block_course_menu_renderer extends plugin_renderer_base {
             $sections, $displaysection) {
 		$this->displaysection = $displaysection;
 
-		if ($config->chapEnable) {
+		if ($config->chapenable) {
 			$this->topic_depth++;
-			if ($config->subChapEnable) {
+			if ($config->subchapenable) {
 				$this->topic_depth++;
 			}
 		}
@@ -45,18 +49,21 @@ class block_course_menu_renderer extends plugin_renderer_base {
 		$contents = '';
 		foreach ($chapters as $chapter) {
 			$subchapter = '';
-			foreach ($chapter['childElements'] as $child) {
+			foreach ($chapter['childelements'] as $child) {
 				$topic = '';
 				$cl = "";
 				if ($child['type'] == 'subchapter') {
 					for ($i = 0; $i < $child['count']; $i++) {
-						$topic .= $this->render_topic($config, $sections[$sectionIndex], 0, 
+						$topic .= $this->render_topic($config, 
+                            $sections[$sectionIndex], 0, 
                             $displaysection == $sectionIndex + 1);
 						$sectionIndex++;
 					}
-					if ($config->subChapEnable) {
-						$title = html_writer::tag('span', $child['name'], array('class' => 'item_name'));
-						$p = html_writer::tag('p', $title, array ('class' => 'cm_tree_item tree_item branch'));
+					if ($config->subchapenable) {
+						$title = html_writer::tag('span', $child['name'], 
+                            array('class' => 'item_name'));
+						$p = html_writer::tag('p', $title, 
+                            array('class' => 'cm_tree_item tree_item branch'));
 						$topic = html_writer::tag('ul', $topic);
 						$collapsed = "collapsed";
 						if ($child['expanded']) {
@@ -68,20 +75,23 @@ class block_course_menu_renderer extends plugin_renderer_base {
 					}
 				} else { //topic
 					$d = $this->topic_depth;
-					if ($config->subChapEnable) {
+					if ($config->subchapenable) {
 						$d--;
 					}
-					$topic = $this->render_topic($config, $sections[$sectionIndex], $d, 
+					$topic = $this->render_topic($config, 
+                        $sections[$sectionIndex], $d, 
                         $displaysection == $sectionIndex + 1);
 					$sectionIndex++;
 				}
 				$subchapter .= $topic;
 			}
 			//$subchapter - a collection of <li> elements
-			if ($config->chapEnable) {
+			if ($config->chapenable) {
 				$subchapter = html_writer::tag('ul', $subchapter);
-				$title = html_writer::tag('span', $chapter['name'], array('class' => 'item_name'));
-				$p = html_writer::tag('p', $title, array('class' => 'cm_tree_item tree_item branch'));
+				$title = html_writer::tag('span', $chapter['name'], 
+                    array('class' => 'item_name'));
+				$p = html_writer::tag('p', $title, 
+                    array('class' => 'cm_tree_item tree_item branch'));
 				$collapsed = "collapsed";
 				if ($chapter['expanded']) {
 					$collapsed = "";
@@ -96,12 +106,12 @@ class block_course_menu_renderer extends plugin_renderer_base {
 		return '<li style="height: 5px">&nbsp;</li>' . $contents . '<li style="height: 5px">&nbsp;</li>';
 	}
 	
-	public function render_topic($config, $section, $depth = 0, $current = false)
-	{
+	function render_topic($config, $section, $depth=0, $current=false) {
+		global $OUTPUT;
 		if ($depth == 0) {
 			$depth = $this->topic_depth;
 		}
-		global $OUTPUT;
+
 		$html = '';
 		if ($config->expandableTree) {
 			foreach ($section['resources'] as $resource) {
@@ -216,7 +226,7 @@ class block_course_menu_renderer extends plugin_renderer_base {
             $title = $item->get_title();
             $isbranch = ($item->type !== $expansionlimit && ($item->children->count() > 0 || ($item->nodetype == navigation_node::NODETYPE_BRANCH && $item->children->count()==0 && (isloggedin() || $item->type <= navigation_node::TYPE_CATEGORY))));
             $hasicon = ((!$isbranch || $item->type == navigation_node::TYPE_ACTIVITY)&& $item->icon instanceof renderable);
-            $item->prev_opened = in_array(md5($content), $this->session);
+            //$item->prev_opened = in_array(md5($content), $this->session);
 			if ($hasicon) {
                 $icon = $this->output->render($item->icon);
                 $content = $icon . $content; // use CSS for spacing of icons

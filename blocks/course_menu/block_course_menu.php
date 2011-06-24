@@ -192,9 +192,8 @@ class block_course_menu extends block_base {
 
                 switch ($element['id']) {
                     case 'tree': 
-                        // build chapter / subchapter / topic 
-                        // / week structure
-                        echo "Rendering Tree";
+                        // build chapter / subchapter / topic /
+                        // week structure
                         $lis .= $renderer->render_chapter_tree(
                             $this->instance->id, $this->config, $chapters, 
                             $sections, $displaysection);
@@ -260,7 +259,7 @@ class block_course_menu extends block_base {
                                     }
                                 }
                                 if ($good instanceof navigation_node && $good->children->count()) {
-                                    $lis .= $renderer->render_navigation_node($good, $expansionlimit);
+                                    //$lis .= $renderer->render_navigation_node($good, $expansionlimit);
                                 }
                             } elseif ($this->is_settings_element($element['id'])) {
                                 $type = 0;
@@ -284,7 +283,7 @@ class block_course_menu extends block_base {
                                     }
                                 }
                                 if ($s instanceof navigation_node && $s->children->count()) {
-                                    $lis .= $renderer->render_navigation_node($s, $expansionlimit);
+                                    //$lis .= $renderer->render_navigation_node($s, $expansionlimit);
                                 }
                             }
                         }
@@ -318,10 +317,9 @@ class block_course_menu extends block_base {
      *  Initializes the basic chapters setup.
      */
     function init_chapters() {
-        $config->chapEnable         = 0;
-        $config->subChapEnable      = 0;
-        $config->subchapterscount   = 1;
-        $config->chapters           = array();
+        $this->config->chapenable         = 0;
+        $this->config->subchapenable      = 0;
+        $this->config->subchapterscount   = 1;
 
         $chapter = array();
         $chapter['name']  = get_string("chapter", $this->blockname)." 1";
@@ -332,7 +330,7 @@ class block_course_menu extends block_base {
         $child['count'] = count($this->get_sections());
         $chapter['childelements'] = array($child);
 
-        return $chapter;
+        $this->config->chapters = array($chapter);
     }
 
     /*
@@ -424,10 +422,10 @@ class block_course_menu extends block_base {
         $sections = $this->get_sections();
         
         // chaptering -----------------------------
-        $config->chapters[] = $this->init_chapters();
+        $this->init_chapters();
 
         // links ----------------------------------
-        $config->linksEnable = 0;
+        $config->linksenable = 0;
         $config->links       = array();
 
         $config->expandableTree = self::EXPANDABLE_TREE;
@@ -461,13 +459,11 @@ class block_course_menu extends block_base {
         global $CFG;
         
         if (empty($this->config) || !is_object($this->config)) {
-            // try global config
             if (!empty($CFG->block_course_menu_global_config)) {
                 $this->config = 
                     unserialize($CFG->block_course_menu_global_config);
 
-                // chaptering --------------------------------------------------
-                $this->config->chapters[] = $this->init_chapters();
+                $this->init_chapters();
                 $this->save_config_to_db();
             } else {
                 // Backup-backup configurations
@@ -477,10 +473,14 @@ class block_course_menu extends block_base {
     }
 
     function check_redo_chaptering($sectcount) {
-        // redo chaptering if the number of the sctions changed
+        // redo chaptering if the number of the sections changed
         $sumchapsections = 0;
         $subchapcount = 0;
         $chapcount = 0;
+
+        if (empty($this->config->chapters)) {
+            $this->init_chapters();
+        }
 
         $chapters =& $this->config->chapters;
 
@@ -929,7 +929,6 @@ class block_course_menu extends block_base {
     }
 
     function config_elements() {
-        // This is pretty useful
         global $CFG, $USER, $OUTPUT;
         
         $this->course = $this->page->course;
@@ -945,7 +944,6 @@ class block_course_menu extends block_base {
     }
 
     function config_links() {
-        // Getting rid of links ?
         global $CFG, $USER, $OUTPUT;
         
         $icons = $this->get_link_icons();
@@ -963,11 +961,10 @@ class block_course_menu extends block_base {
         $chapters = array();
         $lastIndex = 0;
         $total = 0;
-        if ($data->chapEnable == 0) {
-            $data->subChapEnable = 0;
+        if ($data->chapenable == 0) {
+            $data->subchapenable = 0;
         }
 
-        var_dump($data);
         // TODO Fix this
         foreach ($_POST['chapterNames'] as $k => $name) {
             $chapter = array();
@@ -976,11 +973,11 @@ class block_course_menu extends block_base {
 
             for ($i = $lastIndex; $i < $lastIndex + $_POST['chapterChildElementsNumber'][$k]; $i++) {
                 $child = array();
-                if ($data->chapEnable == 0) { //only one subchapter
+                if ($data->chapenable == 0) { //only one subchapter
                     $child['type'] = "subchapter";
                     $child['count'] = count($this->get_sections());
                     $child['name'] = get_string("subchapter", "block_course_menu") . " 1-1";
-                } elseif ($data->subChapEnable == 0) {
+                } elseif ($data->subchapenable == 0) {
                     $child['type'] = "subchapter";
                     $xx = $k + 1;
                     $child['name'] = get_string("subchapter", "block_course_menu") . " {$xx}-1";

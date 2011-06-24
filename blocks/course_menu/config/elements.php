@@ -25,8 +25,8 @@ if (!isset ($this->config->elements)) {
     error('Unauthorized');
 }
 include($CFG->dirroot . "/blocks/course_menu/js/course_menu.js.php");
-$chapShow = $this->config->chapEnable ? 'i/hide' : 'i/show';
-$subChapShow = $this->config->subChapEnable ? 'i/hide' : 'i/show';
+$chapShow = $this->config->chapenable ? 'i/hide' : 'i/show';
+$subChapShow = $this->config->subchapenable ? 'i/hide' : 'i/show';
 ?>
 <div class="showHideCont">
     <a class="showHide chapters minus" id="hide-2" href="#" onclick="section_hide(this, 'div_elements'); return false;">

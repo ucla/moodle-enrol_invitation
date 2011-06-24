@@ -22,7 +22,7 @@
  */
 
 if (!isset ($chapters)) {
-    error('Unauthorized');
+    return false;
 }
 include($CFG->dirroot . "/blocks/course_menu/js/course_menu.js.php");
 $chapShow = $this->config->chapEnable ? 'i/hide' : 'i/show';
