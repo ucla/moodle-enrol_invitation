@@ -1,32 +1,9 @@
 <?php
-/*
- * ---------------------------------------------------------------------------------------------------------------------
- *
- * This file is part of the Course Menu block for Moodle
- *
- * The Course Menu block for Moodle software package is Copyright © 2008 onwards NetSapiensis AB and is provided under
- * the terms of the GNU GENERAL PUBLIC LICENSE Version 3 (GPL). This program is free software: you can redistribute it
- * and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation,
- * either version 3 of the License, or (at your option) any later version.
- *
- * This program is free software: you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version. This program is distributed in the hope that
- * it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
- * PARTICULAR PURPOSE.
- *
- * See the GNU General Public License for more details. You should have received a copy of the GNU General Public
- * License along with this program.
- * If not, see <http://www.gnu.org/licenses/>.
- * ---------------------------------------------------------------------------------------------------------------------
- */
 
-if (!isset ($this->config->elements)) {
-    error('Unauthorized');
-}
+defined('MOODLE_INTERNAL') || die();
+
 include($CFG->dirroot . "/blocks/course_menu/js/course_menu.js.php");
-$chapShow = $this->config->chapenable ? 'i/hide' : 'i/show';
-$subChapShow = $this->config->subchapenable ? 'i/hide' : 'i/show';
+
 ?>
 <div class="showHideCont">
     <a class="showHide chapters minus" id="hide-2" href="#" onclick="section_hide(this, 'div_elements'); return false;">
@@ -71,7 +48,7 @@ function drawElements(parent) {
 			// it is a custom link; update the info for elements[i] for display
 			linkIdx = parseInt(elements[i].id.substring(4));
 			elements[i].name = links[linkIdx].name;
-			elements[i].canHide = 0;
+			elements[i].canhide = 0;
 			elements[i].visible = 1;
 		}
 
@@ -83,7 +60,7 @@ function drawElements(parent) {
 		td.className = "elementsFirstTd";
 		tr.appendChild(td);
 
-		if (elements[i].canHide == 1) {
+		if (elements[i].canhide == 1) {
 			a         = document.createElement('a');
 			a.href    = "";
 			a.onclick = function() {
@@ -114,8 +91,8 @@ function drawElements(parent) {
 
 		input = document.createElement('input');
 		input.type  = "hidden";
-		input.name  = "canHides[]";
-		input.value = elements[i].canHide;
+		input.name  = "canhides[]";
+		input.value = elements[i].canhide;
 		td.appendChild(input);
 
 		input = document.createElement('input');
@@ -174,7 +151,6 @@ function drawElements(parent) {
 	}
 }
 
-// function ----------------------------------------
 function moveTr(tr, direction)
 {
 	for (i = 0; i < elementsBody.childNodes.length; i++) {
@@ -194,9 +170,7 @@ function moveTr(tr, direction)
 	drawElements($('elementsContainer'));
 }
 
-// function ----------------------------------------
-function changeVisibility(tr)
-{
+function changeVisibility(tr) {
 	for (i = 0; i < elementsBody.childNodes.length; i++) {
 		if (elementsBody.childNodes[i] == tr) {
 			elements[i].visible = (parseInt(elements[i].visible) + 1) % 2;
@@ -205,6 +179,5 @@ function changeVisibility(tr)
 
 	drawElements($('elementsContainer'));
 }
-// --- (end) elementsTable ------------------------------------------------------------------------- //
 
 </script>

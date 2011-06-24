@@ -1,30 +1,33 @@
 <?php
-/*
- * ---------------------------------------------------------------------------------------------------------------------
+/**
+ * -----------------------------------------------------------------------------
  *
  * This file is part of the Course Menu block for Moodle
  *
- * The Course Menu block for Moodle software package is Copyright © 2008 onwards NetSapiensis AB and is provided under
- * the terms of the GNU GENERAL PUBLIC LICENSE Version 3 (GPL). This program is free software: you can redistribute it
- * and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation,
- * either version 3 of the License, or (at your option) any later version.
+ * The Course Menu block for Moodle software package is Copyright 2008
+ * onwards NetSapiensis AB and is provided under the terms of the GNU GENERAL 
+ * PUBLIC LICENSE Version 3 (GPL). This program is free software: you can 
+ * redistribute it and/or modify it under the terms of the GNU General Public 
+ * License as published by the Free Software Foundation, either version 3 of 
+ * the License, or (at your option) any later version.
  *
- * This program is free software: you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version. This program is distributed in the hope that
- * it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
- * PARTICULAR PURPOSE.
+ * This program is free software: you can redistribute it and/or modify it 
+ * under the terms of the GNU General Public License as published by the Free 
+ * Software Foundation, either version 3 of the License, or (at your option) 
+ * any later version. This program is distributed in the hope that it will be 
+ * useful, but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
- * See the GNU General Public License for more details. You should have received a copy of the GNU General Public
- * License along with this program.
+ * See the GNU General Public License for more details. You should have 
+ * received a copy of the GNU General Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
- * ---------------------------------------------------------------------------------------------------------------------
- */
+ * -----------------------------------------------------------------------------
+ **/
 
 $string['activitybrdesc'] = 'This link will let you copy activities and content from one course you are an instructor of to another.';
 $string['backupdesc'] = 'This link will allow you to make a copy of your course, with or without student data.';
 $string['backup_restore'] = 'Backup and Copy Content';
-$string['pluginname'] = $string['blockname'] = 'Course Menu';
+$string['pluginname'] = $string['blockname'] = 'Course menu';
 $string['configgroupsections'] = 'Do you want to group week and topic sections in one folder?';
 $string['controlpanel'] = 'Control Panel';
 $string['courseduedatedesc'] = 'This link will enable you to change the due dates for activities that have due dates (like Assignments) and the open/close dates for quizzes and lessons.';

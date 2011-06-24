@@ -1,5 +1,5 @@
 <?php
-/*
+/**
  * -----------------------------------------------------------------------------
  *
  * This file is part of the Course Menu block for Moodle
@@ -22,28 +22,28 @@
  * received a copy of the GNU General Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
  * -----------------------------------------------------------------------------
- */
+ **/
 
-/*
+/**
  *  This is the course menu block, written by "NetSapiensis."
  *
  *  TODO
  *  - Move all graphics to pix/.
  *  - Consolidate code properly.
- */
+ **/
 require_once($CFG->dirroot.'/mod/resource/lib.php');
 
 class block_course_menu extends block_base {
-    /** @var int Trim characters from the right */
+    /** @var int Trim characters from the right **/
     const TRIM_RIGHT = 1;
 
-    /** @var int Trim characters from the left */
+    /** @var int Trim characters from the left **/
     const TRIM_LEFT = 2;
 
-    /** @var int Trim characters from the center */
+    /** @var int Trim characters from the center **/
     const TRIM_CENTER = 3;
 
-    /** @var int Trim length that is hard-coded default */
+    /** @var int Trim length that is hard-coded default **/
     const DEFAULT_TRIM_LENGTH = 10;
 
     /** @var int TODO No idea **/
@@ -54,7 +54,7 @@ class block_course_menu extends block_base {
     
     /*
      *  Overrides parent function.
-     */
+     **/
     function init() {
         global $CFG;
         
@@ -62,16 +62,16 @@ class block_course_menu extends block_base {
         $this->title = get_string('pluginname', $this->blockname);
     }
 
-    /*
+    /**
      *  Overrides parent function.
-     */
+     **/
     function instance_allow_multiple() {
         return false;
     }
 
-    /*
+    /**
      *  Overrides parent function.
-     */
+     **/
     function instance_allow_config() {
         return true;
     }
@@ -112,9 +112,9 @@ class block_course_menu extends block_base {
         return $format_rk;
     }
     
-    /*
+    /**
      *  Overrides parent function.
-     */
+     **/
     function get_content() {
         global $CFG, $USER, $DB;
         
@@ -138,9 +138,10 @@ class block_course_menu extends block_base {
         $settings = $this->page->settingsnav->children;
         
         $format_rk = $this->get_topic_get();
-        
-        // displaysection - current section
-        $displaysection = optional_param($format_rk, -1, PARAM_INT);
+        $displaysection = optional_param($format_rk, 0, PARAM_INT);
+        if ($displaysection < 0) {
+            $displaysection = course_get_display($this->course->id);
+        }
 
         // section names
         foreach ($sections as $k => $section) {
@@ -183,112 +184,51 @@ class block_course_menu extends block_base {
             $element['name'] = $this->get_name($element['id']);
             $element['children'] = array();
 
-            if ($element['visible'] || 1) {
-                $icon = $renderer->icon(
-                    $element['icon'], 
-                    $element['name'], 
-                    array('class' => 'smallicon')
+            if (!$element['visible']) {
+                continue;
+            }
+
+            $icon = $renderer->icon(
+                $element['icon'], 
+                $element['name'], 
+                array('class' => 'smallicon')
+            );
+
+            switch ($element['id']) {
+            case 'tree': 
+                // build chapter / subchapter / topic /
+                // week structure
+                $lis .= $renderer->render_chapter_tree(
+                    $this->instance->id, $this->config, $chapters, 
+                    $sections, $displaysection);
+                break;
+            case 'showallsections':
+                $lis .= $renderer->render_leaf(
+                    $element['name'], $icon,
+                    array('id' => 'showallsections'),
+                    $CFG->wwwroot . '/course/view.php?id=' 
+                        . $this->course->id . '&' . $format_rk . '=0'
                 );
-
-                switch ($element['id']) {
-                    case 'tree': 
-                        // build chapter / subchapter / topic /
-                        // week structure
-                        $lis .= $renderer->render_chapter_tree(
-                            $this->instance->id, $this->config, $chapters, 
-                            $sections, $displaysection);
-                        break;
-                    case 'showallsections':
-                        // show element just in case there is only one 
-                        // topic / week visible
-                        if ($displaysection) {
-                            $_SESSION['cm_tree'][$this->instance->id]
-                                ['last_active'] = $displaysection;
-
-                            $element['name'] = get_string(
-                                "showall{$format_rk}s", $this->blockname);
-
-                            $element['url'] = $CFG->wwwroot 
-                                . '/course/view.php?id=' . $this->course->id
-                                . '&' . $format_rk . '=all#section-'
-                                . $displaysection;
-
-                            $lis .= $renderer->render_leaf(
-                                $element['name'], $icon, 
-                                array('id' => 'showallsections'), 
-                                $element['url']);
-                        } else {
-                            $ss = !empty($_SESSION['cm_tree'][$this->instance->id]['last_active']) ? $_SESSION['cm_tree'][$this->instance->id]['last_active'] : '1';
-                            $element['name'] = get_string("showonly{$format_rk}", $this->blockname) . " ";
-                            $element['url'] = "$CFG->wwwroot/course/view.php?id={$this->course->id}&{$format_rk}={$ss}";
-                            $weekNr = html_writer::tag('span', $ss, array('id' => 'showonlysection_nr'));
-                            $lis .= $renderer->render_leaf($element['name'], $icon, array('id' => 'showallsections'), $element['url'], false, $weekNr);
-                        }
-                        break;
-                    case 'calendar':
-                        $element['url'] = "$CFG->wwwroot/calendar/view.php?view=upcoming&course=" .$this->course->id;
-                        $lis .= $renderer->render_leaf($element['name'], $icon, array(), $element['url']);
-                        break;
-                    case 'showgrades':
-                        $elements[$k]['url'] = $CFG->wwwroot."/grade/index.php?id=".$this->course->id;
-                        $lis .= $renderer->render_leaf($element['name'], $icon, array(), $element['url']);
-                        break;
-                    default:
-                        if (substr($element['id'], 0, 4) == 'link') {
-                            $lis .= $renderer->render_link($this->config->links[$linkIndex], $this->course->id);
-                            $linkIndex++;
-                        } else {
-                            if ($this->is_navigation_element($element['id'])) {
-                                $type = 0;
-                                if ($element['id'] == 'sitepages') {
-                                    $type = global_navigation::TYPE_COURSE;
-                                } elseif ($element['id'] == 'myprofile') {
-                                    $type = global_navigation::TYPE_USER;
-                                } elseif ($element['id'] == 'mycourses') {
-                                    $type = global_navigation::TYPE_ROOTNODE;
-                                }
-                                $all = $node_collection->type($type);
-                                $good = array();
-                                $elements[$k]['children'] = array();
-                                if (is_array($all) && count($all)) {
-                                    foreach ($all as $item) {
-                                        if ($item->text == get_string($element['id'])) {
-                                            $good = $item;
-                                            break;
-                                        }
-                                    }
-                                }
-                                if ($good instanceof navigation_node && $good->children->count()) {
-                                    //$lis .= $renderer->render_navigation_node($good, $expansionlimit);
-                                }
-                            } elseif ($this->is_settings_element($element['id'])) {
-                                $type = 0;
-                                $key = '';
-                                if ($element['id'] == 'myprofilesettings') {
-                                    $type = global_navigation::TYPE_CONTAINER;
-                                    $key = 'usercurrentsettings';
-                                } elseif ($element['id'] == 'courseadministration') {
-                                    $key = 'courseadministration';
-                                    $type = global_navigation::TYPE_COURSE;
-                                }
-                                $all = $settings->type($type);
-                                $s = array();
-                                $elements[$k]['children'] = array();
-                                if (is_array($all) && count($all)) {
-                                    foreach ($all as $item) {
-                                        if ($item->text == get_string($key)) {
-                                            $s = $item;
-                                            break;
-                                        }
-                                    }
-                                }
-                                if ($s instanceof navigation_node && $s->children->count()) {
-                                    //$lis .= $renderer->render_navigation_node($s, $expansionlimit);
-                                }
-                            }
-                        }
-                    // End Switch
-                }
+                break;
+            case 'calendar':
+                $element['url'] = $CFG->wwwroot 
+                    . "/calendar/view.php?view=upcoming&course=" 
+                    . $this->course->id;
+                $lis .= $renderer->render_leaf($element['name'], $icon, 
+                    array(), $element['url']);
+                break;
+            case 'showgrades':
+                $elements[$k]['url'] = $CFG->wwwroot 
+                    . "/grade/index.php?id=".$this->course->id;
+                $lis .= $renderer->render_leaf($element['name'], $icon, 
+                    array(), $element['url']);
+                break;
+            default:
+                if (substr($element['id'], 0, 4) == 'link') {
+                    $lis .= $renderer->render_link(
+                        $this->config->links[$linkIndex], $this->course->id);
+                    $linkIndex++;
+                } 
             }
         }
 
@@ -313,9 +253,9 @@ class block_course_menu extends block_base {
         }
     }
 
-    /*
+    /**
      *  Initializes the basic chapters setup.
-     */
+     **/
     function init_chapters() {
         $this->config->chapenable         = 0;
         $this->config->subchapenable      = 0;
@@ -333,10 +273,10 @@ class block_course_menu extends block_base {
         $this->config->chapters = array($chapter);
     }
 
-    /*
+    /**
      *  This will build an empty configuration, which basically is the
      *  fallback-default.
-     */
+     **/
     function init_default_config($save_it = true) {
         global $CFG, $USER, $OUTPUT;
 
@@ -439,10 +379,10 @@ class block_course_menu extends block_base {
         }
     }
    
-    /*
+    /**
      *  This saves the configuration of the object instance into the
      *  database.
-     */
+     **/
     function save_config_to_db() {
         global $DB;
 
@@ -451,10 +391,10 @@ class block_course_menu extends block_base {
             array('id' => $this->instance->id));
     }
 
-    /*
+    /**
      *  This defines the default configuration of all a new instance, if it
      *  has no configurations already within it.
-     */
+     **/
     function check_default_config() {
         global $CFG;
         
@@ -683,10 +623,7 @@ class block_course_menu extends block_base {
         $get_param = $this->get_topic_get();
 
         // displaysection - current section
-        $week = optional_param($get_param, -1, PARAM_INT);
-        if (isset($USER->display[$course_id])) {
-            $displaysection = $USER->display[$course_id];
-        }
+        $displaysection= optional_param($get_param, 0, PARAM_INT);
 
         // TODO use the callback
         $genericname = get_string("name" . $this_format, $this->blockname);
@@ -724,13 +661,9 @@ class block_course_menu extends block_base {
             $newsec['name'] = $strsummary;
 
             // The URL link for the section 
-            if ($displaysection != 0) {
-                $newsec['url'] = $CFG->wwwroot 
-                    . "/course/view.php?id=" . $this->course->id 
-                    . '&' . $get_param . '=' . $k;
-            } else {
-                $newsec['url'] = "#section-$k";
-            }
+            $newsec['url'] = $CFG->wwwroot 
+                . "/course/view.php?id=" . $this->course->id 
+                . '&' . $get_param . '=' . $k;
 
             // resources
             $newsec['resources'] = array();
@@ -873,7 +806,7 @@ class block_course_menu extends block_base {
      * @param string $string The string to truncate
      * @param int $length The length to truncate to
      * @return string The truncated string
-     */
+     **/
     protected function trim_left($textlib, $string, $length) {
         return '...' 
             . $textlib->substr($string, $textlib->strlen($string) - $length);
@@ -884,7 +817,7 @@ class block_course_menu extends block_base {
      * @param string $string The string to truncate
      * @param int $length The length to truncate to
      * @return string The truncated string
-     */
+     **/
     protected function trim_right($textlib, $string, $length) {
         return $textlib->substr($string, 0, $length) . '...';
     }
@@ -894,7 +827,7 @@ class block_course_menu extends block_base {
      * @param string $string The string to truncate
      * @param int $length The length to truncate to
      * @return string The truncated string
-     */
+     **/
     protected function trim_center($textlib, $string, $length) {
         $trimlength = ceil ($length / 2);
         $start = $textlib->substr($string, 0, $trimlength);
@@ -928,6 +861,11 @@ class block_course_menu extends block_base {
         return $cc;
     }
 
+    /**
+     *  Called from within the editing form.
+     *  Displays the editing section for each element that can be displayed
+     *  within the block.
+     **/
     function config_elements() {
         global $CFG, $USER, $OUTPUT;
         
@@ -943,6 +881,10 @@ class block_course_menu extends block_base {
         return $cc;
     }
 
+    /**
+     *  Called from within the editing form.
+     *
+     **/
     function config_links() {
         global $CFG, $USER, $OUTPUT;
         
@@ -952,6 +894,37 @@ class block_course_menu extends block_base {
         include ("{$CFG->dirroot}/blocks/course_menu/config/links.php");
         $cc = ob_get_contents();
         ob_end_clean();
+        return $cc;
+    }
+
+    /**
+     * Called from within the editing form.
+     **/
+    function output_global_config() {
+        global $CFG, $THEME, $OUTPUT;
+        // required stuff
+        $icons = $this->get_link_icons();
+        
+        // if any config is missing then set eveything to default
+        if (empty($CFG->block_course_menu_global_config)) {
+            $this->init_default_config(false);
+        } else {
+            $this->config = unserialize($CFG->block_course_menu_global_config);
+            if (!$this->element_exists('sitepages')) {
+                $this->init_default_config(false);
+            }
+        }
+        
+        // elements: set names
+        foreach ($this->config->elements as $k => $element) {
+            $this->config->elements[$k]['name'] = $this->get_name($element['id']);
+        }
+
+        ob_start();
+        include ("{$CFG->dirroot}/blocks/course_menu/config/global.php");
+        $cc = ob_get_contents();
+        ob_end_clean();
+
         return $cc;
     }
 
@@ -1067,40 +1040,14 @@ class block_course_menu extends block_base {
 
     /*
      *  Moodle overridden function.
-     */
+     **/
     function has_config() {
         return true;
     }
 
-    function output_global_config() {
-        global $CFG, $THEME, $OUTPUT;
-        // required stuff
-        $icons = $this->get_link_icons();
-        
-        // if any config is missing then set eveything to default
-        if (empty($CFG->block_course_menu_global_config)) {
-            $this->init_default_config(false);
-        } else {
-            $this->config = unserialize($CFG->block_course_menu_global_config);
-            if (!$this->element_exists('sitepages')) {
-                $this->init_default_config(false);
-            }
-        }
-        
-        // elements: set names
-        foreach ($this->config->elements as $k => $element) {
-            $this->config->elements[$k]['name'] = $this->get_name($element['id']);
-        }
-
-        ob_start();
-        include ("{$CFG->dirroot}/blocks/course_menu/config/global.php");
-        $cc = ob_get_contents();
-        ob_end_clean();
-
-        return $cc;
-    
-    }
-    
+    /*
+     *  Verifies that an element exists within the configuration.
+     **/
     function element_exists($id) {
         foreach ($this->config->elements as $element) {
             if ($element['id'] == $id) {

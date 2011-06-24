@@ -42,11 +42,10 @@ class block_course_menu_renderer extends plugin_renderer_base {
 				$this->topic_depth++;
 			}
 		}
-		if ($config->expandableTree) {
-			$this->topic_depth++;
-		}
-		$sectionIndex = 0;
+
+		$sectionindex = 0;
 		$contents = '';
+
 		foreach ($chapters as $chapter) {
 			$subchapter = '';
 			foreach ($chapter['childelements'] as $child) {
@@ -55,10 +54,11 @@ class block_course_menu_renderer extends plugin_renderer_base {
 				if ($child['type'] == 'subchapter') {
 					for ($i = 0; $i < $child['count']; $i++) {
 						$topic .= $this->render_topic($config, 
-                            $sections[$sectionIndex], 0, 
-                            $displaysection == $sectionIndex + 1);
-						$sectionIndex++;
+                            $sections[$sectionindex], 0, 
+                            $displaysection == $sectionindex + 1);
+						$sectionindex++;
 					}
+
 					if ($config->subchapenable) {
 						$title = html_writer::tag('span', $child['name'], 
                             array('class' => 'item_name'));
@@ -69,8 +69,11 @@ class block_course_menu_renderer extends plugin_renderer_base {
 						if ($child['expanded']) {
 							$collapsed = "";
 						}
+
 						$topic = html_writer::tag('li', $p . $topic, array(
-                            'class' => "type_structure depth_{$this->subchater_depth} {$collapsed} contains_branch"
+                            'class' => "type_structure "
+                                . "depth_{$this->subchater_depth} "
+                                . "{$collapsed} contains_branch"
                         ));
 					}
 				} else { //topic
@@ -78,32 +81,42 @@ class block_course_menu_renderer extends plugin_renderer_base {
 					if ($config->subchapenable) {
 						$d--;
 					}
+
 					$topic = $this->render_topic($config, 
-                        $sections[$sectionIndex], $d, 
-                        $displaysection == $sectionIndex + 1);
-					$sectionIndex++;
+                        $sections[$sectionindex], $d, 
+                        $displaysection == $sectionindex + 1);
+					$sectionindex++;
 				}
+
 				$subchapter .= $topic;
 			}
-			//$subchapter - a collection of <li> elements
+
+			// $subchapter - a collection of <li> elements
 			if ($config->chapenable) {
 				$subchapter = html_writer::tag('ul', $subchapter);
 				$title = html_writer::tag('span', $chapter['name'], 
                     array('class' => 'item_name'));
+
 				$p = html_writer::tag('p', $title, 
                     array('class' => 'cm_tree_item tree_item branch'));
+
 				$collapsed = "collapsed";
 				if ($chapter['expanded']) {
 					$collapsed = "";
 				}
+
 				$contents .= html_writer::tag('li', $p . $subchapter, array(
-                    'class' => "type_structure depth_{$this->chapter_depth} {$collapsed} contains_branch"
+                    'class' => "type_structure " 
+                        . "depth_{$this->chapter_depth} $collapsed "
+                        . "contains_branch"
                 ));
 			} else {
 				$contents .= $subchapter;
 			}
 		}
-		return '<li style="height: 5px">&nbsp;</li>' . $contents . '<li style="height: 5px">&nbsp;</li>';
+
+		return '<li style="height: 5px">&nbsp;</li>' 
+            . $contents . '<li style="height: 5px">&nbsp;</li>';
 	}
 	
 	function render_topic($config, $section, $depth=0, $current=false) {
@@ -113,74 +126,57 @@ class block_course_menu_renderer extends plugin_renderer_base {
 		}
 
 		$html = '';
-		if ($config->expandableTree) {
-			foreach ($section['resources'] as $resource) {
-				$visible_title = $resource['trimmed_name'];
-				$attributes = array('title' => $resource['name']);
-				$icon = $this->icon($resource['icon'], $resource['trimmed_name'], array('class' => 'smallicon navicon'));
-				$html .= $this->render_leaf($visible_title, $icon, $attributes, $resource['url']);
-			}
-			$html = html_writer::tag('ul', $html);
-			$title = html_writer::link($section['url'], $section['trimmed_name'], array(
-                'class' => 'item_name section_link'
-            ));
+        $attributes = array('class' => 'section_link', 
+            'title' => $section['name']);
 
-			$cl = '';
-			if ($current) {
-				$cl = "active_tree_node";
-			}
-			$p = html_writer::tag('p', $title, array('class' => 'cm_tree_item tree_item branch ' . $cl));
-			$collapsed = "collapsed";
-			if ($section['expanded']) {
-				$collapsed = "";
-			}
-			$append = "";
-			if ($current) {
-				$append = "current_branch";
-			}
-			$html = html_writer::tag('li', $p . $html, array('class' => "type_structure contains_branch depth_{$depth} {$collapsed} {$append}"));
+        if (!$section['visible']) {
+            $attributes['class'] .= 'dimmed_text';
+        }
+
+        if ($current) {
+            $attributes['class'] .= ' active_tree_node';
+        }
+
+        $leaficon = $this->icon($OUTPUT->pix_url('i/navigationitem'), 
+            $section['trimmed_name'], array('class' => 'smallicon'));
 			
-		} else {
-			$attributes = array('class' => 'section_link', 'title' => $section['name']);
-			if (!$section['visible']) {
-				$attributes['class'] .= 'dimmed_text';
-			}
-            if ($current) {
-                $attributes['class'] .= ' active_tree_node';
-            }
-			$leafIcon = $this->icon($OUTPUT->pix_url('i/navigationitem'), $section['trimmed_name'], array('class' => 'smallicon'));
-			
-			$html = $this->render_leaf($section['trimmed_name'], $leafIcon, $attributes, $section['url'], $current); 	
-		}
+        $html = $this->render_leaf($section['trimmed_name'], $leaficon, 
+            $attributes, $section['url'], $current); 	
 		
 		return $html;
 	}
 	
-	public function render_leaf($visible_title, $icon, $attributes, $link, $current = false, $extraNode = '')
-	{
-		$html = html_writer::link($link, $icon . $visible_title . $extraNode, $attributes);
-		$html = html_writer::tag('p', $html, array ('class' => 'tree_item leaf hasicon'));
+	public function render_leaf($visible_title, $icon, $attributes, $link, 
+            $current=false, $extraNode='') {
+		$html = html_writer::link($link, $icon . $visible_title . $extraNode, 
+            $attributes);
+
+		$html = html_writer::tag('p', $html, 
+            array ('class' => 'tree_item leaf hasicon'));
+
 		$append = "";
 		if ($current) {
 			$append = "current_branch";
 		}
-		$html = html_writer::tag('li', $html, array ('class' => "type_custom item_with_icon {$append}"));
+		$html = html_writer::tag('li', $html,
+            array('class' => "type_custom item_with_icon {$append}"));
+
 		return $html;
 	}
 	
-	public function icon($src, $title, $props = array())
-	{
+	public function icon($src, $title, $props=array()) {
 		$p = "";
+
 		foreach ($props as $p => $v) {
 			$p .= '"' . $p . '=' . $v . '" ';
 		}
+
 		return '<img src="' . $src . '" 
 				class="smallicon" title="' . $title . '"
 				alt="' . $title . '" ' . $p . ' />';
 	}
 	
-	public function render_link($link, $course)
-	{
+	public function render_link($link, $course)	{
 		global $CFG;
 		$url = $link['url'];
 		if ($link['keeppagenavigation']) {
