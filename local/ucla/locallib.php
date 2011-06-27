@@ -16,9 +16,13 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-// We should change this out
 //require_once($CFG->libdir . '/uclalib.php');
 
+/**
+ *  This will attempt to access this file from the web.
+ *  If that is properly set up, then all directories below this directory
+ *  will be web-forbidden.
+ **/
 function ucla_verify_configuration_setup() {
    global $CFG;
 
@@ -34,6 +38,7 @@ function ucla_verify_configuration_setup() {
     $self = $CFG->wwwroot . '/local/ucla/version.php';
     $address = $self;
 
+    // Attempt to get at a file that should not be web-visible
     curl_setopt($ch, CURLOPT_URL, $address);
     curl_setopt($ch, CURLOPT_HEADER, true);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
