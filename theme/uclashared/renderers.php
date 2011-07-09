@@ -39,7 +39,8 @@ class theme_uclashared_core_renderer extends core_renderer {
             if (preg_match('/user/', $login_a)) {
                 $login_info[$pr_name] = $login_a;
             } else if (preg_match('/login.logout/', $login_a) 
-                    || preg_match('/' . preg_quote($login_url, '/') . '/', $login_a)) {
+                    || preg_match('/' . preg_quote($login_url, '/') 
+                        . '/', $login_a)) {
                 // Magical capitalization skills
                 preg_match('/(.*)(>.*<)(.*)/', $login_a, $anchor);
 
@@ -53,8 +54,11 @@ class theme_uclashared_core_renderer extends core_renderer {
             // Bad, repeated stuff
             $login_info[$pr_name] = get_string('loggedinnot', 'moodle');
         }
-    
-        $login_info[$pr_haf] = $this->help_feedback_link();
+   
+        $fbl = $this->help_feedback_link();
+        if ($fbl) {
+            $login_info[$pr_haf] = $fbl;
+        }
 
         ksort($login_info);
         $separator = $this->separator(); 
@@ -63,15 +67,36 @@ class theme_uclashared_core_renderer extends core_renderer {
         return $login_string;
     }
 
+    /**
+     *  Returns the HTML link for the help and feedback.
+     **/
     function help_feedback_link() {
-        // TODO use html_writer
+        $help_locale = $this->call_separate_block_function(
+                'ucla_helpblock', 'get_blockblock_link'
+            );
+
+        if (!$help_locale) {
+            return false;
+        }
+        
         $hf_link = get_string('help_n_feedback', $this->theme);
 
-        return $hf_link;
+        return html_writer::link($help_locale, $hf_link);
     }
 
+    /**
+     *  Calls the hook function that will return the current week we are on.
+     **/
     function weeks_display() {
-        return 'Weeks Section'; 
+        $weeks_text = $this->call_separate_block_function(
+                'ucla_weeksdisplay', 'get_weeksdisplay_link'
+            );
+
+        if (!$weeks_text) {
+            return false;
+        }
+
+        return $weeks_text;
     }
 
     /**
@@ -102,7 +127,8 @@ class theme_uclashared_core_renderer extends core_renderer {
     /**
      *      Displays the text underneath the UCLA | CCLE logo.
      *
-     *      Will reach into the settings to see if the hover over should be displayed.
+     *      Will reach into the settings to see if the hover over should be 
+     *      displayed.
      **/
     function sublogo() {
         $display_text   = get_config($this->theme, 'logo_sub_text');
@@ -114,28 +140,17 @@ class theme_uclashared_core_renderer extends core_renderer {
     function control_panel_button() {
         global $CFG;
 
-        $course = $this->page->course;
-
         // Use html_writer to render the actual link
         // html_writer::tag(tagname, contents, attributes[])
         $cp_text = get_string('control_panel', $this->theme);
 
-        $cp_block = 'block_ucla_control_panel';
+        $cp_link = $this->call_separate_block_function(
+                'ucla_control_panel', 'create_control_panel_link', true
+            );
 
-        // Make the link
-        if (!class_exists($cp_block)) {
-            $cp_path = $CFG->dirroot
-                . '/blocks/ucla_control_panel/' . $cp_block . '.php';
-
-            if (file_exists($cp_path)) {
-                require($cp_path);
-            } else {
-                debugging('Control Panel Block not found.');
-                return '';
-            }
-        } 
-
-        $cp_link = $cp_block::create_control_panel_link($course);
+        if (!$cp_link) {
+            return false;
+        }
 
         $cp_button = html_writer::link($cp_link, $cp_text, 
             array('class' => 'control-panel-button'));
@@ -175,7 +190,8 @@ class theme_uclashared_core_renderer extends core_renderer {
                 $link_display = get_string('foodis_' . $link, $this->theme);
                 $link_href = get_string('foolin_' . $link, $this->theme);
 
-                $link_a = html_writer::tag('a', $link_display, array('href' => $link_href));
+                $link_a = html_writer::tag('a', $link_display, 
+                    array('href' => $link_href));
 
                 $footer_string .= '&nbsp;' . $link_a;
             }
@@ -186,5 +202,27 @@ class theme_uclashared_core_renderer extends core_renderer {
 
     function copyright_info() {
         return get_string('copyright_information', $this->theme);
+    }
+
+    /**
+     *  Attempts to get a feature of another block to generate special text or
+     *  link to put into the theme.
+     *
+     *  TODO This function should not belong to this specific block
+     **/
+    function call_separate_block_function($blockname, $functionname) {
+        $blockinst = block_instance($blockname);
+
+        $blockclassname = 'block_' . $blockname;
+
+        $course = $this->page->course;
+
+        if (method_exists($blockclassname, $functionname)) {
+            $retval = $blockinst->$functionname($course);
+        } else {
+            return false;
+        }
+
+        return $retval;
     }
 }
