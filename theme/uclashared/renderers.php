@@ -227,7 +227,11 @@ class theme_uclashared_core_renderer extends core_renderer {
 
         $blockfile = $CFG->dirroot . "/blocks/$blockname/$blockclassname.php";
         if (file_exists($blockfile)) {
+            require_once($CFG->dirroot . '/block/moodleblock.class.php');
             require_once($blockfile);
+        } else {
+            debugging('Could not find ' . $blockfile);
+            return false;
         }
 
         $course = $this->page->course;
@@ -235,6 +239,8 @@ class theme_uclashared_core_renderer extends core_renderer {
         if (method_exists($blockclassname, $functionname)) {
             $retval = $blockclassname::$functionname($course);
         } else {
+            debugging('Could not find ' . $functionname . ' for ' 
+                . $blockclassname);
             return false;
         }
 
