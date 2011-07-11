@@ -85,6 +85,12 @@ class block_course_menu extends block_base {
         return $CFG->dirroot . "/course/format/$format/lib.php";
     }
 
+    /**
+     *  Gets the GET param that is used to describe which topic
+     *  you are viewing for a particular course format.
+     *
+     *  @return string
+     **/
     function get_topic_get() {
         $courseformat = $this->course->format;
 
@@ -116,7 +122,7 @@ class block_course_menu extends block_base {
      *  Overrides parent function.
      **/
     function get_content() {
-        global $CFG, $USER, $DB;
+        global $CFG, $USER, $DB, $OUTPUT;
         
         if ($this->contentgenerated) {
             return $this->content;
@@ -172,40 +178,50 @@ class block_course_menu extends block_base {
         ));
 
         $lis = '';
-        $linkIndex = 0;
+        $linkindex = 0;
 
         $expansionlimit = 1;
 
-        //echo "<pre>";
-        //print_r($this->config->elements);
-        //echo "</pre>";
-
         foreach ($this->config->elements as $element) {
-            $element['name'] = $this->get_name($element['id']);
-            $element['children'] = array();
-
             if (!$element['visible']) {
                 continue;
             }
 
+            $eleid = $element['id'];
+            $elename = $this->get_name($eleid);
+            $eleicon = $element['icon'];
+
+            $img_src = '';
+            if ($eleicon != '') {
+                $img_src = call_user_func_array(
+                    array($OUTPUT, 'pix_url'),
+                    $element['icon']
+                );
+            }
+
             $icon = $renderer->icon(
-                $element['icon'], 
-                $element['name'], 
+                $img_src, $elename, 
                 array('class' => 'smallicon')
             );
 
-            switch ($element['id']) {
+            switch ($eleid) {
             case 'tree': 
                 // build chapter / subchapter / topic /
                 // week structure
                 $lis .= $renderer->render_chapter_tree(
-                    $this->instance->id, $this->config, $chapters, 
-                    $sections, $displaysection);
+                    $this->instance->id, 
+                    $this->config, 
+                    $chapters, 
+                    $sections, 
+                    $displaysection
+                );
+
                 break;
             case 'showallsections':
                 $lis .= $renderer->render_leaf(
-                    $element['name'], $icon,
-                    array('id' => 'showallsections'),
+                    $elename, 
+                    $icon,
+                    array('id' => $eleid),
                     $CFG->wwwroot . '/course/view.php?id=' 
                         . $this->course->id . '&' . $format_rk . '=0'
                 );
@@ -214,8 +230,12 @@ class block_course_menu extends block_base {
                 $element['url'] = $CFG->wwwroot 
                     . "/calendar/view.php?view=upcoming&course=" 
                     . $this->course->id;
-                $lis .= $renderer->render_leaf($element['name'], $icon, 
-                    array(), $element['url']);
+                $lis .= $renderer->render_leaf(
+                    $element['name'], 
+                    $icon, 
+                    array(), 
+                    $element['url']
+                );
                 break;
             case 'showgrades':
                 $elements[$k]['url'] = $CFG->wwwroot 
@@ -224,35 +244,25 @@ class block_course_menu extends block_base {
                     array(), $element['url']);
                 break;
             default:
-                if (substr($element['id'], 0, 4) == 'link') {
+                if (substr($eleid, 0, 4) == 'link') {
                     $lis .= $renderer->render_link(
-                        $this->config->links[$linkIndex], $this->course->id);
-                    $linkIndex++;
+                        $this->config->links[$linkindex], $this->course->id);
+                    $linkindex++;
                 } 
             }
         }
 
-        $output .= html_writer::tag('ul', $lis, array('class' => 'block_tree list'));
+        $output .= html_writer::tag('ul', $lis, 
+            array('class' => 'block_tree list'));
+
         $output .= '</div>';
         
         $this->contentgenerated = true;
         $this->content->text = $output;
         
         return $this->content;
-        
     }
     
-    function find_expandable($navigation, array &$expandable) {
-        foreach ($navigation->children as &$child) {
-            if ($child->nodetype == global_navigation::NODETYPE_BRANCH && $child->children->count()==0 && $child->display) {
-                $child->id = 'cm_expandable_branch_'.(count($expandable)+1);
-                $navigation->add_class('canexpand');
-                $expandable[] = array('id'=>$child->id,'branchid'=>$child->key,'type'=>$child->type);
-            }
-            $this->find_expandable($child, $expandable);
-        }
-    }
-
     /**
      *  Initializes the basic chapters setup.
      **/
@@ -294,14 +304,14 @@ class block_course_menu extends block_base {
         $e = 'showallsections';
         $elements[] = $this->create_element(
             $e, $this->get_name($e), "", 
-            $OUTPUT->pix_url('viewall', 'block_course_menu')
+            array('viewall', 'block_course_menu')
         );
 
         // calendar
         $e = 'calendar';
         $elements[] = $this->create_element(
            $e, $this->get_name($e), "",
-           $OUTPUT->pix_url('cal', 'block_course_menu'), 
+           array('cal', 'block_course_menu'), 
            1, 0
         );
 
@@ -310,7 +320,7 @@ class block_course_menu extends block_base {
             $e = 'showgrades';
             $elements[] = $this->create_element(
                 $e, $this->get_name($e), "",
-                $OUTPUT->pix_url('i/grades'), 
+                array('i/grades'), 
                 1, 0
             );
         }
@@ -527,7 +537,8 @@ class block_course_menu extends block_base {
     }
 
     function clear_enters($string) {
-        $newstring = str_replace(chr(13),' ',str_replace(chr(10),' ',$string));
+        $newstring = str_replace(array(chr(13), chr(10)), 
+            array(' ', ' '), $string));
         return $newstring;
     }
 
@@ -535,7 +546,7 @@ class block_course_menu extends block_base {
      *  Takes each of the arguments passed int the function and turns them
      *  into an array.
      **/
-    function create_element($id, $name, $url, $icon="", $canhide=1, 
+    function create_element($id, $name, $url, $icon=array(), $canhide=1, 
             $visible=1, $expandable=0) {
         $elem = array();
         $elem['id']      = $id;
@@ -545,6 +556,7 @@ class block_course_menu extends block_base {
         if (is_object($icon)) {
             $icon = $icon->__toString();
         }
+
         $elem['icon']    = $icon;
 
         $elem['canhide'] = $canhide;
@@ -623,22 +635,23 @@ class block_course_menu extends block_base {
         $get_param = $this->get_topic_get();
 
         // displaysection - current section
-        $displaysection= optional_param($get_param, 0, PARAM_INT);
+        $displaysection = optional_param($get_param, 0, PARAM_INT);
 
-        // TODO use the callback
         $genericname = get_string("name" . $this_format, $this->blockname);
-        $allsections  = get_all_sections($course_id);
+        $allsections = get_all_sections($course_id);
         
         $sections = array();
         $modinfo = unserialize($this->course->modinfo);
 
         $dont_filter = empty($CFG->filterall);
 
+        $coursenumsections = $this->course->numsections;
+
         foreach ($allsections as $k => $section) {
             // get_all_sections() may return sections that are in the 
             // db but not displayed because the number of the sections 
             // for this course was lowered - bug [CM-B10]
-            if ($k > $this->course->numsections) {
+            if ($k > $coursenumsections) {
                 break;
             }
 
@@ -656,20 +669,24 @@ class block_course_menu extends block_base {
                 $strsummary = ucwords($genericname) . " " . $k;
             }
 
-            $strsummary = $this->trim($strsummary);
+            // Clean up the text
             $strsummary = trim($this->clear_enters($strsummary));
+
+            // Shorten the text to displayable levels
+            $strsummary = $this->trim($strsummary);
+
             $newsec['name'] = $strsummary;
 
             // The URL link for the section 
             $newsec['url'] = $CFG->wwwroot 
-                . "/course/view.php?id=" . $this->course->id 
+                . "/course/view.php?id=" . $course_id 
                 . '&' . $get_param . '=' . $k;
-
-            // resources
-            $newsec['resources'] = array();
 
             $sectionmods = explode(",", $section->sequence);
 
+            $newsec['resources'] = array();
+
+            // Pile on each of the sections modules
             foreach ($sectionmods as $modnumber) {
                 if (empty($mods[$modnumber])) {
                     continue;
@@ -769,6 +786,12 @@ class block_course_menu extends block_base {
         return $icons;
     }
 
+    /**
+     *  Truncates the string with elipses, depending on the configuration
+     *  as to where the elipses go to.
+     *  @param string
+     *  @return string The truncated string.
+     **/
     function trim($str) {
         $mode = self::TRIM_RIGHT;
         $length = self::DEFAULT_TRIM_LENGTH;
@@ -800,6 +823,7 @@ class block_course_menu extends block_base {
 
         return $str;
     }
+
     /**
      * Truncate a string from the left
      * @param textlib $textlib
@@ -811,6 +835,7 @@ class block_course_menu extends block_base {
         return '...' 
             . $textlib->substr($string, $textlib->strlen($string) - $length);
     }
+
     /**
      * Truncate a string from the right
      * @param textlib $textlib
@@ -821,6 +846,7 @@ class block_course_menu extends block_base {
     protected function trim_right($textlib, $string, $length) {
         return $textlib->substr($string, 0, $length) . '...';
     }
+
     /**
      * Truncate a string in the center
      * @param textlib $textlib
@@ -882,7 +908,7 @@ class block_course_menu extends block_base {
     }
 
     /**
-     *  Called from within the editing form.
+     *  Called from within edit_form.php
      *
      **/
     function config_links() {
@@ -898,7 +924,8 @@ class block_course_menu extends block_base {
     }
 
     /**
-     * Called from within the editing form.
+     *  Called by Moodle, when going to site administration -> 
+     *  plugins -> blocks -> course menu
      **/
     function output_global_config() {
         global $CFG, $THEME, $OUTPUT;
@@ -928,113 +955,23 @@ class block_course_menu extends block_base {
         return $cc;
     }
 
+    /**
+     *  Called by moodle whenever saving a block's configuration, usually
+     *  by turning editing on, and then editing the block, then saving
+     *  the changes.
+     **/
     function instance_config_save($data, $nolongerused = false) {
-        //append stuff to data - this is BAD
-        //chapters
-        $chapters = array();
-        $lastIndex = 0;
-        $total = 0;
-        if ($data->chapenable == 0) {
-            $data->subchapenable = 0;
-        }
+        // This is to compensate for the custom javascript used
+        // within the configuration settings
+        $ele_ids = required_param('ids', PARAM_RAW);
+        $ele_vis = required_param('visibles', PARAM_RAW);
+        echo "<pre>Configuration Saved:\n";
 
-        // TODO Fix this
-        foreach ($_POST['chapterNames'] as $k => $name) {
-            $chapter = array();
-            $chapter['name'] = $name;
-            $chapter['childelements'] = array();
+        print_r($ele_ids);
+        var_dump($data);
+        echo "</pre>";
+        die;
 
-            for ($i = $lastIndex; $i < $lastIndex + $_POST['chapterChildElementsNumber'][$k]; $i++) {
-                $child = array();
-                if ($data->chapenable == 0) { //only one subchapter
-                    $child['type'] = "subchapter";
-                    $child['count'] = count($this->get_sections());
-                    $child['name'] = get_string("subchapter", "block_course_menu") . " 1-1";
-                } elseif ($data->subchapenable == 0) {
-                    $child['type'] = "subchapter";
-                    $xx = $k + 1;
-                    $child['name'] = get_string("subchapter", "block_course_menu") . " {$xx}-1";
-                    $child['count'] = $_POST['chapterCounts'][$k];
-                } else {
-                    $child['type'] = $_POST['childElementTypes'][$i];
-                    if ($child['type'] == "subchapter") {
-                        $child['count'] = $_POST['childElementCounts'][$i];
-                        $total += $child['count'];
-                        $child['name'] = $_POST['childElementNames'][$i];
-                    }
-                }
-                $chapter['childelements'][] = $child;
-            }
-            $lastIndex = $i;
-            $chapters[] = $chapter;
-        }
-        $data->chapters = $chapters;
-
-        // elements
-        $data->elements = array();
-        foreach ($_POST['ids'] as $k => $id) {
-            $url     = $_POST['urls'][$k];
-            $icon    = $_POST['icons'][$k];
-            $canhide = $_POST['canhides'][$k];
-            $visible = $_POST['visibles'][$k];
-            $name    = $this->get_name($id);
-            $data->elements[] = $this->create_element($id, $name, $url, $icon, $canhide, $visible);
-        }
-        
-        //links
-        $data->links = array();
-        if (isset($_POST['linkNames'])) { // means: if instance config. we don't have links in global config
-            foreach ($_POST['linkNames'] as $k => $name) {
-                $link = array();
-                $link['name']   = $name;
-                $link['target'] = $_POST['linkTargets'][$k];
-                $link['icon']   = $_POST['linkIcons'][$k];
-
-                // url
-                $link['url'] = $_POST['linkUrls'][$k];
-                if (strpos($_POST['linkUrls'][$k], "://") === false) {
-                    // if no protocol then add "http://" - [CM-TD2]
-                    $link['url'] = "http://" . $link['url'];
-                }
-
-                // checkbox configs
-                $idx = "keeppagenavigation$k";
-                $link['keeppagenavigation'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "allowresize$k";
-                $link['allowresize'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "allowresize$k";
-                $link['allowresize'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "allowresize$k";
-                $link['allowresize'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "allowscroll$k";
-                $link['allowscroll'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "showdirectorylinks$k";
-                $link['showdirectorylinks'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "showlocationbar$k";
-                $link['showlocationbar'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "showmenubar$k";
-                $link['showmenubar'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "showtoolbar$k";
-                $link['showtoolbar'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                $idx = "showstatusbar$k";
-                $link['showstatusbar'] = (isset($_POST[$idx])) && ($_POST[$idx] == "on") ? 1 : 0;
-
-                // defaultwidth + defaultheight
-                $link['defaultwidth'] = !empty($_POST['defaultwidth'][$k]) ? $_POST['defaultwidth'][$k] : 0;
-                $link['defaultheight'] = !empty($_POST['defaultheight'][$k]) ? $_POST['defaultheight'][$k] : 0;
-
-                $data->links[] = $link;
-            }
-        }
         return parent::instance_config_save($data, $nolongerused);
     }
 

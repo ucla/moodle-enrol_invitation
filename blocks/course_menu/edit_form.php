@@ -49,11 +49,6 @@ class block_course_menu_edit_form extends block_edit_form {
             block_course_menu::DEFAULT_TRIM_LENGTH);
         $mform->setType('config_trimlength', PARAM_INT);
 
-        $yesnooptions = array(1 => get_string('yes'), 0 => get_string('no'));
-        $mform->addElement('select', 'config_expandableTree', 
-            get_string('expandable_tree', $this->block->blockname), 
-            $yesnooptions);
-
         $mform->addElement('header', 'configheader', 
             get_string('elements', $this->block->blockname));
         $mform->addElement('html', $this->block->config_elements());

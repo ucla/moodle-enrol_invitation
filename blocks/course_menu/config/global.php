@@ -22,39 +22,12 @@
  */
 
 include($CFG->dirroot . "/blocks/course_menu/js/course_menu.js.php");
-$expandableShow = $this->config->expandableTree ? 'i/hide' : 'i/show';
-$linksShow = $this->config->linksEnable ? 'i/hide' : 'i/show';
 $prefix = "s__block_course_menu_"; //use only as a flag, get the full data from _POST
 ?>
 <!-- html -->
 <div class="expandableTreeTd">
     
 </div>
-<div id="expandableTreeContainer">
-    <div class="expandableTreeTd">
-        <a href="" onclick="changeEnableExpand(); return false;">
-            <img src="<?php echo $OUTPUT->pix_url($expandableShow) ?>" alt="" border="0" id="img_expandableTree" />
-            <?php echo get_string('expandable_tree', $this->blockname) ?>
-            <input type="hidden" name="expandableTree" id="id_expandableTree" value="<?php echo $this->config->expandableTree ?>" />
-            <!-- use only as a flag, get the full data from _POST -->
-            <input type="hidden" name="<?php echo $prefix ?>global_config" value="1" />
-        </a>
-    </div>
-</div>
-<div id="linksEnableContainer">
-    <div class="expandableTreeTd">
-        <a href="" onclick="changeEnableLinks(); return false" class="enableDisable">
-            <img src="<?php echo $OUTPUT->pix_url($linksShow) ?>" border="0" id="img_linksEnable" alt="" />
-            <?php echo get_string('activatecustomlinks', $this->blockname) ?>
-            <input type="hidden" name="linksEnable" value="<?php echo $this->config->linksEnable ?>" id="id_linksEnable" />
-        </a>
-    </div>
-</div>
-<div id="linksContainer" <?php if (!$this->config->linksEnable) echo 'style="display: none";' ?>></div>
-
-<div id="linksEnableContainer"></div>
-<div id="linksContainer"></div>
-<br/><hr/><br/>
 <div id="elementsContainer"></div>
 <!-- (end) html -->
 

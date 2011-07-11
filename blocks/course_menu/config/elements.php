@@ -1,4 +1,28 @@
 <?php
+/*
+ * ----------------------------------------------------------------------------
+ *
+ * This file is part of the Course Menu block for Moodle
+ *
+ * The Course Menu block for Moodle software package is Copyright 2008 onwards
+ * NetSapiensis AB and is provided under the terms of the GNU GENERAL PUBLIC 
+ * LICENSE Version 3 (GPL). This program is free software: you can redistribute 
+ * it and/or modify it under the terms of the GNU General Public License as 
+ * published by the Free Software Foundation, either version 3 of the License, 
+ * or (at your option) any later version.
+ *
+ * This program is free software: you can redistribute it and/or modify it under 
+ * the terms of the GNU General Public License as published by the Free Software 
+ * Foundation, either version 3 of the License, or (at your option) any later 
+ * version. This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details. You should have received 
+ * a copy of the GNU General Public License along with this program.
+ * If not, see <http://www.gnu.org/licenses/>.
+ * ----------------------------------------------------------------------------
+ */
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -68,6 +92,7 @@ function drawElements(parent) {
 				changeVisibility(tr);
 				return false;
 			};
+
 			td.appendChild(a);
 
 			img = document.createElement('img');
@@ -76,13 +101,14 @@ function drawElements(parent) {
 			} else {
 				img.src = otherInfo.imgShow;
 			}
+
 			a.appendChild(img);
 		}
 
 		txt = document.createTextNode(" " + elements[i].name);
 		td.appendChild(txt);
 
-			// add the hidden inputs
+        // add the hidden inputs
 		input = document.createElement('input');
 		input.type  = "hidden";
 		input.name  = "ids[]";
@@ -151,8 +177,7 @@ function drawElements(parent) {
 	}
 }
 
-function moveTr(tr, direction)
-{
+function moveTr(tr, direction) {
 	for (i = 0; i < elementsBody.childNodes.length; i++) {
 		if (elementsBody.childNodes[i] == tr) {
 			if (direction == "up") {
