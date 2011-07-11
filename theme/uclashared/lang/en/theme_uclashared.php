@@ -3,7 +3,7 @@
 $string['pluginname'] = 'UCLA Theme';
 $string['region-side-post'] = 'Right';
 $string['region-side-pre'] = 'Left';
-$string['choosereadme'] = 'The theme to be used by the shared electronic coursework upload system of the education institution of University of California, Los Angeles.';
+$string['choosereadme'] = 'The theme from University of California, Los Angeles.';
 
 // The footer links
 $string['foodis_contact_ccle'] = 'Contact CCLE';
@@ -29,7 +29,7 @@ $string['foolin_myucla'] = 'http://my.ucla.edu/';
 
 $string['control_panel'] = 'Control Panel';
 
-$string['help_n_feedback'] = '<a href="www.google.com">Help & Feedback</a>';
+$string['help_n_feedback'] = 'Help & Feedback';
 
 $string['copyright_information'] = '&copy; 2010 UC Regents';
 
