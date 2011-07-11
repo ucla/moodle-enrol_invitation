@@ -1,7 +1,18 @@
 <?php
-
-/** Renderer for stuff. **/
-
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 class theme_uclashared_core_renderer extends core_renderer {
     private $sep = NULL;
     private $theme = 'theme_uclashared';
@@ -211,14 +222,18 @@ class theme_uclashared_core_renderer extends core_renderer {
      *  TODO This function should not belong to this specific block
      **/
     function call_separate_block_function($blockname, $functionname) {
-        $blockinst = block_instance($blockname);
-
+        global $CFG;
         $blockclassname = 'block_' . $blockname;
+
+        $blockfile = $CFG->dirroot . "/blocks/$blockname/$blockclassname.php";
+        if (file_exists($blockfile)) {
+            require_once($blockfile);
+        }
 
         $course = $this->page->course;
 
         if (method_exists($blockclassname, $functionname)) {
-            $retval = $blockinst->$functionname($course);
+            $retval = $blockclassname::$functionname($course);
         } else {
             return false;
         }
