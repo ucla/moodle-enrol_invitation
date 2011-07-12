@@ -285,7 +285,7 @@ class block_course_menu extends block_base {
 
     /**
      *  This will build an empty configuration, which basically is the
-     *  fallback-default.
+     *  hardcoded fallback-default.
      **/
     function init_default_config($save_it = true) {
         global $CFG, $USER, $OUTPUT;
@@ -497,54 +497,79 @@ class block_course_menu extends block_base {
     // @param $string: string to truncate
     // @param $max_size: length of largest piece when done
     // @param $trunc: string to append to truncated pieces
-    function truncate_description($string, $max_size=20, $trunc = '...') {
-        $split_tags = array('<br>','<BR>','<Br>','<bR>',
-            '</dt>','</dT>','</Dt>','</DT>',
-            '</p>','</P>', '<BR />', '<br />', '<bR />', '<Br />');
+    function truncate_description($string, $max_size=20, $trunc='...') {
+        $split_tags = array('<br>', '</dt>', '</p>', '<br />');
 
-        $temp = $string;
+        $first = strtolower($string);
 
+        // We are only going to grab the text up to the first newline
         foreach($split_tags as $tag) {
-            list($temp) = explode($tag, $temp, 2);
-        }
-        
-        $rstring = strip_tags($temp);
-        $rstring = html_entity_decode($rstring);
+            $group = explode($tag, $first);
 
-        if (strlen($rstring) > $max_size) {
-            $rstring = chunk_split($rstring, ($max_size-strlen($trunc)), "\n");
-            $temp = explode("\n", $rstring);
-            // catches new lines at the beginning
-            if (trim($temp[0]) != '') {
-                $rstring = trim($temp[0]).$trunc;
-            } else {
-               $rstring = trim($temp[1]).$trunc;
+            $first = $group[0];
+            if ($first == '') {
+                $first = $group[1];
             }
         }
+        
+        $clean = strip_tags($first);
+        $rstring = trim(html_entity_decode($clean));
 
+        // This means that the first line is too long
         if (strlen($rstring) > $max_size) {
-            $rstring = substr($rstring, 0, ($max_size - strlen($trunc))).$trunc;
+            // We're going to attempt to split the string automatically
+            // with "\n"
+            $rstring = chunk_split($rstring, 
+                ($max_size - strlen($trunc)), "\n");
+
+            $temp = explode("\n", $rstring);
+            $tempcnt = count($temp);
+            for ($i = 0; $i < $tempcnt; $i++) {
+                $trimmed = trim($temp[$i]);
+
+                if ($trimmed != '') {
+                    break;
+                }
+            }
+
+            // We split, but for some magical reason it is still too long
+            if (strlen($trimmed) > $max_size) {
+                $rstring = substr($rstring, 0, 
+                    ($max_size - strlen($trunc))) . $trunc;
+            } 
         }
-        elseif($rstring == '') {
-            // we chopped everything off... lets fall back to a 
-            // failsafe but harsher truncation
-            $rstring = substr(trim(strip_tags($string)),0,
-                ($max_size - strlen($trunc))).$trunc;
-        }
+
+        $clean = strip_tags($string);
+        $fstring = html_entity_decode($clean);
+
+        $fstring = substr($fstring, 0, strlen($rstring));
 
         // single quotes need escaping
-        return str_replace("'", "\\'", $rstring);
+        return str_replace("'", "\\'", $fstring);
     }
 
+    /**
+     *  Removes all instances of newline and carriage return.
+     *  @param string
+     *  @return string The cleaned up string.
+     **/
     function clear_enters($string) {
         $newstring = str_replace(array(chr(13), chr(10)), 
-            array(' ', ' '), $string));
+            array(' ', ' '), $string);
         return $newstring;
     }
 
     /**
      *  Takes each of the arguments passed int the function and turns them
      *  into an array.
+     *  @param $id
+     *  @param $name
+     *  @param $url
+     *  @param $icon
+     *  @param $canhide
+     *  @param $visible
+     *  @param $expandable
+     *  @return Array All the params folded into an array.
      **/
     function create_element($id, $name, $url, $icon=array(), $canhide=1, 
             $visible=1, $expandable=0) {
@@ -558,7 +583,6 @@ class block_course_menu extends block_base {
         }
 
         $elem['icon']    = $icon;
-
         $elem['canhide'] = $canhide;
         $elem['visible'] = $visible;
         $elem['expandable'] = $expandable;
@@ -566,8 +590,14 @@ class block_course_menu extends block_base {
         return $elem;
     }
 
+    /**
+     *  Converts a certain idcode into a coherent moodle string.
+     *  @param $elementid The element code.
+     *  @return string The Moodle string.
+     **/
     function get_name($elementid) {
         global $DB;
+
         if (isset($this->page->course)) {
             $format = $this->page->course->format;
         } else if (isset($this->instance->pageid)) {
@@ -584,15 +614,13 @@ class block_course_menu extends block_base {
         case 'showgrades':   
             return get_string('gradebook', 'grades');
         case 'sectiongroup': 
-            return get_string("name".$format);
+            return get_string("name" . $format);
         case 'tree':
-            if ($format == 'topics') {
-                return get_string('topics', $this->blockname);
-            } elseif ($format == 'weeks') {
-                return get_string('weeks', $this->blockname);
-            } else {
+            if ($format == '') {
                 return get_string('topicsweeks', $this->blockname);
             }
+
+            return get_string('sectionname', 'format_' . $format);
         default:
             if (strstr($elementid, "link") !== false) {
                 return get_string("link", $this->blockname);
@@ -607,6 +635,11 @@ class block_course_menu extends block_base {
         }
     }
 
+    /**
+     *  Gets the sections of the course, populated with each of their
+     *  resources for the course.
+     *  @return mixed The sections, with resources.
+     **/
     function get_sections() {
         global $CFG, $USER, $DB, $OUTPUT;
       
@@ -697,20 +730,16 @@ class block_course_menu extends block_base {
                     continue;
                 }
 
-                // don't do anything for labels
+                // Do nothing for labels
                 if ($mod->modname == 'label') {
                     continue;
                 }
 
                 $instancename = urldecode($modinfo[$modnumber]->name);
+
+                // Try to clean up the name of the instance.
                 if (!$dont_filter) {
                     $instancename = filter_text($instancename, $course_id);
-                }
-
-                if (!empty($modinfo[$modnumber]->extra)) {
-                    $extra = urldecode($modinfo[$modnumber]->extra);
-                } else {
-                    $extra = "";
                 }
 
                 // Backup name for section module.
@@ -718,13 +747,13 @@ class block_course_menu extends block_base {
                     $instancename = $mod->modfullname;
                 }
 
-                // Why is there an arbitrary 200
-                $instancename = $this->truncate_description($instancename, 200);
-
+                // Special treatment for resources.
                 if ($mod->modname == 'resource') {
                     $info = resource_get_coursemodule_info($mod);
-                    $instancename = $this->truncate_description($info->name, 200);
+                    $instancename = $info->name;
                 }
+                
+                $instancename = $this->truncate_description($instancename, 200);
 
                 $resource = array();
 
@@ -749,7 +778,7 @@ class block_course_menu extends block_base {
             }
         }
 
-        // get rid of the first one why?
+        // get rid of the first one (it's the zero section)
         array_shift($sections);
 
         $this->sectionscache = $sections;
@@ -926,6 +955,7 @@ class block_course_menu extends block_base {
     /**
      *  Called by Moodle, when going to site administration -> 
      *  plugins -> blocks -> course menu
+     *  And every page.
      **/
     function output_global_config() {
         global $CFG, $THEME, $OUTPUT;
