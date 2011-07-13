@@ -1,6 +1,7 @@
 <?php
 
-include_once('course_exception.class.php');
+include_once($CFG->libdir.'/publicprivate/course_exception.class.php');
+include_once($CFG->dirroot.'/group/lib.php');
 
 /**
  * PublicPrivate_Course
@@ -49,7 +50,7 @@ class PublicPrivate_Course
             $this->_course = $course;
         }
 
-        if(!isset($this->_course->grouppublicprivate) || !isset($this->_course->groupautoassign))
+        if(!isset($this->_course->enablepublicprivate) || !isset($this->_course->grouppublicprivate) || !isset($this->_course->groupingpublicprivate))
         {
             throw new PublicPrivate_Course_Exception('Required course properties not available for __construct.', 101);
         }
@@ -59,6 +60,7 @@ class PublicPrivate_Course
      * Returns a PublicPrivate_Course object for the provided $course.
      *
      * @param int|object $course Integer courseid or course record object
+     * @return PublicPrivate_Course
      * @throws PublicPrivate_Course_Exception [100|101]
      */
     public static function build($course)
@@ -84,6 +86,8 @@ class PublicPrivate_Course
      */
     public function activate()
     {
+        global $DB;
+
         /*
          * Cannot activate if already activated.
          */
@@ -97,64 +101,64 @@ class PublicPrivate_Course
          * Change name of an existing group with name get_string('publicprivategroupname')
          */
         
-        if($groupid = groups_get_group_by_name($courseid, get_string('publicprivategroupname')))
+        if($groupid = groups_get_group_by_name($this->_course->id, get_string('publicprivategroupname')))
         {
             $data = groups_get_group($groupid);
-            if(!groups_get_group_by_name($courseid,  $data->name . ' ' . get_string('publicprivategroupdeprecated')))
+            if(!groups_get_group_by_name($this->_course->id,  $data->name . ' ' . get_string('publicprivategroupdeprecated')))
             {
                 $data->name = $data->name . ' ' . get_string('publicprivategroupdeprecated');
             }
             else
             {
                 for($i = 1;
-                    groups_get_group_by_name($courseid,  $data->name . ' ' . get_string('autoassigndeprecatedgroup') . ' [' . $i . ']');
+                    groups_get_group_by_name($this->_course->id,  $data->name . ' ' . get_string('autoassigndeprecatedgroup') . ' [' . $i . ']');
                     $i++);
                 $data->name = $data->name . ' ' . get_string('autoassigndeprecatedgroup') . ' [' . $i . ']';
             }
-        }
-
-        try
-        {
-            if(!groups_update_group($data))
+            
+            try
             {
-                throw new PublicPrivate_Course_Exception('Failed to move existing group with required group name.', 201);
+                if(!groups_update_group($data))
+                {
+                    throw new PublicPrivate_Course_Exception('Failed to move existing group with required group name.', 201);
+                }
             }
-        }
-        catch(DML_Exception $e)
-        {
-            throw new PublicPrivate_Course_Exception('Failed to move existing group with required group name.', 201, $e);
+            catch(DML_Exception $e)
+            {
+                throw new PublicPrivate_Course_Exception('Failed to move existing group with required group name.', 201, $e);
+            }
         }
 
         /*
          * Change name of an existing grouping with name get_string('publicprivategroupingname')
          */
 
-        if($groupingid = groups_get_grouping_by_name($courseid, get_string('publicprivategroupingname')))
+        if($groupingid = groups_get_grouping_by_name($this->_course->id, get_string('publicprivategroupingname')))
         {
             $data = groups_get_group($groupingid);
-            if(!groups_get_grouping_by_name($courseid,  $data->name . ' ' . get_string('publicprivategroupingdeprecated')))
+            if(!groups_get_grouping_by_name($this->_course->id,  $data->name . ' ' . get_string('publicprivategroupingdeprecated')))
             {
                 $data->name = $data->name . ' ' . get_string('publicprivategroupingdeprecated');
             }
             else
             {
                 for($i = 1;
-                    groups_get_grouping_by_name($courseid,  $data->name . ' ' . get_string('publicprivategroupingdeprecated') . ' [' . $i . ']');
+                    groups_get_grouping_by_name($this->_course->id,  $data->name . ' ' . get_string('publicprivategroupingdeprecated') . ' [' . $i . ']');
                     $i++);
                 $data->name = $data->name . ' ' . get_string('publicprivategroupingdeprecated') . ' [' . $i . ']';
             }
-        }
 
-        try
-        {
-            if(!groups_update_grouping($data))
+            try
             {
-                throw new PublicPrivate_Course_Exception('Failed to move existing grouping with required group name.', 202);
+                if(!groups_update_grouping($data))
+                {
+                    throw new PublicPrivate_Course_Exception('Failed to move existing grouping with required group name.', 202);
+                }
             }
-        }
-        catch(DML_Exception $e)
-        {
-            throw new PublicPrivate_Course_Exception('Failed to move existing grouping with required group name.', 202, $e);
+            catch(DML_Exception $e)
+            {
+                throw new PublicPrivate_Course_Exception('Failed to move existing grouping with required group name.', 202, $e);
+            }
         }
 
         /*
@@ -162,7 +166,7 @@ class PublicPrivate_Course
          */
 
         $data = new object();
-        $data->courseid = $courseid;
+        $data->courseid = $this->_course->id;
         $data->name = get_string('publicprivategroupname');
         $data->description = get_string('publicprivategroupdescription');
 
@@ -183,7 +187,7 @@ class PublicPrivate_Course
          */
 
         $data = new object();
-        $data->courseid = $courseid;
+        $data->courseid = $this->_course->id;
         $data->name = get_string('publicprivategroupingname');
         $data->description = get_string('publicprivategroupingdescription');
 
@@ -219,16 +223,14 @@ class PublicPrivate_Course
          * Update course settings for public/private.
          */
 
+        $this->_course->enablepublicprivate = 1;
         $this->_course->grouppublicprivate = $newgroupid;
         $this->_course->groupingpublicprivate = $newgroupingid;
         $this->_course->guest = 1;
 
         try
         {
-            if(!update_course($this->_course))
-            {
-                throw new PublicPrivate_Course_Exception('Failed to update course settings for public/private.', 206);
-            }
+            update_course($this->_course);
         }
         catch(DML_Exception $e)
         {
@@ -241,8 +243,9 @@ class PublicPrivate_Course
 
         try
         {
-            set_field('course_modules', 'groupingid', $newgroupingid, 'course', $this->_course->id, 'groupmembersonly', 0, 'groupingid', 0);
-            set_field('course_modules', 'groupmembersonly', 1, 'course', $this->_course->id, 'groupmembersonly', 0, 'groupingid', 0);
+            $conditions = array('course'=>$this->_course->id, 'groupmembersonly'=>0, 'groupingid'=>0);
+            $DB->set_field('course_modules', 'groupingid', $newgroupingid, $conditions);
+            $DB->set_field('course_modules', 'groupmembersonly', 1, $conditions);
         }
         catch(DML_Exception $e)
         {
@@ -270,6 +273,8 @@ class PublicPrivate_Course
      */
     public function deactivate()
     {
+        global $DB;
+
         /*
          * Cannot deactivate if not activated.
          */
@@ -285,15 +290,13 @@ class PublicPrivate_Course
 
         $oldgrouppublicprivate = $this->_course->grouppublicprivate;
         $oldgroupingpublicprivate = $this->_course->groupingpublicprivate;
+        $this->_course->enablepublicprivate = 0;
         $this->_course->grouppublicprivate = 0;
         $this->_course->groupingpublicprivate = 0;
 
         try
         {
-            if(!update_course($this->_course))
-            {
-                throw new PublicPrivate_Course_Exception('Failed to update course settings to disable public/private.', 301);
-            }
+            update_course($this->_course);
         }
         catch(DML_Exception $e)
         {
@@ -306,8 +309,9 @@ class PublicPrivate_Course
 
         try
         {
-            set_field('course_modules', 'groupingid', 0, 'course', $this->_course->id, 'groupmembersonly', 0, 'groupingid', $this->_course->groupingpublicprivate);
-            set_field('course_modules', 'groupmembersonly', 0, 'course', $this->_course->id, 'groupmembersonly', 0, 'groupingid', $this->_course->groupingpublicprivate);
+            $conditions = array('course'=>$this->_course->id, 'groupmembersonly'=>1, 'groupingid'=>$this->_course->groupingpublicprivate);
+            $DB->set_field('course_modules', 'groupingid', 0, $conditions);
+            $DB->set_field('course_modules', 'groupmembersonly', 0, $conditions);
         }
         catch(DML_Exception $e)
         {
@@ -378,31 +382,30 @@ class PublicPrivate_Course
                                 AND ra.userid NOT IN (
                                     SELECT DISTINCT userid 
                                     FROM '.$CFG->prefix.'groups_members
-                                    WHERE groupid = '.$this->_course->grouppublicprivate.');');
+                                    WHERE groupid = '.$this->_course->grouppublicprivate.')');
         }
         catch(DML_Exception $e)
         {
             try
             {
-                $sql = 'SELECT DISTINCT ra.userid
-                        FROM '.$CFG->prefix.'role_assignments ra
-                        WHERE ra.contextid = '.$context->id.'
-                            AND ra.userid NOT IN (
-                                    SELECT DISTINCT userid
-                                    FROM '.$CFG->prefix.'groups_members
-                                    WHERE groupid = '.$this->_course->grouppublicprivate.');';
-                $rs = get_recordset_sql($sql);
-                
-                while($row = rs_fetch_next_record($rs))
+                $rs = $DB->get_records('role_assignments', array('contextid'=>$context->id));
+
+                $seen = array();
+                foreach($rs as $row)
                 {
+                    if(isset($seen[$row->id]))
+                    {
+                        continue;
+                    }
+
+                    $seen[$row->id] = true;
+
                     $member = new object();
                     $member->groupid = $this->_course->grouppublicprivate;
                     $member->userid = $row->userid;
                     $member->timeadded = time();
-                    if(!insert_record('groups_members', $member))
-                    {
-                        throw new PublicPrivate_Course_Exception('Failed to add users with an explicit assignment to public/private group.', 401);
-                    }
+                    
+                    $DB->insert_record('groups_members', $member);
                 }
             }
             catch(DML_Exception $e)
@@ -469,10 +472,7 @@ class PublicPrivate_Course
             $member->groupid = $this->_course->grouppublicprivate;
             $member->userid = $userid;
             $member->timeadded = time();
-            if(!insert_record('groups_members', $member))
-            {
-                throw new PublicPrivate_Course_Exception('Failed to add user to public/private group.', 502);
-            }
+            $DB->insert_record('groups_members', $member);
         }
         catch(DML_Exception $e)
         {
@@ -520,10 +520,7 @@ class PublicPrivate_Course
 
         try
         {
-            if(!delete_records('groups_members', 'groupid', $this->_course->grouppublicprivate, 'userid', $userid))
-            {
-                throw new PublicPrivate_Course_Exception('Failed to add user to public/private group.', 602);
-            }
+            $DB->delete_records('groups_members', array('groupid'=>$this->_course->grouppublicprivate, 'userid'=>$userid));
         }
         catch(DML_Exception $e)
         {
@@ -572,7 +569,7 @@ class PublicPrivate_Course
 
         try
         {
-            return record_exists('groups_members', 'groupid', $this->_course->grouppublicprivate, 'userid', $userid);
+            return $DB->record_exists('groups_members', array('groupid'=>$this->_course->grouppublicprivate, 'userid'=>$userid));
         }
         catch(DML_Exception $e)
         {

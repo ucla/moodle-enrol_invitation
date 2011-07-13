@@ -1,19 +1,12 @@
 <?php
 
-class PublicPrivate_Exception extends Exception
+if(method_exists('Exception', 'getPrevious'))
 {
-    private $previous = false;
-
-    public function __construct($message, $code = 0, Exception $previous = false)
-    {
-        parent::__construct($message, $code);
-        $this->previous = $previous;
-    }
-
-    public function getPrevious()
-    {
-        return $this->previous;
-    }
+    include_once($CFG->libdir.'/publicprivate/exception.base.class.php');
+}
+else
+{
+    include_once($CFG->libdir.'/publicprivate/exception.compat.class.php');
 }
 
 ?>

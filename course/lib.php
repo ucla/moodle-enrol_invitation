@@ -3740,6 +3740,17 @@ function create_course($data, $editoroptions = NULL) {
     // Trigger events
     events_trigger('course_created', $course);
 
+    $pubpriv_course = new PublicPrivate_Course($course);
+    if($course->enablepublicprivate == 1)
+    {
+        $pubpriv_course->activate();
+        $pubpriv_course->add_enrolled_users();
+    }
+    else if($pubpriv_course->is_activated())
+    {
+        $pubpriv_course->deactivate();
+    }
+
     return $course;
 }
 
@@ -3819,6 +3830,20 @@ function update_course($data, $editoroptions = NULL) {
 
     // Trigger events
     events_trigger('course_updated', $course);
+
+    if($data->enablepublicprivate != $oldcourse->enablepublicprivate)
+    {
+        $pubpriv_course = new PublicPrivate_Course($course);
+        if($course->enablepublicprivate == 1)
+        {
+            $pubpriv_course->activate();
+            $pubpriv_course->add_enrolled_users();
+        }
+        else if($pubpriv_course->is_activated())
+        {
+            $pubpriv_course->deactivate();
+        }
+    }
 }
 
 /**

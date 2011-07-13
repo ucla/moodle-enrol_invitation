@@ -89,9 +89,10 @@
         <FIELD NAME="showreports" TYPE="int" LENGTH="4" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="legacyfiles" NEXT="visible"/>
         <FIELD NAME="visible" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="1" SEQUENCE="false" PREVIOUS="showreports" NEXT="visibleold"/>
         <FIELD NAME="visibleold" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="1" SEQUENCE="false" COMMENT="the state of visible field when hiding parent category, this helps us to recover hidden states when unhiding the parent category later" PREVIOUS="visible" NEXT="hiddensections"/>
-        <FIELD NAME="hiddensections" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="visibleold" NEXT="grouppublicprivate"/>
-        <FIELD NAME="grouppublicprivate" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="hiddensections" NEXT="groupingpublicprivate"/>
-        <FIELD NAME="grouppublicprivate" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="grouppublicprivate" NEXT="groupmode"/>
+        <FIELD NAME="hiddensections" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="visibleold" NEXT="enablepublicprivate"/>
+        <FIELD NAME="enablepublicprivate" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="hiddensections" NEXT="grouppublicprivate"/>
+        <FIELD NAME="grouppublicprivate" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="enablepublicprivate" NEXT="groupingpublicprivate"/>
+        <FIELD NAME="groupingpublicprivate" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="grouppublicprivate" NEXT="groupmode"/>
         <FIELD NAME="groupmode" TYPE="int" LENGTH="4" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="groupingpublicprivate" NEXT="groupmodeforce"/>
         <FIELD NAME="groupmodeforce" TYPE="int" LENGTH="4" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="groupmode" NEXT="defaultgroupingid"/>
         <FIELD NAME="defaultgroupingid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="default grouping used in course modules, does not have key intentionally" PREVIOUS="groupmodeforce" NEXT="lang"/>
