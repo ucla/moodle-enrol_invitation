@@ -34,7 +34,7 @@ class PublicPrivate_Course
         {
             try
             {
-                $this->_course = $DB->get_record('course', array('id'=>$id), '*', MUST_EXIST);
+                $this->_course = $DB->get_record('course', array('id'=>$course), '*', MUST_EXIST);
             }
             catch(DML_Exception $e)
             {
@@ -442,13 +442,13 @@ class PublicPrivate_Course
 
         $userid = is_scalar($user)
                     ? $user
-                    : is_object($user) && isset($user->id)
+                    : (is_object($user) && isset($user->id)
                         ? $user->id
-                        : is_array($user) && isset($user['id'])
+                        : (is_array($user) && isset($user['id'])
                             ? $user['id']
-                            : false;
+                            : false));
 
-        if(!$userid)
+        if($userid === false)
         {
             throw new PublicPrivate_Course_Exception('Required user properties not available for add user to public/private group.', 501);
         }
@@ -488,6 +488,8 @@ class PublicPrivate_Course
      */
     public function remove_user($user)
     {
+        global $DB;
+
         /*
          * Cannot add enrolled if public/private not activated.
          */
@@ -503,13 +505,13 @@ class PublicPrivate_Course
 
         $userid = is_scalar($user)
                     ? $user
-                    : is_object($user) && isset($user->id)
+                    : (is_object($user) && isset($user->id)
                         ? $user->id
-                        : is_array($user) && isset($user['id'])
+                        : (is_array($user) && isset($user['id'])
                             ? $user['id']
-                            : false;
+                            : false));
 
-        if(!$userid)
+        if($userid === false)
         {
             throw new PublicPrivate_Course_Exception('Required user properties not available to remove user to public/private group.', 601);
         }
@@ -537,6 +539,8 @@ class PublicPrivate_Course
      */
     public function is_member($user)
     {
+        global $DB;
+
         /*
          * Cannot add enrolled if public/private not activated.
          */
@@ -552,13 +556,13 @@ class PublicPrivate_Course
 
         $userid = is_scalar($user)
                     ? $user
-                    : is_object($user) && isset($user->id)
+                    : (is_object($user) && isset($user->id)
                         ? $user->id
-                        : is_array($user) && isset($user['id'])
+                        : (is_array($user) && isset($user['id'])
                             ? $user['id']
-                            : false;
+                            : false));
 
-        if(!$userid)
+        if($userid === false)
         {
             throw new PublicPrivate_Course_Exception('Required user properties not available to remove user to public/private group.', 701);
         }

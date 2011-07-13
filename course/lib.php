@@ -28,6 +28,7 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->libdir.'/completionlib.php');
 require_once($CFG->libdir.'/filelib.php');
+require_once($CFG->libdir.'/publicprivate/course.class.php');
 
 define('COURSE_MAX_LOG_DISPLAY', 150);          // days
 define('COURSE_MAX_LOGS_PER_PAGE', 1000);       // records
