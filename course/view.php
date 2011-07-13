@@ -211,6 +211,17 @@
     // Course wrapper start.
     echo html_writer::start_tag('div', array('class'=>'course-content'));
 
+    include_once($CFG->libdir.'/publicprivate/course.class.php');
+    $publicprivate_course = new PublicPrivate_Course($course);
+    if($publicprivate_course->is_activated() && (!isset($USER->id) || $USER->id == 1))
+    {
+        echo html_writer::start_tag('div', array('style'=>'margin-left:auto; margin-right:auto; width:650px; border:1px solid #fc3; background-color:#ff9; font-size: .8em; padding: 6px 4px 6px 4px; margin-top: 12px; margin-bottom:8px; text-align: center;'));
+        echo html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('i/warning'), 'style'=>'vertical-align:middle; padding-left: 4px; padding-right: 4px;'));
+        echo html_writer::empty_tag('br');
+        echo 'This is the public display of the course site. <br/>If you are enrolled, please '.html_writer::tag('a', 'log in', array('href'=>new moodle_url('/login/index.php'), 'title'=>'log in')).' to view private course materials.';
+        echo html_writer::end_tag('div');
+    }
+
     $modinfo =& get_fast_modinfo($COURSE);
     get_all_mods($course->id, $mods, $modnames, $modnamesplural, $modnamesused);
     foreach($mods as $modid=>$unused) {
