@@ -143,6 +143,8 @@ class jsportal {
         $output .= "    main.portal.strings['hide']='".addslashes_js(get_string('hide'))."';\n";
         $output .= "    main.portal.strings['hidesection']='".addslashes_js(get_string('hidesection', '', '_var_'))."';\n";
         $output .= "    main.portal.strings['show']='".addslashes_js(get_string('show'))."';\n";
+        $output .= "    main.portal.strings['publicprivate_makepublic']='".get_string('publicprivatemakepublic')."';\n";
+        $output .= "    main.portal.strings['publicprivate_makeprivate']='".get_string('publicprivatemakeprivate')."';\n";
         $output .= "    main.portal.strings['delete']='".addslashes_js(get_string('delete'))."';\n";
         $output .= "    main.portal.strings['move']='".addslashes_js(get_string('move'))."';\n";
         $output .= "    main.portal.strings['movesection']='".addslashes_js(get_string('movesection', '', '_var_'))."';\n";
@@ -166,6 +168,8 @@ class jsportal {
         $output .= "    main.portal.icons['move_2d']='".$OUTPUT->pix_url('i/move_2d')."';\n";
         $output .= "    main.portal.icons['show']='".$OUTPUT->pix_url('t/show')."';\n";
         $output .= "    main.portal.icons['hide']='".$OUTPUT->pix_url('t/hide')."';\n";
+        $output .= "    main.portal.icons['publicprivate_public']='".$OUTPUT->pix_url('t/public')."';\n";
+        $output .= "    main.portal.icons['publicprivate_private']='".$OUTPUT->pix_url('t/private')."';\n";
         $output .= "    main.portal.icons['delete']='".$OUTPUT->pix_url('t/delete')."';\n";
         $output .= "    main.portal.icons['groupn']='".$OUTPUT->pix_url('t/groupn')."';\n";
         $output .= "    main.portal.icons['groups']='".$OUTPUT->pix_url('t/groups')."';\n";

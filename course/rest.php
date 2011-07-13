@@ -116,6 +116,32 @@ switch($requestmethod) {
                         set_coursemodule_visible($cm->id, $value);
                         break;
 
+                    case 'public':
+
+                        require_once($CFG->libdir.'/publicprivate/course.class.php');
+                        $publicprivate_course = new PublicPrivate_Course($cm->course);
+
+                        if($publicprivate_course->is_activated())
+                        {
+                            require_once($CFG->libdir.'/publicprivate/module.class.php');
+                            PublicPrivate_Module::build($cm)->disable();
+                        }
+                        
+                        break;
+
+                    case 'private':
+
+                        require_once($CFG->libdir.'/publicprivate/course.class.php');
+                        $publicprivate_course = new PublicPrivate_Course($cm->course);
+
+                        if($publicprivate_course->is_activated())
+                        {
+                            require_once($CFG->libdir.'/publicprivate/module.class.php');
+                            PublicPrivate_Module::build($cm)->enable();
+                        }
+
+                        break;
+
                     case 'groupmode':
                         set_coursemodule_groupmode($cm->id, $value);
                         break;

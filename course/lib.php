@@ -3052,6 +3052,8 @@ function make_editing_buttons($mod, $absolute=false, $moveselect=true, $indent=-
         $str->duplicate      = get_string("duplicate");
         $str->hide           = get_string("hide");
         $str->show           = get_string("show");
+        $str->public         = get_string("publicprivatemakepublic");
+        $str->private        = get_string("publicprivatemakeprivate");
         $str->clicktochange  = get_string("clicktochange");
         $str->forcedmode     = get_string("forcedmode");
         $str->groupsnone     = get_string("groupsnone");
@@ -3085,6 +3087,28 @@ function make_editing_buttons($mod, $absolute=false, $moveselect=true, $indent=-
         }
     } else {
         $hideshow = '';
+    }
+
+    require_once($CFG->libdir.'/publicprivate/course.class.php');
+    $publicprivate_course = new PublicPrivate_Course($mod->course);
+    if($publicprivate_course->is_activated())
+    {
+        require_once($CFG->libdir.'/publicprivate/module.class.php');
+        $publicprivate_module = new PublicPrivate_Module($mod->id);
+        if($publicprivate_module->is_public())
+        {
+            $pubpriv = '<a class="editing_makeprivate" title="'.$str->private.'" href="'.$path.'/mod.php?private='.$mod->id.
+                        '&amp;sesskey='.$sesskey.$section.'"><img'.
+                        ' src="'.$OUTPUT->pix_url('t/public').'" class="iconsmall" '.
+                        ' alt="'.$str->private.'" /></a>'."\n";
+        }
+        else
+        {
+            $pubpriv = '<a class="editing_makepublic" title="'.$str->public.'" href="'.$path.'/mod.php?public='.$mod->id.
+                        '&amp;sesskey='.$sesskey.$section.'"><img'.
+                        ' src="'.$OUTPUT->pix_url('t/private').'" class="iconsmall" '.
+                        ' alt="'.$str->public.'" /></a>'."\n";
+        }
     }
 
     if ($mod->groupmode !== false) {
@@ -3181,7 +3205,7 @@ function make_editing_buttons($mod, $absolute=false, $moveselect=true, $indent=-
            '<a class="editing_delete" title="'.$str->delete.'" href="'.$path.'/mod.php?delete='.$mod->id.
            '&amp;sesskey='.$sesskey.$section.'"><img'.
            ' src="'.$OUTPUT->pix_url('t/delete') . '" class="iconsmall" '.
-           ' alt="'.$str->delete.'" /></a>'."\n".$hideshow.$groupmode."\n".$assign.'</span>';
+           ' alt="'.$str->delete.'" /></a>'."\n".$hideshow.$pubpriv.$groupmode."\n".$assign.'</span>';
 }
 
 /**
