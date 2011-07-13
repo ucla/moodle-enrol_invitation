@@ -2132,6 +2132,43 @@ class admin_setting_configcheckbox extends admin_setting {
     }
 }
 
+class admin_setting_configcheckbox_disabled extends admin_setting_configcheckbox {
+
+    /**
+     * Returns an XHTML checkbox field
+     *
+     * @param string $data If $data matches yes then checkbox is checked
+     * @param string $query
+     * @return string XHTML field
+     */
+    public function output_html($data, $query='') {
+        $default = $this->get_defaultsetting();
+
+        if (!is_null($default)) {
+            if ((string)$default === $this->yes) {
+                $defaultinfo = get_string('checkboxyes', 'admin');
+            } else {
+                $defaultinfo = get_string('checkboxno', 'admin');
+            }
+        } else {
+            $defaultinfo = NULL;
+        }
+
+        if ((string)$data === $this->yes) { // convert to strings before comparison
+            $checked = 'checked="checked"';
+            $this->no = $this->yes;
+        } else {
+            $checked = '';
+            $this->yes = $this->no;
+        }
+
+        return format_admin_setting($this, $this->visiblename,
+        '<div class="form-checkbox defaultsnext" ><input type="hidden" name="'.$this->get_full_name().'" value="'.s($this->no).'" /> '
+            .'<input type="checkbox" id="'.$this->get_id().'" name="'.$this->get_full_name().'" value="'.s($this->yes).'" '.$checked.' DISABLED /></div>',
+        $this->description, true, '', $defaultinfo, $query);
+    }
+}
+
 
 /**
  * Multiple checkboxes, each represents different value, stored in csv format
@@ -5939,6 +5976,14 @@ function admin_write_settings($formdata) {
             continue; // not a config value
         }
         $data[$fullname] = $value;
+    }
+
+    if($formdata['section'] == 'experimentalsettings'
+            && array_key_exists('s__enablegroupmembersonly', $data)
+            && array_key_exists('s__enablepublicprivate', $data))
+    {
+        if($data['s__enablegroupmembersonly'] == '0' && $data['s__enablepublicprivate'] == '1')
+            $data['s__enablepublicprivate'] = '0';
     }
 
     $adminroot = admin_get_root();

@@ -3102,6 +3102,7 @@ function make_editing_buttons($mod, $absolute=false, $moveselect=true, $indent=-
      */
     require_once($CFG->libdir.'/publicprivate/course.class.php');
     $publicprivate_course = new PublicPrivate_Course($mod->course);
+    $pubpriv = '';
     if($publicprivate_course->is_activated())
     {
         /**

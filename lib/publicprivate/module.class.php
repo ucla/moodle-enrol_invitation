@@ -14,8 +14,6 @@ include_once($CFG->libdir.'/datalib.php');
  * @uses PublicPrivate_Module_Exception
  * @uses $DB
  * @uses $CFG
- *
- * @todo PUBPRI - need to set enablegroupmembersonly $CFG var in install
  */
 
 class PublicPrivate_Module

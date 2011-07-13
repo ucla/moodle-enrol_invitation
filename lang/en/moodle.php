@@ -1828,13 +1828,7 @@ $string['publicprivate'] = 'Public/Private';
 $string['publicprivateadd'] = 'Add Public/Private functionality';
 $string['publicprivateupgradesure'] = 'Public/Private functionality appears to be present, but not installed. <br /><br />
 Moodle would now like to install Public/Private functionality on the server.<br /><br />';
-$string['publicprivateenable'] = 'Enable Public/Private';
-$string['publicprivateenable_description'] = 'This setting enables the use of the experimental public/private modification. <b>Groupings must be enabled for this to work correctly.</b> NOTE: Disabling this will turn off public/private toggle, but sites already using public/private will still operate via the method.';
 $string['publicprivaterestore'] = 'Default Public/Private on Restore';
 $string['publicprivaterestore_description'] = 'In the event that a restore occurs from an instance of Moodle that does not include public/private, if this setting is defined, the restored course will default to public/private enabled.';
 $string['publicprivate_option_enable'] = 'Course Editors Can Set Public/Private';
 $string['publicprivate_option_enable_description'] = 'If checked, course editors can turn public/private on/off. Otherwise, only administrators can do this.';
-$string['enablepublicprivate'] = 'Enable Public/Private';
-$string['enablepublicprivate_help'] = '<h1>Public/Private Functionality</h1>
-<p>Enabling public/private functionality for a course alters several settings in order to create a hybrid course with both public and private material.</p>
-<p>When enabled, it will create a toggle for all activities that allow for the material to be set either private to course users or public to guests as well. To this end, it creates a special group (&quot;Course Members&quot;) and a special grouping (&quot;Private Course Material&quot;). It disables the auto-assign groups and available to guest settings.</p>';

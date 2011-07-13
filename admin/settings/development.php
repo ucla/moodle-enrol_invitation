@@ -15,7 +15,17 @@ if ($hassiteconfig) { // speedup for non-admins, add all caps used on this page
     //TODO: Re-enable cc-import once re-implemented in 2.0.x
     //$temp->add(new admin_setting_configcheckbox('enableimsccimport', get_string('enable_cc_import', 'imscc'), get_string('enable_cc_import_description', 'imscc'), 0));
     $temp->add(new admin_setting_configcheckbox('enablesafebrowserintegration', get_string('enablesafebrowserintegration', 'admin'), get_string('configenablesafebrowserintegration', 'admin'), 0));
-    $temp->add(new admin_setting_configcheckbox('enablegroupmembersonly', get_string('enablegroupmembersonly', 'admin'), get_string('configenablegroupmembersonly', 'admin'), 0));
+
+    include_once($CFG->libdir.'/publicprivate/site.class.php');
+
+    $checkbox_class = PublicPrivate_Site::is_enabled() ? 'admin_setting_configcheckbox_disabled' : 'admin_setting_configcheckbox';
+    $temp->add(new $checkbox_class('enablegroupmembersonly', get_string('enablegroupmembersonly', 'admin'), get_string('configenablegroupmembersonly', 'admin'), 0));
+
+    if(PublicPrivate_Site::is_installed() || PublicPrivate_Site::is_enabled())
+    {
+        $checkbox_class = PublicPrivate_Site::can_enable() ? 'admin_setting_configcheckbox' : 'admin_setting_configcheckbox_disabled';
+        $temp->add(new $checkbox_class('enablepublicprivate', get_string('enablepublicprivate', 'admin'), get_string('enablepublicprivate_description', 'admin'), 0));
+    }
 
     $ADMIN->add('experimental', $temp);
 
