@@ -145,6 +145,7 @@ class jsportal {
         $output .= "    main.portal.strings['show']='".addslashes_js(get_string('show'))."';\n";
         $output .= "    main.portal.strings['publicprivate_makepublic']='".get_string('publicprivatemakepublic')."';\n";
         $output .= "    main.portal.strings['publicprivate_makeprivate']='".get_string('publicprivatemakeprivate')."';\n";
+        $output .= "    main.portal.strings['publicprivate_groupingname']='".get_string('publicprivategroupingname')."';\n";
         $output .= "    main.portal.strings['delete']='".addslashes_js(get_string('delete'))."';\n";
         $output .= "    main.portal.strings['move']='".addslashes_js(get_string('move'))."';\n";
         $output .= "    main.portal.strings['movesection']='".addslashes_js(get_string('movesection', '', '_var_'))."';\n";
