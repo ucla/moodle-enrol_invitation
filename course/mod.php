@@ -44,8 +44,14 @@ $course        = optional_param('course', 0, PARAM_INT);
 $groupmode     = optional_param('groupmode', -1, PARAM_INT);
 $cancelcopy    = optional_param('cancelcopy', 0, PARAM_BOOL);
 $confirm       = optional_param('confirm', 0, PARAM_BOOL);
-$public        = optional_param('public', 0, PARAM_BOOL);
-$private       = optional_param('private', 0, PARAM_BOOL);
+
+/**
+ * Public/private optional parameters where, if set, will enable or disable
+ * public/private for the course module instance that is the integer value for
+ * the parameter.
+ */
+$public        = optional_param('public', 0, PARAM_INT);
+$private       = optional_param('private', 0, PARAM_INT);
 
 // This page should always redirect
 $url = new moodle_url('/course/mod.php');
@@ -319,6 +325,13 @@ if ((!empty($movetosection) or !empty($moveto)) and confirm_sesskey()) {
         redirect("view.php?id=$cm->course#section-$cm->sectionnum");
     }
 
+/**
+ * If optional parameter $public is set, disable public/private protection over
+ * the course module instance.
+ *
+ * @throws PublicPrivate_Course_Exception
+ * @throws PublicPrivate_Module_Exception
+ */
 } else if ($public and confirm_sesskey()) {
 
     if (!$cm = get_coursemodule_from_id('', $public, 0, true)) {
@@ -339,6 +352,13 @@ if ((!empty($movetosection) or !empty($moveto)) and confirm_sesskey()) {
         throw new PublicPrivate_Module_Exception('Illegal action as public/private is not enabled for the course.', 900);
     }
 
+/**
+ * If optional parameter $private is set, enable public/private protection over
+ * the course module instance.
+ *
+ * @throws PublicPrivate_Course_Exception
+ * @throws PublicPrivate_Module_Exception
+ */
 } else if ($private and confirm_sesskey()) {
 
     if (!$cm = get_coursemodule_from_id('', $private, 0, true)) {

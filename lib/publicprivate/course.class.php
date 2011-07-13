@@ -18,13 +18,18 @@ include_once($CFG->dirroot.'/group/lib.php');
 
 class PublicPrivate_Course
 {
+    /**
+     * The represented record from the `course` table.
+     *
+     * @var object
+     */
     private $_course = null;
 
     /**
      * Constructor for a PublicPrivate_Course object bound to $course.
      *
-     * @param int|object $course Integer course id or course record object
-     * @throws PublicPrivate_Course_Exception [100|101]
+     * @param int|object|array $course
+     * @throws PublicPrivate_Course_Exception
      */
     public function __construct($course)
     {
@@ -59,9 +64,9 @@ class PublicPrivate_Course
     /**
      * Returns a PublicPrivate_Course object for the provided $course.
      *
-     * @param int|object $course Integer courseid or course record object
+     * @param int|object|array $course
+     * @throws PublicPrivate_Course_Exception
      * @return PublicPrivate_Course
-     * @throws PublicPrivate_Course_Exception [100|101]
      */
     public static function build($course)
     {
@@ -148,7 +153,8 @@ class PublicPrivate_Course
      * Activates public/private for a course that does not already have public/
      * private enabled.
      *
-     * @throws PublicPrivate_Course_Exception [200-208]
+     * @global Moodle_Database $DB
+     * @throws PublicPrivate_Course_Exception
      */
     public function activate()
     {
@@ -335,7 +341,8 @@ class PublicPrivate_Course
     /**
      * Deactivates public/private for a course that has public/private enabled.
      *
-     * @throws PublicPrivate_Course_Exception [300-303]
+     * @global Moodle_Database $DB
+     * @throws PublicPrivate_Course_Exception
      */
     public function deactivate()
     {
@@ -414,9 +421,9 @@ class PublicPrivate_Course
      * public/private group if they're not already in the public/private
      * group.
      *
-     * @global object $DB
      * @global object $CFG
-     * @throws PublicPrivate_Course_Exception [400-401]
+     * @global Moodle_Database $DB
+     * @throws PublicPrivate_Course_Exception
      */
     public function add_enrolled_users()
     {
@@ -485,9 +492,9 @@ class PublicPrivate_Course
      * Add user to the public/private group if they're not already in the
      * public/private group.
      *
-     * @global object $DB
      * @global object $CFG
-     * @throws PublicPrivate_Course_Exception [500-502]
+     * @global Moodle_Database $DB
+     * @throws PublicPrivate_Course_Exception
      */
     public function add_user($user)
     {
@@ -549,8 +556,8 @@ class PublicPrivate_Course
     /**
      * Remove user from the public/private group.
      *
-     * @param int|object $user Integer user id or user record object
-     * @throws PublicPrivate_Course_Exception [600-602]
+     * @param int|object $user
+     * @throws PublicPrivate_Course_Exception
      */
     public function remove_user($user)
     {
@@ -599,9 +606,9 @@ class PublicPrivate_Course
     /**
      * Check if the user is currently a member of public/private group.
      *
-     * @param int|object $user Integer user id or user record object
-     * @return boolean true if user is a member or false if not
-     * @throws PublicPrivate_Course_Exception [700-702]
+     * @param int|object $user
+     * @return boolean
+     * @throws PublicPrivate_Course_Exception
      */
     public function is_member($user)
     {

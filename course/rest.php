@@ -116,6 +116,13 @@ switch($requestmethod) {
                         set_coursemodule_visible($cm->id, $value);
                         break;
 
+                    /**
+                     * If field is "public", disable public/private protection
+                     * over the course module instance.
+                     *
+                     * @throws PublicPrivate_Course_Exception
+                     * @throws PublicPrivate_Module_Exception
+                     */
                     case 'public':
 
                         require_once($CFG->libdir.'/publicprivate/course.class.php');
@@ -129,6 +136,13 @@ switch($requestmethod) {
                         
                         break;
 
+                    /**
+                     * If field is "private", enable public/private protection
+                     * over the course module instance.
+                     *
+                     * @throws PublicPrivate_Course_Exception
+                     * @throws PublicPrivate_Module_Exception
+                     */
                     case 'private':
 
                         require_once($CFG->libdir.'/publicprivate/course.class.php');

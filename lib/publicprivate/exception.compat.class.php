@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * An public/private base exception for PHP versions before PHP 5.3.
+ *
+ * If PHP 5.3+, should use exception.base.class.php instead.
+ *
+ * @uses Exception
+ */
+
 class PublicPrivate_Exception extends Exception
 {
 
