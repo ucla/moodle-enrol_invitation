@@ -168,7 +168,9 @@ echo "<td>\n";
 echo '<p><label for="groups"><span id="groupslabel">'.get_string('groups').':</span><span id="thegrouping">&nbsp;</span></label></p>'."\n";
 
 if (ajaxenabled()) { // TODO: move this to JS init!
-    $onchange = 'M.core_group.membersCombo.refreshMembers();';
+    require_once($CFG->libdir.'/publicprivate/course.class.php');
+    $publicprivate_course = new PublicPrivate_Course($course);
+    $onchange = 'M.core_group.membersCombo.refreshMembersPublicPrivate('.$publicprivate_course->get_group().')';
 } else {
     $onchange = '';
 }

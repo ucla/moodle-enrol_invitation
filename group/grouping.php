@@ -54,21 +54,34 @@ require_capability('moodle/course:managegroups', $context);
 
 $returnurl = $CFG->wwwroot.'/group/groupings.php?id='.$course->id;
 
+require_once($CFG->libdir.'/publicprivate/course.class.php');
+$publicprivate_course = new PublicPrivate_Course($course);
 
 if ($id and $delete) {
     if (!$confirm) {
         $PAGE->set_title(get_string('deletegrouping', 'group'));
         $PAGE->set_heading($course->fullname. ': '. get_string('deletegrouping', 'group'));
         echo $OUTPUT->header();
-        $optionsyes = array('id'=>$id, 'delete'=>1, 'courseid'=>$courseid, 'sesskey'=>sesskey(), 'confirm'=>1);
-        $optionsno  = array('id'=>$courseid);
-        $formcontinue = new single_button(new moodle_url('grouping.php', $optionsyes), get_string('yes'), 'get');
-        $formcancel = new single_button(new moodle_url('groupings.php', $optionsno), get_string('no'), 'get');
-        echo $OUTPUT->confirm(get_string('deletegroupingconfirm', 'group', $grouping->name), $formcontinue, $formcancel);
+
+        if($publicprivate_course->is_grouping($grouping))
+        {
+            echo $OUTPUT->heading($course->fullname. ': '. get_string('deletegrouping', 'group'));
+            echo $OUTPUT->notification('WARNING: This is a special grouping for public/private. It cannot be removed.');
+            echo $OUTPUT->continue_button('groupings.php?id='.$courseid);
+        }
+        else
+        {
+            $optionsyes = array('id'=>$id, 'delete'=>1, 'courseid'=>$courseid, 'sesskey'=>sesskey(), 'confirm'=>1);
+            $optionsno  = array('id'=>$courseid);
+            $formcontinue = new single_button(new moodle_url('grouping.php', $optionsyes), get_string('yes'), 'get');
+            $formcancel = new single_button(new moodle_url('groupings.php', $optionsno), get_string('no'), 'get');
+            echo $OUTPUT->confirm(get_string('deletegroupingconfirm', 'group', $grouping->name), $formcontinue, $formcancel);
+        }
+
         echo $OUTPUT->footer();
         die;
 
-    } else if (confirm_sesskey()){
+    } else if (confirm_sesskey() && !$publicprivate_course->is_grouping($grouping)){
         if (groups_delete_grouping($id)) {
             redirect($returnurl);
         } else {
@@ -95,7 +108,7 @@ if ($editform->is_cancelled()) {
 } elseif ($data = $editform->get_data()) {
     $success = true;
 
-    if ($data->id) {
+    if ($data->id && !$publicprivate_course->is_grouping($grouping)) {
         groups_update_grouping($data, $editoroptions);
     } else {
         groups_create_grouping($data, $editoroptions);
@@ -123,5 +136,14 @@ $PAGE->set_title($strgroupings);
 $PAGE->set_heading($course->fullname. ': '.$strgroupings);
 echo $OUTPUT->header();
 echo $OUTPUT->heading($strheading);
+
+if($publicprivate_course->is_grouping($grouping))
+{
+    echo $OUTPUT->notification('WARNING: This is a special grouping for public/private. It cannot be edited.');
+    echo $OUTPUT->continue_button('groupings.php?id='.$courseid);
+    echo $OUTPUT->footer();
+    die;
+}
+
 $editform->display();
 echo $OUTPUT->footer();

@@ -65,11 +65,22 @@ if ($id and $delete) {
         $PAGE->set_title(get_string('deleteselectedgroup', 'group'));
         $PAGE->set_heading($course->fullname . ': '. get_string('deleteselectedgroup', 'group'));
         echo $OUTPUT->header();
-        $optionsyes = array('id'=>$id, 'delete'=>1, 'courseid'=>$courseid, 'sesskey'=>sesskey(), 'confirm'=>1);
-        $optionsno  = array('id'=>$courseid);
-        $formcontinue = new single_button(new moodle_url('group.php', $optionsyes), get_string('yes'), 'get');
-        $formcancel = new single_button(new moodle_url($baseurl, $optionsno), get_string('no'), 'get');
-        echo $OUTPUT->confirm(get_string('deletegroupconfirm', 'group', $group->name), $formcontinue, $formcancel);
+
+        require_once($CFG->libdir.'/publicprivate/course.class.php');
+        $publicprivate_course = new PublicPrivate_Course($course);
+        if($publicprivate_course->is_group($group))
+        {
+            echo $OUTPUT->notification('WARNING: This is a special grouping for public/private. It cannot be removed.');
+            echo $OUTPUT->continue_button('groupings.php?id='.$courseid);
+        }
+        else
+        {
+            $optionsyes = array('id'=>$id, 'delete'=>1, 'courseid'=>$courseid, 'sesskey'=>sesskey(), 'confirm'=>1);
+            $optionsno  = array('id'=>$courseid);
+            $formcontinue = new single_button(new moodle_url('group.php', $optionsyes), get_string('yes'), 'get');
+            $formcancel = new single_button(new moodle_url($baseurl, $optionsno), get_string('no'), 'get');
+            echo $OUTPUT->confirm(get_string('deletegroupconfirm', 'group', $group->name), $formcontinue, $formcancel);
+        }
         echo $OUTPUT->footer();
         die;
 

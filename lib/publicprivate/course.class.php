@@ -69,13 +69,79 @@ class PublicPrivate_Course
     }
 
     /**
-     * The course object that this instance refers to.
+     * Get the id of the course that this object is bound to.
      *
-     * @return object Course record object this object refers to
+     * @return int
      */
     public function get_course()
     {
-        return $this->_course;
+        return $this->_course->id;
+    }
+
+    /**
+     * Get the id of the course public/private group or false if not active.
+     *
+     * @return int
+     */
+    public function get_group()
+    {
+        return $this->is_activated() ? $this->_course->grouppublicprivate : false;
+    }
+
+    /**
+     * Passed a group id or either a group record object or array, returns true
+     * if the group is the same as the course's public/private group or false
+     * otherwise.
+     *
+     * @param int|object|array $group
+     * @return boolean
+     */
+    public function is_group($group)
+    {
+        $groupid = is_scalar($group)
+                    ? $group
+                    : (is_object($group) && isset($group->id)
+                        ? $group->id
+                        : (is_array($group) && isset($group['id'])
+                            ? $group['id']
+                            : false));
+
+        $cgroupid = $this->get_group();
+
+        return $cgroupid !== false && $groupid !== false && $cgroupid == $groupid;
+    }
+
+    /**
+     * Get the id of the course public/private group or false if not active.
+     *
+     * @return int
+     */
+    public function get_grouping()
+    {
+        return $this->is_activated() ? $this->_course->groupingpublicprivate : false;
+    }
+
+    /**
+     * Passed a grouping id or either a grouping record object or array, returns
+     * true if the grouping is the same as the course's public/private grouping
+     * or false otherwise.
+     *
+     * @param int|object|array $group
+     * @return boolean
+     */
+    public function is_grouping($grouping)
+    {
+        $groupingid = is_scalar($grouping)
+                    ? $grouping
+                    : (is_object($grouping) && isset($grouping->id)
+                        ? $grouping->id
+                        : (is_array($grouping) && isset($grouping['id'])
+                            ? $grouping['id']
+                            : false));
+
+        $cgroupingid = $this->get_grouping();
+
+        return $cgroupingid !== false && $groupingid !== false && $cgroupingid == $groupingid;
     }
 
     /**
