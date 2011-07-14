@@ -195,7 +195,7 @@ class course_edit_form extends moodleform {
             $choices[0] = get_string('disable');
             $choices[1] = get_string('enable');
             $mform->addElement('select', 'enablepublicprivate', get_string('publicprivate'), $choices);
-            $mform->addHelpButton('enablepublicprivate', 'enablepublicprivate');
+            $mform->addHelpButton('enablepublicprivate', 'publicprivateenable');
             $mform->setDefault('enablepublicprivate', empty($course->enablepublicprivate) ? 1 : $course->enablepublicprivate);
         }
 
