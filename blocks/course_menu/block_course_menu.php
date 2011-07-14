@@ -209,11 +209,16 @@ class block_course_menu extends block_base {
                 break;
             default:
                 if (substr($eleid, 0, 4) == 'link') {
+                    // This isn't used yet, but it may be used later.
                     $lis .= $renderer->render_link(
                         $this->config->links[$linkindex], 
                         $this->course->id);
                     $linkindex++;
-                } 
+                } else if (substr($eleid, 0, 5) == 'block_') {
+                    $leafurl = $eleid::get_action_link($this->course);
+                } else {
+                    debugging('Could not respond to item: ' . $eleid);
+                }
             }
 
             if ($leafurl !== null) {
@@ -259,6 +264,7 @@ class block_course_menu extends block_base {
     /**
      *  Returns the corresponding display information for an element in the 
      *  tree.
+     *  @todo make this damn thing work
      **/
     function get_icon($element, $renderer) {
         global $OUTPUT;
@@ -302,6 +308,11 @@ class block_course_menu extends block_base {
 
         // elements
         $elements = $this->create_default_elements();
+        
+        $block_elements = $this->create_block_elements();
+
+        $elements = array_merge($elements, $block_elements);
+
         $this->config_set('elements', $elements);
         
         // links 
@@ -343,6 +354,26 @@ class block_course_menu extends block_base {
         $elements[] = $this->create_element('mycourses');
         $elements[] = $this->create_element('myprofilesettings');
         $elements[] = $this->create_element('courseadministration');
+
+        return $elements;
+    }
+
+    function create_block_elements() {
+        $elements = array();
+
+        if (!isset($this->page)) {
+            return $elements;
+        }
+
+        $allblocks = $this->page->blocks->get_installed_blocks();
+        $elements = array();
+
+        foreach ($allblocks as $block) {
+            $classname = 'block_' . $block->name;
+            if (method_exists($classname, 'get_action_link')) {
+                $elements[] = $this->create_element($classname);
+            }
+        }
 
         return $elements;
     }
