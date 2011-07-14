@@ -48,9 +48,12 @@ class block_course_menu_renderer extends plugin_renderer_base {
 
 		foreach ($chapters as $chapter) {
 			$subchapter = '';
+
 			foreach ($chapter['childelements'] as $child) {
 				$topic = '';
 				$cl = "";
+
+                // Split the groups up between subchapters
 				if ($child['type'] == 'subchapter') {
 					for ($i = 0; $i < $child['count']; $i++) {
 						$topic .= $this->render_topic($config, 
@@ -137,17 +140,28 @@ class block_course_menu_renderer extends plugin_renderer_base {
             $attributes['class'] .= ' active_tree_node';
         }
 
-        $leaficon = $this->icon($OUTPUT->pix_url('i/navigationitem'), 
-            $section['trimmed_name'], array('class' => 'smallicon'));
+        $leaficon = $this->default_nav_icon($section['trimmed_name']);
 			
         $html = $this->render_leaf($section['trimmed_name'], $leaficon, 
             $attributes, $section['url'], $current); 	
 		
 		return $html;
 	}
+
+    function default_nav_icon($name) {
+        global $OUTPUT;
+
+        return $this->icon($OUTPUT->pix_url('i/navigationitem'),
+            $name, array('class' => 'smallicon'));
+    }
 	
 	public function render_leaf($visible_title, $icon, $attributes, $link, 
             $current=false, $extraNode='') {
+
+        if (!$icon) {
+            $icon = $this->default_nav_icon($visible_title);
+        }
+
 		$html = html_writer::link($link, $icon . $visible_title . $extraNode, 
             $attributes);
 
@@ -158,6 +172,7 @@ class block_course_menu_renderer extends plugin_renderer_base {
 		if ($current) {
 			$append = "current_branch";
 		}
+
 		$html = html_writer::tag('li', $html,
             array('class' => "type_custom item_with_icon {$append}"));
 
@@ -180,7 +195,8 @@ class block_course_menu_renderer extends plugin_renderer_base {
 		global $CFG;
 		$url = $link['url'];
 		if ($link['keeppagenavigation']) {
-			$url = $CFG->wwwroot . "/blocks/course_menu/link_with_navigation.php?courseid={$course}&url={$link['url']}&name={$link['name']}";
+			$url = $CFG->wwwroot 
+                . "/blocks/course_menu/link_with_navigation.php?courseid={$course}&url={$link['url']}&name={$link['name']}";
 		}
 		$icon = '';
 		if ($link['icon']) {

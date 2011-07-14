@@ -47,7 +47,7 @@ include($CFG->dirroot . "/blocks/course_menu/js/course_menu.js.php");
 var elements       = <?php echo json_encode($this->config->elements) ?>;
 var elementsTable;
 addLoadEvent(function () {
-	drawElements($('elementsContainer'));
+	drawElements(document.getElementById('elementsContainer'));
 });
 
 // function ----------------------------------------
@@ -127,18 +127,6 @@ function drawElements(parent) {
 		input.value = elements[i].visible;
 		td.appendChild(input);
 
-		input = document.createElement('input');
-		input.type  = "hidden";
-		input.name  = "urls[]";
-		input.value = elements[i].url;
-		td.appendChild(input);
-
-		input = document.createElement('input');
-		input.type  = "hidden";
-		input.name  = "icons[]";
-		input.value = elements[i].icon;
-		td.appendChild(input);
-
 		// second td: up arrow
 		td = document.createElement('td');
 		tr.appendChild(td);
@@ -192,7 +180,7 @@ function moveTr(tr, direction) {
 		}
 	}
 
-	drawElements($('elementsContainer'));
+	drawElements(document.getElementById('elementsContainer'));
 }
 
 function changeVisibility(tr) {
@@ -202,7 +190,7 @@ function changeVisibility(tr) {
 		}
 	}
 
-	drawElements($('elementsContainer'));
+	drawElements(document.getElementById('elementsContainer'));
 }
 
 </script>
