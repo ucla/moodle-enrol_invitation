@@ -83,7 +83,7 @@ class theme_uclashared_core_renderer extends core_renderer {
      **/
     function help_feedback_link() {
         $help_locale = $this->call_separate_block_function(
-                'ucla_helpblock', 'get_helpblock_link'
+                'ucla_helpblock', 'get_action_link'
             );
 
         if (!$help_locale) {
@@ -100,7 +100,7 @@ class theme_uclashared_core_renderer extends core_renderer {
      **/
     function weeks_display() {
         $weeks_text = $this->call_separate_block_function(
-                'ucla_weeksdisplay', 'get_weeksdisplay_link'
+                'ucla_weeksdisplay', 'get_raw_content'
             );
 
         if (!$weeks_text) {
@@ -156,7 +156,7 @@ class theme_uclashared_core_renderer extends core_renderer {
         $cp_text = get_string('control_panel', $this->theme);
 
         $cp_link = $this->call_separate_block_function(
-                'ucla_control_panel', 'get_control_panel_link', true
+                'ucla_control_panel', 'get_action_link'
             );
 
         if (!$cp_link) {
