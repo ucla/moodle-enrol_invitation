@@ -85,7 +85,7 @@ class block_ucla_control_panel extends block_base {
     /**
         This will create a link to the control panel.
     **/
-    static function get_control_panel_link($course) {
+    static function get_action_link($course) {
         global $CFG;
 
         $courseid = $course->id;
