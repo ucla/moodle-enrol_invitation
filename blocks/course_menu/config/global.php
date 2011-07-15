@@ -1,28 +1,35 @@
 <?php
 /*
- * ---------------------------------------------------------------------------------------------------------------------
+ * ----------------------------------------------------------------------------
  *
  * This file is part of the Course Menu block for Moodle
  *
- * The Course Menu block for Moodle software package is Copyright 2008 onwards NetSapiensis AB and is provided under
- * the terms of the GNU GENERAL PUBLIC LICENSE Version 3 (GPL). This program is free software: you can redistribute it
- * and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation,
- * either version 3 of the License, or (at your option) any later version.
+ * The Course Menu block for Moodle software package is Copyright 2008 onwards
+ * NetSapiensis AB and is provided under the terms of the GNU GENERAL PUBLIC 
+ * LICENSE Version 3 (GPL). This program is free software: you can redistribute 
+ * it and/or modify it under the terms of the GNU General Public License as 
+ * published by the Free Software Foundation, either version 3 of the License, 
+ * or (at your option) any later version.
  *
- * This program is free software: you can redistribute it and/or modify it under the terms of the GNU
- * General Public License as published by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version. This program is distributed in the hope that
- * it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
- * PARTICULAR PURPOSE.
+ * This program is free software: you can redistribute it and/or modify it under 
+ * the terms of the GNU General Public License as published by the Free Software 
+ * Foundation, either version 3 of the License, or (at your option) any later 
+ * version. This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * or FITNESS FOR A PARTICULAR PURPOSE.
  *
- * See the GNU General Public License for more details. You should have received a copy of the GNU General Public
- * License along with this program.
+ * See the GNU General Public License for more details. You should have received 
+ * a copy of the GNU General Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/>.
- * ---------------------------------------------------------------------------------------------------------------------
+ * ----------------------------------------------------------------------------
  */
 
 include($CFG->dirroot . "/blocks/course_menu/js/course_menu.js.php");
+
 $prefix = "s__block_course_menu_"; //use only as a flag, get the full data from _POST
+
+$linksavail = isset($this->config->links);
+
 ?>
 <!-- html -->
 <div class="expandableTreeTd">
@@ -35,16 +42,16 @@ $prefix = "s__block_course_menu_"; //use only as a flag, get the full data from 
 //<![CDATA[
 // --- read data from PHP -------------------------------------------------------------------------- //
 var elements             = <?php echo json_encode($this->config->elements) ?>;
-var oldLinksNoForBlur    = <?php echo count($this->config->links) ?>;
+var oldLinksNoForBlur    = <?php if ($linksavail) { echo count($this->config->links); } ?>;
 var restoreLinksNoOnBlur = true;
 var linkTempStr          = '';
-var links                = <?php echo json_encode($this->config->links) ?>;
+var links                = <?php if ($linksavail) { echo json_encode($this->config->links); } ?>;
 var icons                = <?php echo json_encode($icons) ?>;
 
 function changeEnableExpand()
 {
-	var enabInput = $('id_expandableTree');
-    var img = $("img_expandableTree");
+	var enabInput = document.getElementById('id_expandableTree');
+    var img = document.getElementById("img_expandableTree");
 	if (enabInput.value == 1) {
 		enabInput.value = 0;
 		img.src = otherInfo.imgShow;
@@ -55,16 +62,16 @@ function changeEnableExpand()
 }
 
 addLoadEvent(function () {
-    drawElements($('elementsContainer'));
-	drawLinks($('linksContainer'));
+    drawElements(document.getElementById('elementsContainer'));
+	drawLinks(document.getElementById('linksContainer'));
 });
 
 function changeEnableLinks()
 {
-    var enabInput = $("id_linksEnable");
-    var img = $("img_linksEnable");
+    var enabInput = document.getElementById("id_linksEnable");
+    var img = document.getElementById("img_linksEnable");
 	if (enabInput.value == 1) {
-		$('linksContainer').style.display = "none";
+		document.getElementById('linksContainer').style.display = "none";
 		enabInput.value = 0;
 		img.src = otherInfo.imgShow;
 
@@ -75,7 +82,7 @@ function changeEnableLinks()
 			}
 		}
 	} else {
-		$('linksContainer').style.display = "block";
+		document.getElementById('linksContainer').style.display = "block";
 		enabInput.value = 1;
 		img.src = otherInfo.imgHide;
 
@@ -92,11 +99,15 @@ function changeEnableLinks()
 		}
 	}
 
-	drawElements($('elementsContainer'));
+	drawElements(document.getElementById('elementsContainer'));
 }
 
 function drawLinks(parent) 
 {
+    if (parent == null) {
+        return;
+    }
+
 	// clear parent 
 	while (parent.hasChildNodes()) {
 		parent.removeChild(parent.firstChild);
@@ -593,7 +604,7 @@ function updateLinksData()
 		select = td.childNodes[1];
 		if (links[n].target != select.value) {
 			links[n].target = select.value;
-			drawLinks($('linksContainer'));
+			drawLinks(document.getElementById('linksContainer'));
 		}
 
 		// update icon
@@ -647,23 +658,23 @@ function updateLinksData()
 		n++;
 	}
 
-	drawElements($('elementsContainer'));
+	drawElements(document.getElementById('elementsContainer'));
 }
 
 function changeLinksNo(changeInput)
 {
 	if (changeInput) {
-		$("linksCount").value = oldLinksNoForBlur;
+		document.getElementById("linksCount").value = oldLinksNoForBlur;
 	}
 
-	var newValue = $("linksCount").value;
+	var newValue = document.getElementById("linksCount").value;
 	if ((!IsNumeric(newValue))||(newValue<1)) {
 		alert(otherInfo.txt.linkswrongnumber);
 	} else {
 		//restoreLinksNoOnBlur = false;
 		linksNo = newValue;
 		defaultLinks(linksNo);
-		drawLinksTable($("linksTableContainer"));
+		drawLinksTable(document.getElementById("linksTableContainer"));
 		//restoreLinksNoOnBlur = true;
 	}
 
@@ -690,8 +701,8 @@ function doneEditingLinksNo(e)
 function setLinksNo()
 {
 	if (restoreLinksNoOnBlur) {
-		oldLinksNoForBlur = $("linksCount").value;
-		$("linksCount").value = links.length;
+		oldLinksNoForBlur = document.getElementById("linksCount").value;
+		document.getElementById("linksCount").value = links.length;
 	}
 }
 
@@ -733,7 +744,7 @@ function defaultLinks(linksNo)
 		}
 	}
 
-	drawElements($('elementsContainer'));
+	drawElements(document.getElementById('elementsContainer'));
 }
 
 function removeArrayIdx(array, idx)
@@ -893,7 +904,7 @@ function moveTr(tr, direction)
 		}
 	}
 
-	drawElements($('elementsContainer'));
+	drawElements(document.getElementById('elementsContainer'));
 }
 
 // function ----------------------------------------
@@ -905,7 +916,7 @@ function changeVisibility(tr)
 		}
 	}
 
-	drawElements($('elementsContainer'));
+	drawElements(document.getElementById('elementsContainer'));
 }
 // --- (end) elementsTable ------------------------------------------------------------------------- //
 

@@ -52,7 +52,7 @@ class block_course_menu extends block_base {
     private $contentgenerated = false;
     
     /*
-     *  Overrides parent function.
+     *  Overrides parent.
      **/
     function init() {
         global $CFG;
@@ -62,21 +62,21 @@ class block_course_menu extends block_base {
     }
 
     /**
-     *  Moodle overridden function.
+     *  Moodle overridden.
      **/
     function instance_allow_multiple() {
         return false;
     }
 
     /**
-     *  Moodle overridden function.
+     *  Moodle overridden.
      **/
     function instance_allow_config() {
         return true;
     }
     
     /**
-     *  Moodle overridden function.
+     *  Moodle overridden.
      **/
     function has_config() {
         return true;
@@ -283,7 +283,7 @@ class block_course_menu extends block_base {
     /**
      *  Returns the corresponding display information for an element in the 
      *  tree.
-     *  @todo make this damn thing work
+     *  @todo add more icons if wanted...
      **/
     function get_icon($element, $renderer) {
         global $OUTPUT;
@@ -317,9 +317,8 @@ class block_course_menu extends block_base {
     }
 
     /**
-     *  This will build an empty configuration, which basically is the
-     *  hardcoded fallback-default.
-     *
+     *  Set up the configuration for this block to have a set of minimal
+     *  configuration options.
      **/
     function update_config($save_it=true) {
         global $CFG, $USER, $OUTPUT;
@@ -355,7 +354,6 @@ class block_course_menu extends block_base {
      *  Convenience function.
      **/
     function create_all_elements() {
-        // elements
         $elements = $this->create_default_elements();
         $block_elements = $this->create_block_elements();
 
@@ -439,6 +437,10 @@ class block_course_menu extends block_base {
         $this->init_chapters();
     }
 
+    /**
+     *  Restructures chaptering if the number of sections changed.
+     *  Currently obsolete and not used.
+     **/
     function check_redo_chaptering($sectcount) {
         // redo chaptering if the number of the sections changed
         $sumchapsections = 0;
@@ -955,7 +957,6 @@ class block_course_menu extends block_base {
      *  Called by Moodle, when going to site administration -> 
      *  plugins -> blocks -> course menu
      *  And every page, called by settings.php
-     *  @todo examine this function
      **/
     function output_global_config() {
         global $CFG, $THEME, $OUTPUT;
@@ -1038,6 +1039,9 @@ class block_course_menu extends block_base {
         return false;
     }
 
+    /**
+     *  Checks if the element is a modular block thing.
+     **/
     function is_block_element($element_id) {
         return (substr($element_id, 0, 6) == 'block_');
     }
