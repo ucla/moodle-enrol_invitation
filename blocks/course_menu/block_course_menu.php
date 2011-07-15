@@ -62,16 +62,23 @@ class block_course_menu extends block_base {
     }
 
     /**
-     *  Overrides parent function.
+     *  Moodle overridden function.
      **/
     function instance_allow_multiple() {
         return false;
     }
 
     /**
-     *  Overrides parent function.
+     *  Moodle overridden function.
      **/
     function instance_allow_config() {
+        return true;
+    }
+    
+    /**
+     *  Moodle overridden function.
+     **/
+    function has_config() {
         return true;
     }
 
@@ -95,7 +102,13 @@ class block_course_menu extends block_base {
     function get_topic_get() {
         $courseformat = $this->course->format;
 
-        // Attempt to load the file (if it is not already loaded) 
+        // Do a quick exit, if the format has already been loaded.
+        $fn = 'callback_' . $courseformat . '_request_key';
+        if (function_exists($fn)) {
+            return $fn();
+        }
+
+        // Attempt to load the file 
         $formatfile = $this->course_format_file($courseformat);
         if (file_exists($formatfile)) {
             require_once($formatfile);
@@ -105,7 +118,6 @@ class block_course_menu extends block_base {
             require_once($formatfile);
         }
 
-        $fn = 'callback_' . $courseformat . '_request_key';
         if (function_exists($fn)) {
             $format_rk = $fn();
         } else {
@@ -309,10 +321,7 @@ class block_course_menu extends block_base {
         global $CFG, $USER, $OUTPUT;
 
         // elements
-        $elements = $this->create_default_elements();
-        $block_elements = $this->create_block_elements();
-
-        $elements = array_merge($elements, $block_elements);
+        $elements = $this->create_all_elements();
 
         // Add elements that are not already in the configuration.
         if (!isset($this->config->elements)) {
@@ -338,6 +347,18 @@ class block_course_menu extends block_base {
     }
 
     /**
+     *  Creates a set of all possible elements.
+     *  Convenience function.
+     **/
+    function create_all_elements() {
+        // elements
+        $elements = $this->create_default_elements();
+        $block_elements = $this->create_block_elements();
+
+        return array_merge($elements, $block_elements);
+    }
+
+    /**
      *  Fetches the hard-coded defaults for each of the elements that can be
      *  displayed in the block.
      **/
@@ -347,10 +368,10 @@ class block_course_menu extends block_base {
 
         $elements[] = $this->create_element('tree', 0, 1);
         $elements[] = $this->create_element('showallsections', 1, 1);
-        $elements[] = $this->create_element('calendar', 1, 0, 0);
+        $elements[] = $this->create_element('calendar');
 
         if ((isset($this->course->showgrades)) && ($this->course->showgrades)) {
-            $elements[] = $this->create_element('showgrades', 1, 0, 0);
+            $elements[] = $this->create_element('showgrades');
         }
 
         // This next one is very important
@@ -369,6 +390,8 @@ class block_course_menu extends block_base {
      *  items.
      **/
     function create_block_elements() {
+        global $CFG;
+
         $elements = array();
 
         if (!isset($this->page)) {
@@ -380,6 +403,12 @@ class block_course_menu extends block_base {
 
         foreach ($allblocks as $block) {
             $classname = 'block_' . $block->name;
+
+            if (!class_exists($classname)) {
+                include_once($CFG->dirroot . '/blocks/' . $block->name . '/' 
+                        . $classname . '.php');
+            }
+
             if (method_exists($classname, 'get_action_link')) {
                 $elements[] = $this->create_element($classname);
             }
@@ -551,7 +580,7 @@ class block_course_menu extends block_base {
      *  @param $expandable
      *  @return Array All the params folded into an array.
      **/
-    function create_element($id, $canhide=1, $visible=0, $expandable=1) {
+    function create_element($id, $canhide=1, $visible=0, $expandable=0) {
         $elem = array();
         $elem['id']         = $id;
         $elem['name']       = $this->get_name($id);
@@ -661,10 +690,11 @@ class block_course_menu extends block_base {
        
         $get_param = $this->get_topic_get();
 
-        $genericname = get_string("name" . $this_format, $this->blockname);
+        $fullformat = 'format_' . $this_format;
+
+        $genericname = get_string('sectionname', $fullformat);
         $allsections = get_all_sections($course_id);
 
-        $fullformat = 'format_' . $this_format;
         if (get_string_manager()->string_exists('section0name', $fullformat)) {
             $sectionzeroname = get_string('section0name', $fullformat);
         }
@@ -920,15 +950,13 @@ class block_course_menu extends block_base {
     /**
      *  Called by Moodle, when going to site administration -> 
      *  plugins -> blocks -> course menu
-     *  And every page.
+     *  And every page, called by settings.php
      *  @todo examine this function
      **/
     function output_global_config() {
         global $CFG, $THEME, $OUTPUT;
         // required stuff
         $icons = $this->get_link_icons();
-
-        debugging('output_global_config()');
 
         $this->check_default_config(false);
         
@@ -956,7 +984,7 @@ class block_course_menu extends block_base {
         if ($ele_ids !== false) {
             $new_elements = array();
 
-            $default_elements = $this->create_default_elements();
+            $default_elements = $this->create_all_elements();
             $indexed = array();
 
             foreach ($default_elements as $de) {
@@ -977,13 +1005,6 @@ class block_course_menu extends block_base {
         }
 
         return parent::instance_config_save($data, $nolongerused);
-    }
-
-    /**
-     *  Moodle overridden function.
-     **/
-    function has_config() {
-        return true;
     }
 
     /**
