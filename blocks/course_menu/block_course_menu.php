@@ -113,7 +113,7 @@ class block_course_menu extends block_base {
         if (file_exists($formatfile)) {
             require_once($formatfile);
         } else {
-            $courseformat = 'topic';
+            $courseformat = 'topics';
             $formatfile = $this->course_format_file($courseformat);
             require_once($formatfile);
         }
@@ -124,8 +124,8 @@ class block_course_menu extends block_base {
             // Just assume it is topic
             $format_rk = 'topic';
 
-            debugging('Could not find the GET parameter for section!');
-            // Or crash and burn...
+            debugging('Could not access GET param for format - using [' 
+                . $format_rk . ']');
         }
 
         return $format_rk;
@@ -228,7 +228,11 @@ class block_course_menu extends block_base {
                         $this->course->id);
                     $linkindex++;
                 } else if ($this->is_block_element($eleid)) {
-                    $leafurl = $eleid::get_action_link($this->course);
+                    if (!class_exists($eleid)) {
+                        debugging('Class: ' . $eleid . ' not found!');
+                    } else {
+                        $leafurl = $eleid::get_action_link($this->course);
+                    }
                 } else {
                     debugging('Could not respond to item: ' . $eleid);
                 }
@@ -405,7 +409,7 @@ class block_course_menu extends block_base {
             $classname = 'block_' . $block->name;
 
             if (!class_exists($classname)) {
-                include_once($CFG->dirroot . '/blocks/' . $block->name . '/' 
+                @include_once($CFG->dirroot . '/blocks/' . $block->name . '/' 
                         . $classname . '.php');
             }
 
