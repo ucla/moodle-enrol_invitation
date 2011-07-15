@@ -214,7 +214,7 @@ class block_course_menu extends block_base {
                         $this->config->links[$linkindex], 
                         $this->course->id);
                     $linkindex++;
-                } else if (substr($eleid, 0, 5) == 'block_') {
+                } else if ($this->is_block_element($eleid)) {
                     $leafurl = $eleid::get_action_link($this->course);
                 } else {
                     debugging('Could not respond to item: ' . $eleid);
@@ -607,6 +607,10 @@ class block_course_menu extends block_base {
                 return get_string("link", $this->blockname);
             }
 
+            if ($this->is_block_element($elementid)) {
+                return get_string('pluginname', $elementid);
+            }
+
             // Global strings
             if (in_array($elementid, 
                     array('sitepages', 'mycourses', 'myprofile'))) {
@@ -997,6 +1001,10 @@ class block_course_menu extends block_base {
         }
 
         return false;
+    }
+
+    function is_block_element($element_id) {
+        return (substr($element_id, 0, 6) == 'block_');
     }
 }
 
