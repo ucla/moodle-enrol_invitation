@@ -142,7 +142,7 @@ class block_course_menu extends block_base {
             $displaysection = course_get_display($this->course->id);
         }
 
-        // Trim section names when being displayed.
+        // Make all the display names pretty
         foreach ($sections as $k => $section) {
             $sections[$k]['trimmed_name'] = $this->trim($section['name']);
 
@@ -183,13 +183,14 @@ class block_course_menu extends block_base {
                 $lis .= $renderer->render_chapter_tree(
                     $this->instance->id, 
                     $this->config, 
-                    $chapters, 
+                    $chapters,  // Is this line necessary?
                     $sections, 
                     $displaysection
                 );
 
                 break;
             case 'showallsections':
+                // If -1 is not handled, then it should default to 0
                 $leafurl = $CFG->wwwroot . '/course/view.php?id='
                     . $this->course->id . '&' . $format_rk . '=-1';
 
@@ -221,6 +222,7 @@ class block_course_menu extends block_base {
                 }
             }
 
+            // Render something if we need to
             if ($leafurl !== null) {
                 $lis .= $renderer->render_leaf($elename, $eleicon, 
                     $attrs, $leafurl);
@@ -230,7 +232,7 @@ class block_course_menu extends block_base {
         $output .= html_writer::tag('ul', $lis, 
             array('class' => 'block_tree list'));
 
-        $output .= '</div>';
+        $output .= html_writer::end_tag('div');
         
         $this->contentgenerated = true;
         $this->content->text = $output;
@@ -243,6 +245,7 @@ class block_course_menu extends block_base {
      *  Affects the configuration structure.
      **/
     function init_chapters() {
+        // TODO see if all these configurations are essential
         $this->config_set('chapenable', 0);
         $this->config_set('subchapenable', 0);
         $this->config_set('subchapterscount', 1);
@@ -301,32 +304,35 @@ class block_course_menu extends block_base {
      *  This will build an empty configuration, which basically is the
      *  hardcoded fallback-default.
      *
-     *  @todo remove all pictures from the configuration...
      **/
-    function init_default_config($save_it=true) {
+    function update_config($save_it=true) {
         global $CFG, $USER, $OUTPUT;
 
         // elements
         $elements = $this->create_default_elements();
-        
         $block_elements = $this->create_block_elements();
 
         $elements = array_merge($elements, $block_elements);
 
-        $this->config_set('elements', $elements);
-        
-        // links 
-        $this->config_set('linksenable', 0);
-        $this->config_set('links');
+        // Add elements that are not already in the configuration.
+        if (!isset($this->config->elements)) {
+            $this->config_set('elements', $elements);
+        } else {
+            $indexed = array();
+            foreach ($this->config->elements as $ele) {
+                $indexed[$ele['id']] = true;
+            }
 
-        // textlib
-        $this->config_set('expandabletree', self::EXPANDABLE_TREE);
-        $this->config_set('trimmode', self::TRIM_RIGHT);
-        $this->config_set('trimlength', self::DEFAULT_TRIM_LENGTH);
-        
+            foreach ($elements as $newel) {
+                if (!isset($indexed[$newel['id']])) {
+                    $this->config->elements[] = $newel;
+                }
+            }
+        }
+       
         $this->init_chapters();
 
-        if ($save_it) {
+        if ($save_it && isset($this->instance)) {
             $this->instance_config_commit();
         }
     }
@@ -358,6 +364,10 @@ class block_course_menu extends block_base {
         return $elements;
     }
 
+    /**
+     *  Iterates through the blocks and attempts to generate course menu
+     *  items.
+     **/
     function create_block_elements() {
         $elements = array();
 
@@ -382,7 +392,7 @@ class block_course_menu extends block_base {
      *  This defines the default configuration of all a new instance, if it
      *  has no configurations already within it.
      **/
-    function check_default_config() {
+    function check_default_config($commit=true) {
         global $CFG;
         
         if (empty($this->config) || !is_object($this->config)) {
@@ -392,11 +402,8 @@ class block_course_menu extends block_base {
             }
         }
 
-        if ($this->element_exists('sitepages') === false) {
-            $this->init_default_config(false);
-        } else {
-            $this->init_chapters();
-        }
+        $this->update_config($commit);
+        $this->init_chapters();
     }
 
     function check_redo_chaptering($sectcount) {
@@ -558,12 +565,12 @@ class block_course_menu extends block_base {
     /**
      *  This creates an element of configuration data.
      **/
-    function config_set($key, $data=null) {
+    function config_set($key, $data=null, $overwrite=true) {
         if (!isset($this->config)) {
             $this->config = new stdclass();
         }
         
-        if ($data !== null) {
+        if ($data !== null && $overwrite) {
             $this->config->$key = $data;
         } else if (!isset($this->config->$key)) {
             $this->config->$key = array();
@@ -914,11 +921,14 @@ class block_course_menu extends block_base {
      *  Called by Moodle, when going to site administration -> 
      *  plugins -> blocks -> course menu
      *  And every page.
+     *  @todo examine this function
      **/
     function output_global_config() {
         global $CFG, $THEME, $OUTPUT;
         // required stuff
         $icons = $this->get_link_icons();
+
+        debugging('output_global_config()');
 
         $this->check_default_config(false);
         
