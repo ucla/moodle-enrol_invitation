@@ -11,6 +11,8 @@ include_once($CFG->dirroot.'/group/lib.php');
  * removing users from the public/private group, and checking if a user is a
  * member of the public/private group.
  *
+ * @author ebollens
+ *
  * @uses PublicPrivate_Course_Exception
  * @uses $DB
  * @uses $CFG

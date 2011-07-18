@@ -4,6 +4,8 @@
  * Class loader that will load in a PublicPrivate_Exception class defition for
  * either PHP 5.3+ or for compatibility before PHP 5.3.
  *
+ * @author ebollens
+ *
  * @see exception.base.class.php
  * @see exception.ompat.class.php
  */

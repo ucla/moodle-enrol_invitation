@@ -11,6 +11,8 @@ include_once($CFG->libdir.'/datalib.php');
  * public/private, providing related accessors and mutators for checking
  * protections and enabling/disabling
  *
+ * @author ebollens
+ *
  * @uses PublicPrivate_Module_Exception
  * @uses $DB
  * @uses $CFG

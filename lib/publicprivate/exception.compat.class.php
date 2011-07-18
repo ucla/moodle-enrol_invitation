@@ -5,6 +5,8 @@
  *
  * If PHP 5.3+, should use exception.base.class.php instead.
  *
+ * @author ebollens
+ *
  * @uses Exception
  */
 
