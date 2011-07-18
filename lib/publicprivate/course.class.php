@@ -338,6 +338,8 @@ class PublicPrivate_Course
         {
             throw new PublicPrivate_Course_Exception('Failed to add enrolled users to public/private group.', 208, $e);
         }
+
+        rebuild_course_cache($this->_course->id);
     }
 
     /**
@@ -406,6 +408,8 @@ class PublicPrivate_Course
         {
             throw new PublicPrivate_Course_Exception('Failed to delete public/private group and grouping.', 303, $e);
         }
+
+        rebuild_course_cache($this->_course->id);
     }
 
     /**
