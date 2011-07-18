@@ -92,9 +92,6 @@ otherInfo.txt.cannotmovetopicup   = "<?php print_string('cannotmovetopicup', 'bl
 otherInfo.txt.cannotmovetopicdown = "<?php print_string('cannotmovetopicdown', 'block_course_menu'); ?> ";
 otherInfo.txt.expandableTree      = "<?php print_string('expandable_tree', 'block_course_menu') ?>";
 
-function $(id) {
-	return document.getElementById(id);
-}
 function addLoadEvent(func) {
     var oldonload = window.onload;
     if (typeof window.onload != 'function') {
