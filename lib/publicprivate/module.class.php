@@ -2,6 +2,7 @@
 
 include_once($CFG->libdir.'/publicprivate/module_exception.class.php');
 include_once($CFG->libdir.'/publicprivate/course.class.php');
+include_once($CFG->libdir.'/publicprivate/site.class.php');
 include_once($CFG->libdir.'/datalib.php');
 
 /**

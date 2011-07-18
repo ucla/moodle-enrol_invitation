@@ -1,5 +1,10 @@
 <?php
 
+if(!PublicPrivate_Site::is_installed())
+{
+    PublicPrivate_Site::install();
+}
+
 class PublicPrivate_Site
 {
     /**
@@ -44,6 +49,39 @@ class PublicPrivate_Site
             }
 
         return $a && $b && $c;
+    }
+
+    public static function install()
+    {
+        global $DB;
+
+        if(PublicPrivate_Site::is_installed())
+        {
+            throw new PublicPrivate_Site_Exception('Cannot install as public/private is already installed.');
+        }
+
+        $dbman = $DB->get_manager();
+
+        $table = new xmldb_table('course');
+
+        $enablepublicprivate = new xmldb_field('enablepublicprivate', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'hiddensections');
+        $grouppublicprivate = new xmldb_field('grouppublicprivate', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'enablepublicprivate');
+        $groupingpublicprivate = new xmldb_field('groupingpublicprivate', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'grouppublicprivate');
+
+        if(!$dbman->field_exists($table, $enablepublicprivate))
+        {
+            $dbman->add_field($table, $enablepublicprivate);
+        }
+
+        if(!$dbman->field_exists($table, $grouppublicprivate))
+        {
+            $dbman->add_field($table, $grouppublicprivate);
+        }
+
+        if(!$dbman->field_exists($table, $groupingpublicprivate))
+        {
+            $dbman->add_field($table, $groupingpublicprivate);
+        }
     }
 }
 

@@ -1,6 +1,7 @@
 <?php
 
 include_once($CFG->libdir.'/publicprivate/course_exception.class.php');
+include_once($CFG->libdir.'/publicprivate/site.class.php');
 include_once($CFG->dirroot.'/group/lib.php');
 
 /**
