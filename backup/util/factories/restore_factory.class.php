@@ -64,6 +64,16 @@ abstract class restore_factory {
             throw new restore_task_exception('course_task_course_not_found', $courseid);
         }
 
+        global $CFG;
+        if(file_exists($CFG->libdir.'/publicprivate/restore_publicprivate_course_task.class.php')
+                && file_exists($CFG->libdir.'/publicprivate/site.class.php')
+                && file_exists($CFG->libdir.'/publicprivate/course.class.php')) {
+            include_once($CFG->libdir.'/publicprivate/site.class.php');
+            include_once($CFG->libdir.'/publicprivate/course.class.php');
+            include_once($CFG->libdir.'/publicprivate/restore_publicprivate_course_task.class.php');
+            return new Restore_PublicPrivate_Course_Task($course->shortname, $courseid);
+        }
+
         return new restore_course_task($info->title, $info);
     }
 }
