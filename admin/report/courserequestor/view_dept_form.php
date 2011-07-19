@@ -1,0 +1,56 @@
+<?php
+require_once($CFG->libdir.'/formslib.php');
+// view all the classes of a department
+class view_dept_form extends moodleform {
+
+    function definition() {
+        global $CFG;
+        global $DB;
+        $mform =& $this->_form;
+        
+        $db_conn = odbc_connect($CFG->registrar_dbhost, $CFG->registrar_dbuser , $CFG->registrar_dbpass) or die( "ERROR: Connection to Registrar failed.");
+        $selected_term = optional_param('term',NULL,PARAM_CLEAN) ? optional_param('term',NULL,PARAM_CLEAN) : $CFG->classrequestor_selected_term;
+        $pulldown_term = array();
+        //$selectedterm2 = optional_param('term',NULL,PARAM_CLEAN) ? optional_param('term',NULL,PARAM_CLEAN) : $CFG->currentterm;
+
+        foreach ($CFG->classrequestor_terms as $term) {
+            $pulldown_term[$term]= $term;
+        }
+        
+        $qr= odbc_exec($db_conn, "EXECUTE CIS_subjectAreaGetAll '$selected_term'");
+        $row = array();
+        $rows = array();
+
+        while (odbc_fetch_into($qr, $row))
+        {
+            $rows[] = $row;
+        }
+        odbc_free_result($qr);
+        $pulldown_subject = array();
+        foreach ($rows as $row)
+        {
+            $pulldown_subject[$row[0]] = $row[0].' - '.$row[1];
+        }
+        
+        
+        
+        $mform->addElement('header', 'buildform', '');
+        $oneline=array();
+        $oneline[] =& $mform->createElement('static', 'termlabel', null, '<label>TERM: </label>');
+        $selectterm =& $mform->createElement('select', 'term', null, $pulldown_term);
+        $oneline[] = $selectterm;
+        $oneline[] =& $mform->createElement('static', 'subjectlabel', null, '<label>SUBJECT AREA: </label>');
+        $selectsubj =& $mform->createElement('select', 'subjarea', null, $pulldown_subject);
+        $oneline[] = $selectsubj;
+        $oneline[] =& $mform->createElement('submit', 'submit', 'View Department ');
+        // put these elements in one group so that they appear on the same line
+        // see style.css for overloading the default moodle form stylesheet
+        $mform->addGroup($oneline, 'group2', null, ' ', true);
+        // make sure the last element is true. this way it can be refered in setDefaults
+        $mform->setDefaults(array('group2'=> array('term'=>$selected_term)));
+        $mform->addElement('hidden','action','viewdept');
+        $mform->setType('action', PARAM_TEXT);
+        
+    }
+}
+?>

@@ -11,7 +11,7 @@ $string['coursereqbuildclass'] = "UCLA Course Request (SRS) - Build Courses";
 
 
 $string['builddept'] = "Build Entire Department";
-$string['buildcourse'] = "Build Individual Courses";
+$string['buildcourse'] = "Build Courses";
 $string['addcrosslist'] = "Add Crosslists";
 
 $string['viewtobebuilt'] = "Courses to be built";

@@ -3,12 +3,26 @@
 Now uses mdl_ucla_request_classes & mdl_ucla_request_crosslist tables
  */
 
-require_once("../../../config.php");
+require_once(dirname(__FILE__).'/../../../config.php');
 require_once($CFG->libdir.'/adminlib.php');
-//require_once($CFG->dirroot.'/admin/report/configmanagement/configmanagementlib.php');
 
-// This is needed to get the term dropdown
-include("cr_lib.php");
+function print_term_pulldown_box($submit_on_change=false) {
+    global $CFG;
+
+    $selected_term = optional_param('term',NULL,PARAM_CLEAN) ? optional_param('term',NULL,PARAM_CLEAN) : $CFG->classrequestor_selected_term;
+
+    $pulldown_term = "<select name=\"term\"" . ($submit_on_change ? " onchange=\"this.form.submit()\"" : "") . ">\n";
+
+    foreach ($CFG->classrequestor_terms as $term) {
+        if ($term == $selected_term) {
+            $pulldown_term .= "<option value=\"$term\" SELECTED>$term</option>\n";
+        } else {
+            $pulldown_term .= "<option value=\"$term\">$term</option>\n";
+        }
+    }
+    $pulldown_term .= "</select>\n";
+    print $pulldown_term;
+}
 
 require_login();
 global $USER;
@@ -51,8 +65,6 @@ admin_externalpage_print_header($adminroot); **/
 
 ?>
 
-<link rel="stylesheet" href="requestor.css" />
-
 <div class="headingblock header crqpaddingbot" >
     <?php echo get_string('coursereqaddcrosslist', 'report_courserequestor') ?>
 </div>
@@ -61,12 +73,10 @@ admin_externalpage_print_header($adminroot); **/
     <div class="crqcenterbox">
         <?php
         $string=$CFG->wwwroot;
-        $build_dept = $string."/admin/report/courserequestor/builddept.php";
         $course_requestor =  $string."/admin/report/courserequestor/index.php";
         $addCrosslist = $string."/admin/report/courserequestor/addcrosslist.php";
 
         echo "<a href=\"$course_requestor\">".get_string('buildcourse', 'report_courserequestor')."</a> | ";
-		echo "<a href=\"$build_dept\">".get_string('builddept', 'report_courserequestor')."</a> | ";
         echo "<a href=\"$addCrosslist\">".get_string('addcrosslist', 'report_courserequestor')."</a> ";
         ?>
     </div>
@@ -79,7 +89,7 @@ admin_externalpage_print_header($adminroot); **/
                     <?php print_term_pulldown_box(true); ?>
                 </label>
             </fieldset>
-	</form>
+    </form>
     </div>
 
     <div >
@@ -87,32 +97,29 @@ admin_externalpage_print_header($adminroot); **/
             <fieldset class="crqformodd">
                 <legend></legend>
                 <label>
-                    List of <strong>to be built</strong> Courses for the term <strong><?php if( empty($_POST['term']) ){echo $CFG->classrequestor_selected_term;} else {echo "${_POST['term']}";} ?></strong><br/><br/>
+                    <?php $termcleaned = optional_param('term', NULL, PARAM_CLEAN); ?>
+                    List of <strong>to be built</strong> Courses for the term <strong><?php if( empty($termcleaned) ){echo $CFG->classrequestor_selected_term;} else {echo "$termcleaned";} ?></strong><br/><br/>
                     You can add crosslists while these couses are waiting in queue to be built<br/>
                     <select name="hostsrs" >
-                        <?php
-			
-			if(isset($_POST['term']))
-			 $term = ($_POST['term'] == "") ? $CFG->classrequestor_selected_term : $_POST['term'];
+<?php			
+    if(isset($termcleaned)){
+        $term = ($termcleaned == "") ? $CFG->classrequestor_selected_term : $termcleaned;
+    }
 
-                        $crs = $DB->get_records_sql("select srs,course from mdl_ucla_request_classes where term like '$term' and action like '%uild' and (status = 'processing' or status = 'pending') order by course");
+    $crs = $DB->get_records_sql("select srs,course from mdl_ucla_request_classes where term like '$term' and action like '%uild' and (status = 'processing' or status = 'pending') order by course");
 
-                        foreach ($crs as $rows)
-                        {
-                            $srs=rtrim($rows->srs);
-                            $course=rtrim($rows->course);
-                            $existingcourse[$srs]=1;
+    foreach ($crs as $rows)
+    {
+        $srs=rtrim($rows->srs);
+        $course=rtrim($rows->course);
+        $existingcourse[$srs]=1;
 
-                            echo "<option value='$srs'>$course</option>";
-                        }
-                        ?>
-                        </select>
+        echo "<option value='$srs'>$course</option>";
+    }
+?>
+                    </select>
                 </label>
 
-
-            <!--
-                <form method=\"POST\" action=\"".$PHP_SELF."\">
-            -->
 
             ADD ALIASES
             <input type="hidden" name="action" value="addalias">
@@ -161,62 +168,56 @@ admin_externalpage_print_header($adminroot); **/
             <div class="crqfrmtxtboxeven">
                 <input type="text" name="alias15" size="20" maxlength="9">
             </div>
-            <!-- </div> -->
 
             <input type="hidden" name="action" value="addalias">
             <input type="hidden" name="term" value="<?php echo "$term"; ?>"><br/>
             <input type="submit" value="Insert Aliases">
             </fieldset>
-	<form>
+    <form>
     </div>
 
 <div align="center">
 <?php
-if(isset($_POST['action']))
-  if($_POST["action"]=="addalias")
-  {
-	  $i=1;
-	  while($i<=15)
-	  {
-		$alias="alias".$i;
-		$value=$_POST[$alias];
-		if($_POST[$alias])
-		{
-                    if(eregi('[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]',$value))
-                    {
-                        $query5 = "select aliassrs from mdl_ucla_request_crosslist where aliassrs like '$value' and term like '$_POST[term]' and srs like '$_POST[hostsrs]'";
+$actioncleaned = optional_param('action', NULL, PARAM_CLEAN);
+if(isset($actioncleaned)) {
+  if($actioncleaned=="addalias") {
+      $i=1;
+      while($i<=15) {
+        $alias="alias".$i;
+        $value=optional_param($alias, NULL, PARAM_CLEAN);
+        if($value) {
+            if(preg_match('/^[0-9]{9}$/',$value)) {
+                $termcleaned=required_param('term', PARAM_CLEAN);
+                $hostsrscleaned=required_param('hostsrs', PARAM_CLEAN);
+                $query5 = "select aliassrs from mdl_ucla_request_crosslist where aliassrs like '$value' and term like '$termcleaned' and srs like '$hostsrscleaned'";
 
-                        if($DB->get_records_sql($query5)){
-                            echo "<div class=\"crqerrormsg\">";
-                            echo "DUPLICATE ENTRY. Alias already inserted";
-                            echo "</div>";
-                        }
-                        else{
-                            $query1 = "INSERT INTO mdl_ucla_request_crosslist(term,srs,aliassrs,type) values ('$_POST[term]','$_POST[hostsrs]','$value','joint')";
-                            $DB->execute($query1);
-                            echo "<table><tr ><td ><div class=\"crqgreenmsg\">New aliases submitted for crosslisting with host: '$_POST[hostsrs]'</div></td></tr></table>";
+                if($DB->get_records_sql($query5)){
+                    echo "<div class=\"crqerrormsg\">";
+                    echo "DUPLICATE ENTRY. Alias already inserted";
+                    echo "</div>";
+                } else{
+                    $query1 = "INSERT INTO mdl_ucla_request_crosslist(term,srs,aliassrs,type) values ('$termcleaned','$hostsrscleaned','$value','joint')";
+                    $DB->execute($query1);
+                    echo "<table><tr ><td ><div class=\"crqgreenmsg\">New aliases submitted for crosslisting with host: '$hostsrscleaned'</div></td></tr></table>";
 
-                            $query2 = "update mdl_ucla_request_classes set crosslist=1 where srs like '$_POST[hostsrs]' ";
-                            $DB->execute($query2);
-                            echo "<table><tr ><td ><div class=\"crqgreenmsg\">Submitted for crosslisting</div></td></tr></table>";
+                    $query2 = "update mdl_ucla_request_classes set crosslist=1 where srs like '$hostsrscleaned' ";
+                    $DB->execute($query2);
+                    echo "<table><tr ><td ><div class=\"crqgreenmsg\">Submitted for crosslisting</div></td></tr></table>";
 
-                            $message = "New aliases submitted to be crosslisted with host: '$_POST[hostsrs]' ";
-                            //mail('nthompson@oid.ucla.edu', 'CCLE:New Crosslist Request', $message);
-                        }
-                    }
-                    else
-                    {
-                            echo "<div class=\"crqerrormsg\">";
-                            echo "Please check your srs input. It has to be a 9 digit numeric value";
-                            echo "</div>";
-                    }
-		}
-
-	 $i++;
-	 }
+                    $message = "New aliases submitted to be crosslisted with host: '$hostsrscleaned' ";
+                    //mail('nthompson@oid.ucla.edu', 'CCLE:New Crosslist Request', $message);
+                }
+            } else {
+                    echo "<div class=\"crqerrormsg\">";
+                    echo "Please check your srs input. It has to be a 9 digit numeric value";
+                    echo "</div>";
+            }
+        }
+     $i++;
+     }
   }
-echo "</div>
-</div>";
+}
+echo "</div></div>";
 
 echo $OUTPUT->footer();
 ?>

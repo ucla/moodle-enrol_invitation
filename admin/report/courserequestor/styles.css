@@ -1,22 +1,39 @@
-/* 
-    Document   : requestor
-    Created on : Apr 30, 2010, 6:21:06 PM
-    Author     : ARoman
-    Description:
-        Purpose of the stylesheet follows.
-*/
-
-/* 
-   TODO customize this sample style
-   Syntax recommendation http://www.w3.org/TR/REC-CSS2/
-*/
-
 root { 
     display: block;
 }
 .crqpaddingbot{ margin-bottom:20px;}
 .crqcenterbox{ text-align:center; padding-bottom:20px;}
 .crqformodd{border:0px; background:#E3E3EC; padding: 10px;  }
+#srsform{border:0px; background:#E3E3EC; padding: 10px; margin:0; float:none; width:auto;}
+.mform #srsform .advancedbutton {text-align: inherit; float: none; width:auto;}
+.mform #srsform .fitem {clear: none; margin-bottom: 0px; margin-top: 0px; overflow: auto; float: none; width:auto;}
+.mform #srsform div {margin-top:0px; margin-bottom:0px; margin-right:0px; margin-left:0px; text-align: left; float: none; width:auto;}
+.mform #srsform .fitem .fitemtitle {
+    text-align: left; float:none; width:auto;
+}
+
+.mform #srsform .fitem fieldset.felement {
+    margin-left: 0;
+    padding-left: 0;
+}
+
+#buildform{border:0px; background:#E3E3EC; padding: 10px; margin:0; float:none; width:auto;}
+.mform #buildform .advancedbutton {text-align: inherit; float: none; width:auto;}
+.mform #buildform .fitem {clear: none; margin-bottom: 0px; margin-top: 0px; overflow: auto; float: none; width:auto;}
+.mform #buildform div {margin-top:0px; margin-bottom:0px; margin-right:0px; margin-left:0px; text-align: left; float: none; width:auto;}
+.mform #buildform .fitem .fitemtitle {
+    text-align: left; float:none; width:auto;
+}
+
+.mform #buildform .fitem fieldset.felement {
+    margin-left: 0;
+    padding-left: 0;
+}
+
+.mform .fitem fieldset.felement {
+    margin-left: 0;
+    padding-left: 0;
+}
 .crqformeven{border:0px; background:#D6D6DC; padding: 10px; }
 .crqfrmtxtboxodd{display:block; width:inherit; background:#E3E3EC; padding:5px;}
 .crqfrmtxtboxeven{display:block; width:inherit; background:#D6D6DC; padding:5px;}
