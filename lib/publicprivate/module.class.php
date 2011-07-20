@@ -13,14 +13,14 @@ include_once($CFG->libdir.'/datalib.php');
  * protections and enabling/disabling
  *
  * @author ebollens
+ * @version 20110719
  *
  * @uses PublicPrivate_Module_Exception
  * @uses $DB
  * @uses $CFG
  */
 
-class PublicPrivate_Module
-{
+class PublicPrivate_Module {
     /**
      * The key value for the record from the `course_modules` table.
      *
@@ -48,23 +48,17 @@ class PublicPrivate_Module
      * @global Moodle_Database $DB
      * @param int|object|array $course_module
      */
-    public function __construct($course_module)
-    {
+    public function __construct($course_module) {
         global $DB;
 
         /**
          * If passed a scalar, only store the id. Record will be lazy
-         * instantiated on first access throgh _course_module().
+         * instantiated on first access throgh _course_module(). Otherwise,
+         * if passed a record, store it as the represented record.
          */
-        if(is_scalar($course_module))
-        {
+        if(is_scalar($course_module)) {
             $this->_course_module_id = (int)$course_module;
-        }
-        /**
-         * If passed a record, store it as the represented record.
-         */
-        else
-        {
+        } else {
             $this->_course_module_obj = is_object($course_module) ? $course_module : (object)$course_module;
             $this->_course_module_id = $this->_course_module_obj->id;
         }
@@ -76,8 +70,7 @@ class PublicPrivate_Module
      * @param int|object|array $course
      * @return PublicPrivate_Module
      */
-    public static function build($course_module)
-    {
+    public static function build($course_module) {
         return new PublicPrivate_Module($course_module);
     }
 
@@ -88,8 +81,7 @@ class PublicPrivate_Module
      * @throws PublicPrivate_Module_Exception
      * @return bool
      */
-    public function is_public()
-    {
+    public function is_public() {
         return coursemodule_visible_for_user($this->_course_module(), 1);
     }
 
@@ -102,8 +94,7 @@ class PublicPrivate_Module
      * @throws PublicPrivate_Module_Exception
      * @return bool
      */
-    public function is_private()
-    {
+    public function is_private() {
         return $this->get_grouping() > 0
                 && $this->get_groupmembersonly() != 0
                 && $this->_publicprivate_course()->is_grouping($this->_course_module()->groupingid);
@@ -116,8 +107,7 @@ class PublicPrivate_Module
      * @throws PublicPrivate_Module_Exception
      * @return bool
      */
-    public function is_protected()
-    {
+    public function is_protected() {
         return !$this->public();
     }
 
@@ -130,18 +120,14 @@ class PublicPrivate_Module
      * @link $CFG->enablegroupmembersonly
      * @throws PublicPrivate_Module_Exception
      */
-    public function enable()
-    {
+    public function enable() {
         global $DB;
         
-        try
-        {
+        try {
             $conditions = array('id'=>$this->get_id());
             $DB->set_field('course_modules', 'groupingid', $this->_publicprivate_course()->get_grouping(), $conditions);
             $DB->set_field('course_modules', 'groupmembersonly', 1, $conditions);
-        }
-        catch(DML_Exception $e)
-        {
+        } catch(DML_Exception $e) {
             throw new PublicPrivate_Module_Exception('Failed to set public/private visibility settings for module.', 300, $e);
         }
     }
@@ -154,18 +140,14 @@ class PublicPrivate_Module
      * @global Moodle_Database $DB
      * @throws PublicPrivate_Module_Exception
      */
-    public function disable()
-    {
+    public function disable() {
         global $DB;
         
-        try
-        {
+        try {
             $conditions = array('id'=>$this->get_id());
             $DB->set_field('course_modules', 'groupingid', 0, $conditions);
             $DB->set_field('course_modules', 'groupmembersonly', 0, $conditions);
-        }
-        catch(DML_Exception $e)
-        {
+        } catch(DML_Exception $e) {
             throw new PublicPrivate_Module_Exception('Failed to set public/private visibility settings for module.', 400, $e);
         }
     }
@@ -175,8 +157,7 @@ class PublicPrivate_Module
      *
      * @return int
      */
-    public function get_id()
-    {
+    public function get_id() {
         return $this->_course_module_id;
     }
 
@@ -186,8 +167,7 @@ class PublicPrivate_Module
      * @throws PublicPrivate_Module_Exception
      * @return int
      */
-    public function get_course()
-    {
+    public function get_course() {
         return $this->_course_module()->course;
     }
 
@@ -197,8 +177,7 @@ class PublicPrivate_Module
      * @throws PublicPrivate_Module_Exception
      * @return int
      */
-    public function get_grouping()
-    {
+    public function get_grouping() {
         return $this->_course_module()->groupingid;
     }
 
@@ -208,8 +187,7 @@ class PublicPrivate_Module
      * @throws PublicPrivate_Module_Exception
      * @return int
      */
-    public function get_groupmembersonly()
-    {
+    public function get_groupmembersonly() {
         return $this->_course_module()->groupmembersonly;
     }
 
@@ -220,13 +198,11 @@ class PublicPrivate_Module
      * @throws PublicPrivate_Course_Exception
      * @return PublicPrivate_Course
      */
-    private function &_publicprivate_course()
-    {
+    private function &_publicprivate_course() {
         /**
          * If object does not already have a cached version, build it.
          */
-        if(!$this->_publicprivate_course_obj)
-        {
+        if(!$this->_publicprivate_course_obj) {
             $this->_publicprivate_course_obj = new PublicPrivate_Course($this->get_course());
         }
 
@@ -240,21 +216,16 @@ class PublicPrivate_Module
      * @throws PublicPrivate_Module_Exception
      * @return object
      */
-    private function &_course_module()
-    {
+    private function &_course_module() {
         global $DB;
 
         /**
          * If object does not already have a cached version, retrieve it.
          */
-        if(!$this->_course_module_obj)
-        {
-            try
-            {
+        if(!$this->_course_module_obj) {
+            try {
                 $this->_course_module_obj = $DB->get_record('course_modules', array('id'=>$this->_course_module_id), '*', MUST_EXIST);
-            }
-            catch(DML_Exception $e)
-            {
+            } catch(DML_Exception $e) {
                 throw new PublicPrivate_Module_Exception('Failed to retrieve course module object.', 600, $e);
             }
         }

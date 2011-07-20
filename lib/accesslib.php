@@ -2637,16 +2637,17 @@ function role_assign($roleid, $userid, $contextid, $component = '', $itemid = 0,
          * for it), add the user to the public/private group if not already in the
          * public/private group from this role assignment or another role
          * assignment.
+         *
+         * @author ebollens
+         * @version 20110719
          */
 
-        if($context->contextlevel == CONTEXT_COURSE)
-        {
+        if($context->contextlevel == CONTEXT_COURSE) {
             require_once($CFG->libdir.'/publicprivate/course.class.php');
 
             $pubpriv_course = new PublicPrivate_Course($context->instanceid);
 
-            if($pubpriv_course->is_activated())
-            {
+            if($pubpriv_course->is_activated()) {
                 $pubpriv_course->add_user($userid);
             }
         }
@@ -2670,16 +2671,17 @@ function role_assign($roleid, $userid, $contextid, $component = '', $itemid = 0,
     /*
      * For a new role assignment, add the user to the public/private group if
      * not already in the public/private group from another role assignment.
+     *
+     * @author ebollens
+     * @version 20110719
      */
 
-    if($context->contextlevel == CONTEXT_COURSE)
-    {
+    if($context->contextlevel == CONTEXT_COURSE) {
         require_once($CFG->libdir.'/publicprivate/course.class.php');
 
         $pubpriv_course = new PublicPrivate_Course($context->instanceid);
 
-        if($pubpriv_course->is_activated())
-        {
+        if($pubpriv_course->is_activated()) {
             $pubpriv_course->add_user($userid);
         }
     }
@@ -2812,27 +2814,26 @@ function role_unassign_all(array $params, $subcontexts = false, $includemanual =
     /*
      * If user no longer has any roles in the course, then remove the user's
      * assignment in the public/private group if the user has one.
+     *
+     * @author ebollens
+     * @version 20110719
      */
 
-    if(!isset($params['userid']) || !isset($params['contextid']))
-    {
+    if(!isset($params['userid']) || !isset($params['contextid'])) {
         return;
     }
 
-    if(!isset($context))
-    {
+    if(!isset($context)) {
         $context = get_context_instance_by_id($params['contextid']);
     }
     
-    if($context->contextlevel == CONTEXT_COURSE && !$DB->record_exists('role_assignments', array('userid'=>$params['userid'], 'contextid'=>$params['contextid'])))
-    {
+    if($context->contextlevel == CONTEXT_COURSE && !$DB->record_exists('role_assignments', array('userid'=>$params['userid'], 'contextid'=>$params['contextid']))) {
 
         require_once($CFG->libdir.'/publicprivate/course.class.php');
         
         $pubpriv_course = new PublicPrivate_Course($context->instanceid);
 
-        if($pubpriv_course->is_activated())
-        {
+        if($pubpriv_course->is_activated()) {
             $pubpriv_course->remove_user($params['userid']);
         }
     }

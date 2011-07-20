@@ -12,6 +12,7 @@ include_once($CFG->libdir.'/publicprivate/site.class.php');
  * to define public/private metadata if the course is using public/private.
  *
  * @author ebollens
+ * @version 20110719
  *
  * @uses Backup_Course_Task
  * @uses Backup_PublicPrivate_Course_Structure_Step

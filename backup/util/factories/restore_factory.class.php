@@ -64,6 +64,15 @@ abstract class restore_factory {
             throw new restore_task_exception('course_task_course_not_found', $courseid);
         }
 
+        /**
+         * If public/private exists, create a Restore_PublicPrivate_Course_Task
+         * object instead of the standard Restore_Course_Task object. This
+         * object performs all of the same steps as Restore_Course_Task, except
+         * that it adds one additional step for public/private.
+         *
+         * @author ebollens
+         * @version 20110719
+         */
         global $CFG;
         if(file_exists($CFG->libdir.'/publicprivate/restore_publicprivate_course_task.class.php')
                 && file_exists($CFG->libdir.'/publicprivate/site.class.php')

@@ -63,14 +63,18 @@ if ($id and $delete) {
         $PAGE->set_heading($course->fullname. ': '. get_string('deletegrouping', 'group'));
         echo $OUTPUT->header();
 
-        if($publicprivate_course->is_grouping($grouping))
-        {
+        /**
+         * Alert that public/private grouping cannot be removed or otherwise
+         * present the remove confirmation box.
+         *
+         * @author ebollens
+         * @version 20110719
+         */
+        if($publicprivate_course->is_grouping($grouping)) {
             echo $OUTPUT->heading($course->fullname. ': '. get_string('deletegrouping', 'group'));
             echo $OUTPUT->notification('WARNING: This is a special grouping for public/private. It cannot be removed.');
             echo $OUTPUT->continue_button('groupings.php?id='.$courseid);
-        }
-        else
-        {
+        } else {
             $optionsyes = array('id'=>$id, 'delete'=>1, 'courseid'=>$courseid, 'sesskey'=>sesskey(), 'confirm'=>1);
             $optionsno  = array('id'=>$courseid);
             $formcontinue = new single_button(new moodle_url('grouping.php', $optionsyes), get_string('yes'), 'get');
@@ -137,8 +141,13 @@ $PAGE->set_heading($course->fullname. ': '.$strgroupings);
 echo $OUTPUT->header();
 echo $OUTPUT->heading($strheading);
 
-if($publicprivate_course->is_grouping($grouping))
-{
+/**
+ * Alert that public/private grouping cannot be edited.
+ *
+ * @author ebollens
+ * @version 20110719
+ */
+if($publicprivate_course->is_grouping($grouping)) {
     echo $OUTPUT->notification('WARNING: This is a special grouping for public/private. It cannot be edited.');
     echo $OUTPUT->continue_button('groupings.php?id='.$courseid);
     echo $OUTPUT->footer();

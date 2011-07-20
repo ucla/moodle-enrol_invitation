@@ -1816,6 +1816,12 @@ $string['yourteacher'] = 'your {$a}';
 $string['yourwordforx'] = 'Your word for \'{$a}\'';
 $string['zippingbackup'] = 'Zipping backup';
 
+/**
+ * Public/private strings.
+ *
+ * @author ebollens
+ * @version 20110719
+ */
 $string['publicprivateenable'] = 'Enable Public/Private';
 $string['publicprivateenable_help'] = 'Enabling public/private functionality for a course alters several settings in order to create a hybrid course with both public and private material.<br><br>When enabled, it will create a toggle for all activities that allow for the material to be set either private to course users or public to guests as well. To this end, it creates a special group ("Course Members") and a special grouping ("Private Course Material"). It disables the auto-assign groups and available to guest settings.';
 $string['publicprivategroupname'] = 'Course Members';

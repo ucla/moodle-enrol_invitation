@@ -1092,6 +1092,12 @@ $string['xmlstrictheaders'] = 'XML strict headers';
 $string['yuicomboloading'] = 'YUI combo loading';
 $string['ziprequired'] = 'The Zip PHP extension is now required by Moodle, info-ZIP binaries or PclZip library are not used anymore.';
 
+/**
+ * Public/private admin strings.
+ *
+ * @author ebollens
+ * @version 20110719
+ */
 $string['enablepublicprivate'] = 'Enable Public/Private';
 $string['enablepublicprivate_description'] = 'This setting enables the use of the experimental public/private modification. <b>&quot;Enable group members only&quot; must be enabled for this to work correctly.</b> NOTE: Disabling this will turn off public/private toggle, but sites already using public/private will still operate via the method.';
 $string['enablepublicprivate_help'] = '<h1>Public/Private Functionality</h1>

@@ -12,6 +12,7 @@ include_once($CFG->libdir.'/publicprivate/site.class.php');
  * to handle public/private settings if they are included in the backup.
  *
  * @author ebollens
+ * @version 20110719
  * 
  * @uses Restore_Course_Task
  * @uses Restore_PublicPrivate_Course_Structure_Step

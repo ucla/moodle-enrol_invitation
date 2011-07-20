@@ -6,6 +6,7 @@
  * Course restore step that handles public/private metadata.
  *
  * @author ebollens
+ * @version 20110719
  *
  * @uses Restore_Structure_Step
  * @uses Restore_Path_Element

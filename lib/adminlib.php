@@ -2132,6 +2132,12 @@ class admin_setting_configcheckbox extends admin_setting {
     }
 }
 
+/**
+ * Extension of the configcheckbox for a disabled checkbox.
+ *
+ * @author ebollens
+ * @version 20110719
+ */
 class admin_setting_configcheckbox_disabled extends admin_setting_configcheckbox {
 
     /**
@@ -5978,6 +5984,15 @@ function admin_write_settings($formdata) {
         $data[$fullname] = $value;
     }
 
+    /**
+     * Validation checks for enabling and disabling public/private and group
+     * members only settings. Public/private can only be enabled if group
+     * members only is enabled, and group members only cannot be disabled if
+     * public/private is enabled.
+     *
+     * @author ebollens
+     * @version 20110719
+     */
     if($formdata['section'] == 'experimentalsettings'
             && array_key_exists('s__enablegroupmembersonly', $data)
             && array_key_exists('s__enablepublicprivate', $data))

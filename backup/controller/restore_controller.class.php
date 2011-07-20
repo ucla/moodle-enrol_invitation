@@ -29,6 +29,7 @@
  *
  * @see Restore_PublicPrivate_Course_Task
  * @author ebollens
+ * @version 20110719
  */
 if(file_exists($CFG->libdir.'/publicprivate/restore_publicprivate_course_task.class.php')) {
     include_once($CFG->libdir.'/publicprivate/restore_publicprivate_course_task.class.php');

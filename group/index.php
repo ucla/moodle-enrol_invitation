@@ -167,7 +167,14 @@ echo '<tr>'."\n";
 echo "<td>\n";
 echo '<p><label for="groups"><span id="groupslabel">'.get_string('groups').':</span><span id="thegrouping">&nbsp;</span></label></p>'."\n";
 
-if (ajaxenabled()) { // TODO: move this to JS init!
+if (ajaxenabled()) {
+    /**
+     * Invoke refreshMembersPublicPrivate on change, rather than refreshMembers,
+     * which includes additional functionality for public/private support.
+     *
+     * @author ebollens
+     * @version 20110719
+     */
     require_once($CFG->libdir.'/publicprivate/course.class.php');
     $publicprivate_course = new PublicPrivate_Course($course);
     $onchange = 'M.core_group.membersCombo.refreshMembersPublicPrivate('.$publicprivate_course->get_group().')';

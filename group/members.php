@@ -38,6 +38,13 @@ $groupmembersselector->set_extra_fields(array());
 $potentialmembersselector = new group_non_members_selector('addselect', array('groupid' => $groupid, 'courseid' => $course->id));
 $potentialmembersselector->set_extra_fields(array());
 
+/**
+ * Require that group assignments are not made on the public/private group.
+ *
+ * @author ebollens
+ * @version 20110719
+ */
+
 require_once($CFG->libdir.'/publicprivate/course.class.php');
 $publicprivate_course = new PublicPrivate_Course($course);
 
@@ -87,8 +94,13 @@ $PAGE->set_heading($course->fullname);
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('adduserstogroup', 'group').": $groupname", 3);
 
-if($publicprivate_course->is_group($group))
-{
+/**
+ * Alert that public/private group cannot be edited.
+ *
+ * @author ebollens
+ * @version 20110719
+ */
+if($publicprivate_course->is_group($group)) {
     echo $OUTPUT->notification('WARNING: This is a special group for public/private. It cannot be edited.');
     echo $OUTPUT->continue_button('index.php?id='.$course->id);
     echo $OUTPUT->footer();

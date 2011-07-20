@@ -6,6 +6,7 @@
  * Course backup step that handles public/private metadata.
  *
  * @author ebollens
+ * @version 20110719
  *
  * @uses Backup_Structure_Step
  * @uses Backup_Nested_Element

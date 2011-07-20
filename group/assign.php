@@ -130,8 +130,13 @@ $PAGE->set_title("$course->shortname: $strgroups");
 $PAGE->set_heading($course->fullname);
 echo $OUTPUT->header();
 
-if($publicprivate_course->is_grouping($grouping))
-{
+/**
+ * Alert that public/private grouping cannot be edited.
+ *
+ * @author ebollens
+ * @version 20110719
+ */
+if($publicprivate_course->is_grouping($grouping)) {
     echo '<h3 class="main">';
     print_string('addgroupstogroupings', 'group');
     echo ': '.$groupingname.'</h3>';

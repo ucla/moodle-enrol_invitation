@@ -159,6 +159,9 @@ abstract class backup_factory {
          * standard Backup_Course_Task object. This object performs all of the
          * same steps as Backup_Course_Task, except that it adds one additional
          * step for public/private.
+         *
+         * @author ebollens
+         * @version 20110719
          */
         global $CFG;
         if(file_exists($CFG->libdir.'/publicprivate/backup_publicprivate_course_task.class.php')

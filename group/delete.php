@@ -54,6 +54,12 @@ if ($confirm && data_submitted()) {
         print_error('confirmsesskeybad','error',$returnurl);
     }
 
+    /**
+     * Remove all groups except for the public/private group.
+     *
+     * @author ebollens
+     * @version 20110719
+     */
     foreach($groupidarray as $groupid) {
         if(!$publicprivate_course->is_group($groupid))
             groups_delete_group($groupid);
@@ -65,19 +71,22 @@ if ($confirm && data_submitted()) {
     $PAGE->set_heading($course->fullname . ': '. get_string('deleteselectedgroup', 'group'));
     echo $OUTPUT->header();
 
+    /**
+     * Alert that public/private grouping cannot be removed or otherwise present
+     * the remove confirmation box.
+     *
+     * @author ebollens
+     * @version 20110719
+     */
     $publicprivate_course_used = false;
-
     foreach($groupidarray as $groupid)
         if($publicprivate_course->is_group($groupid))
             $publicprivate_course_used = true;
     
-    if($publicprivate_course_used)
-    {
+    if($publicprivate_course_used) {
         echo $OUTPUT->notification('WARNING: ' . (count($groupidarray) > 1 ? 'One of the groups' : 'The group') . ' selected is a special group for public/private. It cannot be removed.');
         echo $OUTPUT->continue_button('index.php?id='.$courseid);
-    }
-    else
-    {
+    } else {
         $optionsyes = array('courseid'=>$courseid, 'groups'=>$groupids, 'sesskey'=>sesskey(), 'confirm'=>1);
         $optionsno = array('id'=>$courseid);
         if(count($groupnames)==1) {

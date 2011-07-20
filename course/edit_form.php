@@ -189,8 +189,14 @@ class course_edit_form extends moodleform {
 //--------------------------------------------------------------------------------
         $mform->addElement('header','', get_string('groups', 'group'));
 
-        if(PublicPrivate_Site::is_enabled() || PublicPrivate_Course::build($course)->is_activated())
-        {
+        /**
+         * Flag to enable or disable public/private if it is enabled for the
+         * site or if it is activated for the course.
+         *
+         * @author ebollens
+         * @version 20110719
+         */
+        if(PublicPrivate_Site::is_enabled() || PublicPrivate_Course::build($course)->is_activated()) {
             $choices = array();
             $choices[0] = get_string('disable');
             $choices[1] = get_string('enable');

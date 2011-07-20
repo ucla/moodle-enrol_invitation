@@ -66,15 +66,18 @@ if ($id and $delete) {
         $PAGE->set_heading($course->fullname . ': '. get_string('deleteselectedgroup', 'group'));
         echo $OUTPUT->header();
 
+        /**
+         * Alert that public/private grouping cannot be removed.
+         *
+         * @author ebollens
+         * @version 20110719
+         */
         require_once($CFG->libdir.'/publicprivate/course.class.php');
         $publicprivate_course = new PublicPrivate_Course($course);
-        if($publicprivate_course->is_group($group))
-        {
+        if($publicprivate_course->is_group($group)) {
             echo $OUTPUT->notification('WARNING: This is a special grouping for public/private. It cannot be removed.');
             echo $OUTPUT->continue_button('groupings.php?id='.$courseid);
-        }
-        else
-        {
+        } else {
             $optionsyes = array('id'=>$id, 'delete'=>1, 'courseid'=>$courseid, 'sesskey'=>sesskey(), 'confirm'=>1);
             $optionsno  = array('id'=>$courseid);
             $formcontinue = new single_button(new moodle_url('group.php', $optionsyes), get_string('yes'), 'get');
