@@ -220,7 +220,7 @@
      */
     include_once($CFG->libdir.'/publicprivate/course.class.php');
     $publicprivate_course = new PublicPrivate_Course($course);
-    if($publicprivate_course->is_activated() && (!isset($USER->id) || $USER->id == 1)) {
+    if($publicprivate_course->is_activated() && isguestuser()) {
         echo html_writer::start_tag('div', array('style'=>'margin-left:auto; margin-right:auto; width:650px; border:1px solid #fc3; background-color:#ff9; font-size: .8em; padding: 6px 4px 6px 4px; margin-top: 12px; margin-bottom:8px; text-align: center;'));
         echo html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('i/warning'), 'style'=>'vertical-align:middle; padding-left: 4px; padding-right: 4px;'));
         echo html_writer::empty_tag('br');
