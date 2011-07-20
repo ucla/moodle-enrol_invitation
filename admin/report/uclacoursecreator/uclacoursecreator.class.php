@@ -2815,6 +2815,12 @@ class uclacoursecreator {
         mail($this->get_config('course_creator_email'), 
             'Course Creator Summary ' . $this->shell_date, $this->email_log);
 
+        // To be on the safe side, close the registrar connection before
+        // terminating the cron
+        foreach ($this->registrar_conn as $connection) {
+            $connection->close_registrar_connection();
+        }
+
         $this->close_log_file_pointer();
 
         return true;

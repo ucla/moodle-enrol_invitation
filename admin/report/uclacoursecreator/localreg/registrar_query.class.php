@@ -103,8 +103,6 @@ abstract class registrar_query {
             }
         }
 
-        $this->close_registrar_connection();
-
         return $direct_data;
     }
 
