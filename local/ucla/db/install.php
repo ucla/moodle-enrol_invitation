@@ -18,24 +18,25 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once(dirname(__FILE__) . '/../locallib.php');
 
-// TODO Make sure that this does not cause the install to crash
-
+/**
+ *  Runs extra commands when installing.
+ **/
 function xmldb_local_ucla_install() {
     // Do stuff eventually
-    $result = ucla_verify_configuration_setup();
-
-    if (!$result) {
-        throw new moodle_exception('access_failure', 'local_ucla');
-    }
+    $result = true;
 
     // Maybe add some tables we need?
     return $result;
 }
 
+/**
+ *  Runs commands to recover a halted installation.
+ **/
 function xmldb_local_ucla_install_recovery() {
     // Do stuff eventually
+    $result = true;
 
-    return true;
+    return $result;
 }
 
 // EOF
