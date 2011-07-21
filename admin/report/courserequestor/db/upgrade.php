@@ -90,6 +90,19 @@ function xmldb_report_courserequestor_upgrade($oldversion) {
         // courserequestor savepoint reached
         upgrade_plugin_savepoint(true, 2011052717, 'report', 'courserequestor');
     }
+    
+        if ($oldversion < 2011072100) {
+
+        // Changing precision of field instructor on table ucla_request_classes to (200)
+        $table = new xmldb_table('ucla_request_classes');
+        $field = new xmldb_field('instructor', XMLDB_TYPE_CHAR, '200', null, null, null, null, 'department');
+
+        // Launch change of precision for field instructor
+        $dbman->change_field_precision($table, $field);
+
+        // courserequestor savepoint reached
+        upgrade_plugin_savepoint(true, 2011072100, 'report', 'courserequestor');
+    }
 	
 	return $result;
 }

@@ -856,7 +856,7 @@ if(optional_param('action',NULL,PARAM_CLEAN)){
                         $r++;
                     }
 
-                    $query = "INSERT INTO mdl_ucla_request_classes(term,srs,course,department,instructor,contact,crosslist,added_at,action,status,mailinst,hidden,force_urlupdate,force_no_urlupdate) values ('$term','$srs','$course','$department','$instructor','$contact','$isxlist','$ctime','Build','pending','$mailinst','$hidden','$forceurl','$nourlupd')";
+                    $query = "INSERT INTO mdl_ucla_request_classes(term,srs,course,department,instructor,contact,crosslist,added_at,action,status,mailinst,hidden,force_urlupdate,force_no_urlupdate) values ('$term','$srs','$course','$department','".addslashes($instructor)."','".addslashes($contact)."','$isxlist','$ctime','Build','pending','$mailinst','$hidden','$forceurl','$nourlupd')";
 
                     $DB->execute($query);
 
