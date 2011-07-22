@@ -38,7 +38,7 @@ class backup_glossary_activity_structure_step extends backup_activity_structure_
 
         // Define each element separated
         $glossary = new backup_nested_element('glossary', array('id'), array(
-            'name', 'intro', 'allowduplicatedentries', 'displayformat',
+            'name', 'intro', 'introformat', 'allowduplicatedentries', 'displayformat',
             'mainglossary', 'showspecial', 'showalphabet', 'showall',
             'allowcomments', 'allowprintview', 'usedynalink', 'defaultapproval',
             'globalglossary', 'entbypage', 'editalways', 'rsstype',
@@ -61,7 +61,7 @@ class backup_glossary_activity_structure_step extends backup_activity_structure_
         $ratings = new backup_nested_element('ratings');
 
         $rating = new backup_nested_element('rating', array('id'), array(
-            'scaleid', 'value', 'userid', 'timecreated', 'timemodified'));
+            'component', 'ratingarea', 'scaleid', 'value', 'userid', 'timecreated', 'timemodified'));
 
         $categories = new backup_nested_element('categories');
 
@@ -101,8 +101,10 @@ class backup_glossary_activity_structure_step extends backup_activity_structure_
             $alias->set_source_table('glossary_alias', array('entryid' => backup::VAR_PARENTID));
             $alias->set_source_alias('alias', 'alias_text');
 
-            $rating->set_source_table('rating', array('contextid' => backup::VAR_CONTEXTID,
-                                      'itemid'    => backup::VAR_PARENTID));
+            $rating->set_source_table('rating', array('contextid'  => backup::VAR_CONTEXTID,
+                                                      'itemid'     => backup::VAR_PARENTID,
+                                                      'component'  => backup_helper::is_sqlparam('mod_glossary'),
+                                                      'ratingarea' => backup_helper::is_sqlparam('entry')));
             $rating->set_source_alias('rating', 'value');
 
             $categoryentry->set_source_table('glossary_entries_categories', array('categoryid' => backup::VAR_PARENTID));

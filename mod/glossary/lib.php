@@ -23,7 +23,6 @@
  * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-require_once($CFG->dirroot . '/rating/lib.php');
 require_once($CFG->libdir . '/completionlib.php');
 
 define("GLOSSARY_SHOW_ALL_CATEGORIES", 0);
@@ -243,7 +242,16 @@ function glossary_user_outline($course, $user, $mod, $glossary) {
     } else if ($grade) {
         $result = new stdClass();
         $result->info = get_string('grade') . ': ' . $grade->str_long_grade;
-        $result->time = $grade->dategraded;
+
+        //datesubmitted == time created. dategraded == time modified or time overridden
+        //if grade was last modified by the user themselves use date graded. Otherwise use date submitted
+        //TODO: move this copied & pasted code somewhere in the grades API. See MDL-26704
+        if ($grade->usermodified == $user->id || empty($grade->datesubmitted)) {
+            $result->time = $grade->dategraded;
+        } else {
+            $result->time = $grade->datesubmitted;
+        }
+
         return $result;
     }
     return NULL;
@@ -436,13 +444,14 @@ function glossary_get_user_grades($glossary, $userid=0) {
     global $CFG;
 
     require_once($CFG->dirroot.'/rating/lib.php');
-    $rm = new rating_manager();
 
-    $ratingoptions = new stdclass();
+    $ratingoptions = new stdClass;
 
     //need these to work backwards to get a context id. Is there a better way to get contextid from a module instance?
     $ratingoptions->modulename = 'glossary';
     $ratingoptions->moduleid   = $glossary->id;
+    $ratingoptions->component  = 'mod_glossary';
+    $ratingoptions->ratingarea = 'entry';
 
     $ratingoptions->userid = $userid;
     $ratingoptions->aggregationmethod = $glossary->assessed;
@@ -450,32 +459,125 @@ function glossary_get_user_grades($glossary, $userid=0) {
     $ratingoptions->itemtable = 'glossary_entries';
     $ratingoptions->itemtableusercolumn = 'userid';
 
+    $rm = new rating_manager();
     return $rm->get_user_grades($ratingoptions);
 }
 
 /**
  * Return rating related permissions
- * @param string $options the context id
+ *
+ * @param int $contextid the context id
+ * @param string $component The component we want to get permissions for
+ * @param string $ratingarea The ratingarea that we want to get permissions for
  * @return array an associative array of the user's rating permissions
  */
-function glossary_rating_permissions($options) {
-    $contextid = $options;
-    $context = get_context_instance_by_id($contextid);
-
-    if (!$context) {
-        print_error('invalidcontext');
+function glossary_rating_permissions($contextid, $component, $ratingarea) {
+    if ($component != 'mod_glossary' || $ratingarea != 'entry') {
+        // We don't know about this component/ratingarea so just return null to get the
+        // default restrictive permissions.
         return null;
-    } else {
-        return array('view'=>has_capability('mod/glossary:viewrating',$context), 'viewany'=>has_capability('mod/glossary:viewanyrating',$context), 'viewall'=>has_capability('mod/glossary:viewallratings',$context), 'rate'=>has_capability('mod/glossary:rate',$context));
     }
+    $context = get_context_instance_by_id($contextid);
+    return array(
+        'view'    => has_capability('mod/glossary:viewrating', $context),
+        'viewany' => has_capability('mod/glossary:viewanyrating', $context),
+        'viewall' => has_capability('mod/glossary:viewallratings', $context),
+        'rate'    => has_capability('mod/glossary:rate', $context)
+    );
 }
 
 /**
- * Returns the names of the table and columns necessary to check items for ratings
- * @return array an array containing the item table, item id and user id columns
+ * Validates a submitted rating
+ * @param array $params submitted data
+ *            context => object the context in which the rated items exists [required]
+ *            component => The component for this module - should always be mod_forum [required]
+ *            ratingarea => object the context in which the rated items exists [required]
+ *            itemid => int the ID of the object being rated [required]
+ *            scaleid => int the scale from which the user can select a rating. Used for bounds checking. [required]
+ *            rating => int the submitted rating
+ *            rateduserid => int the id of the user whose items have been rated. NOT the user who submitted the ratings. 0 to update all. [required]
+ *            aggregation => int the aggregation method to apply when calculating grades ie RATING_AGGREGATE_AVERAGE [optional]
+ * @return boolean true if the rating is valid. Will throw rating_exception if not
  */
-function glossary_rating_item_check_info() {
-    return array('glossary_entries','id','userid');
+function glossary_rating_validate($params) {
+    global $DB, $USER;
+
+    // Check the component is mod_forum
+    if ($params['component'] != 'mod_glossary') {
+        throw new rating_exception('invalidcomponent');
+    }
+
+    // Check the ratingarea is post (the only rating area in forum)
+    if ($params['ratingarea'] != 'entry') {
+        throw new rating_exception('invalidratingarea');
+    }
+
+    // Check the rateduserid is not the current user .. you can't rate your own posts
+    if ($params['rateduserid'] == $USER->id) {
+        throw new rating_exception('nopermissiontorate');
+    }
+
+    $glossarysql = "SELECT g.id as glossaryid, g.scale, g.course, e.userid as userid, e.approved, e.timecreated, g.assesstimestart, g.assesstimefinish
+                      FROM {glossary_entries} e
+                      JOIN {glossary} g ON e.glossaryid = g.id
+                     WHERE e.id = :itemid";
+    $glossaryparams = array('itemid' => $params['itemid']);
+    $info = $DB->get_record_sql($glossarysql, $glossaryparams);
+    if (!$info) {
+        //item doesn't exist
+        throw new rating_exception('invaliditemid');
+    }
+
+    if ($info->scale != $params['scaleid']) {
+        //the scale being submitted doesnt match the one in the database
+        throw new rating_exception('invalidscaleid');
+    }
+
+    //check that the submitted rating is valid for the scale
+
+    // lower limit
+    if ($params['rating'] < 0  && $params['rating'] != RATING_UNSET_RATING) {
+        throw new rating_exception('invalidnum');
+    }
+
+    // upper limit
+    if ($info->scale < 0) {
+        //its a custom scale
+        $scalerecord = $DB->get_record('scale', array('id' => -$info->scale));
+        if ($scalerecord) {
+            $scalearray = explode(',', $scalerecord->scale);
+            if ($params['rating'] > count($scalearray)) {
+                throw new rating_exception('invalidnum');
+            }
+        } else {
+            throw new rating_exception('invalidscaleid');
+        }
+    } else if ($params['rating'] > $info->scale) {
+        //if its numeric and submitted rating is above maximum
+        throw new rating_exception('invalidnum');
+    }
+
+    if (!$info->approved) {
+        //item isnt approved
+        throw new rating_exception('nopermissiontorate');
+    }
+
+    //check the item we're rating was created in the assessable time window
+    if (!empty($info->assesstimestart) && !empty($info->assesstimefinish)) {
+        if ($info->timecreated < $info->assesstimestart || $info->timecreated > $info->assesstimefinish) {
+            throw new rating_exception('notavailable');
+        }
+    }
+
+    $cm = get_coursemodule_from_instance('glossary', $info->glossaryid, $info->course, false, MUST_EXIST);
+    $context = get_context_instance(CONTEXT_MODULE, $cm->id, MUST_EXIST);
+
+    // if the supplied context doesnt match the item's context
+    if ($context->id != $params['context']->id) {
+        throw new rating_exception('invalidcontext');
+    }
+
+    return true;
 }
 
 /**
@@ -589,7 +691,8 @@ function glossary_grade_item_delete($glossary) {
  * Returns the users with data in one glossary
  * (users with records in glossary_entries, students)
  *
- * @global object
+ * @todo: deprecated - to be deleted in 2.2
+ *
  * @param int $glossaryid
  * @return array
  */
@@ -995,7 +1098,9 @@ function glossary_print_entry_icons($course, $cm, $glossary, $entry, $mode='',$h
         $return .= get_string('entryishidden','glossary');
     }
 
-    if (has_capability('mod/glossary:manageentries', $context) or (isloggedin() and has_capability('mod/glossary:write', $context) and $entry->userid == $USER->id)) {
+    $iscurrentuser = ($entry->userid == $USER->id);
+
+    if (has_capability('mod/glossary:manageentries', $context) or (isloggedin() and has_capability('mod/glossary:write', $context) and $iscurrentuser)) {
         // only teachers can export entries so check it out
         if (has_capability('mod/glossary:export', $context) and !$ismainglossary and !$importedentry) {
             $mainglossary = $DB->get_record('glossary', array('mainglossary'=>1,'course'=>$course->id));
@@ -1026,9 +1131,7 @@ function glossary_print_entry_icons($course, $cm, $glossary, $entry, $mode='',$h
             $return .= " <font size=\"-1\">" . get_string("exportedentry","glossary") . "</font>";
         }
     }
-    if (has_capability('mod/glossary:exportentry', $context)
-        || ($entry->userid == $USER->id
-            && has_capability('mod/glossary:exportownentry', $context))) {
+    if (!empty($CFG->enableportfolios) && (has_capability('mod/glossary:exportentry', $context) || ($iscurrentuser && has_capability('mod/glossary:exportownentry', $context)))) {
         require_once($CFG->libdir . '/portfoliolib.php');
         $button = new portfolio_add_button();
         $button->set_callback_options('glossary_entry_portfolio_caller',  array('id' => $cm->id, 'entryid' => $entry->id), '/mod/glossary/locallib.php');
@@ -1052,21 +1155,19 @@ function glossary_print_entry_icons($course, $cm, $glossary, $entry, $mode='',$h
 
     $return .= '</span>';
 
-    if (has_capability('mod/glossary:comment', $context) and $glossary->allowcomments) {
+    if (!empty($CFG->usecomments) && has_capability('mod/glossary:comment', $context) and $glossary->allowcomments) {
+        require_once($CFG->dirroot . '/comment/lib.php');
+        $cmt = new stdClass();
+        $cmt->component = 'mod_glossary';
+        $cmt->context  = $context;
+        $cmt->course   = $course;
+        $cmt->cm       = $cm;
+        $cmt->area     = 'glossary_entry';
+        $cmt->itemid   = $entry->id;
+        $cmt->showcount = true;
+        $comment = new comment($cmt);
+        $return .= '<div>'.$comment->output(true).'</div>';
         $output = true;
-        if (!empty($CFG->usecomments)) {
-            require_once($CFG->dirroot . '/comment/lib.php');
-            $cmt = new stdClass();
-            $cmt->component = 'mod_glossary';
-            $cmt->context  = $context;
-            $cmt->course   = $course;
-            $cmt->cm       = $cm;
-            $cmt->area     = 'glossary_entry';
-            $cmt->itemid   = $entry->id;
-            $cmt->showcount = true;
-            $comment = new comment($cmt);
-            $return .= '<div>'.$comment->output(true).'</div>';
-        }
     }
 
     //If we haven't calculated any REAL thing, delete result ($return)
@@ -2096,31 +2197,49 @@ function glossary_full_tag($tag,$level=0,$endline=true,$content) {
 /**
  * How many unrated entries are in the given glossary for a given user?
  *
- * @global object
+ * @global moodle_database $DB
  * @param int $glossaryid
  * @param int $userid
  * @return int
  */
 function glossary_count_unrated_entries($glossaryid, $userid) {
     global $DB;
-    if ($entries = $DB->get_record_sql("SELECT count('x') as num
-                                          FROM {glossary_entries}
-                                         WHERE glossaryid = ? AND userid <> ?", array($glossaryid, $userid))) {
 
-        if (!$cm = get_coursemodule_from_instance('glossary', $glossaryid)) {
-            return 0;
-        }
-        $context = get_context_instance(CONTEXT_MODULE, $cm->id);
+    $sql = "SELECT COUNT('x') as num
+              FROM {glossary_entries}
+             WHERE glossaryid = :glossaryid AND
+                   userid <> :userid";
+    $params = array('glossaryid' => $glossaryid, 'userid' => $userid);
+    $entries = $DB->count_records_sql($sql, $params);
 
-        if ($rated = $DB->get_record_sql("SELECT count(*) as num
-                                            FROM {glossary_entries} e, {ratings} r
-                                           WHERE e.glossaryid = :glossaryid AND e.id = r.itemid
-                                                 AND r.userid = :userid and r.contextid = :contextid",
-                array('glossaryid'=>$glossaryid, 'userid'=>$userid, 'contextid'=>$context->id))) {
+    if ($entries) {
+        // We need to get the contextid for the glossaryid we have been given.
+        $sql = "SELECT ctx.id
+                  FROM {context} ctx
+                  JOIN {course_modules} cm ON cm.id = ctx.instanceid
+                  JOIN {modules} m ON m.id = cm.module
+                  JOIN {glossary} g ON g.id = cm.instance
+                 WHERE ctx.contextlevel = :contextlevel AND
+                       m.name = 'glossary' AND
+                       g.id = :glossaryid";
+        $contextid = $DB->get_field_sql($sql, array('glossaryid' => $glossaryid, 'contextlevel' => CONTEXT_MODULE));
 
-            $difference = $entries->num - $rated->num;
-            if ($difference > 0) {
-                return $difference;
+        // Now we need to count the ratings that this user has made
+        $sql = "SELECT COUNT('x') AS num
+                  FROM {glossary_entries} e
+                  JOIN {ratings} r ON r.itemid = e.id
+                 WHERE e.glossaryid = :glossaryid AND
+                       r.userid = :userid AND
+                       r.component = 'mod_glossary' AND
+                       r.ratingarea = 'entry' AND
+                       r.contextid = :contextid";
+        $params = array('glossaryid' => $glossaryid, 'userid' => $userid, 'contextid' => $context->id);
+        $rated = $DB->count_records_sql($sql, $params);
+        if ($rated) {
+            // The number or enties minus the number or rated entries equals the number of unrated
+            // entries
+            if ($entries->num > $rated->num) {
+                return $entries->num - $rated->num;
             } else {
                 return 0;    // Just in case there was a counting error
             }
@@ -2372,7 +2491,9 @@ function glossary_reset_userdata($data) {
     $fs = get_file_storage();
 
     $rm = new rating_manager();
-    $ratingdeloptions = new stdclass();
+    $ratingdeloptions = new stdClass;
+    $ratingdeloptions->component = 'mod_glossary';
+    $ratingdeloptions->ratingarea = 'entry';
 
     // delete entries if requested
     if (!empty($data->reset_glossary_all)
@@ -2653,4 +2774,97 @@ function glossary_extend_settings_navigation(settings_navigation $settings, navi
         $url = new moodle_url(rss_get_url($PAGE->cm->context->id, $USER->id, 'mod_glossary', $glossary->id));
         $glossarynode->add($string, $url, settings_navigation::TYPE_SETTING, null, null, new pix_icon('i/rss', ''));
     }
+}
+
+/**
+ * Running addtional permission check on plugin, for example, plugins
+ * may have switch to turn on/off comments option, this callback will
+ * affect UI display, not like pluginname_comment_validate only throw
+ * exceptions.
+ * Capability check has been done in comment->check_permissions(), we
+ * don't need to do it again here.
+ *
+ * @param stdClass $comment_param {
+ *              context  => context the context object
+ *              courseid => int course id
+ *              cm       => stdClass course module object
+ *              commentarea => string comment area
+ *              itemid      => int itemid
+ * }
+ * @return array
+ */
+function glossary_comment_permissions($comment_param) {
+    return array('post'=>true, 'view'=>true);
+}
+
+/**
+ * Validate comment parameter before perform other comments actions
+ *
+ * @param stdClass $comment_param {
+ *              context  => context the context object
+ *              courseid => int course id
+ *              cm       => stdClass course module object
+ *              commentarea => string comment area
+ *              itemid      => int itemid
+ * }
+ * @return boolean
+ */
+function glossary_comment_validate($comment_param) {
+    global $DB;
+    // validate comment area
+    if ($comment_param->commentarea != 'glossary_entry') {
+        throw new comment_exception('invalidcommentarea');
+    }
+    if (!$record = $DB->get_record('glossary_entries', array('id'=>$comment_param->itemid))) {
+        throw new comment_exception('invalidcommentitemid');
+    }
+    if (!$glossary = $DB->get_record('glossary', array('id'=>$record->glossaryid))) {
+        throw new comment_exception('invalidid', 'data');
+    }
+    if (!$course = $DB->get_record('course', array('id'=>$glossary->course))) {
+        throw new comment_exception('coursemisconf');
+    }
+    if (!$cm = get_coursemodule_from_instance('glossary', $glossary->id, $course->id)) {
+        throw new comment_exception('invalidcoursemodule');
+    }
+    $context = get_context_instance(CONTEXT_MODULE, $cm->id);
+
+    if ($glossary->defaultapproval and !$record->approved and !has_capability('mod/glossary:approve', $context)) {
+        throw new comment_exception('notapproved', 'glossary');
+    }
+    // validate context id
+    if ($context->id != $comment_param->context->id) {
+        throw new comment_exception('invalidcontext');
+    }
+    // validation for comment deletion
+    if (!empty($comment_param->commentid)) {
+        if ($comment = $DB->get_record('comments', array('id'=>$comment_param->commentid))) {
+            if ($comment->commentarea != 'glossary_entry') {
+                throw new comment_exception('invalidcommentarea');
+            }
+            if ($comment->contextid != $comment_param->context->id) {
+                throw new comment_exception('invalidcontext');
+            }
+            if ($comment->itemid != $comment_param->itemid) {
+                throw new comment_exception('invalidcommentitemid');
+            }
+        } else {
+            throw new comment_exception('invalidcommentid');
+        }
+    }
+    return true;
+}
+
+/**
+ * Return a list of page types
+ * @param string $pagetype current page type
+ * @param stdClass $parentcontext Block's parent context
+ * @param stdClass $currentcontext Current context of block
+ */
+function glossary_page_type_list($pagetype, $parentcontext, $currentcontext) {
+    $module_pagetype = array(
+        'mod-glossary-*'=>get_string('page-mod-glossary-x', 'glossary'),
+        'mod-glossary-view'=>get_string('page-mod-glossary-view', 'glossary'),
+        'mod-glossary-edit'=>get_string('page-mod-glossary-edit', 'glossary'));
+    return $module_pagetype;
 }

@@ -467,6 +467,7 @@ function feedback_cron () {
 }
 
 /**
+ * @todo: deprecated - to be deleted in 2.2
  * @return bool false
  */
 function feedback_get_participants($feedbackid) {
@@ -490,6 +491,20 @@ function feedback_scale_used ($feedbackid,$scaleid) {
  */
 function feedback_scale_used_anywhere($scaleid) {
     return false;
+}
+
+/**
+ * @return array
+ */
+function feedback_get_view_actions() {
+    return array('view','view all');
+}
+
+/**
+ * @return array
+ */
+function feedback_get_post_actions() {
+    return array('submit');
 }
 
 /**
@@ -1786,10 +1801,10 @@ function feedback_get_page_to_continue($feedbackid, $courseid = false, $guestid 
 
     $params = array();
     if($courseid) {
-        $courseselect = "fv.course_id = :courseid";
+        $courseselect = "AND fv.course_id = :courseid";
         $params['courseid'] = $courseid;
     }else {
-        $courseselect = "1";
+        $courseselect = '';
     }
 
     if($guestid) {
@@ -1807,7 +1822,7 @@ function feedback_get_page_to_continue($feedbackid, $courseid = false, $guestid 
               WHERE fc.id = fv.completed
                     $userselect
                     AND fc.feedback = :feedbackid
-                    AND $courseselect
+                    $courseselect
                     AND fi.id = fv.item
          $usergroup";
     $params['feedbackid'] = $feedbackid;
@@ -2779,4 +2794,15 @@ function feedback_init_feedback_session() {
             $SESSION->feedback = new stdClass();
         }
     }
+}
+
+/**
+ * Return a list of page types
+ * @param string $pagetype current page type
+ * @param stdClass $parentcontext Block's parent context
+ * @param stdClass $currentcontext Current context of block
+ */
+function feedback_page_type_list($pagetype, $parentcontext, $currentcontext) {
+    $module_pagetype = array('mod-feedback-*'=>get_string('page-mod-feedback-x', 'feedback'));
+    return $module_pagetype;
 }

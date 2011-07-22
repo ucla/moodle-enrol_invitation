@@ -28,7 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 
 class tinymce_texteditor extends texteditor {
     /** @var string active version - directory name */
-    public $version = '3.3.9.2';
+    public $version = '3.4.2';
 
     public function supported_by_browser() {
         if (check_browser_version('MSIE', 6)) {
@@ -67,7 +67,11 @@ class tinymce_texteditor extends texteditor {
 
     public function use_editor($elementid, array $options=null, $fpoptions=null) {
         global $PAGE;
-        $PAGE->requires->js('/lib/editor/tinymce/tiny_mce/'.$this->version.'/tiny_mce.js');
+        if (debugging('', DEBUG_DEVELOPER)) {
+            $PAGE->requires->js('/lib/editor/tinymce/tiny_mce/'.$this->version.'/tiny_mce_src.js');
+        } else {
+            $PAGE->requires->js('/lib/editor/tinymce/tiny_mce/'.$this->version.'/tiny_mce.js');
+        }
         $PAGE->requires->js_init_call('M.editor_tinymce.init_editor', array($elementid, $this->get_init_params($elementid, $options)), true);
         if ($fpoptions) {
             $PAGE->requires->js_init_call('M.editor_tinymce.init_filepicker', array($elementid, $fpoptions), true);

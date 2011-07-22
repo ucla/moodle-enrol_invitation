@@ -271,7 +271,8 @@ function survey_print_recent_activity($course, $viewfullnames, $timestart) {
  * Returns the users with data in one survey
  * (users with records in survey_analysis and survey_answers, students)
  *
- * @global object
+ * @todo: deprecated - to be deleted in 2.2
+ *
  * @param int $surveyid
  * @return array
  */
@@ -862,4 +863,15 @@ function survey_extend_settings_navigation($settings, $surveynode) {
             $surveynode->add(get_string('downloadresults', 'survey'), $url);
         }
     }
+}
+
+/**
+ * Return a list of page types
+ * @param string $pagetype current page type
+ * @param stdClass $parentcontext Block's parent context
+ * @param stdClass $currentcontext Current context of block
+ */
+function survey_page_type_list($pagetype, $parentcontext, $currentcontext) {
+    $module_pagetype = array('mod-survey-*'=>get_string('page-mod-survey-x', 'survey'));
+    return $module_pagetype;
 }
