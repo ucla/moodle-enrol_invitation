@@ -33,17 +33,13 @@
 // Updated: 3-5-07 Mike Franks - got it working, with Keith's help. 
 //  Copied from auth/shibboleth/README.txt example
 
-$dispname = 'HTTP_SHIB_DISPLAYNAME';
-$middname = 'HTTP_UCLA_PERSON_MIDDLENAME'; 
-$suffname = 'HTTP_SHIB_UCLASPERSONNAMESUFFIX';
-
 $ln = 'lastname';
 $fn = 'firstname';
 $it = 'institution';
 
 // Changing to retrieve displayname and if it exists, use it instead of 
 // official name.
-$displayname = $this->get_first_string($_SERVER[$dispname]);
+$displayname = $this->get_first_string($_SERVER['HTTP_SHIB_DISPLAYNAME']);
 
 $result[$ln] = '';
 
@@ -52,12 +48,15 @@ if (!empty($displayname)) {
     $result[$fn] = strtoupper($firstname);
     $result[$ln]  = strtoupper($lastname);
 } else {     
-    $middlename  = $this->get_first_string($_SERVER[$middname]);
+    $middlename  = $this->get_first_string(
+            $_SERVER['HTTP_UCLA_PERSON_MIDDLENAME']);
+
     if (!empty($middlename)) {
         $result[$fn] = "{$result[$fn]} $middlename";
     }
 
-    $suffix = $this->get_first_string($_SERVER[$suffname]);
+    $suffix = $this->get_first_string(
+            $_SERVER['HTTP_SHIB_UCLAPERSONNAMESUFFIX']);
 }
 
 $suffix = strtoupper($suffix);
