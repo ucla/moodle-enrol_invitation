@@ -52,6 +52,6 @@ class block_course_menu_edit_form extends block_edit_form {
         // This is a list of things that will be displayed in the coursemenu
         $mform->addElement('header', 'configheader', 
             get_string('elements', $this->block->blockname));
-        $mform->addElement('html', $this->block->config_elements());
+        //$mform->addElement('html', $this->block->config_elements());
     }
 }

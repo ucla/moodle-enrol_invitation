@@ -26,14 +26,24 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-require_once(dirname(__FILE__) . '/lib/settingslib.php');
+// Is there no convenience function for loading a block?
+require_once($CFG->dirroot . '/blocks/moodleblock.class.php');
+require_once($CFG->dirroot . '/blocks/course_menu/block_course_menu.php');
 
-$block = block_instance('course_menu');
-
-$settings->add(new admin_setting_configtext('trimlength', 
+$settings->add(new admin_setting_configtext('block_course_menu/trimlength', 
         get_string('trimlength', 'block_course_menu'), '', 
-        block_course_menu::DEFAULT_TRIM_LENGTH, PARAM_INT, 11));
+        10, PARAM_INT, 11));
 
-$settings->add(new admin_setting_confightml('global_config', '', '', '', 
-        $block));
+$options = array(
+    block_course_menu::TRIM_RIGHT => 
+        get_string('trimmoderight', 'block_course_menu'),
+    block_course_menu::TRIM_LEFT =>
+        get_string('trimmodeleft', 'block_course_menu'),
+    block_course_menu::TRIM_CENTER =>
+        get_string('trimmodecenter', 'block_course_menu')
+    );
+
+$settings->add(new admin_setting_configselect('block_course_menu/trimmode', 
+        get_string('trimmode', 'block_course_menu'), '', 
+        block_course_menu::TRIM_RIGHT, $options));
 

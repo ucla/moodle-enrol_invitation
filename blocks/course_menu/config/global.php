@@ -24,9 +24,12 @@
  * ----------------------------------------------------------------------------
  */
 
+defined('MOODLE_INTERNAL') || die();
+
 include($CFG->dirroot . "/blocks/course_menu/js/course_menu.js.php");
 
-$prefix = "s__block_course_menu_"; //use only as a flag, get the full data from _POST
+//use only as a flag, get the full data from _POST
+$prefix = "s__block_course_menu_"; 
 
 $linksavail = isset($this->config->links);
 

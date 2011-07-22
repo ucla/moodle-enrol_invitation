@@ -27,10 +27,7 @@
 /**
  *  This is the course menu block, written by "NetSapiensis."
  *
- *  TODO
- *  - Consolidate code properly.
  **/
-require_once($CFG->dirroot.'/mod/resource/lib.php');
 
 class block_course_menu extends block_base {
     /** @var int Trim characters from the right **/
@@ -48,10 +45,7 @@ class block_course_menu extends block_base {
     /** @var int TODO No idea **/
     const EXPANDABLE_TREE = 0;
    
-    /** Cache maintainer **/
-    private $contentgenerated = false;
-    
-    /*
+    /**
      *  Overrides parent.
      **/
     function init() {
@@ -93,6 +87,29 @@ class block_course_menu extends block_base {
     }
 
     /**
+     *  Includes the source for the format file library.
+     *
+     *  @param $courseformat The format to attempt to load.
+     **/
+    function get_course_format($courseformat=null) {
+        if ($courseformat === null) {
+            $courseformat = $this->course->format;
+        }
+
+        $formatfile = $this->course_format_file($courseformat);
+        if (file_exists($formatfile)) {
+            require_once($formatfile);
+        } else {
+            // This format always exists, so use this!
+            $courseformat = 'topics';
+            $formatfile = $this->course_format_file($courseformat);
+            require_once($formatfile);
+        }
+
+        return $courseformat;
+    }
+
+    /**
      *  Gets the GET param that is used to describe which topic
      *  you are viewing for a particular course format.
      *
@@ -100,31 +117,16 @@ class block_course_menu extends block_base {
      *  @return string
      **/
     function get_topic_get() {
-        $courseformat = $this->course->format;
-
-        // Do a quick exit, if the format has already been loaded.
+        $courseformat = $this->get_course_format();
         $fn = 'callback_' . $courseformat . '_request_key';
-        if (function_exists($fn)) {
-            return $fn();
-        }
-
-        // Attempt to load the file 
-        $formatfile = $this->course_format_file($courseformat);
-        if (file_exists($formatfile)) {
-            require_once($formatfile);
-        } else {
-            $courseformat = 'topics';
-            $formatfile = $this->course_format_file($courseformat);
-            require_once($formatfile);
-        }
 
         if (function_exists($fn)) {
             $format_rk = $fn();
         } else {
             // Just assume it is topic
-            $format_rk = 'topic';
+            $format_rk = callback_topics_request_key();
 
-            debugging('Could not access GET param for format - using [' 
+            debugging('Could not access GET param for format! Using [' 
                 . $format_rk . ']');
         }
 
@@ -138,7 +140,7 @@ class block_course_menu extends block_base {
     function get_content() {
         global $CFG, $USER, $DB, $OUTPUT;
         
-        if ($this->contentgenerated) {
+        if (isset($this->content) && !empty($this->content)) {
             return $this->content;
         }
         
@@ -679,12 +681,16 @@ class block_course_menu extends block_base {
             return array();
         }
         
-        $this_format = $this->course->format;
+        $this_format = $this->get_course_format();
 
-
+        // These don't really have sections, I guess...
         if ($this_format == 'social' || $this_format == 'scorm') {
             return array();
         }
+        
+        $fullformat = 'format_' . $this_format;
+
+        $genericname = get_string('sectionname', $fullformat);
 
         $course_id = $this->course->id;
 
@@ -696,9 +702,6 @@ class block_course_menu extends block_base {
        
         $get_param = $this->get_topic_get();
 
-        $fullformat = 'format_' . $this_format;
-
-        $genericname = get_string('sectionname', $fullformat);
         $allsections = get_all_sections($course_id);
 
         if (get_string_manager()->string_exists('section0name', $fullformat)) {
@@ -866,8 +869,8 @@ class block_course_menu extends block_base {
      *  @return string The truncated string.
      **/
     function trim($str) {
-        $mode = self::TRIM_RIGHT;
-        $length = self::DEFAULT_TRIM_LENGTH;
+        $mode = get_config($this->blockname, 'trimmode');
+        $length = get_config($this->blockname, 'trimlength');
 
         if (!empty($this->config->trimmode)) {
             $mode = (int)$this->config->trimmode;
@@ -881,17 +884,20 @@ class block_course_menu extends block_base {
 
         switch ($mode) {
         case self::TRIM_RIGHT :
-            if ($textlib->strlen($str) > ($length + 3)) {
-                return $this->trim_right($textlib, $str, $length);
-            }
+            $mode_str = 'right';
+            break;
         case self::TRIM_LEFT :
-            if ($textlib->strlen($str) > ($length + 3)) {
-                return $this->trim_left($textlib, $str, $length);
-            }
+            $mode_str = 'left';
+            break;
         case self::TRIM_CENTER :
-            if ($textlib->strlen($str) > ($length + 3)) {
-                return $this->trim_center($textlib, $str, $length);
-            }
+            $mode_str = 'center';
+            break;
+        }
+
+        if ($textlib->strlen($str) > ($length + 3)) {
+            $fn_name = 'trim_' . $mode_str;
+
+            return $this->$fn_name($textlib, $str, $length);
         }
 
         return $str;
@@ -959,14 +965,15 @@ class block_course_menu extends block_base {
      *  And every page, called by settings.php
      **/
     function output_global_config() {
-        global $CFG, $THEME, $OUTPUT;
+        global $CFG, $THEME, $OUTPUT, $PAGE;
+
         // required stuff
         $icons = $this->get_link_icons();
 
         $this->check_default_config(false);
         
         ob_start();
-        include ("{$CFG->dirroot}/blocks/course_menu/config/global.php");
+        //include ("{$CFG->dirroot}/blocks/course_menu/config/global.php");
         $cc = ob_get_contents();
         ob_end_clean();
 
