@@ -1,6 +1,3 @@
-<?php
-
-?>
 <style type="text/css">
 td#chaptersTableContainer table tr td {
     padding: 2px 6px;

@@ -58,7 +58,7 @@ class block_course_menu_renderer extends plugin_renderer_base {
 					for ($i = 0; $i < $child['count']; $i++) {
 						$topic .= $this->render_topic($config, 
                             $sections[$sectionindex], 0, 
-                            $displaysection == $sectionindex + 1);
+                            $displaysection == $sectionindex);
 						$sectionindex++;
 					}
 
@@ -87,7 +87,8 @@ class block_course_menu_renderer extends plugin_renderer_base {
 
 					$topic = $this->render_topic($config, 
                         $sections[$sectionindex], $d, 
-                        $displaysection == $sectionindex + 1);
+                        $displaysection == $sectionindex);
+
 					$sectionindex++;
 				}
 
@@ -124,6 +125,7 @@ class block_course_menu_renderer extends plugin_renderer_base {
 	
 	function render_topic($config, $section, $depth=0, $current=false) {
 		global $OUTPUT;
+
 		if ($depth == 0) {
 			$depth = $this->topic_depth;
 		}
@@ -170,7 +172,7 @@ class block_course_menu_renderer extends plugin_renderer_base {
 
 		$append = "";
 		if ($current) {
-			$append = "current_branch";
+			$append = "active_tree_node";
 		}
 
 		$html = html_writer::tag('li', $html,

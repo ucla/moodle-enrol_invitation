@@ -28,7 +28,6 @@
  *  This is the course menu block, written by "NetSapiensis."
  *
  **/
-
 class block_course_menu extends block_base {
     /** @var int Trim characters from the right **/
     const TRIM_RIGHT = 1;
@@ -74,6 +73,15 @@ class block_course_menu extends block_base {
      **/
     function has_config() {
         return true;
+    }
+
+    /**
+     *  Moodle overridden.
+     **/
+    function applicable_formats() {
+        return array(
+            'course' => true
+        );
     }
 
     /**
@@ -152,7 +160,9 @@ class block_course_menu extends block_base {
 
         $format_rk = $this->get_topic_get();
         $displaysection = optional_param($format_rk, 0, PARAM_INT);
-        if ($displaysection < 0) {
+        
+        // Handle show all
+        if ($displaysection < -1) {
             $displaysection = course_get_display($this->course->id);
         }
 
@@ -187,7 +197,14 @@ class block_course_menu extends block_base {
             $elename = $element['name'];
             $eleicon = $this->get_icon($element, $renderer);
 
+            // The special link destination
             $leafurl = null;
+
+            // High light this destination (hopefully we don't disagree with
+            // the regular sections)
+            $currel = false;
+
+            // Additional attributes for HTML
             $attrs = array();
 
             switch ($eleid) {
@@ -209,7 +226,8 @@ class block_course_menu extends block_base {
                     . $this->course->id . '&' . $format_rk . '=-1';
 
                 $attrs = array('id' => $eleid);
-
+                
+                $currel = ($displaysection == -1);
                 break;
             case 'calendar':
                 $leafurl = $CFG->wwwroot 
@@ -243,7 +261,7 @@ class block_course_menu extends block_base {
             // Render something if we need to
             if ($leafurl !== null) {
                 $lis .= $renderer->render_leaf($elename, $eleicon, 
-                    $attrs, $leafurl);
+                    $attrs, $leafurl, $currel);
             }
         }
 
