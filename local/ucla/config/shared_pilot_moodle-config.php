@@ -60,9 +60,12 @@ $CFG->directorypermissions = 0777;
 $CFG->passwordsaltmain = '';
 
 // If you want to have un-revisioned configuration data, place in this file.
-$_private_ = $CFG->wwwroot . '/config_private.php';
+// $CFG->dirroot is overwritten later, so let's not bother clock cycles
+$_dirroot_ = dirname(__FILE__) . '/../../../';
+
+$_private_ = $_dirroot . '/config_private.php';
 if (file_exists($_private_)) {
     require_once($_private_);
 }
 
-require_once(dirname(__FILE__) . '/lib/setup.php');
+require_once($_dirroot_ . '/lib/setup.php');
