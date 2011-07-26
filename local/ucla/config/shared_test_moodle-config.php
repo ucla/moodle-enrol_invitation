@@ -38,17 +38,17 @@ $CFG = new stdClass();
 $CFG->dbtype    = 'mysqli';
 $CFG->dblibrary = 'native';
 $CFG->dbhost    = 'localhost';
-$CFG->dbname    = '';
-$CFG->dbuser    = '';
-$CFG->dbpass    = '';
+$CFG->dbname    = 'm2test';
+$CFG->dbuser    = 'moodleuser';
+$CFG->dbpass    = 'db4moodle';
 $CFG->prefix    = 'mdl_';
 $CFG->dboptions = array(
     'dbpersist' => 0,
     'dbsocket'  => 1 
 );
 
-$CFG->wwwroot  = '';
-$CFG->dataroot = ''; 
+$CFG->wwwroot  = 'https://m2test.ccle.ucla.edu';
+$CFG->dataroot = '/usr/local/moodle/m2testdata'; 
 
 // This determines what the admin folder is called.
 $CFG->admin    = 'admin';
@@ -57,7 +57,7 @@ $CFG->directorypermissions = 0777;
 
 // This should never change after the first install, or else any special
 // logins using the Moodle login will not work.
-$CFG->passwordsaltmain = '';
+$CFG->passwordsaltmain = '^!mny&G9W)JIB# c/#}^3Uk(';
 
 // If you want to have un-revisioned configuration data, place in this file.
 // $CFG->dirroot is overwritten later, so let's not bother clock cycles
