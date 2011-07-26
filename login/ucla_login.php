@@ -50,7 +50,7 @@ if (empty($SESSION->ucla_login_error)) {
 }
 
 $shibredir = $CFG->httpswwwroot . '/auth/shibboleth/index.php';
-if (!$errormsg and optional_param('shibboleth', false, PARAM_BOOL)) {
+if (!$errormsg and optional_param('shibboleth', false, PARAM_BOOL) !== false) {
     redirect($shibredir);
     exit();
 }
