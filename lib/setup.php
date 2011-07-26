@@ -228,6 +228,14 @@ if (!defined('MOODLE_INTERNAL')) { // necessary because cli installer has to def
     define('MOODLE_INTERNAL', true);
 }
 
+// Early profiling start, based exclusively on config.php $CFG settings
+if (!empty($CFG->earlyprofilingenabled)) {
+    require_once($CFG->libdir . '/xhprof/xhprof_moodle.php');
+    if (profiling_start()) {
+        register_shutdown_function('profiling_stop');
+    }
+}
+
 /**
  * Database connection. Used for all access to the database.
  * @global moodle_database $DB
@@ -644,9 +652,6 @@ if (isset($_SERVER['PHP_SELF'])) {
     unset($phppos);
 }
 
-// initialise ME's
-initialise_fullme();
-
 // init session prevention flag - this is defined on pages that do not want session
 if (CLI_SCRIPT) {
     // no sessions in CLI scripts possible
@@ -669,11 +674,16 @@ session_get_instance();
 $SESSION = &$_SESSION['SESSION'];
 $USER    = &$_SESSION['USER'];
 
-// include and start profiling if needed, and register profiling_stop as shutdown function
+// initialise ME's
+// This must presently come AFTER $USER has been set up.
+initialise_fullme();
+
+// Late profiling, only happening if early one wasn't started
 if (!empty($CFG->profilingenabled)) {
     require_once($CFG->libdir . '/xhprof/xhprof_moodle.php');
-    profiling_start();
-    register_shutdown_function('profiling_stop');
+    if (profiling_start()) {
+        register_shutdown_function('profiling_stop');
+    }
 }
 
 // Process theme change in the URL.

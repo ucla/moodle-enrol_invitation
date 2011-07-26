@@ -971,8 +971,7 @@ class assignment_base {
             $userfields = user_picture::fields('u', array('lastaccess'));
             $select = "SELECT $userfields,
                               s.id AS submissionid, s.grade, s.submissioncomment,
-                              s.timemodified, s.timemarked,
-                              COALESCE(SIGN(SIGN(s.timemarked) + SIGN(s.timemarked - s.timemodified)), 0) AS status ";
+                              s.timemodified, s.timemarked ";
             $sql = 'FROM {user} u '.
                    'LEFT JOIN {assignment_submissions} s ON u.id = s.userid
                    AND s.assignment = '.$this->assignment->id.' '.
@@ -1022,6 +1021,7 @@ class assignment_base {
         $mformdata->submissioncommentformat= FORMAT_HTML;
         $mformdata->submission_content= $this->print_user_files($user->id,true);
         $mformdata->filter = $filter;
+        $mformdata->mailinfo = get_user_preferences('assignment_mailinfo', 0);
          if ($assignment->assignmenttype == 'upload') {
             $mformdata->fileui_options = array('subdirs'=>1, 'maxbytes'=>$assignment->maxbytes, 'maxfiles'=>$assignment->var1, 'accepted_types'=>'*', 'return_types'=>FILE_INTERNAL);
         } elseif ($assignment->assignmenttype == 'uploadsingle') {
@@ -1128,6 +1128,7 @@ class assignment_base {
         $course     = $this->course;
         $assignment = $this->assignment;
         $cm         = $this->cm;
+        $hassubmission = false;
 
         $tabindex = 1; //tabindex for quick grading tabbing; Not working for dropdowns yet
         add_to_log($course->id, 'assignment', 'view submission', 'submissions.php?id='.$this->cm->id, $this->assignment->id, $this->cm->id);
@@ -1140,20 +1141,6 @@ class assignment_base {
 
         //hook to allow plagiarism plugins to update status/print links.
         plagiarism_update_status($this->course, $this->cm);
-
-        /// Print quickgrade form around the table
-        if ($quickgrade) {
-            $formattrs = array();
-            $formattrs['action'] = new moodle_url('/mod/assignment/submissions.php');
-            $formattrs['id'] = 'fastg';
-            $formattrs['method'] = 'post';
-
-            echo html_writer::start_tag('form', $formattrs);
-            echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'id',      'value'=> $this->cm->id));
-            echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'mode',    'value'=> 'fastgrade'));
-            echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'page',    'value'=> $page));
-            echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'sesskey', 'value'=> sesskey()));
-        }
 
         $course_context = get_context_instance(CONTEXT_COURSE, $course->id);
         if (has_capability('gradereport/grader:view', $course_context) && has_capability('moodle/grade:viewall', $course_context)) {
@@ -1173,6 +1160,20 @@ class assignment_base {
         $groupmode = groups_get_activity_groupmode($cm);
         $currentgroup = groups_get_activity_group($cm, true);
         groups_print_activity_menu($cm, $CFG->wwwroot . '/mod/assignment/submissions.php?id=' . $this->cm->id);
+
+        /// Print quickgrade form around the table
+        if ($quickgrade) {
+            $formattrs = array();
+            $formattrs['action'] = new moodle_url('/mod/assignment/submissions.php');
+            $formattrs['id'] = 'fastg';
+            $formattrs['method'] = 'post';
+
+            echo html_writer::start_tag('form', $formattrs);
+            echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'id',      'value'=> $this->cm->id));
+            echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'mode',    'value'=> 'fastgrade'));
+            echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'page',    'value'=> $page));
+            echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'sesskey', 'value'=> sesskey()));
+        }
 
         /// Get all ppl that are allowed to submit assignments
         list($esql, $params) = get_enrolled_sql($context, 'mod/assignment:view', $currentgroup);
@@ -1215,7 +1216,7 @@ class assignment_base {
         }
 
         $tableheaders = array('',
-                              get_string('fullname'),
+                              get_string('fullnameuser'),
                               get_string('grade'),
                               get_string('comment', 'assignment'),
                               get_string('lastmodified').' ('.get_string('submission', 'assignment').')',
@@ -1264,16 +1265,7 @@ class assignment_base {
         // Start working -- this is necessary as soon as the niceties are over
         $table->setup();
 
-        if (empty($users)) {
-            echo $OUTPUT->heading(get_string('nosubmitusers','assignment'));
-            echo '</div>';
-            return true;
-        }
-        if ($this->assignment->assignmenttype=='upload' || $this->assignment->assignmenttype=='online' || $this->assignment->assignmenttype=='uploadsingle') { //TODO: this is an ugly hack, where is the plugin spirit? (skodak)
-            echo '<div style="text-align:right"><a href="submissions.php?id='.$this->cm->id.'&amp;download=zip">'.get_string('downloadall', 'assignment').'</a></div>';
-        }
     /// Construct the SQL
-
         list($where, $params) = $table->get_sql_where();
         if ($where) {
             $where .= ' AND ';
@@ -1290,186 +1282,198 @@ class assignment_base {
         }
 
         $ufields = user_picture::fields('u');
+        if (!empty($users)) {
+            $select = "SELECT $ufields,
+                              s.id AS submissionid, s.grade, s.submissioncomment,
+                              s.timemodified, s.timemarked ";
+            $sql = 'FROM {user} u '.
+                   'LEFT JOIN {assignment_submissions} s ON u.id = s.userid
+                    AND s.assignment = '.$this->assignment->id.' '.
+                   'WHERE '.$where.'u.id IN ('.implode(',',$users).') ';
 
-        $select = "SELECT $ufields,
-                          s.id AS submissionid, s.grade, s.submissioncomment,
-                          s.timemodified, s.timemarked,
-                          COALESCE(SIGN(SIGN(s.timemarked) + SIGN(s.timemarked - s.timemodified)), 0) AS status ";
-        $sql = 'FROM {user} u '.
-               'LEFT JOIN {assignment_submissions} s ON u.id = s.userid
-                AND s.assignment = '.$this->assignment->id.' '.
-               'WHERE '.$where.'u.id IN ('.implode(',',$users).') ';
+            $ausers = $DB->get_records_sql($select.$sql.$sort, $params, $table->get_page_start(), $table->get_page_size());
 
-        $ausers = $DB->get_records_sql($select.$sql.$sort, $params, $table->get_page_start(), $table->get_page_size());
+            $table->pagesize($perpage, count($users));
 
-        $table->pagesize($perpage, count($users));
+            ///offset used to calculate index of student in that particular query, needed for the pop up to know who's next
+            $offset = $page * $perpage;
+            $strupdate = get_string('update');
+            $strgrade  = get_string('grade');
+            $grademenu = make_grades_menu($this->assignment->grade);
 
-        ///offset used to calculate index of student in that particular query, needed for the pop up to know who's next
-        $offset = $page * $perpage;
-        $strupdate = get_string('update');
-        $strgrade  = get_string('grade');
-        $grademenu = make_grades_menu($this->assignment->grade);
+            if ($ausers !== false) {
+                $grading_info = grade_get_grades($this->course->id, 'mod', 'assignment', $this->assignment->id, array_keys($ausers));
+                $endposition = $offset + $perpage;
+                $currentposition = 0;
+                foreach ($ausers as $auser) {
+                    if ($currentposition == $offset && $offset < $endposition) {
+                        $final_grade = $grading_info->items[0]->grades[$auser->id];
+                        $grademax = $grading_info->items[0]->grademax;
+                        $final_grade->formatted_grade = round($final_grade->grade,2) .' / ' . round($grademax,2);
+                        $locked_overridden = 'locked';
+                        if ($final_grade->overridden) {
+                            $locked_overridden = 'overridden';
+                        }
 
-        if ($ausers !== false) {
-            $grading_info = grade_get_grades($this->course->id, 'mod', 'assignment', $this->assignment->id, array_keys($ausers));
-            $endposition = $offset + $perpage;
-            $currentposition = 0;
-            foreach ($ausers as $auser) {
-                if ($currentposition == $offset && $offset < $endposition) {
-                    $final_grade = $grading_info->items[0]->grades[$auser->id];
-                    $grademax = $grading_info->items[0]->grademax;
-                    $final_grade->formatted_grade = round($final_grade->grade,2) .' / ' . round($grademax,2);
-                    $locked_overridden = 'locked';
-                    if ($final_grade->overridden) {
-                        $locked_overridden = 'overridden';
-                    }
+                    /// Calculate user status
+                        $auser->status = ($auser->timemarked > 0) && ($auser->timemarked >= $auser->timemodified);
+                        $picture = $OUTPUT->user_picture($auser);
 
-                /// Calculate user status
-                    $auser->status = ($auser->timemarked > 0) && ($auser->timemarked >= $auser->timemodified);
-                    $picture = $OUTPUT->user_picture($auser);
+                        if (empty($auser->submissionid)) {
+                            $auser->grade = -1; //no submission yet
+                        }
 
-                    if (empty($auser->submissionid)) {
-                        $auser->grade = -1; //no submission yet
-                    }
+                        if (!empty($auser->submissionid)) {
+                            $hassubmission = true;
+                        ///Prints student answer and student modified date
+                        ///attach file or print link to student answer, depending on the type of the assignment.
+                        ///Refer to print_student_answer in inherited classes.
+                            if ($auser->timemodified > 0) {
+                                $studentmodified = '<div id="ts'.$auser->id.'">'.$this->print_student_answer($auser->id)
+                                                 . userdate($auser->timemodified).'</div>';
+                            } else {
+                                $studentmodified = '<div id="ts'.$auser->id.'">&nbsp;</div>';
+                            }
+                        ///Print grade, dropdown or text
+                            if ($auser->timemarked > 0) {
+                                $teachermodified = '<div id="tt'.$auser->id.'">'.userdate($auser->timemarked).'</div>';
 
-                    if (!empty($auser->submissionid)) {
-                    ///Prints student answer and student modified date
-                    ///attach file or print link to student answer, depending on the type of the assignment.
-                    ///Refer to print_student_answer in inherited classes.
-                        if ($auser->timemodified > 0) {
-                            $studentmodified = '<div id="ts'.$auser->id.'">'.$this->print_student_answer($auser->id)
-                                             . userdate($auser->timemodified).'</div>';
+                                if ($final_grade->locked or $final_grade->overridden) {
+                                    $grade = '<div id="g'.$auser->id.'" class="'. $locked_overridden .'">'.$final_grade->formatted_grade.'</div>';
+                                } else if ($quickgrade) {
+                                    $attributes = array();
+                                    $attributes['tabindex'] = $tabindex++;
+                                    $menu = html_writer::select(make_grades_menu($this->assignment->grade), 'menu['.$auser->id.']', $auser->grade, array(-1=>get_string('nograde')), $attributes);
+                                    $grade = '<div id="g'.$auser->id.'">'. $menu .'</div>';
+                                } else {
+                                    $grade = '<div id="g'.$auser->id.'">'.$this->display_grade($auser->grade).'</div>';
+                                }
+
+                            } else {
+                                $teachermodified = '<div id="tt'.$auser->id.'">&nbsp;</div>';
+                                if ($final_grade->locked or $final_grade->overridden) {
+                                    $grade = '<div id="g'.$auser->id.'" class="'. $locked_overridden .'">'.$final_grade->formatted_grade.'</div>';
+                                } else if ($quickgrade) {
+                                    $attributes = array();
+                                    $attributes['tabindex'] = $tabindex++;
+                                    $menu = html_writer::select(make_grades_menu($this->assignment->grade), 'menu['.$auser->id.']', $auser->grade, array(-1=>get_string('nograde')), $attributes);
+                                    $grade = '<div id="g'.$auser->id.'">'.$menu.'</div>';
+                                } else {
+                                    $grade = '<div id="g'.$auser->id.'">'.$this->display_grade($auser->grade).'</div>';
+                                }
+                            }
+                        ///Print Comment
+                            if ($final_grade->locked or $final_grade->overridden) {
+                                $comment = '<div id="com'.$auser->id.'">'.shorten_text(strip_tags($final_grade->str_feedback),15).'</div>';
+
+                            } else if ($quickgrade) {
+                                $comment = '<div id="com'.$auser->id.'">'
+                                         . '<textarea tabindex="'.$tabindex++.'" name="submissioncomment['.$auser->id.']" id="submissioncomment'
+                                         . $auser->id.'" rows="2" cols="20">'.($auser->submissioncomment).'</textarea></div>';
+                            } else {
+                                $comment = '<div id="com'.$auser->id.'">'.shorten_text(strip_tags($auser->submissioncomment),15).'</div>';
+                            }
                         } else {
                             $studentmodified = '<div id="ts'.$auser->id.'">&nbsp;</div>';
-                        }
-                    ///Print grade, dropdown or text
-                        if ($auser->timemarked > 0) {
-                            $teachermodified = '<div id="tt'.$auser->id.'">'.userdate($auser->timemarked).'</div>';
-
-                            if ($final_grade->locked or $final_grade->overridden) {
-                                $grade = '<div id="g'.$auser->id.'" class="'. $locked_overridden .'">'.$final_grade->formatted_grade.'</div>';
-                            } else if ($quickgrade) {
-                                $attributes = array();
-                                $attributes['tabindex'] = $tabindex++;
-                                $menu = html_writer::select(make_grades_menu($this->assignment->grade), 'menu['.$auser->id.']', $auser->grade, array(-1=>get_string('nograde')), $attributes);
-                                $grade = '<div id="g'.$auser->id.'">'. $menu .'</div>';
-                            } else {
-                                $grade = '<div id="g'.$auser->id.'">'.$this->display_grade($auser->grade).'</div>';
-                            }
-
-                        } else {
                             $teachermodified = '<div id="tt'.$auser->id.'">&nbsp;</div>';
+                            $status          = '<div id="st'.$auser->id.'">&nbsp;</div>';
+
                             if ($final_grade->locked or $final_grade->overridden) {
-                                $grade = '<div id="g'.$auser->id.'" class="'. $locked_overridden .'">'.$final_grade->formatted_grade.'</div>';
-                            } else if ($quickgrade) {
+                                $grade = '<div id="g'.$auser->id.'">'.$final_grade->formatted_grade . '</div>';
+                                $hassubmission = true;
+                            } else if ($quickgrade) {   // allow editing
                                 $attributes = array();
                                 $attributes['tabindex'] = $tabindex++;
                                 $menu = html_writer::select(make_grades_menu($this->assignment->grade), 'menu['.$auser->id.']', $auser->grade, array(-1=>get_string('nograde')), $attributes);
                                 $grade = '<div id="g'.$auser->id.'">'.$menu.'</div>';
+                                $hassubmission = true;
                             } else {
-                                $grade = '<div id="g'.$auser->id.'">'.$this->display_grade($auser->grade).'</div>';
+                                $grade = '<div id="g'.$auser->id.'">-</div>';
+                            }
+
+                            if ($final_grade->locked or $final_grade->overridden) {
+                                $comment = '<div id="com'.$auser->id.'">'.$final_grade->str_feedback.'</div>';
+                            } else if ($quickgrade) {
+                                $comment = '<div id="com'.$auser->id.'">'
+                                         . '<textarea tabindex="'.$tabindex++.'" name="submissioncomment['.$auser->id.']" id="submissioncomment'
+                                         . $auser->id.'" rows="2" cols="20">'.($auser->submissioncomment).'</textarea></div>';
+                            } else {
+                                $comment = '<div id="com'.$auser->id.'">&nbsp;</div>';
                             }
                         }
-                    ///Print Comment
-                        if ($final_grade->locked or $final_grade->overridden) {
-                            $comment = '<div id="com'.$auser->id.'">'.shorten_text(strip_tags($final_grade->str_feedback),15).'</div>';
 
-                        } else if ($quickgrade) {
-                            $comment = '<div id="com'.$auser->id.'">'
-                                     . '<textarea tabindex="'.$tabindex++.'" name="submissioncomment['.$auser->id.']" id="submissioncomment'
-                                     . $auser->id.'" rows="2" cols="20">'.($auser->submissioncomment).'</textarea></div>';
+                        if (empty($auser->status)) { /// Confirm we have exclusively 0 or 1
+                            $auser->status = 0;
                         } else {
-                            $comment = '<div id="com'.$auser->id.'">'.shorten_text(strip_tags($auser->submissioncomment),15).'</div>';
-                        }
-                    } else {
-                        $studentmodified = '<div id="ts'.$auser->id.'">&nbsp;</div>';
-                        $teachermodified = '<div id="tt'.$auser->id.'">&nbsp;</div>';
-                        $status          = '<div id="st'.$auser->id.'">&nbsp;</div>';
-
-                        if ($final_grade->locked or $final_grade->overridden) {
-                            $grade = '<div id="g'.$auser->id.'">'.$final_grade->formatted_grade . '</div>';
-                        } else if ($quickgrade) {   // allow editing
-                            $attributes = array();
-                            $attributes['tabindex'] = $tabindex++;
-                            $menu = html_writer::select(make_grades_menu($this->assignment->grade), 'menu['.$auser->id.']', $auser->grade, array(-1=>get_string('nograde')), $attributes);
-                            $grade = '<div id="g'.$auser->id.'">'.$menu.'</div>';
-                        } else {
-                            $grade = '<div id="g'.$auser->id.'">-</div>';
+                            $auser->status = 1;
                         }
 
-                        if ($final_grade->locked or $final_grade->overridden) {
-                            $comment = '<div id="com'.$auser->id.'">'.$final_grade->str_feedback.'</div>';
-                        } else if ($quickgrade) {
-                            $comment = '<div id="com'.$auser->id.'">'
-                                     . '<textarea tabindex="'.$tabindex++.'" name="submissioncomment['.$auser->id.']" id="submissioncomment'
-                                     . $auser->id.'" rows="2" cols="20">'.($auser->submissioncomment).'</textarea></div>';
-                        } else {
-                            $comment = '<div id="com'.$auser->id.'">&nbsp;</div>';
-                        }
-                    }
+                        $buttontext = ($auser->status == 1) ? $strupdate : $strgrade;
 
-                    if (empty($auser->status)) { /// Confirm we have exclusively 0 or 1
-                        $auser->status = 0;
-                    } else {
-                        $auser->status = 1;
-                    }
+                        ///No more buttons, we use popups ;-).
+                        $popup_url = '/mod/assignment/submissions.php?id='.$this->cm->id
+                                   . '&amp;userid='.$auser->id.'&amp;mode=single'.'&amp;filter='.$filter.'&amp;offset='.$offset++;
 
-                    $buttontext = ($auser->status == 1) ? $strupdate : $strgrade;
+                        $button = $OUTPUT->action_link($popup_url, $buttontext);
 
-                    ///No more buttons, we use popups ;-).
-                    $popup_url = '/mod/assignment/submissions.php?id='.$this->cm->id
-                               . '&amp;userid='.$auser->id.'&amp;mode=single'.'&amp;filter='.$filter.'&amp;offset='.$offset++;
+                        $status  = '<div id="up'.$auser->id.'" class="s'.$auser->status.'">'.$button.'</div>';
 
-                    $button = $OUTPUT->action_link($popup_url, $buttontext);
+                        $finalgrade = '<span id="finalgrade_'.$auser->id.'">'.$final_grade->str_grade.'</span>';
 
-                    $status  = '<div id="up'.$auser->id.'" class="s'.$auser->status.'">'.$button.'</div>';
+                        $outcomes = '';
 
-                    $finalgrade = '<span id="finalgrade_'.$auser->id.'">'.$final_grade->str_grade.'</span>';
+                        if ($uses_outcomes) {
 
-                    $outcomes = '';
+                            foreach($grading_info->outcomes as $n=>$outcome) {
+                                $outcomes .= '<div class="outcome"><label>'.$outcome->name.'</label>';
+                                $options = make_grades_menu(-$outcome->scaleid);
 
-                    if ($uses_outcomes) {
-
-                        foreach($grading_info->outcomes as $n=>$outcome) {
-                            $outcomes .= '<div class="outcome"><label>'.$outcome->name.'</label>';
-                            $options = make_grades_menu(-$outcome->scaleid);
-
-                            if ($outcome->grades[$auser->id]->locked or !$quickgrade) {
-                                $options[0] = get_string('nooutcome', 'grades');
-                                $outcomes .= ': <span id="outcome_'.$n.'_'.$auser->id.'">'.$options[$outcome->grades[$auser->id]->grade].'</span>';
-                            } else {
-                                $attributes = array();
-                                $attributes['tabindex'] = $tabindex++;
-                                $attributes['id'] = 'outcome_'.$n.'_'.$auser->id;
-                                $outcomes .= ' '.html_writer::select($options, 'outcome_'.$n.'['.$auser->id.']', $outcome->grades[$auser->id]->grade, array(0=>get_string('nooutcome', 'grades')), $attributes);
+                                if ($outcome->grades[$auser->id]->locked or !$quickgrade) {
+                                    $options[0] = get_string('nooutcome', 'grades');
+                                    $outcomes .= ': <span id="outcome_'.$n.'_'.$auser->id.'">'.$options[$outcome->grades[$auser->id]->grade].'</span>';
+                                } else {
+                                    $attributes = array();
+                                    $attributes['tabindex'] = $tabindex++;
+                                    $attributes['id'] = 'outcome_'.$n.'_'.$auser->id;
+                                    $outcomes .= ' '.html_writer::select($options, 'outcome_'.$n.'['.$auser->id.']', $outcome->grades[$auser->id]->grade, array(0=>get_string('nooutcome', 'grades')), $attributes);
+                                }
+                                $outcomes .= '</div>';
                             }
-                            $outcomes .= '</div>';
                         }
-                    }
 
-                    $userlink = '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $auser->id . '&amp;course=' . $course->id . '">' . fullname($auser, has_capability('moodle/site:viewfullnames', $this->context)) . '</a>';
-                    $row = array($picture, $userlink, $grade, $comment, $studentmodified, $teachermodified, $status, $finalgrade);
-                    if ($uses_outcomes) {
-                        $row[] = $outcomes;
+                        $userlink = '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $auser->id . '&amp;course=' . $course->id . '">' . fullname($auser, has_capability('moodle/site:viewfullnames', $this->context)) . '</a>';
+                        $row = array($picture, $userlink, $grade, $comment, $studentmodified, $teachermodified, $status, $finalgrade);
+                        if ($uses_outcomes) {
+                            $row[] = $outcomes;
+                        }
+                        $table->add_data($row);
                     }
-
-                    $table->add_data($row);
+                    $currentposition++;
                 }
-                $currentposition++;
+            }
+            if ($hassubmission && ($this->assignment->assignmenttype=='upload' || $this->assignment->assignmenttype=='online' || $this->assignment->assignmenttype=='uploadsingle')) { //TODO: this is an ugly hack, where is the plugin spirit? (skodak)
+                echo html_writer::start_tag('div', array('class' => 'mod-assignment-download-link'));
+                echo html_writer::link(new moodle_url('/mod/assignment/submissions.php', array('id' => $this->cm->id, 'download' => 'zip')), get_string('downloadall', 'assignment'));
+                echo html_writer::end_tag('div');
+            }
+            $table->print_html();  /// Print the whole table
+        } else {
+            if ($filter == self::FILTER_SUBMITTED) {
+                echo html_writer::tag('div', get_string('nosubmisson', 'assignment'), array('class'=>'nosubmisson'));
+            } else if ($filter == self::FILTER_REQUIRE_GRADING) {
+                echo html_writer::tag('div', get_string('norequiregrading', 'assignment'), array('class'=>'norequiregrading'));
             }
         }
 
-        $table->print_html();  /// Print the whole table
-
         /// Print quickgrade form around the table
-        if ($quickgrade && $table->started_output){
+        if ($quickgrade && $table->started_output && !empty($users)){
             $mailinfopref = false;
             if (get_user_preferences('assignment_mailinfo', 1)) {
                 $mailinfopref = true;
             }
-            $emailnotification =  html_writer::checkbox('mailinfo', 1, $mailinfopref, get_string('enableemailnotification','assignment'));
+            $emailnotification =  html_writer::checkbox('mailinfo', 1, $mailinfopref, get_string('enablenotification','assignment'));
 
-            $emailnotification .= $OUTPUT->help_icon('enableemailnotification', 'assignment');
+            $emailnotification .= $OUTPUT->help_icon('enablenotification', 'assignment');
             echo html_writer::tag('div', $emailnotification, array('class'=>'emailnotification'));
 
             $savefeedback = html_writer::empty_tag('input', array('type'=>'submit', 'name'=>'fastg', 'value'=>get_string('saveallfeedback', 'assignment')));
@@ -1743,7 +1747,7 @@ class assignment_base {
                 $eventdata->fullmessage      = $posttext;
                 $eventdata->fullmessageformat = FORMAT_PLAIN;
                 $eventdata->fullmessagehtml  = $posthtml;
-                $eventdata->smallmessage     = '';
+                $eventdata->smallmessage     = $postsubject;
 
                 $eventdata->name            = 'assignment_updates';
                 $eventdata->component       = 'mod_assignment';
@@ -1863,23 +1867,25 @@ class assignment_base {
 
         $output = '';
 
-        $fs = get_file_storage();
-
-        $found = false;
-
         $submission = $this->get_submission($userid);
+        if (!$submission) {
+            return $output;
+        }
 
-        if (($submission) && $files = $fs->get_area_files($this->context->id, 'mod_assignment', 'submission', $submission->id, "timemodified", false)) {
-            require_once($CFG->libdir.'/portfoliolib.php');
+        $fs = get_file_storage();
+        $files = $fs->get_area_files($this->context->id, 'mod_assignment', 'submission', $submission->id, "timemodified", false);
+        if (!empty($files)) {
             require_once($CFG->dirroot . '/mod/assignment/locallib.php');
-            $button = new portfolio_add_button();
+            if ($CFG->enableportfolios) {
+                require_once($CFG->libdir.'/portfoliolib.php');
+                $button = new portfolio_add_button();
+            }
             foreach ($files as $file) {
                 $filename = $file->get_filename();
-                $found = true;
                 $mimetype = $file->get_mimetype();
                 $path = file_encode_url($CFG->wwwroot.'/pluginfile.php', '/'.$this->context->id.'/mod_assignment/submission/'.$submission->id.'/'.$filename);
                 $output .= '<a href="'.$path.'" ><img src="'.$OUTPUT->pix_url(file_mimetype_icon($mimetype)).'" class="icon" alt="'.$mimetype.'" />'.s($filename).'</a>';
-                if ($this->portfolio_exportable() && has_capability('mod/assignment:exportownsubmission', $this->context)) {
+                if ($CFG->enableportfolios && $this->portfolio_exportable() && has_capability('mod/assignment:exportownsubmission', $this->context)) {
                     $button->set_callback_options('assignment_portfolio_caller', array('id' => $this->cm->id, 'fileid' => $file->get_id()), '/mod/assignment/locallib.php');
                     $button->set_format_by_file($file);
                     $output .= $button->to_html(PORTFOLIO_ADD_ICON_LINK);
@@ -1887,7 +1893,7 @@ class assignment_base {
                 $output .= plagiarism_get_links(array('userid'=>$userid, 'file'=>$file, 'cmid'=>$this->cm->id, 'course'=>$this->course, 'assignment'=>$this->assignment));
                 $output .= '<br />';
             }
-            if (count($files) > 1  && $this->portfolio_exportable() && has_capability('mod/assignment:exportownsubmission', $this->context)) {
+            if ($CFG->enableportfolios && count($files) > 1  && $this->portfolio_exportable() && has_capability('mod/assignment:exportownsubmission', $this->context)) {
                 $button->set_callback_options('assignment_portfolio_caller', array('id' => $this->cm->id), '/mod/assignment/locallib.php');
                 $output .= '<br />'  . $button->to_html();
             }
@@ -2298,12 +2304,10 @@ class mod_assignment_grading_form extends moodleform {
                 default :
                     break;
             }
-            $lastmailinfo = get_user_preferences('assignment_mailinfo', 1) ? array('checked'=>'checked') : array();
             $mform->addElement('hidden', 'mailinfo_h', "0");
             $mform->setType('mailinfo_h', PARAM_INT);
-            $mform->addElement('checkbox', 'mailinfo',get_string('enableemailnotification','assignment').
-            $OUTPUT->help_icon('enableemailnotification', 'assignment') .':' );
-            $mform->updateElementAttr('mailinfo', $lastmailinfo);
+            $mform->addElement('checkbox', 'mailinfo',get_string('enablenotification','assignment').
+            $OUTPUT->help_icon('enablenotification', 'assignment') .':' );
             $mform->setType('mailinfo', PARAM_INT);
         }
     }
@@ -2611,11 +2615,13 @@ function assignment_cron () {
             $eventdata->fullmessage      = $posttext;
             $eventdata->fullmessageformat = FORMAT_PLAIN;
             $eventdata->fullmessagehtml  = $posthtml;
-            $eventdata->smallmessage     = '';
+            $eventdata->smallmessage     = get_string('assignmentmailsmall', 'assignment', $assignmentinfo);
 
             $eventdata->name            = 'assignment_updates';
             $eventdata->component       = 'mod_assignment';
             $eventdata->notification    = 1;
+            $eventdata->contexturl      = $assignmentinfo->url;
+            $eventdata->contexturlname  = $assignmentinfo->assignment;
 
             message_send($eventdata);
         }
@@ -2766,6 +2772,8 @@ function assignment_grade_item_delete($assignment) {
 
 /**
  * Returns the users with data in one assignment (students and teachers)
+ *
+ * @todo: deprecated - to be deleted in 2.2
  *
  * @param $assignmentid int
  * @return array of user objects
@@ -3709,3 +3717,17 @@ function assignment_get_file_areas($course, $cm, $context) {
     return $areas;
 }
 
+/**
+ * Return a list of page types
+ * @param string $pagetype current page type
+ * @param stdClass $parentcontext Block's parent context
+ * @param stdClass $currentcontext Current context of block
+ */
+function assignment_page_type_list($pagetype, $parentcontext, $currentcontext) {
+    $module_pagetype = array(
+        'mod-assignment-*'=>get_string('page-mod-assignment-x', 'assignment'),
+        'mod-assignment-view'=>get_string('page-mod-assignment-view', 'assignment'),
+        'mod-assignment-submissions'=>get_string('page-mod-assignment-submissions', 'assignment')
+    );
+    return $module_pagetype;
+}

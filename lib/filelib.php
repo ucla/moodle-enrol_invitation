@@ -608,7 +608,7 @@ function file_get_submitted_draft_itemid($elname) {
  * @return string if $text was passed in, the rewritten $text is returned. Otherwise NULL.
  */
 function file_save_draft_area_files($draftitemid, $contextid, $component, $filearea, $itemid, array $options=null, $text=null, $forcehttps=false) {
-    global $CFG, $USER;
+    global $USER;
 
     $usercontext = get_context_instance(CONTEXT_USER, $USER->id);
     $fs = get_file_storage();
@@ -717,7 +717,24 @@ function file_save_draft_area_files($draftitemid, $contextid, $component, $filea
 
     if (is_null($text)) {
         return null;
+    } else {
+        return file_rewrite_urls_to_pluginfile($text, $draftitemid, $forcehttps);
     }
+}
+
+/**
+ * Convert the draft file area URLs in some content to @@PLUGINFILE@@ tokens
+ * ready to be saved in the database. Normally, this is done automatically by
+ * {@link file_save_draft_area_files()}.
+ * @param string $text the content to process.
+ * @param int $draftitemid the draft file area the content was using.
+ * @param bool $forcehttps whether the content contains https URLs. Default false.
+ * @return string the processed content.
+ */
+function file_rewrite_urls_to_pluginfile($text, $draftitemid, $forcehttps = false) {
+    global $CFG, $USER;
+
+    $usercontext = get_context_instance(CONTEXT_USER, $USER->id);
 
     $wwwroot = $CFG->wwwroot;
     if ($forcehttps) {
@@ -738,7 +755,6 @@ function file_save_draft_area_files($draftitemid, $contextid, $component, $filea
         }
         $text = str_ireplace("$wwwroot/draftfile.php?file=/$usercontext->id/user/draft/$draftitemid/", '@@PLUGINFILE@@/', $text);
     }
-
 
     return $text;
 }
@@ -888,7 +904,6 @@ function format_postdata_for_curlcall($postdata) {
  * Fetches content of file from Internet (using proxy if defined). Uses cURL extension if present.
  * Due to security concerns only downloads from http(s) sources are supported.
  *
- * @global object
  * @param string $url file url starting with http(s)://
  * @param array $headers http headers, null if none. If set, should be an
  *   associative array of header name => value pairs.
@@ -900,11 +915,14 @@ function format_postdata_for_curlcall($postdata) {
  * @param int $connecttimeout timeout for connection to server; this is the timeout that
  *   usually happens if the remote server is completely down (default 20 seconds);
  *   may not work when using proxy
- * @param bool $skipcertverify If true, the peer's SSL certificate will not be checked. Only use this when already in a trusted location.
- * @param string $tofile store the downloaded content to file instead of returning it
- * @return mixed false if request failed or content of the file as string if ok. true if file downloaded into $tofile successfully.
+ * @param bool $skipcertverify If true, the peer's SSL certificate will not be checked. 
+ *   Only use this when already in a trusted location.
+ * @param string $tofile store the downloaded content to file instead of returning it.
+ * @param bool $calctimeout false by default, true enables an extra head request to try and determine 
+ *   filesize and appropriately larger timeout based on $CFG->curltimeoutkbitrate
+ * @return mixed false if request failed or content of the file as string if ok. True if file downloaded into $tofile successfully.
  */
-function download_file_content($url, $headers=null, $postdata=null, $fullresponse=false, $timeout=300, $connecttimeout=20, $skipcertverify=false, $tofile=NULL) {
+function download_file_content($url, $headers=null, $postdata=null, $fullresponse=false, $timeout=300, $connecttimeout=20, $skipcertverify=false, $tofile=NULL, $calctimeout=false) {
     global $CFG;
 
     // some extra security
@@ -946,7 +964,6 @@ function download_file_content($url, $headers=null, $postdata=null, $fullrespons
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers2);
     }
 
-
     if ($skipcertverify) {
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     }
@@ -961,7 +978,7 @@ function download_file_content($url, $headers=null, $postdata=null, $fullrespons
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HEADER, false);
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $connecttimeout);
-    curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+
     if (!ini_get('open_basedir') and !ini_get('safe_mode')) {
         // TODO: add version test for '7.10.5'
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
@@ -1017,6 +1034,37 @@ function download_file_content($url, $headers=null, $postdata=null, $fullrespons
         curl_setopt($ch, CURLOPT_WRITEFUNCTION, partial('download_file_content_write_handler', $received));
     }
 
+    if (!isset($CFG->curltimeoutkbitrate)) {
+        //use very slow rate of 56kbps as a timeout speed when not set
+        $bitrate = 56;
+    } else {
+        $bitrate = $CFG->curltimeoutkbitrate;
+    }
+
+    // try to calculate the proper amount for timeout from remote file size.
+    // if disabled or zero, we won't do any checks nor head requests.
+    if ($calctimeout && $bitrate > 0) {
+        //setup header request only options
+        curl_setopt_array ($ch, array(
+            CURLOPT_RETURNTRANSFER => false,
+            CURLOPT_NOBODY         => true)
+        );
+
+        curl_exec($ch);
+        $info = curl_getinfo($ch);
+        $err = curl_error($ch);
+
+        if ($err === '' && $info['download_content_length'] > 0) { //no curl errors
+            $timeout = max($timeout, ceil($info['download_content_length'] * 8 / ($bitrate * 1024))); //adjust for large files only - take max timeout.
+        }
+        //reinstate affected curl options
+        curl_setopt_array ($ch, array(
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_NOBODY         => false)
+        );
+    }
+
+    curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
     $result = curl_exec($ch);
 
     // try to detect encoding problems
@@ -1120,6 +1168,7 @@ function get_mimetypes_array() {
     static $mimearray = array (
         'xxx'  => array ('type'=>'document/unknown', 'icon'=>'unknown'),
         '3gp'  => array ('type'=>'video/quicktime', 'icon'=>'video'),
+        'aac'  => array ('type'=>'audio/aac', 'icon'=>'audio'),
         'ai'   => array ('type'=>'application/postscript', 'icon'=>'image'),
         'aif'  => array ('type'=>'audio/x-aiff', 'icon'=>'audio'),
         'aiff' => array ('type'=>'audio/x-aiff', 'icon'=>'audio'),
@@ -1152,6 +1201,7 @@ function get_mimetypes_array() {
         'eps'  => array ('type'=>'application/postscript', 'icon'=>'pdf'),
         'fdf'  => array ('type'=>'application/pdf', 'icon'=>'pdf'),
         'flv'  => array ('type'=>'video/x-flv', 'icon'=>'video'),
+        'f4v'  => array ('type'=>'video/mp4', 'icon'=>'video'),
         'gif'  => array ('type'=>'image/gif', 'icon'=>'image'),
         'gtar' => array ('type'=>'application/x-gtar', 'icon'=>'zip'),
         'tgz'  => array ('type'=>'application/g-zip', 'icon'=>'zip'),
@@ -1207,6 +1257,7 @@ function get_mimetypes_array() {
         'odf'  => array ('type'=>'application/vnd.oasis.opendocument.formula', 'icon'=>'odf'),
         'odb'  => array ('type'=>'application/vnd.oasis.opendocument.database', 'icon'=>'odb'),
         'odi'  => array ('type'=>'application/vnd.oasis.opendocument.image', 'icon'=>'odi'),
+        'oga'  => array ('type'=>'audio/ogg', 'icon'=>'audio'),
         'ogg'  => array ('type'=>'audio/ogg', 'icon'=>'audio'),
         'ogv'  => array ('type'=>'video/ogg', 'icon'=>'video'),
 
@@ -1233,8 +1284,10 @@ function get_mimetypes_array() {
         'ram'  => array ('type'=>'audio/x-pn-realaudio-plugin', 'icon'=>'audio'),
         'rhb'  => array ('type'=>'text/xml', 'icon'=>'xml'),
         'rm'   => array ('type'=>'audio/x-pn-realaudio-plugin', 'icon'=>'audio'),
+        'rmvb' => array ('type'=>'application/vnd.rn-realmedia-vbr', 'icon'=>'video'),
         'rtf'  => array ('type'=>'text/rtf', 'icon'=>'text'),
         'rtx'  => array ('type'=>'text/richtext', 'icon'=>'text'),
+        'rv'   => array ('type'=>'audio/x-pn-realaudio-plugin', 'icon'=>'video'),
         'sh'   => array ('type'=>'application/x-sh', 'icon'=>'text'),
         'sit'  => array ('type'=>'application/x-stuffit', 'icon'=>'zip'),
         'smi'  => array ('type'=>'application/smil', 'icon'=>'text'),
@@ -1266,6 +1319,7 @@ function get_mimetypes_array() {
         'tsv'  => array ('type'=>'text/tab-separated-values', 'icon'=>'text'),
         'txt'  => array ('type'=>'text/plain', 'icon'=>'text'),
         'wav'  => array ('type'=>'audio/wav', 'icon'=>'audio'),
+        'webm'  => array ('type'=>'video/webm', 'icon'=>'video'),
         'wmv'  => array ('type'=>'video/x-ms-wmv', 'icon'=>'avi'),
         'asf'  => array ('type'=>'video/x-ms-asf', 'icon'=>'avi'),
         'xdp'  => array ('type'=>'application/pdf', 'icon'=>'pdf'),

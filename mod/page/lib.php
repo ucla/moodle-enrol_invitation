@@ -231,6 +231,8 @@ function page_user_complete($course, $user, $mod, $page) {
 /**
  * Returns the users with data in one page
  *
+ * @todo: deprecated - to be deleted in 2.2
+ *
  * @param int $pageid
  * @return bool false
  */
@@ -401,4 +403,15 @@ function page_extend_navigation($navigation, $course, $module, $cm) {
      * you content.
      */
     $navigation->nodetype = navigation_node::NODETYPE_LEAF;
+}
+
+/**
+ * Return a list of page types
+ * @param string $pagetype current page type
+ * @param stdClass $parentcontext Block's parent context
+ * @param stdClass $currentcontext Current context of block
+ */
+function page_page_type_list($pagetype, $parentcontext, $currentcontext) {
+    $module_pagetype = array('mod-page-*'=>get_string('page-mod-page-x', 'page'));
+    return $module_pagetype;
 }

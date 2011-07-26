@@ -280,19 +280,19 @@ class repository_flickr_public extends repository {
 
         $licenses = implode(',', $licenses);
 
-        if (!empty($SESSION->{$this->sess_tag})         // use tag to search
-            or !empty($SESSION->{$this->sess_text})     // use keyword to search
-            or !empty($this->nsid)/*use pre-defined accound*/) {
-            $photos = $this->flickr->photos_search(array(
-                'tags'=>$SESSION->{$this->sess_tag},
-                'page'=>$page,
-                'per_page'=>24,
-                'user_id'=>$this->nsid,
-                'license'=>$licenses,
-                'text'=>$SESSION->{$this->sess_text}
-                )
-            );
-        }
+        $tag  = !empty($SESSION->{$this->sess_tag})  ? $SESSION->{$this->sess_tag}  : null;
+        $text = !empty($SESSION->{$this->sess_text}) ? $SESSION->{$this->sess_text} : null;
+        $nsid = !empty($this->nsid) ? $this->nsid : null;
+
+        $photos = $this->flickr->photos_search(array(
+            'tags'=>$tag,
+            'page'=>$page,
+            'per_page'=>24,
+            'user_id'=>$nsid,
+            'license'=>$licenses,
+            'text'=>$text
+            )
+        );
         $ret['total'] = $photos['total'];
         $ret['perpage'] = $photos['perpage'];
         if (empty($photos)) {
@@ -456,7 +456,7 @@ class repository_flickr_public extends repository {
     public function instance_config_form($mform) {
         $mform->addElement('text', 'email_address', get_string('emailaddress', 'repository_flickr_public'));
         $mform->addElement('checkbox', 'usewatermarks', get_string('watermark', 'repository_flickr_public'));
-        //$mform->addRule('email_address', get_string('required'), 'required', null, 'client');
+        $mform->setDefault('usewatermarks', 0);
     }
 
     /**
@@ -498,7 +498,7 @@ class repository_flickr_public extends repository {
     public static function plugin_init() {
         //here we create a default instance for this type
 
-        $id = repository::static_function('flickr_public','create', 'flickr_public', 0, get_system_context(), array('name'=>'', 'email_address' => null), 0);
+        $id = repository::static_function('flickr_public','create', 'flickr_public', 0, get_system_context(), array('name'=>'', 'email_address' => null, 'usewatermarks' => false), 0);
         if (empty($id)) {
             return false;
         } else {

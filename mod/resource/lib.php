@@ -210,6 +210,8 @@ function resource_user_complete($course, $user, $mod, $resource) {
 /**
  * Returns the users with data in one resource
  *
+ * @todo: deprecated - to be deleted in 2.2
+ *
  * @param int $resourceid
  * @return bool false
  */
@@ -247,7 +249,7 @@ function resource_get_coursemodule_info($coursemodule) {
         return $info;
     }
     $fs = get_file_storage();
-    $files = $fs->get_area_files($context->id, 'mod_resource', 'content', 0, 'sortorder');
+    $files = $fs->get_area_files($context->id, 'mod_resource', 'content', 0, 'sortorder DESC, id ASC', false); // TODO: this is not very efficient!!
     if (count($files) >= 1) {
         $mainfile = array_pop($files);
         $info->icon = file_extension_icon($mainfile->get_filename());
@@ -426,4 +428,15 @@ function resource_pluginfile($course, $cm, $context, $filearea, $args, $forcedow
 
     // finally send the file
     send_stored_file($file, 86400, $filter, $forcedownload);
+}
+
+/**
+ * Return a list of page types
+ * @param string $pagetype current page type
+ * @param stdClass $parentcontext Block's parent context
+ * @param stdClass $currentcontext Current context of block
+ */
+function resource_page_type_list($pagetype, $parentcontext, $currentcontext) {
+    $module_pagetype = array('mod-resource-*'=>get_string('page-mod-resource-x', 'resource'));
+    return $module_pagetype;
 }

@@ -17,8 +17,9 @@
     $newattempt = optional_param('newattempt', 'off', PARAM_ALPHA); // the user request to start a new attempt
 
     //IE 6 Bug workaround
-    if (strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE 6') !== false && ini_get('zlib.output_compression') == 'On') {
-        ini_set('zlib.output_compression', 'Off');
+    if (strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE 6') !== false) {
+        @ini_set('zlib.output_compression', 'Off');
+        @apache_setenv('no-gzip', 1);
     }
 
     if (!empty($id)) {
@@ -146,6 +147,10 @@
     $SESSION->scorm_mode = $mode;
     $SESSION->scorm_attempt = $attempt;
 
+    // Mark module viewed
+    $completion = new completion_info($course);
+    $completion->set_module_viewed($cm);
+
     //
     // Print the page header
     //
@@ -248,10 +253,6 @@ if (!isset($result->toctitle)) {
 }
 
 $PAGE->requires->js_init_call('M.mod_scorm.init', array($scorm->hidenav, $scorm->hidetoc, $result->toctitle, $name, $sco->id));
-
-
-$completion=new completion_info($course);
-$completion->set_module_viewed($cm);
 
 if (!empty($forcejs)) {
     echo $OUTPUT->box(get_string("forcejavascriptmessage", "scorm"), "generalbox boxaligncenter forcejavascriptmessage");
