@@ -14,7 +14,7 @@ $wwwroot = $CFG->wwwroot . '/';
   <channel>
     <title><?php echo $site->fullname ?></title>
     <link><?php echo $wwwroot ?></link>
-    <description><?php echo $site->summary?></description>
+    <description><?php echo strip_tags($site->summary) ?></description>
     <language>en-us</language>
 
     <item>
