@@ -4,15 +4,17 @@ header('Content Type: application/rss+xml');
 
 include(dirname(__FILE__) . '/config.php');
 
+$site = get_site();
+
 $wwwroot = $CFG->wwwroot . '/';
 
 ?>
 <?xml version="1.0"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>CCLE Testing Environment</title>
+    <title><?php echo $site->fullname ?></title>
     <link><?php echo $wwwroot ?></link>
-    <description>The UCLA Common Collaboration and Learning Environment (CCLE) supports instruction and research within a common digital environment for faculty, students and staff.</description>
+    <description><?php echo $site->summary?></description>
     <language>en-us</language>
 
     <item>
