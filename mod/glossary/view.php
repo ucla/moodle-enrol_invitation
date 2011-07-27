@@ -62,7 +62,6 @@ if ($tab == GLOSSARY_ADDENTRY_VIEW ) {
 }
 
 /// setting the defaut number of entries per page if not set
-
 if ( !$entriesbypage = $glossary->entbypage ) {
     $entriesbypage = $CFG->glossary_entbypage;
 }
@@ -124,6 +123,10 @@ if (!$cm->visible and !has_capability('moodle/course:viewhiddenactivities', $con
     notice(get_string("activityiscurrentlyhidden"));
 }
 add_to_log($course->id, "glossary", "view", "view.php?id=$cm->id&amp;tab=$tab", $glossary->id, $cm->id);
+
+// Mark as viewed
+$completion = new completion_info($course);
+$completion->set_module_viewed($cm);
 
 /// stablishing flag variables
 if ( $sortorder = strtolower($sortorder) ) {
@@ -390,12 +393,13 @@ if ($allentries) {
     echo $paging;
     echo '</div>';
 
-
     //load ratings
     require_once($CFG->dirroot.'/rating/lib.php');
-    if ($glossary->assessed!=RATING_AGGREGATE_NONE) {
-        $ratingoptions = new stdclass();
+    if ($glossary->assessed != RATING_AGGREGATE_NONE) {
+        $ratingoptions = new stdClass;
         $ratingoptions->context = $context;
+        $ratingoptions->component = 'mod_glossary';
+        $ratingoptions->ratingarea = 'entry';
         $ratingoptions->items = $allentries;
         $ratingoptions->aggregate = $glossary->assessed;//the aggregation method
         $ratingoptions->scaleid = $glossary->scale;
@@ -403,8 +407,6 @@ if ($allentries) {
         $ratingoptions->returnurl = $CFG->wwwroot.'/mod/glossary/view.php?id='.$cm->id;
         $ratingoptions->assesstimestart = $glossary->assesstimestart;
         $ratingoptions->assesstimefinish = $glossary->assesstimefinish;
-        $ratingoptions->plugintype = 'mod';
-        $ratingoptions->pluginname = 'glossary';
 
         $rm = new rating_manager();
         $allentries = $rm->get_ratings($ratingoptions);
@@ -495,8 +497,3 @@ glossary_print_tabbed_table_end();
 
 /// Finish the page
 echo $OUTPUT->footer();
-
-/// Mark as viewed
-$completion=new completion_info($course);
-$completion->set_module_viewed($cm);
-

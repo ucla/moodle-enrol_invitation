@@ -318,7 +318,10 @@ function lesson_grade($lesson, $ntries, $userid = 0) {
                 $attempt = end($attempts);
                 // If essay question, handle it, otherwise add to score
                 if ($page->requires_manual_grading()) {
-                    $earned += $page->earned_score($answers, $attempt);
+                    $useranswerobj = unserialize($attempt->useranswer);
+                    if (isset($useranswerobj->score)) {
+                        $earned += $useranswerobj->score;
+                    }
                     $nmanual++;
                     $manualpoints += $answers[$attempt->answerid]->score;
                 } else if (!empty($attempt->answerid)) {
@@ -603,6 +606,8 @@ function lesson_get_media_html($lesson, $context) {
 
     $mimetype = resourcelib_guess_url_mimetype($url);
 
+    $extension = resourcelib_get_extension($url->out(false));
+
     // find the correct type and print it out
     if (in_array($mimetype, array('image/gif','image/jpeg','image/png'))) {  // It's an image
         $code = resourcelib_embed_image($url, $title);
@@ -611,7 +616,7 @@ function lesson_get_media_html($lesson, $context) {
         // MP3 audio file
         $code = resourcelib_embed_mp3($url, $title, $clicktoopen);
 
-    } else if ($mimetype == 'video/x-flv') {
+    } else if ($mimetype == 'video/x-flv' or $extension === 'f4v') {
         // Flash video file
         $code = resourcelib_embed_flashvideo($url, $title, $clicktoopen);
 
@@ -1275,7 +1280,7 @@ class lesson extends lesson_base {
                 $instancename = $DB->get_field($modname, 'name', array('id' => $module->instance));
                 if ($instancename) {
                     return html_writer::link(new moodle_url('/mod/'.$modname.'/view.php', array('id'=>$this->properties->activitylink)),
-                        get_string('returnto', 'lesson', get_string('activitylinkname', 'lesson', $instancename)),
+                        get_string('activitylinkname', 'lesson', $instancename),
                         array('class'=>'centerpadded lessonbutton standardbutton'));
                 }
             }
@@ -1956,13 +1961,15 @@ abstract class lesson_page extends lesson_base {
                     $attempt->retry = $nretakes - 1; // they are going through on review, $nretakes will be too high
                 }
 
-                $DB->insert_record("lesson_attempts", $attempt);
+                if ($this->lesson->retake || (!$this->lesson->retake && $nretakes == 0)) {
+                    $DB->insert_record("lesson_attempts", $attempt);
+                }
                 // "number of attempts remaining" message if $this->lesson->maxattempts > 1
                 // displaying of message(s) is at the end of page for more ergonomic display
                 if (!$result->correctanswer && ($result->newpageid == 0)) {
                     // wrong answer and student is stuck on this page - check how many attempts
                     // the student has had at this page/question
-                    $nattempts = $DB->count_records("lesson_attempts", array("pageid"=>$this->properties->id, "userid"=>$USER->id, "retry" => $nretakes));
+                    $nattempts = $DB->count_records("lesson_attempts", array("pageid"=>$this->properties->id, "userid"=>$USER->id, "retry" => $attempt->retry));
                     // retreive the number of attempts left counter for displaying at bottom of feedback page
                     if ($nattempts >= $this->lesson->maxattempts) {
                         if ($this->lesson->maxattempts > 1) { // don't bother with message if only one attempt
@@ -2028,7 +2035,7 @@ abstract class lesson_page extends lesson_base {
                     $result->feedback = $OUTPUT->box(format_text($this->get_contents(), $this->properties->contentsformat, $options), 'generalbox boxaligncenter');
                     $result->feedback .= '<div class="correctanswer generalbox"><em>'.get_string("youranswer", "lesson").'</em> : '.$result->studentanswer; // already in clean html
                     $result->feedback .= $OUTPUT->box($result->response, $class); // already conerted to HTML
-                    echo "</div>";
+                    $result->feedback .= '</div>';
                 }
             }
         }

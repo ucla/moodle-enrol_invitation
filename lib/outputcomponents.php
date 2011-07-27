@@ -57,6 +57,7 @@ class file_picker implements renderable {
             'itemid' => 0,
             'maxbytes'=>-1,
             'maxfiles'=>1,
+            'buttonname'=>false
         );
         foreach ($defaults as $key=>$value) {
             if (empty($options->$key)) {
@@ -2369,6 +2370,10 @@ class custom_menu extends custom_menu_item {
      * @return array
      */
     public static function convert_text_to_menu_nodes($text) {
+        $text = format_text($text, FORMAT_MOODLE, array(
+            'para'     => false,
+            'newlines' => false,
+            'context'  => get_system_context()));
         $lines = explode("\n", $text);
         $children = array();
         $lastchild = null;

@@ -146,16 +146,22 @@ class restore_gradebook_structure_step extends restore_structure_step {
 
         $data->courseid = $this->get_courseid();
 
-        //manual grade items store category id in categoryid
         if ($data->itemtype=='manual') {
-            $data->categoryid = $this->get_mappingid('grade_category', $data->categoryid);
-        } //course and category grade items store their category id in iteminstance
-        else if ($data->itemtype=='course' || $data->itemtype=='category') {
-            $data->iteminstance = $this->get_mappingid('grade_category', $data->iteminstance);
+            // manual grade items store category id in categoryid
+            $data->categoryid = $this->get_mappingid('grade_category', $data->categoryid, NULL);
+        } else if ($data->itemtype=='course') {
+            // course grade item stores their category id in iteminstance
+            $coursecat = grade_category::fetch_course_category($this->get_courseid());
+            $data->iteminstance = $coursecat->id;
+        } else if ($data->itemtype=='category') {
+            // category grade items store their category id in iteminstance
+            $data->iteminstance = $this->get_mappingid('grade_category', $data->iteminstance, NULL);
+        } else {
+            throw new restore_step_exception('unexpected_grade_item_type', $data->itemtype);
         }
 
-        $data->scaleid   = $this->get_mappingid('scale', $data->scaleid);
-        $data->outcomeid = $this->get_mappingid('outcome', $data->outcomeid);
+        $data->scaleid   = $this->get_mappingid('scale', $data->scaleid, NULL);
+        $data->outcomeid = $this->get_mappingid('outcome', $data->outcomeid, NULL);
 
         $data->locktime     = $this->apply_date_offset($data->locktime);
         $data->timecreated  = $this->apply_date_offset($data->timecreated);
@@ -164,23 +170,19 @@ class restore_gradebook_structure_step extends restore_structure_step {
         $coursecategory = $newitemid = null;
         //course grade item should already exist so updating instead of inserting
         if($data->itemtype=='course') {
-
             //get the ID of the already created grade item
             $gi = new stdclass();
             $gi->courseid  = $this->get_courseid();
-
             $gi->itemtype  = $data->itemtype;
-            if ($data->itemtype=='course') {
-                //need to get the id of the grade_category that was automatically created for the course
-                $category = new stdclass();
-                $category->courseid  = $this->get_courseid();
-                $category->parent  = null;
-                //course category fullname starts out as ? but may be edited
-                //$category->fullname  = '?';
 
-                $coursecategory = $DB->get_record('grade_categories', (array)$category);
-                $gi->iteminstance = $coursecategory->id;
-            }
+            //need to get the id of the grade_category that was automatically created for the course
+            $category = new stdclass();
+            $category->courseid  = $this->get_courseid();
+            $category->parent  = null;
+            //course category fullname starts out as ? but may be edited
+            //$category->fullname  = '?';
+            $coursecategory = $DB->get_record('grade_categories', (array)$category);
+            $gi->iteminstance = $coursecategory->id;
 
             $existinggradeitem = $DB->get_record('grade_items', (array)$gi);
             if (!empty($existinggradeitem)) {
@@ -208,8 +210,8 @@ class restore_gradebook_structure_step extends restore_structure_step {
 
         $data->itemid = $this->get_new_parentid('grade_item');
 
-        $data->userid = $this->get_mappingid('user', $data->userid);
-        $data->usermodified = $this->get_mappingid('user', $data->usermodified);
+        $data->userid = $this->get_mappingid('user', $data->userid, NULL);
+        $data->usermodified = $this->get_mappingid('user', $data->usermodified, NULL);
         $data->locktime     = $this->apply_date_offset($data->locktime);
         // TODO: Ask, all the rest of locktime/exported... work with time... to be rolled?
         $data->overridden = $this->apply_date_offset($data->overridden);
@@ -240,6 +242,7 @@ class restore_gradebook_structure_step extends restore_structure_step {
             //get the already created course level grade category
             $category = new stdclass();
             $category->courseid = $this->get_courseid();
+            $category->parent = null;
 
             $coursecategory = $DB->get_record('grade_categories', (array)$category);
             if (!empty($coursecategory)) {
@@ -277,7 +280,9 @@ class restore_gradebook_structure_step extends restore_structure_step {
         //$this->set_mapping('grade_setting', $oldid, $newitemid);
     }
 
-    //put all activity grade items in the correct grade category and mark all for recalculation
+    /**
+     * put all activity grade items in the correct grade category and mark all for recalculation
+     */
     protected function after_execute() {
         global $DB;
 
@@ -288,20 +293,80 @@ class restore_gradebook_structure_step extends restore_structure_step {
         );
         $rs = $DB->get_recordset('backup_ids_temp', $conditions);
 
+        // We need this for calculation magic later on.
+        $mappings = array();
+
         if (!empty($rs)) {
             foreach($rs as $grade_item_backup) {
+
+                // Store the oldid with the new id.
+                $mappings[$grade_item_backup->itemid] = $grade_item_backup->newitemid;
+
                 $updateobj = new stdclass();
                 $updateobj->id = $grade_item_backup->newitemid;
 
                 //if this is an activity grade item that needs to be put back in its correct category
                 if (!empty($grade_item_backup->parentitemid)) {
-                    $updateobj->categoryid = $this->get_mappingid('grade_category', $grade_item_backup->parentitemid);
+                    $oldcategoryid = $this->get_mappingid('grade_category', $grade_item_backup->parentitemid, null);
+                    if (!is_null($oldcategoryid)) {
+                        $updateobj->categoryid = $oldcategoryid;
+                        $DB->update_record('grade_items', $updateobj);
+                    }
                 } else {
                     //mark course and category items as needing to be recalculated
                     $updateobj->needsupdate=1;
+                    $DB->update_record('grade_items', $updateobj);
                 }
-                $DB->update_record('grade_items', $updateobj);
             }
+        }
+        $rs->close();
+
+        // We need to update the calculations for calculated grade items that may reference old
+        // grade item ids using ##gi\d+##.
+        list($sql, $params) = $DB->get_in_or_equal(array_values($mappings), SQL_PARAMS_NAMED);
+        $sql = "SELECT gi.id, gi.calculation
+                  FROM {grade_items} gi
+                 WHERE gi.id {$sql} AND
+                       calculation IS NOT NULL";
+        $rs = $DB->get_recordset_sql($sql, $params);
+        foreach ($rs as $gradeitem) {
+            // Collect all of the used grade item id references
+            if (preg_match_all('/##gi(\d+)##/', $gradeitem->calculation, $matches) < 1) {
+                // This calculation doesn't reference any other grade items... EASY!
+                continue;
+            }
+            // For this next bit we are going to do the replacement of id's in two steps:
+            // 1. We will replace all old id references with a special mapping reference.
+            // 2. We will replace all mapping references with id's
+            // Why do we do this?
+            // Because there potentially there will be an overlap of ids within the query and we
+            // we substitute the wrong id.. safest way around this is the two step system
+            $calculationmap = array();
+            $mapcount = 0;
+            foreach ($matches[1] as $match) {
+                // Check that the old id is known to us, if not it was broken to begin with and will
+                // continue to be broken.
+                if (!array_key_exists($match, $mappings)) {
+                    continue;
+                }
+                // Our special mapping key
+                $mapping = '##MAPPING'.$mapcount.'##';
+                // The old id that exists within the calculation now
+                $oldid = '##gi'.$match.'##';
+                // The new id that we want to replace the old one with.
+                $newid = '##gi'.$mappings[$match].'##';
+                // Replace in the special mapping key
+                $gradeitem->calculation = str_replace($oldid, $mapping, $gradeitem->calculation);
+                // And record the mapping
+                $calculationmap[$mapping] = $newid;
+                $mapcount++;
+            }
+            // Iterate all special mappings for this calculation and replace in the new id's
+            foreach ($calculationmap as $mapping => $newid) {
+                $gradeitem->calculation = str_replace($mapping, $newid, $gradeitem->calculation);
+            }
+            // Update the calculation now that its being remapped
+            $DB->update_record('grade_items', $gradeitem);
         }
         $rs->close();
 
@@ -337,6 +402,9 @@ class restore_gradebook_structure_step extends restore_structure_step {
             }
         }
         $rs->close();
+
+        //Restore marks items as needing update. Update everything now.
+        grade_regrade_final_grades($this->get_courseid());
     }
 }
 
@@ -1008,6 +1076,15 @@ class restore_course_structure_step extends restore_structure_step {
         // Apply for 'format' plugins optional paths at course level
         $this->add_plugin_structure('format', $course);
 
+        // Apply for 'theme' plugins optional paths at course level
+        $this->add_plugin_structure('theme', $course);
+
+        // Apply for 'course report' plugins optional paths at course level
+        $this->add_plugin_structure('coursereport', $course);
+
+        // Apply for plagiarism plugins optional paths at course level
+        $this->add_plugin_structure('plagiarism', $course);
+
         return array($course, $category, $tag, $allowed_module);
     }
 
@@ -1052,8 +1129,9 @@ class restore_course_structure_step extends restore_structure_step {
         if (!array_key_exists($data->lang, $languages)) {
             $data->lang = '';
         }
+
         $themes = get_list_of_themes(); // Get themes for quick search later
-        if (!in_array($data->theme, $themes) || empty($CFG->allowcoursethemes)) {
+        if (!array_key_exists($data->theme, $themes) || empty($CFG->allowcoursethemes)) {
             $data->theme = '';
         }
 
@@ -1791,28 +1869,47 @@ class restore_activity_grades_structure_step extends restore_structure_step {
     }
 
     protected function process_grade_item($data) {
+        global $DB;
 
         $data = (object)($data);
         $oldid       = $data->id;        // We'll need these later
         $oldparentid = $data->categoryid;
+        $courseid = $this->get_courseid();
 
         // make sure top course category exists, all grade items will be associated
         // to it. Later, if restoring the whole gradebook, categories will be introduced
-        $coursecat = grade_category::fetch_course_category($this->get_courseid());
+        $coursecat = grade_category::fetch_course_category($courseid);
         $coursecatid = $coursecat->id; // Get the categoryid to be used
+
+        $idnumber = null;
+        if (!empty($data->idnumber)) {
+            // Don't get any idnumber from course module. Keep them as they are in grade_item->idnumber
+            // Reason: it's not clear what happens with outcomes->idnumber or activities with multiple items (workshop)
+            // so the best is to keep the ones already in the gradebook
+            // Potential problem: duplicates if same items are restored more than once. :-(
+            // This needs to be fixed in some way (outcomes & activities with multiple items)
+            // $data->idnumber     = get_coursemodule_from_instance($data->itemmodule, $data->iteminstance)->idnumber;
+            // In any case, verify always for uniqueness
+            $sql = "SELECT cm.id
+                      FROM {course_modules} cm
+                     WHERE cm.course = :courseid AND
+                           cm.idnumber = :idnumber AND
+                           cm.id <> :cmid";
+            $params = array(
+                'courseid' => $courseid,
+                'idnumber' => $data->idnumber,
+                'cmid' => $this->task->get_moduleid()
+            );
+            if (!$DB->record_exists_sql($sql, $params) && !$DB->record_exists('grade_items', array('courseid' => $courseid, 'idnumber' => $data->idnumber))) {
+                $idnumber = $data->idnumber;
+            }
+        }
 
         unset($data->id);
         $data->categoryid   = $coursecatid;
         $data->courseid     = $this->get_courseid();
         $data->iteminstance = $this->task->get_activityid();
-        // Don't get any idnumber from course module. Keep them as they are in grade_item->idnumber
-        // Reason: it's not clear what happens with outcomes->idnumber or activities with multiple items (workshop)
-        // so the best is to keep the ones already in the gradebook
-        // Potential problem: duplicates if same items are restored more than once. :-(
-        // This needs to be fixed in some way (outcomes & activities with multiple items)
-        // $data->idnumber     = get_coursemodule_from_instance($data->itemmodule, $data->iteminstance)->idnumber;
-        // In any case, verify always for uniqueness
-        $data->idnumber = grade_verify_idnumber($data->idnumber, $this->get_courseid()) ? $data->idnumber : null;
+        $data->idnumber     = $idnumber;
         $data->scaleid      = $this->get_mappingid('scale', $data->scaleid);
         $data->outcomeid    = $this->get_mappingid('outcome', $data->outcomeid);
         $data->timecreated  = $this->apply_date_offset($data->timecreated);
@@ -2004,6 +2101,9 @@ class restore_module_structure_step extends restore_structure_step {
         // Apply for 'format' plugins optional paths at module level
         $this->add_plugin_structure('format', $module);
 
+        // Apply for 'plagiarism' plugins optional paths at module level
+        $this->add_plugin_structure('plagiarism', $module);
+
         return $paths;
     }
 
@@ -2012,6 +2112,8 @@ class restore_module_structure_step extends restore_structure_step {
 
         $data = (object)$data;
         $oldid = $data->id;
+
+        $this->task->set_old_moduleversion($data->version);
 
         $data->course = $this->task->get_courseid();
         $data->module = $DB->get_field('modules', 'id', array('name' => $data->modulename));
@@ -2100,6 +2202,7 @@ class restore_module_structure_step extends restore_structure_step {
  *  - Activity includes completion info (file_exists)
  */
 class restore_userscompletion_structure_step extends restore_structure_step {
+    private $done = array();
 
     /**
      * To conditionally decide if this step must be executed
@@ -2144,7 +2247,33 @@ class restore_userscompletion_structure_step extends restore_structure_step {
         $data->userid = $this->get_mappingid('user', $data->userid);
         $data->timemodified = $this->apply_date_offset($data->timemodified);
 
-        $DB->insert_record('course_modules_completion', $data);
+        // Check we didn't already insert one for this cmid and userid
+        // (there aren't supposed to be duplicates in that field, but
+        // it was possible until MDL-28021 was fixed).
+        $key = $data->coursemoduleid . ',' . $data->userid;
+        if (array_key_exists($key, $this->done)) {
+            // Find the existing record
+            $existing = $DB->get_record('course_modules_completion', array(
+                    'coursemoduleid' => $data->coursemoduleid,
+                    'userid' => $data->userid), 'id, timemodified');
+            // Update it to these new values, but only if the time is newer
+            if ($existing->timemodified < $data->timemodified) {
+                $data->id = $existing->id;
+                $DB->update_record('course_modules_completion', $data);
+            }
+        } else {
+            // Normal entry where it doesn't exist already
+            $DB->insert_record('course_modules_completion', $data);
+            // Remember this entry
+            $this->done[$key] = true;
+        }
+    }
+
+    protected function after_execute() {
+        // This gets called once per activity (according to my testing).
+        // Clearing the array isn't strictly required, but avoids using
+        // unnecessary memory.
+        $this->done = array();
     }
 }
 
@@ -2185,6 +2314,7 @@ abstract class restore_activity_structure_step extends restore_structure_step {
     /**
      * As far as activity restore steps are implementing restore_subplugin stuff, they need to
      * have the parent task available for wrapping purposes (get course/context....)
+     * @return restore_task
      */
     public function get_task() {
         return $this->task;
@@ -2297,6 +2427,17 @@ class restore_create_categories_and_questions extends restore_structure_step {
         // we have loaded qcatids there for all parsed questions
         $data->category = $this->get_mappingid('question_category', $questionmapping->parentitemid);
 
+        // In the past, there were some very sloppy values of penalty. Fix them.
+        if ($data->penalty >= 0.33 && $data->penalty <= 0.34) {
+            $data->penalty = 0.3333333;
+        }
+        if ($data->penalty >= 0.66 && $data->penalty <= 0.67) {
+            $data->penalty = 0.6666667;
+        }
+        if ($data->penalty >= 1) {
+            $data->penalty = 1;
+        }
+
         $data->timecreated  = $this->apply_date_offset($data->timecreated);
         $data->timemodified = $this->apply_date_offset($data->timemodified);
 
@@ -2324,6 +2465,47 @@ class restore_create_categories_and_questions extends restore_structure_step {
         // haven't their contexts to be restored to
         // The {@link restore_create_question_files}, executed in the final step
         // step will be in charge of restoring all the question files
+    }
+
+        protected function process_question_hint($data) {
+        global $DB;
+
+        $data = (object)$data;
+        $oldid = $data->id;
+
+        // Detect if the question is created or mapped
+        $oldquestionid   = $this->get_old_parentid('question');
+        $newquestionid   = $this->get_new_parentid('question');
+        $questioncreated = $this->get_mappingid('question_created', $oldquestionid) ? true : false;
+
+        // If the question has been created by restore, we need to create its question_answers too
+        if ($questioncreated) {
+            // Adjust some columns
+            $data->questionid = $newquestionid;
+            // Insert record
+            $newitemid = $DB->insert_record('question_answers', $data);
+
+        // The question existed, we need to map the existing question_answers
+        } else {
+            // Look in question_answers by answertext matching
+            $sql = 'SELECT id
+                      FROM {question_hints}
+                     WHERE questionid = ?
+                       AND ' . $DB->sql_compare_text('hint', 255) . ' = ' . $DB->sql_compare_text('?', 255);
+            $params = array($newquestionid, $data->hint);
+            $newitemid = $DB->get_field_sql($sql, $params);
+            // If we haven't found the newitemid, something has gone really wrong, question in DB
+            // is missing answers, exception
+            if (!$newitemid) {
+                $info = new stdClass();
+                $info->filequestionid = $oldquestionid;
+                $info->dbquestionid   = $newquestionid;
+                $info->hint           = $data->hint;
+                throw new restore_step_exception('error_question_hint_missing_in_db', $info);
+            }
+        }
+        // Create mapping (we'll use this intensively when restoring question_states. And also answerfeedback files)
+        $this->set_mapping('question_hint', $oldid, $newitemid);
     }
 
     protected function after_execute() {
@@ -2446,8 +2628,12 @@ class restore_create_question_files extends restore_execution_step {
                                               $oldctxid, $this->task->get_userid(), 'question_created', $question->itemid, $newctxid, true);
             restore_dbops::send_files_to_pool($this->get_basepath(), $this->get_restoreid(), 'question', 'generalfeedback',
                                               $oldctxid, $this->task->get_userid(), 'question_created', $question->itemid, $newctxid, true);
+            restore_dbops::send_files_to_pool($this->get_basepath(), $this->get_restoreid(), 'question', 'answer',
+                                              $oldctxid, $this->task->get_userid(), 'question_answer', null, $newctxid, true);
             restore_dbops::send_files_to_pool($this->get_basepath(), $this->get_restoreid(), 'question', 'answerfeedback',
                                               $oldctxid, $this->task->get_userid(), 'question_answer', null, $newctxid, true);
+            restore_dbops::send_files_to_pool($this->get_basepath(), $this->get_restoreid(), 'question', 'hint',
+                                              $oldctxid, $this->task->get_userid(), 'question_hint', null, $newctxid, true);
             // Add qtype dependent files
             $components = backup_qtype_plugin::get_components_and_fileareas($question->qtype);
             foreach ($components as $component => $fileareas) {
@@ -2468,12 +2654,16 @@ class restore_create_question_files extends restore_execution_step {
  * (like the quiz module), to support qtype plugins, states and sessions
  */
 abstract class restore_questions_activity_structure_step extends restore_activity_structure_step {
+    /** @var array question_attempt->id to qtype. */
+    protected $qtypes = array();
+    /** @var array question_attempt->id to questionid. */
+    protected $newquestionids = array();
 
     /**
      * Attach below $element (usually attempts) the needed restore_path_elements
-     * to restore question_states
+     * to restore question_usages and all they contain.
      */
-    protected function add_question_attempts_states($element, &$paths) {
+    protected function add_question_usages($element, &$paths) {
         // Check $element is restore_path_element
         if (! $element instanceof restore_path_element) {
             throw new restore_step_exception('element_must_be_restore_path_element', $element);
@@ -2482,70 +2672,124 @@ abstract class restore_questions_activity_structure_step extends restore_activit
         if (!is_array($paths)) {
             throw new restore_step_exception('paths_must_be_array', $paths);
         }
-        $paths[] = new restore_path_element('question_state', $element->get_path() . '/states/state');
+        $paths[] = new restore_path_element('question_usage',
+                $element->get_path() . '/question_usage');
+        $paths[] = new restore_path_element('question_attempt',
+                $element->get_path() . '/question_usage/question_attempts/question_attempt');
+        $paths[] = new restore_path_element('question_attempt_step',
+                $element->get_path() . '/question_usage/question_attempts/question_attempt/steps/step',
+                true);
+        $paths[] = new restore_path_element('question_attempt_step_data',
+                $element->get_path() . '/question_usage/question_attempts/question_attempt/steps/step/response/variable');
     }
 
     /**
-     * Attach below $element (usually attempts) the needed restore_path_elements
-     * to restore question_sessions
+     * Process question_usages
      */
-    protected function add_question_attempts_sessions($element, &$paths) {
-        // Check $element is restore_path_element
-        if (! $element instanceof restore_path_element) {
-            throw new restore_step_exception('element_must_be_restore_path_element', $element);
-        }
-        // Check $paths is one array
-        if (!is_array($paths)) {
-            throw new restore_step_exception('paths_must_be_array', $paths);
-        }
-        $paths[] = new restore_path_element('question_session', $element->get_path() . '/sessions/session');
-    }
-
-    /**
-     * Process question_states
-     */
-    protected function process_question_state($data) {
+    protected function process_question_usage($data) {
         global $DB;
+
+        // Clear our caches.
+        $this->qtypes = array();
+        $this->newquestionids = array();
 
         $data = (object)$data;
         $oldid = $data->id;
 
-        // Get complete question mapping, we'll need info
-        $question = $this->get_mapping('question', $data->question);
-
-        // In the quiz_attempt mapping we are storing uniqueid
-        // and not id, so this gets the correct question_attempt to point to
-        $data->attempt  = $this->get_new_parentid('quiz_attempt');
-        $data->question = $question->newitemid;
-        $data->answer   = $this->restore_recode_answer($data, $question->info->qtype); // Delegate recoding of answer
-        $data->timestamp= $this->apply_date_offset($data->timestamp);
-
-        // Everything ready, insert and create mapping (needed by question_sessions)
-        $newitemid = $DB->insert_record('question_states', $data);
-        $this->set_mapping('question_state', $oldid, $newitemid);
-    }
-
-    /**
-     * Process question_sessions
-     */
-    protected function process_question_session($data) {
-        global $DB;
-
-        $data = (object)$data;
-        $oldid = $data->id;
-
-        // In the quiz_attempt mapping we are storing uniqueid
-        // and not id, so this gets the correct question_attempt to point to
-        $data->attemptid  = $this->get_new_parentid('quiz_attempt');
-        $data->questionid = $this->get_mappingid('question', $data->questionid);
-        $data->newest     = $this->get_mappingid('question_state', $data->newest);
-        $data->newgraded  = $this->get_mappingid('question_state', $data->newgraded);
+        $oldcontextid = $this->get_task()->get_old_contextid();
+        $data->contextid  = $this->get_mappingid('context', $this->task->get_old_contextid());
 
         // Everything ready, insert (no mapping needed)
-        $newitemid = $DB->insert_record('question_sessions', $data);
+        $newitemid = $DB->insert_record('question_usages', $data);
 
-        // Note: question_sessions haven't files associated. On purpose manualcomment is lacking
-        // support for them, so we don't need to handle them here.
+        $this->inform_new_usage_id($newitemid);
+
+        $this->set_mapping('question_usage', $oldid, $newitemid, false);
+    }
+
+    /**
+     * When process_question_usage creates the new usage, it calls this method
+     * to let the activity link to the new usage. For example, the quiz uses
+     * this method to set quiz_attempts.uniqueid to the new usage id.
+     * @param integer $newusageid
+     */
+    abstract protected function inform_new_usage_id($newusageid);
+
+    /**
+     * Process question_attempts
+     */
+    protected function process_question_attempt($data) {
+        global $DB;
+
+        $data = (object)$data;
+        $oldid = $data->id;
+        $question = $this->get_mapping('question', $data->questionid);
+
+        $data->questionusageid = $this->get_new_parentid('question_usage');
+        $data->questionid      = $question->newitemid;
+        $data->timemodified    = $this->apply_date_offset($data->timemodified);
+
+        $newitemid = $DB->insert_record('question_attempts', $data);
+
+        $this->set_mapping('question_attempt', $oldid, $newitemid);
+        $this->qtypes[$newitemid] = $question->info->qtype;
+        $this->newquestionids[$newitemid] = $data->questionid;
+    }
+
+    /**
+     * Process question_attempt_steps
+     */
+    protected function process_question_attempt_step($data) {
+        global $DB;
+
+        $data = (object)$data;
+        $oldid = $data->id;
+
+        // Pull out the response data.
+        $response = array();
+        if (!empty($data->response['variable'])) {
+            foreach ($data->response['variable'] as $variable) {
+                $response[$variable['name']] = $variable['value'];
+            }
+        }
+        unset($data->response);
+
+        $data->questionattemptid = $this->get_new_parentid('question_attempt');
+        $data->timecreated = $this->apply_date_offset($data->timecreated);
+        $data->userid      = $this->get_mappingid('user', $data->userid);
+
+        // Everything ready, insert and create mapping (needed by question_sessions)
+        $newitemid = $DB->insert_record('question_attempt_steps', $data);
+        $this->set_mapping('question_attempt_step', $oldid, $newitemid, true);
+
+        // Now process the response data.
+        $response = $this->questions_recode_response_data(
+                $this->qtypes[$data->questionattemptid],
+                $this->newquestionids[$data->questionattemptid],
+                $data->sequencenumber, $response);
+        foreach ($response as $name => $value) {
+            $row = new stdClass();
+            $row->attemptstepid = $newitemid;
+            $row->name = $name;
+            $row->value = $value;
+            $DB->insert_record('question_attempt_step_data', $row, false);
+        }
+    }
+
+    /**
+     * Recode the respones data for a particular step of an attempt at at particular question.
+     * @param string $qtype the question type.
+     * @param int $newquestionid the question id.
+     * @param int $sequencenumber the sequence number.
+     * @param array $response the response data to recode.
+     */
+    public function questions_recode_response_data(
+            $qtype, $newquestionid, $sequencenumber, array $response) {
+        $qtyperestorer = $this->get_qtype_restorer($qtype);
+        if ($qtyperestorer) {
+            $response = $qtyperestorer->recode_response($newquestionid, $sequencenumber, $response);
+        }
+        return $response;
     }
 
     /**
@@ -2568,25 +2812,195 @@ abstract class restore_questions_activity_structure_step extends restore_activit
     }
 
     /**
-     * Given one question_states record, return the answer
-     * recoded pointing to all the restored stuff
+     * Get the restore_qtype_plugin subclass for a specific question type.
+     * @param string $qtype e.g. multichoice.
+     * @return restore_qtype_plugin instance.
      */
-    public function restore_recode_answer($state, $qtype) {
+    protected function get_qtype_restorer($qtype) {
         // Build one static cache to store {@link restore_qtype_plugin}
         // while we are needing them, just to save zillions of instantiations
         // or using static stuff that will break our nice API
         static $qtypeplugins = array();
 
-        // If we haven't the corresponding restore_qtype_plugin for current qtype
-        // instantiate it and add to cache
         if (!isset($qtypeplugins[$qtype])) {
             $classname = 'restore_qtype_' . $qtype . '_plugin';
             if (class_exists($classname)) {
                 $qtypeplugins[$qtype] = new $classname('qtype', $qtype, $this);
             } else {
-                $qtypeplugins[$qtype] = false;
+                $qtypeplugins[$qtype] = null;
             }
         }
-        return !empty($qtypeplugins[$qtype]) ? $qtypeplugins[$qtype]->recode_state_answer($state) : $state->answer;
+        return $qtypeplugins[$qtype];
+    }
+
+    protected function after_execute() {
+        parent::after_execute();
+
+        // Restore any files belonging to responses.
+        foreach (question_engine::get_all_response_file_areas() as $filearea) {
+            $this->add_related_files('question', $filearea, 'question_attempt_step');
+        }
+    }
+
+    /**
+     * Attach below $element (usually attempts) the needed restore_path_elements
+     * to restore question attempt data from Moodle 2.0.
+     *
+     * When using this method, the parent element ($element) must be defined with
+     * $grouped = true. Then, in that elements process method, you must call
+     * {@link process_legacy_attempt_data()} with the groupded data. See, for
+     * example, the usage of this method in {@link restore_quiz_activity_structure_step}.
+     * @param restore_path_element $element the parent element. (E.g. a quiz attempt.)
+     * @param array $paths the paths array that is being built to describe the
+     *      structure.
+     */
+    protected function add_legacy_question_attempt_data($element, &$paths) {
+        global $CFG;
+        require_once($CFG->dirroot . '/question/engine/upgrade/upgradelib.php');
+
+        // Check $element is restore_path_element
+        if (!($element instanceof restore_path_element)) {
+            throw new restore_step_exception('element_must_be_restore_path_element', $element);
+        }
+        // Check $paths is one array
+        if (!is_array($paths)) {
+            throw new restore_step_exception('paths_must_be_array', $paths);
+        }
+
+        $paths[] = new restore_path_element('question_state',
+                $element->get_path() . '/states/state');
+        $paths[] = new restore_path_element('question_session',
+                $element->get_path() . '/sessions/session');
+    }
+
+    protected function get_attempt_upgrader() {
+        if (empty($this->attemptupgrader)) {
+            $this->attemptupgrader = new question_engine_attempt_upgrader();
+            $this->attemptupgrader->prepare_to_restore();
+        }
+        return $this->attemptupgrader;
+    }
+
+    /**
+     * Process the attempt data defined by {@link add_legacy_question_attempt_data()}.
+     * @param object $data contains all the grouped attempt data ot process.
+     * @param pbject $quiz data about the activity the attempts belong to. Required
+     * fields are (basically this only works for the quiz module):
+     *      oldquestions => list of question ids in this activity - using old ids.
+     *      preferredbehaviour => the behaviour to use for questionattempts.
+     */
+    protected function process_legacy_quiz_attempt_data($data, $quiz) {
+        global $DB;
+        $upgrader = $this->get_attempt_upgrader();
+
+        $data = (object)$data;
+
+        $layout = explode(',', $data->layout);
+        $newlayout = $layout;
+
+        // Convert each old question_session into a question_attempt.
+        $qas = array();
+        foreach (explode(',', $quiz->oldquestions) as $questionid) {
+            if ($questionid == 0) {
+                continue;
+            }
+
+            $newquestionid = $this->get_mappingid('question', $questionid);
+            if (!$newquestionid) {
+                throw new restore_step_exception('questionattemptreferstomissingquestion',
+                        $questionid, $questionid);
+            }
+
+            $question = $upgrader->load_question($newquestionid, $quiz->id);
+
+            foreach ($layout as $key => $qid) {
+                if ($qid == $questionid) {
+                    $newlayout[$key] = $newquestionid;
+                }
+            }
+
+            list($qsession, $qstates) = $this->find_question_session_and_states(
+                    $data, $questionid);
+
+            if (empty($qsession) || empty($qstates)) {
+                throw new restore_step_exception('questionattemptdatamissing',
+                        $questionid, $questionid);
+            }
+
+            list($qsession, $qstates) = $this->recode_legacy_response_data(
+                    $question, $qsession, $qstates);
+
+            $data->layout = implode(',', $newlayout);
+            $qas[$newquestionid] = $upgrader->convert_question_attempt(
+                    $quiz, $data, $question, $qsession, $qstates);
+        }
+
+        // Now create a new question_usage.
+        $usage = new stdClass();
+        $usage->component = 'mod_quiz';
+        $usage->contextid = $this->get_mappingid('context', $this->task->get_old_contextid());
+        $usage->preferredbehaviour = $quiz->preferredbehaviour;
+        $usage->id = $DB->insert_record('question_usages', $usage);
+
+        $this->inform_new_usage_id($usage->id);
+
+        $data->uniqueid = $usage->id;
+        $upgrader->save_usage($quiz->preferredbehaviour, $data, $qas, $quiz->questions);
+    }
+
+    protected function find_question_session_and_states($data, $questionid) {
+        $qsession = null;
+        foreach ($data->sessions['session'] as $session) {
+            if ($session['questionid'] == $questionid) {
+                $qsession = (object) $session;
+                break;
+            }
+        }
+
+        $qstates = array();
+        foreach ($data->states['state'] as $state) {
+            if ($state['question'] == $questionid) {
+                // It would be natural to use $state['seq_number'] as the array-key
+                // here, but it seems that buggy behaviour in 2.0 and early can
+                // mean that that is not unique, so we use id, which is guaranteed
+                // to be unique.
+                $qstates[$state['id']] = (object) $state;
+            }
+        }
+        ksort($qstates);
+        $qstates = array_values($qstates);
+
+        return array($qsession, $qstates);
+    }
+
+    /**
+     * Recode any ids in the response data
+     * @param object $question the question data
+     * @param object $qsession the question sessions.
+     * @param array $qstates the question states.
+     */
+    protected function recode_legacy_response_data($question, $qsession, $qstates) {
+        $qsession->questionid = $question->id;
+
+        foreach ($qstates as &$state) {
+            $state->question = $question->id;
+            $state->answer = $this->restore_recode_legacy_answer($state, $question->qtype);
+        }
+
+        return array($qsession, $qstates);
+    }
+
+    /**
+     * Recode the legacy answer field.
+     * @param object $state the state to recode the answer of.
+     * @param string $qtype the question type.
+     */
+    public function restore_recode_legacy_answer($state, $qtype) {
+        $restorer = $this->get_qtype_restorer($qtype);
+        if ($restorer) {
+            return $restorer->recode_legacy_state_answer($state);
+        } else {
+            return $state->answer;
+        }
     }
 }
