@@ -1,12 +1,12 @@
 <?php
 
 /** Moodle Strings **/
-$string['pluginname'] = 'UCLA Control Panel';
+$string['pluginname'] = 'UCLA control panel';
 
-$string['badsetup'] = 'Folder modules/ is missing.';
+$string['badsetup'] = 'Folder "modules" is missing.';
 $string['badmodule'] = 'Could not load module {$a}.';
 
-$string['nocommands'] = 'There are no available &ldquo;{$a}&rdquo; commands.';
+$string['nocommands'] = 'There are no available "{$a}" commands.';
 
 $string['formatincompatible'] = 'WARNING: This page is designed to be used with courses with the "ucla" format. Other formats may cause undefined behavior.';
 
