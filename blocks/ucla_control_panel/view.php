@@ -32,7 +32,7 @@ require_once($CFG->dirroot.
 
 $course_id = required_param('courseid', PARAM_INT); // course ID
 $module_view = optional_param('module', 'default', PARAM_ALPHANUMEXT);
-$edit = optional_param('edit', -1, PARAM_BOOL);
+$edit = optional_param('edit', -1, PARAM_INT);
 
 if (! $course = $DB->get_record('course', array('id' => $course_id))) {
     print_error('coursemisconf');

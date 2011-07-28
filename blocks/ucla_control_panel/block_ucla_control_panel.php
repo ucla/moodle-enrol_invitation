@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-isset('MOODLE_INTERNAL') || die();
+defined('MOODLE_INTERNAL') || die();
 
 require_once(dirname(__FILE__) . '/../moodleblock.class.php');
 require_once(dirname(__FILE__) . '/ucla_cp_module.php');
@@ -43,14 +43,13 @@ class block_ucla_control_panel extends block_base {
             'site-index' => false,
             'course-view' => false,
             'my' => false,
-            'blocks-ucla_control_panel' => false,
-            'not-really-exists' => true
+            'blocks-ucla_control_panel' => false
         );
     }
 
     /**
-        This will return the views defined by a view file.
-    **/
+     *  This will return the views defined by a view file.
+     **/
     static function load_cp_views($customloc=null) {
         $default = '/cp_views.php';
 
@@ -85,8 +84,8 @@ class block_ucla_control_panel extends block_base {
     }
 
     /**
-        This will create a link to the control panel.
-    **/
+     *  This will create a link to the control panel.
+     **/
     static function get_action_link($course) {
         global $CFG;
 
@@ -97,9 +96,9 @@ class block_ucla_control_panel extends block_base {
     }
 
     /**
-        This will load the custom control panel elements, as well as any blocks
-        that have the designated hook function to create elements.
-    **/
+     *  This will load the custom control panel elements, as well as any blocks
+     *  that have the designated hook function to create elements.
+     **/
     static function load_cp_elements($course, $context=null, 
             $view='default') {
         if (!isset($course->id) && is_string($course)) {
