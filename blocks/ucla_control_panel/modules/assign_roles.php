@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-isset('MOODLE_INTERNAL') || die();
+defined('MOODLE_INTERNAL') || die();
 
 class ucla_cp_module_assign_roles extends ucla_cp_module {
     function __construct($course, $home=false) {

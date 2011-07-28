@@ -38,12 +38,19 @@ class block_ucla_control_panel extends block_base {
         return true;
     }
 
+    /**
+     *  Returns the applicable places that this block can be adde.d
+     *  This block really cannot be added anywhere, so we just made a place
+     *  up (hacky). If we do not do this, we will get this
+     *  plugin_devective_exception.
+     **/
     function applicable_formats() {
         return array(
             'site-index' => false,
             'course-view' => false,
             'my' => false,
-            'blocks-ucla_control_panel' => false
+            'blocks-ucla_control_panel' => false,
+            'not-really-applicable' => true
         );
     }
 
