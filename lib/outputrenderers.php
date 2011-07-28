@@ -279,6 +279,9 @@ class core_renderer extends renderer_base {
             $output .= '<meta http-equiv="refresh" content="'.$this->page->periodicrefreshdelay.';url='.$this->page->url->out().'" />';
         }
 
+        // flow player embedding support
+        $this->page->requires->js_function_call('M.util.load_flowplayer');
+
         $this->page->requires->js_function_call('setTimeout', array('fix_column_widths()', 20));
 
         $focus = $this->page->focuscontrol;
@@ -359,10 +362,14 @@ class core_renderer extends renderer_base {
         // but some of the content won't be known until later, so we return a placeholder
         // for now. This will be replaced with the real content in {@link footer()}.
         $output = self::PERFORMANCE_INFO_TOKEN;
-        if ($this->page->legacythemeinuse) {
+        if ($this->page->devicetypeinuse == 'legacy') {
             // The legacy theme is in use print the notification
             $output .= html_writer::tag('div', get_string('legacythemeinuse'), array('class'=>'legacythemeinuse'));
         }
+
+        // Get links to switch device types (only shown for users not on a default device)
+        $output .= $this->theme_switch_links();
+
         if (!empty($CFG->debugpageinfo)) {
             $output .= '<div class="performanceinfo pageinfo">This page is: ' . $this->page->debug_summary() . '</div>';
         }
@@ -1121,7 +1128,11 @@ class core_renderer extends renderer_base {
         $output = html_writer::tag('div', $output);
 
         // now the form itself around it
-        $url = $button->url->out_omit_querystring(); // url without params
+        if ($button->method === 'get') {
+            $url = $button->url->out_omit_querystring(true); // url without params, the anchor part allowed
+        } else {
+            $url = $button->url->out_omit_querystring();     // url without params, the anchor part not allowed
+        }
         if ($url === '') {
             $url = '#'; // there has to be always some action
         }
@@ -1207,8 +1218,13 @@ class core_renderer extends renderer_base {
         $output = html_writer::tag('div', $output);
 
         // now the form itself around it
+        if ($select->method === 'get') {
+            $url = $select->url->out_omit_querystring(true); // url without params, the anchor part allowed
+        } else {
+            $url = $select->url->out_omit_querystring();     // url without params, the anchor part not allowed
+        }
         $formattributes = array('method' => $select->method,
-                                'action' => $select->url->out_omit_querystring(),
+                                'action' => $url,
                                 'id'     => $select->formid);
         $output = html_writer::tag('form', $output, $formattributes);
 
@@ -1398,95 +1414,38 @@ class core_renderer extends renderer_base {
     */
     function render_rating(rating $rating) {
         global $CFG, $USER;
-        static $havesetupjavascript = false;
 
-        if( $rating->settings->aggregationmethod == RATING_AGGREGATE_NONE ){
+        if ($rating->settings->aggregationmethod == RATING_AGGREGATE_NONE) {
             return null;//ratings are turned off
         }
 
-        $useajax = !empty($CFG->enableajax);
-
-        //include required Javascript
-        if( !$havesetupjavascript && $useajax ) {
-            $this->page->requires->js_init_call('M.core_rating.init');
-            $havesetupjavascript = true;
-        }
-
-        //check the item we're rating was created in the assessable time window
-        $inassessablewindow = true;
-        if ( $rating->settings->assesstimestart && $rating->settings->assesstimefinish ) {
-            if ($rating->itemtimecreated < $rating->settings->assesstimestart || $rating->itemtimecreated > $rating->settings->assesstimefinish) {
-                $inassessablewindow = false;
-            }
-        }
+        $ratingmanager = new rating_manager();
+        // Initialise the JavaScript so ratings can be done by AJAX.
+        $ratingmanager->initialise_rating_javascript($this->page);
 
         $strrate = get_string("rate", "rating");
         $ratinghtml = ''; //the string we'll return
 
-        //permissions check - can they view the aggregate?
-        $canviewaggregate = false;
+        // permissions check - can they view the aggregate?
+        if ($rating->user_can_view_aggregate()) {
 
-        //if its the current user's item and they have permission to view the aggregate on their own items
-        if ( $rating->itemuserid==$USER->id && $rating->settings->permissions->view && $rating->settings->pluginpermissions->view) {
-            $canviewaggregate = true;
-        }
+            $aggregatelabel = $ratingmanager->get_aggregate_label($rating->settings->aggregationmethod);
+            $aggregatestr   = $rating->get_aggregate_string();
 
-        //if the item doesnt belong to anyone or its another user's items and they can see the aggregate on items they don't own
-        //Note that viewany doesnt mean you can see the aggregate or ratings of your own items
-        if ( (empty($rating->itemuserid) or $rating->itemuserid!=$USER->id) && $rating->settings->permissions->viewany && $rating->settings->pluginpermissions->viewany ) {
-            $canviewaggregate = true;
-        }
-
-        if ($canviewaggregate==true) {
-            $aggregatelabel = '';
-            switch ($rating->settings->aggregationmethod) {
-                case RATING_AGGREGATE_AVERAGE :
-                    $aggregatelabel .= get_string("aggregateavg", "rating");
-                    break;
-                case RATING_AGGREGATE_COUNT :
-                    $aggregatelabel .= get_string("aggregatecount", "rating");
-                    break;
-                case RATING_AGGREGATE_MAXIMUM :
-                    $aggregatelabel .= get_string("aggregatemax", "rating");
-                    break;
-                case RATING_AGGREGATE_MINIMUM :
-                    $aggregatelabel .= get_string("aggregatemin", "rating");
-                    break;
-                case RATING_AGGREGATE_SUM :
-                    $aggregatelabel .= get_string("aggregatesum", "rating");
-                    break;
-            }
-            $aggregatelabel .= get_string('labelsep', 'langconfig');
-
-            //$scalemax = 0;//no longer displaying scale max
-            $aggregatestr = '';
-
-            //only display aggregate if aggregation method isn't COUNT
-            if ($rating->aggregate && $rating->settings->aggregationmethod!= RATING_AGGREGATE_COUNT) {
-                if ($rating->settings->aggregationmethod!= RATING_AGGREGATE_SUM && is_array($rating->settings->scale->scaleitems)) {
-                    $aggregatestr .= $rating->settings->scale->scaleitems[round($rating->aggregate)];//round aggregate as we're using it as an index
-                }
-                else { //aggregation is SUM or the scale is numeric
-                    $aggregatestr .= round($rating->aggregate,1);
-                }
+            $aggregatehtml  = html_writer::tag('span', $aggregatestr, array('id' => 'ratingaggregate'.$rating->itemid)).' ';
+            $aggregatehtml .= html_writer::start_tag('span', array('id'=>"ratingcount{$rating->itemid}"));
+            if ($rating->count > 0) {
+                $aggregatehtml .= "({$rating->count})";
             } else {
-                $aggregatestr = '';
+                $aggregatehtml .= '-';
             }
-
-            $countstr = html_writer::start_tag('span', array('id'=>"ratingcount{$rating->itemid}"));
-            if ($rating->count>0) {
-                $countstr .= "({$rating->count})";
-            }
-            $countstr .= html_writer::end_tag('span');
-
-            //$aggregatehtml = "{$ratingstr} / $scalemax ({$rating->count}) ";
-            $aggregatehtml = "<span id='ratingaggregate{$rating->itemid}'>{$aggregatestr}</span> $countstr ";
+            $aggregatehtml .= html_writer::end_tag('span').' ';
 
             $ratinghtml .= html_writer::tag('span', $aggregatelabel, array('class'=>'rating-aggregate-label'));
             if ($rating->settings->permissions->viewall && $rating->settings->pluginpermissions->viewall) {
-                $url = "/rating/index.php?contextid={$rating->context->id}&itemid={$rating->itemid}&scaleid={$rating->settings->scale->id}";
-                $nonpopuplink = new moodle_url($url);
-                $popuplink = new moodle_url("$url&popup=1");
+
+                $nonpopuplink = $rating->get_view_ratings_url();
+                $popuplink = $rating->get_view_ratings_url(true);
 
                 $action = new popup_action('click', $popuplink, 'ratings', array('height' => 400, 'width' => 600));
                 $ratinghtml .= $this->action_link($nonpopuplink, $aggregatehtml, $action);
@@ -1496,77 +1455,45 @@ class core_renderer extends renderer_base {
         }
 
         $formstart = null;
-        //if the item doesn't belong to the current user, the user has permission to rate
-        //and we're within the assessable period
-        if ($rating->itemuserid!=$USER->id
-            && $rating->settings->permissions->rate
-            && $rating->settings->pluginpermissions->rate
-            && $inassessablewindow) {
+        // if the item doesn't belong to the current user, the user has permission to rate
+        // and we're within the assessable period
+        if ($rating->user_can_rate()) {
+
+            $rateurl = $rating->get_rate_url();
+            $inputs = $rateurl->params();
 
             //start the rating form
-            $formstart = html_writer::start_tag('form',
-                array('id'=>"postrating{$rating->itemid}", 'class'=>'postratingform', 'method'=>'post', 'action'=>"{$CFG->wwwroot}/rating/rate.php"));
+            $formattrs = array(
+                'id'     => "postrating{$rating->itemid}",
+                'class'  => 'postratingform',
+                'method' => 'post',
+                'action' => $rateurl->out_omit_querystring()
+            );
+            $formstart  = html_writer::start_tag('form', $formattrs);
+            $formstart .= html_writer::start_tag('div', array('class' => 'ratingform'));
 
-            $formstart .= html_writer::start_tag('div', array('class'=>'ratingform'));
-
-            //add the hidden inputs
-
-            $attributes = array('type'=>'hidden', 'class'=>'ratinginput', 'name'=>'contextid', 'value'=>$rating->context->id);
-            $formstart .= html_writer::empty_tag('input', $attributes);
-
-            $attributes['name'] = 'itemid';
-            $attributes['value'] = $rating->itemid;
-            $formstart .= html_writer::empty_tag('input', $attributes);
-
-            $attributes['name'] = 'scaleid';
-            $attributes['value'] = $rating->settings->scale->id;
-            $formstart .= html_writer::empty_tag('input', $attributes);
-
-            $attributes['name'] = 'returnurl';
-            $attributes['value'] = $rating->settings->returnurl;
-            $formstart .= html_writer::empty_tag('input', $attributes);
-
-            $attributes['name'] = 'rateduserid';
-            $attributes['value'] = $rating->itemuserid;
-            $formstart .= html_writer::empty_tag('input', $attributes);
-
-            $attributes['name'] = 'aggregation';
-            $attributes['value'] = $rating->settings->aggregationmethod;
-            $formstart .= html_writer::empty_tag('input', $attributes);
-
-            $attributes['name'] = 'sesskey';
-            $attributes['value'] = sesskey();;
-            $formstart .= html_writer::empty_tag('input', $attributes);
+            // add the hidden inputs
+            foreach ($inputs as $name => $value) {
+                $attributes = array('type' => 'hidden', 'class' => 'ratinginput', 'name' => $name, 'value' => $value);
+                $formstart .= html_writer::empty_tag('input', $attributes);
+            }
 
             if (empty($ratinghtml)) {
                 $ratinghtml .= $strrate.': ';
             }
-
             $ratinghtml = $formstart.$ratinghtml;
 
-            //generate an array of values for numeric scales
-            $scalearray = $rating->settings->scale->scaleitems;
-            if (!is_array($scalearray)) { //almost certainly a numerical scale
-                $intscalearray = intval($scalearray);//just in case they've passed "5" instead of 5
-                $scalearray = array();
-                if( is_int($intscalearray) && $intscalearray>0 ) {
-                    for($i=0; $i<=$rating->settings->scale->scaleitems; $i++) {
-                        $scalearray[$i] = $i;
-                    }
-                }
-            }
-
-            $scalearray = array(RATING_UNSET_RATING => $strrate.'...') + $scalearray;
-            $ratinghtml .= html_writer::select($scalearray, 'rating', $rating->rating, false, array('class'=>'postratingmenu ratinginput','id'=>'menurating'.$rating->itemid));
+            $scalearray = array(RATING_UNSET_RATING => $strrate.'...') + $rating->settings->scale->scaleitems;
+            $scaleattrs = array('class'=>'postratingmenu ratinginput','id'=>'menurating'.$rating->itemid);
+            $ratinghtml .= html_writer::select($scalearray, 'rating', $rating->rating, false, $scaleattrs);
 
             //output submit button
-
             $ratinghtml .= html_writer::start_tag('span', array('class'=>"ratingsubmit"));
 
-            $attributes = array('type'=>'submit', 'class'=>'postratingmenusubmit', 'id'=>'postratingsubmit'.$rating->itemid, 'value'=>s(get_string('rate', 'rating')));
+            $attributes = array('type' => 'submit', 'class' => 'postratingmenusubmit', 'id' => 'postratingsubmit'.$rating->itemid, 'value' => s(get_string('rate', 'rating')));
             $ratinghtml .= html_writer::empty_tag('input', $attributes);
 
-            if (is_array($rating->settings->scale->scaleitems)) {
+            if (!$rating->settings->scale->isnumeric) {
                 $ratinghtml .= $this->help_icon_scale($rating->settings->scale->courseid, $rating->settings->scale);
             }
             $ratinghtml .= html_writer::end_tag('span');
@@ -1648,8 +1575,8 @@ class core_renderer extends renderer_base {
             $output .= $helpicon->linktext;
         }
 
-        // now create the link around it
-        $url = new moodle_url('/help.php', array('component' => $helpicon->component, 'identifier' => $helpicon->helpidentifier, 'lang'=>current_language()));
+        // now create the link around it - we need https on loginhttps pages
+        $url = new moodle_url($CFG->httpswwwroot.'/help.php', array('component' => $helpicon->component, 'identifier' => $helpicon->helpidentifier, 'lang'=>current_language()));
 
         // note: this title is displayed only if JS is disabled, otherwise the link will have the new ajax tooltip
         $title = get_string('helpprefix2', '', trim($helpicon->title, ". \t"));
@@ -1698,7 +1625,7 @@ class core_renderer extends renderer_base {
         $title = get_string($helpicon->identifier, $helpicon->component);
 
         if (empty($helpicon->linktext)) {
-            $alt = $title;
+            $alt = get_string('helpprefix2', '', trim($title, ". \t"));
         } else {
             $alt = get_string('helpwiththis');
         }
@@ -1712,8 +1639,8 @@ class core_renderer extends renderer_base {
             $output .= $helpicon->linktext;
         }
 
-        // now create the link around it
-        $url = new moodle_url('/help.php', array('component' => $helpicon->component, 'identifier' => $helpicon->identifier, 'lang'=>current_language()));
+        // now create the link around it - we need https on loginhttps pages
+        $url = new moodle_url($CFG->httpswwwroot.'/help.php', array('component' => $helpicon->component, 'identifier' => $helpicon->identifier, 'lang'=>current_language()));
 
         // note: this title is displayed only if JS is disabled, otherwise the link will have the new ajax tooltip
         $title = get_string('helpprefix2', '', trim($title, ". \t"));
@@ -1967,13 +1894,18 @@ class core_renderer extends renderer_base {
         } else {
             $maxsize = get_string('maxfilesize', 'moodle', display_size($size));
         }
+        if ($options->buttonname) {
+            $buttonname = ' name="' . $options->buttonname . '"';
+        } else {
+            $buttonname = '';
+        }
         $html = <<<EOD
 <div class="filemanager-loading mdl-align" id='filepicker-loading-{$client_id}'>
 $icon_progress
 </div>
 <div id="filepicker-wrapper-{$client_id}" class="mdl-left" style="display:none">
     <div>
-        <input type="button" id="filepicker-button-{$client_id}" value="{$straddfile}" />
+        <input type="button" id="filepicker-button-{$client_id}" value="{$straddfile}"{$buttonname}/>
         <span> $maxsize </span>
     </div>
 EOD;
@@ -2403,7 +2335,7 @@ EOD;
             $content = $icon.$content; // use CSS for spacing of icons
         }
         if ($item->helpbutton !== null) {
-            $content = trim($item->helpbutton).html_writer::tag('span', $content, array('class'=>'clearhelpbutton'));
+            $content = trim($item->helpbutton).html_writer::tag('span', $content, array('class'=>'clearhelpbutton', 'tabindex'=>'0'));
         }
         if ($content === '') {
             return '';
@@ -2426,7 +2358,7 @@ EOD;
             $content = html_writer::link($item->action, $content, $attributes);
 
         } else if (is_string($item->action) || empty($item->action)) {
-            $attributes = array();
+            $attributes = array('tabindex'=>'0'); //add tab support to span but still maintain character stream sequence.
             if ($title !== '') {
                 $attributes['title'] = $title;
             }
@@ -2462,22 +2394,6 @@ EOD;
      */
     public function larrow() {
         return $this->page->theme->larrow;
-    }
-
-    /**
-     * Returns the colours of the small MP3 player
-     * @return string
-     */
-    public function filter_mediaplugin_colors() {
-        return $this->page->theme->filter_mediaplugin_colors;
-    }
-
-    /**
-     * Returns the colours of the big MP3 player
-     * @return string
-     */
-    public function resource_mp3player_colors() {
-        return $this->page->theme->resource_mp3player_colors;
     }
 
     /**
@@ -2584,8 +2500,40 @@ EOD;
         // Return the sub menu
         return $content;
     }
-}
 
+    /**
+     * Renders theme links for switching between default and other themes.
+     *
+     * @return string
+     */
+    protected function theme_switch_links() {
+
+        $actualdevice = get_device_type();
+        $currentdevice = $this->page->devicetypeinuse;
+        $switched = ($actualdevice != $currentdevice);
+
+        if (!$switched && $currentdevice == 'default' && $actualdevice == 'default') {
+            // The user is using the a default device and hasn't switched so don't shown the switch
+            // device links.
+            return '';
+        }
+
+        if ($switched) {
+            $linktext = get_string('switchdevicerecommended');
+            $devicetype = $actualdevice;
+        } else {
+            $linktext = get_string('switchdevicedefault');
+            $devicetype = 'default';
+        }
+        $linkurl = new moodle_url('/theme/switchdevice.php', array('url' => $this->page->url, 'device' => $devicetype, 'sesskey' => sesskey()));
+
+        $content  = html_writer::start_tag('div', array('id' => 'theme_switch_link'));
+        $content .= html_writer::link($linkurl, $linktext);
+        $content .= html_writer::end_tag('div');
+
+        return $content;
+    }
+}
 
 /// RENDERERS
 

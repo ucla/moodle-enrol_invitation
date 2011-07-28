@@ -45,6 +45,8 @@ You can see it appended to your assignment submission:
 $string['assignmentmailhtml'] = '{$a->teacher} has posted some feedback on your
 assignment submission for \'<i>{$a->assignment}</i>\'<br /><br />
 You can see it appended to your <a href="{$a->url}">assignment submission</a>.';
+$string['assignmentmailsmall'] = '{$a->teacher} has posted some feedback on your
+assignment submission for \'{$a->assignment}\' You can see it appended to your submission';
 $string['assignmentname'] = 'Assignment name';
 $string['assignment:submit'] = 'Submit assignment';
 $string['assignmentsubmission'] = 'Assignment submissions';
@@ -90,8 +92,8 @@ $string['emailteachers_help'] = 'If enabled, teachers receive email notification
 
 Only teachers who are able to grade the particular assignment are notified. So, for example, if the course uses separate groups, teachers restricted to particular groups won\'t receive notification about students in other groups.';
 $string['emptysubmission'] = 'You have not submitted anything yet';
-$string['enableemailnotification'] = 'Send notification emails';
-$string['enableemailnotification_help'] = 'If enabled, students will receive email notification when their assignment submissions are graded.';
+$string['enablenotification'] = 'Send notifications';
+$string['enablenotification_help'] = 'If enabled, students will be notified when their assignment submissions are graded.';
 $string['errornosubmissions'] = 'There are no submissions to download';
 $string['existingfiledeleted'] = 'Existing file has been deleted: {$a}';
 $string['failedupdatefeedback'] = 'Failed to update submission feedback for user {$a}';
@@ -144,17 +146,21 @@ $string['noblogs'] = 'You have no blog entries to submit!';
 $string['nofiles'] = 'No files were submitted';
 $string['nofilesyet'] = 'No files submitted yet';
 $string['nomoresubmissions'] = 'No further submissions are allowed.';
-$string['nosubmitusers'] = 'No users were found with permissions to submit this assignment';
 $string['notavailableyet'] = 'Sorry, this assignment is not yet available.<br />Assignment instructions will be displayed here on the date given below.';
 $string['notes'] = 'Notes';
 $string['notesempty'] = 'No entry';
 $string['notesupdateerror'] = 'Error when updating notes';
 $string['notgradedyet'] = 'Not graded yet';
+$string['norequiregrading'] = 'There are no assignments that require grading';
+$string['nosubmisson'] = 'No assignments have been submit';
 $string['notsubmittedyet'] = 'Not submitted yet';
 $string['onceassignmentsent'] = 'Once the assignment is sent for marking, you will no longer be able to delete or attach file(s). Do you want to continue?';
 $string['operation'] = 'Operation';
 $string['optionalsettings'] = 'Optional settings';
 $string['overwritewarning'] = 'Warning: uploading again will REPLACE your current submission';
+$string['page-mod-assignment-x'] = 'Any assignment module page';
+$string['page-mod-assignment-view'] = 'Assignment module main page';
+$string['page-mod-assignment-submissions'] = 'Assignment module submission page';
 $string['pagesize'] = 'Submissions shown per page';
 $string['popupinnewwindow'] = 'Open in a popup window';
 $string['pluginadministration'] = 'Assignment administration';
@@ -180,6 +186,8 @@ $string['submitedformarking'] = 'Assignment was already submitted for marking an
 $string['submitformarking'] = 'Final submission for assignment marking';
 $string['submitted'] = 'Submitted';
 $string['submittedfiles'] = 'Submitted files';
+$string['subplugintype_assignment'] = 'Assignment type';
+$string['subplugintype_assignment_plural'] = 'Assignment types';
 $string['trackdrafts'] = 'Enable "Send for marking" button';
 $string['trackdrafts_help'] = 'The "Send for marking" button allows students to indicate to the teacher that they have finished working on an assignment. The teacher may choose to revert the assignment to draft status (if it requires further work, for example).';
 $string['typeblog'] = 'Blog post';

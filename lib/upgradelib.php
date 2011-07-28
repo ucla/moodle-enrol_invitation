@@ -324,6 +324,9 @@ function upgrade_plugins($type, $startcallback, $endcallback, $verbose) {
                     external_update_descriptions($component);
                     events_update_definition($component);
                     message_update_providers($component);
+                    if ($type === 'message') {
+                        message_update_processors($plug);
+                    }
                     upgrade_plugin_mnet_functions($component);
                     $endcallback($component, true, $verbose);
                 }
@@ -357,6 +360,9 @@ function upgrade_plugins($type, $startcallback, $endcallback, $verbose) {
             external_update_descriptions($component);
             events_update_definition($component);
             message_update_providers($component);
+            if ($type === 'message') {
+                message_update_processors($plug);
+            }
             upgrade_plugin_mnet_functions($component);
 
             purge_all_caches();
@@ -387,6 +393,9 @@ function upgrade_plugins($type, $startcallback, $endcallback, $verbose) {
             external_update_descriptions($component);
             events_update_definition($component);
             message_update_providers($component);
+            if ($type === 'message') {
+                message_update_processors($plug);
+            }
             upgrade_plugin_mnet_functions($component);
 
             purge_all_caches();
@@ -895,18 +904,32 @@ function external_update_descriptions($component) {
         $service['enabled'] = empty($service['enabled']) ? 0 : $service['enabled'];
         $service['requiredcapability'] = empty($service['requiredcapability']) ? null : $service['requiredcapability'];
         $service['restrictedusers'] = !isset($service['restrictedusers']) ? 1 : $service['restrictedusers'];
+        $service['shortname'] = !isset($service['shortname']) ? null : $service['shortname'];
 
         $update = false;
-        if ($dbservice->enabled != $service['enabled']) {
-            $dbservice->enabled = $service['enabled'];
-            $update = true;
-        }
         if ($dbservice->requiredcapability != $service['requiredcapability']) {
             $dbservice->requiredcapability = $service['requiredcapability'];
             $update = true;
         }
         if ($dbservice->restrictedusers != $service['restrictedusers']) {
             $dbservice->restrictedusers = $service['restrictedusers'];
+            $update = true;
+        }
+        //if shortname is not a PARAM_ALPHANUMEXT, fail (tested here for service update and creation)
+        if (isset($service['shortname']) and
+                (clean_param($service['shortname'], PARAM_ALPHANUMEXT) != $service['shortname'])) {
+            throw new moodle_exception('installserviceshortnameerror', 'webservice', '', $service['shortname']);
+        }
+        if ($dbservice->shortname != $service['shortname']) {
+            //check that shortname is unique
+            if (isset($service['shortname'])) { //we currently accepts multiple shortname == null
+                $existingservice = $DB->get_record('external_services',
+                        array('shortname' => $service['shortname']));
+                if (!empty($existingservice)) {
+                    throw new moodle_exception('installexistingserviceshortnameerror', 'webservice', '', $service['shortname']);
+                }
+            }
+            $dbservice->shortname = $service['shortname'];
             $update = true;
         }
         if ($update) {
@@ -931,11 +954,21 @@ function external_update_descriptions($component) {
         unset($functions);
     }
     foreach ($services as $name => $service) {
+        //check that shortname is unique
+        if (isset($service['shortname'])) { //we currently accepts multiple shortname == null
+            $existingservice = $DB->get_record('external_services',
+                    array('shortname' => $service['shortname']));
+            if (!empty($existingservice)) {
+                throw new moodle_exception('installserviceshortnameerror', 'webservice');
+            }
+        }
+
         $dbservice = new stdClass();
         $dbservice->name               = $name;
         $dbservice->enabled            = empty($service['enabled']) ? 0 : $service['enabled'];
         $dbservice->requiredcapability = empty($service['requiredcapability']) ? null : $service['requiredcapability'];
         $dbservice->restrictedusers    = !isset($service['restrictedusers']) ? 1 : $service['restrictedusers'];
+        $dbservice->shortname          = !isset($service['shortname']) ? null : $service['shortname'];
         $dbservice->component          = $component;
         $dbservice->timecreated        = time();
         $dbservice->id = $DB->insert_record('external_services', $dbservice);
@@ -1259,11 +1292,10 @@ function upgrade_init_javascript() {
     $PAGE->requires->js_init_code($js);
 }
 
-
 /**
  * Try to upgrade the given language pack (or current language)
  *
- * @todo hardcoded Moodle version here - shall be provided by version.php or similar script
+ * @param string $lang the code of the language to update, defaults to the current language
  */
 function upgrade_language_pack($lang='') {
     global $CFG, $OUTPUT;
@@ -1286,17 +1318,19 @@ function upgrade_language_pack($lang='') {
 
     require_once($CFG->libdir.'/componentlib.class.php');
 
-    if ($cd = new component_installer('http://download.moodle.org', 'langpack/2.0', $lang.'.zip', 'languages.md5', 'lang')) {
-        $status = $cd->install(); //returns COMPONENT_(ERROR | UPTODATE | INSTALLED)
-
-        if ($status == COMPONENT_INSTALLED) {
-            remove_dir($CFG->dataroot.'/cache/languages');
-            if ($parentlang = get_parent_language($lang)) {
-                if ($cd = new component_installer('http://download.moodle.org', 'langpack/2.0', $parentlang.'.zip', 'languages.md5', 'lang')) {
-                    $cd->install();
-                }
-            }
-            echo $OUTPUT->notification(get_string('success'), 'notifysuccess');
+    $installer = new lang_installer($lang);
+    $results = $installer->run();
+    foreach ($results as $langcode => $langstatus) {
+        switch ($langstatus) {
+        case lang_installer::RESULT_DOWNLOADERROR:
+            echo $OUTPUT->notification($langcode . '.zip');
+            break;
+        case lang_installer::RESULT_INSTALLED:
+            echo $OUTPUT->notification(get_string('langpackinstalled', 'admin', $langcode), 'notifysuccess');
+            break;
+        case lang_installer::RESULT_UPTODATE:
+            echo $OUTPUT->notification(get_string('langpackuptodate', 'admin', $langcode), 'notifysuccess');
+            break;
         }
     }
 

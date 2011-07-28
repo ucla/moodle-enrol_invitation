@@ -118,11 +118,34 @@ class workshop_random_allocator implements workshop_allocator {
                 $newnonexistingallocations = $newallocations;
                 $this->filter_current_assessments($newnonexistingallocations, $assessments);
                 $this->add_new_allocations($newnonexistingallocations, $authors, $reviewers);
+                $allreviewers = $reviewers[0];
+                $allreviewersreloaded = false;
                 foreach ($newallocations as $newallocation) {
                     list($reviewerid, $authorid) = each($newallocation);
-                    $a                  = new stdclass();
-                    $a->reviewername    = fullname($reviewers[0][$reviewerid]);
-                    $a->authorname      = fullname($authors[0][$authorid]);
+                    $a = new stdClass();
+                    if (isset($allreviewers[$reviewerid])) {
+                        $a->reviewername = fullname($allreviewers[$reviewerid]);
+                    } else {
+                        // this may happen if $musthavesubmission is true but the reviewer
+                        // of the re-used assessment has not submitted anything. let us reload
+                        // the list of reviewers name including those without their submission
+                        if (!$allreviewersreloaded) {
+                            $allreviewers = $this->workshop->get_potential_reviewers(false);
+                            $allreviewersreloaded = true;
+                        }
+                        if (isset($allreviewers[$reviewerid])) {
+                            $a->reviewername = fullname($allreviewers[$reviewerid]);
+                        } else {
+                            // this should not happen usually unless the list of participants was changed
+                            // in between two cycles of allocations
+                            $a->reviewername = '#'.$reviewerid;
+                        }
+                    }
+                    if (isset($authors[0][$authorid])) {
+                        $a->authorname = fullname($authors[0][$authorid]);
+                    } else {
+                        $a->authorname = '#'.$authorid;
+                    }
                     if (in_array($newallocation, $newnonexistingallocations)) {
                         $o[] = 'ok::indent::' . get_string('allocationaddeddetail', 'workshopallocation_random', $a);
                     } else {
@@ -426,14 +449,14 @@ class workshop_random_allocator implements workshop_allocator {
 
         if (self::USERTYPE_AUTHOR == $numper) {
             // circles are authors, squares are reviewers
-            $o[] = 'info::Trying to allocate ' . $numofreviews . ' review(s) per author'; // todo translate
+            $o[] = 'info::'.get_string('resultnumperauthor', 'workshopallocation_random', $numofreviews);
             $allcircles = $authors;
             $allsquares = $reviewers;
             // get current workload
             list($circlelinks, $squarelinks) = $this->convert_assessments_to_links($assessments);
         } elseif (self::USERTYPE_REVIEWER == $numper) {
             // circles are reviewers, squares are authors
-            $o[] = 'info::trying to allocate ' . $numofreviews . ' review(s) per reviewer'; // todo translate
+            $o[] = 'info::'.get_string('resultnumperreviewer', 'workshopallocation_random', $numofreviews);
             $allcircles = $reviewers;
             $allsquares = $authors;
             // get current workload
@@ -513,14 +536,14 @@ class workshop_random_allocator implements workshop_allocator {
                         if (NOGROUPS == $gmode) {
                             if (in_array(0, $failedgroups)) {
                                 $keeptrying = false;
-                                $o[] = 'error::indent::No more peers available'; // todo translate
+                                $o[] = 'error::indent::'.get_string('resultnomorepeers', 'workshopallocation_random');
                                 break;
                             }
                             $targetgroup = 0;
                         } elseif (SEPARATEGROUPS == $gmode) {
                             if (in_array($circlegroupid, $failedgroups)) {
                                 $keeptrying = false;
-                                $o[] = 'error::indent::No more peers available in this separate group'; // todo translate
+                                $o[] = 'error::indent::'.get_string('resultnomorepeersingroup', 'workshopallocation_random');
                                 break;
                             }
                             $targetgroup = $circlegroupid;
@@ -541,7 +564,7 @@ class workshop_random_allocator implements workshop_allocator {
                         }
                         if ($targetgroup === false) {
                             $keeptrying = false;
-                            $o[] = 'error::indent::Not enough peers available'; // todo translate
+                            $o[] = 'error::indent::'.get_string('resultnotenoughpeers', 'workshopallocation_random');
                             break;
                         }
                         $o[] = 'debug::indent::next square should be from group id ' . $targetgroup;

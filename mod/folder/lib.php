@@ -205,6 +205,8 @@ function folder_user_complete($course, $user, $mod, $folder) {
 /**
  * Returns the users with data in one folder
  *
+ * @todo: deprecated - to be deleted in 2.2
+ *
  * @param int $folderid
  * @return bool false
  */
@@ -333,4 +335,15 @@ function folder_extend_navigation($navigation, $course, $module, $cm) {
      * you content.
      */
     $navigation->nodetype = navigation_node::NODETYPE_LEAF;
+}
+
+/**
+ * Return a list of page types
+ * @param string $pagetype current page type
+ * @param stdClass $parentcontext Block's parent context
+ * @param stdClass $currentcontext Current context of block
+ */
+function folder_page_type_list($pagetype, $parentcontext, $currentcontext) {
+    $module_pagetype = array('mod-folder-*'=>get_string('page-mod-folder-x', 'folder'));
+    return $module_pagetype;
 }

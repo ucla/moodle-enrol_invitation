@@ -500,50 +500,46 @@ function data_generate_default_template(&$data, $template, $recordid=0, $form=fa
     // get all the fields for that database
     if ($fields = $DB->get_records('data_fields', array('dataid'=>$data->id), 'id')) {
 
-        $str = '<div class="defaulttemplate">';
-        $str .= '<table cellpadding="5">';
-
+        $table = new html_table();
+        $table->attributes['class'] = 'mod-data-default-template';
+        $table->colclasses = array('template-field', 'template-token');
+        $table->data = array();
         foreach ($fields as $field) {
-
-            $str .= '<tr><td valign="top" align="right">';
-            // Yu: commenting this out, the id was wrong and will fix later
-            //if ($template == 'addtemplate') {
-                //$str .= '<label';
-                //if (!in_array($field->type, array('picture', 'checkbox', 'date', 'latlong', 'radiobutton'))) {
-                //    $str .= ' for="[['.$field->name.'#id]]"';
-                //}
-                //$str .= '>'.$field->name.'</label>';
-
-            //} else {
-                $str .= $field->name.': ';
-            //}
-            $str .= '</td>';
-
-            $str .='<td  align="left">';
             if ($form) {   // Print forms instead of data
                 $fieldobj = data_get_field($field, $data);
-                $str .= $fieldobj->display_add_field($recordid);
-
+                $token = $fieldobj->display_add_field($recordid);
             } else {           // Just print the tag
-                $str .= '[['.$field->name.']]';
+                $token = '[['.$field->name.']]';
             }
-            $str .= '</td></tr>';
-
+            $table->data[] = array(
+                $field->name.': ',
+                $token
+            );
         }
         if ($template == 'listtemplate') {
-            $str .= '<tr><td align="center" colspan="2">##edit##  ##more##  ##delete##  ##approve##  ##export##</td></tr>';
+            $cell = new html_table_cell('##edit##  ##more##  ##delete##  ##approve##  ##export##');
+            $cell->colspan = 2;
+            $cell->attributes['class'] = 'controls';
+            $table->data[] = new html_table_row(array($cell));
         } else if ($template == 'singletemplate') {
-            $str .= '<tr><td align="center" colspan="2">##edit##  ##delete##  ##approve##  ##export##</td></tr>';
+            $cell = new html_table_cell('##edit##  ##delete##  ##approve##  ##export##');
+            $cell->colspan = 2;
+            $cell->attributes['class'] = 'controls';
+            $table->data[] = new html_table_row(array($cell));
         } else if ($template == 'asearchtemplate') {
-            $str .= '<tr><td valign="top" align="right">'.get_string('authorfirstname', 'data').': </td><td>##firstname##</td></tr>';
-            $str .= '<tr><td valign="top" align="right">'.get_string('authorlastname', 'data').': </td><td>##lastname##</td></tr>';
+            $row = new html_table_row(array(get_string('authorfirstname', 'data').': ', '##firstname##'));
+            $row->attributes['class'] = 'searchcontrols';
+            $table->data[] = $row;
+            $row = new html_table_row(array(get_string('authorlastname', 'data').': ', '##lastname##'));
+            $row->attributes['class'] = 'searchcontrols';
+            $table->data[] = $row;
         }
 
-        $str .= '</table>';
-        $str .= '</div>';
-
+        $str  = html_writer::start_tag('div', array('class' => 'defaulttemplate'));
+        $str .= html_writer::table($table);
+        $str .= html_writer::end_tag('div');
         if ($template == 'listtemplate'){
-            $str .= '<hr />';
+            $str .= html_writer::empty_tag('hr');
         }
 
         if ($update) {
@@ -966,7 +962,16 @@ function data_user_outline($course, $user, $mod, $data) {
     } else if ($grade) {
         $result = new stdClass();
         $result->info = get_string('grade') . ': ' . $grade->str_long_grade;
-        $result->time = $grade->dategraded;
+
+        //datesubmitted == time created. dategraded == time modified or time overridden
+        //if grade was last modified by the user themselves use date graded. Otherwise use date submitted
+        //TODO: move this copied & pasted code somewhere in the grades API. See MDL-26704
+        if ($grade->usermodified == $user->id || empty($grade->datesubmitted)) {
+            $result->time = $grade->dategraded;
+        } else {
+            $result->time = $grade->datesubmitted;
+        }
+
         return $result;
     }
     return NULL;
@@ -1011,9 +1016,10 @@ function data_get_user_grades($data, $userid=0) {
     global $CFG;
 
     require_once($CFG->dirroot.'/rating/lib.php');
-    $rm = new rating_manager();
 
-    $ratingoptions = new stdclass();
+    $ratingoptions = new stdClass;
+    $ratingoptions->component = 'mod_data';
+    $ratingoptions->ratingarea = 'entry';
     $ratingoptions->modulename = 'data';
     $ratingoptions->moduleid   = $data->id;
 
@@ -1023,6 +1029,7 @@ function data_get_user_grades($data, $userid=0) {
     $ratingoptions->itemtable = 'data_records';
     $ratingoptions->itemtableusercolumn = 'userid';
 
+    $rm = new rating_manager();
     return $rm->get_user_grades($ratingoptions);
 }
 
@@ -1139,25 +1146,46 @@ function data_grade_item_delete($data) {
 /**
  * returns a list of participants of this database
  *
- * @global object
+ * Returns the users with data in one data
+ * (users with records in data_records, data_comments and ratings)
+ *
+ * @todo: deprecated - to be deleted in 2.2
+ *
+ * @param int $dataid
  * @return array
  */
 function data_get_participants($dataid) {
-// Returns the users with data in one data
-// (users with records in data_records, data_comments and ratings)
     global $DB;
 
-    $records = $DB->get_records_sql("SELECT DISTINCT u.id, u.id
-                                       FROM {user} u, {data_records} r
-                                      WHERE r.dataid = ? AND u.id = r.userid", array($dataid));
+    $params = array('dataid' => $dataid);
 
-    $comments = $DB->get_records_sql("SELECT DISTINCT u.id, u.id
-                                        FROM {user} u, {data_records} r, {comments} c
-                                       WHERE r.dataid = ? AND u.id = r.userid AND r.id = c.itemid AND c.commentarea='database_entry'", array($dataid));
+    $sql = "SELECT DISTINCT u.id, u.id
+              FROM {user} u,
+                   {data_records} r
+             WHERE r.dataid = :dataid AND
+                   u.id = r.userid";
+    $records = $DB->get_records_sql($sql, $params);
 
-    $ratings = $DB->get_records_sql("SELECT DISTINCT u.id, u.id
-                                       FROM {user} u, {data_records} r, {ratings} a
-                                      WHERE r.dataid = ? AND u.id = r.userid AND r.id = a.itemid", array($dataid));
+    $sql = "SELECT DISTINCT u.id, u.id
+              FROM {user} u,
+                   {data_records} r,
+                   {comments} c
+             WHERE r.dataid = ? AND
+                   u.id = r.userid AND
+                   r.id = c.itemid AND
+                   c.commentarea = 'database_entry'";
+    $comments = $DB->get_records_sql($sql, $params);
+
+    $sql = "SELECT DISTINCT u.id, u.id
+              FROM {user} u,
+                   {data_records} r,
+                   {ratings} a
+             WHERE r.dataid = ? AND
+                   u.id = r.userid AND
+                   r.id = a.itemid AND
+                   a.component = 'mod_data' AND
+                   a.ratingarea = 'entry'";
+    $ratings = $DB->get_records_sql($sql, $params);
 
     $participants = array();
 
@@ -1263,7 +1291,7 @@ function data_print_template($template, $records, $data, $search='', $page=0, $r
 
         $patterns[]='##export##';
 
-        if ($CFG->enableportfolios && ($template == 'singletemplate' || $template == 'listtemplate')
+        if (!empty($CFG->enableportfolios) && ($template == 'singletemplate' || $template == 'listtemplate')
             && ((has_capability('mod/data:exportentry', $context)
                 || (data_isowner($record->id) && has_capability('mod/data:exportownentry', $context))))) {
             require_once($CFG->libdir . '/portfoliolib.php');
@@ -1352,28 +1380,128 @@ function data_print_template($template, $records, $data, $search='', $page=0, $r
 
 /**
  * Return rating related permissions
- * @param string $options the context id
+ *
+ * @param string $contextid the context id
+ * @param string $component the component to get rating permissions for
+ * @param string $ratingarea the rating area to get permissions for
  * @return array an associative array of the user's rating permissions
  */
-function data_rating_permissions($options) {
-    $contextid = $options;
-    $context = get_context_instance_by_id($contextid);
-
-    if (!$context) {
-        print_error('invalidcontext');
+function data_rating_permissions($contextid, $component, $ratingarea) {
+    $context = get_context_instance_by_id($contextid, MUST_EXIST);
+    if ($component != 'mod_data' || $ratingarea != 'entry') {
         return null;
-    } else {
-        $ret = new stdclass();
-        return array('view'=>has_capability('mod/data:viewrating',$context), 'viewany'=>has_capability('mod/data:viewanyrating',$context), 'viewall'=>has_capability('mod/data:viewallratings',$context), 'rate'=>has_capability('mod/data:rate',$context));
     }
+    return array(
+        'view'    => has_capability('mod/data:viewrating',$context),
+        'viewany' => has_capability('mod/data:viewanyrating',$context),
+        'viewall' => has_capability('mod/data:viewallratings',$context),
+        'rate'    => has_capability('mod/data:rate',$context)
+    );
 }
 
 /**
- * Returns the names of the table and columns necessary to check items for ratings
- * @return array an array containing the item table, item id and user id columns
+ * Validates a submitted rating
+ * @param array $params submitted data
+ *            context => object the context in which the rated items exists [required]
+ *            itemid => int the ID of the object being rated
+ *            scaleid => int the scale from which the user can select a rating. Used for bounds checking. [required]
+ *            rating => int the submitted rating
+ *            rateduserid => int the id of the user whose items have been rated. NOT the user who submitted the ratings. 0 to update all. [required]
+ *            aggregation => int the aggregation method to apply when calculating grades ie RATING_AGGREGATE_AVERAGE [required]
+ * @return boolean true if the rating is valid. Will throw rating_exception if not
  */
-function data_rating_item_check_info() {
-    return array('data_records','id','userid');
+function data_rating_validate($params) {
+    global $DB, $USER;
+
+    // Check the component is mod_data
+    if ($params['component'] != 'mod_data') {
+        throw new rating_exception('invalidcomponent');
+    }
+
+    // Check the ratingarea is entry (the only rating area in data module)
+    if ($params['ratingarea'] != 'entry') {
+        throw new rating_exception('invalidratingarea');
+    }
+
+    // Check the rateduserid is not the current user .. you can't rate your own entries
+    if ($params['rateduserid'] == $USER->id) {
+        throw new rating_exception('nopermissiontorate');
+    }
+
+    $datasql = "SELECT d.id as dataid, d.scale, d.course, r.userid as userid, d.approval, r.approved, r.timecreated, d.assesstimestart, d.assesstimefinish, r.groupid
+                  FROM {data_records} r
+                  JOIN {data} d ON r.dataid = d.id
+                 WHERE r.id = :itemid";
+    $dataparams = array('itemid'=>$params['itemid']);
+    if (!$info = $DB->get_record_sql($datasql, $dataparams)) {
+        //item doesn't exist
+        throw new rating_exception('invaliditemid');
+    }
+
+    if ($info->scale != $params['scaleid']) {
+        //the scale being submitted doesnt match the one in the database
+        throw new rating_exception('invalidscaleid');
+    }
+
+    //check that the submitted rating is valid for the scale
+
+    // lower limit
+    if ($params['rating'] < 0  && $params['rating'] != RATING_UNSET_RATING) {
+        throw new rating_exception('invalidnum');
+    }
+
+    // upper limit
+    if ($info->scale < 0) {
+        //its a custom scale
+        $scalerecord = $DB->get_record('scale', array('id' => -$info->scale));
+        if ($scalerecord) {
+            $scalearray = explode(',', $scalerecord->scale);
+            if ($params['rating'] > count($scalearray)) {
+                throw new rating_exception('invalidnum');
+            }
+        } else {
+            throw new rating_exception('invalidscaleid');
+        }
+    } else if ($params['rating'] > $info->scale) {
+        //if its numeric and submitted rating is above maximum
+        throw new rating_exception('invalidnum');
+    }
+
+    if ($info->approval && !$info->approved) {
+        //database requires approval but this item isnt approved
+        throw new rating_exception('nopermissiontorate');
+    }
+
+    // check the item we're rating was created in the assessable time window
+    if (!empty($info->assesstimestart) && !empty($info->assesstimefinish)) {
+        if ($info->timecreated < $info->assesstimestart || $info->timecreated > $info->assesstimefinish) {
+            throw new rating_exception('notavailable');
+        }
+    }
+
+    $course = $DB->get_record('course', array('id'=>$info->course), '*', MUST_EXIST);
+    $cm = get_coursemodule_from_instance('data', $info->dataid, $course->id, false, MUST_EXIST);
+    $context = get_context_instance(CONTEXT_MODULE, $cm->id, MUST_EXIST);
+
+    // if the supplied context doesnt match the item's context
+    if ($context->id != $params['context']->id) {
+        throw new rating_exception('invalidcontext');
+    }
+
+    // Make sure groups allow this user to see the item they're rating
+    $groupid = $info->groupid;
+    if ($groupid > 0 and $groupmode = groups_get_activity_groupmode($cm, $course)) {   // Groups are being used
+        if (!groups_group_exists($groupid)) { // Can't find group
+            throw new rating_exception('cannotfindgroup');//something is wrong
+        }
+
+        if (!groups_is_member($groupid) and !has_capability('moodle/site:accessallgroups', $context)) {
+            // do not allow rating of posts from other groups when in SEPARATEGROUPS or VISIBLEGROUPS
+            throw new rating_exception('notmemberofgroup');
+        }
+    }
+
+    return true;
 }
 
 
@@ -1571,7 +1699,7 @@ function data_print_preference_form($data, $perpage, $search, $sort='', $order='
  */
 function data_print_ratings($data, $record) {
     global $OUTPUT;
-    if( !empty($record->rating) ){
+    if (!empty($record->rating)){
         echo $OUTPUT->render($record->rating);
     }
 }
@@ -1927,21 +2055,29 @@ function data_print_header($course, $cm, $data, $currenttab='') {
 }
 
 /**
- * @global object
+ * Can user add more entries?
+ *
  * @param object $data
  * @param mixed $currentgroup
  * @param int $groupmode
+ * @param stdClass $context
  * @return bool
  */
-function data_user_can_add_entry($data, $currentgroup, $groupmode) {
+function data_user_can_add_entry($data, $currentgroup, $groupmode, $context = null) {
     global $USER;
 
-    if (!$cm = get_coursemodule_from_instance('data', $data->id)) {
-        print_error('invalidcoursemodule');
+    if (empty($context)) {
+        $cm = get_coursemodule_from_instance('data', $data->id, 0, false, MUST_EXIST);
+        $context = get_context_instance(CONTEXT_MODULE, $cm->id);
     }
-    $context = get_context_instance(CONTEXT_MODULE, $cm->id);
 
-    if (!has_capability('mod/data:writeentry', $context) and !has_capability('mod/data:manageentries',$context)) {
+    if (has_capability('mod/data:manageentries', $context)) {
+        // no entry limits apply if user can manage
+
+    } else if (!has_capability('mod/data:writeentry', $context)) {
+        return false;
+
+    } else if (data_atmaxentries($data)) {
         return false;
     }
 
@@ -2410,7 +2546,9 @@ function data_reset_userdata($data) {
                      WHERE d.course=?";
 
     $rm = new rating_manager();
-    $ratingdeloptions = new stdclass();
+    $ratingdeloptions = new stdClass;
+    $ratingdeloptions->component = 'mod_data';
+    $ratingdeloptions->ratingarea = 'entry';
 
     // delete entries if requested
     if (!empty($data->reset_data)) {
@@ -2836,7 +2974,7 @@ function data_extend_settings_navigation(settings_navigation $settings, navigati
     $currentgroup = groups_get_activity_group($PAGE->cm);
     $groupmode = groups_get_activity_groupmode($PAGE->cm);
 
-    if (data_user_can_add_entry($data, $currentgroup, $groupmode)) { // took out participation list here!
+    if (data_user_can_add_entry($data, $currentgroup, $groupmode, $PAGE->cm->context)) { // took out participation list here!
         if (empty($editentry)) { //TODO: undefined
             $addstring = get_string('add', 'data');
         } else {
@@ -3093,4 +3231,120 @@ function data_presets_export($course, $cm, $data, $tostorage=false) {
 
     // Return the full path to the exported preset file:
     return $exportfile;
+}
+
+/**
+ * Running addtional permission check on plugin, for example, plugins
+ * may have switch to turn on/off comments option, this callback will
+ * affect UI display, not like pluginname_comment_validate only throw
+ * exceptions.
+ * Capability check has been done in comment->check_permissions(), we
+ * don't need to do it again here.
+ *
+ * @param stdClass $comment_param {
+ *              context  => context the context object
+ *              courseid => int course id
+ *              cm       => stdClass course module object
+ *              commentarea => string comment area
+ *              itemid      => int itemid
+ * }
+ * @return array
+ */
+function data_comment_permissions($comment_param) {
+    global $CFG, $DB;
+    if (!$record = $DB->get_record('data_records', array('id'=>$comment_param->itemid))) {
+        throw new comment_exception('invalidcommentitemid');
+    }
+    if (!$data = $DB->get_record('data', array('id'=>$record->dataid))) {
+        throw new comment_exception('invalidid', 'data');
+    }
+    if ($data->comments) {
+        return array('post'=>true, 'view'=>true);
+    } else {
+        return array('post'=>false, 'view'=>false);
+    }
+}
+
+/**
+ * Validate comment parameter before perform other comments actions
+ *
+ * @param stdClass $comment_param {
+ *              context  => context the context object
+ *              courseid => int course id
+ *              cm       => stdClass course module object
+ *              commentarea => string comment area
+ *              itemid      => int itemid
+ * }
+ * @return boolean
+ */
+function data_comment_validate($comment_param) {
+    global $DB;
+    // validate comment area
+    if ($comment_param->commentarea != 'database_entry') {
+        throw new comment_exception('invalidcommentarea');
+    }
+    // validate itemid
+    if (!$record = $DB->get_record('data_records', array('id'=>$comment_param->itemid))) {
+        throw new comment_exception('invalidcommentitemid');
+    }
+    if (!$data = $DB->get_record('data', array('id'=>$record->dataid))) {
+        throw new comment_exception('invalidid', 'data');
+    }
+    if (!$course = $DB->get_record('course', array('id'=>$data->course))) {
+        throw new comment_exception('coursemisconf');
+    }
+    if (!$cm = get_coursemodule_from_instance('data', $data->id, $course->id)) {
+        throw new comment_exception('invalidcoursemodule');
+    }
+    if (!$data->comments) {
+        throw new comment_exception('commentsoff', 'data');
+    }
+    $context = get_context_instance(CONTEXT_MODULE, $cm->id);
+
+    //check if approved
+    if ($data->approval and !$record->approved and !data_isowner($record) and !has_capability('mod/data:approve', $context)) {
+        throw new comment_exception('notapproved', 'data');
+    }
+
+    // group access
+    if ($record->groupid) {
+        $groupmode = groups_get_activity_groupmode($cm, $course);
+        if ($groupmode == SEPARATEGROUPS and !has_capability('moodle/site:accessallgroups', $context)) {
+            if (!groups_is_member($record->groupid)) {
+                throw new comment_exception('notmemberofgroup');
+            }
+        }
+    }
+    // validate context id
+    if ($context->id != $comment_param->context->id) {
+        throw new comment_exception('invalidcontext');
+    }
+    // validation for comment deletion
+    if (!empty($comment_param->commentid)) {
+        if ($comment = $DB->get_record('comments', array('id'=>$comment_param->commentid))) {
+            if ($comment->commentarea != 'database_entry') {
+                throw new comment_exception('invalidcommentarea');
+            }
+            if ($comment->contextid != $comment_param->context->id) {
+                throw new comment_exception('invalidcontext');
+            }
+            if ($comment->itemid != $comment_param->itemid) {
+                throw new comment_exception('invalidcommentitemid');
+            }
+        } else {
+            throw new comment_exception('invalidcommentid');
+        }
+    }
+    return true;
+}
+
+/**
+ * Return a list of page types
+ * @param string $pagetype current page type
+ * @param stdClass $parentcontext Block's parent context
+ * @param stdClass $currentcontext Current context of block
+ */
+function data_page_type_list($pagetype, $parentcontext, $currentcontext) {
+    $module_pagetype = array('mod-data-*'=>get_string('page-mod-data-x', 'data'));
+    return $module_pagetype;
 }

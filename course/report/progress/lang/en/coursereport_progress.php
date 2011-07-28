@@ -24,4 +24,5 @@
  */
 
 $string['pluginname'] = 'Activity completion';
+$string['pluginpagetype'] = 'Activity completion report';
 $string['progress:view'] = 'View activity completion reports';
