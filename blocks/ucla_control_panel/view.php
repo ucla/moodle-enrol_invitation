@@ -32,7 +32,7 @@ require_once($CFG->dirroot.
 
 $course_id = required_param('courseid', PARAM_INT); // course ID
 $module_view = optional_param('module', 'default', PARAM_ALPHANUMEXT);
-$edit = optional_param('edit', -1, PARAM_BOOL);
+$edit = optional_param('edit', null, PARAM_BOOL);
 
 if (! $course = $DB->get_record('course', array('id' => $course_id))) {
     print_error('coursemisconf');
@@ -58,7 +58,7 @@ $PAGE->set_pagetype('course-view-'.$course->format);
 
 if ($PAGE->user_allowed_editing()) {
     // Stolen from course/view.php
-    if ($edit != -1 && confirm_sesskey()) {
+    if ($edit != null && confirm_sesskey()) {
         $USER->editing = $edit;
 
         if ($edit == 0 && !empty($USER->activitycopy) 
