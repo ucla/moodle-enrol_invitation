@@ -39,7 +39,10 @@ $it = 'institution';
 
 // Changing to retrieve displayname and if it exists, use it instead of 
 // official name.
-$displayname = $this->get_first_string($_SERVER['HTTP_SHIB_DISPLAYNAME']);
+$displayname = array();
+if (isset($_SERVER['HTTP_SHIB_DISPLAYNAME'])) {
+    $displayname = $this->get_first_string($_SERVER['HTTP_SHIB_DISPLAYNAME']);
+}
 
 $result[$ln] = '';
 
@@ -47,16 +50,18 @@ if (!empty($displayname)) {
     list($lastname, $firstname, $suffix) = split(',', $displayname);
     $result[$fn] = strtoupper($firstname);
     $result[$ln]  = strtoupper($lastname);
-} else {     
+} else {
     $middlename  = $this->get_first_string(
-            $_SERVER['HTTP_UCLA_PERSON_MIDDLENAME']);
+            $_SERVER['HTTP_UCLA_PERSON_MIDDLENAME']
+        );
 
     if (!empty($middlename)) {
         $result[$fn] = "{$result[$fn]} $middlename";
     }
 
     $suffix = $this->get_first_string(
-            $_SERVER['HTTP_SHIB_UCLAPERSONNAMESUFFIX']);
+            $_SERVER['HTTP_SHIB_UCLAPERSONNAMESUFFIX']
+        );
 }
 
 $suffix = strtoupper($suffix);
@@ -64,7 +69,7 @@ if ($suffix == 'JR') {
     $result[$ln] .= ", $suffix";  // SMITH, JR
 } else if (!empty($suffix)) {
     $result[$ln] .= $suffix;      // SMITH II or SMITH III
-}    
+} 
 
 $result[$it] = str_replace("urn:mace:incommon:","", $result[$it]);
 
