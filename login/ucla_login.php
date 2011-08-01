@@ -26,6 +26,8 @@
 
 require_once(dirname(__FILE__) . "/../config.php");
 
+$loginguest = optional_param('loginguest', 0, PARAM_INT);
+
 // Modified 200706191502 by Eric Bollens to Remove Hardcoding
 // Shibboleth requires HTTPS
 $PAGE->https_required();
@@ -108,6 +110,11 @@ $PAGE->set_heading("$site->fullname");
 
 // Practically copied from /login/index.php
 $frm = data_submitted();
+
+if ($loginguest && !$frm) {
+    $frm->username = 'guest';
+    $frm->password = 'guest';
+}
 
 if ($frm !== false && isset($frm->username)) {
     $frm->username = trim(moodle_strtolower($frm->username));
@@ -195,8 +202,12 @@ if ($frm !== false && isset($frm->username)) {
 
     /// Go to my-moodle page instead of site homepage if defaulthomepage set 
     // to homepage_my
-        if (!empty($CFG->defaulthomepage) && $CFG->defaulthomepage == HOMEPAGE_MY && !is_siteadmin() && !isguestuser()) {
-            if ($urltogo == $CFG->wwwroot or $urltogo == $CFG->wwwroot.'/' or $urltogo == $CFG->wwwroot.'/index.php') {
+        if (!empty($CFG->defaulthomepage) 
+                && $CFG->defaulthomepage == HOMEPAGE_MY 
+                && !is_siteadmin() && !isguestuser()) {
+            if ($urltogo == $CFG->wwwroot 
+                    || $urltogo == $CFG->wwwroot.'/' 
+                    || $urltogo == $CFG->wwwroot.'/index.php') {
                 $urltogo = $CFG->wwwroot.'/my/';
             }
         }
@@ -205,26 +216,34 @@ if ($frm !== false && isset($frm->username)) {
     /// check if user password has expired
     /// Currently supported only for ldap-authentication module
         $userauth = get_auth_plugin($USER->auth);
-        if (!empty($userauth->config->expiration) and $userauth->config->expiration == 1) {
+        if (!empty($userauth->config->expiration) 
+                    && $userauth->config->expiration == 1) {
             if ($userauth->can_change_password()) {
                 $passwordchangeurl = $userauth->change_password_url();
                 if (!$passwordchangeurl) {
-                    $passwordchangeurl = $CFG->httpswwwroot.'/login/change_password.php';
+                    $passwordchangeurl = $CFG->httpswwwroot
+                        .'/login/change_password.php';
                 }
             } else {
-                $passwordchangeurl = $CFG->httpswwwroot.'/login/change_password.php';
+                $passwordchangeurl = $CFG->httpswwwroot
+                    .'/login/change_password.php';
             }
             $days2expire = $userauth->password_expire($USER->username);
             $PAGE->set_title("$site->fullname: $loginsite");
             $PAGE->set_heading("$site->fullname");
-            if (intval($days2expire) > 0 && intval($days2expire) < intval($userauth->config->expiration_warning)) {
+            if (intval($days2expire) > 0 
+                        && intval($days2expire) < intval(
+                            $userauth->config->expiration_warning
+                        )) {
                 echo $OUTPUT->header();
-                echo $OUTPUT->confirm(get_string('auth_passwordwillexpire', 'auth', $days2expire), $passwordchangeurl, $urltogo);
+                echo $OUTPUT->confirm(get_string('auth_passwordwillexpire', 
+                    'auth', $days2expire), $passwordchangeurl, $urltogo);
                 echo $OUTPUT->footer();
                 exit;
             } elseif (intval($days2expire) < 0 ) {
                 echo $OUTPUT->header();
-                echo $OUTPUT->confirm(get_string('auth_passwordisexpired', 'auth'), $passwordchangeurl, $urltogo);
+                echo $OUTPUT->confirm(get_string('auth_passwordisexpired', 
+                    'auth'), $passwordchangeurl, $urltogo);
                 echo $OUTPUT->footer();
                 exit;
             }
@@ -234,7 +253,8 @@ if ($frm !== false && isset($frm->username)) {
 
         // test the session actually works by redirecting to self
         $SESSION->wantsurl = $urltogo;
-        redirect(new moodle_url(get_login_url(), array('testsession'=>$USER->id)));
+        redirect(new moodle_url(get_login_url(), 
+            array('testsession' => $USER->id)));
 
     } else if (empty($errormsg)) {
         $errormsg = get_string('invalidlogin');
