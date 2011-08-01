@@ -75,7 +75,7 @@ if ($id and $delete) {
         require_once($CFG->libdir.'/publicprivate/course.class.php');
         $publicprivate_course = new PublicPrivate_Course($course);
         if($publicprivate_course->is_group($group)) {
-            echo $OUTPUT->notification('WARNING: This is a special grouping for public/private. It cannot be removed.');
+            echo $OUTPUT->notification(get_string('publicprivatecannotremove'));
             echo $OUTPUT->continue_button('groupings.php?id='.$courseid);
         } else {
             $optionsyes = array('id'=>$id, 'delete'=>1, 'courseid'=>$courseid, 'sesskey'=>sesskey(), 'confirm'=>1);

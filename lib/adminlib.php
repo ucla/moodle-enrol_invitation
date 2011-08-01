@@ -5993,12 +5993,14 @@ function admin_write_settings($formdata) {
      * @author ebollens
      * @version 20110719
      */
-    if($formdata['section'] == 'experimentalsettings'
+    if(isset($formdata['section']) && $formdata['section'] == 'experimentalsettings'
             && array_key_exists('s__enablegroupmembersonly', $data)
             && array_key_exists('s__enablepublicprivate', $data))
     {
-        if($data['s__enablegroupmembersonly'] == '0' && $data['s__enablepublicprivate'] == '1')
+        // Disable public private is groupmembersonly is off
+        if ($data['s__enablegroupmembersonly'] == '0' && $data['s__enablepublicprivate'] == '1') {
             $data['s__enablepublicprivate'] = '0';
+        }
     }
 
     $adminroot = admin_get_root();

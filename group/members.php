@@ -101,7 +101,7 @@ echo $OUTPUT->heading(get_string('adduserstogroup', 'group').": $groupname", 3);
  * @version 20110719
  */
 if($publicprivate_course->is_group($group)) {
-    echo $OUTPUT->notification('WARNING: This is a special group for public/private. It cannot be edited.');
+    echo $OUTPUT->notification(get_string('publicprivatecannotremove'));
     echo $OUTPUT->continue_button('index.php?id='.$course->id);
     echo $OUTPUT->footer();
     die;

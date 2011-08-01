@@ -84,7 +84,13 @@ if ($confirm && data_submitted()) {
             $publicprivate_course_used = true;
     
     if($publicprivate_course_used) {
-        echo $OUTPUT->notification('WARNING: ' . (count($groupidarray) > 1 ? 'One of the groups' : 'The group') . ' selected is a special group for public/private. It cannot be removed.');
+        $pluralize = 'publicprivatecannotremove_oneof';
+        if (count($groupidarray) <= 1) {
+            $pluralize = 'publicprivatecannotremove_one';
+        }
+
+        $pluralizestr = get_string($pluralize);
+        echo $OUTPUT->notification($pluralizestr);
         echo $OUTPUT->continue_button('index.php?id='.$courseid);
     } else {
         $optionsyes = array('courseid'=>$courseid, 'groups'=>$groupids, 'sesskey'=>sesskey(), 'confirm'=>1);

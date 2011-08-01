@@ -72,7 +72,7 @@ if ($id and $delete) {
          */
         if($publicprivate_course->is_grouping($grouping)) {
             echo $OUTPUT->heading($course->fullname. ': '. get_string('deletegrouping', 'group'));
-            echo $OUTPUT->notification('WARNING: This is a special grouping for public/private. It cannot be removed.');
+            echo $OUTPUT->notification(get_string('publicprivatecannotremove'));
             echo $OUTPUT->continue_button('groupings.php?id='.$courseid);
         } else {
             $optionsyes = array('id'=>$id, 'delete'=>1, 'courseid'=>$courseid, 'sesskey'=>sesskey(), 'confirm'=>1);
@@ -148,7 +148,7 @@ echo $OUTPUT->heading($strheading);
  * @version 20110719
  */
 if($publicprivate_course->is_grouping($grouping)) {
-    echo $OUTPUT->notification('WARNING: This is a special grouping for public/private. It cannot be edited.');
+    echo $OUTPUT->notification(get_string('publicprivatecannotremove'));
     echo $OUTPUT->continue_button('groupings.php?id='.$courseid);
     echo $OUTPUT->footer();
     die;

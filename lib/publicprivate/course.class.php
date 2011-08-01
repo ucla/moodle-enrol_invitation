@@ -49,7 +49,10 @@ class PublicPrivate_Course {
             $this->_course = $course;
         }
 
-        if(!isset($this->_course->enablepublicprivate) || !isset($this->_course->grouppublicprivate) || !isset($this->_course->groupingpublicprivate)) {
+        if((!isset($this->_course->enablepublicprivate) 
+                || !isset($this->_course->grouppublicprivate) 
+                || !isset($this->_course->groupingpublicprivate)) && PublicPrivate_Site::is_enabled()) {
+            // No need to throw an error if publicprivate is disabled
             throw new PublicPrivate_Course_Exception('Required course properties not available for __construct.', 101);
         }
     }

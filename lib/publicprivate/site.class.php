@@ -13,7 +13,12 @@ class PublicPrivate_Site {
      */
     public static function is_enabled() {
         global $CFG;
-        return $CFG->enablepublicprivate == 1;
+
+        if (isset($CFG->enablepublicprivate)) {
+            return ($CFG->enablepublicprivate == 1);
+        } 
+
+        return false;
     }
 
     /**
@@ -25,7 +30,12 @@ class PublicPrivate_Site {
      */
     public static function can_enable() {
         global $CFG;
-        return $CFG->enablegroupmembersonly == 1;
+
+        if (isset($CFG->enablegroupmembersonly)) {
+            return ($CFG->enablegroupmembersonly == 1);
+        }
+
+        return false;
     }
 
     public static function is_installed() {
