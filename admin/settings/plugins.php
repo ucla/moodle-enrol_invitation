@@ -5,6 +5,7 @@
  */
 
 if ($hassiteconfig) {
+    $ADMIN->add('modules', new admin_page_pluginsoverview());
     $ADMIN->add('modules', new admin_category('modsettings', get_string('activitymodules')));
     $ADMIN->add('modsettings', new admin_page_managemods());
     $modules = $DB->get_records('modules', array(), "name ASC");
@@ -41,6 +42,27 @@ if ($hassiteconfig) {
             include($CFG->dirroot.'/blocks/'.$blockname.'/settings.php');
             if ($settings) {
                 $ADMIN->add('blocksettings', $settings);
+            }
+        }
+    }
+
+    // message outputs
+    $ADMIN->add('modules', new admin_category('messageoutputs', get_string('messageoutputs', 'message')));
+    $ADMIN->add('messageoutputs', new admin_page_managemessageoutputs());
+    $ADMIN->add('messageoutputs', new admin_page_defaultmessageoutputs());
+    require_once($CFG->dirroot.'/message/lib.php');
+    $processors = get_message_processors();
+    foreach ($processors as $processor) {
+        $processorname = $processor->name;
+        if (!$processor->available) {
+            continue;
+        }
+        if ($processor->hassettings) {
+            $strprocessorname = get_string('pluginname', 'message_'.$processorname);
+            $settings = new admin_settingpage('messagesetting'.$processorname, $strprocessorname, 'moodle/site:config', !$processor->enabled);
+            include($CFG->dirroot.'/message/output/'.$processor->name.'/settings.php');
+            if ($settings) {
+                $ADMIN->add('messageoutputs', $settings);
             }
         }
     }
@@ -323,6 +345,9 @@ if ($hassiteconfig) {
     $ADMIN->add('webservicesettings', $temp);
     /// manage service
     $temp = new admin_settingpage('externalservices', get_string('externalservices', 'webservice'));
+    $enablemobiledocurl = new moodle_url(get_docs_url('Enable_mobile_web_services'));
+    $enablemobiledoclink = html_writer::link($enablemobiledocurl, get_string('documentation'));
+    $temp->add(new admin_setting_enablemobileservice('enablemobilewebservice', get_string('enablemobilewebservice', 'admin'), get_string('configenablemobilewebservice', 'admin', $enablemobiledoclink), 0));
     $temp->add(new admin_setting_heading('manageserviceshelpexplaination', get_string('information', 'webservice'), get_string('servicehelpexplanation', 'webservice')));
     $temp->add(new admin_setting_manageexternalservices());
     $ADMIN->add('webservicesettings', $temp);
@@ -367,8 +392,12 @@ if ($hassiteconfig) {
     }
     $ADMIN->add('webservicesettings', $temp);
 
-
+// Question type settings
 if ($hassiteconfig || has_capability('moodle/question:config', $systemcontext)) {
+    // Question behaviour settings.
+    $ADMIN->add('modules', new admin_category('qbehavioursettings', get_string('questionbehaviours', 'admin')));
+    $ADMIN->add('qbehavioursettings', new admin_page_manageqbehaviours());
+
     // Question type settings.
     $ADMIN->add('modules', new admin_category('qtypesettings', get_string('questiontypes', 'admin')));
     $ADMIN->add('qtypesettings', new admin_page_manageqtypes());
@@ -385,6 +414,8 @@ if ($hassiteconfig || has_capability('moodle/question:config', $systemcontext)) 
         }
     }
 }
+
+// Plagiarism plugin settings
 if ($hassiteconfig && !empty($CFG->enableplagiarism)) {
     $ADMIN->add('modules', new admin_category('plagiarism', get_string('plagiarism', 'plagiarism')));
     $temp = new admin_settingpage('plagiarismsettings', get_string('plagiarismsettings', 'plagiarism'));
@@ -397,8 +428,31 @@ if ($hassiteconfig && !empty($CFG->enableplagiarism)) {
     }
 }
 $ADMIN->add('reports', new admin_externalpage('comments', get_string('comments'), $CFG->wwwroot.'/comment/', 'moodle/site:viewreports'));
-/// Now add reports
 
+// Course reports settings
+if ($hassiteconfig) {
+    $pages = array();
+    foreach (get_plugin_list('coursereport') as $report => $path) {
+        $file = $CFG->dirroot . '/course/report/' . $report . '/settings.php';
+        if (file_exists($file)) {
+            $settings = new admin_settingpage('coursereport' . $report,
+                    get_string('pluginname', 'coursereport_' . $report), 'moodle/site:config');
+            // settings.php may create a subcategory or unset the settings completely
+            include($file);
+            if ($settings) {
+                $pages[] = $settings;
+            }
+        }
+    }
+    if (!empty($pages)) {
+        $ADMIN->add('modules', new admin_category('coursereports', get_string('coursereports')));
+        foreach ($pages as $page) {
+            $ADMIN->add('coursereports', $page);
+        }
+    }
+}
+
+// Now add reports
 foreach (get_plugin_list('report') as $plugin => $plugindir) {
     $settings_path = "$plugindir/settings.php";
     if (file_exists($settings_path)) {

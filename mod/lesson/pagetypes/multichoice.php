@@ -490,6 +490,13 @@ class lesson_display_answer_form_multichoice_singleanswer extends moodleform {
 
         $mform->addElement('html', $OUTPUT->container($contents, 'contents'));
 
+        $hasattempt = false;
+        $disabled = '';
+        if (isset($USER->modattempts[$lessonid]) && !empty($USER->modattempts[$lessonid])) {
+            $hasattempt = true;
+            $disabled = array('disabled' => 'disabled');
+        }
+
         $options = new stdClass;
         $options->para = false;
         $options->noclean = true;
@@ -503,16 +510,20 @@ class lesson_display_answer_form_multichoice_singleanswer extends moodleform {
         $i = 0;
         foreach ($answers as $answer) {
             $mform->addElement('html', '<div class="answeroption">');
-            $mform->addElement('radio','answerid',null,format_text($answer->answer, $answer->answerformat, $options),$answer->id);
+            $mform->addElement('radio','answerid',null,format_text($answer->answer, $answer->answerformat, $options),$answer->id, $disabled);
             $mform->setType('answer'.$i, PARAM_INT);
-            if (isset($USER->modattempts[$lessonid]) && $answer->id == $USER->modattempts[$lessonid]->answerid) {
-                $mform->setDefault('answerid', true);
+            if ($hasattempt && $answer->id == $USER->modattempts[$lessonid]->answerid) {
+                $mform->setDefault('answerid', $USER->modattempts[$lessonid]->answerid);
             }
             $mform->addElement('html', '</div>');
             $i++;
         }
 
-        $this->add_action_buttons(null, get_string("pleasecheckoneanswer", "lesson"));
+        if ($hasattempt) {
+            $this->add_action_buttons(null, get_string("nextpage", "lesson"));
+        } else {
+            $this->add_action_buttons(null, get_string("submit", "lesson"));
+        }
     }
 
 }
@@ -531,6 +542,15 @@ class lesson_display_answer_form_multichoice_multianswer extends moodleform {
 
         $mform->addElement('html', $OUTPUT->container($contents, 'contents'));
 
+        $hasattempt = false;
+        $disabled = '';
+        $useranswers = array();
+        if (isset($USER->modattempts[$lessonid]) && !empty($USER->modattempts[$lessonid])) {
+            $hasattempt = true;
+            $disabled = array('disabled' => 'disabled');
+            $useranswers = explode(',', $USER->modattempts[$lessonid]->useranswer);
+        }
+
         $options = new stdClass;
         $options->para = false;
         $options->noclean = true;
@@ -543,16 +563,26 @@ class lesson_display_answer_form_multichoice_multianswer extends moodleform {
 
         foreach ($answers as $answer) {
             $mform->addElement('html', '<div class="answeroption">');
-            // NOTE: our silly checkbox supports only value '1' - we can not use it like the radiobox above!!!!!!
-            $mform->addElement('checkbox','answer['.$answer->id.']',null,format_text($answer->answer, $answer->answerformat, $options));
-            $mform->setType('answer['.$answer->id.']', PARAM_INT);
-            if (isset($USER->modattempts[$lessonid]) && $answer->id == $attempt->answerid) {
+            $answerid = 'answer['.$answer->id.']';
+            if ($hasattempt && in_array($answer->id, $useranswers)) {
+                $answerid = 'answer_'.$answer->id;
+                $mform->addElement('hidden', 'answer['.$answer->id.']', $answer->answer);
+                $mform->setType('answer['.$answer->id.']', PARAM_TEXT);
+                $mform->setDefault($answerid, true);
                 $mform->setDefault('answer['.$answer->id.']', true);
             }
+            // NOTE: our silly checkbox supports only value '1' - we can not use it like the radiobox above!!!!!!
+            $mform->addElement('checkbox', $answerid, null, format_text($answer->answer, $answer->answerformat, $options), $disabled);
+            $mform->setType($answerid, PARAM_INT);
+
             $mform->addElement('html', '</div>');
         }
 
-        $this->add_action_buttons(null, get_string("pleasecheckoneormoreanswers", "lesson"));
+        if ($hasattempt) {
+            $this->add_action_buttons(null, get_string("nextpage", "lesson"));
+        } else {
+            $this->add_action_buttons(null, get_string("submit", "lesson"));
+        }
     }
 
 }

@@ -430,7 +430,8 @@ function chat_cron () {
  * Returns the users with data in one chat
  * (users with records in chat_messages, students)
  *
- * @global object
+ * @todo: deprecated - to be deleted in 2.2
+ *
  * @param int $chatid
  * @param int $groupid
  * @return array
@@ -1303,4 +1304,15 @@ function chat_extend_settings_navigation(settings_navigation $settings, navigati
 function chat_user_logout($user) {
     global $DB;
     $DB->delete_records('chat_users', array('userid'=>$user->id));
+}
+
+/**
+ * Return a list of page types
+ * @param string $pagetype current page type
+ * @param stdClass $parentcontext Block's parent context
+ * @param stdClass $currentcontext Current context of block
+ */
+function chat_page_type_list($pagetype, $parentcontext, $currentcontext) {
+    $module_pagetype = array('mod-chat-*'=>get_string('page-mod-chat-x', 'chat'));
+    return $module_pagetype;
 }

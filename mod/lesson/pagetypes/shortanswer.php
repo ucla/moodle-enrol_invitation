@@ -50,7 +50,7 @@ class lesson_page_type_shortanswer extends lesson_page {
     }
     public function display($renderer, $attempt) {
         global $USER, $CFG, $PAGE;
-        $mform = new lesson_display_answer_form_shortanswer($CFG->wwwroot.'/mod/lesson/continue.php', array('contents'=>$this->get_contents()));
+        $mform = new lesson_display_answer_form_shortanswer($CFG->wwwroot.'/mod/lesson/continue.php', array('contents'=>$this->get_contents(), 'lessonid'=>$this->lesson->id));
         $data = new stdClass;
         $data->id = $PAGE->cm->id;
         $data->pageid = $this->properties->id;
@@ -73,7 +73,6 @@ class lesson_page_type_shortanswer extends lesson_page {
             $result->noanswer = true;
             return $result;
         }
-        $studentanswer = s($studentanswer);
 
         $i=0;
         $answers = $this->get_answers();
@@ -163,7 +162,9 @@ class lesson_page_type_shortanswer extends lesson_page {
                 break; // quit answer analysis immediately after a match has been found
             }
         }
-        $result->studentanswer = $result->userresponse = $studentanswer;
+        $result->userresponse = $studentanswer;
+        //clean student answer as it goes to output.
+        $result->studentanswer = s($studentanswer);
         return $result;
     }
 
@@ -327,9 +328,19 @@ class lesson_add_page_form_shortanswer extends lesson_add_page_form_base {
 class lesson_display_answer_form_shortanswer extends moodleform {
 
     public function definition() {
-        global $OUTPUT;
+        global $OUTPUT, $USER;
         $mform = $this->_form;
         $contents = $this->_customdata['contents'];
+
+        $hasattempt = false;
+        $attrs = array('size'=>'50', 'maxlength'=>'200');
+        if (isset($this->_customdata['lessonid'])) {
+            $lessonid = $this->_customdata['lessonid'];
+            if (isset($USER->modattempts[$lessonid]->useranswer)) {
+                $attrs['readonly'] = 'readonly';
+                $hasattempt = true;
+            }
+        }
 
         $mform->addElement('header', 'pageheader');
 
@@ -345,10 +356,14 @@ class lesson_display_answer_form_shortanswer extends moodleform {
         $mform->addElement('hidden', 'pageid');
         $mform->setType('pageid', PARAM_INT);
 
-        $mform->addElement('text', 'answer', get_string('youranswer', 'lesson'), array('size'=>'50', 'maxlength'=>'200'));
+        $mform->addElement('text', 'answer', get_string('youranswer', 'lesson'), $attrs);
         $mform->setType('answer', PARAM_TEXT);
 
-        $this->add_action_buttons(null, get_string("pleaseenteryouranswerinthebox", "lesson"));
+        if ($hasattempt) {
+            $this->add_action_buttons(null, get_string("nextpage", "lesson"));
+        } else {
+            $this->add_action_buttons(null, get_string("submit", "lesson"));
+        }
     }
 
 }

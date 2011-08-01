@@ -51,6 +51,10 @@ require_capability('mod/workshop:view', $PAGE->context);
 $workshop = new workshop($workshop, $cm, $course);
 $workshop->log('view');
 
+// Mark viewed
+$completion = new completion_info($course);
+$completion->set_module_viewed($cm);
+
 if (!is_null($editmode) && $PAGE->user_allowed_editing()) {
     $USER->editing = $editmode;
 }
@@ -149,13 +153,13 @@ case workshop::PHASE_SUBMISSION:
         echo $output->box_start('generalbox ownsubmission');
         if ($submission = $workshop->get_submission_by_author($USER->id)) {
             echo $output->render($workshop->prepare_submission_summary($submission, true));
-            if ($workshop->modifying_submission_allowed()) {
+            if ($workshop->modifying_submission_allowed($USER->id)) {
                 $btnurl = new moodle_url($workshop->submission_url(), array('edit' => 'on'));
                 $btntxt = get_string('editsubmission', 'workshop');
             }
         } else {
             echo $output->container(get_string('noyoursubmission', 'workshop'));
-            if ($workshop->creating_submission_allowed()) {
+            if ($workshop->creating_submission_allowed($USER->id)) {
                 $btnurl = new moodle_url($workshop->submission_url(), array('edit' => 'on'));
                 $btntxt = get_string('createsubmission', 'workshop');
             }
@@ -197,7 +201,7 @@ case workshop::PHASE_ASSESSMENT:
             echo $output->box_start('generalbox ownsubmission');
             echo $output->container(get_string('noyoursubmission', 'workshop'));
             $ownsubmissionexists = false;
-            if ($workshop->creating_submission_allowed()) {
+            if ($workshop->creating_submission_allowed($USER->id)) {
                 $btnurl = new moodle_url($workshop->submission_url(), array('edit' => 'on'));
                 $btntxt = get_string('createsubmission', 'workshop');
             }
@@ -409,7 +413,7 @@ case workshop::PHASE_EVALUATION:
         print_collapsible_region_start('', 'workshop-viewlet-ownsubmission', get_string('yoursubmission', 'workshop'));
         echo $output->box_start('generalbox ownsubmission');
         if ($submission = $workshop->get_submission_by_author($USER->id)) {
-            echo $output->render(new workshop_submission_summary($submission, true));
+            echo $output->render($workshop->prepare_submission_summary($submission, true));
         } else {
             echo $output->container(get_string('noyoursubmission', 'workshop'));
         }
@@ -492,21 +496,50 @@ case workshop::PHASE_CLOSED:
         print_collapsible_region_end();
     }
     if (has_capability('mod/workshop:viewpublishedsubmissions', $workshop->context)) {
+        $shownames = has_capability('mod/workshop:viewauthorpublished', $workshop->context);
         if ($submissions = $workshop->get_published_submissions()) {
             print_collapsible_region_start('', 'workshop-viewlet-publicsubmissions', get_string('publishedsubmissions', 'workshop'));
             foreach ($submissions as $submission) {
                 echo $output->box_start('generalbox submission-summary');
-                echo $output->render($workshop->prepare_submission_summary($submission, true));
+                echo $output->render($workshop->prepare_submission_summary($submission, $shownames));
                 echo $output->box_end();
             }
             print_collapsible_region_end();
         }
     }
+    if ($assessments = $workshop->get_assessments_by_reviewer($USER->id)) {
+        print_collapsible_region_start('', 'workshop-viewlet-assignedassessments', get_string('assignedassessments', 'workshop'));
+        $shownames = has_capability('mod/workshop:viewauthornames', $PAGE->context);
+        foreach ($assessments as $assessment) {
+            $submission                     = new stdclass();
+            $submission->id                 = $assessment->submissionid;
+            $submission->title              = $assessment->submissiontitle;
+            $submission->timecreated        = $assessment->submissioncreated;
+            $submission->timemodified       = $assessment->submissionmodified;
+            $submission->authorid           = $assessment->authorid;
+            $submission->authorfirstname    = $assessment->authorfirstname;
+            $submission->authorlastname     = $assessment->authorlastname;
+            $submission->authorpicture      = $assessment->authorpicture;
+            $submission->authorimagealt     = $assessment->authorimagealt;
+            $submission->authoremail        = $assessment->authoremail;
+
+            if (is_null($assessment->grade)) {
+                $class = ' notgraded';
+                $submission->status = 'notgraded';
+                $buttontext = get_string('assess', 'workshop');
+            } else {
+                $class = ' graded';
+                $submission->status = 'graded';
+                $buttontext = get_string('reassess', 'workshop');
+            }
+            echo $output->box_start('generalbox assessment-summary' . $class);
+            echo $output->render($workshop->prepare_submission_summary($submission, $shownames));
+            echo $output->box_end();
+        }
+        print_collapsible_region_end();
+    }
     break;
 default:
 }
-
-$completion = new completion_info($course);
-$completion->set_module_viewed($cm);
 
 echo $output->footer();
