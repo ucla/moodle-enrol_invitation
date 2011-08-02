@@ -44,24 +44,28 @@ if (isset($_SERVER['HTTP_SHIB_DISPLAYNAME'])) {
     $displayname = $this->get_first_string($_SERVER['HTTP_SHIB_DISPLAYNAME']);
 }
 
-$result[$ln] = '';
+$suffix = '';
 
 if (!empty($displayname)) {
     list($lastname, $firstname, $suffix) = split(',', $displayname);
     $result[$fn] = strtoupper($firstname);
     $result[$ln]  = strtoupper($lastname);
 } else {
-    $middlename  = $this->get_first_string(
+    if (isset($_SERVER['HTTP_UCLA_PERSON_MIDDLENAME'])) {
+        $middlename  = $this->get_first_string(
             $_SERVER['HTTP_UCLA_PERSON_MIDDLENAME']
         );
+    }
 
     if (!empty($middlename)) {
         $result[$fn] = "{$result[$fn]} $middlename";
     }
 
-    $suffix = $this->get_first_string(
+    if (isset($_SERVER['HTTP_SHIB_UCLAPERSONNAMESUFFIX'])) {
+        $suffix = $this->get_first_string(
             $_SERVER['HTTP_SHIB_UCLAPERSONNAMESUFFIX']
         );
+    }
 }
 
 $suffix = strtoupper($suffix);
