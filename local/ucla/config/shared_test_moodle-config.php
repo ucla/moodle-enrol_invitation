@@ -77,15 +77,13 @@ if (!file_exists($_dirroot_ . '/config.php')) {
 $CFG->auth = 'shibboleth';
 $CFG->alternateloginurl = $CFG->wwwroot . '/login/ucla_login.php?shibboleth';
 
-$CFG->forced_plugin_settings['auth_shibboleth'] = array(
+$CFG->forced_plugin_settings['auth/shibboleth'] = array(
     'user_attribute'    => 'HTTP_SHIB_EDUPERSON_PRINCIPALNAME',
     'convert_data'      => $_dirroot_ . '/shib_transform.php',
     'logout_handler'    => $CFG->wwwroot . '/Shibboleth.sso/Logout',
     'logout_return_url' => 'https://shb.ais.ucla.edu/shibboleth-idp/Logout',
-    'login_name'        => 'Shibboleth Login'
-);
+    'login_name'        => 'Shibboleth Login',
 
-$CFG->forced_plugin_settings['auth/shibboleth'] = array(
     'field_map_firstname'         => 'HTTP_SHIB_GIVENNAME',
     'field_updatelocal_firstname' => 'onlogin',
     'field_lock_firstname'        => 'locked',
