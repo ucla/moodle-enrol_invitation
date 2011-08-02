@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="admin/report/courserequestor/db" VERSION="20110721" COMMENT="tables for course requestor"
+<XMLDB PATH="admin/report/courserequestor/db" VERSION="20110727" COMMENT="tables for course requestor"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../../lib/xmldb/xmldb.xsd"
 >
@@ -11,7 +11,7 @@
         <FIELD NAME="srs" TYPE="char" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="term" NEXT="course"/>
         <FIELD NAME="course" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" PREVIOUS="srs" NEXT="department"/>
         <FIELD NAME="department" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" PREVIOUS="course" NEXT="instructor"/>
-        <FIELD NAME="instructor" TYPE="char" LENGTH="200" NOTNULL="false" SEQUENCE="false" PREVIOUS="department" NEXT="contact"/>
+        <FIELD NAME="instructor" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" PREVIOUS="department" NEXT="contact"/>
         <FIELD NAME="contact" TYPE="char" LENGTH="50" NOTNULL="false" SEQUENCE="false" PREVIOUS="instructor" NEXT="crosslist"/>
         <FIELD NAME="crosslist" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="contact" NEXT="added_at"/>
         <FIELD NAME="added_at" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="crosslist" NEXT="action"/>

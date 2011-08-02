@@ -8,10 +8,11 @@ class view_dept_form extends moodleform {
         global $DB;
         $mform =& $this->_form;
         
-        $db_conn = odbc_connect($CFG->registrar_dbhost, $CFG->registrar_dbuser , $CFG->registrar_dbpass) or die( "ERROR: Connection to Registrar failed.");
-        $selected_term = optional_param('term',NULL,PARAM_CLEAN) ? optional_param('term',NULL,PARAM_CLEAN) : $CFG->classrequestor_selected_term;
+        $db_conn = odbc_connect($CFG->registrar_dbhost, $CFG->registrar_dbuser, 
+        $CFG->registrar_dbpass) or die( "ERROR: Connection to Registrar failed.");
+        $selected_term = optional_param('term',NULL,PARAM_ALPHANUM) ? 
+        optional_param('term',NULL,PARAM_ALPHANUM) : $CFG->classrequestor_selected_term;
         $pulldown_term = array();
-        //$selectedterm2 = optional_param('term',NULL,PARAM_CLEAN) ? optional_param('term',NULL,PARAM_CLEAN) : $CFG->currentterm;
 
         foreach ($CFG->classrequestor_terms as $term) {
             $pulldown_term[$term]= $term;
@@ -36,13 +37,21 @@ class view_dept_form extends moodleform {
         
         $mform->addElement('header', 'buildform', '');
         $oneline=array();
-        $oneline[] =& $mform->createElement('static', 'termlabel', null, '<label>TERM: </label>');
+        /*
+        To display multiple elements on the same line, I have to group them, 
+        but grouping ignores the label of individual element inside the group 
+        (the third label parameter of createElement gets ignored). 
+        Therefore, I had to add these static elements to make up for the missing labels.
+        */
+        $oneline[] =& $mform->createElement('static', 'termlabel', null, 
+        '<label for="id_group2_term">TERM: </label>');
         $selectterm =& $mform->createElement('select', 'term', null, $pulldown_term);
         $oneline[] = $selectterm;
-        $oneline[] =& $mform->createElement('static', 'subjectlabel', null, '<label>SUBJECT AREA: </label>');
+        $oneline[] =& $mform->createElement('static', 'subjectlabel', null, 
+        '<label for="id_group2_subjarea">SUBJECT AREA: </label>');
         $selectsubj =& $mform->createElement('select', 'subjarea', null, $pulldown_subject);
         $oneline[] = $selectsubj;
-        $oneline[] =& $mform->createElement('submit', 'submit', 'View Department ');
+        $oneline[] =& $mform->createElement('submit', 'submit', 'Build Department ');
         // put these elements in one group so that they appear on the same line
         // see style.css for overloading the default moodle form stylesheet
         $mform->addGroup($oneline, 'group2', null, ' ', true);

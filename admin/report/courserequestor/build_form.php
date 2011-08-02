@@ -7,7 +7,8 @@ class build_form extends moodleform {
         global $CFG;
         global $DB;
         $mform =& $this->_form;
-        $selected_term = optional_param('term',NULL,PARAM_CLEAN) ? optional_param('term',NULL,PARAM_CLEAN) : $CFG->classrequestor_selected_term;
+        $selected_term = optional_param('term',NULL,PARAM_ALPHANUM) ? 
+        optional_param('term',NULL,PARAM_ALPHANUM) : $CFG->classrequestor_selected_term;
         
         $pulldown_term = array();
 
@@ -17,7 +18,8 @@ class build_form extends moodleform {
         
         $pulldown_dept = array();
         $pulldown_dept[] = 'ALL';
-        $rs=$DB->get_records_sql("select distinct department from mdl_ucla_request_classes order by department");
+        $rs=$DB->get_records_sql("select distinct department from ".$CFG->prefix."ucla_request_classes 
+        order by department");
 
         foreach ($rs as $row) {
             $pulldown_dept[$row->department] = $row->department;
