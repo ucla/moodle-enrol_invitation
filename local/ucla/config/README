@@ -1,0 +1,45 @@
+=====================================
+UCLA Configuration System
+=====================================
+
+The configuration files for the UCLA CCLE-Shared Codebase of Moodle has
+been organized in an attempt to simplify the act of moving code changes
+from one development environment to another.
+
+In general, the naming schema is follows:
+<Host>_<Environment>_moodle-config.php
+
+=====================================
+For System Operators
+=====================================
+
+For each type of environment that you have running, create a symbolic link
+(or an equivalent mechanism) to the proper configuration file that is wanted
+to be used in your environment.
+
+Please note that developers most likely do not know what exact settings you
+may want on your running instance, so communication is required here to ensure
+smooth feature roll-outs and bug fixes.
+
+=====================================
+For Developers
+=====================================
+
+When running a development instance, the easiest method to go with is to create
+a copy of <Host>_development_moodle-config.php, name it config.php and put it
+in your "moodle" directory. Then you need to fill in the specific instance
+configurations, such as:
+    $CFG->dbname
+    $CFG->dbuser
+    $CFG->dbpass
+et cetera.
+
+When finishing developing a new feature, you need to add the configuration 
+options to all of the environments for all hosts. While this seems like a 
+lot of work, it will prevent a lot of miscommunication errors that can 
+occur due to unstated configuration changes.
+
+Please note that system operators may not understand implications and 
+functions that are available through the configuration files. Communication
+here is ideal to ensure a smooth roll-out.
+
