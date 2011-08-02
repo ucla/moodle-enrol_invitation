@@ -60,12 +60,25 @@ $CFG->directorypermissions = 0777;
 $CFG->passwordsaltmain = '^!mny&G9W)JIB# c/#}^3Uk(';
 
 // If you want to have un-revisioned configuration data, place in this file.
-// $CFG->dirroot is overwritten later, so let's not bother clock cycles
-$_dirroot_ = dirname(__FILE__) . '/../../../';
+// $CFG->dirroot is overwritten later
+$_dirroot_ = dirname(realpath(__FILE__)) . '/../../..';
 
-$_private_ = $_dirroot . '/config_private.php';
+// Try an alternative directory setup.
+if (!file_exists($_dirroot_ . '/config.php')) {
+    $_dirroot_ = dirname(realpath(__FILE__));
+
+    if (!file_exists($_dirroot_ . '/config.php')) {
+        die ('Improper setup of configuration file.');
+    }
+}
+
+// Load a custom private data
+$_private_ = $_dirroot_ . '/config_private.php';
 if (file_exists($_private_)) {
     require_once($_private_);
 }
 
+// This will bootstrap the moodle functions.
 require_once($_dirroot_ . '/lib/setup.php');
+
+// EOF
