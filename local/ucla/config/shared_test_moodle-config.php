@@ -62,12 +62,16 @@ $CFG->passwordsaltmain = '^!mny&G9W)JIB# c/#}^3Uk(';
 
 // Automatically configure shibboleth to work.
 $CFG->auth = 'shibboleth';
+$CFG->alternateloginurl = $CFG->wwwroot . '/login/ucla_login.php?shibboleth';
+
 $CFG->forced_plugin_settings['auth_shibboleth'] = array(
     'user_attribute'    => 'HTTP_SHIB_EDUPERSON_PRINCIPALNAME',
-    'logout_handler'    => $CFG->wwwroot . 'Shibboleth.sso/Logout',
+    'logout_handler'    => $CFG->wwwroot . '/Shibboleth.sso/Logout',
     'logout_return_url' => 'https://shb.ais.ucla.edu/shibboleth-idp/Logout',
-    'login_name'        => 'Shibboleth Login',
+    'login_name'        => 'Shibboleth Login'
+);
 
+$CFG->forced_plugin_settings['auth/shibboleth'] = array(
     'field_map_firstname'         => 'HTTP_SHIB_GIVENNAME',
     'field_updatelocal_firstname' => 'onlogin',
     'field_lock_firstname'        => 'locked',
