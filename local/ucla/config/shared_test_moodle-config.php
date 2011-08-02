@@ -60,12 +60,26 @@ $CFG->directorypermissions = 0777;
 // logins using the Moodle login will not work.
 $CFG->passwordsaltmain = '^!mny&G9W)JIB# c/#}^3Uk(';
 
+// If you want to have un-revisioned configuration data, place in this file.
+// $CFG->dirroot is overwritten later
+$_dirroot_ = dirname(realpath(__FILE__)) . '/../../..';
+
+// Try an alternative directory setup.
+if (!file_exists($_dirroot_ . '/config.php')) {
+    $_dirroot_ = dirname(realpath(__FILE__));
+
+    if (!file_exists($_dirroot_ . '/config.php')) {
+        die ('Improper setup of configuration file.');
+    }
+}
+
 // Automatically configure shibboleth to work.
 $CFG->auth = 'shibboleth';
 $CFG->alternateloginurl = $CFG->wwwroot . '/login/ucla_login.php?shibboleth';
 
 $CFG->forced_plugin_settings['auth_shibboleth'] = array(
     'user_attribute'    => 'HTTP_SHIB_EDUPERSON_PRINCIPALNAME',
+    'convert_data'      => $_dirroot_ . '/shib_transform.php',
     'logout_handler'    => $CFG->wwwroot . '/Shibboleth.sso/Logout',
     'logout_return_url' => 'https://shb.ais.ucla.edu/shibboleth-idp/Logout',
     'login_name'        => 'Shibboleth Login'
@@ -92,19 +106,6 @@ $CFG->forced_plugin_settings['auth/shibboleth'] = array(
     'field_updatelocal_institution' => 'onlogin',
     'field_lock_institution'        => 'locked'
 );
-
-// If you want to have un-revisioned configuration data, place in this file.
-// $CFG->dirroot is overwritten later
-$_dirroot_ = dirname(realpath(__FILE__)) . '/../../..';
-
-// Try an alternative directory setup.
-if (!file_exists($_dirroot_ . '/config.php')) {
-    $_dirroot_ = dirname(realpath(__FILE__));
-
-    if (!file_exists($_dirroot_ . '/config.php')) {
-        die ('Improper setup of configuration file.');
-    }
-}
 
 // Load a custom private data
 $_private_ = $_dirroot_ . '/config_private.php';
