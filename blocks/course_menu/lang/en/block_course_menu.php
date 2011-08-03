@@ -29,7 +29,7 @@ $string['backupdesc'] = 'This link will allow you to make a copy of your course,
 $string['backup_restore'] = 'Backup and Copy Content';
 $string['pluginname'] = $string['blockname'] = 'Course menu';
 $string['configgroupsections'] = 'Do you want to group week and topic sections in one folder?';
-$string['controlpanel'] = 'Control Panel';
+$string['controlpanel'] = 'Control panel';
 $string['courseduedatedesc'] = 'This link will enable you to change the due dates for activities that have due dates (like Assignments) and the open/close dates for quizzes and lessons.';
 $string['courseprogramdesc'] = 'This link will allow you to hide and show course activities or entire topics based on calendar dates and the time.';
 $string['editcoursesettingsdesc'] = 'Use this link to edit your course settings such as the name of the course, the number of topic or week blocks, show the course to students or hide if from students, allow guests in or keep them out, and change the theme (colors and graphics) for the course.';
@@ -48,7 +48,7 @@ $string['passworddesc'] = 'Click this link to change your password.';
 $string['profiledesc'] = 'This link will let you change your personal information, upload a picture, change your password, etc.';
 $string['restoredesc'] = 'This link will allow you to restore a backed up course, either with data to the current course, or to another course you are a administrator of.';
 $string['scalesdesc'] = 'This link lets you set up custom grading scales (for instance: &quot;Great, Acceptable, Below Average, Unacceptable&quot;).';
-$string['showallsections'] = 'Show All Sections';
+$string['showallsections'] = 'Show all sections';
 $string['studentchangepassword'] = 'Click this link to change your password.';
 $string['studentcontrolpaneldesc'] = 'Use this link to see what the student\'s Control Panel looks like.';
 $string['studentcp'] = 'Student Control Panel';
