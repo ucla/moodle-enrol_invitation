@@ -59,7 +59,6 @@ $CFG->directorypermissions = 0777;
 // logins using the Moodle login will not work.
 $CFG->passwordsaltmain = '';
 
-// If you want to have un-revisioned configuration data, place in this file.
 // $CFG->dirroot is overwritten later
 $_dirroot_ = dirname(realpath(__FILE__)) . '/../../..';
 
@@ -71,6 +70,46 @@ if (!file_exists($_dirroot_ . '/config.php')) {
         die ('Improper setup of configuration file.');
     }
 }
+
+/** 
+ *  Automatic Shibboleth configurations.
+ *  Disabling in favor for GUI configurations.
+ *  Keeping in code for sake of quick re-enabling and reference.
+ *  To re-enable, add a '/' at the end of the following line.
+ **
+$CFG->auth = 'shibboleth';
+$CFG->alternateloginurl = $CFG->wwwroot . '/login/ucla_login.php?shibboleth';
+
+$CFG->forced_plugin_settings['auth/shibboleth'] = array(
+    'user_attribute'    => 'HTTP_SHIB_EDUPERSON_PRINCIPALNAME',
+    'convert_data'      => $_dirroot_ . '/shib_transform.php',
+    'logout_handler'    => $CFG->wwwroot . '/Shibboleth.sso/Logout',
+    'logout_return_url' => 'https://shb.ais.ucla.edu/shibboleth-idp/Logout',
+    'login_name'        => 'Shibboleth Login',
+
+    'field_map_firstname'         => 'HTTP_SHIB_GIVENNAME',
+    'field_updatelocal_firstname' => 'onlogin',
+    'field_lock_firstname'        => 'locked',
+
+    'field_map_lastname'         => 'HTTP_SHIB_PERSON_SURNAME',
+    'field_updatelocal_lastname' => 'onlogin',
+    'field_lock_lastname'        => 'locked',
+
+    'field_map_email'        => 'HTTP_SHIB_MAIL',
+    'field_updatelocal_mail' => 'onlogin',
+    'field_lock_email'       => 'unlockedifempty',
+
+    'field_map_idnumber'         => 'HTTP_SHIB_UID',
+    'field_updatelocal_idnumber' => 'onlogin',
+    'field_lock_idnumber'        => 'locked',
+
+    'field_map_institution'         => 'HTTP_SHIB_IDENTITY_PROVIDER',
+    'field_updatelocal_institution' => 'onlogin',
+    'field_lock_institution'        => 'locked'
+);
+/**
+ *  End shibboleth configurations.
+ **/
 
 // Load a custom private data
 $_private_ = $_dirroot_ . '/config_private.php';
