@@ -48,10 +48,5 @@ class block_course_menu_edit_form extends block_edit_form {
         $mform->setDefault('config_trimlength', 
             block_course_menu::DEFAULT_TRIM_LENGTH);
         $mform->setType('config_trimlength', PARAM_INT);
-
-        // This is a list of things that will be displayed in the coursemenu
-        $mform->addElement('header', 'configheader', 
-            get_string('elements', $this->block->blockname));
-        $mform->addElement('html', $this->block->config_elements());
     }
 }
