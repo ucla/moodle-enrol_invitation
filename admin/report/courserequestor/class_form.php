@@ -27,14 +27,14 @@ class class_form extends moodleform {
         Therefore, I had to add these static elements to make up for the missing labels.
         */
         $oneline[] =& $mform->createElement('static', 'termlabel', null, '<label 
-        for="id_group1_term">TERM: </label>');
+            for="id_group1_term">TERM: </label>');
         $selectterm =& $mform->createElement('select', 'term', null, $pulldown_term);
         $oneline[] = $selectterm;
         $attrib=array('size'=>'25');
         $oneline[] =& $mform->createElement('static', 'srslabel', null, '<label 
-        for="id_group1_srs">SRS: </label>');
+            for="id_group1_srs">SRS: </label>');
         $oneline[] =& $mform->createElement('text', 'srs', null, $attrib);
-        $oneline[] =& $mform->createElement('submit', 'submit', 'Build Course ');
+        $oneline[] =& $mform->createElement('submit', 'submit', 'Build course ');
         
         // put these elements in one group so that they appear on the same line
         // the last element is true. this way it can be refered in setDefaults
@@ -46,8 +46,9 @@ class class_form extends moodleform {
         $mform->addElement('hidden','action','fillform');
         $mform->setType('action', PARAM_TEXT);
         
-        $mform->addGroupRule('group1', array('srs' => array(array('SRS is 9 digits', 
-        'regex', '/^[0-9]{9}$/', 'client'))));
+        $mform->addGroupRule('group1', 
+            array('srs' => array(array(get_string('srserror', 'report_courserequestor'), 
+            'regex', '/^[0-9]{9}$/', 'client'))));
         
         $mform->addElement('html', '</fieldset>');
     }

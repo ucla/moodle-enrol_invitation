@@ -4,18 +4,18 @@
 $string['courserequestor'] = "UCLA course request (SRS)";
 
 // courserequestor strings
-$string['coursereqform'] = "UCLA Course Request (SRS)";
-$string['coursereqbuilddept'] = "UCLA Course Request (SRS) - Build Department";
-$string['coursereqaddcrosslist'] = "UCLA Course Request (SRS) - Add Crosslist Information";
-$string['coursereqbuildclass'] = "UCLA Course Request (SRS) - Build Courses";
+$string['coursereqform'] = "UCLA course request (SRS)";
+$string['coursereqbuilddept'] = "UCLA course request (SRS) - build department";
+$string['coursereqaddcrosslist'] = "UCLA course request (SRS) - add crosslist information";
+$string['coursereqbuildclass'] = "UCLA course request (SRS) - build courses";
+$string['srserror'] = 'SRS is 9 digits';
 
-
-$string['builddept'] = "Build Entire Department";
-$string['buildcourse'] = "Build Courses";
-$string['addcrosslist'] = "Add Crosslists";
+$string['builddept'] = "Build entire department";
+$string['buildcourse'] = "Build courses";
+$string['addcrosslist'] = "Add crosslists";
 
 $string['viewtobebuilt'] = "Courses to be built";
-$string['viewlivecourses'] = "Live Courses";
+$string['viewlivecourses'] = "Live courses";
 
 $string['courserequestor:view'] = "View UCLA course request (SRS)";
 ?>

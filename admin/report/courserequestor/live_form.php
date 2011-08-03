@@ -19,7 +19,7 @@ class live_form extends moodleform {
         $pulldown_dept = array();
         $pulldown_dept[] = 'ALL';
         $rs=$DB->get_records_sql("select distinct department from ".$CFG->prefix."ucla_request_classes 
-        order by department");
+            order by department");
 
         foreach ($rs as $row) {
             $pulldown_dept[$row->department] = $row->department;
@@ -27,13 +27,19 @@ class live_form extends moodleform {
         
         $mform->addElement('header', 'buildform', '');
         $oneline=array();
-        $oneline[] =& $mform->createElement('static', 'termlabel', null, '<label>TERM: </label>');
+        /*
+        To display multiple elements on the same line, I have to group them, 
+        but grouping ignores the label of individual element inside the group 
+        (the third label parameter of createElement gets ignored). 
+        Therefore, I had to add these static elements to make up for the missing labels.
+        */
+        $oneline[] =& $mform->createElement('static', 'termlabel', null, '<label for="id_group2_term">TERM: </label>');
         $selectterm =& $mform->createElement('select', 'term', null, $pulldown_term);
         $oneline[] = $selectterm;
-        $oneline[] =& $mform->createElement('static', 'deptlabel', null, '<label>DEPARTMENT: </label>');
+        $oneline[] =& $mform->createElement('static', 'deptlabel', null, '<label for="id_group2_department">DEPARTMENT: </label>');
         $selectdept =& $mform->createElement('select', 'department', null, $pulldown_dept);
         $oneline[] = $selectdept;
-        $oneline[] =& $mform->createElement('submit', 'submit', 'View Live Courses ');
+        $oneline[] =& $mform->createElement('submit', 'submit', 'View live courses ');
         
         // put these elements in one group so that they appear on the same line
         $mform->addGroup($oneline, 'group2', null, ' ', true);

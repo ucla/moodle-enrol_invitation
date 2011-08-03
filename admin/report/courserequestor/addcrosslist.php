@@ -13,7 +13,7 @@ function print_term_pulldown_box($submit_on_change=false) {
     optional_param('term',NULL,PARAM_ALPHANUM) : $CFG->classrequestor_selected_term;
 
     $pulldown_term = "<select name=\"term\"" . ($submit_on_change ? " 
-    onchange=\"this.form.submit()\"" : "") . ">\n";
+        onchange=\"this.form.submit()\"" : "") . ">\n";
 
     foreach ($CFG->classrequestor_terms as $term) {
         if ($term == $selected_term) {
@@ -79,9 +79,9 @@ admin_externalpage_print_header($adminroot); **/
         $addCrosslist = $string."/admin/report/courserequestor/addcrosslist.php";
 
         echo "<a href=\"$course_requestor\">".get_string('buildcourse', 
-        'report_courserequestor')."</a> | ";
+            'report_courserequestor')."</a> | ";
         echo "<a href=\"$addCrosslist\">".get_string('addcrosslist', 
-        'report_courserequestor')."</a> ";
+            'report_courserequestor')."</a> ";
         ?>
     </div>
 
@@ -113,8 +113,8 @@ admin_externalpage_print_header($adminroot); **/
     }
 
     $crs = $DB->get_records_sql("select srs,course from ".$CFG->prefix."ucla_request_classes 
-    where term like '$term' and action like '%uild' and (status = 'processing' 
-    or status = 'pending') order by course");
+        where term like '$term' and action like '%uild' and (status = 'processing' 
+        or status = 'pending') order by course");
 
     foreach ($crs as $rows)
     {
@@ -193,13 +193,13 @@ if(isset($actioncleaned)) {
       while($i<=15) {
         $alias="alias".$i;
         $value=optional_param($alias, NULL, PARAM_ALPHANUM);
-        if($value) {
-            if(preg_match('/^[0-9]{9}$/',$value)) {
+        if ($value) {
+            if (preg_match('/^[0-9]{9}$/',$value)) {
                 $termcleaned=required_param('term', PARAM_ALPHANUM);
                 $hostsrscleaned=required_param('hostsrs', PARAM_ALPHANUM);
 
-                if($DB->get_records('ucla_request_crosslist', array('aliassrs'=>$value, 
-                'term'=>$termcleaned, 'srs'=>$hostsrscleaned), null, 'aliassrs')){
+                if ($DB->get_records('ucla_request_crosslist', array('aliassrs'=>$value, 
+                    'term'=>$termcleaned, 'srs'=>$hostsrscleaned), null, 'aliassrs')){
                     echo "<div class=\"crqerrormsg\">";
                     echo "DUPLICATE ENTRY. Alias already inserted";
                     echo "</div>";
@@ -212,13 +212,13 @@ if(isset($actioncleaned)) {
                     
                     
                     echo "<table><tr ><td ><div class=\"crqgreenmsg\">New aliases 
-                    submitted for crosslisting with host: '$hostsrscleaned'</div></td></tr></table>";
+                        submitted for crosslisting with host: '$hostsrscleaned'</div></td></tr></table>";
 
                     $query2 = "update ".$CFG->prefix."ucla_request_classes set crosslist=1 
-                    where srs like '$hostsrscleaned' ";
+                        where srs like '$hostsrscleaned' ";
                     $DB->execute($query2);
                     echo "<table><tr ><td ><div class=\"crqgreenmsg\">Submitted 
-                    for crosslisting</div></td></tr></table>";
+                        for crosslisting</div></td></tr></table>";
 
                     $message = "New aliases submitted to be crosslisted with host: '$hostsrscleaned' ";
                     //mail('nthompson@oid.ucla.edu', 'CCLE:New Crosslist Request', $message);

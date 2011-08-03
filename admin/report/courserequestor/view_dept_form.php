@@ -44,14 +44,14 @@ class view_dept_form extends moodleform {
         Therefore, I had to add these static elements to make up for the missing labels.
         */
         $oneline[] =& $mform->createElement('static', 'termlabel', null, 
-        '<label for="id_group2_term">TERM: </label>');
+            '<label for="id_group2_term">TERM: </label>');
         $selectterm =& $mform->createElement('select', 'term', null, $pulldown_term);
         $oneline[] = $selectterm;
         $oneline[] =& $mform->createElement('static', 'subjectlabel', null, 
-        '<label for="id_group2_subjarea">SUBJECT AREA: </label>');
+            '<label for="id_group2_subjarea">SUBJECT AREA: </label>');
         $selectsubj =& $mform->createElement('select', 'subjarea', null, $pulldown_subject);
         $oneline[] = $selectsubj;
-        $oneline[] =& $mform->createElement('submit', 'submit', 'Build Department ');
+        $oneline[] =& $mform->createElement('submit', 'submit', 'Build department ');
         // put these elements in one group so that they appear on the same line
         // see style.css for overloading the default moodle form stylesheet
         $mform->addGroup($oneline, 'group2', null, ' ', true);

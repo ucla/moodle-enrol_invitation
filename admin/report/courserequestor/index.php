@@ -12,7 +12,7 @@ require_once($CFG->libdir.'/adminlib.php');
 
 // connect to Registrar
 $db_conn = odbc_connect($CFG->registrar_dbhost, $CFG->registrar_dbuser , $CFG->registrar_dbpass) 
-or die( "ERROR: Connection to Registrar failed.");
+    or die( "ERROR: Connection to Registrar failed.");
 
 $term = $CFG->currentterm; 
 
@@ -126,7 +126,7 @@ else {
 if(!empty($srsform))
 {
     $crs = $DB->get_records('ucla_request_classes', array('term'=>$srsform['group1']['term'], 
-    'action'=>'build'), null, 'srs');
+        'action'=>'build'), null, 'srs');
     foreach($crs as $rows) {
         $srs=rtrim($rows->srs);
         $existingcourse[$srs]=1;
@@ -164,8 +164,7 @@ if(!empty($srsform))
                     // print a warning if there is no instructor name listed
                     if( empty($row->last_name_person ) || empty($row->first_name_person) ){
                         echo "<tr><td class=\"crqtableodd\" colspan=\"2\"><div class=\"crqerrormsg\">";
-                        echo "Warning: there is an incomplete instructor name for this 
-                        SRS " . $row->srs . "<br>";
+                        echo "Warning: there is an incomplete instructor name for this SRS " . $row->srs . "<br>";
                         echo "Make sure that your all information is complete</div></td></tr>";
                     }
                 } else {
@@ -233,18 +232,18 @@ if(!empty($srsform))
                 echo "<input type=\"hidden\" name=\"instname\" value=\"$inst_full\">";
 
                 echo "<div class=\"crqtableodd\">Instructor: <strong>" . $inst_full_display . "</strong>
-                </div>";
+                    </div>";
                 echo "<div class=\"crqtableeven\"><label>Action: <select name=\"actionrequest\">";
                 echo "<option value='build' selected>Build</option></select></label>
-                <label><input type=checkbox name=hidden value=1 " . (!$hidden_default? "checked" : '') . ">
-                &nbsp;Build as Hidden</label>
-                </div>";
+                    <label><input type=checkbox name=hidden value=1 " . (!$hidden_default? "checked" : '') . ">
+                    &nbsp;Build as Hidden</label>
+                    </div>";
                 echo "<div class=\"crqtableodd\">
-                <label><input type=checkbox name=forceurl value=1 " . ($forceurl_default? "checked" : '') . ">
-                &nbsp;Force URL Update</label>
-                <label><input type=checkbox name=nourlupd value=1 " . ($nourlupd_default? "checked" : '') . ">
-                &nbsp;Prevent URL Update</label>				
-                </div>";
+                    <label><input type=checkbox name=forceurl value=1 " . ($forceurl_default? "checked" : '') . ">
+                    &nbsp;Force URL Update</label>
+                    <label><input type=checkbox name=nourlupd value=1 " . ($nourlupd_default? "checked" : '') . ">
+                    &nbsp;Prevent URL Update</label>				
+                    </div>";
                 if ($subj == "") { 
                     $subj="NULL";
                 }
@@ -274,23 +273,23 @@ if(!empty($srsform))
                 if(!$xlistexists) {
                     $aliascount=5;
                     echo "<label><input type=\"radio\" name=\"xlist\" value = \"1\" >yes</label> <label>
-                    <input type=\"radio\" name=\"xlist\" value = \"0\" checked>no</label></div>";
+                        <input type=\"radio\" name=\"xlist\" value = \"0\" checked>no</label></div>";
                     echo "<div class=\"crqtableodd\"> Alias SRS<input type=\"text\" name=\"alias1\" 
-                    size=\"20\" maxlength=\"9\"></div>";
+                        size=\"20\" maxlength=\"9\"></div>";
                     echo "<div class=\"crqtableeven\"> Alias SRS<input type=\"text\" name=\"alias2\" 
-                    size=\"20\" maxlength=\"9\"></div>";
+                        size=\"20\" maxlength=\"9\"></div>";
                     echo "<div class=\"crqtableodd\"> Alias SRS<input type=\"text\" name=\"alias3\" 
-                    size=\"20\" maxlength=\"9\"></div>";
+                        size=\"20\" maxlength=\"9\"></div>";
                     echo "<div class=\"crqtableeven\"> Alias SRS<input type=\"text\" name=\"alias4\" 
-                    size=\"20\" maxlength=\"9\"></div>";
+                        size=\"20\" maxlength=\"9\"></div>";
                     echo "<div class=\"crqtableodd\"> Alias SRS<input type=\"text\" name=\"alias5\" 
-                    size=\"20\" maxlength=\"9\"></div>";
+                        size=\"20\" maxlength=\"9\"></div>";
                     echo "<input type=\"hidden\" name=\"aliascount\" value = \"$aliascount\" >";
                 } else {
                     echo "<label><input type=\"radio\" name=\"xlist\" value = \"1\" checked>yes</label> 
-                    <label><input type=\"radio\" name=\"xlist\" value = \"0\">no</label><br>";
+                        <label><input type=\"radio\" name=\"xlist\" value = \"0\">no</label><br>";
                     echo "<br>Select SRS below to crosslist.<br><span style=\"color:red\" >Please 
-                    uncheck the SRS you dont want crosslisted</span><br><br>";
+                        uncheck the SRS you dont want crosslisted</span><br><br>";
                     $aliascount=0;
                     while ($i!=0) {
                         if(isset($xlist_info[$i]) && preg_match('/^[0-9]{9}$/',$xlist_info[$i])) {
@@ -308,8 +307,8 @@ if(!empty($srsform))
                             }
                             odbc_free_result($result3);
                             echo "<label><input type=\"checkbox\" name=\"alias$aliascount\" 
-                            value=\"$srs\" checked> $course1 <span style=\"color:green\"> 
-                            (SRS: $srs) </span></label><br>";
+                                value=\"$srs\" checked> $course1 <span style=\"color:green\"> 
+                                (SRS: $srs) </span></label><br>";
                         }
                         $i--;
                     }
@@ -317,27 +316,26 @@ if(!empty($srsform))
                 }
                 echo "</td></tr><tr><td class=\"crqtableodd\">";
                 echo "<label>Contact Info:<input style=\"color:gray;\" 
-                id=\"crqemail\" type=\"text\" ";
+                    id=\"crqemail\" type=\"text\" ";
                 echo "name=\"contact\" width=\"10\" value=\"Enter email\" 
-                onfocus=\"if(this.value=='Enter email')";
+                    onfocus=\"if(this.value=='Enter email')";
                 echo "{this.value='';this.style.color='black'}\" onblur=\"if(this.value=='')
-                {this.value='Enter email';this.style.color='gray'}\"></label><br>";
-                // moved in from class_requestor
+                    {this.value='Enter email';this.style.color='gray'}\"></label><br>";
                 $default = $CFG->classrequestor_mailinst_default;
                 echo "<label><input type=checkbox name=mailinst 
-                value=1 " . ($mailinst_default? "checked" : '') . ">
-                &nbsp;Send Email to Instructor(s)</label><br>\n";
+                    value=1 " . ($mailinst_default? "checked" : '') . ">
+                    &nbsp;Send Email to Instructor(s)</label><br>\n";
 
                 echo "</td><td class=\"crqtableodd\" style=\"text-align:right\" >
-                <input type=\"submit\" ";
+                    <input type=\"submit\" ";
                 echo "value=\"Submit Course\" onclick=\"if(form.crqemail.value=='Enter email')
-                form.crqemail.value=''\" ";
+                    form.crqemail.value=''\" ";
                 if($subj == "NULL")echo "disabled=\"true\" ";
                 echo "></form>";
                 echo "</td></tr>";
             }
             echo "</tbody></table>";
-        }//if not repeat srs
+        }
     }
 }
 
@@ -351,21 +349,21 @@ if(!empty($buildform)) {
     $term = $buildform['group2']['term'];
     if($department == '0') {
         if($rs=$DB->get_records_sql("select * from ".$CFG->prefix."ucla_request_classes where 
-        action like 'build' and (status like 'pending' or status like 'processing') 
-        and term like '$term' ")) {
+            action like 'build' and (status like 'pending' or status like 'processing') 
+            and term like '$term' ")) {
             $recflag=1;
         }
     } else {
         if($rs=$DB->get_records_sql("SELECT * FROM `".$CFG->prefix."ucla_request_classes` 
-        WHERE `department` LIKE '$department'  AND  `action` LIKE 'build'  AND (status like 
-        'pending' or status like 'processing') order by 'department' ")) {
+            WHERE `department` LIKE '$department'  AND  `action` LIKE 'build'  AND (status like 
+            'pending' or status like 'processing') order by 'department' ")) {
             $recflag=1;
         }
     }
     if($recflag = 0)
     {
         echo "<table><tbody><tr><td class=\"crqtableodd\"><div class=\"crqerrormsg\">The 
-        queue is empty. All courses have been built as of now.</div></td></tr></tbody></table>";
+            queue is empty. All courses have been built as of now.</div></td></tr></tbody></table>";
     }
     else
     {
@@ -400,18 +398,18 @@ END;
             $xlist="";
             if ($row2->crosslist == 1)
             {
-                                        $xlist= "<span class=\"crqbedxlist\">crosslisted</span>";
+                $xlist= "<span class=\"crqbedxlist\">crosslisted</span>";
             }
             $coursetype=" <span class=\"crqbedlive\">$row2->status</span>";
             
             echo "<tr class=\"crqtableunderline\"><td>".rtrim($row2->srs)."</td>
-            <td>".rtrim($row2->course)."</td>";
+                <td>".rtrim($row2->course)."</td>";
             echo "<td>".rtrim($row2->department)."</td><td>".rtrim($row2->instructor)."</td>";
             echo "<td>".$coursetype.$xlist."</td><td><input type=\"submit\" value=\"Delete\">
-            </td></tr></form>";
+                </td></tr></form>";
         }
 
-                        echo "</tbody></table>";
+        echo "</tbody></table>";
     }
 }
 
@@ -421,18 +419,18 @@ if(!empty($liveform)) {
     $term = $liveform['group2']['term'];
     if($department == '0') {
         if($rs=$DB->get_records('ucla_request_classes',array('status'=>'done', 
-        'term'=>$term), 'department,course')){
+            'term'=>$term), 'department,course')){
             $recflag=1;
         }
     } else {
         if($rs=$DB->get_records('ucla_request_classes', array('department'=>$department, 
-        'status'=>'done', 'term'=>$term),'department')){
+            'status'=>'done', 'term'=>$term),'department')){
             $recflag=1;
         }
     }
     if($recflag=0 ) {
         echo "<table><tbody><tr><td class=\"crqtableodd\"><div class=\"crqerrormsg\">
-        The queue is empty</div></td></tr></tbody></table>";
+            The queue is empty</div></td></tr></tbody></table>";
     } else {
         echo <<< END
 
@@ -468,9 +466,9 @@ END;
             $coursetype=" <span class=\"crqbedlive\">Live</span>";
     
             echo "<tr class=\"crqtableunderline\">
-            <td>".rtrim($row2->srs)."</td><td>".rtrim($row2->course)."</td>";
+                <td>".rtrim($row2->srs)."</td><td>".rtrim($row2->course)."</td>";
             echo "<td>".rtrim($row2->department)."</td><td colspan='2'>".rtrim($row2->instructor)."</td>
-            <td>".$coursetype.$xlist."</td></TR></form>";
+                <td>".$coursetype.$xlist."</td></TR></form>";
         }
         echo "</tbody></table>";
     }
@@ -484,10 +482,10 @@ if(optional_param('action',NULL,PARAM_ALPHANUM)=="courserequest") {
     $term =  optional_param('term',NULL,PARAM_ALPHANUM);
     $srs = optional_param('srs',NULL,PARAM_ALPHANUM);
     if((isset($existingcourse[$srs]) && $existingcourse[$srs]) 
-    || (isset($existingaliascourse[$srs]) && $existingaliascourse[$srs])) {
+        || (isset($existingaliascourse[$srs]) && $existingaliascourse[$srs])) {
     echo "<table><tbody><tr><td class=\"crqtableodd\"><div class=\"crqerrormsg\">";
     echo "THIS SRS NUMBER HAS BEEN SUBMITTED TO CREATE A COURSE. <BR> PLEASE ENTER 
-    A NEW SRS NO.</div></td></tr></tbody></table>";
+        A NEW SRS NO.</div></td></tr></tbody></table>";
     } else{
         $instructor=optional_param('instname',NULL,PARAM_CLEAN);
         
@@ -579,21 +577,21 @@ function get_courses_to_be_built()
     $term = optional_param('term',NULL,PARAM_ALPHANUM);
     if($department == '0') {
         if($rs=$DB->get_records_sql("select * from ".$CFG->prefix."ucla_request_classes 
-        where action like 'build' and (status like 'pending' or status like 'processing') 
-        and term like '$term' ")){
+            where action like 'build' and (status like 'pending' or status like 'processing') 
+            and term like '$term' ")){
             $recflag=1;
         }
     }
     else {
         if($rs=$DB->get_records_sql("SELECT * FROM `".$CFG->prefix."ucla_request_classes` 
-        WHERE `department` LIKE '$department'  AND  `action` LIKE 'build'  
-        AND (status like 'pending' or status like 'processing') order by 'department' ")){
+            WHERE `department` LIKE '$department'  AND  `action` LIKE 'build'  
+            AND (status like 'pending' or status like 'processing') order by 'department' ")){
             $recflag=1;
         }
     }
     if($recflag = 0) {
         echo "<table><tbody><tr><td class=\"crqtableodd\"><div class=\"crqerrormsg\">The 
-        queue is empty. All courses have been built as of now.</div></td></tr></tbody></table>";
+            queue is empty. All courses have been built as of now.</div></td></tr></tbody></table>";
     } else {
         echo <<< END
     <table>
@@ -630,9 +628,9 @@ END;
             $coursetype=" <span class=\"crqbedlive\">$row2->status</span>";
             
             echo "<tr class=\"crqtableunderline\"><td>".rtrim($row2->srs)."</td>
-            <td>".rtrim($row2->course)."</td><td>".rtrim($row2->department)."</td>
-            <td>".rtrim($row2->instructor)."</td><td>".$coursetype.$xlist."</td>
-            <td><input type=\"submit\" value=\"Delete\"></td></tr></form>";
+                <td>".rtrim($row2->course)."</td><td>".rtrim($row2->department)."</td>
+                <td>".rtrim($row2->instructor)."</td><td>".$coursetype.$xlist."</td>
+                <td><input type=\"submit\" value=\"Delete\"></td></tr></form>";
         }
 
             echo "</tbody></table>";
@@ -704,19 +702,19 @@ echo <<< END
 END;
 
 echo "<label><input type=checkbox name=forceurl value=1 " . ($forceurl_default? "checked" : '') . ">
-&nbsp;Force URL Update</label>
+    &nbsp;Force URL Update</label>
     </td>";
 echo <<< END
     <td class="crqtableeven" colspan="1">
 END;
 
 echo "<label><input type=checkbox name=nourlupd value=1 " . ($nourlupd_default? "checked" : '') . ">
-&nbsp;Prevent URL Update</label>
+    &nbsp;Prevent URL Update</label>
     </td>";
 echo <<< END
     <td class="crqtableeven" colspan="2" align="right">
-<input type="submit" value="Build Department" 
-onclick="if(form.crqemail.value=='Enter email')form.crqemail.value=''">
+    <input type="submit" value="Build Department" 
+        onclick="if(form.crqemail.value=='Enter email')form.crqemail.value=''">
     
     </td>
     </tr>
@@ -851,7 +849,7 @@ function get_course_details($term,$srs,$count,$db_conn)
                 }
 
                 echo "<input type=\"checkbox\" name=\"alias$aliascount$count\" value=\"$srs\" 
-                checked> $course1 <br>";
+                    checked> $course1 <br>";
                 }
                 $i--;
             }
@@ -923,7 +921,7 @@ if(optional_param('action',NULL,PARAM_ALPHANUM)){
             if($addcourse != ""){	
                 if(isset($existingcourse[$srs]) || isset($existingaliascourse[$srs])) {
                     echo "<table><tr ><td ><div class=\"crqerrormsg\">$course has either 
-                    been submitted for course creation or is a child course</div></td></tr></table>";
+                        been submitted for course creation or is a child course</div></td></tr></table>";
                 } else {
                     $isxlist=0;
                     while($r<=$aliascount) {
@@ -956,7 +954,7 @@ if(optional_param('action',NULL,PARAM_ALPHANUM)){
                     $existingcourse[$srs]=1;
 
                     echo "<table><tr ><td ><div class=\"crqgreenmsg\">$course submitted to be built
-                    </div></td></tr></table>";
+                        </div></td></tr></table>";
 
                     if($isxlist==1) {
                         $r=1;
@@ -969,17 +967,17 @@ if(optional_param('action',NULL,PARAM_ALPHANUM)){
                             //also check that the host srs is not an alias for some other crosslist
                             if(isset($existingcourse[$als]) || isset($existingaliascourse[$als])){	
                                 echo "<table><tr ><td ><div class=\"crqerrormsg\">Requested crosslist 
-                                $als for $course is already submitted - Individually OR as a child course
-                                </div></td></tr></table>";
+                                    $als for $course is already submitted - Individually OR as a child course
+                                    </div></td></tr></table>";
                             } else if($als != ""){
                                 $query1 = "INSERT INTO ".$CFG->prefix."ucla_request_crosslist
-                                (term,srs,aliassrs,type) values ('$term','$srs','$als','joint')";
+                                    (term,srs,aliassrs,type) values ('$term','$srs','$als','joint')";
                                 $DB->execute($query1);
 
                                 $existingaliascourse[$als]=1;
 
                                 echo "<table><tr ><td ><div class=\"crqgreenmsg\">$course - 
-                                submitted for crosslisting with $als</div></td></tr></table>";
+                                    submitted for crosslisting with $als</div></td></tr></table>";
                             }
                             $r++;
                         }
