@@ -72,7 +72,12 @@ if (!file_exists($_dirroot_ . '/config.php')) {
     }
 }
 
-// Automatically configure shibboleth to work.
+/** 
+ *  Automatic Shibboleth configurations.
+ *  Disabling in favor for GUI configurations.
+ *  Keeping in code for sake of quick re-enabling and reference.
+ *  To re-enable, add a '/' at the end of the following line.
+ **
 $CFG->auth = 'shibboleth';
 $CFG->alternateloginurl = $CFG->wwwroot . '/login/ucla_login.php?shibboleth';
 
@@ -103,6 +108,9 @@ $CFG->forced_plugin_settings['auth/shibboleth'] = array(
     'field_updatelocal_institution' => 'onlogin',
     'field_lock_institution'        => 'locked'
 );
+/**
+ *  End shibboleth configurations.
+ **/
 
 // Load a custom private data
 $_private_ = $_dirroot_ . '/config_private.php';
