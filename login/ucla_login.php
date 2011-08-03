@@ -277,8 +277,9 @@ if (get_moodle_cookie() === 'nobody') {
 
 echo $OUTPUT->header();
 
-// Hack to get things working like new
-
+// We're going to get the built-in Moodle's login form, and then
+// try to search and replace the link to Moodle's login/index.php with a
+// link to our login/ucla_login.php
 ob_start();
 include("index_form.html");
 $form = ob_get_clean();
