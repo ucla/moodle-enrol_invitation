@@ -47,9 +47,18 @@ if (isset($_SERVER['HTTP_SHIB_DISPLAYNAME'])) {
 $suffix = '';
 
 if (!empty($displayname)) {
-    list($lastname, $firstname, $suffix) = split(',', $displayname);
-    $result[$fn] = strtoupper($firstname);
-    $result[$ln]  = strtoupper($lastname);
+    $displaynameinfo = split(',', $displayname);
+    if (isset($displaynameinfo[0])) {
+        $result[$ln] = strtoupper($displaynameinfo[0]);
+    }
+
+    if (isset($displaynameinfo[1])) {
+        $result[$fn] = strtoupper($displaynameinfo[1]);
+    }
+
+    if (isset($displaynameinfo[2])) {
+        $suffix = $displaynameinfo[2];
+    }
 } else {
     if (isset($_SERVER['HTTP_UCLA_PERSON_MIDDLENAME'])) {
         $middlename  = $this->get_first_string(

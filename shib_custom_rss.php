@@ -21,8 +21,11 @@ $site = get_site();
 
 $wwwroot = $CFG->wwwroot . '/';
 
+// This line causes a problem if short tags are enabled, so we're going
+// to echo this within PHP.
+echo '<?xml version="1.0"?>';
+
 ?>
-<?xml version="1.0"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title><?php echo $site->fullname ?></title>
