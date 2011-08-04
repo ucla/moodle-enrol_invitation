@@ -18,16 +18,16 @@ class ucla_cp_renderer {
     private $history = array();
 
     /**
-        get_content_array()
-
-        @return Array This will return the data sorted into tables.
-            Normally, this table will be 2 levels deep (Array => Array).
-            Each key should be the identifier within the lang file
-            that uses a language convention.
-
-            <item>_pre represents strings that are printed before the link.
-            <item>_post represents the string that is printed after the link.
-    **/
+     *  get_content_array()
+     *
+     *  @return Array This will return the data sorted into tables.
+     *      Normally, this table will be 2 levels deep (Array => Array).
+     *      Each key should be the identifier within the lang file
+     *      that uses a language convention.
+     *
+     *      <item>_pre represents strings that are printed before the link.
+     *      <item>_post represents the string that is printed after the link.
+     **/
     static function get_content_array($contents, $size=null) {
         $all_stuff = array();
 
@@ -68,11 +68,11 @@ class ucla_cp_renderer {
     }
 
     /**
-        Builds the string with the string and the descriptions, pre and post.
-        @param ucla_cp_module $item_obj - This is the identifier for the 
-            current control panel item.
-        @return string The DOMs of the control panel description and link.
-    **/
+     *  Builds the string with the string and the descriptions, pre and post.
+     *  @param ucla_cp_module $item_obj - This is the identifier for the 
+     *      current control panel item.
+     *  @return string The DOMs of the control panel description and link.
+     **/
     static function general_descriptive_link($item_obj) {
         $fitem = '';
         
@@ -104,12 +104,12 @@ class ucla_cp_renderer {
     }
 
     /**
-        Adds an icon to the link and description.
-
-        @param ucla_cp_modules $item_obj - The item to display.
-        @return string The DOMs of the control panel, with an image
-            and whatever is returned by @see general_descriptive_link.
-    **/
+     *  Adds an icon to the link and description.
+     *
+     *  @param ucla_cp_modules $item_obj - The item to display.
+     *  @return string The DOMs of the control panel, with an image
+     *      and whatever is returned by @see general_descriptive_link.
+     **/
     static function general_icon_link($item_obj) {
         global $OUTPUT;
 
@@ -131,27 +131,27 @@ class ucla_cp_renderer {
     }
    
     /**
-        This function will take the contents of a 2-layer deep
-        array and generate the string that contains the contents
-        in a div-split table. It can also generate the contents.
-
-        @param array $contents - The contents to diplay using the renderer.
-        @param boolean $format - If this is true, then we will send the data
-            through {@link get_content_array}.
-        @param string $orient - Which orientation handler to use to render the
-            display. Currently accepts two options (defaults to rows) if the
-            option does not exist.
-
-            'col': This means that we expect an array containing 2 arrays of
-                the elements we wish to render.
-
-            'row': This means taht we expect an array containing arrays each
-                with 2 of the elements we wish to render.
-
-        @param string $handler - This is the callback function used to display
-            each element. Defaults to general_descriptive_link, and will crash
-            the script if you provide a non-existant function.
-    **/
+     *  This function will take the contents of a 2-layer deep
+     *  array and generate the string that contains the contents
+     *  in a div-split table. It can also generate the contents.
+     *
+     *  @param array $contents - The contents to diplay using the renderer.
+     *  @param boolean $format - If this is true, then we will send the data
+     *      through {@link get_content_array}.
+     *  @param string $orient - Which orientation handler to use to render the
+     *      display. Currently accepts two options (defaults to rows) if the
+     *      option does not exist.
+     *
+     *      'col': This means that we expect an array containing 2 arrays of
+     *          the elements we wish to render.
+     *
+     *      'row': This means taht we expect an array containing arrays each
+     *          with 2 of the elements we wish to render.
+     *
+     *  @param string $handler - This is the callback function used to display
+     *      each element. Defaults to general_descriptive_link, and will crash
+     *      the script if you provide a non-existant function.
+     **/
     static function control_panel_contents($contents, $format=false, 
             $orient='col', $handler='general_descriptive_link') {
 

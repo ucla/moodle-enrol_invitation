@@ -67,7 +67,8 @@ class ucla_cp_module_email_students extends ucla_cp_module {
         if (count($course_forums) == 1) {
             $instances = $fast_modinfo->get_instances();
 
-            $target_forum = reset($course_forums);
+            // Just check out the first one
+            $target_forum = $course_forums[0];
 
             foreach ($instances['forum'] as $instance) {
                 if ($instance->instance == $target_forum->id) {
