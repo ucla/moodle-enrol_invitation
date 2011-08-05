@@ -2,14 +2,16 @@
 require_once($CFG->libdir.'/formslib.php');
 // view all the classes of a department
 class view_dept_form extends moodleform {
-
+    private $allsubjects = null;
+    function __construct($subj_temp) {
+        $this->allsubjects = $subj_temp;
+        parent::__construct();
+    }
     function definition() {
         global $CFG;
         global $DB;
         $mform =& $this->_form;
         
-        $db_conn = odbc_connect($CFG->registrar_dbhost, $CFG->registrar_dbuser, 
-        $CFG->registrar_dbpass) or die( "ERROR: Connection to Registrar failed.");
         $selected_term = optional_param('term',NULL,PARAM_ALPHANUM) ? 
         optional_param('term',NULL,PARAM_ALPHANUM) : $CFG->classrequestor_selected_term;
         $pulldown_term = array();
@@ -17,24 +19,13 @@ class view_dept_form extends moodleform {
         foreach ($CFG->classrequestor_terms as $term) {
             $pulldown_term[$term]= $term;
         }
-        
-        $qr= odbc_exec($db_conn, "EXECUTE CIS_subjectAreaGetAll '$selected_term'");
-        $row = array();
-        $rows = array();
-
-        while (odbc_fetch_into($qr, $row))
-        {
-            $rows[] = $row;
-        }
-        odbc_free_result($qr);
+              
         $pulldown_subject = array();
-        foreach ($rows as $row)
+        foreach ($this->allsubjects as $row)
         {
             $pulldown_subject[$row[0]] = $row[0].' - '.$row[1];
         }
-        
-        
-        
+          
         $mform->addElement('header', 'buildform', '');
         $oneline=array();
         /*

@@ -2,6 +2,11 @@
 require_once($CFG->libdir.'/formslib.php');
 // view courses to be built
 class build_form extends moodleform {
+    private $dept = null;
+    function __construct($dept_temp) {
+        $this->dept = $dept_temp;
+        parent::__construct();
+    }
 
     function definition() {
         global $CFG;
@@ -16,12 +21,14 @@ class build_form extends moodleform {
             $pulldown_term[$term]= $term;
         }
         
+        $pulldown_livebuild = array();
+        $pulldown_livebuild['built'] = 'To be built';
+        $pulldown_livebuild['live'] = 'Live';
+        
         $pulldown_dept = array();
         $pulldown_dept[] = 'ALL';
-        $rs=$DB->get_records_sql("select distinct department from ".$CFG->prefix."ucla_request_classes 
-            order by department");
 
-        foreach ($rs as $row) {
+        foreach ($this->dept as $row) {
             $pulldown_dept[$row->department] = $row->department;
         }
         
@@ -39,13 +46,14 @@ class build_form extends moodleform {
         $oneline[] =& $mform->createElement('static', 'deptlabel', null, '<label for="id_group2_department">DEPARTMENT: </label>');
         $selectdept =& $mform->createElement('select', 'department', null, $pulldown_dept);
         $oneline[] = $selectdept;
-        $oneline[] =& $mform->createElement('submit', 'submit', 'View courses to be built');
+        $livebuild =& $mform->createElement('select', 'livebuild', null, $pulldown_livebuild);
+        $oneline[] = $livebuild;
+        
+        $oneline[] =& $mform->createElement('submit', 'submit', 'View courses');
 
         $mform->addGroup($oneline, 'group2', null, ' ', true);
 
         $mform->setDefaults(array('group2'=> array('term'=>$selected_term)));
-        $mform->addElement('hidden','action','viewcoursestobebuilt');
-        $mform->setType('action', PARAM_TEXT);
     }
 }
 ?>

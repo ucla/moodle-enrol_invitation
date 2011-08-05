@@ -74,9 +74,8 @@ admin_externalpage_print_header($adminroot); **/
 <div class="generalbox categorybox box "  >
     <div class="crqcenterbox">
         <?php
-        $string=$CFG->wwwroot;
-        $course_requestor =  $string."/admin/report/courserequestor/index.php";
-        $addCrosslist = $string."/admin/report/courserequestor/addcrosslist.php";
+        $course_requestor =  $CFG->wwwroot."/admin/report/courserequestor/index.php";
+        $addCrosslist = $CFG->wwwroot."/admin/report/courserequestor/addcrosslist.php";
 
         echo "<a href=\"$course_requestor\">".get_string('buildcourse', 
             'report_courserequestor')."</a> | ";
@@ -86,7 +85,7 @@ admin_externalpage_print_header($adminroot); **/
     </div>
 
     <div >
-        <form method="POST" action="<?php echo "${_SERVER['PHP_SELF']}"; ?>">
+        <form method="POST" action="<?php echo $CFG->wwwroot."/admin/report/courserequestor/addcrosslist.php"; ?>">
             <fieldset class="crqformeven">
                 <legend></legend>
                 <label>SELECT THE TERM:
@@ -97,7 +96,7 @@ admin_externalpage_print_header($adminroot); **/
     </div>
 
     <div >
-        <form method="POST" action="<?php echo "${_SERVER['PHP_SELF']}"; ?>">
+        <form method="POST" action="<?php echo $CFG->wwwroot."/admin/report/courserequestor/addcrosslist.php"; ?>">
             <fieldset class="crqformodd">
                 <legend></legend>
                 <label>
