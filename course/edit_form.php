@@ -196,7 +196,8 @@ class course_edit_form extends moodleform {
          * @author ebollens
          * @version 20110719
          */
-        if(PublicPrivate_Site::is_enabled() || PublicPrivate_Course::build($course)->is_activated()) {
+        if(PublicPrivate_Site::is_enabled() || (PublicPrivate_Course::is_publicprivate_capable($course) 
+                && PublicPrivate_Course::build($course)->is_activated())) {
             $choices = array();
             $choices[0] = get_string('disable');
             $choices[1] = get_string('enable');
