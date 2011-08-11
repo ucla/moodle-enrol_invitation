@@ -30,7 +30,7 @@ require_once($CFG->dirroot.
 // Note that any logic unrelated to the display of the control panel should 
 // be handled within the module itself
 
-$course_id = required_param('courseid', PARAM_INT); // course ID
+$course_id = required_param('course_id', PARAM_INT); // course ID
 $module_view = optional_param('module', 'default', PARAM_ALPHANUMEXT);
 $edit = optional_param('edit', null, PARAM_BOOL);
 
@@ -62,7 +62,7 @@ if ($PAGE->user_allowed_editing()) {
         $USER->editing = $edit;
 
         if ($edit == 0 && !empty($USER->activitycopy) 
-          && $USER->activitycoptycourse == $course->id) {
+          && $USER->activitycopycourse == $course->id) {
             $USER->activitycopy = false;
             $USER->activitycopycourse = NULL;
         }

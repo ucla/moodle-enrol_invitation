@@ -105,4 +105,20 @@ $string['course_grades_post'] = 'View your Moodle gradebook. Activate the advanc
 $string['course_edit'] = 'Course Settings';
 $string['course_edit_post'] = 'Edit the full name and description of the course or hide the course from students.';
 
+// Easy add/upload strings
+// This string should not be used, it is a placeholder.
+$string['easy_upload_form'] = '';
+$string['select_section'] = 'Add to section';
+
+$string['dialog_rename_file'] = 'Name file';
+
+// Should I split out the "to {$a}" part?
+$string['easy_upload_url_form'] = 'Upload a link to {$a}';
+$string['dialog_add_url'] = 'Add a link';
+$string['dialog_add_url_box'] = 'Enter link URL';
+
+$string['easy_upload_file_form'] = 'Upload a file to {$a}';
+$string['dialog_add_file'] = 'Select file';
+$string['dialog_add_file_box'] = 'File';
+
 /** End of file **/

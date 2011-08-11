@@ -64,7 +64,7 @@ class ucla_cp_module_email_students extends ucla_cp_module {
 
         // This means that we found 1 news forum
         // Now we need to find the course module associated with it...
-        if (count($course_forums) == 1) {
+        if (count($course_forums) == 1 && isset($course_forums[0])) {
             $instances = $fast_modinfo->get_instances();
 
             // Just check out the first one
@@ -76,6 +76,8 @@ class ucla_cp_module_email_students extends ucla_cp_module {
                     break;
                 }
             }
+        } else {
+            return false;
         }
 
         if ($unhide !== false) {
@@ -138,10 +140,15 @@ class ucla_cp_module_email_students extends ucla_cp_module {
     }
 
     function autoopts() {
-        return array('pre' => $this->pre_enabled, 'post' => $this->post_enabled);
+        return array('pre' => $this->pre_enabled, 
+            'post' => $this->post_enabled);
     }
 
     function validate($course, $context) {
+        if (!isset($this->course_module)) {
+            return false;
+        }
+
         $context = get_context_instance(CONTEXT_MODULE,
             $this->course_module->id);
 
