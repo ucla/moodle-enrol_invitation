@@ -544,7 +544,7 @@ class moodle_page {
      * @return bool
      */
     protected function magic_get_legacythemeinuse() {
-        debugging('$PAGE->legacythemeinuse is a deprecated property - please use $PAGE->devicetypeinuse and check if it is equal to legacy.', DEVELOPER_DEBUG);
+        debugging('$PAGE->legacythemeinuse is a deprecated property - please use $PAGE->devicetypeinuse and check if it is equal to legacy.', DEBUG_DEVELOPER);
         return ($this->devicetypeinuse == 'legacy');
     }
 
@@ -1877,7 +1877,7 @@ class page_course extends page_base {
 class page_generic_activity extends page_base {
     // Although this function is deprecated, it should be left here because
     // people upgrading legacy code need to copy it. See
-    // http://docs.moodle.org/en/Development:Migrating_your_code_code_to_the_2.0_rendering_API
+    // http://docs.moodle.org/dev/Migrating_your_code_to_the_2.0_rendering_API
     function print_header($title, $morenavlinks = NULL, $bodytags = '', $meta = '') {
         global $USER, $CFG, $PAGE, $OUTPUT;
 
