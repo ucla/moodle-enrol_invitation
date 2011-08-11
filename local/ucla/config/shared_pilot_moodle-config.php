@@ -37,18 +37,18 @@ $CFG = new stdClass();
 
 $CFG->dbtype    = 'mysqli';
 $CFG->dblibrary = 'native';
-$CFG->dbhost    = 'localhost';
-$CFG->dbname    = '';
-$CFG->dbuser    = '';
-$CFG->dbpass    = '';
+$CFG->dbhost    = 'db2.ccle.ucla.edu';
+$CFG->dbname    = 'moodle';
+$CFG->dbuser    = 'moodleuser';
+$CFG->dbpass    = 'db4moodle';
 $CFG->prefix    = 'mdl_';
 $CFG->dboptions = array(
     'dbpersist' => 0,
-    'dbsocket'  => 1 
+    'dbsocket'  => 0 
 );
 
-$CFG->wwwroot  = '';
-$CFG->dataroot = ''; 
+$CFG->wwwroot  = 'https://pilot.ccle.ucla.edu';
+$CFG->dataroot = '/moodle/moodle_data'; 
 
 // This determines what the admin folder is called.
 $CFG->admin    = 'admin';
@@ -57,7 +57,7 @@ $CFG->directorypermissions = 0777;
 
 // This should never change after the first install, or else any special
 // logins using the Moodle login will not work.
-$CFG->passwordsaltmain = '';
+$CFG->passwordsaltmain = 'Ob^3(Mi3Qs1D))cl@0<Od-#YQACc^71';
 
 // $CFG->dirroot is overwritten later
 $_dirroot_ = dirname(realpath(__FILE__)) . '/../../..';
