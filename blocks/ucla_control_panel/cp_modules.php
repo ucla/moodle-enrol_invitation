@@ -34,7 +34,7 @@ if (ucla_cp_module::load('email_students')) {
 
 // Upload a URL...
 $modules[] = new ucla_cp_module('add_link', new moodle_url('upload.php',
-    array('course_id' => $course->id, 'type' => 'url')), 
+    array('course_id' => $course->id, 'type' => 'link')), 
     $temp_tag, $temp_cap);
 
 // Office hours TODO

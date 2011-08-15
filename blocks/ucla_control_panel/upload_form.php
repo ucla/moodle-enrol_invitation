@@ -4,12 +4,16 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->libdir . '/formslib.php');
 require_once($CFG->libdir . '/completionlib.php');
+require_once(dirname(__FILE__) . '/uploadlib.php');
 
-class easy_upload_form extends moodleform {
+abstract class easy_upload_form extends moodleform {
     protected $course;
     protected $context;
 
+    // This will enable the section switcher
     var $allow_js_select = false;
+
+    // This will enable the naming field
     var $allow_renaming = false;
 
     /**
@@ -20,7 +24,7 @@ class easy_upload_form extends moodleform {
 
         $course = $this->_customdata['course'];
         $type = $this->_customdata['type'];
-        $sections = $this->_customdata['sections'];
+        $sections = $this->_customdata['sectionnames'];
 
         $addtitle = 'dialog_add_' . $type;
         $mform->addElement('header', 'general', get_string($addtitle,
@@ -28,6 +32,7 @@ class easy_upload_form extends moodleform {
 
         $mform->addElement('hidden', 'course_id', $course->id);
         $mform->addElement('hidden', 'type', $type);
+        $mform->addElement('hidden', 'modulename', $this->get_coursemodule());
 
         // Configure what it is you exactly are adding
         $this->specification();
@@ -37,10 +42,13 @@ class easy_upload_form extends moodleform {
             $mform->addElement('header', '', get_string($renametitle,
                 'block_ucla_control_panel'));
 
-            $mform->addElement('text', 'uploadname', get_string('name'));
+            $mform->addElement('text', 'name', get_string('name'),
+                array('size' => 40));
 
-            $mform->addElement('textarea', 'description', 
-                get_string('description'));
+            $mform->addElement('textarea', 'intro', 
+                get_string('description'), array('rows' => 9, 'cols' => 40));
+            
+            $mform->addElement('hidden', 'introformat', FORMAT_HTML);
         } else {
             debugging('Renaming not allowed');
         }
@@ -49,40 +57,12 @@ class easy_upload_form extends moodleform {
         $mform->addElement('header', '', get_string('select_section',
             'block_ucla_control_panel'));
 
-        // Figure out what to name each section...
-        // TODO This code needs to go somewhere else
-        $format = $course->format;
-        $sectionnamefn = 'callback_' . $format . '_get_section_name';
-
-        $fn_exists = false;
-        if (function_exists($sectionnamefn)) {
-            $fn_exists = true;
-        }
-
-        if (!$fn_exists) {
-            $fallback = get_string('section');
-        }
         // End code that probably needs to go somewhere else
 
-        $select_sections = array();
-        foreach ($sections as $section) {
-            $section_title = '';
-            if (!$section->name) {
-                if ($fn_exists) {
-                    $section_title = $sectionnamefn($course, $section);
-                } else {
-                    $section_title = $fallback . ' ' . $section->section;
-                }
-            } else {
-                $section_title = $section->name;
-            }
-
-            $select_sections[] = $section_title;
-        }
-
+        // Show the section selector
         $mform->addElement('select', 'section',
             get_string('select_section', 'block_ucla_control_panel'), 
-            $select_sections);
+            $sections);
 
         if (class_exists('PublicPrivate_Site')) {
             if (PublicPrivate_Site::is_enabled()) {
@@ -91,10 +71,9 @@ class easy_upload_form extends moodleform {
         }
 
         if ($this->allow_js_select) {
-            // Show the section modifier selector
+            // If needed, add the section rearranges.
         }
 
-        // If needed, add the section rearranges.
         $this->add_action_buttons();
     }
 
@@ -102,15 +81,18 @@ class easy_upload_form extends moodleform {
      *  Called within the form, to specify what it is the form is specifying
      *  from the user.
      **/
-    function specification() {
-        //print_error('');
-    }
-
+    abstract function specification();
+    
     /**
      *  Called once the form has been submitted, to act upon the data
      *  that was submitted.
      **/
-    function process_data($data) {
-        return false;
-    }
+    abstract function process_data($data);
+
+    /**
+     *  Called when attempting to figure out what module to add.
+     *
+     *  @return String
+     **/
+    abstract function get_coursemodule();
 }

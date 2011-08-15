@@ -15,10 +15,18 @@ $PAGE->set_url('/blocks/ucla_control_panel/upload.php',
 $course = $DB->get_record('course', array('id' => $course_id), 
     '*', MUST_EXIST);
 $context = get_context_instance(CONTEXT_COURSE, $course->id);
+
 require_capability('moodle/course:update', $context);
+require_capability('moodle/course:manageactivities', $context);
+
 $PAGE->set_context($context);
 
 $sections = get_all_sections($course_id);
+
+$sectionnames = array();
+foreach ($sections as $section) {
+    $sectionnames[] = get_section_name($course, $section);
+}
 
 $cpurl = new moodle_url('/blocks/ucla_control_panel/view.php',
         array('course_id' => $course_id));
@@ -47,14 +55,50 @@ $uploadform = new $typeclass(null,
     array(
         'course' => $course, 
         'type' => $type, 
-        'sections' => $sections
+        'sectionnames' => $sectionnames
     ));
 
 if ($uploadform->is_cancelled()) {
     redirect($cpurl);
 } else if ($data = $uploadform->get_data()) {
-    // Each form should process the data that is relevant.
-    $uploadform->process_data($data); 
+    // Pilfered parts from /course/modedit.php
+    $modulename = $data->modulename;
+
+    $moddir = $CFG->dirroot . '/mod/' . $modulename;
+    $modform = $moddir . '/mod_form.php';
+    if (file_exists($modform)) {
+        include_once($modform);
+    } else {
+        print_error('noformdesc');
+    }
+
+    $modlib  = $moddir . '/lib.php';
+    if (file_exists($modlib)) {
+        include_once($modlib);
+    } else {
+        print_error('modulemissingcode', '', '', $modlib);
+    }
+
+    $module = $DB->get_record('modules', array('name' => $modulename),
+            '*', MUST_EXIST);
+
+    if (!course_allowed_module($course, $modulename)) {
+        print_error('moduledisable');
+    }
+
+    $addinstancefn = $modulename . '_add_instance';
+    
+    $newcm = new stdclass();
+    $newcm->course = $course->id;
+    $newcm->module = $module->id;
+    $newcm->instance = 0;
+   
+    // TODO Handle some publicprivate here at one point
+    $newcm->visible = 1;
+
+    $data->coursemodule = add_course_module($newcm);
+
+    $returnval = $addinstancefn($data, $uploadform);
 }
 
 // Display the rest of the page
@@ -71,8 +115,7 @@ echo $OUTPUT->heading($title);
 if (!isset($data) || !$data) {
     $uploadform->display();
 } else {
-    var_dump($data);
-    // todo option where to redirect
+    die('data has been processed');
 }
 
 echo $OUTPUT->footer();

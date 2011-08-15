@@ -110,15 +110,15 @@ $string['course_edit_post'] = 'Edit the full name and description of the course 
 $string['easy_upload_form'] = '';
 $string['select_section'] = 'Add to section';
 
-$string['dialog_rename_file'] = 'Name file';
-
 // Should I split out the "to {$a}" part?
-$string['easy_upload_url_form'] = 'Upload a link to {$a}';
-$string['dialog_add_url'] = 'Add a link';
-$string['dialog_add_url_box'] = 'Enter link URL';
+$string['easy_upload_link_form'] = 'Upload a link to {$a}';
+$string['dialog_add_link'] = 'Add a link';
+$string['dialog_add_link_box'] = 'Enter link URL';
+$string['dialog_rename_link'] = 'Name link';
 
 $string['easy_upload_file_form'] = 'Upload a file to {$a}';
 $string['dialog_add_file'] = 'Select file';
 $string['dialog_add_file_box'] = 'File';
+$string['dialog_rename_file'] = 'Name file';
 
 /** End of file **/
