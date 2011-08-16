@@ -24,7 +24,7 @@
  * ----------------------------------------------------------------------------
  */
 
-class block_course_menu_renderer extends plugin_renderer_base {
+class block_ucla_course_menu_renderer extends plugin_renderer_base {
     // Default defaults
 	private $topic_depth = 1;
 	private $chapter_depth = 2;
@@ -198,7 +198,7 @@ class block_course_menu_renderer extends plugin_renderer_base {
 		$url = $link['url'];
 		if ($link['keeppagenavigation']) {
 			$url = $CFG->wwwroot 
-                . "/blocks/course_menu/link_with_navigation.php?courseid={$course}&url={$link['url']}&name={$link['name']}";
+                . "/blocks/ucla_course_menu/link_with_navigation.php?courseid={$course}&url={$link['url']}&name={$link['name']}";
 		}
 		$icon = '';
 		if ($link['icon']) {

@@ -24,18 +24,18 @@
  * ----------------------------------------------------------------------------
  */
 
-class block_course_menu_edit_form extends block_edit_form {
+class block_ucla_course_menu_edit_form extends block_edit_form {
     protected function specific_definition($mform) {
         global $CFG;
         $mform->addElement('header', 'configheader', 
             get_string('blockgeneralsettings', $this->block->blockname));
         
         $options = array(
-            block_course_menu::TRIM_RIGHT   => 
+            block_ucla_course_menu::TRIM_RIGHT   => 
                 get_string('trimmoderight', $this->block->blockname),
-            block_course_menu::TRIM_LEFT    => 
+            block_ucla_course_menu::TRIM_LEFT    => 
                 get_string('trimmodeleft', $this->block->blockname),
-            block_course_menu::TRIM_CENTER  => 
+            block_ucla_course_menu::TRIM_CENTER  => 
                 get_string('trimmodecenter', $this->block->blockname)
         );
 
@@ -46,7 +46,7 @@ class block_course_menu_edit_form extends block_edit_form {
         $mform->addElement('text', 'config_trimlength', 
             get_string('trimlength', $this->block->blockname));
         $mform->setDefault('config_trimlength', 
-            block_course_menu::DEFAULT_TRIM_LENGTH);
+            block_ucla_course_menu::DEFAULT_TRIM_LENGTH);
         $mform->setType('config_trimlength', PARAM_INT);
     }
 }

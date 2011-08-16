@@ -28,7 +28,7 @@
  *  This is the course menu block, written by "NetSapiensis."
  *
  **/
-class block_course_menu extends block_base {
+class block_ucla_course_menu extends block_base {
     /** @var int Trim characters from the right **/
     const TRIM_RIGHT = 1;
 
@@ -178,7 +178,7 @@ class block_course_menu extends block_base {
 
         $chapters = $this->config->chapters;
      
-        $renderer = $this->page->get_renderer('block_course_menu');
+        $renderer = $this->page->get_renderer('block_ucla_course_menu');
         $output = html_writer::start_tag('div', array(
             'class' => 'block_navigation'
         ));
@@ -447,9 +447,9 @@ class block_course_menu extends block_base {
         global $CFG;
         
         if (empty($this->config) || !is_object($this->config)) {
-            if (!empty($CFG->block_course_menu_global_config)) {
+            if (!empty($CFG->block_ucla_course_menu_global_config)) {
                 $this->config = 
-                    unserialize($CFG->block_course_menu_global_config);
+                    unserialize($CFG->block_ucla_course_menu_global_config);
             }
         }
 
@@ -901,6 +901,7 @@ class block_course_menu extends block_base {
         $textlib = textlib_get_instance();
 
         switch ($mode) {
+        default: 
         case self::TRIM_RIGHT :
             $mode_str = 'right';
             break;
@@ -971,7 +972,7 @@ class block_course_menu extends block_base {
         $this->check_default_config();
 
         ob_start();
-        include ("{$CFG->dirroot}/blocks/course_menu/config/elements.php");
+        include ("{$CFG->dirroot}/blocks/ucla_course_menu/config/elements.php");
         $cc = ob_get_contents();
         ob_end_clean();
         return $cc;

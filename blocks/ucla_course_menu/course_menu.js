@@ -23,7 +23,7 @@
  * -----------------------------------------------------------------------------
  **/
 
-M.block_course_menu = M.block_course_menu || {
+M.block_ucla_course_menu = M.block_ucla_course_menu || {
     /** The number of expandable branches in existence */
     expandablebranchcount:0,
     /** An array of initialised trees */
@@ -46,7 +46,7 @@ M.block_course_menu = M.block_course_menu || {
     	M.core_dock.init(Y);
 	    if (M.core_dock.genericblock) {
 	    	// Give the tree class the dock block properties
-	        Y.augment(M.block_course_menu.classes.tree, M.core_dock.genericblock);
+	        Y.augment(M.block_ucla_course_menu.classes.tree, M.core_dock.genericblock);
 			//adjust the title to fit the content ?
 			
 	    }
@@ -58,7 +58,7 @@ M.block_course_menu = M.block_course_menu || {
     	if (properties.courselimit) {
             this.courselimit = properties.courselimit;
         }
-    	M.block_course_menu.treecollection[id] = new M.block_course_menu.classes.tree(Y, id, properties);
+    	M.block_ucla_course_menu.treecollection[id] = new M.block_ucla_course_menu.classes.tree(Y, id, properties);
     }
 };
 
@@ -70,7 +70,7 @@ M.block_course_menu = M.block_course_menu || {
  * @param {string} id The name of the tree
  * @param {object} properties Object containing tree properties
  */
-M.block_course_menu.classes.tree = function(Y, id, properties) {
+M.block_ucla_course_menu.classes.tree = function(Y, id, properties) {
 	this.Y = Y;
     this.id = id;
     this.key = id;
@@ -153,7 +153,7 @@ M.block_course_menu.classes.tree = function(Y, id, properties) {
     	var expandablenode = Y.one('#'+this.expansions[i].id);
         if (expandablenode) {
             expandablenode.on('ajaxload|click', this.init_load_ajax, this, this.expansions[i]);
-            M.block_course_menu.expandablebranchcount++;
+            M.block_ucla_course_menu.expandablebranchcount++;
         } else if (M.cfg.debug) {
             Y.one(document.body).append(Y.Node.create('<div class="notification" style="font-size:6pt;">Expandable node within navigation was missing [#'+this.expansions[i].id+']</div>'));
         } else {
@@ -173,7 +173,7 @@ M.block_course_menu.classes.tree = function(Y, id, properties) {
  * @param {event} e The event object
  * @param {object} branch A branch to load via ajax
  */
-M.block_course_menu.classes.tree.prototype.init_load_ajax = function(e, branch) {
+M.block_ucla_course_menu.classes.tree.prototype.init_load_ajax = function(e, branch) {
     e.stopPropagation();
     var target = e.target;
     if (target.test('span')) {
@@ -208,7 +208,7 @@ M.block_course_menu.classes.tree.prototype.init_load_ajax = function(e, branch) 
  * @param {mixed} args
  * @return bool
  */
-M.block_course_menu.classes.tree.prototype.load_ajax = function(tid, outcome, args) {
+M.block_ucla_course_menu.classes.tree.prototype.load_ajax = function(tid, outcome, args) {
     try {
         var object = this.Y.JSON.parse(outcome.responseText);
         if (this.add_branch(object, args.target.ancestor('li') ,1)) {
@@ -232,10 +232,10 @@ M.block_course_menu.classes.tree.prototype.load_ajax = function(tid, outcome, ar
  * @param {int} depth
  * @return bool
  */
-M.block_course_menu.classes.tree.prototype.add_branch = function(branchobj, target, depth) {
+M.block_ucla_course_menu.classes.tree.prototype.add_branch = function(branchobj, target, depth) {
 
     // Make the new branch into an object
-    var branch = new M.block_course_menu.classes.branch(this, branchobj);
+    var branch = new M.block_ucla_course_menu.classes.branch(this, branchobj);
     var childrenul = false, Y = this.Y;
     if (depth === 1) {
         if (!branch.children) {
@@ -258,7 +258,7 @@ M.block_course_menu.classes.tree.prototype.add_branch = function(branchobj, targ
                 this.add_branch(branch.children[i], childrenul, depth+1);
             }
         }
-        if (branch.type == 10 && count >= M.block_course_menu.courselimit) {
+        if (branch.type == 10 && count >= M.block_ucla_course_menu.courselimit) {
             var properties = Array();
             properties['name'] = M.str.moodle.viewallcourses;
             properties['title'] = M.str.moodle.viewallcourses;
@@ -275,7 +275,7 @@ M.block_course_menu.classes.tree.prototype.add_branch = function(branchobj, targ
  * Toggle a branch as expanded or collapsed
  * @param {Event} e
  */
-M.block_course_menu.classes.tree.prototype.toggleexpansion = function(e) {
+M.block_ucla_course_menu.classes.tree.prototype.toggleexpansion = function(e) {
     // First check if they managed to click on the li iteslf, then find the closest
     // LI ancestor and use that
 	
@@ -305,7 +305,7 @@ M.block_course_menu.classes.tree.prototype.toggleexpansion = function(e) {
     var elName = target.one('.item_name').get('innerHTML');
     var Y = this.Y;
     var instId = this.id;
-    Y.io(M.cfg.wwwroot + '/blocks/course_menu/ajax.php', {
+    Y.io(M.cfg.wwwroot + '/blocks/ucla_course_menu/ajax.php', {
         method:'POST',
         data:'element_name='+elName+'&action='+act+'&instance='+instId,
         on: {
@@ -320,10 +320,10 @@ M.block_course_menu.classes.tree.prototype.toggleexpansion = function(e) {
  * This class represents a branch for a tree
  * @class branch
  * @constructor
- * @param {M.block_course_menu.classes.tree} tree
+ * @param {M.block_ucla_course_menu.classes.tree} tree
  * @param {object|null} obj
  */
-M.block_course_menu.classes.branch = function(tree, obj) {
+M.block_ucla_course_menu.classes.branch = function(tree, obj) {
     this.tree = tree;
     this.name = null;
     this.title = null;
@@ -348,7 +348,7 @@ M.block_course_menu.classes.branch = function(tree, obj) {
  * Populates this branch from a JSON object
  * @param {object} obj
  */
-M.block_course_menu.classes.branch.prototype.construct_from_json = function(obj) {
+M.block_ucla_course_menu.classes.branch.prototype.construct_from_json = function(obj) {
     for (var i in obj) {
         this[i] = obj[i];
     }
@@ -359,8 +359,8 @@ M.block_course_menu.classes.branch.prototype.construct_from_json = function(obj)
     }
     if (this.id && this.id.match(/^expandable_branch_\d+$/)) {
         // Assign a new unique id for this new expandable branch
-        M.block_course_menu.expandablebranchcount++;
-        this.id = 'expandable_branch_'+M.block_course_menu.expandablebranchcount;
+        M.block_ucla_course_menu.expandablebranchcount++;
+        this.id = 'expandable_branch_'+M.block_ucla_course_menu.expandablebranchcount;
     }
 };
 
@@ -368,7 +368,7 @@ M.block_course_menu.classes.branch.prototype.construct_from_json = function(obj)
  * Injects a branch into the tree at the given location
  * @param {element} element
  */
-M.block_course_menu.classes.branch.prototype.inject_into_dom = function(element) {
+M.block_ucla_course_menu.classes.branch.prototype.inject_into_dom = function(element) {
 
     var Y = this.tree.Y;
 
@@ -453,5 +453,5 @@ M.block_course_menu.classes.branch.prototype.inject_into_dom = function(element)
  * NOTE: Never convert the second argument to a function reference...
  * doing so causes scoping issues
  */
-YUI.add('block_course_menu', function(Y) { M.block_course_menu.init(Y); }, '0.0.0.1', 
-    M.yui.loader.modules.block_course_menu.requires);
+YUI.add('block_ucla_course_menu', function(Y) { M.block_ucla_course_menu.init(Y); }, '0.0.0.1', 
+    M.yui.loader.modules.block_ucla_course_menu.requires);
