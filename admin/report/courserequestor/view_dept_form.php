@@ -12,8 +12,8 @@ class view_dept_form extends moodleform {
         global $DB;
         $mform =& $this->_form;
         
-        $selected_term = optional_param('term',NULL,PARAM_ALPHANUM) ? 
-        optional_param('term',NULL,PARAM_ALPHANUM) : $CFG->classrequestor_selected_term;
+        $selected_term = optional_param('term',NULL,PARAM_ALPHANUM) 
+            ? optional_param('term',NULL,PARAM_ALPHANUM) : $CFG->classrequestor_selected_term;
         $pulldown_term = array();
 
         foreach ($CFG->classrequestor_terms as $term) {

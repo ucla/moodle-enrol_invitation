@@ -12,8 +12,8 @@ class build_form extends moodleform {
         global $CFG;
         global $DB;
         $mform =& $this->_form;
-        $selected_term = optional_param('term',NULL,PARAM_ALPHANUM) ? 
-        optional_param('term',NULL,PARAM_ALPHANUM) : $CFG->classrequestor_selected_term;
+        $selected_term = optional_param('term',NULL,PARAM_ALPHANUM) 
+            ? optional_param('term',NULL,PARAM_ALPHANUM) : $CFG->classrequestor_selected_term;
         
         $pulldown_term = array();
 
@@ -22,8 +22,8 @@ class build_form extends moodleform {
         }
         
         $pulldown_livebuild = array();
-        $pulldown_livebuild['built'] = 'To be built';
-        $pulldown_livebuild['live'] = 'Live';
+        $pulldown_livebuild['built'] = get_string('build', 'report_courserequestor');
+        $pulldown_livebuild['live'] = get_string('live', 'report_courserequestor');
         
         $pulldown_dept = array();
         $pulldown_dept[] = 'ALL';

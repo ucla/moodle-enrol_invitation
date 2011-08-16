@@ -14,6 +14,9 @@ $string['builddept'] = "Build department";
 $string['buildcourse'] = "Build course";
 $string['addcrosslist'] = "Add crosslists";
 
+$string['build'] = "To be built";
+$string['live'] = "Live";
+
 $string['viewtobebuilt'] = "Courses to be built";
 $string['viewlivecourses'] = "Live courses";
 $string['viewcourses'] = "View courses";
