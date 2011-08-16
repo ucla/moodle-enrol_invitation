@@ -42,7 +42,7 @@ class view_dept_form extends moodleform {
             '<label for="id_group2_subjarea">SUBJECT AREA: </label>');
         $selectsubj =& $mform->createElement('select', 'subjarea', null, $pulldown_subject);
         $oneline[] = $selectsubj;
-        $oneline[] =& $mform->createElement('submit', 'submit', 'Build department ');
+        $oneline[] =& $mform->createElement('submit', 'submit', get_string('builddept', 'report_courserequestor'));
         // put these elements in one group so that they appear on the same line
         // see style.css for overloading the default moodle form stylesheet
         $mform->addGroup($oneline, 'group2', null, ' ', true);

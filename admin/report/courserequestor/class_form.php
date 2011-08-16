@@ -34,7 +34,7 @@ class class_form extends moodleform {
         $oneline[] =& $mform->createElement('static', 'srslabel', null, '<label 
             for="id_group1_srs">SRS: </label>');
         $oneline[] =& $mform->createElement('text', 'srs', null, $attrib);
-        $oneline[] =& $mform->createElement('submit', 'submit', 'Build course ');
+        $oneline[] =& $mform->createElement('submit', 'submit', get_string('buildcourse', 'report_courserequestor'));
         
         // put these elements in one group so that they appear on the same line
         // the last element is true. this way it can be refered in setDefaults

@@ -10,12 +10,13 @@ $string['coursereqaddcrosslist'] = "UCLA course request (SRS) - add crosslist in
 $string['coursereqbuildclass'] = "UCLA course request (SRS) - build courses";
 $string['srserror'] = 'SRS is 9 digits';
 
-$string['builddept'] = "Build entire department";
-$string['buildcourse'] = "Build courses";
+$string['builddept'] = "Build department";
+$string['buildcourse'] = "Build course";
 $string['addcrosslist'] = "Add crosslists";
 
 $string['viewtobebuilt'] = "Courses to be built";
 $string['viewlivecourses'] = "Live courses";
+$string['viewcourses'] = "View courses";
 
 $string['courserequestor:view'] = "View UCLA course request (SRS)";
 ?>

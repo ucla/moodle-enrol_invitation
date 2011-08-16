@@ -49,7 +49,7 @@ class build_form extends moodleform {
         $livebuild =& $mform->createElement('select', 'livebuild', null, $pulldown_livebuild);
         $oneline[] = $livebuild;
         
-        $oneline[] =& $mform->createElement('submit', 'submit', 'View courses');
+        $oneline[] =& $mform->createElement('submit', 'submit', get_string('viewcourses', 'report_courserequestor'));
 
         $mform->addGroup($oneline, 'group2', null, ' ', true);
 
