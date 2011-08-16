@@ -28,5 +28,3 @@
 // This is needed to allow moodle to update the module
 $plugin->version  = 2011072701;
 $plugin->requires = 2011022100;
-
-?>

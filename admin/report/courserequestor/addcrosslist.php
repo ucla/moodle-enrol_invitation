@@ -53,18 +53,6 @@ $PAGE->set_pagelayout('admin');
 admin_externalpage_setup('courserequestor');
 echo $OUTPUT->header();
 
-/** DEPRECATED
-// Prepare and load Moodle Admin interface
-$adminroot = admin_get_root();
-
-// This requests the default page which at this point is
-// defined as 'courserequestor'
-// Keep this the same so that we're able to switch
-admin_externalpage_setup('courserequestor');
-admin_externalpage_print_header($adminroot); **/
-
-
-
 ?>
 
 <div class="headingblock header crqpaddingbot" >
@@ -220,7 +208,6 @@ if(isset($actioncleaned)) {
                         for crosslisting</div></td></tr></table>";
 
                     $message = "New aliases submitted to be crosslisted with host: '$hostsrscleaned' ";
-                    //mail('nthompson@oid.ucla.edu', 'CCLE:New Crosslist Request', $message);
                 }
             } else {
                     echo "<div class=\"crqerrormsg\">";
