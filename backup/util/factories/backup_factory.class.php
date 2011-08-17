@@ -153,6 +153,28 @@ abstract class backup_factory {
             throw new backup_task_exception('course_task_course_not_found', $courseid);
         }
 
+        /**
+         * If public/private is enabled and the course uses public/private, then
+         * create a Backup_PublicPrivate_Course_Task object instead of the
+         * standard Backup_Course_Task object. This object performs all of the
+         * same steps as Backup_Course_Task, except that it adds one additional
+         * step for public/private.
+         *
+         * @author ebollens
+         * @version 20110719
+         */
+        global $CFG;
+        if(file_exists($CFG->libdir.'/publicprivate/backup_publicprivate_course_task.class.php')
+                && file_exists($CFG->libdir.'/publicprivate/site.class.php')
+                && file_exists($CFG->libdir.'/publicprivate/course.class.php')) {
+            include_once($CFG->libdir.'/publicprivate/site.class.php');
+            include_once($CFG->libdir.'/publicprivate/course.class.php');
+            if(PublicPrivate_Site::is_enabled() && PublicPrivate_Course::build($course)->is_activated()) {
+                include_once($CFG->libdir.'/publicprivate/backup_publicprivate_course_task.class.php');
+                return new Backup_PublicPrivate_Course_Task($course->shortname, $courseid);
+            }
+        }
+
         return new backup_course_task($course->shortname, $courseid);
     }
 

@@ -171,6 +171,59 @@ UpdatableMembersCombo.prototype.refreshMembers = function () {
 };
 
 
+UpdatableMembersCombo.prototype.refreshMembersPublicPrivate = function (groupPublicPrivate) {
+
+    // Get group selector and check selection type
+    var selectEl = document.getElementById("groups");
+    var selectionCount=0,groupId=0;
+    var includesPublicPrivate = false;
+    if( selectEl ) {
+        for (var i = 0; i < selectEl.options.length; i++) {
+            if(selectEl.options[i].selected) {
+                selectionCount++;
+                if(!groupId) {
+                    groupId=selectEl.options[i].value;
+                }
+                if(selectEl.options[i].value == groupPublicPrivate){
+                    includesPublicPrivate = true;
+                }
+            }
+        }
+    }
+    var singleSelection=selectionCount == 1;
+
+    // Add the loader gif image (we only load for single selections)
+    if(singleSelection && !includesPublicPrivate) {
+        createLoaderImg("membersloader", "memberslabel", this.wwwRoot);
+    }
+
+    // Update the label.
+    var spanEl = document.getElementById("thegroup");
+    if (singleSelection && !includesPublicPrivate) {
+        spanEl.innerHTML = selectEl.options[selectEl.selectedIndex].title;
+    } else {
+        spanEl.innerHTML = '&nbsp;';
+    }
+
+    // Clear the members list box.
+    selectEl = document.getElementById("members");
+    if (selectEl) {
+        while (selectEl.firstChild) {
+            selectEl.removeChild(selectEl.firstChild);
+        }
+    }
+
+    document.getElementById("showaddmembersform").disabled = !singleSelection || includesPublicPrivate;
+    document.getElementById("showeditgroupsettingsform").disabled = !singleSelection || includesPublicPrivate;
+    document.getElementById("deletegroup").disabled = selectionCount == 0 || includesPublicPrivate;
+
+    if(singleSelection && !includesPublicPrivate) {
+        var sUrl = this.wwwRoot+"/group/index.php?id="+this.courseId+"&group="+groupId+"&act_ajax_getmembersingroup";
+        YAHOO.util.Connect.asyncRequest("GET", sUrl, this.connectCallback, null);
+    }
+    
+}
+
 
 var createLoaderImg = function (elClass, parentId, wwwRoot) {
     var parentEl = document.getElementById(parentId);

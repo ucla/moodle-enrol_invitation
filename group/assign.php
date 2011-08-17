@@ -46,7 +46,10 @@ require_capability('moodle/course:managegroups', $context);
 $returnurl = $CFG->wwwroot.'/group/groupings.php?id='.$courseid;
 
 
-if ($frm = data_submitted() and confirm_sesskey()) {
+require_once($CFG->libdir.'/publicprivate/course.class.php');
+$publicprivate_course = new PublicPrivate_Course($course);
+
+if ($frm = data_submitted() and confirm_sesskey() and !$publicprivate_course->is_grouping($grouping)) {
 
     if (isset($frm->cancel)) {
         redirect($returnurl);
@@ -126,6 +129,22 @@ $PAGE->navbar->add($straddgroupstogroupings);
 $PAGE->set_title("$course->shortname: $strgroups");
 $PAGE->set_heading($course->fullname);
 echo $OUTPUT->header();
+
+/**
+ * Alert that public/private grouping cannot be edited.
+ *
+ * @author ebollens
+ * @version 20110719
+ */
+if($publicprivate_course->is_grouping($grouping)) {
+    echo '<h3 class="main">';
+    print_string('addgroupstogroupings', 'group');
+    echo ': '.$groupingname.'</h3>';
+    echo $OUTPUT->notification(get_string('publicprivatecannotedit'));
+    echo $OUTPUT->continue_button('groupings.php?id='.$groupingid);
+    echo $OUTPUT->footer();
+    die;
+}
 
 ?>
 <div id="addmembersform">
