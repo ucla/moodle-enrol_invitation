@@ -23,7 +23,7 @@ global $ME;
 // BEGIN CCLE MODIFICATION CCLE-1723
 // Adding 'Support Admin' capability to course requestor
 if (!has_capability('report/courserequestor:view', get_context_instance(CONTEXT_SYSTEM))) {
-    error(get_string('adminsonlybanner'));
+    print_error('adminsonlybanner');
 }
 // END CCLE MODIFICATION
 
@@ -107,8 +107,7 @@ if($viewdeptobj = $classform2->get_data()){
 // SRS Look up form for live and built courses
 require_once(dirname(__FILE__).'/build_form.php');
 $buildform = null;
-$dept = $DB->get_records_sql("select distinct department from ".$CFG->prefix."ucla_request_classes 
-    order by department");
+$dept = $DB->get_records('ucla_request_classes', null, 'department', 'DISTINCT department');
 $deptform2 = new build_form($dept);
 if($buildformobj = $deptform2->get_data()){
     $buildform = (array) $buildformobj;
@@ -356,8 +355,8 @@ function display_build_live_classes($build_or_live, $buildform){
         }
     } else {
         if($build_or_live==1){
-            if($rs=$DB->get_records_sql("SELECT * FROM `".$CFG->prefix."ucla_request_classes` 
-                WHERE `department` LIKE '$department'  AND  `action` LIKE 'build'  AND (status like 
+            if($rs=$DB->get_records_sql("select * from `".$CFG->prefix."ucla_request_classes` 
+                where `department` like '$department'  and  `action` like 'build' and term like '$term' and (status like 
                 'pending' or status like 'processing') order by 'department' ")) {
                 $recflag=1;
             }

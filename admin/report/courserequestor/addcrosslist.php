@@ -41,7 +41,8 @@ if (!has_capability('report/courserequestor:view', get_context_instance(CONTEXT_
 // END CCLE MODIFICATION
 
 // Initialize $PAGE
-$PAGE->set_url('/admin/report/courserequestor/index.php');
+
+$PAGE->set_url('/admin/report/courserequestor/addcrosslist.php');
 $context = get_context_instance(CONTEXT_SYSTEM);
 $PAGE->set_context($context);
 $PAGE->set_heading(get_string('courserequestor', 'report_courserequestor'));
@@ -61,7 +62,7 @@ echo $OUTPUT->header();
 
 <div class="generalbox categorybox box "  >
     <div class="crqcenterbox">
-        <?php
+<?php
         $course_requestor =  $CFG->wwwroot."/admin/report/courserequestor/index.php";
         $addCrosslist = $CFG->wwwroot."/admin/report/courserequestor/addcrosslist.php";
 
@@ -69,15 +70,18 @@ echo $OUTPUT->header();
             'report_courserequestor')."</a> | ";
         echo "<a href=\"$addCrosslist\">".get_string('addcrosslist', 
             'report_courserequestor')."</a> ";
-        ?>
+?>
     </div>
 
     <div >
         <form method="POST" action="<?php echo $CFG->wwwroot."/admin/report/courserequestor/addcrosslist.php"; ?>">
             <fieldset class="crqformeven">
                 <legend></legend>
-                <label>SELECT THE TERM:
-                    <?php print_term_pulldown_box(true); ?>
+                <label>
+<?php 
+    echo get_string('crosslistselect', 'report_courserequestor');
+    print_term_pulldown_box(true); 
+?>
                 </label>
             </fieldset>
     </form>
@@ -88,13 +92,19 @@ echo $OUTPUT->header();
             <fieldset class="crqformodd">
                 <legend></legend>
                 <label>
-                    <?php $termcleaned = optional_param('term', NULL, PARAM_ALPHANUM); ?>
-                    List of <strong>to be built</strong> Courses for the term <strong>
-                    <?php if( empty($termcleaned) ){echo $CFG->classrequestor_selected_term;} 
-                    else {echo "$termcleaned";} ?></strong><br/><br/>
-                    You can add crosslists while these couses are waiting in queue to be built<br/>
-                    <select name="hostsrs" >
-<?php			
+<?php 
+    $termcleaned = optional_param('term', NULL, PARAM_ALPHANUM); 
+    echo get_string('crosslistterm', 'report_courserequestor');
+    echo '<strong> ';
+    if( empty($termcleaned) ){
+        echo $CFG->classrequestor_selected_term;
+    } else {
+        echo "$termcleaned";
+    } 
+    echo '</strong><br/><br/>';
+    echo get_string('crosslistnotice', 'report_courserequestor');
+    echo '<br/><select name="hostsrs" >';
+    
     if(isset($termcleaned)){
         $term = ($termcleaned == "") ? $CFG->classrequestor_selected_term : $termcleaned;
     }
@@ -111,62 +121,28 @@ echo $OUTPUT->header();
 
         echo "<option value='$srs'>$course</option>";
     }
+    echo '</select></label>';
+    echo get_string('crosslistaddalias', 'report_courserequestor');
+    echo '<input type="hidden" name="action" value="addalias">';
+    $i=1;
+    while($i<=15){
+        if($i%2==0){
+            echo '<div class="crqfrmtxtboxodd">';
+            echo '<input type="text" name="alias'.$i.'" size="20" maxlength="9">';
+            echo '</div>';
+        } else {
+            echo '<div class="crqfrmtxtboxeven">';
+            echo '<input type="text" name="alias'.$i.'" size="20" maxlength="9">';
+            echo '</div>';
+        }
+        $i++;
+    }
 ?>
-                    </select>
-                </label>
-
-
-            ADD ALIASES
-            <input type="hidden" name="action" value="addalias">
-            <div class="crqfrmtxtboxeven" >
-                <input type="text" name="alias1" size="20" maxlength="9">
-            </div>
-            <div class="crqfrmtxtboxodd">
-                <input type="text" name="alias2" size="20" maxlength="9">
-            </div>
-            <div class="crqfrmtxtboxeven">
-                <input type="text" name="alias3" size="20" maxlength="9">
-            </div>
-            <div class="crqfrmtxtboxodd">
-                <input type="text" name="alias4" size="20" maxlength="9">
-            </div>
-            <div class="crqfrmtxtboxeven">
-                <input type="text" name="alias5" size="20" maxlength="9">
-            </div>
-            <div class="crqfrmtxtboxodd">
-                <input type="text" name="alias6" size="20" maxlength="9">
-            </div>
-            <div class="crqfrmtxtboxeven">
-                <input type="text" name="alias7" size="20" maxlength="9">
-            </div>
-            <div class="crqfrmtxtboxodd">
-                <input type="text" name="alias8" size="20" maxlength="9">
-            </div>
-            <div class="crqfrmtxtboxeven">
-                <input type="text" name="alias9" size="20" maxlength="9">
-            </div>
-            <div class="crqfrmtxtboxodd">
-                <input type="text" name="alias10" size="20" maxlength="9">
-            </div>
-            <div class="crqfrmtxtboxeven">
-                <input type="text" name="alias11" size="20" maxlength="9">
-            </div>
-            <div class="crqfrmtxtboxodd">
-                <input type="text" name="alias12" size="20" maxlength="9">
-            </div>
-            <div class="crqfrmtxtboxeven">
-                <input type="text" name="alias13" size="20" maxlength="9">
-            </div>
-            <div class="crqfrmtxtboxodd">
-                <input type="text" name="alias14" size="20" maxlength="9">
-            </div>
-            <div class="crqfrmtxtboxeven">
-                <input type="text" name="alias15" size="20" maxlength="9">
-            </div>
-
             <input type="hidden" name="action" value="addalias">
             <input type="hidden" name="term" value="<?php echo "$term"; ?>"><br/>
-            <input type="submit" value="Insert Aliases">
+<?php
+    echo '<input type="submit" value="'.get_string('insertalias', 'report_courserequestor').'">';
+?>
             </fieldset>
     <form>
     </div>
@@ -201,9 +177,16 @@ if(isset($actioncleaned)) {
                     echo "<table><tr ><td ><div class=\"crqgreenmsg\">New aliases 
                         submitted for crosslisting with host: '$hostsrscleaned'</div></td></tr></table>";
 
-                    $query2 = "update ".$CFG->prefix."ucla_request_classes set crosslist=1 
-                        where srs like '$hostsrscleaned' ";
-                    $DB->execute($query2);
+                    $update_records = $DB->get_records('ucla_request_classes', array('srs'=>$hostsrscleaned));
+                    if ($update_records){
+                        foreach ($update_records as $update_record){
+                            $updateobject->id=$update_record->id;
+                            $updateobject->crosslist = 1;
+                            $DB->update_record('ucla_request_classes', $updateobject);
+                        }
+                    }
+                    
+                    
                     echo "<table><tr ><td ><div class=\"crqgreenmsg\">Submitted 
                         for crosslisting</div></td></tr></table>";
 

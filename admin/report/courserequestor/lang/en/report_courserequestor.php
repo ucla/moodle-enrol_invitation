@@ -21,5 +21,11 @@ $string['viewtobebuilt'] = "Courses to be built";
 $string['viewlivecourses'] = "Live courses";
 $string['viewcourses'] = "View courses";
 
+$string['insertalias'] = "Insert aliases";
+$string['crosslistterm'] = "List of to be built courses for the term";
+$string['crosslistnotice'] = "You can add crosslists while these couses are waiting in queue to be built";
+$string['crosslistselect'] = "Select the term: ";
+$string['crosslistaddalias'] = "Add aliases";
+
 $string['courserequestor:view'] = "View UCLA course request (SRS)";
 ?>
