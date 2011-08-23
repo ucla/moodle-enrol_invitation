@@ -113,12 +113,10 @@ echo $OUTPUT->header();
         where term like '$term' and action like '%uild' and (status = 'processing' 
         or status = 'pending') order by course");
 
-    foreach ($crs as $rows)
-    {
+    foreach ($crs as $rows){
         $srs=rtrim($rows->srs);
         $course=rtrim($rows->course);
-        $existingcourse[$srs]=1;
-
+        $existingcourse[$srs] = 1;
         echo "<option value='$srs'>$course</option>";
     }
     echo '</select></label>';

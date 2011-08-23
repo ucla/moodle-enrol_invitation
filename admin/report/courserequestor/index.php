@@ -256,10 +256,11 @@ if(!empty($srsform))
                 while ($i >0) {
                     if(preg_match('/^[0-9]{9}$/',$xlist_info[$i])) {
                             $xlistexists=1;
+                            break;
                     }
                     $i--;
                 }
-                $i = count($xlist_info);
+                
                 if(!$xlistexists) {
                     $aliascount=5;
                     echo "<label><input type=\"radio\" name=\"xlist\" value = \"1\" >yes</label> <label>
@@ -278,9 +279,11 @@ if(!empty($srsform))
                 } else {
                     echo "<label><input type=\"radio\" name=\"xlist\" value = \"1\" checked>yes</label> 
                         <label><input type=\"radio\" name=\"xlist\" value = \"0\">no</label><br>";
-                    echo "<br>Select SRS below to crosslist.<br><span style=\"color:red\" >Please 
-                        uncheck the SRS you dont want crosslisted</span><br><br>";
+                    echo "<br/>".get_string('selectsrscrosslist', 'report_courserequestor');
+                    echo "<br/><span style=\"color:red\" >".get_string('uncheckedcrosslist', 'report_courserequestor');
+                    echo "</span><br/><br/>";
                     $aliascount=0;
+                    $i = count($xlist_info);
                     while ($i!=0) {
                         if(isset($xlist_info[$i]) && preg_match('/^[0-9]{9}$/',$xlist_info[$i])) {
                             $aliascount++;
@@ -332,7 +335,12 @@ if(!empty($srsform))
 if(!empty($viewdeptform)) {
     get_course_in_dept($viewdeptform['group2']['term'],$viewdeptform['group2']['subjarea'],$db_conn);
 }
-
+/**
+ * this function displays status on live classes or classes to be built
+ * input:
+ * $build_or_live - 1 means from classes to be built, and 0 means from live
+ * $buildform - an array containing department and term
+ */
 function display_build_live_classes($build_or_live, $buildform){
     global $CFG;
     global $PAGE;
@@ -478,13 +486,13 @@ if(optional_param('action',NULL,PARAM_ALPHANUM)=="courserequest") {
             $nourlupd = 0;
         }
         
-        $crosslist=optional_param('xlist',NULL,PARAM_ALPHANUM);
-        $action=optional_param('actionrequest',NULL,PARAM_ALPHANUM);
-        $aliascount=optional_param('aliascount',NULL,PARAM_ALPHANUM);
-        $department=optional_param('department',NULL,PARAM_ALPHANUM);
-        $course=optional_param('course',NULL,PARAM_ALPHANUM);
-        $contact=optional_param('contact',NULL,PARAM_EMAIL);
-        $ctime=time();
+        $crosslist = optional_param('xlist',NULL,PARAM_ALPHANUM);
+        $action = optional_param('actionrequest',NULL,PARAM_ALPHANUM);
+        $aliascount = optional_param('aliascount',NULL,PARAM_ALPHANUM);
+        $department = optional_param('department',NULL,PARAM_ALPHANUM);
+        $course = optional_param('course',NULL,PARAM_ALPHANUM);
+        $contact = optional_param('contact',NULL,PARAM_EMAIL);
+        $ctime = time();
                 
         $recorddata->term = $term;
         $recorddata->srs = $srs;
@@ -520,8 +528,10 @@ if(optional_param('action',NULL,PARAM_ALPHANUM)=="courserequest") {
 
         }
         echo "<table><tr><td>";
-        echo "<div class=\"crqbluemsg\">COURSES IN QUEUE TO BE BUILT</div></td></tr>";
-                echo "<tr><td>";
+        echo "<div class=\"crqbluemsg\">";
+        echo get_string('queuetobebuilt', 'report_courserequestor');
+        echo "</div></td></tr>";
+        echo "<tr><td>";
         get_courses_to_be_built();
         echo "</td></tr></table>";
 
@@ -532,7 +542,9 @@ if(optional_param('action',NULL,PARAM_ALPHANUM)=="courserequest") {
     }
 }
 
-
+/**
+ * this function display classes in the to be built queue
+ */
 function get_courses_to_be_built()
 {
     global $DB;
@@ -556,8 +568,9 @@ function get_courses_to_be_built()
         }
     }
     if($recflag = 0) {
-        echo "<table><tbody><tr><td class=\"crqtableodd\"><div class=\"crqerrormsg\">The 
-            queue is empty. All courses have been built as of now.</div></td></tr></tbody></table>";
+        echo "<table><tbody><tr><td class=\"crqtableodd\"><div class=\"crqerrormsg\">";
+        echo get_string('queueempty', 'report_courserequestor');
+        echo "</div></td></tr></tbody></table>";
     } else {
         echo <<< END
     <table>

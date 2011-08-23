@@ -27,5 +27,11 @@ $string['crosslistnotice'] = "You can add crosslists while these couses are wait
 $string['crosslistselect'] = "Select the term: ";
 $string['crosslistaddalias'] = "Add aliases";
 
+$string['selectsrscrosslist'] = "Select SRS below to crosslist.";
+$string['uncheckedcrosslist'] = "Please uncheck the SRS you dont want crosslisted";
+
+$string['queuetobebuilt'] = "Courses in queue to be built";
+$string['queueempty'] = "The queue is empty. All courses have been built as of now.";
+
 $string['courserequestor:view'] = "View UCLA course request (SRS)";
 ?>
