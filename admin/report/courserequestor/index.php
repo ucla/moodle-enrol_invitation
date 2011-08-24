@@ -250,16 +250,17 @@ if(!empty($srsform))
                 echo "<div class=\"crqtableeven\">Crosslist";
 
                 // CHECKING FOR CROSSLISTS
-                $xlist_info = file("http://webservices.registrar.ucla.edu/SRDB/SRDBWeb.asmx/getConSched?user=ssc&pass=zx12as&term=$srsform[group1][term]&SRS=$srsform[group1][srs]");
-                $i = count($xlist_info) - 1;
-                $xlistexists=0;
-                while ($i >0) {
-                    if(preg_match('/^[0-9]{9}$/',$xlist_info[$i])) {
-                            $xlistexists=1;
-                            break;
-                    }
-                    $i--;
-                }
+				$checkterm = $srsform['group1']['term'];
+				$checksrs = $srsform['group1']['srs'];
+                $xlist_info = file("http://webservices.registrar.ucla.edu/SRDB/SRDBWeb.asmx/getConSched?user=ssc&pass=zx12as&term=$checkterm&SRS=$checksrs");
+
+				$xlistexists=0;
+				foreach ($xlist_info as $xlist_element) {
+					if (preg_match('/[0-9]{9}/',$xlist_element)) {
+						$xlistexists = 1;
+						break;
+					}
+				}
                 
                 if(!$xlistexists) {
                     $aliascount=5;
@@ -282,13 +283,12 @@ if(!empty($srsform))
                     echo "<br/>".get_string('selectsrscrosslist', 'report_courserequestor');
                     echo "<br/><span style=\"color:red\" >".get_string('uncheckedcrosslist', 'report_courserequestor');
                     echo "</span><br/><br/>";
+					
                     $aliascount=0;
-                    $i = count($xlist_info);
-                    while ($i!=0) {
-                        if(isset($xlist_info[$i]) && preg_match('/^[0-9]{9}$/',$xlist_info[$i])) {
-                            $aliascount++;
-                            $srs=ltrim($xlist_info[$i]);
-                            $srs=rtrim($srs);
+					foreach ($xlist_info as $xlist_element) {
+						if (preg_match('/[0-9]{9}/',$xlist_element)) {
+							$aliascount++;
+                            $srs=trim($xlist_element);
                             $srs=substr($srs,5,9);
                             $query3= "EXECUTE ccle_getClasses '$term','$srs'";
                             $result3 = odbc_exec ($db_conn, $query3);
@@ -302,9 +302,8 @@ if(!empty($srsform))
                             echo "<label><input type=\"checkbox\" name=\"alias$aliascount\" 
                                 value=\"$srs\" checked> $course1 <span style=\"color:green\"> 
                                 (SRS: $srs) </span></label><br>";
-                        }
-                        $i--;
-                    }
+						}
+					}
                     echo "<input type=\"hidden\" name=\"aliascount\" value = \"$aliascount\" >";
                 }
                 echo "</td></tr><tr><td class=\"crqtableodd\">";
@@ -418,7 +417,7 @@ END;
             if ($row2->crosslist == 1) {
                 $xlist= "<span class=\"crqbedxlist\">crosslisted</span>";
             }
-            if ($build_or_live==1) {
+            if ($build_or_live == 1) {
                 $coursetype=" <span class=\"crqbedlive\">$row2->status</span>";
             } else {
                 $coursetype=" <span class=\"crqbedlive\">Live</span>";
@@ -427,7 +426,7 @@ END;
             echo "<tr class=\"crqtableunderline\"><td>".rtrim($row2->srs)."</td>
                 <td>".rtrim($row2->course)."</td>";
             echo "<td>".rtrim($row2->department)."</td><td>".rtrim($row2->instructor)."</td>";
-            if ($build_or_live==1) {
+            if ($build_or_live == 1) {
                 echo "<td>".$coursetype.$xlist."</td><td><input type=\"submit\" value=\"Delete\">
                     </td></tr></form>";
             } else {
@@ -440,18 +439,18 @@ END;
 }
 
 if(!empty($buildform)) {
-    if(strcmp((string)$buildform['group2']['livebuild'], 'live')==0){
+    if(strcmp((string)$buildform['group2']['livebuild'], 'live') == 0){
         display_build_live_classes(0, $buildform);
     } else {
         display_build_live_classes(1, $buildform);
     }
 }
 
-if(optional_param('action',NULL,PARAM_ALPHANUM)=="deletecourse") {
+if(optional_param('action',NULL,PARAM_ALPHANUM) == "deletecourse") {
     delete_course_in_queue();
 }
 
-if(optional_param('action',NULL,PARAM_ALPHANUM)=="courserequest") {
+if(optional_param('action',NULL,PARAM_ALPHANUM) == "courserequest") {
     $term =  optional_param('term',NULL,PARAM_ALPHANUM);
     $srs = optional_param('srs',NULL,PARAM_ALPHANUM);
     if((isset($existingcourse[$srs]) && $existingcourse[$srs]) 
@@ -460,7 +459,7 @@ if(optional_param('action',NULL,PARAM_ALPHANUM)=="courserequest") {
     echo "THIS SRS NUMBER HAS BEEN SUBMITTED TO CREATE A COURSE. <BR> PLEASE ENTER 
         A NEW SRS NO.</div></td></tr></tbody></table>";
     } else{
-        $instructor=optional_param('instname',NULL,PARAM_TEXT);
+        $instructor = optional_param('instname',NULL,PARAM_TEXT);
         
         if(optional_param('hidden',NULL,PARAM_ALPHANUM)) {
             $hidden = optional_param('hidden',NULL,PARAM_ALPHANUM);
@@ -591,8 +590,7 @@ END;
                 <td class="crqtableodd"></td>
             </tr>
 END;
-        foreach($rs as $row2)
-        {
+        foreach($rs as $row2) {
             $srs = rtrim($row2->srs);
             echo "<form method=\"POST\" action=\"".$PAGE->url."\">";
             echo "<input type=\"hidden\" name=\"action\" value=\"deletecourse\">";
@@ -714,8 +712,7 @@ END;
 $totalrows =count($rows);
 $count=1;
 
-foreach ($rows as $row)
-{
+foreach ($rows as $row) {
     get_course_details($term,$row->srs,$count,$db_conn);
     $count++;
 }
@@ -737,17 +734,13 @@ function get_course_details($term,$srs,$count,$db_conn)
     global $PAGE;
     $xlistexists = 0;
     $xlist_info = file( "http://webservices.registrar.ucla.edu/SRDB/SRDBWeb.asmx/getConSched?user=ssc&pass=zx12as&term=$term&SRS=$srs");
-    $i=0;
-    $i = count($xlist_info);
-
-    while ($i >0 && isset($xlist_info[$i])) {
-        if(preg_match('/^[0-9]{9}$/',$xlist_info[$i])) {
-            $xlistexists=1;
-        }
-        $i--;
-    }
-
-    $i = count($xlist_info);
+	
+	foreach ($xlist_info as $xlist_element) {
+		if (preg_match('/[0-9]{9}/',$xlist_element)) {
+			$xlistexists = 1;
+			break;
+		}
+	}
 
     $qr= odbc_exec ($db_conn, "EXECUTE ccle_CourseInstructorsGet '$term', '$srs' ");
     $inst_full="";
@@ -800,44 +793,39 @@ function get_course_details($term,$srs,$count,$db_conn)
         if($course ==""){$course="NULL";}
 
         echo "</td><td>$course";
-
+		
         if($xlistexists){
             echo "</td><td>";
             $aliascount=0;
 
-            while ($i!=0 && isset($xlist_info[$i]))
-            {
-                if(preg_match('/^[0-9]{9}$/',$xlist_info[$i]))
-                {
-                $aliascount++;
-                $srs=ltrim($xlist_info[$i]);
-                $srs=rtrim($srs);
-                $srs=substr($srs,5,9);
+            foreach ($xlist_info as $xlist_element) {
+                if (preg_match('/[0-9]{9}/',$xlist_element)) {
+					$aliascount++;
+					$srs=trim($xlist_element);
+					$srs=substr($srs,5,9);
 
-                $result1 = odbc_exec ($db_conn, "EXECUTE ccle_getClasses '$term','$srs' ");
+					$result1 = odbc_exec ($db_conn, "EXECUTE ccle_getClasses '$term','$srs' ");
 
-                $rows = array();
-                while ($row=odbc_fetch_object($result1)) {
-                    $rows[] = $row;
+					$rows = array();
+					while ($row=odbc_fetch_object($result1)) {
+						$rows[] = $row;
+					}
+					odbc_free_result($result1);
+
+					foreach ($rows as $row1) {
+						$subj1 = rtrim($row1->subj_area);
+						$num1 = rtrim($row1->coursenum);
+						$sect1 = rtrim($row1->sectnum);
+
+						$course1 = $subj1.$num1.'-'.$sect1;
+					}
+
+					echo "<input type=\"checkbox\" name=\"alias$aliascount$count\" value=\"$srs\" 
+						checked> $course1 <br>";
                 }
-                odbc_free_result($result1);
-
-                foreach ($rows as $row1) {
-                    $subj1 = rtrim($row1->subj_area);
-                    $num1 = rtrim($row1->coursenum);
-                    $sect1 = rtrim($row1->sectnum);
-
-                    $course1 = $subj1.$num1.'-'.$sect1;
-                }
-
-                echo "<input type=\"checkbox\" name=\"alias$aliascount$count\" value=\"$srs\" 
-                    checked> $course1 <br>";
-                }
-                $i--;
             }
             echo "<input type=\"hidden\" name=\"aliascount$count\" value = \"$aliascount\" >";
-        }
-        else{
+        } else{
             echo "</td><td><input type=\"text\" name=\"alias1$count\" size=\"10\" maxlength=\"9\">";
             echo "<input type=\"text\" name=\"alias2$count\" size=\"10\" maxlength=\"9\">";
             echo "<input type=\"text\" name=\"alias3$count\" size=\"10\" maxlength=\"9\">";
