@@ -401,8 +401,6 @@ class block_ucla_course_menu extends block_base {
 
         $elements[] = $this->create_element('myprofile');
         $elements[] = $this->create_element('mycourses');
-        $elements[] = $this->create_element('myprofilesettings');
-        $elements[] = $this->create_element('courseadministration');
 
         return $elements;
     }
