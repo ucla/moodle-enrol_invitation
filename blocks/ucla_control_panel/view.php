@@ -71,9 +71,11 @@ if ($PAGE->user_allowed_editing()) {
     }
 
     $buttons = $OUTPUT->edit_button(
-        new moodle_url('/blocks/ucla_control_panel/view.php', array(
-            'courseid' => $course_id))
-        );
+        new moodle_url(
+            '/blocks/ucla_control_panel/view.php', 
+            array('courseid' => $course_id)
+        )
+    );
 
     $PAGE->set_button($buttons);
 }
@@ -99,9 +101,13 @@ foreach ($views as $view => $contents) {
     }
 
     if ($view_valid) {
-        $tabs[] = new tabobject($view, new moodle_url($PAGE->url,
-            array('module' => $view)), get_string($view, 
-            'block_ucla_control_panel'));
+        $tabs[] = new tabobject($view, new moodle_url(
+                $PAGE->url,
+                array('module' => $view)
+            ), get_string(
+                $view, 
+                'block_ucla_control_panel'
+            ));
     }
 }
 

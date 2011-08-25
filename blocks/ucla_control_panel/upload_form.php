@@ -4,7 +4,6 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->libdir . '/formslib.php');
 require_once($CFG->libdir . '/completionlib.php');
-require_once(dirname(__FILE__) . '/uploadlib.php');
 
 abstract class easy_upload_form extends moodleform {
     protected $course;
@@ -31,8 +30,12 @@ abstract class easy_upload_form extends moodleform {
             'block_ucla_control_panel'));
 
         $mform->addElement('hidden', 'course_id', $course->id);
+        $mform->addElement('hidden', 'course', $course->id);
+
         $mform->addElement('hidden', 'type', $type);
         $mform->addElement('hidden', 'modulename', $this->get_coursemodule());
+        // TODO Force download always
+        $mform->addElement('hidden', 'display', false); 
 
         // Configure what it is you exactly are adding
         $this->specification();
@@ -44,6 +47,7 @@ abstract class easy_upload_form extends moodleform {
 
             $mform->addElement('text', 'name', get_string('name'),
                 array('size' => 40));
+            $mform->addRule('name', null, 'required');
 
             $mform->addElement('textarea', 'intro', 
                 get_string('description'), array('rows' => 9, 'cols' => 40));
@@ -82,17 +86,17 @@ abstract class easy_upload_form extends moodleform {
      *  from the user.
      **/
     abstract function specification();
-    
-    /**
-     *  Called once the form has been submitted, to act upon the data
-     *  that was submitted.
-     **/
-    abstract function process_data($data);
 
     /**
      *  Called when attempting to figure out what module to add.
+     *  This is simply an enforcement protocol, this function is
+     *  actually called within definition() and added as a value
+     *  to a hidden field within the form.
      *
      *  @return String
      **/
     abstract function get_coursemodule();
 }
+
+MoodleQuickForm::registerElementType('uclafile', 
+    dirname(__FILE__) . '/quickform_file.php', 'MoodleQuickForm_uclafile');

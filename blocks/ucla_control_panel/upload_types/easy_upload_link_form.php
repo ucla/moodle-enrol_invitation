@@ -9,14 +9,9 @@ class easy_upload_link_form extends easy_upload_form {
     function specification() {
         $mform = $this->_form;
 
-        $mform->addElement('url', 'external', get_string('dialog_add_link_box',
-            'block_ucla_control_panel'), array('size' => 60));
-    }
-
-    function process_data($data) {
-
-        var_dump($data);
-        die;
+        $mform->addElement('url', 'externalurl', 
+            get_string('dialog_add_link_box', 'block_ucla_control_panel'), 
+            array('size' => 60), array('usefilepicker' => false));
     }
 
     function get_coursemodule() {

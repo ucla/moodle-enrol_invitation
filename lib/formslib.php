@@ -1535,6 +1535,7 @@ class MoodleQuickForm extends HTML_QuickForm_DHTMLRulesTableless {
             // iterate over all elements, calling their exportValue() methods
             $emptyarray = array();
             foreach (array_keys($this->_elements) as $key) {
+
                 if ($this->_elements[$key]->isFrozen() && !$this->_elements[$key]->_persistantFreeze){
                     $value = $this->_elements[$key]->exportValue($emptyarray, true);
                 } else {

@@ -110,6 +110,11 @@ $string['course_edit_post'] = 'Edit the full name and description of the course 
 $string['easy_upload_form'] = '';
 $string['select_section'] = 'Add to section';
 
+$string['returntocourse'] = 'Return to course';
+$string['returntosection'] = 'Return to section';
+
+$string['successfuladd'] = 'Successfully added {$a} to course.';
+
 // Should I split out the "to {$a}" part?
 $string['easy_upload_link_form'] = 'Upload a link to {$a}';
 $string['dialog_add_link'] = 'Add a link';
