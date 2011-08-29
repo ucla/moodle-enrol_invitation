@@ -616,7 +616,7 @@ function delete_course_in_queue()
  * &$course - return the course number
  */
  
-function get_subject_course($db_conn, $term, $srs, &$subj, &$course){
+function get_subject_course(&$db_conn, $term, $srs, &$subj, &$course){
 	$query1 = "EXECUTE ccle_getClasses '$term','$srs'" ;
 	$result = odbc_exec ($db_conn, $query1);
 	
@@ -637,7 +637,7 @@ function get_subject_course($db_conn, $term, $srs, &$subj, &$course){
  * $subjarea - the department/subject area
  * $db_conn - registrar connection
  */
-function get_course_in_dept($term,$subjarea,$db_conn){
+function get_course_in_dept($term,$subjarea,&$db_conn){
 
 global $CFG;
 global $PAGE;
@@ -750,7 +750,7 @@ echo "</form>";
  * $count - its entry number in the display of a department
  * $db_conn - registrar connection
  */
-function get_course_details($term,$srs,$count,$db_conn)
+function get_course_details($term,$srs,$count,&$db_conn)
 {
     global $CFG;
     global $PAGE;
