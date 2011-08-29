@@ -98,8 +98,9 @@ if($viewdeptobj = $classform2->get_data()){
 <div>
     <fieldset class="crqformeven">
         <legend></legend>
-        SRS# Lookup <a href="http://www.registrar.ucla.edu/schedule/" 
-        target="_blank">Registrar's Schedule of Classes</a>
+        <?php echo get_string('srslookup', 'report_courserequestor'); ?> 
+		<a href="http://www.registrar.ucla.edu/schedule/" 
+        target="_blank"><?php echo get_string('registrarclasses', 'report_courserequestor'); ?></a>
     </fieldset>
 </div>
 <div class="crqdivclear" >
@@ -129,30 +130,30 @@ if(!empty($srsform))
     $crs = $DB->get_records('ucla_request_classes', array('term'=>$srsform['group1']['term'], 
         'action'=>'build'), null, 'srs');
     foreach($crs as $rows) {
-        $srs=rtrim($rows->srs);
-        $existingcourse[$srs]=1;
+        $srs = trim($rows->srs);
+        $existingcourse[$srs] = 1;
     }
 
     $crs2 = $DB->get_records('ucla_request_crosslist', 
     array('term'=>$srsform['group1']['term']), null, 'aliassrs');
     foreach($crs2 as $rows) {
-        $srs=rtrim($rows->aliassrs);
-        $existingaliascourse[$srs]=1;
+        $srs = trim($rows->aliassrs);
+        $existingaliascourse[$srs] = 1;
     }
     if($srsform['action']=='fillform') {
         echo "<table style=\"width:90%\" ><tbody>";
-        $term = rtrim($srsform['group1']['term']);
-        $srs = rtrim($srsform['group1']['srs']);
+        $term = trim($srsform['group1']['term']);
+        $srs = trim($srsform['group1']['srs']);
 
         if((isset($existingcourse[$srs]) && $existingcourse[$srs]) 
             || (isset($existingaliascourse[$srs]) && $existingaliascourse[$srs])) {
                 echo "<tr><td class=\"crqtableodd\" colspan=\"4\"><div class=\"crqerrormsg\">";
-                echo "THIS SRS NUMBER HAS BEEN SUBMITTED TO CREATE A COURSE. ";
-                echo "<br /> PLEASE ENTER A NEW SRS NO.</div></td></tr></tbody></table>";
+                echo get_string('alreadysubmitted', 'report_courserequestor');
+                echo "<br />".get_string('enternewsrs', 'report_courserequestor')."</div></td></tr></tbody></table>";
         } else {
             $query = "EXECUTE ccle_CourseInstructorsGet '$term', '$srs' ";
             $inst = odbc_exec ($db_conn, $query);
-            $inst_full="";
+            $inst_full = "";
 
             $unlisted_count = 0;
             while ($row=odbc_fetch_object($inst) ) {
@@ -184,25 +185,8 @@ if(!empty($srsform))
                 $inst_full = "Not Assigned";
             }
             odbc_free_result($inst);
-            $query1= "EXECUTE ccle_getClasses '$term','$srs'" ;
-            $result = odbc_exec ($db_conn, $query1);
-            
-            if ($row1=odbc_fetch_object($result)) {
-                $subj = rtrim($row1->subj_area);
-                $type = rtrim($row1->acttype);
-                $num = rtrim($row1->coursenum);
-                $sect = rtrim($row1->sectnum);
-                $title = rtrim($row1->coursetitle);
-                $description  = rtrim($row1->crs_desc);
-                $url = $row1->URL;
-                $url=str_replace(" ","+",$url);
-                $subj=preg_replace('/[\s&]/', '', $subj);
-                $description=str_replace(" ","",$description);
-                $session = rtrim($row1->session);
-                $course = $subj.$num.'-'.$sect;
-            }                     
-            
-            odbc_free_result($result);
+
+			get_subject_course($db_conn, $term, $srs, $subj, $course);
             
             $mailinst_default = $CFG->classrequestor_mailinst_default;
             $forceurl_default = $CFG->classrequestor_forceurl_default;
@@ -212,7 +196,7 @@ if(!empty($srsform))
             echo "<tr><td class=\"crqtableodd\" colspan=\"2\">";
             
             if (!isset($subj) || $subj == "") {
-                echo "<div class=\"crqerrormsg\">PLEASE CHECK THE TERM AND SRS AGAIN.</div>";		
+                echo "<div class=\"crqerrormsg\">".get_string('checktermsrs', 'report_courserequestor')."</div>";	
             } else {
                 echo "</td></tr><tr><td class=\"crqtableeven\" valign=\"top\">";
                 echo "<form method=\"POST\" action=\"".$PAGE->url."\">";
@@ -235,17 +219,17 @@ if(!empty($srsform))
                     &nbsp;Prevent URL Update</label>				
                     </div>";
                 if ($subj == "") { 
-                    $subj="NULL";
+                    $subj = "NULL";
                 }
                 
                 echo "<div class=\"crqtableeven\"><label>Department:<input type=\"text\" ";
-                echo "name=\"department\" value = $subj width=\"10\"></label></div>";
+                echo "name=\"department\" value = \"$subj\" width=\"10\"></label></div>";
                 if ($course == "") { 
-                    $course="NULL";
+                    $course = "NULL";
                 }
                 
                 echo "<div class=\"crqtableodd\"><label>Course:<input type=\"text\" name=\"course\" ";
-                echo "value = $course width=\"10\"></label></div>";
+                echo "value = \"$course\" width=\"10\"></label></div>";
                 echo "</td><td class=\"crqtableeven\"> <div class=\"crqtableodd\">(Optional)</div>";
                 echo "<div class=\"crqtableeven\">Crosslist";
 
@@ -263,19 +247,20 @@ if(!empty($srsform))
 				}
                 
                 if(!$xlistexists) {
-                    $aliascount=5;
+                    $aliascount = 5;
                     echo "<label><input type=\"radio\" name=\"xlist\" value = \"1\" >yes</label> <label>
                         <input type=\"radio\" name=\"xlist\" value = \"0\" checked>no</label></div>";
-                    echo "<div class=\"crqtableodd\"> Alias SRS<input type=\"text\" name=\"alias1\" 
-                        size=\"20\" maxlength=\"9\"></div>";
-                    echo "<div class=\"crqtableeven\"> Alias SRS<input type=\"text\" name=\"alias2\" 
-                        size=\"20\" maxlength=\"9\"></div>";
-                    echo "<div class=\"crqtableodd\"> Alias SRS<input type=\"text\" name=\"alias3\" 
-                        size=\"20\" maxlength=\"9\"></div>";
-                    echo "<div class=\"crqtableeven\"> Alias SRS<input type=\"text\" name=\"alias4\" 
-                        size=\"20\" maxlength=\"9\"></div>";
-                    echo "<div class=\"crqtableodd\"> Alias SRS<input type=\"text\" name=\"alias5\" 
-                        size=\"20\" maxlength=\"9\"></div>";
+					$i = 1;
+					while ($i <= $aliascount){
+						if($i % 2 == 1){
+							echo "<div class=\"crqtableodd\"> Alias SRS<input type=\"text\" name=\"alias".$i; 
+							echo "\" size=\"20\" maxlength=\"9\"></div>";
+						} else {
+							echo "<div class=\"crqtableeven\"> Alias SRS<input type=\"text\" name=\"alias".$i; 
+							echo "\" size=\"20\" maxlength=\"9\"></div>";
+						}
+						$i++;
+					}
                     echo "<input type=\"hidden\" name=\"aliascount\" value = \"$aliascount\" >";
                 } else {
                     echo "<label><input type=\"radio\" name=\"xlist\" value = \"1\" checked>yes</label> 
@@ -290,15 +275,7 @@ if(!empty($srsform))
 							$aliascount++;
                             $srs=trim($xlist_element);
                             $srs=substr($srs,5,9);
-                            $query3= "EXECUTE ccle_getClasses '$term','$srs'";
-                            $result3 = odbc_exec ($db_conn, $query3);
-                            while ($row3=odbc_fetch_object($result3)) {
-                                $subj1 = rtrim($row3->subj_area);
-                                $num1 = rtrim($row3->coursenum);
-                                $sect1 = rtrim($row3->sectnum);
-                                $course1 = $subj1.$num1.'-'.$sect1;
-                            }
-                            odbc_free_result($result3);
+							get_subject_course($db_conn, $term, $srs, $subj1, $course1);
                             echo "<label><input type=\"checkbox\" name=\"alias$aliascount\" 
                                 value=\"$srs\" checked> $course1 <span style=\"color:green\"> 
                                 (SRS: $srs) </span></label><br>";
@@ -344,34 +321,34 @@ function display_build_live_classes($build_or_live, $buildform){
     global $CFG;
     global $PAGE;
     global $DB;
-    $recflag=0;
-    $department=$buildform['group2']['department'];
+    $recflag = 0;
+    $department = $buildform['group2']['department'];
     $term = $buildform['group2']['term'];
     if($department == '0') {
-        if($build_or_live==1){ // from build queue
-            if($rs=$DB->get_records_sql("select * from ".$CFG->prefix."ucla_request_classes where 
+        if($build_or_live == 1){ // from build queue
+            if($rs = $DB->get_records_sql("select * from ".$CFG->prefix."ucla_request_classes where 
                 action like 'build' and (status like 'pending' or status like 'processing') 
                 and term like '$term' ")) {
-                $recflag=1;
+                $recflag = 1;
             }
         } else { // from live queue
-            if($rs=$DB->get_records('ucla_request_classes',array('status'=>'done', 
+            if($rs = $DB->get_records('ucla_request_classes',array('status'=>'done', 
                 'term'=>$term), 'department,course')){
-                $recflag=1;
+                $recflag = 1;
             }
         }
     } else {
-        if($build_or_live==1){
-            if($rs=$DB->get_records_sql("select * from `".$CFG->prefix."ucla_request_classes` 
+        if($build_or_live == 1){
+            if($rs = $DB->get_records_sql("select * from `".$CFG->prefix."ucla_request_classes` 
                 where `department` like '$department'  and  `action` like 'build' and term like '$term' and (status like 
                 'pending' or status like 'processing') order by 'department' ")) {
-                $recflag=1;
+                $recflag = 1;
             }
         }
         else {
-            if($rs=$DB->get_records('ucla_request_classes', array('department'=>$department, 
+            if($rs = $DB->get_records('ucla_request_classes', array('department'=>$department, 
                 'status'=>'done', 'term'=>$term),'department')){
-                $recflag=1;
+                $recflag = 1;
             }
         }
     }
@@ -387,7 +364,7 @@ function display_build_live_classes($build_or_live, $buildform){
             <tr>
                 <td class="crqtableeven" colspan="6" align="center">
 END;
-        if($build_or_live==1){
+        if($build_or_live == 1){
             echo get_string('viewtobebuilt', 'report_courserequestor');
         } else {
             echo get_string('viewlivecourses', 'report_courserequestor');
@@ -407,7 +384,7 @@ END;
         foreach($rs as $row2) {
             $srs = rtrim($row2->srs);
             echo "<form method=\"POST\" action=\"".$PAGE->url."\">";
-            if ($build_or_live==1) {
+            if ($build_or_live == 1) {
                 echo "<input type=\"hidden\" name=\"action\" value=\"deletecourse\">";
             }
             echo "<input type=\"hidden\" name=\"srs\" value=\"$row2->srs\">";
@@ -455,9 +432,10 @@ if(optional_param('action',NULL,PARAM_ALPHANUM) == "courserequest") {
     $srs = optional_param('srs',NULL,PARAM_ALPHANUM);
     if((isset($existingcourse[$srs]) && $existingcourse[$srs]) 
         || (isset($existingaliascourse[$srs]) && $existingaliascourse[$srs])) {
-    echo "<table><tbody><tr><td class=\"crqtableodd\"><div class=\"crqerrormsg\">";
-    echo "THIS SRS NUMBER HAS BEEN SUBMITTED TO CREATE A COURSE. <BR> PLEASE ENTER 
-        A NEW SRS NO.</div></td></tr></tbody></table>";
+		echo "<table><tbody><tr><td class=\"crqtableodd\"><div class=\"crqerrormsg\">";
+		echo get_string('alreadysubmitted', 'report_courserequestor');
+        echo "<br />".get_string('enternewsrs', 'report_courserequestor');
+		echo "</div></td></tr></tbody></table>";
     } else{
         $instructor = optional_param('instname',NULL,PARAM_TEXT);
         
@@ -534,10 +512,6 @@ if(optional_param('action',NULL,PARAM_ALPHANUM) == "courserequest") {
         get_courses_to_be_built();
         echo "</td></tr></table>";
 
-        $message = "$srs  of term $term needs to be built";
-
-        $message = "your request for creating a new CCLE course ($srs) has been submitted. Thanks.";
-
     }
 }
 
@@ -549,21 +523,21 @@ function get_courses_to_be_built()
     global $DB;
     global $CFG;
     global $PAGE;
-    $recflag=0;
-    $department=optional_param('department',NULL,PARAM_ALPHANUM);
+    $recflag = 0;
+    $department = optional_param('department',NULL,PARAM_ALPHANUM);
     $term = optional_param('term',NULL,PARAM_ALPHANUM);
     if($department == '0') {
-        if($rs=$DB->get_records_sql("select * from ".$CFG->prefix."ucla_request_classes 
+        if($rs = $DB->get_records_sql("select * from ".$CFG->prefix."ucla_request_classes 
             where action like 'build' and (status like 'pending' or status like 'processing') 
             and term like '$term' ")){
-            $recflag=1;
+            $recflag = 1;
         }
     }
     else {
-        if($rs=$DB->get_records_sql("SELECT * FROM `".$CFG->prefix."ucla_request_classes` 
+        if($rs = $DB->get_records_sql("SELECT * FROM `".$CFG->prefix."ucla_request_classes` 
             WHERE `department` LIKE '$department'  AND  `action` LIKE 'build'  
             AND (status like 'pending' or status like 'processing') order by 'department' ")){
-            $recflag=1;
+            $recflag = 1;
         }
     }
     if($recflag = 0) {
@@ -600,9 +574,9 @@ END;
             $xlist="";
             if ($row2->crosslist == 1)
             {
-                $xlist= "<span class=\"crqbedxlist\">crosslisted</span>";
+                $xlist = "<span class=\"crqbedxlist\">crosslisted</span>";
             }
-            $coursetype=" <span class=\"crqbedlive\">$row2->status</span>";
+            $coursetype = " <span class=\"crqbedlive\">$row2->status</span>";
             
             echo "<tr class=\"crqtableunderline\"><td>".rtrim($row2->srs)."</td>
                 <td>".rtrim($row2->course)."</td><td>".rtrim($row2->department)."</td>
@@ -614,6 +588,10 @@ END;
     }
 }
 
+/**
+ * this function deletes one specific class in the building queue
+ * based on the given srs
+ */
 function delete_course_in_queue()
 {
     global $DB;
@@ -625,14 +603,48 @@ function delete_course_in_queue()
     get_courses_to_be_built();
 }
 
+/**
+ * this function retrieves the subject area and course number
+ * from the registrar.
+ *
+ * input:
+ * $db_conn - registrar connection
+ * $term - the class's year and quarter
+ * $srs - srs number of the class
+ * passing by reference
+ * &$subj - return the subject area of the class
+ * &$course - return the course number
+ */
+ 
+function get_subject_course($db_conn, $term, $srs, &$subj, &$course){
+	$query1 = "EXECUTE ccle_getClasses '$term','$srs'" ;
+	$result = odbc_exec ($db_conn, $query1);
+	
+	if ($row1 = odbc_fetch_object($result)) {
+		$subj = trim($row1->subj_area);
+		$num = trim($row1->coursenum);
+		$sect = trim($row1->sectnum);
+		$course = $subj.$num.'-'.$sect;
+	}                     
+	
+	odbc_free_result($result);
+}
+
+/**
+ * this function displays class infomation in the given department
+ * input:
+ * $term - the year and quarter that the classes are in
+ * $subjarea - the department/subject area
+ * $db_conn - registrar connection
+ */
 function get_course_in_dept($term,$subjarea,$db_conn){
 
 global $CFG;
 global $PAGE;
-$term=rtrim($term);
-$subjarea=rtrim($subjarea);
+$term = rtrim($term);
+$subjarea = rtrim($subjarea);
 
-$qr= odbc_exec($db_conn, "EXECUTE CIS_courseGetAll '$term','$subjarea'") or die('access denied');
+$qr = odbc_exec($db_conn, "EXECUTE CIS_courseGetAll '$term','$subjarea'") or die('access denied');
 
 $rows = array();
 
@@ -709,8 +721,8 @@ echo <<< END
 
 END;
 
-$totalrows =count($rows);
-$count=1;
+$totalrows = count($rows);
+$count = 1;
 
 foreach ($rows as $row) {
     get_course_details($term,$row->srs,$count,$db_conn);
@@ -728,6 +740,16 @@ echo "</table>";
 echo "</form>";
 }
 
+/**
+ * this function displays class info such as whether it has
+ * been crosslisted and its aliases. This function is called by
+ * get_course_in_dept
+ * Input:
+ * $term - the year and quarter that the class is in
+ * $srs - the srs of the class
+ * $count - its entry number in the display of a department
+ * $db_conn - registrar connection
+ */
 function get_course_details($term,$srs,$count,$db_conn)
 {
     global $CFG;
@@ -742,13 +764,13 @@ function get_course_details($term,$srs,$count,$db_conn)
 		}
 	}
 
-    $qr= odbc_exec ($db_conn, "EXECUTE ccle_CourseInstructorsGet '$term', '$srs' ");
-    $inst_full="";
+    $qr = odbc_exec ($db_conn, "EXECUTE ccle_CourseInstructorsGet '$term', '$srs' ");
+    $inst_full = "";
 
     $rows = array();
 
-    while ($row=odbc_fetch_object($qr)) {
-        $rows[]=$row;
+    while ($row = odbc_fetch_object($qr)) {
+        $rows[] = $row;
     }
 
     odbc_free_result($qr);
@@ -759,28 +781,23 @@ function get_course_details($term,$srs,$count,$db_conn)
         }
     }
 
-    if ($inst_full == ""){$inst_full = "Not Assigned";}
+    if ($inst_full == ""){
+		$inst_full = "Not Assigned";
+	}
 
     $result = odbc_exec ($db_conn,"EXECUTE ccle_getClasses '$term','$srs'");
     $rows = array();
-    while ($row=odbc_fetch_object($result)) {
+    while ($row = odbc_fetch_object($result)) {
         $rows[] = $row;
     }
     odbc_free_result($result);
 
     foreach ($rows as $row) {
-        $subj = rtrim($row->subj_area);
-        $subj=preg_replace('/\s/','',$subj);
-        $type = rtrim($row->acttype);
-        $num = rtrim($row->coursenum);
+        $subj = trim($row->subj_area);
+        $num = trim($row->coursenum);
         if ($num > 495){ continue;}
         if ($subj == "PHYSICS" && $num > 295) {continue;}
-        $sect = rtrim($row->sectnum);
-        $title = rtrim($row->coursetitle);
-        $description  = rtrim($row->crs_desc);
-        $url = $row->URL;
-        $url=preg_replace('/\s/','+',$url);
-        $session = rtrim($row->session);
+        $sect = trim($row->sectnum);
         $course = $subj.$num.'-'.$sect;
 
         echo "<input type=\"hidden\" name=\"srs$count\" value=$srs>";
@@ -790,24 +807,26 @@ function get_course_details($term,$srs,$count,$db_conn)
         echo "<input type=\"hidden\" name=\"course$count\" value=\"$course\">";
         echo "<tr class=\"crqtableunderline\" ><td>$inst_full";      // INSTRUCTOR COLUMN
 
-        if($course ==""){$course="NULL";}
+        if($course == "" ){
+			$course = "NULL";
+		}
 
         echo "</td><td>$course";
 		
         if($xlistexists){
             echo "</td><td>";
-            $aliascount=0;
+            $aliascount = 0;
 
             foreach ($xlist_info as $xlist_element) {
                 if (preg_match('/[0-9]{9}/',$xlist_element)) {
 					$aliascount++;
-					$srs=trim($xlist_element);
-					$srs=substr($srs,5,9);
+					$srs = trim($xlist_element);
+					$srs = substr($srs,5,9);
 
 					$result1 = odbc_exec ($db_conn, "EXECUTE ccle_getClasses '$term','$srs' ");
 
 					$rows = array();
-					while ($row=odbc_fetch_object($result1)) {
+					while ($row = odbc_fetch_object($result1)) {
 						$rows[] = $row;
 					}
 					odbc_free_result($result1);
@@ -866,11 +885,9 @@ if(optional_param('action',NULL,PARAM_ALPHANUM)){
             $nourlupd = 0;
         }
         
-        while($cnt<$count && optional_param("srs$cnt",NULL,PARAM_ALPHANUM)) {
-            $aliascount=optional_param("aliascount$cnt",NULL,PARAM_ALPHANUM);
-            $isxlist=0;
-            $y =0 ;
-            $r=1;
+        while($cnt < $count && optional_param("srs$cnt",NULL,PARAM_ALPHANUM)) {
+            $aliascount = optional_param("aliascount$cnt",NULL,PARAM_ALPHANUM);
+            $isxlist = 0;      
 
             $term = optional_param('term',NULL,PARAM_ALPHANUM);
             $srs = optional_param("srs$cnt",NULL,PARAM_ALPHANUM);
@@ -884,21 +901,21 @@ if(optional_param('action',NULL,PARAM_ALPHANUM)){
             } else {
                 $addcourse = "";
             }
-            
-            
-            $ctime=time();
-
+                    
+            $ctime = time();
+			$r = 1;
             if($addcourse != ""){	
                 if(isset($existingcourse[$srs]) || isset($existingaliascourse[$srs])) {
-                    echo "<table><tr ><td ><div class=\"crqerrormsg\">$course has either 
-                        been submitted for course creation or is a child course</div></td></tr></table>";
+                    echo "<table><tr ><td ><div class=\"crqerrormsg\">$course";
+					echo get_string('childcourse', 'report_courserequestor');
+					echo "</div></td></tr></table>";
                 } else {
-                    $isxlist=0;
-                    while($r<=$aliascount) {
-                        $value="alias".$r.$cnt;
+                    $isxlist = 0;
+                    while($r <= $aliascount) {
+                        $value = "alias".$r.$cnt;
                         if($_POST[$value] != "") {
                             if(preg_match('/^[0-9]{9}$/',$_POST[$value])) {
-                                $isxlist=1;
+                                $isxlist = 1;
                             }
                         }
                         $r++;
@@ -921,33 +938,35 @@ if(optional_param('action',NULL,PARAM_ALPHANUM)){
                     $DB->insert_record('ucla_request_classes', $recorddata);
                     
 
-                    $existingcourse[$srs]=1;
+                    $existingcourse[$srs] = 1;
 
-                    echo "<table><tr ><td ><div class=\"crqgreenmsg\">$course submitted to be built
-                        </div></td></tr></table>";
+                    echo "<table><tr ><td ><div class=\"crqgreenmsg\">$course";
+					echo get_string('submittedtobebuilt', 'report_courserequestor');
+                    echo "</div></td></tr></table>";
 
-                    if($isxlist==1) {
-                        $r=1;
-                        while($r<=$aliascount)
+                    if($isxlist == 1) {
+                        $r = 1;
+                        while($r <= $aliascount)
                         {
-                            $value="alias".$r.$cnt;
+                            $value = "alias".$r.$cnt;
                             $als = optional_param($value,NULL,PARAM_ALPHANUM);
                             //create a check so that the alias being entered 
                             //is not a host for some other crosslist
                             //also check that the host srs is not an alias for some other crosslist
                             if(isset($existingcourse[$als]) || isset($existingaliascourse[$als])){	
-                                echo "<table><tr ><td ><div class=\"crqerrormsg\">Requested crosslist 
-                                    $als for $course is already submitted - Individually OR as a child course
-                                    </div></td></tr></table>";
+                                echo "<table><tr ><td ><div class=\"crqerrormsg\">Requested crosslist $als for $course";
+								echo get_string('individualorchildcourse', 'report_courserequestor');
+                                echo "</div></td></tr></table>";
                             } else if($als != ""){
                                 $query1 = "INSERT INTO ".$CFG->prefix."ucla_request_crosslist
                                     (term,srs,aliassrs,type) values ('$term','$srs','$als','joint')";
                                 $DB->execute($query1);
 
-                                $existingaliascourse[$als]=1;
+                                $existingaliascourse[$als] = 1;
 
-                                echo "<table><tr ><td ><div class=\"crqgreenmsg\">$course - 
-                                    submitted for crosslisting with $als</div></td></tr></table>";
+                                echo "<table><tr ><td ><div class=\"crqgreenmsg\">$course";
+								echo get_string('crosslistingwith', 'report_courserequestor');
+                                echo "$als</div></td></tr></table>";
                             }
                             $r++;
                         }

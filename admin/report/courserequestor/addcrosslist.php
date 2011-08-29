@@ -6,6 +6,11 @@ Now uses mdl_ucla_request_classes & mdl_ucla_request_crosslist tables
 require_once(dirname(__FILE__).'/../../../config.php');
 require_once($CFG->libdir.'/adminlib.php');
 
+/**
+ * this function creates a dropdown list for terms
+ * input:
+ * $submit_on_change - if it is true, then the form is submitted on change
+ */
 function print_term_pulldown_box($submit_on_change=false) {
     global $CFG;
 
@@ -114,17 +119,17 @@ echo $OUTPUT->header();
         or status = 'pending') order by course");
 
     foreach ($crs as $rows){
-        $srs=rtrim($rows->srs);
-        $course=rtrim($rows->course);
+        $srs = trim($rows->srs);
+        $course = trim($rows->course);
         $existingcourse[$srs] = 1;
         echo "<option value='$srs'>$course</option>";
     }
     echo '</select></label>';
     echo get_string('crosslistaddalias', 'report_courserequestor');
     echo '<input type="hidden" name="action" value="addalias">';
-    $i=1;
-    while($i<=15){
-        if($i%2==0){
+    $i = 1;
+    while($i <= 15){
+        if($i%2 == 0){
             echo '<div class="crqfrmtxtboxodd">';
             echo '<input type="text" name="alias'.$i.'" size="20" maxlength="9">';
             echo '</div>';
@@ -162,7 +167,7 @@ if(isset($actioncleaned)) {
                 if ($DB->get_records('ucla_request_crosslist', array('aliassrs'=>$value, 
                     'term'=>$termcleaned, 'srs'=>$hostsrscleaned), null, 'aliassrs')){
                     echo "<div class=\"crqerrormsg\">";
-                    echo "DUPLICATE ENTRY. Alias already inserted";
+                    echo get_string('duplicatekeys', 'report_courserequestor');
                     echo "</div>";
                 } else{
                     $crosslistdata->term = $termcleaned;
@@ -172,8 +177,9 @@ if(isset($actioncleaned)) {
                     $DB->insert_record('ucla_request_crosslist', $crosslistdata);
                     
                     
-                    echo "<table><tr ><td ><div class=\"crqgreenmsg\">New aliases 
-                        submitted for crosslisting with host: '$hostsrscleaned'</div></td></tr></table>";
+                    echo "<table><tr ><td ><div class=\"crqgreenmsg\">";
+					echo get_string('newaliascrosslist', 'report_courserequestor');
+                    echo $hostsrscleaned."</div></td></tr></table>";
 
                     $update_records = $DB->get_records('ucla_request_classes', array('srs'=>$hostsrscleaned));
                     if ($update_records){
@@ -183,16 +189,14 @@ if(isset($actioncleaned)) {
                             $DB->update_record('ucla_request_classes', $updateobject);
                         }
                     }
-                    
-                    
-                    echo "<table><tr ><td ><div class=\"crqgreenmsg\">Submitted 
-                        for crosslisting</div></td></tr></table>";
-
-                    $message = "New aliases submitted to be crosslisted with host: '$hostsrscleaned' ";
+                                    
+                    echo "<table><tr ><td ><div class=\"crqgreenmsg\">";
+					echo get_string('submittedforcrosslist', 'report_courserequestor');
+                    echo "</div></td></tr></table>";
                 }
             } else {
                     echo "<div class=\"crqerrormsg\">";
-                    echo "Please check your srs input. It has to be a 9 digit numeric value";
+                    echo get_string('checksrsdigits', 'report_courserequestor');
                     echo "</div>";
             }
         }
