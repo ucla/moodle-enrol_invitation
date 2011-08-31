@@ -348,7 +348,7 @@ function print_log($course, $user=0, $date=0, $order="l.time ASC", $page=0, $per
     $table->head = array(
         get_string('time'),
         get_string('ip_address'),
-        get_string('fullnamecourse'),
+        get_string('fullnameuser'),
         get_string('action'),
         get_string('info')
     );
@@ -463,7 +463,7 @@ function print_mnet_log($hostid, $course, $user=0, $date=0, $order="l.time ASC",
     }
     echo "<th class=\"c1 header\">".get_string('time')."</th>\n";
     echo "<th class=\"c2 header\">".get_string('ip_address')."</th>\n";
-    echo "<th class=\"c3 header\">".get_string('fullnamecourse')."</th>\n";
+    echo "<th class=\"c3 header\">".get_string('fullnameuser')."</th>\n";
     echo "<th class=\"c4 header\">".get_string('action')."</th>\n";
     echo "<th class=\"c5 header\">".get_string('info')."</th>\n";
     echo "</tr>\n";
@@ -530,7 +530,7 @@ function print_log_csv($course, $user, $date, $order='l.time DESC', $modname,
     global $DB;
 
     $text = get_string('course')."\t".get_string('time')."\t".get_string('ip_address')."\t".
-            get_string('fullnamecourse')."\t".get_string('action')."\t".get_string('info');
+            get_string('fullnameuser')."\t".get_string('action')."\t".get_string('info');
 
     if (!$logs = build_logs_array($course, $user, $date, $order, '', '',
                        $modname, $modid, $modaction, $groupid)) {
@@ -566,7 +566,7 @@ function print_log_csv($course, $user, $date, $order='l.time DESC', $modname,
     header("Pragma: public");
 
     echo get_string('savedat').userdate(time(), $strftimedatetime)."\n";
-    echo $text;
+    echo $text."\n";
 
     if (empty($logs['logs'])) {
         return true;
@@ -643,7 +643,7 @@ function print_log_xls($course, $user, $date, $order='l.time DESC', $modname,
 
     $worksheet = array();
     $headers = array(get_string('course'), get_string('time'), get_string('ip_address'),
-                        get_string('fullnamecourse'),    get_string('action'), get_string('info'));
+                        get_string('fullnameuser'),    get_string('action'), get_string('info'));
 
     // Creating worksheets
     for ($wsnumber = 1; $wsnumber <= $nroPages; $wsnumber++) {
@@ -754,7 +754,7 @@ function print_log_ods($course, $user, $date, $order='l.time DESC', $modname,
 
     $worksheet = array();
     $headers = array(get_string('course'), get_string('time'), get_string('ip_address'),
-                        get_string('fullnamecourse'),    get_string('action'), get_string('info'));
+                        get_string('fullnameuser'),    get_string('action'), get_string('info'));
 
     // Creating worksheets
     for ($wsnumber = 1; $wsnumber <= $nroPages; $wsnumber++) {
@@ -2473,7 +2473,7 @@ function print_course($course, $highlightterms = '') {
         $course->summaryformat = FORMAT_MOODLE;
     }
     echo highlight($highlightterms, format_text($course->summary, $course->summaryformat, $options,  $course->id));
-    if ((!isloggedin() || is_siteadmin()) && $icons = enrol_get_course_info_icons($course)) {
+    if ($icons = enrol_get_course_info_icons($course)) {
         echo html_writer::start_tag('div', array('class'=>'enrolmenticons'));
         foreach ($icons as $icon) {
             echo $OUTPUT->render($icon);
@@ -3413,10 +3413,13 @@ function move_courses($courseids, $categoryid) {
     }
 
     $courseids = array_reverse($courseids);
+    $newparent = get_context_instance(CONTEXT_COURSECAT, $category->id);
     $i = 1;
 
     foreach ($courseids as $courseid) {
         if ($course = $DB->get_record('course', array('id'=>$courseid), 'id, category')) {
+            $course = new stdClass();
+            $course->id = $courseid;
             $course->category  = $category->id;
             $course->sortorder = $category->sortorder + MAX_COURSES_IN_CATEGORY - $i++;
             if ($category->visible == 0) {
@@ -3428,7 +3431,6 @@ function move_courses($courseids, $categoryid) {
             $DB->update_record('course', $course);
 
             $context   = get_context_instance(CONTEXT_COURSE, $course->id);
-            $newparent = get_context_instance(CONTEXT_COURSECAT, $course->category);
             context_moved($context, $newparent);
         }
     }

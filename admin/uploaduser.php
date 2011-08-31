@@ -468,6 +468,7 @@ if ($formdata = $mform2->is_cancelled()) {
                     if (!isset($supportedauths[$user->auth])) {
                         $upt->track('auth', $struserauthunsupported, 'warning');
                     }
+                    $doupdate = true;
                 }
                 $allcolumns = array_merge($STD_FIELDS, $PRF_FIELDS);
                 foreach ($allcolumns as $column) {
@@ -915,6 +916,14 @@ while ($linenum <= $previewrows and $fields = $cir->next()) {
             $rowcols['status'][] = $stremailduplicate;
         }
     }
+
+    if (isset($rowcols['city'])) {
+        $rowcols['city'] = trim($rowcols['city']);
+        if (empty($rowcols['city'])) {
+            $rowcols['status'][] = get_string('fieldrequired', 'error', 'city');
+        }
+    }
+
     $rowcols['status'] = implode('<br />', $rowcols['status']);
     $data[] = $rowcols;
 }
