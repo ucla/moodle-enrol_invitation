@@ -54,6 +54,7 @@ abstract class moodle1_handlers_factory {
             new moodle1_scales_handler($converter),
             new moodle1_outcomes_handler($converter),
             new moodle1_gradebook_handler($converter),
+            new moodle1_groups_handler($converter)
         );
 
         $handlers = array_merge($handlers, self::get_plugin_handlers('mod', $converter));
@@ -288,7 +289,6 @@ abstract class moodle1_xml_handler extends moodle1_handler {
         return false;
     }
 }
-
 
 /**
  * Process the root element of the backup file
@@ -1649,6 +1649,122 @@ class moodle1_gradebook_handler extends moodle1_xml_handler {
             $this->write_xml('grade_letter', $gradeletter, array('/grade_letter/id'));
         }
         $this->xmlwriter->end_tag('grade_letters');
+    }
+}
+
+// START CCLE-MODIFICATION 2229: Public private migration requires that
+// moodle 1.x to 2.x migration transfers over group data.
+class moodle1_groups_handler extends moodle1_xml_handler {
+    /** @var array the groups */
+    protected $groups = array();
+    protected $groupings = array();
+    protected $groupingsgroups = array();
+
+    public function get_paths() {
+        return array(
+            new convert_path(
+                'group', '/MOODLE_BACKUP/COURSE/GROUPS/GROUP',
+                array(
+                    'newfields' => array(
+                        'descriptionformat' => 0
+                    ),
+                )
+            ),
+            new convert_path(
+                'grouping', '/MOODLE_BACKUP/COURSE/GROUPINGS/GROUPING',
+                array(
+                    'newfields' => array(
+                        'descriptionformat' => 0
+                    ),
+                )
+            ),
+            new convert_path(
+                'groupingsgroups', '/MOODLE_BACKUP/COURSE/GROUPINGSGROUPS'
+            ),
+            new convert_path(
+                'groupingsgroup', 
+                    '/MOODLE_BACKUP/COURSE/GROUPINGSGROUPS/GROUPINGGROUP'
+            )
+        );
+    }
+
+    // TODO verify that these three are necessary
+    public function process_group($data) {
+        $this->groups[] = $data;
+    }
+
+    public function process_grouping($data) {
+        $this->groupings[] = $data;
+    }
+
+    public function process_groupingsgroup($data) {
+        $groupingid = $data['groupingid'];
+        unset($data['groupingid']);
+
+        if (!isset($this->groupingsgroups[$groupingid])) {
+            $this->groupingsgroups[$groupingid] = array();
+        }
+
+        $this->groupingsgroups[$groupingid][] = $data;
+    }
+
+    public function on_groupingsgroups_end() {
+        if (empty($this->groups)) {
+            return;
+        }
+
+        $this->open_xml_writer('groups.xml');
+
+        $this->xmlwriter->begin_tag('groups');
+        foreach ($this->groups as $group) {
+            $this->write_xml('group', $group, 
+                array('/group/id')
+            );
+        }
+
+        $this->xmlwriter->begin_tag('groupings');
+        foreach ($this->groupings as $grouping) {
+            $gid = $grouping['id'];
+            unset($grouping['id']);
+
+            $this->xmlwriter->begin_tag('grouping', array('id' => $gid));
+
+            foreach ($grouping as $k => $v) {
+                $this->xmlwriter->full_tag($k, $v);
+            }
+
+            // Put the set of groupings_group associated with
+            // the grouping into the thing.
+            // Unfortunately their convenience function does not
+            // work very well
+            if (isset($this->groupingsgroups[$gid])) {
+                $this->xmlwriter->begin_tag('grouping_groups');
+
+                foreach ($this->groupingsgroups[$gid] as $gg) {
+                    $this->write_xml('grouping_group', $gg,
+                        array('/grouping_group/id'));
+                }
+
+                $this->xmlwriter->end_tag('grouping_groups');
+            }
+
+            $this->xmlwriter->end_tag('grouping');
+        }
+
+        $this->xmlwriter->end_tag('groupings');
+
+        $this->xmlwriter->end_tag('groups');
+
+        // Save these just in case we need these later
+        $this->converter->set_stash('groups', $this->groups);
+        $this->converter->set_stash('groupings', $this->groupings);
+        $this->converter->set_stash('groupingsgroups', $this->groupingsgroups);
+   
+        $this->close_xml_writer('groups.xml');
+
+        unset($this->groups);
+        unset($this->groupings);
+        unset($this->groupingsgroups);
     }
 }
 
