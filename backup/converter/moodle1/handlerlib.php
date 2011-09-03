@@ -531,6 +531,71 @@ class moodle1_root_handler extends moodle1_xml_handler {
         $this->xmlwriter->end_tag('inforef');
         $this->close_xml_writer();
 
+        // START UCLA MODIFICATION CCLE-2229: Public private migration
+        ////////////////////////////////////////////////////////////////////////
+        // write course/publicprivate.xml
+        ////////////////////////////////////////////////////////////////////////
+        $grouppublicprivate = $this->converter->get_stash_or_default(
+            'grouppublicprivate'
+        );
+
+        if ($grouppublicprivate !== null && $grouppublicprivate) {
+            $groupautoassign = $this->converter->get_stash('groupautoassign');
+
+            $groups = $this->converter->get_stash('groups');
+            $group = null;
+            foreach ($groups as $g) {
+                if ($g['id'] == $groupautoassign) {
+                    $group = $g;
+                    break;
+                }
+            }
+
+            $groupings = $this->converter->get_stash('groupings');
+            $groupingsgroups = $this->converter->get_stash('groupingsgroups');
+            
+            // Look for groupingsgroups with the particular group
+            // There should only be one as per publicprivate settings
+            // I wonder if there is a "array search" function
+            $grouping = null;
+            foreach ($groupingsgroups as $gingid => $ggs) {
+                foreach ($ggs as $gg) {
+                    if ($gg['groupid'] == $group['id']) {
+                        foreach ($groupings as $ging) {
+                            if ($ging['id'] == $gingid) {
+                                $grouping = $ging;
+                                break;
+                            }
+                        }
+
+                        break;
+                    }
+                }
+
+                if ($grouping !== null) {
+                    break;
+                }
+            }
+
+            if ($grouping !== null) {
+                $pubpriobj = array();
+
+                $pubpriobj['enable'] = '1';
+                $pubpriobj['group_name'] = $group['name'];
+                $pubpriobj['grouping_name'] = $grouping['name'];
+
+                $this->open_xml_writer('course/publicprivate.xml');
+                $this->write_xml('course', $pubpriobj);
+                $this->close_xml_writer();
+
+                unset($pubpriobj);
+            }
+
+            unset($groupautoassign, $group, $groupings, $groupingsgroups);
+        }
+
+        // END UCLA MODIFICATION CCLE-2229
+
         // make sure that the files required by the restore process have been generated.
         // missing file may happen if the watched tag is not present in moodle.xml (for example
         // QUESTION_CATEGORIES is optional in moodle.xml but questions.xml must exist in
@@ -751,6 +816,19 @@ class moodle1_course_header_handler extends moodle1_xml_handler {
         $fileman = $this->converter->get_file_manager($contextid, 'course', 'summary');
         $this->course['summary'] = moodle1_converter::migrate_referenced_files($this->course['summary'], $fileman);
         $this->converter->set_stash('course_summary_files_ids', $fileman->get_fileids());
+
+        // START UCLA MODIFICATION CCLE-2229: Public private needs to be
+        // migrated over
+        if (isset($this->course['grouppublicprivate'])) {
+            $this->converter->set_stash('grouppublicprivate', 
+                $this->course['grouppublicprivate']);
+        }
+
+        if (isset($this->course['groupautoassign'])) {
+            $this->converter->set_stash('groupautoassign',
+                $this->course['groupautoassign']);
+        }
+        // END UCLA MODIFICATION CCLE-2229
 
         // write course.xml
         $this->open_xml_writer('course/course.xml');
