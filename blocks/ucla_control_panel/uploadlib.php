@@ -47,3 +47,24 @@ class easyupload {
 
     }
 }
+
+/**
+ *  Class representing a nested-form of indents and modules in a section.
+ **/
+class modnode {
+    var $modid;
+    var $modtext;
+    var $modindent;
+
+    var $children = array();
+
+    function __construct($id, $text, $indent) {
+        $this->modid = $id;
+        $this->modtext = $text;
+        $this->modindent = $indent;
+    }
+
+    function add_child(&$node) {
+        $this->children[] =& $node;
+    }
+}

@@ -7,7 +7,8 @@ require_once($CFG->libdir . '/completionlib.php');
 
 abstract class easy_upload_form extends moodleform {
     protected $course;
-    protected $context;
+    protected $activities;
+    protected $resources;
 
     // This will enable the section switcher
     var $allow_js_select = false;
@@ -22,6 +23,14 @@ abstract class easy_upload_form extends moodleform {
         $mform = $this->_form;
 
         $course = $this->_customdata['course'];
+        $this->course = $course;
+
+        $acts = $this->_customdata['activities'];
+        $this->activities = $acts;
+
+        $reso = $this->_customdata['resources'];
+        $this->resources = $reso;
+
         $type = $this->_customdata['type'];
         $sections = $this->_customdata['sectionnames'];
 
@@ -34,6 +43,7 @@ abstract class easy_upload_form extends moodleform {
 
         $mform->addElement('hidden', 'type', $type);
         $mform->addElement('hidden', 'modulename', $this->get_coursemodule());
+
         // TODO Force download always
         $mform->addElement('hidden', 'display', false); 
 
