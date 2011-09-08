@@ -34,6 +34,8 @@ abstract class easy_upload_form extends moodleform {
         $type = $this->_customdata['type'];
         $sections = $this->_customdata['sectionnames'];
 
+        $nodes = $this->_customdata['sectionnodes'];
+
         $addtitle = 'dialog_add_' . $type;
         $mform->addElement('header', 'general', get_string($addtitle,
             'block_ucla_control_panel'));
@@ -73,19 +75,24 @@ abstract class easy_upload_form extends moodleform {
 
         // End code that probably needs to go somewhere else
 
-        // Show the section selector
-        $mform->addElement('select', 'section',
-            get_string('select_section', 'block_ucla_control_panel'), 
-            $sections);
-
         if (class_exists('PublicPrivate_Site')) {
             if (PublicPrivate_Site::is_enabled()) {
                 // TODO
             }
         }
 
+        // Show the section selector
+        $mform->addElement('select', 'section',
+            get_string('select_section', 'block_ucla_control_panel'), 
+            $sections);
+
+        // If needed, add the section rearranges.
+        // This part appears to be a part of 'add to section'
         if ($this->allow_js_select) {
-            // If needed, add the section rearranges.
+            global $PAGE;
+
+            $mform->addElement('hidden', 'serialized', FORMAT_PLAIN);
+            $PAGE->requires->js_init_code('');
         }
 
         $this->add_action_buttons();

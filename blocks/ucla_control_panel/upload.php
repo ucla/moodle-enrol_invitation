@@ -298,7 +298,6 @@ if (!isset($data) || !$data) {
     $PAGE->requires->js($jspath . 'inestedsortable-1.0.1.pack.js');
     $PAGE->requires->js($jspath . 'easyadd.js');
 
-    $PAGE->requires->js_init_call('M.block_ucla_control_panel_rearrange.init');
     $uploadform->display();
 } else {
     $message = get_string('successfuladd', 'block_ucla_control_panel', $type);

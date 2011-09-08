@@ -52,6 +52,9 @@ class easyupload {
  *  Class representing a nested-form of indents and modules in a section.
  **/
 class modnode {
+    const pagelist = 'page-list';
+    const pageitem = 'page-item';
+
     var $modid;
     var $modtext;
     var $modindent;
@@ -66,5 +69,27 @@ class modnode {
 
     function add_child(&$node) {
         $this->children[] =& $node;
+    }
+
+    function render() {
+        $childrender = '';
+
+        if (!empty($this->children)) {
+            $insides = '';
+            foreach ($this->children as $child) {
+                $insides .= $child->render();
+            }
+
+            $childrender = html_writer::tag('ul', $insides, array(
+                'class' => self::pagelist
+            ));
+        }
+
+        $self = html_writer::tag('li', $childrender, array(
+            'id' => 'ele-' . $this->modid,
+            'class' => self::pageitem
+        ));
+
+        return $self;
     }
 }
