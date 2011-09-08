@@ -1,12 +1,19 @@
 /**
  *  Skipping the YUI Blocks and going to jQuery.
+ *  TODO make all function calls within M.block_ucla_control_panel 
+ *      object space.
  **/
-function makeSortable(list_id) {
+M.block_ucla_control_panel = M.block_ucla_control_panel || {};
+
+/**
+ *  Makes the provided element a NestedSortable UI element.
+ **/
+function makeSortable(listid) {
     jQuery(
         function($) {
-            $('#' + list_id).NestedSortable(
+            $('#' + listid).NestedSortable(
                 {
-                    accept: 'page-item',
+                    accept: M.block_ucla_control_panel.sortableitem,
                     opacity: 0.6,
                     autoScroll: true,
                     helperclass: 'helper',
@@ -21,54 +28,64 @@ function makeSortable(list_id) {
     );
 }
 
-var default_section_html =
-    '<ul id="thelist" class="page-list"></ul>';
+function getSectionHtmlWrapper(insides) {
+    return '<ul id="' + M.block_ucla_control_panel.listid + '" class="' 
+        + M.block_ucla_control_panel.sortableclass 
+        + '">' + insides + '</ul>';
+}
 
-function change_active_sortable(section_id) {
+/**
+ *  Changes the current datavalues in the NestedSortable object.
+ **/
+function changeActiveSortable() {
+    var listid = M.block_ucla_control_panel.listid;
+    var section_html = M.block_ucla_control_panel.sections;
+    var sectionId = $('#id_section').val();
+
     $("#reorder-container").slideUp("slow",
         function() {
             // Destroy previous functionality
-            $("#thelist").NestedSortableDestroy();
+            $("#" + listid).NestedSortableDestroy();
 
             // Refill with existing sections
-            if (section_id == null) {
-                $("#reorder-container").html(default_section_html);
-            } else {
-                $("#reorder-container").html(section_html[section_id]);
+
+            var sectionInsides = '';
+            if (sectionId != null) {
+                sectionInsides = section_html[sectionId];
             }
+
+            $(this).html(getSectionHtmlWrapper(sectionInsides));
 
             // Jump to multiple element format
-            if ($("#id_itemname").val() == null) {
+            if ($("#id_name").val() == null) {
                 $('#ele-new').remove();
-                generateMultipleDraggables();
+                //generateMultipleDraggables();
             } else {
-                update_new_ele_name();
+                UpdateNewElementName();
             }
 
-            makeSortable("thelist");
+            makeSortable(listid);
+            $("#serialized").val($.iNestedSortable.serialize(listid).hash);
 
-            $("#serialized").val($.iNestedSortable.serialize("thelist").hash);
-
-            $("#reorder-container").slideDown("slow");
+            $(this).slideDown("slow");
         }
     );
 }
 
-function initiate_sortable_content() {
-    $("#thelist").NestedSortableDestroy();
-    var selected_id = $("#section-chooser").val();
+function initiateSortableContent() {
+    $('#id_section').change(function() {
+        changeActiveSortable();
+    });
 
-    $("#reorder-container").html(section_html[selected_id]);
-
-    update_new_ele_name();
-    makeSortable("thelist");
+    changeActiveSortable();
 }
 
-function update_new_ele_name() {
-    var value;
-    value = $("#id_itemname").val();
-
+function UpdateNewElementName() {
+    var value = $("#id_name").val();
     var type = $("#type").val();
-    $("#ele-new").html("<b>" + value + "</b> <span class='ele-new-paren'>(Your new " + type + ")</span>" );
+
+    $("#ele-new").html("<b>" + value 
+        + "</b> <span class='ele-new-paren'>(Your new " + type 
+        + ")</span>" );
 }
 

@@ -3,6 +3,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 class easyupload {
+    // Handle a physical file upload
     static function upload($contextid) {
         global $CFG, $DB;
 
@@ -44,7 +45,18 @@ class easyupload {
         $maxbytes = get_max_upload_file_size();
 
         return $repo->upload('', $maxbytes);
+    }
 
+    /**
+     *  Convenience function to generate a variable assignment 
+     *  statement in JavaScript.
+     **/
+    static function js_variable_code($var, $val, $quote = true) {
+        if ($quote) {
+            $val = '"' . $val . '"';
+        }
+
+        return 'M.block_ucla_control_panel.' . $var . ' = ' . $val;
     }
 }
 
@@ -76,6 +88,7 @@ class modnode {
 
         if (!empty($this->children)) {
             $insides = '';
+
             foreach ($this->children as $child) {
                 $insides .= $child->render();
             }
@@ -85,7 +98,7 @@ class modnode {
             ));
         }
 
-        $self = html_writer::tag('li', $childrender, array(
+        $self = html_writer::tag('li', $this->modtext . $childrender, array(
             'id' => 'ele-' . $this->modid,
             'class' => self::pageitem
         ));

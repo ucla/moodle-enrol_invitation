@@ -140,7 +140,9 @@ foreach ($sequences as $section => $sequence) {
 
     $parent_stack = array();
     $root_nodes = array();
-    foreach ($nodes as $index => $node) {
+
+    // Take the numerated depth structure and get a nested tree
+    foreach ($nodes as $index => &$node) {
         if (sizeof($parent_stack) == 0) {
             array_push($root_nodes, $node);
         } else {
@@ -168,6 +170,37 @@ foreach ($sequences as $section => $sequence) {
 
     $sectionnodes[$section] = $root_nodes;
 }
+
+// Pre-render all the nodes.
+$sectionnodeshtml = array();
+foreach ($sectionnodes as $section => $root_nodes) {
+    $html_string = '';
+    foreach ($root_nodes as $node) {
+        $html_string .= $node->render();
+    }
+
+    $sectionnodeshtml[$section] = $html_string;
+}
+
+// Start placing required javascript
+// TODO Optimize this loading behavior
+$jspath = '/blocks/ucla_control_panel/javascript/';
+$PAGE->requires->js($jspath . 'easyadd.js');
+
+$js_nodedata = 'M.block_ucla_control_panel.sections = ' 
+    . json_encode($sectionnodeshtml);
+$PAGE->requires->js_init_code($js_nodedata);
+
+$PAGE->requires->js_init_code(easyupload::js_variable_code('listid', 
+    'thelist'));
+
+$PAGE->requires->js_init_code(easyupload::js_variable_code('sortableitem', 
+    modnode::pageitem));
+
+$PAGE->requires->js_init_code(easyupload::js_variable_code('sortableclass', 
+    modnode::pagelist));
+   
+unset($sectionnodes);
 
 // Prep for return
 $cpurl = new moodle_url('/blocks/ucla_control_panel/view.php',
@@ -201,7 +234,6 @@ $uploadform = new $typeclass(null,
         'course' => $course, 
         'type' => $type, 
         'sectionnames' => $sectionnames,
-        'sectionnodes' => $sectionnodes,
         'resources' => $resources,
         'activities' => $activities
     ));
@@ -214,6 +246,10 @@ if ($uploadform->is_cancelled()) {
             array('section' => $data->section));
 
         redirect($dest);
+    }
+
+    if (isset($data->serialized)) {
+        print_r($data->serialized);
     }
 
     // Pilfered parts from /course/modedit.php
@@ -292,14 +328,15 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading($title);
 
 if (!isset($data) || !$data) {
-    $jspath = '/blocks/ucla_control_panel/javascript/';
-
+    // These are the heavy javascript stuff, if we don't need them, don't
+    // include them
     $PAGE->requires->js($jspath . 'jquery-1.6.2.min.js');
+    $PAGE->requires->js($jspath . 'interface-1.2.min.js');
     $PAGE->requires->js($jspath . 'inestedsortable-1.0.1.pack.js');
-    $PAGE->requires->js($jspath . 'easyadd.js');
 
     $uploadform->display();
 } else {
+    // Do not draw the form! 
     $message = get_string('successfuladd', 'block_ucla_control_panel', $type);
 
     $params = array('id' => $course_id);

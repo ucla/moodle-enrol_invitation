@@ -126,4 +126,8 @@ $string['dialog_add_file'] = 'Select file';
 $string['dialog_add_file_box'] = 'File';
 $string['dialog_rename_file'] = 'Name file';
 
+// REarrange
+$string['rearrangejsrequired'] = 'The Rearrange Tool requires JavaScript to
+work.';
+
 /** End of file **/

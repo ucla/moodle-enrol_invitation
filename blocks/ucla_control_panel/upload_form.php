@@ -34,8 +34,6 @@ abstract class easy_upload_form extends moodleform {
         $type = $this->_customdata['type'];
         $sections = $this->_customdata['sectionnames'];
 
-        $nodes = $this->_customdata['sectionnodes'];
-
         $addtitle = 'dialog_add_' . $type;
         $mform->addElement('header', 'general', get_string($addtitle,
             'block_ucla_control_panel'));
@@ -77,7 +75,7 @@ abstract class easy_upload_form extends moodleform {
 
         if (class_exists('PublicPrivate_Site')) {
             if (PublicPrivate_Site::is_enabled()) {
-                // TODO
+                
             }
         }
 
@@ -91,8 +89,17 @@ abstract class easy_upload_form extends moodleform {
         if ($this->allow_js_select) {
             global $PAGE;
 
-            $mform->addElement('hidden', 'serialized', FORMAT_PLAIN);
-            $PAGE->requires->js_init_code('');
+            $mform->addElement('hidden', 'serialized', null, 
+                array('id' => 'serialized'));
+
+            $mform->addElement('html', html_writer::tag('div', 
+                    html_writer::tag('ul', get_string('rearrangejsrequired',
+                        'block_ucla_control_panel'), array('id' => 'thelist')),
+                array('id' => 'reorder-container'))
+            );
+
+            // This is a violation of encapsulation (technically)
+            $PAGE->requires->js_init_code('initiateSortableContent()');
         }
 
         $this->add_action_buttons();
@@ -115,5 +122,6 @@ abstract class easy_upload_form extends moodleform {
     abstract function get_coursemodule();
 }
 
+// Gotta run this code or else we get some interesting errors.
 MoodleQuickForm::registerElementType('uclafile', 
     dirname(__FILE__) . '/quickform_file.php', 'MoodleQuickForm_uclafile');
