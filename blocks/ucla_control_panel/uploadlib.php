@@ -2,6 +2,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot . '/course/lib.php');
+require_once($CFG->dirroot . '/blocks/ucla_control_panel/rearrangelib.php');
+
 class easyupload {
     // Handle a physical file upload
     static function upload($contextid) {
@@ -60,49 +63,3 @@ class easyupload {
     }
 }
 
-/**
- *  Class representing a nested-form of indents and modules in a section.
- **/
-class modnode {
-    const pagelist = 'page-list';
-    const pageitem = 'page-item';
-
-    var $modid;
-    var $modtext;
-    var $modindent;
-
-    var $children = array();
-
-    function __construct($id, $text, $indent) {
-        $this->modid = $id;
-        $this->modtext = $text;
-        $this->modindent = $indent;
-    }
-
-    function add_child(&$node) {
-        $this->children[] =& $node;
-    }
-
-    function render() {
-        $childrender = '';
-
-        if (!empty($this->children)) {
-            $insides = '';
-
-            foreach ($this->children as $child) {
-                $insides .= $child->render();
-            }
-
-            $childrender = html_writer::tag('ul', $insides, array(
-                'class' => self::pagelist
-            ));
-        }
-
-        $self = html_writer::tag('li', $this->modtext . $childrender, array(
-            'id' => 'ele-' . $this->modid,
-            'class' => self::pageitem
-        ));
-
-        return $self;
-    }
-}
