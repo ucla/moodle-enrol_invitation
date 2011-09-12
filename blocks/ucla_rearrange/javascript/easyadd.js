@@ -1,9 +1,9 @@
 /**
  *  Skipping the YUI Blocks and going to jQuery.
- *  TODO make all function calls within M.block_ucla_control_panel 
+ *  TODO make all function calls within M.block_ucla_rearrange 
  *      object space.
  **/
-M.block_ucla_control_panel = M.block_ucla_control_panel || {};
+M.block_ucla_rearrange = M.block_ucla_rearrange || {};
 
 /**
  *  Makes the provided element a NestedSortable UI element.
@@ -13,7 +13,7 @@ function makeSortable(listid) {
         function($) {
             $('#' + listid).NestedSortable(
                 {
-                    accept: M.block_ucla_control_panel.sortableitem,
+                    accept: M.block_ucla_rearrange.sortableitem,
                     opacity: 0.6,
                     autoScroll: true,
                     helperclass: 'helper',
@@ -29,8 +29,8 @@ function makeSortable(listid) {
 }
 
 function getSectionHtmlWrapper(insides) {
-    return '<ul id="' + M.block_ucla_control_panel.listid + '" class="' 
-        + M.block_ucla_control_panel.sortableclass 
+    return '<ul id="' + M.block_ucla_rearrange.listid + '" class="' 
+        + M.block_ucla_rearrange.sortableclass 
         + '">' + insides + '</ul>';
 }
 
@@ -38,8 +38,8 @@ function getSectionHtmlWrapper(insides) {
  *  Changes the current datavalues in the NestedSortable object.
  **/
 function changeActiveSortable() {
-    var listid = M.block_ucla_control_panel.listid;
-    var section_html = M.block_ucla_control_panel.sections;
+    var listid = M.block_ucla_rearrange.listid;
+    var section_html = M.block_ucla_rearrange.sections;
     var sectionId = $('#id_section').val();
 
     $("#reorder-container").slideUp("slow",
