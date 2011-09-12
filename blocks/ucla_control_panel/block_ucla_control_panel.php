@@ -31,7 +31,12 @@ class block_ucla_control_panel extends block_base {
     }
     
     function get_content() {
-        // No content
+        if (!isset($this->course)) {
+            global $COURSE;
+            $this->course = $COURSE;
+        }
+
+        return self::get_action_link($this->course);
     }
 
     function instance_allow_config() {

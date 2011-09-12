@@ -1,4 +1,9 @@
 <?php
+/**
+ *  UCLA Control Panel content index.
+ *  Try not add logic to this file, if your module requires additional logic
+ *  it should be a new class in it of itself.
+ **/
 
 require_once(dirname(__FILE__) . '/ucla_cp_module.php');
 global $CFG, $DB;
@@ -15,9 +20,6 @@ $modules[] = new ucla_cp_module('ucla_cp_mod_common', null, null, $temp_cap);
 
 // Saving typing time
 $temp_tag = array('ucla_cp_mod_common');
-
-// This is for things that need a description
-$spec_ops = array('pre' => false, 'post' => true);
 
 // Capability needed for things that TAs can also do
 $ta_cap = 'moodle/course:enrolreview';
@@ -49,7 +51,9 @@ $modules[] = new ucla_cp_module('modify_sections', new moodle_url('view.php'),
 $modules[] = new ucla_cp_module('modify_modules', new moodle_url('view.php'), 
     $temp_tag, $temp_cap);
 
-// Yes...
+// For editing, it is a special UI case
+$spec_ops = array('pre' => false, 'post' => true);
+
 $modules[] = new ucla_cp_module('turn_editing_on', new moodle_url(
         $CFG->wwwroot . '/course/view.php',
         array('id' => $course->id, 'edit' => 'on', 'sesskey' => sesskey())), 
@@ -73,7 +77,7 @@ $modules[] = new ucla_cp_module('add_resource', new moodle_url('view.php'),
 $modules[] = new ucla_cp_module('edit_profile', new moodle_url(
         $CFG->wwwroot . '/user/edit.php'), $temp_tag, null);
 
-// Add a label... TODO DOO DOO
+// Add a label... TODO 
 $modules[] = new ucla_cp_module('add_subheading', new moodle_url('view.php'), 
     $temp_tag, $temp_cap);
 

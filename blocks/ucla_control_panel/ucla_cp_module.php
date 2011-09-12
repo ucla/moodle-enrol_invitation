@@ -118,6 +118,7 @@ class ucla_cp_module {
     /**
      *  This is the default function that is used to check if the module
      *  should be displayed or not.
+     *  Currently only supports one capability per module.
      **/
     function validate($course, $context) {
         $hc = true;
