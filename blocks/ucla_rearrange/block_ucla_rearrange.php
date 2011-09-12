@@ -142,11 +142,24 @@ class block_ucla_rearrange extends block_base {
     static function javascript_requires() {
         global $CFG, $PAGE;
 
-        $jspath = '/blocks/ucla_control_panel/javascript/';
+        $jspath = '/blocks/ucla_rearrange/javascript/';
 
         $PAGE->requires->js($jspath . 'jquery-1.6.2.min.js');
         $PAGE->requires->js($jspath . 'interface-1.2.min.js');
         $PAGE->requires->js($jspath . 'inestedsortable-1.0.1.pack.js');
+    }
+    
+    /**
+     *  Convenience function to generate a variable assignment 
+     *  statement in JavaScript.
+     *  TODO Might want to move this function to rearrange
+     **/
+    static function js_variable_code($var, $val, $quote = true) {
+        if ($quote) {
+            $val = '"' . $val . '"';
+        }
+
+        return 'M.block_ucla_rearrange.' . $var . ' = ' . $val;
     }
 }
 
