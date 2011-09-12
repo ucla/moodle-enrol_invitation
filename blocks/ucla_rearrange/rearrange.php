@@ -7,8 +7,8 @@
 require_once(dirname(__FILE__) . '/../../config.php');
 require_once($CFG->dirroot . '/course/lib.php');
 
-$thispath = '/blocks/ucla_control_panel';
-require_once($CFG->dirroot . $thispath . '/rearrangelib.php');
+$thispath = '/blocks/ucla_rearrange';
+require_once($CFG->dirroot . $thispath . '/block_ucla_rearrange.php');
 
 global $CFG, $PAGE, $OUTPUT;
 
@@ -30,6 +30,8 @@ $PAGE->set_context($context);
 $PAGE->set_pagelayout('course');
 $PAGE->set_pagetype('course-view-' . $course->format);
 
-$PAGE->set_url('/blocks/ucla_control_panel/rearrange.php', 
+$PAGE->set_url('/blocks/ucla_rearrange/rearrange.php', 
         array('course_id' => $course_id));
 
+echo "Finished render.";
+// EOF

@@ -1,11 +1,14 @@
 <?php
 
-defined('MOODLE_INTERNAL') || header('HTTP/1.0 404 Not Found') && die();
+defined('MOODLE_INTERNAL') || die();
+
+require_once(dirname(__FILE__) . '/../moodleblock.class.php');
+
 /**
  *  Rearrange library.
  *  Files relevant to using the rearranger.
  **/
-class ucla_rearrange {
+class block_ucla_rearrange extends block_base {
     /**
      *  Returns an array of root modnode objects for a particular section.
      *  @param $section     The section number
