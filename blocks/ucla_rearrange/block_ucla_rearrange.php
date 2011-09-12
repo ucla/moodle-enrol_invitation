@@ -13,6 +13,7 @@ class block_ucla_rearrange extends block_base {
      *  Required for Moodle.
      **/
     function init() {
+        $this->title = get_string('pluginname', 'block_ucla_rearrange');
         $this->cron = 0;
     }
 
