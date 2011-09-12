@@ -2,10 +2,10 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot . '/blocks/moodleblock.class.php');
 require_once($CFG->dirroot . '/course/lib.php');
-require_once($CFG->dirroot . '/blocks/ucla_control_panel/rearrangelib.php');
 
-class easyupload {
+class block_ucla_easyupload extends block_base {
     // Handle a physical file upload
     static function upload($contextid) {
         global $CFG, $DB;
@@ -51,15 +51,58 @@ class easyupload {
     }
 
     /**
+     *  Checks if rearrange JS framework is available.
+     **/
+    static function block_ucla_rearrange_installed() {
+        global $CFG;
+
+        $rearrangepath = $CFG->dirroot
+            . '/blocks/ucla_rearrange/block_ucla_rearrange.php';
+
+        if (file_exists($rearrangepath)) {
+            require_once($rearrangepath);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      *  Convenience function to generate a variable assignment 
      *  statement in JavaScript.
+     *  TODO Might want to move this function to rearrange
      **/
     static function js_variable_code($var, $val, $quote = true) {
         if ($quote) {
             $val = '"' . $val . '"';
         }
 
-        return 'M.block_ucla_control_panel.' . $var . ' = ' . $val;
+        return 'M.block_ucla_easyupload.' . $var . ' = ' . $val;
+    }
+
+    /** 
+     *  Returns if the type specified has code to handle it.
+     **/
+    static function upload_type_exists($type) {
+        global $CFG;
+
+        $typelib = $CFG->dirroot 
+            . '/blocks/ucla_easyupload/upload_types/*.php';
+
+        $possibles = glob($typelib);
+
+        foreach ($possibles as $typefile) {
+            require_once($typefile);
+        }
+
+        $typeclass = 'easy_upload_' . $type . '_form';
+
+        if (class_exists($typeclass)) {
+            return $typeclass;
+        } 
+
+        return false;
     }
 }
 
+// End of file

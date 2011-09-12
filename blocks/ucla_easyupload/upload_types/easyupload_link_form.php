@@ -10,7 +10,7 @@ class easy_upload_link_form extends easy_upload_form {
         $mform = $this->_form;
 
         $mform->addElement('url', 'externalurl', 
-            get_string('dialog_add_link_box', 'block_ucla_control_panel'), 
+            get_string('dialog_add_link_box', self::associated_block), 
             array('size' => 60), array('usefilepicker' => false));
     }
 

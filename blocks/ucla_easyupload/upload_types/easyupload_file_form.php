@@ -14,7 +14,7 @@ class easy_upload_file_form extends easy_upload_form {
         $mform = $this->_form;
 
         $mform->addElement('uclafile', 'repo_upload_file', 
-            get_string('dialog_add_file_box', 'block_ucla_control_panel'));
+            get_string('dialog_add_file_box', self::associated_block));
 
         $mform->addElement('hidden', 'files', false);
 
@@ -34,7 +34,7 @@ class easy_upload_file_form extends easy_upload_form {
 
         $get_data = parent::get_data();
         if ($get_data) {
-            $ret = easyupload::upload($PAGE->context->id);
+            $ret = block_ucla_easyupload::upload($PAGE->context->id);
         }
         
         return $get_data;

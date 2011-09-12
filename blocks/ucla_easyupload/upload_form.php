@@ -10,6 +10,8 @@ abstract class easy_upload_form extends moodleform {
     protected $activities;
     protected $resources;
 
+    const associated_block = 'block_ucla_easyupload';
+
     // This will enable the section switcher
     var $allow_js_select = false;
 
@@ -33,11 +35,13 @@ abstract class easy_upload_form extends moodleform {
 
         $type = $this->_customdata['type'];
         $sections = $this->_customdata['sectionnames'];
+        $rearrange_avail = $this->_customdata['rearrange'];
 
         $addtitle = 'dialog_add_' . $type;
         $mform->addElement('header', 'general', get_string($addtitle,
-            'block_ucla_control_panel'));
+            self::associated_block));
 
+        // Adding needed parameters if being redirected or adding amodule
         $mform->addElement('hidden', 'course_id', $course->id);
         $mform->addElement('hidden', 'course', $course->id);
 
@@ -53,7 +57,7 @@ abstract class easy_upload_form extends moodleform {
         if ($this->allow_renaming) {
             $renametitle = 'dialog_rename_' . $type;
             $mform->addElement('header', '', get_string($renametitle,
-                'block_ucla_control_panel'));
+                self::associated_block));
 
             $mform->addElement('text', 'name', get_string('name'),
                 array('size' => 40));
@@ -69,7 +73,7 @@ abstract class easy_upload_form extends moodleform {
 
         // Section selection.
         $mform->addElement('header', '', get_string('select_section',
-            'block_ucla_control_panel'));
+            self::associated_block));
 
         // End code that probably needs to go somewhere else
 
@@ -81,20 +85,21 @@ abstract class easy_upload_form extends moodleform {
 
         // Show the section selector
         $mform->addElement('select', 'section',
-            get_string('select_section', 'block_ucla_control_panel'), 
+            get_string('select_section', self::associated_block), 
             $sections);
 
         // If needed, add the section rearranges.
         // This part appears to be a part of 'add to section'
-        if ($this->allow_js_select) {
+        if ($rearrange_avail && $this->allow_js_select) {
             global $PAGE;
 
+            // TODO Validate interconnection with rearrange
             $mform->addElement('hidden', 'serialized', null, 
                 array('id' => 'serialized'));
 
             $mform->addElement('html', html_writer::tag('div', 
                     html_writer::tag('ul', get_string('rearrangejsrequired',
-                        'block_ucla_control_panel'), array('id' => 'thelist')),
+                        self::associated_block), array('id' => 'thelist')),
                 array('id' => 'reorder-container'))
             );
 
@@ -125,3 +130,5 @@ abstract class easy_upload_form extends moodleform {
 // Gotta run this code or else we get some interesting errors.
 MoodleQuickForm::registerElementType('uclafile', 
     dirname(__FILE__) . '/quickform_file.php', 'MoodleQuickForm_uclafile');
+
+// End of file

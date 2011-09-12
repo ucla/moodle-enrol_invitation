@@ -4,9 +4,9 @@ require_once(dirname(__FILE__) . '/../../config.php');
 
 require_once($CFG->dirroot . '/course/lib.php');
 
-$thispath = '/blocks/ucla_control_panel';
+$thispath = '/blocks/ucla_easyupload';
+require_once($CFG->dirroot . $thispath . '/block_ucla_easyupload.php');
 require_once($CFG->dirroot . $thispath . '/upload_form.php');
-require_once($CFG->dirroot . $thispath . '/uploadlib.php');
 
 global $CFG, $PAGE, $OUTPUT;
 
@@ -30,11 +30,11 @@ $PAGE->set_context($context);
 $PAGE->set_pagelayout('course');
 $PAGE->set_pagetype('course-view-' . $course->format);
 
-$PAGE->set_url('/blocks/ucla_control_panel/upload.php', 
+$PAGE->set_url('/blocks/ucla_easyupload/upload.php', 
         array('course_id' => $course_id, 'type' => $type));
 
 // Prep for return
-$cpurl = new moodle_url('/blocks/ucla_control_panel/view.php',
+$cpurl = new moodle_url('/blocks/ucla_easyupload/view.php',
         array('course_id' => $course_id));
 
 $courseurl = new moodle_url('/course/view.php',
@@ -120,37 +120,39 @@ foreach ($sections as $section) {
 }
 
 // Prep things for rearrange
-$sectionnodeshtml = ucla_rearrange::get_section_modules_rendered($course_id,
-    $sections, $mods, $modinfo);
+$rearrange_avail = false;
+if (block_ucla_easyupload::block_ucla_rearrange_installed()) {
+    $sectionnodeshtml = block_ucla_rearrange::get_section_modules_rendered(
+        $course_id, $sections, $mods, $modinfo
+    );
 
-// Start placing required javascript
-// TODO Optimize this loading behavior
-$PAGE->requires->js('/blocks/ucla_control_panel/javascript/easyadd.js');
+    // Start placing required javascript
+    $PAGE->requires->js('/blocks/ucla_rearrange/javascript/easyadd.js');
 
-$js_nodedata = 'M.block_ucla_control_panel.sections = ' 
-    . json_encode($sectionnodeshtml);
-$PAGE->requires->js_init_code($js_nodedata);
+    // Allow some custom spec-ing
+    $js_nodedata = 'M.block_ucla_rearrange.sections = ' 
+        . json_encode($sectionnodeshtml);
+    $PAGE->requires->js_init_code($js_nodedata);
 
-$PAGE->requires->js_init_code(easyupload::js_variable_code('listid', 
-    'thelist'));
+    $PAGE->requires->js_init_code(block_ucla_rearrange::js_variable_code(
+        'listid', 'thelist')
+    );
 
-$PAGE->requires->js_init_code(easyupload::js_variable_code('sortableitem', 
-    modnode::pageitem));
+    $PAGE->requires->js_init_code(block_ucla_rearrange::js_variable_code(
+        'sortableitem', modnode::pageitem)
+    );
 
-$PAGE->requires->js_init_code(easyupload::js_variable_code('sortableclass', 
-    modnode::pagelist));
+    $PAGE->requires->js_init_code(block_ucla_rearrange::js_variable_code(
+        'sortableclass', modnode::pagelist)
+    );
 
-// Open all types of easy upload forms
-$typelib = dirname(__FILE__) . '/upload_types/*.php';
-$possibles = glob($typelib);
-
-foreach ($possibles as $typefile) {
-    require_once($typefile);
+    $rearrange_avail = true;
 }
+// End rearrange behavior */
 
-// Make sure that the class that we're looking for exists
-$typeclass = 'easy_upload_' . $type . '_form';
-if (!class_exists($typeclass)) {
+// She was lovely
+$typeclass = block_ucla_easyupload::upload_type_exists($type);
+if (!$typeclass) {
     print_error('typenotexists');
 }
 
@@ -166,7 +168,9 @@ $uploadform = new $typeclass(null,
         // Needed when picking resources 
         'resources' => $resources,
         // Needed when picking activities
-        'activities' => $activities
+        'activities' => $activities,
+        // Needed to enable/disable rearrange
+        'rearrange' => $rearrange_avail
     ));
 
 if ($uploadform->is_cancelled()) {
@@ -240,7 +244,7 @@ if ($uploadform->is_cancelled()) {
 }
 
 // Display the rest of the page
-$title = get_string($typeclass, 'block_ucla_control_panel', $course->fullname);
+$title = get_string($typeclass, 'block_ucla_easyupload', $course->fullname);
 
 $PAGE->set_title($title);
 $PAGE->set_heading($title);
@@ -252,12 +256,12 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading($title);
 
 if (!isset($data) || !$data) {
-    ucla_rearrange::javascript_requires();
+    //ucla_rearrange::javascript_requires();
 
     $uploadform->display();
 } else {
     // Do not draw the form! 
-    $message = get_string('successfuladd', 'block_ucla_control_panel', $type);
+    $message = get_string('successfuladd', 'block_ucla_easyupload', $type);
 
     $params = array('id' => $course_id);
 
@@ -272,12 +276,12 @@ if (!isset($data) || !$data) {
 
     $courseurl = new moodle_url('/course/view.php', $params);
     $courseret = new single_button($courseurl, get_string('returntocourse',
-            'block_ucla_control_panel'), 'get');
+            'block_ucla_easyupload'), 'get');
 
     $secturl = new moodle_url('/course/view.php', $params);
     $secturl->param($key, $sectionid);
     $sectret = new single_button($secturl, get_string('returntosection', 
-            'block_ucla_control_panel'), 'get');
+            'block_ucla_easyupload'), 'get');
 
     echo $OUTPUT->confirm($message, $sectret, $courseret);
 }
