@@ -6,6 +6,10 @@ require_once($CFG->dirroot . '/blocks/moodleblock.class.php');
 require_once($CFG->dirroot . '/course/lib.php');
 
 class block_ucla_easyupload extends block_base {
+    function init() {
+
+    }
+
     // Handle a physical file upload
     static function upload($contextid) {
         global $CFG, $DB;
