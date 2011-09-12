@@ -1,5 +1,7 @@
 <?php
 
+$string['pluginname'] = 'UCLA Easy upload tools';
+
 // Easy add/upload strings
 // This string should not be used, it is a placeholder.
 $string['easy_upload_form'] = '';

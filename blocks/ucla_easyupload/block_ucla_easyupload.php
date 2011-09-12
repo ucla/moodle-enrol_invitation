@@ -7,7 +7,7 @@ require_once($CFG->dirroot . '/course/lib.php');
 
 class block_ucla_easyupload extends block_base {
     function init() {
-
+        $this->title = get_string('pluginname', 'block_ucla_easyupload');
     }
 
     // Handle a physical file upload
