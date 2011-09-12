@@ -10,6 +10,13 @@ require_once(dirname(__FILE__) . '/../moodleblock.class.php');
  **/
 class block_ucla_rearrange extends block_base {
     /**
+     *  Required for Moodle.
+     **/
+    function init() {
+        $this->cron = 0;
+    }
+
+    /**
      *  Returns an array of root modnode objects for a particular section.
      *  @param $section     The section number
      *  @param $sequence    The sequence of course modules in the section
