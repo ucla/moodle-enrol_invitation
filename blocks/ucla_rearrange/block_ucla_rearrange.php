@@ -145,12 +145,14 @@ class block_ucla_rearrange extends block_base {
 
 
     /**
-     *  Adds the required javascript files to the PAGE.
+     *  Adds the required javascript files.
+     *  This is the actual jQuery scripts along with the nestedsortable
+     *  javascript files.
      **/
     static function javascript_requires() {
         global $CFG, $PAGE;
 
-        $jspath = '/blocks/ucla_rearrange/javascript/';
+        $jspath = $CFG->dirroot . '/blocks/ucla_rearrange/javascript/';
 
         $PAGE->requires->js($jspath . 'jquery-1.6.2.min.js');
         $PAGE->requires->js($jspath . 'interface-1.2.min.js');
@@ -169,14 +171,53 @@ class block_ucla_rearrange extends block_base {
 
         return 'M.block_ucla_rearrange.' . $var . ' = ' . $val;
     }
+
+    /**
+     *  Adds all the javascript code for the global PAGE object.
+     *  This does not add any of the functionality calls, it just
+     *  makes the NestedSortable API available to all those who dare
+     *  to attempt to use it.
+     **/
+    static function setup_nested_sortable_js($sectionslist, $targetobj,
+            $customvars=null) {
+        global $PAGE;
+
+        // This file contains all the library functions that we need
+        $PAGE->requires->js('/blocks/ucla_rearrange'
+            . '/javascript/block_ucla_rearrange.js');
+
+        // These are all the sections
+        $PAGE->requires->js_init_code(self::js_variable_code(
+            'sections', json_encode($sectionslist), false));
+
+        // This is the jQuery query used to find the object to 
+        // run NestedSortable upon.
+        $PAGE->requires->js_init_code(self::js_variable_code(
+            'targetjq', $targetobj));
+
+        // This is a list of customizable variables, non-essential
+        $othervars = array('sortableitem' => modnode::pageitem);
+
+        // This is the object that NestedSortable acts upon
+        foreach ($othervars as $variable => $default) {
+            $rhs = $default;
+            if (isset($customvars[$variable])) {
+                $rhs = $customvars[$variable];
+            }
+
+            $PAGE->requires->js_init_code(
+                block_ucla_rearrange::js_variable_code($variable, $rhs)
+            );
+        }
+    }
 }
 
 /**
  *  Class representing a nested-form of indents and modules in a section.
  **/
 class modnode {
-    const pagelist = 'page-list';
-    const pageitem = 'page-item';
+    const pagelist = 'ns-list';
+    const pageitem = 'ns-list-item';
 
     var $modid;
     var $modtext;
