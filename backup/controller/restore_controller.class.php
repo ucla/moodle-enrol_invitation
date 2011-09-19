@@ -23,6 +23,19 @@
  */
 
 /**
+ * Include the Restore_PublicPrivate_Course_Task object as this controller may
+ * need to serialize this object rather than construct it through the
+ * Restore_Factory, which is the other place where it is included.
+ *
+ * @see Restore_PublicPrivate_Course_Task
+ * @author ebollens
+ * @version 20110719
+ */
+if(file_exists($CFG->libdir.'/publicprivate/restore_publicprivate_course_task.class.php')) {
+    include_once($CFG->libdir.'/publicprivate/restore_publicprivate_course_task.class.php');
+}
+
+/**
  * Class implementing the controller of any restore process
  *
  * This final class is in charge of controlling all the restore architecture, for any
