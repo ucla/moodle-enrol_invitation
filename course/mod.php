@@ -350,10 +350,12 @@ if ((!empty($movetosection) or !empty($moveto)) and confirm_sesskey()) {
     if($publicprivate_course->is_activated()) {
         require_once($CFG->libdir.'/publicprivate/module.class.php');
         PublicPrivate_Module::build($cm)->disable();
-        redirect("view.php?id=$cm->course#section-$cm->sectionnum");
     } else {
         throw new PublicPrivate_Module_Exception('Illegal action as public/private is not enabled for the course.', 900);
     }
+
+    rebuild_course_cache($cm->course);
+    redirect("view.php?id=$cm->course#section-$cm->sectionnum");
 
 /**
  * If optional parameter $private is set, enable public/private protection over
@@ -377,11 +379,12 @@ if ((!empty($movetosection) or !empty($moveto)) and confirm_sesskey()) {
     if($publicprivate_course->is_activated()) {
         require_once($CFG->libdir.'/publicprivate/module.class.php');
         PublicPrivate_Module::build($cm)->enable();
-        redirect("view.php?id=$cm->course#section-$cm->sectionnum");
     } else {
         throw new PublicPrivate_Module_Exception('Illegal action as public/private is not enabled for the course.', 900);
     }
 
+    rebuild_course_cache($cm->course);
+    redirect("view.php?id=$cm->course#section-$cm->sectionnum");
 } else if ($groupmode > -1 and confirm_sesskey()) {
     $id = required_param('id', PARAM_INT);
     if (!$cm = get_coursemodule_from_id('', $id, 0, true)) {
