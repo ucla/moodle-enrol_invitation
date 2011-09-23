@@ -12,7 +12,7 @@ M.block_ucla_rearrange = M.block_ucla_rearrange || {};
 M.block_ucla_rearrange.nestedsortableitem 
     = M.block_ucla_rearrange.nestedsortableitem || 'ns-list-item';
 
-// This is not as necessary I think... TODO
+// This is the CSS class to use as a the object that shows up
 M.block_ucla_rearrange.nestedhelperclass 
     = M.block_ucla_rearrange.nestedhelperclass || 'ns-helper';
 
@@ -55,29 +55,26 @@ M.block_ucla_rearrange.create_nested_sortable = function() {
             if (M.block_ucla_rearrange.targetjq == undefined) {
                 alert('Improperly set up NestedSortable parameters! ' 
                     + 'Need to set up targetjq!');
+                return false;
             }
 
-            var nsconfig = 
-                {
-                    accept: M.block_ucla_rearrange.nestedsortableitem,
-                    helperclass: M.block_ucla_rearrange.nestedhelperclass,
-                    opacity: 0.6,
-                    autoScroll: true,
-                    nestingPxSpace: '60',
-                    currentNestingClass: 'current-nesting',
-                    onChange: M.block_ucla_rearrange.assign_serialized
-                }
        
             // This has a special nesting case
             var buildtarget = $(M.block_ucla_rearrange.targetjq);
 
             if (buildtarget.length > 1) {
                 buildtarget.each(function() {
-                    $('#' + this.id).NestedSortable(nsconfig);
+                    if (this.id == undefined || this.id.length == 0) {
+                        return;
+                    }
+
+                    var thisjq = '#' + this.id;
+
+                    $(thisjq).NestedSortable(M.block_ucla_rearrange.ns_config);
                     M.block_ucla_rearrange.serialize_target(this.id);
                 });
             } else {
-                buildtarget.NestedSortable(nsconfig);
+                buildtarget.NestedSortable(M.block_ucla_rearrange.ns_config);
                 // For single ones... I need to do something...
                 // This means that there is a #id 
                 var targetid = M.block_ucla_rearrange.targetjq.substring(1);
@@ -86,6 +83,10 @@ M.block_ucla_rearrange.create_nested_sortable = function() {
             }
         }
     );
+};
+
+M.block_ucla_rearrange.assign_and_update = function(serial) {
+    M.block_ucla_rearrange.assign_serialized(serial);
 };
 
 /**
@@ -181,3 +182,18 @@ M.block_ucla_rearrange.initialize_rearrange_tool = function() {
     
     var initialserialized = [];
 }
+
+M.block_ucla_rearrange.ns_config = {
+    accept: M.block_ucla_rearrange.nestedsortableitem,
+    helperclass: M.block_ucla_rearrange.nestedhelperclass,
+    opacity: 0.6,
+    autoScroll: true,
+    nestingPxSpace: '40',
+    currentNestingClass: 'current-nesting',
+    noNestingClass: 'invisible',
+    onChange: M.block_ucla_rearrange.assign_and_update,
+    fit: true
+
+    //onChange: function() { alert("onChange"); }
+    //onChange: M.block_ucla_rearrange.assign_serialize
+};

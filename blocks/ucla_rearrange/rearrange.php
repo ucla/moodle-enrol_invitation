@@ -37,8 +37,11 @@ $PAGE->set_url('/blocks/ucla_rearrange/rearrange.php',
 $sections = get_all_sections($course_id);
 
 $sectionids = array();
+$sectionnames = array();
 foreach ($sections as $section) {
-    $sectionids[$section->section] = $section->section;
+    $sectnum = $section->section;
+    $sectionids[$sectnum] = $sectnum;
+    $sectionnames[$sectnum] = get_section_name($course, $section);
 }
 
 $modinfo =& get_fast_modinfo($course);
@@ -59,12 +62,17 @@ $sectionshtml = html_writer::start_tag(
     )
 );
 
+// Hack a wrap around each set of HTML to generate the section wrappers
 foreach ($sectionnodeshtml as $section => $snh) {
     $sectionshtml .= html_writer::tag(
         'li', 
         html_writer::tag(
             'div', 
-            $snh, 
+            html_writer::tag('span', $sectionnames[$section], 
+                    array(
+                        'class' => 'sectiontitle'
+                    ) 
+                ) . $snh, 
             array('class' => 'sub-container')
         ),
         array(
@@ -157,6 +165,8 @@ if ($data = $rearrangeform->get_data()) {
     // Now we need to swap all the contents in each section...
     rebuild_course_cache($course_id);
 } 
+
+// TODO put a title
 
 echo $OUTPUT->header();
 

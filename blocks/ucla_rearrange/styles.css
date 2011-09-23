@@ -3,6 +3,11 @@
     border: 0px solid white;
 }
 
+.sectiontitle {
+    font-weight: bold;
+    color: white;
+}
+
 
 #major-ns-container ul li {
     display: block;
@@ -23,6 +28,10 @@
     padding-left: 4px;
     background-color: white;
     list-style: none;
+}
+
+.ns-helper {
+    border: 1px dotted magenta;
 }
 
 .s-list-class {

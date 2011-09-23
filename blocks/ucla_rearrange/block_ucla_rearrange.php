@@ -53,11 +53,8 @@ class block_ucla_rearrange extends block_base {
         $nodes = array();
         $sectionmods = array();
 
-        if (empty($sequence)) {
-            $nodes[] = new modnode(0, '', 0);
-        } else {
-            $sectionmods = explode(',', $sequence);
-        }
+        $nodes[] = new modnode($section . "-" . 0, '', 0, true);
+        $sectionmods = explode(',', $sequence);
 
         foreach ($sectionmods as $mod_id) {
             if (isset($mods[$mod_id])) {
@@ -144,7 +141,6 @@ class block_ucla_rearrange extends block_base {
 
         return self::render_set_modnodes($snodes);
     }
-
 
     /**
      *  Adds the required javascript files.
@@ -356,13 +352,15 @@ class modnode {
     var $modid;
     var $modtext;
     var $modindent;
+    var $invis = false;
 
     var $children = array();
 
-    function __construct($id, $text, $indent) {
+    function __construct($id, $text, $indent, $invis=false) {
         $this->modid = $id;
         $this->modtext = $text;
         $this->modindent = $indent;
+        $this->invis = $invis;
     }
 
     function add_child(&$node) {
@@ -385,7 +383,7 @@ class modnode {
         }
 
         $class = block_ucla_rearrange::pageitem;
-        if ($this->modid <= 0) {
+        if ($this->invis) {
             $class .= ' invisible';
 
         }
