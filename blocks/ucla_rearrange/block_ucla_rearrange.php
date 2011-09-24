@@ -31,6 +31,9 @@ class block_ucla_rearrange extends block_base {
     // This is the LI class
     const sectionitem = 's-list-item';
 
+    // Non-nesting class
+    const nonnesting = 'ns-invisible';
+
     /**
      *  Required for Moodle.
      **/
@@ -46,37 +49,31 @@ class block_ucla_rearrange extends block_base {
      *  @param $mods        The list of mods from get_all_mods().
      *  @param $modinfo     The mod information from get_all_mods().
      **/
-    static function mods_to_modnode_tree($section, &$sequence, &$mods, 
+    static function mods_to_modnode_tree($section, &$sectinfo, &$mods, 
             &$modinfo, $course_id) {
-
 
         $nodes = array();
         $sectionmods = array();
 
         $nodes[] = new modnode($section . "-" . 0, '', 0, true);
-        $sectionmods = explode(',', $sequence);
+        $sectionmods = explode(',', $sectinfo->sequence);
 
         foreach ($sectionmods as $mod_id) {
             if (isset($mods[$mod_id])) {
                 $cm =& $mods[$mod_id];
 
-                if ($cm->section != $section) {
+                if ($cm->section != $sectinfo->id) {
                     // For some reason code branch seems to occur 
                     // intrinsically in Moodle.
                     // TODO Figure out why this happens and what we should do
                     // 'bout it.
                     debugging('Mismatching section for ' . $cm->name
-                        . "(got {$cm->section} expecting $section)\n");
+                        . "(got {$cm->section} expecting {$sectinfo->id})\n");
                     continue;
                 }
 
-                if ($cm->modname == 'label') {
-                    $display_text = format_text($modinfo->cms[$mod_id]->extra,
-                        FORMAT_HTML, array('noclean' => true));
-                } else {
-                    $display_text = format_string($modinfo->cms[$mod_id]->name,
-                        true, $course_id);
-                }
+                $display_text = format_string($modinfo->cms[$mod_id]->name,
+                    true, $course_id);
 
                 $nodes[] = new modnode($mod_id, $display_text, $cm->indent);
             }
@@ -87,14 +84,14 @@ class block_ucla_rearrange extends block_base {
         return $root_nodes;
     }
 
-    static function get_sections_modnodes($course_id, &$sequences, &$mods,
+    static function get_sections_modnodes($course_id, &$sections, &$mods,
             &$modinfo) {
 
         $sectionnodes = array();
-        foreach ($sequences as $section => $sequence) {
-            $sectionnodes[$section] = 
-                self::mods_to_modnode_tree($section, 
-                    $sequence, $mods, $modinfo, $course_id);
+        foreach ($sections as $section) {
+            $sectionnodes[$section->id] = 
+                self::mods_to_modnode_tree($section->section, 
+                    $section, $mods, $modinfo, $course_id);
         }
 
         return $sectionnodes;
@@ -130,13 +127,7 @@ class block_ucla_rearrange extends block_base {
      **/
     static function get_section_modules_rendered(&$course_id, &$sections, 
             &$mods, &$modinfo) {
-       
-        $sequences = array();
-        foreach ($sections as $sectnum => $section) {
-            $sequences[$sectnum] = $section->sequence;
-        }
-
-        $snodes = self::get_sections_modnodes($course_id, $sequences, $mods,
+        $snodes = self::get_sections_modnodes($course_id, $sections, $mods,
             $modinfo);
 
         return self::render_set_modnodes($snodes);
@@ -236,8 +227,13 @@ class block_ucla_rearrange extends block_base {
     }
 
     static function clean_section_order($sections) {
+        if (empty($sections)) {
+            return array();
+        }
+
         $clean = array();
         foreach ($sections as $sectionold => $sectiontext) {
+            // Accounting for the unavailablity of section 0
             $clean[$sectionold] = end(explode('-', $sectiontext));
         }
 
@@ -251,45 +247,21 @@ class block_ucla_rearrange extends block_base {
      *      An Array of [ OLD_SECTION_DESTINATION ] 
      *          => Array ( MODULE->id, indent )
      *  @param $ordersections
-     *      An Array of [ OLD_SECTION ] => NEW_SECTION
-     *  @param $laststate
-     *      An Array of [ OLD_SECTION ] => OLD_SECTION_ENTRY
+     *      An Array of [ NEW_SECTION_ORDER ] => OLD_SECTION ID 
      **/
     static function move_modules_section_bulk($sectionmodules, 
-            $ordersections, $laststate) {
+            $ordersections) {
         global $DB;
 
         // Split the arrary of oldsections with new modules into
         // an array of section sequences, and module indents?
         $coursemodules = array();
         $sections = array();
+
         foreach ($sectionmodules as $section => $modules) {
             $modulearr = array();
-
             $sectionarr = array();
-
             $sectseq = array();
-
-            // should never branch here
-            if (!isset($ordersections[$section])) {
-                print_error(get_string('error_section_noold',
-                    'block_ucla_rearrange'));
-                return false;
-
-            }
-            
-            // This is needed for update record
-            if (!isset($laststate[$section])) {
-                // should never hit this branch
-                print_error(get_string('error_section_previous',
-                    'block_ucla_rearrange'));
-
-                return false;
-                
-            }
-
-            $newsection = $ordersections[$section];
-            unset($ordersections[$section]);
 
             foreach ($modules as $module) {
                 // Repitch the values
@@ -306,7 +278,7 @@ class block_ucla_rearrange extends block_base {
                 }
 
                 // Add section
-                $modulearr['section'] = $newsection;
+                $modulearr['section'] = $section;
 
                 // Create the sequence
                 $sectseq[] = $modulearr['id'];
@@ -318,19 +290,14 @@ class block_ucla_rearrange extends block_base {
             $sectionarr['sequence'] = trim(implode(',', $sectseq));
            
             // Move the section itself.
-            $sectionarr['section'] = $newsection;
+            if (isset($ordersections[$section])) {
+                $sectionarr['section'] = $ordersections[$section];
+            }
 
-            $sectionarr['id'] = $laststate[$section]->id;
+            $sectionarr['id'] = $section;
 
             // Save the new section
             $sections[$section] = $sectionarr;
-        }
-
-        // Should never branch here
-        if (!empty($ordersections)) {
-            print_error(get_string('error_section_consistency',
-                'block_ucla_rearrange'));
-            return false;
         }
 
         foreach ($coursemodules as $module) {
@@ -384,7 +351,7 @@ class modnode {
 
         $class = block_ucla_rearrange::pageitem;
         if ($this->invis) {
-            $class .= ' invisible';
+            $class .= ' ' . block_ucla_rearrange::nonnesting;
 
         }
 
@@ -407,6 +374,10 @@ class modnode {
         }
 
         foreach ($root as $node) {
+            if ($node['id'] == 0) {
+                continue;
+            }
+
             $node_indent = new stdclass();
 
             $node_indent->id = $node['id'];

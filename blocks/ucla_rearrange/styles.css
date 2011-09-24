@@ -1,11 +1,14 @@
-.ns-list-class .invisible {
+/** CSS for Rearrange **/
+
+.ns-list-class .ns-invisible {
     height: 0px;
     border: 0px solid white;
 }
 
 .sectiontitle {
     font-weight: bold;
-    color: white;
+    position: relative;
+    display: block;
 }
 
 
@@ -42,15 +45,28 @@
     list-style: none;
 }
 
-.s-list-item {
+.section-item {
     margin: 4px;
-    margin-left: 40px;
+    margin-left: 20px;
     background-color: #D1DBEF;
     padding: 10px;
-    cursor: move;
     list-style: none;
+}
+
+.s-list-item {
+    cursor: move;
 }
 
 .s-helper {
     list-style: none;
 }
+
+.expand-button {
+    cursor: pointer;
+    font-weight: normal;
+    margin-right: 4px;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+

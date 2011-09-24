@@ -85,10 +85,6 @@ M.block_ucla_rearrange.create_nested_sortable = function() {
     );
 };
 
-M.block_ucla_rearrange.assign_and_update = function(serial) {
-    M.block_ucla_rearrange.assign_serialized(serial);
-};
-
 /**
  *  Deactivates the nested sortable functionality for the provided DOM node.
  **/
@@ -158,16 +154,8 @@ M.block_ucla_rearrange.create_sortable = function() {
             helperclass: M.block_ucla_rearrange.sortablehelperclass,
             opacity: 0.5,
             fit: true,
-            onChange: M.block_ucla_rearrange.assign_serialized,
-            /** onOut seems to be unused **/
-            onOut: function() {
-                alert('Sortable.onOut');
-            }
+            onChange: M.block_ucla_rearrange.assign_serialized
         }
-    );
-
-    M.block_ucla_rearrange.assign_serialized(
-        M.block_ucla_rearrange.serialize_target(tarjet)
     );
 }
 
@@ -183,6 +171,9 @@ M.block_ucla_rearrange.initialize_rearrange_tool = function() {
     var initialserialized = [];
 }
 
+/**
+ *  Configuration used when building a nested-sortable.
+ **/
 M.block_ucla_rearrange.ns_config = {
     accept: M.block_ucla_rearrange.nestedsortableitem,
     helperclass: M.block_ucla_rearrange.nestedhelperclass,
@@ -190,10 +181,7 @@ M.block_ucla_rearrange.ns_config = {
     autoScroll: true,
     nestingPxSpace: '40',
     currentNestingClass: 'current-nesting',
-    noNestingClass: 'invisible',
-    onChange: M.block_ucla_rearrange.assign_and_update,
+    noNestingClass: M.block_ucla_rearrange.nonnesting,
+    onChange: M.block_ucla_rearrange.assign_serialized,
     fit: true
-
-    //onChange: function() { alert("onChange"); }
-    //onChange: M.block_ucla_rearrange.assign_serialize
 };
