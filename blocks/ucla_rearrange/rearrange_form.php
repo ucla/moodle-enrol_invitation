@@ -24,13 +24,21 @@ class ucla_rearrange_form extends moodleform {
             $mform->setType($fieldname, PARAM_RAW);
         }
 
+        $eall = get_string('allcollapse', 'block_ucla_rearrange');
+
         $this->add_action_buttons();
 
         $mform->addElement('header');
 
+        $classset = array('class' => 'expandall');
+        
+        $mform->addElement('button', 'mass-expander-top', $eall, $classset);
+
         $mform->addElement('html', html_writer::tag('div',
             get_string('javascriptrequired', 'group'), array('id' => 
                 block_ucla_rearrange::primary_domnode)));
+
+        $mform->addElement('button', 'mass-expander-bot', $eall, $classset);
 
         $this->add_action_buttons();
     }

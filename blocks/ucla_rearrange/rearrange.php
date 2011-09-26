@@ -63,6 +63,7 @@ $sectionshtml = html_writer::start_tag(
     )
 );
 
+// Make the expand/collapse button
 $expandtext = get_string('sectionexpand', 'block_ucla_rearrange');
 $collaptext = get_string('sectioncollapse', 'block_ucla_rearrange');
 $expand_button = html_writer::tag('div', $collaptext, 
@@ -110,7 +111,10 @@ $sectionshtml .= html_writer::end_tag('ul');
 $customvars = array(
     'containerjq' => '#' . block_ucla_rearrange::primary_domnode,
     'expandtext' => $expandtext,
-    'collapsetext' => $collaptext
+    'collapsetext' => $collaptext,
+    'expandalltext' => get_string('allexpand', 'block_ucla_rearrange'),
+    'collapsealltext' => get_string('allcollapse', 'block_ucla_rearrange'),
+    'expandalljq' => '.expandall'
 );
 
 // This enables nested sortables for all objects in the page with the class
@@ -195,7 +199,7 @@ if ($data = $rearrangeform->get_data()) {
 
     // We're going to skip the API calls because it uses too many DBQ's
     block_ucla_rearrange::move_modules_section_bulk($sectioncontents, 
-        $sectiontranslation, $sections);
+        $sectiontranslation);
 
     // Now we need to swap all the contents in each section...
     rebuild_course_cache($course_id);
