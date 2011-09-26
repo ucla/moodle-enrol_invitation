@@ -33,7 +33,7 @@ $PAGE->set_pagetype('course-view-' . $course->format);
 $PAGE->set_url('/blocks/ucla_easyupload/upload.php', 
         array('course_id' => $course_id, 'type' => $type));
 
-// Prep for return
+// TODO Fix this Prep for return
 $cpurl = new moodle_url('/blocks/ucla_easyupload/view.php',
         array('course_id' => $course_id));
 
@@ -127,26 +127,10 @@ if (block_ucla_easyupload::block_ucla_rearrange_installed()) {
     );
 
     // Start placing required javascript
-    $PAGE->requires->js('/blocks/ucla_rearrange/javascript/easyadd.js');
+    // This is a set of custom javascript hooks
+    $PAGE->requires->js('/blocks/ucla_easyupload/javascript/easyadd.js');
 
-    // Allow some custom spec-ing
-    $js_nodedata = 'M.block_ucla_rearrange.sections = ' 
-        . json_encode($sectionnodeshtml);
-    $PAGE->requires->js_init_code($js_nodedata);
-
-    $PAGE->requires->js_init_code(block_ucla_rearrange::js_variable_code(
-        'listid', 'thelist')
-    );
-
-    $PAGE->requires->js_init_code(block_ucla_rearrange::js_variable_code(
-        'sortableitem', modnode::pageitem)
-    );
-
-    $PAGE->requires->js_init_code(block_ucla_rearrange::js_variable_code(
-        'sortableclass', modnode::pagelist)
-    );
-
-    $rearrange_avail = true;
+    block_ucla_rearrange::initialize_javascript($sectionnodeshtml, 'thelist');
 }
 // End rearrange behavior */
 
@@ -256,8 +240,6 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading($title);
 
 if (!isset($data) || !$data) {
-    //ucla_rearrange::javascript_requires();
-
     $uploadform->display();
 } else {
     // Do not draw the form! 

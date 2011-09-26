@@ -18,10 +18,15 @@ abstract class easy_upload_form extends moodleform {
     // This will enable the naming field
     var $allow_renaming = false;
 
+    // This will enable the availability sliders
+    var $enable_availability = true;
+
     /**
      *  Called by moodleforms when we are rendering the form.
      **/
     function definition() {
+        global $CFG;
+
         $mform = $this->_form;
 
         $course = $this->_customdata['course'];
@@ -96,15 +101,47 @@ abstract class easy_upload_form extends moodleform {
             // TODO Validate interconnection with rearrange
             $mform->addElement('hidden', 'serialized', null, 
                 array('id' => 'serialized'));
-
+            
             $mform->addElement('html', html_writer::tag('div', 
                     html_writer::tag('ul', get_string('rearrangejsrequired',
                         self::associated_block), array('id' => 'thelist')),
                 array('id' => 'reorder-container'))
             );
 
-            // This is a violation of encapsulation (technically)
-            $PAGE->requires->js_init_code('initiateSortableContent()');
+            $PAGE->requires->js_init_code(
+                'M.block_ucla_easyupload.initate_sortable_content()'
+            );
+        }
+
+        // Stolen from /course/moodleform_mod.php:429
+        if (!empty($CFG->enableavailability) && $this->enable_availability) {
+            // Conditional availability
+            $mform->addElement('header', 'availabilityconditionsheader', 
+                get_string('availabilityconditions', 'condition'));
+
+            $mform->addElement('date_selector', 'availablefrom', 
+                get_string('availablefrom', 'condition'), 
+                    array('optional' => true));
+
+            $mform->addHelpButton('availablefrom', 'availablefrom', 
+                'condition');
+
+            $mform->addElement('date_selector', 'availableuntil', 
+                get_string('availableuntil', 'condition'), 
+                    array('optional' => true));
+
+            // Do we display availability info to students?
+            $mform->addElement('select', 'showavailability', 
+                get_string('showavailability', 'condition'), array(
+                    CONDITION_STUDENTVIEW_SHOW
+                        => get_string('showavailability_show', 'condition'),
+                    CONDITION_STUDENTVIEW_HIDE 
+                        => get_string('showavailability_hide', 'condition')
+                )
+            );
+
+            $mform->setDefault('showavailability', 
+                CONDITION_STUDENTVIEW_SHOW);
         }
 
         $this->add_action_buttons();
