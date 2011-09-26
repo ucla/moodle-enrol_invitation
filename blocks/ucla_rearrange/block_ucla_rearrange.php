@@ -145,7 +145,11 @@ class block_ucla_rearrange extends block_base {
 
         $PAGE->requires->js($jspath . 'jquery-1.6.2.min.js');
         $PAGE->requires->js($jspath . 'interface-1.2.min.js');
-        $PAGE->requires->js($jspath . 'inestedsortable-1.0.1.pack.js');
+        if (debugging()) {
+            $PAGE->requires->js($jspath . 'inestedsortable-1.0.1.js');
+        } else {
+            $PAGE->requires->js($jspath . 'inestedsortable-1.0.1.pack.js');
+        }
     }
     
     /**
@@ -192,7 +196,8 @@ class block_ucla_rearrange extends block_base {
         // Note to self: Try to stick with convention
         $othervars = array(
             'sortableitem' => self::sectionitem,
-            'nestedsortableitem' => self::pageitem
+            'nestedsortableitem' => self::pageitem,
+            'nonnesting' => self::nonnesting
         );
 
         // This API has some variables
@@ -215,6 +220,10 @@ class block_ucla_rearrange extends block_base {
                 );
             }
         }
+
+        $PAGE->requires->js_init_code(
+            'M.block_ucla_rearrange.build_ns_config();'
+        );
     }
 
     /** 

@@ -311,16 +311,17 @@ M.block_ucla_rearrange.initialize_rearrange_tool = function() {
 /**
  *  Configuration used when building a nested-sortable.
  **/
-M.block_ucla_rearrange.ns_config = {
-    accept: M.block_ucla_rearrange.nestedsortableitem,
-    helperclass: M.block_ucla_rearrange.nestedhelperclass,
-    opacity: 0.6,
-    autoScroll: true,
-    nestingPxSpace: '40',
-    currentNestingClass: 'current-nesting',
-    noNestingClass: M.block_ucla_rearrange.nonnesting,
-    onChange: M.block_ucla_rearrange.assign_serialized,
-    fit: true
+M.block_ucla_rearrange.build_ns_config = function() {
+    M.block_ucla_rearrange.ns_config = {
+        accept: M.block_ucla_rearrange.nestedsortableitem,
+        helperclass: M.block_ucla_rearrange.nestedhelperclass,
+        opacity: 0.6,
+        autoScroll: true,
+        nestingPxSpace: '32',
+        currentNestingClass: 'current-nesting',
+        noNestingClass: M.block_ucla_rearrange.nonnesting,
+        onChange: M.block_ucla_rearrange.assign_serialized,
+        fit: true
+    };
 };
-
 

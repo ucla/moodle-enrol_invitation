@@ -102,7 +102,7 @@ foreach ($sectionnodeshtml as $section => $snh) {
 }
 
 if ($sectionzero === false) {
-    print_error(get_string('missing_section_zero', 'block_ucla_rearrange'));
+    debugging(get_string('missing_section_zero', 'block_ucla_rearrange'));
 }
 
 $sectionshtml .= html_writer::end_tag('ul');
