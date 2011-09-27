@@ -158,7 +158,7 @@ class block_ucla_rearrange extends block_base {
      **/
     static function js_variable_code($var, $val, $quote = true) {
         if ($quote) {
-            $val = '"' . $val . '"';
+            $val = '"' . addslashes($val) . '"';
         }
 
         return 'M.block_ucla_rearrange.' . $var . ' = ' . $val;
