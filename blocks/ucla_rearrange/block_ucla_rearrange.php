@@ -171,7 +171,7 @@ class block_ucla_rearrange extends block_base {
      *  to attempt to use it.
      **/
     static function setup_nested_sortable_js($sectionslist, $targetobj=null,
-            $customvars=null) {
+            $customvars=array()) {
         global $PAGE;
 
         // Include all the jQuery, interface and nestedSortable files
