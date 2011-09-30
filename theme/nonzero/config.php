@@ -22,7 +22,7 @@
  * COPY IT FIRST, THEN RENAME THE COPY AND MODIFY IT INSTEAD.
  *
  * For full information about creating Moodle themes, see:
- *  http://docs.moodle.org/en/Development:Themes_2.0
+ *  http://docs.moodle.org/dev/Themes_2.0
  *
  * @package   moodlecore
  * @copyright 2008 NodeThirtyThree (http://nodethirtythree.com/)
@@ -244,7 +244,7 @@ $THEME->csspostprocess = 'nonzero_process_css';
 // include.
 ////////////////////////////////////////////////////
 
-// $THEME->renderfactory
+// $THEME->rendererfactory
 
 ////////////////////////////////////////////////////
 // Sets a custom render factory to use with the
