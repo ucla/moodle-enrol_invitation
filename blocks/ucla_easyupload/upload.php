@@ -114,9 +114,14 @@ foreach ($modnames as $modname => $modnamestr) {
 
 // Prep things for section selector
 $sections = get_all_sections($course_id);
+
 $sectionnames = array();
+$indexed_sections = array();
 foreach ($sections as $section) {
-    $sectionnames[$section->id] = get_section_name($course, $section);
+    $sid = $section->id;
+    $sectionnames[$sid] = get_section_name($course, $section);
+
+    $indexed_sections[$sid] = $section;
 }
 
 // Prep things for rearrange
@@ -185,7 +190,10 @@ if ($uploadform->is_cancelled()) {
         redirect($dest);
     }
 
+    // Hack since there is new knowledge TODO clean up form
     $targetsection = $data->section;
+    $targetsectnum = $indexed_sections[$targetsection]->section;
+    $data->section = $targetsectnum;
 
     if (!isset($data->serialized) || empty($data->serialized)) {
         // Assume that we're not changing the order
@@ -222,11 +230,12 @@ if ($uploadform->is_cancelled()) {
     
     $newcm = new stdclass();
     $newcm->course = $course->id;
-    $newcm->section = $targetsection;
+    $newcm->section = $targetsectnum;
     $newcm->module = $module->id;
     $newcm->instance = 0;
    
     // TODO Handle some publicprivate here at one point
+    // TODO Handle section visibility
     $newcm->visible = 1;
 
     $coursemoduleid = add_course_module($newcm);
@@ -256,7 +265,7 @@ if ($uploadform->is_cancelled()) {
 
     if (isset($newmods) && $sequencearr) {
         // This implies that we have rearrange available
-        $newmodules = array($section => $newmods);
+        $newmodules = array($sectionid => $newmods);
         block_ucla_rearrange::move_sections_buik($newmodules);
     }
 
@@ -297,7 +306,7 @@ if (!isset($data) || !$data) {
             'block_ucla_easyupload'), 'get');
 
     $secturl = new moodle_url('/course/view.php', $params);
-    $secturl->param($key, $sectionid);
+    $secturl->param($key, $indexed_sections[$sectionid]->section);
     $sectret = new single_button($secturl, get_string('returntosection', 
             'block_ucla_easyupload'), 'get');
 
