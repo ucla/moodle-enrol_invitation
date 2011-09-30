@@ -15,6 +15,7 @@ class easy_upload_file_form extends easy_upload_form {
 
         $mform->addElement('uclafile', 'repo_upload_file', 
             get_string('dialog_add_file_box', self::associated_block));
+        $mform->addRule('repo_upload_file', '', 'required');
 
         $mform->addElement('hidden', 'files', false);
 

@@ -10,7 +10,8 @@ M.block_ucla_easyupload = M.block_ucla_easyupload || {};
  *  Changes the current datavalues in the NestedSortable object.
  **/
 M.block_ucla_easyupload.change_active_sortable = function() {
-    var sectionId = $(this).val();
+
+    var sectionId = $('#id_section').val();
 
     $("#reorder-container").slideUp("slow",
         function() {
@@ -21,19 +22,22 @@ M.block_ucla_easyupload.change_active_sortable = function() {
             var sectionInsides = '';
             if (sectionId != null) {
                 sectionInsides = M.block_ucla_rearrange.sections[sectionId];
+
+                sectionInsides = sectionInsides 
+                    + M.block_ucla_rearrange.empty_item;
+            } else {
+                alert('faulty section spec');
             }
 
             // Replace all the HTML content for the section
-            $(targetjq).html(sectionInsides);
+            var targetjqo = $(M.block_ucla_rearrange.targetjq);
+            targetjqo.html(sectionInsides);
 
             M.block_ucla_easyupload.update_new_element_name();
 
             M.block_ucla_rearrange.create_nested_sortable();
 
-            // Run an intial set of the serialized value.
-            M.block_ucla_rearrange.assign_serialized(
-                M.block_ucla_rearrange.serialize_list()
-            );
+            M.block_ucla_rearrange.serialize_target(targetjqo.get(0).id); 
 
             $(this).slideDown("slow");
         }
@@ -43,28 +47,29 @@ M.block_ucla_easyupload.change_active_sortable = function() {
 /**
  *  Hook for initialization of functionality.
  **/
-M.block_ucla_easyupload.initiate_sortable_content() {
+M.block_ucla_easyupload.initiate_sortable_content = function() {
     var hookfn = M.block_ucla_easyupload.change_active_sortable;
 
     // Assign the event hook
     $('#id_section').change(hookfn);
+    $('#id_name').change(M.block_ucla_easyupload.update_new_element_name);
 
     // Run the event
     hookfn();
-}
+};
 
 /**
  *  Update the element name. TODO see if there is any better way
  **/
 M.block_ucla_easyupload.update_new_element_name = function() {
     var value = $("#id_name").val();
-    var type = $("#type").val();
+    var type = $("#id_type").val();
 
     $("#ele-new").html(
-          "<b>" + value + "</b>"
+          "<b>" + value + "</b> "
         + "<span class='ele-new-paren'>"
         + "(Your new " + type + ")"
         + "</span>" 
     );
-}
+};
 

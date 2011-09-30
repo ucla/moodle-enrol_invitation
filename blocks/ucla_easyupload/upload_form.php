@@ -50,7 +50,7 @@ abstract class easy_upload_form extends moodleform {
         $mform->addElement('hidden', 'course_id', $course->id);
         $mform->addElement('hidden', 'course', $course->id);
 
-        $mform->addElement('hidden', 'type', $type);
+        $mform->addElement('hidden', 'type', $type, array('id' => 'id_type'));
         $mform->addElement('hidden', 'modulename', $this->get_coursemodule());
 
         // TODO Force download always
@@ -103,13 +103,13 @@ abstract class easy_upload_form extends moodleform {
                 array('id' => 'serialized'));
             
             $mform->addElement('html', html_writer::tag('div', 
-                    html_writer::tag('ul', get_string('rearrangejsrequired',
+                    html_writer::tag('div', get_string('rearrangejsrequired',
                         self::associated_block), array('id' => 'thelist')),
                 array('id' => 'reorder-container'))
             );
 
             $PAGE->requires->js_init_code(
-                'M.block_ucla_easyupload.initate_sortable_content()'
+                'M.block_ucla_easyupload.initiate_sortable_content()'
             );
         }
 

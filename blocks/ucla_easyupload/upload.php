@@ -116,21 +116,39 @@ foreach ($modnames as $modname => $modnamestr) {
 $sections = get_all_sections($course_id);
 $sectionnames = array();
 foreach ($sections as $section) {
-    $sectionnames[] = get_section_name($course, $section);
+    $sectionnames[$section->id] = get_section_name($course, $section);
 }
 
 // Prep things for rearrange
 $rearrange_avail = false;
 if (block_ucla_easyupload::block_ucla_rearrange_installed()) {
-    $sectionnodeshtml = block_ucla_rearrange::get_section_modules_rendered(
+    $rearrange_avail = true;
+    $sectionmodnodes = block_ucla_rearrange::get_sections_modnodes(
         $course_id, $sections, $mods, $modinfo
     );
 
+    $sectionnodeshtml = array();
+    foreach ($sectionmodnodes as $index => $smn) {
+        $snhtml = '';
+        foreach ($smn as $modnode) {
+            $snhtml .= $modnode->render();
+        }
+        $sectionnodeshtml[$index] = $snhtml;
+    }
+
     // Start placing required javascript
     // This is a set of custom javascript hooks
-    $PAGE->requires->js('/blocks/ucla_easyupload/javascript/easyadd.js');
+    $PAGE->requires->js('/blocks/ucla_easyupload/javascript'
+        . '/block_ucla_easyadd.js');
+    $PAGE->requires->css('/blocks/ucla_rearrange/styles.css');
 
-    block_ucla_rearrange::initialize_javascript($sectionnodeshtml, 'thelist');
+    // TODO watch out for multiheader
+    $dli = new modnode('new', null, 0);
+    $dlihtml = $dli->render();
+    $cv = array('empty_item' => $dlihtml);
+
+    block_ucla_rearrange::setup_nested_sortable_js($sectionnodeshtml, 
+        '#thelist', $cv);
 }
 // End rearrange behavior */
 
@@ -167,8 +185,19 @@ if ($uploadform->is_cancelled()) {
         redirect($dest);
     }
 
-    if (isset($data->serialized)) {
-        print_r($data->serialized);
+    $targetsection = $data->section;
+
+    if (!isset($data->serialized) || empty($data->serialized)) {
+        // Assume that we're not changing the order
+        $sequencearr = false;
+    } else {
+        parse_str($data->serialized, $parsed);
+        $newmods = modnode::flatten($parsed['thelist']);
+
+        $sequencearr = array();
+        foreach($newmods as $newmod) {
+            $sequencearr[$newmod->id] = $newmod->id;
+        }
     }
 
     // Pilfered parts from /course/modedit.php
@@ -193,6 +222,7 @@ if ($uploadform->is_cancelled()) {
     
     $newcm = new stdclass();
     $newcm->course = $course->id;
+    $newcm->section = $targetsection;
     $newcm->module = $module->id;
     $newcm->instance = 0;
    
@@ -223,6 +253,12 @@ if ($uploadform->is_cancelled()) {
 
     $DB->set_field('course_modules', 'instance', $instanceid,
         array('id' => $coursemoduleid));
+
+    if (isset($newmods) && $sequencearr) {
+        // This implies that we have rearrange available
+        $newmodules = array($section => $newmods);
+        block_ucla_rearrange::move_sections_buik($newmodules);
+    }
 
     rebuild_course_cache($course_id);
 }
