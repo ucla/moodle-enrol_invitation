@@ -383,7 +383,7 @@ class modnode {
         }
 
         foreach ($root as $node) {
-            if ($node['id'] == 0) {
+            if (!$node['id']) {
                 continue;
             }
 
