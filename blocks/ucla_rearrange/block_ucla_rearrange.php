@@ -259,7 +259,7 @@ class block_ucla_rearrange extends block_base {
      *      An Array of [ NEW_SECTION_ORDER ] => OLD_SECTION ID 
      **/
     static function move_modules_section_bulk($sectionmodules, 
-            $ordersections) {
+            $ordersections=array()) {
         global $DB;
 
         // Split the arrary of oldsections with new modules into
