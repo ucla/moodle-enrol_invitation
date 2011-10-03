@@ -76,7 +76,7 @@ class ucla_cp_renderer {
     static function general_descriptive_link($item_obj) {
         $fitem = '';
         
-        $bucp = 'block_ucla_control_panel';
+        $bucp = $item_obj->associated_block(); 
 
         $item = $item_obj->item_name;
         $link = $item_obj->get_action();

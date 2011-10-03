@@ -24,32 +24,14 @@ $temp_tag = array('ucla_cp_mod_common');
 // Capability needed for things that TAs can also do
 $ta_cap = 'moodle/course:enrolreview';
 
-// Upload a file
-$modules[] = new ucla_cp_module('add_file', new moodle_url('upload.php',
-    array('course_id' => $course->id, 'type' => 'file')), 
-    $temp_tag, $temp_cap);
-
 // Course Forum Link
 if (ucla_cp_module::load('email_students')) {
     $modules[] = new ucla_cp_module_email_students($course);
 }
 
-// Upload a URL...
-$modules[] = new ucla_cp_module('add_link', new moodle_url('upload.php',
-    array('course_id' => $course->id, 'type' => 'link')), 
-    $temp_tag, $temp_cap);
-
 // Office hours TODO
 $modules[] = new ucla_cp_module('edit_office_hours', new moodle_url('view.php'), 
     array('ucla_cp_mod_common', 'ucla_cp_mod_other'), $ta_cap);
-
-// Modify sections TODO
-$modules[] = new ucla_cp_module('modify_sections', new moodle_url('view.php'), 
-    $temp_tag, $temp_cap);
-
-// Re-arrange TODO
-$modules[] = new ucla_cp_module('modify_modules', new moodle_url('view.php'), 
-    $temp_tag, $temp_cap);
 
 // For editing, it is a special UI case
 $spec_ops = array('pre' => false, 'post' => true);
@@ -65,27 +47,11 @@ $modules[] = new ucla_cp_module('ucla_cp_mod_other');
 // Saving typing...
 $temp_tag = array('ucla_cp_mod_other');
 
-// Add activity... TODO
-$modules[] = new ucla_cp_module('add_activity', new moodle_url('view.php'), 
-    $temp_tag, $temp_cap);
-
-// Add a resource... TODO
-$modules[] = new ucla_cp_module('add_resource', new moodle_url('view.php'), 
-    $temp_tag, $temp_cap);
-
 // Edit user profile!
 $modules[] = new ucla_cp_module('edit_profile', new moodle_url(
         $CFG->wwwroot . '/user/edit.php'), $temp_tag, null);
 
-// Add a label... TODO 
-$modules[] = new ucla_cp_module('add_subheading', new moodle_url('view.php'), 
-    $temp_tag, $temp_cap);
-
-// Add a text page... TODO
-$modules[] = new ucla_cp_module('add_text', new moodle_url('view.php'), 
-    $temp_tag, $temp_cap);
-
-// Import from classweb!?
+// Import from classweb!? TODO
 $modules[] = new ucla_cp_module('import_classweb', new moodle_url('view.php'), 
     $temp_tag, $temp_cap);
 

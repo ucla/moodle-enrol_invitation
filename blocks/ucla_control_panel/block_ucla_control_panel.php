@@ -61,6 +61,7 @@ class block_ucla_control_panel extends block_base {
 
     /**
      *  This will return the views defined by a view file.
+     *  Views are each group of command, sorted by tabs.
      **/
     static function load_cp_views($customloc=null) {
         $default = '/cp_views.php';
@@ -110,9 +111,9 @@ class block_ucla_control_panel extends block_base {
     /**
      *  This will load the custom control panel elements, as well as any blocks
      *  that have the designated hook function to create elements.
+     *  @return Array ( Views => Array ( Tags => Array ( Modules ) ) )
      **/
-    static function load_cp_elements($course, $context=null, 
-            $view='default') {
+    static function load_cp_elements($course, $context=null) {
         if (!isset($course->id) && is_string($course)) {
             $course_id = $course;
 
@@ -132,16 +133,6 @@ class block_ucla_control_panel extends block_base {
         // Grab the possible collections of modules to display
         $views = block_ucla_control_panel::load_cp_views();
 
-        if (isset($views[$view])) {
-            $allowed_views = $views[$view];
-        }
-
-        if (!isset($allowed_views)) {
-            // This is a back-up default
-            $allowed_views = array('ucla_cp_mod_common',
-                '__blocks__', 'ucla_cp_mod_other');
-        }
-
         // Load all the control panel modules.
         $file = dirname(__FILE__) . '/cp_modules.php';
         if (!file_exists($file)) {
@@ -159,6 +150,9 @@ class block_ucla_control_panel extends block_base {
     
         $sections = array();
         $tags = array();
+       
+        // The modular block sections
+        $block_modules = block_ucla_control_panel::load_cp_block_elements(); 
 
         // Figure out which elements of the control panel to display and
         // which section to display the element in
@@ -182,6 +176,8 @@ class block_ucla_control_panel extends block_base {
         // into cp_modules.php
         $already_used = array();
         foreach ($sections as $tag => $modules) {
+            // This means that a module has multiple tags, and one of the tags
+            // are not view-valid
             if (!isset($tags[$tag])) {
                 unset($sections[$tag]);
                 continue;
@@ -195,12 +191,29 @@ class block_ucla_control_panel extends block_base {
                 }
             }
         }
+       
+        $all_modules = array();
+        $used_tags = array();
+        foreach ($views as $view => $tags) {
+            foreach ($tags as $tag) {
+                if (isset($sections[$tag])) {
+                    if (isset($used_tags[$tag])) {
+                        continue;
+                    }
 
-        // The modular block sections
-        $block_sections = block_ucla_control_panel::load_cp_block_elements(); 
-        $return_sections = array_merge($block_sections, $sections);
+                    $used_tags[$tag] = true;
 
-        return $return_sections;
+                    if (!isset($all_modules[$view])) {
+                        $all_modules[$view] = array();
+                    }
+
+                    $all_modules[$view][$tag] = $sections[$tag];
+                }
+            }
+        }
+
+        // Replace the blocks part with our block elements
+        return $all_modules;
     }
 
     static function load_cp_block_elements($course=null, $context=null) {
@@ -216,8 +229,14 @@ class block_ucla_control_panel extends block_base {
             $block_name = $block->name;
 
             if (method_exists($block_name, $static)) { 
-                $cp_elements[$block_name] = $block->$static($course,
+                $blockmodules = $block->$static($course,
                     $context);
+
+                foreach ($blockmodules as $blockmodule) {
+                    $module = ucla_cp_module::build($cp_block_element);
+                    $module->associated_block = $block_name;
+                    $cp_elements[$block_name][] = $module;
+                }
             }
         }
 

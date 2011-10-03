@@ -146,6 +146,7 @@ class ucla_cp_module_email_students extends ucla_cp_module {
 
     function validate($course, $context) {
         if (!isset($this->course_module)) {
+            debugging('No forum available for emailing students.');
             return false;
         }
 

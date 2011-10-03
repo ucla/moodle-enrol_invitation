@@ -22,6 +22,11 @@
  * @copyright  UC Regents
  */
 class ucla_cp_module {
+    /**
+     *  The block that is associated with this class.
+     **/
+    const PARENT_BLOCK = 'block_ucla_control_panel';
+
     /** 
      *  This is the item identifier. It should relate to the lang file. 
      *
@@ -49,6 +54,14 @@ class ucla_cp_module {
      *  @var mixed
      **/
     var $options;
+
+    /** 
+     *  @var string
+     *  This should not be used when declaring or creating a module.
+     *  This is purely a prototyping tool, and will automatically
+     *  be populated.
+     **/
+    var $associated_block = null;
 
     /**
      *  Currently cannot do nested categories.
@@ -197,24 +210,58 @@ class ucla_cp_module {
     }
 
     /**
+     *  Returns the relevant block of th emodule.
+     *  This function should not overwritten, nor should be changed.
+     **/
+    function associated_block() {
+        if ($this->associated_block == null) {
+            return self::PARENT_BLOCK;
+        }
+        return $this->associated_block();
+    }
+
+    /**
      *  Magic loader function.
      **/
     static function load($name) {
         $module_path = dirname(__FILE__) . '/modules/';
         if (!file_exists($module_path)) {
-            debugging(get_string('badsetup', 'block_ucla_control_panel'));
+            debugging(get_string('badsetup', self::PARENT_BLOCK));
             return false;
         }
 
         $file_path = $module_path . $name . '.php';
 
         if (!file_exists($file_path)) {
-            debugging(get_string('badmodule', 'block_ucla_control_panel', 
+            debugging(get_string('badmodule', self::PARENT_BLOCK, 
                 $name));
             return false;
         }
 
         require_once($file_path);
         return true;
+    }
+
+    // Convenience wrapper to build a particular cp_module 
+    static function build($args) {
+        $params = get_class_vars(get_class());
+
+        if (is_object($args)) {
+            $args = get_object_vars($args);
+        }
+
+        $callparams = array();
+        foreach ($params as $param) {
+            if (isset($args[$param])) {
+                $callparams[$param] = $args[$param];
+            } else {
+                $callparams[$param] = null;
+            }
+        }
+
+        extract($callparams);
+
+        return new ucla_cp_module($item_name, $action, $tags, 
+            $required_cap, $options);
     }
 }
