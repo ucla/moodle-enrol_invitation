@@ -217,7 +217,7 @@ class ucla_cp_module {
         if ($this->associated_block == null) {
             return self::PARENT_BLOCK;
         }
-        return $this->associated_block();
+        return $this->associated_block;
     }
 
     /**
@@ -251,7 +251,7 @@ class ucla_cp_module {
         }
 
         $callparams = array();
-        foreach ($params as $param) {
+        foreach ($params as $param => $noval) {
             if (isset($args[$param])) {
                 $callparams[$param] = $args[$param];
             } else {

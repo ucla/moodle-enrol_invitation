@@ -22,9 +22,6 @@ $string['default'] = 'Common Functions';
 // TODO move out to another file
 $string['ucla_cp_mod_common'] = 'Most Commonly Used';
 
-$string['add_link'] = 'Add a Link';
-$string['add_link_post'] = '';
-
 $string['email_students'] = 'E-mail Students';
 $string['email_students_post'] = '(via Announcements Forum)';
 
@@ -33,9 +30,6 @@ $string['email_students_exception_post'] = 'There was a problem detecting your a
 
 $string['email_students_hidden_pre'] = 'E-mail Students is disabled when Announcements Forum hidden.';
 $string['email_students_hidden'] = 'Make Announcements Forum Visible';
-
-$string['add_file'] = 'Upload a File';
-$string['add_file_post'] = '';
 
 $string['edit_office_hours'] = 'Update Office Hours & Contact Info';
 $string['edit_office_hours_post'] = 'Update your office hours, office location and phone number.';
@@ -50,18 +44,6 @@ $string['turn_editing_on_post'] = '(or Update, Hide, Make Public)';
 
 /** Stuff from other **/
 $string['ucla_cp_mod_other'] = 'Other Commands';
-
-$string['add_activity'] = 'Add an Activity';
-$string['add_activity_post'] = 'Add an Assignment, Forum, Quiz, Wiki or other activity to a specific section of your class site.';
-
-$string['add_resource'] = 'Add a Resource';
-$string['add_resource_post'] = 'Create a separate text or web page, display a directory, use the advanced File Manager, or use the Book module.';
-
-$string['add_subheading'] = 'Add a Subheading';
-$string['add_subheading_post'] = 'Use subheadings within a section to organize links and files (e.g. Readings, Assignments).';
-
-$string['add_text'] = 'Add Text';
-$string['add_text_post'] = 'Add text to appear on a course site.';
 
 $string['import_classweb'] = 'Import Clasweb Site';
 $string['import_classweb_post'] = 'Import content from a previous course on ClassWeb to this site.';

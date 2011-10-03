@@ -152,7 +152,13 @@ class block_ucla_control_panel extends block_base {
         $tags = array();
        
         // The modular block sections
-        $block_modules = block_ucla_control_panel::load_cp_block_elements(); 
+        $block_modules = block_ucla_control_panel::load_cp_block_elements(
+            $course, $context
+        ); 
+
+        foreach ($block_modules as $block => $blocks_modules) {
+            $modules = array_merge($modules, $blocks_modules);
+        }
 
         // Figure out which elements of the control panel to display and
         // which section to display the element in
@@ -212,12 +218,13 @@ class block_ucla_control_panel extends block_base {
             }
         }
 
-        // Replace the blocks part with our block elements
+        // TODO? Replace the blocks part with our block elements
+
         return $all_modules;
     }
 
     static function load_cp_block_elements($course=null, $context=null) {
-        global $PAGE;
+        global $CFG, $PAGE;
 
         $all_blocks = $PAGE->blocks->get_installed_blocks();
 
@@ -225,15 +232,27 @@ class block_ucla_control_panel extends block_base {
 
         $cp_elements = array();
 
+        /**
+         *  This functionality is repeated somewhere I don't know where
+         *  and it sucks.
+         **/
         foreach ($all_blocks as $block) {
-            $block_name = $block->name;
+            $block_name = 'block_' . $block->name;
+            if (!class_exists($block_name)) {
+                $filename = $CFG->dirroot . '/blocks/' . $block->name
+                     . '/' . $block_name . '.php';
+
+                if (file_exists($filename)) {
+                    require_once($filename);
+                }
+            }
 
             if (method_exists($block_name, $static)) { 
-                $blockmodules = $block->$static($course,
+                $blockmodules = $block_name::$static($course,
                     $context);
 
                 foreach ($blockmodules as $blockmodule) {
-                    $module = ucla_cp_module::build($cp_block_element);
+                    $module = ucla_cp_module::build($blockmodule);
                     $module->associated_block = $block_name;
                     $cp_elements[$block_name][] = $module;
                 }
