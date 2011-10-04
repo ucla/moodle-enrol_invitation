@@ -107,6 +107,40 @@ class block_ucla_easyupload extends block_base {
 
         return false;
     }
+
+    static function ucla_cp_hook($course, $context) {
+        global $CFG;
+
+        $thispath = '/blocks/ucla_easyupload/upload.php';
+
+        $common_components = array('file', 'link');
+        $other_components = array('activity', 'resource', 'subheading', 
+            'text');
+
+        $allmods = array();
+
+        foreach ($common_components as $common) {
+            $allmods[] = array(
+                'item_name' => 'add_' . $common,
+                'tags' => array('ucla_cp_mod_common'),
+                'action' => new moodle_url($thispath,
+                    array('course_id' => $course->id, 'type' => $common)),
+                'required_cap' => 'moodle/course:update'
+            );
+        }
+        
+        foreach ($other_components as $common) {
+            $allmods[] = array(
+                'item_name' => 'add_' . $common,
+                'tags' => array('ucla_cp_mod_other'),
+                'action' => new moodle_url($thispath,
+                    array('course_id' => $course->id, 'type' => $common)),
+                'required_cap' => 'moodle/course:update'
+            );
+        }
+
+        return $allmods;
+    }
 }
 
 // End of file

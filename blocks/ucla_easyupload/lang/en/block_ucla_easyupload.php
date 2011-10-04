@@ -21,7 +21,25 @@ $string['dialog_add_file'] = 'Select file';
 $string['dialog_add_file_box'] = 'File';
 $string['dialog_rename_file'] = 'Name file';
 
-// REarrange
+$string['add_file'] = 'Upload a File';
+$string['add_file_post'] = '';
+
+$string['add_link'] = 'Add a Link';
+$string['add_link_post'] = '';
+
+$string['add_activity'] = 'Add an Activity';
+$string['add_activity_post'] = 'Add an Assignment, Forum, Quiz, Wiki or other activity to a specific section of your class site.';
+
+$string['add_resource'] = 'Add a Resource';
+$string['add_resource_post'] = 'Create a separate text or web page, display a directory, use the advanced File Manager, or use the Book module.';
+
+$string['add_subheading'] = 'Add a Subheading';
+$string['add_subheading_post'] = 'Use subheadings within a section to organize links and files (e.g. Readings, Assignments).';
+
+$string['add_text'] = 'Add Text';
+$string['add_text_post'] = 'Add text to appear on a course site.';
+
+// Rearrange
 $string['rearrangejsrequired'] = 'The Rearrange Tool requires JavaScript to
 work.';
 
