@@ -236,7 +236,11 @@ if(!empty($srsform))
                 // CHECKING FOR CROSSLISTS
 				$checkterm = $srsform['group1']['term'];
 				$checksrs = $srsform['group1']['srs'];
-                $xlist_info = file("http://webservices.registrar.ucla.edu/SRDB/SRDBWeb.asmx/getConSched?user=ssc&pass=zx12as&term=$checkterm&SRS=$checksrs");
+                
+                $connectregistrar = "http://webservices.registrar.ucla.edu/SRDB/SRDBWeb.asmx/getConSched";
+                $connectregistrar = $connectregistrar."?user=".$CFG->registrar_dbuser."&pass=".$CFG->registrar_dbpass;
+                $connectregistrar = $connectregistrar."&term=$checkterm&SRS=$checksrs";
+                $xlist_info = file($connectregistrar);
 
 				$xlistexists=0;
 				foreach ($xlist_info as $xlist_element) {
@@ -755,7 +759,10 @@ function get_course_details($term,$srs,$count,&$db_conn)
     global $CFG;
     global $PAGE;
     $xlistexists = 0;
-    $xlist_info = file( "http://webservices.registrar.ucla.edu/SRDB/SRDBWeb.asmx/getConSched?user=ssc&pass=zx12as&term=$term&SRS=$srs");
+    $connectregistrar = "http://webservices.registrar.ucla.edu/SRDB/SRDBWeb.asmx/getConSched";
+    $connectregistrar = $connectregistrar."?user=".$CFG->registrar_dbuser."&pass=".$CFG->registrar_dbpass;
+    $connectregistrar = $connectregistrar."&term=$term&SRS=$srs";
+    $xlist_info = file($connectregistrar);
 	
 	foreach ($xlist_info as $xlist_element) {
 		if (preg_match('/[0-9]{9}/',$xlist_element)) {
