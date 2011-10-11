@@ -88,7 +88,7 @@ class block_ucla_control_panel extends block_base {
 
         if (!isset($views['default'])) {
             $views['default'] = array('ucla_cp_mod_common',
-                '__blocks__', 'ucla_cp_mod_other');
+                'block_myucla', 'ucla_cp_mod_other');
         }
 
         ksort($views);
@@ -166,7 +166,9 @@ class block_ucla_control_panel extends block_base {
             if ($module->validate($course, $context)) {
                 $module_name = $module->get_key();
 
-                if ($module->tags != null) {
+                if (!$module->is_tag()) {
+                    // If something fits with more than one tag, add
+                    // it to both of them
                     foreach ($module->tags as $section) {
                         $sections[$section][$module_name] = $module;
                     }
@@ -189,6 +191,7 @@ class block_ucla_control_panel extends block_base {
                 continue;
             }
 
+            // Go through and make sure we're not repeating modules
             foreach ($modules as $mkey => $module) {
                 if (isset($already_used[$mkey])) {
                     unset($sections[$tag][$mkey]);
@@ -197,12 +200,16 @@ class block_ucla_control_panel extends block_base {
                 }
             }
         }
-       
+     
+        // Now based on each view, sort the tags into their proper
+        // tabs
         $all_modules = array();
         $used_tags = array();
         foreach ($views as $view => $tags) {
             foreach ($tags as $tag) {
                 if (isset($sections[$tag])) {
+                    // If this tag already exists in another tab, 
+                    // skip it
                     if (isset($used_tags[$tag])) {
                         continue;
                     }
@@ -217,8 +224,16 @@ class block_ucla_control_panel extends block_base {
                 }
             }
         }
+        
+        // Now we're going to add more tabs based on tags we don't
+        // have in our views already
+        foreach ($sections as $tag => $modules) {
+            if (isset($used_tags[$tag])) {
+                continue;
+            }
 
-        // TODO? Replace the blocks part with our block elements
+            $all_modules[$tag][$tag] = $modules;
+        }
 
         return $all_modules;
     }

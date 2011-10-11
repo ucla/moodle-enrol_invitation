@@ -147,7 +147,7 @@ class ucla_cp_module {
      *  Simple wrapper function.
      **/
     function is_tag() {
-        return (empty($this->tags));
+        return empty($this->action);
     }
 
     
