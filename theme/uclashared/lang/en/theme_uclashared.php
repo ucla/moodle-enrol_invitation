@@ -35,12 +35,14 @@ $string['copyright_information'] = '&copy; 2010 UC Regents';
 
 $string['separator__'] = ' | ';
 
+$string['loginas_as'] = ' as ';
+
 // Settings titles, descriptions and defaults
-$string['setting_title_footer_links'] = 'Footer Links';
+$string['setting_title_footer_links'] = 'Footer links';
 $string['setting_desc_footer_links'] = 'This text will be displayed to the right of the set of links in the footer. A separator will be automatically added.';
 $string['setting_default_footer_links'] = '';
 
-$string['setting_title_logo_sub_text'] = 'Text Under Logo';
+$string['setting_title_logo_sub_text'] = 'Text under logo';
 $string['setting_desc_logo_sub_text'] = 'This is the text displayed under the UCLA | CCLE logo. I.E. Social Sciences Computing.';
 $string['setting_default_logo_sub_text'] = 
 '<div id="dropdown">Shared Server</div>
@@ -64,6 +66,11 @@ $string['setting_default_logo_sub_text'] =
 </ul>
 </div>';
 
-$string['setting_title_logo_sub_dropdown'] = 'Dropdown Javascript';
+$string['setting_title_logo_sub_dropdown'] = 'Dropdown javascript';
 $string['setting_desc_logo_sub_dropdown'] = 'Enable the Javascript shared_server_dropdown.js';
 $string['setting_default_logo_sub_dropdown'] = '';
+
+$string['setting_title_disable_post_blocks'] = 'Disable blocks on right';
+$string['setting_desc_disable_post_blocks'] = 'Disable courses from adding blocks onto the right side of the course page. The site page will still have blocks on the right.';
+
+// EoF
