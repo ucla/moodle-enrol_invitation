@@ -73,4 +73,12 @@ $string['setting_default_logo_sub_dropdown'] = '';
 $string['setting_title_disable_post_blocks'] = 'Disable blocks on right';
 $string['setting_desc_disable_post_blocks'] = 'Disable courses from adding blocks onto the right side of the course page. The site page will still have blocks on the right.';
 
+$string['setting_title_running_environment'] = 'Server environment';
+$string['setting_desc_running_environment'] = 'This option will determine the color of the header to make it easier distinguish which server environment you are on. Default should be \'Production\'.';
+$string['setting_default_running_environment'] = 'prod';
+$string['env_prod'] = 'Production';
+$string['env_stage'] = 'Stage';
+$string['env_test'] = 'Test';
+$string['env_dev'] = 'Development';
+
 // EoF
