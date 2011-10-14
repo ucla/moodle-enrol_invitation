@@ -25,53 +25,141 @@ class theme_uclashared_core_renderer extends core_renderer {
         return $this->sep;
     }
 
+    /** 
+     *  Displays what user you are logged in as, and if needed, along with the 
+     *  user you are logged-in-as.
+     **/
     function login_info() {
-        $original = parent::login_info();
+        global $CFG, $DB, $USER;
 
-        preg_match_all('/<a.+?<\/a>/', $original, $matches);
-        if (empty($matches)) {
-            return $original;
+        $course = $this->page->course;
+
+        // This will have login informations
+        // [0] == Login information 
+        // - Format  [REALLOGIN] (as \(ROLE\))|(DISPLAYLOGIN) (from MNET)
+        // [1] == H&Fb link
+        // [2] == Logout/Login button
+        $login_info = array();
+
+        $loginurl = get_login_url();
+        $add_loginurl = ($this->page->url != $loginurl);
+
+        $add_logouturl = false;
+
+        $loginstr = '';
+
+        if (isloggedin()) {
+            $add_logouturl = true;
+            $add_loginurl = false;
+
+            $usermurl = new moodle_url('/user/profile.php', array(
+                'id' => $USER->id
+            ));
+
+
+            // In case of mnet login
+            $mnetfrom = '';
+            if (is_mnet_remote_user($USER)) {
+                $idprovider = $DB->get_record('mnet_host', array(
+                    'id' => $USER->mnethostid
+                ));
+
+                if ($idprovider) {
+                    $mnetfrom = html_writer::link($idprovider->wwwroot,
+                        $idprovider->name);
+                }
+            }
+
+            $realuserinfo = '';
+            if (session_is_loggedinas()) {
+                $realuser = session_get_realuser();
+                $realfullname = fullname($realuser, true);
+                $dest = new moodle_url('/course/loginas.php', array(
+                    'id' => $course->id,
+                    'sesskey' => sesskey()
+                ));
+
+                $realuserinfo = '[' . html_writer::link($dest, $realfullname) . ']'
+                    . get_string('loginas_as', 'theme_uclashared');
+            } 
+
+            $fullname = fullname($USER, true);
+            $userlink = html_writer::link($usermurl, $fullname);
+
+            $rolename = '';
+            // I guess only guests cannot switch roles
+            if (isguestuser()) {
+                $userlink = get_string('loggedinasguest');
+                $add_loginurl = true;
+            } else if (is_role_switched($course->id)) {
+                $context = get_context_instance(CONTEXT_COURSE, $course->id);
+
+                $role = $DB->get_record('role', array(
+                    'id' => $USER->access['rsw'][$context->path]
+                ));
+
+                if ($role) {
+                    $rolename = ' (' . format_string($role->name) . ') ';
+                }
+            } 
+
+            $loginstr = $realuserinfo . $rolename . $userlink;
+
+        } else {
+            $loginstr = get_string('loggedinnot', 'moodle');
         }
 
-        // There should only be one line
-        $login_links = $matches[0];
-        if (empty($matches)) {
-            return $original;
-        }
+        if (isset($SESSION->justloggedin)) {
+            unset($SESSION->justloggedin);
+            if (!empty($CFG->displayloginfailures) && !isguestuser()) {
+                if ($count = count_login_failures($CFG->displayloginfailures, 
+                        $USER->username, $USER->lastlogin)) {
 
-        $login_url = get_login_url();
+                    $loginstr .= '&nbsp;<div class="loginfailures">';
 
-        $pr_name  = 0;
-        $pr_haf   = 1;
-        $pr_login = 2;
+                    if (empty($count->accounts)) {
+                        $loginstr .= get_string('failedloginattempts', '', 
+                                $count);
+                    } else {
+                        $loginstr .= get_string('failedloginattemptsall', '', 
+                                $count);
+                    }
 
-        // Try to parse the links
-        foreach ($login_links as $login_a) {
-            if (preg_match('/user/', $login_a)) {
-                $login_info[$pr_name] = $login_a;
-            } else if (preg_match('/login.logout/', $login_a) 
-                    || preg_match('/' . preg_quote($login_url, '/') 
-                        . '/', $login_a)) {
-                // Magical capitalization skills
-                preg_match('/(.*)(>.*<)(.*)/', $login_a, $anchor);
+                    if (has_capability('coursereport/log:view', 
+                            get_context_instance(CONTEXT_SYSTEM))) {
+                        $loginstr .= ' (' . html_writer::link(new moodle_url(
+                            '/course/report/log/index.php', array(
+                                'chooselog' => 1,
+                                'id' => 1,
+                                'modid' => 'site_errors'
+                            )), get_string('logs')) . ')';
+                    }
 
-                $toupper = strtoupper($anchor[2]);
-                $login_info[$pr_login] = $anchor[1] . $toupper . $anchor[3];
+                    $loginstr .= '</div>';
+                }
             }
         }
-        
-        // Manually handle each link
-        if (!isset($login_info[$pr_name])) {
-            // Bad, repeated stuff
-            $login_info[$pr_name] = get_string('loggedinnot', 'moodle');
-        }
-   
+
+        $login_info[] = $loginstr;
+
+        // The help and feedback link
         $fbl = $this->help_feedback_link();
         if ($fbl) {
-            $login_info[$pr_haf] = $fbl;
+            $login_info[] = $fbl;
+        }
+       
+        // The actual login link
+        if ($add_loginurl) {
+            $login_info[] = html_writer::link($loginurl, 
+                get_string('login'));
+        } else if ($add_logouturl) {
+            $login_info[] = html_writer::link(
+                new moodle_url('/login/logout.php',
+                    array('sesskey' => sesskey())), 
+                get_string('logout')
+            );
         }
 
-        ksort($login_info);
         $separator = $this->separator(); 
         $login_string = implode($separator, $login_info);
 
