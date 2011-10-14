@@ -35,13 +35,12 @@ if ($disablepostblocks) {
     $enabledregions[] = 'side-post';
 }
 
-
 $THEME->layouts = array(
     // Most backwards compatible layout without the blocks 
     // - this is the layout used by default
     'base' => array(
         'file' => $tf_general,
-        'regions' => array(),
+        'regions' => array()
     ),
     // Standard layout with blocks, this is recommended for most 
     // pages with general information

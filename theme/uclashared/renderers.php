@@ -334,4 +334,14 @@ class theme_uclashared_core_renderer extends core_renderer {
 
         return $retval;
     }
+
+    function get_environment() {
+        $c = get_config($this->theme, 'running_environment');
+
+        if (!$c) {
+            return 'prod';
+        } 
+
+        return $c;
+    }
 }

@@ -8,6 +8,11 @@ $hassidepre = (empty($PAGE->layout_options['noblocks']) && $PAGE->blocks->region
 $hassidepost = (empty($PAGE->layout_options['noblocks']) && $PAGE->blocks->region_has_content('side-post', $OUTPUT));
 $haslogininfo = (empty($PAGE->layout_options['nologininfo']));
 
+$envflag = 'prod';
+if (!empty($PAGE->layout_options['environment'])) {
+    $envflag = $PAGE->layout_options['environment'];
+}
+
 // START UCLA MODIFICATION CCLE-2452
 $showcontrolpanel = (!empty($PAGE->layout_options['controlpanel'])); // TODO Add capability check
 
@@ -31,6 +36,8 @@ if ($hascustommenu) {
     $bodyclasses[] = 'has_custom_menu';
 }
 
+$envflag = $OUTPUT->get_environment();
+
 // Do all drawing
 
 echo $OUTPUT->doctype() ?>
@@ -44,7 +51,7 @@ echo $OUTPUT->doctype() ?>
 <?php echo $OUTPUT->standard_top_of_body_html() ?>
 <div id="page">
 <?php if ($hasheading || $hasnavbar) { ?>
-    <div id="page-header">
+    <div id="page-header" class="env-<?php echo $envflag ?>">
         <?php if ($hasheading) { ?>
         <div class="headermain">
             <div id="uclalogo">
