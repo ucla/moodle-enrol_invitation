@@ -105,7 +105,7 @@ class block_ucla_control_panel extends block_base {
         $courseid = $course->id;
 
         return new moodle_url($CFG->wwwroot . '/blocks/ucla_control_panel/'
-            . 'view.php', array('courseid' => $courseid));
+            . 'view.php', array('course_id' => $courseid));
     }
 
     /**
