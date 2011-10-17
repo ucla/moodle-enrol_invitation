@@ -120,6 +120,10 @@ html, body {background-color:#FFF; height:100%;}
     margin: 1em 15%;
 }
 
+.continuebutton {
+    text-align: center;
+}
+
 /** Login **/
 .loginbox {margin-top:15px;margin-bottom:15px;}
 .loginbox .loginform {margin-top:15px;}
