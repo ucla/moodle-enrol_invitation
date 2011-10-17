@@ -24,7 +24,7 @@
 // Moodle general format strings
 $string['sectionname'] = 'Section';
 $string['pluginname'] = 'UCLA Format';
-$string['section0name'] = 'Class Information';
+$string['section0name'] = 'Site Info';
 
 // SSC forum strings
 $string['discforum'] = 'Discussion forum';
