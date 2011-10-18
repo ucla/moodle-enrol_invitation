@@ -254,15 +254,31 @@ class block_ucla_control_panel extends block_base {
         foreach ($all_blocks as $block) {
             $block_name = 'block_' . $block->name;
             if (!class_exists($block_name)) {
-                $filename = $CFG->dirroot . '/blocks/' . $block->name
-                     . '/' . $block_name . '.php';
+                $filedir = $CFG->dirroot . '/blocks/' . $block->name
+                     . '/'; 
+
+                $filename = $filedir . $block_name . '.php';
 
                 if (file_exists($filename)) {
                     require_once($filename);
                 }
+    
+                // This hack may not be necessary, IF moodle does load
+                // stylesheet automatically for blocks
+                $stylename = $filedir . 'cp_style.css';
+                if (file_exists($stylename)) {
+                    $PAGE->requires->css($stylename);
+                }
+
+                $renderclass = $block_name . '_cp_render.php';
+                $rendername = $filedir . $renderclass;
+                if (!class_exists($renderclass) 
+                        && file_exists($rendername)) {
+                    require_once($rendername);
+                }
             }
 
-            if (method_exists($block_name, $static)) { 
+            if (method_exists($block_name, $static)) {
                 $blockmodules = $block_name::$static($course,
                     $context);
 

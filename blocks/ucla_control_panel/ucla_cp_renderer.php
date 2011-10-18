@@ -31,6 +31,7 @@ class ucla_cp_renderer {
     static function get_content_array($contents, $size=null) {
         $all_stuff = array();
 
+        // This is the number of groups to sort this into
         if ($size === null) {
             $size = floor(count($contents) / 2) + 1;
 

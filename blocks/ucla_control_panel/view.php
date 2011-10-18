@@ -69,12 +69,13 @@ if ($PAGE->user_allowed_editing()) {
     $PAGE->set_button($buttons);
 }
 
-// using core renderer
-echo $OUTPUT->header();
-
 // Get all the elements, unfortunately, this is where we check whether
 // we are supposed to display the elements at all.
 $elements = block_ucla_control_panel::load_cp_elements($course, $context);
+// We do this here becausae of a hack for stylesheets.
+
+// using core renderer
+echo $OUTPUT->header();
 
 // So here we need to check which tabs we can actually display
 $tabs = array();
@@ -101,8 +102,11 @@ $PAGE->navigation->initialise();
 // This is for showing a notice if there are no commands availble
 $no_elements = true;
 
+$sm = get_string_manager();
+
 // This is actually printing out each section of the control panel
 foreach ($elements as $view => $section_contents) {
+    // TODO expand this or optimize this
     if ($module_view != $view) {
         continue;
     }
@@ -110,21 +114,40 @@ foreach ($elements as $view => $section_contents) {
     $no_elements = false;
 
     foreach ($section_contents as $tags => $modules) {
+        $viewstring = '';
 
-        echo $OUTPUT->heading(get_string($view,
-            'block_ucla_control_panel'), 2, 'main copan-title');
+        // Is this group of stuff from elsewhere?
+        if ($sm->string_exists($tags, 'block_ucla_control_panel')) {
+            $viewstring = get_string($tags, 'block_ucla_control_panel');
+        } else {
+            // This is for other blocks
+            $altblockstr = $tags . '_cp_viewtitle';
+            if ($sm->string_exists($altblockstr, $tags)) {
+                $viewstring = get_string($altblockstr, $tags);
+            } else {
+                $viewstring = get_string('unknowntag', 
+                    'block_ucla_control_panel');
+            }
+        }
+
+        echo $OUTPUT->heading($viewstring, 2, 'main copan-title');
     
         if ($view == 'ucla_cp_mod_common') {
             $section_contents = ucla_cp_renderer::get_content_array(
-                $modules, 2);
+                $modules, 2
+            );
 
             echo ucla_cp_renderer::control_panel_contents($section_contents, 
                 false, 'row', 'general_icon_link');
-            
-            continue;
+        } else {
+            $altrend = $tags . '_cp_render';
+            if (class_exists($altrend) && method_exists($altrend, 
+                    'render_cp_items')) {
+                echo $altrend::render_cp_items($modules);
+            } else {
+                echo ucla_cp_renderer::control_panel_contents($modules, true);
+            }
         }
-
-        echo ucla_cp_renderer::control_panel_contents($modules, true);
     }
 }
 

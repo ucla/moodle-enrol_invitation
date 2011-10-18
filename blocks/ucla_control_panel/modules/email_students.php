@@ -24,6 +24,11 @@ class ucla_cp_module_email_students extends ucla_cp_module {
         $unhide = optional_param('unhide', false, PARAM_INT);
 
         // Create a news forum is it doesn't exist?
+        // Quick hack due to ordering (hackity hack)
+        if (!function_exists('forum_get_course_forum')) {
+            require_once($CFG->dirroot .'/mod/forum/lib.php');
+        }
+
         $course_forum = forum_get_course_forum($course->id, 'news');
       
         // Get all the forums

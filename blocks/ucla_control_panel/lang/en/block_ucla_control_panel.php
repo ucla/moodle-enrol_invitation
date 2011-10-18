@@ -18,8 +18,9 @@ $string['dummy_post'] = '';
 /** Default category name **/
 $string['default'] = 'Common Functions';
 
+$string['unknowntag'] = 'Ungrouped Functions';
+
 /** Stuff from common **/
-// TODO move out to another file
 $string['ucla_cp_mod_common'] = 'Most Commonly Used';
 
 $string['email_students'] = 'E-mail Students';
@@ -36,8 +37,6 @@ $string['edit_office_hours_post'] = 'Update your office hours, office location a
 
 $string['modify_sections'] = 'Modify Course Menu Sections';
 $string['modify_sections_post'] = '';
-
-$string['modify_modules'] = 'Rearrange Course Materials';
 
 $string['turn_editing_on'] = 'Delete or Update Materials';
 $string['turn_editing_on_post'] = '(or Update, Hide, Make Public)';
