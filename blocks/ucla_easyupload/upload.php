@@ -195,19 +195,6 @@ if ($uploadform->is_cancelled()) {
     $targetsectnum = $indexed_sections[$targetsection]->section;
     $data->section = $targetsectnum;
 
-    if (!isset($data->serialized) || empty($data->serialized)) {
-        // Assume that we're not changing the order
-        $sequencearr = false;
-    } else {
-        parse_str($data->serialized, $parsed);
-        $newmods = modnode::flatten($parsed['thelist']);
-
-        $sequencearr = array();
-        foreach($newmods as $newmod) {
-            $sequencearr[$newmod->id] = $newmod->id;
-        }
-    }
-
     // Pilfered parts from /course/modedit.php
     $modulename = $data->modulename;
 
@@ -262,11 +249,28 @@ if ($uploadform->is_cancelled()) {
 
     $DB->set_field('course_modules', 'instance', $instanceid,
         array('id' => $coursemoduleid));
+    
+    if (!isset($data->serialized) || empty($data->serialized)) {
+        // Assume that we're not changing the order
+        $sequencearr = false;
+    } else {
+        parse_str($data->serialized, $parsed);
+        $newmods = modnode::flatten($parsed['thelist']);
+
+        $sequencearr = array();
+        foreach($newmods as $newmod) {
+            if ($newmod->id == 'new') {
+                $newmod->id = $instanceid;
+            }
+
+            $sequencearr[$newmod->id] = $newmod->id;
+        }
+    }
 
     if (isset($newmods) && $sequencearr) {
         // This implies that we have rearrange available
         $newmodules = array($sectionid => $newmods);
-        block_ucla_rearrange::move_sections_buik($newmodules);
+        block_ucla_rearrange::move_modules_section_bulk($newmodules);
     }
 
     rebuild_course_cache($course_id);
