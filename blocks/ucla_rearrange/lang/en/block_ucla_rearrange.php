@@ -17,4 +17,7 @@ $string['error_module_consistency'] = 'There was a module inconsistency, none of
 
 $string['rearrange_success'] = 'Your sections and modules have be successfully rearranged.';
 
+$string['rearrange'] = 'Rearrange course materials';
+$string['rearrange_post'] = '';
+
 // EoF

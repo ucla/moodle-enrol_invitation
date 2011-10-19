@@ -319,6 +319,24 @@ class block_ucla_rearrange extends block_base {
             $DB->update_record('course_sections', $section, true);
         }
     }
+
+    static function ucla_cp_hook($course, $context) {
+        global $CFG;
+
+        $thispath = '/blocks/ucla_rearrange/rearrange.php';
+
+        $allmods = array();
+        $allmods[] = array(
+            'item_name' => 'rearrange',
+            'tags' => array('ucla_cp_mod_common'),
+            'action' => new moodle_url($thispath, array(
+                'course_id' => $course->id
+            )),
+            'required_cap' => 'moodle/course:update'
+        );
+
+        return $allmods;
+    }
 }
 
 /**
