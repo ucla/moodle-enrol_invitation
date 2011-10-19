@@ -190,7 +190,7 @@ if ($uploadform->is_cancelled()) {
         redirect($dest);
     }
 
-    // Hack since there is new knowledge TODO clean up form
+    // Confusing distinction between sectionid and sectionnumber
     $targetsection = $data->section;
     $targetsectnum = $indexed_sections[$targetsection]->section;
     $data->section = $targetsectnum;
@@ -217,7 +217,7 @@ if ($uploadform->is_cancelled()) {
     
     $newcm = new stdclass();
     $newcm->course = $course->id;
-    $newcm->section = $targetsectnum;
+    $newcm->section = $targetsection;
     $newcm->module = $module->id;
     $newcm->instance = 0;
    
