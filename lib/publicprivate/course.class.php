@@ -279,6 +279,8 @@ class PublicPrivate_Course {
         try {
             $conditions = array('course'=>$this->_course->id, 'groupmembersonly'=>0, 'groupingid'=>0);
             $DB->set_field('course_modules', 'groupingid', $newgroupingid, $conditions);
+
+            $conditions['groupingid'] = $newgroupingid;
             $DB->set_field('course_modules', 'groupmembersonly', 1, $conditions);
         } catch(DML_Exception $e) {
             throw new PublicPrivate_Course_Exception('Failed to set public modules private on activation.', 207, $e);
@@ -335,9 +337,11 @@ class PublicPrivate_Course {
          */
 
         try {
-            $conditions = array('course'=>$this->_course->id, 'groupmembersonly'=>1, 'groupingid'=>$this->_course->groupingpublicprivate);
-            $DB->set_field('course_modules', 'groupingid', 0, $conditions);
+            $conditions = array('course'=>$this->_course->id, 'groupmembersonly'=>1, 'groupingid'=>$oldgroupingpublicprivate);
             $DB->set_field('course_modules', 'groupmembersonly', 0, $conditions);
+    
+            unset($conditions['groupmembersonly']);
+            $DB->set_field('course_modules', 'groupingid', 0, $conditions);
         } catch(DML_Exception $e) {
             throw new PublicPrivate_Course_Exception('Failed to unset public/private module visibilities.', 302, $e);
         }
