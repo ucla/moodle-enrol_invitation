@@ -183,17 +183,34 @@ $uploadform = new $typeclass(null,
 if ($uploadform->is_cancelled()) {
     redirect($cpurl);
 } else if ($data = $uploadform->get_data()) {
-    if (isset($data->redirectme)) {
-        $dest = new moodle_url($data->redirectme,
-            array('section' => $data->section));
-
-        redirect($dest);
-    }
-
     // Confusing distinction between sectionid and sectionnumber
     $targetsection = $data->section;
     $targetsectnum = $indexed_sections[$targetsection]->section;
     $data->section = $targetsectnum;
+
+    if (isset($data->redirectme)) {
+        if (!method_exists($uploadform, 'get_send_params')) {
+            print_error('redirectimplementationerror');
+        }
+
+        // This discrepancy is really terrible.
+        $data->section = $targetsectnum;
+
+        $params = $uploadform->get_send_params();
+
+        $get_sends = array();
+        foreach ($params as $param) {
+            if (!isset($data->$param)) {
+                print_error('missingshit', $param);
+            }
+
+            $get_sends[$param] = $data->$param;
+        }
+
+        $dest = new moodle_url($data->redirectme, $get_sends);
+
+        redirect($dest);
+    }
 
     // Pilfered parts from /course/modedit.php
     $modulename = $data->modulename;

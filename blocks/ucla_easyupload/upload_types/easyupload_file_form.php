@@ -4,7 +4,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once(dirname(__FILE__) . '/../quickform_file.php');
 
-class easy_upload_file_form extends easy_upload_form {
+class easyupload_file_form extends easy_upload_form {
     var $allow_renaming = true;
     var $allow_js_select = true;
 

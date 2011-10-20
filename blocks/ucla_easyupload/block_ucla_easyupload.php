@@ -99,7 +99,7 @@ class block_ucla_easyupload extends block_base {
             require_once($typefile);
         }
 
-        $typeclass = 'easy_upload_' . $type . '_form';
+        $typeclass = 'easyupload_' . $type . '_form';
 
         if (class_exists($typeclass)) {
             return $typeclass;

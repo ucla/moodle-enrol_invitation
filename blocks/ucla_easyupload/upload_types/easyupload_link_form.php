@@ -2,7 +2,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-class easy_upload_link_form extends easy_upload_form {
+class easyupload_link_form extends easy_upload_form {
     var $allow_renaming = true;
     var $allow_js_select = true;
 
