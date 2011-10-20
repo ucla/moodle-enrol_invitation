@@ -115,7 +115,9 @@ class quiz_statistics_report extends quiz_default_report {
         } else {
             $report = get_string('questionstatsfilename', 'quiz_statistics');
         }
-        $filename = quiz_report_download_filename($report, $course->shortname, $quiz->name);
+        $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+        $courseshortname = format_string($course->shortname, true, array('context' => $coursecontext));
+        $filename = quiz_report_download_filename($report, $courseshortname, $quiz->name);
         $this->table->is_downloading($download, $filename,
                 get_string('quizstructureanalysis', 'quiz_statistics'));
 
@@ -209,7 +211,7 @@ class quiz_statistics_report extends quiz_default_report {
             // Back to overview link.
             echo $OUTPUT->box('<a href="' . $reporturl->out() . '">' .
                     get_string('backtoquizreport', 'quiz_statistics') . '</a>',
-                    'boxaligncenter generalbox boxwidthnormal mdl-align');
+                    'backtomainstats boxaligncenter generalbox boxwidthnormal mdl-align');
 
         } else if ($qid) {
             // Report on an individual sub-question indexed questionid.
@@ -313,7 +315,7 @@ class quiz_statistics_report extends quiz_default_report {
 
         echo $OUTPUT->box(format_text($question->questiontext, $question->questiontextformat,
                 array('overflowdiv' => true)) . $actions,
-                'boxaligncenter generalbox boxwidthnormal mdl-align');
+                'questiontext boxaligncenter generalbox boxwidthnormal mdl-align');
 
         echo $OUTPUT->heading(get_string('questionstatistics', 'quiz_statistics'));
         echo html_writer::table($questionstatstable);
@@ -620,7 +622,7 @@ class quiz_statistics_report extends quiz_default_report {
                     SUM(sumgrades) AS total
                 FROM $fromqa
                 WHERE $whereqa
-                GROUP BY attempt = 1", $qaparams);
+                GROUP BY CASE WHEN attempt = 1 THEN 1 ELSE 0 END", $qaparams);
 
         if (!$attempttotals) {
             return $this->get_emtpy_stats($questions);

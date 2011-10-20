@@ -487,10 +487,11 @@ function message_print_usergroup_selector($viewing, $courses, $coursecontexts, $
         foreach($courses as $course) {
             if (has_capability('moodle/course:viewparticipants', $coursecontexts[$course->id])) {
                 //Not using short_text() as we want the end of the course name. Not the beginning.
-                if ($textlib->strlen($course->shortname) > MESSAGE_MAX_COURSE_NAME_LENGTH) {
-                    $courses_options[MESSAGE_VIEW_COURSE.$course->id] = '...'.$textlib->substr($course->shortname, -MESSAGE_MAX_COURSE_NAME_LENGTH);
+                $shortname = format_string($course->shortname, true, array('context' => $coursecontexts[$course->id]));
+                if ($textlib->strlen($shortname) > MESSAGE_MAX_COURSE_NAME_LENGTH) {
+                    $courses_options[MESSAGE_VIEW_COURSE.$course->id] = '...'.$textlib->substr($shortname, -MESSAGE_MAX_COURSE_NAME_LENGTH);
                 } else {
-                    $courses_options[MESSAGE_VIEW_COURSE.$course->id] = $course->shortname;
+                    $courses_options[MESSAGE_VIEW_COURSE.$course->id] = $shortname;
                 }
             }
         }
@@ -1000,14 +1001,14 @@ function message_get_contact($contactid) {
  *
  * @param mixed $frm submitted form data
  * @param bool $showicontext show text next to action icons?
- * @param object $user1 the current user
+ * @param object $currentuser the current user
  * @return void
  */
-function message_print_search_results($frm, $showicontext=false, $user1=null) {
+function message_print_search_results($frm, $showicontext=false, $currentuser=null) {
     global $USER, $DB, $OUTPUT;
 
-    if (empty($user1)) {
-        $user1 = $USER;
+    if (empty($currentuser)) {
+        $currentuser = $USER;
     }
 
     echo html_writer::start_tag('div', array('class' => 'mdl-left'));
@@ -1227,14 +1228,17 @@ function message_print_search_results($frm, $showicontext=false, $user1=null) {
                 echo message_get_fragment($message->fullmessage, $keywords);
                 echo html_writer::start_tag('div', array('class' => 'link'));
 
-                //find the user involved that isn't the current user
-                $user2id = null;
-                if ($user1->id == $message->useridto) {
-                    $user2id = $message->useridfrom;
+                //If the user clicks the context link display message sender on the left
+                //EXCEPT if the current user is in the conversation. Current user == always on the left
+                $leftsideuserid = $rightsideuserid = null;
+                if ($currentuser->id == $message->useridto) {
+                    $leftsideuserid = $message->useridto;
+                    $rightsideuserid = $message->useridfrom;
                 } else {
-                    $user2id = $message->useridto;
+                    $leftsideuserid = $message->useridfrom;
+                    $rightsideuserid = $message->useridto;
                 }
-                message_history_link($user1->id, $user2id, false,
+                message_history_link($leftsideuserid, $rightsideuserid, false,
                                      $messagesearchstring, 'm'.$message->id, $strcontext);
                 echo html_writer::end_tag('div');
                 echo html_writer::end_tag('td');
@@ -1393,7 +1397,7 @@ function message_contact_link($userid, $linktype='add', $return=false, $script=n
  * echo or return a link to take the user to the full message history between themselves and another user
  *
  * @staticvar type $strmessagehistory
- * @param int $userid1 the ID of the current user
+ * @param int $userid1 the ID of the user displayed on the left (usually the current user)
  * @param int $userid2 the ID of the other user
  * @param bool $return true to return the link as a string. False to echo the link.
  * @param string $keywords any keywords to highlight in the message history
@@ -1403,7 +1407,6 @@ function message_contact_link($userid, $linktype='add', $return=false, $script=n
  */
 function message_history_link($userid1, $userid2, $return=false, $keywords='', $position='', $linktext='') {
     global $OUTPUT;
-
     static $strmessagehistory;
 
     if (empty($strmessagehistory)) {
@@ -1437,7 +1440,7 @@ function message_history_link($userid1, $userid2, $return=false, $keywords='', $
             'scrollbars' => true,
             'resizable' => true);
 
-    $link = new moodle_url('/message/index.php?history='.MESSAGE_HISTORY_ALL."&user=$userid1&id=$userid2$keywords$position");
+    $link = new moodle_url('/message/index.php?history='.MESSAGE_HISTORY_ALL."&user1=$userid1&user2=$userid2$keywords$position");
     $action = null;
     $str = $OUTPUT->action_link($link, $fulllink, $action, array('title' => $strmessagehistory));
 
@@ -1942,9 +1945,15 @@ function message_format_message($message, $format='', $keywords='', $class='othe
 
     //if supplied display small messages as fullmessage may contain boilerplate text that shouldnt appear in the messaging UI
     if (!empty($message->smallmessage)) {
-        $messagetext = format_text(s($message->smallmessage), FORMAT_MOODLE, $options);
+        $messagetext = $message->smallmessage;
     } else {
-        $messagetext = format_text(s($message->fullmessage), $message->fullmessageformat, $options);
+        $messagetext = $message->fullmessage;
+    }
+    if ($message->fullmessageformat == FORMAT_HTML) {
+        //dont escape html tags by calling s() if html format or they will display in the UI
+        $messagetext = html_to_text(format_text($messagetext, $message->fullmessageformat, $options));
+    } else {
+        $messagetext = format_text(s($messagetext), $message->fullmessageformat, $options);
     }
 
     $messagetext .= message_format_contexturl($message);
@@ -2013,7 +2022,7 @@ function message_post_message($userfrom, $userto, $message, $format) {
     $eventdata->smallmessage     = $message;//store the message unfiltered. Clean up on output.
 
     $s = new stdClass();
-    $s->sitename = $SITE->shortname;
+    $s->sitename = format_string($SITE->shortname, true, array('context' => get_context_instance(CONTEXT_COURSE, SITEID)));
     $s->url = $CFG->wwwroot.'/message/index.php?user='.$userto->id.'&id='.$userfrom->id;
 
     $emailtagline = get_string_manager()->get_string('emailtagline', 'message', $s, $userto->lang);
@@ -2300,6 +2309,34 @@ function get_message_processors($ready = false) {
 }
 
 /**
+ * Get an instance of the message_output class for one of the output plugins.
+ * @param string $type the message output type. E.g. 'email' or 'jabber'.
+ * @return message_output message_output the requested class.
+ */
+function get_message_processor($type) {
+    global $CFG;
+
+    // Note, we cannot use the get_message_processors function here, becaues this
+    // code is called during install after installing each messaging plugin, and
+    // get_message_processors caches the list of installed plugins.
+
+    $processorfile = $CFG->dirroot . "/message/output/{$type}/message_output_{$type}.php";
+    if (!is_readable($processorfile)) {
+        throw new coding_exception('Unknown message processor type ' . $type);
+    }
+
+    include_once($processorfile);
+
+    $processclass = 'message_output_' . $type;
+    if (!class_exists($processclass)) {
+        throw new coding_exception('Message processor ' . $type .
+                ' does not define the right class');
+    }
+
+    return new $processclass();
+}
+
+/**
  * Get messaging outputs default (site) preferences
  *
  * @return object $processors object containing information on message processors
@@ -2336,11 +2373,8 @@ function translate_message_default_setting($plugindefault, $processorname) {
     );
 
     // define the default setting
-    if ($processorname == 'email') {
-        $default = MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF;
-    } else {
-        $default = MESSAGE_PERMITTED;
-    }
+    $processor = get_message_processor($processorname);
+    $default = $processor->get_default_messaging_settings();
 
     // Validate the value. It should not exceed the maximum size
     if (!is_int($plugindefault) || ($plugindefault > 0x0f)) {

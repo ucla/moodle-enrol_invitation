@@ -405,6 +405,8 @@ function quiz_print_question_list($quiz, $pageurl, $allowdelete, $reordertool,
 
     $a = '<input name="moveselectedonpagetop" type="text" size="2" ' .
         $pagingdisabled . ' />';
+    $b = '<input name="moveselectedonpagebottom" type="text" size="2" ' .
+        $pagingdisabled . ' />';
 
     $reordercontrols2top = '<div class="moveselectedonpage">' .
         get_string('moveselectedonpage', 'quiz', $a) .
@@ -415,7 +417,7 @@ function quiz_print_question_list($quiz, $pageurl, $allowdelete, $reordertool,
     $reordercontrols2bottom = '<div class="moveselectedonpage">' .
         '<input type="submit" name="savechanges" value="' .
         $strreorderquestions . '" /><br />' .
-        get_string('moveselectedonpage', 'quiz', $a) .
+        get_string('moveselectedonpage', 'quiz', $b) .
         '<input type="submit" name="savechanges" value="' .
         $strmove . '"  ' . $pagingdisabled . ' /> ' . '</div>';
 
@@ -534,23 +536,20 @@ function quiz_print_question_list($quiz, $pageurl, $allowdelete, $reordertool,
                     $reordercheckboxlabel = '<label for="s' . $question->id . '">';
                     $reordercheckboxlabelclose = '</label>';
                 }
-                if (!$quiz->shufflequestions) {
-                    // Print and increment question number
-                    $questioncountstring = '';
-                    if ($questioncount>999 || ($reordertool && $questioncount>99)) {
-                        $questioncountstring =
-                                "$reordercheckboxlabel<small>$questioncount</small>" .
-                                $reordercheckboxlabelclose . $reordercheckbox;
-                    } else {
-                        $questioncountstring = $reordercheckboxlabel . $questioncount .
-                                $reordercheckboxlabelclose . $reordercheckbox;
-                    }
-                    echo $questioncountstring;
-                    $qno += $question->length;
+                if ($question->length == 0) {
+                    $qnodisplay = get_string('infoshort', 'quiz');
+                } else if ($quiz->shufflequestions) {
+                    $qnodisplay = '?';
                 } else {
-                    echo "$reordercheckboxlabel ? $reordercheckboxlabelclose" .
-                            " $reordercheckbox";
+                    if ($qno > 999 || ($reordertool && $qno > 99)) {
+                        $qnodisplay = html_writer::tag('small', $qno);
+                    } else {
+                        $qnodisplay = $qno;
+                    }
+                    $qno += $question->length;
                 }
+                echo $reordercheckboxlabel . $qnodisplay . $reordercheckboxlabelclose .
+                        $reordercheckbox;
 
                 ?>
         </div>
@@ -1132,8 +1131,8 @@ class quiz_question_bank_view extends question_bank_view {
         return new moodle_url('/mod/quiz/edit.php', $params);
     }
 
-    public function display($tabname, $page, $perpage, $sortorder,
-            $sortorderdecoded, $cat, $recurse, $showhidden, $showquestiontext) {
+    public function display($tabname, $page, $perpage, $cat,
+            $recurse, $showhidden, $showquestiontext) {
         global $OUTPUT;
         if ($this->process_actions_needing_ui()) {
             return;
@@ -1153,7 +1152,7 @@ class quiz_question_bank_view extends question_bank_view {
         // continues with list of questions
         $this->display_question_list($this->contexts->having_one_edit_tab_cap($tabname),
                 $this->baseurl, $cat, $this->cm, $recurse, $page,
-                $perpage, $showhidden, $sortorder, $sortorderdecoded, $showquestiontext,
+                $perpage, $showhidden, $showquestiontext,
                 $this->contexts->having_cap('moodle/question:add'));
 
         $this->display_options($recurse, $showhidden, $showquestiontext);
@@ -1186,15 +1185,14 @@ class quiz_question_bank_view extends question_bank_view {
         echo '</span></div></div>';
     }
 
-    protected function display_options($recurse = 1, $showhidden = false,
-            $showquestiontext = false) {
+    protected function display_options($recurse, $showhidden, $showquestiontext) {
         echo '<form method="get" action="edit.php" id="displayoptions">';
         echo "<fieldset class='invisiblefieldset'>";
         echo html_writer::input_hidden_params($this->baseurl,
-                array('recurse', 'showhidden', 'showquestiontext'));
-        $this->display_category_form_checkbox('recurse',
+                array('recurse', 'showhidden', 'qbshowtext'));
+        $this->display_category_form_checkbox('recurse', $recurse,
                 get_string('includesubcategories', 'question'));
-        $this->display_category_form_checkbox('showhidden',
+        $this->display_category_form_checkbox('showhidden', $showhidden,
                 get_string('showhidden', 'question'));
         echo '<noscript><div class="centerpara"><input type="submit" value="' .
                 get_string('go') . '" />';
@@ -1274,7 +1272,7 @@ function quiz_print_status_bar($quiz) {
     // Brief summary on the page.
     if ($timenow < $quiz->timeopen) {
         $currentstatus = get_string('quizisclosedwillopen', 'quiz',
-                userdate($quiz->timeclose, get_string('strftimedatetimeshort', 'langconfig')));
+                userdate($quiz->timeopen, get_string('strftimedatetimeshort', 'langconfig')));
     } else if ($quiz->timeclose && $timenow <= $quiz->timeclose) {
         $currentstatus = get_string('quizisopenwillclose', 'quiz',
                 userdate($quiz->timeclose, get_string('strftimedatetimeshort', 'langconfig')));

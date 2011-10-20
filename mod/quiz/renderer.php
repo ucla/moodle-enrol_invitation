@@ -203,7 +203,7 @@ class mod_quiz_renderer extends plugin_renderer_base {
                 quiz_get_js_module());
 
         $output = '';
-        $output .= html_writer::start_tag('form', array('action' => $attemptobj->review_url(0,
+        $output .= html_writer::start_tag('form', array('action' => $attemptobj->review_url(null,
                 $page, $showall), 'method' => 'post', 'class' => 'questionflagsaveform'));
         $output .= html_writer::start_tag('div');
         $output .= $content;
@@ -249,7 +249,7 @@ class mod_quiz_renderer extends plugin_renderer_base {
         if ($lastpage) {
             $nav = $this->finish_review_link($attemptobj->view_url());
         } else {
-            $nav = link_arrow_right(get_string('next'), $attemptobj->review_url(0, $page + 1));
+            $nav = link_arrow_right(get_string('next'), $attemptobj->review_url(null, $page + 1));
         }
         return html_writer::tag('div', $nav, array('class' => 'submitbtns'));
     }
@@ -259,7 +259,7 @@ class mod_quiz_renderer extends plugin_renderer_base {
      * @return string HTML content.
      */
     public function countdown_timer() {
-        return html_writer::tag('div', get_string('timeleft', 'quiz') .
+        return html_writer::tag('div', get_string('timeleft', 'quiz') . ' ' .
                 html_writer::tag('span', '', array('id' => 'quiz-time-left')),
                 array('id' => 'quiz-timer'));
     }
@@ -316,8 +316,6 @@ class mod_quiz_renderer extends plugin_renderer_base {
             $classes[] = 'thispage';
             $attributes[] = get_string('onthispage', 'quiz');
         }
-
-        $attributes[] = $button->statestring;
 
         // Flagged?
         if ($button->flagged) {
@@ -378,8 +376,10 @@ class mod_quiz_renderer extends plugin_renderer_base {
     public function attempt_page($attemptobj, $page, $accessmanager, $messages, $slots, $id,
             $nextpage) {
         $output = '';
+        $output .= $this->header();
         $output .= $this->quiz_notices($messages);
         $output .= $this->attempt_form($attemptobj, $page, $slots, $id, $nextpage);
+        $output .= $this->footer();
         return $output;
     }
 
@@ -417,8 +417,8 @@ class mod_quiz_renderer extends plugin_renderer_base {
 
         // Print all the questions
         foreach ($slots as $slot) {
-            $output .= $attemptobj->render_question($slot, false, $attemptobj->attempt_url($id,
-                    $page));
+            $output .= $attemptobj->render_question($slot, false,
+                    $attemptobj->attempt_url($slot, $page));
         }
 
         $output .= html_writer::start_tag('div', array('class' => 'submitbtns'));
@@ -481,8 +481,12 @@ class mod_quiz_renderer extends plugin_renderer_base {
      */
     public function summary_page($attemptobj, $displayoptions) {
         $output = '';
+        $output .= $this->header();
+        $output .= $this->heading(format_string($attemptobj->get_quiz_name()));
+        $output .= $this->heading(get_string('summaryofattempt', 'quiz'), 3);
         $output .= $this->summary_table($attemptobj, $displayoptions);
         $output .= $this->summary_page_controls($attemptobj);
+        $output .= $this->footer();
         return $output;
     }
 
@@ -610,7 +614,7 @@ class mod_quiz_renderer extends plugin_renderer_base {
         $output .= $this->view_information($course, $quiz, $cm, $context, $messages);
         $guestno = html_writer::tag('p', get_string('guestsno', 'quiz'));
         $liketologin = html_writer::tag('p', get_string('liketologin'));
-        $output .= $this->confirm($guestno.'\n\n'.$liketologin.'\n', get_login_url(),
+        $output .= $this->confirm($guestno."\n\n".$liketologin."\n", get_login_url(),
                 get_referer(false));
         return $output;
     }
@@ -631,7 +635,7 @@ class mod_quiz_renderer extends plugin_renderer_base {
         $youneedtoenrol = html_writer::tag('p', get_string('youneedtoenrol', 'quiz'));
         $button = html_writer::tag('p',
                 $this->continue_button($CFG->wwwroot . '/course/view.php?id=' . $course->id));
-        $output .= $this->box($youneedtoenrol.'\n\n'.$button.'\n', 'generalbox', 'notice');
+        $output .= $this->box($youneedtoenrol."\n\n".$button."\n", 'generalbox', 'notice');
         return $output;
     }
 
@@ -761,8 +765,9 @@ class mod_quiz_renderer extends plugin_renderer_base {
             }
             $row[] = $datecompleted;
 
-            if ($viewobj->markcolumn && $attempt->timefinish > 0) {
-                if ($attemptoptions->marks >= question_display_options::MARK_AND_MAX) {
+            if ($viewobj->markcolumn) {
+                if ($attemptoptions->marks >= question_display_options::MARK_AND_MAX &&
+                        $attempt->timefinish > 0) {
                     $row[] = quiz_format_grade($quiz, $attempt->sumgrades);
                 } else {
                     $row[] = '';
@@ -867,7 +872,7 @@ class mod_quiz_renderer extends plugin_renderer_base {
         if ($viewobj->mygradeoverridden) {
 
             $resultinfo .= html_writer::tag('p', get_string('overriddennotice', 'grades'),
-                    array('class' => 'overriddennotice')).'\n';
+                    array('class' => 'overriddennotice'))."\n";
         }
         if ($viewobj->gradebookfeedback) {
             $resultinfo .= $this->heading(get_string('comment', 'quiz'), 3, 'main');
@@ -878,7 +883,7 @@ class mod_quiz_renderer extends plugin_renderer_base {
             $resultinfo .= $this->heading(get_string('overallfeedback', 'quiz'), 3, 'main');
             $resultinfo .= html_writer::tag('p',
                     quiz_feedback_for_grade($viewobj->mygrade, $quiz, $context),
-                    array('class' => 'quizgradefeedback')).'\n';
+                    array('class' => 'quizgradefeedback'))."\n";
         }
 
         if ($resultinfo) {

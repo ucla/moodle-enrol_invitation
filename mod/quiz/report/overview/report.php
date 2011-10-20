@@ -116,20 +116,22 @@ class quiz_overview_report extends quiz_attempt_report {
             $allowed = array();
         }
 
+        $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+        $courseshortname = format_string($course->shortname, true, array('context' => $coursecontext));
+
+        $displaycoursecontext = get_context_instance(CONTEXT_COURSE, $COURSE->id);
+        $displaycourseshortname = format_string($COURSE->shortname, true, array('context' => $displaycoursecontext));
+
         // Load the required questions.
-        if ($detailedmarks) {
-            $questions = quiz_report_get_significant_questions($quiz);
-        } else {
-            $questions = array();
-        }
+        $questions = quiz_report_get_significant_questions($quiz);
 
         $table = new quiz_report_overview_table($quiz, $this->context, $qmsubselect,
                 $groupstudents, $students, $detailedmarks, $questions, $candelete,
                 $reporturl, $displayoptions);
         $filename = quiz_report_download_filename(get_string('overviewfilename', 'quiz_overview'),
-                $course->shortname, $quiz->name);
+                $courseshortname, $quiz->name);
         $table->is_downloading($download, $filename,
-                $COURSE->shortname . ' ' . format_string($quiz->name, true));
+                $displaycourseshortname . ' ' . format_string($quiz->name, true));
         if ($table->is_downloading()) {
             raise_memory_limit(MEMORY_EXTRA);
         }
