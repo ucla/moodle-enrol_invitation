@@ -2132,6 +2132,49 @@ class admin_setting_configcheckbox extends admin_setting {
     }
 }
 
+/**
+ * Extension of the configcheckbox for a disabled checkbox.
+ *
+ * @author ebollens
+ * @version 20110719
+ */
+class admin_setting_configcheckbox_disabled extends admin_setting_configcheckbox {
+
+    /**
+     * Returns an XHTML checkbox field
+     *
+     * @param string $data If $data matches yes then checkbox is checked
+     * @param string $query
+     * @return string XHTML field
+     */
+    public function output_html($data, $query='') {
+        $default = $this->get_defaultsetting();
+
+        if (!is_null($default)) {
+            if ((string)$default === $this->yes) {
+                $defaultinfo = get_string('checkboxyes', 'admin');
+            } else {
+                $defaultinfo = get_string('checkboxno', 'admin');
+            }
+        } else {
+            $defaultinfo = NULL;
+        }
+
+        if ((string)$data === $this->yes) { // convert to strings before comparison
+            $checked = 'checked="checked"';
+            $this->no = $this->yes;
+        } else {
+            $checked = '';
+            $this->yes = $this->no;
+        }
+
+        return format_admin_setting($this, $this->visiblename,
+        '<div class="form-checkbox defaultsnext" ><input type="hidden" name="'.$this->get_full_name().'" value="'.s($this->no).'" /> '
+            .'<input type="checkbox" id="'.$this->get_id().'" name="'.$this->get_full_name().'" value="'.s($this->yes).'" '.$checked.' DISABLED /></div>',
+        $this->description, true, '', $defaultinfo, $query);
+    }
+}
+
 
 /**
  * Multiple checkboxes, each represents different value, stored in csv format
@@ -3586,6 +3629,32 @@ class admin_settings_country_select extends admin_setting_configselect {
         $this->choices = array_merge(
                 array('0' => get_string('choosedots')),
                 get_string_manager()->get_list_of_countries($this->includeall));
+        return true;
+    }
+}
+
+
+/**
+ * admin_setting_configselect for the default number of sections in a course,
+ * simply so we can lazy-load the choices.
+ *
+ * @copyright 2011 The Open University
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class admin_settings_num_course_sections extends admin_setting_configselect {
+    public function __construct($name, $visiblename, $description, $defaultsetting) {
+        parent::__construct($name, $visiblename, $description, $defaultsetting, array());
+    }
+
+    /** Lazy-load the available choices for the select box */
+    public function load_choices() {
+        $max = get_config('moodlecourse', 'maxsections');
+        if (empty($max)) {
+            $max = 52;
+        }
+        for ($i = 0; $i <= $max; $i++) {
+            $this->choices[$i] = "$i";
+        }
         return true;
     }
 }
@@ -5941,6 +6010,25 @@ function admin_write_settings($formdata) {
         $data[$fullname] = $value;
     }
 
+    /**
+     * Validation checks for enabling and disabling public/private and group
+     * members only settings. Public/private can only be enabled if group
+     * members only is enabled, and group members only cannot be disabled if
+     * public/private is enabled.
+     *
+     * @author ebollens
+     * @version 20110719
+     */
+    if(isset($formdata['section']) && $formdata['section'] == 'experimentalsettings'
+            && array_key_exists('s__enablegroupmembersonly', $data)
+            && array_key_exists('s__enablepublicprivate', $data))
+    {
+        // Disable public private is groupmembersonly is off
+        if ($data['s__enablegroupmembersonly'] == '0' && $data['s__enablepublicprivate'] == '1') {
+            $data['s__enablepublicprivate'] = '0';
+        }
+    }
+
     $adminroot = admin_get_root();
     $settings = admin_find_write_settings($adminroot, $data);
 
@@ -7837,9 +7925,10 @@ class admin_setting_configmultiselect_modules extends admin_setting_configmultis
      * @param string $name setting name
      * @param string $visiblename localised setting name
      * @param string $description setting description
+     * @param array $defaultsetting a plain array of default module ids
      */
-    public function __construct($name, $visiblename, $description) {
-        parent::__construct($name, $visiblename, $description, array(), null);
+    public function __construct($name, $visiblename, $description, $defaultsetting = array()) {
+        parent::__construct($name, $visiblename, $description, $defaultsetting, null);
     }
 
     /**

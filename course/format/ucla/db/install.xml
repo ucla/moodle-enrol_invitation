@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="course/format/ucla/db" VERSION="20110510" COMMENT="XMLDB file for Moodle course/format/ucla"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="ucla_course_prefs" COMMENT="Contains course-specific preferences.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="courseid"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="The course number for which the preference will be saved." PREVIOUS="id" NEXT="name"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The preference handle." PREVIOUS="courseid" NEXT="value"/>
+        <FIELD NAME="value" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="The value corresponding to the name handle." PREVIOUS="name" NEXT="timestamp"/>
+        <FIELD NAME="timestamp" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="The time upon which the course preference was modified." PREVIOUS="value"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="searchindex" UNIQUE="true" FIELDS="courseid, name" COMMENT="This is the most common use case."/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>

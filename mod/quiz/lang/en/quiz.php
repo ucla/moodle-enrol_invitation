@@ -175,7 +175,7 @@ $string['configshufflewithin'] = 'If you enable this option, then the parts maki
 $string['configtimelimit'] = 'Default time limit for quizzes in minutes. 0 mean no time limit.';
 $string['configtimelimitsec'] = 'Default time limit for quizzes in seconds. 0 mean no time limit.';
 $string['configurerandomquestion'] = 'Configure question';
-$string['confirmclose'] = 'You are about to close this attempt. Once you close the attempt you will no longer be able to change your answers.';
+$string['confirmclose'] = 'Once you submit, you will no longer be able to change your answers for this attempt.';
 $string['confirmserverdelete'] = 'Are you sure you want to remove the server <b>{$a}</b> from the list?';
 $string['confirmstartattemptlimit'] = 'Number of attempts allowed:  {$a}. You are about to start a new attempt.  Do you wish to proceed?';
 $string['confirmstartattempttimelimit'] = 'This quiz has a time limit and is limited to {$a} attempt(s). You are about to start a new attempt.  Do you wish to proceed?';
@@ -256,7 +256,7 @@ Thank you for submitting your answers to
 in course \'{$a->coursename}\'
 at {$a->submissiontime}.
 
-This email confirms that we have safely received your answers.
+This message confirms that we have safely received your answers.
 
 You can access this quiz at {$a->quizurl}.';
 $string['emailconfirmsmall'] = 'Thank you for submitting your answers to \'{$a->quizname}\'';
@@ -550,8 +550,8 @@ $string['quizclosed'] = 'This quiz closed on {$a}';
 $string['quizcloses'] = 'Quiz closes';
 $string['quizcloseson'] = 'This quiz will close at {$a}';
 $string['quiz:deleteattempts'] = 'Delete quiz attempts';
-$string['quiz:emailconfirmsubmission'] = 'Get email confirmation when submitting';
-$string['quiz:emailnotifysubmission'] = 'Get email notification of submissions';
+$string['quiz:emailconfirmsubmission'] = 'Get a confirmation message when submitting';
+$string['quiz:emailnotifysubmission'] = 'Get a notification message when an attempt is submitted';
 $string['quiz:grade'] = 'Grade quizzes manually';
 $string['quiz:ignoretimelimits'] = 'Ignores time limit on quizzes';
 $string['quizisclosed'] = 'This quiz is closed';
@@ -719,6 +719,7 @@ $string['sorttypealpha'] = 'Sort by type, name';
 $string['specificapathnotonquestion'] = 'The specified file path is not on the specified question';
 $string['specificquestionnotonquiz'] = 'Specified question is not on the specified quiz';
 $string['startagain'] = 'Start again';
+$string['startattempt'] = 'Start attempt';
 $string['startedon'] = 'Started on';
 $string['startnewpreview'] = 'Start a new preview';
 $string['statenotloaded'] = 'The state for question {$a} has not been loaded from the database';

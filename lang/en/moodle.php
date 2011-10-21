@@ -304,7 +304,7 @@ $string['coursehelpforce'] = 'Force the course group mode to every activity in t
 $string['coursehelpformat'] = 'The course main page will be displayed in this format.';
 $string['coursehelphiddensections'] = 'How the hidden sections in the course are displayed to students.';
 $string['coursehelpmaximumupload'] = 'Define the largest size of file that can be uploaded in this course, limited by the site-wide setting.';
-$string['coursehelpnewsitemsnumber'] = 'Number of recent items appearing on the course home page, in a news box down the right-hand side <br/>(0 means the news box won\'t appear).';
+$string['coursehelpnewsitemsnumber'] = 'Number of recent items appearing on the course home page, in a news box down the right-hand side (0 means the news box won\'t appear).';
 $string['coursehelpnumberweeks'] = 'Number of weeks/topics displayed on the course main page.';
 $string['coursehelpshowgrades'] = 'Enable the display of the gradebook. It does not prevent grades from being displayed within the individual activities.';
 $string['coursehidden'] = 'This course is currently unavailable to students';
@@ -981,6 +981,8 @@ $string['maximumchars'] = 'Maximum of {$a} characters';
 $string['maximumshort'] = 'Max';
 $string['maximumupload'] = 'Maximum upload size';
 $string['maximumupload_help'] = 'This setting determines the largest size of file that can be uploaded to the course, limited by the site-wide setting set by an administrator. Activity modules also include a maximum upload size setting for further restricting the file size.';
+$string['maxnumberweeks'] = 'Maximum for number of weeks/topics';
+$string['maxnumberweeks_desc'] = 'This controls the maximum options that appears in the "Number of weeks/topics" setting for courses.';
 $string['maxsize'] = 'Max size: {$a}';
 $string['maxfilesize'] = 'Maximum size for new files: {$a}';
 $string['maxnumcoursesincombo'] = 'Browse <a href="{$a->link}">{$a->numberofcourses} courses</a>.';
@@ -1815,3 +1817,34 @@ $string['yourself'] = 'yourself';
 $string['yourteacher'] = 'your {$a}';
 $string['yourwordforx'] = 'Your word for \'{$a}\'';
 $string['zippingbackup'] = 'Zipping backup';
+
+/**
+ * Public/private strings.
+ *
+ * @author ebollens
+ * @version 20110719
+ */
+$string['publicprivateenable'] = 'Enable Public/Private';
+$string['publicprivateenable_help'] = 'Enabling public/private functionality for a course alters several settings in order to create a hybrid course with both public and private material.<br><br>When enabled, it will create a toggle for all activities that allow for the material to be set either private to course users or public to guests as well. To this end, it creates a special group ("Course members") and a special grouping ("Private Course Material"). It disables the auto-assign groups and available to guest settings.';
+$string['publicprivategroupname'] = 'Course members';
+$string['publicprivategroupdeprecated'] = '_old_';
+$string['publicprivategroupdescription'] = 'Group created and used for public/private functionality. All users should belong to this group.';
+$string['publicprivategroupingname'] = 'Private Course Material';
+$string['publicprivategroupingdeprecated'] = '_old_';
+$string['publicprivategroupingdescription'] = 'Grouping created and used for public/private functionality. ' . $string['publicprivategroupname'] . ' group should be in this grouping.';
+$string['publicprivatemakepublic'] = 'Make public';
+$string['publicprivatemakeprivate'] = 'Make private';
+$string['publicprivate'] = 'Public/Private';
+$string['publicprivateadd'] = 'Add Public/Private functionality';
+$string['publicprivateupgradesure'] = 'Public/Private functionality appears to be present, but not installed. <br /><br />
+Moodle would now like to install Public/Private functionality on the server.<br /><br />';
+$string['publicprivaterestore'] = 'Default Public/Private on Restore';
+$string['publicprivaterestore_description'] = 'In the event that a restore occurs from an instance of Moodle that does not include public/private, if this setting is defined, the restored course will default to public/private enabled.';
+$string['publicprivate_option_enable'] = 'Course Editors Can Set Public/Private';
+$string['publicprivate_option_enable_description'] = 'If checked, course editors can turn public/private on/off. Otherwise, only administrators can do this.';
+$string['publicprivatenotice'] = 'This is the public display of the course site. <br />If you are enrolled, please log in to view private course materials.';
+$string['publicprivatelogin'] = 'Log in';
+$string['publicprivatecannotedit'] = 'ERROR: This is a special grouping for public/private. It cannot be edited.';
+$string['publicprivatecannotremove_oneof'] = 'ERROR: One of the groups selected is a special group for public/private. It cannot be removed.';
+$string['publicprivatecannotremove_one'] = 'ERROR: The group selected is a special group for public/private. It cannot be removed.';
+$string['publicprivatecannotremove'] = 'ERROR: This is a special grouping for public/private. It cannot be removed.';

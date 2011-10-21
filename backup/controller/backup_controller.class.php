@@ -23,6 +23,19 @@
  */
 
 /**
+ * Include the Backup_PublicPrivate_Course_Task object as this controller may
+ * need to serialize this object rather than construct it through the
+ * Backup_Factory, which is the other place where it is included.
+ *
+ * @see Backup_PublicPrivate_Course_Task
+ * @author ebollens
+ * @version 20110719
+ */
+if(file_exists($CFG->libdir.'/publicprivate/backup_publicprivate_course_task.class.php')) {
+    include_once($CFG->libdir.'/publicprivate/backup_publicprivate_course_task.class.php');
+}
+
+/**
  * Class implementing the controller of any backup process
  *
  * This final class is in charge of controlling all the backup architecture, for any
@@ -40,6 +53,7 @@
  *
  * TODO: Finish phpdocs
  */
+        
 class backup_controller extends backup implements loggable {
 
     protected $backupid; // Unique identificator for this backup
@@ -137,6 +151,8 @@ class backup_controller extends backup implements loggable {
         } else {
             $this->set_status(backup::STATUS_AWAITING);
         }
+
+
     }
 
     /**

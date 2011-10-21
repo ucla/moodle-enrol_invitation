@@ -216,10 +216,11 @@ class workshop {
      * Returns an array of options for the editors that are used for submitting and assessing instructions
      *
      * @param stdClass $context
+     * @uses EDITOR_UNLIMITED_FILES hard-coded value for the 'maxfiles' option
      * @return array
      */
     public static function instruction_editors_options(stdclass $context) {
-        return array('subdirs' => 1, 'maxbytes' => 0, 'maxfiles' => EDITOR_UNLIMITED_FILES,
+        return array('subdirs' => 1, 'maxbytes' => 0, 'maxfiles' => -1,
                      'changeformat' => 1, 'context' => $context, 'noclean' => 1, 'trusttext' => 0);
     }
 
@@ -1342,7 +1343,12 @@ class workshop {
             list($participantids, $params) = $DB->get_in_or_equal(array_keys($participants), SQL_PARAMS_NAMED);
             $params['workshopid1'] = $this->id;
             $params['workshopid2'] = $this->id;
-            $sqlsort = $sortby . ' ' . $sorthow . ',u.lastname,u.firstname,u.id';
+            $sqlsort = array();
+            $sqlsortfields = array($sortby => $sorthow) + array('lastname' => 'ASC', 'firstname' => 'ASC', 'u.id' => 'ASC');
+            foreach ($sqlsortfields as $sqlsortfieldname => $sqlsortfieldhow) {
+                $sqlsort[] = $sqlsortfieldname . ' ' . $sqlsortfieldhow;
+            }
+            $sqlsort = implode(',', $sqlsort);
             $sql = "SELECT u.id AS userid,u.firstname,u.lastname,u.picture,u.imagealt,u.email,
                            s.title AS submissiontitle, s.grade AS submissiongrade, ag.gradinggrade
                       FROM {user} u
