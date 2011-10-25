@@ -46,6 +46,6 @@ class registrar_ccle_getclasses extends registrar_query {
             return false;
         }
 
-        return "EXECUTE ccle_getClasses '$term', $srs'";
+        return "EXECUTE ccle_getClasses '$term', '$srs'";
     }
 }
