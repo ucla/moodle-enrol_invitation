@@ -23,7 +23,7 @@ abstract class registrar_query {
     // Holds onto the Registrar connection object.
     private $registrar_conn = null;
 
-    function __construct() {
+    static function test_connection() {
         // Test registrar connections
         $this->get_registrar_connection();
         $this->close_registrar_connection();
@@ -66,7 +66,7 @@ abstract class registrar_query {
     /**
      *  This function will utilize the ODBC connection and retrieve data.
      *
-     *  @param $stored_proc string The stored procedure to use.
+     *  @param $driving_data The data to run a set of queries on.
      **/
     function retrieve_registrar_info($driving_data) {
         $direct_data = array();
@@ -76,6 +76,11 @@ abstract class registrar_query {
         foreach ($driving_data as $driving_datum) {
             $qr = $this->remote_call_generate($driving_datum);
 
+            // Let's not fail hard
+            if ($qr === false) {
+                return $direct_data;
+            }
+
             $recset = $db_reg->Execute($qr);
 
             if (!$recset->EOF) {
@@ -84,7 +89,11 @@ abstract class registrar_query {
 
                     if ($res !== false) {
                         $key = $this->get_key($fields);
-                        $direct_data[$key] = $res;
+                        if ($key == null) {
+                            $direct_data[] = $res;
+                        } else {
+                            $direct_data[$key] = $res;
+                        }
                     }
                 }
             } else {
@@ -93,8 +102,6 @@ abstract class registrar_query {
                 );
             }
         }
-
-        $this->close_registrar_connection();
 
         return $direct_data;
     }
@@ -110,7 +117,7 @@ abstract class registrar_query {
             return $fields['srs'];
         }
 
-        return 'null';
+        return null;
     }
 
     /**
