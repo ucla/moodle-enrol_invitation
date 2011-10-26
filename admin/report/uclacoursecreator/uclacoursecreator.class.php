@@ -153,7 +153,7 @@ class uclacoursecreator {
         if (!$this->get_debug()) {
             $this->figure_email_vars();
         } else {
-            $this->debugln('Debugging enabled, will revert courses...');
+            $this->debugln('Debugging enabled...');
         }
 
         // Check that we have our registrar wrapper functions
@@ -365,7 +365,7 @@ class uclacoursecreator {
      *  Aliases for @see get_registrar_translation().
      **/
     function get_subj_area_translation($subjarea) {
-        return $this->get_registrar_translation('ucla_subjectarea',
+        return $this->get_registrar_translation('ucla_reg_subjectarea',
             $subjarea, 'subjarea', 'subj_area_full');
     }
 
@@ -2749,7 +2749,7 @@ class uclacoursecreator {
             $this->check_write();
         }
 
-        $cc_lock = $this->output_path . '/.lock-' . $this->db_id;
+        $cc_lock = $this->output_path . '/' . $this->db_id . '.lock';
 
         // Prevent new requests that come in during course creation from 
         // affecting course creator
