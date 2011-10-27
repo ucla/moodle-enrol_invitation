@@ -25,3 +25,4 @@ CVS
 /.project
 /.buildpath
 /.cache
+/config_private.php
