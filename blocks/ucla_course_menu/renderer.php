@@ -1,36 +1,24 @@
 <?php
-/*
- * ----------------------------------------------------------------------------
- *
- * This file is part of the Course Menu block for Moodle
- *
- * The Course Menu block for Moodle software package is Copyright 2008 onwards
- * NetSapiensis AB and is provided under the terms of the GNU GENERAL PUBLIC 
- * LICENSE Version 3 (GPL). This program is free software: you can redistribute 
- * it and/or modify it under the terms of the GNU General Public License as 
- * published by the Free Software Foundation, either version 3 of the License, 
- * or (at your option) any later version.
- *
- * This program is free software: you can redistribute it and/or modify it under 
- * the terms of the GNU General Public License as published by the Free Software 
- * Foundation, either version 3 of the License, or (at your option) any later 
- * version. This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
- * or FITNESS FOR A PARTICULAR PURPOSE.
- *
- * See the GNU General Public License for more details. You should have received 
- * a copy of the GNU General Public License along with this program.
- * If not, see <http://www.gnu.org/licenses/>.
- * ----------------------------------------------------------------------------
- */
 
-class block_ucla_course_menu_renderer extends plugin_renderer_base {
+defined('MOODLE_INTERNAL') || die();
+
+require_once($CFG->dirroot . '/blocks/navigation/renderer.php');
+
+class block_ucla_course_menu_renderer extends block_navigation_renderer {
     // Default defaults
 	private $topic_depth = 1;
 	private $chapter_depth = 2;
 	private $subchater_depth = 3;
 	private $session;
 	private $displaysection = 1000;
+
+    /**
+     *  Calls block_navigation_renderer's protected function.
+     **/
+    public function navigation_node($i, $a=array(), $e=null, 
+            $o=array(), $d=1) {
+        return parent::navigation_node($i, $a, $e, $o, $d);
+    }
 	
 	public function render_chapter_tree($instance, $config, $chapters, 
             $sections, $displaysection) {
@@ -223,107 +211,5 @@ class block_ucla_course_menu_renderer extends plugin_renderer_base {
     	return $content;
     }
     
-    protected function navigation_node($items, $attrs = array(), $expansionlimit = null, $depth = 2) {
-
-        // exit if empty, we don't want an empty ul element
-        if (count($items) == 0) {
-            return '';
-        }
-
-        // array of nested li elements
-        $lis = array();
-        foreach ($items as $item) {
-        	if (!$item->display) {
-                continue;
-            }
-            $content = $item->get_content();
-            $title = $item->get_title();
-            $isbranch = ($item->type !== $expansionlimit && ($item->children->count() > 0 || ($item->nodetype == navigation_node::NODETYPE_BRANCH && $item->children->count()==0 && (isloggedin() || $item->type <= navigation_node::TYPE_CATEGORY))));
-            $hasicon = ((!$isbranch || $item->type == navigation_node::TYPE_ACTIVITY)&& $item->icon instanceof renderable);
-            //$item->prev_opened = in_array(md5($content), $this->session);
-			if ($hasicon) {
-                $icon = $this->output->render($item->icon);
-                $content = $icon . $content; // use CSS for spacing of icons
-            }
-            if ($item->helpbutton !== null) {
-                $content = trim($item->helpbutton).html_writer::tag('span', $content, array('class'=>'clearhelpbutton'));
-            }
-
-            if ($content === '') {
-                continue;
-            }
-			
-            if ($item->action instanceof action_link) {
-                //TODO: to be replaced with something else
-                $link = $item->action;
-                if ($item->hidden) {
-                    $link->add_class('dimmed');
-                }
-                $content = $this->output->render($link);
-            } else if ($item->action instanceof moodle_url) {
-                $attributes = array('class' => 'item_name');
-                if ($title !== '') {
-                    $attributes['title'] = $title;
-                }
-                if ($item->hidden) {
-                    $attributes['class'] = 'dimmed_text';
-                }
-                $content = html_writer::link($item->action, $content, $attributes);
-
-            } else if (is_string($item->action) || empty($item->action)) {
-                $attributes = array('class' => 'item_name');
-                if ($title !== '') {
-                    $attributes['title'] = $title;
-                }
-                if ($item->hidden) {
-                    $attributes['class'] .= ' dimmed_text';
-                }
-                $content = html_writer::tag('span', $content, $attributes);
-            }
-            // this applies to the li item which contains all child lists too
-            $liclasses = array($item->get_css_type(), 'depth_'.$depth);
-            if (!$item->prev_opened && ($item->has_children() && (!$item->forceopen || $item->collapse))) {
-                $liclasses[] = 'collapsed';
-            }
-            if ($isbranch) {
-                $liclasses[] = 'contains_branch';
-            } else if ($hasicon) {
-                $liclasses[] = 'item_with_icon';
-            }
-            if ($item->isactive === true) {
-                $liclasses[] = 'current_branch';
-            }
-            $liattr = array('class'=>join(' ',$liclasses));
-            // class attribute on the div item which only contains the item content
-            $divclasses = array('cm_tree_item', 'tree_item');
-            if ($isbranch) {
-                $divclasses[] = 'branch';
-            } else {
-                $divclasses[] = 'leaf';
-            }
-            if ($hasicon) {
-                $divclasses[] = 'hasicon';
-            }
-            if (!empty($item->classes) && count($item->classes)>0) {
-                $divclasses[] = join(' ', $item->classes);
-            }
-            $divattr = array('class'=>join(' ', $divclasses));
-            if (!empty($item->id)) {
-                $divattr['id'] = $item->id;
-            }
-            $content = html_writer::tag('p', $content, $divattr) . $this->navigation_node($item->children, array(), $expansionlimit, $depth+1);
-            if (!empty($item->preceedwithhr) && $item->preceedwithhr===true) {
-                $content = html_writer::empty_tag('hr') . $content;
-            }
-            $content = html_writer::tag('li', $content, $liattr);
-            $lis[] = $content;
-        }
-
-        if (count($lis)) {
-            return html_writer::tag('ul', implode("\n", $lis));
-        } else {
-            return '';
-        }
-    }
 
 }
