@@ -588,6 +588,7 @@ function quiz_upgrade_grades() {
  */
 function quiz_grade_item_update($quiz, $grades = null) {
     global $CFG, $OUTPUT;
+    require_once($CFG->dirroot . '/mod/quiz/locallib.php');
     require_once($CFG->libdir.'/gradelib.php');
 
     if (array_key_exists('cmidnumber', $quiz)) { // may not be always present
@@ -1491,7 +1492,7 @@ function quiz_supports($feature) {
         case FEATURE_MOD_INTRO:               return true;
         case FEATURE_COMPLETION_TRACKS_VIEWS: return true;
         case FEATURE_GRADE_HAS_GRADE:         return true;
-        case FEATURE_GRADE_OUTCOMES:          return true;
+        case FEATURE_GRADE_OUTCOMES:          return false;
         case FEATURE_BACKUP_MOODLE2:          return true;
 
         default: return null;

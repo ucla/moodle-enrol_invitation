@@ -42,7 +42,7 @@ $attemptid = required_param('attempt', PARAM_INT);
 $page = optional_param('page', 0, PARAM_INT);
 
 $attemptobj = quiz_attempt::create($attemptid);
-$PAGE->set_url($attemptobj->attempt_url(0, $page));
+$PAGE->set_url($attemptobj->attempt_url(null, $page));
 
 // Check login.
 require_login($attemptobj->get_course(), false, $attemptobj->get_cm());
@@ -50,7 +50,7 @@ require_login($attemptobj->get_course(), false, $attemptobj->get_cm());
 // Check that this attempt belongs to this user.
 if ($attemptobj->get_userid() != $USER->id) {
     if ($attemptobj->has_capability('mod/quiz:viewreports')) {
-        redirect($attemptobj->review_url(0, $page));
+        redirect($attemptobj->review_url(null, $page));
     } else {
         throw new moodle_quiz_exception($attemptobj->get_quizobj(), 'notyourattempt');
     }
@@ -69,7 +69,7 @@ if (!$attemptobj->is_preview_user()) {
 
 // If the attempt is already closed, send them to the review page.
 if ($attemptobj->is_finished()) {
-    redirect($attemptobj->review_url(0, $page));
+    redirect($attemptobj->review_url(null, $page));
 }
 
 // Check the access rules.
@@ -114,11 +114,9 @@ if ($accessmanager->securewindow_required($attemptobj->is_preview_user())) {
     $PAGE->set_title($attemptobj->get_course()->shortname . ': ' .
             format_string($attemptobj->get_quiz_name()));
     $PAGE->set_cacheable(false);
-    echo $OUTPUT->header();
 
 } else {
     $PAGE->set_title(format_string($attemptobj->get_quiz_name()));
-    echo $OUTPUT->header();
 }
 
 if ($attemptobj->is_last_page($page)) {
@@ -127,7 +125,5 @@ if ($attemptobj->is_last_page($page)) {
     $nextpage = $page + 1;
 }
 
-echo $output->attempt_page($attemptobj, $page, $accessmanager, $messages, $slots, $id, $nextpage);
-
 $accessmanager->show_attempt_timer_if_needed($attemptobj->get_attempt(), time());
-echo $OUTPUT->footer();
+echo $output->attempt_page($attemptobj, $page, $accessmanager, $messages, $slots, $id, $nextpage);

@@ -1125,7 +1125,9 @@ function unset_config($name, $plugin=NULL) {
 function unset_all_config_for_plugin($plugin) {
     global $DB;
     $DB->delete_records('config_plugins', array('plugin' => $plugin));
-    $DB->delete_records_select('config', 'name LIKE ?', array($plugin . '_%'));
+    $like = $DB->sql_like('name', '?', true, true, false, '|');
+    $params = array($DB->sql_like_escape($plugin.'_', '|') . '%');
+    $DB->delete_records_select('config', $like, $params);
     return true;
 }
 
@@ -3583,8 +3585,12 @@ function authenticate_user_login($username, $password) {
                 $user = update_user_record($username);
             }
         } else {
-            // if user not found, create him
-            $user = create_user_record($username, $password, $auth);
+            // if user not found and user creation is not disabled, create it
+            if (empty($CFG->authpreventaccountcreation)) {
+                $user = create_user_record($username, $password, $auth);
+            } else {
+                continue;
+            }
         }
 
         $authplugin->sync_roles($user);
@@ -9292,11 +9298,13 @@ function message_popup_window() {
     }
 
     //got unread messages so now do another query that joins with the user table
-    $messagesql = "SELECT m.id, m.smallmessage, m.notification, u.firstname, u.lastname FROM {message} m
-JOIN {message_working} mw ON m.id=mw.unreadmessageid
-JOIN {message_processors} p ON mw.processorid=p.id
-JOIN {user} u ON m.useridfrom=u.id
-WHERE m.useridto = :userid AND p.name='popup'";
+    $messagesql = "SELECT m.id, m.smallmessage, m.fullmessageformat, m.notification, u.firstname, u.lastname
+                     FROM {message} m
+                     JOIN {message_working} mw ON m.id=mw.unreadmessageid
+                     JOIN {message_processors} p ON mw.processorid=p.id
+                     JOIN {user} u ON m.useridfrom=u.id
+                    WHERE m.useridto = :userid
+                      AND p.name='popup'";
 
     //if the user was last notified over an hour ago we can renotify them of old messages
     //so don't worry about when the new message was sent
@@ -9325,11 +9333,19 @@ WHERE m.useridto = :userid AND p.name='popup'";
             $smallmessage = null;
             if (!empty($message_users->smallmessage)) {
                 //display the first 200 chars of the message in the popup
+                $textlib = textlib_get_instance();
                 $smallmessage = null;
-                if (strlen($message_users->smallmessage>200)) {
-                    $smallmessage = substr($message_users->smallmessage,0,200).'...';
+                if ($textlib->strlen($message_users->smallmessage) > 200) {
+                    $smallmessage = $textlib->substr($message_users->smallmessage,0,200).'...';
                 } else {
                     $smallmessage = $message_users->smallmessage;
+                }
+
+                //prevent html symbols being displayed
+                if ($message_users->fullmessageformat == FORMAT_HTML) {
+                    $smallmessage = html_to_text($smallmessage);
+                } else {
+                    $smallmessage = s($smallmessage);
                 }
             } else if ($message_users->notification) {
                 //its a notification with no smallmessage so just say they have a notification

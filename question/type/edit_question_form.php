@@ -152,7 +152,7 @@ abstract class question_edit_form extends moodleform {
 
         $mform->addElement('text', 'defaultmark', get_string('defaultmark', 'question'),
                 array('size' => 3));
-        $mform->setType('defaultmark', PARAM_INT);
+        $mform->setType('defaultmark', PARAM_FLOAT);
         $mform->setDefault('defaultmark', 1);
         $mform->addRule('defaultmark', null, 'required', null, 'client');
 
@@ -355,7 +355,7 @@ abstract class question_edit_form extends moodleform {
         $mform = $this->_form;
 
         $repeated = array();
-        $repeated[] = $mform->createElement('header', 'answerhdr', get_string('hintn', 'question'));
+        $repeated[] = $mform->createElement('header', 'hinthdr', get_string('hintn', 'question'));
         $repeated[] = $mform->createElement('editor', 'hint', get_string('hinttext', 'question'),
                 array('rows' => 5), $this->editoroptions);
         $repeatedoptions['hint']['type'] = PARAM_RAW;
