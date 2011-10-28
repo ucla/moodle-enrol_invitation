@@ -198,7 +198,11 @@ $sql = "
     ";
 
 // Use this whenever you need to display instructors
-$instructors = $DB->get_records_sql($sql, $params);
+if (ucla_format_display_instructors($course)) {
+    $instructors = $DB->get_records_sql($sql, $params);
+} else {
+    $instructors = array();
+}
 
 /**
  *  Registrar information Line
