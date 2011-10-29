@@ -183,8 +183,12 @@ function ucla_format_display_instructors($course) {
  *
  *  @return Array(
  **/
-function ucla_format_figure_section($prefs) {
+function ucla_format_figure_section($course, $course_prefs = null) {
     global $USER;
+
+    if ($course_prefs == null || !is_object($course_prefs)) {
+        $course_prefs = new ucla_course_prefs($course_prefs);
+    }
 
     // Default to section 0 (course info) if there are no preferences
     $landing_page = $course_prefs->get_preference('landing_page', false);
@@ -219,7 +223,7 @@ function ucla_format_figure_section($prefs) {
             debugging('UCLA Format: Landing page');
 
             if ($landing_page === false) {
-                $to_topic = $marker;
+                $to_topic = $course->marker;
             } else {
                 $to_topic = $landing_page;
             }

@@ -34,7 +34,8 @@ $course_prefs = new ucla_course_prefs($course->id);
 $displaysection = null;
 $to_topic = null;
 
-list($to_topic, $displaysection) = ucla_format_figure_section($course_prefs);
+list($to_topic, $displaysection) = ucla_format_figure_section($course,
+    $course_prefs);
 
 if ($displaysection == null && $to_topic !== null) {
     $displaysection = course_set_display($course->id, $to_topic);
