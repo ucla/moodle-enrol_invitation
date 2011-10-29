@@ -342,6 +342,15 @@ class question_engine_attempt_upgrader {
     }
 
     protected function get_converter_class_name($question, $quiz, $qsessionid) {
+        global $DB;
+        if ($question->qtype == 'deleted') {
+            $where = '(question = :questionid OR '.$DB->sql_like('answer', ':randomid').') AND event = 7';
+            $params = array('questionid'=>$question->id, 'randomid'=>"random{$question->id}-%");
+            if ($DB->record_exists_select('question_states', $where, $params)) {
+                $this->logger->log_assumption("Assuming that deleted question {$question->id} was manually graded.");
+                return 'qbehaviour_manualgraded_converter';
+            }
+        }
         if ($question->qtype == 'essay') {
             return 'qbehaviour_manualgraded_converter';
         } else if ($question->qtype == 'description') {
@@ -566,6 +575,10 @@ abstract class question_qtype_attempt_updater {
 
     public function compare_answers($answer1, $answer2) {
         return $answer1 == $answer2;
+    }
+
+    public function is_blank_answer($state) {
+        return $state->answer == '';
     }
 
     public abstract function right_answer();

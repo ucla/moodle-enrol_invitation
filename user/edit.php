@@ -143,7 +143,14 @@ profile_load_data($user);
 
 
 // Prepare the editor and create form
-$editoroptions = array('maxfiles'=>EDITOR_UNLIMITED_FILES, 'maxbytes'=>$CFG->maxbytes, 'trusttext'=>false, 'forcehttps'=>false);
+$editoroptions = array(
+    'maxfiles'   => EDITOR_UNLIMITED_FILES,
+    'maxbytes'   => $CFG->maxbytes,
+    'trusttext'  => false,
+    'forcehttps' => false,
+    'context'    => $personalcontext
+);
+
 $user = file_prepare_standard_editor($user, 'description', $editoroptions, $personalcontext, 'user', 'profile', 0);
 $userform = new user_edit_form(null, array('editoroptions'=>$editoroptions));
 if (empty($user->country)) {
@@ -222,7 +229,7 @@ if ($usernew = $userform->get_data()) {
 
         $a = new stdClass();
         $a->url = $CFG->wwwroot . '/user/emailupdate.php?key=' . $usernew->preference_newemailkey . '&id=' . $user->id;
-        $a->site = $SITE->fullname;
+        $a->site = format_string($SITE->fullname, true, array('context' => get_context_instance(CONTEXT_COURSE, SITEID)));
         $a->fullname = fullname($user, true);
 
         $emailupdatemessage = get_string('emailupdatemessage', 'auth', $a);

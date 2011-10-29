@@ -276,6 +276,7 @@ class auth_plugin_mnet extends auth_plugin_base {
             */
             $remoteuser->mnethostid = $remotehost->id;
             $remoteuser->firstaccess = time(); // First time user in this server, grab it here
+            $remoteuser->confirmed = 1;
 
             $remoteuser->id = $DB->insert_record('user', $remoteuser);
             $firsttime = true;
@@ -888,8 +889,6 @@ class auth_plugin_mnet extends auth_plugin_base {
     function keepalive_server($array) {
         global $CFG, $DB;
         $remoteclient = get_mnet_remote_client();
-
-        $CFG->usesid = true;
 
         // We don't want to output anything to the client machine
         $start = ob_start();

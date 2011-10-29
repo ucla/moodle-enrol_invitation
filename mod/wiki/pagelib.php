@@ -76,7 +76,8 @@ abstract class page_wiki {
      * @var array The tabs set used in wiki module
      */
     protected $tabs = array('view' => 'view', 'edit' => 'edit', 'comments' => 'comments',
-                            'history' => 'history', 'map' => 'map', 'files' => 'files');
+                            'history' => 'history', 'map' => 'map', 'files' => 'files',
+                            'admin' => 'admin');
     /**
      * @var array tabs options
      */
@@ -476,7 +477,7 @@ class page_wiki_edit extends page_wiki {
                 $params = 'pageid=' . $this->page->id;
 
                 if ($this->section) {
-                    $params .= '&section=' . $this->section;
+                    $params .= '&section=' . urlencode($this->section);
                 }
 
                 $form = '<form method="post" action="' . $CFG->wwwroot . '/mod/wiki/overridelocks.php?' . $params . '">';
@@ -522,7 +523,7 @@ class page_wiki_edit extends page_wiki {
 
         $url = $CFG->wwwroot . '/mod/wiki/edit.php?pageid=' . $this->page->id;
         if (!empty($this->section)) {
-            $url .= "&section=" . $this->section;
+            $url .= "&section=" . urlencode($this->section);
         }
 
         $params = array('attachmentoptions' => page_wiki_edit::$attachmentoptions, 'format' => $version->contentformat, 'version' => $versionnumber, 'pagetitle'=>$this->page->title);
@@ -535,6 +536,8 @@ class page_wiki_edit extends page_wiki {
         switch ($format) {
         case 'html':
             $data->newcontentformat = FORMAT_HTML;
+            // Append editor context to editor options, giving preference to existing context.
+            page_wiki_edit::$attachmentoptions = array_merge(array('context' => $this->modcontext), page_wiki_edit::$attachmentoptions);
             $data = file_prepare_standard_editor($data, 'newcontent', page_wiki_edit::$attachmentoptions, $this->modcontext, 'mod_wiki', 'attachments', $this->subwiki->id);
             break;
         default:
@@ -640,7 +643,7 @@ class page_wiki_comments extends page_wiki {
                     $parsedcontent = wiki_parse_content('nwiki', $comment->content, $options);
                 }
 
-                $cell4->text = html_entity_decode($parsedcontent['parsed_text']);
+                $cell4->text = format_text(html_entity_decode($parsedcontent['parsed_text']), FORMAT_HTML);
             } else {
                 $cell4->text = format_text($comment->content, FORMAT_HTML);
             }
@@ -758,6 +761,10 @@ class page_wiki_editcomment extends page_wiki {
         $pageid = $this->page->id;
 
         if ($this->format == 'html') {
+            $com = new stdClass();
+            $com->action = 'add';
+            $com->commentoptions = array('trusttext' => true, 'maxfiles' => 0);
+            $this->form->set_data($com);
             $this->form->display();
         } else {
             wiki_print_editor_wiki($this->page->id, null, $this->format, -1, null, false, null, 'addcomments');
@@ -770,18 +777,14 @@ class page_wiki_editcomment extends page_wiki {
         require_once($CFG->dirroot . '/mod/wiki/editors/wiki_editor.php');
 
         if ($this->format == 'html') {
-            $commentoptions = array('trusttext' => true, 'maxfiles' => 0);
             $com->action = 'edit';
             $com->entrycomment_editor['text'] = $com->content;
+            $com->commentoptions = array('trusttext' => true, 'maxfiles' => 0);
 
-            $this->form->set_data($com, $commentoptions);
+            $this->form->set_data($com);
             $this->form->display();
         } else {
-            $action = 'edit';
-            $commentid = $com->id;
-            $pageid = $this->page->id;
-            $destination = $CFG->wwwroot . '/mod/wiki/instancecomments.php?pageid=' . $pageid . '&id=' . $commentid . '&action=' . $action;
-            wiki_print_editor_wiki($this->page->id, $com->content, $this->format, -1, null, false, array(), 'editcomments', $commentid);
+            wiki_print_editor_wiki($this->page->id, $com->content, $this->format, -1, null, false, array(), 'editcomments', $com->id);
         }
 
     }
@@ -987,7 +990,7 @@ class page_wiki_preview extends page_wiki_edit {
 
         $url = $CFG->wwwroot . '/mod/wiki/edit.php?pageid=' . $this->page->id;
         if (!empty($this->section)) {
-            $url .= "&section=" . $this->section;
+            $url .= "&section=" . urlencode($this->section);
         }
         $params = array('attachmentoptions' => page_wiki_edit::$attachmentoptions, 'format' => $this->format, 'version' => $this->versionnumber);
 
@@ -1856,16 +1859,88 @@ class page_wiki_restoreversion extends page_wiki {
      *     If true, restores the old version and redirects the user to the 'view' tab.
      */
     private function print_restoreversion() {
-        global $CFG, $OUTPUT;
+        global $OUTPUT;
 
         $version = wiki_get_version($this->version->id);
 
+        $optionsyes = array('confirm'=>1, 'pageid'=>$this->page->id, 'versionid'=>$version->id, 'sesskey'=>sesskey());
+        $restoreurl = new moodle_url('/mod/wiki/restoreversion.php', $optionsyes);
+        $return = new moodle_url('/mod/wiki/viewversion.php', array('pageid'=>$this->page->id, 'versionid'=>$version->id));
+
         echo $OUTPUT->heading(get_string('restoreconfirm', 'wiki', $version->version), 2);
         print_container_start(false, 'wiki_restoreform');
-        echo '<form class="wiki_restore_yes" action="' . $CFG->wwwroot . '/mod/wiki/restoreversion.php?pageid=' . $this->page->id . '&amp;versionid=' . $version->id . '" method="post" id="restoreversion">';
+        echo '<form class="wiki_restore_yes" action="' . $restoreurl . '" method="post" id="restoreversion">';
         echo '<div><input type="submit" name="confirm" value="' . get_string('yes') . '" /></div>';
         echo '</form>';
-        echo '<form class="wiki_restore_no" action="' . $CFG->wwwroot . '/mod/wiki/viewversion.php?pageid=' . $this->page->id . '&amp;versionid=' . $version->id . '" method="post">';
+        echo '<form class="wiki_restore_no" action="' . $return . '" method="post">';
+        echo '<div><input type="submit" name="norestore" value="' . get_string('no') . '" /></div>';
+        echo '</form>';
+        print_container_end();
+    }
+}
+/**
+ * Class that models the behavior of wiki's delete comment confirmation page
+ *
+ */
+class page_wiki_deletecomment extends page_wiki {
+    private $commentid;
+
+    function print_header() {
+        parent::print_header();
+        $this->print_pagetitle();
+    }
+
+    function print_content() {
+        $this->printconfirmdelete();
+    }
+
+    function set_url() {
+        global $PAGE;
+        $PAGE->set_url('/mod/wiki/instancecomments.php', array('pageid' => $this->page->id, 'commentid' => $this->commentid));
+    }
+
+    public function set_action($action, $commentid, $content) {
+        $this->action = $action;
+        $this->commentid = $commentid;
+        $this->content = $content;
+    }
+
+    protected function create_navbar() {
+        global $PAGE;
+
+        parent::create_navbar();
+        $PAGE->navbar->add(get_string('deletecommentcheck', 'wiki'));
+    }
+
+    protected function setup_tabs() {
+        parent::setup_tabs(array('linkedwhenactive' => 'comments', 'activetab' => 'comments'));
+    }
+
+    /**
+     * Prints the comment deletion confirmation form
+     *
+     * @param page $page The page whose version will be restored
+     * @param int  $versionid The version to be restored
+     * @param bool $confirm If false, shows a yes/no confirmation page.
+     *     If true, restores the old version and redirects the user to the 'view' tab.
+     */
+    private function printconfirmdelete() {
+        global $OUTPUT;
+
+        $strdeletecheck = get_string('deletecommentcheck', 'wiki');
+        $strdeletecheckfull = get_string('deletecommentcheckfull', 'wiki');
+
+        //ask confirmation
+        $optionsyes = array('confirm'=>1, 'pageid'=>$this->page->id, 'action'=>'delete', 'commentid'=>$this->commentid, 'sesskey'=>sesskey());
+        $deleteurl = new moodle_url('/mod/wiki/instancecomments.php', $optionsyes);
+        $return = new moodle_url('/mod/wiki/comments.php', array('pageid'=>$this->page->id));
+
+        echo $OUTPUT->heading($strdeletecheckfull);
+        print_container_start(false, 'wiki_deletecommentform');
+        echo '<form class="wiki_deletecomment_yes" action="' . $deleteurl . '" method="post" id="deletecomment">';
+        echo '<div><input type="submit" name="confirmdeletecomment" value="' . get_string('yes') . '" /></div>';
+        echo '</form>';
+        echo '<form class="wiki_deletecomment_no" action="' . $return . '" method="post">';
         echo '<div><input type="submit" name="norestore" value="' . get_string('no') . '" /></div>';
         echo '</form>';
         print_container_end();
@@ -1873,7 +1948,6 @@ class page_wiki_restoreversion extends page_wiki {
 }
 
 /**
- *
  * Class that models the behavior of wiki's
  * save page
  *
@@ -1906,7 +1980,7 @@ class page_wiki_save extends page_wiki_edit {
 
         $url = $CFG->wwwroot . '/mod/wiki/edit.php?pageid=' . $this->page->id;
         if (!empty($this->section)) {
-            $url .= "&section=" . $this->section;
+            $url .= "&section=" . urlencode($this->section);
         }
 
         $params = array('attachmentoptions' => page_wiki_edit::$attachmentoptions, 'format' => $this->format, 'version' => $this->versionnumber);
@@ -2231,7 +2305,7 @@ class page_wiki_overridelocks extends page_wiki_edit {
         $args = "pageid=" . $this->page->id;
 
         if (!empty($this->section)) {
-            $args .= "&section=" . $this->section;
+            $args .= "&section=" . urlencode($this->section);
         }
 
         redirect($CFG->wwwroot . '/mod/wiki/edit.php?' . $args, get_string('overridinglocks', 'wiki'), 2);
@@ -2260,10 +2334,345 @@ class page_wiki_overridelocks extends page_wiki_edit {
         $args = "pageid=" . $this->page->id;
 
         if (!empty($this->section)) {
-            $args .= "&section=" . $this->section;
+            $args .= "&section=" . urlencode($this->section);
         }
 
         redirect($CFG->wwwroot . '/mod/wiki/edit.php?' . $args, get_string('overridinglocks', 'wiki'), 2);
     }
 
+}
+
+/**
+ * This class will let user to delete wiki pages and page versions
+ *
+ */
+class page_wiki_admin extends page_wiki {
+
+    public $view, $action;
+    public $listorphan = false;
+
+    /**
+     * Constructor
+     *
+     * @global object $PAGE
+     * @param mixed $wiki instance of wiki
+     * @param mixed $subwiki instance of subwiki
+     * @param stdClass $cm course module
+     */
+    function __construct($wiki, $subwiki, $cm) {
+        global $PAGE;
+        parent::__construct($wiki, $subwiki, $cm);
+        $PAGE->requires->js_init_call('M.mod_wiki.deleteversion', null, true);
+    }
+
+    /**
+     * Prints header for wiki page
+     */
+    function print_header() {
+        parent::print_header();
+        $this->print_pagetitle();
+    }
+
+    /**
+     * This function will display administration view to users with managewiki capability
+     */
+    function print_content() {
+        //make sure anyone trying to access this page has managewiki capabilities
+        require_capability('mod/wiki:managewiki', $this->modcontext, NULL, true, 'noviewpagepermission', 'wiki');
+
+        //update wiki cache if timedout
+        $page = $this->page;
+        if ($page->timerendered + WIKI_REFRESH_CACHE_TIME < time()) {
+            $fresh = wiki_refresh_cachedcontent($page);
+            $page = $fresh['page'];
+        }
+
+        //dispaly admin menu
+        echo $this->wikioutput->menu_admin($this->page->id, $this->view);
+
+        //Display appropriate admin view
+        switch ($this->view) {
+            case 1: //delete page view
+                $this->print_delete_content($this->listorphan);
+                break;
+            case 2: //delete version view
+                $this->print_delete_version();
+                break;
+            default: //default is delete view
+                $this->print_delete_content($this->listorphan);
+                break;
+        }
+    }
+
+    /**
+     * Sets admin view option
+     *
+     * @param int $view page view id
+     * @param bool $listorphan is only valid for view 1.
+     */
+    public function set_view($view, $listorphan = true) {
+        $this->view = $view;
+        $this->listorphan = $listorphan;
+    }
+
+    /**
+     * Sets page url
+     *
+     * @global object $PAGE
+     * @global object $CFG
+     */
+    function set_url() {
+        global $PAGE, $CFG;
+        $PAGE->set_url($CFG->wwwroot . '/mod/wiki/admin.php', array('pageid' => $this->page->id));
+    }
+
+    /**
+     * sets navigation bar for the page
+     *
+     * @global object $PAGE
+     */
+    protected function create_navbar() {
+        global $PAGE;
+
+        parent::create_navbar();
+        $PAGE->navbar->add(get_string('admin', 'wiki'));
+    }
+
+    /**
+     * Show wiki page delete options
+     *
+     * @param bool $showorphan
+     */
+    protected function print_delete_content($showorphan = true) {
+        $contents = array();
+        $table = new html_table();
+        $table->head = array('','Page name');
+        $table->attributes['class'] = 'generaltable mdl-align';
+        $swid = $this->subwiki->id;
+        if ($showorphan) {
+            if ($orphanedpages = wiki_get_orphaned_pages($swid)) {
+                $this->add_page_delete_options($orphanedpages, $swid, $table);
+            } else {
+                $table->data[] = array('', get_string('noorphanedpages', 'wiki'));
+            }
+        } else {
+            if ($pages = wiki_get_page_list($swid)) {
+                $this->add_page_delete_options($pages, $swid, $table);
+            } else {
+                $table->data[] = array('', get_string('nopages', 'wiki'));
+            }
+        }
+
+        ///Print the form
+        echo html_writer::start_tag('form', array(
+                                                'action' => new moodle_url('/mod/wiki/admin.php'),
+                                                'method' => 'post'));
+        echo html_writer::tag('div', html_writer::empty_tag('input', array(
+                                                                         'type'  => 'hidden',
+                                                                         'name'  => 'pageid',
+                                                                         'value' => $this->page->id)));
+
+        echo html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'option', 'value' => $this->view));
+        echo html_writer::table($table);
+        echo html_writer::start_tag('div', array('class' => 'mdl-align'));
+        if (!$showorphan) {
+            echo html_writer::empty_tag('input', array(
+                                                     'type'    => 'submit',
+                                                     'class'   => 'wiki_form-button',
+                                                     'value'   => get_string('listorphan', 'wiki'),
+                                                     'sesskey' => sesskey()));
+        } else {
+            echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'listall', 'value'=>'1'));
+            echo html_writer::empty_tag('input', array(
+                                                     'type'    => 'submit',
+                                                     'class'   => 'wiki_form-button',
+                                                     'value'   => get_string('listall', 'wiki'),
+                                                     'sesskey' => sesskey()));
+        }
+        echo html_writer::end_tag('div');
+        echo html_writer::end_tag('form');
+    }
+
+    /**
+     * helper function for print_delete_content. This will add data to the table.
+     *
+     * @global object $OUTPUT
+     * @param array $pages objects of wiki pages in subwiki
+     * @param int $swid id of subwiki
+     * @param object $table reference to the table in which data needs to be added
+     */
+    protected function add_page_delete_options($pages, $swid, &$table) {
+        global $OUTPUT;
+        foreach ($pages as $page) {
+            $link = wiki_parser_link($page->title, array('swid' => $swid));
+            $class = ($link['new']) ? 'class="wiki_newentry"' : '';
+            $pagelink = '<a href="' . $link['url'] . '"' . $class . '>' . format_string($link['content']) . '</a>';
+            $urledit = new moodle_url('/mod/wiki/edit.php', array('pageid' => $page->id, 'sesskey' => sesskey()));
+            $urldelete = new moodle_url('/mod/wiki/admin.php', array(
+                                                                   'pageid'  => $this->page->id,
+                                                                   'delete'  => $page->id,
+                                                                   'option'  => $this->view,
+                                                                   'listall' => !$this->listorphan?'1': '',
+                                                                   'sesskey' => sesskey()));
+
+            $editlinks = $OUTPUT->action_icon($urledit, new pix_icon('t/edit', get_string('edit')));
+            $editlinks .= $OUTPUT->action_icon($urldelete, new pix_icon('t/delete', get_string('delete')));
+            $table->data[] = array($editlinks, $pagelink);
+        }
+    }
+
+    /**
+     * Prints lists of versions which can be deleted
+     *
+     * @global object $OUTPUT
+     */
+    private function print_delete_version() {
+        global $OUTPUT;
+        $pageid = $this->page->id;
+
+        // versioncount is the latest version
+        $versioncount = wiki_count_wiki_page_versions($pageid) - 1;
+        $versions = wiki_get_wiki_page_versions($pageid, 0, $versioncount);
+
+        // We don't want version 0 to be displayed
+        // version 0 is blank page
+        if (end($versions)->version == 0) {
+            array_pop($versions);
+        }
+
+        $contents = array();
+        $version0page = wiki_get_wiki_page_version($this->page->id, 0);
+        $creator = wiki_get_user_info($version0page->userid);
+        $a = new stdClass();
+        $a->date = userdate($this->page->timecreated, get_string('strftimedaydatetime', 'langconfig'));
+        $a->username = $creator->username;
+        echo $OUTPUT->heading(get_string('createddate', 'wiki', $a), 4, 'wiki_headingtime');
+        if ($versioncount > 0) {
+            /// If there is only one version, we don't need radios nor forms
+            if (count($versions) == 1) {
+                $row = array_shift($versions);
+                $username = wiki_get_user_info($row->userid);
+                $picture = $OUTPUT->user_picture($username);
+                $date = userdate($row->timecreated, get_string('strftimedate', 'langconfig'));
+                $time = userdate($row->timecreated, get_string('strftimetime', 'langconfig'));
+                $versionid = wiki_get_version($row->id);
+                $versionlink = new moodle_url('/mod/wiki/viewversion.php', array('pageid' => $pageid, 'versionid' => $versionid->id));
+                $userlink = new moodle_url('/user/view.php', array('id' => $username->id));
+                $picturelink = $picture . html_writer::link($userlink->out(false), fullname($username));
+                $historydate = $OUTPUT->container($date, 'wiki_histdate');
+                $contents[] = array('', html_writer::link($versionlink->out(false), $row->version), $picturelink, $time, $historydate);
+
+                //Show current version
+                $table = new html_table();
+                $table->head = array('', get_string('version'), get_string('user'), get_string('modified'), '');
+                $table->data = $contents;
+                $table->attributes['class'] = 'mdl-align';
+
+                echo html_writer::table($table);
+            } else {
+                $lastdate = '';
+                $rowclass = array();
+
+                foreach ($versions as $version) {
+                    $user = wiki_get_user_info($version->userid);
+                    $picture = $OUTPUT->user_picture($user, array('popup' => true));
+                    $date = userdate($version->timecreated, get_string('strftimedate'));
+                    if ($date == $lastdate) {
+                        $date = '';
+                        $rowclass[] = '';
+                    } else {
+                        $lastdate = $date;
+                        $rowclass[] = 'wiki_histnewdate';
+                    }
+
+                    $time = userdate($version->timecreated, get_string('strftimetime', 'langconfig'));
+                    $versionid = wiki_get_version($version->id);
+                    if ($versionid) {
+                        $url = new moodle_url('/mod/wiki/viewversion.php', array('pageid' => $pageid, 'versionid' => $versionid->id));
+                        $viewlink = html_writer::link($url->out(false), $version->version);
+                    } else {
+                        $viewlink = $version->version;
+                    }
+
+                    $userlink = new moodle_url('/user/view.php', array('id' => $version->userid));
+                    $picturelink = $picture . html_writer::link($userlink->out(false), fullname($user));
+                    $historydate = $OUTPUT->container($date, 'wiki_histdate');
+                    $radiofromelement = $this->choose_from_radio(array($version->version  => null), 'fromversion', 'M.mod_wiki.deleteversion()', $versioncount, true);
+                    $radiotoelement = $this->choose_from_radio(array($version->version  => null), 'toversion', 'M.mod_wiki.deleteversion()', $versioncount, true);
+                    $contents[] = array( $radiofromelement . $radiotoelement, $viewlink, $picturelink, $time, $historydate);
+                }
+
+                $table = new html_table();
+                $table->head = array(get_string('deleteversions', 'wiki'), get_string('version'), get_string('user'), get_string('modified'), '');
+                $table->data = $contents;
+                $table->attributes['class'] = 'generaltable mdl-align';
+                $table->rowclasses = $rowclass;
+
+                ///Print the form
+                echo html_writer::start_tag('form', array('action'=>new moodle_url('/mod/wiki/admin.php'), 'method' => 'post'));
+                echo html_writer::tag('div', html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'pageid', 'value' => $pageid)));
+                echo html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'option', 'value' => $this->view));
+                echo html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'sesskey', 'value' =>  sesskey()));
+                echo html_writer::table($table);
+                echo html_writer::start_tag('div', array('class' => 'mdl-align'));
+                echo html_writer::empty_tag('input', array('type' => 'submit', 'class' => 'wiki_form-button', 'value' => get_string('deleteversions', 'wiki')));
+                echo html_writer::end_tag('div');
+                echo html_writer::end_tag('form');
+            }
+        } else {
+            print_string('nohistory', 'wiki');
+        }
+    }
+
+    /**
+     * Given an array of values, creates a group of radio buttons to be part of a form
+     * helper function for print_delete_version
+     *
+     * @param array  $options  An array of value-label pairs for the radio group (values as keys).
+     * @param string $name     Name of the radiogroup (unique in the form).
+     * @param string $onclick  Function to be executed when the radios are clicked.
+     * @param string $checked  The value that is already checked.
+     * @param bool   $return   If true, return the HTML as a string, otherwise print it.
+     *
+     * @return mixed If $return is false, returns nothing, otherwise returns a string of HTML.
+     */
+    private function choose_from_radio($options, $name, $onclick = '', $checked = '', $return = false) {
+
+        static $idcounter = 0;
+
+        if (!$name) {
+            $name = 'unnamed';
+        }
+
+        $output = '<span class="radiogroup ' . $name . "\">\n";
+
+        if (!empty($options)) {
+            $currentradio = 0;
+            foreach ($options as $value => $label) {
+                $htmlid = 'auto-rb' . sprintf('%04d', ++$idcounter);
+                $output .= ' <span class="radioelement ' . $name . ' rb' . $currentradio . "\">";
+                $output .= '<input name="' . $name . '" id="' . $htmlid . '" type="radio" value="' . $value . '"';
+                if ($value == $checked) {
+                    $output .= ' checked="checked"';
+                }
+                if ($onclick) {
+                    $output .= ' onclick="' . $onclick . '"';
+                }
+                if ($label === '') {
+                    $output .= ' /> <label for="' . $htmlid . '">' . $value . '</label></span>' . "\n";
+                } else {
+                    $output .= ' /> <label for="' . $htmlid . '">' . $label . '</label></span>' . "\n";
+                }
+                $currentradio = ($currentradio + 1) % 2;
+            }
+        }
+
+        $output .= '</span>' . "\n";
+
+        if ($return) {
+            return $output;
+        } else {
+            echo $output;
+        }
+    }
 }

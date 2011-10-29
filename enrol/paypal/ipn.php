@@ -187,6 +187,8 @@ while (!feof($fp)) {
             die;
         }
 
+        $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+
         // Check that amount paid is the correct amount
         if ( (float) $plugin_instance->cost <= 0 ) {
             $cost = (float) $plugin->get_config('cost');
@@ -228,9 +230,11 @@ while (!feof($fp)) {
         $mailstudents = $plugin->get_config('mailstudents');
         $mailteachers = $plugin->get_config('mailteachers');
         $mailadmins   = $plugin->get_config('mailadmins');
+        $shortname = format_string($course->shortname, true, array('context' => $context));
+
 
         if (!empty($mailstudents)) {
-            $a->coursename = $course->fullname;
+            $a->coursename = format_string($course->fullname, true, array('context' => $coursecontext));
             $a->profileurl = "$CFG->wwwroot/user/view.php?id=$user->id";
 
             $eventdata = new stdClass();
@@ -239,7 +243,7 @@ while (!feof($fp)) {
             $eventdata->name              = 'paypal_enrolment';
             $eventdata->userfrom          = $teacher;
             $eventdata->userto            = $user;
-            $eventdata->subject           = get_string("enrolmentnew", '', $course->shortname);
+            $eventdata->subject           = get_string("enrolmentnew", '', $shortname);
             $eventdata->fullmessage       = get_string('welcometocoursetext', '', $a);
             $eventdata->fullmessageformat = FORMAT_PLAIN;
             $eventdata->fullmessagehtml   = '';
@@ -249,7 +253,7 @@ while (!feof($fp)) {
         }
 
         if (!empty($mailteachers)) {
-            $a->course = $course->fullname;
+            $a->course = format_string($course->fullname, true, array('context' => $coursecontext));
             $a->user = fullname($user);
 
             $eventdata = new stdClass();
@@ -258,7 +262,7 @@ while (!feof($fp)) {
             $eventdata->name              = 'paypal_enrolment';
             $eventdata->userfrom          = $user;
             $eventdata->userto            = $teacher;
-            $eventdata->subject           = get_string("enrolmentnew", '', $course->shortname);
+            $eventdata->subject           = get_string("enrolmentnew", '', $shortname);
             $eventdata->fullmessage       = get_string('enrolmentnewuser', '', $a);
             $eventdata->fullmessageformat = FORMAT_PLAIN;
             $eventdata->fullmessagehtml   = '';
@@ -267,7 +271,7 @@ while (!feof($fp)) {
         }
 
         if (!empty($mailadmins)) {
-            $a->course = $course->fullname;
+            $a->course = format_string($course->fullname, true, array('context' => $coursecontext));
             $a->user = fullname($user);
             $admins = get_admins();
             foreach ($admins as $admin) {
@@ -277,7 +281,7 @@ while (!feof($fp)) {
                 $eventdata->name              = 'paypal_enrolment';
                 $eventdata->userfrom          = $user;
                 $eventdata->userto            = $admin;
-                $eventdata->subject           = get_string("enrolmentnew", '', $course->shortname);
+                $eventdata->subject           = get_string("enrolmentnew", '', $shortname);
                 $eventdata->fullmessage       = get_string('enrolmentnewuser', '', $a);
                 $eventdata->fullmessageformat = FORMAT_PLAIN;
                 $eventdata->fullmessagehtml   = '';

@@ -1291,6 +1291,28 @@ class restore_ras_and_caps_structure_step extends restore_structure_step {
  */
 class restore_enrolments_structure_step extends restore_structure_step {
 
+    /**
+     * Conditionally decide if this step should be executed.
+     *
+     * This function checks the following parameter:
+     *
+     *   1. the course/enrolments.xml file exists
+     *
+     * @return bool true is safe to execute, false otherwise
+     */
+    protected function execute_condition() {
+
+        // Check it is included in the backup
+        $fullpath = $this->task->get_taskbasepath();
+        $fullpath = rtrim($fullpath, '/') . '/' . $this->filename;
+        if (!file_exists($fullpath)) {
+            // Not found, can't restore enrolments info
+            return false;
+        }
+
+        return true;
+    }
+
     protected function define_structure() {
 
         $paths = array();
@@ -1749,7 +1771,7 @@ class restore_course_logs_structure_step extends restore_structure_step {
     /**
      * Conditionally decide if this step should be executed.
      *
-     * This function checks the following four parameters:
+     * This function checks the following parameter:
      *
      *   1. the course/logs.xml file exists
      *
@@ -2637,6 +2659,12 @@ class restore_create_question_files extends restore_execution_step {
                                               $oldctxid, $this->task->get_userid(), 'question_answer', null, $newctxid, true);
             restore_dbops::send_files_to_pool($this->get_basepath(), $this->get_restoreid(), 'question', 'hint',
                                               $oldctxid, $this->task->get_userid(), 'question_hint', null, $newctxid, true);
+            restore_dbops::send_files_to_pool($this->get_basepath(), $this->get_restoreid(), 'question', 'correctfeedback',
+                                              $oldctxid, $this->task->get_userid(), 'question_created', $question->itemid, $newctxid, true);
+            restore_dbops::send_files_to_pool($this->get_basepath(), $this->get_restoreid(), 'question', 'partiallycorrectfeedback',
+                                              $oldctxid, $this->task->get_userid(), 'question_created', $question->itemid, $newctxid, true);
+            restore_dbops::send_files_to_pool($this->get_basepath(), $this->get_restoreid(), 'question', 'incorrectfeedback',
+                                              $oldctxid, $this->task->get_userid(), 'question_created', $question->itemid, $newctxid, true);
             // Add qtype dependent files
             $components = backup_qtype_plugin::get_components_and_fileareas($question->qtype);
             foreach ($components as $component => $fileareas) {

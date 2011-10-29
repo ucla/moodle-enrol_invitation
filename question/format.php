@@ -394,6 +394,8 @@ class qformat_default {
 
             $question->createdby = $USER->id;
             $question->timecreated = time();
+            $question->modifiedby = $USER->id;
+            $question->timemodified = time();
 
             $question->id = $DB->insert_record('question', $question);
             if (isset($question->questiontextfiles)) {
@@ -595,7 +597,9 @@ class qformat_default {
         $question->image = "";
         $question->usecase = 0;
         $question->multiplier = array();
+        $question->questiontextformat = FORMAT_MOODLE;
         $question->generalfeedback = '';
+        $question->generalfeedbackformat = FORMAT_MOODLE;
         $question->correctfeedback = '';
         $question->partiallycorrectfeedback = '';
         $question->incorrectfeedback = '';

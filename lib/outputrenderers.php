@@ -520,7 +520,7 @@ class core_renderer extends renderer_base {
 
         } else {
             return '<div class="homelink"><a href="' . $CFG->wwwroot . '/course/view.php?id=' . $this->page->course->id . '">' .
-                    format_string($this->page->course->shortname) . '</a></div>';
+                    format_string($this->page->course->shortname, true, array('context' => $this->page->context)) . '</a></div>';
         }
     }
 
@@ -1764,32 +1764,20 @@ class core_renderer extends renderer_base {
         }
 
         if (empty($userpicture->size)) {
-            $file = 'f2';
             $size = 35;
         } else if ($userpicture->size === true or $userpicture->size == 1) {
-            $file = 'f1';
             $size = 100;
-        } else if ($userpicture->size >= 50) {
-            $file = 'f1';
-            $size = $userpicture->size;
         } else {
-            $file = 'f2';
             $size = $userpicture->size;
         }
 
         $class = $userpicture->class;
 
-        if ($user->picture == 1) {
-            $usercontext = get_context_instance(CONTEXT_USER, $user->id);
-            $src = moodle_url::make_pluginfile_url($usercontext->id, 'user', 'icon', NULL, '/', $file);
-
-        } else if ($user->picture == 2) {
-            //TODO: gravatar user icon support
-
-        } else { // Print default user pictures (use theme version if available)
+        if ($user->picture != 1 && $user->picture != 2) {
             $class .= ' defaultuserpic';
-            $src = $this->pix_url('u/' . $file);
         }
+
+        $src = $userpicture->get_url($this->page, $this);
 
         $attributes = array('src'=>$src, 'alt'=>$alt, 'title'=>$alt, 'class'=>$class, 'width'=>$size, 'height'=>$size);
 
@@ -2041,6 +2029,10 @@ EOD;
         $message = '<p class="errormessage">' . $message . '</p>'.
                 '<p class="errorcode"><a href="' . $moreinfourl . '">' .
                 get_string('moreinformation') . '</a></p>';
+        if (empty($CFG->rolesactive)) {
+            $message .= '<p class="errormessage">' . get_string('installproblem', 'error') . '</p>';
+            //It is usually not possible to recover from errors triggered during installation, you may need to create a new database or use a different database prefix for new installation.
+        }
         $output .= $this->box($message, 'errorbox');
 
         if (debugging('', DEBUG_DEVELOPER)) {
@@ -2057,7 +2049,9 @@ EOD;
             }
         }
 
-        if (!empty($link)) {
+        if (empty($CFG->rolesactive)) {
+            // continue does not make much sense if moodle is not installed yet because error is most probably not recoverable
+        } else if (!empty($link)) {
             $output .= $this->continue_button($link);
         }
 

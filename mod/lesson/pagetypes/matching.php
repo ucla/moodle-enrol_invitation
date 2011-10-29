@@ -120,7 +120,7 @@ class lesson_page_type_matching extends lesson_page {
                 $answer->responseformat = $properties->response_editor[$i]['format'];
             }
 
-            if (!empty($answer->answer)) {
+            if (isset($answer->answer) && $answer->answer != '') {
                 if (isset($properties->jumpto[$i])) {
                     $answer->jumpto = $properties->jumpto[$i];
                 }
@@ -320,7 +320,8 @@ class lesson_page_type_matching extends lesson_page {
                 $this->answers[$i]->responseformat = $properties->response_editor[$i]['format'];
             }
 
-            if (!empty($this->answers[$i]->answer)) {
+            // we don't need to check for isset here because properties called it's own isset method.
+            if ($this->answers[$i]->answer != '') {
                 if (isset($properties->jumpto[$i])) {
                     $this->answers[$i]->jumpto = $properties->jumpto[$i];
                 }
@@ -382,26 +383,23 @@ class lesson_page_type_matching extends lesson_page {
                 } else {
                     $answerdata->response = $answer->response;
                 }
+                if ($this->lesson->custom) {
+                    $answerdata->score = get_string("pointsearned", "lesson").": ".$answer->score;
+                } else {
+                    $answerdata->score = get_string("receivedcredit", "lesson");
+                }
             } elseif ($n == 1 && $useranswer != NULL && !$useranswer->correct) {
                 if ($answer->response == NULL && $useranswer != NULL) {
                     $answerdata->response = get_string("thatsthewronganswer", "lesson");
                 } else {
                     $answerdata->response = $answer->response;
                 }
-            } elseif ($n > 1) {
-                if ($n == 2 && $useranswer != NULL && $useranswer->correct) {
-                    if ($this->lesson->custom) {
-                        $answerdata->score = get_string("pointsearned", "lesson").": ".$answer->score;
-                    } else {
-                        $answerdata->score = get_string("receivedcredit", "lesson");
-                    }
-                } elseif ($n == 3 && $useranswer != NULL && !$useranswer->correct) {
-                    if ($this->lesson->custom) {
-                        $answerdata->score = get_string("pointsearned", "lesson").": ".$answer->score;
-                    } else {
-                        $answerdata->score = get_string("didnotreceivecredit", "lesson");
-                    }
+                if ($this->lesson->custom) {
+                    $answerdata->score = get_string("pointsearned", "lesson").": ".$answer->score;
+                } else {
+                    $answerdata->score = get_string("didnotreceivecredit", "lesson");
                 }
+            } elseif ($n > 1) {
                 $data = "<select disabled=\"disabled\"><option selected=\"selected\">".strip_tags(format_string($answer->answer))."</option></select>";
                 if ($useranswer != NULL) {
                     $userresponse = explode(",", $useranswer->useranswer);
@@ -426,7 +424,7 @@ class lesson_page_type_matching extends lesson_page {
                         $percent = get_string("nooneansweredthisquestion", "lesson");
                     }
                 } else {
-                    $percent = "";
+                    $percent = '';
                 }
 
                 $answerdata->answers[] = array($data, $percent);

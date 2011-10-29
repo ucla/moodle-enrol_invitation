@@ -414,7 +414,9 @@ function quiz_update_sumgrades($quiz) {
             WHERE id = ?';
     $DB->execute($sql, array($quiz->id));
     $quiz->sumgrades = $DB->get_field('quiz', 'sumgrades', array('id' => $quiz->id));
-    if ($quiz->sumgrades < 0.000005) {
+    if ($quiz->sumgrades < 0.000005 && quiz_clean_layout($quiz->questions, true)) {
+        // If there is at least one question in the quiz, and the sumgrades has been
+        // set to 0, then also set the maximum possible grade to 0.
         quiz_set_grade(0, $quiz);
     }
 }
@@ -542,25 +544,21 @@ function quiz_save_best_grade($quiz, $userid = null, $attempts = array()) {
 /**
  * Calculate the overall grade for a quiz given a number of attempts by a particular user.
  *
- * @return float          The overall grade
- * @param object $quiz    The quiz for which the best grade is to be calculated
- * @param array $attempts An array of all the attempts of the user at the quiz
+ * @param object $quiz    the quiz settings object.
+ * @param array $attempts an array of all the user's attempts at this quiz in order.
+ * @return float          the overall grade
  */
 function quiz_calculate_best_grade($quiz, $attempts) {
 
     switch ($quiz->grademethod) {
 
         case QUIZ_ATTEMPTFIRST:
-            foreach ($attempts as $attempt) {
-                return $attempt->sumgrades;
-            }
-            return $final;
+            $firstattempt = reset($attempts);
+            return $firstattempt->sumgrades;
 
         case QUIZ_ATTEMPTLAST:
-            foreach ($attempts as $attempt) {
-                $final = $attempt->sumgrades;
-            }
-            return $final;
+            $lastattempt = end($attempts);
+            return $lastattempt->sumgrades;
 
         case QUIZ_GRADEAVERAGE:
             $sum = 0;
@@ -576,8 +574,8 @@ function quiz_calculate_best_grade($quiz, $attempts) {
             }
             return $sum / $count;
 
-        default:
         case QUIZ_GRADEHIGHEST:
+        default:
             $max = null;
             foreach ($attempts as $attempt) {
                 if ($attempt->sumgrades > $max) {
@@ -1296,12 +1294,14 @@ function quiz_check_safe_browser() {
 
 function quiz_get_js_module() {
     global $PAGE;
+
     return array(
         'name' => 'mod_quiz',
         'fullpath' => '/mod/quiz/module.js',
         'requires' => array('base', 'dom', 'event-delegate', 'event-key',
                 'core_question_engine'),
         'strings' => array(
+            array('cancel', 'moodle'),
             array('timesup', 'quiz'),
             array('functiondisabledbysecuremode', 'quiz'),
             array('flagged', 'question'),

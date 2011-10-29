@@ -45,6 +45,18 @@ if (substr($parts, -3) === '.js') {
     combo_not_found();
 }
 
+// if they are requesting a revision that's not -1, and they have supplied an
+// If-Modified-Since header, we can send back a 304 Not Modified since the
+// content never changes (the rev number is increased any time the content changes)
+if (!empty($_SERVER['HTTP_IF_NONE_MATCH']) || !empty($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
+    $lifetime = 60*60*24*30; // 30 days
+    header('HTTP/1.1 304 Not Modified');
+    header('Expires: '. gmdate('D, d M Y H:i:s', time() + $lifetime) .' GMT');
+    header('Cache-Control: max-age='.$lifetime);
+    header('Content-Type: '.$mimetype);
+    die;
+}
+
 $parts = explode('&', $parts);
 $cache = true;
 
@@ -124,13 +136,13 @@ if ($cache) {
  * @param string $mimetype
  */
 function combo_send_cached($content, $mimetype) {
-    $lifetime = 60*60*24*300; // 300 days === forever
+    $lifetime = 60*60*24*30; // 30 days
 
     header('Content-Disposition: inline; filename="combo"');
     header('Last-Modified: '. gmdate('D, d M Y H:i:s', time()) .' GMT');
     header('Expires: '. gmdate('D, d M Y H:i:s', time() + $lifetime) .' GMT');
     header('Pragma: ');
-    header('Cache-Control: max-age=315360000');
+    header('Cache-Control: max-age='.$lifetime);
     header('Accept-Ranges: none');
     header('Content-Type: '.$mimetype);
     if (!min_enable_zlib_compression()) {
@@ -161,23 +173,27 @@ function combo_send_uncached($content, $mimetype) {
     die;
 }
 
-function combo_not_found() {
+function combo_not_found($message = '') {
     header('HTTP/1.0 404 not found');
-    die('Combo resource not found, sorry.');
+    if ($message) {
+        echo $message;
+    } else {
+        echo 'Combo resource not found, sorry.';
+    }
+    die;
 }
 
 function combo_params() {
-    if (!empty($_SERVER['REQUEST_URI'])) {
-        $parts = explode('?', $_SERVER['REQUEST_URI']);
-        if (count($parts) != 2) {
-            return '';
-        }
+    // note: buggy or misconfigured IIS does return the query string in REQUEST_URL
+    if (isset($_SERVER['REQUEST_URI']) and strpos($_SERVER['REQUEST_URI'], '?') !== false) {
+        $parts = explode('?', $_SERVER['REQUEST_URI'], 2);
         return $parts[1];
 
-    } else if (!empty($_SERVER['QUERY_STRING'])) {
+    } else if (isset($_SERVER['QUERY_STRING'])) {
         return $_SERVER['QUERY_STRING'];
 
     } else {
-        return '';
+        // unsupported server, sorry!
+        combo_not_found('Unsupported server - query string can not be determined, try disabling YUI combo loading in admin settings.');
     }
 }
