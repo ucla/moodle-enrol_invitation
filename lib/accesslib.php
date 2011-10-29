@@ -3643,7 +3643,7 @@ function print_context_name($context, $withprefix = true, $short = false) {
                 if ($withprefix){
                     $name = get_string('category').': ';
                 }
-                $name .=format_string($category->name);
+                $name .= format_string($category->name, true, array('context' => $context));
             }
             break;
 
@@ -3656,7 +3656,7 @@ function print_context_name($context, $withprefix = true, $short = false) {
                         $name = get_string('course').': ';
                     }
                     if ($short){
-                        $name .= format_string($course->shortname);
+                        $name .= format_string($course->shortname, true, array('context' => $context));
                     } else {
                         $name .= format_string($course->fullname);
                    }

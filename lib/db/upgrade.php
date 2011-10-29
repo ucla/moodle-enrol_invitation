@@ -1230,8 +1230,14 @@ WHERE gradeitemid IS NOT NULL AND grademax IS NOT NULL");
         $field = new xmldb_field('backuptype', XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, 'info');
     /// Conditionally Launch add field backuptype and set all old records as 'scheduledbackup' records.
         if (!$dbman->field_exists($table, $field)) {
+            // Set the default we want applied to any existing records
+            $field->setDefault('scheduledbackup');
+            // Add the field to the database
             $dbman->add_field($table, $field);
-            $DB->execute("UPDATE {backup_log} SET backuptype='scheduledbackup'");
+            // Remove the default
+            $field->setDefault(null);
+            // Update the database to remove the default
+            $dbman->change_field_default($table, $field);
         }
 
     /// Main savepoint reached
@@ -2121,7 +2127,7 @@ WHERE gradeitemid IS NOT NULL AND grademax IS NOT NULL");
                 $instanceids[] = $blockinstance->id;
                 // If we have more than 1000 block instances now remove all block positions
                 // and empty the array
-                if (count($contextids) > 1000) {
+                if (count($instanceids) > 1000) {
                     $instanceidstring = join(',',$instanceids);
                     $DB->delete_records_select('block_positions', 'blockinstanceid IN ('.$instanceidstring.')');
                     $instanceids = array();
@@ -2131,8 +2137,10 @@ WHERE gradeitemid IS NOT NULL AND grademax IS NOT NULL");
 
         upgrade_cleanup_unwanted_block_contexts($contextids);
 
-        $instanceidstring = join(',',$instanceids);
-        $DB->delete_records_select('block_positions', 'blockinstanceid IN ('.$instanceidstring.')');
+        if ($instanceids) {
+            $instanceidstring = join(',',$instanceids);
+            $DB->delete_records_select('block_positions', 'blockinstanceid IN ('.$instanceidstring.')');
+        }
 
         unset($allblockinstances);
         unset($contextids);
@@ -6043,11 +6051,12 @@ WHERE gradeitemid IS NOT NULL AND grademax IS NOT NULL");
          // Define field secret to be added to registration_hubs
         $table = new xmldb_table('registration_hubs');
         $field = new xmldb_field('secret', XMLDB_TYPE_CHAR, '255', null, null, null,
-                $CFG->siteidentifier, 'confirmed');
+                null, 'confirmed');
 
-        // Conditionally launch add field secret
+        // Conditionally launch add field secret  and set its value
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
+            $DB->set_field('registration_hubs', 'secret', $CFG->siteidentifier);
         }
 
         // Main savepoint reached
@@ -6637,11 +6646,39 @@ FROM
     // Moodle v2.1.0 release upgrade line
     // Put any upgrade step following this
 
+    if ($oldversion < 2011070101.04) {
+        // Remove category_sortorder index that was supposed to be removed long time ago
+        $table = new xmldb_table('course');
+        $index = new xmldb_index('category_sortorder', XMLDB_INDEX_UNIQUE, array('category', 'sortorder'));
+
+        if ($dbman->index_exists($table, $index)) {
+            $dbman->drop_index($table, $index);
+        }
+        upgrade_main_savepoint(true, 2011070101.04);
+    }
+
+    if ($oldversion < 2011070101.09) {
+        // Changing the default of field secret on table registration_hubs to NULL
+        $table = new xmldb_table('registration_hubs');
+        $field = new xmldb_field('secret', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'confirmed');
+
+        // Launch change of default for field secret
+        $dbman->change_field_default($table, $field);
+
+        // Main savepoint reached
+        upgrade_main_savepoint(true, 2011070101.09);
+    }
+
+    if ($oldversion < 2011070101.10) {
+        //preference not required since 2.0
+        $DB->delete_records('user_preferences', array('name'=>'message_showmessagewindow'));
+
+        //re-introducing emailstop. check that its turned off so people dont suddenly stop getting notifications
+        $DB->set_field('user', 'emailstop', 0, array('emailstop' => 1));
+
+        upgrade_main_savepoint(true, 2011070101.10);
+    }
+
     return true;
 }
 
-//TODO: Cleanup before the 2.0 release - we do not want to drag along these dev machine fixes forever
-// 1/ drop block_pinned_old table here and in install.xml
-// 2/ drop block_instance_old table here and in install.xml
-
-//TODO: AFTER 2.0 remove the column user->emailstop and the user preference "message_showmessagewindow"

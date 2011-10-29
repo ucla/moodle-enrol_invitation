@@ -523,8 +523,8 @@ class core_backup_renderer extends plugin_renderer_base {
                 }
                 $row->cells = array(
                     html_writer::empty_tag('input', array('type'=>'radio', 'name'=>'targetid', 'value'=>$course->id)),
-                    $course->shortname,
-                    $course->fullname
+                    format_string($course->shortname, true, array('context' => get_context_instance(CONTEXT_COURSE, $course->id))),
+                    format_string($course->fullname, true, array('context' => get_context_instance(CONTEXT_COURSE, $course->id)))
                 );
                 $table->data[] = $row;
             }
@@ -587,8 +587,8 @@ class core_backup_renderer extends plugin_renderer_base {
             }
             $row->cells = array(
                 html_writer::empty_tag('input', array('type'=>'radio', 'name'=>'importid', 'value'=>$course->id)),
-                $course->shortname,
-                $course->fullname
+                format_string($course->shortname, true, array('context' => get_context_instance(CONTEXT_COURSE, $course->id))),
+                format_string($course->fullname, true, array('context' => get_context_instance(CONTEXT_COURSE, $course->id)))
             );
             $table->data[] = $row;
         }
@@ -629,7 +629,7 @@ class core_backup_renderer extends plugin_renderer_base {
                 }
                 $row->cells = array(
                     html_writer::empty_tag('input', array('type'=>'radio', 'name'=>'targetid', 'value'=>$category->id)),
-                    $category->name,
+                    format_string($category->name, true, array('context' => get_context_instance(CONTEXT_COURSECAT, $category->id))),
                     format_text($category->description, $category->descriptionformat, array('overflowdiv'=>true))
                 );
                 $table->data[] = $row;

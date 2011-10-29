@@ -947,6 +947,76 @@ abstract class repository {
     }
 
     /**
+     * Scan file, throws exception in case of infected file.
+     *
+     * Please note that the scanning engine must be able to access the file,
+     * permissions of the file are not modified here!
+     *
+     * @static
+     * @param string $thefile
+     * @param string $filename name of the file
+     * @param bool $deleteinfected
+     * @return void
+     */
+    public static function antivir_scan_file($thefile, $filename, $deleteinfected) {
+        global $CFG;
+
+        if (!is_readable($thefile)) {
+            // this should not happen
+            return;
+        }
+
+        if (empty($CFG->runclamonupload) or empty($CFG->pathtoclam)) {
+            // clam not enabled
+            return;
+        }
+
+        $CFG->pathtoclam = trim($CFG->pathtoclam);
+
+        if (!file_exists($CFG->pathtoclam) or !is_executable($CFG->pathtoclam)) {
+            // misconfigured clam - use the old notification for now
+            require("$CFG->libdir/uploadlib.php");
+            $notice = get_string('clamlost', 'moodle', $CFG->pathtoclam);
+            clam_message_admins($notice);
+            return;
+        }
+
+        // do NOT mess with permissions here, the calling party is responsible for making
+        // sure the scanner engine can access the files!
+
+        // execute test
+        $cmd = escapeshellcmd($CFG->pathtoclam).' --stdout '.escapeshellarg($thefile);
+        exec($cmd, $output, $return);
+
+        if ($return == 0) {
+            // perfect, no problem found
+            return;
+
+        } else if ($return == 1) {
+            // infection found
+            if ($deleteinfected) {
+                unlink($thefile);
+            }
+            throw new moodle_exception('virusfounduser', 'moodle', '', array('filename'=>$filename));
+
+        } else {
+            //unknown problem
+            require("$CFG->libdir/uploadlib.php");
+            $notice = get_string('clamfailed', 'moodle', get_clam_error_code($return));
+            $notice .= "\n\n". implode("\n", $output);
+            clam_message_admins($notice);
+            if ($CFG->clamfailureonupload === 'actlikevirus') {
+                if ($deleteinfected) {
+                    unlink($thefile);
+                }
+                throw new moodle_exception('virusfounduser', 'moodle', '', array('filename'=>$filename));
+            } else {
+                return;
+            }
+        }
+    }
+
+    /**
      * Move file from download folder to file pool using FILE API
      * @global object $DB
      * @global object $CFG
@@ -962,6 +1032,10 @@ abstract class repository {
      */
     public static function move_to_filepool($thefile, $record) {
         global $DB, $CFG, $USER, $OUTPUT;
+
+        // scan for viruses if possible, throws exception if problem found
+        self::antivir_scan_file($thefile, $record->filename, empty($CFG->repository_no_delete)); //TODO: MDL-28637 this repository_no_delete is a bloody hack!
+
         if ($record->filepath !== '/') {
             $record->filepath = trim($record->filepath, '/');
             $record->filepath = '/'.$record->filepath.'/';
@@ -1280,6 +1354,31 @@ abstract class repository {
         $c = new curl;
         $c->download(array(array('url'=>$url, 'file'=>$fp)));
         return array('path'=>$path, 'url'=>$url);
+    }
+
+    /**
+     * Return size of a file in bytes.
+     *
+     * @param string $source encoded and serialized data of file
+     * @return integer file size in bytes
+     */
+    public function get_file_size($source) {
+        $browser    = get_file_browser();
+        $params     = unserialize(base64_decode($source));
+        $contextid  = clean_param($params['contextid'], PARAM_INT);
+        $fileitemid = clean_param($params['itemid'], PARAM_INT);
+        $filename   = clean_param($params['filename'], PARAM_FILE);
+        $filepath   = clean_param($params['filepath'], PARAM_PATH);
+        $filearea   = clean_param($params['filearea'], PARAM_SAFEDIR);
+        $component  = clean_param($params['component'], PARAM_ALPHAEXT);
+        $context    = get_context_instance_by_id($contextid);
+        $file_info  = $browser->get_file_info($context, $component, $filearea, $fileitemid, $filepath, $filename);
+        if (!empty($file_info)) {
+            $filesize = $file_info->get_filesize();
+        } else {
+            $filesize = null;
+        }
+        return $filesize;
     }
 
     /**

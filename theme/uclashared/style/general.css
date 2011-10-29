@@ -79,9 +79,23 @@ html, body {background-color:#FFF; height:100%;}
 
 /** Footer **/
 #page-footer {background-color: #565656; color:#FFF; height:41px;}
-#page-footer #footer-links a {color: #A3BFFD; margin-left: 5px; margin-right: 5px; font-weight:bold;}
-#page-footer #copyright-info {float: left; margin-top:10px; font-weight:bold;}
-#page-footer #footer-links {float: right; margin-top:10px;}
+#page-footer #footer-links a {
+    color: #A3BFFD; 
+    margin-left: 5px; 
+    margin-right: 5px; 
+    font-weight:bold;
+}
+#page-footer #copyright-info {
+    float: left; 
+    margin-top:10px; 
+    margin-left:8px;
+    font-weight:bold;
+}
+#page-footer #footer-links {
+    float: right; 
+    margin-top:10px;
+    margin-right: 8px;
+}
 
 /** General **/
 .generalbox {border: 1px solid #DDDDDD;}
