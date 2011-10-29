@@ -3,6 +3,9 @@
  *
  **/
 class block_ucla_course_menu extends block_base {
+    /** There consts are used by the renderer when rendering navigation
+     *  nodes.
+     **/
     /** @var int Trim characters from the right **/
     const TRIM_RIGHT = 1;
 
@@ -15,10 +18,11 @@ class block_ucla_course_menu extends block_base {
     /** @var int Trim length that is hard-coded default **/
     const DEFAULT_TRIM_LENGTH = 10;
 
-    /** @var int TODO No idea **/
     const EXPANDABLE_TREE = 0;
 
     var $contentgenerated = false;
+
+    const BLOCK_HOOK_FN = 'get_navigation_nodes';
    
     /**
      *  Called by Moodle.
@@ -163,6 +167,22 @@ class block_ucla_course_menu extends block_base {
         $elements = array();
 
         $topic_param = $this->get_topic_get();
+        if ($this->get_course_format() == 'ucla') {
+            list($thistopic, $ds) = ucla_format_figure_section(
+                $this->page->course);
+
+            navigation_node::override_active_url(
+                new moodle_url(
+                    '/course/view.php',
+                    array(
+                        'id' => $course_id,
+                         $topic_param => $thistopic
+                    )
+                )
+            );
+        } else {
+            $thistopic = false;
+        }
 
         $viewhiddensections = has_capability(
             'moodle/course:viewhiddensections', $this->page->context);
@@ -183,9 +203,11 @@ class block_ucla_course_menu extends block_base {
                 new moodle_url('/course/view.php', array(
                     'id' => $course_id,
                     $topic_param => $sectnum
-                )), navigation_node::TYPE_SECTION);
+                )), navigation_node::TYPE_SECTION
+            );
         }
 
+        // TODO get navigation to detect this if it is view all.
         if (defined('UCLA_FORMAT_DISPLAY_ALL')) {
             // Create view-all section link
             $elements['view-all'] = navigation_node::create(
@@ -224,11 +246,12 @@ class block_ucla_course_menu extends block_base {
                         . $classname . '.php');
             }
 
-            if (method_exists($classname, 'get_navigation_nodes')) {
+            if (method_exists($classname, self::BLOCK_HOOK_FN)) {
+                $fn = self::BLOCK_HOOK_FN;
                 $block_elements = 
-                    $classname::get_navigation_nodes($course);
+                    $classname::$fn($course);
 
-                $elements = array_merge($elements, $blocks_elements);
+                $elements = array_merge($elements, $block_elements);
             }
         }
 
@@ -258,19 +281,10 @@ class block_ucla_course_menu extends block_base {
                 $navigs[] = navigation_node::create($modnameshown, 
                     new moodle_url($modpath, array('id' => $courseid)),
                     navigation_node::TYPE_ACTIVITY);
-
             }
-            
         }
 
         return $navigs;
-    }
-
-    /**
-     *  Checks if the element is a modular block thing.
-     **/
-    function is_block_element($element_id) {
-        return (substr($element_id, 0, 6) == 'block_');
     }
 
     /**
