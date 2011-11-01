@@ -40,51 +40,51 @@ $term = $CFG->currentterm;
 
 // BEGIN CCLE MODIFICATION CCLE-1723
 // Adding 'Support Admin' capability to course requestor
-if (!has_capability('report/courserequestor:view', get_context_instance(CONTEXT_SYSTEM))) {
+if (!has_capability('report/uclacourserequestor:view', get_context_instance(CONTEXT_SYSTEM))) {
     error(get_string('adminsonlybanner'));
 }
 // END CCLE MODIFICATION
 
 // Initialize $PAGE
 
-$PAGE->set_url('/admin/report/courserequestor/addcrosslist.php');
+$PAGE->set_url('/admin/report/uclacourserequestor/addcrosslist.php');
 $context = get_context_instance(CONTEXT_SYSTEM);
 $PAGE->set_context($context);
-$PAGE->set_heading(get_string('courserequestor', 'report_courserequestor'));
+$PAGE->set_heading(get_string('pluginname', 'report_uclacourserequestor'));
 $PAGE->set_pagetype('admin-*');
 $PAGE->set_pagelayout('admin');
 
 // Prepare and load Moodle Admin interface
 
-admin_externalpage_setup('courserequestor');
+admin_externalpage_setup('uclacourserequestor');
 echo $OUTPUT->header();
 
 ?>
 
 <div class="headingblock header crqpaddingbot" >
-    <?php echo get_string('coursereqaddcrosslist', 'report_courserequestor') ?>
+    <?php echo get_string('coursereqaddcrosslist', 'report_uclacourserequestor') ?>
 </div>
 
 <div class="generalbox categorybox box "  >
     <div class="crqcenterbox">
 <?php
-        $course_requestor =  $CFG->wwwroot."/admin/report/courserequestor/index.php";
-        $addCrosslist = $CFG->wwwroot."/admin/report/courserequestor/addcrosslist.php";
+        $course_requestor =  $CFG->wwwroot."/admin/report/uclacourserequestor/index.php";
+        $addCrosslist = $CFG->wwwroot."/admin/report/uclacourserequestor/addcrosslist.php";
 
         echo "<a href=\"$course_requestor\">".get_string('buildcourse', 
-            'report_courserequestor')."</a> | ";
+            'report_uclacourserequestor')."</a> | ";
         echo "<a href=\"$addCrosslist\">".get_string('addcrosslist', 
-            'report_courserequestor')."</a> ";
+            'report_uclacourserequestor')."</a> ";
 ?>
     </div>
 
     <div >
-        <form method="POST" action="<?php echo $CFG->wwwroot."/admin/report/courserequestor/addcrosslist.php"; ?>">
+        <form method="POST" action="<?php echo $CFG->wwwroot."/admin/report/uclacourserequestor/addcrosslist.php"; ?>">
             <fieldset class="crqformeven">
                 <legend></legend>
                 <label>
 <?php 
-    echo get_string('crosslistselect', 'report_courserequestor');
+    echo get_string('crosslistselect', 'report_uclacourserequestor');
     print_term_pulldown_box(true); 
 ?>
                 </label>
@@ -93,13 +93,13 @@ echo $OUTPUT->header();
     </div>
 
     <div >
-        <form method="POST" action="<?php echo $CFG->wwwroot."/admin/report/courserequestor/addcrosslist.php"; ?>">
+        <form method="POST" action="<?php echo $CFG->wwwroot."/admin/report/uclacourserequestor/addcrosslist.php"; ?>">
             <fieldset class="crqformodd">
                 <legend></legend>
                 <label>
 <?php 
     $termcleaned = optional_param('term', NULL, PARAM_ALPHANUM); 
-    echo get_string('crosslistterm', 'report_courserequestor');
+    echo get_string('crosslistterm', 'report_uclacourserequestor');
     echo '<strong> ';
     if( empty($termcleaned) ){
         echo $CFG->classrequestor_selected_term;
@@ -107,7 +107,7 @@ echo $OUTPUT->header();
         echo "$termcleaned";
     } 
     echo '</strong><br/><br/>';
-    echo get_string('crosslistnotice', 'report_courserequestor');
+    echo get_string('crosslistnotice', 'report_uclacourserequestor');
     echo '<br/><select name="hostsrs" >';
     
     if(isset($termcleaned)){
@@ -125,7 +125,7 @@ echo $OUTPUT->header();
         echo "<option value='$srs'>$course</option>";
     }
     echo '</select></label>';
-    echo get_string('crosslistaddalias', 'report_courserequestor');
+    echo get_string('crosslistaddalias', 'report_uclacourserequestor');
     echo '<input type="hidden" name="action" value="addalias">';
     $i = 1;
     while($i <= 15){
@@ -144,7 +144,7 @@ echo $OUTPUT->header();
             <input type="hidden" name="action" value="addalias">
             <input type="hidden" name="term" value="<?php echo "$term"; ?>"><br/>
 <?php
-    echo '<input type="submit" value="'.get_string('insertalias', 'report_courserequestor').'">';
+    echo '<input type="submit" value="'.get_string('insertalias', 'report_uclacourserequestor').'">';
 ?>
             </fieldset>
     <form>
@@ -167,7 +167,7 @@ if(isset($actioncleaned)) {
                 if ($DB->get_records('ucla_request_crosslist', array('aliassrs'=>$value, 
                     'term'=>$termcleaned, 'srs'=>$hostsrscleaned), null, 'aliassrs')){
                     echo "<div class=\"crqerrormsg\">";
-                    echo get_string('duplicatekeys', 'report_courserequestor');
+                    echo get_string('duplicatekeys', 'report_uclacourserequestor');
                     echo "</div>";
                 } else{
                     $crosslistdata->term = $termcleaned;
@@ -178,7 +178,7 @@ if(isset($actioncleaned)) {
                     
                     
                     echo "<table><tr ><td ><div class=\"crqgreenmsg\">";
-					echo get_string('newaliascrosslist', 'report_courserequestor');
+					echo get_string('newaliascrosslist', 'report_uclacourserequestor');
                     echo $hostsrscleaned."</div></td></tr></table>";
 
                     $update_records = $DB->get_records('ucla_request_classes', array('srs'=>$hostsrscleaned));
@@ -191,12 +191,12 @@ if(isset($actioncleaned)) {
                     }
                                     
                     echo "<table><tr ><td ><div class=\"crqgreenmsg\">";
-					echo get_string('submittedforcrosslist', 'report_courserequestor');
+					echo get_string('submittedforcrosslist', 'report_uclacourserequestor');
                     echo "</div></td></tr></table>";
                 }
             } else {
                     echo "<div class=\"crqerrormsg\">";
-                    echo get_string('checksrsdigits', 'report_courserequestor');
+                    echo get_string('checksrsdigits', 'report_uclacourserequestor');
                     echo "</div>";
             }
         }

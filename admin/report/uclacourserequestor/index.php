@@ -22,39 +22,39 @@ global $ME;
 
 // BEGIN CCLE MODIFICATION CCLE-1723
 // Adding 'Support Admin' capability to course requestor
-if (!has_capability('report/courserequestor:view', get_context_instance(CONTEXT_SYSTEM))) {
+if (!has_capability('report/uclacourserequestor:view', get_context_instance(CONTEXT_SYSTEM))) {
     print_error('adminsonlybanner');
 }
 // END CCLE MODIFICATION
 
 
 // Initialize $PAGE
-$PAGE->set_url('/admin/report/courserequestor/index.php');
+$PAGE->set_url('/admin/report/uclacourserequestor/index.php');
 $context = get_context_instance(CONTEXT_SYSTEM);
 $PAGE->set_context($context);
-$PAGE->set_heading(get_string('courserequestor', 'report_courserequestor'));
+$PAGE->set_heading(get_string('pluginname', 'report_uclacourserequestor'));
 $PAGE->set_pagetype('admin-*');
 $PAGE->set_pagelayout('admin');
 
 // Prepare and load Moodle Admin interface
 
-admin_externalpage_setup('courserequestor');
+admin_externalpage_setup('uclacourserequestor');
 echo $OUTPUT->header();
 
 ?>
 
 
 <div class="headingblock header crqpaddingbot" >
-    <?php echo get_string('coursereqbuildclass', 'report_courserequestor') ?>
+    <?php echo get_string('coursereqbuildclass', 'report_uclacourserequestor') ?>
 </div>
 <div class="generalbox categorybox box crqdivwrapper" style="display:block;" >
     <div class="crqcenterbox">
 <?php
-$course_requestor = $CFG->wwwroot."/admin/report/courserequestor/index.php";
-$addCrosslist = $CFG->wwwroot."/admin/report/courserequestor/addcrosslist.php";
+$course_requestor = $CFG->wwwroot."/admin/report/uclacourserequestor/index.php";
+$addCrosslist = $CFG->wwwroot."/admin/report/uclacourserequestor/addcrosslist.php";
 
-echo "<a href=\"$course_requestor\">".get_string('buildcourse', 'report_courserequestor')."</a> | ";
-echo "<a href=\"$addCrosslist\">".get_string('addcrosslist', 'report_courserequestor')."</a> ";
+echo "<a href=\"$course_requestor\">".get_string('buildcourse', 'report_uclacourserequestor')."</a> | ";
+echo "<a href=\"$addCrosslist\">".get_string('addcrosslist', 'report_uclacourserequestor')."</a> ";
 
 
 // End UCLA Modification
@@ -98,9 +98,9 @@ if($viewdeptobj = $classform2->get_data()){
 <div>
     <fieldset class="crqformeven">
         <legend></legend>
-        <?php echo get_string('srslookup', 'report_courserequestor'); ?> 
+        <?php echo get_string('srslookup', 'report_uclacourserequestor'); ?> 
 		<a href="http://www.registrar.ucla.edu/schedule/" 
-        target="_blank"><?php echo get_string('registrarclasses', 'report_courserequestor'); ?></a>
+        target="_blank"><?php echo get_string('registrarclasses', 'report_uclacourserequestor'); ?></a>
     </fieldset>
 </div>
 <div class="crqdivclear" >
@@ -148,8 +148,8 @@ if(!empty($srsform))
         if((isset($existingcourse[$srs]) && $existingcourse[$srs]) 
             || (isset($existingaliascourse[$srs]) && $existingaliascourse[$srs])) {
                 echo "<tr><td class=\"crqtableodd\" colspan=\"4\"><div class=\"crqerrormsg\">";
-                echo get_string('alreadysubmitted', 'report_courserequestor');
-                echo "<br />".get_string('enternewsrs', 'report_courserequestor')."</div></td></tr></tbody></table>";
+                echo get_string('alreadysubmitted', 'report_uclacourserequestor');
+                echo "<br />".get_string('enternewsrs', 'report_uclacourserequestor')."</div></td></tr></tbody></table>";
         } else {
             $query = "EXECUTE ccle_CourseInstructorsGet '$term', '$srs' ";
             $inst = odbc_exec ($db_conn, $query);
@@ -196,7 +196,7 @@ if(!empty($srsform))
             echo "<tr><td class=\"crqtableodd\" colspan=\"2\">";
             
             if (!isset($subj) || $subj == "") {
-                echo "<div class=\"crqerrormsg\">".get_string('checktermsrs', 'report_courserequestor')."</div>";	
+                echo "<div class=\"crqerrormsg\">".get_string('checktermsrs', 'report_uclacourserequestor')."</div>";	
             } else {
                 echo "</td></tr><tr><td class=\"crqtableeven\" valign=\"top\">";
                 echo "<form method=\"POST\" action=\"".$PAGE->url."\">";
@@ -269,8 +269,8 @@ if(!empty($srsform))
                 } else {
                     echo "<label><input type=\"radio\" name=\"xlist\" value = \"1\" checked>yes</label> 
                         <label><input type=\"radio\" name=\"xlist\" value = \"0\">no</label><br>";
-                    echo "<br/>".get_string('selectsrscrosslist', 'report_courserequestor');
-                    echo "<br/><span style=\"color:red\" >".get_string('uncheckedcrosslist', 'report_courserequestor');
+                    echo "<br/>".get_string('selectsrscrosslist', 'report_uclacourserequestor');
+                    echo "<br/><span style=\"color:red\" >".get_string('uncheckedcrosslist', 'report_uclacourserequestor');
                     echo "</span><br/><br/>";
 					
                     $aliascount=0;
@@ -369,9 +369,9 @@ function display_build_live_classes($build_or_live, $buildform){
                 <td class="crqtableeven" colspan="6" align="center">
 END;
         if($build_or_live == 1){
-            echo get_string('viewtobebuilt', 'report_courserequestor');
+            echo get_string('viewtobebuilt', 'report_uclacourserequestor');
         } else {
-            echo get_string('viewlivecourses', 'report_courserequestor');
+            echo get_string('viewlivecourses', 'report_uclacourserequestor');
         }
         echo <<< END
                 </td>
@@ -437,8 +437,8 @@ if(optional_param('action',NULL,PARAM_ALPHANUM) == "courserequest") {
     if((isset($existingcourse[$srs]) && $existingcourse[$srs]) 
         || (isset($existingaliascourse[$srs]) && $existingaliascourse[$srs])) {
 		echo "<table><tbody><tr><td class=\"crqtableodd\"><div class=\"crqerrormsg\">";
-		echo get_string('alreadysubmitted', 'report_courserequestor');
-        echo "<br />".get_string('enternewsrs', 'report_courserequestor');
+		echo get_string('alreadysubmitted', 'report_uclacourserequestor');
+        echo "<br />".get_string('enternewsrs', 'report_uclacourserequestor');
 		echo "</div></td></tr></tbody></table>";
     } else{
         $instructor = optional_param('instname',NULL,PARAM_TEXT);
@@ -510,7 +510,7 @@ if(optional_param('action',NULL,PARAM_ALPHANUM) == "courserequest") {
         }
         echo "<table><tr><td>";
         echo "<div class=\"crqbluemsg\">";
-        echo get_string('queuetobebuilt', 'report_courserequestor');
+        echo get_string('queuetobebuilt', 'report_uclacourserequestor');
         echo "</div></td></tr>";
         echo "<tr><td>";
         get_courses_to_be_built();
@@ -546,7 +546,7 @@ function get_courses_to_be_built()
     }
     if($recflag = 0) {
         echo "<table><tbody><tr><td class=\"crqtableodd\"><div class=\"crqerrormsg\">";
-        echo get_string('queueempty', 'report_courserequestor');
+        echo get_string('queueempty', 'report_uclacourserequestor');
         echo "</div></td></tr></tbody></table>";
     } else {
         echo <<< END
@@ -555,7 +555,7 @@ function get_courses_to_be_built()
             <tr>
                 <td class="crqtableeven" colspan="6" align="center">
 END;
-        echo get_string('viewtobebuilt', 'report_courserequestor');
+        echo get_string('viewtobebuilt', 'report_uclacourserequestor');
         echo <<< END
                 </td>
             </tr>
@@ -914,7 +914,7 @@ if(optional_param('action',NULL,PARAM_ALPHANUM)){
             if($addcourse != ""){	
                 if(isset($existingcourse[$srs]) || isset($existingaliascourse[$srs])) {
                     echo "<table><tr ><td ><div class=\"crqerrormsg\">$course";
-					echo get_string('childcourse', 'report_courserequestor');
+					echo get_string('childcourse', 'report_uclacourserequestor');
 					echo "</div></td></tr></table>";
                 } else {
                     $isxlist = 0;
@@ -948,7 +948,7 @@ if(optional_param('action',NULL,PARAM_ALPHANUM)){
                     $existingcourse[$srs] = 1;
 
                     echo "<table><tr ><td ><div class=\"crqgreenmsg\">$course";
-					echo get_string('submittedtobebuilt', 'report_courserequestor');
+					echo get_string('submittedtobebuilt', 'report_uclacourserequestor');
                     echo "</div></td></tr></table>";
 
                     if($isxlist == 1) {
@@ -962,7 +962,7 @@ if(optional_param('action',NULL,PARAM_ALPHANUM)){
                             //also check that the host srs is not an alias for some other crosslist
                             if(isset($existingcourse[$als]) || isset($existingaliascourse[$als])){	
                                 echo "<table><tr ><td ><div class=\"crqerrormsg\">Requested crosslist $als for $course";
-								echo get_string('individualorchildcourse', 'report_courserequestor');
+								echo get_string('individualorchildcourse', 'report_uclacourserequestor');
                                 echo "</div></td></tr></table>";
                             } else if($als != ""){
                                 $query1 = "INSERT INTO ".$CFG->prefix."ucla_request_crosslist
@@ -972,7 +972,7 @@ if(optional_param('action',NULL,PARAM_ALPHANUM)){
                                 $existingaliascourse[$als] = 1;
 
                                 echo "<table><tr ><td ><div class=\"crqgreenmsg\">$course";
-								echo get_string('crosslistingwith', 'report_courserequestor');
+								echo get_string('crosslistingwith', 'report_uclacourserequestor');
                                 echo "$als</div></td></tr></table>";
                             }
                             $r++;

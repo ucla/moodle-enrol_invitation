@@ -2,7 +2,6 @@
 
 // title string
 $string['pluginname'] = "UCLA course requestor";
-$string['courserequestor'] = $string['pluginname'];
 
 // courserequestor strings
 $string['coursereqform'] = "UCLA course requestor";

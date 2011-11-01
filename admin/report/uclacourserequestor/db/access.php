@@ -6,7 +6,7 @@
  */
 
 $capabilities = array(
-    'report/courserequestor:view' => array(
+    'report/uclacourserequestor:view' => array(
         'riskbitmask' => RISK_CONFIG,
         'captype' => 'read',
         'contextlevel' => CONTEXT_SYSTEM,

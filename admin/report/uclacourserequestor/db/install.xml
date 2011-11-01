@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="admin/report/courserequestor/db" VERSION="20110727" COMMENT="tables for course requestor"
+<XMLDB PATH="admin/report/uclacourserequestor/db" VERSION="20110727" COMMENT="tables for course requestor"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../../lib/xmldb/xmldb.xsd"
 >

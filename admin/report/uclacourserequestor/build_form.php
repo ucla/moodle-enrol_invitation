@@ -22,8 +22,8 @@ class build_form extends moodleform {
         }
         
         $pulldown_livebuild = array();
-        $pulldown_livebuild['built'] = get_string('build', 'report_courserequestor');
-        $pulldown_livebuild['live'] = get_string('live', 'report_courserequestor');
+        $pulldown_livebuild['built'] = get_string('build', 'report_uclacourserequestor');
+        $pulldown_livebuild['live'] = get_string('live', 'report_uclacourserequestor');
         
         $pulldown_dept = array();
         $pulldown_dept[] = 'ALL';
@@ -49,7 +49,7 @@ class build_form extends moodleform {
         $livebuild =& $mform->createElement('select', 'livebuild', null, $pulldown_livebuild);
         $oneline[] = $livebuild;
         
-        $oneline[] =& $mform->createElement('submit', 'submit', get_string('viewcourses', 'report_courserequestor'));
+        $oneline[] =& $mform->createElement('submit', 'submit', get_string('viewcourses', 'report_uclacourserequestor'));
 
         $mform->addGroup($oneline, 'group2', null, ' ', true);
 

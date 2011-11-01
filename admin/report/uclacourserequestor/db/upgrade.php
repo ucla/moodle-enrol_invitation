@@ -26,7 +26,7 @@ defined('MOODLE_INTERNAL') || die();
  * @param int $oldversion
  * @return bool always true
  */
-function xmldb_report_courserequestor_upgrade($oldversion) {
+function xmldb_report_uclacourserequestor_upgrade($oldversion) {
     global $DB;
 
     $dbman = $DB->get_manager(); // loads ddl manager and xmldb classes
@@ -63,8 +63,8 @@ function xmldb_report_courserequestor_upgrade($oldversion) {
             $dbman->create_table($table);
         }
 
-        // courserequestor savepoint reached
-        upgrade_plugin_savepoint(true, 2011052717, 'report', 'courserequestor');
+        // uclacourserequestor savepoint reached
+        upgrade_plugin_savepoint(true, 2011052717, 'report', 'uclacourserequestor');
     }
 	
 	    if ($result && $oldversion < 2011052717) {
@@ -87,8 +87,8 @@ function xmldb_report_courserequestor_upgrade($oldversion) {
             $dbman->create_table($table);
         }
 
-        // courserequestor savepoint reached
-        upgrade_plugin_savepoint(true, 2011052717, 'report', 'courserequestor');
+        // uclacourserequestor savepoint reached
+        upgrade_plugin_savepoint(true, 2011052717, 'report', 'uclacourserequestor');
     }
     
         if ($oldversion < 2011072704) {
@@ -100,8 +100,8 @@ function xmldb_report_courserequestor_upgrade($oldversion) {
         // Launch change of precision for field instructor
         $dbman->change_field_precision($table, $field);
 
-        // courserequestor savepoint reached
-        upgrade_plugin_savepoint(true, 2011072704, 'report', 'courserequestor');
+        // uclacourserequestor savepoint reached
+        upgrade_plugin_savepoint(true, 2011072704, 'report', 'uclacourserequestor');
     }
 	
 	return $result;
