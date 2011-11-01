@@ -1,13 +1,14 @@
 <?php
 
 // title string
-$string['courserequestor'] = "UCLA course request (SRS)";
+$string['pluginname'] = "UCLA course requestor";
+$string['courserequestor'] = $string['pluginname'];
 
 // courserequestor strings
-$string['coursereqform'] = "UCLA course request (SRS)";
-$string['coursereqbuilddept'] = "UCLA course request (SRS) - build department";
-$string['coursereqaddcrosslist'] = "UCLA course request (SRS) - add crosslist information";
-$string['coursereqbuildclass'] = "UCLA course request (SRS) - build courses";
+$string['coursereqform'] = "UCLA course requestor";
+$string['coursereqbuilddept'] = "UCLA course requestor - build department";
+$string['coursereqaddcrosslist'] = "UCLA course requestor - add crosslist information";
+$string['coursereqbuildclass'] = "UCLA course requestor - build courses";
 $string['srserror'] = 'SRS is 9 digits';
 
 $string['srslookup'] = "SRS# lookup";
@@ -48,5 +49,5 @@ $string['crosslistingwith'] = " - submitted for crosslisting with ";
 $string['individualorchildcourse'] = " is already submitted individually or as a child course. ";
 $string['submittedtobebuilt'] = " submitted to be built ";
 
-$string['courserequestor:view'] = "View UCLA course request (SRS)";
+$string['courserequestor:view'] = "View UCLA course requestor";
 ?>
