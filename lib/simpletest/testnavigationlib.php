@@ -98,6 +98,28 @@ class navigation_node_test extends UnitTestCase {
         $this->assertReference($node3, $this->node->get($node3->key, $node3->type));
     }
 
+    public function test_add_before() {
+        global $CFG;
+        // Create 3 nodes
+        $node1 = navigation_node::create('test_add_1', null, navigation_node::TYPE_CUSTOM,
+                'test 1', 'testadd1');
+        $node2 = navigation_node::create('test_add_2', null, navigation_node::TYPE_CUSTOM,
+                'test 2', 'testadd2');
+        $node3 = navigation_node::create('test_add_3', null, navigation_node::TYPE_CUSTOM,
+                'test 3', 'testadd3');
+        // Add node 2, then node 1 before 2, then node 3 at end
+        $this->node->add_node($node2);
+        $this->node->add_node($node1, 'testadd2');
+        $this->node->add_node($node3);
+        // Check the last 3 nodes are in 1, 2, 3 order and have those indexes
+        foreach($this->node->children as $child) {
+            $keys[] = $child->key;
+        }
+        $this->assertEqual('testadd1', $keys[count($keys)-3]);
+        $this->assertEqual('testadd2', $keys[count($keys)-2]);
+        $this->assertEqual('testadd3', $keys[count($keys)-1]);
+    }
+
     public function test_add_class() {
         $node = $this->node->get('demo1');
         $this->assertIsA($node, 'navigation_node');
@@ -167,10 +189,10 @@ class navigation_node_test extends UnitTestCase {
         $this->node->find_expandable($expandable);
         $this->assertEqual(count($expandable), 4);
         if (count($expandable) === 4) {
-            $name = $expandable[0]['branchid'];
-            $name .= $expandable[1]['branchid'];
-            $name .= $expandable[2]['branchid'];
-            $name .= $expandable[3]['branchid'];
+            $name = $expandable[0]['key'];
+            $name .= $expandable[1]['key'];
+            $name .= $expandable[2]['key'];
+            $name .= $expandable[3]['key'];
             $this->assertEqual($name, 'demo1demo2demo4hiddendemo2');
         }
     }
@@ -294,14 +316,10 @@ class global_navigation_test extends UnitTestCase {
      * @var global_navigation
      */
     public $node;
-    protected $cache;
-    protected $modinfo5 = 'O:6:"object":6:{s:8:"courseid";s:1:"5";s:6:"userid";s:1:"2";s:8:"sections";a:1:{i:0;a:1:{i:0;s:3:"288";}}s:3:"cms";a:1:{i:288;O:6:"object":17:{s:2:"id";s:3:"288";s:8:"instance";s:2:"19";s:6:"course";s:1:"5";s:7:"modname";s:5:"forum";s:4:"name";s:10:"News forum";s:7:"visible";s:1:"1";s:10:"sectionnum";s:1:"0";s:9:"groupmode";s:1:"0";s:10:"groupingid";s:1:"0";s:16:"groupmembersonly";s:1:"0";s:6:"indent";s:1:"0";s:10:"completion";s:1:"0";s:5:"extra";s:0:"";s:4:"icon";s:0:"";s:11:"uservisible";b:1;s:9:"modplural";s:6:"Forums";s:9:"available";b:1;}}s:9:"instances";a:1:{s:5:"forum";a:1:{i:19;R:8;}}s:6:"groups";N;}';
-    protected $coursesections5 = 'a:5:{i:0;O:8:"stdClass":6:{s:7:"section";s:1:"0";s:2:"id";s:2:"14";s:6:"course";s:1:"5";s:7:"summary";N;s:8:"sequence";s:3:"288";s:7:"visible";s:1:"1";}i:1;O:8:"stdClass":6:{s:7:"section";s:1:"1";s:2:"id";s:2:"97";s:6:"course";s:1:"5";s:7:"summary";s:0:"";s:8:"sequence";N;s:7:"visible";s:1:"1";}i:2;O:8:"stdClass":6:{s:7:"section";s:1:"2";s:2:"id";s:2:"98";s:6:"course";s:1:"5";s:7:"summary";s:0:"";s:8:"sequence";N;s:7:"visible";s:1:"1";}i:3;O:8:"stdClass":6:{s:7:"section";s:1:"3";s:2:"id";s:2:"99";s:6:"course";s:1:"5";s:7:"summary";s:0:"";s:8:"sequence";N;s:7:"visible";s:1:"1";}i:4;O:8:"stdClass":6:{s:7:"section";s:1:"4";s:2:"id";s:3:"100";s:6:"course";s:1:"5";s:7:"summary";s:0:"";s:8:"sequence";N;s:7:"visible";s:1:"1";}}';
     public static $includecoverage = array('./lib/navigationlib.php');
     public static $excludecoverage = array();
 
     public function setUp() {
-        $this->cache = new navigation_cache('simpletest_nav');
         $this->node = new exposed_global_navigation();
         // Create an initial tree structure to work with
         $cat1 = $this->node->add('category 1', null, navigation_node::TYPE_CATEGORY, null, 'cat1');
@@ -313,78 +331,25 @@ class global_navigation_test extends UnitTestCase {
         $course1 = $sub2->add('course 1', null, navigation_node::TYPE_COURSE, null, 'course1');
         $course2 = $sub2->add('course 2', null, navigation_node::TYPE_COURSE, null, 'course2');
         $course3 = $sub2->add('course 3', null, navigation_node::TYPE_COURSE, null, 'course3');
-        $section1 = $course2->add('section 1', null, navigation_node::TYPE_COURSE, null, 'sec1');
-        $section2 = $course2->add('section 2', null, navigation_node::TYPE_COURSE, null, 'sec2');
-        $section3 = $course2->add('section 3', null, navigation_node::TYPE_COURSE, null, 'sec3');
+        $section1 = $course2->add('section 1', null, navigation_node::TYPE_SECTION, null, 'sec1');
+        $section2 = $course2->add('section 2', null, navigation_node::TYPE_SECTION, null, 'sec2');
+        $section3 = $course2->add('section 3', null, navigation_node::TYPE_SECTION, null, 'sec3');
         $act1 = $section2->add('activity 1', null, navigation_node::TYPE_ACTIVITY, null, 'act1');
         $act2 = $section2->add('activity 2', null, navigation_node::TYPE_ACTIVITY, null, 'act2');
         $act3 = $section2->add('activity 3', null, navigation_node::TYPE_ACTIVITY, null, 'act3');
         $res1 = $section2->add('resource 1', null, navigation_node::TYPE_RESOURCE, null, 'res1');
         $res2 = $section2->add('resource 2', null, navigation_node::TYPE_RESOURCE, null, 'res2');
         $res3 = $section2->add('resource 3', null, navigation_node::TYPE_RESOURCE, null, 'res3');
+    }
 
-        $this->cache->clear();
-        $this->cache->modinfo5 = unserialize($this->modinfo5);
-        $this->cache->coursesections5 = unserialize($this->coursesections5);
-        $this->cache->canviewhiddenactivities = true;
-        $this->cache->canviewhiddensections = true;
-        $this->cache->canviewhiddencourses = true;
-        $sub2->add('Test Course 5', new moodle_url('http://moodle.org'),navigation_node::TYPE_COURSE,null,'5');
-    }
-    public function test_load_generic_course_sections() {
-        $coursenode = $this->node->find('5', navigation_node::TYPE_COURSE);
-        $course = new stdClass;
-        $course->id = '5';
-        $course->numsections = 10;
-        $course->modinfo = $this->modinfo5;
-        $this->node->load_generic_course_sections($course, $coursenode, 'topic', 'topic');
-        $this->assertEqual($coursenode->children->count(),1);
-    }
     public function test_format_display_course_content() {
         $this->assertTrue($this->node->exposed_format_display_course_content('topic'));
         $this->assertFalse($this->node->exposed_format_display_course_content('scorm'));
         $this->assertTrue($this->node->exposed_format_display_course_content('dummy'));
     }
-    public function test_load_section_activities() {
-        $node = $this->node->find('5', navigation_node::TYPE_COURSE);
-        $course = new stdClass;
-        $course->id = '5';
-        $course->numsections = 10;
-        $section = $node->add('Test Section 1', null, navigation_node::TYPE_SECTION, null, $this->cache->coursesections5[1]->id);
-        $modinfo = $this->cache->modinfo5;
-        $modinfo->sections[1] = array(289, 290);
-        $modinfo->cms[289] = clone($modinfo->cms[288]);
-        $modinfo->cms[289]->id = 289;
-        $modinfo->cms[289]->sectionnum = 1;
-        $modinfo->cms[290]->modname = 'forum';
-        $modinfo->cms[289]->instance = 20;
-        $modinfo->cms[290] = clone($modinfo->cms[288]);
-        $modinfo->cms[290]->id = 290;
-        $modinfo->cms[290]->modname = 'resource';
-        $modinfo->cms[290]->sectionnum = 1;
-        $modinfo->cms[290]->instance = 21;
-        $modinfo->instances['forum'][20] = clone($modinfo->instances['forum'][19]);
-        $modinfo->instances['forum'][20]->id = 20;
-        $modinfo->instances['resource'] = array();
-        $modinfo->instances['resource'][21] = clone($modinfo->instances['forum'][19]);
-        $modinfo->instances['resource'][21]->id = 21;
-        $this->cache->modinfo5 = $modinfo;
-        $course->modinfo = serialize($modinfo);
-        $activities = $this->node->exposed_load_section_activities($section, 1, $modinfo);
-        foreach ($activities as $activity) {
-            if ($this->assertIsA($activity, 'navigation_node')) {
-                $this->assertEqual($activity->type, navigation_node::TYPE_ACTIVITY);
-                $this->assertReference($activity, $section->get($activity->key));
-            }
-        }
-    }
     public function test_module_extends_navigation() {
-        $this->cache->test1_extends_navigation = true;
-        $this->cache->test2_extends_navigation = false;
         $this->assertTrue($this->node->exposed_module_extends_navigation('data'));
-        $this->assertTrue($this->node->exposed_module_extends_navigation('test1'));
-        $this->assertFalse($this->node->exposed_module_extends_navigation('test2'));
-        $this->assertFalse($this->node->exposed_module_extends_navigation('test3'));
+        $this->assertFalse($this->node->exposed_module_extends_navigation('test1'));
     }
 }
 

@@ -276,10 +276,12 @@
         $USER->editing = $edit;
     }
 
+    $courseshortname = format_string($course->shortname, true, array('context' => get_context_instance(CONTEXT_COURSE, $course->id)));
+
 /// RSS and CSS and JS meta
     $meta = '';
     if (!empty($CFG->enablerssfeeds) && !empty($CFG->data_enablerssfeeds) && $data->rssarticles > 0) {
-        $rsstitle = format_string($course->shortname) . ': %fullname%';
+        $rsstitle = $courseshortname . ': %fullname%';
         rss_add_http_header($context, 'mod_data', $data, $rsstitle);
     }
     if ($data->csstemplate) {
@@ -289,10 +291,14 @@
         $PAGE->requires->js('/mod/data/js.php?d='.$data->id, true);
     }
 
+    // Mark as viewed
+    $completion = new completion_info($course);
+    $completion->set_module_viewed($cm);
+
 /// Print the page header
     // Note: MDL-19010 there will be further changes to printing header and blocks.
     // The code will be much nicer than this eventually.
-    $title = $course->shortname.': ' . format_string($data->name);
+    $title = $courseshortname.': ' . format_string($data->name);
 
     if ($PAGE->user_allowed_editing()) {
         $buttons = '<table><tr><td><form method="get" action="view.php"><div>'.
@@ -649,10 +655,13 @@ if ($showactivity) {
                 echo $OUTPUT->notification(get_string('foundrecords', 'data', $a), 'notifysuccess');
             }
 
-            if ($mode == 'single') {                  // Single template
-                $baseurl = 'view.php?d=' . $data->id . '&amp;mode=single&amp;';
+            if ($mode == 'single') { // Single template
+                $baseurl = 'view.php?d=' . $data->id . '&mode=single&';
                 if (!empty($search)) {
-                    $baseurl .= 'filter=1&amp;';
+                    $baseurl .= 'filter=1&';
+                }
+                if (!empty($page)) {
+                    $baseurl .= 'page=' . $page;
                 }
                 echo $OUTPUT->paging_bar($totalcount, $page, $nowperpage, $baseurl);
 
@@ -664,9 +673,11 @@ if ($showactivity) {
                 //data_print_template() only adds ratings for singletemplate which is why we're attaching them here
                 //attach ratings to data records
                 require_once($CFG->dirroot.'/rating/lib.php');
-                if ($data->assessed!=RATING_AGGREGATE_NONE) {
-                    $ratingoptions = new stdclass();
+                if ($data->assessed != RATING_AGGREGATE_NONE) {
+                    $ratingoptions = new stdClass;
                     $ratingoptions->context = $context;
+                    $ratingoptions->component = 'mod_data';
+                    $ratingoptions->ratingarea = 'entry';
                     $ratingoptions->items = $records;
                     $ratingoptions->aggregate = $data->assessed;//the aggregation method
                     $ratingoptions->scaleid = $data->scale;
@@ -674,8 +685,6 @@ if ($showactivity) {
                     $ratingoptions->returnurl = $CFG->wwwroot.'/mod/data/'.$baseurl;
                     $ratingoptions->assesstimestart = $data->assesstimestart;
                     $ratingoptions->assesstimefinish = $data->assesstimefinish;
-                    $ratingoptions->plugintype = 'mod';
-                    $ratingoptions->pluginname = 'data';
 
                     $rm = new rating_manager();
                     $records = $rm->get_ratings($ratingoptions);
@@ -716,7 +725,7 @@ if ($showactivity) {
         $records = array();
     }
 
-    if ($mode == '' && $CFG->enableportfolios) {
+    if ($mode == '' && !empty($CFG->enableportfolios)) {
         require_once($CFG->libdir . '/portfoliolib.php');
         $button = new portfolio_add_button();
         $button->set_callback_options('data_portfolio_caller', array('id' => $cm->id), '/mod/data/locallib.php');
@@ -730,11 +739,6 @@ if ($showactivity) {
     if (($maxcount || $mode == 'asearch') && $mode != 'single') {
         data_print_preference_form($data, $perpage, $search, $sort, $order, $search_array, $advanced, $mode);
     }
-
-/// Mark as viewed
-    $completion=new completion_info($course);
-    $completion->set_module_viewed($cm);
 }
 
 echo $OUTPUT->footer();
-

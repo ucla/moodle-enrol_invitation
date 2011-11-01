@@ -153,7 +153,7 @@ class enrol_self_plugin extends enrol_plugin {
     public function get_newinstance_link($courseid) {
         $context = get_context_instance(CONTEXT_COURSE, $courseid, MUST_EXIST);
 
-        if (!has_capability('moodle/course:enrolconfig', $context) or !has_capability('enrol/manual:config', $context)) {
+        if (!has_capability('moodle/course:enrolconfig', $context) or !has_capability('enrol/self:config', $context)) {
             return NULL;
         }
         // multiple instances supported - different roles with different password
@@ -209,12 +209,12 @@ class enrol_self_plugin extends enrol_plugin {
                 $enrol = enrol_get_plugin('self');
                 $timestart = time();
                 if ($instance->enrolperiod) {
-                    $tineend = $timestart + $instance->enrolperiod;
+                    $timeend = $timestart + $instance->enrolperiod;
                 } else {
-                    $tineend = 0;
+                    $timeend = 0;
                 }
 
-                $this->enrol_user($instance, $USER->id, $instance->roleid, $timestart, $tineend);
+                $this->enrol_user($instance, $USER->id, $instance->roleid, $timestart, $timeend);
                 add_to_log($instance->courseid, 'course', 'enrol', '../enrol/users.php?id='.$instance->courseid, $instance->courseid); //there should be userid somewhere!
 
                 if ($instance->password and $instance->customint1 and $data->enrolpassword !== $instance->password) {
@@ -356,6 +356,30 @@ class enrol_self_plugin extends enrol_plugin {
         $rs->close();
 
         flush();
+    }
+
+     /**
+     * Gets an array of the user enrolment actions
+     *
+     * @param course_enrolment_manager $manager
+     * @param stdClass $ue A user enrolment object
+     * @return array An array of user_enrolment_actions
+     */
+    public function get_user_enrolment_actions(course_enrolment_manager $manager, $ue) {
+        $actions = array();
+        $context = $manager->get_context();
+        $instance = $ue->enrolmentinstance;
+        $params = $manager->get_moodlepage()->url->params();
+        $params['ue'] = $ue->id;
+        if ($this->allow_unenrol($instance) && has_capability("enrol/self:unenrol", $context)) {
+            $url = new moodle_url('/enrol/self/unenroluser.php', $params);
+            $actions[] = new user_enrolment_action(new pix_icon('t/delete', ''), get_string('unenrol', 'enrol'), $url, array('class'=>'unenrollink', 'rel'=>$ue->id));
+        }
+        if ($this->allow_manage($instance) && has_capability("enrol/self:manage", $context)) {
+            $url = new moodle_url('/enrol/self/editenrolment.php', $params);
+            $actions[] = new user_enrolment_action(new pix_icon('t/edit', ''), get_string('edit'), $url, array('class'=>'editenrollink', 'rel'=>$ue->id));
+        }
+        return $actions;
     }
 }
 

@@ -143,7 +143,14 @@ profile_load_data($user);
 
 
 // Prepare the editor and create form
-$editoroptions = array('maxfiles'=>EDITOR_UNLIMITED_FILES, 'maxbytes'=>$CFG->maxbytes, 'trusttext'=>false, 'forcehttps'=>false);
+$editoroptions = array(
+    'maxfiles'   => EDITOR_UNLIMITED_FILES,
+    'maxbytes'   => $CFG->maxbytes,
+    'trusttext'  => false,
+    'forcehttps' => false,
+    'context'    => $personalcontext
+);
+
 $user = file_prepare_standard_editor($user, 'description', $editoroptions, $personalcontext, 'user', 'profile', 0);
 $userform = new user_edit_form(null, array('editoroptions'=>$editoroptions));
 if (empty($user->country)) {
@@ -169,7 +176,7 @@ if ($usernew = $userform->get_data()) {
             $usernew->preference_newemailattemptsleft = 3;
             $a->oldemail = $usernew->email = $user->email;
 
-            $email_changed_html = $OUTPUT->box(get_string('auth_changingemailaddress', 'auth_email', $a), 'generalbox', 'notice');
+            $email_changed_html = $OUTPUT->box(get_string('auth_changingemailaddress', 'auth', $a), 'generalbox', 'notice');
             $email_changed_html .= $OUTPUT->continue_button("$CFG->wwwroot/user/view.php?id=$user->id&amp;course=$course->id");
             $email_changed = true;
         }
@@ -222,11 +229,11 @@ if ($usernew = $userform->get_data()) {
 
         $a = new stdClass();
         $a->url = $CFG->wwwroot . '/user/emailupdate.php?key=' . $usernew->preference_newemailkey . '&id=' . $user->id;
-        $a->site = $SITE->fullname;
+        $a->site = format_string($SITE->fullname, true, array('context' => get_context_instance(CONTEXT_COURSE, SITEID)));
         $a->fullname = fullname($user, true);
 
-        $emailupdatemessage = get_string('auth_emailupdatemessage', 'auth_email', $a);
-        $emailupdatetitle = get_string('auth_emailupdatetitle', 'auth_email', $a);
+        $emailupdatemessage = get_string('emailupdatemessage', 'auth', $a);
+        $emailupdatetitle = get_string('emailupdatetitle', 'auth', $a);
 
         //email confirmation directly rather than using messaging so they will definitely get an email
         if (!$mail_results = email_to_user($temp_user, get_admin(), $emailupdatetitle, $emailupdatemessage)) {

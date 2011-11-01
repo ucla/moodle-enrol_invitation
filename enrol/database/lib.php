@@ -111,6 +111,7 @@ class enrol_database_plugin extends enrol_plugin {
         if ($rs = $extdb->Execute($sql)) {
             if (!$rs->EOF) {
                 while ($fields = $rs->FetchRow()) {
+                    $fields = array_change_key_case($fields, CASE_LOWER);
                     $fields = $this->db_decode($fields);
 
                     if (empty($fields[$coursefield])) {
@@ -445,6 +446,14 @@ class enrol_database_plugin extends enrol_plugin {
                     }
                 }
 
+                // assign extra roles
+                foreach ($userroles as $roleid) {
+                    if (empty($current_roles[$userid][$roleid])) {
+                        role_assign($roleid, $userid, $context->id, 'enrol_database', $instance->id);
+                        $current_roles[$userid][$roleid] = $roleid;
+                    }
+                }
+
                 // unassign removed roles
                 foreach($current_roles[$userid] as $cr) {
                     if (empty($userroles[$cr])) {
@@ -545,8 +554,8 @@ class enrol_database_plugin extends enrol_plugin {
                         // already exists
                         continue;
                     }
-                    if ($idnumber and $DB->record_exists('course', array('idnumber'=>$fields[$idnumber]))) {
-                        // idnumber duplicates are not allowed
+                    // allow empty idnumber but not duplicates
+                    if ($idnumber and $fields[$idnumber] !== '' and $fields[$idnumber] !== null and $DB->record_exists('course', array('idnumber'=>$fields[$idnumber]))) {
                         continue;
                     }
                     if ($category and !$DB->record_exists('course_categories', array('id'=>$fields[$category]))) {

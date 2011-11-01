@@ -77,7 +77,12 @@ $stridle         = get_string('idle', 'chat');
 $strcurrentusers = get_string('currentusers', 'chat');
 $strnextsession  = get_string('nextsession', 'chat');
 
-$title = $course->shortname . ': ' . format_string($chat->name);
+$courseshortname = format_string($course->shortname, true, array('context' => get_context_instance(CONTEXT_COURSE, $course->id)));
+$title = $courseshortname . ': ' . format_string($chat->name);
+
+// Mark viewed by user (if required)
+$completion = new completion_info($course);
+$completion->set_module_viewed($cm);
 
 // Initialize $PAGE
 $PAGE->set_url('/mod/chat/view.php', array('id' => $cm->id));
@@ -177,8 +182,5 @@ if ($chatusers = chat_get_users($chat->id, $currentgroup, $cm->groupingid)) {
     echo '</table>';
     echo $OUTPUT->box_end();
 }
-
-$completion = new completion_info($course);
-$completion->set_module_viewed($cm);
 
 echo $OUTPUT->footer();

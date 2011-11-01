@@ -73,38 +73,40 @@ function resource_display_embed($resource, $cm, $course, $file) {
     $mimetype = $file->get_mimetype();
     $title    = $resource->name;
 
+    $extension = resourcelib_get_extension($file->get_filename());
+
     if (in_array($mimetype, array('image/gif','image/jpeg','image/png'))) {  // It's an image
         $code = resourcelib_embed_image($fullurl, $title);
 
-    } else if ($mimetype == 'application/pdf') {
+    } else if ($mimetype === 'application/pdf') {
         // PDF document
         $code = resourcelib_embed_pdf($fullurl, $title, $clicktoopen);
 
-    } else if ($mimetype == 'audio/mp3') {
+    } else if ($mimetype === 'audio/mp3') {
         // MP3 audio file
         $code = resourcelib_embed_mp3($fullurl, $title, $clicktoopen);
 
-    } else if ($mimetype == 'video/x-flv') {
+    } else if ($mimetype === 'video/x-flv' or $extension === 'f4v') {
         // Flash video file
         $code = resourcelib_embed_flashvideo($fullurl, $title, $clicktoopen);
 
-    } else if ($mimetype == 'application/x-shockwave-flash') {
+    } else if ($mimetype === 'application/x-shockwave-flash') {
         // Flash file
         $code = resourcelib_embed_flash($fullurl, $title, $clicktoopen);
 
-    } else if (substr($mimetype, 0, 10) == 'video/x-ms') {
+    } else if (substr($mimetype, 0, 10) === 'video/x-ms') {
         // Windows Media Player file
         $code = resourcelib_embed_mediaplayer($fullurl, $title, $clicktoopen);
 
-    } else if ($mimetype == 'video/quicktime') {
+    } else if ($mimetype === 'video/quicktime') {
         // Quicktime file
         $code = resourcelib_embed_quicktime($fullurl, $title, $clicktoopen);
 
-    } else if ($mimetype == 'video/mpeg') {
+    } else if ($mimetype === 'video/mpeg') {
         // Mpeg file
         $code = resourcelib_embed_mpeg($fullurl, $title, $clicktoopen);
 
-    } else if ($mimetype == 'audio/x-pn-realaudio') {
+    } else if ($mimetype === 'audio/x-pn-realaudio') {
         // RealMedia file
         $code = resourcelib_embed_real($fullurl, $title, $clicktoopen);
 
@@ -320,11 +322,11 @@ function resource_print_intro($resource, $cm, $course, $ignoresettings=false) {
 function resource_print_tobemigrated($resource, $cm, $course) {
     global $DB, $OUTPUT;
 
-    $resoruce_old = $DB->get_record('resource_old', array('oldid'=>$resource->id));
+    $resource_old = $DB->get_record('resource_old', array('oldid'=>$resource->id));
     resource_print_header($resource, $cm, $course);
     resource_print_heading($resource, $cm, $course);
     resource_print_intro($resource, $cm, $course);
-    echo $OUTPUT->notification(get_string('notmigrated', 'resource', $resoruce_old->type));
+    echo $OUTPUT->notification(get_string('notmigrated', 'resource', $resource_old->type));
     echo $OUTPUT->footer();
     die;
 }
@@ -339,11 +341,15 @@ function resource_print_tobemigrated($resource, $cm, $course) {
 function resource_print_filenotfound($resource, $cm, $course) {
     global $DB, $OUTPUT;
 
-    $resoruce_old = $DB->get_record('resource_old', array('oldid'=>$resource->id));
+    $resource_old = $DB->get_record('resource_old', array('oldid'=>$resource->id));
     resource_print_header($resource, $cm, $course);
     resource_print_heading($resource, $cm, $course);
     resource_print_intro($resource, $cm, $course);
-    echo $OUTPUT->notification(get_string('notmigrated', 'resource', $resoruce_old->type));
+    if ($resource_old) {
+        echo $OUTPUT->notification(get_string('notmigrated', 'resource', $resource_old->type));
+    } else {
+        echo $OUTPUT->notification(get_string('filenotfound', 'resource'));
+    }
     echo $OUTPUT->footer();
     die;
 }
@@ -363,7 +369,7 @@ function resource_get_final_display_type($resource) {
     static $download = array('application/zip', 'application/x-tar', 'application/g-zip');    // binary formats
     static $embed    = array('image/gif', 'image/jpeg', 'image/png', 'image/svg+xml',         // images
                              'application/x-shockwave-flash', 'video/x-flv', 'video/x-ms-wm', // video formats
-                             'video/quicktime', 'video/mpeg',
+                             'video/quicktime', 'video/mpeg', 'video/mp4',
                              'audio/mp3', 'audio/x-realaudio-plugin', 'x-realaudio-plugin',   // audio formats
                              'application/pdf', 'text/html',
                             );

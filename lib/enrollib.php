@@ -221,6 +221,90 @@ function enrol_check_plugins($user) {
 }
 
 /**
+ * Do these two students share any course?
+ *
+ * The courses has to be visible and enrolments has to be active,
+ * timestart and timeend restrictions are ignored.
+ *
+ * This function calls {@see enrol_get_shared_courses()} setting checkexistsonly
+ * to true.
+ *
+ * @param stdClass|int $user1
+ * @param stdClass|int $user2
+ * @return bool
+ */
+function enrol_sharing_course($user1, $user2) {
+    return enrol_get_shared_courses($user1, $user2, false, true);
+}
+
+/**
+ * Returns any courses shared by the two users
+ *
+ * The courses has to be visible and enrolments has to be active,
+ * timestart and timeend restrictions are ignored.
+ *
+ * @global moodle_database $DB
+ * @param stdClass|int $user1
+ * @param stdClass|int $user2
+ * @param bool $preloadcontexts If set to true contexts for the returned courses
+ *              will be preloaded.
+ * @param bool $checkexistsonly If set to true then this function will return true
+ *              if the users share any courses and false if not.
+ * @return array|bool An array of courses that both users are enrolled in OR if
+ *              $checkexistsonly set returns true if the users share any courses
+ *              and false if not.
+ */
+function enrol_get_shared_courses($user1, $user2, $preloadcontexts = false, $checkexistsonly = false) {
+    global $DB, $CFG;
+
+    $user1 = !empty($user1->id) ? $user1->id : $user1;
+    $user2 = !empty($user2->id) ? $user2->id : $user2;
+
+    if (empty($user1) or empty($user2)) {
+        return false;
+    }
+
+    if (!$plugins = explode(',', $CFG->enrol_plugins_enabled)) {
+        return false;
+    }
+
+    list($plugins, $params) = $DB->get_in_or_equal($plugins, SQL_PARAMS_NAMED, 'ee');
+    $params['enabled'] = ENROL_INSTANCE_ENABLED;
+    $params['active1'] = ENROL_USER_ACTIVE;
+    $params['active2'] = ENROL_USER_ACTIVE;
+    $params['user1']   = $user1;
+    $params['user2']   = $user2;
+
+    $ctxselect = '';
+    $ctxjoin = '';
+    if ($preloadcontexts) {
+        list($ctxselect, $ctxjoin) = context_instance_preload_sql('c.id', CONTEXT_COURSE, 'ctx');
+    }
+
+    $sql = "SELECT c.* $ctxselect
+              FROM {course} c
+              JOIN (
+                SELECT DISTINCT c.id
+                  FROM {enrol} e
+                  JOIN {user_enrolments} ue1 ON (ue1.enrolid = e.id AND ue1.status = :active1 AND ue1.userid = :user1)
+                  JOIN {user_enrolments} ue2 ON (ue2.enrolid = e.id AND ue2.status = :active2 AND ue2.userid = :user2)
+                  JOIN {course} c ON (c.id = e.courseid AND c.visible = 1)
+                 WHERE e.status = :enabled AND e.enrol $plugins
+              ) ec ON ec.id = c.id
+              $ctxjoin";
+
+    if ($checkexistsonly) {
+        return $DB->record_exists_sql($sql, $params);
+    } else {
+        $courses = $DB->get_records_sql($sql, $params);
+        if ($preloadcontexts) {
+            array_map('context_instance_preload', $courses);
+        }
+        return $courses;
+    }
+}
+
+/**
  * This function adds necessary enrol plugins UI into the course edit form.
  *
  * @param MoodleQuickForm $mform
@@ -393,7 +477,8 @@ function enrol_add_course_navigation(navigation_node $coursenode, $course) {
                 }
                 $plugin = $plugins[$instance->enrol];
                 if ($unenrollink = $plugin->get_unenrolself_link($instance)) {
-                    $coursenode->add(get_string('unenrolme', 'core_enrol', format_string($course->shortname)), $unenrollink, navigation_node::TYPE_SETTING, null, 'unenrolself', new pix_icon('i/user', ''));
+                    $shortname = format_string($course->shortname, true, array('context' => $coursecontext));
+                    $coursenode->add(get_string('unenrolme', 'core_enrol', $shortname), $unenrollink, navigation_node::TYPE_SETTING, null, 'unenrolself', new pix_icon('i/user', ''));
                     break;
                     //TODO. deal with multiple unenrol links - not likely case, but still...
                 }
@@ -409,7 +494,8 @@ function enrol_add_course_navigation(navigation_node $coursenode, $course) {
                     $plugin = $plugins[$instance->enrol];
                     if ($plugin->show_enrolme_link($instance)) {
                         $url = new moodle_url('/enrol/index.php', array('id'=>$course->id));
-                        $coursenode->add(get_string('enrolme', 'core_enrol', format_string($course->shortname)), $url, navigation_node::TYPE_SETTING, null, 'enrolself', new pix_icon('i/user', ''));
+                        $shortname = format_string($course->shortname, true, array('context' => $coursecontext));
+                        $coursenode->add(get_string('enrolme', 'core_enrol', $shortname), $url, navigation_node::TYPE_SETTING, null, 'enrolself', new pix_icon('i/user', ''));
                         break;
                     }
                 }
@@ -1014,21 +1100,25 @@ abstract class enrol_plugin {
 
         $inserted = false;
         if ($ue = $DB->get_record('user_enrolments', array('enrolid'=>$instance->id, 'userid'=>$userid))) {
-            if ($ue->timestart != $timestart or $ue->timeend != $timeend) {
+            //only update if timestart or timeend or status are different.
+            if ($ue->timestart != $timestart or $ue->timeend != $timeend or (!is_null($status) and $ue->status != $status)) {
                 $ue->timestart    = $timestart;
                 $ue->timeend      = $timeend;
-                $ue->modifier     = $USER->id;
+                if (!is_null($status)) {
+                    $ue->status   = $status;
+                }
+                $ue->modifierid   = $USER->id;
                 $ue->timemodified = time();
                 $DB->update_record('user_enrolments', $ue);
             }
         } else {
             $ue = new stdClass();
             $ue->enrolid      = $instance->id;
-            $ue->status       = ENROL_USER_ACTIVE;
+            $ue->status       = is_null($status) ? ENROL_USER_ACTIVE : $status;
             $ue->userid       = $userid;
             $ue->timestart    = $timestart;
             $ue->timeend      = $timeend;
-            $ue->modifier     = $USER->id;
+            $ue->modifierid   = $USER->id;
             $ue->timecreated  = time();
             $ue->timemodified = $ue->timecreated;
             $ue->id = $DB->insert_record('user_enrolments', $ue);
@@ -1472,5 +1562,49 @@ abstract class enrol_plugin {
         }
         $rs->close();
     }
-}
 
+    /**
+     * Returns an enrol_user_button that takes the user to a page where they are able to
+     * enrol users into the managers course through this plugin.
+     *
+     * Optional: If the plugin supports manual enrolments it can choose to override this
+     * otherwise it shouldn't
+     *
+     * @param course_enrolment_manager $manager
+     * @return enrol_user_button|false
+     */
+    public function get_manual_enrol_button(course_enrolment_manager $manager) {
+        return false;
+    }
+
+    /**
+     * Gets an array of the user enrolment actions
+     *
+     * @param course_enrolment_manager $manager
+     * @param stdClass $ue
+     * @return array An array of user_enrolment_actions
+     */
+    public function get_user_enrolment_actions(course_enrolment_manager $manager, $ue) {
+        return array();
+    }
+
+    /**
+     * Returns true if the plugin has one or more bulk operations that can be performed on
+     * user enrolments.
+     *
+     * @return bool
+     */
+    public function has_bulk_operations() {
+       return false;
+    }
+
+    /**
+     * Return an array of enrol_bulk_enrolment_operation objects that define
+     * the bulk actions that can be performed on user enrolments by the plugin.
+     *
+     * @return array
+     */
+    public function get_bulk_operations() {
+        return array();
+    }
+}

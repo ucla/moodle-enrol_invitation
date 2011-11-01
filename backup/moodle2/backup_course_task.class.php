@@ -72,11 +72,20 @@ class backup_course_task extends backup_task {
         // annotating some bits, tags and module restrictions
         $this->add_step(new backup_course_structure_step('course_info', 'course.xml'));
 
-        // Generate the enrolment file
-        $this->add_step(new backup_enrolments_structure_step('course_enrolments', 'enrolments.xml'));
+        // Generate the enrolment file (conditionally, prevent it in any IMPORT/HUB operation)
+        if ($this->plan->get_mode() != backup::MODE_IMPORT && $this->plan->get_mode() != backup::MODE_HUB) {
+            $this->add_step(new backup_enrolments_structure_step('course_enrolments', 'enrolments.xml'));
+        }
 
-        // Annotate the groups used in already annotated groupings
-        $this->add_step(new backup_annotate_groups_from_groupings('annotate_groups'));
+        // Annotate all the groups and groupings belonging to the course
+        $this->add_step(new backup_annotate_course_groups_and_groupings('annotate_course_groups'));
+
+        // Annotate the groups used in already annotated groupings (note this may be
+        // unnecessary now that we are annotating all the course groups and groupings in the
+        // step above. But we keep it working in case we decide, someday, to introduce one
+        // setting to transform the step above into an optional one. This is here to support
+        // course->defaultgroupingid
+        $this->add_step(new backup_annotate_groups_from_groupings('annotate_groups_from_groupings'));
 
         // Annotate the question_categories belonging to the course context
         $this->add_step(new backup_calculate_question_categories('course_question_categories'));

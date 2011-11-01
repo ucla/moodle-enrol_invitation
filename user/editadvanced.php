@@ -113,12 +113,25 @@ if (!empty($CFG->usetags)) {
 
 if ($user->id !== -1) {
     $usercontext = get_context_instance(CONTEXT_USER, $user->id);
-    $editoroptions = array('maxfiles'=>EDITOR_UNLIMITED_FILES, 'maxbytes'=>$CFG->maxbytes, 'trusttext'=>false, 'forcehttps'=>false);
+    $editoroptions = array(
+        'maxfiles'   => EDITOR_UNLIMITED_FILES,
+        'maxbytes'   => $CFG->maxbytes,
+        'trusttext'  => false,
+        'forcehttps' => false,
+        'context'    => $usercontext
+    );
+
     $user = file_prepare_standard_editor($user, 'description', $editoroptions, $usercontext, 'user', 'profile', 0);
 } else {
     $usercontext = null;
     // This is a new user, we don't want to add files here
-    $editoroptions = array('maxfiles'=>0, 'maxbytes'=>0, 'trusttext'=>false, 'forcehttps'=>false);
+    $editoroptions = array(
+        'maxfiles'=>0,
+        'maxbytes'=>0,
+        'trusttext'=>false,
+        'forcehttps'=>false,
+        'context' => $coursecontext
+    );
 }
 
 //create form
@@ -165,6 +178,7 @@ if ($usernew = $userform->get_data()) {
                 if (!$authplugin->user_update_password($usernew, $usernew->newpassword)){
                     print_error('cannotupdatepasswordonextauth', '', '', $usernew->auth);
                 }
+                unset_user_preference('create_password', $usernew); // prevent cron from generating the password
             }
         }
         $usercreated = false;
@@ -199,10 +213,6 @@ if ($usernew = $userform->get_data()) {
 
     // trigger events
     if ($usercreated) {
-        //set default message preferences
-        if (!message_set_default_message_preferences( $usernew )){
-            print_error('cannotsavemessageprefs', 'message');
-        }
         events_trigger('user_created', $usernew);
     } else {
         events_trigger('user_updated', $usernew);

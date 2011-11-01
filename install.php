@@ -62,8 +62,8 @@ if (function_exists('date_default_timezone_set') and function_exists('date_defau
 if (version_compare(phpversion(), "5.2.0") < 0) {
     $phpversion = phpversion();
     // do NOT localise - lang strings would not work here and we CAN not move it after installib
-    echo "Sorry, Moodle 2.0 requires PHP 5.2.8 or later (currently using version $phpversion).<br />";
-    echo "Please upgrade your server software or install latest Moodle 1.9.x instead.";
+    echo "Moodle 2.1 or later requires at least PHP 5.3.2 (currently using version $phpversion).<br />";
+    echo "Please upgrade your server software or install older Moodle version.";
     die;
 }
 
@@ -157,7 +157,7 @@ $CFG->admin                = $config->admin;
 $CFG->docroot              = 'http://docs.moodle.org';
 $CFG->langotherroot        = $CFG->dataroot.'/lang';
 $CFG->langlocalroot        = $CFG->dataroot.'/lang';
-$CFG->directorypermissions = 00777;
+$CFG->directorypermissions = isset($distro->directorypermissions) ? $distro->directorypermissions : 00777; // let distros set dir permissions
 $CFG->running_installer    = true;
 $CFG->early_install_lang   = true;
 
@@ -169,7 +169,7 @@ $memlimit = @ini_get('memory_limit');
 if (!empty($memlimit) and $memlimit != -1) {
     if (get_real_size($memlimit) < get_real_size($minrequiredmemory)) {
         // do NOT localise - lang strings would not work here and we CAN not move it to later place
-        echo "Sorry, Moodle 2.0 requires at least {$minrequiredmemory}B of PHP memory.<br />";
+        echo "Moodle requires at least {$minrequiredmemory}B of PHP memory.<br />";
         echo "Please contact server administrator to fix PHP.ini memory settings.";
         die;
     }
@@ -354,24 +354,15 @@ if ($config->stage == INSTALL_DATABASETYPE) {
 if ($config->stage == INSTALL_DOWNLOADLANG) {
     $downloaderror = '';
 
-// Download and install lang component, lang dir was already created in install_init_dataroot
-    if ($cd = new component_installer('http://download.moodle.org', 'langpack/2.0', $CFG->lang.'.zip', 'languages.md5', 'lang')) {
-        if ($cd->install() == COMPONENT_ERROR) {
-            if ($cd->get_error() == 'remotedownloaderror') {
-                $a = new stdClass();
-                $a->url  = 'http://download.moodle.org/langpack/2.0/'.$config->lang.'.zip';
-                $a->dest = $CFG->dataroot.'/lang';
-                $downloaderror = get_string($cd->get_error(), 'error', $a);
-            } else {
-                $downloaderror = get_string($cd->get_error(), 'error');
-            }
-        } else {
-            // install parent lang if defined
-            if ($parentlang = get_parent_language()) {
-                if ($cd = new component_installer('http://download.moodle.org', 'langpack/2.0', $parentlang.'.zip', 'languages.md5', 'lang')) {
-                    $cd->install();
-                }
-            }
+    // download and install required lang packs, the lang dir has already been created in install_init_dataroot
+    $installer = new lang_installer($CFG->lang);
+    $results = $installer->run();
+    foreach ($results as $langcode => $langstatus) {
+        if ($langstatus === lang_installer::RESULT_DOWNLOADERROR) {
+            $a       = new stdClass();
+            $a->url  = $installer->lang_pack_url($langcode);
+            $a->dest = $CFG->dataroot.'/lang';
+            $downloaderror = get_string('remotedownloaderror', 'error', $a);
         }
     }
 
@@ -495,7 +486,7 @@ if ($config->stage == INSTALL_DATABASETYPE) {
 
 
 if ($config->stage == INSTALL_ENVIRONMENT or $config->stage == INSTALL_PATHS) {
-    $version_fail = (version_compare(phpversion(), "5.2.8") < 0);
+    $version_fail = (version_compare(phpversion(), "5.3.2") < 0);
     $curl_fail    = ($lang !== 'en' and !extension_loaded('curl')); // needed for lang pack download
     $zip_fail     = ($lang !== 'en' and !extension_loaded('zip'));  // needed for lang pack download
 
@@ -508,7 +499,7 @@ if ($config->stage == INSTALL_ENVIRONMENT or $config->stage == INSTALL_PATHS) {
 
         echo '<div id="envresult"><dl>';
         if ($version_fail) {
-            $a = (object)array('needed'=>'5.2.8', 'current'=>phpversion());
+            $a = (object)array('needed'=>'5.3.2', 'current'=>phpversion());
             echo '<dt>'.get_string('phpversion', 'install').'</dt><dd>'.get_string('environmentrequireversion', 'admin', $a).'</dd>';
         }
         if ($curl_fail) {

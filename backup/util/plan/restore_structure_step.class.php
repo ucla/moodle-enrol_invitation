@@ -197,10 +197,13 @@ abstract class restore_structure_step extends restore_step {
     /**
      * Return the new id of a mapping for the given itemname
      *
+     * @param string $itemname the type of item
+     * @param int $oldid the item ID from the backup
+     * @param mixed $ifnotfound what to return if $oldid wasnt found. Defaults to false
      */
-    public function get_mappingid($itemname, $oldid) {
+    public function get_mappingid($itemname, $oldid, $ifnotfound = false) {
         $mapping = $this->get_mapping($itemname, $oldid);
-        return $mapping ? $mapping->newitemid : false;
+        return $mapping ? $mapping->newitemid : $ifnotfound;
     }
 
     /**
@@ -355,6 +358,43 @@ abstract class restore_structure_step extends restore_step {
         // Finally execute own (restore_structure_step) after_execute method
         $this->after_execute();
 
+    }
+
+    /**
+     * Launch all the after_restore methods present in all the processing objects
+     *
+     * This method will launch all the after_restore methods that can be defined
+     * both in restore_plugin class
+     *
+     * For restore_plugin classes the name of the method to be executed will be
+     * "after_restore_" + connection point (as far as can be multiple connection
+     * points in the same class)
+     */
+    public function launch_after_restore_methods() {
+        $alreadylaunched = array(); // To avoid multiple executions
+        foreach ($this->pathelements as $pathelement) {
+            // Get the processing object
+            $pobject = $pathelement->get_processing_object();
+            // Skip null processors (child of grouped ones for sure)
+            if (is_null($pobject)) {
+                continue;
+            }
+            // Skip restore structure step processors (this)
+            if ($pobject instanceof restore_structure_step) {
+                continue;
+            }
+            // Skip already launched processing objects
+            if (in_array($pobject, $alreadylaunched, true)) {
+                continue;
+            }
+            // Add processing object to array of launched ones
+            $alreadylaunched[] = $pobject;
+            // If the processing object has support for
+            // launching after_restore methods, use it
+            if (method_exists($pobject, 'launch_after_restore_methods')) {
+                $pobject->launch_after_restore_methods();
+            }
+        }
     }
 
     /**

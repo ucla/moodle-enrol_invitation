@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -18,15 +17,15 @@
 /**
  * Strings for component 'quiz_overview', language 'en', branch 'MOODLE_20_STABLE'
  *
- * @package   quiz_overview
- * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    quiz
+ * @subpackage overview
+ * @copyright  1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 $string['allattempts'] = 'Show all attempts';
 $string['allattemptscontributetograde'] = 'All attempts contribute to final grade for user.';
 $string['allstudents'] = 'Show all {$a}';
-$string['attemptprogress'] = 'Attempt {$a->done} of {$a->todo}';
 $string['attemptsonly'] = 'Show {$a} with attempts only';
 $string['attemptsprepage'] = 'Attempts shown per page';
 $string['deleteselected'] = 'Delete selected attempts';
@@ -47,14 +46,15 @@ $string['optonlygradedattempts'] = 'that are graded for each user ({$a})';
 $string['optonlyregradedattempts'] = 'that have been regraded / are marked as needing regrading';
 $string['overview'] = 'Grades';
 $string['overviewdownload'] = 'Overview download';
+$string['overviewfilename'] = 'grades';
 $string['overviewreport'] = 'Grades report';
 $string['overviewreportgraph'] = 'Overall number of students achieving grade ranges';
 $string['overviewreportgraphgroup'] = 'Number of students in group \'{$a}\' achieving grade ranges';
 $string['pagesize'] = 'Page size';
+$string['pluginname'] = 'Grades';
 $string['preferencespage'] = 'Preferences just for this page';
 $string['preferencessave'] = 'Show report';
 $string['preferencesuser'] = 'Your preferences for this report';
-$string['qprogress'] = 'Question {$a->done} of {$a->todo}';
 $string['regrade'] = 'Regrade';
 $string['regradeall'] = 'Regrade all';
 $string['regradealldry'] = 'Dry run a full regrade';
@@ -64,10 +64,9 @@ $string['regradealldrygroup'] = 'Dry run a full regrade for group \'{$a->groupna
 $string['regradeallgroup'] = 'Full regrade for group \'{$a->groupname}\'';
 $string['regradeheader'] = 'Regrading';
 $string['regradeselected'] = 'Regrade selected attempts';
-$string['requiresgrading'] = 'Requires grading';
-$string['show'] = 'Include';
-$string['showattempts'] = 'Include attempts';
-$string['showdetailedmarks'] = 'Marks for each question';
+$string['show'] = 'Show / download';
+$string['showattempts'] = 'Only show / download attempts';
+$string['showdetailedmarks'] = 'Show / download marks for each question';
 $string['showinggraded'] = 'Showing only the attempt graded for each user.';
 $string['showinggradedandungraded'] = 'Showing graded and ungraded attempts for each user. The one attempt for each user that is graded is highlighted. The grading method for this quiz is {$a}.';
 $string['studentingroup'] = '\'{$a->coursestudent}\' in group \'{$a->groupname}\'';

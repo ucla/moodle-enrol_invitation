@@ -43,7 +43,11 @@ if (isguestuser()) {
 $workshop = $DB->get_record('workshop', array('id' => $cm->instance), '*', MUST_EXIST);
 $workshop = new workshop($workshop, $cm, $course);
 
-$PAGE->set_url($workshop->submission_url(), array('cmid' => $cmid, 'id' => $id, 'edit' => $edit));
+$PAGE->set_url($workshop->submission_url(), array('cmid' => $cmid, 'id' => $id));
+
+if ($edit) {
+    $PAGE->url->param('edit', $edit);
+}
 
 if ($id) { // submission is specified
     $submission = $workshop->get_submission_by_id($id);
@@ -72,11 +76,14 @@ $canoverride    = (($workshop->phase == workshop::PHASE_EVALUATION) and has_capa
 $userassessment = $workshop->get_assessment_of_submission_by_user($submission->id, $USER->id);
 $isreviewer     = !empty($userassessment);
 $editable       = ($cansubmit and $ownsubmission);
+$ispublished    = ($workshop->phase == workshop::PHASE_CLOSED
+                    and $submission->published == 1
+                    and has_capability('mod/workshop:viewpublishedsubmissions', $workshop->context));
 
-if (empty($submission->id) and !$workshop->creating_submission_allowed()) {
+if (empty($submission->id) and !$workshop->creating_submission_allowed($USER->id)) {
     $editable = false;
 }
-if ($submission->id and !$workshop->modifying_submission_allowed()) {
+if ($submission->id and !$workshop->modifying_submission_allowed($USER->id)) {
     $editable = false;
 }
 
@@ -93,15 +100,20 @@ if ($editable and $workshop->useexamples and $workshop->examplesmode == workshop
 }
 $edit = ($editable and $edit);
 
+$seenaspublished = false; // is the submission seen as a published submission?
+
 if ($submission->id and ($ownsubmission or $canviewall or $isreviewer)) {
     // ok you can go
+} elseif ($submission->id and $ispublished) {
+    // ok you can go
+    $seenaspublished = true;
 } elseif (is_null($submission->id) and $cansubmit) {
     // ok you can go
 } else {
     print_error('nopermissions', 'error', $workshop->view_url(), 'view or create submission');
 }
 
-if ($assess and $submission->id and !$isreviewer and $canallocate and $workshop->assessing_allowed()) {
+if ($assess and $submission->id and !$isreviewer and $canallocate and $workshop->assessing_allowed($USER->id)) {
     require_sesskey();
     $assessmentid = $workshop->add_allocation($submission, $USER->id);
     redirect($workshop->assess_url($assessmentid));
@@ -112,7 +124,14 @@ if ($edit) {
 
     $maxfiles       = $workshop->nattachments;
     $maxbytes       = $workshop->maxbytes;
-    $contentopts    = array('trusttext' => true, 'subdirs' => false, 'maxfiles' => $maxfiles, 'maxbytes' => $maxbytes);
+    $contentopts    = array(
+                        'trusttext' => true,
+                        'subdirs'   => false,
+                        'maxfiles'  => $maxfiles,
+                        'maxbytes'  => $maxbytes,
+                        'context'   => $workshop->context
+                      );
+
     $attachmentopts = array('subdirs' => true, 'maxfiles' => $maxfiles, 'maxbytes' => $maxbytes);
     $submission     = file_prepare_standard_editor($submission, 'content', $contentopts, $workshop->context,
                                         'mod_workshop', 'submission_content', $submission->id);
@@ -238,7 +257,12 @@ if ($edit) {
 // else display the submission
 
 if ($submission->id) {
-    echo $output->render($workshop->prepare_submission($submission, has_capability('mod/workshop:viewauthornames', $workshop->context)));
+    if ($seenaspublished) {
+        $showauthor = has_capability('mod/workshop:viewauthorpublished', $workshop->context);
+    } else {
+        $showauthor = has_capability('mod/workshop:viewauthornames', $workshop->context);
+    }
+    echo $output->render($workshop->prepare_submission($submission, $showauthor));
 } else {
     echo $output->box(get_string('noyoursubmission', 'workshop'));
 }
@@ -254,74 +278,84 @@ if ($editable) {
     echo $output->single_button($btnurl, $btntxt, 'get');
 }
 
-if ($submission->id and !$edit and !$isreviewer and $canallocate and $workshop->assessing_allowed()) {
+if ($submission->id and !$edit and !$isreviewer and $canallocate and $workshop->assessing_allowed($USER->id)) {
     $url = new moodle_url($PAGE->url, array('assess' => 1));
     echo $output->single_button($url, get_string('assess', 'workshop'), 'post');
+}
+
+if (($workshop->phase == workshop::PHASE_CLOSED) and ($ownsubmission or $canviewall)) {
+    if (!empty($submission->gradeoverby) and strlen(trim($submission->feedbackauthor)) > 0) {
+        echo $output->render(new workshop_feedback_author($submission));
+    }
 }
 
 // and possibly display the submission's review(s)
 
 if ($isreviewer) {
-    $strategy = $workshop->grading_strategy_instance();
-    $mform = $strategy->get_assessment_form($PAGE->url, 'assessment', $userassessment, false);
-    echo $output->heading(get_string('assessmentbyyourself', 'workshop'), 2);
-    // reviewers can always see the grades they gave even they are not available yet
-    if (is_null($userassessment->grade)) {
-        echo $output->heading(get_string('notassessed', 'workshop'), 3);
-        if ($workshop->assessing_allowed()) {
-            echo $output->container($output->single_button($workshop->assess_url($userassessment->id), get_string('assess', 'workshop'), 'get'),
-                    array('class' => 'buttonsbar'));
+    // user's own assessment
+    $strategy   = $workshop->grading_strategy_instance();
+    $mform      = $strategy->get_assessment_form($PAGE->url, 'assessment', $userassessment, false);
+    $options    = array(
+        'showreviewer'  => true,
+        'showauthor'    => $showauthor,
+        'showform'      => !is_null($userassessment->grade),
+        'showweight'    => true,
+    );
+    $assessment = $workshop->prepare_assessment($userassessment, $mform, $options);
+    $assessment->title = get_string('assessmentbyyourself', 'workshop');
+
+    if ($workshop->assessing_allowed($USER->id)) {
+        if (is_null($userassessment->grade)) {
+            $assessment->add_action($workshop->assess_url($assessment->id), get_string('assess', 'workshop'));
+        } else {
+            $assessment->add_action($workshop->assess_url($assessment->id), get_string('reassess', 'workshop'));
         }
-    } else {
-        $a = new stdclass();
-        $a->max = $workshop->real_grade(100);
-        $a->received = $workshop->real_grade($userassessment->grade);
-        echo $output->heading(get_string('gradeinfo', 'workshop', $a), 3);
-        if ($userassessment->weight != 1) {
-            echo $output->heading(get_string('weightinfo', 'workshop', $userassessment->weight), 3);
+    }
+    if ($canoverride) {
+        $assessment->add_action($workshop->assess_url($assessment->id), get_string('assessmentsettings', 'workshop'));
+    }
+
+    echo $output->render($assessment);
+
+    if ($workshop->phase == workshop::PHASE_CLOSED) {
+        if (strlen(trim($userassessment->feedbackreviewer)) > 0) {
+            echo $output->render(new workshop_feedback_reviewer($userassessment));
         }
-        if ($workshop->assessing_allowed()) {
-            echo $output->container($output->single_button($workshop->assess_url($userassessment->id), get_string('reassess', 'workshop'), 'get'),
-                    array('class' => 'buttonsbar'));
-        }
-        $mform->display();
     }
 }
 
 if (has_capability('mod/workshop:viewallassessments', $workshop->context) or ($ownsubmission and $workshop->assessments_available())) {
-    $strategy = $workshop->grading_strategy_instance();
-    $assessments = $workshop->get_assessments_of_submission($submission->id);
-    $canviewreviewernames = has_capability('mod/workshop:viewreviewernames', $workshop->context);
+    // other assessments
+    $strategy       = $workshop->grading_strategy_instance();
+    $assessments    = $workshop->get_assessments_of_submission($submission->id);
+    $showreviewer   = has_capability('mod/workshop:viewreviewernames', $workshop->context);
     foreach ($assessments as $assessment) {
         if ($assessment->reviewerid == $USER->id) {
             // own assessment has been displayed already
             continue;
         }
-        if (is_null($assessment->grade)) {
-            // not graded assessment are not displayed
+        if (is_null($assessment->grade) and !has_capability('mod/workshop:viewallassessments', $workshop->context)) {
+            // students do not see peer-assessment that are not graded yet
             continue;
         }
-        if ($canviewreviewernames) {
-            $reviewer = new stdclass();
-            $reviewer->firstname = $assessment->reviewerfirstname;
-            $reviewer->lastname = $assessment->reviewerlastname;
-            echo $output->heading(get_string('assessmentbyknown', 'workshop', fullname($reviewer)), 2);
-        } else {
-            echo $output->heading(get_string('assessmentbyunknown', 'workshop'), 2);
+        $mform      = $strategy->get_assessment_form($PAGE->url, 'assessment', $assessment, false);
+        $options    = array(
+            'showreviewer'  => $showreviewer,
+            'showauthor'    => $showauthor,
+            'showform'      => !is_null($assessment->grade),
+            'showweight'    => true,
+        );
+        $displayassessment = $workshop->prepare_assessment($assessment, $mform, $options);
+        if ($canoverride) {
+            $displayassessment->add_action($workshop->assess_url($assessment->id), get_string('assessmentsettings', 'workshop'));
         }
-        $a = new stdclass();
-        $a->max = $workshop->real_grade(100);
-        $a->received = $workshop->real_grade($assessment->grade);
-        echo $output->heading(get_string('gradeinfo', 'workshop', $a), 3);
-        if ($assessment->weight != 1) {
-            echo $output->heading(get_string('weightinfo', 'workshop', $assessment->weight), 3);
+        echo $output->render($displayassessment);
+
+        if ($workshop->phase == workshop::PHASE_CLOSED and has_capability('mod/workshop:viewallassessments', $workshop->context)) {
+            if (strlen(trim($assessment->feedbackreviewer)) > 0) {
+                echo $output->render(new workshop_feedback_reviewer($assessment));
+            }
         }
-        if (has_capability('mod/workshop:overridegrades', $workshop->context)) {
-            echo $output->container($output->single_button($workshop->assess_url($assessment->id), get_string('assessmentsettings', 'workshop'), 'get'),
-                    array('class' => 'buttonsbar'));
-        }
-        $mform = $strategy->get_assessment_form($PAGE->url, 'assessment', $assessment, false);
-        $mform->display();
     }
 }
 

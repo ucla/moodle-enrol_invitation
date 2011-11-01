@@ -145,15 +145,15 @@
     border: thin black solid;
 }
 
-.wiki_restore_yes {
+.wiki_restore_yes, .wiki_deletecomment_yes {
     float: left;
 }
 
-.wiki_restore_no {
+.wiki_restore_no, .wiki_deletecomment_no {
     float: right;
 }
 
-.wiki_restoreform {
+.wiki_restoreform, .wiki_deletecommentform {
     width: 10%;
     margin: auto;
 }
@@ -314,6 +314,10 @@ a.wiki_edit_section {
     text-align: left;
 }
 
+.dir-rtl #wiki_printable_content {
+    text-align: right;
+}
+
 #wiki_printable_content a {
     color: black;
 }
@@ -349,3 +353,9 @@ a.wiki_edit_section {
 .wiki-diff-container .wiki-diff-heading,
 .wiki-diff-container .no-overflow {padding:10px;border:1px solid #DDD;}
 .wiki-diff-container .wiki-diff-rightside .wiki_diffversion {text-align:right;}
+
+.wikieditor-toolbar img{
+    width: 22px;
+    height: 22px;
+    vertical-align: middle;
+}

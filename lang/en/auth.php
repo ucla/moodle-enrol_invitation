@@ -60,6 +60,17 @@ $string['auth_user_creation'] = 'New (anonymous) users can create user accounts 
 $string['auth_usernameexists'] = 'Selected username already exists. Please choose a new one.';
 $string['auto_add_remote_users'] = 'Auto add remote users';
 $string['createpasswordifneeded'] = 'Create password if needed';
+$string['emailchangecancel'] = 'Cancel email change';
+$string['emailchangepending'] = 'Change pending. Open the link sent to you at {$a->preference_newemail}.';
+$string['emailnowexists'] = 'The email address you tried to assign to your profile has been assigned to someone else since your original request. Your request for change of email address is hereby cancelled, but you may try again with a different address.';
+$string['emailupdate'] = 'Email address update';
+$string['emailupdatemessage'] = 'Dear {$a->fullname},
+
+You have requested a change of your email address for your user account at {$a->site}. Please open the following URL in your browser in order to confirm this change.
+
+{$a->url}';
+$string['emailupdatesuccess'] = 'Email address of user <em>{$a->fullname}</em> was successfully updated to <em>{$a->email}</em>.';
+$string['emailupdatetitle'] = 'Confirmation of email update at {$a->site}';
 $string['enterthenumbersyouhear'] = 'Enter the numbers you hear';
 $string['enterthewordsabove'] = 'Enter the words above';
 $string['errormaxconsecutiveidentchars'] = 'Passwords must have at most {$a} consecutive identical characters.';
@@ -104,7 +115,7 @@ $string['passwordhandling'] = 'Password field handling';
 $string['plaintext'] = 'Plain text';
 $string['pluginnotenabled'] = 'Authentication plugin \'{$a}\' is not enabled.';
 $string['pluginnotinstalled'] = 'Authentication plugin \'{$a}\' is not installed.';
-$string['potentialidps'] = 'Do you usually log in somewhere else before arriving here?<br />Choose from the following list to log in at your usual place:';
+$string['potentialidps'] = 'Log in using your account on:';
 $string['recaptcha'] = 'reCAPTCHA';
 $string['recaptcha_help'] = 'The CAPTCHA is for preventing abuse from automated programs. Simply enter the words in the box, in order and separated by a space.
 

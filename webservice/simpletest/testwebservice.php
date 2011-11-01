@@ -59,7 +59,7 @@ class webservice_test extends UnitTestCase {
 
     function setUp() {
         //token to test
-        $this->testtoken = '72d338d58ff881cc293f8cd1d96d7a57';
+        $this->testtoken = 'acabec9d20933913f14309785324f579';
 
         //protocols to test
         $this->testrest = false; //Does not work till XML => PHP is implemented (MDL-22965)
@@ -73,7 +73,8 @@ class webservice_test extends UnitTestCase {
             'moodle_user_get_users_by_id' => false,
             'moodle_enrol_get_enrolled_users' => false,
             'moodle_group_get_course_groups' => false,
-            'moodle_group_get_groupmembers' => false
+            'moodle_group_get_groupmembers' => false,
+            'moodle_webservice_get_siteinfo' => false
         );
 
         ////// WRITE DB tests ////
@@ -87,7 +88,10 @@ class webservice_test extends UnitTestCase {
             'moodle_group_add_groupmembers' => false,
             'moodle_group_delete_groupmembers' => false,
             'moodle_group_create_groups' => false,
-            'moodle_group_delete_groups' => false
+            'moodle_group_delete_groups' => false,
+            'moodle_enrol_manual_enrol_users' => false,
+            'moodle_message_send_messages' => false,
+            'moodle_notes_create_notes' => false
         );
 
         //performance testing: number of time the web service are run
@@ -216,6 +220,18 @@ class webservice_test extends UnitTestCase {
         $this->assertEqual(count($groups), count($groupids));
     }
 
+    function moodle_webservice_get_siteinfo($client) {
+        global $SITE, $CFG;
+
+        $function = 'moodle_webservice_get_siteinfo';
+
+        $params = array();
+        $info = $client->call($function, $params);
+
+        $this->assertEqual($info['sitename'], $SITE->fullname);
+        $this->assertEqual($info['siteurl'],  $CFG->wwwroot);
+    }
+
     function moodle_user_get_users_by_id($client) {
         global $DB;
         $dbusers = $DB->get_records('user', array('deleted' => 0));
@@ -230,6 +246,88 @@ class webservice_test extends UnitTestCase {
 
         $this->assertEqual(count($users), count($userids));
     }
+
+    /**
+     * This test will:
+     * 1- create a user (core call)
+     * 2- enrol this user in the courses supporting enrolment
+     * 3- unenrol this user (core call)
+     */
+    function moodle_enrol_manual_enrol_users($client) {
+        global $DB, $CFG;
+
+        require_once($CFG->dirroot . "/user/lib.php");
+        require_once($CFG->dirroot . "/user/profile/lib.php");
+        require_once($CFG->dirroot . "/lib/enrollib.php");
+
+        //Delete some previous test data
+        if ($user = $DB->get_record('user', array('username' => 'veryimprobabletestusername2'))) {
+            $DB->delete_records('user', array('id' => $user->id));
+        }
+        if ($role = $DB->get_record('role', array('shortname' => 'role1thatshouldnotexist'))) {
+            set_role_contextlevels($role->id, array(CONTEXT_COURSE));
+            delete_role($role->id);
+        }
+
+        //create a user
+        $user = new stdClass();
+        $user->username = 'veryimprobabletestusername2';
+        $user->password = 'testpassword2';
+        $user->firstname = 'testfirstname2';
+        $user->lastname = 'testlastname2';
+        $user->email = 'testemail1@moodle.com';
+        $user->id = user_create_user($user);
+
+        $roleid = create_role('role1thatshouldnotexist', 'role1thatshouldnotexist', '');
+        set_role_contextlevels($roleid, array(CONTEXT_COURSE));
+
+        $enrolments = array();
+        $courses = $DB->get_records('course');
+
+        foreach ($courses as $course) {
+            if ($course->id > 1) {
+                $enrolments[] = array('roleid' => $roleid,
+                    'userid' => $user->id, 'courseid' => $course->id);
+                $enrolledcourses[] = $course;
+            }
+        }
+
+        //web service call
+        $function = 'moodle_enrol_manual_enrol_users';
+        $wsparams = array('enrolments' => $enrolments);
+        $enrolmentsresult = $client->call($function, $wsparams);
+
+        //get instance that can unenrol
+        $enrols = enrol_get_plugins(true);
+        $enrolinstances = enrol_get_instances($course->id, true);
+        $unenrolled = false;
+        foreach ($enrolinstances as $instance) {
+            if (!$unenrolled and $enrols[$instance->enrol]->allow_unenrol($instance)) {
+                $unenrolinstance = $instance;
+                $unenrolled = true;
+            }
+        }
+
+        //test and unenrol the user
+        $enrolledusercourses = enrol_get_users_courses($user->id);
+        foreach ($enrolledcourses as $course) {
+            //test
+            $this->assertEqual(true, isset($enrolledusercourses[$course->id]));
+
+            //unenrol the user
+            $enrols[$unenrolinstance->enrol]->unenrol_user($unenrolinstance, $user->id, $roleid);
+        }
+
+        //delete user
+        $DB->delete_records('user', array('id' => $user->id));
+
+        //delete the context level
+        set_role_contextlevels($roleid, array(CONTEXT_COURSE));
+
+        //delete role
+        delete_role($roleid);
+    }
+
 
     function moodle_enrol_get_enrolled_users($client) {
         global $DB;
@@ -473,7 +571,7 @@ class webservice_test extends UnitTestCase {
         $user1->idnumber = 'testidnumber1';
         $user1->lang = 'en';
         $user1->theme = 'standard';
-        $user1->timezone = 99;
+        $user1->timezone = '-12.5';
         $user1->mailformat = 0;
         $user1->description = 'Hello World!';
         $user1->city = 'testcity1';
@@ -495,6 +593,7 @@ class webservice_test extends UnitTestCase {
         $user2->firstname = 'testfirstname2';
         $user2->lastname = 'testlastname2';
         $user2->email = 'testemail1@moodle.com';
+        $user2->timezone = 'Pacific/Port_Moresby';
 
         $users = array($user1, $user2);
 
@@ -570,6 +669,7 @@ class webservice_test extends UnitTestCase {
                 hash_internal_user_password($user2->password));
         $this->assertEqual($dbuser2->lastname, $user2->lastname);
         $this->assertEqual($dbuser2->email, $user2->email);
+        $this->assertEqual($dbuser2->timezone, $user2->timezone);
 
         //unset preferences
         $DB->delete_records('user_preferences', array('userid' => $dbuser1->id));
@@ -1399,7 +1499,54 @@ class webservice_test extends UnitTestCase {
 
         //delete the category
         $DB->delete_records('course_categories', array('id' => $category->id));
+    }
 
+    function moodle_message_send_messages($client) {
+        global $DB;
+        $function = 'moodle_message_send_messages';
+        $message = array();
+        $message['text'] = 'this is a message with a link http://www.google.com';
+        $message['touserid'] = 2;  //replace by a existing user id
+        $message['clientmsgid'] = 'message_1';
+        $message2 = array();
+        $message2['text'] = 'this is a message with an image
+            http://moodle.org/pluginfile.php/51/mod_forum/post/713724/moodle2-logo.png';
+        $message2['touserid'] = 2;  //replace by a existing user id
+        $message2['clientmsgid'] = 'message_2';
+        $params = array('messages' => array($message, $message2));
+        $success = $client->call($function, $params);
+        $this->assertEqual(count($success), 2);
+    }
+
+     function moodle_notes_create_notes($client) {
+        global $DB, $CFG;
+
+        $note1 = array();
+        $note1['userid'] = 2; //about who is the note
+        $note1['publishstate'] = 'personal'; //can be course, site, personal
+        $note1['courseid'] = 2; //in Moodle a notes is always created into a course, even a site note.
+        $note1['text'] = 'This is a personal note about the user';
+        $note1['clientnoteid'] = 'note_1';
+
+        $note2 = array();
+        $note2['userid'] = 40000; //mostl likely going to fail
+        $note2['publishstate'] = 'course';
+        $note2['courseid'] = 2;
+        $note2['text'] = 'This is a teacher note about the user';
+        $note2['clientnoteid'] = 'note_2';
+
+        $note3 = array();
+        $note3['userid'] = 2;
+        $note3['publishstate'] = 'site';
+        $note3['courseid'] = 30000; //most likely going to fail
+        $note3['text'] = 'This is a teacher site-wide note about the user';
+        $note3['clientnoteid'] = 'note_3';
+
+        $function = 'moodle_notes_create_notes';
+        $params = array('notes' => array($note1, $note2, $note3));
+        $notes = $client->call($function, $params);
+
+        $this->assertEqual(3, count($notes)); //1 info is a success, 2 others should be failed
     }
 
 }

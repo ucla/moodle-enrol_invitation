@@ -578,7 +578,22 @@ function wiki_parse_content($markup, $pagecontent, $options = array()) {
     $cm = get_coursemodule_from_instance("wiki", $subwiki->wikiid);
     $context = get_context_instance(CONTEXT_MODULE, $cm->id);
 
-    $parser_options = array('link_callback' => '/mod/wiki/locallib.php:wiki_parser_link', 'link_callback_args' => array('swid' => $options['swid']), 'table_callback' => '/mod/wiki/locallib.php:wiki_parser_table', 'real_path_callback' => '/mod/wiki/locallib.php:wiki_parser_real_path', 'real_path_callback_args' => array('context' => $context, 'component' => 'mod_wiki', 'filearea' => 'attachments', 'pageid' => $options['pageid']), 'pageid' => $options['pageid'], 'pretty_print' => (isset($options['pretty_print']) && $options['pretty_print']), 'printable' => (isset($options['printable']) && $options['printable']));
+    $parser_options = array(
+        'link_callback' => '/mod/wiki/locallib.php:wiki_parser_link',
+        'link_callback_args' => array('swid' => $options['swid']),
+        'table_callback' => '/mod/wiki/locallib.php:wiki_parser_table',
+        'real_path_callback' => '/mod/wiki/locallib.php:wiki_parser_real_path',
+        'real_path_callback_args' => array(
+            'context' => $context,
+            'component' => 'mod_wiki',
+            'filearea' => 'attachments',
+            'subwikiid'=> $subwiki->id,
+            'pageid' => $options['pageid']
+        ),
+        'pageid' => $options['pageid'],
+        'pretty_print' => (isset($options['pretty_print']) && $options['pretty_print']),
+        'printable' => (isset($options['printable']) && $options['printable'])
+    );
 
     return wiki_parser_proxy::parse($pagecontent, $markup, $parser_options);
 }
@@ -661,21 +676,29 @@ function wiki_parser_table($table) {
 /**
  * Returns an absolute path link, unless there is no such link.
  *
- * @param string url Link's URL
- * @param stdClass context filearea params
- * @param string filearea
- * @param int fileareaid
+ * @param string $url Link's URL or filename
+ * @param stdClass $context filearea params
+ * @param string $component The component the file is associated with
+ * @param string $filearea The filearea the file is stored in
+ * @param int $swid Sub wiki id
  *
- * @return File full path
+ * @return string URL for files full path
  */
 
-function wiki_parser_real_path($url, $context, $filearea, $fileareaid) {
+function wiki_parser_real_path($url, $context, $component, $filearea, $swid) {
     global $CFG;
 
     if (preg_match("/^(?:http|ftp)s?\:\/\//", $url)) {
         return $url;
     } else {
-        return "{$CFG->wwwroot}/pluginfile.php/{$context->id}/$filearea/$fileareaid/$url";
+
+        $file = 'pluginfile.php';
+        if (!$CFG->slasharguments) {
+            $file = $file . '?file=';
+        }
+        $baseurl = "$CFG->wwwroot/$file/{$context->id}/$component/$filearea/$swid/";
+        // it is a file in current file area
+        return $baseurl . $url;
     }
 }
 
@@ -996,82 +1019,133 @@ function wiki_delete_old_locks() {
 }
 
 /**
- * File processing
+ * Deletes wiki_links. It can be sepecific link or links attached in subwiki
+ *
+ * @global mixed $DB database object
+ * @param int $linkid id of the link to be deleted
+ * @param int $topageid links to the specific page
+ * @param int $frompageid links from specific page
+ * @param int $subwikiid links to subwiki
  */
+function wiki_delete_links($linkid = null, $topageid = null, $frompageid = null, $subwikiid = null) {
+    global $DB;
+    $params = array();
+
+    // if link id is givien then don't check for anything else
+    if (!empty($linkid)) {
+        $params['id'] = $linkid;
+    } else {
+        if (!empty($topageid)) {
+            $params['topageid'] = $topageid;
+        }
+        if (!empty($frompageid)) {
+            $params['frompageid'] = $frompageid;
+        }
+        if (!empty($subwikiid)) {
+            $params['subwikiid'] = $subwikiid;
+        }
+    }
+
+    //Delete links if any params are passed, else nothing to delete.
+    if (!empty($params)) {
+        $DB->delete_records('wiki_links', $params);
+    }
+}
 
 /**
- * Uploads files to permanent disk space.
+ * Delete wiki synonyms related to subwikiid or page
  *
- * @param int draftitemid Draft space ID
- * @param int contextid
- *
- * @return array of files that have not been inserted.
+ * @param int $subwikiid id of sunbwiki
+ * @param int $pageid id of page
  */
+function wiki_delete_synonym($subwikiid, $pageid = null) {
+    global $DB;
 
-function wiki_process_attachments($draftitemid, $deleteuploads, $contextid, $filearea, $itemid, $options = null) {
-    global $CFG, $USER;
+    $params = array('subwikiid' => $subwikiid);
+    if (!is_null($pageid)) {
+        $params['pageid'] = $pageid;
+    }
+    $DB->delete_records('wiki_synonyms', $params, IGNORE_MISSING);
+}
 
-    if (empty($options)) {
-        $options = page_wiki_edit::$attachmentoptions;
+/**
+ * Delete pages and all related data
+ *
+ * @param mixed $context context in which page needs to be deleted.
+ * @param mixed $pageids id's of pages to be deleted
+ * @param int $subwikiid id of the subwiki for which all pages should be deleted
+ */
+function wiki_delete_pages($context, $pageids = null, $subwikiid = null) {
+    global $DB;
+
+    if (!empty($pageids) && is_int($pageids)) {
+       $pageids = array($pageids);
+    } else if (!empty($subwikiid)) {
+        $pageids = wiki_get_page_list($subwikiid);
     }
 
-    $errors = array();
-
-    $usercontext = get_context_instance(CONTEXT_USER, $USER->id);
-    $fs = get_file_storage();
-
-    $oldfiles = $fs->get_area_files($contextid, 'mod_wiki', 'attachments', $itemid, 'id');
-
-    foreach ($oldfiles as $file) {
-        if (in_array($file->get_pathnamehash(), $deleteuploads)) {
-            $file->delete();
-        }
+    //If there is no pageid then return as we can't delete anything.
+    if (empty($pageids)) {
+        return;
     }
 
-    $draftfiles = $fs->get_area_files($usercontext->id, 'user', 'draft', $draftitemid, 'id');
-    $oldfiles = $fs->get_area_files($contextid, 'mod_wiki', 'attachments', $itemid, 'id');
+    /// Delete page and all it's relevent data
+    foreach ($pageids as $pageid) {
+        if (is_object($pageid)) {
+            $pageid = $pageid->id;
+        }
 
-    $file_record = array('contextid' => $contextid, 'component' => 'mod_wiki', 'filearea' => 'attachments', 'itemid' => $itemid);
-    //more or less a merge...
-    $newhashes = array();
-    foreach ($draftfiles as $file) {
-        $newhash = sha1("/$contextid/mod_wiki/attachments/$itemid" . $file->get_filepath() . $file->get_filename());
-        $newhashes[$newhash] = $file;
+        //Delete page comments
+        $comments = wiki_get_comments($context->id, $pageid);
+        foreach ($comments as $commentid => $commentvalue) {
+            wiki_delete_comment($commentid, $context, $pageid);
+        }
+
+        //Delete page tags
+        $tags = tag_get_tags_array('wiki_pages', $pageid);
+        foreach ($tags as $tagid => $tagvalue) {
+            tag_delete_instance('wiki_pages', $pageid, $tagid);
+        }
+
+        //Delete Synonym
+        wiki_delete_synonym($subwikiid, $pageid);
+
+        //Delete all page versions
+        wiki_delete_page_versions(array($pageid=>array(0)));
+
+        //Delete all page locks
+        wiki_delete_locks($pageid);
+
+        //Delete all page links
+        wiki_delete_links(null, $pageid);
+
+        //Delete page
+        $params = array('id' => $pageid);
+        $DB->delete_records('wiki_pages', $params);
     }
+}
 
-    $filecount = 0;
-    foreach ($oldfiles as $file) {
-        $oldhash = $file->get_pathnamehash();
-        if (!$file->is_directory() && isset($newhashes[$oldhash])) {
-            //repeated file: ERROR!!!
-            unset($newhashes[$oldhash]);
-            $errors[] = $file;
-        }
+/**
+ * Delete specificed versions of a page or versions created by users
+ * if version is 0 then it will remove all versions of the page
+ *
+ * @param array $deleteversions delete versions for a page
+ */
+function wiki_delete_page_versions($deleteversions) {
+    global $DB;
 
-        if (!$file->is_directory()) {
-            $filecount++;
-        }
-    }
-
-    foreach ($newhashes as $file) {
-        if ($file->get_filepath() !== '/' or $file->is_directory()) {
-            continue;
-        }
-
-        if ($options['maxfiles'] and $options['maxfiles'] <= $filecount) {
-            break;
-        }
-
-        if (!$file->is_directory()) {
-            $filecount++;
-            $fs->create_file_from_storedfile($file_record, $file);
+    /// delete page-versions
+    foreach ($deleteversions as $id => $versions) {
+        foreach ($versions as $version) {
+            $params = array('pageid' => $id);
+            //If version = 0, then remove all versions of this page, else remove
+            //specified version
+            if ($version != 0) {
+                $params['version'] = $version;
+            }
+            $DB->delete_records('wiki_versions', $params, IGNORE_MISSING);
         }
     }
-
-    //delete all draft files
-    $fs->delete_area_files($usercontext->id, 'user', 'draft', $draftitemid);
-
-    return $errors;
 }
 
 function wiki_get_comment($commentid){

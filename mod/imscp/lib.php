@@ -249,6 +249,8 @@ function imscp_user_complete($course, $user, $mod, $imscp) {
 /**
  * Returns the users with data in one imscp
  *
+ * @todo: deprecated - to be deleted in 2.2
+ *
  * @param int $imscpid
  * @return bool false
  */
@@ -397,4 +399,15 @@ function imscp_extend_navigation($navigation, $course, $module, $cm) {
      * you content.
      */
     $navigation->nodetype = navigation_node::NODETYPE_LEAF;
+}
+
+/**
+ * Return a list of page types
+ * @param string $pagetype current page type
+ * @param stdClass $parentcontext Block's parent context
+ * @param stdClass $currentcontext Current context of block
+ */
+function imscp_page_type_list($pagetype, $parentcontext, $currentcontext) {
+    $module_pagetype = array('mod-imscp-*'=>get_string('page-mod-imscp-x', 'imscp'));
+    return $module_pagetype;
 }

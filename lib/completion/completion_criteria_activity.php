@@ -193,7 +193,6 @@ class completion_criteria_activity extends completion_criteria {
         $sql = '
             SELECT DISTINCT
                 c.id AS course,
-                cr.timeend AS date,
                 cr.id AS criteriaid,
                 ra.userid AS userid,
                 mc.timemodified AS timecompleted
@@ -270,7 +269,7 @@ class completion_criteria_activity extends completion_criteria {
                 $details['requirement'][] = get_string('viewingactivity', 'completion', $this->module);
             }
 
-            if ($module->completiongradeitemnumber) {
+            if (!is_null($module->completiongradeitemnumber)) {
                 $details['requirement'][] = get_string('achievinggrade', 'completion');
             }
         }

@@ -61,7 +61,13 @@ class lesson_page_type_matching extends lesson_page {
     protected function make_answer_form($attempt=null) {
         global $USER, $CFG;
         // don't shuffle answers (could be an option??)
-        $answers = array_slice($this->get_answers(), 2);
+        $getanswers = array_slice($this->get_answers(), 2);
+
+        $answers = array();
+        foreach ($getanswers as $getanswer) {
+            $answers[$getanswer->id] = $getanswer;
+        }
+
         $responses = array();
         foreach ($answers as $answer) {
             // get all the response
@@ -114,7 +120,7 @@ class lesson_page_type_matching extends lesson_page {
                 $answer->responseformat = $properties->response_editor[$i]['format'];
             }
 
-            if (!empty($answer->answer)) {
+            if (isset($answer->answer) && $answer->answer != '') {
                 if (isset($properties->jumpto[$i])) {
                     $answer->jumpto = $properties->jumpto[$i];
                 }
@@ -314,7 +320,8 @@ class lesson_page_type_matching extends lesson_page {
                 $this->answers[$i]->responseformat = $properties->response_editor[$i]['format'];
             }
 
-            if (!empty($this->answers[$i]->answer)) {
+            // we don't need to check for isset here because properties called it's own isset method.
+            if ($this->answers[$i]->answer != '') {
                 if (isset($properties->jumpto[$i])) {
                     $this->answers[$i]->jumpto = $properties->jumpto[$i];
                 }
@@ -376,26 +383,23 @@ class lesson_page_type_matching extends lesson_page {
                 } else {
                     $answerdata->response = $answer->response;
                 }
+                if ($this->lesson->custom) {
+                    $answerdata->score = get_string("pointsearned", "lesson").": ".$answer->score;
+                } else {
+                    $answerdata->score = get_string("receivedcredit", "lesson");
+                }
             } elseif ($n == 1 && $useranswer != NULL && !$useranswer->correct) {
                 if ($answer->response == NULL && $useranswer != NULL) {
                     $answerdata->response = get_string("thatsthewronganswer", "lesson");
                 } else {
                     $answerdata->response = $answer->response;
                 }
-            } elseif ($n > 1) {
-                if ($n == 2 && $useranswer != NULL && $useranswer->correct) {
-                    if ($this->lesson->custom) {
-                        $answerdata->score = get_string("pointsearned", "lesson").": ".$answer->score;
-                    } else {
-                        $answerdata->score = get_string("receivedcredit", "lesson");
-                    }
-                } elseif ($n == 3 && $useranswer != NULL && !$useranswer->correct) {
-                    if ($this->lesson->custom) {
-                        $answerdata->score = get_string("pointsearned", "lesson").": ".$answer->score;
-                    } else {
-                        $answerdata->score = get_string("didnotreceivecredit", "lesson");
-                    }
+                if ($this->lesson->custom) {
+                    $answerdata->score = get_string("pointsearned", "lesson").": ".$answer->score;
+                } else {
+                    $answerdata->score = get_string("didnotreceivecredit", "lesson");
                 }
+            } elseif ($n > 1) {
                 $data = "<select disabled=\"disabled\"><option selected=\"selected\">".strip_tags(format_string($answer->answer))."</option></select>";
                 if ($useranswer != NULL) {
                     $userresponse = explode(",", $useranswer->useranswer);
@@ -420,7 +424,7 @@ class lesson_page_type_matching extends lesson_page {
                         $percent = get_string("nooneansweredthisquestion", "lesson");
                     }
                 } else {
-                    $percent = "";
+                    $percent = '';
                 }
 
                 $answerdata->answers[] = array($data, $percent);
@@ -487,6 +491,13 @@ class lesson_display_answer_form_matching extends moodleform {
 
         $mform->addElement('html', $OUTPUT->container($contents, 'contents'));
 
+        $hasattempt = false;
+        $disabled = '';
+        if (isset($useranswers) && !empty($useranswers)) {
+            $hasattempt = true;
+            $disabled = array('disabled' => 'disabled');
+        }
+
         $options = new stdClass;
         $options->para = false;
         $options->noclean = true;
@@ -501,19 +512,28 @@ class lesson_display_answer_form_matching extends moodleform {
         foreach ($answers as $answer) {
             $mform->addElement('html', '<div class="answeroption">');
             if ($answer->response != NULL) {
-                $mform->addElement('select', 'response['.$answer->id.']', format_text($answer->answer,$answer->answerformat,$options), $responseoptions);
-                $mform->setType('response['.$answer->id.']', PARAM_TEXT);
-                if (isset($USER->modattempts[$lessonid])) {
-                    $mform->setDefault('response['.$answer->id.']', htmlspecialchars(trim($answers[$useranswers[$i]]->response))); //TODO: this is suspicious
+                $responseid = 'response['.$answer->id.']';
+                if ($hasattempt) {
+                    $responseid = 'response_'.$answer->id;
+                    $mform->addElement('hidden', 'response['.$answer->id.']', htmlspecialchars(trim($answers[$useranswers[$i]]->response)));
+                    $mform->setType('response['.$answer->id.']', PARAM_TEXT);
+                }
+                $mform->addElement('select', $responseid, format_text($answer->answer,$answer->answerformat,$options), $responseoptions, $disabled);
+                $mform->setType($responseid, PARAM_TEXT);
+                if ($hasattempt) {
+                    $mform->setDefault($responseid, htmlspecialchars(trim($answers[$useranswers[$i]]->response))); //TODO: this is suspicious
                 } else {
-                    $mform->setDefault('response['.$answer->id.']', 'answeroption');
+                    $mform->setDefault($responseid, 'answeroption');
                 }
             }
             $mform->addElement('html', '</div>');
             $i++;
         }
-
-        $this->add_action_buttons(null, get_string("pleasematchtheabovepairs", "lesson"));
+        if ($hasattempt) {
+            $this->add_action_buttons(null, get_string("nextpage", "lesson"));
+        } else {
+            $this->add_action_buttons(null, get_string("submit", "lesson"));
+        }
     }
 
 }

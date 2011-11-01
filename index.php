@@ -88,8 +88,11 @@
     $PAGE->set_heading($SITE->fullname);
     echo $OUTPUT->header();
 
-/// Print Section
-    if ($SITE->numsections > 0) {
+/// Print Section or custom info
+    if (!empty($CFG->customfrontpageinclude)) {
+        include($CFG->customfrontpageinclude);
+
+    } else if ($SITE->numsections > 0) {
 
         if (!$section = $DB->get_record('course_sections', array('course'=>$SITE->id, 'section'=>1))) {
             $DB->delete_records('course_sections', array('course'=>$SITE->id, 'section'=>1)); // Just in case
@@ -153,7 +156,13 @@
                     if (! $newsforum = forum_get_course_forum($SITE->id, 'news')) {
                         print_error('cannotfindorcreateforum', 'forum');
                     }
-                    echo html_writer::tag('a', get_string('skipa', 'access', moodle_strtolower($newsforum->name)), array('href'=>'#skipsitenews', 'class'=>'skip-block'));
+
+                    // fetch news forum context for proper filtering to happen
+                    $newsforumcm = get_coursemodule_from_instance('forum', $newsforum->id, $SITE->id, false, MUST_EXIST);
+                    $newsforumcontext = get_context_instance(CONTEXT_MODULE, $newsforumcm->id, MUST_EXIST);
+
+                    $forumname = format_string($newsforum->name, true, array('context' => $newsforumcontext));
+                    echo html_writer::tag('a', get_string('skipa', 'access', moodle_strtolower(strip_tags($forumname))), array('href'=>'#skipsitenews', 'class'=>'skip-block'));
 
                     if (isloggedin()) {
                         $SESSION->fromdiscussion = $CFG->wwwroot;
@@ -165,11 +174,11 @@
                         } else {
                             $subtext = get_string('subscribe', 'forum');
                         }
-                        echo $OUTPUT->heading($newsforum->name, 2, 'headingblock header');
+                        echo $OUTPUT->heading($forumname, 2, 'headingblock header');
                         $suburl = new moodle_url('/mod/forum/subscribe.php', array('id' => $newsforum->id, 'sesskey' => sesskey()));
                         echo html_writer::tag('div', html_writer::link($suburl, $subtext), array('class' => 'subscribelink'));
                     } else {
-                        echo $OUTPUT->heading($newsforum->name, 2, 'headingblock header');
+                        echo $OUTPUT->heading($forumname, 2, 'headingblock header');
                     }
 
                     forum_print_latest_discussions($SITE, $newsforum, $SITE->newsitems, 'plain', 'p.modified DESC');
@@ -206,7 +215,19 @@
                 echo html_writer::tag('a', get_string('skipa', 'access', moodle_strtolower(get_string('courses'))), array('href'=>'#skipcourses', 'class'=>'skip-block'));
                 echo $OUTPUT->heading(get_string('courses'), 2, 'headingblock header');
                 $renderer = $PAGE->get_renderer('core','course');
-                echo $renderer->course_category_tree(get_course_category_tree());
+                // if there are too many courses, budiling course category tree could be slow,
+                // users should go to course index page to see the whole list.
+                $coursecount = $DB->count_records('course');
+                if (empty($CFG->numcoursesincombo)) {
+                    // if $CFG->numcoursesincombo hasn't been set, use default value 500
+                    $CFG->numcoursesincombo = 500;
+                }
+                if ($coursecount > $CFG->numcoursesincombo) {
+                    $link = new moodle_url('/course/');
+                    echo $OUTPUT->notification(get_string('maxnumcoursesincombo', 'moodle', array('link'=>$link->out(), 'maxnumofcourses'=>$CFG->numcoursesincombo, 'numberofcourses'=>$coursecount)));
+                } else {
+                    echo $renderer->course_category_tree(get_course_category_tree());
+                }
                 print_course_search('', false, 'short');
                 echo html_writer::tag('span', '', array('class'=>'skip-block-to', 'id'=>'skipcourses'));
             break;

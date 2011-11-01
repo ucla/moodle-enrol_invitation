@@ -148,17 +148,17 @@ define('CONTEXT_MODULE', 70);
 /** context definitions */
 define('CONTEXT_BLOCK', 80);
 
-/** capability risks - see {@link http://docs.moodle.org/en/Development:Hardening_new_Roles_system} */
+/** capability risks - see {@link http://docs.moodle.org/dev/Hardening_new_Roles_system} */
 define('RISK_MANAGETRUST', 0x0001);
-/** capability risks - see {@link http://docs.moodle.org/en/Development:Hardening_new_Roles_system} */
+/** capability risks - see {@link http://docs.moodle.org/dev/Hardening_new_Roles_system} */
 define('RISK_CONFIG',      0x0002);
-/** capability risks - see {@link http://docs.moodle.org/en/Development:Hardening_new_Roles_system} */
+/** capability risks - see {@link http://docs.moodle.org/dev/Hardening_new_Roles_system} */
 define('RISK_XSS',         0x0004);
-/** capability risks - see {@link http://docs.moodle.org/en/Development:Hardening_new_Roles_system} */
+/** capability risks - see {@link http://docs.moodle.org/dev/Hardening_new_Roles_system} */
 define('RISK_PERSONAL',    0x0008);
-/** capability risks - see {@link http://docs.moodle.org/en/Development:Hardening_new_Roles_system} */
+/** capability risks - see {@link http://docs.moodle.org/dev/Hardening_new_Roles_system} */
 define('RISK_SPAM',        0x0010);
-/** capability risks - see {@link http://docs.moodle.org/en/Development:Hardening_new_Roles_system} */
+/** capability risks - see {@link http://docs.moodle.org/dev/Hardening_new_Roles_system} */
 define('RISK_DATALOSS',    0x0020);
 
 /** rolename displays - the name as defined in the role definition */
@@ -569,9 +569,9 @@ function has_capability($capability, $context, $user = null, $doanything = true)
 
     // make sure there is a real user specified
     if ($user === null) {
-        $userid = !empty($USER->id) ? $USER->id : 0;
+        $userid = isset($USER->id) ? $USER->id : 0;
     } else {
-        $userid = !empty($user->id) ? $user->id : $user;
+        $userid = is_object($user) ? $user->id : $user;
     }
 
     // capability must exist
@@ -2540,7 +2540,7 @@ function get_roles_with_capability($capability, $permission = null, $context = n
 
     if ($context) {
         $contexts = get_parent_contexts($context, true);
-        list($insql, $params) = $DB->get_in_or_equal($contexts, SQL_PARAMS_NAMED, 'ctx000');
+        list($insql, $params) = $DB->get_in_or_equal($contexts, SQL_PARAMS_NAMED, 'ctx');
         $contextsql = "AND rc.contextid $insql";
     } else {
         $params = array();
@@ -2632,6 +2632,26 @@ function role_assign($roleid, $userid, $contextid, $component = '', $itemid = 0,
             $ra = reset($ras);
         }
 
+        /*
+         * For an existing role assignment (buggy behaior but this function accounts
+         * for it), add the user to the public/private group if not already in the
+         * public/private group from this role assignment or another role
+         * assignment.
+         *
+         * @author ebollens
+         * @version 20110719
+         */
+
+        if($context->contextlevel == CONTEXT_COURSE) {
+            require_once($CFG->libdir.'/publicprivate/course.class.php');
+
+            $pubpriv_course = new PublicPrivate_Course($context->instanceid);
+
+            if($pubpriv_course->is_activated()) {
+                $pubpriv_course->add_user($userid);
+            }
+        }
+
         // actually there is no need to update, reset anything or trigger any event, so just return
         return $ra->id;
     }
@@ -2647,6 +2667,24 @@ function role_assign($roleid, $userid, $contextid, $component = '', $itemid = 0,
     $ra->modifierid   = empty($USER->id) ? 0 : $USER->id;
 
     $ra->id = $DB->insert_record('role_assignments', $ra);
+
+    /*
+     * For a new role assignment, add the user to the public/private group if
+     * not already in the public/private group from another role assignment.
+     *
+     * @author ebollens
+     * @version 20110719
+     */
+
+    if($context->contextlevel == CONTEXT_COURSE) {
+        require_once($CFG->libdir.'/publicprivate/course.class.php');
+
+        $pubpriv_course = new PublicPrivate_Course($context->instanceid);
+
+        if($pubpriv_course->is_activated()) {
+            $pubpriv_course->add_user($userid);
+        }
+    }
 
     // mark context as dirty - again expensive, but needed
     mark_context_dirty($context->path);
@@ -2772,6 +2810,33 @@ function role_unassign_all(array $params, $subcontexts = false, $includemanual =
         $params['component'] = '';
         role_unassign_all($params, $subcontexts, false);
     }
+
+    /*
+     * If user no longer has any roles in the course, then remove the user's
+     * assignment in the public/private group if the user has one.
+     *
+     * @author ebollens
+     * @version 20110719
+     */
+
+    if(!isset($params['userid']) || !isset($params['contextid'])) {
+        return;
+    }
+
+    if(!isset($context)) {
+        $context = get_context_instance_by_id($params['contextid']);
+    }
+    
+    if($context->contextlevel == CONTEXT_COURSE && !$DB->record_exists('role_assignments', array('userid'=>$params['userid'], 'contextid'=>$params['contextid']))) {
+
+        require_once($CFG->libdir.'/publicprivate/course.class.php');
+        
+        $pubpriv_course = new PublicPrivate_Course($context->instanceid);
+
+        if($pubpriv_course->is_activated()) {
+            $pubpriv_course->remove_user($params['userid']);
+        }
+    }
 }
 
 
@@ -2841,9 +2906,9 @@ function is_guest($context, $user = null) {
 
     // make sure there is a real user specified
     if ($user === null) {
-        $userid = !empty($USER->id) ? $USER->id : 0;
+        $userid = isset($USER->id) ? $USER->id : 0;
     } else {
-        $userid = !empty($user->id) ? $user->id : $user;
+        $userid = is_object($user) ? $user->id : $user;
     }
 
     if (isguestuser($userid)) {
@@ -2914,9 +2979,9 @@ function is_enrolled($context, $user = null, $withcapability = '', $onlyactive =
 
     // make sure there is a real user specified
     if ($user === null) {
-        $userid = !empty($USER->id) ? $USER->id : 0;
+        $userid = isset($USER->id) ? $USER->id : 0;
     } else {
-        $userid = !empty($user->id) ? $user->id : $user;
+        $userid = is_object($user) ? $user->id : $user;
     }
 
     if (empty($userid)) {
@@ -3097,7 +3162,7 @@ function get_enrolled_sql($context, $withcapability = '', $groupid = 0, $onlyact
 
     // get all relevant capability info for all roles
     if ($withcapability) {
-        list($incontexts, $cparams) = $DB->get_in_or_equal($contextids, SQL_PARAMS_NAMED, 'ctx00');
+        list($incontexts, $cparams) = $DB->get_in_or_equal($contextids, SQL_PARAMS_NAMED, 'ctx');
         $cparams['cap'] = $withcapability;
 
         $defs = array();
@@ -3142,8 +3207,8 @@ function get_enrolled_sql($context, $withcapability = '', $groupid = 0, $onlyact
             }
         }
 
-        $defaultuserroleid      = isset($CFG->defaultuserroleid) ? $CFG->defaultuserroleid : null;
-        $defaultfrontpageroleid = isset($CFG->defaultfrontpageroleid) ? $CFG->defaultfrontpageroleid : null;
+        $defaultuserroleid      = isset($CFG->defaultuserroleid) ? $CFG->defaultuserroleid : 0;
+        $defaultfrontpageroleid = isset($CFG->defaultfrontpageroleid) ? $CFG->defaultfrontpageroleid : 0;
 
         $nobody = false;
 
@@ -3578,7 +3643,7 @@ function print_context_name($context, $withprefix = true, $short = false) {
                 if ($withprefix){
                     $name = get_string('category').': ';
                 }
-                $name .=format_string($category->name);
+                $name .= format_string($category->name, true, array('context' => $context));
             }
             break;
 
@@ -3591,7 +3656,7 @@ function print_context_name($context, $withprefix = true, $short = false) {
                         $name = get_string('course').': ';
                     }
                     if ($short){
-                        $name .= format_string($course->shortname);
+                        $name .= format_string($course->shortname, true, array('context' => $context));
                     } else {
                         $name .= format_string($course->fullname);
                    }
@@ -3741,7 +3806,7 @@ function fetch_context_capabilities($context) {
 
         case CONTEXT_USER:
             $extracaps = array('moodle/grade:viewall');
-            list($extra, $params) = $DB->get_in_or_equal($extracaps, SQL_PARAMS_NAMED, 'cap0');
+            list($extra, $params) = $DB->get_in_or_equal($extracaps, SQL_PARAMS_NAMED, 'cap');
             $SQL = "SELECT *
                       FROM {capabilities}
                      WHERE contextlevel = ".CONTEXT_USER."
@@ -3814,7 +3879,7 @@ function fetch_context_capabilities($context) {
             $extra = '';
             $extracaps = block_method_result($bi->blockname, 'get_extra_capabilities');
             if ($extracaps) {
-                list($extra, $params) = $DB->get_in_or_equal($extracaps, SQL_PARAMS_NAMED, 'cap0');
+                list($extra, $params) = $DB->get_in_or_equal($extracaps, SQL_PARAMS_NAMED, 'cap');
                 $extra = "OR name $extra";
             }
 
@@ -4518,9 +4583,9 @@ function get_assignable_roles($context, $rolenamedisplay = ROLENAME_ALIAS, $with
 
     // make sure there is a real user specified
     if ($user === null) {
-        $userid = !empty($USER->id) ? $USER->id : 0;
+        $userid = isset($USER->id) ? $USER->id : 0;
     } else {
-        $userid = !empty($user->id) ? $user->id : $user;
+        $userid = is_object($user) ? $user->id : $user;
     }
 
     if (!has_capability('moodle/role:assign', $context, $userid)) {
@@ -4851,8 +4916,8 @@ function get_users_by_capability($context, $capability, $fields = '', $sort = ''
         throw new coding_exception('Invalid context specified');
     }
 
-    $defaultuserroleid      = isset($CFG->defaultuserroleid) ? $CFG->defaultuserroleid : null;
-    $defaultfrontpageroleid = isset($CFG->defaultfrontpageroleid) ? $CFG->defaultfrontpageroleid : null;
+    $defaultuserroleid      = isset($CFG->defaultuserroleid) ? $CFG->defaultuserroleid : 0;
+    $defaultfrontpageroleid = isset($CFG->defaultfrontpageroleid) ? $CFG->defaultfrontpageroleid : 0;
 
     $ctxids = trim($context->path, '/');
     $ctxids = str_replace('/', ',', $ctxids);
@@ -4876,8 +4941,8 @@ function get_users_by_capability($context, $capability, $fields = '', $sort = ''
 
     // we need to find out all roles that have these capabilities either in definition or in overrides
     $defs = array();
-    list($incontexts, $params) = $DB->get_in_or_equal($contextids, SQL_PARAMS_NAMED, 'con000');
-    list($incaps, $params2) = $DB->get_in_or_equal($caps, SQL_PARAMS_NAMED, 'cap000');
+    list($incontexts, $params) = $DB->get_in_or_equal($contextids, SQL_PARAMS_NAMED, 'con');
+    list($incaps, $params2) = $DB->get_in_or_equal($caps, SQL_PARAMS_NAMED, 'cap');
     $params = array_merge($params, $params2);
     $sql = "SELECT rc.id, rc.roleid, rc.permission, rc.capability, ctx.path
               FROM {role_capabilities} rc
@@ -5001,13 +5066,17 @@ function get_users_by_capability($context, $capability, $fields = '', $sort = ''
     /// Groups
     if ($groups) {
         $groups = (array)$groups;
-        list($grouptest, $grpparams) = $DB->get_in_or_equal($groups, SQL_PARAMS_NAMED, 'grp000');
+        list($grouptest, $grpparams) = $DB->get_in_or_equal($groups, SQL_PARAMS_NAMED, 'grp');
         $grouptest = "u.id IN (SELECT userid FROM {groups_members} gm WHERE gm.groupid $grouptest)";
         $params = array_merge($params, $grpparams);
 
         if ($useviewallgroups) {
             $viewallgroupsusers = get_users_by_capability($context, 'moodle/site:accessallgroups', 'u.id, u.id', '', '', '', '', $exceptions);
-            $wherecond[] =  "($grouptest OR u.id IN (" . implode(',', array_keys($viewallgroupsusers)) . '))';
+            if (!empty($viewallgroupsusers)) {
+                $wherecond[] =  "($grouptest OR u.id IN (" . implode(',', array_keys($viewallgroupsusers)) . '))';
+            } else {
+                $wherecond[] =  "($grouptest)";
+            }
         } else {
             $wherecond[] =  "($grouptest)";
         }
@@ -5016,7 +5085,7 @@ function get_users_by_capability($context, $capability, $fields = '', $sort = ''
     /// User exceptions
     if (!empty($exceptions)) {
         $exceptions = (array)$exceptions;
-        list($exsql, $exparams) = $DB->get_in_or_equal($exceptions, SQL_PARAMS_NAMED, 'exc000', false);
+        list($exsql, $exparams) = $DB->get_in_or_equal($exceptions, SQL_PARAMS_NAMED, 'exc', false);
         $params = array_merge($params, $exparams);
         $wherecond[] = "u.id $exsql";
     }
@@ -5538,7 +5607,7 @@ function user_has_role_assignment($userid, $roleid, $contextid = 0) {
             return false;
         }
         $parents = get_parent_contexts($context, true);
-        list($contexts, $params) = $DB->get_in_or_equal($parents, SQL_PARAMS_NAMED, 'r0000');
+        list($contexts, $params) = $DB->get_in_or_equal($parents, SQL_PARAMS_NAMED, 'r');
         $params['userid'] = $userid;
         $params['roleid'] = $roleid;
 

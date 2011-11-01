@@ -17,46 +17,8 @@ $ADMIN->add('server', $temp);
 
 
 
-// "email" settingpage
-$temp = new admin_settingpage('mail', get_string('mail','admin'));
-$temp->add(new admin_setting_configtext('smtphosts', get_string('smtphosts', 'admin'), get_string('configsmtphosts', 'admin'), '', PARAM_RAW));
-$temp->add(new admin_setting_configtext('smtpuser', get_string('smtpuser', 'admin'), get_string('configsmtpuser', 'admin'), '', PARAM_NOTAGS));
-$temp->add(new admin_setting_configpasswordunmask('smtppass', get_string('smtppass', 'admin'), get_string('configsmtpuser', 'admin'), ''));
-$temp->add(new admin_setting_configtext('smtpmaxbulk', get_string('smtpmaxbulk', 'admin'), get_string('configsmtpmaxbulk', 'admin'), 1, PARAM_INT));
-$temp->add(new admin_setting_configtext('noreplyaddress', get_string('noreplyaddress', 'admin'), get_string('confignoreplyaddress', 'admin'), 'noreply@' . get_host_from_url($CFG->wwwroot), PARAM_NOTAGS));
-$temp->add(new admin_setting_configselect('digestmailtime', get_string('digestmailtime', 'admin'), get_string('configdigestmailtime', 'admin'), 17, array('00' => '00',
-                                                                                                                                                          '01' => '01',
-                                                                                                                                                          '02' => '02',
-                                                                                                                                                          '03' => '03',
-                                                                                                                                                          '04' => '04',
-                                                                                                                                                          '05' => '05',
-                                                                                                                                                          '06' => '06',
-                                                                                                                                                          '07' => '07',
-                                                                                                                                                          '08' => '08',
-                                                                                                                                                          '09' => '09',
-                                                                                                                                                          '10' => '10',
-                                                                                                                                                          '11' => '11',
-                                                                                                                                                          '12' => '12',
-                                                                                                                                                          '13' => '13',
-                                                                                                                                                          '14' => '14',
-                                                                                                                                                          '15' => '15',
-                                                                                                                                                          '16' => '16',
-                                                                                                                                                          '17' => '17',
-                                                                                                                                                          '18' => '18',
-                                                                                                                                                          '19' => '19',
-                                                                                                                                                          '20' => '20',
-                                                                                                                                                          '21' => '21',
-                                                                                                                                                          '22' => '22',
-                                                                                                                                                          '23' => '23')));
-$charsets = get_list_of_charsets();
-unset($charsets['UTF-8']); // not needed here
-$options = array();
-$options['0'] = 'UTF-8';
-$options = array_merge($options, $charsets);
-$temp->add(new admin_setting_configselect('sitemailcharset', get_string('sitemailcharset', 'admin'), get_string('configsitemailcharset','admin'), '0', $options));
-$temp->add(new admin_setting_configcheckbox('allowusermailcharset', get_string('allowusermailcharset', 'admin'), get_string('configallowusermailcharset', 'admin'), 0));
-$options = array('LF'=>'LF', 'CRLF'=>'CRLF');
-$temp->add(new admin_setting_configselect('mailnewline', get_string('mailnewline', 'admin'), get_string('configmailnewline','admin'), 'LF', $options));
+// "supportcontact" settingpage
+$temp = new admin_settingpage('supportcontact', get_string('supportcontact','admin'));
 if (isloggedin()) {
     global $USER;
     $primaryadminemail = $USER->email;
@@ -71,17 +33,6 @@ $temp->add(new admin_setting_configtext('supportname', get_string('supportname',
 $temp->add(new admin_setting_configtext('supportemail', get_string('supportemail', 'admin'), get_string('configsupportemail', 'admin'), $primaryadminemail, PARAM_NOTAGS));
 $temp->add(new admin_setting_configtext('supportpage', get_string('supportpage', 'admin'), get_string('configsupportpage', 'admin'), '', PARAM_URL));
 $ADMIN->add('server', $temp);
-
-
-// Jabber settingpage
-$temp = new admin_settingpage('jabber', get_string('jabber', 'admin'));
-$temp->add(new admin_setting_configtext('jabberhost', get_string('jabberhost', 'admin'), get_string('configjabberhost', 'admin'), '', PARAM_RAW));
-$temp->add(new admin_setting_configtext('jabberserver', get_string('jabberserver', 'admin'), get_string('configjabberserver', 'admin'), '', PARAM_RAW));
-$temp->add(new admin_setting_configtext('jabberusername', get_string('jabberusername', 'admin'), get_string('configjabberusername', 'admin'), '', PARAM_RAW));
-$temp->add(new admin_setting_configpasswordunmask('jabberpassword', get_string('jabberpassword', 'admin'), get_string('configjabberpassword', 'admin'), ''));
-$temp->add(new admin_setting_configtext('jabberport', get_string('jabberport', 'admin'), get_string('configjabberport', 'admin'), 5222, PARAM_INT));
-$ADMIN->add('server', $temp);
-
 
 
 // "sessionhandling" settingpage
@@ -227,6 +178,8 @@ $ADMIN->add('server', new admin_externalpage('phpinfo', get_string('phpinfo'), "
 // "performance" settingpage
 $temp = new admin_settingpage('performance', get_string('performance', 'admin'));
 
+$temp->add(new admin_setting_configtext('numcoursesincombo', get_string('numcoursesincombo', 'admin'), get_string('numcoursesincombo_help', 'admin'), 500));
+
 $temp->add(new admin_setting_configselect('extramemorylimit', get_string('extramemorylimit', 'admin'),
                                           get_string('configextramemorylimit', 'admin'), '512M',
                                           // if this option is set to 0, default 128M will be used
@@ -239,6 +192,8 @@ $temp->add(new admin_setting_configselect('extramemorylimit', get_string('extram
 $temp->add(new admin_setting_configtext('curlcache', get_string('curlcache', 'admin'),
                                         get_string('configcurlcache', 'admin'), 120, PARAM_INT));
 
+$temp->add(new admin_setting_configtext('curltimeoutkbitrate', get_string('curltimeoutkbitrate', 'admin'),
+                                        get_string('curltimeoutkbitrate_help', 'admin'), 56, PARAM_INT));
 /* //TODO: we need to fix code instead of relying on slow rcache, enable this once we have some code that is actually using it
 $temp->add(new admin_setting_special_selectsetup('cachetype', get_string('cachetype', 'admin'),
                                           get_string('configcachetype', 'admin'), '',

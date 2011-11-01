@@ -121,6 +121,8 @@ abstract class moodle_database {
 
     /** @var int internal temporary variable */
     private $fix_sql_params_i;
+    /** @var int internal temporary variable used by {@link get_in_or_equal()}. */
+    private $inorequaluniqueindex = 1; // guarantees unique parameters in each request
 
     /**
      * Constructor - instantiates the database, specifying if it's external (connect to other systems) or no (Moodle DB)
@@ -158,9 +160,10 @@ abstract class moodle_database {
      * Loads and returns a database instance with the specified type and library.
      * @param string $type database type of the driver (mysqli, pgsql, mssql, sqldrv, oci, etc.)
      * @param string $library database library of the driver (native, pdo, etc.)
+     * @param boolean $external true if this is an external database
      * @return moodle_database driver object or null if error
      */
-    public static function get_driver_instance($type, $library) {
+    public static function get_driver_instance($type, $library, $external = false) {
         global $CFG;
 
         $classname = $type.'_'.$library.'_moodle_database';
@@ -171,7 +174,7 @@ abstract class moodle_database {
         }
 
         require_once($libfile);
-        return new $classname();
+        return new $classname($external);
     }
 
     /**
@@ -499,19 +502,24 @@ abstract class moodle_database {
         $where = array();
         $params = array();
 
-        $columns = $this->get_columns($table);
+        if (debugging()) {
+            $columns = $this->get_columns($table);
+            foreach ($conditions as $key=>$value) {
+                if (!isset($columns[$key])) {
+                    $a = new stdClass();
+                    $a->fieldname = $key;
+                    $a->tablename = $table;
+                    throw new dml_exception('ddlfieldnotexist', $a);
+                }
+                $column = $columns[$key];
+                if ($column->meta_type == 'X') {
+                    //ok so the column is a text column. sorry no text columns in the where clause conditions
+                    throw new dml_exception('textconditionsnotallowed', $conditions);
+                }
+            }
+        }
+
         foreach ($conditions as $key=>$value) {
-            if (!isset($columns[$key])) {
-                $a = new stdClass();
-                $a->fieldname = $key;
-                $a->tablename = $table;
-                throw new dml_exception('ddlfieldnotexist', $a);
-            }
-            $column = $columns[$key];
-            if ($column->meta_type == 'X') {
-                //ok so the column is a text column. sorry no text columns in the where clause conditions
-                throw new dml_exception('textconditionsnotallowed', $conditions);
-            }
             if (is_int($key)) {
                 throw new dml_exception('invalidnumkey');
             }
@@ -521,7 +529,7 @@ abstract class moodle_database {
                 if ($allowed_types & SQL_PARAMS_NAMED) {
                     // Need to verify key names because they can contain, originally,
                     // spaces and other forbidden chars when using sql_xxx() functions and friends.
-                    $normkey = trim(preg_replace('/[^a-zA-Z0-9-_]/', '_', $key), '-_');
+                    $normkey = trim(preg_replace('/[^a-zA-Z0-9_-]/', '_', $key), '-_');
                     if ($normkey !== $key) {
                         debugging('Invalid key found in the conditions array.');
                     }
@@ -567,14 +575,28 @@ abstract class moodle_database {
      * Constructs IN() or = sql fragment
      * @param mixed $items single or array of values
      * @param int $type bound param type SQL_PARAMS_QM or SQL_PARAMS_NAMED
-     * @param string named param placeholder start
-     * @param bool true means equal, false not equal
+     * @param string $prefix named parameter placeholder prefix (unique counter value is appended to each parameter name)
+     * @param bool $equal true means equal, false not equal
+     * @param mixed $onemptyitems defines the behavior when the array of items is empty. Defaults to false,
+     *              meaning throw exceptions. Other values will become part of the returned SQL fragment.
      * @return array - $sql and $params
      */
-    public function get_in_or_equal($items, $type=SQL_PARAMS_QM, $start='param0000', $equal=true) {
-        if (is_array($items) and empty($items)) {
+    public function get_in_or_equal($items, $type=SQL_PARAMS_QM, $prefix='param', $equal=true, $onemptyitems=false) {
+
+        // default behavior, throw exception on empty array
+        if (is_array($items) and empty($items) and $onemptyitems === false) {
             throw new coding_exception('moodle_database::get_in_or_equal() does not accept empty arrays');
         }
+        // handle $onemptyitems on empty array of items
+        if (is_array($items) and empty($items)) {
+            if (is_null($onemptyitems)) {             // Special case, NULL value
+                $sql = $equal ? ' IS NULL' : ' IS NOT NULL';
+                return (array($sql, array()));
+            } else {
+                $items = array($onemptyitems);        // Rest of cases, prepare $items for std processing
+            }
+        }
+
         if ($type == SQL_PARAMS_QM) {
             if (!is_array($items) or count($items) == 1) {
                 $sql = $equal ? '= ?' : '<> ?';
@@ -590,19 +612,26 @@ abstract class moodle_database {
             }
 
         } else if ($type == SQL_PARAMS_NAMED) {
+            if (empty($prefix)) {
+                $prefix = 'param';
+            }
+
             if (!is_array($items)){
-                $sql = $equal ? "= :$start" : "<> :$start";
-                $params = array($start=>$items);
+                $param = $prefix.$this->inorequaluniqueindex++;
+                $sql = $equal ? "= :$param" : "<> :$param";
+                $params = array($param=>$items);
             } else if (count($items) == 1) {
-                $sql = $equal ? "= :$start" : "<> :$start";
+                $param = $prefix.$this->inorequaluniqueindex++;
+                $sql = $equal ? "= :$param" : "<> :$param";
                 $item = reset($items);
-                $params = array($start=>$item);
+                $params = array($param=>$item);
             } else {
                 $params = array();
                 $sql = array();
                 foreach ($items as $item) {
-                    $params[$start] = $item;
-                    $sql[] = ':'.$start++;
+                    $param = $prefix.$this->inorequaluniqueindex++;
+                    $params[$param] = $item;
+                    $sql[] = ':'.$param;
                 }
                 if ($equal) {
                     $sql = 'IN ('.implode(',', $sql).')';
@@ -717,6 +746,11 @@ abstract class moodle_database {
                 $key = trim($key, ':');
                 if (!array_key_exists($key, $params)) {
                     throw new dml_exception('missingkeyinsql', $key, '');
+                }
+                if (strlen($key) > 30) {
+                    throw new coding_exception(
+                            "Placeholder names must be 30 characters or shorter. '" .
+                            $key . "' is too long.", $sql);
                 }
                 $finalparams[$key] = $params[$key];
             }
@@ -1566,7 +1600,9 @@ abstract class moodle_database {
      * @throws dml_exception if error
      */
     public function delete_records($table, array $conditions=null) {
-        if (is_null($conditions)) {
+        // truncate is drop/create (DDL), not transactional safe,
+        // so we don't use the shortcut within them. MDL-29198
+        if (is_null($conditions) && empty($this->transactions)) {
             return $this->execute("TRUNCATE TABLE {".$table."}");
         }
         list($select, $params) = $this->where_clause($table, $conditions);

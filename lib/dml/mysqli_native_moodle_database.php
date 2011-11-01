@@ -489,7 +489,7 @@ class mysqli_native_moodle_database extends moodle_database {
                     $info->unique        = null;
                 }
 
-            } else if (preg_match('/(decimal|double|float)\((\d+),(\d+)\)/i', $rawcolumn->type, $matches)) {
+            } else if (preg_match('/(decimal)\((\d+),(\d+)\)/i', $rawcolumn->type, $matches)) {
                 $info->type          = $matches[1];
                 $info->meta_type     = 'N';
                 $info->max_length    = $matches[2];
@@ -499,7 +499,21 @@ class mysqli_native_moodle_database extends moodle_database {
                 $info->has_default   = is_null($info->default_value) ? false : true;
                 $info->primary_key   = ($rawcolumn->key === 'PRI');
                 $info->binary        = false;
-                $info->unsigned      = null;
+                $info->unsigned      = (stripos($rawcolumn->type, 'unsigned') !== false);
+                $info->auto_increment= false;
+                $info->unique        = null;
+
+            } else if (preg_match('/(double|float)(\((\d+),(\d+)\))?/i', $rawcolumn->type, $matches)) {
+                $info->type          = $matches[1];
+                $info->meta_type     = 'N';
+                $info->max_length    = isset($matches[3]) ? $matches[3] : null;
+                $info->scale         = isset($matches[4]) ? $matches[4] : null;
+                $info->not_null      = ($rawcolumn->null === 'NO');
+                $info->default_value = $rawcolumn->default;
+                $info->has_default   = is_null($info->default_value) ? false : true;
+                $info->primary_key   = ($rawcolumn->key === 'PRI');
+                $info->binary        = false;
+                $info->unsigned      = (stripos($rawcolumn->type, 'unsigned') !== false);
                 $info->auto_increment= false;
                 $info->unique        = null;
 
@@ -579,6 +593,10 @@ class mysqli_native_moodle_database extends moodle_database {
             if ($column->meta_type == 'I' or $column->meta_type == 'F' or $column->meta_type == 'N') {
                 $value = 0; // prevent '' problems in numeric fields
             }
+        // Any float value being stored in varchar or text field is converted to string to avoid
+        // any implicit conversion by MySQL
+        } else if (is_float($value) and ($column->meta_type == 'C' or $column->meta_type == 'X')) {
+            $value = "$value";
         }
         // workaround for problem with wrong enums in mysql - TODO: Out in Moodle 2.1
         if (!empty($column->enums)) {
@@ -662,7 +680,8 @@ class mysqli_native_moodle_database extends moodle_database {
             return $sql;
         }
         /// ok, we have verified sql statement with ? and correct number of params
-        $return = strtok($sql, '?');
+        $parts = explode('?', $sql);
+        $return = array_shift($parts);
         foreach ($params as $param) {
             if (is_bool($param)) {
                 $return .= (int)$param;
@@ -676,7 +695,7 @@ class mysqli_native_moodle_database extends moodle_database {
                 $param = $this->mysqli->real_escape_string($param);
                 $return .= "'$param'";
             }
-            $return .= strtok('?');
+            $return .= array_shift($parts);
         }
         return $return;
     }

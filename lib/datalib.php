@@ -111,7 +111,7 @@ function search_users($courseid, $groupid, $searchtext, $sort='', array $excepti
     $fullname  = $DB->sql_fullname('u.firstname', 'u.lastname');
 
     if (!empty($exceptions)) {
-        list($exceptions, $params) = $DB->get_in_or_equal($exceptions, SQL_PARAMS_NAMED, 'ex0000', false);
+        list($exceptions, $params) = $DB->get_in_or_equal($exceptions, SQL_PARAMS_NAMED, 'ex', false);
         $except = "AND u.id $exceptions";
     } else {
         $except = "";
@@ -210,7 +210,7 @@ function get_users($get=true, $search='', $confirmed=false, array $exceptions=nu
     }
 
     if ($exceptions) {
-        list($exceptions, $eparams) = $DB->get_in_or_equal($exceptions, SQL_PARAMS_NAMED, 'ex0000', false);
+        list($exceptions, $eparams) = $DB->get_in_or_equal($exceptions, SQL_PARAMS_NAMED, 'ex', false);
         $params = $params + $eparams;
         $except = " AND id $exceptions";
     }
@@ -717,7 +717,7 @@ function get_courses_search($searchterms, $sort='fullname ASC', $page=0, $record
     $params     = array();
     $i = 0;
 
-    $concat = $DB->sql_concat('c.summary', "' '", 'c.fullname');
+    $concat = $DB->sql_concat('c.summary', "' '", 'c.fullname', "' '", 'c.idnumber', "' '", 'c.shortname');
 
     foreach ($searchterms as $searchterm) {
         $i++;
@@ -847,7 +847,7 @@ function get_categories($parent='none', $sort=NULL, $shallow=true) {
                   FROM {course_categories} cc
                $ccjoin
                   JOIN {course_categories} ccp
-                       ON (cc.path LIKE ".$DB->sql_concat('ccp.path',"'%'").")
+                       ON ((cc.parent = ccp.id) OR (cc.path LIKE ".$DB->sql_concat('ccp.path',"'/%'")."))
                  WHERE ccp.id=?
                 $sort";
         $params = array($parent);
@@ -1662,6 +1662,8 @@ function add_to_log($courseid, $module, $action, $url='', $info='', $cm=0, $user
     $info = $info;
     if (!empty($url)) { // could break doing html_entity_decode on an empty var.
         $url = html_entity_decode($url);
+    } else {
+        $url = '';
     }
 
     // Restrict length of log lines to the space actually available in the
@@ -1844,13 +1846,13 @@ function get_logs_usercourse($userid, $courseid, $coursestart) {
         $params['courseid'] = $courseid;
     }
     $params['userid'] = $userid;
-    $params['coursestart'] = $coursestart;
+    $$coursestart = (int)$coursestart; // note: unfortunately pg complains if you use name parameter or column alias in GROUP BY
 
-    return $DB->get_records_sql("SELECT FLOOR((time - :coursestart)/". DAYSECS .") AS day, COUNT(*) AS num
+    return $DB->get_records_sql("SELECT FLOOR((time - $coursestart)/". DAYSECS .") AS day, COUNT(*) AS num
                                    FROM {log}
                                   WHERE userid = :userid
-                                        AND time > :coursestart $courseselect
-                               GROUP BY FLOOR((time - :coursestart)/". DAYSECS .")", $params);
+                                        AND time > $coursestart $courseselect
+                               GROUP BY FLOOR((time - $coursestart)/". DAYSECS .")", $params);
 }
 
 /**
@@ -1866,20 +1868,20 @@ function get_logs_usercourse($userid, $courseid, $coursestart) {
 function get_logs_userday($userid, $courseid, $daystart) {
     global $DB;
 
-    $params = array($daystart, $userid, $daystart);
+    $params = array('userid'=>$userid);
 
     $courseselect = '';
     if ($courseid) {
-        $courseselect = "AND course = ?";
-        $params[] = $courseid;
+        $courseselect = "AND course = :courseid";
+        $params['courseid'] = $courseid;
     }
-    $params[] = $daystart;
+    $daystart = (int)$daystart; // note: unfortunately pg complains if you use name parameter or column alias in GROUP BY
 
-    return $DB->get_records_sql("SELECT FLOOR((time - ?)/". HOURSECS .") AS hour, COUNT(*) AS num
+    return $DB->get_records_sql("SELECT FLOOR((time - $daystart)/". HOURSECS .") AS hour, COUNT(*) AS num
                                    FROM {log}
-                                  WHERE userid = ?
-                                        AND time > ? $courseselect
-                               GROUP BY FLOOR((time - ?)/". HOURSECS .") ", $params);
+                                  WHERE userid = :userid
+                                        AND time > $daystart $courseselect
+                               GROUP BY FLOOR((time - $daystart)/". HOURSECS .") ", $params);
 }
 
 /**
