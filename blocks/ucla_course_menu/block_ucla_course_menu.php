@@ -2,26 +2,14 @@
 /**
  *
  **/
-class block_ucla_course_menu extends block_base {
-    /** There consts are used by the renderer when rendering navigation
-     *  nodes.
-     **/
-    /** @var int Trim characters from the right **/
-    const TRIM_RIGHT = 1;
+require_once($CFG->dirroot . '/blocks/navigation/block_navigation.php');
 
-    /** @var int Trim characters from the left **/
-    const TRIM_LEFT = 2;
-
-    /** @var int Trim characters from the center **/
-    const TRIM_CENTER = 3;
-
-    /** @var int Trim length that is hard-coded default **/
-    const DEFAULT_TRIM_LENGTH = 10;
-
-    const EXPANDABLE_TREE = 0;
-
+class block_ucla_course_menu extends block_navigation {
     var $contentgenerated = false;
 
+    const DEFAULT_TRIM_LENGTH = 50;
+
+    // Hook function used to get other blocks' junk into this trunk
     const BLOCK_HOOK_FN = 'get_navigation_nodes';
    
     /**
@@ -120,7 +108,15 @@ class block_ucla_course_menu extends block_base {
 
         return $format_rk;
     }
-    
+
+    function get_config_var($var, $def) {
+        if (!empty($this->config->$var)) {
+            return $this->config->$var;
+        } 
+
+        return $def;
+    }
+
     /**
      *  Called by Moodle.
      **/
@@ -129,7 +125,17 @@ class block_ucla_course_menu extends block_base {
             return $this->content;
         }
 
+        parent::get_content();
+
         $elements = $this->create_all_elements();
+        $trimmode = $this->get_config_var('trimmode', self::TRIM_LEFT);
+        $trimlength = $this->get_config_var('trimlength', 
+            self::DEFAULT_TRIM_LENGTH);
+       
+        foreach ($elements as $element) {
+            $this->trim($element, $trimmode, $trimlength,
+                ceil($trimlength / 2));
+        }
 
         $renderer = $this->get_renderer();
 
@@ -167,7 +173,8 @@ class block_ucla_course_menu extends block_base {
         $elements = array();
 
         $topic_param = $this->get_topic_get();
-        if ($this->get_course_format() == 'ucla') {
+        if ($this->get_course_format() == 'ucla' 
+                && function_exists('ucla_format_figure_section')) {
             list($thistopic, $ds) = ucla_format_figure_section(
                 $this->page->course);
 
@@ -189,9 +196,13 @@ class block_ucla_course_menu extends block_base {
 
         foreach ($sections as $section) {
             if (empty($section->name)) {
-                $section->name = get_section_name($this->page->course, 
+                $sectionname = get_section_name($this->page->course, 
                     $section);
+            } else {
+                $sectionname = $section->name;
             }
+
+            $sectionname = strip_tags($sectionname);
 
             if (!$viewhiddensections && !$section->visible) {
                 continue;
@@ -199,7 +210,7 @@ class block_ucla_course_menu extends block_base {
 
             $sectnum = $section->section;
             $key = 'section-' . $sectnum;
-            $elements[$key] = navigation_node::create($section->name,
+            $elements[$key] = navigation_node::create($sectionname,
                 new moodle_url('/course/view.php', array(
                     'id' => $course_id,
                     $topic_param => $sectnum

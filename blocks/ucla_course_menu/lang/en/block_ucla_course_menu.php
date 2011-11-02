@@ -24,16 +24,14 @@
  * -----------------------------------------------------------------------------
  **/
 
-$string['pluginname'] = $string['blockname'] = 'Course menu';
+$string['pluginname'] = 'Course menu';
 $string['chapter'] = 'Chapter';
 $string['subchapter'] = 'Sub-chapter';
 $string['topicsweeks'] = 'Topics / Weeks';
 $string['noicon'] = 'No icon';
 
 $string['showallsections'] = 'Show all sections';
-
 $string['linkfileorsite'] = 'Link to a file or web site';
-
 $string['displaydirectory'] = 'Display directory';
 
 $string['blockgeneralsettings'] = "Block general settings";
