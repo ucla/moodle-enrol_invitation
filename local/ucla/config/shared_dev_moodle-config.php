@@ -71,8 +71,12 @@ $CFG->registrar_dbpass = '';
 $CFG->registrar_dbname = 'srdb';
 
 // Course Requestor
-$CFG->classrequestor_terms = array('11F', '12W', '12S');
-$CFG->classrequestor_selected_term = $CFG->currentterm;
+$CFG->classrequestor_terms = array('11F', '12W', '12S');    // array of terms
+$CFG->classrequestor_selected_term = $CFG->currentterm; // default term
+$CFG->classrequestor_mailinst_default = false; // default value for mailinst
+$CFG->classrequestor_forceurl_default = false; // default value for forceurl
+$CFG->classrequestor_nourlupd_default = false; // default value for nourlupd
+$CFG->classrequestor_hidden_default = false; // default value for hidden
 
 // Course Creator
 $CFG->course_creator_email = 'ccle-operations@lists.ucla.edu';
