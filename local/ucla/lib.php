@@ -59,4 +59,8 @@ function ucla_verify_configuration_setup() {
     return $returner;
 }
 
+function local_ucla_cron() {
+
+}
+
 // EOF
