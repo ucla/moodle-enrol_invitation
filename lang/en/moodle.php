@@ -178,7 +178,6 @@ $string['backupincludemoduleuserdatahelp'] = 'Choose whether you want to include
 $string['backupkeephelp'] = 'How many recent backups for each course do you want to keep? (older ones will be deleted automatically)';
 $string['backuplogdetailed'] = 'Detailed execution log';
 $string['backuploglaststatus'] = 'Last execution log';
-$string['backuplogshelp'] = 'If enabled, then course logs will be included in automated backups';
 $string['backupmissinguserinfoperms'] = 'Note: This backup contains no user data. Exercise and Workshop activities will not be included in the backup, since these modules are not compatible with this type of backup.';
 $string['backupnext'] = 'Next backup';
 $string['backupnonisowarning'] = 'Warning: this backup is from a non-Unicode version of Moodle (pre 1.6).  If this backup contains any non-ISO-8859-1 texts then they may be CORRUPTED if you try to restore them to this Unicode version of Moodle.  See the <a href="http://docs.moodle.org/en/Backup_FAQ">Backup FAQ</a> for more information about how to recover this backup correctly.';
@@ -189,7 +188,6 @@ $string['backupsitefileshelp'] = 'If enabled then site files used in courses wil
 $string['backuptakealook'] = 'Please take a look at your backup logs in:
   {$a}';
 $string['backupuserfileshelp'] = 'Choose whether user files (eg profile images) should be included in automated backups';
-$string['backupusershelp'] = 'Select whether you want to include all the users in the server or only the needed users for each course';
 $string['backupversion'] = 'Backup version';
 $string['block'] = 'Block';
 $string['blockconfiga'] = 'Configuring a {$a} block';
@@ -242,6 +240,7 @@ $string['closewindow'] = 'Close this window';
 $string['collapseall'] = 'Collapse all';
 $string['commentincontext'] = 'Find this comment in context';
 $string['comments'] = 'Comments';
+$string['commentsnotenabled'] = 'Comments feature is not enabled';
 $string['commentsrequirelogin'] = 'You need to login to view the comments';
 $string['comparelanguage'] = 'Compare and edit current language';
 $string['complete'] = 'Complete';
@@ -303,7 +302,7 @@ $string['coursehelpforce'] = 'Force the course group mode to every activity in t
 $string['coursehelpformat'] = 'The course main page will be displayed in this format.';
 $string['coursehelphiddensections'] = 'How the hidden sections in the course are displayed to students.';
 $string['coursehelpmaximumupload'] = 'Define the largest size of file that can be uploaded in this course, limited by the site-wide setting.';
-$string['coursehelpnewsitemsnumber'] = 'Number of recent items appearing on the course home page, in a news box down the right-hand side <br/>(0 means the news box won\'t appear).';
+$string['coursehelpnewsitemsnumber'] = 'Number of recent items appearing on the course home page, in a news box down the right-hand side (0 means the news box won\'t appear).';
 $string['coursehelpnumberweeks'] = 'Number of weeks/topics displayed on the course main page.';
 $string['coursehelpshowgrades'] = 'Enable the display of the gradebook. It does not prevent grades from being displayed within the individual activities.';
 $string['coursehidden'] = 'This course is currently unavailable to students';
@@ -386,7 +385,7 @@ $string['currentlyselectedusers'] = 'Currently selected users';
 $string['currentpicture'] = 'Current picture';
 $string['currentrelease'] = 'Current release information';
 $string['currentversion'] = 'Current version';
-$string['databasechecking'] = 'Upgrading Moodle database from version {$a->oldversion} to {$a->newversion}...';
+$string['databasechecking'] = 'Upgrading Moodle database from version {$a->oldversion} to {$a->newversion}';
 $string['databaseperformance'] = 'Database performance';
 $string['databasesetup'] = 'Setting up database';
 $string['databasesuccess'] = 'Database was successfully upgraded';
@@ -461,8 +460,11 @@ $string['downloadods'] = 'Download in ODS format';
 $string['downloadtext'] = 'Download in text format';
 $string['doyouagree'] = 'Have you read these conditions and understood them?';
 $string['duplicate'] = 'Duplicate';
+$string['duplicateconfirm'] = 'Are you sure you want to duplicate {$a->modtype} \'{$a->modname}\' ?';
+$string['duplicatecontcourse'] = 'Return to the course';
+$string['duplicatecontedit'] = 'Edit the new copy';
+$string['duplicatesuccess'] = '{$a->modtype} \'{$a->modname}\' has been duplicated successfully';
 $string['duplicatinga'] = 'Duplicating: {$a}';
-$string['duplicatingain'] = 'Duplicating {$a->what} in {$a->in}';
 $string['edhelpaspellpath'] = 'To use spell-checking within the editor, you MUST have <strong>aspell 0.50</strong> or later installed on your server, and you must specify the correct path to access the aspell binary.  On Unix/Linux systems, this path is usually <strong>/usr/bin/aspell</strong>, but it might be something else.';
 $string['edhelpbgcolor'] = 'Define the edit area\'s background color.<br />Valid values are, for example: #FFFFFF or white';
 $string['edhelpcleanword'] = 'This setting enables or disables Word-specific format filtering.';
@@ -707,11 +709,11 @@ $string['frontpagenews'] = 'News items';
 $string['frontpagesettings'] = 'Front page settings';
 $string['frontpagetopiconly'] = 'Topic section';
 $string['fulllistofcourses'] = 'All courses';
-$string['fullname'] = 'Full name';
-$string['fullnamecourse'] = 'Course full name'; // fork of fullname
+$string['fullname'] = 'Full name'; // @deprecated - use fullnamecourse or fullnameuser or some own context specific string
+$string['fullnamecourse'] = 'Course full name';
 $string['fullnamecourse_help'] = 'The full name of the course is displayed at the top of each page in the course and in the list of courses.';
 $string['fullnamedisplay'] = '{$a->firstname} {$a->lastname}';
-$string['fullnameuser'] = 'User full name'; // fork of fullname
+$string['fullnameuser'] = 'User full name';
 $string['fullprofile'] = 'Full profile';
 $string['fullsitename'] = 'Full site name';
 $string['functiondisabled'] = 'That functionality is currently disabled';
@@ -735,7 +737,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the Moodle License information page for full details:
-http://docs.moodle.org/en/License';
+http://docs.moodle.org/dev/License';
 $string['gpllicense'] = 'GPL license';
 $string['gpl3'] = 'Copyright (C) 1999 onwards Martin Dougiamas (http://moodle.com)
 
@@ -749,7 +751,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the Moodle License information page for full details:
-http://docs.moodle.org/en/License';
+http://docs.moodle.org/dev/License';
 $string['grade'] = 'Grade';
 $string['grades'] = 'Grades';
 $string['group'] = 'Group';
@@ -902,7 +904,6 @@ $string['latestlanguagepack'] = 'Check for latest language pack on moodle.org';
 $string['layouttable'] = 'Layout table';
 $string['leavetokeep'] = 'Leave blank to keep current password';
 $string['legacythemeinuse'] = 'This site is being displayed to you in compatibility mode because your browser is too old.';
-$string['legacythemesaved'] = 'New legacy theme saved';
 $string['license'] = 'Licence';
 $string['licenses'] = 'Licences';
 $string['liketologin'] = 'Would you like to log in now with a full user account?';
@@ -978,8 +979,11 @@ $string['maximumchars'] = 'Maximum of {$a} characters';
 $string['maximumshort'] = 'Max';
 $string['maximumupload'] = 'Maximum upload size';
 $string['maximumupload_help'] = 'This setting determines the largest size of file that can be uploaded to the course, limited by the site-wide setting set by an administrator. Activity modules also include a maximum upload size setting for further restricting the file size.';
+$string['maxnumberweeks'] = 'Maximum for number of weeks/topics';
+$string['maxnumberweeks_desc'] = 'This controls the maximum options that appears in the "Number of weeks/topics" setting for courses.';
 $string['maxsize'] = 'Max size: {$a}';
 $string['maxfilesize'] = 'Maximum size for new files: {$a}';
+$string['maxnumcoursesincombo'] = 'Browse <a href="{$a->link}">{$a->numberofcourses} courses</a>.';
 $string['memberincourse'] = 'People in the course';
 $string['messagebody'] = 'Message body';
 $string['messagedselectedusers'] = 'Selected users have been messaged and the recipient list has been reset.';
@@ -1133,6 +1137,7 @@ $string['nobody'] = 'Nobody';
 $string['nocourses'] = 'No courses';
 $string['nocoursesfound'] = 'No courses were found with the words \'{$a}\'';
 $string['nocoursesyet'] = 'No courses in this category';
+$string['nocomments'] = 'No comments';
 $string['nodstpresets'] = 'The administrator has not enabled Daylight Savings Time support.';
 $string['nofilesselected'] = 'No files have been selected to restore';
 $string['nofilesyet'] = 'No files have been uploaded to your course yet';
@@ -1262,9 +1267,6 @@ $string['pleaseusesearch'] = 'Please use the search';
 $string['plugin'] = 'Plugin';
 $string['plugindeletefiles'] = 'All data associated with the plugin \'{$a->name}\' has been deleted from the database. To prevent the plugin re-installing itself, you should now delete this directory from your server: {$a->directory}';
 $string['plugincheck'] = 'Plugins check';
-$string['pluginchecknotice'] = 'The following tables show the modules, blocks and filters that have been detected in your current Moodle installation;
-They indicate which plugins are standard, and which are not. All non-standard plugins should be checked and upgraded to their most recent versions
-before continuing with this Moodle upgrade.';
 $string['pluginsetup'] = 'Setting up plugin tables';
 $string['policyaccept'] = 'I understand and agree';
 $string['policyagree'] = 'You must agree to this policy to continue using this site.  Do you agree?';
@@ -1469,7 +1471,7 @@ $string['separateandconnectedinfo'] = 'The scale based on the theory of separate
 $string['serverlocaltime'] = 'Server\'s local time';
 $string['setcategorytheme'] = 'Set category theme';
 $string['settings'] = 'Settings';
-$string['shortname'] = 'Short name';
+$string['shortname'] = 'Short name'; // @deprecated - use shortnamecourse or shortnameuser or some own context specific string
 $string['shortnamecollisionwarning'] = '[*] = This shortname is already in use by a course and will need to be changed upon approval';
 $string['shortnamecourse'] = 'Course short name';
 $string['shortnamecourse_help'] = 'The short name of the course is displayed in the navigation and is used in the subject line of course email messages.';
@@ -1600,6 +1602,8 @@ $string['summary'] = 'Summary';
 $string['summary_help'] = 'The idea of a summary is a short text to prepare students for the activities within the topic or week. The text is shown on the course page under the section name.';
 $string['summaryof'] = 'Summary of {$a}';
 $string['supplyinfo'] = 'More details';
+$string['switchdevicedefault'] = 'Switch to the standard theme';
+$string['switchdevicerecommended'] = 'Switch to the recommended theme for your device';
 $string['switchrolereturn'] = 'Return to my normal role';
 $string['switchroleto'] = 'Switch role to...';
 $string['tag'] = 'Tag';
@@ -1672,11 +1676,8 @@ $string['uploadedfileto'] = 'Uploaded {$a->file} to {$a->directory}';
 $string['uploadedfiletoobig'] = 'Sorry, but that file is too big (limit is {$a} bytes)';
 $string['uploadextension'] = 'File upload stopped by extension';
 $string['uploadfailednotrecovering'] = 'Your file upload has failed because there was a problem with one of the files, {$a->name}.<br /> Here is a log of the problems:<br />{$a->problem}<br />Not recovering.';
-$string['uploadfilecontainerror'] = 'The uploaded file has not been processed due to the error(s) specified. Please amend the file before uploading it again.';
-$string['uploadfilecontentsnovaliddata'] = 'The uploaded file contains no valid data.';
 $string['uploadfilelog'] = 'Upload log for file {$a}';
 $string['uploadformlimit'] = 'Uploaded file exceeded the maximum size limit set by the form';
-$string['uploadinvalidpreprocessedcount'] = 'Number of invalid preprocessed records: {$a}';
 $string['uploadlabel'] = 'Title:';
 $string['uploadnewfile'] = 'Upload new file';
 $string['uploadnofilefound'] = 'No file was found - are you sure you selected one to upload?';
@@ -1692,8 +1693,6 @@ $string['uploadthisfile'] = 'Upload this file';
 $string['url'] = 'URL';
 $string['used'] = 'Used';
 $string['usedinnplaces'] = 'Used in {$a} places';
-$string['useformaintheme'] = 'Use for modern browsers';
-$string['useforlegacytheme'] = 'Use for old browsers';
 $string['usemessageform'] = 'or use the form below to send a message to the selected students';
 $string['user'] = 'User';
 $string['userconfirmed'] = 'Confirmed {$a}';
@@ -1723,6 +1722,7 @@ $string['userswithfiles'] = 'Users with files';
 $string['useruploadtype'] = 'User upload type: {$a}';
 $string['userviewingsettings'] = 'Profile settings for {$a}';
 $string['userzones'] = 'User zones';
+$string['usetheme'] = 'Use theme';
 $string['usingexistingcourse'] = 'Using existing course';
 $string['valuealreadyused'] = 'This value has already been used.';
 $string['version'] = 'Version';
@@ -1815,3 +1815,34 @@ $string['yourself'] = 'yourself';
 $string['yourteacher'] = 'your {$a}';
 $string['yourwordforx'] = 'Your word for \'{$a}\'';
 $string['zippingbackup'] = 'Zipping backup';
+
+/**
+ * Public/private strings.
+ *
+ * @author ebollens
+ * @version 20110719
+ */
+$string['publicprivateenable'] = 'Enable Public/Private';
+$string['publicprivateenable_help'] = 'Enabling public/private functionality for a course alters several settings in order to create a hybrid course with both public and private material.<br><br>When enabled, it will create a toggle for all activities that allow for the material to be set either private to course users or public to guests as well. To this end, it creates a special group ("Course members") and a special grouping ("Private Course Material"). It disables the auto-assign groups and available to guest settings.';
+$string['publicprivategroupname'] = 'Course members';
+$string['publicprivategroupdeprecated'] = '_old_';
+$string['publicprivategroupdescription'] = 'Group created and used for public/private functionality. All users should belong to this group.';
+$string['publicprivategroupingname'] = 'Private Course Material';
+$string['publicprivategroupingdeprecated'] = '_old_';
+$string['publicprivategroupingdescription'] = 'Grouping created and used for public/private functionality. ' . $string['publicprivategroupname'] . ' group should be in this grouping.';
+$string['publicprivatemakepublic'] = 'Make public';
+$string['publicprivatemakeprivate'] = 'Make private';
+$string['publicprivate'] = 'Public/Private';
+$string['publicprivateadd'] = 'Add Public/Private functionality';
+$string['publicprivateupgradesure'] = 'Public/Private functionality appears to be present, but not installed. <br /><br />
+Moodle would now like to install Public/Private functionality on the server.<br /><br />';
+$string['publicprivaterestore'] = 'Default Public/Private on Restore';
+$string['publicprivaterestore_description'] = 'In the event that a restore occurs from an instance of Moodle that does not include public/private, if this setting is defined, the restored course will default to public/private enabled.';
+$string['publicprivate_option_enable'] = 'Course Editors Can Set Public/Private';
+$string['publicprivate_option_enable_description'] = 'If checked, course editors can turn public/private on/off. Otherwise, only administrators can do this.';
+$string['publicprivatenotice'] = 'This is the public display of the course site. <br />If you are enrolled, please log in to view private course materials.';
+$string['publicprivatelogin'] = 'Log in';
+$string['publicprivatecannotedit'] = 'ERROR: This is a special grouping for public/private. It cannot be edited.';
+$string['publicprivatecannotremove_oneof'] = 'ERROR: One of the groups selected is a special group for public/private. It cannot be removed.';
+$string['publicprivatecannotremove_one'] = 'ERROR: The group selected is a special group for public/private. It cannot be removed.';
+$string['publicprivatecannotremove'] = 'ERROR: This is a special grouping for public/private. It cannot be removed.';

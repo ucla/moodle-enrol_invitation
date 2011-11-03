@@ -76,7 +76,7 @@ abstract class backup_cron_automated_helper {
         } else if ($state === backup_cron_automated_helper::STATE_RUNNING) {
             mtrace('RUNNING');
             if ($rundirective == self::RUN_IMMEDIATELY) {
-                mtrace('automated backups are already. If this script is being run by cron this constitues an error. You will need to increase the time between executions within cron.');
+                mtrace('Automated backups are already running. If this script is being run by cron this constitues an error. You will need to increase the time between executions within cron.');
             } else {
                 mtrace("automated backup are already running. Execution delayed");
             }
@@ -123,14 +123,24 @@ abstract class backup_cron_automated_helper {
                     $backupcourse = $DB->get_record('backup_courses', array('courseid'=>$course->id));
                 }
 
+                // Skip courses that do not yet need backup
+                $skipped = !(($backupcourse->nextstarttime >= 0 && $backupcourse->nextstarttime < $now) || $rundirective == self::RUN_IMMEDIATELY);
                 // Skip backup of unavailable courses that have remained unmodified in a month
-                $skipped = false;
-                if (empty($course->visible) && ($now - $course->timemodified) > 31*24*60*60) {  //Hidden + unmodified last month
-                    $backupcourse->laststatus = backup_cron_automated_helper::BACKUP_STATUS_SKIPPED;
-                    $DB->update_record('backup_courses', $backupcourse);
-                    mtrace('Skipping unchanged course '.$course->fullname);
-                    $skipped = true;
-                } else if (($backupcourse->nextstarttime >= 0 && $backupcourse->nextstarttime < $now) || $rundirective == self::RUN_IMMEDIATELY) {
+                if (!$skipped && empty($course->visible) && ($now - $course->timemodified) > 31*24*60*60) {  //Hidden + settings were unmodified last month
+                    //Check log if there were any modifications to the course content
+                    $sqlwhere = "course=:courseid AND time>:time AND ". $DB->sql_like('action', ':action', false, true, true);
+                    $params = array('courseid' => $course->id, 'time' => $now-31*24*60*60, 'action' => '%view%');
+                    $logexists = $DB->record_exists_select('log', $sqlwhere, $params);
+                    if (!$logexists) {
+                        $backupcourse->laststatus = backup_cron_automated_helper::BACKUP_STATUS_SKIPPED;
+                        $backupcourse->nextstarttime = $nextstarttime;
+                        $DB->update_record('backup_courses', $backupcourse);
+                        mtrace('Skipping unchanged course '.$course->fullname);
+                        $skipped = true;
+                    }
+                }
+                //Now we backup every non-skipped course
+                if (!$skipped) {
                     mtrace('Backing up '.$course->fullname, '...');
 
                     //We have to send a email because we have included at least one backup
@@ -197,7 +207,7 @@ abstract class backup_cron_automated_helper {
 
             //Build the message subject
             $site = get_site();
-            $prefix = $site->shortname.": ";
+            $prefix = format_string($site->shortname, true, array('context' => get_context_instance(CONTEXT_COURSE, SITEID))).": ";
             if ($haserrors) {
                 $prefix .= "[".strtoupper(get_string('error'))."] ";
             }
@@ -312,7 +322,7 @@ abstract class backup_cron_automated_helper {
 
             $settings = array(
                 'users' => 'backup_auto_users',
-                'role_assignments' => 'backup_auto_users',
+                'role_assignments' => 'backup_auto_role_assignments',
                 'user_files' => 'backup_auto_user_files',
                 'activities' => 'backup_auto_activities',
                 'blocks' => 'backup_auto_blocks',
@@ -401,10 +411,19 @@ abstract class backup_cron_automated_helper {
         if ($active === self::AUTO_BACKUP_DISABLED || ($rundirective == self::RUN_ON_SCHEDULE && $active === self::AUTO_BACKUP_MANUAL)) {
             return self::STATE_DISABLED;
         } else if (!empty($config->backup_auto_running)) {
-            // TODO: We should find some way of checking whether the automated
-            // backup has infact finished. In 1.9 this was being done by checking
-            // the log entries.
-            return self::STATE_RUNNING;
+            // Detect if the backup_auto_running semaphore is a valid one
+            // by looking for recent activity in the backup_controllers table
+            // for backups of type backup::MODE_AUTOMATED
+            $timetosee = 60 * 90; // Time to consider in order to clean the semaphore
+            $params = array( 'purpose'   => backup::MODE_AUTOMATED, 'timetolook' => (time() - $timetosee));
+            if ($DB->record_exists_select('backup_controllers',
+                "operation = 'backup' AND type = 'course' AND purpose = :purpose AND timemodified > :timetolook", $params)) {
+                return self::STATE_RUNNING; // Recent activity found, still running
+            } else {
+                // No recent activity found, let's clean the semaphore
+                mtrace('Automated backups activity not found in last ' . (int)$timetosee/60 . ' minutes. Cleaning running status');
+                backup_cron_automated_helper::set_state_running(false);
+            }
         }
         return self::STATE_OK;
     }

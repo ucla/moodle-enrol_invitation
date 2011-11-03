@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -45,7 +44,7 @@ class enrol_meta_handler {
             return true;
         }
 
-        //only course level roles are interesting
+        // only course level roles are interesting
         $parentcontext = get_context_instance_by_id($ra->contextid);
         if ($parentcontext->contextlevel != CONTEXT_COURSE) {
             return true;
@@ -81,7 +80,7 @@ class enrol_meta_handler {
     public function role_unassigned($ra) {
         global $DB;
 
-        //note: do not test if plugin enabled, we want to keep removing previous roles
+        // note: do not test if plugin enabled, we want to keep removing previous roles
 
         // prevent circular dependencies - we can not sync meta roles recursively
         if ($ra->component === 'enrol_meta') {
@@ -99,7 +98,7 @@ class enrol_meta_handler {
             return true;
         }
 
-        //note: do not check 'nosyncroleids', somebody might have just enabled it, we want to get rid of nosync roles gradually
+        // note: do not check 'nosyncroleids', somebody might have just enabled it, we want to get rid of nosync roles gradually
 
         foreach ($enrols as $enrol) {
             // Is the user enrolled? We want to sync only really enrolled users
@@ -114,8 +113,8 @@ class enrol_meta_handler {
                 continue;
             }
 
-            // unassing role, there is no other role assignment in parent course
-            role_unassign($ra->roleid, $ra->userid, $ra->contextid, 'enrol_meta', $enrol->id);
+            // unassign role, there is no other role assignment in parent course
+            role_unassign($ra->roleid, $ra->userid, $context->id, 'enrol_meta', $enrol->id);
         }
 
         return true;
@@ -125,6 +124,11 @@ class enrol_meta_handler {
         global $DB;
 
         if (!enrol_is_enabled('meta')) {
+            return true;
+        }
+
+        if ($ue->enrol === 'meta') {
+            // prevent circular dependencies - we can not sync meta enrolments recursively
             return true;
         }
 
@@ -153,7 +157,7 @@ class enrol_meta_handler {
                   JOIN {user_enrolments} ue ON (ue.enrolid = e.id AND ue.userid = :userid)
                   JOIN {enrol} pe ON (pe.courseid = e.customint1 AND pe.enrol <> 'meta' AND pe.courseid = :courseid)
              LEFT JOIN {user_enrolments} pue ON (pue.enrolid = pe.id AND pue.userid = ue.userid)
-                 WHERE pue.id IS NULL";
+                 WHERE pue.id IS NULL AND e.enrol = 'meta'";
         $params = array('courseid'=>$ue->courseid, 'userid'=>$ue->userid);
 
         $rs = $DB->get_recordset_sql($sql, $params);
@@ -170,7 +174,7 @@ class enrol_meta_handler {
     public function course_deleted($course) {
         global $DB;
 
-        //note: do not test if plugin enabled, we want to keep removing previously linked courses
+        // note: do not test if plugin enabled, we want to keep removing previously linked courses
 
         // does anything want to sync with this parent?
         if (!$enrols = $DB->get_records('enrol', array('customint1'=>$course->id, 'enrol'=>'meta'), 'id ASC')) {
@@ -179,7 +183,7 @@ class enrol_meta_handler {
 
         $plugin = enrol_get_plugin('meta');
         foreach ($enrols as $enrol) {
-            //unenrol all users
+            // unenrol all users
             $ues = $DB->get_recordset('user_enrolments', array('enrolid'=>$enrol->id));
             foreach ($ues as $ue) {
                 $plugin->unenrol_user($enrol, $ue->userid);
@@ -190,6 +194,7 @@ class enrol_meta_handler {
         return true;
     }
 }
+
 
 /**
  * Sync all meta course links.
@@ -208,7 +213,7 @@ function enrol_meta_sync($courseid = NULL) {
 
     // iterate through all not enrolled yet users
     if (enrol_is_enabled('meta')) {
-        list($enabled, $params) = $DB->get_in_or_equal(explode(',', $CFG->enrol_plugins_enabled), SQL_PARAMS_NAMED, 'e00');
+        list($enabled, $params) = $DB->get_in_or_equal(explode(',', $CFG->enrol_plugins_enabled), SQL_PARAMS_NAMED, 'e');
         $onecourse = "";
         if ($courseid) {
             $params['courseid'] = $courseid;
@@ -267,7 +272,7 @@ function enrol_meta_sync($courseid = NULL) {
         }
         $enabled[] = $DB->sql_empty(); // manual assignments are replicated too
 
-        list($enabled, $params) = $DB->get_in_or_equal($enabled, SQL_PARAMS_NAMED, 'e00');
+        list($enabled, $params) = $DB->get_in_or_equal($enabled, SQL_PARAMS_NAMED, 'e');
         $sql = "SELECT DISTINCT pra.roleid, pra.userid, c.id AS contextid, e.id AS enrolid
                   FROM {role_assignments} pra
                   JOIN {user} u ON (u.id = pra.userid AND u.deleted = 0)
@@ -281,7 +286,7 @@ function enrol_meta_sync($courseid = NULL) {
         $params['courseid'] = $courseid;
 
         if ($ignored = $meta->get_config('nosyncroleids')) {
-            list($notignored, $xparams) = $DB->get_in_or_equal(explode(',', $ignored), SQL_PARAMS_NAMED, 'i00', false);
+            list($notignored, $xparams) = $DB->get_in_or_equal(explode(',', $ignored), SQL_PARAMS_NAMED, 'ig', false);
             $params = array_merge($params, $xparams);
             $sql = "$sql AND pra.roleid $notignored";
         }
@@ -296,7 +301,7 @@ function enrol_meta_sync($courseid = NULL) {
     // remove unwanted roles - include ignored roles and disabled plugins too
     $params = array('coursecontext' => CONTEXT_COURSE, 'courseid' => $courseid);
     if ($ignored = $meta->get_config('nosyncroleids')) {
-        list($notignored, $xparams) = $DB->get_in_or_equal(explode(',', $ignored), SQL_PARAMS_NAMED, 'i00', false);
+        list($notignored, $xparams) = $DB->get_in_or_equal(explode(',', $ignored), SQL_PARAMS_NAMED, 'ig', false);
         $params = array_merge($params, $xparams);
         $notignored = "AND pra.roleid $notignored";
     } else {

@@ -185,11 +185,16 @@ class completion_info {
      *   for a course-module.
      */
     public function is_enabled($cm=null) {
-        global $CFG;
+        global $CFG, $DB;
 
         // First check global completion
         if (!isset($CFG->enablecompletion) || $CFG->enablecompletion == COMPLETION_DISABLED) {
             return COMPLETION_DISABLED;
+        }
+
+        // Load data if we do not have enough
+        if (!isset($this->course->enablecompletion)) {
+            $this->course->enablecompletion = $DB->get_field('course', 'enablecompletion', array('id' => $this->course->id));
         }
 
         // Check course completion
@@ -592,6 +597,9 @@ class completion_info {
      * Should be called whenever a module is 'viewed' (it is up to the module how to
      * determine that). Has no effect if viewing is not set as a completion condition.
      *
+     * Note that this function must be called before you print the page header because
+     * it is possible that the navigation block may depend on it. If you call it after
+     * printing the header, it shows a developer debug warning.
      * @uses COMPLETION_VIEW_NOT_REQUIRED
      * @uses COMPLETION_VIEWED
      * @uses COMPLETION_COMPLETE
@@ -600,6 +608,11 @@ class completion_info {
      * @return void
      */
     public function set_module_viewed($cm, $userid=0) {
+        global $PAGE, $UNITTEST;
+        if ($PAGE->headerprinted && empty($UNITTEST->running)) {
+            debugging('set_module_viewed must be called before header is printed',
+                    DEBUG_DEVELOPER);
+        }
         // Don't do anything if view condition is not turned on
         if ($cm->completionview == COMPLETION_VIEW_NOT_REQUIRED || !$this->is_enabled($cm)) {
             return;
@@ -922,16 +935,25 @@ class completion_info {
     function internal_set_data($cm, $data) {
         global $USER, $SESSION, $DB;
 
-        if ($data->id) {
-            // Has real (nonzero) id meaning that a database row exists
-            $DB->update_record('course_modules_completion', $data);
-        } else {
+        $transaction = $DB->start_delegated_transaction();
+        if (!$data->id) {
+            // Check there isn't really a row
+            $data->id = $DB->get_field('course_modules_completion', 'id',
+                    array('coursemoduleid'=>$data->coursemoduleid, 'userid'=>$data->userid));
+        }
+        if (!$data->id) {
             // Didn't exist before, needs creating
             $data->id = $DB->insert_record('course_modules_completion', $data);
+        } else {
+            // Has real (nonzero) id meaning that a database row exists, update
+            $DB->update_record('course_modules_completion', $data);
         }
+        $transaction->allow_commit();
 
         if ($data->userid == $USER->id) {
             $SESSION->completioncache[$cm->course][$cm->id] = $data;
+            $reset = 'reset';
+            get_fast_modinfo($reset);
         }
     }
 
@@ -989,10 +1011,10 @@ class completion_info {
 
         $sql  = "SELECT u.id ";
         $sql .= $tracked->sql;
-        $sql .= ' AND u.id = :user';
+        $sql .= ' AND u.id = :userid';
 
         $params = $tracked->data;
-        $params['user'] = (int)$userid;
+        $params['userid'] = (int)$userid;
         return $DB->record_exists_sql($sql, $params);
     }
 

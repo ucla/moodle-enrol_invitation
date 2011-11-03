@@ -502,7 +502,7 @@ class auth_plugin_ldap extends auth_plugin_base {
         events_trigger('user_created', $user);
 
         if (! send_confirmation_email($user)) {
-            print_error('auth_emailnoemail', 'auth_email');
+            print_error('noemail', 'auth_ldap');
         }
 
         if ($notify) {
@@ -579,16 +579,17 @@ class auth_plugin_ldap extends auth_plugin_base {
         $sr = ldap_read($ldapconnection, $user_dn, '(objectClass=*)', $search_attribs);
         if ($sr)  {
             $info = ldap_get_entries_moodle($ldapconnection, $sr);
-            $info = array_change_key_case($info, CASE_LOWER);
-            if (!empty ($info) and !empty($info[0][$this->config->expireattr][0])) {
-                $expiretime = $this->ldap_expirationtime2unix($info[0][$this->config->expireattr][0], $ldapconnection, $user_dn);
-                if ($expiretime != 0) {
-                    $now = time();
-                    if ($expiretime > $now) {
-                        $result = ceil(($expiretime - $now) / DAYSECS);
-                    }
-                    else {
-                        $result = floor(($expiretime - $now) / DAYSECS);
+            if (!empty ($info)) {
+                $info = array_change_key_case($info[0], CASE_LOWER);
+                if (!empty($info[$this->config->expireattr][0])) {
+                    $expiretime = $this->ldap_expirationtime2unix($info[$this->config->expireattr][0], $ldapconnection, $user_dn);
+                    if ($expiretime != 0) {
+                        $now = time();
+                        if ($expiretime > $now) {
+                            $result = ceil(($expiretime - $now) / DAYSECS);
+                        } else {
+                            $result = floor(($expiretime - $now) / DAYSECS);
+                        }
                     }
                 }
             }
@@ -689,7 +690,7 @@ class auth_plugin_ldap extends auth_plugin_base {
         // Find users in DB that aren't in ldap -- to be removed!
         // this is still not as scalable (but how often do we mass delete?)
         if ($this->config->removeuser !== AUTH_REMOVEUSER_KEEP) {
-            $sql = 'SELECT u.id, u.username, u.email, u.auth
+            $sql = 'SELECT u.*
                       FROM {user} u
                       LEFT JOIN {tmp_extuser} e ON (u.username = e.username AND u.mnethostid = e.mnethostid)
                      WHERE u.auth = ?
@@ -1385,7 +1386,7 @@ class auth_plugin_ldap extends auth_plugin_base {
                 }
             }
         }
-        $moodleattributes['username'] = $this->config->user_attribute;
+        $moodleattributes['username'] = moodle_strtolower(trim($this->config->user_attribute));
         return $moodleattributes;
     }
 

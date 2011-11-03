@@ -41,12 +41,14 @@ abstract class simplified_parser_processor extends progressive_parser_processor 
     protected $paths;       // array of paths we are interested on
     protected $parentpaths; // array of parent paths of the $paths
     protected $parentsinfo; // array of parent attributes to be added as child tags
+    protected $startendinfo;// array (stack) of startend information
 
-    public function __construct(array $paths) {
+    public function __construct(array $paths = array()) {
         parent::__construct();
         $this->paths = array();
         $this->parentpaths = array();
         $this->parentsinfo = array();
+        $this->startendinfo = array();
         // Add paths and parentpaths. We are looking for attributes there
         foreach ($paths as $key => $path) {
             $this->add_path($path);
@@ -62,6 +64,16 @@ abstract class simplified_parser_processor extends progressive_parser_processor 
      * Get the already simplified chunk and dispatch it
      */
     abstract protected function dispatch_chunk($data);
+
+    /**
+     * Get one selected path and notify about start
+     */
+    abstract protected function notify_path_start($path);
+
+    /**
+     * Get one selected path and notify about end
+     */
+    abstract protected function notify_path_end($path);
 
     /**
      * Get one chunk of parsed data and make it simpler
@@ -85,6 +97,10 @@ abstract class simplified_parser_processor extends progressive_parser_processor 
 
         // If the path is a registered one, let's process it
         if ($this->path_is_selected($path)) {
+
+            // Send all the pending notify_path_start/end() notifications
+            $this->process_pending_startend_notifications($path, 'start');
+
             // First of all, look for attributes available at parentsinfo
             // in order to get them available as normal tags
             if (isset($this->parentsinfo[$parentpath][$tag]['attrs'])) {
@@ -136,10 +152,85 @@ abstract class simplified_parser_processor extends progressive_parser_processor 
         } else {
             $this->chunks--; // Chunk skipped
         }
+
         return true;
     }
 
+    /**
+     * The parser fires this each time one path is going to be parsed
+     *
+     * @param string $path xml path which parsing has started
+     */
+    public function before_path($path) {
+        if ($this->path_is_selected($path)) {
+            $this->startendinfo[] = array('path' => $path, 'action' => 'start');
+        }
+    }
+
+    /**
+     * The parser fires this each time one path has been parsed
+     *
+     * @param string $path xml path which parsing has ended
+     */
+    public function after_path($path) {
+        $toprocess = false;
+        // If the path being closed matches (same or parent) the first path in the stack
+        // we process pending startend notifications until one matching end is found
+        if ($element = reset($this->startendinfo)) {
+            $elepath = $element['path'];
+            $eleaction = $element['action'];
+            if (strpos($elepath, $path) === 0) {
+                $toprocess = true;
+            }
+
+        // Also, if the stack of startend notifications is empty, we can process current end
+        // path safely
+        } else {
+            $toprocess = true;
+        }
+        if ($this->path_is_selected($path)) {
+            $this->startendinfo[] = array('path' => $path, 'action' => 'end');
+        }
+        // Send all the pending startend notifications if decided to do so
+        if ($toprocess) {
+            $this->process_pending_startend_notifications($path, 'end');
+        }
+    }
+
+
 // Protected API starts here
+
+    /**
+     * Adjust start/end til finding one match start/end path (included)
+     *
+     * This will trigger all the pending {@see notify_path_start} and
+     * {@see notify_path_end} calls for one given path and action
+     *
+     * @param string path the path to look for as limit
+     * @param string action the action to look for as limit
+     */
+    protected function process_pending_startend_notifications($path, $action) {
+
+        // Iterate until one matching path and action is found (or the array is empty)
+        $elecount = count($this->startendinfo);
+        $elematch = false;
+        while ($elecount > 0 && !$elematch) {
+            $element = array_shift($this->startendinfo);
+            $elecount--;
+            $elepath = $element['path'];
+            $eleaction = $element['action'];
+
+            if ($elepath == $path && $eleaction == $action) {
+                $elematch = true;
+            }
+
+            if ($eleaction == 'start') {
+                $this->notify_path_start($elepath);
+            } else {
+                $this->notify_path_end($elepath);
+            }
+        }
+    }
 
     protected function postprocess_chunk($data) {
         $this->dispatch_chunk($data);
@@ -151,5 +242,19 @@ abstract class simplified_parser_processor extends progressive_parser_processor 
 
     protected function path_is_selected_parent($path) {
         return in_array($path, $this->parentpaths);
+    }
+
+    /**
+     * Returns the first selected parent if available or false
+     */
+    protected function selected_parent_exists($path) {
+        $parentpath = progressive_parser::dirname($path);
+        while ($parentpath != '/') {
+            if ($this->path_is_selected($parentpath)) {
+                return $parentpath;
+            }
+            $parentpath = progressive_parser::dirname($parentpath);
+        }
+        return false;
     }
 }

@@ -60,7 +60,7 @@ $fstring->question = get_string('question', 'feedback');
 $fstring->responses = get_string('responses', 'feedback');
 $fstring->idnumber = get_string('idnumber');
 $fstring->username = get_string('username');
-$fstring->fullname = get_string('fullname');
+$fstring->fullname = get_string('fullnameuser');
 $fstring->courseid = get_string('courseid', 'feedback');
 $fstring->course = get_string('course');
 $fstring->anonymous_user = get_string('anonymous_user','feedback');
@@ -310,8 +310,9 @@ function feedback_excelprint_detailed_items(&$worksheet, $xlsFormats, $completed
     }
     $worksheet->write_number($rowOffset, $colOffset, $courseid, $xlsFormats->default);
     $colOffset++;
-    if(isset($courseid) AND $course = $DB->get_record('course', array('id'=>$courseid))) {
-        $worksheet->write_string($rowOffset, $colOffset, $course->shortname, $xlsFormats->default);
+    if (isset($courseid) AND $course = $DB->get_record('course', array('id' => $courseid))) {
+        $shortname = format_string($course->shortname, true, array('context' => get_context_instance(CONTEXT_COURSE, $courseid)));
+        $worksheet->write_string($rowOffset, $colOffset, $shortname, $xlsFormats->default);
     }
     return $rowOffset + 1;
 }

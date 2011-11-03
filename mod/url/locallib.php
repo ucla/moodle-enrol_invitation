@@ -152,7 +152,9 @@ function url_display_frame($url, $cm, $course) {
         $context = get_context_instance(CONTEXT_MODULE, $cm->id);
         $exteurl = url_get_full_url($url, $cm, $course, $config);
         $navurl = "$CFG->wwwroot/mod/url/view.php?id=$cm->id&amp;frameset=top";
-        $title = strip_tags(format_string($course->shortname.': '.$url->name));
+        $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+        $courseshortname = format_string($course->shortname, true, array('context' => $coursecontext));
+        $title = strip_tags($courseshortname.': '.format_string($url->name));
         $framesize = $config->framesize;
         $modulename = s(get_string('modulename','url'));
         $dir = get_string('thisdirection', 'langconfig');
@@ -234,6 +236,8 @@ function url_display_embed($url, $cm, $course) {
     $link = html_writer::tag('a', $fullurl, array('href'=>str_replace('&amp;', '&', $fullurl)));
     $clicktoopen = get_string('clicktoopen', 'url', $link);
 
+    $extension = resourcelib_get_extension($url->externalurl);
+
     if (in_array($mimetype, array('image/gif','image/jpeg','image/png'))) {  // It's an image
         $code = resourcelib_embed_image($fullurl, $title);
 
@@ -241,7 +245,7 @@ function url_display_embed($url, $cm, $course) {
         // MP3 audio file
         $code = resourcelib_embed_mp3($fullurl, $title, $clicktoopen);
 
-    } else if ($mimetype == 'video/x-flv') {
+    } else if ($mimetype == 'video/x-flv' or $extension === 'f4v') {
         // Flash video file
         $code = resourcelib_embed_flashvideo($fullurl, $title, $clicktoopen);
 
@@ -305,11 +309,11 @@ function url_get_final_display_type($url) {
                              'application/pdf', 'text/html');  // these are known to cause trouble for external links, sorry
     static $embed    = array('image/gif', 'image/jpeg', 'image/png', 'image/svg+xml',         // images
                              'application/x-shockwave-flash', 'video/x-flv', 'video/x-ms-wm', // video formats
-                             'video/quicktime', 'video/mpeg',
+                             'video/quicktime', 'video/mpeg', 'video/mp4',
                              'audio/mp3', 'audio/x-realaudio-plugin', 'x-realaudio-plugin',   // audio formats,
                             );
 
-    $mimetype = mimeinfo('type', $url->externalurl);
+    $mimetype = resourcelib_guess_url_mimetype($url->externalurl);
 
     if (in_array($mimetype, $download)) {
         return RESOURCELIB_DISPLAY_DOWNLOAD;
@@ -403,10 +407,12 @@ function url_get_variable_values($url, $cm, $course, $config) {
 
     $site = get_site();
 
+    $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+
     $values = array (
         'courseid'        => $course->id,
         'coursefullname'  => format_string($course->fullname),
-        'courseshortname' => $course->shortname,
+        'courseshortname' => format_string($course->shortname, true, array('context' => $coursecontext)),
         'courseidnumber'  => $course->idnumber,
         'coursesummary'   => $course->summary,
         'courseformat'    => $course->format,

@@ -39,6 +39,30 @@ abstract class message_output {
     public abstract function process_form($form, &$preferences);
     public abstract function load_data(&$preferences, $userid);
     public abstract function config_form($preferences);
+    /**
+     * @return bool have all the necessary config settings been
+     * made that allow this plugin to be used.
+     */
+    public function is_system_configured() {
+        return true;
+    }
+    /**
+     * @param  object $user the user object, defaults to $USER.
+     * @return bool has the user made all the necessary settings
+     * in their profile to allow this plugin to be used.
+     */
+    public function is_user_configured($user = null) {
+        return true;
+    }
+
+    /**
+     * @return int the Default message output settings for this output, for
+     * message providers that do not specify what the settings should be for
+     * this output in the messages.php file.
+     */
+    public function get_default_messaging_settings() {
+        return MESSAGE_PERMITTED;
+    }
 }
 
 

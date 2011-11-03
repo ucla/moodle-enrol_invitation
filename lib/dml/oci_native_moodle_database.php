@@ -340,12 +340,48 @@ class oci_native_moodle_database extends moodle_database {
         return $error;
     }
 
+    /**
+     * Prepare the statement for execution
+     * @throws dml_connection_exception
+     * @param string $sql
+     * @return resource
+     */
     protected function parse_query($sql) {
         $stmt = oci_parse($this->oci, $sql);
         if ($stmt == false) {
             throw new dml_connection_exception('Can not parse sql query'); //TODO: maybe add better info
         }
         return $stmt;
+    }
+
+    /**
+     * Make sure there are no reserved words in param names...
+     * @param string $sql
+     * @param array $params
+     * @return array ($sql, $params) updated query and parameters
+     */
+    protected function tweak_param_names($sql, array $params) {
+        if (empty($params)) {
+            return array($sql, $params);
+        }
+
+        $newparams = array();
+        $searcharr = array(); // search => replace pairs
+        foreach ($params as $name => $value) {
+            // Keep the name within the 30 chars limit always (prefixing/replacing)
+            if (strlen($name) <= 28) {
+                $newname = 'o_' . $name;
+            } else {
+                $newname = 'o_' . substr($name, 2);
+            }
+            $newparams[$newname] = $value;
+            $searcharr[':' . $name] = ':' . $newname;
+        }
+        // sort by length desc to avoid potential str_replace() overlap
+        uksort($searcharr, array('oci_native_moodle_database', 'compare_by_length_desc'));
+
+        $sql = str_replace(array_keys($searcharr), $searcharr, $sql);
+        return array($sql, $newparams);
     }
 
     /**
@@ -798,6 +834,17 @@ class oci_native_moodle_database extends moodle_database {
     }
 
     /**
+     * Helper function to order by string length desc
+     *
+     * @param $a string first element to compare
+     * @param $b string second element to compare
+     * @return int < 0 $a goes first (is less), 0 $b goes first, 0 doesn't matter
+     */
+    private function compare_by_length_desc($a, $b) {
+        return strlen($b) - strlen($a);
+    }
+
+    /**
      * Is db in unicode mode?
      * @return bool
      */
@@ -843,11 +890,12 @@ class oci_native_moodle_database extends moodle_database {
             }
             foreach($params as $key => $value) {
                 // Decouple column name and param name as far as sometimes they aren't the same
-                $columnname = $key; // Default columnname (for DB introspecting is key), but...
-                if ($key == 'newfieldtoset') { // found case where column and key diverge, handle that
+                if ($key == 'o_newfieldtoset') { // found case where column and key diverge, handle that
                     $columnname   = key($value);    // columnname is the key of the array
                     $params[$key] = $value[$columnname]; // set the proper value in the $params array and
                     $value        = $value[$columnname]; // set the proper value in the $value variable
+                } else {
+                    $columnname = preg_replace('/^o_/', '', $key); // Default columnname (for DB introspecting is key), but...
                 }
                 // Continue processing
                 // Now, handle already detected LOBs
@@ -940,6 +988,7 @@ class oci_native_moodle_database extends moodle_database {
             throw new coding_exception('moodle_database::execute() Multiple sql statements found or bound parameters not used properly in query!');
         }
 
+        list($sql, $params) = $this->tweak_param_names($sql, $params);
         $this->query_start($sql, $params, SQL_QUERY_UPDATE);
         $stmt = $this->parse_query($sql);
         $this->bind_params($stmt, $params);
@@ -1002,7 +1051,8 @@ class oci_native_moodle_database extends moodle_database {
 
         list($rawsql, $params) = $this->get_limit_sql($sql, $params, $limitfrom, $limitnum);
 
-        $this->query_start($sql, $params, SQL_QUERY_SELECT);
+        list($rawsql, $params) = $this->tweak_param_names($rawsql, $params);
+        $this->query_start($rawsql, $params, SQL_QUERY_SELECT);
         $stmt = $this->parse_query($rawsql);
         $this->bind_params($stmt, $params);
         $result = oci_execute($stmt, $this->commit_status);
@@ -1035,7 +1085,8 @@ class oci_native_moodle_database extends moodle_database {
 
         list($rawsql, $params) = $this->get_limit_sql($sql, $params, $limitfrom, $limitnum);
 
-        $this->query_start($sql, $params, SQL_QUERY_SELECT);
+        list($rawsql, $params) = $this->tweak_param_names($rawsql, $params);
+        $this->query_start($rawsql, $params, SQL_QUERY_SELECT);
         $stmt = $this->parse_query($rawsql);
         $this->bind_params($stmt, $params);
         $result = oci_execute($stmt, $this->commit_status);
@@ -1073,6 +1124,7 @@ class oci_native_moodle_database extends moodle_database {
     public function get_fieldset_sql($sql, array $params=null) {
         list($sql, $params, $type) = $this->fix_sql_params($sql, $params);
 
+        list($sql, $params) = $this->tweak_param_names($sql, $params);
         $this->query_start($sql, $params, SQL_QUERY_SELECT);
         $stmt = $this->parse_query($sql);
         $this->bind_params($stmt, $params);
@@ -1135,6 +1187,8 @@ class oci_native_moodle_database extends moodle_database {
 
         $id = null;
 
+        // note we don't need tweak_param_names() here. Placeholders are safe column names. MDL-28080
+        // list($sql, $params) = $this->tweak_param_names($sql, $params);
         $this->query_start($sql, $params, SQL_QUERY_INSERT);
         $stmt = $this->parse_query($sql);
         $descriptors = $this->bind_params($stmt, $params, $table);
@@ -1246,6 +1300,8 @@ class oci_native_moodle_database extends moodle_database {
         $sql = "UPDATE {" . $table . "} SET $sets WHERE id=:id";
         list($sql, $params, $type) = $this->fix_sql_params($sql, $params);
 
+        // note we don't need tweak_param_names() here. Placeholders are safe column names. MDL-28080
+        // list($sql, $params) = $this->tweak_param_names($sql, $params);
         $this->query_start($sql, $params, SQL_QUERY_UPDATE);
         $stmt = $this->parse_query($sql);
         $descriptors = $this->bind_params($stmt, $params, $table);
@@ -1335,6 +1391,7 @@ class oci_native_moodle_database extends moodle_database {
         $sql = "UPDATE {" . $table . "} SET $newsql $select";
         list($sql, $params, $type) = $this->fix_sql_params($sql, $params);
 
+        list($sql, $params) = $this->tweak_param_names($sql, $params);
         $this->query_start($sql, $params, SQL_QUERY_UPDATE);
         $stmt = $this->parse_query($sql);
         $descriptors = $this->bind_params($stmt, $params, $table);
@@ -1365,6 +1422,7 @@ class oci_native_moodle_database extends moodle_database {
 
         list($sql, $params, $type) = $this->fix_sql_params($sql, $params);
 
+        list($sql, $params) = $this->tweak_param_names($sql, $params);
         $this->query_start($sql, $params, SQL_QUERY_UPDATE);
         $stmt = $this->parse_query($sql);
         $this->bind_params($stmt, $params);

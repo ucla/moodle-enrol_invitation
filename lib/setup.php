@@ -183,6 +183,17 @@ if (file_exists("$CFG->dataroot/climaintenance.html")) {
     }
 }
 
+if (CLI_SCRIPT) {
+    // sometimes people use different PHP binary for web and CLI, make 100% sure they have the supported PHP version
+    if (version_compare(phpversion(), '5.3.2') < 0) {
+        $phpversion = phpversion();
+        // do NOT localise - lang strings would not work here and we CAN NOT move it to later place
+        echo "Moodle 2.1 or later requires at least PHP 5.3.2 (currently using version $phpversion).\n";
+        echo "Some servers may have multiple PHP versions installed, are you using the correct executable?\n";
+        exit(1);
+    }
+}
+
 // Detect ajax scripts - they are similar to CLI because we can not redirect, output html, etc.
 if (!defined('AJAX_SCRIPT')) {
     define('AJAX_SCRIPT', false);
@@ -226,6 +237,14 @@ if (defined('ABORT_AFTER_CONFIG')) {
 /** Used by library scripts to check they are being called by Moodle */
 if (!defined('MOODLE_INTERNAL')) { // necessary because cli installer has to define it earlier
     define('MOODLE_INTERNAL', true);
+}
+
+// Early profiling start, based exclusively on config.php $CFG settings
+if (!empty($CFG->earlyprofilingenabled)) {
+    require_once($CFG->libdir . '/xhprof/xhprof_moodle.php');
+    if (profiling_start()) {
+        register_shutdown_function('profiling_stop');
+    }
 }
 
 /**
@@ -644,9 +663,6 @@ if (isset($_SERVER['PHP_SELF'])) {
     unset($phppos);
 }
 
-// initialise ME's
-initialise_fullme();
-
 // init session prevention flag - this is defined on pages that do not want session
 if (CLI_SCRIPT) {
     // no sessions in CLI scripts possible
@@ -669,11 +685,16 @@ session_get_instance();
 $SESSION = &$_SESSION['SESSION'];
 $USER    = &$_SESSION['USER'];
 
-// include and start profiling if needed, and register profiling_stop as shutdown function
+// initialise ME's
+// This must presently come AFTER $USER has been set up.
+initialise_fullme();
+
+// Late profiling, only happening if early one wasn't started
 if (!empty($CFG->profilingenabled)) {
     require_once($CFG->libdir . '/xhprof/xhprof_moodle.php');
-    profiling_start();
-    register_shutdown_function('profiling_stop');
+    if (profiling_start()) {
+        register_shutdown_function('profiling_stop');
+    }
 }
 
 // Process theme change in the URL.

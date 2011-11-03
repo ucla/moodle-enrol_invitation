@@ -45,13 +45,24 @@ if(count($groupidarray)==0) {
     print_error('errorselectsome','group',$returnurl);
 }
 
+
+require_once($CFG->libdir.'/publicprivate/course.class.php');
+$publicprivate_course = new PublicPrivate_Course($courseid);
+
 if ($confirm && data_submitted()) {
     if (!confirm_sesskey() ) {
         print_error('confirmsesskeybad','error',$returnurl);
     }
 
+    /**
+     * Remove all groups except for the public/private group.
+     *
+     * @author ebollens
+     * @version 20110719
+     */
     foreach($groupidarray as $groupid) {
-        groups_delete_group($groupid);
+        if(!$publicprivate_course->is_group($groupid))
+            groups_delete_group($groupid);
     }
 
     redirect($returnurl);
@@ -59,19 +70,44 @@ if ($confirm && data_submitted()) {
     $PAGE->set_title(get_string('deleteselectedgroup', 'group'));
     $PAGE->set_heading($course->fullname . ': '. get_string('deleteselectedgroup', 'group'));
     echo $OUTPUT->header();
-    $optionsyes = array('courseid'=>$courseid, 'groups'=>$groupids, 'sesskey'=>sesskey(), 'confirm'=>1);
-    $optionsno = array('id'=>$courseid);
-    if(count($groupnames)==1) {
-        $message=get_string('deletegroupconfirm', 'group', $groupnames[0]);
-    } else {
-        $message=get_string('deletegroupsconfirm', 'group').'<ul>';
-        foreach($groupnames as $groupname) {
-            $message.='<li>'.$groupname.'</li>';
+
+    /**
+     * Alert that public/private grouping cannot be removed or otherwise present
+     * the remove confirmation box.
+     *
+     * @author ebollens
+     * @version 20110719
+     */
+    $publicprivate_course_used = false;
+    foreach($groupidarray as $groupid)
+        if($publicprivate_course->is_group($groupid))
+            $publicprivate_course_used = true;
+    
+    if($publicprivate_course_used) {
+        $pluralize = 'publicprivatecannotremove_oneof';
+        if (count($groupidarray) <= 1) {
+            $pluralize = 'publicprivatecannotremove_one';
         }
-        $message.='</ul>';
+
+        $pluralizestr = get_string($pluralize);
+        echo $OUTPUT->notification($pluralizestr);
+        echo $OUTPUT->continue_button('index.php?id='.$courseid);
+    } else {
+        $optionsyes = array('courseid'=>$courseid, 'groups'=>$groupids, 'sesskey'=>sesskey(), 'confirm'=>1);
+        $optionsno = array('id'=>$courseid);
+        if(count($groupnames)==1) {
+            $message=get_string('deletegroupconfirm', 'group', $groupnames[0]);
+        } else {
+            $message=get_string('deletegroupsconfirm', 'group').'<ul>';
+            foreach($groupnames as $groupname) {
+                $message.='<li>'.$groupname.'</li>';
+            }
+            $message.='</ul>';
+        }
+        $formcontinue = new single_button(new moodle_url('delete.php', $optionsyes), get_string('yes'), 'post');
+        $formcancel = new single_button(new moodle_url('index.php', $optionsno), get_string('no'), 'get');
+        echo $OUTPUT->confirm($message, $formcontinue, $formcancel);
     }
-    $formcontinue = new single_button(new moodle_url('delete.php', $optionsyes), get_string('yes'), 'post');
-    $formcancel = new single_button(new moodle_url('index.php', $optionsno), get_string('no'), 'get');
-    echo $OUTPUT->confirm($message, $formcontinue, $formcancel);
+
     echo $OUTPUT->footer();
 }

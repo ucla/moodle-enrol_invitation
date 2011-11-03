@@ -38,7 +38,17 @@ $groupmembersselector->set_extra_fields(array());
 $potentialmembersselector = new group_non_members_selector('addselect', array('groupid' => $groupid, 'courseid' => $course->id));
 $potentialmembersselector->set_extra_fields(array());
 
-if (optional_param('add', false, PARAM_BOOL) && confirm_sesskey()) {
+/**
+ * Require that group assignments are not made on the public/private group.
+ *
+ * @author ebollens
+ * @version 20110719
+ */
+
+require_once($CFG->libdir.'/publicprivate/course.class.php');
+$publicprivate_course = new PublicPrivate_Course($course);
+
+if (optional_param('add', false, PARAM_BOOL) && confirm_sesskey() && !$publicprivate_course->is_group($group)) {
     $userstoadd = $potentialmembersselector->get_selected_users();
     if (!empty($userstoadd)) {
         foreach ($userstoadd as $user) {
@@ -51,7 +61,7 @@ if (optional_param('add', false, PARAM_BOOL) && confirm_sesskey()) {
     }
 }
 
-if (optional_param('remove', false, PARAM_BOOL) && confirm_sesskey()) {
+if (optional_param('remove', false, PARAM_BOOL) && confirm_sesskey() && !$publicprivate_course->is_group($group)) {
     $userstoremove = $groupmembersselector->get_selected_users();
     if (!empty($userstoremove)) {
         foreach ($userstoremove as $user) {
@@ -83,6 +93,19 @@ $PAGE->set_title("$course->shortname: $strgroups");
 $PAGE->set_heading($course->fullname);
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('adduserstogroup', 'group').": $groupname", 3);
+
+/**
+ * Alert that public/private group cannot be edited.
+ *
+ * @author ebollens
+ * @version 20110719
+ */
+if($publicprivate_course->is_group($group)) {
+    echo $OUTPUT->notification(get_string('publicprivatecannotremove'));
+    echo $OUTPUT->continue_button('index.php?id='.$course->id);
+    echo $OUTPUT->footer();
+    die;
+}
 
 /// Print group info -  TODO: remove tables for layout here
 $groupinfotable = new html_table();

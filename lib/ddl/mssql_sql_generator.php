@@ -282,7 +282,7 @@ class mssql_sql_generator extends sql_generator {
     /**
      * Given one xmldb_table and one xmldb_field, return the SQL statements needed to alter the field in the table
      */
-    public function getAlterFieldSQL($xmldb_table, $xmldb_field) {
+    public function getAlterFieldSQL($xmldb_table, $xmldb_field, $skip_type_clause = NULL, $skip_default_clause = NULL, $skip_notnull_clause = NULL) {
 
         $results = array(); /// To store all the needed SQL commands
 
@@ -298,7 +298,7 @@ class mssql_sql_generator extends sql_generator {
         $oldlength = $metac->max_length;
         $olddecimals = empty($metac->scale) ? null : $metac->scale;
         $oldnotnull = empty($metac->not_null) ? false : $metac->not_null;
-        $olddefault = empty($metac->has_default) ? null : strtok($metac->default_value, ':');
+        //$olddefault = empty($metac->has_default) ? null : strtok($metac->default_value, ':');
 
         $typechanged = true;  //By default, assume that the column type has changed
         $lengthchanged = true;  //By default, assume that the column length has changed

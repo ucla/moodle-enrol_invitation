@@ -152,6 +152,7 @@ if ($course->id != SITEID && has_capability('moodle/course:viewparticipants', $c
 }
 
 $PAGE->navigation->extend_for_user($user);
+$PAGE->navigation->set_userid_for_parent_checks($user->id); // see MDL-25805 for reasons and for full commit reference for reversal when fixed.
 $PAGE->set_title("$course->shortname: $stractivityreport ($mode)");
 $PAGE->set_heading($course->fullname);
 echo $OUTPUT->header();
@@ -466,7 +467,8 @@ switch ($mode) {
 
                     // Get course info
                     $c_course = $DB->get_record('course', array('id' => $c_info->course_id));
-                    $course_name = $c_course->fullname;
+                    $course_context = get_context_instance(CONTEXT_COURSE, $c_course->id, MUST_EXIST);
+                    $course_name = format_string($c_course->fullname, true, array('context' => $course_context));
 
                     // Get completions
                     $completions = $c_info->get_completions($user->id);
@@ -540,7 +542,7 @@ switch ($mode) {
 
                         // Display course name on first row
                         if ($first_row) {
-                            echo '<tr><td class="c0"><a href="'.$CFG->wwwroot.'/course/view.php?id='.$c_course->id.'">'.format_string($course_name).'</a></td>';
+                            echo '<tr><td class="c0"><a href="'.$CFG->wwwroot.'/course/view.php?id='.$c_course->id.'">'.$course_name.'</a></td>';
                         } else {
                             echo '<tr><td class="c0"></td>';
                         }

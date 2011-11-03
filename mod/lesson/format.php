@@ -29,6 +29,27 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+/**#@+
+ * The core question types.
+ *
+ * These used to be in lib/questionlib.php, but are being deprecated. Copying them
+ * here to keep this code working for now.
+ */
+if (!defined('SHORTANSWER')) {
+    define("SHORTANSWER",   "shortanswer");
+    define("TRUEFALSE",     "truefalse");
+    define("MULTICHOICE",   "multichoice");
+    define("RANDOM",        "random");
+    define("MATCH",         "match");
+    define("RANDOMSAMATCH", "randomsamatch");
+    define("DESCRIPTION",   "description");
+    define("NUMERICAL",     "numerical");
+    define("MULTIANSWER",   "multianswer");
+    define("CALCULATED",    "calculated");
+    define("ESSAY",         "essay");
+}
+/**#@-*/
+
 /**
  * Given some question info and some data about the the answers
  * this function parses, organises and saves the question
@@ -76,7 +97,8 @@ function lesson_save_question_options($question, $lesson) {
                     $answer->timecreated   = $timenow;
                     $answer->grade = $question->fraction[$key] * 100;
                     $answer->answer   = $dataanswer;
-                    $answer->response = $question->feedback[$key];
+                    $answer->response = $question->feedback[$key]['text'];
+                    $answer->responseformat = $question->feedback[$key]['format'];
                     $answer->id = $DB->insert_record("lesson_answers", $answer);
                     $answers[] = $answer->id;
                     if ($question->fraction[$key] > $maxfraction) {
@@ -113,7 +135,8 @@ function lesson_save_question_options($question, $lesson) {
                     $max = $question->answer[$key] + $question->tolerance[$key];
                     $answer->answer   = $min.":".$max;
                     // $answer->answer   = $question->min[$key].":".$question->max[$key]; original line for min/max
-                    $answer->response = $question->feedback[$key];
+                    $answer->response = $question->feedback[$key]['text'];
+                    $answer->responseformat = $question->feedback[$key]['format'];
                     $answer->id = $DB->insert_record("lesson_answers", $answer);
 
                     $answers[] = $answer->id;
@@ -139,12 +162,13 @@ function lesson_save_question_options($question, $lesson) {
             $answer->pageid = $question->id;
             $answer->timecreated   = $timenow;
             $answer->answer = get_string("true", "quiz");
-            $answer->grade = $question->answer * 100;
+            $answer->grade = $question->correctanswer * 100;
             if ($answer->grade > 50 ) {
                 $answer->jumpto = LESSON_NEXTPAGE;
             }
             if (isset($question->feedbacktrue)) {
-                $answer->response = $question->feedbacktrue;
+                $answer->response = $question->feedbacktrue['text'];
+                $answer->responseformat = $question->feedbacktrue['format'];
             }
             $DB->insert_record("lesson_answers", $answer);
 
@@ -154,12 +178,13 @@ function lesson_save_question_options($question, $lesson) {
             $answer->pageid = $question->id;
             $answer->timecreated   = $timenow;
             $answer->answer = get_string("false", "quiz");
-            $answer->grade = (1 - (int)$question->answer) * 100;
+            $answer->grade = (1 - (int)$question->correctanswer) * 100;
             if ($answer->grade > 50 ) {
                 $answer->jumpto = LESSON_NEXTPAGE;
             }
             if (isset($question->feedbackfalse)) {
-                $answer->response = $question->feedbackfalse;
+                $answer->response = $question->feedbackfalse['text'];
+                $answer->responseformat = $question->feedbackfalse['format'];
             }
             $DB->insert_record("lesson_answers", $answer);
 
@@ -191,8 +216,10 @@ function lesson_save_question_options($question, $lesson) {
                         $answer->score = 1;
                     }
                     // end Replace
-                    $answer->answer   = $dataanswer;
-                    $answer->response = $question->feedback[$key];
+                    $answer->answer   = $dataanswer['text'];
+                    $answer->answerformat   = $dataanswer['format'];
+                    $answer->response = $question->feedback[$key]['text'];
+                    $answer->responseformat = $question->feedback[$key]['format'];
                     $answer->id = $DB->insert_record("lesson_answers", $answer);
                     // for Sanity checks
                     if ($question->fraction[$key] > 0) {
@@ -247,7 +274,8 @@ function lesson_save_question_options($question, $lesson) {
                 $answertext = $question->subanswers[$key];
                 if (!empty($questiontext) and !empty($answertext)) {
                     $answer = clone($defaultanswer);
-                    $answer->answer = $questiontext;
+                    $answer->answer = $questiontext['text'];
+                    $answer->answerformat   = $questiontext['format'];
                     $answer->response   = $answertext;
                     if ($i == 0) {
                         // first answer contains the correct answer jump
@@ -309,7 +337,9 @@ class qformat_default {
             return false;
         }
 
-        echo $OUTPUT->notification(get_string('importcount', 'lesson', sizeof($questions)));
+        //Avoid category as question type
+        echo $OUTPUT->notification(get_string('importcount', 'lesson',
+                $this->count_questions($questions)), 'notifysuccess');
 
         $count = 0;
 
@@ -317,6 +347,9 @@ class qformat_default {
 
         foreach ($questions as $question) {   // Process and store each question
             switch ($question->qtype) {
+                //TODO: Bad way to bypass category in data... Quickfix for MDL-27964
+                case 'category':
+                    break;
                 // the good ones
                 case SHORTANSWER :
                 case NUMERICAL :
@@ -325,7 +358,9 @@ class qformat_default {
                 case MATCH :
                     $count++;
 
-                    echo "<hr><p><b>$count</b>. ".$question->questiontext."</p>";
+                    //Show nice formated question in one line.
+                    echo "<hr><p><b>$count</b>. ".$this->format_question_text($question)."</p>";
+
                     $newpage = new stdClass;
                     $newpage->lessonid = $lesson->id;
                     $newpage->qtype = $this->qtypeconvert[$question->qtype];
@@ -415,6 +450,27 @@ class qformat_default {
         return true;
     }
 
+    /**
+     * Count all non-category questions in the questions array.
+     *
+     * @param array questions An array of question objects.
+     * @return int The count.
+     *
+     */
+    protected function count_questions($questions) {
+        $count = 0;
+        if (!is_array($questions)) {
+            return $count;
+        }
+        foreach ($questions as $question) {
+            if (!is_object($question) || !isset($question->qtype) ||
+                    ($question->qtype == 'category')) {
+                continue;
+            }
+            $count++;
+        }
+        return $count;
+    }
 
     function readdata($filename) {
     /// Returns complete file with an array, one item per line
@@ -432,7 +488,7 @@ class qformat_default {
         return false;
     }
 
-    function readquestions($lines) {
+    protected function readquestions($lines) {
     /// Parses an array of lines into an array of questions,
     /// where each item is a question object as defined by
     /// readquestion().   Questions are defined as anything
@@ -484,7 +540,7 @@ class qformat_default {
 
         $question = new stdClass();
         $question->shuffleanswers = get_config('quiz', 'shuffleanswers');
-        $question->defaultgrade = 1;
+        $question->defaultmark = 1;
         $question->image = "";
         $question->usecase = 0;
         $question->multiplier = array();
@@ -498,6 +554,11 @@ class qformat_default {
         $question->qoption = 0;
         $question->layout = 1;
 
+        // this option in case the questiontypes class wants
+        // to know where the data came from
+        $question->export_process = true;
+        $question->import_process = true;
+
         return $question;
     }
 
@@ -508,6 +569,16 @@ class qformat_default {
         return true;
     }
 
+    /**
+     * Convert the question text to plain text, so it can safely be displayed
+     * during import to let the user see roughly what is going on.
+     */
+    protected function format_question_text($question) {
+        $formatoptions = new stdClass();
+        $formatoptions->noclean = true;
+        return html_to_text(format_text($question->questiontext,
+                $question->questiontextformat, $formatoptions), 0, false);
+    }
 }
 
 

@@ -72,7 +72,7 @@ abstract class restore_search_base implements renderable {
      */
     public function __construct(array $config=array()) {
 
-        $this->search = optional_param($this->get_varsearch(), self::DEFAULT_SEARCH, PARAM_ALPHANUMEXT);
+        $this->search = optional_param($this->get_varsearch(), self::DEFAULT_SEARCH, PARAM_NOTAGS);
 
         foreach ($config as $name=>$value) {
             $method = 'set_'.$name;
@@ -132,6 +132,7 @@ abstract class restore_search_base implements renderable {
      */
     final public function invalidate_results() {
         $this->results = null;
+        $this->totalcount = null;
     }
     /**
      * Adds a required capability which all results will be checked against
@@ -217,6 +218,7 @@ class restore_course_search extends restore_search_base {
     static $VAR_SEARCH = 'search';
 
     protected $currentcourseid = null;
+    protected $includecurrentcourse;
 
     /**
      * @param array $config
@@ -224,8 +226,17 @@ class restore_course_search extends restore_search_base {
      */
     public function __construct(array $config=array(), $currentcouseid = null) {
         parent::__construct($config);
-        $this->require_capability('moodle/restore:restorecourse');
+        $this->setup_restrictions();
         $this->currentcourseid = $currentcouseid;
+        $this->includecurrentcourse = false;
+    }
+    /**
+     * Sets up any access restrictions for the courses to be displayed in the search.
+     *
+     * This will typically call $this->require_capability().
+     */
+    protected function setup_restrictions() {
+        $this->require_capability('moodle/restore:restorecourse');
     }
     /**
      *
@@ -246,7 +257,7 @@ class restore_course_search extends restore_search_base {
         $where      = " WHERE (".$DB->sql_like('c.fullname', ':fullnamesearch', false)." OR ".$DB->sql_like('c.shortname', ':shortnamesearch', false).") AND c.id <> :siteid";
         $orderby    = " ORDER BY c.sortorder";
 
-        if ($this->currentcourseid !== null) {
+        if ($this->currentcourseid !== null && !$this->includecurrentcourse) {
             $where .= " AND c.id <> :currentcourseid";
             $params['currentcourseid'] = $this->currentcourseid;
         }
@@ -259,6 +270,9 @@ class restore_course_search extends restore_search_base {
     protected function format_results() {}
     public function get_varsearch() {
         return self::$VAR_SEARCH;
+    }
+    public function set_include_currentcourse() {
+        $this->includecurrentcourse = true;
     }
 }
 

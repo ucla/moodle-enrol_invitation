@@ -161,6 +161,7 @@ you can associate them with this feedback using map course(s). Multiple courses 
 $string['mappedcourses'] = 'Mapped courses';
 $string['max_args_exceeded'] = 'Max 6 arguments can be handled, too many arguments for';
 $string['maximal'] = 'maximal';
+$string['messageprovider:message'] = 'Feedback reminder';
 $string['messageprovider:submission'] = 'Feedback notifications';
 $string['mode'] = 'Mode';
 $string['modulename'] = 'Feedback';
@@ -201,6 +202,7 @@ $string['oldvalueswillbedeleted'] = 'The current questions and all your user\'s 
 $string['only_one_captcha_allowed'] = 'Only one captcha is allowed in a feedback';
 $string['overview'] = 'Overview';
 $string['page'] = 'Page';
+$string['page-mod-feedback-x'] = 'Any feedback module page';
 $string['page_after_submit'] = 'Page after submit';
 $string['pagebreak'] = 'Page break';
 $string['parameters_missing'] = 'Parameters missing from';

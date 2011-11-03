@@ -33,6 +33,7 @@ $add           = optional_param('add', '', PARAM_ALPHA);
 $type          = optional_param('type', '', PARAM_ALPHA);
 $indent        = optional_param('indent', 0, PARAM_INT);
 $update        = optional_param('update', 0, PARAM_INT);
+$duplicate     = optional_param('duplicate', 0, PARAM_INT);
 $hide          = optional_param('hide', 0, PARAM_INT);
 $show          = optional_param('show', 0, PARAM_INT);
 $copy          = optional_param('copy', 0, PARAM_INT);
@@ -43,6 +44,17 @@ $course        = optional_param('course', 0, PARAM_INT);
 $groupmode     = optional_param('groupmode', -1, PARAM_INT);
 $cancelcopy    = optional_param('cancelcopy', 0, PARAM_BOOL);
 $confirm       = optional_param('confirm', 0, PARAM_BOOL);
+
+/**
+ * Public/private optional parameters where, if set, will enable or disable
+ * public/private for the course module instance that is the integer value for
+ * the parameter.
+ *
+ * @author ebollens
+ * @version 20110719
+ */
+$public        = optional_param('public', 0, PARAM_INT);
+$private       = optional_param('private', 0, PARAM_INT);
 
 // This page should always redirect
 $url = new moodle_url('/course/mod.php');
@@ -80,6 +92,42 @@ if (!empty($add)) {
     }
     $returntomod = optional_param('return', 0, PARAM_BOOL);
     redirect("$CFG->wwwroot/course/modedit.php?update=$update&return=$returntomod");
+
+} else if (!empty($duplicate)) {
+    $cm     = get_coursemodule_from_id('', $duplicate, 0, true, MUST_EXIST);
+    $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
+
+    require_login($course->id);
+    $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+    $modcontext = get_context_instance(CONTEXT_MODULE, $cm->id);
+    require_capability('moodle/course:manageactivities', $coursecontext);
+
+    if (!$confirm or !confirm_sesskey()) {
+        $PAGE->set_title(get_string('duplicate'));
+        $PAGE->set_heading($course->fullname);
+        $PAGE->navbar->add(get_string('duplicatinga', 'core', format_string($cm->name)));
+        $PAGE->set_pagelayout('incourse');
+
+        $a = new stdClass();
+        $a->modtype = get_string('modulename', $cm->modname);
+        $a->modname = format_string($cm->name);
+        $a->modid   = $cm->id;
+
+        echo $OUTPUT->header();
+        echo $OUTPUT->confirm(
+            get_string('duplicateconfirm', 'core', $a),
+            new single_button(
+                new moodle_url('/course/modduplicate.php', array('cmid' => $cm->id, 'course' => $course->id)),
+                get_string('continue'),
+                'post'),
+            new single_button(
+                new moodle_url('/course/view.php#section-' . $cm->sectionnum, array('id' => $cm->course)),
+                get_string('cancel'),
+                'get')
+        );
+        echo $OUTPUT->footer();
+        die();
+    }
 
 } else if (!empty($delete)) {
     if (!$cm = get_coursemodule_from_id('', $delete, 0, true)) {
@@ -280,6 +328,63 @@ if ((!empty($movetosection) or !empty($moveto)) and confirm_sesskey()) {
         redirect("view.php?id=$cm->course#section-$cm->sectionnum");
     }
 
+/**
+ * If optional parameter $public is set, disable public/private protection over
+ * the course module instance.
+ *
+ * @author ebollens
+ * @version 20110719
+ *
+ * @throws PublicPrivate_Course_Exception
+ * @throws PublicPrivate_Module_Exception
+ */
+} else if ($public and confirm_sesskey()) {
+
+    if (!$cm = get_coursemodule_from_id('', $public, 0, true)) {
+        print_error('invalidcoursemodule');
+    }
+
+    require_once($CFG->libdir.'/publicprivate/course.class.php');
+    $publicprivate_course = new PublicPrivate_Course($cm->course);
+    
+    if($publicprivate_course->is_activated()) {
+        require_once($CFG->libdir.'/publicprivate/module.class.php');
+        PublicPrivate_Module::build($cm)->disable();
+    } else {
+        throw new PublicPrivate_Module_Exception('Illegal action as public/private is not enabled for the course.', 900);
+    }
+
+    rebuild_course_cache($cm->course);
+    redirect("view.php?id=$cm->course#section-$cm->sectionnum");
+
+/**
+ * If optional parameter $private is set, enable public/private protection over
+ * the course module instance.
+ *
+ * @author ebollens
+ * @version 20110719
+ *
+ * @throws PublicPrivate_Course_Exception
+ * @throws PublicPrivate_Module_Exception
+ */
+} else if ($private and confirm_sesskey()) {
+
+    if (!$cm = get_coursemodule_from_id('', $private, 0, true)) {
+        print_error('invalidcoursemodule');
+    }
+
+    require_once($CFG->libdir.'/publicprivate/course.class.php');
+    $publicprivate_course = new PublicPrivate_Course($cm->course);
+
+    if($publicprivate_course->is_activated()) {
+        require_once($CFG->libdir.'/publicprivate/module.class.php');
+        PublicPrivate_Module::build($cm)->enable();
+    } else {
+        throw new PublicPrivate_Module_Exception('Illegal action as public/private is not enabled for the course.', 900);
+    }
+
+    rebuild_course_cache($cm->course);
+    redirect("view.php?id=$cm->course#section-$cm->sectionnum");
 } else if ($groupmode > -1 and confirm_sesskey()) {
     $id = required_param('id', PARAM_INT);
     if (!$cm = get_coursemodule_from_id('', $id, 0, true)) {

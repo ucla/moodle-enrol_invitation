@@ -71,7 +71,7 @@ require_once($CFG->libdir . '/portfolio/caller.php');
  * $somehtml .= $button->to_html(PORTFOLIO_ADD_TEXT_LINK);
  * </code>
  *
- * See {@link http://docs.moodle.org/en/Development:Adding_a_Portfolio_Button_to_a_page} for more information
+ * See {@link http://docs.moodle.org/dev/Adding_a_Portfolio_Button_to_a_page} for more information
  *
  * @package    moodlecore
  * @subpackage portfolio
@@ -102,6 +102,11 @@ class portfolio_add_button {
     */
     public function __construct($options=null) {
         global $SESSION, $CFG;
+
+        if (empty($CFG->enableportfolios)) {
+            debugging('Building portfolio add button while portfolios is disabled. This code can be optimised.', DEBUG_DEVELOPER);
+        }
+
         $this->instances = portfolio_instances();
         if (empty($options)) {
             return true;
@@ -250,7 +255,7 @@ class portfolio_add_button {
     *
     * @param int $format format to display the button or form or icon or link.
     *                    See constants PORTFOLIO_ADD_XXX for more info.
-    *                    optional, defaults to PORTFOLI_ADD_FULL_FORM
+    *                    optional, defaults to PORTFOLIO_ADD_FULL_FORM
     * @param str $addstr string to use for the button or icon alt text or link text.
     *                    this is whole string, not key.  optional, defaults to 'Add to portfolio';
     */
@@ -1082,7 +1087,7 @@ function portfolio_insane_notify_admins($insane, $instances=false) {
     $site = get_site();
 
     $a = new StdClass;
-    $a->sitename = $site->fullname;
+    $a->sitename = format_string($site->fullname, true, array('context' => get_context_instance(CONTEXT_COURSE, SITEID)));
     $a->fixurl   = "$CFG->wwwroot/$CFG->admin/settings.php?section=manageportfolios";
     $a->htmllist = portfolio_report_insane($insane, $instances, true);
     $a->textlist = '';

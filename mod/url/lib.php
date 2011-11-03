@@ -237,6 +237,8 @@ function url_user_complete($course, $user, $mod, $url) {
 /**
  * Returns the users with data in one url
  *
+ * @todo: deprecated - to be deleted in 2.2
+ *
  * @param int $urlid
  * @return bool false
  */
@@ -308,4 +310,15 @@ function url_extend_navigation($navigation, $course, $module, $cm) {
      * you content.
      */
     $navigation->nodetype = navigation_node::NODETYPE_LEAF;
+}
+
+/**
+ * Return a list of page types
+ * @param string $pagetype current page type
+ * @param stdClass $parentcontext Block's parent context
+ * @param stdClass $currentcontext Current context of block
+ */
+function url_page_type_list($pagetype, $parentcontext, $currentcontext) {
+    $module_pagetype = array('mod-url-*'=>get_string('page-mod-url-x', 'url'));
+    return $module_pagetype;
 }

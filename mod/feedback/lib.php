@@ -467,6 +467,7 @@ function feedback_cron () {
 }
 
 /**
+ * @todo: deprecated - to be deleted in 2.2
  * @return bool false
  */
 function feedback_get_participants($feedbackid) {
@@ -490,6 +491,20 @@ function feedback_scale_used ($feedbackid,$scaleid) {
  */
 function feedback_scale_used_anywhere($scaleid) {
     return false;
+}
+
+/**
+ * @return array
+ */
+function feedback_get_view_actions() {
+    return array('view','view all');
+}
+
+/**
+ * @return array
+ */
+function feedback_get_post_actions() {
+    return array('submit');
 }
 
 /**
@@ -1786,10 +1801,10 @@ function feedback_get_page_to_continue($feedbackid, $courseid = false, $guestid 
 
     $params = array();
     if($courseid) {
-        $courseselect = "fv.course_id = :courseid";
+        $courseselect = "AND fv.course_id = :courseid";
         $params['courseid'] = $courseid;
     }else {
-        $courseselect = "1";
+        $courseselect = '';
     }
 
     if($guestid) {
@@ -1807,7 +1822,7 @@ function feedback_get_page_to_continue($feedbackid, $courseid = false, $guestid 
               WHERE fc.id = fv.completed
                     $userselect
                     AND fc.feedback = :feedbackid
-                    AND $courseselect
+                    $courseselect
                     AND fi.id = fv.item
          $usergroup";
     $params['feedbackid'] = $feedbackid;
@@ -2668,7 +2683,9 @@ function feedback_send_email_anonym($cm, $feedback, $course) {
  * @return string the text you want to post
  */
 function feedback_send_email_text($info, $course) {
-    $posttext  = $course->shortname.' -> '.get_string('modulenameplural', 'feedback').' -> '.
+    $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+    $courseshortname = format_string($course->shortname, true, array('context' => $coursecontext));
+    $posttext  = $courseshortname.' -> '.get_string('modulenameplural', 'feedback').' -> '.
                     $info->feedback."\n";
     $posttext .= '---------------------------------------------------------------------'."\n";
     $posttext .= get_string("emailteachermail", "feedback", $info)."\n";
@@ -2687,8 +2704,11 @@ function feedback_send_email_text($info, $course) {
  */
 function feedback_send_email_html($info, $course, $cm) {
     global $CFG;
+    $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+    $courseshortname = format_string($course->shortname, true, array('context' => $coursecontext));
+
     $posthtml  = '<p><font face="sans-serif">'.
-                '<a href="'.$CFG->wwwroot.'/course/view.php?id='.$course->id.'">'.$course->shortname.'</a> ->'.
+                '<a href="'.$CFG->wwwroot.'/course/view.php?id='.$course->id.'">'.$courseshortname.'</a> ->'.
                 '<a href="'.$CFG->wwwroot.'/mod/feedback/index.php?id='.$course->id.'">'.get_string('modulenameplural', 'feedback').'</a> ->'.
                 '<a href="'.$CFG->wwwroot.'/mod/feedback/view.php?id='.$cm->id.'">'.$info->feedback.'</a></font></p>';
     $posthtml .= '<hr /><font face="sans-serif">';
@@ -2779,4 +2799,15 @@ function feedback_init_feedback_session() {
             $SESSION->feedback = new stdClass();
         }
     }
+}
+
+/**
+ * Return a list of page types
+ * @param string $pagetype current page type
+ * @param stdClass $parentcontext Block's parent context
+ * @param stdClass $currentcontext Current context of block
+ */
+function feedback_page_type_list($pagetype, $parentcontext, $currentcontext) {
+    $module_pagetype = array('mod-feedback-*'=>get_string('page-mod-feedback-x', 'feedback'));
+    return $module_pagetype;
 }

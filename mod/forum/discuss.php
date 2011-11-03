@@ -60,7 +60,7 @@
     if (!empty($CFG->enablerssfeeds) && !empty($CFG->forum_enablerssfeeds) && $forum->rsstype && $forum->rssarticles) {
         require_once("$CFG->libdir/rsslib.php");
 
-        $rsstitle = format_string($course->shortname) . ': %fullname%';
+        $rsstitle = format_string($course->shortname, true, array('context' => get_context_instance(CONTEXT_COURSE, $course->id))) . ': %fullname%';
         rss_add_http_header($modcontext, 'mod_forum', $forum, $rsstitle);
     }
 
@@ -190,7 +190,7 @@
 /// Print the controls across the top
     echo '<div class="discussioncontrols clearfix">';
 
-    if (has_capability('mod/forum:exportdiscussion', $modcontext) && (!empty($CFG->enableportfolios))) {
+    if (!empty($CFG->enableportfolios) && has_capability('mod/forum:exportdiscussion', $modcontext)) {
         require_once($CFG->libdir.'/portfoliolib.php');
         $button = new portfolio_add_button();
         $button->set_callback_options('forum_portfolio_caller', array('discussionid' => $discussion->id), '/mod/forum/locallib.php');

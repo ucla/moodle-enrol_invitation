@@ -529,7 +529,7 @@ function install_cli_database(array $options, $interactive) {
     }
 
     // test environment first
-    if (!check_moodle_environment($version, $environment_results, false, ENV_SELECT_RELEASE)) {
+    if (!check_moodle_environment(normalize_version($release), $environment_results, false, ENV_SELECT_RELEASE)) {
         $errors = environment_get_errors($environment_results);
         cli_heading(get_string('environment', 'admin'));
         foreach ($errors as $error) {
@@ -574,7 +574,6 @@ function install_cli_database(array $options, $interactive) {
     $admins = get_admins();
     $admin = reset($admins);
     session_set_user($admin);
-    message_set_default_message_preferences($admin);
 
     // apply all default settings, do it twice to fill all defaults - some settings depend on other setting
     admin_apply_default_settings(NULL, true);

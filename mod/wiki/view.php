@@ -251,12 +251,17 @@ if ($id) {
 } else {
     print_error('incorrectparameters');
 }
-require_course_login($course, true, $cm);
+require_login($course, true, $cm);
 
 $context = get_context_instance(CONTEXT_MODULE, $cm->id);
 require_capability('mod/wiki:viewpage', $context);
 
 add_to_log($course->id, 'wiki', 'view', 'view.php?id=' . $cm->id, $wiki->id);
+
+// Update 'viewed' state if required by completion system
+require_once($CFG->libdir . '/completionlib.php');
+$completion = new completion_info($course);
+$completion->set_module_viewed($cm);
 
 if (($edit != - 1) and $PAGE->user_allowed_editing()) {
     $USER->editing = $edit;

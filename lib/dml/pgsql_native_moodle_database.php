@@ -277,12 +277,12 @@ class pgsql_native_moodle_database extends moodle_database {
             return $this->tables;
         }
         $this->tables = array();
-        $prefix = str_replace('_', '\\\\_', $this->prefix);
+        $prefix = str_replace('_', '|_', $this->prefix);
         // Get them from information_schema instead of catalog as far as
         // we want to get only own session temp objects (catalog returns all)
         $sql = "SELECT table_name
                   FROM information_schema.tables
-                 WHERE table_name LIKE '$prefix%'
+                 WHERE table_name LIKE '$prefix%' ESCAPE '|'
                    AND table_type IN ('BASE TABLE', 'LOCAL TEMPORARY')";
         $this->query_start($sql, null, SQL_QUERY_AUX);
         $result = pg_query($this->pgsql, $sql);
@@ -415,7 +415,7 @@ class pgsql_native_moodle_database extends moodle_database {
                 $info->scale         = null;
                 $info->not_null      = ($rawcolumn->attnotnull === 't');
                 if ($info->has_default) {
-                    $info->default_value = $rawcolumn->adsrc;
+                    $info->default_value = trim($rawcolumn->adsrc, '()');
                 } else {
                     $info->default_value = null;
                 }
@@ -433,7 +433,7 @@ class pgsql_native_moodle_database extends moodle_database {
                 $info->not_null      = ($rawcolumn->attnotnull === 't');
                 $info->has_default   = ($rawcolumn->atthasdef === 't');
                 if ($info->has_default) {
-                    $info->default_value = $rawcolumn->adsrc;
+                    $info->default_value = trim($rawcolumn->adsrc, '()');
                 } else {
                     $info->default_value = null;
                 }
@@ -451,7 +451,7 @@ class pgsql_native_moodle_database extends moodle_database {
                 $info->not_null      = ($rawcolumn->attnotnull === 't');
                 $info->has_default   = ($rawcolumn->atthasdef === 't');
                 if ($info->has_default) {
-                    $info->default_value = $rawcolumn->adsrc;
+                    $info->default_value = trim($rawcolumn->adsrc, '()');
                 } else {
                     $info->default_value = null;
                 }
@@ -623,6 +623,9 @@ class pgsql_native_moodle_database extends moodle_database {
         if ($limitfrom or $limitnum) {
             if ($limitnum < 1) {
                 $limitnum = "ALL";
+            } else if (PHP_INT_MAX - $limitnum < $limitfrom) {
+                // this is a workaround for weird max int problem
+                $limitnum = "ALL";
             }
             $sql .= " LIMIT $limitnum OFFSET $limitfrom";
         }
@@ -661,6 +664,9 @@ class pgsql_native_moodle_database extends moodle_database {
         $limitnum  = ($limitnum < 0)  ? 0 : $limitnum;
         if ($limitfrom or $limitnum) {
             if ($limitnum < 1) {
+                $limitnum = "ALL";
+            } else if (PHP_INT_MAX - $limitnum < $limitfrom) {
+                // this is a workaround for weird max int problem
                 $limitnum = "ALL";
             }
             $sql .= " LIMIT $limitnum OFFSET $limitfrom";

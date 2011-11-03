@@ -166,8 +166,15 @@ function lesson_user_outline($course, $user, $mod, $lesson) {
     } else {
         $grade = reset($grades->items[0]->grades);
         $return->info = get_string("grade") . ': ' . $grade->str_long_grade;
-        $return->time = $grade->dategraded;
-        $return->info = get_string("no")." ".get_string("attempts", "lesson");
+
+        //datesubmitted == time created. dategraded == time modified or time overridden
+        //if grade was last modified by the user themselves use date graded. Otherwise use date submitted
+        //TODO: move this copied & pasted code somewhere in the grades API. See MDL-26704
+        if ($grade->usermodified == $user->id || empty($grade->datesubmitted)) {
+            $result->time = $grade->dategraded;
+        } else {
+            $result->time = $grade->datesubmitted;
+        }
     }
     return $return;
 }
@@ -469,6 +476,9 @@ function lesson_grade_item_update($lesson, $grades=NULL) {
         $params['gradetype']  = GRADE_TYPE_VALUE;
         $params['grademax']   = $lesson->grade;
         $params['grademin']   = 0;
+    } else if ($lesson->grade < 0) {
+        $params['gradetype']  = GRADE_TYPE_SCALE;
+        $params['scaleid']   = -$lesson->grade;
     } else {
         $params['gradetype']  = GRADE_TYPE_NONE;
     }
@@ -487,7 +497,13 @@ function lesson_grade_item_update($lesson, $grades=NULL) {
             if (!is_array($grade)) {
                 $grades[$key] = $grade = (array) $grade;
             }
-            $grades[$key]['rawgrade'] = ($grade['rawgrade'] * $lesson->grade / 100);
+            //check raw grade isnt null otherwise we erroneously insert a grade of 0
+            if ($grade['rawgrade'] !== null) {
+                $grades[$key]['rawgrade'] = ($grade['rawgrade'] * $lesson->grade / 100);
+            } else {
+                //setting rawgrade to null just in case user is deleting a grade
+                $grades[$key]['rawgrade'] = null;
+            }
         }
     }
 
@@ -512,8 +528,8 @@ function lesson_grade_item_delete($lesson) {
  * for a given instance of lesson. Must include every user involved
  * in the instance, independent of his role (student, teacher, admin...)
  *
- * @global stdClass
- * @global object
+ * @todo: deprecated - to be deleted in 2.2
+ *
  * @param int $lessonid
  * @return array
  */
@@ -860,14 +876,7 @@ function lesson_get_import_export_formats($type) {
             $provided = $format_class->provide_export();
         }
         if ($provided) {
-            //TODO: do NOT rely on [[]] any more!!
-            $formatname = get_string($fileformat, 'quiz');
-            if ($formatname == "[[$fileformat]]") {
-                $formatname = get_string($fileformat, 'qformat_'.$fileformat);
-                if ($formatname == "[[$fileformat]]") {
-                    $formatname = $fileformat;  // Just use the raw folder name
-                }
-            }
+            $formatname = get_string($fileformat, 'qformat_'.$fileformat);
             $fileformatnames[$fileformat] = $formatname;
         }
     }
@@ -971,4 +980,19 @@ function lesson_get_file_info($browser, $areas, $course, $cm, $context, $fileare
         return null;
     }
     return new file_info_stored($browser, $context, $storedfile, $urlbase, $filearea, $itemid, true, true, false);
+}
+
+
+/**
+ * Return a list of page types
+ * @param string $pagetype current page type
+ * @param stdClass $parentcontext Block's parent context
+ * @param stdClass $currentcontext Current context of block
+ */
+function lesson_page_type_list($pagetype, $parentcontext, $currentcontext) {
+    $module_pagetype = array(
+        'mod-lesson-*'=>get_string('page-mod-lesson-x', 'lesson'),
+        'mod-lesson-view'=>get_string('page-mod-lesson-view', 'lesson'),
+        'mod-lesson-edit'=>get_string('page-mod-lesson-edit', 'lesson'));
+    return $module_pagetype;
 }

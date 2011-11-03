@@ -116,6 +116,50 @@ switch($requestmethod) {
                         set_coursemodule_visible($cm->id, $value);
                         break;
 
+                    /**
+                     * If field is "public", disable public/private protection
+                     * over the course module instance.
+                     *
+                     * @author ebollens
+                     * @version 20110719
+                     *
+                     * @throws PublicPrivate_Course_Exception
+                     * @throws PublicPrivate_Module_Exception
+                     */
+                    case 'public':
+
+                        require_once($CFG->libdir.'/publicprivate/course.class.php');
+                        $publicprivate_course = new PublicPrivate_Course($cm->course);
+
+                        if($publicprivate_course->is_activated()) {
+                            require_once($CFG->libdir.'/publicprivate/module.class.php');
+                            PublicPrivate_Module::build($cm)->disable();
+                        }
+                        
+                        break;
+
+                    /**
+                     * If field is "private", enable public/private protection
+                     * over the course module instance.
+                     *
+                     * @author ebollens
+                     * @version 20110719
+                     *
+                     * @throws PublicPrivate_Course_Exception
+                     * @throws PublicPrivate_Module_Exception
+                     */
+                    case 'private':
+
+                        require_once($CFG->libdir.'/publicprivate/course.class.php');
+                        $publicprivate_course = new PublicPrivate_Course($cm->course);
+
+                        if($publicprivate_course->is_activated()) {
+                            require_once($CFG->libdir.'/publicprivate/module.class.php');
+                            PublicPrivate_Module::build($cm)->enable();
+                        }
+
+                        break;
+
                     case 'groupmode':
                         set_coursemodule_groupmode($cm->id, $value);
                         break;
@@ -208,6 +252,14 @@ switch($requestmethod) {
                 if (!delete_mod_from_section($cm->id, $cm->section)) {
                     error_log("Ajax rest.php: Could not delete the $cm->modname $cm->name from section");
                 }
+
+                // Trigger a mod_deleted event with information about this module.
+                $eventdata = new stdClass();
+                $eventdata->modulename = $cm->modname;
+                $eventdata->cmid       = $cm->id;
+                $eventdata->courseid   = $course->id;
+                $eventdata->userid     = $USER->id;
+                events_trigger('mod_deleted', $eventdata);
 
                 rebuild_course_cache($course->id);
 
