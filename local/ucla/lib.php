@@ -1,18 +1,4 @@
 <?php
-// This file is part of Moodle - http://moodle.org/
-//
-// Moodle is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Moodle is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -59,8 +45,37 @@ function ucla_verify_configuration_setup() {
     return $returner;
 }
 
-function local_ucla_cron() {
+/**
+ *  Convenience function get all the courses for a particular term.
+ **/
+function get_courses_in_terms($terms) {
+    return array();
+}
 
+/**
+ *  Populates the reg-class-info cron, the subject areas and the divisions.
+ **/
+function local_ucla_cron() {
+    global $CFG;
+
+    // Do a better job figuring this out
+    $terms = array('11F');
+
+    include_once($CFG->dirroot . '/local/ucla/cronlib.php');
+    include_once($CFG->dirroot 
+        . '/local/ucla/uclaregistrar/registrar_query.class.php');
+
+    // Fill the ucla_reg_classinfo table
+    // This should run often
+
+    // Fill the ucla_reg_subjeactarea table
+    // This should run maybe once a quarter
+    $ucsc = new ucla_reg_subjectarea_cron();
+    $ucsc->run($terms);
+    
+
+    // Fill the ucla_reg_divisions table
+    // This should run maybe once a quarter
 }
 
 // EOF

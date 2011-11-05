@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/ucla/db" VERSION="20111104" COMMENT="XMLDB file for Moodle local/ucla"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="ucla_reg_subjectarea" COMMENT="Holds information for subject areas obtained by cis_subjectareagetall">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="subjarea"/>
+        <FIELD NAME="subjarea" TYPE="char" LENGTH="7" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="subj_area_full"/>
+        <FIELD NAME="subj_area_full" TYPE="char" LENGTH="60" NOTNULL="true" SEQUENCE="false" PREVIOUS="subjarea" NEXT="home"/>
+        <FIELD NAME="home" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="subj_area_full" NEXT="modified"/>
+        <FIELD NAME="modified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="home"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="dexs" UNIQUE="true" FIELDS="subjarea"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>

@@ -29,6 +29,19 @@ abstract class registrar_query {
         $this->close_registrar_connection();
     }
 
+    static function get_registrar_query($queryname) {
+        $classname = 'registrar_' . $queryname;
+        $fn = dirname(__FILE__) . "/$classname.class.php";
+        if (file_exists($fn)) {
+            require_once($fn);
+
+        
+            return new $classname();
+        }
+
+        return false;
+    }
+
     /**
      *  Returns the ADOConnection object for registrar connection.
      *
