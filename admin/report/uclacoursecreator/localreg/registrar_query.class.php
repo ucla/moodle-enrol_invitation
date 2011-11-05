@@ -96,10 +96,6 @@ abstract class registrar_query {
                         }
                     }
                 }
-            } else {
-                throw new registrar_stored_procedure_exception(
-                    "$qr returned 0 rows."
-                );
             }
         }
 
@@ -209,5 +205,9 @@ abstract class registrar_query {
 }
 
 class registrar_stored_procedure_exception extends moodle_exception {
+    var $problem = null;
+    function __construct($problem) {
+        $this->problem = $problem;
+    }
     // Nothing...
 }

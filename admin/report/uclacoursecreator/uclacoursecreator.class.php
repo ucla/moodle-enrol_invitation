@@ -37,8 +37,8 @@ require_once(dirname(__FILE__) . '/../../../course/editcategory_form.php');
 
 // This is required for role mapping
 global $CFG;
-if (file_exists($CFG->libdir . '/uclalib.php')) {
-    include_once($CFG->libdir . '/uclalib.php');
+if (file_exists($CFG->dirroot . '/local/ucla/lib.php')) {
+    include_once($CFG->dirroot . '/local/ucla/lib.php');
 }
 
 /**
@@ -122,6 +122,9 @@ class uclacoursecreator {
     // This contains the objects with which we can connect to the Registrar.
     private $registrar_conn = null;
 
+    const TO_BUILD_ACTION = 'build';
+    const BEEN_BUILT_ACTION = 'built';
+
     // Note: There are dynamically generated fields for this class, which
     // contain references to the enrollment object.
     // I.E. $this->enrol_meta_plugin
@@ -161,6 +164,7 @@ class uclacoursecreator {
         $this->registrar_conn = array();
 
         $prefix = $CFG->dirroot . '/' . $CFG->admin;
+        // TODO fix this shittiness
         foreach ($registrars as $registrar_class) {
             $classname = 'registrar_' . $registrar_class;
 
@@ -390,7 +394,8 @@ class uclacoursecreator {
      *  @return The long name of the target, or the short name if no long 
      *      name was found.
      **/
-    function get_registrar_translation($table, $target, $from_field, $to_field) {
+    function get_registrar_translation($table, $target, $from_field, 
+            $to_field) {
         global $DB;
 
         if (!isset($this->reg_trans[$table]) || $this->reg_trans == null) {
@@ -660,7 +665,9 @@ class uclacoursecreator {
         $child->format = $defredir; 
         $child->numsections = $numsections;
         $child->theme = $deftheme;
-        $child->visible = 0;
+        // TODO Make this a configuration variable
+        $child->visible = $this->get_config(
+            'course_creator_default_child_visibility');
         $defaults['child'] = $child;
 
         $meta = clone $child;
@@ -1015,7 +1022,7 @@ class uclacoursecreator {
                     $action = 'failed';
                     $failed++;
                 } else {
-                    $action = 'rebuild';
+                    $action = self::TO_BUILD_ACTION;
                 }
 
                 if (isset($request_id)) {
@@ -1078,7 +1085,9 @@ class uclacoursecreator {
 
         $sql_params = array($term);
         $sql_where = "
-            action LIKE '%uild'
+            (action LIKE '" . self::TO_BUILD_ACTION
+        . "' OR action LIKE '" . self::BEEN_BUILT_ACTION
+        . "')
                 AND
             term = ?
                 AND
@@ -1222,6 +1231,7 @@ class uclacoursecreator {
 
     /**
      *  Trim the requests to term srs.
+     *  This is only used for sending data to the Registrar stored procedures.
      *
      *  Will change the state of the object
      **/
@@ -1265,13 +1275,27 @@ class uclacoursecreator {
             $this->trim_requests();
         }
 
+        $tr = $this->cron_term_cache['trim_requests'];
+        $rc = $this->registrar_conn['ccle_getclasses'];
+
+        $requests =& $this->cron_term_cache['requests'];
+
         // Run the Stored Procedure with the data
-        $return = $this->registrar_conn['ccle_getclasses']
-            ->retrieve_registrar_info(
-                $this->cron_term_cache['trim_requests']
-            );
-        
-        foreach ($return as $ob_re) {
+        $return = $rc->retrieve_registrar_info($tr);
+
+        foreach ($requests as $request) {
+            $request_arr = get_object_vars($request);
+
+            $tkey = $rc->get_key($request_arr);
+
+            if (!isset($return[$tkey])) {
+                $this->println('Registrar did not find a course: '
+                    . $tkey);
+                continue;
+            }
+
+            $ob_re = $return[$tkey];
+
             $this->println('Registrar: ' . $ob_re->term . ' ' 
                 . $ob_re->srs . ' ' . $ob_re->subj_area . ' ' 
                 . $ob_re->crsidx);
@@ -1647,79 +1671,62 @@ class uclacoursecreator {
             'course', $where_sql, $params
         );
 
-        // re-index by idnumber
+        // re-index by idnumber, may not need this loop
         $created_courses_check = array();
         foreach ($created_courses as $cc) {
             $created_courses_check[$cc->idnumber] = $cc;
         }
 
-        // We might have to delete irrelevant courses that were created
-        // during the course creator.
-        $early_deletes = array();
-
         // We are checking that we created all our courses
+        $build_srs = array();
+
+        $course_mapper = array();
+
         foreach ($check_srs as $idnumber => $srs) {
             if (!isset($created_courses_check[$idnumber])) {
-                throw new course_creator_exception(
-                    'IMS did not build: ' . $idnumber
-                );
+                $this->println('IMS did not build: ' . $idnumber);
             } else {
                 // This is used when reverting a failed term
                 if (isset($ctc_tr[$srs])) {
-                    $this->cron_term_cache['course_mapper'][$idnumber] = 
-                        $ctc_tr[$srs];
-                } 
+                    $course_mapper[$idnumber] = $ctc_tr[$srs];
+                }
                 
-
                 // We actually did not create this course with this cron
-                // in course creator.
+                // in course creator, and it was not a bad build.
                 if (!$this->validate_buildtime(
-                    $created_courses_check[$idnumber]
-                        )) {
+                            $created_courses_check[$idnumber]) 
+                        && $ctc_tr[$srs]->action != self::BEEN_BUILT_ACTION) {
 
                     $this->debugln($idnumber . ' built outside of '
                         . 'course creator!');
-
-                    if (!isset($ctc_tr[$srs])) {
-                        // More complicated, we have a child course
-                        // that has been externally created.
-                        $msrs = $reverse_child_lookup[$srs];
-                
-                        $master_req = $ctc_tr[$msrs];
-
-                        foreach ($master_req->crosslisted as $cle) {
-                            $srs_wanted = $cle->aliassrs;
-
-                            $target_id = $srs_to_idnumber[$srs_wanted];
-
-                            $this->debugln('deactivating: ' . $target_id);
-                            unset($created_courses_check[$target_id]);
-                        }
-
-                        $mid = $this->make_idnumber($master_req->term, 
-                            $msrs, true);
-
-                        $this->debugln('deactivating: ' . $mid);
-                        unset($created_courses_check[$mid]);
-                    } else {
-                        // Just delete the fact "we created this course"
-                        unset($created_courses_check[$idnumber]);
-                    }
+                } else {
+                    // This course was properly built before this point
+                    continue;
                 }
             }
 
-            if (!isset($rci_courses[$srs])) {
-                throw new course_creator_exception(
-                    'Course built but not in RCI: ' . $srs
-                );
-            }
+            // We did not create this course
+            unset($created_courses_check[$idnumber]);
         }
+
+        foreach ($created_courses_check as $idnumber => $course) {
+            $request = $course_mapper[$idnumber];
+
+            $request->action = self::BEEN_BUILT_ACTION;
+            $DB->update_record('ucla_request_classes', $request, true);
+        }
+
+        $this->cron_term_cache['course_mapper'] = $course_mapper;
 
         // From here, we can revert things, so we want to store things
         // in the cron_term_cache, indexed by idnumber.
         $this->cron_term_cache['created_courses'] = $created_courses_check;
     }
 
+    /** 
+     *  Properly sets course settings and meta-enrollment plugin for
+     *  each course.
+     **/
     function activate_courses() {
         if (!isset($this->cron_term_cache['created_courses'])) {
             $this->check_built_requests();
@@ -1799,7 +1806,9 @@ class uclacoursecreator {
 
                     $c_obj = new StdClass();
                     $c_obj->id = $cid;
-                    $c_obj->hidden = $chid;
+                    // We're not going to save the hidden status here, 
+                    // instead we're going to allow the default to 
+                    // figure that out
                    
                     $crli_cid_summary[$root_idn][$cid] = $cid;
 
@@ -1861,7 +1870,7 @@ class uclacoursecreator {
                 $course_default->id = $course_id->id;
 
                 if (isset($course_id->hidden)) {
-                    $course_default->hidden = $course_id->hidden;
+                    $course_default->visible = !$course_id->hidden;
                 }
 
                 // This uses the $bulk argument, but for mysql it does not
@@ -2093,6 +2102,8 @@ class uclacoursecreator {
         $profcodes =& $this->cron_term_cache['profcodes'];
         $course_urls =& $this->cron_term_cache['url_info'];
 
+        $created_courses_check =& $this->cron_term_cache['created_courses'];
+
         // This is to maintain people without reported URSA emails
         $this->cron_term_cache['no_emails'] = array();
 
@@ -2103,6 +2114,11 @@ class uclacoursecreator {
         foreach ($courses as $course) {
             $csrs = $course->srs;
             $term = $course->term;
+
+            $idnumber = $this->make_idnumber($term, $csrs);
+            if (!isset($created_courses_check[$idnumber])) {
+                continue;
+            }
 
             $rci_course = $rci_objects[$csrs];
             $dept = trim($rci_course->subj_area);
@@ -2757,9 +2773,10 @@ class uclacoursecreator {
             // We sometimes want to do a file lock
             if ($hard) {
                 if (file_exists($cc_lock)) {
-                    throw new course_creator_exception(
-                        'Lock file already exists!
-                    ');
+                    $msg = "Lock file $cc_lock already exists!";
+
+                    echo $msg . "\n";
+                    throw new course_creator_exception($msg);
                 }
 
                 $this->lockfp = fopen($cc_lock, 'x');
@@ -2769,7 +2786,7 @@ class uclacoursecreator {
 
             // this will let both build and rebuild be built
             $sql_where = "
-                `action` LIKE '%uild'
+                `action` LIKE '" . self::TO_BUILD_ACTION . "'
                     AND
                 `status` = 'pending'
             ";
@@ -2830,7 +2847,9 @@ class uclacoursecreator {
      *  Quick wrapper for a cryptography function.
      **/
     function cryptify($string) {
-        return substr(md5($string), 0, 8);
+        // Just do nothing for now
+        // Maybe PHP will optimize the call stack
+        return $string;
     }
 
     /**
