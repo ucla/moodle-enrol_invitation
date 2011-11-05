@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<XMLDB PATH="local/ucla/db" VERSION="2011110400" COMMENT="XMLDB file for Moodle enrol/database/role_mapping" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd">
+
+ <TABLES>
+  <TABLE NAME="ucla_rolemapping" COMMENT="Table to map pseudorole from registrar to moodle roles" >
+   <FIELDS>
+    <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="pseudo_role" /> 
+    <FIELD NAME="pseudo_role" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="description" /> 
+    <FIELD NAME="description" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="describes the rule that translates to a moodle role" PREVIOUS="pseudo_role" NEXT="moodle_roleid" /> 
+    <FIELD NAME="moodle_roleid" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="Id for the role whose shortname is in mdl_role table" PREVIOUS="description" NEXT="subject_area" /> 
+    <FIELD NAME="subject_area" TYPE="char" LENGTH="50" NOTNULL="true"  DEFAULT="*SYSTEM*" SEQUENCE="false" PREVIOUS="moodle_roleid" /> 
+   </FIELDS>
+   <KEYS>
+    <KEY NAME="primary" TYPE="primary" FIELDS="id" /> 
+   </KEYS>
+  </TABLE>
+ </TABLES>
+  
+</XMLDB>
