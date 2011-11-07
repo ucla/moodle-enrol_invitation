@@ -77,6 +77,9 @@ function get_pseudorole($profcode, array $other_roles)
  * at the role mapping config file. If the role mapping is present in that file
  * it will override any values from the database.
  * 
+ * @throws moodle_exception         Throws moodle exception if no role mapping 
+ *                                  is found
+ * 
  * @global type $CFG
  * @global type $DB
  * 
@@ -87,32 +90,31 @@ function get_pseudorole($profcode, array $other_roles)
  */
 function get_moodlerole($pseudorole, $subject_area='*SYSTEM*') //call to the ucla_rolemapping table
 {
-    require_once($CFG->dirroot . '/local/ucla/role_mappings.php');
+    require($CFG->dirroot . '/local/ucla/role_mappings.php');
     global $CFG, $DB;
-    $moodle_roleid = null;
-    
-    $moodleroleobject = $DB->get_record('ucla_rolemapping', 
-            array('pseudo_role' => $pseudorole, 'subject_area' => $subject_area));
-    if (!empty($moodleroleobject)) {
-        $moodle_roleid = $moodleroleobject->moodle_roleid;    
-    }
 
-    // if role mappings file exists, then overrides what values are in the db
+    // if mapping exists in file, then don't care what values are in the db
     if (!empty($role[$pseudorole][$subject_area])) {
-        // found role mapping in file, use this instead
         if ($moodlerole = $DB->get_record('role', 
                 array('shortname' => $role[$pseudorole][$subject_area]))) {
-            $moodle_roleid = $moodlerole->id;
+            return $moodlerole->id;
         }            
     }        
     
-    // if no role was found, then use *SYSTEM* default (should be set in config)
-    if (empty($moodle_roleid)) {
-        if ($moodlerole = $DB->get_record('role', 
-                array('shortname' => $role[$pseudorole]['*SYSTEM*']))) {
-            $moodle_roleid = $moodlerole->id;
-        }              
+    // didn't find role mapping in config file, check database
+    if ($moodlerole = $DB->get_record('ucla_rolemapping', 
+            array('pseudo_role' => $pseudorole, 'subject_area' => $subject_area))) {
+        return $moodlerole->moodle_roleid;    
     }
     
-    return $moodle_roleid;
+    // if no role was found, then use *SYSTEM* default (should be set in config)
+    if ($moodlerole = $DB->get_record('role', 
+            array('shortname' => $role[$pseudorole]['*SYSTEM*']))) {
+        return $moodlerole->id;
+    }              
+    
+    // oh no... didn't find proper role mapping, stop the presses
+    throw new moodle_exception('invalidrolemapping', 'local_ucla', null, 
+            sprintf('Params: $pseudorole - %s, $subject_area - %s', 
+                    $pseudorole, $subject_area));
 }
