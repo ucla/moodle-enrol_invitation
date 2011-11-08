@@ -8,7 +8,7 @@ $string['coursereqform'] = $string['pluginname'];
 $string['coursereqbuilddept'] = $string['pluginname']  . " - build department";
 $string['coursereqaddcrosslist'] = $string['pluginname'] . " - add crosslist information";
 $string['coursereqbuildclass'] = $string['pluginname'] . " - build courses";
-$string['srserror'] = 'SRS is 9 digits';
+$string['srserror'] = 'The SRS number must be exactly 9 digits long';
 
 $string['srslookup'] = "SRS# lookup";
 $string['registrarclasses'] = "Registrar's schedule of classes";
