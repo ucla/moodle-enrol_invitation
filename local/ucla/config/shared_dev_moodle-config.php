@@ -82,8 +82,6 @@ $CFG->classrequestor_hidden_default = false; // default value for hidden
 $CFG->course_creator_email = 'ccle-operations@lists.ucla.edu';
 $CFG->course_creator_email_template_dir = '';
 
-
-
 /** 
  *  Automatic Shibboleth configurations.
  *  Disabling in favor for GUI configurations.
