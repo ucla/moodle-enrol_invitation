@@ -2712,12 +2712,12 @@ class uclacoursecreator {
 
         // Check if we have a path to write to
         if (!$this->get_config('course_creator_outpath')) {
-            if (defined('CLI_SCRIPT') && CLI_SCRIPT == TRUE) {
-                throw new course_creator_exception(
-                    'Missing configuration variable course_creator_outpath, '
-                    . 'this is needed when running from CLI.'
-                );
-            }
+//            if (defined('CLI_SCRIPT') && CLI_SCRIPT == TRUE) {
+//                throw new course_creator_exception(
+//                    'Missing configuration variable course_creator_outpath, '
+//                    . 'this is needed when running from CLI.'
+//                );
+//            }
 
             // Defaulting to moodledata
             $this->output_path = $CFG->dataroot . '/course_creator';
@@ -3079,14 +3079,62 @@ class uclacoursecreator {
     }
 
     /**
-     *  Format certain names properly.
+     * Properly format a user's name. Name might include the following 
+     * characters ' or - or a space. Need to properly uppercase the first letter
+     * and lowercase the rest. Assuming input is all captialized.
      *
-     *  @todo CCLE-2541 Handle McDonalds !!! FILLET O FISH, etc.
-     *  @param $name The name to format.
-     *  @return string The name with guessed capitals.
-     **/
-    function format_name($name) {
-        return ucwords(strtolower($name));
+     * NOTE: Special case added if the last name starts with "MC". Assuming that
+     * next character should be uppercase.
+     *
+     * @param string name   fname, mname, or lname
+     * @return string       name in proper format
+     */
+    function format_name($name = null)
+    {
+        $name = ucfirst(strtolower(trim($name)));    
+        if (empty($name))   return '';
+
+        /* the way to handle special cases in a person's name is to recurse on
+         * the following cases:
+         *  - If name has a space
+         *  - If name has a hypen
+         *  - If name has an aprostrophe
+         *  - If name starts with "MC"
+         */    
+
+        // has space? 
+        $name_array = explode(' ', $name);
+        if (count($name_array) > 1) {   
+            foreach ($name_array as $key => $element) {
+                $name_array[$key] = formatName($element);   // recurse
+            }
+            $name = implode(' ', $name_array);  // combine elements back        
+        }
+
+        // has hypen?
+        $name_array = explode('-', $name);
+        if (count($name_array) > 1) {   
+            foreach ($name_array as $key => $element) {
+                $name_array[$key] = formatName($element);   // recurse
+            }
+            $name = implode('-', $name_array);  // combine elements back        
+        }    
+
+        // has aprostrophe?
+        $name_array = explode("'", $name);
+        if (count($name_array) > 1) {  
+            foreach ($name_array as $key => $element) {
+                $name_array[$key] = formatName($element);   // recurse
+            }
+            $name = implode("'", $name_array);  // combine elements back        
+        }    
+
+        // starts with MC (and is more than 2 characters)?
+        if (strlen($name)>2 && (0 == strncasecmp($name, 'mc', 2))) {
+            $name[2] = strtoupper($name[2]);    // make 3rd character uppercase
+        }
+
+        return $name;
     }
 
     /**

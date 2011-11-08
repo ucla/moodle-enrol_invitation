@@ -15,7 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 defined('MOODLE_INTERNAL') || die();
 
-$string['uclacoursecreator'] = 'Course creator';
+$string['pluginname'] = 'Course creator';
+$string['uclacoursecreator'] = $string['pluginname'];
 $string['cli_helpmsg'] = 
 "USAGE: cli_autocreate.php ([TERM] ([TERM] ... ))
 This script will build courses in the terms specified in course requestor.
@@ -47,5 +48,3 @@ Other options:
 $string['current_term_not_set'] = '$CFG->currentterm is not set!';
 
 $string['cron_quit_out'] = 'This is most likely a moodle cron instance... Quitting...';
-
-$string['pluginname'] = 'Course creator';
