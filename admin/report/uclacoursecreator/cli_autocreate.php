@@ -101,10 +101,11 @@ if (!empty($reg_argv)) {
 } 
 
 if ($ext_argv['current-term']) {
-    if (!isset($CFG->currentterm)) {
+    if (!empty($CFG->currentterm)) {
         $termlist = array($CFG->currentterm);
     } else {
-        echo get_string('current_term_not_set', 'report_uclacoursemenu') . "\n";
+        echo get_string('current_term_not_set', 'report_uclacoursecreator') 
+            . "\n";
     }
 }
 
