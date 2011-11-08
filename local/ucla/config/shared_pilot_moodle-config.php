@@ -37,10 +37,10 @@ $CFG = new stdClass();
 
 $CFG->dbtype    = 'mysqli';
 $CFG->dblibrary = 'native';
-$CFG->dbhost    = 'db2.ccle.ucla.edu';
-$CFG->dbname    = 'moodle';
-$CFG->dbuser    = 'moodleuser';
-$CFG->dbpass    = 'db4moodle';
+$CFG->dbhost    = 'localhost';
+$CFG->dbname    = '';
+$CFG->dbuser    = '';
+$CFG->dbpass    = '';
 $CFG->prefix    = 'mdl_';
 $CFG->dboptions = array(
     'dbpersist' => 0,
