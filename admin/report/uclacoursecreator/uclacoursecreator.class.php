@@ -954,7 +954,6 @@ class uclacoursecreator {
      *  This will attempt to undo all the changes in cron_term_cache.
      *  It should also mark all the requests that are processing as 
      *  reverted.
-     *  
      *      
      **/
      function revert_cron_term() {
@@ -1886,8 +1885,8 @@ class uclacoursecreator {
                 $this->println('Setup course id:' . $course_default->id 
                     . ' as ' . $course_type . ', format '
                     . $course_default->format . ' sections '
-                    . $course_default->numsections . ' hidden '
-                    . $course_default->hidden);
+                    . $course_default->numsections . ' visible '
+                    . $course_default->visible);
             }
         }
     }
@@ -2744,7 +2743,7 @@ class uclacoursecreator {
         unlink($test_file);
 
         // This is saved for creating XML and log files
-        $this->shell_date = date('Y-m-d-G-i');
+        $this->shell_date = date('Ymd-Gi');
         $this->full_date = date('r');
     }
 
