@@ -125,6 +125,9 @@ class uclacoursecreator {
     const TO_BUILD_ACTION = 'build';
     const BEEN_BUILT_ACTION = 'built';
 
+    const TO_ACT_STATUS = 'pending';
+    const ACTING_STATUS = 'processing';
+
     // Note: There are dynamically generated fields for this class, which
     // contain references to the enrollment object.
     // I.E. $this->enrol_meta_plugin
@@ -881,6 +884,8 @@ class uclacoursecreator {
      *  @param $term The term to work for.
      **/
     function start_cron_term($term) {
+        global $DB;
+
         $this->flush_cron_term();
 
         if (!$this->set_cron_term($term)) {
@@ -888,6 +893,15 @@ class uclacoursecreator {
                 'Could not set the term [' . $term . ']'
             );
         }
+            
+        // this will let both build and rebuild be built
+        // TODO screw the 'LIKE', use get_records_select
+        $sql_where = "`action` LIKE '" . self::TO_BUILD_ACTION . "'
+                AND
+            `status` = '" . self::TO_ACT_STATUS . "'";
+
+        $DB->set_field_select('ucla_request_classes', 'status', 
+            self::ACTING_STATUS, $sql_where);
 
         $this->debugln("-------- Starting $term ---------");
     }
@@ -1054,7 +1068,7 @@ class uclacoursecreator {
 
                 // This is just because I am lazy
                 $DB->set_field_select('ucla_request_classes', 'status', 
-                    'pending', $sql_where, $params);
+                    self::TO_ACT_STATUS, $sql_where, $params);
 
                 $this->debugln('Marked ' . count($params) . ' requests for ' 
                     . $action . '.');
@@ -1084,14 +1098,12 @@ class uclacoursecreator {
 
         $sql_params = array($term);
         $sql_where = "
-            (action LIKE '" . self::TO_BUILD_ACTION
-        . "' OR action LIKE '" . self::BEEN_BUILT_ACTION
-        . "')
+            (action LIKE '" . self::TO_BUILD_ACTION . "' 
+                OR action LIKE '" . self::BEEN_BUILT_ACTION . "')
                 AND
             term = ?
                 AND
-            status = 'processing'
-        ";
+            status = '" . self::ACTING_STATUS . "'";
         
         // These are the regular and host courses
         $course_requests = $DB->get_records_select(
@@ -1124,7 +1136,6 @@ class uclacoursecreator {
                 $this->get_enrol_plugin('meta');
 
                 $crosslisted_courses[$key] = $srs;
-
                 $course_requests[$key]->crosslisted = array();
             }
         }
@@ -1299,6 +1310,8 @@ class uclacoursecreator {
                 . $ob_re->srs . ' ' . $ob_re->subj_area . ' ' 
                 . $ob_re->crsidx);
         }
+
+        var_dump($return);
 
         $this->cron_term_cache['term_rci'] = $return;
     }
@@ -2783,15 +2796,6 @@ class uclacoursecreator {
                 $this->println('Lock successful.');
             }
 
-            // this will let both build and rebuild be built
-            $sql_where = "
-                `action` LIKE '" . self::TO_BUILD_ACTION . "'
-                    AND
-                `status` = 'pending'
-            ";
-
-            $DB->set_field_select('ucla_request_classes', 'status', 
-                'processing', $sql_where);
         } else {
             if (!file_exists($cc_lock)) {
                 // By here, we've already marked everything as finished, so
