@@ -110,11 +110,6 @@ class assignment_upload extends assignment_base {
         }
 
         if (empty($submission->timemarked)) {   /// Nothing to show, so print nothing
-            if ($this->count_responsefiles($USER->id)) {
-                echo $OUTPUT->heading(get_string('responsefiles', 'assignment'), 3);
-                $responsefiles = $this->print_responsefiles($USER->id, true);
-                echo $OUTPUT->box($responsefiles, 'generalbox boxaligncenter');
-            }
             return;
         }
 
@@ -126,7 +121,12 @@ class assignment_upload extends assignment_base {
             return;
         }
 
-        if ($grade->grade === null and empty($grade->str_feedback)) {   /// Nothing to show yet
+        if ($grade->grade === null and empty($grade->str_feedback)) {   // No grade to show yet
+            if ($this->count_responsefiles($USER->id)) {   // but possibly response files are present
+                echo $OUTPUT->heading(get_string('responsefiles', 'assignment'), 3);
+                $responsefiles = $this->print_responsefiles($USER->id, true);
+                echo $OUTPUT->box($responsefiles, 'generalbox boxaligncenter');
+            }
             return;
         }
 
@@ -730,7 +730,7 @@ class assignment_upload extends assignment_base {
             $updated->data2 = '';
             $DB->update_record('assignment_submissions', $updated);
             //TODO: add unfinalize action to log
-            add_to_log($this->course->id, 'assignment', 'view submission', 'submissions.php?id='.$this->assignment->id, $this->assignment->id, $this->cm->id);
+            add_to_log($this->course->id, 'assignment', 'view submission', 'submissions.php?id='.$this->cm->id.'&userid='.$userid.'&mode='.$mode.'&offset='.$offset, $this->assignment->id, $this->cm->id);
             $submission = $this->get_submission($userid);
             $this->update_grade($submission);
         }
