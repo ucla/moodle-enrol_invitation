@@ -1,0 +1,43 @@
+
+
+# * Start UCLA Modification *
+# beatify course URLs
+
+# NOTE: make sure Moodle folder is not mapped via Alias - options below
+# won't work with it for some reason
+
+RewriteEngine On
+<IfModule mod_negotiation.c>
+	# MultiViews has to be off, otherwise mod_negotiation will match 
+	# /view/ with view.php, and skip RewriteRule
+	Options -MultiViews
+</IfModule>
+# other scripts in the course/ folder linked relatively from view.php will end up
+# having an invalid URL view/scriptname.php. If the file ends with .php or .html, 
+# remove view/ from the path, and do not advance to next RewriteRule
+RewriteRule ^view/(.+)\.(php|html)$ $1.$2 [NC,NE,QSA,PT]
+
+# expand pretty view/shortname to a proper parameter
+RewriteRule ^view/(.+)$ view.php?name=$1 [NC,NE,QSA,PT]
+
+# for inclusion in httpd.conf, include everything, but change rules to be like this:
+# RewriteRule ^(.*)/course/view/(.+) $1/course/view.php?name=$2 [NC,NE,QSA,L]
+
+# Some 3rd party blocks use "../" relative paths to refer to the Moodle root folder.
+# This breaks in our scheme since /course/view/../blocks/ will transform into /course/blocks/, 
+# instead of just /blocks/, as expected by the block.
+# To avoid this, every folder except format, import & report will be considered to be in the root.
+# Aggressive, but makes sure relative hyperlinks with "../" don't break.
+# Will have to be updated if /course/ folder gets additional subfolders in future Moodle versions
+
+# store the relative URL we are working with. Strange, but RewriteCond doesn't have it!?
+RewriteRule ^.*$ - [NE,E=REL_PATH:$0]
+# check if it contains "/" and is NOT one of the existing course/* folders
+RewriteCond %{ENV:REL_PATH} /
+RewriteCond %{ENV:REL_PATH} !^format/ [NC]
+RewriteCond %{ENV:REL_PATH} !^import/ [NC]
+RewriteCond %{ENV:REL_PATH} !^report/ [NC]
+RewriteRule ^.+$ ../$0 [NC,NE,QSA,PT]
+
+
+# * End UCLA Modification *

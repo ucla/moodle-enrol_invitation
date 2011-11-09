@@ -44,20 +44,21 @@ $CFG->dbpass    = '';
 $CFG->prefix    = 'mdl_';
 $CFG->dboptions = array(
     'dbpersist' => 0,
-    'dbsocket'  => 0 
+    'dbsocket'  => 1 
 );
 
-$CFG->wwwroot  = 'https://pilot.ccle.ucla.edu';
-$CFG->dataroot = '/moodle/moodle_data'; 
+$CFG->wwwroot  = '';
+$CFG->dataroot = ''; 
 
 // This determines what the admin folder is called.
 $CFG->admin    = 'admin';
 
+// This is directory permissions for newly created directories
 $CFG->directorypermissions = 0777;
 
 // This should never change after the first install, or else any special
 // logins using the Moodle login will not work.
-$CFG->passwordsaltmain = 'Ob^3(Mi3Qs1D))cl@0<Od-#YQACc^71';
+$CFG->passwordsaltmain = '';
 
 // determines current term
 $CFG->currentterm = '11F';
@@ -79,7 +80,7 @@ $CFG->classrequestor_hidden_default = false; // default value for hidden
 
 // Course Creator
 $CFG->course_creator_email = 'ccle-operations@lists.ucla.edu';
-$CFG->course_creator_email_template_dir = '/usr/local/moodle/config/course_creator/email_templates';
+$CFG->course_creator_email_template_dir = '';
 
 /** 
  *  Automatic Shibboleth configurations.
