@@ -29,9 +29,10 @@ if (ucla_cp_module::load('email_students')) {
     $modules[] = new ucla_cp_module_email_students($course);
 }
 
-// Office hours TODO
+/* Office hours TODO
 $modules[] = new ucla_cp_module('edit_office_hours', new moodle_url('view.php'), 
     array('ucla_cp_mod_common', 'ucla_cp_mod_other'), $ta_cap);
+/* Office hours */
 
 // For editing, it is a special UI case
 $spec_ops = array('pre' => false, 'post' => true);
@@ -51,17 +52,19 @@ $temp_tag = array('ucla_cp_mod_other');
 $modules[] = new ucla_cp_module('edit_profile', new moodle_url(
         $CFG->wwwroot . '/user/edit.php'), $temp_tag, null);
 
-// Import from classweb!? TODO
+/* Import from classweb!? TODO
 $modules[] = new ucla_cp_module('import_classweb', new moodle_url('view.php'), 
     $temp_tag, $temp_cap);
+/* Import from classweb */
 
 // Import from existing moodle course
 $modules[] = new ucla_cp_module('import_moodle', new moodle_url($CFG->wwwroot
     . '/backup/import.php', array('id' => $course->id)), $temp_tag, $temp_cap);
 
-// Create a TA-Site TODO
+/* Create a TA-Site TODO 
 $modules[] = new ucla_cp_module('create_tasite', new moodle_url('view.php'), 
     $temp_tag, $ta_cap);
+/* Create a TA-Site */
 
 // View moodle participants
 $modules[] = new ucla_cp_module('view_roster', new moodle_url(
