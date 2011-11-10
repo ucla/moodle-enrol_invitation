@@ -2,7 +2,7 @@
 
 class easyupload_resource_form extends easy_upload_form {
     function specification() {
-        $mform = $this->_form;
+        $mform =& $this->_form;
 
         $course = $mform->getElement('course')->getValue();
 

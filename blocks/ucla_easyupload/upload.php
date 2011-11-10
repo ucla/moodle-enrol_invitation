@@ -248,6 +248,13 @@ if ($uploadform->is_cancelled()) {
     }
 
     $data->coursemodule = $coursemoduleid;
+        
+    if (plugin_supports('mod', $modulename, FEATURE_MOD_INTRO, true)) {
+        $introeditor = $data->introeditor;
+        unset($data->introeditor);
+        $data->intro       = $introeditor['text'];
+        $data->introformat = $introeditor['format'];
+    }
 
     $instanceid = $addinstancefn($data, $uploadform);
 

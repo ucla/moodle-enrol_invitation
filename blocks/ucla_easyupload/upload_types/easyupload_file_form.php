@@ -11,7 +11,7 @@ class easyupload_file_form extends easy_upload_form {
     private $draftitem = 0;
 
     function specification() {
-        $mform = $this->_form;
+        $mform =& $this->_form;
 
         $mform->addElement('uclafile', 'repo_upload_file', 
             get_string('dialog_add_file_box', self::associated_block));
