@@ -11,16 +11,33 @@ $string['returntosection'] = 'Return to section';
 $string['successfuladd'] = 'Successfully added {$a} to course.';
 
 // Should I split out the "to {$a}" part?
-$string['easy_upload_link_form'] = 'Upload a link to {$a}';
+$string['easyupload_link_form'] = 'Upload a link to {$a}';
 $string['dialog_add_link'] = 'Add a link';
 $string['dialog_add_link_box'] = 'Enter link URL';
 $string['dialog_rename_link'] = 'Name link';
 
-$string['easy_upload_file_form'] = 'Upload a file to {$a}';
+$string['easyupload_file_form'] = 'Upload a file to {$a}';
 $string['dialog_add_file'] = 'Select file';
 $string['dialog_add_file_box'] = 'File';
 $string['dialog_rename_file'] = 'Name file';
 
+$string['easyupload_activity_form'] = 'Upload an activity to {$a}';
+$string['dialog_add_activity'] = 'Select activity type';
+$string['dialog_add_activity_box'] = 'Activity';
+
+$string['easyupload_resource_form'] = 'Upload a resource to {$a}';
+$string['dialog_add_resource'] = 'Select resource type';
+$string['dialog_add_resource_box'] = 'Resource';
+
+$string['easyupload_subheading_form'] = 'Add a subheading to {$a}';
+$string['dialog_add_subheading'] = 'Enter subheading';
+$string['dialog_add_subheading_box'] = 'Subheading you want displayed in section';
+
+$string['easyupload_text_form'] = 'Add text to {$a}';
+$string['dialog_add_text'] = 'Enter text';
+$string['dialog_add_text_box'] = 'Text you want displayed in section';
+
+// These are for the link into control panel
 $string['add_file'] = 'Upload a File';
 $string['add_file_post'] = '';
 

@@ -2,14 +2,14 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-class easyupload_label_form extends easy_upload_form {
+class easyupload_subheading_form extends easy_upload_form {
     var $allow_js_select = true;
 
     function specification() {
         $mform =& $this->_form;
 
         $mform->addElement('text', 'text', 
-            get_string('dialog_add_label_box', self::associated_block));
+            get_string('dialog_add_subheading_box', self::associated_block));
 
         $mform->addElement('hidden', 'format', 1);
     }
