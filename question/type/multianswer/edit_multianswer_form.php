@@ -87,6 +87,9 @@ class qtype_multianswer_edit_form extends question_edit_form {
         $mform->removeElement('defaultmark');
         $this->confirm = optional_param('confirm', '0', PARAM_RAW);
 
+        // Make questiontext a required field for this question type.
+        $mform->addRule('questiontext', null, 'required', null, 'client');
+
         // display the questions from questiontext;
         if ("" != optional_param('questiontext', '', PARAM_RAW)) {
             $this->questiondisplay = fullclone(qtype_multianswer_extract_question(
@@ -251,6 +254,7 @@ class qtype_multianswer_edit_form extends question_edit_form {
             $mform->addElement('hidden', 'confirm', 0);
         }
 
+        $this->add_interactive_settings();
     }
 
 
@@ -284,7 +288,11 @@ class qtype_multianswer_edit_form extends question_edit_form {
                         foreach ($wrapped->options->answers as $subanswer) {
                             $parsableanswerdef .= $separator
                                 . '%' . round(100*$subanswer->fraction) . '%';
-                            $parsableanswerdef .= $subanswer->answer;
+                            if (is_array($subanswer->answer)) {
+                                $parsableanswerdef .= $subanswer->answer['text'];
+                            } else {
+                                $parsableanswerdef .= $subanswer->answer;
+                            }
                             if (!empty($wrapped->options->tolerance)) {
                                 // Special for numerical answers:
                                 $parsableanswerdef .= ":{$wrapped->options->tolerance}";
@@ -361,6 +369,9 @@ class qtype_multianswer_edit_form extends question_edit_form {
                                 $default_values[$prefix.'tolerance['.$key.']'] =
                                         $subquestion->tolerance[0];
                             }
+                            if (is_array($answer)) {
+                                $answer = $answer['text'];
+                            }
                             $trimmedanswer = trim($answer);
                             if ($trimmedanswer !== '') {
                                 $answercount++;
@@ -414,6 +425,7 @@ class qtype_multianswer_edit_form extends question_edit_form {
         if ($default_values != "") {
             $question = (object)((array)$question + $default_values);
         }
+        $question = $this->data_preprocessing_hints($question);
         parent::set_data($question);
     }
 
@@ -438,6 +450,9 @@ class qtype_multianswer_edit_form extends question_edit_form {
                                 $this->savedquestiondisplay->options->questions[$sub]->qtype);
                     }
                     foreach ($subquestion->answer as $key => $answer) {
+                        if (is_array($answer)) {
+                            $answer = $answer['text'];
+                        }
                         $trimmedanswer = trim($answer);
                         if ($trimmedanswer !== '') {
                             $answercount++;

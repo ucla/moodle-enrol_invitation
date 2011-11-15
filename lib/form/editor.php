@@ -86,6 +86,24 @@ class MoodleQuickForm_editor extends HTML_QuickForm_element {
         $this->_options['subdirs'] = $allow;
     }
 
+    /**
+     * Returns editor format
+     *
+     * @return int.
+     */
+    function getFormat() {
+        return $this->_values['format'];
+    }
+
+    /**
+     * Checks if editor used is tinymce and is required field
+     *
+     * @return true if required field.
+     */
+    function isRequired() {
+        return (isset($this->_options['required']) && $this->_options['required']);
+    }
+
     function setHelpButton($_helpbuttonargs, $function='_helpbutton') {
         if (!is_array($_helpbuttonargs)) {
             $_helpbuttonargs = array($_helpbuttonargs);
@@ -198,23 +216,33 @@ class MoodleQuickForm_editor extends HTML_QuickForm_element {
             $fpoptions['link'] = $link_options;
         }
 
+        //If editor is required and tinymce, then set required_tinymce option to initalize tinymce validation.
+        if (($editor instanceof tinymce_texteditor)  && !is_null($this->getAttribute('onchange'))) {
+            $this->_options['required'] = true;
+        }
+
     /// print text area - TODO: add on-the-fly switching, size configuration, etc.
         $editor->use_editor($id, $this->_options, $fpoptions);
 
         $rows = empty($this->_attributes['rows']) ? 15 : $this->_attributes['rows'];
         $cols = empty($this->_attributes['cols']) ? 80 : $this->_attributes['cols'];
 
-        $str .= '<div><textarea id="'.$id.'" name="'.$elname.'[text]" rows="'.$rows.'" cols="'.$cols.'">';
+        //Apply editor validation if required field
+        $editorrules = '';
+        if (!is_null($this->getAttribute('onblur')) && !is_null($this->getAttribute('onchange'))) {
+            $editorrules = ' onblur="'.htmlspecialchars($this->getAttribute('onblur')).'" onchange="'.htmlspecialchars($this->getAttribute('onchange')).'"';
+        }
+        $str .= '<div><textarea id="'.$id.'" name="'.$elname.'[text]" rows="'.$rows.'" cols="'.$cols.'"'.$editorrules.'>';
         $str .= s($text);
         $str .= '</textarea></div>';
 
         $str .= '<div>';
-        $str .= '<select name="'.$elname.'[format]">';
-        foreach ($formats as $key=>$desc) {
-            $selected = ($format == $key) ? 'selected="selected"' : '';
-            $str .= '<option value="'.s($key).'" '.$selected.'>'.$desc.'</option>';
+        if (count($formats)>1) {
+            $str.= html_writer::select($formats, $elname.'[format]', $format, false);
+        } else {
+            $str.= html_writer::empty_tag('input',
+                    array('name'=>$elname.'[format]', 'type'=> 'hidden', 'value' => array_pop(array_keys($formats))));
         }
-        $str .= '</select>';
         $str .= '</div>';
 
         // during moodle installation, user area doesn't exist
