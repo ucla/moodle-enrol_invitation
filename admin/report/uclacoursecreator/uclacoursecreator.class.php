@@ -507,7 +507,6 @@ class uclacoursecreator {
             return $this->$enrol_class;
         }
 
-        // This is not an economic blowjob, but an enrol-class object
         $ecobj = new $enrol_class();
         $this->$enrol_class = $ecobj;
 

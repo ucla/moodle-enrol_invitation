@@ -85,6 +85,10 @@ abstract class registrar_query {
 
             if (!$recset->EOF) {
                 while ($fields = $recset->FetchRow()) {
+                    foreach ($fields as $k => $data) {
+                        $fields[$k] = mb_convert_encoding($data, 'utf8');
+                    }
+
                     $res = $this->validate($fields, $driving_datum);
 
                     if ($res !== false) {
