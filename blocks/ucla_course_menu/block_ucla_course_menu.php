@@ -308,6 +308,16 @@ class block_ucla_course_menu extends block_navigation {
 
         return $this->page->get_renderer('block_ucla_course_menu');
     }
+
+    /**
+     *  This allows us to borrow navigation block's stylsheets.
+     **/
+    function html_attributes() {
+        $orig = parent::html_attributes();
+        $orig['class'] .= ' block_navigation';
+
+        return $orig;
+    }
 }
 
 // EOF
