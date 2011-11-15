@@ -102,10 +102,13 @@ $params[] = $course->id;
 // Instructor configuration, move out to config file 
 $instructor_types = array(
     'Instructor' => array(
-        'editingteacher',
-        'teacher'
+        'editinginstructor',
+        'ta_instructor'
     ),
-    'Teaching Assistant' => array(),
+    'Teaching Assistant' => array(
+        'ta',
+        'ta_admin'
+    ),
 );
 
 // map-reduce-able
