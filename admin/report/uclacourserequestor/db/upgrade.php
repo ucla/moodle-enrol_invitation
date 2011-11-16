@@ -33,7 +33,7 @@ function xmldb_report_uclacourserequestor_upgrade($oldversion) {
 	
 	$result = true;
 
-	    if ($result && $oldversion < 2011052717) {
+    if ($result && $oldversion < 2011052717) {
 
         // Define table ucla_request_classes to be created
         $table = new xmldb_table('ucla_request_classes');
@@ -67,7 +67,7 @@ function xmldb_report_uclacourserequestor_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2011052717, 'report', 'uclacourserequestor');
     }
 	
-	    if ($result && $oldversion < 2011052717) {
+    if ($result && $oldversion < 2011052717) {
 
         // Define table ucla_request_crosslist to be created
         $table = new xmldb_table('ucla_request_crosslist');
@@ -91,7 +91,7 @@ function xmldb_report_uclacourserequestor_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2011052717, 'report', 'uclacourserequestor');
     }
     
-        if ($oldversion < 2011072704) {
+    if ($oldversion < 2011072704) {
 
         // Changing precision of field instructor on table ucla_request_classes to (600)
         $table = new xmldb_table('ucla_request_classes');
@@ -103,6 +103,22 @@ function xmldb_report_uclacourserequestor_upgrade($oldversion) {
         // uclacourserequestor savepoint reached
         upgrade_plugin_savepoint(true, 2011072704, 'report', 'uclacourserequestor');
     }
+
+    $thisversion = 2011111600;
+    if ($oldversion < $thisversion) {
+
+        // Define field status to be dropped from ucla_request_classes
+        $table = new xmldb_table('ucla_request_classes');
+        $field = new xmldb_field('status');
+
+        // Conditionally launch drop field status
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+
+        // uclacourserequestor savepoint reached
+        upgrade_plugin_savepoint(true, $thisversion, 'report', 'uclacourserequestor');
+    } 
 	
 	return $result;
 }
