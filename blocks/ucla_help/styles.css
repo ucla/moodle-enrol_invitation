@@ -1,0 +1,23 @@
+#block_ucla_help {
+    padding: 1.0em;
+}
+
+#block_ucla_help_boxtext, #block_ucla_help_formbox  {
+    border: 1px solid gray;    
+    padding: 0 1.0em;
+    border-radius: 10px;    
+}
+
+#block_ucla_help_boxtext {
+    width: 40%;
+    float: left;
+}
+
+#block_ucla_help_formbox {
+    width: 50%;
+    float: right;
+}
+
+#id_ucla_help_name, #id_ucla_help_email, #id_ucla_help_description {
+    width: 100%;
+}

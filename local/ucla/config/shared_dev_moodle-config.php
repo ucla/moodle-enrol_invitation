@@ -82,6 +82,19 @@ $CFG->classrequestor_hidden_default = false; // default value for hidden
 $CFG->course_creator_email = 'ccle-operations@lists.ucla.edu';
 $CFG->course_creator_email_template_dir = '';
 
+// Help & Feedback
+// if using JIRA, jira_user, jira_password, jira_pid should be defined in config_private.php
+$block_ucla_help_settings = array('send_to' => 'jira',
+                                  'jira_endpoint' => 'https://jira.ats.ucla.edu/CreateIssueDetails.jspa',
+                                  'jira_default_assignee' => 'dkearney',
+                                  'boxtext' => '<ul>
+                                                    <li>Find FAQs, tutorials and a large database of help documentation at <strong><a title="cclehelp" href="https://ccle.ucla.edu/course/view/cclehelp">CCLE Help</a></strong></li>
+                                                    <li>Send your feedback including suggestions and comments to <a href="mailto:ccle@ucla.edu">ccle@ucla.edu</a></li>
+                                                </ul>'
+        );
+$CFG->forced_plugin_settings = array('block_ucla_help' => $block_ucla_help_settings);
+$block_ucla_help_support_contacts['System'] = 'dkearney';  // default
+
 /** 
  *  Automatic Shibboleth configurations.
  *  Disabling in favor for GUI configurations.
