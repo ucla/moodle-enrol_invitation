@@ -1,4 +1,7 @@
 <?php
+/**
+ *  Shared UCLA-written functions.
+ **/
 
 class ucla_reg_classinfo_cron {
     static function enrolstat_translate($char) {
@@ -15,6 +18,32 @@ class ucla_reg_classinfo_cron {
         }
 
         return $codes[$char];
+    }
+
+    function run($terms) {
+        global $DB;
+
+        if (empty($terms)) {
+            return true;
+        }
+
+        $reg = registrar_query::get_registrar_query('ccle_getclasses');
+
+        $courses = ucla_get_courses($terms);
+
+        $get_from_registrar = array();
+        foreach ($courses as $term => $tcourses) {
+            foreach ($tcourses as $srs => $course) {
+                if (!isset($course->term)) {
+                    $get_from_registrar[] = array(
+                        'term' => $course->course_term,
+                        'srs' => $course->course_srs
+                    );
+                }
+            }
+        }
+
+        // Get all these shits from registrar.
     }
 }
 

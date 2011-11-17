@@ -23,19 +23,12 @@ abstract class registrar_query {
     // Holds onto the Registrar connection object.
     private $registrar_conn = null;
 
-    static function test_connection() {
-        // Test registrar connections
-        $this->get_registrar_connection();
-        $this->close_registrar_connection();
-    }
-
     static function get_registrar_query($queryname) {
         $classname = 'registrar_' . $queryname;
         $fn = dirname(__FILE__) . "/$classname.class.php";
         if (file_exists($fn)) {
             require_once($fn);
 
-        
             return new $classname();
         }
 
