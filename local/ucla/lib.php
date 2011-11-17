@@ -14,7 +14,7 @@ defined('MOODLE_INTERNAL') || die();
  */
 function ucla_validator($type, $value){
     $result = 0;
-    switch($term) {
+    switch($type) {
         case 'term':
             $result = preg_match('/^[0-9]{2}[FWS1]$/', $value);
             break;

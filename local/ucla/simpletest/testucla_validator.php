@@ -30,9 +30,9 @@ class ucla_validator_test extends UnitTestCase {
         $this->assertEqual($result, true);
         $result = ucla_validator('srs','000000000');
         $this->assertEqual($result, true);
-        $result = ucla_validator('bid','000000000');
+        $result = ucla_validator('uid','000000000');
         $this->assertEqual($result, true);
-        $result = ucla_validator('bid','123456789');
+        $result = ucla_validator('uid','123456789');
         $this->assertEqual($result, true);
     }
     
@@ -41,9 +41,9 @@ class ucla_validator_test extends UnitTestCase {
         $this->assertEqual($result, false);
         $result = ucla_validator('srs','0000000011');
         $this->assertEqual($result, false);
-        $result = ucla_validator('bid','00000000');
+        $result = ucla_validator('uid','00000000');
         $this->assertEqual($result, false);
-        $result = ucla_validator('bid','0000000011');
+        $result = ucla_validator('uid','0000000011');
         $this->assertEqual($result, false);
         $result = ucla_validator('term','1111');
         $this->assertEqual($result, false);
@@ -55,6 +55,16 @@ class ucla_validator_test extends UnitTestCase {
         $this->assertEqual($result, false);
         $result = ucla_validator('term','11FF');
         $this->assertEqual($result, false);
+    }
+    
+    function test_exceptions() {
+        try{
+            $result = ucla_validator('ter','1F0');
+            
+        }
+        catch (Exception $e){
+            echo $e->getMessage();
+        }        
     }
  
 }
