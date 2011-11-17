@@ -31,6 +31,7 @@
     require_once('config.php');
     require_once($CFG->dirroot .'/course/lib.php');
     require_once($CFG->libdir .'/filelib.php');
+    require_once($CFG->libdir .'/ucla/lib.php');
 
     redirect_if_major_upgrade_required();
 
@@ -90,6 +91,10 @@
     $PAGE->set_heading($SITE->fullname);
     echo $OUTPUT->header();
 
+    // Start SSC Modification 484 - Lazy login ON front page
+    require_user_finish_login();
+    // End SSC Modification 484    
+    
 /// Print Section or custom info
     if (!empty($CFG->customfrontpageinclude)) {
         include($CFG->customfrontpageinclude);
