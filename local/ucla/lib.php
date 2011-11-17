@@ -13,7 +13,9 @@ defined('MOODLE_INTERNAL') || die();
  * @throws moodle_exception When the input type is invalid.
  */
 function ucla_validator($type, $value){
+    
     $result = 0;
+    
     switch($type) {
         case 'term':
             $result = preg_match('/^[0-9]{2}[FWS1]$/', $value);
@@ -31,8 +33,7 @@ function ucla_validator($type, $value){
         return true;
     } else {
         return false;
-    }
-        
+    }   
 }
 
 //EOF
