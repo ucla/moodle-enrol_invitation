@@ -46,6 +46,13 @@ function ucla_verify_configuration_setup() {
     return $returner;
 }
 
+function ucla_require_registrar() {
+    global $CFG;
+
+    require_once($CFG->dirroot 
+        . '/local/ucla/uclaregistrar/registrar_query.class.php');
+}
+
 function get_courses_info($courses) {
 
 }

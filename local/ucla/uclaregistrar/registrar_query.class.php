@@ -23,12 +23,57 @@ abstract class registrar_query {
     // Holds onto the Registrar connection object.
     private $registrar_conn = null;
 
+    const query_results = 'good';
+    const failed_inputs = 'bad';
+
+    var $previous_bad_inputs = array();
+
+    /**
+     *  @return Array (
+     *      'good' => array( Good data ),
+     *      'bad'  => array( Bad data (might be empty ))
+     *  )
+     **/
+    static function run_registrar_query($queryname, $data, $ignorebad=false) {
+        $rq = self::get_registrar_query($queryname);
+
+        if (!$rq) {
+            return false;
+        }
+
+        $rt = $rq->retrieve_registrar_info($data);
+
+        if ($ignorebad) {
+            return $rt;
+        }
+        
+        $er = $rq->get_bad_data();
+
+        return array(
+            self::query_results => $rt, 
+            self::failed_inputs => $er
+        );
+    }
+
+    /**
+     *  Finds the file for the query and creates the query connection
+     *  object.
+     **/
     static function get_registrar_query($queryname) {
         $classname = 'registrar_' . $queryname;
-        $fn = dirname(__FILE__) . "/$classname.class.php";
-        if (file_exists($fn)) {
-            require_once($fn);
+        
+        if (!class_exists($classname)) {
+            $fn = dirname(__FILE__) . "/$classname.class.php";
+            if (file_exists($fn)) {
+                require_once($fn);
+            } else {
+                throw new registrar_stored_procedure_exception(
+                    $classname . ' not found'
+                );
+            }
+        }
 
+        if (class_exists($classname)) {
             return new $classname();
         }
 
@@ -46,7 +91,7 @@ abstract class registrar_query {
      **/
     function get_registrar_connection() {
         if ($this->registrar_conn == null) {
-            $this->registrar_conn = $this->open_registrar_connection();
+            $this->registrar_conn =& $this->open_registrar_connection();
         }
 
         return $this->registrar_conn;
@@ -63,7 +108,6 @@ abstract class registrar_query {
         }
 
         $this->registrar_conn->Close();
-
         $this->registrar_conn = null;
 
         return true;
@@ -75,9 +119,12 @@ abstract class registrar_query {
      *  @param $driving_data The data to run a set of queries on.
      **/
     function retrieve_registrar_info($driving_data) {
+        // Empty the bad data
+        $this->previous_bad_inputs = array();
+
         $direct_data = array();
 
-        $db_reg = $this->get_registrar_connection();
+        $db_reg =& $this->get_registrar_connection();
 
         foreach ($driving_data as $driving_datum) {
             $qr = $this->remote_call_generate($driving_datum);
@@ -100,6 +147,9 @@ abstract class registrar_query {
                         } else {
                             $direct_data[$key] = $res;
                         }
+                    } else {
+                        // We need to return the malevolent data...
+                        $this->previous_bad_inputs = $driving_datum;
                     }
                 }
             } else {
@@ -110,6 +160,17 @@ abstract class registrar_query {
         }
 
         return $direct_data;
+    }
+
+    /**)
+     *  Returns any bad data whose output did not pass validation.))
+     **/
+    function get_bad_data() {
+        if (!empty($this->previous_bad_inputs)) {
+            return $this->previous_bad_inputs;
+        }
+
+        return false;
     }
 
     /**
@@ -160,6 +221,14 @@ abstract class registrar_query {
     function open_registrar_connection() {
         global $CFG;
 
+        // This will allow us to share connections hurrah
+        $i = 'ucla_extdb_registrar_connection';
+        $adodbclass = 'ADONewConnection';
+
+        if (isset($CFG->$i)) {
+            return $CFG->$i;
+        }
+
         require_once($CFG->libdir . '/adodb/adodb.inc.php');
 
         $dbtype = get_config('', 'registrar_dbtype');
@@ -180,7 +249,7 @@ abstract class registrar_query {
         }
 
         // Connect to the external database 
-        $extdb = ADONewConnection($dbtype);
+        $extdb = $adodbclass($dbtype);
 
         if (!$extdb) {
             throw new registrar_stored_procedure_exception(
@@ -209,6 +278,8 @@ abstract class registrar_query {
         }
 
         $extdb->SetFetchMode(ADODB_FETCH_ASSOC);
+
+        $CFG->$i =& $extdb;
 
         return $extdb;
     }
