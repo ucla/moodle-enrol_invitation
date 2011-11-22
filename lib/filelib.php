@@ -111,6 +111,20 @@ function file_prepare_standard_editor($data, $field, array $options, $context=nu
         $options['noclean'] = false;
     }
 
+    //sanity check for passed context. This function doesn't expect $option['context'] to be set
+    //But this function is called before creating editor hence, this is one of the best places to check
+    //if context is used properly. This check notify developer that they missed passing context to editor.
+    if (isset($context) && !isset($options['context'])) {
+        //if $context is not null then make sure $option['context'] is also set.
+        debugging('Context for editor is not set in editoroptions. Hence editor will not respect editor filters', DEBUG_DEVELOPER);
+    } else if (isset($options['context']) && isset($context)) {
+        //If both are passed then they should be equal.
+        if ($options['context']->id != $context->id) {
+            $exceptionmsg = 'Editor context ['.$options['context']->id.'] is not equal to passed context ['.$context->id.']';
+            throw new coding_exception($exceptionmsg);
+        }
+    }
+
     if (is_null($itemid) or is_null($context)) {
         $contextid = null;
         $itemid = null;
@@ -1714,6 +1728,21 @@ function send_file($path, $filename, $lifetime = 'default' , $filter=0, $pathiss
     //try to disable automatic sid rewrite in cookieless mode
     @ini_set("session.use_trans_sid", "false");
 
+    if ($lifetime > 0 && !empty($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
+        // get unixtime of request header; clip extra junk off first
+        $since = strtotime(preg_replace('/;.*$/','',$_SERVER["HTTP_IF_MODIFIED_SINCE"]));
+        if ($since && $since >= $lastmodified) {
+            header('HTTP/1.1 304 Not Modified');
+            header('Expires: '. gmdate('D, d M Y H:i:s', time() + $lifetime) .' GMT');
+            header('Cache-Control: max-age='.$lifetime);
+            header('Content-Type: '.$mimetype);
+            if ($dontdie) {
+                return;
+            }
+            die;
+        }
+    }
+
     //do not put '@' before the next header to detect incorrect moodle configurations,
     //error should be better than "weird" empty lines for admins/users
     header('Last-Modified: '. gmdate('D, d M Y H:i:s', $lastmodified) .' GMT');
@@ -1928,6 +1957,21 @@ function send_stored_file($stored_file, $lifetime=86400 , $filter=0, $forcedownl
 
     //try to disable automatic sid rewrite in cookieless mode
     @ini_set("session.use_trans_sid", "false");
+
+    if ($lifetime > 0 && !empty($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
+        // get unixtime of request header; clip extra junk off first
+        $since = strtotime(preg_replace('/;.*$/','',$_SERVER["HTTP_IF_MODIFIED_SINCE"]));
+        if ($since && $since >= $lastmodified) {
+            header('HTTP/1.1 304 Not Modified');
+            header('Expires: '. gmdate('D, d M Y H:i:s', time() + $lifetime) .' GMT');
+            header('Cache-Control: max-age='.$lifetime);
+            header('Content-Type: '.$mimetype);
+            if ($dontdie) {
+                return;
+            }
+            die;
+        }
+    }
 
     //do not put '@' before the next header to detect incorrect moodle configurations,
     //error should be better than "weird" empty lines for admins/users

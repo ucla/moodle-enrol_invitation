@@ -1,0 +1,54 @@
+.course-content ul.topics {
+    margin: 0;
+}
+
+.course-content ul.topics li.section {
+    list-style: none;
+    margin: 5px 0 0 0;
+    padding: 0;
+    border: 0;
+}
+
+.course-content ul.topics li.section .content .defsection {
+    font-style: italic;
+    color: gray;
+}
+
+.course-content ul.topics li.section .content {
+    margin: 0 40px 0 40px;
+}
+
+.course-content ul.topics li.section .content .sectionname {
+    margin: 0;
+}
+
+.course-content ul.topics li.section.hidden {
+    background-color: #C0C0C0;
+}
+
+.course-content ul.topics li.section .left {
+    width: 40px;
+    float: left;
+    text-align: center;
+    /* display: none; */
+}
+
+.course-content ul.topics li.section .right {
+    width: 40px;
+    float: right;
+    text-align: left;
+    /* display: none; */
+}
+
+.course-content ul.topics li.section .content .registrar-info {
+    color: gray;
+    font-weight: bold;
+}
+
+.course-content ul.topics li.section .content p {
+    margin: 1em 0;
+}
+
+.jumpmenu {
+    text-align: center;
+}

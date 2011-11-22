@@ -270,6 +270,7 @@ switch ($mode) {
     case "complete" :
         get_all_mods($course->id, $mods, $modnames, $modnamesplural, $modnamesused);
         $sections = get_all_sections($course->id);
+        $itemsprinted = false;
 
         for ($i=0; $i<=$course->numsections; $i++) {
 
@@ -279,8 +280,10 @@ switch ($mode) {
                 $showsection = (has_capability('moodle/course:viewhiddensections', $coursecontext) or $section->visible or !$course->hiddensections);
 
                 if ($showsection) { // prevent hidden sections in user activity. Thanks to Geoff Wilbert!
-
+                    // Check the section has a sequence. This is the sequence of modules/resources.
+                    // If there is no sequence there is nothing to display.
                     if ($section->sequence) {
+                        $itemsprinted = true;
                         echo '<div class="section">';
                         echo '<h2>';
                         echo get_section_name($course, $section);
@@ -352,6 +355,11 @@ switch ($mode) {
                 }
             }
         }
+
+        if (!$itemsprinted) {
+            echo $OUTPUT->notification(get_string('nothingtodisplay'));
+        }
+
         break;
     case "coursecompletion":
     case "coursecompletions":
@@ -467,7 +475,8 @@ switch ($mode) {
 
                     // Get course info
                     $c_course = $DB->get_record('course', array('id' => $c_info->course_id));
-                    $course_name = $c_course->fullname;
+                    $course_context = get_context_instance(CONTEXT_COURSE, $c_course->id, MUST_EXIST);
+                    $course_name = format_string($c_course->fullname, true, array('context' => $course_context));
 
                     // Get completions
                     $completions = $c_info->get_completions($user->id);
@@ -541,7 +550,7 @@ switch ($mode) {
 
                         // Display course name on first row
                         if ($first_row) {
-                            echo '<tr><td class="c0"><a href="'.$CFG->wwwroot.'/course/view.php?id='.$c_course->id.'">'.format_string($course_name).'</a></td>';
+                            echo '<tr><td class="c0"><a href="'.$CFG->wwwroot.'/course/view.php?id='.$c_course->id.'">'.$course_name.'</a></td>';
                         } else {
                             echo '<tr><td class="c0"></td>';
                         }

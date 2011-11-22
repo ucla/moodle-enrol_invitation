@@ -30,11 +30,11 @@ if (!file_exists('../config.php')) {
 }
 
 // Check that PHP is of a sufficient version as soon as possible
-if (version_compare(phpversion(), '5.2.0') < 0) {
+if (version_compare(phpversion(), '5.3.2') < 0) {
     $phpversion = phpversion();
     // do NOT localise - lang strings would not work here and we CAN NOT move it to later place
-    echo "Sorry, Moodle 2.0 requires PHP 5.2.8 or later (currently using version $phpversion). ";
-    echo "Please upgrade your server software or use latest Moodle 1.9.x instead.";
+    echo "Moodle 2.1 or later requires at least PHP 5.3.2 (currently using version $phpversion).<br />";
+    echo "Please upgrade your server software or install older Moodle version.";
     die;
 }
 
@@ -124,7 +124,7 @@ if (!core_tables_exist()) {
         echo $OUTPUT->box($copyrightnotice, 'copyrightnotice');
         echo '<br />';
         $continue = new single_button(new moodle_url('/admin/index.php', array('lang'=>$CFG->lang, 'agreelicense'=>1)), get_string('continue'), 'get');
-        echo $OUTPUT->confirm(get_string('doyouagree'), $continue, "http://docs.moodle.org/en/License");
+        echo $OUTPUT->confirm(get_string('doyouagree'), $continue, "http://docs.moodle.org/dev/License");
         echo $OUTPUT->footer();
         die;
     }
@@ -458,8 +458,8 @@ if (!empty($CFG->maintenance_enabled)) {
 $copyrighttext = '<a href="http://moodle.org/">Moodle</a> '.
                  '<a href="http://docs.moodle.org/dev/Releases" title="'.$CFG->version.'">'.$CFG->release.'</a><br />'.
                  'Copyright &copy; 1999 onwards, Martin Dougiamas<br />'.
-                 'and <a href="http://docs.moodle.org/en/Credits">many other contributors</a>.<br />'.
-                 '<a href="http://docs.moodle.org/en/License">GNU Public License</a>';
+                 'and <a href="http://docs.moodle.org/dev/Credits">many other contributors</a>.<br />'.
+                 '<a href="http://docs.moodle.org/dev/License">GNU Public License</a>';
 echo $OUTPUT->box($copyrighttext, 'copyright');
 //////////////////////////////////////////////////////////////////////////////////////////////////
 

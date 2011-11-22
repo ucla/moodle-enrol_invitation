@@ -34,6 +34,14 @@ M.mod_quiz.init_review_form = function(Y) {
     Y.on('submit', function(e) { e.halt(); }, '.questionflagsaveform');
 };
 
+M.mod_quiz.init_comment_popup = function(Y) {
+    // Add a close button to the window.
+    var closebutton = Y.Node.create('<input type="button" />');
+    closebutton.set('value', M.util.get_string('cancel', 'moodle'));
+    Y.one('#id_submitbutton').ancestor().append(closebutton);
+    Y.on('click', function() { window.close() }, closebutton);
+}
+
 // Code for updating the countdown timer that is used on timed quizzes.
 M.mod_quiz.timer = {
     // YUI object.
@@ -105,7 +113,7 @@ M.mod_quiz.timer = {
         var minutes = Math.floor(secondsleft/60);
         secondsleft -= minutes*60;
         var seconds = secondsleft;
-        Y.one('#quiz-time-left').setContent('' + hours + ':' +
+        Y.one('#quiz-time-left').setContent(hours + ':' +
                 M.mod_quiz.timer.two_digit(minutes) + ':' +
                 M.mod_quiz.timer.two_digit(seconds));
 
