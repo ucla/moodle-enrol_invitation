@@ -29,11 +29,7 @@ function ucla_validator($type, $value){
             break;
     }
     
-    if ($result == 1) {
-        return true;
-    } else {
-        return false;
-    }   
+    return ($result == 1); 
 }
 
 //EOF
