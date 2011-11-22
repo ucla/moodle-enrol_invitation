@@ -301,15 +301,8 @@ class block_ucla_course_menu extends block_navigation {
                 $navigs[] = navigation_node::create($modnameshown, 
                     new moodle_url($modpath, array('id' => $courseid)),
                     navigation_node::TYPE_ACTIVITY);
-//                $node = navigation_node::create($modnameshown, 
-//                    new moodle_url($modpath, array('id' => $courseid)),
-//                    navigation_node::TYPE_ACTIVITY);    
-//                $node->classes[] = 'TEST';
-//                $navigs[] = $node;
             }
         }
-
-//        print_object($navigs);
         
         return $navigs;
     }
