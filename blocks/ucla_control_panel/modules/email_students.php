@@ -64,16 +64,16 @@ class ucla_cp_module_email_students extends ucla_cp_module {
                 $course_forums = array($course_forum);
             }
         }
-        
+
         $course_module = null;
 
         // This means that we found 1 news forum
         // Now we need to find the course module associated with it...
-        if (count($course_forums) == 1 && isset($course_forums[0])) {
+        if (count($course_forums) == 1) {
             $instances = $fast_modinfo->get_instances();
 
             // Just check out the first one
-            $target_forum = $course_forums[0];
+            $target_forum = array_shift($course_forums);
 
             foreach ($instances['forum'] as $instance) {
                 if ($instance->instance == $target_forum->id) {
@@ -82,6 +82,7 @@ class ucla_cp_module_email_students extends ucla_cp_module {
                 }
             }
         } else {
+            debugging('could not find one news forum');
             return false;
         }
 
@@ -114,7 +115,7 @@ class ucla_cp_module_email_students extends ucla_cp_module {
                 . '/blocks/ucla_control_panel/view.php',
                 array('unhide' => $target_forum->id,
                     'sesskey' => sesskey(),
-                    'courseid' => $course->id));
+                    'course_id' => $course->id));
 
 
             $init_name = 'email_students_hidden';
