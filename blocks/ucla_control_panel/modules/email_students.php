@@ -92,7 +92,7 @@ class ucla_cp_module_email_students extends ucla_cp_module {
             require_capability('moodle/course:activityvisibility',
                 get_context_instance(CONTEXT_MODULE, $course_module->id));
 
-            set_coursemodule_visible($course_module->id, 0);
+            set_coursemodule_visible($course_module->id, true);
             rebuild_course_cache($course->id);
 
             $course_module->visible = '1';
