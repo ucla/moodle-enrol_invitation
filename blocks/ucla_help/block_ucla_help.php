@@ -8,7 +8,7 @@
  * @author     Rex Lorenzo <rex@seas.ucla.edu>                                         
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later 
  */
-require_once($CFG->dirroot . '/blocks/moodleblock.class.php');
+defined('MOODLE_INTERNAL') || die();
 
 class block_ucla_help extends block_base {
 

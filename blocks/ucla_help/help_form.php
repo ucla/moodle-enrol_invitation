@@ -11,6 +11,8 @@
 require_once(dirname(__FILE__) . '/../../config.php');
 require_once($CFG->libdir . '/formslib.php');
 
+defined('MOODLE_INTERNAL') || die();
+
 class help_form extends moodleform {
  
     function definition() {
