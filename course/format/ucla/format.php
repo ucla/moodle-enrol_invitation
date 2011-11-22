@@ -310,7 +310,7 @@ while ($section <= $course->numsections) {
             ));
 
         //// (LEFT) State ////
-        $left_side = html_writer::tag('div', $currenttext.$section, array(
+        $left_side = html_writer::tag('div', $currenttext, array(
                 'class' => 'left side'
             ));
 
