@@ -78,61 +78,68 @@ class admin_setting_ucla_help_support_contact extends admin_setting {
     public function output_html($data, $query='') {
         global $block_ucla_help_support_contacts, $OUTPUT;
 
-        $out  = html_writer::start_tag('table', array('border' => 1, 'class' => 'generaltable'));
-        $out .= html_writer::start_tag('thead');
-        $out .= html_writer::start_tag('tr');
-        $out .= html_writer::tag('th', '');
-        $out .= html_writer::tag('th', get_string('settings_support_contacts_table_context', 'block_ucla_help'));
-        $out .= html_writer::tag('th', get_string('settings_support_contacts_table_contact', 'block_ucla_help'));
-        $out .= html_writer::tag('th', '');
-        $out .= html_writer::end_tag('tr');
-        $out .= html_writer::end_tag('thead');
-        $out .= html_writer::start_tag('tbody');
-        $i = 0; $row_num = 1; $cur_context = '';
+        /**
+         * Data is in following format:
+         * 
+         * Array
+         * (
+         *     [context0] => System
+         *     [support_contact0] => dkearney
+         *     [context1] => Computer Science
+         *     [support_contact1] => rlorenzo
+         *     [context2] => 
+         *     [support_contact2] => 
+         * )
+         */        
+        $t = new html_table();
+        $t->attributes = array('class' => 'generaltable');
+        $t->head = array('', get_string('settings_support_contacts_table_context', 'block_ucla_help'), 
+                get_string('settings_support_contacts_table_contact', 'block_ucla_help'), '');
+
+        $i = 0; $row_num = 1; $cur_context = ''; $row = array();       
         foreach((array) $data as $field => $value) {
+
+            // first cell is row number
             if ($i == 0) {  
-                // on first element, so start a new row
-                $out .= html_writer::start_tag('tr');
-                $out .= html_writer::tag('td', sprintf('%d.', $row_num));
+                $row = new html_table_row();
+                $cell = new html_table_cell();
+                $cell->text = sprintf('%d.', $row_num);
+                $row->cells[] = $cell;
                 $row_num++;
                 
                 // save context for later on
                 $cur_context = $value;
             }
             
-            $out .= html_writer::tag('td',
-                html_writer::empty_tag('input',
+            $cell = new html_table_cell();
+            $cell->text = html_writer::empty_tag('input',
                     array(
                         'type'  => 'text',
                         'class' => 'form-text',
                         'name'  => $this->get_full_name().'['.$field.']',
                         'value' => $value,
-                    )
-                ), array('class' => 'c'.$i)
-            );
+                    ));
+            $row->cells[] = $cell;            
             
             if ($i == 1) {
                 // on last element, so end row
+                $cell = new html_table_cell();
                 
                 // if context ws defined in config file, then give warning that
                 // user cannot change setting
                 if (!empty($block_ucla_help_support_contacts[$cur_context])) {
-                    $cell_text = html_writer::tag('div', 'Defined in config.php', array('class' => 'form-overridden'));
-                } else {
-                    $cell_text = '';
-                }                                
-                $out .= html_writer::tag('td', $cell_text);
-                
-                $out .= html_writer::end_tag('tr');
+                    $cell->text = html_writer::tag('div', 'Defined in config.php', array('class' => 'form-overridden'));
+                }                             
+                $row->cells[] = $cell; 
+                $t->data[] = $row;
+
                 $i = 0;
             } else {
                 $i++;
-            }
+            }            
         }
-        $out .= html_writer::end_tag('tbody');
-        $out .= html_writer::end_tag('table');
 
-        return format_admin_setting($this, $this->visiblename, $out, $this->description, false, '', NULL, $query);
+        return format_admin_setting($this, $this->visiblename, html_writer::table($t), $this->description, false, '', NULL, $query);
     }
 
     /**
