@@ -153,9 +153,8 @@ abstract class registrar_query {
                     }
                 }
             } else {
-                throw new registrar_stored_procedure_exception(
-                    "$qr returned 0 rows."
-                );
+                // We need to return the malevolent data...
+                $this->previous_bad_inputs = $driving_datum;
             }
         }
 

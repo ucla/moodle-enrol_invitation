@@ -28,6 +28,10 @@ class registrar_ccle_courseinstructorsget extends registrar_query {
             return false;
         }
 
+        foreach ($new as $k => $d) {
+            $new[$k] = trim($d);
+        }
+
         return (object) $new;
     }
 
