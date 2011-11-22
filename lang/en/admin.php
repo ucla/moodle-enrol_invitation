@@ -57,6 +57,8 @@ $string['antivirus'] = 'Anti-Virus';
 $string['appearance'] = 'Appearance';
 $string['aspellpath'] = 'Path to aspell';
 $string['authentication'] = 'Authentication';
+$string['authpreventaccountcreation'] = 'Prevent account creation when authenticating';
+$string['authpreventaccountcreation_help'] = 'When a user authenticates, an account on the site is automatically created if it doesn\'t yet exist. If an external database, such as LDAP, is used for authentication, but you wish to restrict access to the site to users with an existing account only, then this option should be enabled. New accounts will need to be created manually or via the upload users feature. Note that this setting doesn\'t apply to MNet authentication.';
 $string['authsettings'] = 'Manage authentication';
 $string['autolang'] = 'Language autodetect';
 $string['autologinguests'] = 'Auto-login guests';
@@ -70,6 +72,9 @@ $string['badwordslist'] = 'Custom bad words list';
 $string['blockediplist'] = 'Blocked IP List';
 $string['blockinstances'] = 'Instances';
 $string['blockmultiple'] = 'Multiple';
+$string['blockprotect'] = 'Protect from delete';
+$string['blockprotect_help'] = 'Selected block instances will be protected from deletion from the site-wide context. This is primarily used to protect the navigation and settings blocks which can be very hard to get back if accidentally deleted.';
+$string['blockunprotect'] = 'Unprotect';
 $string['blocksettings'] = 'Manage blocks';
 $string['bloglevel'] = 'Blog visibility';
 $string['bloglevelupgrade'] = 'Blog visibility upgrade';
@@ -330,6 +335,7 @@ $string['configstatsmaxruntime3'] = 'Specify the maximum time allowed to calcula
 $string['configstatsruntimedays'] = 'Specify the maximum number of days processed in each stats execution. When stats are up-to-date, only one day will be processed, so adjust this value depending of your server load, reducing it if shorter cron executions are needed.';
 $string['configstatsruntimestart'] = 'What time should the cronjob that does the stats processing <b>start</b>? Please specify different times if there are multiple Moodles on one physical server.';
 $string['configstatsuserthreshold'] = 'This setting specifies the minimum number of enrolled users for a course to be included in statistics calculations.';
+$string['configstrictformsrequired'] = 'If enabled, users are prevented from entering a space or line break only in required fields in forms.';
 $string['configstripalltitletags'] = 'Uncheck this setting to allow HTML tags in activity and resource names.';
 $string['configsupportemail'] = 'This email address will be published to users of this site as the one to email when they need general help (for example, when new users create their own accounts).  If this email is left blank then no such helpful email address is supplied.';
 $string['configsupportname'] = 'This is the name of a person or other entity offering general help via the support email or web address.';
@@ -434,7 +440,7 @@ $string['denyemailaddresses'] = 'Denied email domains';
 $string['development'] = 'Development';
 $string['devicedetectregex'] = 'Device detection regular expressions';
 $string['devicedetectregex_desc'] = '<p>By default, Moodle can detect devices of the type default (desktop PCs, laptops, etc), mobile (phones and small hand held devices), tablet (iPads, Android tablets) and legacy (Internet Explorer 6 users).  The theme selector can be used to apply separate themes to all of these.  This setting allows regular expressions that allow the detection of extra device types (these take precedence over the default types).</p>
-<p>For example, you could enter the regular expression \'/(MIDP-1.0|Maemo|Windows CE)/\' to detect some commonly used feasture phones add the return value \'featurephone\'.  This adds \'featurephone\' on the theme selector that would allow you to add a theme that would be used on these devices.  Other phones would still use the theme selected for the mobile device type.</p>';
+<p>For example, you could enter the regular expression \'/(MIDP-1.0|Maemo|Windows CE)/\' to detect some commonly used feature phones add the return value \'featurephone\'.  This adds \'featurephone\' on the theme selector that would allow you to add a theme that would be used on these devices.  Other phones would still use the theme selected for the mobile device type.</p>';
 $string['devicedetectregexexpression'] = 'Regular expression';
 $string['devicedetectregexvalue'] = 'Return value';
 $string['devicetype'] = 'Device type';
@@ -958,6 +964,7 @@ $string['stickyblockscourseview'] = 'Course page';
 $string['stickyblocksduplicatenotice'] = 'If any block you add here is already present in a particular page, it will result in a duplicate.<br />Only the pinned block will be non-editable, the duplicate will still be editable.';
 $string['stickyblocksmymoodle'] = 'My Moodle';
 $string['stickyblockspagetype'] = 'Page type to configure';
+$string['strictformsrequired'] = 'Strict validation of required fields';
 $string['stripalltitletags'] = 'Remove HTML tags from all activity names';
 $string['supportcontact'] = 'Support contact';
 $string['supportemail'] = 'Support email';
@@ -1093,3 +1100,15 @@ $string['xmlrpcrecommended'] = 'The xmlrpc extension is needed for hub communica
 $string['xmlstrictheaders'] = 'XML strict headers';
 $string['yuicomboloading'] = 'YUI combo loading';
 $string['ziprequired'] = 'The Zip PHP extension is now required by Moodle, info-ZIP binaries or PclZip library are not used anymore.';
+
+/**
+ * Public/private admin strings.
+ *
+ * @author ebollens
+ * @version 20110719
+ */
+$string['enablepublicprivate'] = 'Enable Public/Private';
+$string['enablepublicprivate_description'] = 'This setting enables the use of the experimental public/private modification. <b>&quot;Enable group members only&quot; must be enabled for this to work correctly.</b> NOTE: Disabling this will turn off public/private toggle, but sites already using public/private will still operate via the method.';
+$string['enablepublicprivate_help'] = '<h1>Public/Private Functionality</h1>
+<p>Enabling public/private functionality for a course alters several settings in order to create a hybrid course with both public and private material.</p>
+<p>When enabled, it will create a toggle for all activities that allow for the material to be set either private to course users or public to guests as well. To this end, it creates a special group and grouping. It disables the auto-assign groups and available to guest settings.</p>';

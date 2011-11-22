@@ -123,14 +123,24 @@ abstract class backup_cron_automated_helper {
                     $backupcourse = $DB->get_record('backup_courses', array('courseid'=>$course->id));
                 }
 
+                // Skip courses that do not yet need backup
+                $skipped = !(($backupcourse->nextstarttime >= 0 && $backupcourse->nextstarttime < $now) || $rundirective == self::RUN_IMMEDIATELY);
                 // Skip backup of unavailable courses that have remained unmodified in a month
-                $skipped = false;
-                if (empty($course->visible) && ($now - $course->timemodified) > 31*24*60*60) {  //Hidden + unmodified last month
-                    $backupcourse->laststatus = backup_cron_automated_helper::BACKUP_STATUS_SKIPPED;
-                    $DB->update_record('backup_courses', $backupcourse);
-                    mtrace('Skipping unchanged course '.$course->fullname);
-                    $skipped = true;
-                } else if (($backupcourse->nextstarttime >= 0 && $backupcourse->nextstarttime < $now) || $rundirective == self::RUN_IMMEDIATELY) {
+                if (!$skipped && empty($course->visible) && ($now - $course->timemodified) > 31*24*60*60) {  //Hidden + settings were unmodified last month
+                    //Check log if there were any modifications to the course content
+                    $sqlwhere = "course=:courseid AND time>:time AND ". $DB->sql_like('action', ':action', false, true, true);
+                    $params = array('courseid' => $course->id, 'time' => $now-31*24*60*60, 'action' => '%view%');
+                    $logexists = $DB->record_exists_select('log', $sqlwhere, $params);
+                    if (!$logexists) {
+                        $backupcourse->laststatus = backup_cron_automated_helper::BACKUP_STATUS_SKIPPED;
+                        $backupcourse->nextstarttime = $nextstarttime;
+                        $DB->update_record('backup_courses', $backupcourse);
+                        mtrace('Skipping unchanged course '.$course->fullname);
+                        $skipped = true;
+                    }
+                }
+                //Now we backup every non-skipped course
+                if (!$skipped) {
                     mtrace('Backing up '.$course->fullname, '...');
 
                     //We have to send a email because we have included at least one backup
@@ -197,7 +207,7 @@ abstract class backup_cron_automated_helper {
 
             //Build the message subject
             $site = get_site();
-            $prefix = $site->shortname.": ";
+            $prefix = format_string($site->shortname, true, array('context' => get_context_instance(CONTEXT_COURSE, SITEID))).": ";
             if ($haserrors) {
                 $prefix .= "[".strtoupper(get_string('error'))."] ";
             }
@@ -312,7 +322,7 @@ abstract class backup_cron_automated_helper {
 
             $settings = array(
                 'users' => 'backup_auto_users',
-                'role_assignments' => 'backup_auto_users',
+                'role_assignments' => 'backup_auto_role_assignments',
                 'user_files' => 'backup_auto_user_files',
                 'activities' => 'backup_auto_activities',
                 'blocks' => 'backup_auto_blocks',

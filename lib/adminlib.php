@@ -2132,6 +2132,49 @@ class admin_setting_configcheckbox extends admin_setting {
     }
 }
 
+/**
+ * Extension of the configcheckbox for a disabled checkbox.
+ *
+ * @author ebollens
+ * @version 20110719
+ */
+class admin_setting_configcheckbox_disabled extends admin_setting_configcheckbox {
+
+    /**
+     * Returns an XHTML checkbox field
+     *
+     * @param string $data If $data matches yes then checkbox is checked
+     * @param string $query
+     * @return string XHTML field
+     */
+    public function output_html($data, $query='') {
+        $default = $this->get_defaultsetting();
+
+        if (!is_null($default)) {
+            if ((string)$default === $this->yes) {
+                $defaultinfo = get_string('checkboxyes', 'admin');
+            } else {
+                $defaultinfo = get_string('checkboxno', 'admin');
+            }
+        } else {
+            $defaultinfo = NULL;
+        }
+
+        if ((string)$data === $this->yes) { // convert to strings before comparison
+            $checked = 'checked="checked"';
+            $this->no = $this->yes;
+        } else {
+            $checked = '';
+            $this->yes = $this->no;
+        }
+
+        return format_admin_setting($this, $this->visiblename,
+        '<div class="form-checkbox defaultsnext" ><input type="hidden" name="'.$this->get_full_name().'" value="'.s($this->no).'" /> '
+            .'<input type="checkbox" id="'.$this->get_id().'" name="'.$this->get_full_name().'" value="'.s($this->yes).'" '.$checked.' DISABLED /></div>',
+        $this->description, true, '', $defaultinfo, $query);
+    }
+}
+
 
 /**
  * Multiple checkboxes, each represents different value, stored in csv format
@@ -4172,7 +4215,7 @@ class admin_setting_configcheckbox_with_lock extends admin_setting_configcheckbo
             $checkboxparams['checked'] = 'checked';
         }
 
-        $lockcheckboxparams = array('type'=>'checkbox', 'id'=>$id.'_locked','name'=>$fullname.'[locked]', 'value'=>1, 'class'=>'form-checkbox');
+        $lockcheckboxparams = array('type'=>'checkbox', 'id'=>$id.'_locked','name'=>$fullname.'[locked]', 'value'=>1, 'class'=>'form-checkbox locked-checkbox');
         if (!empty($data['locked'])) { // convert to strings before comparison
             $lockcheckboxparams['checked'] = 'checked';
         }
@@ -5967,6 +6010,25 @@ function admin_write_settings($formdata) {
         $data[$fullname] = $value;
     }
 
+    /**
+     * Validation checks for enabling and disabling public/private and group
+     * members only settings. Public/private can only be enabled if group
+     * members only is enabled, and group members only cannot be disabled if
+     * public/private is enabled.
+     *
+     * @author ebollens
+     * @version 20110719
+     */
+    if(isset($formdata['section']) && $formdata['section'] == 'experimentalsettings'
+            && array_key_exists('s__enablegroupmembersonly', $data)
+            && array_key_exists('s__enablepublicprivate', $data))
+    {
+        // Disable public private is groupmembersonly is off
+        if ($data['s__enablegroupmembersonly'] == '0' && $data['s__enablepublicprivate'] == '1') {
+            $data['s__enablepublicprivate'] = '0';
+        }
+    }
+
     $adminroot = admin_get_root();
     $settings = admin_find_write_settings($adminroot, $data);
 
@@ -7059,10 +7121,25 @@ class admin_setting_webservicesoverview extends admin_setting {
         global $CFG, $OUTPUT;
 
         $return = "";
-
-        /// One system controlling Moodle with Token
         $brtag = html_writer::empty_tag('br');
 
+        // Enable mobile web service
+        $enablemobile = new admin_setting_enablemobileservice('enablemobilewebservice',
+                get_string('enablemobilewebservice', 'admin'),
+                get_string('configenablemobilewebservice',
+                        'admin', ''), 0); //we don't want to display it but to know the ws mobile status
+        $manageserviceurl = new moodle_url("/admin/settings.php?section=externalservices");
+        $wsmobileparam = new stdClass();
+        $wsmobileparam->enablemobileservice = get_string('enablemobilewebservice', 'admin');
+        $wsmobileparam->manageservicelink = html_writer::link($manageserviceurl,
+                get_string('externalservices', 'webservice'));
+        $mobilestatus = $enablemobile->get_setting()?get_string('mobilewsenabled', 'webservice'):get_string('mobilewsdisabled', 'webservice');
+        $wsmobileparam->wsmobilestatus = html_writer::tag('strong', $mobilestatus);
+        $return .= $OUTPUT->heading(get_string('enablemobilewebservice', 'admin'), 3, 'main');
+        $return .= $brtag . get_string('enablemobilewsoverview', 'webservice', $wsmobileparam)
+                . $brtag . $brtag;
+
+        /// One system controlling Moodle with Token
         $return .= $OUTPUT->heading(get_string('onesystemcontrolling', 'webservice'), 3, 'main');
         $table = new html_table();
         $table->head = array(get_string('step', 'webservice'), get_string('status'),
@@ -7502,7 +7579,7 @@ class admin_setting_managewebservicetokens extends admin_setting {
         //TODO: in order to let the administrator delete obsolete token, split this request in multiple request or use LEFT JOIN
 
         //here retrieve token list (including linked users firstname/lastname and linked services name)
-        $sql = "SELECT t.id, t.token, u.id AS userid, u.firstname, u.lastname, s.name, t.validuntil, s.id AS serviceid
+        $sql = "SELECT t.id, t.token, u.id AS userid, u.firstname, u.lastname, s.name, t.iprestriction, t.validuntil, s.id AS serviceid
                   FROM {external_tokens} t, {user} u, {external_services} s
                  WHERE t.creatorid=? AND t.tokentype = ? AND s.id = t.externalserviceid AND t.userid = u.id";
         $tokens = $DB->get_records_sql($sql, array($USER->id, EXTERNAL_TOKEN_PERMANENT));

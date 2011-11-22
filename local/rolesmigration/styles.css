@@ -1,0 +1,9 @@
+.local_rolemigration .export_form_table{
+	align: center;
+	padding: 5;
+	spacing: 0;
+	width: 90%;
+}
+.local_rolemigration .errorbox{
+	color: red;
+}

@@ -4,6 +4,8 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->libdir.'/formslib.php');
 require_once($CFG->libdir.'/completionlib.php');
+require_once($CFG->libdir.'/publicprivate/course.class.php');
+require_once($CFG->libdir.'/publicprivate/site.class.php');
 
 class course_edit_form extends moodleform {
     protected $course;
@@ -176,7 +178,9 @@ class course_edit_form extends moodleform {
             $themes=array();
             $themes[''] = get_string('forceno');
             foreach ($themeobjects as $key=>$theme) {
-                $themes[$key] = $theme->name;
+                if (empty($theme->hidefromselector)) {
+                    $themes[$key] = $theme->name;
+                }
             }
             $mform->addElement('select', 'theme', get_string('forcetheme'), $themes);
         }
@@ -186,6 +190,23 @@ class course_edit_form extends moodleform {
 
 //--------------------------------------------------------------------------------
         $mform->addElement('header','', get_string('groups', 'group'));
+
+        /**
+         * Flag to enable or disable public/private if it is enabled for the
+         * site or if it is activated for the course.
+         *
+         * @author ebollens
+         * @version 20110719
+         */
+        if(PublicPrivate_Site::is_enabled() || (PublicPrivate_Course::is_publicprivate_capable($course) 
+                && PublicPrivate_Course::build($course)->is_activated())) {
+            $choices = array();
+            $choices[0] = get_string('disable');
+            $choices[1] = get_string('enable');
+            $mform->addElement('select', 'enablepublicprivate', get_string('publicprivate'), $choices);
+            $mform->addHelpButton('enablepublicprivate', 'publicprivateenable');
+            $mform->setDefault('enablepublicprivate', empty($course->enablepublicprivate) ? 1 : $course->enablepublicprivate);
+        }
 
         $choices = array();
         $choices[NOGROUPS] = get_string('groupsnone', 'group');

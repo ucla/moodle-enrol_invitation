@@ -28,6 +28,7 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->libdir.'/completionlib.php');
 require_once($CFG->libdir.'/filelib.php');
+require_once($CFG->libdir.'/publicprivate/course.class.php');
 
 define('COURSE_MAX_LOG_DISPLAY', 150);          // days
 define('COURSE_MAX_LOGS_PER_PAGE', 1000);       // records
@@ -498,8 +499,9 @@ function print_mnet_log($hostid, $course, $user=0, $date=0, $order="l.time ASC",
 
         echo '<tr class="r'.$row.'">';
         if ($course->id == SITEID) {
+            $courseshortname = format_string($courses[$log->course], true, array('context' => get_context_instance(CONTEXT_COURSE, SITEID)));
             echo "<td class=\"r$row c0\" >\n";
-            echo "    <a href=\"{$CFG->wwwroot}/course/view.php?id={$log->course}\">".$courses[$log->course]."</a>\n";
+            echo "    <a href=\"{$CFG->wwwroot}/course/view.php?id={$log->course}\">".$courseshortname."</a>\n";
             echo "</td>\n";
         }
         echo "<td class=\"r$row c1\" align=\"right\">".userdate($log->time, '%a').
@@ -591,8 +593,9 @@ function print_log_csv($course, $user, $date, $order='l.time DESC', $modname,
         $log->info = format_string($log->info);
         $log->info = strip_tags(urldecode($log->info));    // Some XSS protection
 
-        $firstField = $courses[$log->course];
-        $fullname = fullname($log, has_capability('moodle/site:viewfullnames', get_context_instance(CONTEXT_COURSE, $course->id)));
+        $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+        $firstField = format_string($courses[$log->course], true, array('context' => $coursecontext));
+        $fullname = fullname($log, has_capability('moodle/site:viewfullnames', $coursecontext));
         $row = array($firstField, userdate($log->time, $strftimedatetime), $log->ip, $fullname, $log->module.' '.$log->action, $log->info);
         $text = implode("\t", $row);
         echo $text." \n";
@@ -697,10 +700,12 @@ function print_log_xls($course, $user, $date, $order='l.time DESC', $modname,
             }
         }
 
-        $myxls->write($row, 0, $courses[$log->course], '');
+        $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+
+        $myxls->write($row, 0, format_string($courses[$log->course], true, array('context' => $coursecontext)), '');
         $myxls->write_date($row, 1, $log->time, $formatDate); // write_date() does conversion/timezone support. MDL-14934
         $myxls->write($row, 2, $log->ip, '');
-        $fullname = fullname($log, has_capability('moodle/site:viewfullnames', get_context_instance(CONTEXT_COURSE, $course->id)));
+        $fullname = fullname($log, has_capability('moodle/site:viewfullnames', $coursecontext));
         $myxls->write($row, 3, $fullname, '');
         $myxls->write($row, 4, $log->module.' '.$log->action, '');
         $myxls->write($row, 5, $log->info, '');
@@ -808,10 +813,12 @@ function print_log_ods($course, $user, $date, $order='l.time DESC', $modname,
             }
         }
 
-        $myxls->write_string($row, 0, $courses[$log->course]);
+        $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+
+        $myxls->write_string($row, 0, format_string($courses[$log->course], true, array('context' => $context)));
         $myxls->write_date($row, 1, $log->time);
         $myxls->write_string($row, 2, $log->ip);
-        $fullname = fullname($log, has_capability('moodle/site:viewfullnames', get_context_instance(CONTEXT_COURSE, $course->id)));
+        $fullname = fullname($log, has_capability('moodle/site:viewfullnames', $coursecontext));
         $myxls->write_string($row, 3, $fullname);
         $myxls->write_string($row, 4, $log->module.' '.$log->action);
         $myxls->write_string($row, 5, $log->info);
@@ -855,13 +862,14 @@ function print_overview($courses, array $remote_courses=array()) {
         }
     }
     foreach ($courses as $course) {
+        $fullname = format_string($course->fullname, true, array('context' => get_context_instance(CONTEXT_COURSE, $course->id)));
         echo $OUTPUT->box_start('coursebox');
-        $attributes = array('title' => s($course->fullname));
+        $attributes = array('title' => s($fullname));
         if (empty($course->visible)) {
             $attributes['class'] = 'dimmed';
         }
         echo $OUTPUT->heading(html_writer::link(
-            new moodle_url('/course/view.php', array('id' => $course->id)), format_string($course->fullname), $attributes), 3);
+            new moodle_url('/course/view.php', array('id' => $course->id)), $fullname, $attributes), 3);
         if (array_key_exists($course->id,$htmlarray)) {
             foreach ($htmlarray[$course->id] as $modname => $html) {
                 echo $html;
@@ -1980,11 +1988,14 @@ function make_categories_list(&$list, &$parents, $requiredcapability = '',
             return;
         }
 
+        $context = get_context_instance(CONTEXT_COURSECAT, $category->id);
+        $categoryname = format_string($category->name, true, array('context' => $context));
+
         // Update $path.
         if ($path) {
-            $path = $path.' / '.format_string($category->name);
+            $path = $path.' / '.$categoryname;
         } else {
-            $path = format_string($category->name);
+            $path = $categoryname;
         }
 
         // Add this category to $list, if the permissions check out.
@@ -1992,9 +2003,8 @@ function make_categories_list(&$list, &$parents, $requiredcapability = '',
             $list[$category->id] = $path;
 
         } else {
-            ensure_context_subobj_present($category, CONTEXT_COURSECAT);
             $requiredcapability = (array)$requiredcapability;
-            if (has_all_capabilities($requiredcapability, $category->context)) {
+            if (has_all_capabilities($requiredcapability, $context)) {
                 $list[$category->id] = $path;
             }
         }
@@ -2167,11 +2177,14 @@ function print_category_info($category, $depth=0, $showcourses = false) {
     }
 
     $courses = get_courses($category->id, 'c.sortorder ASC', 'c.id,c.sortorder,c.visible,c.fullname,c.shortname,c.summary');
+    $context = get_context_instance(CONTEXT_COURSECAT, $category->id);
+    $fullname = format_string($category->name, true, array('context' => $context));
+
     if ($showcourses and $coursecount) {
         echo '<div class="categorylist clearfix">';
         $cat = '';
         $cat .= html_writer::tag('div', $catimage, array('class'=>'image'));
-        $catlink = html_writer::link(new moodle_url('/course/category.php', array('id'=>$category->id)), format_string($category->name), $catlinkcss);
+        $catlink = html_writer::link(new moodle_url('/course/category.php', array('id'=>$category->id)), $fullname, $catlinkcss);
         $cat .= html_writer::tag('div', $catlink, array('class'=>'name'));
 
         $html = '';
@@ -2229,8 +2242,10 @@ function print_category_info($category, $depth=0, $showcourses = false) {
     } else {
         echo '<div class="categorylist">';
         $html = '';
-        $cat = html_writer::link(new moodle_url('/course/category.php', array('id'=>$category->id)), format_string($category->name), $catlinkcss);
-        $cat .= html_writer::tag('span', ' ('.count($courses).')', array('title'=>get_string('numberofcourses'), 'class'=>'numberofcourse'));
+        $cat = html_writer::link(new moodle_url('/course/category.php', array('id'=>$category->id)), $fullname, $catlinkcss);
+        if (count($courses) > 0) {
+            $cat .= html_writer::tag('span', ' ('.count($courses).')', array('title'=>get_string('numberofcourses'), 'class'=>'numberofcourse'));
+        }
 
         if ($depth > 0) {
             for ($i=0; $i< $depth; $i++) {
@@ -3051,6 +3066,16 @@ function make_editing_buttons($mod, $absolute=false, $moveselect=true, $indent=-
         $str->duplicate      = get_string("duplicate");
         $str->hide           = get_string("hide");
         $str->show           = get_string("show");
+
+        /**
+         * Icon alternate strings for making an item public or private.
+         *
+         * @author ebollens
+         * @version 20110719
+         */
+        $str->public         = get_string("publicprivatemakepublic");
+        $str->private        = get_string("publicprivatemakeprivate");
+
         $str->clicktochange  = get_string("clicktochange");
         $str->forcedmode     = get_string("forcedmode");
         $str->groupsnone     = get_string("groupsnone");
@@ -3084,6 +3109,38 @@ function make_editing_buttons($mod, $absolute=false, $moveselect=true, $indent=-
         }
     } else {
         $hideshow = '';
+    }
+
+    /**
+     * If the course for $mod->course has public/private enabled, then display
+     * an editing button to enable/disable public/private.
+     *
+     * @author ebollens
+     * @version 20110719
+     */
+    require_once($CFG->libdir.'/publicprivate/course.class.php');
+    $publicprivate_course = new PublicPrivate_Course($mod->course);
+    $pubpriv = '';
+
+    if($publicprivate_course->is_activated()) {
+        require_once($CFG->libdir.'/publicprivate/module.class.php');
+        $publicprivate_module = new PublicPrivate_Module($mod->id);
+
+        /**
+         * If the module is private, show a toggle to make it public, or if it
+         * is public, then show a toggle to make it private.
+         */
+        if($publicprivate_module->is_private()) {
+            $pubpriv = '<a class="editing_makepublic" title="'.$str->public.'" href="'.$path.'/mod.php?public='.$mod->id.
+                        '&amp;sesskey='.$sesskey.$section.'"><img'.
+                        ' src="'.$OUTPUT->pix_url('t/private').'" class="iconsmall" '.
+                        ' alt="'.$str->public.'" /></a>'."\n";
+        } else {
+            $pubpriv = '<a class="editing_makeprivate" title="'.$str->private.'" href="'.$path.'/mod.php?private='.$mod->id.
+                        '&amp;sesskey='.$sesskey.$section.'"><img'.
+                        ' src="'.$OUTPUT->pix_url('t/public').'" class="iconsmall" '.
+                        ' alt="'.$str->private.'" /></a>'."\n";
+        }
     }
 
     if ($mod->groupmode !== false) {
@@ -3168,19 +3225,27 @@ function make_editing_buttons($mod, $absolute=false, $moveselect=true, $indent=-
         $assign = '';
     }
 
+    // Duplicate (require both target import caps to be able to duplicate, see modduplicate.php)
+    $dupecaps = array('moodle/backup:backuptargetimport', 'moodle/restore:restoretargetimport');
+    if (has_all_capabilities($dupecaps, get_context_instance(CONTEXT_COURSE, $mod->course))) {
+        $duplicatemodule = '<a class="editing_duplicate" title="'.$str->duplicate.'" href="'.$path.'/mod.php?duplicate='.$mod->id.
+            '&amp;sesskey='.$sesskey.$section.'"><img'.
+            ' src="'.$OUTPUT->pix_url('t/copy') . '" class="iconsmall" '.
+            ' alt="'.$str->duplicate.'" /></a>'."\n";
+    } else {
+        $duplicatemodule = '';
+    }
+
     return '<span class="commands">'."\n".$leftright.$move.
            '<a class="editing_update" title="'.$str->update.'" href="'.$path.'/mod.php?update='.$mod->id.
            '&amp;sesskey='.$sesskey.$section.'"><img'.
            ' src="'.$OUTPUT->pix_url('t/edit') . '" class="iconsmall" '.
            ' alt="'.$str->update.'" /></a>'."\n".
-           '<a class="editing_duplicate" title="'.$str->duplicate.'" href="'.$path.'/mod.php?duplicate='.$mod->id.
-           '&amp;sesskey='.$sesskey.$section.'"><img'.
-           ' src="'.$OUTPUT->pix_url('t/copy') . '" class="iconsmall" '.
-           ' alt="'.$str->duplicate.'" /></a>'."\n".
+           $duplicatemodule.
            '<a class="editing_delete" title="'.$str->delete.'" href="'.$path.'/mod.php?delete='.$mod->id.
            '&amp;sesskey='.$sesskey.$section.'"><img'.
            ' src="'.$OUTPUT->pix_url('t/delete') . '" class="iconsmall" '.
-           ' alt="'.$str->delete.'" /></a>'."\n".$hideshow.$groupmode."\n".$assign.'</span>';
+           ' alt="'.$str->delete.'" /></a>'."\n".$hideshow.$pubpriv.$groupmode."\n".$assign.'</span>';
 }
 
 /**
@@ -3189,12 +3254,15 @@ function make_editing_buttons($mod, $absolute=false, $moveselect=true, $indent=-
  */
 function course_format_name ($course,$max=100) {
 
-    $str = $course->shortname.': '. $course->fullname;
+    $context = get_context_instance(CONTEXT_COURSE, $course->id);
+    $shortname = format_string($course->shortname, true, array('context' => $context));
+    $fullname = format_string($course->fullname, true, array('context' => get_context_instance(CONTEXT_COURSE, $course->id)));
+
+    $str = $shortname.': '. $fullname;
     if (strlen($str) <= $max) {
         return $str;
-    }
-    else {
-        return substr($str,0,$max-3).'...';
+    } else {
+        return $textlib->substr($str, 0, $max-3).'...';
     }
 }
 
@@ -3742,6 +3810,30 @@ function create_course($data, $editoroptions = NULL) {
     // Trigger events
     events_trigger('course_created', $course);
 
+    /**
+     * Set the course up with public/private settings correctly.
+     * 
+     * If public/private is set, then it should be activated (creating group/
+     * grouping) and enrolled users as per earlier in this routine should be
+     * added to the group. Otherwise, if public/private is not set, then this
+     * makes sure that it's not activated somewhere earlier in this script and,
+     * if it is, then it should be deactivated.
+     *
+     * @author ebollens
+     * @version 20110719
+     *
+     * @throws PublicPrivate_Course_Exception
+     */
+
+    $pubpriv_course = new PublicPrivate_Course($course);
+
+    if($course->enablepublicprivate == 1) {
+        $pubpriv_course->activate();
+        $pubpriv_course->add_enrolled_users();
+    } else if($pubpriv_course->is_activated()) {
+        $pubpriv_course->deactivate();
+    }
+
     return $course;
 }
 
@@ -3821,6 +3913,32 @@ function update_course($data, $editoroptions = NULL) {
 
     // Trigger events
     events_trigger('course_updated', $course);
+
+    /**
+     * Detect if this update changed the public/private state for the course.
+     *
+     * @author ebollens
+     * @version 20110719
+     */
+    if($data->enablepublicprivate != $oldcourse->enablepublicprivate) {
+
+        $pubpriv_course = new PublicPrivate_Course($course);
+        
+        /**
+         * If public/private was enabled, activate it (creating group/grouping)
+         * and add all enrolled users to the public/private group. Otherwise,
+         * if public/private was disabled and is activated currently, then
+         * deactivate it (deleting group/grouping).
+         *
+         * @throws PublicPrivate_Course_Exception
+         */
+        if($course->enablepublicprivate == 1) {
+            $pubpriv_course->activate();
+            $pubpriv_course->add_enrolled_users();
+        } else if($pubpriv_course->is_activated()) {
+            $pubpriv_course->deactivate();
+        }
+    }
 }
 
 /**
@@ -4159,7 +4277,7 @@ class course_request {
         $this->delete();
 
         $a = new stdClass();
-        $a->name = $course->fullname;
+        $a->name = format_string($course->fullname, true, array('context' => get_context_instance(CONTEXT_COURSE, $course->id)));
         $a->url = $CFG->wwwroot.'/course/view.php?id=' . $course->id;
         $this->notify($user, $USER, 'courserequestapproved', get_string('courseapprovedsubject'), get_string('courseapprovedemail2', 'moodle', $a));
 

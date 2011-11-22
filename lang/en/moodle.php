@@ -178,7 +178,6 @@ $string['backupincludemoduleuserdatahelp'] = 'Choose whether you want to include
 $string['backupkeephelp'] = 'How many recent backups for each course do you want to keep? (older ones will be deleted automatically)';
 $string['backuplogdetailed'] = 'Detailed execution log';
 $string['backuploglaststatus'] = 'Last execution log';
-$string['backuplogshelp'] = 'If enabled, then course logs will be included in automated backups';
 $string['backupmissinguserinfoperms'] = 'Note: This backup contains no user data. Exercise and Workshop activities will not be included in the backup, since these modules are not compatible with this type of backup.';
 $string['backupnext'] = 'Next backup';
 $string['backupnonisowarning'] = 'Warning: this backup is from a non-Unicode version of Moodle (pre 1.6).  If this backup contains any non-ISO-8859-1 texts then they may be CORRUPTED if you try to restore them to this Unicode version of Moodle.  See the <a href="http://docs.moodle.org/en/Backup_FAQ">Backup FAQ</a> for more information about how to recover this backup correctly.';
@@ -189,7 +188,6 @@ $string['backupsitefileshelp'] = 'If enabled then site files used in courses wil
 $string['backuptakealook'] = 'Please take a look at your backup logs in:
   {$a}';
 $string['backupuserfileshelp'] = 'Choose whether user files (eg profile images) should be included in automated backups';
-$string['backupusershelp'] = 'Select whether you want to include all the users in the server or only the needed users for each course';
 $string['backupversion'] = 'Backup version';
 $string['block'] = 'Block';
 $string['blockconfiga'] = 'Configuring a {$a} block';
@@ -739,7 +737,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the Moodle License information page for full details:
-http://docs.moodle.org/en/License';
+http://docs.moodle.org/dev/License';
 $string['gpllicense'] = 'GPL license';
 $string['gpl3'] = 'Copyright (C) 1999 onwards Martin Dougiamas (http://moodle.com)
 
@@ -753,7 +751,7 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the Moodle License information page for full details:
-http://docs.moodle.org/en/License';
+http://docs.moodle.org/dev/License';
 $string['grade'] = 'Grade';
 $string['grades'] = 'Grades';
 $string['group'] = 'Group';
@@ -1817,3 +1815,34 @@ $string['yourself'] = 'yourself';
 $string['yourteacher'] = 'your {$a}';
 $string['yourwordforx'] = 'Your word for \'{$a}\'';
 $string['zippingbackup'] = 'Zipping backup';
+
+/**
+ * Public/private strings.
+ *
+ * @author ebollens
+ * @version 20110719
+ */
+$string['publicprivateenable'] = 'Enable Public/Private';
+$string['publicprivateenable_help'] = 'Enabling public/private functionality for a course alters several settings in order to create a hybrid course with both public and private material.<br><br>When enabled, it will create a toggle for all activities that allow for the material to be set either private to course users or public to guests as well. To this end, it creates a special group ("Course members") and a special grouping ("Private Course Material"). It disables the auto-assign groups and available to guest settings.';
+$string['publicprivategroupname'] = 'Course members';
+$string['publicprivategroupdeprecated'] = '_old_';
+$string['publicprivategroupdescription'] = 'Group created and used for public/private functionality. All users should belong to this group.';
+$string['publicprivategroupingname'] = 'Private Course Material';
+$string['publicprivategroupingdeprecated'] = '_old_';
+$string['publicprivategroupingdescription'] = 'Grouping created and used for public/private functionality. ' . $string['publicprivategroupname'] . ' group should be in this grouping.';
+$string['publicprivatemakepublic'] = 'Make public';
+$string['publicprivatemakeprivate'] = 'Make private';
+$string['publicprivate'] = 'Public/Private';
+$string['publicprivateadd'] = 'Add Public/Private functionality';
+$string['publicprivateupgradesure'] = 'Public/Private functionality appears to be present, but not installed. <br /><br />
+Moodle would now like to install Public/Private functionality on the server.<br /><br />';
+$string['publicprivaterestore'] = 'Default Public/Private on Restore';
+$string['publicprivaterestore_description'] = 'In the event that a restore occurs from an instance of Moodle that does not include public/private, if this setting is defined, the restored course will default to public/private enabled.';
+$string['publicprivate_option_enable'] = 'Course Editors Can Set Public/Private';
+$string['publicprivate_option_enable_description'] = 'If checked, course editors can turn public/private on/off. Otherwise, only administrators can do this.';
+$string['publicprivatenotice'] = 'This is the public display of the course site. <br />If you are enrolled, please log in to view private course materials.';
+$string['publicprivatelogin'] = 'Log in';
+$string['publicprivatecannotedit'] = 'ERROR: This is a special grouping for public/private. It cannot be edited.';
+$string['publicprivatecannotremove_oneof'] = 'ERROR: One of the groups selected is a special group for public/private. It cannot be removed.';
+$string['publicprivatecannotremove_one'] = 'ERROR: The group selected is a special group for public/private. It cannot be removed.';
+$string['publicprivatecannotremove'] = 'ERROR: This is a special grouping for public/private. It cannot be removed.';

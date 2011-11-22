@@ -54,6 +54,7 @@ abstract class moodle1_handlers_factory {
             new moodle1_scales_handler($converter),
             new moodle1_outcomes_handler($converter),
             new moodle1_gradebook_handler($converter),
+            new moodle1_groups_handler($converter)
         );
 
         $handlers = array_merge($handlers, self::get_plugin_handlers('mod', $converter));
@@ -288,7 +289,6 @@ abstract class moodle1_xml_handler extends moodle1_handler {
         return false;
     }
 }
-
 
 /**
  * Process the root element of the backup file
@@ -531,6 +531,71 @@ class moodle1_root_handler extends moodle1_xml_handler {
         $this->xmlwriter->end_tag('inforef');
         $this->close_xml_writer();
 
+        // START UCLA MODIFICATION CCLE-2229: Public private migration
+        ////////////////////////////////////////////////////////////////////////
+        // write course/publicprivate.xml
+        ////////////////////////////////////////////////////////////////////////
+        $grouppublicprivate = $this->converter->get_stash_or_default(
+            'grouppublicprivate'
+        );
+
+        if ($grouppublicprivate !== null && $grouppublicprivate) {
+            $groupautoassign = $this->converter->get_stash('groupautoassign');
+
+            $groups = $this->converter->get_stash('groups');
+            $group = null;
+            foreach ($groups as $g) {
+                if ($g['id'] == $groupautoassign) {
+                    $group = $g;
+                    break;
+                }
+            }
+
+            $groupings = $this->converter->get_stash('groupings');
+            $groupingsgroups = $this->converter->get_stash('groupingsgroups');
+            
+            // Look for groupingsgroups with the particular group
+            // There should only be one as per publicprivate settings
+            // I wonder if there is a "array search" function
+            $grouping = null;
+            foreach ($groupingsgroups as $gingid => $ggs) {
+                foreach ($ggs as $gg) {
+                    if ($gg['groupid'] == $group['id']) {
+                        foreach ($groupings as $ging) {
+                            if ($ging['id'] == $gingid) {
+                                $grouping = $ging;
+                                break;
+                            }
+                        }
+
+                        break;
+                    }
+                }
+
+                if ($grouping !== null) {
+                    break;
+                }
+            }
+
+            if ($grouping !== null) {
+                $pubpriobj = array();
+
+                $pubpriobj['enable'] = '1';
+                $pubpriobj['group_name'] = $group['name'];
+                $pubpriobj['grouping_name'] = $grouping['name'];
+
+                $this->open_xml_writer('course/publicprivate.xml');
+                $this->write_xml('course', $pubpriobj);
+                $this->close_xml_writer();
+
+                unset($pubpriobj);
+            }
+
+            unset($groupautoassign, $group, $groupings, $groupingsgroups);
+        }
+
+        // END UCLA MODIFICATION CCLE-2229
+
         // make sure that the files required by the restore process have been generated.
         // missing file may happen if the watched tag is not present in moodle.xml (for example
         // QUESTION_CATEGORIES is optional in moodle.xml but questions.xml must exist in
@@ -751,6 +816,19 @@ class moodle1_course_header_handler extends moodle1_xml_handler {
         $fileman = $this->converter->get_file_manager($contextid, 'course', 'summary');
         $this->course['summary'] = moodle1_converter::migrate_referenced_files($this->course['summary'], $fileman);
         $this->converter->set_stash('course_summary_files_ids', $fileman->get_fileids());
+
+        // START UCLA MODIFICATION CCLE-2229: Public private needs to be
+        // migrated over
+        if (isset($this->course['grouppublicprivate'])) {
+            $this->converter->set_stash('grouppublicprivate', 
+                $this->course['grouppublicprivate']);
+        }
+
+        if (isset($this->course['groupautoassign'])) {
+            $this->converter->set_stash('groupautoassign',
+                $this->course['groupautoassign']);
+        }
+        // END UCLA MODIFICATION CCLE-2229
 
         // write course.xml
         $this->open_xml_writer('course/course.xml');
@@ -1221,11 +1299,14 @@ class moodle1_question_bank_handler extends moodle1_xml_handler {
         }
         unset($data['image']);
 
+        // replay the upgrade step 2011060301 - Rename field defaultgrade on table question to defaultmark
+        $data['defaultmark'] = $data['defaultgrade'];
+
         // write the common question data
         $this->xmlwriter->begin_tag('question', array('id' => $data['id']));
         foreach (array(
             'parent', 'name', 'questiontext', 'questiontextformat',
-            'generalfeedback', 'generalfeedbackformat', 'defaultgrade',
+            'generalfeedback', 'generalfeedbackformat', 'defaultmark',
             'penalty', 'qtype', 'length', 'stamp', 'version', 'hidden',
             'timecreated', 'timemodified', 'createdby', 'modifiedby'
         ) as $fieldname) {
@@ -1649,6 +1730,122 @@ class moodle1_gradebook_handler extends moodle1_xml_handler {
             $this->write_xml('grade_letter', $gradeletter, array('/grade_letter/id'));
         }
         $this->xmlwriter->end_tag('grade_letters');
+    }
+}
+
+// START CCLE-MODIFICATION 2229: Public private migration requires that
+// moodle 1.x to 2.x migration transfers over group data.
+class moodle1_groups_handler extends moodle1_xml_handler {
+    /** @var array the groups */
+    protected $groups = array();
+    protected $groupings = array();
+    protected $groupingsgroups = array();
+
+    public function get_paths() {
+        return array(
+            new convert_path(
+                'group', '/MOODLE_BACKUP/COURSE/GROUPS/GROUP',
+                array(
+                    'newfields' => array(
+                        'descriptionformat' => 0
+                    ),
+                )
+            ),
+            new convert_path(
+                'grouping', '/MOODLE_BACKUP/COURSE/GROUPINGS/GROUPING',
+                array(
+                    'newfields' => array(
+                        'descriptionformat' => 0
+                    ),
+                )
+            ),
+            new convert_path(
+                'groupingsgroups', '/MOODLE_BACKUP/COURSE/GROUPINGSGROUPS'
+            ),
+            new convert_path(
+                'groupingsgroup', 
+                    '/MOODLE_BACKUP/COURSE/GROUPINGSGROUPS/GROUPINGGROUP'
+            )
+        );
+    }
+
+    // TODO verify that these three are necessary
+    public function process_group($data) {
+        $this->groups[] = $data;
+    }
+
+    public function process_grouping($data) {
+        $this->groupings[] = $data;
+    }
+
+    public function process_groupingsgroup($data) {
+        $groupingid = $data['groupingid'];
+        unset($data['groupingid']);
+
+        if (!isset($this->groupingsgroups[$groupingid])) {
+            $this->groupingsgroups[$groupingid] = array();
+        }
+
+        $this->groupingsgroups[$groupingid][] = $data;
+    }
+
+    public function on_groupingsgroups_end() {
+        if (empty($this->groups)) {
+            return;
+        }
+
+        $this->open_xml_writer('groups.xml');
+
+        $this->xmlwriter->begin_tag('groups');
+        foreach ($this->groups as $group) {
+            $this->write_xml('group', $group, 
+                array('/group/id')
+            );
+        }
+
+        $this->xmlwriter->begin_tag('groupings');
+        foreach ($this->groupings as $grouping) {
+            $gid = $grouping['id'];
+            unset($grouping['id']);
+
+            $this->xmlwriter->begin_tag('grouping', array('id' => $gid));
+
+            foreach ($grouping as $k => $v) {
+                $this->xmlwriter->full_tag($k, $v);
+            }
+
+            // Put the set of groupings_group associated with
+            // the grouping into the thing.
+            // Unfortunately their convenience function does not
+            // work very well
+            if (isset($this->groupingsgroups[$gid])) {
+                $this->xmlwriter->begin_tag('grouping_groups');
+
+                foreach ($this->groupingsgroups[$gid] as $gg) {
+                    $this->write_xml('grouping_group', $gg,
+                        array('/grouping_group/id'));
+                }
+
+                $this->xmlwriter->end_tag('grouping_groups');
+            }
+
+            $this->xmlwriter->end_tag('grouping');
+        }
+
+        $this->xmlwriter->end_tag('groupings');
+
+        $this->xmlwriter->end_tag('groups');
+
+        // Save these just in case we need these later
+        $this->converter->set_stash('groups', $this->groups);
+        $this->converter->set_stash('groupings', $this->groupings);
+        $this->converter->set_stash('groupingsgroups', $this->groupingsgroups);
+   
+        $this->close_xml_writer('groups.xml');
+
+        unset($this->groups);
+        unset($this->groupings);
+        unset($this->groupingsgroups);
     }
 }
 
