@@ -60,6 +60,9 @@ $CFG->directorypermissions = 0777;
 // logins using the Moodle login will not work.
 $CFG->passwordsaltmain = '^!mny&G9W)JIB# c/#}^3Uk(';
 
+// default file resources display to "Force Download"
+$CFG->forced_plugin_settings['resource'] = array('display' => 4);
+
 // If you want to have un-revisioned configuration data, place in this file.
 // $CFG->dirroot is overwritten later
 $_dirroot_ = dirname(realpath(__FILE__)) . '/../../..';

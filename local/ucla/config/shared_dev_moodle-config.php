@@ -82,6 +82,9 @@ $CFG->classrequestor_hidden_default = false; // default value for hidden
 $CFG->course_creator_email = 'ccle-operations@lists.ucla.edu';
 $CFG->course_creator_email_template_dir = '';
 
+// default file resources display to "Force Download"
+$CFG->forced_plugin_settings['resource'] = array('display' => 4);
+
 /** 
  *  Automatic Shibboleth configurations.
  *  Disabling in favor for GUI configurations.

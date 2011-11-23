@@ -53,8 +53,10 @@ abstract class easy_upload_form extends moodleform {
         $mform->addElement('hidden', 'type', $type, array('id' => 'id_type'));
         $mform->addElement('hidden', 'modulename', $this->get_coursemodule());
 
-        // TODO Force download always
-        $mform->addElement('hidden', 'display', false); 
+        // Use whatever the default display type is for the site. Can be either 
+        // automatic, embed, force download, etc. Look in lib/resourcelib.php 
+        // for other types
+        $mform->addElement('hidden', 'display', get_config('resource', 'display')); 
 
         // Configure what it is you exactly are adding
         $this->specification();
