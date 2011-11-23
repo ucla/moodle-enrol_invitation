@@ -262,13 +262,6 @@ class block_ucla_control_panel extends block_base {
                 if (file_exists($filename)) {
                     require_once($filename);
                 }
-    
-                // This hack may not be necessary, IF moodle does load
-                // stylesheet automatically for blocks
-                $stylename = $filedir . 'cp_style.css';
-                if (file_exists($stylename)) {
-                    $PAGE->requires->css($stylename);
-                }
 
                 $renderclass = $block_name . '_cp_render.php';
                 $rendername = $filedir . $renderclass;
