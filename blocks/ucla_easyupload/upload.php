@@ -249,9 +249,11 @@ if ($uploadform->is_cancelled()) {
 
     $data->coursemodule = $coursemoduleid;
         
-    if (plugin_supports('mod', $modulename, FEATURE_MOD_INTRO, true)) {
+    if (plugin_supports('mod', $modulename, FEATURE_MOD_INTRO, true)
+            && !empty($data->introeditor)) {
         $introeditor = $data->introeditor;
         unset($data->introeditor);
+
         $data->intro       = $introeditor['text'];
         $data->introformat = $introeditor['format'];
     }
