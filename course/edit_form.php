@@ -385,4 +385,3 @@ class course_edit_form extends moodleform {
     }
 }
 
-// EOF
