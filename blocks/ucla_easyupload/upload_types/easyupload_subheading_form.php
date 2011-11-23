@@ -10,8 +10,11 @@ class easyupload_subheading_form extends easy_upload_form {
 
         $mform->addElement('text', 'text', 
             get_string('dialog_add_subheading_box', self::associated_block));
+        
+        $mform->addRule('text', null, 'required');        
 
-        $mform->addElement('hidden', 'format', 1);
+        // intro is a required field in the mdl_label table, so force it here
+        $mform->addElement('hidden', 'introeditor[text]', '');
     }
 
     function get_coursemodule() {
