@@ -28,6 +28,8 @@ abstract class registrar_query {
 
     var $previous_bad_inputs = array();
 
+    var $notrim = false;
+
     /**
      *  @return Array (
      *      'good' => array( Good data ),
@@ -141,6 +143,12 @@ abstract class registrar_query {
                     $res = $this->validate($fields, $driving_datum);
 
                     if ($res !== false) {
+                        if (!$this->notrim) {
+                            foreach ($res as $k => $d) {
+                                $res->{$k} = trim($d);
+                            }
+                        }
+
                         $key = $this->get_key($fields);
                         if ($key == null) {
                             $direct_data[] = $res;

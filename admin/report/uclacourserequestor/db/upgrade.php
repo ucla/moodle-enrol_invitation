@@ -33,6 +33,7 @@ function xmldb_report_uclacourserequestor_upgrade($oldversion) {
 	
 	$result = true;
 
+    //                           YYYYMMDDVV
     if ($result && $oldversion < 2011052717) {
 
         // Define table ucla_request_classes to be created
@@ -90,7 +91,8 @@ function xmldb_report_uclacourserequestor_upgrade($oldversion) {
         // uclacourserequestor savepoint reached
         upgrade_plugin_savepoint(true, 2011052717, 'report', 'uclacourserequestor');
     }
-    
+   
+    //                YYYYMMDDVV
     if ($oldversion < 2011072704) {
 
         // Changing precision of field instructor on table ucla_request_classes to (600)
@@ -104,7 +106,8 @@ function xmldb_report_uclacourserequestor_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2011072704, 'report', 'uclacourserequestor');
     }
 
-    $thisversion = 2011111600;
+    //             YYYYMMDDVV
+    $thisversion = 2011111601;
     if ($oldversion < $thisversion) {
 
         // Define field status to be dropped from ucla_request_classes

@@ -26,5 +26,6 @@
 // CCLE-1723
 // Adding 'Support Admin' capability to course requestor
 // This is needed to allow moodle to update the module
-$plugin->version  = 2011072704;
+//                  YYYYMMDDVV
+$plugin->version  = 2011111601;
 $plugin->requires = 2011022100;
