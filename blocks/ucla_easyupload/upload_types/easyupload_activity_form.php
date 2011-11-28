@@ -1,9 +1,11 @@
 <?php
 
 /**
- *  Hmm... this could be abstracted out another level.
+ *  This could be abstracted out another level.
  **/
 class easyupload_activity_form extends easy_upload_form {
+    var $allow_publicprivate = false;
+
     function specification() {
         $mform =& $this->_form;
 
@@ -62,6 +64,9 @@ class easyupload_activity_form extends easy_upload_form {
         return false;
     }
 
+    /**
+     *  Required for redirection forms.
+     **/
     function get_send_params() {
         return array('course', 'add', 'section');
     }

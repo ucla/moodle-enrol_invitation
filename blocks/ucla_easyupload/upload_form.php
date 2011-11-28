@@ -18,8 +18,15 @@ abstract class easy_upload_form extends moodleform {
     // This will enable the naming field
     var $allow_renaming = false;
 
+    // This will enable the public private stuff
+    var $allow_publicprivate = true;
+
     // This will enable the availability sliders
     var $enable_availability = true;
+
+    // This is the default publicprivate, if relevant,
+    // @string 'public' or 'private'
+    var $default_publicprivate = 'private';
 
     /**
      *  Called by moodleforms when we are rendering the form.
@@ -56,7 +63,8 @@ abstract class easy_upload_form extends moodleform {
         // Use whatever the default display type is for the site. Can be either 
         // automatic, embed, force download, etc. Look in lib/resourcelib.php 
         // for other types
-        $mform->addElement('hidden', 'display', get_config('resource', 'display')); 
+        $mform->addElement('hidden', 'display', get_config('resource', 
+            'display')); 
 
         // Configure what it is you exactly are adding
         $this->specification();
@@ -78,17 +86,45 @@ abstract class easy_upload_form extends moodleform {
             debugging('Renaming not allowed');
         }
 
-        // Section selection.
-        $mform->addElement('header', '', get_string('select_section',
-            self::associated_block));
-
         // End code that probably needs to go somewhere else
 
         if (class_exists('PublicPrivate_Site')) {
-            if (PublicPrivate_Site::is_enabled()) {
-                
+            if (PublicPrivate_Site::is_enabled() 
+                    && PublicPrivate_Course::is_publicprivate_capable(
+                        $this->course
+                    )) {
+                // Generate the public private elements
+                $t = array('public', 'private');
+
+                $pubpriels = array();
+
+                foreach ($t as $p) {
+                    $pubpriels[] = $mform->createElement('radio', 
+                        'publicprivate', '', 
+                        get_string('publicprivatemake' . $p),
+                        $p);
+                }
+
+                $mform->addElement('header', '', get_string(
+                    'publicprivateenable'));
+
+                $mform->addGroup($pubpriels, 'publicprivateradios', 
+                    get_string('publicprivate'), ' ', true);
+
+                $mform->setDefaults(
+                    array(
+                        'publicprivateradios' => array(
+                            'publicprivate' => $this->default_publicprivate
+                        )
+                    )
+                );
+
             }
         }
+
+        // Section selection.
+        $mform->addElement('header', '', get_string('select_section',
+            self::associated_block));
 
         // Show the section selector
         $mform->addElement('select', 'section',
@@ -100,7 +136,6 @@ abstract class easy_upload_form extends moodleform {
         if ($rearrange_avail && $this->allow_js_select) {
             global $PAGE;
 
-            // TODO Validate interconnection with rearrange
             $mform->addElement('hidden', 'serialized', null, 
                 array('id' => 'serialized'));
             

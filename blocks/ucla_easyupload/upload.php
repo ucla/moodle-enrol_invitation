@@ -8,6 +8,8 @@ $thispath = '/blocks/ucla_easyupload';
 require_once($CFG->dirroot . $thispath . '/block_ucla_easyupload.php');
 require_once($CFG->dirroot . $thispath . '/upload_form.php');
 
+@include_once($CFG->libdir . '/publicprivate/module.class.php');
+
 global $CFG, $PAGE, $OUTPUT;
 
 $course_id = required_param('course_id', PARAM_INT);
@@ -34,7 +36,7 @@ $PAGE->set_url('/blocks/ucla_easyupload/upload.php',
         array('course_id' => $course_id, 'type' => $type));
 
 // TODO Fix this Prep for return
-$cpurl = new moodle_url('/blocks/ucla_easyupload/view.php',
+$cpurl = new moodle_url('/blocks/ucla_control_panel/view.php',
         array('course_id' => $course_id));
 
 $courseurl = new moodle_url('/course/view.php',
@@ -201,7 +203,7 @@ if ($uploadform->is_cancelled()) {
         $get_sends = array();
         foreach ($params as $param) {
             if (!isset($data->$param)) {
-                print_error('missingshit', $param);
+                print_error('missingparam', $param);
             }
 
             $get_sends[$param] = $data->$param;
@@ -238,8 +240,8 @@ if ($uploadform->is_cancelled()) {
     $newcm->module = $module->id;
     $newcm->instance = 0;
    
-    // TODO Handle some publicprivate here at one point
     // TODO Handle section visibility
+
     $newcm->visible = 1;
 
     $coursemoduleid = add_course_module($newcm);
@@ -275,6 +277,23 @@ if ($uploadform->is_cancelled()) {
 
     $DB->set_field('course_modules', 'instance', $instanceid,
         array('id' => $coursemoduleid));
+
+    // Public Private
+    if (class_exists('PublicPrivate_Module')) {
+        if (!empty($data->publicprivateradios)) {
+            $ppsetting = $data->publicprivateradios['publicprivate'];
+        } else {
+            $ppsetting = 'public';
+        }
+
+        $pp = new PublicPrivate_Module($coursemoduleid);
+
+        if ($ppsetting == 'public') {
+            $pp->disable();
+        } else {
+            $pp->enable();
+        }
+    }
     
     if (!isset($data->serialized) || empty($data->serialized)) {
         // Assume that we're not changing the order

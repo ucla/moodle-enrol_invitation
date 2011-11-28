@@ -56,6 +56,9 @@ $string['add_subheading_post'] = 'Use subheadings within a section to organize l
 $string['add_text'] = 'Add Text';
 $string['add_text_post'] = 'Add text to appear on a course site.';
 
+$string['missingparam'] = 'Missing a parameter for redirection URL: {$a}';
+$string['redirectimplementationerror'] = 'The implementation for a redirect type is missing the function get_send_params().';
+
 // Rearrange
 $string['rearrangejsrequired'] = 'The Rearrange Tool requires JavaScript to
 work.';

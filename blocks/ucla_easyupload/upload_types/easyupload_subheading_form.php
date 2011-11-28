@@ -8,10 +8,11 @@ class easyupload_subheading_form extends easy_upload_form {
     function specification() {
         $mform =& $this->_form;
   
-        $mform->addElement('text', 'intro', get_string('dialog_add_subheading_box', self::associated_block));
-        $mform->addElement('hidden', 'introformat', FORMAT_PLAIN);
-        
+        $mform->addElement('text', 'intro', 
+            get_string('dialog_add_subheading_box', self::associated_block));
         $mform->addRule('intro', null, 'required');        
+
+        $mform->addElement('hidden', 'introformat', FORMAT_PLAIN);
     }
 
     function get_coursemodule() {
