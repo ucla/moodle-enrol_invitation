@@ -279,7 +279,8 @@ if ($uploadform->is_cancelled()) {
         array('id' => $coursemoduleid));
 
     // Public Private
-    if (class_exists('PublicPrivate_Module')) {
+    if (class_exists('PublicPrivate_Module') 
+            && PublicPrivate_Site::is_enabled()) {
         if (!empty($data->publicprivateradios)) {
             $ppsetting = $data->publicprivateradios['publicprivate'];
         } else {
