@@ -239,6 +239,12 @@ class theme_uclashared_core_renderer extends core_renderer {
     function control_panel_button() {
         global $CFG;
 
+        // Hack since contexts and pagelayouts are different things
+        // Hack to fix: display control panel link when updating a plugin
+        if ($this->page->context == get_context_instance(CONTEXT_SYSTEM)) {
+            return '';
+        }
+
         // Use html_writer to render the actual link
         // html_writer::tag(tagname, contents, attributes[])
         $cp_text = get_string('control_panel', $this->theme);
