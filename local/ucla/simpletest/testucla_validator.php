@@ -63,7 +63,7 @@ class ucla_validator_test extends UnitTestCase {
             
         }
         catch (Exception $e){
-            echo $e->getMessage();
+            $this->assertEqual($e->getMessage(), 'ucla_validator/invalid type');
         }        
     }
  
