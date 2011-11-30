@@ -59,6 +59,9 @@ $CFG->directorypermissions = 0777;
 // logins using the Moodle login will not work.
 $CFG->passwordsaltmain = '';
 
+// turn off messaging (CCLE-2318 - MESSAGING)
+$CFG->messaging = false;
+
 // If you want to have un-revisioned configuration data, place in this file.
 // $CFG->dirroot is overwritten later
 $_dirroot_ = dirname(realpath(__FILE__)) . '/../../..';
