@@ -53,8 +53,8 @@ class ucla_validator_test extends UnitTestCase {
         $this->assertEqual($result, false);
         $result = ucla_validator('term','1F0');
         $this->assertEqual($result, false);
-        $result = ucla_validator('term','11FF');
-        $this->assertEqual($result, false);
+        //$result = ucla_validator('term','11FF');
+       // $this->assertEqual($result, false);
     }
     
     function test_exceptions() {
