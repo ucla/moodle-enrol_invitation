@@ -230,17 +230,10 @@ if ($frm and isset($frm->username)) {                             // Login WITH 
 
         reset_login_count();
 
-            // START SSC Modification for auto-login
-            // nthompson - CCLE-1431
-            if ($USER->username == 'guest') {
-                require_once($CFG->libdir . '/ucla/lib.php');
-                $flag = get_ucla_sso_flag();
-                if ($flag === false)
-                    unset($SESSION->ucla_login_as_guest);
-                else
-                    $SESSION->ucla_login_as_guest = $flag;
-            }
-            // END SSC Modification
+        // START SSC Modification for auto-login
+        // daveng - CCLE-2590
+        auto_login_as_guest();
+        // END SSC Modification
 
         // test the session actually works by redirecting to self
         $SESSION->wantsurl = $urltogo;
