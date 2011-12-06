@@ -85,6 +85,10 @@ $CFG->course_creator_email_template_dir = '';
 // turn off messaging (CCLE-2318 - MESSAGING)
 $CFG->messaging = false;
 
+// CCLE-2763 - Use new $CFG->divertallemailsto setting in 1.9 and 2.x 
+// development/testing environments
+$CFG->divertallemailsto = 'ccle-operations@lists.ucla.edu';
+
 /** 
  *  Automatic Shibboleth configurations.
  *  Disabling in favor for GUI configurations.

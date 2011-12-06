@@ -63,6 +63,10 @@ $CFG->passwordsaltmain = '^!mny&G9W)JIB# c/#}^3Uk(';
 // turn off messaging (CCLE-2318 - MESSAGING)
 $CFG->messaging = false;
 
+// CCLE-2763 - Use new $CFG->divertallemailsto setting in 1.9 and 2.x 
+// development/testing environments
+$CFG->divertallemailsto = 'ccle-operations@lists.ucla.edu';
+
 // If you want to have un-revisioned configuration data, place in this file.
 // $CFG->dirroot is overwritten later
 $_dirroot_ = dirname(realpath(__FILE__)) . '/../../..';
