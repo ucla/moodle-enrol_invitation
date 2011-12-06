@@ -120,7 +120,7 @@ class ucla_cp_renderer {
 
         $fitem = '';
         $fitem .= html_writer::empty_tag('img', 
-            array('src' => $OUTPUT->pix_url('cp_' . $item)));
+            array('src' => $OUTPUT->pix_url('cp_' . $item, $item_obj->associated_block())));
 
         if ($item_obj->get_opt('post') === null) {
             $item_obj->set_opt('post', false);

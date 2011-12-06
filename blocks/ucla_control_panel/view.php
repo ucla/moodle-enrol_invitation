@@ -131,8 +131,8 @@ foreach ($elements as $view => $section_contents) {
         }
 
         echo $OUTPUT->heading($viewstring, 2, 'main copan-title');
-    
-        if ($view == 'ucla_cp_mod_common') {
+  
+        if ($tags == 'ucla_cp_mod_common') {
             $section_contents = ucla_cp_renderer::get_content_array(
                 $modules, 2
             );

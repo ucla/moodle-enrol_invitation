@@ -49,3 +49,14 @@ h2.main.copan-title {
     font-style:italic;
 }
 
+/* Control panel button and icons stlying */
+
+.control-panel-button {
+    width: 110px;
+    height: 26px;
+    display: block;
+    float: right;
+    background: transparent url([[pix:ucla_control_panel|cp_button]]) top left no-repeat;
+    text-indent: -9999px;
+    outline: 0;    
+}
