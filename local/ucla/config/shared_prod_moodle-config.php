@@ -59,6 +59,9 @@ $CFG->directorypermissions = 0777;
 // logins using the Moodle login will not work.
 $CFG->passwordsaltmain = '';
 
+// turn off messaging (CCLE-2318 - MESSAGING)
+$CFG->messaging = false;
+
 // CCLE-2306 - HELP SYSTEM BLOCK
 // if using JIRA, jira_user, jira_password, jira_pid should be defined in config_private.php
 $block_ucla_help_settings = array('send_to' => 'jira',

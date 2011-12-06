@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -9,19 +8,19 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * This page displays the user data from a single attempt
  *
- * @package    mod
+ * @package mod
  * @subpackage scorm
- * @copyright  1999 onwards Martin Dougiamas  {@link http://moodle.com}
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright 1999 onwards Martin Dougiamas {@link http://moodle.com}
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once("../../config.php");
@@ -45,18 +44,18 @@ if ($attempt !== '1') {
 if (!empty($id)) {
     $url->param('id', $id);
     $cm = get_coursemodule_from_id('scorm', $id, 0, false, MUST_EXIST);
-    $course = $DB->get_record('course', array('id'=>$cm->course), '*', MUST_EXIST);
-    $scorm = $DB->get_record('scorm', array('id'=>$cm->instance), '*', MUST_EXIST);
+    $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
+    $scorm = $DB->get_record('scorm', array('id' => $cm->instance), '*', MUST_EXIST);
 } else {
     if (!empty($b)) {
         $url->param('b', $b);
-        $sco = $DB->get_record('scorm_scoes', array('id'=>$b), '*', MUST_EXIST);
-        $a = $sco->scorm;
+        $selsco = $DB->get_record('scorm_scoes', array('id' => $b), '*', MUST_EXIST);
+        $a = $selsco->scorm;
     }
     if (!empty($a)) {
         $url->param('a', $a);
-        $scorm = $DB->get_record('scorm', array('id'=>$a), '*', MUST_EXIST);
-        $course = $DB->get_record('course', array('id'=>$scorm->course), '*', MUST_EXIST);
+        $scorm = $DB->get_record('scorm', array('id' => $a), '*', MUST_EXIST);
+        $course = $DB->get_record('course', array('id' => $scorm->course), '*', MUST_EXIST);
         $cm = get_coursemodule_from_instance('scorm', $scorm->id, $course->id, false, MUST_EXIST);
     }
 }
@@ -85,7 +84,7 @@ if (empty($b)) {
     }
 } else {
     $PAGE->navbar->add("$strattempt $attempt - ".fullname($userdata), new moodle_url('/mod/scorm/userreport.php', array('a'=>$a, 'user'=>$user, 'attempt'=>$attempt)));
-    $PAGE->navbar->add($sco->title);
+    $PAGE->navbar->add($selsco->title);
 }
 echo $OUTPUT->header();
 echo $OUTPUT->heading(format_string($scorm->name));
@@ -154,10 +153,10 @@ if ($scoes = $DB->get_records_select('scorm_scoes', "scorm=? ORDER BY id", array
 
 if (!empty($b)) {
     echo $OUTPUT->box_start('generalbox boxaligncenter');
-    echo $OUTPUT->heading('<a href="'.$CFG->wwwroot.'/mod/scorm/player.php?a='.$scorm->id.'&amp;mode=browse&amp;scoid='.$sco->id.'" target="_new">'.format_string($sco->title).'</a>');
+    echo $OUTPUT->heading('<a href="'.$CFG->wwwroot.'/mod/scorm/player.php?a='.$scorm->id.'&amp;mode=browse&amp;scoid='.$selsco->id.'" target="_new">'.format_string($selsco->title).'</a>');
     echo '<div class="mdl-align">'."\n";
     $scoreview = '';
-    if ($trackdata = scorm_get_tracks($sco->id, $user, $attempt)) {
+    if ($trackdata = scorm_get_tracks($selsco->id, $user, $attempt)) {
         if ($trackdata->score_raw != '') {
             $scoreview = get_string('score', 'scorm').':&nbsp;'.$trackdata->score_raw;
         }
@@ -181,7 +180,7 @@ if (!empty($b)) {
     $table->width = '100%';
     $table->size = array('*', '*');
     $existelements = false;
-    if ($scorm->version == 'SCORM_1.3') {
+    if (scorm_version_check($scorm->version, SCORM_13)) {
         $elements = array(
                 'raw' => 'cmi.score.raw',
                 'min' => 'cmi.score.min',
@@ -211,7 +210,7 @@ if (!empty($b)) {
                     $row[] = s(scorm_format_duration($trackdata->$element));
                 break;
                 default:
-                    s($trackdata->$element);
+                    $row[] = s($trackdata->$element);
                 break;
             }
             $table->data[] = $row;
@@ -246,7 +245,7 @@ if (!empty($b)) {
                 'cmi.interactions.'.$i.'.learner_response');
         $row = array();
         foreach ($elements as $element) {
-           if (isset($trackdata->$element)) {
+            if (isset($trackdata->$element)) {
                 $row[] = s($trackdata->$element);
                 $printedelements[]=$element;
             } else {
@@ -290,7 +289,7 @@ if (!empty($b)) {
                 'cmi.objectives.'.$i.'.score.max');
         $row = array();
         foreach ($elements as $element) {
-           if (isset($trackdata->$element)) {
+            if (isset($trackdata->$element)) {
                 $row[] = s($trackdata->$element);
                 $printedelements[]=$element;
             } else {
@@ -307,7 +306,7 @@ if (!empty($b)) {
         echo html_writer::table($table);
     }
     $table = new html_table();
-    $table->head = array(get_string('element', 'scorm'), get_string('value', 'scorm'));
+    $table->head = array(get_string('element', 'scorm'), get_string('elementdefinition', 'scorm'), get_string('value', 'scorm'));
     $table->align = array('left', 'left');
     $table->wrap = array('nowrap', 'wrap');
     $table->width = '100%';
@@ -315,12 +314,47 @@ if (!empty($b)) {
 
     $existelements = false;
 
-    foreach ( $trackdata as $element => $value) {
+    foreach ($trackdata as $element => $value) {
         if (substr($element, 0, 3) == 'cmi') {
             if (!(in_array ($element, $printedelements))) {
                 $existelements = true;
                 $row = array();
-                $row[] = get_string($element, 'scorm') != '[['.$element.']]' ? get_string($element, 'scorm') : $element;
+                $string=false;
+                if (stristr($element, '.id') !== false) {
+                    $string="interactionsid";
+                } else if (stristr($element, '.result') !== false) {
+                    $string="interactionsresult";
+                } else if (stristr($element, '.student_response') !== false) {
+                    $string="interactionsresponse";
+                } else if (stristr($element, '.type') !== false) {
+                    $string="interactionstype";
+                } else if (stristr($element, '.weighting') !== false) {
+                    $string="interactionsweight";
+                } else if (stristr($element, '.time') !== false) {
+                    $string="interactionstime";
+                } else if (stristr($element, '.correct_responses._count') !== false) {
+                    $string="interactionscorrectcount";
+                } else if (stristr($element, '.learner_response') !== false) {
+                    $string="interactionslearnerresponse";
+                } else if (stristr($element, '.score.min') !== false) {
+                    $string="interactionsscoremin";
+                } else if (stristr($element, '.score.max') !== false) {
+                    $string="interactionsscoremax";
+                } else if (stristr($element, '.score.raw') !== false) {
+                    $string="interactionsscoreraw";
+                } else if (stristr($element, '.latency') !== false) {
+                    $string="interactionslatency";
+                } else if (stristr($element, '.pattern') !== false) {
+                    $string="interactionspattern";
+                } else if (stristr($element, '.suspend_data') !== false) {
+                    $string="interactionssuspenddata";
+                }
+                $row[]=$element;
+                if (empty($string)) {
+                    $row[]=null;
+                } else {
+                    $row[] = get_string($string, 'scorm');
+                }
                 if (strpos($element, '_time') === false) {
                     $row[] = s($value);
                 } else {

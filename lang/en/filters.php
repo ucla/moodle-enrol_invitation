@@ -54,7 +54,6 @@ $string['filtersettingsforin'] = 'Filter settings for {$a->filter} in {$a->conte
 $string['filtersettingsin'] = 'Filter settings in {$a}';
 $string['firstaccess'] = 'First access';
 $string['globalrolelabel'] = '{$a->label} is {$a->value}';
-$string['includenever'] = 'Never included';
 $string['isactive'] = 'Active?';
 $string['isafter'] = 'is after';
 $string['isanyvalue'] = 'is any value';

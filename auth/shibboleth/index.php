@@ -39,7 +39,9 @@
 
         if ($shibbolethauth->user_login($frm->username, $frm->password)) {
 
-            $USER = authenticate_user_login($frm->username, $frm->password);
+            $user = authenticate_user_login($frm->username, $frm->password);
+            enrol_check_plugins($user);
+            session_set_user($user);
 
             $USER->loggedin = true;
             $USER->site     = $CFG->wwwroot; // for added security, store the site in the
@@ -47,7 +49,6 @@
             update_user_login_times();
 
             // Don't show previous shibboleth username on login page
-            set_moodle_cookie('');
 
             set_login_session_preferences();
 
@@ -75,9 +76,6 @@
                     $urltogo = $CFG->wwwroot.'/my/';
                 }
             }
-
-            enrol_check_plugins($USER);
-            load_all_capabilities();     /// This is what lets the user do anything on the site  :-)
 
             redirect($urltogo);
 

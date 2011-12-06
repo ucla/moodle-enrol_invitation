@@ -82,6 +82,9 @@ $CFG->classrequestor_hidden_default = false; // default value for hidden
 $CFG->course_creator_email = 'ccle-operations@lists.ucla.edu';
 $CFG->course_creator_email_template_dir = '';
 
+// turn off messaging (CCLE-2318 - MESSAGING)
+$CFG->messaging = false;
+
 // CCLE-2306 - HELP SYSTEM BLOCK
 // if using JIRA, jira_user, jira_password, jira_pid should be defined in config_private.php
 $block_ucla_help_settings = array('send_to' => 'jira',

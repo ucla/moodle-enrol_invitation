@@ -45,6 +45,7 @@ class MoodleQuickForm_filemanager extends HTML_QuickForm_element {
         if (!empty($options['maxbytes'])) {
             $this->_options['maxbytes'] = get_max_upload_file_size($CFG->maxbytes, $options['maxbytes']);
         }
+        $this->_type = 'filemanager';
         parent::HTML_QuickForm_element($elementName, $elementLabel, $attributes);
     }
 
@@ -303,7 +304,7 @@ FMHTML;
     $module = array(
         'name'=>'form_filemanager',
         'fullpath'=>'/lib/form/filemanager.js',
-        'requires' => array('core_filepicker', 'base', 'io', 'node', 'json', 'yui2-button', 'yui2-container', 'yui2-layout', 'yui2-menu', 'yui2-treeview'),
+        'requires' => array('core_filepicker', 'base', 'io-base', 'node', 'json', 'yui2-button', 'yui2-container', 'yui2-layout', 'yui2-menu', 'yui2-treeview'),
         'strings' => array(array('loading', 'repository'), array('nomorefiles', 'repository'), array('confirmdeletefile', 'repository'),
              array('add', 'repository'), array('accessiblefilepicker', 'repository'), array('move', 'moodle'),
              array('cancel', 'moodle'), array('download', 'moodle'), array('ok', 'moodle'),
