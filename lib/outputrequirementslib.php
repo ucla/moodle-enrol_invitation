@@ -395,7 +395,7 @@ class page_requirements_manager {
                 case 'core_filepicker':
                     $module = array('name'     => 'core_filepicker',
                                     'fullpath' => '/repository/filepicker.js',
-                                    'requires' => array('base', 'node', 'node-event-simulate', 'json', 'async-queue', 'io', 'yui2-button', 'yui2-container', 'yui2-layout', 'yui2-menu', 'yui2-treeview', 'yui2-dragdrop', 'yui2-cookie'),
+                                    'requires' => array('base', 'node', 'node-event-simulate', 'json', 'async-queue', 'io-base', 'io-upload-iframe', 'io-form', 'yui2-button', 'yui2-container', 'yui2-layout', 'yui2-menu', 'yui2-treeview', 'yui2-dragdrop', 'yui2-cookie'),
                                     'strings'  => array(array('add', 'repository'), array('back', 'repository'), array('cancel', 'moodle'), array('close', 'repository'),
                                                         array('cleancache', 'repository'), array('copying', 'repository'), array('date', 'repository'), array('downloadsucc', 'repository'),
                                                         array('emptylist', 'repository'), array('error', 'repository'), array('federatedsearch', 'repository'),
@@ -419,7 +419,7 @@ class page_requirements_manager {
                 case 'core_comment':
                     $module = array('name'     => 'core_comment',
                                     'fullpath' => '/comment/comment.js',
-                                    'requires' => array('base', 'io', 'node', 'json', 'yui2-animation', 'overlay'),
+                                    'requires' => array('base', 'io-base', 'node', 'json', 'yui2-animation', 'overlay'),
                                     'strings' => array(array('confirmdeletecomments', 'admin'), array('yes', 'moodle'), array('no', 'moodle'))
                                 );
                     break;
@@ -443,11 +443,6 @@ class page_requirements_manager {
                                     'requires' => array('base', 'node', 'event', 'node-event-simulate'),
                                     'fullpath' => '/message/module.js');
                     break;
-                case 'core_flashdetect':
-                    $module = array('name'     => 'core_flashdetect',
-                                    'fullpath' => '/lib/flashdetect/flashdetect.js',
-                                    'requires' => array('io'));
-                    break;
                 case 'core_group':
                     $module = array('name'     => 'core_group',
                                     'fullpath' => '/group/module.js',
@@ -461,12 +456,12 @@ class page_requirements_manager {
                 case 'core_rating':
                     $module = array('name'     => 'core_rating',
                                     'fullpath' => '/rating/module.js',
-                                    'requires' => array('node', 'event', 'overlay', 'io', 'json'));
+                                    'requires' => array('node', 'event', 'overlay', 'io-base', 'json'));
                     break;
                 case 'core_filetree':
                     $module = array('name'     => 'core_filetree',
                                     'fullpath' => '/files/module.js',
-                                    'requires' => array('node', 'event', 'overlay', 'io', 'json', 'yui2-treeview'));
+                                    'requires' => array('node', 'event', 'overlay', 'io-base', 'json', 'yui2-treeview'));
                     break;
             }
 
@@ -978,9 +973,9 @@ class page_requirements_manager {
         }
 
         if (debugging('', DEBUG_DEVELOPER)) {
-            $code .= '<script src="'.$this->yui3loader->base.'yui/yui-debug.js"></script>';
+            $code .= '<script type="text/javascript" src="'.$this->yui3loader->base.'yui/yui-debug.js"></script>';
         } else {
-            $code .= '<script src="'.$this->yui3loader->base.'yui/yui-min.js"></script>';
+            $code .= '<script type="text/javascript" src="'.$this->yui3loader->base.'yui/yui-min.js"></script>';
         }
 
         return $code;
@@ -1218,6 +1213,6 @@ function js_reset_all_caches() {
     require_once("$CFG->libdir/filelib.php");
 
     set_config('jsrev', empty($CFG->jsrev) ? 1 : $CFG->jsrev+1);
-    fulldelete("$CFG->dataroot/cache/js");
+    fulldelete("$CFG->cachedir/js");
 }
 

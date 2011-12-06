@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="lib/db" VERSION="20110627" COMMENT="XMLDB file for core Moodle tables"
+<XMLDB PATH="lib/db" VERSION="20111118" COMMENT="XMLDB file for core Moodle tables"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../lib/xmldb/xmldb.xsd"
 >
@@ -73,7 +73,7 @@
         <FIELD NAME="category" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="sortorder"/>
         <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="category" NEXT="fullname"/>
         <FIELD NAME="fullname" TYPE="char" LENGTH="254" NOTNULL="true" SEQUENCE="false" PREVIOUS="sortorder" NEXT="shortname"/>
-        <FIELD NAME="shortname" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" PREVIOUS="fullname" NEXT="idnumber"/>
+        <FIELD NAME="shortname" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="fullname" NEXT="idnumber"/>
         <FIELD NAME="idnumber" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" PREVIOUS="shortname" NEXT="summary"/>
         <FIELD NAME="summary" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="idnumber" NEXT="summaryformat"/>
         <FIELD NAME="summaryformat" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="summary" NEXT="format"/>
@@ -118,8 +118,9 @@
     <TABLE NAME="course_categories" COMMENT="Course categories" PREVIOUS="course" NEXT="course_completion_aggr_methd">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="name"/>
-        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="description"/>
-        <FIELD NAME="description" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="name" NEXT="descriptionformat"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="idnumber"/>
+        <FIELD NAME="idnumber" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" PREVIOUS="name" NEXT="description"/>
+        <FIELD NAME="description" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="idnumber" NEXT="descriptionformat"/>
         <FIELD NAME="descriptionformat" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="description" NEXT="parent"/>
         <FIELD NAME="parent" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="descriptionformat" NEXT="sortorder"/>
         <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="parent" NEXT="coursecount"/>
@@ -326,7 +327,8 @@
         <FIELD NAME="completionexpected" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="Date at which students are expected to complete this activity. This field is used when displaying student progress." PREVIOUS="completionview" NEXT="availablefrom"/>
         <FIELD NAME="availablefrom" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="If set non-zero, the activity only becomes available from the time given here." PREVIOUS="completionexpected" NEXT="availableuntil"/>
         <FIELD NAME="availableuntil" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="If set non-zero, the activity is only available until the time given here." PREVIOUS="availablefrom" NEXT="showavailability"/>
-        <FIELD NAME="showavailability" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="If this field is set to 1 and the activity is not available because the 'availablefrom' date has not been reached, or one of the conditions in course_modules_availability is not matched, then the item will be displayed greyed-out (unclickable) with an information message such as 'Available from (date)'. Otherwise, the item will not be displayed to students at all." PREVIOUS="availableuntil"/>
+        <FIELD NAME="showavailability" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="If this field is set to 1 and the activity is not available because the 'availablefrom' date has not been reached, or one of the conditions in course_modules_availability is not matched, then the item will be displayed greyed-out (unclickable) with an information message such as 'Available from (date)'. Otherwise, the item will not be displayed to students at all." PREVIOUS="availableuntil" NEXT="showdescription"/>
+        <FIELD NAME="showdescription" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="Some module types support a 'description' which shows within the module pages. This option controls whether it also displays on the course main page. 0 = does not display (default), 1 = displays" PREVIOUS="showavailability"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="groupingid"/>
@@ -1822,7 +1824,8 @@
         <FIELD NAME="shortname" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="The short name or code for this outcome statement" PREVIOUS="courseid" NEXT="fullname"/>
         <FIELD NAME="fullname" TYPE="text" LENGTH="small" NOTNULL="true" SEQUENCE="false" COMMENT="The full description of the outcome (usually 1 sentence)" PREVIOUS="shortname" NEXT="scaleid"/>
         <FIELD NAME="scaleid" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" COMMENT="The recommended scale for this outcome." PREVIOUS="fullname" NEXT="description"/>
-        <FIELD NAME="description" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="Outcome description" PREVIOUS="scaleid"/>
+        <FIELD NAME="description" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" COMMENT="Outcome description" PREVIOUS="scaleid" NEXT="descriptionformat"/>
+        <FIELD NAME="descriptionformat" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="description"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="oldid"/>
@@ -1853,7 +1856,8 @@
         <FIELD NAME="droplow" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" COMMENT="Drop the X lowest items" PREVIOUS="keephigh" NEXT="aggregateonlygraded"/>
         <FIELD NAME="aggregateonlygraded" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="aggregate only graded items" PREVIOUS="droplow" NEXT="aggregateoutcomes"/>
         <FIELD NAME="aggregateoutcomes" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="Aggregate outcomes" PREVIOUS="aggregateonlygraded" NEXT="aggregatesubcats"/>
-        <FIELD NAME="aggregatesubcats" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="ignore subcategories in aggregation" PREVIOUS="aggregateoutcomes"/>
+        <FIELD NAME="aggregatesubcats" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="ignore subcategories in aggregation" PREVIOUS="aggregateoutcomes" NEXT="hidden"/>
+        <FIELD NAME="hidden" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="aggregatesubcats"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="oldid"/>
@@ -1897,7 +1901,9 @@
         <FIELD NAME="hidden" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" COMMENT="1 is hidden, &amp;gt; 1 is a date to hide until (prevents viewing)" PREVIOUS="sortorder" NEXT="locked"/>
         <FIELD NAME="locked" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" COMMENT="1 is locked, &amp;gt; 1 is a date to lock until (prevents update)" PREVIOUS="hidden" NEXT="locktime"/>
         <FIELD NAME="locktime" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="lock all final grades after this date" PREVIOUS="locked" NEXT="needsupdate"/>
-        <FIELD NAME="needsupdate" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" COMMENT="If this flag is set, then the whole column will be recalculated" PREVIOUS="locktime"/>
+        <FIELD NAME="needsupdate" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" COMMENT="If this flag is set, then the whole column will be recalculated" PREVIOUS="locktime" NEXT="display"/>
+        <FIELD NAME="display" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="needsupdate" NEXT="decimals"/>
+        <FIELD NAME="decimals" TYPE="int" LENGTH="1" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" PREVIOUS="display"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="oldid"/>
@@ -2419,7 +2425,7 @@
         <KEY NAME="backup_code-table_name-old_id" TYPE="unique" FIELDS="backup_code, table_name, old_id" PREVIOUS="primary"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="backup_courses" COMMENT="To store every course backup status" PREVIOUS="backup_ids" NEXT="backup_log">
+    <TABLE NAME="backup_courses" COMMENT="To store every course backup status" PREVIOUS="backup_ids" NEXT="block">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="courseid"/>
         <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="laststarttime"/>
@@ -2433,21 +2439,7 @@
         <KEY NAME="courseid" TYPE="unique" FIELDS="courseid" PREVIOUS="primary"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="backup_log" COMMENT="To store every course backup log info" PREVIOUS="backup_courses" NEXT="block">
-      <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="courseid"/>
-        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="time"/>
-        <FIELD NAME="time" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="courseid" NEXT="laststarttime"/>
-        <FIELD NAME="laststarttime" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="time" NEXT="info"/>
-        <FIELD NAME="info" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="laststarttime" NEXT="backuptype"/>
-        <FIELD NAME="backuptype" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false" PREVIOUS="info"/>
-      </FIELDS>
-      <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="courseid"/>
-        <KEY NAME="courseid" TYPE="foreign" FIELDS="courseid" REFTABLE="backup_courses" REFFIELDS="courseid" PREVIOUS="primary"/>
-      </KEYS>
-    </TABLE>
-    <TABLE NAME="block" COMMENT="contains all installed blocks" PREVIOUS="backup_log" NEXT="block_instances">
+    <TABLE NAME="block" COMMENT="contains all installed blocks" PREVIOUS="backup_courses" NEXT="block_instances">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="name"/>
         <FIELD NAME="name" TYPE="char" LENGTH="40" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="version"/>
@@ -2483,7 +2475,7 @@
         <INDEX NAME="parentcontextid-showinsubcontexts-pagetypepattern-subpagepattern" UNIQUE="false" FIELDS="parentcontextid, showinsubcontexts, pagetypepattern, subpagepattern"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="block_positions" COMMENT="Stores the position of a sticky block_instance on a another page than the one where it was added." PREVIOUS="block_instances" NEXT="block_pinned_old">
+    <TABLE NAME="block_positions" COMMENT="Stores the position of a sticky block_instance on a another page than the one where it was added." PREVIOUS="block_instances" NEXT="comments">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="blockinstanceid"/>
         <FIELD NAME="blockinstanceid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="The block_instance this position relates to." PREVIOUS="id" NEXT="contextid"/>
@@ -2503,46 +2495,7 @@
         <INDEX NAME="blockinstanceid-contextid-pagetype-subpage" UNIQUE="true" FIELDS="blockinstanceid, contextid, pagetype, subpage"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="block_pinned_old" COMMENT="backup of 1.9 pinned blocks - to be deleted" PREVIOUS="block_positions" NEXT="block_instance_old">
-      <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="blockid"/>
-        <FIELD NAME="blockid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="pagetype"/>
-        <FIELD NAME="pagetype" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" PREVIOUS="blockid" NEXT="position"/>
-        <FIELD NAME="position" TYPE="char" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="pagetype" NEXT="weight"/>
-        <FIELD NAME="weight" TYPE="int" LENGTH="3" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="position" NEXT="visible"/>
-        <FIELD NAME="visible" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="weight" NEXT="configdata"/>
-        <FIELD NAME="configdata" TYPE="text" LENGTH="small" NOTNULL="true" SEQUENCE="false" PREVIOUS="visible"/>
-      </FIELDS>
-      <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="blockid"/>
-        <KEY NAME="blockid" TYPE="foreign" FIELDS="blockid" REFTABLE="block" REFFIELDS="id" PREVIOUS="primary"/>
-      </KEYS>
-      <INDEXES>
-        <INDEX NAME="pagetype" UNIQUE="false" FIELDS="pagetype"/>
-      </INDEXES>
-    </TABLE>
-    <TABLE NAME="block_instance_old" COMMENT="backup of 1.9 block instances - to be deleted" PREVIOUS="block_pinned_old" NEXT="comments">
-      <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="oldid"/>
-        <FIELD NAME="oldid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="blockid"/>
-        <FIELD NAME="blockid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="oldid" NEXT="pageid"/>
-        <FIELD NAME="pageid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="blockid" NEXT="pagetype"/>
-        <FIELD NAME="pagetype" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" PREVIOUS="pageid" NEXT="position"/>
-        <FIELD NAME="position" TYPE="char" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="pagetype" NEXT="weight"/>
-        <FIELD NAME="weight" TYPE="int" LENGTH="3" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="position" NEXT="visible"/>
-        <FIELD NAME="visible" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="weight" NEXT="configdata"/>
-        <FIELD NAME="configdata" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="visible"/>
-      </FIELDS>
-      <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="blockid"/>
-        <KEY NAME="blockid" TYPE="foreign" FIELDS="blockid" REFTABLE="block" REFFIELDS="id" PREVIOUS="primary"/>
-      </KEYS>
-      <INDEXES>
-        <INDEX NAME="pageid" UNIQUE="false" FIELDS="pageid" NEXT="pagetype"/>
-        <INDEX NAME="pagetype" UNIQUE="false" FIELDS="pagetype" PREVIOUS="pageid"/>
-      </INDEXES>
-    </TABLE>
-    <TABLE NAME="comments" COMMENT="moodle comments module" PREVIOUS="block_instance_old" NEXT="external_services">
+    <TABLE NAME="comments" COMMENT="moodle comments module" PREVIOUS="block_positions" NEXT="external_services">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="contextid"/>
         <FIELD NAME="contextid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="commentarea"/>
@@ -2567,7 +2520,8 @@
         <FIELD NAME="component" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" PREVIOUS="restrictedusers" NEXT="timecreated"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="component" NEXT="timemodified"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" PREVIOUS="timecreated" NEXT="shortname"/>
-        <FIELD NAME="shortname" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="a unique shortname" PREVIOUS="timemodified"/>
+        <FIELD NAME="shortname" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="a unique shortname" PREVIOUS="timemodified" NEXT="downloadfiles"/>
+        <FIELD NAME="downloadfiles" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="1 if the service allow people to download file from webservice/plugins.php - 0 if not" PREVIOUS="shortname"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -2822,7 +2776,7 @@
         <INDEX NAME="timecreated_runreference_ix" UNIQUE="false" FIELDS="timecreated, runreference" PREVIOUS="url_runreference_ix"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="course_published" COMMENT="Information about how and when an local courses were published to hubs" PREVIOUS="profiling">
+    <TABLE NAME="course_published" COMMENT="Information about how and when an local courses were published to hubs" PREVIOUS="profiling" NEXT="grading_areas">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="huburl"/>
         <FIELD NAME="huburl" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="the url of the &quot;registered on&quot; hub" PREVIOUS="id" NEXT="courseid"/>
@@ -2835,6 +2789,63 @@
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="grading_areas" COMMENT="Identifies gradable areas where advanced grading can happen. For each area, the current active plugin can be set." PREVIOUS="course_published" NEXT="grading_definitions">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="contextid"/>
+        <FIELD NAME="contextid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="The context of the gradable area, eg module instance context." PREVIOUS="id" NEXT="component"/>
+        <FIELD NAME="component" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Frankenstyle name of the component holding this area" PREVIOUS="contextid" NEXT="areaname"/>
+        <FIELD NAME="areaname" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="The name of gradable area" PREVIOUS="component" NEXT="activemethod"/>
+        <FIELD NAME="activemethod" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="The default grading method (plugin) that should be used for this area" PREVIOUS="areaname"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="uq_gradable_area"/>
+        <KEY NAME="uq_gradable_area" TYPE="unique" FIELDS="contextid, component, areaname" PREVIOUS="primary" NEXT="fk_context"/>
+        <KEY NAME="fk_context" TYPE="foreign" FIELDS="contextid" REFTABLE="context" REFFIELDS="id" PREVIOUS="uq_gradable_area"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="grading_definitions" COMMENT="Contains the basic information about an advanced grading form defined in the given gradable area" PREVIOUS="grading_areas" NEXT="grading_instances">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="areaid"/>
+        <FIELD NAME="areaid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="method"/>
+        <FIELD NAME="method" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="The name of the plugin providing this grading form" PREVIOUS="areaid" NEXT="name"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="The title of the form that helps users to identify it" PREVIOUS="method" NEXT="description"/>
+        <FIELD NAME="description" TYPE="text" LENGTH="big" NOTNULL="false" SEQUENCE="false" COMMENT="More detailed description of the form" PREVIOUS="name" NEXT="descriptionformat"/>
+        <FIELD NAME="descriptionformat" TYPE="int" LENGTH="2" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" COMMENT="Format of the description field" PREVIOUS="description" NEXT="status"/>
+        <FIELD NAME="status" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="Status of the form definition, by default in the under-construction state" PREVIOUS="descriptionformat" NEXT="copiedfromid"/>
+        <FIELD NAME="copiedfromid" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" COMMENT="The id of the original definition that this was initially copied from or null if it was from scratch" PREVIOUS="status" NEXT="timecreated"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="The timestamp of when the form definition was created initially" PREVIOUS="copiedfromid" NEXT="usercreated"/>
+        <FIELD NAME="usercreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="The ID of the user who created this definition and is considered as its owner for access control purposes" PREVIOUS="timecreated" NEXT="timemodified"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="The time stamp of when the form definition was modified recently" PREVIOUS="usercreated" NEXT="usermodified"/>
+        <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="The ID of the user who did the most recent modification" PREVIOUS="timemodified" NEXT="timecopied"/>
+        <FIELD NAME="timecopied" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="The timestamp of when this form was most recently copied into another area" PREVIOUS="usermodified" NEXT="options"/>
+        <FIELD NAME="options" TYPE="text" LENGTH="big" NOTNULL="false" SEQUENCE="false" COMMENT="General field to be used by plugins as a general storage place for their own settings" PREVIOUS="timecopied"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="fk_areaid"/>
+        <KEY NAME="fk_areaid" TYPE="foreign" FIELDS="areaid" REFTABLE="grading_areas" REFFIELDS="id" PREVIOUS="primary" NEXT="fk_usermodified"/>
+        <KEY NAME="fk_usermodified" TYPE="foreign" FIELDS="usermodified" REFTABLE="user" REFFIELDS="id" PREVIOUS="fk_areaid" NEXT="uq_area_method"/>
+        <KEY NAME="uq_area_method" TYPE="unique" FIELDS="areaid, method" PREVIOUS="fk_usermodified" NEXT="fk_usercreated"/>
+        <KEY NAME="fk_usercreated" TYPE="foreign" FIELDS="usercreated" REFTABLE="user" REFFIELDS="id" PREVIOUS="uq_area_method"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="grading_instances" COMMENT="Grading form instance is an assessment record for one gradable item assessed by one rater" PREVIOUS="grading_definitions">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="definitionid"/>
+        <FIELD NAME="definitionid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="The ID of the form definition this is instance of" PREVIOUS="id" NEXT="raterid"/>
+        <FIELD NAME="raterid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="The ID of the user who did the assessment" PREVIOUS="definitionid" NEXT="itemid"/>
+        <FIELD NAME="itemid" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" COMMENT="This identifies the graded item within the grabable area" PREVIOUS="raterid" NEXT="rawgrade"/>
+        <FIELD NAME="rawgrade" TYPE="number" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" DECIMALS="5" COMMENT="The raw normalized grade 0.00000 - 100.00000 as a result of the most recent assessment" PREVIOUS="itemid" NEXT="status"/>
+        <FIELD NAME="status" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="The status of the assessment. By default the instance is under-assessment state" PREVIOUS="rawgrade" NEXT="feedback"/>
+        <FIELD NAME="feedback" TYPE="text" LENGTH="big" NOTNULL="false" SEQUENCE="false" COMMENT="Overall feedback from the rater for the author of the graded item" PREVIOUS="status" NEXT="feedbackformat"/>
+        <FIELD NAME="feedbackformat" TYPE="int" LENGTH="2" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" COMMENT="The format of the feedback field" PREVIOUS="feedback" NEXT="timemodified"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="The timestamp of when the assessment was most recently modified" PREVIOUS="feedbackformat"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="fk_definitionid"/>
+        <KEY NAME="fk_definitionid" TYPE="foreign" FIELDS="definitionid" REFTABLE="grading_definitions" REFFIELDS="id" PREVIOUS="primary" NEXT="fk_raterid"/>
+        <KEY NAME="fk_raterid" TYPE="foreign" FIELDS="raterid" REFTABLE="user" REFFIELDS="id" PREVIOUS="fk_definitionid"/>
       </KEYS>
     </TABLE>
   </TABLES>

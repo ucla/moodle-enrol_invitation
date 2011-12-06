@@ -27,7 +27,10 @@
 require_once("$CFG->libdir/externallib.php");
 require_once("$CFG->libdir/filelib.php");
 
-class moodle_file_external extends external_api {
+/**
+ * Files functions
+ */
+class core_files_external extends external_api {
 
     /**
      * Returns description of get_files parameters
@@ -142,8 +145,8 @@ class moodle_file_external extends external_api {
                     new external_single_structure(
                         array(
                             'contextid' => new external_value(PARAM_INT, ''),
-                            'component' => new external_value(PARAM_ALPHAEXT, ''),
-                            'filearea'  => new external_value(PARAM_ALPHAEXT, ''),
+                            'component' => new external_value(PARAM_COMPONENT, ''),
+                            'filearea'  => new external_value(PARAM_AREA, ''),
                             'itemid'    => new external_value(PARAM_INT, ''),
                             'filepath'  => new external_value(PARAM_TEXT, ''),
                             'filename'  => new external_value(PARAM_TEXT, ''),
@@ -154,8 +157,8 @@ class moodle_file_external extends external_api {
                     new external_single_structure(
                         array(
                             'contextid' => new external_value(PARAM_INT, ''),
-                            'component' => new external_value(PARAM_ALPHAEXT, ''),
-                            'filearea'  => new external_value(PARAM_ALPHAEXT, ''),
+                            'component' => new external_value(PARAM_COMPONENT, ''),
+                            'filearea'  => new external_value(PARAM_AREA, ''),
                             'itemid'   => new external_value(PARAM_INT, ''),
                             'filepath' => new external_value(PARAM_TEXT, ''),
                             'filename' => new external_value(PARAM_FILE, ''),
@@ -176,8 +179,8 @@ class moodle_file_external extends external_api {
         return new external_function_parameters(
             array(
                 'contextid' => new external_value(PARAM_INT, 'context id'),
-                'component' => new external_value(PARAM_ALPHAEXT, 'component'),
-                'filearea'  => new external_value(PARAM_ALPHAEXT, 'file area'),
+                'component' => new external_value(PARAM_COMPONENT, 'component'),
+                'filearea'  => new external_value(PARAM_AREA, 'file area'),
                 'itemid'    => new external_value(PARAM_INT, 'associated id'),
                 'filepath'  => new external_value(PARAM_PATH, 'file path'),
                 'filename'  => new external_value(PARAM_FILE, 'file name'),
@@ -207,10 +210,10 @@ class moodle_file_external extends external_api {
             throw new moodle_exception('nofile');
         }
         // saving file
-        $dir = make_upload_directory('temp/wsupload');
+        $dir = make_temp_directory('wsupload');
 
         if (empty($fileinfo['filename'])) {
-            $filename = uniqid('wsupload').'_'.time().'.tmp';
+            $filename = uniqid('wsupload', true).'_'.time().'.tmp';
         } else {
             $filename = $fileinfo['filename'];
         }
@@ -286,13 +289,87 @@ class moodle_file_external extends external_api {
         return new external_single_structure(
              array(
                  'contextid' => new external_value(PARAM_INT, ''),
-                 'component' => new external_value(PARAM_ALPHAEXT, ''),
-                 'filearea'  => new external_value(PARAM_ALPHAEXT, ''),
+                 'component' => new external_value(PARAM_COMPONENT, ''),
+                 'filearea'  => new external_value(PARAM_AREA, ''),
                  'itemid'   => new external_value(PARAM_INT, ''),
                  'filepath' => new external_value(PARAM_TEXT, ''),
                  'filename' => new external_value(PARAM_FILE, ''),
                  'url'      => new external_value(PARAM_TEXT, ''),
              )
         );
+    }
+}
+
+/**
+ * Deprecated files functions
+ * @deprecated since Moodle 2.2 please use core_files_external instead
+ */
+class moodle_file_external extends external_api {
+
+    /**
+     * Returns description of get_files parameters
+     * @deprecated since Moodle 2.2 please use core_files_external::get_files_parameters instead
+     * @return external_function_parameters
+     */
+    public static function get_files_parameters() {
+        return core_files_external::get_files_parameters();
+    }
+
+    /**
+     * Return moodle files listing
+     * @deprecated since Moodle 2.2 please use core_files_external::get_files instead
+     * @param int $contextid
+     * @param int $component
+     * @param int $filearea
+     * @param int $itemid
+     * @param string $filepath
+     * @param string $filename
+     * @return array
+     */
+    public static function get_files($contextid, $component, $filearea, $itemid, $filepath, $filename) {
+        return core_files_external::get_files($contextid, $component, $filearea, $itemid, $filepath, $filename);
+    }
+
+    /**
+     * Returns description of get_files returns
+     * @deprecated since Moodle 2.2 please use core_files_external::get_files_returns instead
+     * @return external_multiple_structure
+     */
+    public static function get_files_returns() {
+        return core_files_external::get_files_returns();
+    }
+
+    /**
+     * Returns description of upload parameters
+     * @deprecated since Moodle 2.2 please use core_files_external::upload_parameters instead
+     * @return external_function_parameters
+     */
+    public static function upload_parameters() {
+        return core_files_external::upload_parameters();
+    }
+
+    /**
+     * Uploading a file to moodle
+     * @deprecated since Moodle 2.2 please use core_files_external::upload instead
+     * @param int $contextid
+     * @param string $component
+     * @param string $filearea
+     * @param int $itemid
+     * @param string $filepath
+     * @param string $filename
+     * @param string $filecontent
+     * @return array
+     */
+    public static function upload($contextid, $component, $filearea, $itemid, $filepath, $filename, $filecontent) {
+        return core_files_external::upload($contextid, $component, $filearea, $itemid, $filepath, $filename, $filecontent);
+    }
+
+    /**
+     * Returns description of upload returns
+     * @deprecated since Moodle 2.2 please use core_files_external::upload_returns instead
+     * @return external_multiple_structure
+     */
+    public static function upload_returns() {
+        return core_files_external::upload_returns();
     }
 }

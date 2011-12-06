@@ -48,6 +48,7 @@
         echo $OUTPUT->header();
 
         $message = "$strdeletecoursecheck<br /><br />" . format_string($course->fullname, true, array('context' => $coursecontext)) .  " (" . $courseshortname . ")";
+
         echo $OUTPUT->confirm($message, "delete.php?id=$course->id&delete=".md5($course->timemodified), "category.php?id=$course->category");
 
         echo $OUTPUT->footer();

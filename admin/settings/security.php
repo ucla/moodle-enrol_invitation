@@ -33,9 +33,6 @@ if ($hassiteconfig) { // speedup for non-admins, add all caps used on this page
     $params->displaysize = display_size($defaultuserquota);
     $temp->add(new admin_setting_configtext('userquota', get_string('userquota', 'admin'), get_string('configuserquota', 'admin', $params), $defaultuserquota));
 
-    $item = new admin_setting_configcheckbox('enablehtmlpurifier', get_string('enablehtmlpurifier', 'admin'), get_string('configenablehtmlpurifier', 'admin'), 1);
-    $item->set_updatedcallback('reset_text_filters_cache');
-    $temp->add($item);
     $temp->add(new admin_setting_configcheckbox('allowobjectembed', get_string('allowobjectembed', 'admin'), get_string('configallowobjectembed', 'admin'), 0));
     $temp->add(new admin_setting_configcheckbox('enabletrusttext', get_string('enabletrusttext', 'admin'), get_string('configenabletrusttext', 'admin'), 0));
     $temp->add(new admin_setting_configselect('maxeditingtime', get_string('maxeditingtime','admin'), get_string('configmaxeditingtime','admin'), 1800,
@@ -71,6 +68,7 @@ if ($hassiteconfig) { // speedup for non-admins, add all caps used on this page
     $temp->add(new admin_setting_configcheckbox('groupenrolmentkeypolicy', get_string('groupenrolmentkeypolicy', 'admin'), get_string('groupenrolmentkeypolicy_desc', 'admin'), 1));
     $temp->add(new admin_setting_configcheckbox('disableuserimages', get_string('disableuserimages', 'admin'), get_string('configdisableuserimages', 'admin'), 0));
     $temp->add(new admin_setting_configcheckbox('emailchangeconfirmation', get_string('emailchangeconfirmation', 'admin'), get_string('configemailchangeconfirmation', 'admin'), 1));
+    $temp->add(new admin_setting_configselect('rememberusername', get_string('rememberusername','admin'), get_string('rememberusername_desc','admin'), 2, array(1=>get_string('yes'), 0=>get_string('no'), 2=>get_string('optional'))));
     $temp->add(new admin_setting_configcheckbox('strictformsrequired', get_string('strictformsrequired', 'admin'), get_string('configstrictformsrequired', 'admin'), 0));
     $ADMIN->add('security', $temp);
 
@@ -82,7 +80,7 @@ if ($hassiteconfig) { // speedup for non-admins, add all caps used on this page
     $temp->add(new admin_setting_configcheckbox('loginhttps', get_string('loginhttps', 'admin'), get_string('configloginhttps', 'admin'), 0));
     $temp->add(new admin_setting_configcheckbox('cookiesecure', get_string('cookiesecure', 'admin'), get_string('configcookiesecure', 'admin'), 0));
     $temp->add(new admin_setting_configcheckbox('cookiehttponly', get_string('cookiehttponly', 'admin'), get_string('configcookiehttponly', 'admin'), 0));
-    $temp->add(new admin_setting_configtext('excludeoldflashclients', get_string('excludeoldflashclients', 'admin'), get_string('configexcludeoldflashclients', 'admin'), '10.0.12', PARAM_TEXT));
+    $temp->add(new admin_setting_configcheckbox('allowframembedding', get_string('allowframembedding', 'admin'), get_string('allowframembedding_help', 'admin'), 0));
     $ADMIN->add('security', $temp);
 
 

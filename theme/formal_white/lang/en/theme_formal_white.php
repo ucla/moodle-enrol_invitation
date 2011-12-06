@@ -56,7 +56,12 @@ $string['choosereadme'] = '
         <p>This, and all other themes included in the Moodle core, are licensed under the <a href="http://www.gnu.org/licenses/gpl.html">GNU General Public License</a>.
     </div>
 </div>';
+$string['creditstomoodleorg'] = 'Display credits to moodle.org';
+$string['creditstomoodleorgdesc'] = 'Display the usual small moodle logo at the bottom of the page';
 $string['configtitle'] = 'Formal white theme';
+$string['ctmo_no'] = 'never'; // ctmo == credits to moodle org
+$string['ctmo_onfrontpageonly'] = 'in the front page only'; // ctmo == credits to moodle org
+$string['ctmo_ineverypage'] = 'in every page'; // ctmo == credits to moodle org
 $string['customcss'] = 'Custom CSS';
 $string['customcssdesc'] = 'Any CSS you enter here will be added to every page allowing your to easily customise this theme.';
 $string['displaylogo'] = 'Pages header content';
@@ -65,13 +70,15 @@ $string['fontsizereference'] = 'Font size reference';
 $string['fontsizereferencedesc'] = 'This allows you to set the default font size for this theme. It is not recommended to set this higher than 13px as it is known to cause display problems with certain blocks.';
 $string['footnote'] = 'Footnote';
 $string['footnotedesc'] = 'The content from this textarea will be displayed in the footer of every page.';
+$string['frontpagelogo'] = 'Custom front page logo';
+$string['frontpagelogodesc'] = 'Change the logo that is displayed on the front page of your site by entering the URL to the image you wish to use (i.e. http://www.yoursite.local/myfrontpagelogo.png). This setting overrides the custom logo setting. As a reference the default logo is 300px wide, 80px high and a transparent png will work best.';
 $string['headerbgc'] = 'Header background colour';
 $string['headerbgcdesc'] = 'This sets the blocks header background colour for the theme.';
 $string['heading'] = 'Display page heading';
 $string['lblockcolumnbgc'] = 'Left column background colour';
 $string['lblockcolumnbgcdesc'] = 'This sets the left column background colour for the theme.';
-$string['logo'] = 'logo';
-$string['logodesc'] = 'Change the logo of this theme by entering the URL to a new one (i.e., http://www.somesite/animage.png). As a reference, the default logo is 300px wide by 80px high. A transparent .png will work best.<br />The chosen logo will be shown in each page of the site without any distinction between front page and other pages.';
+$string['logo'] = 'Custom logo';
+$string['logodesc'] = 'Change the logo for this theme by entering the URL to an image you wish to use (i.e. http://www.yoursite.local/mylogo.png). As a reference the default logo is 200px wide, 50px high and a transparent png will work best.';
 $string['moodlelogo'] = 'Display moodle logo';
 $string['noframe'] = 'Formal white 1.9 look';
 $string['noframedesc'] = 'Select this option to require your moodle page to look like moodle 1.*, alias, without the surrounding frame.';
