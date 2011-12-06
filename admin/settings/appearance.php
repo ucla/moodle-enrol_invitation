@@ -56,8 +56,16 @@ if ($hassiteconfig) { // speedup for non-admins, add all caps used on this page
             6 => get_string('saturday', 'calendar')
         )));
     $temp->add(new admin_setting_special_calendar_weekend());
-    $temp->add(new admin_setting_configtext('calendar_lookahead',get_string('configlookahead','admin'),get_string('helpupcominglookahead', 'admin'),21,PARAM_INT));
-    $temp->add(new admin_setting_configtext('calendar_maxevents',get_string('configmaxevents','admin'),get_string('helpupcomingmaxevents', 'admin'),10,PARAM_INT));
+    $options = array();
+    for ($i=1; $i<=99; $i++) {
+        $options[$i] = $i;
+    }
+    $temp->add(new admin_setting_configselect('calendar_lookahead',get_string('configlookahead','admin'),get_string('helpupcominglookahead', 'admin'),21,$options));
+    $options = array();
+    for ($i=1; $i<=20; $i++) {
+        $options[$i] = $i;
+    }
+    $temp->add(new admin_setting_configselect('calendar_maxevents',get_string('configmaxevents','admin'),get_string('helpupcomingmaxevents', 'admin'),10,$options));
     $temp->add(new admin_setting_configcheckbox('enablecalendarexport', get_string('enablecalendarexport', 'admin'), get_string('configenablecalendarexport','admin'), 1));
     $temp->add(new admin_setting_configtext('calendar_exportsalt', get_string('calendarexportsalt','admin'), get_string('configcalendarexportsalt', 'admin'), random_string(60)));
     $ADMIN->add('appearance', $temp);
@@ -91,6 +99,9 @@ if ($hassiteconfig) { // speedup for non-admins, add all caps used on this page
     $temp->add(new admin_setting_configcheckbox('navshowcategories', get_string('navshowcategories', 'admin'), get_string('confignavshowcategories', 'admin'), 1));
     $temp->add(new admin_setting_configcheckbox('navshowallcourses', get_string('navshowallcourses', 'admin'), get_string('confignavshowallcourses', 'admin'), 0));
     $temp->add(new admin_setting_configtext('navcourselimit',get_string('navcourselimit','admin'),get_string('confignavcourselimit', 'admin'),20,PARAM_INT));
+    $temp->add(new admin_setting_configcheckbox('navlinkcoursesections', get_string('navlinkcoursesections', 'admin'), get_string('navlinkcoursesections_help', 'admin'), 0));
+    $temp->add(new admin_setting_configcheckbox('usesitenameforsitepages', get_string('usesitenameforsitepages', 'admin'), get_string('configusesitenameforsitepages', 'admin'), 0));
+    $temp->add(new admin_setting_configcheckbox('navadduserpostslinks', get_string('navadduserpostslinks', 'admin'), get_string('navadduserpostslinks_help', 'admin'), 1));
 
     $ADMIN->add('appearance', $temp);
 
@@ -115,8 +126,11 @@ if ($hassiteconfig) { // speedup for non-admins, add all caps used on this page
     $ADMIN->add('appearance', $temp);
 
     // coursecontact is the person responsible for course - usually manages enrolments, receives notification, etc.
-    $temp = new admin_settingpage('coursecontact', get_string('coursecontact', 'admin'));
+    $temp = new admin_settingpage('coursecontact', get_string('courses'));
     $temp->add(new admin_setting_special_coursecontact());
+    $temp->add(new admin_setting_configcheckbox('courselistshortnames',
+            get_string('courselistshortnames', 'admin'),
+            get_string('courselistshortnames_desc', 'admin'), 0));
     $ADMIN->add('appearance', $temp);
 
     $temp = new admin_settingpage('ajax', get_string('ajaxuse'));

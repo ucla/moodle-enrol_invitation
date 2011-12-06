@@ -59,6 +59,9 @@ $CFG->directorypermissions = 0777;
 // logins using the Moodle login will not work.
 $CFG->passwordsaltmain = 'Ob^3(Mi3Qs1D))cl@0<Od-#YQACc^71';
 
+// turn off messaging (CCLE-2318 - MESSAGING)
+$CFG->messaging = false;
+
 // default file resources display to "Force Download"
 $CFG->forced_plugin_settings['resource'] = array('display' => 4);
 

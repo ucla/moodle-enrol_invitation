@@ -25,6 +25,7 @@
  **/
 
 $string['pluginname'] = 'Course menu';
+$string['title'] = 'Site menu';
 $string['chapter'] = 'Chapter';
 $string['subchapter'] = 'Sub-chapter';
 $string['topicsweeks'] = 'Topics / Weeks';

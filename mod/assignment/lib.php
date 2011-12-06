@@ -257,6 +257,8 @@ class assignment_base {
      *
      * This default method prints the teacher picture and name, date when marked,
      * grade and teacher submissioncomment.
+     * If advanced grading is used the method render_grade from the
+     * advanced grading controller is called to display the grade.
      *
      * @global object
      * @global object
@@ -264,30 +266,31 @@ class assignment_base {
      * @param object $submission The submission object or NULL in which case it will be loaded
      */
     function view_feedback($submission=NULL) {
-        global $USER, $CFG, $DB, $OUTPUT;
+        global $USER, $CFG, $DB, $OUTPUT, $PAGE;
         require_once($CFG->libdir.'/gradelib.php');
-
-        if (!is_enrolled($this->context, $USER, 'mod/assignment:view')) {
-            // can not submit assignments -> no feedback
-            return;
-        }
+        require_once("$CFG->dirroot/grade/grading/lib.php");
 
         if (!$submission) { /// Get submission for this assignment
-            $submission = $this->get_submission($USER->id);
+            $userid = $USER->id;
+            $submission = $this->get_submission($userid);
+        } else {
+            $userid = $submission->userid;
         }
         // Check the user can submit
-        $cansubmit = has_capability('mod/assignment:submit', $this->context, $USER->id, false);
+        $canviewfeedback = ($userid == $USER->id && has_capability('mod/assignment:submit', $this->context, $USER->id, false));
         // If not then check if the user still has the view cap and has a previous submission
-        $cansubmit = $cansubmit || (!empty($submission) && has_capability('mod/assignment:view', $this->context, $USER->id, false));
+        $canviewfeedback = $canviewfeedback || (!empty($submission) && $submission->userid == $USER->id && has_capability('mod/assignment:view', $this->context));
+        // Or if user can grade (is a teacher or admin)
+        $canviewfeedback = $canviewfeedback || has_capability('mod/assignment:grade', $this->context);
 
-        if (!$cansubmit) {
-            // can not submit assignments -> no feedback
+        if (!$canviewfeedback) {
+            // can not view or submit assignments -> no feedback
             return;
         }
 
-        $grading_info = grade_get_grades($this->course->id, 'mod', 'assignment', $this->assignment->id, $USER->id);
+        $grading_info = grade_get_grades($this->course->id, 'mod', 'assignment', $this->assignment->id, $userid);
         $item = $grading_info->items[0];
-        $grade = $item->grades[$USER->id];
+        $grade = $item->grades[$userid];
 
         if ($grade->hidden or $grade->grade === false) { // hidden or error
             return;
@@ -329,9 +332,13 @@ class assignment_base {
         echo '<tr>';
         echo '<td class="left side">&nbsp;</td>';
         echo '<td class="content">';
-        echo '<div class="grade">';
-        echo get_string("grade").': '.$grade->str_long_grade;
-        echo '</div>';
+        $gradestr = '<div class="grade">'. get_string("grade").': '.$grade->str_long_grade. '</div>';
+        if (!empty($submission) && $controller = get_grading_manager($this->context, 'mod_assignment', 'submission')->get_active_controller()) {
+            $controller->set_grade_range(make_grades_menu($this->assignment->grade));
+            echo $controller->render_grade($PAGE, $submission->id, $item, $gradestr, has_capability('mod/assignment:grade', $this->context));
+        } else {
+            echo $gradestr;
+        }
         echo '<div class="clearer"></div>';
 
         echo '<div class="comment">';
@@ -628,6 +635,12 @@ class assignment_base {
             set_user_preference('assignment_mailinfo', $mailinfo);
         }
 
+        if (!($this->validate_and_preprocess_feedback())) {
+            // form was submitted ('Save' or 'Save and next' was pressed, but validation failed)
+            $this->display_submission();
+            return;
+        }
+
         switch ($mode) {
             case 'grade':                         // We are in a main window grading
                 if ($submission = $this->process_feedback()) {
@@ -756,9 +769,16 @@ class assignment_base {
                 $offset = required_param('offset', PARAM_INT);
                 $nextid = required_param('nextid', PARAM_INT);
                 $id = required_param('id', PARAM_INT);
-                $offset = (int)$offset+1;
-                //$this->display_submission($offset+1 , $nextid);
-                redirect('submissions.php?id='.$id.'&userid='. $nextid . '&mode=single&offset='.$offset);
+                $filter = optional_param('filter', self::FILTER_ALL, PARAM_INT);
+
+                if ($mode == 'next' || $filter !== self::FILTER_REQUIRE_GRADING) {
+                    $offset = (int)$offset+1;
+                }
+                $redirect = new moodle_url('submissions.php',
+                        array('id' => $id, 'offset' => $offset, 'userid' => $nextid,
+                        'mode' => 'single', 'filter' => $filter));
+
+                redirect($redirect);
                 break;
 
             case 'singlenosave':
@@ -769,6 +789,23 @@ class assignment_base {
                 echo "something seriously is wrong!!";
                 break;
         }
+    }
+
+    /**
+     * Checks if grading method allows quickgrade mode. At the moment it is hardcoded
+     * that advanced grading methods do not allow quickgrade.
+     *
+     * Assignment type plugins are not allowed to override this method
+     *
+     * @return boolean
+     */
+    public final function quickgrade_mode_allowed() {
+        global $CFG;
+        require_once("$CFG->dirroot/grade/grading/lib.php");
+        if ($controller = get_grading_manager($this->context, 'mod_assignment', 'submission')->get_active_controller()) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -785,7 +822,7 @@ class assignment_base {
 
         $perpage = get_user_preferences('assignment_perpage', 10);
 
-        $quickgrade = get_user_preferences('assignment_quickgrade', 0);
+        $quickgrade = get_user_preferences('assignment_quickgrade', 0) && $this->quickgrade_mode_allowed();
 
         /// Run some Javascript to try and update the parent page
         $output .= '<script type="text/javascript">'."\n<!--\n";
@@ -918,10 +955,11 @@ class assignment_base {
      * @param string $extra_javascript
      */
     function display_submission($offset=-1,$userid =-1, $display=true) {
-        global $CFG, $DB, $PAGE, $OUTPUT;
+        global $CFG, $DB, $PAGE, $OUTPUT, $USER;
         require_once($CFG->libdir.'/gradelib.php');
         require_once($CFG->libdir.'/tablelib.php');
         require_once("$CFG->dirroot/repository/lib.php");
+        require_once("$CFG->dirroot/grade/grading/lib.php");
         if ($userid==-1) {
             $userid = required_param('userid', PARAM_INT);
         }
@@ -959,7 +997,7 @@ class assignment_base {
         /// Get all ppl that can submit assignments
 
         $currentgroup = groups_get_activity_group($cm);
-        $users = get_enrolled_users($context, 'mod/assignment:view', $currentgroup, 'u.id');
+        $users = get_enrolled_users($context, 'mod/assignment:submit', $currentgroup, 'u.id');
         if ($users) {
             $users = array_keys($users);
             // if groupmembersonly used, remove users who are not in any group
@@ -982,7 +1020,10 @@ class assignment_base {
             $userfields = user_picture::fields('u', array('lastaccess'));
             $select = "SELECT $userfields,
                               s.id AS submissionid, s.grade, s.submissioncomment,
-                              s.timemodified, s.timemarked ";
+                              s.timemodified, s.timemarked,
+                              CASE WHEN s.timemarked > 0 AND s.timemarked >= s.timemodified THEN 1
+                                   ELSE 0 END AS status ";
+
             $sql = 'FROM {user} u '.
                    'LEFT JOIN {assignment_submissions} s ON u.id = s.userid
                    AND s.assignment = '.$this->assignment->id.' '.
@@ -995,8 +1036,6 @@ class assignment_base {
 
             if (is_array($auser) && count($auser)>1) {
                 $nextuser = next($auser);
-            /// Calculate user status
-                $nextuser->status = ($nextuser->timemarked > 0) && ($nextuser->timemarked >= $nextuser->timemodified);
                 $nextid = $nextuser->id;
             }
         }
@@ -1038,13 +1077,34 @@ class assignment_base {
         } elseif ($assignment->assignmenttype == 'uploadsingle') {
             $mformdata->fileui_options = array('subdirs'=>0, 'maxbytes'=>$CFG->userquota, 'maxfiles'=>1, 'accepted_types'=>'*', 'return_types'=>FILE_INTERNAL);
         }
+        $advancedgradingwarning = false;
+        $gradingmanager = get_grading_manager($this->context, 'mod_assignment', 'submission');
+        if ($gradingmethod = $gradingmanager->get_active_method()) {
+            $controller = $gradingmanager->get_controller($gradingmethod);
+            if ($controller->is_form_available()) {
+                $itemid = null;
+                if (!empty($submission->id)) {
+                    $itemid = $submission->id;
+                }
+                if ($gradingdisabled && $itemid) {
+                    $mformdata->advancedgradinginstance = $controller->get_current_instance($USER->id, $itemid);
+                } else if (!$gradingdisabled) {
+                    $instanceid = optional_param('advancedgradinginstanceid', 0, PARAM_INT);
+                    $mformdata->advancedgradinginstance = $controller->get_or_create_instance($instanceid, $USER->id, $itemid);
+                }
+            } else {
+                $advancedgradingwarning = $controller->form_unavailable_notification();
+            }
+        }
 
         $submitform = new mod_assignment_grading_form( null, $mformdata );
 
          if (!$display) {
             $ret_data = new stdClass();
             $ret_data->mform = $submitform;
-            $ret_data->fileui_options = $mformdata->fileui_options;
+            if (isset($mformdata->fileui_options)) {
+                $ret_data->fileui_options = $mformdata->fileui_options;
+            }
             return $ret_data;
         }
 
@@ -1063,6 +1123,9 @@ class assignment_base {
         echo $OUTPUT->heading(get_string('feedback', 'assignment').': '.fullname($user, true));
 
         // display mform here...
+        if ($advancedgradingwarning) {
+            echo $OUTPUT->notification($advancedgradingwarning, 'error');
+        }
         $submitform->display();
 
         $customfeedback = $this->custom_feedbackform($submission, true);
@@ -1119,7 +1182,7 @@ class assignment_base {
          * from database
          */
         $perpage    = get_user_preferences('assignment_perpage', 10);
-        $quickgrade = get_user_preferences('assignment_quickgrade', 0);
+        $quickgrade = get_user_preferences('assignment_quickgrade', 0) && $this->quickgrade_mode_allowed();
         $filter = get_user_preferences('assignment_filter', 0);
         $grading_info = grade_get_grades($this->course->id, 'mod', 'assignment', $this->assignment->id);
 
@@ -1239,19 +1302,28 @@ class assignment_base {
             }
         }
 
-        $tablecolumns = array('picture', 'fullname', 'grade', 'submissioncomment', 'timemodified', 'timemarked', 'status', 'finalgrade');
+        $extrafields = get_extra_user_fields($context);
+        $tablecolumns = array_merge(array('picture', 'fullname'), $extrafields,
+                array('grade', 'submissioncomment', 'timemodified', 'timemarked', 'status', 'finalgrade'));
         if ($uses_outcomes) {
             $tablecolumns[] = 'outcome'; // no sorting based on outcomes column
         }
 
-        $tableheaders = array('',
-                              get_string('fullnameuser'),
-                              get_string('grade'),
-                              get_string('comment', 'assignment'),
-                              get_string('lastmodified').' ('.get_string('submission', 'assignment').')',
-                              get_string('lastmodified').' ('.get_string('grade').')',
-                              get_string('status'),
-                              get_string('finalgrade', 'grades'));
+        $extrafieldnames = array();
+        foreach ($extrafields as $field) {
+            $extrafieldnames[] = get_user_field_name($field);
+        }
+        $tableheaders = array_merge(
+                array('', get_string('fullnameuser')),
+                $extrafieldnames,
+                array(
+                    get_string('grade'),
+                    get_string('comment', 'assignment'),
+                    get_string('lastmodified').' ('.get_string('submission', 'assignment').')',
+                    get_string('lastmodified').' ('.get_string('grade').')',
+                    get_string('status'),
+                    get_string('finalgrade', 'grades'),
+                ));
         if ($uses_outcomes) {
             $tableheaders[] = get_string('outcome', 'grades');
         }
@@ -1272,6 +1344,9 @@ class assignment_base {
 
         $table->column_class('picture', 'picture');
         $table->column_class('fullname', 'fullname');
+        foreach ($extrafields as $field) {
+            $table->column_class($field, $field);
+        }
         $table->column_class('grade', 'grade');
         $table->column_class('submissioncomment', 'comment');
         $table->column_class('timemodified', 'timemodified');
@@ -1312,11 +1387,14 @@ class assignment_base {
             $sort = ' ORDER BY '.$sort;
         }
 
-        $ufields = user_picture::fields('u');
+        $ufields = user_picture::fields('u', $extrafields);
         if (!empty($users)) {
             $select = "SELECT $ufields,
                               s.id AS submissionid, s.grade, s.submissioncomment,
-                              s.timemodified, s.timemarked ";
+                              s.timemodified, s.timemarked,
+                              CASE WHEN s.timemarked > 0 AND s.timemarked >= s.timemodified THEN 1
+                                   ELSE 0 END AS status ";
+
             $sql = 'FROM {user} u '.
                    'LEFT JOIN {assignment_submissions} s ON u.id = s.userid
                     AND s.assignment = '.$this->assignment->id.' '.
@@ -1346,8 +1424,8 @@ class assignment_base {
                             $locked_overridden = 'overridden';
                         }
 
-                    /// Calculate user status
-                        $auser->status = ($auser->timemarked > 0) && ($auser->timemarked >= $auser->timemodified);
+                        // TODO add here code if advanced grading grade must be reviewed => $auser->status=0
+
                         $picture = $OUTPUT->user_picture($auser);
 
                         if (empty($auser->submissionid)) {
@@ -1473,7 +1551,13 @@ class assignment_base {
                         }
 
                         $userlink = '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $auser->id . '&amp;course=' . $course->id . '">' . fullname($auser, has_capability('moodle/site:viewfullnames', $this->context)) . '</a>';
-                        $row = array($picture, $userlink, $grade, $comment, $studentmodified, $teachermodified, $status, $finalgrade);
+                        $extradata = array();
+                        foreach ($extrafields as $field) {
+                            $extradata[] = $auser->{$field};
+                        }
+                        $row = array_merge(array($picture, $userlink), $extradata,
+                                array($grade, $comment, $studentmodified, $teachermodified,
+                                $status, $finalgrade));
                         if ($uses_outcomes) {
                             $row[] = $outcomes;
                         }
@@ -1533,15 +1617,69 @@ class assignment_base {
         $mform->addElement('text', 'perpage', get_string('pagesize', 'assignment'), array('size'=>1));
         $mform->setDefault('perpage', $perpage);
 
-        $mform->addElement('checkbox', 'quickgrade', get_string('quickgrade','assignment'));
-        $mform->setDefault('quickgrade', $quickgrade);
-        $mform->addHelpButton('quickgrade', 'quickgrade', 'assignment');
+        if ($this->quickgrade_mode_allowed()) {
+            $mform->addElement('checkbox', 'quickgrade', get_string('quickgrade','assignment'));
+            $mform->setDefault('quickgrade', $quickgrade);
+            $mform->addHelpButton('quickgrade', 'quickgrade', 'assignment');
+        }
 
         $mform->addElement('submit', 'savepreferences', get_string('savepreferences'));
 
         $mform->display();
 
         echo $OUTPUT->footer();
+    }
+
+    /**
+     * If the form was cancelled ('Cancel' or 'Next' was pressed), call cancel method
+     * from advanced grading (if applicable) and returns true
+     * If the form was submitted, validates it and returns false if validation did not pass.
+     * If validation passes, preprocess advanced grading (if applicable) and returns true.
+     *
+     * Note to the developers: This is NOT the correct way to implement advanced grading
+     * in grading form. The assignment grading was written long time ago and unfortunately
+     * does not fully use the mforms. Usually function is_validated() is called to
+     * validate the form and get_data() is called to get the data from the form.
+     *
+     * Here we have to push the calculated grade to $_POST['xgrade'] because further processing
+     * of the form gets the data not from form->get_data(), but from $_POST (using statement
+     * like  $feedback = data_submitted() )
+     */
+    protected function validate_and_preprocess_feedback() {
+        global $USER, $CFG;
+        require_once($CFG->libdir.'/gradelib.php');
+        if (!($feedback = data_submitted()) || !isset($feedback->userid) || !isset($feedback->offset)) {
+            return true;      // No incoming data, nothing to validate
+        }
+        $userid = required_param('userid', PARAM_INT);
+        $offset = required_param('offset', PARAM_INT);
+        $gradinginfo = grade_get_grades($this->course->id, 'mod', 'assignment', $this->assignment->id, array($userid));
+        $gradingdisabled = $gradinginfo->items[0]->grades[$userid]->locked || $gradinginfo->items[0]->grades[$userid]->overridden;
+        if ($gradingdisabled) {
+            return true;
+        }
+        $submissiondata = $this->display_submission($offset, $userid, false);
+        $mform = $submissiondata->mform;
+        $gradinginstance = $mform->use_advanced_grading();
+        if (optional_param('cancel', false, PARAM_BOOL) || optional_param('next', false, PARAM_BOOL)) {
+            // form was cancelled
+            if ($gradinginstance) {
+                $gradinginstance->cancel();
+            }
+        } else if ($mform->is_submitted()) {
+            // form was submitted (= a submit button other than 'cancel' or 'next' has been clicked)
+            if (!$mform->is_validated()) {
+                return false;
+            }
+            // preprocess advanced grading here
+            if ($gradinginstance) {
+                $data = $mform->get_data();
+                // create submission if it did not exist yet because we need submission->id for storing the grading instance
+                $submission = $this->get_submission($userid, true);
+                $_POST['xgrade'] = $gradinginstance->submit_and_get_grade($data->advancedgrading, $submission->id);
+            }
+        }
+        return true;
     }
 
     /**
@@ -1764,7 +1902,7 @@ class assignment_base {
                 $info->username = fullname($user, true);
                 $info->assignment = format_string($this->assignment->name,true);
                 $info->url = $CFG->wwwroot.'/mod/assignment/submissions.php?id='.$this->cm->id;
-                $info->timeupdated = strftime('%c',$submission->timemodified);
+                $info->timeupdated = userdate($submission->timemodified, '%c', $teacher->timezone);
 
                 $postsubject = $strsubmitted.': '.$info->username.' -> '.$this->assignment->name;
                 $posttext = $this->email_teachers_text($info);
@@ -2009,12 +2147,6 @@ class assignment_base {
      */
     function user_complete($user, $grade=null) {
         global $OUTPUT;
-        if ($grade) {
-            echo $OUTPUT->container(get_string('grade').': '.$grade->str_long_grade);
-            if ($grade->str_feedback) {
-                echo $OUTPUT->container(get_string('feedback').': '.$grade->str_feedback);
-            }
-        }
 
         if ($submission = $this->get_submission($user->id)) {
 
@@ -2041,6 +2173,12 @@ class assignment_base {
             echo $OUTPUT->box_end();
 
         } else {
+            if ($grade) {
+                echo $OUTPUT->container(get_string('grade').': '.$grade->str_long_grade);
+                if ($grade->str_feedback) {
+                    echo $OUTPUT->container(get_string('feedback').': '.$grade->str_feedback);
+                }
+            }
             print_string("notsubmittedyet", "assignment");
         }
     }
@@ -2079,11 +2217,10 @@ class assignment_base {
      * when printing this activity in a course listing.  See get_array_of_activities() in course/lib.php.
      *
      * @param $coursemodule object The coursemodule object (record).
-     * @return object An object on information that the courses will know about (most noticeably, an icon).
-     *
+     * @return cached_cm_info Object used to customise appearance on course page
      */
     function get_coursemodule_info($coursemodule) {
-        return false;
+        return null;
     }
 
     /**
@@ -2222,10 +2359,16 @@ class assignment_base {
 
 
 class mod_assignment_grading_form extends moodleform {
+    /** @var stores the advaned grading instance (if used in grading) */
+    private $advancegradinginstance;
 
     function definition() {
         global $OUTPUT;
         $mform =& $this->_form;
+
+        if (isset($this->_customdata->advancedgradinginstance)) {
+            $this->use_advanced_grading($this->_customdata->advancedgradinginstance);
+        }
 
         $formattr = $mform->getAttributes();
         $formattr['id'] = 'submitform';
@@ -2272,6 +2415,18 @@ class mod_assignment_grading_form extends moodleform {
 
     }
 
+    /**
+     * Gets or sets the instance for advanced grading
+     *
+     * @param gradingform_instance $gradinginstance
+     */
+    public function use_advanced_grading($gradinginstance = false) {
+        if ($gradinginstance !== false) {
+            $this->advancegradinginstance = $gradinginstance;
+        }
+        return $this->advancegradinginstance;
+    }
+
     function add_grades_section() {
         global $CFG;
         $mform =& $this->_form;
@@ -2280,20 +2435,33 @@ class mod_assignment_grading_form extends moodleform {
             $attributes['disabled'] ='disabled';
         }
 
-        $grademenu = make_grades_menu($this->_customdata->assignment->grade);
-        $grademenu['-1'] = get_string('nograde');
-
         $mform->addElement('header', 'Grades', get_string('grades', 'grades'));
-        $mform->addElement('select', 'xgrade', get_string('grade').':', $grademenu, $attributes);
-        $mform->setDefault('xgrade', $this->_customdata->submission->grade ); //@fixme some bug when element called 'grade' makes it break
-        $mform->setType('xgrade', PARAM_INT);
+
+        $grademenu = make_grades_menu($this->_customdata->assignment->grade);
+        if ($gradinginstance = $this->use_advanced_grading()) {
+            $gradinginstance->get_controller()->set_grade_range($grademenu);
+            $gradingelement = $mform->addElement('grading', 'advancedgrading', get_string('grade').':', array('gradinginstance' => $gradinginstance));
+            if ($this->_customdata->gradingdisabled) {
+                $gradingelement->freeze();
+            } else {
+                $mform->addElement('hidden', 'advancedgradinginstanceid', $gradinginstance->get_id());
+            }
+        } else {
+            // use simple direct grading
+            $grademenu['-1'] = get_string('nograde');
+
+            $mform->addElement('select', 'xgrade', get_string('grade').':', $grademenu, $attributes);
+            $mform->setDefault('xgrade', $this->_customdata->submission->grade ); //@fixme some bug when element called 'grade' makes it break
+            $mform->setType('xgrade', PARAM_INT);
+        }
 
         if (!empty($this->_customdata->enableoutcomes)) {
             foreach($this->_customdata->grading_info->outcomes as $n=>$outcome) {
                 $options = make_grades_menu(-$outcome->scaleid);
                 if ($outcome->grades[$this->_customdata->submission->userid]->locked) {
                     $options[0] = get_string('nooutcome', 'grades');
-                    echo $options[$outcome->grades[$this->_customdata->submission->userid]->grade];
+                    $mform->addElement('static', 'outcome_'.$n.'['.$this->_customdata->userid.']', $outcome->name.':',
+                            $options[$outcome->grades[$this->_customdata->submission->userid]->grade]);
                 } else {
                     $options[''] = get_string('nooutcome', 'grades');
                     $attributes = array('id' => 'menuoutcome_'.$n );
@@ -2436,6 +2604,11 @@ class mod_assignment_grading_form extends moodleform {
             }
             $data = file_postupdate_standard_editor($data, 'submissioncomment', $editoroptions, $this->_customdata->context, $editoroptions['component'], $editoroptions['filearea'], $itemid);
         }
+
+        if ($this->use_advanced_grading() && !isset($data->advancedgrading)) {
+            $data->advancedgrading = null;
+        }
+
         return $data;
     }
 }
@@ -2478,7 +2651,7 @@ function assignment_delete_instance($id){
 function assignment_update_instance($assignment){
     global $CFG;
 
-    $assignment->assignmenttype = clean_param($assignment->assignmenttype, PARAM_SAFEDIR);
+    $assignment->assignmenttype = clean_param($assignment->assignmenttype, PARAM_PLUGIN);
 
     require_once("$CFG->dirroot/mod/assignment/type/$assignment->assignmenttype/assignment.class.php");
     $assignmentclass = "assignment_$assignment->assignmenttype";
@@ -2495,7 +2668,7 @@ function assignment_update_instance($assignment){
 function assignment_add_instance($assignment) {
     global $CFG;
 
-    $assignment->assignmenttype = clean_param($assignment->assignmenttype, PARAM_SAFEDIR);
+    $assignment->assignmenttype = clean_param($assignment->assignmenttype, PARAM_PLUGIN);
 
     require_once("$CFG->dirroot/mod/assignment/type/$assignment->assignmenttype/assignment.class.php");
     $assignmentclass = "assignment_$assignment->assignmenttype";
@@ -3352,13 +3525,13 @@ function assignment_get_all_submissions($assignment, $sort="", $dir="DESC") {
  * when printing this activity in a course listing.  See get_array_of_activities() in course/lib.php.
  *
  * @param $coursemodule object The coursemodule object (record).
- * @return object An object on information that the courses will know about (most noticeably, an icon).
- *
+ * @return cached_cm_info An object on information that the courses will know about (most noticeably, an icon).
  */
 function assignment_get_coursemodule_info($coursemodule) {
     global $CFG, $DB;
 
-    if (! $assignment = $DB->get_record('assignment', array('id'=>$coursemodule->instance), 'id, assignmenttype, name')) {
+    if (! $assignment = $DB->get_record('assignment', array('id'=>$coursemodule->instance),
+            'id, assignmenttype, name, intro, introformat')) {
         return false;
     }
 
@@ -3368,14 +3541,15 @@ function assignment_get_coursemodule_info($coursemodule) {
         require_once($libfile);
         $assignmentclass = "assignment_$assignment->assignmenttype";
         $ass = new $assignmentclass('staticonly');
-        if ($result = $ass->get_coursemodule_info($coursemodule)) {
-            return $result;
-        } else {
-            $info = new stdClass();
-            $info->name = $assignment->name;
-            return $info;
+        if (!($result = $ass->get_coursemodule_info($coursemodule))) {
+            $result = new cached_cm_info();
+            $result->name = $assignment->name;
         }
-
+        if ($coursemodule->showdescription) {
+            // Convert intro to html. Do not filter cached version, filters run at display time.
+            $result->content = format_module_intro('assignment', $assignment, $coursemodule->id, false);
+        }
+        return $result;
     } else {
         debugging('Incorrect assignment type: '.$assignment->assignmenttype);
         return false;
@@ -3662,7 +3836,7 @@ function assignment_reset_course_form_defaults($course) {
  * Returns all other caps used in module
  */
 function assignment_get_extra_capabilities() {
-    return array('moodle/site:accessallgroups', 'moodle/site:viewfullnames');
+    return array('moodle/site:accessallgroups', 'moodle/site:viewfullnames', 'moodle/grade:managegradingforms');
 }
 
 /**
@@ -3680,6 +3854,8 @@ function assignment_supports($feature) {
         case FEATURE_GRADE_OUTCOMES:          return true;
         case FEATURE_GRADE_HAS_GRADE:         return true;
         case FEATURE_BACKUP_MOODLE2:          return true;
+        case FEATURE_SHOW_DESCRIPTION:        return true;
+        case FEATURE_ADVANCED_GRADING:        return true;
 
         default: return null;
     }
@@ -3733,7 +3909,7 @@ function assignment_extend_settings_navigation(settings_navigation $settings, na
 function assignment_pack_files($filesforzipping) {
         global $CFG;
         //create path for new zip file.
-        $tempzip = tempnam($CFG->dataroot.'/temp/', 'assignment_');
+        $tempzip = tempnam($CFG->tempdir.'/', 'assignment_');
         //zip files
         $zipper = new zip_packer();
         if ($zipper->archive_to_pathname($filesforzipping, $tempzip)) {
@@ -3771,4 +3947,13 @@ function assignment_page_type_list($pagetype, $parentcontext, $currentcontext) {
         'mod-assignment-submissions'=>get_string('page-mod-assignment-submissions', 'assignment')
     );
     return $module_pagetype;
+}
+
+/**
+ * Lists all gradable areas for the advanced grading methods gramework
+ *
+ * @return array
+ */
+function assignment_grading_areas_list() {
+    return array('submission' => get_string('submissions', 'mod_assignment'));
 }

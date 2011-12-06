@@ -48,8 +48,8 @@ $temp->add(new admin_setting_configselect('sessiontimeout', get_string('sessiont
                                                                                                                                                       900 => get_string('numminutes', '', 15),
                                                                                                                                                       300 => get_string('numminutes', '', 5))));
 $temp->add(new admin_setting_configtext('sessioncookie', get_string('sessioncookie', 'admin'), get_string('configsessioncookie', 'admin'), '', PARAM_ALPHANUM));
-$temp->add(new admin_setting_configtext('sessioncookiepath', get_string('sessioncookiepath', 'admin'), get_string('configsessioncookiepath', 'admin'), '/', PARAM_LOCALURL));
-$temp->add(new admin_setting_configtext('sessioncookiedomain', get_string('sessioncookiedomain', 'admin'), get_string('configsessioncookiedomain', 'admin'), '', PARAM_TEXT, 50));
+$temp->add(new admin_setting_configtext('sessioncookiepath', get_string('sessioncookiepath', 'admin'), get_string('configsessioncookiepath', 'admin'), '', PARAM_RAW));
+$temp->add(new admin_setting_configtext('sessioncookiedomain', get_string('sessioncookiedomain', 'admin'), get_string('configsessioncookiedomain', 'admin'), '', PARAM_RAW, 50));
 $ADMIN->add('server', $temp);
 
 
@@ -85,7 +85,6 @@ $ADMIN->add('server', $temp);
 
 // "http" settingpage
 $temp = new admin_settingpage('http', get_string('http', 'admin'));
-$temp->add(new admin_setting_configtext('framename', get_string('framename', 'admin'), get_string('configframename', 'admin'), '_top', PARAM_ALPHAEXT));
 $temp->add(new admin_setting_configcheckbox('slasharguments', get_string('slasharguments', 'admin'), get_string('configslasharguments', 'admin'), 1));
 $temp->add(new admin_setting_heading('reverseproxy', get_string('reverseproxy', 'admin'), '', ''));
 $options = array(
@@ -221,6 +220,5 @@ $ADMIN->add('server', $temp);
 
 
 $ADMIN->add('server', new admin_externalpage('adminregistration', get_string('registration','admin'), "$CFG->wwwroot/$CFG->admin/registration/index.php"));
-$ADMIN->add('root', new admin_externalpage('bloglevelupgrade', get_string('bloglevelupgrade', 'admin'), $CFG->wwwroot.'/'.$CFG->admin.'/blocklevelupgrade.php', 'moodle/site:config', true));
 
 } // end of speedup

@@ -21,6 +21,9 @@ if ($showsidepre && !$showsidepost) {
 if ($hascustommenu) {
     $bodyclasses[] = 'has_custom_menu';
 }
+if ($hasnavbar) {
+    $bodyclasses[] = 'hasnavbar';
+}
 
 echo $OUTPUT->doctype() ?>
 <html <?php echo $OUTPUT->htmlattributes() ?>>
@@ -46,11 +49,11 @@ echo $OUTPUT->doctype() ?>
             }
             echo $PAGE->headingmenu
         ?></div><?php } ?>
-        
+
         <?php if ($hascustommenu) { ?>
  	<div id="custommenu"><?php echo $custommenu; ?></div>
 		<?php } ?>
-        
+
         <?php if ($hasnavbar) { ?>
             <div class="navbar clearfix">
                 <div class="breadcrumb"><?php echo $OUTPUT->navbar(); ?></div>
@@ -68,7 +71,7 @@ echo $OUTPUT->doctype() ?>
                 <div id="region-main-wrap">
                     <div id="region-main">
                         <div class="region-content">
-                            <?php echo core_renderer::MAIN_CONTENT_TOKEN ?>
+                            <?php echo $OUTPUT->main_content() ?>
                         </div>
                     </div>
                 </div>
@@ -106,6 +109,7 @@ echo $OUTPUT->doctype() ?>
         <div class="rounded-corner bottom-right"></div>
     </div>
     <?php } ?>
+  <div class="clearfix"></div>
 </div>
 <?php echo $OUTPUT->standard_end_of_body_html() ?>
 </body>

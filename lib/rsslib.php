@@ -92,7 +92,7 @@ function rss_print_link($contextid, $userid, $componentname, $id, $tooltiptext='
 function rss_delete_file($componentname, $instance) {
     global $CFG;
 
-    $dirpath = "$CFG->dataroot/cache/rss/$componentname";
+    $dirpath = "$CFG->cachedir/rss/$componentname";
     if (is_dir($dirpath)) {
         $dh  = opendir($dirpath);
         while (false !== ($filename = readdir($dh))) {
@@ -145,7 +145,7 @@ function rss_save_file($componentname, $filename, $contents, $expandfilename=tru
 
     $status = true;
 
-    if (! $basedir = make_upload_directory ('cache/rss/'. $componentname)) {
+    if (! $basedir = make_cache_directory ('rss/'. $componentname)) {
         //Cannot be created, so error
         $status = false;
     }
@@ -170,7 +170,7 @@ function rss_save_file($componentname, $filename, $contents, $expandfilename=tru
 
 function rss_get_file_full_name($componentname, $filename) {
     global $CFG;
-    return "$CFG->dataroot/cache/rss/$componentname/$filename.xml";
+    return "$CFG->cachedir/rss/$componentname/$filename.xml";
 }
 
 function rss_get_file_name($instance, $sql) {
@@ -409,12 +409,8 @@ function rss_full_tag($tag,$level=0,$endline=true,$content,$attributes=null) {
 }
 
 /**
- * Adds RSS Media Enclosures for "podcasting" by examining links to media files,
- * and attachments which are media files. Please note that the RSS that is
- * produced cannot be strictly valid for the linked files, since we do not know
- * the files' sizes and cannot include them in the "length" attribute. At
- * present, the validity (and therefore the podcast working in most software)
- * can only be ensured for attachments, and not for links.
+ * Adds RSS Media Enclosures for "podcasting" by including attachments that
+ * are specified in the item->attachments field.
  * Note also that iTunes does some things very badly - one thing it does is
  * refuse to download ANY of your files if you're using "file.php?file=blah"
  * and can't use the more elegant "file.php/blah" slasharguments setting. It
@@ -433,14 +429,10 @@ function rss_add_enclosures($item){
     global $CFG;
 
     $returnstring = '';
-    $rss_text = $item->description;
 
     // list of media file extensions and their respective mime types
     include_once($CFG->libdir.'/filelib.php');
     $mediafiletypes = get_mimetypes_array();
-
-    // regular expression (hopefully) matching all links to media files
-    $medialinkpattern = '@href\s*=\s*(\'|")(\S+(' . implode('|', array_keys($mediafiletypes)) . '))\1@Usie';
 
     // take into account attachments (e.g. from forum) - with these, we are able to know the file size
     if (isset($item->attachments) && is_array($item->attachments)) {
@@ -453,24 +445,6 @@ function rss_add_enclosures($item){
             }
             $returnstring .= "\n<enclosure url=\"$attachment->url\" length=\"$attachment->length\" type=\"$type\" />\n";
         }
-    }
-
-    if (!preg_match_all($medialinkpattern, $rss_text, $matches)){
-        return $returnstring;
-    }
-
-    // loop over matches of regular expression
-    for ($i = 0; $i < count($matches[2]); $i++){
-        $url = htmlspecialchars($matches[2][$i]);
-        $extension = strtolower($matches[3][$i]);
-        if (isset($mediafiletypes[$extension]['type'])) {
-            $type = $mediafiletypes[$extension]['type'];
-        } else {
-            $type = 'document/unknown';
-        }
-
-        // the rss_*_tag functions can't deal with methods, unfortunately
-        $returnstring .= "\n<enclosure url='$url' type='$type' />\n";
     }
 
     return $returnstring;

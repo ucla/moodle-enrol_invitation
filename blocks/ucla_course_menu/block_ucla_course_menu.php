@@ -19,7 +19,7 @@ class block_ucla_course_menu extends block_navigation {
         global $CFG;
         
         $this->blockname = get_class($this);
-        $this->title = get_string('pluginname', $this->blockname);
+        $this->title = get_string('title', $this->blockname);
     }
 
     /**
@@ -127,21 +127,30 @@ class block_ucla_course_menu extends block_navigation {
 
         parent::get_content();
 
-        $elements = $this->create_all_elements();
-        $trimmode = $this->get_config_var('trimmode', self::TRIM_LEFT);
-        $trimlength = $this->get_config_var('trimlength', 
-            self::DEFAULT_TRIM_LENGTH);
-       
-        foreach ($elements as $element) {
-            $this->trim($element, $trimmode, $trimlength,
-                ceil($trimlength / 2));
-        }
-
         $renderer = $this->get_renderer();
 
+        // get non-module nodes
+        $section_elements = $this->create_section_elements();
+        $block_elements = $this->create_block_elements();
+        $elements = array_merge($section_elements, $block_elements);        
+        $this->trim_nodes($elements);        
         $this->content->text = $renderer->navigation_node($elements,
             array('class' => 'block_tree list'));
-
+        
+        // Separate out module nodes so that we can have a different style
+        // to them.
+        $module_elements = $this->create_module_elements();     
+        $this->trim_nodes($module_elements); 
+        
+        // For some reason cannot use html_writer::start_tag/html_writer::end_tag
+        // so use hard-coded HTML.
+        // Need to use outside div, because cannot get styling to make 
+        // background a different color to work with navigation_node class
+        $this->content->text .= '<div class="module_elements_section">';       
+        $this->content->text .= $renderer->navigation_node($module_elements,
+            array('class' => 'block_tree list'));
+        $this->content->text .= '</div>';        
+        
         $this->contentgenerated = true;
 
         return $this->content;
@@ -294,7 +303,7 @@ class block_ucla_course_menu extends block_navigation {
                     navigation_node::TYPE_ACTIVITY);
             }
         }
-
+        
         return $navigs;
     }
 
@@ -317,6 +326,26 @@ class block_ucla_course_menu extends block_navigation {
         $orig['class'] .= ' block_navigation';
 
         return $orig;
+    }
+
+    /**
+     * Convenience function to trim all node elements.
+     * 
+     * @param array $elements   Expecting array of navigation_node elements
+     * 
+     * return array             Returns array of trimmed navigation_nodes
+     */
+    function trim_nodes($elements) {
+        $trimmode = $this->get_config_var('trimmode', self::TRIM_LEFT);
+        $trimlength = $this->get_config_var('trimlength', 
+            self::DEFAULT_TRIM_LENGTH);
+       
+        foreach ($elements as $element) {
+            $this->trim($element, $trimmode, $trimlength,
+                ceil($trimlength / 2));
+        }        
+        
+        return $elements;
     }
 }
 
