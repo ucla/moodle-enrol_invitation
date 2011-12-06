@@ -59,7 +59,7 @@ $CFG->directorypermissions = 0777;
 // logins using the Moodle login will not work.
 $CFG->passwordsaltmain = '';
 
-// Help & Feedback
+// CCLE-2306 - HELP SYSTEM BLOCK
 // if using JIRA, jira_user, jira_password, jira_pid should be defined in config_private.php
 $block_ucla_help_settings = array('send_to' => 'jira',
                                   'jira_endpoint' => 'https://jira.ats.ucla.edu/CreateIssueDetails.jspa',
