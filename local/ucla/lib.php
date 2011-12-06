@@ -1,5 +1,18 @@
 <?php
 
+// Auto-login if user is guest
+function auto_login_as_guest() {
+    global $SESSION, $USER;
+    if ($USER->username == 'guest') {
+        $flag = get_shib_logged_in_cookie();
+        if ($flag === false) {
+            unset($SESSION->ucla_login_as_guest);
+        } else {
+            $SESSION->ucla_login_as_guest = $flag;
+        }
+    }
+}
+
 // Return the value of the Shibboleth cookie, or false if it does not exist
 function get_shib_logged_in_cookie() {
     global $CFG;
@@ -34,18 +47,5 @@ function require_user_finish_login() {
         $SESSION->wantsurl = $FULLME;
         redirect($CFG->wwwroot .'/login/index.php');
         exit();
-    }
-}
-
-// Auto-login if user is guest
-function auto_login_as_guest() {
-    if ($USER->username == 'guest') {
-        $flag = get_shib_logged_in_cookie();
-        if ($flag === false) {
-            unset($SESSION->ucla_login_as_guest);
-        }
-        else {
-            $SESSION->ucla_login_as_guest = $flag;
-        }
     }
 }
