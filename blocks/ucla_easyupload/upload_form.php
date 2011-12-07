@@ -82,8 +82,6 @@ abstract class easy_upload_form extends moodleform {
                 get_string('description'), array('rows' => 9, 'cols' => 40));
             
             $mform->addElement('hidden', 'introformat', FORMAT_HTML);
-        } else {
-            debugging('Renaming not allowed');
         }
 
         // End code that probably needs to go somewhere else
