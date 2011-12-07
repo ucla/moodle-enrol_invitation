@@ -197,8 +197,25 @@ if ($uploadform->is_cancelled()) {
 
         // This discrepancy is really terrible.
         $data->section = $targetsectnum;
-
+        
         $params = $uploadform->get_send_params();
+
+        $subtypes = explode('&', $data->add);
+
+        if (count($subtypes) > 1) {
+            $data->add = $subtypes[0];
+
+            unset($subtypes[0]);
+
+            foreach ($subtypes as $subtype) { 
+                $subtypeassign = explode('=', $subtype);
+                $subtypestr = $subtypeassign[0];
+                $subtypeval = $subtypeassign[1];
+
+                $params[] = $subtypestr;
+                $data->{$subtypestr} = $subtypeval;
+            }
+        }
 
         $get_sends = array();
         foreach ($params as $param) {
