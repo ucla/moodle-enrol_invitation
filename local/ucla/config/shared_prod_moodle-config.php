@@ -62,6 +62,9 @@ $CFG->passwordsaltmain = '';
 // turn off messaging (CCLE-2318 - MESSAGING)
 $CFG->messaging = false;
 
+// CCLE-2590 - Implement Auto-detect Shibboleth Login
+$CFG->shib_logged_in_cookie = '_ucla_sso';
+
 // If you want to have un-revisioned configuration data, place in this file.
 // $CFG->dirroot is overwritten later
 $_dirroot_ = dirname(realpath(__FILE__)) . '/../../..';

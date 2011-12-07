@@ -89,6 +89,9 @@ $CFG->messaging = false;
 // development/testing environments
 $CFG->divertallemailsto = 'ccle-operations@lists.ucla.edu';
 
+// CCLE-2590 - Implement Auto-detect Shibboleth Login
+$CFG->shib_logged_in_cookie = '_ucla_sso';
+
 /** 
  *  Automatic Shibboleth configurations.
  *  Disabling in favor for GUI configurations.

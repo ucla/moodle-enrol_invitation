@@ -62,6 +62,9 @@ $CFG->passwordsaltmain = 'Ob^3(Mi3Qs1D))cl@0<Od-#YQACc^71';
 // turn off messaging (CCLE-2318 - MESSAGING)
 $CFG->messaging = false;
 
+// CCLE-2590 - Implement Auto-detect Shibboleth Login
+$CFG->shib_logged_in_cookie = '_ucla_sso';
+
 // $CFG->dirroot is overwritten later
 $_dirroot_ = dirname(realpath(__FILE__)) . '/../../..';
 
