@@ -82,18 +82,19 @@
         }
     }
 
+    // START UCLA Modification - CCLE-2590 - Implement Auto-detect Shibboleth 
+    // Login - Lazy login ON front page (before header is outputted)
+    require_user_finish_login();
+    // End UCLA Modification - CCLE-2590            
+    
     $PAGE->set_pagetype('site-index');
     $PAGE->set_other_editing_capability('moodle/course:manageactivities');
     $PAGE->set_docs_path('');
     $PAGE->set_pagelayout('frontpage');
     $editing = $PAGE->user_is_editing();
     $PAGE->set_title($SITE->fullname);
-    $PAGE->set_heading($SITE->fullname);
+    $PAGE->set_heading($SITE->fullname);    
     echo $OUTPUT->header();
-
-    // Start SSC Modification 484 - Lazy login ON front page
-    require_user_finish_login();
-    // End SSC Modification 484    
     
 /// Print Section or custom info
     if (!empty($CFG->customfrontpageinclude)) {
