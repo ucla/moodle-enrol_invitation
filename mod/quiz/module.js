@@ -170,7 +170,7 @@ M.mod_quiz.nav.init = function(Y) {
 
     if (Y.one('a.endtestlink')) {
         Y.on('click', function(e) {
-            e.preventDefault(e);
+            e.preventDefault();
             Y.one('#followingpage').set('value', -1);
             Y.one('#responseform').submit();
         }, 'a.endtestlink');
@@ -222,6 +222,23 @@ M.mod_quiz.secure_window = {
             return;
         }
         e.halt();
+    },
+
+    /**
+     * Event handler for the quiz start attempt button.
+     */
+    start_attempt_action: function(e, args) {
+        if (args.startattemptwarning == '') {
+            openpopup(e, args);
+        } else {
+            M.util.show_confirm_dialog(e, {
+                message: args.startattemptwarning,
+                callback: function() {
+                    openpopup(e, args);
+                },
+                continuelabel: M.util.get_string('startattempt', 'quiz')
+            });
+        }
     },
 
     init_close_button: function(Y, url) {

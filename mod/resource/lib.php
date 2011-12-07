@@ -40,6 +40,7 @@ function resource_supports($feature) {
         case FEATURE_GRADE_HAS_GRADE:         return false;
         case FEATURE_GRADE_OUTCOMES:          return false;
         case FEATURE_BACKUP_MOODLE2:          return true;
+        case FEATURE_SHOW_DESCRIPTION:        return true;
 
         default: return null;
     }
@@ -226,8 +227,8 @@ function resource_get_participants($resourceid) {
  *
  * See {@link get_array_of_activities()} in course/lib.php
  *
- * @param object $coursemodule
- * @return object info
+ * @param cm_info $coursemodule
+ * @return cached_cm_info info
  */
 function resource_get_coursemodule_info($coursemodule) {
     global $CFG, $DB;
@@ -237,12 +238,17 @@ function resource_get_coursemodule_info($coursemodule) {
 
     $context = get_context_instance(CONTEXT_MODULE, $coursemodule->id);
 
-    if (!$resource = $DB->get_record('resource', array('id'=>$coursemodule->instance), 'id, name, display, displayoptions, tobemigrated, revision')) {
+    if (!$resource = $DB->get_record('resource', array('id'=>$coursemodule->instance),
+            'id, name, display, displayoptions, tobemigrated, revision, intro, introformat')) {
         return NULL;
     }
 
-    $info = new stdClass();
+    $info = new cached_cm_info();
     $info->name = $resource->name;
+    if ($coursemodule->showdescription) {
+        // Convert intro to html. Do not filter cached version, filters run at display time.
+        $info->content = format_module_intro('resource', $resource, $coursemodule->id, false);
+    }
 
     if ($resource->tobemigrated) {
         $info->icon ='i/cross_red_big';
@@ -251,7 +257,7 @@ function resource_get_coursemodule_info($coursemodule) {
     $fs = get_file_storage();
     $files = $fs->get_area_files($context->id, 'mod_resource', 'content', 0, 'sortorder DESC, id ASC', false); // TODO: this is not very efficient!!
     if (count($files) >= 1) {
-        $mainfile = array_pop($files);
+        $mainfile = reset($files);
         $info->icon = file_extension_icon($mainfile->get_filename());
         $resource->mainfile = $mainfile->get_filename();
     }
@@ -264,15 +270,15 @@ function resource_get_coursemodule_info($coursemodule) {
         $width  = empty($options['popupwidth'])  ? 620 : $options['popupwidth'];
         $height = empty($options['popupheight']) ? 450 : $options['popupheight'];
         $wh = "width=$width,height=$height,toolbar=no,location=no,menubar=no,copyhistory=no,status=no,directories=no,scrollbars=yes,resizable=yes";
-        $info->extra = "onclick=\"window.open('$fullurl', '', '$wh'); return false;\"";
+        $info->onclick = "window.open('$fullurl', '', '$wh'); return false;";
 
     } else if ($display == RESOURCELIB_DISPLAY_NEW) {
         $fullurl = "$CFG->wwwroot/mod/resource/view.php?id=$coursemodule->id&amp;redirect=1";
-        $info->extra = "onclick=\"window.open('$fullurl'); return false;\"";
+        $info->onclick = "window.open('$fullurl'); return false;";
 
     } else if ($display == RESOURCELIB_DISPLAY_OPEN) {
         $fullurl = "$CFG->wwwroot/mod/resource/view.php?id=$coursemodule->id&amp;redirect=1";
-        $info->extra = "onclick=\"window.location.href ='$fullurl';return false;\"";
+        $info->onclick = "window.location.href ='$fullurl';return false;";
 
     } else if ($display == RESOURCELIB_DISPLAY_DOWNLOAD) {
         if (empty($mainfile)) {
@@ -293,7 +299,7 @@ function resource_get_coursemodule_info($coursemodule) {
         if ($completion->is_enabled($coursemodule) == COMPLETION_TRACKING_AUTOMATIC) {
             $fullurl = "$CFG->wwwroot/mod/resource/view.php?id=$coursemodule->id&amp;redirect=1";
         }
-        $info->extra = "onclick=\"window.open('$fullurl'); return false;\"";
+        $info->onclick = "window.open('$fullurl'); return false;";
     }
 
     return $info;
@@ -439,4 +445,37 @@ function resource_pluginfile($course, $cm, $context, $filearea, $args, $forcedow
 function resource_page_type_list($pagetype, $parentcontext, $currentcontext) {
     $module_pagetype = array('mod-resource-*'=>get_string('page-mod-resource-x', 'resource'));
     return $module_pagetype;
+}
+
+/**
+ * Export file resource contents
+ *
+ * @return array of file content
+ */
+function resource_export_contents($cm, $baseurl) {
+    global $CFG, $DB;
+    $contents = array();
+    $context = get_context_instance(CONTEXT_MODULE, $cm->id);
+    $resource = $DB->get_record('resource', array('id'=>$cm->instance), '*', MUST_EXIST);
+
+    $fs = get_file_storage();
+    $files = $fs->get_area_files($context->id, 'mod_resource', 'content', 0, 'sortorder DESC, id ASC', false);
+
+    foreach ($files as $fileinfo) {
+        $file = array();
+        $file['type'] = 'file';
+        $file['filename']     = $fileinfo->get_filename();
+        $file['filepath']     = $fileinfo->get_filepath();
+        $file['filesize']     = $fileinfo->get_filesize();
+        $file['fileurl']      = file_encode_url("$CFG->wwwroot/" . $baseurl, '/'.$context->id.'/mod_resource/content/'.$resource->revision.$fileinfo->get_filepath().$fileinfo->get_filename(), true);
+        $file['timecreated']  = $fileinfo->get_timecreated();
+        $file['timemodified'] = $fileinfo->get_timemodified();
+        $file['sortorder']    = $fileinfo->get_sortorder();
+        $file['userid']       = $fileinfo->get_userid();
+        $file['author']       = $fileinfo->get_author();
+        $file['license']      = $fileinfo->get_license();
+        $contents[] = $file;
+    }
+
+    return $contents;
 }

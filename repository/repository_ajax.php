@@ -46,7 +46,7 @@ $itemid    = optional_param('itemid', 0, PARAM_INT);            // Itemid
 $page      = optional_param('page', '', PARAM_RAW);             // Page
 $maxbytes  = optional_param('maxbytes', 0, PARAM_INT);          // Maxbytes
 $req_path  = optional_param('p', '', PARAM_RAW);                // Path
-$accepted_types  = optional_param('accepted_types', '*', PARAM_RAW);
+$accepted_types  = optional_param_array('accepted_types', '*', PARAM_RAW);
 $saveas_filename = optional_param('title', '', PARAM_FILE);     // save as file name
 $saveas_path   = optional_param('savepath', '/', PARAM_PATH);   // save as file path
 $search_text   = optional_param('s', '', PARAM_CLEANHTML);
@@ -195,7 +195,7 @@ switch ($action) {
             // use external link
             $link = $repo->get_link($source);
             $info = array();
-            $info['filename'] = $saveas_filename;
+            $info['file'] = $saveas_filename;
             $info['type'] = 'link';
             $info['url'] = $link;
             echo json_encode($info);
@@ -215,6 +215,9 @@ switch ($action) {
                     throw new file_exception('maxbytes');
                 }
                 $fileinfo = $repo->copy_to_area($source, $itemid, $saveas_path, $saveas_filename);
+                if (!isset($fileinfo['event'])) {
+                    $fileinfo['file'] = $fileinfo['title'];
+                }
                 echo json_encode($fileinfo);
                 die;
             }
@@ -270,7 +273,8 @@ switch ($action) {
         $newfilepath = required_param('newfilepath', PARAM_PATH);
         $newfilename = required_param('newfilename', PARAM_FILE);
 
-        echo json_encode(repository::overwrite_existing_draftfile($itemid, $filepath, $filename, $newfilepath, $newfilename));
+        $info = repository::overwrite_existing_draftfile($itemid, $filepath, $filename, $newfilepath, $newfilename);
+        echo json_encode($info);
         break;
 
     case 'deletetmpfile':
