@@ -92,6 +92,9 @@ $CFG->divertallemailsto = 'ccle-operations@lists.ucla.edu';
 // CCLE-2590 - Implement Auto-detect Shibboleth Login
 $CFG->shib_logged_in_cookie = '_ucla_sso';
 
+// default file resources display to "Force Download"
+$CFG->forced_plugin_settings['resource'] = array('display' => 4);
+
 /** 
  *  Automatic Shibboleth configurations.
  *  Disabling in favor for GUI configurations.

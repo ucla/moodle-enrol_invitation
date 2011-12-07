@@ -65,6 +65,9 @@ $CFG->messaging = false;
 // CCLE-2590 - Implement Auto-detect Shibboleth Login
 $CFG->shib_logged_in_cookie = '_ucla_sso';
 
+// default file resources display to "Force Download"
+$CFG->forced_plugin_settings['resource'] = array('display' => 4);
+
 // If you want to have un-revisioned configuration data, place in this file.
 // $CFG->dirroot is overwritten later
 $_dirroot_ = dirname(realpath(__FILE__)) . '/../../..';
