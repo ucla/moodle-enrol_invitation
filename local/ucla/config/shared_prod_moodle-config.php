@@ -72,7 +72,7 @@ $block_ucla_help_settings = array('send_to' => 'jira',
                                                     <li>Send your feedback including suggestions and comments to <a href="mailto:ccle@ucla.edu">ccle@ucla.edu</a></li>
                                                 </ul>'
         );
-$CFG->forced_plugin_settings = array('block_ucla_help' => $block_ucla_help_settings);
+$CFG->forced_plugin_settings['block_ucla_help'] = $block_ucla_help_settings;
 $block_ucla_help_support_contacts['System'] = 'dkearney';  // default
 
 /** 
