@@ -168,3 +168,5 @@ if ($dropdown_contents) {
     $THEME->javascripts[] = 'shared_server_dropdown';
 }
 
+$THEME->sheets[] = 'admin'; // custom admin style changes
+$THEME->sheets[] = 'core'; // custom core stlye changes

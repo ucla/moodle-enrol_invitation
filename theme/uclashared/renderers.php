@@ -171,7 +171,7 @@ class theme_uclashared_core_renderer extends core_renderer {
      **/
     function help_feedback_link() {
         $help_locale = $this->call_separate_block_function(
-                'ucla_helpblock', 'get_action_link'
+                'ucla_help', 'get_action_link'
             );
 
         if (!$help_locale) {
