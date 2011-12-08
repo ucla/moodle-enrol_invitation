@@ -62,6 +62,12 @@ define('MATURITY_RC',       150);   // tested, will be released unless there are
 define('MATURITY_STABLE',   200);   // ready for production deployment
 
 /**
+ * Special value that can be used in $plugin->dependencies in version.php files.
+ */
+define('ANY_VERSION', 'any');
+
+
+/**
  * Simple class. It is usually used instead of stdClass because it looks
  * more familiar to Java developers ;-) Do not use for type checking of
  * function parameters. Please use stdClass instead.
@@ -139,7 +145,7 @@ class require_login_exception extends moodle_exception {
 
 /**
  * Web service parameter exception class
- *
+ * @deprecated since Moodle 2.2 - use moodle exception instead
  * This exception must be thrown to the web service client when a web service parameter is invalid
  * The error string is gotten from webservice.php
  */
@@ -149,8 +155,8 @@ class webservice_parameter_exception extends moodle_exception {
      * @param string $errorcode The name of the string from webservice.php to print
      * @param string $a The name of the parameter
      */
-    function __construct($errorcode=null, $a = '') {
-        parent::__construct($errorcode, 'webservice', '', $a, null);
+    function __construct($errorcode=null, $a = '', $debuginfo = null) {
+        parent::__construct($errorcode, 'webservice', '', $a, $debuginfo);
     }
 }
 
@@ -651,7 +657,7 @@ function initialise_cfg() {
                 $CFG->{$name} = $value;
             }
         }
-    } catch (dml_read_exception $e) {
+    } catch (dml_exception $e) {
         // most probably empty db, going to install soon
     }
 }
@@ -673,13 +679,26 @@ function initialise_fullme() {
         return;
     }
 
-    $wwwroot = parse_url($CFG->wwwroot);
-    if (!isset($wwwroot['path'])) {
-        $wwwroot['path'] = '';
-    }
-    $wwwroot['path'] .= '/';
-
     $rurl = setup_get_remote_url();
+    $wwwroot = parse_url($CFG->wwwroot.'/');
+
+    if (empty($rurl['host'])) {
+        // missing host in request header, probably not a real browser, let's ignore them
+
+    } else if (!empty($CFG->reverseproxy)) {
+        // $CFG->reverseproxy specifies if reverse proxy server used
+        // Used in load balancing scenarios.
+        // Do not abuse this to try to solve lan/wan access problems!!!!!
+
+    } else {
+        if (($rurl['host'] !== $wwwroot['host']) or (!empty($wwwroot['port']) and $rurl['port'] != $wwwroot['port'])) {
+            // Explain the problem and redirect them to the right URL
+            if (!defined('NO_MOODLE_COOKIES')) {
+                define('NO_MOODLE_COOKIES', true);
+            }
+            redirect($CFG->wwwroot, get_string('wwwrootmismatch', 'error', $CFG->wwwroot), 3);
+        }
+    }
 
     // Check that URL is under $CFG->wwwroot.
     if (strpos($rurl['path'], $wwwroot['path']) === 0) {
@@ -701,22 +720,6 @@ function initialise_fullme() {
             throw new coding_exception('Must use https address in wwwroot when ssl proxy enabled!');
         }
         $rurl['scheme'] = 'https'; // make moodle believe it runs on https, squid or something else it doing it
-    }
-
-    // $CFG->reverseproxy specifies if reverse proxy server used.
-    // Used in load balancing scenarios.
-    // Do not abuse this to try to solve lan/wan access problems!!!!!
-    if (empty($CFG->reverseproxy)) {
-        if (empty($rurl['host'])) {
-            // missing host in request header, probably not a real browser, let's ignore them
-        } else if (($rurl['host'] !== $wwwroot['host']) or
-                (!empty($wwwroot['port']) and $rurl['port'] != $wwwroot['port'])) {
-            // Explain the problem and redirect them to the right URL
-            if (!defined('NO_MOODLE_COOKIES')) {
-                define('NO_MOODLE_COOKIES', true);
-            }
-            redirect($CFG->wwwroot, get_string('wwwrootmismatch', 'error', $CFG->wwwroot), 3);
-        }
     }
 
     // hopefully this will stop all those "clever" admins trying to set up moodle
@@ -856,15 +859,6 @@ function init_performance_info() {
     }
     if (function_exists('posix_times')) {
         $PERF->startposixtimes = posix_times();
-    }
-    if (function_exists('apd_set_pprof_trace')) {
-        // APD profiling
-        if ($USER->id > 0 && $CFG->perfdebug >= 15) {
-            $tempdir = $CFG->dataroot . '/temp/profile/' . $USER->id;
-            mkdir($tempdir);
-            apd_set_pprof_trace($tempdir);
-            $PERF->profiling = true;
-        }
     }
 }
 
@@ -1083,6 +1077,10 @@ function redirect_if_major_upgrade_required() {
  * files outside of dataroot if you supply custom paths for some settings in config.php.
  * This function does not verify that the directory is writable.
  *
+ * NOTE: this function uses current file stat cache,
+ *       please use clearstatcache() before this if you expect that the
+ *       directories may have been removed recently from a different request.
+ *
  * @param string $dir absolute directory path
  * @param boolean $create directory if does not exist
  * @param boolean $recursive create directory recursively
@@ -1105,24 +1103,15 @@ function check_dir_exists($dir, $create = true, $recursive = true) {
 }
 
 /**
- * Create a directory in dataroot and make sure it is writable.
+ * Create a directory and make sure it is writable.
  *
- * @param string $directory  a string of directory names under $CFG->dataroot eg  temp/something
+ * @private
+ * @param string $dir  the full path of the directory to be created
  * @param bool $exceptiononerror throw exception if error encountered
  * @return string|false Returns full path to directory if successful, false if not; may throw exception
  */
-function make_upload_directory($directory, $exceptiononerror = true) {
+function make_writable_directory($dir, $exceptiononerror = true) {
     global $CFG;
-
-    // Make sure a .htaccess file is here, JUST IN CASE the files area is in the open and .htaccess is supported
-    if (!file_exists("$CFG->dataroot/.htaccess")) {
-        if ($handle = fopen("$CFG->dataroot/.htaccess", 'w')) {   // For safety
-            @fwrite($handle, "deny from all\r\nAllowOverride None\r\nNote: this file is broken intentionally, we do not want anybody to undo it in subdirectory!\r\n");
-            @fclose($handle);
-        }
-    }
-
-    $dir = "$CFG->dataroot/$directory";
 
     if (file_exists($dir) and !is_dir($dir)) {
         if ($exceptiononerror) {
@@ -1154,6 +1143,73 @@ function make_upload_directory($directory, $exceptiononerror = true) {
 
     return $dir;
 }
+
+/**
+ * Protect a directory from web access.
+ * Could be extended in the future to support other mechanisms (e.g. other webservers).
+ *
+ * @private
+ * @param string $dir  the full path of the directory to be protected
+ */
+function protect_directory($dir) {
+    // Make sure a .htaccess file is here, JUST IN CASE the files area is in the open and .htaccess is supported
+    if (!file_exists("$dir/.htaccess")) {
+        if ($handle = fopen("$dir/.htaccess", 'w')) {   // For safety
+            @fwrite($handle, "deny from all\r\nAllowOverride None\r\nNote: this file is broken intentionally, we do not want anybody to undo it in subdirectory!\r\n");
+            @fclose($handle);
+        }
+    }
+}
+
+/**
+ * Create a directory under dataroot and make sure it is writable.
+ * Do not use for temporary and cache files - see make_temp_directory() and make_cache_directory().
+ *
+ * @param string $directory  the full path of the directory to be created under $CFG->dataroot
+ * @param bool $exceptiononerror throw exception if error encountered
+ * @return string|false Returns full path to directory if successful, false if not; may throw exception
+ */
+function make_upload_directory($directory, $exceptiononerror = true) {
+    global $CFG;
+
+    if (strpos($directory, 'temp/') === 0 or $directory === 'temp') {
+        debugging('Use make_temp_directory() for creation of temporary directory and $CFG->tempdir to get the location.');
+
+    } else if (strpos($directory, 'cache/') === 0 or $directory === 'cache') {
+        debugging('Use make_cache_directory() for creation of chache directory and $CFG->cachedir to get the location.');
+    }
+
+    protect_directory($CFG->dataroot);
+    return make_writable_directory("$CFG->dataroot/$directory", $exceptiononerror);
+}
+
+/**
+ * Create a directory under tempdir and make sure it is writable.
+ * Temporary files should be used during the current request only!
+ *
+ * @param string $directory  the full path of the directory to be created under $CFG->tempdir
+ * @param bool $exceptiononerror throw exception if error encountered
+ * @return string|false Returns full path to directory if successful, false if not; may throw exception
+ */
+function make_temp_directory($directory, $exceptiononerror = true) {
+    global $CFG;
+    protect_directory($CFG->tempdir);
+    return make_writable_directory("$CFG->tempdir/$directory", $exceptiononerror);
+}
+
+/**
+ * Create a directory under cachedir and make sure it is writable.
+ *
+ * @param string $directory  the full path of the directory to be created under $CFG->cachedir
+ * @param bool $exceptiononerror throw exception if error encountered
+ * @return string|false Returns full path to directory if successful, false if not; may throw exception
+ */
+function make_cache_directory($directory, $exceptiononerror = true) {
+    global $CFG;
+    protect_directory($CFG->cachedir);
+    return make_writable_directory("$CFG->cachedir/$directory", $exceptiononerror);
+}
+
 
 function init_memcached() {
     global $CFG, $MCACHE;
@@ -1264,6 +1320,12 @@ class bootstrap_renderer {
         return false;
     }
 
+    /**
+     * Constructor - to be used by core code only.
+     * @param $method
+     * @param $arguments
+     * @return string
+     */
     public function __call($method, $arguments) {
         global $OUTPUT, $PAGE;
 
@@ -1303,6 +1365,12 @@ class bootstrap_renderer {
 
     /**
      * Returns nicely formatted error message in a div box.
+     * @static
+     * @param string $message error message
+     * @param string $moreinfourl (ignored in early errors)
+     * @param string $link (ignored in early errors)
+     * @param array $backtrace
+     * @param string $debuginfo
      * @return string
      */
     public static function early_error_content($message, $moreinfourl, $link, $backtrace, $debuginfo = null) {
@@ -1329,6 +1397,12 @@ width: 80%; -moz-border-radius: 20px; padding: 15px">
 
     /**
      * This function should only be called by this class, or from exception handlers
+     * @static
+     * @param string $message error message
+     * @param string $moreinfourl (ignored in early errors)
+     * @param string $link (ignored in early errors)
+     * @param array $backtrace
+     * @param string $debuginfo extra information for developers
      * @return string
      */
     public static function early_error($message, $moreinfourl, $link, $backtrace, $debuginfo = null) {
@@ -1391,17 +1465,54 @@ width: 80%; -moz-border-radius: 20px; padding: 15px">
         return self::plain_page($strerror, $content);
     }
 
+    /**
+     * Early notification message
+     * @static
+     * @param $message
+     * @param string $classes usually notifyproblem or notifysuccess
+     * @return string
+     */
     public static function early_notification($message, $classes = 'notifyproblem') {
         return '<div class="' . $classes . '">' . $message . '</div>';
     }
 
+    /**
+     * Page should redirect message.
+     * @static
+     * @param $encodedurl redirect url
+     * @return string
+     */
     public static function plain_redirect_message($encodedurl) {
-        $message = '<p>' . get_string('pageshouldredirect') . '</p><p><a href="'.
-                $encodedurl .'">'. get_string('continue') .'</a></p>';
+        $message = '<div style="margin-top: 3em; margin-left:auto; margin-right:auto; text-align:center;">' . get_string('pageshouldredirect') . '<br /><a href="'.
+                $encodedurl .'">'. get_string('continue') .'</a></div>';
         return self::plain_page(get_string('redirect'), $message);
     }
 
-    protected static function plain_page($title, $content) {
+    /**
+     * Early redirection page, used before full init of $PAGE global
+     * @static
+     * @param $encodedurl redirect url
+     * @param $message redirect message
+     * @param $delay time in seconds
+     * @return string redirect page
+     */
+    public static function early_redirect_message($encodedurl, $message, $delay) {
+        $meta = '<meta http-equiv="refresh" content="'. $delay .'; url='. $encodedurl .'" />';
+        $content = self::early_error_content($message, null, null, null);
+        $content .= self::plain_redirect_message($encodedurl);
+
+        return self::plain_page(get_string('redirect'), $content, $meta);
+    }
+
+    /**
+     * Output basic html page.
+     * @static
+     * @param $title page title
+     * @param $content page content
+     * @param string $meta meta tag
+     * @return string html page
+     */
+    protected static function plain_page($title, $content, $meta = '') {
         if (function_exists('get_string') && function_exists('get_html_lang')) {
             $htmllang = get_html_lang();
         } else {
@@ -1412,6 +1523,7 @@ width: 80%; -moz-border-radius: 20px; padding: 15px">
 <html xmlns="http://www.w3.org/1999/xhtml" ' . $htmllang . '>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+'.$meta.'
 <title>' . $title . '</title>
 </head><body>' . $content . '</body></html>';
     }

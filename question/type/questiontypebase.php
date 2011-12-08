@@ -74,7 +74,11 @@ class question_type {
      * You should not need to override this method, the default behaviour should be fine.
      */
     public function local_name() {
-        return get_string($this->name(), $this->plugin_name());
+        if (get_string_manager()->string_exists('pluginname', $this->plugin_name())) {
+            return get_string('pluginname', $this->plugin_name());
+        } else {
+            return get_string($this->name(), $this->plugin_name());
+        }
     }
 
     /**
@@ -87,20 +91,6 @@ class question_type {
      */
     public function menu_name() {
         return $this->local_name();
-    }
-
-    /**
-     * Returns a list of other question types that this one requires in order to
-     * work. For example, the calculated question type is a subclass of the
-     * numerical question type, which is a subclass of the shortanswer question
-     * type; and the randomsamatch question type requires the shortanswer type
-     * to be installed.
-     *
-     * @return array any other question types that this one relies on. An empty
-     * array if none.
-     */
-    public function requires_qtypes() {
-        return array();
     }
 
     /**
@@ -259,7 +249,11 @@ class question_type {
         global $OUTPUT;
         $heading = $this->get_heading(empty($question->id));
 
-        echo $OUTPUT->heading_with_help($heading, $this->name(), $this->plugin_name());
+        if (get_string_manager()->string_exists('pluginname_help', $this->plugin_name())) {
+            echo $OUTPUT->heading_with_help($heading, 'pluginname', $this->plugin_name());
+        } else {
+            echo $OUTPUT->heading_with_help($heading, $this->name(), $this->plugin_name());
+        }
 
         $permissionstrs = array();
         if (!empty($question->id)) {
@@ -293,11 +287,17 @@ class question_type {
      */
     public function get_heading($adding = false) {
         if ($adding) {
-            $action = 'adding';
+            $string = 'pluginnameadding';
+            $fallback = 'adding' . $this->name();
         } else {
-            $action = 'editing';
+            $string = 'pluginnameediting';
+            $fallback = 'editing' . $this->name();
         }
-        return get_string($action . $this->name(), $this->plugin_name());
+        if (get_string_manager()->string_exists($string, $this->plugin_name())) {
+            return get_string($string, $this->plugin_name());
+        } else {
+            return get_string($fallback, $this->plugin_name());
+        }
     }
 
     /**
@@ -702,6 +702,16 @@ class question_type {
         $question->createdby = $questiondata->createdby;
         $question->modifiedby = $questiondata->modifiedby;
 
+        //Fill extra question fields values
+        $extraquestionfields = $this->extra_question_fields();
+        if (is_array($extraquestionfields)) {
+            //omit table name
+            array_shift($extraquestionfields);
+            foreach($extraquestionfields as $field) {
+                $question->$field = $questiondata->options->$field;
+            }
+        }
+
         $this->initialise_question_hints($question, $questiondata);
     }
 
@@ -863,22 +873,9 @@ class question_type {
     }
 
     /**
-     * Like @see{get_html_head_contributions}, but this method is for CSS and
-     * JavaScript required on the question editing page question/question.php.
-     */
-    public function get_editing_head_contributions() {
-        // By default, we link to any of the files styles.css, styles.php,
-        // script.js or script.php that exist in the plugin folder.
-        // Core question types should not use this mechanism. Their styles
-        // should be included in the standard theme.
-        $this->find_standard_scripts();
-    }
-
-    /**
-     * Utility method used by @see{get_html_head_contributions} and
-     * @see{get_editing_head_contributions}. This looks for any of the files
-     * script.js or script.php that exist in the plugin folder and ensures they
-     * get included.
+     * Utility method used by {@link qtype_renderer::head_code()}. It looks
+     * for any of the files script.js or script.php that exist in the plugin
+     * folder and ensures they get included.
      */
     public function find_standard_scripts() {
         global $PAGE;
@@ -995,10 +992,11 @@ class question_type {
             array_shift($extraanswersfields);
         }
         foreach ($question->options->answers as $answer) {
+            // TODO this should be re-factored to use $format->write_answer().
             $percent = 100 * $answer->fraction;
-            $expout .= "    <answer fraction=\"$percent\">\n";
+            $expout .= "    <answer fraction=\"$percent\" {$format->format($answer->answerformat)}>\n";
             $expout .= $format->writetext($answer->answer, 3, false);
-            $expout .= "      <feedback>\n";
+            $expout .= "      <feedback {$format->format($question->feedbackformat)}>\n";
             $expout .= $format->writetext($answer->feedback, 4, false);
             $expout .= "      </feedback>\n";
             if (is_array($extraanswersfields)) {

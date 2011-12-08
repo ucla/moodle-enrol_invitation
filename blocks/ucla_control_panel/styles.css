@@ -1,0 +1,51 @@
+.generalbox {
+    float:left;
+}
+.tablerow {
+}
+
+.odd {
+    background:gray;
+    display:inline;
+}
+
+.even {
+    background:red;
+    display:inline;
+}
+
+.left {
+    float:left;
+    padding-right:5px;
+}
+
+.right {
+    float:right;
+}
+
+.tablerow .item {
+    display:block;
+    width:49%;
+}
+
+.tablecol {
+    width:49%;
+}
+
+h2.main.copan-title {
+    clear:left;
+    text-align:left;
+    border-bottom:solid 1px gray;
+}
+
+.item {
+    min-height:50px;
+    padding: 4px 0;
+}
+
+.item span {
+    color:gray;
+    display:block;
+    font-style:italic;
+}
+

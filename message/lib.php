@@ -29,6 +29,7 @@ define ('MESSAGE_SHORTLENGTH', 300);
 
 //$PAGE isnt set if we're being loaded by cron which doesnt display popups anyway
 if (isset($PAGE)) {
+    //TODO: this is a mega crazy hack - it is not acceptable to call anything when including lib!!! (skodak)
     $PAGE->set_popup_notification_allowed(false); // We are in a message window (so don't pop up a new one)
 }
 
@@ -77,6 +78,7 @@ define('MESSAGE_PERMITTED_MASK', 0x0c); // 1100
  */
 define('MESSAGE_DEFAULT_PERMITTED', 'permitted');
 
+//TODO: defaults must be initialised via settings - this is a bad hack! (skodak)
 if (!isset($CFG->message_contacts_refresh)) {  // Refresh the contacts list every 60 seconds
     $CFG->message_contacts_refresh = 60;
 }
@@ -2011,8 +2013,10 @@ function message_post_message($userfrom, $userto, $message, $format) {
     $eventdata->subject          = get_string_manager()->get_string('unreadnewmessage', 'message', fullname($userfrom), $userto->lang);
 
     if ($format == FORMAT_HTML) {
-        $eventdata->fullmessage      = '';
         $eventdata->fullmessagehtml  = $message;
+        //some message processors may revert to sending plain text even if html is supplied
+        //so we keep both plain and html versions if we're intending to send html
+        $eventdata->fullmessage = html_to_text($eventdata->fullmessagehtml);
     } else {
         $eventdata->fullmessage      = $message;
         $eventdata->fullmessagehtml  = '';

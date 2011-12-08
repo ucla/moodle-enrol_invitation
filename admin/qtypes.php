@@ -28,6 +28,7 @@
 require_once(dirname(__FILE__) . '/../config.php');
 require_once($CFG->libdir . '/questionlib.php');
 require_once($CFG->libdir . '/adminlib.php');
+require_once($CFG->libdir . '/pluginlib.php');
 require_once($CFG->libdir . '/tablelib.php');
 
 // Check permissions.
@@ -40,6 +41,7 @@ admin_externalpage_setup('manageqtypes');
 $thispageurl = new moodle_url('/admin/qtypes.php');
 
 $qtypes = question_bank::get_all_qtypes();
+$pluginmanager = plugin_manager::instance();
 
 // Get some data we will need - question counts and which types are needed.
 $counts = $DB->get_records_sql("
@@ -52,15 +54,11 @@ foreach ($qtypes as $qtypename => $qtype) {
         $counts[$qtypename]->numquestions = 0;
         $counts[$qtypename]->numhidden = 0;
     }
-    $needed[$qtypename] = $counts[$qtypename]->numquestions > 0;
+    $needed[$qtypename] = $counts[$qtypename]->numquestions > 0 ||
+            $pluginmanager->other_plugins_that_require($qtype->plugin_name());
     $counts[$qtypename]->numquestions -= $counts[$qtypename]->numhidden;
 }
 $needed['missingtype'] = true; // The system needs the missing question type.
-foreach ($qtypes as $qtypename => $qtype) {
-    foreach ($qtype->requires_qtypes() as $reqtype) {
-        $needed[$reqtype] = true;
-    }
-}
 foreach ($counts as $qtypename => $count) {
     if (!isset($qtypes[$qtypename])) {
         $counts['missingtype']->numquestions += $count->numquestions - $count->numhidden;
@@ -79,7 +77,7 @@ $sortedqtypes = question_bank::sort_qtype_array($sortedqtypes, $config);
 // Process actions ============================================================
 
 // Disable.
-if (($disable = optional_param('disable', '', PARAM_SAFEDIR)) && confirm_sesskey()) {
+if (($disable = optional_param('disable', '', PARAM_PLUGIN)) && confirm_sesskey()) {
     if (!isset($qtypes[$disable])) {
         print_error('unknownquestiontype', 'question', $thispageurl, $disable);
     }
@@ -89,7 +87,7 @@ if (($disable = optional_param('disable', '', PARAM_SAFEDIR)) && confirm_sesskey
 }
 
 // Enable.
-if (($enable = optional_param('enable', '', PARAM_SAFEDIR)) && confirm_sesskey()) {
+if (($enable = optional_param('enable', '', PARAM_PLUGIN)) && confirm_sesskey()) {
     if (!isset($qtypes[$enable])) {
         print_error('unknownquestiontype', 'question', $thispageurl, $enable);
     }
@@ -103,7 +101,7 @@ if (($enable = optional_param('enable', '', PARAM_SAFEDIR)) && confirm_sesskey()
 }
 
 // Move up in order.
-if (($up = optional_param('up', '', PARAM_SAFEDIR)) && confirm_sesskey()) {
+if (($up = optional_param('up', '', PARAM_PLUGIN)) && confirm_sesskey()) {
     if (!isset($qtypes[$up])) {
         print_error('unknownquestiontype', 'question', $thispageurl, $up);
     }
@@ -114,7 +112,7 @@ if (($up = optional_param('up', '', PARAM_SAFEDIR)) && confirm_sesskey()) {
 }
 
 // Move down in order.
-if (($down = optional_param('down', '', PARAM_SAFEDIR)) && confirm_sesskey()) {
+if (($down = optional_param('down', '', PARAM_PLUGIN)) && confirm_sesskey()) {
     if (!isset($qtypes[$down])) {
         print_error('unknownquestiontype', 'question', $thispageurl, $down);
     }
@@ -125,7 +123,7 @@ if (($down = optional_param('down', '', PARAM_SAFEDIR)) && confirm_sesskey()) {
 }
 
 // Delete.
-if (($delete = optional_param('delete', '', PARAM_SAFEDIR)) && confirm_sesskey()) {
+if (($delete = optional_param('delete', '', PARAM_PLUGIN)) && confirm_sesskey()) {
     // Check it is OK to delete this question type.
     if ($delete == 'missingtype') {
         print_error('cannotdeletemissingqtype', 'question', $thispageurl);
@@ -237,11 +235,12 @@ foreach ($sortedqtypes as $qtypename => $localname) {
     }
 
     // Other question types required by this one.
-    $requiredtypes = $qtype->requires_qtypes();
+    $plugin = $pluginmanager->get_plugin_info($qtype->plugin_name());
+    $requiredtypes = $plugin->get_other_required_plugins();
     $strtypes = array();
     if (!empty($requiredtypes)) {
-        foreach ($requiredtypes as $required) {
-            $strtypes[] = $qtypes[$required]->local_name();
+        foreach ($requiredtypes as $required => $notused) {
+            $strtypes[] = $pluginmanager->plugin_name($required);
         }
         $row[] = implode(', ', $strtypes);
     } else {

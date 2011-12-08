@@ -139,13 +139,49 @@ class restore_ui extends base_ui {
             throw new restore_ui_exception('restoreuifinalisedbeforeexecute');
         }
         if ($this->controller->get_target() == backup::TARGET_CURRENT_DELETING || $this->controller->get_target() == backup::TARGET_EXISTING_DELETING) {
-            restore_dbops::delete_course_content($this->controller->get_courseid());
+            $options = array();
+            $options['keep_roles_and_enrolments'] = $this->get_setting_value('keep_roles_and_enrolments');
+            $options['keep_groups_and_groupings'] = $this->get_setting_value('keep_groups_and_groupings');
+            restore_dbops::delete_course_content($this->controller->get_courseid(), $options);
         }
         $this->controller->execute_plan();
         $this->progress = self::PROGRESS_EXECUTED;
         $this->stage = new restore_ui_stage_complete($this, $this->stage->get_params(), $this->controller->get_results());
         return true;
     }
+
+    /**
+     * Delete course which is created by restore process
+     */
+    public function cleanup() {
+        $courseid = $this->controller->get_courseid();
+        if ($this->is_temporary_course_created($courseid)) {
+            delete_course($courseid, false);
+        }
+    }
+
+    /**
+     * Checks if the course is not restored fully and current controller has created it.
+     * @param int $courseid id of the course which needs to be checked
+     * @return bool
+     */
+    protected function is_temporary_course_created($courseid) {
+        global $DB;
+        //Check if current controller instance has created new course.
+        if ($this->controller->get_target() == backup::TARGET_NEW_COURSE) {
+            $results = $DB->record_exists_sql("SELECT bc.itemid
+                                               FROM {backup_controllers} bc, {course} c
+                                               WHERE bc.operation = 'restore'
+                                                 AND bc.type = 'course'
+                                                 AND bc.itemid = c.id
+                                                 AND bc.itemid = ?",
+                                               array($courseid)
+                                             );
+            return $results;
+        }
+        return false;
+    }
+
     /**
      * Returns true if enforce_dependencies changed any settings
      * @return bool
@@ -191,15 +227,12 @@ class restore_ui extends base_ui {
     /**
      * Cancels the current restore and redirects the user back to the relevant place
      */
-    public function cancel_restore() {
-        global $PAGE;
-        // Determine the approriate URL to redirect the user to
-        if ($PAGE->context->contextlevel == CONTEXT_MODULE && $PAGE->cm !== null) {
-            $relevanturl = new moodle_url('/mod/'.$PAGE->cm->modname.'/view.php', array('id'=>$PAGE->cm->id));
-        } else {
-            $relevanturl = new moodle_url('/course/view.php', array('id'=>$PAGE->course->id));
+    public function cancel_process() {
+        //Delete temporary restore course if exists.
+        if ($this->controller->get_target() == backup::TARGET_NEW_COURSE) {
+            $this->cleanup();
         }
-        redirect($relevanturl);
+        parent::cancel_process();
     }
     /**
      * Gets an array of progress bar items that can be displayed through the restore renderer.

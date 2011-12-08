@@ -249,11 +249,13 @@ function get_users($get=true, $search='', $confirmed=false, array $exceptions=nu
  * @param string $lastinitial Users whose last name starts with $lastinitial
  * @param string $extraselect An additional SQL select statement to append to the query
  * @param array $extraparams Additional parameters to use for the above $extraselect
+ * @param object $extracontext If specified, will include user 'extra fields'
+ *   as appropriate for current user and given context
  * @return array Array of {@link $USER} records
  */
-
 function get_users_listing($sort='lastaccess', $dir='ASC', $page=0, $recordsperpage=0,
-                           $search='', $firstinitial='', $lastinitial='', $extraselect='', array $extraparams=null) {
+                           $search='', $firstinitial='', $lastinitial='', $extraselect='',
+                           array $extraparams=null, $extracontext = null) {
     global $DB;
 
     $fullname  = $DB->sql_fullname();
@@ -289,8 +291,18 @@ function get_users_listing($sort='lastaccess', $dir='ASC', $page=0, $recordsperp
         $sort = " ORDER BY $sort $dir";
     }
 
-/// warning: will return UNCONFIRMED USERS
-    return $DB->get_records_sql("SELECT id, username, email, firstname, lastname, city, country, lastaccess, confirmed, mnethostid
+    // If a context is specified, get extra user fields that the current user
+    // is supposed to see.
+    $extrafields = '';
+    if ($extracontext) {
+        $extrafields = get_extra_user_fields_sql($extracontext, '', '',
+                array('id', 'username', 'email', 'firstname', 'lastname', 'city', 'country',
+                'lastaccess', 'confirmed', 'mnethostid'));
+    }
+
+    // warning: will return UNCONFIRMED USERS
+    return $DB->get_records_sql("SELECT id, username, email, firstname, lastname, city, country,
+                                        lastaccess, confirmed, mnethostid$extrafields
                                    FROM {user}
                                   WHERE $select
                                   $sort", $params, $page, $recordsperpage);
@@ -717,7 +729,12 @@ function get_courses_search($searchterms, $sort='fullname ASC', $page=0, $record
     $params     = array();
     $i = 0;
 
-    $concat = $DB->sql_concat("COALESCE(c.summary, '". $DB->sql_empty() ."')", "' '", 'c.fullname', "' '", 'c.idnumber', "' '", 'c.shortname');
+    // Thanks Oracle for your non-ansi concat and type limits in coalesce. MDL-29912
+    if ($DB->get_dbfamily() == 'oracle') {
+        $concat = $DB->sql_concat('c.summary', "' '", 'c.fullname', "' '", 'c.idnumber', "' '", 'c.shortname');
+    } else {
+        $concat = $DB->sql_concat("COALESCE(c.summary, '". $DB->sql_empty() ."')", "' '", 'c.fullname', "' '", 'c.idnumber', "' '", 'c.shortname');
+    }
 
     foreach ($searchterms as $searchterm) {
         $i++;
@@ -1014,7 +1031,11 @@ function fix_course_sortorder() {
 
     // now fix the paths and depths in context table if needed
     if ($fixcontexts) {
-        rebuild_contexts($fixcontexts);
+        foreach ($fixcontexts as $fixcontext) {
+            $fixcontext->reset_paths(false);
+        }
+        context_helper::build_all_paths(false);
+        unset($fixcontexts);
     }
 
     // release memory
@@ -1689,7 +1710,7 @@ function add_to_log($courseid, $module, $action, $url='', $info='', $cm=0, $user
 
     try {
         $DB->insert_record_raw('log', $log, false);
-    } catch (dml_write_exception $e) {
+    } catch (dml_exception $e) {
         debugging('Error: Could not insert a new entry to the Moodle log', DEBUG_ALL);
         // MDL-11893, alert $CFG->supportemail if insert into log failed
         if ($CFG->supportemail and empty($CFG->noemailever)) {
@@ -1933,7 +1954,9 @@ function count_login_failures($mode, $username, $lastlogin) {
  */
 function print_object($object) {
     echo '<pre class="notifytiny">';
-    print_r($object);  // Direct to output because some objects get too big for memory otherwise!
+    // we may need a lot of memory here
+    raise_memory_limit(MEMORY_EXTRA);
+    echo s(print_r($object, true));
     echo '</pre>';
 }
 
