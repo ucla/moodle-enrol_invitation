@@ -2,6 +2,7 @@
 
 class easyupload_resource_form extends easy_upload_form {
     var $allow_publicprivate = false;
+    var $enable_availability = false;
 
     function specification() {
         $mform =& $this->_form;

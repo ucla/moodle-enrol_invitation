@@ -8,7 +8,7 @@ $string['easy_upload_form'] = '';
 $string['select_section'] = 'Add to section';
 $string['returntocourse'] = 'Return to course';
 $string['returntosection'] = 'Return to section';
-$string['successfuladd'] = 'Successfully added {$a} to course.';
+$string['successfuladd'] = 'Successfully added {$a} to section.';
 
 // Should I split out the "to {$a}" part?
 $string['easyupload_link_form'] = 'Upload a link to {$a}';

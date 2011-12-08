@@ -256,9 +256,15 @@ if ($uploadform->is_cancelled()) {
     $newcm->section = $targetsection;
     $newcm->module = $module->id;
     $newcm->instance = 0;
+
+    // Observe course/modedit.php
+    if (!empty($CFG->enableavailability)) {
+        $newcm->availablefrom = $data->availablefrom;
+        $newcm->availableuntil = $data->availableuntil;
+        $newcm->showavailability = $data->showavailability;
+    }
    
     // TODO Handle section visibility
-
     $newcm->visible = 1;
 
     $coursemoduleid = add_course_module($newcm);
