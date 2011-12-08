@@ -71,8 +71,6 @@ $has_capability_viewhidden =
 $has_capability_update = has_capability('moodle/course:update', $context);
 $get_accesshide = get_accesshide(get_string('currenttopic', 'access'));
 
-debugging('$get_accesshide = ' . $get_accesshide);
-
 // Cache all these get_string(), because you know, they're cached already...
 $streditsummary   = get_string('editsummary');
 $stradd           = get_string('add');
@@ -310,12 +308,9 @@ while ($section <= $course->numsections) {
                 'id' => $section_id,
                 'class' => $class_text
             ));
-       
+
         //// (LEFT) State ////
-        $sectiontext = html_writer::tag('div', $section, array(
-                'class' => 'hidden'
-            ));
-        $left_side = html_writer::tag('div', $currenttext.$sectiontext, array(
+        $left_side = html_writer::tag('div', $currenttext.$section, array(
                 'class' => 'left side'
             ));
 
