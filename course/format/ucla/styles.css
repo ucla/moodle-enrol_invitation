@@ -53,7 +53,6 @@
     text-align: center;
 }
 
-/* hide section number that appears in top-left corner of sections */
-.ucla_format_hidden_section_number {
+.hidden {
     display: none;
 }
