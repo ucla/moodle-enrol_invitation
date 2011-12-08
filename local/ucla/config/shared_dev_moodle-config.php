@@ -53,27 +53,37 @@ $CFG->dataroot = '';
 // This determines what the admin folder is called.
 $CFG->admin    = 'admin';
 
+// This is directory permissions for newly created directories
 $CFG->directorypermissions = 0777;
 
 // This should never change after the first install, or else any special
 // logins using the Moodle login will not work.
 $CFG->passwordsaltmain = '';
 
+// determines current term
+$CFG->currentterm = '11F';
+
+// Registrar
+$CFG->registrar_dbtype = 'odbc_mssql';
+$CFG->registrar_dbhost = '';
+$CFG->registrar_dbuser = '';
+$CFG->registrar_dbpass = '';
+$CFG->registrar_dbname = 'srdb';
+
+// Course Requestor
+$CFG->classrequestor_terms = array('11F', '12W', '12S');    // array of terms
+$CFG->classrequestor_selected_term = $CFG->currentterm; // default term
+$CFG->classrequestor_mailinst_default = false; // default value for mailinst
+$CFG->classrequestor_forceurl_default = false; // default value for forceurl
+$CFG->classrequestor_nourlupd_default = false; // default value for nourlupd
+$CFG->classrequestor_hidden_default = false; // default value for hidden
+
+// Course Creator
+$CFG->course_creator_email = 'ccle-operations@lists.ucla.edu';
+$CFG->course_creator_email_template_dir = '';
+
 // turn off messaging (CCLE-2318 - MESSAGING)
 $CFG->messaging = false;
-
-// If you want to have un-revisioned configuration data, place in this file.
-// $CFG->dirroot is overwritten later
-$_dirroot_ = dirname(realpath(__FILE__)) . '/../../..';
-
-// Try an alternative directory setup.
-if (!file_exists($_dirroot_ . '/config.php')) {
-    $_dirroot_ = dirname(realpath(__FILE__));
-
-    if (!file_exists($_dirroot_ . '/config.php')) {
-        die ('Improper setup of configuration file.');
-    }
-}
 
 /** 
  *  Automatic Shibboleth configurations.
@@ -115,10 +125,12 @@ $CFG->forced_plugin_settings['auth/shibboleth'] = array(
  *  End shibboleth configurations.
  **/
 
-// Load a custom private data
-$_private_ = $_dirroot_ . '/config_private.php';
-if (file_exists($_private_)) {
-    require_once($_private_);
+// If you want to have un-revisioned configuration data, place in config_private
+// $CFG->dirroot is overwritten later
+$_dirroot_ = dirname(realpath(__FILE__)) . '/../../..';
+$_config_private_ = $_dirroot_ . '/config_private.php';
+if (file_exists($_config_private_)) {
+    require_once($_config_private_);
 }
 
 // This will bootstrap the moodle functions.

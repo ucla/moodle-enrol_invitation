@@ -162,3 +162,79 @@ function callback_ucla_ajax_support() {
     return $ajaxsupport;
 }
 
+/**
+ *  Determines if the format should display instructors for this page.
+ **/
+function ucla_format_display_instructors($course) {
+    if (function_exists('is_collab_site') && is_collab_site($course)) {
+        return false;
+    } else {
+        if (empty($course->idnumber)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ *  Figures out the topic to display. Specific only to the UCLA course format.
+ *  Uses a $_GET or $_POST param to figure out what's going on.
+ *
+ *  @return Array(
+ **/
+function ucla_format_figure_section($course, $course_prefs = null) {
+    global $USER;
+
+    if ($course_prefs == null || !is_object($course_prefs)) {
+        $course_prefs = new ucla_course_prefs($course_prefs);
+    }
+
+    // Default to section 0 (course info) if there are no preferences
+    $landing_page = $course_prefs->get_preference('landing_page', false);
+
+    /**
+     *  Landing page and determining which section to display
+     **/
+    $topic = optional_param(callback_ucla_request_key(), 
+        UCLA_FORMAT_DISPLAY_PREVIOUS, PARAM_INT);
+
+    /**
+     *  New landing page and topic view control.
+     *  We want to make sure that if a user is coming from a different course
+     *  that they goto the landing page.
+     *
+     *  This code uses the fact that the $USER global is cached and carried 
+     *  through
+     *  the session. 
+     *  Also uses the fact that course_get_display() will clear $USER->display 
+     *  whenever we traverse to a new course.
+     **/
+
+    $displaysection = null;
+    $to_topic = null;
+
+    if ($topic >= UCLA_FORMAT_DISPLAY_ALL) {
+        // This means that a topic was explicitly declared
+        $to_topic = $topic;
+    } else {
+        if ($topic == UCLA_FORMAT_DISPLAY_LANDING 
+                || !isset($USER->display['course'])) {
+            debugging('UCLA Format: Landing page');
+
+            if ($landing_page === false) {
+                $to_topic = $course->marker;
+            } else {
+                $to_topic = $landing_page;
+            }
+        } else {
+            debugging('UCLA Format: Previously viewed page');
+
+            // This should show the previously viewed page
+            // This defaults to '0'
+            $displaysection = course_get_display($course->id);
+        }
+    }
+
+    return array($to_topic, $displaysection);
+}
