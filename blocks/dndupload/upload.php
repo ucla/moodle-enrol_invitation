@@ -9,6 +9,11 @@ require_once($CFG->dirroot.'/mod/url/locallib.php');
 require_once($CFG->dirroot.'/mod/page/lib.php');
 require_once($CFG->dirroot.'/course/lib.php');
 
+// START UCLA MOD - CCLE-2769 - Drag and drop file upload block on M2
+// enabling Public Private support
+@include_once($CFG->libdir . '/publicprivate/module.class.php');
+// END UCLA MOD - CCLE-2769
+
 $courseid = required_param('course', PARAM_INT);
 $section = required_param('section', PARAM_INT);
 $type = required_param('type', PARAM_TEXT);
@@ -163,6 +168,15 @@ $sectionid = add_mod_to_section($data);
 $DB->set_field('course_modules', 'section', $sectionid, array('id'=>$data->coursemodule));
 
 set_coursemodule_visible($data->coursemodule, $data->visible);
+
+// START UCLA MOD - CCLE-2769 - Drag and drop file upload block on M2
+// enabling Public Private support
+if (class_exists('PublicPrivate_Module') 
+        && PublicPrivate_Site::is_enabled()) {
+    $pp = new PublicPrivate_Module($data->coursemodule);
+    $pp->enable();  // default drag/drop uploads to be private
+}
+// END UCLA MOD - CCLE-2769
 
 // Trigger mod_created event with information about this module.
 $eventdata = new stdClass();
