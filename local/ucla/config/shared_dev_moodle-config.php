@@ -108,6 +108,12 @@ $block_ucla_help_settings = array('send_to' => 'jira',
 $CFG->forced_plugin_settings['block_ucla_help'] = $block_ucla_help_settings;
 $block_ucla_help_support_contacts['System'] = 'dkearney';  // default
 
+// useful DEV settings
+$CFG->debug = 38911;    // DEVELOPER level debugging messages
+$CFG->debugdisplay = true;  // show the debugging messages
+$CFG->perfdebug = true; // show performance information
+$CFG->debugpageinfo = true; // show page information
+
 /** 
  *  Automatic Shibboleth configurations.
  *  Disabling in favor for GUI configurations.
