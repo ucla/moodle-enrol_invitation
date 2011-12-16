@@ -113,6 +113,7 @@ $CFG->debug = 38911;    // DEVELOPER level debugging messages
 $CFG->debugdisplay = true;  // show the debugging messages
 $CFG->perfdebug = true; // show performance information
 $CFG->debugpageinfo = true; // show page information
+$CFG->cachejs = false;  // don't cache js so that changes appear right away
 
 /** 
  *  Automatic Shibboleth configurations.
