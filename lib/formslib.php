@@ -340,6 +340,43 @@ abstract class moodleform {
     }
 
     /**
+     * Internal method. Validates filepicker and filemanager files if they are
+     * set as required fields. Also, sets the error message if encountered one.
+     *
+     * @return bool/array with errors
+     */
+    protected function validate_draft_files() {
+        global $USER;
+        $mform =& $this->_form;
+
+        $errors = array();
+        //Go through all the required elements and make sure you hit filepicker or
+        //filemanager element.
+        foreach ($mform->_rules as $elementname => $rules) {
+            $elementtype = $mform->getElementType($elementname);
+            //If element is of type filepicker then do validation
+            if (($elementtype == 'filepicker') || ($elementtype == 'filemanager')){
+                //Check if rule defined is required rule
+                foreach ($rules as $rule) {
+                    if ($rule['type'] == 'required') {
+                        $draftid = (int)$mform->getSubmitValue($elementname);
+                        $fs = get_file_storage();
+                        $context = get_context_instance(CONTEXT_USER, $USER->id);
+                        if (!$files = $fs->get_area_files($context->id, 'user', 'draft', $draftid, 'id DESC', false)) {
+                            $errors[$elementname] = $rule['message'];
+                        }
+                    }
+                }
+            }
+        }
+        if (empty($errors)) {
+            return true;
+        } else {
+            return $errors;
+        }
+    }
+
+    /**
      * Load in existing data as form defaults. Usually new entry defaults are stored directly in
      * form definition (new entry form); this function is used to load in data where values
      * already exist and data is being edited (edit entry form).
@@ -439,6 +476,16 @@ abstract class moodleform {
 
             $files = array();
             $file_val = $this->_validate_files($files);
+            //check draft files for validation and flag them if required files
+            //are not in draft area.
+            $draftfilevalue = $this->validate_draft_files();
+
+            if ($file_val !== true && $draftfilevalue !== true) {
+                $file_val = array_merge($file_val, $draftfilevalue);
+            } else if ($draftfilevalue !== true) {
+                $file_val = $draftfilevalue;
+            } //default is file_val, so no need to assign.
+
             if ($file_val !== true) {
                 if (!empty($file_val)) {
                     foreach ($file_val as $element=>$msg) {
@@ -652,7 +699,7 @@ abstract class moodleform {
         if (!$this->get_new_filename($elname)) {
             return false;
         }
-        if (!$dir = make_upload_directory('temp/forms')) {
+        if (!$dir = make_temp_directory('forms')) {
             return false;
         }
         if (!$tempfile = tempnam($dir, 'tempup_')) {
@@ -854,6 +901,30 @@ abstract class moodleform {
     }
 
     /**
+     * Helper used by {@link repeat_elements()}.
+     * @param int $i the index of this element.
+     * @param HTML_QuickForm_element $elementclone
+     * @param array $namecloned array of names
+     */
+    function repeat_elements_fix_clone($i, $elementclone, &$namecloned) {
+        $name = $elementclone->getName();
+        $namecloned[] = $name;
+
+        if (!empty($name)) {
+            $elementclone->setName($name."[$i]");
+        }
+
+        if (is_a($elementclone, 'HTML_QuickForm_header')) {
+            $value = $elementclone->_text;
+            $elementclone->setValue(str_replace('{no}', ($i+1), $value));
+
+        } else {
+            $value=$elementclone->getLabel();
+            $elementclone->setLabel(str_replace('{no}', ($i+1), $value));
+        }
+    }
+
+    /**
      * Method to add a repeating group of elements to a form.
      *
      * @param array $elementobjs Array of elements or groups of elements that are to be repeated
@@ -895,19 +966,13 @@ abstract class moodleform {
         for ($i = 0; $i < $repeats; $i++) {
             foreach ($elementobjs as $elementobj){
                 $elementclone = fullclone($elementobj);
-                $name = $elementclone->getName();
-                $namecloned[] = $name;
-                if (!empty($name)) {
-                    $elementclone->setName($name."[$i]");
-                }
-                if (is_a($elementclone, 'HTML_QuickForm_header')) {
-                    $value = $elementclone->_text;
-                    $elementclone->setValue(str_replace('{no}', ($i+1), $value));
+                $this->repeat_elements_fix_clone($i, $elementclone, $namecloned);
 
-                } else {
-                    $value=$elementclone->getLabel();
-                    $elementclone->setLabel(str_replace('{no}', ($i+1), $value));
-
+                if ($elementclone instanceof HTML_QuickForm_group && !$elementclone->_appendName) {
+                    foreach ($elementclone->getElements() as $el) {
+                        $this->repeat_elements_fix_clone($i, $el, $namecloned);
+                    }
+                    $elementclone->setLabel(str_replace('{no}', $i + 1, $elementclone->getLabel()));
                 }
 
                 $mform->addElement($elementclone);
@@ -1384,7 +1449,14 @@ class MoodleQuickForm extends HTML_QuickForm_DHTMLRulesTableless {
         } else {
             foreach ($submission as $key=>$s) {
                 if (array_key_exists($key, $this->_types)) {
-                    $submission[$key] = clean_param($s, $this->_types[$key]);
+                    $type = $this->_types[$key];
+                } else {
+                    $type = PARAM_RAW;
+                }
+                if (is_array($s)) {
+                    $submission[$key] = clean_param_array($s, $type, true);
+                } else {
+                    $submission[$key] = clean_param($s, $type);
                 }
             }
             $this->_submitValues = $submission;
@@ -1916,7 +1988,11 @@ function validate_' . $this->_formName . '(frm) {
         } else if (is_a($element, 'HTML_QuickForm_hidden')) {
             return array();
 
-        } else if (method_exists($element, 'getPrivateName')) {
+        } else if (method_exists($element, 'getPrivateName') &&
+                !($element instanceof HTML_QuickForm_advcheckbox)) {
+            // The advcheckbox element implements a method called getPrivateName,
+            // but in a way that is not compatible with the generic API, so we
+            // have to explicitly exclude it.
             return array($element->getPrivateName());
 
         } else {
@@ -2293,7 +2369,7 @@ class MoodleQuickForm_Renderer extends HTML_QuickForm_Renderer_Tableless{
         if (!$form->isFrozen()) {
             $args = $form->getLockOptionObject();
             if (count($args[1]) > 0) {
-                $PAGE->requires->js_init_call('M.form.initFormDependencies', $args, false, moodleform::get_js_module());
+                $PAGE->requires->js_init_call('M.form.initFormDependencies', $args, true, moodleform::get_js_module());
             }
         }
     }
@@ -2433,6 +2509,7 @@ MoodleQuickForm::registerElementType('file', "$CFG->libdir/form/file.php", 'Mood
 MoodleQuickForm::registerElementType('filemanager', "$CFG->libdir/form/filemanager.php", 'MoodleQuickForm_filemanager');
 MoodleQuickForm::registerElementType('filepicker', "$CFG->libdir/form/filepicker.php", 'MoodleQuickForm_filepicker');
 MoodleQuickForm::registerElementType('format', "$CFG->libdir/form/format.php", 'MoodleQuickForm_format');
+MoodleQuickForm::registerElementType('grading', "$CFG->libdir/form/grading.php", 'MoodleQuickForm_grading');
 MoodleQuickForm::registerElementType('group', "$CFG->libdir/form/group.php", 'MoodleQuickForm_group');
 MoodleQuickForm::registerElementType('header', "$CFG->libdir/form/header.php", 'MoodleQuickForm_header');
 MoodleQuickForm::registerElementType('hidden', "$CFG->libdir/form/hidden.php", 'MoodleQuickForm_hidden');

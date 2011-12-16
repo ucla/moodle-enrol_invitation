@@ -84,8 +84,10 @@ abstract class moodleform_mod extends moodleform {
         $this->_features->introeditor       = plugin_supports('mod', $this->_modname, FEATURE_MOD_INTRO, true);
         $this->_features->defaultcompletion = plugin_supports('mod', $this->_modname, FEATURE_MODEDIT_DEFAULT_COMPLETION, true);
         $this->_features->rating            = plugin_supports('mod', $this->_modname, FEATURE_RATE, false);
+        $this->_features->showdescription   = plugin_supports('mod', $this->_modname, FEATURE_SHOW_DESCRIPTION, false);
 
         $this->_features->gradecat          = ($this->_features->outcomes or $this->_features->hasgrades);
+        $this->_features->advancedgrading   = plugin_supports('mod', $this->_modname, FEATURE_ADVANCED_GRADING, false);
     }
 
     /**
@@ -307,7 +309,7 @@ abstract class moodleform_mod extends moodleform {
         // Conditions: Don't let them set dates which make no sense
         if (array_key_exists('availablefrom', $data) &&
             $data['availablefrom'] && $data['availableuntil'] &&
-            $data['availablefrom'] > $data['availableuntil']) {
+            $data['availablefrom'] >= $data['availableuntil']) {
             $errors['availablefrom'] = get_string('badavailabledates', 'condition');
         }
 
@@ -428,10 +430,23 @@ abstract class moodleform_mod extends moodleform {
 
         if (!empty($CFG->enableavailability)) {
             // Conditional availability
-            $mform->addElement('header', 'availabilityconditionsheader', get_string('availabilityconditions', 'condition'));
-            $mform->addElement('date_selector', 'availablefrom', get_string('availablefrom', 'condition'), array('optional'=>true));
+
+            // Available from/to defaults to midnight because then the display
+            // will be nicer where it tells users when they can access it (it
+            // shows only the date and not time).
+            $date = usergetdate(time());
+            $midnight = make_timestamp($date['year'], $date['mon'], $date['mday']);
+
+            // From/until controls
+            $mform->addElement('header', 'availabilityconditionsheader',
+                    get_string('availabilityconditions', 'condition'));
+            $mform->addElement('date_time_selector', 'availablefrom',
+                    get_string('availablefrom', 'condition'),
+                    array('optional' => true, 'defaulttime' => $midnight));
             $mform->addHelpButton('availablefrom', 'availablefrom', 'condition');
-            $mform->addElement('date_selector', 'availableuntil', get_string('availableuntil', 'condition'), array('optional'=>true));
+            $mform->addElement('date_time_selector', 'availableuntil',
+                    get_string('availableuntil', 'condition'),
+                    array('optional' => true, 'defaulttime' => $midnight));
 
             // Conditions based on grades
             $gradeoptions = array();
@@ -622,7 +637,7 @@ abstract class moodleform_mod extends moodleform {
         $mform->setType('module', PARAM_INT);
 
         $mform->addElement('hidden', 'modulename', '');
-        $mform->setType('modulename', PARAM_SAFEDIR);
+        $mform->setType('modulename', PARAM_PLUGIN);
 
         $mform->addElement('hidden', 'instance', 0);
         $mform->setType('instance', PARAM_INT);
@@ -653,6 +668,33 @@ abstract class moodleform_mod extends moodleform {
                 $mform->setDefault('grade', 100);
             }
 
+            if ($this->_features->advancedgrading
+                    and !empty($this->current->_advancedgradingdata['methods'])
+                    and !empty($this->current->_advancedgradingdata['areas'])) {
+
+                if (count($this->current->_advancedgradingdata['areas']) == 1) {
+                    // if there is just one gradable area (most cases), display just the selector
+                    // without its name to make UI simplier
+                    $areadata = reset($this->current->_advancedgradingdata['areas']);
+                    $areaname = key($this->current->_advancedgradingdata['areas']);
+                    $mform->addElement('select', 'advancedgradingmethod_'.$areaname,
+                        get_string('gradingmethod', 'core_grading'), $this->current->_advancedgradingdata['methods']);
+                    $mform->addHelpButton('advancedgradingmethod_'.$areaname, 'gradingmethod', 'core_grading');
+
+                } else {
+                    // the module defines multiple gradable areas, display a selector
+                    // for each of them together with a name of the area
+                    $areasgroup = array();
+                    foreach ($this->current->_advancedgradingdata['areas'] as $areaname => $areadata) {
+                        $areasgroup[] = $mform->createElement('select', 'advancedgradingmethod_'.$areaname,
+                            $areadata['title'], $this->current->_advancedgradingdata['methods']);
+                        $areasgroup[] = $mform->createElement('static', 'advancedgradingareaname_'.$areaname, '', $areadata['title']);
+                    }
+                    $mform->addGroup($areasgroup, 'advancedgradingmethodsgroup', get_string('gradingmethods', 'core_grading'),
+                        array(' ', '<br />'), false);
+                }
+            }
+
             if ($this->_features->gradecat) {
                 $mform->addElement('select', 'gradecat',
                         get_string('gradecategoryonmodform', 'grades'),
@@ -675,6 +717,13 @@ abstract class moodleform_mod extends moodleform {
         $mform->setType('introeditor', PARAM_RAW); // no XSS prevention here, users must be trusted
         if ($required) {
             $mform->addRule('introeditor', get_string('required'), 'required', null, 'client');
+        }
+
+        // If the 'show description' feature is enabled, this checkbox appears
+        // below the intro.
+        if ($this->_features->showdescription) {
+            $mform->addElement('checkbox', 'showdescription', get_string('showdescription'));
+            $mform->addHelpButton('showdescription', 'showdescription');
         }
     }
 

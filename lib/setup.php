@@ -36,6 +36,8 @@
  *  - $CFG->dataroot - Path to moodle data files directory on server's filesystem.
  *  - $CFG->dirroot  - Path to moodle's library folder on server's filesystem.
  *  - $CFG->libdir   - Path to moodle's library folder on server's filesystem.
+ *  - $CFG->tempdir  - Path to moodle's temp file directory on server's filesystem.
+ *  - $CFG->cachedir - Path to moodle's cache directory on server's filesystem.
  *
  * @global object $CFG
  * @name $CFG
@@ -95,6 +97,16 @@ if (!isset($CFG->admin)) {   // Just in case it isn't defined in config.php
 
 // Set up some paths.
 $CFG->libdir = $CFG->dirroot .'/lib';
+
+// Allow overriding of tempdir but be backwards compatible
+if (!isset($CFG->tempdir)) {
+    $CFG->tempdir = "$CFG->dataroot/temp";
+}
+
+// Allow overriding of cachedir but be backwards compatible
+if (!isset($CFG->cachedir)) {
+    $CFG->cachedir = "$CFG->dataroot/cache";
+}
 
 // The current directory in PHP version 4.3.0 and above isn't necessarily the
 // directory of the script when run from the command line. The require_once()
@@ -282,6 +294,11 @@ global $SESSION;
  * @name $USER
  */
 global $USER;
+
+/**
+ * Frontpage course record
+ */
+global $SITE;
 
 /**
  * A central store of information about the current page we are
@@ -485,36 +502,6 @@ if (function_exists('register_shutdown_function')) {
     register_shutdown_function('moodle_request_shutdown');
 }
 
-// Defining the site
-try {
-    $SITE = get_site();
-    /**
-     * If $SITE global from {@link get_site()} is set then SITEID to $SITE->id, otherwise set to 1.
-     */
-    define('SITEID', $SITE->id);
-    // And the 'default' course - this will usually get reset later in require_login() etc.
-    $COURSE = clone($SITE);
-} catch (dml_exception $e) {
-    $SITE = null;
-    if (empty($CFG->version)) {
-        // we are just installing
-        /**
-         * @ignore
-         */
-        define('SITEID', 1);
-        // And the 'default' course
-        $COURSE = new stdClass();  // no site created yet
-        $COURSE->id = 1;
-    } else {
-        throw $e;
-    }
-}
-
-// define SYSCONTEXTID in config.php if you want to save some queries (after install or upgrade!)
-if (!defined('SYSCONTEXTID')) {
-    get_system_context();
-}
-
 // Set error reporting back to normal
 if ($originaldatabasedebug == -1) {
     $CFG->debug = DEBUG_MINIMAL;
@@ -612,15 +599,6 @@ ini_set('pcre.backtrack_limit', 20971520);  // 20 MB
 $CFG->wordlist = $CFG->libdir .'/wordlist.txt';
 $CFG->moddata  = 'moddata';
 
-// Create the $PAGE global.
-if (!empty($CFG->moodlepageclass)) {
-    $classname = $CFG->moodlepageclass;
-} else {
-    $classname = 'moodle_page';
-}
-$PAGE = new $classname();
-unset($classname);
-
 // A hack to get around magic_quotes_gpc being turned on
 // It is strongly recommended to disable "magic_quotes_gpc"!
 if (ini_get_bool('magic_quotes_gpc')) {
@@ -663,6 +641,32 @@ if (isset($_SERVER['PHP_SELF'])) {
     unset($phppos);
 }
 
+// initialise ME's - this must be done BEFORE starting of session!
+initialise_fullme();
+
+// define SYSCONTEXTID in config.php if you want to save some queries,
+// after install it must match the system context record id.
+if (!defined('SYSCONTEXTID')) {
+    get_system_context();
+}
+
+// Defining the site - aka frontpage course
+try {
+    $SITE = get_site();
+} catch (dml_exception $e) {
+    $SITE = null;
+    if (empty($CFG->version)) {
+        $SITE = new stdClass();
+        $SITE->id = 1;
+    } else {
+        throw $e;
+    }
+}
+// And the 'default' course - this will usually get reset later in require_login() etc.
+$COURSE = clone($SITE);
+/** @deprecated Id of the frontpage course, use $SITE->id instead */
+define('SITEID', $SITE->id);
+
 // init session prevention flag - this is defined on pages that do not want session
 if (CLI_SCRIPT) {
     // no sessions in CLI scripts possible
@@ -685,10 +689,6 @@ session_get_instance();
 $SESSION = &$_SESSION['SESSION'];
 $USER    = &$_SESSION['USER'];
 
-// initialise ME's
-// This must presently come AFTER $USER has been set up.
-initialise_fullme();
-
 // Late profiling, only happening if early one wasn't started
 if (!empty($CFG->profilingenabled)) {
     require_once($CFG->libdir . '/xhprof/xhprof_moodle.php');
@@ -700,7 +700,7 @@ if (!empty($CFG->profilingenabled)) {
 // Process theme change in the URL.
 if (!empty($CFG->allowthemechangeonurl) and !empty($_GET['theme'])) {
     // we have to use _GET directly because we do not want this to interfere with _POST
-    $urlthemename = optional_param('theme', '', PARAM_SAFEDIR);
+    $urlthemename = optional_param('theme', '', PARAM_PLUGIN);
     try {
         $themeconfig = theme_config::load($urlthemename);
         // Makes sure the theme can be loaded without errors.
@@ -748,6 +748,16 @@ if (empty($CFG->lang)) {
 // Set the default site locale, a lot of the stuff may depend on this
 // it is definitely too late to call this first in require_login()!
 moodle_setlocale();
+
+// Create the $PAGE global - this marks the PAGE and OUTPUT fully initialised, this MUST be done at the end of setup!
+if (!empty($CFG->moodlepageclass)) {
+    $classname = $CFG->moodlepageclass;
+} else {
+    $classname = 'moodle_page';
+}
+$PAGE = new $classname();
+unset($classname);
+
 
 if (!empty($CFG->debugvalidators) and !empty($CFG->guestloginbutton)) {
     if ($CFG->theme == 'standard' or $CFG->theme == 'standardwhite') {    // Temporary measure to help with XHTML validation
@@ -799,9 +809,6 @@ if ($USER && function_exists('apache_note')
     apache_note('MOODLEUSER', $logname);
 }
 
-// Adjust ALLOWED_TAGS
-adjust_allowed_tags();
-
 // Use a custom script replacement if one exists
 if (!empty($CFG->customscripts)) {
     if (($customscript = custom_script_path()) !== false) {
@@ -809,12 +816,14 @@ if (!empty($CFG->customscripts)) {
     }
 }
 
-// in the first case, ip in allowed list will be performed first
-// for example, client IP is 192.168.1.1
-// 192.168 subnet is an entry in allowed list
-// 192.168.1.1 is banned in blocked list
-// This ip will be banned finally
-if (!empty($CFG->allowbeforeblock)) { // allowed list processed before blocked list?
+if (CLI_SCRIPT and !defined('WEB_CRON_EMULATED_CLI') and !PHPUNIT_SCRIPT) {
+    // no ip blocking
+} else if (!empty($CFG->allowbeforeblock)) { // allowed list processed before blocked list?
+    // in this case, ip in allowed list will be performed first
+    // for example, client IP is 192.168.1.1
+    // 192.168 subnet is an entry in allowed list
+    // 192.168.1.1 is banned in blocked list
+    // This ip will be banned finally
     if (!empty($CFG->allowedip)) {
         if (!remoteip_in_list($CFG->allowedip)) {
             die(get_string('ipblocked', 'admin'));

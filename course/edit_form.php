@@ -179,7 +179,7 @@ class course_edit_form extends moodleform {
             $themes[''] = get_string('forceno');
             foreach ($themeobjects as $key=>$theme) {
                 if (empty($theme->hidefromselector)) {
-                    $themes[$key] = $theme->name;
+                    $themes[$key] = get_string('pluginname', 'theme_'.$theme->name);
                 }
             }
             $mform->addElement('select', 'theme', get_string('forcetheme'), $themes);
