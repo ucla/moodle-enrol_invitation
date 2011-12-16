@@ -59,6 +59,10 @@ $CFG->directorypermissions = 0777;
 // logins using the Moodle login will not work.
 $CFG->passwordsaltmain = '';
 
+// UCLA Theme settings
+$CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'prod';
+$CFG->forced_plugin_settings['theme_uclashared']['logo_sub_dropdown'] = true;
+
 // If you want to have un-revisioned configuration data, place in this file.
 // $CFG->dirroot is overwritten later
 $_dirroot_ = dirname(realpath(__FILE__)) . '/../../..';

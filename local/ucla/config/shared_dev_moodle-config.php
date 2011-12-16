@@ -82,6 +82,11 @@ $CFG->classrequestor_hidden_default = false; // default value for hidden
 $CFG->course_creator_email = 'ccle-operations@lists.ucla.edu';
 $CFG->course_creator_email_template_dir = '';
 
+// UCLA Theme settings
+$CFG->themedesignermode = true;
+$CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'dev';
+$CFG->forced_plugin_settings['theme_uclashared']['logo_sub_dropdown'] = true;
+
 /** 
  *  Automatic Shibboleth configurations.
  *  Disabling in favor for GUI configurations.
