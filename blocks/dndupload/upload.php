@@ -11,6 +11,7 @@ require_once($CFG->dirroot.'/course/lib.php');
 
 // START UCLA MOD - CCLE-2769 - Drag and drop file upload block on M2
 // enabling Public Private support
+@include_once($CFG->libdir.'/publicprivate/course.class.php');
 @include_once($CFG->libdir . '/publicprivate/module.class.php');
 // END UCLA MOD - CCLE-2769
 
@@ -170,11 +171,15 @@ $DB->set_field('course_modules', 'section', $sectionid, array('id'=>$data->cours
 set_coursemodule_visible($data->coursemodule, $data->visible);
 
 // START UCLA MOD - CCLE-2769 - Drag and drop file upload block on M2
-// enabling Public Private support
-if (class_exists('PublicPrivate_Module') 
-        && PublicPrivate_Site::is_enabled()) {
-    $pp = new PublicPrivate_Module($data->coursemodule);
-    $pp->enable();  // default drag/drop uploads to be private
+// default drag/drop uploads to be private
+$groupingid = false;
+if (class_exists('PublicPrivate_Course') && PublicPrivate_Site::is_enabled()) {
+    $publicprivate_course = new PublicPrivate_Course($course->id);
+    if($publicprivate_course->is_activated()) {    
+        $pp = new PublicPrivate_Module($data->coursemodule);
+        $pp->enable();  
+        $groupingid = $publicprivate_course->get_grouping();
+    }
 }
 // END UCLA MOD - CCLE-2769
 
@@ -202,6 +207,14 @@ $resp->icon = $icon;
 $resp->name = $displayname;
 $resp->link = new moodle_url("/mod/{$data->modulename}/view.php", array('id'=>$data->coursemodule)).'';
 $resp->elementid = 'module-'.$data->coursemodule;
+
+// START UCLA MOD - CCLE-2769 - Drag and drop file upload block on M2
+// get name of grouping (if any)
+if (!empty($groupingid)) {
+    $groupings = groups_get_all_groupings($course->id);
+    $resp->groupname = format_string($groupings[$groupingid]->name);
+}
+// END UCLA MOD - CCLE-2769
 
 $data->id = $data->coursemodule;
 $data->groupmodelink = false; // Resources never have group modes

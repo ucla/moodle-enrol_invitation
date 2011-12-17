@@ -235,6 +235,9 @@ M.blocks_dndupload = {
             a: document.createElement('a'),
             icon: document.createElement('img'),
             namespan: document.createElement('span'),
+            // START UCLA MOD - CCLE-2769 - Drag and drop file upload block on M2
+            groupspan: document.createElement('span'),
+            // END UCLA MOD - CCLE-2769
             progressouter: document.createElement('span'),
             progress: document.createElement('span')
         };
@@ -257,6 +260,13 @@ M.blocks_dndupload = {
         resel.namespan.className = 'instancename';
         resel.namespan.innerHTML = name;
         resel.a.appendChild(resel.namespan);
+
+        // START UCLA MOD - CCLE-2769 - Drag and drop file upload block on M2
+        // create span for group label (if needed)
+        resel.div.appendChild(document.createTextNode(' '));        
+        resel.groupspan.className = 'groupinglabel';
+        resel.div.appendChild(resel.groupspan);
+        // END UCLA MOD - CCLE-2769
 
         resel.div.appendChild(document.createTextNode(' '));
 
@@ -371,6 +381,17 @@ M.blocks_dndupload = {
                             resel.icon.src = result.icon;
                             resel.a.href = result.link;
                             resel.namespan.innerHTML = result.name;
+
+                            // START UCLA MOD - CCLE-2769 - Drag and drop file upload block on M2                            
+                            // check if any group label is needed
+                            if (result.groupname) {
+                                resel.groupspan.innerHTML = '(' + result.groupname + ')';
+                            } else {
+                                // delete group label since it is not needed
+                                resel.a.removeChild(resel.groupspan);
+                            }
+                            // END UCLA MOD - CCLE-2769
+
                             resel.div.removeChild(resel.progressouter);
                             resel.li.id = result.elementid;
                             resel.div.innerHTML += result.commands;
@@ -407,7 +428,7 @@ M.blocks_dndupload = {
                 if (xhr.status == 200) {
                     var result = JSON.parse(xhr.responseText);
                     if (result) {
-                        if (result.error == 0) {
+                        if (result.error == 0) {                 
                             resel.icon.src = result.icon;
                             resel.a.href = result.link;
                             resel.namespan.innerHTML = result.name;
@@ -425,7 +446,7 @@ M.blocks_dndupload = {
         };
 
         var formData = new FormData();
-        formData.append('contents', contents);
+        formData.append('contents', contents);        
         formData.append('displayname', name);
         formData.append('sesskey', this.sesskey);
         formData.append('course', this.courseid);
