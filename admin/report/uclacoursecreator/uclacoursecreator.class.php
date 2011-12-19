@@ -27,19 +27,23 @@ defined('MOODLE_INTERNAL') || die();
  **/
 
 // Require the exception
-require_once(dirname(__FILE__) . '/course_creator_exception.class.php');
+require_once($CFG->dirroot  . '/' . $CFG->admin . 
+    '/report/uclacoursecreator/course_creator_exception.class.php');
+
+// Require requestor
+require_once($CFG->dirroot  . '/' . $CFG->admin . 
+    '/report/uclacourserequestor/lib.php');
 
 // Require essential stuff... 
-require_once(dirname(__FILE__) . '/../../../course/lib.php');
+require_once($CFG->dirroot . '/course/lib.php');
 
 // Required for categories
-require_once(dirname(__FILE__) . '/../../../course/editcategory_form.php');
+require_once($CFG->dirroot . '/course/editcategory_form.php');
+
+require_once($CFG->dirroot . '/local/ucla/lib.php');
 
 // This is required for role mapping
 global $CFG;
-if (file_exists($CFG->dirroot . '/local/ucla/lib.php')) {
-    include_once($CFG->dirroot . '/local/ucla/lib.php');
-}
 
 /**
  *  Course creator.
@@ -119,9 +123,6 @@ class uclacoursecreator {
     // Contains the root path to the MyUCLA URL update webservice.
     private $myucla_login = null;
 
-    // This contains the objects with which we can connect to the Registrar.
-    private $registrar_conn = null;
-
     const TO_BUILD_ACTION = 'build';
     const BEEN_BUILT_ACTION = 'built';
 
@@ -163,31 +164,14 @@ class uclacoursecreator {
         }
 
         // Check that we have our registrar wrapper functions
+        ucla_require_registrar();
+
         $registrars = array('ccle_getclasses', 'ccle_courseinstructorsget');
-        $this->registrar_conn = array();
 
-        $prefix = $CFG->dirroot . '/' . $CFG->admin;
-        // TODO fix this shittiness
         foreach ($registrars as $registrar_class) {
-            $classname = 'registrar_' . $registrar_class;
-
-            $reg_filename = $prefix . '/report/uclaregistrar/' . $classname
-                . '.class.php';
-
-            if (file_exists($reg_filename)) {
-                require_once($reg_filename);
-            } else {
-                $reg_filename = $prefix . '/report/uclacoursecreator'
-                    . '/localreg/' . $classname . '.class.php';
-
-                if (file_exists($reg_filename)) {
-                    require_once($reg_filename);
-                } else {
-                    throw new moodle_exception('Missing ' . $reg_filename);
-                }
+            if (!registrar_query::get_registrar_query($registrar_class)) {
+                throw new moodle_exception('Missing ' . $reg_filename);
             }
-
-            $this->registrar_conn[$registrar_class] = new $classname();
         }
 
         try {
@@ -307,7 +291,6 @@ class uclacoursecreator {
         }
 
         fwrite($this->log_fp, $mesg);
-        
     }
 
     /**
@@ -894,13 +877,10 @@ class uclacoursecreator {
         }
             
         // this will let both build and rebuild be built
-        // TODO screw the 'LIKE', use get_records_select
-        $sql_where = "`action` LIKE '" . self::TO_BUILD_ACTION . "'
-                AND
-            `status` = '" . self::TO_ACT_STATUS . "'";
+        $sql_where = "`action` LIKE '" . UCLA_COURSE_TOBUILD . "'";
 
-        $DB->set_field_select('ucla_request_classes', 'status', 
-            self::ACTING_STATUS, $sql_where);
+        $DB->set_field_select('ucla_request_classes', 'action', 
+            UCLA_COURSE_LOCKED, $sql_where);
 
         $this->debugln("-------- Starting $term ---------");
     }
@@ -945,8 +925,8 @@ class uclacoursecreator {
 
             $this->insert_term_rci();
 
-            $DB->set_field_select('ucla_request_classes', 'status',
-                'done', $sql_where, $params);
+            $DB->set_field_select('ucla_request_classes', 'action',
+                UCLA_COURSE_BUILT, $sql_where, $params);
 
             $this->debugln('Successfully processed ' . count($params)
                 . ' requests.');
@@ -1061,13 +1041,8 @@ class uclacoursecreator {
 
                 $sql_where = 'id ' . $sql_in;
 
-                // Hehe, two dee-bee-queue
                 $DB->set_field_select('ucla_request_classes', 'action', 
                     $action, $sql_where, $params);
-
-                // This is just because I am lazy
-                $DB->set_field_select('ucla_request_classes', 'status', 
-                    self::TO_ACT_STATUS, $sql_where, $params);
 
                 $this->debugln('Marked ' . count($params) . ' requests for ' 
                     . $action . '.');
@@ -1097,12 +1072,10 @@ class uclacoursecreator {
 
         $sql_params = array($term);
         $sql_where = "
-            (action LIKE '" . self::TO_BUILD_ACTION . "' 
-                OR action LIKE '" . self::BEEN_BUILT_ACTION . "')
+            (action LIKE '" . UCLA_COURSE_TOBUILD . "' 
+                OR action LIKE '" . UCLA_COURSE_BUILT . "')
                 AND
-            term = ?
-                AND
-            status = '" . self::ACTING_STATUS . "'";
+            term = ?";
         
         // These are the regular and host courses
         $course_requests = $DB->get_records_select(
@@ -1123,8 +1096,7 @@ class uclacoursecreator {
         foreach ($course_requests as $key => $course_request) {
             $srs = trim($course_request->srs);
             
-            // TODO Move this out into separate function
-            if (strlen($srs) != 9) {
+            if (!ucla_validator('srs', $srs)) {
                 $this->debugln('Faulty SRS: ' . $course_request->course);
 
                 unset($course_requests[$key]);
@@ -1285,12 +1257,12 @@ class uclacoursecreator {
         }
 
         $tr = $this->cron_term_cache['trim_requests'];
-        $rc = $this->registrar_conn['ccle_getclasses'];
 
         $requests =& $this->cron_term_cache['requests'];
 
         // Run the Stored Procedure with the data
-        $return = $rc->retrieve_registrar_info($tr);
+        $return = registrar_query::run_registrar_query('ccle_getclasses',
+            $tr, true);
 
         foreach ($requests as $request) {
             $request_arr = get_object_vars($request);
@@ -2093,8 +2065,11 @@ class uclacoursecreator {
 
         // This should fill the term cache 'instructors' with data from 
         // ccle_CourseInstructorsGet
-        $results = $this->registrar_conn['ccle_courseinstructorsget']
-            ->retrieve_registrar_info($this->cron_term_cache['trim_requests']);
+        $results = registrar_query::run_registrar_query(
+            'ccle_courseinstructorsget', 
+            $this->cron_term_cache['trim_requests'],
+            true
+        );
 
         if (empty($results)) {
             // @TODO Maybe change the default behavior
@@ -2834,12 +2809,6 @@ class uclacoursecreator {
         mail($this->get_config('course_creator_email'), 
             'Course Creator Summary ' . $this->shell_date, $this->email_log);
 
-        // To be on the safe side, close the registrar connection before
-        // terminating the cron
-        foreach ($this->registrar_conn as $connection) {
-            $connection->close_registrar_connection();
-        }
-
         $this->close_log_file_pointer();
 
         return true;
@@ -3091,8 +3060,7 @@ class uclacoursecreator {
      * @param string name   fname, mname, or lname
      * @return string       name in proper format
      */
-    function format_name($name = null)
-    {
+    function format_name($name = null) {
         $name = ucfirst(strtolower(trim($name)));    
         if (empty($name))   return '';
 

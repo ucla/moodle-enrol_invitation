@@ -1,7 +1,6 @@
 <?php
 
 require_once($CFG->libdir.'/formslib.php');
-
 require_once(dirname(__FILE__) . '/requestor_shared_form.php');
 
 class requestor_subjarea_form extends requestor_shared_form {
@@ -31,60 +30,63 @@ class requestor_subjarea_form extends requestor_shared_form {
         $term = $ci['term'];
         $sa = $ci['subjarea'];
 
+        // Fetch all possible courses
         $sac = get_courses_for_subj_area($term, $sa);
 
-        // This is backward... 
+        // The stored procedures returns fields with different names for 
+        // the same semantic data
         $translators = array(
             'subj_area' => 'subjarea',
             'coursenum' => 'course',
             'sectnum' => 'section'
         );
 
-        $infos = array();
-
-        $instrs = array();
+        // Translate everything
+        $sacreq = array();
         foreach ($sac as $course) {
-            $preprep = get_object_vars($course);
+            if (is_object($course)) {
+                $course = get_object_vars($course);
+            }
 
-            // THERE AIN't NO TERM, BABE
-            $preprep['term'] = $term;
-            $srs = $preprep['srs'];
-            $k = "$term-$srs";
+            // Add the stupid term to the data
+            $course['term'] = $term;
 
             foreach ($translators as $to => $from) {
-                $preprep[$to] = $preprep[$from];
-            }
-            
-            if (requestor_ignore_entry($preprep)) {
-                continue;
+                $course[$to] = $course[$from];
+                unset($course[$from]);
             }
 
-            // Maybe optimize?
-            $exists = get_course_request($term, $srs);
-            if ($exists) {
-                $infos[$k] = $exists;
-                continue;
-            }
+            $k = request_make_key($course);
 
-            if (empty($ci['skipinstructors'])) {
-                $instrs[$k] = get_instructor_info_from_registrar($term, $srs);
-            } else {
-                $instrs[$k] = array();
-            }
-
-            $infos[$k] = $preprep;
+            $sacreq[$k] = $course;
         }
+       
+        // Get the request in the DB...
+        $exists = get_course_requests($sacreq);
 
-        $returninfos = array();
-        foreach ($infos as $key => $info) {
-            if (isset($instrs[$key])) {
-                $returninfos[] = prep_registrar_entry($info, $instrs[$key]);
-            } else {
-                $returninfos[] = $info;
+        foreach ($sacreq as $key => $course) {
+            if (!empty($exists[$key])) {
+                unset($sacreq[$key]);
             }
         }
+       
+        // And the ones not in the DB.
+        $newones = registrar_to_requests($sacreq);
 
-        return $returninfos;
+        $hcs = array_merge($exists, $newones);
+
+        // And their figure out their links
+        $sets = array();
+        foreach ($hcs as $hc) {
+            if ($hc) {
+                $set = get_crosslist_set_for_host($hc);
+
+                $sets[] = $set;
+            }
+        }
+
+        return $sets;
     }
 }
 
+// EOF

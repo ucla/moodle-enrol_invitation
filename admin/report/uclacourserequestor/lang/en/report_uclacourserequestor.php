@@ -1,28 +1,23 @@
 <?php
-
-// title string
 $string['pluginname'] = "UCLA course requestor";
+$string['courserequestor:view'] = "View " . $string['pluginname'];
 
-// courserequestor strings
-$string['srserror'] = 'The SRS number must be exactly 9 digits long';
+$string['srslookup'] = "SRS number lookup (Registrar)";
 
-$string['srslookup'] = "SRS number lookup";
-$string['registrarclasses'] = "Registrar's schedule of classes";
-
-$string['builddept'] = "Fetch courses from department";
-$string['buildcourse'] = "Fetch course";
-$string['skipinstructors'] = 'Skip instructor lookup';
-
+// Fetch from Registrar
 $string['fetch'] = 'Fetch courses from Registrar';
-$string['views'] = 'View existing requests';
+$string['buildcourse'] = "Fetch course";
+$string['builddept'] = "Fetch courses from department";
 
-// Status readable strings
+$string['views'] = 'View existing requests';
+$string['viewcourses'] = "View/Edit existing requests";
+
+// Status readable 
 $string['build'] = "To be built";
-// TODO add more status markers for certain things
 $string['failed'] = "Failed creator";
 $string['live'] = "Live";
 
-$string['viewcourses'] = "View/Edit existing requests";
+
 $string['noviewcourses'] = "If you were expecting a third form, there are no existing requests, so there is no reason to have the option to view them.";
 
 $string['crosslistnotice'] = "You can add crosslists while these couses are waiting in queue to be built.";
@@ -35,34 +30,40 @@ $string['all_action'] = 'All statuses';
 
 $string['noinst'] = 'Not Assigned';
 
-$string['newrequest'] = 'New entry';
+$string['newrequestid'] = 'New entry';
+$string['newrequestcourseid'] = 'Not built yet';
 
+$string['checkchanges'] = 'Validate changes';
 $string['submitfetch'] = 'Submit requests';
 $string['submitviews'] = 'Save changes';
 
 // Table headers for the requests
 $string['id'] = 'Request ID';
+$string['courseid'] = 'Associated Course ID';
 $string['term'] = 'Term';
 $string['srs'] = 'SRS';
 $string['course'] = 'Course';
 $string['department'] = 'Department';
 $string['instructor'] = 'Instructors';
-$string['contact'] = 'Requestor email';
-// This is whaaa
+$string['requestoremail'] = 'Requestor email';
 $string['crosslist'] = 'Crosslist?';
-$string['added_at'] = 'Time requested';
+$string['timerequested'] = 'Time requested';
 $string['action'] = 'Status';
 $string['status'] = 'Condition';
 $string['mailinst'] = 'E-Mail instructor';
 $string['hidden'] = 'Course built hidden from students';
-$string['force_urlupdate'] = 'Overwrite URL at MyUCLA';
-$string['force_no_urlupdate'] = 'Do NOT send URL to MyUCLA';
+$string['nourlupdate'] = 'Do NOT send URL to MyUCLA';
 $string['crosslists'] = 'Crosslisted SRSes';
+
+$string['deletefetch'] = 'Ignore';
+$string['deleteviews'] = 'Remove request';
 
 $string['addmorecrosslist'] = 'Add another entry';
 
-$string['selectsrscrosslist'] = "Select SRS below to crosslist.";
-$string['uncheckedcrosslist'] = "Please uncheck the SRS you do not want crosslisted";
+// Crosslisting errors
+$string['illegalcrosslist'] = 'Another course has this SRS as a crosslist';
+$string['hostandchild'] = 'This course is crosslisted with another course that has not been built yet. Note that the course that has this course as its crosslist will state that there is an error. Please explicitly disable the building of one of the courses.';
+$string['srserror'] = 'The SRS number must be exactly 9 digits long';
 
 $string['queuetobebuilt'] = "Courses in queue to be built";
 $string['queueempty'] = "The queue is empty. All courses have been built as of now.";
@@ -80,6 +81,4 @@ $string['submittedtobebuilt'] = " submitted to be built ";
 
 $string['delete_successful'] = "Deleted course entry: ";
 $string['delete_error'] = "Unable to find course entry to delete: ";
-
-$string['courserequestor:view'] = "View " . $string['pluginname'];
 

@@ -70,10 +70,13 @@ class requestor_shared_form extends moodleform {
      *  Returns the set of courses that should respond to the request method
      *  and parameters.
      *  Called after all the data has been verified.
-     *  This function breaks a lot of OO-boundaries.
-     *  TODO remove passing of dbconn
+     *  This function probably breaks a lot of OO-boundaries.
+     *  @param $data responses from the fetch form.
+     *  @return Array Sets of course-term-srs sets
      **/
-    function respond($data, &$dbconn) {
+    function respond($data) {
         return array();
     }
 }
+
+// EOF

@@ -138,7 +138,6 @@ function local_ucla_cron() {
     // This should run often
     $ucrc = new ucla_reg_classinfo_cron();
     $ucrc->run($terms);
-    die;
 
     // Fill the ucla_reg_subjeactarea table
     // This should run maybe once a quarter

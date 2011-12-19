@@ -11,7 +11,6 @@ class requestor_view_form extends requestor_shared_form {
     const noviewcourses = 'noviewcourses';
 
     function specification() {
-        // Hmmm.
         $rucr = 'report_uclacourserequestor';
 
         $mf =& $this->_form;
@@ -56,6 +55,9 @@ class requestor_view_form extends requestor_shared_form {
         }
     }
 
+    /**
+     *  Build the Moodle DB API conditions and fetch requests from tables.
+     **/
     function respond($data) {
         global $DB;
 
@@ -76,7 +78,16 @@ class requestor_view_form extends requestor_shared_form {
 
         // TODO figure out crosslists
 
-        return $DB->get_records('ucla_request_classes', $filters);
+        $reqs = $DB->get_records('ucla_request_classes', $filters);
+
+        foreach ($reqs as $req) {
+            $req = get_object_vars($req);
+            $set = get_crosslist_set_for_host($req);
+
+            $sets[] = $set;
+        }
+
+        return $sets;
     }
 
     function get_all_filter($filter) {

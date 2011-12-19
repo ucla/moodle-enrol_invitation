@@ -17,6 +17,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot . '/' . $CFG->admin 
+    . '/report/uclacourserequestor/lib.php');
+
 /**
  *
  * @global stdClass $CFG
@@ -122,6 +125,125 @@ function xmldb_report_uclacourserequestor_upgrade($oldversion) {
         // uclacourserequestor savepoint reached
         upgrade_plugin_savepoint(true, $thisversion, 'report', 'uclacourserequestor');
     } 
+
+    $thisversion = 2011113000;
+    if ($oldversion < $thisversion) {
+        // Sorry, no: Convert old data...
+
+        //////////////////
+        // ALTER FIELDS //
+        //////////////////
+
+        // Define field force_urlupdate to be dropped from ucla_request_classes
+        $table = new xmldb_table('ucla_request_classes');
+
+        // Rename field contact on table ucla_request_classes to requestoremail
+        $field = new xmldb_field('contact', XMLDB_TYPE_CHAR, '50', null, null, null, null, 'instructor');
+
+        // Launch rename field contact
+        $dbman->rename_field($table, $field, 'requestoremail');
+
+        // Changing precision of field instructor on table ucla_request_classes to (254)
+        $field = new xmldb_field('instructor', XMLDB_TYPE_CHAR, '254', null, null, null, null, 'department');
+
+        // Launch change of precision for field instructor
+        $dbman->change_field_precision($table, $field);
+
+        // Rename field force_no_urlupdate on table ucla_request_classes to nourlupdate 
+        $field = new xmldb_field('force_no_urlupdate', XMLDB_TYPE_INTEGER, '1', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'hidden');
+
+        // Launch rename field nourlupdate
+        $dbman->rename_field($table, $field, 'nourlupdate');
+
+        // Rename field crosslist on table ucla_request_classes to hostcourse 
+        $field = new xmldb_field('crosslist', XMLDB_TYPE_INTEGER, '1', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'instructor');
+
+        // Launch rename field crosslist
+        $dbman->rename_field($table, $field, 'hostcourse');
+
+        // Rename field added_at on table ucla_request_classes to timerequested 
+        $field = new xmldb_field('added_at', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, '0', 'instructor');
+
+        // Launch rename field added_at
+        $dbman->rename_field($table, $field, 'timerequested');
+
+        ////////////////
+        // NEW FIELDS //
+        ////////////////
+
+         // Define field setid to be added to ucla_request_classes
+        $field = new xmldb_field('setid', XMLDB_TYPE_INTEGER, '20', null, null, null, null, 'hostcourse');
+
+        // Conditionally launch add field setid
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+         // Define field courseid to be added to ucla_request_classes
+        $field = new xmldb_field('courseid', XMLDB_TYPE_INTEGER, '20', null, null, null, null, 'setid');
+
+        // Conditionally launch add field courseid
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        /////////////////
+        // NEW INDICES //
+        /////////////////
+
+        // Define index searchme (unique) to be added to ucla_request_classes
+        $index = new xmldb_index('searchme', XMLDB_INDEX_UNIQUE, array('term', 'srs', 'setid'));
+
+        // Conditionally launch add index searchme
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Define index searchforsrs (not unique) to be added to ucla_request_classes
+        $index = new xmldb_index('searchforsrs', XMLDB_INDEX_NOTUNIQUE, array('courseid'));
+
+        // Conditionally launch add index searchforsrs
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Define index searchdept (not unique) to be added to ucla_request_classes
+        $index = new xmldb_index('searchdept', XMLDB_INDEX_NOTUNIQUE, array('department'));
+
+        // Conditionally launch add index searchdept
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // Define index searchaction (not unique) to be added to ucla_request_classes
+        $index = new xmldb_index('searchaction', XMLDB_INDEX_NOTUNIQUE, array('action'));
+
+        // Conditionally launch add index searchaction
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        /////////////////////
+        // DROP STUFF LAST //
+        /////////////////////
+        $field = new xmldb_field('force_urlupdate');
+
+        // Conditionally launch drop field force_urlupdate
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+
+        // Define table ucla_request_crosslist to be dropped
+        $table = new xmldb_table('ucla_request_crosslist');
+
+        // Conditionally launch drop table for ucla_request_crosslist
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+
+        // uclacourserequestor savepoint reached
+        upgrade_plugin_savepoint(true, $thisversion, 'report', 'uclacourserequestor');
+    }
 	
 	return $result;
 }
