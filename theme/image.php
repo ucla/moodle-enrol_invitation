@@ -24,6 +24,10 @@
  */
 
 
+// disable moodle specific debug messages and any errors in output,
+// comment out when debugging or better look into error log!
+define('NO_DEBUG_DISPLAY', true);
+
 // we need just the values from config.php and minlib.php
 define('ABORT_AFTER_CONFIG', true);
 require('../config.php'); // this stops immediately at the beginning of lib/setup.php
@@ -45,7 +49,7 @@ if (file_exists("$CFG->dirroot/theme/$themename/config.php")) {
     image_not_found();
 }
 
-$candidatelocation = "$CFG->dataroot/cache/theme/$themename/pix/$component";
+$candidatelocation = "$CFG->cachedir/theme/$themename/pix/$component";
 
 if ($rev > -1) {
     if (file_exists("$candidatelocation/$image.error")) {
@@ -115,6 +119,9 @@ if ($rev > -1) {
     $pathinfo = pathinfo($imagefile);
     $cacheimage = "$candidatelocation/$image.".$pathinfo['extension'];
     if (!file_exists($cacheimage)) {
+        // note: cache reset might have purged our cache dir structure,
+        //       make sure we do not use stale file stat cache in the next check_dir_exists()
+        clearstatcache();
         check_dir_exists(dirname($cacheimage));
         copy($imagefile, $cacheimage);
     }

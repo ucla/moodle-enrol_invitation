@@ -50,18 +50,31 @@ abstract class convert_helper {
      * @see base_converter::is_available()
      * @return array of strings
      */
-    public static function available_converters() {
+    public static function available_converters($restore=true) {
         global $CFG;
 
         $converters = array();
+
+        // Only apply for backup converters if the (experimental) setting enables it.
+        // This will be out once we get proper support of backup converters. MDL-29956
+        if (!$restore && empty($CFG->enablebackupconverters)) {
+            return $converters;
+        }
+
         $plugins    = get_list_of_plugins('backup/converter');
         foreach ($plugins as $name) {
-            $classfile = "$CFG->dirroot/backup/converter/$name/lib.php";
-            $classname = "{$name}_converter";
+            $filename = $restore ? 'lib.php' : 'backuplib.php';
+            $classuf  = $restore ? '_converter' : '_export_converter';
+            $classfile = "{$CFG->dirroot}/backup/converter/{$name}/{$filename}";
+            $classname = "{$name}{$classuf}";
+            $zip_contents      = "{$name}_zip_contents";
+            $store_backup_file = "{$name}_store_backup_file";
+            $convert           = "{$name}_backup_convert";
 
             if (!file_exists($classfile)) {
                 throw new convert_helper_exception('converter_classfile_not_found', $classfile);
             }
+
             require_once($classfile);
 
             if (!class_exists($classname)) {
@@ -69,11 +82,52 @@ abstract class convert_helper {
             }
 
             if (call_user_func($classname .'::is_available')) {
+                if (!$restore) {
+                    if (!class_exists($zip_contents)) {
+                        throw new convert_helper_exception('converter_classname_not_found', $zip_contents);
+                    }
+                    if (!class_exists($store_backup_file)) {
+                        throw new convert_helper_exception('converter_classname_not_found', $store_backup_file);
+                    }
+                    if (!class_exists($convert)) {
+                        throw new convert_helper_exception('converter_classname_not_found', $convert);
+                    }
+                }
+
                 $converters[] = $name;
             }
+
         }
 
         return $converters;
+    }
+
+    public static function export_converter_dependencies($converter, $dependency) {
+        global $CFG;
+
+        $result = array();
+        $filename = 'backuplib.php';
+        $classuf  = '_export_converter';
+        $classfile = "{$CFG->dirroot}/backup/converter/{$converter}/{$filename}";
+        $classname = "{$converter}{$classuf}";
+
+        if (!file_exists($classfile)) {
+            throw new convert_helper_exception('converter_classfile_not_found', $classfile);
+        }
+        require_once($classfile);
+
+        if (!class_exists($classname)) {
+            throw new convert_helper_exception('converter_classname_not_found', $classname);
+        }
+
+        if (call_user_func($classname .'::is_available')) {
+            $deps = call_user_func($classname .'::get_deps');
+            if (array_key_exists($dependency, $deps)) {
+                $result = $deps[$dependency];
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -85,7 +139,7 @@ abstract class convert_helper {
     public static function detect_moodle2_format($tempdir) {
         global $CFG;
 
-        $dirpath    = $CFG->dataroot . '/temp/backup/' . $tempdir;
+        $dirpath    = $CFG->tempdir . '/backup/' . $tempdir;
         $filepath   = $dirpath . '/moodle_backup.xml';
 
         if (!is_dir($dirpath)) {

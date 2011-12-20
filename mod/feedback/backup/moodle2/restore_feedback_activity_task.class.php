@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -54,7 +53,7 @@ class restore_feedback_activity_task extends restore_activity_task {
     static public function define_decode_contents() {
         $contents = array();
 
-        $contents[] = new restore_decode_content('feedback', array('intro'), 'feedback');
+        $contents[] = new restore_decode_content('feedback', array('intro', 'site_after_submit', 'page_after_submit'), 'feedback');
         $contents[] = new restore_decode_content('feedback_item', array('presentation'), 'feedback_item');
         $contents[] = new restore_decode_content('feedback_value', array('value'), 'feedback_value');
 

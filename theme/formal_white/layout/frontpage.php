@@ -29,7 +29,9 @@ if ($hascustommenu) {
 }
 
 /************************************************************************************************/
-if (!empty($PAGE->theme->settings->logo)) {
+if (!empty($PAGE->theme->settings->frontpagelogo)) {
+    $logourl = $PAGE->theme->settings->frontpagelogo;
+} else if (!empty($PAGE->theme->settings->logo)) {
     $logourl = $PAGE->theme->settings->logo;
 } else {
     $logourl = $OUTPUT->pix_url('logo', 'theme');
@@ -109,7 +111,7 @@ if ($hasframe) { ?>
                         <div id="region-main-wrap">
                             <div id="region-main">
                                 <div class="region-content">
-                                    <?php echo core_renderer::MAIN_CONTENT_TOKEN ?>
+                                    <?php echo $OUTPUT->main_content() ?>
                                 </div>
                             </div>
                         </div>
@@ -200,8 +202,10 @@ if ($hasfooter) {
     } ?>
             <div class="moodledocsleft">
             <?php
-                //echo $OUTPUT->login_info();
-                //echo $OUTPUT->home_link();
+                echo $OUTPUT->login_info();
+                if ($PAGE->theme->settings->creditstomoodleorg) {
+                    echo $OUTPUT->home_link();
+                }
                 echo $OUTPUT->standard_footer_html();
             ?>
             </div>
