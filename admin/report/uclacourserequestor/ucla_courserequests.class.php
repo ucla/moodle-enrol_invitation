@@ -11,7 +11,7 @@ class ucla_courserequests {
 
     var $unpreppedsetid = 1;
 
-    private $_validated = false;
+    private $_validated = null;
 
     static function get_editables() {
         return array('mailinst', 'nourlupdate');
@@ -21,6 +21,8 @@ class ucla_courserequests {
      *  Adds a set to the bunch of course requests.
      **/
     function add_set($set) {
+        $this->_validated = false;
+
         $setid = null;
         $f = 'setid';
         foreach ($set as $rq) {
@@ -66,20 +68,18 @@ class ucla_courserequests {
     /**
      *  Apply changes onto our current set index.
      **/
-    function apply_changes($changes) {
-        echo "<PRE>";
-        var_dump($changes);
-        echo "</PRE>";
+    function apply_changes($changes, $context) {
+        $this->_validated = false;
 
         $checkers = self::get_editables();
-        $checkers['build'] = 'build';
 
-        $checker = reset(reset($this->setindex));
-        if (isset($checker['delete'])) {
-            $d = 'delete';
-        } else {
+        if ($context == UCLA_REQUESTOR_FETCH) {
             $d = 'build';
+        } else {
+            $d = 'delete';
         }
+
+        $checkers[$d] = $d;
 
         $h = 'hostcourse';
 
@@ -105,9 +105,16 @@ class ucla_courserequests {
                 $thechanges = $changes[$setid][$setkey];
 
                 if (empty($thechanges[$d])) {
+                    $appval = 0;
                     // Don't apply any other chnages if the build was unset
-                    $this->apply_to_set($setid, $d, 0);
                 } else {
+                    $appval = 1;
+                }
+
+                $courses = apply_to_set($courses, $d, $appval);
+                
+                $testcourse = reset($courses);
+                if (!request_ignored($testcourse)) {
                     // We're going to deal with checkboxes
                     foreach ($checkers as $checker) {
                         if (!empty($thechanges[$checker])) {
@@ -116,10 +123,9 @@ class ucla_courserequests {
                             $checkapply = 0;
                         }
 
-                        $this->apply_to_set($setid, $checker, $checkapply);
+                        $courses = apply_to_set($courses, $checker, 
+                            $checkapply);
                     }
-
-                    $courses = $this->setindex[$setid];
 
                     // Now we're going to deal with the crosslists
                     $clind = array();
@@ -166,6 +172,8 @@ class ucla_courserequests {
                             $nr['hostcourse'] = 0;
                         }
 
+                        $nr['setid'] = $setid;
+
                         // We're going to add the host, if there is one
                         $nrkey = request_make_key($nr);
 
@@ -174,31 +182,22 @@ class ucla_courserequests {
                         }
                     }
 
-                    $this->setindex[$setid] = $courses;
                 }
+
+                $this->setindex[$setid] = $courses;
             }
 
         }
     }
 
-    /**
-     *  Changes a property of each request inside of a set.
-     **/
-    function apply_to_set($set, $field, $val) {
-        if (empty($this->setindex[$set])) {
-            return false;
-        }
-        
-        foreach ($this->setindex[$set] as $key => $t) {
-            $this->setindex[$set][$key][$field] = $val;
-        }
-    }
-
     /** 
      *  Validates and injects errors into each request-course.
-     *  TODO remove the context argument
      **/
-    function validate_requests() {
+    function validate_requests($context) {
+        if ($context == null && !empty($this->_validated)) {
+            return $this->_validated;
+        }
+
         // Host courses
         $hostcourses = array();
 
@@ -223,7 +222,8 @@ class ucla_courserequests {
 
                 // Avoid affecting existing requests when fetching requests from
                 // the Registrar
-                if (isset($course['id'])) {
+                if (isset($course['id']) 
+                        && $context == UCLA_REQUESTOR_FETCH) {
                     $course[$errs][UCLA_REQUESTOR_EXIST] = true;
                 }
 
@@ -282,6 +282,7 @@ class ucla_courserequests {
             }
         }
 
+        $this->_validated = $requestinfos;
         return $requestinfos;
     }
 
@@ -289,31 +290,73 @@ class ucla_courserequests {
      *  Commits this requests representation.
      **/
     function commit() {
-        return false;
-
         // Make a giant SQL statement?
         global $DB;
+
+        $requests = $this->validate_requests(null);
+        $maxsetid = reset($DB->get_record_sql(
+            'SELECT MAX(`setid`) FROM {ucla_request_classes}'
+        ));
 
         $successes = array();
         $now = time();
 
-        foreach ($requests as $key => $request) {
-            try {
-                if (isset($request['id'])) {
-                    $DB->update_record('ucla_request_classes',
-                        $request);
-                } else { 
-                    $request['added_at'] = $now;
+        $i = 'instructor';
 
-                    $insertid = $DB->insert_record('ucla_request_classes',
-                        $request);
+        foreach ($requests as $setid => $set) {
+            $failset = false;
+            $requestentries = array();
+
+            foreach ($set as $k => $r) {
+                if (!empty($r[UCLA_REQUESTOR_ERROR])) {
+                    $failset = true;
+                    break;
                 }
-            } catch (dml_exception $e) {
-                var_dump($e);
+            }
+
+            if ($failset) {
                 continue;
             }
 
-            $successes[$key] = $key;
+            // Find a valid set id
+            if ($this->is_unprepped_setid($setid)) {
+                $maxsetid++;
+                $set = apply_to_set($set, 'setid', $maxsetid);
+            }
+
+            $properhost = set_find_host($set);
+
+            $set = apply_to_set($set, 'hostcourse', 0);
+            $set[$properhost]['hostcourse'] = 1;
+
+            foreach ($set as $key => $request) {
+                if (request_ignored($request)) {
+                    continue;
+                }
+
+                if (!empty($request[$i])) {
+                    $request[$i] = implode(' / ', $request[$i]);
+                }
+
+                try {
+                    if (isset($request['id'])) {
+                        $DB->update_record('ucla_request_classes', $request);
+                    } else {
+                        $request['added_at'] = $now;
+
+                        $insertid = $DB->insert_record('ucla_request_classes',
+                            $request);
+
+                        $set[$key]['id'] = $insertid;
+                    }
+                } catch (dml_exception $e) {
+                    var_dump($e);
+                } catch (coding_exception $e) {
+                    var_dump($request);
+                }
+            }
+
+            $successes[$setid] = $set;
         }
 
         return $successes;

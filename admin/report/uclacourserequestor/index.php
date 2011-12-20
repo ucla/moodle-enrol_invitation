@@ -161,9 +161,6 @@ if ($requests === null) {
         // Unchangables
         if (!empty($prevs->{$uf})) {
             $uclacrqs = unserialize(base64_decode($prevs->{$uf}));
-            echo "<PRE>";
-            var_dump($uclacrqs);
-            echo "</PRE>";
             unset($prevs->{$uf});
         } else {
             debugging('no prev data');
@@ -190,7 +187,9 @@ if ($requests === null) {
             }
         }
 
-        $uclacrqs->apply_changes($changes);
+        if (isset($uclacrqs)) {
+            $uclacrqs->apply_changes($changes, $groupid);
+        }
     }
 } else {
     $uclacrqs = new ucla_courserequests();
@@ -203,7 +202,28 @@ if ($requests === null) {
 // TODO DELETE COURSE FROM REQUESTOR
 // At this point, requests are indexed by setid.
 if (isset($uclacrqs)) {
-    $tabledata = requests_to_html_table_data($uclacrqs, $groupid);
+    $requestswitherrors = $uclacrqs->validate_requests($groupid);
+
+    if ($saverequeststates) {
+        /*
+        echo "<PRE>";
+        var_dump($requestswitherrors);
+        echo "</pre>";*/
+        $successfuls = $uclacrqs->commit();
+
+        // Redo this
+        $cached_forms[UCLA_REQUESTOR_VIEW]['view'] 
+            = new requestor_view_form(null, $nv_cd);
+
+        // TODO Take out successfuls from requests with errors
+        foreach ($requestswitherrors as $setid => $set) {
+            if (isset($successfuls[$setid])) {
+                unset($requestswitherrors[$setid]);
+            }
+        }
+    }
+
+    $tabledata = prepare_requests_for_display($requestswitherrors, $groupid);
 
     $rowclasses = array();
     foreach ($tabledata as $key => $data) {
@@ -231,6 +251,7 @@ if (isset($uclacrqs)) {
     $requeststable = new html_table();
     $requeststable->head = $possfields;
     $requeststable->data = $tabledata;
+
     // For errors
     $requeststable->rowclasses = $rowclasses;
 }
@@ -247,6 +268,7 @@ echo $OUTPUT->box(
     $OUTPUT->heading(
         get_string('pluginname', $rucr)
     ), 
+
     'generalbox categorybox box'
 );
 

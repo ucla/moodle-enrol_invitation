@@ -244,6 +244,21 @@ function xmldb_report_uclacourserequestor_upgrade($oldversion) {
         // uclacourserequestor savepoint reached
         upgrade_plugin_savepoint(true, $thisversion, 'report', 'uclacourserequestor');
     }
-	
+
+    $thisversion = 2011121900;
+    if ($oldversion < $thisversion) {
+
+        // Define index uniqtermsrs (unique) to be added to ucla_request_classes
+        $table = new xmldb_table('ucla_request_classes');
+        $index = new xmldb_index('uniqtermsrs', XMLDB_INDEX_UNIQUE, array('term', 'srs'));
+
+        // Conditionally launch add index uniqtermsrs
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // uclacourserequestor savepoint reached
+        upgrade_plugin_savepoint(true, $thisversion, 'report', 'uclacourserequestor');
+    }
 	return $result;
 }

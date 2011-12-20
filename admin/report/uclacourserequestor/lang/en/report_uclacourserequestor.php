@@ -18,11 +18,13 @@ $string['failed'] = "Failed creator";
 $string['live'] = "Live";
 
 
+$string['delete'] = 'Delete';
+
 $string['noviewcourses'] = "If you were expecting a third form, there are no existing requests, so there is no reason to have the option to view them.";
 
 $string['crosslistnotice'] = "You can add crosslists while these couses are waiting in queue to be built.";
 
-$string['existrow'] = 'Some of the courses that you have requested are already in the queue, or have already been built. To rebuild them, please mark them as deleted and fetch the courses again.';
+$string['errorrow'] = 'Some of the courses that you have requested have problems with them. Please look over them and if needed, submit your requests again.';
 
 $string['all_department'] = 'All departments';
 $string['all_term'] = 'All terms';

@@ -149,6 +149,18 @@ function get_set($setid) {
     return $iset;
 }
 
+function apply_to_set($set, $field, $val) {
+    if (empty($set)) {
+        return false;
+    }
+
+    foreach ($set as $k => $rq) {
+        $set[$k][$field] = $val;
+    }
+
+    return $set;
+}
+
 /**
  *  Inflates up the instructors.
  **/
@@ -491,7 +503,6 @@ function get_course_from_reginfo($regdata) {
  **/
 function extract_term_srs_xml($xml) {
     $t = array('term', 'srs');
-
     $r = array();
 
     foreach ($t as $k) {
@@ -524,15 +535,6 @@ function request_make_key($sr) {
 }
 
 /**
- *  Convenience function.
- **/
-function requests_to_html_table_data($ucla_requests, $context) {
-    $requestinfos = $ucla_requests->validate_requests($context);
-    $displays = prepare_requests_for_display($requestinfos, $context);
-    return $displays;
-}
-
-/**
  *  Flattens the requests.
  **/
 function prepare_requests_for_display($requestinfos, $context) {
@@ -546,16 +548,6 @@ function prepare_requests_for_display($requestinfos, $context) {
     // TODO Prep display rows
     foreach ($requestinfos as $setid => $set) {
         $displaykey = set_find_host($set);
-
-        // Special thing
-        if ($context != UCLA_REQUESTOR_FETCH) {
-            foreach ($set as $rk => $rq) {
-                if (isset($rq['errs'][UCLA_REQUESTOR_EXIST])) {
-                    unset($rq['errs'][UCLA_REQUESTOR_EXIST]);
-                    $set[$rk] = $rq;
-                }
-            }
-        }
 
         $displayrow = $set[$displaykey];
 
@@ -656,6 +648,8 @@ function request_ignored($request) {
     } else if (isset($request['delete'])) {
         return ($request['delete'] != 0);
     }
+
+    return true;
 }
 
 /**

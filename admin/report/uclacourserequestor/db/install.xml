@@ -1,9 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="admin/report/uclacourserequestor/db" VERSION="20111130" COMMENT="Tables for maintaining term and SRS to moodle course as well as cross-listed relationships."
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:noNamespaceSchemaLocation="../../../../lib/xmldb/xmldb.xsd"
->
-  <TABLES>
     <TABLE NAME="ucla_request_classes" COMMENT="Table to request and track course builds">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="term"/>
@@ -29,8 +23,7 @@
         <INDEX NAME="searchme" UNIQUE="true" FIELDS="term, srs, setid" NEXT="searchforsrs"/>
         <INDEX NAME="searchforsrs" UNIQUE="false" FIELDS="courseid" PREVIOUS="searchme" NEXT="searchdept"/>
         <INDEX NAME="searchdept" UNIQUE="false" FIELDS="department" PREVIOUS="searchforsrs" NEXT="searchaction"/>
-        <INDEX NAME="searchaction" UNIQUE="false" FIELDS="action" PREVIOUS="searchdept"/>
+        <INDEX NAME="searchaction" UNIQUE="false" FIELDS="action" PREVIOUS="searchdept" NEXT="uniqtermsrs"/>
+        <INDEX NAME="uniqtermsrs" UNIQUE="true" FIELDS="term, srs" PREVIOUS="searchaction"/>
       </INDEXES>
     </TABLE>
-  </TABLES>
-</XMLDB>
