@@ -344,6 +344,7 @@ M.blocks_dndupload = {
         modsel.appendChild(preview.li);
     },
 
+    // used in progressing dragged and dropped files 
     uploadfile: function(file, section, sectionnumber) {
         var xhr = new XMLHttpRequest();
         var self = this;
@@ -416,6 +417,7 @@ M.blocks_dndupload = {
         xhr.send(formData);
     },
 
+    // used in progressing dragged and dropped text/links 
     uploaditem: function(name, type, contents, section, sectionnumber) {
         var xhr = new XMLHttpRequest();
         var self = this;
@@ -432,6 +434,19 @@ M.blocks_dndupload = {
                             resel.icon.src = result.icon;
                             resel.a.href = result.link;
                             resel.namespan.innerHTML = result.name;
+                            
+                            // START UCLA MOD - CCLE-2769 - Drag and drop file upload block on M2                            
+                            // check if any group label is needed
+                            if (result.groupname) {
+                                console.log('groupname found');
+                                resel.groupspan.innerHTML = '(' + result.groupname + ')';
+                            } else {
+                                console.log('no groupname found');
+                                // delete group label since it is not needed
+                                resel.a.removeChild(resel.groupspan);
+                            }
+                            // END UCLA MOD - CCLE-2769
+
                             resel.div.removeChild(resel.progressouter);
                             resel.li.id = result.elementid;
                             resel.div.innerHTML += result.commands;
