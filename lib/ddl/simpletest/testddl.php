@@ -180,7 +180,7 @@ class ddl_test extends UnitTestCase {
         ob_start(); // hide debug warning
         try {
             $result = $DB->get_records('test_table0');
-        } catch (dml_read_exception $e) {
+        } catch (dml_exception $e) {
             $result = false;
         }
         ob_end_clean();
@@ -203,7 +203,7 @@ class ddl_test extends UnitTestCase {
         ob_start(); // hide debug warning
         try {
             $result = $DB->get_records('test_table0');
-        } catch (dml_read_exception $e) {
+        } catch (dml_exception $e) {
             $result = false;
         }
         ob_end_clean();
@@ -337,14 +337,14 @@ class ddl_test extends UnitTestCase {
 
         try { // columns cache must be empty, so sentence throw exception
             $columns = $DB->get_columns('test_table0');
-        } catch (dml_read_exception $e) {
+        } catch (dml_exception $e) {
             $columns = false;
         }
         $this->assertFalse($columns);
 
         try { /// throw exception
             $indexes = $DB->get_indexes('test_table0');
-        } catch (dml_read_exception $e) {
+        } catch (dml_exception $e) {
             $indexes = false;
         }
         $this->assertFalse($indexes);
@@ -931,7 +931,7 @@ class ddl_test extends UnitTestCase {
         ob_start(); // hide debug warning
         try {
             $result = $DB->insert_record('test_table_cust0', $record, false);
-        } catch (dml_write_exception $e) {
+        } catch (dml_exception $e) {
             $result = false;
         }
         ob_end_clean();
@@ -953,7 +953,7 @@ class ddl_test extends UnitTestCase {
         ob_start(); // hide debug warning
         try {
             $result = $DB->insert_record('test_table_cust0', $record, false);
-        } catch (dml_write_exception $e) {
+        } catch (dml_exception $e) {
             $result = false;
         }
         ob_end_clean();
@@ -1022,7 +1022,7 @@ class ddl_test extends UnitTestCase {
         ob_start(); // hide debug warning
         try {
             $result = $DB->insert_record('test_table_cust0', $record, false);
-        } catch (dml_write_exception $e) {
+        } catch (dml_exception $e) {
             $result = false;;
         }
         ob_end_clean();
@@ -1485,6 +1485,192 @@ class ddl_test extends UnitTestCase {
     public function test_reserved_words() {
         $reserved = sql_generator::getAllReservedWords();
         $this->assertTrue(count($reserved) > 1);
+    }
+
+    public function test_index_max_bytes() {
+        $DB = $this->tdb;
+        $dbman = $DB->get_manager();
+
+        $maxstr = '';
+        for($i=0; $i<255; $i++) {
+            $maxstr .= '言'; // random long string that should fix exactly the limit for one char column
+        }
+
+        $table = new xmldb_table('testtable');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('name', XMLDB_TYPE_CHAR, 255, null, XMLDB_NOTNULL, null);
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_index('name', XMLDB_INDEX_NOTUNIQUE, array('name'));
+
+        // Drop if exists
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+        $dbman->create_table($table);
+        $tablename = $table->getName();
+        $this->tables[$tablename] = $table;
+
+        $rec = new stdClass();
+        $rec->name = $maxstr;
+
+        $id = $DB->insert_record($tablename, $rec);
+        $this->assertTrue(!empty($id));
+
+        $rec = $DB->get_record($tablename, array('id'=>$id));
+        $this->assertIdentical($rec->name, $maxstr);
+
+        $dbman->drop_table($table);
+
+
+        $table = new xmldb_table('testtable');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('name', XMLDB_TYPE_CHAR, 255+1, null, XMLDB_NOTNULL, null);
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_index('name', XMLDB_INDEX_NOTUNIQUE, array('name'));
+
+        try {
+            $dbman->create_table($table);
+            $this->assertTrue(false);
+        } catch (Exception $e) {
+            $this->assertTrue($e instanceof coding_exception);
+        }
+    }
+
+    public function test_index_composed_max_bytes() {
+        $DB = $this->tdb;
+        $dbman = $DB->get_manager();
+
+        $maxstr = '';
+        for($i=0; $i<200; $i++) {
+            $maxstr .= '言';
+        }
+        $reststr = '';
+        for($i=0; $i<133; $i++) {
+            $reststr .= '言';
+        }
+
+        $table = new xmldb_table('testtable');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('name1', XMLDB_TYPE_CHAR, 200, null, XMLDB_NOTNULL, null);
+        $table->add_field('name2', XMLDB_TYPE_CHAR, 133, null, XMLDB_NOTNULL, null);
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_index('name1-name2', XMLDB_INDEX_NOTUNIQUE, array('name1','name2'));
+
+        // Drop if exists
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+        $dbman->create_table($table);
+        $tablename = $table->getName();
+        $this->tables[$tablename] = $table;
+
+        $rec = new stdClass();
+        $rec->name1 = $maxstr;
+        $rec->name2 = $reststr;
+
+        $id = $DB->insert_record($tablename, $rec);
+        $this->assertTrue(!empty($id));
+
+        $rec = $DB->get_record($tablename, array('id'=>$id));
+        $this->assertIdentical($rec->name1, $maxstr);
+        $this->assertIdentical($rec->name2, $reststr);
+
+
+        $table = new xmldb_table('testtable');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('name1', XMLDB_TYPE_CHAR, 201, null, XMLDB_NOTNULL, null);
+        $table->add_field('name2', XMLDB_TYPE_CHAR, 133, null, XMLDB_NOTNULL, null);
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_index('name1-name2', XMLDB_INDEX_NOTUNIQUE, array('name1','name2'));
+
+        // Drop if exists
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+
+        try {
+            $dbman->create_table($table);
+            $this->assertTrue(false);
+        } catch (Exception $e) {
+            $this->assertTrue($e instanceof coding_exception);
+        }
+    }
+
+    public function test_char_size_limit() {
+        $DB = $this->tdb;
+        $dbman = $DB->get_manager();
+
+        $table = new xmldb_table('testtable');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('name', XMLDB_TYPE_CHAR, xmldb_field::CHAR_MAX_LENGTH, null, XMLDB_NOTNULL, null);
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+
+        // Drop if exists
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+        $dbman->create_table($table);
+        $tablename = $table->getName();
+        $this->tables[$tablename] = $table;
+
+        // this has to work in all DBs
+        $maxstr = '';
+        for($i=0; $i<xmldb_field::CHAR_MAX_LENGTH; $i++) {
+            $maxstr .= 'a'; // ascii only
+        }
+
+        $rec = new stdClass();
+        $rec->name = $maxstr;
+
+        $id = $DB->insert_record($tablename, $rec);
+        $this->assertTrue(!empty($id));
+
+        $rec = $DB->get_record($tablename, array('id'=>$id));
+        $this->assertIdentical($rec->name, $maxstr);
+
+
+        // Following test is supposed to fail in oracle
+        $maxstr = '';
+        for($i=0; $i<xmldb_field::CHAR_MAX_LENGTH; $i++) {
+            $maxstr .= '言'; // random long string that should fix exactly the limit for one char column
+        }
+
+        $rec = new stdClass();
+        $rec->name = $maxstr;
+
+        try {
+            $id = $DB->insert_record($tablename, $rec);
+            $this->assertTrue(!empty($id));
+
+            $rec = $DB->get_record($tablename, array('id'=>$id));
+            $this->assertIdentical($rec->name, $maxstr);
+        } catch (dml_exception $e) {
+            if ($DB->get_dbfamily() === 'oracle') {
+                $this->fail('Oracle does not support text fields larger than 4000 bytes, this is not a big problem for mostly ascii based languages');
+            } else {
+                throw $e;
+            }
+        }
+
+
+        $table = new xmldb_table('testtable');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('name', XMLDB_TYPE_CHAR, xmldb_field::CHAR_MAX_LENGTH+1, null, XMLDB_NOTNULL, null);
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+
+        // Drop if exists
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+        $tablename = $table->getName();
+        $this->tables[$tablename] = $table;
+
+        try {
+            $dbman->create_table($table);
+            $this->assertTrue(false);
+        } catch (Exception $e) {
+            $this->assertTrue($e instanceof coding_exception);
+        }
     }
 
  // Following methods are not supported == Do not test

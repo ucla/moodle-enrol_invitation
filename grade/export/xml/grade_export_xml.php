@@ -41,8 +41,8 @@ class grade_export_xml extends grade_export {
         $shortname = format_string($this->course->shortname, true, array('context' => get_context_instance(CONTEXT_COURSE, $this->course->id)));
         $downloadfilename = clean_filename("$shortname $strgrades.xml");
 
-        make_upload_directory('temp/gradeexport');
-        $tempfilename = $CFG->dataroot .'/temp/gradeexport/'. md5(sesskey().microtime().$downloadfilename);
+        make_temp_directory('gradeexport');
+        $tempfilename = $CFG->tempdir .'/gradeexport/'. md5(sesskey().microtime().$downloadfilename);
         if (!$handle = fopen($tempfilename, 'w+b')) {
             print_error('cannotcreatetempdir');
         }

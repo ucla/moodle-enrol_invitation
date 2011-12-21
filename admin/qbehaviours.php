@@ -28,6 +28,7 @@
 require_once(dirname(__FILE__) . '/../config.php');
 require_once($CFG->libdir . '/questionlib.php');
 require_once($CFG->libdir . '/adminlib.php');
+require_once($CFG->libdir . '/pluginlib.php');
 require_once($CFG->libdir . '/tablelib.php');
 
 // Check permissions.
@@ -39,6 +40,7 @@ admin_externalpage_setup('manageqbehaviours');
 $thispageurl = new moodle_url('/admin/qbehaviours.php');
 
 $behaviours = get_plugin_list('qbehaviour');
+$pluginmanager = plugin_manager::instance();
 
 // Get some data we will need - question counts and which types are needed.
 $counts = $DB->get_records_sql_menu("
@@ -50,15 +52,11 @@ foreach ($behaviours as $behaviour => $notused) {
     if (!array_key_exists($behaviour, $counts)) {
         $counts[$behaviour] = 0;
     }
-    $needed[$behaviour] = $counts[$behaviour] > 0;
+    $needed[$behaviour] = ($counts[$behaviour] > 0) &&
+            $pluginmanager->other_plugins_that_require('qbehaviour_' . $behaviour);
     $archetypal[$behaviour] = question_engine::is_behaviour_archetypal($behaviour);
 }
 
-foreach ($behaviours as $behaviour => $notused) {
-    foreach (question_engine::get_behaviour_required_behaviours($behaviour) as $reqbehaviour) {
-        $needed[$reqbehaviour] = true;
-    }
-}
 foreach ($counts as $behaviour => $count) {
     if (!array_key_exists($behaviour, $behaviours)) {
         $counts['missingtype'] += $count;
@@ -85,7 +83,7 @@ if (!empty($config->disabledbehaviours)) {
 // Process actions ============================================================
 
 // Disable.
-if (($disable = optional_param('disable', '', PARAM_SAFEDIR)) && confirm_sesskey()) {
+if (($disable = optional_param('disable', '', PARAM_PLUGIN)) && confirm_sesskey()) {
     if (!isset($behaviours[$disable])) {
         print_error('unknownbehaviour', 'question', $thispageurl, $disable);
     }
@@ -98,7 +96,7 @@ if (($disable = optional_param('disable', '', PARAM_SAFEDIR)) && confirm_sesskey
 }
 
 // Enable.
-if (($enable = optional_param('enable', '', PARAM_SAFEDIR)) && confirm_sesskey()) {
+if (($enable = optional_param('enable', '', PARAM_PLUGIN)) && confirm_sesskey()) {
     if (!isset($behaviours[$enable])) {
         print_error('unknownbehaviour', 'question', $thispageurl, $enable);
     }
@@ -115,7 +113,7 @@ if (($enable = optional_param('enable', '', PARAM_SAFEDIR)) && confirm_sesskey()
 }
 
 // Move up in order.
-if (($up = optional_param('up', '', PARAM_SAFEDIR)) && confirm_sesskey()) {
+if (($up = optional_param('up', '', PARAM_PLUGIN)) && confirm_sesskey()) {
     if (!isset($behaviours[$up])) {
         print_error('unknownbehaviour', 'question', $thispageurl, $up);
     }
@@ -127,7 +125,7 @@ if (($up = optional_param('up', '', PARAM_SAFEDIR)) && confirm_sesskey()) {
 }
 
 // Move down in order.
-if (($down = optional_param('down', '', PARAM_SAFEDIR)) && confirm_sesskey()) {
+if (($down = optional_param('down', '', PARAM_PLUGIN)) && confirm_sesskey()) {
     if (!isset($behaviours[$down])) {
         print_error('unknownbehaviour', 'question', $thispageurl, $down);
     }
@@ -139,7 +137,7 @@ if (($down = optional_param('down', '', PARAM_SAFEDIR)) && confirm_sesskey()) {
 }
 
 // Delete.
-if (($delete = optional_param('delete', '', PARAM_SAFEDIR)) && confirm_sesskey()) {
+if (($delete = optional_param('delete', '', PARAM_PLUGIN)) && confirm_sesskey()) {
     // Check it is OK to delete this question type.
     if ($delete == 'missing') {
         print_error('cannotdeletemissingbehaviour', 'question', $thispageurl);
@@ -238,13 +236,14 @@ foreach ($sortedbehaviours as $behaviour => $behaviourname) {
     }
 
     // Other question types required by this one.
-    $requiredbehaviours = question_engine::get_behaviour_required_behaviours($behaviour);
-    if (!empty($requiredbehaviours)) {
-        $strrequiredbehaviours = array();
-        foreach ($requiredbehaviours as $required) {
-            $strrequiredbehaviours[] = $sortedbehaviours[$required];
+    $plugin = $pluginmanager->get_plugin_info('qbehaviour_' . $behaviour);
+    $required = $plugin->get_other_required_plugins();
+    if (!empty($required)) {
+        $strrequired = array();
+        foreach ($required as $component => $notused) {
+            $strrequired[] = $pluginmanager->plugin_name($component);
         }
-        $row[] = implode(', ', $strrequiredbehaviours);
+        $row[] = implode(', ', $strrequired);
     } else {
         $row[] = '';
     }

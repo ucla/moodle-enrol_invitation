@@ -27,9 +27,9 @@ require_once("../config.php");
 require_once($CFG->dirroot .'/notes/lib.php');
 
 $id    = required_param('id', PARAM_INT);              // course id
-$users = optional_param('userid', array(), PARAM_INT); // array of user id
-$contents = optional_param('contents', array(), PARAM_RAW); // array of user notes
-$states = optional_param('states', array(), PARAM_ALPHA); // array of notes states
+$users = optional_param_array('userid', array(), PARAM_INT); // array of user id
+$contents = optional_param_array('contents', array(), PARAM_RAW); // array of user notes
+$states = optional_param_array('states', array(), PARAM_ALPHA); // array of notes states
 
 $PAGE->set_url('/user/addnote.php', array('id'=>$id));
 
@@ -97,8 +97,8 @@ $table->align = array ('left', 'center', 'center');
 $state_names = note_get_state_names();
 
 // the first time list hack
-if (empty($users)) {
-    foreach ($_POST as $k => $v) {
+if (empty($users) and $post = data_submitted()) {
+    foreach ($post as $k => $v) {
         if (preg_match('/^user(\d+)$/',$k,$m)) {
             $users[] = $m[1];
         }

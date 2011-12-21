@@ -152,6 +152,9 @@ abstract class quiz_attempt_report extends quiz_default_report {
             $fields .= "\n(CASE WHEN $qmsubselect THEN 1 ELSE 0 END) AS gradedattempt,";
         }
 
+        $extrafields = get_extra_user_fields_sql($this->context, 'u', '',
+                array('id', 'idnumber', 'firstname', 'lastname', 'picture',
+                'imagealt', 'institution', 'department', 'email'));
         $fields .= '
                 quiza.uniqueid AS usageid,
                 quiza.id AS attempt,
@@ -163,7 +166,7 @@ abstract class quiz_attempt_report extends quiz_default_report {
                 u.imagealt,
                 u.institution,
                 u.department,
-                u.email,
+                u.email' . $extrafields . ',
                 quiza.sumgrades,
                 quiza.timefinish,
                 quiza.timestart,
@@ -239,9 +242,13 @@ abstract class quiz_attempt_report extends quiz_default_report {
             $headers[] = get_string('firstname');
         }
 
-        if ($CFG->grade_report_showuseridnumber) {
-            $columns[] = 'idnumber';
-            $headers[] = get_string('idnumber');
+        // When downloading, some extra fields are always displayed (because
+        // there's no space constraint) so do not include in extra-field list
+        $extrafields = get_extra_user_fields($this->context,
+                $table->is_downloading() ? array('institution', 'department', 'email') : array());
+        foreach ($extrafields as $field) {
+            $columns[] = $field;
+            $headers[] = get_user_field_name($field);
         }
 
         if ($table->is_downloading()) {
@@ -614,13 +621,21 @@ abstract class quiz_attempt_report_table extends table_sql {
             return;
         }
 
+        // This condition roughly filters the list of attempts to be considered.
+        // It is only used in a subselect to help crappy databases (see MDL-30122)
+        // therefore, it is better to use a very simple join, which may include
+        // too many records, than to do a super-accurate join.
+        $qubaids = new qubaid_join("{quiz_attempts} {$alias}quiza", "{$alias}quiza.uniqueid",
+                "{$alias}quiza.quiz = :{$alias}quizid", array("{$alias}quizid" => $this->sql->params['quizid']));
+
         $dm = new question_engine_data_mapper();
-        $inlineview = $dm->question_attempt_latest_state_view($alias);
+        list($inlineview, $viewparams) = $dm->question_attempt_latest_state_view($alias, $qubaids);
 
         $this->sql->fields .= ",\n$fields";
         $this->sql->from .= "\nLEFT JOIN $inlineview ON " .
                 "$alias.questionusageid = quiza.uniqueid AND $alias.slot = :{$alias}slot";
         $this->sql->params[$alias . 'slot'] = $slot;
+        $this->sql->params = array_merge($this->sql->params, $viewparams);
     }
 
     /**

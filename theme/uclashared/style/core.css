@@ -1,0 +1,4 @@
+/* When deubgging with performance profiling is turned on the next is normally 
+ * hard to read. This styling will give the text more room so that it is visible
+ */
+#page-footer .performanceinfo {text-align:center;margin-top:2.5em;background-color:#565656;}

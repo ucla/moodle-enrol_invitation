@@ -171,7 +171,7 @@ class theme_uclashared_core_renderer extends core_renderer {
      **/
     function help_feedback_link() {
         $help_locale = $this->call_separate_block_function(
-                'ucla_helpblock', 'get_action_link'
+                'ucla_help', 'get_action_link'
             );
 
         if (!$help_locale) {
@@ -237,7 +237,7 @@ class theme_uclashared_core_renderer extends core_renderer {
     
     // This function will be called only in class sites 
     function control_panel_button() {
-        global $CFG;
+        global $CFG, $OUTPUT;
 
         // Hack since contexts and pagelayouts are different things
         // Hack to fix: display control panel link when updating a plugin
@@ -245,10 +245,11 @@ class theme_uclashared_core_renderer extends core_renderer {
             return '';
         }
 
-        // Use html_writer to render the actual link
-        // html_writer::tag(tagname, contents, attributes[])
-        $cp_text = get_string('control_panel', $this->theme);
-
+        // Use html_writer to render the control panel button
+        $cp_text = html_writer::empty_tag('img', 
+            array('src' => $OUTPUT->pix_url('cp_button', 'block_ucla_control_panel'),
+                  'alt' => get_string('control_panel', $this->theme)));
+        
         $cp_link = $this->call_separate_block_function(
                 'ucla_control_panel', 'get_action_link'
             );
@@ -256,7 +257,7 @@ class theme_uclashared_core_renderer extends core_renderer {
         if (!$cp_link) {
             return false;
         }
-
+       
         $cp_button = html_writer::link($cp_link, $cp_text, 
             array('class' => 'control-panel-button'));
 

@@ -86,6 +86,23 @@ if (!empty($add)) {
         $data->introeditor = array('text'=>'', 'format'=>FORMAT_HTML, 'itemid'=>$draftid_editor); // TODO: add better default
     }
 
+    if (plugin_supports('mod', $data->modulename, FEATURE_ADVANCED_GRADING, false)
+            and has_capability('moodle/grade:managegradingforms', $context)) {
+        require_once($CFG->dirroot.'/grade/grading/lib.php');
+
+        $data->_advancedgradingdata['methods'] = grading_manager::available_methods();
+        $areas = grading_manager::available_areas('mod_'.$module->name);
+
+        foreach ($areas as $areaname => $areatitle) {
+            $data->_advancedgradingdata['areas'][$areaname] = array(
+                'title'  => $areatitle,
+                'method' => '',
+            );
+            $formfield = 'advancedgradingmethod_'.$areaname;
+            $data->{$formfield} = '';
+        }
+    }
+
     if (!empty($type)) { //TODO: hopefully will be removed in 2.0
         $data->type = $type;
     }
@@ -135,6 +152,7 @@ if (!empty($add)) {
     $data->completionview     = $cm->completionview;
     $data->completionexpected = $cm->completionexpected;
     $data->completionusegrade = is_null($cm->completiongradeitemnumber) ? 0 : 1;
+    $data->showdescription    = $cm->showdescription;
     if (!empty($CFG->enableavailability)) {
         $data->availablefrom      = $cm->availablefrom;
         $data->availableuntil     = $cm->availableuntil;
@@ -145,6 +163,25 @@ if (!empty($add)) {
         $draftid_editor = file_get_submitted_draft_itemid('introeditor');
         $currentintro = file_prepare_draft_area($draftid_editor, $context->id, 'mod_'.$data->modulename, 'intro', 0, array('subdirs'=>true), $data->intro);
         $data->introeditor = array('text'=>$currentintro, 'format'=>$data->introformat, 'itemid'=>$draftid_editor);
+    }
+
+    if (plugin_supports('mod', $data->modulename, FEATURE_ADVANCED_GRADING, false)
+            and has_capability('moodle/grade:managegradingforms', $context)) {
+        require_once($CFG->dirroot.'/grade/grading/lib.php');
+        $gradingman = get_grading_manager($context, 'mod_'.$data->modulename);
+        $data->_advancedgradingdata['methods'] = $gradingman->get_available_methods();
+        $areas = $gradingman->get_available_areas();
+
+        foreach ($areas as $areaname => $areatitle) {
+            $gradingman->set_area($areaname);
+            $method = $gradingman->get_active_method();
+            $data->_advancedgradingdata['areas'][$areaname] = array(
+                'title'  => $areatitle,
+                'method' => $method,
+            );
+            $formfield = 'advancedgradingmethod_'.$areaname;
+            $data->{$formfield} = $method;
+        }
     }
 
     if ($items = grade_item::fetch_all(array('itemtype'=>'mod', 'itemmodule'=>$data->modulename,
@@ -247,7 +284,7 @@ if ($mform->is_cancelled()) {
     }
 
     $fromform->course = $course->id;
-    $fromform->modulename = clean_param($fromform->modulename, PARAM_SAFEDIR);  // For safety
+    $fromform->modulename = clean_param($fromform->modulename, PARAM_PLUGIN);  // For safety
 
     $addinstancefunction    = $fromform->modulename."_add_instance";
     $updateinstancefunction = $fromform->modulename."_update_instance";
@@ -301,14 +338,13 @@ if ($mform->is_cancelled()) {
         if (!empty($CFG->enableavailability)) {
             $cm->availablefrom             = $fromform->availablefrom;
             $cm->availableuntil            = $fromform->availableuntil;
-            // The form time is midnight, but because we want it to be
-            // inclusive, set it to 23:59:59 on that day.
-            if ($cm->availableuntil) {
-                $cm->availableuntil = strtotime('23:59:59',
-                    $cm->availableuntil);
-            }
             $cm->showavailability          = $fromform->showavailability;
             condition_info::update_cm_from_form($cm,$fromform,true);
+        }
+        if (isset($fromform->showdescription)) {
+            $cm->showdescription = $fromform->showdescription;
+        } else {
+            $cm->showdescription = 0;
         }
 
         $DB->update_record('course_modules', $cm);
@@ -336,7 +372,7 @@ if ($mform->is_cancelled()) {
             set_coursemodule_idnumber($fromform->coursemodule, $fromform->cmidnumber);
         }
 
-        // Now that module is fully updated, also update completion data if 
+        // Now that module is fully updated, also update completion data if
         // required (this will wipe all user completion data and recalculate it)
         if ($completion->is_enabled() && !empty($fromform->completionunlocked)) {
             $completion->reset_all_state($cm);
@@ -387,13 +423,12 @@ if ($mform->is_cancelled()) {
         if(!empty($CFG->enableavailability)) {
             $newcm->availablefrom             = $fromform->availablefrom;
             $newcm->availableuntil            = $fromform->availableuntil;
-            // The form time is midnight, but because we want it to be
-            // inclusive, set it to 23:59:59 on that day.
-            if ($newcm->availableuntil) {
-                $newcm->availableuntil = strtotime('23:59:59',
-                    $newcm->availableuntil);
-            }
             $newcm->showavailability          = $fromform->showavailability;
+        }
+        if (isset($fromform->showdescription)) {
+            $newcm->showdescription = $fromform->showdescription;
+        } else {
+            $newcm->showdescription = 0;
         }
 
         if (!$fromform->coursemodule = add_course_module($newcm)) {
@@ -561,12 +596,37 @@ if ($mform->is_cancelled()) {
         }
     }
 
+    if (plugin_supports('mod', $fromform->modulename, FEATURE_ADVANCED_GRADING, false)
+            and has_capability('moodle/grade:managegradingforms', $modcontext)) {
+        require_once($CFG->dirroot.'/grade/grading/lib.php');
+        $gradingman = get_grading_manager($modcontext, 'mod_'.$fromform->modulename);
+        $showgradingmanagement = false;
+        foreach ($gradingman->get_available_areas() as $areaname => $aretitle) {
+            $formfield = 'advancedgradingmethod_'.$areaname;
+            if (isset($fromform->{$formfield})) {
+                $gradingman->set_area($areaname);
+                $methodchanged = $gradingman->set_active_method($fromform->{$formfield});
+                if (empty($fromform->{$formfield})) {
+                    // going back to the simple direct grading is not a reason
+                    // to open the management screen
+                    $methodchanged = false;
+                }
+                $showgradingmanagement = $showgradingmanagement || $methodchanged;
+            }
+        }
+    }
+
     rebuild_course_cache($course->id);
     grade_regrade_final_grades($course->id);
     plagiarism_save_form_elements($fromform); //save plagiarism settings
 
     if (isset($fromform->submitbutton)) {
-        redirect("$CFG->wwwroot/mod/$module->name/view.php?id=$fromform->coursemodule");
+        if (empty($showgradingmanagement)) {
+            redirect("$CFG->wwwroot/mod/$module->name/view.php?id=$fromform->coursemodule");
+        } else {
+            $returnurl = new moodle_url("/mod/$module->name/view.php", array('id' => $fromform->coursemodule));
+            redirect($gradingman->get_management_url($returnurl));
+        }
     } else {
         redirect("$CFG->wwwroot/course/view.php?id={$course->id}#section-{$cw->section}");
     }

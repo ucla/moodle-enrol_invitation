@@ -59,22 +59,31 @@ $CFG->directorypermissions = 0777;
 // logins using the Moodle login will not work.
 $CFG->passwordsaltmain = '';
 
+// turn off messaging (CCLE-2318 - MESSAGING)
+$CFG->messaging = false;
+
+// CCLE-2590 - Implement Auto-detect Shibboleth Login
+$CFG->shib_logged_in_cookie = '_ucla_sso';
+
+// default file resources display to "Force Download"
+$CFG->forced_plugin_settings['resource'] = array('display' => 4);
+
+// CCLE-2306 - HELP SYSTEM BLOCK
+// if using JIRA, jira_user, jira_password, jira_pid should be defined in config_private.php
+$block_ucla_help_settings = array('send_to' => 'jira',
+                                  'jira_endpoint' => 'https://jira.ats.ucla.edu/CreateIssueDetails.jspa',
+                                  'jira_default_assignee' => 'dkearney',
+                                  'boxtext' => '<ul>
+                                                    <li>Find FAQs, tutorials and a large database of help documentation at <strong><a title="cclehelp" href="https://ccle.ucla.edu/course/view/cclehelp">CCLE Help</a></strong></li>
+                                                    <li>Send your feedback including suggestions and comments to <a href="mailto:ccle@ucla.edu">ccle@ucla.edu</a></li>
+                                                </ul>'
+        );
+$CFG->forced_plugin_settings['block_ucla_help'] = $block_ucla_help_settings;
+$block_ucla_help_support_contacts['System'] = 'dkearney';  // default
+
 // UCLA Theme settings
 $CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'prod';
 $CFG->forced_plugin_settings['theme_uclashared']['logo_sub_dropdown'] = true;
-
-// If you want to have un-revisioned configuration data, place in this file.
-// $CFG->dirroot is overwritten later
-$_dirroot_ = dirname(realpath(__FILE__)) . '/../../..';
-
-// Try an alternative directory setup.
-if (!file_exists($_dirroot_ . '/config.php')) {
-    $_dirroot_ = dirname(realpath(__FILE__));
-
-    if (!file_exists($_dirroot_ . '/config.php')) {
-        die ('Improper setup of configuration file.');
-    }
-}
 
 /** 
  *  Automatic Shibboleth configurations.
@@ -116,10 +125,12 @@ $CFG->forced_plugin_settings['auth/shibboleth'] = array(
  *  End shibboleth configurations.
  **/
 
-// Load a custom private data
-$_private_ = $_dirroot_ . '/config_private.php';
-if (file_exists($_private_)) {
-    require_once($_private_);
+// If you want to have un-revisioned configuration data, place in config_private
+// $CFG->dirroot is overwritten later
+$_dirroot_ = dirname(realpath(__FILE__)) . '/../../..';
+$_config_private_ = $_dirroot_ . '/config_private.php';
+if (file_exists($_config_private_)) {
+    require_once($_config_private_);
 }
 
 // This will bootstrap the moodle functions.

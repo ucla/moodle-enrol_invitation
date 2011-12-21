@@ -27,7 +27,7 @@ require_once("../config.php");
 require_once($CFG->dirroot .'/notes/lib.php');
 
 $id    = required_param('id', PARAM_INT);              // course id
-$users = optional_param('userid', array(), PARAM_INT); // array of user id
+$users = optional_param_array('userid', array(), PARAM_INT); // array of user id
 $content = optional_param('content', '', PARAM_RAW); // note content
 $state = optional_param('state', '', PARAM_ALPHA); // note publish state
 
@@ -93,8 +93,8 @@ echo '<input type="hidden" name="sesskey" value="'.sesskey().'" />';
 $state_names = note_get_state_names();
 
 // the first time list hack
-if (empty($users)) {
-    foreach ($_POST as $k => $v) {
+if (empty($users) and $post = data_submitted()) {
+    foreach ($post as $k => $v) {
         if (preg_match('/^user(\d+)$/',$k,$m)) {
             $users[] = $m[1];
         }

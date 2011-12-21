@@ -40,6 +40,7 @@ function page_supports($feature) {
         case FEATURE_GRADE_HAS_GRADE:         return false;
         case FEATURE_GRADE_OUTCOMES:          return false;
         case FEATURE_BACKUP_MOODLE2:          return true;
+        case FEATURE_SHOW_DESCRIPTION:        return true;
 
         default: return null;
     }
@@ -247,19 +248,25 @@ function page_get_participants($pageid) {
  *
  * See {@link get_array_of_activities()} in course/lib.php
  *
- * @param object $coursemodule
- * @return object info
+ * @param cm_info $coursemodule
+ * @return cached_cm_info Info to customise main page display
  */
 function page_get_coursemodule_info($coursemodule) {
     global $CFG, $DB;
     require_once("$CFG->libdir/resourcelib.php");
 
-    if (!$page = $DB->get_record('page', array('id'=>$coursemodule->instance), 'id, name, display, displayoptions')) {
+    if (!$page = $DB->get_record('page', array('id'=>$coursemodule->instance),
+            'id, name, display, displayoptions, intro, introformat')) {
         return NULL;
     }
 
-    $info = new stdClass();
+    $info = new cached_cm_info();
     $info->name = $page->name;
+
+    if ($coursemodule->showdescription) {
+        // Convert intro to html. Do not filter cached version, filters run at display time.
+        $info->content = format_module_intro('page', $page, $coursemodule->id, false);
+    }
 
     if ($page->display != RESOURCELIB_DISPLAY_POPUP) {
         return $info;
@@ -270,7 +277,7 @@ function page_get_coursemodule_info($coursemodule) {
     $width  = empty($options['popupwidth'])  ? 620 : $options['popupwidth'];
     $height = empty($options['popupheight']) ? 450 : $options['popupheight'];
     $wh = "width=$width,height=$height,toolbar=no,location=no,menubar=no,copyhistory=no,status=no,directories=no,scrollbars=yes,resizable=yes";
-    $info->extra = "onclick=\"window.open('$fullurl', '', '$wh'); return false;\"";
+    $info->onclick = "window.open('$fullurl', '', '$wh'); return false;";
 
     return $info;
 }
@@ -362,26 +369,46 @@ function page_pluginfile($course, $cm, $context, $filearea, $args, $forcedownloa
         return false;
     }
 
-    array_shift($args); // ignore revision - designed to prevent caching problems only
+    // $arg could be revision number or index.html
+    $arg = array_shift($args);
+    if ($arg == 'index.html' || $arg == 'index.htm') {
+        // serve page content
+        $filename = $arg;
 
-    $fs = get_file_storage();
-    $relativepath = implode('/', $args);
-    $fullpath = "/$context->id/mod_page/$filearea/0/$relativepath";
-    if (!$file = $fs->get_file_by_hash(sha1($fullpath)) or $file->is_directory()) {
-        $page = $DB->get_record('page', array('id'=>$cm->instance), 'id, legacyfiles', MUST_EXIST);
-        if ($page->legacyfiles != RESOURCELIB_LEGACYFILES_ACTIVE) {
+        if (!$page = $DB->get_record('page', array('id'=>$cm->instance), '*', MUST_EXIST)) {
             return false;
         }
-        if (!$file = resourcelib_try_file_migration('/'.$relativepath, $cm->id, $cm->course, 'mod_page', 'content', 0)) {
-            return false;
+
+        // remove @@PLUGINFILE@@/
+        $content = str_replace('@@PLUGINFILE@@/', '', $page->content);
+
+        $formatoptions = new stdClass;
+        $formatoptions->noclean = true;
+        $formatoptions->overflowdiv = true;
+        $formatoptions->context = $context;
+        $content = format_text($content, $page->contentformat, $formatoptions);
+
+        send_file($content, $filename, 0, 0, true, true);
+    } else {
+        $fs = get_file_storage();
+        $relativepath = implode('/', $args);
+        $fullpath = "/$context->id/mod_page/$filearea/0/$relativepath";
+        if (!$file = $fs->get_file_by_hash(sha1($fullpath)) or $file->is_directory()) {
+            $page = $DB->get_record('page', array('id'=>$cm->instance), 'id, legacyfiles', MUST_EXIST);
+            if ($page->legacyfiles != RESOURCELIB_LEGACYFILES_ACTIVE) {
+                return false;
+            }
+            if (!$file = resourcelib_try_file_migration('/'.$relativepath, $cm->id, $cm->course, 'mod_page', 'content', 0)) {
+                return false;
+            }
+            //file migrate - update flag
+            $page->legacyfileslast = time();
+            $DB->update_record('page', $page);
         }
-        //file migrate - update flag
-        $page->legacyfileslast = time();
-        $DB->update_record('page', $page);
+
+        // finally send the file
+        send_stored_file($file, 86400, 0, $forcedownload);
     }
-
-    // finally send the file
-    send_stored_file($file, 86400, 0, $forcedownload);
 }
 
 
@@ -414,4 +441,55 @@ function page_extend_navigation($navigation, $course, $module, $cm) {
 function page_page_type_list($pagetype, $parentcontext, $currentcontext) {
     $module_pagetype = array('mod-page-*'=>get_string('page-mod-page-x', 'page'));
     return $module_pagetype;
+}
+
+/**
+ * Export page resource contents
+ *
+ * @return array of file content
+ */
+function page_export_contents($cm, $baseurl) {
+    global $CFG, $DB;
+    $contents = array();
+    $context = get_context_instance(CONTEXT_MODULE, $cm->id);
+
+    $page = $DB->get_record('page', array('id'=>$cm->instance), '*', MUST_EXIST);
+
+    // page contents
+    $fs = get_file_storage();
+    $files = $fs->get_area_files($context->id, 'mod_page', 'content', 0, 'sortorder DESC, id ASC', false);
+    foreach ($files as $fileinfo) {
+        $file = array();
+        $file['type']         = 'file';
+        $file['filename']     = $fileinfo->get_filename();
+        $file['filepath']     = $fileinfo->get_filepath();
+        $file['filesize']     = $fileinfo->get_filesize();
+        $file['fileurl']      = file_encode_url("$CFG->wwwroot/" . $baseurl, '/'.$context->id.'/mod_page/content/'.$page->revision.$fileinfo->get_filepath().$fileinfo->get_filename(), true);
+        $file['timecreated']  = $fileinfo->get_timecreated();
+        $file['timemodified'] = $fileinfo->get_timemodified();
+        $file['sortorder']    = $fileinfo->get_sortorder();
+        $file['userid']       = $fileinfo->get_userid();
+        $file['author']       = $fileinfo->get_author();
+        $file['license']      = $fileinfo->get_license();
+        $contents[] = $file;
+    }
+
+    // page html conent
+    $filename = 'index.html';
+    $pagefile = array();
+    $pagefile['type']         = 'file';
+    $pagefile['filename']     = $filename;
+    $pagefile['filepath']     = '/';
+    $pagefile['filesize']     = 0;
+    $pagefile['fileurl']      = file_encode_url("$CFG->wwwroot/" . $baseurl, '/'.$context->id.'/mod_page/content/' . $filename, true);
+    $pagefile['timecreated']  = null;
+    $pagefile['timemodified'] = $page->timemodified;
+    // make this file as main file
+    $pagefile['sortorder']    = 1;
+    $pagefile['userid']       = null;
+    $pagefile['author']       = null;
+    $pagefile['license']      = null;
+    $contents[] = $pagefile;
+
+    return $contents;
 }

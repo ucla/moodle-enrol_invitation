@@ -343,7 +343,7 @@ function question_delete_question($questionid) {
 /**
  * All question categories and their questions are deleted for this course.
  *
- * @param object $mod an object representing the activity
+ * @param stdClass $course an object representing the activity
  * @param boolean $feedback to specify if the process must output a summary of its work
  * @return boolean
  */
@@ -825,16 +825,8 @@ function get_question_options(&$questions, $loadtags = false) {
  * @return string the HTML for the img tag.
  */
 function print_question_icon($question) {
-    global $OUTPUT;
-
-    $qtype = question_bank::get_qtype($question->qtype, false);
-    $namestr = $qtype->menu_name();
-
-    // TODO convert to return a moodle_icon object, or whatever the class is.
-    $html = '<img src="' . $OUTPUT->pix_url('icon', $qtype->plugin_name()) . '" alt="' .
-            $namestr . '" title="' . $namestr . '" />';
-
-    return $html;
+    global $PAGE;
+    return $PAGE->get_renderer('question', 'bank')->qtype_icon($question->qtype);
 }
 
 /**
@@ -851,17 +843,6 @@ function question_hash($question) {
 }
 
 /// FUNCTIONS THAT SIMPLY WRAP QUESTIONTYPE METHODS //////////////////////////////////
-/**
- * Get anything that needs to be included in the head of the question editing page
- * for a particular question type. This function is called by question/question.php.
- *
- * @param $question A question object. Only $question->qtype is used.
- * @return string Deprecated. Some HTML code that can go inside the head tag.
- */
-function question_get_editing_head_contributions($question) {
-    question_bank::get_qtype($question->qtype, false)->get_editing_head_contributions();
-}
-
 /**
  * Saves question options
  *
@@ -1202,33 +1183,27 @@ function question_categorylist($categoryid) {
  */
 function get_import_export_formats($type) {
     global $CFG;
+    require_once($CFG->dirroot . '/question/format.php');
 
-    $fileformats = get_plugin_list('qformat');
+    $formatclasses = get_plugin_list_with_class('qformat', '', 'format.php');
 
     $fileformatname = array();
-    require_once($CFG->dirroot . '/question/format.php');
-    foreach ($fileformats as $fileformat => $fdir) {
-        $formatfile = $fdir . '/format.php';
-        if (is_readable($formatfile)) {
-            include_once($formatfile);
-        } else {
-            continue;
-        }
+    foreach ($formatclasses as $component => $formatclass) {
 
-        $classname = 'qformat_' . $fileformat;
-        $formatclass = new $classname();
+        $format = new $formatclass();
         if ($type == 'import') {
-            $provided = $formatclass->provide_import();
+            $provided = $format->provide_import();
         } else {
-            $provided = $formatclass->provide_export();
+            $provided = $format->provide_export();
         }
 
         if ($provided) {
-            $fileformatnames[$fileformat] = get_string($fileformat, 'qformat_' . $fileformat);
+            list($notused, $fileformat) = explode('_', $component, 2);
+            $fileformatnames[$fileformat] = get_string('pluginname', $component);
         }
     }
 
-    textlib_get_instance()->asort($fileformatnames);
+    collatorlib::asort($fileformatnames);
     return $fileformatnames;
 }
 
