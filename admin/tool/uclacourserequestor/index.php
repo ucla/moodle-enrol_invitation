@@ -6,7 +6,7 @@
 require_once(dirname(__FILE__) . '/../../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 
-$thisdir = '/' . $CFG->admin . '/report/uclacourserequestor/';
+$thisdir = '/' . $CFG->admin . '/tool/uclacourserequestor/';
 require_once($CFG->dirroot . $thisdir . 'lib.php');
 
 global $DB, $ME, $USER;
@@ -14,16 +14,16 @@ global $DB, $ME, $USER;
 require_login();
 
 $syscontext = get_context_instance(CONTEXT_SYSTEM);
-$rucr = 'report_uclacourserequestor';
+$rucr = 'tool_uclacourserequestor';
 
 // Adding 'Support Admin' capability to course requestor
-if (!has_capability('report/uclacourserequestor:view', $syscontext)) {
+if (!has_capability('tool/uclacourserequestor:view', $syscontext)) {
     print_error('adminsonlybanner');
 }
 
 $selterm = optional_param('term', false, PARAM_ALPHANUM);
 $selected_term = $selterm ? $selterm : get_config(
-    'report/uclacourserequestor', 'selected_term');
+    'tool/uclacourserequestor', 'selected_term');
 
 $thisfile = $thisdir . 'index.php';
 
@@ -79,7 +79,7 @@ $top_forms = array(
     UCLA_REQUESTOR_VIEW => array('view')
 );
 
-$termstr = get_config('report/uclacourserequestor', 'terms');
+$termstr = get_config('tool/uclacourserequestor', 'terms');
 
 if (!empty($termstr)) {
     $terms = explode(',', $termstr);

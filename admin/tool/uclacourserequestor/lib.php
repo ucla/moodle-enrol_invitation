@@ -3,6 +3,7 @@
 /**
  *  A library of functions useful for course requestor and probably
  *  course creator.
+ *  @author Yangmun Choi
  *  TODO get rid of all those get_object_vars(), why are there so many
  **/
 
@@ -39,19 +40,14 @@ require_once($uclalib);
 ucla_require_registrar();
 
 require_once($CFG->dirroot . '/' . $CFG->admin 
-    . '/report/uclacourserequestor/ucla_courserequests.class.php');
+    . '/tool/uclacourserequestor/ucla_courserequests.class.php');
 
 /**
  *  Fetches a single course from the request table.
  **/
 function get_course_request($term, $srs) {
     $r = get_course_requests(
-        array(
-            array(
-                'term' => $term, 
-                'srs' => $srs
-            )
-        )
+        array(array('term' => $term, 'srs' => $srs))
     );
 
     if (!empty($r)) {
@@ -337,7 +333,7 @@ function get_requestor_defaults() {
     $defaults = array();
     //$defaults['hidden'] = get_config('moodlecourse')->visible;
 
-    $configs = get_config('report/uclacourserequestor');
+    $configs = get_config('tool/uclacourserequestor');
 
     $editables = ucla_courserequests::get_editables();
     $translate_tf = array('true' => 1, 'false' => 0);
@@ -357,7 +353,7 @@ function get_requestor_defaults() {
     $defaults['action'] = UCLA_COURSE_TOBUILD;
     $defaults['timerequested'] = time();
 
-    $rucr = 'report_uclacourserequestor';
+    $rucr = 'tool_uclacourserequestor';
     $defaults['id'] = null;
     $defaults['courseid'] = null;
 
@@ -522,16 +518,7 @@ function extract_term_srs_xml($xml) {
  *  Convenience function to make a term-srs index for internal usage.
  **/
 function request_make_key($sr) {
-    if (is_object($sr)) {
-        $sr = get_object_vars($sr);
-    }
-
-    if (empty($sr['term']) || empty($sr['srs'])) {
-        debugging('No key from object: ' . print_r($sr, true));
-        return false;
-    }
-
-    return $sr['term'] . '-' . $sr['srs'];
+    return make_idnumber($sr);
 }
 
 /**
@@ -663,7 +650,7 @@ function prep_request_entry($requestinfo) {
     $wars = UCLA_REQUESTOR_WARNING;
     $worstnote = null;
 
-    $rucr = 'report_uclacourserequestor';
+    $rucr = 'tool_uclacourserequestor';
 
     // This is the returned display-ready row
     $formatted = array();
@@ -939,7 +926,7 @@ function prep_request_entry($requestinfo) {
  *  Takes a status/action and translates it to a human readable form.
  **/
 function requestor_statuses_translate($status) {
-    $rucr = 'report_uclacourserequestor';
+    $rucr = 'tool_uclacourserequestor';
 
     if (get_string_manager()->string_exists($status, $rucr)) {
         $posstext = get_string($status, $rucr);

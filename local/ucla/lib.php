@@ -49,6 +49,10 @@ function ucla_verify_configuration_setup() {
     return $returner;
 }
 
+/** 
+ *  Convenience function to include all the Registrar connection 
+ *  functionality.
+ **/
 function ucla_require_registrar() {
     global $CFG;
 
@@ -56,70 +60,131 @@ function ucla_require_registrar() {
         . '/local/ucla/uclaregistrar/registrar_query.class.php');
 }
 
-function get_courses_info($courses) {
+/** 
+ *  Serialize/hashes courses.
+ **/
+function make_idnumber($courseinfo) {
+    if (is_object($courseinfo)) {
+        $courseinfo = get_object_vars($courseinfo);
+    }
 
+    if (empty($courseinfo['term']) || empty($courseinfo['srs'])) {
+        debugging('No key from object: ' . print_r($sr, true));
+        return false;
+    }
+
+    return $courseinfo['term'] . '-' . $courseinfo['srs'];
 }
 
 /**
- *  Returns all the courses in the local system for a particular term.
- *  Returns only child courses.
- *  Currently the SRS filter does NOT work.
+ *  Returns a set of courses based on the courseid provided.
+ *  @author Yangmun Choi
+ *  @return 
+ *      Array (
+ *          "$term-$srs" => reg_info_object
+ *          ...
+ *      )
  **/
-function ucla_get_courses($terms=null, $srses=null) {
+function ucla_get_course_info($courseid) {
     global $DB;
 
-    $where_sql = array();
-    $where_params = array();
+    $records = $DB->get_records('ucla_request_classes', 
+        array('courseid' => $courseid));
 
-    // TODO - abstract and iterate on this... or not
-    $coursef = 'c.`idnumber`';
-    $ctfield = 'course_term';
-
-    $ctselect = ', SUBSTRING(' . $coursef . ', 1, 3) AS ' . $ctfield;
-
-    if ($terms !== null) {
-        foreach ($terms as $term) {
-            // TODO validate terms
-
-            $where_sql[] = $coursef . ' LIKE ?';
-            $where_params[] = $term . '-%';
-        }
+    $reindexed = array();
+    foreach ($records as $record) {
+        $reindexed[make_idnumber($record)] = $record;
     }
 
-    $csfield = 'course_srs';
-    $csselect = ', SUBSTRING(' . $coursef . ', 5, 9) AS ' . $csfield;
+    return $reindexed;
+}
 
-    if ($srses !== null) {
+/**
+ *  Returns a pretty looking term.
+ *  TODO replace with termcaching
+ **/
+function ucla_term_to_text($term) {
+    $term_letter = strtolower(substr($term, -1, 1));
+    $years = substr($term, 0, 2);
 
-        foreach ($srses as $srs) {
-            // TODO Validate SRS
-
-            $where_sql[] = $coursef . ' LIKE ?';
-            $where_params[] = '%-' . $srs;
-        }
+    $termtext = "20$years ";
+    if ($term_letter == "f") {
+        $termtext .= " Fall";
+    } else if ($term_letter == "w") {
+        // W -> Winter
+        $termtext .= " Winter";
+    } else if ($term_letter == "s") {
+        // S -> Spring
+        $termtext .= " Spring";
+    } else {
+        // 1 -> Summer
+        $termtext .= " Summer Session " . $session;            
     }
 
-    $sql = "SELECT * $ctselect $csselect
-        FROM {course} c
-        LEFT JOIN {ucla_reg_classinfo} rci 
-            ON CONCAT(rci.term, '-', rci.srs) = $coursef
-        WHERE " . implode(' OR ', $where_sql);
+    return $termtext;
+}
 
-    $results = $DB->get_records_sql($sql, $where_params);
+/**
+ * Properly format a user's name. Name might include the following 
+ * characters ' or - or a space. Need to properly uppercase the first letter
+ * and lowercase the rest. Assuming input is all captialized.
+ *
+ * NOTE: Special case added if the last name starts with "MC". Assuming that
+ * next character should be uppercase.
+ *
+ * @author Rex Lorenzo
+ * @param string name   fname, mname, or lname
+ * @return string       name in proper format
+ **/
+function ucla_format_name($name=null) {
+    $name = ucfirst(strtolower(trim($name)));    
 
-    $courses_by_term = array();
-    // Index results by term, then by srs
-    foreach ($results as $result) {
-        $term = $result->$ctfield;
-
-        if (!isset($courses_by_term[$term])) {
-            $courses_by_term[$term] = array();
-        }
-
-        $courses_by_term[$term][$result->$csfield] = $result;
+    if (empty($name)) {
+        return '';
     }
 
-    return $courses_by_term;
+    /* the way to handle special cases in a person's name is to recurse on
+     * the following cases:
+     *  - If name has a space
+     *  - If name has a hypen
+     *  - If name has an aprostrophe
+     *  - If name starts with "MC"
+     */    
+
+    // has space? 
+    $name_array = explode(' ', $name);
+    if (count($name_array) > 1) {   
+        foreach ($name_array as $key => $element) {
+            $name_array[$key] = format_name($element);   // recurse
+        }
+        $name = implode(' ', $name_array);  // combine elements back        
+    }
+
+    // has hypen?
+    $name_array = explode('-', $name);
+    if (count($name_array) > 1) {   
+        foreach ($name_array as $key => $element) {
+            $name_array[$key] = format_name($element);   // recurse
+        }
+        $name = implode('-', $name_array);  // combine elements back        
+    }    
+
+    // has aprostrophe?
+    $name_array = explode("'", $name);
+    if (count($name_array) > 1) {  
+        foreach ($name_array as $key => $element) {
+            $name_array[$key] = format_name($element);   // recurse
+        }
+        $name = implode("'", $name_array);  // combine elements back        
+    }    
+
+    // starts with MC (and is more than 2 characters)?
+    if (strlen($name)>2 && (0 == strncasecmp($name, 'mc', 2))) {
+        $name[2] = strtoupper($name[2]);    // make 3rd character uppercase
+    }
+
+    return $name;
+
 }
 
 /**
@@ -128,27 +193,27 @@ function ucla_get_courses($terms=null, $srses=null) {
 function local_ucla_cron() {
     global $CFG;
 
-    // Do a better job figuring this out
+    // TODO Do a better job figuring this out
     $terms = $CFG->currentterm;
 
     include_once($CFG->dirroot . '/local/ucla/cronlib.php');
-    include_once($CFG->dirroot 
-        . '/local/ucla/uclaregistrar/registrar_query.class.php');
+    ucla_require_registrar();
 
     $terms = array($terms);
 
-    // Fill the ucla_reg_classinfo table
-    // This should run often
-    $ucrc = new ucla_reg_classinfo_cron();
-    $ucrc->run($terms);
+    $works = array('classinfo', 'subjectarea', 'division');
 
-    // Fill the ucla_reg_subjeactarea table
-    // This should run maybe once a quarter
-    $ucsc = new ucla_reg_subjectarea_cron();
-    $ucsc->run($terms);
+    foreach ($works as $work) {
+        $cn = 'ucla_reg_' . $work . '_cron';
+        if (class_exists($cn)) {
+            $runner = new $cn();
+            if (method_exists('run' , $cn)) {
+                $runner->run($terms);
+            }
+        }
+    }
 
-    // Fill the ucla_reg_divisions table
-    // This should run maybe once a quarter
+    return true;
 }
 
 // Auto-login if user is guest
@@ -167,7 +232,8 @@ function auto_login_as_guest() {
 // Return the value of the Shibboleth cookie, or false if it does not exist
 function get_shib_logged_in_cookie() {
     global $CFG;
-    return isset($_COOKIE[$CFG->shib_logged_in_cookie]) ? $_COOKIE[$CFG->shib_logged_in_cookie] : false;
+    return isset($_COOKIE[$CFG->shib_logged_in_cookie]) ? 
+        $_COOKIE[$CFG->shib_logged_in_cookie] : false;
 }
 
 // Check if an Shibboleth cookie exists
@@ -176,28 +242,37 @@ function is_shib_logged_in_cookie_set() {
     return isset($_COOKIE[$CFG->shib_logged_in_cookie]);
 }
 
-// If the user is guest but an Shibboleth cookie exists, we "click" the "login" link for them
+// If the user is guest but an Shibboleth cookie exists, we "click" 
+// the "login" link for them
 function require_user_finish_login() {
     global $CFG, $FULLME, $SESSION;
     if ((!isloggedin() || isguestuser()) && is_shib_logged_in_cookie_set()) {
         
-        // If a flag is set in $SESSION indicating that the user has chosen "Guess Access"
-        // in the login page, don't redirect her back to the login page
-        if (isset($SESSION->ucla_login_as_guest) && $SESSION->ucla_login_as_guest === get_shib_logged_in_cookie())
+        // If a flag is set in $SESSION indicating that the user has 
+        // chosen "Guess Access" in the login page, don't redirect her 
+        // back to the login page
+        if (isset($SESSION->ucla_login_as_guest) 
+                && $SESSION->ucla_login_as_guest 
+                    === get_shib_logged_in_cookie()) {
             return;
+        }
 
-        // Now using timeout value in new cookie for semi-lazy session initialization 
-        // with Shibboleth cookie documented here:
+        // Now using timeout value in new cookie for semi-lazy session 
+        // initialization with Shibboleth cookie documented here:
         // https://spaces.ais.ucla.edu/display/iamuclabetadocs/DetectingShibbolethSession
         $login_cookie_value = get_shib_logged_in_cookie();
-        if (strtotime($login_cookie_value) < time())
+        if (strtotime($login_cookie_value) < time()) {
             return;
+        }
         
-        // Otherwise, redirect the user to the login page and note in $SESSION->wantsurl that
-        // the login page should eventually redirect back to this page
+        // Otherwise, redirect the user to the login page and note 
+        // in $SESSION->wantsurl that the login page should eventually 
+        // redirect back to this page
         $SESSION->wantsurl = $FULLME;
         redirect($CFG->wwwroot .'/login/index.php');
         exit();
+    }
+}
 
 /**
  * Given a registrar profcode and list of other roles a user has, returns what
@@ -209,8 +284,9 @@ function require_user_finish_login() {
  *                                  are assigning roles for.
  * @return type 
  */
-function role_mapping($profcode, array $other_roles, $subject_area="*SYSTEM*")
-{
+function role_mapping($profcode, array $other_roles, 
+        $subject_area="*SYSTEM*") {
+
     // logic to parse profcodes, and return pseudorole
     $pseudorole = get_pseudorole($profcode, $other_roles);
     
@@ -219,7 +295,6 @@ function role_mapping($profcode, array $other_roles, $subject_area="*SYSTEM*")
     
     return $moodleroleid;
 }
-
 
 /**
  * This mapping definition will be used only for instructors
@@ -241,7 +316,8 @@ function role_mapping($profcode, array $other_roles, $subject_area="*SYSTEM*")
  */
 function get_pseudorole($profcode, array $other_roles) {
     $max = 0;
-    for ($other_roles as $other_role) {
+
+    foreach ($other_roles as $other_role) {
         $ivor = intval($other_role);
         $hasrole[$ivor] = true;
 
@@ -274,14 +350,15 @@ function get_pseudorole($profcode, array $other_roles) {
 }
 
 /**
- * @param string type   Type can be 'term', 'srs', 'uid'
- * @param mixed value   term: DDC 
- *      (two digit number with C being either F, W, S, 1)
- *                      SRS/UID: (9 digit number, can have leading zeroes)
+ * @param string $type   
+ *      Type can be 'term', 'srs', 'uid'
+ * @param mixed $value   
+ *      term: DDC (two digit number with C being either F, W, S, 1)
+ *      SRS/UID: (9 digit number, can have leading zeroes)
  * @return boolean      true if the value matches the type, false otherwise.
  * @throws moodle_exception When the input type is invalid.
  */
-function ucla_validator($type, $value){
+function ucla_validator($type, $value) {
     $result = 0;
     
     switch($type) {
@@ -329,7 +406,7 @@ function get_moodlerole($pseudorole, $subject_area='*SYSTEM*') {
                 array('shortname' => $role[$pseudorole][$subject_area]))) {
             return $moodlerole->id;
         }            
-    }        
+    }
     
     // didn't find role mapping in config file, check database
     if ($moodlerole = $DB->get_record('ucla_rolemapping', 
@@ -345,7 +422,7 @@ function get_moodlerole($pseudorole, $subject_area='*SYSTEM*') {
     if ($moodlerole = $DB->get_record('role', 
             array('shortname' => $role[$pseudorole]['*SYSTEM*']))) {
         return $moodlerole->id;
-    }              
+    }
     
     // oh no... didn't find proper role mapping, stop the presses
     throw new moodle_exception('invalidrolemapping', 'local_ucla', null, 
@@ -353,3 +430,4 @@ function get_moodlerole($pseudorole, $subject_area='*SYSTEM*') {
                     $pseudorole, $subject_area));
 }
 
+// EOF

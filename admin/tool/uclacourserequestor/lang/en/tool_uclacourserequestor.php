@@ -1,5 +1,6 @@
 <?php
 $string['pluginname'] = "UCLA course requestor";
+$string['uclacourserequestor'] = $string['pluginname'];
 $string['courserequestor:view'] = "View " . $string['pluginname'];
 
 $string['srslookup'] = "SRS number lookup (Registrar)";

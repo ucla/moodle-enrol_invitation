@@ -58,7 +58,7 @@ list($ext_argv, $unrecog) = cli_get_params(
 );
 
 if ($ext_argv['help']) {
-    die(get_string('cli_helpmsg', 'report_uclacoursecreator'));
+    die(get_string('cli_helpmsg', 'tool_uclacourserequestor'));
 }
 
 $goals = array();
@@ -104,7 +104,7 @@ if ($ext_argv['current-term']) {
     if (!empty($CFG->currentterm)) {
         $termlist = array($CFG->currentterm);
     } else {
-        echo get_string('current_term_not_set', 'report_uclacoursecreator') 
+        echo get_string('current_term_not_set', 'tool_uclacourserequestor') 
             . "\n";
     }
 }

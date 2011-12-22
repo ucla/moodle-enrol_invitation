@@ -1,3 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="admin/tool/uclacourserequestor/db" VERSION="20111105" COMMENT="XMLDB file for Moodle course requestor"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
     <TABLE NAME="ucla_request_classes" COMMENT="Table to request and track course builds">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="term"/>
@@ -27,3 +33,5 @@
         <INDEX NAME="uniqtermsrs" UNIQUE="true" FIELDS="term, srs" PREVIOUS="searchaction"/>
       </INDEXES>
     </TABLE>
+  </TABLES>
+</XMLDB>

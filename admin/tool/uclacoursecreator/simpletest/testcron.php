@@ -31,7 +31,7 @@ if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');
 }
 
-$curdir = '/admin/report/uclacoursecreator';
+$curdir = '/admin/tool/uclacoursecreator';
 
 require_once($CFG->dirroot . $curdir . '/uclacoursecreator.class.php');
 
@@ -48,7 +48,7 @@ class UCLACCTest extends UnitTestCase {
 
     // Maybe if code coverage is included
     public static $includecoverage = 
-        array('admin/report/uclacoursecreator/uclacoursecreator.class.php');
+        array('admin/tool/uclacoursecreator/uclacoursecreator.class.php');
 
     function setUp() {
         // Do a better setup

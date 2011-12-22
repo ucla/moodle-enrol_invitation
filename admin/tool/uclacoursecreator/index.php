@@ -203,7 +203,7 @@ echo $OUTPUT->header();
 
 echo $OUTPUT->box_start('generalbox boxwidthwide boxaligncenter centerpara');
 echo $OUTPUT->heading(
-    get_string('uclacoursecreator', 'report_uclacoursecreator')
+    get_string('uclacoursecreator', 'tool_uclacourserequestor')
 );
 
 // @todo Enable this whenever you are ready

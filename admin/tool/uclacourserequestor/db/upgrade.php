@@ -18,7 +18,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/' . $CFG->admin 
-    . '/report/uclacourserequestor/lib.php');
+    . '/tool/uclacourserequestor/lib.php');
 
 /**
  *
@@ -29,7 +29,7 @@ require_once($CFG->dirroot . '/' . $CFG->admin
  * @param int $oldversion
  * @return bool always true
  */
-function xmldb_report_uclacourserequestor_upgrade($oldversion) {
+function xmldb_tool_uclacourserequestor_upgrade($oldversion) {
     global $DB;
 
     $dbman = $DB->get_manager(); // loads ddl manager and xmldb classes
@@ -68,7 +68,7 @@ function xmldb_report_uclacourserequestor_upgrade($oldversion) {
         }
 
         // uclacourserequestor savepoint reached
-        upgrade_plugin_savepoint(true, 2011052717, 'report', 'uclacourserequestor');
+        upgrade_plugin_savepoint(true, 2011052717, 'tool', 'uclacourserequestor');
     }
 	
     if ($result && $oldversion < 2011052717) {
@@ -92,7 +92,7 @@ function xmldb_report_uclacourserequestor_upgrade($oldversion) {
         }
 
         // uclacourserequestor savepoint reached
-        upgrade_plugin_savepoint(true, 2011052717, 'report', 'uclacourserequestor');
+        upgrade_plugin_savepoint(true, 2011052717, 'tool', 'uclacourserequestor');
     }
    
     //                YYYYMMDDVV
@@ -106,7 +106,7 @@ function xmldb_report_uclacourserequestor_upgrade($oldversion) {
         $dbman->change_field_precision($table, $field);
 
         // uclacourserequestor savepoint reached
-        upgrade_plugin_savepoint(true, 2011072704, 'report', 'uclacourserequestor');
+        upgrade_plugin_savepoint(true, 2011072704, 'tool', 'uclacourserequestor');
     }
 
     //             YYYYMMDDVV
@@ -123,7 +123,7 @@ function xmldb_report_uclacourserequestor_upgrade($oldversion) {
         }
 
         // uclacourserequestor savepoint reached
-        upgrade_plugin_savepoint(true, $thisversion, 'report', 'uclacourserequestor');
+        upgrade_plugin_savepoint(true, $thisversion, 'tool', 'uclacourserequestor');
     } 
 
     $thisversion = 2011113000;
@@ -242,7 +242,7 @@ function xmldb_report_uclacourserequestor_upgrade($oldversion) {
         }
 
         // uclacourserequestor savepoint reached
-        upgrade_plugin_savepoint(true, $thisversion, 'report', 'uclacourserequestor');
+        upgrade_plugin_savepoint(true, $thisversion, 'tool', 'uclacourserequestor');
     }
 
     $thisversion = 2011121900;
@@ -258,7 +258,7 @@ function xmldb_report_uclacourserequestor_upgrade($oldversion) {
         }
 
         // uclacourserequestor savepoint reached
-        upgrade_plugin_savepoint(true, $thisversion, 'report', 'uclacourserequestor');
+        upgrade_plugin_savepoint(true, $thisversion, 'tool', 'uclacourserequestor');
     }
 	return $result;
 }

@@ -26,7 +26,7 @@ class requestor_srs_form extends requestor_shared_form {
             array(
                 'srs' => array(
                     array(
-                        get_string('srserror', 'report_uclacourserequestor'), 
+                        get_string('srserror', 'tool_uclacourserequestor'), 
                             'regex', '/^[0-9]{9}$/', 'client'
                     )
                 )

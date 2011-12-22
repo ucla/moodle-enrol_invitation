@@ -11,7 +11,7 @@ class requestor_view_form extends requestor_shared_form {
     const noviewcourses = 'noviewcourses';
 
     function specification() {
-        $rucr = 'report_uclacourserequestor';
+        $rucr = 'tool_uclacourserequestor';
 
         $mf =& $this->_form;
 

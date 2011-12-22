@@ -21,7 +21,7 @@ class requestor_shared_form extends moodleform {
 
         $requestline = array();
 
-        $ucr = 'report_uclacourserequestor';
+        $ucr = 'tool_uclacourserequestor';
         $gn = $this->groupname;
        
         if (!$this->noterm) {
