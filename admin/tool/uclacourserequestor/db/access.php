@@ -1,9 +1,8 @@
 <?php
-/* 
+/**
  * CCLE-1723
  * Adding 'Support Admin' capability to course requestor
- * 
- */
+ **/
 
 $capabilities = array(
     'tool/uclacourserequestor:view' => array(
@@ -14,5 +13,5 @@ $capabilities = array(
             'admin' => CAP_ALLOW
         ),
     )
-)
+);
 
