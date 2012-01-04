@@ -25,6 +25,10 @@ $selterm = optional_param('term', false, PARAM_ALPHANUM);
 $selected_term = $selterm ? $selterm : get_config(
     'tool/uclacourserequestor', 'selected_term');
 
+if (!$selected_term) {
+    $selected_term = $CFG->currentterm;
+}
+
 $thisfile = $thisdir . 'index.php';
 
 // used to determine if course is already been requested
@@ -48,31 +52,8 @@ admin_externalpage_setup('uclacourserequestor');
 
 $subjareas = $DB->get_records('ucla_reg_subjectarea');
 
-$prefields = array('term', 'department', 'action');
-$prefieldstr = trim(implode(', ', $prefields));
 
-$rsid = 'CONCAT(' . $prefieldstr . ')';
-if (!$prefieldstr) {
-    $prefieldstr = $rsid;
-} else {
-    $prefieldstr = $rsid . ', ' . $prefieldstr;
-}
-
-$builtcategories = $DB->get_records('ucla_request_classes', null, 
-    'department', 'DISTINCT ' . $prefieldstr);
-
-$prefieldsdata = array();
-foreach ($builtcategories as $builts) {
-    foreach ($prefields as $prefield) {
-        $varname = $prefield;
-
-        if (!isset($prefieldsdata[$varname])) {
-            $prefieldsdata[$varname] = array();
-        }
-
-        $prefieldsdata[$varname][$builts->$prefield] = $builts->$prefield;
-    }
-}
+$prefieldsdata = get_requestor_view_fields();
 
 $top_forms = array(
     UCLA_REQUESTOR_FETCH => array('srs', 'subjarea'),
@@ -102,10 +83,6 @@ $nv_cd = array(
     'terms' => $terms,
     'prefields' => $prefieldsdata
 );
-
-foreach ($prefieldsdata as $var => $pfd) {
-    $nv_cd[$var] = $pfd;
-}
 
 // We're going to display the forms, but later
 $cached_forms = array();
@@ -175,7 +152,7 @@ if ($requests === null) {
 
                 $tr = array('term' => $term, 'srs' => $srs);
 
-                $k = request_make_key($tr);
+                $k = make_idnumber($tr);
 
                 if (!empty($changes[$set][$k])) {
                     $changes[$set][$k][$var] = $val;
@@ -205,17 +182,14 @@ if (isset($uclacrqs)) {
     $requestswitherrors = $uclacrqs->validate_requests($groupid);
 
     if ($saverequeststates) {
-        /*
-        echo "<PRE>";
-        var_dump($requestswitherrors);
-        echo "</pre>";*/
         $successfuls = $uclacrqs->commit();
 
-        // Redo this
+        // Reloading the 3rd form
+        $nv_cd['prefields'] = get_requestor_view_fields();
         $cached_forms[UCLA_REQUESTOR_VIEW]['view'] 
             = new requestor_view_form(null, $nv_cd);
 
-        // TODO Take out successfuls from requests with errors
+        // Take out successfuls from requests with errors
         foreach ($requestswitherrors as $setid => $set) {
             if (isset($successfuls[$setid])) {
                 unset($requestswitherrors[$setid]);
@@ -259,7 +233,7 @@ if (isset($uclacrqs)) {
 $registrar_link = new moodle_url(
     'http://www.registrar.ucla.edu/schedule/');
 
-// TODO Commit and display relevant information
+// TODO display relevant information
 
 // Start rendering
 echo $OUTPUT->header();

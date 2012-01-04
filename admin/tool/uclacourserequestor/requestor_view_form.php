@@ -76,8 +76,6 @@ class requestor_view_form extends requestor_shared_form {
             }
         }
 
-        // TODO figure out crosslists
-
         $reqs = $DB->get_records('ucla_request_classes', $filters);
 
         foreach ($reqs as $req) {

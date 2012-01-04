@@ -46,6 +46,10 @@ require_once($CFG->dirroot . '/' . $CFG->admin
  *  Fetches a single course from the request table.
  **/
 function get_course_request($term, $srs) {
+    if (empty($term) || empty($srs)) {
+        return false;
+    }
+
     $r = get_course_requests(
         array(array('term' => $term, 'srs' => $srs))
     );
@@ -118,7 +122,7 @@ function get_course_requests($inputs=array()) {
     $returns = array();
     if ($results) {
         foreach ($results as $k => $r) {
-            $returns[request_make_key($r)] = prep_request_from_db($r);
+            $returns[make_idnumber($r)] = prep_request_from_db($r);
         }
     }
 
@@ -137,7 +141,7 @@ function get_set($setid) {
     $iset = array();
 
     foreach ($set as $request) {
-        $k = request_make_key($request);
+        $k = make_idnumber($request);
 
         $iset[$k] = prep_request_from_db($request);
     }
@@ -197,10 +201,14 @@ function registrar_to_requests($courses) {
             $course = get_object_vars($course);
         }
 
+        if (empty($course['term']) || empty($course['srs'])) {
+            continue;
+        }
+
         $term = $course['term'];
         $srs = $course['srs'];
 
-        $k = request_make_key($course);
+        $k = make_idnumber($course);
         
         $instrs = get_instructor_info_from_registrar($term, $srs);
         $returninfos[] = prep_registrar_entry($course, $instrs, $defaults);
@@ -251,8 +259,9 @@ function requestor_ignore_entry($data) {
     }
 
     if (!isset($data->subj_area)) {
-        var_dump($data);
-        debugging('notset');
+        debugging('cannot check to ignore entry: ' 
+            . print_r($data, true));
+        return false;
     }
 
     $subj = $data->subj_area;
@@ -378,13 +387,17 @@ function get_crosslist_set_for_host($host) {
         $host = get_object_vars($host);
     }
 
+    if (empty($host['srs']) || empty($host['term'])) {
+        return false;
+    }
+
     if (isset($host['setid'])) {
         return get_set($host['setid']);
     }
 
     // Non-existing set of courses
     $h = 'hostcourse';
-    $hostkey = request_make_key($host);
+    $hostkey = make_idnumber($host);
     $set = array($hostkey => $host);
 
     // These are entries from the registrar, so they need to have their
@@ -413,7 +426,7 @@ function get_crosslist_set_for_host($host) {
         $new = get_course_requests($exts);
 
         foreach ($exts as $ext) {
-            $clkey = request_make_key($ext);
+            $clkey = make_idnumber($ext);
             
             if (!empty($new[$clkey])) {
                 $setter = $new[$clkey];
@@ -512,13 +525,6 @@ function extract_term_srs_xml($xml) {
     }
 
     return $r;
-}
-
-/**
- *  Convenience function to make a term-srs index for internal usage.
- **/
-function request_make_key($sr) {
-    return make_idnumber($sr);
 }
 
 /**
@@ -630,10 +636,13 @@ function request_parse_input($key, $value) {
 }
 
 function request_ignored($request) {
-    if (isset($request['build'])) {
-        return !$request['build'];
-    } else if (isset($request['delete'])) {
-        return ($request['delete'] != 0);
+    $b = 'build';
+    $d = 'delete';
+
+    if (isset($request[$b])) {
+        return !$request[$b];
+    } else if (isset($request[$d])) {
+        return ($request[$d] != 0);
     }
 
     return true;
@@ -657,7 +666,7 @@ function prep_request_entry($requestinfo) {
 
     // Find the host and stuff...
     
-    $key = $requestinfo['setid'] . '-' . request_make_key($requestinfo);
+    $key = $requestinfo['setid'] . '-' . make_idnumber($requestinfo);
 
     $ignored = request_ignored($requestinfo);
 
@@ -866,7 +875,6 @@ function prep_request_entry($requestinfo) {
         $worstnote = $errs;
     }
 
-
     $formatted['crosslists'] = $riclstr;
 
     // Instructors
@@ -935,6 +943,38 @@ function requestor_statuses_translate($status) {
     }
 
     return $posstext;
+}
+
+function get_requestor_view_fields() {
+    global $DB;
+
+    $prefields = array('term', 'department', 'action');
+    $prefieldstr = trim(implode(', ', $prefields));
+
+    $rsid = 'CONCAT(' . $prefieldstr . ')';
+    if (!$prefieldstr) {
+        $prefieldstr = $rsid;
+    } else {
+        $prefieldstr = $rsid . ', ' . $prefieldstr;
+    }
+
+    $builtcategories = $DB->get_records('ucla_request_classes', null, 
+        'department', 'DISTINCT ' . $prefieldstr);
+
+    $prefieldsdata = array();
+    foreach ($builtcategories as $builts) {
+        foreach ($prefields as $prefield) {
+            $varname = $prefield;
+
+            if (!isset($prefieldsdata[$varname])) {
+                $prefieldsdata[$varname] = array();
+            }
+
+            $prefieldsdata[$varname][$builts->$prefield] = $builts->$prefield;
+        }
+    }
+
+    return $prefieldsdata;
 }
 
 /**
