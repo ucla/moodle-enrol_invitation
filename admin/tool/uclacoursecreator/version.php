@@ -17,3 +17,4 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->version = 2011040500;
 
+// EoF
