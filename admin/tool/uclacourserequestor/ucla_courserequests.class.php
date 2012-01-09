@@ -394,7 +394,6 @@ class ucla_courserequests {
                 unset($course['delete']);
                 unset($course['instructor']);
 
-                var_dump($course);
                 if ($DB->delete_records($urc, $course)) {
                     $successes[$setid] = $course;
                 } 
