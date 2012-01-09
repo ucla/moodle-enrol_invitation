@@ -1,17 +1,20 @@
 <?php
 
 class myucla_urlupdater {
-    const $mname = 'tool/myucla_url';
+    const mname = 'tool/myucla_url';
 
     // Updating flags
     // Never update the url
-    const $neverflag = 'neversend';
+    const neverflag = 'neversend';
 
     // Do not overwrite the URL (standard)
-    const $nooverwriteflag = 'nooverwrite';
+    const nooverwriteflag = 'nooverwrite';
 
     // Always overwrite the URL
-    const $alwaysflag = 'alwayssend';
+    const alwaysflag = 'alwayssend';
+
+    // Perhaps we should strtolower?
+    const success_message = 'Update Successful';
 
     // Cache, skip checking the $CFG...
     var $myucla_login = null;
@@ -77,10 +80,7 @@ class myucla_urlupdater {
                 $sendings['term'], $sendings['srs'], $sender
             );
 
-            if ($this->get_debug()) {
-                // Just print the statements
-                $this->println($url_update);
-            } else {
+            if (!debugging()) {
                 $myucla_curl = $this->contact_MyUCLA($url_update);
                 $retrieved_info[$idnumber] = $myucla_curl;
             }
@@ -91,25 +91,45 @@ class myucla_urlupdater {
 
     /** 
      *  Syncs a set of courses with MyUCLA URLs.
+     *  @param  Array(
+     *      make_idnumber() => Array(
+     *          'term' => term,
+     *          'srs' => srs,
+     *          'url' => url
+     *      )
+     *  )
      **/
     function sync_MyUCLA_urls($courses) {
-        $targets = array();
+        $fetch_results = $this->send_MyUCLA_urls($courses);
 
-        foreach ($courses as $course) {
-            $idn = make_idnumber($course);
-            if (empty($course['nourlupdate'])) {
-                // Ignored results are successful...hehe
-                $this->successful[$idn] = $course;
-                continue;
+        foreach ($fetch_results as $idnumber => $result) {
+            // The hardcoded default
+            $flag = self::nooverwriteflag;
+
+            if (isset($courses[$idnumber]['flag'])) {
+                $flag = $courses[$idnumber]['flag'];
             }
 
-            $targets[$idn] = $course;
+            if ($flag == self::neverflag) {
+                // This is done
+                $this->successful[$idnumber] = $result;
+            }
+
+            if (!empty($result)) {
+                if ($flag == self::nooverwriteflag) {
+                    $this->successful[$idnumber] = $result;
+                }
+            }
+
+            if (isset($this->successful[$idnumber])) {
+                unset($courses[$idnumber]);
+            }
         }
 
-        $results = $this->send_MyUCLA_urls($targets, true);
+        $results = $this->send_MyUCLA_urls($courses, true);
 
         foreach ($results as $rid => $result) {
-            if (strpos($result, 'Update Successful') === false) {
+            if (strpos($result, self::success_message) === false) {
                 $this->failed[$rid] = $result;
             } else {
                 $this->successful[$rid] = $result;
@@ -123,6 +143,10 @@ class myucla_urlupdater {
      *  Convenience function to get access the webservice for MyUCLA
      **/
     function contact_MyUCLA($url) {
+        if (debugging()) {
+            return self::success_message;
+        }
+
         $content = $this->trim_strip_tags(file_get_contents($url));
 
         // Rest?
