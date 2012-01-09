@@ -480,8 +480,8 @@ function set_find_host($set) {
 
     foreach ($set as $k => $c) {
         if (!isset($c[$h])) {
-            var_dump($set);
-            debugging('no hostcourse');
+            
+            debugging('no hostcourse: ' . print_r($set, true));
             return false;
         }
 
@@ -640,12 +640,12 @@ function request_ignored($request) {
     $d = 'delete';
 
     if (isset($request[$b])) {
-        return !$request[$b];
+        return ($request[$b] == 0);
     } else if (isset($request[$d])) {
         return ($request[$d] != 0);
     }
 
-    return true;
+    return false;
 }
 
 /**
@@ -665,7 +665,6 @@ function prep_request_entry($requestinfo) {
     $formatted = array();
 
     // Find the host and stuff...
-    
     $key = $requestinfo['setid'] . '-' . make_idnumber($requestinfo);
 
     $ignored = request_ignored($requestinfo);
@@ -869,7 +868,6 @@ function prep_request_entry($requestinfo) {
         );
     }
     
-    // This is actually NOT an error...
     if (!empty($requestinfo[$errs][UCLA_REQUESTOR_BADCL])) {
         $riclstr .= $br . get_string('hostandchild', $rucr);
         $worstnote = $errs;

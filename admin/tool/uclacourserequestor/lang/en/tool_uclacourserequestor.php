@@ -18,9 +18,9 @@ $string['build'] = "To be built";
 $string['failed'] = "Failed creator";
 $string['live'] = "Live";
 
-
 $string['delete'] = 'Delete';
 
+// This string should be rarely used
 $string['noviewcourses'] = "If you were expecting a third form, there are no existing requests, so there is no reason to have the option to view them.";
 
 $string['crosslistnotice'] = "You can add crosslists while these couses are waiting in queue to be built.";
@@ -39,6 +39,8 @@ $string['newrequestcourseid'] = 'Not built yet';
 $string['checkchanges'] = 'Validate changes';
 $string['submitfetch'] = 'Submit requests';
 $string['submitviews'] = 'Save changes';
+
+$string['norequestsfound'] = 'No requests were found.';
 
 // Table headers for the requests
 $string['id'] = 'Request ID';
@@ -65,7 +67,7 @@ $string['addmorecrosslist'] = 'Add another entry';
 
 // Crosslisting errors
 $string['illegalcrosslist'] = 'Another course has this SRS as a crosslist';
-$string['hostandchild'] = 'This course is crosslisted with another course that has not been built yet. Note that the course that has this course as its crosslist will state that there is an error. Please explicitly disable the building of one of the courses.';
+$string['hostandchild'] = 'This course is a crosslist of another course. Please explicitly disable the building of one of the courses.';
 $string['srserror'] = 'The SRS number must be exactly 9 digits long';
 
 $string['queuetobebuilt'] = "Courses in queue to be built";

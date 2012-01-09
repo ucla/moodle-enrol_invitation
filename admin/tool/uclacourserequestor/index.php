@@ -52,7 +52,6 @@ admin_externalpage_setup('uclacourserequestor');
 
 $subjareas = $DB->get_records('ucla_reg_subjectarea');
 
-
 $prefieldsdata = get_requestor_view_fields();
 
 $top_forms = array(
@@ -93,6 +92,8 @@ $requests = null;
 // This is to know which form type we came from :(
 $groupid = null;
 
+$uclacrqs = null;
+
 $uf = 'unchangeables';
 
 foreach ($top_forms as $gk => $group) {
@@ -110,6 +111,13 @@ foreach ($top_forms as $gk => $group) {
         if ($requests === null && $recieved = $fl->get_data()) {
             $requests = $fl->respond($recieved);
             $groupid = $gk;
+
+            // Place into our holder
+            $uclacrqs = new ucla_courserequests();
+            foreach ($requests as $setid => $set) {
+                // This may get us strangeness
+                $uclacrqs->add_set($set);
+            }
         }
     }
 }
@@ -165,18 +173,12 @@ if ($requests === null) {
         }
 
         if (isset($uclacrqs)) {
+            // TODO return a set of changes that occurred...
             $uclacrqs->apply_changes($changes, $groupid);
         }
     }
-} else {
-    $uclacrqs = new ucla_courserequests();
-    foreach ($requests as $setid => $set) {
-        // This may get us strangeness
-        $uclacrqs->add_set($set);
-    }
 }
 
-// TODO DELETE COURSE FROM REQUESTOR
 // At this point, requests are indexed by setid.
 if (isset($uclacrqs)) {
     $requestswitherrors = $uclacrqs->validate_requests($groupid);
@@ -212,7 +214,6 @@ if (isset($uclacrqs)) {
     // Get the values as a set
     $messages = array_keys(array_flip($rowclasses));
 
-    // Gonna use all of them...?
     $possfields = array();
     foreach ($tabledata as $request) {
         // Get the headers to display strings
@@ -233,7 +234,7 @@ if (isset($uclacrqs)) {
 $registrar_link = new moodle_url(
     'http://www.registrar.ucla.edu/schedule/');
 
-// TODO display relevant information
+// TODO display relevant changes
 
 // Start rendering
 echo $OUTPUT->header();
@@ -263,9 +264,7 @@ foreach ($cached_forms as $gn => $group) {
     echo $OUTPUT->box_end();
 }
 
-if (!isset($uclacrqs)) {
-    echo $OUTPUT->box(get_string('checktermsrs', $rucr));
-} if (!empty($requeststable->data)) {
+if (!empty($requeststable->data)) {
     echo html_writer::start_tag('form', array(
         'method' => 'POST',
         'action' => $PAGE->url
@@ -318,6 +317,9 @@ if (!isset($uclacrqs)) {
         ));
 
     echo html_writer::end_tag('form');
+} else if ($requests !== null) {
+    // We got a response from a form, but no requests to display
+    echo $OUTPUT->box(get_string('norequestsfound', $rucr));
 }
 
 echo $OUTPUT->footer();

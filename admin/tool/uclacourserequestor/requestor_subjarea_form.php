@@ -56,7 +56,7 @@ class requestor_subjarea_form extends requestor_shared_form {
                 unset($course[$from]);
             }
 
-            $k = request_make_key($course);
+            $k = make_idnumber($course);
 
             $sacreq[$k] = $course;
         }

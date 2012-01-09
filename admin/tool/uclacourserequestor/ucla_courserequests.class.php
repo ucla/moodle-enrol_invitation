@@ -6,8 +6,12 @@
 class ucla_courserequests {
     // This is the requests indexed by setid
     var $setindex = array();
+
     // These are abandoned course requests
     var $abandoned = array();
+
+    // These are records to be deleted.
+    var $deletes = array();
 
     var $unpreppedsetid = 1;
 
@@ -73,13 +77,13 @@ class ucla_courserequests {
 
         $checkers = self::get_editables();
 
+        $deletemode = false;
         if ($context == UCLA_REQUESTOR_FETCH) {
             $d = 'build';
         } else {
             $d = 'delete';
+            $deletemode = true;
         }
-
-        $checkers[$d] = $d;
 
         $h = 'hostcourse';
 
@@ -98,21 +102,24 @@ class ucla_courserequests {
                 }
             }
 
-            // No key was found, that means everything was disabled
-            if (!$setkey) {
-                //$this->apply_to_set($setid, $d, 1);
-            } else if (isset($changes[$setid][$setkey])) {
+            $thechanges = false;
+            if (isset($changes[$setid][$setkey])) {
                 $thechanges = $changes[$setid][$setkey];
+            } else if ($deletemode) {
+                $courses = apply_to_set($courses, $d, 0);
+                $this->setindex[$setid] = $courses;
+            }
 
+            if ($thechanges !== false) {
                 if (empty($thechanges[$d])) {
                     $appval = 0;
-                    // Don't apply any other chnages if the build was unset
                 } else {
                     $appval = 1;
                 }
 
+                // This will cause request_ignored to handle things properly
                 $courses = apply_to_set($courses, $d, $appval);
-                
+
                 $testcourse = reset($courses);
                 if (!request_ignored($testcourse)) {
                     // We're going to deal with checkboxes
@@ -134,13 +141,16 @@ class ucla_courserequests {
                         $thechanges['crosslists'] = array();
                     }
 
+                    // Sanitize inputs
                     foreach ($thechanges['crosslists'] as $cls) {
-                        if (!empty($cls)) {
+                        if (!empty($cls) && ucla_validator('srs', $cls)) {
                             $clind[$cls] = $cls;
                         }
                     }
 
+                    // Remove no longer existing crosslists
                     foreach ($courses as $key => $c) {
+                        // Ignore the host course
                         if ($key == $setkey) {
                             continue;
                         }
@@ -157,36 +167,49 @@ class ucla_courserequests {
                         }
                     }
 
+                    // New hosts...
                     foreach ($clind as $ncl) {
-                        // New hosts...
                         // For now just add it.
                         $nr = get_request_info($theterm, $ncl);
 
                         // Things fetched from the registrar should NOT
                         // have this field set...
-                        if (isset($nr['hostcourse']) 
-                                && $nr['hostcourse'] == 0) {
+                        if (isset($nr[$h])) {
+                            $newset = get_crosslist_set_for_host($nr);
+                            if ($nr[$h] == 0) {
                             // We need to force an error later
-                            $this->add_set(get_crosslist_set_for_host($nr));
+                                $this->add_set($newset);
+                            } else {
+                                // integrate the set into the new set
+                                foreach ($newset as $newreq) {
+                                    $newreq[$h] = 0;
+                                    $newreq['setid'] = $setid;
+                                    $nrkey = make_idnumber($newreq);
+                                    if (!isset($courses[$nrkey])) {
+                                        $courses[$nrkey] = $newreq;
+                                    }
+                                }
+                            }
                         } else {
-                            $nr['hostcourse'] = 0;
-                        }
+                            // This was fetched from the Registrar, just add it
+                            $nr['setid'] = $setid;
+                            $nr[$h] = 0;
 
-                        $nr['setid'] = $setid;
+                            // We're going to add the host, if there is one
+                            $nrkey = make_idnumber($nr);
 
-                        // We're going to add the host, if there is one
-                        $nrkey = request_make_key($nr);
-
-                        if (!isset($courses[$nrkey])) {
-                            $courses[$nrkey] = $nr;
+                            if (!isset($courses[$nrkey])) {
+                                $courses[$nrkey] = $nr;
+                            }
                         }
                     }
-
+                } else if ($deletemode) {
+                    // Save this to be deleted when commit() is called
+                    $this->deletes[$setid] = true;
                 }
 
                 $this->setindex[$setid] = $courses;
             }
-
         }
     }
 
@@ -215,7 +238,7 @@ class ucla_courserequests {
             $hcthere = false;
             foreach ($set as $key => $course) {
                 if (request_ignored($course)) {
-                    // just hack it
+                    debugging('ignoring ' . $course['srs']);
                     $hcthere = true;
                     continue;
                 }
@@ -227,7 +250,12 @@ class ucla_courserequests {
                     $course[$errs][UCLA_REQUESTOR_EXIST] = true;
                 }
 
-                $hostnum = $course[$h];
+                if (isset($course[$h])) {
+                    $hostnum = $course[$h];
+                } else {
+                    $hostnum = 0;
+                }
+
                 if ($hostnum > 0) {
                     // We are joining host courses
                     if ($hcthere !== false) {
@@ -292,16 +320,19 @@ class ucla_courserequests {
     function commit() {
         // Make a giant SQL statement?
         global $DB;
+        $urc = 'ucla_request_classes';
 
         $requests = $this->validate_requests(null);
+
         $maxsetid = reset($DB->get_record_sql(
-            'SELECT MAX(`setid`) FROM {ucla_request_classes}'
+            'SELECT MAX(`setid`) FROM ' . '{' . $urc . '}'
         ));
 
         $successes = array();
         $now = time();
 
         $i = 'instructor';
+        $h = 'hostcourse';
 
         foreach ($requests as $setid => $set) {
             $failset = false;
@@ -326,8 +357,8 @@ class ucla_courserequests {
 
             $properhost = set_find_host($set);
 
-            $set = apply_to_set($set, 'hostcourse', 0);
-            $set[$properhost]['hostcourse'] = 1;
+            $set = apply_to_set($set, $h, 0);
+            $set[$properhost][$h] = 1;
 
             foreach ($set as $key => $request) {
                 if (request_ignored($request)) {
@@ -340,12 +371,11 @@ class ucla_courserequests {
 
                 try {
                     if (isset($request['id'])) {
-                        $DB->update_record('ucla_request_classes', $request);
+                        $DB->update_record($urc, $request);
                     } else {
                         $request['added_at'] = $now;
 
-                        $insertid = $DB->insert_record('ucla_request_classes',
-                            $request);
+                        $insertid = $DB->insert_record($urc, $request);
 
                         $set[$key]['id'] = $insertid;
                     }
@@ -357,6 +387,18 @@ class ucla_courserequests {
             }
 
             $successes[$setid] = $set;
+        }
+
+        foreach ($this->deletes as $setid => $true) {
+            foreach ($this->setindex[$setid] as $key => $course) {
+                unset($course['delete']);
+                unset($course['instructor']);
+
+                var_dump($course);
+                if ($DB->delete_records($urc, $course)) {
+                    $successes[$setid] = $course;
+                } 
+            }
         }
 
         return $successes;
