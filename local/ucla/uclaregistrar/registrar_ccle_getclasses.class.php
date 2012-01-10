@@ -34,14 +34,28 @@ class registrar_ccle_getclasses extends registrar_query {
     }
 
     function remote_call_generate($args) {
-        if (preg_match('/[0-9]{2}[FWS1]/', $args[0])) {
-            $term = $args[0];
+        $k = null;
+
+        if (isset($args[0])) {
+            $k = 0;
+        } else if (isset($args['term'])) {
+            $k = 'term';
+        }
+
+        if (preg_match('/[0-9]{2}[FWS1]/', $args[$k])) {
+            $term = $args[$k];
         } else {
             return false;
         }
+        
+        if (isset($args[1])) {
+            $k = 1;
+        } else if (isset($args['srs'])) {
+            $k = 'srs';
+        }
 
-        if (preg_match('/[0-9]{9}/', $args[1])) {
-            $srs = $args[1];
+        if (preg_match('/[0-9]{9}/', $args[$k])) {
+            $srs = $args[$k];
         } else {
             return false;
         }

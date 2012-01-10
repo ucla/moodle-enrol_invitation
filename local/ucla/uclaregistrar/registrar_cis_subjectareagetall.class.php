@@ -4,7 +4,7 @@ require_once(dirname(__FILE__).'/registrar_query.class.php');
 
 class registrar_cis_subjectareagetall extends registrar_query {
     function validate($new, $old) {
-        return $new;
+        return (object) $new;
     }
 
     function remote_call_generate($args) {

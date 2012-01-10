@@ -42,7 +42,9 @@
         <FIELD NAME="crs_desc" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="url"/>
       </FIELDS>
       <KEYS>
-        <KEY NAME="mdl_uclaregclas_tersrs_uix" TYPE="unique" FIELDS="term, srs" NEXT="mdl_uclaregclas_tersubcrss_uix"/>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"
+        NEXT="mdl_uclaregclas_tersrs_uix"/>
+        <KEY NAME="mdl_uclaregclas_tersrs_uix" TYPE="unique" FIELDS="term, srs" PREVIOUS="primary" NEXT="mdl_uclaregclas_tersubcrss_uix"/>
         <KEY NAME="mdl_uclaregclas_tersubcrss_uix" TYPE="unique" FIELDS="term, subj_area, crsidx, secidx" PREVIOUS="mdl_uclaregclas_tersrs_uix"/>
       </KEYS>
     </TABLE>

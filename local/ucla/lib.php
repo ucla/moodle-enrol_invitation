@@ -69,7 +69,7 @@ function make_idnumber($courseinfo) {
     }
 
     if (empty($courseinfo['term']) || empty($courseinfo['srs'])) {
-        debugging('No key from object: ' . print_r($sr, true));
+        debugging('No key from object: ' . print_r($courseinfo, true));
         return false;
     }
 
@@ -79,9 +79,10 @@ function make_idnumber($courseinfo) {
 /**
  *  Returns a set of courses based on the courseid provided.
  *  @author Yangmun Choi
+ *  @param  $courseid   `id` field of {course} table.
  *  @return 
  *      Array (
- *          "$term-$srs" => reg_info_object
+ *          make_idnumber() => reg_info_object
  *          ...
  *      )
  **/
@@ -92,8 +93,85 @@ function ucla_get_course_info($courseid) {
         array('courseid' => $courseid));
 
     $reindexed = array();
+
+    if ($records) {
+        foreach ($records as $record) {
+            $reindexed[make_idnumber($record)] = $record;
+        }
+    }
+
+    return $reindexed;
+}
+
+/**
+ *  Gets the course sets for a particular term.
+ *  @param  $terms  Array of terms that we want to filter by.
+ *  @param  $filterwithoutcourses   boolean do not display requests without
+ *      courses associated with them.
+ *  @return
+ *      Array (
+ *          {course}.`id` => ucla_get_course_info()
+ *      )
+ **/
+function ucla_get_courses_by_terms($terms) {
+    global $DB;
+   
+    list($sqlin, $params) = $DB->get_in_or_equal($terms);
+    $where = 'term ' . $sqlin;
+
+    $records = $DB->get_records_select('ucla_request_classes',
+        $where, $params);
+
+    $reindexed = array(); 
+
+    // TODO maybe abstract this loop out
+    if ($records) {
+        foreach ($records as $record) {
+            $reindexed[$record->setid][make_idnumber($record)] = $record;
+        }
+    }
+
+    return $reindexed;
+}
+
+/**
+ *  Gets the course sets for a particular set of term-srs's.
+ *  @param  $termsrses  
+ *      Array(
+ *          Array(
+ *              'term' => term,
+ *              'srs' => srs
+ *          ),
+ *          ...
+ *      )
+ *    
+ **/
+function ucla_get_courses($termsrses) {
+    global $DB;
+   
+    $termsrssql = array();
+    $params = array();
+
+    foreach ($termsrses as $termsrs) {
+        $param = array($termsrs['srs'], $termsrs['term']);
+        $sql = '`srs` = ? AND `term` = ?';
+
+        $termsrssql[] = $sql;
+        $params = array_merge($params, $param);
+    }
+
+    $where = implode(' OR  ', $termsrssql);
+
+    $records = $DB->get_records_select('ucla_request_classes',
+        $where, $params);
+
+    if (!$records) {
+        return array();
+    }
+
+    $reindexed = array();
     foreach ($records as $record) {
-        $reindexed[make_idnumber($record)] = $record;
+        $reindexed[$record->setid][make_idnumber($record)] = $record;
     }
 
     return $reindexed;
@@ -102,6 +180,7 @@ function ucla_get_course_info($courseid) {
 /**
  *  Returns a pretty looking term.
  *  TODO replace with termcaching
+ *  TODO work with different millenia
  **/
 function ucla_term_to_text($term) {
     $term_letter = strtolower(substr($term, -1, 1));
@@ -200,16 +279,25 @@ function local_ucla_cron() {
     ucla_require_registrar();
 
     $terms = array($terms);
-
+    
+    // Customize these times...?
     $works = array('classinfo', 'subjectarea', 'division');
 
     foreach ($works as $work) {
         $cn = 'ucla_reg_' . $work . '_cron';
         if (class_exists($cn)) {
             $runner = new $cn();
-            if (method_exists('run' , $cn)) {
-                $runner->run($terms);
+            if (method_exists($runner, 'run')) {
+                $result = $runner->run($terms);
+            } else {
+                echo "Could not run() for $cn\n";
             }
+        } else {
+            echo "Could not run cron for $cn\n";
+        }
+
+        if (!$result) {
+            // Something?
         }
     }
 
@@ -327,7 +415,7 @@ function get_pseudorole($profcode, array $other_roles) {
     }
 
     // Fill in the rest of these to avoid no-index notifications
-    for ($i = 0; $i < $max; $i++) {
+    for ($i = 1; $i < $max; $i++) {
         if (!isset($hasrole[$i])) {
             $hasrole[$i] = false;
         }
@@ -339,7 +427,7 @@ function get_pseudorole($profcode, array $other_roles) {
         case 2:
             if ($hasrole[1] && $hasrole[2]) {
                 return "ta";
-            } else if ($hasrole[1] && $hasrole[2] && $hasrole[3]) {
+            } else if ($hasrole[1] && !$hasrole[2] && $hasrole[3]) {
                 return "ta_instructor";
             }
         case 3:
@@ -398,7 +486,7 @@ function ucla_validator($type, $value) {
 function get_moodlerole($pseudorole, $subject_area='*SYSTEM*') {
     global $CFG, $DB;
 
-    require($CFG->dirroot . '/local/ucla/role_mappings.php');
+    require($CFG->dirroot . '/local/ucla/rolemappings.php');
 
     // if mapping exists in file, then don't care what values are in the db
     if (!empty($role[$pseudorole][$subject_area])) {

@@ -1,9 +1,12 @@
 <?php
 /**
- *  Shared UCLA-written functions.
+ *  Shared UCLA-written for cron-synching functions.
  **/
 
 class ucla_reg_classinfo_cron {
+
+    const table = 'ucla_reg_classinfo';
+
     static function enrolstat_translate($char) {
         $codes = array(
             'X' => 'Cancelled',
@@ -29,24 +32,85 @@ class ucla_reg_classinfo_cron {
 
         $reg = registrar_query::get_registrar_query('ccle_getclasses');
 
-        $courses = ucla_get_courses($terms);
+        $courses = ucla_get_courses_by_terms($terms, false);
+
+        echo "\nGot " . count($courses) . "courses to update.\n";
+
+        if (empty($courses)) {
+            return true;
+        }
 
         $get_from_registrar = array();
-        foreach ($courses as $term => $tcourses) {
-            foreach ($tcourses as $srs => $course) {
-                if (!isset($course->term)) {
-                    $get_from_registrar[] = array(
-                        'term' => $course->course_term,
-                        'srs' => $course->course_srs
-                    );
-                }
+        foreach ($courses as $setid => $reqset) {
+            foreach ($reqset as $reqkey => $req) {
+                $get_from_registrar[] = array(
+                    'term' => $req->term,
+                    'srs' => $req->srs
+                );
             }
         }
 
-        // Get all these shits from registrar.
+        $regs = $reg->retrieve_registrar_info($get_from_registrar);
+
+        $termsrses = array();
+        $sqls = array();
+        $params = array();
+
+        $regind = array();
+        foreach ($regs as $rege) {
+            $sql = 'term = ? AND srs = ?';
+            $param = array($rege->term, $rege->srs);
+
+            $sqls[] = $sql;
+            $params = array_merge($params, $param);
+
+            $regind[make_idnumber($rege)] = $rege;
+        }
+
+        $where = implode(' OR ', $sqls);
+
+        $records = $DB->get_records_select(self::table, $where, $params);
+
+        $reind = array();
+        foreach ($records as $record) {
+            $reind[make_idnumber($record)] = $record;
+        }
+
+        // Updated
+        $uc = 0; 
+        // Failed sanity check
+        $fscc = 0;
+        // Inserted
+        $ic = 0;
+        foreach ($regind as $indk => $rege) {
+            if (isset($reind[$indk])) {
+                $rege->id = $reind[$indk]->id;
+                if (self::sanity_check($rege, $reind[$indk])) {
+                    $DB->update_record(self::table, $rege);
+                    $uc++;
+                } else {
+                    $fscc++;
+                }
+            } else {
+                // Insert
+                $DB->insert_record(self::table, $rege);
+                $ic++;
+            }
+        }
+
+        echo "\nUpdated: $uc . Inserted: $ic . Failed sanity: $fscc\n";
+
+        return true;
+    }
+
+    function sanity_check($old, $new) {
+        return true;
     }
 }
 
+/**
+ *
+ **/
 class ucla_reg_subjectarea_cron {
     function run($terms) {
         global $DB;
@@ -69,7 +133,7 @@ class ucla_reg_subjectarea_cron {
             $newrec = new stdClass();
 
             $t =& $subjareas[$k];
-            $t = array_change_key_case($subjarea, CASE_LOWER);
+            $t = array_change_key_case(get_object_vars($subjarea), CASE_LOWER);
             $t['modified'] = time();
 
             $sa_text = $t['subjarea'];
@@ -80,7 +144,7 @@ class ucla_reg_subjectarea_cron {
         $sql_where = 'subjarea ' . $sql_in;
 
         $selected = $DB->get_records_select($ttte, $sql_where, $params,
-            '', 'subjarea, id');
+            '', 'TRIM(subjarea), id');
 
         $newsa = 0;
         $updsa = 0;
@@ -89,25 +153,16 @@ class ucla_reg_subjectarea_cron {
 
         foreach ($subjareas as $sa) {
             $sa_text = $sa['subjarea'];
-            if (!isset($selected[$sa_text])) {
+            if (empty($selected[$sa_text])) {
                 $DB->insert_record($ttte, $sa);
-                if ($amdebugging) {
-                    echo "New ";
-                }
 
                 $newsa ++;
             } else {
                 $sa['id'] = $selected[$sa_text]->id;
                 $DB->update_record($ttte, $sa);
-                if ($amdebugging) {
-                    echo "Updating ";
-                }
                 $updsa ++;
             }
 
-            if ($amdebugging) {
-                echo "subject area [$sa_text]\n";
-            }
         }
 
         echo "New: $newsa. Updated: $updsa.\n";
