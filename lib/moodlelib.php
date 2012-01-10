@@ -1652,6 +1652,9 @@ function set_user_preference($name, $value, $user = null) {
         throw new coding_exception('Invalid value in set_user_preference() call, arrays are not allowed');
     }
     $value = (string)$value;
+    if (textlib::strlen($value) > 1333) { //value column maximum length is 1333 characters
+        throw new coding_exception('Invalid value in set_user_preference() call, value is is too long for the value column');
+    }
 
     if (is_null($user)) {
         $user = $USER;
@@ -2760,7 +2763,11 @@ function require_login($courseorid = NULL, $autologinguest = true, $cm = NULL, $
 
         $access = false;
 
-        if (is_viewing($coursecontext, $USER)) {
+        if (is_role_switched($course->id)) {
+            // ok, user had to be inside this course before the switch
+            $access = true;
+
+        } else if (is_viewing($coursecontext, $USER)) {
             // ok, no need to mess with enrol
             $access = true;
 
@@ -4391,7 +4398,7 @@ function remove_course_contents($courseid, $showfeedback = true, array $options 
     // We have tried to delete everything the nice way - now let's force-delete any remaining module data
     $cms = $DB->get_records('course_modules', array('course'=>$course->id));
     foreach ($cms as $cm) {
-        if ($module = $DB->get_record('module', array('id'=>$cm->module))) {
+        if ($module = $DB->get_record('modules', array('id'=>$cm->module))) {
             try {
                 $DB->delete_records($module->name, array('id'=>$cm->instance));
             } catch (Exception $e) {
@@ -5001,7 +5008,7 @@ function email_to_user($user, $from, $subject, $messagetext, $messagehtml='', $a
     }
 
     // skip mail to suspended users
-    if (isset($user->auth) && $user->auth=='nologin') {
+    if ((isset($user->auth) && $user->auth=='nologin') or (isset($user->suspended) && $user->suspended)) {
         return true;
     }
 
@@ -7213,7 +7220,7 @@ class emoticon_manager {
  * @return string The now encrypted data
  */
 function rc4encrypt($data) {
-    $password = 'nfgjeingjk';
+    $password = get_site_identifier();
     return endecrypt($password, $data, '');
 }
 
@@ -7226,7 +7233,7 @@ function rc4encrypt($data) {
  * @return string The now decrypted data
  */
 function rc4decrypt($data) {
-    $password = 'nfgjeingjk';
+    $password = get_site_identifier();
     return endecrypt($password, $data, 'de');
 }
 
@@ -7766,35 +7773,50 @@ function get_list_of_plugins($directory='mod', $exclude='', $basedir='') {
     return $plugins;
 }
 
+/**
+* Invoke plugin's callback functions
+*
+* @param string $type plugin type e.g. 'mod'
+* @param string $name plugin name
+* @param string $feature feature name
+* @param string $action feature's action
+* @param array $params parameters of callback function, should be an array
+* @param mixed $default default value if callback function hasn't been defined, or if it retursn null.
+* @return mixed
+*
+* @todo Decide about to deprecate and drop plugin_callback() - MDL-30743
+*/
+function plugin_callback($type, $name, $feature, $action, $params = null, $default = null) {
+    return component_callback($type . '_' . $name, $feature . '_' . $action, (array) $params, $default);
+}
 
 /**
- * invoke plugin's callback functions
+ * Invoke component's callback functions
  *
- * @param string $type Plugin type e.g. 'mod'
- * @param string $name Plugin name
- * @param string $feature Feature name
- * @param string $action Feature's action
- * @param string $options parameters of callback function, should be an array
- * @param mixed $default default value if callback function hasn't been defined
+ * @param string $component frankenstyle component name, e.g. 'mod_quiz'
+ * @param string $function the rest of the function name, e.g. 'cron' will end up calling 'mod_quiz_cron'
+ * @param array $params parameters of callback function
+ * @param mixed $default default value if callback function hasn't been defined, or if it retursn null.
  * @return mixed
  */
-function plugin_callback($type, $name, $feature, $action, $options = null, $default=null) {
+function component_callback($component, $function, array $params = array(), $default = null) {
     global $CFG; // this is needed for require_once() bellow
 
-    $component = clean_param($type . '_' . $name, PARAM_COMPONENT);
-    if (empty($component)) {
-        throw new coding_exception('Invalid component used in plugin_callback():' . $type . '_' . $name);
+    $cleancomponent = clean_param($component, PARAM_COMPONENT);
+    if (empty($cleancomponent)) {
+        throw new coding_exception('Invalid component used in plugin/component_callback():' . $component);
     }
+    $component = $cleancomponent;
 
     list($type, $name) = normalize_component($component);
     $component = $type . '_' . $name;
 
-    $function = $component.'_'.$feature.'_'.$action;
-    $oldfunction = $name.'_'.$feature.'_'.$action;
+    $oldfunction = $name.'_'.$function;
+    $function = $component.'_'.$function;
 
     $dir = get_component_directory($component);
     if (empty($dir)) {
-        throw new coding_exception('Invalid component used in plugin_callback():' . $type . '_' . $name);
+        throw new coding_exception('Invalid component used in plugin/component_callback():' . $component);
     }
 
     // Load library and look for function
@@ -7811,7 +7833,7 @@ function plugin_callback($type, $name, $feature, $action, $options = null, $defa
 
     if (function_exists($function)) {
         // Function exists, so just return function result
-        $ret = call_user_func_array($function, (array)$options);
+        $ret = call_user_func_array($function, $params);
         if (is_null($ret)) {
             return $default;
         } else {
