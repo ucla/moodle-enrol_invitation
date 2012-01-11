@@ -14,7 +14,7 @@ class myucla_urlupdater {
     const alwaysflag = 'alwayssend';
 
     // Perhaps we should strtolower?
-    const success_message = 'Update Successful';
+    const expected_success_message = 'Update Successful';
 
     // Cache, skip checking the $CFG...
     var $myucla_login = null;
@@ -129,7 +129,7 @@ class myucla_urlupdater {
         $results = $this->send_MyUCLA_urls($courses, true);
 
         foreach ($results as $rid => $result) {
-            if (strpos($result, self::success_message) === false) {
+            if (strpos($result, self::expected_success_message) === false) {
                 $this->failed[$rid] = $result;
             } else {
                 $this->successful[$rid] = $result;
@@ -144,12 +144,12 @@ class myucla_urlupdater {
      **/
     function contact_MyUCLA($url) {
         if (debugging()) {
-            return self::success_message;
+            return self::expected_success_message;
         }
 
         $content = $this->trim_strip_tags(file_get_contents($url));
 
-        // Rest?
+        // Give MyUCLA time to breathe
         sleep(1);
 
         return $content;
