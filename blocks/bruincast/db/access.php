@@ -10,9 +10,12 @@ $capabilities = array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_BLOCK,
         'legacy' => array(
-            'default' => CAP_PREVENT,
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
+            'manager' => CAP_DENY,
+            'student' => CAP_DENY,
+            'guest' => CAP_DENY,
+            'admin' => CAP_ALLOW,
+            'teacher' => CAP_DENY
         )
     )
 );
