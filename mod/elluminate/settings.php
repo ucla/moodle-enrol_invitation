@@ -3,7 +3,7 @@
 
 require_once $CFG->dirroot . '/mod/elluminate/lib.php';
 global $PAGE;
-$PAGE->requires->js_module($CFG->wwwroot . '/mod/elluminate/testconnection.js');
+$PAGE->requires->js('/mod/elluminate/testconnection.js');
 
 
 $settings->add(new admin_setting_configtext('elluminate_server', get_string('elluminate_server', 'elluminate'),

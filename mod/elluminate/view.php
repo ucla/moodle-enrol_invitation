@@ -141,7 +141,7 @@
         require_capability('moodle/course:viewhiddenactivities', $context);
     }
 
-    $PAGE->requires->js_module($CFG->wwwroot . '/mod/elluminate/checkseats.js');
+    $PAGE->requires->js('/mod/elluminate/checkseats.js');
 	
     $candeleterecordings    = has_capability('mod/elluminate:deleterecordings', $context);
     $candeleteanyrecordings = has_capability('mod/elluminate:deleteanyrecordings', $context);

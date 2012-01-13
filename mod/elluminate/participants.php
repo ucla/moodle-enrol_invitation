@@ -12,8 +12,8 @@
 global $DB, $PAGE;
 require_once dirname(dirname(dirname(__FILE__))) . '/config.php';
 require_once dirname(__FILE__) . '/lib.php';
-$PAGE->requires->js_module($CFG->wwwroot . '/mod/elluminate/jquery-1.4.2.min.js');
-$PAGE->requires->js_module($CFG->wwwroot . '/mod/elluminate/add_remove_submit.js');
+$PAGE->requires->js('/mod/elluminate/jquery-1.4.2.min.js');
+$PAGE->requires->js('/mod/elluminate/add_remove_submit.js');
     
 $id = required_param('id', PARAM_INT);
 $firstinitial = optional_param('firstinitial', '', PARAM_ALPHA);

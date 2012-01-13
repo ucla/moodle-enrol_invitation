@@ -10,8 +10,8 @@
 	global $DB, $PAGE;
     require_once dirname(dirname(dirname(__FILE__))) . '/config.php';
     require_once dirname(__FILE__) . '/lib.php';
-    $PAGE->requires->js_module($CFG->wwwroot . '/mod/elluminate/jquery-1.4.2.min.js');
-    $PAGE->requires->js_module($CFG->wwwroot . '/mod/elluminate/preload.js');
+    $PAGE->requires->js('/mod/elluminate/jquery-1.4.2.min.js');
+    $PAGE->requires->js('/mod/elluminate/preload.js');
 
     $id     = optional_param('id', '', PARAM_INT);
     $delete = optional_param('delete', 0, PARAM_ALPHANUM);
