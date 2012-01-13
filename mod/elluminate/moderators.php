@@ -11,8 +11,9 @@
 
     require_once dirname(dirname(dirname(__FILE__))) . '/config.php';
     require_once dirname(__FILE__) . '/lib.php';
-    $PAGE->require_js($CFG->wwwroot . '/mod/elluminate/jquery-1.4.2.min.js');
-    $PAGE->require_js($CFG->wwwroot . '/mod/elluminate/add_remove_submit.js');
+    global $PAGE;
+    $PAGE->requires->js_module()($CFG->wwwroot . '/mod/elluminate/jquery-1.4.2.min.js');
+    $PAGE->requires->js_module()($CFG->wwwroot . '/mod/elluminate/add_remove_submit.js');
    	global $DB;
 
     $id           = required_param('id', PARAM_INT);

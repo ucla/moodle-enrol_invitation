@@ -12,7 +12,7 @@
     require_once dirname(dirname(dirname(__FILE__))) . '/config.php';
     require_once dirname(__FILE__) . '/lib.php';
 
-	global $DB;
+	global $DB, $PAGE;
     $id                 = optional_param('id', 0, PARAM_INT); // Course Module ID, or
     $a                  = optional_param('a', 0, PARAM_INT);  // elluminate ID
     $editrecordingdesc  = optional_param('editrecordingdesc', 0, PARAM_INT);
@@ -141,7 +141,7 @@
         require_capability('moodle/course:viewhiddenactivities', $context);
     }
 
-    $PAGE->require_js($CFG->wwwroot . '/mod/elluminate/checkseats.js');
+    $PAGE->requires->js_module($CFG->wwwroot . '/mod/elluminate/checkseats.js');
 	
     $candeleterecordings    = has_capability('mod/elluminate:deleterecordings', $context);
     $candeleteanyrecordings = has_capability('mod/elluminate:deleteanyrecordings', $context);
