@@ -103,14 +103,15 @@ class ucla_reg_classinfo_cron {
         return true;
     }
 
+    /**
+     *  Sanity checks that prevents blind updating of entries in the table.
+     *
+     **/
     function sanity_check($old, $new) {
         return true;
     }
 }
 
-/**
- *
- **/
 class ucla_reg_subjectarea_cron {
     function run($terms) {
         global $DB;
@@ -170,3 +171,5 @@ class ucla_reg_subjectarea_cron {
         return true;
     }
 }
+
+// EoF
