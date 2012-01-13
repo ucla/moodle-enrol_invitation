@@ -28,6 +28,12 @@
 
     $strtitle = get_string('elluminateconnectiontest', 'elluminate');
 
+    $url = new moodle_url('/mod/elluminate/conntest.php', array('serverURL'=>$serverurl, 
+        'serverAdapter'=>$serveradapter, 'authUsername' => $username,
+        'authPassword' => $password, 'boundaryDefault' => $boundary, 
+        'prepopulate' => $prepopulate, 'wsDebug' => $wsDebug));
+    $PAGE->set_url($url);    
+    
 	print_header_simple(format_string($strtitle));
     echo $OUTPUT->box_start('generalbox', 'notice');
 	
