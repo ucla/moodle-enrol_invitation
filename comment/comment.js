@@ -40,9 +40,9 @@ M.core_comment = {
                 this.component = args.component;
                 this.courseid = args.courseid;
                 this.contextid = args.contextid;
-                this.env = args.env;
+                this.autostart = (args.autostart);
                 // expand comments?
-                if (args.autostart) {
+                if (this.autostart) {
                     this.view(args.page);
                 }
                 // load comments
@@ -58,6 +58,7 @@ M.core_comment = {
                         return false;
                     }, this);
                 }
+                scope.toggle_textarea(false);
                 CommentHelper.confirmoverlay = new Y.Overlay({
 bodyContent: '<div class="comment-delete-confirm"><a href="#" id="confirmdelete-'+this.client_id+'">'+M.str.moodle.yes+'</a> <a href="#" id="canceldelete-'+this.client_id+'">'+M.str.moodle.no+'</a></div>',
                                         visible: false
@@ -79,6 +80,7 @@ bodyContent: '<div class="comment-delete-confirm"><a href="#" id="confirmdelete-
                             var cid = scope.client_id;
                             var ta = Y.one('#dlg-content-'+cid);
                             ta.set('value', '');
+                            scope.toggle_textarea(false);
                             var container = Y.one('#comment-list-'+cid);
                             var result = scope.render([obj], true);
                             var newcomment = Y.Node.create(result.html);
@@ -115,7 +117,6 @@ bodyContent: '<div class="comment-delete-confirm"><a href="#" id="confirmdelete-
                     scope = args['scope'];
                 }
                 //params['page'] = args.page?args.page:'';
-                params['env']       = '';
                 // the form element only accept certain file types
                 params['sesskey']   = M.cfg.sesskey;
                 params['action']    = args.action?args.action:'';
@@ -347,7 +348,7 @@ bodyContent: '<div class="comment-delete-confirm"><a href="#" id="confirmdelete-
                 var d = container.getStyle('display');
                 if (d=='none'||d=='') {
                     // show
-                    if (this.env != 'block_comments') {
+                    if (!this.autostart) {
                         this.load(page);
                     } else {
                         this.register_delete_buttons();

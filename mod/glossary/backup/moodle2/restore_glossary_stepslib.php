@@ -66,6 +66,11 @@ class restore_glossary_activity_structure_step extends restore_activity_structur
         if (!in_array($data->displayformat, $formats)) {
             $data->displayformat = 'dictionary';
         }
+        if (!empty($data->mainglossary) and $data->mainglossary == 1 and
+            $DB->record_exists('glossary', array('mainglossary' => 1, 'course' => $this->get_courseid()))) {
+            // Only allow one main glossary in the course
+            $data->mainglossary = 0;
+        }
 
         // insert the glossary record
         $newitemid = $DB->insert_record('glossary', $data);
@@ -116,6 +121,15 @@ class restore_glossary_activity_structure_step extends restore_activity_structur
         $data->userid = $this->get_mappingid('user', $data->userid);
         $data->timecreated = $this->apply_date_offset($data->timecreated);
         $data->timemodified = $this->apply_date_offset($data->timemodified);
+
+        // Make sure that we have both component and ratingarea set. These were added in 2.1.
+        // Prior to that all ratings were for entries so we know what to set them too.
+        if (empty($data->component)) {
+            $data->component = 'mod_glossary';
+        }
+        if (empty($data->ratingarea)) {
+            $data->ratingarea = 'entry';
+        }
 
         $newitemid = $DB->insert_record('rating', $data);
     }

@@ -25,11 +25,11 @@
 
 require_once($CFG->libdir.'/eventslib.php');
 
-
 define ('MESSAGE_SHORTLENGTH', 300);
 
 //$PAGE isnt set if we're being loaded by cron which doesnt display popups anyway
 if (isset($PAGE)) {
+    //TODO: this is a mega crazy hack - it is not acceptable to call anything when including lib!!! (skodak)
     $PAGE->set_popup_notification_allowed(false); // We are in a message window (so don't pop up a new one)
 }
 
@@ -38,37 +38,47 @@ define ('MESSAGE_DISCUSSION_HEIGHT',500);
 
 define ('MESSAGE_SHORTVIEW_LIMIT', 8);//the maximum number of messages to show on the short message history
 
-define ('CONTACT_ID','id');
-
 define('MESSAGE_HISTORY_SHORT',0);
 define('MESSAGE_HISTORY_ALL',1);
 
-//some constants used as function arguments. Just to make function calls a bit more understandable
-define('IS_CONTACT',true);
-define('IS_NOT_CONTACT',false);
-
-define('IS_BLOCKED',true);
-define('IS_NOT_BLOCKED',false);
-
-define('VIEW_PARAM','viewing');
-
-define('VIEW_UNREAD_MESSAGES','unread');
-define('VIEW_RECENT_CONVERSATIONS','recentconversations');
-define('VIEW_RECENT_NOTIFICATIONS','recentnotifications');
-define('VIEW_CONTACTS','contacts');
-define('VIEW_BLOCKED','blockedusers');
-define('VIEW_COURSE','course_');
-define('VIEW_SEARCH','search');
-
-define('MESSAGE_USER1_PARAM','user1');
-define('MESSAGE_USER2_PARAM','user2');
-
-define('SHOW_ACTION_LINKS_IN_CONTACT_LIST', true);
+define('MESSAGE_VIEW_UNREAD_MESSAGES','unread');
+define('MESSAGE_VIEW_RECENT_CONVERSATIONS','recentconversations');
+define('MESSAGE_VIEW_RECENT_NOTIFICATIONS','recentnotifications');
+define('MESSAGE_VIEW_CONTACTS','contacts');
+define('MESSAGE_VIEW_BLOCKED','blockedusers');
+define('MESSAGE_VIEW_COURSE','course_');
+define('MESSAGE_VIEW_SEARCH','search');
 
 define('MESSAGE_SEARCH_MAX_RESULTS', 200);
 
 define('MESSAGE_CONTACTS_PER_PAGE',10);
+define('MESSAGE_MAX_COURSE_NAME_LENGTH', 30);
 
+/**
+ * Define contants for messaging default settings population. For unambiguity of
+ * plugin developer intentions we use 4-bit value (LSB numbering):
+ * bit 0 - whether to send message when user is loggedin (MESSAGE_DEFAULT_LOGGEDIN)
+ * bit 1 - whether to send message when user is loggedoff (MESSAGE_DEFAULT_LOGGEDOFF)
+ * bit 2..3 - messaging permission (MESSAGE_DISALLOWED|MESSAGE_PERMITTED|MESSAGE_FORCED)
+ *
+ * MESSAGE_PERMITTED_MASK contains the mask we use to distinguish permission setting
+ */
+
+define('MESSAGE_DEFAULT_LOGGEDIN', 0x01); // 0001
+define('MESSAGE_DEFAULT_LOGGEDOFF', 0x02); // 0010
+
+define('MESSAGE_DISALLOWED', 0x04); // 0100
+define('MESSAGE_PERMITTED', 0x08); // 1000
+define('MESSAGE_FORCED', 0x0c); // 1100
+
+define('MESSAGE_PERMITTED_MASK', 0x0c); // 1100
+
+/**
+ * Set default value for default outputs permitted setting
+ */
+define('MESSAGE_DEFAULT_PERMITTED', 'permitted');
+
+//TODO: defaults must be initialised via settings - this is a bad hack! (skodak)
 if (!isset($CFG->message_contacts_refresh)) {  // Refresh the contacts list every 60 seconds
     $CFG->message_contacts_refresh = 60;
 }
@@ -80,33 +90,34 @@ if (!isset($CFG->message_offline_time)) {
 }
 
 /**
-* Print the selector that allows the user to view their contacts, course participants, their recent
-* conversations etc
-* @param int $countunreadtotal how many unread messages does the user have?
-* @param int $viewing What is the user viewing? ie VIEW_UNREAD_MESSAGES, VIEW_SEARCH etc
-* @param object $user1 the user whose messages are being viewed
-* @param object $user2 the user $user1 is talking to
-* @param array $blockedusers an array of users blocked by $user1
-* @param array $onlinecontacts an array of $user1's online contacts
-* @param array $offlinecontacts an array of $user1's offline contacts
-* @param array $strangers an array of users who have messaged $user1 who aren't contacts
-* @param bool $showcontactactionlinks show action links (add/remove contact etc) next to the users in the contact selector
-* @param int $page if there are so many users listed that they have to be split into pages what page are we viewing
-* @return void
-*/
+ * Print the selector that allows the user to view their contacts, course participants, their recent
+ * conversations etc
+ *
+ * @param int $countunreadtotal how many unread messages does the user have?
+ * @param int $viewing What is the user viewing? ie MESSAGE_VIEW_UNREAD_MESSAGES, MESSAGE_VIEW_SEARCH etc
+ * @param object $user1 the user whose messages are being viewed
+ * @param object $user2 the user $user1 is talking to
+ * @param array $blockedusers an array of users blocked by $user1
+ * @param array $onlinecontacts an array of $user1's online contacts
+ * @param array $offlinecontacts an array of $user1's offline contacts
+ * @param array $strangers an array of users who have messaged $user1 who aren't contacts
+ * @param bool $showcontactactionlinks show action links (add/remove contact etc) next to the users in the contact selector
+ * @param int $page if there are so many users listed that they have to be split into pages what page are we viewing
+ * @return void
+ */
 function message_print_contact_selector($countunreadtotal, $viewing, $user1, $user2, $blockedusers, $onlinecontacts, $offlinecontacts, $strangers, $showcontactactionlinks, $page=0) {
     global $PAGE;
 
     echo html_writer::start_tag('div', array('class' => 'contactselector mdl-align'));
 
     //if 0 unread messages and they've requested unread messages then show contacts
-    if ($countunreadtotal == 0 && $viewing == VIEW_UNREAD_MESSAGES) {
-        $viewing = VIEW_CONTACTS;
+    if ($countunreadtotal == 0 && $viewing == MESSAGE_VIEW_UNREAD_MESSAGES) {
+        $viewing = MESSAGE_VIEW_CONTACTS;
     }
 
     //if they have no blocked users and they've requested blocked users switch them over to contacts
-    if (count($blockedusers) == 0 && $viewing == VIEW_BLOCKED) {
-        $viewing = VIEW_CONTACTS;
+    if (count($blockedusers) == 0 && $viewing == MESSAGE_VIEW_BLOCKED) {
+        $viewing = MESSAGE_VIEW_CONTACTS;
     }
 
     $onlyactivecourses = true;
@@ -120,13 +131,13 @@ function message_print_contact_selector($countunreadtotal, $viewing, $user1, $us
 
     message_print_usergroup_selector($viewing, $courses, $coursecontexts, $countunreadtotal, count($blockedusers), $strunreadmessages);
 
-    if ($viewing == VIEW_UNREAD_MESSAGES) {
+    if ($viewing == MESSAGE_VIEW_UNREAD_MESSAGES) {
         message_print_contacts($onlinecontacts, $offlinecontacts, $strangers, $PAGE->url, 1, $showcontactactionlinks,$strunreadmessages, $user2);
-    } else if ($viewing == VIEW_CONTACTS || $viewing == VIEW_SEARCH || $viewing == VIEW_RECENT_CONVERSATIONS || $viewing == VIEW_RECENT_NOTIFICATIONS) {
+    } else if ($viewing == MESSAGE_VIEW_CONTACTS || $viewing == MESSAGE_VIEW_SEARCH || $viewing == MESSAGE_VIEW_RECENT_CONVERSATIONS || $viewing == MESSAGE_VIEW_RECENT_NOTIFICATIONS) {
         message_print_contacts($onlinecontacts, $offlinecontacts, $strangers, $PAGE->url, 0, $showcontactactionlinks, $strunreadmessages, $user2);
-    } else if ($viewing == VIEW_BLOCKED) {
+    } else if ($viewing == MESSAGE_VIEW_BLOCKED) {
         message_print_blocked_users($blockedusers, $PAGE->url, $showcontactactionlinks, null, $user2);
-    } else if (substr($viewing, 0, 7) == VIEW_COURSE) {
+    } else if (substr($viewing, 0, 7) == MESSAGE_VIEW_COURSE) {
         $courseidtoshow = intval(substr($viewing, 7));
 
         if (!empty($courseidtoshow)
@@ -143,11 +154,11 @@ function message_print_contact_selector($countunreadtotal, $viewing, $user1, $us
     echo html_writer::start_tag('form', array('action' => 'index.php','method' => 'GET'));
     echo html_writer::start_tag('fieldset');
     $managebuttonclass = 'visible';
-    if ($viewing == VIEW_SEARCH) {
+    if ($viewing == MESSAGE_VIEW_SEARCH) {
         $managebuttonclass = 'hiddenelement';
     }
     $strmanagecontacts = get_string('search','message');
-    echo html_writer::empty_tag('input', array('type' => 'hidden','name' => VIEW_PARAM,'value' => VIEW_SEARCH));
+    echo html_writer::empty_tag('input', array('type' => 'hidden','name' => 'viewing','value' => MESSAGE_VIEW_SEARCH));
     echo html_writer::empty_tag('input', array('type' => 'submit','value' => $strmanagecontacts,'class' => $managebuttonclass));
     echo html_writer::end_tag('fieldset');
     echo html_writer::end_tag('form');
@@ -156,16 +167,17 @@ function message_print_contact_selector($countunreadtotal, $viewing, $user1, $us
 }
 
 /**
-* Print course participants. Called by message_print_contact_selector()
-* @param object $context the course context
-* @param int $courseid the course ID
-* @param string $contactselecturl the url to send the user to when a contact's name is clicked
-* @param bool $showactionlinks show action links (add/remove contact etc) next to the users
-* @param string $titletodisplay Optionally specify a title to display above the participants
-* @param int $page if there are so many users listed that they have to be split into pages what page are we viewing
-* @param object $user2 the user $user1 is talking to. They will be highlighted if they appear in the list of participants
-* @return void
-*/
+ * Print course participants. Called by message_print_contact_selector()
+ *
+ * @param object $context the course context
+ * @param int $courseid the course ID
+ * @param string $contactselecturl the url to send the user to when a contact's name is clicked
+ * @param bool $showactionlinks show action links (add/remove contact etc) next to the users
+ * @param string $titletodisplay Optionally specify a title to display above the participants
+ * @param int $page if there are so many users listed that they have to be split into pages what page are we viewing
+ * @param object $user2 the user $user1 is talking to. They will be highlighted if they appear in the list of participants
+ * @return void
+ */
 function message_print_participants($context, $courseid, $contactselecturl=null, $showactionlinks=true, $titletodisplay=null, $page=0, $user2=null) {
     global $DB, $USER, $PAGE, $OUTPUT;
 
@@ -199,12 +211,13 @@ function message_print_participants($context, $courseid, $contactselecturl=null,
 }
 
 /**
-* Retrieve users blocked by $user1
-* @param object $user1 the user whose messages are being viewed
-* @param object $user2 the user $user1 is talking to. If they are being blocked
-*                      they will have a variable called 'isblocked' added to their user object
-* @return array the users blocked by $user1
-*/
+ * Retrieve users blocked by $user1
+ *
+ * @param object $user1 the user whose messages are being viewed
+ * @param object $user2 the user $user1 is talking to. If they are being blocked
+ *                      they will have a variable called 'isblocked' added to their user object
+ * @return array the users blocked by $user1
+ */
 function message_get_blocked_users($user1=null, $user2=null) {
     global $DB, $USER;
 
@@ -216,6 +229,8 @@ function message_get_blocked_users($user1=null, $user2=null) {
         $user2->isblocked = false;
     }
 
+    $blockedusers = array();
+
     $userfields = user_picture::fields('u', array('lastaccess'));
     $blockeduserssql = "SELECT $userfields, COUNT(m.id) AS messagecount
                           FROM {message_contacts} mc
@@ -226,31 +241,28 @@ function message_get_blocked_users($user1=null, $user2=null) {
                       ORDER BY u.firstname ASC";
     $rs =  $DB->get_recordset_sql($blockeduserssql, array('user1id1' => $user1->id, 'user1id2' => $user1->id));
 
-    $blockedusers = array();
-    if (!empty($rs)) {
-        foreach($rs as $rd) {
-            $blockedusers[] = $rd;
+    foreach($rs as $rd) {
+        $blockedusers[] = $rd;
 
-            if (!empty($user2) && $user2->id == $rd->id) {
-                $user2->isblocked = true;
-            }
+        if (!empty($user2) && $user2->id == $rd->id) {
+            $user2->isblocked = true;
         }
-        unset($rd);
-        $rs->close();
     }
+    $rs->close();
 
     return $blockedusers;
 }
 
 /**
-* Print users blocked by $user1. Called by message_print_contact_selector()
-* @param array $blockedusers the users blocked by $user1
-* @param string $contactselecturl the url to send the user to when a contact's name is clicked
-* @param bool $showactionlinks show action links (add/remove contact etc) next to the users
-* @param string $titletodisplay Optionally specify a title to display above the participants
-* @param object $user2 the user $user1 is talking to. They will be highlighted if they appear in the list of blocked users
-* @return void
-*/
+ * Print users blocked by $user1. Called by message_print_contact_selector()
+ *
+ * @param array $blockedusers the users blocked by $user1
+ * @param string $contactselecturl the url to send the user to when a contact's name is clicked
+ * @param bool $showactionlinks show action links (add/remove contact etc) next to the users
+ * @param string $titletodisplay Optionally specify a title to display above the participants
+ * @param object $user2 the user $user1 is talking to. They will be highlighted if they appear in the list of blocked users
+ * @return void
+ */
 function message_print_blocked_users($blockedusers, $contactselecturl=null, $showactionlinks=true, $titletodisplay=null, $user2=null) {
     global $DB, $USER;
 
@@ -269,8 +281,10 @@ function message_print_blocked_users($blockedusers, $contactselecturl=null, $sho
         echo html_writer::tag('td', get_string('blockedusers', 'message', $countblocked), array('colspan' => 3, 'class' => 'heading'));
         echo html_writer::end_tag('tr');
 
+        $isuserblocked = true;
+        $isusercontact = false;
         foreach ($blockedusers as $blockeduser) {
-            message_print_contactlist_user($blockeduser, IS_NOT_CONTACT, IS_BLOCKED, $contactselecturl, $showactionlinks, $user2);
+            message_print_contactlist_user($blockeduser, $isusercontact, $isuserblocked, $contactselecturl, $showactionlinks, $user2);
         }
     }
 
@@ -278,12 +292,13 @@ function message_print_blocked_users($blockedusers, $contactselecturl=null, $sho
 }
 
 /**
-* Retrieve $user1's contacts (online, offline and strangers)
-* @param object $user1 the user whose messages are being viewed
-* @param object $user2 the user $user1 is talking to. If they are a contact
-*                      they will have a variable called 'iscontact' added to their user object
-* @return array containing 3 arrays. array($onlinecontacts, $offlinecontacts, $strangers)
-*/
+ * Retrieve $user1's contacts (online, offline and strangers)
+ *
+ * @param object $user1 the user whose messages are being viewed
+ * @param object $user2 the user $user1 is talking to. If they are a contact
+ *                      they will have a variable called 'iscontact' added to their user object
+ * @return array containing 3 arrays. array($onlinecontacts, $offlinecontacts, $strangers)
+ */
 function message_get_contacts($user1=null, $user2=null) {
     global $DB, $CFG, $USER;
 
@@ -358,24 +373,26 @@ function message_get_contacts($user1=null, $user2=null) {
 }
 
 /**
-* Print $user1's contacts. Called by message_print_contact_selector()
-* @param array $onlinecontacts $user1's contacts which are online
-* @param array $offlinecontacts $user1's contacts which are offline
-* @param array $strangers users which are not contacts but who have messaged $user1
-* @param string $contactselecturl the url to send the user to when a contact's name is clicked
-* @param int $minmessages The minimum number of unread messages required from a user for them to be displayed
-*                         Typically 0 (show all contacts) or 1 (only show contacts from whom we have a new message)
-* @param bool $showactionlinks show action links (add/remove contact etc) next to the users
-* @param string $titletodisplay Optionally specify a title to display above the participants
-* @param object $user2 the user $user1 is talking to. They will be highlighted if they appear in the list of contacts
-* @return void
-*/
+ * Print $user1's contacts. Called by message_print_contact_selector()
+ *
+ * @param array $onlinecontacts $user1's contacts which are online
+ * @param array $offlinecontacts $user1's contacts which are offline
+ * @param array $strangers users which are not contacts but who have messaged $user1
+ * @param string $contactselecturl the url to send the user to when a contact's name is clicked
+ * @param int $minmessages The minimum number of unread messages required from a user for them to be displayed
+ *                         Typically 0 (show all contacts) or 1 (only show contacts from whom we have a new message)
+ * @param bool $showactionlinks show action links (add/remove contact etc) next to the users
+ * @param string $titletodisplay Optionally specify a title to display above the participants
+ * @param object $user2 the user $user1 is talking to. They will be highlighted if they appear in the list of contacts
+ * @return void
+ */
 function message_print_contacts($onlinecontacts, $offlinecontacts, $strangers, $contactselecturl=null, $minmessages=0, $showactionlinks=true, $titletodisplay=null, $user2=null) {
     global $CFG, $PAGE, $OUTPUT;
 
     $countonlinecontacts  = count($onlinecontacts);
     $countofflinecontacts = count($offlinecontacts);
     $countstrangers       = count($strangers);
+    $isuserblocked = null;
 
     if ($countonlinecontacts + $countofflinecontacts == 0) {
         echo html_writer::tag('div', get_string('contactlistempty', 'message'), array('class' => 'heading'));
@@ -394,9 +411,11 @@ function message_print_contacts($onlinecontacts, $offlinecontacts, $strangers, $
             message_print_heading(get_string('onlinecontacts', 'message', $countonlinecontacts));
         }
 
+        $isuserblocked = false;
+        $isusercontact = true;
         foreach ($onlinecontacts as $contact) {
             if ($minmessages == 0 || $contact->messagecount >= $minmessages) {
-                message_print_contactlist_user($contact, IS_CONTACT, IS_NOT_BLOCKED, $contactselecturl, $showactionlinks, $user2);
+                message_print_contactlist_user($contact, $isusercontact, $isuserblocked, $contactselecturl, $showactionlinks, $user2);
             }
         }
     }
@@ -408,9 +427,11 @@ function message_print_contacts($onlinecontacts, $offlinecontacts, $strangers, $
             message_print_heading(get_string('offlinecontacts', 'message', $countofflinecontacts));
         }
 
+        $isuserblocked = false;
+        $isusercontact = true;
         foreach ($offlinecontacts as $contact) {
             if ($minmessages == 0 || $contact->messagecount >= $minmessages) {
-                message_print_contactlist_user($contact, IS_CONTACT, IS_NOT_BLOCKED, $contactselecturl, $showactionlinks, $user2);
+                message_print_contactlist_user($contact, $isusercontact, $isuserblocked, $contactselecturl, $showactionlinks, $user2);
             }
         }
 
@@ -420,9 +441,11 @@ function message_print_contacts($onlinecontacts, $offlinecontacts, $strangers, $
     if ($countstrangers) {
         message_print_heading(get_string('incomingcontacts', 'message', $countstrangers));
 
+        $isuserblocked = false;
+        $isusercontact = false;
         foreach ($strangers as $stranger) {
             if ($minmessages == 0 || $stranger->messagecount >= $minmessages) {
-                message_print_contactlist_user($stranger, IS_NOT_CONTACT, IS_NOT_BLOCKED, $contactselecturl, $showactionlinks, $user2);
+                message_print_contactlist_user($stranger, $isusercontact, $isuserblocked, $contactselecturl, $showactionlinks, $user2);
             }
         }
     }
@@ -435,35 +458,43 @@ function message_print_contacts($onlinecontacts, $offlinecontacts, $strangers, $
 }
 
 /**
-* Print a select box allowing the user to choose to view new messages, course participants etc.
-* Called by message_print_contact_selector()
-* @param int $viewing What page is the user viewing ie VIEW_UNREAD_MESSAGES, VIEW_RECENT_CONVERSATIONS etc
-* @param array $courses array of course objects. The courses the user is enrolled in.
-* @param array $coursecontexts array of course contexts. Keyed on course id.
-* @param int $countunreadtotal how many unread messages does the user have?
-* @param int $countblocked how many users has the current user blocked?
-* @param string $strunreadmessages a preconstructed message about the number of unread messages the user has
-* @return void
-*/
+ * Print a select box allowing the user to choose to view new messages, course participants etc.
+ *
+ * Called by message_print_contact_selector()
+ * @param int $viewing What page is the user viewing ie MESSAGE_VIEW_UNREAD_MESSAGES, MESSAGE_VIEW_RECENT_CONVERSATIONS etc
+ * @param array $courses array of course objects. The courses the user is enrolled in.
+ * @param array $coursecontexts array of course contexts. Keyed on course id.
+ * @param int $countunreadtotal how many unread messages does the user have?
+ * @param int $countblocked how many users has the current user blocked?
+ * @param string $strunreadmessages a preconstructed message about the number of unread messages the user has
+ * @return void
+ */
 function message_print_usergroup_selector($viewing, $courses, $coursecontexts, $countunreadtotal, $countblocked, $strunreadmessages) {
     $options = array();
+    $textlib = textlib_get_instance(); // going to use textlib services
 
     if ($countunreadtotal>0) { //if there are unread messages
-        $options[VIEW_UNREAD_MESSAGES] = $strunreadmessages;
+        $options[MESSAGE_VIEW_UNREAD_MESSAGES] = $strunreadmessages;
     }
 
     $str = get_string('mycontacts', 'message');
-    $options[VIEW_CONTACTS] = $str;
+    $options[MESSAGE_VIEW_CONTACTS] = $str;
 
-    $options[VIEW_RECENT_CONVERSATIONS] = get_string('mostrecentconversations', 'message');
-    $options[VIEW_RECENT_NOTIFICATIONS] = get_string('mostrecentnotifications', 'message');
+    $options[MESSAGE_VIEW_RECENT_CONVERSATIONS] = get_string('mostrecentconversations', 'message');
+    $options[MESSAGE_VIEW_RECENT_NOTIFICATIONS] = get_string('mostrecentnotifications', 'message');
 
     if (!empty($courses)) {
         $courses_options = array();
 
         foreach($courses as $course) {
             if (has_capability('moodle/course:viewparticipants', $coursecontexts[$course->id])) {
-                $courses_options[VIEW_COURSE.$course->id] = $course->shortname;
+                //Not using short_text() as we want the end of the course name. Not the beginning.
+                $shortname = format_string($course->shortname, true, array('context' => $coursecontexts[$course->id]));
+                if ($textlib->strlen($shortname) > MESSAGE_MAX_COURSE_NAME_LENGTH) {
+                    $courses_options[MESSAGE_VIEW_COURSE.$course->id] = '...'.$textlib->substr($shortname, -MESSAGE_MAX_COURSE_NAME_LENGTH);
+                } else {
+                    $courses_options[MESSAGE_VIEW_COURSE.$course->id] = $shortname;
+                }
             }
         }
 
@@ -474,21 +505,22 @@ function message_print_usergroup_selector($viewing, $courses, $coursecontexts, $
 
     if ($countblocked>0) {
         $str = get_string('blockedusers','message', $countblocked);
-        $options[VIEW_BLOCKED] = $str;
+        $options[MESSAGE_VIEW_BLOCKED] = $str;
     }
 
     echo html_writer::start_tag('form', array('id' => 'usergroupform','method' => 'get','action' => ''));
         echo html_writer::start_tag('fieldset');
-            echo html_writer::select($options, VIEW_PARAM, $viewing, false, array('id' => VIEW_PARAM,'onchange' => 'this.form.submit()'));
+            echo html_writer::select($options, 'viewing', $viewing, false, array('id' => 'viewing','onchange' => 'this.form.submit()'));
         echo html_writer::end_tag('fieldset');
     echo html_writer::end_tag('form');
 }
 
 /**
-* Load the course contexts for all of the users courses
-* @param array $courses array of course objects. The courses the user is enrolled in.
-* @return array of course contexts
-*/
+ * Load the course contexts for all of the users courses
+ *
+ * @param array $courses array of course objects. The courses the user is enrolled in.
+ * @return array of course contexts
+ */
 function message_get_course_contexts($courses) {
     $coursecontexts = array();
 
@@ -501,6 +533,7 @@ function message_get_course_contexts($courses) {
 
 /**
  * strip off action parameters like 'removecontact'
+ *
  * @param moodle_url/string $moodleurl a URL. Typically the current page URL.
  * @return string the URL minus parameters that perform actions (like adding/removing/blocking a contact).
  */
@@ -514,6 +547,7 @@ function message_remove_url_params($moodleurl) {
  * Count the number of messages with a field having a specified value.
  * if $field is empty then return count of the whole array
  * if $field is non-existent then return 0
+ *
  * @param array $messagearray array of message objects
  * @param string $field the field to inspect on the message objects
  * @param string $value the value to test the field against
@@ -531,6 +565,7 @@ function message_count_messages($messagearray, $field='', $value='') {
 
 /**
  * Returns the count of unread messages for user. Either from a specific user or from all users.
+ *
  * @param object $user1 the first user. Defaults to $USER
  * @param object $user2 the second user. If null this function will count all of user 1's unread messages.
  * @return int the count of $user1's unread messages
@@ -553,7 +588,9 @@ function message_count_unread_messages($user1=null, $user2=null) {
 
 /**
  * Count the number of users blocked by $user1
- * @param $user1
+ *
+ * @param object $user1 user object
+ * @return int the number of blocked users
  */
 function message_count_blocked_users($user1=null) {
     global $USER, $DB;
@@ -572,6 +609,7 @@ function message_count_blocked_users($user1=null) {
 
 /**
  * Print the search form and search results if a search has been performed
+ *
  * @param  boolean $advancedsearch show basic or advanced search form
  * @param  object $user1 the current user
  * @return boolean true if a search was performed
@@ -630,6 +668,7 @@ function message_print_search($advancedsearch = false, $user1=null) {
 /**
  * Get the users recent conversations meaning all the people they've recently
  * sent or received a message from plus the most recent message sent to or received from each other user
+ *
  * @param object $user the current user
  * @param int $limitfrom can be used for paging
  * @param int $limitto can be used for paging
@@ -721,6 +760,7 @@ function message_get_recent_conversations($user, $limitfrom=0, $limitto=100) {
 
 /**
  * Sort function used to order conversations
+ *
  * @param object $a A conversation object
  * @param object $b A conversation object
  * @return integer
@@ -735,6 +775,7 @@ function conversationsort($a, $b)
 
 /**
  * Get the users recent event notifications
+ *
  * @param object $user the current user
  * @param int $limitfrom can be used for paging
  * @param int $limitto can be used for paging
@@ -757,8 +798,10 @@ function message_get_recent_notifications($user, $limitfrom=0, $limitto=100) {
 
 /**
  * Print the user's recent conversations
+ *
  * @param object $user1 the current user
  * @param bool $showicontext flag indicating whether or not to show text next to the action icons
+ * @return void
  */
 function message_print_recent_conversations($user=null, $showicontext=false) {
     global $USER;
@@ -779,7 +822,9 @@ function message_print_recent_conversations($user=null, $showicontext=false) {
 
 /**
  * Print the user's recent notifications
+ *
  * @param object $user1 the current user
+ * @return void
  */
 function message_print_recent_notifications($user=null) {
     global $USER;
@@ -801,11 +846,13 @@ function message_print_recent_notifications($user=null) {
 
 /**
  * Print a list of recent messages
+ *
  * @staticvar type $dateformat
  * @param array $messages the messages to display
  * @param object $user the current user
  * @param bool $showotheruser display information on the other user?
  * @param bool $showicontext show text next to the action icons?
+ * @return void
  */
 function message_print_recent_messages_table($messages, $user=null, $showotheruser=true, $showicontext=false) {
     global $OUTPUT;
@@ -874,6 +921,7 @@ function message_print_recent_messages_table($messages, $user=null, $showotherus
 
 /**
  * Add the selected user as a contact for the current user
+ *
  * @param int $contactid the ID of the user to add as a contact
  * @param int $blocked 1 if you wish to block the contact
  * @return bool/int false if the $contactid isnt a valid user id. True if no changes made.
@@ -910,6 +958,7 @@ function message_add_contact($contactid, $blocked=0) {
 
 /**
  * remove a contact
+ *
  * @param type $contactid the user ID of the contact to remove
  * @return bool returns the result of delete_records()
  */
@@ -920,6 +969,7 @@ function message_remove_contact($contactid) {
 
 /**
  * Unblock a contact. Note that this reverts the previously blocked user back to a non-contact.
+ *
  * @param int $contactid the user ID of the contact to unblock
  * @return bool returns the result of delete_records()
  */
@@ -930,6 +980,7 @@ function message_unblock_contact($contactid) {
 
 /**
  * block a user
+ *
  * @param int $contactid the user ID of the user to block
  */
 function message_block_contact($contactid) {
@@ -938,7 +989,9 @@ function message_block_contact($contactid) {
 
 /**
  * Load a user's contact record
+ *
  * @param int $contactid the user ID of the user whose contact record you want
+ * @return array message contacts
  */
 function message_get_contact($contactid) {
     global $USER, $DB;
@@ -947,15 +1000,17 @@ function message_get_contact($contactid) {
 
 /**
  * Print the results of a message search
+ *
  * @param mixed $frm submitted form data
  * @param bool $showicontext show text next to action icons?
- * @param object $user1 the current user
+ * @param object $currentuser the current user
+ * @return void
  */
-function message_print_search_results($frm, $showicontext=false, $user1=null) {
+function message_print_search_results($frm, $showicontext=false, $currentuser=null) {
     global $USER, $DB, $OUTPUT;
 
-    if (empty($user1)) {
-        $user1 = $USER;
+    if (empty($currentuser)) {
+        $currentuser = $USER;
     }
 
     echo html_writer::start_tag('div', array('class' => 'mdl-left'));
@@ -1175,14 +1230,17 @@ function message_print_search_results($frm, $showicontext=false, $user1=null) {
                 echo message_get_fragment($message->fullmessage, $keywords);
                 echo html_writer::start_tag('div', array('class' => 'link'));
 
-                //find the user involved that isn't the current user
-                $user2id = null;
-                if ($user1->id == $message->useridto) {
-                    $user2id = $message->useridfrom;
+                //If the user clicks the context link display message sender on the left
+                //EXCEPT if the current user is in the conversation. Current user == always on the left
+                $leftsideuserid = $rightsideuserid = null;
+                if ($currentuser->id == $message->useridto) {
+                    $leftsideuserid = $message->useridto;
+                    $rightsideuserid = $message->useridfrom;
                 } else {
-                    $user2id = $message->useridto;
+                    $leftsideuserid = $message->useridfrom;
+                    $rightsideuserid = $message->useridto;
                 }
-                message_history_link($user1->id, $user2id, false,
+                message_history_link($leftsideuserid, $rightsideuserid, false,
                                      $messagesearchstring, 'm'.$message->id, $strcontext);
                 echo html_writer::end_tag('div');
                 echo html_writer::end_tag('td');
@@ -1215,10 +1273,12 @@ function message_print_search_results($frm, $showicontext=false, $user1=null) {
 
 /**
  * Print information on a user. Used when printing search results.
+ *
  * @param object/bool $user the user to display or false if you just want $USER
  * @param bool $iscontact is the user being displayed a contact?
  * @param bool $isblocked is the user being displayed blocked?
  * @param bool $includeicontext include text next to the action icons?
+ * @return void
  */
 function message_print_user ($user=false, $iscontact=false, $isblocked=false, $includeicontext=false) {
     global $USER, $OUTPUT;
@@ -1262,6 +1322,7 @@ function message_print_user ($user=false, $iscontact=false, $isblocked=false, $i
 
 /**
  * Print a message contact link
+ *
  * @staticvar type $str
  * @param int $userid the ID of the user to apply to action to
  * @param string $linktype can be add, remove, block or unblock
@@ -1336,8 +1397,9 @@ function message_contact_link($userid, $linktype='add', $return=false, $script=n
 
 /**
  * echo or return a link to take the user to the full message history between themselves and another user
+ *
  * @staticvar type $strmessagehistory
- * @param int $userid1 the ID of the current user
+ * @param int $userid1 the ID of the user displayed on the left (usually the current user)
  * @param int $userid2 the ID of the other user
  * @param bool $return true to return the link as a string. False to echo the link.
  * @param string $keywords any keywords to highlight in the message history
@@ -1347,7 +1409,6 @@ function message_contact_link($userid, $linktype='add', $return=false, $script=n
  */
 function message_history_link($userid1, $userid2, $return=false, $keywords='', $position='', $linktext='') {
     global $OUTPUT;
-
     static $strmessagehistory;
 
     if (empty($strmessagehistory)) {
@@ -1381,7 +1442,7 @@ function message_history_link($userid1, $userid2, $return=false, $keywords='', $
             'scrollbars' => true,
             'resizable' => true);
 
-    $link = new moodle_url('/message/index.php?history='.MESSAGE_HISTORY_ALL."&user=$userid1&id=$userid2$keywords$position");
+    $link = new moodle_url('/message/index.php?history='.MESSAGE_HISTORY_ALL."&user1=$userid1&user2=$userid2$keywords$position");
     $action = null;
     $str = $OUTPUT->action_link($link, $fulllink, $action, array('title' => $strmessagehistory));
 
@@ -1442,8 +1503,8 @@ function message_search_users($courseid, $searchtext, $sort='', $exceptions='') 
 
         // everyone who has a role assignment in this course or higher
         $params = array($USER->id, "%$searchtext%");
-        $users = $DB->get_records_sql("SELECT $ufields,
-                                         FROM {user} u, mc.id as contactlistid, mc.blocked
+        $users = $DB->get_records_sql("SELECT $ufields, mc.id as contactlistid, mc.blocked
+                                         FROM {user} u
                                          JOIN {role_assignments} ra ON ra.userid = u.id
                                          LEFT JOIN {message_contacts} mc
                                               ON mc.contactid = u.id AND mc.userid = ?
@@ -1459,6 +1520,7 @@ function message_search_users($courseid, $searchtext, $sort='', $exceptions='') 
 
 /**
  * search a user's messages
+ *
  * @param array $searchterms an array of search terms (strings)
  * @param bool $fromme include messages from the user?
  * @param bool $tome include messages to the user?
@@ -1600,6 +1662,7 @@ function message_search($searchterms, $fromme=true, $tome=true, $courseid='none'
  * Given a message object that we already know has a long message
  * this function truncates the message nicely to the first
  * sane place between $CFG->forum_longpost and $CFG->forum_shortpost
+ *
  * @param string $message the message
  * @param int $minlength the minimum length to trim the message to
  * @return string the shortened message
@@ -1655,6 +1718,7 @@ function message_shorten_message($message, $minlength = 0) {
  * Given a string and an array of keywords, this function looks
  * for the first keyword in the string, and then chops out a
  * small section from the text that shows that word in context.
+ *
  * @param string $message the text to search
  * @param array $keywords array of keywords to find
  */
@@ -1702,6 +1766,7 @@ function message_get_fragment($message, $keywords) {
 
 /**
  * Retrieve the messages between two users
+ *
  * @param object $user1 the current user
  * @param object $user2 the other user
  * @param int $limitnum the maximum number of messages to retrieve
@@ -1757,6 +1822,7 @@ function message_get_history($user1, $user2, $limitnum=0, $viewingnewmessages=fa
 
 /**
  * Print the message history between two users
+ *
  * @param object $user1 the current user
  * @param object $user2 the other user
  * @param string $search search terms to highlight
@@ -1856,6 +1922,7 @@ function message_print_message_history($user1,$user2,$search='',$messagelimit=0,
 
 /**
  * Format a message for display in the message history
+ *
  * @param object $message the message object
  * @param string $format optional date format
  * @param string $keywords keywords to highlight
@@ -1880,9 +1947,15 @@ function message_format_message($message, $format='', $keywords='', $class='othe
 
     //if supplied display small messages as fullmessage may contain boilerplate text that shouldnt appear in the messaging UI
     if (!empty($message->smallmessage)) {
-        $messagetext = format_text($message->smallmessage, FORMAT_MOODLE, $options);
+        $messagetext = $message->smallmessage;
     } else {
-        $messagetext = format_text($message->fullmessage, $message->fullmessageformat, $options);
+        $messagetext = $message->fullmessage;
+    }
+    if ($message->fullmessageformat == FORMAT_HTML) {
+        //dont escape html tags by calling s() if html format or they will display in the UI
+        $messagetext = html_to_text(format_text($messagetext, $message->fullmessageformat, $options));
+    } else {
+        $messagetext = format_text(s($messagetext), $message->fullmessageformat, $options);
     }
 
     $messagetext .= message_format_contexturl($message);
@@ -1896,6 +1969,7 @@ function message_format_message($message, $format='', $keywords='', $class='othe
 
 /**
  * Format a the context url and context url name of a message for display
+ *
  * @param object $message the message object
  * @return string the formatted string
  */
@@ -1919,6 +1993,7 @@ function message_format_contexturl($message) {
 
 /**
  * Send a message from one user to another. Will be delivered according to the message recipients messaging preferences
+ *
  * @param object $userfrom the message sender
  * @param object $userto the message recipient
  * @param string $message the message
@@ -1938,18 +2013,20 @@ function message_post_message($userfrom, $userto, $message, $format) {
     $eventdata->subject          = get_string_manager()->get_string('unreadnewmessage', 'message', fullname($userfrom), $userto->lang);
 
     if ($format == FORMAT_HTML) {
-        $eventdata->fullmessage      = '';
         $eventdata->fullmessagehtml  = $message;
+        //some message processors may revert to sending plain text even if html is supplied
+        //so we keep both plain and html versions if we're intending to send html
+        $eventdata->fullmessage = html_to_text($eventdata->fullmessagehtml);
     } else {
         $eventdata->fullmessage      = $message;
         $eventdata->fullmessagehtml  = '';
     }
 
     $eventdata->fullmessageformat = $format;
-    $eventdata->smallmessage     = strip_tags($message);//strip just in case there are is any html that would break the popup notification
+    $eventdata->smallmessage     = $message;//store the message unfiltered. Clean up on output.
 
     $s = new stdClass();
-    $s->sitename = $SITE->shortname;
+    $s->sitename = format_string($SITE->shortname, true, array('context' => get_context_instance(CONTEXT_COURSE, SITEID)));
     $s->url = $CFG->wwwroot.'/message/index.php?user='.$userto->id.'&id='.$userfrom->id;
 
     $emailtagline = get_string_manager()->get_string('emailtagline', 'message', $s, $userto->lang);
@@ -1969,6 +2046,9 @@ function message_post_message($userfrom, $userto, $message, $format) {
  * Returns a list of all user ids who have used messaging in the site
  * This was the simple way to code the SQL ... is it going to blow up
  * on large datasets?
+ *
+ * @todo: deprecated - to be deleted in 2.2
+ * @return array
  */
 function message_get_participants() {
     global $CFG, $DB;
@@ -1984,12 +2064,14 @@ function message_get_participants() {
 /**
  * Print a row of contactlist displaying user picture, messages waiting and
  * block links etc
+ *
  * @param object $contact contact object containing all fields required for $OUTPUT->user_picture()
  * @param bool $incontactlist is the user a contact of ours?
  * @param bool $isblocked is the user blocked?
  * @param string $selectcontacturl the url to send the user to when a contact's name is clicked
  * @param bool $showactionlinks display action links next to the other users (add contact, block user etc)
  * @param object $selecteduser the user the current user is viewing (if any). They will be highlighted.
+ * @return void
  */
 function message_print_contactlist_user($contact, $incontactlist = true, $isblocked = false, $selectcontacturl = null, $showactionlinks = true, $selecteduser=null) {
     global $OUTPUT, $USER;
@@ -2032,7 +2114,7 @@ function message_print_contactlist_user($contact, $incontactlist = true, $isbloc
 
     $link = $action = null;
     if (!empty($selectcontacturl)) {
-        $link = new moodle_url($selectcontacturl.'&'.CONTACT_ID.'='.$contact->id);
+        $link = new moodle_url($selectcontacturl.'&user2='.$contact->id);
     } else {
         //can $selectcontacturl be removed and maybe the be removed and hardcoded?
         $link = new moodle_url("/message/index.php?id=$contact->id");
@@ -2049,6 +2131,7 @@ function message_print_contactlist_user($contact, $incontactlist = true, $isbloc
 
 /**
  * Constructs the add/remove contact link to display next to other users
+ *
  * @param bool $incontactlist is the user a contact
  * @param bool $isblocked is the user blocked
  * @param type $contact contact object
@@ -2073,6 +2156,7 @@ function message_get_contact_add_remove_link($incontactlist, $isblocked, $contac
 
 /**
  * Constructs the block contact link to display next to other users
+ *
  * @param bool $incontactlist is the user a contact
  * @param bool $isblocked is the user blocked
  * @param type $contact contact object
@@ -2097,12 +2181,13 @@ function message_get_contact_block_link($incontactlist, $isblocked, $contact, $s
     return $strblock;
 }
 
- /**
-  * Moves messages from a particular user from the message table (unread messages) to message_read
-  * This is typically only used when a user is deleted
-  * @param object $userid User id
-  * @return boolean success
-  */
+/**
+ * Moves messages from a particular user from the message table (unread messages) to message_read
+ * This is typically only used when a user is deleted
+ *
+ * @param object $userid User id
+ * @return boolean success
+ */
 function message_move_userfrom_unread2read($userid) {
     global $DB;
 
@@ -2116,11 +2201,12 @@ function message_move_userfrom_unread2read($userid) {
 }
 
 /**
-* marks ALL messages being sent from $fromuserid to $touserid as read
-* @param int $touserid the id of the message recipient
-* @param int $fromuserid the id of the message sender
-* @return void
-*/
+ * marks ALL messages being sent from $fromuserid to $touserid as read
+ *
+ * @param int $touserid the id of the message recipient
+ * @param int $fromuserid the id of the message sender
+ * @return void
+ */
 function message_mark_messages_read($touserid, $fromuserid){
     global $DB;
 
@@ -2130,15 +2216,18 @@ function message_mark_messages_read($touserid, $fromuserid){
     foreach ($messages as $message) {
         message_mark_message_read($message, time());
     }
+
+    $messages->close();
 }
 
 /**
-* Mark a single message as read
-* @param message an object with an object property ie $message->id which is an id in the message table
-* @param int $timeread the timestamp for when the message should be marked read. Usually time().
-* @param bool $messageworkingempty Is the message_working table already confirmed empty for this message?
-* @return int the ID of the message in the message_read table
-*/
+ * Mark a single message as read
+ *
+ * @param message an object with an object property ie $message->id which is an id in the message table
+ * @param int $timeread the timestamp for when the message should be marked read. Usually time().
+ * @param bool $messageworkingempty Is the message_working table already confirmed empty for this message?
+ * @return int the ID of the message in the message_read table
+ */
 function message_mark_message_read($message, $timeread, $messageworkingempty=false) {
     global $DB;
 
@@ -2158,11 +2247,166 @@ function message_mark_message_read($message, $timeread, $messageworkingempty=fal
 
 /**
  * A helper function that prints a formatted heading
+ *
  * @param string $title the heading to display
  * @param int $colspan
+ * @return void
  */
 function message_print_heading($title, $colspan=3) {
     echo html_writer::start_tag('tr');
     echo html_writer::tag('td', $title, array('colspan' => $colspan, 'class' => 'heading'));
     echo html_writer::end_tag('tr');
+}
+
+/**
+ * Get all message processors, validate corresponding plugin existance and
+ * system configuration
+ *
+ * @param bool $ready only return ready-to-use processors
+ * @return mixed $processors array of objects containing information on message processors
+ */
+function get_message_processors($ready = false) {
+    global $DB, $CFG;
+
+    static $processors;
+
+    if (empty($processors)) {
+        // Get all processors, ensure the name column is the first so it will be the array key
+        $processors = $DB->get_records('message_processors', null, 'name DESC', 'name, id, enabled');
+        foreach ($processors as &$processor){
+            $processorfile = $CFG->dirroot. '/message/output/'.$processor->name.'/message_output_'.$processor->name.'.php';
+            if (is_readable($processorfile)) {
+                include_once($processorfile);
+                $processclass = 'message_output_' . $processor->name;
+                if (class_exists($processclass)) {
+                    $pclass = new $processclass();
+                    $processor->object = $pclass;
+                    $processor->configured = 0;
+                    if ($pclass->is_system_configured()) {
+                        $processor->configured = 1;
+                    }
+                    $processor->hassettings = 0;
+                    if (is_readable($CFG->dirroot.'/message/output/'.$processor->name.'/settings.php')) {
+                        $processor->hassettings = 1;
+                    }
+                    $processor->available = 1;
+                } else {
+                    print_error('errorcallingprocessor', 'message');
+                }
+            } else {
+                $processor->available = 0;
+            }
+        }
+    }
+    if ($ready) {
+        // Filter out enabled and system_configured processors
+        $readyprocessors = $processors;
+        foreach ($readyprocessors as $readyprocessor) {
+            if (!($readyprocessor->enabled && $readyprocessor->configured)) {
+                unset($readyprocessors[$readyprocessor->name]);
+            }
+        }
+        return $readyprocessors;
+    }
+
+    return $processors;
+}
+
+/**
+ * Get an instance of the message_output class for one of the output plugins.
+ * @param string $type the message output type. E.g. 'email' or 'jabber'.
+ * @return message_output message_output the requested class.
+ */
+function get_message_processor($type) {
+    global $CFG;
+
+    // Note, we cannot use the get_message_processors function here, becaues this
+    // code is called during install after installing each messaging plugin, and
+    // get_message_processors caches the list of installed plugins.
+
+    $processorfile = $CFG->dirroot . "/message/output/{$type}/message_output_{$type}.php";
+    if (!is_readable($processorfile)) {
+        throw new coding_exception('Unknown message processor type ' . $type);
+    }
+
+    include_once($processorfile);
+
+    $processclass = 'message_output_' . $type;
+    if (!class_exists($processclass)) {
+        throw new coding_exception('Message processor ' . $type .
+                ' does not define the right class');
+    }
+
+    return new $processclass();
+}
+
+/**
+ * Get messaging outputs default (site) preferences
+ *
+ * @return object $processors object containing information on message processors
+ */
+function get_message_output_default_preferences() {
+    $preferences = get_config('message');
+    if (!$preferences) {
+        $preferences = new stdClass();
+    }
+    return $preferences;
+}
+
+/**
+ * Translate message default settings from binary value to the array of string
+ * representing the settings to be stored. Also validate the provided value and
+ * use default if it is malformed.
+ *
+ * @param  int    $plugindefault Default setting suggested by plugin
+ * @param  string $processorname The name of processor
+ * @return array  $settings array of strings in the order: $permitted, $loggedin, $loggedoff.
+ */
+function translate_message_default_setting($plugindefault, $processorname) {
+    // Preset translation arrays
+    $permittedvalues = array(
+        0x04 => 'disallowed',
+        0x08 => 'permitted',
+        0x0c => 'forced',
+    );
+
+    $loggedinstatusvalues = array(
+        0x00 => null, // use null if loggedin/loggedoff is not defined
+        0x01 => 'loggedin',
+        0x02 => 'loggedoff',
+    );
+
+    // define the default setting
+    $processor = get_message_processor($processorname);
+    $default = $processor->get_default_messaging_settings();
+
+    // Validate the value. It should not exceed the maximum size
+    if (!is_int($plugindefault) || ($plugindefault > 0x0f)) {
+        $OUTPUT->notification(get_string('errortranslatingdefault', 'message'), 'notifyproblem');
+        $plugindefault = $default;
+    }
+    // Use plugin default setting of 'permitted' is 0
+    if (!($plugindefault & MESSAGE_PERMITTED_MASK)) {
+        $plugindefault = $default;
+    }
+
+    $permitted = $permittedvalues[$plugindefault & MESSAGE_PERMITTED_MASK];
+    $loggedin = $loggedoff = null;
+
+    if (($plugindefault & MESSAGE_PERMITTED_MASK) == MESSAGE_PERMITTED) {
+        $loggedin = $loggedinstatusvalues[$plugindefault & MESSAGE_DEFAULT_LOGGEDIN];
+        $loggedoff = $loggedinstatusvalues[$plugindefault & MESSAGE_DEFAULT_LOGGEDOFF];
+    }
+
+    return array($permitted, $loggedin, $loggedoff);
+}
+
+/**
+ * Return a list of page types
+ * @param string $pagetype current page type
+ * @param stdClass $parentcontext Block's parent context
+ * @param stdClass $currentcontext Current context of block
+ */
+function message_page_type_list($pagetype, $parentcontext, $currentcontext) {
+    return array('messages-*'=>get_string('page-message-x', 'message'));
 }

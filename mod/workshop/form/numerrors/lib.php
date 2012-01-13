@@ -120,6 +120,9 @@ class workshop_numerrors_strategy implements workshop_strategy {
             $norepeats += self::ADDDIMS;
         }
 
+        // Append editor context to editor options, giving preference to existing context.
+        $this->descriptionopts = array_merge(array('context' => $PAGE->context), $this->descriptionopts);
+
         // prepare the embeded files
         for ($i = 0; $i < $nodimensions; $i++) {
             // prepare all editor elements
@@ -161,6 +164,7 @@ class workshop_numerrors_strategy implements workshop_strategy {
         $records    = $data->numerrors; // data to be saved into {workshopform_numerrors}
         $mappings   = $data->mappings;  // data to be saved into {workshopform_numerrors_map}
         $todelete   = array();          // dimension ids to be deleted
+        $maxnonegative = 0;             // maximum number of (weighted) negative responses
 
         for ($i=0; $i < $norepeats; $i++) {
             $record = $records[$i];
@@ -178,6 +182,7 @@ class workshop_numerrors_strategy implements workshop_strategy {
                 // exiting field
                 $DB->update_record('workshopform_numerrors', $record);
             }
+            $maxnonegative += $record->weight;
             // re-save with correct path to embeded media files
             $record = file_postupdate_standard_editor($record, 'description', $this->descriptionopts, $PAGE->context,
                                                       'workshopform_numerrors', 'description', $record->id);
@@ -209,8 +214,8 @@ class workshop_numerrors_strategy implements workshop_strategy {
             $insql = '';
         }
         $sql = "DELETE FROM {workshopform_numerrors_map}
-                      WHERE (($insql nonegative > :nodimensions) AND (workshopid = :workshopid))";
-        $params['nodimensions'] = $norepeats;
+                      WHERE (($insql nonegative > :maxnonegative) AND (workshopid = :workshopid))";
+        $params['maxnonegative'] = $maxnonegative;
         $params['workshopid']   = $this->workshop->id;
         $DB->execute($sql, $params);
     }
@@ -247,7 +252,7 @@ class workshop_numerrors_strategy implements workshop_strategy {
                 $dimid = $fields->{'dimensionid__idx_'.$i};
                 if (isset($grades[$dimid])) {
                     $current->{'gradeid__idx_'.$i}      = $grades[$dimid]->id;
-                    $current->{'grade__idx_'.$i}        = $grades[$dimid]->grade;
+                    $current->{'grade__idx_'.$i}        = ($grades[$dimid]->grade == 0 ? -1 : 1);
                     $current->{'peercomment__idx_'.$i}  = $grades[$dimid]->peercomment;
                 }
             }
@@ -289,7 +294,7 @@ class workshop_numerrors_strategy implements workshop_strategy {
             $grade->assessmentid        = $assessment->id;
             $grade->strategy            = 'numerrors';
             $grade->dimensionid         = $data->{'dimensionid__idx_' . $i};
-            $grade->grade               = $data->{'grade__idx_' . $i};
+            $grade->grade               = ($data->{'grade__idx_' . $i} <= 0 ? 0 : 1);
             $grade->peercomment         = $data->{'peercomment__idx_' . $i};
             $grade->peercommentformat   = FORMAT_HTML;
             if (empty($grade->id)) {
@@ -556,7 +561,7 @@ class workshop_numerrors_strategy implements workshop_strategy {
         if (empty($grades)) {
             return null;
         }
-        $sumerrors  = 0;    // sum of the weighted errors (ie the negative responses)
+        $sumerrors  = 0;    // sum of the weighted errors (i.e. the negative responses)
         foreach ($grades as $grade) {
             if (grade_floats_different($grade->grade, 1.00000)) {
                 // negative reviewer's response

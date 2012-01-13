@@ -169,6 +169,7 @@ class html2text
         '/&(bull|#149|#8226);/i',                // Bullet
         '/&(pound|#163);/i',                     // Pound sign
         '/&(euro|#8364);/i',                     // Euro sign
+        '/[ ]+([\n\t])/',                        // Trailing spaces before newline or tab
         '/[ ]{2,}/'                              // Runs of spaces, post-handling
     );
 
@@ -212,6 +213,7 @@ class html2text
         '*',
         '£',
         'EUR',                                  // Euro sign. € ?
+        '\\1',                                  // Trailing spaces before newline or tab
         ' '                                     // Runs of spaces, post-handling
     );
 
@@ -333,7 +335,7 @@ class html2text
      */
     function html2text( $source = '', $from_file = false, $do_links = true, $width = 75 )
     {
-        if ( !empty($source) ) {
+        if ($source !== '') {
             $this->set_html($source, $from_file);
         }
 
@@ -541,9 +543,15 @@ class html2text
      */
     function _convert_pre(&$text)
     {
-        while(preg_match('/<pre[^>]*>(.*)<\/pre>/ismU', $text, $matches)) {
-            $result = preg_replace($this->pre_search, $this->pre_replace, $matches[1]);
-            $text = preg_replace('/<pre[^>]*>.*<\/pre>/ismU', '<div><br>' . $result . '<br></div>', $text, 1);
+         while (preg_match('/<pre[^>]*>(.*)<\/pre>/ismU', $text, $matches)) {
+            // convert the content
+            $this->pre_content = sprintf('<div><br>%s<br></div>',
+                preg_replace($this->pre_search, $this->pre_replace, $matches[1]));
+            // replace the content (use callback because content can contain $0 variable)
+            $text = preg_replace_callback('/<pre[^>]*>.*<\/pre>/ismU',
+                array('html2text', '_preg_pre_callback'), $text, 1);
+            // free memory
+            $this->pre_content = '';
         }
     }
 
@@ -569,6 +577,17 @@ class html2text
         case 'img':
             return '[' . $matches[2] . ']';
         }
+    }
+
+    /**
+     *  Callback function for preg_replace_callback use in PRE content handler.
+     *
+     *  @param  array PREG matches
+     *  @return string
+     */
+    private function _preg_pre_callback($matches)
+    {
+        return $this->pre_content;
     }
 
     /**

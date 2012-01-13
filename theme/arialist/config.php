@@ -22,7 +22,7 @@
  * COPY IT FIRST, THEN RENAME THE COPY AND MODIFY IT INSTEAD.
  *
  * For full information about creating Moodle themes, see:
- *  http://docs.moodle.org/en/Development:Themes_2.0
+ *  http://docs.moodle.org/dev/Themes_2.0
  *
  * @package   moodlecore
  * @copyright 2010 Patrick Malley (http://newschoollearning.com/)
@@ -190,8 +190,6 @@ $THEME->csspostprocess = 'arialist_process_css';
 // delivered.
 ////////////////////////////////////////////////////
 
-// $THEME->filter_mediaplugin_colors
-
 ////////////////////////////////////////////////////
 // Used to control the colours used in the small
 // media player for the filters
@@ -251,17 +249,11 @@ $THEME->rarrow	= '&rang;';
 // include.
 ////////////////////////////////////////////////////
 
-// $THEME->renderfactory
+// $THEME->rendererfactory
 
 ////////////////////////////////////////////////////
 // Sets a custom render factory to use with the
 // theme, used when working with custom renderers.
-////////////////////////////////////////////////////
-
-// $THEME->resource_mp3player_colors
-
-////////////////////////////////////////////////////
-// Controls the colours for the MP3 player
 ////////////////////////////////////////////////////
 
 $THEME->editor_sheets = array('editor');

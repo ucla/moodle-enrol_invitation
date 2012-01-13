@@ -52,15 +52,22 @@ if (optional_param('cancel', false, PARAM_BOOL)) {
 
 if ($context->contextlevel == CONTEXT_COURSECAT) {
     $category = $DB->get_record('course_categories', array('id'=>$context->instanceid), '*', MUST_EXIST);
-    $PAGE->navbar->add($category->name, new moodle_url('/course/index.php', array('categoryedit'=>'1')));
+    navigation_node::override_active_url(new moodle_url('/cohort/index.php', array('contextid'=>$cohort->contextid)));
+    $PAGE->set_pagelayout('report');
+
+} else {
+    navigation_node::override_active_url(new moodle_url('/cohort/index.php', array()));
+    $PAGE->set_pagelayout('admin');
 }
-$PAGE->navbar->add(get_string('cohorts', 'cohort'), new moodle_url('/cohort/', array('contextid'=>$context->id)));
 $PAGE->navbar->add(get_string('assign', 'cohort'));
+
 $PAGE->set_title(get_string('cohort:assign', 'cohort'));
 $PAGE->set_heading($COURSE->fullname);
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('assignto', 'cohort', format_string($cohort->name)));
+
+echo $OUTPUT->notification(get_string('removeuserwarning', 'core_cohort'));
 
 // Get the user_selector we will need.
 $potentialuserselector = new cohort_candidate_selector('addselect', array('cohortid'=>$cohort->id));

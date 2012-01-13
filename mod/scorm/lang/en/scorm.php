@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -16,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Strings for component 'scorm', language 'en', branch 'MOODLE_20_STABLE'
+ * Strings for component 'scorm', language 'en'
  *
  * @package   scorm
  * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
@@ -24,21 +23,29 @@
  */
 $string['toc'] = 'TOC';
 $string['navigation'] = 'Navigation';
-
+$string['aicchacptimeout'] = 'AICC HACP Timeout';
+$string['aicchacptimeout_desc'] = 'Length of time in minutes that an external AICC HACP session can remain open';
+$string['aicchacpkeepsessiondata'] = 'AICC HACP session data';
+$string['aicchacpkeepsessiondata_desc'] = 'Length of time in days to keep the external AICC HACP session data (a high setting will fill up the table with old data but may be useful when debugging)';
 $string['activation'] = 'Activation';
 $string['activityloading'] = 'You will be automatically redirected to the activity in';
 $string['activitypleasewait'] = 'Activity loading, please wait ...';
+$string['adminsettings'] = 'Admin settings';
 $string['advanced'] = 'Parameters';
 $string['allowapidebug'] = 'Activate API debug and tracing (set the capture mask with apidebugmask)';
 $string['allowtypeexternal'] = 'Enable external package type';
+$string['allowtypeexternalaicc'] = 'Enable direct AICC url';
+$string['allowtypeexternalaicc_desc'] = 'If enabled this allows a direct url to a simple AICC package';
 $string['allowtypeimsrepository'] = 'Enable IMS package type';
 $string['allowtypelocalsync'] = 'Enable downloaded package type';
+$string['allowtypeaicchacp'] = 'Enable external AICC HACP';
+$string['allowtypeaicchacp_desc'] = 'If enabled this allows AICC HACP external communication without requiring user login for post requests from the external AICC package';
 $string['apidebugmask'] = 'API debug capture mask  - use a simple regex on &lt;username&gt;:&lt;activityname&gt; e.g. admin:.* will debug for admin user only';
 $string['areacontent'] = 'Content files';
 $string['areapackage'] = 'Package file';
 $string['asset'] = 'Asset';
 $string['assetlaunched'] = 'Asset - Viewed';
-$string['attempt'] = 'attempt';
+$string['attempt'] = 'Attempt';
 $string['attempts'] = 'Attempts';
 $string['attemptsx'] = '{$a} attempts';
 $string['attempt1'] = '1 attempt';
@@ -61,10 +68,15 @@ $string['coursepacket'] = 'Course package';
 $string['coursestruct'] = 'Course structure';
 $string['currentwindow'] = 'Current window';
 $string['datadir'] = 'Filesystem error: Can\'t create course data directory';
+$string['defaultdisplaysettings'] = 'Default display settings';
+$string['defaultgradesettings'] = 'Default grade settings';
+$string['defaultothersettings'] = 'Other default settings';
 $string['deleteattemptcheck'] = 'Are you absolutely sure you want to completely delete these attempts?';
 $string['deleteallattempts'] = 'Delete all SCORM attempts';
+$string['deleteuserattemptcheck'] = 'Are you absolutely sure you want to completely delete all your attempts?';
 $string['details'] = 'Track details';
 $string['directories'] = 'Show the directory links';
+$string['disabled'] = 'Disabled';
 $string['display'] = 'Display package';
 $string['displayattemptstatus'] = 'Display attempt status';
 $string['displayattemptstatus_help'] = 'If enabled, scores and grades for attempts are displayed on the SCORM outline page.';
@@ -73,9 +85,11 @@ $string['displaycoursestructure'] = 'Display course structure on entry page';
 $string['displaycoursestructure_help'] = 'If enabled, the table of contents is displayed on the SCORM outline page.';
 $string['displaycoursestructuredesc'] = 'This preference sets the default value for the display course structure on entry page setting';
 $string['displaydesc'] = 'This preference sets the default of whether to display the package or not for an activity';
+$string['displaysettings'] = 'Display Settings';
 $string['domxml'] = 'DOMXML external library';
 $string['duedate'] = 'Due date';
 $string['element'] = 'Element';
+$string['elementdefinition'] = 'Element Definition';
 $string['enter'] = 'Enter';
 $string['entercourse'] = 'Enter course';
 $string['errorlogs'] = 'Errors log';
@@ -98,6 +112,7 @@ $string['forcenewattempt'] = 'Force new attempt';
 $string['forcenewattempt_help'] = 'If enabled, each time a SCORM package is accessed will be counted as a new attempt.';
 $string['forcenewattemptdesc'] = 'This preference sets the default value for the force new attempt setting';
 $string['forcejavascript'] = 'Force users to enable JavaScript';
+$string['forcejavascript_desc'] = 'If enabled(recommended) this prevents access to SCORM objects when JavaScript is not supported/enabled in a users browser. If disabled the user may view the SCORM but API communication will fail and no grade information will be saved.';
 $string['forcejavascriptmessage'] = 'JavaScript is required to view this object, please enable JavaScript in your browser and try again.';
 $string['found'] = 'Manifest found';
 $string['frameheight'] = 'This preference set the default height for stage frame or window';
@@ -118,6 +133,7 @@ There are 4 grading methods:
 * Sum grade - The sum of all the scores';
 $string['grademethoddesc'] = 'This preference sets the default grade method for an activity';
 $string['gradereported'] = 'Grade reported';
+$string['gradesettings'] = 'Grade settings';
 $string['gradescoes'] = 'Learning objects';
 $string['gradesum'] = 'Sum grade';
 $string['height'] = 'Height';
@@ -138,7 +154,24 @@ $string['identifier'] = 'Question identifier';
 $string['incomplete'] = 'Incomplete';
 $string['info'] = 'Info';
 $string['interactions'] = 'Interactions';
+$string['interactionsid'] = 'Id of the element';
+$string['interactionscorrectcount'] = 'Number of correct results for the question';
+$string['interactionspattern'] = 'Pattern of correct response';
+$string['interactionslatency'] = 'Time elapsed between the time the interaction <br />was made available to the learner for response <br />and the time of the first response';
+$string['interactionsresponse'] = 'Student\'s Response';
+$string['interactionsresult'] = 'Result based on student\'s response and <br />correct result';
+$string['interactionsscoremin'] = 'Minimum value in the range for the raw score';
+$string['interactionsscoremax'] = 'Maximum value in the range for the raw score';
+$string['interactionsscoreraw'] = 'Number that reflects the performance of the learner<br /> relative to the range bounded by the values of min and max';
+$string['interactionssuspenddata'] = 'Provides space to store and retrieve data <br />between learner sessions';
+$string['interactionstime'] = 'Time at which the attempt was intiated';
+$string['interactionstype'] = 'Type of question';
+$string['interactionsweight'] = 'Weight assigned to the element';
+$string['interactionslearnerresponse'] = 'Learner\'s Response';
 $string['invalidactivity'] = 'Scorm activity is incorrect';
+$string['invalidurl'] = 'Invalid URL specified';
+$string['invalidhacpsession'] = 'Invalid HACP Session';
+$string['invalidmanifestresource'] = 'WARNING: The following resources were referenced in your manifest but couldn\'t be found:';
 $string['last'] = 'Last accessed on';
 $string['lastaccess'] = 'Last access';
 $string['lastattempt'] = 'Last attempt';
@@ -182,10 +215,13 @@ $string['optallstudents'] = 'all users';
 $string['optattemptsonly'] = 'users with attempts only';
 $string['optnoattemptsonly'] = 'users with no attempts only';
 $string['options'] = 'Options (Prevented by some browsers)';
+$string['optionsadv'] = 'Options (Advanced)';
+$string['optionsadv_desc'] = 'If checked the window options will be set as advanced options in the form';
 $string['organization'] = 'Organization';
 $string['organizations'] = 'Organizations';
 $string['othersettings'] = 'Additional settings';
 $string['othertracks'] = 'Other tracks';
+$string['page-mod-scorm-x'] = 'Any SCORM module page';
 $string['pagesize'] = 'Page size';
 $string['package'] = 'Package file';
 $string['package_help'] = 'The package file is a zip (or pif) file containing SCORM/AICC course definition files.';
@@ -208,6 +244,7 @@ $string['prev'] = 'Previous';
 $string['raw'] = 'Raw score';
 $string['regular'] = 'Regular manifest';
 $string['report'] = 'Report';
+$string['reports'] = 'Reports';
 $string['reportcountallattempts'] = '{$a->nbattempts} attempts for {$a->nbusers} users, out of {$a->nbresults} results';
 $string['reportcountattempts'] = '{$a->nbresults} results ({$a->nbusers} users)';
 $string['resizable'] = 'Allow the window to be resized';
@@ -224,6 +261,7 @@ $string['scormloggingoff'] = 'API logging is off';
 $string['scormloggingon'] = 'API logging is on';
 $string['scormopen'] = 'Open';
 $string['scormresponsedeleted'] = 'Deleted user attempts';
+$string['scorm:deleteownresponses'] = 'Delete own attempts';
 $string['scorm:savetrack'] = 'Save tracks';
 $string['scorm:skipview'] = 'Skip overview';
 $string['scormtype'] = 'Type';
@@ -232,7 +270,8 @@ $string['scormtype_help'] = 'This setting determines how the package is included
 * Uploaded package - Enables a SCORM package to be chosen via the file picker
 * External SCORM manifest - Enables an imsmanifest.xml URL to be specified. Note: If the URL has a different domain name than your site, then "Downloaded package" is a better option, since otherwise grades are not saved.
 * Downloaded package - Enables a package URL to be specified. The package will be unzipped and saved locally, and updated when the external SCORM package is updated.
-* Local IMS content repository - Enables a package to be selected from within an IMS repository';
+* Local IMS content repository - Enables a package to be selected from within an IMS repository
+* External AICC URL - this URL is the launch URL for a single AICC Activity.  A psuedo package will be constructed around this.';
 $string['scorm:viewreport'] = 'View reports';
 $string['scorm:viewscores'] = 'View scores';
 $string['scrollbars'] = 'Allow the window to be scrolled';
@@ -250,6 +289,8 @@ $string['started'] = 'Started on';
 $string['status'] = 'Status';
 $string['statusbar'] = 'Show the status bar';
 $string['student_response'] = 'Response';
+$string['subplugintype_scormreport'] = 'Report';
+$string['subplugintype_scormreport_plural'] = 'Reports';
 $string['suspended'] = 'Suspended';
 $string['syntax'] = 'Syntax error';
 $string['tag_error'] = 'Unknown tag ({$a->tag}) with this content: {$a->value}';
@@ -262,6 +303,7 @@ $string['too_many_children'] = 'Tag {$a->tag} has too many children';
 $string['totaltime'] = 'Time';
 $string['trackingloose'] = 'WARNING: The tracking data of this package will be lost!';
 $string['type'] = 'Type';
+$string['typeaiccurl'] = 'External AICC URL';
 $string['typeexternal'] = 'External SCORM manifest';
 $string['typeimsrepository'] = 'Local IMS content repository';
 $string['typelocal'] = 'Uploaded package';
@@ -269,7 +311,6 @@ $string['typelocalsync'] = 'Downloaded package';
 $string['unziperror'] = 'An error occurs during package unzip';
 $string['updatefreq'] = 'Auto-update frequency';
 $string['updatefreqdesc'] = 'This preference sets the default auto-update frequency of an activity';
-$string['updatetime'] = 'Synchronisation time';
 $string['validateascorm'] = 'Validate a package';
 $string['validation'] = 'Validation result';
 $string['validationtype'] = 'This preference set the DOMXML library used for validating SCORM Manifest. If you don\'t know leave the selected choice.';
@@ -288,4 +329,3 @@ Handling of Multiple Attempts
 $string['whatgradedesc'] = 'This preference sets the default attempts grading';
 $string['width'] = 'Width';
 $string['window'] = 'Window';
-$string['zlibwarning'] = 'Warning: PHP Zlib compression has been enabled on this site, some users may experience issues loading SCORM objects in certain web browsers.';

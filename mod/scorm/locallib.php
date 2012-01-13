@@ -1,4 +1,18 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 require_once("$CFG->dirroot/mod/scorm/lib.php");
 require_once("$CFG->libdir/filelib.php");
@@ -53,7 +67,7 @@ class scorm_package_file_info extends file_info_stored {
  *
  * @return array an array of popup options as the key and their defaults as the value
  */
-function scorm_get_popup_options_array(){
+function scorm_get_popup_options_array() {
     global $CFG;
     $cfg_scorm = get_config('scorm');
 
@@ -71,7 +85,7 @@ function scorm_get_popup_options_array(){
  *
  * @return array an array of what grade options
  */
-function scorm_get_grade_method_array(){
+function scorm_get_grade_method_array() {
     return array (GRADESCOES => get_string('gradescoes', 'scorm'),
                   GRADEHIGHEST => get_string('gradehighest', 'scorm'),
                   GRADEAVERAGE => get_string('gradeaverage', 'scorm'),
@@ -83,7 +97,7 @@ function scorm_get_grade_method_array(){
  *
  * @return array an array of what grade options
  */
-function scorm_get_what_grade_array(){
+function scorm_get_what_grade_array() {
     return array (HIGHESTATTEMPT => get_string('highestattempt', 'scorm'),
                   AVERAGEATTEMPT => get_string('averageattempt', 'scorm'),
                   FIRSTATTEMPT => get_string('firstattempt', 'scorm'),
@@ -95,9 +109,9 @@ function scorm_get_what_grade_array(){
  *
  * @return array an array of skip view options
  */
-function scorm_get_skip_view_array(){
-   return array(0 => get_string('never'),
-                 1 => get_string('firstaccess','scorm'),
+function scorm_get_skip_view_array() {
+    return array(0 => get_string('never'),
+                 1 => get_string('firstaccess', 'scorm'),
                  2 => get_string('always'));
 }
 
@@ -106,10 +120,11 @@ function scorm_get_skip_view_array(){
  *
  * @return array an array of hide table of contents options
  */
-function scorm_get_hidetoc_array(){
-     return array(0 =>get_string('sided','scorm'),
-                  1 => get_string('hidden','scorm'),
-                  2 => get_string('popupmenu','scorm'));
+function scorm_get_hidetoc_array() {
+     return array(SCORM_TOC_SIDE => get_string('sided', 'scorm'),
+                  SCORM_TOC_HIDDEN => get_string('hidden', 'scorm'),
+                  SCORM_TOC_POPUP => get_string('popupmenu', 'scorm'),
+                  SCORM_TOC_DISABLED => get_string('disabled', 'scorm'));
 }
 
 /**
@@ -117,11 +132,11 @@ function scorm_get_hidetoc_array(){
  *
  * @return array an array of update frequency options
  */
-function scorm_get_updatefreq_array(){
+function scorm_get_updatefreq_array() {
     return array(0 => get_string('never'),
-                 1 => get_string('onchanges','scorm'),
-                 2 => get_string('everyday','scorm'),
-                 3 => get_string('everytime','scorm'));
+                 1 => get_string('onchanges', 'scorm'),
+                 2 => get_string('everyday', 'scorm'),
+                 3 => get_string('everytime', 'scorm'));
 }
 
 /**
@@ -129,7 +144,7 @@ function scorm_get_updatefreq_array(){
  *
  * @return array an array of popup display options
  */
-function scorm_get_popup_display_array(){
+function scorm_get_popup_display_array() {
     return array(0 => get_string('currentwindow', 'scorm'),
                  1 => get_string('popup', 'scorm'));
 }
@@ -139,12 +154,12 @@ function scorm_get_popup_display_array(){
  *
  * @return array an array of attempt options
  */
-function scorm_get_attempts_array(){
-    $attempts = array(0 => get_string('nolimit','scorm'),
-                      1 => get_string('attempt1','scorm'));
+function scorm_get_attempts_array() {
+    $attempts = array(0 => get_string('nolimit', 'scorm'),
+                      1 => get_string('attempt1', 'scorm'));
 
     for ($i=2; $i<=6; $i++) {
-        $attempts[$i] = get_string('attemptsx','scorm', $i);
+        $attempts[$i] = get_string('attemptsx', 'scorm', $i);
     }
 
     return $attempts;
@@ -186,7 +201,7 @@ function scorm_parse($scorm, $full) {
             if ($scorm->reference !== '' and (!$full or $scorm->sha1hash !== sha1($scorm->reference))) {
                 $fs->delete_area_files($context->id, 'mod_scorm', 'package');
                 $file_record = array('contextid'=>$context->id, 'component'=>'mod_scorm', 'filearea'=>'package', 'itemid'=>0, 'filepath'=>'/');
-                if ($packagefile = $fs->create_file_from_url($file_record, $scorm->reference)) {
+                if ($packagefile = $fs->create_file_from_url($file_record, $scorm->reference, array('calctimeout' => true))) {
                     $newhash = sha1($scorm->reference);
                 } else {
                     $newhash = null;
@@ -217,7 +232,6 @@ function scorm_parse($scorm, $full) {
             return;
         }
 
-
         if ($manifest = $fs->get_file($context->id, 'mod_scorm', 'content', 0, '/', 'imsmanifest.xml')) {
             require_once("$CFG->dirroot/mod/scorm/datamodels/scormlib.php");
             // SCORM
@@ -230,6 +244,7 @@ function scorm_parse($scorm, $full) {
             if (!scorm_parse_aicc($scorm)) {
                 $scorm->version = 'ERROR';
             }
+            $scorm->version = 'AICC';
         }
 
     } else if ($scorm->scormtype === SCORM_TYPE_EXTERNAL and $cfg_scorm->allowtypeexternal) {
@@ -248,11 +263,17 @@ function scorm_parse($scorm, $full) {
             return;
         }
         require_once("$CFG->dirroot/mod/scorm/datamodels/scormlib.php");
-        if (!scorm_parse_scorm($scorm, $CFG->repository.substr($scorm->reference,1).'/imsmanifest.xml')) {
+        if (!scorm_parse_scorm($scorm, $CFG->repository.substr($scorm->reference, 1).'/imsmanifest.xml')) {
             $scorm->version = 'ERROR';
         }
         $newhash = sha1($scorm->reference);
-
+    } else if ($scorm->scormtype === SCORM_TYPE_AICCURL  and $cfg_scorm->allowtypeexternalaicc) {
+        require_once("$CFG->dirroot/mod/scorm/datamodels/aicclib.php");
+        // AICC
+        if (!scorm_parse_aicc($scorm)) {
+            $scorm->version = 'ERROR';
+        }
+        $scorm->version = 'AICC';
     } else {
         // sorry, disabled type
         return;
@@ -286,34 +307,33 @@ function scorm_repeater($what, $times) {
         return null;
     }
     $return = '';
-    for ($i=0; $i<$times;$i++) {
+    for ($i=0; $i<$times; $i++) {
         $return .= $what;
     }
     return $return;
 }
 
 function scorm_external_link($link) {
-// check if a link is external
+    // check if a link is external
     $result = false;
     $link = strtolower($link);
-    if (substr($link,0,7) == 'http://') {
+    if (substr($link, 0, 7) == 'http://') {
         $result = true;
-    } else if (substr($link,0,8) == 'https://') {
+    } else if (substr($link, 0, 8) == 'https://') {
         $result = true;
-    } else if (substr($link,0,4) == 'www.') {
+    } else if (substr($link, 0, 4) == 'www.') {
         $result = true;
     }
     return $result;
 }
 
 /**
-* Returns an object containing all datas relative to the given sco ID
-*
-* @param integer $id The sco ID
-* @return mixed (false if sco id does not exists)
-*/
-
-function scorm_get_sco($id,$what=SCO_ALL) {
+ * Returns an object containing all datas relative to the given sco ID
+ *
+ * @param integer $id The sco ID
+ * @return mixed (false if sco id does not exists)
+ */
+function scorm_get_sco($id, $what=SCO_ALL) {
     global $DB;
 
     if ($sco = $DB->get_record('scorm_scoes', array('id'=>$id))) {
@@ -332,14 +352,13 @@ function scorm_get_sco($id,$what=SCO_ALL) {
 }
 
 /**
-* Returns an object (array) containing all the scoes data related to the given sco ID
-*
-* @param integer $id The sco ID
-* @param integer $organisation an organisation ID - defaults to false if not required
-* @return mixed (false if there are no scoes or an array)
-*/
-
-function scorm_get_scoes($id,$organisation=false) {
+ * Returns an object (array) containing all the scoes data related to the given sco ID
+ *
+ * @param integer $id The sco ID
+ * @param integer $organisation an organisation ID - defaults to false if not required
+ * @return mixed (false if there are no scoes or an array)
+ */
+function scorm_get_scoes($id, $organisation=false) {
     global $DB;
 
     $organizationsql = '';
@@ -351,7 +370,7 @@ function scorm_get_scoes($id,$organisation=false) {
         // drop keys so that it is a simple array as expected
         $scoes = array_values($scoes);
         foreach ($scoes as $sco) {
-            if ($scodatas = $DB->get_records('scorm_scoes_data',array('scoid'=>$sco->id))) {
+            if ($scodatas = $DB->get_records('scorm_scoes_data', array('scoid'=>$sco->id))) {
                 foreach ($scodatas as $scodata) {
                     $sco->{$scodata->name} = $scodata->value;
                 }
@@ -363,7 +382,7 @@ function scorm_get_scoes($id,$organisation=false) {
     }
 }
 
-function scorm_insert_track($userid,$scormid,$scoid,$attempt,$element,$value,$forcecompleted=false) {
+function scorm_insert_track($userid, $scormid, $scoid, $attempt, $element, $value, $forcecompleted=false) {
     global $DB, $CFG;
 
     $id = null;
@@ -371,25 +390,25 @@ function scorm_insert_track($userid,$scormid,$scoid,$attempt,$element,$value,$fo
     if ($forcecompleted) {
         //TODO - this could be broadened to encompass SCORM 2004 in future
         if (($element == 'cmi.core.lesson_status') && ($value == 'incomplete')) {
-            if ($track = $DB->get_record_select('scorm_scoes_track','userid=? AND scormid=? AND scoid=? AND attempt=? AND element=\'cmi.core.score.raw\'', array($userid, $scormid, $scoid, $attempt))) {
+            if ($track = $DB->get_record_select('scorm_scoes_track', 'userid=? AND scormid=? AND scoid=? AND attempt=? AND element=\'cmi.core.score.raw\'', array($userid, $scormid, $scoid, $attempt))) {
                 $value = 'completed';
             }
         }
         if ($element == 'cmi.core.score.raw') {
-            if ($tracktest = $DB->get_record_select('scorm_scoes_track','userid=? AND scormid=? AND scoid=? AND attempt=? AND element=\'cmi.core.lesson_status\'', array($userid, $scormid, $scoid, $attempt))) {
+            if ($tracktest = $DB->get_record_select('scorm_scoes_track', 'userid=? AND scormid=? AND scoid=? AND attempt=? AND element=\'cmi.core.lesson_status\'', array($userid, $scormid, $scoid, $attempt))) {
                 if ($tracktest->value == "incomplete") {
                     $tracktest->value = "completed";
-                    $DB->update_record('scorm_scoes_track',$tracktest);
+                    $DB->update_record('scorm_scoes_track', $tracktest);
                 }
             }
         }
     }
 
-    if ($track = $DB->get_record('scorm_scoes_track',array('userid'=>$userid, 'scormid'=>$scormid, 'scoid'=>$scoid, 'attempt'=>$attempt, 'element'=>$element))) {
+    if ($track = $DB->get_record('scorm_scoes_track', array('userid'=>$userid, 'scormid'=>$scormid, 'scoid'=>$scoid, 'attempt'=>$attempt, 'element'=>$element))) {
         if ($element != 'x.start.time' ) { //don't update x.start.time - keep the original value.
-            $track->value = addslashes_js($value);
+            $track->value = $value;
             $track->timemodified = time();
-            $DB->update_record('scorm_scoes_track',$track);
+            $DB->update_record('scorm_scoes_track', $track);
             $id = $track->id;
         }
     } else {
@@ -398,9 +417,9 @@ function scorm_insert_track($userid,$scormid,$scoid,$attempt,$element,$value,$fo
         $track->scoid = $scoid;
         $track->attempt = $attempt;
         $track->element = $element;
-        $track->value = addslashes_js($value);
+        $track->value = $value;
         $track->timemodified = time();
-        $id = $DB->insert_record('scorm_scoes_track',$track);
+        $id = $DB->insert_record('scorm_scoes_track', $track);
     }
 
     if (strstr($element, '.score.raw') ||
@@ -413,18 +432,18 @@ function scorm_insert_track($userid,$scormid,$scoid,$attempt,$element,$value,$fo
     return $id;
 }
 
-function scorm_get_tracks($scoid,$userid,$attempt='') {
-/// Gets all tracks of specified sco and user
+function scorm_get_tracks($scoid, $userid, $attempt='') {
+    /// Gets all tracks of specified sco and user
     global $CFG, $DB;
 
     if (empty($attempt)) {
-        if ($scormid = $DB->get_field('scorm_scoes','scorm', array('id'=>$scoid))) {
-            $attempt = scorm_get_last_attempt($scormid,$userid);
+        if ($scormid = $DB->get_field('scorm_scoes', 'scorm', array('id'=>$scoid))) {
+            $attempt = scorm_get_last_attempt($scormid, $userid);
         } else {
             $attempt = 1;
         }
     }
-    if ($tracks = $DB->get_records('scorm_scoes_track', array('userid'=>$userid, 'scoid'=>$scoid, 'attempt'=>$attempt),'element ASC')) {
+    if ($tracks = $DB->get_records('scorm_scoes_track', array('userid'=>$userid, 'scoid'=>$scoid, 'attempt'=>$attempt), 'element ASC')) {
         $usertrack = new stdClass();
         $usertrack->userid = $userid;
         $usertrack->scoid = $scoid;
@@ -436,7 +455,6 @@ function scorm_get_tracks($scoid,$userid,$attempt='') {
         $usertrack->timemodified = 0;
         foreach ($tracks as $track) {
             $element = $track->element;
-            $track->value = stripslashes($track->value); // TODO: this is probably wrong, the stripslashes() has undefined meaning now; was this related to JS quoting or magic quotes?
             $usertrack->{$element} = $track->value;
             switch ($element) {
                 case 'cmi.core.lesson_status':
@@ -488,21 +506,19 @@ function scorm_get_sco_runtime($scormid, $scoid, $userid, $attempt=1) {
 
     $timedata = new stdClass();
     $sql = !empty($scoid) ? "userid=$userid AND scormid=$scormid AND scoid=$scoid AND attempt=$attempt" : "userid=$userid AND scormid=$scormid AND attempt=$attempt";
-    $tracks = $DB->get_records_select('scorm_scoes_track',"$sql ORDER BY timemodified ASC");
+    $tracks = $DB->get_records_select('scorm_scoes_track', "$sql ORDER BY timemodified ASC");
     if ($tracks) {
         $tracks = array_values($tracks);
     }
 
     if ($tracks) {
         $timedata->start = $tracks[0]->timemodified;
-    }
-    else {
+    } else {
         $timedata->start = false;
     }
     if ($tracks && $track = array_pop($tracks)) {
         $timedata->finish = $track->timemodified;
-    }
-    else {
+    } else {
         $timedata->finish = $timedata->start;
     }
     return $timedata;
@@ -511,15 +527,15 @@ function scorm_get_sco_runtime($scormid, $scoid, $userid, $attempt=1) {
 
 function scorm_get_user_data($userid) {
     global $DB;
-/// Gets user info required to display the table of scorm results
-/// for report.php
+    /// Gets user info required to display the table of scorm results
+    /// for report.php
 
-    return $DB->get_record('user', array('id'=>$userid),'firstname, lastname, picture');
+    return $DB->get_record('user', array('id'=>$userid), user_picture::fields());
 }
 
 function scorm_grade_user_attempt($scorm, $userid, $attempt=1) {
     global $DB;
-    $attemptscore = NULL;
+    $attemptscore = null;
     $attemptscore->scoes = 0;
     $attemptscore->values = 0;
     $attemptscore->max = 0;
@@ -527,11 +543,11 @@ function scorm_grade_user_attempt($scorm, $userid, $attempt=1) {
     $attemptscore->lastmodify = 0;
 
     if (!$scoes = $DB->get_records('scorm_scoes', array('scorm'=>$scorm->id))) {
-        return NULL;
+        return null;
     }
 
     foreach ($scoes as $sco) {
-        if ($userdata=scorm_get_tracks($sco->id, $userid,$attempt)) {
+        if ($userdata=scorm_get_tracks($sco->id, $userid, $attempt)) {
             if (($userdata->status == 'completed') || ($userdata->status == 'passed')) {
                 $attemptscore->scoes++;
             }
@@ -575,7 +591,7 @@ function scorm_grade_user($scorm, $userid) {
 
     // ensure we dont grade user beyond $scorm->maxattempt settings
     $lastattempt = scorm_get_last_attempt($scorm->id, $userid);
-    if($scorm->maxattempt != 0 && $lastattempt >= $scorm->maxattempt){
+    if ($scorm->maxattempt != 0 && $lastattempt >= $scorm->maxattempt) {
         $lastattempt = $scorm->maxattempt;
     }
 
@@ -614,7 +630,7 @@ function scorm_grade_user($scorm, $userid) {
     }
 }
 
-function scorm_count_launchable($scormid,$organization='') {
+function scorm_count_launchable($scormid, $organization='') {
     global $DB;
 
     $sqlorganization = '';
@@ -623,13 +639,13 @@ function scorm_count_launchable($scormid,$organization='') {
         $sqlorganization = " AND organization=?";
         $params[] = $organization;
     }
-    return $DB->count_records_select('scorm_scoes',"scorm = ? $sqlorganization AND ".$DB->sql_isnotempty('scorm_scoes', 'launch', false, true), $params);
+    return $DB->count_records_select('scorm_scoes', "scorm = ? $sqlorganization AND ".$DB->sql_isnotempty('scorm_scoes', 'launch', false, true), $params);
 }
 
 function scorm_get_last_attempt($scormid, $userid) {
     global $DB;
 
-/// Find the last attempt number for the given user id and scorm id
+    /// Find the last attempt number for the given user id and scorm id
     if ($lastattempt = $DB->get_record('scorm_scoes_track', array('userid'=>$userid, 'scormid'=>$scormid), 'max(attempt) as a')) {
         if (empty($lastattempt->a)) {
             return '1';
@@ -644,7 +660,7 @@ function scorm_get_last_attempt($scormid, $userid) {
 function scorm_get_last_completed_attempt($scormid, $userid) {
     global $DB;
 
-/// Find the last attempt number for the given user id and scorm id
+    /// Find the last attempt number for the given user id and scorm id
     if ($lastattempt = $DB->get_record_select('scorm_scoes_track', "userid = ? AND scormid = ? AND (value='completed' OR value='passed')", array($userid, $scormid), 'max(attempt) as a')) {
         if (empty($lastattempt->a)) {
             return '1';
@@ -656,11 +672,11 @@ function scorm_get_last_completed_attempt($scormid, $userid) {
     }
 }
 
-function scorm_course_format_display($user,$course) {
+function scorm_course_format_display($user, $course) {
     global $CFG, $DB, $PAGE, $OUTPUT;
 
     $strupdate = get_string('update');
-    $context = get_context_instance(CONTEXT_COURSE,$course->id);
+    $context = get_context_instance(CONTEXT_COURSE, $course->id);
 
     echo '<div class="mod-scorm">';
     if ($scorms = get_all_instances_in_course('scorm', $course)) {
@@ -668,6 +684,10 @@ function scorm_course_format_display($user,$course) {
         $scorm = current($scorms);
         if (! $cm = get_coursemodule_from_instance('scorm', $scorm->id, $course->id)) {
             print_error('invalidcoursemodule');
+        }
+        $contextmodule = get_context_instance(CONTEXT_MODULE, $cm->id);
+        if ((has_capability('mod/scorm:skipview', $contextmodule))) {
+            scorm_simple_play($scorm, $user, $contextmodule, $cm->id);
         }
         $colspan = '';
         $headertext = '<table width="100%"><tr><td class="title">'.get_string('name').': <b>'.format_string($scorm->name).'</b>';
@@ -685,19 +705,20 @@ function scorm_course_format_display($user,$course) {
             if ($trackedusers->c > 0) {
                 $headertext .= '<td class="reportlink">'.
                               '<a href="'.$CFG->wwwroot.'/mod/scorm/report.php?id='.$cm->id.'">'.
-                               get_string('viewallreports','scorm',$trackedusers->c).'</a>';
+                               get_string('viewallreports', 'scorm', $trackedusers->c).'</a>';
             } else {
-                $headertext .= '<td class="reportlink">'.get_string('noreports','scorm');
+                $headertext .= '<td class="reportlink">'.get_string('noreports', 'scorm');
             }
             $colspan = ' colspan="2"';
         }
         $headertext .= '</td></tr><tr><td'.$colspan.'>'.get_string('summary').':<br />'.format_module_intro('scorm', $scorm, $scorm->coursemodule).'</td></tr></table>';
-        echo $OUTPUT->box($headertext,'generalbox boxwidthwide');
+        echo $OUTPUT->box($headertext, 'generalbox boxwidthwide');
         scorm_view_display($user, $scorm, 'view.php?id='.$course->id, $cm);
     } else {
         if (has_capability('moodle/course:update', $context)) {
             // Create a new activity
-            redirect($CFG->wwwroot.'/course/mod.php?id='.$course->id.'&amp;section=0&sesskey='.sesskey().'&amp;add=scorm');
+            $url = new moodle_url('/course/mod.php', array('id'=>$course->id, 'section'=>'0', 'sesskey'=>sesskey(),'add'=>'scorm'));
+            redirect($url);
         } else {
             echo $OUTPUT->notification('Could not find a scorm course here');
         }
@@ -714,11 +735,11 @@ function scorm_view_display ($user, $scorm, $action, $cm) {
 
     $organization = optional_param('organization', '', PARAM_INT);
 
-    if($scorm->displaycoursestructure == 1) {
+    if ($scorm->displaycoursestructure == 1) {
         echo $OUTPUT->box_start('generalbox boxaligncenter toc');
-?>
-        <div class="structurehead"><?php print_string('contents','scorm') ?></div>
-<?php
+        ?>
+        <div class="structurehead"><?php print_string('contents', 'scorm') ?></div>
+        <?php
     }
     if (empty($organization)) {
         $organization = $scorm->launch;
@@ -726,10 +747,10 @@ function scorm_view_display ($user, $scorm, $action, $cm) {
     if ($orgs = $DB->get_records_select_menu('scorm_scoes', 'scorm = ? AND '.
                                          $DB->sql_isempty('scorm_scoes', 'launch', false, true).' AND '.
                                          $DB->sql_isempty('scorm_scoes', 'organization', false, false),
-                                         array($scorm->id),'id','id,title')) {
+                                         array($scorm->id), 'id', 'id,title')) {
         if (count($orgs) > 1) {
             $select = new single_select(new moodle_url($action), 'organization', $orgs, $organization, null);
-            $select->label = get_string('organizations','scorm');
+            $select->label = get_string('organizations', 'scorm');
             $select->class = 'scorm-center';
             echo $OUTPUT->render($select);
         }
@@ -749,11 +770,11 @@ function scorm_view_display ($user, $scorm, $action, $cm) {
     }
     require_once($CFG->dirroot.'/mod/scorm/datamodels/'.$scorm->version.'lib.php');
 
-    $result = scorm_get_toc($user,$scorm,$cm->id,TOCFULLURL,$orgidentifier);
+    $result = scorm_get_toc($user, $scorm, $cm->id, TOCFULLURL, $orgidentifier);
     $incomplete = $result->incomplete;
 
     // do we want the TOC to be displayed?
-    if($scorm->displaycoursestructure == 1) {
+    if ($scorm->displaycoursestructure == 1) {
         echo $result->toc;
         echo $OUTPUT->box_end();
     }
@@ -763,41 +784,41 @@ function scorm_view_display ($user, $scorm, $action, $cm) {
 
     // do not give the player launch FORM if the SCORM object is locked after the final attempt
     if ($scorm->lastattemptlock == 0 || $result->attemptleft > 0) {
-?>
+        ?>
             <div class="scorm-center">
                <form id="theform" method="post" action="<?php echo $CFG->wwwroot ?>/mod/scorm/player.php">
-              <?php
-                  if ($scorm->hidebrowse == 0) {
-                      print_string('mode','scorm');
-                      echo ': <input type="radio" id="b" name="mode" value="browse" /><label for="b">'.get_string('browse','scorm').'</label>'."\n";
-                      echo '<input type="radio" id="n" name="mode" value="normal" checked="checked" /><label for="n">'.get_string('normal','scorm')."</label>\n";
-                  } else {
-                      echo '<input type="hidden" name="mode" value="normal" />'."\n";
-                  }
-                  if ($scorm->forcenewattempt == 1) {
-                      if ($incomplete === false) {
-                          echo '<input type="hidden" name="newattempt" value="on" />'."\n";
-                      }
-                  } elseif (!empty($attemptcount) && ($incomplete === false) && (($result->attemptleft > 0)||($scorm->maxattempt == 0))) {
-?>
+        <?php
+        if ($scorm->hidebrowse == 0) {
+            print_string('mode', 'scorm');
+            echo ': <input type="radio" id="b" name="mode" value="browse" /><label for="b">'.get_string('browse', 'scorm').'</label>'."\n";
+            echo '<input type="radio" id="n" name="mode" value="normal" checked="checked" /><label for="n">'.get_string('normal', 'scorm')."</label>\n";
+        } else {
+            echo '<input type="hidden" name="mode" value="normal" />'."\n";
+        }
+        if ($scorm->forcenewattempt == 1) {
+            if ($incomplete === false) {
+                echo '<input type="hidden" name="newattempt" value="on" />'."\n";
+            }
+        } else if (!empty($attemptcount) && ($incomplete === false) && (($result->attemptleft > 0)||($scorm->maxattempt == 0))) {
+            ?>
                       <br />
                       <input type="checkbox" id="a" name="newattempt" />
-                      <label for="a"><?php print_string('newattempt','scorm') ?></label>
-<?php
-                  }
-              ?>
+                      <label for="a"><?php print_string('newattempt', 'scorm') ?></label>
+            <?php
+        }
+        ?>
               <br />
               <input type="hidden" name="scoid"/>
               <input type="hidden" name="cm" value="<?php echo $cm->id ?>"/>
               <input type="hidden" name="currentorg" value="<?php echo $orgidentifier ?>" />
-              <input type="submit" value="<?php print_string('enter','scorm') ?>" />
+              <input type="submit" value="<?php print_string('enter', 'scorm') ?>" />
               </form>
           </div>
-<?php
+        <?php
     }
 }
 
-function scorm_simple_play($scorm,$user, $context) {
+function scorm_simple_play($scorm, $user, $context, $cmid) {
     global $DB;
 
     $result = false;
@@ -812,14 +833,27 @@ function scorm_simple_play($scorm,$user, $context) {
     $scoes = $DB->get_records_select('scorm_scoes', 'scorm = ? AND '.$DB->sql_isnotempty('scorm_scoes', 'launch', false, true), array($scorm->id), 'id', 'id');
 
     if ($scoes) {
+        $orgidentifier = '';
+        if ($sco = scorm_get_sco($scorm->launch, SCO_ONLY)) {
+            if (($sco->organization == '') && ($sco->launch == '')) {
+                $orgidentifier = $sco->identifier;
+            } else {
+                $orgidentifier = $sco->organization;
+            }
+        }
         if ($scorm->skipview >= 1) {
             $sco = current($scoes);
-            if (scorm_get_tracks($sco->id,$user->id) === false) {
-                header('Location: player.php?a='.$scorm->id.'&scoid='.$sco->id);
-                $result = true;
-            } else if ($scorm->skipview == 2) {
-                header('Location: player.php?a='.$scorm->id.'&scoid='.$sco->id);
-                $result = true;
+            $url = new moodle_url('/mod/scorm/player.php', array('a' => $scorm->id,
+                                                                'currentorg'=>$orgidentifier,
+                                                                'scoid'=>$sco->id));
+            if ($scorm->skipview == 2 || scorm_get_tracks($sco->id, $user->id) === false) {
+                if (!empty($scorm->forcenewattempt)) {
+                    $result = scorm_get_toc($user, $scorm, $cmid, TOCFULLURL, $orgidentifier);
+                    if ($result->incomplete === false) {
+                        $url->param('newattempt','on');
+                    }
+                }
+                redirect($url);
             }
         }
     }
@@ -849,14 +883,14 @@ function scorm_get_count_users($scormid, $groupingid=null) {
 }
 
 /**
-* Build up the JavaScript representation of an array element
-*
-* @param string $sversion SCORM API version
-* @param array $userdata User track data
-* @param string $element_name Name of array element to get values for
-* @param array $children list of sub elements of this array element that also need instantiating
-* @return None
-*/
+ * Build up the JavaScript representation of an array element
+ *
+ * @param string $sversion SCORM API version
+ * @param array $userdata User track data
+ * @param string $element_name Name of array element to get values for
+ * @param array $children list of sub elements of this array element that also need instantiating
+ * @return None
+ */
 function scorm_reconstitute_array_element($sversion, $userdata, $element_name, $children) {
     // reconstitute comments_from_learner and comments_from_lms
     $current = '';
@@ -865,13 +899,13 @@ function scorm_reconstitute_array_element($sversion, $userdata, $element_name, $
     $count = 0;
     $count_sub = 0;
     $scormseperator = '_';
-    if ($sversion == 'scorm_13') { //scorm 1.3 elements use a . instead of an _
-    	$scormseperator = '.';
+    if (scorm_version_check($sversion, SCORM_13)) { //scorm 1.3 elements use a . instead of an _
+        $scormseperator = '.';
     }
     // filter out the ones we want
     $element_list = array();
-    foreach($userdata as $element => $value){
-        if (substr($element,0,strlen($element_name)) == $element_name) {
+    foreach ($userdata as $element => $value) {
+        if (substr($element, 0, strlen($element_name)) == $element_name) {
             $element_list[$element] = $value;
         }
     }
@@ -880,8 +914,8 @@ function scorm_reconstitute_array_element($sversion, $userdata, $element_name, $
     uksort($element_list, "scorm_element_cmp");
 
     // generate JavaScript
-    foreach($element_list as $element => $value){
-        if ($sversion == 'scorm_13') {
+    foreach ($element_list as $element => $value) {
+        if (scorm_version_check($sversion, SCORM_13)) {
             $element = preg_replace('/\.(\d+)\./', ".N\$1.", $element);
             preg_match('/\.(N\d+)\./', $element, $matches);
         } else {
@@ -897,8 +931,8 @@ function scorm_reconstitute_array_element($sversion, $userdata, $element_name, $
             $current_subelement = '';
             $current_sub = '';
             $count_sub = 0;
-            $end = strpos($element,$matches[1])+strlen($matches[1]);
-            $subelement = substr($element,0,$end);
+            $end = strpos($element, $matches[1])+strlen($matches[1]);
+            $subelement = substr($element, 0, $end);
             echo '    '.$subelement." = new Object();\n";
             // now add the children
             foreach ($children as $child) {
@@ -908,7 +942,7 @@ function scorm_reconstitute_array_element($sversion, $userdata, $element_name, $
         }
 
         // now - flesh out the second level elements if there are any
-        if ($sversion == 'scorm_13') {
+        if (scorm_version_check($sversion, SCORM_13)) {
             $element = preg_replace('/(.*?\.N\d+\..*?)\.(\d+)\./', "\$1.N\$2.", $element);
             preg_match('/.*?\.N\d+\.(.*?)\.(N\d+)\./', $element, $matches);
         } else {
@@ -924,8 +958,8 @@ function scorm_reconstitute_array_element($sversion, $userdata, $element_name, $
             $current_subelement = $matches[1];
             $current_sub = '';
             $count_sub = 0;
-            $end = strpos($element,$matches[1])+strlen($matches[1]);
-            $subelement = substr($element,0,$end);
+            $end = strpos($element, $matches[1])+strlen($matches[1]);
+            $subelement = substr($element, 0, $end);
             echo '    '.$subelement." = new Object();\n";
         }
 
@@ -933,8 +967,8 @@ function scorm_reconstitute_array_element($sversion, $userdata, $element_name, $
         if (count($matches) > 0 && $current_sub != $matches[2]) {
             $current_sub = $matches[2];
             $count_sub++;
-            $end = strrpos($element,$matches[2])+strlen($matches[2]);
-            $subelement = substr($element,0,$end);
+            $end = strrpos($element, $matches[2])+strlen($matches[2]);
+            $subelement = substr($element, 0, $end);
             echo '    '.$subelement." = new Object();\n";
         }
 
@@ -949,12 +983,12 @@ function scorm_reconstitute_array_element($sversion, $userdata, $element_name, $
 }
 
 /**
-* Build up the JavaScript representation of an array element
-*
-* @param string $a left array element
-* @param string $b right array element
-* @return comparator - 0,1,-1
-*/
+ * Build up the JavaScript representation of an array element
+ *
+ * @param string $a left array element
+ * @param string $b right array element
+ * @return comparator - 0,1,-1
+ */
 function scorm_element_cmp($a, $b) {
     preg_match('/.*?(\d+)\./', $a, $matches);
     $left = intval($matches[1]);
@@ -962,7 +996,7 @@ function scorm_element_cmp($a, $b) {
     $right = intval($matches[1]);
     if ($left < $right) {
         return -1; // smaller
-    } elseif ($left > $right) {
+    } else if ($left > $right) {
         return 1;  // bigger
     } else {
         // look for a second level qualifier eg cmi.interactions_0.correct_responses_0.pattern
@@ -974,12 +1008,12 @@ function scorm_element_cmp($a, $b) {
                 $right = intval($matches[3]);
                 if ($leftterm < $rightterm) {
                     return -1; // smaller
-                } elseif ($leftterm > $rightterm) {
+                } else if ($leftterm > $rightterm) {
                     return 1;  // bigger
                 } else {
                     if ($left < $right) {
                         return -1; // smaller
-                    } elseif ($left > $right) {
+                    } else if ($left > $right) {
                         return 1;  // bigger
                     }
                 }
@@ -991,17 +1025,17 @@ function scorm_element_cmp($a, $b) {
 }
 
 /**
-* Generate the user attempt status string
-*
-* @param object $user Current context user
-* @param object $scorm a moodle scrom object - mdl_scorm
-* @return string - Attempt status string
-*/
-function scorm_get_attempt_status($user, $scorm) {
-    global $DB;
+ * Generate the user attempt status string
+ *
+ * @param object $user Current context user
+ * @param object $scorm a moodle scrom object - mdl_scorm
+ * @return string - Attempt status string
+ */
+function scorm_get_attempt_status($user, $scorm, $cm='') {
+    global $DB, $PAGE, $OUTPUT;
 
     $attempts = scorm_get_attempt_count($user->id, $scorm, true);
-    if(empty($attempts)) {
+    if (empty($attempts)) {
         $attemptcount = 0;
     } else {
         $attemptcount = count($attempts);
@@ -1009,11 +1043,11 @@ function scorm_get_attempt_status($user, $scorm) {
 
     $result = '<p>'.get_string('noattemptsallowed', 'scorm').': ';
     if ($scorm->maxattempt > 0) {
-        $result .= $scorm->maxattempt . '<BR>';
+        $result .= $scorm->maxattempt . '<br />';
     } else {
-        $result .= get_string('unlimited').'<BR>';
+        $result .= get_string('unlimited').'<br />';
     }
-    $result .= get_string('noattemptsmade', 'scorm').': ' . $attemptcount . '<BR>';
+    $result .= get_string('noattemptsmade', 'scorm').': ' . $attemptcount . '<br />';
 
     if ($scorm->maxattempt == 1) {
         switch ($scorm->grademethod) {
@@ -1030,8 +1064,8 @@ function scorm_get_attempt_status($user, $scorm) {
                 $grademethod = get_string('gradescoes', 'scorm');
             break;
         }
-     } else {
-         switch ($scorm->whatgrade) {
+    } else {
+        switch ($scorm->whatgrade) {
             case HIGHESTATTEMPT:
                 $grademethod = get_string('highestattempt', 'scorm');
             break;
@@ -1045,38 +1079,57 @@ function scorm_get_attempt_status($user, $scorm) {
                 $grademethod = get_string('lastattempt', 'scorm');
             break;
         }
-     }
+    }
 
-    if(!empty($attempts)) {
+    if (!empty($attempts)) {
         $i = 1;
-        foreach($attempts as $attempt) {
+        foreach ($attempts as $attempt) {
             $gradereported = scorm_grade_user_attempt($scorm, $user->id, $attempt->attemptnumber);
-            $result .= get_string('gradeforattempt', 'scorm').' ' . $i . ': ' . $gradereported .'%<BR>';
+            if ($scorm->grademethod !== GRADESCOES && !empty($scorm->maxgrade)) {
+                $gradereported = $gradereported/$scorm->maxgrade;
+                $gradereported = number_format($gradereported*100, 0) .'%';
+            }
+            $result .= get_string('gradeforattempt', 'scorm').' ' . $i . ': ' . $gradereported .'<br />';
             $i++;
         }
     }
     $calculatedgrade = scorm_grade_user($scorm, $user->id);
+    if ($scorm->grademethod !== GRADESCOES && !empty($scorm->maxgrade)) {
+        $calculatedgrade = $calculatedgrade/$scorm->maxgrade;
+        $calculatedgrade = number_format($calculatedgrade*100, 0) .'%';
+    }
     $result .= get_string('grademethod', 'scorm'). ': ' . $grademethod;
-    if(empty($attempts)) {
-        $result .= '<BR>' . get_string('gradereported','scorm') . ': ' . get_string('none') . '<BR>';
+    if (empty($attempts)) {
+        $result .= '<br />' . get_string('gradereported', 'scorm') . ': ' . get_string('none') . '<br />';
     } else {
-        $result .= '<BR>' . get_string('gradereported','scorm') . ': ' . $calculatedgrade . ($scorm->grademethod == GRADESCOES ? '' : '%') .'<BR>';
+        $result .= '<br />' . get_string('gradereported', 'scorm') . ': ' . $calculatedgrade . '<br />';
     }
     $result .= '</p>';
     if ($attemptcount >= $scorm->maxattempt and $scorm->maxattempt > 0) {
-        $result .= '<p><font color="#cc0000">'.get_string('exceededmaxattempts','scorm').'</font></p>';
+        $result .= '<p><font color="#cc0000">'.get_string('exceededmaxattempts', 'scorm').'</font></p>';
     }
+    if (!empty($cm)) {
+        $context = context_module::instance($cm->id);
+        if (has_capability('mod/scorm:deleteownresponses', $context) &&
+            $DB->record_exists('scorm_scoes_track', array('userid' => $user->id, 'scormid' => $scorm->id))) {
+            //check to see if any data is stored for this user:
+            $deleteurl = new moodle_url($PAGE->url, array('action'=>'delete', 'sesskey' => sesskey()));
+            $result .= $OUTPUT->single_button($deleteurl, get_string('deleteallattempts', 'scorm'));
+        }
+    }
+
+
     return $result;
 }
 
 /**
-* Get SCORM attempt count
-*
-* @param object $user Current context user
-* @param object $scorm a moodle scrom object - mdl_scorm
-* @param bool $attempts return the list of attempts
-* @return int - no. of attempts so far
-*/
+ * Get SCORM attempt count
+ *
+ * @param object $user Current context user
+ * @param object $scorm a moodle scrom object - mdl_scorm
+ * @param bool $attempts return the list of attempts
+ * @return int - no. of attempts so far
+ */
 function scorm_get_attempt_count($userid, $scorm, $attempts_only=false) {
     global $DB;
     $attemptcount = 0;
@@ -1084,25 +1137,25 @@ function scorm_get_attempt_count($userid, $scorm, $attempts_only=false) {
     if ($scorm->grademethod == GRADESCOES) {
         $element = 'cmi.core.lesson_status';
     }
-    if ($scorm->version == 'scorm1_3') {
+    if (scorm_version_check($scorm->version, SCORM_13)) {
         $element = 'cmi.score.raw';
     }
-    $attempts = $DB->get_records_select('scorm_scoes_track',"element=? AND userid=? AND scormid=?", array($element, $userid, $scorm->id),'attempt','DISTINCT attempt AS attemptnumber');
+    $attempts = $DB->get_records_select('scorm_scoes_track', "element=? AND userid=? AND scormid=?", array($element, $userid, $scorm->id), 'attempt', 'DISTINCT attempt AS attemptnumber');
     if ($attempts_only) {
         return $attempts;
     }
-    if(!empty($attempts)) {
+    if (!empty($attempts)) {
         $attemptcount = count($attempts);
     }
     return $attemptcount;
 }
 
 /**
-* Figure out with this is a debug situation
-*
-* @param object $scorm a moodle scrom object - mdl_scorm
-* @return boolean - debugging true/false
-*/
+ * Figure out with this is a debug situation
+ *
+ * @param object $scorm a moodle scrom object - mdl_scorm
+ * @return boolean - debugging true/false
+ */
 function scorm_debugging($scorm) {
     global $CFG, $USER;
     $cfg_scorm = get_config('scorm');
@@ -1122,25 +1175,25 @@ function scorm_debugging($scorm) {
 }
 
 /**
-* Delete Scorm tracks for selected users
-*
-* @param array $attemptids list of attempts that need to be deleted
-* @param int $scorm instance
-*
-* return bool true deleted all responses, false failed deleting an attempt - stopped here
-*/
+ * Delete Scorm tracks for selected users
+ *
+ * @param array $attemptids list of attempts that need to be deleted
+ * @param int $scorm instance
+ *
+ * return bool true deleted all responses, false failed deleting an attempt - stopped here
+ */
 function scorm_delete_responses($attemptids, $scorm) {
-    if(!is_array($attemptids) || empty($attemptids)) {
+    if (!is_array($attemptids) || empty($attemptids)) {
         return false;
     }
 
-    foreach($attemptids as $num => $attemptid) {
-        if(empty($attemptid)) {
+    foreach ($attemptids as $num => $attemptid) {
+        if (empty($attemptid)) {
             unset($attemptids[$num]);
         }
     }
 
-    foreach($attemptids as $attempt) {
+    foreach ($attemptids as $attempt) {
         $keys = explode(':', $attempt);
         if (count($keys) == 2) {
             $userid = clean_param($keys[0], PARAM_INT);
@@ -1156,14 +1209,14 @@ function scorm_delete_responses($attemptids, $scorm) {
 }
 
 /**
-* Delete Scorm tracks for selected users
-*
-* @param int $userid ID of User
-* @param int $scormid ID of Scorm
-* @param int $attemptid user attempt that need to be deleted
-*
-* return bool true suceeded
-*/
+ * Delete Scorm tracks for selected users
+ *
+ * @param int $userid ID of User
+ * @param int $scormid ID of Scorm
+ * @param int $attemptid user attempt that need to be deleted
+ *
+ * return bool true suceeded
+ */
 function scorm_delete_attempt($userid, $scorm, $attemptid) {
     global $DB;
 
@@ -1207,6 +1260,264 @@ function scorm_format_duration($duration) {
     }
 
     $result = preg_replace($pattern, $replace, $duration);
+
+    return $result;
+}
+
+function scorm_get_toc($user,$scorm,$cmid,$toclink=TOCJSLINK,$currentorg='',$scoid='',$mode='normal',$attempt='',$play=false, $tocheader=false) {
+    global $CFG, $DB, $PAGE, $OUTPUT;
+
+    $modestr = '';
+    if ($mode == 'browse') {
+        $modestr = '&amp;mode='.$mode;
+    }
+
+    $result = new stdClass();
+    if ($tocheader) {
+        $result->toc = '<div id="scorm_layout">';
+        $result->toc .= '<div id="scorm_toc">';
+        $result->toc .= '<div id="scorm_tree">';
+    }
+    $result->toc .= '<ul>';
+    $tocmenus = array();
+    $result->prerequisites = true;
+    $incomplete = false;
+
+    //
+    // Get the current organization infos
+    //
+    if (!empty($currentorg)) {
+        if (($organizationtitle = $DB->get_field('scorm_scoes','title', array('scorm'=>$scorm->id,'identifier'=>$currentorg))) != '') {
+            if ($play) {
+                $result->toctitle = "$organizationtitle";
+            }
+            else {
+                $result->toc .= "\t<li>$organizationtitle</li>\n";
+            }
+            $tocmenus[] = $organizationtitle;
+        }
+    }
+
+    //
+    // If not specified retrieve the last attempt number
+    //
+    if (empty($attempt)) {
+        $attempt = scorm_get_attempt_count($user->id, $scorm);
+    }
+    $result->attemptleft = $scorm->maxattempt == 0 ? 1 : $scorm->maxattempt - $attempt;
+    if ($scoes = scorm_get_scoes($scorm->id, $currentorg)){
+        //
+        // Retrieve user tracking data for each learning object
+        //
+        $usertracks = array();
+        foreach ($scoes as $sco) {
+            if (!empty($sco->launch)) {
+                if ($usertrack = scorm_get_tracks($sco->id,$user->id,$attempt)) {
+                    if ($usertrack->status == '') {
+                        $usertrack->status = 'notattempted';
+                    }
+                    $usertracks[$sco->identifier] = $usertrack;
+                }
+            }
+        }
+
+        $level=0;
+        $sublist=1;
+        $previd = 0;
+        $nextid = 0;
+        $findnext = false;
+        $parents[$level]='/';
+        $prevsco = '';
+        foreach ($scoes as $pos => $sco) {
+            $isvisible = false;
+            $sco->title = $sco->title;
+            if (!isset($sco->isvisible) || (isset($sco->isvisible) && ($sco->isvisible == 'true'))) {
+                $isvisible = true;
+            }
+            if ($parents[$level] != $sco->parent) {
+                if ($newlevel = array_search($sco->parent,$parents)) {
+                    for ($i=0; $i<($level-$newlevel); $i++) {
+                        $result->toc .= "\t\t</li></ul></li>\n";
+                    }
+                    $level = $newlevel;
+                } else {
+                    $i = $level;
+                    $closelist = '';
+                    while (($i > 0) && ($parents[$level] != $sco->parent)) {
+                        if ($i === 1 && $level > 1) {
+                            $closelist .= "\t\t</ul></li>\n";
+                        } else {
+                            $closelist .= "\t</li></ul></li>\n";
+                        }
+                        $i--;
+                    }
+                    if (($i == 0) && ($sco->parent != $currentorg)) {
+                        $result->toc .= "\n\t<ul>\n";
+                        $level++;
+                    } else {
+                        $result->toc .= $closelist;
+                        $level = $i;
+                    }
+                    $parents[$level] = $sco->parent;
+                }
+            }
+            if ($isvisible) {
+                $result->toc .= "<li>";
+            }
+            if (isset($scoes[$pos+1])) {
+                $nextsco = $scoes[$pos+1];
+            } else {
+                $nextsco = false;
+            }
+            $nextisvisible = false;
+            if (($nextsco !== false) && (!isset($nextsco->isvisible) || (isset($nextsco->isvisible) && ($nextsco->isvisible == 'true')))) {
+                $nextisvisible = true;
+            }
+            if ($nextisvisible && ($nextsco !== false) && ($sco->parent != $nextsco->parent) &&
+               (($level==0) || (($level>0) && ($nextsco->parent == $sco->identifier)))) {
+                $sublist++;
+            }
+            if (empty($sco->title)) {
+                $sco->title = $sco->identifier;
+            }
+            if ($isvisible) {
+                if (!empty($sco->launch)) {
+                    $score = '';
+                    if (empty($scoid) && ($mode != 'normal')) {
+                        $scoid = $sco->id;
+                    }
+                    if (isset($usertracks[$sco->identifier])) {
+                        $usertrack = $usertracks[$sco->identifier];
+                        $strstatus = get_string($usertrack->status,'scorm');
+                        if ($sco->scormtype == 'sco') {
+                            $statusicon = '<img src="'.$OUTPUT->pix_url($usertrack->status, 'scorm').'" alt="'.$strstatus.'" title="'.$strstatus.'" />';
+                        } else {
+                            $statusicon = '<img src="'.$OUTPUT->pix_url('assetc', 'scorm').'" alt="'.get_string('assetlaunched','scorm').'" title="'.get_string('assetlaunched','scorm').'" />';
+                        }
+
+                        if (($usertrack->status == 'notattempted') || ($usertrack->status == 'incomplete') || ($usertrack->status == 'browsed')) {
+                            $incomplete = true;
+                            if ($play && empty($scoid)) {
+                                $scoid = $sco->id;
+                            }
+                        }
+                        if ($usertrack->score_raw != '' && has_capability('mod/scorm:viewscores', get_context_instance(CONTEXT_MODULE,$cmid))) {
+                            $score = '('.get_string('score','scorm').':&nbsp;'.$usertrack->score_raw.')';
+                        }
+                        $strsuspended = get_string('suspended','scorm');
+                        $exitvar = 'cmi.core.exit';
+                        if (scorm_version_check($scorm->version, SCORM_13)) {
+                            $exitvar = 'cmi.exit';
+                        }
+                        if ($incomplete && isset($usertrack->{$exitvar}) && ($usertrack->{$exitvar} == 'suspend')) {
+                            $statusicon = '<img src="'.$OUTPUT->pix_url('suspend', 'scorm').'" alt="'.$strstatus.' - '.$strsuspended.'" title="'.$strstatus.' - '.$strsuspended.'" />';
+                        }
+                    } else {
+                        if ($play && empty($scoid)) {
+                            $scoid = $sco->id;
+                        }
+                        $incomplete = true;
+                        if ($sco->scormtype == 'sco') {
+                            $statusicon = '<img src="'.$OUTPUT->pix_url('notattempted', 'scorm').'" alt="'.get_string('notattempted','scorm').'" title="'.get_string('notattempted','scorm').'" />';
+                        } else {
+                            $statusicon = '<img src="'.$OUTPUT->pix_url('asset', 'scorm').'" alt="'.get_string('asset','scorm').'" title="'.get_string('asset','scorm').'" />';
+                        }
+                    }
+                    if ($sco->id == $scoid) {
+                        $findnext = true;
+                    }
+
+                    if (($nextid == 0) && (scorm_count_launchable($scorm->id,$currentorg) > 1) && ($nextsco!==false) && (!$findnext)) {
+                        if (!empty($sco->launch)) {
+                            $previd = $sco->id;
+                        }
+                    }
+                    if (scorm_version_check($scorm->version, SCORM_13)) {
+                        require_once($CFG->dirroot.'/mod/scorm/datamodels/sequencinglib.php');
+                        $prereq = scorm_seq_evaluate($sco->id,$usertracks);
+                    } else {
+                        //TODO: split check for sco->prerequisites only for AICC as I think that's the only case it's set.
+                        $prereq = empty($sco->prerequisites) || scorm_eval_prerequisites($sco->prerequisites,$usertracks);
+                    }
+                    if ($prereq) {
+                        if ($sco->id == $scoid) {
+                            $result->prerequisites = true;
+                        }
+                        if (!empty($prevsco) && scorm_version_check($scorm->version, SCORM_13) && !empty($prevsco->hidecontinue)) {
+                            $result->toc .= '<span>'.$statusicon.'&nbsp;'.format_string($sco->title).'</span>';
+                        } else if ($toclink == TOCFULLURL) { //display toc with urls for structure page
+                            $url = $CFG->wwwroot.'/mod/scorm/player.php?a='.$scorm->id.'&amp;currentorg='.$currentorg.$modestr.'&amp;scoid='.$sco->id;
+                            $result->toc .= $statusicon.'&nbsp;<a href="'.$url.'">'.format_string($sco->title).'</a>'.$score."\n";
+                        } else { //display toc for inside scorm player
+                            if ($sco->launch) {
+                                $link = 'a='.$scorm->id.'&scoid='.$sco->id.'&currentorg='.$currentorg.$modestr.'&attempt='.$attempt;
+                                $result->toc .= '<a title="'.$link.'">'.$statusicon.'&nbsp;'.format_string($sco->title).'&nbsp;'.$score.'</a>';
+                            } else {
+                                $result->toc .= '<span>'.$statusicon.'&nbsp;'.format_string($sco->title).'</span>';
+                            }
+                        }
+                        $tocmenus[$sco->id] = scorm_repeater('&minus;',$level) . '&gt;' . format_string($sco->title);
+                    } else {
+                        if ($sco->id == $scoid) {
+                            $result->prerequisites = false;
+                        }
+                        if ($play) {
+                            // should be disabled
+                            $result->toc .= '<span>'.$statusicon.'&nbsp;'.format_string($sco->title).'</span>';
+                        } else {
+                            $result->toc .= $statusicon.'&nbsp;'.format_string($sco->title)."\n";
+                        }
+                    }
+                } else {
+                    $result->toc .= '&nbsp;'.format_string($sco->title);
+                }
+                if (($nextsco === false) || $nextsco->parent == $sco->parent) {
+                    $result->toc .= "</li>\n";
+                }
+            }
+            if (($nextsco !== false) && ($nextid == 0) && ($findnext)) {
+                if (!empty($nextsco->launch)) {
+                    $nextid = $nextsco->id;
+                }
+            }
+            $prevsco = $sco;
+        }
+        for ($i=0;$i<$level;$i++) {
+            $result->toc .= "\t\t</ul></li>\n";
+        }
+
+        if ($play) {
+            // it is possible that $scoid is still not set, in this case we don't want an empty object
+            if ($scoid) {
+                $sco = scorm_get_sco($scoid);
+            }
+            $sco->previd = $previd;
+            $sco->nextid = $nextid;
+            $result->sco = $sco;
+            $result->incomplete = $incomplete;
+        } else {
+            $result->incomplete = $incomplete;
+        }
+    }
+    $result->toc .= '</ul>';
+
+    // NEW IMS TOC
+    if ($tocheader) {
+        $result->toc .= '</div></div></div>';
+        $result->toc .= '<div id="scorm_navpanel"></div>';
+    }
+
+
+    if ($scorm->hidetoc == 0) {
+        $PAGE->requires->data_for_js('scormdata', array(
+                'plusicon' => $OUTPUT->pix_url('plus', 'scorm'),
+                'minusicon' => $OUTPUT->pix_url('minus', 'scorm')));
+        $PAGE->requires->js('/lib/cookies.js');
+        $PAGE->requires->js('/mod/scorm/datamodels/scorm_datamodels.js');
+    }
+
+    $url = new moodle_url('/mod/scorm/player.php?a='.$scorm->id.'&currentorg='.$currentorg.$modestr);
+    $result->tocmenu = $OUTPUT->single_select($url, 'scoid', $tocmenus, $sco->id, null, "tocmenu");
 
     return $result;
 }

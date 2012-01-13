@@ -46,6 +46,14 @@ $workshop = $DB->get_record('workshop', array('id' => $cm->instance), '*', MUST_
 $workshop = new workshop($workshop, $cm, $course);
 
 $PAGE->set_url($workshop->exsubmission_url($id), array('edit' => $edit));
+$PAGE->set_title($workshop->name);
+$PAGE->set_heading($course->fullname);
+if ($edit) {
+    $PAGE->navbar->add(get_string('exampleediting', 'workshop'));
+} else {
+    $PAGE->navbar->add(get_string('example', 'workshop'));
+}
+$output = $PAGE->get_renderer('mod_workshop');
 
 if ($id) { // example is specified
     $example = $workshop->get_example_by_id($id);
@@ -95,6 +103,15 @@ if ($id and $assess and $canassess) {
     if (!$asid) {
         $asid = $workshop->add_allocation($example, $USER->id, 0);
     }
+    if ($asid == workshop::ALLOCATION_EXISTS) {
+        // the training assessment of the example was not found but the allocation already
+        // exists. this probably means that the user is the author of the reference assessment.
+        echo $output->header();
+        echo $output->box(get_string('assessmentreferenceconflict', 'workshop'));
+        echo $output->continue_button($workshop->view_url());
+        echo $output->footer();
+        die();
+    }
     redirect($workshop->exassess_url($asid));
 }
 
@@ -103,7 +120,14 @@ if ($edit and $canmanage) {
 
     $maxfiles       = $workshop->nattachments;
     $maxbytes       = $workshop->maxbytes;
-    $contentopts    = array('trusttext' => true, 'subdirs' => false, 'maxfiles' => $maxfiles, 'maxbytes' => $maxbytes);
+    $contentopts    = array(
+                        'trusttext' => true,
+                        'subdirs'   => false,
+                        'maxfiles'  => $maxfiles,
+                        'maxbytes'  => $maxbytes,
+                        'context'   => $workshop->context
+                      );
+
     $attachmentopts = array('subdirs' => true, 'maxfiles' => $maxfiles, 'maxbytes' => $maxbytes);
     $example        = file_prepare_standard_editor($example, 'content', $contentopts, $workshop->context,
                                         'mod_workshop', 'submission_content', $example->id);
@@ -160,16 +184,7 @@ if ($edit and $canmanage) {
     }
 }
 
-$PAGE->set_title($workshop->name);
-$PAGE->set_heading($course->fullname);
-if ($edit) {
-    $PAGE->navbar->add(get_string('exampleediting', 'workshop'));
-} else {
-    $PAGE->navbar->add(get_string('example', 'workshop'));
-}
-
 // Output starts here
-$output = $PAGE->get_renderer('mod_workshop');
 echo $output->header();
 echo $output->heading(format_string($workshop->name), 2);
 

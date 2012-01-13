@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -15,15 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-
 /**
  * Block for displayed logged in user's course completion status
  *
- * @package   moodlecore
- * @copyright 2009 Catalyst IT Ltd
- * @author    Aaron Barnes <aaronb@catalyst.net.nz>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    block
+ * @subpackage completion
+ * @copyright  2009 Catalyst IT Ltd
+ * @author     Aaron Barnes <aaronb@catalyst.net.nz>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+defined('MOODLE_INTERNAL') || die();
+
+
 require_once($CFG->libdir.'/completionlib.php');
 
 /**
@@ -47,25 +50,42 @@ class block_completionstatus extends block_base {
         // Create empty content
         $this->content = new stdClass;
 
+        // Can edit settings?
+        $can_edit = has_capability('moodle/course:update', get_context_instance(CONTEXT_COURSE, $this->page->course->id));
+
+        // Get course completion data
+        $info = new completion_info($this->page->course);
+
         // Don't display if completion isn't enabled!
-        if (!$this->page->course->enablecompletion) {
+        if (!completion_info::is_enabled_for_site()) {
+            if ($can_edit) {
+                $this->content->text = get_string('completionnotenabledforsite', 'completion');
+            }
+            return $this->content;
+
+        } else if (!$info->is_enabled()) {
+            if ($can_edit) {
+                $this->content->text = get_string('completionnotenabledforcourse', 'completion');
+            }
             return $this->content;
         }
 
         // Load criteria to display
-        $info = new completion_info($this->page->course);
         $completions = $info->get_completions($USER->id);
 
         // Check if this course has any criteria
         if (empty($completions)) {
+            if ($can_edit) {
+                $this->content->text = get_string('nocriteriaset', 'completion');
+            }
             return $this->content;
         }
 
         // Check this user is enroled
         if (!$info->is_tracked_user($USER->id)) {
             // If not enrolled, but are can view the report:
-            if (has_capability('coursereport/completion:view', get_context_instance(CONTEXT_COURSE, $COURSE->id))) {
-                $this->content->text = '<a href="'.$CFG->wwwroot.'/course/report/completion/index.php?course='.$COURSE->id.
+            if (has_capability('report/completion:view', get_context_instance(CONTEXT_COURSE, $COURSE->id))) {
+                $this->content->text = '<a href="'.$CFG->wwwroot.'/report/completion/index.php?course='.$COURSE->id.
                                        '">'.get_string('viewcoursereport', 'completion').'</a>';
                 return $this->content;
             }
@@ -135,7 +155,10 @@ class block_completionstatus extends block_base {
             $shtml .= '<tr><td>';
             $shtml .= get_string('activitiescompleted', 'completion');
             $shtml .= '</td><td style="text-align: right">';
-            $shtml .= $activities_complete.' of '.count($activities);
+            $a = new stdClass();
+            $a->first = $activities_complete;
+            $a->second = count($activities);
+            $shtml .= get_string('firstofsecond', 'block_completionstatus', $a);
             $shtml .= '</td></tr>';
         }
 
@@ -145,7 +168,10 @@ class block_completionstatus extends block_base {
             $phtml  = '<tr><td>';
             $phtml .= get_string('prerequisitescompleted', 'completion');
             $phtml .= '</td><td style="text-align: right">';
-            $phtml .= $prerequisites_complete.' of '.count($prerequisites);
+            $a = new stdClass();
+            $a->first = $prerequisites_complete;
+            $a->second = count($prerequisites);
+            $shtml .= get_string('firstofsecond', 'block_completionstatus', $a);
             $phtml .= '</td></tr>';
 
             $shtml = $phtml . $shtml;
@@ -157,7 +183,7 @@ class block_completionstatus extends block_base {
 
         // Is course complete?
         $coursecomplete = $info->is_course_complete($USER->id);
-		
+
         // Load course completion
         $params = array(
             'userid' => $USER->id,

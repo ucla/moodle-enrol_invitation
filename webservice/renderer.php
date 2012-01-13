@@ -46,15 +46,24 @@ class core_webservice_renderer extends plugin_renderer_base {
         $table->cellspacing = 0;
         $table->cellpadding = 0;
 
+        // LTR/RTL support, for drawing button arrows in the right direction
+        if (right_to_left()) {
+            $addarrow = '▶';
+            $removearrow = '◀';
+        } else {
+            $addarrow = '◀';
+            $removearrow = '▶';
+        }
+
         //create the add and remove button
         $addinput = html_writer::empty_tag('input',
                         array('name' => 'add', 'id' => 'add', 'type' => 'submit',
-                            'value' => '◀' . ' ' . get_string('add'),
+                            'value' => $addarrow . ' ' . get_string('add'),
                             'title' => get_string('add')));
         $addbutton = html_writer::tag('div', $addinput, array('id' => 'addcontrols'));
         $removeinput = html_writer::empty_tag('input',
                         array('name' => 'remove', 'id' => 'remove', 'type' => 'submit',
-                            'value' => '▶' . ' ' . get_string('remove'),
+                            'value' => $removearrow . ' ' . get_string('remove'),
                             'title' => get_string('remove')));
         $removebutton = html_writer::tag('div', $removeinput, array('id' => 'removecontrols'));
 
@@ -320,7 +329,11 @@ class core_webservice_renderer extends plugin_renderer_base {
                     $validuntil = date("F j, Y"); //TODO: language support (look for moodle function)
                 }
 
-                $row = array($token->token, $token->name, $validuntil, $creatoratag, $reset);
+                $tokenname = $token->name;
+                if (!$token->enabled) { //that is the (1 token-1ws) related ws is not enabled.
+                    $tokenname = '<span class="dimmed_text">'.$token->name.'</span>';
+                }
+                $row = array($token->token, $tokenname, $validuntil, $creatoratag, $reset);
 
                 if ($documentation) {
                     $doclink = new moodle_url('/webservice/wsdoc.php',
@@ -598,11 +611,14 @@ EOF;
      * @param array $authparam keys contains 'tokenid'
      * @param boolean $printableformat true if we want to display the documentation in a printable format
      * @param array $activatedprotocol
+     * @param string $parenturl url of the calling page - needed for the print button url:
+     *               '/admin/documentation.php' or '/webservice/wsdoc.php' (default)
      * @return string the html to diplay
      */
-    public function documentation_html($functions, $printableformat, $activatedprotocol, $authparams) {
+    public function documentation_html($functions, $printableformat, $activatedprotocol,
+            $authparams, $parenturl = '/webservice/wsdoc.php') {
 
-        $documentationhtml = $this->output->heading(get_string('documentation', 'webservice'));
+        $documentationhtml = $this->output->heading(get_string('wsdocapi', 'webservice'));
 
         $br = html_writer::empty_tag('br', array());
         $brakeline = <<<EOF
@@ -611,7 +627,7 @@ EOF;
 EOF;
         /// Some general information
         $docinfo = new stdClass();
-        $docurl = new moodle_url('http://docs.moodle.org/en/Development:Creating_a_web_service_client');
+        $docurl = new moodle_url('http://docs.moodle.org/dev/Creating_a_web_service_client');
         $docinfo->doclink = html_writer::tag('a',
                         get_string('wsclientdoc', 'webservice'), array('href' => $docurl));
         $documentationhtml .= html_writer::start_tag('table',
@@ -625,7 +641,7 @@ EOF;
         /// Print button
         $authparams['print'] = true;
         //$parameters = array ('token' => $token, 'wsusername' => $username, 'wspassword' => $password, 'print' => true);
-        $url = new moodle_url('/webservice/wsdoc.php', $authparams); // Required
+        $url = new moodle_url($parenturl, $authparams); // Required
         $documentationhtml .= $this->output->single_button($url, get_string('print', 'webservice'));
         $documentationhtml .= $br;
 

@@ -46,7 +46,7 @@ $itemid    = optional_param('itemid', 0, PARAM_INT);            // Itemid
 $page      = optional_param('page', '', PARAM_RAW);             // Page
 $maxbytes  = optional_param('maxbytes', 0, PARAM_INT);          // Maxbytes
 $req_path  = optional_param('p', '', PARAM_RAW);                // Path
-$accepted_types  = optional_param('accepted_types', '*', PARAM_RAW);
+$accepted_types  = optional_param_array('accepted_types', '*', PARAM_RAW);
 $saveas_filename = optional_param('title', '', PARAM_FILE);     // save as file name
 $saveas_path   = optional_param('savepath', '/', PARAM_PATH);   // save as file path
 $search_text   = optional_param('s', '', PARAM_CLEANHTML);
@@ -195,23 +195,30 @@ switch ($action) {
             // use external link
             $link = $repo->get_link($source);
             $info = array();
-            $info['filename'] = $saveas_filename;
+            $info['file'] = $saveas_filename;
             $info['type'] = 'link';
             $info['url'] = $link;
             echo json_encode($info);
             die;
         } else {
-            if (in_array($repo->options['type'], array('local', 'recent', 'user', 'coursefiles'))) { //TODO: this hardcoding is a really ugly hack (skodak)
-                $fileinfo = $repo->copy_to_area($source, $itemid, $saveas_path, $saveas_filename);
-                $info = array();
-                $info['file'] = $fileinfo['title'];
-                $info['id'] = $itemid;
-                $info['url'] = $CFG->httpswwwroot.'/draftfile.php/'.$fileinfo['contextid'].'/user/draft/'.$itemid.'/'.$fileinfo['title'];
-                $filesize = $fileinfo['filesize'];
-                if (($maxbytes!==-1) && ($filesize>$maxbytes)) {
+            // some repository plugins deal with moodle internal files, so we cannot use get_file
+            // method, so we use copy_to_area method
+            // (local, user, coursefiles, recent)
+            if ($repo->has_moodle_files()) {
+                // check filesize against max allowed size
+                $filesize = $repo->get_file_size($source);
+                if (empty($filesize)) {
+                    $err->error = get_string('filesizenull', 'repository');
+                    die(json_encode($err));
+                }
+                if (($maxbytes !== -1) && ($filesize > $maxbytes)) {
                     throw new file_exception('maxbytes');
                 }
-                echo json_encode($info);
+                $fileinfo = $repo->copy_to_area($source, $itemid, $saveas_path, $saveas_filename);
+                if (!isset($fileinfo['event'])) {
+                    $fileinfo['file'] = $fileinfo['title'];
+                }
+                echo json_encode($fileinfo);
                 die;
             }
             // Download file to moodle
@@ -254,26 +261,27 @@ switch ($action) {
         }
         break;
     case 'upload':
-        // handle exception here instead moodle default exception handler
-        // see MDL-23407
-        try {
-            // TODO: add file scanning MDL-19380 into each plugin
-            $result = $repo->upload($saveas_filename, $maxbytes);
-            echo json_encode($result);
-        } catch (Exception $e) {
-            $err->error = $e->getMessage();
-            echo json_encode($err);
-            die;
-        }
+        $result = $repo->upload($saveas_filename, $maxbytes);
+        echo json_encode($result);
         break;
-}
 
-/**
- * Small function to walk an array to attach repository ID
- * @param array $value
- * @param string $key
- * @param int $id
- */
-function repository_attach_id(&$value, $key, $id){
-    $value['repo_id'] = $id;
+    case 'overwrite':
+        // existing file
+        $filepath    = required_param('existingfilepath', PARAM_PATH);
+        $filename    = required_param('existingfilename', PARAM_FILE);
+        // user added file which needs to replace the existing file
+        $newfilepath = required_param('newfilepath', PARAM_PATH);
+        $newfilename = required_param('newfilename', PARAM_FILE);
+
+        $info = repository::overwrite_existing_draftfile($itemid, $filepath, $filename, $newfilepath, $newfilename);
+        echo json_encode($info);
+        break;
+
+    case 'deletetmpfile':
+        // delete tmp file
+        $newfilepath = required_param('newfilepath', PARAM_PATH);
+        $newfilename = required_param('newfilename', PARAM_FILE);
+        echo json_encode(repository::delete_tempfile_from_draft($itemid, $newfilepath, $newfilename));
+
+        break;
 }

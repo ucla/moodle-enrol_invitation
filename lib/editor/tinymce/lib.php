@@ -28,7 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 
 class tinymce_texteditor extends texteditor {
     /** @var string active version - directory name */
-    public $version = '3.3.9.2';
+    public $version = '3.4.6';
 
     public function supported_by_browser() {
         if (check_browser_version('MSIE', 6)) {
@@ -44,6 +44,9 @@ class tinymce_texteditor extends texteditor {
             return true;
         }
         if (check_browser_version('Opera', 9)) {
+            return true;
+        }
+        if (check_browser_version('Safari iOS', 534)) {
             return true;
         }
 
@@ -67,7 +70,11 @@ class tinymce_texteditor extends texteditor {
 
     public function use_editor($elementid, array $options=null, $fpoptions=null) {
         global $PAGE;
-        $PAGE->requires->js('/lib/editor/tinymce/tiny_mce/'.$this->version.'/tiny_mce.js');
+        if (debugging('', DEBUG_DEVELOPER)) {
+            $PAGE->requires->js('/lib/editor/tinymce/tiny_mce/'.$this->version.'/tiny_mce_src.js');
+        } else {
+            $PAGE->requires->js('/lib/editor/tinymce/tiny_mce/'.$this->version.'/tiny_mce.js');
+        }
         $PAGE->requires->js_init_call('M.editor_tinymce.init_editor', array($elementid, $this->get_init_params($elementid, $options)), true);
         if ($fpoptions) {
             $PAGE->requires->js_init_call('M.editor_tinymce.init_filepicker', array($elementid, $fpoptions), true);
@@ -137,9 +144,11 @@ class tinymce_texteditor extends texteditor {
                     'theme_advanced_fonts' => "Trebuchet=Trebuchet MS,Verdana,Arial,Helvetica,sans-serif;Arial=arial,helvetica,sans-serif;Courier New=courier new,courier,monospace;Georgia=georgia,times new roman,times,serif;Tahoma=tahoma,arial,helvetica,sans-serif;Times New Roman=times new roman,times,serif;Verdana=verdana,arial,helvetica,sans-serif;Impact=impact;Wingdings=wingdings",
                     'theme_advanced_resize_horizontal' => true,
                     'theme_advanced_resizing' => true,
+                    'theme_advanced_resizing_min_height' => 30,
                     'theme_advanced_toolbar_location' => "top",
                     'theme_advanced_statusbar_location' => "bottom",
-                    'spellchecker_rpc_url' => $CFG->wwwroot."/lib/editor/tinymce/tiny_mce/$this->version/plugins/spellchecker/rpc.php"
+                    'spellchecker_rpc_url' => $CFG->wwwroot."/lib/editor/tinymce/tiny_mce/$this->version/plugins/spellchecker/rpc.php",
+                    'spellchecker_languages' => get_config('editor_tinymce', 'spelllanguagelist')
                   );
 
         if ($xemoticon) {
@@ -167,7 +176,10 @@ class tinymce_texteditor extends texteditor {
                 $params['file_browser_callback'] = "M.editor_tinymce.filepicker";
             }
         }
-
+        //Add onblur event for client side text validation
+        if (!empty($options['required'])) {
+            $params['init_instance_callback'] = 'M.editor_tinymce.onblur_event';
+        }
         return $params;
     }
 }

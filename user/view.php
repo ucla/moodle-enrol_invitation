@@ -48,7 +48,7 @@ $currentuser = ($user->id == $USER->id);
 
 $systemcontext = get_context_instance(CONTEXT_SYSTEM);
 $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
-$usercontext   = get_context_instance(CONTEXT_USER, $user->id, MUST_EXIST);
+$usercontext   = get_context_instance(CONTEXT_USER, $user->id, IGNORE_MISSING);
 
 // Require login first
 if (isguestuser($user)) {
@@ -58,10 +58,6 @@ if (isguestuser($user)) {
 
 if (!empty($CFG->forceloginforprofiles)) {
     require_login(); // we can not log in to course due to the parent hack bellow
-    if (isguestuser()) {
-        $SESSION->wantsurl = $PAGE->url->out(false);
-        redirect(get_login_url());
-    }
 }
 
 $PAGE->set_context($coursecontext);
@@ -72,7 +68,7 @@ $PAGE->set_other_editing_capability('moodle/course:manageactivities');
 
 $isparent = false;
 
-if (!$currentuser
+if (!$currentuser and !$user->deleted
   and $DB->record_exists('role_assignments', array('userid'=>$USER->id, 'contextid'=>$usercontext->id))
   and has_capability('moodle/user:viewdetails', $usercontext)) {
     // TODO: very ugly hack - do not force "parents" to enrol into course their child is enrolled in,
@@ -80,6 +76,7 @@ if (!$currentuser
     //       please note this is just a guess!
     require_login();
     $isparent = true;
+    $PAGE->navigation->set_userid_for_parent_checks($id);
 } else {
     // normal course
     require_login($course);
@@ -95,7 +92,7 @@ $fullname = fullname($user, has_capability('moodle/site:viewfullnames', $coursec
 /// Now test the actual capabilities and enrolment in course
 if ($currentuser) {
     // me
-    if (!is_enrolled($coursecontext) and !is_viewing($coursecontext)) { // Need to have full access to a course to see the rest of own info
+    if (!is_viewing($coursecontext) && !is_enrolled($coursecontext)) { // Need to have full access to a course to see the rest of own info
         echo $OUTPUT->header();
         echo $OUTPUT->heading(get_string('notenrolled', '', $fullname));
         if (!empty($_SERVER['HTTP_REFERER'])) {
@@ -112,7 +109,7 @@ if ($currentuser) {
 
     // check course level capabilities
     if (!has_capability('moodle/user:viewdetails', $coursecontext) && // normal enrolled user or mnager
-        !has_capability('moodle/user:viewdetails', $usercontext)) {   // usually parent
+        ($user->deleted or !has_capability('moodle/user:viewdetails', $usercontext))) {   // usually parent
         print_error('cannotviewprofile');
     }
 
@@ -173,7 +170,7 @@ echo $OUTPUT->header();
 
 echo '<div class="userprofile">';
 
-echo $OUTPUT->heading(fullname($user).' ('.$course->shortname.')');
+echo $OUTPUT->heading(fullname($user).' ('.format_string($course->shortname, true, array('context' => $coursecontext)).')');
 
 if ($user->deleted) {
     echo $OUTPUT->heading(get_string('userdeleted'));
@@ -236,6 +233,15 @@ echo '</div>';
 
 echo '<table class="list" summary="">';
 
+//checks were performed above that ensure that if we've got to here either the user
+//is viewing their own profile ($USER->id == $user->id) or $user is enrolled in the course
+if ($currentuser
+   or $user->maildisplay == 1 //allow everyone to see email address
+   or ($user->maildisplay == 2 && is_enrolled($coursecontext, $USER)) //fellow course members can see email. Already know $user is enrolled
+   or has_capability('moodle/course:useremail', $coursecontext)) {
+    print_row(get_string("email").":", obfuscate_mailto($user->email, ''));
+}
+
 // Show last time this user accessed this course
 if (!isset($hiddenfields['lastaccess'])) {
     if ($lastaccess = $DB->get_record('user_lastaccess', array('userid'=>$user->id, 'courseid'=>$course->id))) {
@@ -282,20 +288,21 @@ if (!isset($hiddenfields['mycourses'])) {
         $courselisting = '';
         foreach ($mycourses as $mycourse) {
             if ($mycourse->category) {
+                $ccontext = get_context_instance(CONTEXT_COURSE, $mycourse->id);;
+                $cfullname = format_string($mycourse->fullname, true, array('context' => $ccontext));
                 if ($mycourse->id != $course->id){
                     $class = '';
                     if ($mycourse->visible == 0) {
-                        $ccontext = get_context_instance(CONTEXT_COURSE, $mycourse->id);
                         if (!has_capability('moodle/course:viewhiddencourses', $ccontext)) {
                             continue;
                         }
                         $class = 'class="dimmed"';
                     }
                     $courselisting .= "<a href=\"{$CFG->wwwroot}/user/view.php?id={$user->id}&amp;course={$mycourse->id}\" $class >"
-                        . format_string($mycourse->fullname) . "</a>, ";
+                        . $cfullname . "</a>, ";
                 } else {
-                    $courselisting .= format_string($mycourse->fullname) . ", ";
-                    $PAGE->navbar->add($mycourse->fullname);
+                    $courselisting .= $cfullname . ", ";
+                    $PAGE->navbar->add($cfullname);
                 }
             }
             $shown++;
@@ -305,6 +312,12 @@ if (!isset($hiddenfields['mycourses'])) {
             }
         }
         print_row(get_string('courseprofiles').':', rtrim($courselisting,', '));
+    }
+}
+
+if (!isset($hiddenfields['suspended'])) {
+    if ($user->suspended) {
+        print_row('', get_string('suspended', 'auth'));
     }
 }
 

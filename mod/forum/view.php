@@ -57,6 +57,9 @@
         if (! $forum = $DB->get_record("forum", array("id" => $cm->instance))) {
             print_error('invalidforumid', 'forum');
         }
+        if ($forum->type == 'single') {
+            $PAGE->set_pagetype('mod-forum-discuss');
+        }
         // move require_course_login here to use forced language for course
         // fix for MDL-6926
         require_course_login($course, true, $cm);
@@ -93,15 +96,15 @@
     if (!empty($CFG->enablerssfeeds) && !empty($CFG->forum_enablerssfeeds) && $forum->rsstype && $forum->rssarticles) {
         require_once("$CFG->libdir/rsslib.php");
 
-        $rsstitle = format_string($course->shortname) . ': %fullname%';
+        $rsstitle = format_string($course->shortname, true, array('context' => get_context_instance(CONTEXT_COURSE, $course->id))) . ': %fullname%';
         rss_add_http_header($context, 'mod_forum', $forum, $rsstitle);
     }
 
+    // Mark viewed if required
+    $completion = new completion_info($course);
+    $completion->set_module_viewed($cm);
+
 /// Print header.
-    /// Add ajax-related libs for ratings if required  MDL-20119
-    $PAGE->requires->yui2_lib('event');
-    $PAGE->requires->yui2_lib('connection');
-    $PAGE->requires->yui2_lib('json');
 
     $PAGE->set_title(format_string($forum->name));
     $PAGE->add_body_class('forumtype-'.$forum->type);
@@ -138,10 +141,10 @@
     // If it's a simple single discussion forum, we need to print the display
     // mode control.
     if ($forum->type == 'single') {
-        if (! $discussion = $DB->get_record("forum_discussions", array("forum" => $forum->id))) {
-            if ($discussions = $DB->get_records("forum_discussions", array("forum", $forum->id), "timemodified ASC")) {
-                $discussion = array_pop($discussions);
-            }
+        $discussion = NULL;
+        $discussions = $DB->get_records('forum_discussions', array('forum'=>$forum->id), 'timemodified ASC');
+        if (!empty($discussions)) {
+            $discussion = array_pop($discussions);
         }
         if ($discussion) {
             if ($mode) {
@@ -164,13 +167,8 @@
 
     switch ($forum->type) {
         case 'single':
-            if (! $discussion = $DB->get_record("forum_discussions", array("forum" => $forum->id))) {
-                if ($discussions = $DB->get_records("forum_discussions", array("forum" => $forum->id), "timemodified ASC")) {
-                    echo $OUTPUT->notification("Warning! There is more than one discussion in this forum - using the most recent");
-                    $discussion = array_pop($discussions);
-                } else {
-                    print_error('nodiscussions', 'forum');
-                }
+            if (!empty($discussions) && count($discussions) > 1) {
+                echo $OUTPUT->notification(get_string('warnformorepost', 'forum'));
             }
             if (! $post = forum_get_post_full($discussion->firstpost)) {
                 print_error('cannotfindfirstpost', 'forum');
@@ -239,8 +237,7 @@
 
             break;
     }
-    $completion=new completion_info($course);
-    $completion->set_module_viewed($cm);
+
     echo $OUTPUT->footer($course);
 
 

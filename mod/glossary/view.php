@@ -50,6 +50,10 @@ if (!empty($id)) {
 require_course_login($course->id, true, $cm);
 $context = get_context_instance(CONTEXT_MODULE, $cm->id);
 
+// Prepare format_string/text options
+$fmtoptions = array(
+    'context' => $context);
+
 require_once($CFG->dirroot . '/comment/lib.php');
 comment::init();
 
@@ -62,7 +66,6 @@ if ($tab == GLOSSARY_ADDENTRY_VIEW ) {
 }
 
 /// setting the defaut number of entries per page if not set
-
 if ( !$entriesbypage = $glossary->entbypage ) {
     $entriesbypage = $CFG->glossary_entbypage;
 }
@@ -124,6 +127,10 @@ if (!$cm->visible and !has_capability('moodle/course:viewhiddenactivities', $con
     notice(get_string("activityiscurrentlyhidden"));
 }
 add_to_log($course->id, "glossary", "view", "view.php?id=$cm->id&amp;tab=$tab", $glossary->id, $cm->id);
+
+// Mark as viewed
+$completion = new completion_info($course);
+$completion->set_module_viewed($cm);
 
 /// stablishing flag variables
 if ( $sortorder = strtolower($sortorder) ) {
@@ -241,7 +248,7 @@ $PAGE->set_url($url);
 if (!empty($CFG->enablerssfeeds) && !empty($CFG->glossary_enablerssfeeds)
     && $glossary->rsstype && $glossary->rssarticles) {
 
-    $rsstitle = format_string($course->shortname) . ': %fullname%';
+    $rsstitle = format_string($course->shortname, true, array('context' => get_context_instance(CONTEXT_COURSE, $course->id))) . ': %fullname%';
     rss_add_http_header($context, 'mod_glossary', $glossary, $rsstitle);
 }
 
@@ -390,12 +397,13 @@ if ($allentries) {
     echo $paging;
     echo '</div>';
 
-
     //load ratings
     require_once($CFG->dirroot.'/rating/lib.php');
-    if ($glossary->assessed!=RATING_AGGREGATE_NONE) {
-        $ratingoptions = new stdclass();
+    if ($glossary->assessed != RATING_AGGREGATE_NONE) {
+        $ratingoptions = new stdClass;
         $ratingoptions->context = $context;
+        $ratingoptions->component = 'mod_glossary';
+        $ratingoptions->ratingarea = 'entry';
         $ratingoptions->items = $allentries;
         $ratingoptions->aggregate = $glossary->assessed;//the aggregation method
         $ratingoptions->scaleid = $glossary->scale;
@@ -403,8 +411,6 @@ if ($allentries) {
         $ratingoptions->returnurl = $CFG->wwwroot.'/mod/glossary/view.php?id='.$cm->id;
         $ratingoptions->assesstimestart = $glossary->assesstimestart;
         $ratingoptions->assesstimefinish = $glossary->assesstimefinish;
-        $ratingoptions->plugintype = 'mod';
-        $ratingoptions->pluginname = 'glossary';
 
         $rm = new rating_manager();
         $allentries = $rm->get_ratings($ratingoptions);
@@ -415,9 +421,11 @@ if ($allentries) {
         // Setting the pivot for the current entry
         $pivot = $entry->glossarypivot;
         $upperpivot = $textlib->strtoupper($pivot);
+        $pivottoshow = $textlib->strtoupper(format_string($pivot, true, $fmtoptions));
         // Reduce pivot to 1cc if necessary
         if ( !$fullpivot ) {
             $upperpivot = $textlib->substr($upperpivot, 0, 1);
+            $pivottoshow = $textlib->substr($pivottoshow, 0, 1);
         }
 
         // if there's a group break
@@ -431,7 +439,6 @@ if ($allentries) {
                 echo '<table cellspacing="0" class="glossarycategoryheader">';
 
                 echo '<tr>';
-                $pivottoshow = $currentpivot;
                 if ( isset($entry->userispivot) ) {
                 // printing the user icon if defined (only when browsing authors)
                     echo '<th align="left">';
@@ -495,8 +502,3 @@ glossary_print_tabbed_table_end();
 
 /// Finish the page
 echo $OUTPUT->footer();
-
-/// Mark as viewed
-$completion=new completion_info($course);
-$completion->set_module_viewed($cm);
-

@@ -24,6 +24,10 @@
  */
 
 
+// disable moodle specific debug messages and any errors in output,
+// comment out when debugging or better look into error log!
+define('NO_DEBUG_DISPLAY', true);
+
 // we need just the values from config.php and minlib.php
 define('ABORT_AFTER_CONFIG', true);
 require('../config.php'); // this stops immediately at the beginning of lib/setup.php
@@ -46,13 +50,17 @@ if (file_exists("$CFG->dirroot/theme/$themename/config.php")) {
     die('Theme was not found, sorry.');
 }
 
-$candidate = "$CFG->dataroot/cache/theme/$themename/javascript_$type.js";
+$candidate = "$CFG->cachedir/theme/$themename/javascript_$type.js";
 
 if ($rev > -1 and file_exists($candidate)) {
-    if (!empty($_SERVER['HTTP_IF_NONE_MATCH'])) {
+    if (!empty($_SERVER['HTTP_IF_NONE_MATCH']) || !empty($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
         // we do not actually need to verify the etag value because our files
         // never change in cache because we increment the rev parameter
+        $lifetime = 60*60*24*30; // 30 days
         header('HTTP/1.1 304 Not Modified');
+        header('Expires: '. gmdate('D, d M Y H:i:s', time() + $lifetime) .' GMT');
+        header('Cache-Control: max-age='.$lifetime);
+        header('Content-Type: application/javascript; charset=utf-8');
         die;
     }
     send_cached_js($candidate, $rev);
@@ -73,6 +81,9 @@ require_once('Minify.php');
 $theme = theme_config::load($themename);
 
 if ($rev > -1) {
+    // note: cache reset might have purged our cache dir structure,
+    //       make sure we do not use stale file stat cache in the next check_dir_exists()
+    clearstatcache();
     check_dir_exists(dirname($candidate));
     $fp = fopen($candidate, 'w');
     fwrite($fp, minify($theme->javascript_files($type)));
@@ -88,12 +99,13 @@ if ($rev > -1) {
 // parameters to get the best performance.
 
 function send_cached_js($jspath) {
-    $lifetime = 60*60*24*20;
+    $lifetime = 60*60*24*30; // 30 days
 
     header('Content-Disposition: inline; filename="javascript.php"');
     header('Last-Modified: '. gmdate('D, d M Y H:i:s', filemtime($jspath)) .' GMT');
     header('Expires: '. gmdate('D, d M Y H:i:s', time() + $lifetime) .' GMT');
     header('Pragma: ');
+    header('Cache-Control: max-age='.$lifetime);
     header('Accept-Ranges: none');
     header('Content-Type: application/javascript; charset=utf-8');
     if (!min_enable_zlib_compression()) {
@@ -118,12 +130,11 @@ function send_uncached_js($js) {
 }
 
 function minify($files) {
-    global $CFG;
-
     if (0 === stripos(PHP_OS, 'win')) {
         Minify::setDocRoot(); // IIS may need help
     }
-    Minify::setCache('', true);
+    // disable all caching, we do it in moodle
+    Minify::setCache(null, false);
 
     $options = array(
         'bubbleCssImports' => false,

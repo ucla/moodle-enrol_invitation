@@ -57,6 +57,7 @@ class file_picker implements renderable {
             'itemid' => 0,
             'maxbytes'=>-1,
             'maxfiles'=>1,
+            'buttonname'=>false
         );
         foreach ($defaults as $key=>$value) {
             if (empty($options->$key)) {
@@ -103,7 +104,7 @@ class user_picture implements renderable {
     /**
      * @var array List of mandatory fields in user record here. (do not include TEXT columns because it would break SELECT DISTINCT in MSSQL and ORACLE)
      */
-    protected static $fields = array('id', 'picture', 'firstname', 'lastname', 'imagealt', 'email');
+    protected static $fields = array('id', 'picture', 'firstname', 'lastname', 'imagealt', 'email'); //TODO: add deleted
 
     /**
      * @var object $user A user object with at least fields all columns specified in $fields array constant set.
@@ -258,6 +259,88 @@ class user_picture implements renderable {
 
         return $return;
     }
+
+    /**
+     * Works out the URL for the users picture.
+     *
+     * This method is recommended as it avoids costly redirects of user pictures
+     * if requests are made for non-existent files etc.
+     *
+     * @param renderer_base $renderer
+     * @return moodle_url
+     */
+    public function get_url(moodle_page $page, renderer_base $renderer = null) {
+        global $CFG;
+
+        if (is_null($renderer)) {
+            $renderer = $page->get_renderer('core');
+        }
+
+        if ((!empty($CFG->forcelogin) and !isloggedin()) ||
+                (!empty($CFG->forceloginforprofileimage) && (!isloggedin() || isguestuser()))) {
+            // protect images if login required and not logged in;
+            // also if login is required for profile images and is not logged in or guest
+            // do not use require_login() because it is expensive and not suitable here anyway
+            return $renderer->pix_url('u/f1');
+        }
+
+        // Sort out the filename and size. Size is only required for the gravatar
+        // implementation presently.
+        if (empty($this->size)) {
+            $filename = 'f2';
+            $size = 35;
+        } else if ($this->size === true or $this->size == 1) {
+            $filename = 'f1';
+            $size = 100;
+        } else if ($this->size >= 50) {
+            $filename = 'f1';
+            $size = (int)$this->size;
+        } else {
+            $filename = 'f2';
+            $size = (int)$this->size;
+        }
+
+        // First we need to determine whether the user has uploaded a profile
+        // picture of not.
+        if (!empty($this->user->deleted) or !$context = context_user::instance($this->user->id, IGNORE_MISSING)) {
+            $hasuploadedfile = false;
+        } else {
+            $fs = get_file_storage();
+            $hasuploadedfile = ($fs->file_exists($context->id, 'user', 'icon', 0, '/', $filename.'/.png') || $fs->file_exists($context->id, 'user', 'icon', 0, '/', $filename.'/.jpg'));
+        }
+
+        $imageurl = $renderer->pix_url('u/'.$filename);
+        if ($hasuploadedfile && $this->user->picture == 1) {
+            $path = '/';
+            if (clean_param($page->theme->name, PARAM_THEME) == $page->theme->name) {
+                // We append the theme name to the file path if we have it so that
+                // in the circumstance that the profile picture is not available
+                // when the user actually requests it they still get the profile
+                // picture for the correct theme.
+                $path .= $page->theme->name.'/';
+            }
+            // Set the image URL to the URL for the uploaded file.
+            $imageurl = moodle_url::make_pluginfile_url($context->id, 'user', 'icon', NULL, $path, $filename);
+        } else if (!empty($CFG->enablegravatar)) {
+            // Normalise the size variable to acceptable bounds
+            if ($size < 1 || $size > 512) {
+                $size = 35;
+            }
+            // Hash the users email address
+            $md5 = md5(strtolower(trim($this->user->email)));
+            // Build a gravatar URL with what we know.
+            // If the currently requested page is https then we'll return an
+            // https gravatar page.
+            if (strpos($CFG->httpswwwroot, 'https:') === 0) {
+                $imageurl = new moodle_url("https://secure.gravatar.com/avatar/{$md5}", array('s' => $size, 'd' => $imageurl->out(false)));
+            } else {
+                $imageurl = new moodle_url("http://www.gravatar.com/avatar/{$md5}", array('s' => $size, 'd' => $imageurl->out(false)));
+            }
+        }
+
+        // Return the URL that has been generated.
+        return $imageurl;
+    }
 }
 
 /**
@@ -372,6 +455,7 @@ class pix_icon implements renderable {
     /**
      * Constructor
      * @param string $pix short icon name
+     * @param string $alt The alt text to use for the icon
      * @param string $component component name
      * @param array $attributes html attributes
      */
@@ -480,7 +564,7 @@ class single_button implements renderable {
      * @return void
      */
     public function add_confirm_action($confirmmessage) {
-        $this->add_action(new component_action('click', 'M.util.show_confirm_dialog', array('message' => $confirmmessage)));
+        $this->add_action(new confirm_action($confirmmessage));
     }
 
     /**
@@ -925,7 +1009,15 @@ class html_writer {
      * @return string
      */
     public static function random_id($base='random') {
-        return uniqid($base);
+        static $counter = 0;
+        static $uniq;
+
+        if (!isset($uniq)) {
+            $uniq = uniqid();
+        }
+
+        $counter++;
+        return $base.$uniq.$counter;
     }
 
     /**
@@ -2322,15 +2414,22 @@ class custom_menu_item implements renderable {
  * @since     Moodle 2.0
  */
 class custom_menu extends custom_menu_item {
+
+    /** @var string the language we should render for, null disables multilang support */
+    protected $currentlanguage = null;
+
     /**
      * Creates the custom menu
-     * @param string $text Sets the text for this custom menu, never gets used and is optional
+     *
+     * @param string $definition the menu items definition in syntax required by {@link convert_text_to_menu_nodes()}
+     * @param string $language the current language code, null disables multilang support
      */
-    public function __construct($text='base') {
-        global $CFG;
-        parent::__construct($text);
-        if (!empty($CFG->custommenuitems)) {
-            $this->override_children(self::convert_text_to_menu_nodes($CFG->custommenuitems));
+    public function __construct($definition = '', $currentlanguage = null) {
+
+        $this->currentlanguage = $currentlanguage;
+        parent::__construct('root'); // create virtual root element of the menu
+        if (!empty($definition)) {
+            $this->override_children(self::convert_text_to_menu_nodes($definition, $currentlanguage));
         }
     }
 
@@ -2352,8 +2451,9 @@ class custom_menu extends custom_menu_item {
      * then be added to a custom menu.
      *
      * Structure:
-     *     text|url|title
-     * The number of hyphens at the start determines the depth of the item
+     *     text|url|title|langs
+     * The number of hyphens at the start determines the depth of the item. The
+     * languages are optional, comma separated list of languages the line is for.
      *
      * Example structure:
      *     First level first item|http://www.moodle.com/
@@ -2363,12 +2463,16 @@ class custom_menu extends custom_menu_item {
      *     -Second level third item|http://www.moodle.com/development/
      *     First level second item|http://www.moodle.com/feedback/
      *     First level third item
+     *     English only|http://moodle.com|English only item|en
+     *     German only|http://moodle.de|Deutsch|de,de_du,de_kids
+     *
      *
      * @static
-     * @param string $text
+     * @param string $text the menu items definition
+     * @param string $language the language code, null disables multilang support
      * @return array
      */
-    public static function convert_text_to_menu_nodes($text) {
+    public static function convert_text_to_menu_nodes($text, $language = null) {
         $lines = explode("\n", $text);
         $children = array();
         $lastchild = null;
@@ -2376,27 +2480,38 @@ class custom_menu extends custom_menu_item {
         $lastsort = 0;
         foreach ($lines as $line) {
             $line = trim($line);
-            $bits = explode('|', $line ,4);    // name|url|title|sort
-            if (!array_key_exists(0, $bits) || empty($bits[0])) {
+            $bits = explode('|', $line, 4);    // name|url|title|langs
+            if (!array_key_exists(0, $bits) or empty($bits[0])) {
                 // Every item must have a name to be valid
                 continue;
             } else {
                 $bits[0] = ltrim($bits[0],'-');
             }
-            if (!array_key_exists(1, $bits)) {
+            if (!array_key_exists(1, $bits) or empty($bits[1])) {
                 // Set the url to null
                 $bits[1] = null;
             } else {
                 // Make sure the url is a moodle url
                 $bits[1] = new moodle_url(trim($bits[1]));
             }
-            if (!array_key_exists(2, $bits)) {
+            if (!array_key_exists(2, $bits) or empty($bits[2])) {
                 // Set the title to null seeing as there isn't one
                 $bits[2] = $bits[0];
             }
+            if (!array_key_exists(3, $bits) or empty($bits[3])) {
+                // The item is valid for all languages
+                $itemlangs = null;
+            } else {
+                $itemlangs = array_map('trim', explode(',', $bits[3]));
+            }
+            if (!empty($language) and !empty($itemlangs)) {
+                // check that the item is intended for the current language
+                if (!in_array($language, $itemlangs)) {
+                    continue;
+                }
+            }
             // Set an incremental sort order to keep it simple.
-            $bits[3] = $lastsort;
-            $lastsort = $bits[3]+1;
+            $lastsort++;
             if (preg_match('/^(\-*)/', $line, $match) && $lastchild != null && $lastdepth !== null) {
                 $depth = strlen($match[1]);
                 if ($depth < $lastdepth) {
@@ -2406,26 +2521,26 @@ class custom_menu extends custom_menu_item {
                         for ($i =0; $i < $difference; $i++) {
                             $tempchild = $tempchild->get_parent();
                         }
-                        $lastchild = $tempchild->add($bits[0], $bits[1], $bits[2], $bits[3]);
+                        $lastchild = $tempchild->add($bits[0], $bits[1], $bits[2], $lastsort);
                     } else {
                         $depth = 0;
-                        $lastchild = new custom_menu_item($bits[0], $bits[1], $bits[2], $bits[3]);
+                        $lastchild = new custom_menu_item($bits[0], $bits[1], $bits[2], $lastsort);
                         $children[] = $lastchild;
                     }
                 } else if ($depth > $lastdepth) {
                     $depth = $lastdepth + 1;
-                    $lastchild = $lastchild->add($bits[0], $bits[1], $bits[2], $bits[3]);
+                    $lastchild = $lastchild->add($bits[0], $bits[1], $bits[2], $lastsort);
                 } else {
                     if ($depth == 0) {
-                        $lastchild = new custom_menu_item($bits[0], $bits[1], $bits[2], $bits[3]);
+                        $lastchild = new custom_menu_item($bits[0], $bits[1], $bits[2], $lastsort);
                         $children[] = $lastchild;
                     } else {
-                        $lastchild = $lastchild->get_parent()->add($bits[0], $bits[1], $bits[2], $bits[3]);
+                        $lastchild = $lastchild->get_parent()->add($bits[0], $bits[1], $bits[2], $lastsort);
                     }
                 }
             } else {
                 $depth = 0;
-                $lastchild = new custom_menu_item($bits[0], $bits[1], $bits[2], $bits[3]);
+                $lastchild = new custom_menu_item($bits[0], $bits[1], $bits[2], $lastsort);
                 $children[] = $lastchild;
             }
             $lastdepth = $depth;

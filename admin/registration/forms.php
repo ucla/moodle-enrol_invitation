@@ -136,8 +136,8 @@ class hub_selector_form extends moodleform {
         $options = array();
         foreach ($hubs as $hub) {
             //to not display a name longer than 100 character (too big)
-            if (strlen($hub['name']) > 100) {
-                $hubname = substr($hub['name'], 0, 100);
+            if (textlib::strlen($hub['name']) > 100) {
+                $hubname = textlib::substr($hub['name'], 0, 100);
                 $hubname = $hubname . "...";
             } else {
                 $hubname = $hub['name'];
@@ -203,7 +203,7 @@ class site_registration_form extends moodleform {
         $cleanhuburl = clean_param($huburl, PARAM_ALPHANUMEXT);
         $sitename = get_config('hub', 'site_name_' . $cleanhuburl);
         if ($sitename === false) {
-            $sitename = $site->fullname;
+            $sitename = format_string($site->fullname, true, array('context' => get_context_instance(CONTEXT_COURSE, SITEID)));
         }
         $sitedescription = get_config('hub', 'site_description_' . $cleanhuburl);
         if ($sitedescription === false) {
@@ -283,7 +283,7 @@ class site_registration_form extends moodleform {
         $mform->addHelpButton('urlstring', 'siteurl', 'hub');
 
         $languages = get_string_manager()->get_list_of_languages();
-        textlib_get_instance()->asort($languages);
+        collatorlib::asort($languages);
         $mform->addElement('select', 'language', get_string('sitelang', 'hub'),
                 $languages);
         $mform->setType('language', PARAM_ALPHANUMEXT);

@@ -96,7 +96,7 @@ if ($thissection->summary or $thissection->sequence or $PAGE->user_is_editing())
     echo '<div class="right side" >&nbsp;</div>';
     echo '<div class="content">';
     if (!is_null($thissection->name)) {
-        echo $OUTPUT->heading($thissection->name, 3, 'sectionname');
+        echo $OUTPUT->heading(format_string($thissection->name, true, array('context' => $context)), 3, 'sectionname');
     }
     echo '<div class="summary">';
 
@@ -110,7 +110,7 @@ if ($thissection->summary or $thissection->sequence or $PAGE->user_is_editing())
     if ($PAGE->user_is_editing() && has_capability('moodle/course:update', $coursecontext)) {
         echo '<a title="'.$streditsummary.'" '.
              ' href="editsection.php?id='.$thissection->id.'"><img src="'.$OUTPUT->pix_url('t/edit') . '" '.
-             ' class="icon edit" alt="'.$streditsummary.'" /></a>';
+             ' class="iconsmall edit" alt="'.$streditsummary.'" /></a>';
     }
     echo '</div>';
 
@@ -128,7 +128,6 @@ if ($thissection->summary or $thissection->sequence or $PAGE->user_is_editing())
 /// Now all the normal modules by topic
 /// Everything below uses "section" terminology - each "section" is a topic.
 
-$timenow = time();
 $section = 1;
 $sectionmenu = array();
 
@@ -219,7 +218,7 @@ while ($section <= $course->numsections) {
             echo get_string('notavailable');
         } else {
             if (!is_null($thissection->name)) {
-                echo $OUTPUT->heading($thissection->name, 3, 'sectionname');
+                echo $OUTPUT->heading(format_string($thissection->name, true, array('context' => $context)), 3, 'sectionname');
             }
             echo '<div class="summary">';
             if ($thissection->summary) {
@@ -235,7 +234,7 @@ while ($section <= $course->numsections) {
 
             if ($PAGE->user_is_editing() && has_capability('moodle/course:update', get_context_instance(CONTEXT_COURSE, $course->id))) {
                 echo ' <a title="'.$streditsummary.'" href="editsection.php?id='.$thissection->id.'">'.
-                     '<img src="'.$OUTPUT->pix_url('t/edit') . '" class="icon edit" alt="'.$streditsummary.'" /></a><br /><br />';
+                     '<img src="'.$OUTPUT->pix_url('t/edit') . '" class="iconsmall edit" alt="'.$streditsummary.'" /></a><br /><br />';
             }
             echo '</div>';
 

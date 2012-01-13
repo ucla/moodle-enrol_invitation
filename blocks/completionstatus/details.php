@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -15,15 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-
 /**
  * Block for displayed logged in user's course completion status
  *
- * @package   moodlecore
- * @copyright 2009 Catalyst IT Ltd
- * @author    Aaron Barnes <aaronb@catalyst.net.nz>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    block
+ * @subpackage completion
+ * @copyright  2009 Catalyst IT Ltd
+ * @author     Aaron Barnes <aaronb@catalyst.net.nz>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 require_once('../../config.php');
 require_once($CFG->libdir.'/completionlib.php');
 
@@ -60,14 +60,11 @@ $can_view = false;
 // Can view own report
 if ($USER->id == $user->id) {
     $can_view = true;
-}
-elseif (has_capability('moodle/user:viewuseractivitiesreport', $personalcontext)) {
+} else if (has_capability('moodle/user:viewuseractivitiesreport', $personalcontext)) {
     $can_view = true;
-}
-elseif (has_capability('coursereport/completion:view', $coursecontext)) {
+} else if (has_capability('report/completion:view', $coursecontext)) {
     $can_view = true;
-}
-elseif (has_capability('coursereport/completion:view', $personalcontext)) {
+} else if (has_capability('report/completion:view', $personalcontext)) {
     $can_view = true;
 }
 
@@ -76,23 +73,31 @@ if (!$can_view) {
 }
 
 
+// Load completion data
+$info = new completion_info($course);
+
+$returnurl = "{$CFG->wwwroot}/course/view.php?id={$id}";
+
 // Don't display if completion isn't enabled!
-if (!$course->enablecompletion) {
-    print_error('completionnotenabled', 'block_completionstatus');
+if (!$info->is_enabled()) {
+    print_error('completionnotenabled', 'completion', $returnurl);
 }
 
 // Load criteria to display
-$info = new completion_info($course);
 $completions = $info->get_completions($user->id);
 
 // Check if this course has any criteria
 if (empty($completions)) {
-    print_error('nocriteria', 'block_completionstatus');
+    print_error('nocriteriaset', 'completion', $returnurl);
 }
 
 // Check this user is enroled
 if (!$info->is_tracked_user($user->id)) {
-    print_error('notenroled', 'completion');
+    if ($USER->id == $user->id) {
+        print_error('notenroled', 'completion', $returnurl);
+    } else {
+        print_error('usernotenroled', 'completion', $returnurl);
+    }
 }
 
 
@@ -160,7 +165,7 @@ echo '<th class="c1 header" scope="col">'.get_string('criteria', 'completion').'
 echo '<th class="c2 header" scope="col">'.get_string('requirement', 'block_completionstatus').'</th>';
 echo '<th class="c3 header" scope="col">'.get_string('status').'</th>';
 echo '<th class="c4 header" scope="col">'.get_string('complete').'</th>';
-echo '<th class="c5 header" scope="col">'.get_string('completiondate', 'coursereport_completion').'</th>';
+echo '<th class="c5 header" scope="col">'.get_string('completiondate', 'report_completion').'</th>';
 echo '</tr>';
 
 // Save row data
@@ -232,7 +237,7 @@ foreach ($rows as $row) {
 
     // Is complete
     echo '<td class="c4">';
-    echo ($row['status'] === 'Yes') ? 'Yes' : 'No';
+    echo ($row['status'] === get_string('yes')) ? get_string('yes') : get_string('no');
     echo '</td>';
 
     // Completion data

@@ -32,7 +32,7 @@ $pageid = optional_param('pageid', NULL, PARAM_INT);    // Lesson Page ID
 $action = optional_param('action', 'reportoverview', PARAM_ALPHA);  // action to take
 $nothingtodisplay = false;
 
-$cm = get_coursemodule_from_id('lesson', $id, 0, false, MUST_EXIST);;
+$cm = get_coursemodule_from_id('lesson', $id, 0, false, MUST_EXIST);
 $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
 $lesson = new lesson($DB->get_record('lesson', array('id' => $cm->instance), '*', MUST_EXIST));
 
@@ -455,6 +455,7 @@ if ($action === 'delete') {
 
         $answerpage->qtype = $qtypes[$page->qtype].$page->option_description_string();
         $answerpage->grayout = $page->grayout;
+        $answerpage->context = $context;
 
         if (empty($userid)) {
             // there is no userid, so set these vars and display stats.
@@ -560,7 +561,7 @@ if ($action === 'delete') {
         $table->data[] = array($fontstart.get_string("question", "lesson").": <br />".$fontend.$fontstart2.$page->contents.$fontend2, " ");
         $table->data[] = array($fontstart.get_string("answer", "lesson").":".$fontend, ' ');
         // apply the font to each answer
-        if (!empty($page->answerdata) && isset($page->answerdata->response)) {
+        if (!empty($page->answerdata)) {
             foreach ($page->answerdata->answers as $answer){
                 $modified = array();
                 foreach ($answer as $single) {
@@ -569,12 +570,12 @@ if ($action === 'delete') {
                 }
                 $table->data[] = $modified;
             }
-            if ($page->answerdata->response != NULL) {
+            if (isset($page->answerdata->response)) {
                 $table->data[] = array($fontstart.get_string("response", "lesson").": <br />".$fontend.$fontstart2.format_text($page->answerdata->response,$page->answerdata->responseformat,$formattextdefoptions).$fontend2, " ");
             }
             $table->data[] = array($page->answerdata->score, " ");
         } else {
-            $table->data[] = array(0, " ");
+            $table->data[] = array(get_string('didnotanswerquestion', 'lesson'), " ");
         }
         echo html_writer::table($table);
     }

@@ -81,6 +81,10 @@ a:active {
     padding: 5px 0;
 }
 
+.breadcrumb {
+    padding-left: 10px;
+}
+
 .navbar .navbutton {
     margin-top: 0;
 }
@@ -163,7 +167,10 @@ h2.headingblock {
 
 .course-content .current {
     background: #da5013;
-    color: #fff;
+}
+
+.course-content .current .left.side {
+  color: #fff;
 }
 
 .course-content .main .content {
@@ -284,4 +291,63 @@ h2.headingblock {
 
 .ie6 #dock .bd.oversized_content {
     width: 100%;
+}
+
+/*custom menu styles */
+#custommenuwrap {
+    background-color: #F7F6F1;
+    border-bottom: 1px solid #DDDDDD;
+    padding: 3px 0px;
+}    
+
+#custommenu {
+    border-width: 0;
+    margin: 0 25px;
+}
+
+/*YUI Reset */
+#custommenu .yui3-menu-label,
+#custommenu .yui3-menuitem-content {
+    color: #35251B;
+    font-weight: 400;
+    border-width: 0;
+}
+
+#custommenu .custom_menu_submenu .yui3-menu-label,
+#custommenu .custom_menu_submenu .yui3-menuitem-content {
+    color: #35251B;
+}
+
+#custommenu .yui3-menu-label.yui3-menu-label-active,
+#custommenu .yui3-menuitem-active .yui3-menuitem-content {
+    color: #DA5013;
+}
+
+#custommenu .yui3-menu-content,
+#custommenu .yui3-menu .yui3-menu .yui3-menu-content,
+#custommenu .yui3-menu-horizontal .yui3-menu-label,
+#custommenu .yui3-menu-horizontal .yui3-menuitem-content  {
+    border-width: 0;
+}
+
+#custommenu .yui3-menu-label-active,
+#custommenu .yui3-menu-label-menuvisible,
+#custommenu .yui3-menu .yui3-menu .yui3-menuitem-active .yui3-menuitem-content {
+    background-color:#F6F6F6;
+}
+
+#custommenu .custom_menu_submenu {
+    border: 2px solid #DA5013 !important;
+    background: #fff;
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    border-radius: 2px;
+    -webkit-box-shadow: 0px 1px 3px #ccc;
+    -moz-box-shadow: 0px 1px 3px #ccc;
+    box-shadow: 0px 1px 3px #ccc;
+}
+
+#custommenu .yui3-menu.javascript-disabled .yui3-menu-content,
+#custommenu .yui3-menu.javascript-disabled .yui3-menu-content .ul {
+    border-width:0;
 }

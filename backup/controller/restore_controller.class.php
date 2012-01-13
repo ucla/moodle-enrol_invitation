@@ -32,7 +32,7 @@
  */
 class restore_controller extends backup implements loggable {
 
-    protected $tempdir;   // Directory under dataroot/temp/backup awaiting restore
+    protected $tempdir;   // Directory under tempdir/backup awaiting restore
     protected $restoreid; // Unique identificator for this restore
 
     protected $courseid; // courseid where restore is going to happen
@@ -61,7 +61,7 @@ class restore_controller extends backup implements loggable {
 
     /**
      *
-     * @param string $tempdir Directory under dataroot/temp/backup awaiting restore
+     * @param string $tempdir Directory under tempdir/backup awaiting restore
      * @param int $courseid Course id where restore is going to happen
      * @param bool $interactive backup::INTERACTIVE_YES[true] or backup::INTERACTIVE_NO[false]
      * @param int $mode backup::MODE_[ GENERAL | HUB | IMPORT | SAMESITE ]
@@ -296,6 +296,17 @@ class restore_controller extends backup implements loggable {
     }
 
     public function execute_plan() {
+        // Basic/initial prevention against time/memory limits
+        set_time_limit(1 * 60 * 60); // 1 hour for 1 course initially granted
+        raise_memory_limit(MEMORY_EXTRA);
+        // If this is not a course restore, inform the plan we are not
+        // including all the activities for sure. This will affect any
+        // task/step executed conditionally to stop processing information
+        // for section and activity restore. MDL-28180.
+        if ($this->get_type() !== backup::TYPE_1COURSE) {
+            $this->log('notifying plan about excluded activities by type', backup::LOG_DEBUG);
+            $this->plan->set_excluding_activities();
+        }
         return $this->plan->execute();
     }
 
@@ -377,38 +388,44 @@ class restore_controller extends backup implements loggable {
     }
 
     /**
-     * convert from current format to backup::MOODLE format
+     * Converts from current format to backup::MOODLE format
      */
     public function convert() {
+        global $CFG;
+        require_once($CFG->dirroot . '/backup/util/helper/convert_helper.class.php');
+
+        // Basic/initial prevention against time/memory limits
+        set_time_limit(1 * 60 * 60); // 1 hour for 1 course initially granted
+        raise_memory_limit(MEMORY_EXTRA);
+
         if ($this->status != backup::STATUS_REQUIRE_CONV) {
             throw new restore_controller_exception('cannot_convert_not_required_status');
         }
-        if ($this->format == backup::FORMAT_UNKNOWN) {
-            throw new restore_controller_exception('cannot_convert_from_unknown_format');
+
+        $this->log('backup format conversion required', backup::LOG_INFO);
+
+        // Run conversion to the proper format
+        if (!convert_helper::to_moodle2_format($this->get_tempdir(), $this->format, $this->get_logger())) {
+            // todo - unable to find the conversion path, what to do now?
+            // throwing the exception as a temporary solution
+            throw new restore_controller_exception('unable_to_find_conversion_path');
         }
-        if ($this->format == backup::FORMAT_MOODLE1) {
-            // TODO: Implement moodle1 => moodle2 conversion
-            throw new restore_controller_exception('cannot_convert_yet_from_moodle1_format');
-        }
 
-        // Once conversions have finished, we check again the format
-        $newformat = backup_general_helper::detect_backup_format($tempdir);
+        $this->log('backup format conversion successful', backup::LOG_INFO);
 
-        // If format is moodle2, load plan, apply security and set status based on interactivity
-        if ($newformat === backup::FORMAT_MOODLE) {
-            // Load plan
-            $this->load_plan();
+        // If no exceptions were thrown, then we are in the proper format
+        $this->format = backup::FORMAT_MOODLE;
 
-            // Perform all initial security checks and apply (2nd param) them to settings automatically
-            restore_check::check_security($this, true);
+        // Load plan, apply security and set status based on interactivity
+        $this->load_plan();
 
-            if ($this->interactive == backup::INTERACTIVE_YES) {
-                $this->set_status(backup::STATUS_SETTING_UI);
-            } else {
-                $this->set_status(backup::STATUS_NEED_PRECHECK);
-            }
+        // Perform all initial security checks and apply (2nd param) them to settings automatically
+        restore_check::check_security($this, true);
+
+        if ($this->interactive == backup::INTERACTIVE_YES) {
+            $this->set_status(backup::STATUS_SETTING_UI);
         } else {
-            throw new restore_controller_exception('conversion_ended_with_wrong_format', $newformat);
+            $this->set_status(backup::STATUS_NEED_PRECHECK);
         }
     }
 

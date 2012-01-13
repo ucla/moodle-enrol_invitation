@@ -196,22 +196,17 @@ $CFG->admin = 'admin';
 //
 // These variables define DEFAULT block variables for new courses
 // If this one is set it overrides all others and is the only one used.
-//      $CFG->defaultblocks_override = 'participants,activity_modules,search_forums,admin,course_list:news_items,calendar_upcoming,recent_activity';
+//      $CFG->defaultblocks_override = 'participants,activity_modules,search_forums,course_list:news_items,calendar_upcoming,recent_activity';
 //
 // These variables define the specific settings for defined course formats.
 // They override any settings defined in the formats own config file.
-//      $CFG->defaultblocks_site = 'site_main_menu,admin,course_list:course_summary,calendar_month';
-//      $CFG->defaultblocks_social = 'participants,search_forums,calendar_month,calendar_upcoming,social_activities,recent_activity,admin,course_list';
-//      $CFG->defaultblocks_topics = 'participants,activity_modules,search_forums,admin,course_list:news_items,calendar_upcoming,recent_activity';
-//      $CFG->defaultblocks_weeks = 'participants,activity_modules,search_forums,admin,course_list:news_items,calendar_upcoming,recent_activity';
+//      $CFG->defaultblocks_site = 'site_main_menu,course_list:course_summary,calendar_month';
+//      $CFG->defaultblocks_social = 'participants,search_forums,calendar_month,calendar_upcoming,social_activities,recent_activity,course_list';
+//      $CFG->defaultblocks_topics = 'participants,activity_modules,search_forums,course_list:news_items,calendar_upcoming,recent_activity';
+//      $CFG->defaultblocks_weeks = 'participants,activity_modules,search_forums,course_list:news_items,calendar_upcoming,recent_activity';
 //
 // These blocks are used when no other default setting is found.
-//      $CFG->defaultblocks = 'participants,activity_modules,search_forums,admin,course_list:news_items,calendar_upcoming,recent_activity';
-//
-// The blocks in this list will be protected from deletion, and this is primarily
-// used to protect the navigation and settings blocks which can be very hard to
-// get back if accidentally delete.
-//      $CFG->undeletableblocktypes = 'navigation,settings';
+//      $CFG->defaultblocks = 'participants,activity_modules,search_forums,course_list:news_items,calendar_upcoming,recent_activity';
 //
 // You can specify a different class to be created for the $PAGE global, and to
 // compute which blocks appear on each page. However, I cannot think of any good
@@ -297,6 +292,13 @@ $CFG->admin = 'admin';
 //   Print to footer (works with the default theme)
 //   define('MDL_PERFTOFOOT', true);
 //
+//   Enable earlier profiling that causes more code to be covered
+//   on every request (db connections, config load, other inits...).
+//   Requires extra configuration to be defined in config.php like:
+//   profilingincluded, profilingexcluded, profilingautofrec,
+//   profilingallowme, profilingallowall, profilinglifetime
+//       $CFG->earlyprofilingenabled = true;
+//
 // Force displayed usernames
 //   A little hack to anonymise user names for all students.  If you set these
 //   then all non-teachers will always see these for every person.
@@ -344,6 +346,31 @@ $CFG->admin = 'admin';
 // This local directory does not have to be accessible from internet.
 //
 //     $CFG->themedir = '/location/of/extra/themes';
+//
+// It is possible to specify different cache and temp directories, use local fast filesystem.
+// The directories must not be accessible via web.
+//
+//     $CFG->tempdir = '/var/www/moodle/temp';
+//     $CFG->cachedir = '/var/www/moodle/cache';
+//
+// If $CFG->langstringcache is enabled (which should always be in production
+// environment), Moodle keeps aggregated strings in its own internal format
+// optimised for performance. By default, this on-disk cache is created in
+// $CFG->cachedir/lang. In cluster environment, you may wish to specify
+// an alternative location of this cache so that each web server in the cluster
+// uses its own local cache and does not need to access the shared dataroot.
+// Make sure that the web server process has write permission to this location
+// and that it has permission to remove the folder, too (so that the cache can
+// be pruned).
+//
+//     $CFG->langcacheroot = '/var/www/moodle/htdocs/altcache/lang';
+//
+// If $CFG->langcache is enabled (which should always be in production
+// environment), Moodle stores the list of available languages in a cache file.
+// By default, the file $CFG->dataroot/languages is used. You may wish to
+// specify an alternative location of this cache file.
+//
+//     $CFG->langmenucachefile = '/var/www/moodle/htdocs/altcache/languages';
 //
 // Site default language can be set via standard administration interface. If you
 // want to have initial error messages for eventual database connection problems

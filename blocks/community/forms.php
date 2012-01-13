@@ -155,10 +155,12 @@ class community_hub_search_form extends moodleform {
                                     array('class' => 'hubscreenshot'));
                     $hubdescriptiontext = html_writer::tag('span', format_text($hub['description'], FORMAT_PLAIN),
                                     array('class' => 'hubdescription'));
-                    $additionaldesc = get_string('sites', 'block_community') . ': ' . $hub['sites'] . ' - ' .
-                            get_string('courses', 'block_community') . ': ' . $hub['courses'];
-                    $hubdescriptiontext .= html_writer::tag('span', $additionaldesc,
-                                    array('class' => 'hubadditionaldesc'));
+                    if (isset($hub['enrollablecourses'])) { //check needed to avoid warnings for Moodle version < 2011081700
+                        $additionaldesc = get_string('enrollablecourses', 'block_community') . ': ' . $hub['enrollablecourses'] . ' - ' .
+                                get_string('downloadablecourses', 'block_community') . ': ' . $hub['downloadablecourses'];
+                        $hubdescriptiontext .= html_writer::tag('span', $additionaldesc,
+                                        array('class' => 'hubadditionaldesc'));
+                    }
                     if ($hub['trusted']) {
                     $hubtrusted =  get_string('hubtrusted', 'block_community');
                     $hubdescriptiontext .= html_writer::tag('span',
@@ -257,7 +259,7 @@ class community_hub_search_form extends moodleform {
             $mform->setDefault('licence', $licence);
 
             $languages = get_string_manager()->get_list_of_languages();
-            textlib_get_instance()->asort($languages);
+            collatorlib::asort($languages);
             $languages = array_merge(array('all' => get_string('any')), $languages);
             $mform->addElement('select', 'language', get_string('language'), $languages);
             $mform->setDefault('language', $language);

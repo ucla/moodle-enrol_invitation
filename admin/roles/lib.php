@@ -628,7 +628,7 @@ class define_role_table_advanced extends capability_table_with_risks {
 
         // Legacy type.
         $archetype = optional_param('archetype', null, PARAM_RAW);
-        if ($archetype) {
+        if (isset($archetype)) {
             $archetypes = get_role_archetypes();
             if (isset($archetypes[$archetype])){
                 $this->role->archetype = $archetype;
@@ -716,7 +716,6 @@ class define_role_table_advanced extends capability_table_with_risks {
     }
 
     protected function get_archetype_field($id) {
-        global $OUTPUT;
         $options = array();
         $options[''] = get_string('none');
         foreach(get_role_archetypes() as $type) {
@@ -780,8 +779,8 @@ class define_role_table_advanced extends capability_table_with_risks {
         global $OUTPUT;
         // Extra fields at the top of the page.
         echo '<div class="topfields clearfix">';
-        $this->print_field('name', get_string('name'), $this->get_name_field('name'));
-        $this->print_field('shortname', get_string('shortname'), $this->get_shortname_field('shortname'));
+        $this->print_field('name', get_string('rolefullname', 'role'), $this->get_name_field('name'));
+        $this->print_field('shortname', get_string('roleshortname', 'role'), $this->get_shortname_field('shortname'));
         $this->print_field('edit-description', get_string('description'), $this->get_description_field('description'));
         $this->print_field('menuarchetype', get_string('archetype', 'role').'&nbsp;'.$OUTPUT->help_icon('archetype', 'role'), $this->get_archetype_field('archetype'));
         $this->print_field('', get_string('maybeassignedin', 'role'), $this->get_assignable_levels_control());
@@ -997,13 +996,14 @@ abstract class role_assign_user_selector_base extends user_selector_base {
      */
     public function __construct($name, $options) {
         global $CFG;
-        parent::__construct($name, $options);
-        $this->roleid = $options['roleid'];
         if (isset($options['context'])) {
             $this->context = $options['context'];
         } else {
             $this->context = get_context_instance_by_id($options['contextid']);
         }
+        $options['accesscontext'] = $this->context;
+        parent::__construct($name, $options);
+        $this->roleid = $options['roleid'];
         require_once($CFG->dirroot . '/group/lib.php');
     }
 
@@ -1143,7 +1143,7 @@ class existing_role_holders extends role_assign_user_selector_base {
         global $DB;
 
         list($wherecondition, $params) = $this->search_sql($search, 'u');
-        list($ctxcondition, $ctxparams) = $DB->get_in_or_equal(get_parent_contexts($this->context, true), SQL_PARAMS_NAMED, 'ctx00');
+        list($ctxcondition, $ctxparams) = $DB->get_in_or_equal(get_parent_contexts($this->context, true), SQL_PARAMS_NAMED, 'ctx');
         $params = array_merge($params, $ctxparams);
         $params['roleid'] = $this->roleid;
 
@@ -1317,6 +1317,7 @@ abstract class role_allow_role_page {
         foreach ($rs as $allow) {
             $this->allowed[$allow->roleid][$allow->{$this->targetcolname}] = true;
         }
+        $rs->close();
     }
 
     /**
@@ -1583,13 +1584,31 @@ class admins_existing_selector extends user_selector_base {
             return array();
         }
 
-        if ($search) {
-            $groupname = get_string('extusersmatching', 'role', $search);
-        } else {
-            $groupname = get_string('extusers', 'role');
+        $mainadmin = array();
+        $adminids = explode(',', $CFG->siteadmins);
+        foreach ($adminids as $id) {
+            if (isset($availableusers[$id])) {
+                $mainadmin = array($id=>$availableusers[$id]);
+                unset($availableusers[$id]);
+                break;
+            }
         }
 
-        return array($groupname => $availableusers);
+        $result = array();
+        if ($mainadmin) {
+            $result[get_string('mainadmin', 'role')] = $mainadmin;
+        }
+
+        if ($availableusers) {
+            if ($search) {
+                $groupname = get_string('extusersmatching', 'role', $search);
+            } else {
+                $groupname = get_string('extusers', 'role');
+            }
+            $result[$groupname] = $availableusers;
+        }
+
+        return $result;
     }
 
     protected function get_options() {

@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -22,14 +21,18 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+
 defined('MOODLE_INTERNAL') || die();
+
 
 /**
  * restore plugin class that provides the necessary information
  * needed to restore one random qtype plugin
+ *
+ * @copyright  2010 onwards Eloy Lafuente (stronk7) {@link http://stronk7.com}
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class restore_qtype_random_plugin extends restore_qtype_plugin {
-
     /**
      * Given one question_states record, return the answer
      * recoded pointing to all the restored stuff for random questions
@@ -41,22 +44,22 @@ class restore_qtype_random_plugin extends restore_qtype_plugin {
      * also, some old states can contain, simply, one question->id,
      * support them, just in case
      */
-    public function recode_state_answer($state) {
+    public function recode_legacy_state_answer($state) {
         global $DB;
 
         $answer = $state->answer;
         $result = '';
         // randomxx-yy answer format
-        if (preg_match('~^random([0-9]+)-~', $answer, $matches)) {
+        if (preg_match('~^random([0-9]+)-(.*)$~', $answer, $matches)) {
             $questionid = $matches[1];
-            $subanswer = substr($answer, strlen('random' . $questionid . '-'));
+            $subanswer  = $matches[2];
             $newquestionid = $this->get_mappingid('question', $questionid);
             $questionqtype = $DB->get_field('question', 'qtype', array('id' => $newquestionid));
             // Delegate subanswer recode to proper qtype, faking one question_states record
             $substate = new stdClass();
             $substate->question = $newquestionid;
             $substate->answer = $subanswer;
-            $newanswer = $this->step->restore_recode_answer($substate, $questionqtype);
+            $newanswer = $this->step->restore_recode_legacy_answer($substate, $questionqtype);
             $result = 'random' . $newquestionid . '-' . $newanswer;
 
         // simple question id format

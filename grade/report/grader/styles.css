@@ -127,7 +127,7 @@ border-style:solid;
 border-width:0 0 1px;
 }
 
-table#user-grades th.useridnumber {
+table#user-grades th.userfield {
 border-style:solid;
 border-width:0 0 1px 1px;
 }
@@ -269,16 +269,12 @@ table#user-grades td.topleft {
 background-color:#fff;
 }
 
-.path-grade-report-grader div.userpic {
-margin-right:10px;
-float:left;
-}
-
-.path-grade-report-grader div.userpic img {
+.path-grade-report-grader th.user img {
 border:3px double #cecece;
-vertical-align:middle;
+vertical-align:top;
 width:2.7em;
 height:2.7em;
+margin-right:10px;
 }
 
 .path-grade-report-grader a.quickedit {
@@ -471,6 +467,8 @@ width:2000px;
 float:right;
 }
 
+.path-grade-report-grader .action-icon {margin-left:0.3em;}
+
 .path-grade-report-grader .gradestable th.user,
 .path-grade-report-grader .gradestable th.range,
 .path-grade-report-grader .flexible th,
@@ -529,12 +527,20 @@ border-style:solid;
 border-width:0;
 }
 
-table#user-grades td.useridnumber,
+table#user-grades td.userfield,
 table#user-grades th,
 .path-grade-report-grader div.gradeparent,
 .path-grade-report-grader .ie6 form,
 table#user-grades td.ajax {
 text-align:left;
+}
+
+.dir-rtl table#user-grades td.userfield,
+.dir-rtl table#user-grades th,
+.path-grade-report-grader.dir-rtl  div.gradeparent,
+.path-grade-report-grader.dir-rtl  .ie6 form,
+.dir-rtl table#user-grades td.ajax {
+text-align:right;
 }
 
 .path-grade-report-grader .gradeparent {
@@ -555,14 +561,23 @@ background-color:#f3ead8;
 .path-grade-report-grader div.right_scroller td,
 .path-grade-report-grader div.left_scroller th,
 .path-grade-report-grader div.right_scroller th {
-height:4.5em;
-font-size:10px;
+    height:4.5em;
+    font-size:10px;
 }
 
 .path-grade-report-grader table th.user,
-.path-grade-report-grader table td.useridnumber {
-text-align:left;
-vertical-align:middle;
+.path-grade-report-grader table td.userfield {
+    text-align:left;
+    vertical-align:middle;
+}
+
+.path-grade-report-grader .usersuspended a:link,
+.path-grade-report-grader .usersuspended a:visited {
+    color: #666;
+}
+
+.path-grade-report-grader table th.usersuspended img.usersuspendedicon {
+    vertical-align:middle;
 }
 
 .path-grade-report-grader .yui-overlay {

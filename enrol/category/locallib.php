@@ -99,7 +99,9 @@ class enrol_category_handler {
 
         // now this is going to be a bit slow, take all enrolments in child courses and verify each separately
         $syscontext = get_context_instance(CONTEXT_SYSTEM);
-        $roles = get_roles_with_capability('enrol/category:synchronised', CAP_ALLOW, $syscontext);
+        if (!$roles = get_roles_with_capability('enrol/category:synchronised', CAP_ALLOW, $syscontext)) {
+            return true;
+        }
 
         $plugin = enrol_get_plugin('category');
 
@@ -111,7 +113,7 @@ class enrol_category_handler {
         $params = array('courselevel'=>CONTEXT_COURSE, 'match'=>$parentcontext->path.'/%', 'userid'=>$ra->userid);
         $rs = $DB->get_recordset_sql($sql, $params);
 
-        list($roleids, $params) = $DB->get_in_or_equal(array_keys($roles), SQL_PARAMS_NAMED, 'r000');
+        list($roleids, $params) = $DB->get_in_or_equal(array_keys($roles), SQL_PARAMS_NAMED, 'r');
         $params['userid'] = $ra->userid;
 
         foreach ($rs as $instance) {
@@ -119,7 +121,7 @@ class enrol_category_handler {
             $contextids = get_parent_contexts($coursecontext);
             array_pop($contextids); // remove system context, we are interested in categories only
 
-            list($contextids, $contextparams) = $DB->get_in_or_equal($contextids, SQL_PARAMS_NAMED, 'c000');
+            list($contextids, $contextparams) = $DB->get_in_or_equal($contextids, SQL_PARAMS_NAMED, 'c');
             $params = array_merge($params, $contextparams);
 
             $sql = "SELECT ra.id
@@ -168,8 +170,8 @@ function enrol_category_sync_course($course) {
     $contextids = get_parent_contexts($coursecontext);
     array_pop($contextids); // remove system context, we are interested in categories only
 
-    list($roleids, $params) = $DB->get_in_or_equal(array_keys($roles), SQL_PARAMS_NAMED, 'r000');
-    list($contextids, $contextparams) = $DB->get_in_or_equal($contextids, SQL_PARAMS_NAMED, 'c000');
+    list($roleids, $params) = $DB->get_in_or_equal(array_keys($roles), SQL_PARAMS_NAMED, 'r');
+    list($contextids, $contextparams) = $DB->get_in_or_equal($contextids, SQL_PARAMS_NAMED, 'c');
     $params = array_merge($params, $contextparams);
     $params['courseid'] = $course->id;
 
@@ -257,7 +259,7 @@ function enrol_category_sync_full() {
         return;
     }
 
-    list($roleids, $params) = $DB->get_in_or_equal(array_keys($roles), SQL_PARAMS_NAMED, 'r000');
+    list($roleids, $params) = $DB->get_in_or_equal(array_keys($roles), SQL_PARAMS_NAMED, 'r');
     $params['courselevel'] = CONTEXT_COURSE;
     $params['catlevel'] = CONTEXT_COURSECAT;
 

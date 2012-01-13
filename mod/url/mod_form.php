@@ -50,6 +50,7 @@ class mod_url_mod_form extends moodleform_mod {
         //-------------------------------------------------------
         $mform->addElement('header', 'content', get_string('contentheader', 'url'));
         $mform->addElement('url', 'externalurl', get_string('externalurl', 'url'), array('size'=>'60'), array('usefilepicker'=>true));
+        $mform->addRule('externalurl', null, 'required', null, 'client');
         //-------------------------------------------------------
         $mform->addElement('header', 'optionssection', get_string('optionsheader', 'url'));
 
@@ -108,7 +109,8 @@ class mod_url_mod_form extends moodleform_mod {
 
         //-------------------------------------------------------
         $mform->addElement('header', 'parameterssection', get_string('parametersheader', 'url'));
-
+        $mform->addElement('static', 'parametersinfo', '', get_string('parametersheader_help', 'url'));
+        $mform->setAdvanced('parametersinfo');
 
         if (empty($this->current->parameters)) {
             $parcount = 5;
@@ -162,6 +164,48 @@ class mod_url_mod_form extends moodleform_mod {
                 $i++;
             }
         }
+    }
+
+    function validation($data, $files) {
+        $errors = parent::validation($data, $files);
+
+        // Validating Entered url, we are looking for obvious problems only,
+        // teachers are responsible for testing if it actually works.
+
+        // This is not a security validation!! Teachers are allowed to enter "javascript:alert(666)" for example.
+
+        // NOTE: do not try to explain the difference between URL and URI, people would be only confused...
+
+        if (empty($data['externalurl'])) {
+            $errors['externalurl'] = get_string('required');
+
+        } else {
+            $url = trim($data['externalurl']);
+            if (empty($url)) {
+                $errors['externalurl'] = get_string('required');
+
+            } else if (preg_match('|^/|', $url)) {
+                // links relative to server root are ok - no validation necessary
+
+            } else if (preg_match('|^[a-z]+://|i', $url) or preg_match('|^https?:|i', $url) or preg_match('|^ftp:|i', $url)) {
+                // normal URL
+                if (!url_appears_valid_url($url)) {
+                    $errors['externalurl'] = get_string('invalidurl', 'url');
+                }
+
+            } else if (preg_match('|^[a-z]+:|i', $url)) {
+                // general URI such as teamspeak, mailto, etc. - it may or may not work in all browsers,
+                // we do not validate these at all, sorry
+
+            } else {
+                // invalid URI, we try to fix it by adding 'http://' prefix,
+                // relative links are NOT allowed because we display the link on different pages!
+                if (!url_appears_valid_url('http://'.$url)) {
+                    $errors['externalurl'] = get_string('invalidurl', 'url');
+                }
+            }
+        }
+        return $errors;
     }
 
 }

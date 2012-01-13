@@ -85,10 +85,16 @@ class graded_users_iterator {
             return false;
         }
 
-        list($gradebookroles_sql, $params) =
-            $DB->get_in_or_equal(explode(',', $CFG->gradebookroles), SQL_PARAMS_NAMED, 'grbr0');
+        $coursecontext = get_context_instance(CONTEXT_COURSE, $this->course->id);
+        $relatedcontexts = get_related_contexts_string($coursecontext);
 
-        $relatedcontexts = get_related_contexts_string(get_context_instance(CONTEXT_COURSE, $this->course->id));
+        list($gradebookroles_sql, $params) =
+            $DB->get_in_or_equal(explode(',', $CFG->gradebookroles), SQL_PARAMS_NAMED, 'grbr');
+
+        //limit to users with an active enrolment
+        list($enrolledsql, $enrolledparams) = get_enrolled_sql($coursecontext);
+
+        $params = array_merge($params, $enrolledparams);
 
         if ($this->groupid) {
             $groupsql = "INNER JOIN {groups_members} gm ON gm.userid = u.id";
@@ -123,31 +129,39 @@ class graded_users_iterator {
         // $params contents: gradebookroles and groupid (for $groupwheresql)
         $users_sql = "SELECT u.* $ofields
                         FROM {user} u
-                             INNER JOIN {role_assignments} ra ON u.id = ra.userid
+                        JOIN ($enrolledsql) je ON je.id = u.id
                              $groupsql
-                       WHERE u.deleted=0
-                             AND ra.roleid $gradebookroles_sql
-                             AND ra.contextid $relatedcontexts
+                        JOIN (
+                                  SELECT DISTINCT ra.userid
+                                    FROM {role_assignments} ra
+                                   WHERE ra.roleid $gradebookroles_sql
+                                     AND ra.contextid $relatedcontexts
+                             ) rainner ON rainner.userid = u.id
+                         WHERE u.deleted = 0
                              $groupwheresql
                     ORDER BY $order";
-
         $this->users_rs = $DB->get_recordset_sql($users_sql, $params);
 
         if (!empty($this->grade_items)) {
             $itemids = array_keys($this->grade_items);
-            list($itemidsql, $grades_params) = $DB->get_in_or_equal($itemids, SQL_PARAMS_NAMED, 'items0');
+            list($itemidsql, $grades_params) = $DB->get_in_or_equal($itemids, SQL_PARAMS_NAMED, 'items');
             $params = array_merge($params, $grades_params);
+            // $params contents: gradebookroles, enrolledparams, groupid (for $groupwheresql) and itemids
 
-            // $params contents: gradebookroles, groupid (for $groupwheresql) and itemids
             $grades_sql = "SELECT g.* $ofields
                              FROM {grade_grades} g
-                                  INNER JOIN {user} u ON g.userid = u.id
-                                  INNER JOIN {role_assignments} ra ON u.id = ra.userid
+                             JOIN {user} u ON g.userid = u.id
+                             JOIN ($enrolledsql) je ON je.id = u.id
                                   $groupsql
-                            WHERE ra.roleid $gradebookroles_sql
-                                  AND ra.contextid $relatedcontexts
-                                  $groupwheresql
-                                  AND g.itemid $itemidsql
+                             JOIN (
+                                      SELECT DISTINCT ra.userid
+                                        FROM {role_assignments} ra
+                                       WHERE ra.roleid $gradebookroles_sql
+                                         AND ra.contextid $relatedcontexts
+                                  ) rainner ON rainner.userid = u.id
+                              WHERE u.deleted = 0
+                              AND g.itemid $itemidsql
+                              $groupwheresql
                          ORDER BY $order, g.itemid ASC";
             $this->grades_rs = $DB->get_recordset_sql($grades_sql, $params);
         } else {
@@ -221,7 +235,6 @@ class graded_users_iterator {
         $result->user      = $user;
         $result->grades    = $grades;
         $result->feedbacks = $feedbacks;
-
         return $result;
     }
 
@@ -257,20 +270,20 @@ class graded_users_iterator {
     /**
      * _pop
      *
-     * @return void
+     * @return object current grade object
      */
     function _pop() {
         global $DB;
         if (empty($this->gradestack)) {
-            if (!$this->grades_rs) {
+            if (empty($this->grades_rs) || !$this->grades_rs->valid()) {
                 return null; // no grades present
             }
 
-            if ($this->grades_rs->next()) {
-                return null; // no more grades
-            }
+            $current = $this->grades_rs->current();
 
-            return $this->grades_rs->current();
+            $this->grades_rs->next();
+
+            return $current;
         } else {
             return array_pop($this->gradestack);
         }
@@ -613,6 +626,7 @@ class grade_plugin_info {
  * @param boolean $return Whether to return (true) or echo (false) the HTML generated by this function
  * @param string  $bodytags Additional attributes that will be added to the <body> tag
  * @param string  $buttons Additional buttons to display on the page
+ * @param boolean $shownavigation should the gradebook navigation drop down (or tabs) be shown?
  *
  * @return string HTML code or nothing if $return == false
  */
@@ -660,7 +674,13 @@ function print_grade_page_head($courseid, $active_type, $active_plugin=null,
         if ($CFG->grade_navmethod == GRADE_NAVMETHOD_COMBO || $CFG->grade_navmethod == GRADE_NAVMETHOD_DROPDOWN) {
             $returnval .= print_grade_plugin_selector($plugin_info, $active_type, $active_plugin, $return);
         }
-        $returnval .= $OUTPUT->heading($heading);
+
+        if ($return) {
+            $returnval .= $OUTPUT->heading($heading);
+        } else {
+            echo $OUTPUT->heading($heading);
+        }
+
         if ($CFG->grade_navmethod == GRADE_NAVMETHOD_COMBO || $CFG->grade_navmethod == GRADE_NAVMETHOD_TABS) {
             $returnval .= grade_print_tabs($active_type, $active_plugin, $plugin_info, $return);
         }
@@ -693,7 +713,7 @@ class grade_plugin_return {
     public function grade_plugin_return($params = null) {
         if (empty($params)) {
             $this->type     = optional_param('gpr_type', null, PARAM_SAFEDIR);
-            $this->plugin   = optional_param('gpr_plugin', null, PARAM_SAFEDIR);
+            $this->plugin   = optional_param('gpr_plugin', null, PARAM_PLUGIN);
             $this->courseid = optional_param('gpr_courseid', null, PARAM_INT);
             $this->userid   = optional_param('gpr_userid', null, PARAM_INT);
             $this->page     = optional_param('gpr_page', null, PARAM_INT);
@@ -825,7 +845,7 @@ class grade_plugin_return {
 
         if (!empty($this->plugin)) {
             $mform->addElement('hidden', 'gpr_plugin', $this->plugin);
-            $mform->setType('gpr_plugin', PARAM_SAFEDIR);
+            $mform->setType('gpr_plugin', PARAM_PLUGIN);
         }
 
         if (!empty($this->courseid)) {
@@ -990,6 +1010,14 @@ class grade_structure {
     public $courseid;
 
     /**
+    * Reference to modinfo for current course (for performance, to save
+    * retrieving it from courseid every time). Not actually set except for
+    * the grade_tree type.
+    * @var course_modinfo
+    */
+    public $modinfo;
+
+    /**
      * 1D array of grade items only
      */
     public $items;
@@ -1091,8 +1119,6 @@ class grade_structure {
      * @return string header
      */
     public function get_element_header(&$element, $withlink=false, $icon=true, $spacerifnone=false) {
-        global $CFG;
-
         $header = '';
 
         if ($icon) {
@@ -1106,29 +1132,146 @@ class grade_structure {
             return $header;
         }
 
-        $itemtype     = $element['object']->itemtype;
-        $itemmodule   = $element['object']->itemmodule;
-        $iteminstance = $element['object']->iteminstance;
-
-        if ($withlink and $itemtype=='mod' and $iteminstance and $itemmodule) {
-            if ($cm = get_coursemodule_from_instance($itemmodule, $iteminstance, $this->courseid)) {
-
+        if ($withlink) {
+            $url = $this->get_activity_link($element);
+            if ($url) {
                 $a = new stdClass();
                 $a->name = get_string('modulename', $element['object']->itemmodule);
                 $title = get_string('linktoactivity', 'grades', $a);
-                $dir = $CFG->dirroot.'/mod/'.$itemmodule;
 
-                if (file_exists($dir.'/grade.php')) {
-                    $url = $CFG->wwwroot.'/mod/'.$itemmodule.'/grade.php?id='.$cm->id;
-                } else {
-                    $url = $CFG->wwwroot.'/mod/'.$itemmodule.'/view.php?id='.$cm->id;
-                }
-
-                $header = '<a href="'.$url.'" title="'.s($title).'">'.$header.'</a>';
+                $header = html_writer::link($url, $header, array('title' => $title));
             }
         }
 
         return $header;
+    }
+
+    private function get_activity_link($element) {
+        global $CFG;
+        /** @var array static cache of the grade.php file existence flags */
+        static $hasgradephp = array();
+
+        $itemtype = $element['object']->itemtype;
+        $itemmodule = $element['object']->itemmodule;
+        $iteminstance = $element['object']->iteminstance;
+        $itemnumber = $element['object']->itemnumber;
+
+        // Links only for module items that have valid instance, module and are
+        // called from grade_tree with valid modinfo
+        if ($itemtype != 'mod' || !$iteminstance || !$itemmodule || !$this->modinfo) {
+            return null;
+        }
+
+        // Get $cm efficiently and with visibility information using modinfo
+        $instances = $this->modinfo->get_instances();
+        if (empty($instances[$itemmodule][$iteminstance])) {
+            return null;
+        }
+        $cm = $instances[$itemmodule][$iteminstance];
+
+        // Do not add link if activity is not visible to the current user
+        if (!$cm->uservisible) {
+            return null;
+        }
+
+        if (!array_key_exists($itemmodule, $hasgradephp)) {
+            if (file_exists($CFG->dirroot . '/mod/' . $itemmodule . '/grade.php')) {
+                $hasgradephp[$itemmodule] = true;
+            } else {
+                $hasgradephp[$itemmodule] = false;
+            }
+        }
+
+        // If module has grade.php, link to that, otherwise view.php
+        if ($hasgradephp[$itemmodule]) {
+            $args = array('id' => $cm->id, 'itemnumber' => $itemnumber);
+            if (isset($element['userid'])) {
+                $args['userid'] = $element['userid'];
+            }
+            return new moodle_url('/mod/' . $itemmodule . '/grade.php', $args);
+        } else {
+            return new moodle_url('/mod/' . $itemmodule . '/view.php', array('id' => $cm->id));
+        }
+    }
+
+    /**
+     * Returns URL of a page that is supposed to contain detailed grade analysis
+     *
+     * At the moment, only activity modules are supported. The method generates link
+     * to the module's file grade.php with the parameters id (cmid), itemid, itemnumber,
+     * gradeid and userid. If the grade.php does not exist, null is returned.
+     *
+     * @return moodle_url|null URL or null if unable to construct it
+     */
+    public function get_grade_analysis_url(grade_grade $grade) {
+        global $CFG;
+        /** @var array static cache of the grade.php file existence flags */
+        static $hasgradephp = array();
+
+        if (empty($grade->grade_item) or !($grade->grade_item instanceof grade_item)) {
+            throw new coding_exception('Passed grade without the associated grade item');
+        }
+        $item = $grade->grade_item;
+
+        if (!$item->is_external_item()) {
+            // at the moment, only activity modules are supported
+            return null;
+        }
+        if ($item->itemtype !== 'mod') {
+            throw new coding_exception('Unknown external itemtype: '.$item->itemtype);
+        }
+        if (empty($item->iteminstance) or empty($item->itemmodule) or empty($this->modinfo)) {
+            return null;
+        }
+
+        if (!array_key_exists($item->itemmodule, $hasgradephp)) {
+            if (file_exists($CFG->dirroot . '/mod/' . $item->itemmodule . '/grade.php')) {
+                $hasgradephp[$item->itemmodule] = true;
+            } else {
+                $hasgradephp[$item->itemmodule] = false;
+            }
+        }
+
+        if (!$hasgradephp[$item->itemmodule]) {
+            return null;
+        }
+
+        $instances = $this->modinfo->get_instances();
+        if (empty($instances[$item->itemmodule][$item->iteminstance])) {
+            return null;
+        }
+        $cm = $instances[$item->itemmodule][$item->iteminstance];
+        if (!$cm->uservisible) {
+            return null;
+        }
+
+        $url = new moodle_url('/mod/'.$item->itemmodule.'/grade.php', array(
+            'id'         => $cm->id,
+            'itemid'     => $item->id,
+            'itemnumber' => $item->itemnumber,
+            'gradeid'    => $grade->id,
+            'userid'     => $grade->userid,
+        ));
+
+        return $url;
+    }
+
+    /**
+     * Returns an action icon leading to the grade analysis page
+     *
+     * @param grade_grade $grade
+     * @return string
+     */
+    public function get_grade_analysis_icon(grade_grade $grade) {
+        global $OUTPUT;
+
+        $url = $this->get_grade_analysis_url($grade);
+        if (is_null($url)) {
+            return '';
+        }
+
+        return $OUTPUT->action_icon($url, new pix_icon('t/preview',
+            get_string('gradeanalysis', 'core_grades')));
     }
 
     /**
@@ -1587,11 +1730,18 @@ class grade_tree extends grade_structure {
      */
     public function grade_tree($courseid, $fillers=true, $category_grade_last=false,
                                $collapsed=null, $nooutcomes=false) {
-        global $USER, $CFG;
+        global $USER, $CFG, $COURSE, $DB;
 
         $this->courseid   = $courseid;
         $this->levels     = array();
         $this->context    = get_context_instance(CONTEXT_COURSE, $courseid);
+
+        if (!empty($COURSE->id) && $COURSE->id == $this->courseid) {
+            $course = $COURSE;
+        } else {
+            $course = $DB->get_record('course', array('id' => $this->courseid));
+        }
+        $this->modinfo = get_fast_modinfo($course);
 
         // get course grade tree
         $this->top_element = grade_category::fetch_course_tree($courseid, true);
@@ -2231,7 +2381,7 @@ abstract class grade_helper {
      */
     public static function get_plugins_reports($courseid) {
         global $SITE;
-        
+
         if (self::$gradereports !== null) {
             return self::$gradereports;
         }

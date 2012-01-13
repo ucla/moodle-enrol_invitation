@@ -41,7 +41,7 @@ if ($courseid != SITEID) {
 }
 
 // Permissions
-$sitecontext = get_context_instance(CONTEXT_SYSTEM, SITEID);
+$sitecontext = get_context_instance(CONTEXT_SYSTEM);
 require_login($course->id);
 $canedit = has_capability('moodle/tag:create', $sitecontext);
 
@@ -67,7 +67,7 @@ if ($data = data_submitted()) {
 // The title and breadcrumb
 $title = get_string('edittitle', $tagslang);
 $coursefullname = format_string($course->fullname);
-$courseshortname = format_string($course->shortname);
+$courseshortname = format_string($course->shortname, true, array('context' => get_context_instance(CONTEXT_COURSE, $course->id)));
 $PAGE->navbar->add($title);
 $PAGE->set_title($title);
 $PAGE->set_heading($course->fullname);

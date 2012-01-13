@@ -434,11 +434,41 @@ class file_storage {
 
         $file_records = $DB->get_records('files', $conditions);
         foreach ($file_records as $file_record) {
-            $stored_file = $this->get_file_instance($file_record);
-            $stored_file->delete();
+            $this->get_file_instance($file_record)->delete();
         }
 
         return true; // BC only
+    }
+
+    /**
+     * Delete all the files from certain areas where itemid is limited by an
+     * arbitrary bit of SQL.
+     *
+     * @param int $contextid the id of the context the files belong to. Must be given.
+     * @param string $component the owning component. Must be given.
+     * @param string $filearea the file area name. Must be given.
+     * @param string $itemidstest an SQL fragment that the itemid must match. Used
+     *      in the query like WHERE itemid $itemidstest. Must used named parameters,
+     *      and may not used named parameters called contextid, component or filearea.
+     * @param array $params any query params used by $itemidstest.
+     */
+    public function delete_area_files_select($contextid, $component,
+            $filearea, $itemidstest, array $params = null) {
+        global $DB;
+
+        $where = "contextid = :contextid
+                AND component = :component
+                AND filearea = :filearea
+                AND itemid $itemidstest";
+        $params['contextid'] = $contextid;
+        $params['component'] = $component;
+        $params['filearea'] = $filearea;
+
+        $file_records = $DB->get_recordset_select('files', $where, $params);
+        foreach ($file_records as $file_record) {
+            $this->get_file_instance($file_record)->delete();
+        }
+        $file_records->close();
     }
 
     /**
@@ -489,11 +519,13 @@ class file_storage {
             throw new file_exception('storedfileproblem', 'Invalid contextid');
         }
 
-        if ($component === '' or $component !== clean_param($component, PARAM_ALPHAEXT)) {
+        $component = clean_param($component, PARAM_COMPONENT);
+        if (empty($component)) {
             throw new file_exception('storedfileproblem', 'Invalid component');
         }
 
-        if ($filearea === '' or $filearea !== clean_param($filearea, PARAM_ALPHAEXT)) {
+        $filearea = clean_param($filearea, PARAM_AREA);
+        if (empty($filearea)) {
             throw new file_exception('storedfileproblem', 'Invalid filearea');
         }
 
@@ -590,13 +622,15 @@ class file_storage {
             }
 
             if ($key == 'component') {
-                if ($value === '' or $value !== clean_param($value, PARAM_ALPHAEXT)) {
+                $value = clean_param($value, PARAM_COMPONENT);
+                if (empty($value)) {
                     throw new file_exception('storedfileproblem', 'Invalid component');
                 }
             }
 
             if ($key == 'filearea') {
-                if ($value === '' or $value !== clean_param($value, PARAM_ALPHAEXT)) {
+                $value = clean_param($value, PARAM_AREA);
+                if (empty($value)) {
                     throw new file_exception('storedfileproblem', 'Invalid filearea');
                 }
             }
@@ -622,6 +656,16 @@ class file_storage {
                 }
             }
 
+            if ($key === 'timecreated' or $key === 'timemodified') {
+                if (!is_number($value)) {
+                    throw new file_exception('storedfileproblem', 'Invalid file '.$key);
+                }
+                if ($value < 0) {
+                    //NOTE: unfortunately I make a mistake when creating the "files" table, we can not have negative numbers there, on the other hand no file should be older than 1970, right? (skodak)
+                    $value = 0;
+                }
+            }
+
             $newrecord->$key = $value;
         }
 
@@ -639,12 +683,8 @@ class file_storage {
         try {
             $newrecord->id = $DB->insert_record('files', $newrecord);
         } catch (dml_exception $e) {
-            $newrecord->id = false;
-        }
-
-        if (!$newrecord->id) {
             throw new stored_file_creation_exception($newrecord->contextid, $newrecord->component, $newrecord->filearea, $newrecord->itemid,
-                                                     $newrecord->filepath, $newrecord->filename);
+                                                     $newrecord->filepath, $newrecord->filename, $e->debuginfo);
         }
 
         $this->create_directory($newrecord->contextid, $newrecord->component, $newrecord->filearea, $newrecord->itemid, $newrecord->filepath, $newrecord->userid);
@@ -672,6 +712,7 @@ class file_storage {
         $timeout        = isset($options['timeout'])        ? $options['timeout'] : 300;
         $connecttimeout = isset($options['connecttimeout']) ? $options['connecttimeout'] : 20;
         $skipcertverify = isset($options['skipcertverify']) ? $options['skipcertverify'] : false;
+        $calctimeout    = isset($options['calctimeout'])    ? $options['calctimeout'] : false;
 
         if (!isset($file_record->filename)) {
             $parts = explode('/', $url);
@@ -684,7 +725,7 @@ class file_storage {
         if ($usetempfile) {
             check_dir_exists($this->tempdir);
             $tmpfile = tempnam($this->tempdir, 'newfromurl');
-            $content = download_file_content($url, $headers, $postdata, $fullresponse, $timeout, $connecttimeout, $skipcertverify, $tmpfile);
+            $content = download_file_content($url, $headers, $postdata, $fullresponse, $timeout, $connecttimeout, $skipcertverify, $tmpfile, $calctimeout);
             if ($content === false) {
                 throw new file_exception('storedfileproblem', 'Can not fetch file form URL');
             }
@@ -698,7 +739,7 @@ class file_storage {
             }
 
         } else {
-            $content = download_file_content($url, $headers, $postdata, $fullresponse, $timeout, $connecttimeout, $skipcertverify);
+            $content = download_file_content($url, $headers, $postdata, $fullresponse, $timeout, $connecttimeout, $skipcertverify, NULL, $calctimeout);
             if ($content === false) {
                 throw new file_exception('storedfileproblem', 'Can not fetch file form URL');
             }
@@ -724,11 +765,13 @@ class file_storage {
             throw new file_exception('storedfileproblem', 'Invalid contextid');
         }
 
-        if ($file_record->component === '' or $file_record->component !== clean_param($file_record->component, PARAM_ALPHAEXT)) {
+        $file_record->component = clean_param($file_record->component, PARAM_COMPONENT);
+        if (empty($file_record->component)) {
             throw new file_exception('storedfileproblem', 'Invalid component');
         }
 
-        if ($file_record->filearea === '' or $file_record->filearea !== clean_param($file_record->filearea, PARAM_ALPHAEXT)) {
+        $file_record->filearea = clean_param($file_record->filearea, PARAM_AREA);
+        if (empty($file_record->filearea)) {
             throw new file_exception('storedfileproblem', 'Invalid filearea');
         }
 
@@ -757,6 +800,29 @@ class file_storage {
         }
 
         $now = time();
+        if (isset($file_record->timecreated)) {
+            if (!is_number($file_record->timecreated)) {
+                throw new file_exception('storedfileproblem', 'Invalid file timecreated');
+            }
+            if ($file_record->timecreated < 0) {
+                //NOTE: unfortunately I make a mistake when creating the "files" table, we can not have negative numbers there, on the other hand no file should be older than 1970, right? (skodak)
+                $file_record->timecreated = 0;
+            }
+        } else {
+            $file_record->timecreated = $now;
+        }
+
+        if (isset($file_record->timemodified)) {
+            if (!is_number($file_record->timemodified)) {
+                throw new file_exception('storedfileproblem', 'Invalid file timemodified');
+            }
+            if ($file_record->timemodified < 0) {
+                //NOTE: unfortunately I make a mistake when creating the "files" table, we can not have negative numbers there, on the other hand no file should be older than 1970, right? (skodak)
+                $file_record->timemodified = 0;
+            }
+        } else {
+            $file_record->timemodified = $now;
+        }
 
         $newrecord = new stdClass();
 
@@ -767,8 +833,8 @@ class file_storage {
         $newrecord->filepath  = $file_record->filepath;
         $newrecord->filename  = $file_record->filename;
 
-        $newrecord->timecreated  = empty($file_record->timecreated) ? $now : $file_record->timecreated;
-        $newrecord->timemodified = empty($file_record->timemodified) ? $now : $file_record->timemodified;
+        $newrecord->timecreated  = $file_record->timecreated;
+        $newrecord->timemodified = $file_record->timemodified;
         $newrecord->mimetype     = empty($file_record->mimetype) ? mimeinfo('type', $file_record->filename) : $file_record->mimetype;
         $newrecord->userid       = empty($file_record->userid) ? null : $file_record->userid;
         $newrecord->source       = empty($file_record->source) ? null : $file_record->source;
@@ -783,15 +849,11 @@ class file_storage {
         try {
             $newrecord->id = $DB->insert_record('files', $newrecord);
         } catch (dml_exception $e) {
-            $newrecord->id = false;
-        }
-
-        if (!$newrecord->id) {
             if ($newfile) {
                 $this->deleted_file_cleanup($newrecord->contenthash);
             }
             throw new stored_file_creation_exception($newrecord->contextid, $newrecord->component, $newrecord->filearea, $newrecord->itemid,
-                                                    $newrecord->filepath, $newrecord->filename);
+                                                    $newrecord->filepath, $newrecord->filename, $e->debuginfo);
         }
 
         $this->create_directory($newrecord->contextid, $newrecord->component, $newrecord->filearea, $newrecord->itemid, $newrecord->filepath, $newrecord->userid);
@@ -817,11 +879,13 @@ class file_storage {
             throw new file_exception('storedfileproblem', 'Invalid contextid');
         }
 
-        if ($file_record->component === '' or $file_record->component !== clean_param($file_record->component, PARAM_ALPHAEXT)) {
+        $file_record->component = clean_param($file_record->component, PARAM_COMPONENT);
+        if (empty($file_record->component)) {
             throw new file_exception('storedfileproblem', 'Invalid component');
         }
 
-        if ($file_record->filearea === '' or $file_record->filearea !== clean_param($file_record->filearea, PARAM_ALPHAEXT)) {
+        $file_record->filearea = clean_param($file_record->filearea, PARAM_AREA);
+        if (empty($file_record->filearea)) {
             throw new file_exception('storedfileproblem', 'Invalid filearea');
         }
 
@@ -850,6 +914,29 @@ class file_storage {
         }
 
         $now = time();
+        if (isset($file_record->timecreated)) {
+            if (!is_number($file_record->timecreated)) {
+                throw new file_exception('storedfileproblem', 'Invalid file timecreated');
+            }
+            if ($file_record->timecreated < 0) {
+                //NOTE: unfortunately I make a mistake when creating the "files" table, we can not have negative numbers there, on the other hand no file should be older than 1970, right? (skodak)
+                $file_record->timecreated = 0;
+            }
+        } else {
+            $file_record->timecreated = $now;
+        }
+
+        if (isset($file_record->timemodified)) {
+            if (!is_number($file_record->timemodified)) {
+                throw new file_exception('storedfileproblem', 'Invalid file timemodified');
+            }
+            if ($file_record->timemodified < 0) {
+                //NOTE: unfortunately I make a mistake when creating the "files" table, we can not have negative numbers there, on the other hand no file should be older than 1970, right? (skodak)
+                $file_record->timemodified = 0;
+            }
+        } else {
+            $file_record->timemodified = $now;
+        }
 
         $newrecord = new stdClass();
 
@@ -860,8 +947,8 @@ class file_storage {
         $newrecord->filepath  = $file_record->filepath;
         $newrecord->filename  = $file_record->filename;
 
-        $newrecord->timecreated  = empty($file_record->timecreated) ? $now : $file_record->timecreated;
-        $newrecord->timemodified = empty($file_record->timemodified) ? $now : $file_record->timemodified;
+        $newrecord->timecreated  = $file_record->timecreated;
+        $newrecord->timemodified = $file_record->timemodified;
         $newrecord->mimetype     = empty($file_record->mimetype) ? mimeinfo('type', $file_record->filename) : $file_record->mimetype;
         $newrecord->userid       = empty($file_record->userid) ? null : $file_record->userid;
         $newrecord->source       = empty($file_record->source) ? null : $file_record->source;
@@ -876,15 +963,11 @@ class file_storage {
         try {
             $newrecord->id = $DB->insert_record('files', $newrecord);
         } catch (dml_exception $e) {
-            $newrecord->id = false;
-        }
-
-        if (!$newrecord->id) {
             if ($newfile) {
                 $this->deleted_file_cleanup($newrecord->contenthash);
             }
             throw new stored_file_creation_exception($newrecord->contextid, $newrecord->component, $newrecord->filearea, $newrecord->itemid,
-                                                    $newrecord->filepath, $newrecord->filename);
+                                                    $newrecord->filepath, $newrecord->filename, $e->debuginfo);
         }
 
         $this->create_directory($newrecord->contextid, $newrecord->component, $newrecord->filearea, $newrecord->itemid, $newrecord->filepath, $newrecord->userid);
@@ -904,6 +987,12 @@ class file_storage {
      * @return stored_file instance
      */
     public function convert_image($file_record, $fid, $newwidth = NULL, $newheight = NULL, $keepaspectratio = true, $quality = NULL) {
+        if (!function_exists('imagecreatefromstring')) {
+            //Most likely the GD php extension isn't installed
+            //image conversion cannot succeed
+            throw new file_exception('storedfileproblem', 'imagecreatefromstring() doesnt exist. The PHP extension "GD" must be installed for image conversion.');
+        }
+
         if ($fid instanceof stored_file) {
             $fid = $fid->get_id();
         }
@@ -919,7 +1008,7 @@ class file_storage {
         }
 
         if (!isset($file_record['filename'])) {
-            $file_record['filename'] == $file->get_filename();
+            $file_record['filename'] = $file->get_filename();
         }
 
         if (!isset($file_record['mimetype'])) {
@@ -1014,7 +1103,7 @@ class file_storage {
      */
     public function add_file_to_pool($pathname, $contenthash = NULL) {
         if (!is_readable($pathname)) {
-            throw new file_exception('storedfilecannotread');
+            throw new file_exception('storedfilecannotread', '', $pathname);
         }
 
         if (is_null($contenthash)) {
@@ -1041,7 +1130,7 @@ class file_storage {
             $newfile = true;
 
             if (!copy($pathname, $hashfile)) {
-                throw new file_exception('storedfilecannotread');
+                throw new file_exception('storedfilecannotread', '', $pathname);
             }
 
             if (filesize($hashfile) !== $filesize) {

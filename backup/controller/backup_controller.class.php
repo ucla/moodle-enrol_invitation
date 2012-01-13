@@ -290,6 +290,17 @@ class backup_controller extends backup implements loggable {
      * @return void Throws and exception of completes
      */
     public function execute_plan() {
+        // Basic/initial prevention against time/memory limits
+        set_time_limit(1 * 60 * 60); // 1 hour for 1 course initially granted
+        raise_memory_limit(MEMORY_EXTRA);
+        // If this is not a course backup, inform the plan we are not
+        // including all the activities for sure. This will affect any
+        // task/step executed conditionally to stop including information
+        // for section and activity backup. MDL-28180.
+        if ($this->get_type() !== backup::TYPE_1COURSE) {
+            $this->log('notifying plan about excluded activities by type', backup::LOG_DEBUG);
+            $this->plan->set_excluding_activities();
+        }
         return $this->plan->execute();
     }
 
@@ -336,7 +347,7 @@ class backup_controller extends backup implements loggable {
 
     protected function apply_defaults() {
         $this->log('applying plan defaults', backup::LOG_DEBUG);
-        backup_controller_dbops::apply_general_config_defaults($this);
+        backup_controller_dbops::apply_config_defaults($this);
         $this->set_status(backup::STATUS_CONFIGURED);
     }
 }

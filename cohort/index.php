@@ -25,9 +25,12 @@
  */
 
 require('../config.php');
+require($CFG->dirroot.'/cohort/lib.php');
 require_once($CFG->libdir.'/adminlib.php');
 
 $contextid = optional_param('contextid', 0, PARAM_INT);
+$page = optional_param('page', 0, PARAM_INT);
+$searchquery  = optional_param('search', '', PARAM_RAW);
 
 require_login();
 
@@ -47,6 +50,7 @@ if ($context->contextlevel == CONTEXT_COURSECAT) {
 }
 
 $manager = has_capability('moodle/cohort:manage', $context);
+$canassign = has_capability('moodle/cohort:assign', $context);
 if (!$manager) {
     require_capability('moodle/cohort:view', $context);
 }
@@ -59,8 +63,6 @@ if ($category) {
     $PAGE->set_url('/cohort/index.php', array('contextid'=>$context->id));
     $PAGE->set_title($strcohorts);
     $PAGE->set_heading($COURSE->fullname);
-    $PAGE->navbar->add($category->name, new moodle_url('/course/index.php', array('categoryedit'=>'1')));
-    $PAGE->navbar->add($strcohorts);
 } else {
     admin_externalpage_setup('cohorts', '', null, '', array('pagelayout'=>'report'));
 }
@@ -69,10 +71,31 @@ echo $OUTPUT->header();
 
 echo $OUTPUT->heading(get_string('cohortsin', 'cohort', print_context_name($context)));
 
-$cohorts = $DB->get_records('cohort', array('contextid'=>$context->id));
+// add search form
+$search  = html_writer::start_tag('form', array('id'=>'searchcohortquery', 'method'=>'get'));
+$search .= html_writer::start_tag('div');
+$search .= html_writer::label(get_string('searchcohort', 'cohort').':', 'cohort_search_q');
+$search .= html_writer::empty_tag('input', array('id'=>'cohort_search_q', 'type'=>'text', 'name'=>'search', 'value'=>$searchquery));
+$search .= html_writer::empty_tag('input', array('type'=>'submit', 'value'=>get_string('search', 'cohort')));
+$search .= html_writer::end_tag('div');
+$search .= html_writer::end_tag('form');
+echo $search;
+
+$cohorts = cohort_get_cohorts($context->id, $page, 25, $searchquery);
+
+// output pagination bar
+$params = array('page' => $page);
+if ($contextid) {
+    $params['contextid'] = $contextid;
+}
+if ($search) {
+    $params['search'] = $searchquery;
+}
+$baseurl = new moodle_url('/cohort/index.php', $params);
+echo $OUTPUT->paging_bar($cohorts['totalcohorts'], $page, 25, $baseurl);
 
 $data = array();
-foreach($cohorts as $cohort) {
+foreach($cohorts['cohorts'] as $cohort) {
     $line = array();
     $line[] = format_string($cohort->name);
     $line[] = $cohort->idnumber;
@@ -86,18 +109,17 @@ foreach($cohorts as $cohort) {
         $line[] = get_string('pluginname', $cohort->component);
     }
 
-    if ($manager) {
-        if (empty($cohort->component)) {
-            $buttons = html_writer::link(new moodle_url('/cohort/edit.php', array('id'=>$cohort->id)), get_string('edit'));
-            $buttons .= ' '.html_writer::link(new moodle_url('/cohort/edit.php', array('id'=>$cohort->id, 'delete'=>1)), get_string('delete'));
-            $buttons .= ' '.html_writer::link(new moodle_url('/cohort/assign.php', array('id'=>$cohort->id)), get_string('assign', 'cohort'));
-        } else {
-            $buttons = '';
+    $buttons = array();
+    if (empty($cohort->component)) {
+        if ($manager) {
+            $buttons[] = html_writer::link(new moodle_url('/cohort/edit.php', array('id'=>$cohort->id, 'delete'=>1)), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('t/delete'), 'alt'=>get_string('delete'), 'class'=>'iconsmall')));
+            $buttons[] =  html_writer::link(new moodle_url('/cohort/edit.php', array('id'=>$cohort->id)), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('t/edit'), 'alt'=>get_string('edit'), 'class'=>'iconsmall')));
         }
-    } else {
-        $buttons = '';
+        if ($manager or $canassign) {
+            $buttons[] = html_writer::link(new moodle_url('/cohort/assign.php', array('id'=>$cohort->id)), html_writer::empty_tag('img', array('src'=>$OUTPUT->pix_url('i/users'), 'alt'=>get_string('assign', 'core_cohort'), 'class'=>'iconsmall')));
+        }
     }
-    $line[] = $buttons;
+    $line[] = implode(' ', $buttons);
 
     $data[] = $line;
 }
@@ -109,6 +131,7 @@ $table->align = array('left', 'left', 'left', 'left','center', 'center');
 $table->width = '80%';
 $table->data  = $data;
 echo html_writer::table($table);
+echo $OUTPUT->paging_bar($cohorts['totalcohorts'], $page, 25, $baseurl);
 
 if ($manager) {
     echo $OUTPUT->single_button(new moodle_url('/cohort/edit.php', array('contextid'=>$context->id)), get_string('add'));

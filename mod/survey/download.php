@@ -146,18 +146,20 @@ foreach ($surveyanswers as $surveyanswer) {
 }
 
 // Output the file as a valid ODS spreadsheet if required
+$coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+$courseshortname = format_string($course->shortname, true, array('context' => $coursecontext));
 
 if ($type == "ods") {
     require_once("$CFG->libdir/odslib.class.php");
 
 /// Calculate file name
-    $downloadfilename = clean_filename("$course->shortname ".strip_tags(format_string($survey->name,true))).'.ods';
+    $downloadfilename = clean_filename(strip_tags($courseshortname.' '.format_string($survey->name, true))).'.ods';
 /// Creating a workbook
     $workbook = new MoodleODSWorkbook("-");
 /// Sending HTTP headers
     $workbook->send($downloadfilename);
 /// Creating the first worksheet
-    $myxls =& $workbook->add_worksheet(substr(strip_tags(format_string($survey->name,true)), 0, 31));
+    $myxls =& $workbook->add_worksheet(textlib::substr(strip_tags(format_string($survey->name,true)), 0, 31));
 
     $header = array("surveyid","surveyname","userid","firstname","lastname","email","idnumber","time", "notes");
     $col=0;
@@ -226,13 +228,13 @@ if ($type == "xls") {
     require_once("$CFG->libdir/excellib.class.php");
 
 /// Calculate file name
-    $downloadfilename = clean_filename("$course->shortname ".strip_tags(format_string($survey->name,true))).'.xls';
+    $downloadfilename = clean_filename(strip_tags($courseshortname.' '.format_string($survey->name,true))).'.xls';
 /// Creating a workbook
     $workbook = new MoodleExcelWorkbook("-");
 /// Sending HTTP headers
     $workbook->send($downloadfilename);
 /// Creating the first worksheet
-    $myxls =& $workbook->add_worksheet(substr(strip_tags(format_string($survey->name,true)), 0, 31));
+    $myxls =& $workbook->add_worksheet(textlib::substr(strip_tags(format_string($survey->name,true)), 0, 31));
 
     $header = array("surveyid","surveyname","userid","firstname","lastname","email","idnumber","time", "notes");
     $col=0;
@@ -304,7 +306,7 @@ if ($type == "xls") {
 
 header("Content-Type: application/download\n");
 
-$downloadfilename = clean_filename("$course->shortname ".strip_tags(format_string($survey->name,true)));
+$downloadfilename = clean_filename(strip_tags($courseshortname.' '.format_string($survey->name,true)));
 header("Content-Disposition: attachment; filename=\"$downloadfilename.txt\"");
 
 // Print names of all the fields

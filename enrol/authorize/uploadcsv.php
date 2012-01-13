@@ -54,8 +54,8 @@ echo $OUTPUT->heading($struploadcsv);
 if (!$form->get_data()) {
     $form->display();
 } else {
-    $filename = $CFG->dataroot . '/temp/enrolauthorize/importedfile_'.time().'.csv';
-    make_upload_directory('temp/enrolauthorize');
+    $filename = $CFG->tempdir . '/enrolauthorize/importedfile_'.time().'.csv';
+    make_temp_directory('enrolauthorize');
     // Fix mac/dos newlines
     $text = $form->get_file_content('csvfile');
     $text = preg_replace('!\r\n?!', "\n", $text);
@@ -248,7 +248,7 @@ function authorize_process_csv($filename) {
         $eventdata->name              = 'authorize_enrolment';
         $eventdata->userfrom          = $admin;
         $eventdata->userto            = $admin;
-        $eventdata->subject           = "$SITE->fullname: Authorize.net CSV ERROR LOG";
+        $eventdata->subject           = format_string($SITE->fullname, true, array('context' => get_context_instance(CONTEXT_COURSE, SITEID))).': Authorize.net CSV ERROR LOG';
         $eventdata->fullmessage       = $ignoredlines;
         $eventdata->fullmessageformat = FORMAT_PLAIN;
         $eventdata->fullmessagehtml   = '';

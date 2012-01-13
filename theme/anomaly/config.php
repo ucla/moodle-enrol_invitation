@@ -7,7 +7,7 @@
 
 $THEME->name = 'anomaly';
 
-$THEME->sheets = array('base', 'general', 'browser');
+$THEME->sheets = array('base', 'general', 'browser','dock');
 /// This variable is an array containing the names of all the
 /// stylesheet files you want included in this theme, and in what order
 ////////////////////////////////////////////////////////////////////////////////
@@ -23,20 +23,6 @@ $THEME->parents = array('base');  // TODO: new themes can not be based on standa
 
 $THEME->parents_exclude_sheets = array('base'=>array('styles_moz'));
 
-$THEME->resource_mp3player_colors =
- 'bgColour=000000&btnColour=ffffff&btnBorderColour=cccccc&iconColour=000000&'.
- 'iconOverColour=00cc00&trackColour=cccccc&handleColour=ffffff&loaderColour=ffffff&'.
- 'font=Arial&fontColour=3333FF&buffer=10&waitForPlay=no&autoPlay=yes';
-/// With this you can control the colours of the "big" MP3 player
-/// that is used for MP3 resources.
-
-
-$THEME->filter_mediaplugin_colors =
- 'bgColour=000000&btnColour=ffffff&btnBorderColour=cccccc&iconColour=000000&'.
- 'iconOverColour=00cc00&trackColour=cccccc&handleColour=ffffff&loaderColour=ffffff&'.
- 'waitForPlay=yes';
-/// ...And this controls the small embedded player
-
 $THEME->layouts = array(
     // Most pages - if we encounter an unknown or a missing page type, this one is used.
     'base' => array(
@@ -46,44 +32,52 @@ $THEME->layouts = array(
     'standard' => array(
         'file' => 'general.php',
         'regions' => array('side-pre', 'side-post'),
-        'defaultregion' => 'side-post'
+        'defaultregion' => 'side-post',
+        'options' => array('langmenu' => true)
     ),
     // Course page
     'course' => array(
         'file' => 'general.php',
         'regions' => array('side-pre', 'side-post'),
-        'defaultregion' => 'side-post'
+        'defaultregion' => 'side-post',
+        'options' => array('langmenu' => true)
     ),
     // Course page
     'coursecategory' => array(
         'file' => 'general.php',
         'regions' => array('side-pre', 'side-post'),
-        'defaultregion' => 'side-post'
+        'defaultregion' => 'side-post',
+        'options' => array('langmenu' => true)
     ),
     'incourse' => array(
         'file' => 'general.php',
         'regions' => array('side-pre', 'side-post'),
-        'defaultregion' => 'side-post'
+        'defaultregion' => 'side-post',
+        'options' => array('langmenu' => true)
     ),
     'frontpage' => array(
         'file' => 'general.php',
         'regions' => array('side-pre', 'side-post'),
-        'defaultregion' => 'side-post'
+        'defaultregion' => 'side-post',
+        'options' => array('langmenu' => true)
     ),
     'admin' => array(
         'file' => 'general.php',
         'regions' => array('side-pre'),
-        'defaultregion' => 'side-pre'
+        'defaultregion' => 'side-pre',
+        'options' => array('langmenu' => true)
     ),
     'mydashboard' => array(
         'file' => 'general.php',
         'regions' => array('side-pre', 'side-post'),
-        'defaultregion' => 'side-post'
+        'defaultregion' => 'side-post',
+        'options' => array('langmenu' => true)
     ),
     'mypublic' => array(
         'file' => 'general.php',
         'regions' => array('side-pre', 'side-post'),
-        'defaultregion' => 'side-post'
+        'defaultregion' => 'side-post',
+        'options' => array('langmenu' => true)
     ),
     'login' => array(
         'file' => 'general.php',
@@ -124,12 +118,13 @@ $THEME->layouts = array(
     'report' => array(
         'file' => 'report.php',
         'regions' => array('side-pre'),
-        'defaultregion' => 'side-pre'
+        'defaultregion' => 'side-pre',
+        'options' => array('langmenu' => true)
     ),
 );
 
 $THEME->rendererfactory = 'theme_overridden_renderer_factory';
+
 $THEME->enable_dock = true;
-//$THEME->javascripts_footer = array('navigation');
 
 $THEME->editor_sheets = array('editor');

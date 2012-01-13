@@ -175,7 +175,21 @@ if ($frm and isset($frm->username)) {                             // Login WITH 
     /// Let's get them all set up.
         add_to_log(SITEID, 'user', 'login', "view.php?id=$USER->id&course=".SITEID,
                    $user->id, 0, $user->id);
-        complete_user_login($user, true); // sets the username cookie
+        complete_user_login($user);
+
+        // sets the username cookie
+        if (!empty($CFG->nolastloggedin)) {
+            // do not store last logged in user in cookie
+            // auth plugins can temporarily override this from loginpage_hook()
+            // do not save $CFG->nolastloggedin in database!
+
+        } else if (empty($CFG->rememberusername) or ($CFG->rememberusername == 2 and empty($frm->rememberusername))) {
+            // no permanent cookies, delete old one if exists
+            set_moodle_cookie('');
+
+        } else {
+            set_moodle_cookie($USER->username);
+        }
 
     /// Prepare redirection
         if (user_not_fully_set_up($USER)) {
@@ -287,9 +301,9 @@ $PAGE->verify_https_required();
 
 if (empty($frm->username) && $authsequence[0] != 'shibboleth') {  // See bug 5184
     if (!empty($_GET["username"])) {
-        $frm->username = $_GET["username"];
+        $frm->username = clean_param($_GET["username"], PARAM_RAW); // we do not want data from _POST here
     } else {
-        $frm->username = get_moodle_cookie() === 'nobody' ? '' : get_moodle_cookie();
+        $frm->username = get_moodle_cookie();
     }
 
     $frm->password = "";
@@ -327,6 +341,10 @@ if (isloggedin() and !isguestuser()) {
     echo $OUTPUT->box_end();
 } else {
     include("index_form.html");
+    if (!empty($CFG->loginpageautofocus)) {
+        //focus username or password
+        $PAGE->requires->js_init_call('M.util.focus_login_form', null, true);
+    }
 }
 
 echo $OUTPUT->footer();

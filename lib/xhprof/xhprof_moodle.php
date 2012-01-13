@@ -69,7 +69,7 @@ function profiling_start() {
     }
 
     // If profiling isn't enabled, nothing to start
-    if (!$CFG->profilingenabled) {
+    if (empty($CFG->profilingenabled) && empty($CFG->earlyprofilingenabled)) {
         return false;
     }
 
@@ -78,19 +78,22 @@ function profiling_start() {
         return false;
     }
 
+    // Set script (from global if available, else our own)
+    $script = !empty($SCRIPT) ? $SCRIPT : profiling_get_script();
+
     // Get PGC variables
     $check = 'PROFILEME';
     $profileme = isset($_POST[$check]) || isset($_GET[$check]) || isset($_COOKIE[$check]) ? true : false;
-    $profileme = $profileme && $CFG->profilingallowme;
+    $profileme = $profileme && !empty($CFG->profilingallowme);
     $check = 'DONTPROFILEME';
     $dontprofileme = isset($_POST[$check]) || isset($_GET[$check]) || isset($_COOKIE[$check]) ? true : false;
-    $dontprofileme = $dontprofileme && $CFG->profilingallowme;
+    $dontprofileme = $dontprofileme && !empty($CFG->profilingallowme);
     $check = 'PROFILEALL';
     $profileall = isset($_POST[$check]) || isset($_GET[$check]) || isset($_COOKIE[$check]) ? true : false;
-    $profileall = $profileall && $CFG->profilingallowall;
+    $profileall = $profileall && !empty($CFG->profilingallowall);
     $check = 'PROFILEALLSTOP';
     $profileallstop = isset($_POST[$check]) || isset($_GET[$check]) || isset($_COOKIE[$check]) ? true : false;
-    $profileallstop = $profileallstop && $CFG->profilingallowall;
+    $profileallstop = $profileallstop && !empty($CFG->profilingallowall);
 
     // DONTPROFILEME detected, nothing to start
     if ($dontprofileme) {
@@ -98,12 +101,12 @@ function profiling_start() {
     }
 
     // PROFILEALLSTOP detected, clean the mark in seesion and continue
-    if ($profileallstop) {
+    if ($profileallstop && !empty($SESSION)) {
         unset($SESSION->profileall);
     }
 
     // PROFILEALL detected, set the mark in session and continue
-    if ($profileall) {
+    if ($profileall && !empty($SESSION)) {
         $SESSION->profileall = true;
 
     // SESSION->profileall detected, set $profileall
@@ -113,21 +116,23 @@ function profiling_start() {
 
     // Evaluate automatic (random) profiling if necessary
     $profileauto = false;
-    if ($CFG->profilingautofrec) {
+    if (!empty($CFG->profilingautofrec)) {
         $profileauto = (mt_rand(1, $CFG->profilingautofrec) === 1);
     }
 
-    // See if the $SCRIPT matches any of the included patterns
-    $profileincluded = profiling_string_matches($SCRIPT, $CFG->profilingincluded);
+    // See if the $script matches any of the included patterns
+    $included = empty($CFG->profilingincluded) ? '' : $CFG->profilingincluded;
+    $profileincluded = profiling_string_matches($script, $included);
 
-    // See if the $SCRIPT matches any of the excluded patterns
-    $profileexcluded = profiling_string_matches($SCRIPT, $CFG->profilingexcluded);
+    // See if the $script matches any of the excluded patterns
+    $excluded = empty($CFG->profilingexcluded) ? '' : $CFG->profilingexcluded;
+    $profileexcluded = profiling_string_matches($script, $excluded);
 
     // Decide if profile auto must happen (observe matchings)
     $profileauto = $profileauto && $profileincluded && !$profileexcluded;
 
     // Decide if profile by match must happen (only if profileauto is disabled)
-    $profilematch = $profileincluded && !$profileexcluded && !$CFG->profilingautofrec;
+    $profilematch = $profileincluded && !$profileexcluded && empty($CFG->profilingautofrec);
 
     // If not auto, me, all, match have been detected, nothing to do
     if (!$profileauto && !$profileme && !$profileall && !$profilematch) {
@@ -138,13 +143,16 @@ function profiling_start() {
     $ignore = array('call_user_func', 'call_user_func_array');
     xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY, array('ignored_functions' =>  $ignore));
     profiling_is_running(true);
+
+    // Started, return true
+    return true;
 }
 
 /**
  * Stop profiling, gathering results and storing them
  */
 function profiling_stop() {
-    global $CFG, $SCRIPT;
+    global $CFG, $DB, $SCRIPT;
 
     // If profiling isn't available, nothing to stop
     if (!extension_loaded('xhprof') || !function_exists('xhprof_enable')) {
@@ -152,7 +160,7 @@ function profiling_stop() {
     }
 
     // If profiling isn't enabled, nothing to stop
-    if (!$CFG->profilingenabled) {
+    if (empty($CFG->profilingenabled) && empty($CFG->earlyprofilingenabled)) {
         return false;
     }
 
@@ -161,17 +169,31 @@ function profiling_stop() {
         return false;
     }
 
+    // Set script (from global if available, else our own)
+    $script = !empty($SCRIPT) ? $SCRIPT : profiling_get_script();
+
     // Arrived here, profiling is running, stop and save everything
     profiling_is_running(false);
     $data = xhprof_disable();
 
+    // We only save the run after ensuring the DB table exists
+    // (this prevents problems with profiling runs enabled in
+    // config.php before Moodle is installed. Rare but...
+    $tables = $DB->get_tables();
+    if (!in_array('profiling', $tables)) {
+        return false;
+    }
+
     $run = new moodle_xhprofrun();
-    $run->prepare_run($SCRIPT);
+    $run->prepare_run($script);
     $runid = $run->save_run($data, null);
     profiling_is_saved(true);
 
     // Prune old runs
     profiling_prune_old_runs($runid);
+
+    // Finished, return true
+    return true;
 }
 
 function profiling_prune_old_runs($exception = 0) {
@@ -188,6 +210,34 @@ function profiling_prune_old_runs($exception = 0) {
     $DB->delete_records_select('profiling', 'runreference = 0 AND
                                              timecreated < :cuttime AND
                                              runid != :exception', $params);
+}
+
+/**
+ * Returns the path to the php script being requested
+ *
+ * Note this function is a partial copy of initialise_fullme() and
+ * setup_get_remote_url(), in charge of setting $FULLME, $SCRIPT and
+ * friends. To be used by early profiling runs in situations where
+ * $SCRIPT isn't defined yet
+ *
+ * @return string absolute path (wwwroot based) of the script being executed
+ */
+function profiling_get_script() {
+    global $CFG;
+
+    $wwwroot = parse_url($CFG->wwwroot);
+
+    if (!isset($wwwroot['path'])) {
+        $wwwroot['path'] = '';
+    }
+    $wwwroot['path'] .= '/';
+
+    $path = $_SERVER['SCRIPT_NAME'];
+
+    if (strpos($path, $wwwroot['path']) === 0) {
+        return substr($path, strlen($wwwroot['path']) - 1);
+    }
+    return '';
 }
 
 function profiling_urls($report, $runid, $runid2 = null) {
@@ -230,23 +280,23 @@ function profiling_print_run($run, $prevrunid = null) {
     $table->attributes['class'] = 'profilingruntable';
     $table->colclasses = array('label', 'value');
     $table->data = array(
-       array(get_string('runid', 'report_profiling'), $run->runid),
+       array(get_string('runid', 'tool_profiling'), $run->runid),
        array(get_string('url'), $run->url),
        array(get_string('date'), userdate($run->timecreated, '%d %B %Y, %H:%M')),
-       array(get_string('executiontime', 'report_profiling'), format_float($run->totalexecutiontime / 1000, 3) . ' ms'),
-       array(get_string('cputime', 'report_profiling'), format_float($run->totalcputime / 1000, 3) . ' ms'),
-       array(get_string('calls', 'report_profiling'), $run->totalcalls),
-       array(get_string('memory', 'report_profiling'), format_float($run->totalmemory / 1024, 0) . ' KB'),
-       array(get_string('markreferencerun', 'report_profiling'), $referenceform));
+       array(get_string('executiontime', 'tool_profiling'), format_float($run->totalexecutiontime / 1000, 3) . ' ms'),
+       array(get_string('cputime', 'tool_profiling'), format_float($run->totalcputime / 1000, 3) . ' ms'),
+       array(get_string('calls', 'tool_profiling'), $run->totalcalls),
+       array(get_string('memory', 'tool_profiling'), format_float($run->totalmemory / 1024, 0) . ' KB'),
+       array(get_string('markreferencerun', 'tool_profiling'), $referenceform));
     $output = $OUTPUT->box(html_writer::table($table), 'generalbox boxwidthwide boxaligncenter profilingrunbox', 'profiling_summary', true);
     // Add link to details
-    $strviewdetails = get_string('viewdetails', 'report_profiling');
+    $strviewdetails = get_string('viewdetails', 'tool_profiling');
     $url = profiling_urls('run', $run->runid);
     $output.=$OUTPUT->heading('<a href="' . $url . '" onclick="javascript:window.open(' . "'" . $url . "'" . ');' .
                               'return false;"' . ' title="">' . $strviewdetails . '</a>', 3, 'main profilinglink');
     // If there is one previous run marked as reference, add link to diff
     if ($prevrunid) {
-        $strviewdiff = get_string('viewdiff', 'report_profiling');
+        $strviewdiff = get_string('viewdiff', 'tool_profiling');
         $url = 'index.php?runid=' . $run->runid . '&amp;runid2=' . $prevrunid . '&amp;listurl=' . urlencode($run->url);
         $output.=$OUTPUT->heading('<a href="' . $url . '" title="">' . $strviewdiff . '</a>', 3, 'main profilinglink');
     }
@@ -277,28 +327,28 @@ function profiling_print_rundiff($run1, $run2) {
     $table->attributes['class'] = 'profilingruntable';
     $table->colclasses = array('label', 'value1', 'value2');
     $table->data = array(
-       array(get_string('runid', 'report_profiling'),
+       array(get_string('runid', 'tool_profiling'),
            '<a href="index.php?runid=' . $run1->runid . '&listurl=' . urlencode($run1->url) . '" title="">' . $run1->runid . '</a>',
            '<a href="index.php?runid=' . $run2->runid . '&listurl=' . urlencode($run2->url) . '" title="">' . $run2->runid . '</a>'),
        array(get_string('url'), $run1->url, $run2->url),
        array(get_string('date'), userdate($run1->timecreated, '%d %B %Y, %H:%M'),
            userdate($run2->timecreated, '%d %B %Y, %H:%M')),
-       array(get_string('executiontime', 'report_profiling'),
+       array(get_string('executiontime', 'tool_profiling'),
            format_float($run1->totalexecutiontime / 1000, 3) . ' ms',
            format_float($run2->totalexecutiontime / 1000, 3) . ' ms ' . $diffexecutiontime),
-       array(get_string('cputime', 'report_profiling'),
+       array(get_string('cputime', 'tool_profiling'),
            format_float($run1->totalcputime / 1000, 3) . ' ms',
            format_float($run2->totalcputime / 1000, 3) . ' ms ' . $diffcputime),
-       array(get_string('calls', 'report_profiling'), $run1->totalcalls, $run2->totalcalls . ' ' . $diffcalls),
-       array(get_string('memory', 'report_profiling'),
+       array(get_string('calls', 'tool_profiling'), $run1->totalcalls, $run2->totalcalls . ' ' . $diffcalls),
+       array(get_string('memory', 'tool_profiling'),
            format_float($run1->totalmemory / 1024, 0) . ' KB',
            format_float($run2->totalmemory / 1024, 0) . ' KB ' . $diffmemory),
-       array(get_string('referencerun', 'report_profiling'), $referencetext1, $referencetext2));
+       array(get_string('referencerun', 'tool_profiling'), $referencetext1, $referencetext2));
     $output = $OUTPUT->box(html_writer::table($table), 'generalbox boxwidthwide boxaligncenter profilingrunbox', 'profiling_summary', true);
     // Add link to details
-    $strviewdetails = get_string('viewdiffdetails', 'report_profiling');
+    $strviewdetails = get_string('viewdiffdetails', 'tool_profiling');
     $url = profiling_urls('diff', $run1->runid, $run2->runid);
-    //$url =  $CFG->wwwroot . '/admin/report/profiling/index.php?run=' . $run->runid;
+    //$url =  $CFG->wwwroot . '/admin/tool/profiling/index.php?run=' . $run->runid;
     $output.=$OUTPUT->heading('<a href="' . $url . '" onclick="javascript:window.open(' . "'" . $url . "'" . ');' .
                               'return false;"' . ' title="">' . $strviewdetails . '</a>', 3, 'main profilinglink');
     return $output;
@@ -464,18 +514,10 @@ class xhprof_table_sql extends table_sql {
     protected $listurlmode = false;
 
     /**
-     * Overwrite this method to be able to inject extra class to
-     * some (reference rows). Original API doesn't seem to allow that
+     * Get row classes to be applied based on row contents
      */
-    function build_table(){
-        if ($this->rawdata){
-            foreach($this->rawdata as $row){
-                $formattedrow = $this->format_row($row);
-                // reference row, add 'referencerun' class
-                $classname = $row->runreference ? 'referencerun' : '';
-                $this->add_data_keyed($formattedrow, $classname);
-            }
-        }
+    function get_row_class($row) {
+        return $row->runreference ? 'referencerun' : ''; // apply class to reference runs
     }
 
     /**
@@ -493,7 +535,7 @@ class xhprof_table_sql extends table_sql {
         global $OUTPUT;
 
         // Build the link to latest run for the script
-        $scripturl = new moodle_url('/admin/report/profiling/index.php', array('script' => $row->url, 'listurl' => $row->url));
+        $scripturl = new moodle_url('/admin/tool/profiling/index.php', array('script' => $row->url, 'listurl' => $row->url));
         $scriptaction = $OUTPUT->action_link($scripturl, $row->url);
 
         // Decide, based on $this->listurlmode which actions to show
@@ -501,8 +543,8 @@ class xhprof_table_sql extends table_sql {
             $detailsaction = '';
         } else {
             // Build link icon to script details (pix + url + actionlink)
-            $detailsimg = $OUTPUT->pix_icon('t/right', get_string('profilingfocusscript', 'report_profiling', $row->url));
-            $detailsurl = new moodle_url('/admin/report/profiling/index.php', array('listurl' => $row->url));
+            $detailsimg = $OUTPUT->pix_icon('t/right', get_string('profilingfocusscript', 'tool_profiling', $row->url));
+            $detailsurl = new moodle_url('/admin/tool/profiling/index.php', array('listurl' => $row->url));
             $detailsaction = $OUTPUT->action_link($detailsurl, $detailsimg);
         }
 
@@ -515,7 +557,7 @@ class xhprof_table_sql extends table_sql {
     protected function col_timecreated($row) {
         global $OUTPUT;
         $fdate = userdate($row->timecreated, '%d %b %Y, %H:%M');
-        $url = new moodle_url('/admin/report/profiling/index.php', array('runid' => $row->runid, 'listurl' => $row->url));
+        $url = new moodle_url('/admin/tool/profiling/index.php', array('runid' => $row->runid, 'listurl' => $row->url));
         return $OUTPUT->action_link($url, $fdate);
     }
 

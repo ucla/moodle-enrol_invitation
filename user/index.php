@@ -31,7 +31,7 @@
             'search' => $search,
             'roleid' => $roleid,
             'contextid' => $contextid,
-            'courseid' => $courseid));
+            'id' => $courseid));
 
     if ($contextid) {
         $context = get_context_instance_by_id($contextid, MUST_EXIST);
@@ -135,11 +135,6 @@
 
     $isseparategroups = ($course->groupmode == SEPARATEGROUPS and !has_capability('moodle/site:accessallgroups', $context));
 
-    if ($course->id===SITEID) {
-        $PAGE->navbar->ignore_active();
-    }
-
-    $PAGE->navbar->add(get_string('participants'));
     $PAGE->set_title("$course->shortname: ".get_string('participants'));
     $PAGE->set_heading($course->fullname);
     $PAGE->set_pagetype('course-view-' . $course->format);
@@ -203,11 +198,12 @@
         $courselist = array();
         $popupurl = new moodle_url('/user/index.php?roleid='.$roleid.'&sifirst=&silast=');
         foreach ($mycourses as $mycourse) {
-            $courselist[$mycourse->id] = format_string($mycourse->shortname);
+            $coursecontext = get_context_instance(CONTEXT_COURSE, $mycourse->id);
+            $courselist[$mycourse->id] = format_string($mycourse->shortname, true, array('context' => $coursecontext));
         }
         if (has_capability('moodle/site:viewparticipants', $systemcontext)) {
             unset($courselist[SITEID]);
-            $courselist = array(SITEID => format_string($SITE->shortname)) + $courselist;
+            $courselist = array(SITEID => format_string($SITE->shortname, true, array('context' => $systemcontext))) + $courselist;
         }
         $select = new single_select($popupurl, 'id', $courselist, $course->id, array(''=>'choosedots'), 'courseform');
         $select->set_label(get_string('mycourses'));
@@ -317,7 +313,14 @@
     /// Define a table showing a list of users in the current role selection
 
     $tablecolumns = array('userpic', 'fullname');
+    $extrafields = get_extra_user_fields($context);
     $tableheaders = array(get_string('userpic'), get_string('fullnameuser'));
+    if ($mode === MODE_BRIEF) {
+        foreach ($extrafields as $field) {
+            $tablecolumns[] = $field;
+            $tableheaders[] = get_user_field_name($field);
+        }
+    }
     if ($mode === MODE_BRIEF && !isset($hiddenfields['city'])) {
         $tablecolumns[] = 'city';
         $tableheaders[] = get_string('city');
@@ -337,13 +340,14 @@
     }
 
     $table = new flexible_table('user-index-participants-'.$course->id);
-
     $table->define_columns($tablecolumns);
     $table->define_headers($tableheaders);
     $table->define_baseurl($baseurl->out());
 
     if (!isset($hiddenfields['lastaccess'])) {
         $table->sortable(true, 'lastaccess', SORT_DESC);
+    } else {
+        $table->sortable(true, 'firstname', SORT_ASC);
     }
 
     $table->no_sorting('roles');
@@ -368,15 +372,19 @@
     // we are looking for all users with this role assigned in this context or higher
     $contextlist = get_related_contexts_string($context);
 
-    list($esql, $params) = get_enrolled_sql($context, NULL, $currentgroup);
+    list($esql, $params) = get_enrolled_sql($context, NULL, $currentgroup, true);
     $joins = array("FROM {user} u");
     $wheres = array();
+
+    $extrasql = get_extra_user_fields_sql($context, 'u', '', array(
+            'id', 'username', 'firstname', 'lastname', 'email', 'city', 'country',
+            'picture', 'lang', 'timezone', 'maildisplay', 'imagealt', 'lastaccess'));
 
     if ($isfrontpage) {
         $select = "SELECT u.id, u.username, u.firstname, u.lastname,
                           u.email, u.city, u.country, u.picture,
                           u.lang, u.timezone, u.maildisplay, u.imagealt,
-                          u.lastaccess";
+                          u.lastaccess$extrasql";
         $joins[] = "JOIN ($esql) e ON e.id = u.id"; // everybody on the frontpage usually
         if ($accesssince) {
             $wheres[] = get_user_lastaccess_sql($accesssince);
@@ -386,7 +394,7 @@
         $select = "SELECT u.id, u.username, u.firstname, u.lastname,
                           u.email, u.city, u.country, u.picture,
                           u.lang, u.timezone, u.maildisplay, u.imagealt,
-                          COALESCE(ul.timeaccess, 0) AS lastaccess";
+                          COALESCE(ul.timeaccess, 0) AS lastaccess$extrasql";
         $joins[] = "JOIN ($esql) e ON e.id = u.id"; // course enrolled users only
         $joins[] = "LEFT JOIN {user_lastaccess} ul ON (ul.userid = u.id AND ul.courseid = :courseid)"; // not everybody accessed course yet
         $params['courseid'] = $course->id;
@@ -606,8 +614,19 @@
                         $row->cells[1]->text .= get_string('role').get_string('labelsep', 'langconfig').$user->role.'<br />';
                     }
                     if ($user->maildisplay == 1 or ($user->maildisplay == 2 and ($course->id != SITEID) and !isguestuser()) or
-                                has_capability('moodle/course:viewhiddenuserfields', $context)) {
+                                has_capability('moodle/course:viewhiddenuserfields', $context) or
+                                in_array('email', $extrafields)) {
                         $row->cells[1]->text .= get_string('email').get_string('labelsep', 'langconfig').html_writer::link("mailto:$user->email", $user->email) . '<br />';
+                    }
+                    foreach ($extrafields as $field) {
+                        if ($field === 'email') {
+                            // Skip email because it was displayed with different
+                            // logic above (because this page is intended for
+                            // students too)
+                            continue;
+                        }
+                        $row->cells[1]->text .= get_user_field_name($field) .
+                                get_string('labelsep', 'langconfig') . s($user->{$field}) . '<br />';
                     }
                     if (($user->city or $user->country) and (!isset($hiddenfields['city']) or !isset($hiddenfields['country']))) {
                         $row->cells[1]->text .= get_string('city').get_string('labelsep', 'langconfig');
@@ -716,6 +735,11 @@
 
                 $data = array ($OUTPUT->user_picture($user, array('size' => 35, 'courseid'=>$course->id)), $profilelink);
 
+                if ($mode === MODE_BRIEF) {
+                    foreach ($extrafields as $field) {
+                        $data[] = $user->{$field};
+                    }
+                }
                 if ($mode === MODE_BRIEF && !isset($hiddenfields['city'])) {
                     $data[] = $user->city;
                 }
@@ -751,7 +775,6 @@
                     $data[] = '<input type="checkbox" class="usercheckbox" name="user'.$user->id.'" />';
                 }
                 $table->add_data($data);
-
             }
         }
 

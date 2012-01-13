@@ -357,7 +357,7 @@ function xmldb_wiki_upgrade($oldversion) {
     // TODO: Will hold the old tables so we will have chance to fix problems
     // Will remove old tables once migrating 100% stable
     // Step 10: delete old tables
-    //if ($oldversion < 2011000000) {
+    //if ($oldversion < 2011060300) {
         //$tables = array('wiki_pages', 'wiki_locks', 'wiki_entries');
 
         //foreach ($tables as $tablename) {
@@ -367,8 +367,14 @@ function xmldb_wiki_upgrade($oldversion) {
             //}
         //}
         //echo $OUTPUT->notification('Droping old tables', 'notifysuccess');
-        //upgrade_mod_savepoint(true, 2011000000, 'wiki');
+        //upgrade_mod_savepoint(true, 2011060300, 'wiki');
     //}
+
+    // Moodle v2.1.0 release upgrade line
+    // Put any upgrade step following this
+
+    // Moodle v2.2.0 release upgrade line
+    // Put any upgrade step following this
 
     return true;
 }

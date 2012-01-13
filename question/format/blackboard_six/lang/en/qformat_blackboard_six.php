@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -18,10 +17,11 @@
 /**
  * Strings for component 'qformat_blackboard_six', language 'en', branch 'MOODLE_20_STABLE'
  *
- * @package   qformat_blackboard_six
- * @copyright 2010 Helen Foster
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    qformat
+ * @subpackage blackboard_six
+ * @copyright  2010 Helen Foster
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['blackboard_six'] = 'Blackboard V6+';
-$string['blackboard_six_help'] = 'Blackboard V6+ format enables questions saved in Blackboard\'s export format to be imported via zip file. It provides limited support for Blackboard Version 6 and 7.';
+$string['pluginname'] = 'Blackboard V6+';
+$string['pluginname_help'] = 'Blackboard V6+ format enables questions saved in Blackboard\'s export format to be imported via zip file. It provides limited support for Blackboard Version 6 and 7.';

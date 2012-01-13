@@ -66,7 +66,12 @@ class mod_assignment_renderer extends plugin_renderer_base {
         foreach ($dir['files'] as $file) {
             $filename = $file->get_filename();
             $icon = mimeinfo("icon", $filename);
-            $plagiarsmlinks = plagiarism_get_links(array('userid'=>$file->get_userid(), 'file'=>$file, 'cmid'=>$tree->cm->id, 'course'=>$tree->course));
+            if ($CFG->enableplagiarism) {
+                require_once($CFG->libdir.'/plagiarismlib.php');
+                $plagiarsmlinks = plagiarism_get_links(array('userid'=>$file->get_userid(), 'file'=>$file, 'cmid'=>$tree->cm->id, 'course'=>$tree->course));
+            } else {
+                $plagiarsmlinks = '';
+            }
             $image = $this->output->pix_icon("f/$icon", $filename, 'moodle', array('class'=>'icon'));
             $result .= '<li yuiConfig=\''.json_encode($yuiconfig).'\'><div>'.$image.' '.$file->fileurl.' '.$plagiarsmlinks.$file->portfoliobutton.'</div></li>';
         }
@@ -85,19 +90,21 @@ class assignment_files implements renderable {
     public $course;
     public function __construct($context, $itemid, $filearea='submission') {
         global $USER, $CFG;
-        require_once($CFG->libdir . '/portfoliolib.php');
         $this->context = $context;
         list($context, $course, $cm) = get_context_info_array($context->id);
         $this->cm = $cm;
         $this->course = $course;
         $fs = get_file_storage();
         $this->dir = $fs->get_area_tree($this->context->id, 'mod_assignment', $filearea, $itemid);
-        $files = $fs->get_area_files($this->context->id, 'mod_assignment', $filearea, $itemid, "timemodified", false);
-        if (count($files) >= 1 && has_capability('mod/assignment:exportownsubmission', $this->context)) {
-            $button = new portfolio_add_button();
-            $button->set_callback_options('assignment_portfolio_caller', array('id' => $this->cm->id), '/mod/assignment/locallib.php');
-            $button->reset_formats();
-            $this->portfolioform = $button->to_html();
+        if (!empty($CFG->enableportfolios)) {
+            require_once($CFG->libdir . '/portfoliolib.php');
+            $files = $fs->get_area_files($this->context->id, 'mod_assignment', $filearea, $itemid, "timemodified", false);
+            if (count($files) >= 1 && has_capability('mod/assignment:exportownsubmission', $this->context)) {
+                $button = new portfolio_add_button();
+                $button->set_callback_options('assignment_portfolio_caller', array('id' => $this->cm->id, 'submissionid' => $itemid), '/mod/assignment/locallib.php');
+                $button->reset_formats();
+                $this->portfolioform = $button->to_html(PORTFOLIO_ADD_TEXT_LINK);
+            }
         }
         $this->preprocess($this->dir, $filearea);
     }
@@ -107,13 +114,14 @@ class assignment_files implements renderable {
             $this->preprocess($subdir, $filearea);
         }
         foreach ($dir['files'] as $file) {
-            $button = new portfolio_add_button();
-            if (has_capability('mod/assignment:exportownsubmission', $this->context)) {
-                $button->set_callback_options('assignment_portfolio_caller', array('id' => $this->cm->id, 'fileid' => $file->get_id()), '/mod/assignment/locallib.php');
-                $button->set_format_by_file($file);
-                $file->portfoliobutton = $button->to_html(PORTFOLIO_ADD_ICON_LINK);
-            } else {
-                $file->portfoliobutton = '';
+            $file->portfoliobutton = '';
+            if (!empty($CFG->enableportfolios)) {
+                $button = new portfolio_add_button();
+                if (has_capability('mod/assignment:exportownsubmission', $this->context)) {
+                    $button->set_callback_options('assignment_portfolio_caller', array('id' => $this->cm->id, 'fileid' => $file->get_id()), '/mod/assignment/locallib.php');
+                    $button->set_format_by_file($file);
+                    $file->portfoliobutton = $button->to_html(PORTFOLIO_ADD_ICON_LINK);
+                }
             }
             $url = file_encode_url("$CFG->wwwroot/pluginfile.php", '/'.$this->context->id.'/mod_assignment/'.$filearea.'/'.$file->get_itemid(). $file->get_filepath().$file->get_filename(), true);
             $filename = $file->get_filename();

@@ -591,6 +591,8 @@ function choice_delete_instance($id) {
  * Returns the users with data in one choice
  * (users with records in choice_responses, students)
  *
+ * @todo: deprecated - to be deleted in 2.2
+ *
  * @param int $choiceid
  * @return array
  */
@@ -793,6 +795,7 @@ function choice_supports($feature) {
         case FEATURE_GRADE_HAS_GRADE:         return false;
         case FEATURE_GRADE_OUTCOMES:          return false;
         case FEATURE_BACKUP_MOODLE2:          return true;
+        case FEATURE_SHOW_DESCRIPTION:        return true;
 
         default: return null;
     }
@@ -853,4 +856,15 @@ function choice_get_completion_state($course, $cm, $userid, $type) {
         // Completion option is not enabled so just return $type
         return $type;
     }
+}
+
+/**
+ * Return a list of page types
+ * @param string $pagetype current page type
+ * @param stdClass $parentcontext Block's parent context
+ * @param stdClass $currentcontext Current context of block
+ */
+function choice_page_type_list($pagetype, $parentcontext, $currentcontext) {
+    $module_pagetype = array('mod-choice-*'=>get_string('page-mod-choice-x', 'choice'));
+    return $module_pagetype;
 }

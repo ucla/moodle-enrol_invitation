@@ -21,7 +21,7 @@
  * Displays the list of found local plugins, their version (if found) and
  * a link to delete the local plugin.
  *
- * @see       http://docs.moodle.org/en/Development:Local_customisation
+ * @see       http://docs.moodle.org/dev/Local_customisation
  * @package   admin
  * @copyright 2010 David Mudrak <david.mudrak@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -33,7 +33,7 @@ require_once($CFG->libdir.'/tablelib.php');
 
 admin_externalpage_setup('managelocalplugins');
 
-$delete  = optional_param('delete', '', PARAM_SAFEDIR);
+$delete  = optional_param('delete', '', PARAM_PLUGIN);
 $confirm = optional_param('confirm', '', PARAM_BOOL);
 
 /// If data submitted, then process and store.
@@ -89,7 +89,7 @@ foreach (get_plugin_list('local') as $plugin => $plugindir) {
     }
     $plugins[$plugin] = $strpluginname;
 }
-textlib_get_instance()->asort($plugins);
+collatorlib::asort($plugins);
 
 foreach ($plugins as $plugin => $name) {
     $delete = new moodle_url($PAGE->url, array('delete' => $plugin, 'sesskey' => sesskey()));

@@ -28,18 +28,16 @@ mod_scorm_activate_item = null;
 M.mod_scorm = {};
 
 M.mod_scorm.init = function(Y, hide_nav, hide_toc, toc_title, window_name, launch_sco) {
-
-    if (hide_nav == 0) {
-        scorm_hide_nav = false;
-    }
-    else {
-        scorm_hide_nav = true;
-    }
+    var scorm_disable_toc = false;
+    var scorm_hide_nav = true;
+    var scorm_hide_toc = true;
     if (hide_toc == 0) {
+        if (hide_nav != 1) {
+            scorm_hide_nav = false;
+        }
         scorm_hide_toc = false;
-    }
-    else {
-        scorm_hide_toc = true;
+    } else if (hide_toc == 3) {
+        scorm_disable_toc = true;
     }
 
     var scorm_layout_widget;
@@ -48,9 +46,25 @@ M.mod_scorm.init = function(Y, hide_nav, hide_toc, toc_title, window_name, launc
     var scorm_bloody_labelclick = false;
     var scorm_nav_panel;
 
-
     Y.use('yui2-resize', 'yui2-dragdrop', 'yui2-container', 'yui2-button', 'yui2-layout', 'yui2-treeview', 'yui2-json', 'yui2-event', function(Y) {
 
+        YAHOO.widget.TextNode.prototype.getContentHtml = function() {
+            var sb = [];
+            sb[sb.length] = this.href ? '<a' : '<span';
+            sb[sb.length] = ' id="' + YAHOO.lang.escapeHTML(this.labelElId) + '"';
+            sb[sb.length] = ' class="' + YAHOO.lang.escapeHTML(this.labelStyle) + '"';
+            if (this.href) {
+                sb[sb.length] = ' href="' + YAHOO.lang.escapeHTML(this.href) + '"';
+                sb[sb.length] = ' target="' + YAHOO.lang.escapeHTML(this.target) + '"';
+            }
+            if (this.title) {
+                sb[sb.length] = ' title="' + YAHOO.lang.escapeHTML(this.title) + '"';
+            }
+            sb[sb.length] = ' >';
+            sb[sb.length] = this.label;
+            sb[sb.length] = this.href?'</a>':'</span>';
+            return sb.join("");
+        };
 
         var scorm_activate_item = function(node) {
             if (!node) {
@@ -122,14 +136,13 @@ M.mod_scorm.init = function(Y, hide_nav, hide_toc, toc_title, window_name, launc
             }
             var old = YAHOO.util.Dom.get('scorm_object');
             if (old) {
-                if(window_name) { 
+                if(window_name) {
                     var cwidth = scormplayerdata.cwidth;
                     var cheight = scormplayerdata.cheight;
                     var poptions = scormplayerdata.popupoptions;
-                    scorm_openpopup("loadSCO.php?" + node.title, window_name, poptions, cwidth, cheight);
-                }
-                else { 
-                    content.replaceChild(obj, old); 
+                    scorm_openpopup(M.cfg.wwwroot + "/mod/scorm/loadSCO.php?" + node.title, window_name, poptions, cwidth, cheight);
+                } else {
+                    content.replaceChild(obj, old);
                 }
             } else {
                 content.appendChild(obj);
@@ -153,11 +166,11 @@ M.mod_scorm.init = function(Y, hide_nav, hide_toc, toc_title, window_name, launc
          * @return void
          */
         var scorm_fixnav = function() {
-            scorm_buttons[0].set('disabled', (scorm_skipprev(scorm_current_node) == null));
-            scorm_buttons[1].set('disabled', (scorm_prev(scorm_current_node) == null));
-            scorm_buttons[2].set('disabled', (scorm_up(scorm_current_node) == null));
-            scorm_buttons[3].set('disabled', (scorm_next(scorm_current_node) == null));
-            scorm_buttons[4].set('disabled', (scorm_skipnext(scorm_current_node) == null));
+            scorm_buttons[0].set('disabled', (scorm_skipprev(scorm_current_node) == null || scorm_skipprev(scorm_current_node).title == null));
+            scorm_buttons[1].set('disabled', (scorm_prev(scorm_current_node) == null || scorm_prev(scorm_current_node).title == null));
+            scorm_buttons[2].set('disabled', (scorm_up(scorm_current_node) == null) || scorm_up(scorm_current_node).title == null);
+            scorm_buttons[3].set('disabled', (scorm_next(scorm_current_node) == null) || scorm_next(scorm_current_node).title == null);
+            scorm_buttons[4].set('disabled', (scorm_skipnext(scorm_current_node) == null || scorm_skipnext(scorm_current_node).title == null));
         };
 
         var scorm_resize_parent = function() {
@@ -190,6 +203,16 @@ M.mod_scorm.init = function(Y, hide_nav, hide_toc, toc_title, window_name, launc
             }
 
             scorm_layout_widget.setStyle('height', '100%');
+            var center = scorm_layout_widget.getUnitByPosition('center');
+            center.setStyle('height', '100%');
+
+            // calculate the rough new height
+            newheight = YAHOO.util.Dom.getViewportHeight() *.82;
+            if (newheight < 600) {
+                newheight = 600;
+            }
+            scorm_layout_widget.set('height', newheight);
+
             scorm_layout_widget.render();
             scorm_resize_frame();
 
@@ -229,7 +252,6 @@ M.mod_scorm.init = function(Y, hide_nav, hide_toc, toc_title, window_name, launc
                 }
             }
         };
-
 
         var scorm_up = function(node) {
             var node = scorm_tree_node.getHighlightedNode();
@@ -285,28 +307,40 @@ M.mod_scorm.init = function(Y, hide_nav, hide_toc, toc_title, window_name, launc
         mod_scorm_next = scorm_next;
         mod_scorm_prev = scorm_prev;
 
-
         // layout
         YAHOO.widget.LayoutUnit.prototype.STR_COLLAPSE = M.str.moodle.hide;
         YAHOO.widget.LayoutUnit.prototype.STR_EXPAND = M.str.moodle.show;
 
-        scorm_layout_widget = new YAHOO.widget.Layout('scorm_layout', {
-            minWidth: 255,
-            minHeight: 600,
-            units: [
-                { position: 'left', body: 'scorm_toc', header: toc_title, width: 250, resize: true, gutter: '2px 5px 5px 2px', collapse: true, minWidth:250, maxWidth: 590},
-                { position: 'center', body: '<div id="scorm_content"></div>', gutter: '2px 5px 5px 2px', scroll: true}
-            ]
-        });
+        if (scorm_disable_toc) {
+            scorm_layout_widget = new YAHOO.widget.Layout('scorm_layout', {
+                minWidth: 255,
+                minHeight: 600,
+                units: [
+                    { position: 'left', body: 'scorm_toc', header: toc_title, width: 0, resize: true, gutter: '0px 0px 0px 0px', collapse: false},
+                    { position: 'center', body: '<div id="scorm_content"></div>', gutter: '0px 0px 0px 0px', scroll: true}
+                ]
+            });
+        } else {
+            scorm_layout_widget = new YAHOO.widget.Layout('scorm_layout', {
+                minWidth: 255,
+                minHeight: 600,
+                units: [
+                    { position: 'left', body: 'scorm_toc', header: toc_title, width: 250, resize: true, gutter: '2px 5px 5px 2px', collapse: true, minWidth:250, maxWidth: 590},
+                    { position: 'center', body: '<div id="scorm_content"></div>', gutter: '2px 5px 5px 2px', scroll: true}
+                ]
+            });
+        }
+
         scorm_layout_widget.render();
         var left = scorm_layout_widget.getUnitByPosition('left');
-        left.on('collapse', function() {
-            scorm_resize_frame();
-        });
-        left.on('expand', function() {
-            scorm_resize_frame();
-        });
-
+        if (!scorm_disable_toc) {
+            left.on('collapse', function() {
+                scorm_resize_frame();
+            });
+            left.on('expand', function() {
+                scorm_resize_frame();
+            });
+        }
         // ugly resizing hack that works around problems with resizing of iframes and objects
         left._resize.on('startResize', function() {
             var obj = YAHOO.util.Dom.get('scorm_object');
@@ -319,10 +353,11 @@ M.mod_scorm.init = function(Y, hide_nav, hide_toc, toc_title, window_name, launc
         });
 
         // hide the TOC if that is the default
-        if (scorm_hide_toc == true) {
-            left.collapse();
+        if (!scorm_disable_toc) {
+            if (scorm_hide_toc == true) {
+               left.collapse();
+            }
         }
-
         // TOC tree
         var tree = new YAHOO.widget.TreeView('scorm_tree');
         scorm_tree_node = tree;
@@ -333,18 +368,20 @@ M.mod_scorm.init = function(Y, hide_nav, hide_toc, toc_title, window_name, launc
                 scorm_bloody_labelclick = true;
             }
         });
-        tree.subscribe('collapse', function(node) {
-            if (scorm_bloody_labelclick) {
-                scorm_bloody_labelclick = false;
-                return false;
-            }
-        });
-        tree.subscribe('expand', function(node) {
-            if (scorm_bloody_labelclick) {
-                scorm_bloody_labelclick = false;
-                return false;
-            }
-        });
+        if (!scorm_disable_toc) {
+            tree.subscribe('collapse', function(node) {
+                if (scorm_bloody_labelclick) {
+                    scorm_bloody_labelclick = false;
+                    return false;
+                }
+            });
+            tree.subscribe('expand', function(node) {
+                if (scorm_bloody_labelclick) {
+                    scorm_bloody_labelclick = false;
+                    return false;
+                }
+            });
+        }
         tree.expandAll();
         tree.render();
 

@@ -111,6 +111,20 @@ function file_prepare_standard_editor($data, $field, array $options, $context=nu
         $options['noclean'] = false;
     }
 
+    //sanity check for passed context. This function doesn't expect $option['context'] to be set
+    //But this function is called before creating editor hence, this is one of the best places to check
+    //if context is used properly. This check notify developer that they missed passing context to editor.
+    if (isset($context) && !isset($options['context'])) {
+        //if $context is not null then make sure $option['context'] is also set.
+        debugging('Context for editor is not set in editoroptions. Hence editor will not respect editor filters', DEBUG_DEVELOPER);
+    } else if (isset($options['context']) && isset($context)) {
+        //If both are passed then they should be equal.
+        if ($options['context']->id != $context->id) {
+            $exceptionmsg = 'Editor context ['.$options['context']->id.'] is not equal to passed context ['.$context->id.']';
+            throw new coding_exception($exceptionmsg);
+        }
+    }
+
     if (is_null($itemid) or is_null($context)) {
         $contextid = null;
         $itemid = null;
@@ -574,18 +588,27 @@ function file_get_drafarea_files($draftitemid, $filepath = '/') {
  * @return integer the itemid, or 0 if there is not one yet.
  */
 function file_get_submitted_draft_itemid($elname) {
-    $param = optional_param($elname, 0, PARAM_INT);
-    if ($param) {
-        require_sesskey();
+    // this is a nasty hack, ideally all new elements should use arrays here or there should be a new parameter
+    if (!isset($_REQUEST[$elname])) {
+        return 0;
     }
-    if (is_array($param)) {
+    if (is_array($_REQUEST[$elname])) {
+        $param = optional_param_array($elname, 0, PARAM_INT);
         if (!empty($param['itemid'])) {
             $param = $param['itemid'];
         } else {
             debugging('Missing itemid, maybe caused by unset maxfiles option', DEBUG_DEVELOPER);
             return false;
         }
+
+    } else {
+        $param = optional_param($elname, 0, PARAM_INT);
     }
+
+    if ($param) {
+        require_sesskey();
+    }
+
     return $param;
 }
 
@@ -608,7 +631,7 @@ function file_get_submitted_draft_itemid($elname) {
  * @return string if $text was passed in, the rewritten $text is returned. Otherwise NULL.
  */
 function file_save_draft_area_files($draftitemid, $contextid, $component, $filearea, $itemid, array $options=null, $text=null, $forcehttps=false) {
-    global $CFG, $USER;
+    global $USER;
 
     $usercontext = get_context_instance(CONTEXT_USER, $USER->id);
     $fs = get_file_storage();
@@ -717,7 +740,24 @@ function file_save_draft_area_files($draftitemid, $contextid, $component, $filea
 
     if (is_null($text)) {
         return null;
+    } else {
+        return file_rewrite_urls_to_pluginfile($text, $draftitemid, $forcehttps);
     }
+}
+
+/**
+ * Convert the draft file area URLs in some content to @@PLUGINFILE@@ tokens
+ * ready to be saved in the database. Normally, this is done automatically by
+ * {@link file_save_draft_area_files()}.
+ * @param string $text the content to process.
+ * @param int $draftitemid the draft file area the content was using.
+ * @param bool $forcehttps whether the content contains https URLs. Default false.
+ * @return string the processed content.
+ */
+function file_rewrite_urls_to_pluginfile($text, $draftitemid, $forcehttps = false) {
+    global $CFG, $USER;
+
+    $usercontext = get_context_instance(CONTEXT_USER, $USER->id);
 
     $wwwroot = $CFG->wwwroot;
     if ($forcehttps) {
@@ -738,7 +778,6 @@ function file_save_draft_area_files($draftitemid, $contextid, $component, $filea
         }
         $text = str_ireplace("$wwwroot/draftfile.php?file=/$usercontext->id/user/draft/$draftitemid/", '@@PLUGINFILE@@/', $text);
     }
-
 
     return $text;
 }
@@ -888,7 +927,6 @@ function format_postdata_for_curlcall($postdata) {
  * Fetches content of file from Internet (using proxy if defined). Uses cURL extension if present.
  * Due to security concerns only downloads from http(s) sources are supported.
  *
- * @global object
  * @param string $url file url starting with http(s)://
  * @param array $headers http headers, null if none. If set, should be an
  *   associative array of header name => value pairs.
@@ -900,11 +938,14 @@ function format_postdata_for_curlcall($postdata) {
  * @param int $connecttimeout timeout for connection to server; this is the timeout that
  *   usually happens if the remote server is completely down (default 20 seconds);
  *   may not work when using proxy
- * @param bool $skipcertverify If true, the peer's SSL certificate will not be checked. Only use this when already in a trusted location.
- * @param string $tofile store the downloaded content to file instead of returning it
- * @return mixed false if request failed or content of the file as string if ok. true if file downloaded into $tofile successfully.
+ * @param bool $skipcertverify If true, the peer's SSL certificate will not be checked.
+ *   Only use this when already in a trusted location.
+ * @param string $tofile store the downloaded content to file instead of returning it.
+ * @param bool $calctimeout false by default, true enables an extra head request to try and determine
+ *   filesize and appropriately larger timeout based on $CFG->curltimeoutkbitrate
+ * @return mixed false if request failed or content of the file as string if ok. True if file downloaded into $tofile successfully.
  */
-function download_file_content($url, $headers=null, $postdata=null, $fullresponse=false, $timeout=300, $connecttimeout=20, $skipcertverify=false, $tofile=NULL) {
+function download_file_content($url, $headers=null, $postdata=null, $fullresponse=false, $timeout=300, $connecttimeout=20, $skipcertverify=false, $tofile=NULL, $calctimeout=false) {
     global $CFG;
 
     // some extra security
@@ -946,7 +987,6 @@ function download_file_content($url, $headers=null, $postdata=null, $fullrespons
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers2);
     }
 
-
     if ($skipcertverify) {
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     }
@@ -961,7 +1001,7 @@ function download_file_content($url, $headers=null, $postdata=null, $fullrespons
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HEADER, false);
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $connecttimeout);
-    curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+
     if (!ini_get('open_basedir') and !ini_get('safe_mode')) {
         // TODO: add version test for '7.10.5'
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
@@ -1017,6 +1057,37 @@ function download_file_content($url, $headers=null, $postdata=null, $fullrespons
         curl_setopt($ch, CURLOPT_WRITEFUNCTION, partial('download_file_content_write_handler', $received));
     }
 
+    if (!isset($CFG->curltimeoutkbitrate)) {
+        //use very slow rate of 56kbps as a timeout speed when not set
+        $bitrate = 56;
+    } else {
+        $bitrate = $CFG->curltimeoutkbitrate;
+    }
+
+    // try to calculate the proper amount for timeout from remote file size.
+    // if disabled or zero, we won't do any checks nor head requests.
+    if ($calctimeout && $bitrate > 0) {
+        //setup header request only options
+        curl_setopt_array ($ch, array(
+            CURLOPT_RETURNTRANSFER => false,
+            CURLOPT_NOBODY         => true)
+        );
+
+        curl_exec($ch);
+        $info = curl_getinfo($ch);
+        $err = curl_error($ch);
+
+        if ($err === '' && $info['download_content_length'] > 0) { //no curl errors
+            $timeout = max($timeout, ceil($info['download_content_length'] * 8 / ($bitrate * 1024))); //adjust for large files only - take max timeout.
+        }
+        //reinstate affected curl options
+        curl_setopt_array ($ch, array(
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_NOBODY         => false)
+        );
+    }
+
+    curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
     $result = curl_exec($ch);
 
     // try to detect encoding problems
@@ -1120,6 +1191,7 @@ function get_mimetypes_array() {
     static $mimearray = array (
         'xxx'  => array ('type'=>'document/unknown', 'icon'=>'unknown'),
         '3gp'  => array ('type'=>'video/quicktime', 'icon'=>'video'),
+        'aac'  => array ('type'=>'audio/aac', 'icon'=>'audio'),
         'ai'   => array ('type'=>'application/postscript', 'icon'=>'image'),
         'aif'  => array ('type'=>'audio/x-aiff', 'icon'=>'audio'),
         'aiff' => array ('type'=>'audio/x-aiff', 'icon'=>'audio'),
@@ -1152,6 +1224,7 @@ function get_mimetypes_array() {
         'eps'  => array ('type'=>'application/postscript', 'icon'=>'pdf'),
         'fdf'  => array ('type'=>'application/pdf', 'icon'=>'pdf'),
         'flv'  => array ('type'=>'video/x-flv', 'icon'=>'video'),
+        'f4v'  => array ('type'=>'video/mp4', 'icon'=>'video'),
         'gif'  => array ('type'=>'image/gif', 'icon'=>'image'),
         'gtar' => array ('type'=>'application/x-gtar', 'icon'=>'zip'),
         'tgz'  => array ('type'=>'application/g-zip', 'icon'=>'zip'),
@@ -1207,6 +1280,7 @@ function get_mimetypes_array() {
         'odf'  => array ('type'=>'application/vnd.oasis.opendocument.formula', 'icon'=>'odf'),
         'odb'  => array ('type'=>'application/vnd.oasis.opendocument.database', 'icon'=>'odb'),
         'odi'  => array ('type'=>'application/vnd.oasis.opendocument.image', 'icon'=>'odi'),
+        'oga'  => array ('type'=>'audio/ogg', 'icon'=>'audio'),
         'ogg'  => array ('type'=>'audio/ogg', 'icon'=>'audio'),
         'ogv'  => array ('type'=>'video/ogg', 'icon'=>'video'),
 
@@ -1233,8 +1307,10 @@ function get_mimetypes_array() {
         'ram'  => array ('type'=>'audio/x-pn-realaudio-plugin', 'icon'=>'audio'),
         'rhb'  => array ('type'=>'text/xml', 'icon'=>'xml'),
         'rm'   => array ('type'=>'audio/x-pn-realaudio-plugin', 'icon'=>'audio'),
+        'rmvb' => array ('type'=>'application/vnd.rn-realmedia-vbr', 'icon'=>'video'),
         'rtf'  => array ('type'=>'text/rtf', 'icon'=>'text'),
         'rtx'  => array ('type'=>'text/richtext', 'icon'=>'text'),
+        'rv'   => array ('type'=>'audio/x-pn-realaudio-plugin', 'icon'=>'video'),
         'sh'   => array ('type'=>'application/x-sh', 'icon'=>'text'),
         'sit'  => array ('type'=>'application/x-stuffit', 'icon'=>'zip'),
         'smi'  => array ('type'=>'application/smil', 'icon'=>'text'),
@@ -1266,6 +1342,7 @@ function get_mimetypes_array() {
         'tsv'  => array ('type'=>'text/tab-separated-values', 'icon'=>'text'),
         'txt'  => array ('type'=>'text/plain', 'icon'=>'text'),
         'wav'  => array ('type'=>'audio/wav', 'icon'=>'audio'),
+        'webm'  => array ('type'=>'video/webm', 'icon'=>'video'),
         'wmv'  => array ('type'=>'video/x-ms-wmv', 'icon'=>'avi'),
         'asf'  => array ('type'=>'video/x-ms-asf', 'icon'=>'avi'),
         'xdp'  => array ('type'=>'application/pdf', 'icon'=>'pdf'),
@@ -1657,8 +1734,20 @@ function send_file($path, $filename, $lifetime = 'default' , $filter=0, $pathiss
     }
 */
 
-    //try to disable automatic sid rewrite in cookieless mode
-    @ini_set("session.use_trans_sid", "false");
+    if ($lifetime > 0 && !empty($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
+        // get unixtime of request header; clip extra junk off first
+        $since = strtotime(preg_replace('/;.*$/','',$_SERVER["HTTP_IF_MODIFIED_SINCE"]));
+        if ($since && $since >= $lastmodified) {
+            header('HTTP/1.1 304 Not Modified');
+            header('Expires: '. gmdate('D, d M Y H:i:s', time() + $lifetime) .' GMT');
+            header('Cache-Control: max-age='.$lifetime);
+            header('Content-Type: '.$mimetype);
+            if ($dontdie) {
+                return;
+            }
+            die;
+        }
+    }
 
     //do not put '@' before the next header to detect incorrect moodle configurations,
     //error should be better than "weird" empty lines for admins/users
@@ -1734,14 +1823,7 @@ function send_file($path, $filename, $lifetime = 'default' , $filter=0, $pathiss
     }
 
     if (empty($filter)) {
-        if ($mimetype == 'text/html' && !empty($CFG->usesid)) {
-            //cookieless mode - rewrite links
-            header('Content-Type: text/html');
-            $path = $pathisstring ? $path : implode('', file($path));
-            $path = sid_ob_rewrite($path);
-            $filesize = strlen($path);
-            $pathisstring = true;
-        } else if ($mimetype == 'text/plain') {
+        if ($mimetype == 'text/plain') {
             header('Content-Type: Text/plain; charset=utf-8'); //add encoding
         } else {
             header('Content-Type: '.$mimetype);
@@ -1768,10 +1850,6 @@ function send_file($path, $filename, $lifetime = 'default' , $filter=0, $pathiss
 
             $text = file_modify_html_header($text);
             $output = format_text($text, FORMAT_HTML, $options, $COURSE->id);
-            if (!empty($CFG->usesid)) {
-                //cookieless mode - rewrite links
-                $output = sid_ob_rewrite($output);
-            }
 
             header('Content-Length: '.strlen($output));
             header('Content-Type: text/html');
@@ -1789,10 +1867,6 @@ function send_file($path, $filename, $lifetime = 'default' , $filter=0, $pathiss
             $options->noclean = true;
             $text = htmlentities($pathisstring ? $path : implode('', file($path)));
             $output = '<pre>'. format_text($text, FORMAT_MOODLE, $options, $COURSE->id) .'</pre>';
-            if (!empty($CFG->usesid)) {
-                //cookieless mode - rewrite links
-                $output = sid_ob_rewrite($output);
-            }
 
             header('Content-Length: '.strlen($output));
             header('Content-Type: text/html; charset=utf-8'); //add encoding
@@ -1872,12 +1946,23 @@ function send_stored_file($stored_file, $lifetime=86400 , $filter=0, $forcedownl
     $lastmodified = $stored_file->get_timemodified();
     $filesize     = $stored_file->get_filesize();
 
-    //try to disable automatic sid rewrite in cookieless mode
-    @ini_set("session.use_trans_sid", "false");
+    if ($lifetime > 0 && !empty($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
+        // get unixtime of request header; clip extra junk off first
+        $since = strtotime(preg_replace('/;.*$/','',$_SERVER["HTTP_IF_MODIFIED_SINCE"]));
+        if ($since && $since >= $lastmodified) {
+            header('HTTP/1.1 304 Not Modified');
+            header('Expires: '. gmdate('D, d M Y H:i:s', time() + $lifetime) .' GMT');
+            header('Cache-Control: max-age='.$lifetime);
+            header('Content-Type: '.$mimetype);
+            if ($dontdie) {
+                return;
+            }
+            die;
+        }
+    }
 
     //do not put '@' before the next header to detect incorrect moodle configurations,
     //error should be better than "weird" empty lines for admins/users
-    //TODO: should we remove all those @ before the header()? Are all of the values supported on all servers?
     header('Last-Modified: '. gmdate('D, d M Y H:i:s', $lastmodified) .' GMT');
 
     // if user is using IE, urlencode the filename so that multibyte file name will show up correctly on popup
@@ -1949,15 +2034,7 @@ function send_stored_file($stored_file, $lifetime=86400 , $filter=0, $forcedownl
     }
 
     if (empty($filter)) {
-        $filtered = false;
-        if ($mimetype == 'text/html' && !empty($CFG->usesid)) {
-            //cookieless mode - rewrite links
-            header('Content-Type: text/html');
-            $text = $stored_file->get_content();
-            $text = sid_ob_rewrite($text);
-            $filesize = strlen($text);
-            $filtered = true;
-        } else if ($mimetype == 'text/plain') {
+        if ($mimetype == 'text/plain') {
             header('Content-Type: Text/plain; charset=utf-8'); //add encoding
         } else {
             header('Content-Type: '.$mimetype);
@@ -1969,11 +2046,7 @@ function send_stored_file($stored_file, $lifetime=86400 , $filter=0, $forcedownl
         prepare_file_content_sending();
 
         // send the contents
-        if ($filtered) {
-            echo $text;
-        } else {
-            $stored_file->readfile();
-        }
+        $stored_file->readfile();
 
     } else {     // Try to put the file through filters
         if ($mimetype == 'text/html') {
@@ -1983,10 +2056,6 @@ function send_stored_file($stored_file, $lifetime=86400 , $filter=0, $forcedownl
             $text = $stored_file->get_content();
             $text = file_modify_html_header($text);
             $output = format_text($text, FORMAT_HTML, $options, $COURSE->id);
-            if (!empty($CFG->usesid)) {
-                //cookieless mode - rewrite links
-                $output = sid_ob_rewrite($output);
-            }
 
             header('Content-Length: '.strlen($output));
             header('Content-Type: text/html');
@@ -2005,10 +2074,6 @@ function send_stored_file($stored_file, $lifetime=86400 , $filter=0, $forcedownl
             $options->noclean = true;
             $text = $stored_file->get_content();
             $output = '<pre>'. format_text($text, FORMAT_MOODLE, $options, $COURSE->id) .'</pre>';
-            if (!empty($CFG->usesid)) {
-                //cookieless mode - rewrite links
-                $output = sid_ob_rewrite($output);
-            }
 
             header('Content-Length: '.strlen($output));
             header('Content-Type: text/html; charset=utf-8'); //add encoding
@@ -2111,7 +2176,7 @@ function put_records_csv($file, $records, $table = NULL) {
 
     echo "x";
 
-    if(!($fp = @fopen($CFG->dataroot.'/temp/'.$file, 'w'))) {
+    if(!($fp = @fopen($CFG->tempdir.'/'.$file, 'w'))) {
         print_error('put_records_csv failed to open '.$file);
     }
 
@@ -2870,9 +2935,9 @@ class curl_cache {
     function __construct($module = 'repository'){
         global $CFG;
         if (!empty($module)) {
-            $this->dir = $CFG->dataroot.'/cache/'.$module.'/';
+            $this->dir = $CFG->cachedir.'/'.$module.'/';
         } else {
-            $this->dir = $CFG->dataroot.'/cache/misc/';
+            $this->dir = $CFG->cachedir.'/misc/';
         }
         if (!file_exists($this->dir)) {
             mkdir($this->dir, $CFG->directorypermissions, true);
@@ -3071,4 +3136,772 @@ class filetype_parser {
         }
         return $this->result;
     }
+}
+
+/**
+ * This function delegates file serving to individual plugins
+ *
+ * @param string $relativepath
+ * @param bool $forcedownload
+ *
+ * @package    core
+ * @subpackage file
+ * @copyright  2008 Petr Skoda (http://skodak.org)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+function file_pluginfile($relativepath, $forcedownload) {
+    global $DB, $CFG, $USER;
+    // relative path must start with '/'
+    if (!$relativepath) {
+        print_error('invalidargorconf');
+    } else if ($relativepath[0] != '/') {
+        print_error('pathdoesnotstartslash');
+    }
+
+    // extract relative path components
+    $args = explode('/', ltrim($relativepath, '/'));
+
+    if (count($args) < 3) { // always at least context, component and filearea
+        print_error('invalidarguments');
+    }
+
+    $contextid = (int)array_shift($args);
+    $component = clean_param(array_shift($args), PARAM_COMPONENT);
+    $filearea  = clean_param(array_shift($args), PARAM_AREA);
+
+    list($context, $course, $cm) = get_context_info_array($contextid);
+
+    $fs = get_file_storage();
+
+    // ========================================================================================================================
+    if ($component === 'blog') {
+        // Blog file serving
+        if ($context->contextlevel != CONTEXT_SYSTEM) {
+            send_file_not_found();
+        }
+        if ($filearea !== 'attachment' and $filearea !== 'post') {
+            send_file_not_found();
+        }
+
+        if (empty($CFG->bloglevel)) {
+            print_error('siteblogdisable', 'blog');
+        }
+
+        if ($CFG->bloglevel < BLOG_GLOBAL_LEVEL) {
+            require_login();
+            if (isguestuser()) {
+                print_error('noguest');
+            }
+            if ($CFG->bloglevel == BLOG_USER_LEVEL) {
+                if ($USER->id != $entry->userid) {
+                    send_file_not_found();
+                }
+            }
+        }
+        $entryid = (int)array_shift($args);
+        if (!$entry = $DB->get_record('post', array('module'=>'blog', 'id'=>$entryid))) {
+            send_file_not_found();
+        }
+
+        if ('publishstate' === 'public') {
+            if ($CFG->forcelogin) {
+                require_login();
+            }
+
+        } else if ('publishstate' === 'site') {
+            require_login();
+            //ok
+        } else if ('publishstate' === 'draft') {
+            require_login();
+            if ($USER->id != $entry->userid) {
+                send_file_not_found();
+            }
+        }
+
+        $filename = array_pop($args);
+        $filepath = $args ? '/'.implode('/', $args).'/' : '/';
+
+        if (!$file = $fs->get_file($context->id, $component, $filearea, $entryid, $filepath, $filename) or $file->is_directory()) {
+            send_file_not_found();
+        }
+
+        send_stored_file($file, 10*60, 0, true); // download MUST be forced - security!
+
+    // ========================================================================================================================
+    } else if ($component === 'grade') {
+        if (($filearea === 'outcome' or $filearea === 'scale') and $context->contextlevel == CONTEXT_SYSTEM) {
+            // Global gradebook files
+            if ($CFG->forcelogin) {
+                require_login();
+            }
+
+            $fullpath = "/$context->id/$component/$filearea/".implode('/', $args);
+
+            if (!$file = $fs->get_file_by_hash(sha1($fullpath)) or $file->is_directory()) {
+                send_file_not_found();
+            }
+
+            session_get_instance()->write_close(); // unlock session during fileserving
+            send_stored_file($file, 60*60, 0, $forcedownload);
+
+        } else if ($filearea === 'feedback' and $context->contextlevel == CONTEXT_COURSE) {
+            //TODO: nobody implemented this yet in grade edit form!!
+            send_file_not_found();
+
+            if ($CFG->forcelogin || $course->id != SITEID) {
+                require_login($course);
+            }
+
+            $fullpath = "/$context->id/$component/$filearea/".implode('/', $args);
+
+            if (!$file = $fs->get_file_by_hash(sha1($fullpath)) or $file->is_directory()) {
+                send_file_not_found();
+            }
+
+            session_get_instance()->write_close(); // unlock session during fileserving
+            send_stored_file($file, 60*60, 0, $forcedownload);
+        } else {
+            send_file_not_found();
+        }
+
+    // ========================================================================================================================
+    } else if ($component === 'tag') {
+        if ($filearea === 'description' and $context->contextlevel == CONTEXT_SYSTEM) {
+
+            // All tag descriptions are going to be public but we still need to respect forcelogin
+            if ($CFG->forcelogin) {
+                require_login();
+            }
+
+            $fullpath = "/$context->id/tag/description/".implode('/', $args);
+
+            if (!$file = $fs->get_file_by_hash(sha1($fullpath)) or $file->is_directory()) {
+                send_file_not_found();
+            }
+
+            session_get_instance()->write_close(); // unlock session during fileserving
+            send_stored_file($file, 60*60, 0, true);
+
+        } else {
+            send_file_not_found();
+        }
+
+    // ========================================================================================================================
+    } else if ($component === 'calendar') {
+        if ($filearea === 'event_description'  and $context->contextlevel == CONTEXT_SYSTEM) {
+
+            // All events here are public the one requirement is that we respect forcelogin
+            if ($CFG->forcelogin) {
+                require_login();
+            }
+
+            // Get the event if from the args array
+            $eventid = array_shift($args);
+
+            // Load the event from the database
+            if (!$event = $DB->get_record('event', array('id'=>(int)$eventid, 'eventtype'=>'site'))) {
+                send_file_not_found();
+            }
+            // Check that we got an event and that it's userid is that of the user
+
+            // Get the file and serve if successful
+            $filename = array_pop($args);
+            $filepath = $args ? '/'.implode('/', $args).'/' : '/';
+            if (!$file = $fs->get_file($context->id, $component, $filearea, $eventid, $filepath, $filename) or $file->is_directory()) {
+                send_file_not_found();
+            }
+
+            session_get_instance()->write_close(); // unlock session during fileserving
+            send_stored_file($file, 60*60, 0, $forcedownload);
+
+        } else if ($filearea === 'event_description' and $context->contextlevel == CONTEXT_USER) {
+
+            // Must be logged in, if they are not then they obviously can't be this user
+            require_login();
+
+            // Don't want guests here, potentially saves a DB call
+            if (isguestuser()) {
+                send_file_not_found();
+            }
+
+            // Get the event if from the args array
+            $eventid = array_shift($args);
+
+            // Load the event from the database - user id must match
+            if (!$event = $DB->get_record('event', array('id'=>(int)$eventid, 'userid'=>$USER->id, 'eventtype'=>'user'))) {
+                send_file_not_found();
+            }
+
+            // Get the file and serve if successful
+            $filename = array_pop($args);
+            $filepath = $args ? '/'.implode('/', $args).'/' : '/';
+            if (!$file = $fs->get_file($context->id, $component, $filearea, $eventid, $filepath, $filename) or $file->is_directory()) {
+                send_file_not_found();
+            }
+
+            session_get_instance()->write_close(); // unlock session during fileserving
+            send_stored_file($file, 60*60, 0, $forcedownload);
+
+        } else if ($filearea === 'event_description' and $context->contextlevel == CONTEXT_COURSE) {
+
+            // Respect forcelogin and require login unless this is the site.... it probably
+            // should NEVER be the site
+            if ($CFG->forcelogin || $course->id != SITEID) {
+                require_login($course);
+            }
+
+            // Must be able to at least view the course
+            if (!is_enrolled($context) and !is_viewing($context)) {
+                //TODO: hmm, do we really want to block guests here?
+                send_file_not_found();
+            }
+
+            // Get the event id
+            $eventid = array_shift($args);
+
+            // Load the event from the database we need to check whether it is
+            // a) valid course event
+            // b) a group event
+            // Group events use the course context (there is no group context)
+            if (!$event = $DB->get_record('event', array('id'=>(int)$eventid, 'courseid'=>$course->id))) {
+                send_file_not_found();
+            }
+
+            // If its a group event require either membership of view all groups capability
+            if ($event->eventtype === 'group') {
+                if (!has_capability('moodle/site:accessallgroups', $context) && !groups_is_member($event->groupid, $USER->id)) {
+                    send_file_not_found();
+                }
+            } else if ($event->eventtype === 'course') {
+                //ok
+            } else {
+                // some other type
+                send_file_not_found();
+            }
+
+            // If we get this far we can serve the file
+            $filename = array_pop($args);
+            $filepath = $args ? '/'.implode('/', $args).'/' : '/';
+            if (!$file = $fs->get_file($context->id, $component, $filearea, $eventid, $filepath, $filename) or $file->is_directory()) {
+                send_file_not_found();
+            }
+
+            session_get_instance()->write_close(); // unlock session during fileserving
+            send_stored_file($file, 60*60, 0, $forcedownload);
+
+        } else {
+            send_file_not_found();
+        }
+
+    // ========================================================================================================================
+    } else if ($component === 'user') {
+        if ($filearea === 'icon' and $context->contextlevel == CONTEXT_USER) {
+            $redirect = false;
+            if (count($args) == 1) {
+                $themename = theme_config::DEFAULT_THEME;
+                $filename = array_shift($args);
+            } else {
+                $themename = array_shift($args);
+                $filename = array_shift($args);
+            }
+            if ((!empty($CFG->forcelogin) and !isloggedin()) ||
+                    (!empty($CFG->forceloginforprofileimage) && (!isloggedin() || isguestuser()))) {
+                // protect images if login required and not logged in;
+                // also if login is required for profile images and is not logged in or guest
+                // do not use require_login() because it is expensive and not suitable here anyway
+                $redirect = true;
+            }
+            if (!$redirect and ($filename !== 'f1' and $filename !== 'f2')) {
+                $filename = 'f1';
+                $redirect = true;
+            }
+            if (!$redirect && !$file = $fs->get_file($context->id, 'user', 'icon', 0, '/', $filename.'/.png')) {
+                if (!$file = $fs->get_file($context->id, 'user', 'icon', 0, '/', $filename.'/.jpg')) {
+                    $redirect = true;
+                }
+            }
+            if ($redirect) {
+                $theme = theme_config::load($themename);
+                redirect($theme->pix_url('u/'.$filename, 'moodle'));
+            }
+            send_stored_file($file, 60*60*24); // enable long caching, there are many images on each page
+
+        } else if ($filearea === 'private' and $context->contextlevel == CONTEXT_USER) {
+            require_login();
+
+            if (isguestuser()) {
+                send_file_not_found();
+            }
+
+            if ($USER->id !== $context->instanceid) {
+                send_file_not_found();
+            }
+
+            $filename = array_pop($args);
+            $filepath = $args ? '/'.implode('/', $args).'/' : '/';
+            if (!$file = $fs->get_file($context->id, $component, $filearea, 0, $filepath, $filename) or $file->is_directory()) {
+                send_file_not_found();
+            }
+
+            session_get_instance()->write_close(); // unlock session during fileserving
+            send_stored_file($file, 0, 0, true); // must force download - security!
+
+        } else if ($filearea === 'profile' and $context->contextlevel == CONTEXT_USER) {
+
+            if ($CFG->forcelogin) {
+                require_login();
+            }
+
+            $userid = $context->instanceid;
+
+            if ($USER->id == $userid) {
+                // always can access own
+
+            } else if (!empty($CFG->forceloginforprofiles)) {
+                require_login();
+
+                if (isguestuser()) {
+                    send_file_not_found();
+                }
+
+                // we allow access to site profile of all course contacts (usually teachers)
+                if (!has_coursecontact_role($userid) && !has_capability('moodle/user:viewdetails', $context)) {
+                    send_file_not_found();
+                }
+
+                $canview = false;
+                if (has_capability('moodle/user:viewdetails', $context)) {
+                    $canview = true;
+                } else {
+                    $courses = enrol_get_my_courses();
+                }
+
+                while (!$canview && count($courses) > 0) {
+                    $course = array_shift($courses);
+                    if (has_capability('moodle/user:viewdetails', get_context_instance(CONTEXT_COURSE, $course->id))) {
+                        $canview = true;
+                    }
+                }
+            }
+
+            $filename = array_pop($args);
+            $filepath = $args ? '/'.implode('/', $args).'/' : '/';
+            if (!$file = $fs->get_file($context->id, $component, $filearea, 0, $filepath, $filename) or $file->is_directory()) {
+                send_file_not_found();
+            }
+
+            session_get_instance()->write_close(); // unlock session during fileserving
+            send_stored_file($file, 0, 0, true); // must force download - security!
+
+        } else if ($filearea === 'profile' and $context->contextlevel == CONTEXT_COURSE) {
+            $userid = (int)array_shift($args);
+            $usercontext = get_context_instance(CONTEXT_USER, $userid);
+
+            if ($CFG->forcelogin) {
+                require_login();
+            }
+
+            if (!empty($CFG->forceloginforprofiles)) {
+                require_login();
+                if (isguestuser()) {
+                    print_error('noguest');
+                }
+
+                //TODO: review this logic of user profile access prevention
+                if (!has_coursecontact_role($userid) and !has_capability('moodle/user:viewdetails', $usercontext)) {
+                    print_error('usernotavailable');
+                }
+                if (!has_capability('moodle/user:viewdetails', $context) && !has_capability('moodle/user:viewdetails', $usercontext)) {
+                    print_error('cannotviewprofile');
+                }
+                if (!is_enrolled($context, $userid)) {
+                    print_error('notenrolledprofile');
+                }
+                if (groups_get_course_groupmode($course) == SEPARATEGROUPS and !has_capability('moodle/site:accessallgroups', $context)) {
+                    print_error('groupnotamember');
+                }
+            }
+
+            $filename = array_pop($args);
+            $filepath = $args ? '/'.implode('/', $args).'/' : '/';
+            if (!$file = $fs->get_file($usercontext->id, 'user', 'profile', 0, $filepath, $filename) or $file->is_directory()) {
+                send_file_not_found();
+            }
+
+            session_get_instance()->write_close(); // unlock session during fileserving
+            send_stored_file($file, 0, 0, true); // must force download - security!
+
+        } else if ($filearea === 'backup' and $context->contextlevel == CONTEXT_USER) {
+            require_login();
+
+            if (isguestuser()) {
+                send_file_not_found();
+            }
+            $userid = $context->instanceid;
+
+            if ($USER->id != $userid) {
+                send_file_not_found();
+            }
+
+            $filename = array_pop($args);
+            $filepath = $args ? '/'.implode('/', $args).'/' : '/';
+            if (!$file = $fs->get_file($context->id, 'user', 'backup', 0, $filepath, $filename) or $file->is_directory()) {
+                send_file_not_found();
+            }
+
+            session_get_instance()->write_close(); // unlock session during fileserving
+            send_stored_file($file, 0, 0, true); // must force download - security!
+
+        } else {
+            send_file_not_found();
+        }
+
+    // ========================================================================================================================
+    } else if ($component === 'coursecat') {
+        if ($context->contextlevel != CONTEXT_COURSECAT) {
+            send_file_not_found();
+        }
+
+        if ($filearea === 'description') {
+            if ($CFG->forcelogin) {
+                // no login necessary - unless login forced everywhere
+                require_login();
+            }
+
+            $filename = array_pop($args);
+            $filepath = $args ? '/'.implode('/', $args).'/' : '/';
+            if (!$file = $fs->get_file($context->id, 'coursecat', 'description', 0, $filepath, $filename) or $file->is_directory()) {
+                send_file_not_found();
+            }
+
+            session_get_instance()->write_close(); // unlock session during fileserving
+            send_stored_file($file, 60*60, 0, $forcedownload);
+        } else {
+            send_file_not_found();
+        }
+
+    // ========================================================================================================================
+    } else if ($component === 'course') {
+        if ($context->contextlevel != CONTEXT_COURSE) {
+            send_file_not_found();
+        }
+
+        if ($filearea === 'summary') {
+            if ($CFG->forcelogin) {
+                require_login();
+            }
+
+            $filename = array_pop($args);
+            $filepath = $args ? '/'.implode('/', $args).'/' : '/';
+            if (!$file = $fs->get_file($context->id, 'course', 'summary', 0, $filepath, $filename) or $file->is_directory()) {
+                send_file_not_found();
+            }
+
+            session_get_instance()->write_close(); // unlock session during fileserving
+            send_stored_file($file, 60*60, 0, $forcedownload);
+
+        } else if ($filearea === 'section') {
+            if ($CFG->forcelogin) {
+                require_login($course);
+            } else if ($course->id != SITEID) {
+                require_login($course);
+            }
+
+            $sectionid = (int)array_shift($args);
+
+            if (!$section = $DB->get_record('course_sections', array('id'=>$sectionid, 'course'=>$course->id))) {
+                send_file_not_found();
+            }
+
+            if ($course->numsections < $section->section) {
+                if (!has_capability('moodle/course:update', $context)) {
+                    // block access to unavailable sections if can not edit course
+                    send_file_not_found();
+                }
+            }
+
+            $filename = array_pop($args);
+            $filepath = $args ? '/'.implode('/', $args).'/' : '/';
+            if (!$file = $fs->get_file($context->id, 'course', 'section', $sectionid, $filepath, $filename) or $file->is_directory()) {
+                send_file_not_found();
+            }
+
+            session_get_instance()->write_close(); // unlock session during fileserving
+            send_stored_file($file, 60*60, 0, $forcedownload);
+
+        } else {
+            send_file_not_found();
+        }
+
+    } else if ($component === 'group') {
+        if ($context->contextlevel != CONTEXT_COURSE) {
+            send_file_not_found();
+        }
+
+        require_course_login($course, true, null, false);
+
+        $groupid = (int)array_shift($args);
+
+        $group = $DB->get_record('groups', array('id'=>$groupid, 'courseid'=>$course->id), '*', MUST_EXIST);
+        if (($course->groupmodeforce and $course->groupmode == SEPARATEGROUPS) and !has_capability('moodle/site:accessallgroups', $context) and !groups_is_member($group->id, $USER->id)) {
+            // do not allow access to separate group info if not member or teacher
+            send_file_not_found();
+        }
+
+        if ($filearea === 'description') {
+
+            require_login($course);
+
+            $filename = array_pop($args);
+            $filepath = $args ? '/'.implode('/', $args).'/' : '/';
+            if (!$file = $fs->get_file($context->id, 'group', 'description', $group->id, $filepath, $filename) or $file->is_directory()) {
+                send_file_not_found();
+            }
+
+            session_get_instance()->write_close(); // unlock session during fileserving
+            send_stored_file($file, 60*60, 0, $forcedownload);
+
+        } else if ($filearea === 'icon') {
+            $filename = array_pop($args);
+
+            if ($filename !== 'f1' and $filename !== 'f2') {
+                send_file_not_found();
+            }
+            if (!$file = $fs->get_file($context->id, 'group', 'icon', $group->id, '/', $filename.'.png')) {
+                if (!$file = $fs->get_file($context->id, 'group', 'icon', $group->id, '/', $filename.'.jpg')) {
+                    send_file_not_found();
+                }
+            }
+
+            session_get_instance()->write_close(); // unlock session during fileserving
+            send_stored_file($file, 60*60);
+
+        } else {
+            send_file_not_found();
+        }
+
+    } else if ($component === 'grouping') {
+        if ($context->contextlevel != CONTEXT_COURSE) {
+            send_file_not_found();
+        }
+
+        require_login($course);
+
+        $groupingid = (int)array_shift($args);
+
+        // note: everybody has access to grouping desc images for now
+        if ($filearea === 'description') {
+
+            $filename = array_pop($args);
+            $filepath = $args ? '/'.implode('/', $args).'/' : '/';
+            if (!$file = $fs->get_file($context->id, 'grouping', 'description', $groupingid, $filepath, $filename) or $file->is_directory()) {
+                send_file_not_found();
+            }
+
+            session_get_instance()->write_close(); // unlock session during fileserving
+            send_stored_file($file, 60*60, 0, $forcedownload);
+
+        } else {
+            send_file_not_found();
+        }
+
+    // ========================================================================================================================
+    } else if ($component === 'backup') {
+        if ($filearea === 'course' and $context->contextlevel == CONTEXT_COURSE) {
+            require_login($course);
+            require_capability('moodle/backup:downloadfile', $context);
+
+            $filename = array_pop($args);
+            $filepath = $args ? '/'.implode('/', $args).'/' : '/';
+            if (!$file = $fs->get_file($context->id, 'backup', 'course', 0, $filepath, $filename) or $file->is_directory()) {
+                send_file_not_found();
+            }
+
+            session_get_instance()->write_close(); // unlock session during fileserving
+            send_stored_file($file, 0, 0, $forcedownload);
+
+        } else if ($filearea === 'section' and $context->contextlevel == CONTEXT_COURSE) {
+            require_login($course);
+            require_capability('moodle/backup:downloadfile', $context);
+
+            $sectionid = (int)array_shift($args);
+
+            $filename = array_pop($args);
+            $filepath = $args ? '/'.implode('/', $args).'/' : '/';
+            if (!$file = $fs->get_file($context->id, 'backup', 'section', $sectionid, $filepath, $filename) or $file->is_directory()) {
+                send_file_not_found();
+            }
+
+            session_get_instance()->write_close();
+            send_stored_file($file, 60*60, 0, $forcedownload);
+
+        } else if ($filearea === 'activity' and $context->contextlevel == CONTEXT_MODULE) {
+            require_login($course, false, $cm);
+            require_capability('moodle/backup:downloadfile', $context);
+
+            $filename = array_pop($args);
+            $filepath = $args ? '/'.implode('/', $args).'/' : '/';
+            if (!$file = $fs->get_file($context->id, 'backup', 'activity', 0, $filepath, $filename) or $file->is_directory()) {
+                send_file_not_found();
+            }
+
+            session_get_instance()->write_close();
+            send_stored_file($file, 60*60, 0, $forcedownload);
+
+        } else if ($filearea === 'automated' and $context->contextlevel == CONTEXT_COURSE) {
+            // Backup files that were generated by the automated backup systems.
+
+            require_login($course);
+            require_capability('moodle/site:config', $context);
+
+            $filename = array_pop($args);
+            $filepath = $args ? '/'.implode('/', $args).'/' : '/';
+            if (!$file = $fs->get_file($context->id, 'backup', 'automated', 0, $filepath, $filename) or $file->is_directory()) {
+                send_file_not_found();
+            }
+
+            session_get_instance()->write_close(); // unlock session during fileserving
+            send_stored_file($file, 0, 0, $forcedownload);
+
+        } else {
+            send_file_not_found();
+        }
+
+    // ========================================================================================================================
+    } else if ($component === 'question') {
+        require_once($CFG->libdir . '/questionlib.php');
+        question_pluginfile($course, $context, 'question', $filearea, $args, $forcedownload);
+        send_file_not_found();
+
+    // ========================================================================================================================
+    } else if ($component === 'grading') {
+        if ($filearea === 'description') {
+            // files embedded into the form definition description
+
+            if ($context->contextlevel == CONTEXT_SYSTEM) {
+                require_login();
+
+            } else if ($context->contextlevel >= CONTEXT_COURSE) {
+                require_login($course, false, $cm);
+
+            } else {
+                send_file_not_found();
+            }
+
+            $formid = (int)array_shift($args);
+
+            $sql = "SELECT ga.id
+                FROM {grading_areas} ga
+                JOIN {grading_definitions} gd ON (gd.areaid = ga.id)
+                WHERE gd.id = ? AND ga.contextid = ?";
+            $areaid = $DB->get_field_sql($sql, array($formid, $context->id), IGNORE_MISSING);
+
+            if (!$areaid) {
+                send_file_not_found();
+            }
+
+            $fullpath = "/$context->id/$component/$filearea/$formid/".implode('/', $args);
+
+            if (!$file = $fs->get_file_by_hash(sha1($fullpath)) or $file->is_directory()) {
+                send_file_not_found();
+            }
+
+            session_get_instance()->write_close(); // unlock session during fileserving
+            send_stored_file($file, 60*60, 0, $forcedownload);
+        }
+
+        // ========================================================================================================================
+    } else if (strpos($component, 'mod_') === 0) {
+        $modname = substr($component, 4);
+        if (!file_exists("$CFG->dirroot/mod/$modname/lib.php")) {
+            send_file_not_found();
+        }
+        require_once("$CFG->dirroot/mod/$modname/lib.php");
+
+        if ($context->contextlevel == CONTEXT_MODULE) {
+            if ($cm->modname !== $modname) {
+                // somebody tries to gain illegal access, cm type must match the component!
+                send_file_not_found();
+            }
+        }
+
+        if ($filearea === 'intro') {
+            if (!plugin_supports('mod', $modname, FEATURE_MOD_INTRO, true)) {
+                send_file_not_found();
+            }
+            require_course_login($course, true, $cm);
+
+            // all users may access it
+            $filename = array_pop($args);
+            $filepath = $args ? '/'.implode('/', $args).'/' : '/';
+            if (!$file = $fs->get_file($context->id, 'mod_'.$modname, 'intro', 0, $filepath, $filename) or $file->is_directory()) {
+                send_file_not_found();
+            }
+
+            $lifetime = isset($CFG->filelifetime) ? $CFG->filelifetime : 86400;
+
+            // finally send the file
+            send_stored_file($file, $lifetime, 0);
+        }
+
+        $filefunction = $component.'_pluginfile';
+        $filefunctionold = $modname.'_pluginfile';
+        if (function_exists($filefunction)) {
+            // if the function exists, it must send the file and terminate. Whatever it returns leads to "not found"
+            $filefunction($course, $cm, $context, $filearea, $args, $forcedownload);
+        } else if (function_exists($filefunctionold)) {
+            // if the function exists, it must send the file and terminate. Whatever it returns leads to "not found"
+            $filefunctionold($course, $cm, $context, $filearea, $args, $forcedownload);
+        }
+
+        send_file_not_found();
+
+    // ========================================================================================================================
+    } else if (strpos($component, 'block_') === 0) {
+        $blockname = substr($component, 6);
+        // note: no more class methods in blocks please, that is ....
+        if (!file_exists("$CFG->dirroot/blocks/$blockname/lib.php")) {
+            send_file_not_found();
+        }
+        require_once("$CFG->dirroot/blocks/$blockname/lib.php");
+
+        if ($context->contextlevel == CONTEXT_BLOCK) {
+            $birecord = $DB->get_record('block_instances', array('id'=>$context->instanceid), '*',MUST_EXIST);
+            if ($birecord->blockname !== $blockname) {
+                // somebody tries to gain illegal access, cm type must match the component!
+                send_file_not_found();
+            }
+        } else {
+            $birecord = null;
+        }
+
+        $filefunction = $component.'_pluginfile';
+        if (function_exists($filefunction)) {
+            // if the function exists, it must send the file and terminate. Whatever it returns leads to "not found"
+            $filefunction($course, $birecord, $context, $filearea, $args, $forcedownload);
+        }
+
+        send_file_not_found();
+
+    } else if (strpos($component, '_') === false) {
+        // all core subsystems have to be specified above, no more guessing here!
+        send_file_not_found();
+
+    } else {
+        // try to serve general plugin file in arbitrary context
+        $dir = get_component_directory($component);
+        if (!file_exists("$dir/lib.php")) {
+            send_file_not_found();
+        }
+        include_once("$dir/lib.php");
+
+        $filefunction = $component.'_pluginfile';
+        if (function_exists($filefunction)) {
+            // if the function exists, it must send the file and terminate. Whatever it returns leads to "not found"
+            $filefunction($course, $cm, $context, $filearea, $args, $forcedownload);
+        }
+
+        send_file_not_found();
+    }
+
 }

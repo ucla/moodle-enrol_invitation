@@ -308,5 +308,19 @@ function xmldb_workshop_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2011021100, 'workshop');
     }
 
+    // Moodle v2.1.0 release upgrade line
+    // Put any upgrade step following this
+
+    /**
+     * Fix the eventually corrupted workshop table id sequence
+     */
+    if ($oldversion < 2011110400) {
+        $dbman->reset_sequence('workshop');
+        upgrade_mod_savepoint(true, 2011110400, 'workshop');
+    }
+
+    // Moodle v2.2.0 release upgrade line
+    // Put any upgrade step following this
+
     return true;
 }

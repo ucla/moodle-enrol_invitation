@@ -117,7 +117,7 @@ class blog_entry {
         $this->summary = file_rewrite_pluginfile_urls($this->summary, 'pluginfile.php', SYSCONTEXTID, 'blog', 'post', $this->id);
 
         $options = array('overflowdiv'=>true);
-        $template['body'] = format_text($this->summary, $this->summaryformat, $options).$cmttext;
+        $template['body'] = format_text($this->summary, $this->summaryformat, $options);
         $template['title'] = format_string($this->subject);
         $template['userid'] = $user->id;
         $template['author'] = fullname($user);
@@ -247,10 +247,10 @@ class blog_entry {
 
             // First find and show the associated course
             foreach ($blogassociations as $assocrec) {
-                $contextrec = $DB->get_record('context', array('id' => $assocrec->contextid));
-                if ($contextrec->contextlevel ==  CONTEXT_COURSE) {
-                    $assocurl = new moodle_url('/course/view.php', array('id' => $contextrec->instanceid));
-                    $text = $DB->get_field('course', 'shortname', array('id' => $contextrec->instanceid)); //TODO: performance!!!!
+                $context = get_context_instance_by_id($assocrec->contextid);
+                if ($context->contextlevel ==  CONTEXT_COURSE) {
+                    $assocurl = new moodle_url('/course/view.php', array('id' => $context->instanceid));
+                    $text = $DB->get_field('course', 'shortname', array('id' => $context->instanceid)); //TODO: performance!!!!
                     $assocstr .= $OUTPUT->action_icon($assocurl, new pix_icon('i/course', $text), null, array(), true);
                     $hascourseassocs = true;
                     $assoctype = get_string('course');
@@ -259,15 +259,15 @@ class blog_entry {
 
             // Now show mod association
             foreach ($blogassociations as $assocrec) {
-                $contextrec = $DB->get_record('context', array('id' => $assocrec->contextid));
+                $context = get_context_instance_by_id($assocrec->contextid);
 
-                if ($contextrec->contextlevel ==  CONTEXT_MODULE) {
+                if ($context->contextlevel ==  CONTEXT_MODULE) {
                     if ($hascourseassocs) {
                         $assocstr .= ', ';
                         $hascourseassocs = false;
                     }
 
-                    $modinfo = $DB->get_record('course_modules', array('id' => $contextrec->instanceid));
+                    $modinfo = $DB->get_record('course_modules', array('id' => $context->instanceid));
                     $modname = $DB->get_field('modules', 'name', array('id' => $modinfo->module));
 
                     $assocurl = new moodle_url('/mod/'.$modname.'/view.php', array('id' => $modinfo->id));
@@ -306,6 +306,9 @@ class blog_entry {
             $contentcell->text .= ' [ '.get_string('modified').': '.$template['lastmod'].' ]';
             $contentcell->text .= '</div>';
         }
+
+        //add comments under everything
+        $contentcell->text .= $cmttext;
 
         $mainrow->cells[] = $contentcell;
         $table->data = array($mainrow);
@@ -517,7 +520,7 @@ class blog_entry {
 
             } else {
                 if (in_array($type, array('image/gif', 'image/jpeg', 'image/png'))) {    // Image attachments don't get printed as links
-                    $imagereturn .= "<br />" . $OUTPUT->pix_icon($ffurl, $filename);
+                    $imagereturn .= '<br /><img src="'.$ffurl.'" alt="" />';
                 } else {
                     $imagereturn .= html_writer::link($ffurl, $image);
                     $imagereturn .= format_text(html_writer::link($ffurl, $filename), FORMAT_HTML, array('context'=>$syscontext));
@@ -718,7 +721,7 @@ class blog_listing {
         global $DB;
 
         if (empty($this->entries)) {
-            if ($sqlarray = $this->get_entry_fetch_sql()) {
+            if ($sqlarray = $this->get_entry_fetch_sql(false, 'created DESC')) {
                 $this->entries = $DB->get_records_sql($sqlarray['sql'], $sqlarray['params'], $start, $limit);
             } else {
                 return false;

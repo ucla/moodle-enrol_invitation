@@ -20,7 +20,6 @@
  *
  * This script is not intended for beginners!
  * Potential problems:
- * - environment check is not present yet
  * - su to apache account or sudo before execution
  * - not compatible with Windows platform
  *
@@ -70,6 +69,8 @@ Options:
                       problem encountered.
 --agree-license       Indicates agreement with software license,
                       required in non-interactive mode.
+--allow-unstable      Install even if the version is not marked as stable yet,
+                      required in non-interactive mode.
 -h, --help            Print out this help
 
 Example:
@@ -89,7 +90,11 @@ if (file_exists($configfile)) {
         echo "\n\n";
     }
 
-    cli_error(get_string('clialreadyinstalled', 'install'));
+    if ($DB->get_manager()->table_exists('config')) {
+        cli_error(get_string('clialreadyinstalled', 'install'));
+    } else {
+        cli_error(get_string('clialreadyconfigured', 'install'));
+    }
 }
 
 $olddir = getcwd();
@@ -113,12 +118,12 @@ if (function_exists('date_default_timezone_set') and function_exists('date_defau
 define('MOODLE_INTERNAL', true);
 
 // Check that PHP is of a sufficient version
-if (version_compare(phpversion(), "5.2.8") < 0) {
+if (version_compare(phpversion(), "5.3.2") < 0) {
     $phpversion = phpversion();
     // do NOT localise - lang strings would not work here and we CAN NOT move it after installib
-    echo "Sorry, Moodle 2.0 requires PHP 5.2.8 or later (currently using version $phpversion).\n";
-    echo "Please upgrade your server software or install latest Moodle 1.9.x instead.";
-    die;
+    fwrite(STDERR, "Moodle 2.1 or later requires at least PHP 5.3.2 (currently using version $phpversion).\n");
+    fwrite(STDERR, "Please upgrade your server software or install older Moodle version.\n");
+    exit(1);
 }
 
 // set up configuration
@@ -128,16 +133,12 @@ $CFG->dirroot              = dirname(dirname(dirname(__FILE__)));
 $CFG->libdir               = "$CFG->dirroot/lib";
 $CFG->wwwroot              = "http://localhost";
 $CFG->httpswwwroot         = $CFG->wwwroot;
-$CFG->dataroot             = str_replace('\\', '/', dirname(dirname(dirname(dirname(__FILE__)))).'/moodledata');
 $CFG->docroot              = 'http://docs.moodle.org';
 $CFG->running_installer    = true;
 $CFG->early_install_lang   = true;
 
 $parts = explode('/', str_replace('\\', '/', dirname(dirname(__FILE__))));
 $CFG->admin                = array_pop($parts);
-
-require($CFG->dirroot.'/version.php');
-$CFG->target_release = $release;
 
 //point pear include path to moodles lib/pear so that includes and requires will search there for files before anywhere else
 //the problem is that we need specific version of quickforms and hacked excel files :-(
@@ -153,6 +154,9 @@ require_once($CFG->libdir.'/moodlelib.php');
 require_once($CFG->libdir.'/deprecatedlib.php');
 require_once($CFG->libdir.'/adminlib.php');
 require_once($CFG->libdir.'/componentlib.class.php');
+
+require($CFG->dirroot.'/version.php');
+$CFG->target_release = $release;
 
 //Database types
 $databases = array('mysqli' => moodle_database::get_driver_instance('mysqli', 'native'),
@@ -179,7 +183,7 @@ list($options, $unrecognized) = cli_get_params(
         'chmod'             => '2777',
         'lang'              => $CFG->lang,
         'wwwroot'           => '',
-        'dataroot'          => $CFG->dataroot,
+        'dataroot'          => str_replace('\\', '/', dirname(dirname(dirname(dirname(__FILE__)))).'/moodledata'),
         'dbtype'            => $defaultdb,
         'dbhost'            => 'localhost',
         'dbname'            => 'moodle',
@@ -193,6 +197,7 @@ list($options, $unrecognized) = cli_get_params(
         'adminpass'         => '',
         'non-interactive'   => false,
         'agree-license'     => false,
+        'allow-unstable'    => false,
         'help'              => false
     ),
     array(
@@ -262,7 +267,7 @@ if ($interactive) {
 $chmod = octdec(clean_param($options['chmod'], PARAM_INT));
 if ($interactive) {
     cli_separator();
-    cli_heading('Data directories permission'); // todo localize
+    cli_heading(get_string('datarootpermission', 'install'));
     $prompt = get_string('clitypevaluedefault', 'admin', decoct($chmod));
     $error = '';
     do {
@@ -322,9 +327,12 @@ $CFG->httpswwwroot  = $CFG->wwwroot;
 
 
 //We need dataroot before lang download
-if (!empty($options['dataroot'])) {
-    $CFG->dataroot = $options['dataroot'];
+$dataroot = clean_param($options['dataroot'], PARAM_PATH);
+if ($dataroot !== $options['dataroot']) {
+    $a = (object)array('option' => 'dataroot', 'value' => $options['dataroot']);
+    cli_error(get_string('cliincorrectvalueerror', 'admin', $a));
 }
+$CFG->dataroot = $dataroot;
 if ($interactive) {
     cli_separator();
     $i=0;
@@ -372,26 +380,19 @@ if ($interactive) {
         cli_error(get_string('pathserrcreatedataroot', 'install', $a));
     }
 }
+$CFG->tempdir  = $CFG->dataroot.'/temp';
+$CFG->cachedir = $CFG->dataroot.'/cache';
 
-//download lang pack with optional notification
-if ($CFG->lang != 'en') {
-    if ($cd = new component_installer('http://download.moodle.org', 'langpack/2.0', $CFG->lang.'.zip', 'languages.md5', 'lang')) {
-        if ($cd->install() == COMPONENT_ERROR) {
-            if ($cd->get_error() == 'remotedownloaderror') {
-                $a = new stdClass();
-                $a->url  = 'http://download.moodle.org/langpack/2.0/'.$CFG->lang.'.zip';
-                $a->dest = $CFG->dataroot.'/lang';
-                cli_problem(get_string($cd->get_error(), 'error', $a));
-            } else {
-                cli_problem(get_string($cd->get_error(), 'error'));
-            }
-        } else {
-            // install parent lang if defined
-            if ($parentlang = get_parent_language()) {
-                if ($cd = new component_installer('http://download.moodle.org', 'langpack/2.0', $parentlang.'.zip', 'languages.md5', 'lang')) {
-                    $cd->install();
-                }
-            }
+// download required lang packs
+if ($CFG->lang !== 'en') {
+    $installer = new lang_installer($CFG->lang);
+    $results = $installer->run();
+    foreach ($results as $langcode => $langstatus) {
+        if ($langstatus === lang_installer::RESULT_DOWNLOADERROR) {
+            $a       = new stdClass();
+            $a->url  = $installer->lang_pack_url($langcode);
+            $a->dest = $CFG->dataroot.'/lang';
+            cli_problem(get_string('remotedownloaderror', 'error', $a));
         }
     }
 }
@@ -401,6 +402,28 @@ $CFG->early_install_lang = false;
 $CFG->langotherroot      = $CFG->dataroot.'/lang';
 $CFG->langlocalroot      = $CFG->dataroot.'/lang';
 get_string_manager(true);
+
+// make sure we are installing stable release or require a confirmation
+if (isset($maturity)) {
+    if (($maturity < MATURITY_STABLE) and !$options['allow-unstable']) {
+        $maturitylevel = get_string('maturity'.$maturity, 'admin');
+
+        if ($interactive) {
+            cli_separator();
+            cli_heading(get_string('notice'));
+            echo get_string('maturitycorewarning', 'admin', $maturitylevel) . PHP_EOL;
+            echo get_string('morehelp') . ': ' . get_docs_url('admin/versions') . PHP_EOL;
+            echo get_string('continue') . PHP_EOL;
+            $prompt = get_string('cliyesnoprompt', 'admin');
+            $input = cli_input($prompt, '', array(get_string('clianswerno', 'admin'), get_string('cliansweryes', 'admin')));
+            if ($input == get_string('clianswerno', 'admin')) {
+                exit(1);
+            }
+        } else {
+            cli_error(get_string('maturitycorewarning', 'admin'));
+        }
+    }
+}
 
 // ask for db type - show only drivers available
 if ($interactive) {
@@ -628,6 +651,27 @@ require($configfile);
 // use selected language
 $CFG->lang = $installlang;
 $SESSION->lang = $CFG->lang;
+
+require("$CFG->dirroot/version.php");
+
+// Test environment first.
+require_once($CFG->libdir . '/environmentlib.php');
+list($envstatus, $environment_results) = check_moodle_environment(normalize_version($release), ENV_SELECT_RELEASE);
+if (!$envstatus) {
+    $errors = environment_get_errors($environment_results);
+    cli_heading(get_string('environment', 'admin'));
+    foreach ($errors as $error) {
+        list($info, $report) = $error;
+        echo "!! $info !!\n$report\n\n";
+    }
+    exit(1);
+}
+
+// Test plugin dependencies.
+require_once($CFG->libdir . '/pluginlib.php');
+if (!plugin_manager::instance()->all_plugins_ok($version)) {
+    cli_error(get_string('pluginschecktodo', 'admin'));
+}
 
 install_cli_database($options, $interactive);
 

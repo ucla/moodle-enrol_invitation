@@ -66,9 +66,13 @@ if ($data = $mform->get_data()) {
 
     require_sesskey();
 
-    if (!$importfile = $mform->get_importfile_name()) {
-        print_error('uploadproblem', 'moodle');
-        }
+    $realfilename = $mform->get_new_filename('questionfile');
+    //TODO: Leave all imported questions in Questionimport for now.
+    $importfile = "{$CFG->tempdir}/questionimport/{$realfilename}";
+    make_temp_directory('questionimport');
+    if (!$result = $mform->save_file('questionfile', $importfile, true)) {
+        throw new moodle_exception('uploadproblem');
+    }
 
     $formatclass = 'qformat_'.$data->format;
     $formatclassfile = $CFG->dirroot.'/question/format/'.$data->format.'/format.php';

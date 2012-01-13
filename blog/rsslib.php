@@ -186,9 +186,10 @@ function blog_rss_get_feed($context, $args) {
             break;
         case 'course':
             $info = $DB->get_field('course', 'fullname', array('id'=>$id));
+            $info = format_string($info, true, array('context' => get_context_instance(CONTEXT_COURSE, $id)));
             break;
         case 'site':
-            $info = $SITE->fullname;
+            $info = format_string($SITE->fullname, true, array('context' => get_context_instance(CONTEXT_COURSE, SITEID)));
             break;
         case 'group':
             $group = groups_get_group($id);
@@ -223,9 +224,9 @@ function blog_rss_file_name($type, $id, $tagid=0) {
     global $CFG;
 
     if ($tagid) {
-        return "$CFG->dataroot/cache/rss/blog/$type/$id/$tagid.xml";
+        return "$CFG->cachedir/rss/blog/$type/$id/$tagid.xml";
     } else {
-        return "$CFG->dataroot/cache/rss/blog/$type/$id.xml";
+        return "$CFG->cachedir/rss/blog/$type/$id.xml";
     }
 }
 
@@ -236,8 +237,8 @@ function blog_rss_save_file($type, $id, $tagid=0, $contents='') {
     $status = true;
 
     //blog creates some additional dirs within the rss cache so make sure they all exist
-    make_upload_directory('cache/rss/blog');
-    make_upload_directory('cache/rss/blog/'.$type);
+    make_cache_directory('rss/blog');
+    make_cache_directory('rss/blog/'.$type);
 
     $filename = blog_rss_file_name($type, $id, $tagid);
     $expandfilename = false; //we're supplying a full file path

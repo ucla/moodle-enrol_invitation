@@ -105,7 +105,7 @@ class page_requirements_manager {
     protected $yui2loader;
     /** YUI PHPLoader instance responsible for YUI3 loading from PHP only */
     protected $yui3loader;
-    /** YUI PHPLoader instance responsible for YUI3 loading from javascript */
+    /** YUI loader information for YUI3 loading from javascript */
     protected $M_yui_loader;
     /** some config vars exposed in JS, please no secret stuff there */
     protected $M_cfg;
@@ -120,13 +120,14 @@ class page_requirements_manager {
 
         require_once("$CFG->libdir/yui/phploader/phploader/loader.php");
 
-        $this->yui3loader = new YAHOO_util_Loader($CFG->yui3version);
+        $this->yui3loader = new stdClass();
         $this->yui2loader = new YAHOO_util_Loader($CFG->yui2version);
 
         // set up some loader options
         if (debugging('', DEBUG_DEVELOPER)) {
-            $this->yui3loader->filter = YUI_DEBUG; // alternatively we could use just YUI_RAW here
-            $this->yui2loader->filter = YUI_DEBUG; // alternatively we could use just YUI_RAW here
+            $this->yui3loader->filter = YUI_RAW; // for more detailed logging info use YUI_DEBUG here
+            $this->yui2loader->filter = YUI_RAW; // for more detailed logging info use YUI_DEBUG here
+            $this->yui2loader->allowRollups = false;
         } else {
             $this->yui3loader->filter = null;
             $this->yui2loader->filter = null;
@@ -160,7 +161,7 @@ class page_requirements_manager {
         $this->M_yui_loader->base         = $this->yui3loader->base;
         $this->M_yui_loader->comboBase    = $this->yui3loader->comboBase;
         $this->M_yui_loader->combine      = $this->yui3loader->combine;
-        $this->M_yui_loader->filter       = ($this->yui3loader->filter == YUI_DEBUG) ? 'debug' : '';
+        $this->M_yui_loader->filter       = (string)$this->yui3loader->filter;
         $this->M_yui_loader->insertBefore = 'firstthemesheet';
         $this->M_yui_loader->modules      = array();
         $this->M_yui_loader->groups       = array(
@@ -201,11 +202,6 @@ class page_requirements_manager {
         $this->js_module($this->find_module('core_filepicker'));
         $this->js_module($this->find_module('core_dock'));
 
-        // YUI3 init code
-        $libs = array('cssreset', 'cssbase', 'cssfonts', 'cssgrids', 'node', 'loader'); // full CSS reset + basic libs
-        foreach ($libs as $lib) {
-            $this->yui3loader->load($lib);
-        }
     }
 
     /**
@@ -272,7 +268,7 @@ class page_requirements_manager {
      * Initialise with the bits of JavaScript that every Moodle page should have.
      *
      * @param moodle_page $page
-     * @param core_renderer $output
+     * @param core_renderer $renderer
      */
     protected function init_requirements_data(moodle_page $page, core_renderer $renderer) {
         global $CFG;
@@ -287,6 +283,7 @@ class page_requirements_manager {
             'loadingicon'         => $renderer->pix_url('i/loading_small', 'moodle')->out(false),
             'themerev'            => theme_get_revision(),
             'theme'               => $page->theme->name,
+            'jsrev'               => ((empty($CFG->cachejs) or empty($CFG->jsrev)) ? -1 : $CFG->jsrev),
         );
         if (debugging('', DEBUG_DEVELOPER)) {
             $this->M_cfg['developerdebug'] = true;
@@ -399,7 +396,7 @@ class page_requirements_manager {
                 case 'core_filepicker':
                     $module = array('name'     => 'core_filepicker',
                                     'fullpath' => '/repository/filepicker.js',
-                                    'requires' => array('base', 'node', 'node-event-simulate', 'json', 'async-queue', 'io', 'yui2-button', 'yui2-container', 'yui2-layout', 'yui2-menu', 'yui2-treeview', 'yui2-dragdrop', 'yui2-cookie'),
+                                    'requires' => array('base', 'node', 'node-event-simulate', 'json', 'async-queue', 'io-base', 'io-upload-iframe', 'io-form', 'yui2-button', 'yui2-container', 'yui2-layout', 'yui2-menu', 'yui2-treeview', 'yui2-dragdrop', 'yui2-cookie'),
                                     'strings'  => array(array('add', 'repository'), array('back', 'repository'), array('cancel', 'moodle'), array('close', 'repository'),
                                                         array('cleancache', 'repository'), array('copying', 'repository'), array('date', 'repository'), array('downloadsucc', 'repository'),
                                                         array('emptylist', 'repository'), array('error', 'repository'), array('federatedsearch', 'repository'),
@@ -411,16 +408,19 @@ class page_requirements_manager {
                                                         array('saving', 'repository'), array('search', 'repository'), array('searching', 'repository'), array('size', 'repository'),
                                                         array('submit', 'repository'), array('sync', 'repository'), array('title', 'repository'), array('upload', 'repository'),
                                                         array('uploading', 'repository'), array('xhtmlerror', 'repository'),
-                                                        array('xhtml', 'quiz'), array('cancel'), array('chooselicense', 'repository'), array('author', 'repository'),
+                                                        array('cancel'), array('chooselicense', 'repository'), array('author', 'repository'),
                                                         array('ok', 'moodle'), array('error', 'moodle'), array('info', 'moodle'), array('norepositoriesavailable', 'repository'), array('norepositoriesexternalavailable', 'repository'),
                                                         array('nofilesattached', 'repository'), array('filepicker', 'repository'),
-                                                        array('nofilesavailable', 'repository')
+                                                        array('nofilesavailable', 'repository'), array('overwrite', 'repository'),
+                                                        array('renameto', 'repository'), array('fileexists', 'repository'),
+                                                        array('fileexistsdialogheader', 'repository'), array('fileexistsdialog_editor', 'repository'),
+                                                        array('fileexistsdialog_filemanager', 'repository')
                                                     ));
                     break;
                 case 'core_comment':
                     $module = array('name'     => 'core_comment',
                                     'fullpath' => '/comment/comment.js',
-                                    'requires' => array('base', 'io', 'node', 'json', 'yui2-animation', 'overlay'),
+                                    'requires' => array('base', 'io-base', 'node', 'json', 'yui2-animation', 'overlay'),
                                     'strings' => array(array('confirmdeletecomments', 'admin'), array('yes', 'moodle'), array('no', 'moodle'))
                                 );
                     break;
@@ -441,12 +441,8 @@ class page_requirements_manager {
                     break;
                 case 'core_message':
                     $module = array('name'     => 'core_message',
+                                    'requires' => array('base', 'node', 'event', 'node-event-simulate'),
                                     'fullpath' => '/message/module.js');
-                    break;
-                case 'core_flashdetect':
-                    $module = array('name'     => 'core_flashdetect',
-                                    'fullpath' => '/lib/flashdetect/flashdetect.js',
-                                    'requires' => array('io'));
                     break;
                 case 'core_group':
                     $module = array('name'     => 'core_group',
@@ -461,12 +457,12 @@ class page_requirements_manager {
                 case 'core_rating':
                     $module = array('name'     => 'core_rating',
                                     'fullpath' => '/rating/module.js',
-                                    'requires' => array('node', 'event', 'overlay', 'io', 'json'));
+                                    'requires' => array('node', 'event', 'overlay', 'io-base', 'json'));
                     break;
                 case 'core_filetree':
                     $module = array('name'     => 'core_filetree',
                                     'fullpath' => '/files/module.js',
-                                    'requires' => array('node', 'event', 'overlay', 'io', 'json', 'yui2-treeview'));
+                                    'requires' => array('node', 'event', 'overlay', 'io-base', 'json', 'yui2-treeview'));
                     break;
             }
 
@@ -552,7 +548,7 @@ class page_requirements_manager {
     /**
      * Returns true if the module has already been loaded.
      *
-     * @param string|array $modulename
+     * @param string|array $module
      * @return bool True if the module has already been loaded
      */
     protected function js_module_loaded($module) {
@@ -719,7 +715,7 @@ class page_requirements_manager {
             // Set Y's config.gallery to the version
             $jscode = 'Y.config.gallery='.json_encode($galleryversion).';';
         }
-        $jscode .= 'Y.use('.join(',', array_map('json_encode', $modules)).',function() {'.js_writer::function_call($function, $arguments).'})';
+        $jscode .= 'Y.use('.join(',', array_map('json_encode', $modules)).',function() {'.js_writer::function_call($function, $arguments).'});';
         if ($ondomready) {
             $jscode = "Y.on('domready', function() { $jscode });";
         }
@@ -823,7 +819,7 @@ class page_requirements_manager {
      * (e.g. and array) that you pass to JavaScript with {@link data_for_js()}.
      *
      * @param string $identifier the desired string.
-     * @param string $module the language file to look in.
+     * @param string $component the language file to look in.
      * @param mixed $a any extra data to add into the string (optional).
      */
     public function string_for_js($identifier, $component, $a = NULL) {
@@ -846,13 +842,13 @@ class page_requirements_manager {
      * passed in $module.
      *
      * <code>
-     * $PAGE->strings_for_js(Array('one', 'two', 'three'), 'mymod', Array('a', null, 3));
+     * $PAGE->requires->strings_for_js(array('one', 'two', 'three'), 'mymod', array('a', null, 3));
      *
      * // The above is identitical to calling
      *
-     * $PAGE->string_for_js('one', 'mymod', 'a');
-     * $PAGE->string_for_js('two', 'mymod');
-     * $PAGE->string_for_js('three', 'mymod', 3);
+     * $PAGE->requires->string_for_js('one', 'mymod', 'a');
+     * $PAGE->requires->string_for_js('two', 'mymod');
+     * $PAGE->requires->string_for_js('three', 'mymod', 3);
      * </code>
      *
      * @param array $identifiers An array of desired strings
@@ -923,7 +919,8 @@ class page_requirements_manager {
 
     /**
      * Get the inline JavaScript code that need to appear in a particular place.
-     * @return bool $ondomready
+     * @param bool $ondomready
+     * @return string
      */
     protected function get_javascript_code($ondomready) {
         $where = $ondomready ? 'ondomready' : 'normal';
@@ -960,10 +957,33 @@ class page_requirements_manager {
      * @return string
      */
     protected function get_yui3lib_headcode() {
-        $code = $this->yui3loader->tags();
-        // unfortunately yui loader does not produce xhtml strict code, so let's fix it for now
-        $code = str_replace('&amp;', '&', $code);
-        $code = str_replace('&', '&amp;', $code);
+        global $CFG;
+
+        $code = '';
+
+        if ($this->yui3loader->combine) {
+            $code .= '<link rel="stylesheet" type="text/css" href="'.$this->yui3loader->comboBase
+                     .$CFG->yui3version.'/build/cssreset/reset-min.css&amp;'
+                     .$CFG->yui3version.'/build/cssfonts/fonts-min.css&amp;'
+                     .$CFG->yui3version.'/build/cssgrids/grids-min.css&amp;'
+                     .$CFG->yui3version.'/build/cssbase/base-min.css" />';
+        } else {
+            $code .= '<link rel="stylesheet" type="text/css" href="'.$this->yui3loader->base.'cssreset/reset-min.css" />';
+            $code .= '<link rel="stylesheet" type="text/css" href="'.$this->yui3loader->base.'cssfonts/fonts-min.css" />';
+            $code .= '<link rel="stylesheet" type="text/css" href="'.$this->yui3loader->base.'cssgrids/grids-min.css" />';
+            $code .= '<link rel="stylesheet" type="text/css" href="'.$this->yui3loader->base.'cssbase/base-min.css" />';
+        }
+
+        $code .= '<script type="text/javascript" src="'.$this->yui3loader->base.'yui/yui-min.js"></script>';
+
+        if ($this->yui3loader->filter === YUI_RAW) {
+            $code = str_replace('-min.css', '.css', $code);
+            $code = str_replace('-min.js', '.js', $code);
+        } else if ($this->yui3loader->filter === YUI_DEBUG) {
+            $code = str_replace('-min.css', '.css', $code);
+            $code = str_replace('-min.js', '-debug.js', $code);
+        }
+
         return $code;
     }
 
@@ -1031,6 +1051,7 @@ class page_requirements_manager {
 
     /**
      * Adds extra modules specified after printing of page header
+     * @return string
      */
     protected function get_extra_modules_code() {
         if (empty($this->extramodules)) {
@@ -1045,6 +1066,8 @@ class page_requirements_manager {
      * Normally, this method is called automatically by the code that prints the
      * <head> tag. You should not normally need to call it in your own code.
      *
+     * @param moodle_page $page
+     * @param core_renderer $renderer
      * @return string the HTML code to to inside the <head> tag.
      */
     public function get_head_code(moodle_page $page, core_renderer $renderer) {
@@ -1199,6 +1222,6 @@ function js_reset_all_caches() {
     require_once("$CFG->libdir/filelib.php");
 
     set_config('jsrev', empty($CFG->jsrev) ? 1 : $CFG->jsrev+1);
-    fulldelete("$CFG->dataroot/cache/js");
+    fulldelete("$CFG->cachedir/js");
 }
 

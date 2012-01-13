@@ -59,21 +59,24 @@ class enrol_self_edit_form extends moodleform {
         $mform->setDefault('customint1', $plugin->get_config('groupkey'));
 
         if ($instance->id) {
-            $roles = get_default_enrol_roles($context, $instance->roleid);
+            $roles = $this->extend_assignable_roles($context, $instance->roleid);
         } else {
-            $roles = get_default_enrol_roles($context, $plugin->get_config('roleid'));
+            $roles = $this->extend_assignable_roles($context, $plugin->get_config('roleid'));
         }
         $mform->addElement('select', 'roleid', get_string('role', 'enrol_self'), $roles);
         $mform->setDefault('roleid', $plugin->get_config('roleid'));
 
         $mform->addElement('duration', 'enrolperiod', get_string('enrolperiod', 'enrol_self'), array('optional' => true, 'defaultunit' => 86400));
         $mform->setDefault('enrolperiod', $plugin->get_config('enrolperiod'));
+        $mform->addHelpButton('enrolperiod', 'enrolperiod', 'enrol_self');
 
         $mform->addElement('date_selector', 'enrolstartdate', get_string('enrolstartdate', 'enrol_self'), array('optional' => true));
         $mform->setDefault('enrolstartdate', 0);
+        $mform->addHelpButton('enrolstartdate', 'enrolstartdate', 'enrol_self');
 
         $mform->addElement('date_selector', 'enrolenddate', get_string('enrolenddate', 'enrol_self'), array('optional' => true));
         $mform->setDefault('enrolenddate', 0);
+        $mform->addHelpButton('enrolenddate', 'enrolenddate', 'enrol_self');
 
         $options = array(0 => get_string('never'),
                  1800 * 3600 * 24 => get_string('numdays', '', 1800),
@@ -152,5 +155,25 @@ class enrol_self_edit_form extends moodleform {
         }
 
         return $errors;
+    }
+
+    /**
+    * Gets a list of roles that this user can assign for the course as the default for self-enrolment
+    *
+    * @param context $context the context.
+    * @param integer $defaultrole the id of the role that is set as the default for self-enrolement
+    * @return array index is the role id, value is the role name
+    */
+    function extend_assignable_roles($context, $defaultrole) {
+        global $DB;
+        $roles = get_assignable_roles($context);
+        $sql = "SELECT r.id, r.name
+                  FROM {role} r
+                 WHERE r.id = $defaultrole";
+        $results = $DB->get_record_sql($sql);
+        if (isset($results->name)) {
+            $roles[$results->id] = $results->name;
+        }
+        return $roles;
     }
 }

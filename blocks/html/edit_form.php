@@ -39,6 +39,7 @@ class block_html_edit_form extends block_edit_form {
 
         $editoroptions = array('maxfiles' => EDITOR_UNLIMITED_FILES, 'noclean'=>true, 'context'=>$this->block->context);
         $mform->addElement('editor', 'config_text', get_string('configcontent', 'block_html'), null, $editoroptions);
+        $mform->addRule('config_text', null, 'required', null, 'client');
         $mform->setType('config_text', PARAM_RAW); // XSS is prevented when printing the block contents and serving files
     }
 
@@ -57,11 +58,24 @@ class block_html_edit_form extends block_edit_form {
         } else {
             $text = '';
         }
+
+        if (!$this->block->user_can_edit() && !empty($this->block->config->title)) {
+            // If a title has been set but the user cannot edit it format it nicely
+            $title = $this->block->config->title;
+            $defaults->config_title = format_string($title, true, $this->page->context);
+            // Remove the title from the config so that parent::set_data doesn't set it.
+            unset($this->block->config->title);
+        }
+
         // have to delete text here, otherwise parent::set_data will empty content
         // of editor
         unset($this->block->config->text);
         parent::set_data($defaults);
         // restore $text
         $this->block->config->text = $text;
+        if (isset($title)) {
+            // Reset the preserved title
+            $this->block->config->title = $title;
+        }
     }
 }

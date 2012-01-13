@@ -36,24 +36,7 @@ class MoodleQuickForm_radio extends HTML_QuickForm_radio{
     function getHelpButton(){
         return $this->_helpbutton;
     }
-   /**
-    * Automatically generates and assigns an 'id' attribute for the element.
-    *
-    * Currently used to ensure that labels work on radio buttons and
-    * checkboxes. Per idea of Alexander Radivanovich.
-    * Overriden in moodleforms to remove qf_ prefix.
-    *
-    * @access private
-    * @return void
-    */
-    function _generateId()
-    {
-        static $idx = 1;
 
-        if (!$this->getAttribute('id')) {
-            $this->updateAttributes(array('id' => 'id_'.substr(md5(microtime() . $idx++), 0, 6)));
-        }
-    } // end func _generateId
     /**
      * Slightly different container template when frozen.
      *
@@ -65,6 +48,21 @@ class MoodleQuickForm_radio extends HTML_QuickForm_radio{
         } else {
             return 'default';
         }
+    }
+    /**
+     * Returns the disabled field. Accessibility: the return "( )" from parent
+     * class is not acceptable for screenreader users, and we DO want a label.
+     * @return string
+     */
+    function getFrozenHtml()
+    {
+        $output = '<input type="radio" disabled="disabled" id="'.$this->getAttribute('id').'" ';
+        if ($this->getChecked()) {
+            $output .= 'checked="checked" />'.$this->_getPersistantData();
+        } else {
+            $output .= '/>';
+        }
+        return $output;
     }
     function toHtml()
     {

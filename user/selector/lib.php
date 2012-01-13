@@ -40,6 +40,9 @@ abstract class user_selector_base {
     protected $name;
     /** @var array Extra fields to search on and return in addition to firstname and lastname. */
     protected $extrafields;
+    /** @var object Context used for capability checks regarding this selector (does
+     * not necessarily restrict user list) */
+    protected $accesscontext;
     /** @var boolean Whether the conrol should allow selection of many users, or just one. */
     protected $multiselect = true;
     /** @var int The height this control should have, in rows. */
@@ -89,10 +92,20 @@ abstract class user_selector_base {
 
         // Initialise member variables from constructor arguments.
         $this->name = $name;
+
+        // Use specified context for permission checks, system context if not
+        // specified
+        if (isset($options['accesscontext'])) {
+            $this->accesscontext = $options['accesscontext'];
+        } else {
+            $this->accesscontext = get_context_instance(CONTEXT_SYSTEM);
+        }
+
         if (isset($options['extrafields'])) {
             $this->extrafields = $options['extrafields'];
-        } else if (!empty($CFG->extrauserselectorfields)) {
-            $this->extrafields = explode(',', $CFG->extrauserselectorfields);
+        } else if (!empty($CFG->showuseridentity) &&
+                has_capability('moodle/site:viewuseridentity', $this->accesscontext)) {
+            $this->extrafields = explode(',', $CFG->showuseridentity);
         } else {
             $this->extrafields = array();
         }
@@ -331,7 +344,8 @@ abstract class user_selector_base {
             'name' => $this->name,
             'exclude' => $this->exclude,
             'extrafields' => $this->extrafields,
-            'multiselect' => $this->multiselect
+            'multiselect' => $this->multiselect,
+            'accesscontext' => $this->accesscontext,
         );
     }
 
@@ -353,12 +367,14 @@ abstract class user_selector_base {
      */
     protected function load_selected_users() {
         // See if we got anything.
-        $userids = optional_param($this->name, array(), PARAM_INTEGER);
-        if (empty($userids)) {
-            return array();
-        }
-        if (!$this->multiselect) {
-            $userids = array($userids);
+        if ($this->multiselect) {
+            $userids = optional_param_array($this->name, array(), PARAM_INTEGER);
+        } else {
+            $userid = optional_param($this->name, 0, PARAM_INTEGER);
+            if (empty($userid)) {
+                return array();
+            }
+            $userids = array($userid);
         }
 
         // If we did, use the find_users method to validate the ids.
@@ -451,14 +467,14 @@ abstract class user_selector_base {
 
         // If we are being asked to exclude any users, do that.
         if (!empty($this->exclude)) {
-            list($usertest, $userparams) = $DB->get_in_or_equal($this->exclude, SQL_PARAMS_NAMED, 'ex000', false);
+            list($usertest, $userparams) = $DB->get_in_or_equal($this->exclude, SQL_PARAMS_NAMED, 'ex', false);
             $tests[] = $u . 'id ' . $usertest;
             $params = array_merge($params, $userparams);
         }
 
         // If we are validating a set list of userids, add an id IN (...) test.
         if (!empty($this->validatinguserids)) {
-            list($usertest, $userparams) = $DB->get_in_or_equal($this->validatinguserids, SQL_PARAMS_NAMED, 'val000');
+            list($usertest, $userparams) = $DB->get_in_or_equal($this->validatinguserids, SQL_PARAMS_NAMED, 'val');
             $tests[] = $u . 'id ' . $usertest;
             $params = array_merge($params, $userparams);
         }
@@ -578,13 +594,15 @@ abstract class user_selector_base {
      * @return string a string representation of the user.
      */
     public function output_user($user) {
-        $bits = array(
-            fullname($user)
-        );
-        foreach ($this->extrafields as $field) {
-            $bits[] = $user->$field;
+        $out = fullname($user);
+        if ($this->extrafields) {
+            $displayfields = array();
+            foreach ($this->extrafields as $field) {
+                $displayfields[] = $user->{$field};
+            }
+            $out .= ' (' . implode(', ', $displayfields) . ')';
         }
-        return implode(', ', $bits);
+        return $out;
     }
 
     /**
@@ -658,6 +676,7 @@ abstract class groups_user_selector_base extends user_selector_base {
      */
     public function __construct($name, $options) {
         global $CFG;
+        $options['accesscontext'] = get_context_instance(CONTEXT_COURSE, $options['courseid']);
         parent::__construct($name, $options);
         $this->groupid = $options['groupid'];
         $this->courseid = $options['courseid'];
@@ -756,7 +775,7 @@ class group_non_members_selector extends groups_user_selector_base {
         $usergroups = array();
         $potentialmembersids = $this->potentialmembersids;
         if( empty($potentialmembersids)==false ) {
-            list($membersidsclause, $params) = $DB->get_in_or_equal($potentialmembersids, SQL_PARAMS_NAMED, 'pm0');
+            list($membersidsclause, $params) = $DB->get_in_or_equal($potentialmembersids, SQL_PARAMS_NAMED, 'pm');
             $sql = "SELECT u.id AS userid, g.*
                     FROM {user} u
                     JOIN {groups_members} gm ON u.id = gm.userid
@@ -792,7 +811,7 @@ class group_non_members_selector extends groups_user_selector_base {
         // Get list of allowed roles.
         $context = get_context_instance(CONTEXT_COURSE, $this->courseid);
         if ($validroleids = groups_get_possible_roles($context)) {
-            list($roleids, $roleparams) = $DB->get_in_or_equal($validroleids, SQL_PARAMS_NAMED, 'r00');
+            list($roleids, $roleparams) = $DB->get_in_or_equal($validroleids, SQL_PARAMS_NAMED, 'r');
         } else {
             $roleids = " = -1";
             $roleparams = array();

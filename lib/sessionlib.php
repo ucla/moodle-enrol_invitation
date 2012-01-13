@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -25,6 +24,14 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+if (!defined('SESSION_ACQUIRE_LOCK_TIMEOUT')) {
+    /**
+     * How much time to wait for session lock before displaying error (in seconds),
+     * 2 minutes by default should be a reasonable time before telling users to wait and refresh browser.
+     */
+    define('SESSION_ACQUIRE_LOCK_TIMEOUT', 60*2);
+}
+
 /**
   * Factory method returning moodle_session object.
   * @return moodle_session
@@ -39,26 +46,33 @@ function session_get_instance() {
             $CFG->sessiontimeout = 7200;
         }
 
-        if (defined('SESSION_CUSTOM_CLASS')) {
-            // this is a hook for webservices, key based login, etc.
-            if (defined('SESSION_CUSTOM_FILE')) {
-                require_once($CFG->dirroot.SESSION_CUSTOM_FILE);
+        try {
+            if (defined('SESSION_CUSTOM_CLASS')) {
+                // this is a hook for webservices, key based login, etc.
+                if (defined('SESSION_CUSTOM_FILE')) {
+                    require_once($CFG->dirroot.SESSION_CUSTOM_FILE);
+                }
+                $session_class = SESSION_CUSTOM_CLASS;
+                $session = new $session_class();
+
+            } else if ((!isset($CFG->dbsessions) or $CFG->dbsessions) and $DB->session_lock_supported()) {
+                // default recommended session type
+                $session = new database_session();
+
+            } else {
+                // legacy limited file based storage - some features and auth plugins will not work, sorry
+                $session = new legacy_file_session();
             }
-            $session_class = SESSION_CUSTOM_CLASS;
-            $session = new $session_class();
-
-        } else if ((!isset($CFG->dbsessions) or $CFG->dbsessions) and $DB->session_lock_supported()) {
-            // default recommended session type
-            $session = new database_session();
-
-        } else {
-            // legacy limited file based storage - some features and auth plugins will not work, sorry
-            $session = new legacy_file_session();
+        } catch (Exception $ex) {
+            // prevent repeated inits
+            $session = new emergency_session();
+            throw $ex;
         }
     }
 
     return $session;
 }
+
 
 /**
  * Moodle session abstraction
@@ -90,6 +104,53 @@ interface moodle_session {
     public function session_exists($sid);
 }
 
+
+/**
+ * Fallback session handler when standard session init fails.
+ * This prevents repeated attempts to init faulty handler.
+ *
+ * @package    core
+ * @subpackage session
+ * @copyright  2011 Petr Skoda  {@link http://skodak.org}
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class emergency_session implements moodle_session {
+
+    public function __construct() {
+        // session not used at all
+        $_SESSION = array();
+        $_SESSION['SESSION'] = new stdClass();
+        $_SESSION['USER']    = new stdClass();
+    }
+
+    /**
+     * Terminate current session
+     * @return void
+     */
+    public function terminate_current() {
+        return;
+    }
+
+    /**
+     * No more changes in session expected.
+     * Unblocks the sessions, other scripts may start executing in parallel.
+     * @return void
+     */
+    public function write_close() {
+        return;
+    }
+
+    /**
+     * Check for existing session with id $sid
+     * @param unknown_type $sid
+     * @return boolean true if session found.
+     */
+    public function session_exists($sid) {
+        return false;
+    }
+}
+
+
 /**
  * Class handling all session and cookies related stuff.
  *
@@ -106,8 +167,6 @@ abstract class session_stub implements moodle_session {
 
         if (NO_MOODLE_COOKIES) {
             // session not used at all
-            $CFG->usesid = 0;
-
             $_SESSION = array();
             $_SESSION['SESSION'] = new stdClass();
             $_SESSION['USER']    = new stdClass();
@@ -118,12 +177,7 @@ abstract class session_stub implements moodle_session {
 
             $newsession = empty($_COOKIE['MoodleSession'.$CFG->sessioncookie]);
 
-            if (!empty($CFG->usesid) && $newsession) {
-                sid_start_ob();
-            } else {
-                $CFG->usesid = 0;
-                ini_set('session.use_trans_sid', '0');
-            }
+            ini_set('session.use_trans_sid', '0');
 
             session_name('MoodleSession'.$CFG->sessioncookie);
             session_set_cookie_params(0, $CFG->sessioncookiepath, $CFG->sessioncookiedomain, $CFG->cookiesecure, $CFG->cookiehttponly);
@@ -145,7 +199,8 @@ abstract class session_stub implements moodle_session {
     }
 
     /**
-     * Terminates active moodle session
+     * Terminate current session
+     * @return void
      */
     public function terminate_current() {
         global $CFG, $SESSION, $USER, $DB;
@@ -286,21 +341,49 @@ abstract class session_stub implements moodle_session {
         if (!isset($CFG->sessioncookie)) {
             $CFG->sessioncookie = '';
         }
+
+        // make sure cookie domain makes sense for this wwwroot
         if (!isset($CFG->sessioncookiedomain)) {
             $CFG->sessioncookiedomain = '';
+        } else if ($CFG->sessioncookiedomain !== '') {
+            $host = parse_url($CFG->wwwroot, PHP_URL_HOST);
+            if ($CFG->sessioncookiedomain !== $host) {
+                if (substr($CFG->sessioncookiedomain, 0, 1) === '.') {
+                    if (!preg_match('|^.*'.preg_quote($CFG->sessioncookiedomain, '|').'$|', $host)) {
+                        // invalid domain - it must be end part of host
+                        $CFG->sessioncookiedomain = '';
+                    }
+                } else {
+                    if (!preg_match('|^.*\.'.preg_quote($CFG->sessioncookiedomain, '|').'$|', $host)) {
+                        // invalid domain - it must be end part of host
+                        $CFG->sessioncookiedomain = '';
+                    }
+                }
+            }
         }
+
+        // make sure the cookiepath is valid for this wwwroot or autodetect if not specified
         if (!isset($CFG->sessioncookiepath)) {
-            $CFG->sessioncookiepath = '/';
+            $CFG->sessioncookiepath = '';
+        }
+        if ($CFG->sessioncookiepath !== '/') {
+            $path = parse_url($CFG->wwwroot, PHP_URL_PATH).'/';
+            if ($CFG->sessioncookiepath === '') {
+                $CFG->sessioncookiepath = $path;
+            } else {
+                if (strpos($path, $CFG->sessioncookiepath) !== 0 or substr($CFG->sessioncookiepath, -1) !== '/') {
+                    $CFG->sessioncookiepath = $path;
+                }
+            }
         }
 
         //discard session ID from POST, GET and globals to tighten security,
-        //this session fixation prevention can not be used in cookieless mode
-        if (empty($CFG->usesid)) {
-            unset(${'MoodleSession'.$CFG->sessioncookie});
-            unset($_GET['MoodleSession'.$CFG->sessioncookie]);
-            unset($_POST['MoodleSession'.$CFG->sessioncookie]);
-            unset($_REQUEST['MoodleSession'.$CFG->sessioncookie]);
-        }
+        //this is session fixation prevention
+        unset(${'MoodleSession'.$CFG->sessioncookie});
+        unset($_GET['MoodleSession'.$CFG->sessioncookie]);
+        unset($_POST['MoodleSession'.$CFG->sessioncookie]);
+        unset($_REQUEST['MoodleSession'.$CFG->sessioncookie]);
+
         //compatibility hack for Moodle Cron, cookies not deleted, but set to "deleted" - should not be needed with NO_MOODLE_COOKIES in cron.php now
         if (!empty($_COOKIE['MoodleSession'.$CFG->sessioncookie]) && $_COOKIE['MoodleSession'.$CFG->sessioncookie] == "deleted") {
             unset($_COOKIE['MoodleSession'.$CFG->sessioncookie]);
@@ -308,10 +391,11 @@ abstract class session_stub implements moodle_session {
     }
 
     /**
-     * Inits session storage.
+     * Init session storage.
      */
     protected abstract function init_session_storage();
 }
+
 
 /**
  * Legacy moodle sessions stored in files, not recommended any more.
@@ -322,6 +406,9 @@ abstract class session_stub implements moodle_session {
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class legacy_file_session extends session_stub {
+    /**
+     * Init session storage.
+     */
     protected function init_session_storage() {
         global $CFG;
 
@@ -361,6 +448,7 @@ class legacy_file_session extends session_stub {
     }
 }
 
+
 /**
  * Recommended moodle session storage.
  *
@@ -370,8 +458,14 @@ class legacy_file_session extends session_stub {
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class database_session extends session_stub {
+    /** @var stdClass $record session record */
     protected $record   = null;
+
+    /** @var moodle_database $database session database */
     protected $database = null;
+
+    /** @var bool $failed session read/init failed, do not write back to DB */
+    protected $failed   = false;
 
     public function __construct() {
         global $DB;
@@ -388,6 +482,11 @@ class database_session extends session_stub {
         }
     }
 
+    /**
+     * Check for existing session with id $sid
+     * @param unknown_type $sid
+     * @return boolean true if session found.
+     */
     public function session_exists($sid){
         global $CFG;
         try {
@@ -401,6 +500,9 @@ class database_session extends session_stub {
         }
     }
 
+    /**
+     * Init session storage.
+     */
     protected function init_session_storage() {
         global $CFG;
 
@@ -420,31 +522,57 @@ class database_session extends session_stub {
         }
     }
 
+    /**
+     * Open session handler
+     *
+     * {@see http://php.net/manual/en/function.session-set-save-handler.php}
+     *
+     * @param string $save_path
+     * @param string $session_name
+     * @return bool success
+     */
     public function handler_open($save_path, $session_name) {
         return true;
     }
 
+    /**
+     * Close session handler
+     *
+     * {@see http://php.net/manual/en/function.session-set-save-handler.php}
+     *
+     * @return bool success
+     */
     public function handler_close() {
         if (isset($this->record->id)) {
-            $this->database->release_session_lock($this->record->id);
+            try {
+                $this->database->release_session_lock($this->record->id);
+            } catch (Exception $ex) {
+                // ignore any problems
+            }
         }
         $this->record = null;
         return true;
     }
 
+    /**
+     * Read session handler
+     *
+     * {@see http://php.net/manual/en/function.session-set-save-handler.php}
+     *
+     * @param string $sid
+     * @return string
+     */
     public function handler_read($sid) {
         global $CFG;
 
         if ($this->record and $this->record->sid != $sid) {
             error_log('Weird error reading database session - mismatched sid');
+            $this->failed = true;
             return '';
         }
 
         try {
-            if ($record = $this->database->get_record('sessions', array('sid'=>$sid))) {
-                $this->database->get_session_lock($record->id);
-
-            } else {
+            if (!$record = $this->database->get_record('sessions', array('sid'=>$sid))) {
                 $record = new stdClass();
                 $record->state        = 0;
                 $record->sid          = $sid;
@@ -453,12 +581,23 @@ class database_session extends session_stub {
                 $record->timecreated  = $record->timemodified = time();
                 $record->firstip      = $record->lastip = getremoteaddr();
                 $record->id           = $this->database->insert_record_raw('sessions', $record);
-
-                $this->database->get_session_lock($record->id);
             }
-        } catch (dml_exception $ex) {
+        } catch (Exception $ex) {
+            // do not rethrow exceptions here, we need this to work somehow before 1.9.x upgrade and during install
             error_log('Can not read or insert database sessions');
+            $this->failed = true;
             return '';
+        }
+
+        try {
+            $this->database->get_session_lock($record->id, SESSION_ACQUIRE_LOCK_TIMEOUT);
+        } catch (Exception $ex) {
+            // This is a fatal error, better inform users.
+            // It should not happen very often - all pages that need long time to execute
+            // should close session soon after access control checks
+            error_log('Can not obtain session lock');
+            $this->failed = true;
+            throw $ex;
         }
 
         // verify timeout
@@ -483,9 +622,11 @@ class database_session extends session_stub {
                 $record->timemodified = time();
                 try {
                     $this->database->update_record('sessions', $record);
-                } catch (dml_exception $ex) {
+                } catch (Exception $ex) {
+                    // very unlikely error
                     error_log('Can not refresh database session');
-                    return '';
+                    $this->failed = true;
+                    throw $ex;
                 }
             } else {
                 //time out session
@@ -496,9 +637,11 @@ class database_session extends session_stub {
                 $record->firstip      = $record->lastip = getremoteaddr();
                 try {
                     $this->database->update_record('sessions', $record);
-                } catch (dml_exception $ex) {
+                } catch (Exception $ex) {
+                    // very unlikely error
                     error_log('Can not time out database session');
-                    return '';
+                    $this->failed = true;
+                    throw $ex;
                 }
             }
         }
@@ -511,10 +654,27 @@ class database_session extends session_stub {
         return $data;
     }
 
+    /**
+     * Write session handler.
+     *
+     * {@see http://php.net/manual/en/function.session-set-save-handler.php}
+     *
+     * NOTE: Do not write to output or throw any exceptions!
+     *       Hopefully the next page is going to display nice error or it recovers...
+     *
+     * @param string $sid
+     * @param string $session_data
+     * @return bool success
+     */
     public function handler_write($sid, $session_data) {
         global $USER;
 
         // TODO: MDL-20625 we need to rollback all active transactions and log error if any open needed
+
+        if ($this->failed) {
+            // do not write anything back - we failed to start the session properly
+            return false;
+        }
 
         $userid = 0;
         if (!empty($USER->realuser)) {
@@ -542,52 +702,79 @@ class database_session extends session_stub {
                     try {
                         $this->database->set_field('sessions', 'state', 9, array('id'=>$this->record->id));
                     } catch (Exception $ignored) {
-
                     }
                     error_log('Can not write database session - please verify max_allowed_packet is at least 4M!');
                 } else {
                     error_log('Can not write database session');
                 }
+                return false;
+            } catch (Exception $ex) {
+                error_log('Can not write database session');
+                return false;
             }
 
         } else {
-            // session already destroyed
-            $record = new stdClass();
-            $record->state        = 0;
-            $record->sid          = $sid;
-            $record->sessdata     = base64_encode($session_data); // there might be some binary mess :-(
-            $record->userid       = $userid;
-            $record->timecreated  = $record->timemodified = time();
-            $record->firstip      = $record->lastip = getremoteaddr();
-            $record->id           = $this->database->insert_record_raw('sessions', $record);
-            $this->record = $record;
-
+            // fresh new session
             try {
-                $this->database->get_session_lock($this->record->id);
-            } catch (dml_exception $ex) {
-                error_log('Can not write new database session');
+                $record = new stdClass();
+                $record->state        = 0;
+                $record->sid          = $sid;
+                $record->sessdata     = base64_encode($session_data); // there might be some binary mess :-(
+                $record->userid       = $userid;
+                $record->timecreated  = $record->timemodified = time();
+                $record->firstip      = $record->lastip = getremoteaddr();
+                $record->id           = $this->database->insert_record_raw('sessions', $record);
+                $this->record = $record;
+
+                $this->database->get_session_lock($this->record->id, SESSION_ACQUIRE_LOCK_TIMEOUT);
+            } catch (Exception $ex) {
+                // this should not happen
+                error_log('Can not write new database session or acquire session lock');
+                $this->failed = true;
+                return false;
             }
         }
 
         return true;
     }
 
+    /**
+     * Destroy session handler
+     *
+     * {@see http://php.net/manual/en/function.session-set-save-handler.php}
+     *
+     * @param string $sid
+     * @return bool success
+     */
     public function handler_destroy($sid) {
         session_kill($sid);
 
         if (isset($this->record->id) and $this->record->sid === $sid) {
-            $this->database->release_session_lock($this->record->id);
+            try {
+                $this->database->release_session_lock($this->record->id);
+            } catch (Exception $ex) {
+                // ignore problems
+            }
             $this->record = null;
         }
 
         return true;
     }
 
+    /**
+     * GC session handler
+     *
+     * {@see http://php.net/manual/en/function.session-set-save-handler.php}
+     *
+     * @param int $ignored_maxlifetime moodle uses special timeout rules
+     * @return bool success
+     */
     public function handler_gc($ignored_maxlifetime) {
         session_gc();
         return true;
     }
 }
+
 
 /**
  * returns true if legacy session used.
@@ -819,6 +1006,11 @@ function set_moodle_cookie($username) {
         return;
     }
 
+    if (empty($CFG->rememberusername)) {
+        // erase current and do not store permanent cookies
+        $username = '';
+    }
+
     if ($username === 'guest') {
         // keep previous cookie in case of guest account login
         return;
@@ -847,6 +1039,10 @@ function get_moodle_cookie() {
         return '';
     }
 
+    if (empty($CFG->rememberusername)) {
+        return '';
+    }
+
     $cookiename = 'MOODLEID_'.$CFG->sessioncookie;
 
     if (empty($_COOKIE[$cookiename])) {
@@ -864,7 +1060,8 @@ function get_moodle_cookie() {
 
 /**
  * Setup $USER object - called during login, loginas, etc.
- * Preloads capabilities and checks enrolment plugins
+ *
+ * Call sync_user_enrolments() manually after log-in, or log-in-as.
  *
  * @param stdClass $user full user record object
  * @return void
@@ -872,11 +1069,6 @@ function get_moodle_cookie() {
 function session_set_user($user) {
     $_SESSION['USER'] = $user;
     unset($_SESSION['USER']->description); // conserve memory
-    if (!isset($_SESSION['USER']->access)) {
-        // check enrolments and load caps only once
-        enrol_check_plugins($_SESSION['USER']);
-        load_all_capabilities();
-    }
     sesskey(); // init session key
 }
 
@@ -920,6 +1112,10 @@ function session_loginas($userid, $context) {
     $user = get_complete_user_data('id', $userid);
     $user->realuser       = $_SESSION['REALUSER']->id;
     $user->loginascontext = $context;
+
+    // let enrol plugins deal with new enrolments if necessary
+    enrol_check_plugins($user);
+    // set up global $USER
     session_set_user($user);
 }
 
@@ -973,141 +1169,3 @@ function cron_setup_user($user = NULL, $course = NULL) {
     // TODO: it should be possible to improve perf by caching some limited number of users here ;-)
 
 }
-
-/**
-* Enable cookieless sessions by including $CFG->usesid=true;
-* in config.php.
-* Based on code from php manual by Richard at postamble.co.uk
-* Attempts to use cookies if cookies not present then uses session ids attached to all urls and forms to pass session id from page to page.
-* If site is open to google, google is given guest access as usual and there are no sessions. No session ids will be attached to urls for googlebot.
-* This doesn't require trans_sid to be turned on but this is recommended for better performance
-* you should put :
-* session.use_trans_sid = 1
-* in your php.ini file and make sure that you don't have a line like this in your php.ini
-* session.use_only_cookies = 1
-* @author Richard at postamble.co.uk and Jamie Pratt
-* @license http://www.gnu.org/copyleft/gpl.html GNU Public License
-*/
-/**
-* You won't call this function directly. This function is used to process
-* text buffered by php in an output buffer. All output is run through this function
-* before it is ouput.
-* @param string $buffer is the output sent from php
-* @return string the output sent to the browser
-*/
-function sid_ob_rewrite($buffer){
-    $replacements = array(
-        '/(<\s*(a|link|script|frame|area)\s[^>]*(href|src)\s*=\s*")([^"]*)(")/i',
-        '/(<\s*(a|link|script|frame|area)\s[^>]*(href|src)\s*=\s*\')([^\']*)(\')/i');
-
-    $buffer = preg_replace_callback($replacements, 'sid_rewrite_link_tag', $buffer);
-    $buffer = preg_replace('/<form\s[^>]*>/i',
-        '\0<input type="hidden" name="' . session_name() . '" value="' . session_id() . '"/>', $buffer);
-
-      return $buffer;
-}
-/**
-* You won't call this function directly. This function is used to process
-* text buffered by php in an output buffer. All output is run through this function
-* before it is ouput.
-* This function only processes absolute urls, it is used when we decide that
-* php is processing other urls itself but needs some help with internal absolute urls still.
-* @param string $buffer is the output sent from php
-* @return string the output sent to the browser
-*/
-function sid_ob_rewrite_absolute($buffer){
-    $replacements = array(
-        '/(<\s*(a|link|script|frame|area)\s[^>]*(href|src)\s*=\s*")((?:http|https)[^"]*)(")/i',
-        '/(<\s*(a|link|script|frame|area)\s[^>]*(href|src)\s*=\s*\')((?:http|https)[^\']*)(\')/i');
-
-    $buffer = preg_replace_callback($replacements, 'sid_rewrite_link_tag', $buffer);
-    $buffer = preg_replace('/<form\s[^>]*>/i',
-        '\0<input type="hidden" name="' . session_name() . '" value="' . session_id() . '"/>', $buffer);
-    return $buffer;
-}
-
-/**
-* A function to process link, a and script tags found
-* by preg_replace_callback in {@link sid_ob_rewrite($buffer)}.
-*/
-function sid_rewrite_link_tag($matches){
-    $url = $matches[4];
-    $url = sid_process_url($url);
-    return $matches[1].$url.$matches[5];
-}
-
-/**
-* You can call this function directly. This function is used to process
-* urls to add a moodle session id to the url for internal links.
-* @param string $url is a url
-* @return string the processed url
-*/
-function sid_process_url($url) {
-    global $CFG;
-
-    if ((preg_match('/^(http|https):/i', $url)) // absolute url
-        &&  ((stripos($url, $CFG->wwwroot)!==0) && stripos($url, $CFG->httpswwwroot)!==0)) { // and not local one
-        return $url; //don't attach sessid to non local urls
-    }
-    if ($url[0]=='#' || (stripos($url, 'javascript:')===0)) {
-        return $url; //don't attach sessid to anchors
-    }
-    if (strpos($url, session_name())!==FALSE) {
-        return $url; //don't attach sessid to url that already has one sessid
-    }
-    if (strpos($url, "?")===FALSE) {
-        $append = "?".strip_tags(session_name() . '=' . session_id());
-    }    else {
-        $append = "&amp;".strip_tags(session_name() . '=' . session_id());
-    }
-    //put sessid before any anchor
-    $p = strpos($url, "#");
-    if ($p!==FALSE){
-        $anch = substr($url, $p);
-        $url = substr($url, 0, $p).$append.$anch ;
-    } else  {
-        $url .= $append ;
-    }
-    return $url;
-}
-
-/**
-* Call this function before there has been any output to the browser to
-* buffer output and add session ids to all internal links.
-*/
-function sid_start_ob(){
-    global $CFG;
-    //don't attach sess id for bots
-
-    if (!empty($_SERVER['HTTP_USER_AGENT'])) {
-        if (!empty($CFG->opentogoogle)) {
-            if (strpos($_SERVER['HTTP_USER_AGENT'], 'Googlebot') !== false) {
-                @ini_set('session.use_trans_sid', '0'); // try and turn off trans_sid
-                $CFG->usesid=false;
-                return;
-            }
-            if (strpos($_SERVER['HTTP_USER_AGENT'], 'google.com') !== false) {
-                @ini_set('session.use_trans_sid', '0'); // try and turn off trans_sid
-                $CFG->usesid=false;
-                return;
-            }
-        }
-        if (strpos($_SERVER['HTTP_USER_AGENT'], 'W3C_Validator') !== false) {
-            @ini_set('session.use_trans_sid', '0'); // try and turn off trans_sid
-            $CFG->usesid=false;
-            return;
-        }
-    }
-
-    @ini_set('session.use_trans_sid', '1'); // try and turn on trans_sid
-
-    if (ini_get('session.use_trans_sid') != 0) {
-        // use trans sid as its available
-        ini_set('url_rewriter.tags', 'a=href,area=href,script=src,link=href,frame=src,form=fakeentry');
-        ob_start('sid_ob_rewrite_absolute');
-    } else {
-        //rewrite all links ourselves
-        ob_start('sid_ob_rewrite');
-    }
-}
-

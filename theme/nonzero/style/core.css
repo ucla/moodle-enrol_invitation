@@ -48,7 +48,7 @@ a:active {
 ---------------------------*/
 
 #page-header {
-	background: url([[pix:theme|n1]]) repeat-x 0 100%;
+	background: url([[pix:theme|n1]]) repeat-x 0 0;
 	color: #fff;
 	height: 122px;
 }
@@ -57,6 +57,11 @@ a:active {
   font-size:2.5em;
   padding-top:70px;
   margin: 0;
+  text-shadow: 0 -1px 1px #000;
+}
+
+.has_custom_menu #page-header h1 {
+  padding-top:60px;
 }
 
 #page-header.inside {
@@ -116,7 +121,6 @@ a:active {
 	font-size: 0.95em;
 }
 
-.
 /* Forums
 ---------------------------*/
 
@@ -148,9 +152,74 @@ a:active {
 
 .course-content .current {
 	background: #1f5480;
+}
+
+.course-content .current .left.side {
 	color: #fff;
 }
 
 .course-content .main .content {
 	background: #fff;
 }
+
+/* Custom Menu */
+#custommenuwrap {
+    clear: both;
+    padding-top: 4px;
+}    
+
+#custommenu {
+    border-width: 0;
+}
+
+#page-header #custommenu .yui3-menu-label,
+#page-header #custommenu .yui3-menuitem-content  {
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+    padding-left: 0px;
+    padding-right: 20px ;
+    text-shadow: 0 -1px 1px #000;
+    margin: -2px 0;
+}
+
+#page-header #custommenu .custom_menu_submenu .yui3-menu-label,
+#page-header #custommenu .custom_menu_submenu .yui3-menuitem-content {
+    color: #333;
+    padding-left: 5px;
+    text-shadow: none;
+}
+
+#custommenu .yui3-menu-label-active,
+#custommenu .yui3-menuitem-active .yui3-menuitem-content {
+    color: #ccc;
+}
+
+#custommenu .yui3-menu-content,
+#custommenu .yui3-menu-label,
+#custommenu .yui3-menuitem-content  {
+    border-width: 0;
+}
+
+#custommenu .custom_menu_submenu {
+    border: 1px solid #27608d;
+    border-top-width: 0;
+    background: #fff;
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    border-radius: 2px;
+    -webkit-box-shadow: 0px 1px 3px #ccc;
+    -moz-box-shadow: 0px 1px 3px #ccc;
+    box-shadow: 0px 1px 3px #ccc;
+}
+
+#custommenu .custom_menu_submenu .custom_menu_submenu .yui3-menu-content {
+    border-top:1px solid #333;
+}
+
+#custommenu .yui3-menu-horizontal.javascript-disabled .yui3-menu-content {
+    border-width:0;
+}
+
+/** Custom CSS **/
+[[setting:customcss]]

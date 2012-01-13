@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -18,10 +17,11 @@
 /**
  * Strings for component 'qformat_learnwise', language 'en', branch 'MOODLE_20_STABLE'
  *
- * @package   qformat_learnwise
- * @copyright 2010 Helen Foster
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    qformat
+ * @subpackage learnwise
+ * @copyright  2010 Helen Foster
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['learnwise'] = 'Learnwise format';
-$string['learnwise_help'] = 'This format enables the import of multiple choice questions saved in Learnwise\'s XML format.';
+$string['pluginname'] = 'Learnwise format';
+$string['plugidnname_help'] = 'This format enables the import of multiple choice questions saved in Learnwise\'s XML format.';

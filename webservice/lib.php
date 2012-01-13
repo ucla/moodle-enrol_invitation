@@ -35,6 +35,124 @@ define('WEBSERVICE_AUTHMETHOD_SESSION_TOKEN', 2);
 class webservice {
 
     /**
+     * Authenticate user (used by download/upload file scripts)
+     * @param string $token
+     * @return array - contains the authenticated user, token and service objects
+     */
+    public function authenticate_user($token) {
+        global $DB, $CFG;
+
+        // web service must be enabled to use this script
+        if (!$CFG->enablewebservices) {
+            throw new webservice_access_exception(get_string('enablewsdescription', 'webservice'));
+        }
+
+        // Obtain token record
+        if (!$token = $DB->get_record('external_tokens', array('token' => $token))) {
+            throw new webservice_access_exception(get_string('invalidtoken', 'webservice'));
+        }
+
+        // Validate token date
+        if ($token->validuntil and $token->validuntil < time()) {
+            add_to_log(SITEID, 'webservice', get_string('tokenauthlog', 'webservice'), '', get_string('invalidtimedtoken', 'webservice'), 0);
+            $DB->delete_records('external_tokens', array('token' => $token->token));
+            throw new webservice_access_exception(get_string('invalidtimedtoken', 'webservice'));
+        }
+
+        // Check ip
+        if ($token->iprestriction and !address_in_subnet(getremoteaddr(), $token->iprestriction)) {
+            add_to_log(SITEID, 'webservice', get_string('tokenauthlog', 'webservice'), '', get_string('failedtolog', 'webservice') . ": " . getremoteaddr(), 0);
+            throw new webservice_access_exception(get_string('invalidiptoken', 'webservice'));
+        }
+
+        //retrieve user link to the token
+        $user = $DB->get_record('user', array('id' => $token->userid, 'deleted' => 0), '*', MUST_EXIST);
+
+        // let enrol plugins deal with new enrolments if necessary
+        enrol_check_plugins($user);
+
+        // setup user session to check capability
+        session_set_user($user);
+
+        //assumes that if sid is set then there must be a valid associated session no matter the token type
+        if ($token->sid) {
+            $session = session_get_instance();
+            if (!$session->session_exists($token->sid)) {
+                $DB->delete_records('external_tokens', array('sid' => $token->sid));
+                throw new webservice_access_exception(get_string('invalidtokensession', 'webservice'));
+            }
+        }
+
+        //Non admin can not authenticate if maintenance mode
+        $hassiteconfig = has_capability('moodle/site:config', get_context_instance(CONTEXT_SYSTEM), $user);
+        if (!empty($CFG->maintenance_enabled) and !$hassiteconfig) {
+            throw new webservice_access_exception(get_string('sitemaintenance', 'admin'));
+        }
+
+        //retrieve web service record
+        $service = $DB->get_record('external_services', array('id' => $token->externalserviceid, 'enabled' => 1));
+        if (empty($service)) {
+            // will throw exception if no token found
+            throw new webservice_access_exception(get_string('servicenotavailable', 'webservice'));
+        }
+
+        //check if there is any required system capability
+        if ($service->requiredcapability and !has_capability($service->requiredcapability, get_context_instance(CONTEXT_SYSTEM), $user)) {
+            throw new webservice_access_exception(get_string('missingrequiredcapability', 'webservice', $service->requiredcapability));
+        }
+
+        //specific checks related to user restricted service
+        if ($service->restrictedusers) {
+            $authoriseduser = $DB->get_record('external_services_users', array('externalserviceid' => $service->id, 'userid' => $user->id));
+
+            if (empty($authoriseduser)) {
+                throw new webservice_access_exception(get_string('usernotallowed', 'webservice', $service->name));
+            }
+
+            if (!empty($authoriseduser->validuntil) and $authoriseduser->validuntil < time()) {
+                throw new webservice_access_exception(get_string('invalidtimedtoken', 'webservice'));
+            }
+
+            if (!empty($authoriseduser->iprestriction) and !address_in_subnet(getremoteaddr(), $authoriseduser->iprestriction)) {
+                throw new webservice_access_exception(get_string('invalidiptoken', 'webservice'));
+            }
+        }
+
+        //only confirmed user should be able to call web service
+        if (empty($user->confirmed)) {
+            add_to_log(SITEID, 'webservice', 'user unconfirmed', '', $user->username);
+            throw new webservice_access_exception(get_string('usernotconfirmed', 'moodle', $user->username));
+        }
+
+        //check the user is suspended
+        if (!empty($user->suspended)) {
+            add_to_log(SITEID, 'webservice', 'user suspended', '', $user->username);
+            throw new webservice_access_exception(get_string('usersuspended', 'webservice'));
+        }
+
+        //check if the auth method is nologin (in this case refuse connection)
+        if ($user->auth == 'nologin') {
+            add_to_log(SITEID, 'webservice', 'nologin auth attempt with web service', '', $user->username);
+            throw new webservice_access_exception(get_string('nologinauth', 'webservice'));
+        }
+
+        //Check if the user password is expired
+        $auth = get_auth_plugin($user->auth);
+        if (!empty($auth->config->expiration) and $auth->config->expiration == 1) {
+            $days2expire = $auth->password_expire($user->username);
+            if (intval($days2expire) < 0) {
+                add_to_log(SITEID, 'webservice', 'expired password', '', $user->username);
+                throw new webservice_access_exception(get_string('passwordisexpired', 'webservice'));
+            }
+        }
+
+        // log token access
+        $DB->set_field('external_tokens', 'lastaccess', time(), array('id' => $token->id));
+
+        return array('user' => $user, 'token' => $token, 'service' => $service);
+    }
+
+    /**
      * Add a user to the list of authorised user of a given service
      * @param object $user
      */
@@ -165,7 +283,7 @@ class webservice {
     }
 
     /**
-     * Return all ws user token
+     * Return all ws user token with ws enabled/disabled and ws restricted users mode.
      * @param integer $userid
      * @return array of token
      */
@@ -173,7 +291,7 @@ class webservice {
         global $DB;
         //here retrieve token list (including linked users firstname/lastname and linked services name)
         $sql = "SELECT
-                    t.id, t.creatorid, t.token, u.firstname, u.lastname, s.name, t.validuntil
+                    t.id, t.creatorid, t.token, u.firstname, u.lastname, s.id as wsid, s.name, s.enabled, s.restrictedusers, t.validuntil
                 FROM
                     {external_tokens} t, {user} u, {external_services} s
                 WHERE
@@ -272,6 +390,31 @@ class webservice {
     }
 
     /**
+     * Get the list of all functions for given service shortnames
+     * @param array $serviceshortnames
+     * @param $enabledonly if true then only return function for the service that has been enabled
+     * @return array functions
+     */
+    public function get_external_functions_by_enabled_services($serviceshortnames, $enabledonly = true) {
+        global $DB;
+        if (!empty($serviceshortnames)) {
+            $enabledonlysql = $enabledonly?' AND s.enabled = 1 ':'';
+            list($serviceshortnames, $params) = $DB->get_in_or_equal($serviceshortnames);
+            $sql = "SELECT f.*
+                      FROM {external_functions} f
+                     WHERE f.name IN (SELECT sf.functionname
+                                        FROM {external_services_functions} sf, {external_services} s
+                                       WHERE s.shortname $serviceshortnames
+                                             AND sf.externalserviceid = s.id
+                                             " . $enabledonlysql . ")";
+            $functions = $DB->get_records_sql($sql, $params);
+        } else {
+            $functions = array();
+        }
+        return $functions;
+    }
+
+    /**
      * Get the list of all functions not in the given service id
      * @param int $serviceid
      * @return array functions
@@ -315,7 +458,7 @@ class webservice {
         $functions = $this->get_external_functions(array($serviceid));
         $requiredusercaps = array();
         foreach ($functions as $function) {
-            $functioncaps = split(',', $function->capabilities);
+            $functioncaps = explode(',', $function->capabilities);
             if (!empty($functioncaps) and !empty($functioncaps[0])) {
                 foreach ($functioncaps as $functioncap) {
                     $requiredusercaps[$function->name][] = trim($functioncap);
@@ -391,6 +534,19 @@ class webservice {
         global $DB;
         $service = $DB->get_record('external_services',
                         array('id' => $serviceid), '*', $strictness);
+        return $service;
+    }
+
+    /**
+     * Get a external service for a given shortname
+     * @param service shortname $shortname
+     * @param integer $strictness IGNORE_MISSING, MUST_EXIST...
+     * @return object external service
+     */
+    public function get_external_service_by_shortname($shortname, $strictness=IGNORE_MISSING) {
+        global $DB;
+        $service = $DB->get_record('external_services',
+                        array('shortname' => $shortname), '*', $strictness);
         return $service;
     }
 
@@ -607,7 +763,7 @@ abstract class webservice_server implements webservice_server_interface {
                 throw new webservice_access_exception(get_string('wrongusernamepassword', 'webservice'));
             }
 
-            $user = $DB->get_record('user', array('username'=>$this->username, 'mnethostid'=>$CFG->mnet_localhost_id, 'deleted'=>0), '*', MUST_EXIST);
+            $user = $DB->get_record('user', array('username'=>$this->username, 'mnethostid'=>$CFG->mnet_localhost_id), '*', MUST_EXIST);
 
         } else if ($this->authmethod == WEBSERVICE_AUTHMETHOD_PERMANENT_TOKEN){
             $user = $this->authenticate_by_token(EXTERNAL_TOKEN_PERMANENT);
@@ -615,12 +771,57 @@ abstract class webservice_server implements webservice_server_interface {
             $user = $this->authenticate_by_token(EXTERNAL_TOKEN_EMBEDDED);
         }
 
+        //Non admin can not authenticate if maintenance mode
+        $hassiteconfig = has_capability('moodle/site:config', get_context_instance(CONTEXT_SYSTEM), $user);
+        if (!empty($CFG->maintenance_enabled) and !$hassiteconfig) {
+            throw new webservice_access_exception(get_string('sitemaintenance', 'admin'));
+        }
+
+        //only confirmed user should be able to call web service
+        if (!empty($user->deleted)) {
+            add_to_log(SITEID, '', '', '', get_string('wsaccessuserdeleted', 'webservice', $user->username) . " - ".getremoteaddr(), 0, $user->id);
+            throw new webservice_access_exception(get_string('wsaccessuserdeleted', 'webservice', $user->username));
+        }
+
+        //only confirmed user should be able to call web service
+        if (empty($user->confirmed)) {
+            add_to_log(SITEID, '', '', '', get_string('wsaccessuserunconfirmed', 'webservice', $user->username) . " - ".getremoteaddr(), 0, $user->id);
+            throw new webservice_access_exception(get_string('wsaccessuserunconfirmed', 'webservice', $user->username));
+        }
+
+        //check the user is suspended
+        if (!empty($user->suspended)) {
+            add_to_log(SITEID, '', '', '', get_string('wsaccessusersuspended', 'webservice', $user->username) . " - ".getremoteaddr(), 0, $user->id);
+            throw new webservice_access_exception(get_string('wsaccessusersuspended', 'webservice', $user->username));
+        }
+
+        //retrieve the authentication plugin if no previously done
+        if (empty($auth)) {
+          $auth  = get_auth_plugin($user->auth);
+        }
+
+        // check if credentials have expired
+        if (!empty($auth->config->expiration) and $auth->config->expiration == 1) {
+            $days2expire = $auth->password_expire($user->username);
+            if (intval($days2expire) < 0 ) {
+                add_to_log(SITEID, '', '', '', get_string('wsaccessuserexpired', 'webservice', $user->username) . " - ".getremoteaddr(), 0, $user->id);
+                throw new webservice_access_exception(get_string('wsaccessuserexpired', 'webservice', $user->username));
+            }
+        }
+
+        //check if the auth method is nologin (in this case refuse connection)
+        if ($user->auth=='nologin') {
+            add_to_log(SITEID, '', '', '', get_string('wsaccessusernologin', 'webservice', $user->username) . " - ".getremoteaddr(), 0, $user->id);
+            throw new webservice_access_exception(get_string('wsaccessusernologin', 'webservice', $user->username));
+        }
+
         // now fake user login, the session is completely empty too
+        enrol_check_plugins($user);
         session_set_user($user);
         $this->userid = $user->id;
 
         if ($this->authmethod != WEBSERVICE_AUTHMETHOD_SESSION_TOKEN && !has_capability("webservice/$this->wsname:use", $this->restricted_context)) {
-            throw new webservice_access_exception(get_string('accessnotallowed', 'webservice'));
+            throw new webservice_access_exception(get_string('protocolnotallowed', 'webservice', $this->wsname));
         }
 
         external_api::set_context_restriction($this->restricted_context);
@@ -655,7 +856,7 @@ abstract class webservice_server implements webservice_server_interface {
         $this->restricted_context = get_context_instance_by_id($token->contextid);
         $this->restricted_serviceid = $token->externalserviceid;
 
-        $user = $DB->get_record('user', array('id'=>$token->userid, 'deleted'=>0), '*', MUST_EXIST);
+        $user = $DB->get_record('user', array('id'=>$token->userid), '*', MUST_EXIST);
 
         // log token access
         $DB->set_field('external_tokens', 'lastaccess', time(), array('id'=>$token->id));
@@ -727,6 +928,9 @@ abstract class webservice_zend_server extends webservice_server {
         //log the web service request
         add_to_log(SITEID, 'webservice', '', '' , $this->zend_class." ".getremoteaddr() , 0, $this->userid);
 
+        //send headers
+        $this->send_headers();
+
         // execute and return response, this sends some headers too
         $response = $this->zend_server->handle();
 
@@ -734,7 +938,6 @@ abstract class webservice_zend_server extends webservice_server {
         $this->session_cleanup();
 
         //finally send the result
-        $this->send_headers();
         echo $response;
         die;
     }
@@ -886,22 +1089,7 @@ class '.$classname.' {
             }
             $params[] = $param;
             $paramanddefaults[] = $paramanddefault;
-            $type = 'string';
-            if ($keydesc instanceof external_value) {
-                switch($keydesc->type) {
-                    case PARAM_BOOL: // 0 or 1 only for now
-                    case PARAM_INT:
-                        $type = 'int'; break;
-                    case PARAM_FLOAT;
-                        $type = 'double'; break;
-                    default:
-                        $type = 'string';
-                }
-            } else if ($keydesc instanceof external_single_structure) {
-                $type = 'object|struct';
-            } else if ($keydesc instanceof external_multiple_structure) {
-                $type = 'array';
-            }
+            $type = $this->get_phpdoc_type($keydesc);
             $params_desc[] = '     * @param '.$type.' $'.$name.' '.$keydesc->desc;
         }
         $params                = implode(', ', $params);
@@ -913,22 +1101,7 @@ class '.$classname.' {
         if (is_null($function->returns_desc)) {
             $return = '     * @return void';
         } else {
-            $type = 'string';
-            if ($function->returns_desc instanceof external_value) {
-                switch($function->returns_desc->type) {
-                    case PARAM_BOOL: // 0 or 1 only for now
-                    case PARAM_INT:
-                        $type = 'int'; break;
-                    case PARAM_FLOAT;
-                        $type = 'double'; break;
-                    default:
-                        $type = 'string';
-                }
-            } else if ($function->returns_desc instanceof external_single_structure) {
-                $type = 'object|struct'; //only 'object' is supported by SOAP, 'struct' by XML-RPC MDL-23083
-            } else if ($function->returns_desc instanceof external_multiple_structure) {
-                $type = 'array';
-            }
+            $type = $this->get_phpdoc_type($function->returns_desc);
             $return = '     * @return '.$type.' '.$function->returns_desc->desc;
         }
 
@@ -946,6 +1119,33 @@ class '.$classname.' {
     }
 ';
         return $code;
+    }
+
+    protected function get_phpdoc_type($keydesc) {
+        if ($keydesc instanceof external_value) {
+            switch($keydesc->type) {
+                case PARAM_BOOL: // 0 or 1 only for now
+                case PARAM_INT:
+                    $type = 'int'; break;
+                case PARAM_FLOAT;
+                    $type = 'double'; break;
+                default:
+                    $type = 'string';
+            }
+
+        } else if ($keydesc instanceof external_single_structure) {
+            $classname = $this->generate_simple_struct_class($keydesc);
+            $type = $classname;
+
+        } else if ($keydesc instanceof external_multiple_structure) {
+            $type = 'array';
+        }
+
+        return $type;
+    }
+
+    protected function generate_simple_struct_class(external_single_structure $structdesc) {
+        return 'object|struct'; //only 'object' is supported by SOAP, 'struct' by XML-RPC MDL-23083
     }
 
     /**
@@ -1273,7 +1473,7 @@ abstract class webservice_base_server extends webservice_server {
         }
         $rs->close();
         if (!$allowed) {
-            throw new webservice_access_exception('Access to external function not allowed');
+            throw new webservice_access_exception(get_string('accesstofunctionnotallowed', 'webservice', $this->functionname));
         }
 
         // we have all we need now

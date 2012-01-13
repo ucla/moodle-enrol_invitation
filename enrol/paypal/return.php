@@ -38,9 +38,6 @@ $context = get_context_instance(CONTEXT_COURSE, $course->id, MUST_EXIST);
 
 require_login();
 
-// Refreshing enrolment data in the USER session
-load_all_capabilities();
-
 if ($SESSION->wantsurl) {
     $destination = $SESSION->wantsurl;
     unset($SESSION->wantsurl);
@@ -48,15 +45,17 @@ if ($SESSION->wantsurl) {
     $destination = "$CFG->wwwroot/course/view.php?id=$course->id";
 }
 
+$fullname = format_string($course->fullname, true, array('context' => $context));
+
 if (is_enrolled($context, NULL, '', true)) { // TODO: use real paypal check
-    redirect($destination, get_string('paymentthanks', '', $course->fullname));
+    redirect($destination, get_string('paymentthanks', '', $fullname));
 
 } else {   /// Somehow they aren't enrolled yet!  :-(
     $PAGE->set_url($destination);
     echo $OUTPUT->header();
     $a = new stdClass();
     $a->teacher = get_string('defaultcourseteacher');
-    $a->fullname = format_string($course->fullname);
+    $a->fullname = $fullname;
     notice(get_string('paymentsorry', '', $a), $destination);
 }
 

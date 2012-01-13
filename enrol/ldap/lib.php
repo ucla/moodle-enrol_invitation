@@ -448,19 +448,20 @@ class enrol_ldap_plugin extends enrol_plugin {
                                  JOIN {enrol} e ON (e.id = ue.enrolid)
                                 WHERE u.deleted = 0 AND e.courseid = :courseid ";
                         $params = array('roleid'=>$role->id, 'courseid'=>$course_obj->id);
+                        $context = get_context_instance(CONTEXT_COURSE, $course_obj->id);
                         if (!empty($ldapmembers)) {
-                            list($ldapml, $params2) = $DB->get_in_or_equal($ldapmembers, SQL_PARAMS_NAMED, 'm0', false);
+                            list($ldapml, $params2) = $DB->get_in_or_equal($ldapmembers, SQL_PARAMS_NAMED, 'm', false);
                             $sql .= "AND u.idnumber $ldapml";
                             $params = array_merge($params, $params2);
                             unset($params2);
                         } else {
+                            $shortname = format_string($course_obj->shortname, true, array('context' => $context));
                             print_string('emptyenrolment', 'enrol_ldap',
                                          array('role_shortname'=> $role->shortname,
-                                               'course_shortname'=>$course_obj->shortname));
+                                               'course_shortname' => $shortname));
                         }
                         $todelete = $DB->get_records_sql($sql, $params);
 
-                        $context = get_context_instance(CONTEXT_COURSE, $course_obj->id);
                         if (!empty($todelete)) {
                             $transaction = $DB->start_delegated_transaction();
                             foreach ($todelete as $row) {
@@ -884,16 +885,34 @@ class enrol_ldap_plugin extends enrol_plugin {
         require_once("$CFG->dirroot/course/lib.php");
 
         // Override defaults with template course
-        $course = new stdClass();
+        $template = false;
         if ($this->get_config('template')) {
-            if($template = $DB->get_record('course', array('shortname'=>$this->get_config('template')))) {
+            if ($template = $DB->get_record('course', array('shortname'=>$this->get_config('template')))) {
                 unset($template->id); // So we are clear to reinsert the record
                 unset($template->fullname);
                 unset($template->shortname);
                 unset($template->idnumber);
-                $course = $template;
             }
         }
+        if (!$template) {
+            $courseconfig = get_config('moodlecourse');
+            $template = new stdClass();
+            $template->summary        = '';
+            $template->summaryformat  = FORMAT_HTML;
+            $template->format         = $courseconfig->format;
+            $template->numsections    = $courseconfig->numsections;
+            $template->hiddensections = $courseconfig->hiddensections;
+            $template->newsitems      = $courseconfig->newsitems;
+            $template->showgrades     = $courseconfig->showgrades;
+            $template->showreports    = $courseconfig->showreports;
+            $template->maxbytes       = $courseconfig->maxbytes;
+            $template->groupmode      = $courseconfig->groupmode;
+            $template->groupmodeforce = $courseconfig->groupmodeforce;
+            $template->visible        = $courseconfig->visible;
+            $template->lang           = $courseconfig->lang;
+            $template->groupmodeforce = $courseconfig->groupmodeforce;
+        }
+        $course = $template;
 
         $course->category = $this->get_config('category');
         if (!$DB->record_exists('course_categories', array('id'=>$this->get_config('category')))) {

@@ -24,7 +24,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['clicktoopen'] = 'Click {$a} link to open URL.';
+$string['clicktoopen'] = 'Click {$a} link to open resource.';
 $string['configdisplayoptions'] = 'Select all options that should be available, existing settings are not modified. Hold CTRL key to select multiple fields.';
 $string['configframesize'] = 'When a web page or an uploaded file is displayed within a frame, this value is the height (in pixels) of the top frame (which contains the navigation).';
 $string['configrolesinparams'] = 'Enable if you want to include localized role names in list of available parameter variables.';
@@ -44,13 +44,17 @@ $string['displayselect_help'] = 'This setting, together with the URL file type a
 $string['displayselectexplain'] = 'Choose display type, unfortunately not all types are suitable for all URLs.';
 $string['externalurl'] = 'External URL';
 $string['framesize'] = 'Frame height';
+$string['invalidstoredurl'] = 'Cannot display this resource, URL is invalid.';
 $string['chooseavariable'] = 'Choose a variable...';
+$string['invalidurl'] = 'Entered URL is invalid';
 $string['modulename'] = 'URL';
 $string['modulenameplural'] = 'URLs';
 $string['neverseen'] = 'Never seen';
 $string['optionsheader'] = 'Options';
-$string['parameterinfo'] = 'parameter=variable';
+$string['page-mod-url-x'] = 'Any URL module page';
+$string['parameterinfo'] = '&amp;parameter=variable';
 $string['parametersheader'] = 'Parameters';
+$string['parametersheader_help'] = 'Some internal Moodle variables may be automatically appended to the URL. Type your name for the parameter into each text box(es) and then select the required matching variable.';
 $string['pluginadministration'] = 'URL module administration';
 $string['pluginname'] = 'URL';
 $string['popupheight'] = 'Popup height (in pixels)';

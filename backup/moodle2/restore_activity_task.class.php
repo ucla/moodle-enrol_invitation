@@ -34,6 +34,7 @@ abstract class restore_activity_task extends restore_task {
     protected $modulename;  // name of the module
     protected $moduleid;    // new (target) id of the course module
     protected $oldmoduleid; // old (original) id of the course module
+    protected $oldmoduleversion; // old (original) version of the module
     protected $contextid;   // new (target) context of the activity
     protected $oldcontextid;// old (original) context of the activity
     protected $activityid;  // new (target) id of the activity
@@ -43,11 +44,11 @@ abstract class restore_activity_task extends restore_task {
      * Constructor - instantiates one object of this class
      */
     public function __construct($name, $info, $plan = null) {
-
         $this->info = $info;
         $this->modulename = $this->info->modulename;
         $this->moduleid = 0;
         $this->oldmoduleid = $this->info->moduleid;
+        $this->oldmoduleversion = 0;
         $this->contextid = 0;
         $this->oldcontextid = 0;
         $this->activityid = 0;
@@ -64,6 +65,10 @@ abstract class restore_activity_task extends restore_task {
 
     public function set_moduleid($moduleid) {
         $this->moduleid = $moduleid;
+    }
+
+    public function set_old_moduleversion($oldmoduleversion) {
+        $this->oldmoduleversion = $oldmoduleversion;
     }
 
     public function set_activityid($activityid) {
@@ -88,6 +93,10 @@ abstract class restore_activity_task extends restore_task {
 
     public function get_moduleid() {
         return $this->moduleid;
+    }
+
+    public function get_old_moduleversion() {
+        return $this->oldmoduleversion;
     }
 
     public function get_activityid() {
@@ -140,6 +149,9 @@ abstract class restore_activity_task extends restore_task {
 
         // Grades (module-related, rest of gradebook is restored later if possible: cats, calculations...)
         $this->add_step(new restore_activity_grades_structure_step('activity_grades', 'grades.xml'));
+
+        // Advanced grading methods attached to the module
+        $this->add_step(new restore_activity_grading_structure_step('activity_grading', 'grading.xml'));
 
         // Userscompletion (conditionally)
         if ($this->get_setting_value('userscompletion')) {

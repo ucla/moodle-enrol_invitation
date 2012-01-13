@@ -85,7 +85,7 @@ class course_edit_form extends moodleform {
             $mform->setConstant('fullname', $course->fullname);
         }
 
-        $mform->addElement('text','shortname', get_string('shortnamecourse'),'maxlength="100" size="20"');
+        $mform->addElement('text', 'shortname', get_string('shortnamecourse'), 'maxlength="100" size="20"');
         $mform->addHelpButton('shortname', 'shortnamecourse');
         $mform->addRule('shortname', get_string('missingshortname'), 'required', null, 'client');
         $mform->setType('shortname', PARAM_MULTILANG);
@@ -120,8 +120,8 @@ class course_edit_form extends moodleform {
         $mform->addHelpButton('format', 'format');
         $mform->setDefault('format', $courseconfig->format);
 
-        for ($i=1; $i<=52; $i++) {
-          $sectionmenu[$i] = "$i";
+        for ($i = 0; $i <= $courseconfig->maxsections; $i++) {
+            $sectionmenu[$i] = "$i";
         }
         $mform->addElement('select', 'numsections', get_string('numberweeks'), $sectionmenu);
         $mform->setDefault('numsections', $courseconfig->numsections);
@@ -176,7 +176,9 @@ class course_edit_form extends moodleform {
             $themes=array();
             $themes[''] = get_string('forceno');
             foreach ($themeobjects as $key=>$theme) {
-                $themes[$key] = $theme->name;
+                if (empty($theme->hidefromselector)) {
+                    $themes[$key] = get_string('pluginname', 'theme_'.$theme->name);
+                }
             }
             $mform->addElement('select', 'theme', get_string('forcetheme'), $themes);
         }

@@ -202,16 +202,38 @@ class plugin_renderer_base extends renderer_base {
  * @since     Moodle 2.0
  */
 class core_renderer extends renderer_base {
-    /** @var string used in {@link header()}. */
-    const PERFORMANCE_INFO_TOKEN = '%%PERFORMANCEINFO%%';
-    /** @var string used in {@link header()}. */
-    const END_HTML_TOKEN = '%%ENDHTML%%';
-    /** @var string used in {@link header()}. */
+    /**
+     * Do NOT use, please use <?php echo $OUTPUT->main_content() ?>
+     * in layout files instead.
+     * @var string used in {@link header()}.
+     * @deprecated
+     */
     const MAIN_CONTENT_TOKEN = '[MAIN CONTENT GOES HERE]';
     /** @var string used to pass information from {@link doctype()} to {@link standard_head_html()}. */
     protected $contenttype;
     /** @var string used by {@link redirect_message()} method to communicate with {@link header()}. */
     protected $metarefreshtag = '';
+    /** @var string unique token */
+    protected $unique_end_html_token;
+    /** @var string unique token */
+    protected $unique_performance_info_token;
+    /** @var string unique token */
+    protected $unique_main_content_token;
+
+    /**
+     * Constructor
+     * @param moodle_page $page the page we are doing output for.
+     * @param string $target one of rendering target constants
+     */
+    public function __construct(moodle_page $page, $target) {
+        $this->opencontainers = $page->opencontainers;
+        $this->page = $page;
+        $this->target = $target;
+
+        $this->unique_end_html_token = '%%ENDHTML-'.sesskey().'%%';
+        $this->unique_performance_info_token = '%%PERFORMANCEINFO-'.sesskey().'%%';
+        $this->unique_main_content_token = '[MAIN CONTENT GOES HERE - '.sesskey().']';
+    }
 
     /**
      * Get the DOCTYPE declaration that should be used with this page. Designed to
@@ -279,6 +301,9 @@ class core_renderer extends renderer_base {
             $output .= '<meta http-equiv="refresh" content="'.$this->page->periodicrefreshdelay.';url='.$this->page->url->out().'" />';
         }
 
+        // flow player embedding support
+        $this->page->requires->js_function_call('M.util.load_flowplayer');
+
         $this->page->requires->js_function_call('setTimeout', array('fix_column_widths()', 20));
 
         $focus = $this->page->focuscontrol;
@@ -309,12 +334,6 @@ class core_renderer extends renderer_base {
         $this->page->requires->js($jsurl, true);
         $jsurl = $this->page->theme->javascript_url(false);
         $this->page->requires->js($jsurl);
-
-        // Perform a browser environment check for the flash version.  Should only run once per login session.
-        if (!NO_MOODLE_COOKIES && isloggedin() && !empty($CFG->excludeoldflashclients) && empty($SESSION->flashversion)) {
-            $this->page->requires->js('/lib/swfobject/swfobject.js');
-            $this->page->requires->js_init_call('M.core_flashdetect.init');
-        }
 
         // Get any HTML from the page_requirements_manager.
         $output .= $this->page->requires->get_head_code($this->page, $this);
@@ -358,11 +377,15 @@ class core_renderer extends renderer_base {
         // This function is normally called from a layout.php file in {@link header()}
         // but some of the content won't be known until later, so we return a placeholder
         // for now. This will be replaced with the real content in {@link footer()}.
-        $output = self::PERFORMANCE_INFO_TOKEN;
-        if ($this->page->legacythemeinuse) {
+        $output = $this->unique_performance_info_token;
+        if ($this->page->devicetypeinuse == 'legacy') {
             // The legacy theme is in use print the notification
             $output .= html_writer::tag('div', get_string('legacythemeinuse'), array('class'=>'legacythemeinuse'));
         }
+
+        // Get links to switch device types (only shown for users not on a default device)
+        $output .= $this->theme_switch_links();
+
         if (!empty($CFG->debugpageinfo)) {
             $output .= '<div class="performanceinfo pageinfo">This page is: ' . $this->page->debug_summary() . '</div>';
         }
@@ -371,7 +394,7 @@ class core_renderer extends renderer_base {
             if (function_exists('profiling_is_running') && profiling_is_running()) {
                 $txt = get_string('profiledscript', 'admin');
                 $title = get_string('profiledscriptview', 'admin');
-                $url = $CFG->wwwroot . '/admin/report/profiling/index.php?script=' . urlencode($SCRIPT);
+                $url = $CFG->wwwroot . '/admin/tool/profiling/index.php?script=' . urlencode($SCRIPT);
                 $link= '<a title="' . $title . '" href="' . $url . '">' . $txt . '</a>';
                 $output .= '<div class="profilingfooter">' . $link . '</div>';
             }
@@ -391,6 +414,15 @@ class core_renderer extends renderer_base {
     }
 
     /**
+     * Returns standard main content placeholder.
+     * Designed to be called in theme layout.php files.
+     * @return string HTML fragment.
+     */
+    public function main_content() {
+        return $this->unique_main_content_token;
+    }
+
+    /**
      * The standard tags (typically script tags that are not needed earlier) that
      * should be output after everything else, . Designed to be called in theme layout.php files.
      * @return string HTML fragment.
@@ -399,7 +431,7 @@ class core_renderer extends renderer_base {
         // This function is normally called from a layout.php file in {@link header()}
         // but some of the content won't be known until later, so we return a placeholder
         // for now. This will be replaced with the real content in {@link footer()}.
-        return self::END_HTML_TOKEN;
+        return $this->unique_end_html_token;
     }
 
     /**
@@ -475,8 +507,8 @@ class core_renderer extends renderer_base {
                         } else {
                             $loggedinas .= get_string('failedloginattemptsall', '', $count);
                         }
-                        if (has_capability('coursereport/log:view', get_context_instance(CONTEXT_SYSTEM))) {
-                            $loggedinas .= ' (<a href="'.$CFG->wwwroot.'/course/report/log/index.php'.
+                        if (file_exists("$CFG->dirroot/report/log/index.php") and has_capability('report/log:view', get_context_instance(CONTEXT_SYSTEM))) {
+                            $loggedinas .= ' (<a href="'.$CFG->wwwroot.'/report/log/index.php'.
                                                  '?chooselog=1&amp;id=1&amp;modid=site_errors">'.get_string('logs').'</a>)';
                         }
                         $loggedinas .= '</div>';
@@ -513,7 +545,7 @@ class core_renderer extends renderer_base {
 
         } else {
             return '<div class="homelink"><a href="' . $CFG->wwwroot . '/course/view.php?id=' . $this->page->course->id . '">' .
-                    format_string($this->page->course->shortname) . '</a></div>';
+                    format_string($this->page->course->shortname, true, array('context' => $this->page->context)) . '</a></div>';
         }
     }
 
@@ -605,13 +637,19 @@ class core_renderer extends renderer_base {
         $rendered = $this->render_page_layout($layoutfile);
 
         // Slice the rendered output into header and footer.
-        $cutpos = strpos($rendered, self::MAIN_CONTENT_TOKEN);
+        $cutpos = strpos($rendered, $this->unique_main_content_token);
         if ($cutpos === false) {
-            throw new coding_exception('page layout file ' . $layoutfile .
-                    ' does not contain the string "' . self::MAIN_CONTENT_TOKEN . '".');
+            $cutpos = strpos($rendered, self::MAIN_CONTENT_TOKEN);
+            $token = self::MAIN_CONTENT_TOKEN;
+        } else {
+            $token = $this->unique_main_content_token;
+        }
+
+        if ($cutpos === false) {
+            throw new coding_exception('page layout file ' . $layoutfile . ' does not contain the main content placeholder, please include "<?php echo $OUTPUT->main_content() ?>" in theme layout file.');
         }
         $header = substr($rendered, 0, $cutpos);
-        $footer = substr($rendered, $cutpos + strlen(self::MAIN_CONTENT_TOKEN));
+        $footer = substr($rendered, $cutpos + strlen($token));
 
         if (empty($this->contenttype)) {
             debugging('The page layout file did not call $OUTPUT->doctype()');
@@ -676,9 +714,9 @@ class core_renderer extends renderer_base {
                 $performanceinfo = $perf['html'];
             }
         }
-        $footer = str_replace(self::PERFORMANCE_INFO_TOKEN, $performanceinfo, $footer);
+        $footer = str_replace($this->unique_performance_info_token, $performanceinfo, $footer);
 
-        $footer = str_replace(self::END_HTML_TOKEN, $this->page->requires->get_end_code(), $footer);
+        $footer = str_replace($this->unique_end_html_token, $this->page->requires->get_end_code(), $footer);
 
         $this->page->set_state(moodle_page::STATE_DONE);
 
@@ -966,10 +1004,16 @@ class core_renderer extends renderer_base {
     protected function render_action_link(action_link $link) {
         global $CFG;
 
+        if ($link->text instanceof renderable) {
+            $text = $this->render($link->text);
+        } else {
+            $text = $link->text;
+        }
+
         // A disabled link is rendered as formatted text
         if (!empty($link->attributes['disabled'])) {
             // do not use div here due to nesting restriction in xhtml strict
-            return html_writer::tag('span', $link->text, array('class'=>'currentlink'));
+            return html_writer::tag('span', $text, array('class'=>'currentlink'));
         }
 
         $attributes = $link->attributes;
@@ -988,7 +1032,7 @@ class core_renderer extends renderer_base {
             }
         }
 
-        return html_writer::tag('a', $link->text, $attributes);
+        return html_writer::tag('a', $text, $attributes);
     }
 
 
@@ -1121,7 +1165,11 @@ class core_renderer extends renderer_base {
         $output = html_writer::tag('div', $output);
 
         // now the form itself around it
-        $url = $button->url->out_omit_querystring(); // url without params
+        if ($button->method === 'get') {
+            $url = $button->url->out_omit_querystring(true); // url without params, the anchor part allowed
+        } else {
+            $url = $button->url->out_omit_querystring();     // url without params, the anchor part not allowed
+        }
         if ($url === '') {
             $url = '#'; // there has to be always some action
         }
@@ -1207,8 +1255,13 @@ class core_renderer extends renderer_base {
         $output = html_writer::tag('div', $output);
 
         // now the form itself around it
+        if ($select->method === 'get') {
+            $url = $select->url->out_omit_querystring(true); // url without params, the anchor part allowed
+        } else {
+            $url = $select->url->out_omit_querystring();     // url without params, the anchor part not allowed
+        }
         $formattributes = array('method' => $select->method,
-                                'action' => $select->url->out_omit_querystring(),
+                                'action' => $url,
                                 'id'     => $select->formid);
         $output = html_writer::tag('form', $output, $formattributes);
 
@@ -1398,95 +1451,37 @@ class core_renderer extends renderer_base {
     */
     function render_rating(rating $rating) {
         global $CFG, $USER;
-        static $havesetupjavascript = false;
 
-        if( $rating->settings->aggregationmethod == RATING_AGGREGATE_NONE ){
+        if ($rating->settings->aggregationmethod == RATING_AGGREGATE_NONE) {
             return null;//ratings are turned off
         }
 
-        $useajax = !empty($CFG->enableajax);
-
-        //include required Javascript
-        if( !$havesetupjavascript && $useajax ) {
-            $this->page->requires->js_init_call('M.core_rating.init');
-            $havesetupjavascript = true;
-        }
-
-        //check the item we're rating was created in the assessable time window
-        $inassessablewindow = true;
-        if ( $rating->settings->assesstimestart && $rating->settings->assesstimefinish ) {
-            if ($rating->itemtimecreated < $rating->settings->assesstimestart || $rating->itemtimecreated > $rating->settings->assesstimefinish) {
-                $inassessablewindow = false;
-            }
-        }
+        $ratingmanager = new rating_manager();
+        // Initialise the JavaScript so ratings can be done by AJAX.
+        $ratingmanager->initialise_rating_javascript($this->page);
 
         $strrate = get_string("rate", "rating");
         $ratinghtml = ''; //the string we'll return
 
-        //permissions check - can they view the aggregate?
-        $canviewaggregate = false;
+        // permissions check - can they view the aggregate?
+        if ($rating->user_can_view_aggregate()) {
 
-        //if its the current user's item and they have permission to view the aggregate on their own items
-        if ( $rating->itemuserid==$USER->id && $rating->settings->permissions->view && $rating->settings->pluginpermissions->view) {
-            $canviewaggregate = true;
-        }
+            $aggregatelabel = $ratingmanager->get_aggregate_label($rating->settings->aggregationmethod);
+            $aggregatestr   = $rating->get_aggregate_string();
 
-        //if the item doesnt belong to anyone or its another user's items and they can see the aggregate on items they don't own
-        //Note that viewany doesnt mean you can see the aggregate or ratings of your own items
-        if ( (empty($rating->itemuserid) or $rating->itemuserid!=$USER->id) && $rating->settings->permissions->viewany && $rating->settings->pluginpermissions->viewany ) {
-            $canviewaggregate = true;
-        }
-
-        if ($canviewaggregate==true) {
-            $aggregatelabel = '';
-            switch ($rating->settings->aggregationmethod) {
-                case RATING_AGGREGATE_AVERAGE :
-                    $aggregatelabel .= get_string("aggregateavg", "rating");
-                    break;
-                case RATING_AGGREGATE_COUNT :
-                    $aggregatelabel .= get_string("aggregatecount", "rating");
-                    break;
-                case RATING_AGGREGATE_MAXIMUM :
-                    $aggregatelabel .= get_string("aggregatemax", "rating");
-                    break;
-                case RATING_AGGREGATE_MINIMUM :
-                    $aggregatelabel .= get_string("aggregatemin", "rating");
-                    break;
-                case RATING_AGGREGATE_SUM :
-                    $aggregatelabel .= get_string("aggregatesum", "rating");
-                    break;
-            }
-            $aggregatelabel .= get_string('labelsep', 'langconfig');
-
-            //$scalemax = 0;//no longer displaying scale max
-            $aggregatestr = '';
-
-            //only display aggregate if aggregation method isn't COUNT
-            if ($rating->aggregate && $rating->settings->aggregationmethod!= RATING_AGGREGATE_COUNT) {
-                if ($rating->settings->aggregationmethod!= RATING_AGGREGATE_SUM && is_array($rating->settings->scale->scaleitems)) {
-                    $aggregatestr .= $rating->settings->scale->scaleitems[round($rating->aggregate)];//round aggregate as we're using it as an index
-                }
-                else { //aggregation is SUM or the scale is numeric
-                    $aggregatestr .= round($rating->aggregate,1);
-                }
+            $aggregatehtml  = html_writer::tag('span', $aggregatestr, array('id' => 'ratingaggregate'.$rating->itemid, 'class' => 'ratingaggregate')).' ';
+            if ($rating->count > 0) {
+                $countstr = "({$rating->count})";
             } else {
-                $aggregatestr = '';
+                $countstr = '-';
             }
-
-            $countstr = html_writer::start_tag('span', array('id'=>"ratingcount{$rating->itemid}"));
-            if ($rating->count>0) {
-                $countstr .= "({$rating->count})";
-            }
-            $countstr .= html_writer::end_tag('span');
-
-            //$aggregatehtml = "{$ratingstr} / $scalemax ({$rating->count}) ";
-            $aggregatehtml = "<span id='ratingaggregate{$rating->itemid}'>{$aggregatestr}</span> $countstr ";
+            $aggregatehtml .= html_writer::tag('span', $countstr, array('id'=>"ratingcount{$rating->itemid}", 'class' => 'ratingcount')).' ';
 
             $ratinghtml .= html_writer::tag('span', $aggregatelabel, array('class'=>'rating-aggregate-label'));
             if ($rating->settings->permissions->viewall && $rating->settings->pluginpermissions->viewall) {
-                $url = "/rating/index.php?contextid={$rating->context->id}&itemid={$rating->itemid}&scaleid={$rating->settings->scale->id}";
-                $nonpopuplink = new moodle_url($url);
-                $popuplink = new moodle_url("$url&popup=1");
+
+                $nonpopuplink = $rating->get_view_ratings_url();
+                $popuplink = $rating->get_view_ratings_url(true);
 
                 $action = new popup_action('click', $popuplink, 'ratings', array('height' => 400, 'width' => 600));
                 $ratinghtml .= $this->action_link($nonpopuplink, $aggregatehtml, $action);
@@ -1496,77 +1491,45 @@ class core_renderer extends renderer_base {
         }
 
         $formstart = null;
-        //if the item doesn't belong to the current user, the user has permission to rate
-        //and we're within the assessable period
-        if ($rating->itemuserid!=$USER->id
-            && $rating->settings->permissions->rate
-            && $rating->settings->pluginpermissions->rate
-            && $inassessablewindow) {
+        // if the item doesn't belong to the current user, the user has permission to rate
+        // and we're within the assessable period
+        if ($rating->user_can_rate()) {
+
+            $rateurl = $rating->get_rate_url();
+            $inputs = $rateurl->params();
 
             //start the rating form
-            $formstart = html_writer::start_tag('form',
-                array('id'=>"postrating{$rating->itemid}", 'class'=>'postratingform', 'method'=>'post', 'action'=>"{$CFG->wwwroot}/rating/rate.php"));
+            $formattrs = array(
+                'id'     => "postrating{$rating->itemid}",
+                'class'  => 'postratingform',
+                'method' => 'post',
+                'action' => $rateurl->out_omit_querystring()
+            );
+            $formstart  = html_writer::start_tag('form', $formattrs);
+            $formstart .= html_writer::start_tag('div', array('class' => 'ratingform'));
 
-            $formstart .= html_writer::start_tag('div', array('class'=>'ratingform'));
-
-            //add the hidden inputs
-
-            $attributes = array('type'=>'hidden', 'class'=>'ratinginput', 'name'=>'contextid', 'value'=>$rating->context->id);
-            $formstart .= html_writer::empty_tag('input', $attributes);
-
-            $attributes['name'] = 'itemid';
-            $attributes['value'] = $rating->itemid;
-            $formstart .= html_writer::empty_tag('input', $attributes);
-
-            $attributes['name'] = 'scaleid';
-            $attributes['value'] = $rating->settings->scale->id;
-            $formstart .= html_writer::empty_tag('input', $attributes);
-
-            $attributes['name'] = 'returnurl';
-            $attributes['value'] = $rating->settings->returnurl;
-            $formstart .= html_writer::empty_tag('input', $attributes);
-
-            $attributes['name'] = 'rateduserid';
-            $attributes['value'] = $rating->itemuserid;
-            $formstart .= html_writer::empty_tag('input', $attributes);
-
-            $attributes['name'] = 'aggregation';
-            $attributes['value'] = $rating->settings->aggregationmethod;
-            $formstart .= html_writer::empty_tag('input', $attributes);
-
-            $attributes['name'] = 'sesskey';
-            $attributes['value'] = sesskey();;
-            $formstart .= html_writer::empty_tag('input', $attributes);
+            // add the hidden inputs
+            foreach ($inputs as $name => $value) {
+                $attributes = array('type' => 'hidden', 'class' => 'ratinginput', 'name' => $name, 'value' => $value);
+                $formstart .= html_writer::empty_tag('input', $attributes);
+            }
 
             if (empty($ratinghtml)) {
                 $ratinghtml .= $strrate.': ';
             }
-
             $ratinghtml = $formstart.$ratinghtml;
 
-            //generate an array of values for numeric scales
-            $scalearray = $rating->settings->scale->scaleitems;
-            if (!is_array($scalearray)) { //almost certainly a numerical scale
-                $intscalearray = intval($scalearray);//just in case they've passed "5" instead of 5
-                $scalearray = array();
-                if( is_int($intscalearray) && $intscalearray>0 ) {
-                    for($i=0; $i<=$rating->settings->scale->scaleitems; $i++) {
-                        $scalearray[$i] = $i;
-                    }
-                }
-            }
-
-            $scalearray = array(RATING_UNSET_RATING => $strrate.'...') + $scalearray;
-            $ratinghtml .= html_writer::select($scalearray, 'rating', $rating->rating, false, array('class'=>'postratingmenu ratinginput','id'=>'menurating'.$rating->itemid));
+            $scalearray = array(RATING_UNSET_RATING => $strrate.'...') + $rating->settings->scale->scaleitems;
+            $scaleattrs = array('class'=>'postratingmenu ratinginput','id'=>'menurating'.$rating->itemid);
+            $ratinghtml .= html_writer::select($scalearray, 'rating', $rating->rating, false, $scaleattrs);
 
             //output submit button
-
             $ratinghtml .= html_writer::start_tag('span', array('class'=>"ratingsubmit"));
 
-            $attributes = array('type'=>'submit', 'class'=>'postratingmenusubmit', 'id'=>'postratingsubmit'.$rating->itemid, 'value'=>s(get_string('rate', 'rating')));
+            $attributes = array('type' => 'submit', 'class' => 'postratingmenusubmit', 'id' => 'postratingsubmit'.$rating->itemid, 'value' => s(get_string('rate', 'rating')));
             $ratinghtml .= html_writer::empty_tag('input', $attributes);
 
-            if (is_array($rating->settings->scale->scaleitems)) {
+            if (!$rating->settings->scale->isnumeric) {
                 $ratinghtml .= $this->help_icon_scale($rating->settings->scale->courseid, $rating->settings->scale);
             }
             $ratinghtml .= html_writer::end_tag('span');
@@ -1648,8 +1611,8 @@ class core_renderer extends renderer_base {
             $output .= $helpicon->linktext;
         }
 
-        // now create the link around it
-        $url = new moodle_url('/help.php', array('component' => $helpicon->component, 'identifier' => $helpicon->helpidentifier, 'lang'=>current_language()));
+        // now create the link around it - we need https on loginhttps pages
+        $url = new moodle_url($CFG->httpswwwroot.'/help.php', array('component' => $helpicon->component, 'identifier' => $helpicon->helpidentifier, 'lang'=>current_language()));
 
         // note: this title is displayed only if JS is disabled, otherwise the link will have the new ajax tooltip
         $title = get_string('helpprefix2', '', trim($helpicon->title, ". \t"));
@@ -1698,7 +1661,7 @@ class core_renderer extends renderer_base {
         $title = get_string($helpicon->identifier, $helpicon->component);
 
         if (empty($helpicon->linktext)) {
-            $alt = $title;
+            $alt = get_string('helpprefix2', '', trim($title, ". \t"));
         } else {
             $alt = get_string('helpwiththis');
         }
@@ -1712,8 +1675,8 @@ class core_renderer extends renderer_base {
             $output .= $helpicon->linktext;
         }
 
-        // now create the link around it
-        $url = new moodle_url('/help.php', array('component' => $helpicon->component, 'identifier' => $helpicon->identifier, 'lang'=>current_language()));
+        // now create the link around it - we need https on loginhttps pages
+        $url = new moodle_url($CFG->httpswwwroot.'/help.php', array('component' => $helpicon->component, 'identifier' => $helpicon->identifier, 'lang'=>current_language()));
 
         // note: this title is displayed only if JS is disabled, otherwise the link will have the new ajax tooltip
         $title = get_string('helpprefix2', '', trim($title, ". \t"));
@@ -1837,32 +1800,20 @@ class core_renderer extends renderer_base {
         }
 
         if (empty($userpicture->size)) {
-            $file = 'f2';
             $size = 35;
         } else if ($userpicture->size === true or $userpicture->size == 1) {
-            $file = 'f1';
             $size = 100;
-        } else if ($userpicture->size >= 50) {
-            $file = 'f1';
-            $size = $userpicture->size;
         } else {
-            $file = 'f2';
             $size = $userpicture->size;
         }
 
         $class = $userpicture->class;
 
-        if ($user->picture == 1) {
-            $usercontext = get_context_instance(CONTEXT_USER, $user->id);
-            $src = moodle_url::make_pluginfile_url($usercontext->id, 'user', 'icon', NULL, '/', $file);
-
-        } else if ($user->picture == 2) {
-            //TODO: gravatar user icon support
-
-        } else { // Print default user pictures (use theme version if available)
+        if ($user->picture != 1 && $user->picture != 2) {
             $class .= ' defaultuserpic';
-            $src = $this->pix_url('u/' . $file);
         }
+
+        $src = $userpicture->get_url($this->page, $this);
 
         $attributes = array('src'=>$src, 'alt'=>$alt, 'title'=>$alt, 'class'=>$class, 'width'=>$size, 'height'=>$size);
 
@@ -1967,13 +1918,18 @@ class core_renderer extends renderer_base {
         } else {
             $maxsize = get_string('maxfilesize', 'moodle', display_size($size));
         }
+        if ($options->buttonname) {
+            $buttonname = ' name="' . $options->buttonname . '"';
+        } else {
+            $buttonname = '';
+        }
         $html = <<<EOD
 <div class="filemanager-loading mdl-align" id='filepicker-loading-{$client_id}'>
 $icon_progress
 </div>
 <div id="filepicker-wrapper-{$client_id}" class="mdl-left" style="display:none">
     <div>
-        <input type="button" id="filepicker-button-{$client_id}" value="{$straddfile}" />
+        <input type="button" id="filepicker-button-{$client_id}" value="{$straddfile}"{$buttonname}/>
         <span> $maxsize </span>
     </div>
 EOD;
@@ -2109,6 +2065,10 @@ EOD;
         $message = '<p class="errormessage">' . $message . '</p>'.
                 '<p class="errorcode"><a href="' . $moreinfourl . '">' .
                 get_string('moreinformation') . '</a></p>';
+        if (empty($CFG->rolesactive)) {
+            $message .= '<p class="errormessage">' . get_string('installproblem', 'error') . '</p>';
+            //It is usually not possible to recover from errors triggered during installation, you may need to create a new database or use a different database prefix for new installation.
+        }
         $output .= $this->box($message, 'errorbox');
 
         if (debugging('', DEBUG_DEVELOPER)) {
@@ -2125,7 +2085,9 @@ EOD;
             }
         }
 
-        if (!empty($link)) {
+        if (empty($CFG->rolesactive)) {
+            // continue does not make much sense if moodle is not installed yet because error is most probably not recoverable
+        } else if (!empty($link)) {
             $output .= $this->continue_button($link);
         }
 
@@ -2403,7 +2365,7 @@ EOD;
             $content = $icon.$content; // use CSS for spacing of icons
         }
         if ($item->helpbutton !== null) {
-            $content = trim($item->helpbutton).html_writer::tag('span', $content, array('class'=>'clearhelpbutton'));
+            $content = trim($item->helpbutton).html_writer::tag('span', $content, array('class'=>'clearhelpbutton', 'tabindex'=>'0'));
         }
         if ($content === '') {
             return '';
@@ -2426,7 +2388,7 @@ EOD;
             $content = html_writer::link($item->action, $content, $attributes);
 
         } else if (is_string($item->action) || empty($item->action)) {
-            $attributes = array();
+            $attributes = array('tabindex'=>'0'); //add tab support to span but still maintain character stream sequence.
             if ($title !== '') {
                 $attributes['title'] = $title;
             }
@@ -2465,22 +2427,6 @@ EOD;
     }
 
     /**
-     * Returns the colours of the small MP3 player
-     * @return string
-     */
-    public function filter_mediaplugin_colors() {
-        return $this->page->theme->filter_mediaplugin_colors;
-    }
-
-    /**
-     * Returns the colours of the big MP3 player
-     * @return string
-     */
-    public function resource_mp3player_colors() {
-        return $this->page->theme->resource_mp3player_colors;
-    }
-
-    /**
      * Returns the custom menu if one has been set
      *
      * A custom menu can be configured by browsing to
@@ -2494,7 +2440,7 @@ EOD;
         if (empty($CFG->custommenuitems)) {
             return '';
         }
-        $custommenu = new custom_menu();
+        $custommenu = new custom_menu($CFG->custommenuitems, current_language());
         return $this->render_custom_menu($custommenu);
     }
 
@@ -2517,8 +2463,10 @@ EOD;
         // Increment the menu count. This is used for ID's that get worked with
         // in JavaScript as is essential
         $menucount++;
-        // Initialise this custom menu
-        $this->page->requires->js_init_call('M.core_custom_menu.init', array('custom_menu_'.$menucount));
+        // Initialise this custom menu (the custom menu object is contained in javascript-static
+        $jscode = js_writer::function_call_with_Y('M.core_custom_menu.init', array('custom_menu_'.$menucount));
+        $jscode = "(function(){{$jscode}})";
+        $this->page->requires->yui_module('node-menunav', $jscode);
         // Build the root nodes as required by YUI
         $content = html_writer::start_tag('div', array('id'=>'custom_menu_'.$menucount, 'class'=>'yui3-menu yui3-menu-horizontal javascript-disabled'));
         $content .= html_writer::start_tag('div', array('class'=>'yui3-menu-content'));
@@ -2584,8 +2532,40 @@ EOD;
         // Return the sub menu
         return $content;
     }
-}
 
+    /**
+     * Renders theme links for switching between default and other themes.
+     *
+     * @return string
+     */
+    protected function theme_switch_links() {
+
+        $actualdevice = get_device_type();
+        $currentdevice = $this->page->devicetypeinuse;
+        $switched = ($actualdevice != $currentdevice);
+
+        if (!$switched && $currentdevice == 'default' && $actualdevice == 'default') {
+            // The user is using the a default device and hasn't switched so don't shown the switch
+            // device links.
+            return '';
+        }
+
+        if ($switched) {
+            $linktext = get_string('switchdevicerecommended');
+            $devicetype = $actualdevice;
+        } else {
+            $linktext = get_string('switchdevicedefault');
+            $devicetype = 'default';
+        }
+        $linkurl = new moodle_url('/theme/switchdevice.php', array('url' => $this->page->url, 'device' => $devicetype, 'sesskey' => sesskey()));
+
+        $content  = html_writer::start_tag('div', array('id' => 'theme_switch_link'));
+        $content .= html_writer::link($linkurl, $linktext);
+        $content .= html_writer::end_tag('div');
+
+        return $content;
+    }
+}
 
 /// RENDERERS
 

@@ -45,6 +45,7 @@ class MoodleQuickForm_filemanager extends HTML_QuickForm_element {
         if (!empty($options['maxbytes'])) {
             $this->_options['maxbytes'] = get_max_upload_file_size($CFG->maxbytes, $options['maxbytes']);
         }
+        $this->_type = 'filemanager';
         parent::HTML_QuickForm_element($elementName, $elementLabel, $attributes);
     }
 
@@ -246,7 +247,7 @@ function form_filemanager_render($options) {
 
     $html = '';
     $options = $fm->options;
-    $straddfile  = get_string('add', 'repository') . '...';
+    $straddfile  = get_string('addfile', 'repository');
     $strmakedir  = get_string('makeafolder', 'moodle');
     $strdownload = get_string('downloadfolder', 'repository');
     $strloading  = get_string('loading', 'repository');
@@ -280,9 +281,9 @@ $icon_progress
 <div id="filemanager-wrapper-{$client_id}" style="display:none">
     <div class="fm-breadcrumb" id="fm-path-{$client_id}"></div>
     <div class="filemanager-toolbar">
-        <input type="button" class="fm-btn-add" id="btnadd-{$client_id}" onclick="return false" value=" {$straddfile}" />
-        <input type="button" class="fm-btn-mkdir" id="btncrt-{$client_id}" onclick="return false" value=" $strmakedir" />
-        <input type="button" class="fm-btn-download" id="btndwn-{$client_id}" onclick="return false" {$extra} value=" $strdownload" />
+        <input type="button" class="fm-btn-add" id="btnadd-{$client_id}" onclick="return false" value="{$straddfile}" />
+        <input type="button" class="fm-btn-mkdir" id="btncrt-{$client_id}" onclick="return false" value="{$strmakedir}" />
+        <input type="button" class="fm-btn-download" id="btndwn-{$client_id}" onclick="return false" {$extra} value="{$strdownload}" />
         <span> $maxsize </span>
     </div>
     <div class="filemanager-container" id="filemanager-{$client_id}">
@@ -303,7 +304,7 @@ FMHTML;
     $module = array(
         'name'=>'form_filemanager',
         'fullpath'=>'/lib/form/filemanager.js',
-        'requires' => array('core_filepicker', 'base', 'io', 'node', 'json', 'yui2-button', 'yui2-container', 'yui2-layout', 'yui2-menu', 'yui2-treeview'),
+        'requires' => array('core_filepicker', 'base', 'io-base', 'node', 'json', 'yui2-button', 'yui2-container', 'yui2-layout', 'yui2-menu', 'yui2-treeview'),
         'strings' => array(array('loading', 'repository'), array('nomorefiles', 'repository'), array('confirmdeletefile', 'repository'),
              array('add', 'repository'), array('accessiblefilepicker', 'repository'), array('move', 'moodle'),
              array('cancel', 'moodle'), array('download', 'moodle'), array('ok', 'moodle'),
@@ -311,7 +312,8 @@ FMHTML;
              array('zip', 'editor'), array('unzip', 'moodle'), array('rename', 'moodle'), array('delete', 'moodle'),
              array('cannotdeletefile', 'error'), array('confirmdeletefile', 'repository'),
              array('nopathselected', 'repository'), array('popupblockeddownload', 'repository'),
-             array('draftareanofiles', 'repository'), array('path', 'moodle'), array('setmainfile', 'repository')
+             array('draftareanofiles', 'repository'), array('path', 'moodle'), array('setmainfile', 'repository'),
+             array('moving', 'repository'), array('files', 'moodle')
         )
     );
     $PAGE->requires->js_module($module);

@@ -39,7 +39,6 @@ require_once($CFG->dirroot . '/tag/lib.php');
 /**
  * Class page_wiki contains the common code between all pages
  *
- * @package mod-wiki
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class page_wiki {
@@ -65,6 +64,11 @@ abstract class page_wiki {
     protected $gid;
 
     /**
+     * @var object module context object
+     */
+    protected $modcontext;
+
+    /**
      * @var int Current user ID
      */
     protected $uid;
@@ -72,7 +76,8 @@ abstract class page_wiki {
      * @var array The tabs set used in wiki module
      */
     protected $tabs = array('view' => 'view', 'edit' => 'edit', 'comments' => 'comments',
-                            'history' => 'history', 'map' => 'map');
+                            'history' => 'history', 'map' => 'map', 'files' => 'files',
+                            'admin' => 'admin');
     /**
      * @var array tabs options
      */
@@ -92,6 +97,7 @@ abstract class page_wiki {
     function __construct($wiki, $subwiki, $cm) {
         global $PAGE, $CFG;
         $this->subwiki = $subwiki;
+        $this->modcontext = get_context_instance(CONTEXT_MODULE, $PAGE->cm->id);
 
         // initialise wiki renderer
         $this->wikioutput = $PAGE->get_renderer('mod_wiki');
@@ -149,6 +155,7 @@ abstract class page_wiki {
      */
     protected function setup_tabs($options = array()) {
         global $CFG, $PAGE;
+        $groupmode = groups_get_activity_groupmode($PAGE->cm);
 
         if (empty($CFG->usecomments) || !has_capability('mod/wiki:viewcomment', $PAGE->context)){
             unset($this->tabs['comments']);
@@ -156,6 +163,19 @@ abstract class page_wiki {
 
         if (!has_capability('mod/wiki:editpage', $PAGE->context)){
             unset($this->tabs['edit']);
+        }
+
+        if ($groupmode and $groupmode == VISIBLEGROUPS) {
+            $currentgroup = groups_get_activity_group($PAGE->cm);
+            $manage = has_capability('mod/wiki:managewiki', $PAGE->cm->context);
+            $edit = has_capability('mod/wiki:editpage', $PAGE->context);
+            if (!$manage and !($edit and groups_is_member($currentgroup))) {
+                unset($this->tabs['edit']);
+            }
+        } else {
+            if (!has_capability('mod/wiki:editpage', $PAGE->context)) {
+                unset($this->tabs['edit']);
+            }
         }
 
 
@@ -263,7 +283,6 @@ abstract class page_wiki {
 /**
  * View a wiki page
  *
- * @package mod-wiki
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class page_wiki_view extends page_wiki {
@@ -277,7 +296,7 @@ class page_wiki_view extends page_wiki {
 
         parent::print_header();
 
-        $this->wikioutput->wiki_print_subwiki_selector($PAGE->activityrecord, $this->subwiki, $this->page);
+        $this->wikioutput->wiki_print_subwiki_selector($PAGE->activityrecord, $this->subwiki, $this->page, 'view');
 
         if (!empty($this->page)) {
             echo $this->wikioutput->prettyview_link($this->page);
@@ -291,11 +310,10 @@ class page_wiki_view extends page_wiki {
     function print_content() {
         global $PAGE, $CFG;
 
-        $context = get_context_instance(CONTEXT_MODULE, $PAGE->cm->id);
         if (wiki_user_can_view($this->subwiki)) {
 
             if (!empty($this->page)) {
-                wiki_print_page_content($this->page, $context, $this->subwiki->id);
+                wiki_print_page_content($this->page, $this->modcontext, $this->subwiki->id);
                 $wiki = $PAGE->activityrecord;
             } else {
                 print_string('nocontent', 'wiki');
@@ -347,7 +365,6 @@ class page_wiki_view extends page_wiki {
 /**
  * Wiki page editing page
  *
- * @package mod-wiki
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class page_wiki_edit extends page_wiki {
@@ -398,7 +415,6 @@ class page_wiki_edit extends page_wiki {
     function print_content() {
         global $PAGE;
 
-        $context = get_context_instance(CONTEXT_MODULE, $PAGE->cm->id);
         if (wiki_user_can_edit($this->subwiki)) {
             $this->print_edit();
         } else {
@@ -475,7 +491,7 @@ class page_wiki_edit extends page_wiki {
                 $params = 'pageid=' . $this->page->id;
 
                 if ($this->section) {
-                    $params .= '&section=' . $this->section;
+                    $params .= '&section=' . urlencode($this->section);
                 }
 
                 $form = '<form method="post" action="' . $CFG->wwwroot . '/mod/wiki/overridelocks.php?' . $params . '">';
@@ -519,12 +535,9 @@ class page_wiki_edit extends page_wiki {
             }
         }
 
-        $cm = $PAGE->cm;
-        $context = get_context_instance(CONTEXT_MODULE, $cm->id);
-
         $url = $CFG->wwwroot . '/mod/wiki/edit.php?pageid=' . $this->page->id;
         if (!empty($this->section)) {
-            $url .= "&section=" . $this->section;
+            $url .= "&section=" . urlencode($this->section);
         }
 
         $params = array('attachmentoptions' => page_wiki_edit::$attachmentoptions, 'format' => $version->contentformat, 'version' => $versionnumber, 'pagetitle'=>$this->page->title);
@@ -537,19 +550,19 @@ class page_wiki_edit extends page_wiki {
         switch ($format) {
         case 'html':
             $data->newcontentformat = FORMAT_HTML;
-            $data = file_prepare_standard_editor($data, 'newcontent', page_wiki_edit::$attachmentoptions, $context, 'mod_wiki', 'attachments', $this->subwiki->id);
+            // Append editor context to editor options, giving preference to existing context.
+            page_wiki_edit::$attachmentoptions = array_merge(array('context' => $this->modcontext), page_wiki_edit::$attachmentoptions);
+            $data = file_prepare_standard_editor($data, 'newcontent', page_wiki_edit::$attachmentoptions, $this->modcontext, 'mod_wiki', 'attachments', $this->subwiki->id);
             break;
         default:
-            //$draftitemid = file_get_submitted_draft_itemid('attachments');
-            //file_prepare_draft_area($draftitemid, $context->id, 'mod_wiki', 'attachments', $this->subwiki->id);
-            //$data->attachments = $draftitemid;
+            break;
             }
 
         if ($version->contentformat != 'html') {
-            $params['contextid'] = $context->id;
-            $params['component'] = 'mod_wiki';
-            $params['filearea'] = 'attachments';
             $params['fileitemid'] = $this->subwiki->id;
+            $params['contextid']  = $this->modcontext->id;
+            $params['component']  = 'mod_wiki';
+            $params['filearea']   = 'attachments';
         }
 
         if (!empty($CFG->usetags)) {
@@ -559,16 +572,6 @@ class page_wiki_edit extends page_wiki {
         $form = new mod_wiki_edit_form($url, $params);
 
         if ($formdata = $form->get_data()) {
-            if ($format != 'html') {
-                $errors = $this->process_uploads($context);
-                if (!empty($errors)) {
-                    $contenterror = "";
-                    foreach ($errors as $e) {
-                        $contenterror .= "<p>" . get_string('filenotuploadederror', 'wiki', $e->get_filename()) . "</p>";
-                    }
-                    print $OUTPUT->box($contenterror, 'errorbox');
-                }
-            }
             if (!empty($CFG->usetags)) {
                 $data->tags = $formdata->tags;
             }
@@ -582,21 +585,11 @@ class page_wiki_edit extends page_wiki {
         $form->display();
     }
 
-    protected function process_uploads($context) {
-        global $PAGE, $OUTPUT;
-
-        if ($this->upload) {
-            file_save_draft_area_files($this->attachments, $context->id, 'mod_wiki', 'attachments', $this->subwiki->id);
-            return null;
-            //return wiki_process_attachments($this->attachments, $this->deleteuploads, $context->id, 'mod_wiki', 'attachments', $this->subwiki->id);
-        }
-    }
 }
 
 /**
  * Class that models the behavior of wiki's view comments page
  *
- * @package mod-wiki
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class page_wiki_comments extends page_wiki {
@@ -610,21 +603,19 @@ class page_wiki_comments extends page_wiki {
     }
 
     function print_content() {
-        global $CFG, $OUTPUT, $USER, $PAGE, $COURSE;
+        global $CFG, $OUTPUT, $USER, $PAGE;
         require_once($CFG->dirroot . '/mod/wiki/locallib.php');
 
         $page = $this->page;
         $subwiki = $this->subwiki;
         $wiki = $PAGE->activityrecord;
-        $cm = $PAGE->cm;
-        $course = $COURSE;
-        $context = get_context_instance(CONTEXT_MODULE, $cm->id);
+        list($context, $course, $cm) = get_context_info_array($this->modcontext->id);
 
-        require_capability('mod/wiki:viewcomment', $context, NULL, true, 'noviewcommentpermission', 'wiki');
+        require_capability('mod/wiki:viewcomment', $this->modcontext, NULL, true, 'noviewcommentpermission', 'wiki');
 
-        $comments = wiki_get_comments($context->id, $page->id);
+        $comments = wiki_get_comments($this->modcontext->id, $page->id);
 
-        if (has_capability('mod/wiki:editcomment', $context)) {
+        if (has_capability('mod/wiki:editcomment', $this->modcontext)) {
             echo '<div class="midpad"><a href="' . $CFG->wwwroot . '/mod/wiki/editcomments.php?action=add&amp;pageid=' . $page->id . '">' . get_string('addcomment', 'wiki') . '</a></div>';
         }
 
@@ -666,7 +657,7 @@ class page_wiki_comments extends page_wiki {
                     $parsedcontent = wiki_parse_content('nwiki', $comment->content, $options);
                 }
 
-                $cell4->text = html_entity_decode($parsedcontent['parsed_text']);
+                $cell4->text = format_text(html_entity_decode($parsedcontent['parsed_text']), FORMAT_HTML);
             } else {
                 $cell4->text = format_text($comment->content, FORMAT_HTML);
             }
@@ -676,11 +667,11 @@ class page_wiki_comments extends page_wiki {
             $t->data = array($row1, $row2);
 
             $actionicons = false;
-            if ((has_capability('mod/wiki:managecomment', $context))) {
+            if ((has_capability('mod/wiki:managecomment', $this->modcontext))) {
                 $urledit = new moodle_url('/mod/wiki/editcomments.php', array('commentid' => $comment->id, 'pageid' => $page->id, 'action' => 'edit'));
                 $urldelet = new moodle_url('/mod/wiki/instancecomments.php', array('commentid' => $comment->id, 'pageid' => $page->id, 'action' => 'delete'));
                 $actionicons = true;
-            } else if ((has_capability('mod/wiki:editcomment', $context)) and ($USER->id == $user->id)) {
+            } else if ((has_capability('mod/wiki:editcomment', $this->modcontext)) and ($USER->id == $user->id)) {
                 $urledit = new moodle_url('/mod/wiki/editcomments.php', array('commentid' => $comment->id, 'pageid' => $page->id, 'action' => 'edit'));
                 $urldelet = new moodle_url('/mod/wiki/instancecomments.php', array('commentid' => $comment->id, 'pageid' => $page->id, 'action' => 'delete'));
                 $actionicons = true;
@@ -716,7 +707,6 @@ class page_wiki_comments extends page_wiki {
 /**
  * Class that models the behavior of wiki's edit comment
  *
- * @package mod-wiki
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class page_wiki_editcomment extends page_wiki {
@@ -738,8 +728,7 @@ class page_wiki_editcomment extends page_wiki {
     function print_content() {
         global $PAGE;
 
-        $context = get_context_instance(CONTEXT_MODULE, $PAGE->cm->id);
-        require_capability('mod/wiki:editcomment', $context, NULL, true, 'noeditcommentpermission', 'wiki');
+        require_capability('mod/wiki:editcomment', $this->modcontext, NULL, true, 'noeditcommentpermission', 'wiki');
 
         if ($this->action == 'add') {
             $this->add_comment_form();
@@ -786,6 +775,10 @@ class page_wiki_editcomment extends page_wiki {
         $pageid = $this->page->id;
 
         if ($this->format == 'html') {
+            $com = new stdClass();
+            $com->action = 'add';
+            $com->commentoptions = array('trusttext' => true, 'maxfiles' => 0);
+            $this->form->set_data($com);
             $this->form->display();
         } else {
             wiki_print_editor_wiki($this->page->id, null, $this->format, -1, null, false, null, 'addcomments');
@@ -798,18 +791,14 @@ class page_wiki_editcomment extends page_wiki {
         require_once($CFG->dirroot . '/mod/wiki/editors/wiki_editor.php');
 
         if ($this->format == 'html') {
-            $commentoptions = array('trusttext' => true, 'maxfiles' => 0);
             $com->action = 'edit';
             $com->entrycomment_editor['text'] = $com->content;
+            $com->commentoptions = array('trusttext' => true, 'maxfiles' => 0);
 
-            $this->form->set_data($com, $commentoptions);
+            $this->form->set_data($com);
             $this->form->display();
         } else {
-            $action = 'edit';
-            $commentid = $com->id;
-            $pageid = $this->page->id;
-            $destination = $CFG->wwwroot . '/mod/wiki/instancecomments.php?pageid=' . $pageid . '&id=' . $commentid . '&action=' . $action;
-            wiki_print_editor_wiki($this->page->id, $com->content, $this->format, -1, null, false, array(), 'editcomments', $commentid);
+            wiki_print_editor_wiki($this->page->id, $com->content, $this->format, -1, null, false, array(), 'editcomments', $com->id);
         }
 
     }
@@ -819,7 +808,6 @@ class page_wiki_editcomment extends page_wiki {
 /**
  * Wiki page search page
  *
- * @package mod-wiki
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class page_wiki_search extends page_wiki {
@@ -848,10 +836,9 @@ class page_wiki_search extends page_wiki {
     function print_content() {
         global $PAGE;
 
-        $context = get_context_instance(CONTEXT_MODULE, $PAGE->cm->id);
-        require_capability('mod/wiki:viewpage', $context, NULL, true, 'noviewpagepermission', 'wiki');
+        require_capability('mod/wiki:viewpage', $this->modcontext, NULL, true, 'noviewpagepermission', 'wiki');
 
-        echo $this->wikioutput->search_result($this->search_result);
+        echo $this->wikioutput->search_result($this->search_result, $this->subwiki);
     }
 }
 
@@ -928,10 +915,8 @@ class page_wiki_create extends page_wiki {
     function print_content($pagetitle = '') {
         global $PAGE;
 
-        $context = get_context_instance(CONTEXT_MODULE, $PAGE->cm->id);
-
         // @TODO: Change this to has_capability and show an alternative interface.
-        require_capability('mod/wiki:createpage', $context, NULL, true, 'nocreatepermission', 'wiki');
+        require_capability('mod/wiki:createpage', $this->modcontext, NULL, true, 'nocreatepermission', 'wiki');
         $data = new stdClass();
         if (!empty($pagetitle)) {
             $data->pagetitle = $pagetitle;
@@ -980,8 +965,7 @@ class page_wiki_preview extends page_wiki_edit {
     function print_content() {
         global $PAGE;
 
-        $context = get_context_instance(CONTEXT_MODULE, $PAGE->cm->id);
-        require_capability('mod/wiki:editpage', $context, NULL, true, 'noeditpermission', 'wiki');
+        require_capability('mod/wiki:editpage', $this->modcontext, NULL, true, 'noeditpermission', 'wiki');
 
         $this->print_preview();
     }
@@ -1017,16 +1001,15 @@ class page_wiki_preview extends page_wiki_edit {
         $version = wiki_get_current_version($this->page->id);
         $format = $version->contentformat;
         $content = $version->content;
-        $context = get_context_instance(CONTEXT_MODULE, $PAGE->cm->id);
 
         $url = $CFG->wwwroot . '/mod/wiki/edit.php?pageid=' . $this->page->id;
         if (!empty($this->section)) {
-            $url .= "&section=" . $this->section;
+            $url .= "&section=" . urlencode($this->section);
         }
         $params = array('attachmentoptions' => page_wiki_edit::$attachmentoptions, 'format' => $this->format, 'version' => $this->versionnumber);
 
         if ($this->format != 'html') {
-            $params['contextid'] = $context->id;
+            $params['contextid'] = $this->modcontext->id;
             $params['component'] = 'mod_wiki';
             $params['filearea'] = 'attachments';
             $params['fileitemid'] = $this->page->id;
@@ -1047,7 +1030,7 @@ class page_wiki_preview extends page_wiki_edit {
             $parseroutput = wiki_parse_content($data->contentformat, $text, $options);
             $this->set_newcontent($text);
             echo $OUTPUT->notification(get_string('previewwarning', 'wiki'), 'notifyproblem wiki_info');
-            $content = format_text($parseroutput['parsed_text'], FORMAT_HTML, array('overflowdiv'=>true));
+            $content = format_text($parseroutput['parsed_text'], FORMAT_HTML, array('overflowdiv'=>true, 'filter'=>false));
             echo $OUTPUT->box($content, 'generalbox wiki_previewbox');
             $content = $this->newcontent;
         }
@@ -1086,8 +1069,7 @@ class page_wiki_diff extends page_wiki {
     function print_content() {
         global $PAGE;
 
-        $context = get_context_instance(CONTEXT_MODULE, $PAGE->cm->id);
-        require_capability('mod/wiki:viewpage', $context, NULL, true, 'noviewpagepermission', 'wiki');
+        require_capability('mod/wiki:viewpage', $this->modcontext, NULL, true, 'noviewpagepermission', 'wiki');
 
         $this->print_diff_content();
     }
@@ -1118,12 +1100,9 @@ class page_wiki_diff extends page_wiki {
     /**
      * Given two versions of a page, prints a page displaying the differences between them.
      *
-     * @uses $CFG
-     *
-     * @param int $pageid The page id whose versions will be displayed.
-     * @param int $cm The course id, needed to print user images.
-     * @param int $compare The first version number to be compared.
-     * @param int $comparewith The second version number to be compared.
+     * @global object $CFG
+     * @global object $OUTPUT
+     * @global object $PAGE
      */
     private function print_diff_content() {
         global $CFG, $OUTPUT, $PAGE;
@@ -1132,12 +1111,13 @@ class page_wiki_diff extends page_wiki {
         $total = wiki_count_wiki_page_versions($pageid) - 1;
 
         $oldversion = wiki_get_wiki_page_version($pageid, $this->compare);
+
         $newversion = wiki_get_wiki_page_version($pageid, $this->comparewith);
 
         if ($oldversion && $newversion) {
 
-            $oldtext = format_text($oldversion->content);
-            $newtext = format_text($newversion->content);
+            $oldtext = format_text(file_rewrite_pluginfile_urls($oldversion->content, 'pluginfile.php', $this->modcontext->id, 'mod_wiki', 'attachments', $this->subwiki->id));
+            $newtext = format_text(file_rewrite_pluginfile_urls($newversion->content, 'pluginfile.php', $this->modcontext->id, 'mod_wiki', 'attachments', $this->subwiki->id));
             list($diff1, $diff2) = ouwiki_diff_html($oldtext, $newtext);
             $oldversion->diff = $diff1;
             $oldversion->user = wiki_get_user_info($oldversion->userid);
@@ -1196,8 +1176,7 @@ class page_wiki_history extends page_wiki {
     function print_content() {
         global $PAGE;
 
-        $context = get_context_instance(CONTEXT_MODULE, $PAGE->cm->id);
-        require_capability('mod/wiki:viewpage', $context, NULL, true, 'noviewpagepermission', 'wiki');
+        require_capability('mod/wiki:viewpage', $this->modcontext, NULL, true, 'noviewpagepermission', 'wiki');
 
         $this->print_history_content();
     }
@@ -1225,16 +1204,9 @@ class page_wiki_history extends page_wiki {
     /**
      * Prints the history for a given wiki page
      *
-     * @uses $CFG
-     *
-     * @param int      $pageid The page id whose history should be displayed.
-     * @param int      $cm The course id, needed to print user images.
-     * @param wikipage $wikipage
-     * @param int      $allversion This tells how results should be displayed.
-     *     If $allversion == 0 : Only $rowsperpage will be displayed at a time, and $paging is the page being displayed.
-     *     If $allversion != 0 : All versions will be printed in a single table.
-     * @param int      $paging Desired page to be displayed, this is ignored if $allversion!=0.
-     * @param int      $rowsperpage How many rows to be displayed in each page, this is ignored if $allversion!=0.
+     * @global object $CFG
+     * @global object $OUTPUT
+     * @global object $PAGE
      */
     private function print_history_content() {
         global $CFG, $OUTPUT, $PAGE;
@@ -1260,7 +1232,7 @@ class page_wiki_history extends page_wiki {
         $creator = wiki_get_user_info($version0page->userid);
         $a = new StdClass;
         $a->date = userdate($this->page->timecreated, get_string('strftimedaydatetime', 'langconfig'));
-        $a->username = $creator->username;
+        $a->username = fullname($creator);
         echo $OUTPUT->heading(get_string('createddate', 'wiki', $a), 4, 'wiki_headingtime');
         if ($vcount > 0) {
 
@@ -1288,20 +1260,13 @@ class page_wiki_history extends page_wiki {
             } else {
 
                 $checked = $vcount - $offset;
-                $lastdate = '';
                 $rowclass = array();
 
                 foreach ($versions as $version) {
                     $user = wiki_get_user_info($version->userid);
                     $picture = $OUTPUT->user_picture($user, array('popup' => true));
                     $date = userdate($version->timecreated, get_string('strftimedate'));
-                    if ($date == $lastdate) {
-                        $date = '';
-                        $rowclass[] = '';
-                    } else {
-                        $lastdate = $date;
-                        $rowclass[] = 'wiki_histnewdate';
-                    }
+                    $rowclass[] = 'wiki_histnewdate';
                     $time = userdate($version->timecreated, get_string('strftimetime', 'langconfig'));
                     $versionid = wiki_get_version($version->id);
                     if ($versionid) {
@@ -1431,8 +1396,7 @@ class page_wiki_map extends page_wiki {
     function print_content() {
         global $CFG, $PAGE;
 
-        $context = get_context_instance(CONTEXT_MODULE, $PAGE->cm->id);
-        require_capability('mod/wiki:viewpage', $context, NULL, true, 'noviewpagepermission', 'wiki');
+        require_capability('mod/wiki:viewpage', $this->modcontext, NULL, true, 'noviewpagepermission', 'wiki');
 
         if ($this->view > 0) {
             //echo '<div><a href="' . $CFG->wwwroot . '/mod/wiki/map.php?pageid=' . $this->page->id . '">' . get_string('backtomapmenu', 'wiki') . '</a></div>';
@@ -1649,7 +1613,7 @@ class page_wiki_map extends page_wiki {
         $strspecial = get_string('special', 'wiki');
 
         foreach ($pages as $page) {
-            $letter = strtoupper(substr($page->title, 0, 1));
+            $letter = textlib::strtoupper(textlib::substr($page->title, 0, 1));
             if (preg_match('/[A-Z]/', $letter)) {
                 $stdaux->{
                     $letter}
@@ -1866,8 +1830,7 @@ class page_wiki_restoreversion extends page_wiki {
     function print_content() {
         global $CFG, $PAGE;
 
-        $context = get_context_instance(CONTEXT_MODULE, $PAGE->cm->id);
-        require_capability('mod/wiki:managewiki', $context, NULL, true, 'nomanagewikipermission', 'wiki');
+        require_capability('mod/wiki:managewiki', $this->modcontext, NULL, true, 'nomanagewikipermission', 'wiki');
 
         $this->print_restoreversion();
     }
@@ -1903,16 +1866,88 @@ class page_wiki_restoreversion extends page_wiki {
      *     If true, restores the old version and redirects the user to the 'view' tab.
      */
     private function print_restoreversion() {
-        global $CFG, $OUTPUT;
+        global $OUTPUT;
 
         $version = wiki_get_version($this->version->id);
 
+        $optionsyes = array('confirm'=>1, 'pageid'=>$this->page->id, 'versionid'=>$version->id, 'sesskey'=>sesskey());
+        $restoreurl = new moodle_url('/mod/wiki/restoreversion.php', $optionsyes);
+        $return = new moodle_url('/mod/wiki/viewversion.php', array('pageid'=>$this->page->id, 'versionid'=>$version->id));
+
         echo $OUTPUT->heading(get_string('restoreconfirm', 'wiki', $version->version), 2);
         print_container_start(false, 'wiki_restoreform');
-        echo '<form class="wiki_restore_yes" action="' . $CFG->wwwroot . '/mod/wiki/restoreversion.php?pageid=' . $this->page->id . '&amp;versionid=' . $version->id . '" method="post" id="restoreversion">';
+        echo '<form class="wiki_restore_yes" action="' . $restoreurl . '" method="post" id="restoreversion">';
         echo '<div><input type="submit" name="confirm" value="' . get_string('yes') . '" /></div>';
         echo '</form>';
-        echo '<form class="wiki_restore_no" action="' . $CFG->wwwroot . '/mod/wiki/viewversion.php?pageid=' . $this->page->id . '&amp;versionid=' . $version->id . '" method="post">';
+        echo '<form class="wiki_restore_no" action="' . $return . '" method="post">';
+        echo '<div><input type="submit" name="norestore" value="' . get_string('no') . '" /></div>';
+        echo '</form>';
+        print_container_end();
+    }
+}
+/**
+ * Class that models the behavior of wiki's delete comment confirmation page
+ *
+ */
+class page_wiki_deletecomment extends page_wiki {
+    private $commentid;
+
+    function print_header() {
+        parent::print_header();
+        $this->print_pagetitle();
+    }
+
+    function print_content() {
+        $this->printconfirmdelete();
+    }
+
+    function set_url() {
+        global $PAGE;
+        $PAGE->set_url('/mod/wiki/instancecomments.php', array('pageid' => $this->page->id, 'commentid' => $this->commentid));
+    }
+
+    public function set_action($action, $commentid, $content) {
+        $this->action = $action;
+        $this->commentid = $commentid;
+        $this->content = $content;
+    }
+
+    protected function create_navbar() {
+        global $PAGE;
+
+        parent::create_navbar();
+        $PAGE->navbar->add(get_string('deletecommentcheck', 'wiki'));
+    }
+
+    protected function setup_tabs() {
+        parent::setup_tabs(array('linkedwhenactive' => 'comments', 'activetab' => 'comments'));
+    }
+
+    /**
+     * Prints the comment deletion confirmation form
+     *
+     * @param page $page The page whose version will be restored
+     * @param int  $versionid The version to be restored
+     * @param bool $confirm If false, shows a yes/no confirmation page.
+     *     If true, restores the old version and redirects the user to the 'view' tab.
+     */
+    private function printconfirmdelete() {
+        global $OUTPUT;
+
+        $strdeletecheck = get_string('deletecommentcheck', 'wiki');
+        $strdeletecheckfull = get_string('deletecommentcheckfull', 'wiki');
+
+        //ask confirmation
+        $optionsyes = array('confirm'=>1, 'pageid'=>$this->page->id, 'action'=>'delete', 'commentid'=>$this->commentid, 'sesskey'=>sesskey());
+        $deleteurl = new moodle_url('/mod/wiki/instancecomments.php', $optionsyes);
+        $return = new moodle_url('/mod/wiki/comments.php', array('pageid'=>$this->page->id));
+
+        echo $OUTPUT->heading($strdeletecheckfull);
+        print_container_start(false, 'wiki_deletecommentform');
+        echo '<form class="wiki_deletecomment_yes" action="' . $deleteurl . '" method="post" id="deletecomment">';
+        echo '<div><input type="submit" name="confirmdeletecomment" value="' . get_string('yes') . '" /></div>';
+        echo '</form>';
+        echo '<form class="wiki_deletecomment_no" action="' . $return . '" method="post">';
         echo '<div><input type="submit" name="norestore" value="' . get_string('no') . '" /></div>';
         echo '</form>';
         print_container_end();
@@ -1920,7 +1955,6 @@ class page_wiki_restoreversion extends page_wiki {
 }
 
 /**
- *
  * Class that models the behavior of wiki's
  * save page
  *
@@ -1951,21 +1985,18 @@ class page_wiki_save extends page_wiki_edit {
     protected function print_save() {
         global $CFG, $USER, $OUTPUT, $PAGE;
 
-        $cm = $PAGE->cm;
-        $context = get_context_instance(CONTEXT_MODULE, $cm->id);
-
         $url = $CFG->wwwroot . '/mod/wiki/edit.php?pageid=' . $this->page->id;
         if (!empty($this->section)) {
-            $url .= "&section=" . $this->section;
+            $url .= "&section=" . urlencode($this->section);
         }
 
         $params = array('attachmentoptions' => page_wiki_edit::$attachmentoptions, 'format' => $this->format, 'version' => $this->versionnumber);
 
         if ($this->format != 'html') {
-            $params['contextid'] = $context->id;
-            $params['component'] = 'mod_wiki';
-            $params['filearea'] = 'attachments';
             $params['fileitemid'] = $this->page->id;
+            $params['contextid']  = $this->modcontext->id;
+            $params['component']  = 'mod_wiki';
+            $params['filearea']   = 'attachments';
         }
 
         $form = new mod_wiki_edit_form($url, $params);
@@ -1974,7 +2005,7 @@ class page_wiki_save extends page_wiki_edit {
         $data = false;
         if ($data = $form->get_data()) {
             if ($this->format == 'html') {
-                $data = file_postupdate_standard_editor($data, 'newcontent', page_wiki_edit::$attachmentoptions, $context, 'mod_wiki', 'attachments', $this->subwiki->id);
+                $data = file_postupdate_standard_editor($data, 'newcontent', page_wiki_edit::$attachmentoptions, $this->modcontext, 'mod_wiki', 'attachments', $this->subwiki->id);
             }
 
             if (isset($this->section)) {
@@ -1985,9 +2016,6 @@ class page_wiki_save extends page_wiki_edit {
         }
 
         if ($save && $data) {
-            if ($this->format != 'html') {
-                $errors = $this->process_uploads($context);
-            }
             if (!empty($CFG->usetags)) {
                 tag_set('wiki_pages', $this->page->id, $data->tags);
             }
@@ -2036,8 +2064,7 @@ class page_wiki_viewversion extends page_wiki {
     function print_content() {
         global $PAGE;
 
-        $context = get_context_instance(CONTEXT_MODULE, $PAGE->cm->id);
-        require_capability('mod/wiki:viewpage', $context, NULL, true, 'noviewpagepermission', 'wiki');
+        require_capability('mod/wiki:viewpage', $this->modcontext, NULL, true, 'noviewpagepermission', 'wiki');
 
         $this->print_version_view();
     }
@@ -2066,15 +2093,12 @@ class page_wiki_viewversion extends page_wiki {
     /**
      * Given an old page version, output the version content
      *
-     * @uses $CFG
-     *
-     * @param page   $page The page whose version will be displayed.
-     * @param int    $cm The course id, needed to print user images.
-     * @param int    $version The version number to be displayed.
+     * @global object $CFG
+     * @global object $OUTPUT
+     * @global object $PAGE
      */
     private function print_version_view() {
         global $CFG, $OUTPUT, $PAGE;
-        $cm = $PAGE->cm;
         $pageversion = wiki_get_version($this->version->id);
 
         if ($pageversion) {
@@ -2087,6 +2111,9 @@ class page_wiki_viewversion extends page_wiki {
             $heading .= '&nbsp;&nbsp;&rarr;&nbsp;' . $OUTPUT->user_picture(wiki_get_user_info($pageversion->userid), array('popup' => true)) . '</p>';
             print_container($heading, false, 'mdl-align wiki_modifieduser wiki_headingtime');
             $options = array('swid' => $this->subwiki->id, 'pretty_print' => true, 'pageid' => $this->page->id);
+
+            $pageversion->content = file_rewrite_pluginfile_urls($pageversion->content, 'pluginfile.php', $this->modcontext->id, 'mod_wiki', 'attachments', $this->subwiki->id);
+
             $parseroutput = wiki_parse_content($pageversion->contentformat, $pageversion->content, $options);
             $content = print_container(format_text($parseroutput['parsed_text'], FORMAT_HTML, array('overflowdiv'=>true)), false, '', '', true);
             echo $OUTPUT->box($content, 'generalbox wiki_contentbox');
@@ -2109,8 +2136,7 @@ class page_wiki_confirmrestore extends page_wiki_save {
     function print_content() {
         global $CFG, $PAGE;
 
-        $context = get_context_instance(CONTEXT_MODULE, $PAGE->cm->id);
-        require_capability('mod/wiki:managewiki', $context, NULL, true, 'nomanagewikipermission', 'wiki');
+        require_capability('mod/wiki:managewiki', $this->modcontext, NULL, true, 'nomanagewikipermission', 'wiki');
 
         $version = wiki_get_version($this->version->id);
         if (wiki_restore_page($this->page, $version->content, $version->userid)) {
@@ -2138,8 +2164,7 @@ class page_wiki_prettyview extends page_wiki {
     function print_content() {
         global $PAGE;
 
-        $context = get_context_instance(CONTEXT_MODULE, $PAGE->cm->id);
-        require_capability('mod/wiki:viewpage', $context, NULL, true, 'noviewpagepermission', 'wiki');
+        require_capability('mod/wiki:viewpage', $this->modcontext, NULL, true, 'noviewpagepermission', 'wiki');
 
         $this->print_pretty_view();
     }
@@ -2174,22 +2199,20 @@ class page_wiki_handlecomments extends page_wiki {
     public function print_content() {
         global $CFG, $PAGE, $USER;
 
-        $context = get_context_instance(CONTEXT_MODULE, $PAGE->cm->id);
-
         if ($this->action == 'add') {
-            if (has_capability('mod/wiki:editcomment', $context)) {
+            if (has_capability('mod/wiki:editcomment', $this->modcontext)) {
                 $this->add_comment($this->content, $this->commentid);
             }
         } else if ($this->action == 'edit') {
             $comment = wiki_get_comment($this->commentid);
-            $edit = has_capability('mod/wiki:editcomment', $context);
+            $edit = has_capability('mod/wiki:editcomment', $this->modcontext);
             $owner = ($comment->userid == $USER->id);
             if ($owner && $edit) {
                 $this->add_comment($this->content, $this->commentid);
             }
         } else if ($this->action == 'delete') {
             $comment = wiki_get_comment($this->commentid);
-            $manage = has_capability('mod/wiki:managecomment', $context);
+            $manage = has_capability('mod/wiki:managecomment', $this->modcontext);
             $owner = ($comment->userid == $USER->id);
             if ($owner || $manage) {
                 $this->delete_comment($this->commentid);
@@ -2220,10 +2243,8 @@ class page_wiki_handlecomments extends page_wiki {
         require_once($CFG->dirroot . "/mod/wiki/locallib.php");
 
         $pageid = $this->page->id;
-        $cm = $PAGE->cm;
-        $context = get_context_instance(CONTEXT_MODULE, $cm->id);
 
-        wiki_add_comment($context, $pageid, $content, $this->format);
+        wiki_add_comment($this->modcontext, $pageid, $content, $this->format);
 
         if (!$idcomment) {
             redirect($CFG->wwwroot . '/mod/wiki/comments.php?pageid=' . $pageid, get_string('createcomment', 'wiki'), 2);
@@ -2236,11 +2257,9 @@ class page_wiki_handlecomments extends page_wiki {
     private function delete_comment($commentid) {
         global $CFG, $PAGE;
 
-        $cm = $PAGE->cm;
-        $context = get_context_instance(CONTEXT_MODULE, $cm->id);
         $pageid = $this->page->id;
 
-        wiki_delete_comment($commentid, $context, $pageid);
+        wiki_delete_comment($commentid, $this->modcontext, $pageid);
     }
 
 }
@@ -2269,8 +2288,7 @@ class page_wiki_lock extends page_wiki_edit {
     public function print_content() {
         global $USER, $PAGE;
 
-        $context = get_context_instance(CONTEXT_MODULE, $PAGE->cm->id);
-        require_capability('mod/wiki:editpage', $context, NULL, true, 'noeditpermission', 'wiki');
+        require_capability('mod/wiki:editpage', $this->modcontext, NULL, true, 'noeditpermission', 'wiki');
 
         wiki_set_lock($this->page->id, $USER->id, $this->section);
     }
@@ -2287,15 +2305,14 @@ class page_wiki_overridelocks extends page_wiki_edit {
     function print_content() {
         global $CFG, $PAGE;
 
-        $context = get_context_instance(CONTEXT_MODULE, $PAGE->cm->id);
-        require_capability('mod/wiki:overridelock', $context, NULL, true, 'nooverridelockpermission', 'wiki');
+        require_capability('mod/wiki:overridelock', $this->modcontext, NULL, true, 'nooverridelockpermission', 'wiki');
 
         wiki_delete_locks($this->page->id, null, $this->section, true, true);
 
         $args = "pageid=" . $this->page->id;
 
         if (!empty($this->section)) {
-            $args .= "&section=" . $this->section;
+            $args .= "&section=" . urlencode($this->section);
         }
 
         redirect($CFG->wwwroot . '/mod/wiki/edit.php?' . $args, get_string('overridinglocks', 'wiki'), 2);
@@ -2324,10 +2341,345 @@ class page_wiki_overridelocks extends page_wiki_edit {
         $args = "pageid=" . $this->page->id;
 
         if (!empty($this->section)) {
-            $args .= "&section=" . $this->section;
+            $args .= "&section=" . urlencode($this->section);
         }
 
         redirect($CFG->wwwroot . '/mod/wiki/edit.php?' . $args, get_string('overridinglocks', 'wiki'), 2);
     }
 
+}
+
+/**
+ * This class will let user to delete wiki pages and page versions
+ *
+ */
+class page_wiki_admin extends page_wiki {
+
+    public $view, $action;
+    public $listorphan = false;
+
+    /**
+     * Constructor
+     *
+     * @global object $PAGE
+     * @param mixed $wiki instance of wiki
+     * @param mixed $subwiki instance of subwiki
+     * @param stdClass $cm course module
+     */
+    function __construct($wiki, $subwiki, $cm) {
+        global $PAGE;
+        parent::__construct($wiki, $subwiki, $cm);
+        $PAGE->requires->js_init_call('M.mod_wiki.deleteversion', null, true);
+    }
+
+    /**
+     * Prints header for wiki page
+     */
+    function print_header() {
+        parent::print_header();
+        $this->print_pagetitle();
+    }
+
+    /**
+     * This function will display administration view to users with managewiki capability
+     */
+    function print_content() {
+        //make sure anyone trying to access this page has managewiki capabilities
+        require_capability('mod/wiki:managewiki', $this->modcontext, NULL, true, 'noviewpagepermission', 'wiki');
+
+        //update wiki cache if timedout
+        $page = $this->page;
+        if ($page->timerendered + WIKI_REFRESH_CACHE_TIME < time()) {
+            $fresh = wiki_refresh_cachedcontent($page);
+            $page = $fresh['page'];
+        }
+
+        //dispaly admin menu
+        echo $this->wikioutput->menu_admin($this->page->id, $this->view);
+
+        //Display appropriate admin view
+        switch ($this->view) {
+            case 1: //delete page view
+                $this->print_delete_content($this->listorphan);
+                break;
+            case 2: //delete version view
+                $this->print_delete_version();
+                break;
+            default: //default is delete view
+                $this->print_delete_content($this->listorphan);
+                break;
+        }
+    }
+
+    /**
+     * Sets admin view option
+     *
+     * @param int $view page view id
+     * @param bool $listorphan is only valid for view 1.
+     */
+    public function set_view($view, $listorphan = true) {
+        $this->view = $view;
+        $this->listorphan = $listorphan;
+    }
+
+    /**
+     * Sets page url
+     *
+     * @global object $PAGE
+     * @global object $CFG
+     */
+    function set_url() {
+        global $PAGE, $CFG;
+        $PAGE->set_url($CFG->wwwroot . '/mod/wiki/admin.php', array('pageid' => $this->page->id));
+    }
+
+    /**
+     * sets navigation bar for the page
+     *
+     * @global object $PAGE
+     */
+    protected function create_navbar() {
+        global $PAGE;
+
+        parent::create_navbar();
+        $PAGE->navbar->add(get_string('admin', 'wiki'));
+    }
+
+    /**
+     * Show wiki page delete options
+     *
+     * @param bool $showorphan
+     */
+    protected function print_delete_content($showorphan = true) {
+        $contents = array();
+        $table = new html_table();
+        $table->head = array('','Page name');
+        $table->attributes['class'] = 'generaltable mdl-align';
+        $swid = $this->subwiki->id;
+        if ($showorphan) {
+            if ($orphanedpages = wiki_get_orphaned_pages($swid)) {
+                $this->add_page_delete_options($orphanedpages, $swid, $table);
+            } else {
+                $table->data[] = array('', get_string('noorphanedpages', 'wiki'));
+            }
+        } else {
+            if ($pages = wiki_get_page_list($swid)) {
+                $this->add_page_delete_options($pages, $swid, $table);
+            } else {
+                $table->data[] = array('', get_string('nopages', 'wiki'));
+            }
+        }
+
+        ///Print the form
+        echo html_writer::start_tag('form', array(
+                                                'action' => new moodle_url('/mod/wiki/admin.php'),
+                                                'method' => 'post'));
+        echo html_writer::tag('div', html_writer::empty_tag('input', array(
+                                                                         'type'  => 'hidden',
+                                                                         'name'  => 'pageid',
+                                                                         'value' => $this->page->id)));
+
+        echo html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'option', 'value' => $this->view));
+        echo html_writer::table($table);
+        echo html_writer::start_tag('div', array('class' => 'mdl-align'));
+        if (!$showorphan) {
+            echo html_writer::empty_tag('input', array(
+                                                     'type'    => 'submit',
+                                                     'class'   => 'wiki_form-button',
+                                                     'value'   => get_string('listorphan', 'wiki'),
+                                                     'sesskey' => sesskey()));
+        } else {
+            echo html_writer::empty_tag('input', array('type'=>'hidden', 'name'=>'listall', 'value'=>'1'));
+            echo html_writer::empty_tag('input', array(
+                                                     'type'    => 'submit',
+                                                     'class'   => 'wiki_form-button',
+                                                     'value'   => get_string('listall', 'wiki'),
+                                                     'sesskey' => sesskey()));
+        }
+        echo html_writer::end_tag('div');
+        echo html_writer::end_tag('form');
+    }
+
+    /**
+     * helper function for print_delete_content. This will add data to the table.
+     *
+     * @global object $OUTPUT
+     * @param array $pages objects of wiki pages in subwiki
+     * @param int $swid id of subwiki
+     * @param object $table reference to the table in which data needs to be added
+     */
+    protected function add_page_delete_options($pages, $swid, &$table) {
+        global $OUTPUT;
+        foreach ($pages as $page) {
+            $link = wiki_parser_link($page->title, array('swid' => $swid));
+            $class = ($link['new']) ? 'class="wiki_newentry"' : '';
+            $pagelink = '<a href="' . $link['url'] . '"' . $class . '>' . format_string($link['content']) . '</a>';
+            $urledit = new moodle_url('/mod/wiki/edit.php', array('pageid' => $page->id, 'sesskey' => sesskey()));
+            $urldelete = new moodle_url('/mod/wiki/admin.php', array(
+                                                                   'pageid'  => $this->page->id,
+                                                                   'delete'  => $page->id,
+                                                                   'option'  => $this->view,
+                                                                   'listall' => !$this->listorphan?'1': '',
+                                                                   'sesskey' => sesskey()));
+
+            $editlinks = $OUTPUT->action_icon($urledit, new pix_icon('t/edit', get_string('edit')));
+            $editlinks .= $OUTPUT->action_icon($urldelete, new pix_icon('t/delete', get_string('delete')));
+            $table->data[] = array($editlinks, $pagelink);
+        }
+    }
+
+    /**
+     * Prints lists of versions which can be deleted
+     *
+     * @global object $OUTPUT
+     */
+    private function print_delete_version() {
+        global $OUTPUT;
+        $pageid = $this->page->id;
+
+        // versioncount is the latest version
+        $versioncount = wiki_count_wiki_page_versions($pageid) - 1;
+        $versions = wiki_get_wiki_page_versions($pageid, 0, $versioncount);
+
+        // We don't want version 0 to be displayed
+        // version 0 is blank page
+        if (end($versions)->version == 0) {
+            array_pop($versions);
+        }
+
+        $contents = array();
+        $version0page = wiki_get_wiki_page_version($this->page->id, 0);
+        $creator = wiki_get_user_info($version0page->userid);
+        $a = new stdClass();
+        $a->date = userdate($this->page->timecreated, get_string('strftimedaydatetime', 'langconfig'));
+        $a->username = fullname($creator);
+        echo $OUTPUT->heading(get_string('createddate', 'wiki', $a), 4, 'wiki_headingtime');
+        if ($versioncount > 0) {
+            /// If there is only one version, we don't need radios nor forms
+            if (count($versions) == 1) {
+                $row = array_shift($versions);
+                $username = wiki_get_user_info($row->userid);
+                $picture = $OUTPUT->user_picture($username);
+                $date = userdate($row->timecreated, get_string('strftimedate', 'langconfig'));
+                $time = userdate($row->timecreated, get_string('strftimetime', 'langconfig'));
+                $versionid = wiki_get_version($row->id);
+                $versionlink = new moodle_url('/mod/wiki/viewversion.php', array('pageid' => $pageid, 'versionid' => $versionid->id));
+                $userlink = new moodle_url('/user/view.php', array('id' => $username->id));
+                $picturelink = $picture . html_writer::link($userlink->out(false), fullname($username));
+                $historydate = $OUTPUT->container($date, 'wiki_histdate');
+                $contents[] = array('', html_writer::link($versionlink->out(false), $row->version), $picturelink, $time, $historydate);
+
+                //Show current version
+                $table = new html_table();
+                $table->head = array('', get_string('version'), get_string('user'), get_string('modified'), '');
+                $table->data = $contents;
+                $table->attributes['class'] = 'mdl-align';
+
+                echo html_writer::table($table);
+            } else {
+                $lastdate = '';
+                $rowclass = array();
+
+                foreach ($versions as $version) {
+                    $user = wiki_get_user_info($version->userid);
+                    $picture = $OUTPUT->user_picture($user, array('popup' => true));
+                    $date = userdate($version->timecreated, get_string('strftimedate'));
+                    if ($date == $lastdate) {
+                        $date = '';
+                        $rowclass[] = '';
+                    } else {
+                        $lastdate = $date;
+                        $rowclass[] = 'wiki_histnewdate';
+                    }
+
+                    $time = userdate($version->timecreated, get_string('strftimetime', 'langconfig'));
+                    $versionid = wiki_get_version($version->id);
+                    if ($versionid) {
+                        $url = new moodle_url('/mod/wiki/viewversion.php', array('pageid' => $pageid, 'versionid' => $versionid->id));
+                        $viewlink = html_writer::link($url->out(false), $version->version);
+                    } else {
+                        $viewlink = $version->version;
+                    }
+
+                    $userlink = new moodle_url('/user/view.php', array('id' => $version->userid));
+                    $picturelink = $picture . html_writer::link($userlink->out(false), fullname($user));
+                    $historydate = $OUTPUT->container($date, 'wiki_histdate');
+                    $radiofromelement = $this->choose_from_radio(array($version->version  => null), 'fromversion', 'M.mod_wiki.deleteversion()', $versioncount, true);
+                    $radiotoelement = $this->choose_from_radio(array($version->version  => null), 'toversion', 'M.mod_wiki.deleteversion()', $versioncount, true);
+                    $contents[] = array( $radiofromelement . $radiotoelement, $viewlink, $picturelink, $time, $historydate);
+                }
+
+                $table = new html_table();
+                $table->head = array(get_string('deleteversions', 'wiki'), get_string('version'), get_string('user'), get_string('modified'), '');
+                $table->data = $contents;
+                $table->attributes['class'] = 'generaltable mdl-align';
+                $table->rowclasses = $rowclass;
+
+                ///Print the form
+                echo html_writer::start_tag('form', array('action'=>new moodle_url('/mod/wiki/admin.php'), 'method' => 'post'));
+                echo html_writer::tag('div', html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'pageid', 'value' => $pageid)));
+                echo html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'option', 'value' => $this->view));
+                echo html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'sesskey', 'value' =>  sesskey()));
+                echo html_writer::table($table);
+                echo html_writer::start_tag('div', array('class' => 'mdl-align'));
+                echo html_writer::empty_tag('input', array('type' => 'submit', 'class' => 'wiki_form-button', 'value' => get_string('deleteversions', 'wiki')));
+                echo html_writer::end_tag('div');
+                echo html_writer::end_tag('form');
+            }
+        } else {
+            print_string('nohistory', 'wiki');
+        }
+    }
+
+    /**
+     * Given an array of values, creates a group of radio buttons to be part of a form
+     * helper function for print_delete_version
+     *
+     * @param array  $options  An array of value-label pairs for the radio group (values as keys).
+     * @param string $name     Name of the radiogroup (unique in the form).
+     * @param string $onclick  Function to be executed when the radios are clicked.
+     * @param string $checked  The value that is already checked.
+     * @param bool   $return   If true, return the HTML as a string, otherwise print it.
+     *
+     * @return mixed If $return is false, returns nothing, otherwise returns a string of HTML.
+     */
+    private function choose_from_radio($options, $name, $onclick = '', $checked = '', $return = false) {
+
+        static $idcounter = 0;
+
+        if (!$name) {
+            $name = 'unnamed';
+        }
+
+        $output = '<span class="radiogroup ' . $name . "\">\n";
+
+        if (!empty($options)) {
+            $currentradio = 0;
+            foreach ($options as $value => $label) {
+                $htmlid = 'auto-rb' . sprintf('%04d', ++$idcounter);
+                $output .= ' <span class="radioelement ' . $name . ' rb' . $currentradio . "\">";
+                $output .= '<input name="' . $name . '" id="' . $htmlid . '" type="radio" value="' . $value . '"';
+                if ($value == $checked) {
+                    $output .= ' checked="checked"';
+                }
+                if ($onclick) {
+                    $output .= ' onclick="' . $onclick . '"';
+                }
+                if ($label === '') {
+                    $output .= ' /> <label for="' . $htmlid . '">' . $value . '</label></span>' . "\n";
+                } else {
+                    $output .= ' /> <label for="' . $htmlid . '">' . $label . '</label></span>' . "\n";
+                }
+                $currentradio = ($currentradio + 1) % 2;
+            }
+        }
+
+        $output .= '</span>' . "\n";
+
+        if ($return) {
+            return $output;
+        } else {
+            echo $output;
+        }
+    }
 }

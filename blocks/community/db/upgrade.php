@@ -73,6 +73,11 @@ function xmldb_block_community_upgrade($oldversion) {
         upgrade_block_savepoint(true, 2010042701, 'community');
     }
 
+    // Moodle v2.1.0 release upgrade line
+    // Put any upgrade step following this
+
+    // Moodle v2.2.0 release upgrade line
+    // Put any upgrade step following this
 
     return true;
 }

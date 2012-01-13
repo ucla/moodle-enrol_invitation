@@ -430,7 +430,8 @@ function chat_cron () {
  * Returns the users with data in one chat
  * (users with records in chat_messages, students)
  *
- * @global object
+ * @todo: deprecated - to be deleted in 2.2
+ *
  * @param int $chatid
  * @param int $groupid
  * @return array
@@ -897,13 +898,14 @@ function chat_format_message($message, $courseid, $currentuser, $chat_lastrow=NU
 
 /**
  * @global object
- * @param object $message
- * @param int $courseid
- * @param object $currentuser
- * @param string $chat_lastrow
+ * @param object $message message to be displayed.
+ * @param mixed $chatuser user chat data
+ * @param object $currentuser current user for whom the message should be displayed.
+ * @param int $groupingid course module grouping id
+ * @param string $theme name of the chat theme.
  * @return bool|string Returns HTML or false
  */
-function chat_format_message_theme ($message, $courseid, $currentuser, $theme = 'bubble') {
+function chat_format_message_theme ($message, $chatuser, $currentuser, $groupingid, $theme = 'bubble') {
     global $CFG, $USER, $OUTPUT, $COURSE, $DB;
 
     static $users;     // Cache user lookups
@@ -926,8 +928,10 @@ function chat_format_message_theme ($message, $courseid, $currentuser, $theme = 
     $tz = get_user_timezone($currentuser->timezone);
     $USER->timezone = $tz;
 
-    if (empty($courseid)) {
+    if (empty($chatuser->course)) {
         $courseid = $COURSE->id;
+    } else {
+        $courseid = $chatuser->course;
     }
 
     $message->strtime = userdate($message->timestamp, get_string('strftimemessage', 'chat'), $tz);
@@ -967,6 +971,9 @@ function chat_format_message_theme ($message, $courseid, $currentuser, $theme = 
     $special = false;
     $outtime = $message->strtime;
 
+    //Initilise output variable.
+    $outmain = '';
+
     if (substr($text, 0, 5) == 'beep ') {
         $special = true;
         /// It's a beep!
@@ -978,9 +985,17 @@ function chat_format_message_theme ($message, $courseid, $currentuser, $theme = 
         } else if ($beepwho == $currentuser->id) {  // current user
             $outmain = get_string('messagebeepsyou', 'chat', fullname($sender));
         } else if ($sender->id == $currentuser->id) {  //something is not caught?
-
-            $receiver = $DB->get_record('user', array('id'=>$beepwho), 'id,picture,firstname,lastname');
-            $outmain = get_string('messageyoubeep', 'chat', fullname($receiver));
+            //allow beep for a active chat user only, else user can beep anyone and get fullname
+            if (!empty($chatuser) && is_numeric($beepwho)) {
+               $chatusers = chat_get_users($chatuser->chatid, $chatuser->groupid, $groupingid);
+               if (array_key_exists($beepwho, $chatusers)) {
+                   $outmain = get_string('messageyoubeep', 'chat', fullname($chatusers[$beepwho]));
+               } else {
+                   $outmain = get_string('messageyoubeep', 'chat', $beepwho);
+               }
+            } else {
+                $outmain = get_string('messageyoubeep', 'chat', $beepwho);
+            }
         }
     } else if (substr($text, 0, 1) == '/') {     /// It's a user command
         $special = true;
@@ -1042,7 +1057,12 @@ function chat_format_message_theme ($message, $courseid, $currentuser, $theme = 
         $result->html = str_replace($patterns, $replacements, $chattheme_cfg->user_message);
     }
 
-    return $result;
+    //When user beeps other user, then don't show any timestamp to other users in chat.
+    if (('' === $outmain) && $special) {
+        return false;
+    } else {
+        return $result;
+    }
 }
 
 
@@ -1218,6 +1238,7 @@ function chat_supports($feature) {
         case FEATURE_COMPLETION_TRACKS_VIEWS: return true;
         case FEATURE_GRADE_HAS_GRADE:         return false;
         case FEATURE_GRADE_OUTCOMES:          return true;
+        case FEATURE_SHOW_DESCRIPTION:        return true;
 
         default: return null;
     }
@@ -1303,4 +1324,15 @@ function chat_extend_settings_navigation(settings_navigation $settings, navigati
 function chat_user_logout($user) {
     global $DB;
     $DB->delete_records('chat_users', array('userid'=>$user->id));
+}
+
+/**
+ * Return a list of page types
+ * @param string $pagetype current page type
+ * @param stdClass $parentcontext Block's parent context
+ * @param stdClass $currentcontext Current context of block
+ */
+function chat_page_type_list($pagetype, $parentcontext, $currentcontext) {
+    $module_pagetype = array('mod-chat-*'=>get_string('page-mod-chat-x', 'chat'));
+    return $module_pagetype;
 }
