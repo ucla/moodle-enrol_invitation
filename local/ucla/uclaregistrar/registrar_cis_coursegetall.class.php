@@ -4,13 +4,8 @@ require_once(dirname(__FILE__) . '/registrar_query.class.php');
 
 class registrar_cis_coursegetall extends registrar_query {
     function validate($new, $old) {
-        $new = array_change_key_case($new, CASE_LOWER);
-
-        foreach ($new as $k => $v) {
-            $new[$k] = trim($v);
-        }
-
-        return (object) $new;
+        // TODO add some validations
+        return true;
     }
 
     function remote_call_generate($args) {

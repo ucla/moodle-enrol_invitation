@@ -140,16 +140,10 @@ abstract class registrar_query {
 
             if (!$recset->EOF) {
                 while ($fields = $recset->FetchRow()) {
-                    $res = $this->validate($fields, $driving_datum);
+                    if ($this->validate($fields, $driving_datum)) {
+                        $res = $this->clean_row($fields);
 
-                    if ($res !== false) {
-                        if (!$this->notrim) {
-                            foreach ($res as $k => $d) {
-                                $res->{$k} = trim($d);
-                            }
-                        }
-
-                        $key = $this->get_key($fields);
+                        $key = $this->get_key($res);
                         if ($key == null) {
                             $direct_data[] = $res;
                         } else {
@@ -169,8 +163,8 @@ abstract class registrar_query {
         return $direct_data;
     }
 
-    /**)
-     *  Returns any bad data whose output did not pass validation.))
+    /**
+     *  Returns any bad data whose output did not pass validation.
      **/
     function get_bad_data() {
         if (!empty($this->previous_bad_inputs)) {
@@ -187,11 +181,28 @@ abstract class registrar_query {
      *  @return string The key to use for the index.
      **/
     function get_key($fields) {
+        if (is_object($fields)) {
+            $fields = get_object_vars($fields);
+        }
+
         if (isset($fields['srs'])) {
             return $fields['srs'];
         }
 
         return null;
+    }
+
+    /**
+     *  Trims all fields and makes the case of the keys to lower case.
+     **/
+    function clean_row($fields) {
+        $new = array_change_key_case($fields, CASE_LOWER);
+    
+        foreach ($new as $k => $v) {
+            $new[$k] = trim($v);
+        }
+
+        return $new;
     }
 
     /**
@@ -203,9 +214,8 @@ abstract class registrar_query {
      *
      *  @param $new Array The row from the Registrar.
      *  @param $old Array The row from the driving data.
-     *  @return boolean|Array
+     *  @return boolean
      *      If this returns false, the new entry will not be returned.
-     *      Otherwise, it will format the entry in some way.
      **/
     abstract function validate($new, $old);
 

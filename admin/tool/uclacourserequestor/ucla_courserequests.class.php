@@ -15,6 +15,15 @@ class ucla_courserequests {
 
     var $unpreppedsetid = 1;
 
+    // Success flags should be >= 100
+    const savesuccess = 100;
+    const deletesuccess = 101;
+
+    // Failed flags should be < self::savesuccess
+    const savefailed = 0;
+    const deletefailed = 1;
+    const deletecoursefailed = 2;
+
     private $_validated = null;
 
     static function get_editables() {
@@ -328,7 +337,7 @@ class ucla_courserequests {
             'SELECT MAX(`setid`) FROM ' . '{' . $urc . '}'
         ));
 
-        $successes = array();
+        $results = array();
         $now = time();
 
         $i = 'instructor';
@@ -386,21 +395,41 @@ class ucla_courserequests {
                 }
             }
 
-            $successes[$setid] = $set;
+            $results[$setid] = self::savesuccess;
         }
 
+        $coursestodelete = array();
         foreach ($this->deletes as $setid => $true) {
-            foreach ($this->setindex[$setid] as $key => $course) {
-                unset($course['delete']);
-                unset($course['instructor']);
+            $coursetodelete = null;
+            $requestsdeleted = false;
+            $thisresult = self::deletefail;
 
-                if ($DB->delete_records($urc, $course)) {
-                    $successes[$setid] = $course;
-                } 
+            foreach ($this->setindex[$setid] as $key => $course) {
+                if ($coursetodelete === null 
+                        || $course['courseid'] != $coursetodelete) {
+                    $coursetodelete = $course['courseid'];
+                } else {
+                    // Inconsistent courses
+                    $coursetodelete = false;
+                }
             }
+
+            if ($DB->delete_records($urc, array('setid' => $setid))) {
+                $thisresult = self::deletecoursefailed;
+                if ($coursetodelete) {
+                    // Attempt to delete the courses
+                    $result = delete_course($coursetodelete, false);
+
+                    if ($result) {
+                        $thisresult = self::deletesuccess;
+                    }
+                }
+            }
+
+            $results[$setid] = $thisresult;
         }
 
-        return $successes;
+        return $results;
     }
 }
 

@@ -507,9 +507,13 @@ function get_moodlerole($pseudorole, $subject_area='*SYSTEM*') {
     
     // if no role was found, then use *SYSTEM* default 
     // (should be set in config)
-    if ($moodlerole = $DB->get_record('role', 
-            array('shortname' => $role[$pseudorole]['*SYSTEM*']))) {
-        return $moodlerole->id;
+    if (!empty($role[$pseudorole]['*SYSTEM*'])) {
+        if ($moodlerole = $DB->get_record('role', 
+                array('shortname' => $role[$pseudorole]['*SYSTEM*']))) {
+            return $moodlerole->id;
+        } else {
+            debugging('pseudorole mapping found, but local role not found');
+        }
     }
     
     // oh no... didn't find proper role mapping, stop the presses

@@ -4,7 +4,7 @@
  *  A library of functions useful for course requestor and probably
  *  course creator.
  *  @author Yangmun Choi
- *  TODO get rid of all those get_object_vars(), why are there so many
+ *  TODO consolidate get_object_vars(), why are there so many
  **/
 
 defined('MOODLE_INTERNAL') || die();
@@ -22,7 +22,7 @@ define('UCLA_COURSE_LOCKED', 'running');
 define('UCLA_REQUEST_IGNORE', 'ignore');
 
 // Meta Error
-define('UCLA_REQUESTOR_ERROR', 'errorrow');
+define('UCLA_REQUESTOR_ERROR', 'error');
 define('UCLA_REQUESTOR_WARNING', 'warnrow');
 
 // Errors
@@ -149,13 +149,30 @@ function get_set($setid) {
     return $iset;
 }
 
+/**
+ *  Wrapper function for set_field_select.
+ **/
+function associate_set_to_course($setid, $courseid) {
+    global $DB;
+
+    return $DB->set_field('ucla_request_classes', 'courseid', 
+        $courseid, array('setid' => $setid));
+}
+
+/** 
+ *  Convenience function to apply a change to a set in memory.
+ **/
 function apply_to_set($set, $field, $val) {
     if (empty($set)) {
         return false;
     }
 
     foreach ($set as $k => $rq) {
-        $set[$k][$field] = $val;
+        if (is_object($set[$k])) {
+            $set[$k]->$field = $val;
+        } else {
+            $set[$k][$rq] = $val;
+        }
     }
 
     return $set;
@@ -163,6 +180,13 @@ function apply_to_set($set, $field, $val) {
 
 /**
  *  Inflates up the instructors.
+ *  @param  $r  Array|Object
+ *  @return Array(
+ *      ... ,
+ *      'instructor' => Array(),
+ *      ... 
+ *  )
+ *
  **/
 function prep_request_from_db($r) {
     if (is_object($r)) {
@@ -371,7 +395,6 @@ function get_requestor_defaults() {
 
 /**
  *  Returns the set of related courses to the host course.
- *  TODO make this more plural
  *  @param $host Array(
  *          'term' => term
  *          'srs' => srs
@@ -538,7 +561,6 @@ function prepare_requests_for_display($requestinfos, $context) {
     $displayrows = array();
     $errorrows = array();
 
-    // TODO Prep display rows
     foreach ($requestinfos as $setid => $set) {
         $displaykey = set_find_host($set);
 
@@ -555,7 +577,7 @@ function prepare_requests_for_display($requestinfos, $context) {
             $displayrow[$c][$key] = $request;
         }
 
-        // TODO deal with fields that are displayed but not in the request
+        // Deal with fields that are displayed but not in the request
         // tables themselves
         if ($context == UCLA_REQUESTOR_FETCH) {
             $k = 'build';
@@ -635,6 +657,10 @@ function request_parse_input($key, $value) {
     return false;
 }
 
+/** 
+ *  Checks if a request's changes should be ignored.
+ *  @return boolean
+ **/
 function request_ignored($request) {
     $b = 'build';
     $d = 'delete';
@@ -943,6 +969,10 @@ function requestor_statuses_translate($status) {
     return $posstext;
 }
 
+/**
+ *  Calculates the available filters for the drop down menu for
+ *  Viewing existing request entries.
+ **/
 function get_requestor_view_fields() {
     global $DB;
 
@@ -984,8 +1014,6 @@ function get_courses_for_subj_area($term, $subjarea) {
         array(array($term, $subjarea)), true);
     $e = microtime(true) - $t;
     $c = (float) count($result);
-    debugging(sprintf('subjarea %1.3f total %d time %1.3f', 
-        $e, $c, ($e / $c)));
 
     return $result;
 }
@@ -998,7 +1026,7 @@ function get_course_info_from_registrar($term, $srs) {
         array(array($term, $srs)), true);
 
     if ($result) {
-        return get_object_vars(array_shift($result));
+        return array_shift($result);
     }
 
     return $result;

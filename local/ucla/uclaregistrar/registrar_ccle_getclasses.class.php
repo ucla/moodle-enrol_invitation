@@ -18,8 +18,6 @@ require_once(dirname(__FILE__).'/registrar_query.class.php');
 
 class registrar_ccle_getclasses extends registrar_query {
     function validate($new, $old) {
-        $new = array_change_key_case($new, CASE_LOWER);
-
         $tests = array('srs', 'term');
 
         foreach ($tests as $criteria) {
@@ -30,34 +28,29 @@ class registrar_ccle_getclasses extends registrar_query {
             }
         }
 
-        return (object) $new;
+        return true;
     }
 
     function remote_call_generate($args) {
         $k = null;
 
-        if (isset($args[0])) {
-            $k = 0;
-        } else if (isset($args['term'])) {
-            $k = 'term';
-        }
+        $m = 0;
+        $ls = array('term', 'srs');
 
-        if (preg_match('/[0-9]{2}[FWS1]/', $args[$k])) {
-            $term = $args[$k];
-        } else {
-            return false;
-        }
-        
-        if (isset($args[1])) {
-            $k = 1;
-        } else if (isset($args['srs'])) {
-            $k = 'srs';
-        }
+        foreach ($ls as $l) {
+            if (isset($args[$m])) {
+                $k = $m;
+            } else if (isset($args[$l])) {
+                $k = $l;
+            }
 
-        if (preg_match('/[0-9]{9}/', $args[$k])) {
-            $srs = $args[$k];
-        } else {
-            return false;
+            if (ucla_validator($l, $args[$k])) {
+                ${$l} = $args[$k];
+            } else {
+                return false;
+            }
+
+            $m++;
         }
 
         return "EXECUTE ccle_getClasses '$term', '$srs'";
