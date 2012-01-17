@@ -239,6 +239,10 @@
             ($CFG->fullnamedisplay == 'firstname') or
             ($CFG->fullnamedisplay == 'language' and $fullnamelanguage == 'firstname lastname' )) {
             $fullnamedisplay = "$firstname / $lastname";
+        //START UCLA MODIFICATION CCLE-2550
+        } else if ($CFG->fullnamedisplay == 'language' and $fullnamelanguage == 'lastname, firstname'){
+            $fullnamedisplay = "$lastname, $firstname";
+        //END UCLA MODIFICATION CCLE-2550    
         } else { // ($CFG->fullnamedisplay == 'language' and $fullnamelanguage == 'lastname firstname')
             $fullnamedisplay = "$lastname / $firstname";
         }

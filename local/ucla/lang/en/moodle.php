@@ -1,4 +1,5 @@
 <?php
+
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -14,29 +15,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Local language pack
+ *
+ * @package    core
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 defined('MOODLE_INTERNAL') || die();
 
-require_once(dirname(__FILE__) . '/../lib.php');
-
-/**
- *  Runs extra commands when installing.
- **/
-function xmldb_local_ucla_install() {
-    // Do stuff eventually
-    $result = true;
-
-    // Maybe add some tables we need?
-    return $result;
-}
-
-/**
- *  Runs commands to recover a halted installation.
- **/
-function xmldb_local_ucla_install_recovery() {
-    // Do stuff eventually
-    $result = true;
-
-    return $result;
-}
-
-// EOF
+$string['fullnamedisplay'] = '{$a->lastname}, {$a->firstname}';
