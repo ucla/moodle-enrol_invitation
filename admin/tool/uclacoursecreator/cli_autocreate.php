@@ -42,18 +42,20 @@ require($CFG->libdir . '/clilib.php');
 list($ext_argv, $unrecog) = cli_get_params(
     array(
         'unlock-first' => false,
-        'debug' => false,
+        'fail' => false,
         'current-term' => false,
         'help' => false,
         'revert' => false,
-        'category' => false
+        'category' => false,
+        'mail' => false
     ),
     array(
         'u' => 'unlock-first',
-        'd' => 'debug',
+        'f' => 'fail',
         'h' => 'help',
         'r' => 'revert',
-        'c' => 'category'
+        'c' => 'category',
+        'm' => 'mail'
     )
 );
 
@@ -89,9 +91,14 @@ if (!empty($goals)) {
     $bcc->set_srs_list($goals);
 }
 
-// Forcing debugging
-if ($ext_argv['debug']) {
-    $bcc->set_debug(true);
+// Forcing fail 
+if ($ext_argv['fail']) {
+    $bcc->set_autofail(true);
+}
+
+// Send mails
+if ($ext_argv['mail']) {
+    $bcc->set_mailer(true);
 }
 
 // Figure out which terms to run for

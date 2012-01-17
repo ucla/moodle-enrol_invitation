@@ -32,7 +32,6 @@ require_once($CFG->dirroot . '/local/ucla/lib.php');
 
 /**
  *  Course creator.
- *
  **/
 class uclacoursecreator {
     /** Stuff for Logging **/
@@ -47,11 +46,11 @@ class uclacoursecreator {
     // defined in @see check_write()
     public $output_path;
 
-    // Used to force debugging
-    private $force_debug = null;
+    // Used to force failure at the end
+    private $force_fail = false;
 
-    // Used to hide output
-    private $no_output = true;
+    // Set to true to hide output?
+    private $send_mails = false;
 
     // Private identifier for this cron task
     private $db_id;
@@ -132,12 +131,7 @@ class uclacoursecreator {
         $this->get_enrol_plugin('imsenterprise');
 
         // Make sure our email configurations are valid
-        if (!debugging()) {
-            $this->figure_email_vars();
-        } else {
-            // TODO print a better debug statement
-            $this->debugln('Debugging enabled...');
-        }
+        $this->figure_email_vars();
 
         // Check that we have our registrar wrapper functions
         ucla_require_registrar();
@@ -211,7 +205,7 @@ class uclacoursecreator {
                     $this->send_emails();
                 }
 
-                if (debugging()) {
+                if ($this->force_fail) {
                     throw new course_creator_exception(
                         '** Debugging break **'
                     );
@@ -245,20 +239,12 @@ class uclacoursecreator {
     /*  Debugging Functions  */
     /** ******************* **/
 
-    /** 
-     * Suppress all STDOUT output.
-     **/
-    function no_output($set) {
-        $this->no_output = $set;
-    }
-   
     /**
      *  Will print to course creator log.
      *  @param $mesg The message.
      **/
     function printl($mesg) {
-        // We can do set_debug()
-        if (!$this->no_output) {
+        if (debugging()) {
             echo $mesg;
         }
 
@@ -727,22 +713,19 @@ class uclacoursecreator {
     }
 
     /**
-     *  Forces debug to turn on / off.
+     *  Forces a fail condition to activate at the end of a term
      *
-     *  @param $bool boolean Force debug on, or turn off logging.
-     *  
+     *  @param $bool boolean Is force fail on 
      **/
-    function set_debug($bool) {
-        $this->force_debug = $bool;
-        // Enable printing of output
-        $this->no_output(false);
+    function set_autofail($bool) {
+        $this->force_fail = $bool;
     }
 
     /**
-     *  Default debugging mode back to Moodle Debugging.
+     *  Allows mails to be sent to requestors and instructors.
      **/
-    function unset_debug() {
-        $this->force_debug = null;
+    function set_mailer($b) {
+        $this->send_mails = $b;
     }
 
     /** ************************** **/
@@ -814,7 +797,7 @@ class uclacoursecreator {
 
             $this->insert_term_rci();
 
-            $DB->set_field('ucla_request_classes', 'action',
+            $DB->set_field_select('ucla_request_classes', 'action',
                 UCLA_COURSE_BUILT, $sql_where, $params);
 
             $this->debugln('Successfully processed ' . count($params)
@@ -1194,9 +1177,7 @@ class uclacoursecreator {
      *  @return string The Array key.
      **/
     function key_field_instructors($entry) {
-        if (!is_object($entry)) {
-            $entry = (object)$entry;
-        }
+        $entry = (object) $entry;
 
         $srs = $entry->srs;
 
@@ -1239,10 +1220,6 @@ class uclacoursecreator {
 
         // Turn each entry from the Registrar into an XML entry
         foreach ($this->cron_term_cache['term_rci'] as $rci_object) {
-            if (!is_object($rci_object)) {
-                $rci_object = (object)$rci_object;
-            }
-
             unset($req_course);
             $idnumber = make_idnumber($rci_object);
 
@@ -1413,10 +1390,6 @@ class uclacoursecreator {
         // Foreach course we got courseInfo for, we are going to make sure
         // They are in the courses table
         foreach ($rci_courses as $rci) {
-            if (!is_object($rci)) {
-                $rci = (object)$rci;
-            }
-
             $srs = $rci->srs;
             $term = $rci->term;
 
@@ -1593,10 +1566,6 @@ class uclacoursecreator {
 
         // For each requested course, figure out the URL
         foreach ($requests as $request) {
-            if (!is_object($request)) {
-                $request = (object)$request;
-            }
-
             $srs = $request->srs;
             $term = $request->term;
             
@@ -1876,12 +1845,11 @@ class uclacoursecreator {
             unset($emailing['userid']);
 
             // Parse the email
-            // @todo normalize this value?
             $subj = $emailing['subjarea'];
 
             // Figure out which email template to use
             if (!isset($this->parsed_param[$subj])) {
-                if (!isset($this->email_prefix) && !debugging()) {
+                if (!isset($this->email_prefix)) {
                     $this->figure_email_vars();
                 }
 
@@ -1935,11 +1903,12 @@ class uclacoursecreator {
                 . $emailing['lastname'] . "\t $userid \t" 
                 . $email_to . " \t $email_subject\n";
 
-            if (!debugging() && !$block_email) {
+            if ($this->send_mails && !$block_email) {
                 $this->println("Emailing: $email_to");
 
                 // EMAIL OUT
                 // TODO less baremetal PHP function
+                die;
                 mail($email_to, $email_subject, $email_body, $headers);
             } else {
                 if ($block_email) {
@@ -2025,11 +1994,11 @@ class uclacoursecreator {
         $fp = @fopen($file, 'r');
 
         if (!$fp) {
-            echo "ERROR: could not open email template file: $file.\n";
+            $this->debugln("ERROR: could not open email template file: "
+                . "$file.\n");
             return ;
         }
 
-        echo "Parsing $file ...\n";
         // first 3 lines are headers
         for ($x = 0; $x < 3; $x++) {
             $line = fgets($fp);
@@ -2043,7 +2012,7 @@ class uclacoursecreator {
         }
         
         if(sizeof($email_params) != 3) {
-            echo "ERROR: failed to parse headers in $file \n";
+            $this->debugln("ERROR: failed to parse headers in $file \n");
             return false;
         }
         
@@ -2053,7 +2022,7 @@ class uclacoursecreator {
             $email_params['body'] .= fread($fp, 8192);
         }
        
-        echo "Parsing $file successful \n";
+        $this->debugln("Parsing $file successful \n");
         fclose($fp);
         
         return $email_params;
@@ -2246,8 +2215,7 @@ class uclacoursecreator {
 
             $req_summary = implode(',', $created_courses);
 
-            if (!debugging()) {
-                // TODO less baremetal function
+            if ($this->send_mails) {
                 $resp = mail($requestor, $req_subj, $req_mes, 
                     $requestor_headers);
 
