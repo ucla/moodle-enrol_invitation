@@ -1563,7 +1563,7 @@ function get_roles_with_capability($capability, $permission = null, $context = n
  * @return int new/existing id of the assignment
  */
 function role_assign($roleid, $userid, $contextid, $component = '', $itemid = 0, $timemodified = '') {
-    global $USER, $DB;
+    global $USER, $DB, $CFG;
 
     // first of all detect if somebody is using old style parameters
     if ($contextid === 0 or is_numeric($component)) {

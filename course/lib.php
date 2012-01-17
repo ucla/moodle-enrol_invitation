@@ -3895,7 +3895,6 @@ function create_course($data, $editoroptions = NULL) {
 
     if($course->enablepublicprivate == 1) {
         $pubpriv_course->activate();
-        $pubpriv_course->add_enrolled_users();
     } else if($pubpriv_course->is_activated()) {
         $pubpriv_course->deactivate();
     }
