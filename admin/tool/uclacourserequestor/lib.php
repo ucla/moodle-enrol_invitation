@@ -171,7 +171,7 @@ function apply_to_set($set, $field, $val) {
         if (is_object($set[$k])) {
             $set[$k]->$field = $val;
         } else {
-            $set[$k][$rq] = $val;
+            $set[$k][$field] = $val;
         }
     }
 
