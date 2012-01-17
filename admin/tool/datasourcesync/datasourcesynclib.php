@@ -8,7 +8,7 @@
 * See CCLE-2314 for details.
 **/
 
-require_once(dirname(dirname(dirname(__FILE__))) . "/config.php");
+require_once(dirname(dirname(dirname(dirname(__FILE__)))) . "/config.php");
 
 //satisfy moodle's requirement for cli scripts
 define('CLI_SCRIPT', true);
