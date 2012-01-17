@@ -29,9 +29,6 @@ if (!isset($CFG->quiet_mode)) {
     exit(4);
 }
 
-//begin database updates
-update_bruincast_db();
-
 /**
 * Updates Bruincast DB from CSV at $CFG->bruincast_data URL
 **/
