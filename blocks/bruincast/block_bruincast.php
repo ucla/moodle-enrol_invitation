@@ -70,7 +70,7 @@ class block_bruincast extends block_base {
             
         $this->content = new stdClass;
         
-        // hide block is not is role block/bruincast:viewblock
+        // hide block if not is role block/bruincast:viewblock
         if (!has_capability('block/bruincast:viewblock', $context)) {
             return $this->content;
         }
