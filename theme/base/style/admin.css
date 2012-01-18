@@ -190,6 +190,7 @@
 #page-admin-index #plugins-check .status-missing .status {background-color:#ffd3d9;}
 #page-admin-index #plugins-check .status-new .status {background-color:#e7f1c3;}
 #page-admin-index #plugins-check .status-nodb .status {color:#999;}
+#page-admin-index #plugins-check .status-delete .status {background-color:#d2ebff;}
 #page-admin-index #plugins-check .status-upgrade .status {background-color:#d2ebff;}
 #page-admin-index #plugins-check .status-uptodate .status {color:#999;}
 #page-admin-index #plugins-check .requires ul {font-size:0.7em;margin:0;}
@@ -205,3 +206,8 @@
 #page-admin-plugins #plugins-control-panel .extension .source {background-color:#f3f2aa;}
 #page-admin-plugins #plugins-control-panel .msg td {text-align:center;}
 #page-admin-plugins #plugins-control-panel .requiredby {font-size:0.7em;color:#999;}
+
+/** MNet networking */
+#page-admin-mnet-peers .box.deletedhosts {margin-bottom:1em;font-size:80%;}
+#page-admin-mnet-peers .mform .certdetails {background-color:white;}
+#page-admin-mnet-peers .mform .deletedhostinfo {background-color:#ffd3d9;border 2px solid #eeaaaa;padding:4px;margin-bottom:5px;}

@@ -28,21 +28,19 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir.'/filelib.php');
 require_once($CFG->libdir.'/completionlib.php');
 
+global $CFG, $USER;
+
 // Course preferences
 $course_prefs = new ucla_course_prefs($course->id);
 
 $displaysection = null;
 $to_topic = null;
 
+// Use $displaysection when figuring out which section the user is viewing
 list($to_topic, $displaysection) = ucla_format_figure_section($course,
     $course_prefs);
 
-if ($displaysection == null && $to_topic !== null) {
-    $displaysection = course_set_display($course->id, $to_topic);
-}
-
-// $USER->display isn't cleared until course_set_display is called()
-$USER->display['course'] = $course->id;
+course_set_display($course->id, $to_topic);
 
 // Leave in marker functionality, this isn't really used except visually
 // TODO maybe use it for other stuff
@@ -81,7 +79,6 @@ $strgroups        = get_string('groups');
 $strgroupmy       = get_string('groupmy');
 $editing          = $PAGE->user_is_editing();
 
-// If editing... just felt like a comment belongs here
 if ($editing) {
     $strtopichide       = get_string('hidetopicfromothers');
     $strtopicshow       = get_string('showtopicfromothers');
