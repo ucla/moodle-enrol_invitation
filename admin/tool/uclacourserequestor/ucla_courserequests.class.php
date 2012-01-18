@@ -402,7 +402,7 @@ class ucla_courserequests {
         foreach ($this->deletes as $setid => $true) {
             $coursetodelete = null;
             $requestsdeleted = false;
-            $thisresult = self::deletefail;
+            $thisresult = self::deletefailed;
 
             foreach ($this->setindex[$setid] as $key => $course) {
                 if ($coursetodelete === null 
@@ -418,9 +418,7 @@ class ucla_courserequests {
                 $thisresult = self::deletecoursefailed;
                 if ($coursetodelete) {
                     // Attempt to delete the courses
-                    $result = delete_course($coursetodelete, false);
-
-                    if ($result) {
+                    if (delete_course($coursetodelete, false)) {
                         $thisresult = self::deletesuccess;
                     }
                 }

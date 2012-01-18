@@ -23,7 +23,7 @@ define('UCLA_REQUEST_IGNORE', 'ignore');
 
 // Meta Error
 define('UCLA_REQUESTOR_ERROR', 'error');
-define('UCLA_REQUESTOR_WARNING', 'warnrow');
+define('UCLA_REQUESTOR_WARNING', 'warning');
 
 // Errors
 define('UCLA_REQUESTOR_EXIST', 'alreadysubmitted');

@@ -109,9 +109,8 @@ function xmldb_tool_uclacourserequestor_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2011072704, 'tool', 'uclacourserequestor');
     }
 
-    //             YYYYMMDDVV
-    $thisversion = 2011111601;
-    if ($oldversion < $thisversion) {
+    //                YYYYMMDDVV
+    if ($oldversion < 2011111601) {
 
         // Define field status to be dropped from ucla_request_classes
         $table = new xmldb_table('ucla_request_classes');
@@ -123,11 +122,10 @@ function xmldb_tool_uclacourserequestor_upgrade($oldversion) {
         }
 
         // uclacourserequestor savepoint reached
-        upgrade_plugin_savepoint(true, $thisversion, 'tool', 'uclacourserequestor');
+        upgrade_plugin_savepoint(true, 2011111601, 'tool', 'uclacourserequestor');
     } 
 
-    $thisversion = 2011113000;
-    if ($oldversion < $thisversion) {
+    if ($oldversion < 2011113000) {
         // Sorry, no: Convert old data...
 
         //////////////////
@@ -242,11 +240,11 @@ function xmldb_tool_uclacourserequestor_upgrade($oldversion) {
         }
 
         // uclacourserequestor savepoint reached
-        upgrade_plugin_savepoint(true, $thisversion, 'tool', 'uclacourserequestor');
+        upgrade_plugin_savepoint(true, 2011113000, 'tool', 'uclacourserequestor');
     }
 
-    $thisversion = 2011121900;
-    if ($oldversion < $thisversion) {
+    //                YYYYMMDDVV
+    if ($oldversion < 2011121900) {
 
         // Define index uniqtermsrs (unique) to be added to ucla_request_classes
         $table = new xmldb_table('ucla_request_classes');
@@ -258,7 +256,26 @@ function xmldb_tool_uclacourserequestor_upgrade($oldversion) {
         }
 
         // uclacourserequestor savepoint reached
-        upgrade_plugin_savepoint(true, $thisversion, 'tool', 'uclacourserequestor');
+        upgrade_plugin_savepoint(true, 2011121900, 'tool', 'uclacourserequestor');
     }
+
+    //                YYYYMMDDVV
+    if ($oldversion < 2012011800) {
+        // Changing precision of field requestoremail on table ucla_request_classes to (255)
+        $table = new xmldb_table('ucla_request_classes');
+        $field = new xmldb_field('requestoremail', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'department');
+
+        // Launch change of precision for field requestoremail
+        $dbman->change_field_precision($table, $field);
+
+        $field = new xmldb_field('instructor', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'course');
+
+        // Launch change of precision for field instructor
+        $dbman->change_field_precision($table, $field);
+
+        // uclacourserequestor savepoint reached
+        upgrade_plugin_savepoint(true, 2012011800, 'tool', 'uclacourserequestor');
+    }
+
 	return $result;
 }

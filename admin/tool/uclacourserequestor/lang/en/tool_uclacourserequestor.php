@@ -25,7 +25,7 @@ $string['noviewcourses'] = "If you were expecting a third form, there are no exi
 
 $string['crosslistnotice'] = "You can add crosslists while these couses are waiting in queue to be built.";
 
-$string['errorrow'] = 'Some of the courses that you have requested have problems with them. Please look over them and if needed, submit your requests again.';
+$string['error'] = 'Some of the courses that you have requested have problems with them. Please look over them and if needed, submit your requests again.';
 
 $string['all_department'] = 'All departments';
 $string['all_term'] = 'All terms';

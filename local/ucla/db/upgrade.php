@@ -6,8 +6,7 @@ function xmldb_local_ucla_upgrade($oldversion=0) {
 
     $result = true;
 
-    $v = 2011110400;
-    if ($oldversion < $v) {
+    if ($oldversion < 2011110400) {
         // Define table ucla_reg_subjectarea to be created
         $table = new xmldb_table('ucla_reg_subjectarea');
 
@@ -48,7 +47,7 @@ function xmldb_local_ucla_upgrade($oldversion=0) {
         }
 
         // ucla savepoint reached
-        upgrade_plugin_savepoint(true, $v, 'local', 'ucla');
+        upgrade_plugin_savepoint(true, 2011110400, 'local', 'ucla');
     }
 
     return $result;
