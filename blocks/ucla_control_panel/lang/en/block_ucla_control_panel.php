@@ -39,7 +39,7 @@ $string['modify_sections'] = 'Modify course menu sections';
 $string['modify_sections_post'] = '';
 
 $string['turn_editing_on'] = 'Delete or update materials';
-$string['turn_editing_on_post'] = '(or update, hide, make public)';
+$string['turn_editing_on_post'] = '(or duplicate, hide, make public)';
 
 /** Stuff from other **/
 $string['ucla_cp_mod_other'] = 'Other commands';
