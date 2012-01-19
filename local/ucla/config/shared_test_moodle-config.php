@@ -86,6 +86,13 @@ $block_ucla_help_settings = array('send_to' => 'jira',
 $CFG->forced_plugin_settings['block_ucla_help'] = $block_ucla_help_settings;
 $block_ucla_help_support_contacts['System'] = 'dkearney';  // default
 
+// CCLE-2550 - Lastname, Firstname sorting
+$CFG->fullnamedisplay == 'language';
+
+// UCLA Theme settings
+$CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'test';
+$CFG->forced_plugin_settings['theme_uclashared']['logo_sub_dropdown'] = true;
+
 /** 
  *  Automatic Shibboleth configurations.
  *  Disabling in favor for GUI configurations.
