@@ -5,10 +5,10 @@
 * See CCLE-2790 for details.
 **/
 
-require_once(dirname(dirname(dirname(dirname(__FILE__)))) . "/config.php");
-
 //satisfy moodle's requirement for cli scripts
 define('CLI_SCRIPT', true);
+
+require_once(dirname(dirname(dirname(dirname(__FILE__)))) . "/config.php");
 
 /**
 * Returns an array of raw CSV data from the CSV file at datasource_url.
