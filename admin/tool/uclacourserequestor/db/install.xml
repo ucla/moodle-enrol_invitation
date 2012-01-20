@@ -10,9 +10,10 @@
         <FIELD NAME="term" TYPE="char" LENGTH="3" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="srs"/>
         <FIELD NAME="srs" TYPE="char" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="term" NEXT="department"/>
         <FIELD NAME="department" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" PREVIOUS="srs" NEXT="requestoremail"/>
-        <FIELD NAME="requestoremail" TYPE="char" LENGTH="254" NOTNULL="false" SEQUENCE="false" PREVIOUS="department" NEXT="hostcourse"/>
+        <FIELD NAME="requestoremail" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" PREVIOUS="department" NEXT="hostcourse"/>
         <FIELD NAME="hostcourse" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="requestoremail" NEXT="setid"/>
         <FIELD NAME="setid" TYPE="int" LENGTH="20" NOTNULL="false" UNSIGNED="false" SEQUENCE="false" COMMENT="Entries that correspond to the same setid are crosslisted." PREVIOUS="hostcourse" NEXT="courseid"/>
+
         <FIELD NAME="courseid" TYPE="int" LENGTH="20" NOTNULL="false" UNSIGNED="false" SEQUENCE="false" COMMENT="This is the foreign key to the {course} table." PREVIOUS="setid" NEXT="timerequested"/>
         <FIELD NAME="timerequested" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="courseid" NEXT="action"/>
         <FIELD NAME="action" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" PREVIOUS="timerequested" NEXT="mailinst"/>
@@ -20,17 +21,19 @@
         <FIELD NAME="nourlupdate" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="mailinst" NEXT="hidden"/>
         <FIELD NAME="hidden" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="nourlupdate" NEXT="course"/>
         <FIELD NAME="course" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" COMMENT="This is a concatenation of the course number and section number, stored for caching purposes." PREVIOUS="hidden" NEXT="instructor"/>
-        <FIELD NAME="instructor" TYPE="char" LENGTH="254" NOTNULL="false" SEQUENCE="false" COMMENT="This is a concatenation of all instructor names, stored for caching." PREVIOUS="course"/>
+        <FIELD NAME="instructor" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="This is a concatenation of all instructor names, stored for caching." PREVIOUS="course"/>
       </FIELDS>
+
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="searchme" UNIQUE="true" FIELDS="term, srs, setid" NEXT="searchforsrs"/>
-        <INDEX NAME="searchforsrs" UNIQUE="false" FIELDS="courseid" PREVIOUS="searchme" NEXT="searchdept"/>
-        <INDEX NAME="searchdept" UNIQUE="false" FIELDS="department" PREVIOUS="searchforsrs" NEXT="searchaction"/>
+        <INDEX NAME="searchme" UNIQUE="true" FIELDS="term, srs, setid" NEXT="searchcourseid"/>
+        <INDEX NAME="searchcourseid" UNIQUE="false" FIELDS="courseid" PREVIOUS="searchme" NEXT="searchdept"/>
+        <INDEX NAME="searchdept" UNIQUE="false" FIELDS="department" PREVIOUS="searchcourseid" NEXT="searchaction"/>
         <INDEX NAME="searchaction" UNIQUE="false" FIELDS="action" PREVIOUS="searchdept" NEXT="uniqtermsrs"/>
         <INDEX NAME="uniqtermsrs" UNIQUE="true" FIELDS="term, srs" PREVIOUS="searchaction"/>
+
       </INDEXES>
     </TABLE>
   </TABLES>

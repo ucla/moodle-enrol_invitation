@@ -173,7 +173,7 @@ if ($requests === null) {
         }
 
         if (isset($uclacrqs)) {
-            // TODO return a set of changes that occurred...
+            // TODO return a set of changes that has validly occurred
             $uclacrqs->apply_changes($changes, $groupid);
         }
     }
@@ -193,8 +193,12 @@ if (isset($uclacrqs)) {
 
         // Take out successfuls from requests with errors
         foreach ($requestswitherrors as $setid => $set) {
-            if (isset($successfuls[$setid])) {
+            if (isset($successfuls[$setid]) 
+                    && $successfuls[$setid] 
+                        >= ucla_courserequests::savesuccess) {
                 unset($requestswitherrors[$setid]);
+            } else {
+               var_dump($successfuls[$setid]);
             }
         }
     }
@@ -264,6 +268,9 @@ foreach ($cached_forms as $gn => $group) {
     echo $OUTPUT->box_end();
 }
 
+// TODO rework this section, including display of committed changes,
+// as well as error messages, and the message that states that no requests 
+// were found
 if (!empty($requeststable->data)) {
     echo html_writer::start_tag('form', array(
         'method' => 'POST',
@@ -286,7 +293,6 @@ if (!empty($requeststable->data)) {
         $sm = get_string_manager();
         foreach ($messages as $message) {
             if (!empty($message)) {
-                // TODO think about how to properly do this
                 $contextspecificm = $message . '-' . $groupid;
 
                 if ($sm->string_exists($contextspecificm, $rucr)) {

@@ -22,7 +22,9 @@ class ucla_courserequests {
     // Failed flags should be < self::savesuccess
     const savefailed = 0;
     const deletefailed = 1;
-    const deletecoursefailed = 2;
+
+    // Soft fail...
+    const deletecoursefailed = 50;
 
     private $_validated = null;
 
@@ -346,6 +348,7 @@ class ucla_courserequests {
         foreach ($requests as $setid => $set) {
             $failset = false;
             $requestentries = array();
+            $thisresult = self::savesuccess;
 
             foreach ($set as $k => $r) {
                 if (!empty($r[UCLA_REQUESTOR_ERROR])) {
@@ -390,12 +393,14 @@ class ucla_courserequests {
                     }
                 } catch (dml_exception $e) {
                     var_dump($e);
+                    $thisresult = self::savefailed;
                 } catch (coding_exception $e) {
                     var_dump($request);
+                    $thisresult = self::savefailed;
                 }
             }
 
-            $results[$setid] = self::savesuccess;
+            $results[$setid] = $thisresult;
         }
 
         $coursestodelete = array();
@@ -415,11 +420,11 @@ class ucla_courserequests {
             }
 
             if ($DB->delete_records($urc, array('setid' => $setid))) {
-                $thisresult = self::deletecoursefailed;
+                $thisresult = self::deletesuccess;
                 if ($coursetodelete) {
                     // Attempt to delete the courses
-                    if (delete_course($coursetodelete, false)) {
-                        $thisresult = self::deletesuccess;
+                    if (!delete_course($coursetodelete, false)) {
+                        $thisresult = self::deletecoursefailed;
                     }
                 }
             }
