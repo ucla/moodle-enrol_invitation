@@ -41,6 +41,11 @@
 		error('Elluminate Live! Group Error');
 	}
 
+    $url = new moodle_url('/mod/elluminate/preload.php', array('id'=>$id));
+    $PAGE->set_url($url);           
+
+    /// Some capability checks.
+    require_course_login($course, true, $cm);    
     $context = get_context_instance(CONTEXT_MODULE, $cm->id);
     require_capability('mod/elluminate:managepreloads', $context);
 

@@ -23,6 +23,9 @@
     $showgrouprecording = optional_param('showgrouprecording', 0, PARAM_INT);
 	$groupid			= optional_param('group', 0, PARAM_INT);
 
+    $url = new moodle_url('/mod/elluminate/view.php', array('id'=>$id));
+    $PAGE->set_url($url);            
+        
     if ($id) {    	
         if (!$cm = get_coursemodule_from_id('elluminate', $id)) {
             error("Course Module ID was incorrect");

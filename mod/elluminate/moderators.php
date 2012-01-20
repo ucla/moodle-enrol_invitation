@@ -43,7 +43,10 @@
 	} else {
 		error('Elluminate Live! Group Error');
 	}
-	
+
+    $url = new moodle_url('/mod/elluminate/moderators.php', array('id'=>$id));
+    $PAGE->set_url($url);             
+        
 	$groupmode    = groups_get_activity_groupmode($cm);
     $currentgroup = groups_get_activity_group($cm, true);
 

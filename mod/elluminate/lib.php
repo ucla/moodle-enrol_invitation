@@ -509,7 +509,7 @@ function elluminate_update_module_button($moduleid, $courseid, $string) {
     if (has_capability('moodle/course:manageactivities', get_context_instance(CONTEXT_MODULE, $moduleid))) {
         $string = get_string('updatethis', '', $string);
 
-        return "<form method=\"get\" action=\"$CFG->wwwroot/course/mod.php\" onsubmit=\"this.target='{$CFG->framename}'; return true\">".//hack to allow edit on framed resources
+        return "<form method=\"get\" action=\"$CFG->wwwroot/course/mod.php\" onsubmit=\"this.target='_top'; return true\">".//hack to allow edit on framed resources
                "<div>".
                "<input type=\"hidden\" name=\"update\" value=\"$moduleid\" />".
                "<input type=\"hidden\" name=\"return\" value=\"true\" />".
