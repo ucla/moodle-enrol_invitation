@@ -89,14 +89,39 @@ function make_idnumber($courseinfo) {
 function ucla_get_course_info($courseid) {
     global $DB;
 
-    $records = $DB->get_records('ucla_request_classes', 
-        array('courseid' => $courseid));
+    $many = ucla_get_courses_info(array($courseid));
 
+    return reset($many);
+}
+
+function ucla_get_courses_info($courseids) {
+    global $DB;
+
+    list($sql, $param) = $DB->get_in_or_equal($courseids);
+    $where = '`courseid` ' . $sql;
+    
+    $requests = $DB->get_records_select('ucla_request_classes',
+        $where, $param);
+
+    // Index... this seems like it can be abstracted
+
+    return index_ucla_course_requests($requests);
+
+}
+
+/**
+ *  Convenicence function.
+ **/
+function index_ucla_course_requests($requests) {
     $reindexed = array();
 
-    if ($records) {
-        foreach ($records as $record) {
-            $reindexed[make_idnumber($record)] = $record;
+    if (!empty($requests)) {
+        foreach ($requests as $record) {
+            if (isset($record->setid)) {
+                $reindexed[$record->setid][make_idnumber($record)] = $record;
+            } else {
+                throw new moodle_exception('faulty ucla request');
+            }
         }
     }
 
@@ -122,16 +147,7 @@ function ucla_get_courses_by_terms($terms) {
     $records = $DB->get_records_select('ucla_request_classes',
         $where, $params);
 
-    $reindexed = array(); 
-
-    // TODO maybe abstract this loop out
-    if ($records) {
-        foreach ($records as $record) {
-            $reindexed[$record->setid][make_idnumber($record)] = $record;
-        }
-    }
-
-    return $reindexed;
+    return index_ucla_course_requests($records);
 }
 
 /**
