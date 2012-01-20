@@ -100,9 +100,6 @@ class uclacoursecreator {
     // Email file default
     private $default_email_file;
 
-    // Contains the root path to the MyUCLA URL update webservice.
-    private $myucla_login = null;
-
     // Note: There are dynamically generated fields for this class, which
     // contain references to the enrollment object.
     // I.E. $this->enrol_meta_plugin
@@ -112,7 +109,7 @@ class uclacoursecreator {
         global $CFG;
 
         if (!$this->get_config('course_creator_cron_enabled')) {
-            // @todo Test if this logic works
+            // TODO Test if this logic works
             static $cronuser;
 
             if (isset($cronuser)) {
@@ -1493,7 +1490,7 @@ class uclacoursecreator {
     
             if (isset($root_course)) {
                 if ($this->match_summer($term)) {
-                    // @todo CCLE-2541 make this configurable: number of 
+                    // TODO CCLE-2541 make this configurable: number of 
                     // section in summer?
                     $root_course->numsections = 6;
                 }
@@ -1848,7 +1845,7 @@ class uclacoursecreator {
             $subj = $emailing['subjarea'];
 
             // Figure out which email template to use
-            if (!isset($this->parsed_param[$subj])) {
+            if ($this->send_mails && !isset($this->parsed_param[$subj])) {
                 if (!isset($this->email_prefix)) {
                     $this->figure_email_vars();
                 }
@@ -1964,11 +1961,11 @@ class uclacoursecreator {
         }
 
         list($sql_in, $params) = $DB->get_in_or_equal($local_userids);
-        $sql_where = 'idnumber IN ' . $sql_in;
+        $sql_where = 'idnumber ' . $sql_in;
 
         $this->println("Searching local MoodleDB for idnumbers $sql_in...");
 
-        $local_users = $DB->get_records_select('users', $sql_where, $params);
+        $local_users = $DB->get_records_select('user', $sql_where, $params);
 
         if (!empty($local_users)) {
             foreach ($local_users as $local_user) {
@@ -2072,7 +2069,7 @@ class uclacoursecreator {
         // Reference
         $term_rci =& $this->cron_term_cache['term_rci'];
 
-        // @todo move the bulk sql functions elsewhere
+        // TODO move the bulk sql functions elsewhere
         $fields = array();
         foreach ($term_rci as $rci_data) {
             foreach ($rci_data as $field => $data) {
@@ -2115,6 +2112,7 @@ class uclacoursecreator {
             $buildline
         ";
 
+        // Fix this
         try {
             $DB->execute($sql, $params);
         } catch (dml_exception $e) {
@@ -2422,6 +2420,10 @@ class uclacoursecreator {
      *  You just need to call this once.
      **/
     function figure_email_vars() {
+        if (!$this->send_mails) {
+            return false;
+        }
+
         if (!$this->get_config('course_creator_email_template_dir')) {
             throw new course_creator_exception(
                 'ERROR: course_creator_email_template_dir not set!'
