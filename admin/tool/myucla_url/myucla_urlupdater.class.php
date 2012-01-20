@@ -149,8 +149,8 @@ class myucla_urlupdater {
 
         $content = $this->trim_strip_tags(file_get_contents($url));
 
-        // Give MyUCLA time to breathe
-        sleep(1);
+        // Give MyUCLA time to breathe (if needed, please uncomment)
+        // sleep(1);
 
         return $content;
     }
@@ -166,3 +166,5 @@ class myucla_urlupdater {
         return trim(strip_tags($string), " \r\n\t");
     }
 }
+
+// EoF
