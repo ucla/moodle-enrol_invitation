@@ -115,6 +115,7 @@ $CFG->fullnamedisplay == 'language';
 $CFG->themedesignermode = true;
 $CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'dev';
 $CFG->forced_plugin_settings['theme_uclashared']['logo_sub_dropdown'] = true;
+$CFG->cachejs = false;
 
 /** 
  *  Automatic Shibboleth configurations.
