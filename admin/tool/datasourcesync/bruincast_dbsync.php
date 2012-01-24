@@ -10,23 +10,21 @@
 
 require_once('datasourcesynclib.php');
 
-update_bruincast_db();
-
 // Check to see if config variables are initialized
 if (!isset($CFG->bruincast_data)) {
-    echo "\nERROR: No location set for bruincast data.\n";
-    exit(4);
+    die("\n".get_string('errmsglocation','tool_datasourcesync')."\n");
 }
 
 if (!isset($CFG->bruincast_errornotify_email)) {
-    echo "\nERROR: No email set for bruincast error notifcation. \n";
-    exit(4);
+    die("\n".get_string('errmsgemail','tool_datasourcesync')."\n");
 }
 
 if (!isset($CFG->quiet_mode)) {
-    echo "\nERROR: No config option quiet_mode set. \n";
-    exit(4);
+    die("\n".get_string('errmsgquiet','tool_datasourcesync')."\n");
 }
+
+// Begin database update
+update_bruincast_db();
 
 /**
 * Updates Bruincast DB from CSV at $CFG->bruincast_data URL
@@ -36,7 +34,7 @@ function update_bruincast_db(){
     // get global variables
     global $CFG, $DB;
     
-    echo "Starting bruincast DB update: ";
+    echo get_string('startnoti','tool_datasourcesync');
 
     $datasource_url = $CFG->bruincast_data;
     $data = &get_csv_data($datasource_url);
@@ -70,9 +68,9 @@ function update_bruincast_db(){
     }
 
     if ($insert_count == 0) {
-        echo("\n... ERROR: no rows inserted. \n");
+        echo "\n".get_string('errinsert','tool_datasourcesync')."\n";
     } else {
-        echo("\n... used $insert_count dbqueries \n");
+        echo "\n... ".$insert_count." ".get_string('successnoti','tool_datasourcesync')."\n" ;
     }
 
     // check_crosslists(&$data);
