@@ -8,19 +8,19 @@
 * See CCLE-2314 for details.
 **/
 
-require_once('datasourcesynclib.php');
+require_once('lib.php');
 
 // Check to see if config variables are initialized
 if (!isset($CFG->bruincast_data)) {
-    die("\n".get_string('errmsglocation','tool_datasourcesync')."\n");
+    die("\n".get_string('bcerrmsglocation','tool_datasourcesync')."\n");
 }
 
 if (!isset($CFG->bruincast_errornotify_email)) {
-    die("\n".get_string('errmsgemail','tool_datasourcesync')."\n");
+    die("\n".get_string('bcerrmsgemail','tool_datasourcesync')."\n");
 }
 
 if (!isset($CFG->quiet_mode)) {
-    die("\n".get_string('errmsgquiet','tool_datasourcesync')."\n");
+    die("\n".get_string('bcerrmsgquiet','tool_datasourcesync')."\n");
 }
 
 // Begin database update
@@ -34,7 +34,7 @@ function update_bruincast_db(){
     // get global variables
     global $CFG, $DB;
     
-    echo get_string('startnoti','tool_datasourcesync');
+    echo get_string('bcstartnoti','tool_datasourcesync');
 
     $datasource_url = $CFG->bruincast_data;
     $data = &get_csv_data($datasource_url);
@@ -68,9 +68,9 @@ function update_bruincast_db(){
     }
 
     if ($insert_count == 0) {
-        echo "\n".get_string('errinsert','tool_datasourcesync')."\n";
+        echo "\n".get_string('bcerrinsert','tool_datasourcesync')."\n";
     } else {
-        echo "\n... ".$insert_count." ".get_string('successnoti','tool_datasourcesync')."\n" ;
+        echo "\n... ".$insert_count." ".get_string('bcsuccessnoti','tool_datasourcesync')."\n" ;
     }
 
     // check_crosslists(&$data);

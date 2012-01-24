@@ -7,16 +7,18 @@
 
 /** Strings for bruincast_dbsync **/ 
 // Error messages
-$string['errmsglocation'] = "ERROR: No location set for bruincast data.";
-$string['errmsgemail'] = "ERROR: No email set for bruincast error notification.";
-$string['errmsgquiet'] = "ERROR: Cannot access configuration option quiet_mode.";
-$string['errinsert'] = "ERROR: No records inserted.";
+$string['errbcmsglocation'] = "ERROR: No location set for bruincast data.";
+$string['errbcmsgemail'] = "ERROR: No email set for bruincast error notification.";
+$string['errbcmsgquiet'] = "ERROR: Cannot access configuration option quiet_mode.";
+$string['errbcinsert'] = "ERROR: No records inserted.";
 
 // Notication messages
-$string['startnoti'] = "Starting bruincast DB update:";
-$string['successnoti'] = "records successfuly inserted.";
+$string['bcstartnoti'] = "Starting bruincast DB update:";
+$string['bcsuccessnoti'] = "records successfuly inserted.";
 
-
+/** Strings for libraryreserves_dbsync **/
+// Error messages
+$string['errlrmsglocation'] = "ERROR: No location set for library reserves data.";
 
 
 
