@@ -236,6 +236,7 @@ if ($version > $CFG->version) {  // upgrade
         upgrade_core($version, true);
     }
 } else if ($version < $CFG->version) {
+    echo $CFG->version;
     // better stop here, we can not continue with plugin upgrades or anything else
     throw new moodle_exception('downgradedcore', 'error', new moodle_url('/admin/'));
 }

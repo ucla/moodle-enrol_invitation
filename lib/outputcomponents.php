@@ -270,14 +270,16 @@ class user_picture implements renderable {
      * @return moodle_url
      */
     public function get_url(moodle_page $page, renderer_base $renderer = null) {
-        global $CFG, $FULLME;
+        global $CFG;
 
         if (is_null($renderer)) {
             $renderer = $page->get_renderer('core');
         }
 
-        if (!empty($CFG->forcelogin) and !isloggedin()) {
+        if ((!empty($CFG->forcelogin) and !isloggedin()) ||
+                (!empty($CFG->forceloginforprofileimage) && (!isloggedin() || isguestuser()))) {
             // protect images if login required and not logged in;
+            // also if login is required for profile images and is not logged in or guest
             // do not use require_login() because it is expensive and not suitable here anyway
             return $renderer->pix_url('u/f1');
         }
@@ -329,7 +331,7 @@ class user_picture implements renderable {
             // Build a gravatar URL with what we know.
             // If the currently requested page is https then we'll return an
             // https gravatar page.
-            if (strpos($FULLME, 'https://') === 0) {
+            if (strpos($CFG->httpswwwroot, 'https:') === 0) {
                 $imageurl = new moodle_url("https://secure.gravatar.com/avatar/{$md5}", array('s' => $size, 'd' => $imageurl->out(false)));
             } else {
                 $imageurl = new moodle_url("http://www.gravatar.com/avatar/{$md5}", array('s' => $size, 'd' => $imageurl->out(false)));

@@ -171,7 +171,7 @@ class theme_uclashared_core_renderer extends core_renderer {
      **/
     function help_feedback_link() {
         $help_locale = $this->call_separate_block_function(
-                'ucla_helpblock', 'get_action_link'
+                'ucla_help', 'get_action_link'
             );
 
         if (!$help_locale) {
@@ -238,6 +238,12 @@ class theme_uclashared_core_renderer extends core_renderer {
     // This function will be called only in class sites 
     function control_panel_button() {
         global $CFG, $OUTPUT;
+
+        // Hack since contexts and pagelayouts are different things
+        // Hack to fix: display control panel link when updating a plugin
+        if ($this->page->context == get_context_instance(CONTEXT_SYSTEM)) {
+            return '';
+        }
 
         // Use html_writer to render the control panel button
         $cp_text = html_writer::empty_tag('img', 

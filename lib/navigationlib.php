@@ -1240,6 +1240,16 @@ class global_navigation extends navigation_node {
                     $sections = $this->load_course_sections($course, $coursenode);
                     break;
             }
+        } else {
+            // We need to check if the user is viewing a front page module.
+            // If so then there is potentially more content to load yet for that
+            // module.
+            if ($this->page->context->contextlevel == CONTEXT_MODULE) {
+                $activitynode = $this->rootnodes['site']->get($this->page->cm->id, navigation_node::TYPE_ACTIVITY);
+                if ($activitynode) {
+                    $this->load_activity($this->page->cm, $this->page->course, $activitynode);
+                }
+            }
         }
 
         $limit = 20;
@@ -2004,7 +2014,7 @@ class global_navigation extends navigation_node {
                 }
             }
             if ($gradeaccess) {
-                $reporttab->add(get_string('grade'), new moodle_url('/course/user.php', array('mode'=>'grade', 'id'=>$course->id)));
+                $reporttab->add(get_string('grade'), new moodle_url('/course/user.php', array('mode'=>'grade', 'id'=>$course->id, 'user'=>$usercontext->instanceid)));
             }
         }
         // Check the number of nodes in the report node... if there are none remove the node
@@ -2237,7 +2247,7 @@ class global_navigation extends navigation_node {
                 $participants->add(get_string('blogs','blog'), $blogsurls->out());
             }
             if (!empty($CFG->enablenotes) && (has_capability('moodle/notes:manage', $this->page->context) || has_capability('moodle/notes:view', $this->page->context))) {
-                $participants->add(get_string('notes','notes'), new moodle_url('/notes/index.php', array('filtertype'=>'course', 'filterselect'=>$filterselect)));
+                $participants->add(get_string('notes','notes'), new moodle_url('/notes/index.php', array('filtertype'=>'course', 'filterselect'=>$course->id)));
             }
         } else if (count($this->extendforuser) > 0 || $this->page->course->id == $course->id) {
             $participants = $coursenode->add(get_string('participants'), null, self::TYPE_CONTAINER, get_string('participants'), 'participants');
@@ -3215,7 +3225,7 @@ class settings_navigation extends navigation_node {
         }
 
         // Questions
-        require_once($CFG->dirroot.'/question/editlib.php');
+        require_once($CFG->libdir . '/questionlib.php');
         question_extend_settings_navigation($coursenode, $coursecontext)->trim_if_empty();
 
         if (has_capability('moodle/course:update', $coursecontext)) {
@@ -3924,23 +3934,9 @@ class settings_navigation extends navigation_node {
             $frontpage->add(get_string('restore'), $url, self::TYPE_SETTING, null, null, new pix_icon('i/restore', ''));
         }
 
-        // Manage questions
-        $questioncaps = array('moodle/question:add',
-                              'moodle/question:editmine',
-                              'moodle/question:editall',
-                              'moodle/question:viewmine',
-                              'moodle/question:viewall',
-                              'moodle/question:movemine',
-                              'moodle/question:moveall');
-        if (has_any_capability($questioncaps, $this->context)) {
-            $questionlink = $CFG->wwwroot.'/question/edit.php';
-        } else if (has_capability('moodle/question:managecategory', $this->context)) {
-            $questionlink = $CFG->wwwroot.'/question/category.php';
-        }
-        if (isset($questionlink)) {
-            $url = new moodle_url($questionlink, array('courseid'=>$course->id));
-            $frontpage->add(get_string('questions','quiz'), $url, self::TYPE_SETTING, null, null, new pix_icon('i/questions', ''));
-        }
+        // Questions
+        require_once($CFG->libdir . '/questionlib.php');
+        question_extend_settings_navigation($frontpage, $coursecontext)->trim_if_empty();
 
         // Manage files
         if ($course->legacyfiles == 2 and has_capability('moodle/course:managefiles', $this->context)) {
