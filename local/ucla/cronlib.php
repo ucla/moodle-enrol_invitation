@@ -2,7 +2,6 @@
 /**
  *  Shared UCLA-written for cron-synching functions.
  **/
-
 class ucla_reg_classinfo_cron {
 
     const table = 'ucla_reg_classinfo';
@@ -112,6 +111,9 @@ class ucla_reg_classinfo_cron {
     }
 }
 
+/**
+ *  Fills the subject area cron table.
+ **/
 class ucla_reg_subjectarea_cron {
     function run($terms) {
         global $DB;

@@ -69,21 +69,28 @@ class myucla_urlupdater {
         // Figure out what to build as the URL of the course
         $retrieved_info = array();
 
+        $fakegood = $push && debugging();
+
         // For each requested course, figure out the URL
         foreach ($sending_urls as $idnumber => $sendings) {
             $sender = null;
             if ($push) {
                 $sender = $sendings['url'];
             }
-
+            
+            // Figure out the URL
             $url_update = $this->get_MyUCLA_service(
                 $sendings['term'], $sendings['srs'], $sender
             );
 
-            if (!debugging()) {
+            if (!$fakegood) {
+                // Return debuggable message
+                $myucla_curl = $sendings['url'];
+            } else {
                 $myucla_curl = $this->contact_MyUCLA($url_update);
-                $retrieved_info[$idnumber] = $myucla_curl;
             }
+
+            $retrieved_info[$idnumber] = $myucla_curl;
         }
 
         return $retrieved_info;
@@ -115,12 +122,14 @@ class myucla_urlupdater {
                 $this->successful[$idnumber] = $result;
             }
 
+            // We got a result but we're not supposed to overwrite it
             if (!empty($result)) {
                 if ($flag == self::nooverwriteflag) {
                     $this->successful[$idnumber] = $result;
                 }
             }
 
+            // We don't need to push urls that are supposedly done
             if (isset($this->successful[$idnumber])) {
                 unset($courses[$idnumber]);
             }

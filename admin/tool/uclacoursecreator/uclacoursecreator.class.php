@@ -15,6 +15,7 @@ defined('MOODLE_INTERNAL') || die();
  *  @copyright 2011 UCLA
  **/
 
+// Exception... TODO see if the gravity of these are used properly
 require_once($CFG->dirroot  . '/' . $CFG->admin . '/tool/uclacoursecreator/' 
     . 'course_creator_exception.class.php');
 
@@ -61,22 +62,18 @@ class uclacoursecreator {
 
     // array Contains all the information for a current term
     /**
-     *  ims_fp - the filepointer for the IMS XML file.
-     *  ims_path - the filepath for the IMS XML file.
-     *  ims_log - the filepath for the IMS log file.
-     *  requests - the list of ucla_request_classes
-     *  instructors - the set of instructors
-     *  profcodes - an Array in an Array of profcodes in a course
-     *  created_courses - list of created course objects
+     *  requests - the list of ucla_request_classes that are hosts.
+     *  instructors - the set of instructors.
+     *  profcodes - an Array in an Array of profcodes in a course.
+     *  created_courses - an Array of created course objects.
      *  activate - courses that we have to activate (all courses)
-     *  mastercourses - the courses that are master sites
      *  url_info - the information to send to MyUCLA
      *  local_emails - the local emails from the mdl_user tables
-     *  reg_cls_<srs> - these are dynamically created and destroyed, for use in 
-     *      @see retrieve_registrar_crosslists()
      *  course_mapper - an Array with SRS => mdl_course.id
      **/
     private $cron_term_cache = array();
+
+    private $categories_cache = array();
 
     /** Non Variants **/
     // These are just simple caches.
@@ -119,13 +116,6 @@ class uclacoursecreator {
         }
 
         $this->println('Running prerequisite checks...');
-
-        if (!class_exists('enrol_plugin')) {
-            require($CFG->libdir . '/enrollib.php');
-        }
-
-        // TODO remove dependence on these plugins
-        $this->get_enrol_plugin('imsenterprise');
 
         // Make sure our email configurations are valid
         $this->figure_email_vars();
@@ -173,10 +163,6 @@ class uclacoursecreator {
                 // Flush the cache
                 $this->start_cron_term($work_term);
 
-                // Properly generate the names of the IMS files
-                $this->println('Preparing IMS files...');
-                $this->prepare_ims_files();
-
                 // Get stuff from course requestor
                 $retrieved = $this->retrieve_requests();
 
@@ -189,11 +175,8 @@ class uclacoursecreator {
                     // Prepare the categories
                     $this->prepare_categories();
 
-                    // Create the IMS entries
-                    $this->generate_ims_entries();
-
-                    // From that create the courses, and validate them
-                    $this->ims_cron();
+                    // Create the courses
+                    $this->create_courses();
 
                     // Update the URLs for the Registrar
                     $this->update_MyUCLA_urls();
@@ -397,162 +380,6 @@ class uclacoursecreator {
     }
 
     /**
-     *  Check that we enabled and have the enrollment plugin.
-     *
-     *  May change the state of the object.
-     *
-     *  @return enrol_plugin New or cached.
-     **/
-    function get_enrol_plugin($plugin) {
-        global $CFG;
-
-        $enrol_class = 'enrol_' . $plugin . '_plugin';
-
-        if (!class_exists($enrol_class)) {
-            // Attempt to find the class
-            $pred_path = $CFG->dirroot . '/enrol/' . $plugin . '/lib.php';
-            require($pred_path);
-
-            // Still not here, gonna party without you
-            if (!class_exists($enrol_class)) {
-                throw new course_creator_exception(
-                    'Missing ' . $plugin . ' plugin in code.'
-                );
-            }
-        }
-
-        if (!enrol_is_enabled($plugin)) {
-            throw new course_creator_exception(
-                'Plugin ' . $plugin . ' is disabled.'
-            );
-        }
-
-        if (isset($this->$enrol_class)) {
-            return $this->$enrol_class;
-        }
-
-        $ecobj = new $enrol_class();
-        $this->$enrol_class = $ecobj;
-
-        $callback = 'post_' . $enrol_class;
-        if (method_exists(get_class($this), $callback)) {
-            $this->$callback();
-        }
-
-        return $ecobj;
-    }
-
-    /**
-     *  Callback after loading the imsenterprise library.
-     *  This will check to make sure all the configurations for the plugin
-     *  is valid.
-     * 
-     *  Called by {@see get_enrol_plugin()}.
-     **/
-    function post_enrol_imsenterprise_plugin() {
-        // IMS plugin reference
-        if (!isset($this->enrol_imsenterprise_plugin)) {
-            throw new moodle_exception('IMS Enterprise plugin load failed!');
-        }
-
-        $ims_plugin = $this->enrol_imsenterprise_plugin;
-
-        // Check the IMS settings 
-        $ims_settings = array();
-        $ims_settings['createnewcourses'] = true;
-        $ims_settings['createnewcategories'] = false;
-
-        foreach ($ims_settings as $conf_check => $ims_fail) {
-            if (!$ims_plugin->get_config($conf_check)) {
-                // Check the configurations 
-                if ($ims_fail) {
-                    throw new course_creator_exception(
-                        "Required IMS setting $conf_check disabled!"
-                    );
-                }
-
-                $this->debugln(
-                    "NOTICE: IMS setting $conf_check disabled - "
-                    . "Please take heed."
-                );
-            }
-        }
-    }
-
-    /**
-     *  Returns a file pointer to the IMS file.
-     *
-     *  May change the state of the object.
-     *
-     *  @return int The file pointer to the IMS file.
-     **/
-    function get_ims_file_pointer() {
-        if (isset($this->cron_term_cache['ims_fp'])) {
-            return $this->cron_term_cache['ims_fp'];
-        }
-
-        // This should not occur
-        if (!isset($this->output_path)) {
-            return false;
-        }
-
-        if (!isset($this->cron_term_cache['ims_path'])) {
-            $this->prepare_ims_files();
-        }
-
-        if (!isset($this->cron_term_cache['ims_path'])) {
-            throw new Exception('ims_path not set');
-        }
-
-        $ims_file = $this->cron_term_cache['ims_path'];
-
-        if (file_exists($ims_file)) {
-            throw new course_creator_exception('IMS file ' . $ims_file 
-                . ' already exists.');
-        }
-
-        $fp = fopen($ims_file, 'x');
-        
-        if (!$fp) {
-            throw new course_creator_exception('Could not open '
-                . $ims_file . ' for some reason.');
-        }
-
-        $this->cron_term_cache['ims_fp'] = $fp;
-
-        return $fp;
-    }
-
-    /**
-     *  Returns the IMS pathname for the particular term.
-     *
-     *  May change the state of the object.
-     *
-     *  @return string The absolute path to the IMS file.
-     **/
-    function get_ims_file_path() {
-        if (!isset($this->cron_term_cache['ims_path'])) {
-            // Maybe we should throw an exception...
-            $this->prepare_ims_files();
-        }
-        
-        return $this->cron_term_cache['ims_path'];
-    }
-
-    /**
-     *  Returns the pathname for the IMS logs for a particular term.
-     *
-     *  @return string The absolute path to the IMS log.
-     **/
-    function get_ims_log_path() {
-        if (!isset($this->cron_term_cache['ims_log'])) {
-            $this->prepare_ims_files();
-        }
-
-        return $this->cron_term_cache['ims_log'];
-    }
-
-    /**
      *  Return if the instructor should be emailed to people.
      *
      *  @param mixed $instructor The instructor from ccle_CourseInstructorGet
@@ -634,26 +461,6 @@ class uclacoursecreator {
     /** *********** **/
     /*  Closers      */
     /** *********** **/
-
-    /**
-     *  This will close the IMS XML file pointer.
-     *  Once this is called, you need to flush the term to open the 
-     *  file again...
-     * 
-     *  Maybe this design should be changed...
-     *  
-     *  Will change the state of the object.
-     **/
-    function close_ims_file_pointer() {
-        if (!isset($this->cron_term_cache['ims_fp'])) {
-            return false;
-        }
-
-        fclose($this->cron_term_cache['ims_fp']);
-        unset($this->cron_term_cache['ims_fp']);
-
-        return true;
-    }
 
     /**
      *  This will close the file pointer.
@@ -803,9 +610,6 @@ class uclacoursecreator {
             $this->revert_cron_term();
         }
         
-        // Close files that may be open
-        $this->close_ims_file_pointer();
-
         $this->debugln('-------- Finished ' . $this->get_cron_term() 
             . ' --------');
 
@@ -816,7 +620,7 @@ class uclacoursecreator {
      *  This will attempt to undo all the changes in cron_term_cache.
      *  It should also mark all the requests that are processing as 
      *  reverted.
-     *      
+     *  TODO remove BLOAT    
      **/
      function revert_cron_term() {
         global $DB;
@@ -940,8 +744,7 @@ class uclacoursecreator {
 
         $sql_params = array(
             'action' => UCLA_COURSE_LOCKED,
-            'term' => $term,
-            'hostcourse' => 1
+            'term' => $term
         );
 
         $course_requests = $DB->get_records('ucla_request_classes', 
@@ -979,6 +782,7 @@ class uclacoursecreator {
     }
 
     /**
+     *  Convenience function
      *  Formats, debugs and inserts the data into our object.
      *  Called by @see retrieve_requests().
      *
@@ -993,14 +797,23 @@ class uclacoursecreator {
             $this->println('Request: ' . $course->term . ' ' 
                 . $course->srs . ' ' . $course->course);
 
-            $this->cron_term_cache['requests'][make_idnumber($course)] 
-                = $course;
+            $this->cron_term_cache['requests']
+                [self::cron_requests_key($course)] = $course;
         }
+    }
+
+    /**
+     *  Convenience wrapper function to use a globalized-seek key for 
+     *  cron_term_cache['requests']
+     **/
+    static function cron_requests_key($course) {
+        return make_idnumber($course);
     }
 
     /**
      *  Trim the requests to term srs.
      *  This is only used for sending data to the Registrar stored procedures.
+     *  Also converts these objects to Array();
      *
      *  Will change the state of the object
      **/
@@ -1044,12 +857,12 @@ class uclacoursecreator {
             $tr, true);
 
         foreach ($return as $k => $v) {
-            $return[$k] = (object)$v;
+            $v = (object)$v;
+            unset($return[$k]);
+            $return[self::cron_requests_key($v)] = $v;
         }
 
-        foreach ($requests as $request) {
-            $tkey = $rc->get_key($request);
-
+        foreach ($requests as $tkey => $request) {
             if (!isset($return[$tkey])) {
                 $this->println('Registrar did not find a course: '
                     . $tkey);
@@ -1073,9 +886,12 @@ class uclacoursecreator {
             );
         }
 
-        if (!$this->get_config('course_creator_division_categories')) {
-            return true;
-        }
+        $nesting_order = array();
+        if ($this->get_config('course_creator_division_categories')) {
+            $nesting_order[] = 'division';
+        } 
+
+        $nesting_order[] = 'subj_area';
 
         $rci_courses =& $this->cron_term_cache['term_rci'];
    
@@ -1096,7 +912,6 @@ class uclacoursecreator {
 
         unset($id_categories);
 
-        $nesting_order = array('division', 'subj_area');
 
         foreach ($rci_courses as $rci_course) {
             $immediate_parent_catid = 0;
@@ -1107,6 +922,7 @@ class uclacoursecreator {
                 $function = 'get_' . $type . '_translation';
 
                 if (!method_exists($this, $function)) {
+                    // Should never run
                     throw new coding_exception($function
                         . ' does not exist.');
                 }
@@ -1121,6 +937,7 @@ class uclacoursecreator {
                     break;
                 }
 
+                // Not an existing category
                 if (!isset($name_categories[$trans])) {
                     $newcategory = $this->new_category($trans,
                         $immediate_parent_catid);
@@ -1133,9 +950,13 @@ class uclacoursecreator {
                     unset($newcategory);
                 }
 
+                // As the loop continues, the parent will be set
                 $immediate_parent_catid = $name_categories[$trans]->id;
             }
         }
+
+        // Save this for when building courses
+        $this->categories_cache = $name_categories;
 
         // TODO Is this necessary?
         fix_course_sortorder();
@@ -1200,340 +1021,161 @@ class uclacoursecreator {
     }
 
     /**
-     *  Generates IMS file for a term.
-     *  
-     *  Writes to an output file, which is dynamically determined.
+     *  Creates all the courses that were requested.
      **/
-    function generate_ims_entries() {
+    function create_courses() {
         if (!isset($this->cron_term_cache['term_rci']) 
-          && empty($this->cron_term_cache['term_rci'])) {
+                && empty($this->cron_term_cache['term_rci'])) {
             return false;
         }
 
-        // Get the IMS XML file pointer
-        $ims_fp = $this->get_ims_file_pointer();
+        $term = $this->get_cron_term();
+        $requests =& $this->cron_term_cache['requests'];
 
-        $ims_lines = array();
+        // this is a quick hack for assigning course urls to non-host courses
+        $nhcourses = array();
 
-        // Turn each entry from the Registrar into an XML entry
-        foreach ($this->cron_term_cache['term_rci'] as $rci_object) {
+        $newcourses = array();
+        foreach ($this->cron_term_cache['term_rci'] 
+                as $reqkey => $rci_object) {
             unset($req_course);
-            $idnumber = make_idnumber($rci_object);
+
+            $courseobj = new stdClass();
+            $courseobj->summary_format = FORMAT_HTML;
+            $courseobj->summary = $rci_object->crs_desc;
 
             // See if we can get certain information from the requests
-            if (!isset($this->cron_term_cache['requests'][$idnumber])) {
-                // This is a crosslisted child course
-                $ims_visible = 0;
+            if (!isset($requests[$reqkey])) {
+                throw new moodle_exception('building strange request');
             } else {
-                $req_course = $this->cron_term_cache['requests'][$idnumber];
-                $ims_visible = 1;
+                $req_course = $requests[$reqkey];
+                if ($req_course->hostcourse < 1) {
+                    $nhcourses[$req_course->setid][$reqkey] = $req_course;
+                    continue;
+                }
 
-                $req_course->visible = 1;
+                $courseobj->visible = !$req_course->hidden;
             }
 
-            $ims_type = rtrim($rci_object->acttype);
-            $ims_sess = rtrim($rci_object->session_group);
+            $courseobj->shortname = self::make_course_shortname($rci_object);
 
-            $ims_desc = $rci_object->crs_desc;
-
-            $subj = rtrim($rci_object->subj_area);
-            $ims_num  = rtrim($rci_object->coursenum);
-            $ims_sect = rtrim($rci_object->sectnum);
-
-            // Get latter part of the shortname
-            $ims_course = $this->make_course_shortname($subj, $ims_num, 
-                $ims_sect);
-
-            $ims_title = $this->make_course_title(
+            // Sorry for the inconsistent calling scheme
+            $courseobj->fullname = self::make_course_title(
                 trim($rci_object->coursetitle), 
                 trim($rci_object->sectiontitle)
             );
 
-            $ims_term = $rci_object->term;
-            $ims_srs = $rci_object->srs;
-
             // Get the long version of the subject area (for category)
-            $ims_subj = $this->get_subj_area_translation($subj);
-           
-            // Make the child course or the regular course 
-            $ims_lines[] = $this->course_IMS($ims_title, 
-                $idnumber,
-                $ims_sess, $ims_desc, $ims_course, $ims_term,
-                $ims_subj, $ims_visible);
-        }
+            $subj = rtrim($rci_object->subj_area);
+            $category_name = $this->get_subj_area_translation($subj);
 
-        $this->printl('Generating IMS file...');
-
-        // Write the IMS file
-        foreach ($ims_lines as $ims_line) {
-            fwrite($ims_fp, $ims_line);
-        }
-
-        $this->println('Done');
-
-        // Close the damn file
-        $this->close_ims_file_pointer();
-    }
-
-    /**
-     *  Run the IMS import.
-     *  Wrapper for {@see enrol_imsenterprise_plugin()}.
-     **/
-    function ims_cron() {
-        if (!class_exists('enrol_imsenterprise_plugin')) {
-            throw new course_creator_exception(
-                'Missing IMS plugin in code.'
-            );
-        }
-
-        // Get the object
-        $ims_enrol = $this->get_enrol_plugin('imsenterprise');
-
-        // Prepare to configure
-        $ims_filepath = $this->get_ims_file_path();
-        $ims_logpath = $this->get_ims_log_path();
-
-        $ims_configs = array();
-        $ims_configs['imsfilelocation'] = $ims_filepath;
-        $ims_configs['logtolocation'] = $ims_logpath;
-
-        $ims_configs['mailadmins'] = '';
-        $ims_configs['prev_path'] = '';
-
-        // Just in case, although the logic looks as though it should be 
-        // fine because of prev_path
-        $ims_configs['prev_time'] = 0;
-        $ims_configs['prev_md5'] = NULL;
-
-        foreach ($ims_configs as $ims_config_name => $ims_config_value) {
-            $ims_enrol->set_config($ims_config_name, $ims_config_value);
-        }
-
-        $this->println('IMS configured, running...');
-
-        // Save the time
-        $this->timestamp = time();
-        sleep(1);
-
-        $ims_enrol->cron();
-        $this->println('IMS finished running, check ' . $ims_logpath
-            . ' for cron log.');
-
-        // Let's run this check in here
-        $this->activate_courses();
-    }
-    
-    /**
-     *  Figures out the location and creates the IMS related file 
-     *  paths and pointers.
-     *
-     *  Will change the state of the object.
-     **/
-    function prepare_ims_files() {
-        if (isset($this->cron_term_cache['ims_path'])) {
-            // This will prevent someone from opening the IMS file 
-            // once they've decided to close it.
-            throw new course_creator_exception('IMS file created already ' 
-                . $this->cron_term_cache['ims_path'] 
-                . ', without flushing term cache!');
-        }
-
-        $term = $this->get_cron_term();
-        if (!$term) {
-            throw new course_creator_exception(
-                'No term set, trying to create IMS files.'
-            );
-        }
-
-        if (!isset($this->output_path)) {
-            $this->check_write();
-        }
-        
-        $ims_file = $this->output_path . '/integration.'
-            . $this->shell_date . ".$term.xml";
-
-        $this->debugln('IMS File: ' . $ims_file);
-        $this->cron_term_cache['ims_path'] = $ims_file;
-
-        $ims_log = $this->output_path . '/ims-log.' . $this->shell_date 
-            . ".$term.log";
-
-        $this->debugln('IMS Log : ' . $ims_log);
-        $this->cron_term_cache['ims_log'] = $ims_log;
-    }
-
-    /**
-     *  Checks to make sure that the expected courses were created via IMS.
-     *  Also puts the created courses into the cache of the object.
-     *
-     *  Will change the state of the object.
-     **/
-    function check_built_requests() {
-        global $DB;
-
-        // We run through this to make sure we have built all predicted 
-        // idnumbers
-        $check_srs = array();
-
-        // Local reference hierarched requests
-        $ctc_tr =& $this->cron_term_cache['requests'];
-
-        // Local reference for RCI
-        $rci_courses =& $this->cron_term_cache['term_rci'];
-
-        // This is to see if a child course has a master course
-        $reverse_child_lookup = array();
-
-        // Foreach course we got courseInfo for, we are going to make sure
-        // They are in the courses table
-        foreach ($rci_courses as $rci) {
-            $srs = $rci->srs;
-            $term = $rci->term;
-
-            $idnumber = $this->make_idnumber($term, $srs);
-            $check_srs[$idnumber] = $srs;
-
-            $srs_to_idnumber[$srs] = $idnumber;
-        }
-
-        $check_idnumbers = array_keys($check_srs);
-        list($sql_in, $params) = $DB->get_in_or_equal($check_idnumbers);
-
-        $where_sql = "
-            idnumber $sql_in
-        ";
-
-        $created_courses = $DB->get_records_select(
-            'course', $where_sql, $params
-        );
-
-        // re-index by idnumber
-        $created_courses_check = array();
-        foreach ($created_courses as $cc) {
-            $created_courses_check[$cc->idnumber] = $cc;
-        }
-
-        // We are checking that we created all our courses
-        $build_srs = array();
-
-        $course_mapper = array();
-
-        foreach ($check_srs as $idnumber => $srs) {
-            if (!isset($created_courses_check[$idnumber])) {
-                $this->println('IMS did not build: ' . $idnumber);
+            // TODO maybe instead of direct access, use an accessor?
+            if (!isset($this->categories_cache[$category_name])) {
+                $category = $this->categories_cache[$category_name];
             } else {
-                // This is used when reverting a failed term
-                if (isset($ctc_tr[$idnumber])) {
-                    $course_mapper[$idnumber] = $ctc_tr[$idnumber];
-                }
-                
-                // We actually did not create this course with this cron
-                // in course creator, and it was not a bad build.
-                // TODO verify this 
-                if (!$this->validate_buildtime(
-                        $created_courses_check[$idnumber])) {
-                    $this->debugln($idnumber . ' built outside of '
-                        . 'course creator!');
-                } else {
-                    // This course was properly built 
-                    continue;
-                }
+                // Default category...
+                $category = get_course_category();
             }
 
-            // We did not create this course
-            unset($created_courses_check[$idnumber]);
+            if ($this->match_summer($term)) {
+                // TODO CCLE-2541 make this configurable: number of 
+                // section in summer?
+                $courseobj->numsections = 6;
+            }
+
+            $courseobj->category = $category->id;
+
+            // save course
+            $newcourses[$reqkey] = $courseobj;
         }
 
-        $this->cron_term_cache['course_mapper'] = $course_mapper;
+        $existingcourses = self::match_existings($newcourses, 
+            'course', array('shortname'));
 
-        // From here, we can revert things, so we want to store things
-        // in the cron_term_cache, indexed by idnumber.
-        $this->cron_term_cache['created_courses'] = $created_courses_check;
-
-        // These courses were created properly
-        foreach ($created_courses_check as $idnumber => $course) {
-            $request = $course_mapper[$idnumber];
-
-            // TODO determine what to do here
-            $request->action = UCLA_COURSE_BUILT;
-            $DB->update_record('ucla_request_classes', $request, true);
+        foreach ($existingcourses as $eck => $existingcourse) {
+            // Mark these as already built...
+            unset($newcourses[$eck]);
         }
+
+        $builtcourses = self::bulk_create_courses($newcourses);
+
+        foreach ($builtcourses as $btk => $course) {
+            $req = $requests[$btk];
+            $rsid = $req->setid;
+            associate_set_to_course($rsid, $course->id);
+
+            if (isset($nhcourses[$rsid])) {
+                foreach ($nhcourses[$rsid] as $rk => $rq) {
+                    $builtcourses[$rk] = $course;
+                }
+            }
+        }
+
+        $this->cron_term_cache['created_courses'] = $builtcourses;
     }
 
     /** 
-     *  Properly sets course settings and meta-enrollment plugin for
-     *  each course.
+     *  Checks the database for existing entries in table, and returns
+     *  those existing entries.
+     *  @param  $runners    Array( of Obj ) Existing data to check for
+     *  @param  $table      Table to use
+     *  @param  $fields     Fields that need to bee in each Obj
+     *  @return Array( of Obj ) of entries in the database.
      **/
-    function activate_courses() {
-        if (!isset($this->cron_term_cache['created_courses'])) {
-            $this->check_built_requests();
-        }
+    static function match_existings($runners, $table, $fields) {
+        global $DB;
 
-        $created_courses_check =& $this->cron_term_cache['created_courses'];
-        $requests =& $this->cron_term_cache['requests'];
+        $returns = array();
 
-        // This is the courses to update using our default settings
-        $activates = array();
-        
-        $term = false;
+        $sqlparams = array();
+        $sqlstates = array();
+        foreach ($fields as $fora) {
+            // This is the field data
+            $fd = array();
 
-        foreach ($requests as $reqkey => $request) {
-            $root_idn = make_idnumber($request);
-            unset($root_course);
-
-            // we ran check_built_courses(), so this means we purposely
-            // removed this course, if we are not trying to build it
-            if (isset($created_courses_check[$root_idn])) {
-                $root_course = $created_courses_check[$root_idn];
+            foreach ($runners as $runner) {
+                $fd[] = $runner->{$fora};
             }
 
-    
-            if (isset($root_course)) {
-                if ($this->match_summer($term)) {
-                    // TODO CCLE-2541 make this configurable: number of 
-                    // section in summer?
-                    $root_course->numsections = 6;
+            list($forasql, $foraparams) = $DB->get_in_or_equal($fd);
+            $sqlstates[] = $fora . ' ' . $forasql;
+
+            $sqlparams = array_merge($sqlparams, $foraparams);
+        }
+
+        $sqlwhere = implode(' OR ', $sqlstates);
+
+        $existings = $DB->get_records_select($table, $sqlwhere, $sqlparams);
+
+        foreach ($fields as $fora) {
+            $optind = array();
+            foreach ($existings as $runner) {
+                $optind[$runner->{$fora}] = $runner;
+            }
+            
+            foreach ($runners as $ckey => $runner) {
+                if (isset($optind[$runner->{$fora}])) {
+                    $returns[$ckey] = $runner;
                 }
-
-                // Technically, this should be $rcid
-                $root_course->visible = !$request->hidden;
-
-                update_course($root_course);
-
-                $rcid = $root_course->id;
-                associate_set_to_course($request->setid, $rcid);
-                $requests[$reqkey]->courseid = $rcid;
-
-                $this->emailln('Created course: ' . $root_course->shortname);
-                $this->println('Setup course id: ' 
-                    . $root_course->id  . ' format: '
-                    . $root_course->format . ' sections: '
-                    . $root_course->numsections . ' visible: '
-                    . $root_course->visible);
             }
         }
 
-        $this->emailln("\n");
+        return $returns;
     }
 
     /**
-     *  Checks if the course's timestamp is proper and created by
-     *  IMS cron.
-     *
-     *  @param $course The {course} entry.
-     *  @return boolean If the course was timestamped as built after the
-     *      timestamp of $this object.
+     *  Builds a bunch of courses, indexed the keys in the courses sent
+     *  in.
+     *  TODO optimize
+     *  @throws moodle_exception from create_course()
      **/
-    function validate_buildtime($course) {
-        if (!isset($this->timestamp)) {
-            return false;
+    static function bulk_create_courses($courses) {
+        $returns = array();
+        foreach ($courses as $key => $course) {
+            $returns[$key] = create_course($course);
         }
 
-        if ($course->timecreated <= $this->timestamp) {
-            return false;
-        }
-
-        return true;
+        return $returns;
     }
 
     /**
@@ -1562,25 +1204,20 @@ class uclacoursecreator {
         $urlarr = array();
 
         // For each requested course, figure out the URL
-        foreach ($requests as $request) {
-            $srs = $request->srs;
-            $term = $request->term;
-            
-            $idnumber = $this->make_idnumber($term, $srs);
-
+        foreach ($requests as $cronkey => $request) {
             // check_build_requests() should have been run
-            if (!isset($created[$idnumber])) {
-                $this->println($idnumber . ' was not built.');
+            if (!isset($created[$cronkey])) {
+                $this->println($cronkey. ' was not built.');
                 continue;
             }
 
-            $url_info = $created[$idnumber];
+            $url_info = $created[$cronkey];
             $url = $this->build_course_url($url_info);
 
             $urlobj = array(
-                'term' => $term,
-                'srs' => $srs,
-                'url' => $url
+                'url' => $url,
+                'term' => $request->term,
+                'srs' => $request->srs
             );
 
             if ($urlupdater) {
@@ -1591,14 +1228,25 @@ class uclacoursecreator {
                 }
             }
 
-            $urlarr[$idnumber] = $urlobj;
+            $urlarr[$cronkey] = $urlobj;
 
             // Store for emails
-            $relevant_url_info[$term][$srs] = $url;
+            $relevant_url_info[$request->term][$request->srs] = $url;
         }
 
         if ($urlupdater) {
             $urlupdater->sync_MyUCLA_urls($urlarr);
+
+            $ks = array('failed', 'successful');
+            foreach ($ks as $k) {
+                if (!empty($urlupdater->{$k})) {
+                    foreach ($urlupdater->{$k} as $kid => $ked) {
+                        $this->println($kid . ' ' . $ked);
+                    }
+                }
+            }
+
+            $this->println('Finished MyUCLA URL hook.');
         }
 
         // This needs to be saved for emails
@@ -1607,6 +1255,7 @@ class uclacoursecreator {
 
     /**
      *  Sends emails to instructors and course requestors.
+     *  TODO move this outside the course creator as well..
      *  @throws course_creator_exception
      **/
     function send_emails() {
@@ -1653,42 +1302,56 @@ class uclacoursecreator {
         // These are the collection of people we are going to email
         $emails = array();
 
-        // Parse through each request
-        foreach ($courses as $course) {
-            $csrs = $course->srs;
-            $term = $course->term;
+        // These are non-host-courses 
+        $indexed_hc = array();
+        foreach ($courses as $cronkey => $course) {
+            // TODO make this comparison a function
+            if ($course->hostcourse < 1) {
+                if (isset($created_courses_check[$cronkey])) {
+                    $indexed_hc[$course->setid][$cronkey] 
+                        = $rci_objects[$cronkey];
+                }
+            }
+        }
 
-            $idnumber = $this->make_idnumber($term, $csrs);
-            if (!isset($created_courses_check[$idnumber])) {
+        // Parse through each request
+        foreach ($courses as $cronkey => $course) {
+            if ($course->hostcourse < 1) {
                 continue;
             }
 
-            $rci_course = $rci_objects[$csrs];
-            $dept = trim($rci_course->subj_area);
+            $csrs = $course->srs;
+            $term = $course->term;
+
+            if (!isset($created_courses_check[$cronkey])) {
+                continue;
+            }
+
+            $rci_course = $rci_objects[$cronkey];
 
             $pretty_term = ucla_term_to_text($term, 
                 $rci_course->session_group);
 
-            // Fall-back Look-up (if not in subj_trans, return dept)
-            $dept_full = $this->get_subj_area_translation($dept);
-
-            // Clean course number
-            $coursenum = trim($rci_course->coursenum);
-
-            // The course displayed in the email
-            $course_disp = trim($dept_full . ' ' . $coursenum . ' ' 
-                . $rci_course->acttype . ' ' . $rci_course->sectnum);
-
             // This is the courses to display the email for
-            $course_c = array();
-            $course_c[] = $course_disp;
+            $course_c = array($rci_course);
+
+            $csid = $course->setid;
+            if (!empty($indexed_hc[$csid])) {
+                foreach ($indexed_hc[$csid] as $nhcronkey => $nhc) {
+                    $course_c[] = $nhc;
+                }
+            }
+
+            $course_d = array();
+            foreach ($course_c as $course_info) {
+                $course_d[] = $this->make_email_course_name($course_info);
+            }
+
+            $course_text = implode(' / ', $course_d);
 
             $course_dept = $rci_course->subj_area;
-            // TODO Include the child courses in the email
 
             unset($rci_course);
-
-            $course_text = implode(' / ', $course_c);
 
             // The instructors to be emailed
             $show_instructors = array();
@@ -1930,6 +1593,17 @@ class uclacoursecreator {
                 $this->emailln($instr_data);
             }
         }
+    }
+
+    /**
+     *  A human-readable string that will display the essential course
+     *  information in the email that conveys which courses were built
+     *  in the current session of course creator.
+     **/
+    function make_email_course_name($reginfo) {
+        return trim($this->get_subj_area_translation(trim($reginfo->subj_area)) 
+            . ' ' . trim($reginfo->coursenum) . ' ' . $reginfo->acttype 
+            . ' ' . $reginfo->sectnum);
     }
 
     /**
@@ -2442,36 +2116,6 @@ class uclacoursecreator {
     /** ************************ **/
     /*  Global Function Wrappers  */
     /** ************************ **/
-    /**
-     *  Generates an entry for the IMS XML.
-     *  TODO is there a function that already converts a moodle course
-     *      into an IMS XML entry?
-     **/
-    function course_IMS($title, $idnumber, $session, $description, $course,
-            $term, $subject, $visible) {
-    
-        return "
-    <group recstatus=1>
-    <sourcedid>
-    <source>$term$session-$course</source>
-    <id>$idnumber</id>
-    </sourcedid>
-    <description>
-    <short>$term$session-$course</short>
-    <long><![CDATA[$title]]></long>
-    <full><![CDATA[$description]]></full>
-    </description>
-    <org>
-    <id><![CDATA[$term]]></id>
-    <orgunit>$subject</orgunit>
-    </org>
-    <extension>
-    <visible>$visible</visible>
-    </extension>
-    </group>
-    ";
-
-    }
 
     /**
      *  Will figure out what to interpret as the webpage.
@@ -2517,13 +2161,22 @@ class uclacoursecreator {
 
     /**
      *  Build the shortname from registrar information.
-     *  @param $subjarea The subject area short name.
-     *  @param $coursenum The number of the course.
-     *  @param $coursesect The section of the course.
+     *  @param Object with fields:
+     *      term, session_group, subj_area, coursenum, sectnum
      *  @return string The shortname, without the term.
      **/
-    function make_course_shortname($subjarea, $coursenum, $coursesect) {
-        $course = $subjarea . $coursenum . '-' . $coursesect;
+    static function make_course_shortname($rci_object) {
+        $rci = get_object_vars($rci_object);
+
+        foreach ($rci as $k => $v) {
+            $rci[$k] = trim($v);
+        }
+
+        $course = $rci['term'] . $rci['session_group'] . '-' 
+            . $rci['subj_area'] . $rci['coursenum'] . '-' 
+            . $rci['sectnum'];
+
+        // Remove spaces and ampersands
         $course = preg_replace('/[\s&]/', '', $course);
 
         return $course;
@@ -2536,26 +2189,14 @@ class uclacoursecreator {
      *  @param $section_title The section title.
      *  @return string The combined title.
      **/
-    function make_course_title($course_title, $section_title) {
-        if ($section_title == '') {
+    static function make_course_title($course_title, $section_title) {
+        if (empty($section_title)) {
             return $course_title;
         }
 
         return "$course_title: $section_title";
     }
 
-    /**
-     *  Will make an idnumber based on certain rules.
-     *
-     *  @param $term The term.
-     *  @param $srs The SRS.
-     *  @param $master If the course is a master course.
-     *  @return string The ID Number.
-     **/
-    function make_idnumber($term, $srs, $master=false) {
-        return make_idnumber(array('term' => $term, 'srs' => $srs));
-    }
-    
     /**
      *  Recursively trim() fields.
      *  @param $obj The object to trim().
