@@ -1095,6 +1095,10 @@ class flexible_table {
                         ($CFG->fullnamedisplay == 'firstname') or
                         ($CFG->fullnamedisplay == 'language' and $fullnamelanguage == 'firstname lastname' )) {
                         $this->headers[$index] = $firstnamesortlink . ' / ' . $lastnamesortlink;
+                    //START UCLA MODIFICATION CCLE-2550
+                    } else if ($CFG->fullnamedisplay == 'language' and $fullnamelanguage == 'lastname, firstname'){
+                         $this->headers[$index] = $lastnamesortlink . ', ' . $firstnamesortlink;
+                    //END UCLA MODIFICATION CCLE-2550     
                     } else {
                         $this->headers[$index] = $lastnamesortlink . ' / ' . $firstnamesortlink;
                     }
