@@ -20,6 +20,9 @@ $string['bcsuccessnoti'] = "records successfuly inserted.";
 // Error messages
 $string['errlrmsglocation'] = "ERROR: No location set for library reserves data.";
 
+//Notification messages
+$string['lrstartnoti'] = "Starting library reserves DB update:";
+$string['lrsuccessnoti'] = "records successfully inserted.";
 
 
 // EOF

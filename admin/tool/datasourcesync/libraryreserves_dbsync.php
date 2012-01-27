@@ -12,7 +12,7 @@ require_once('lib.php');
 
 // Check to see that config variable is initialized
 if (!isset($CFG->libraryreserves_data))
-   // die("\n".get_string('errlrmsglocation','tool_datasourcesync')."\n");
+    die("\n".get_string('errlrmsglocation','tool_datasourcesync')."\n");
 
 // Begin database update
 update_libraryreserves_db();
@@ -21,8 +21,7 @@ function update_libraryreserves_db(){
    // get global variables
    global $CFG, $DB;
    
-   //$datasource_url = $CFG->libraryreserves_data;
-    $datasource_url = "ftp://ftp.library.ucla.edu/incoming/eres/voyager_reserves_data.txt";
+   $datasource_url = $CFG->libraryreserves_data;
 
    $data = &get_csv_data($datasource_url);
    $data = &cleanup_csv_data($data, "ucla_libraryreserves");
