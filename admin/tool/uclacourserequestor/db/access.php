@@ -10,7 +10,7 @@ $capabilities = array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_SYSTEM,
         'legacy' => array(
-            'admin' => CAP_ALLOW
+            'manager' => CAP_ALLOW
         ),
     )
 );

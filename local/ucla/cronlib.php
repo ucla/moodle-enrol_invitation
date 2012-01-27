@@ -58,7 +58,7 @@ class ucla_reg_classinfo_cron {
         $regind = array();
         foreach ($regs as $rege) {
             $sql = 'term = ? AND srs = ?';
-            $param = array($rege->term, $rege->srs);
+            $param = array($rege['term'], $rege['srs']);
 
             $sqls[] = $sql;
             $params = array_merge($params, $param);
@@ -136,7 +136,7 @@ class ucla_reg_subjectarea_cron {
             $newrec = new stdClass();
 
             $t =& $subjareas[$k];
-            $t = array_change_key_case(get_object_vars($subjarea), CASE_LOWER);
+            $t = array_change_key_case($subjarea, CASE_LOWER);
             $t['modified'] = time();
 
             $sa_text = $t['subjarea'];

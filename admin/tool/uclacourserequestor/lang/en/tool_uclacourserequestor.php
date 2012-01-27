@@ -73,7 +73,7 @@ $string['srserror'] = 'The SRS number must be exactly 9 digits long';
 $string['queuetobebuilt'] = "Courses in queue to be built";
 $string['queueempty'] = "The queue is empty. All courses have been built as of now.";
 
-$string['alreadysubmitted'] = "This SRS number has been submitted to create a course. ";
+$string['alreadysubmitted'] = "This SRS number has already been submitted as a request. ";
 $string['checktermsrs'] = "Cannot find course. Please check the term and SRS again.";
 $string['childcourse'] =  " has either been submitted for course creation or is a child course";
 $string['duplicatekeys'] = "Duplicate entry. The alias is already inserted.";

@@ -379,6 +379,8 @@ class ucla_courserequests {
 
                 if (!empty($request[$i])) {
                     $request[$i] = implode(' / ', $request[$i]);
+                } else {
+                    $request[$i] = '';
                 }
 
                 try {

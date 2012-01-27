@@ -309,7 +309,7 @@ function local_ucla_cron() {
                 echo "Could not run() for $cn\n";
             }
         } else {
-            echo "Could not run cron for $cn\n";
+            echo "Could not run cron for $cn, class not found.\n";
         }
 
         if (!$result) {
