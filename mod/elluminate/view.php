@@ -24,8 +24,8 @@
 	$groupid			= optional_param('group', 0, PARAM_INT);
 
     $url = new moodle_url('/mod/elluminate/view.php', array('id'=>$id));
-    $PAGE->set_url($url);            
-        
+    $PAGE->set_url($url);    
+    
     if ($id) {    	
         if (!$cm = get_coursemodule_from_id('elluminate', $id)) {
             error("Course Module ID was incorrect");
@@ -76,13 +76,15 @@
 	/// Check to see if groups are being used here
 	$groupmode    = $elluminate->groupmode;	
 	
+
+	
 	if($elluminate->sessiontype == 2 || $elluminate->sessiontype == 3) {
-		if(empty($groupid)) {		
+		if(empty($groupid)) {	
 			if(!$accessallgroups) {	
 				if($elluminate->sessiontype == 2) {
 					$availablegroups = groups_get_all_groups($cm->course, $USER->id);
 				} else if ($elluminate->sessiontype == 3) {
-					$availablegroups = groups_get_all_groups($cm->course, $USER->id, $cm->groupingid);		
+					$availablegroups = groups_get_all_groups($cm->course, $USER->id, $elluminate->groupingid);		
 				} else {
 					$availablegroups = null;
 					$currentgroupid = 0;
@@ -91,7 +93,7 @@
 				if($elluminate->sessiontype == 2) {
 					$availablegroups = groups_get_all_groups($cm->course, 0);
 				} else if ($elluminate->sessiontype == 3) {
-					$availablegroups = groups_get_all_groups($cm->course, 0, $cm->groupingid);		
+					$availablegroups = groups_get_all_groups($cm->course, 0, $elluminate->groupingid);		
 				}
 			}		
 
@@ -111,6 +113,7 @@
 		}
 	}
  
+ 	
 	if($elluminate->sessiontype == 2 || $elluminate->sessiontype == 3) {
 		if($elluminate->groupparentid > 0) {
 			$sql = "SELECT e.*
@@ -374,10 +377,11 @@
         echo '<td align="right"><b>Grouping:</b></td><td align="left">' . $grouping->name . '</td>' . "\n";
         echo '</tr>' . "\n";
     }
-	
-    echo '</tr><tr>';
+
     echo '</table>';
 
+	echo '<div align="center" >';
+	
     if ($participant && $canmanagemoderators && !$hasfinished) {
         $link = '<a href="' . $CFG->wwwroot . '/mod/elluminate/moderators.php?id=' . $elluminate->id .
                 '">' . get_string('editmoderatorsforthissession', 'elluminate') . '</a>';
@@ -461,6 +465,7 @@
 
             if (!empty($recordingstring)) {
                 echo '<p class="elluminaterecordingmode">' . $recordingstring . '</p>';
+               
             }
         }
 	}
@@ -472,11 +477,12 @@
         '" target="_blank">' . get_string('joinsession', 'elluminate') . '</a>';
 
         echo '<p class="elluminatejoinmeeting">' . $link . '</p>';
-		
+        
         echo get_string('supportlinktext', 'elluminate');
         echo '<a href="' . elluminate_support_link() . '" target="_blank"> here </a>';
-        
     }
+
+	echo '</div>';
 
 /// Display a link to play the recording if one exists.
     if ($participant && $canviewrecordings &&

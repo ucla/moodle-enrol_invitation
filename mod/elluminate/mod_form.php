@@ -188,6 +188,11 @@ class mod_elluminate_mod_form extends moodleform_mod {
             }
         	$mform->addElement('select', 'grouping_id', get_string('grouping', 'group'), $options);
         	$mform->addHelpButton('grouping_id', 'grouping', 'group');    
+        	
+        	//Set edit grouping id
+        	if(!empty($id)) {
+	        	$mform->setDefault('grouping_id', $elluminate->groupingid);
+	        }        	
 		}
 
         $this->standard_coursemodule_elements();

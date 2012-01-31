@@ -7,11 +7,11 @@
  * @author Remote Learner - http://www.remote-learner.net/
  * @author Justin Filip <jfilip@remote-learner.net>
  */
-	global $DB, $PAGE;
+	global $DB;
     require_once dirname(dirname(dirname(__FILE__))) . '/config.php';
     require_once dirname(__FILE__) . '/lib.php';
-    $PAGE->requires->js('/mod/elluminate/jquery-1.4.2.min.js');
-    $PAGE->requires->js('/mod/elluminate/preload.js');
+    require_js($CFG->wwwroot . '/mod/elluminate/jquery-1.4.2.min.js');
+    require_js($CFG->wwwroot . '/mod/elluminate/preload.js');
 
     $id     = optional_param('id', '', PARAM_INT);
     $delete = optional_param('delete', 0, PARAM_ALPHANUM);
@@ -41,11 +41,6 @@
 		error('Elluminate Live! Group Error');
 	}
 
-    $url = new moodle_url('/mod/elluminate/preload.php', array('id'=>$id));
-    $PAGE->set_url($url);           
-
-    /// Some capability checks.
-    require_course_login($course, true, $cm);    
     $context = get_context_instance(CONTEXT_MODULE, $cm->id);
     require_capability('mod/elluminate:managepreloads', $context);
 

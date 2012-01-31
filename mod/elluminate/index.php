@@ -7,7 +7,7 @@
     $id = optional_param('id', 0, PARAM_INT);                   // Course id
 
     if ($id) {
-        if (! $course = get_record('course', 'id', $id)) {
+        if (! $course = $DB->get_record('course', array('id'=>$id))) {
             error("Course ID is incorrect");
         }
     } else {

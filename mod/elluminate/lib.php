@@ -459,7 +459,7 @@ function elluminate_add_group_instance($elluminate, $cmid, $facilitatorid = fals
 							  $new_boundarytime,
 							  $elluminate->recordingmode,
 							  $cmid, 
-							  $elluminate->creator);
+							  $elluminate->chairlist);
 	$meetingid = $create_result->DefaultAdapterMeetingResponseShort->meetingId;
 	if($meetingid > 0) {
 		$elluminate->meetingid = $meetingid;
@@ -844,6 +844,7 @@ function elluminate_delete_instance($id) {
 	/// and any data that depends on it.
 	global $USER;
 	global $DB;
+	
 	if (!$elluminate = $DB->get_record('elluminate', array('id'=>$id))) {
 		return false;
 	}
@@ -880,6 +881,7 @@ function elluminate_delete_instance($id) {
 	$DB->delete_records('elluminate_recordings', array('meetingid'=>$elluminate->meetingid));
 	$DB->delete_records('elluminate_attendance', array('elluminateid'=>$elluminate->id));
 	elluminate_grade_item_delete($elluminate);
+	$DB->delete_records('event', array('modulename'=>'elluminate', 'instance'=>$elluminate->id));
 	$DB->delete_records('elluminate', array('id'=>$elluminate->id));
 	return true;
 }
@@ -1043,30 +1045,33 @@ function elluminate_cron() {
 	}
 
 	$timenow = time();
+	$cron_value = 1;	
+	if(empty($CFG->elluminate_last_cron_run)) {		
+		$obj = new stdClass;
+		$obj->name = 'elluminate_last_cron_run';
+		$obj->value = '1';
+		$DB->insert_record('config', $obj);
+		elluminate_initialize_cron();
+		return;
+	} else {
+		$cron_value = $CFG->elluminate_last_cron_run;		
+		$obj = $DB->get_record('config', array('name'=>'elluminate_last_cron_run'));
+		$obj->value = $timenow;
+		$DB->update_record('config', $obj);		
+	}		
 
-	$sql = "SELECT el.id, el.meetingid FROM {elluminate} el WHERE el.timestart <= $timenow " .
-			"AND el.meetingid IS NOT NULL";
-	$sql_params = array('timestart'=>$timenow);
-	
-	/// Ensure that any new recordings on the server are stored for meetings created by Moodle.	
-	if ($sessions = $DB->get_records_sql($sql, $sql_params)) {		
-		foreach ($sessions as $session) {
-			echo '<br>';
-			$filter = 'meetingId = ' . $session->meetingid;
-			if ($recordings = elluminate_list_all_recordings_for_meeting($session->meetingid)) {		
-				foreach ($recordings as $recording) {					
-					if ($DB->record_exists('elluminate', array('meetingid'=>$recording->meetingid))) {
-						if (!$DB->record_exists('elluminate_recordings', array('recordingid'=>$recording->recordingid))) {
-							$er = new stdClass;
-							$er->meetingid = $recording->meetingid;
-							$er->recordingid = $recording->recordingid;
-							$er->created = $recording->created;
-							$er->recordingsize = $recording->size;
-							$er->visible = 1;
-							$er->groupvisible = 1;
-							$DB->insert_record('elluminate_recordings', $er);
-						}
-					}
+	if ($recordings = elluminate_list_all_recordings_for_times($cron_value  . '000', $timenow  . '000')) {		
+		foreach ($recordings as $recording) {					
+			if ($DB->record_exists('elluminate', array('meetingid'=>$recording->meetingid))) {
+				if (!$DB->record_exists('elluminate_recordings', array('recordingid'=>$recording->recordingid))) {
+					$er = new stdClass;
+					$er->meetingid = $recording->meetingid;
+					$er->recordingid = $recording->recordingid;
+					$er->created = $recording->created;
+					$er->recordingsize = $recording->size;
+					$er->visible = 1;
+					$er->groupvisible = 1;
+					$DB->insert_record('elluminate_recordings', $er);
 				}
 			}
 		}
@@ -1074,7 +1079,47 @@ function elluminate_cron() {
 	return true;
 }
 
+function elluminate_initialize_cron() {
+	global $CFG;
+	global $DB;
+	
+	$timenow = time();
+	$yearinseconds = 31536000;
+	$starttime = '1072933200'; //Jan 1 2004
+	
+	while($starttime < $timenow) {
+		$endtime = $starttime + $yearinseconds;
+		if($endtime > $timenow) {
+			$endtime = $timenow;
+		}
+		if ($recordings = elluminate_list_all_recordings_for_times($starttime  . '000', $endtime  . '000')) {	
+			foreach ($recordings as $recording) {					
+				if ($DB->record_exists('elluminate', array('meetingid'=>$recording->meetingid))) {
+					if (!$DB->record_exists('elluminate_recordings', array('recordingid'=>$recording->recordingid))) {
+						$er = new stdClass;
+						$er->meetingid = $recording->meetingid;
+						$er->recordingid = $recording->recordingid;
+						$er->created = $recording->created;
+						$er->recordingsize = $recording->size;
+						$er->visible = 1;
+						$er->groupvisible = 1;
+						$DB->insert_record('elluminate_recordings', $er);
+					}
+				}
+			}
+		}
+		$starttime = $endtime;
+	}
+	
+	$obj = $DB->get_record('config', array('name'=>'elluminate_last_cron_run'));
+	$obj->value = $timenow;
+	$DB->update_record('config', $obj);
+	return true;	
+}
+
 function elluminate_grades($elluminateid) {
+	global $DB;
+	
 	if (!$elluminate = $DB->get_record('elluminate', array('id'=>$elluminateid))) {
 		return NULL;
 	}
@@ -1328,7 +1373,7 @@ function elluminate_scale_used($elluminateid, $scaleid) {
 	//it it has support for grading and scales. Commented code should be
 	//modified if necessary. See forum, glossary or journal modules
 	//as reference.
-
+	global $DB;
 	$return = false;
 
 	$rec = $DB->get_record('elluminate', array('id'=>$elluminateid), 'grade', -$scaleid);
@@ -1348,7 +1393,9 @@ function elluminate_scale_used($elluminateid, $scaleid) {
  * @return boolean True if the scale is used by any elluminate
  */
 function elluminate_scale_used_anywhere($scaleid) {
-	if ($scaleid and record_exists('elluminate', 'grade', - $scaleid)) {
+	global $DB;
+	
+	if ($scaleid and $DB->record_exists('elluminate', array('grade'=>-$scaleid))) {
 		return true;
 	} else {
 		return false;
@@ -1454,7 +1501,8 @@ function elluminate_get_events($meetingid) {
 
 function elluminate_has_course_event($meetingid) {
 	global $CFG;
-
+	global $DB;
+	
 	if (!$meeting = $DB->get_record('elluminate', array('id'=>$meetingid))) {
 		return false;
 	}
@@ -1465,7 +1513,7 @@ function elluminate_has_course_event($meetingid) {
 	        AND instance = :instance
 	        AND courseid = :courseid";
 	$sql_params = array('instance'=>$meeting->id, 'courseid'=>$meeting->course);
-	return record_exists_sql($sql, $sql_params);
+	return $DB->record_exists_sql($sql, $sql_params);
 }
 
 /**
@@ -1621,11 +1669,7 @@ function elluminate_del_users($meeting, $userids, $groupid = 0, $moderators = fa
 
 	/// Remove each user from the meeting on the Elluminate Live! server.
 	foreach ($userids as $userid) {
-		if ($userid != $meeting->creator) {
-			//if (!role_unassign($role->id, $userid, $groupid, $context->id)) {
-			//	continue;
-			//}
-			
+		if ($userid != $meeting->creator) {			
 			$muserids[] = $userid;
 			
 			if (!elluminate_delete_participant($elluminate->id, $userid)) {
@@ -1654,12 +1698,10 @@ function elluminate_del_users($meeting, $userids, $groupid = 0, $moderators = fa
 		return true;
 	}
 
-	/// Delete user events.
+	/// Delete user events.	
 	if (count($muserids) > 1) {
-		$select = "modulename = 'elluminate' AND instance = {:instance} AND " .
-		"userid IN (:userids)";
-		$select_params = array('instance'=>$meeting->id, 'userids'=>implode(', ', $muserids));
-		return $DB->delete_records_select('event', $select, $select_params);
+		$select = "modulename = 'elluminate' AND instance = " . $meeting->id . " AND userid IN (" . implode(',', $muserids) . ");";
+		return $DB->delete_records_select('event', $select);
 	} else {
 		return $DB->delete_records('event', array('modulename'=>'elluminate', 'instance'=>$meeting->id, 'userid'=>$userid));
 	}
@@ -2982,6 +3024,40 @@ function elluminate_list_meetings() {
 	return false;
 }
 
+function elluminate_list_all_recordings_for_times($starttime, $endtime) {
+	$args = array ();
+
+	if(empty($starttime) || empty($endtime)) {
+		return;
+	}
+	
+	$args[0]['name'] = 'startTime';
+	$args[0]['value'] = $starttime;
+	$args[0]['type'] = 'xsd:integer';
+	
+	$args[1]['name'] = 'endTime';
+	$args[1]['value'] = $endtime;
+	$args[1]['type'] = 'xsd:integer';
+
+	$result = elluminate_send_command('listRecordingShort', $args);
+
+	if (is_string($result)) {
+		return false;
+	} else {
+		$recordings = array ();
+		if (is_array($result)) {
+			foreach ($result as $dummy_entry) {
+				$entry = getArrayEntry($dummy_entry, 0);
+				$recordings[] = setRecordingObject($entry);
+			}
+		} else {
+			$entry = getArrayEntry($result, 0);
+			$recordings[] = setRecordingObject($entry);
+		}
+		return $recordings;
+	}
+}
+
 /**
  * Create a new Elluminate Live! meeting on the server.
  *
@@ -3293,7 +3369,6 @@ function setRecordingObject($entry) {
 	$recording->facilitator = 0; // There is no facilitator required for SAS
 	$recording->created = substr($entry->creationDate, 0, 10);
 	return $recording;
-
 }
 
 /**
@@ -4281,7 +4356,8 @@ function getLastDayTimeInMilliseconds() {
 		}		
 	}
 	
-	function elluminate_check_for_group_change($cm, $elluminate) {			
+	function elluminate_check_for_group_change($cm, $elluminate) {	
+		global $DB;
 		if($cm->groupingid == 0) {
 			if($cm->groupmode > 0) {
 				if($elluminate->groupparentid > 0) {

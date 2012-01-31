@@ -27,7 +27,7 @@
     } else {
         $cm = null;
     }
-    if (! $course = get_record("course", "id", $id)) {
+    if (! $course = $DB->get_record("course", "id", $id)) {
         error("Course is misconfigured");
     }
 

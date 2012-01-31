@@ -9,7 +9,7 @@
  */
 
     function xmldb_elluminate_upgrade($oldversion = 0) {
-        global $CFG, $THEME, $db;
+        global $CFG, $THEME, $DB;
 
         $result = true;		
         if ($oldversion < 2006062102) {
@@ -107,7 +107,7 @@
 	        
 			install_from_xmldb_file($CFG->dirroot . '/mod/elluminate/db/upgrade.xml');         
             
-            $meetings = get_records('elluminate');
+            $meetings = $DB->get_records('elluminate');
                         
             /// Modify all of the existing meetings, if any.
             if ($result && !empty($meetings)) {
@@ -134,18 +134,18 @@
 					$meeting->customname = 0;
 					$meeting->customdescription = 0;					
 								                  
-                    update_record('elluminate', $meeting);                                                                             
+                    $DB->update_record('elluminate', $meeting);                                                                             
                 }                      
         	}
         	                                            
-	        $recordings = get_records('elluminate_recordings');    
+	        $recordings = $DB->get_records('elluminate_recordings');    
 	        if (!empty($recordings)) {		
 	            foreach ($recordings as $recording) {               
 	            	$urecording = new stdClass;
 	            	$recording->description = '';
 	                $recording->visible = '1';
 	                $recording->groupvisible = '0';
-					update_record('elluminate_recordings', $urecording);
+					$DB->update_record('elluminate_recordings', $urecording);
 	            }
 	        }
         }
@@ -160,12 +160,12 @@
 			 * group mode of the course_module to be zero which means no groups.
 			 */
 			if($oldversion <= 2009020501) {
-				$module = get_record('modules','name','elluminate');    
-    			$course_modules = get_records('course_modules', 'module', $module->id);
+				$module = $DB->get_record('modules', array('name'=>'elluminate'));    
+    			$course_modules = $DB->get_records('course_modules', 'module', $module->id);
 
 				foreach ($course_modules as $course_module) {
 					$course_module->groupmode = 0;
-					update_record('course_modules',$course_module);
+					$DB->update_record('course_modules',$course_module);
 				}
 			}
 						
@@ -179,7 +179,7 @@
             $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, false, false, false, '0', 'sessiontype');
             $result = $result && add_field($table, $field);
             
-            $meetings = get_records('elluminate');
+            $meetings = $DB->get_records('elluminate');
             
             foreach ($meetings as $meeting) {
             	$meeting->groupingid = 0;            	
@@ -190,7 +190,7 @@
             		$meeting->sessiontype = 2;
             	}   
             	
-            	update_record('elluminate', $meeting);      		
+            	$DB->update_record('elluminate', $meeting);      		
             }
             
             $field = new XMLDBField('private');
@@ -201,13 +201,13 @@
             $size_field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NULL, false, false, false, '0', 'description');
             $result = $result && add_field($recordings_table, $size_field);               
             
-			$recordings = get_records('elluminate_recordings');    		    
+			$recordings = $DB->get_records('elluminate_recordings');    		    
 		    foreach($recordings as $recording) {
 		    	$full_recordings = elluminate_list_recordings($recording->meetingid);
 		    	foreach($full_recordings as $full_recording) {
 		    		if($full_recording->recordingid == $recording->recordingid) {
 		    			$recording->recordingsize = $full_recording->size;
-		    			update_record('elluminate_recordings', $recording);	
+		    			$DB->update_record('elluminate_recordings', $recording);	
 		    		}
 		    	}
 		    }
