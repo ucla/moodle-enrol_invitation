@@ -6,9 +6,9 @@ $string['courserequestor:view'] = "View " . $string['pluginname'];
 $string['srslookup'] = "SRS number lookup (Registrar)";
 
 // Fetch from Registrar
-$string['fetch'] = 'Fetch courses from Registrar';
-$string['buildcourse'] = "Fetch course";
-$string['builddept'] = "Fetch courses from department";
+$string['fetch'] = 'Get courses from Registrar';
+$string['buildcourse'] = "Get course";
+$string['builddept'] = "Get courses from department";
 
 $string['views'] = 'View existing requests';
 $string['viewcourses'] = "View/Edit existing requests";
@@ -21,7 +21,7 @@ $string['live'] = "Live";
 $string['delete'] = 'Delete';
 
 // This string should be rarely used
-$string['noviewcourses'] = "If you were expecting a third form, there are no existing requests, so there is no reason to have the option to view them.";
+$string['noviewcourses'] = "There are no existing requests.";
 
 $string['crosslistnotice'] = "You can add crosslists while these couses are waiting in queue to be built.";
 
@@ -40,7 +40,7 @@ $string['checkchanges'] = 'Validate changes';
 $string['submitfetch'] = 'Submit requests';
 $string['submitviews'] = 'Save changes';
 
-$string['norequestsfound'] = 'No requests were found.';
+$string['norequestsfound'] = 'No courses found for given request.';
 
 // Table headers for the requests
 $string['id'] = 'Request ID';

@@ -251,20 +251,22 @@ echo $OUTPUT->box(
     'generalbox categorybox box'
 );
 
-echo html_writer::link(
-    $registrar_link,
-    get_string('srslookup', $rucr),
-    array('target' => '_blank')
-);
-
 foreach ($cached_forms as $gn => $group) {
     echo $OUTPUT->box_start('generalbox');
     echo $OUTPUT->heading(get_string($gn, $rucr));
 
     foreach ($group as $form) {
-         $form->display();
+         $form->display();         
     }
-
+    
+    if ('fetch' == $gn) {
+        echo html_writer::link(
+            $registrar_link,
+            get_string('srslookup', $rucr),
+            array('target' => '_blank')
+        );             
+    }
+         
     echo $OUTPUT->box_end();
 }
 
