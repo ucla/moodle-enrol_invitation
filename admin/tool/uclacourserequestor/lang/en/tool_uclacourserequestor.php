@@ -8,7 +8,7 @@ $string['srslookup'] = "SRS number lookup (Registrar)";
 // Fetch from Registrar
 $string['fetch'] = 'Get courses from Registrar';
 $string['buildcourse'] = "Get course";
-$string['builddept'] = "Get courses from department";
+$string['builddept'] = "Get department courses";
 
 $string['views'] = 'View existing requests';
 $string['viewcourses'] = "View/Edit existing requests";
@@ -36,7 +36,7 @@ $string['noinst'] = 'Not Assigned';
 $string['newrequestid'] = 'New entry';
 $string['newrequestcourseid'] = 'Not built yet';
 
-$string['checkchanges'] = 'Validate changes';
+$string['checkchanges'] = 'Validate requests without saving changes';
 $string['submitfetch'] = 'Submit requests';
 $string['submitviews'] = 'Save changes';
 

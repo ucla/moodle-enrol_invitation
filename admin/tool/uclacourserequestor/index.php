@@ -228,6 +228,7 @@ if (isset($uclacrqs)) {
     }
 
     $requeststable = new html_table();
+    $requeststable->id = 'uclacourserequestor_requests';
     $requeststable->head = $possfields;
     $requeststable->data = $tabledata;
 
