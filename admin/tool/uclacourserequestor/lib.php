@@ -861,10 +861,9 @@ function prep_request_entry($requestinfo) {
                     $ff,
                     $clsrs, 
                     true, 
-                    '',
+                    $clkey . ' (' . $ocl[$de] . ' ' . $ocl[$co] . ')',
                     $clinputattr
-                ) . $clkey . ' (' . $ocl[$de] . ' ' . $ocl[$co] . ')' 
-                    . html_writer::tag(
+                ) . html_writer::tag(
                         'span', 
                         $warstr,
                         array('class' => 'warning')
