@@ -114,7 +114,6 @@ html, body {background-color:#FFF; height:100%;}
 .course-content .section.main .right.side {float:right;width:20px;padding:5px;}
 .course-content .section.main .content {margin:0 30px 10px 30px;background-color:#FFF;}
 .course-content .section.main .content .section_add_menus {text-align:right;}
-.course-content .section.main .left.side {visibility: hidden;}
 
 #course-user .section {border:1px solid #DDD;margin:0 5% 1.5em 5%;}
 
@@ -162,7 +161,7 @@ html, body {background-color:#FFF; height:100%;}
 .block h2,
 .block h3,
 .block h4 {margin:0px;}
-.block .header {margin:10px 6px 3px 6px;}
+.block .header {padding:0px 6px 3px 6px;border-top:10px solid #536895;}
 .block .content {margin:10px 6px 3px 6px;}
 
 /** Admin **/
