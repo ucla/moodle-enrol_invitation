@@ -57,7 +57,7 @@ $options = $attemptobj->get_display_options(true);
 // Check permissions.
 if ($attemptobj->is_own_attempt()) {
     if (!$attemptobj->is_finished()) {
-        redirect($attemptobj->attempt_url(0, $page));
+        redirect($attemptobj->attempt_url(null, $page));
     } else if (!$options->attempt) {
         $accessmanager->back_to_view_page($attemptobj->is_preview_user(),
                 $accessmanager->cannot_review_message($attemptobj->get_attempt_state()));
@@ -79,7 +79,7 @@ if ($options->flags == question_display_options::EDITABLE && optional_param('sav
         PARAM_BOOL)) {
     require_sesskey();
     $attemptobj->save_question_flags();
-    redirect($attemptobj->review_url(0, $page, $showall));
+    redirect($attemptobj->review_url(null, $page, $showall));
 }
 
 // Log this review.
@@ -150,7 +150,7 @@ if (!$attemptobj->get_quiz()->showuserpicture && $attemptobj->get_userid() != $U
     );
 }
 if ($attemptobj->has_capability('mod/quiz:viewreports')) {
-    $attemptlist = $attemptobj->links_to_other_attempts($attemptobj->review_url(0, $page,
+    $attemptlist = $attemptobj->links_to_other_attempts($attemptobj->review_url(null, $page,
             $showall));
     if ($attemptlist) {
         $summarydata['attemptlist'] = array(
@@ -173,7 +173,7 @@ if ($attempt->timefinish) {
     );
     $summarydata['timetaken'] = array(
         'title'   => get_string('timetaken', 'quiz'),
-        'content' => format_time($timetaken),
+        'content' => $timetaken,
     );
 }
 

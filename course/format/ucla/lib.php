@@ -138,7 +138,7 @@ function callback_ucla_get_section_name($course, $section) {
     } else {
         $r = ''.get_string('week').' '.$section->section.'';
 
-        return html_writer::tag('span', $r, array('class' => 'defsection'));
+        return $r;
     }
 }
 

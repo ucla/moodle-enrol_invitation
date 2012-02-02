@@ -465,6 +465,16 @@ class dml_test extends UnitTestCase {
             $this->fail("Unexpected ".get_class($e)." exception");
         }
 
+        // Params exceeding 30 chars length
+        $sql = "SELECT * FROM {{$tablename}} WHERE name = :long_placeholder_with_more_than_30";
+        $params = array('long_placeholder_with_more_than_30' => 'record1');
+        try {
+            $DB->fix_sql_params($sql, $params);
+            $this->fail("Expecting an exception, none occurred");
+        } catch (Exception $e) {
+            $this->assertTrue($e instanceof coding_exception);
+        }
+
         // Booleans in NAMED params are casting to 1/0 int
         $sql = "SELECT * FROM {{$tablename}} WHERE course = ? OR course = ?";
         $params = array(true, false);
@@ -491,6 +501,161 @@ class dml_test extends UnitTestCase {
         $inparams = array('abc', 'ABC', NULL, '1', 1, 1.4);
         list($sql, $params) = $DB->fix_sql_params($sql, $inparams);
         $this->assertIdentical(array_values($params), array_values($inparams));
+    }
+
+    public function test_strtok() {
+        // strtok was previously used by bound emulation, make sure it is not used any more
+        $DB = $this->tdb;
+        $dbman = $this->tdb->get_manager();
+
+        $table = $this->get_test_table();
+        $tablename = $table->getName();
+
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('course', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0');
+        $table->add_field('name', XMLDB_TYPE_CHAR, '255', null, null, null, 'lala');
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $dbman->create_table($table);
+
+        $str = 'a?b?c?d';
+        $this->assertIdentical(strtok($str, '?'), 'a');
+
+        $DB->get_records($tablename, array('id'=>1));
+
+        $this->assertIdentical(strtok('?'), 'b');
+    }
+
+    public function test_tweak_param_names() {
+        // Note the tweak_param_names() method is only available in the oracle driver,
+        // hence we look for expected results indirectly, by testing various DML methods
+        // with some "extreme" conditions causing the tweak to happen.
+        $DB = $this->tdb;
+        $dbman = $this->tdb->get_manager();
+
+        $table = $this->get_test_table();
+        $tablename = $table->getName();
+
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        // Add some columns with 28 chars in the name
+        $table->add_field('long_int_columnname_with_28c', XMLDB_TYPE_INTEGER, '10');
+        $table->add_field('long_dec_columnname_with_28c', XMLDB_TYPE_NUMBER, '10,2');
+        $table->add_field('long_str_columnname_with_28c', XMLDB_TYPE_CHAR, '100');
+        // Add some columns with 30 chars in the name
+        $table->add_field('long_int_columnname_with_30cxx', XMLDB_TYPE_INTEGER, '10');
+        $table->add_field('long_dec_columnname_with_30cxx', XMLDB_TYPE_NUMBER, '10,2');
+        $table->add_field('long_str_columnname_with_30cxx', XMLDB_TYPE_CHAR, '100');
+
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+
+        $dbman->create_table($table);
+
+        $this->assertTrue($dbman->table_exists($tablename));
+
+        // Test insert record
+        $rec1 = new stdClass();
+        $rec1->long_int_columnname_with_28c = 28;
+        $rec1->long_dec_columnname_with_28c = 28.28;
+        $rec1->long_str_columnname_with_28c = '28';
+        $rec1->long_int_columnname_with_30cxx = 30;
+        $rec1->long_dec_columnname_with_30cxx = 30.30;
+        $rec1->long_str_columnname_with_30cxx = '30';
+
+        // insert_record()
+        $rec1->id = $DB->insert_record($tablename, $rec1);
+        $this->assertEqual($rec1, $DB->get_record($tablename, array('id' => $rec1->id)));
+
+        // update_record()
+        $DB->update_record($tablename, $rec1);
+        $this->assertEqual($rec1, $DB->get_record($tablename, array('id' => $rec1->id)));
+
+        // set_field()
+        $rec1->long_int_columnname_with_28c = 280;
+        $DB->set_field($tablename, 'long_int_columnname_with_28c', $rec1->long_int_columnname_with_28c,
+            array('id' => $rec1->id, 'long_int_columnname_with_28c' => 28));
+        $rec1->long_dec_columnname_with_28c = 280.28;
+        $DB->set_field($tablename, 'long_dec_columnname_with_28c', $rec1->long_dec_columnname_with_28c,
+            array('id' => $rec1->id, 'long_dec_columnname_with_28c' => 28.28));
+        $rec1->long_str_columnname_with_28c = '280';
+        $DB->set_field($tablename, 'long_str_columnname_with_28c', $rec1->long_str_columnname_with_28c,
+            array('id' => $rec1->id, 'long_str_columnname_with_28c' => '28'));
+        $rec1->long_int_columnname_with_30cxx = 300;
+        $DB->set_field($tablename, 'long_int_columnname_with_30cxx', $rec1->long_int_columnname_with_30cxx,
+            array('id' => $rec1->id, 'long_int_columnname_with_30cxx' => 30));
+        $rec1->long_dec_columnname_with_30cxx = 300.30;
+        $DB->set_field($tablename, 'long_dec_columnname_with_30cxx', $rec1->long_dec_columnname_with_30cxx,
+            array('id' => $rec1->id, 'long_dec_columnname_with_30cxx' => 30.30));
+        $rec1->long_str_columnname_with_30cxx = '300';
+        $DB->set_field($tablename, 'long_str_columnname_with_30cxx', $rec1->long_str_columnname_with_30cxx,
+            array('id' => $rec1->id, 'long_str_columnname_with_30cxx' => '30'));
+        $this->assertEqual($rec1, $DB->get_record($tablename, array('id' => $rec1->id)));
+
+        // delete_records()
+        $rec2 = $DB->get_record($tablename, array('id' => $rec1->id));
+        $rec2->id = $DB->insert_record($tablename, $rec2);
+        $this->assertEqual(2, $DB->count_records($tablename));
+        $DB->delete_records($tablename, (array) $rec2);
+        $this->assertEqual(1, $DB->count_records($tablename));
+
+        // get_recordset()
+        $rs = $DB->get_recordset($tablename, (array) $rec1);
+        $iterations = 0;
+        foreach ($rs as $rec2) {
+            $iterations++;
+        }
+        $rs->close();
+        $this->assertEqual(1, $iterations);
+        $this->assertEqual($rec1, $rec2);
+
+        // get_records()
+        $recs = $DB->get_records($tablename, (array) $rec1);
+        $this->assertEqual(1, count($recs));
+        $this->assertEqual($rec1, reset($recs));
+
+        // get_fieldset_select()
+        $select = 'id = :id AND
+                   long_int_columnname_with_28c = :long_int_columnname_with_28c AND
+                   long_dec_columnname_with_28c = :long_dec_columnname_with_28c AND
+                   long_str_columnname_with_28c = :long_str_columnname_with_28c AND
+                   long_int_columnname_with_30cxx = :long_int_columnname_with_30cxx AND
+                   long_dec_columnname_with_30cxx = :long_dec_columnname_with_30cxx AND
+                   long_str_columnname_with_30cxx = :long_str_columnname_with_30cxx';
+        $fields = $DB->get_fieldset_select($tablename, 'long_int_columnname_with_28c', $select, (array)$rec1);
+        $this->assertEqual(1, count($fields));
+        $this->assertEqual($rec1->long_int_columnname_with_28c, reset($fields));
+        $fields = $DB->get_fieldset_select($tablename, 'long_dec_columnname_with_28c', $select, (array)$rec1);
+        $this->assertEqual($rec1->long_dec_columnname_with_28c, reset($fields));
+        $fields = $DB->get_fieldset_select($tablename, 'long_str_columnname_with_28c', $select, (array)$rec1);
+        $this->assertEqual($rec1->long_str_columnname_with_28c, reset($fields));
+        $fields = $DB->get_fieldset_select($tablename, 'long_int_columnname_with_30cxx', $select, (array)$rec1);
+        $this->assertEqual($rec1->long_int_columnname_with_30cxx, reset($fields));
+        $fields = $DB->get_fieldset_select($tablename, 'long_dec_columnname_with_30cxx', $select, (array)$rec1);
+        $this->assertEqual($rec1->long_dec_columnname_with_30cxx, reset($fields));
+        $fields = $DB->get_fieldset_select($tablename, 'long_str_columnname_with_30cxx', $select, (array)$rec1);
+        $this->assertEqual($rec1->long_str_columnname_with_30cxx, reset($fields));
+
+        // overlapping placeholders (progressive str_replace)
+        $overlapselect = 'id = :p AND
+                   long_int_columnname_with_28c = :param1 AND
+                   long_dec_columnname_with_28c = :param2 AND
+                   long_str_columnname_with_28c = :param_with_29_characters_long AND
+                   long_int_columnname_with_30cxx = :param_with_30_characters_long_ AND
+                   long_dec_columnname_with_30cxx = :param_ AND
+                   long_str_columnname_with_30cxx = :param__';
+        $overlapparams = array(
+                'p' => $rec1->id,
+                'param1' => $rec1->long_int_columnname_with_28c,
+                'param2' => $rec1->long_dec_columnname_with_28c,
+                'param_with_29_characters_long' => $rec1->long_str_columnname_with_28c,
+                'param_with_30_characters_long_' => $rec1->long_int_columnname_with_30cxx,
+                'param_' => $rec1->long_dec_columnname_with_30cxx,
+                'param__' => $rec1->long_str_columnname_with_30cxx);
+        $recs = $DB->get_records_select($tablename, $overlapselect, $overlapparams);
+        $this->assertEqual(1, count($recs));
+        $this->assertEqual($rec1, reset($recs));
+
+        // execute()
+        $DB->execute("DELETE FROM {{$tablename}} WHERE $select", (array)$rec1);
+        $this->assertEqual(0, $DB->count_records($tablename));
     }
 
     public function test_get_tables() {
@@ -562,6 +727,11 @@ class dml_test extends UnitTestCase {
         $table->add_field('description', XMLDB_TYPE_TEXT, 'small', null, null, null, null);
         $table->add_field('enumfield', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, 'test2');
         $table->add_field('onenum', XMLDB_TYPE_NUMBER, '10,2', null, null, null, 200);
+        $table->add_field('onefloat', XMLDB_TYPE_FLOAT, '10,2', null, null, null, 300);
+        $table->add_field('anotherfloat', XMLDB_TYPE_FLOAT, null, null, null, null, 400);
+        $table->add_field('negativedfltint', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '-1');
+        $table->add_field('negativedfltnumber', XMLDB_TYPE_NUMBER, '10', null, XMLDB_NOTNULL, null, '-2');
+        $table->add_field('negativedfltfloat', XMLDB_TYPE_FLOAT, '10', null, XMLDB_NOTNULL, null, '-3');
         $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
         $dbman->create_table($table);
 
@@ -606,9 +776,38 @@ class dml_test extends UnitTestCase {
         $field = $columns['onenum'];
         $this->assertEqual('N', $field->meta_type);
         $this->assertFalse($field->auto_increment);
+        $this->assertEqual(10, $field->max_length);
+        $this->assertEqual(2, $field->scale);
         $this->assertTrue($field->has_default);
         $this->assertEqual(200.0, $field->default_value);
         $this->assertFalse($field->not_null);
+
+        $field = $columns['onefloat'];
+        $this->assertEqual('N', $field->meta_type);
+        $this->assertFalse($field->auto_increment);
+        $this->assertTrue($field->has_default);
+        $this->assertEqual(300.0, $field->default_value);
+        $this->assertFalse($field->not_null);
+
+        $field = $columns['anotherfloat'];
+        $this->assertEqual('N', $field->meta_type);
+        $this->assertFalse($field->auto_increment);
+        $this->assertTrue($field->has_default);
+        $this->assertEqual(400.0, $field->default_value);
+        $this->assertFalse($field->not_null);
+
+        // Test negative defaults in numerical columns
+        $field = $columns['negativedfltint'];
+        $this->assertTrue($field->has_default);
+        $this->assertEqual(-1, $field->default_value);
+
+        $field = $columns['negativedfltnumber'];
+        $this->assertTrue($field->has_default);
+        $this->assertEqual(-2, $field->default_value);
+
+        $field = $columns['negativedfltfloat'];
+        $this->assertTrue($field->has_default);
+        $this->assertEqual(-3, $field->default_value);
 
         for ($i = 0; $i < count($columns); $i++) {
             if ($i == 0) {
@@ -3178,6 +3377,48 @@ class dml_test extends UnitTestCase {
         $DB->get_records_sql($sql, $params);
     }
 
+    function test_coalesce() {
+        $DB = $this->tdb;
+
+        // Testing not-null ocurrences, return 1st
+        $sql = "SELECT COALESCE('returnthis', 'orthis', 'orwhynotthis') AS test" . $DB->sql_null_from_clause();
+        $this->assertEqual('returnthis', $DB->get_field_sql($sql, array()));
+        $sql = "SELECT COALESCE(:paramvalue, 'orthis', 'orwhynotthis') AS test" . $DB->sql_null_from_clause();
+        $this->assertEqual('returnthis', $DB->get_field_sql($sql, array('paramvalue' => 'returnthis')));
+
+        // Testing null ocurrences, return 2nd
+        $sql = "SELECT COALESCE(null, 'returnthis', 'orthis') AS test" . $DB->sql_null_from_clause();
+        $this->assertEqual('returnthis', $DB->get_field_sql($sql, array()));
+        $sql = "SELECT COALESCE(:paramvalue, 'returnthis', 'orthis') AS test" . $DB->sql_null_from_clause();
+        $this->assertEqual('returnthis', $DB->get_field_sql($sql, array('paramvalue' => null)));
+        $sql = "SELECT COALESCE(null, :paramvalue, 'orthis') AS test" . $DB->sql_null_from_clause();
+        $this->assertEqual('returnthis', $DB->get_field_sql($sql, array('paramvalue' => 'returnthis')));
+
+        // Testing null ocurrences, return 3rd
+        $sql = "SELECT COALESCE(null, null, 'returnthis') AS test" . $DB->sql_null_from_clause();
+        $this->assertEqual('returnthis', $DB->get_field_sql($sql, array()));
+        $sql = "SELECT COALESCE(null, :paramvalue, 'returnthis') AS test" . $DB->sql_null_from_clause();
+        $this->assertEqual('returnthis', $DB->get_field_sql($sql, array('paramvalue' => null)));
+        $sql = "SELECT COALESCE(null, null, :paramvalue) AS test" . $DB->sql_null_from_clause();
+        $this->assertEqual('returnthis', $DB->get_field_sql($sql, array('paramvalue' => 'returnthis')));
+
+        // Testing all null ocurrences, return null
+        // Note: under mssql, if all elements are nulls, at least one must be a "typed" null, hence
+        // we cannot test this in a cross-db way easily, so next 2 tests are using
+        // different queries depending of the DB family
+        $customnull = $DB->get_dbfamily() == 'mssql' ? 'CAST(null AS varchar)' : 'null';
+        $sql = "SELECT COALESCE(null, null, " . $customnull . ") AS test" . $DB->sql_null_from_clause();
+        $this->assertNull($DB->get_field_sql($sql, array()));
+        $sql = "SELECT COALESCE(null, :paramvalue, " . $customnull . ") AS test" . $DB->sql_null_from_clause();
+        $this->assertNull($DB->get_field_sql($sql, array('paramvalue' => null)));
+
+        // Check there are not problems with whitespace strings
+        $sql = "SELECT COALESCE(null, '', null) AS test" . $DB->sql_null_from_clause();
+        $this->assertEqual('', $DB->get_field_sql($sql, array()));
+        $sql = "SELECT COALESCE(null, :paramvalue, null) AS test" . $DB->sql_null_from_clause();
+        $this->assertEqual('', $DB->get_field_sql($sql, array('paramvalue' => '')));
+    }
+
     function test_sql_concat() {
         $DB = $this->tdb;
         $dbman = $DB->get_manager();
@@ -3496,6 +3737,23 @@ class dml_test extends UnitTestCase {
         $DB->insert_record($tablename, array('course' => 3, 'content' => 'world', 'name'=>'abc'));
         $DB->insert_record($tablename, array('course' => 5, 'content' => 'hello', 'name'=>'def'));
         $DB->insert_record($tablename, array('course' => 2, 'content' => 'universe', 'name'=>'abc'));
+
+        // test grouping by expressions in the query. MDL-26819. Note that there are 4 ways:
+        // - By column position (GROUP by 1) - Not supported by mssql & oracle
+        // - By column name (GROUP by course) - Supported by all, but leading to wrong results
+        // - By column alias (GROUP by casecol) - Not supported by mssql & oracle
+        // - By complete expression (GROUP BY CASE ...) - 100% cross-db, this test checks it
+        $sql = "SELECT (CASE WHEN course = 3 THEN 1 ELSE 0 END) AS casecol,
+                       COUNT(1) AS countrecs,
+                       MAX(name) AS maxname
+                  FROM {{$tablename}}
+              GROUP BY CASE WHEN course = 3 THEN 1 ELSE 0 END
+              ORDER BY casecol DESC";
+        $result = array(
+                1 => (object)array('casecol' => 1, 'countrecs' => 2, 'maxname' => 'xyz'),
+                0 => (object)array('casecol' => 0, 'countrecs' => 2, 'maxname' => 'def'));
+        $records = $DB->get_records_sql($sql, null);
+        $this->assertEqual($result, $records);
 
         // test limits in queries with DISTINCT/ALL clauses and multiple whitespace. MDL-25268
         $sql = "SELECT   DISTINCT   course
@@ -3833,6 +4091,25 @@ class dml_test extends UnitTestCase {
         // now commit and we should see it finally in second connections
         $transaction->allow_commit();
         $this->assertEqual(2, $DB2->count_records($tablename));
+
+        // let's try delete all is also working on (this checks MDL-29198)
+        // initially both connections see all the records in the table (2)
+        $this->assertEqual(2, $DB->count_records($tablename));
+        $this->assertEqual(2, $DB2->count_records($tablename));
+        $transaction = $DB->start_delegated_transaction();
+
+        // delete all from within transaction
+        $DB->delete_records($tablename);
+
+        // transactional $DB, sees 0 records now
+        $this->assertEqual(0, $DB->count_records($tablename));
+
+        // others ($DB2) get no changes yet
+        $this->assertEqual(2, $DB2->count_records($tablename));
+
+        // now commit and we should see changes
+        $transaction->allow_commit();
+        $this->assertEqual(0, $DB2->count_records($tablename));
 
         $DB2->dispose();
     }
