@@ -366,7 +366,7 @@ function get_requestor_defaults() {
     $defaults = array();
     //$defaults['hidden'] = get_config('moodlecourse')->visible;
 
-    $configs = get_config('tool/uclacourserequestor');
+    $configs = get_config('tool_uclacourserequestor');
 
     $editables = ucla_courserequests::get_editables();
     $translate_tf = array('true' => 1, 'false' => 0);
@@ -386,7 +386,6 @@ function get_requestor_defaults() {
     $defaults['action'] = UCLA_COURSE_TOBUILD;
     $defaults['timerequested'] = time();
 
-    $rucr = 'tool_uclacourserequestor';
     $defaults['id'] = null;
     $defaults['courseid'] = null;
 
@@ -642,16 +641,14 @@ function remove_empty_fields($table) {
  **/
 function request_parse_input($key, $value) {
     $vals = array();
-    preg_match('/(.*)-([0-9][0-9][WS1F])-([0-9]{9})-(.*)$/', $key, $vals);
+    preg_match('/^([new_0-9]*)-(.*)$/', $key, $vals);
 
     $x = 1;
-    if ($vals && count($vals) >= 4) {
+    if ($vals && count($vals) >= 2) {
         $set = $vals[$x++];
-        $term = $vals[$x++];
-        $srs = $vals[$x++];
         $var = $vals[$x++];
 
-        return array($set, $term, $srs, $var, $value);
+        return array($set, $var, $value);
     }
 
     return false;
@@ -691,7 +688,7 @@ function prep_request_entry($requestinfo) {
     $formatted = array();
 
     // Find the host and stuff...
-    $key = $requestinfo['setid'] . '-' . make_idnumber($requestinfo);
+    $key = $requestinfo['setid'];
 
     $ignored = request_ignored($requestinfo);
 
@@ -802,16 +799,20 @@ function prep_request_entry($requestinfo) {
     }
 
     $ocls = array();
-    $riclstr = '';
+
+    // Add self to crosslists
+    $riclstr = html_writer::empty_tag('input', array(
+        'type' => 'hidden',
+        'name' => $ff,
+        'value' => $requestinfo['srs']
+    ));
 
     $br = html_writer::empty_tag('br');
-
-    $co = 'course';
-    $de = 'department';
 
     if (!empty($requestinfo[$f])) {
         foreach ($requestinfo[$f] as $clkey => $ocl) {
             $clsrs = $ocl['srs'];
+            $moreinfo = requestor_dept_course($ocl);
 
             // Perhaps refactor this code later?
             if (!empty($ocl[$errs])) {
@@ -823,10 +824,6 @@ function prep_request_entry($requestinfo) {
                     $errstr .= get_string($error, $rucr);
                 }
 
-                $moreinfo = '';
-                if (!empty($ocl[$co]) && !empty($ocl[$de])) {
-                    $moreinfo = $ocl[$de] . ' ' . $ocl[$co];
-                }
 
                 // There was an error, display editable field and error msg
                 $clinputattr['value'] = $clsrs;
@@ -861,7 +858,7 @@ function prep_request_entry($requestinfo) {
                     $ff,
                     $clsrs, 
                     true, 
-                    $clkey . ' (' . $ocl[$de] . ' ' . $ocl[$co] . ')',
+                    $clkey . ' (' . $moreinfo . ')',
                     $clinputattr
                 ) . html_writer::tag(
                         'span', 
@@ -951,6 +948,22 @@ function prep_request_entry($requestinfo) {
     }
 
     return $ordfor;
+}
+
+/**
+ *  Convenience function returns the concatenation of the subject area
+ *  and the course (course num and sect num).
+ **/
+function requestor_dept_course($request) {
+    $co = 'course';
+    $de = 'department';
+
+    $moreinfo = '';
+    if (!empty($request[$co]) && !empty($request[$de])) {
+        $moreinfo = $request[$de] . ' ' . $request[$co];
+    }
+
+    return $moreinfo;
 }
 
 /**

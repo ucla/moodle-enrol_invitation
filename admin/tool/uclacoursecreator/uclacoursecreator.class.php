@@ -73,7 +73,9 @@ class uclacoursecreator {
      **/
     private $cron_term_cache = array();
 
+    // Caches
     private $categories_cache = array();
+    private $course_defaults = array();
 
     /** Non Variants **/
     // These are just simple caches.
@@ -105,7 +107,7 @@ class uclacoursecreator {
     function cron() {
         global $CFG;
 
-        if (!$this->get_config('course_creator_cron_enabled')) {
+        if (!$this->get_config('cron_enabled')) {
             // TODO Test if this logic works
             static $cronuser;
 
@@ -154,6 +156,8 @@ class uclacoursecreator {
 
             return false;
         }
+
+        $this->course_defaults = get_config('moodlecourse');
 
         $this->println("---- Course Creator run at {$this->full_date} "
             . "({$this->shell_date}) -----");
@@ -640,7 +644,7 @@ class uclacoursecreator {
         $action_ids['rebuild'] = array();
 
         // Save a config setting
-        $reverting = $this->get_config('course_creator_revert_failed_cron');
+        $reverting = $this->get_config('revert_failed_cron');
 
         // We're going to attempt to delete a course, and if we fail,
         // save it somewhere.
@@ -887,7 +891,7 @@ class uclacoursecreator {
         }
 
         $nesting_order = array();
-        if ($this->get_config('course_creator_division_categories')) {
+        if ($this->get_config('make_division_categories')) {
             $nesting_order[] = 'division';
         } 
 
@@ -1040,7 +1044,7 @@ class uclacoursecreator {
                 as $reqkey => $rci_object) {
             unset($req_course);
 
-            $courseobj = new stdClass();
+            $courseobj = clone($this->course_defaults);
             $courseobj->summary_format = FORMAT_HTML;
             $courseobj->summary = $rci_object->crs_desc;
 
@@ -1925,7 +1929,10 @@ class uclacoursecreator {
         }
 
         // Check if we have a path to write to
-        if (!$this->get_config('course_creator_outpath')) {
+        $ccoutpath = $this->get_config('outpath');
+        if ($ccoutpath) {
+            $this->output_path = $ccoutpath;
+        } else {
             // Defaulting to moodledata
             $this->output_path = $CFG->dataroot . '/course_creator';
 
@@ -1936,8 +1943,6 @@ class uclacoursecreator {
                         . $this->output_path);
                 }
             }
-        } else {
-            $this->output_path = $this->get_config('course_creator_outpath');
         }
 
         // Test that we actually can write to the output path
@@ -2135,19 +2140,7 @@ class uclacoursecreator {
      *  Wrapper for {@see get_config()}
      **/
     function get_config($config) {
-        global $CFG;
-
-        $ucc_config = get_config('uclacoursecreator', $config);
-
-        if (!$ucc_config) {
-            if (isset($CFG->$config)) {
-                return $CFG->$config;
-            }
-
-            return get_config(null, $config);
-        }
-
-        return $ucc_config;
+        return get_config('tool_uclacoursecreator', $config);
     }
 
     /**

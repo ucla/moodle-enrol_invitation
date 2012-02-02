@@ -60,7 +60,7 @@ list($ext_argv, $unrecog) = cli_get_params(
 );
 
 if ($ext_argv['help']) {
-    die(get_string('cli_helpmsg', 'tool_uclacourserequestor'));
+    die(get_string('cli_helpmsg', 'tool_uclacoursecreator'));
 }
 
 $goals = array();

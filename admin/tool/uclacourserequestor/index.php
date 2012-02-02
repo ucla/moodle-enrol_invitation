@@ -17,13 +17,12 @@ $syscontext = get_context_instance(CONTEXT_SYSTEM);
 $rucr = 'tool_uclacourserequestor';
 
 // Adding 'Support Admin' capability to course requestor
-if (!has_capability('tool/uclacourserequestor:view', $syscontext)) {
+if (!has_capability('tool/uclacourserequestor:edit', $syscontext)) {
     print_error('adminsonlybanner');
 }
 
 $selterm = optional_param('term', false, PARAM_ALPHANUM);
-$selected_term = $selterm ? $selterm : get_config(
-    'tool/uclacourserequestor', 'selected_term');
+$selected_term = $selterm ? $selterm : get_config($rucr, 'selected_term');
 
 if (!$selected_term) {
     $selected_term = $CFG->currentterm;
@@ -59,15 +58,19 @@ $top_forms = array(
     UCLA_REQUESTOR_VIEW => array('view')
 );
 
-$termstr = get_config('tool/uclacourserequestor', 'terms');
+$termstr = get_config($rucr, 'terms');
 
 if (!empty($termstr)) {
-    $terms = explode(',', $termstr);
+    if (is_array($termstr)) {
+        $terms = $termstr;
+    } else {
+        $terms = explode(',', $termstr);
 
-    foreach ($terms as $k => $t) {
-        unset($terms[$k]);
-        $tt = trim($t);
-        $terms[$tt] = $tt;
+        foreach ($terms as $k => $t) {
+            unset($terms[$k]);
+            $tt = trim($t);
+            $terms[$tt] = $tt;
+        }
     }
 }
 
@@ -156,16 +159,12 @@ if ($requests === null) {
             $att = request_parse_input($key, $prev);
 
             if ($att) {
-                list($set, $term, $srs, $var, $val) = $att;
+                list($set, $var, $val) = $att;
 
-                $tr = array('term' => $term, 'srs' => $srs);
-
-                $k = make_idnumber($tr);
-
-                if (!empty($changes[$set][$k])) {
-                    $changes[$set][$k][$var] = $val;
+                if (!empty($changes[$set])) {
+                    $changes[$set][$var] = $val;
                 } else {
-                    $changes[$set][$k] = array($var => $val);
+                    $changes[$set] = array($var => $val);
                 }
             } else {
                 continue;
@@ -173,11 +172,16 @@ if ($requests === null) {
         }
 
         if (isset($uclacrqs)) {
-            // TODO return a set of changes that has validly occurred
-            $uclacrqs->apply_changes($changes, $groupid);
+            $changed = $uclacrqs->apply_changes($changes, $groupid);
         }
     }
 }
+
+// These are the messages that reflect positive changes
+$changemessages = array();
+
+// These are the messages that are requestor errors
+$errormessages = array();
 
 // At this point, requests are indexed by setid.
 if (isset($uclacrqs)) {
@@ -193,12 +197,55 @@ if (isset($uclacrqs)) {
 
         // Take out successfuls from requests with errors
         foreach ($requestswitherrors as $setid => $set) {
-            if (isset($successfuls[$setid]) 
-                    && $successfuls[$setid] 
-                        >= ucla_courserequests::savesuccess) {
-                unset($requestswitherrors[$setid]);
-            } else {
-               var_dump($successfuls[$setid]);
+            // This is really dirty, if you think you can improve it,
+            // please do
+            if (isset($successfuls[$setid])) {
+                // FROM HERE
+                $retcode = $successfuls[$setid];
+                if (ucla_courserequests::request_successfully_handled(
+                        $retcode)) {
+                    unset($requestswitherrors[$setid]);
+                }
+
+                $strid = ucla_courserequests::commit_flag_string($retcode);
+
+                $coursedescs = array();
+                foreach ($set as $course) {
+                    $coursedescs[] = requestor_dept_course($course);
+                }
+
+                $coursedescstr = implode(' + ', $coursedescs);
+                
+                // cached by the callee
+                $retmess = get_string($strid, $rucr, $coursedescstr);
+
+                // We care only for updates
+                if ($retcode == ucla_courserequests::savesuccess) {
+                    if (!empty($changed[$setid])) {
+                        $fieldstr = '';
+                        $fieldstrs = array();
+
+                        // Kludge to handle crosslisting changes
+                        $thechanges = $changed[$setid];
+                        if (!empty($thechanges['crosslists'])) {
+                            $cldelta = $thechanges['crosslists'];
+                            unset($thechanges['crosslists']);
+                            // TODO :)
+                        }
+
+                        foreach ($changed[$setid] as $field => $val) {
+                            $fieldstrs[] = get_string($field, $rucr)
+                                . get_string('changedto', $rucr)
+                                . $val;
+                        }
+
+                        $fieldstr = implode(', ', $fieldstrs);
+
+                        $changemessages[$setid] = "$retmess -- $fieldstr";
+                    }
+                } else {
+                    $changemessages[$setid] = $retmess; 
+                }
             }
         }
     }
@@ -216,7 +263,7 @@ if (isset($uclacrqs)) {
     }
 
     // Get the values as a set
-    $messages = array_keys(array_flip($rowclasses));
+    $errormessages = array_keys(array_flip($rowclasses));
 
     $possfields = array();
     foreach ($tabledata as $request) {
@@ -239,8 +286,6 @@ if (isset($uclacrqs)) {
 $registrar_link = new moodle_url(
     'http://www.registrar.ucla.edu/schedule/');
 
-// TODO display relevant changes
-
 // Start rendering
 echo $OUTPUT->header();
 
@@ -248,7 +293,6 @@ echo $OUTPUT->box(
     $OUTPUT->heading(
         get_string('pluginname', $rucr)
     ), 
-
     'generalbox categorybox box'
 );
 
@@ -271,9 +315,31 @@ foreach ($cached_forms as $gn => $group) {
     echo $OUTPUT->box_end();
 }
 
-// TODO rework this section, including display of committed changes,
-// as well as error messages, and the message that states that no requests 
-// were found
+if (!empty($changemessages)) {
+    $messagestr = implode(html_writer::empty_tag('br'), $changemessages);
+
+    if (!empty($messagestr)) {
+        echo $OUTPUT->box($messagestr);
+    }
+}
+
+if (!empty($errormessages)) {
+    $sm = get_string_manager();
+    foreach ($errormessages as $message) {
+        if (!empty($message)) {
+            $contextspecificm = $message . '-' . $groupid;
+
+            if ($sm->string_exists($contextspecificm, $rucr)) {
+                $viewstr = $contextspecificm;
+            } else {
+                $viewstr = $message;
+            }
+
+            echo $OUTPUT->box(get_string($message, $rucr));
+        }
+    }
+}
+
 if (!empty($requeststable->data)) {
     echo html_writer::start_tag('form', array(
         'method' => 'POST',
@@ -292,23 +358,6 @@ if (!empty($requeststable->data)) {
             'name' => $uf 
         ));
 
-    if (!empty($messages)) {
-        $sm = get_string_manager();
-        foreach ($messages as $message) {
-            if (!empty($message)) {
-                $contextspecificm = $message . '-' . $groupid;
-
-                if ($sm->string_exists($contextspecificm, $rucr)) {
-                    $viewstr = $contextspecificm;
-                } else {
-                    $viewstr = $message;
-                }
-
-                echo $OUTPUT->box(get_string($message, $rucr));
-            }
-        }
-    }
-
     echo html_writer::table($requeststable);
 
     echo html_writer::tag('input', '', array(
@@ -326,9 +375,6 @@ if (!empty($requeststable->data)) {
         ));
 
     echo html_writer::end_tag('form');
-} else if ($requests !== null) {
-    // We got a response from a form, but no requests to display
-    echo $OUTPUT->box(get_string('norequestsfound', $rucr));
 }
 
 echo $OUTPUT->footer();

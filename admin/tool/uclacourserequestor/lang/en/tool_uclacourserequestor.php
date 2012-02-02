@@ -66,8 +66,8 @@ $string['deleteviews'] = 'Remove request';
 $string['addmorecrosslist'] = 'Add another entry';
 
 // Crosslisting errors
-$string['illegalcrosslist'] = 'Another course has this SRS as a crosslist';
-$string['hostandchild'] = 'This course is a crosslist of another course. Please explicitly disable the building of one of the courses.';
+$string['illegalcrosslist'] = 'This SRS cannot be added as a crosslist';
+$string['hostandchild'] = 'One of the crosslisted SRSes has already been built, and is preventing this request from proceding.';
 $string['srserror'] = 'The SRS number must be exactly 9 digits long';
 
 $string['queuetobebuilt'] = "Courses in queue to be built";
@@ -84,6 +84,11 @@ $string['crosslistingwith'] = " - submitted for crosslisting with ";
 $string['individualorchildcourse'] = " is already submitted individually or as a child course. ";
 $string['submittedtobebuilt'] = " submitted to be built ";
 
-$string['delete_successful'] = "Deleted course entry: ";
-$string['delete_error'] = "Unable to find course entry to delete: ";
+$string['deletesuccess'] = "Deleted request entry: {\$a}";
+$string['deletecoursesuccess'] = "Delete request entry: {\$a}, along with course.";
+$string['savesuccess'] = "Updated request entry: {\$a}";
+$string['insertsuccess'] = "Inserted request entry: {\$a}";
+$string['deletecoursefailed'] = "Unable to find course entry to delete: ";
+
+$string['changedto'] = ' to ';
 

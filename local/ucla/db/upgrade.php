@@ -13,8 +13,6 @@ function xmldb_local_ucla_upgrade($oldversion=0) {
     $dbman = $DB->get_manager();
 
     $result = true;
-
-    
     // copy over latest version of lang file for moodle.php
     if ($result && $oldversion < 2011112800) {
         // copy custom moodle.php to $CFG->dataroot/lang/en_local
@@ -117,6 +115,31 @@ function xmldb_local_ucla_upgrade($oldversion=0) {
         // ucla savepoint reached
         upgrade_plugin_savepoint(true, 2012012701, 'local', 'ucla');
     }
+
+    if ($oldversion < 2012020100) {
+        // Define table ucla_reg_division to be created
+        $table = new xmldb_table('ucla_reg_division');
+
+        // Adding fields to table ucla_reg_division
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('code', XMLDB_TYPE_CHAR, '2', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('fullname', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('home', XMLDB_TYPE_INTEGER, '4', XMLDB_UNSIGNED, null, null, '0');
+        $table->add_field('timestamp', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, '0');
+
+        // Adding keys to table ucla_reg_division
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_key('code', XMLDB_KEY_UNIQUE, array('code'));
+
+        // Conditionally launch create table for ucla_reg_division
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // ucla savepoint reached
+        upgrade_plugin_savepoint(true, 2012020100, 'local', 'ucla');
+    }
+
 
     return $result;
 }

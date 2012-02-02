@@ -2,6 +2,7 @@
 
 /**
  *  This class represents a set of course requests.
+ *  This class is badly organized, I'm sorry.
  **/
 class ucla_courserequests {
     // This is the requests indexed by setid
@@ -18,8 +19,10 @@ class ucla_courserequests {
     // Success flags should be >= 100
     const savesuccess = 100;
     const deletesuccess = 101;
+    const deletecoursesuccess = 104;
+    const insertsuccess = 102;
 
-    // Failed flags should be < self::savesuccess
+    // Failed flags should be < self::savesuccess, enums would be cool
     const savefailed = 0;
     const deletefailed = 1;
 
@@ -27,6 +30,46 @@ class ucla_courserequests {
     const deletecoursefailed = 50;
 
     private $_validated = null;
+
+    /**
+     *  Determines if the request was properly removed based on the flag
+     *  returned by commit().
+     **/
+    static function request_successfully_handled($flag) {
+        return $flag > self::deletecoursefailed;
+    }
+
+    static function commit_flag_string($flag) {
+        $s = '';
+        // Is there a better way?
+        switch ($flag) {
+            case self::savesuccess:
+                $s = 'savesuccess';
+                break;
+            case self::insertsuccess:
+                $s = 'insertsuccess';
+                break;
+            case self::deletesuccess:
+                $s = 'deletesuccess';
+                break;
+            case self::deletecoursesuccess:
+                $s = 'deletecoursesuccess';
+                break;
+            case self::savefailed:
+                $s = 'savefailed';
+                break;
+            case self::deletefailed:
+                $s = 'deletefailed';
+                break;
+            case self::deletecoursefailed:
+                $s = 'deletecoursefailed';
+                break;
+            default:
+                $s = 'request_error';
+        }
+
+        return $s;
+    }
 
     static function get_editables() {
         return array('mailinst', 'nourlupdate');
@@ -88,140 +131,229 @@ class ucla_courserequests {
 
         $checkers = self::get_editables();
 
-        $deletemode = false;
         if ($context == UCLA_REQUESTOR_FETCH) {
             $d = 'build';
+            $deletemode = false;
         } else {
             $d = 'delete';
             $deletemode = true;
         }
 
         $h = 'hostcourse';
+        $f = 'crosslists';
 
+        // These will have the changes that were actually perfomed
+        $changed = array();
+
+        // TODO split the stuff here up
+        $changeaccessors = array();
         foreach ($this->setindex as $setid => $courses) {
-            $setkey = false;
-            $theterm = false;
+            if (!isset($changes[$setid])) {
+                // This should never happen
+                debugging('no changes for ' . $setid);
+            }
+        }
 
-            // Find the key of the host
-            // TODO this method may come to bite us later
-            foreach ($courses as $key => $course) {
-                $theterm = $course['term'];
-
-                if (isset($changes[$setid][$key])) {
-                    $setkey = $key;
-                    break;
-                }
+        foreach ($changes as $setid => $changeset) {
+            if (empty($this->setindex[$setid])) {
+                unset($changes[$setid]);
+                continue;
             }
 
-            $thechanges = false;
-            if (isset($changes[$setid][$setkey])) {
-                $thechanges = $changes[$setid][$setkey];
-            } else if ($deletemode) {
-                $courses = apply_to_set($courses, $d, 0);
-                $this->setindex[$setid] = $courses;
+            if (empty($changeset[$d])) {
+                $appval = 0;
+            } else {
+                $appval = 1;
             }
 
-            if ($thechanges !== false) {
-                if (empty($thechanges[$d])) {
-                    $appval = 0;
-                } else {
-                    $appval = 1;
-                }
+            if (request_ignored(array($d => $appval))) {
+                $this->setindex[$setid] = apply_to_set($this->setindex[$setid],
+                    $d, $appval);
 
-                // This will cause request_ignored to handle things properly
-                $courses = apply_to_set($courses, $d, $appval);
-
-                $testcourse = reset($courses);
-                if (!request_ignored($testcourse)) {
-                    // We're going to deal with checkboxes
-                    foreach ($checkers as $checker) {
-                        if (!empty($thechanges[$checker])) {
-                            $checkapply = 1;
-                        } else {
-                            $checkapply = 0;
-                        }
-
-                        $courses = apply_to_set($courses, $checker, 
-                            $checkapply);
-                    }
-
-                    // Now we're going to deal with the crosslists
-                    $clind = array();
-
-                    if (!isset($thechanges['crosslists'])) {
-                        $thechanges['crosslists'] = array();
-                    }
-
-                    // Sanitize inputs
-                    foreach ($thechanges['crosslists'] as $cls) {
-                        if (!empty($cls) && ucla_validator('srs', $cls)) {
-                            $clind[$cls] = $cls;
-                        }
-                    }
-
-                    // Remove no longer existing crosslists
-                    foreach ($courses as $key => $c) {
-                        // Ignore the host course
-                        if ($key == $setkey) {
-                            continue;
-                        }
-
-                        $srs = $c['srs'];
-                        if (!isset($clind[$srs])) {
-                            debugging('removing ' . $srs . ' from ' . $setkey);
-                            // TODO Move it as its own host?
-                            $this->abandoned[$key] = $c;
-                            unset($courses[$key]);
-                        } else {
-                            // Everything is all right
-                            unset($clind[$srs]);
-                        }
-                    }
-
-                    // New hosts...
-                    foreach ($clind as $ncl) {
-                        // For now just add it.
-                        $nr = get_request_info($theterm, $ncl);
-
-                        // Things fetched from the registrar should NOT
-                        // have this field set...
-                        if (isset($nr[$h])) {
-                            $newset = get_crosslist_set_for_host($nr);
-                            if ($nr[$h] == 0) {
-                            // We need to force an error later
-                                $this->add_set($newset);
-                            } else {
-                                // integrate the set into the new set
-                                foreach ($newset as $newreq) {
-                                    $newreq[$h] = 0;
-                                    $newreq['setid'] = $setid;
-                                    $nrkey = make_idnumber($newreq);
-                                    if (!isset($courses[$nrkey])) {
-                                        $courses[$nrkey] = $newreq;
-                                    }
-                                }
-                            }
-                        } else {
-                            // This was fetched from the Registrar, just add it
-                            $nr['setid'] = $setid;
-                            $nr[$h] = 0;
-
-                            // We're going to add the host, if there is one
-                            $nrkey = make_idnumber($nr);
-
-                            if (!isset($courses[$nrkey])) {
-                                $courses[$nrkey] = $nr;
-                            }
-                        }
-                    }
-                } else if ($deletemode) {
-                    // Save this to be deleted when commit() is called
+                if ($deletemode) {
                     $this->deletes[$setid] = true;
                 }
 
-                $this->setindex[$setid] = $courses;
+                // We don't need to apply anything to things that are
+                // being deleted
+                unset($changes[$setid]);
+
+                continue;
+            }
+
+            // Figure out what we're going to end up changing for each entry
+            $setprops = array();
+            foreach ($checkers as $editable) {
+                if (empty($changeset[$editable])) {
+                    $v = 0;
+                } else {
+                    $v = 1;
+                }
+
+                // this is the value that has is agreed on by the set
+                unset($k);
+
+                foreach ($this->setindex[$setid] as $course) {
+                    if (!isset($course[$editable])) {
+                        $k = null;
+                        break;
+                    }
+
+                    $cv = $course[$editable];
+
+                    if (!isset($k)) {
+                        $k = $cv;
+                    } else if ($k != $cv) {
+                        $k = null;
+                        break;
+                    }
+                }
+
+                // This value must be changed
+                if ($k != $v) {
+                    $this->setindex[$setid] = apply_to_set(
+                        $this->setindex[$setid],
+                        $editable, $v
+                    );
+
+                    $setprops[$editable] = $v;
+                }
+            }
+
+            if (!empty($setprops)) {
+                $changed[$setid] = $setprops;
             }
         }
+
+        // Array indexed by setid => array indexed by srs
+        // designed to be used to see what ideally each set should look like
+        $setdests = array();
+
+        // Remove unwanted crosslists
+        foreach ($changes as $setid => $changeset) {
+            $courses = $this->setindex[$setid];
+            $removedcls = array();
+
+            // Destination of srses we want in this set indexed by srs
+            $clind = array();
+
+            if (!isset($changeset[$f])) {
+                $changeset[$f] = array();
+            }
+
+            // Sanitize and index inputs
+            foreach ($changeset[$f] as $cls) {
+                if (!empty($cls) && ucla_validator('srs', $cls)) {
+                    $clind[$cls] = $cls;
+                }
+            }
+            
+            if (empty($clind)) {
+                throw new moodle_exception('noselfcrosslist');
+            }
+
+            // Remove no longer existing crosslists
+            foreach ($courses as $key => $c) {
+                $srs = $c['srs'];
+
+                if (!isset($clind[$srs])) {
+                    $this->abandoned[$key] = $c;
+                    $removedcls[] = $c;
+                    unset($courses[$key]);
+                } else {
+                    // Everything is all right
+                    unset($clind[$srs]);
+                }
+            }
+
+            if (!empty($clind)) {
+                $setdests[$setid] = $clind;
+            }
+
+            if (!empty($removedcls)) {
+                $changed[$setid][$f]['removed'] = $removedcls;
+            }
+
+            $this->setindex[$setid] = $courses;
+        }
+
+        // Add crosslists that need to be added
+        foreach ($setdests as $setid => $clind) {
+            $courses = $this->setindex[$setid];
+            $addedcls = array();
+
+            // Figure out the term
+            unset($theterm);
+            foreach ($courses as $reqkey => $course) {
+                $cterm = $course['term'];
+                if (!isset($theterm)) { 
+                    $theterm = $cterm;
+                } else if ($cterm != $theterm) {
+                    throw new moodle_exception('inconsistent_set');
+                }
+            }
+
+            // New hosts...
+            foreach ($clind as $ncl) {
+                $fakereq = array('term' => $theterm, 'srs' => $ncl);
+                $nclkey = make_idnumber($fakereq);
+
+                // We have data, let's save time
+                if (isset($this->abandoned[$nclkey])) {
+                    $newreq = $this->abandoned[$nclkey];
+
+                    $courses[$nclkey] = $newreq;
+                    $addedcls[] = $newreq;
+
+                    unset($this->abandoned[$nclkey]);
+                    continue;
+                }
+
+                // For now just add it.
+                $nr = get_request_info($theterm, $ncl);
+
+                // Things fetched from the registrar should NOT
+                // have this field set...
+                if (isset($nr[$h])) {
+                    $newset = get_crosslist_set_for_host($nr);
+                    if ($nr[$h] == 0) {
+                        // We need to force an error later
+                        $this->add_set($newset);
+                    } else {
+                        // integrate the set into the new set
+                        foreach ($newset as $newreq) {
+                            $newreq[$h] = 0;
+                            $newreq['setid'] = $setid;
+                            $nrkey = make_idnumber($newreq);
+                            if (!isset($courses[$nrkey])) {
+                                $courses[$nrkey] = $newreq;
+                                $addedcls[] = $newreq;
+                            }
+                        }
+                    }
+                } else {
+                    // This was fetched from the Registrar, just add it
+                    $nr['setid'] = $setid;
+                    $nr[$h] = 0;
+
+                    // We're going to add the host, if there is one
+                    $nrkey = make_idnumber($nr);
+
+                    if (!isset($courses[$nrkey])) {
+                        $courses[$nrkey] = $nr;
+                        $addedcls[] = $nr;
+                    }
+                }
+            }
+
+            if (!empty($addedcls)) {
+                $changed[$setid][$f]['added'] = $addedcls;
+            }
+
+            $this->setindex[$setid] = $courses;
+        }
+
+        return $changed;
     }
 
     /** 
@@ -232,12 +364,7 @@ class ucla_courserequests {
             return $this->_validated;
         }
 
-        // Host courses
-        $hostcourses = array();
-
-        // Non-host courses
-        $nonhostcourses = array();
-
+        $builtcourses = array();
         $requestinfos = $this->setindex;
 
         // Split the requests between host courses and non-host courses
@@ -249,7 +376,6 @@ class ucla_courserequests {
             $hcthere = false;
             foreach ($set as $key => $course) {
                 if (request_ignored($course)) {
-                    debugging('ignoring ' . $course['srs']);
                     $hcthere = true;
                     continue;
                 }
@@ -261,37 +387,14 @@ class ucla_courserequests {
                     $course[$errs][UCLA_REQUESTOR_EXIST] = true;
                 }
 
-                if (isset($course[$h])) {
-                    $hostnum = $course[$h];
-                } else {
-                    $hostnum = 0;
+                if ($course[$h] > 0) {
+                    $hcthere = $key;
                 }
 
-                if ($hostnum > 0) {
-                    // We are joining host courses
-                    if ($hcthere !== false) {
-                        // Mark the crosslist
-                        if ($course['courseid'] != null) {
-                            $course[UCLA_REQUESTOR_WARNING]
-                                [UCLA_REQUESTOR_GHOST] = true;
-                        }
-                    } else {
-                        $hcthere = $key;
-                    }
-
-                    // I don't believe we need to worry about multiple
-                    // host courses existing in the sets
-                    $hostcourses[$key] = $setid;
+                if (isset($builtcourses[$key])) {
+                    $course[$errs][$e] = true;
                 } else {
-                    // But we do need to worry about this...
-                    if (isset($nonhostcourses[$key])) {
-                        $otherset = $nonhostcourses[$key];
-
-                        $requestinfos[$otherset][$key][$errs][$e] = true;
-                        $course[$errs][$e] = true;
-                    } else {
-                        $nonhostcourses[$key] = $setid;
-                    }
+                    $builtcourses[$key] = true;
                 }
 
                 $requestinfos[$setid][$key] = $course;
@@ -304,20 +407,6 @@ class ucla_courserequests {
                     $requestinfos[$setid][$key][$errs][UCLA_REQUESTOR_BADHOST] 
                         = true;
                 }
-            }
-        }
-
-        // No course in the list of hosts should be in the list of nonhosts
-        foreach ($hostcourses as $key => $setid) {
-            if (isset($nonhostcourses[$key])) {
-                // Mark both the set of the victim host course and the 
-                // culprit host course
-
-                // This is the host course
-                $requestinfos[$setid][$key][$errs][$e] = true;
-
-                // This is the child course
-                $requestinfos[$nonhostcourses[$key]][$key][$errs][$e] = true;
             }
         }
 
@@ -390,6 +479,7 @@ class ucla_courserequests {
                         $request['added_at'] = $now;
 
                         $insertid = $DB->insert_record($urc, $request);
+                        $thisresult = self::insertsuccess;
 
                         $set[$key]['id'] = $insertid;
                     }
@@ -405,8 +495,13 @@ class ucla_courserequests {
             $results[$setid] = $thisresult;
         }
 
+        // Delete crosslists that have been removed and not reattached.
         $coursestodelete = array();
         foreach ($this->deletes as $setid => $true) {
+            if (empty($this->setindex[$setid])) {
+                continue;
+            }
+
             $coursetodelete = null;
             $requestsdeleted = false;
             $thisresult = self::deletefailed;
@@ -421,14 +516,20 @@ class ucla_courserequests {
                 }
             }
 
-            if ($DB->delete_records($urc, array('setid' => $setid))) {
-                $thisresult = self::deletesuccess;
-                if ($coursetodelete) {
-                    // Attempt to delete the courses
-                    if (!delete_course($coursetodelete, false)) {
-                        $thisresult = self::deletecoursefailed;
+            $coursetodelete = false;
+            
+            try {
+                if ($DB->delete_records($urc, array('setid' => $setid))) {
+                    $thisresult = self::deletesuccess;
+                    if ($coursetodelete) {
+                        // Attempt to delete the courses
+                        if (!delete_course($coursetodelete, false)) {
+                            $thisresult = self::deletecoursefailed;
+                        }
                     }
                 }
+            } catch (dml_exception $e) {
+                var_dump($e);
             }
 
             $results[$setid] = $thisresult;

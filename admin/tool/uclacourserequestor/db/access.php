@@ -3,11 +3,10 @@
  * CCLE-1723
  * Adding 'Support Admin' capability to course requestor
  **/
-
 $capabilities = array(
-    'tool/uclacourserequestor:view' => array(
+    'tool/uclacourserequestor:edit' => array(
         'riskbitmask' => RISK_CONFIG,
-        'captype' => 'read',
+        'captype' => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
         'legacy' => array(
             'manager' => CAP_ALLOW

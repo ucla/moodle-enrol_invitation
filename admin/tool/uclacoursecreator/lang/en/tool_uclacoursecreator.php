@@ -26,19 +26,22 @@ You can specify as many terms as you would like.
 Other options:
 
 -c, --category:
-    Auto create division and subject area categories. If this option is disabled, the behavior will follow whatever has been specified in the IMS Enterprise configuration.
-
--d, --debug:
-    Force debug mode. Emails are not send, URLs are not updated, and at the end of each term, an exception is thrown, forcing each term to fail. See reverting cron job.
+    Auto create division and subject area categories, then nest the subject area in the division categories. If this option is disabled, then only subject area categories will be created.
 
 --current-term:
     Run for the term that is specified in the configuration as the current term.
 
+-f, fail:
+    Used for testing reverting.
+
 -h, --help:
     Show this message.
 
+-m, --mail:
+    Enables sending of mails to instructors.
+
 -r, --revert:
-    This will enable reverting of failed built courses. Whenever the course creator decides that a term built failed, instead of leaving the courses in the Moodle DB, it will attempt to delete them.
+    Experimental: This will enable reverting of failed built courses. Whenever the course creator decides that a term built failed, instead of leaving the courses in the Moodle DB, it will attempt to delete them.
 
 -u, --unlock-first
     Attempt to remove a lock that may have been placed by another failed course creator run.
