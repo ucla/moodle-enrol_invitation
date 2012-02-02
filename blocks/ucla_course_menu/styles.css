@@ -26,8 +26,18 @@
 
 .module_elements_section {
     background-color: #EFEFEF;
-    margin: 2px -14px -10px -14px;
+    margin: -1px -14px -10px -14px;
     padding-left: 14px;
     padding-right: 14px;
-    padding-top: 1px;
+    padding-top: 0px;
+    padding-bottom: 0px;
 }
+
+.block_ucla_course_menu .content .block_tree.list .type_structure {
+    border-bottom: 1px solid #FFF;
+}
+
+.block_ucla_course_menu .content .block_tree.list .type_activity {
+    border-bottom: 1px solid #FFF;
+}
+
