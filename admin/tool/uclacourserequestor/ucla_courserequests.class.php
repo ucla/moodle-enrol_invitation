@@ -382,9 +382,15 @@ class ucla_courserequests {
 
                 // Avoid affecting existing requests when fetching requests from
                 // the Registrar
-                if (isset($course['id']) 
-                        && $context == UCLA_REQUESTOR_FETCH) {
-                    $course[$errs][UCLA_REQUESTOR_EXIST] = true;
+                if ($context == UCLA_REQUESTOR_FETCH) {
+                    if (isset($course['id'])) {
+                        $course[$errs][UCLA_REQUESTOR_EXIST] = true;
+                    }
+
+                    if (isset($course['enrolstat'])
+                            && enrolstat_is_cancelled($course['enrolstat'])) {
+                        $course[$errs][UCLA_REQUESTOR_CANCELLED] = true;
+                    }
                 }
 
                 if ($course[$h] > 0) {

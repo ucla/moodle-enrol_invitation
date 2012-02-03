@@ -111,7 +111,7 @@ if ($ext_argv['current-term']) {
     if (!empty($CFG->currentterm)) {
         $termlist = array($CFG->currentterm);
     } else {
-        echo get_string('current_term_not_set', 'tool_uclacourserequestor') 
+        echo get_string('current_term_not_set', 'tool_uclacoursecreator') 
             . "\n";
     }
 }
@@ -124,12 +124,14 @@ if ($ext_argv['unlock-first']) {
 // Force revertings
 if ($ext_argv['revert']) {
     // Temporary change
-    $CFG->course_creator_revert_failed_cron = true;
+    $CFG->forced_plugin_settings['tool_uclacoursecreator']
+        ['revert_failed_cron'] = true;
 }
 
 // Categories
 if ($ext_argv['category']) {
-    $CFG->course_creator_division_categories = true;
+    $CFG->forced_plugin_settings['tool_uclacoursecreator']
+        ['make_division_categories'] = true;
 }
 
 // Set the terms to be this value

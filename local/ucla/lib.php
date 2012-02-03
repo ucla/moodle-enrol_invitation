@@ -60,6 +60,31 @@ function ucla_require_registrar() {
         . '/local/ucla/uclaregistrar/registrar_query.class.php');
 }
 
+/**
+ *  Checks if an enrol-stat code means a course is cancelled.
+ **/
+function enrolstat_is_cancelled($enrolstat) {
+    return strtolower($enrolstat) == 'X';
+}
+
+/**
+ *  Translate the single-character enrollment code to a word.
+ *  There is an assumption here that case does not matter for these
+ *  enrollment codes.
+ **/
+function enrolstat_string($enrolstat) {
+    $sm = get_string_manager();
+    $ess = 'enrolstat_' . strtolower($enrolstat);
+    $rs = '';
+    if ($sm->string_exists($ess, 'local_ucla')) {
+        $rs = get_string($ess, 'local_ucla');
+    } else {
+        $rs = get_string('enrolstat_unknown', 'local_ucla');
+    }
+
+    return $rs;
+}
+
 /** 
  *  Serialize/hashes courses.
  **/
@@ -77,14 +102,8 @@ function make_idnumber($courseinfo) {
 }
 
 /**
- *  Returns a set of courses based on the courseid provided.
- *  @author Yangmun Choi
- *  @param  $courseid   `id` field of {course} table.
- *  @return 
- *      Array (
- *          make_idnumber() => reg_info_object
- *          ...
- *      )
+ *  Convenience function for returning a single course info.
+ *  @param  $courseid   Primary key for course table
  **/
 function ucla_get_course_info($courseid) {
     global $DB;
@@ -94,6 +113,20 @@ function ucla_get_course_info($courseid) {
     return reset($many);
 }
 
+/**
+ *  Returns a set of courses based on the courseid provided.
+ *  @author Yangmun Choi
+ *  @param  
+ *      $courseids   `id` field of {course} table.
+ *  @return 
+ *      Array (
+ *          setid => 
+ *              Array (
+ *                  make_idnumber() => reg_info_object
+ *                  ...
+ *              )
+ *          )
+ **/
 function ucla_get_courses_info($courseids) {
     global $DB;
 
@@ -106,7 +139,6 @@ function ucla_get_courses_info($courseids) {
     // Index... this seems like it can be abstracted
 
     return index_ucla_course_requests($requests);
-
 }
 
 /**
@@ -536,6 +568,25 @@ function get_moodlerole($pseudorole, $subject_area='*SYSTEM*') {
     throw new moodle_exception('invalidrolemapping', 'local_ucla', null, 
             sprintf('Params: $pseudorole - %s, $subject_area - %s', 
                     $pseudorole, $subject_area));
+}
+
+/**
+ *  Wrapper with debugging and diverting controls for PHP's mail.
+ **/
+function ucla_send_mail($to, $subj, $body='', $header='') {
+    global $CFG;
+
+    if (!empty($CFG->divertmailsto)) {
+        $to = $CFG->divertmailsto;
+    }
+
+    if (debugging()) {
+        debugging("TO: $to\nSUBJ: $subj\nBODY: $body\nHEADER: $header");
+    } else {
+        return @mail($to, $subj, $body, $header);
+    }
+
+    return true;
 }
 
 // EOF

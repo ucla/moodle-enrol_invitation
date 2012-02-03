@@ -517,6 +517,8 @@ class uclacoursecreator {
     function set_term_list($terms_list) {
         if ($terms_list != null && !empty($terms_list)) {
             $this->terms_list = $terms_list;
+        } else {
+            $this->figure_terms();
         }
     }
 
@@ -1570,10 +1572,8 @@ class uclacoursecreator {
             if ($this->send_mails && !$block_email) {
                 $this->println("Emailing: $email_to");
 
-                // EMAIL OUT
-                // TODO less baremetal PHP function
-                die;
-                mail($email_to, $email_subject, $email_body, $headers);
+                ucla_send_mail($email_to, $email_subject, 
+                    $email_body, $headers);
             } else {
                 if ($block_email) {
                     $this->println('Blocked this email.');
@@ -1584,11 +1584,6 @@ class uclacoursecreator {
                 $this->println("subj: $email_subject");
 
                 $this->println();
-
-                // If debugging, send to the admin
-                // TODO less baremetal PHP function
-                mail($this->get_config('course_creator_email'), 
-                    $email_subject, $email_body);
             }
         }
 
@@ -1835,7 +1830,6 @@ class uclacoursecreator {
                 // Gather contacts, so we do not email requestors more than
                 // once
                 if (!isset($this->requestor_emails[$contact])) {
-
                     if (validate_email($contact)) {
                         $this->requestor_emails[$contact] = array();
                     } else {
@@ -1892,7 +1886,7 @@ class uclacoursecreator {
             $req_summary = implode(',', $created_courses);
 
             if ($this->send_mails) {
-                $resp = mail($requestor, $req_subj, $req_mes, 
+                $resp = ucla_send_mail($requestor, $req_subj, $req_mes, 
                     $requestor_headers);
 
                 if ($resp) {
@@ -1900,6 +1894,8 @@ class uclacoursecreator {
                 } else {
                     $this->println("ERROR: course not email $requestor");
                 }
+            } else {
+                $this->debugln("Emailed: $requestor $req_mes");
             }
 
             $this->emailln("Requestor: $requestor for $req_summary");
@@ -2026,8 +2022,7 @@ class uclacoursecreator {
         );
 
         // Email the summary to the admin
-        // TODO use a non-PHP baremetal function
-        mail($this->get_config('course_creator_email'), 
+        ucla_send_mail($this->get_config('course_creator_email'), 
             'Course Creator Summary ' . $this->shell_date, $this->email_log);
 
         $this->close_log_file_pointer();
@@ -2041,7 +2036,7 @@ class uclacoursecreator {
      **/
     function make_dbid() {
         if (!isset($this->db_id)) {
-            $this->db_id = $this->get_config('dbname');
+            $this->db_id = get_config(null, 'dbname');
         }
     }
 
@@ -2070,9 +2065,8 @@ class uclacoursecreator {
      *  Will change the state of the object.
      **/
     function figure_terms() {
-        if ($this->get_config('course_creator_terms')) {
-            $terms_list = explode(' ', 
-                $this->get_config('course_creator_terms'));
+        if ($this->get_config('terms')) {
+            $terms_list = explode(' ', $this->get_config('terms'));
         }
 
         if (isset($terms_list)) {
@@ -2103,14 +2097,14 @@ class uclacoursecreator {
             return false;
         }
 
-        if (!$this->get_config('course_creator_email_template_dir')) {
+        if (!$this->get_config('email_template_dir')) {
             throw new course_creator_exception(
                 'ERROR: course_creator_email_template_dir not set!'
             );
         }
 
         $this->email_prefix = 
-            $this->get_config('course_creator_email_template_dir');
+            $this->get_config('email_template_dir');
 
         $this->email_suffix = '_course_setup_email.txt';
         
@@ -2129,7 +2123,8 @@ class uclacoursecreator {
      *  @return string The URL of the course (no protocol).
      **/
     function build_course_url($course) {
-        if ($this->get_config('ucla_friendlyurls_enabled')) {
+        // TODO put this in the proper namespace
+        if (get_config('', 'ucla_friendlyurls_enabled')) {
             return new moodle_url('/course/view/' . $course->shortname);
         }
 

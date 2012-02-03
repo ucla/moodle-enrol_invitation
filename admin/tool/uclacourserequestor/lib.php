@@ -30,6 +30,7 @@ define('UCLA_REQUESTOR_EXIST', 'alreadysubmitted');
 define('UCLA_REQUESTOR_BADCL', 'illegalcrosslist');
 define('UCLA_REQUESTOR_GHOST', 'ghostcoursecreated');
 define('UCLA_REQUESTOR_BADHOST', 'inconsistenthost');
+define('UCLA_REQUESTOR_CANCELLED', 'cancelledcourse');
 
 define('UCLA_REQUESTOR_FETCH', 'fetch');
 define('UCLA_REQUESTOR_VIEW', 'views');
