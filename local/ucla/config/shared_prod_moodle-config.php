@@ -69,15 +69,15 @@ $CFG->registrar_dbuser = '';
 $CFG->registrar_dbpass = '';
 $CFG->registrar_dbname = 'srdb';
 
+// Course builder
+$terms_to_built = array('11F', '12W', '12S');
+
 // Course Requestor
-$CFG->classrequestor_terms = array('11F', '12W', '12S');    // array of terms
-$CFG->classrequestor_selected_term = $CFG->currentterm; // default term
-$CFG->classrequestor_mailinst_default = false; // default value for mailinst
-$CFG->classrequestor_forceurl_default = false; // default value for forceurl
-$CFG->classrequestor_nourlupd_default = false; // default value for nourlupd
-$CFG->classrequestor_hidden_default = false; // default value for hidden
+$CFG->forced_plugin_settings['tool_uclacourserequestor']['terms'] = $terms_to_built;
+$CFG->forced_plugin_settings['tool_uclacourserequestor']['selected_term'] = $CFG->currentterm;
 
 // Course Creator
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['terms'] = $terms_to_built;
 $CFG->course_creator_email = 'ccle-operations@lists.ucla.edu';
 $CFG->course_creator_email_template_dir = '/usr/local/moodle/config/course_creator/email_templates';
 
