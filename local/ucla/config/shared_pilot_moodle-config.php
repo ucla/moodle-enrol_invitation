@@ -83,6 +83,11 @@ $CFG->forced_plugin_settings['tool_uclacoursecreator']['terms'] = $terms_to_buil
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['course_creator_email'] = 'ccle-operations@lists.ucla.edu';
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['email_template_dir'] = '/usr/local/moodle/config/course_creator/email_templates';
 
+// MyUCLA url updater
+$CFG->forced_plugin_settings['tool_myucla_url']['url_service'] = 'http://cis.ucla.edu/ieiWebMap/update.asp';
+$CFG->forced_plugin_settings['tool_myucla_url']['user_name'] = 'CCLE Admin';
+$CFG->forced_plugin_settings['tool_myucla_url']['user_email'] = 'ccle@ucla.edu';
+
 // turn off messaging (CCLE-2318 - MESSAGING)
 $CFG->messaging = false;
 
