@@ -2066,7 +2066,7 @@ class uclacoursecreator {
      **/
     function figure_terms() {
         if ($this->get_config('terms')) {
-            $terms_list = explode(' ', $this->get_config('terms'));
+            $terms_list = $this->get_config('terms');
         }
 
         if (isset($terms_list)) {
