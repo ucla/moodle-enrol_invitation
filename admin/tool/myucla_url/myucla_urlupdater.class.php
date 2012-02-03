@@ -69,8 +69,6 @@ class myucla_urlupdater {
         // Figure out what to build as the URL of the course
         $retrieved_info = array();
 
-        $fakegood = $push && debugging();
-
         // For each requested course, figure out the URL
         foreach ($sending_urls as $idnumber => $sendings) {
             $sender = null;
@@ -83,9 +81,8 @@ class myucla_urlupdater {
                 $sendings['term'], $sendings['srs'], $sender
             );
 
-            if (!$fakegood) {
-                // Return debuggable message
-                $myucla_curl = $sendings['url'];
+            if ($this->is_debugging()) {
+                $myucla_curl = $url_update . '-' . $sendings['url'];
             } else {
                 $myucla_curl = $this->contact_MyUCLA($url_update);
             }
@@ -152,16 +149,23 @@ class myucla_urlupdater {
      *  Convenience function to get access the webservice for MyUCLA
      **/
     function contact_MyUCLA($url) {
-        if (debugging()) {
-            return self::expected_success_message;
-        }
-
         $content = $this->trim_strip_tags(file_get_contents($url));
 
         // Give MyUCLA time to breathe (if needed, please uncomment)
         // sleep(1);
 
         return $content;
+    }
+
+    /**
+     *  Returns if we should send the actual message or not.
+     **/
+    function is_debugging() {
+        if (get_config(self::mname, 'override_debugging')) {
+            return false;
+        }
+
+        return debugging();
     }
 
     /**
