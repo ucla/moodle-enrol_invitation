@@ -196,7 +196,6 @@ abstract class registrar_query {
      *  Trims all fields and makes the case of the keys to lower case.
      **/
     function clean_row($fields) {
-        var_dump($fields);
         $new = array_change_key_case($fields, CASE_LOWER);
     
         foreach ($new as $k => $v) {
@@ -275,9 +274,10 @@ abstract class registrar_query {
             );
         }
 
-        if ($CFG->debug > 0) {
-            $extdb->debug = true;
-        }
+        // Uncomment to debug registrar SQL statements
+        //if ($CFG->debug > 0) {
+        //    $extdb->debug = true;
+        //}
 
         // If the stored procedures are not working, uncomment this line
         //$extdb->curmode = SQL_CUR_USE_ODBC;
