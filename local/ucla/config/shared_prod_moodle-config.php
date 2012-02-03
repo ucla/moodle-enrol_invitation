@@ -80,8 +80,8 @@ $CFG->forced_plugin_settings['tool_uclacourserequestor']['nourlupdate_default'] 
 
 // Course Creator
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['terms'] = $terms_to_built;
-$CFG->course_creator_email = 'ccle-operations@lists.ucla.edu';
-$CFG->course_creator_email_template_dir = '/usr/local/moodle/config/course_creator/email_templates';
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['course_creator_email'] = 'ccle-operations@lists.ucla.edu';
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['email_template_dir'] = '/usr/local/moodle/config/course_creator/email_templates';
 
 // turn off messaging (CCLE-2318 - MESSAGING)
 $CFG->messaging = false;

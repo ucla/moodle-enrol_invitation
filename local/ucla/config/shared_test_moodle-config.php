@@ -81,8 +81,8 @@ $CFG->forced_plugin_settings['tool_uclacourserequestor']['nourlupdate_default'] 
 
 // Course Creator
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['terms'] = $terms_to_built;
-$CFG->course_creator_email = 'ccle-operations@lists.ucla.edu';
-$CFG->course_creator_email_template_dir = '/usr/local/moodle/m2test_config/course_creator/email_templates';
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['course_creator_email'] = 'ccle-operations@lists.ucla.edu';
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['email_template_dir'] = '/usr/local/moodle/m2test_config/course_creator/email_templates';
 
 // If you want to have un-revisioned configuration data, place in this file.
 // $CFG->dirroot is overwritten later
