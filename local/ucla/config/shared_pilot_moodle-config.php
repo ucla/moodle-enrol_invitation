@@ -75,6 +75,8 @@ $terms_to_built = array('11F', '12W', '12S');
 // Course Requestor
 $CFG->forced_plugin_settings['tool_uclacourserequestor']['terms'] = $terms_to_built;
 $CFG->forced_plugin_settings['tool_uclacourserequestor']['selected_term'] = $CFG->currentterm;
+$CFG->forced_plugin_settings['tool_uclacourserequestor']['mailinst_default'] = true; 
+$CFG->forced_plugin_settings['tool_uclacourserequestor']['nourlupdate_default'] = false;
 
 // Course Creator
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['terms'] = $terms_to_built;
