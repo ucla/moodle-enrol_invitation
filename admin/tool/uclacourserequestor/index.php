@@ -61,16 +61,19 @@ $top_forms = array(
 $termstr = get_config($rucr, 'terms');
 
 if (!empty($termstr)) {
-    if (is_array($termstr)) {
-        $terms = $termstr;
-    } else {
-        $terms = explode(',', $termstr);
+    $terms = array();
 
-        foreach ($terms as $k => $t) {
-            unset($terms[$k]);
-            $tt = trim($t);
-            $terms[$tt] = $tt;
-        }
+    $interms = array();
+    if (is_array($termstr)) {
+        $interms = $termstr;
+    } else {
+        $interms = explode(',', $termstr);
+    }
+
+    foreach ($interms as $k => $t) {
+        unset($terms[$k]);
+        $tt = trim($t);
+        $terms[$tt] = $tt;
     }
 }
 
