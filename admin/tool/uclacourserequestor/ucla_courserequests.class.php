@@ -548,10 +548,12 @@ class ucla_courserequests {
             $ids[] = $ab['id'];
         }
 
-        list ($sql, $params) = $DB->get_in_or_equal($ids);
+        if (!empty($ids)) {
+            list ($sql, $params) = $DB->get_in_or_equal($ids);
 
-        $sqlwhere = '`id` ' . $sql;
-        $DB->delete_records_select($urc, $sqlwhere, $params);
+            $sqlwhere = '`id` ' . $sql;
+            $DB->delete_records_select($urc, $sqlwhere, $params);
+        }
 
         return $results;
     }
