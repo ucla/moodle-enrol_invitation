@@ -536,10 +536,22 @@ class ucla_courserequests {
                 }
             } catch (dml_exception $e) {
                 var_dump($e);
+                // This may not be the right usage...
             }
 
             $results[$setid] = $thisresult;
         }
+
+        // mass delete the abandoned ones...
+        $ids = array();
+        foreach ($this->abandoned as $ab) {
+            $ids[] = $ab['id'];
+        }
+
+        list ($sql, $params) = $DB->get_in_or_equal($ids);
+
+        $sqlwhere = '`id` ' . $sql;
+        $DB->delete_records_select($urc, $sqlwhere, $params);
 
         return $results;
     }
