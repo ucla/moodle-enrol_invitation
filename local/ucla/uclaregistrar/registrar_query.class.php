@@ -133,8 +133,11 @@ abstract class registrar_query {
 
             // Let's not fail hard
             if ($qr === false) {
-                return $direct_data;
+                $this->previous_bad_inputs = $driving_datum;
+                continue;
             }
+
+            $qr = self::db_encode($qr);
 
             $recset = $db_reg->Execute($qr);
 
@@ -197,10 +200,12 @@ abstract class registrar_query {
      **/
     function clean_row($fields) {
         $new = array_change_key_case($fields, CASE_LOWER);
-    
+
         foreach ($new as $k => $v) {
             $new[$k] = trim($v);
         }
+
+        $new = self::db_decode($new);
 
         return $new;
     }
@@ -300,6 +305,60 @@ abstract class registrar_query {
         $CFG->$i =& $extdb;
 
         return $extdb;
+    }
+
+    const DEFAULT_ENCODING = 'utf-8';
+
+    /**
+     *  Go from the utf-8 to the remote db's encoding.
+     **/
+    static function db_encode($text) {
+        $dbenc = self::db_coding_check();
+        if (!$dbenc) {
+            return $text;
+        }
+
+        if (is_array($text)) {
+            foreach ($text as $k => $value) {
+                $text[$k] = self::db_encode($value);
+            }
+        } else {
+            $text = textlib::convert($text, self::DEFAULT_ENCODING, $dbenc);
+        } 
+
+        return $text;
+    }
+
+    /**
+     *  Come from the remote db's encoding into utf-8.
+     **/
+    static function db_decode($text) {
+        $dbenc = self::db_coding_check();
+        if (!$dbenc) {
+            return $text;
+        }
+        
+        if (is_array($text)) {
+            foreach ($text as $k => $value) {
+                $text[$k] = self::db_decode($value);
+            }
+        } else {
+            $text = textlib::convert($text, $dbenc, self::DEFAULT_ENCODING);
+        } 
+
+        return $text;
+    }
+
+    /**
+     *  Checks if we need to do the en/decoding.
+     **/
+    static function db_coding_check() {
+        $dbenc = get_config('', 'registrar_dbencoding');
+        if ($dbenc == self::DEFAULT_ENCODING) {
+            return false;
+        }
+
+        return $dbenc;
     }
 }
 

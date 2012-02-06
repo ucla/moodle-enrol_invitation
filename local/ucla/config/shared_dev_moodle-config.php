@@ -69,6 +69,7 @@ $CFG->registrar_dbhost = '';
 $CFG->registrar_dbuser = '';
 $CFG->registrar_dbpass = '';
 $CFG->registrar_dbname = 'srdb';
+$CFG->registrar_dbencoding = 'ISO-8859-1';
 
 // Course builder
 $terms_to_built = array('11F', '12W', '12S');
