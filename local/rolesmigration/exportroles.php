@@ -17,18 +17,18 @@
 /**
  * Prints the Export Roles page along with appropriate forms and / or actions.
  * @package   moodlerolesmigration
+ * @copyright 2011 NCSU DELTA | <http://delta.ncsu.edu> and others
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-require_once('../../config.php');
-global $CFG, $OUTPUT;
 
+require_once(dirname(__FILE__).'/../../config.php');
 require_once($CFG->libdir.'/adminlib.php');
-require_once(dirname(__FILE__) . '/exportroles_form.php');
+require_once(dirname(__FILE__).'/exportroles_form.php');
 
 // Site context
 $context = get_context_instance(CONTEXT_SYSTEM);
 
-// Context ID vars
+// Set context ID vars
 $contextid = $context->id;
 $filecontextid = optional_param('filecontextid', 0, PARAM_INT);
 
@@ -44,28 +44,28 @@ require_login();
 require_capability('moodle/role:manage', $context);
 admin_externalpage_setup('exportroles');
 
-// Initialize the form object
+// Init the form object
 $form = new export_roles_form(null, array('contextid'=>$contextid));
 
 // Process the form if it has been submitted
 $data = $form->get_data();
 if ($data && !empty($data->export)){
-	// This file processes the export and delivers the XML file 
-	require_once(dirname(__FILE__).'/do-export.php');
+    // This file processes the export and delivers the XML file 
+    include_once('do-export.php'); 
 }elseif($form->is_submitted()){
-	$errormsg = get_string('error_noselect','local_rolesmigration');
+    $errormsg = get_string('error_noselect', 'report_rolesmigration');
 }
 
 // Print the page header
 echo $OUTPUT->header();
 
 // Print the page heading
-echo $OUTPUT->heading(get_string('selectrolestoexport', 'local_rolesmigration'));
+echo $OUTPUT->heading(get_string('selectrolestoexport', 'report_rolesmigration'));
 echo $OUTPUT->container_start();
 
 // Print the error message if one is present
 if(isset($errormsg)) {
-    echo '<div class="errorbox">'.$errormsg.'</div>';
+    echo '<div class="box errorbox">'.$errormsg.'</div>';
 }
 
 // Print the form

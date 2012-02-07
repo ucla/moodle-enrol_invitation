@@ -16,7 +16,7 @@
 
 /**
  * @package   moodlerolesmigration
- * @copyright 2011 NCSU DELTA | <http://delta.ncsu.edu>
+ * @copyright 2011 NCSU DELTA | <http://delta.ncsu.edu> and others
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -94,35 +94,36 @@ function roles_migration_get_incoming_roles($xml=false) {
     return false;
 }
 
-function import_config_table($xml,$roles_to_create,$actions){
+function import_config_table($xml, $roles_to_create, $actions){
     global $DB;
+
     // Existing roles in this installation
     $existing_roles = $DB->get_records('role');
     $incoming_roles = roles_migration_get_incoming_roles($xml);
-    
+
     $table = new html_table();
     $table->attributes['class'] = 'import_form_table';
     $table->align = array('right', 'left', 'left', 'left');
     $table->wrap = array('nowrap', '', 'nowrap', 'nowrap');
     $table->data = array();
-    $table->head = array(get_string('name'), get_string('shortname'), 
+    $table->head = array(get_string('name'), get_string('shortname'),
     get_string('action'));
     if (! is_array($incoming_roles)) {
-        echo 'No roles found in import file.';
+        echo get_string('no_roles_in_import', 'local_rolesmigration');
         return;
     }
     foreach ($incoming_roles as $role) {
         $row = array();
         $row[0] = $role->name;
         $row[1] = $role->shortname;
-        
-        $skip_checked = (isset($actions[$role->shortname]) && 'skip' == $actions[$role->shortname]) ? 'checked="checked"' : '';
+
         $create_checked = (isset($actions[$role->shortname]) && 'create' == $actions[$role->shortname]) ? 'checked="checked"' : '';
         $replace_checked = (isset($actions[$role->shortname]) && 'replace' == $actions[$role->shortname]) ? 'checked="checked"' : '';
-        
+        $skip_checked = (empty($create_checked) && empty($replace_checked) ) ? 'checked="checked"' : ''; 
+
         $shortname_new_value = isset($roles_to_create[$role->shortname]['shortname']) ? $roles_to_create[$role->shortname]['shortname'] : $role->shortname;
         $name_new_value = isset($roles_to_create[$role->shortname]['name']) ? $roles_to_create[$role->shortname]['name'] : $role->name;
-        
+
         $options = '';
         $replace_options = '';
         foreach ($existing_roles as $er) {
@@ -156,7 +157,10 @@ function import_config_table($xml,$roles_to_create,$actions){
         $row[2] .= '</ul>';
         $table->data[] = $row;
     }
-    
+
     return $table;
+}
+?>
+urn $table;
 }
 ?>

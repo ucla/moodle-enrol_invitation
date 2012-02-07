@@ -18,12 +18,12 @@
 /**
  * Performs the XML generation for Moodle Roles based on input from the Roles Export Form
  * @package   moodlerolesmigration
- * @copyright 2011 NCSU DELTA | <http://delta.ncsu.edu>
+ * @copyright 2011 NCSU DELTA | <http://delta.ncsu.edu> and others
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 defined('MOODLE_INTERNAL') || die();
 
-global $CFG, $USER, $DB;
 // Include necessary XML libarary files
 require_once($CFG->dirroot.'/backup/util/xml/output/xml_output.class.php');
 require_once($CFG->dirroot.'/backup/util/xml/output/memory_xml_output.class.php');
@@ -122,7 +122,7 @@ $xml->stop();
 if ($fs->create_file_from_string($fileinfo, $xml_output->get_allcontents())) {
     if ($file = $fs->get_file($fileinfo['contextid'], $fileinfo['component'], $fileinfo['filearea'], $fileinfo['itemid'], $fileinfo['filepath'], $fileinfo['filename'])) {
         $path = "/".$fileinfo['contextid']."/".$fileinfo['component']."/".$fileinfo['filearea']."/".$fileinfo['itemid'].$fileinfo['filepath'].$fileinfo['filename'];
-		$url = moodle_url::make_file_url($CFG->wwwroot."/pluginfile.php", $path);
+        $url = moodle_url::make_file_url($CFG->wwwroot."/pluginfile.php", $path);
         redirect($url);
     } else {
         send_file_not_found();
@@ -130,4 +130,5 @@ if ($fs->create_file_from_string($fileinfo, $xml_output->get_allcontents())) {
 } else {
         send_file_not_found();
 }
+die();
 die();
