@@ -85,18 +85,11 @@ $CFG->forced_plugin_settings['tool_uclacoursecreator']['terms'] = $terms_to_buil
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['course_creator_email'] = 'ccle-operations@lists.ucla.edu';
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['email_template_dir'] = '/usr/local/moodle/m2test_config/course_creator/email_templates';
 
-// If you want to have un-revisioned configuration data, place in this file.
-// $CFG->dirroot is overwritten later
-$_dirroot_ = dirname(realpath(__FILE__)) . '/../../..';
-
-// Try an alternative directory setup.
-if (!file_exists($_dirroot_ . '/config.php')) {
-    $_dirroot_ = dirname(realpath(__FILE__));
-
-    if (!file_exists($_dirroot_ . '/config.php')) {
-        die ('Improper setup of configuration file.');
-    }
-}
+// MyUCLA url updater
+$CFG->forced_plugin_settings['tool_myucla_url']['url_service'] = 'https://m2test.ccle.ucla.edu/rex/myucla_url_updater/update.php';  // test server
+$CFG->forced_plugin_settings['tool_myucla_url']['user_name'] = 'CCLE Admin';   // name for registering URL with My.UCLA
+$CFG->forced_plugin_settings['tool_myucla_url']['user_email'] = 'ccle@ucla.edu';  // email for registering URL with My.UCLA
+$CFG->forced_plugin_settings['tool_myucla_url']['override_debugging'] = true;   // test sending MyUCLA urls
 
 // turn off messaging (CCLE-2318 - MESSAGING)
 $CFG->messaging = false;
