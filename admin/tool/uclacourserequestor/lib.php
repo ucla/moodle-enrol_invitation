@@ -751,7 +751,13 @@ function prep_request_entry($requestinfo) {
         if ($oldval == null) {
             $newval = get_string('newrequest' . $tr, $rucr);
         } else {
-            $newval = $oldval;
+            // if on 'courseid', then make link to a course
+            if ('courseid' == $tr) {                
+                $newval = html_writer::link(new moodle_url('/course/view.php', array('id' => $oldval)), 
+                        $oldval, array('target' => '_blank'));
+            } else {
+                $newval = $oldval;                
+            }
         }
 
         $formatted[$tr] = $newval;
