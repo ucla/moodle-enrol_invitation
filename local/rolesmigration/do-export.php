@@ -131,4 +131,3 @@ if ($fs->create_file_from_string($fileinfo, $xml_output->get_allcontents())) {
         send_file_not_found();
 }
 die();
-die();

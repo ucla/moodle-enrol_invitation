@@ -42,4 +42,3 @@ $exportobject = new admin_externalpage(
 // Register new admin page object under User -> Roles
 $ADMIN->add('roles', $importobject);
 $ADMIN->add('roles', $exportobject);
-bject);

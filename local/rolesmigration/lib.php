@@ -161,6 +161,3 @@ function import_config_table($xml, $roles_to_create, $actions){
     return $table;
 }
 ?>
-urn $table;
-}
-?>
