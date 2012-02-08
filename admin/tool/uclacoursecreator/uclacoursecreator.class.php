@@ -944,7 +944,7 @@ class uclacoursecreator {
         // This is how moodle creates categories...
         $newcategory = new StdClass();
         $newcategory->name = $name;
-        $newcategory->parent = 0;
+        $newcategory->parent = $parent;
         $newcategory->sortorder = 999;
 
         // This is because we're not going to add a description.
