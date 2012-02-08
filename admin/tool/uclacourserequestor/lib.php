@@ -431,13 +431,7 @@ function get_crosslist_set_for_host($host) {
     if (!empty($clists->getConSchedData)) {
         $exts = array();
 
-        $ts = $clists->getConSchedData;
-
-        if (!is_array($ts)) {
-            $ts = array($ts);
-        }
-            
-        foreach ($ts as $termsrs) {
+        foreach ($clists->getConSchedData as $termsrs) {
             $ext = extract_term_srs_xml($termsrs);
 
             if (!$ext) {
