@@ -1808,12 +1808,12 @@ class uclacoursecreator {
 
         // Gather requestors' courses
         foreach ($this->cron_term_cache['requests'] as $course) {
-            if (empty($course->contact)) {
+            if (empty($course->requestoremail)) {
                 continue;
             }
 
             // TODO pluralize, work for csv of emails
-            $contact = $course->contact;
+            $contact = $course->requestoremail;
 
             // Validate contact
             if (!isset($this->requestor_emails[$contact])) {
@@ -1857,8 +1857,6 @@ class uclacoursecreator {
 
         // Email course requestors
         foreach ($this->requestor_emails as $requestor => $created_courses) {
-            $req_mes = $requestor_mesg_start 
-                . implode("\n", $created_courses) . $requestor_mesg_end;
 
             $crecou_cnt = count($created_courses);
             if ($crecou_cnt > 1) {
@@ -1869,19 +1867,27 @@ class uclacoursecreator {
 
             $req_subj = "Your request for $req_subj_subj has been processed.";
 
-            $req_summary = implode(',', $created_courses);
+            $created_courses_summary = array();
+            foreach ($created_courses as $key => $status) {
+                $created_courses_summary[] = $key . " - " . $status;
+            }
+
+            $req_summary = implode("\n", $created_courses_summary);
+
+            $req_mes = $requestor_mesg_start 
+                . $req_summary . $requestor_mesg_end;
 
             if ($this->send_mails) {
                 $resp = ucla_send_mail($requestor, $req_subj, $req_mes, 
                     $requestor_headers);
 
                 if ($resp) {
-                    $this->debugln("Emailed $requestor for $req_summary");
+                    $this->debugln("Emailed $requestor");
                 } else {
                     $this->println("ERROR: course not email $requestor");
                 }
             } else {
-                $this->debugln("Emailed: $requestor $req_mes");
+                $this->debugln("Would have emailed: $requestor");
             }
 
             $this->emailln("Requestor: $requestor for $req_summary");
