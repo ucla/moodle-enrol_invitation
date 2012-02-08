@@ -16,7 +16,8 @@ define('UCLA_COURSE_TOBUILD', 'build');
 define('UCLA_COURSE_BUILT', 'built');
 // This means that hopefully things are working
 define('UCLA_COURSE_LOCKED', 'running');
-// other states?
+// This means request failed tobe built
+define('UCLA_COURSE_FAILED', 'failed');
 
 // This means to skip validation for this course
 define('UCLA_REQUEST_IGNORE', 'ignore');

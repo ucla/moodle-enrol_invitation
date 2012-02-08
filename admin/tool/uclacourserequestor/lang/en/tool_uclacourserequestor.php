@@ -15,7 +15,7 @@ $string['viewcourses'] = "View/Edit existing requests";
 
 // Status readable 
 $string['build'] = "To be built";
-$string['failed'] = "Failed creator";
+$string['failed'] = "Failed";
 $string['live'] = "Live";
 
 $string['delete'] = 'Delete';
