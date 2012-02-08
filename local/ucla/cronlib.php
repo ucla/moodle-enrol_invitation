@@ -33,7 +33,7 @@ class ucla_reg_classinfo_cron {
 
         $courses = ucla_get_courses_by_terms($terms, false);
 
-        echo "\nGot " . count($courses) . "courses to update.\n";
+        echo "\nGot " . count($courses) . " courses to update.\n";
 
         if (empty($courses)) {
             return true;
@@ -81,9 +81,10 @@ class ucla_reg_classinfo_cron {
         $fscc = 0;
         // Inserted
         $ic = 0;
+
         foreach ($regind as $indk => $rege) {
             if (isset($reind[$indk])) {
-                $rege->id = $reind[$indk]->id;
+                $rege['id'] = $reind[$indk]->id;
                 if (self::sanity_check($rege, $reind[$indk])) {
                     $DB->update_record(self::table, $rege);
                     $uc++;

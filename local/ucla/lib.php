@@ -64,7 +64,7 @@ function ucla_require_registrar() {
  *  Checks if an enrol-stat code means a course is cancelled.
  **/
 function enrolstat_is_cancelled($enrolstat) {
-    return strtolower($enrolstat) == 'X';
+    return strtolower($enrolstat) == 'x';
 }
 
 /**
