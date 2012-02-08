@@ -76,6 +76,7 @@ class uclacoursecreator {
     // Caches
     private $categories_cache = array();
     private $course_defaults = array();
+    private $publicprivate_enabled;
 
     /** Non Variants **/
     // These are just simple caches.
@@ -305,7 +306,7 @@ class uclacoursecreator {
     }
 
     function get_division_translation($division) {
-        return $this->get_registrar_translation('ucla_division', 
+        return $this->get_registrar_translation('ucla_reg_division', 
             $division, 'code', 'fullname');
     }
 
@@ -559,7 +560,10 @@ class uclacoursecreator {
         }
             
         // this will let both build and rebuild be built
-        $conds = array('action' => UCLA_COURSE_TOBUILD);
+        $conds = array(
+            'action' => UCLA_COURSE_TOBUILD,
+            'term' => $term
+        );
 
         $DB->set_field('ucla_request_classes', 'action', 
             UCLA_COURSE_LOCKED, $conds);
@@ -588,126 +592,76 @@ class uclacoursecreator {
     function mark_cron_term($done) {
         global $DB;
 
-        if (!$this->get_cron_term()) {
+        $thiscronterm = $this->get_cron_term();
+        if (!$thiscronterm) {
             return false;
         }
 
-        if ($done) {
-            // Figure out what to email the requestors.
-            $this->queue_requestors();
-
-            // Just mark the ones we've processed as done.
-            $ids = array();
-            foreach ($this->cron_term_cache['requests'] as $request) {
-                $ids[] = $request->id;
-            }
-
-            list($sql_in, $params) = $DB->get_in_or_equal($ids);
-            $sql_where = 'id ' . $sql_in;
-
-            $this->insert_term_rci();
-
-            $DB->set_field_select('ucla_request_classes', 'action',
-                UCLA_COURSE_BUILT, $sql_where, $params);
-
-            $this->debugln('Successfully processed ' . count($params)
-                . ' requests.');
-        } else {
-            $this->revert_cron_term();
-        }
-        
-        $this->debugln('-------- Finished ' . $this->get_cron_term() 
-            . ' --------');
-
-        return true;
-    }
-
-    /**
-     *  This will attempt to undo all the changes in cron_term_cache.
-     *  It should also mark all the requests that are processing as 
-     *  reverted.
-     *  TODO remove BLOAT    
-     **/
-     function revert_cron_term() {
-        global $DB;
-
-        $this->debugln("Attempting to revert requests for " 
-            . $this->get_cron_term() . '...');
+        $this->debugln("Determining what happened for $thiscronterm...");
 
         // Do something with these requests
         $action_ids = array();
 
-        // These are courses that were successfuly built, but were not deleted
-        // even though the course creator reverted.
-        $action_ids['failed'] = array();
-
-        // These are courses that were sucessfully built, and successfully 
-        // deleted when the course creator reverted.
-        $action_ids['rebuild'] = array();
-
         // Save a config setting
         $reverting = $this->get_config('revert_failed_cron');
 
+        if (isset($this->cron_term_cache['created_courses'])) {
+            $created_courses =& $this->cron_term_cache['created_courses'];
+        }
+
         // We're going to attempt to delete a course, and if we fail,
         // save it somewhere.
-        $course_mapper =& $this->cron_term_cache['course_mapper'];
-        $requests =& $this->cron_term_cache['requests'];
+        if (!empty($this->cron_term_cache['requests'])) {
+            $requests =& $this->cron_term_cache['requests'];
+        } else {
+            $requests = array();
+        }
 
-        // If we created courses, we should delete them
-        if (isset($this->cron_term_cache['created_courses'])) {
-            $this->debugln('Attempting to revert created courses...');
+        // Some stats and counters
+        $numdeletedcourses = 0;
+        $failed = 0;
 
-            $delete_these = $this->cron_term_cache['created_courses'];
+        foreach ($requests as $reqkey => $request) {
+            $rid = $request->id;
 
-            $failed = 0;
+            $action = UCLA_COURSE_FAILED;
+            if (isset($created_courses[$reqkey])) {
+                // The course got built, but the process was interrupted at
+                // one point... but why?
+                $course = $created_courses[$reqkey];
 
-            // There's a lot to delete...
-            // Well, per course actually, there should be nothing...
-            // Technically, there should only be the meta course enrollments,
-            // but you never know, so let's use the API
-            foreach($delete_these as $course) {
-                $this->debugln('Deleting ' . $course->shortname . ' '
-                    . $course->id . ' ----');
-
-                if ($reverting) {
-                    // Try to catch the output of delete_course()
-                    ob_start();
-
-                    $result = delete_course($course->id);
-
-                    $delete_results = ob_get_clean();
+                if ($done) {
+                    $action = UCLA_COURSE_BUILT;
                 } else {
-                    $result = false;
+                    if ($reverting) {
+                        ob_start();
+                        $result = delete_course($course->id);
+                        $delete_results = ob_get_clean();
 
-                    $delete_results = 'Reverting off.';
+                        $action = UCLA_COURSE_TOBUILD;
+
+                        $numdeletedcourses = true;
+
+                        $this->debugln($delete_results);
+                    } else {
+                        $this->debugln('leaving course ' . $course->id . ' '
+                            . $course->shortname);
+                    }
                 }
-
-                // Save the request id for marking
-                unset($request_id);
-                if (isset($course_mapper[$course->idnumber])) {
-                    $request_id = $course_mapper[$course->idnumber]->id;
-                }
-
-                if (!$result) {
-                    $action = 'failed';
-                    $failed++;
-                } else {
-                    $action = UCLA_COURSE_TOBUILD;
-                }
-
-                if (isset($request_id)) {
-                    $action_ids[$action][$request_id] = $request_id;
-                }
-
-                $this->println($delete_results);
-                $this->println('Done ----');
+            } else {
+                $this->debugln("Did not create a course for $reqkey!");
             }
 
+            if (empty($action_ids[$action])) {
+                $action_ids[$action] = array();
+            }
+
+            $action_ids[$action][$rid] = $rid;
+        }
+
+        if ($numdeletedcourses > 0) {
             // Update course count in categories.
             fix_course_sortorder();
-
-            $this->debugln('Reverted ' . (count($delete_these) - $failed)
-                . ' course sites. ' . $failed . ' failed.');
         }
 
         // Mark these entries as failed
@@ -722,12 +676,19 @@ class uclacoursecreator {
                 $DB->set_field_select('ucla_request_classes', 'action', 
                     $action, $sql_where, $params);
 
-                $this->debugln('Marked ' . count($params) . ' requests for `' 
-                    . $action . '`.');
+                $this->debugln('Marked ' . count($params) . ' request(s) '
+                    . 'as \'' . $action . '\'.');
             }
         }
 
-        $this->debugln('Finished reverting.');
+        $this->debugln('-------- Finished ' . $this->get_cron_term() 
+            . ' --------');
+
+        if ($done) {
+            $this->queue_requestors();
+        }
+
+        return true;
     }
 
     /** ****************** **/
@@ -781,7 +742,16 @@ class uclacoursecreator {
 
         unset($course_requests);
     
-        $this->insert_requests($course_set);
+        foreach ($course_set as $course) {
+            $course = $this->trim_object($course);
+
+            $this->println('Request: ' . $course->term . ' ' 
+                . $course->srs . ' ' . $course->course);
+
+            $this->cron_term_cache['requests']
+                [self::cron_requests_key($course)] = $course;
+        }
+
         $this->println('Finished processing requests.');
 
         return true;
@@ -797,15 +767,6 @@ class uclacoursecreator {
      *  @param The set of requested courses, with crosslisted hierarchy.
      **/
     function insert_requests($courses) {
-        foreach ($courses as $course) {
-            $course = $this->trim_object($course);
-
-            $this->println('Request: ' . $course->term . ' ' 
-                . $course->srs . ' ' . $course->course);
-
-            $this->cron_term_cache['requests']
-                [self::cron_requests_key($course)] = $course;
-        }
     }
 
     /**
@@ -885,12 +846,17 @@ class uclacoursecreator {
         $this->cron_term_cache['term_rci'] = $return;
     }
 
+    /**
+     *  Makes categories.
+     **/
     function prepare_categories() {
         if (empty($this->cron_term_cache['term_rci'])) {
             throw new course_creator_exception(
                 'No request data obtained from the Registrar.'
             );
         }
+
+        $requests = $this->cron_term_cache['requests'];
 
         $nesting_order = array();
         if ($this->get_config('make_division_categories')) {
@@ -918,8 +884,12 @@ class uclacoursecreator {
 
         unset($id_categories);
 
+        foreach ($rci_courses as $reqkey => $rci_course) {
+            if (!isset($requests[$reqkey]) 
+                    || $requests[$reqkey]->hostcourse == 0) {
+                continue;
+            }
 
-        foreach ($rci_courses as $rci_course) {
             $immediate_parent_catid = 0;
 
             foreach ($nesting_order as $type) {
@@ -1075,12 +1045,12 @@ class uclacoursecreator {
             $subj = rtrim($rci_object->subj_area);
             $category_name = $this->get_subj_area_translation($subj);
 
-            // TODO maybe instead of direct access, use an accessor?
-            if (!isset($this->categories_cache[$category_name])) {
+            if (isset($this->categories_cache[$category_name])) {
                 $category = $this->categories_cache[$category_name];
             } else {
-                // Default category...
-                $category = get_course_category();
+                // Default category (miscellaneous), but this may lead to 
+                // the first category displayed in course/category.php
+                $category = get_course_category(1);
             }
 
             if ($this->match_summer($term)) {
@@ -1101,13 +1071,16 @@ class uclacoursecreator {
         foreach ($existingcourses as $eck => $existingcourse) {
             // Mark these as already built...
             unset($newcourses[$eck]);
+            $this->debugln("! $eck built outside of course creator");
         }
 
-        $builtcourses = self::bulk_create_courses($newcourses);
+        $builtcourses = $this->bulk_create_courses($newcourses);
 
         foreach ($builtcourses as $btk => $course) {
             $req = $requests[$btk];
             $rsid = $req->setid;
+            
+            $this->debugln(". $btk built successfully");
             associate_set_to_course($rsid, $course->id);
 
             if (isset($nhcourses[$rsid])) {
@@ -1175,9 +1148,15 @@ class uclacoursecreator {
      *  TODO optimize
      *  @throws moodle_exception from create_course()
      **/
-    static function bulk_create_courses($courses) {
+    function bulk_create_courses($courses) {
         $returns = array();
+        // Give public private a chance to install....
+        $ppe = $this->publicprivate_enabled();
         foreach ($courses as $key => $course) {
+            if ($ppe) {
+                $course->enablepublicprivate = 1;
+            }
+
             $returns[$key] = create_course($course);
         }
 
@@ -1213,7 +1192,6 @@ class uclacoursecreator {
         foreach ($requests as $cronkey => $request) {
             // check_build_requests() should have been run
             if (!isset($created[$cronkey])) {
-                $this->println($cronkey. ' was not built.');
                 continue;
             }
 
@@ -1269,6 +1247,8 @@ class uclacoursecreator {
             $this->debugln(
                 'Warning: We have no URL information for E-Mails.'
             );
+
+            return false;
         }   
         
         if (!isset($this->cron_term_cache['trim_requests'])) {
@@ -1277,11 +1257,14 @@ class uclacoursecreator {
 
         // This should fill the term cache 'instructors' with data from 
         // ccle_CourseInstructorsGet
+        $this->println('Getting instructors from registrar...');
         $results = registrar_query::run_registrar_query(
             'ccle_courseinstructorsget', 
             $this->cron_term_cache['trim_requests'],
             true
         );
+
+        $this->println('Finished fetching from registrar.');
 
         if (empty($results)) {
             // @TODO Maybe change the default behavior
@@ -1789,6 +1772,7 @@ class uclacoursecreator {
         try {
             $DB->execute($sql, $params);
         } catch (dml_exception $e) {
+            var_dump($e);
             $this->debugln('Registrar Class Info mass insert failed.');
 
             foreach ($term_rci as $rci_data) {
@@ -1824,33 +1808,35 @@ class uclacoursecreator {
 
         // Gather requestors' courses
         foreach ($this->cron_term_cache['requests'] as $course) {
-            if (isset($course->contact) && !empty($course->contact)) {
-                $contact = $course->contact;
+            if (empty($course->contact)) {
+                continue;
+            }
 
-                // Gather contacts, so we do not email requestors more than
-                // once
-                if (!isset($this->requestor_emails[$contact])) {
-                    if (validate_email($contact)) {
-                        $this->requestor_emails[$contact] = array();
-                    } else {
-                        $this->emailln("Requestor email $contact not valid "
-                            . "for $term $csrs");
-                    }
+            // TODO pluralize, work for csv of emails
+            $contact = $course->contact;
+
+            // Validate contact
+            if (!isset($this->requestor_emails[$contact])) {
+                if (validate_email($contact)) {
+                    $this->requestor_emails[$contact] = array();
+                } else {
+                    $this->emailln("Requestor email $contact not valid "
+                        . "for $term $csrs");
+                }
+            }
+
+            if (isset($this->requestor_emails[$contact])) {
+                if (isset($url_info[$course->term][$course->srs])) {
+                    $course_url = $url_info[$course->term][$course->srs];
+                } else {
+                    $course_url = 'Failed to build.';
                 }
 
-                if (isset($this->requestor_emails[$contact])) {
-                    if (isset($url_info[$course->term][$course->srs])) {
-                        $course_url = $url_info[$course->term][$course->srs];
-                    } else {
-                        $course_url = 'Failed to build.';
-                    }
+                $req_key = $course->term . '-' . $course->srs . ' '
+                    . $course->course;
 
-                    $req_key = $course->term . '-' . $course->srs . ' '
-                        . $course->course;
-
-                    $this->requestor_emails[$contact][$req_key] = 
-                        $course_url;
-                }
+                $this->requestor_emails[$contact][$req_key] = 
+                    $course_url;
             }
         }
     }
@@ -2129,6 +2115,29 @@ class uclacoursecreator {
         }
 
         return new moodle_url('/course/view.php', array('id' => $course->id));
+    }
+
+    /**
+     *  Checks and caches the fact that public private has been enabled.
+     *  Loads public private code if public private is found.
+     **/
+    function publicprivate_enabled() {
+        global $CFG;
+
+        if (!isset($this->publicprivate_enabled)) {
+       
+            $cv = false;
+            $ppfile = $CFG->dirroot . '/lib/publicprivate/course.class.php';
+            if (file_exists($ppfile)) {
+                require_once($ppfile);
+                $cv = true;
+            }
+
+            $this->publicprivate_enabled = $cv;
+        }
+
+        return $this->publicprivate_enabled;
+
     }
 
     /**
