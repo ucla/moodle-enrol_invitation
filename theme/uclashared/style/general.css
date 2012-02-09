@@ -11,7 +11,7 @@ html, body {background-color:#FFF; height:100%;}
 
 /** Header **/
 #page-header {
-    border-top:15px solid #565656; 
+    border-top:5px solid #565656; 
 }
 
 #page-header.env-prod {
