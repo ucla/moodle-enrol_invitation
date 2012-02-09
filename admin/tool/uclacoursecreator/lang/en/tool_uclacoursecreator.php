@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 defined('MOODLE_INTERNAL') || die();
 
-$string['pluginname'] = 'Course creator';
+$string['pluginname'] = 'UCLA course creator';
 $string['uclacoursecreator'] = $string['pluginname'];
 $string['cli_helpmsg'] = 
 "USAGE: cli_autocreate.php ([TERM] ([TERM] ... ))
