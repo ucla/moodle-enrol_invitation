@@ -26,6 +26,7 @@ $string['noviewcourses'] = "There are no existing requests.";
 $string['crosslistnotice'] = "You can add crosslists while these couses are waiting in queue to be built.";
 
 $string['error'] = 'Some of the courses that you have requested have problems with them. Please look over them and if needed, submit your requests again.';
+$string['warning'] = 'Some of the courses that you have requested have different values than default. Be sure to look over them if this message is unexpected.';
 
 $string['all_department'] = 'All departments';
 $string['all_term'] = 'All terms';

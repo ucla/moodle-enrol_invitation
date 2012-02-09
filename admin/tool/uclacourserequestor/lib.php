@@ -4,7 +4,6 @@
  *  A library of functions useful for course requestor and probably
  *  course creator.
  *  @author Yangmun Choi
- *  TODO consolidate get_object_vars(), why are there so many
  **/
 
 defined('MOODLE_INTERNAL') || die();
@@ -270,8 +269,13 @@ function get_crosslisted_courses($term, $srs) {
     $regurl = 'http://webservices.registrar.ucla.edu/SRDB/SRDBWeb.asmx/'
         . 'getConSched?user=' . $CFG->registrar_dbuser . '&pass='
         . $CFG->registrar_dbpass . '&term=' . $term . '&SRS=' . $srs;
-  
-    $r = new SimpleXMLElement($regurl, 0, true);
+ 
+    try {
+        $r = new SimpleXMLElement($regurl, 0, true);
+    } catch (Exception $e) {
+        throw new Exception('Could not connect to Registrar Crosslisting '
+            . 'Webservice');
+    }
 
     return $r;
 }
@@ -344,6 +348,8 @@ function prep_registrar_entry($regdata, $instinfo, $defaults=array()) {
             }
         }
     }
+
+    $req['enrolstat'] = $regdata['enrolstat'];
 
     $req['instructor'] = $instarr;
 
@@ -576,7 +582,13 @@ function prepare_requests_for_display($requestinfos, $context) {
         // tables themselves
         if ($context == UCLA_REQUESTOR_FETCH) {
             $k = 'build';
-            $default = true;
+            // Hack, perhaps find a better place for this...
+            if (isset($displayrow[UCLA_REQUESTOR_WARNING]
+                    [UCLA_REQUESTOR_CANCELLED])) {
+                $default = false;
+            } else {
+                $default = true;
+            }
         } else {
             $k = 'delete';
             $default = false;
@@ -670,6 +682,7 @@ function request_ignored($request) {
 /**
  *  This takes all the data for a request, and prepares it to be displayed
  *  as text to a user, including all errors that need to be included.
+ *  - THIS SHOULD NEVER CHANGE THE VALUES REPRESENTED BY $requestinfo!!
  **/
 function prep_request_entry($requestinfo) {
     global $DB;
@@ -677,6 +690,7 @@ function prep_request_entry($requestinfo) {
     $errs = UCLA_REQUESTOR_ERROR;
     $wars = UCLA_REQUESTOR_WARNING;
     $worstnote = null;
+    $br = html_writer::empty_tag('br');
 
     $rucr = 'tool_uclacourserequestor';
 
@@ -688,11 +702,20 @@ function prep_request_entry($requestinfo) {
 
     $ignored = request_ignored($requestinfo);
 
+    $actiondefault = null;
+    $addedtext = '';
+    $e = UCLA_REQUESTOR_CANCELLED;
+    if (isset($requestinfo[$wars][$e])) {
+        $worstnote = $wars;
+        $addedtext = $br . get_string($e, $rucr);
+        unset($requestinfo[$errs][$e]);
+    }
+
     $maybeexists = array('delete', 'build');
     foreach ($maybeexists as $k) {
         if (isset($requestinfo[$k])) {
             $formatted[$k] = html_writer::checkbox("$key-$k", '1', 
-                $requestinfo[$k], '');
+                $requestinfo[$k], $addedtext);
         }
     }
 
@@ -748,8 +771,12 @@ function prep_request_entry($requestinfo) {
         } else {
             // if on 'courseid', then make link to a course
             if ('courseid' == $tr) {                
-                $newval = html_writer::link(new moodle_url('/course/view.php', array('id' => $oldval)), 
-                        $oldval, array('target' => '_blank'));
+                $newval = html_writer::link(new moodle_url(
+                    '/course/view.php', 
+                    array('id' => $oldval)), 
+                    $oldval, 
+                    array('target' => '_blank'
+                ));
             } else {
                 $newval = $oldval;                
             }
@@ -763,6 +790,7 @@ function prep_request_entry($requestinfo) {
     if (!empty($requestinfo[$errs][$e])) {
         $worstnote = $errs;
         $formatted['id'] = get_string($e, $rucr);
+        unset($requestinfo[$errs][$e]);
     }
 
     // Handle checkboxes
@@ -809,7 +837,6 @@ function prep_request_entry($requestinfo) {
         'value' => $requestinfo['srs']
     ));
 
-    $br = html_writer::empty_tag('br');
 
     if (!empty($requestinfo[$f])) {
         foreach ($requestinfo[$f] as $clkey => $ocl) {
@@ -824,6 +851,7 @@ function prep_request_entry($requestinfo) {
                 $errstr = '';
                 foreach ($ocl[$errs] as $error => $true) {
                     $errstr .= get_string($error, $rucr);
+                    unset($ocl[$errs][$error]);
                 }
 
 
@@ -891,10 +919,12 @@ function prep_request_entry($requestinfo) {
             )
         );
     }
-    
-    if (!empty($requestinfo[$errs][UCLA_REQUESTOR_BADCL])) {
+   
+    $e = UCLA_REQUESTOR_BADCL;
+    if (!empty($requestinfo[$errs][$e])) {
         $riclstr .= $br . get_string('hostandchild', $rucr);
         $worstnote = $errs;
+        unset($requestinfo[$errs][$e]);
     }
 
     $formatted['crosslists'] = $riclstr;

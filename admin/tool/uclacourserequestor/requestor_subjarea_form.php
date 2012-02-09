@@ -35,10 +35,12 @@ class requestor_subjarea_form extends requestor_shared_form {
 
         // The stored procedures returns fields with different names for 
         // the same semantic data
+        // Destination - Source
         $translators = array(
             'subj_area' => 'subjarea',
             'coursenum' => 'course',
-            'sectnum' => 'section'
+            'sectnum' => 'section',
+            'enrolstat' => 'sect_enrl_stat_cd'
         );
 
         // Translate everything

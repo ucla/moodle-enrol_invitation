@@ -139,13 +139,14 @@ class ucla_courserequests {
             $deletemode = true;
         }
 
+        $checkers[] = $d;
+
         $h = 'hostcourse';
         $f = 'crosslists';
 
         // These will have the changes that were actually perfomed
         $changed = array();
 
-        // TODO split the stuff here up
         $changeaccessors = array();
         foreach ($this->setindex as $setid => $courses) {
             if (!isset($changes[$setid])) {
@@ -160,6 +161,7 @@ class ucla_courserequests {
                 continue;
             }
 
+            // First handle checking to ignore
             if (empty($changeset[$d])) {
                 $appval = 0;
             } else {
@@ -215,6 +217,7 @@ class ucla_courserequests {
                         $this->setindex[$setid],
                         $editable, $v
                     );
+
 
                     $setprops[$editable] = $v;
                 }
@@ -389,7 +392,8 @@ class ucla_courserequests {
 
                     if (isset($course['enrolstat'])
                             && enrolstat_is_cancelled($course['enrolstat'])) {
-                        $course[$errs][UCLA_REQUESTOR_CANCELLED] = true;
+                        $course[UCLA_REQUESTOR_WARNING][UCLA_REQUESTOR_CANCELLED] 
+                            = true;
                     }
                 }
 
