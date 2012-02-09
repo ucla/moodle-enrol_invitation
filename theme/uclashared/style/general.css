@@ -166,7 +166,10 @@ html, body {background-color:#FFF; height:100%;}
 .block h3,
 .block h4 {margin:0px;}
 .block .header {padding:10px 6px 10px 6px;background-color:#D1DBEF;}
-.block .content {padding:0px 6px 0px 6px;background-color:#DFE7F4;}
+.block .content {padding:0px 0px 0px 0px;background-color:#DFE7F4;}
+.block .content a {display:block;width:100%;}
+.block .content a:hover {text-decoration:none;} 
+.block .content li {padding-left: 6px;}
 
 /** Admin **/
 .box.adminwarning {text-align:center;border:1px solid #C8C9C7;background-color:#E3E3E3;margin-bottom:1em;padding:10px 10%;}
@@ -268,7 +271,6 @@ html, body {background-color:#FFF; height:100%;}
 #calendar td,
 #calendar th {border-width:0px;font-size:10px;padding:1px;width:14%;line-height:18px;vertical-align:top;}
 #calendar .maincalendar {width:auto;border:1px solid #DDD;}
-#calendar .maincalendar .heightcontainer {height:100%;position:relative;margin:1em;}
 #calendar .maincalendar .header {padding:5px;font-weight:bold;}
 #calendar .maincalendar .header .buttons {float:right;}
 #calendar .maincalendar table {width:100%;}
