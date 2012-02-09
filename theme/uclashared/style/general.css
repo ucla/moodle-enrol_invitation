@@ -170,6 +170,8 @@ html, body {background-color:#FFF; height:100%;}
 .block .content a {display:block;width:100%;}
 .block .content a:hover {text-decoration:none;} 
 .block .content li {padding-left: 6px;}
+.block .content .block_tree.list li p {margin: 0px 0px 0px 0px;}
+.block .content .box .block_tree.list li p {margin: 0px 0px 0px 0px;}
 
 /** Admin **/
 .box.adminwarning {text-align:center;border:1px solid #C8C9C7;background-color:#E3E3E3;margin-bottom:1em;padding:10px 10%;}
