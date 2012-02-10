@@ -133,7 +133,7 @@ abstract class registrar_query {
 
             // Let's not fail hard
             if ($qr === false) {
-                $this->previous_bad_inputs = $driving_datum;
+                $this->previous_bad_inputs[] = $driving_datum;
                 continue;
             }
 
@@ -154,12 +154,12 @@ abstract class registrar_query {
                         }
                     } else {
                         // We need to return the malevolent data...
-                        $this->previous_bad_inputs = $driving_datum;
+                        $this->previous_bad_inputs[] = $driving_datum;
                     }
                 }
             } else {
                 // We need to return the malevolent data...
-                $this->previous_bad_inputs = $driving_datum;
+                $this->previous_bad_inputs[] = $driving_datum;
             }
         }
 

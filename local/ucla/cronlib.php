@@ -22,6 +22,21 @@ class ucla_reg_classinfo_cron {
         return $codes[$char];
     }
 
+    /**
+     * Get courses from the ucla_request_classes table for a given term. Query 
+     * the registrar for those courses. 
+     * 
+     * From the records that are returned from the registrar then insert or 
+     * update records in the ucla_reg_classinfo table. 
+     * 
+     * Then for the courses that didn't have any data returned to them from
+     * the registrar, then mark those courses as cancelled in the 
+     * ucla_reg_classinfo table.
+     * 
+     * @global type $DB
+     * @param type $terms
+     * @return boolean 
+     */
     function run($terms) {
         global $DB;
 
@@ -79,6 +94,9 @@ class ucla_reg_classinfo_cron {
         // insert or to update
         $records = $DB->get_records_select(self::table, $where, $params);
 
+        /* create array in following format:
+         * [<term>-<srs>] => Object (<ucla_reg_classinfo_entry>)
+         */
         $reind = array();
         foreach ($records as $record) {
             $reind[make_idnumber($record)] = $record;
@@ -107,8 +125,22 @@ class ucla_reg_classinfo_cron {
                 $ic++;
             }
         }
-
-        echo "\nUpdated: $uc . Inserted: $ic . Failed sanity: $fscc\n";
+        
+        // mark courses that the registrar didn't have data for as "cancelled"
+        
+        /* $reg->get_bad_data() returns an array in following format:
+         * 
+         */
+        $not_found_at_registrar = $reg->get_bad_data();
+        $num_not_found = 0;
+        foreach ((array) $not_found_at_registrar as $term_srs) {
+            // try to update entry in ucla_reg_classinfo (if exists) and 
+            // mark it as cancelled
+            $DB->set_field('ucla_reg_classinfo', 'enrolstat', 'X', $term_srs);
+            ++$num_not_found;
+        }       
+        
+        echo "\nUpdated: $uc . Inserted: $ic . Not found at registrar: $num_not_found . Failed sanity: $fscc\n";
 
         return true;
     }
