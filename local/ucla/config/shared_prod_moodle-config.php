@@ -83,6 +83,7 @@ $CFG->forced_plugin_settings['tool_uclacourserequestor']['nourlupdate_default'] 
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['terms'] = $terms_to_built;
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['course_creator_email'] = 'ccle-operations@lists.ucla.edu';
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['email_template_dir'] = '/usr/local/moodle/config/course_creator/email_templates';
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['make_division_categories'] = true;
 
 // MyUCLA url updater
 $CFG->forced_plugin_settings['tool_myucla_url']['url_service'] = 'http://cis.ucla.edu/ieiWebMap/update.asp';
