@@ -685,6 +685,7 @@ class uclacoursecreator {
             . ' --------');
 
         if ($done) {
+            $this->insert_term_rci();
             $this->queue_requestors();
         }
 
@@ -1752,10 +1753,10 @@ class uclacoursecreator {
 
         $drive_size = count($term_rci);
 
-        $fields_string = "('" . implode("', '", $fields) . "')";
+        $fields_string = "(`" . implode("`, `", $fields) . "`)";
 
         for ($i = 0; $i < $drive_size; $i++) {
-            $builderes[] = "('" . implode("', '", $filler) . "')\n";
+            $builderes[] = "(" . implode(", ", $filler) . ")\n";
         }
 
         $buildline = implode(', ', $builderes);

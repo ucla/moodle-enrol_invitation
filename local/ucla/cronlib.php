@@ -31,6 +31,7 @@ class ucla_reg_classinfo_cron {
 
         $reg = registrar_query::get_registrar_query('ccle_getclasses');
 
+        // Get courses from our request table
         $courses = ucla_get_courses_by_terms($terms, false);
 
         echo "\nGot " . count($courses) . " courses to update.\n";
@@ -39,9 +40,11 @@ class ucla_reg_classinfo_cron {
             return true;
         }
 
+        // Prep the data to send to registrar
         $get_from_registrar = array();
         foreach ($courses as $setid => $reqset) {
             foreach ($reqset as $reqkey => $req) {
+                // We can just put in $req, except it needs to be an array.
                 $get_from_registrar[] = array(
                     'term' => $req->term,
                     'srs' => $req->srs
@@ -49,14 +52,18 @@ class ucla_reg_classinfo_cron {
             }
         }
 
+        // Get the data
         $regs = $reg->retrieve_registrar_info($get_from_registrar);
 
         $termsrses = array();
         $sqls = array();
         $params = array();
 
+        // We're going to index by the results of make_idnumber
         $regind = array();
         foreach ($regs as $rege) {
+            // We're going to see which entries already exist in our
+            // destination table
             $sql = 'term = ? AND srs = ?';
             $param = array($rege['term'], $rege['srs']);
 
@@ -68,6 +75,8 @@ class ucla_reg_classinfo_cron {
 
         $where = implode(' OR ', $sqls);
 
+        // Get entries from our destination table to check whether to
+        // insert or to update
         $records = $DB->get_records_select(self::table, $where, $params);
 
         $reind = array();
@@ -82,8 +91,10 @@ class ucla_reg_classinfo_cron {
         // Inserted
         $ic = 0;
 
+        // Update/insert our data
         foreach ($regind as $indk => $rege) {
             if (isset($reind[$indk])) {
+                // Exists in the get_records_select() we called earlier
                 $rege['id'] = $reind[$indk]->id;
                 if (self::sanity_check($rege, $reind[$indk])) {
                     $DB->update_record(self::table, $rege);
@@ -92,7 +103,6 @@ class ucla_reg_classinfo_cron {
                     $fscc++;
                 }
             } else {
-                // Insert
                 $DB->insert_record(self::table, $rege);
                 $ic++;
             }
