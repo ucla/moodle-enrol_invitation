@@ -292,10 +292,17 @@ $registrar_link = new moodle_url(
 // Start rendering
 echo $OUTPUT->header();
 
+// generate build schedule/notice (if any)
+$build_notes = get_config($rucr, 'build_notes');
+$build_notice = '';
+if (!empty($build_notes)) {
+    $build_notice = html_writer::tag('div', $build_notes, array('id' => 'uclacourserequestor_notice'));
+}
+
 echo $OUTPUT->box(
     $OUTPUT->heading(
         get_string('pluginname', $rucr)
-    ), 
+    ) . $build_notice, 
     'generalbox categorybox box'
 );
 
