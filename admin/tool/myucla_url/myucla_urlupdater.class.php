@@ -1,7 +1,7 @@
 <?php
 
 class myucla_urlupdater {
-    const mname = 'tool/myucla_url';
+    const mname = 'tool_myucla_url';
 
     // Updating flags
     // Never update the url
@@ -13,9 +13,13 @@ class myucla_urlupdater {
     // Always overwrite the URL
     const alwaysflag = 'alwayssend';
 
-    // Perhaps we should strtolower?
-    const expected_success_message = 'Update Successful';
-
+    // Possible MyUCLA server responses
+    const expected_success_message  = 'Update Successful';
+    const error_connection          = 'Unable to Connect to SQL Servers!';
+    const error_denied              = 'Unauthorized Access!';    
+    const error_failed              = 'Update Unsuccessful. SQL Update Failed.';
+    const error_invalid             = 'Update Unsuccessful. Invalid Course.'; 
+    
     // Cache, skip checking the $CFG...
     var $myucla_login = null;
 
@@ -25,12 +29,14 @@ class myucla_urlupdater {
     /**
      *  Builds the MyUCLA URL update webservice URL.
      *
-     *  @param $term The term to upload.
-     *  @param $srs The SRS of the course to upload.
-     *  @param $url The url to update to. Can be null.
-     *  @return string The URL for the MyUCLA update.
-     **/
-    function get_MyUCLA_service($term, $srs, $url=null) {
+     *  @param string $term The term to upload.
+     *  @param string $srs  The SRS of the course to upload.
+     *  @param string $url  Default to false. Otherwise is the url to update to. 
+     *                      If parameter is null or an empty string it will 
+     *                      clear the URL at MyUCLA.
+     *  @return string      The URL to be used in the MyUCLA update.
+     */
+    function get_MyUCLA_service($term, $srs, $url=false) {
         if ($this->myucla_login == null) {
             $cc_url = get_config(self::mname, 'url_service');
 
@@ -45,7 +51,8 @@ class myucla_urlupdater {
         
         $returner = $this->myucla_login . '&term=' . $term . '&srs=' . $srs;
 
-        if ($url != null) {
+        if ($url !== false) {
+            // if URL is null or empty it will clear the url on MyUCLA
             $returner .= '&url=' . urlencode($url);
         }
 
@@ -53,10 +60,10 @@ class myucla_urlupdater {
     }
 
     /**
-     *  Sends the URLs of the courses to MyUCLA.
-     *  This is relatively slow...
-     *  
-     *  @param $sending_urls
+     * Sends the URLs of the courses to MyUCLA. Either updates those urls or
+     * gets the current valies depending on the parameter.
+     * 
+     *  @param array $sending_urls  Expects array in following format:
      *      Array (
      *          make_idnumber() => Array (
      *              'term' => term,
@@ -64,14 +71,19 @@ class myucla_urlupdater {
      *              'url' => url
      *          )
      *      )
-     **/
+     * @param boolean $push     Default false. If true will update urls for 
+     *                          given set of courses
+     * 
+     * @return array    Returns array in following format:
+     *  [term-srs] => [response message from server]
+     */
     function send_MyUCLA_urls($sending_urls, $push=false) {
         // Figure out what to build as the URL of the course
         $retrieved_info = array();
 
         // For each requested course, figure out the URL
         foreach ($sending_urls as $idnumber => $sendings) {
-            $sender = null;
+            $sender = false;
             if ($push) {
                 $sender = $sendings['url'];
             }
@@ -82,14 +94,15 @@ class myucla_urlupdater {
             );
 
             if ($this->is_debugging()) {
-                $myucla_curl = $url_update . '-' . $sendings['url'];
+                // debugging is on, so just assume success
+                $myucla_curl = self::expected_success_message;
             } else {
                 $myucla_curl = $this->contact_MyUCLA($url_update);
             }
 
             $retrieved_info[$idnumber] = $myucla_curl;
         }
-
+        
         return $retrieved_info;
     }
 
@@ -102,8 +115,12 @@ class myucla_urlupdater {
      *          'url' => url
      *      )
      *  )
-     **/
+     * 
+     * Sets successful and failed arrays with the appropiate courses indexed by 
+     * the same course index as given in the $course paramter.
+     */
     function sync_MyUCLA_urls($courses) {
+        // first get the urls for the given courses
         $fetch_results = $this->send_MyUCLA_urls($courses);
 
         foreach ($fetch_results as $idnumber => $result) {
@@ -132,6 +149,7 @@ class myucla_urlupdater {
             }
         }
 
+        // now update those urls that need to be processed
         $results = $this->send_MyUCLA_urls($courses, true);
 
         foreach ($results as $rid => $result) {
@@ -147,7 +165,7 @@ class myucla_urlupdater {
 
     /** 
      *  Convenience function to get access the webservice for MyUCLA
-     **/
+     */
     function contact_MyUCLA($url) {
         $content = $this->trim_strip_tags(file_get_contents($url));
 
@@ -159,7 +177,7 @@ class myucla_urlupdater {
 
     /**
      *  Returns if we should send the actual message or not.
-     **/
+     */
     function is_debugging() {
         if (get_config(self::mname, 'override_debugging')) {
             return false;
@@ -174,7 +192,7 @@ class myucla_urlupdater {
      *  @param string The string to trim and strip_tags.
      *  @return string The string, without HTML tags and with leading and 
      *      trailing spaces removed.
-     **/
+     */
     function trim_strip_tags($string) {
         return trim(strip_tags($string), " \r\n\t");
     }
