@@ -233,10 +233,19 @@ if (isset($uclacrqs)) {
                         if (!empty($thechanges['crosslists'])) {
                             $cldelta = $thechanges['crosslists'];
                             unset($thechanges['crosslists']);
-                            // TODO :)
+
+                            foreach ($cldelta as $action => $cls) {
+                                $actionstr = get_string(
+                                    'clchange_' . $action, $rucr);
+                                foreach ($cls as $cl) {
+                                    $fieldstrs[] = $actionstr 
+                                    . make_idnumber($cl) . ' '
+                                    . requestor_dept_course($cl);
+                                }
+                            }
                         }
 
-                        foreach ($changed[$setid] as $field => $val) {
+                        foreach ($thechanges as $field => $val) {
                             $fieldstrs[] = get_string($field, $rucr)
                                 . get_string('changedto', $rucr)
                                 . $val;

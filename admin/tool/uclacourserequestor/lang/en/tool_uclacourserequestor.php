@@ -66,6 +66,9 @@ $string['deleteviews'] = 'Remove request';
 
 $string['addmorecrosslist'] = 'Add another entry';
 
+$string['clchange_removed'] = 'Removed crosslist: ';
+$string['clchange_added'] = 'Added crosslist: ';
+
 // Crosslisting errors
 $string['illegalcrosslist'] = 'This SRS cannot be added as a crosslist';
 $string['hostandchild'] = 'One of the crosslisted SRSes has already been built, and is preventing this request from proceding.';

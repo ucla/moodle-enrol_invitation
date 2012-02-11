@@ -246,6 +246,7 @@ class ucla_courserequests {
 
             // Sanitize and index inputs
             foreach ($changeset[$f] as $cls) {
+                $cls = trim($cls);
                 if (!empty($cls) && ucla_validator('srs', $cls)) {
                     $clind[$cls] = $cls;
                 }
@@ -314,6 +315,9 @@ class ucla_courserequests {
 
                 // For now just add it.
                 $nr = get_request_info($theterm, $ncl);
+                if (!$nr) {
+                    continue;
+                }
 
                 // Things fetched from the registrar should NOT
                 // have this field set...

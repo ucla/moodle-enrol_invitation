@@ -254,9 +254,15 @@ function get_request_info($term, $srs) {
     }
 
     // This is expensive
-    $cos = array(get_course_info_from_registrar($term, $srs));
+    $reted = get_course_info_from_registrar($term, $srs);
 
-    return reset(registrar_to_requests($cos));
+    $ret = false;
+    if ($reted) {
+        $cos = array($reted);
+        $ret = reset(registrar_to_requests($cos));
+    }
+
+    return $ret;
 }
 
 /**
