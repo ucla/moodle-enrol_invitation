@@ -399,11 +399,12 @@ class ucla_courserequests {
                         $course[$errs][UCLA_REQUESTOR_EXIST] = true;
                     }
 
-                    if (isset($course['enrolstat'])
-                            && enrolstat_is_cancelled($course['enrolstat'])) {
-                        $course[UCLA_REQUESTOR_WARNING][UCLA_REQUESTOR_CANCELLED] 
-                            = true;
-                    }
+                }
+
+                if (isset($course['enrolstat'])
+                        && enrolstat_is_cancelled($course['enrolstat'])) {
+                    $course[UCLA_REQUESTOR_WARNING][UCLA_REQUESTOR_CANCELLED] 
+                        = true;
                 }
 
                 if ($course[$h] > 0) {
@@ -430,6 +431,7 @@ class ucla_courserequests {
         }
 
         $this->_validated = $requestinfos;
+
         return $requestinfos;
     }
 

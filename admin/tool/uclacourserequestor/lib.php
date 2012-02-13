@@ -844,7 +844,6 @@ function prep_request_entry($requestinfo) {
         'value' => $requestinfo['srs']
     ));
 
-
     if (!empty($requestinfo[$f])) {
         foreach ($requestinfo[$f] as $clkey => $ocl) {
             $clsrs = $ocl['srs'];
@@ -866,7 +865,6 @@ function prep_request_entry($requestinfo) {
                     unset($ocl[$errs][$error]);
                 }
 
-
                 // There was an error, display editable field and error msg
                 $clinputattr['value'] = $clsrs;
 
@@ -877,7 +875,7 @@ function prep_request_entry($requestinfo) {
                         $errstr . $br . html_writer::empty_tag(
                             'input', 
                             $clinputattr
-                        ) . "$br$moreinfo", 
+                        ) . "$br $moreinfo", 
                         array('class' => 'error')
                     ),
                     array('class' => 'mform')
