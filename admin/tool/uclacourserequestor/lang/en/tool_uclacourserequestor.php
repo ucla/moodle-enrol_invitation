@@ -70,11 +70,11 @@ $string['clchange_removed'] = 'Removed crosslist: ';
 $string['clchange_added'] = 'Added crosslist: ';
 
 // Crosslisting errors
-$string['illegalcrosslist'] = 'This SRS cannot be added as a crosslist';
+$string['illegalcrosslist'] = 'This SRS has already been requested to be built';
 $string['hostandchild'] = 'One of the crosslisted SRSes has already been built, and is preventing this request from proceding.';
 $string['srserror'] = 'The SRS number must be exactly 9 digits long';
-$string['cancelledcourse'] = 'This course is marked as cancelled by the
-Registrar.';
+$string['cancelledcourse'] = 'This course is marked as cancelled by the Registrar.';
+$string['nosrsfound'] = 'Could not find course with this SRS.';
 
 $string['queuetobebuilt'] = "Courses in queue to be built";
 $string['queueempty'] = "The queue is empty. All courses have been built as of now.";

@@ -98,8 +98,15 @@ $requests = null;
 // This is to know which form type we came from :(
 $groupid = null;
 
+// This is the data that is to be displayed in the center form
 $uclacrqs = null;
 
+// This is a holder that will maintain the original data 
+// (for use when clicking 'checkchanges') 
+$pass_uclacrqs = null;
+
+// This is the field in the postdata that should represent the state of
+// data in the current database for the requestors.
 $uf = 'unchangeables';
 
 foreach ($top_forms as $gk => $group) {
@@ -127,6 +134,7 @@ foreach ($top_forms as $gk => $group) {
         }
     }
 }
+
 
 // None of the forms took input, so maybe the center form?
 // In this situation, we are assuming all information is
@@ -173,11 +181,15 @@ if ($requests === null) {
                 continue;
             }
         }
-
-        if (isset($uclacrqs)) {
-            $changed = $uclacrqs->apply_changes($changes, $groupid);
-        }
     }
+}
+
+if ($uclacrqs !== null) {
+    $pass_uclacrqs = clone($uclacrqs);
+}
+
+if (!empty($changes)) {
+    $changed = $uclacrqs->apply_changes($changes, $groupid);
 }
 
 // These are the messages that reflect positive changes
@@ -373,7 +385,7 @@ if (!empty($requeststable->data)) {
     
     echo html_writer::tag('input', '', array(
             'type' => 'hidden',
-            'value' => base64_encode(serialize($uclacrqs)),
+            'value' => base64_encode(serialize($pass_uclacrqs)),
             'name' => $uf 
         ));
 

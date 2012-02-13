@@ -176,10 +176,7 @@ class ucla_courserequests {
                     $this->deletes[$setid] = true;
                 }
 
-                // We don't need to apply anything to things that are
-                // being deleted
-                unset($changes[$setid]);
-
+                // none of these really matter
                 continue;
             }
 
@@ -247,7 +244,7 @@ class ucla_courserequests {
             // Sanitize and index inputs
             foreach ($changeset[$f] as $cls) {
                 $cls = trim($cls);
-                if (!empty($cls) && ucla_validator('srs', $cls)) {
+                if (!empty($cls)) {
                     $clind[$cls] = $cls;
                 }
             }
@@ -306,6 +303,8 @@ class ucla_courserequests {
                 if (isset($this->abandoned[$nclkey])) {
                     $newreq = $this->abandoned[$nclkey];
 
+                    $newreq['setid'] = $setid;
+
                     $courses[$nclkey] = $newreq;
                     $addedcls[] = $newreq;
 
@@ -314,9 +313,21 @@ class ucla_courserequests {
                 }
 
                 // For now just add it.
-                $nr = get_request_info($theterm, $ncl);
+                $nr = false;
+                if (ucla_validator('srs', $ncl)) {
+                    $nr = get_request_info($theterm, $ncl);
+                }
+
+                $e = UCLA_REQUESTOR_ERROR;
                 if (!$nr) {
-                    continue;
+                    $nr = array(
+                        'term' => $theterm,
+                        'srs' => $ncl,
+                        UCLA_REQUESTOR_ERROR => array(
+                            UCLA_REQUESTOR_NOCOURSE => true
+                        ),
+                        'instructor' => array(),
+                    );
                 }
 
                 // Things fetched from the registrar should NOT
@@ -324,31 +335,25 @@ class ucla_courserequests {
                 if (isset($nr[$h])) {
                     $newset = get_crosslist_set_for_host($nr);
                     if ($nr[$h] == 0) {
-                        // We need to force an error later
-                        $this->add_set($newset);
-                    } else {
-                        // integrate the set into the new set
-                        foreach ($newset as $newreq) {
-                            $newreq[$h] = 0;
-                            $newreq['setid'] = $setid;
-                            $nrkey = make_idnumber($newreq);
-                            if (!isset($courses[$nrkey])) {
-                                $courses[$nrkey] = $newreq;
-                                $addedcls[] = $newreq;
-                            }
-                        }
+                        // Just add the course only
+                        $newset = array(
+                            make_idnumber($nr) => $nr
+                        );
                     }
                 } else {
                     // This was fetched from the Registrar, just add it
-                    $nr['setid'] = $setid;
-                    $nr[$h] = 0;
+                    $newset = array(
+                        make_idnumber($nr) => $nr
+                    );
+                }
 
-                    // We're going to add the host, if there is one
-                    $nrkey = make_idnumber($nr);
-
+                // integrate the set into the new set
+                foreach ($newset as $nrkey => $newreq) {
+                    $newreq[$h] = 0;
+                    $newreq['setid'] = $setid;
                     if (!isset($courses[$nrkey])) {
-                        $courses[$nrkey] = $nr;
-                        $addedcls[] = $nr;
+                        $courses[$nrkey] = $newreq;
+                        $addedcls[] = $newreq;
                     }
                 }
             }
@@ -470,6 +475,9 @@ class ucla_courserequests {
                 $set = apply_to_set($set, 'setid', $maxsetid);
             }
 
+            // Figure out what we're going to save for what course
+            // to display when someonse uses the requestor
+            // Also what the shortname is supposed to be...
             $properhost = set_find_host($set);
 
             $set = apply_to_set($set, $h, 0);
@@ -530,6 +538,8 @@ class ucla_courserequests {
                 }
             }
 
+            // Currently, we are NOT allowing any Moodle course data to 
+            // be deleted via the requestors
             $coursetodelete = false;
             
             try {

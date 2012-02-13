@@ -31,6 +31,7 @@ define('UCLA_REQUESTOR_BADCL', 'illegalcrosslist');
 define('UCLA_REQUESTOR_GHOST', 'ghostcoursecreated');
 define('UCLA_REQUESTOR_BADHOST', 'inconsistenthost');
 define('UCLA_REQUESTOR_CANCELLED', 'cancelledcourse');
+define('UCLA_REQUESTOR_NOCOURSE', 'nosrsfound');
 
 define('UCLA_REQUESTOR_FETCH', 'fetch');
 define('UCLA_REQUESTOR_VIEW', 'views');
@@ -848,6 +849,11 @@ function prep_request_entry($requestinfo) {
         foreach ($requestinfo[$f] as $clkey => $ocl) {
             $clsrs = $ocl['srs'];
             $moreinfo = requestor_dept_course($ocl);
+            if (!empty($moreinfo)) {
+                $moreinfo = '(' . $moreinfo . ')';
+            } else {
+                $moreinfo = '';
+            }
 
             // Perhaps refactor this code later?
             if (!empty($ocl[$errs])) {
@@ -871,7 +877,7 @@ function prep_request_entry($requestinfo) {
                         $errstr . $br . html_writer::empty_tag(
                             'input', 
                             $clinputattr
-                        ) . "$br($moreinfo)", 
+                        ) . "$br$moreinfo", 
                         array('class' => 'error')
                     ),
                     array('class' => 'mform')
@@ -894,7 +900,7 @@ function prep_request_entry($requestinfo) {
                     $ff,
                     $clsrs, 
                     true, 
-                    $clkey . ' (' . $moreinfo . ')',
+                    $clkey . $moreinfo,
                     $clinputattr
                 ) . html_writer::tag(
                         'span', 
