@@ -35,7 +35,7 @@ function update_libraryreserves_db(){
             echo $fieldvalue;
         }
     }
-        
+
 }
 
 
