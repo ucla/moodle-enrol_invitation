@@ -26,15 +26,14 @@ function update_libraryreserves_db(){
    $data = &get_csv_data($datasource_url);
    $data = &cleanup_csv_data($data, "ucla_libraryreserves");
    
-
-  // Drop table and refill with data
+   // Drop table and refill with data
    $DB->delete_records('ucla_libraryreserves');
    
-    for ($line = 0; $line < count($data); $line++){
-        foreach ($data[$line] as $field => $fieldvalue){
-            echo $fieldvalue;
-        }
-    }
+   for ($line = 0; $line < count($data); $line++){
+       foreach ($data[$line] as $field => $fieldvalue){
+           echo $fieldvalue;
+       }
+   }
         
 }
 
