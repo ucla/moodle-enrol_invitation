@@ -47,7 +47,7 @@ list($ext_argv, $unrecog) = cli_get_params(
         'help' => false,
         'revert' => false,
         'category' => false,
-        'mail' => false
+        'mute' => false
     ),
     array(
         'u' => 'unlock-first',
@@ -55,7 +55,7 @@ list($ext_argv, $unrecog) = cli_get_params(
         'h' => 'help',
         'r' => 'revert',
         'c' => 'category',
-        'm' => 'mail'
+        'm' => 'mute'
     )
 );
 
@@ -97,7 +97,7 @@ if ($ext_argv['fail']) {
 }
 
 // Send mails
-if ($ext_argv['mail']) {
+if ($ext_argv['mute']) {
     $bcc->set_mailer(true);
 }
 

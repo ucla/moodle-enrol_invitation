@@ -51,7 +51,7 @@ class uclacoursecreator {
     private $force_fail = false;
 
     // Set to true to hide output?
-    private $send_mails = false;
+    private $no_send_mails = false;
 
     // Private identifier for this cron task
     private $db_id;
@@ -535,9 +535,15 @@ class uclacoursecreator {
 
     /**
      *  Allows mails to be sent to requestors and instructors.
+     *  @param  $b  true = no mails sent, false = mails sent
+
      **/
     function set_mailer($b) {
-        $this->send_mails = $b;
+        $this->no_send_mails = $b;
+    }
+
+    function send_mails() {
+        return !$this->no_send_mails;
     }
 
     /** ************************** **/
@@ -1184,6 +1190,8 @@ class uclacoursecreator {
             $this->println('Could not find urlupdater.');
         }
 
+        $this->println('Starting MyUCLA URL Hook.');
+
         // Create references, not copies
         $created =& $this->cron_term_cache['created_courses'];
         $requests =& $this->cron_term_cache['requests'];
@@ -1499,7 +1507,7 @@ class uclacoursecreator {
             $subj = $emailing['subjarea'];
 
             // Figure out which email template to use
-            if ($this->send_mails && !isset($this->parsed_param[$subj])) {
+            if ($this->send_mails() && !isset($this->parsed_param[$subj])) {
                 if (!isset($this->email_prefix)) {
                     $this->figure_email_vars();
                 }
@@ -1516,9 +1524,11 @@ class uclacoursecreator {
             }
 
             if (!isset($this->parsed_param[$subj])) {
-                $this->debugln('Emails failed for subject area '
-                    . $subj . ', most likely because we do not '
-                    . 'have a DEFAULT email template.');
+                if (!$this->send_mails()) {
+                    $this->printl('Email sending disabled! ');
+                }
+                $this->debugln('Email template failed for subject area '
+                    . $subj);
 
                 $this->println();
 
@@ -1554,14 +1564,15 @@ class uclacoursecreator {
                 . $emailing['lastname'] . "\t $userid \t" 
                 . $email_to . " \t $email_subject\n";
 
-            if ($this->send_mails && !$block_email) {
+            if ($this->send_mails() && !$block_email) {
                 $this->println("Emailing: $email_to");
 
                 ucla_send_mail($email_to, $email_subject, 
                     $email_body, $headers);
             } else {
                 if ($block_email) {
-                    $this->println('Blocked this email.');
+                    $this->println('Blocked this email - from setting in '
+                        . 'course requestor.');
                 }
 
                 $this->println("to: $email_to");
@@ -1879,7 +1890,7 @@ class uclacoursecreator {
             $req_mes = $requestor_mesg_start 
                 . $req_summary . $requestor_mesg_end;
 
-            if ($this->send_mails) {
+            if ($this->send_mails()) {
                 $resp = ucla_send_mail($requestor, $req_subj, $req_mes, 
                     $requestor_headers);
 
@@ -2087,18 +2098,18 @@ class uclacoursecreator {
      *  You just need to call this once.
      **/
     function figure_email_vars() {
-        if (!$this->send_mails) {
+        if (!$this->send_mails()) {
             return false;
         }
 
         if (!$this->get_config('email_template_dir')) {
             throw new course_creator_exception(
-                'ERROR: course_creator_email_template_dir not set!'
+                'ERROR: email_template_dir not set!'
             );
         }
 
         $this->email_prefix = 
-            $this->get_config('email_template_dir');
+            $this->get_config('email_template_dir') . '/';
 
         $this->email_suffix = '_course_setup_email.txt';
         

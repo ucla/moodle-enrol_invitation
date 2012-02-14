@@ -37,8 +37,8 @@ Other options:
 -h, --help:
     Show this message.
 
--m, --mail:
-    Enables sending of mails to instructors.
+-m, --mute:
+    Disables sending of mails.
 
 -r, --revert:
     Experimental: This will enable reverting of failed built courses. Whenever the course creator decides that a term built failed, instead of leaving the courses in the Moodle DB, it will attempt to delete them.
