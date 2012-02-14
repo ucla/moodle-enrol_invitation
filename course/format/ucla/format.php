@@ -28,65 +28,25 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir.'/filelib.php');
 require_once($CFG->libdir.'/completionlib.php');
 
+global $CFG, $USER;
+
 // Course preferences
 $course_prefs = new ucla_course_prefs($course->id);
-
-// Default to section 0 (course info) if there are no preferences
-$landing_page = $course_prefs->get_preference('landing_page', false);
-
-/**
- *  Landing page and determining which section to display
- **/
-$topic = optional_param('topic', UCLA_FORMAT_DISPLAY_PREVIOUS, PARAM_INT);
-
-/**
- *  New landing page and topic view control.
- *  We want to make sure that if a user is coming from a different course
- *  that they goto the landing page.
- *
- *  This code uses the fact that the $USER global is cached and carried through
- *  the session. 
- *  Also uses the fact that course_get_display() will clear $USER->display 
- *  whenever we traverse to a new course.
- **/
 
 $displaysection = null;
 $to_topic = null;
 
-if ($topic >= UCLA_FORMAT_DISPLAY_ALL) {
-    // This means that a topic was explicitly declared
-    $to_topic = $topic;
-} else {
-    if ($topic == UCLA_FORMAT_DISPLAY_LANDING 
-      || !isset($USER->display['course'])) {
-        debugging('UCLA Format: Landing page');
+// Use $displaysection when figuring out which section the user is viewing
+list($to_topic, $displaysection) = ucla_format_figure_section($course,
+    $course_prefs);
 
-        // This means that we have come from a different course
-        if ($landing_page === false) {
-            $to_topic = $marker;
-        } else {
-            $to_topic = $landing_page;
-        }
-    } else {
-        debugging('UCLA Format: Previously viewed page');
-
-        // This should show the previously viewed page
-        // This defaults to '0'
-        $displaysection = course_get_display($course->id);
-    }
-}
-
-if ($displaysection == null && $to_topic !== null) {
-    $displaysection = course_set_display($course->id, $to_topic);
-}
-
-$USER->display['course'] = $course->id;
+course_set_display($course->id, $to_topic);
 
 // Leave in marker functionality, this isn't really used except visually
 // TODO maybe use it for other stuff
 if (($marker >= 0) 
-  && has_capability('moodle/course:setcurrentsection', $context) 
-  && confirm_sesskey()) {
+        && has_capability('moodle/course:setcurrentsection', $context) 
+        && confirm_sesskey()) {
     $course->marker = $marker;
     $DB->set_field("course", "marker", $marker, array("id" => $course->id));
 }
@@ -119,7 +79,6 @@ $strgroups        = get_string('groups');
 $strgroupmy       = get_string('groupmy');
 $editing          = $PAGE->user_is_editing();
 
-// If editing... just felt like a comment belongs here
 if ($editing) {
     $strtopichide       = get_string('hidetopicfromothers');
     $strtopicshow       = get_string('showtopicfromothers');
@@ -140,10 +99,13 @@ $params[] = $course->id;
 // Instructor configuration, move out to config file 
 $instructor_types = array(
     'Instructor' => array(
-        'editingteacher',
-        'teacher'
+        'editinginstructor',
+        'ta_instructor'
     ),
-    'Teaching Assistant' => array(),
+    'Teaching Assistant' => array(
+        'ta',
+        'ta_admin'
+    ),
 );
 
 // map-reduce-able
@@ -198,7 +160,11 @@ $sql = "
     ";
 
 // Use this whenever you need to display instructors
-$instructors = $DB->get_records_sql($sql, $params);
+if (ucla_format_display_instructors($course)) {
+    $instructors = $DB->get_records_sql($sql, $params);
+} else {
+    $instructors = array();
+}
 
 /**
  *  Registrar information Line
@@ -304,7 +270,8 @@ while ($section <= $course->numsections) {
 
     // If we are only displaying one section, save this section for the 
     // pull down menu later
-    if ($displaysection != UCLA_FORMAT_DISPLAY_ALL && $displaysection != $section) {
+    if ($displaysection != UCLA_FORMAT_DISPLAY_ALL 
+                && $displaysection != $section) {
         // Show the section in the pull down only if we would've shown it
         // otherwise
 
@@ -760,7 +727,8 @@ while ($section <= $course->numsections) {
 }
 
 // Orphaned activities custom written section
-if ($displaysection == UCLA_FORMAT_DISPLAY_ALL and $editing and $has_capability_update) {
+if ($displaysection == UCLA_FORMAT_DISPLAY_ALL and $editing 
+        and $has_capability_update) {
     $modinfo = get_fast_modinfo($course);
 
     foreach ($sections as $section=>$thissection) {

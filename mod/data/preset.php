@@ -106,6 +106,7 @@ if (optional_param('sesskey', false, PARAM_BOOL) && confirm_sesskey()) {
         $importer = new data_preset_existing_importer($course, $cm, $data, $formdata->fullname);
         echo $renderer->import_setting_mappings($data, $importer);
         echo $OUTPUT->footer();
+        exit(0);
     } else if ($formdata = $form_importzip->get_data()) {
         $file = new stdClass;
         $file->name = $form_importzip->get_new_filename('importfile');
@@ -190,7 +191,7 @@ if (optional_param('sesskey', false, PARAM_BOOL) && confirm_sesskey()) {
         } else if ($action == 'finishimport') {
             $overwritesettings = optional_param('overwritesettings', false, PARAM_BOOL);
             if (!$fullname) {
-                $presetdir = $CFG->dataroot.'/temp/forms/'.required_param('directory', PARAM_ALPHANUMEXT);
+                $presetdir = $CFG->tempdir.'/forms/'.required_param('directory', PARAM_ALPHANUMEXT);
                 if (!file_exists($presetdir) || !is_dir($presetdir)) {
                     print_error('cannotimport');
                 }

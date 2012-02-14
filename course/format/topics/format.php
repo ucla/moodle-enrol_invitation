@@ -110,7 +110,7 @@ if ($thissection->summary or $thissection->sequence or $PAGE->user_is_editing())
     if ($PAGE->user_is_editing() && has_capability('moodle/course:update', $coursecontext)) {
         echo '<a title="'.$streditsummary.'" '.
              ' href="editsection.php?id='.$thissection->id.'"><img src="'.$OUTPUT->pix_url('t/edit') . '" '.
-             ' class="icon edit" alt="'.$streditsummary.'" /></a>';
+             ' class="iconsmall edit" alt="'.$streditsummary.'" /></a>';
     }
     echo '</div>';
 
@@ -128,7 +128,6 @@ if ($thissection->summary or $thissection->sequence or $PAGE->user_is_editing())
 /// Now all the normal modules by topic
 /// Everything below uses "section" terminology - each "section" is a topic.
 
-$timenow = time();
 $section = 1;
 $sectionmenu = array();
 
@@ -235,7 +234,7 @@ while ($section <= $course->numsections) {
 
             if ($PAGE->user_is_editing() && has_capability('moodle/course:update', get_context_instance(CONTEXT_COURSE, $course->id))) {
                 echo ' <a title="'.$streditsummary.'" href="editsection.php?id='.$thissection->id.'">'.
-                     '<img src="'.$OUTPUT->pix_url('t/edit') . '" class="icon edit" alt="'.$streditsummary.'" /></a><br /><br />';
+                     '<img src="'.$OUTPUT->pix_url('t/edit') . '" class="iconsmall edit" alt="'.$streditsummary.'" /></a><br /><br />';
             }
             echo '</div>';
 

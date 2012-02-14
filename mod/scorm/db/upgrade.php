@@ -1,24 +1,28 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-// This file keeps track of upgrades to
-// the scorm module
-//
-// Sometimes, changes between versions involve
-// alterations to database structures and other
-// major things that may break installations.
-//
-// The upgrade function in this file will attempt
-// to perform all the necessary actions to upgrade
-// your older installation to the current version.
-//
-// If there's something it cannot do itself, it
-// will tell you what you need to do.
-//
-// The commands in here will all be database-neutral,
-// using the methods of database_manager class
-//
-// Please do not forget to use upgrade_set_timeout()
-// before any action that may take longer time to finish.
+/**
+ * Upgrade script for the scorm module.
+ *
+ * @package    mod
+ * @subpackage scorm
+ * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 
 /**
  * @global moodle_database $DB
@@ -543,7 +547,15 @@ function xmldb_scorm_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2011021402, 'scorm');
     }
 
-    if ($oldversion < 2011021403) {
+    if ($oldversion < 2011073100) {
+        // change field type of objectiveid
+        $table = new xmldb_table('scorm_seq_objective');
+        $field = new xmldb_field('objectiveid', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, 'primaryobj');
+        $dbman->change_field_type($table, $field);
+        upgrade_mod_savepoint(true, 2011073100, 'scorm');
+    }
+
+    if ($oldversion < 2011080100) {
         //MDL-28295 the behaviour of pop-up windows has now changed - it now loads the full Player in the window
         //because of this, pop-up windows now include the TOC and the nav bar - disabling these for existing SCORMS
         //as it is a change that most users won't expect.
@@ -557,8 +569,44 @@ function xmldb_scorm_upgrade($oldversion) {
         }
         $rs->close();
 
-        upgrade_mod_savepoint(true, 2011021403, 'scorm');
+        upgrade_mod_savepoint(true, 2011080100, 'scorm');
     }
+    if ($oldversion < 2011110502) {
+
+        // Define table scorm_aicc_session to be created
+        $table = new xmldb_table('scorm_aicc_session');
+
+        // Adding fields to table scorm_aicc_session
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0');
+        $table->add_field('scormid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0');
+        $table->add_field('hacpsession', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('scoid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, '0');
+        $table->add_field('scormmode', XMLDB_TYPE_CHAR, '50', null, null, null, null);
+        $table->add_field('scormstatus', XMLDB_TYPE_CHAR, '255', null, null, null, null);
+        $table->add_field('attempt', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null);
+        $table->add_field('lessonstatus', XMLDB_TYPE_CHAR, '255', null, null, null, null);
+        $table->add_field('sessiontime', XMLDB_TYPE_CHAR, '255', null, null, null, null);
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0');
+
+        // Adding keys to table scorm_aicc_session
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_key('scormid', XMLDB_KEY_FOREIGN, array('scormid'), 'scorm', array('id'));
+        $table->add_key('userid', XMLDB_KEY_FOREIGN, array('userid'), 'user', array('id'));
+
+        // Conditionally launch create table for scorm_aicc_session
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // scorm savepoint reached
+        upgrade_mod_savepoint(true, 2011110502, 'scorm');
+    }
+
+    // Moodle v2.2.0 release upgrade line
+    // Put any upgrade step following this
+
     return true;
 }
 

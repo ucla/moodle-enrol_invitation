@@ -47,8 +47,8 @@ class testable_workshop extends workshop {
         parent::aggregate_submission_grades_process($assessments);
     }
 
-    public function aggregate_grading_grades_process(array $assessments) {
-        parent::aggregate_grading_grades_process($assessments);
+    public function aggregate_grading_grades_process(array $assessments, $timegraded = null) {
+        parent::aggregate_grading_grades_process($assessments, $timegraded);
     }
 
 }
@@ -214,14 +214,15 @@ class workshop_internal_api_test extends UnitTestCase {
         $batch = array();
         $batch[] = (object)array('reviewerid'=>3, 'gradinggrade'=>82.87670, 'gradinggradeover'=>null, 'aggregationid'=>null, 'aggregatedgrade'=>null);
         // expectation
+        $now = time();
         $expected = new stdclass();
         $expected->workshopid = $this->workshop->id;
         $expected->userid = 3;
         $expected->gradinggrade = 82.87670;
-        $expected->timegraded = time(); // warning - this is a weak point as the time may actually change
+        $expected->timegraded = $now;
         $DB->expectOnce('insert_record', array('workshop_aggregations', $expected));
         // excersise SUT
-        $this->workshop->aggregate_grading_grades_process($batch);
+        $this->workshop->aggregate_grading_grades_process($batch, $now);
     }
 
     public function test_aggregate_grading_grades_process_single_grade_update() {
@@ -265,14 +266,15 @@ class workshop_internal_api_test extends UnitTestCase {
         $batch[] = (object)array('reviewerid'=>5, 'gradinggrade'=>87.34311, 'gradinggradeover'=>null, 'aggregationid'=>null, 'aggregatedgrade'=>null);
         $batch[] = (object)array('reviewerid'=>5, 'gradinggrade'=>51.12000, 'gradinggradeover'=>null, 'aggregationid'=>null, 'aggregatedgrade'=>null);
         // expectation
+        $now = time();
         $expected = new stdclass();
         $expected->workshopid = $this->workshop->id;
         $expected->userid = 5;
         $expected->gradinggrade = 79.3066;
-        $expected->timegraded = time(); // warning - this is a weak point as the time may actually change
+        $expected->timegraded = $now;
         $DB->expectOnce('insert_record', array('workshop_aggregations', $expected));
         // excersise SUT
-        $this->workshop->aggregate_grading_grades_process($batch);
+        $this->workshop->aggregate_grading_grades_process($batch, $now);
     }
 
     public function test_aggregate_grading_grades_process_multiple_grades_update() {
@@ -373,5 +375,55 @@ class workshop_internal_api_test extends UnitTestCase {
         $lcm = array_reduce($numbers, 'workshop::lcm', 1);
         // verify
         $this->assertEqual($lcm, 15);
+    }
+
+    public function test_prepare_example_assessment() {
+        // fixture setup
+        $fakerawrecord = (object)array(
+            'id'                => 42,
+            'submissionid'      => 56,
+            'weight'            => 0,
+            'timecreated'       => time() - 10,
+            'timemodified'      => time() - 5,
+            'grade'             => null,
+            'gradinggrade'      => null,
+            'gradinggradeover'  => null,
+        );
+        // excersise SUT
+        $a = $this->workshop->prepare_example_assessment($fakerawrecord);
+        // verify
+        $this->assertTrue($a instanceof workshop_example_assessment);
+        $this->assertTrue($a->url instanceof moodle_url);
+
+        // modify setup
+        $fakerawrecord->weight = 1;
+        $this->expectException('coding_exception');
+        // excersise SUT
+        $a = $this->workshop->prepare_example_assessment($fakerawrecord);
+    }
+
+    public function test_prepare_example_reference_assessment() {
+        global $USER;
+        // fixture setup
+        $fakerawrecord = (object)array(
+            'id'                => 38,
+            'submissionid'      => 56,
+            'weight'            => 1,
+            'timecreated'       => time() - 100,
+            'timemodified'      => time() - 50,
+            'grade'             => 0.75000,
+            'gradinggrade'      => 1.00000,
+            'gradinggradeover'  => null,
+        );
+        // excersise SUT
+        $a = $this->workshop->prepare_example_reference_assessment($fakerawrecord);
+        // verify
+        $this->assertTrue($a instanceof workshop_example_reference_assessment);
+
+        // modify setup
+        $fakerawrecord->weight = 0;
+        $this->expectException('coding_exception');
+        // excersise SUT
+        $a = $this->workshop->prepare_example_reference_assessment($fakerawrecord);
     }
 }

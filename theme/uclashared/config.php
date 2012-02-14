@@ -55,7 +55,6 @@ $THEME->layouts = array(
         'regions' => $enabledregions,
         'defaultregion' => $defaultregion,
         'options' => array(
-            'langmenu' => true,
             'controlpanel' => true
         )
     ),
@@ -83,13 +82,16 @@ $THEME->layouts = array(
         'file' => $tf_general,
         'regions' => array('side-pre'),
         'defaultregion' => 'side-pre',
+        'options' => array(
+            'controlpanel' => true
+        )
     ),
     // My dashboard page
     'mydashboard' => array(
         'file' => $tf_general,
         'regions' => $enabledregions,
         'defaultregion' => $defaultregion,
-        'options' => array('langmenu'=>true),
+        'options' => array(),
     ),
     // My public page
     'mypublic' => array(
@@ -100,7 +102,7 @@ $THEME->layouts = array(
     'login' => array(
         'file' => $tf_general,
         'regions' => array(),
-        'options' => array('langmenu'=>true),
+        'options' => array(),
     ),
 
     // Pages that appear in pop-up windows - no navigation, 
@@ -108,22 +110,31 @@ $THEME->layouts = array(
     'popup' => array(
         'file' => $tf_general,
         'regions' => array(),
-        'options' => array('nofooter'=>true, 'nonavbar'=>true, 
-                'nocustommenu'=>true, 'nologininfo'=>true),
+        'options' => array( 
+            'nofooter' => true, 
+            'nonavbar' => true, 
+            'nocustommenu' => true, 
+            'nologininfo' => true
+        ),
     ),
     // No blocks and minimal footer - used for legacy frame layouts only!
     'frametop' => array(
         'file' => $tf_general,
         'regions' => array(),
-        'options' => array('nofooter'=>true),
+        'options' => array(
+            'nofooter' => true
+        ),
     ),
     // Embeded pages, like iframe/object embeded in moodleform 
     // - it needs as much space as possible
     'embedded' => array(
         'file' => $tf_embedded,
         'regions' => array(),
-        'options' => array('nofooter'=>true, 'nonavbar'=>true, 
-                'nocustommenu'=>true),
+        'options' => array(
+            'nofooter' => true, 
+            'nonavbar' => true, 
+            'nocustommenu' => true
+        ),
     ),
     // Used during upgrade and install, and for the 'This site is 
     // undergoing maintenance' message.
@@ -134,22 +145,33 @@ $THEME->layouts = array(
     'maintenance' => array(
         'file' => $tf_general,
         'regions' => array(),
-        'options' => array('noblocks'=>true, 'nofooter'=>true, 
-                'nonavbar'=>true, 'nocustommenu'=>true),
+        'options' => array(
+            'noblocks' => true, 
+            'nofooter' => true, 
+            'nonavbar' => true, 
+            'nocustommenu' => true
+        ),
     ),
     // Should display the content and basic headers only.
     'print' => array(
         'file' => $tf_general,
         'regions' => array(),
-        'options' => array('noblocks'=>true, 'nofooter'=>true, 
-                'nonavbar'=>false, 'nocustommenu'=>true),
+        'options' => array(
+            'noblocks' => true, 
+            'nofooter' => true, 
+            'nonavbar' => false, 
+            'nocustommenu' => true
+        ),
     ),
     // The pagelayout used when a redirection is occuring.
     'redirect' => array(
         'file' => $tf_embedded,
         'regions' => array(),
-        'options' => array('nofooter'=>true, 'nonavbar'=>true, 
-                'nocustommenu'=>true),
+        'options' => array(
+            'nofooter' => true, 
+            'nonavbar' => true, 
+            'nocustommenu' => true
+        ),
     ),
     // The pagelayout used for reports
     'report' => array(
@@ -168,3 +190,5 @@ if ($dropdown_contents) {
     $THEME->javascripts[] = 'shared_server_dropdown';
 }
 
+$THEME->sheets[] = 'admin'; // custom admin style changes
+$THEME->sheets[] = 'core'; // custom core stlye changes

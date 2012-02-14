@@ -83,11 +83,6 @@ class web_test extends UnitTestCase {
         $this->assertEqual(wikify_links('this is a <a href="http://someaddress.com/query">link</a>'), 'this is a link [ http://someaddress.com/query ]');
     }
 
-    function test_fix_non_standard_entities() {
-        $this->assertEqual(fix_non_standard_entities('&#x00A3&#0228'), '&#xA3;&#228;');
-        $this->assertEqual(fix_non_standard_entities('&#x00A3;&#0228;'), '&#xA3;&#228;');
-    }
-
     function test_compare_url() {
         $url1 = new moodle_url('index.php', array('var1' => 1, 'var2' => 2));
         $url2 = new moodle_url('index2.php', array('var1' => 1, 'var2' => 2, 'var3' => 3));
@@ -142,6 +137,27 @@ class web_test extends UnitTestCase {
 
     public function test_html_to_text_0() {
         $this->assertIdentical('0', html_to_text('0'));
+    }
+
+    public function test_html_to_text_pre_parsing_problem() {
+        $strorig = 'Consider the following function:<br /><pre><span style="color: rgb(153, 51, 102);">void FillMeUp(char* in_string) {'.
+                   '<br />  int i = 0;<br />  while (in_string[i] != \'\0\') {<br />    in_string[i] = \'X\';<br />    i++;<br />  }<br />'.
+                   '}</span></pre>What would happen if a non-terminated string were input to this function?<br /><br />';
+
+        $strconv = 'Consider the following function:
+
+void FillMeUp(char* in_string) {
+ int i = 0;
+ while (in_string[i] != \'\0\') {
+ in_string[i] = \'X\';
+ i++;
+ }
+}
+What would happen if a non-terminated string were input to this function?
+
+';
+
+        $this->assertIdentical($strconv, html_to_text($strorig));
     }
 
     public function test_clean_text() {

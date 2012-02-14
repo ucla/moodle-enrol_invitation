@@ -67,7 +67,7 @@ define('K_PATH_URL', $CFG->wwwroot . '/lib/tcpdf/');
 define('K_PATH_FONTS', K_PATH_MAIN . 'fonts/');
 
 /** cache directory for temporary files (full path) */
-define('K_PATH_CACHE', $CFG->dataroot . '/cache/');
+define('K_PATH_CACHE', $CFG->cachedir . '/');
 
 /** images directory */
 define('K_PATH_IMAGES', $CFG->dirroot . '/');
@@ -121,6 +121,23 @@ class pdf extends TCPDF {
         $this->l['a_meta_language'] = current_language();
         $this->l['a_meta_charset']  = 'UTF-8';
         $this->l['a_meta_dir']      = get_string('thisdirection', 'langconfig');
+    }
+
+    /**
+     * Send the document to a given destination: string, local file or browser.
+     * In the last case, the plug-in may be used (if present) or a download ("Save as" dialog box) may be forced.<br />
+     * The method first calls Close() if necessary to terminate the document.
+     * @param $name (string) The name of the file when saved. Note that special characters are removed and blanks characters are replaced with the underscore character.
+     * @param $dest (string) Destination where to send the document. It can take one of the following values:<ul><li>I: send the file inline to the browser (default). The plug-in is used if available. The name given by name is used when one selects the "Save as" option on the link generating the PDF.</li><li>D: send to the browser and force a file download with the name given by name.</li><li>F: save to a local server file with the name given by name.</li><li>S: return the document as a string (name is ignored).</li><li>FI: equivalent to F + I option</li><li>FD: equivalent to F + D option</li><li>E: return the document as base64 mime multi-part email attachment (RFC 2045)</li></ul>
+     * @public
+     * @since 1.0
+     * @see Close()
+     */
+    public function Output($name='doc.pdf', $dest='I') {
+        $olddebug = error_reporting(0);
+        $result  = parent::output($name, $dest);
+        error_reporting($olddebug);
+        return $result;
     }
 
     /**

@@ -49,10 +49,10 @@ class mod_choice_mod_form extends moodleform_mod {
         $repeateloptions = array();
         $repeateloptions['limit']['default'] = 0;
         $repeateloptions['limit']['disabledif'] = array('limitanswers', 'eq', 0);
-        $mform->setType('limit', PARAM_INT);
+        $repeateloptions['limit']['rule'] = 'numeric';
 
         $repeateloptions['option']['helpbutton'] = array('choiceoptions', 'choice');
-        $mform->setType('option', PARAM_CLEAN);
+        $mform->setType('option', PARAM_CLEANHTML);
 
         $mform->setType('optionid', PARAM_INT);
 

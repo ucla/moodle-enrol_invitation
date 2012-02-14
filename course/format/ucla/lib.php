@@ -28,9 +28,10 @@
 /**  Course Preferences API **/
 require_once(dirname(__FILE__) . '/ucla_course_prefs.class.php');
 
-define('UCLA_FORMAT_DISPLAY_ALL', -1);
-define('UCLA_FORMAT_DISPLAY_PREVIOUS', -2);
-define('UCLA_FORMAT_DISPLAY_LANDING', -3);
+// None of these can be bigger than 0
+define('UCLA_FORMAT_DISPLAY_ALL', -2);
+define('UCLA_FORMAT_DISPLAY_PREVIOUS', -3);
+define('UCLA_FORMAT_DISPLAY_LANDING', -4);
 
 /**
  * Indicates this format uses sections.
@@ -160,5 +161,75 @@ function callback_ucla_ajax_support() {
     );
 
     return $ajaxsupport;
+}
+
+/**
+ *  Determines if the format should display instructors for this page.
+ **/
+function ucla_format_display_instructors($course) {
+    if (function_exists('is_collab_site') && is_collab_site($course)) {
+        return false;
+    } else {
+        if (empty($course->idnumber)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ *  Figures out the topic to display. Specific only to the UCLA course format.
+ *  Uses a $_GET or $_POST param to figure out what's going on.
+ *
+ *  @return Array(
+ **/
+function ucla_format_figure_section($course, $course_prefs = null) {
+    global $USER;
+
+    if ($course_prefs == null || !is_object($course_prefs)) {
+        $course_prefs = new ucla_course_prefs($course_prefs);
+    }
+
+    // Default to section 0 (course info) if there are no preferences
+    $landing_page = $course_prefs->get_preference('landing_page', false);
+    if ($landing_page === false) {
+        $landing_page = $course->marker;
+    } 
+
+    // Shifting landing page section for storage purposes
+    $landing_page++;
+
+    /**
+     *  Landing page and determining which section to display
+     **/
+    $topic = optional_param(callback_ucla_request_key(), 
+        UCLA_FORMAT_DISPLAY_PREVIOUS, PARAM_INT);
+
+    $topic++;
+
+    $displaysection = null;
+    $to_topic = null;
+    $cid = $course->id;
+
+    if ($topic == (UCLA_FORMAT_DISPLAY_ALL + 1) || $topic > 0) {
+        // This means that a topic was explicitly declared
+        $to_topic = $topic;
+    } else if ($topic == (UCLA_FORMAT_DISPLAY_LANDING + 1)) {
+        debugging('explicit landing page');
+        $to_topic = $landing_page;
+    } else {
+        $to_topic = course_get_display($cid);
+
+        // No previous history
+        if ($to_topic == 0) {
+            debugging('implicit landing page');
+            $to_topic = $landing_page;
+        }
+    }
+
+    $displaysection = $to_topic - 1;
+
+    return array($to_topic, $displaysection);
 }
 

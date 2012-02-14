@@ -899,7 +899,7 @@ function wiki_user_can_edit($subwiki) {
             // There is one wiki per group.
             //
             // Only members of subwiki group could edit that wiki
-            if ($subwiki->groupid == groups_get_activity_group($cm)) {
+            if (groups_is_member($subwiki->groupid)) {
                 // Only edit capability needed
                 return has_capability('mod/wiki:editpage', $context);
             } else { // User is not part of that group
@@ -1300,8 +1300,8 @@ function wiki_print_page_content($page, $context, $subwikiid) {
  */
 function wiki_trim_string($text, $limit = 25) {
 
-    if (strlen($text) > $limit) {
-        $text = substr($text, 0, $limit) . '...';
+    if (textlib::strlen($text) > $limit) {
+        $text = textlib::substr($text, 0, $limit) . '...';
     }
 
     return $text;

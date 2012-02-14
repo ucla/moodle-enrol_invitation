@@ -477,8 +477,11 @@ class oci_native_moodle_database extends moodle_database {
 
         $this->columns[$table] = array();
 
-        $sql = "SELECT CNAME, COLTYPE, WIDTH, SCALE, PRECISION, NULLS, DEFAULTVAL
-                  FROM COL
+        // We give precedence to CHAR_LENGTH for VARCHAR2 columns over WIDTH because the former is always
+        // BYTE based and, for cross-db operations, we want CHAR based results. See MDL-29415
+        $sql = "SELECT CNAME, COLTYPE, nvl(CHAR_LENGTH, WIDTH) AS WIDTH, SCALE, PRECISION, NULLS, DEFAULTVAL
+                  FROM COL c
+             LEFT JOIN USER_TAB_COLUMNS u ON (u.TABLE_NAME = c.TNAME AND u.COLUMN_NAME = c.CNAME AND u.DATA_TYPE = 'VARCHAR2')
                  WHERE TNAME = UPPER('{" . $table . "}')
               ORDER BY COLNO";
 
@@ -1607,19 +1610,28 @@ class oci_native_moodle_database extends moodle_database {
         return $this->dblocks_supported;
     }
 
-    public function get_session_lock($rowid) {
+    /**
+     * Obtain session lock
+     * @param int $rowid id of the row with session record
+     * @param int $timeout max allowed time to wait for the lock in seconds
+     * @return bool success
+     */
+    public function get_session_lock($rowid, $timeout) {
         if (!$this->session_lock_supported()) {
             return;
         }
-        parent::get_session_lock($rowid);
+        parent::get_session_lock($rowid, $timeout);
 
         $fullname = $this->dbname.'-'.$this->prefix.'-session-'.$rowid;
         $sql = 'SELECT MOODLE_LOCKS.GET_LOCK(:lockname, :locktimeout) FROM DUAL';
-        $params = array('lockname' => $fullname , 'locktimeout' => 120);
+        $params = array('lockname' => $fullname , 'locktimeout' => $timeout);
         $this->query_start($sql, $params, SQL_QUERY_AUX);
         $stmt = $this->parse_query($sql);
         $this->bind_params($stmt, $params);
         $result = oci_execute($stmt, $this->commit_status);
+        if ($result === false) { // Any failure in get_lock() raises error, causing return of bool false
+            throw new dml_sessionwait_exception();
+        }
         $this->query_end($result, $stmt);
         oci_free_statement($stmt);
     }

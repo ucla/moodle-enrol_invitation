@@ -329,16 +329,6 @@ abstract class question_engine {
     }
 
     /**
-     * Get the translated name of an behaviour, for display in the UI.
-     * @param string $behaviour the internal name of the model.
-     * @return string name from the current language pack.
-     */
-    public static function get_behaviour_required_behaviours($behaviour) {
-        $class = 'qbehaviour_' . $behaviour;
-        return $class::get_required_behaviours();
-    }
-
-    /**
      * @return array all the file area names that may contain response files.
      */
     public static function get_all_response_file_areas() {
@@ -632,20 +622,26 @@ abstract class question_flags {
             'requires' => array('base', 'dom', 'event-delegate', 'io-base'),
         );
         $actionurl = $CFG->wwwroot . '/question/toggleflag.php';
+        $flagtext = array(
+            0 => get_string('clickflag', 'question'),
+            1 => get_string('clickunflag', 'question')
+        );
         $flagattributes = array(
             0 => array(
                 'src' => $OUTPUT->pix_url('i/unflagged') . '',
                 'title' => get_string('clicktoflag', 'question'),
                 'alt' => get_string('notflagged', 'question'),
+              //  'text' => get_string('clickflag', 'question'),
             ),
             1 => array(
                 'src' => $OUTPUT->pix_url('i/flagged') . '',
                 'title' => get_string('clicktounflag', 'question'),
                 'alt' => get_string('flagged', 'question'),
+               // 'text' => get_string('clickunflag', 'question'),
             ),
         );
         $PAGE->requires->js_init_call('M.core_question_flags.init',
-                array($actionurl, $flagattributes), false, $module);
+                array($actionurl, $flagattributes, $flagtext), false, $module);
         $done = true;
     }
 }
