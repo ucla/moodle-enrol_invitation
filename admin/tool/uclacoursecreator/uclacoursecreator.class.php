@@ -349,7 +349,8 @@ class uclacoursecreator {
             return $target;
         } 
 
-        return $this->reg_trans[$table][$target];
+        // format result nicely, not in all caps
+        return ucla_format_name($this->reg_trans[$table][$target]);
     }
 
     /**
@@ -746,8 +747,8 @@ class uclacoursecreator {
         foreach ($course_set as $course) {
             $course = $this->trim_object($course);
 
-            $this->println('Request: ' . $course->term . ' ' 
-                . $course->srs . ' ' . $course->course);
+            $this->println('Request: ' . $course->term . ' ' . $course->srs . 
+                    ' ' . $course->department . ' ' . $course->course);
 
             $this->cron_term_cache['requests']
                 [self::cron_requests_key($course)] = $course;

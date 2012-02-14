@@ -252,13 +252,16 @@ function ucla_term_to_text($term) {
 }
 
 /**
- * Properly format a user's name. Name might include the following 
- * characters ' or - or a space. Need to properly uppercase the first letter
- * and lowercase the rest. Assuming input is all captialized.
+ * Properly format a given string so it is suitable to be used as a name. Name 
+ * might include the following characters ' or - or a space. Need to properly 
+ * uppercase the first letter and lowercase the rest.
  *
- * NOTE: Special case added if the last name starts with "MC". Assuming that
+ * NOTE: 
+ *  - Special case added if the last name starts with "MC". Assuming that
  * next character should be uppercase.
- *
+ *  - Special case: If a name as 's, like Women's studies, then the S shouldn't
+ * be capitalized. 
+ * 
  * @author Rex Lorenzo
  * @param string name   fname, mname, or lname
  * @return string       name in proper format
@@ -282,7 +285,12 @@ function ucla_format_name($name=null) {
     $name_array = explode(' ', $name);
     if (count($name_array) > 1) {   
         foreach ($name_array as $key => $element) {
-            $name_array[$key] = format_name($element);   // recurse
+            $result = ucla_format_name($element);   // recurse
+            if (!empty($result)) {
+                $name_array[$key] = $result;
+            } else {
+                unset($name_array[$key]);   // don't use element if it is blank
+            }
         }
         $name = implode(' ', $name_array);  // combine elements back        
     }
@@ -291,7 +299,7 @@ function ucla_format_name($name=null) {
     $name_array = explode('-', $name);
     if (count($name_array) > 1) {   
         foreach ($name_array as $key => $element) {
-            $name_array[$key] = format_name($element);   // recurse
+            $name_array[$key] = ucla_format_name($element);   // recurse
         }
         $name = implode('-', $name_array);  // combine elements back        
     }    
@@ -300,7 +308,20 @@ function ucla_format_name($name=null) {
     $name_array = explode("'", $name);
     if (count($name_array) > 1) {  
         foreach ($name_array as $key => $element) {
-            $name_array[$key] = format_name($element);   // recurse
+            /*
+            * Special case: If a name as 's, like Women's studies, then the S 
+            * shouldn't be capitalized. 
+            */         
+            if (preg_match('/^[s]{1}\\s+.*/i', $element)) {
+                // found a single lowercase s with a space and maybe something 
+                // following, that means you found a possessive s, so make sure
+                // it is lowercase and do not recuse
+                $element[0] = 's'; 
+                $name_array[$key] = $element;
+            } else {
+                // found a ' that is part of a name
+                $name_array[$key] = ucla_format_name($element);   // recurse
+            }
         }
         $name = implode("'", $name_array);  // combine elements back        
     }    
