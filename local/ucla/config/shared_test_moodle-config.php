@@ -61,7 +61,7 @@ $CFG->directorypermissions = 0777;
 $CFG->passwordsaltmain = '^!mny&G9W)JIB# c/#}^3Uk(';
 
 // determines current term
-$CFG->currentterm = '11F';
+$CFG->currentterm = '12W';
 
 // Registrar
 $CFG->registrar_dbtype = 'odbc_mssql';
@@ -72,7 +72,7 @@ $CFG->registrar_dbname = 'srdb';
 $CFG->registrar_dbencoding = 'ISO-8859-1';
 
 // Course builder
-$terms_to_built = array('11F', '12W', '12S');
+$terms_to_built = array('11F', '12W', '12S', '121', '12F');
 
 // Course Requestor
 $CFG->forced_plugin_settings['tool_uclacourserequestor']['terms'] = $terms_to_built;
