@@ -1662,7 +1662,7 @@ class uclacoursecreator {
             } else if (preg_match('/'.'^BCC:(.*)'.'/i',$line, $matches)) {
                 $email_params['bcc'] = trim($matches[1]);
             } else if (preg_match('/'.'^SUBJECT:(.*)'.'/i',$line,$matches)) {
-                $email_params['subject'] = $matches[1];
+                $email_params['subject'] = trim($matches[1]);
             }
         }
         
