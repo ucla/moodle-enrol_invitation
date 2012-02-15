@@ -120,7 +120,7 @@ function ucla_get_course_info($courseid) {
  *      $courseids   `id` field of {course} table.
  *  @return 
  *      Array (
- *          setid => 
+ *          courseid => 
  *              Array (
  *                  make_idnumber() => reg_info_object
  *                  ...
@@ -138,21 +138,22 @@ function ucla_get_courses_info($courseids) {
 
     // Index... this seems like it can be abstracted
 
-    return index_ucla_course_requests($requests);
+    return index_ucla_course_requests($requests, 'courseid');
 }
 
 /**
- *  Convenicence function.
+ *  Convenience function.
+ *  @param  $requests   
+ *      Array of Objects with properties term, srs, and $indexby
+ *  @param  $indexby    What you want as the primary index
  **/
-function index_ucla_course_requests($requests) {
+function index_ucla_course_requests($requests, $indexby='setid') {
     $reindexed = array();
 
     if (!empty($requests)) {
         foreach ($requests as $record) {
-            if (isset($record->setid)) {
-                $reindexed[$record->setid][make_idnumber($record)] = $record;
-            } else {
-                throw new moodle_exception('faulty ucla request');
+            if (isset($record->$indexby)) {
+                $reindexed[$record->$indexby][make_idnumber($record)] = $record;
             }
         }
     }
@@ -179,7 +180,7 @@ function ucla_get_courses_by_terms($terms) {
     $records = $DB->get_records_select('ucla_request_classes',
         $where, $params);
 
-    return index_ucla_course_requests($records);
+    return index_ucla_course_requests($records, 'courseid');
 }
 
 /**
@@ -217,12 +218,28 @@ function ucla_get_courses($termsrses) {
         return array();
     }
 
-    $reindexed = array();
-    foreach ($records as $record) {
-        $reindexed[$record->setid][make_idnumber($record)] = $record;
+    return index_ucla_course_requests($records, 'courseid');
+}
+
+/**
+ *  Convenience function that returns the courses informations for
+ *  a term and srs.
+ *  @param  $term   The term
+ *  @param  $srs    The SRS
+ *  @return 
+ *      Array(
+ *          make_idnumber() => ucla_request_classes object
+ *              ...
+ *      )
+ **/
+function ucla_get_course($term, $srs) {
+    $ugcs = ucla_get_courses(array('term' => $term, 'srs' => $srs));
+
+    if (empty($ugcs)) {
+        return false;
     }
 
-    return $reindexed;
+    return reset($ugcs);
 }
 
 /**
