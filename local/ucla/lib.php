@@ -597,17 +597,18 @@ function get_moodlerole($pseudorole, $subject_area='*SYSTEM*') {
 function ucla_send_mail($to, $subj, $body='', $header='') {
     global $CFG;
 
-    if (!empty($CFG->divertmailsto)) {
-        $to = $CFG->divertmailsto;
+    if (!empty($CFG->divertallemailsto)) {
+        $to = $CFG->divertallemailsto;
         // clear header variable, because it might contain an email address
         $header = '';   
     }
 
-    if (debugging() && !empty($CFG->divertmailsto)) {
-        // if divertmailsto is set, then send out email even if debugging is 
+    if (debugging() && !empty($CFG->divertallemailsto)) {
+        // if divertallemailsto is set, then send out email even if debugging is 
         // enabled
         debugging("TO: $to\nSUBJ: $subj\nBODY: $body\nHEADER: $header");
     } else {
+        debugging("Sending real email to " . $to);
         return @mail($to, $subj, $body, $header);
     }
 
