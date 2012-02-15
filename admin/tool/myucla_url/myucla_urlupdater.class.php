@@ -25,6 +25,7 @@ class myucla_urlupdater {
 
     var $successful = array();
     var $failed = array();
+    var $skipped = array();
 
     /**
      *  Builds the MyUCLA URL update webservice URL.
@@ -145,6 +146,7 @@ class myucla_urlupdater {
 
             // We don't need to push urls that are supposedly done
             if (isset($this->successful[$idnumber])) {
+                $this->skipped[$idnumber] = true;
                 unset($courses[$idnumber]);
             }
         }

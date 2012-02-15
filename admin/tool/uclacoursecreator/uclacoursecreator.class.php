@@ -1159,6 +1159,8 @@ class uclacoursecreator {
     function bulk_create_courses($courses) {
         $returns = array();
         // Give public private a chance to install....
+
+        $this->debugln('Creating courses...');
         $ppe = $this->publicprivate_enabled();
         foreach ($courses as $key => $course) {
             if ($ppe) {
@@ -1167,6 +1169,8 @@ class uclacoursecreator {
 
             $returns[$key] = create_course($course);
         }
+
+        $this->debugln('Created ' . count($returns) . ' courses');
 
         return $returns;
     }
@@ -1234,7 +1238,15 @@ class uclacoursecreator {
             $ks = array('failed', 'successful');
             foreach ($ks as $k) {
                 if (!empty($urlupdater->{$k})) {
+                    $this->println($k . ': ');
                     foreach ($urlupdater->{$k} as $kid => $ked) {
+                        if (isset($urlupdater->skipped[$kid])
+                                && isset($urlarr[$kid]['flag'])) {
+                            $ked .= ' (' . get_string($urlarr[$kid]['flag'],
+                                    'tool_myucla_url')
+                                . ')';
+                        }
+
                         $this->println($kid . ' ' . $ked);
                     }
                 }
