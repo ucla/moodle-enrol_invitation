@@ -599,9 +599,13 @@ function ucla_send_mail($to, $subj, $body='', $header='') {
 
     if (!empty($CFG->divertmailsto)) {
         $to = $CFG->divertmailsto;
+        // clear header variable, because it might contain an email address
+        $header = '';   
     }
 
-    if (debugging()) {
+    if (debugging() && !empty($CFG->divertmailsto)) {
+        // if divertmailsto is set, then send out email even if debugging is 
+        // enabled
         debugging("TO: $to\nSUBJ: $subj\nBODY: $body\nHEADER: $header");
     } else {
         return @mail($to, $subj, $body, $header);
