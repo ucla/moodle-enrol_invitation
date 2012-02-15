@@ -598,9 +598,12 @@ function ucla_send_mail($to, $subj, $body='', $header='') {
     global $CFG;
 
     if (!empty($CFG->divertallemailsto)) {
+        // change subject to have divert message
+        $subj = "[DIVERTED $to] $subj";      
+        // clear out old to
         $to = $CFG->divertallemailsto;
         // clear header variable, because it might contain an email address
-        $header = '';   
+        $header = '';        
     }
 
     if (debugging() && empty($CFG->divertallemailsto)) {
