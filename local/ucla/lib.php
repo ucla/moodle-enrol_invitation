@@ -603,7 +603,7 @@ function ucla_send_mail($to, $subj, $body='', $header='') {
         $header = '';   
     }
 
-    if (debugging() && !empty($CFG->divertallemailsto)) {
+    if (debugging() && empty($CFG->divertallemailsto)) {
         // if divertallemailsto is set, then send out email even if debugging is 
         // enabled
         debugging("TO: $to\nSUBJ: $subj\nBODY: $body\nHEADER: $header");
