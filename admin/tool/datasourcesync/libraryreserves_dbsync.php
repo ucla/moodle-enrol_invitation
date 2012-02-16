@@ -25,10 +25,29 @@ function update_libraryreserves_db(){
    
    $datasource_url = $CFG->libraryreserves_data;
 
-   $data = &get_csv_data($datasource_url);
+   $incoming_data = array();
 
-   $data = &cleanup_csv_data($data, "ucla_libraryreserves");
-   
+   # read the file into a two-dimensional array
+   $lines = file($datasource_url);
+   foreach ($lines as $line_num => $line) {
+           # stop processing data if we hit the end of the file
+               if ($line != "=== EOF ===\n") {
+                           # remove the newline at the end of each line
+                                   $line = rtrim($line);
+                                        $incoming_data[$line_num] = explode("\t", $line); 
+               }
+   }
+
+    # check if all entries have the correct number of columns
+    
+   for ($row = 2; $row < sizeof($incoming_data); $row++) {
+       if (sizeof($incoming_data[$row]) != 11) {
+                   die("Incorrectly formed input data.\n");
+       }
+   }
+  
+   $data = &$incoming_data;
+    
    // Drop table and refill with data
    $DB->delete_records('ucla_libraryreserves');
 
