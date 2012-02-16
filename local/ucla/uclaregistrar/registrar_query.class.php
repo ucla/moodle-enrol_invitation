@@ -170,11 +170,7 @@ abstract class registrar_query {
      *  Returns any bad data whose output did not pass validation.
      **/
     function get_bad_data() {
-        if (!empty($this->previous_bad_inputs)) {
-            return $this->previous_bad_inputs;
-        }
-
-        return false;
+        return $this->previous_bad_inputs;
     }
 
     /**
