@@ -13,13 +13,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
 defined('MOODLE_INTERNAL') || die();
 
-$string['pluginname'] = 'UCLA configurations';
-
-$string['access_failure'] = 'Your access control systems are not properly set up, configuration files in the "local/ucla/" directory may be web visible!';
-
-$string['curl_failure'] = 'cURL is not installed, your configuration files\' web visibility could not be tested!';
-
-$string['invalidrolemapping'] = 'Could not find role mapping';
+class course_creator_exception extends moodle_exception {
+    // Nothing...
+}

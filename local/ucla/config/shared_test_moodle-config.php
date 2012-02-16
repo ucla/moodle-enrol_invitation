@@ -38,9 +38,9 @@ $CFG = new stdClass();
 $CFG->dbtype    = 'mysqli';
 $CFG->dblibrary = 'native';
 $CFG->dbhost    = 'localhost';
-$CFG->dbname    = 'm2test';
-$CFG->dbuser    = 'moodleuser';
-$CFG->dbpass    = 'db4moodle';
+$CFG->dbname    = '';
+$CFG->dbuser    = '';
+$CFG->dbpass    = '';
 $CFG->prefix    = 'mdl_';
 $CFG->dboptions = array(
     'dbpersist' => 0,
@@ -59,6 +59,38 @@ $CFG->directorypermissions = 0777;
 // This should never change after the first install, or else any special
 // logins using the Moodle login will not work.
 $CFG->passwordsaltmain = '^!mny&G9W)JIB# c/#}^3Uk(';
+
+// determines current term
+$CFG->currentterm = '12W';
+
+// Registrar
+$CFG->registrar_dbtype = 'odbc_mssql';
+$CFG->registrar_dbhost = '';
+$CFG->registrar_dbuser = '';
+$CFG->registrar_dbpass = '';
+$CFG->registrar_dbname = 'srdb';
+$CFG->registrar_dbencoding = 'ISO-8859-1';
+
+// Course builder
+$terms_to_built = array('11F', '12W', '12S', '121', '12F');
+
+// Course Requestor
+$CFG->forced_plugin_settings['tool_uclacourserequestor']['terms'] = $terms_to_built;
+$CFG->forced_plugin_settings['tool_uclacourserequestor']['selected_term'] = $CFG->currentterm;
+$CFG->forced_plugin_settings['tool_uclacourserequestor']['mailinst_default'] = false; 
+$CFG->forced_plugin_settings['tool_uclacourserequestor']['nourlupdate_default'] = true;
+
+// Course Creator
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['terms'] = $terms_to_built;
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['course_creator_email'] = 'ccle-operations@lists.ucla.edu';
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['email_template_dir'] = '/usr/local/moodle/m2test_config/course_creator/email_templates';
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['make_division_categories'] = true;
+
+// MyUCLA url updater
+$CFG->forced_plugin_settings['tool_myucla_url']['url_service'] = 'https://m2test.ccle.ucla.edu/rex/myucla_url_updater/update.php';  // test server
+$CFG->forced_plugin_settings['tool_myucla_url']['user_name'] = 'CCLE Admin';   // name for registering URL with My.UCLA
+$CFG->forced_plugin_settings['tool_myucla_url']['user_email'] = 'ccle@ucla.edu';  // email for registering URL with My.UCLA
+$CFG->forced_plugin_settings['tool_myucla_url']['override_debugging'] = true;   // test sending MyUCLA urls
 
 // turn off messaging (CCLE-2318 - MESSAGING)
 $CFG->messaging = false;
@@ -92,6 +124,9 @@ $CFG->fullnamedisplay == 'language';
 // UCLA Theme settings
 $CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'test';
 $CFG->forced_plugin_settings['theme_uclashared']['logo_sub_dropdown'] = true;
+
+// Newly created courses for ucla formats should only have the course menu block
+$CFG->defaultblocks_ucla = 'ucla_course_menu';
 
 /** 
  *  Automatic Shibboleth configurations.
