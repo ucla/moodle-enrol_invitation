@@ -118,8 +118,14 @@ $block_ucla_help_settings = array('send_to' => 'jira',
 $CFG->forced_plugin_settings['block_ucla_help'] = $block_ucla_help_settings;
 $block_ucla_help_support_contacts['System'] = 'dkearney';  // default
 
+// useful DEV settings
+$CFG->debug = 38911;    // DEVELOPER level debugging messages
+$CFG->debugdisplay = true;  // show the debugging messages
+$CFG->perfdebug = true; // show performance information
+$CFG->debugpageinfo = true; // show page information
+
 // CCLE-2550 - Lastname, Firstname sorting
-$CFG->fullnamedisplay == 'language';
+$CFG->fullnamedisplay = 'language';
 
 // UCLA Theme settings
 $CFG->themedesignermode = true;
@@ -128,6 +134,30 @@ $CFG->forced_plugin_settings['theme_uclashared']['logo_sub_dropdown'] = true;
 
 // Newly created courses for ucla formats should only have the course menu block
 $CFG->defaultblocks_ucla = 'ucla_course_menu';
+
+// Enable conditional activities
+$CFG->enableavailability = true;
+$CFG->enablecompletion = true;  // needs to be enabled so that completion
+                                // of tasks can be one of the conditions
+$CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 1;
+
+// CCLE-2229 - Force public/private to be on
+$CFG->enablegroupmembersonly = true; // needs to be on for public-private to work
+$CFG->enablepublicprivate = true;
+
+// CCLE-2792 - Enable multimedia filters
+// NOTE: you still need to manually set the "Active?" value of the "Multimedia 
+// plugins" filter at "Site administration > Plugins > Filters > Manage filters"
+$CFG->filter_mediaplugin_enable_youtube = true;
+$CFG->filter_mediaplugin_enable_vimeo = true;
+$CFG->filter_mediaplugin_enable_mp3 = true;
+$CFG->filter_mediaplugin_enable_flv = true;
+$CFG->filter_mediaplugin_enable_swf = true;
+$CFG->filter_mediaplugin_enable_html5audio = true;
+$CFG->filter_mediaplugin_enable_html5video = true;
+$CFG->filter_mediaplugin_enable_qt = true;
+$CFG->filter_mediaplugin_enable_wmp = true;
+$CFG->filter_mediaplugin_enable_rm = true;
 
 /** 
  *  Automatic Shibboleth configurations.

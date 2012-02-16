@@ -57,7 +57,7 @@ $CFG->directorypermissions = 0777;
 
 // This should never change after the first install, or else any special
 // logins using the Moodle login will not work.
-$CFG->passwordsaltmain = 'Ob^3(Mi3Qs1D))cl@0<Od-#YQACc^71';
+$CFG->passwordsaltmain = '';
 
 // determines current term
 $CFG->currentterm = '12W';
@@ -113,7 +113,7 @@ $CFG->forced_plugin_settings['block_ucla_help'] = $block_ucla_help_settings;
 $block_ucla_help_support_contacts['System'] = 'dkearney';  // default
 
 // CCLE-2550 - Lastname, Firstname sorting
-$CFG->fullnamedisplay == 'language';
+$CFG->fullnamedisplay = 'language';
 
 // UCLA Theme settings
 $CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'prod';
@@ -121,6 +121,36 @@ $CFG->forced_plugin_settings['theme_uclashared']['logo_sub_dropdown'] = true;
 
 // Newly created courses for ucla formats should only have the course menu block
 $CFG->defaultblocks_ucla = 'ucla_course_menu';
+
+// Enable conditional activities
+$CFG->enableavailability = true;
+$CFG->enablecompletion = true;  // needs to be enabled so that completion
+                                // of tasks can be one of the conditions
+$CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 1;
+
+// CCLE-2229 - Force public/private to be on
+$CFG->enablegroupmembersonly = true; // needs to be on for public-private to work
+$CFG->enablepublicprivate = true;
+
+// CCLE-2792 - Enable multimedia filters
+// NOTE: you still need to manually set the "Active?" value of the "Multimedia 
+// plugins" filter at "Site administration > Plugins > Filters > Manage filters"
+$CFG->filter_mediaplugin_enable_youtube = true;
+$CFG->filter_mediaplugin_enable_vimeo = true;
+$CFG->filter_mediaplugin_enable_mp3 = true;
+$CFG->filter_mediaplugin_enable_flv = true;
+$CFG->filter_mediaplugin_enable_swf = true;
+$CFG->filter_mediaplugin_enable_html5audio = true;
+$CFG->filter_mediaplugin_enable_html5video = true;
+$CFG->filter_mediaplugin_enable_qt = true;
+$CFG->filter_mediaplugin_enable_wmp = true;
+$CFG->filter_mediaplugin_enable_rm = true;
+
+// Enabling Anti-Virus
+$CFG->runclamonupload = true;
+$CFG->clamscan = '/usr/bin/clamscan';
+$CFG->quarantinedir = '/usr/local/clamquarantine';
+$CFG->clamfailureonupload = 'donothing';
 
 /** 
  *  Automatic Shibboleth configurations.
