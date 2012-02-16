@@ -120,9 +120,14 @@ class enrol_database_plugin extends enrol_plugin {
                         // missing course info
                         continue;
                     }
-                    if (!$course = $DB->get_record('course', array($localcoursefield=>$fields[$coursefield]), 'id,visible')) {
+
+                    list($term, $srs) = explode('-', $fields[$coursefield]);
+                    if (!$courses = ucla_get_course($term, $srs)) {
+                        debugging('no courses for ' . $term . ' ' . $srs);
                         continue;
                     }
+                    // Get the first one
+                    $course = reset($courses);
                     if (!$course->visible and $ignorehidden) {
                         continue;
                     }
@@ -364,6 +369,7 @@ class enrol_database_plugin extends enrol_plugin {
             $existing[$course->mapping] = $course;
         }
         $rs->close();
+
 
         // free memory
         unset($externalcourses);
