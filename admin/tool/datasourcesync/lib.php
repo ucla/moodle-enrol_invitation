@@ -62,6 +62,8 @@ function cleanup_csv_data($data_array, $table_name){
         $posfields[$fieldname] = $fieldname;
     }
 
+    
+
     // Assuming the field descriptor line is going to come before all the other lines
     $field_descriptors_obtained = FALSE;
     $fields_desc_line = -1;
@@ -72,7 +74,7 @@ function cleanup_csv_data($data_array, $table_name){
         $fields_desc_line++;
 
         if ($fields_desc_line == $total_lines) {
-            die ("Could not find any lines that match any field in the DB!");
+            die ("\n"."Could not find any lines that match any field in the DB!"."\n");
         }
 
         $file_fields = array();
