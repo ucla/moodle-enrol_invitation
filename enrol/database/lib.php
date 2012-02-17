@@ -70,6 +70,7 @@ class enrol_database_plugin extends enrol_plugin {
         $coursefield      = strtolower($this->get_config('remotecoursefield'));
         $userfield        = strtolower($this->get_config('remoteuserfield'));
         $rolefield        = strtolower($this->get_config('remoterolefield'));
+        $subjfield        = strtolower($this->get_config('remotesubjfield'));
 
         $localrolefield   = $this->get_config('localrolefield');
         $localuserfield   = $this->get_config('localuserfield');
@@ -94,10 +95,6 @@ class enrol_database_plugin extends enrol_plugin {
         if (!isset($allroles[$defaultrole])) {
             $defaultrole = 0;
         }
-        $roles = array();
-        foreach ($allroles as $role) {
-            $roles[$role->$localrolefield] = $role->id;
-        }
 
         $enrols = array();
         $instances = array();
@@ -120,21 +117,28 @@ class enrol_database_plugin extends enrol_plugin {
                         // missing course info
                         continue;
                     }
-                    if (!$course = $DB->get_record('course', array($localcoursefield=>$fields[$coursefield]), 'id,visible')) {
+
+                    list($term, $srs) = explode('-', $fields[$coursefield]);
+
+                    $localcourseid = ucla_map_termsrs_to_courseid($term, $srs);
+                    if (!$localcourseid) {
+                        continue;
+                    }
+                    if (!$course = $DB->get_record('course', array($localcoursefield=>$localcourseid), 'id,visible')) {
                         continue;
                     }
                     if (!$course->visible and $ignorehidden) {
                         continue;
                     }
 
-                    if (empty($fields[$rolefield]) or !isset($roles[$fields[$rolefield]])) {
+                    if (empty($fields[$rolefield])) {
                         if (!$defaultrole) {
                             // role is mandatory
                             continue;
                         }
                         $roleid = $defaultrole;
                     } else {
-                        $roleid = $roles[$fields[$rolefield]];
+                        $roleid = get_moodlerole($fields[$rolefield], $fields['subj_area']);
                     }
 
                     if (empty($enrols[$course->id])) {

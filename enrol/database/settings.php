@@ -77,6 +77,8 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('enrol_database/remoteuserfield', get_string('remoteuserfield', 'enrol_database'), get_string('remoteuserfield_desc', 'enrol_database'), ''));
 
     $settings->add(new admin_setting_configtext('enrol_database/remoterolefield', get_string('remoterolefield', 'enrol_database'), get_string('remoterolefield_desc', 'enrol_database'), ''));
+    
+    $settings->add(new admin_setting_configtext('enrol_database/remotesubjfield', get_string('remotesubjfield', 'enrol_database'), get_string('remotesubjfield_desc', 'enrol_database'), ''));
 
     if (!during_initial_install()) {
         $options = get_default_enrol_roles(get_context_instance(CONTEXT_SYSTEM));
