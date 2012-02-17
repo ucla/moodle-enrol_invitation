@@ -225,25 +225,18 @@ function ucla_get_courses($termsrses) {
         return array();
     }
 
-    $where = implode(' OR  ', $termsrssql);
+    $where = '(' . implode(' OR  ', $termsrssql) . ') '
+        . 'AND `courseid` IS NOT NULL';
 
     // TODO if you're bored, turn this into one get_records_sql() call
     $records = $DB->get_records_select('ucla_request_classes',
-        $where, $params, '', 'DISTINCT setid');
+        $where, $params, '', 'DISTINCT courseid');
 
     if (!$records) {
         return array();
     }
 
-    $setids = array_keys($records);
-
-    list($sqlin, $params) = $DB->get_in_or_equal($setids);
-    $where = 'setid ' . $sqlin;
-
-    $records = $DB->get_records_select('ucla_request_classes',
-        $where, $params);
-
-    return index_ucla_course_requests($records, 'courseid');
+    return ucla_get_courses_info(array_keys($records));
 }
 
 /**
