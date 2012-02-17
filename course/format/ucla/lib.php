@@ -53,7 +53,7 @@ function callback_ucla_uses_sections() {
  * @return bool Returns true
  */
 function callback_ucla_load_content(&$navigation, $course, $coursenode) {
-    global $CFG;
+    global $CFG, $PAGE;
 
     // Sort of a dirty hack, but this so far is the best way to manipulate the
     // navbar since these callbacks are called before the format is included
@@ -73,7 +73,9 @@ function callback_ucla_load_content(&$navigation, $course, $coursenode) {
         . '/course/format/ucla/edit.php',
         array('courseid' => $course->id));
 
-    $supernode->add(get_string('course_pref', 'format_ucla'), $course_pref);
+    $PAGE->settingsnav->find('courseadmin', 
+        navigation_node::TYPE_COURSE)->add(get_string('course_pref', 
+            'format_ucla'), $course_pref);
 
     return $navigation->load_generic_course_sections($course, $coursenode, 
         'ucla');
