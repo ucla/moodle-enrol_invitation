@@ -137,7 +137,6 @@ function ucla_get_courses_info($courseids) {
         $where, $param);
 
     // Index... this seems like it can be abstracted
-
     return index_ucla_course_requests($requests, 'courseid');
 }
 
@@ -202,6 +201,19 @@ function ucla_get_courses($termsrses) {
     $params = array();
 
     foreach ($termsrses as $termsrs) {
+        $v = true;
+        foreach ($termsrs as $k => $f) {
+            if (!ucla_validator($k, $f)) {
+                $v = false;
+            }
+        }
+
+        if (!$v) {
+            debugging('bad object passed to ucla_get_courses: '
+                . print_r($termsrs, true));
+            continue;
+        }
+
         $param = array($termsrs['srs'], $termsrs['term']);
         $sql = '`srs` = ? AND `term` = ?';
 
@@ -209,14 +221,27 @@ function ucla_get_courses($termsrses) {
         $params = array_merge($params, $param);
     }
 
+    if (empty($params)) {
+        return array();
+    }
+
     $where = implode(' OR  ', $termsrssql);
 
+    // TODO if you're bored, turn this into one get_records_sql() call
     $records = $DB->get_records_select('ucla_request_classes',
-        $where, $params);
+        $where, $params, '', 'DISTINCT setid');
 
     if (!$records) {
         return array();
     }
+
+    $setids = array_keys($records);
+
+    list($sqlin, $params) = $DB->get_in_or_equal($setids);
+    $where = 'setid ' . $sqlin;
+
+    $records = $DB->get_records_select('ucla_request_classes',
+        $where, $params);
 
     return index_ucla_course_requests($records, 'courseid');
 }
@@ -233,7 +258,7 @@ function ucla_get_courses($termsrses) {
  *      )
  **/
 function ucla_get_course($term, $srs) {
-    $ugcs = ucla_get_courses(array('term' => $term, 'srs' => $srs));
+    $ugcs = ucla_get_courses(array(array('term' => $term, 'srs' => $srs)));
 
     if (empty($ugcs)) {
         return false;
