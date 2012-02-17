@@ -192,7 +192,7 @@ class block_ucla_course_menu extends block_navigation {
                     '/course/view.php',
                     array(
                         'id' => $course_id,
-                         $topic_param => $thistopic
+                         $topic_param => $ds
                     )
                 )
             );
