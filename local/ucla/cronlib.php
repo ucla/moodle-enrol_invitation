@@ -146,7 +146,8 @@ class ucla_reg_classinfo_cron {
             ++$num_not_found;
         }       
         
-        echo "\nUpdated: $uc . Inserted: $ic . Not found at registrar: $num_not_found . Failed sanity: $fscc\n";
+        echo "\nUpdated: $uc . Inserted: $ic . Not found at registrar: "
+            . "$num_not_found . Failed sanity: $fscc\n";
 
         return true;
     }

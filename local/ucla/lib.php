@@ -374,6 +374,7 @@ function local_ucla_cron() {
         if (class_exists($cn)) {
             $runner = new $cn();
             if (method_exists($runner, 'run')) {
+                echo "Running $cn\n";
                 $result = $runner->run($terms);
             } else {
                 echo "Could not run() for $cn\n";
