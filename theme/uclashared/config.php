@@ -14,7 +14,9 @@ $tn = 'theme_' . $THEME->name;
 $THEME->parents = array('base');
 
 $THEME->sheets = array(
+    'admin',    // custom admin style changes
     'base',
+    'core',     // custom core stlye changes
     'general',
 );
 
@@ -189,6 +191,3 @@ if ($dropdown_contents) {
     $THEME->javascripts[] = 'jquery-1.5.2.min'; 
     $THEME->javascripts[] = 'shared_server_dropdown';
 }
-
-$THEME->sheets[] = 'admin'; // custom admin style changes
-$THEME->sheets[] = 'core'; // custom core stlye changes

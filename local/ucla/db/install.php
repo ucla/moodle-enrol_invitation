@@ -20,10 +20,12 @@ require_once(dirname(__FILE__) . '/../lib.php');
 
 /**
  *  Runs extra commands when installing.
+ *  Called by Moodle automatically.
  **/
 function xmldb_local_ucla_install() {
     // Do stuff eventually
     $result = true;
+
 
     // Maybe add some tables we need?
     return $result;
@@ -31,6 +33,7 @@ function xmldb_local_ucla_install() {
 
 /**
  *  Runs commands to recover a halted installation.
+ *  Called by Moodle automatically.
  **/
 function xmldb_local_ucla_install_recovery() {
     // Do stuff eventually

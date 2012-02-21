@@ -55,6 +55,13 @@ $CFG->admin    = 'admin';
 
 $CFG->directorypermissions = 0777;
 
+// Registrar
+$CFG->registrar_dbtype = 'odbc';
+$CFG->registrar_dbhost = 'REGISTRAR';
+$CFG->registrar_dbuser = '';
+$CFG->registrar_dbpass = '';
+$CFG->registrar_dbencoding = 'ISO-8859-1';
+
 // This should never change after the first install, or else any special
 // logins using the Moodle login will not work.
 $CFG->passwordsaltmain = '';
