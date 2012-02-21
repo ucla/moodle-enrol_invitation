@@ -34,20 +34,55 @@ function update_libraryreserves_db(){
                if ($line != "=== EOF ===\n") {
                            # remove the newline at the end of each line
                                    $line = rtrim($line);
-                                        $incoming_data[$line_num] = explode("\t", $line); 
+                                        $incoming_data[$line_num] = explode("\t", $line);
                }
    }
 
-    # check if all entries have the correct number of columns
+   $fields = array();
+   
+
+   $curfields = $DB->get_records_sql("DESCRIBE {$CFG->prefix}"."ucla_libraryreserves");
+   
+   foreach ($curfields as $fieldname => $fielddata) {
+       
+       // Skip the field 'id'
+       if ($fieldname == 'id') {
+           continue;
+       }
+
+       $fields[$fieldname] = $fieldname;
+   }
+   
+   $data_incoming = array();
+
+   // Check if all entries have the correct number of columns 
     
    for ($row = 2; $row < sizeof($incoming_data); $row++) {
-       if (sizeof($incoming_data[$row]) != 11) {
-                   die("Incorrectly formed input data.\n");
+       if (sizeof($incoming_data[$row]) != count($fields)) {
+            die("\n".get_string('errinvalidrowlen','tool_datasourcesync')."\n");
+       }
+
+       // Bind field label to data
+
+       $tabnum = 0;
+
+       foreach ($fields as $tab_num => $field_name) {
+           
+           $data = $incoming_data[$row][$tabnum];
+           $field = trim($field_name);
+
+           if ($field_name == 'srs') {
+               $data = sprintf('%09s', $data);
+           }
+           
+           $data_incoming[$row][$field] = $data;
+           
+           $tabnum++; 
        }
    }
   
-   $data = &$incoming_data;
-    
+   $data = &$data_incoming;;
+   
    // Drop table and refill with data
    $DB->delete_records('ucla_libraryreserves');
 
@@ -62,20 +97,22 @@ function update_libraryreserves_db(){
            $row->$field = $fieldvalue;
        }
 
+       $index = false;
+
        try {
            $index = $DB->insert_record('ucla_libraryreserves', $row);
        } catch(Exception $e) {
            // Do nothing, to handle cases where rows are invalid beyond norms.  Does not insert row.
        }
-
-       if ($index !== FALSE) {
+    
+       if($index) {
            $insert_count++;
        }
 
    }
 
    if ($insert_count == 0) {
-       echo "\n".get_string('bcerrinsert','tool_datasourcesync')."\n";
+       echo "\n".get_string('errbcinsert','tool_datasourcesync')."\n";
    } else {
        echo "\n... ".$insert_count." ".get_string('lrsuccessnoti','tool_datasourcesync')."\n";
    }

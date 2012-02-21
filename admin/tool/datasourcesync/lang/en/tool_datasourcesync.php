@@ -1,6 +1,6 @@
 <?php
 /**
-* Strings for the bruincast, libraryreserves, and videofurnace _dbsync script.
+* Strings for the bruincast, libraryreserves, and videofurnace _dbsync scripts.
 *
 * See CCLE-2314 for details.
 **/
@@ -14,11 +14,12 @@ $string['errbcinsert'] = "ERROR: No records inserted.";
 
 // Notication messages
 $string['bcstartnoti'] = "Starting bruincast DB update:";
-$string['bcsuccessnoti'] = "records successfuly inserted.";
+$string['bcsuccessnoti'] = "records successfully inserted.";
 
 /** Strings for libraryreserves_dbsync **/
 // Error messages
 $string['errlrmsglocation'] = "ERROR: No location set for library reserves data.";
+$string['errinvalidrowlen'] = "ERROR: Invalid row length in provided library reserves data.";
 
 //Notification messages
 $string['lrstartnoti'] = "Starting library reserves DB update:";

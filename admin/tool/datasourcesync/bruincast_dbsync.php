@@ -54,6 +54,8 @@ function update_bruincast_db(){
         foreach ($data[$line] as $field => $fieldvalue){
             $row->$field = $fieldvalue;
         }
+    
+        $index = false;
 
         try {
             $index = $DB->insert_record('ucla_bruincast', $row);
@@ -61,7 +63,7 @@ function update_bruincast_db(){
             // Do nothing, to handle cases where rows are invalid beyond norms. Does not insert row.
         }
 
-        if ($index !== FALSE) {
+        if ($index) {
             $insert_count++;
         }
 
