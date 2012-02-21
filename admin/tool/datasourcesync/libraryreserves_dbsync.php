@@ -57,7 +57,7 @@ function update_libraryreserves_db(){
 
    // Check if all entries have the correct number of columns 
     
-   for ($row = 2; $row < sizeof($incoming_data); $row++) {
+   for ($row = 1; $row < sizeof($incoming_data); $row++) {
        if (sizeof($incoming_data[$row]) != count($fields)) {
             die("\n".get_string('errinvalidrowlen','tool_datasourcesync')."\n");
        }
@@ -67,29 +67,33 @@ function update_libraryreserves_db(){
        $tabnum = 0;
 
        foreach ($fields as $tab_num => $field_name) {
-           
+
            $data = $incoming_data[$row][$tabnum];
            $field = trim($field_name);
-
+           
+           if($fieldname == 'id') {
+               continue;
+           }
+            
            if ($field_name == 'srs') {
                $data = sprintf('%09s', $data);
            }
-           
+          
            $data_incoming[$row][$field] = $data;
            
            $tabnum++; 
        }
    }
   
-   $data = &$data_incoming;;
-   
+   $data = &$data_incoming;
+
    // Drop table and refill with data
    $DB->delete_records('ucla_libraryreserves');
 
    $insert_count = 0;
    $line = 0;
 
-   for ($line = 0; $line < count($data); $line++) {
+   for ($line = 1; $line < count($data); $line++) {
        
        $row = new stdClass();
        
@@ -103,6 +107,8 @@ function update_libraryreserves_db(){
            $index = $DB->insert_record('ucla_libraryreserves', $row);
        } catch(Exception $e) {
            // Do nothing, to handle cases where rows are invalid beyond norms.  Does not insert row.
+           print_r($row);
+           echo $e;
        }
     
        if($index) {
