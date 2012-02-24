@@ -146,6 +146,19 @@ function ucla_get_reg_classinfo($term, $srs) {
 }
 
 /**
+ *  Convenience function to get registrar information for classes.
+ **/
+function ucla_get_course_info($courseid) {
+    $reginfos = array();
+    $termsrses = ucla_map_courseid_to_termsrs($courseid);
+    foreach ($termsrses as $termsrs) {
+        $reginfos[] = ucla_get_reg_classinfo($termsrs->term, $termsrs->srs);
+    }
+
+    return $reginfos;
+}
+
+/**
  *  Convenience function. 
  *  @param  $requests   
  *      Array of Objects with properties term, srs, and $indexby
