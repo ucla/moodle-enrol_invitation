@@ -256,9 +256,10 @@ class enrol_database_plugin extends enrol_plugin {
      * Forces synchronisation of all enrolments with external database.
      *
      * @param bool $verbose
+     * @param Array $terms - if null, then all terms. if empty() then no terms.
      * @return int 0 means success, 1 db connect failure, 2 db read failure
      */
-    public function sync_enrolments($verbose = false) {
+    public function sync_enrolments($verbose = false, $terms = null) {
         global $CFG, $DB;
 
         // we do not create courses here intentionally because it requires full sync and is slow
@@ -311,13 +312,18 @@ class enrol_database_plugin extends enrol_plugin {
         // UCLA MODIFICATION CCLE-2275: Prepop uses different data
         // sources
         ucla_require_registrar();
-        $courses = $DB->get_records('ucla_request_classes');
+
+        if ($terms === null) {
+            $courses = $DB->get_records('ucla_request_classes');
+            $course_indexed = index_ucla_course_requests($courses, 'courseid');
+        } else if (!empty($terms)) {
+            $courses = ucla_get_courses_by_terms($terms);
+            $course_indexed = $courses;
+        }
 
         if (empty($courses)) {
             return 0;
         }
-
-        $course_indexed = index_ucla_course_requests($courses, 'courseid');
 
         $enrolment_info = array();
         $roleid_to_role = array_flip($roles);
@@ -328,6 +334,7 @@ class enrol_database_plugin extends enrol_plugin {
             foreach ($set as $course) {
                 $regdata = array(array($course->term, $course->srs));
 
+                // TODO use subj_area once all the joins are good.
                 $subjarea = $course->department;
                 // TODO GUI option?
                 $localmap = $course->courseid;
