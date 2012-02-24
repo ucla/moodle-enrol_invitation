@@ -72,7 +72,7 @@ if ($PAGE->user_allowed_editing()) {
 // Get all the elements, unfortunately, this is where we check whether
 // we are supposed to display the elements at all.
 $elements = block_ucla_control_panel::load_cp_elements($course, $context);
-// We do this here becausae of a hack for stylesheets.
+// We do this here because of a hack for stylesheets.
 
 // using core renderer
 echo $OUTPUT->header();

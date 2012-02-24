@@ -18,7 +18,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once(dirname(__FILE__) . '/../moodleblock.class.php');
 require_once(dirname(__FILE__) . '/ucla_cp_module.php');
-
+require_once($CFG->dirroot.'/local/ucla/lib.php');
 class block_ucla_control_panel extends block_base {
     /** Static variables for the static function **/
     const hook_fn = 'ucla_cp_hook';
@@ -44,7 +44,7 @@ class block_ucla_control_panel extends block_base {
     }
 
     /**
-     *  Returns the applicable places that this block can be adde.d
+     *  Returns the applicable places that this block can be added.
      *  This block really cannot be added anywhere, so we just made a place
      *  up (hacky). If we do not do this, we will get this
      *  plugin_devective_exception.
@@ -169,6 +169,7 @@ class block_ucla_control_panel extends block_base {
                 if (!$module->is_tag()) {
                     // If something fits with more than one tag, add
                     // it to both of them
+                    
                     foreach ($module->tags as $section) {
                         $sections[$section][$module_name] = $module;
                     }

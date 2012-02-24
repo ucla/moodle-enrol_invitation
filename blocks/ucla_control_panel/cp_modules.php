@@ -42,6 +42,36 @@ $modules[] = new ucla_cp_module('turn_editing_on', new moodle_url(
         array('id' => $course->id, 'edit' => 'on', 'sesskey' => sesskey())), 
     $temp_tag, $temp_cap, $spec_ops);
 
+//MyUCLA Functions
+//TODO: Change get_course_info to ucla_map_courseid_to_termsrs
+$course_info = ucla_get_course_info($course->id);
+if (! empty($course_info)){
+    echo 'woot';
+    $temp_tag = 'ucla_cp_mod_myucla';
+    $modules[] = new ucla_cp_module('ucla_cp_mod_myucla',null,null,$temp_cap);
+    if($course_info[0]['term'][2]=='1') { //summer course
+        global $DB;
+        if(!$session = $DB->get_field('ucla_reg_classinfo', 'session_group', 'term', $course_info[0]['term'], 'srs', $course_info[0]['srs'])) {
+            $session = '';
+        }
+    } else {
+        $session = '';
+    }
+    foreach ($course_info as $info_for_one_course){
+        if (count($course_info) > 1){
+            $modules[] = new ucla_cp_module($info_for_one_course['class_num'], 
+                                                null, $temp_tag, $temp_cap);
+        }   
+        $modules[] = new ucla_cp_module('download_roster', new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=74&term=" . $info_for_one_course->term . "&srs=" . $info_for_one_course->srs), $temp_tag, $temp_cap);
+        $modules[] = new ucla_cp_module('photo_roster', new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=148&term=" . $info_for_one_course->term . "&srs=" . $info_for_one_course->srs . "&spp=30&sd=true"), $temp_tag, $temp_cap);
+        $modules[] = new ucla_cp_module('myucla_gradebook', new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=75&term=" . $info_for_one_course->term . "&srs=" . $info_for_one_course->srs), $temp_tag, $temp_cap);
+        $modules[] = new ucla_cp_module('turn_it_in', new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=48&term=" . $info_for_one_course->term . "&srs=" . $info_for_one_course->srs), $temp_tag, $temp_cap);
+        $modules[] = new ucla_cp_module('email_roster', new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=73&term=" . $info_for_one_course->term . "&srs=" . $info_for_one_course->srs), $temp_tag, $temp_cap);
+        $modules[] = new ucla_cp_module('asucla_textbooks', new moodle_url('http://www.collegestore.org/textbookstore/main.asp?remote=1&ref=ucla&term='.$info_for_one_course->term.$session.'&course='.$info_for_one_course->srs.'&getbooks=Display+books'), $temp_tag, $temp_cap);
+    }
+    
+}
+
 // Other Functions
 $modules[] = new ucla_cp_module('ucla_cp_mod_other');
 

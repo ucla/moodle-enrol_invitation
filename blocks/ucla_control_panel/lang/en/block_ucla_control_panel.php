@@ -41,10 +41,20 @@ $string['modify_sections_post'] = '';
 $string['turn_editing_on'] = 'Delete or update materials';
 $string['turn_editing_on_post'] = '(or duplicate, hide, make public)';
 
+/** Stuff from myucla functions **/
+$string['ucla_cp_mod_myucla'] = 'MyUCLA Functions';
+
+$string['download_roster'] = 'Download Roster';
+$string['photo_roster'] = 'Photo Roster';
+$string['myucla_gradebook'] = 'MyUCLA Gradebook';
+$string['turn_it_in'] = 'Turn-It-In';
+$string['email_roster'] = 'Email Roster';
+$string['asucla_textbooks'] = 'ASUCLA Textbooks';
+
 /** Stuff from other **/
 $string['ucla_cp_mod_other'] = 'Other commands';
 
-$string['import_classweb'] = 'Import ClasWeb site';
+$string['import_classweb'] = 'Import ClassWeb site';
 $string['import_classweb_post'] = 'Import content from a previous course on ClassWeb to this site.';
 
 $string['import_moodle'] = 'Import Moodle course data';
