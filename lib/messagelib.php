@@ -64,6 +64,9 @@ function message_send($eventdata) {
     if (is_int($eventdata->userfrom)) {
         $eventdata->userfrom = $DB->get_record('user', array('id' => $eventdata->userfrom));
     }
+    if (!isset($eventdata->userto->auth) or !isset($eventdata->userto->suspended) or !isset($eventdata->userto->deleted)) {
+        $eventdata->userto = $DB->get_record('user', array('id' => $eventdata->userto->id));
+    }
 
     //after how long inactive should the user be considered logged off?
     if (isset($CFG->block_online_users_timetosee)) {
@@ -126,7 +129,7 @@ function message_send($eventdata) {
         } else {
             //MDL-25114 They supplied an $eventdata->component $eventdata->name combination which doesn't
             //exist in the message_provider table (thus there is no default settings for them)
-            $preferrormsg = get_string('couldnotfindpreference', 'message', $preferencename);
+            $preferrormsg = get_string('couldnotfindpreference', 'message', $preferencename); //TODO: undefined $preferencename
             throw new coding_exception($preferrormsg,'blah');
         }
 
@@ -139,12 +142,19 @@ function message_send($eventdata) {
             debugging('Attempt to force message delivery to user who has "'.$processor->name.'" output unconfigured', DEBUG_NORMAL);
         }
 
+        // Warn developers that necessary data is missing regardless of how the processors are configured
+        if (!isset($eventdata->userto->emailstop)) {
+            debugging('userto->emailstop is not set. Retrieving it from the user table');
+            $eventdata->userto->emailstop = $DB->get_field('user', 'emailstop', array('id'=>$eventdata->userto->id));
+        }
+
         // Populate the list of processors we will be using
         if ($permitted == 'forced' && $userisconfigured) {
-            // We force messages for this processor, so use this processor unconditionally if user has configured it
+            // An admin is forcing users to use this message processor. Use this processor unconditionally.
             $processorlist[] = $processor->name;
         } else if ($permitted == 'permitted' && $userisconfigured && !$eventdata->userto->emailstop) {
-            // User settings are permitted, see if user set any, otherwise use site default ones
+            // User has not disabled notifications
+            // See if user set any notification preferences, otherwise use site default ones
             $userpreferencename = 'message_provider_'.$preferencebase.'_'.$userstate;
             if ($userpreference = get_user_preferences($userpreferencename, null, $eventdata->userto->id)) {
                 if (in_array($processor->name, explode(',', $userpreference))) {

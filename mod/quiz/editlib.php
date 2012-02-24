@@ -781,7 +781,7 @@ function quiz_print_singlequestion($question, $returnurl, $quiz) {
     echo quiz_question_edit_button($quiz->cmid, $question, $returnurl,
             quiz_question_tostring($question) . ' ');
     echo '<span class="questiontype">';
-    print_question_icon($question);
+    echo print_question_icon($question);
     echo ' ' . question_bank::get_qtype_name($question->qtype) . '</span>';
     echo '<span class="questionpreview">' .
             quiz_question_preview_button($quiz, $question, true) . '</span>';
@@ -807,7 +807,7 @@ function quiz_print_randomquestion(&$question, &$pageurl, &$quiz, $quiz_qbanktoo
     }
 
     echo '<div class="randomquestionfromcategory">';
-    print_question_icon($question);
+    echo print_question_icon($question);
     print_random_option_icon($question);
     echo ' ' . get_string('randomfromcategory', 'quiz') . '</div>';
 
@@ -886,7 +886,7 @@ function quiz_print_randomquestion(&$question, &$pageurl, &$quiz, $quiz_qbanktoo
 function quiz_print_singlequestion_reordertool($question, $returnurl, $quiz) {
     echo '<div class="singlequestion">';
     echo '<label for="s' . $question->id . '">';
-    print_question_icon($question);
+    echo print_question_icon($question);
     echo ' ' . quiz_question_tostring($question);
     echo '</label>';
     echo '<span class="questionpreview">' .
@@ -920,7 +920,7 @@ function quiz_print_randomquestion_reordertool(&$question, &$pageurl, &$quiz) {
     echo '<div class="quiz_randomquestion">';
     echo '<div class="randomquestionfromcategory">';
     echo $reordercheckboxlabel;
-    print_question_icon($question);
+    echo print_question_icon($question);
     print_random_option_icon($question);
 
     if ($questioncount == 0) {
@@ -1106,6 +1106,10 @@ class quiz_question_bank_view extends question_bank_view {
                 'editaction', 'previewaction');
     }
 
+    protected function default_sort() {
+        return array('qtype' => 1, 'questionnametext' => 1);
+    }
+
     /**
      * Let the question bank display know whether the quiz has been attempted,
      * hence whether some bits of UI, like the add this question to the quiz icon,
@@ -1165,7 +1169,7 @@ class quiz_question_bank_view extends question_bank_view {
         $this->display_category_form($this->contexts->having_one_edit_tab_cap('edit'),
                 $this->baseurl, $categoryandcontext);
         echo "<p style=\"text-align:center;\"><b>";
-        print_string('selectcategoryabove', 'quiz');
+        print_string('selectcategoryabove', 'question');
         echo "</b></p>";
         echo $OUTPUT->box_end();
     }

@@ -44,7 +44,7 @@ function theme_reset_all_caches() {
     require_once("$CFG->libdir/filelib.php");
 
     set_config('themerev', empty($CFG->themerev) ? 1 : $CFG->themerev+1);
-    fulldelete("$CFG->dataroot/cache/theme");
+    fulldelete("$CFG->cachedir/theme");
 }
 
 /**
@@ -613,7 +613,7 @@ class theme_config {
             if (!defined('THEME_DESIGNER_CACHE_LIFETIME')) {
                 define('THEME_DESIGNER_CACHE_LIFETIME', 4); // this can be also set in config.php
             }
-            $candidatesheet = "$CFG->dataroot/cache/theme/$this->name/designer.ser";
+            $candidatesheet = "$CFG->cachedir/theme/$this->name/designer.ser";
             if (!file_exists($candidatesheet)) {
                 $css = $this->css_content();
                 check_dir_exists(dirname($candidatesheet));
@@ -1178,6 +1178,15 @@ class theme_config {
             }
         }
         return $regions;
+    }
+
+    /**
+     * Returns the human readable name of the theme
+     *
+     * @return string
+     */
+    public function get_theme_name() {
+        return get_string('pluginname', 'theme_'.$this->name);
     }
 }
 

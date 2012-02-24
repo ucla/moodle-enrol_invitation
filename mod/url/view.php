@@ -55,6 +55,18 @@ $completion->set_module_viewed($cm);
 
 $PAGE->set_url('/mod/url/view.php', array('id' => $cm->id));
 
+// Make sure URL exists before generating output - some older sites may contain empty urls
+// Do not use PARAM_URL here, it is too strict and does not support general URIs!
+$exturl = trim($url->externalurl);
+if (empty($exturl) or $exturl === 'http://') {
+    url_print_header($url, $cm, $course);
+    url_print_heading($url, $cm, $course);
+    url_print_intro($url, $cm, $course);
+    notice(get_string('invalidstoredurl', 'url'), new moodle_url('/course/view.php', array('id'=>$cm->course)));
+    die;
+}
+unset($exturl);
+
 if ($redirect) {
     // coming from course page or url index page,
     // the redirection is needed for completion tracking and logging

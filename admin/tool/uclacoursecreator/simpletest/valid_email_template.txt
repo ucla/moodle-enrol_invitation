@@ -1,0 +1,19 @@
+FROM: CCLE <ccle@ucla.edu>
+bcc: Kearney, Deborah (dkearney@oid.ucla.edu)
+SUBJECT: #=nameterm=# #=coursenum-sect=# class site created
+Dear Prof. #=lastname=# (#=to=#)
+
+Your #=nameterm=# CCLE course web site for #=dept=# #=coursenum-sect=# is:
+#=url=#
+
+You can now login to your course with your UCLA Logon ID and password, just as you would access your
+ My.UCLA. Your course will be populated with students over the next 24 hours. For help:
+
+    * Contact your CCLE local support listed at https://ccle.ucla.edu/about/contact.html .
+    * Find CCLE help documentation at https://ccle.ucla.edu/course/view.php?name=cclehelp .
+
+Thank you,
+
+The CCLE Team
+ccle@ucla.edu
+

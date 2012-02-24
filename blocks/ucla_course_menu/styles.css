@@ -1,0 +1,62 @@
+/*
+ * ---------------------------------------------------------------------------------------------------------------------
+ *
+ * This file is part of the Course Menu block for Moodle
+ *
+ * The Course Menu block for Moodle software package is Copyright 2008 onwards NetSapiensis AB and is provided under
+ * the terms of the GNU GENERAL PUBLIC LICENSE Version 3 (GPL). This program is free software: you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation,
+ * either version 3 of the License, or (at your option) any later version.
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software Foundation, either version 3 of the License,
+ * or (at your option) any later version. This program is distributed in the hope that
+ * it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+ * PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details. You should have received a copy of the GNU General Public
+ * License along with this program.
+ * If not, see <http://www.gnu.org/licenses/>.
+ * ---------------------------------------------------------------------------------------------------------------------
+ */
+
+.active_tree_node {
+    font-weight: bold !important;
+}
+
+.module_elements_section {
+    background-color: #EFEFEF;
+    margin: -1px -14px 0px -14px;
+    padding-left: 14px;
+    padding-right: 14px;
+    padding-top: 0px;
+    padding-bottom: 0px;
+}
+
+.block_ucla_course_menu .content .block_tree.list .type_structure {
+    border-bottom: 1px solid #FFF;
+}
+
+.block_ucla_course_menu .content .block_tree.list .type_structure p {
+    margin: 0px 0px 0px 0px;
+}
+
+.block_ucla_course_menu .content .block_tree.list li.type_structure:hover {
+    background-color: #FFB300;
+}
+
+.block_ucla_course_menu .content .block_tree.list li.type_structure.current_branch {
+    background-color: #FFB300;
+}
+
+.block_ucla_course_menu .content .block_tree.list li.type_activity:hover {
+    background-color: rgb(200,200,200);
+}
+
+.block_ucla_course_menu .content .block_tree.list .type_activity {
+    border-bottom: 1px solid #FFF;
+}
+
+.block_ucla_course_menu .content .block_tree.list .type_activity p {
+    margin:0px 0px 0px 0px;
+}

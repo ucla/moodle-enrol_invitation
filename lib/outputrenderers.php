@@ -202,16 +202,38 @@ class plugin_renderer_base extends renderer_base {
  * @since     Moodle 2.0
  */
 class core_renderer extends renderer_base {
-    /** @var string used in {@link header()}. */
-    const PERFORMANCE_INFO_TOKEN = '%%PERFORMANCEINFO%%';
-    /** @var string used in {@link header()}. */
-    const END_HTML_TOKEN = '%%ENDHTML%%';
-    /** @var string used in {@link header()}. */
+    /**
+     * Do NOT use, please use <?php echo $OUTPUT->main_content() ?>
+     * in layout files instead.
+     * @var string used in {@link header()}.
+     * @deprecated
+     */
     const MAIN_CONTENT_TOKEN = '[MAIN CONTENT GOES HERE]';
     /** @var string used to pass information from {@link doctype()} to {@link standard_head_html()}. */
     protected $contenttype;
     /** @var string used by {@link redirect_message()} method to communicate with {@link header()}. */
     protected $metarefreshtag = '';
+    /** @var string unique token */
+    protected $unique_end_html_token;
+    /** @var string unique token */
+    protected $unique_performance_info_token;
+    /** @var string unique token */
+    protected $unique_main_content_token;
+
+    /**
+     * Constructor
+     * @param moodle_page $page the page we are doing output for.
+     * @param string $target one of rendering target constants
+     */
+    public function __construct(moodle_page $page, $target) {
+        $this->opencontainers = $page->opencontainers;
+        $this->page = $page;
+        $this->target = $target;
+
+        $this->unique_end_html_token = '%%ENDHTML-'.sesskey().'%%';
+        $this->unique_performance_info_token = '%%PERFORMANCEINFO-'.sesskey().'%%';
+        $this->unique_main_content_token = '[MAIN CONTENT GOES HERE - '.sesskey().']';
+    }
 
     /**
      * Get the DOCTYPE declaration that should be used with this page. Designed to
@@ -313,12 +335,6 @@ class core_renderer extends renderer_base {
         $jsurl = $this->page->theme->javascript_url(false);
         $this->page->requires->js($jsurl);
 
-        // Perform a browser environment check for the flash version.  Should only run once per login session.
-        if (!NO_MOODLE_COOKIES && isloggedin() && !empty($CFG->excludeoldflashclients) && empty($SESSION->flashversion)) {
-            $this->page->requires->js('/lib/swfobject/swfobject.js');
-            $this->page->requires->js_init_call('M.core_flashdetect.init');
-        }
-
         // Get any HTML from the page_requirements_manager.
         $output .= $this->page->requires->get_head_code($this->page, $this);
 
@@ -361,7 +377,7 @@ class core_renderer extends renderer_base {
         // This function is normally called from a layout.php file in {@link header()}
         // but some of the content won't be known until later, so we return a placeholder
         // for now. This will be replaced with the real content in {@link footer()}.
-        $output = self::PERFORMANCE_INFO_TOKEN;
+        $output = $this->unique_performance_info_token;
         if ($this->page->devicetypeinuse == 'legacy') {
             // The legacy theme is in use print the notification
             $output .= html_writer::tag('div', get_string('legacythemeinuse'), array('class'=>'legacythemeinuse'));
@@ -378,7 +394,7 @@ class core_renderer extends renderer_base {
             if (function_exists('profiling_is_running') && profiling_is_running()) {
                 $txt = get_string('profiledscript', 'admin');
                 $title = get_string('profiledscriptview', 'admin');
-                $url = $CFG->wwwroot . '/admin/report/profiling/index.php?script=' . urlencode($SCRIPT);
+                $url = $CFG->wwwroot . '/admin/tool/profiling/index.php?script=' . urlencode($SCRIPT);
                 $link= '<a title="' . $title . '" href="' . $url . '">' . $txt . '</a>';
                 $output .= '<div class="profilingfooter">' . $link . '</div>';
             }
@@ -398,6 +414,15 @@ class core_renderer extends renderer_base {
     }
 
     /**
+     * Returns standard main content placeholder.
+     * Designed to be called in theme layout.php files.
+     * @return string HTML fragment.
+     */
+    public function main_content() {
+        return $this->unique_main_content_token;
+    }
+
+    /**
      * The standard tags (typically script tags that are not needed earlier) that
      * should be output after everything else, . Designed to be called in theme layout.php files.
      * @return string HTML fragment.
@@ -406,7 +431,7 @@ class core_renderer extends renderer_base {
         // This function is normally called from a layout.php file in {@link header()}
         // but some of the content won't be known until later, so we return a placeholder
         // for now. This will be replaced with the real content in {@link footer()}.
-        return self::END_HTML_TOKEN;
+        return $this->unique_end_html_token;
     }
 
     /**
@@ -482,8 +507,8 @@ class core_renderer extends renderer_base {
                         } else {
                             $loggedinas .= get_string('failedloginattemptsall', '', $count);
                         }
-                        if (has_capability('coursereport/log:view', get_context_instance(CONTEXT_SYSTEM))) {
-                            $loggedinas .= ' (<a href="'.$CFG->wwwroot.'/course/report/log/index.php'.
+                        if (file_exists("$CFG->dirroot/report/log/index.php") and has_capability('report/log:view', get_context_instance(CONTEXT_SYSTEM))) {
+                            $loggedinas .= ' (<a href="'.$CFG->wwwroot.'/report/log/index.php'.
                                                  '?chooselog=1&amp;id=1&amp;modid=site_errors">'.get_string('logs').'</a>)';
                         }
                         $loggedinas .= '</div>';
@@ -612,13 +637,19 @@ class core_renderer extends renderer_base {
         $rendered = $this->render_page_layout($layoutfile);
 
         // Slice the rendered output into header and footer.
-        $cutpos = strpos($rendered, self::MAIN_CONTENT_TOKEN);
+        $cutpos = strpos($rendered, $this->unique_main_content_token);
         if ($cutpos === false) {
-            throw new coding_exception('page layout file ' . $layoutfile .
-                    ' does not contain the string "' . self::MAIN_CONTENT_TOKEN . '".');
+            $cutpos = strpos($rendered, self::MAIN_CONTENT_TOKEN);
+            $token = self::MAIN_CONTENT_TOKEN;
+        } else {
+            $token = $this->unique_main_content_token;
+        }
+
+        if ($cutpos === false) {
+            throw new coding_exception('page layout file ' . $layoutfile . ' does not contain the main content placeholder, please include "<?php echo $OUTPUT->main_content() ?>" in theme layout file.');
         }
         $header = substr($rendered, 0, $cutpos);
-        $footer = substr($rendered, $cutpos + strlen(self::MAIN_CONTENT_TOKEN));
+        $footer = substr($rendered, $cutpos + strlen($token));
 
         if (empty($this->contenttype)) {
             debugging('The page layout file did not call $OUTPUT->doctype()');
@@ -683,9 +714,9 @@ class core_renderer extends renderer_base {
                 $performanceinfo = $perf['html'];
             }
         }
-        $footer = str_replace(self::PERFORMANCE_INFO_TOKEN, $performanceinfo, $footer);
+        $footer = str_replace($this->unique_performance_info_token, $performanceinfo, $footer);
 
-        $footer = str_replace(self::END_HTML_TOKEN, $this->page->requires->get_end_code(), $footer);
+        $footer = str_replace($this->unique_end_html_token, $this->page->requires->get_end_code(), $footer);
 
         $this->page->set_state(moodle_page::STATE_DONE);
 
@@ -973,10 +1004,16 @@ class core_renderer extends renderer_base {
     protected function render_action_link(action_link $link) {
         global $CFG;
 
+        if ($link->text instanceof renderable) {
+            $text = $this->render($link->text);
+        } else {
+            $text = $link->text;
+        }
+
         // A disabled link is rendered as formatted text
         if (!empty($link->attributes['disabled'])) {
             // do not use div here due to nesting restriction in xhtml strict
-            return html_writer::tag('span', $link->text, array('class'=>'currentlink'));
+            return html_writer::tag('span', $text, array('class'=>'currentlink'));
         }
 
         $attributes = $link->attributes;
@@ -995,7 +1032,7 @@ class core_renderer extends renderer_base {
             }
         }
 
-        return html_writer::tag('a', $link->text, $attributes);
+        return html_writer::tag('a', $text, $attributes);
     }
 
 
@@ -1432,14 +1469,13 @@ class core_renderer extends renderer_base {
             $aggregatelabel = $ratingmanager->get_aggregate_label($rating->settings->aggregationmethod);
             $aggregatestr   = $rating->get_aggregate_string();
 
-            $aggregatehtml  = html_writer::tag('span', $aggregatestr, array('id' => 'ratingaggregate'.$rating->itemid)).' ';
-            $aggregatehtml .= html_writer::start_tag('span', array('id'=>"ratingcount{$rating->itemid}"));
+            $aggregatehtml  = html_writer::tag('span', $aggregatestr, array('id' => 'ratingaggregate'.$rating->itemid, 'class' => 'ratingaggregate')).' ';
             if ($rating->count > 0) {
-                $aggregatehtml .= "({$rating->count})";
+                $countstr = "({$rating->count})";
             } else {
-                $aggregatehtml .= '-';
+                $countstr = '-';
             }
-            $aggregatehtml .= html_writer::end_tag('span').' ';
+            $aggregatehtml .= html_writer::tag('span', $countstr, array('id'=>"ratingcount{$rating->itemid}", 'class' => 'ratingcount')).' ';
 
             $ratinghtml .= html_writer::tag('span', $aggregatelabel, array('class'=>'rating-aggregate-label'));
             if ($rating->settings->permissions->viewall && $rating->settings->pluginpermissions->viewall) {
@@ -2427,8 +2463,10 @@ EOD;
         // Increment the menu count. This is used for ID's that get worked with
         // in JavaScript as is essential
         $menucount++;
-        // Initialise this custom menu
-        $this->page->requires->js_init_call('M.core_custom_menu.init', array('custom_menu_'.$menucount));
+        // Initialise this custom menu (the custom menu object is contained in javascript-static
+        $jscode = js_writer::function_call_with_Y('M.core_custom_menu.init', array('custom_menu_'.$menucount));
+        $jscode = "(function(){{$jscode}})";
+        $this->page->requires->yui_module('node-menunav', $jscode);
         // Build the root nodes as required by YUI
         $content = html_writer::start_tag('div', array('id'=>'custom_menu_'.$menucount, 'class'=>'yui3-menu yui3-menu-horizontal javascript-disabled'));
         $content .= html_writer::start_tag('div', array('class'=>'yui3-menu-content'));

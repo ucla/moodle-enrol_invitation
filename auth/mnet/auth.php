@@ -132,6 +132,10 @@ class auth_plugin_mnet extends auth_plugin_base {
         global $CFG, $USER, $DB;
         require_once $CFG->dirroot . '/mnet/xmlrpc/client.php';
 
+        if (session_is_loggedinas()) {
+            print_error('notpermittedtojumpas', 'mnet');
+        }
+
         // check remote login permissions
         if (! has_capability('moodle/site:mnetlogintoremote', get_system_context())
                 or is_mnet_remote_user($USER)
@@ -311,7 +315,7 @@ class auth_plugin_mnet extends auth_plugin_base {
                     $fetchrequest->add_param($localuser->username);
                     if ($fetchrequest->send($remotepeer) === true) {
                         if (strlen($fetchrequest->response['f1']) > 0) {
-                            $imagefilename = $CFG->dataroot . '/temp/mnet-usericon-' . $localuser->id;
+                            $imagefilename = $CFG->tempdir . '/mnet-usericon-' . $localuser->id;
                             $imagecontents = base64_decode($fetchrequest->response['f1']);
                             file_put_contents($imagefilename, $imagecontents);
                             if (process_new_icon($usercontext, 'user', 'icon', 0, $imagefilename)) {

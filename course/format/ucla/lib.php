@@ -198,9 +198,7 @@ function ucla_format_figure_section($course, $course_prefs = null) {
     if ($landing_page === false) {
         $landing_page = $course->marker;
     } 
-
-    // Shifting landing page section for storage purposes
-    $landing_page++;
+    
 
     /**
      *  Landing page and determining which section to display
@@ -208,16 +206,14 @@ function ucla_format_figure_section($course, $course_prefs = null) {
     $topic = optional_param(callback_ucla_request_key(), 
         UCLA_FORMAT_DISPLAY_PREVIOUS, PARAM_INT);
 
-    $topic++;
-
     $displaysection = null;
     $to_topic = null;
     $cid = $course->id;
 
-    if ($topic == (UCLA_FORMAT_DISPLAY_ALL + 1) || $topic > 0) {
+    if ($topic == (UCLA_FORMAT_DISPLAY_ALL) || $topic > 0) {
         // This means that a topic was explicitly declared
         $to_topic = $topic;
-    } else if ($topic == (UCLA_FORMAT_DISPLAY_LANDING + 1)) {
+    } else if ($topic == (UCLA_FORMAT_DISPLAY_LANDING)) {
         debugging('explicit landing page');
         $to_topic = $landing_page;
     } else {
@@ -230,7 +226,7 @@ function ucla_format_figure_section($course, $course_prefs = null) {
         }
     }
 
-    $displaysection = $to_topic - 1;
+    $displaysection = $to_topic;
 
     return array($to_topic, $displaysection);
 }
