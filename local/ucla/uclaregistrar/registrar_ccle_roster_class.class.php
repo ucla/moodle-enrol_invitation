@@ -1,0 +1,24 @@
+<?php
+
+class registrar_ccle_roster_class extends registrar_query {
+    function validate($new, $old) {
+        // TODO is there any data to really validate?
+        return true;
+    }
+
+    function remote_call_generate($args) {
+        if (!ucla_validator('term', $args[0])) {
+            return false;
+        }
+
+        $term = $args[0];
+
+        if (!ucla_validator('srs', $args[1])) {
+            return false;
+        }
+
+        $srs = $args[1];
+
+        return "EXECUTE CCLE_ROSTER_CLASS '$term', '$srs'";
+    }
+}
