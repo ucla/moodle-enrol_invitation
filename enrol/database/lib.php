@@ -27,6 +27,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot . '/local/ucla/lib.php');
+
 /**
  * Database enrolment plugin implementation.
  * @author  Petr Skoda - based on code by Martin Dougiamas, Martin Langhoff and others
@@ -117,16 +119,20 @@ class enrol_database_plugin extends enrol_plugin {
                         // missing course info
                         continue;
                     }
-
+                    
+                    // START UCLA MODIFICATION CCLE-2275: Enrolment - View 
+                    // Map term-srs to our entry in the requests table
                     list($term, $srs) = explode('-', $fields[$coursefield]);
 
                     $localcourseid = ucla_map_termsrs_to_courseid($term, $srs);
                     if (!$localcourseid) {
                         continue;
                     }
+
                     if (!$course = $DB->get_record('course', array($localcoursefield=>$localcourseid), 'id,visible')) {
                         continue;
                     }
+
                     if (!$course->visible and $ignorehidden) {
                         continue;
                     }
@@ -138,6 +144,7 @@ class enrol_database_plugin extends enrol_plugin {
                         }
                         $roleid = $defaultrole;
                     } else {
+                        // Map a Registrar-provided role to a local moodle role
                         $roleid = get_moodlerole($fields[$rolefield], $fields['subj_area']);
                     }
 
@@ -298,27 +305,99 @@ class enrol_database_plugin extends enrol_plugin {
             $roles[$role->$localrolefield] = $role->id;
         }
 
-        // get a list of courses to be synced that are in external table
-        $externalcourses = array();
-        $sql = $this->db_get_sql($table, array(), array($coursefield), true);
-        if ($rs = $extdb->Execute($sql)) {
-            if (!$rs->EOF) {
-                while ($mapping = $rs->FetchRow()) {
-                    $mapping = reset($mapping);
-                    $mapping = $this->db_decode($mapping);
-                    if (empty($mapping)) {
-                        // invalid mapping
+        // Grab a list of local courses that we need to add to the list of 
+        // enrolments available to this enrolment.
+
+        // UCLA MODIFICATION CCLE-2275: Prepop uses different data
+        // sources
+        ucla_require_registrar();
+        $courses = $DB->get_records('ucla_request_classes');
+
+        if (empty($courses)) {
+            return 0;
+        }
+
+        $course_indexed = index_ucla_course_requests($courses, 'courseid');
+
+        $enrolment_info = array();
+        $roleid_to_role = array_flip($roles);
+
+        foreach ($course_indexed as $courseid => $set) {
+            $externalcourses[$courseid] = true;
+
+            foreach ($set as $course) {
+                $regdata = array(array($course->term, $course->srs));
+
+                $subjarea = $course->department;
+                // TODO GUI option?
+                $localmap = $course->courseid;
+
+                // grab the instructors... from a different data source
+                $instrs = registrar_query::run_registrar_query(
+                    'ccle_courseinstructorsget', $regdata, true
+                );
+
+                $otherroles = array();
+                // We need to flatten out all the available profcodes
+                foreach ($instrs as $instructor) {
+                    $pc = $instructor['role'];
+                    $otherroles[$pc] = $pc;
+                }
+
+                // Now we need to save the roles per course
+                // TODO what should happen if in a crosslisted course a 
+                // professor gets two different roles?
+                foreach ($instrs as $instructor) {
+                    $enrolment_info[$localmap][] = 
+                        array(
+                            $rolefield => $roleid_to_role[role_mapping(
+                                $instructor['role'],
+                                $otherroles,
+                                $subjarea
+                            )], 
+                            $userfield => $instructor['ucla_id'],
+                            'firstname' => $instructor['first_name_person'],
+                            'lastname' => $instructor['last_name_person'],
+                            'email' => $instructor['ursa_email'],
+                            'username' => $instructor['bolid']
+                                . '@ucla.edu'
+                        );
+                }
+
+                // grab the roster... from a different data source
+                $roster = registrar_query::run_registrar_query(
+                    'ccle_roster_class', $regdata, true
+                );
+
+                foreach ($roster as $student) {
+                    // Do something to make it into a friendly format for the
+                    // next section...
+                    $studentpr = 
+                        get_student_pseudorole($student['enrl_stat_cd']);
+                    if ($studentpr === false) {
                         continue;
                     }
-                    $externalcourses[$mapping] = true;
+
+                    $names = explode(',', $student['full_name_person']);
+                    $firstmiddle = explode(' ', trim($names[1]));
+
+                    $enrolment_info[$localmap][] = array(
+                        $rolefield => $roleid_to_role[
+                            get_moodlerole($studentpr, $subjarea)
+                        ],
+                        $userfield => $student['stu_id'],
+                        'firstname' => $firstmiddle[0],
+                        'lastname' => $names[0],
+                        'email' => $student['ss_email_addr'],
+                        'username' => $student['bolid'] . '@ucla.edu'
+                    );
                 }
             }
-            $rs->Close();
-        } else {
-            mtrace('Error reading data from the external enrolment table');
-            $extdb->Close();
-            return 2;
         }
+
+        // Save memory?
+        unset($courses);
+
         $preventfullunenrol = empty($externalcourses);
         if ($preventfullunenrol and $unenrolaction == ENROL_EXT_REMOVED_UNENROL) {
             if ($verbose) {
@@ -411,47 +490,54 @@ class enrol_database_plugin extends enrol_plugin {
 
             // get list of users that need to be enrolled and their roles
             $requested_roles = array();
-            $sql = $this->db_get_sql($table, array($coursefield=>$course->mapping), $sqlfields);
-            if ($rs = $extdb->Execute($sql)) {
-                if (!$rs->EOF) {
-                    if ($localuserfield === 'username') {
-                        $usersearch = array('mnethostid'=>$CFG->mnet_localhost_id, 'deleted' =>0);
-                    }
-                    while ($fields = $rs->FetchRow()) {
-                        $fields = array_change_key_case($fields, CASE_LOWER);
-                        if (empty($fields[$userfield])) {
-                            //user identification is mandatory!
-                        }
-                        $mapping = $fields[$userfield];
-                        if (!isset($user_mapping[$mapping])) {
-                            $usersearch[$localuserfield] = $mapping;
-                            if (!$user = $DB->get_record('user', $usersearch, 'id', IGNORE_MULTIPLE)) {
-                                // user does not exist or was deleted
-                                continue;
-                            }
-                            $user_mapping[$mapping] = $user->id;
-                            $userid = $user->id;
-                        } else {
-                            $userid = $user_mapping[$mapping];
-                        }
-                        if (empty($fields[$rolefield]) or !isset($roles[$fields[$rolefield]])) {
-                            if (!$defaultrole) {
-                                // role is mandatory
-                                continue;
-                            }
-                            $roleid = $defaultrole;
-                        } else {
-                            $roleid = $roles[$fields[$rolefield]];
-                        }
+            // Split this query into multiple StorProc calls and use that for the small chunk inside
 
-                        $requested_roles[$userid][$roleid] = $roleid;
-                    }
+            if (!empty($enrolment_info[$course->mapping])) {
+                if ($localuserfield === 'username') {
+                    $usersearch = array('mnethostid'=>$CFG->mnet_localhost_id, 'deleted' =>0);
                 }
-                $rs->Close();
-            } else {
-                mtrace('Error while communicating with external enrolment database');
-                $extdb->Close();
-                return;
+                foreach ($enrolment_info[$course->mapping] as $fields) {
+                    $fields = array_change_key_case($fields, CASE_LOWER);
+                    if (empty($fields[$userfield])) {
+                        //user identification is mandatory!
+                    }
+                    $mapping = $fields[$userfield];
+                    if (!isset($user_mapping[$mapping])) {
+                        $usersearch[$localuserfield] = $mapping;
+                        if (!$user = $DB->get_record('user', $usersearch, 'id', IGNORE_MULTIPLE)) {
+                            // UCLA MODIFICATION CCLE-2275: Pre-populate needs
+                            // to create users that do not exist.
+                            // user does not exist or was deleted
+                            // Stolen from user/editadvanced.php
+                            $user = new stdclass();
+                            $user->confirmed = 1;
+                            $user->timecreated = time();
+                            $user->password = '';
+                            $user->auth = 'shibboleth';
+                            $user->{$localuserfield} = $fields[$userfield];
+                            foreach ($fields as $k => $v) {
+                                $user->{$k} = $v;
+                            }
+
+                            $user->id = $DB->insert_record('user', $user);
+                        }
+                        $user_mapping[$mapping] = $user->id;
+                        $userid = $user->id;
+                    } else {
+                        $userid = $user_mapping[$mapping];
+                    }
+                    if (empty($fields[$rolefield]) or !isset($roles[$fields[$rolefield]])) {
+                        if (!$defaultrole) {
+                            // role is mandatory
+                            continue;
+                        }
+                        $roleid = $defaultrole;
+                    } else {
+                        $roleid = $roles[$fields[$rolefield]];
+                    }
+
+                    $requested_roles[$userid][$roleid] = $roleid;
+                }
             }
             unset($user_mapping);
 

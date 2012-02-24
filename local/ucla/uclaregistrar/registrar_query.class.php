@@ -119,6 +119,7 @@ abstract class registrar_query {
      *  This function will utilize the ODBC connection and retrieve data.
      *
      *  @param $driving_data The data to run a set of queries on.
+     *  @return Array( Array( ) )
      **/
     function retrieve_registrar_info($driving_data) {
         // Empty the bad data
