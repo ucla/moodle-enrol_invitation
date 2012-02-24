@@ -150,7 +150,7 @@ function ucla_get_reg_classinfo($term, $srs) {
  **/
 function ucla_get_course_info($courseid) {
     $reginfos = array();
-    $termsrses = ucla_map_courseid_to_termsrs($courseid);
+    $termsrses = ucla_map_courseid_to_termsrses($courseid);
     foreach ($termsrses as $termsrs) {
         $reginfos[] = ucla_get_reg_classinfo($termsrs->term, $termsrs->srs);
     }
