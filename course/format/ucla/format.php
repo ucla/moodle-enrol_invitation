@@ -171,14 +171,36 @@ if (ucla_format_display_instructors($course)) {
  **/
 // Registrar information TODO
 // Pretty version of term
+
+// This is a container for holding onto information that will be displayed
+// later
 $course_reg_infos = false;
 
-$course_term = 'No Term'; 
+// Formatting and determining information to display for these courses
+$courseinfos = ucla_get_course_info($course->id);
+$regcoursetext = '';
+$termtext = '';
+if (!empty($courseinfos)) {
+    $theterm = false;
+    $displayinfos = array();
+    foreach ($courseinfos as $courseinfo) {
+        $thisterm = $courseinfo->term;
+        if (!$theterm) {
+            $theterm = $thisterm;
+        } else if ($theterm != $thisterm) {
+            debugging('Mismatching terms in crosslisted course.'
+                . $theterm . ' vs ' . $thisterm);
+        }
 
-$course_subj = '';
-$course_coursenum = 'No Registrar Information';
+        $displayinfos[] = $courseinfo->subj_area 
+            . $courseinfo->coursenum . '-' . $courseinfo->sectnum;
+    }
 
-// Display the top of the inside of the middle (the heading)
+    $regcoursetext = implode(' / ', $displayinfos);
+    $termtext = ucla_term_to_text($theterm);
+}
+
+// This is for the sets of instructors in a course
 $imploder = array();
 foreach ($instructors as $instructor) {
     if (in_array($instructor->shortname, $instructor_types['Instructor'])) {
@@ -192,8 +214,10 @@ if (empty($imploder)) {
     $inst_text = implode(' / ', $imploder);
 }
 
-$heading_text = $course_term.' - '.$course_subj.' '.$course_coursenum.' - '.
-    $inst_text;
+$heading_text = '';
+if (!empty($termtext)) {
+    $heading_text = $termtext . ' - ' . $regcoursetext . ' - ' . $inst_text;
+}
 
 $heading_text .= html_writer::empty_tag('br');
 $heading_text .= $OUTPUT->heading($course->fullname, 2);
@@ -532,7 +556,7 @@ while ($section <= $course->numsections) {
             if ($section == 0) {
                 // Course Information specific has a different section
                 // header
-                if ($course_reg_infos) {
+                if (!empty($course_reg_infos)) {
                     $registrar_info = get_string('reg_listing', 
                         'format_ucla');
                     $registrar_info .= html_writer::empty_tag('br');
