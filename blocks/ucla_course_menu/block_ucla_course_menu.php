@@ -204,6 +204,11 @@ class block_ucla_course_menu extends block_navigation {
             'moodle/course:viewhiddensections', $this->page->context);
 
         foreach ($sections as $section) {
+            // TESTINGCCLE-531: Course setting for num sections not reflected.
+            if ($section->section > $this->page->course->numsections) {
+                continue;
+            }
+
             if (empty($section->name)) {
                 $sectionname = get_section_name($this->page->course, 
                     $section);
