@@ -227,6 +227,10 @@ function ucla_term_to_text($term) {
     return $termtext;
 }
 
+function is_summer_term($term) {
+    return ucla_validator('term', $term) && substr($term, -1, 1) == '1';
+}
+
 /**
  * Properly format a given string so it is suitable to be used as a name. Name 
  * might include the following characters ' or - or a space. Need to properly 
