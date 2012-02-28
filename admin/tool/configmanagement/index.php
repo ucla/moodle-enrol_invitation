@@ -41,6 +41,7 @@ require_once($CFG->dirroot.'/admin/tool/configmanagement/configmanagementlib.php
 require_login();
 global $USER;
 global $ME;
+global $DB;
     
 if (!is_siteadmin($USER->id)) {
     error(get_string('adminsonlybanner'));
@@ -49,11 +50,8 @@ if (!is_siteadmin($USER->id)) {
 // Prepare and load Moodle Admin interface
 $adminroot = admin_get_root();
 admin_externalpage_setup('configmanagement');
-// replaced:
 //admin_externalpage_print_header($adminroot);
-    // with following:
-//$PAGE->set_focuscontrol($adminroot);
-echo $OUTPUT->header();     // TODO: focus needs to be updated
+echo $OUTPUT->header();
     
 //NOTE: If file.php doesn't have security fixes, don't pick course 1
 //      In standard Moodle installations, non-admins can access those files 
@@ -69,19 +67,29 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
     else {
         // CCLE-164
         // Name format that we want: type_configdump_date_time.txt
-        $dumpfile = optional_param('configoptions')."_configdump_";
+        $dumpfile = optional_param('configoptions',0, PARAM_RAW)."_configdump_";
         $dumpfile .= date('m.d.y_a.g.i').".txt";
     }
 
     // Do not write anything if all fields are missing
     if(!optional_param('config', 0, PARAM_RAW) && !optional_param('plugins', 0, PARAM_RAW) && !optional_param('roles', 0, PARAM_RAW)
-            && !optional_param('role_allow_assign', 0, PARAM_RAW) && !optional_param('role_allow_override', 0, PARAM_RAW)
-            && !optional_param('role_assignments', 0, PARAM_RAW) && !optional_param('role_capabilities', 0, PARAM_RAW)
-            && !optional_param('role_names', 0, PARAM_RAW) && !optional_param('role_sortorder', 0, PARAM_RAW)
-            && !optional_param('blocks', 0, PARAM_RAW) && !optional_param('mdodules', 0, PARAM_RAW)
-            && !optional_param('user', 0, PARAM_RAW) && !optional_param('configphp', 0, PARAM_RAW) ) {
+       && !optional_param('role_allow_assign', 0, PARAM_RAW) && !optional_param('role_allow_override', 0, PARAM_RAW)
+       && !optional_param('role_assignments', 0, PARAM_RAW) && !optional_param('role_capabilities', 0, PARAM_RAW)
+       && !optional_param('role_names', 0, PARAM_RAW) && !optional_param('role_sortorder', 0, PARAM_RAW)
+       && !optional_param('blocks', 0, PARAM_RAW) && !optional_param('mdodules', 0, PARAM_RAW)
+       && !optional_param('user', 0, PARAM_RAW) && !optional_param('configphp', 0, PARAM_RAW) ) {
         error(get_string('configerrornofilemsg', 'tool_configmanagement'), $ME);
     }
+    /* TO DO
+    if(!(optional_param('config', 0, PARAM_RAW) || optional_param('plugins', 0, PARAM_RAW) || optional_param('roles', 0, PARAM_RAW)
+            || optional_param('role_allow_assign', 0, PARAM_RAW)  || optional_param('role_allow_override', 0, PARAM_RAW)
+            || optional_param('role_assignments', 0, PARAM_RAW)   || optional_param('role_capabilities', 0, PARAM_RAW)
+            || optional_param('role_names', 0, PARAM_RAW)         || optional_param('role_sortorder', 0, PARAM_RAW)
+            || optional_param('blocks', 0, PARAM_RAW)             || optional_param('mdodules', 0, PARAM_RAW)
+            || optional_param('user', 0, PARAM_RAW)               || optional_param('configphp', 0, PARAM_RAW)) ) 
+    {
+        error(get_string('configerrornofilemsg', 'tool_configmanagement'), $ME);
+    }*/
 
     $dumpfile = clean_param($dumpfile, PARAM_FILE);
     if (!file_exists($dir)) {        
@@ -99,12 +107,11 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
     $divider = get_string('configdivider', 'tool_configmanagement');
     // Use this time to keep time fields constant for diff
     $difftime = 1234567890;
-
     $dodiff = (optional_param('configoptions',0, PARAM_RAW) == 'diff') ? true : false;
     $diffexclude = ($dodiff && optional_param('exc_id_time',0,PARAM_RAW)) ? true : false;
-    
+
     echo $OUTPUT->heading(get_string('configsaveconfiguration', 'tool_configmanagement'));
-    
+
     // CCLE-164 - show filename and location
     echo "<p class=\"mdl-align\">Settings saved to file: ".$dir.$dumpfile."<p/>";
 
@@ -112,11 +119,11 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
     if($fp = fopen($dir.$dumpfile,'w')){
         //Write config
         $configlist = NULL;
-        if(optional_param('config')) {
+        if(optional_param('config',0, PARAM_RAW)) {
             fwrite($fp, $divider.'Config'.$divider."\n");
             // Sort by name if doing diff
             $sort = ($dodiff) ? 'name' : 'id';
-            $configlist = get_records('config','','',$sort);
+            $configlist = $DB->get_records('config',NULL,$sort);
         }
         if ($configlist) {
             //Don't include these fields due to security reasons
@@ -150,15 +157,15 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
             echo "<p class=\"mdl-align redfont\">".get_string('configconfigtable', 'tool_configmanagement')." skipped.</p>\n";
         }
     
-        // SSC MODIFICATION #1161 changed fwrite for "===<table name>===" to only write after get_records is returned true
+        // SSC MODIFICATION #1161 changed fwrite for "===<table name>===" to only write after $DB->get_records is returned true
         // diff_configdumps now do not include table names if that table was not selected or empty.
         
         //Write plugins
         $configpluginlist = NULL;
-        if(optional_param('plugins')) {
+        if(optional_param('plugins',0, PARAM_RAW)) {
             // Sort by name if doing diff
             $sort = ($dodiff) ? 'name' : 'id';
-            $configpluginlist = get_records('config_plugins','','',$sort);
+            $configpluginlist = $DB->get_records('config_plugins',NULL,$sort);
         }
         if ($configpluginlist) {
             fwrite($fp, $divider.'Plugins'.$divider."\n");
@@ -182,10 +189,10 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
         //Write Roles, role capabilities, and related tables
         //Roles
         $records = NULL;
-        if(optional_param('roles')) {
+        if(optional_param('roles',0, PARAM_RAW)) {
             // Sort by shortname if doing diff
             $sort = ($dodiff) ? 'shortname' : 'id';
-            $records = get_records('role', '', '', $sort);
+            $records = $DB->get_records('role', NULL, $sort);
         }
         if ($records) {
             fwrite($fp, $divider.'Roles'.$divider."\n");
@@ -204,10 +211,10 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
         $records = NULL;
     
         //Role Allow Assign
-        if(optional_param('role_allow_assign')) {
+        if(optional_param('role_allow_assign',0, PARAM_RAW)) {
             // Sort by roleid if doing diff
             $sort = ($dodiff) ? 'roleid' : 'id';
-            $records = get_records('role_allow_assign', '', '', $sort);
+            $records = $DB->get_records('role_allow_assign', NULL, $sort);
         }
         if ($records) {
             fwrite($fp, $divider.'Role_Allow_Assign'.$divider."\n");
@@ -227,10 +234,10 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
     
         //Role Allow Override
         
-        if(optional_param('role_allow_override')) {
+        if(optional_param('role_allow_override',0, PARAM_RAW)) {
             // Sort by roleid if doing diff
             $sort = ($dodiff) ? 'roleid' : 'id';
-            $records = get_records('role_allow_override', '', '', $sort);
+            $records = $DB->get_records('role_allow_override', NULL, $sort);
         }
         if ($records) {
             fwrite($fp, $divider.'Role_Allow_Override'.$divider."\n");
@@ -251,7 +258,7 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
         //Role Assignments
         $rs = NULL;
         
-        if(optional_param('role_assignments')) {
+        if(optional_param('role_assignments',0, PARAM_RAW)) {
             // Sort by roleid if doing diff
             $sort = ($dodiff) ? 'roleid' : 'id';
             // We only want to pick up role_assignments from users with manual authentication
@@ -260,12 +267,13 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
                     WHERE usr.auth = 'manual'
                     ORDER BY $sort";
 
-            //Use get_recordset because role_assignments could be large
-            $rs = get_recordset_sql($query);
+            //Use $DB->get_recordset because role_assignments could be large
+            $rs = $DB->get_recordset_sql($query);
         }
         if ($rs) {
             fwrite($fp, $divider.'Role_Assignments'.$divider."\n");
-            while($record = rs_fetch_next_record($rs)) {
+            //while($record = rs_fetch_next_record($rs)) {
+            foreach ($rs as $record) {
                 // Exclude ID's if doing a diff -- also exclude timestart, timemodified
                 if($diffexclude) {
                     $record->id = "";
@@ -274,6 +282,7 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
                 }
                 fwrite($fp, json_encode($record)."\n");
             }
+        $rs->close();
             echo "<p class=\"mdl-align\">".get_string('configroleassignmentstable', 'tool_configmanagement')." written</p>\n";
         }
         else {
@@ -282,10 +291,10 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
         unset($rs); //Clean-up
     
         //Role Capabilities
-        if(optional_param('role_capabilities')) {
+        if(optional_param('role_capabilities',0, PARAM_RAW)) {
             // Sort by roleid if doing diff
             $sort = ($dodiff) ? 'roleid' : 'id';
-            $records = get_records('role_capabilities', '', '', $sort);
+            $records = $DB->get_records('role_capabilities', NULL, $sort);
         }
         if ($records) {
             fwrite($fp, $divider.'Role_Capabilities'.$divider."\n");
@@ -342,10 +351,10 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
         $records = NULL;
     
         //Role Names
-        if(optional_param('role_names')) {
+        if(optional_param('role_names',0, PARAM_RAW)) {
             // Sort by roleid if doing diff
             $sort = ($dodiff) ? 'roleid' : 'id';
-            $records = get_records('role_names', '', '', $sort);
+            $records = $DB->get_records('role_names', NULL, $sort);
         }
         if ($records) {
             fwrite($fp, $divider.'Role_Names'.$divider."\n");
@@ -364,10 +373,10 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
         $records = NULL;
 
         //Role Sort Order
-        if(optional_param('role_sortorder')) {
+        if(optional_param('role_sortorder',0, PARAM_RAW)) {
             // Sort by roleid if doing diff
             $sort = ($dodiff) ? 'roleid' : 'id';
-            $records = get_records('role_sortorder', '', '', $sort);
+            $records = $DB->get_records('role_sortorder', NULL, $sort);
         }
         if ($records) {
             fwrite($fp, $divider.'Role_SortOrder'.$divider."\n");
@@ -386,10 +395,10 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
         $records = NULL;
         
         //Write a list of installed blocks
-        if(optional_param('blocks')) {
+        if(optional_param('blocks',0, PARAM_RAW)) {
             // Sort by name if doing diff
             $sort = ($dodiff) ? 'name' : 'id';
-            $records = get_records('block', '', '', $sort);
+            $records = $DB->get_records('block', NULL, $sort);
         }
         if ($records) {
             fwrite($fp, $divider.'Blocks'.$divider."\n");
@@ -408,10 +417,10 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
         $records = NULL;
 
         
-        if(optional_param('modules')) {
+        if(optional_param('modules',0, PARAM_RAW)) {
             // Sort by name if doing diff
             $sort = ($dodiff) ? 'name' : 'id';
-            $records = get_records('modules', '', '', $sort);
+            $records = $DB->get_records('modules', NULL, $sort);
         }
         if ($records) {
             fwrite($fp, $divider.'Modules'.$divider."\n");
@@ -430,11 +439,11 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
         $records = NULL;
 
         
-        if(optional_param('user')) {
+        if(optional_param('user',0, PARAM_RAW)) {
             // Sort by username if doing diff
             $sort = ($dodiff) ? 'username' : 'id';
-            $records = get_records('user', 'auth', 'manual', $sort); //Get only manual accounts (normal Moodle logins)
-            //$records = get_records('user', '', '', 'id'); //Get all users
+            $records = $DB->get_records('user', array('auth'=> 'manual'), $sort); //Get only manual accounts (normal Moodle logins)
+            //$records = $DB->get_records('user', '', '', 'id'); //Get all users
         }
         if ($records) {
             fwrite($fp, $divider.'Users'.$divider."\n");
@@ -457,7 +466,7 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
         }
 
         // write the values from config.php
-        if (optional_param('configphp')) {
+        if (optional_param('configphp',0, PARAM_RAW)) {
             fwrite($fp, $divider.'config.PHP'.$divider."\n");
             write_configphp($fp);
             echo "<p class=\"mdl-align\">Config.php written.</p>\n";
@@ -493,9 +502,9 @@ else if (isset($_POST['load']) && empty($_POST['save'])) {
     
     $divider = get_string('configdivider', 'tool_configmanagement');
     $dividerlen = strlen($divider);
-    
-    echo $OUPUT->heading(get_string('configloadconfiguration', 'tool_configmanagement'));
-    
+
+    echo $OUTPUT->heading(get_string('configloadconfiguration', 'tool_configmanagement'));
+
     //Open file
     if(file_exists($dir.$dumpfile) && $fp = fopen($dir.$dumpfile,'r')){
         while (!feof($fp)) {
@@ -621,9 +630,8 @@ else {
             }
         </script>
         ';
-    
     echo $OUTPUT->heading(get_string('configurationmanagement', 'tool_configmanagement'));
-    
+
     //Start of form
     echo "<form class=\"mdl-align\" action=\"$ME\" method=\"post\" id=\"adminsettings\" name=\"adminsettings\" >\n";
     echo "<fieldset>\n";
@@ -642,7 +650,6 @@ else {
     print_container("<label>".get_string('configsavefile', 'tool_configmanagement')."</label>", false, 'form-label');
     print_container('&nbsp;<input type="hidden" name="savefile" size="48" />', false, 'form-file defaultsnext');
     // Print the filename (do not allow it to be modified)
-    // TODO: style for this is weird, no new line after this in 2.0?
     echo '<div style="float:left; margin-left:10px;">'.$dir.'<span id="configfilename" style="font-weight: bold" >file</span></div>';
     print_container(get_string('configsaveinfo', 'tool_configmanagement'), false, 'form-description');
 
@@ -752,4 +759,4 @@ else {
 
 
 }
-$OUTPUT->footer();
+echo $OUTPUT->footer();
