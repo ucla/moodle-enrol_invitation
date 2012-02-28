@@ -172,8 +172,10 @@ if (ucla_format_display_instructors($course)) {
 // Registrar information TODO
 // Pretty version of term
 
-// Formatting and determining information to display for these courses
+// PLEASE Use $courseinfos as read-only
 $courseinfos = ucla_get_course_info($course->id);
+
+// Formatting and determining information to display for these courses
 $regcoursetext = '';
 $termtext = '';
 if (!empty($courseinfos)) {
@@ -216,6 +218,13 @@ if (!empty($termtext)) {
 }
 
 echo $OUTPUT->heading($course->fullname, 2);
+
+
+// Handle cancelled classes
+if (is_course_cancelled($courseinfos)) {
+    echo $OUTPUT->box(get_string('coursecancelled', 'format_ucla'), 
+        'errorbox coursecancelled');
+}
 
 /**
  *  Progress icon for track completion!

@@ -67,11 +67,49 @@ function enrolstat_is_cancelled($enrolstat) {
     return strtolower($enrolstat) == 'x';
 }
 
+/** 
+ *  Checks if a course should be considered cancelled.
+ *  Note that this does require an enrolstat, which means that
+ *      the data needs to come from ucla_reg_classinfo.
+ *  Note that misformed data will throw an exception.
+ **/
+function is_course_cancelled($courseset) {
+    $cancelled = true;
+    foreach ($courseset as $course) {
+        if (empty($course->enrolstat)) {
+            throw new coding_exception('missing enrolstat');
+        } else if (!enrolstat_is_cancelled($course->enrolstat)) {
+            $cancelled = false;
+        }
+    }
+
+    return $cancelled;
+}
+
+/**
+ *  Builds the URL for the Registrar's finals information page.
+ *  TODO Make the URL a configuration variable.
+ **/
 function build_registrar_finals_url($courseinfo) {
+    if (!empty($courseinfo->term) 
+            && ucla_validator('term', $courseinfo->term)) {
+        $term = $courseinfo->term;
+    } else {
+        return false;
+    }
+
+    if (!empty($courseinfo->srs)
+            && ucla_validator('srs', $courseinfo->srs)) {
+        $srs = $courseinfo->srs;
+    } else {
+        return false;
+    }
+
     $regurl = 'http://www.registrar.ucla.edu/schedule/subdet.aspx';
+
     $params = array(
-        'term' => $courseinfo->term,
-        'srs' => $courseinfo->srs
+        'term' => $term,
+        'srs' => $srs
     );
 
     foreach ($params as $param => $value) {
