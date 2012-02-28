@@ -766,18 +766,6 @@ class uclacoursecreator {
     }
 
     /**
-     *  Convenience function
-     *  Formats, debugs and inserts the data into our object.
-     *  Called by @see retrieve_requests().
-     *
-     *  Changes the state of the object.
-     *
-     *  @param The set of requested courses, with crosslisted hierarchy.
-     **/
-    function insert_requests($courses) {
-    }
-
-    /**
      *  Convenience wrapper function to use a globalized-seek key for 
      *  cron_term_cache['requests']
      **/
@@ -827,7 +815,6 @@ class uclacoursecreator {
         $requests =& $this->cron_term_cache['requests'];
 
         // Run the Stored Procedure with the data
-        $rc = new registrar_ccle_getclasses();
         $return = registrar_query::run_registrar_query('ccle_getclasses',
             $tr, true);
 
@@ -2251,7 +2238,7 @@ class uclacoursecreator {
      *  @return boolean Is the term a summer term?
      **/
     function match_summer($term) {
-        return preg_match('/1$/', $term);
+        return is_summer_term($term);
     }
 }
 
