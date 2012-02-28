@@ -1,0 +1,10 @@
+/* Make requestid, term, srs, department, course, status, email instructor,
+   do not send URL to MyUCLA, delete cells are centered*/
+#uclacourserequestor_requests .c0, .c1, .c2, .c3, .c4, .c8, .c9, .c10, .c11 {
+    text-align: center;
+}
+
+#uclacourserequestor_notice {
+    color: #c00;
+    text-align: center;
+}

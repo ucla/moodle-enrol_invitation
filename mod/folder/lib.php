@@ -42,6 +42,7 @@ function folder_supports($feature) {
         case FEATURE_GRADE_HAS_GRADE:         return false;
         case FEATURE_GRADE_OUTCOMES:          return false;
         case FEATURE_BACKUP_MOODLE2:          return true;
+        case FEATURE_SHOW_DESCRIPTION:        return true;
 
         default: return null;
     }
@@ -346,4 +347,37 @@ function folder_extend_navigation($navigation, $course, $module, $cm) {
 function folder_page_type_list($pagetype, $parentcontext, $currentcontext) {
     $module_pagetype = array('mod-folder-*'=>get_string('page-mod-folder-x', 'folder'));
     return $module_pagetype;
+}
+
+/**
+ * Export folder resource contents
+ *
+ * @return array of file content
+ */
+function folder_export_contents($cm, $baseurl) {
+    global $CFG, $DB;
+    $contents = array();
+    $context = get_context_instance(CONTEXT_MODULE, $cm->id);
+    $folder = $DB->get_record('folder', array('id'=>$cm->instance), '*', MUST_EXIST);
+
+    $fs = get_file_storage();
+    $files = $fs->get_area_files($context->id, 'mod_folder', 'content', 0, 'sortorder DESC, id ASC', false);
+
+    foreach ($files as $fileinfo) {
+        $file = array();
+        $file['type'] = 'file';
+        $file['filename']     = $fileinfo->get_filename();
+        $file['filepath']     = $fileinfo->get_filepath();
+        $file['filesize']     = $fileinfo->get_filesize();
+        $file['fileurl']      = file_encode_url("$CFG->wwwroot/" . $baseurl, '/'.$context->id.'/mod_folder/content/'.$folder->revision.$fileinfo->get_filepath().$fileinfo->get_filename(), true);
+        $file['timecreated']  = $fileinfo->get_timecreated();
+        $file['timemodified'] = $fileinfo->get_timemodified();
+        $file['sortorder']    = $fileinfo->get_sortorder();
+        $file['userid']       = $fileinfo->get_userid();
+        $file['author']       = $fileinfo->get_author();
+        $file['license']      = $fileinfo->get_license();
+        $contents[] = $file;
+    }
+
+    return $contents;
 }

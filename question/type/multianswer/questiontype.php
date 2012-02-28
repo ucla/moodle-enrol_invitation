@@ -36,9 +36,6 @@ require_once($CFG->dirroot . '/question/type/multichoice/question.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class qtype_multianswer extends question_type {
-    public function requires_qtypes() {
-        return array('shortanswer', 'numerical', 'multichoice');
-    }
 
     public function can_analyse_responses() {
         return false;
@@ -407,7 +404,7 @@ function qtype_multianswer_extract_question($text) {
                     && preg_match('~'.NUMERICAL_ALTERNATIVE_REGEX.'~',
                             $altregs[ANSWER_ALTERNATIVE_REGEX_ANSWER], $numregs)) {
                 $wrapped->answer[] = $numregs[NUMERICAL_CORRECT_ANSWER];
-                if ($numregs[NUMERICAL_ABS_ERROR_MARGIN]) {
+                if (array_key_exists(NUMERICAL_ABS_ERROR_MARGIN, $numregs)) {
                     $wrapped->tolerance["$answerindex"] =
                     $numregs[NUMERICAL_ABS_ERROR_MARGIN];
                 } else {

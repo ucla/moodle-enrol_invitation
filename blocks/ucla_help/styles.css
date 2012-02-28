@@ -1,0 +1,26 @@
+#block_ucla_help {
+    padding: 1.0em;
+}
+
+#block_ucla_help_boxtext, #block_ucla_help_formbox  {
+    border: 1px solid gray;    
+    padding: 0 1.0em;
+    border-radius: 10px;        
+    float: left;
+    min-width:320px;    /* min iphone width resolution */    
+}
+
+#block_ucla_help_boxtext {
+    width: 40%;    
+    margin-right: 1.0em;    
+    /* in case window gets so small that #block_ucla_help_formbox goes underneath */    
+    margin-bottom: 1.0em;
+}
+
+#block_ucla_help_formbox {
+    width: 50%;
+}
+
+#id_ucla_help_name, #id_ucla_help_email, #id_ucla_help_description {
+    width: 100%;
+}

@@ -1,20 +1,35 @@
 <?php
-    require_once($CFG->dirroot.'/mod/scorm/locallib.php');
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-    if (isset($userdata->status)) {
-        if ($userdata->status == '') {
-            $userdata->entry = 'ab-initio';
+require_once($CFG->dirroot.'/mod/scorm/locallib.php');
+
+if (isset($userdata->status)) {
+    if ($userdata->status == '') {
+        $userdata->entry = 'ab-initio';
+    } else {
+        if (isset($userdata->{'cmi.core.exit'}) && ($userdata->{'cmi.core.exit'} == 'suspend')) {
+            $userdata->entry = 'resume';
         } else {
-            if (isset($userdata->{'cmi.core.exit'}) && ($userdata->{'cmi.core.exit'} == 'suspend')) {
-                $userdata->entry = 'resume';
-            } else {
-                $userdata->entry = '';
-            }
+            $userdata->entry = '';
         }
     }
-    if (!isset($currentorg)) {
-        $currentorg = '';
-    }
+}
+if (!isset($currentorg)) {
+    $currentorg = '';
+}
 ?>
 //
 // SCORM 1.2 API Implementation
@@ -165,7 +180,6 @@ function SCORMapi1_2() {
                 errorCode = "0";
                 <?php
                     if (scorm_debugging($scorm)) {
-                        //echo 'alert("Initialized SCORM 1.2");';
                         echo 'LogAPICall("LMSInitialize", param, "", errorCode);';
                     }
                 ?>
@@ -186,8 +200,8 @@ function SCORMapi1_2() {
 
 <?php
     // pull in the TOC callback
-    include_once($CFG->dirroot.'/mod/scorm/datamodels/callback.js.php');
- ?>
+    require_once($CFG->dirroot.'/mod/scorm/datamodels/callback.js.php');
+?>
 
     function LMSFinish (param) {
         errorCode = "0";
@@ -215,7 +229,6 @@ function SCORMapi1_2() {
                 errorCode = (result == 'true')? '0' : '101';
                 <?php
                     if (scorm_debugging($scorm)) {
-                        //echo 'alert("Finished SCORM 1.2");';
                         echo 'LogAPICall("LMSFinish", "result", result, 0);';
                         echo 'LogAPICall("LMSFinish", param, "", 0);';
                     }
@@ -257,7 +270,6 @@ function SCORMapi1_2() {
                             errorCode = "0";
                             <?php
                                 if (scorm_debugging($scorm)) {
-                                   //echo 'alert(element+": "+eval(element));';
                                     echo 'LogAPICall("LMSGetValue", element, eval(element), 0);';
                                 }
                             ?>
@@ -368,7 +380,6 @@ function SCORMapi1_2() {
                                         <?php
                                             if (scorm_debugging($scorm)) {
                                                 echo 'LogAPICall("LMSSetValue", element, value, errorCode);';
-                                                //echo 'alert(element+":= "+value);';
                                             }
                                         ?>
                                         return "true";
@@ -385,7 +396,6 @@ function SCORMapi1_2() {
                                     <?php
                                         if (scorm_debugging($scorm)) {
                                             echo 'LogAPICall("LMSSetValue", element, value, errorCode);';
-                                            //echo 'alert(element+":= "+value);';
                                         }
                                     ?>
                                     return "true";
@@ -422,7 +432,6 @@ function SCORMapi1_2() {
                 <?php
                     if (scorm_debugging($scorm)) {
                         echo 'LogAPICall("Commit", param, "", 0);';
-                        //echo 'alert("Data Commited");';
                     }
                 ?>
                 <?php
@@ -434,7 +443,6 @@ function SCORMapi1_2() {
                 errorCode = (result =='true')? '0' : '101';
                 <?php 
                     if (scorm_debugging($scorm)) {
-                        //echo 'alert("Finished SCORM 1.2");';
                         echo 'LogAPICall("LMSCommit", "result", result, 0);';
                         echo 'LogAPICall("LMSCommit", "errorCode", errorCode, 0);';
                     }
@@ -566,19 +574,49 @@ function SCORMapi1_2() {
             } else {
                 element = parent+'.'+property;
                 expression = new RegExp(CMIIndex,'g');
+
+                // get the generic name for this element (e.g. convert 'cmi.interactions.1.id' to 'cmi.interactions.n.id')
                 elementmodel = String(element).replace(expression,'.n.');
-                if (elementmodel != "cmi.core.session_time") {
-                    if ((typeof eval('datamodel["'+elementmodel+'"]')) != "undefined") {
-                        if (eval('datamodel["'+elementmodel+'"].mod') != 'r') {
+
+                // ignore the session time element
+                if (element != "cmi.core.session_time") {
+
+                    // check if this specific element is not defined in the datamodel,
+                    // but the generic element name is
+                    if ((eval('typeof datamodel["'+element+'"]')) == "undefined"
+                        && (eval('typeof datamodel["'+elementmodel+'"]')) != "undefined") {
+
+                        // add this specific element to the data model (by cloning
+                        // the generic element) so we can track changes to it
+                        eval('datamodel["'+element+'"]=CloneObj(datamodel["'+elementmodel+'"]);');
+                    }
+
+                    // check if the current element exists in the datamodel
+                    if ((typeof eval('datamodel["'+element+'"]')) != "undefined") {
+
+                        // make sure this is not a read only element
+                        if (eval('datamodel["'+element+'"].mod') != 'r') {
+
                             elementstring = '&'+underscore(element)+'='+encodeURIComponent(data[property]);
-                            if ((typeof eval('datamodel["'+elementmodel+'"].defaultvalue')) != "undefined") {
-                                if (eval('datamodel["'+elementmodel+'"].defaultvalue') != data[property] || eval('typeof(datamodel["'+elementmodel+'"].defaultvalue)') != typeof(data[property])) {
+
+                            // check if the element has a default value
+                            if ((typeof eval('datamodel["'+element+'"].defaultvalue')) != "undefined") {
+
+                                // check if the default value is different from the current value
+                                if (eval('datamodel["'+element+'"].defaultvalue') != data[property]
+                                    || eval('typeof(datamodel["'+element+'"].defaultvalue)') != typeof(data[property])) {
+
+                                    // append the URI fragment to the string we plan to commit
                                     datastring += elementstring;
-                                    eval('datamodel["'+elementmodel+'"].defaultvalue=data[property];');
+
+                                    // update the element default to reflect the current committed value
+                                    eval('datamodel["'+element+'"].defaultvalue=data[property];');
                                 }
                             } else {
+                                // append the URI fragment to the string we plan to commit
                                 datastring += elementstring;
-                                eval('datamodel["'+elementmodel+'"].defaultvalue=data[property];');
+                                // no default value for the element, so set it now
+                                eval('datamodel["'+element+'"].defaultvalue=data[property];');
                             }
                         }
                     }
@@ -586,6 +624,19 @@ function SCORMapi1_2() {
             }
         }
         return datastring;
+    }
+
+    function CloneObj(obj){
+        if(obj == null || typeof(obj) != 'object') {
+            return obj;
+        }
+
+        var temp = new obj.constructor(); // changed (twice)
+        for(var key in obj) {
+            temp[key] = CloneObj(obj[key]);
+        }
+
+        return temp;
     }
 
     function StoreData(data,storetotaltime) {
@@ -640,8 +691,7 @@ var API = new SCORMapi1_2();
 <?php
 // pull in the debugging utilities
 if (scorm_debugging($scorm)) {
-   include_once($CFG->dirroot.'/mod/scorm/datamodels/debug.js.php');
-   echo 'AppendToLog("Moodle SCORM 1.2 API Loaded, Activity: '.$scorm->name.', SCO: '.$sco->identifier.'", 0);';
+    include_once($CFG->dirroot.'/mod/scorm/datamodels/debug.js.php');
+    echo 'AppendToLog("Moodle SCORM 1.2 API Loaded, Activity: '.$scorm->name.', SCO: '.$sco->identifier.'", 0);';
 }
- ?>
 

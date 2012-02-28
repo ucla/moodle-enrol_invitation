@@ -31,6 +31,7 @@
     require_once('config.php');
     require_once($CFG->dirroot .'/course/lib.php');
     require_once($CFG->libdir .'/filelib.php');
+    require_once($CFG->dirroot .'/local/ucla/lib.php');
 
     redirect_if_major_upgrade_required();
 
@@ -58,7 +59,7 @@
         // Redirect logged-in users to My Moodle overview if required
         if (optional_param('setdefaulthome', false, PARAM_BOOL)) {
             set_user_preference('user_home_page_preference', HOMEPAGE_SITE);
-        } else if ($CFG->defaulthomepage == HOMEPAGE_MY && (optional_param('redirect', true, PARAM_BOOL) || !$hassiteconfig)) {
+        } else if ($CFG->defaulthomepage == HOMEPAGE_MY && optional_param('redirect', 1, PARAM_BOOL) === 1) {
             redirect($CFG->wwwroot .'/my/');
         } else if (!empty($CFG->defaulthomepage) && $CFG->defaulthomepage == HOMEPAGE_USER) {
             $PAGE->settingsnav->get('usercurrentsettings')->add(get_string('makethismyhome'), new moodle_url('/', array('setdefaulthome'=>true)), navigation_node::TYPE_SETTING);
@@ -81,15 +82,20 @@
         }
     }
 
+    // START UCLA Modification - CCLE-2590 - Implement Auto-detect Shibboleth 
+    // Login - Lazy login ON front page (before header is outputted)
+    require_user_finish_login();
+    // End UCLA Modification - CCLE-2590            
+    
     $PAGE->set_pagetype('site-index');
     $PAGE->set_other_editing_capability('moodle/course:manageactivities');
     $PAGE->set_docs_path('');
     $PAGE->set_pagelayout('frontpage');
     $editing = $PAGE->user_is_editing();
     $PAGE->set_title($SITE->fullname);
-    $PAGE->set_heading($SITE->fullname);
+    $PAGE->set_heading($SITE->fullname);    
     echo $OUTPUT->header();
-
+    
 /// Print Section or custom info
     if (!empty($CFG->customfrontpageinclude)) {
         include($CFG->customfrontpageinclude);

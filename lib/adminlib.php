@@ -245,6 +245,26 @@ function uninstall_plugin($type, $name) {
                 set_config('enrol_plugins_enabled', implode(',', $enabledenrols));
             }
         }
+
+    } else if ($type === 'block') {
+        if ($block = $DB->get_record('block', array('name'=>$name))) {
+            // Inform block it's about to be deleted
+            if (file_exists("$CFG->dirroot/blocks/$block->name/block_$block->name.php")) {
+                $blockobject = block_instance($block->name);
+                if ($blockobject) {
+                    $blockobject->before_delete();  //only if we can create instance, block might have been already removed
+                }
+            }
+
+            // First delete instances and related contexts
+            $instances = $DB->get_records('block_instances', array('blockname' => $block->name));
+            foreach($instances as $instance) {
+                blocks_delete_instance($instance);
+            }
+
+            // Delete block
+            $DB->delete_records('block', array('id'=>$block->id));
+        }
     }
 
     // perform clean-up task common for all the plugin/subplugin types
@@ -271,7 +291,11 @@ function uninstall_plugin($type, $name) {
 
     // delete the plugin tables
     $xmldbfilepath = $plugindirectory . '/db/install.xml';
-    drop_plugin_tables($pluginname, $xmldbfilepath, false);
+    drop_plugin_tables($component, $xmldbfilepath, false);
+    if ($type === 'mod' or $type === 'block') {
+        // non-frankenstyle table prefixes
+        drop_plugin_tables($name, $xmldbfilepath, false);
+    }
 
     // delete the capabilities that were defined by this module
     capabilities_cleanup($component);
@@ -3549,9 +3573,9 @@ class admin_setting_emoticons extends admin_setting {
             $emoticon                   = new stdClass();
             $emoticon->text             = clean_param(trim($form['text'.$i]), PARAM_NOTAGS);
             $emoticon->imagename        = clean_param(trim($form['imagename'.$i]), PARAM_PATH);
-            $emoticon->imagecomponent   = clean_param(trim($form['imagecomponent'.$i]), PARAM_SAFEDIR);
+            $emoticon->imagecomponent   = clean_param(trim($form['imagecomponent'.$i]), PARAM_COMPONENT);
             $emoticon->altidentifier    = clean_param(trim($form['altidentifier'.$i]), PARAM_STRINGID);
-            $emoticon->altcomponent     = clean_param(trim($form['altcomponent'.$i]), PARAM_SAFEDIR);
+            $emoticon->altcomponent     = clean_param(trim($form['altcomponent'.$i]), PARAM_COMPONENT);
 
             if (strpos($emoticon->text, ':/') !== false or strpos($emoticon->text, '//') !== false) {
                 // prevent from breaking http://url.addresses by accident
@@ -6321,7 +6345,7 @@ function db_replace($search, $replace) {
     // TODO: this is horrible hack, we should do whitelisting and each plugin should be responsible for proper replacing...
     $skiptables = array('config', 'config_plugins', 'config_log', 'upgrade_log',
                         'filter_config', 'sessions', 'events_queue', 'repository_instance_config',
-                        'block_instances', 'block_pinned_old', 'block_instance_old', '');
+                        'block_instances', '');
 
     // Turn off time limits, sometimes upgrades can be slow.
     @set_time_limit(0);

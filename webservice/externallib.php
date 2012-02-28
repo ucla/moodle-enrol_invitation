@@ -23,16 +23,22 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-class moodle_webservice_external extends external_api {
+/**
+ * Web service related functions
+ */
+class core_webservice_external extends external_api {
 
-    public static function get_siteinfo_parameters() {
+    /**
+     * Returns description of method parameters
+     * @return external_function_parameters
+     */
+    public static function get_site_info_parameters() {
         return new external_function_parameters(
             array('serviceshortnames' => new external_multiple_structure (
                 new external_value(
                     PARAM_ALPHANUMEXT,
                     'service shortname'),
-                    'service shortnames - by default, if the list is empty and mobile web services are enabled,
-                    we return the mobile service functions',
+                    'DEPRECATED PARAMETER - it was a design error in the original implementation. It is ignored now. (parameter kept for backward compatibility)',
                     VALUE_DEFAULT,
                     array()
                 ),
@@ -44,31 +50,58 @@ class moodle_webservice_external extends external_api {
      * Return user information including profile picture + basic site information
      * Note:
      * - no capability checking because we return just known information by logged user
-     * @param array $serviceshortnames of service shortnames - the functions of these services will be returned
+     * @param array $serviceshortnames - DEPRECATED PARAMETER - values will be ignored - it was an original design error, we keep for backward compatibility.
      * @return array
      */
-    function get_siteinfo($serviceshortnames = array()) {
-        global $USER, $SITE, $CFG;
+    public function get_site_info($serviceshortnames = array()) {
+        global $USER, $SITE, $CFG, $DB;
 
-        $params = self::validate_parameters(self::get_siteinfo_parameters(),
+        $params = self::validate_parameters(self::get_site_info_parameters(),
                       array('serviceshortnames'=>$serviceshortnames));
 
         $profileimageurl = moodle_url::make_pluginfile_url(
                 get_context_instance(CONTEXT_USER, $USER->id)->id, 'user', 'icon', NULL, '/', 'f1');
 
-        require_once($CFG->dirroot . "/webservice/lib.php");
-        $webservice = new webservice();
+        //site information
+        $siteinfo =  array(
+            'sitename' => $SITE->fullname,
+            'siteurl' => $CFG->wwwroot,
+            'username' => $USER->username,
+            'firstname' => $USER->firstname,
+            'lastname' => $USER->lastname,
+            'fullname' => fullname($USER),
+            'userid' => $USER->id,
+            'userpictureurl' => $profileimageurl->out(false)
+        );
 
-        //If no service listed always return the mobile one by default
-        if (empty($params['serviceshortnames']) and $CFG->enablewebservices) {
-           $mobileservice = $webservice->get_external_service_by_shortname(MOODLE_OFFICIAL_MOBILE_SERVICE);
-           if ($mobileservice->enabled) {
-               $params['serviceshortnames'] = array(MOODLE_OFFICIAL_MOBILE_SERVICE); //return mobile service by default
-           }
+        //Retrieve the service and functions from the web service linked to the token
+        //If you call this function directly from external (not a web service call),
+        //then it will still return site info without information about a service
+        //Note: wsusername/wspassword ws authentication is not supported.
+        $functions = array();
+        if ($CFG->enablewebservices) { //no need to check token if web service are disabled and not a ws call
+            $token = optional_param('wstoken', '', PARAM_ALPHANUM);
+
+            if (!empty($token)) { //no need to run if not a ws call
+                //retrieve service shortname
+                $servicesql = 'SELECT s.*
+                               FROM {external_services} s, {external_tokens} t
+                               WHERE t.externalserviceid = s.id AND token = ? AND t.userid = ? AND s.enabled = 1';
+                $service = $DB->get_record_sql($servicesql, array($token, $USER->id));
+
+                $siteinfo['downloadfiles'] = $service->downloadfiles;
+
+                if (!empty($service)) {
+                    //retrieve the functions
+                    $functionssql = "SELECT f.*
+                            FROM {external_functions} f, {external_services_functions} sf
+                            WHERE f.name = sf.functionname AND sf.externalserviceid = ?";
+                    $functions = $DB->get_records_sql($functionssql, array($service->id));
+                } else {
+                    throw new coding_exception('No service found in get_site_info: something is buggy, it should have fail at the ws server authentication layer.');
+                }
+            }
         }
-
-        //retrieve the functions related to the services
-        $functions = $webservice->get_external_functions_by_enabled_services($params['serviceshortnames']);
 
         //built up the returned values of the list of functions
         $componentversions = array();
@@ -99,20 +132,16 @@ class moodle_webservice_external extends external_api {
             $avalaiblefunctions[] = $functioninfo;
         }
 
-        return array(
-            'sitename' => $SITE->fullname,
-            'siteurl' => $CFG->wwwroot,
-            'username' => $USER->username,
-            'firstname' => $USER->firstname,
-            'lastname' => $USER->lastname,
-            'fullname' => fullname($USER),
-            'userid' => $USER->id,
-            'userpictureurl' => $profileimageurl->out(false),
-            'functions' => $avalaiblefunctions
-        );
+        $siteinfo['functions'] = $avalaiblefunctions;
+
+        return $siteinfo;
     }
 
-    public static function get_siteinfo_returns() {
+    /**
+     * Returns description of method result value
+     * @return external_single_structure
+     */
+    public static function get_site_info_returns() {
         return new external_single_structure(
             array(
                 'sitename'       => new external_value(PARAM_RAW, 'site name'),
@@ -130,7 +159,45 @@ class moodle_webservice_external extends external_api {
                             'version' => new external_value(PARAM_FLOAT, 'The version number of moodle site/local plugin linked to the function')
                         ), 'functions that are available')
                     ),
+                'downloadfiles'  => new external_value(PARAM_INT, '1 if users are allowed to download files, 0 if not', VALUE_OPTIONAL),
             )
         );
+    }
+}
+
+/**
+ * Deprecated web service related functions
+ * @deprecated since Moodle 2.2 please use core_webservice_external instead
+ */
+class moodle_webservice_external extends external_api {
+
+    /**
+     * Returns description of method parameters
+     * @deprecated since Moodle 2.2 please use core_webservice_external::get_site_info_parameters instead
+     * @return external_function_parameters
+     */
+    public static function get_siteinfo_parameters() {
+        return core_webservice_external::get_site_info_parameters();
+    }
+
+    /**
+     * Return user information including profile picture + basic site information
+     * Note:
+     * - no capability checking because we return just known information by logged user
+     * @deprecated since Moodle 2.2 please use core_webservice_external::get_site_info instead
+     * @param array $serviceshortnames of service shortnames - the functions of these services will be returned
+     * @return array
+     */
+    public function get_siteinfo($serviceshortnames = array()) {
+        return core_webservice_external::get_site_info($serviceshortnames);
+    }
+
+    /**
+     * Returns description of method result value
+     * @deprecated since Moodle 2.2 please use core_webservice_external::get_site_info_returns instead
+     * @return external_single_structure
+     */
+    public static function get_siteinfo_returns() {
+        return core_webservice_external::get_site_info_returns();
     }
 }

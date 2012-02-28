@@ -6,7 +6,6 @@ $ADMIN->add('users', new admin_category('accounts', get_string('accounts', 'admi
 $ADMIN->add('users', new admin_category('roles', get_string('permissions', 'role')));
 
 if ($hassiteconfig
- or has_capability('moodle/site:uploadusers', $systemcontext)
  or has_capability('moodle/user:create', $systemcontext)
  or has_capability('moodle/user:update', $systemcontext)
  or has_capability('moodle/user:delete', $systemcontext)
@@ -25,8 +24,6 @@ if ($hassiteconfig
     $ADMIN->add('accounts', new admin_externalpage('editusers', get_string('userlist','admin'), "$CFG->wwwroot/$CFG->admin/user.php", array('moodle/user:update', 'moodle/user:delete')));
     $ADMIN->add('accounts', new admin_externalpage('userbulk', get_string('userbulk','admin'), "$CFG->wwwroot/$CFG->admin/user/user_bulk.php", array('moodle/user:update', 'moodle/user:delete')));
     $ADMIN->add('accounts', new admin_externalpage('addnewuser', get_string('addnewuser'), "$securewwwroot/user/editadvanced.php?id=-1", 'moodle/user:create'));
-    $ADMIN->add('accounts', new admin_externalpage('uploadusers', get_string('uploadusers', 'admin'), "$CFG->wwwroot/$CFG->admin/uploaduser.php", 'moodle/site:uploadusers'));
-    $ADMIN->add('accounts', new admin_externalpage('uploadpictures', get_string('uploadpictures','admin'), "$CFG->wwwroot/$CFG->admin/uploadpicture.php", 'moodle/site:uploadusers'));
     $ADMIN->add('accounts', new admin_externalpage('profilefields', get_string('profilefields','admin'), "$CFG->wwwroot/user/profile/index.php", 'moodle/site:config'));
     $ADMIN->add('accounts', new admin_externalpage('cohorts', get_string('cohorts', 'cohort'), $CFG->wwwroot . '/cohort/index.php', array('moodle/cohort:manage', 'moodle/cohort:view')));
 
@@ -92,6 +89,9 @@ if ($hassiteconfig
                 $defaultuserid = 0;
             }
 
+            $restorersnewrole = $creatornewroles;
+            $restorersnewrole[0] = get_string('none');
+
             $temp->add(new admin_setting_configselect('notloggedinroleid', get_string('notloggedinroleid', 'admin'),
                           get_string('confignotloggedinroleid', 'admin'), $defaultguestid, ($guestroles + $otherroles)));
             $temp->add(new admin_setting_configselect('guestroleid', get_string('guestroleid', 'admin'),
@@ -100,12 +100,15 @@ if ($hassiteconfig
                           get_string('configdefaultuserroleid', 'admin'), $defaultuserid, ($userroles + $otherroles)));
             $temp->add(new admin_setting_configselect('creatornewroleid', get_string('creatornewroleid', 'admin'),
                           get_string('creatornewroleid_help', 'admin'), $defaultteacherid, $creatornewroles));
+            $temp->add(new admin_setting_configselect('restorernewroleid', get_string('restorernewroleid', 'admin'),
+                          get_string('restorernewroleid_help', 'admin'), $defaultteacherid, $restorersnewrole));
 
             // release memory
             unset($otherroles);
             unset($guestroles);
             unset($userroles);
             unset($creatornewroles);
+            unset($restorersnewrole);
         }
 
         $temp->add(new admin_setting_configcheckbox('autologinguests', get_string('autologinguests', 'admin'), get_string('configautologinguests', 'admin'), 0));
@@ -124,11 +127,29 @@ if ($hassiteconfig
                              'firstaccess' => get_string('firstaccess'),
                              'lastaccess' => get_string('lastaccess'),
                              'mycourses' => get_string('mycourses'),
-                             'groups' => get_string('groups'))));
+                             'groups' => get_string('groups'),
+                             'suspended' => get_string('suspended', 'auth'),
+                       )));
 
-        $temp->add(new admin_setting_configmulticheckbox('extrauserselectorfields',
-                get_string('extrauserselectorfields', 'admin'), get_string('configextrauserselectorfields', 'admin'), array('email' => '1'),
-                array('email' => get_string('email'), 'idnumber' => get_string('idnumber'), 'username' => get_string('username'), )));
+        // Select fields to display as part of user identity (only to those
+        // with moodle/site:viewuseridentity).
+        // Options include fields from the user table that might be helpful to
+        // distinguish when adding or listing users ('I want to add the John
+        // Smith from Science faculty').
+        // Username is not included as an option because in some sites, it might
+        // be a security problem to reveal usernames even to trusted staff.
+        // Custom user profile fields are not currently supported.
+        $temp->add(new admin_setting_configmulticheckbox('showuseridentity',
+                get_string('showuseridentity', 'admin'),
+                get_string('showuseridentity_desc', 'admin'), array('email' => 1), array(
+                    'idnumber'    => get_string('idnumber'),
+                    'email'       => get_string('email'),
+                    'phone1'      => get_string('phone'),
+                    'phone2'      => get_string('phone2'),
+                    'department'  => get_string('department'),
+                    'institution' => get_string('institution'),
+                )));
+        $temp->add(new admin_setting_configcheckbox('enablegravatar', get_string('enablegravatar', 'admin'), get_string('enablegravatar_help', 'admin'), 0));
     }
 
     $ADMIN->add('roles', $temp);

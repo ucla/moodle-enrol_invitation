@@ -45,7 +45,7 @@ if(file_exists($CFG->libdir.'/publicprivate/restore_publicprivate_course_task.cl
  */
 class restore_controller extends backup implements loggable {
 
-    protected $tempdir;   // Directory under dataroot/temp/backup awaiting restore
+    protected $tempdir;   // Directory under tempdir/backup awaiting restore
     protected $restoreid; // Unique identificator for this restore
 
     protected $courseid; // courseid where restore is going to happen
@@ -74,7 +74,7 @@ class restore_controller extends backup implements loggable {
 
     /**
      *
-     * @param string $tempdir Directory under dataroot/temp/backup awaiting restore
+     * @param string $tempdir Directory under tempdir/backup awaiting restore
      * @param int $courseid Course id where restore is going to happen
      * @param bool $interactive backup::INTERACTIVE_YES[true] or backup::INTERACTIVE_NO[false]
      * @param int $mode backup::MODE_[ GENERAL | HUB | IMPORT | SAMESITE ]
@@ -312,6 +312,14 @@ class restore_controller extends backup implements loggable {
         // Basic/initial prevention against time/memory limits
         set_time_limit(1 * 60 * 60); // 1 hour for 1 course initially granted
         raise_memory_limit(MEMORY_EXTRA);
+        // If this is not a course restore, inform the plan we are not
+        // including all the activities for sure. This will affect any
+        // task/step executed conditionally to stop processing information
+        // for section and activity restore. MDL-28180.
+        if ($this->get_type() !== backup::TYPE_1COURSE) {
+            $this->log('notifying plan about excluded activities by type', backup::LOG_DEBUG);
+            $this->plan->set_excluding_activities();
+        }
         return $this->plan->execute();
     }
 

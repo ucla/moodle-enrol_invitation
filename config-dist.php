@@ -196,17 +196,17 @@ $CFG->admin = 'admin';
 //
 // These variables define DEFAULT block variables for new courses
 // If this one is set it overrides all others and is the only one used.
-//      $CFG->defaultblocks_override = 'participants,activity_modules,search_forums,admin,course_list:news_items,calendar_upcoming,recent_activity';
+//      $CFG->defaultblocks_override = 'participants,activity_modules,search_forums,course_list:news_items,calendar_upcoming,recent_activity';
 //
 // These variables define the specific settings for defined course formats.
 // They override any settings defined in the formats own config file.
-//      $CFG->defaultblocks_site = 'site_main_menu,admin,course_list:course_summary,calendar_month';
-//      $CFG->defaultblocks_social = 'participants,search_forums,calendar_month,calendar_upcoming,social_activities,recent_activity,admin,course_list';
-//      $CFG->defaultblocks_topics = 'participants,activity_modules,search_forums,admin,course_list:news_items,calendar_upcoming,recent_activity';
-//      $CFG->defaultblocks_weeks = 'participants,activity_modules,search_forums,admin,course_list:news_items,calendar_upcoming,recent_activity';
+//      $CFG->defaultblocks_site = 'site_main_menu,course_list:course_summary,calendar_month';
+//      $CFG->defaultblocks_social = 'participants,search_forums,calendar_month,calendar_upcoming,social_activities,recent_activity,course_list';
+//      $CFG->defaultblocks_topics = 'participants,activity_modules,search_forums,course_list:news_items,calendar_upcoming,recent_activity';
+//      $CFG->defaultblocks_weeks = 'participants,activity_modules,search_forums,course_list:news_items,calendar_upcoming,recent_activity';
 //
 // These blocks are used when no other default setting is found.
-//      $CFG->defaultblocks = 'participants,activity_modules,search_forums,admin,course_list:news_items,calendar_upcoming,recent_activity';
+//      $CFG->defaultblocks = 'participants,activity_modules,search_forums,course_list:news_items,calendar_upcoming,recent_activity';
 //
 // You can specify a different class to be created for the $PAGE global, and to
 // compute which blocks appear on each page. However, I cannot think of any good
@@ -347,10 +347,16 @@ $CFG->admin = 'admin';
 //
 //     $CFG->themedir = '/location/of/extra/themes';
 //
+// It is possible to specify different cache and temp directories, use local fast filesystem.
+// The directories must not be accessible via web.
+//
+//     $CFG->tempdir = '/var/www/moodle/temp';
+//     $CFG->cachedir = '/var/www/moodle/cache';
+//
 // If $CFG->langstringcache is enabled (which should always be in production
 // environment), Moodle keeps aggregated strings in its own internal format
 // optimised for performance. By default, this on-disk cache is created in
-// $CFG->dataroot/cache/lang. In cluster environment, you may wish to specify
+// $CFG->cachedir/lang. In cluster environment, you may wish to specify
 // an alternative location of this cache so that each web server in the cluster
 // uses its own local cache and does not need to access the shared dataroot.
 // Make sure that the web server process has write permission to this location
