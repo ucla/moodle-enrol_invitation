@@ -67,6 +67,20 @@ function enrolstat_is_cancelled($enrolstat) {
     return strtolower($enrolstat) == 'x';
 }
 
+function build_registrar_finals_url($courseinfo) {
+    $regurl = 'http://www.registrar.ucla.edu/schedule/subdet.aspx';
+    $params = array(
+        'term' => $courseinfo->term,
+        'srs' => $courseinfo->srs
+    );
+
+    foreach ($params as $param => $value) {
+        $paramstrs[] = $param . '=' . $value;
+    }
+
+    return $regurl . '?' . implode('&', $paramstrs);
+}
+
 /**
  *  Translate the single-character enrollment code to a word.
  *  There is an assumption here that case does not matter for these

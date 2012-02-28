@@ -28,7 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir.'/filelib.php');
 require_once($CFG->libdir.'/completionlib.php');
 
-global $CFG, $USER;
+global $CFG, $USER, $PAGE;
 
 // Course preferences
 $course_prefs = new ucla_course_prefs($course->id);
@@ -172,10 +172,6 @@ if (ucla_format_display_instructors($course)) {
 // Registrar information TODO
 // Pretty version of term
 
-// This is a container for holding onto information that will be displayed
-// later
-$course_reg_infos = false;
-
 // Formatting and determining information to display for these courses
 $courseinfos = ucla_get_course_info($course->id);
 $regcoursetext = '';
@@ -183,7 +179,7 @@ $termtext = '';
 if (!empty($courseinfos)) {
     $theterm = false;
     $displayinfos = array();
-    foreach ($courseinfos as $courseinfo) {
+    foreach ($courseinfos as $key => $courseinfo) {
         $thisterm = $courseinfo->term;
         if (!$theterm) {
             $theterm = $thisterm;
@@ -192,7 +188,7 @@ if (!empty($courseinfos)) {
                 . $theterm . ' vs ' . $thisterm);
         }
 
-        $displayinfos[] = $courseinfo->subj_area 
+        $displayinfos[$key] = $courseinfo->subj_area 
             . $courseinfo->coursenum . '-' . $courseinfo->sectnum;
     }
 
@@ -214,17 +210,12 @@ if (empty($imploder)) {
     $inst_text = implode(' / ', $imploder);
 }
 
-$heading_text = '';
 if (!empty($termtext)) {
     $heading_text = $termtext . ' - ' . $regcoursetext . ' - ' . $inst_text;
+    echo $OUTPUT->box($heading_text);
 }
 
-$heading_text .= html_writer::empty_tag('br');
-$heading_text .= $OUTPUT->heading($course->fullname, 2);
-
-echo html_writer::tag('div', $heading_text, array(
-        'class' => ''
-    ));
+echo $OUTPUT->heading($course->fullname, 2);
 
 /**
  *  Progress icon for track completion!
@@ -556,19 +547,37 @@ while ($section <= $course->numsections) {
             if ($section == 0) {
                 // Course Information specific has a different section
                 // header
-                if (!empty($course_reg_infos)) {
+                if (!empty($courseinfos)) {
+                    // We need the stuff...
+                    $regclassurls = array();
+                    $regfinalurls = array();
+                    foreach ($courseinfos as $key => $courseinfo) {
+                        $displayinfo = $displayinfos[$key];
+                        
+                        $url = new moodle_url($courseinfo->url);
+                        $regclassurls[$key] = html_writer::link(
+                            $url, $displayinfo
+                        );
+
+                        $regfinalurls[$key] = html_writer::link(
+                            build_registrar_finals_url($courseinfo),
+                            $displayinfo
+                        );
+                    }
+
                     $registrar_info = get_string('reg_listing', 
                         'format_ucla');
+
+                    $registrar_info .= implode(', ', $regclassurls);
                     $registrar_info .= html_writer::empty_tag('br');
 
                     $registrar_info .= get_string('reg_finalcd', 
                         'format_ucla');
+                    $registrar_info .= implode(', ', $regfinalurls);
                     $registrar_info .= html_writer::empty_tag('br');
                 } else {
                     $registrar_info = get_string('reg_unavail', 
                         'format_ucla');
-
-                    debugging($registrar_info);
                     $registrar_info = '';
                 }
 
