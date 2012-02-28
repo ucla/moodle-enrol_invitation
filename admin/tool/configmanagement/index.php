@@ -49,8 +49,12 @@ if (!is_siteadmin($USER->id)) {
 // Prepare and load Moodle Admin interface
 $adminroot = admin_get_root();
 admin_externalpage_setup('configmanagement');
-admin_externalpage_print_header($adminroot);
-
+// replaced:
+//admin_externalpage_print_header($adminroot);
+    // with following:
+//$PAGE->set_focuscontrol($adminroot);
+echo $OUTPUT->header();     // TODO: focus needs to be updated
+    
 //NOTE: If file.php doesn't have security fixes, don't pick course 1
 //      In standard Moodle installations, non-admins can access those files 
 $dir = $CFG->dataroot.'/1/';
@@ -95,11 +99,12 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
     $divider = get_string('configdivider', 'tool_configmanagement');
     // Use this time to keep time fields constant for diff
     $difftime = 1234567890;
-    $dodiff = (optional_param('configoptions') == 'diff') ? true : false;
-    $diffexclude = ($dodiff && optional_param('exc_id_time',0)) ? true : false;
 
-    print_heading(get_string('configsaveconfiguration', 'tool_configmanagement'));
-
+    $dodiff = (optional_param('configoptions',0, PARAM_RAW) == 'diff') ? true : false;
+    $diffexclude = ($dodiff && optional_param('exc_id_time',0,PARAM_RAW)) ? true : false;
+    
+    echo $OUTPUT->heading(get_string('configsaveconfiguration', 'tool_configmanagement'));
+    
     // CCLE-164 - show filename and location
     echo "<p class=\"mdl-align\">Settings saved to file: ".$dir.$dumpfile."<p/>";
 
@@ -488,9 +493,9 @@ else if (isset($_POST['load']) && empty($_POST['save'])) {
     
     $divider = get_string('configdivider', 'tool_configmanagement');
     $dividerlen = strlen($divider);
-
-    print_heading(get_string('configloadconfiguration', 'tool_configmanagement'));
-
+    
+    echo $OUPUT->heading(get_string('configloadconfiguration', 'tool_configmanagement'));
+    
     //Open file
     if(file_exists($dir.$dumpfile) && $fp = fopen($dir.$dumpfile,'r')){
         while (!feof($fp)) {
@@ -616,8 +621,9 @@ else {
             }
         </script>
         ';
-    print_heading(get_string('configurationmanagement', 'tool_configmanagement'));
-
+    
+    echo $OUTPUT->heading(get_string('configurationmanagement', 'tool_configmanagement'));
+    
     //Start of form
     echo "<form class=\"mdl-align\" action=\"$ME\" method=\"post\" id=\"adminsettings\" name=\"adminsettings\" >\n";
     echo "<fieldset>\n";
@@ -636,6 +642,7 @@ else {
     print_container("<label>".get_string('configsavefile', 'tool_configmanagement')."</label>", false, 'form-label');
     print_container('&nbsp;<input type="hidden" name="savefile" size="48" />', false, 'form-file defaultsnext');
     // Print the filename (do not allow it to be modified)
+    // TODO: style for this is weird, no new line after this in 2.0?
     echo '<div style="float:left; margin-left:10px;">'.$dir.'<span id="configfilename" style="font-weight: bold" >file</span></div>';
     print_container(get_string('configsaveinfo', 'tool_configmanagement'), false, 'form-description');
 
@@ -745,4 +752,4 @@ else {
 
 
 }
-print_footer();
+$OUTPUT->footer();
