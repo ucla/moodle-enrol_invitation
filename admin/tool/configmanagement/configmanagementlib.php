@@ -618,7 +618,7 @@ function replace_table($table, $values, $usetransactions = true) {
         if ($usetransactions) {
             rollback_sql();
         }
-        echo "<p class=\"mdl-align redfont\">".get_string('congierrordeletingrecord', 'report_configmanagement')."</p>";
+        echo "<p class=\"mdl-align redfont\">".get_string('congierrordeletingrecord', 'tool_configmanagement')."</p>";
         return false;
     }
     if (!empty($values)) {
@@ -627,7 +627,7 @@ function replace_table($table, $values, $usetransactions = true) {
             if ($usetransactions) {
                 rollback_sql();
             }
-            echo "<p class=\"mdl-align redfont\">".get_string('configerrorinsertingrecord', 'report_configmanagement')."</p>";
+            echo "<p class=\"mdl-align redfont\">".get_string('configerrorinsertingrecord', 'tool_configmanagement')."</p>";
             return false;
         }
     }
@@ -826,7 +826,7 @@ function update_role_tables() {
     }
     $success = replace_table('role', implode(', ', $valuesbuffer), false);
     if (!$success) {
-        echo "<p>".get_string('configrollbackerrormsg', 'report_configmanagement')." role</p>";
+        echo "<p>".get_string('configrollbackerrormsg', 'tool_configmanagement')." role</p>";
         rollback_sql();
         return false;
     }
@@ -861,7 +861,7 @@ function update_role_tables() {
     }
     $success = replace_table('role_allow_assign', implode(', ', $valuesbuffer), false);
     if (!$success) {
-        echo "<p>".get_string('configrollbackerrormsg', 'report_configmanagement')." role_allow_assign</p>";
+        echo "<p>".get_string('configrollbackerrormsg', 'tool_configmanagement')." role_allow_assign</p>";
         rollback_sql();
         return false;
     }
@@ -895,7 +895,7 @@ function update_role_tables() {
     }
     $success = replace_table('role_allow_override', implode(', ', $valuesbuffer), false);
     if (!$success) {
-        echo "<p>".get_string('configrollbackerrormsg', 'report_configmanagement')." role_allow_override</p>";
+        echo "<p>".get_string('configrollbackerrormsg', 'tool_configmanagement')." role_allow_override</p>";
         rollback_sql();
         return false;
     }
@@ -911,7 +911,7 @@ function update_role_tables() {
                     'modifierid'=>false, 'enrol'=>true, 'sortorder'=>false);
     $success = remap_foreign_keys('role_assignments', $fields, $backupfromdb);
     if (!$success) {
-        echo get_string('configrollbackerrormsg', 'report_configmanagement')." role_assignments.<br />\n";
+        echo get_string('configrollbackerrormsg', 'tool_configmanagement')." role_assignments.<br />\n";
         rollback_sql();
         return false;
     }
@@ -933,7 +933,7 @@ function update_role_tables() {
                     'permission'=>false, 'timemodified'=>false, 'modifierid'=>true);
     $success = merge_db_nonsite_backup_site('role_capabilities', $fields, $unsafebackupsitecaps, $backupfromdb);
     if (!$success) {
-        echo get_string('configrollbackerrormsg', 'report_configmanagement')." role_capabilities<br />\n";
+        echo get_string('configrollbackerrormsg', 'tool_configmanagement')." role_capabilities<br />\n";
         rollback_sql();
         return false;
     }
@@ -952,7 +952,7 @@ function update_role_tables() {
     $fields = array('id'=>false, 'roleid'=>false, 'contextid'=>false, 'name'=>true);
     $success = merge_db_nonsite_backup_site('role_names', $fields, $unsafebackupsitenames, $backupfromdb);
     if (!$success) {
-        echo get_string('configrollbackerrormsg', 'report_configmanagement')." role_names<br />\n";
+        echo get_string('configrollbackerrormsg', 'tool_configmanagement')." role_names<br />\n";
         rollback_sql();
         return false;
     }
@@ -966,7 +966,7 @@ function update_role_tables() {
     $fields = array('id'=>false, 'userid'=>false, 'roleid'=>false, 'contextid'=>false, 'sortorder'=>false);
     $success = remap_foreign_keys('role_sortorder', $fields, $backupfromdb);
     if (!$success) {
-        echo get_string('configrollbackerrormsg', 'report_configmanagement')." role_sortorder<br />\n";
+        echo get_string('configrollbackerrormsg', 'tool_configmanagement')." role_sortorder<br />\n";
         rollback_sql();
         return false;
     }
@@ -1063,9 +1063,9 @@ function update_special_case_logins() {
 
     if (!empty($valuesbuffer)) {
         if(replace_table('user', implode(', ', $valuesbuffer))) {
-            echo "<p class=\"mdl-align\">".get_string('configusertablewrittenmsg', 'report_configmanagement')."</p>";
+            echo "<p class=\"mdl-align\">".get_string('configusertablewrittenmsg', 'tool_configmanagement')."</p>";
             if(write_user_role_assignments($useridsarray)) {
-                echo "<p class=\"mdl-align\">".get_string('configroleassignmenttablemsg', 'report_configmanagement')."</p>";
+                echo "<p class=\"mdl-align\">".get_string('configroleassignmenttablemsg', 'tool_configmanagement')."</p>";
             }
         }
     }
@@ -1148,7 +1148,7 @@ function write_configphp($fp) {
     $fpconfig = fopen($configfile, 'r');
 
     if(!$fpconfig) {
-        echo get_string('configerrorcannotopenfile', 'report_configmanagement')."<br/>";
+        echo get_string('configerrorcannotopenfile', 'tool_configmanagement')."<br/>";
         return;
     }
 
