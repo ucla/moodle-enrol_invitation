@@ -88,7 +88,7 @@ class block_ucla_control_panel extends block_base {
 
         if (!isset($views['default'])) {
             $views['default'] = array('ucla_cp_mod_common',
-                'block_myucla', 'ucla_cp_mod_other');
+                'ucla_cp_mod_myucla', 'ucla_cp_mod_other');
         }
 
         ksort($views);

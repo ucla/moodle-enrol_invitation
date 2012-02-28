@@ -45,11 +45,17 @@ $string['turn_editing_on_post'] = '(or duplicate, hide, make public)';
 $string['ucla_cp_mod_myucla'] = 'MyUCLA Functions';
 
 $string['download_roster'] = 'Download Roster';
+$string['download_roster_post'] = '';
 $string['photo_roster'] = 'Photo Roster';
+$string['photo_roster_post'] = '';
 $string['myucla_gradebook'] = 'MyUCLA Gradebook';
+$string['myucla_gradebook_post'] = '';
 $string['turn_it_in'] = 'Turn-It-In';
+$string['turn_it_in_post'] = '';
 $string['email_roster'] = 'Email Roster';
+$string['email_roster_post'] = '';
 $string['asucla_textbooks'] = 'ASUCLA Textbooks';
+$string['asucla_textbooks_post'] = '';
 
 /** Stuff from other **/
 $string['ucla_cp_mod_other'] = 'Other commands';
