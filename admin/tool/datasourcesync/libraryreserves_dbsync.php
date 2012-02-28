@@ -107,8 +107,6 @@ function update_libraryreserves_db(){
            $index = $DB->insert_record('ucla_libraryreserves', $row);
        } catch(Exception $e) {
            // Do nothing, to handle cases where rows are invalid beyond norms.  Does not insert row.
-           print_r($row);
-           echo $e;
        }
     
        if($index) {
