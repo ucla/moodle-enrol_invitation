@@ -72,8 +72,15 @@ function enrolstat_is_cancelled($enrolstat) {
  *  Note that this does require an enrolstat, which means that
  *      the data needs to come from ucla_reg_classinfo.
  *  Note that misformed data will throw an exception.
+ *  @param  $courseset  Array( Object->enrolstat, ... )
+ *  @return boolean     true = cancelled
  **/
 function is_course_cancelled($courseset) {
+    // No information, assume not-cancellable
+    if (empty($courseset)) {
+        return false;
+    }
+
     $cancelled = true;
     foreach ($courseset as $course) {
         if (empty($course->enrolstat)) {

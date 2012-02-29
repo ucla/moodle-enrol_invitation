@@ -35,7 +35,7 @@ $string['reg_listing'] = 'For course location and time see Registrar Listing: ';
 $string['reg_finalcd'] = 'For official course description, final exam code'.
     ' and other course information see: ';
 $string['reg_unavail'] = 'The Registrar links are unavailable at this time.';
-$string['coursecancelled'] = '<p>THIS CLASS HAS BEEN CANCELLED</p>Please click the Registrar link above for more information.';
+$string['coursecancelled'] = '<p>THIS CLASS HAS BEEN CANCELLED</p>Please check the Registrar links below for more information.';
 
 // Course preferences strings
 $string['course_pref'] = 'Course Preferences';
