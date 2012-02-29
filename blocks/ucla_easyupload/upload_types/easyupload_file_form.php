@@ -13,6 +13,8 @@ class easyupload_file_form extends easy_upload_form {
     function specification() {
         $mform =& $this->_form;
 
+        $this->set_maxsize();   // important to call this before the file upload
+        
         $mform->addElement('uclafile', 'repo_upload_file', 
             get_string('dialog_add_file_box', self::associated_block));
         $mform->addRule('repo_upload_file', '', 'required');
@@ -43,5 +45,29 @@ class easyupload_file_form extends easy_upload_form {
 
     function get_coursemodule() {
         return 'resource';
+    }
+
+    /**
+     * Sets the form's _maxFileSize variable since for some reason, it isn't set 
+     * by Moodle form object. This code modified from constructor of 
+     * HTML_QuickForm.
+     */
+    function set_maxsize() {
+        if (preg_match('/^([0-9]+)([a-zA-Z]*)$/', ini_get('upload_max_filesize'), $matches)) {
+            // see http://www.php.net/manual/en/faq.using.php#faq.using.shorthandbytes
+            switch (strtoupper($matches['2'])) {
+                case 'G':
+                    $this->_form->_maxFileSize = $matches['1'] * 1073741824;
+                    break;
+                case 'M':
+                    $this->_form->_maxFileSize = $matches['1'] * 1048576;
+                    break;
+                case 'K':
+                    $this->_form->_maxFileSize = $matches['1'] * 1024;
+                    break;
+                default:
+                    $this->_form->_maxFileSize = $matches['1'];
+            }
+        }                        
     }
 }
