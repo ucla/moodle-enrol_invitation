@@ -53,7 +53,7 @@ function callback_ucla_uses_sections() {
  * @return bool Returns true
  */
 function callback_ucla_load_content(&$navigation, $course, $coursenode) {
-    global $CFG, $PAGE;
+    global $CFG;
 
     // Sort of a dirty hack, but this so far is the best way to manipulate the
     // navbar since these callbacks are called before the format is included
@@ -63,21 +63,6 @@ function callback_ucla_load_content(&$navigation, $course, $coursenode) {
     $coursenode->action->params(array(
         'topic' => UCLA_FORMAT_DISPLAY_LANDING
     ));
-    
-    // Add the course preferences
-    $course_pref = new moodle_url($CFG->wwwroot 
-        . '/course/format/ucla/edit.php',
-        array('courseid' => $course->id));
-
-    // Add course preferences to the settings block
-    // Note that this will not work in certain blocks that attempt
-    // to modify the PAGE->settingsnav before the header is called.
-    // Also note that this chunk of code needs to be called before the
-    // headers are printed out.
-    // The forced __get() syntax is to prevent crashes.
-    $PAGE->__get('settingsnav')->get('courseadmin', 
-        navigation_node::TYPE_COURSE)->add(get_string('course_pref', 
-            'format_ucla'), $course_pref);
   
     return $navigation->load_generic_course_sections($course, $coursenode, 
         'ucla');
