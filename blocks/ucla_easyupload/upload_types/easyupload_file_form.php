@@ -49,25 +49,10 @@ class easyupload_file_form extends easy_upload_form {
 
     /**
      * Sets the form's _maxFileSize variable since for some reason, it isn't set 
-     * by Moodle form object. This code modified from constructor of 
-     * HTML_QuickForm.
+     * by Moodle form object.
      */
     function set_maxsize() {
-        if (preg_match('/^([0-9]+)([a-zA-Z]*)$/', ini_get('upload_max_filesize'), $matches)) {
-            // see http://www.php.net/manual/en/faq.using.php#faq.using.shorthandbytes
-            switch (strtoupper($matches['2'])) {
-                case 'G':
-                    $this->_form->_maxFileSize = $matches['1'] * 1073741824;
-                    break;
-                case 'M':
-                    $this->_form->_maxFileSize = $matches['1'] * 1048576;
-                    break;
-                case 'K':
-                    $this->_form->_maxFileSize = $matches['1'] * 1024;
-                    break;
-                default:
-                    $this->_form->_maxFileSize = $matches['1'];
-            }
-        }                        
+        global $CFG;
+        $this->_form->_maxFileSize = get_max_upload_file_size($CFG->maxbytes, $this->course->maxbytes);                  
     }
 }
