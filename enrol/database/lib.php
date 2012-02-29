@@ -329,8 +329,29 @@ class enrol_database_plugin extends enrol_plugin {
             $roles[$role->$localrolefield] = $role->id;
         }
 
-        // Grab a list of local courses that we need to add to the list of 
-        // enrolments available to this enrolment.
+        /** UCLA MODIFIATION CCLE-2275: Disabling core moodle sync
+        // get a list of courses to be synced that are in external table
+        $externalcourses = array();
+        $sql = $this->db_get_sql($table, array(), array($coursefield), true);
+        if ($rs = $extdb->Execute($sql)) {
+            if (!$rs->EOF) {
+                while ($mapping = $rs->FetchRow()) {
+                    $mapping = reset($mapping);
+                    $mapping = $this->db_decode($mapping);
+                    if (empty($mapping)) {
+                        // invalid mapping
+                        continue;
+                    }
+                    $externalcourses[$mapping] = true;
+                }
+            }
+            $rs->Close();
+        } else {
+            mtrace('Error reading data from the external enrolment table');
+            $extdb->Close();
+            return 2;
+        }
+        // END UCLA MODIFICATION CCLE-2275    **/
 
         // UCLA MODIFICATION CCLE-2275: Prepop uses different data
         // sources
@@ -433,6 +454,7 @@ class enrol_database_plugin extends enrol_plugin {
 
         // Save memory?
         unset($courses);
+        // END CCLE-2275: Fetch users and limit courses to run sync on.
 
         $preventfullunenrol = empty($externalcourses);
         if ($preventfullunenrol and $unenrolaction == ENROL_EXT_REMOVED_UNENROL) {
@@ -494,9 +516,12 @@ class enrol_database_plugin extends enrol_plugin {
             $sqlfields[] = $rolefield;
         }
         foreach ($existing as $course) {
+            // CCLE-2275: Ignoring courses that are not selected to be
+            // synchronized (such as courses in other terms)
             if (!isset($enrolment_info[$course->mapping])) {
                 continue;
             }
+            // End Modification CCLE-2275
 
             if ($ignorehidden and !$course->visible) {
                 continue;
@@ -532,6 +557,7 @@ class enrol_database_plugin extends enrol_plugin {
             $requested_roles = array();
             // Split this query into multiple StorProc calls and use that for the small chunk inside
 
+            // START UCLA MODIFICATION CCLE-2275: Prepopulate (ucla tinkering)
             if (!empty($enrolment_info[$course->mapping])) {
                 if ($localuserfield === 'username') {
                     $usersearch = array('mnethostid'=>$CFG->mnet_localhost_id, 'deleted' =>0);
