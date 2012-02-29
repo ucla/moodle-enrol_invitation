@@ -53,6 +53,10 @@ class enrol_database_plugin extends enrol_plugin {
         return false;
     }
 
+    /**
+     *  Function to translate the stored procedures results to Moodle 
+     *  user results (named after the stored procedure).
+     **/
     public function translate_ccle_roster_class($reg) {
         $names = explode(',', $reg['full_name_person']);
         $firstmiddle = explode(' ', trim($names[1]));
@@ -66,6 +70,10 @@ class enrol_database_plugin extends enrol_plugin {
         );
     }
 
+    /**
+     *  Function to translate the stored procedures results to Moodle 
+     *  user results (named after the stored procedure).
+     **/
     public function translate_ccle_course_instructorsget($reg) {
         return array(
             $this->get_config('remoteuserfield') => $reg['ucla_id'],
