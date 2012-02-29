@@ -53,6 +53,29 @@ class enrol_database_plugin extends enrol_plugin {
         return false;
     }
 
+    public function translate_ccle_roster_class($reg) {
+        $names = explode(',', $reg['full_name_person']);
+        $firstmiddle = explode(' ', trim($names[1]));
+
+        return array(
+            $this->get_config('remoteuserfield') => $reg['stu_id'],
+            'firstname' => $firstmiddle[0],
+            'lastname'  => $names[0],
+            'email'     => $reg['ss_email_addr'],
+            'username'  => $reg['bolid'] . '@ucla.edu'
+        );
+    }
+
+    public function translate_ccle_course_instructorsget($reg) {
+        return array(
+            $this->get_config('remoteuserfield') => $reg['ucla_id'],
+            'firstname' => $reg['first_name_person'],
+            'lastname'  => $reg['last_name_person'],
+            'email'     => $reg['ursa_email'],
+            'username'  => $reg['bolid'] . '@ucla.edu'
+        );
+    }
+
     /**
      * Forces synchronisation of user enrolments with external database,
      * does not create new courses.
@@ -328,6 +351,7 @@ class enrol_database_plugin extends enrol_plugin {
         $enrolment_info = array();
         $roleid_to_role = array_flip($roles);
 
+        $failed_users = array();
         foreach ($course_indexed as $courseid => $set) {
             $externalcourses[$courseid] = true;
 
@@ -340,9 +364,11 @@ class enrol_database_plugin extends enrol_plugin {
                 $localmap = $course->courseid;
 
                 // grab the instructors... from a different data source
-                $instrs = registrar_query::run_registrar_query(
-                    'ccle_courseinstructorsget', $regdata, true
+                $results = registrar_query::run_registrar_query(
+                    'ccle_courseinstructorsget', $regdata
                 );
+
+                $instrs = $results[registrar_query::query_results];
 
                 $otherroles = array();
                 // We need to flatten out all the available profcodes
@@ -354,52 +380,55 @@ class enrol_database_plugin extends enrol_plugin {
                 // Now we need to save the roles per course
                 // TODO what should happen if in a crosslisted course a 
                 // professor gets two different roles?
+                // TODO make this foreach into a function... but where
                 foreach ($instrs as $instructor) {
-                    $enrolment_info[$localmap][] = 
-                        array(
-                            $rolefield => $roleid_to_role[role_mapping(
-                                $instructor['role'],
-                                $otherroles,
-                                $subjarea
-                            )], 
-                            $userfield => $instructor['ucla_id'],
-                            'firstname' => $instructor['first_name_person'],
-                            'lastname' => $instructor['last_name_person'],
-                            'email' => $instructor['ursa_email'],
-                            'username' => $instructor['bolid']
-                                . '@ucla.edu'
-                        );
+                    $user = $this->translate_ccle_course_instructorsget(
+                        $instructor
+                    );
+
+                    $user[$rolefield] = $roleid_to_role[role_mapping(
+                        $instructor['role'],
+                        $otherroles,
+                        $subjarea
+                    )];
+
+                    $enrolment_info[$localmap][] = $user;
                 }
 
                 // grab the roster... from a different data source
-                $roster = registrar_query::run_registrar_query(
-                    'ccle_roster_class', $regdata, true
+                $results = registrar_query::run_registrar_query(
+                    'ccle_roster_class', $regdata
                 );
+
+                $roster = $results[registrar_query::query_results];
 
                 foreach ($roster as $student) {
                     // Do something to make it into a friendly format for the
                     // next section...
                     $studentpr = 
                         get_student_pseudorole($student['enrl_stat_cd']);
+
                     if ($studentpr === false) {
                         continue;
                     }
 
+                    $user = $this->translate_ccle_roster_class($student);
+
                     $names = explode(',', $student['full_name_person']);
                     $firstmiddle = explode(' ', trim($names[1]));
 
-                    $enrolment_info[$localmap][] = array(
-                        $rolefield => $roleid_to_role[
-                            get_moodlerole($studentpr, $subjarea)
-                        ],
-                        $userfield => $student['stu_id'],
-                        'firstname' => $firstmiddle[0],
-                        'lastname' => $names[0],
-                        'email' => $student['ss_email_addr'],
-                        'username' => $student['bolid'] . '@ucla.edu'
-                    );
+                    $user[$rolefield] = $roleid_to_role[
+                        get_moodlerole($studentpr, $subjarea)
+                    ];
+
+                    $enrolment_info[$localmap][] = $user;
                 }
             }
+        }
+
+        // Notify someone of users without a logonid 
+        if (!empty($failed_users)) {
+
         }
 
         // Save memory?
@@ -465,6 +494,10 @@ class enrol_database_plugin extends enrol_plugin {
             $sqlfields[] = $rolefield;
         }
         foreach ($existing as $course) {
+            if (!isset($enrolment_info[$course->mapping])) {
+                continue;
+            }
+
             if ($ignorehidden and !$course->visible) {
                 continue;
             }

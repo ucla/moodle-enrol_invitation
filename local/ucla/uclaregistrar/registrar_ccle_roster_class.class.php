@@ -2,7 +2,10 @@
 
 class registrar_ccle_roster_class extends registrar_query {
     function validate($new, $old) {
-        // TODO is there any data to really validate?
+        if (empty($new['bolid'])) {
+            return false;
+        }
+
         return true;
     }
 
