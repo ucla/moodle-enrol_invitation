@@ -32,7 +32,7 @@ Options:
 -h, --help            Print out this help
 
 Example:
-\$sudo -u www-data /usr/bin/php enrol/database/cli/sync.php";
+\$sudo -u www-data /usr/bin/php enrol/database/cli/ucla_sync.php 11F";
     exit(0);
 }
 
