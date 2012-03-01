@@ -212,12 +212,13 @@ if (empty($imploder)) {
     $inst_text = implode(' / ', $imploder);
 }
 
+$heading_text = '';
 if (!empty($termtext)) {
     $heading_text = $termtext . ' - ' . $regcoursetext . ' - ' . $inst_text;
-    echo $OUTPUT->box($heading_text);
+    $heading_text = html_writer::tag('div', $heading_text);
 }
 
-echo $OUTPUT->heading($course->fullname, 2);
+echo $OUTPUT->heading($heading_text . $course->fullname, 2, 'headingblock');
 
 
 // Handle cancelled classes
