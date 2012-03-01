@@ -131,11 +131,44 @@ html, body {background-color:#FFF; height:100%;}
 
 /** Error **/
 .box.errorbox {
-    background-color: #FBB;
+    background-color: #C00;
     color: white;
-    border: #600 solid 1px;
+    border-top: 1px solid #c99;
+    border-bottom: 1px solid #c99;    
     padding: 10px;
     margin: 1em 15%;
+}
+.errorbox a {  /* make error link text with enough contrast */
+    color: white;
+    text-decoration: underline;
+}
+
+/** Notice **/
+.box.noticebox {
+    background-color: #F0F0F0;
+    border-bottom: 1px solid #CCC;
+    border-top: 1px solid #CCC;
+    color: black;
+    padding: 10px;
+    margin: 1em 15%;
+}
+.noticebox a {  /* make notice link with enough contrast */
+    color: black;
+    text-decoration: underline;
+}
+
+/** Success **/
+.box.successbox {
+    background-color: #E2F9E3;
+    border-bottom: 1px solid #9C9;
+    border-top: 1px solid #9C9;
+    color: #060;
+    padding: 10px;
+    margin: 1em 15%;
+}
+.successbox a {  /* make success link with enough contrast */
+    color: black;
+    text-decoration: underline;
 }
 
 .continuebutton {

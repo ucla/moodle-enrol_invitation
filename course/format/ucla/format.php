@@ -223,7 +223,7 @@ echo $OUTPUT->heading($course->fullname, 2);
 // Handle cancelled classes
 if (is_course_cancelled($courseinfos)) {
     echo $OUTPUT->box(get_string('coursecancelled', 'format_ucla'), 
-        'errorbox coursecancelled');
+        'noticebox coursecancelled');
 }
 
 /**
