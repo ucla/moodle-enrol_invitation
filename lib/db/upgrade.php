@@ -124,7 +124,7 @@ function xmldb_main_upgrade($oldversion) {
     }
 
     if ($oldversion < 2008030602) {
-        @unlink($CFG->dataroot.'/cache/languages');
+        @unlink($CFG->cachedir.'/languages');
 
         if (file_exists("$CFG->dataroot/lang")) {
             // rename old lang directory so that the new and old langs do not mix
@@ -1224,26 +1224,6 @@ WHERE gradeitemid IS NOT NULL AND grademax IS NOT NULL");
         upgrade_main_savepoint(true, 2009021800);
     }
 
-    if ($oldversion < 2009021801) {
-    /// Define field backuptype to be added to backup_log
-        $table = new xmldb_table('backup_log');
-        $field = new xmldb_field('backuptype', XMLDB_TYPE_CHAR, '50', null, XMLDB_NOTNULL, null, null, 'info');
-    /// Conditionally Launch add field backuptype and set all old records as 'scheduledbackup' records.
-        if (!$dbman->field_exists($table, $field)) {
-            // Set the default we want applied to any existing records
-            $field->setDefault('scheduledbackup');
-            // Add the field to the database
-            $dbman->add_field($table, $field);
-            // Remove the default
-            $field->setDefault(null);
-            // Update the database to remove the default
-            $dbman->change_field_default($table, $field);
-        }
-
-    /// Main savepoint reached
-        upgrade_main_savepoint(true, 2009021801);
-    }
-
     /// Add default sort order for question types.
     if ($oldversion < 2009030300) {
         set_config('multichoice_sortorder', 1, 'question');
@@ -2338,22 +2318,8 @@ WHERE gradeitemid IS NOT NULL AND grademax IS NOT NULL");
         }
         $dbman->create_table($table);
 
-        // now inform admins that some settings require attention after upgrade
-        if (($CFG->bloglevel == BLOG_COURSE_LEVEL || $CFG->bloglevel == BLOG_GROUP_LEVEL) && empty($CFG->bloglevel_upgrade_complete)) {
-            echo $OUTPUT->notification(get_string('bloglevelupgradenotice', 'admin'));
+       // upgrade notice is now in admin/tool/bloglevelupgrade/
 
-            $site = get_site();
-
-            $a = new StdClass;
-            $a->sitename = $site->fullname;
-            $a->fixurl   = "$CFG->wwwroot/$CFG->admin/bloglevelupgrade.php";
-
-            $subject = get_string('bloglevelupgrade', 'admin');
-            $description = get_string('bloglevelupgradedescription', 'admin', $a);
-
-            // can not use messaging here because it is not configured yet!
-            upgrade_log(UPGRADE_LOG_NOTICE, null, $subject, $description);
-        }
     /// Main savepoint reached
         upgrade_main_savepoint(true, 2009103000);
     }
@@ -3748,14 +3714,6 @@ WHERE gradeitemid IS NOT NULL AND grademax IS NOT NULL");
         }
 
         upgrade_main_savepoint(true, 2010051801);
-    }
-
-    if ($oldversion < 2010052100) {
-        // Switch to html purifier as default cleaning engine - KSES is really very bad
-        if (empty($CFG->enablehtmlpurifier)) {
-            unset_config('enablehtmlpurifier');
-        }
-        upgrade_main_savepoint(true, 2010052100);
     }
 
     if ($oldversion < 2010052200) {
@@ -6053,7 +6011,7 @@ WHERE gradeitemid IS NOT NULL AND grademax IS NOT NULL");
         $field = new xmldb_field('secret', XMLDB_TYPE_CHAR, '255', null, null, null,
                 null, 'confirmed');
 
-        // Conditionally launch add field secret  and set its value
+        // Conditionally launch add field secret and set its value
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
             $DB->set_field('registration_hubs', 'secret', $CFG->siteidentifier);
@@ -6646,7 +6604,19 @@ FROM
     // Moodle v2.1.0 release upgrade line
     // Put any upgrade step following this
 
-    if ($oldversion < 2011070101.04) {
+    if ($oldversion < 2011070800.01) {
+        // remove unused config options
+        unset_config('excludeoldflashclients');
+        upgrade_main_savepoint(true, 2011070800.01);
+    }
+
+    if ($oldversion < 2011071300.01) {
+        // remove unused config option
+        unset_config('framename');
+        upgrade_main_savepoint(true, 2011071300.01);
+    }
+
+    if ($oldversion < 2011081700.01) {
         // Remove category_sortorder index that was supposed to be removed long time ago
         $table = new xmldb_table('course');
         $index = new xmldb_index('category_sortorder', XMLDB_INDEX_UNIQUE, array('category', 'sortorder'));
@@ -6654,10 +6624,38 @@ FROM
         if ($dbman->index_exists($table, $index)) {
             $dbman->drop_index($table, $index);
         }
-        upgrade_main_savepoint(true, 2011070101.04);
+        upgrade_main_savepoint(true, 2011081700.01);
     }
 
-    if ($oldversion < 2011070101.09) {
+    if ($oldversion < 2011081700.02) {
+        // remove safety block backup from 2.0 upgrade
+        $table = new xmldb_table('block_pinned_old');
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+        $table = new xmldb_table('block_instance_old');
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+        upgrade_main_savepoint(true, 2011081700.02);
+    }
+
+    if ($oldversion < 2011083100.02) {
+        // Define field showdescription to be added to course_modules
+        $table = new xmldb_table('course_modules');
+        $field = new xmldb_field('showdescription', XMLDB_TYPE_INTEGER, '1',
+                XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'showavailability');
+
+        // Conditionally launch add field showdescription
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Main savepoint reached
+        upgrade_main_savepoint(true, 2011083100.02);
+    }
+
+    if ($oldversion < 2011090700.01) {
         // Changing the default of field secret on table registration_hubs to NULL
         $table = new xmldb_table('registration_hubs');
         $field = new xmldb_field('secret', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'confirmed');
@@ -6666,17 +6664,332 @@ FROM
         $dbman->change_field_default($table, $field);
 
         // Main savepoint reached
-        upgrade_main_savepoint(true, 2011070101.09);
+        upgrade_main_savepoint(true, 2011090700.01);
     }
 
-    if ($oldversion < 2011070101.10) {
+    if ($oldversion < 2011091200.00) {
         //preference not required since 2.0
         $DB->delete_records('user_preferences', array('name'=>'message_showmessagewindow'));
 
         //re-introducing emailstop. check that its turned off so people dont suddenly stop getting notifications
         $DB->set_field('user', 'emailstop', 0, array('emailstop' => 1));
 
-        upgrade_main_savepoint(true, 2011070101.10);
+        upgrade_main_savepoint(true, 2011091200.00);
+    }
+
+    if ($oldversion < 2011091300.00) {
+        // Increase the length of the of the course shortname field as it is now going
+        // to be consistently filtered and 100 characters is practically useless for
+        // things like the multilang filter.
+
+        $table = new xmldb_table('course');
+        $field = new xmldb_field('shortname', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, 'fullname');
+        $index = new xmldb_index('shortname', XMLDB_INDEX_NOTUNIQUE, array('shortname'));
+
+        // First check the shortname field exists... pretty heavy mod if it doesnt!
+        if ($dbman->field_exists($table, $field)) {
+            // Conditionally launch drop index shortname, this is required to happen
+            // before we can edit the field.
+            if ($dbman->index_exists($table, $index)) {
+                $dbman->drop_index($table, $index);
+            }
+
+            // Launch change of precision for field shortname
+            $dbman->change_field_precision($table, $field);
+            // Add the index back to the table now that we're finished our mods
+            $dbman->add_index($table, $index);
+        }
+
+        // Main savepoint reached
+        upgrade_main_savepoint(true, 2011091300.00);
+    }
+
+    if ($oldversion < 2011091600.01) {
+        // It has been decided that it is now safe to drop the backup_log table
+        // as it hasn't been used within 2+.
+
+        // Define table backup_log to be dropped
+        $table = new xmldb_table('backup_log');
+
+        // Conditionally launch drop table for backup_log
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+
+        // Main savepoint reached
+        upgrade_main_savepoint(true, 2011091600.01);
+    }
+
+    if ($oldversion < 2011092800.01) {
+        // Check for potential missing columns in the grade_items_history
+
+        $table = new xmldb_table('grade_items_history');
+        $field = new xmldb_field('display', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 0, 'sortorder');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('decimals', XMLDB_TYPE_INTEGER, '1', XMLDB_UNSIGNED, null, null, null, 'display');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        } else {
+            //check that the grade_items_history.decimals allows nulls
+            //Somehow some Moodle databases have this column marked as "not null"
+            $columns = $DB->get_columns('grade_items_history');
+            if (array_key_exists('display', $columns) && !empty($columns['display']->not_null)) {
+                $dbman->change_field_notnull($table, $field);
+            }
+        }
+
+        // Main savepoint reached
+        upgrade_main_savepoint(true, 2011092800.01);
+    }
+
+    if ($oldversion < 2011092800.02) {
+        // Check for potential missing columns in the grade_categories_history
+
+        $table = new xmldb_table('grade_categories_history');
+        $field = new xmldb_field('hidden', XMLDB_TYPE_INTEGER, '1', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, 0, 'timemodified');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Main savepoint reached
+        upgrade_main_savepoint(true, 2011092800.02);
+    }
+
+    if ($oldversion < 2011092800.03) {
+        // Check for potential missing columns in the grade_outcomes_history
+
+        $table = new xmldb_table('grade_outcomes_history');
+        $field = new xmldb_field('descriptionformat', XMLDB_TYPE_INTEGER, '2', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, 0, 'description');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Main savepoint reached
+        upgrade_main_savepoint(true, 2011092800.03);
+    }
+
+    if ($oldversion < 2011100700.02) {
+        // Define field idnumber to be added to course_categories
+        $table = new xmldb_table('course_categories');
+        $field = new xmldb_field('idnumber', XMLDB_TYPE_CHAR, '100', null, null, null, null, 'name');
+
+        // Conditionally launch add field idnumber
+        if (!$dbman->field_exists($table,$field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Main savepoint reached
+        upgrade_main_savepoint(true, 2011100700.02);
+    }
+
+    if ($oldversion < 2011101200.01) {
+        // The conditional availability date system used to rely on dates being
+        // set to 23:59:59 for the end date, but now that exact times are
+        // supported, it uses midnight on the following day.
+
+        // The query is restricted on 'time mod 10 = 9' in order that
+        // it is safe to run this upgrade twice if something goes wrong.
+        $DB->execute('UPDATE {course_modules} SET availableuntil = availableuntil + 1 ' .
+                'WHERE availableuntil > 0 AND ' . $DB->sql_modulo('availableuntil', 10) . ' = 9');
+
+        // Because availableuntil is stored in modinfo, we need to clear modinfo
+        // for all courses.
+        rebuild_course_cache(0, true);
+
+        // Main savepoint reached
+        upgrade_main_savepoint(true, 2011101200.01);
+    }
+
+    if ($oldversion < 2011101900.02) {
+        // remove unused setting
+        unset_config('enablehtmlpurifier');
+        upgrade_main_savepoint(true, 2011101900.02);
+    }
+
+    if ($oldversion < 2011102700.01) {
+        // purge everything related to abandoned experimental global search
+
+        // unset setting - this disables it in case user does not delete the dirs
+        unset_config('enableglobalsearch');
+
+        // Delete block, instances and db table
+        $table = new xmldb_table('block_search_documents');
+        if ($dbman->table_exists($table)) {
+            $instances = $DB->get_records('block_instances', array('blockname'=>'search'));
+            foreach($instances as $instance) {
+                $context = context_block::instance($instance->id);
+                upgrade_cleanup_unwanted_block_contexts(array($context->id)); // do not use standard block deleting MDL-30517, there is no extra stuff used in block, so this should be safe
+                $DB->delete_records('block_positions', array('blockinstanceid' => $instance->id));
+                $DB->delete_records('block_instances', array('id' => $instance->id));
+            }
+            $DB->delete_records('block', array('name'=>'search'));
+
+            $dbman->drop_table($table);
+        }
+
+        // purge all settings used by the search block
+        $like = $DB->sql_like('name', '?', true, true, false, '|');
+        $params = array($DB->sql_like_escape('block_search_', '|') . '%', $DB->sql_like_escape('search_in_', '|') . '%');
+        $settings = $DB->get_records_select('config', "$like OR $like", $params);
+        foreach ($settings as $setting) {
+            unset_config($setting->name);
+        }
+
+        upgrade_main_savepoint(true, 2011102700.01);
+    }
+
+    if ($oldversion < 2011110200.01) {
+        // Rename 'extrauserselectorfields' to 'showuseridentity' as it is
+        // being used more widely
+        if (isset($CFG->extrauserselectorfields)) {
+            set_config('showuseridentity', $CFG->extrauserselectorfields);
+            unset_config('extrauserselectorfields');
+        }
+        unset_config('grade_report_showuseridnumber');
+        upgrade_main_savepoint(true, 2011110200.01);
+    }
+
+    if ($oldversion < 2011110200.02) {
+        // create new core tables for the advanced grading methods framework
+
+        // grading_areas table
+        $table = new xmldb_table('grading_areas');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('contextid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null);
+        $table->add_field('component', XMLDB_TYPE_CHAR, '100', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('areaname', XMLDB_TYPE_CHAR, '100', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('activemethod', XMLDB_TYPE_CHAR, '100', null, null, null, null);
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_key('uq_gradable_area', XMLDB_KEY_UNIQUE, array('contextid', 'component', 'areaname'));
+        $table->add_key('fk_context', XMLDB_KEY_FOREIGN, array('contextid'), 'context', array('id'));
+
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // grading_definitions table
+        $table = new xmldb_table('grading_definitions');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('areaid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null);
+        $table->add_field('method', XMLDB_TYPE_CHAR, '100', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('name', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('description', XMLDB_TYPE_TEXT, 'big', null, null, null, null);
+        $table->add_field('descriptionformat', XMLDB_TYPE_INTEGER, '2', XMLDB_UNSIGNED, null, null, null);
+        $table->add_field('status', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0');
+        $table->add_field('copiedfromid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null);
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null);
+        $table->add_field('usercreated', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null);
+        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null);
+        $table->add_field('usermodified', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null);
+        $table->add_field('timecopied', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, '0');
+        $table->add_field('options', XMLDB_TYPE_TEXT, 'big', null, null, null, null);
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_key('fk_areaid', XMLDB_KEY_FOREIGN, array('areaid'), 'grading_areas', array('id'));
+        $table->add_key('fk_usermodified', XMLDB_KEY_FOREIGN, array('usermodified'), 'user', array('id'));
+        $table->add_key('uq_area_method', XMLDB_KEY_UNIQUE, array('areaid', 'method'));
+        $table->add_key('fk_usercreated', XMLDB_KEY_FOREIGN, array('usercreated'), 'user', array('id'));
+
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // grading_instances table
+        $table = new xmldb_table('grading_instances');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('definitionid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null);
+        $table->add_field('raterid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null);
+        $table->add_field('itemid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null);
+        $table->add_field('rawgrade', XMLDB_TYPE_NUMBER, '10, 5', XMLDB_UNSIGNED, null, null, null);
+        $table->add_field('status', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0');
+        $table->add_field('feedback', XMLDB_TYPE_TEXT, 'big', null, null, null, null);
+        $table->add_field('feedbackformat', XMLDB_TYPE_INTEGER, '2', XMLDB_UNSIGNED, null, null, null);
+        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null);
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_key('fk_definitionid', XMLDB_KEY_FOREIGN, array('definitionid'), 'grading_definitions', array('id'));
+        $table->add_key('fk_raterid', XMLDB_KEY_FOREIGN, array('raterid'), 'user', array('id'));
+
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        upgrade_main_savepoint(true, 2011110200.02);
+    }
+
+    if ($oldversion < 2011111500.01) {
+        upgrade_set_timeout(60*20); // this may take a while
+        // Remove duplicate entries from groupings_groups table
+        $sql = 'SELECT MIN(id) AS firstid, groupingid, groupid FROM {groupings_groups} '.
+               'GROUP BY groupingid, groupid HAVING COUNT(id)>1';
+        $badrs = $DB->get_recordset_sql($sql);
+        foreach ($badrs as $badrec) {
+            $where = 'groupingid = ? and groupid = ? and id > ?';
+            $params = array($badrec->groupingid, $badrec->groupid, $badrec->firstid);
+            $DB->delete_records_select('groupings_groups', $where, $params);
+        }
+        $badrs->close();
+
+        // Main savepoint reached
+        upgrade_main_savepoint(true, 2011111500.01);
+    }
+
+    if ($oldversion < 2011111800.01) {
+        // Define field downloadfiles to be added to external_services
+        $table = new xmldb_table('external_services');
+        $field = new xmldb_field('downloadfiles', XMLDB_TYPE_INTEGER, '1', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'shortname');
+
+        // Conditionally launch add field downloadfiles
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Main savepoint reached
+        upgrade_main_savepoint(true, 2011111800.01);
+    }
+
+    // Moodle v2.2.0 release upgrade line
+    // Put any upgrade step following this
+
+    if ($oldversion < 2011120500.02) {
+
+        upgrade_set_timeout(60*20); // This may take a while
+        // MDL-28180. Some missing restrictions in certain backup & restore operations
+        // were causing incorrect duplicates in the course_completion_aggr_methd table.
+        // This upgrade step takes rid of them.
+        $sql = 'SELECT course, criteriatype, MIN(id) AS minid
+                  FROM {course_completion_aggr_methd}
+              GROUP BY course, criteriatype
+                HAVING COUNT(*) > 1';
+        $duprs = $DB->get_recordset_sql($sql);
+        foreach ($duprs as $duprec) {
+            // We need to handle NULLs in criteriatype diferently
+            if (is_null($duprec->criteriatype)) {
+                $where = 'course = ? AND criteriatype IS NULL AND id > ?';
+                $params = array($duprec->course, $duprec->minid);
+            } else {
+                $where = 'course = ? AND criteriatype = ? AND id > ?';
+                $params = array($duprec->course, $duprec->criteriatype, $duprec->minid);
+            }
+            $DB->delete_records_select('course_completion_aggr_methd', $where, $params);
+        }
+        $duprs->close();
+
+        // Main savepoint reached
+        upgrade_main_savepoint(true, 2011120500.02);
+    }
+
+    if ($oldversion < 2011120500.03) {
+
+        // Changing precision of field value on table user_preferences to (1333)
+        $table = new xmldb_table('user_preferences');
+        $field = new xmldb_field('value', XMLDB_TYPE_CHAR, '1333', null, XMLDB_NOTNULL, null, null, 'name');
+
+        // Launch change of precision for field value
+        $dbman->change_field_precision($table, $field);
+
+        // Main savepoint reached
+        upgrade_main_savepoint(true, 2011120500.03);
     }
 
     return true;

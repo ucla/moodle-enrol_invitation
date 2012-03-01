@@ -302,7 +302,7 @@ function get_recstatus($tagdata, $tagname){
 * Process the group tag. This defines a Moodle course.
 * @param string $tagconents The raw contents of the XML element
 */
-function process_group_tag($tagcontents){
+function process_group_tag($tagcontents) {
     global $DB;
 
     // Get configs
@@ -312,24 +312,27 @@ function process_group_tag($tagcontents){
 
     // Process tag contents
     $group = new stdClass();
-    if(preg_match('{<sourcedid>.*?<id>(.+?)</id>.*?</sourcedid>}is', $tagcontents, $matches)){
+    if (preg_match('{<sourcedid>.*?<id>(.+?)</id>.*?</sourcedid>}is', $tagcontents, $matches)) {
         $group->coursecode = trim($matches[1]);
     }
-    if(preg_match('{<description>.*?<short>(.*?)</short>.*?</description>}is', $tagcontents, $matches)){
+    if (preg_match('{<description>.*?<long>(.*?)</long>.*?</description>}is', $tagcontents, $matches)){
         $group->description = trim($matches[1]);
     }
-    if(preg_match('{<org>.*?<orgunit>(.*?)</orgunit>.*?</org>}is', $tagcontents, $matches)){
+    if (preg_match('{<description>.*?<short>(.*?)</short>.*?</description>}is', $tagcontents, $matches)) {
+        $group->shortName = trim($matches[1]);
+    }
+    if (preg_match('{<org>.*?<orgunit>(.*?)</orgunit>.*?</org>}is', $tagcontents, $matches)) {
         $group->category = trim($matches[1]);
     }
 
     $recstatus = ($this->get_recstatus($tagcontents, 'group'));
     //echo "<p>get_recstatus for this group returned $recstatus</p>";
 
-    if(!(strlen($group->coursecode)>0)){
+    if (!(strlen($group->coursecode)>0)) {
         $this->log_line('Error at line '.$line.': Unable to find course code in \'group\' element.');
-    }else{
+    } else {
         // First, truncate the course code if desired
-        if(intval($truncatecoursecodes)>0){
+        if (intval($truncatecoursecodes)>0) {
             $group->coursecode = ($truncatecoursecodes > 0)
                      ? substr($group->coursecode, 0, intval($truncatecoursecodes))
                      : $group->coursecode;
@@ -349,66 +352,93 @@ function process_group_tag($tagcontents){
         $group->coursecode = array($group->coursecode);
 
         // Third, check if the course(s) exist
-        foreach($group->coursecode as $coursecode){
+        foreach ($group->coursecode as $coursecode) {
             $coursecode = trim($coursecode);
-            if(!$DB->get_field('course', 'id', array('idnumber'=>$coursecode))) {
-              if(!$createnewcourses) {
-                  $this->log_line("Course $coursecode not found in Moodle's course idnumbers.");
-              } else {
-                // Create the (hidden) course(s) if not found
-                $course = new stdClass();
-                $course->fullname = $group->description;
-                $course->shortname = $coursecode;
-                $course->idnumber = $coursecode;
-                $course->format = 'topics';
-                $course->visible = 0;
-                // Insert default names for teachers/students, from the current language
-                $site = get_site();
+            if (!$DB->get_field('course', 'id', array('idnumber'=>$coursecode))) {
+                if (!$createnewcourses) {
+                    $this->log_line("Course $coursecode not found in Moodle's course idnumbers.");
+                } else {
+                    // Set shortname to description or description to shortname if one is set but not the other.
+                    $nodescription = !isset($group->description);
+                    $noshortname = !isset($group->shortName);
+                    if ( $nodescription && $noshortname) {
+                        // If neither short nor long description are set let if fail
+                        $this->log_line("Neither long nor short name are set for $coursecode");
+                    } else if ($nodescription) {
+                        // If short and ID exist, then give the long short's value, then give short the ID's value
+                        $group->description = $group->shortName;
+                        $group->shortName = $coursecode;
+                    } else if ($noshortname) {
+                        // If long and ID exist, then map long to long, then give short the ID's value.
+                        $group->shortName = $coursecode;
+                    }
+                    // Create the (hidden) course(s) if not found
+                    $courseconfig = get_config('moodlecourse'); // Load Moodle Course shell defaults
+                    $course = new stdClass();
+                    $course->fullname = $group->description;
+                    $course->shortname = $group->shortName;;
+                    $course->idnumber = $coursecode;
+                    $course->format = $courseconfig->format;
+                    $course->visible = $courseconfig->visible;
+                    $course->numsections = $courseconfig->numsections;
+                    $course->hiddensections = $courseconfig->hiddensections;
+                    $course->newsitems = $courseconfig->newsitems;
+                    $course->showgrades = $courseconfig->showgrades;
+                    $course->showreports = $courseconfig->showreports;
+                    $course->maxbytes = $courseconfig->maxbytes;
+                    $course->groupmode = $courseconfig->groupmode;
+                    $course->groupmodeforce = $courseconfig->groupmodeforce;
+                    $course->enablecompletion = $courseconfig->enablecompletion;
+                    $course->completionstartonenrol = $courseconfig->completionstartonenrol;
+                    // Insert default names for teachers/students, from the current language
 
-                // Handle course categorisation (taken from the group.org.orgunit field if present)
-                if(strlen($group->category)>0){
-                    // If the category is defined and exists in Moodle, we want to store it in that one
-                    if($catid = $DB->get_field('course_categories', 'id', array('name'=>$group->category))){
-                        $course->category = $catid;
-                    } elseif($createnewcategories) {
-                        // Else if we're allowed to create new categories, let's create this one
-                        $newcat = new stdClass();
-                        $newcat->name = $group->category;
-                        $newcat->visible = 0;
-                        $catid = $DB->insert_record('course_categories', $newcat);
-                        $course->category = $catid;
-                        $this->log_line("Created new (hidden) category, #$catid: $newcat->name");
-                    }else{
-                        // If not found and not allowed to create, stick with default
-                        $this->log_line('Category '.$group->category.' not found in Moodle database, so using default category instead.');
+                    // Handle course categorisation (taken from the group.org.orgunit field if present)
+                    if (strlen($group->category)>0) {
+                        // If the category is defined and exists in Moodle, we want to store it in that one
+                        if ($catid = $DB->get_field('course_categories', 'id', array('name'=>$group->category))) {
+                            $course->category = $catid;
+                        } else if ($createnewcategories) {
+                            // Else if we're allowed to create new categories, let's create this one
+                            $newcat = new stdClass();
+                            $newcat->name = $group->category;
+                            $newcat->visible = 0;
+                            $catid = $DB->insert_record('course_categories', $newcat);
+                            $course->category = $catid;
+                            $this->log_line("Created new (hidden) category, #$catid: $newcat->name");
+                        } else {
+                            // If not found and not allowed to create, stick with default
+                            $this->log_line('Category '.$group->category.' not found in Moodle database, so using default category instead.');
+                            $course->category = 1;
+                        }
+                    } else {
                         $course->category = 1;
                     }
-                }else{
-                    $course->category = 1;
+                    $course->timecreated = time();
+                    $course->startdate = time();
+                    // Choose a sort order that puts us at the start of the list!
+                    $course->sortorder = 0;
+
+                    $courseid = $DB->insert_record('course', $course);
+
+                    // Setup default enrolment plugins
+                    $course->id = $courseid;
+                    enrol_course_updated(true, $course, null);
+
+                    // Setup the blocks
+                    $course = $DB->get_record('course', array('id' => $courseid));
+                    blocks_add_default_course_blocks($course);
+
+                    $section = new stdClass();
+                    $section->course = $course->id;   // Create a default section.
+                    $section->section = 0;
+                    $section->summaryformat = FORMAT_HTML;
+                    $section->id = $DB->insert_record("course_sections", $section);
+
+                    add_to_log(SITEID, "course", "new", "view.php?id=$course->id", "$course->fullname (ID $course->id)");
+
+                    $this->log_line("Created course $coursecode in Moodle (Moodle ID is $course->id)");
                 }
-                $course->timecreated = time();
-                $course->startdate = time();
-                $course->numsections = 1;
-                // Choose a sort order that puts us at the start of the list!
-                $course->sortorder = 0;
-
-                $courseid = $DB->insert_record('course', $course);
-
-                // Setup the blocks
-                $course = $DB->get_record('course', array('id' => $courseid));
-                blocks_add_default_course_blocks($course);
-
-                $section = new stdClass();
-                $section->course = $course->id;   // Create a default section.
-                $section->section = 0;
-                $section->summaryformat = FORMAT_HTML;
-                $section->id = $DB->insert_record("course_sections", $section);
-
-                add_to_log(SITEID, "course", "new", "view.php?id=$course->id", "$course->fullname (ID $course->id)");
-
-                $this->log_line("Created course $coursecode in Moodle (Moodle ID is $course->id)");
-              }
-            }elseif($recstatus==3 && ($courseid = $DB->get_field('course', 'id', array('idnumber'=>$coursecode)))){
+            } else if ($recstatus==3 && ($courseid = $DB->get_field('course', 'id', array('idnumber'=>$coursecode)))) {
                 // If course does exist, but recstatus==3 (delete), then set the course as hidden
                 $DB->set_field('course', 'visible', '0', array('id'=>$courseid));
             }
@@ -560,6 +590,8 @@ function process_membership_tag($tagcontents){
     // In order to reduce the number of db queries required, group name/id associations are cached in this array:
     $groupids = array();
 
+    $ship = new stdClass();
+
     if(preg_match('{<sourcedid>.*?<id>(.+?)</id>.*?</sourcedid>}is', $tagcontents, $matches)){
         $ship->coursecode = ($truncatecoursecodes > 0)
                                  ? substr(trim($matches[1]), 0, intval($truncatecoursecodes))
@@ -571,8 +603,8 @@ function process_membership_tag($tagcontents){
         $courseobj->id = $ship->courseid;
 
         foreach($membermatches as $mmatch){
-            unset($member);
-            unset($memberstoreobj);
+            $member = new stdClass();
+            $memberstoreobj = new stdClass();
             if(preg_match('{<sourcedid>.*?<id>(.+?)</id>.*?</sourcedid>}is', $mmatch[1], $matches)){
                 $member->idnumber = trim($matches[1]);
             }
@@ -592,6 +624,7 @@ function process_membership_tag($tagcontents){
               //echo "<p>process_membership_tag: unenrolling member due to recstatus of 3</p>";
             }
 
+            $timeframe = new stdClass();
             $timeframe->begin = 0;
             $timeframe->end = 0;
             if(preg_match('{<role\b.*?<timeframe>(.+?)</timeframe>.*?</role>}is', $mmatch[1], $matches)){
@@ -650,6 +683,7 @@ function process_membership_tag($tagcontents){
                                 $groupids[$member->groupname] = $groupid; // Store ID in cache
                             } else {
                                 // Attempt to create the group
+                                $group = new stdClass();
                                 $group->name = $member->groupname;
                                 $group->courseid = $ship->courseid;
                                 $group->timecreated = time();
@@ -722,6 +756,7 @@ function log_line($string){
 * Process the INNER contents of a <timeframe> tag, to return beginning/ending dates.
 */
 function decode_timeframe($string){ // Pass me the INNER CONTENTS of a <timeframe> tag - beginning and/or ending is returned, in unix time, zero indicating not specified
+    $ret = new stdClass();
     $ret->begin = $ret->end = 0;
     // Explanatory note: The matching will ONLY match if the attribute restrict="1"
     // because otherwise the time markers should be ignored (participation should be

@@ -756,6 +756,7 @@ class dml_test extends UnitTestCase {
         $field = $columns['name'];
         $this->assertEqual('C', $field->meta_type);
         $this->assertFalse($field->auto_increment);
+        $this->assertEqual(255, $field->max_length);
         $this->assertTrue($field->has_default);
         $this->assertIdentical('lala', $field->default_value);
         $this->assertFalse($field->not_null);
@@ -820,6 +821,10 @@ class dml_test extends UnitTestCase {
 
             $this->assertEqual($next_column->name, $next_field->name);
         }
+
+        // Test get_columns for non-existing table returns empty array. MDL-30147
+        $columns = $DB->get_columns('xxxx');
+        $this->assertEqual(array(), $columns);
     }
 
     public function test_get_manager() {
@@ -904,7 +909,7 @@ class dml_test extends UnitTestCase {
             $DB->execute($sql);
             $this->fail("Expecting an exception, none occurred");
         } catch (Exception $e) {
-            $this->assertTrue($e instanceof dml_write_exception);
+            $this->assertTrue($e instanceof dml_exception);
         }
 
         // update records
@@ -913,6 +918,17 @@ class dml_test extends UnitTestCase {
                  WHERE course = ?";
         $this->assertTrue($DB->execute($sql, array('3')));
         $this->assertEqual($DB->count_records($tablename1, array('course' => 6)), 2);
+
+        // update records with subquery condition
+        // confirm that the option not using table aliases is cross-db
+        $sql = "UPDATE {{$tablename1}}
+                   SET course = 0
+                 WHERE NOT EXISTS (
+                           SELECT course
+                             FROM {{$tablename2}} tbl2
+                            WHERE tbl2.course = {{$tablename1}}.course
+                              AND 1 = 0)"; // Really we don't update anything, but verify the syntax is allowed
+        $this->assertTrue($DB->execute($sql));
 
         // insert from one into second table
         $sql = "INSERT INTO {{$tablename2}} (course)
@@ -998,7 +1014,10 @@ class dml_test extends UnitTestCase {
         $conditions = array('onetext' => '1');
         try {
             $rs = $DB->get_recordset($tablename, $conditions);
-            $this->fail('An Exception is missing, expected due to equating of text fields');
+            if (debugging()) {
+                // only in debug mode - hopefully all devs test code in debug mode...
+                $this->fail('An Exception is missing, expected due to equating of text fields');
+            }
         } catch (exception $e) {
             $this->assertTrue($e instanceof dml_exception);
             $this->assertEqual($e->errorcode, 'textconditionsnotallowed');
@@ -1255,10 +1274,49 @@ class dml_test extends UnitTestCase {
         $conditions = array('onetext' => '1');
         try {
             $records = $DB->get_records($tablename, $conditions);
-            $this->fail('An Exception is missing, expected due to equating of text fields');
+            if (debugging()) {
+                // only in debug mode - hopefully all devs test code in debug mode...
+                $this->fail('An Exception is missing, expected due to equating of text fields');
+            }
         } catch (exception $e) {
             $this->assertTrue($e instanceof dml_exception);
             $this->assertEqual($e->errorcode, 'textconditionsnotallowed');
+        }
+
+        // test get_records passing non-existing table
+        // with params
+        try {
+            $records = $DB->get_records('xxxx', array('id' => 0));
+            $this->fail('An Exception is missing, expected due to query against non-existing table');
+        } catch (exception $e) {
+            $this->assertTrue($e instanceof dml_exception);
+            if (debugging()) {
+                // information for developers only, normal users get general error message
+                $this->assertEqual($e->errorcode, 'ddltablenotexist');
+            }
+        }
+        // and without params
+        try {
+            $records = $DB->get_records('xxxx', array());
+            $this->fail('An Exception is missing, expected due to query against non-existing table');
+        } catch (exception $e) {
+            $this->assertTrue($e instanceof dml_exception);
+            if (debugging()) {
+                // information for developers only, normal users get general error message
+                $this->assertEqual($e->errorcode, 'ddltablenotexist');
+            }
+        }
+
+        // test get_records passing non-existing column
+        try {
+            $records = $DB->get_records($tablename, array('xxxx' => 0));
+            $this->fail('An Exception is missing, expected due to query against non-existing column');
+        } catch (exception $e) {
+            $this->assertTrue($e instanceof dml_exception);
+            if (debugging()) {
+                // information for developers only, normal users get general error message
+                $this->assertEqual($e->errorcode, 'ddlfieldnotexist');
+            }
         }
 
         // note: delegate limits testing to test_get_records_sql()
@@ -1640,7 +1698,10 @@ class dml_test extends UnitTestCase {
         $conditions = array('onetext' => '1');
         try {
             $DB->get_field($tablename, 'course', $conditions);
-            $this->fail('An Exception is missing, expected due to equating of text fields');
+            if (debugging()) {
+                // only in debug mode - hopefully all devs test code in debug mode...
+                $this->fail('An Exception is missing, expected due to equating of text fields');
+            }
         } catch (exception $e) {
             $this->assertTrue($e instanceof dml_exception);
             $this->assertEqual($e->errorcode, 'textconditionsnotallowed');
@@ -1784,7 +1845,7 @@ class dml_test extends UnitTestCase {
         try {
             $DB->insert_record_raw($tablename, array('xxxxx' => 3, 'onechar' => 'bb'));
             $this->assertFail('Exception expected due to invalid column');
-        } catch (dml_write_exception $ex) {
+        } catch (dml_exception $ex) {
             $this->assertTrue(true);
         }
     }
@@ -2493,7 +2554,10 @@ class dml_test extends UnitTestCase {
         $conditions = array('onetext' => '1');
         try {
             $DB->set_field($tablename, 'onechar', 'frog', $conditions);
-            $this->fail('An Exception is missing, expected due to equating of text fields');
+            if (debugging()) {
+                // only in debug mode - hopefully all devs test code in debug mode...
+                $this->fail('An Exception is missing, expected due to equating of text fields');
+            }
         } catch (exception $e) {
             $this->assertTrue($e instanceof dml_exception);
             $this->assertEqual($e->errorcode, 'textconditionsnotallowed');
@@ -2703,7 +2767,10 @@ class dml_test extends UnitTestCase {
         $conditions = array('onetext' => '1');
         try {
             $DB->count_records($tablename, $conditions);
-            $this->fail('An Exception is missing, expected due to equating of text fields');
+            if (debugging()) {
+                // only in debug mode - hopefully all devs test code in debug mode...
+                $this->fail('An Exception is missing, expected due to equating of text fields');
+            }
         } catch (exception $e) {
             $this->assertTrue($e instanceof dml_exception);
             $this->assertEqual($e->errorcode, 'textconditionsnotallowed');
@@ -2778,7 +2845,10 @@ class dml_test extends UnitTestCase {
         $conditions = array('onetext' => '1');
         try {
             $DB->record_exists($tablename, $conditions);
-            $this->fail('An Exception is missing, expected due to equating of text fields');
+            if (debugging()) {
+                // only in debug mode - hopefully all devs test code in debug mode...
+                $this->fail('An Exception is missing, expected due to equating of text fields');
+            }
         } catch (exception $e) {
             $this->assertTrue($e instanceof dml_exception);
             $this->assertEqual($e->errorcode, 'textconditionsnotallowed');
@@ -2926,7 +2996,10 @@ class dml_test extends UnitTestCase {
         $conditions = array('onetext'=>'1');
         try {
             $DB->delete_records($tablename, $conditions);
-            $this->fail('An Exception is missing, expected due to equating of text fields');
+            if (debugging()) {
+                // only in debug mode - hopefully all devs test code in debug mode...
+                $this->fail('An Exception is missing, expected due to equating of text fields');
+            }
         } catch (exception $e) {
             $this->assertTrue($e instanceof dml_exception);
             $this->assertEqual($e->errorcode, 'textconditionsnotallowed');
@@ -2936,7 +3009,10 @@ class dml_test extends UnitTestCase {
         $conditions = array('onetext' => 1);
         try {
             $DB->delete_records($tablename, $conditions);
-            $this->fail('An Exception is missing, expected due to equating of text fields');
+            if (debugging()) {
+                // only in debug mode - hopefully all devs test code in debug mode...
+                $this->fail('An Exception is missing, expected due to equating of text fields');
+            }
         } catch (exception $e) {
             $this->assertTrue($e instanceof dml_exception);
             $this->assertEqual($e->errorcode, 'textconditionsnotallowed');
@@ -3755,6 +3831,28 @@ class dml_test extends UnitTestCase {
         $records = $DB->get_records_sql($sql, null);
         $this->assertEqual($result, $records);
 
+        // another grouping by CASE expression just to ensure it works ok for multiple WHEN
+        $sql = "SELECT CASE name
+                            WHEN 'xyz' THEN 'last'
+                            WHEN 'def' THEN 'mid'
+                            WHEN 'abc' THEN 'first'
+                       END AS casecol,
+                       COUNT(1) AS countrecs,
+                       MAX(name) AS maxname
+                  FROM {{$tablename}}
+              GROUP BY CASE name
+                           WHEN 'xyz' THEN 'last'
+                           WHEN 'def' THEN 'mid'
+                           WHEN 'abc' THEN 'first'
+                       END
+              ORDER BY casecol DESC";
+        $result = array(
+                'mid'  => (object)array('casecol' => 'mid', 'countrecs' => 1, 'maxname' => 'def'),
+                'last' => (object)array('casecol' => 'last', 'countrecs' => 1, 'maxname' => 'xyz'),
+                'first'=> (object)array('casecol' => 'first', 'countrecs' => 2, 'maxname' => 'abc'));
+        $records = $DB->get_records_sql($sql, null);
+        $this->assertEqual($result, $records);
+
         // test limits in queries with DISTINCT/ALL clauses and multiple whitespace. MDL-25268
         $sql = "SELECT   DISTINCT   course
                   FROM {{$tablename}}
@@ -4110,6 +4208,50 @@ class dml_test extends UnitTestCase {
         // now commit and we should see changes
         $transaction->allow_commit();
         $this->assertEqual(0, $DB2->count_records($tablename));
+
+        $DB2->dispose();
+    }
+
+    public function test_session_locks() {
+        $DB = $this->tdb;
+        $dbman = $DB->get_manager();
+
+        // Open second connection
+        $cfg = $DB->export_dbconfig();
+        if (!isset($cfg->dboptions)) {
+            $cfg->dboptions = array();
+        }
+        $DB2 = moodle_database::get_driver_instance($cfg->dbtype, $cfg->dblibrary);
+        $DB2->connect($cfg->dbhost, $cfg->dbuser, $cfg->dbpass, $cfg->dbname, $cfg->prefix, $cfg->dboptions);
+
+        // Testing that acquiring a lock efectively locks
+        // Get a session lock on connection1
+        $rowid = rand(100, 200);
+        $timeout = 1;
+        $DB->get_session_lock($rowid, $timeout);
+
+        // Try to get the same session lock on connection2
+        try {
+            $DB2->get_session_lock($rowid, $timeout);
+            $DB2->release_session_lock($rowid); // Should not be excuted, but here for safety
+            $this->fail('An Exception is missing, expected due to session lock acquired.');
+        } catch (exception $e) {
+            $this->assertTrue($e instanceof dml_sessionwait_exception);
+            $DB->release_session_lock($rowid); // Release lock on connection1
+        }
+
+        // Testing that releasing a lock efectively frees
+        // Get a session lock on connection1
+        $rowid = rand(100, 200);
+        $timeout = 1;
+        $DB->get_session_lock($rowid, $timeout);
+        // Release the lock on connection1
+        $DB->release_session_lock($rowid);
+
+        // Get the just released lock on connection2
+        $DB2->get_session_lock($rowid, $timeout);
+        // Release the lock on connection2
+        $DB2->release_session_lock($rowid);
 
         $DB2->dispose();
     }

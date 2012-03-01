@@ -46,9 +46,25 @@ M.mod_scorm.init = function(Y, hide_nav, hide_toc, toc_title, window_name, launc
     var scorm_bloody_labelclick = false;
     var scorm_nav_panel;
 
-
     Y.use('yui2-resize', 'yui2-dragdrop', 'yui2-container', 'yui2-button', 'yui2-layout', 'yui2-treeview', 'yui2-json', 'yui2-event', function(Y) {
 
+        YAHOO.widget.TextNode.prototype.getContentHtml = function() {
+            var sb = [];
+            sb[sb.length] = this.href ? '<a' : '<span';
+            sb[sb.length] = ' id="' + YAHOO.lang.escapeHTML(this.labelElId) + '"';
+            sb[sb.length] = ' class="' + YAHOO.lang.escapeHTML(this.labelStyle) + '"';
+            if (this.href) {
+                sb[sb.length] = ' href="' + YAHOO.lang.escapeHTML(this.href) + '"';
+                sb[sb.length] = ' target="' + YAHOO.lang.escapeHTML(this.target) + '"';
+            }
+            if (this.title) {
+                sb[sb.length] = ' title="' + YAHOO.lang.escapeHTML(this.title) + '"';
+            }
+            sb[sb.length] = ' >';
+            sb[sb.length] = this.label;
+            sb[sb.length] = this.href?'</a>':'</span>';
+            return sb.join("");
+        };
 
         var scorm_activate_item = function(node) {
             if (!node) {
@@ -120,7 +136,7 @@ M.mod_scorm.init = function(Y, hide_nav, hide_toc, toc_title, window_name, launc
             }
             var old = YAHOO.util.Dom.get('scorm_object');
             if (old) {
-                if(window_name) { 
+                if(window_name) {
                     var cwidth = scormplayerdata.cwidth;
                     var cheight = scormplayerdata.cheight;
                     var poptions = scormplayerdata.popupoptions;
@@ -150,11 +166,11 @@ M.mod_scorm.init = function(Y, hide_nav, hide_toc, toc_title, window_name, launc
          * @return void
          */
         var scorm_fixnav = function() {
-            scorm_buttons[0].set('disabled', (scorm_skipprev(scorm_current_node) == null));
-            scorm_buttons[1].set('disabled', (scorm_prev(scorm_current_node) == null));
-            scorm_buttons[2].set('disabled', (scorm_up(scorm_current_node) == null));
-            scorm_buttons[3].set('disabled', (scorm_next(scorm_current_node) == null));
-            scorm_buttons[4].set('disabled', (scorm_skipnext(scorm_current_node) == null));
+            scorm_buttons[0].set('disabled', (scorm_skipprev(scorm_current_node) == null || scorm_skipprev(scorm_current_node).title == null));
+            scorm_buttons[1].set('disabled', (scorm_prev(scorm_current_node) == null || scorm_prev(scorm_current_node).title == null));
+            scorm_buttons[2].set('disabled', (scorm_up(scorm_current_node) == null) || scorm_up(scorm_current_node).title == null);
+            scorm_buttons[3].set('disabled', (scorm_next(scorm_current_node) == null) || scorm_next(scorm_current_node).title == null);
+            scorm_buttons[4].set('disabled', (scorm_skipnext(scorm_current_node) == null || scorm_skipnext(scorm_current_node).title == null));
         };
 
         var scorm_resize_parent = function() {
@@ -237,7 +253,6 @@ M.mod_scorm.init = function(Y, hide_nav, hide_toc, toc_title, window_name, launc
             }
         };
 
-
         var scorm_up = function(node) {
             var node = scorm_tree_node.getHighlightedNode();
             if (node.depth > 0) {
@@ -291,7 +306,6 @@ M.mod_scorm.init = function(Y, hide_nav, hide_toc, toc_title, window_name, launc
 
         mod_scorm_next = scorm_next;
         mod_scorm_prev = scorm_prev;
-
 
         // layout
         YAHOO.widget.LayoutUnit.prototype.STR_COLLAPSE = M.str.moodle.hide;

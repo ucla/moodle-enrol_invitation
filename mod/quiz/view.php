@@ -40,9 +40,6 @@ if ($id) {
     if (!$course = $DB->get_record('course', array('id' => $cm->course))) {
         print_error('coursemisconf');
     }
-    if (!$quiz = $DB->get_record('quiz', array('id' => $cm->instance))) {
-        print_error('invalidcoursemodule');
-    }
 } else {
     if (!$quiz = $DB->get_record('quiz', array('id' => $q))) {
         print_error('invalidquizid', 'quiz');
@@ -67,8 +64,10 @@ $canpreview = has_capability('mod/quiz:preview', $context);
 
 // Create an object to manage all the other (non-roles) access rules.
 $timenow = time();
-$accessmanager = new quiz_access_manager(quiz::create($quiz->id, $USER->id), $timenow,
+$quizobj = quiz::create($cm->instance, $USER->id);
+$accessmanager = new quiz_access_manager($quizobj, $timenow,
         has_capability('mod/quiz:ignoretimelimits', $context, null, false));
+$quiz = $quizobj->get_quiz();
 
 // Log this request.
 add_to_log($course->id, 'quiz', 'view', 'view.php?id=' . $cm->id, $quiz->id, $cm->id);
@@ -84,9 +83,6 @@ if ($edit != -1 && $PAGE->user_allowed_editing()) {
     $USER->editing = $edit;
 }
 
-// Update the quiz with overrides for the current user
-$quiz = quiz_update_effective_access($quiz, $USER->id);
-
 // Get this user's attempts.
 $attempts = quiz_get_user_attempts($quiz->id, $USER->id, 'finished', true);
 $lastfinishedattempt = end($attempts);
@@ -98,7 +94,16 @@ if ($unfinishedattempt = quiz_get_user_attempt_unfinished($quiz->id, $USER->id))
 $numattempts = count($attempts);
 
 // Work out the final grade, checking whether it was overridden in the gradebook.
-$mygrade = quiz_get_best_grade($quiz, $USER->id);
+if (!$canpreview) {
+    $mygrade = quiz_get_best_grade($quiz, $USER->id);
+} else if ($lastfinishedattempt) {
+    // Users who can preview the quiz don't get a proper grade, so work out a
+    // plausible value to display instead, so the page looks right.
+    $mygrade = quiz_rescale_grade($lastfinishedattempt->sumgrades, $quiz, false);
+} else {
+    $mygrade = null;
+}
+
 $mygradeoverridden = false;
 $gradebookfeedback = '';
 
@@ -129,8 +134,6 @@ $output = $PAGE->get_renderer('mod_quiz');
 $viewobj = new mod_quiz_view_object();
 $viewobj->attempts = $attempts;
 $viewobj->accessmanager = $accessmanager;
-$viewobj->canattempt = $canattempt;
-$viewobj->canpreview = $canpreview;
 $viewobj->canreviewmine = $canreviewmine;
 
 // Print table with existing attempts
@@ -143,70 +146,75 @@ if ($attempts) {
     $viewobj->gradecolumn = $someoptions->marks >= question_display_options::MARK_AND_MAX &&
             quiz_has_grades($quiz);
     $viewobj->markcolumn = $viewobj->gradecolumn && ($quiz->grade != $quiz->sumgrades);
-    $viewobj->overallstats = $alloptions->marks >= question_display_options::MARK_AND_MAX;
+    $viewobj->overallstats = $lastfinishedattempt && $alloptions->marks >= question_display_options::MARK_AND_MAX;
 
     $viewobj->feedbackcolumn = quiz_has_feedback($quiz) && $alloptions->overallfeedback;
 } else {
     $viewobj->attemptcolumn = 1;
 }
 
-$moreattempts = $unfinished || !$accessmanager->is_finished($numattempts, $lastfinishedattempt);
-
 $viewobj->timenow = $timenow;
 $viewobj->numattempts = $numattempts;
 $viewobj->mygrade = $mygrade;
-$viewobj->moreattempts = $moreattempts;
+$viewobj->moreattempts = $unfinished ||
+        !$accessmanager->is_finished($numattempts, $lastfinishedattempt);
 $viewobj->mygradeoverridden = $mygradeoverridden;
 $viewobj->gradebookfeedback = $gradebookfeedback;
-$viewobj->unfinished = $unfinished;
 $viewobj->lastfinishedattempt = $lastfinishedattempt;
+$viewobj->canedit = has_capability('mod/quiz:manage', $context);
+$viewobj->editurl = new moodle_url('/mod/quiz/edit.php', array('cmid' => $cm->id));
+$viewobj->backtocourseurl = new moodle_url('/course/view.php', array('id' => $course->id));
+$viewobj->startattempturl = $quizobj->start_attempt_url();
+$viewobj->startattemptwarning = $quizobj->confirm_start_attempt_message($unfinished);
+$viewobj->popuprequired = $accessmanager->attempt_must_be_in_popup();
+$viewobj->popupoptions = $accessmanager->get_popup_options();
 
 // Display information about this quiz.
-$infomessages = $viewobj->accessmanager->describe_rules();
+$viewobj->infomessages = $viewobj->accessmanager->describe_rules();
 if ($quiz->attempts != 1) {
-    $infomessages[] = get_string('gradingmethod', 'quiz',
+    $viewobj->infomessages[] = get_string('gradingmethod', 'quiz',
             quiz_get_grading_option_name($quiz->grademethod));
 }
 
-// This will be set something if as start/continue attempt button should appear.
-$buttontext = '';
-$preventmessages = array();
-if (!quiz_clean_layout($quiz->questions, true)) {
-    $buttontext = '';
+// Determine wheter a start attempt button should be displayed.
+$viewobj->quizhasquestions = (bool) quiz_clean_layout($quiz->questions, true);
+$viewobj->preventmessages = array();
+if (!$viewobj->quizhasquestions) {
+    $viewobj->buttontext = '';
 
 } else {
-    if ($viewobj->unfinished) {
-        if ($viewobj->canattempt) {
-            $buttontext = get_string('continueattemptquiz', 'quiz');
-        } else if ($viewobj->canpreview) {
-            $buttontext = get_string('continuepreview', 'quiz');
+    if ($unfinished) {
+        if ($canattempt) {
+            $viewobj->buttontext = get_string('continueattemptquiz', 'quiz');
+        } else if ($canpreview) {
+            $viewobj->buttontext = get_string('continuepreview', 'quiz');
         }
 
     } else {
-        if ($viewobj->canattempt) {
-            $preventmessages = $viewobj->accessmanager->prevent_new_attempt($viewobj->numattempts,
-                    $viewobj->lastfinishedattempt);
-            if ($preventmessages) {
-                $buttontext = '';
+        if ($canattempt) {
+            $viewobj->preventmessages = $viewobj->accessmanager->prevent_new_attempt(
+                    $viewobj->numattempts, $viewobj->lastfinishedattempt);
+            if ($viewobj->preventmessages) {
+                $viewobj->buttontext = '';
             } else if ($viewobj->numattempts == 0) {
-                $buttontext = get_string('attemptquiznow', 'quiz');
+                $viewobj->buttontext = get_string('attemptquiznow', 'quiz');
             } else {
-                $buttontext = get_string('reattemptquiz', 'quiz');
+                $viewobj->buttontext = get_string('reattemptquiz', 'quiz');
             }
 
-        } else if ($viewobj->canpreview) {
-            $buttontext = get_string('previewquiznow', 'quiz');
+        } else if ($canpreview) {
+            $viewobj->buttontext = get_string('previewquiznow', 'quiz');
         }
     }
 
     // If, so far, we think a button should be printed, so check if they will be
     // allowed to access it.
-    if ($buttontext) {
+    if ($viewobj->buttontext) {
         if (!$viewobj->moreattempts) {
-            $buttontext = '';
-        } else if ($viewobj->canattempt
-                && $preventmessages = $viewobj->accessmanager->prevent_access()) {
-            $buttontext = '';
+            $viewobj->buttontext = '';
+        } else if ($canattempt
+                && $viewobj->preventmessages = $viewobj->accessmanager->prevent_access()) {
+            $viewobj->buttontext = '';
         }
     }
 }
@@ -216,13 +224,12 @@ echo $OUTPUT->header();
 // Guests can't do a quiz, so offer them a choice of logging in or going back.
 if (isguestuser()) {
     echo $output->view_page_guest($course, $quiz, $cm, $context, $infomessages, $viewobj);
-} else if (!isguestuser() && !($viewobj->canattempt || $viewobj->canpreview
+} else if (!isguestuser() && !($canattempt || $canpreview
           || $viewobj->canreviewmine)) {
     // If they are not enrolled in this course in a good enough role, tell them to enrol.
     echo $output->view_page_notenrolled($course, $quiz, $cm, $context, $infomessages, $viewobj);
 } else {
-    echo $output->view_page($course, $quiz, $cm, $context, $infomessages, $viewobj,
-            $buttontext, $preventmessages);
+    echo $output->view_page($course, $quiz, $cm, $context, $viewobj);
 }
 
 echo $OUTPUT->footer();

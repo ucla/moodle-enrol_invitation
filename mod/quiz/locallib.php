@@ -33,23 +33,14 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/mod/quiz/lib.php');
-require_once($CFG->dirroot . '/mod/quiz/accessrules.php');
+require_once($CFG->dirroot . '/mod/quiz/accessmanager.php');
+require_once($CFG->dirroot . '/mod/quiz/accessmanager_form.php');
 require_once($CFG->dirroot . '/mod/quiz/renderer.php');
 require_once($CFG->dirroot . '/mod/quiz/attemptlib.php');
 require_once($CFG->dirroot . '/question/editlib.php');
 require_once($CFG->libdir  . '/eventslib.php');
 require_once($CFG->libdir . '/filelib.php');
 
-
-/**#@+
- * Options determining how the grades from individual attempts are combined to give
- * the overall grade for a user
- */
-define('QUIZ_GRADEHIGHEST', '1');
-define('QUIZ_GRADEAVERAGE', '2');
-define('QUIZ_ATTEMPTFIRST', '3');
-define('QUIZ_ATTEMPTLAST',  '4');
-/**#@-*/
 
 /**
  * We show the countdown timer if there is less than this amount of time left before the
@@ -246,22 +237,29 @@ function quiz_number_of_questions_in_quiz($layout) {
  * @return string the new layout string
  */
 function quiz_repaginate($layout, $perpage, $shuffle = false) {
-    $layout = str_replace(',0', '', $layout); // remove existing page breaks
-    $questions = explode(',', $layout);
+    $questions = quiz_questions_in_quiz($layout);
+    if (!$questions) {
+        return '0';
+    }
+
+    $questions = explode(',', quiz_questions_in_quiz($layout));
     if ($shuffle) {
         shuffle($questions);
     }
-    $i = 1;
-    $layout = '';
+
+    $onthispage = 0;
+    $layout = array();
     foreach ($questions as $question) {
-        if ($perpage and $i > $perpage) {
-            $layout .= '0,';
-            $i = 1;
+        if ($perpage and $onthispage >= $perpage) {
+            $layout[] = 0;
+            $onthispage = 0;
         }
-        $layout .= $question.',';
-        $i++;
+        $layout[] = $question;
+        $onthispage += 1;
     }
-    return $layout.'0';
+
+    $layout[] = 0;
+    return implode(',', $layout);
 }
 
 /// Functions to do with quiz grades //////////////////////////////////////////
@@ -381,19 +379,6 @@ function quiz_has_feedback($quiz) {
                 array($quiz->id));
     }
     return $cache[$quiz->id];
-}
-
-function quiz_no_questions_message($quiz, $cm, $context) {
-    global $OUTPUT;
-
-    $output = '';
-    $output .= $OUTPUT->notification(get_string('noquestions', 'quiz'));
-    if (has_capability('mod/quiz:manage', $context)) {
-        $output .= $OUTPUT->single_button(new moodle_url('/mod/quiz/edit.php',
-                array('cmid' => $cm->id)), get_string('editquiz', 'quiz'), 'get');
-    }
-
-    return $output;
 }
 
 /**
@@ -693,7 +678,12 @@ function quiz_update_all_final_grades($quiz) {
 
             WHERE
                 ABS(newgrades.newgrade - qg.grade) > 0.000005 OR
-                (newgrades.newgrade IS NULL) <> (qg.grade IS NULL)",
+                ((newgrades.newgrade IS NULL OR qg.grade IS NULL) AND NOT
+                          (newgrades.newgrade IS NULL AND qg.grade IS NULL))",
+                // The mess on the previous line is detecting where the value is
+                // NULL in one column, and NOT NULL in the other, but SQL does
+                // not have an XOR operator, and MS SQL server can't cope with
+                // (newgrades.newgrade IS NULL) <> (qg.grade IS NULL).
             $param);
 
     $timenow = time();
@@ -1196,7 +1186,7 @@ function quiz_send_notification_messages($course, $quiz, $attempt, $context, $cm
     }
 
     // check for notifications required
-    $notifyfields = 'u.id, u.username, u.firstname, u.lastname, u.idnumber, u.email, ' .
+    $notifyfields = 'u.id, u.username, u.firstname, u.lastname, u.idnumber, u.email, u.emailstop, ' .
             'u.lang, u.timezone, u.mailformat, u.maildisplay';
     $groups = groups_get_all_groups($course->id, $submitter->id);
     if (is_array($groups) && count($groups) > 0) {
@@ -1283,15 +1273,6 @@ function quiz_attempt_submitted_handler($event) {
             get_context_instance(CONTEXT_MODULE, $cm->id), $cm);
 }
 
-/**
- * Checks if browser is safe browser
- *
- * @return true, if browser is safe browser else false
- */
-function quiz_check_safe_browser() {
-    return strpos($_SERVER['HTTP_USER_AGENT'], "SEB") !== false;
-}
-
 function quiz_get_js_module() {
     global $PAGE;
 
@@ -1302,9 +1283,10 @@ function quiz_get_js_module() {
                 'core_question_engine'),
         'strings' => array(
             array('cancel', 'moodle'),
-            array('timesup', 'quiz'),
-            array('functiondisabledbysecuremode', 'quiz'),
             array('flagged', 'question'),
+            array('functiondisabledbysecuremode', 'quiz'),
+            array('startattempt', 'quiz'),
+            array('timesup', 'quiz'),
         ),
     );
 }

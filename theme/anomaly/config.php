@@ -7,7 +7,7 @@
 
 $THEME->name = 'anomaly';
 
-$THEME->sheets = array('base', 'general', 'browser');
+$THEME->sheets = array('base', 'general', 'browser','dock');
 /// This variable is an array containing the names of all the
 /// stylesheet files you want included in this theme, and in what order
 ////////////////////////////////////////////////////////////////////////////////
@@ -124,7 +124,7 @@ $THEME->layouts = array(
 );
 
 $THEME->rendererfactory = 'theme_overridden_renderer_factory';
+
 $THEME->enable_dock = true;
-//$THEME->javascripts_footer = array('navigation');
 
 $THEME->editor_sheets = array('editor');

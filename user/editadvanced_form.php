@@ -45,6 +45,9 @@ class user_editadvanced_form extends moodleform {
         $mform->addElement('select', 'auth', get_string('chooseauthmethod','auth'), $auth_options);
         $mform->addHelpButton('auth', 'chooseauthmethod', 'auth');
 
+        $mform->addElement('advcheckbox', 'suspended', get_string('suspended','auth'));
+        $mform->addHelpButton('suspended', 'suspended', 'auth');
+
         if (!empty($CFG->passwordpolicy)){
             $mform->addElement('static', 'passwordpolicyinfo', '', print_password_policy());
         }
@@ -92,6 +95,9 @@ class user_editadvanced_form extends moodleform {
         // admin must choose some password and supply correct email
         if (!empty($USER->newadminuser)) {
             $mform->addRule('newpassword', get_string('required'), 'required', null, 'client');
+            if ($mform->elementExists('suspended')) {
+                $mform->removeElement('suspended');
+            }
         }
 
         // require password for new users
@@ -99,13 +105,38 @@ class user_editadvanced_form extends moodleform {
             $mform->addRule('newpassword', get_string('required'), 'required', null, 'client');
         }
 
+        if ($user and is_mnet_remote_user($user)) {
+            // only local accounts can be suspended
+            if ($mform->elementExists('suspended')) {
+                $mform->removeElement('suspended');
+            }
+        }
+        if ($user and ($user->id == $USER->id or is_siteadmin($user))) {
+            // prevent self and admin mess ups
+            if ($mform->elementExists('suspended')) {
+                $mform->hardFreeze('suspended');
+            }
+        }
+
         // print picture
         if (!empty($CFG->gdversion) and empty($USER->newadminuser)) {
-            $image_el =& $mform->getElement('currentpicture');
-            if ($user and $user->picture) {
-                $image_el->setValue($OUTPUT->user_picture($user, array('courseid'=>SITEID)));
+            if ($user) {
+                $context = get_context_instance(CONTEXT_USER, $user->id, MUST_EXIST);
+                $fs = get_file_storage();
+                $hasuploadedpicture = ($fs->file_exists($context->id, 'user', 'icon', 0, '/', 'f2.png') || $fs->file_exists($context->id, 'user', 'icon', 0, '/', 'f2.jpg'));
+                if (!empty($user->picture) && $hasuploadedpicture) {
+                    $imagevalue = $OUTPUT->user_picture($user, array('courseid' => SITEID, 'size'=>64));
+                } else {
+                    $imagevalue = get_string('none');
+                }
             } else {
-                $image_el->setValue(get_string('none'));
+                $imagevalue = get_string('none');
+            }
+            $imageelement = $mform->getElement('currentpicture');
+            $imageelement->setValue($imagevalue);
+
+            if ($user && $mform->elementExists('deletepicture') && !$hasuploadedpicture) {
+                $mform->removeElement('deletepicture');
             }
         }
 

@@ -95,7 +95,7 @@ class blog_edit_form extends moodleform {
                     $a->modname = $mod->name;
                     $context = get_context_instance(CONTEXT_MODULE, $modid);
                 } else {
-                    $context = $DB->get_record('context', array('id' => $entry->modassoc));
+                    $context = get_context_instance_by_id($entry->modassoc);
                     $cm = $DB->get_record('course_modules', array('id' => $context->instanceid));
                     $a = new stdClass();
                     $a->modtype = $DB->get_field('modules', 'name', array('id' => $cm->module));
@@ -134,27 +134,25 @@ class blog_edit_form extends moodleform {
 
         // validate course association
         if (!empty($data['courseassoc']) && has_capability('moodle/blog:associatecourse', $sitecontext)) {
-            $coursecontext = $DB->get_record('context', array('id' => $data['courseassoc'], 'contextlevel' => CONTEXT_COURSE));
+            $coursecontext = context::instance_by_id($data['courseassoc'], IGNORE_MISSING);
 
-            if ($coursecontext)  {
+            if ($coursecontext and $coursecontext->contextlevel == CONTEXT_COURSE)  {
                 if (!is_enrolled($coursecontext) and !is_viewing($coursecontext)) {
                     $errors['courseassoc'] = get_string('studentnotallowed', '', fullname($USER, true));
                 }
             } else {
-                $errors['courseassoc'] = get_string('invalidcontextid', 'blog');
+                $errors['courseassoc'] = get_string('error');
             }
         }
 
         // validate mod association
         if (!empty($data['modassoc'])) {
             $modcontextid = $data['modassoc'];
+            $modcontext = context::instance_by_id($modcontextid, IGNORE_MISSING);
 
-            $modcontext = $DB->get_record('context', array('id' => $modcontextid, 'contextlevel' => CONTEXT_MODULE));
-
-            if ($modcontext) {
+            if ($modcontext and $modcontext->contextlevel == CONTEXT_MODULE) {
                 // get context of the mod's course
-                $path = explode('/', $modcontext->path);
-                $coursecontext = $DB->get_record('context', array('id' => $path[(count($path) - 2)]));
+                $coursecontext = $modcontext->get_course_context(true);
 
                 // ensure only one course is associated
                 if (!empty($data['courseassoc'])) {
@@ -170,7 +168,7 @@ class blog_edit_form extends moodleform {
                     $errors['modassoc'] = get_string('studentnotallowed', '', fullname($USER, true));
                 }
             } else {
-                $errors['modassoc'] = get_string('invalidcontextid', 'blog');
+                $errors['modassoc'] = get_string('error');
             }
         }
 

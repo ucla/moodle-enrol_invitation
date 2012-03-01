@@ -34,8 +34,12 @@ a.dimmed_text:visited,
 .dimmed_text a,
 .dimmed_text a:link,
 .dimmed_text a:visited,
+.usersuspended,
+.usersuspended a,
+.usersuspended a:link,
+.usersuspended a:visited,
 .dimmed_category,
-.dimmed_category a {color:#AAAAAA;}
+.dimmed_category a { height: 1%; opacity: 0.5; -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=50)"; filter: alpha(opacity=50); }
 
 .unlist,
 .unlist li,
@@ -43,7 +47,7 @@ a.dimmed_text:visited,
 .inline-list li,
 .block .list,
 .block .list li,
-.sitetopic .section li,
+.sitetopic .section li.activity,
 .course-content .section li.activity,
 .tabtree li {list-style: none;margin:0;padding:0;}
 
@@ -77,7 +81,7 @@ a.autolink.glossary:hover {cursor: help;}
 img.resize {height: 1em;width: 1em;}
 .block img.resize,
 .breadcrumb img.resize {height: 0.9em;width: 0.8em;}
-img.icon {height:16px;vertical-align:middle;width:16px;}
+img.icon {height:16px;vertical-align:middle;width:16px;padding-right:4px;}
 img.iconsmall {height:11px;margin-right:1px;vertical-align:middle;width:11px;}
 img.iconhelp {height:17px;margin-right:4px;vertical-align:middle;width:17px;}
 img.icontoggle {height:17px;vertical-align:middle;width:50px;}
@@ -217,6 +221,8 @@ a.skip:active {position: static;display: block;}
 .mform fieldset.fdate_selector label {display:inline;float: none;width: auto;}
 .mform .ftags label.accesshide {display: block;position: static;}
 .mform .ftags select {margin-bottom: 0.7em;min-width: 22em;}
+
+input#id_externalurl {direction:ltr;}
 
 /** Browser corrections for mforms **/
 .ie .mform .fitem .felement {margin-left:0;text-align:left;float:left;}
@@ -361,16 +367,10 @@ table.mod_index {width:100%;}
  */
 .completion-expired {background:#FFDDDD;}
 .completion-expected {font-size:0.75em;}
-.completion-sortchoice {font-size:0.75em;vertical-align:bottom;}
+.completion-sortchoice,
+.completion-identifyfield {font-size:0.75em;vertical-align:bottom;}
 .completion-progresscell {text-align:right;}
 .completion-expired .completion-expected {font-weight:bold;}
-#page-course-report-progress-index th,
-#page-course-report-progress-index td {padding:2px 4px;font-weight:normal;border-right: 1px solid #EEE;}
-#page-course-report-progress-index .progress-actions {text-align:center;}
-#page-course-report-progress-index .completion_pagingbar {margin:1em 0;text-align:center;}
-#page-course-report-progress-index .completion_prev {display:inline;margin-right:2em;}
-#page-course-report-progress-index .completion_pagingbar p {display:inline;margin:0;}
-#page-course-report-progress-index .completion_next {display:inline;margin-left:2em;}
 
 /**
  * Tags
@@ -572,6 +572,7 @@ body.tag .managelink {padding: 5px;}
 #custommenu .yui3-menu-horizontal.javascript-disabled .yui3-menu-content .ul {border:1px solid #000;}
 #custommenu .yui3-menu-horizontal.javascript-disabled ul {margin:0;padding:0;}
 #custommenu .yui3-menu-horizontal.javascript-disabled li {margin:0;padding:0;list-style:none;width:auto;position:relative;}
+#custommenu .yui3-menu-horizontal.javascript-disabled .yui3-menu .yui3-menu-label {padding-right:20px;}
 #custommenu .yui3-menu-horizontal.javascript-disabled>.yui3-menu-content>ul>li {float:left;}
 #custommenu .yui3-menu-horizontal.javascript-disabled li a {padding:0 10px;}
 #custommenu .yui3-menu-horizontal.javascript-disabled .yui3-menu {position:absolute;top:-10000px;left:-10000px;visibility:hidden;white-space: nowrap;max-width: 250px;background-color:#FFF;}
@@ -580,6 +581,20 @@ body.tag .managelink {padding: 5px;}
 #custommenu .yui3-menu-horizontal.javascript-disabled>.yui3-menu-content>ul:after {content:"";display:block;clear:both;line-height:0;font-size:0;visibility:hidden;}
 #custommenu .yui3-menu-horizontal.javascript-disabled .yui3-menu-content {font-size:93%;line-height:2;padding:0;}
 #custommenu .yui3-menu-horizontal.javascript-disabled .yui3-menu-content .yui3-menu-content {font-size:100%;}
+
+/**
+ * Fix for broken YUI images in the menunav component
+ */
+#custommenu .yui3-menu-label,
+#custommenu .yui3-menuitem-content {cursor:pointer;}
+#custommenu .yui3-menuitem-active {background-color:#B3D4FF;}
+#custommenu .yui3-menuitem-active,
+#custommenu .yui3-menuitem-active .yui3-menuitem-content,
+#custommenu .yui3-menu-horizontal .yui3-menu-label,
+#custommenu .yui3-menu-horizontal .yui3-menu-content {background-image:none;background-position:right center;background-repeat:no-repeat;}
+#custommenu .yui3-menu-label,
+#custommenu .yui3-menu .yui3-menu .yui3-menu-label {background-image:url([[pix:theme|vertical-menu-submenu-indicator]]);}
+#custommenu .yui3-menu .yui3-menu .yui3-menu-label-menuvisible {background-image:url([[pix:theme|horizontal-menu-submenu-indicator]]);}
 
 /**
  * Smart Select Element
@@ -641,6 +656,7 @@ body.tag .managelink {padding: 5px;}
 #page-enrol-users .enrol_user_buttons .enrolusersbutton div,
 #page-enrol-users .enrol_user_buttons .enrolusersbutton form {display:inline;}
 #page-enrol-users .enrol_user_buttons .enrolusersbutton input {padding-left:6px;padding-right:6px;}
+#page-enrol-users.dir-rtl .col_userdetails .subfield_picture {float: right;}
 
 /**
 * Overide for RTL layout
@@ -653,6 +669,9 @@ body.tag .managelink {padding: 5px;}
 .dir-rtl .mform .fitem .fitemtitle {float:right;}
 .dir-rtl .loginbox .loginform .form-label {float:right;text-align:left;}
 .dir-rtl .loginbox .loginform .form-input {text-align: right;}
+.dir-rtl .yui3-menu-hidden {left: 0px;}
+#page-admin-roles-define.dir-rtl #rolesform .felement {margin-right: 180px;}
+#page-message-edit.dir-rtl table.generaltable th.c0 {text-align: right;}
 
 /**
  * Backup
@@ -694,12 +713,6 @@ body.tag .managelink {padding: 5px;}
  */
 .ie.dir-rtl .mform .fitem .felement {margin-right:0;text-align:right;float:right;}
 
-/**
- * Fix for broken YUI images in the menunav component
- */
-.yui3-skin-sam .yui3-menu-horizontal .yui3-menu-label,
-.yui3-skin-sam .yui3-menu-horizontal .yui3-menu-content {background-image:none;}
-
 .mod-indent-1 {margin-left:20px;}
 .mod-indent-2 {margin-left:40px;}
 .mod-indent-3 {margin-left:60px;}
@@ -717,7 +730,25 @@ body.tag .managelink {padding: 5px;}
 .mod-indent-15,
 .mod-indent-huge {margin-left:300px;}
 
-.dir-rtl .felement.feditor select {margin-right:18.75%;}
+.dir-rtl .mod-indent-1 {margin-right:20px;margin-left:0;}
+.dir-rtl .mod-indent-2 {margin-right:40px;margin-left:0;}
+.dir-rtl .mod-indent-3 {margin-right:60px;margin-left:0;}
+.dir-rtl .mod-indent-4 {margin-right:80px;margin-left:0;}
+.dir-rtl .mod-indent-5 {margin-right:100px;margin-left:0;}
+.dir-rtl .mod-indent-6 {margin-right:120px;margin-left:0;}
+.dir-rtl .mod-indent-7 {margin-right:140px;margin-left:0;}
+.dir-rtl .mod-indent-8 {margin-right:160px;margin-left:0;}
+.dir-rtl .mod-indent-9 {margin-right:180px;margin-left:0;}
+.dir-rtl .mod-indent-10 {margin-right:200px;margin-left:0;}
+.dir-rtl .mod-indent-11 {margin-right:220px;margin-left:0;}
+.dir-rtl .mod-indent-12 {margin-right:240px;margin-left:0;}
+.dir-rtl .mod-indent-13 {margin-right:260px;margin-left:0;}
+.dir-rtl .mod-indent-14 {margin-right:280px;margin-left:0;}
+.dir-rtl .mod-indent-15,
+.dir-rtl .mod-indent-huge {margin-right:300px;margin-left:0;}
+
+.dir-rtl .felement.feditor select {margin-right:18.75%;margin-left:auto;}
+.dir-rtl .mform .fitem .felement {margin-right: 16%;margin-left:auto;}
 
 /* Resourcelib mp3 player size: only width could be changed here, height hardcoded in JS */
 .resourcecontent .resourcemediaplugin_mp3 object {height:25px; width: 600px}
@@ -795,9 +826,59 @@ sup {vertical-align: super;}
 .path-rating .ratingtable td.time {white-space:nowrap; text-align:center;}
 
 /* Fix for ordered and unordered list in course topic summary & course weekly summary */
-ul li,
-.course-content ul.weeks .content .summary ul li,
-.course-content ul.topics .content .summary ul li {list-style: disc outside none;}
-ol li,
-.course-content ul.weeks .content .summary ol li,
-.course-content ul.topics .content .summary ol li {list-style: decimal outside none;}
+
+.course-content ul.weeks .content .summary ul,
+.course-content ul.topics .content .summary ul {list-style: disc outside none;}
+
+.course-content ul.weeks .content .summary ol,
+.course-content ul.topics .content .summary ol {list-style: decimal outside none;}
+
+.dir-rtl #adminsettings #id_s__pathtodu,
+.dir-rtl #adminsettings #id_s__aspellpath,
+.dir-rtl #adminsettings #id_s__pathtodot,
+.dir-rtl #adminsettings #id_s__supportemail,
+.dir-rtl #adminsettings #id_s__supportpage,
+.dir-rtl #adminsettings #id_s__sessioncookie,
+.dir-rtl #adminsettings #id_s__sessioncookiepath,
+.dir-rtl #adminsettings #id_s__sessioncookiedomain,
+.dir-rtl #adminsettings #id_s__proxyhost,
+.dir-rtl #adminsettings #id_s__proxyuser,
+.dir-rtl #adminsettings #id_s__proxypassword,
+.dir-rtl #adminsettings #id_s__proxybypass,
+.dir-rtl #adminsettings #id_s__jabberhost,
+.dir-rtl #adminsettings #id_s__jabberserver,
+.dir-rtl #adminsettings #id_s__jabberusername,
+.dir-rtl #adminsettings #id_s__jabberpassword,
+.dir-rtl #adminsettings #id_s__additionalhtmlhead,
+.dir-rtl #adminsettings #id_s__additionalhtmltopofbody,
+.dir-rtl #adminsettings #id_s__additionalhtmlfooter,
+.dir-rtl #adminsettings #id_s__docroot,
+.dir-rtl #adminsettings #id_s__filter_tex_latexpreamble,
+.dir-rtl #adminsettings #id_s__filter_tex_latexbackground,
+.dir-rtl #adminsettings #id_s__filter_tex_pathlatex,
+.dir-rtl #adminsettings #id_s__filter_tex_pathdvips,
+.dir-rtl #adminsettings #id_s__filter_tex_pathconvert,
+.dir-rtl #adminsettings #id_s__blockedip,
+.dir-rtl #adminsettings #id_s__pathtoclam,
+.dir-rtl #adminsettings #id_s__quarantinedir,
+.dir-rtl #adminsettings #id_s__sitepolicy,
+.dir-rtl #adminsettings #id_s__sitepolicyguest,
+.dir-rtl #adminsettings #id_s__cronremotepassword,
+.dir-rtl #adminsettings #id_s__allowedip,
+.dir-rtl #adminsettings #id_s__blockedip,
+.dir-rtl #adminsettings #id_s_enrol_meta_nosyncroleids,
+.dir-rtl #adminsettings #id_s_enrol_ldap_host_url,
+.dir-rtl #adminsettings #id_s_enrol_ldap_ldapencoding,
+.dir-rtl #adminsettings #id_s_enrol_ldap_bind_dn,
+.dir-rtl #adminsettings #id_s_enrol_ldap_bind_pw,
+.dir-rtl #adminsettings #admin-emoticons .form-text,
+.dir-rtl #adminsettings #admin-role_mapping input[type=text],
+.dir-rtl #adminsettings #id_s_enrol_paypal_paypalbusiness,
+.dir-rtl #adminsettings #id_s_enrol_flatfile_location,
+#page-admin-setting-enrolsettingsflatfile.dir-rtl input[type=text],
+#page-admin-setting-enrolsettingsdatabase.dir-rtl input[type=text],
+#page-admin-auth-db.dir-rtl input[type=text] {direction: ltr;}
+
+#page-admin-setting-enrolsettingsflatfile.dir-rtl .informationbox {direction: ltr;text-align: left;}
+
+#page-admin-grade-edit-scale-edit.dir-rtl .error input#id_name {margin-right: 170px;}

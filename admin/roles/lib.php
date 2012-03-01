@@ -996,13 +996,14 @@ abstract class role_assign_user_selector_base extends user_selector_base {
      */
     public function __construct($name, $options) {
         global $CFG;
-        parent::__construct($name, $options);
-        $this->roleid = $options['roleid'];
         if (isset($options['context'])) {
             $this->context = $options['context'];
         } else {
             $this->context = get_context_instance_by_id($options['contextid']);
         }
+        $options['accesscontext'] = $this->context;
+        parent::__construct($name, $options);
+        $this->roleid = $options['roleid'];
         require_once($CFG->dirroot . '/group/lib.php');
     }
 
@@ -1583,13 +1584,31 @@ class admins_existing_selector extends user_selector_base {
             return array();
         }
 
-        if ($search) {
-            $groupname = get_string('extusersmatching', 'role', $search);
-        } else {
-            $groupname = get_string('extusers', 'role');
+        $mainadmin = array();
+        $adminids = explode(',', $CFG->siteadmins);
+        foreach ($adminids as $id) {
+            if (isset($availableusers[$id])) {
+                $mainadmin = array($id=>$availableusers[$id]);
+                unset($availableusers[$id]);
+                break;
+            }
         }
 
-        return array($groupname => $availableusers);
+        $result = array();
+        if ($mainadmin) {
+            $result[get_string('mainadmin', 'role')] = $mainadmin;
+        }
+
+        if ($availableusers) {
+            if ($search) {
+                $groupname = get_string('extusersmatching', 'role', $search);
+            } else {
+                $groupname = get_string('extusers', 'role');
+            }
+            $result[$groupname] = $availableusers;
+        }
+
+        return $result;
     }
 
     protected function get_options() {

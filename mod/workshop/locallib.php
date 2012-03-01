@@ -713,6 +713,7 @@ class workshop {
      * showauthor - should the author user info be available for the renderer
      * showreviewer - should the reviewer user info be available for the renderer
      * showform - show the assessment form if it is available
+     * showweight - should the assessment weight be available for the renderer
      *
      * @param stdClass $record as returned by eg {@link self::get_assessment_by_id()}
      * @param workshop_assessment_form|null $form as returned by {@link workshop_strategy::get_assessment_form()}
@@ -740,6 +741,77 @@ class workshop {
         if (!is_null($record->grade)) {
             $assessment->realgrade = $this->real_grade($record->grade);
         }
+
+        return $assessment;
+    }
+
+    /**
+     * Prepares renderable example submission's assessment component
+     *
+     * The $options array supports the following keys:
+     * showauthor - should the author user info be available for the renderer
+     * showreviewer - should the reviewer user info be available for the renderer
+     * showform - show the assessment form if it is available
+     *
+     * @param stdClass $record as returned by eg {@link self::get_assessment_by_id()}
+     * @param workshop_assessment_form|null $form as returned by {@link workshop_strategy::get_assessment_form()}
+     * @param array $options
+     * @return workshop_example_assessment
+     */
+    public function prepare_example_assessment(stdClass $record, $form = null, array $options = array()) {
+
+        $assessment             = new workshop_example_assessment($record, $options);
+        $assessment->url        = $this->exassess_url($record->id);
+        $assessment->maxgrade   = $this->real_grade(100);
+
+        if (!empty($options['showform']) and !($form instanceof workshop_assessment_form)) {
+            debugging('Not a valid instance of workshop_assessment_form supplied', DEBUG_DEVELOPER);
+        }
+
+        if (!empty($options['showform']) and ($form instanceof workshop_assessment_form)) {
+            $assessment->form = $form;
+        }
+
+        if (!is_null($record->grade)) {
+            $assessment->realgrade = $this->real_grade($record->grade);
+        }
+
+        $assessment->weight = null;
+
+        return $assessment;
+    }
+
+    /**
+     * Prepares renderable example submission's reference assessment component
+     *
+     * The $options array supports the following keys:
+     * showauthor - should the author user info be available for the renderer
+     * showreviewer - should the reviewer user info be available for the renderer
+     * showform - show the assessment form if it is available
+     *
+     * @param stdClass $record as returned by eg {@link self::get_assessment_by_id()}
+     * @param workshop_assessment_form|null $form as returned by {@link workshop_strategy::get_assessment_form()}
+     * @param array $options
+     * @return workshop_example_reference_assessment
+     */
+    public function prepare_example_reference_assessment(stdClass $record, $form = null, array $options = array()) {
+
+        $assessment             = new workshop_example_reference_assessment($record, $options);
+        $assessment->maxgrade   = $this->real_grade(100);
+
+        if (!empty($options['showform']) and !($form instanceof workshop_assessment_form)) {
+            debugging('Not a valid instance of workshop_assessment_form supplied', DEBUG_DEVELOPER);
+        }
+
+        if (!empty($options['showform']) and ($form instanceof workshop_assessment_form)) {
+            $assessment->form = $form;
+        }
+
+        if (!is_null($record->grade)) {
+            $assessment->realgrade = $this->real_grade($record->grade);
+        }
+
+        $assessment->weight = null;
 
         return $assessment;
     }
@@ -1946,9 +2018,10 @@ class workshop {
      * was overridden by a teacher, the gradinggradeover value is returned and the rest of grades are ignored.
      *
      * @param array $assessments of stdclass(->reviewerid ->gradinggrade ->gradinggradeover ->aggregationid ->aggregatedgrade)
+     * @param null|int $timegraded explicit timestamp of the aggregation, defaults to the current time
      * @return void
      */
-    protected function aggregate_grading_grades_process(array $assessments) {
+    protected function aggregate_grading_grades_process(array $assessments, $timegraded = null) {
         global $DB;
 
         $reviewerid = null; // the id of the reviewer being processed
@@ -1957,6 +2030,10 @@ class workshop {
         $agid       = null; // aggregation id
         $sumgrades  = 0;
         $count      = 0;
+
+        if (is_null($timegraded)) {
+            $timegraded = time();
+        }
 
         foreach ($assessments as $assessment) {
             if (is_null($reviewerid)) {
@@ -1994,13 +2071,13 @@ class workshop {
                 $record->workshopid = $this->id;
                 $record->userid = $reviewerid;
                 $record->gradinggrade = $finalgrade;
-                $record->timegraded = time();
+                $record->timegraded = $timegraded;
                 $DB->insert_record('workshop_aggregations', $record);
             } else {
                 $record = new stdclass();
                 $record->id = $agid;
                 $record->gradinggrade = $finalgrade;
-                $record->timegraded = time();
+                $record->timegraded = $timegraded;
                 $DB->update_record('workshop_aggregations', $record);
             }
         }
@@ -2713,6 +2790,8 @@ abstract class workshop_assessment_base {
      */
     public function __construct(stdClass $record, array $options = array()) {
 
+        $this->validate_raw_record($record);
+
         foreach ($this->fields as $field) {
             if (!property_exists($record, $field)) {
                 throw new coding_exception('Assessment record must provide public property ' . $field);
@@ -2747,6 +2826,16 @@ abstract class workshop_assessment_base {
         $action->method = $method;
 
         $this->actions[] = $action;
+    }
+
+    /**
+     * Makes sure that we can cook the renderable component from the passed raw database record
+     *
+     * @param stdClass $assessment full assessment record
+     * @throws coding_exception if the caller passed unexpected data
+     */
+    protected function validate_raw_record(stdClass $record) {
+        // nothing to do here
     }
 }
 
@@ -2784,6 +2873,41 @@ class workshop_assessment extends workshop_assessment_base implements renderable
     protected $fields = array('id', 'submissionid', 'weight', 'timecreated',
         'timemodified', 'grade', 'gradinggrade', 'gradinggradeover');
 }
+
+
+/**
+ * Represents a renderable training assessment of an example submission
+ */
+class workshop_example_assessment extends workshop_assessment implements renderable {
+
+    /**
+     * @see parent::validate_raw_record()
+     */
+    protected function validate_raw_record(stdClass $record) {
+        if ($record->weight != 0) {
+            throw new coding_exception('Invalid weight of example submission assessment');
+        }
+        parent::validate_raw_record($record);
+    }
+}
+
+
+/**
+ * Represents a renderable reference assessment of an example submission
+ */
+class workshop_example_reference_assessment extends workshop_assessment implements renderable {
+
+    /**
+     * @see parent::validate_raw_record()
+     */
+    protected function validate_raw_record(stdClass $record) {
+        if ($record->weight != 1) {
+            throw new coding_exception('Invalid weight of the reference example submission assessment');
+        }
+        parent::validate_raw_record($record);
+    }
+}
+
 
 /**
  * Renderable message to be displayed to the user

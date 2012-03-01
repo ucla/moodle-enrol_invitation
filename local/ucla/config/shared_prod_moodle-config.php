@@ -59,21 +59,98 @@ $CFG->directorypermissions = 0777;
 // logins using the Moodle login will not work.
 $CFG->passwordsaltmain = '';
 
+// determines current term
+$CFG->currentterm = '12W';
+
+// Registrar
+$CFG->registrar_dbtype = 'odbc_mssql';
+$CFG->registrar_dbhost = '';
+$CFG->registrar_dbuser = '';
+$CFG->registrar_dbpass = '';
+$CFG->registrar_dbname = 'srdb';
+$CFG->registrar_dbencoding = 'ISO-8859-1';
+
+// Course builder
+$terms_to_built = array('12W', '12S', '121', '12F');
+
+// Course Requestor
+$CFG->forced_plugin_settings['tool_uclacourserequestor']['terms'] = $terms_to_built;
+$CFG->forced_plugin_settings['tool_uclacourserequestor']['selected_term'] = $CFG->currentterm;
+$CFG->forced_plugin_settings['tool_uclacourserequestor']['mailinst_default'] = true; 
+$CFG->forced_plugin_settings['tool_uclacourserequestor']['nourlupdate_default'] = false;
+
+// Course Creator
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['terms'] = $terms_to_built;
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['course_creator_email'] = 'ccle-operations@lists.ucla.edu';
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['email_template_dir'] = '/usr/local/moodle/config/course_creator/email_templates';
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['make_division_categories'] = true;
+
+// MyUCLA url updater
+$CFG->forced_plugin_settings['tool_myucla_url']['url_service'] = 'http://cis.ucla.edu/ieiWebMap/update.asp';
+$CFG->forced_plugin_settings['tool_myucla_url']['user_name'] = 'CCLE Admin';
+$CFG->forced_plugin_settings['tool_myucla_url']['user_email'] = 'ccle@ucla.edu';
+
 // turn off messaging (CCLE-2318 - MESSAGING)
 $CFG->messaging = false;
 
-// If you want to have un-revisioned configuration data, place in this file.
-// $CFG->dirroot is overwritten later
-$_dirroot_ = dirname(realpath(__FILE__)) . '/../../..';
+// CCLE-2590 - Implement Auto-detect Shibboleth Login
+$CFG->shib_logged_in_cookie = '_ucla_sso';
 
-// Try an alternative directory setup.
-if (!file_exists($_dirroot_ . '/config.php')) {
-    $_dirroot_ = dirname(realpath(__FILE__));
+// default file resources display to "Force Download"
+$CFG->forced_plugin_settings['resource'] = array('display' => 4);
 
-    if (!file_exists($_dirroot_ . '/config.php')) {
-        die ('Improper setup of configuration file.');
-    }
-}
+// CCLE-2306 - HELP SYSTEM BLOCK
+// if using JIRA, jira_user, jira_password, jira_pid should be defined in config_private.php
+$block_ucla_help_settings = array('send_to' => 'jira',
+                                  'jira_endpoint' => 'https://jira.ats.ucla.edu/CreateIssueDetails.jspa',
+                                  'jira_default_assignee' => 'dkearney',
+                                  'boxtext' => '<ul>
+                                                    <li>Find FAQs, tutorials and a large database of help documentation at <strong><a title="cclehelp" href="https://ccle.ucla.edu/course/view/cclehelp">CCLE Help</a></strong></li>
+                                                    <li>Send your feedback including suggestions and comments to <a href="mailto:ccle@ucla.edu">ccle@ucla.edu</a></li>
+                                                </ul>'
+        );
+$CFG->forced_plugin_settings['block_ucla_help'] = $block_ucla_help_settings;
+$block_ucla_help_support_contacts['System'] = 'dkearney';  // default
+
+// CCLE-2550 - Lastname, Firstname sorting
+$CFG->fullnamedisplay = 'language';
+
+// UCLA Theme settings
+$CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'prod';
+$CFG->forced_plugin_settings['theme_uclashared']['logo_sub_dropdown'] = true;
+
+// Newly created courses for ucla formats should only have the course menu block
+$CFG->defaultblocks_ucla = 'ucla_course_menu';
+
+// Enable conditional activities
+$CFG->enableavailability = true;
+$CFG->enablecompletion = true;  // needs to be enabled so that completion
+                                // of tasks can be one of the conditions
+$CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 1;
+
+// CCLE-2229 - Force public/private to be on
+$CFG->enablegroupmembersonly = true; // needs to be on for public-private to work
+$CFG->enablepublicprivate = true;
+
+// CCLE-2792 - Enable multimedia filters
+// NOTE: you still need to manually set the "Active?" value of the "Multimedia 
+// plugins" filter at "Site administration > Plugins > Filters > Manage filters"
+$CFG->filter_mediaplugin_enable_youtube = true;
+$CFG->filter_mediaplugin_enable_vimeo = true;
+$CFG->filter_mediaplugin_enable_mp3 = true;
+$CFG->filter_mediaplugin_enable_flv = true;
+$CFG->filter_mediaplugin_enable_swf = true;
+$CFG->filter_mediaplugin_enable_html5audio = true;
+$CFG->filter_mediaplugin_enable_html5video = true;
+$CFG->filter_mediaplugin_enable_qt = true;
+$CFG->filter_mediaplugin_enable_wmp = true;
+$CFG->filter_mediaplugin_enable_rm = true;
+
+// Enabling Anti-Virus
+$CFG->runclamonupload = true;
+$CFG->clamscan = '/usr/bin/clamscan';
+$CFG->quarantinedir = '/usr/local/clamquarantine';
+$CFG->clamfailureonupload = 'donothing';
 
 /** 
  *  Automatic Shibboleth configurations.
@@ -115,10 +192,12 @@ $CFG->forced_plugin_settings['auth/shibboleth'] = array(
  *  End shibboleth configurations.
  **/
 
-// Load a custom private data
-$_private_ = $_dirroot_ . '/config_private.php';
-if (file_exists($_private_)) {
-    require_once($_private_);
+// If you want to have un-revisioned configuration data, place in config_private
+// $CFG->dirroot is overwritten later
+$_dirroot_ = dirname(realpath(__FILE__)) . '/../../..';
+$_config_private_ = $_dirroot_ . '/config_private.php';
+if (file_exists($_config_private_)) {
+    require_once($_config_private_);
 }
 
 // This will bootstrap the moodle functions.

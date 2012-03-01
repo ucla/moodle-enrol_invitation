@@ -30,22 +30,18 @@
 #page-admin-course-index .editcourse td {padding-left:10px;padding-right:10px;}
 #page-admin-course-index .editcourse .count {text-align:right;}
 
-#page-admin-report-unittest-index .exception pre {padding: 8px;}
-#page-admin-report-unittest-index .unittestsummary {padding: 8px;margin-top: 1em;}
-#page-admin-report-unittest-index span.notice {color: teal;}
-#page-admin-report-unittest-index b.pass {color: green;}
-#page-admin-report-unittest-index b.fail, b.exception {color: red;}
-#page-admin-report-unittest-index .exception, .exception pre {background-color: #FDD;}
-#page-admin-report-unittest-index .unittestsummary {color: white;}
-#page-admin-report-unittest-index .unittestsummary.failed {background-color: red;}
-#page-admin-report-unittest-index .unittestsummary.passed {background-color: green;}
-
 #page-admin-report-security-index .timewarninghidden {display:none;}
 #page-admin-report-security-index .statuswarning {background-color: #f0e000;}
 #page-admin-report-security-index .statusserious {background-color: #f07000;}
 #page-admin-report-security-index .statuscritical {background-color: #f00000;}
 #page-admin-report-capability-index .rolecaps th {text-align: left;}
 #page-admin-report-capability-index #settingsform #capabilitysearch {width: 30em;}
+
+#page-admin-report-backups-index .backup-report {width:100%;}
+#page-admin-report-backups-index .backup-error,
+#page-admin-report-backups-index .backup-unfinished {color: #f00000;}
+#page-admin-report-backups-index .backup-skipped,
+#page-admin-report-backups-index .backup-ok {color: #006400;}
 
 #page-admin-qbehaviours .disabled {color: gray;}
 #page-admin-qbehaviours th {white-space: normal;}
@@ -83,8 +79,6 @@
 #page-admin-roles-assign .cell.c1 {padding-top: 0.75em;}
 #page-admin-roles-override .overridenotice,
 #page-admin-roles-define .definenotice {margin: 1em 10% 2em 10%;text-align: left;}
-
-#page-admin-langimport .generalbox table {margin:auto;width:100%;}
 
 #page-admin-index .adminerror .singlebutton,
 #page-admin-index .adminwarning .singlebutton,
@@ -196,8 +190,13 @@
 #page-admin-index #plugins-check .status-missing .status {background-color:#ffd3d9;}
 #page-admin-index #plugins-check .status-new .status {background-color:#e7f1c3;}
 #page-admin-index #plugins-check .status-nodb .status {color:#999;}
+#page-admin-index #plugins-check .status-delete .status {background-color:#d2ebff;}
 #page-admin-index #plugins-check .status-upgrade .status {background-color:#d2ebff;}
 #page-admin-index #plugins-check .status-uptodate .status {color:#999;}
+#page-admin-index #plugins-check .requires ul {font-size:0.7em;margin:0;}
+#page-admin-index #plugins-check .requires li {display:block;}
+#page-admin-index #plugins-check .requires-ok {color:#999;}
+#page-admin-index #plugins-check .requires-failed {background-color:#ffd3d9;}
 
 /** Plugins management */
 #page-admin-plugins #plugins-control-panel {margin-left:auto; margin-right:auto;}
@@ -206,3 +205,9 @@
 #page-admin-plugins #plugins-control-panel .disabled .availability {background-color:#eee;}
 #page-admin-plugins #plugins-control-panel .extension .source {background-color:#f3f2aa;}
 #page-admin-plugins #plugins-control-panel .msg td {text-align:center;}
+#page-admin-plugins #plugins-control-panel .requiredby {font-size:0.7em;color:#999;}
+
+/** MNet networking */
+#page-admin-mnet-peers .box.deletedhosts {margin-bottom:1em;font-size:80%;}
+#page-admin-mnet-peers .mform .certdetails {background-color:white;}
+#page-admin-mnet-peers .mform .deletedhostinfo {background-color:#ffd3d9;border 2px solid #eeaaaa;padding:4px;margin-bottom:5px;}

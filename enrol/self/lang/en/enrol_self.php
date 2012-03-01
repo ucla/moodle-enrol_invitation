@@ -47,6 +47,7 @@ $string['longtimenosee_help'] = 'If users haven\'t accessed a course for a long 
 $string['maxenrolled'] = 'Max enrolled users';
 $string['maxenrolled_help'] = 'Specifies the maximum number of users that can self enrol. 0 means no limit.';
 $string['maxenrolledreached'] = 'Maximum number of users allowed to self-enrol was already reached.';
+$string['nopassword'] = 'No enrolment key required.';
 $string['password'] = 'Enrolment key';
 $string['password_help'] = 'An enrolment key enables access to the course to be restricted to only those who know the key.
 
@@ -60,7 +61,7 @@ $string['pluginname'] = 'Self enrolment';
 $string['pluginname_desc'] = 'The self enrolment plugin allows users to choose which courses they want to participate in. The courses may be protected by an enrolment key. Internally the enrolment is done via the manual enrolment plugin which has to be enabled in the same course.';
 $string['requirepassword'] = 'Require enrolment key';
 $string['requirepassword_desc'] = 'Require enrolment key in new courses and prevent removing of enrolment key from existing courses.';
-$string['role'] = 'Assign role';
+$string['role'] = 'Default assigned role';
 $string['self:config'] = 'Configure self enrol instances';
 $string['self:manage'] = 'Manage enrolled users';
 $string['self:unenrol'] = 'Unenrol users from course';
