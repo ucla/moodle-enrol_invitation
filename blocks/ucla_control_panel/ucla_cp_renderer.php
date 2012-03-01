@@ -87,7 +87,12 @@ class ucla_cp_renderer {
                 $bucp, $item_obj), array('class' => 'pre-link'));
         }
 
-        if ($link === null) {
+        //If the object is plain text, just include the object name in the string.
+        if (get_class($item_obj) == 'ucla_cp_text_module') {
+            $fitem.= $item;
+        }
+        //If the object is a tag 
+        else if ($link === null) {
             $fitem .= html_writer::tag('span', get_string($item, $bucp,
                 $item_obj), array('class' => 'disabled'));
         } else {

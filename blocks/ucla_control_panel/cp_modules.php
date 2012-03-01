@@ -6,6 +6,7 @@
  **/
 
 require_once(dirname(__FILE__) . '/ucla_cp_module.php');
+require_once(dirname(__FILE__) . '/modules/ucla_cp_text_module.php');
 global $CFG, $DB;
 
 // Please note that we should have
@@ -54,7 +55,9 @@ if (! empty($course_info)){
     //If this is a summer course
     if($first_course->term[2]=='1') { 
         global $DB;
-        if(!$session = $DB->get_field('ucla_reg_classinfo', 'session_group', 'term', $course_info[0]['term'], 'srs', $course_info[0]['srs'])) {
+        if(!$session = $DB->get_field('ucla_reg_classinfo', 
+                                'session_group', 'term', $course_info[0]['term'], 
+                                'srs', $course_info[0]['srs'])) {
             $session = '';
         }
     } else {
@@ -62,19 +65,32 @@ if (! empty($course_info)){
     }
     
     foreach ($course_info as $info_for_one_course){
-        print_r($course_info);
+        print_r($info_for_one_course);
         if (count($course_info) > 1){
-            $modules[] = new ucla_cp_module($info_for_one_course['class_num'], 
-                                                null, $temp_tag, $temp_cap);
+            $modules[] = new ucla_cp_text_module($info_for_one_course->subj_area
+                    .$info_for_one_course->coursenum.'-' .$info_for_one_course->sectnum, 
+                             null, $temp_tag, $temp_cap);
         }   
         $course_term = $info_for_one_course->term;
         $course_srs = $info_for_one_course->srs;
-        $modules[] = new ucla_cp_module('download_roster', new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=74&term=" . $course_term . "&srs=" . $course_srs), $temp_tag, $temp_cap);
-        $modules[] = new ucla_cp_module('photo_roster', new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=148&term=" . $course_term . "&srs=" . $course_srs . "&spp=30&sd=true"), $temp_tag, $temp_cap);
-        $modules[] = new ucla_cp_module('myucla_gradebook', new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=75&term=" . $course_term . "&srs=" . $course_srs), $temp_tag, $temp_cap);
-        $modules[] = new ucla_cp_module('turn_it_in', new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=48&term=" . $course_term . "&srs=" . $course_srs), $temp_tag, $temp_cap);
-        $modules[] = new ucla_cp_module('email_roster', new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=73&term=" . $course_term . "&srs=" . $course_srs), $temp_tag, $temp_cap);
-        $modules[] = new ucla_cp_module('asucla_textbooks', new moodle_url('http://www.collegestore.org/textbookstore/main.asp?remote=1&ref=ucla&term=' . $course_term . $session .'&course='.$course_srs.'&getbooks=Display+books'), $temp_tag, $temp_cap);
+        $modules[] = new ucla_cp_module('download_roster', 
+                new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=74&term=" 
+                        . $course_term . "&srs=" . $course_srs), $temp_tag, $temp_cap);
+        $modules[] = new ucla_cp_module('photo_roster', 
+                new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=148&term=" 
+                        . $course_term . "&srs=" . $course_srs . "&spp=30&sd=true"), $temp_tag, $temp_cap);
+        $modules[] = new ucla_cp_module('myucla_gradebook', 
+                new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=75&term=" 
+                        . $course_term . "&srs=" . $course_srs), $temp_tag, $temp_cap);
+        $modules[] = new ucla_cp_module('turn_it_in', 
+                new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=48&term=" 
+                        . $course_term . "&srs=" . $course_srs), $temp_tag, $temp_cap);
+        $modules[] = new ucla_cp_module('email_roster', 
+                new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=73&term=" 
+                        . $course_term . "&srs=" . $course_srs), $temp_tag, $temp_cap);
+        $modules[] = new ucla_cp_module('asucla_textbooks', 
+                new moodle_url('http://www.collegestore.org/textbookstore/main.asp?remote=1&ref=ucla&term=' 
+                        . $course_term . $session .'&course='.$course_srs.'&getbooks=Display+books'), $temp_tag, $temp_cap);
     }
     
 }
