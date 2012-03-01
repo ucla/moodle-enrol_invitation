@@ -100,6 +100,9 @@ class uclacoursecreator {
     // Email file default
     private $default_email_file;
 
+    // Thing to prevent empty pointless emails
+    public $had_action = false;
+
     // Note: There are dynamically generated fields for this class, which
     // contain references to the enrollment object.
     // I.E. $this->enrol_meta_plugin
@@ -730,6 +733,8 @@ class uclacoursecreator {
             return false;
         }
 
+        $this->had_action = true;
+
         // Figure out crosslists and filter out faulty requests
         foreach ($course_requests as $key => $course_request) {
             $srs = trim($course_request->srs);
@@ -763,18 +768,6 @@ class uclacoursecreator {
         $this->println('Finished processing requests.');
 
         return true;
-    }
-
-    /**
-     *  Convenience function
-     *  Formats, debugs and inserts the data into our object.
-     *  Called by @see retrieve_requests().
-     *
-     *  Changes the state of the object.
-     *
-     *  @param The set of requested courses, with crosslisted hierarchy.
-     **/
-    function insert_requests($courses) {
     }
 
     /**
@@ -827,7 +820,6 @@ class uclacoursecreator {
         $requests =& $this->cron_term_cache['requests'];
 
         // Run the Stored Procedure with the data
-        $rc = new registrar_ccle_getclasses();
         $return = registrar_query::run_registrar_query('ccle_getclasses',
             $tr, true);
 
@@ -2038,9 +2030,12 @@ class uclacoursecreator {
             '---- Course creator end at ' . date('r') . ' ----'
         );
 
-        // Email the summary to the admin
-        ucla_send_mail($this->get_config('course_creator_email'), 
-            'Course Creator Summary ' . $this->shell_date, $this->email_log);
+        if ($this->had_action) {
+            // Email the summary to the admin
+            ucla_send_mail($this->get_config('course_creator_email'), 
+                'Course Creator Summary ' . $this->shell_date, 
+                $this->email_log);
+        }
 
         $this->close_log_file_pointer();
 
@@ -2251,7 +2246,7 @@ class uclacoursecreator {
      *  @return boolean Is the term a summer term?
      **/
     function match_summer($term) {
-        return preg_match('/1$/', $term);
+        return is_summer_term($term);
     }
 }
 
