@@ -59,6 +59,37 @@ $CFG->directorypermissions = 0777;
 // logins using the Moodle login will not work.
 $CFG->passwordsaltmain = '';
 
+// determines current term
+$CFG->currentterm = '12W';
+
+// Registrar
+$CFG->registrar_dbtype = 'odbc_mssql';
+$CFG->registrar_dbhost = '';
+$CFG->registrar_dbuser = '';
+$CFG->registrar_dbpass = '';
+$CFG->registrar_dbname = 'srdb';
+$CFG->registrar_dbencoding = 'ISO-8859-1';
+
+// Course builder
+$terms_to_built = array('12W', '12S', '121', '12F');
+
+// Course Requestor
+$CFG->forced_plugin_settings['tool_uclacourserequestor']['terms'] = $terms_to_built;
+$CFG->forced_plugin_settings['tool_uclacourserequestor']['selected_term'] = $CFG->currentterm;
+$CFG->forced_plugin_settings['tool_uclacourserequestor']['mailinst_default'] = true; 
+$CFG->forced_plugin_settings['tool_uclacourserequestor']['nourlupdate_default'] = false;
+
+// Course Creator
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['terms'] = $terms_to_built;
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['course_creator_email'] = 'ccle-operations@lists.ucla.edu';
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['email_template_dir'] = '/usr/local/moodle/config/course_creator/email_templates';
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['make_division_categories'] = true;
+
+// MyUCLA url updater
+$CFG->forced_plugin_settings['tool_myucla_url']['url_service'] = 'http://cis.ucla.edu/ieiWebMap/update.asp';
+$CFG->forced_plugin_settings['tool_myucla_url']['user_name'] = 'CCLE Admin';
+$CFG->forced_plugin_settings['tool_myucla_url']['user_email'] = 'ccle@ucla.edu';
+
 // turn off messaging (CCLE-2318 - MESSAGING)
 $CFG->messaging = false;
 
@@ -82,11 +113,44 @@ $CFG->forced_plugin_settings['block_ucla_help'] = $block_ucla_help_settings;
 $block_ucla_help_support_contacts['System'] = 'dkearney';  // default
 
 // CCLE-2550 - Lastname, Firstname sorting
-$CFG->fullnamedisplay == 'language';
+$CFG->fullnamedisplay = 'language';
 
 // UCLA Theme settings
 $CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'prod';
 $CFG->forced_plugin_settings['theme_uclashared']['logo_sub_dropdown'] = true;
+
+// Newly created courses for ucla formats should only have the course menu block
+$CFG->defaultblocks_ucla = 'ucla_course_menu';
+
+// Enable conditional activities
+$CFG->enableavailability = true;
+$CFG->enablecompletion = true;  // needs to be enabled so that completion
+                                // of tasks can be one of the conditions
+$CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 1;
+
+// CCLE-2229 - Force public/private to be on
+$CFG->enablegroupmembersonly = true; // needs to be on for public-private to work
+$CFG->enablepublicprivate = true;
+
+// CCLE-2792 - Enable multimedia filters
+// NOTE: you still need to manually set the "Active?" value of the "Multimedia 
+// plugins" filter at "Site administration > Plugins > Filters > Manage filters"
+$CFG->filter_mediaplugin_enable_youtube = true;
+$CFG->filter_mediaplugin_enable_vimeo = true;
+$CFG->filter_mediaplugin_enable_mp3 = true;
+$CFG->filter_mediaplugin_enable_flv = true;
+$CFG->filter_mediaplugin_enable_swf = true;
+$CFG->filter_mediaplugin_enable_html5audio = true;
+$CFG->filter_mediaplugin_enable_html5video = true;
+$CFG->filter_mediaplugin_enable_qt = true;
+$CFG->filter_mediaplugin_enable_wmp = true;
+$CFG->filter_mediaplugin_enable_rm = true;
+
+// Enabling Anti-Virus
+$CFG->runclamonupload = true;
+$CFG->clamscan = '/usr/bin/clamscan';
+$CFG->quarantinedir = '/usr/local/clamquarantine';
+$CFG->clamfailureonupload = 'donothing';
 
 /** 
  *  Automatic Shibboleth configurations.
