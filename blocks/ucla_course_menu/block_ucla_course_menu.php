@@ -258,12 +258,17 @@ class block_ucla_course_menu extends block_navigation {
         $course = $this->page->course;
         $elements = array();
         
-        //CCLE-2379 Modify Course Menu Sections when editing is on
-        if ($this->page->user_is_editing()) {
-            $this->title .= '<div class="editControlLinks"><center><a title="Modify Sections" href="'.$CFG->wwwroot.'blocks/sectionmodifier/edit.php?course_id='.$this->page->course->id.' " >Modify Sections</a>';
         //CCLE-2380 Rearrange Course Materials link when editing is on
-            $this->title .= '<br><a title="Rearrange Materials" href="'.$CFG->wwwroot.'/blocks/ucla_rearrange/rearrange.php?course_id='.$this->page->course->id.$topicstr.' ">Rearrange Materials</a></div>';
+
+        //passing topic value to reorder feature        
+        $topic = $this->get_topic_get();
+        $topicstr = '';
+        if(!empty($topic)){
+            $topicstr='&topic='.$topic;
         }        
+        if ($this->page->user_is_editing()) {
+            $this->title .= '<br><div class="editControlLinks"><center><a title="Rearrange Materials" href="'.$CFG->wwwroot.'/blocks/ucla_rearrange/rearrange.php?course_id='.$this->page->course->id.$topicstr.' ">Rearrange Materials</a></div>';
+        }
 
         foreach ($allblocks as $block) {
             $classname = 'block_' . $block->name;
