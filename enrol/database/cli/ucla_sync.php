@@ -22,9 +22,11 @@ list($ext_argv, $unrecog) = cli_get_params(
 );
 
 if ($ext_argv['help']) {
-    echo 
-"Execute enrol sync with external database.
+    echo "Execute enrol sync with external database.
 The enrol_database plugin must be enabled and properly configured.
+
+If no term is specified it will run for the terms defined in 
+get_config('tool_uclacoursecreator', 'terms')
 
 Options:
 --current-term        Run for the term specified in \$CFG->currentterm
@@ -32,7 +34,8 @@ Options:
 -h, --help            Print out this help
 
 Example:
-\$sudo -u www-data /usr/bin/php enrol/database/cli/ucla_sync.php 11F";
+\$sudo -u www-data /usr/bin/php enrol/database/cli/ucla_sync.php ([TERM] ([TERM] ... ))
+";
     exit(0);
 }
 
@@ -62,6 +65,11 @@ if ($ext_argv['current-term']) {
     } else {
         echo "Current term not set.";
     }
+}
+
+// if no other terms given, then use course creator's terms, if any
+if (empty($terms)) {
+    $terms = get_config('tool_uclacoursecreator', 'terms');
 }
 
 if (empty($terms)) {
