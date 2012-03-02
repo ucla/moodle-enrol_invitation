@@ -272,7 +272,9 @@ class ucla_courserequests {
             }
 
             if (!empty($removedcls)) {
-                $changed[$setid][$f]['removed'] = $removedcls;
+                if (!request_ignored(reset($courses))) {
+                    $changed[$setid][$f]['removed'] = $removedcls;
+                }
             }
 
             $this->setindex[$setid] = $courses;
