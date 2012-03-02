@@ -288,9 +288,11 @@ class enrol_database_plugin extends enrol_plugin {
      *
      * @param bool $verbose
      * @param Array $terms - if null, then all terms. if empty() then no terms.
+     * @param int $singlecourse - if null, then ignored, otherwise the course.id 
+     *      of the course you with to prepopulate.
      * @return int 0 means success, 1 db connect failure, 2 db read failure
      */
-    public function sync_enrolments($verbose = false, $terms = null) {
+    public function sync_enrolments($verbose = false, $terms = null, $singlecourse = null) {
         global $CFG, $DB;
 
         // we do not create courses here intentionally because it requires full sync and is slow
@@ -366,14 +368,34 @@ class enrol_database_plugin extends enrol_plugin {
         ucla_require_registrar();
 
         if ($terms === null) {
-            $courses = $DB->get_records('ucla_request_classes');
-            $course_indexed = index_ucla_course_requests($courses, 'courseid');
+            if ($singlecourse === null) {
+                // No single course was provided, and no term was provided
+                $courses = $DB->get_records('ucla_request_classes');
+                $course_indexed = index_ucla_course_requests($courses, 'courseid');
+                unset($courses);
+            } else {
+                // Get a single course 
+                $courses = ucla_get_course_info($singlecourse);
+
+                $course_set = array();
+                foreach ($courses as $courseinfo) {
+                    $tbicourse = new stdclass();
+
+                    $tbicourse->department = $courseinfo->subj_area;
+                    $tbicourse->courseid = $singlecourse;
+                    $tbicourse->term = $courseinfo->term;
+                    $tbicourse->srs = $courseinfo->srs;
+                    
+                    $course_set[] = $tbicourse;
+                }
+
+                $course_indexed = array($singlecourse => $course_set);
+            }
         } else if (!empty($terms)) {
-            $courses = ucla_get_courses_by_terms($terms);
-            $course_indexed = $courses;
+            $course_indexed = ucla_get_courses_by_terms($terms);
         }
 
-        if (empty($courses)) {
+        if (empty($course_indexed)) {
             return 0;
         }
 
@@ -386,9 +408,7 @@ class enrol_database_plugin extends enrol_plugin {
             foreach ($set as $course) {
                 $regdata = array(array($course->term, $course->srs));
 
-                // TODO use subj_area once all the joins are good.
                 $subjarea = $course->department;
-                // TODO GUI option?
                 $localmap = $course->courseid;
 
                 // grab the instructors... from a different data source
@@ -408,7 +428,6 @@ class enrol_database_plugin extends enrol_plugin {
                 // Now we need to save the roles per course
                 // TODO what should happen if in a crosslisted course a 
                 // professor gets two different roles?
-                // TODO make this foreach into a function... but where
                 foreach ($instrs as $instructor) {
                     $user = $this->translate_ccle_course_instructorsget(
                         $instructor
@@ -459,8 +478,6 @@ class enrol_database_plugin extends enrol_plugin {
 
         }
 
-        // Save memory?
-        unset($courses);
         // END CCLE-2275: Fetch users and limit courses to run sync on.
 
         $preventfullunenrol = empty($externalcourses);
