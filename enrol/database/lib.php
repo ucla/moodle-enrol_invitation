@@ -378,7 +378,6 @@ class enrol_database_plugin extends enrol_plugin {
         }
 
         $enrolment_info = array();
-        $roleid_to_role = array_flip($roles);
 
         $failed_users = array();
         foreach ($course_indexed as $courseid => $set) {
@@ -415,7 +414,7 @@ class enrol_database_plugin extends enrol_plugin {
                         $instructor
                     );
 
-                    $user[$rolefield] = $roleid_to_role[role_mapping(
+                    $user[$rolefield] = $roles[role_mapping(
                         $instructor['role'],
                         $otherroles,
                         $subjarea
@@ -446,7 +445,7 @@ class enrol_database_plugin extends enrol_plugin {
                     $names = explode(',', $student['full_name_person']);
                     $firstmiddle = explode(' ', trim($names[1]));
 
-                    $user[$rolefield] = $roleid_to_role[
+                    $user[$rolefield] = $roles[
                         get_moodlerole($studentpr, $subjarea)
                     ];
 
