@@ -209,6 +209,14 @@ if (file_exists($_config_private_)) {
     require_once($_config_private_);
 }
 
+// set external database connection settings after config_private.php has
+// been read for the Registrar connection details
+$CFG->forced_plugin_settings['enrol_database']['dbtype'] = $CFG->registrar_dbtype;
+$CFG->forced_plugin_settings['enrol_database']['dbhost'] = $CFG->registrar_dbhost;
+$CFG->forced_plugin_settings['enrol_database']['dbuser'] = $CFG->registrar_dbuser;
+$CFG->forced_plugin_settings['enrol_database']['dbpass'] = $CFG->registrar_dbpass;
+$CFG->forced_plugin_settings['enrol_database']['dbname'] = $CFG->registrar_dbname;
+
 // This will bootstrap the moodle functions.
 require_once($_dirroot_ . '/lib/setup.php');
 
