@@ -697,6 +697,11 @@ class uclacoursecreator {
         if ($done) {
             $this->insert_term_rci();
             $this->queue_requestors();
+
+            // We're done, we're going to trigger an event that we made up
+            $eventdata = new stdclass();
+            $eventdata->term = $thiscronterm;
+            events_trigger('course_creator_term_finished', $eventdata);
         }
 
         return true;
