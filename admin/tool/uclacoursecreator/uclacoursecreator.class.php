@@ -103,6 +103,9 @@ class uclacoursecreator {
     // Thing to prevent empty pointless emails
     public $had_action = false;
 
+    // Holds all courses built, hopefully correctly, this session.
+    public $built_courseids = array();
+
     // Note: There are dynamically generated fields for this class, which
     // contain references to the enrollment object.
     // I.E. $this->enrol_meta_plugin
@@ -639,13 +642,17 @@ class uclacoursecreator {
                 // The course got built, but the process was interrupted at
                 // one point... but why?
                 $course = $created_courses[$reqkey];
+                $courseid = $course->id;
 
                 if ($done) {
                     $action = UCLA_COURSE_BUILT;
+
+                    // Save the created course for the trigger later...
+                    $this->build_courseids[$courseid] = $courseid;
                 } else {
                     if ($reverting) {
                         ob_start();
-                        $result = delete_course($course->id);
+                        $result = delete_course($courseid);
                         $delete_results = ob_get_clean();
 
                         $action = UCLA_COURSE_TOBUILD;
@@ -654,7 +661,7 @@ class uclacoursecreator {
 
                         $this->debugln($delete_results);
                     } else {
-                        $this->debugln('leaving course ' . $course->id . ' '
+                        $this->debugln('leaving course ' . $courseid . ' '
                             . $course->shortname);
                     }
                 }
@@ -697,11 +704,6 @@ class uclacoursecreator {
         if ($done) {
             $this->insert_term_rci();
             $this->queue_requestors();
-
-            // We're done, we're going to trigger an event that we made up
-            $eventdata = new stdclass();
-            $eventdata->term = $thiscronterm;
-            events_trigger('course_creator_term_finished', $eventdata);
         }
 
         return true;
@@ -2040,6 +2042,13 @@ class uclacoursecreator {
             ucla_send_mail($this->get_config('course_creator_email'), 
                 'Course Creator Summary ' . $this->shell_date, 
                 $this->email_log);
+
+            if (!empty($this->built_courseids)) {
+                $ed = new stdclass();
+
+                $ed->courses_built = $this->build_courseids;
+                events_trigger('course_creator_finished', $ed);
+            }
         }
 
         $this->close_log_file_pointer();
