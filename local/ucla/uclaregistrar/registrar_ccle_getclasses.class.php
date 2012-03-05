@@ -17,6 +17,8 @@
 require_once(dirname(__FILE__).'/registrar_query.class.php');
 
 class registrar_ccle_getclasses extends registrar_query {
+    var $unindexed_key_translate = array('term' => 0, 'srs' => 1);
+
     function validate($new, $old) {
         $tests = array('srs', 'term');
 

@@ -3,6 +3,8 @@
 require_once(dirname(__FILE__) . '/registrar_query.class.php');
 
 class registrar_cis_coursegetall extends registrar_query {
+    var $unindexed_key_translate = array('term' => 0, 'subjarea' => 1);
+
     function validate($new, $old) {
         // TODO add some validations
         return true;
@@ -12,7 +14,10 @@ class registrar_cis_coursegetall extends registrar_query {
         $term = $args[0];
         $sa = $args[1];
 
+        if (!ucla_validator('term', $term)) {
+            return false;
+        }
+
         return "EXECUTE CIS_courseGetAll '$term', '$sa'";
     }
-
 }
