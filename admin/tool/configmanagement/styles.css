@@ -1,0 +1,32 @@
+
+.mdl-align {
+  text-align: center;
+}
+
+.redfont {
+  color: red;
+}
+
+div {
+display: block;
+}
+
+label {
+cursor: default;
+}
+
+#adminsettings fieldset {
+color: black;
+}
+
+#adminsettings .defaultsnext {
+margin-right: 0.5em;
+display: inline;
+}
+
+#adminsettings .form-label {
+  display: block;
+  float: left;
+  width: 12.5em;
+  text-align: right;
+}

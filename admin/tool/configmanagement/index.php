@@ -37,11 +37,13 @@ require_once($CFG->libdir.'/adminlib.php');
 require_once($CFG->dirroot.'/admin/tool/configmanagement/configmanagementlib.php');
 
     
-    
+    // dirname file
 require_login();
 global $USER;
 global $ME;
 global $DB;
+   // global $PAGE;
+$PAGE->set_context(null);
     
 if (!is_siteadmin($USER->id)) {
     error(get_string('adminsonlybanner'));
@@ -78,18 +80,10 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
        && !optional_param('role_names', 0, PARAM_RAW) && !optional_param('role_sortorder', 0, PARAM_RAW)
        && !optional_param('blocks', 0, PARAM_RAW) && !optional_param('mdodules', 0, PARAM_RAW)
        && !optional_param('user', 0, PARAM_RAW) && !optional_param('configphp', 0, PARAM_RAW) ) {
-        error(get_string('configerrornofilemsg', 'tool_configmanagement'), $ME);
+        //error(get_string('configerrornofilemsg', 'tool_configmanagement'), $ME);
+        // TODO: $ME is the wrong link
+        print_error('configerrornofilemsg', 'tool_configmanagement', $CFG->wwwroot.'/admin/tool/configmanagement/index.php');
     }
-    /* TO DO
-    if(!(optional_param('config', 0, PARAM_RAW) || optional_param('plugins', 0, PARAM_RAW) || optional_param('roles', 0, PARAM_RAW)
-            || optional_param('role_allow_assign', 0, PARAM_RAW)  || optional_param('role_allow_override', 0, PARAM_RAW)
-            || optional_param('role_assignments', 0, PARAM_RAW)   || optional_param('role_capabilities', 0, PARAM_RAW)
-            || optional_param('role_names', 0, PARAM_RAW)         || optional_param('role_sortorder', 0, PARAM_RAW)
-            || optional_param('blocks', 0, PARAM_RAW)             || optional_param('mdodules', 0, PARAM_RAW)
-            || optional_param('user', 0, PARAM_RAW)               || optional_param('configphp', 0, PARAM_RAW)) ) 
-    {
-        error(get_string('configerrornofilemsg', 'tool_configmanagement'), $ME);
-    }*/
 
     $dumpfile = clean_param($dumpfile, PARAM_FILE);
     if (!file_exists($dir)) {        
@@ -474,14 +468,18 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
         else {
             echo "<p class=\"mdl-align redfont\">Config.php skipped.</p>\n";
         }
-        print_continue($ME);
+        print_continue("index.php");
+        //print_continue($ME);
         fclose($fp);
 
     } else {
         error(get_string('configfileopenerror', 'tool_configmanagement', $dumpfile), $ME);
     }
 
-}
+} 
+    // SSC 1181: load configs is a feature that is no longer used
+    //           thus it is not ported to 2.0
+    /*
 else if (isset($_POST['load']) && empty($_POST['save'])) {
     //Load Configuration Settings
     if (!empty($_POST['loadfile'])) {
@@ -535,6 +533,7 @@ else if (isset($_POST['load']) && empty($_POST['save'])) {
 
     print_continue($ME);
 }
+    */
 else {
     //User Interface
     $filedate = date('m.d.y_a.g.i');
