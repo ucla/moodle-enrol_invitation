@@ -102,49 +102,67 @@ function make_idnumber($courseinfo) {
 }
 
 /**
- *  Convenience function for returning a single course info.
+ *  Fetch each corresponding term and srs for a particular courseid.
  *  @param  $courseid   Primary key for course table
  **/
-function ucla_get_course_info($courseid) {
+function ucla_map_courseid_to_termsrses($courseid) {
     global $DB;
 
-    $many = ucla_get_courses_info(array($courseid));
-
-    return reset($many);
+    return $DB->get_records('ucla_request_classes', 
+        array('courseid' => $courseid), '', 'id, term, srs');
 }
 
 /**
- *  Returns a set of courses based on the courseid provided.
- *  @author Yangmun Choi
- *  @param  
- *      $courseids   `id` field of {course} table.
- *  @return 
- *      Array (
- *          courseid => 
- *              Array (
- *                  make_idnumber() => reg_info_object
- *                  ...
- *              )
- *          )
+ *  Fetch the corresponding courseid for a particular term and srs.
  **/
-function ucla_get_courses_info($courseids) {
+function ucla_map_termsrs_to_courseid($term, $srs) {
     global $DB;
 
-    list($sql, $param) = $DB->get_in_or_equal($courseids);
-    $where = '`courseid` ' . $sql;
-    
-    $requests = $DB->get_records_select('ucla_request_classes',
-        $where, $param);
+    $dbo = $DB->get_record_sql('
+        SELECT courseid
+        FROM {ucla_request_classes} rc
+        INNER JOIN {course} co ON rc.courseid = co.id
+        WHERE rc.term = :term AND rc.srs = :srs
+    ', array('term' => $term, 'srs' => $srs), '', 'courseid');
 
-    // Index... this seems like it can be abstracted
+    if (isset($dbo->courseid)) {
+        return $dbo->courseid;
+    }
 
-    return index_ucla_course_requests($requests, 'courseid');
+    return false;
 }
 
 /**
- *  Convenience function.
+ *  Fetch the corresponding information from the registrar for a 
+ *  particular term and srs.
+ **/
+function ucla_get_reg_classinfo($term, $srs) {
+    global $DB;
+
+    $records = $DB->get_record('ucla_reg_classinfo',
+            array('term' => $term, 'srs' => $srs));
+
+    return $records;
+}
+
+/**
+ *  Convenience function to get registrar information for classes.
+ **/
+function ucla_get_course_info($courseid) {
+    $reginfos = array();
+    $termsrses = ucla_map_courseid_to_termsrses($courseid);
+    foreach ($termsrses as $termsrs) {
+        $reginfos[] = ucla_get_reg_classinfo($termsrs->term, $termsrs->srs);
+    }
+
+    return $reginfos;
+}
+
+/**
+ *  Convenience function. 
  *  @param  $requests   
  *      Array of Objects with properties term, srs, and $indexby
+ *      if the requests do not have $indexby, then it will not be indexed
  *  @param  $indexby    What you want as the primary index
  **/
 function index_ucla_course_requests($requests, $indexby='setid') {
@@ -184,65 +202,6 @@ function ucla_get_courses_by_terms($terms) {
 }
 
 /**
- *  Gets the course sets for a particular set of term-srs's.
- *  @param  $termsrses  
- *      Array(
- *          Array(
- *              'term' => term,
- *              'srs' => srs
- *          ),
- *          ...
- *      )
- *    
- **/
-function ucla_get_courses($termsrses) {
-    global $DB;
-   
-    $termsrssql = array();
-    $params = array();
-
-    foreach ($termsrses as $termsrs) {
-        $param = array($termsrs['srs'], $termsrs['term']);
-        $sql = '`srs` = ? AND `term` = ?';
-
-        $termsrssql[] = $sql;
-        $params = array_merge($params, $param);
-    }
-
-    $where = implode(' OR  ', $termsrssql);
-
-    $records = $DB->get_records_select('ucla_request_classes',
-        $where, $params);
-
-    if (!$records) {
-        return array();
-    }
-
-    return index_ucla_course_requests($records, 'courseid');
-}
-
-/**
- *  Convenience function that returns the courses informations for
- *  a term and srs.
- *  @param  $term   The term
- *  @param  $srs    The SRS
- *  @return 
- *      Array(
- *          make_idnumber() => ucla_request_classes object
- *              ...
- *      )
- **/
-function ucla_get_course($term, $srs) {
-    $ugcs = ucla_get_courses(array('term' => $term, 'srs' => $srs));
-
-    if (empty($ugcs)) {
-        return false;
-    }
-
-    return reset($ugcs);
-}
-
-/**
  *  Returns a pretty looking term.
  *  TODO replace with termcaching
  *  TODO work with different millenia
@@ -266,6 +225,10 @@ function ucla_term_to_text($term) {
     }
 
     return $termtext;
+}
+
+function is_summer_term($term) {
+    return ucla_validator('term', $term) && substr($term, -1, 1) == '1';
 }
 
 /**
@@ -374,6 +337,7 @@ function local_ucla_cron() {
         if (class_exists($cn)) {
             $runner = new $cn();
             if (method_exists($runner, 'run')) {
+                echo "Running $cn\n";
                 $result = $runner->run($terms);
             } else {
                 echo "Could not run() for $cn\n";
