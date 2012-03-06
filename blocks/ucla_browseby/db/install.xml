@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="blocks/ucla_browseby/db" VERSION="20120305" COMMENT="XMLDB file for Moodle blocks/ucla_browseby"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="ucla_browseall_instrinfo" COMMENT="Tables maintains a cache for the results from ccle_getinstrinfo." NEXT="ucla_browseall_classinfo">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="term"/>
+        <FIELD NAME="term" TYPE="char" LENGTH="3" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="srs"/>
+        <FIELD NAME="srs" TYPE="char" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="term" NEXT="uid"/>
+        <FIELD NAME="uid" TYPE="char" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="srs" NEXT="profcode"/>
+        <FIELD NAME="profcode" TYPE="char" LENGTH="2" NOTNULL="true" SEQUENCE="false" PREVIOUS="uid" NEXT="firstname"/>
+        <FIELD NAME="firstname" TYPE="char" LENGTH="25" NOTNULL="false" SEQUENCE="false" PREVIOUS="profcode" NEXT="middlename"/>
+        <FIELD NAME="middlename" TYPE="char" LENGTH="25" NOTNULL="false" SEQUENCE="false" PREVIOUS="firstname" NEXT="lastname"/>
+        <FIELD NAME="lastname" TYPE="char" LENGTH="25" NOTNULL="false" SEQUENCE="false" PREVIOUS="middlename" NEXT="suffix"/>
+        <FIELD NAME="suffix" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="lastname" NEXT="subjarea"/>
+        <FIELD NAME="subjarea" TYPE="char" LENGTH="7" NOTNULL="false" SEQUENCE="false" COMMENT="This field is not provided by the stored procedure, and needs to be added into the data manually." PREVIOUS="suffix"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="termsrsuid" UNIQUE="true" FIELDS="term, srs, uid" NEXT="termsubjarea"/>
+        <INDEX NAME="termsubjarea" UNIQUE="false" FIELDS="term, subjarea" PREVIOUS="termsrsuid"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="ucla_browseall_classinfo" COMMENT="Classes information cached from the Registrar via ccle_getcoursesall." PREVIOUS="ucla_browseall_instrinfo">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="srs"/>
+        <FIELD NAME="srs" TYPE="char" LENGTH="9" NOTNULL="true" SEQUENCE="false" COMMENT="9 digit srs" PREVIOUS="id" NEXT="term"/>
+        <FIELD NAME="term" TYPE="char" LENGTH="3" NOTNULL="true" SEQUENCE="false" COMMENT="This field is not provided by the stored procedure, it is added manually before adding data to the table." PREVIOUS="srs" NEXT="subjarea"/>
+        <FIELD NAME="subjarea" TYPE="char" LENGTH="7" NOTNULL="true" SEQUENCE="false" PREVIOUS="term" NEXT="course"/>
+        <FIELD NAME="course" TYPE="char" LENGTH="8" NOTNULL="false" SEQUENCE="false" PREVIOUS="subjarea" NEXT="session"/>
+        <FIELD NAME="session" TYPE="char" LENGTH="2" NOTNULL="false" SEQUENCE="false" PREVIOUS="course" NEXT="section"/>
+        <FIELD NAME="section" TYPE="char" LENGTH="6" NOTNULL="false" SEQUENCE="false" PREVIOUS="session" NEXT="url"/>
+        <FIELD NAME="url" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" PREVIOUS="section" NEXT="name"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="35" NOTNULL="true" SEQUENCE="false" COMMENT="Name of the person taking care of this site" PREVIOUS="url" NEXT="email"/>
+        <FIELD NAME="email" TYPE="char" LENGTH="60" NOTNULL="true" SEQUENCE="false" COMMENT="Email of the maintainer of the course" PREVIOUS="name" NEXT="coursetitleshort"/>
+        <FIELD NAME="coursetitleshort" TYPE="char" LENGTH="19" NOTNULL="true" SEQUENCE="false" COMMENT="Abbreviated title of the course." PREVIOUS="email" NEXT="coursetitlelong"/>
+        <FIELD NAME="coursetitlelong" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" PREVIOUS="coursetitleshort" NEXT="sectiontitle"/>
+        <FIELD NAME="sectiontitle" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" PREVIOUS="coursetitlelong" NEXT="sectnoteseq"/>
+        <FIELD NAME="sectnoteseq" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="false" SEQUENCE="false" PREVIOUS="sectiontitle" NEXT="sectnoteprtcd"/>
+        <FIELD NAME="sectnoteprtcd" TYPE="char" LENGTH="1" NOTNULL="false" SEQUENCE="false" PREVIOUS="sectnoteseq" NEXT="activitytype"/>
+        <FIELD NAME="activitytype" TYPE="char" LENGTH="3" NOTNULL="true" SEQUENCE="false" PREVIOUS="sectnoteprtcd" NEXT="sect_no"/>
+        <FIELD NAME="sect_no" TYPE="char" LENGTH="6" NOTNULL="false" SEQUENCE="false" PREVIOUS="activitytype" NEXT="catlg_no"/>
+        <FIELD NAME="catlg_no" TYPE="char" LENGTH="8" NOTNULL="false" SEQUENCE="false" PREVIOUS="sect_no" NEXT="sect_enrl_stat_cd"/>
+        <FIELD NAME="sect_enrl_stat_cd" TYPE="char" LENGTH="1" NOTNULL="false" SEQUENCE="false" PREVIOUS="catlg_no" NEXT="ses_grp_cd"/>
+        <FIELD NAME="ses_grp_cd" TYPE="char" LENGTH="3" NOTNULL="false" SEQUENCE="false" PREVIOUS="sect_enrl_stat_cd"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="termsrs" UNIQUE="true" FIELDS="term, srs" NEXT="subjareaindex"/>
+        <INDEX NAME="subjareaindex" UNIQUE="false" FIELDS="subjarea" PREVIOUS="termsrs"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>
