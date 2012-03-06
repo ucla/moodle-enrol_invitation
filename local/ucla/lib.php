@@ -509,7 +509,7 @@ function get_pseudorole($profcode, array $other_roles) {
 
     switch ($profcode) {
         case 1:
-            return "instructor";
+            return "editingteacher";
         case 2:
             if ($hasrole[1] && $hasrole[2]) {
                 return "ta";
