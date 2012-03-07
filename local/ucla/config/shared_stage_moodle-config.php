@@ -91,6 +91,9 @@ $CFG->forced_plugin_settings['tool_myucla_url']['user_name'] = 'CCLE Admin';   /
 $CFG->forced_plugin_settings['tool_myucla_url']['user_email'] = 'ccle@ucla.edu';  // email for registering URL with My.UCLA
 $CFG->forced_plugin_settings['tool_myucla_url']['override_debugging'] = true;   // test sending MyUCLA urls
 
+// Pre-pop
+$CFG->forced_plugin_settings['enrol_database']['terms'] = $terms_to_built;
+
 // turn off messaging (CCLE-2318 - MESSAGING)
 $CFG->messaging = false;
 

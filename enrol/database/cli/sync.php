@@ -111,7 +111,7 @@ if ($singlecourseid !== false) {
     $terms = array();
 
     // Terms provided in arguments?
-    if (!empty($reg_argv)) {
+    if (count($reg_argv) > 1) {
         $terms = $reg_argv;
     } 
 
@@ -126,18 +126,7 @@ if ($singlecourseid !== false) {
 
     // If use the terms in enrol_database configuration
     if (empty($terms)) {
-        $conf_terms = get_config('enrol_database', 'terms');
-
-        if ($conf_terms) {
-            if (is_array($conf_terms)) {
-                $terms = $conf_terms;
-            } else {
-                $dirtyterms = explode(',', $conf_terms);
-                foreach ($dirtyterms as $dirtyterm) {
-                    $terms[] = trim($dirtyterm);
-                }
-            }
-        }
+        $terms = get_config('enrol_database', 'terms');
     }
 }
 
