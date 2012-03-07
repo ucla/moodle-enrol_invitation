@@ -70,6 +70,7 @@ Options:
 
 Example:
 \$sudo -u www-data /usr/bin/php enrol/database/cli/ucla_sync.php ([TERM] ([TERM] ... ))
+\$sudo -u www-data /usr/bin/php enrol/database/cli/ucla_sync.php --course-id [COURSEID]
 ";
     echo $help;
     die;
