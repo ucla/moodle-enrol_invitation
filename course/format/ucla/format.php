@@ -660,7 +660,10 @@ while ($section <= $course->numsections) {
                         $table->align = $aligns;
 
                         $table->attributes['class'] = 'boxalignleft';
-                        $table->data[] = $desired_info;
+                        
+                        // use array_values, to remove array keys, which are 
+                        // mistaken as another css class for given column
+                        $table->head = array_values($desired_info);
 
                         foreach ($goal_users as $user) {
                             $user_row = array();
