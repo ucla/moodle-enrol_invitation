@@ -70,7 +70,6 @@ if (! empty($course_info)){
     }
     
     foreach ($course_info as $info_for_one_course){
-        print_r($info_for_one_course);
         if (count($course_info) > 1){
             $modules[] = new ucla_cp_text_module($info_for_one_course->subj_area
                     .$info_for_one_course->coursenum.'-' .$info_for_one_course->sectnum, 
@@ -193,8 +192,9 @@ $modules[] = new ucla_cp_module('course_grades', new moodle_url(
 /******************************** Student Functions *********************/
 $temp_cap = 'enrol/self:unenrolself';
 $temp_tag = array('ucla_cp_mod_student');
-
 $modules[] = new ucla_cp_module('ucla_cp_mod_student', null, null, $temp_cap);
+
+
 $modules[] = new ucla_cp_module('edit_profile', new moodle_url(
         $CFG->wwwroot . '/user/edit.php'), $temp_tag, $temp_cap);
 $modules[] = new ucla_cp_module('student_grades', new moodle_url(
@@ -253,3 +253,4 @@ if(!empty($CFG->block_course_menu_studentmanual_url)) {
 	echo '<dd>'.get_string('studentmanualclick','block_course_menu').'</dd>';
 }
 */
+

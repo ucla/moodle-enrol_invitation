@@ -88,7 +88,7 @@ class block_ucla_control_panel extends block_base {
 
         if (!isset($views['default'])) {
             $views['default'] = array('ucla_cp_mod_common',
-                'ucla_cp_mod_myucla', 'ucla_cp_mod_other, ucla_cp_mod_student');
+                'ucla_cp_mod_myucla', 'ucla_cp_mod_other','ucla_cp_mod_student');
         }
 
         ksort($views);
@@ -159,13 +159,14 @@ class block_ucla_control_panel extends block_base {
         foreach ($block_modules as $block => $blocks_modules) {
             $modules = array_merge($modules, $blocks_modules);
         }
-
+        
         // Figure out which elements of the control panel to display and
         // which section to display the element in
         foreach ($modules as $module) {
+            //If the modules capability matches that of the current context.
             if ($module->validate($course, $context)) {
                 $module_name = $module->get_key();
-
+                
                 if (!$module->is_tag()) {
                     // If something fits with more than one tag, add
                     // it to both of them
