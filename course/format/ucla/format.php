@@ -97,16 +97,7 @@ $params = array();
 $params[] = $course->id;
 
 // Instructor configuration, move out to config file 
-$instructor_types = array(
-    'Instructor' => array(
-        'editinginstructor',
-        'ta_instructor'
-    ),
-    'Teaching Assistant' => array(
-        'ta',
-        'ta_admin'
-    ),
-);
+$instructor_types = $CFG->instructor_levels_roles;
 
 // map-reduce-able
 $roles = array();
