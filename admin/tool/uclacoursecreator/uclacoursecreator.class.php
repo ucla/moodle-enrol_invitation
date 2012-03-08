@@ -1968,7 +1968,7 @@ class uclacoursecreator {
         unlink($test_file);
 
         // This is saved for creating XML and log files
-        $this->shell_date = date('Ymd-Gi');
+        $this->shell_date = date('Ymd-Hi');
         $this->full_date = date('r');
     }
 
