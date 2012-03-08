@@ -7,20 +7,20 @@
 
 require_once(dirname(__FILE__) . '/ucla_cp_module.php');
 require_once(dirname(__FILE__) . '/modules/ucla_cp_text_module.php');
-global $CFG, $DB;
+global $CFG, $DB, $USER;
 
 // Please note that we should have
 // $course - the course that we are currently on
 // $context - the context of the course
 
+/******************************** Common Functions *********************/
 // Special section for special people
 $temp_cap = 'moodle/course:update';
+// Saving typing time
+$temp_tag = array('ucla_cp_mod_common');
 
 // The container for the special section
 $modules[] = new ucla_cp_module('ucla_cp_mod_common', null, null, $temp_cap);
-
-// Saving typing time
-$temp_tag = array('ucla_cp_mod_common');
 
 // Capability needed for things that TAs can also do
 $ta_cap = 'moodle/course:enrolreview';
@@ -43,12 +43,17 @@ $modules[] = new ucla_cp_module('turn_editing_on', new moodle_url(
         array('id' => $course->id, 'edit' => 'on', 'sesskey' => sesskey())), 
     $temp_tag, $temp_cap, $spec_ops);
 
-//MyUCLA Functions
-//TODO: Change get_course_info to ucla_map_courseid_to_termsrs
+/******************************** MyUCLA Functions *********************/
+
+
+//TODO: what do if course_info corrupted.
 $course_info = ucla_get_course_info($course->id);
 //Do not display these courses if the user is not currently on a valid course page.
 if (! empty($course_info)){
     $temp_tag = array('ucla_cp_mod_myucla');
+    //Redundency in case prev temp_cap isn't this one.
+    $temp_cap = 'moodle/course:update';
+
     $modules[] = new ucla_cp_module('ucla_cp_mod_myucla');
     $first_course = array_shift(array_values($course_info));
     
@@ -56,8 +61,8 @@ if (! empty($course_info)){
     if($first_course->term[2]=='1') { 
         global $DB;
         if(!$session = $DB->get_field('ucla_reg_classinfo', 
-                                'session_group', 'term', $course_info[0]['term'], 
-                                'srs', $course_info[0]['srs'])) {
+                                'session_group', 'term', $first_course->term, 
+                                'srs', $first_course->srs)) {
             $session = '';
         }
     } else {
@@ -95,15 +100,17 @@ if (! empty($course_info)){
     
 }
 
+/******************************** Other Functions *********************/
 // Other Functions
-$modules[] = new ucla_cp_module('ucla_cp_mod_other');
+$modules[] = new ucla_cp_module('ucla_cp_mod_other', null, null, $temp_cap);
 
 // Saving typing...
 $temp_tag = array('ucla_cp_mod_other');
-
+//Redundency in case prev temp_cap isn't this one.
+$temp_cap = 'moodle/course:update';
 // Edit user profile!
 $modules[] = new ucla_cp_module('edit_profile', new moodle_url(
-        $CFG->wwwroot . '/user/edit.php'), $temp_tag, null);
+        $CFG->wwwroot . '/user/edit.php'), $temp_tag, $temp_cap);
 
 /* Import from classweb!? TODO
 $modules[] = new ucla_cp_module('import_classweb', new moodle_url('view.php'), 
@@ -124,11 +131,13 @@ $modules[] = new ucla_cp_module('view_roster', new moodle_url(
     $CFG->wwwroot . '/user/index.php', array('id' => $course->id)), 
     $temp_tag, $ta_cap);
 
-// Advanced functions
+/******************************** Advanced Functions *********************/
 $modules[] = new ucla_cp_module('ucla_cp_mod_advanced', null, null, $temp_cap);
 
 // Saving typing...again
 $temp_tag = array('ucla_cp_mod_advanced');
+//Redundency in case prev temp_cap isn't this one.
+$temp_cap = 'moodle/course:update';
 
 // Role assignments for particular courses.
 if (ucla_cp_module::load('assign_roles')) {
@@ -180,3 +189,67 @@ $modules[] = new ucla_cp_module('course_files', new moodle_url(
 $modules[] = new ucla_cp_module('course_grades', new moodle_url(
     $CFG->wwwroot . '/grade/index.php', array('id' => $course->id)),
     $temp_tag, null);
+
+/******************************** Student Functions *********************/
+$temp_cap = 'enrol/self:unenrolself';
+$temp_tag = array('ucla_cp_mod_student');
+
+$modules[] = new ucla_cp_module('ucla_cp_mod_student', null, null, $temp_cap);
+$modules[] = new ucla_cp_module('edit_profile', new moodle_url(
+        $CFG->wwwroot . '/user/edit.php'), $temp_tag, $temp_cap);
+$modules[] = new ucla_cp_module('student_grades', new moodle_url(
+        $CFG->wwwroot.'/grade/index.php?id='.$course->id), $temp_tag, $temp_cap);
+
+
+if($USER->auth!="shibboleth"){
+    $modules[] =  new ucla_cp_module('student_change_password', new moodle_url(
+        $CFG->wwwroot.'/login/change_password.php?='.$USER->id), $temp_tag, $temp_cap);
+}
+
+$course_info = ucla_get_course_info($course->id);
+//Do not display these courses if the user is not currently on a valid course page.
+if (! empty($course_info)){
+    $first_course = array_shift(array_values($course_info));
+    $course_term = $first_course->term;
+    $course_srs = $first_course->srs;
+    $modules[] =  new ucla_cp_module('student_myucla_grades', new moodle_url(
+    'https://be.my.ucla.edu/directLink.aspx?featureID=71&term='.$course_term.'&srs='.$course_srs), $temp_tag, $temp_cap);
+    $modules[] =  new ucla_cp_module('student_myucla_classmates', new moodle_url(
+    'https://be.my.ucla.edu/directLink.aspx?featureID=72&term='.$course_term.'&srs='.$course_srs), $temp_tag, $temp_cap);
+    if($first_course->term[2]=='1'){//summer course
+        global $DB;
+    
+        if(!$session = $DB->get_field('ucla_reg_classinfo', 
+                                'session_group', 'term', $first_course->term, 
+                                'srs', $first_course->srs)) {
+            $session = '';
+        }     
+        else{
+            $session = '';
+        }
+    }
+    $modules[] = new ucla_cp_module('student_myucla_textbooks', new moodle_url(
+            'http://www.collegestore.org/textbookstore/main.asp?remote=1&ref=ucla&term='.$course_term.$session.'&course='.$course_srs.'&getbooks=Display+books')
+            , $temp_tag, $temp_cap);   
+}
+/*   if (!is_collab($course->id)){
+    }
+
+        //START UCLA Modification
+        //tumland - CCLE-1660 - added tab for user preferences
+        //check to see if the user has any applicable preferences
+        $userprefs = find_applicable_preferences($USER->id);
+        if(!empty($userprefs)){
+            //add list object if any preferences are found
+            echo '<a href="'.$CFG->wwwroot.'/user/userprefs_editor/index.php?id='.$USER->id.'&course='.$course->id.'">'.get_string('cptitle','userprefs').'</a></dt>';
+            print_string('cpdescription','userprefs');
+
+        }
+
+
+                                                                                                                                     
+
+if(!empty($CFG->block_course_menu_studentmanual_url)) {
+	echo '<dd>'.get_string('studentmanualclick','block_course_menu').'</dd>';
+}
+*/

@@ -102,4 +102,18 @@ $string['course_grades_post'] = 'View your Moodle gradebook. Activate the advanc
 $string['course_edit'] = 'Course settings';
 $string['course_edit_post'] = 'Edit the full name and description of the course or hide the course from students.';
 
+
+/** Stuff for Student Control Panel **/
+$string['ucla_cp_mod_student'] = 'Student Control Panel';
+$string['student_grades'] = 'Grades';
+$string['student_grades_post'] = 'Grades';
+$string['student_change_password'] = 'Change Password';
+$string['student_change_password_post'] = 'Click this link to change your password';
+$string['student_myucla_grades'] = 'Grades (MyUCLA)';
+$string['student_myucla_grades_post'] = 'View your grades on MyUCLA (if your instructor has made them available).';
+$string['student_myucla_classmates'] = 'Classmates (MyUCLA)';
+$string['student_myucla_classmates_post'] = 'View a list of your classmates on MyUCLA.';
+$string['student_myucla_textbooks'] = 'Textbooks (MyUCLA)';
+$string['student_myucla_textbooks_post'] = 'View required textbooks for this course on MyUCLA.)';
+
 /** End of File **/
