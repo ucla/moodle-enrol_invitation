@@ -190,8 +190,16 @@ if (!empty($courseinfos)) {
                 . $theterm . ' vs ' . $thisterm);
         }
 
-        $displayinfos[$key] = $courseinfo->subj_area 
-            . $courseinfo->coursenum . '-' . $courseinfo->sectnum;
+        $course_text = $courseinfo->subj_area . $courseinfo->coursenum . '-' . 
+                $courseinfo->sectnum;
+        
+        // if section is cancelled, then cross it out
+        if (enrolstat_is_cancelled($courseinfo->enrolstat)) {
+            $course_text = html_writer::tag('span', $course_text, 
+                    array('class' => 'course_text_cancelled'));
+        }
+        
+        $displayinfos[$key] = $course_text;
     }
 
     $regcoursetext = implode(' / ', $displayinfos);

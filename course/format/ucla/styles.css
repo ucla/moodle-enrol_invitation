@@ -57,6 +57,10 @@
     text-align: center;
 }
 
+.course_text_cancelled {
+    text-decoration: line-through;
+}
+
 /* stlying for instructors/tas contact listing and office hours */
 .instr-info table {
     margin-top: 10px;
