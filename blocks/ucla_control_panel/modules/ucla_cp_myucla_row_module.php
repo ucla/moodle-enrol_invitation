@@ -14,21 +14,33 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/* This module is meant to be used in order to display pure text (no links) 
- * within the control panel. The item_name of the module represents the pure text.
+/* This module is meant to be used in order to display an individual classes 
+ * myucla links.
  */
-class ucla_cp_text_module extends ucla_cp_module{
+class ucla_cp_myucla_row_module extends ucla_cp_module{
+    /**
+     *  @var elements
+     * This is an array of ucla_cp_modules that contains the elements of this row.
+     **/
+    var $elements;    
     
-    function __construct($item_name=null,  $tags=null,
+    function __construct($tags=null,
             $capability=null, $options=null) {
-
-      parent::__construct($item_name, null, $tags, $capability, $options);
-      //This function does not used localized strings, so default false makes more sense.
-      $this->options['post'] = false;
+      parent::__construct(null, null, $tags, $capability, $options);
     }    
+
+    //Adds element to the end of the row.
+    function add_element($element){
+        $this->elements[] = $element;
+    }
     
-    //Workaround so the renderer recognizes this as text
-    function is_tag() {
+    //Returns an array containing elements in the row
+    function get_elements(){
+        return $this->elements;
+    }
+    
+    function is_tag(){
         return false;
     }
+
 }

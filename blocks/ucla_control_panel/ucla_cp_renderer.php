@@ -17,8 +17,15 @@
 class ucla_cp_renderer {
     private $history = array();
 
+    
+    static function cmp($a, $b) {
+        return( strcmp($a->get_key(), $b->get_key()) );
+    }
+    
     /**
      *  get_content_array()
+     * @param int $size the size of the tables you want the data sorted into.
+     * @param bool $sort whether or not you want to items sorted based on name.
      *
      *  @return Array This will return the data sorted into tables.
      *      Normally, this table will be 2 levels deep (Array => Array).
@@ -28,7 +35,7 @@ class ucla_cp_renderer {
      *      <item>_pre represents strings that are printed before the link.
      *      <item>_post represents the string that is printed after the link.
      **/
-    static function get_content_array($contents, $size=null) {
+    static function get_content_array($contents, $size=null, $sort=true) {
         $all_stuff = array();
 
         // This is the number of groups to sort this into
@@ -44,10 +51,10 @@ class ucla_cp_renderer {
             $action = $content;
             $title = $content->get_key();
 
-            $all_stuff[$title] = $action;
+            $all_stuff[] = $action;
         }
 
-        ksort($all_stuff);
+       usort($all_stuff,"ucla_cp_renderer::cmp");
 
         $disp_stuff = array();
 

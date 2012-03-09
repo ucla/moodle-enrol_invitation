@@ -172,14 +172,14 @@ class block_ucla_control_panel extends block_base {
                     // it to both of them
                     
                     foreach ($module->tags as $section) {
-                        $sections[$section][$module_name] = $module;
+                        $sections[$section][] = $module;
                     }
                 } else {
                     $tags[$module_name] = $module;
                 }
             }
         }
-       
+        
         // Eliminate unvalidated sections as well as repeated-displayed
         // sections
         // Note that these sections appear in the order they were placed
@@ -194,13 +194,13 @@ class block_ucla_control_panel extends block_base {
             }
 
             // Go through and make sure we're not repeating modules
-            foreach ($modules as $mkey => $module) {
+            /*foreach ($modules as $mkey => $module) {
                 if (isset($already_used[$mkey])) {
                     unset($sections[$tag][$mkey]);
                 } else {
                     $already_used[$mkey] = true;
                 }
-            }
+            }*/
         }
      
         // Now based on each view, sort the tags into their proper
@@ -236,7 +236,6 @@ class block_ucla_control_panel extends block_base {
 
             $all_modules[$tag][$tag] = $modules;
         }
-
         return $all_modules;
     }
 

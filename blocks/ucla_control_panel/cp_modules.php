@@ -7,6 +7,7 @@
 
 require_once(dirname(__FILE__) . '/ucla_cp_module.php');
 require_once(dirname(__FILE__) . '/modules/ucla_cp_text_module.php');
+require_once(dirname(__FILE__) . '/modules/ucla_cp_myucla_row_module.php');
 global $CFG, $DB, $USER;
 
 // Please note that we should have
@@ -54,7 +55,7 @@ if (! empty($course_info)){
     //Redundency in case prev temp_cap isn't this one.
     $temp_cap = 'moodle/course:update';
 
-    $modules[] = new ucla_cp_module('ucla_cp_mod_myucla');
+    $modules[] = new ucla_cp_module('ucla_cp_mod_myucla', null, null, $temp_cap);
     $first_course = array_shift(array_values($course_info));
     
     //If this is a summer course
@@ -70,31 +71,33 @@ if (! empty($course_info)){
     }
     
     foreach ($course_info as $info_for_one_course){
+        $myucla_row = new ucla_cp_myucla_row_module($temp_tag,$temp_cap);
         if (count($course_info) > 1){
-            $modules[] = new ucla_cp_text_module($info_for_one_course->subj_area
+            $myucla_row->add_element( new ucla_cp_text_module($info_for_one_course->subj_area
                     .$info_for_one_course->coursenum.'-' .$info_for_one_course->sectnum, 
-                             null, $temp_tag, $temp_cap);
+                            $temp_tag, $temp_cap) );
         }   
         $course_term = $info_for_one_course->term;
         $course_srs = $info_for_one_course->srs;
-        $modules[] = new ucla_cp_module('download_roster', 
+        $myucla_row->add_element( new ucla_cp_module('download_roster', 
                 new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=74&term=" 
-                        . $course_term . "&srs=" . $course_srs), $temp_tag, $temp_cap);
-        $modules[] = new ucla_cp_module('photo_roster', 
+                        . $course_term . "&srs=" . $course_srs), $temp_tag, $temp_cap) );
+        $myucla_row->add_element( new ucla_cp_module('photo_roster', 
                 new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=148&term=" 
-                        . $course_term . "&srs=" . $course_srs . "&spp=30&sd=true"), $temp_tag, $temp_cap);
-        $modules[] = new ucla_cp_module('myucla_gradebook', 
+                        . $course_term . "&srs=" . $course_srs . "&spp=30&sd=true"), $temp_tag, $temp_cap));
+        $myucla_row->add_element( new ucla_cp_module('myucla_gradebook', 
                 new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=75&term=" 
-                        . $course_term . "&srs=" . $course_srs), $temp_tag, $temp_cap);
-        $modules[] = new ucla_cp_module('turn_it_in', 
+                        . $course_term . "&srs=" . $course_srs), $temp_tag, $temp_cap));
+        $myucla_row->add_element( new ucla_cp_module('turn_it_in', 
                 new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=48&term=" 
-                        . $course_term . "&srs=" . $course_srs), $temp_tag, $temp_cap);
-        $modules[] = new ucla_cp_module('email_roster', 
+                        . $course_term . "&srs=" . $course_srs), $temp_tag, $temp_cap));
+        $myucla_row->add_element( new ucla_cp_module('email_roster', 
                 new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=73&term=" 
-                        . $course_term . "&srs=" . $course_srs), $temp_tag, $temp_cap);
-        $modules[] = new ucla_cp_module('asucla_textbooks', 
+                        . $course_term . "&srs=" . $course_srs), $temp_tag, $temp_cap));
+        $myucla_row->add_element( new ucla_cp_module('asucla_textbooks', 
                 new moodle_url('http://www.collegestore.org/textbookstore/main.asp?remote=1&ref=ucla&term=' 
-                        . $course_term . $session .'&course='.$course_srs.'&getbooks=Display+books'), $temp_tag, $temp_cap);
+                        . $course_term . $session .'&course='.$course_srs.'&getbooks=Display+books'), $temp_tag, $temp_cap));
+        $modules[] = $myucla_row;
     }
     
 }
