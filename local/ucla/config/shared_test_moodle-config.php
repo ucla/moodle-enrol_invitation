@@ -122,9 +122,6 @@ $block_ucla_help_support_contacts['System'] = 'dkearney';  // default
 $CFG->debug = 38911;    // DEVELOPER level debugging messages
 $CFG->debugdisplay = true;  // show the debugging messages
 
-// CCLE-2550 - Lastname, Firstname sorting
-$CFG->fullnamedisplay = 'language';
-
 // UCLA Theme settings
 $CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'test';
 $CFG->forced_plugin_settings['theme_uclashared']['logo_sub_dropdown'] = true;
@@ -136,7 +133,6 @@ $CFG->defaultblocks_ucla = 'ucla_course_menu';
 $CFG->enableavailability = true;
 $CFG->enablecompletion = true;  // needs to be enabled so that completion
                                 // of tasks can be one of the conditions
-$CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 1;
 
 // CCLE-2229 - Force public/private to be on
 $CFG->enablegroupmembersonly = true; // needs to be on for public-private to work
@@ -149,18 +145,39 @@ $CFG->filter_mediaplugin_enable_youtube = true;
 $CFG->filter_mediaplugin_enable_vimeo = true;
 $CFG->filter_mediaplugin_enable_mp3 = true;
 $CFG->filter_mediaplugin_enable_flv = true;
-$CFG->filter_mediaplugin_enable_swf = true;
+$CFG->filter_mediaplugin_enable_swf = false;    // security risk if enabled
 $CFG->filter_mediaplugin_enable_html5audio = true;
 $CFG->filter_mediaplugin_enable_html5video = true;
 $CFG->filter_mediaplugin_enable_qt = true;
 $CFG->filter_mediaplugin_enable_wmp = true;
 $CFG->filter_mediaplugin_enable_rm = true;
 
-// Enabling Anti-Virus
+// Site administration > Courses > Course default settings
+$CFG->forced_plugin_settings['moodlecourse']['format'] = 'ucla';
+$CFG->forced_plugin_settings['moodlecourse']['maxbytes'] = 1572864000;  // 1.5GB
+$CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 1;
+
+// Site administration > Plugins > Activity modules > Assignment
+$CFG->assignment_maxbytes = 10485760;   // 100MB
+
+// Site administration > Security > Site policies
+$CFG->fullnamedisplay = 'language'; // CCLE-2550 - Lastname, Firstname sorting
+$CFG->cronclionly = true;
+
+// Site administration > Security > HTTP security
+$CFG->loginhttps = true;
+$CFG->cookiesecure = true;
+
+// Site administration > Security > Anti-Virus
 $CFG->runclamonupload = true;
+$CFG->pathtoclam = '/usr/bin/clamscan';
 $CFG->clamscan = '/usr/bin/clamscan';
 $CFG->quarantinedir = '/usr/local/clamquarantine';
 $CFG->clamfailureonupload = 'donothing';
+
+// Site administration > Server > System paths
+$CFG->pathtodu = '/usr/bin/du';
+$CFG->aspellpath = '/usr/bin/aspell';
 
 /** 
  *  Automatic Shibboleth configurations.

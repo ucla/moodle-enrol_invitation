@@ -124,9 +124,6 @@ $CFG->debugdisplay = true;  // show the debugging messages
 $CFG->perfdebug = true; // show performance information
 $CFG->debugpageinfo = true; // show page information
 
-// CCLE-2550 - Lastname, Firstname sorting
-$CFG->fullnamedisplay = 'language';
-
 // UCLA Theme settings
 $CFG->themedesignermode = true;
 $CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'dev';
@@ -159,6 +156,41 @@ $CFG->filter_mediaplugin_enable_html5video = true;
 $CFG->filter_mediaplugin_enable_qt = true;
 $CFG->filter_mediaplugin_enable_wmp = true;
 $CFG->filter_mediaplugin_enable_rm = true;
+
+// Enable conditional activities
+$CFG->enableavailability = true;
+$CFG->enablecompletion = true;  // needs to be enabled so that completion
+                                // of tasks can be one of the conditions
+
+// CCLE-2229 - Force public/private to be on
+$CFG->enablegroupmembersonly = true; // needs to be on for public-private to work
+$CFG->enablepublicprivate = true;
+
+// CCLE-2792 - Enable multimedia filters
+// NOTE: you still need to manually set the "Active?" value of the "Multimedia 
+// plugins" filter at "Site administration > Plugins > Filters > Manage filters"
+$CFG->filter_mediaplugin_enable_youtube = true;
+$CFG->filter_mediaplugin_enable_vimeo = true;
+$CFG->filter_mediaplugin_enable_mp3 = true;
+$CFG->filter_mediaplugin_enable_flv = true;
+$CFG->filter_mediaplugin_enable_swf = false;    // security risk if enabled
+$CFG->filter_mediaplugin_enable_html5audio = true;
+$CFG->filter_mediaplugin_enable_html5video = true;
+$CFG->filter_mediaplugin_enable_qt = true;
+$CFG->filter_mediaplugin_enable_wmp = true;
+$CFG->filter_mediaplugin_enable_rm = true;
+
+// Site administration > Courses > Course default settings
+$CFG->forced_plugin_settings['moodlecourse']['format'] = 'ucla';
+$CFG->forced_plugin_settings['moodlecourse']['maxbytes'] = 1572864000;  // 1.5GB
+$CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 1;
+
+// Site administration > Plugins > Activity modules > Assignment
+$CFG->assignment_maxbytes = 10485760;   // 100MB
+
+// Site administration > Security > Site policies
+$CFG->fullnamedisplay = 'language'; // CCLE-2550 - Lastname, Firstname sorting
+$CFG->cronclionly = true;
 
 /** 
  *  Automatic Shibboleth configurations.
