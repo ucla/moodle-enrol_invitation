@@ -60,49 +60,12 @@ function callback_ucla_load_content(&$navigation, $course, $coursenode) {
     $path = $CFG->wwwroot . '/course/view.php';
     $ref_url = new moodle_url($path, array('id' => $course->id));
 
-    $supernode =& find_course_link_helper($navigation, $ref_url);
-
-    if ($supernode !== false) {
-        $supernode->action->params(array(
-            'topic' => UCLA_FORMAT_DISPLAY_LANDING
-        ));
-    }
-    
-    // Add the course preferences
-    $course_pref = new moodle_url($CFG->wwwroot 
-        . '/course/format/ucla/edit.php',
-        array('courseid' => $course->id));
-
-    $supernode->add(get_string('course_pref', 'format_ucla'), $course_pref);
-
+    $coursenode->action->params(array(
+        'topic' => UCLA_FORMAT_DISPLAY_LANDING
+    ));
+  
     return $navigation->load_generic_course_sections($course, $coursenode, 
         'ucla');
-}
-
-/**
- *  It's a dfs, but a bfs is better.
- **/
-function find_course_link_helper(&$navigation, $reference) {
-    if (!is_object($navigation)) {
-        return false;
-    }
-
-    if (isset($navigation->action) 
-      && get_class($navigation->action) == 'moodle_url') {
-        if ($navigation->action->compare($reference)) {
-            return $navigation;
-        }
-    }
-
-    foreach ($navigation->children as &$child) {
-        $res = find_course_link_helper($child, $reference);
-
-        if ($res !== false) {
-            return $res;
-        }
-    }
-
-    return false;
 }
 
 /**
@@ -169,10 +132,6 @@ function callback_ucla_ajax_support() {
 function ucla_format_display_instructors($course) {
     if (function_exists('is_collab_site') && is_collab_site($course)) {
         return false;
-    } else {
-        if (empty($course->idnumber)) {
-            return false;
-        }
     }
 
     return true;
