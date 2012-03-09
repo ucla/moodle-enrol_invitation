@@ -92,6 +92,9 @@ $CFG->forced_plugin_settings['tool_myucla_url']['user_name'] = 'CCLE Admin';   /
 $CFG->forced_plugin_settings['tool_myucla_url']['user_email'] = 'ccle@ucla.edu';  // email for registering URL with My.UCLA
 $CFG->forced_plugin_settings['tool_myucla_url']['override_debugging'] = true;   // test sending MyUCLA urls
 
+// Pre-pop
+$CFG->forced_plugin_settings['enrol_database']['terms'] = $terms_to_built;
+
 // turn off messaging (CCLE-2318 - MESSAGING)
 $CFG->messaging = false;
 
@@ -226,6 +229,23 @@ $_config_private_ = $_dirroot_ . '/config_private.php';
 if (file_exists($_config_private_)) {
     require_once($_config_private_);
 }
+
+// set external database connection settings after config_private.php has
+// been read for the Registrar connection details
+$CFG->forced_plugin_settings['enrol_database']['dbtype'] = $CFG->registrar_dbtype;
+$CFG->forced_plugin_settings['enrol_database']['dbhost'] = $CFG->registrar_dbhost;
+$CFG->forced_plugin_settings['enrol_database']['dbuser'] = $CFG->registrar_dbuser;
+$CFG->forced_plugin_settings['enrol_database']['dbpass'] = $CFG->registrar_dbpass;
+$CFG->forced_plugin_settings['enrol_database']['dbname'] = $CFG->registrar_dbname;
+$CFG->forced_plugin_settings['enrol_database']['remoteenroltable'] = 'enroll2';
+$CFG->forced_plugin_settings['enrol_database']['remotecoursefield'] = 'termsrs';
+$CFG->forced_plugin_settings['enrol_database']['remoteuserfield'] = 'uid';
+$CFG->forced_plugin_settings['enrol_database']['remoterolefield'] = 'role';
+$CFG->forced_plugin_settings['enrol_database']['localcoursefield'] = 'id';
+$CFG->forced_plugin_settings['enrol_database']['localrolefield'] = 'id';
+// CCLE-2824 - Making sure that being assigned/unassigned/re-assigned doesn't 
+// lose grading data
+$CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 3;    // Disable course enrolment and remove roles
 
 // This will bootstrap the moodle functions.
 require_once($_dirroot_ . '/lib/setup.php');

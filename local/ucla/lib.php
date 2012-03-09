@@ -509,7 +509,7 @@ function get_pseudorole($profcode, array $other_roles) {
 
     switch ($profcode) {
         case 1:
-            return "instructor";
+            return "editingteacher";
         case 2:
             if ($hasrole[1] && $hasrole[2]) {
                 return "ta";
@@ -521,6 +521,39 @@ function get_pseudorole($profcode, array $other_roles) {
         case 22:
             return "student_instructor";
     }
+}
+
+/**
+ *  This is a function to return the pseudoroles for student enrolment
+ *  code values.
+ *  @return string - pseudorole, false - not enrolled
+ **/
+function get_student_pseudorole($studentcode) {
+    $code = strtolower(trim($studentcode));
+    $psrole = false;
+
+    switch($code) {
+        case 'w':
+        case 'h':
+            $psrole = 'waitlisted';
+            break;
+        case 'e':
+        case 'a':
+            $psrole = 'student';
+            break;
+        case 'p':
+            // pending?
+            break;
+        default:
+            // This includes codes:
+            // d = dropped
+            // c = cancelled
+            // If they do not have an explicitly declared role code,
+            // then they are considered unenrolled
+            $psrole = false;
+    }
+
+    return $psrole;
 }
 
 /**
