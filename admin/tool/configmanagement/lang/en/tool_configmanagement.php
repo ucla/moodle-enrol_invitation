@@ -38,7 +38,7 @@ $string['configusertable'] = 'Special Case Logins (User table)';
 //$string['configusertable'] = 'Manual Accounts (User table)';
 $string['configdefaultfile'] = 'configdump.txt';
 $string['configdivider'] = '===';
-$string['configfileopenerror'] = 'Failed to open file: $a';
+$string['configfileopenerror'] = 'Failed to open file: {$a}';
 
 $string['configrollbackerrormsg'] = 'Rolling back after failure in';
 $string['configusertablewrittenmsg'] = 'User table was writen... Now going to match Role Assignments to users.';
@@ -66,4 +66,8 @@ $string['configprmpt_ffile'] = 'from this file';
 $string['configprmpt_prod'] = 'This is a production server.  Excercise extreme caution!';
 $string['configprmpt_msg'] = 'This will alter your entire moodle setup and possibly break it if you are not using the correct configuration files.
     Please make sure this is what you want to do.  If you are unsure or are confused by this message, then click <strong>Cancel</strong>!';
+    
+// SSC 1181 - Shulin Jia - error messages
+$string['configerror_dirfail'] = 'Cannot create directory';
+$string['configerror_cannotoverwrite'] = '$dumpfile is already in use.  Cannot overwrite.';
 // END UCLA MODIFICATIONS

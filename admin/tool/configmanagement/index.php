@@ -44,7 +44,8 @@ global $ME;
 global $DB;
    // global $PAGE;
 $PAGE->set_context(null);
-    
+$redirectlink = $CFG->wwwroot.'/'.$CFG->admin.'/tool/configmanagement/index.php';
+
 if (!is_siteadmin($USER->id)) {
     error(get_string('adminsonlybanner'));
 }
@@ -82,20 +83,20 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
        && !optional_param('user', 0, PARAM_RAW) && !optional_param('configphp', 0, PARAM_RAW) ) {
         //error(get_string('configerrornofilemsg', 'tool_configmanagement'), $ME);
         // TODO: $ME is the wrong link
-        print_error('configerrornofilemsg', 'tool_configmanagement', $CFG->wwwroot.'/admin/tool/configmanagement/index.php');
+        print_error('configerrornofilemsg', 'tool_configmanagement', $redirectlink);
     }
 
     $dumpfile = clean_param($dumpfile, PARAM_FILE);
     if (!file_exists($dir)) {        
         if (!mkdir($dir, 0777, true)) {
-            error('Cannot create directory', $ME);
+            print_error('configerror_dirfail','tool_configmanagement', $redirectlink);
         }
     }
 
     if (strpos($dir, $CFG->dataroot) === false && file_exists($dir.$dumpfile)) {
         //If we're not saving in data diretory, then be sure to to protect code!
         if (substr($dumpfile, -4, 4) === '.php' || substr($dumpfile, -4, 4) === '.html') { 
-            error("$dumpfile is already in use.  Cannot overwrite.", $ME);
+            print_error('configerror_cannotoverwrite', 'tool_configmanagement', $redirectlink);
         }
     }
     $divider = get_string('configdivider', 'tool_configmanagement');
@@ -107,8 +108,10 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
     echo $OUTPUT->heading(get_string('configsaveconfiguration', 'tool_configmanagement'));
 
     // CCLE-164 - show filename and location
-    echo "<p class=\"mdl-align\">Settings saved to file: ".$dir.$dumpfile."<p/>";
-
+    // echo "<p class=\"mdl-align\">Settings saved to file: ".$dir.$dumpfile."<p/>";
+    echo html_writer::tag('p', 'Settings saved to file: '.".$dir.$dumpfile.", 
+                          array('class' => 'mdl-align'));
+    
     //Open file for write
     if($fp = fopen($dir.$dumpfile,'w')){
         //Write config
@@ -174,7 +177,10 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
                     fwrite($fp, json_encode($configentry)."\n");
                 }
             }		  
-            echo "<p class=\"mdl-align\">".get_string('configconfigpluginstable', 'tool_configmanagement')." written.</p>\n";
+           // echo "<p class=\"mdl-align\">".get_string('configconfigpluginstable', 'tool_configmanagement')." written.</p>\n";
+            echo html_writer::tag('p', 
+                                  get_string('configconfigpluginstable', 'tool_configmanagement')." written", 
+                                  array('class' => 'mdl-align'));
         }
         else {
             echo "<p class=\"mdl-align redfont\">".get_string('configconfigpluginstable', 'tool_configmanagement')." skipped.</p>\n";
@@ -469,13 +475,14 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
             echo "<p class=\"mdl-align redfont\">Config.php skipped.</p>\n";
         }
         print_continue("index.php");
-        //print_continue($ME);
         fclose($fp);
 
     } else {
-        error(get_string('configfileopenerror', 'tool_configmanagement', $dumpfile), $ME);
+        //error(get_string('configfileopenerror', 'tool_configmanagement', $dumpfile), $ME);
+        // why is 3rd parameter $dumpfile
+        print_error('configfileopenerror', 'tool_configmanagement', $redirectlink, $dumpfile);
     }
-
+    
 } 
     // SSC 1181: load configs is a feature that is no longer used
     //           thus it is not ported to 2.0
