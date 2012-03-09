@@ -123,6 +123,8 @@ $block_ucla_help_support_contacts['System'] = 'dkearney';  // default
 // useful STAGE settings
 $CFG->debug = 38911;    // DEVELOPER level debugging messages
 $CFG->debugdisplay = true;  // show the debugging messages
+$CFG->perfdebug = true; // show performance information
+$CFG->debugpageinfo = true; // show page information
 
 // UCLA Theme settings
 $CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'stage';
