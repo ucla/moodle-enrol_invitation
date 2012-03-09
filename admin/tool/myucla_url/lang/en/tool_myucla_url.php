@@ -3,8 +3,8 @@
 $string['pluginname'] = 'MyUCLA URL updater';
 
 // Human expanses for each flag
-$string['neverflag'] = 'URL is already set at MyUCLA';
-$string['nooverwrite'] = $string['neverflag'];
-$string['alwaysflag'] = 'Forced update';
+$string['neversend'] = 'Not sending to MyUCLA';
+$string['nooverwrite'] = 'URL is already set at MyUCLA';
+$string['alwayssend'] = 'Forced update';
 
 // EoF

@@ -67,6 +67,10 @@ class requestor_subjarea_form extends requestor_shared_form {
         $exists = get_course_requests($sacreq);
 
         foreach ($sacreq as $key => $course) {
+            if (requestor_ignore_entry($course)) {
+                continue;
+            }
+
             if (!empty($exists[$key])) {
                 unset($sacreq[$key]);
             }
