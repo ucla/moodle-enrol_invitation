@@ -60,7 +60,9 @@ class rolemappings_test extends UnitTestCase {
         $result = get_pseudorole('01', array('01','02'));
         $this->assertEqual($result, 'editingteacher');        
         $result = get_pseudorole('01', array('01','02','03'));
-        $this->assertEqual($result, 'editingteacher');      
+        $this->assertEqual($result, 'editingteacher');       
+        $result = get_pseudorole('01', array('01', '03'));
+        $this->assertEqual($result, 'editingteacher');     
         $result = get_pseudorole('01', array('02'));
         $this->assertEqual($result, 'editingteacher');                
         $result = get_pseudorole('01', array('02','03'));
@@ -81,8 +83,10 @@ class rolemappings_test extends UnitTestCase {
         $this->assertEqual($result, 'ta');        
         $result = get_pseudorole('02', array('01','02','03'));
         $this->assertEqual($result, 'ta');      
+        $result = get_pseudorole('02', array('01', '03'));
+        $this->assertEqual($result, 'ta');      
         $result = get_pseudorole('02', array('02'));
-        $this->assertEqual($result, 'ta_instructor');                
+        $this->assertEqual($result, 'ta');                
         $result = get_pseudorole('02', array('02','03'));
         $this->assertEqual($result, 'ta_instructor');      
         $result = get_pseudorole('02', array('03'));
@@ -96,7 +100,9 @@ class rolemappings_test extends UnitTestCase {
         $result = get_pseudorole('03', array('01','02'));
         $this->assertEqual($result, 'supervising_instructor');        
         $result = get_pseudorole('03', array('01','02','03'));
-        $this->assertEqual($result, 'supervising_instructor');      
+        $this->assertEqual($result, 'supervising_instructor');         
+        $result = get_pseudorole('03', array('01','03'));
+        $this->assertEqual($result, 'supervising_instructor');    
         $result = get_pseudorole('03', array('02'));
         $this->assertEqual($result, 'supervising_instructor');                
         $result = get_pseudorole('03', array('02','03'));
@@ -112,6 +118,8 @@ class rolemappings_test extends UnitTestCase {
         $result = get_pseudorole('22', array('01','02'));
         $this->assertEqual($result, 'facilitator');        
         $result = get_pseudorole('22', array('01','02','03'));
+        $this->assertEqual($result, 'facilitator');      
+        $result = get_pseudorole('22', array('01','03'));
         $this->assertEqual($result, 'facilitator');      
         $result = get_pseudorole('22', array('02'));
         $this->assertEqual($result, 'facilitator');                
