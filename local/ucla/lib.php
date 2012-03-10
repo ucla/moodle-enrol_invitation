@@ -498,51 +498,39 @@ function role_mapping($profcode, array $other_roles,
  * Refer to Jira: CCLE-2320
  * 
  * role InstSet     Pseudo Role
- * 01   any         instructor
+ * 01   any         editingteacher
  * 02	01,02       ta
  * 02	01,02,03    ta
  * 02	02,03       ta_instructor
- * 03	any	        supervising_instructor
- * 22	any	        student_instructor
+ * 03	any	    supervising_instructor
+ * 22	any	    facilitator
  * 
  * @param int $profcode        Registrar prof code
  * @param array $other_roles   Other roles a user has
  * 
- * @return string              Returns either: instructor, ta, ta_instructor,
+ * @return string              Returns either: editingteacher, ta, ta_instructor,
  *                             supervising_instructor, or student_instructor
  */
 function get_pseudorole($profcode, array $other_roles) {
-    $max = 0;
-
+    $hasrole = array_pad(array(), 23, false);   // need to create 23, because 22 
+                                            // needs to be an index    
     foreach ($other_roles as $other_role) {
-        $ivor = intval($other_role);
-        $hasrole[$ivor] = true;
-
-        if ($ivor > $max) {
-            $max = $ivor;
-        }
+        $hasrole[intval($other_role)] = true;
     }
 
-    // Fill in the rest of these to avoid no-index notifications
-    for ($i = 1; $i < $max; $i++) {
-        if (!isset($hasrole[$i])) {
-            $hasrole[$i] = false;
-        }
-    }
-
-    switch ($profcode) {
+    switch (intval($profcode)) {
         case 1:
             return "editingteacher";
         case 2:
-            if ($hasrole[1] && $hasrole[2]) {
-                return "ta";
-            } else if ($hasrole[1] && !$hasrole[2] && $hasrole[3]) {
+            if (!$hasrole[1] && ($hasrole[2] || $hasrole[3])) {
                 return "ta_instructor";
+            } else {
+                return "ta";
             }
         case 3:
             return "supervising_instructor";
         case 22:
-            return "student_instructor";
+            return "facilitator";
     }
 }
 
@@ -556,16 +544,14 @@ function get_student_pseudorole($studentcode) {
     $psrole = false;
 
     switch($code) {
-        case 'w':
-        case 'h':
+        case 'w':   // waitlist
+        case 'h':   // held (unex)
+        case 'p':   // pending
             $psrole = 'waitlisted';
             break;
-        case 'e':
-        case 'a':
+        case 'e':   // enrolled
+        case 'a':   // approved (unex)
             $psrole = 'student';
-            break;
-        case 'p':
-            // pending?
             break;
         default:
             // This includes codes:
