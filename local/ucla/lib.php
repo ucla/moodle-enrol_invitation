@@ -530,7 +530,7 @@ function get_pseudorole($profcode, array $other_roles) {
         case 3:
             return "supervising_instructor";
         case 22:
-            return "facilitator";
+            return "editinginstructor";
     }
 }
 

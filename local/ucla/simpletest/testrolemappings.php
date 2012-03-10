@@ -49,7 +49,7 @@ class rolemappings_test extends UnitTestCase {
      * 02   01,02,03    ta
      * 02   02,03       ta_instructor
      * 03   any	        supervising_instructor
-     * 22   any	        facilitator 
+     * 22   any	        editinginstructor 
      */
     function test_get_pseudorole() {
         // testing: 01   any         instructor
@@ -110,23 +110,23 @@ class rolemappings_test extends UnitTestCase {
         $result = get_pseudorole('03', array('03'));
         $this->assertEqual($result, 'supervising_instructor');          
 
-         // testing: 22   any	        facilitator 
+         // testing: 22   any	        editinginstructor 
         $result = get_pseudorole('22', array());
-        $this->assertEqual($result, 'facilitator');
+        $this->assertEqual($result, 'editinginstructor');
         $result = get_pseudorole('22', array('01'));
-        $this->assertEqual($result, 'facilitator');        
+        $this->assertEqual($result, 'editinginstructor');        
         $result = get_pseudorole('22', array('01','02'));
-        $this->assertEqual($result, 'facilitator');        
+        $this->assertEqual($result, 'editinginstructor');        
         $result = get_pseudorole('22', array('01','02','03'));
-        $this->assertEqual($result, 'facilitator');      
+        $this->assertEqual($result, 'editinginstructor');      
         $result = get_pseudorole('22', array('01','03'));
-        $this->assertEqual($result, 'facilitator');      
+        $this->assertEqual($result, 'editinginstructor');      
         $result = get_pseudorole('22', array('02'));
-        $this->assertEqual($result, 'facilitator');                
+        $this->assertEqual($result, 'editinginstructor');                
         $result = get_pseudorole('22', array('02','03'));
-        $this->assertEqual($result, 'facilitator');      
+        $this->assertEqual($result, 'editinginstructor');      
         $result = get_pseudorole('22', array('03'));
-        $this->assertEqual($result, 'facilitator');                 
+        $this->assertEqual($result, 'editinginstructor');                 
     }
     
     function test_get_student_pseudorole() {
