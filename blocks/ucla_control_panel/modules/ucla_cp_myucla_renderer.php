@@ -25,21 +25,21 @@ class ucla_cp_myucla_renderer extends ucla_cp_renderer {
      *  @param array $contents - The contents to diplay using the renderer.
      **/
     static function control_panel_contents($contents) {
-
-        $full_table = '';
+        $table = new html_table();
+        $table->attributes = array ('id' => 'myUCLAFunctions');
         $handler='general_descriptive_link';
         
-        foreach ($contents as $content_row) {
-            
-            $row_contents = '';
-            
-            foreach ($content_row as $content_item => $content_link) {
-                $row_contents .= html_writer::tag('td',ucla_cp_renderer::$handler(
-                    $content_link));
+        foreach ($contents as $content_rows) {
+            //print_object($content_rows);
+            $content_rows_elements = $content_rows->elements;
+            $table_row = new html_table_row();
+            foreach ($content_rows_elements as $content_item) {
+               $table_row->cells[] = html_writer::tag('td',ucla_cp_renderer::$handler(
+                    $content_item));
             }
-            $full_table .= html_writer::tag('tr', $row_contents);
+            $table->data[] = $table_row;
         }
 
-        return $full_table;
+        return html_writer::table($table);
     }
 }

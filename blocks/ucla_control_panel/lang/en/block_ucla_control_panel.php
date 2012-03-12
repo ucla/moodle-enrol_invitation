@@ -106,9 +106,9 @@ $string['course_edit_post'] = 'Edit the full name and description of the course 
 /** Stuff for Student Control Panel **/
 $string['ucla_cp_mod_student'] = 'Student Control Panel';
 $string['student_grades'] = 'Grades';
-$string['student_grades_post'] = 'View your grades on CCLE';
+$string['student_grades_post'] = 'View your grades on CCLE.';
 $string['student_change_password'] = 'Change Password';
-$string['student_change_password_post'] = 'Click this link to change your password';
+$string['student_change_password_post'] = 'Click this link to change your password.';
 $string['student_myucla_grades'] = 'Grades (MyUCLA)';
 $string['student_myucla_grades_post'] = 'View your grades on MyUCLA (if your instructor has made them available).';
 $string['student_myucla_classmates'] = 'Classmates (MyUCLA)';

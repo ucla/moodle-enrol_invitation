@@ -83,7 +83,7 @@ class ucla_cp_renderer {
      **/
     static function general_descriptive_link($item_obj) {
         $fitem = '';
-        
+
         $bucp = $item_obj->associated_block(); 
 
         $item = $item_obj->item_name;
