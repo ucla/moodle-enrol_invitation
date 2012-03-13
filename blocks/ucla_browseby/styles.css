@@ -1,0 +1,24 @@
+/**
+ *  Stylesheet for browseby functionality.
+ **/
+
+#browsebymain .list0, 
+#browsebymain .list1 {
+    clear: left;
+    float: left;
+    list-style: none outside none;
+    margin: 0;
+    padding: 10px 14px 0 0;
+    width: 295px;
+}
+
+#browsebymain .flattened-list li {
+    display: inline;
+    padding: 8px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+#browsebymain .urlselect {
+    display: inline;
+}

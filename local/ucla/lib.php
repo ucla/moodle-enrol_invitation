@@ -49,6 +49,16 @@ function ucla_verify_configuration_setup() {
     return $returner;
 }
 
+/**
+ *  Convenience function to include db-helpers.
+ **/
+function ucla_require_db_helper() {
+    global $CFG;
+
+    require_once($CFG->dirroot
+        . '/local/ucla/dbhelpers.php');
+}
+
 /** 
  *  Convenience function to include all the Registrar connection 
  *  functionality.
@@ -83,6 +93,25 @@ function enrolstat_string($enrolstat) {
     }
 
     return $rs;
+}
+
+/**
+ *  Creates a display-ready string for a course.
+ *  Slightly similar to shortname...
+ *  @param $courseinfo Array with fields
+ *      subj_area - the subject area
+ *      coursenum - the course number
+ *      sectnum   - the number of the section
+ *  @param $displayone boolean True to display the sectnum of 1
+ **/
+function ucla_make_course_title($courseinfo, $displayone=false) {
+    $sectnum = '-' . $courseinfo['sectnum'];
+    if ($displayone && $courseinfo['sectnum'] == 1) {
+        $sectnum = '';
+    }
+
+    return $courseinfo['subj_area'] . ' ' . trim($courseinfo['coursenum'])
+        . $sectnum;
 }
 
 /** 
@@ -635,4 +664,7 @@ function ucla_send_mail($to, $subj, $body='', $header='') {
     return true;
 }
 
+function to_display_case($string) {
+    return ucwords(strtolower($string));
+}
 // EOF
