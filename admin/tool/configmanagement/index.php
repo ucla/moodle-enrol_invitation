@@ -14,8 +14,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
- 
- 
+
+
 /**
  * Admin Interface for saving and loading configuration settings.
  *
@@ -31,19 +31,20 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-    
+
 require_once("../../../config.php");
 require_once($CFG->libdir.'/adminlib.php');
 require_once($CFG->dirroot.'/admin/tool/configmanagement/configmanagementlib.php');
 
-    
-    // dirname file
+
+// dirname file
 require_login();
 global $USER;
 global $ME;
 global $DB;
-   // global $PAGE;
-$PAGE->set_context(null);
+// global $PAGE;
+$PAGE->set_context(get_system_context());
+
 $redirectlink = $CFG->wwwroot.'/'.$CFG->admin.'/tool/configmanagement/index.php';
 
 if (!is_siteadmin($USER->id)) {
@@ -55,7 +56,7 @@ $adminroot = admin_get_root();
 admin_externalpage_setup('configmanagement');
 //admin_externalpage_print_header($adminroot);
 echo $OUTPUT->header();
-    
+
 //NOTE: If file.php doesn't have security fixes, don't pick course 1
 //      In standard Moodle installations, non-admins can access those files 
 $dir = $CFG->dataroot.'/1/';
@@ -73,7 +74,7 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
         $dumpfile = optional_param('configoptions',0, PARAM_RAW)."_configdump_";
         $dumpfile .= date('m.d.y_a.g.i').".txt";
     }
-
+    
     // Do not write anything if all fields are missing
     if(!optional_param('config', 0, PARAM_RAW) && !optional_param('plugins', 0, PARAM_RAW) && !optional_param('roles', 0, PARAM_RAW)
        && !optional_param('role_allow_assign', 0, PARAM_RAW) && !optional_param('role_allow_override', 0, PARAM_RAW)
@@ -85,14 +86,14 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
         // TODO: $ME is the wrong link
         print_error('configerrornofilemsg', 'tool_configmanagement', $redirectlink);
     }
-
+    
     $dumpfile = clean_param($dumpfile, PARAM_FILE);
     if (!file_exists($dir)) {        
         if (!mkdir($dir, 0777, true)) {
             print_error('configerror_dirfail','tool_configmanagement', $redirectlink);
         }
     }
-
+    
     if (strpos($dir, $CFG->dataroot) === false && file_exists($dir.$dumpfile)) {
         //If we're not saving in data diretory, then be sure to to protect code!
         if (substr($dumpfile, -4, 4) === '.php' || substr($dumpfile, -4, 4) === '.html') { 
@@ -104,11 +105,10 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
     $difftime = 1234567890;
     $dodiff = (optional_param('configoptions',0, PARAM_RAW) == 'diff') ? true : false;
     $diffexclude = ($dodiff && optional_param('exc_id_time',0,PARAM_RAW)) ? true : false;
-
+    
     echo $OUTPUT->heading(get_string('configsaveconfiguration', 'tool_configmanagement'));
-
+    
     // CCLE-164 - show filename and location
-    // echo "<p class=\"mdl-align\">Settings saved to file: ".$dir.$dumpfile."<p/>";
     echo html_writer::tag('p', 'Settings saved to file: '.".$dir.$dumpfile.", 
                           array('class' => 'mdl-align'));
     
@@ -125,20 +125,20 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
         if ($configlist) {
             //Don't include these fields due to security reasons
             $excludeconfiglist = array("enrol_dbpass",
-                'resource_secretphrase',
-                'recaptchapublickey',
-                'recaptchaprivatekey',
-                'cronremotepassword',
-                'proxyuser',
-                'proxypassword',
-                'quiz_password',
-                'quiz_fix_password',
-                'smtpuser',
-                'smtppass',
-                'supportemail',
-                'supportname',
-                'supportpage');
-
+                                       'resource_secretphrase',
+                                       'recaptchapublickey',
+                                       'recaptchaprivatekey',
+                                       'cronremotepassword',
+                                       'proxyuser',
+                                       'proxypassword',
+                                       'quiz_password',
+                                       'quiz_fix_password',
+                                       'smtpuser',
+                                       'smtppass',
+                                       'supportemail',
+                                       'supportname',
+                                       'supportpage');
+            
             foreach($configlist as $configentry){
                 // Exclude ID's if doing a diff
                 if($diffexclude) {
@@ -148,12 +148,15 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
                     fwrite($fp, json_encode($configentry)."\n");
                 }
             }
-            echo "<p class=\"mdl-align\">".get_string('configconfigtable', 'tool_configmanagement')." written.</p>\n";
+            //echo "<p class=\"mdl-align\">".get_string('configconfigtable', 'tool_configmanagement')." written.</p>\n";
+            echo html_writer::tag('p', get_string('configconfigtable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
         }
         else {
-            echo "<p class=\"mdl-align redfont\">".get_string('configconfigtable', 'tool_configmanagement')." skipped.</p>\n";
+            //echo "<p class=\"mdl-align redfont\">".get_string('configconfigtable', 'tool_configmanagement')." skipped.</p>\n";
+            echo html_writer::tag('p', get_string('configconfigtable', 'tool_configmanagement')." skipped.", array('class' => 'mdl-align redfont'));
+            
         }
-    
+        
         // SSC MODIFICATION #1161 changed fwrite for "===<table name>===" to only write after $DB->get_records is returned true
         // diff_configdumps now do not include table names if that table was not selected or empty.
         
@@ -177,15 +180,12 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
                     fwrite($fp, json_encode($configentry)."\n");
                 }
             }		  
-           // echo "<p class=\"mdl-align\">".get_string('configconfigpluginstable', 'tool_configmanagement')." written.</p>\n";
-            echo html_writer::tag('p', 
-                                  get_string('configconfigpluginstable', 'tool_configmanagement')." written", 
-                                  array('class' => 'mdl-align'));
+            echo html_writer::tag('p', get_string('configconfigpluginstable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
         }
         else {
-            echo "<p class=\"mdl-align redfont\">".get_string('configconfigpluginstable', 'tool_configmanagement')." skipped.</p>\n";
+            echo html_writer::tag('p', get_string('configconfigpluginstable', 'tool_configmanagement')." skipped", array('class' => 'mdl-align redfont'));
         }
-    
+        
         //Write Roles, role capabilities, and related tables
         //Roles
         $records = NULL;
@@ -203,13 +203,13 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
                 }
             }
             write_records_to_file($fp, $records);
-            echo "<p class=\"mdl-align\">".get_string('configroletable', 'tool_configmanagement')." written.</p>";
+            echo html_writer::tag('p', get_string('configroletable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
         }
         else {
-            echo "<p class=\"mdl-align redfont\">".get_string('configroletable', 'tool_configmanagement')." skipped</p>\n";
+            echo html_writer::tag('p', get_string('configroletable', 'tool_configmanagement')." skipped.", array('class' => 'mdl-align redfont'));
         }
         $records = NULL;
-    
+        
         //Role Allow Assign
         if(optional_param('role_allow_assign',0, PARAM_RAW)) {
             // Sort by roleid if doing diff
@@ -225,13 +225,13 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
                 }
             }
             write_records_to_file($fp, $records);
-            echo "<p class=\"mdl-align\">".get_string('configroleallowassigntable', 'tool_configmanagement')." written</p>\n";
+            echo html_writer::tag('p', get_string('configroleallowassigntable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
         }
         else {
-            echo "<p class=\"mdl-align redfont\">".get_string('configroleallowassigntable', 'tool_configmanagement')." skipped</p>\n";
+            echo html_writer::tag('p', get_string('configroleallowassigntable', 'tool_configmanagement')." skipped.", array('class' => 'mdl-align redfont')); 
         }
         $records = NULL;
-    
+        
         //Role Allow Override
         
         if(optional_param('role_allow_override',0, PARAM_RAW)) {
@@ -248,13 +248,13 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
                 }
             }
             write_records_to_file($fp, $records);
-            echo "<p class=\"mdl-align\">".get_string('configroleallowoverridetable', 'tool_configmanagement')." written</p>\n";
+            echo html_writer::tag('p', get_string('configroleallowoverridetable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
         }
         else {
-            echo "<p class=\"mdl-align redfont\">".get_string('configroleallowoverridetable', 'tool_configmanagement')." skipped</p>\n";
+            echo html_writer::tag('p', get_string('configroleallowoverridetable', 'tool_configmanagement')." skipped.", array('class' => 'mdl-align redfont'));
         }
         $records = NULL;
-    
+        
         //Role Assignments
         $rs = NULL;
         
@@ -263,10 +263,10 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
             $sort = ($dodiff) ? 'roleid' : 'id';
             // We only want to pick up role_assignments from users with manual authentication
             $query = "SELECT rol.* FROM mdl_role_assignments rol
-                    INNER JOIN mdl_user usr ON usr.id = rol.userid
-                    WHERE usr.auth = 'manual'
-                    ORDER BY $sort";
-
+            INNER JOIN mdl_user usr ON usr.id = rol.userid
+            WHERE usr.auth = 'manual'
+            ORDER BY $sort";
+            
             //Use $DB->get_recordset because role_assignments could be large
             $rs = $DB->get_recordset_sql($query);
         }
@@ -282,14 +282,14 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
                 }
                 fwrite($fp, json_encode($record)."\n");
             }
-        $rs->close();
-            echo "<p class=\"mdl-align\">".get_string('configroleassignmentstable', 'tool_configmanagement')." written</p>\n";
+            $rs->close();
+            echo html_writer::tag('p', get_string('configroleassignmentstable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
         }
         else {
-            echo "<p class=\"mdl-align redfont\">".get_string('configroleassignmentstable', 'tool_configmanagement')." skipped</p>\n";
+            echo html_writer::tag('p', get_string('configroleassignmentstable', 'tool_configmanagement')." skipped.", array('class' => 'mdl-align redfont'));
         }
         unset($rs); //Clean-up
-    
+        
         //Role Capabilities
         if(optional_param('role_capabilities',0, PARAM_RAW)) {
             // Sort by roleid if doing diff
@@ -301,7 +301,7 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
             if($dodiff) {
                 // If we're doing a diff, we're going to sort first by
                 // roleid, then we're going to sort by capabilities.
-
+                
                 $roleid = 1;
                 $allrecs = array();
                 // Expect these to be sorted by roleid
@@ -343,13 +343,13 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
                     fwrite($fp, json_encode($entry)."\n");
                 }
             }
-            echo "<p class=\"mdl-align\">".get_string('configrolecapabilitiestable', 'tool_configmanagement')." written</p>\n";
+            echo html_writer::tag('p', get_string('configrolecapabilitiestable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
         }
         else {
-            echo "<p class=\"mdl-align redfont\">".get_string('configrolecapabilitiestable', 'tool_configmanagement')." skipped</p>\n";
+            echo html_writer::tag('p', get_string('configrolecapabilitiestable', 'tool_configmanagement')." skipped.", array('class' => 'mdl-align redfont'));
         }
         $records = NULL;
-    
+        
         //Role Names
         if(optional_param('role_names',0, PARAM_RAW)) {
             // Sort by roleid if doing diff
@@ -365,13 +365,13 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
                 }
             }
             write_records_to_file($fp, $records);
-            echo "<p class=\"mdl-align\">".get_string('configrolenamestable', 'tool_configmanagement')." written</p>\n";
+            echo html_writer::tag('p', get_string('configrolenamestable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
         }
         else {
-            echo "<p class=\"mdl-align redfont\">".get_string('configrolenamestable', 'tool_configmanagement')." skipped</p>\n";
+            echo html_writer::tag('p', get_string('configrolenamestable', 'tool_configmanagement')." skipped.", array('class' => 'mdl-align redfont'));
         }
         $records = NULL;
-
+        
         //Role Sort Order
         if(optional_param('role_sortorder',0, PARAM_RAW)) {
             // Sort by roleid if doing diff
@@ -387,10 +387,10 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
                 }
             }
             write_records_to_file($fp, $records);
-            echo "<p class=\"mdl-align\">".get_string('configrolesortordertable', 'tool_configmanagement')." written</p>\n";
+            echo html_writer::tag('p', get_string('configrolesortordertable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
         }
         else {
-            echo "<p class=\"mdl-align redfont\">".get_string('configrolesortordertable', 'tool_configmanagement')." skipped</p>\n";
+            echo html_writer::tag('p', get_string('configrolesortordertable', 'tool_configmanagement')." written.", array('class' => 'mdl-align redfont'));
         }
         $records = NULL;
         
@@ -409,13 +409,13 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
                 }
             }
             write_records_to_file($fp, $records);
-            echo "<p class=\"mdl-align\">".get_string('configblocktable', 'tool_configmanagement')." written.</p>\n";
+            echo html_writer::tag('p', get_string('configblocktable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
         }
         else {
-            echo "<p class=\"mdl-align redfont\">".get_string('configblocktable', 'tool_configmanagement')." skipped.</p>\n";
+            echo html_writer::tag('p', get_string('configblocktable', 'tool_configmanagement')." skipped.", array('class' => 'mdl-align redfont'));
         }
         $records = NULL;
-
+        
         
         if(optional_param('modules',0, PARAM_RAW)) {
             // Sort by name if doing diff
@@ -431,13 +431,13 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
                 }
             }
             write_records_to_file($fp, $records);
-            echo "<p class=\"mdl-align\">".get_string('configmodulestable', 'tool_configmanagement')." written.</p>\n";
+            echo html_writer::tag('p', get_string('configmodulestable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
         }
         else {
-            echo "<p class=\"mdl-align redfont\">".get_string('configmodulestable', 'tool_configmanagement')." skipped.</p>\n";
+            echo html_writer::tag('p', get_string('configmodulestable', 'tool_configmanagement')." skipped.", array('class' => 'mdl-align redfont'));
         }
         $records = NULL;
-
+        
         
         if(optional_param('user',0, PARAM_RAW)) {
             // Sort by username if doing diff
@@ -459,24 +459,24 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
             }
             write_records_to_file($fp, $records);
             //write_admin_users_to_file($fp, $records);   //Write only admins
-            echo "<p class=\"mdl-align\">".get_string('configusertable', 'tool_configmanagement')." written.</p>\n";
+            echo html_writer::tag('p', get_string('configusertable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
         }
         else {
-            echo "<p class=\"mdl-align redfont\">".get_string('configusertable', 'tool_configmanagement')."  skipped.</p>\n";
+            echo html_writer::tag('p', get_string('configusertable', 'tool_configmanagement')."  skipped.", array('class' => 'mdl-align redfont'));
         }
-
+        
         // write the values from config.php
         if (optional_param('configphp',0, PARAM_RAW)) {
             fwrite($fp, $divider.'config.PHP'.$divider."\n");
             write_configphp($fp);
-            echo "<p class=\"mdl-align\">Config.php written.</p>\n";
+            echo html_writer::tag('p', "Config.php written.", array('class' => 'mdl-align'));
         }
         else {
-            echo "<p class=\"mdl-align redfont\">Config.php skipped.</p>\n";
+            echo html_writer::tag('p', "Config.php skipped.", array('class' => 'mdl-align redfont'));
         }
         print_continue("index.php");
         fclose($fp);
-
+        
     } else {
         //error(get_string('configfileopenerror', 'tool_configmanagement', $dumpfile), $ME);
         // why is 3rd parameter $dumpfile
@@ -484,166 +484,166 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
     }
     
 } 
-    // SSC 1181: load configs is a feature that is no longer used
-    //           thus it is not ported to 2.0
-    /*
-else if (isset($_POST['load']) && empty($_POST['save'])) {
-    //Load Configuration Settings
-    if (!empty($_POST['loadfile'])) {
-        $dumpfile = $_POST['loadfile'];
-    }
-    else {
-        error(get_string('confignofile', 'tool_configmanagement'), $ME);
-    }
-    $dumpfile = clean_param($dumpfile, PARAM_PATH);
-
-    if(strpos($dumpfile,'diff')!== false) {
-        error(get_string('configdifferror', 'tool_configmanagement'));
-    }
-
-    global $divider;
-    global $dividerlen;
-    global $fp;
-    
-    $divider = get_string('configdivider', 'tool_configmanagement');
-    $dividerlen = strlen($divider);
-
-    echo $OUTPUT->heading(get_string('configloadconfiguration', 'tool_configmanagement'));
-
-    //Open file
-    if(file_exists($dir.$dumpfile) && $fp = fopen($dir.$dumpfile,'r')){
-        while (!feof($fp)) {
-            $line = fgets($fp);
-            
-            if (stripos($line, $divider.'Config'.$divider) !== false) {
-                update_config();
-                echo "<p class=\"mdl-align\">".get_string('configconfigtable', 'tool_configmanagement')." completed</p>";
-            }
-
-            if (stripos($line, $divider.'Plugins'.$divider) !== false) {
-                update_config_plugins();                
-                echo "<p class=\"mdl-align\">".get_string('configconfigpluginstable', 'tool_configmanagement')." completed</p>";
-            }
-
-            if (stripos($line, $divider.'Roles'.$divider) !== false) {
-                update_role_tables();
-                echo "<p class=\"mdl-align\">".get_string('configallroletables', 'tool_configmanagement')." completed</p>";
-            }
-        }
-            // going to attempt to drop tables in order to fix some bugs with config
-
-        fclose($fp);
-    }
-    else {
-        error(get_string('configfileopenerror', 'tool_configmanagement', $dumpfile), $ME);
-    } 
-
-    print_continue($ME);
-}
-    */
+// SSC 1181: load configs is a feature that is no longer used
+//           thus it is not ported to 2.0
+/*
+ else if (isset($_POST['load']) && empty($_POST['save'])) {
+ //Load Configuration Settings
+ if (!empty($_POST['loadfile'])) {
+ $dumpfile = $_POST['loadfile'];
+ }
+ else {
+ error(get_string('confignofile', 'tool_configmanagement'), $ME);
+ }
+ $dumpfile = clean_param($dumpfile, PARAM_PATH);
+ 
+ if(strpos($dumpfile,'diff')!== false) {
+ error(get_string('configdifferror', 'tool_configmanagement'));
+ }
+ 
+ global $divider;
+ global $dividerlen;
+ global $fp;
+ 
+ $divider = get_string('configdivider', 'tool_configmanagement');
+ $dividerlen = strlen($divider);
+ 
+ echo $OUTPUT->heading(get_string('configloadconfiguration', 'tool_configmanagement'));
+ 
+ //Open file
+ if(file_exists($dir.$dumpfile) && $fp = fopen($dir.$dumpfile,'r')){
+ while (!feof($fp)) {
+ $line = fgets($fp);
+ 
+ if (stripos($line, $divider.'Config'.$divider) !== false) {
+ update_config();
+ echo "<p class=\"mdl-align\">".get_string('configconfigtable', 'tool_configmanagement')." completed</p>";
+ }
+ 
+ if (stripos($line, $divider.'Plugins'.$divider) !== false) {
+ update_config_plugins();                
+ echo "<p class=\"mdl-align\">".get_string('configconfigpluginstable', 'tool_configmanagement')." completed</p>";
+ }
+ 
+ if (stripos($line, $divider.'Roles'.$divider) !== false) {
+ update_role_tables();
+ echo "<p class=\"mdl-align\">".get_string('configallroletables', 'tool_configmanagement')." completed</p>";
+ }
+ }
+ // going to attempt to drop tables in order to fix some bugs with config
+ 
+ fclose($fp);
+ }
+ else {
+ error(get_string('configfileopenerror', 'tool_configmanagement', $dumpfile), $ME);
+ } 
+ 
+ print_continue($ME);
+ }
+ */
 else {
     //User Interface
     $filedate = date('m.d.y_a.g.i');
     echo '
-        <script type="text/javascript" >
-            // START SSC MODIFICATION #1161 changed the default so that roles are now unchecked
+    <script type="text/javascript" >
+    // START SSC MODIFICATION #1161 changed the default so that roles are now unchecked
     
-            var diffTables = new Array("config","plugins","blocks","modules","configphp","exc_id_time");
-            var allTables = new Array("config","plugins","roles","role_allow_assign","role_allow_override","role_assignments","role_capabilities",
+    var diffTables = new Array("config","plugins","blocks","modules","configphp","exc_id_time");
+    var allTables = new Array("config","plugins","roles","role_allow_assign","role_allow_override","role_assignments","role_capabilities",
                               "role_names","role_sortorder","blocks","modules","user","configphp","exc_id_time");
-            var partialConfigTables = new Array("config","plugins","exc_id_time");
-            var allConfigTables = new Array("config","plugins","roles","role_allow_assign","role_allow_override","role_assignments","role_capabilities",
+    var partialConfigTables = new Array("config","plugins","exc_id_time");
+    var allConfigTables = new Array("config","plugins","roles","role_allow_assign","role_allow_override","role_assignments","role_capabilities",
                                     "role_names","role_sortorder","blocks","modules","user","configphp");
-            // END SSC MODIFICATION #1161
+    // END SSC MODIFICATION #1161
     
-            function selectDiff(){
-                enableCheckBoxes();
-                setChecked(0,allTables);
-                setChecked(1,diffTables);
-                document.getElementById("configmsg").innerHTML = "'.get_string('configselectdiffmsg', 'tool_configmanagement').'  <a href=\"javascript:setChecked(1,allTables)\" >Set all</a> or <a href=\"javascript:setChecked(0,allTables)\" >clear all</a>";
-                document.adminsettings.elements["savefile"].value = "diff_configdump_'.$filedate.'.txt";
-                document.getElementById("configfilename").innerHTML = "diff_configdump_'.$filedate.'.txt";
+    function selectDiff(){
+        enableCheckBoxes();
+        setChecked(0,allTables);
+        setChecked(1,diffTables);
+        document.getElementById("configmsg").innerHTML = "'.get_string('configselectdiffmsg', 'tool_configmanagement').'  <a href=\"javascript:setChecked(1,allTables)\" >Set all</a> or <a href=\"javascript:setChecked(0,allTables)\" >clear all</a>";
+        document.adminsettings.elements["savefile"].value = "diff_configdump_'.$filedate.'.txt";
+        document.getElementById("configfilename").innerHTML = "diff_configdump_'.$filedate.'.txt";
+    }
+    function selectFullConfig() {
+        disableCheckBoxes();
+        setChecked(0,allTables);
+        setChecked(1,allConfigTables);
+        document.getElementById("configmsg").innerHTML = "'.get_string('configselectfullconfigmsg', 'tool_configmanagement').'";
+        document.adminsettings.elements["savefile"].value = "full_configdump_'.$filedate.'.txt";
+        document.getElementById("configfilename").innerHTML = "full_configdump_'.$filedate.'.txt";
+    }
+    function selectPartialConfig() {
+        disableCheckBoxes();
+        setChecked(0,allTables);
+        setChecked(1,partialConfigTables);
+        document.getElementById("configmsg").innerHTML = "'.get_string('configslectminconfigmsg', 'tool_configmanagement').'";
+        document.adminsettings.elements["savefile"].value = "min_configdump_'.$filedate.'.txt";
+        document.getElementById("configfilename").innerHTML = "min_configdump_'.$filedate.'.txt";
+    }
+    
+    function enableCheckBoxes() {
+        len = document.adminsettings.elements.length;
+        for( i = 0; i < len; i++) {
+            if ( in_jsarray(document.adminsettings.elements[i].name, allTables) && document.adminsettings.elements[i].disabled ) {
+                document.adminsettings.elements[i].disabled = false;
             }
-            function selectFullConfig() {
-                disableCheckBoxes();
-                setChecked(0,allTables);
-                setChecked(1,allConfigTables);
-                document.getElementById("configmsg").innerHTML = "'.get_string('configselectfullconfigmsg', 'tool_configmanagement').'";
-                document.adminsettings.elements["savefile"].value = "full_configdump_'.$filedate.'.txt";
-                document.getElementById("configfilename").innerHTML = "full_configdump_'.$filedate.'.txt";
+        }
+    }
+    function disableCheckBoxes() {
+        len = document.adminsettings.elements.length;
+        for( i = 0; i < len; i++) {
+            if ( in_jsarray(document.adminsettings.elements[i].name, allTables) && !document.adminsettings.elements[i].disabled ) {
+                document.adminsettings.elements[i].disabled = true;
             }
-            function selectPartialConfig() {
-                disableCheckBoxes();
-                setChecked(0,allTables);
-                setChecked(1,partialConfigTables);
-                document.getElementById("configmsg").innerHTML = "'.get_string('configslectminconfigmsg', 'tool_configmanagement').'";
-                document.adminsettings.elements["savefile"].value = "min_configdump_'.$filedate.'.txt";
-                document.getElementById("configfilename").innerHTML = "min_configdump_'.$filedate.'.txt";
-            }
-
-            function enableCheckBoxes() {
-                len = document.adminsettings.elements.length;
-                for( i = 0; i < len; i++) {
-                    if ( in_jsarray(document.adminsettings.elements[i].name, allTables) && document.adminsettings.elements[i].disabled ) {
-                        document.adminsettings.elements[i].disabled = false;
-                    }
+        }
+    }
+    function setChecked(checkVal, selectTables) {
+        len = document.adminsettings.elements.length;
+        if( checkVal ) {
+            for( i = 0; i < len; i++) {
+                if (in_jsarray(document.adminsettings.elements[i].name, selectTables)) {
+                    document.adminsettings.elements[i].checked = checkVal;
                 }
             }
-            function disableCheckBoxes() {
-                len = document.adminsettings.elements.length;
-                for( i = 0; i < len; i++) {
-                    if ( in_jsarray(document.adminsettings.elements[i].name, allTables) && !document.adminsettings.elements[i].disabled ) {
-                        document.adminsettings.elements[i].disabled = true;
-                    }
+        } else {
+            for( i = 0; i < len; i++) {
+                if ( in_jsarray(document.adminsettings.elements[i].name, selectTables) ) {
+                    document.adminsettings.elements[i].checked = checkVal;
                 }
             }
-            function setChecked(checkVal, selectTables) {
-                len = document.adminsettings.elements.length;
-                if( checkVal ) {
-                    for( i = 0; i < len; i++) {
-                        if (in_jsarray(document.adminsettings.elements[i].name, selectTables)) {
-                            document.adminsettings.elements[i].checked = checkVal;
-                        }
-                    }
-                } else {
-                    for( i = 0; i < len; i++) {
-                        if ( in_jsarray(document.adminsettings.elements[i].name, selectTables) ) {
-                            document.adminsettings.elements[i].checked = checkVal;
-                        }
-                    }
-                }
-            }
-            function validateConfigForm(oform){
-                if(!document.adminsettings.elements["configoptions"][0].checked &&
-                    !document.adminsettings.elements["configoptions"][1].checked &&
-                    !document.adminsettings.elements["configoptions"][2].checked ){
-                    document.getElementById("formalerttext").style.color = "red";
-                    return false;
-                } else {
-                    enableCheckBoxes();
-                    return true;
-                }
-                //
-            }
-
-            function in_jsarray(val, arr) {
-                if(val==null || val=="") return false;
-                for(k = 0; k < arr.length; k++ ){
-                    if(val == arr[k])
-                        return true;
-                }
-                return false;
-            }
-        </script>
-        ';
+        }
+    }
+    function validateConfigForm(oform){
+        if(!document.adminsettings.elements["configoptions"][0].checked &&
+           !document.adminsettings.elements["configoptions"][1].checked &&
+           !document.adminsettings.elements["configoptions"][2].checked ){
+            document.getElementById("formalerttext").style.color = "red";
+            return false;
+        } else {
+            enableCheckBoxes();
+            return true;
+        }
+    }
+    
+    function in_jsarray(val, arr) {
+        if(val==null || val=="") return false;
+        for(k = 0; k < arr.length; k++ ){
+            if(val == arr[k])
+                return true;
+        }
+        return false;
+    }
+    </script>
+    ';
     echo $OUTPUT->heading(get_string('configurationmanagement', 'tool_configmanagement'));
-
+    
     //Start of form
-    echo "<form class=\"mdl-align\" action=\"$ME\" method=\"post\" id=\"adminsettings\" name=\"adminsettings\" >\n";
-    echo "<fieldset>\n";
+    echo html_writer::start_tag('form', array('class' => 'mdl-align', 'action' => $ME, 'method' => 'post', 'id' => 'adminsettings', 'name' => 'adminsettings'));
+    
+    echo html_writer::start_tag('fieldset');
     print_container('', false, 'clearer');
     echo "\n";
-
+    
     ///////////////////
     //File to save to//
     ///////////////////
@@ -652,117 +652,128 @@ else {
     
     // CCLE-164 - change filename format
     $dumpfile = "type_configdump_date_time.txt";
-
+    
     print_container("<label>".get_string('configsavefile', 'tool_configmanagement')."</label>", false, 'form-label');
     print_container('&nbsp;<input type="hidden" name="savefile" size="48" />', false, 'form-file defaultsnext');
     // Print the filename (do not allow it to be modified)
-    echo '<div style="float:left; margin-left:10px;">'.$dir.'<span id="configfilename" style="font-weight: bold" >file</span></div>';
+    echo html_writer::start_tag('div', array('style'=>"float:left; margin-left:10px;"));
+    echo $dir;
+    echo html_writer::tag('span', 'file', array('id'=>"configfilename", 'style'=>"font-weight: bold"));
+    echo html_writer::end_tag('div');
+    
     print_container(get_string('configsaveinfo', 'tool_configmanagement'), false, 'form-description');
-
+    
     // CCLE-164 - filter out values for better diff
     $formcheckboxes = '
-        <span id="formalerttext">Select what you want to do:
-            <label><input type="radio" name="configoptions" value="diff" onClick="selectDiff();" checked="true" >'.get_string('configdiff', 'tool_configmanagement').'</label>
-            <label><input type="radio" name="configoptions" value="full" onClick="selectFullConfig()" >'.get_string('configselectfull', 'tool_configmanagement').'</label>
-            <label><input type="radio" name="configoptions" value="min" onClick="selectPartialConfig()" >'.get_string('configselectmin', 'tool_configmanagement').'</label>
+    <span id="formalerttext">Select what you want to do:
+        <label><input type="radio" name="configoptions" value="diff" onClick="selectDiff();" checked="true" >'.get_string('configdiff', 'tool_configmanagement').'</label>
+        <label><input type="radio" name="configoptions" value="full" onClick="selectFullConfig()" >'.get_string('configselectfull', 'tool_configmanagement').'</label>
+        <label><input type="radio" name="configoptions" value="min" onClick="selectPartialConfig()" >'.get_string('configselectmin', 'tool_configmanagement').'</label>
         </span>
         <br/>
         <div style="background:#E6E6E6; padding:10px; font-size:12px; display:block; float:left;" >
         <div id="configmsg" style="width:100%; font-size:12px; padding-bottom: 10px;"></div>
         <div style="float:left; width:150px;" >
-            <label><input type="checkbox" name="config" checked="true" disabled="true">config</label><br/>
-            <label><input type="checkbox" name="plugins" checked="true" disabled="true">config_plugins</label><br/>
+        <label><input type="checkbox" name="config" checked="true" disabled="true">config</label><br/>
+        <label><input type="checkbox" name="plugins" checked="true" disabled="true">config_plugins</label><br/>
         </div>
         <div style="float:left; width:150px; " >
-            <label><input type="checkbox" name="roles" checked="true" disabled="true" >role</label><br/>
-            <label><input type="checkbox" name="role_allow_assign" checked="true" disabled="true">role_allow_assign</label><br/>
-            <label><input type="checkbox" name="role_allow_override" checked="true" disabled="true">role_allow_override</label><br/>
-            <label><input type="checkbox" name="role_assignments" disabled="true">role_assignments</label><br/>
-            <label><input type="checkbox" name="role_capabilities" checked="true" disabled="true">role_capabilities</label><br/>
-            <label><input type="checkbox" name="role_names" checked="true" disabled="true">role_names</label><br/>
-            <label><input type="checkbox" name="role_sortorder" checked="true" disabled="true">role_sortoder</label><br/>
+        <label><input type="checkbox" name="roles" checked="true" disabled="true" >role</label><br/>
+        <label><input type="checkbox" name="role_allow_assign" checked="true" disabled="true">role_allow_assign</label><br/>
+        <label><input type="checkbox" name="role_allow_override" checked="true" disabled="true">role_allow_override</label><br/>
+        <label><input type="checkbox" name="role_assignments" disabled="true">role_assignments</label><br/>
+        <label><input type="checkbox" name="role_capabilities" checked="true" disabled="true">role_capabilities</label><br/>
+        <label><input type="checkbox" name="role_names" checked="true" disabled="true">role_names</label><br/>
+        <label><input type="checkbox" name="role_sortorder" checked="true" disabled="true">role_sortoder</label><br/>
         </div>
         <div style="float:left; width:120px;" >
-            <label><input type="checkbox" name="blocks" checked="true" disabled="true">blocks</label><br/>
-            <label><input type="checkbox" name="modules" checked="true" disabled="true">modules</label><br/>
+        <label><input type="checkbox" name="blocks" checked="true" disabled="true">blocks</label><br/>
+        <label><input type="checkbox" name="modules" checked="true" disabled="true">modules</label><br/>
         </div>
         <div style="float:left; width:120px;" >
-            <label><input type="checkbox" name="user" disabled="true">user</label><br/>
+        <label><input type="checkbox" name="user" disabled="true">user</label><br/>
         </div>
         <div style="float:left; width:120px;" >
-            <label><input type="checkbox" name="configphp" checked="true" disabled="true">config.php</label><br/>
+        <label><input type="checkbox" name="configphp" checked="true" disabled="true">config.php</label><br/>
         <div style="width:100%; font-size:10px; padding-top: 5px; color:red" >
-            * '.get_string('configvalsfromconfigphpmsg', 'tool_configmanagement').'
+        * '.get_string('configvalsfromconfigphpmsg', 'tool_configmanagement').'
         </div>
         </div>
         <div style="clear:both; width: 100%; padding-top: 10px;">
-            <label><input type="checkbox" name="exc_id_time" checked="true" disabled="true"/> Exclude ID and TIME fields. </label><br/>
-            <span style="color:red; font-size:10px;">* time will be written as: <strong>1234567890</strong>, ID fields will be left blank</span>
+        <label><input type="checkbox" name="exc_id_time" checked="true" disabled="true"/> Exclude ID and TIME fields. </label><br/>
+        <span style="color:red; font-size:10px;">* time will be written as: <strong>1234567890</strong>, ID fields will be left blank</span>
         </div>
         </div>
-
+        
         <script>
-            // Set diff as default
-            selectDiff();
-        </script>
-        ';
+        // Set diff as default
+        selectDiff();
+    </script>
+    ';
     print_container($formcheckboxes, false, 'form-description');
-
-    echo "<br />\n";
-    echo '<div style="width:100%; float:left; padding-top:10px;" >';
-    echo '<input type="submit" name="save" value="'.get_string('configsave', 'tool_configmanagement').'" onclick="validateConfigForm(this.form)" />'."\n";
-    echo '</div>';
-    echo "<br />\n";
-
+    
+    //echo "<br />\n";
+    echo html_writer::empty_tag('br');
+    //echo '<div style="width:100%; float:left; padding-top:10px;" >';
+    echo html_writer::start_tag('div', array('style' => 'width:100%; float:left; padding-top:10px;')); 
+    //echo '<input type="submit" name="save" value="'.get_string('configsave', 'tool_configmanagement').'" onclick="validateConfigForm(this.form)" />'."\n";
+    echo html_writer::empty_tag('input',
+                                array('type' => 'submit', 'name' => 'save', 'value'=> get_string('configsave', 'tool_configmanagement'),'onclick'=> "validateConfigForm(this.form)"));
+    //echo '</div>';
+    echo html_writer::end_tag('div');
+    
+    //echo "<br />\n";
+    echo html_writer::empty_tag('br');
+    
     echo "\n";
-
+    
     print_container_end();
-/* CCLE-164 Hide Configuration Restore
-    echo "\n";
-    echo "<hr/><br/>";
-
-    /////////////////////
-    //File to load from//
-    /////////////////////
-    print_container_start(true, 'form-item');
-    echo "\n";
-
-    print_container("<label>".get_string('configloadfile', 'tool_configmanagement')."</label>", false, 'form-label');
-    print_container_start(false, 'form-file defaultsnext');
-    echo '&nbsp;<input id="id_reference_value" type="text" '.
-         'onchange="validate_mod_resource_mod_form_reference[value](this)" '.
-         'onblur="validate_mod_resource_mod_form_reference[value](this)" '.  //value="config_management/configdump.txt" 
-         'name="loadfile" size="48" maxlength="255"/>'."\n";
-    print_container_end();
-
-    print_container_start(false, 'form-defaultinfo');
-    //echo get_string('default').': '.get_string('configdefaultfile', 'tool_configmanagement');
-    if (file_exists($dir)) {
-        echo '<input id="id_reference_popup" type="button" onclick="return openpopup('.
-             "'/files/index.php?id=1&choose=id_reference_value', 'popup', ".
-             "'menubar=0,location=0,scrollbars,resizable,width=750,height=500', 0);\" ".
-             'title="Choose or upload a file" value="Choose or upload a file ..." '.
-             'name="reference[popup]"/>'."\n";
-    }
-    print_container_end();
-    echo "\n";
-
-    print_container(get_string('configloadinfo', 'tool_configmanagement'), false, 'form-description');
-
-    echo "\n";
-
-    echo "<br />\n";
-    echo '<input type="submit" name="confirm" value="'.get_string('configload', 'tool_configmanagement').'"/>'."\n";
-
-    print_container_end();
-    echo "\n";
-*/
+    /* CCLE-164 Hide Configuration Restore
+     echo "\n";
+     echo "<hr/><br/>";
+     
+     /////////////////////
+     //File to load from//
+     /////////////////////
+     print_container_start(true, 'form-item');
+     echo "\n";
+     
+     print_container("<label>".get_string('configloadfile', 'tool_configmanagement')."</label>", false, 'form-label');
+     print_container_start(false, 'form-file defaultsnext');
+     echo '&nbsp;<input id="id_reference_value" type="text" '.
+     'onchange="validate_mod_resource_mod_form_reference[value](this)" '.
+     'onblur="validate_mod_resource_mod_form_reference[value](this)" '.  //value="config_management/configdump.txt" 
+     'name="loadfile" size="48" maxlength="255"/>'."\n";
+     print_container_end();
+     
+     print_container_start(false, 'form-defaultinfo');
+     //echo get_string('default').': '.get_string('configdefaultfile', 'tool_configmanagement');
+     if (file_exists($dir)) {
+     echo '<input id="id_reference_popup" type="button" onclick="return openpopup('.
+     "'/files/index.php?id=1&choose=id_reference_value', 'popup', ".
+     "'menubar=0,location=0,scrollbars,resizable,width=750,height=500', 0);\" ".
+     'title="Choose or upload a file" value="Choose or upload a file ..." '.
+     'name="reference[popup]"/>'."\n";
+     }
+     print_container_end();
+     echo "\n";
+     
+     print_container(get_string('configloadinfo', 'tool_configmanagement'), false, 'form-description');
+     
+     echo "\n";
+     
+     echo "<br />\n";
+     echo '<input type="submit" name="confirm" value="'.get_string('configload', 'tool_configmanagement').'"/>'."\n";
+     
+     print_container_end();
+     echo "\n";
+     */
     //End of fields
-    echo "</fieldset>\n";
-
+    echo html_writer::end_tag('fieldset');
+    
     //Form buttons
-    echo "</form>\n";
-
-
+    echo html_writer::end_tag('form');
+    
 }
 echo $OUTPUT->footer();
+
