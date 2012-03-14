@@ -61,6 +61,26 @@ function ucla_require_registrar() {
 }
 
 /**
+ *  Responder for results from ccle_courseinstructorsget to see if
+ *  the user is a dummy user.
+ *  @param $ucla_id String of the UID number
+ *  @return boolean 
+ **/
+function is_dummy_ucla_user($ucla_id) {
+    // dummy THE STAFF
+    if ($ucla_id == '100399990') {
+        return true;
+    } 
+
+    // dummy TA
+    if ($ucla_id == '200399999') {
+        return true;
+    }
+
+    return false;
+}
+
+/**
  *  Checks if an enrol-stat code means a course is cancelled.
  **/
 function enrolstat_is_cancelled($enrolstat) {

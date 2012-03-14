@@ -429,6 +429,11 @@ class enrol_database_plugin extends enrol_plugin {
                 // TODO what should happen if in a crosslisted course a 
                 // professor gets two different roles?
                 foreach ($instrs as $instructor) {
+                    // No need to enrol "THE STAFF" or "TA"
+                    if (is_dummy_ucla_user($instructor['ucla_id'])) {
+                        continue;
+                    }
+
                     $user = $this->translate_ccle_course_instructorsget(
                         $instructor
                     );
