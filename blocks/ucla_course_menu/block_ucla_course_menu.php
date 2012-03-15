@@ -260,8 +260,8 @@ class block_ucla_course_menu extends block_navigation {
         
         //CCLE-2380 Rearrange Course Materials link when editing is on
 
-        //passing topic value to reorder feature        
-        $topic = $this->get_topic_get();
+        //passing topic value to rearrange feature        
+        $topic = optional_param('topic',NULL,PARAM_CLEAN);
         $topicstr = '';
         if(!empty($topic)){
             $topicstr='&topic='.$topic;
