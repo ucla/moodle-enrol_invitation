@@ -8,8 +8,9 @@
 require_once(dirname(__FILE__) . '/ucla_cp_module.php');
 require_once(dirname(__FILE__) . '/modules/ucla_cp_text_module.php');
 require_once(dirname(__FILE__) . '/modules/ucla_cp_myucla_row_module.php');
-global $CFG, $DB, $USER;
 
+global $CFG, $DB, $USER;
+require_once($CFG->dirroot.'/local/ucla/lib.php');
 // Please note that we should have
 // $course - the course that we are currently on
 // $context - the context of the course
@@ -47,7 +48,6 @@ $modules[] = new ucla_cp_module('turn_editing_on', new moodle_url(
 /******************************** MyUCLA Functions *********************/
 
 
-//TODO: what do if course_info corrupted.
 $course_info = ucla_get_course_info($course->id);
 //Do not display these courses if the user is not currently on a valid course page.
 if (! empty($course_info)){
@@ -70,6 +70,7 @@ if (! empty($course_info)){
         $session = '';
     }
     
+    //Add individual links for each crosslisted course
     foreach ($course_info as $info_for_one_course){
         $myucla_row = new ucla_cp_myucla_row_module($temp_tag,$temp_cap);
         if (count($course_info) > 1){
@@ -193,48 +194,53 @@ $modules[] = new ucla_cp_module('course_grades', new moodle_url(
     $temp_tag, null);
 
 /******************************** Student Functions *********************/
-$temp_cap = 'enrol/self:unenrolself';
-$temp_tag = array('ucla_cp_mod_student');
-$modules[] = new ucla_cp_module('ucla_cp_mod_student', null, null, $temp_cap);
+//Only display this section if the user is a student in the course.
+if(has_role_in_context("student",$context)){
+    $temp_cap = null;
+    $temp_tag = array('ucla_cp_mod_student');
+    $modules[] = new ucla_cp_module('ucla_cp_mod_student', null, null, $temp_cap);
 
 
-$modules[] = new ucla_cp_module('edit_profile', new moodle_url(
-        $CFG->wwwroot . '/user/edit.php'), $temp_tag, $temp_cap);
-$modules[] = new ucla_cp_module('student_grades', new moodle_url(
-        $CFG->wwwroot.'/grade/index.php?id='.$course->id), $temp_tag, $temp_cap);
+    $modules[] = new ucla_cp_module('edit_profile', new moodle_url(
+            $CFG->wwwroot . '/user/edit.php'), $temp_tag, $temp_cap);
+    $modules[] = new ucla_cp_module('student_grades', new moodle_url(
+            $CFG->wwwroot.'/grade/index.php?id='.$course->id), $temp_tag, $temp_cap);
 
 
-if($USER->auth!="shibboleth"){
-    $modules[] =  new ucla_cp_module('student_change_password', new moodle_url(
-        $CFG->wwwroot.'/login/change_password.php?='.$USER->id), $temp_tag, $temp_cap);
-}
-
-$course_info = ucla_get_course_info($course->id);
-//Do not display these courses if the user is not currently on a valid course page.
-if (! empty($course_info)){
-    $first_course = array_shift(array_values($course_info));
-    $course_term = $first_course->term;
-    $course_srs = $first_course->srs;
-    $modules[] =  new ucla_cp_module('student_myucla_grades', new moodle_url(
-    'https://be.my.ucla.edu/directLink.aspx?featureID=71&term='.$course_term.'&srs='.$course_srs), $temp_tag, $temp_cap);
-    $modules[] =  new ucla_cp_module('student_myucla_classmates', new moodle_url(
-    'https://be.my.ucla.edu/directLink.aspx?featureID=72&term='.$course_term.'&srs='.$course_srs), $temp_tag, $temp_cap);
-    if($first_course->term[2]=='1'){//summer course
-        global $DB;
-    
-        if(!$session = $DB->get_field('ucla_reg_classinfo', 
-                                'session_group', 'term', $first_course->term, 
-                                'srs', $first_course->srs)) {
-            $session = '';
-        }     
-        else{
-            $session = '';
-        }
+    if($USER->auth!="shibboleth"){
+        $modules[] =  new ucla_cp_module('student_change_password', new moodle_url(
+            $CFG->wwwroot.'/login/change_password.php?='.$USER->id), $temp_tag, $temp_cap);
     }
-    $modules[] = new ucla_cp_module('student_myucla_textbooks', new moodle_url(
-            'http://www.collegestore.org/textbookstore/main.asp?remote=1&ref=ucla&term='.$course_term.$session.'&course='.$course_srs.'&getbooks=Display+books')
-            , $temp_tag, $temp_cap);   
+
+    $course_info = ucla_get_course_info($course->id);
+    //Do not display these courses if the user is not currently on a valid course page.
+    if (! empty($course_info)){
+        //Add all course related links.
+        $first_course = array_shift(array_values($course_info));
+        $course_term = $first_course->term;
+        $course_srs = $first_course->srs;
+        $modules[] =  new ucla_cp_module('student_myucla_grades', new moodle_url(
+        'https://be.my.ucla.edu/directLink.aspx?featureID=71&term='.$course_term.'&srs='.$course_srs), $temp_tag, $temp_cap);
+        $modules[] =  new ucla_cp_module('student_myucla_classmates', new moodle_url(
+        'https://be.my.ucla.edu/directLink.aspx?featureID=72&term='.$course_term.'&srs='.$course_srs), $temp_tag, $temp_cap);
+        if($first_course->term[2]=='1'){//summer course
+            global $DB;
+
+            if(!$session = $DB->get_field('ucla_reg_classinfo', 
+                                    'session_group', 'term', $first_course->term, 
+                                    'srs', $first_course->srs)) {
+                $session = '';
+            }     
+            else{
+                $session = '';
+            }
+        }
+        $modules[] = new ucla_cp_module('student_myucla_textbooks', new moodle_url(
+                'http://www.collegestore.org/textbookstore/main.asp?remote=1&ref=ucla&term='.$course_term.$session.'&course='.$course_srs.'&getbooks=Display+books')
+                , $temp_tag, $temp_cap);   
+    }
 }
+//Functions for features that haven't been implemented in moodle 2.0 yet.
 /*   if (!is_collab($course->id)){
     }
 
@@ -248,10 +254,7 @@ if (! empty($course_info)){
             print_string('cpdescription','userprefs');
 
         }
-
-
                                                                                                                                      
-
 if(!empty($CFG->block_course_menu_studentmanual_url)) {
 	echo '<dd>'.get_string('studentmanualclick','block_course_menu').'</dd>';
 }

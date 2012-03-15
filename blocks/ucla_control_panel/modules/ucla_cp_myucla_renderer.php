@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/*
+ * Used to render the myucla links section in the control panel.
+ */
 class ucla_cp_myucla_renderer extends ucla_cp_renderer {
  
-   
     /**
-     *  This function will take the contents of a 2-layer deep
-     *  array and generate the string that contains the contents
-     *  in a div-split table. It can also generate the contents.
+     *  Renders an array of myucla_row modules.
      *
      *  @param array $contents - The contents to diplay using the renderer.
      **/
@@ -29,10 +29,12 @@ class ucla_cp_myucla_renderer extends ucla_cp_renderer {
         $table->attributes = array ('id' => 'myUCLAFunctions');
         $handler='general_descriptive_link';
         
+        //For each row module
         foreach ($contents as $content_rows) {
             //print_object($content_rows);
             $content_rows_elements = $content_rows->elements;
             $table_row = new html_table_row();
+            //For each element in the row module
             foreach ($content_rows_elements as $content_item) {
                $table_row->cells[] = html_writer::tag('td',ucla_cp_renderer::$handler(
                     $content_item));

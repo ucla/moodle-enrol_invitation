@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/* This module is meant to be used in order to display an individual classes 
+/* This module is meant to be used in order to display an individual class's 
  * myucla links.
  */
 class ucla_cp_myucla_row_module extends ucla_cp_module{
@@ -34,11 +34,12 @@ class ucla_cp_myucla_row_module extends ucla_cp_module{
         $this->elements[] = $element;
     }
     
-    //Returns an array containing elements in the row
+    //Returns an array containing the elements in the row
     function get_elements(){
         return $this->elements;
     }
     
+    //Workaround so that it's not being treated as a tag
     function is_tag(){
         return false;
     }
