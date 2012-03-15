@@ -281,28 +281,35 @@ function ucla_get_courses_by_terms($terms) {
 }
 
 /**
- *  Returns a pretty looking term.
- *  TODO replace with termcaching
- *  TODO work with different millenia
+ *  Returns a pretty looking term in the format of 12S => Spring 2012.
+ * 
+ * @param string term
+ * @param char session      If session is passed, then, assuming the term is 
+ *                          summer, will return 121, A => Summer Session A 2012
  **/
-function ucla_term_to_text($term) {
+function ucla_term_to_text($term, $session=null) {
     $term_letter = strtolower(substr($term, -1, 1));
-    $years = substr($term, 0, 2);
-
-    $termtext = "20$years ";
+    $termtext = '';
     if ($term_letter == "f") {
-        $termtext .= " Fall";
+        $termtext = "Fall";
     } else if ($term_letter == "w") {
         // W -> Winter
-        $termtext .= " Winter";
+        $termtext = "Winter";
     } else if ($term_letter == "s") {
         // S -> Spring
-        $termtext .= " Spring";
+        $termtext = "Spring";
     } else {
         // 1 -> Summer
-        $termtext .= " Summer Session " . $session;            
+        if (!empty($session)) {
+            $termtext = "Summer Session " . strtoupper($session);   
+        } else {
+            $termtext = "Summer";
+        }
     }
 
+    $years = substr($term, 0, 2);
+    $termtext .= " 20$years";    
+    
     return $termtext;
 }
 
