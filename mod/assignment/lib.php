@@ -211,7 +211,7 @@ class assignment_base {
         echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
         echo format_module_intro('assignment', $this->assignment, $this->cm->id);
         echo $OUTPUT->box_end();
-        plagiarism_print_disclosure($this->cm->id);
+        echo plagiarism_print_disclosure($this->cm->id);
     }
 
     /**
@@ -400,7 +400,8 @@ class assignment_base {
         } else {
             if (isloggedin()) {
                 if ($submission = $this->get_submission($USER->id)) {
-                    if ($submission->timemodified) {
+                    // If the submission has been completed
+                    if ($this->is_submitted_with_required_data($submission)) {
                         if ($submission->timemodified <= $this->assignment->timedue || empty($this->assignment->timedue)) {
                             $submitted = '<span class="early">'.userdate($submission->timemodified).'</span>';
                         } else {
@@ -1221,7 +1222,7 @@ class assignment_base {
         echo '<div class="usersubmissions">';
 
         //hook to allow plagiarism plugins to update status/print links.
-        plagiarism_update_status($this->course, $this->cm);
+        echo plagiarism_update_status($this->course, $this->cm);
 
         $course_context = get_context_instance(CONTEXT_COURSE, $course->id);
         if (has_capability('gradereport/grader:view', $course_context) && has_capability('moodle/grade:viewall', $course_context)) {
@@ -1824,6 +1825,18 @@ class assignment_base {
     }
 
     /**
+     * Check the given submission is complete. Preliminary rows are often created in the assignment_submissions
+     * table before a submission actually takes place. This function checks to see if the given submission has actually
+     * been submitted.
+     *
+     * @param  stdClass $submission The submission we want to check for completion
+     * @return bool                 Indicates if the submission was found to be complete
+     */
+    public function is_submitted_with_required_data($submission) {
+        return $submission->timemodified;
+    }
+
+    /**
      * Instantiates a new submission object for a given user
      *
      * Sets the assignment, userid and times, everything else is set to default values.
@@ -1867,13 +1880,29 @@ class assignment_base {
     }
 
     /**
-     * Counts all real assignment submissions by ENROLLED students (not empty ones)
+     * Counts all complete (real) assignment submissions by enrolled students
      *
-     * @param int $groupid optional If nonzero then count is restricted to this group
-     * @return int The number of submissions
+     * @param  int $groupid (optional) If nonzero then count is restricted to this group
+     * @return int          The number of submissions
      */
     function count_real_submissions($groupid=0) {
-        return assignment_count_real_submissions($this->cm, $groupid);
+        global $CFG;
+        global $DB;
+
+        // Grab the context assocated with our course module
+        $context = get_context_instance(CONTEXT_MODULE, $this->cm->id);
+
+        // Get ids of users enrolled in the given course.
+        list($enroledsql, $params) = get_enrolled_sql($context, 'mod/assignment:view', $groupid);
+        $params['assignmentid'] = $this->cm->instance;
+
+        // Get ids of users enrolled in the given course.
+        return $DB->count_records_sql("SELECT COUNT('x')
+                                         FROM {assignment_submissions} s
+                                    LEFT JOIN {assignment} a ON a.id = s.assignment
+                                   INNER JOIN ($enroledsql) u ON u.id = s.userid
+                                        WHERE s.assignment = :assignmentid AND
+                                              s.timemodified > 0", $params);
     }
 
     /**
@@ -3450,43 +3479,37 @@ function assignment_get_unmailed_submissions($starttime, $endtime) {
 }
 
 /**
- * Counts all real assignment submissions by ENROLLED students (not empty ones)
+ * Counts all complete (real) assignment submissions by enrolled students for the given course modeule.
  *
- * There are also assignment type methods count_real_submissions() which in the default
- * implementation simply call this function.
- * @param $groupid int optional If nonzero then count is restricted to this group
- * @return int The number of submissions
+ * @deprecated                         Since Moodle 2.2 MDL-abc - Please do not use this function any more.
+ * @param  cm_info $cm                 The course module that we wish to perform the count on.
+ * @param  int     $groupid (optional) If nonzero then count is restricted to this group
+ * @return int                         The number of submissions
  */
 function assignment_count_real_submissions($cm, $groupid=0) {
     global $CFG, $DB;
 
-    $context = get_context_instance(CONTEXT_MODULE, $cm->id);
+    // Grab the assignment type for the given course module
+    $assignmenttype = $DB->get_field($cm->modname, 'assignmenttype', array('id' => $cm->instance), MUST_EXIST);
 
-    // this is all the users with this capability set, in this context or higher
-    if ($users = get_enrolled_users($context, 'mod/assignment:view', $groupid, 'u.id')) {
-        $users = array_keys($users);
+    // Create the expected class file path and class name for the returned assignemnt type
+    $filename = "{$CFG->dirroot}/mod/assignment/type/{$assignmenttype}/assignment.class.php";
+    $classname = "assignment_{$assignmenttype}";
+
+    // If the file exists and the class is not already loaded we require the class file
+    if (file_exists($filename) && !class_exists($classname)) {
+        require_once($filename);
     }
-
-    // if groupmembersonly used, remove users who are not in any group
-    if ($users and !empty($CFG->enablegroupmembersonly) and $cm->groupmembersonly) {
-        if ($groupingusers = groups_get_grouping_members($cm->groupingid, 'u.id', 'u.id')) {
-            $users = array_intersect($users, array_keys($groupingusers));
-        }
+    // If the required class is still not loaded then we revert to assignment base
+    if (!class_exists($classname)) {
+        $classname = 'assignment_base';
     }
+    $instance = new $classname;
 
-    if (empty($users)) {
-        return 0;
-    }
-
-    $userlists = implode(',', $users);
-
-    return $DB->count_records_sql("SELECT COUNT('x')
-                                     FROM {assignment_submissions}
-                                    WHERE assignment = ? AND
-                                          timemodified > 0 AND
-                                          userid IN ($userlists)", array($cm->instance));
+    // Attach the course module to the assignment type instance and then call the method for counting submissions
+    $instance->cm = $cm;
+    return $instance->count_real_submissions($groupid);
 }
-
 
 /**
  * Return all assignment submissions by ENROLLED students (even empty)
@@ -3938,6 +3961,45 @@ function assignment_get_file_areas($course, $cm, $context) {
         $areas['submission'] = get_string('assignmentsubmission', 'assignment');
     }
     return $areas;
+}
+
+/**
+ * File browsing support for assignment module.
+ *
+ * @param file_browser $browser
+ * @param array $areas
+ * @param stdClass $course
+ * @param cm_info $cm
+ * @param context $context
+ * @param string $filearea
+ * @param int $itemid
+ * @param string $filepath
+ * @param string $filename
+ * @return file_info_stored file_info_stored instance or null if not found
+ */
+function mod_assignment_get_file_info($browser, $areas, $course, $cm, $context, $filearea, $itemid, $filepath, $filename) {
+    global $CFG, $DB, $USER;
+
+    if ($context->contextlevel != CONTEXT_MODULE || $filearea != 'submission') {
+        return null;
+    }
+    if (!$submission = $DB->get_record('assignment_submissions', array('id' => $itemid))) {
+        return null;
+    }
+    if (!(($submission->userid == $USER->id && has_capability('mod/assignment:view', $context))
+            || has_capability('mod/assignment:grade', $context))) {
+        // no permission to view this submission
+        return null;
+    }
+
+    $fs = get_file_storage();
+    $filepath = is_null($filepath) ? '/' : $filepath;
+    $filename = is_null($filename) ? '.' : $filename;
+    if (!($storedfile = $fs->get_file($context->id, 'mod_assignment', $filearea, $itemid, $filepath, $filename))) {
+        return null;
+    }
+    $urlbase = $CFG->wwwroot.'/pluginfile.php';
+    return new file_info_stored($browser, $context, $storedfile, $urlbase, $filearea, $itemid, true, true, false);
 }
 
 /**

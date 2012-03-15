@@ -948,7 +948,7 @@ function message_add_contact($contactid, $blocked=0) {
 
     } else {
     /// new contact record
-        unset($contact);
+        $contact = new stdClass();
         $contact->userid = $USER->id;
         $contact->contactid = $contactid;
         $contact->blocked = $blocked;
@@ -1344,6 +1344,7 @@ function message_contact_link($userid, $linktype='add', $return=false, $script=n
     }
 
     if (empty($str->blockcontact)) {
+       $str = new stdClass();
        $str->blockcontact   =  get_string('blockcontact', 'message');
        $str->unblockcontact =  get_string('unblockcontact', 'message');
        $str->removecontact  =  get_string('removecontact', 'message');
@@ -1647,7 +1648,7 @@ function message_search($searchterms, $fromme=true, $tome=true, $courseid='none'
 
     /// The keys may be duplicated in $m_read and $m_unread so we can't
     /// do a simple concatenation
-    $message = array();
+    $messages = array();
     foreach ($m_read as $m) {
         $messages[] = $m;
     }
@@ -2346,11 +2347,7 @@ function get_message_processor($type) {
  * @return object $processors object containing information on message processors
  */
 function get_message_output_default_preferences() {
-    $preferences = get_config('message');
-    if (!$preferences) {
-        $preferences = new stdClass();
-    }
-    return $preferences;
+    return get_config('message');
 }
 
 /**
@@ -2382,7 +2379,7 @@ function translate_message_default_setting($plugindefault, $processorname) {
 
     // Validate the value. It should not exceed the maximum size
     if (!is_int($plugindefault) || ($plugindefault > 0x0f)) {
-        $OUTPUT->notification(get_string('errortranslatingdefault', 'message'), 'notifyproblem');
+        debugging(get_string('errortranslatingdefault', 'message'));
         $plugindefault = $default;
     }
     // Use plugin default setting of 'permitted' is 0
