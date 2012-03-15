@@ -92,6 +92,9 @@ $CFG->forced_plugin_settings['tool_myucla_url']['user_name'] = 'CCLE Admin';   /
 $CFG->forced_plugin_settings['tool_myucla_url']['user_email'] = 'ccle@ucla.edu';  // email for registering URL with My.UCLA
 $CFG->forced_plugin_settings['tool_myucla_url']['override_debugging'] = true;   // test sending MyUCLA urls
 
+// Pre-pop
+$CFG->forced_plugin_settings['enrol_database']['terms'] = $terms_to_built;
+
 // turn off messaging (CCLE-2318 - MESSAGING)
 $CFG->messaging = false;
 
@@ -123,9 +126,6 @@ $CFG->debug = 38911;    // DEVELOPER level debugging messages
 $CFG->debugdisplay = true;  // show the debugging messages
 $CFG->perfdebug = true; // show performance information
 $CFG->debugpageinfo = true; // show page information
-
-// CCLE-2550 - Lastname, Firstname sorting
-$CFG->fullnamedisplay = 'language';
 
 // UCLA Theme settings
 $CFG->themedesignermode = true;
@@ -159,6 +159,41 @@ $CFG->filter_mediaplugin_enable_html5video = true;
 $CFG->filter_mediaplugin_enable_qt = true;
 $CFG->filter_mediaplugin_enable_wmp = true;
 $CFG->filter_mediaplugin_enable_rm = true;
+
+// Enable conditional activities
+$CFG->enableavailability = true;
+$CFG->enablecompletion = true;  // needs to be enabled so that completion
+                                // of tasks can be one of the conditions
+
+// CCLE-2229 - Force public/private to be on
+$CFG->enablegroupmembersonly = true; // needs to be on for public-private to work
+$CFG->enablepublicprivate = true;
+
+// CCLE-2792 - Enable multimedia filters
+// NOTE: you still need to manually set the "Active?" value of the "Multimedia 
+// plugins" filter at "Site administration > Plugins > Filters > Manage filters"
+$CFG->filter_mediaplugin_enable_youtube = true;
+$CFG->filter_mediaplugin_enable_vimeo = true;
+$CFG->filter_mediaplugin_enable_mp3 = true;
+$CFG->filter_mediaplugin_enable_flv = true;
+$CFG->filter_mediaplugin_enable_swf = false;    // security risk if enabled
+$CFG->filter_mediaplugin_enable_html5audio = true;
+$CFG->filter_mediaplugin_enable_html5video = true;
+$CFG->filter_mediaplugin_enable_qt = true;
+$CFG->filter_mediaplugin_enable_wmp = true;
+$CFG->filter_mediaplugin_enable_rm = true;
+
+// Site administration > Courses > Course default settings
+$CFG->forced_plugin_settings['moodlecourse']['format'] = 'ucla';
+$CFG->forced_plugin_settings['moodlecourse']['maxbytes'] = 1572864000;  // 1.5GB
+$CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 1;
+
+// Site administration > Plugins > Activity modules > Assignment
+$CFG->assignment_maxbytes = 10485760;   // 100MB
+
+// Site administration > Security > Site policies
+$CFG->fullnamedisplay = 'language'; // CCLE-2550 - Lastname, Firstname sorting
+$CFG->cronclionly = true;
 
 /** 
  *  Automatic Shibboleth configurations.
@@ -207,6 +242,24 @@ $_config_private_ = $_dirroot_ . '/config_private.php';
 if (file_exists($_config_private_)) {
     require_once($_config_private_);
 }
+
+// Site administration > Plugins > Enrolments > External database
+// set external database connection settings after config_private.php has
+// been read for the Registrar connection details
+$CFG->forced_plugin_settings['enrol_database']['dbtype'] = $CFG->registrar_dbtype;
+$CFG->forced_plugin_settings['enrol_database']['dbhost'] = $CFG->registrar_dbhost;
+$CFG->forced_plugin_settings['enrol_database']['dbuser'] = $CFG->registrar_dbuser;
+$CFG->forced_plugin_settings['enrol_database']['dbpass'] = $CFG->registrar_dbpass;
+$CFG->forced_plugin_settings['enrol_database']['dbname'] = $CFG->registrar_dbname;
+$CFG->forced_plugin_settings['enrol_database']['remoteenroltable'] = 'enroll2';
+$CFG->forced_plugin_settings['enrol_database']['remotecoursefield'] = 'termsrs';
+$CFG->forced_plugin_settings['enrol_database']['remoteuserfield'] = 'uid';
+$CFG->forced_plugin_settings['enrol_database']['remoterolefield'] = 'role';
+$CFG->forced_plugin_settings['enrol_database']['localcoursefield'] = 'id';
+$CFG->forced_plugin_settings['enrol_database']['localrolefield'] = 'id';
+// CCLE-2824 - Making sure that being assigned/unassigned/re-assigned doesn't 
+// lose grading data
+$CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 3;    // Disable course enrolment and remove roles
 
 // This will bootstrap the moodle functions.
 require_once($_dirroot_ . '/lib/setup.php');

@@ -52,3 +52,36 @@
 .jumpmenu {
     text-align: center;
 }
+
+.coursecancelled {
+    text-align: center;
+}
+
+.course_text_cancelled {
+    text-decoration: line-through;
+}
+
+/* stlying for instructors/tas contact listing and office hours */
+.instr-info table {
+    margin-top: 10px;
+    border: 1px solid #CCC;
+    width: 100%;    
+    line-height: 0.9em;
+}
+
+.instr-info table thead {
+    font-size: 1.2em;
+    padding-right: 15px;
+    background: #EFEFEF;
+    border-bottom: 1px solid #CCC;
+    border-top: 1px solid #CCC;    
+    color: #666;
+}
+
+.instr-info .r0 {
+    background-color: #F7F7F7;
+}
+
+.instr-info .r1 {
+    background-color: white;
+}

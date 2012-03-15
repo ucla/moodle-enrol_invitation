@@ -1,9 +1,6 @@
 <?php
 /**
- * Unit tests for (some of) mod/quiz/editlib.php.
- *
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @package question
+ * Unit tests for ucla_validator.
  */
  
 if (!defined('MOODLE_INTERNAL')) {
@@ -13,7 +10,6 @@ if (!defined('MOODLE_INTERNAL')) {
 // Make sure the code being tested is accessible.
 require_once($CFG->dirroot . '/local/ucla/lib.php'); // Include the code to test
  
-/** This class contains the test cases for the functions in editlib.php. */
 class ucla_validator_test extends UnitTestCase {
     function test_valid_inputs() {
         $result = ucla_validator('term','11F');

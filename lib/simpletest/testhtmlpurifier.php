@@ -29,10 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 
 class htmlpurifier_test extends UnitTestCase {
 
-    /**
-     * Tests the installation of event handlers from file
-     */
-    function test_our_tags() {
+    function test_moodle_tags() {
         $text = '<nolink>xxx<em>xx</em><div>xxx</div></nolink>';
         $this->assertIdentical($text, purify_html($text));
 
@@ -52,6 +49,39 @@ class htmlpurifier_test extends UnitTestCase {
         $this->assertIdentical($text, purify_html($text));
     }
 
+    function test_tidy() {
+        $text = "<p>xx";
+        $this->assertIdentical('<p>xx</p>', purify_html($text));
+
+        $text = "<P>xx</P>";
+        $this->assertIdentical('<p>xx</p>', purify_html($text));
+
+        $text = "xx<br>";
+        $this->assertIdentical('xx<br />', purify_html($text));
+    }
+
+    function test_cleaning_nastiness() {
+        $text = "x<SCRIPT>alert('XSS')</SCRIPT>x";
+        $this->assertIdentical('xx', purify_html($text));
+
+        $text = '<DIV STYLE="background-image:url(javascript:alert(\'XSS\'))">xx</DIV>';
+        $this->assertIdentical('<div>xx</div>', purify_html($text));
+
+        $text = '<DIV STYLE="width:expression(alert(\'XSS\'));">xx</DIV>';
+        $this->assertIdentical('<div>xx</div>', purify_html($text));
+
+        $text = 'x<IFRAME SRC="javascript:alert(\'XSS\');"></IFRAME>x';
+        $this->assertIdentical('xx', purify_html($text));
+
+        $text = 'x<OBJECT TYPE="text/x-scriptlet" DATA="http://ha.ckers.org/scriptlet.html"></OBJECT>x';
+        $this->assertIdentical('xx', purify_html($text));
+
+        $text = 'x<EMBED SRC="http://ha.ckers.org/xss.swf" AllowScriptAccess="always"></EMBED>x';
+        $this->assertIdentical('xx', purify_html($text));
+
+        $text = 'x<form></form>x';
+        $this->assertIdentical('xx', purify_html($text));
+    }
 }
 
 
