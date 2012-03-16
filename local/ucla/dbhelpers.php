@@ -146,12 +146,18 @@ class db_helper {
     /**
      *  Convenience function that automatically gets a bunch of stuff
      *  regarding users in courses.
+     *  @param $where SQL string - does not need WHERE. 
+     *      For table names: 
+     *          use c for {course}
+     *          use u for {user}
+     *          use rcq for {ucla_request_classes}
      *  NOTE: This kind of function might already exist in moodle somewhere...
      **/
     static function get_users_select($where='', $params=null, $groupby='') {
         global $DB;
 
         // Massive SQL statement because "we know how things work down there"
+        // This basically gets the users in a course
         $sql = "
         SELECT
             CONCAT(c.id, '-', u.id, '-', r.id) AS rsid,
@@ -178,7 +184,7 @@ class db_helper {
             ON x.id = ra.contextid
         INNER JOIN {course} c
             ON c.id = x.instanceid
-        LEFT JOIN {ucla_request_classes} rcq
+        INNER JOIN {ucla_request_classes} rcq
             ON c.id = rcq.courseid
         ";
 

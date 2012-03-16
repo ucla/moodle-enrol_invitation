@@ -3,6 +3,8 @@
 require_once(dirname(__FILE__) . '/../../config.php');
 require_once($CFG->dirroot . '/local/ucla/lib.php');
 require_once($CFG->dirroot . '/blocks/ucla_browseby/block_ucla_browseby.php');
+require_once($CFG->dirroot . '/blocks/ucla_browseby/'
+    . 'browseby_handler_factory.class.php');
 require_once($CFG->dirroot . '/blocks/ucla_browseby/renderer.php');
 
 $type = required_param('type', PARAM_TEXT);
@@ -10,11 +12,16 @@ $term = optional_param('term', $CFG->currentterm, PARAM_TEXT);
 
 $argvls = array('term' => $term, 'type' => $type);
 
-$browseby = block_instance('ucla_browseby');
+$handler_factory = new browseby_handler_factory();
+$handler = $handler_factory->get_type_handler($type);
+
+if (!$handler) {
+    print_error('illegaltype', 'block_ucla_browseby', '', $type);
+}
+
+$args = $handler->get_params();
 
 // Iterate through all possible arguments in this display
-$args = $browseby->get_possible_arguments();
-
 foreach ($args as $arg) {
     ${$arg} = optional_param($arg, null, PARAM_RAW);
     if (${$arg} !== null) {
@@ -29,7 +36,7 @@ $PAGE->set_course($SITE);
 $PAGE->set_pagetype('site-index');
 $PAGE->set_pagelayout('frontpage');
 
-list($title, $innercontents) = $browseby->handle_types($type, $argvls);
+list($title, $innercontents) = $handler->handle($argvls);
 if (!$title) {
     print_error('illegaltype', 'block_ucla_browseby', '', $type);
 }

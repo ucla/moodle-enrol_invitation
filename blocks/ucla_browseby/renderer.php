@@ -67,12 +67,8 @@ class block_ucla_browseby_renderer {
             $courselink = html_writer::link(new moodle_url($course->url),
                 $course->dispname);
 
-            $instrstr = 'N / A';
-            if (!empty($course->instructors)) {
-                $instrstr = implode(' / ', $course->instructors);
-            }
-
-            $data[] = array($courselink, $instrstr, $course->fullname);
+            $data[] = array($courselink, $course->instructors, 
+                $course->fullname);
         }
 
         $disptable->data = $data;
@@ -137,14 +133,10 @@ class block_ucla_browseby_renderer {
             }
         }
 
-        $selects = new url_select($urls, $default, '');
+        $selects = new url_select($urls, $default);
 
         return $selects;
     }
-}
-
-class ucla_html_table extends html_table {
-    // This is just an empty shell, the real junk is in the renderer...
 }
 
 

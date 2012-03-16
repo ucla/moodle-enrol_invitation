@@ -2,14 +2,17 @@
  *  Stylesheet for browseby functionality.
  **/
 
+#browsebymain {
+    text-align: center;
+}
+
 #browsebymain .list0, 
 #browsebymain .list1 {
-    clear: left;
-    float: left;
     list-style: none outside none;
     margin: 0;
     padding: 10px 14px 0 0;
-    width: 295px;
+    min-width: 295px;
+    margin: auto;
 }
 
 #browsebymain .flattened-list li {
@@ -20,5 +23,5 @@
 }
 
 #browsebymain .urlselect {
-    display: inline;
+    margin-bottom: 8px;
 }
