@@ -21,7 +21,8 @@ abstract class browseby_handler {
      *  Hook function to do some checks before running the handler.
      **/
     function run_handler($args) {
-
+        $return = $this->handle($args);
+        return $return;
     }
     
     /**
@@ -29,17 +30,26 @@ abstract class browseby_handler {
      *  renderer.
      **/
     function list_builder_helper($data, $keyfield, $dispfield, $type, $get, 
-                                 $term=false) {
+                                 $term=false, $evenmore=false) {
+        global $PAGE;
+
         $table = array();
         foreach ($data as $datum) {
             $k = $datum->{$keyfield};
             $queryterms = array('type' => $type, $get => $k);
+
             if ($term) {
                 $queryterms['term'] = $term;
             }
 
-            $table[$k] = html_writer::link(
-                new moodle_url('/blocks/ucla_browseby/view.php', $queryterms),
+            if ($evenmore) {
+                $queryterms = array_merge($queryterms, $evenmore);
+            }
+
+            $urlobj = clone($PAGE->url);
+            $urlobj->params($queryterms);
+
+            $table[$k] = html_writer::link($urlobj, 
                 ucwords(strtolower($datum->{$dispfield}))
             );
         }

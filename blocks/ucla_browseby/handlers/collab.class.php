@@ -10,7 +10,9 @@ class collab_handler extends browseby_handler {
     }
 
     function handle($args) {
-        global $CFG;
+        global $CFG, $PAGE;
+
+        $navbar =& $PAGE->navbar;
 
         $collablibfile = $CFG->dirroot . '/' . $CFG->admin 
             .'/tool/siteindicator/siteindicatorlib.php';
@@ -49,8 +51,13 @@ class collab_handler extends browseby_handler {
             print_error('collab_notfound', 'block_ucla_browseby');
         }
 
+        $defaulttitle = get_string('collab_viewall', 'block_ucla_browseby');
         if (empty($t)) {
-            $t = get_string('collab_viewall', 'block_ucla_browseby');
+            $t = $defaulttitle;
+        } else {
+            $navbar->add($defaulttitle, 
+                new moodle_url('/blocks/ucla_browseby/view.php',
+                    array('type' => 'collab')));
         }
     
         $categorylist = array();

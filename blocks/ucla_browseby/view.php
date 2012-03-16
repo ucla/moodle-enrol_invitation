@@ -36,12 +36,14 @@ $PAGE->set_course($SITE);
 $PAGE->set_pagetype('site-index');
 $PAGE->set_pagelayout('frontpage');
 
-list($title, $innercontents) = $handler->handle($argvls);
+// This function will alter the $PAGE->navbar object
+list($title, $innercontents) = $handler->run_handler($argvls);
 if (!$title) {
     print_error('illegaltype', 'block_ucla_browseby', '', $type);
 }
 
 $PAGE->set_title($title);
+$PAGE->navbar->add($title);
 
 // I have no idea when this is used...
 $PAGE->set_heading($SITE->fullname);

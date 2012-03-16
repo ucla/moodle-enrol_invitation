@@ -9,6 +9,8 @@ class instructor_handler extends browseby_handler {
      *  Fetches a list of instructors with an alphabetized index.
      **/
     function handle($args) {
+        global $PAGE;
+
         $s = '';
 
         $term = false;
@@ -30,33 +32,30 @@ class instructor_handler extends browseby_handler {
         // Figure out what letters we're displaying
         if (isset($args['alpha'])) {
             $rawletter = $args['alpha'];
-            if ($rawletter != 'all') {
-                $letter = strtoupper($rawletter);
 
-                if ($term) {
-                    $t = get_string('instructorswith', 'block_ucla_browseby', 
-                        $letter);
-                } else {
-                    $a = new stdclass();
-                    $a->letter = $letter;
-                    $a->term = $prettyterm;
+            $letter = strtoupper($rawletter);
 
-                    $t = get_string('instructorswithterm', 
-                        'block_ucla_browseby', $a);
-                }
+            if ($term) {
+                $t = get_string('instructorswith', 'block_ucla_browseby', 
+                    $letter);
+            } else {
+                $a = new stdclass();
+                $a->letter = $letter;
+                $a->term = $prettyterm;
 
-                // Add the 'All' option
-                $lastnamefl['all'] = true;
+                $t = get_string('instructorswithterm', 
+                    'block_ucla_browseby', $a);
             }
+
+            // The breadcrumb logic is kind of disorganized
+            $urlobj = clone($PAGE->url);
+            $urlobj->remove_params('alpha');
+            $PAGE->navbar->add(get_string('instructorsall', 
+                'block_ucla_browseby'), $urlobj);
         }
 
         if (!isset($t)) {
-            if ($term) {
-                $t = get_string('instructosallterm', 'block_ucla_browseby',
-                    $prettyterm);
-            } else {
-                $t = get_string('instructorsall', 'block_ucla_browseby');
-            }
+            $t = get_string('instructorsall', 'block_ucla_browseby');
         }
 
         $where = 'u.idnumber <> \'\'';
@@ -99,16 +98,9 @@ class instructor_handler extends browseby_handler {
         $lettertable = array();
         foreach ($lastnamefl as $letter => $exists) {
             if ($exists) {
-                $content = html_writer::link(
-                    new moodle_url('/blocks/ucla_browseby/view.php',
-                        array(
-                            'type' => 'instructor', 
-                            'alpha' => strtolower($letter),
-                            'term' => $term
-                        )),
-                    ucwords($letter)
-
-                );
+                $urlobj = clone($PAGE->url);
+                $urlobj->params(array('alpha' => strtolower($letter)));
+                $content = html_writer::link($urlobj, ucwords($letter));
             } else {
                 $content = html_writer::tag('span',
                     $letter, array('class' => 'dimmed_text'));

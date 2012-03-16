@@ -22,11 +22,12 @@ class course_handler extends browseby_handler {
     ";
 
     function get_params() {
-        return array('subjarea', 'inst');
+        // This uses division in breadcrumbs
+        return array('subjarea', 'inst', 'division');
     }
 
     function handle($args) {
-        global $OUTPUT;
+        global $OUTPUT, $PAGE;
 
         $subjarea = null;
         $instructor = null;
@@ -157,7 +158,7 @@ class course_handler extends browseby_handler {
                 if (enrolstat_is_cancelled($course->enrolstat)) {
                     $cancelledmess = html_writer::tag('span', 
                         get_string('cancelled'), 
-                        array('class' => 'cancelled-course')) . ' ';
+                        array('class' => 'ucla-cancelled-course')) . ' ';
                 }
 
                 $courseobj->dispname = ucla_make_course_title(get_object_vars(

@@ -21,7 +21,9 @@ class subjarea_handler extends browseby_handler {
 
         $conds = array();
         $where = '';
-       
+
+        $camefromdivision = false;
+
         if ($division) {
             $conds['division'] = $division;
             $where = 'WHERE urs.division = :division';
