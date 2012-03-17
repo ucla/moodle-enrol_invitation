@@ -6,7 +6,7 @@ class subjarea_handler extends browseby_handler {
     }
 
     function handle($args) {
-        global $OUTPUT;
+        global $OUTPUT, $PAGE;
 
         $division = false;
         if (isset($args['division'])) {
@@ -26,9 +26,21 @@ class subjarea_handler extends browseby_handler {
 
         if ($division) {
             $conds['division'] = $division;
-            $where = 'WHERE urs.division = :division';
+            $where = 'WHERE rci.division = :division';
+
+            $divisionobj = $this->get_division($division);
+            $division = to_display_case($divisionobj->fullname);
+
+            $urlobj = clone($PAGE->url);
+            $urlobj->remove_params(array('division'));
+            $urlobj->params(array('type' => 'division'));
+            $PAGE->navbar->add(get_string('division_title', 
+                'block_ucla_browseby'), $urlobj);
+
+            $t = get_string('subjarea_title', 'block_ucla_browseby', 
+                $division);
         } else {
-            $division = get_string('all_subjareas', 'block_ucla_browseby');
+            $t = get_string('all_subjareas', 'block_ucla_browseby');
         }
 
         if (empty($conds)) {
@@ -37,9 +49,6 @@ class subjarea_handler extends browseby_handler {
 
         // This is the content
         $s = '';
-        // This is the title
-        $t = get_string('subjarea_title', 'block_ucla_browseby', 
-            $division);
 
         // Display a list of things to help us narrow down our path to 
         // destination
@@ -52,10 +61,16 @@ class subjarea_handler extends browseby_handler {
             FROM {ucla_browseall_classinfo} ubc
             INNER JOIN {ucla_reg_subjectarea} urs
                 ON ubc.subjarea = urs.subjarea
+            LEFT JOIN {ucla_reg_classinfo} rci
+                ON rci.subj_area = urs.subjarea
             $where
         ";
 
         $subjectareas = $this->get_records_sql($sql, $conds);
+
+        if ($division) {
+
+        }
 
         if (empty($subjectareas)) {
             return array(false, false);
@@ -85,5 +100,12 @@ class subjarea_handler extends browseby_handler {
         $s .= block_ucla_browseby_renderer::ucla_custom_list_render($table);
 
         return array($t, $s);
+    }
+
+    protected function get_division($division) {
+        global $DB;
+
+        return $DB->get_record('ucla_reg_division', 
+            array('code' => $division));
     }
 }

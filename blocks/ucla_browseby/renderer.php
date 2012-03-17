@@ -75,6 +75,17 @@ class block_ucla_browseby_renderer {
 
         return $disptable;
     }
+
+    /**
+     *  Convenience functino, use this.
+     *  @param  $terms Array() Possible terms to select from, in form
+     *     YYT (i.e. 11F)
+     *  @param  $default string default one to pick
+     **/
+    static function make_terms_selector($terms, $default=false) {
+        list($w, $p) = self::render_terms_restricted_helper($terms);
+        return self::render_terms_selector($default, $w, $p);
+    }
     
     /**
      *  Another helper...move to renderer?

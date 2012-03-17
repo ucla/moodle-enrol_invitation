@@ -14,10 +14,11 @@ $string['illegaltype'] = 'View for "{$a}" does not exist.';
 
 $string['noresults'] = 'No results.';
 
-$string['subjarea_title'] = '{$a} subject areas';
-$string['all_subjareas'] = 'All hosted'; 
+$string['subjarea_title'] = 'Subject areas in {$a}';
+$string['all_subjareas'] = 'All hosted subject areas'; 
 $string['division_title'] = 'Divisions';
 $string['division_none'] = 'No divisions were found on this server';
+$string['division_noterm'] = 'No divisions were found for this term, please try another term.';
 
 $string['instructorsall'] = 'All instructors';
 $string['instructorswith'] = 'Instructors, last name starting with "{$a}"';
