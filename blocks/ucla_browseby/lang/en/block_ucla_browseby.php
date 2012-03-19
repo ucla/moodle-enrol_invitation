@@ -1,6 +1,6 @@
 <?php
 
-$string['pluginname'] = 'UCLA Browse-by interface';
+$string['pluginname'] = 'UCLA browse-by';
 
 $string['displayname'] = 'Browse by:';
 

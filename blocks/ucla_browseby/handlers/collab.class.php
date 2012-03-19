@@ -231,10 +231,15 @@ class collab_handler extends browseby_handler {
             if ($category->{$field} == $name) {
                 return $category;
             } 
-            
+           
+            $dfs = false;
             if (!empty($category->categories)) {
-                return $this->find_category($name, $categories->categories, 
+                $dfs = $this->find_category($name, $category->categories, 
                     $field);
+            }
+
+            if ($dfs) {
+                return $dfs;
             }
         }
 

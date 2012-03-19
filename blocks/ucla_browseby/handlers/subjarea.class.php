@@ -68,10 +68,6 @@ class subjarea_handler extends browseby_handler {
 
         $subjectareas = $this->get_records_sql($sql, $conds);
 
-        if ($division) {
-
-        }
-
         if (empty($subjectareas)) {
             return array(false, false);
         }
