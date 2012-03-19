@@ -6,13 +6,19 @@
     text-align: center;
 }
 
-#browsebymain .list0, 
+#browsebymain .list0 {
+    list-style: none outside none;
+    margin: 0;
+    padding: 10px 14px 0 0;
+    min-width: 295px;
+}
+
 #browsebymain .list1 {
     list-style: none outside none;
     margin: 0;
     padding: 10px 14px 0 0;
     min-width: 295px;
-    margin: auto;
+    float: left;
 }
 
 #browsebymain .flattened-list li {
@@ -24,4 +30,15 @@
 
 #browsebymain .urlselect {
     margin-bottom: 8px;
+}
+
+#browsebymain .browsebylist {
+    width: 50%;
+    margin: auto;
+}
+
+#browsebymain .registrar-link {
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
 }

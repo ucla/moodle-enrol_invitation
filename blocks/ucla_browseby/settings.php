@@ -15,4 +15,14 @@ if ($ADMIN->fulltree) {
             get_string('desc_' . $type, 'block_ucla_browseby'), 
             0));
     }
+
+    $settings->add(new admin_setting_configcheckbox(
+        'block_ucla_browseby/syncallterms',
+         get_string('title_syncallterms', 'block_ucla_browseby'),
+         get_string('desc_syncallterms', 'block_ucla_browseby'), 0));
+    
+    $settings->add(new admin_setting_configcheckbox(
+        'block_ucla_browseby/use_local_courses',
+         get_string('title_use_local_courses', 'block_ucla_browseby'),
+         get_string('desc_use_local_courses', 'block_ucla_browseby'), 0));
 }

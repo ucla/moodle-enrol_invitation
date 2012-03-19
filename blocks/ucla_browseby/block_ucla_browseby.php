@@ -87,6 +87,12 @@ class block_ucla_browseby extends block_list {
         }
 
         $this->termslist = array($CFG->currentterm);
+
+        if (get_config('block_ucla_browseby', 'syncallterms')) {
+            $this->termslist = $this->get_all_terms();
+
+            set_config('syncallterms', false, 'block_ucla_browseby');
+        }
     }
 
     function cron() {
@@ -105,9 +111,11 @@ class block_ucla_browseby extends block_list {
         ucla_require_registrar();
 
         if (empty($terms)) {
-            debugging('no terms specified for browseby cron');
+            echo 'no terms specified for browseby cron' . "\n";
             return true;
         }
+
+        echo "\n";
 
         list($sqlin, $params) = $DB->get_in_or_equal($terms);
         $where = 'term ' . $sqlin;
@@ -135,6 +143,9 @@ class block_ucla_browseby extends block_list {
         foreach ($records as $record) {
             $term = $record->term;
             $subjarea = $record->subjarea;
+
+            echo "Handling $term $subjarea \n";
+
             $thisreg = array('term' => $term, 
                 'subjarea' => $subjarea);
             $toreg = array($thisreg);
@@ -180,6 +191,20 @@ class block_ucla_browseby extends block_list {
         ucla_require_registrar();
 
         return registrar_query::run_registrar_query($q, $d, true);
+    }
+
+    protected function get_all_terms() {
+        global $DB;
+
+        $termobjs = $DB->get_records('ucla_request_classes', null, '',
+            'DISTINCT term');
+
+        $terms = array();
+        foreach ($termobjs as $termobj) {
+            $terms[] = $termobj->term;
+        }
+
+        return $terms;
     }
 }
 

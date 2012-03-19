@@ -24,7 +24,7 @@ class block_ucla_browseby_renderer {
         }
 
         if (!empty($lists)) {
-            $ringer = 0;
+            $ringer = count($lists) - 1;
             foreach ($lists as $list) {
                 $s .= html_writer::tag('ul', $list, array(
                     'class' => 'list' . $ringer . " $customclass"
@@ -32,7 +32,7 @@ class block_ucla_browseby_renderer {
             }
         }
 
-        return $s;
+        return html_writer::tag('div', $s, array('class' => 'browsebylist'));
     }
 
     static function ucla_custom_list_render_helper($data) {
@@ -64,7 +64,13 @@ class block_ucla_browseby_renderer {
         $data = array();
 
         foreach ($courses as $course) {
-            $courselink = html_writer::link(new moodle_url($course->url),
+            if (!empty($course->nonlinkdispname)) {
+                $courselink = $course->nonlinkdispname . ' ';
+            } else {
+                $courselink = '';
+            }
+
+            $courselink .= html_writer::link(new moodle_url($course->url),
                 $course->dispname);
 
             $data[] = array($courselink, $course->instructors, 
@@ -119,7 +125,7 @@ class block_ucla_browseby_renderer {
     static function terms_selector($defaultterm=false, 
             $restrictor_where=false, $restrictor_params=null) {
         global $DB, $PAGE;
-       
+
         if (!empty($restrictor_where)) {
             $terms = $DB->get_records_select('ucla_request_classes', 
                 $restrictor_where, $restrictor_params, '', 'DISTINCT term');

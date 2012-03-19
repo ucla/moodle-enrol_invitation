@@ -2251,7 +2251,7 @@ class uclacoursecreator {
      *  @return boolean Is the term a summer term?
      **/
     function match_summer($term) {
-        return preg_match('/1$/', $term);
+        return is_summer_term($term);
     }
 }
 

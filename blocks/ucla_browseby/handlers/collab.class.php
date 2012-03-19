@@ -69,35 +69,24 @@ class collab_handler extends browseby_handler {
 
         $courselist = array();
         if (!empty($collab_cat->courses)) {
-            // Note that this is a csv of role ids and is designed to
-            // be accessed by the GUI
-            $roles_visible = get_config('block_ucla_browseby', 
-                'collab_roles');
+            // Default roles to use, get these shortname's role.id
+            $rolenames = self::get_default_roles_visible();
+            $allroles = get_all_roles();
 
-            // Figure out which roles we're going to display as project
-            // lead and coures creator
-            if ($roles_visible) {
-                $roleids = explode(',', $roles_visible);
-            } else {
-                // Default roles to use, get these shortname's role.id
-                $rolenames = self::get_default_roles_visible();
-                $allroles = get_all_roles();
+            $iroles = array();
+            foreach ($allroles as $role) {
+                $iroles[$role->shortname] = $role;
+            }
 
-                $iroles = array();
-                foreach ($allroles as $role) {
-                    $iroles[$role->shortname] = $role;
-                }
+            $roleids = array();
+            $rolefullnames = array();
+            foreach ($rolenames as $rolename) {
+                if (isset($iroles[$rolename])) {
+                    $role = $iroles[$rolename];
 
-                $roleids = array();
-                $rolefullnames = array();
-                foreach ($rolenames as $rolename) {
-                    if (isset($iroles[$rolename])) {
-                        $role = $iroles[$rolename];
-
-                        $rshortname = $role->shortname;
-                        $roleids[$rshortname] = $role->id;
-                        $rolefullnames[$rshortname] = $role->name;
-                    }
+                    $rshortname = $role->shortname;
+                    $roleids[$rshortname] = $role->id;
+                    $rolefullnames[$rshortname] = $role->name;
                 }
             }
 
@@ -179,8 +168,16 @@ class collab_handler extends browseby_handler {
             $table = new html_table();
             $table->data = $data;
 
+            $headers = array('sitename', 'projectlead', 'coursecreators');
+            $dispheaders = array();
+
+            foreach ($headers as $header) {
+                $dispheaders[] = get_string($header, 'block_ucla_browseby');
+            }
+
+            $table->head = $dispheaders;
+
             $list = html_writer::table($table);
-        
         } else {
             $title = get_string('collab_nocoursesincat', 
                 'block_ucla_browseby');

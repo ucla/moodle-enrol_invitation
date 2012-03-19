@@ -385,16 +385,14 @@ function ucla_format_name($name=null) {
  *  Populates the reg-class-info cron, the subject areas and the divisions.
  **/
 function local_ucla_cron() {
-    global $CFG;
+    global $DB, $CFG;
 
     // TODO Do a better job figuring this out
-    $terms = $CFG->currentterm;
+    $terms = array($CFG->currentterm);
 
     include_once($CFG->dirroot . '/local/ucla/cronlib.php');
     ucla_require_registrar();
 
-    $terms = array($terms);
-    
     // Customize these times...?
     $works = array('classinfo', 'subjectarea', 'division');
 
@@ -578,6 +576,14 @@ function ucla_validator($type, $value) {
     }
     
     return $result == 1; 
+}
+
+/**
+ *  Convenience function to check if a term is a summer term.
+ *  Use this instead of preg_match()ing yourself.
+ **/
+function is_summer_term($term) {
+    return ucla_validator('term', $term) && preg_match('/1$/', $term);
 }
 
 /**

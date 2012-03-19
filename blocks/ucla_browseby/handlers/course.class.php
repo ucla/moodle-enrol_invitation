@@ -11,9 +11,12 @@ class course_handler extends browseby_handler {
         ubc.url,
         ubc.term,
         ubc.srs,
+        ubc.ses_grp_cd AS session_group,
+        ubc.session AS session_code,
         ubc.coursetitlelong AS course_title,
         ubc.sectiontitle AS section_title,
         ubc.sect_enrl_stat_cd AS enrolstat,
+        ubc.catlg_no AS sect_num,
         ubci.uid,
         COALESCE(user.firstname, ubci.firstname) AS firstname,
         COALESCE(user.lastname, ubci.lastname) AS lastname,
@@ -45,10 +48,16 @@ class course_handler extends browseby_handler {
         $fullcourselist = array();
 
         if (isset($args['term'])) {
+            $term = $args['term'];
             $termwhere = ' AND ubc.term = :term ';
             $param['term'] = $args['term'];
         } else {
             $termwhere = '';
+        }
+
+        $issummer = false;
+        if (is_summer_term($term)) {
+            $issummer = true;
         }
 
         if (isset($args['subjarea'])) {
@@ -141,28 +150,36 @@ class course_handler extends browseby_handler {
                     $this->fullname($course);
             } else {
                 $courseobj = new stdclass(); 
+                $coursetitle = ucla_make_course_title(get_object_vars($course));
+
                 if (get_config('block_ucla_browseby', 'use_local_courses')
                         && isset($course->courseid)) {
                     $course->id = $course->courseid;
                     $courseobj->url = 
                         uclacoursecreator::build_course_url($course);
                 } else {
-                    if (isset($course->url)) {
+                    if (!empty($course->url)) {
                         $courseobj->url = $course->url;
+                        $courseobj->dispname = $coursetitle;
                     } else {
-                        // Display registrar?
+                        $courseobj->url = $this->registrar_url(
+                            $course
+                        );
+
+                        $courseobj->nonlinkdispname = $coursetitle;
+                        $courseobj->dispname =  '(' . html_writer::tag(
+                            'span', get_string('registrar_link', 
+                                'block_ucla_browseby'),
+                            array('class' => 'registrar-link')) . ')';
                     }
                 }
 
-                $cancelledmess= '';
+                $cancelledmess = '';
                 if (enrolstat_is_cancelled($course->enrolstat)) {
                     $cancelledmess = html_writer::tag('span', 
                         get_string('cancelled'), 
                         array('class' => 'ucla-cancelled-course')) . ' ';
                 }
-
-                $courseobj->dispname = ucla_make_course_title(get_object_vars(
-                    $course));
 
                 // TODO make this function name less confusing
                 $courseobj->fullname = $cancelledmess . 
@@ -172,6 +189,8 @@ class course_handler extends browseby_handler {
 
                 $courseobj->instructors = 
                     array($course->uid => $this->fullname($course));
+
+                $courseobj->session_group = $course->session_group;
             }
 
             $fullcourseslist[$k] = $courseobj;
@@ -187,15 +206,62 @@ class course_handler extends browseby_handler {
             $course->instructors = $instrstr;
             $fullcourseslist[$k] = $course;
         }
-
-        $table = block_ucla_browseby_renderer::ucla_browseby_courses_list(
-            $fullcourseslist);
-
+        
         $s .= block_ucla_browseby_renderer::render_terms_selector(
             $args['term'], $terms_select_where, $terms_select_param);
 
-        $s .= html_writer::table($table);
-        
+        $headelements = array('course', 'instructors', 'coursedesc');
+        $headelementsdisp = array();
+
+        foreach ($headelements as $headelement) {
+            $headelementsdisp[] = get_string($headelement, 
+                'block_ucla_browseby');
+        }
+
+        if ($issummer) { 
+            $sessionsplits = array();
+            foreach ($fullcourseslist as $k => $fullcourse) {
+                $session = $fullcourse->session_group;
+
+                if (!isset($sessionsplits[$session])) {
+                    $sessionsplits[$session] = array();
+                }
+
+                unset($fullcourse->session_group);
+
+                $sessionsplits[$session][$k] = $fullcourse;
+            }
+
+            $table = new html_table();
+            
+            foreach ($sessionsplits as $session => $courses) {
+                $sessioncell = new html_table_cell();
+                $sessioncell->text = $OUTPUT->heading(get_string(
+                    'session_break', 'block_ucla_browseby', $session), 3);
+
+                $sessioncell->colspan = '3';
+                $sessionrow = new html_table_row();
+                $sessionrow->cells[] = $sessioncell;
+                
+                $subtable = block_ucla_browseby_renderer::
+                    ucla_browseby_courses_list($courses);
+
+                $table->data[] = $sessionrow;
+                $table->data = array_merge($table->data, $subtable->data);
+            }
+
+            $s .= html_writer::table($table);
+        } else {
+            foreach ($fullcourseslist as $k => $course) {
+                unset($fullcourseslist[$k]->session_group);
+            }
+
+            $table = block_ucla_browseby_renderer::ucla_browseby_courses_list(
+                $fullcourseslist);
+
+            $s .= html_writer::table($table);
+        }
+
         return array($t, $s);
     }
     
@@ -224,11 +290,28 @@ class course_handler extends browseby_handler {
 
         return $name;
     }
+
+    function registrar_url($course) {
+        $page = 'http://www.registrar.ucla.edu/schedule/detselect';
+
+        $term = $course->term;
+
+        $issummerterm = is_summer_term($term);
+        $query = '.aspx?termsel=' . $term . '&subareasel=' 
+            . urlencode($course->subj_area) . '&idxcrs=' 
+            . urlencode($course->sect_num);
+
+        if ($issummerterm) {
+            $page .= '_summer';
+            $query .= $course->session_group;
+        }
+
+        return $page . $query;
+    }
     
     protected function get_user($userid) {
         global $DB;
 
         return $DB->get_record('user', array('id' => $userid));
     }
-
 }
