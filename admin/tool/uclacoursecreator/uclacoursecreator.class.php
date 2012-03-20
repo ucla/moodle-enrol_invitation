@@ -942,7 +942,7 @@ class uclacoursecreator {
         // Save this for when building courses
         $this->categories_cache = $name_categories;
 
-        // TODO Is this necessary?
+        // creates the category paths, very necessary
         fix_course_sortorder();
     }
 
