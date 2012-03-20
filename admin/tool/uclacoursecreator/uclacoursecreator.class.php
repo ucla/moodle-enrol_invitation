@@ -200,8 +200,9 @@ class uclacoursecreator {
                 // ucla_reg_classinfo, mark the entries in 
                 // ucla_request_classes as done
                 $this->mark_cron_term(true);
-            } catch (Exception $e) {
+            } catch (moodle_exception $e) {
                 $this->debugln($e->getMessage());
+                $this->debugln($e->debuginfo);
 
                 // Since the things were not processed, try to revert the
                 // changes in the requestor
@@ -212,6 +213,11 @@ class uclacoursecreator {
                 } catch (course_creator_exception $cce) {
                     // Do nothing, this is safe
                 }
+            } catch (Exception $e) {
+                // This is a much more serious error
+                $this->debugln($e->getMessage());
+
+                throw $e;
             }
         }
 
@@ -660,7 +666,7 @@ class uclacoursecreator {
                     }
                 }
             } else {
-                $this->debugln("Did not create a course for $reqkey!");
+                $this->debugln("! Did not create a course for $reqkey");
             }
 
             if (empty($action_ids[$action])) {
@@ -858,7 +864,10 @@ class uclacoursecreator {
         $requests = $this->cron_term_cache['requests'];
 
         $nesting_order = array();
+
+        $this->debugln('  Preparing categories...');
         if ($this->get_config('make_division_categories')) {
+            $this->debugln('. Nesting division categories.');
             $nesting_order[] = 'division';
         } 
 
@@ -905,7 +914,7 @@ class uclacoursecreator {
                 $trans = $this->$function($field);
 
                 if (isset($forbidden_names[$trans])) {
-                    $this->debugln('Category name: '
+                    $this->debugln('! Category name: '
                         . $trans . ' is ambiguous as a '
                         . $type);
 
@@ -917,7 +926,7 @@ class uclacoursecreator {
                     $newcategory = $this->new_category($trans,
                         $immediate_parent_catid);
 
-                    $this->println('Created ' . $type . ' category: '
+                    $this->println('  Created ' . $type . ' category: '
                          . $trans);
     
                     $name_categories[$trans] = $newcategory;
@@ -1787,7 +1796,6 @@ class uclacoursecreator {
         try {
             $DB->execute($sql, $params);
         } catch (dml_exception $e) {
-            var_dump($e);
             $this->debugln('Registrar Class Info mass insert failed.');
 
             foreach ($term_rci as $rci_data) {
@@ -1795,14 +1803,14 @@ class uclacoursecreator {
                     $DB->insert_record('ucla_reg_classinfo',
                         $rci_data);
                 } catch (dml_exception $e) {
-                    $this->debugln('UCLA Reg Class Info Failed: '
-                        . $e->getMessage() . ' for: ' 
-                        . $rci_data->term . ' ' . $rci_data->srs);
+                    $this->debugln('ucla_reg_classinfo insert failed: '
+                        . $rci_data->term . ' ' . $rci_data->srs . ' '
+                        . $e->debuginfo);
                 }
             }
         }
 
-        $this->println('Finished inserting into ucla_reg_classinfo.');
+        $this->println('Finished dealing with ucla_reg_classinfo.');
     }
 
     
