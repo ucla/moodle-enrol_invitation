@@ -187,6 +187,9 @@ $CFG->clamfailureonupload = 'donothing';
 $CFG->pathtodu = '/usr/bin/du';
 $CFG->aspellpath = '/usr/bin/aspell';
 
+// Site administration > Server > Session handling
+$CFG->dbsessions = false;
+
 /** 
  *  Automatic Shibboleth configurations.
  *  Disabling in favor for GUI configurations.

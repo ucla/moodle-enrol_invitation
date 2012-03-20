@@ -198,6 +198,9 @@ $CFG->assignment_maxbytes = 10485760;   // 100MB
 $CFG->fullnamedisplay = 'language'; // CCLE-2550 - Lastname, Firstname sorting
 $CFG->cronclionly = true;
 
+// Site administration > Server > Session handling
+$CFG->dbsessions = false;
+
 /** 
  *  Automatic Shibboleth configurations.
  *  Disabling in favor for GUI configurations.
