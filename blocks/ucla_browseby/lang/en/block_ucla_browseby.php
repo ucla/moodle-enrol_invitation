@@ -59,6 +59,8 @@ $string['desc_collab'] = 'Check box to disable the ability for guests to browse 
 $string['title_syncallterms'] = 'Sync for all terms';
 $string['desc_syncallterms'] = 'Check box to enable synchronization of all terms that is available on this server. It will uncheck itself after it runs.';
 
+$string['title_use_local_courses'] = 'Use local courses';
+$string['desc_use_local_courses'] = 'Check box to allow for local courses to override the URL that has been provided by the Registrar. Otherwise, the data that the Registrar has provided will be considered infallible.';
 
 // Courses view
 $string['nousersinrole'] = 'N / A';
