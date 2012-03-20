@@ -54,7 +54,6 @@ if (!is_siteadmin($USER->id)) {
 // Prepare and load Moodle Admin interface
 $adminroot = admin_get_root();
 admin_externalpage_setup('configmanagement');
-//admin_externalpage_print_header($adminroot);
 echo $OUTPUT->header();
 
 //NOTE: If file.php doesn't have security fixes, don't pick course 1
@@ -82,8 +81,7 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
        && !optional_param('role_names', 0, PARAM_RAW) && !optional_param('role_sortorder', 0, PARAM_RAW)
        && !optional_param('blocks', 0, PARAM_RAW) && !optional_param('mdodules', 0, PARAM_RAW)
        && !optional_param('user', 0, PARAM_RAW) && !optional_param('configphp', 0, PARAM_RAW) ) {
-        //error(get_string('configerrornofilemsg', 'tool_configmanagement'), $ME);
-        // TODO: $ME is the wrong link
+        
         print_error('configerrornofilemsg', 'tool_configmanagement', $redirectlink);
     }
     
@@ -148,11 +146,8 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
                     fwrite($fp, json_encode($configentry)."\n");
                 }
             }
-            //echo "<p class=\"mdl-align\">".get_string('configconfigtable', 'tool_configmanagement')." written.</p>\n";
             echo html_writer::tag('p', get_string('configconfigtable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
-        }
-        else {
-            //echo "<p class=\"mdl-align redfont\">".get_string('configconfigtable', 'tool_configmanagement')." skipped.</p>\n";
+        } else {
             echo html_writer::tag('p', get_string('configconfigtable', 'tool_configmanagement')." skipped.", array('class' => 'mdl-align redfont'));
             
         }
@@ -181,8 +176,7 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
                 }
             }		  
             echo html_writer::tag('p', get_string('configconfigpluginstable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
-        }
-        else {
+        } else {
             echo html_writer::tag('p', get_string('configconfigpluginstable', 'tool_configmanagement')." skipped", array('class' => 'mdl-align redfont'));
         }
         
@@ -204,8 +198,7 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
             }
             write_records_to_file($fp, $records);
             echo html_writer::tag('p', get_string('configroletable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
-        }
-        else {
+        } else {
             echo html_writer::tag('p', get_string('configroletable', 'tool_configmanagement')." skipped.", array('class' => 'mdl-align redfont'));
         }
         $records = NULL;
@@ -226,8 +219,7 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
             }
             write_records_to_file($fp, $records);
             echo html_writer::tag('p', get_string('configroleallowassigntable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
-        }
-        else {
+        } else {
             echo html_writer::tag('p', get_string('configroleallowassigntable', 'tool_configmanagement')." skipped.", array('class' => 'mdl-align redfont')); 
         }
         $records = NULL;
@@ -249,8 +241,7 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
             }
             write_records_to_file($fp, $records);
             echo html_writer::tag('p', get_string('configroleallowoverridetable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
-        }
-        else {
+        } else {
             echo html_writer::tag('p', get_string('configroleallowoverridetable', 'tool_configmanagement')." skipped.", array('class' => 'mdl-align redfont'));
         }
         $records = NULL;
@@ -270,22 +261,25 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
             //Use $DB->get_recordset because role_assignments could be large
             $rs = $DB->get_recordset_sql($query);
         }
-        if ($rs) {
-            fwrite($fp, $divider.'Role_Assignments'.$divider."\n");
-            //while($record = rs_fetch_next_record($rs)) {
-            foreach ($rs as $record) {
-                // Exclude ID's if doing a diff -- also exclude timestart, timemodified
-                if($diffexclude) {
-                    $record->id = "";
-                    $record->timestart = $difftime;
-                    $record->timemodified = $difftime;
-                }
-                fwrite($fp, json_encode($record)."\n");
+        
+        $rs_notempty = false;
+        foreach ($rs as $record) {
+            if (!$rs_notempty) {
+                fwrite($fp, $divider.'Role_Assignments'.$divider."\n");
+                $rs_notempty = true;
             }
-            $rs->close();
-            echo html_writer::tag('p', get_string('configroleassignmentstable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
+            // Exclude ID's if doing a diff -- also exclude timestart, timemodified
+            if($diffexclude) {
+                $record->id = "";
+                $record->timestart = $difftime;
+                $record->timemodified = $difftime;
+            }
+            fwrite($fp, json_encode($record)."\n");
         }
-        else {
+        $rs->close();
+        if ($rs_notempty) {
+            echo html_writer::tag('p', get_string('configroleassignmentstable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
+        } else {
             echo html_writer::tag('p', get_string('configroleassignmentstable', 'tool_configmanagement')." skipped.", array('class' => 'mdl-align redfont'));
         }
         unset($rs); //Clean-up
@@ -344,8 +338,7 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
                 }
             }
             echo html_writer::tag('p', get_string('configrolecapabilitiestable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
-        }
-        else {
+        } else {
             echo html_writer::tag('p', get_string('configrolecapabilitiestable', 'tool_configmanagement')." skipped.", array('class' => 'mdl-align redfont'));
         }
         $records = NULL;
@@ -366,8 +359,7 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
             }
             write_records_to_file($fp, $records);
             echo html_writer::tag('p', get_string('configrolenamestable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
-        }
-        else {
+        } else {
             echo html_writer::tag('p', get_string('configrolenamestable', 'tool_configmanagement')." skipped.", array('class' => 'mdl-align redfont'));
         }
         $records = NULL;
@@ -388,8 +380,7 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
             }
             write_records_to_file($fp, $records);
             echo html_writer::tag('p', get_string('configrolesortordertable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
-        }
-        else {
+        } else {
             echo html_writer::tag('p', get_string('configrolesortordertable', 'tool_configmanagement')." written.", array('class' => 'mdl-align redfont'));
         }
         $records = NULL;
@@ -410,8 +401,7 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
             }
             write_records_to_file($fp, $records);
             echo html_writer::tag('p', get_string('configblocktable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
-        }
-        else {
+        } else {
             echo html_writer::tag('p', get_string('configblocktable', 'tool_configmanagement')." skipped.", array('class' => 'mdl-align redfont'));
         }
         $records = NULL;
@@ -432,8 +422,7 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
             }
             write_records_to_file($fp, $records);
             echo html_writer::tag('p', get_string('configmodulestable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
-        }
-        else {
+        } else {
             echo html_writer::tag('p', get_string('configmodulestable', 'tool_configmanagement')." skipped.", array('class' => 'mdl-align redfont'));
         }
         $records = NULL;
@@ -460,8 +449,7 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
             write_records_to_file($fp, $records);
             //write_admin_users_to_file($fp, $records);   //Write only admins
             echo html_writer::tag('p', get_string('configusertable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
-        }
-        else {
+        } else {
             echo html_writer::tag('p', get_string('configusertable', 'tool_configmanagement')."  skipped.", array('class' => 'mdl-align redfont'));
         }
         
@@ -470,78 +458,17 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
             fwrite($fp, $divider.'config.PHP'.$divider."\n");
             write_configphp($fp);
             echo html_writer::tag('p', "Config.php written.", array('class' => 'mdl-align'));
-        }
-        else {
+        } else {
             echo html_writer::tag('p', "Config.php skipped.", array('class' => 'mdl-align redfont'));
         }
         print_continue("index.php");
         fclose($fp);
         
     } else {
-        //error(get_string('configfileopenerror', 'tool_configmanagement', $dumpfile), $ME);
-        // why is 3rd parameter $dumpfile
         print_error('configfileopenerror', 'tool_configmanagement', $redirectlink, $dumpfile);
     }
     
-} 
-// SSC 1181: load configs is a feature that is no longer used
-//           thus it is not ported to 2.0
-/*
- else if (isset($_POST['load']) && empty($_POST['save'])) {
- //Load Configuration Settings
- if (!empty($_POST['loadfile'])) {
- $dumpfile = $_POST['loadfile'];
- }
- else {
- error(get_string('confignofile', 'tool_configmanagement'), $ME);
- }
- $dumpfile = clean_param($dumpfile, PARAM_PATH);
- 
- if(strpos($dumpfile,'diff')!== false) {
- error(get_string('configdifferror', 'tool_configmanagement'));
- }
- 
- global $divider;
- global $dividerlen;
- global $fp;
- 
- $divider = get_string('configdivider', 'tool_configmanagement');
- $dividerlen = strlen($divider);
- 
- echo $OUTPUT->heading(get_string('configloadconfiguration', 'tool_configmanagement'));
- 
- //Open file
- if(file_exists($dir.$dumpfile) && $fp = fopen($dir.$dumpfile,'r')){
- while (!feof($fp)) {
- $line = fgets($fp);
- 
- if (stripos($line, $divider.'Config'.$divider) !== false) {
- update_config();
- echo "<p class=\"mdl-align\">".get_string('configconfigtable', 'tool_configmanagement')." completed</p>";
- }
- 
- if (stripos($line, $divider.'Plugins'.$divider) !== false) {
- update_config_plugins();                
- echo "<p class=\"mdl-align\">".get_string('configconfigpluginstable', 'tool_configmanagement')." completed</p>";
- }
- 
- if (stripos($line, $divider.'Roles'.$divider) !== false) {
- update_role_tables();
- echo "<p class=\"mdl-align\">".get_string('configallroletables', 'tool_configmanagement')." completed</p>";
- }
- }
- // going to attempt to drop tables in order to fix some bugs with config
- 
- fclose($fp);
- }
- else {
- error(get_string('configfileopenerror', 'tool_configmanagement', $dumpfile), $ME);
- } 
- 
- print_continue($ME);
- }
- */
-else {
+} else {
     //User Interface
     $filedate = date('m.d.y_a.g.i');
     echo '
@@ -728,46 +655,7 @@ else {
     echo "\n";
     
     print_container_end();
-    /* CCLE-164 Hide Configuration Restore
-     echo "\n";
-     echo "<hr/><br/>";
-     
-     /////////////////////
-     //File to load from//
-     /////////////////////
-     print_container_start(true, 'form-item');
-     echo "\n";
-     
-     print_container("<label>".get_string('configloadfile', 'tool_configmanagement')."</label>", false, 'form-label');
-     print_container_start(false, 'form-file defaultsnext');
-     echo '&nbsp;<input id="id_reference_value" type="text" '.
-     'onchange="validate_mod_resource_mod_form_reference[value](this)" '.
-     'onblur="validate_mod_resource_mod_form_reference[value](this)" '.  //value="config_management/configdump.txt" 
-     'name="loadfile" size="48" maxlength="255"/>'."\n";
-     print_container_end();
-     
-     print_container_start(false, 'form-defaultinfo');
-     //echo get_string('default').': '.get_string('configdefaultfile', 'tool_configmanagement');
-     if (file_exists($dir)) {
-     echo '<input id="id_reference_popup" type="button" onclick="return openpopup('.
-     "'/files/index.php?id=1&choose=id_reference_value', 'popup', ".
-     "'menubar=0,location=0,scrollbars,resizable,width=750,height=500', 0);\" ".
-     'title="Choose or upload a file" value="Choose or upload a file ..." '.
-     'name="reference[popup]"/>'."\n";
-     }
-     print_container_end();
-     echo "\n";
-     
-     print_container(get_string('configloadinfo', 'tool_configmanagement'), false, 'form-description');
-     
-     echo "\n";
-     
-     echo "<br />\n";
-     echo '<input type="submit" name="confirm" value="'.get_string('configload', 'tool_configmanagement').'"/>'."\n";
-     
-     print_container_end();
-     echo "\n";
-     */
+
     //End of fields
     echo html_writer::end_tag('fieldset');
     
