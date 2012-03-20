@@ -100,12 +100,6 @@ class uclacoursecreator {
     // Email file default
     private $default_email_file;
 
-    // Thing to prevent empty pointless emails
-    public $had_action = false;
-
-    // Holds all courses built, hopefully correctly, this session.
-    public $built_courseids = array();
-
     // Note: There are dynamically generated fields for this class, which
     // contain references to the enrollment object.
     // I.E. $this->enrol_meta_plugin
@@ -739,8 +733,6 @@ class uclacoursecreator {
             $this->debugln("No courses for $term.");
             return false;
         }
-
-        $this->had_action = true;
 
         // Figure out crosslists and filter out faulty requests
         foreach ($course_requests as $key => $course_request) {
@@ -2036,19 +2028,9 @@ class uclacoursecreator {
             '---- Course creator end at ' . date('r') . ' ----'
         );
 
-        if ($this->had_action) {
-            // Email the summary to the admin
-            ucla_send_mail($this->get_config('course_creator_email'), 
-                'Course Creator Summary ' . $this->shell_date, 
-                $this->email_log);
-
-            if (!empty($this->built_courseids)) {
-                $ed = new stdclass();
-
-                $ed->courses_built = $this->build_courseids;
-                events_trigger('course_creator_finished', $ed);
-            }
-        }
+        // Email the summary to the admin
+        ucla_send_mail($this->get_config('course_creator_email'), 
+            'Course Creator Summary ' . $this->shell_date, $this->email_log);
 
         $this->close_log_file_pointer();
 
