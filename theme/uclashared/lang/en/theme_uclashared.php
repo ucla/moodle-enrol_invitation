@@ -10,7 +10,7 @@ $string['foodis_contact_ccle'] = 'Contact CCLE';
 $string['foolin_contact_ccle'] = 'https://ccle.ucla.edu/course/view/aboutccle?topic=7';
 
 $string['foodis_about_ccle'] = 'About CCLE';
-$string['foolin_about_ccle'] = 'https://ccle.ucla.edu/course/view.php?name=aboutccle';
+$string['foolin_about_ccle'] = 'https://ccle.ucla.edu/course/view/aboutccle?topic=0';
 
 $string['foodis_privacy'] = 'Privacy Policy';
 $string['foolin_privacy'] = $CFG->wwwroot . '/privacy_notice.php';
