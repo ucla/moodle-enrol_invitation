@@ -3,7 +3,7 @@
 class course_handler extends browseby_handler {
     const browseall_sql_helper =  "
         SELECT 
-        CONCAT(ubc.term, ubc.srs, ubci.uid) AS 'recordsetid',
+        CONCAT(ubc.term, '-', ubc.srs, '-', ubci.uid) AS 'recordsetid',
         ubc.section AS 'sectnum',
         ubc.course AS 'coursenum',
         ubc.activitytype,
@@ -76,7 +76,7 @@ class course_handler extends browseby_handler {
             // our browseall tables
             $sql = self::browseall_sql_helper . "
                 FROM {ucla_browseall_classinfo} ubc
-                LEFT JOIN {ucla_browseall_instrinfo} ubci
+                INNER JOIN {ucla_browseall_instrinfo} ubci
                     USING(term, srs)
                 LEFT JOIN {ucla_request_classes} urc
                     USING(term, srs)

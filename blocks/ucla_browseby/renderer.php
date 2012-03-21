@@ -65,13 +65,14 @@ class block_ucla_browseby_renderer {
 
         foreach ($courses as $course) {
             if (!empty($course->nonlinkdispname)) {
-                $courselink = $course->nonlinkdispname . ' ';
+                $courselink = $course->nonlinkdispname . ' '
+                    . html_writer::link(new moodle_url(
+                        $course->url), $course->dispname);
             } else {
-                $courselink = '';
+                $courselink = ucla_html_writer::link(
+                    new moodle_url($course->url), $course->dispname);
             }
 
-            $courselink .= html_writer::link(new moodle_url($course->url),
-                $course->dispname);
 
             $data[] = array($courselink, $course->instructors, 
                 $course->fullname);
