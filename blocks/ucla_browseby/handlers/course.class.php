@@ -139,6 +139,9 @@ class course_handler extends browseby_handler {
             return array(false, false);
         }
 
+        $use_local_courses = get_config('block_ucla_browseby', 
+            'use_local_courses');
+
         // Takes a denormalized Array of course-instructors and
         // returns a set of courses into $fullcourseslist
         foreach ($courseslist as $course) {
@@ -150,28 +153,25 @@ class course_handler extends browseby_handler {
                     $this->fullname($course);
             } else {
                 $courseobj = new stdclass(); 
-                $coursetitle = ucla_make_course_title(get_object_vars($course));
+                $courseobj->dispname 
+                    = ucla_make_course_title(get_object_vars($course));
 
-                if (get_config('block_ucla_browseby', 'use_local_courses')
-                        && isset($course->courseid)) {
+                if ($use_local_courses && !empty($course->courseid)) {
                     $course->id = $course->courseid;
                     $courseobj->url = 
                         uclacoursecreator::build_course_url($course);
+                } else if (!empty($course->url)) {
+                    $courseobj->url = $course->url;
                 } else {
-                    if (!empty($course->url)) {
-                        $courseobj->url = $course->url;
-                        $courseobj->dispname = $coursetitle;
-                    } else {
-                        $courseobj->url = $this->registrar_url(
-                            $course
-                        );
+                    $courseobj->url = $this->registrar_url(
+                        $course
+                    );
 
-                        $courseobj->nonlinkdispname = $coursetitle;
-                        $courseobj->dispname =  '(' . html_writer::tag(
-                            'span', get_string('registrar_link', 
-                                'block_ucla_browseby'),
-                            array('class' => 'registrar-link')) . ')';
-                    }
+                    $courseobj->nonlinkdispname = $courseobj->dispname;
+                    $courseobj->dispname =  '(' . html_writer::tag(
+                        'span', get_string('registrar_link', 
+                            'block_ucla_browseby'),
+                        array('class' => 'registrar-link')) . ')';
                 }
 
                 $cancelledmess = '';
