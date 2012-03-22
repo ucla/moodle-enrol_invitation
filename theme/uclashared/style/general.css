@@ -320,3 +320,74 @@ html, body {background-color:#FFF; height:100%;}
 /** Overide for RTL layout **/
 .dir-rtl #page-header .navbar .breadcrumb {float:right;}
 .dir-rtl #page-header .navbar .navbutton {float:left;}
+
+/** CCLE-2380 Rearrange Materials (editControlLinks) Links **/
+#left-column div.editControlLinks a {
+	color: #FF6666;
+	font-size: 0.8em;
+	font-weight: normal;
+
+}
+
+#left-column div.editControlLinks {
+	text-align: center;
+}
+
+#middle-column div.editControlLinks {
+font-size: .8em;
+margin-top: 2px;
+padding-left: 22px;
+/*background: url(./pix/line-commands.gif) 8px 1px no-repeat;*/
+display: inline;
+position: relative;
+top: 0px;
+float:left;
+  /*border-bottom:1px solid #ABBAD1;
+  width:80%;*/
+}
+
+#middle-column div.editControlLinks2 {
+font-size: .8em;
+margin-top: 2px;
+padding-left: 42px;
+background: url(./pix/line-commands.gif) 8px 1px no-repeat;
+display: inline;
+position: relative;
+top: 0px;
+  float:left;
+}
+   
+#middle-column div.editControlLinks a { 
+color: #ff6666;
+margin-right: 10px;
+text-decoration: none;
+}
+
+#course-view .section .activity {
+float:left;
+width:100%;
+clear:left;
+display:block;
+}
+#middle-column div.editControlLinks2 a {
+color: #ff6666;
+margin-right: 10px;
+text-decoration: none;
+}
+
+#middle-column div.section_add_menus {
+    float:right;
+}
+#middle-column div.editControlLinks a:hover {
+color: red;
+margin-right: 10px;
+text-decoration: underline;
+}
+img.spacer {  /* used for debugging to locate indent spacers */
+background: #fff;
+}
+/*\*/ * html #middle-column div.editControlLinks {
+padding-left: 0;
+background: transparent;
+background-image: none;
+}/**/

@@ -246,7 +246,7 @@ class block_ucla_course_menu extends block_navigation {
      *  items.
      **/
     function create_block_elements() {
-        global $CFG;
+        global $CFG, $COURSE;
 
         $elements = array();
 
@@ -267,7 +267,7 @@ class block_ucla_course_menu extends block_navigation {
             $topicstr='&topic='.$topic;
         }        
         if ($this->page->user_is_editing()) {
-            $this->title .= '<br><div class="editControlLinks"><center><a title="Rearrange Materials" href="'.$CFG->wwwroot.'/blocks/ucla_rearrange/rearrange.php?course_id='.$this->page->course->id.$topicstr.' ">Rearrange Materials</a></div>';
+            $this->title .= '<div class="editControlLinks"><a title="Rearrange Materials" href="'.$CFG->wwwroot.'/blocks/ucla_rearrange/rearrange.php?course_id='.$this->page->course->id.$topicstr.' ">Rearrange Materials</a></div>';
         }
 
         foreach ($allblocks as $block) {
