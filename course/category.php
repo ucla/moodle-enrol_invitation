@@ -280,11 +280,13 @@
         echo '<table border="0" cellspacing="2" cellpadding="4" class="generalbox boxaligncenter"><tr>';
         
         // START UCLA MOD: CCLE-2878 - Display course short name field in Add/Edit screen course list   
-        echo '<th class="header" scope="col">'.get_string('shortnamecourse').'</th>';
+        echo '<th class="header" scope="col" width="125px">'.get_string('shortnamecourse').'</th>';
         // END UCLA MOD: CCLE-2878
         echo '<th class="header" scope="col">'.$strcourses.'</th>';
         if ($editingon) {
-            echo '<th class="header" scope="col">'.$stredit.'</th>';
+            // START UCLA MOD: CCLE-2878 - Display course short name field in Add/Edit screen course list               
+            echo '<th class="header" scope="col" width="150px">'.$stredit.'</th>';
+            // END UCLA MOD: CCLE-2878            
             echo '<th class="header" scope="col">'.$strselect.'</th>';
         } else {
             echo '<th class="header" scope="col">&nbsp;</th>';
