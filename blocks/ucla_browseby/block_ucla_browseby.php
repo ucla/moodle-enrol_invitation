@@ -95,7 +95,10 @@ class block_ucla_browseby extends block_list {
         }
     }
 
-    function cron() {
+    /**
+     *  Figures out terms and run sync.
+     **/
+    function run_sync() {
         $this->guess_terms();
 
         if (empty($this->termslist)) {
@@ -106,9 +109,7 @@ class block_ucla_browseby extends block_list {
     }
 
     function sync($terms, $subjareas=null) {
-        global $DB; 
-
-        ucla_require_registrar();
+        self::ucla_require_registrar();
 
         if (empty($terms)) {
             echo 'no terms specified for browseby cron' . "\n";
@@ -117,18 +118,18 @@ class block_ucla_browseby extends block_list {
 
         echo "\n";
 
-        list($sqlin, $params) = $DB->get_in_or_equal($terms);
+        list($sqlin, $params) = $this->get_in_or_equal($terms);
         $where = 'term ' . $sqlin;
 
         if (!empty($subjareas)) {
-            list($sqlin, $saparams) = $DB->get_in_or_equal($subjareas);
+            list($sqlin, $saparams) = $this->get_in_or_equal($subjareas);
             $where .= ' AND subjarea' . $sqlin;
             $params = array_merge($params, $saparams);
         }
 
-        $records = $DB->get_records_select('ucla_request_classes',
-            $where, $params, '', 'DISTINCT CONCAT(term, department), term, '
-                . 'department AS subjarea');
+        $records = $this->get_records_select('ucla_reg_classinfo',
+            $where, $params, '', 'DISTINCT CONCAT(term, subj_area), term, '
+                . 'subj_area AS subjarea');
 
         if (empty($records)) {
             return true;
@@ -170,13 +171,26 @@ class block_ucla_browseby extends block_list {
         // Save which courses need instructor informations.
         // We need to update the existing entries, and remove 
         // non-existing ones.
+        echo "Synchronizing classinfo...";
         $this->partial_sync_table('ucla_browseall_classinfo', $courseinfos,
             array('term', 'srs'), $where, $params);
+        echo "done.\n";
 
+        echo "Synchronizing instrinfo...";
         $this->partial_sync_table('ucla_browseall_instrinfo', $instrinfos,
             array('term', 'srs'), $where, $params);
+        echo "done.\n";
+
+        echo "Finished sync.\n";
             
         return true;
+    }
+
+    /**
+     *  Decoupled functions
+     **/
+    protected static function ucla_require_registrar() {
+        ucla_require_registrar();
     }
 
     protected function partial_sync_table($table, $tabledata, $syncfields,
@@ -185,6 +199,18 @@ class block_ucla_browseby extends block_list {
 
         return db_helper::partial_sync_table($table, $tabledata, $syncfields,
             $partialwhere, $partialparams);
+    }
+
+    protected function get_in_or_equal($vars) {
+        global $DB;
+
+        return $DB->get_in_or_equal($vars);
+    }
+
+    protected function get_records_select($t, $w, $p, $s, $l) {
+        global $DB;
+
+        return $DB->get_records_select($t, $w, $p, $s, $l);
     }
    
     protected function run_registrar_query($q, $d) {

@@ -59,7 +59,7 @@ class block_ucla_browseby_renderer {
      **/
     static function ucla_browseby_courses_list($courses) {
         $disptable = new html_table();
-        $disptable->id = 'browseby_courses_list';
+        $disptable->id = 'browsebycourseslist';
 
         $data = array();
 
@@ -95,7 +95,7 @@ class block_ucla_browseby_renderer {
     }
     
     /**
-     *  Another helper...move to renderer?
+     *  Another convenience function.
      **/
     static function render_terms_restricted_helper($restrict_terms=false) {
         global $DB;
@@ -121,17 +121,17 @@ class block_ucla_browseby_renderer {
 
     /**
      *  Builds a automatic-redirecting drop down menu, populated
-     *  with terms.
+     *  with terms. Returns a thing you $OUTPUT->render()
      **/
     static function terms_selector($defaultterm=false, 
             $restrictor_where=false, $restrictor_params=null) {
         global $DB, $PAGE;
 
         if (!empty($restrictor_where)) {
-            $terms = $DB->get_records_select('ucla_request_classes', 
+            $terms = $DB->get_records_select('ucla_reg_classinfo', 
                 $restrictor_where, $restrictor_params, '', 'DISTINCT term');
         } else {
-            $terms = $DB->get_records('ucla_request_classes', null, '',
+            $terms = $DB->get_records('ucla_reg_classinfo', null, '',
                 'DISTINCT term');
         }
 

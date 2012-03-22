@@ -26,7 +26,7 @@ class course_handler extends browseby_handler {
 
     function get_params() {
         // This uses division in breadcrumbs
-        return array('subjarea', 'inst', 'division');
+        return array('subjarea', 'inst', 'division', 'alpha');
     }
 
     function handle($args) {
@@ -63,7 +63,8 @@ class course_handler extends browseby_handler {
         if (isset($args['subjarea'])) {
             $subjarea = $args['subjarea'];
 
-            $terms_select_where = 'department = ?';
+            // These are saved for wayyy later
+            $terms_select_where = 'subj_area = ?';
             $terms_select_param = array($subjarea);
 
             $subjareapretty = to_display_case(
@@ -89,12 +90,33 @@ class course_handler extends browseby_handler {
             $param['subjarea'] = $subjarea;
 
             $courseslist = $this->get_records_sql($sql, $param);
+
+            // We came here from subjarea, so add some stuff
+            if (!empty($args['division'])) {
+                // Add the generic division thing
+                subjarea_handler::alter_navbar();
+
+                // This is from subjarea_handler, but I cannot
+                // figure out how to generalize  and reuse
+                // Display the specific division's subjareas link
+                $navbarstr = get_string('subjarea_title', 
+                    'block_ucla_browseby', $args['division']);
+            } else {
+                // Came from all subjareas
+                $navbarstr = get_string('all_subjareas',
+                    'block_ucla_browseby');
+            }
+
+            $urlobj = clone($PAGE->url);
+            $urlobj->remove_params('subjarea');
+            $urlobj->params(array('type' => 'subjarea'));
+            $PAGE->navbar->add($navbarstr, $urlobj);
         } else if (isset($args['inst'])) {
             ucla_require_db_helper();
 
             // This is the local-system specific instructor's courses view
             $instructor = $args['inst'];
-
+            
             // Apparently, this is how moodle fetches users
             $instruser = $this->get_user($instructor);
             if (!$instruser) {
@@ -135,7 +157,27 @@ class course_handler extends browseby_handler {
 
             list($terms_select_where, $terms_select_param) =
                 $this->render_terms_restricted_helper($terms_avail);
+
+            if (!empty($args['alpha'])) {
+                instructor_handler::alter_navbar();
+
+                // This is from subjarea_handler, but I cannot
+                // figure out how to generalize  and reuse
+                // Display the specific division's subjareas link
+                $navbarstr = get_string('instructorswith', 
+                    'block_ucla_browseby', strtoupper($args['alpha']));
+            } else {
+                // Came from all subjareas
+                $navbarstr = get_string('instructorsall',
+                    'block_ucla_browseby');
+            }
+
+            $urlobj = clone($PAGE->url);
+            $urlobj->remove_params('inst');
+            $urlobj->params(array('type' => 'instructor'));
+            $PAGE->navbar->add($navbarstr, $urlobj);
         } else {
+            // There is no way to know what we are looking at
             return array(false, false);
         }
 
@@ -147,6 +189,7 @@ class course_handler extends browseby_handler {
         foreach ($courseslist as $course) {
             $k = make_idnumber($course);
 
+            // Apend instructors, since they could have duplicate rows
             if (isset($fullcourseslist[$k])) {
                 $courseobj = $fullcourseslist[$k];
                 $courseobj->instructors[$course->uid] = 

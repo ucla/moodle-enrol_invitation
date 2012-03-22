@@ -57,7 +57,11 @@ class division_handler extends browseby_handler {
         global $DB;
 
         $sql = "
-        SELECT DISTINCT di.code, di.fullname, rci.term
+        SELECT DISTINCT
+            CONCAT(di.code, rci.term) AS rsetid,
+            di.code, 
+            di.fullname, 
+            rci.term
         FROM {ucla_reg_division} di
         INNER JOIN {ucla_reg_classinfo} rci
             ON rci.division = di.code

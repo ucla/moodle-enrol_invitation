@@ -5,8 +5,18 @@ class subjarea_handler extends browseby_handler {
         return array('division');
     }
 
+    static function alter_navbar() {
+        global $PAGE;
+
+        $urlobj = clone($PAGE->url);
+        $urlobj->remove_params(array('division', 'subjarea'));
+        $urlobj->params(array('type' => 'division'));
+        $PAGE->navbar->add(get_string('division_title', 
+            'block_ucla_browseby'), $urlobj);
+    }
+
     function handle($args) {
-        global $OUTPUT, $PAGE;
+        global $OUTPUT;
 
         $division = false;
         if (isset($args['division'])) {
@@ -22,8 +32,6 @@ class subjarea_handler extends browseby_handler {
         $conds = array();
         $where = '';
 
-        $camefromdivision = false;
-
         if ($division) {
             $conds['division'] = $division;
             $where = 'WHERE rci.division = :division';
@@ -31,11 +39,7 @@ class subjarea_handler extends browseby_handler {
             $divisionobj = $this->get_division($division);
             $division = to_display_case($divisionobj->fullname);
 
-            $urlobj = clone($PAGE->url);
-            $urlobj->remove_params(array('division'));
-            $urlobj->params(array('type' => 'division'));
-            $PAGE->navbar->add(get_string('division_title', 
-                'block_ucla_browseby'), $urlobj);
+            self::alter_navbar();
 
             $t = get_string('subjarea_title', 'block_ucla_browseby', 
                 $division);
@@ -61,7 +65,7 @@ class subjarea_handler extends browseby_handler {
             FROM {ucla_browseall_classinfo} ubc
             INNER JOIN {ucla_reg_subjectarea} urs
                 ON ubc.subjarea = urs.subjarea
-            LEFT JOIN {ucla_reg_classinfo} rci
+            INNER JOIN {ucla_reg_classinfo} rci
                 ON rci.subj_area = urs.subjarea
             $where
         ";
@@ -69,7 +73,7 @@ class subjarea_handler extends browseby_handler {
         $subjectareas = $this->get_records_sql($sql, $conds);
 
         if (empty($subjectareas)) {
-            return array(false, false);
+            print_error('noresultsfound');
         }
 
         $terms = array();

@@ -5,6 +5,16 @@ class instructor_handler extends browseby_handler {
         return array('alpha');
     }
 
+    static function alter_navbar() {
+        global $PAGE;
+
+        // The breadcrumb logic is kind of disorganized
+        $urlobj = clone($PAGE->url);
+        $urlobj->remove_params('alpha');
+        $PAGE->navbar->add(get_string('instructorsall', 
+                'block_ucla_browseby'), $urlobj);
+    }
+
     /**
      *  Fetches a list of instructors with an alphabetized index.
      **/
@@ -47,11 +57,7 @@ class instructor_handler extends browseby_handler {
                     'block_ucla_browseby', $a);
             }
 
-            // The breadcrumb logic is kind of disorganized
-            $urlobj = clone($PAGE->url);
-            $urlobj->remove_params('alpha');
-            $PAGE->navbar->add(get_string('instructorsall', 
-                'block_ucla_browseby'), $urlobj);
+            self::alter_navbar();
         }
 
         if (!isset($t)) {
