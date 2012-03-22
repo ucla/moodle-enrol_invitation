@@ -928,7 +928,8 @@ class uclacoursecreator {
         $forbidden_names = array();
 
         foreach ($id_categories as $cat) {
-            $catname = $cat->name;
+            // Note standard is same here #OOOO
+            $catname = $cat->name . '-' . $cat->parent;
             if (isset($name_categories[$catname])) {
                 $forbidden_names[$catname] = $catname;
             }
@@ -957,7 +958,10 @@ class uclacoursecreator {
 
                 $trans = $this->$function($field);
 
-                if (isset($forbidden_names[$trans])) {
+                // Note that standard is same here #OOOO
+                $namecheck = $trans . '-' . $immediate_parent_catid;
+
+                if (isset($forbidden_names[$namecheck])) {
                     $this->debugln('! Category name: '
                         . $trans . ' is ambiguous as a '
                         . $type);
@@ -966,7 +970,7 @@ class uclacoursecreator {
                 }
 
                 // Not an existing category
-                if (!isset($name_categories[$trans])) {
+                if (!isset($name_categories[$namecheck])) {
                     $newcategory = $this->new_category($trans,
                         $immediate_parent_catid);
 
@@ -975,14 +979,14 @@ class uclacoursecreator {
 
                     $this->debugln('  Created ' . $type . ' category: '
                          . $trans . ' parent: ' . $parentname);
-    
-                    $name_categories[$trans] = $newcategory;
+
+                    $name_categories[$namecheck] = $newcategory;
 
                     unset($newcategory);
                 }
 
                 // As the loop continues, the parent will be set
-                $immediate_parent_catid = $name_categories[$trans]->id;
+                $immediate_parent_catid = $name_categories[$namecheck]->id;
             }
         }
 
