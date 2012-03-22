@@ -16,7 +16,8 @@ class course_handler extends browseby_handler {
         ubc.coursetitlelong AS course_title,
         ubc.sectiontitle AS section_title,
         ubc.sect_enrl_stat_cd AS enrolstat,
-        ubc.catlg_no AS sect_num,
+        ubc.catlg_no AS course_code,
+        ubc.activitytype, 
         ubci.uid,
         COALESCE(user.firstname, ubci.firstname) AS firstname,
         COALESCE(user.lastname, ubci.lastname) AS lastname,
@@ -181,8 +182,7 @@ class course_handler extends browseby_handler {
             return array(false, false);
         }
 
-        $use_local_courses = get_config('block_ucla_browseby', 
-            'use_local_courses');
+        $use_local_courses = $this->get_config('use_local_courses');
 
         // Takes a denormalized Array of course-instructors and
         // returns a set of courses into $fullcourseslist
@@ -205,7 +205,7 @@ class course_handler extends browseby_handler {
                         uclacoursecreator::build_course_url($course);
                 } else if (!empty($course->url)) {
                     $courseobj->url = $course->url;
-                } else {
+                } else if (!self::ignore_course($course)) {
                     $courseobj->url = $this->registrar_url(
                         $course
                     );
@@ -215,6 +215,8 @@ class course_handler extends browseby_handler {
                         'span', get_string('registrar_link', 
                             'block_ucla_browseby'),
                         array('class' => 'registrar-link')) . ')';
+                } else {
+                    continue;
                 }
 
                 $cancelledmess = '';
@@ -342,7 +344,7 @@ class course_handler extends browseby_handler {
         $issummerterm = is_summer_term($term);
         $query = '.aspx?termsel=' . $term . '&subareasel=' 
             . urlencode($course->subj_area) . '&idxcrs=' 
-            . urlencode($course->sect_num);
+            . urlencode($course->course_code);
 
         if ($issummerterm) {
             $page .= '_summer';
@@ -350,6 +352,57 @@ class course_handler extends browseby_handler {
         }
 
         return $page . $query;
+    }
+
+    function ignore_course($course) {
+        if (!empty($course->course_code)) {
+            $coursecode = intval(substr($course->course_code, 0, 4));
+            $ignorecoursenum = $this->get_config('ignore_coursenum');
+            if ($ignorecoursenum) {
+                $ignorecoursenum = trim($ignorecoursenum);
+
+                if ($coursecode > $ignorecoursenum) {
+                    return true;
+                }
+            }
+        }
+
+        if (!empty($course->activitytype)) {
+            $allowacttypes = $this->get_config('allow_acttypes');
+            if (empty($allowacttypes)) {
+                return false;
+            } else {
+                if (is_string($allowacttypes)) {
+                    $acttypes = explode(',', $allowacttypes);
+                } else {
+                    $acttypes = $allowacttypes;
+                }
+
+                foreach ($acttypes as $acttype) {
+                    if ($course->activitytype == trim($acttype)) {
+                        return false;
+                    } 
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     *
+     **/
+    protected function get_config($name) {
+        if (!isset($this->configs)) {
+            $this->configs = get_config('block_ucla_browseby');
+        }
+
+
+        if (empty($this->configs->{$name})) {
+            return false;
+        }
+
+        return $this->configs->{$name};
     }
     
     protected function get_user($userid) {
