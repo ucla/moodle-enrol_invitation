@@ -141,79 +141,71 @@ class license_manager {
         $active_licenses = array();
 
         $license = new stdClass();
-
-        $license->shortname = 'unknown';
-        $license->fullname = 'Unknown license';
+        
+        $license->shortname = 'iown';
+        $license->fullname = 'I own the copyright';
         $license->source = '';
         $license->enabled = 1;
-        $license->version = '2010033100';
+        $license->version = '2012032200';
         $active_licenses[] = $license->shortname;
         self::add($license);
-
-        $license->shortname = 'allrightsreserved';
-        $license->fullname = 'All rights reserved';
-        $license->source = 'http://en.wikipedia.org/wiki/All_rights_reserved';
+        
+        $license->shortname = 'ucown';
+        $license->fullname = 'The UC Regents own the copyright';
+        $license->source = '';
         $license->enabled = 1;
-        $license->version = '2010033100';
+        $license->version = '2012032200';
         $active_licenses[] = $license->shortname;
         self::add($license);
-
+        
+        $license->shortname = 'lib';
+        $license->fullname = 'Item is licensed by the UCLA Library';
+        $license->source = '';
+        $license->enabled = 1;
+        $license->version = '2012032200';
+        $active_licenses[] = $license->shortname;
+        self::add($license);
+       
         $license->shortname = 'public';
-        $license->fullname = 'Public Domain';
+        $license->fullname = 'Item is in the public domain';
         $license->source = 'http://creativecommons.org/licenses/publicdomain/';
         $license->enabled = 1;
         $license->version = '2010033100';
         $active_licenses[] = $license->shortname;
         self::add($license);
-
+        
         $license->shortname = 'cc';
-        $license->fullname = 'Creative Commons';
+        $license->fullname = 'Item is available for this use via Creative Commons license';
         $license->source = 'http://creativecommons.org/licenses/by/3.0/';
         $license->enabled = 1;
         $license->version = '2010033100';
         $active_licenses[] = $license->shortname;
         self::add($license);
-
-        $license->shortname = 'cc-nd';
-        $license->fullname = 'Creative Commons - NoDerivs';
-        $license->source = 'http://creativecommons.org/licenses/by-nd/3.0/';
+        
+        $license->shortname = 'obtained';
+        $license->fullname = 'I have obtained written permission from the copyright holder';
+        $license->source = '';
         $license->enabled = 1;
-        $license->version = '2010033100';
+        $license->version = '2012032200';
         $active_licenses[] = $license->shortname;
         self::add($license);
-
-        $license->shortname = 'cc-nc-nd';
-        $license->fullname = 'Creative Commons - No Commercial NoDerivs';
-        $license->source = 'http://creativecommons.org/licenses/by-nc-nd/3.0/';
+        
+        $license->shortname = 'fairuse';
+        $license->fullname = 'I am using this item under fair use';
+        $license->source = '';
         $license->enabled = 1;
-        $license->version = '2010033100';
+        $license->version = '2012032200';
         $active_licenses[] = $license->shortname;
         self::add($license);
-
-        $license->shortname = 'cc-nc';
-        $license->fullname = 'Creative Commons - No Commercial';
-        $license->source = 'http://creativecommons.org/licenses/by-nd/3.0/';
+        
+        $license->shortname = 'tbd';
+        $license->fullname = 'Upload by faculty designate; copyright status to be determined';
+        $license->source = '';
         $license->enabled = 1;
-        $license->version = '2010033100';
+        $license->version = '2012032200';
         $active_licenses[] = $license->shortname;
         self::add($license);
-
-        $license->shortname = 'cc-nc-sa';
-        $license->fullname = 'Creative Commons - No Commercial ShareAlike';
-        $license->source = 'http://creativecommons.org/licenses/by-nc-sa/3.0/';
-        $license->enabled = 1;
-        $license->version = '2010033100';
-        $active_licenses[] = $license->shortname;
-        self::add($license);
-
-        $license->shortname = 'cc-sa';
-        $license->fullname = 'Creative Commons - ShareAlike';
-        $license->source = 'http://creativecommons.org/licenses/by-sa/3.0/';
-        $license->enabled = 1;
-        $license->version = '2010033100';
-        $active_licenses[] = $license->shortname;
-        self::add($license);
-
+        
         set_config('licenses', implode(',', $active_licenses));
     }
 }
