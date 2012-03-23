@@ -188,20 +188,13 @@ abstract class registrar_query {
     }
 
     /**
-     *  Returns an index to use for the return data.
+     *  Returns an index to use for the return data. Default is to not
+     *  index the results in any way, and have a default integer index.
      *  
      *  @param $fields Array The data to be indexed.
      *  @return string The key to use for the index.
      **/
     function get_key($fields) {
-        if (is_object($fields)) {
-            $fields = get_object_vars($fields);
-        }
-
-        if (isset($fields['srs'])) {
-            return $fields['srs'];
-        }
-
         return null;
     }
 
