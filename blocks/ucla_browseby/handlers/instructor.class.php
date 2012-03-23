@@ -5,12 +5,48 @@ class instructor_handler extends browseby_handler {
         return array('alpha');
     }
 
+    static function combined_select_sql_helper() {
+        ucla_require_db_helper();
+
+        $sql = "
+                {ucla_browseall_instrinfo}
+        ";
+
+        if (get_config('block_ucla_browseby', 'use_local_courses')) {
+            $sql = "(
+                SELECT
+                    uid,
+                    term,
+                    srs,
+                    firstname, 
+                    lastname,
+                    profcode
+                FROM $sql
+                UNION
+                    SELECT
+                        us.idnumber,
+                        term,
+                        srs,
+                        firstname,
+                        lastname,
+                        NULL
+                    FROM {user} us
+            " . db_helper::join_role_assignments_request_classes_sql . "
+                    INNER JOIN {ucla_browseall_classinfo} ubci
+                        USING(term, srs)
+            )";
+        }
+
+        return $sql;
+    }
+
     static function alter_navbar() {
         global $PAGE;
 
         // The breadcrumb logic is kind of disorganized
         $urlobj = clone($PAGE->url);
         $urlobj->remove_params('alpha');
+        $urlobj->params(array('type' => 'instructor'));
         $PAGE->navbar->add(get_string('instructorsall', 
                 'block_ucla_browseby'), $urlobj);
     }
@@ -48,13 +84,6 @@ class instructor_handler extends browseby_handler {
             if ($term) {
                 $t = get_string('instructorswith', 'block_ucla_browseby', 
                     $letter);
-            } else {
-                $a = new stdclass();
-                $a->letter = $letter;
-                $a->term = $prettyterm;
-
-                $t = get_string('instructorswithterm', 
-                    'block_ucla_browseby', $a);
             }
 
             self::alter_navbar();
@@ -64,13 +93,21 @@ class instructor_handler extends browseby_handler {
             $t = get_string('instructorsall', 'block_ucla_browseby');
         }
 
-        $where = 'u.idnumber <> \'\'';
-        $param = null;
-
         ucla_require_db_helper();
-        $users = db_helper::get_users_select(
-            $where, $param, 'u.id'
-        );
+        // Show all users form local and browseall tables
+        $sql = "
+            SELECT
+                CONCAT(uid, '-', term, '-', srs) AS rsid,
+                uid,
+                term,
+                srs,
+                firstname,
+                lastname
+            FROM " . self::combined_select_sql_helper() . " users
+            ORDER BY lastname
+        ";
+
+        $users = $this->get_records_sql($sql);
         
         if (empty($users)) {
             return array(false, false);
@@ -102,17 +139,17 @@ class instructor_handler extends browseby_handler {
         }
 
         $lettertable = array();
-        foreach ($lastnamefl as $letter => $exists) {
+        foreach ($lastnamefl as $lnletter => $exists) {
             if ($exists) {
                 $urlobj = clone($PAGE->url);
-                $urlobj->params(array('alpha' => strtolower($letter)));
-                $content = html_writer::link($urlobj, ucwords($letter));
+                $urlobj->params(array('alpha' => strtolower($lnletter)));
+                $content = html_writer::link($urlobj, ucwords($lnletter));
             } else {
                 $content = html_writer::tag('span',
-                    $letter, array('class' => 'dimmed_text'));
+                    $lnletter, array('class' => 'dimmed_text'));
             }
 
-            $lettertable[$letter] = $content;
+            $lettertable[$lnletter] = $content;
         }
 
         list($w, $p) = $this->render_terms_restricted_helper($valid_terms);
@@ -128,18 +165,23 @@ class instructor_handler extends browseby_handler {
             } else {
                 $s .= get_string('noinstructors', 'block_ucla_browseby');
             }
+        } else {
+            if ($letter == null) {
+                $s .= html_writer::tag('div', get_string(
+                    'selectinstructorletter', 'block_ucla_browseby'));
+            }
 
-            return array($t, $s);
+            $s .= block_ucla_browseby_renderer::ucla_custom_list_render(
+                $lettertable, 0, 1, 'flattened-list');
+
+            if ($letter !== null) {
+                $table = $this->list_builder_helper($users, 'uid',
+                    'fullname', 'course', 'uid', $term);
+
+                $s .= block_ucla_browseby_renderer::ucla_custom_list_render(
+                    $table);
+            }
         }
-
-        $s .= block_ucla_browseby_renderer::ucla_custom_list_render(
-            $lettertable, 0, 1, 'flattened-list');
-
-        $table = $this->list_builder_helper($users, 'user_id',
-            'fullname', 'course', 'inst', $term);
-
-        $s .= block_ucla_browseby_renderer::ucla_custom_list_render(
-            $table);
 
         return array($t, $s);
     }

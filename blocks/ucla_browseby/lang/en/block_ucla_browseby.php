@@ -23,11 +23,12 @@ $string['division_none'] = 'No divisions were found on this server';
 $string['division_noterm'] = 'No divisions were found for this term, please try another term.';
 
 // Instructors
-$string['instructorsall'] = 'All instructors';
+$string['instructorsall'] = 'Instructors';
 $string['instructorswith'] = 'Instructors, last name starting with "{$a}"';
 $string['instructosallterm'] = 'All instructors for {$a}';
 $string['noinstructorsterm'] = 'There are no instructors teaching on this server for {$a}, please try another term.';
 $string['noinstructors'] = 'There were no instructors found.';
+$string['selectinstructorletter'] = "Please select a letter to view instructors.";
 
 // Instructors -> courses
 $string['coursesbyinstr'] = 'Courses taught by {$a}';

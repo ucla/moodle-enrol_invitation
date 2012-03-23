@@ -21,13 +21,14 @@ class course_handler extends browseby_handler {
         ubci.uid,
         COALESCE(user.firstname, ubci.firstname) AS firstname,
         COALESCE(user.lastname, ubci.lastname) AS lastname,
+        ubci.profcode,
         user.url AS userlink,
         urc.courseid
     ";
 
     function get_params() {
         // This uses division in breadcrumbs
-        return array('subjarea', 'inst', 'division', 'alpha');
+        return array('subjarea', 'uid', 'division', 'alpha');
     }
 
     function handle($args) {
@@ -112,48 +113,55 @@ class course_handler extends browseby_handler {
             $urlobj->remove_params('subjarea');
             $urlobj->params(array('type' => 'subjarea'));
             $PAGE->navbar->add($navbarstr, $urlobj);
-        } else if (isset($args['inst'])) {
+        } else if (isset($args['uid'])) {
             ucla_require_db_helper();
 
             // This is the local-system specific instructor's courses view
-            $instructor = $args['inst'];
+            $instructor = $args['uid'];
+
+            $sqlhelp = instructor_handler::combined_select_sql_helper();
             
-            // Apparently, this is how moodle fetches users
-            $instruser = $this->get_user($instructor);
-            if (!$instruser) {
-                return array(false, false);
-            }
-
-            $t = get_string('coursesbyinstr', 'block_ucla_browseby',
-                fullname($instruser));
-
             $sql = self::browseall_sql_helper . "
-                FROM {ucla_browseall_instrinfo} ubi
+                FROM $sqlhelp ubi
                 LEFT JOIN {ucla_browseall_classinfo} ubc
                     USING(term, srs)
-                LEFT JOIN {ucla_browseall_instrinfo} ubci
+                LEFT JOIN $sqlhelp ubci
                     USING(term, srs)
                 LEFT JOIN {ucla_request_classes} urc
                     USING(term, srs)
                 LEFT JOIN {user} user
                     ON ubci.uid = user.idnumber
-                WHERE ubi.uid = :uid
-                $termwhere
+                WHERE 
+                    ubi.uid = :uid
             ";
 
-            $param['uid'] = $instruser->idnumber;
+            $param['uid'] = $instructor;
 
             $courseslist = $this->get_records_sql($sql, $param);
 
             // hack to hide some terms
+            // Also, we're going to get the actual user information
+            $instruser = false;
             $terms_avail = array();
             foreach ($courseslist as $course) {
                 $tt = $course->term;
-                if (isset($terms_avail[$tt])) {
-                    continue;
-                }
-
                 $terms_avail[$tt] = $tt;
+
+                if ($instruser == false && $course->uid == $instructor) {
+                    $instruser = $course;
+                }
+            }
+
+            if (!$instruser) {
+                print_error('noinstructorfound');
+            } else {
+                // Get stuff...
+                $instruser->firstname = 
+                    ucla_format_name($instruser->firstname);
+                $instruser->lastname = ucla_format_name($instruser->lastname);
+
+                $t = get_string('coursesbyinstr', 'block_ucla_browseby',
+                    fullname($instruser));
             }
 
             list($terms_select_where, $terms_select_param) =
@@ -174,7 +182,7 @@ class course_handler extends browseby_handler {
             }
 
             $urlobj = clone($PAGE->url);
-            $urlobj->remove_params('inst');
+            $urlobj->remove_params('uid');
             $urlobj->params(array('type' => 'instructor'));
             $PAGE->navbar->add($navbarstr, $urlobj);
         } else {
@@ -186,6 +194,7 @@ class course_handler extends browseby_handler {
 
         // Takes a denormalized Array of course-instructors and
         // returns a set of courses into $fullcourseslist
+        $fullcourseslist = array();
         foreach ($courseslist as $course) {
             $k = make_idnumber($course);
 
@@ -408,6 +417,7 @@ class course_handler extends browseby_handler {
     protected function get_user($userid) {
         global $DB;
 
-        return $DB->get_record('user', array('id' => $userid));
+        return $DB->get_record('ucla_browseall_instrinfo', 
+            array('uid' => $userid));
     }
 }

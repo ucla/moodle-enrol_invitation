@@ -7,6 +7,25 @@
  *  instead, and then call the function ucla_require_db_helper()
  **/
 class db_helper {
+    /**
+     * Use this to get a term-srs from a role assignment of a user.
+     *  Table alias needed: user -> us
+     *  Table aliases used: ra, ro, ct, co, rc
+     **/
+    const join_role_assignments_request_classes_sql = "
+        INNER JOIN {role_assignments} ra
+            ON ra.userid = us.id
+        INNER JOIN {role} ro
+            ON ro.id = ra.roleid
+        INNER JOIN {context} ct
+            ON ct.id = ra.contextid
+        INNER JOIN {course} co
+            ON co.id = ct.instanceid
+        INNER JOIN {ucla_request_classes} rc
+            ON co.id = rc.courseid
+    ";
+        
+
     /** 
      *  Will check a table for entries, insert and update entries provided
      *  in the arguments.
@@ -142,6 +161,8 @@ class db_helper {
 
         return serialize($prehash);
     }
+
+
 
     /**
      *  Convenience function that automatically gets a bunch of stuff

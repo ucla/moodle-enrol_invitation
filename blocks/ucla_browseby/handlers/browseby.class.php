@@ -81,7 +81,7 @@ abstract class browseby_handler {
             $rt);
     }
 
-    protected function get_records_sql($sql, $params) {
+    protected function get_records_sql($sql, $params=null) {
         global $DB;
 
         return $DB->get_records_sql($sql, $params);
