@@ -308,6 +308,10 @@ function requestor_ignore_entry($data) {
         return true;
     }
 
+    if ($subj == 'ASTR' && in_array($num, array('277B', '296', '375'))) {
+        return true;
+    }    
+    
     return false;
 }
 
