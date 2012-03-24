@@ -72,10 +72,58 @@ abstract class browseby_handler {
 
         return false;
     }
+    
+    function ignore_course($course) {
+        if (!empty($course->course_code)) {
+            $coursecode = intval(substr($course->course_code, 0, 4));
+            $ignorecoursenum = $this->get_config('ignore_coursenum');
+            if ($ignorecoursenum) {
+                $ignorecoursenum = trim($ignorecoursenum);
+
+                if ($coursecode > $ignorecoursenum) {
+                    return true;
+                }
+            }
+        }
+
+        if (!empty($course->activitytype)) {
+            $allowacttypes = $this->get_config('allow_acttypes');
+            if (empty($allowacttypes)) {
+                return false;
+            } else {
+                if (is_string($allowacttypes)) {
+                    $acttypes = explode(',', $allowacttypes);
+                } else {
+                    $acttypes = $allowacttypes;
+                }
+
+                foreach ($acttypes as $acttype) {
+                    if ($course->activitytype == trim($acttype)) {
+                        return false;
+                    } 
+                }
+            }
+        }
+
+        return true;
+    }
 
     /**
      *  Decoupled functions.
      **/
+    protected function get_config($name) {
+        if (!isset($this->configs)) {
+            $this->configs = get_config('block_ucla_browseby');
+        }
+
+
+        if (empty($this->configs->{$name})) {
+            return false;
+        }
+
+        return $this->configs->{$name};
+    }
+
     protected function render_terms_restricted_helper($rt=false) {
         return block_ucla_browseby_renderer::render_terms_restricted_helper(
             $rt);
@@ -85,6 +133,14 @@ abstract class browseby_handler {
         global $DB;
 
         return $DB->get_records_sql($sql, $params);
+    }
+
+    protected function get_roles_with_capability($cap) {
+        return get_roles_with_capability($cap);
+    }
+
+    protected function role_mapping($pc, $o, $sa="*SYSTEM*") {
+        return role_mapping($pc, $o, $sa);
     }
 }
 

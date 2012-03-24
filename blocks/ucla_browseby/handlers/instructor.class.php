@@ -5,37 +5,48 @@ class instructor_handler extends browseby_handler {
         return array('alpha');
     }
 
+    /**
+     *  Builds a sub-table that combines all available users,
+     *  both from the registrar and from the local machine.
+     **/
     static function combined_select_sql_helper() {
+        global $CFG;
+
         ucla_require_db_helper();
 
-        $sql = "
-                {ucla_browseall_instrinfo}
-        ";
+        $ilr = $CFG->instructor_levels_roles;
+        $shortnamewhere = '';
+        if (!empty($ilr['Instructor'])) {
+            $shortnamesused = implode("','", $ilr['Instructor']);
 
-        if (get_config('block_ucla_browseby', 'use_local_courses')) {
-            $sql = "(
-                SELECT
-                    uid,
-                    term,
-                    srs,
-                    firstname, 
-                    lastname,
-                    profcode
-                FROM $sql
-                UNION
-                    SELECT
-                        us.idnumber,
-                        term,
-                        srs,
-                        firstname,
-                        lastname,
-                        NULL
-                    FROM {user} us
-            " . db_helper::join_role_assignments_request_classes_sql . "
-                    INNER JOIN {ucla_browseall_classinfo} ubci
-                        USING(term, srs)
-            )";
+            if (!empty($shortnamesused)) {
+                $shortnamewhere = "WHERE ro.shortname IN ('$shortnamesused') ";
+            }
         }
+
+        $sql = "(
+            SELECT
+                uid,
+                term,
+                srs,
+                firstname, 
+                lastname,
+                profcode AS profcode,
+                NULL AS rolename
+            FROM {ucla_browseall_instrinfo}
+        UNION
+            SELECT
+                us.idnumber,
+                term,
+                srs,
+                firstname,
+                lastname,
+                NULL AS profcode,
+                ro.shortname AS rolename
+            FROM {user} us
+        " . db_helper::join_role_assignments_request_classes_sql . "
+            $shortnamewhere
+        )";
 
         return $sql;
     }
@@ -99,11 +110,18 @@ class instructor_handler extends browseby_handler {
             SELECT
                 CONCAT(uid, '-', term, '-', srs) AS rsid,
                 uid,
-                term,
-                srs,
+                users.term,
+                users.srs,
                 firstname,
-                lastname
+                lastname,
+                ubci.catlg_no AS course_code,
+                ubci.activitytype,
+                profcode,
+                rolename,
+                ubci.subjarea
             FROM " . self::combined_select_sql_helper() . " users
+            INNER JOIN {ucla_browseall_classinfo} ubci 
+                USING(term, srs)
             ORDER BY lastname
         ";
 
@@ -117,24 +135,60 @@ class instructor_handler extends browseby_handler {
 
         // Decide which users to have the ability to display in the 
         // chart
+        $coursepcs = array();
         foreach ($users as $k => $user) {
-            // Figure out which terms to display
-            if (isset($user->term)) {
-                $valid_terms[$user->term] = $user->term;
+            if ($this->ignore_course($user)) {
+                unset($users[$k]);
+                continue;
             }
 
-            if ($user->term != $term) {
+            if (isset($user->profcode)) {
+                $pc = $user->profcode;
+                $coursepcs[$user->srs][$pc] = $pc;
+            }
+        }
+
+        $rolecaps = $this->get_roles_with_capability('moodle/course:update');
+
+        foreach ($users as $k => $user) {
+            // Figure out if they want to be seeeeeeen
+            if (isset($user->profcode) 
+                    && !isset($rolecaps[$this->role_mapping(
+                        intval($user->profcode), 
+                        $coursepcs[$user->srs], 
+                        $user->subjarea
+                    )])) {
                 unset($users[$k]);
                 continue;
             }
 
             $user->fullname = fullname($user);
             $lnletter = strtoupper(substr($user->lastname, 0, 1));
+            $lettermatches = ($letter !== null && $lnletter == $letter);
 
-            // Save their last name to use later
-            $lastnamefl[$lnletter] = true;
-            if ($letter !== null && $lnletter != $letter) {
+            // If a letter is selected, then we need to limit the number
+            // of terms selectable to prevent dead-end results
+            $uterm = $user->term;
+            if ($letter !== null) {
+                if ($lnletter == $letter) {
+                    $valid_terms[$uterm] = $uterm;
+                }
+            } else {
+                // Without a letter selected, allow all terms to be selected
+                $valid_terms[$uterm] = $uterm;
+            }
+
+            // If a term is selected and we need to limit instructor last 
+            // name letter choices
+            if ($uterm == $term) {
+                $lastnamefl[$lnletter] = true;
+
+                if ($letter !== null && $lnletter != $letter) {
+                    unset($users[$k]);
+                }
+            } else {
                 unset($users[$k]);
+                continue;
             }
         }
 
