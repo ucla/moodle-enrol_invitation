@@ -40,6 +40,36 @@ class rolemappings_test extends UnitTestCase {
     }
     
     /**
+     * Call get_moodlerole with a subject area not defined in the config file
+     * to make sure that it returns the default value.
+     */
+    function test_get_moodlerole_with_default() {
+        global $CFG, $DB;
+        require($CFG->dirroot . '/local/ucla/rolemappings.php');
+        
+        foreach ($role as $pseudorole => $results) {
+            foreach ($results as $subject_area => $moodle_role) {
+                // only test *SYSTEM* subject areas
+                if ($subject_area != '*SYSTEM*') {
+                    continue;
+                }
+                
+                // find the moodle role id for given moodle role
+                $role_entry = $DB->get_record('role', array('shortname' => $moodle_role));                
+                if (empty($role_entry)) {
+                    $this->assertTrue(false, sprintf('No moodle role "%s" not found', $moodle_role));
+                } else {
+                    $default_result = get_moodlerole($pseudorole, $subject_area);    
+                    // now get result for a non-defined subject area
+                    $undefined_result = get_moodlerole($pseudorole, 'NON-EXISTENT SUBJECT AREA');                    
+                    
+                    $this->assertEqual($default_result, $undefined_result);                    
+                }
+            }
+        }
+    }    
+    
+    /**
      * For a given specific profcode and a set of profcodes, the function should 
      * return the given psudo role.
      * 
