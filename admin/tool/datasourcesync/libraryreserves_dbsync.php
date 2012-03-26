@@ -12,7 +12,9 @@ require_once('lib.php');
 
 // Check to see that config variable is initialized
 if (!isset($CFG->libraryreserves_data))
+{
     die("\n".get_string('errlrmsglocation','tool_datasourcesync')."\n");
+}
 
 // Begin database update
 update_libraryreserves_db();
@@ -29,6 +31,7 @@ function update_libraryreserves_db(){
 
    # read the file into a two-dimensional array
    $lines = file($datasource_url);
+
    foreach ($lines as $line_num => $line) {
            # stop processing data if we hit the end of the file
                if ($line != "=== EOF ===\n") {
@@ -38,8 +41,13 @@ function update_libraryreserves_db(){
                }
    }
 
+   
    $fields = array();
    
+   if($lines == FALSE)
+   {
+       die("\n".get_string('errlrfileopen','tool_datasourcesync')."\n"); 
+   }
 
    $curfields = $DB->get_records_sql("DESCRIBE {$CFG->prefix}"."ucla_libraryreserves");
    
@@ -55,8 +63,8 @@ function update_libraryreserves_db(){
    
    $data_incoming = array();
 
-   // Check if all entries have the correct number of columns 
-    
+   // Check if all entries have the correct number of columns  
+
    for ($row = 1; $row < sizeof($incoming_data); $row++) {
        if (sizeof($incoming_data[$row]) != count($fields)) {
             die("\n".get_string('errinvalidrowlen','tool_datasourcesync')."\n");
@@ -91,17 +99,15 @@ function update_libraryreserves_db(){
    $DB->delete_records('ucla_libraryreserves');
 
    $insert_count = 0;
-   $line = 0;
+   $line = 1;
+   $row = new stdClass();
+   $index = FALSE; 
 
-   for ($line = 1; $line < count($data); $line++) {
+   for ($line; $line < count($data); $line++) {
        
-       $row = new stdClass();
-       
-       foreach ($data[$line] as $field => $fieldvalue){
+       foreach ($data[$line] as $field => $fieldvalue) {
            $row->$field = $fieldvalue;
        }
-
-       $index = false;
 
        try {
            $index = $DB->insert_record('ucla_libraryreserves', $row);

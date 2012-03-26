@@ -20,6 +20,7 @@ $string['bcsuccessnoti'] = "records successfully inserted.";
 // Error messages
 $string['errlrmsglocation'] = "ERROR: No location set for library reserves data.";
 $string['errinvalidrowlen'] = "ERROR: Invalid row length in provided library reserves data.";
+$string['errlrfileopen'] = "ERROR: Problem accessing data URL";
 
 //Notification messages
 $string['lrstartnoti'] = "Starting library reserves DB update:";
