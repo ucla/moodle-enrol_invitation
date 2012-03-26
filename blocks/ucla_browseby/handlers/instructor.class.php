@@ -150,15 +150,16 @@ class instructor_handler extends browseby_handler {
 
         $rolecaps = $this->get_roles_with_capability('moodle/course:update');
 
+        $no_display_hack = 0;
         foreach ($users as $k => $user) {
-            // Figure out if they want to be seeeeeeen
             if (isset($user->profcode) 
                     && !isset($rolecaps[$this->role_mapping(
                         intval($user->profcode), 
                         $coursepcs[$user->srs], 
                         $user->subjarea
                     )])) {
-                unset($users[$k]);
+                $users[$k]->no_display = true;
+                $no_display_hack++;
                 continue;
             }
 
@@ -212,7 +213,7 @@ class instructor_handler extends browseby_handler {
             $w, $p);
         
         // This case can be reached if the current term has no instructors.
-        if (empty($users)) {
+        if (empty($users) || count($users) == $no_display_hack) {
             if ($term) {
                 $s .= get_string('noinstructorsterm', 'block_ucla_browseby',
                     $prettyterm);

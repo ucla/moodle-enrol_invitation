@@ -35,6 +35,10 @@ abstract class browseby_handler {
 
         $table = array();
         foreach ($data as $datum) {
+            if (!empty($datum->no_display)) {
+                continue;
+            }
+
             $k = $datum->{$keyfield};
             $queryterms = array('type' => $type, $get => $k);
 

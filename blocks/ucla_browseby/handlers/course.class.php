@@ -195,7 +195,7 @@ class course_handler extends browseby_handler {
         $coursepcs = array();
         foreach ($courseslist as $k => $course) {
             if ($this->ignore_course($course)) {
-                unset($courseslist[$k]);
+                $courseslist[$k]->no_display = true;
                 continue;
             }
 
@@ -213,6 +213,10 @@ class course_handler extends browseby_handler {
         // returns a set of courses into $fullcourseslist
         $fullcourseslist = array();
         foreach ($courseslist as $course) {
+            if (!empty($course->no_display)) {
+                continue;
+            }
+
             $k = make_idnumber($course);
 
             // Apend instructors, since they could have duplicate rows
