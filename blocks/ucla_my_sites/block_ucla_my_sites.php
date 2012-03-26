@@ -11,6 +11,8 @@
 require_once($CFG->dirroot.'/lib/weblib.php');
 require_once($CFG->dirroot . '/lib/formslib.php');
 
+require_once($CFG->dirroot.'/local/ucla/lib.php');
+
 class block_ucla_my_sites extends block_base {
     /**
      * block initializations
@@ -22,6 +24,9 @@ class block_ucla_my_sites extends block_base {
     /**
      * block contents
      *
+     * Get courses that user is currently assigned to and display them either as
+     * class or collaboration sites.
+     * 
      * @return object
      */
     public function get_content() {
@@ -36,69 +41,77 @@ class block_ucla_my_sites extends block_base {
 
         $content = array();
 
-        // limits the number of courses showing up
-        $courses_limit = 21;
-        // FIXME: this should be a block setting, rather than a global setting
-        if (isset($CFG->mycoursesperpage)) {
-            $courses_limit = $CFG->mycoursesperpage;
-        }
-
-        $morecourses = false;
-        if ($courses_limit > 0) {
-            $courses_limit = $courses_limit + 1;
-        }
-
-        $courses = enrol_get_my_courses('id, shortname, modinfo', 'visible DESC,sortorder ASC', $courses_limit);
+        $courses = enrol_get_my_courses('id, shortname', 'visible DESC,sortorder ASC');
         $site = get_site();
         $course = $site; //just in case we need the old global $course hack
-
-        if (is_enabled_auth('mnet')) {
-            $remote_courses = get_my_remotecourses();
-        }
-        if (empty($remote_courses)) {
-            $remote_courses = array();
-        }
-
-        if (($courses_limit > 0) && (count($courses)+count($remote_courses) >= $courses_limit)) {
-            // get rid of any remote courses that are above the limit
-            $remote_courses = array_slice($remote_courses, 0, $courses_limit - count($courses), true);
-            if (count($courses) >= $courses_limit) {
-                //remove the 'marker' course that we retrieve just to see if we have more than $courses_limit
-                array_pop($courses);
-            }
-            $morecourses = true;
-        }
-
 
         if (array_key_exists($site->id,$courses)) {
             unset($courses[$site->id]);
         }
 
+        // go through each course and categorize them into either class or
+        // collaboration sites
+        $class_sites = array(); $collaboration_sites = array();
         foreach ($courses as $c) {
-            if (isset($USER->lastcourseaccess[$c->id])) {
-                $courses[$c->id]->lastaccess = $USER->lastcourseaccess[$c->id];
+            $reg_info = ucla_get_course_info($c->id);
+            if (!empty($reg_info)) {
+                $c->reg_info = $reg_info;
+                $class_sites[] = $c;
             } else {
-                $courses[$c->id]->lastaccess = 0;
+                $collaboration_sites[] = $c;
             }
         }
 
-        if (empty($courses) && empty($remote_courses)) {
-            $content[] = get_string('nocourses','my');
+        // print class sites
+        $content[] = html_writer::tag('h3', get_string('classsites', 
+                'block_ucla_my_sites'), array('class' => 'mysitesdivider'));
+        if (empty($class_sites)) {
+            $content[] = html_writer::tag('p', get_string('noclasssites', 
+                    'block_ucla_my_sites'));
         } else {
-            ob_start();
-
-            require_once $CFG->dirroot."/course/lib.php";
-            print_overview($courses, $remote_courses);
-
-            $content[] = ob_get_contents();
-            ob_end_clean();
+            $t = new html_table();
+            $t->head = array(get_string('classsitesnamecol', 'block_ucla_my_sites'), 
+                    get_string('rolescol', 'block_ucla_my_sites'));
+            foreach ($class_sites as $class) {
+                // build class title in following format:
+                // <subject area> <cat_num>, <activity_type e.g. Lec, Sem> <sec_num> (<term name e.g. Winter 2012>): <full name>
+                
+                // there might be multiple reg_info records for cross-listed courses
+                $class_title = ''; $first_entry = true;
+                foreach ($class->reg_info as $reg_info) {
+                    $first_entry ? $first_entry = false : $class_title .= '/';
+                    $class_title .= sprintf('%s %s, %s %s', 
+                            $reg_info->subj_area,
+                            $reg_info->coursenum,
+                            $reg_info->acttype,
+                            $reg_info->sectnum);                    
+                }
+                
+                $reg_info = $class->reg_info[0];
+                $title = sprintf('%s (%s): %s', 
+                        $class_title,
+                        ucla_term_to_text($reg_info->term, $reg_info->session_group),
+                        $class->fullname);
+                
+                // add link
+                $class_link = sprintf('<a href="%s/course/view.php?id=%d">%s<a/>', 
+                        $CFG->wwwroot, $class->id, $title);
+                
+                // get user's role                
+                // TO DO: Remove link from string
+                $roles = get_user_roles_in_course($USER->id, $class->id);                
+                
+                $t->data[] = array($class_link, $roles);
+            }
+            $content[] = html_writer::table($t);            
         }
-
-        // if more than 20 courses
-        if ($morecourses) {
-            $content[] = '<br />...';
+        
+        // print collaboration sites (if any)
+        if (!empty($collaboration_sites)) {
+            $content[] = html_writer::tag('h3', get_string('collaborationsites', 
+                    'block_ucla_my_sites'), array('class' => 'mysitesdivider'));            
         }
-
+        
         $this->content->text = implode($content);
 
         return $this->content;
