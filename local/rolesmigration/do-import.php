@@ -29,7 +29,7 @@ if ($roles_in_file = roles_migration_get_incoming_roles()) {
             echo '<p>', get_string('role_ignored', 'local_rolesmigration', $role), '</p>';
             continue;
         }
-        
+
         switch ($actions[$role->shortname]) {
             case 'skip':
                 echo '<p>', get_string('role_ignored', 'local_rolesmigration', $role), '</p>';
@@ -69,6 +69,20 @@ if ($roles_in_file = roles_migration_get_incoming_roles()) {
                 // done finding a unique name
                 $role_id = create_role($currentfullname, $currentshortname, $role->description, $role->archetype);
 
+                // restore value of 'id' field for the role, if possible
+                if ($counter == 1) {
+                    // check if no role with given 'id' already exists
+                    $found_id = $DB->get_field("role", "id", array("id" => $role->id));
+                    if (empty($found_id)) {
+                        $sql = "UPDATE {role} SET id = :newid WHERE id = :oldid";
+                        $params = array('oldid'=> $role_id, 'newid' => $role->id);
+                        // update the role 'id' in DB
+                        $DB->execute($sql, $params);
+                        // update $role_id variable
+                        $role_id = $role->id;
+                    }
+                }
+
                 // Loop through incoming capabilities
                 foreach ($role->capabilities as $capability) {
                     // Build capability object from incoming role info
@@ -84,12 +98,27 @@ if ($roles_in_file = roles_migration_get_incoming_roles()) {
                     $DB->insert_record('role_capabilities', $roleinfo);
                 }
 
+                // Loop through incoming context levels
+                foreach ($role->contextlevels as $contextlvl) {
+                    // Build context level object from incoming role info
+                    $roleinfo = new stdClass();
+                    $roleinfo = (object)$contextlvl;
+                    // Add incoming context level to object
+                    $roleinfo->contextlevel = $contextlvl->contextlevel;
+                    // Set role_id of the incoming context level to use the id of the role we just created
+                    $roleinfo->roleid = $role_id;
+                    // Insert the context level into the DB
+                    $DB->insert_record('role_context_levels', $roleinfo);
+                }
+
                 // Prep values for string and send to screen
                 $r = new stdClass();
                 $r->newshort = $currentshortname;
                 $r->newname = $currentfullname;
+                $r->newid = $role_id;
                 $r->oldshort = $role->shortname;
                 $r->oldname = $role->name;
+                $r->oldid = $role->id;
                 echo '<p>', get_string('new_role_created', 'local_rolesmigration', $r), '</p>';
                 break;
 
@@ -143,6 +172,46 @@ if ($roles_in_file = roles_migration_get_incoming_roles()) {
                 }
                 if (!empty($to_delete) && is_array($to_delete)) {
                     $DB->delete_records_list('role_capabilities', 'id', $to_delete);
+                }
+
+
+                // Grab existing context levels for the role that we're about to update
+                $role_contextlevels = $DB->get_records_select('role_context_levels', "roleid = ?",
+                                        array($role_id), 'contextlevel');
+                //echo "<pre>"; print_r($role_contextlevels); echo "</pre>";
+                $to_delete = array();
+
+                // Loop through incoming context levels and build DB object for each one
+                foreach ($role->contextlevels as $key => $contextlvl) {
+                    $roleinfo = new stdClass();
+                    $roleinfo = (object)$contextlvl;
+
+                    // Set context level to incoming value
+                    $roleinfo->contextlevel = $contextlvl->contextlevel;
+                    // Overwrite incoming capability's role_id with ID of current site's role
+                    $roleinfo->roleid = $role_id;
+                    // If existing role doesn't have incoming context level, insert the record
+                    $found_id = 0;
+                    foreach ($role_contextlevels as $lvl) {
+                        if ($lvl->contextlevel == $roleinfo->contextlevel) {
+                            $found_id = $lvl->id;
+                            break;
+                        }
+                    }
+                    //echo "found: [$key] $roleinfo->contextlevel <pre>"; print_r($role_contextlevels); echo "</pre>";
+                    if (!$found_id) {
+                        $DB->insert_record('role_context_levels', $roleinfo);
+                    }
+                    // Remove the inserted incoming context level from the array existing context levels
+                    unset($role_contextlevels[$found_id]);
+                }
+
+                // Loop through and delete the remaining array of existing context levels (not found in incoming context levels)
+                foreach ($role_contextlevels as $delete_contextlvl) {
+                    $to_delete[] = $delete_contextlvl->id;
+                }
+                if (!empty($to_delete) && is_array($to_delete)) {
+                    $DB->delete_records_list('role_context_levels', 'id', $to_delete);
                 }
 
                 // Prep values for string and send to screen

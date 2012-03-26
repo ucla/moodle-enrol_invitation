@@ -63,25 +63,36 @@ function roles_migration_get_incoming_roles($xml=false) {
         if (isset($xml['MOODLE_ROLES_MIGRATION']['#']['ROLES'][0]['#']['ROLE'])) {
             $roles = $xml['MOODLE_ROLES_MIGRATION']['#']['ROLES'][0]['#']['ROLE'];
             foreach($roles as $key => $value) {
-                $role_capabilities = array();
-                // Add capabilities for role 
+                $role_capabilities  = array();
+                $role_contextlevels = array();
+                // Add capabilities for role
                 if (isset($value['#']['ROLE_CAPABILITIES'])) {
                     foreach($value['#']['ROLE_CAPABILITIES'][0]['#']['ROLE_CAPABILITY'] as $rck => $rcv) {
                         $capability = new stdClass();
+                        $capability->contextid      = !empty($rcv['#']['CONTEXTID']) ? $rcv['#']['CONTEXTID'][0]['#'] : '';
                         $capability->capability     = !empty($rcv['#']['CAPABILITY']) ? $rcv['#']['CAPABILITY'][0]['#'] : '';
                         $capability->permission     = !empty($rcv['#']['PERMISSION']) ? $rcv['#']['PERMISSION'][0]['#'] : '';
                         $role_capabilities[]        = $capability;
                     }
                 }
+                // Add context levels for role
+                if (isset($value['#']['ROLE_CONTEXTLEVELS'])) {
+                    foreach($value['#']['ROLE_CONTEXTLEVELS'][0]['#']['ROLE_CONTEXTLEVEL'] as $rck => $rcv) {
+                        $contextlvl = new stdClass();
+                        $contextlvl->contextlevel   = !empty($rcv['#']['CONTEXTLEVEL']) ? $rcv['#']['CONTEXTLEVEL'][0]['#'] : '';
+                        $role_contextlevels[]       = $contextlvl;
+                    }
+                }
                 $role = new stdClass(); 
-                $role->id           = !empty($value['#']['ID'][0]['#']) ? $value['#']['ID'][0]['#'] : '';
-                $role->name         = !empty($value['#']['NAME'][0]['#']) ? $value['#']['NAME'][0]['#'] : '';
-                $role->shortname    = !empty($value['#']['SHORTNAME'][0]['#']) ? $value['#']['SHORTNAME'][0]['#'] : '';
-                $role->description  = !empty($value['#']['DESCRIPTION'][0]['#']) ? $value['#']['DESCRIPTION'][0]['#'] : '';
-                $role->sortorder    = !empty($value['#']['SORTORDER'][0]['#']) ? $value['#']['SORTORDER'][0]['#'] : '';
-                $role->archetype    = !empty($value['#']['ARCHETYPE'][0]['#']) ? $value['#']['ARCHETYPE'][0]['#'] : '';
-                $role->capabilities = $role_capabilities;
-                $to_return[]        = $role;
+                $role->id            = !empty($value['#']['ID'][0]['#']) ? $value['#']['ID'][0]['#'] : '';
+                $role->name          = !empty($value['#']['NAME'][0]['#']) ? $value['#']['NAME'][0]['#'] : '';
+                $role->shortname     = !empty($value['#']['SHORTNAME'][0]['#']) ? $value['#']['SHORTNAME'][0]['#'] : '';
+                $role->description   = !empty($value['#']['DESCRIPTION'][0]['#']) ? $value['#']['DESCRIPTION'][0]['#'] : '';
+                $role->sortorder     = !empty($value['#']['SORTORDER'][0]['#']) ? $value['#']['SORTORDER'][0]['#'] : '';
+                $role->archetype     = !empty($value['#']['ARCHETYPE'][0]['#']) ? $value['#']['ARCHETYPE'][0]['#'] : '';
+                $role->capabilities  = $role_capabilities;
+                $role->contextlevels = $role_contextlevels;
+                $to_return[]         = $role;
             }
         }
     } else if (isset($USER->rolesmigrationimport)) {

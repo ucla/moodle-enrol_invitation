@@ -92,7 +92,7 @@ $xml->begin_tag('MOODLE_ROLES_MIGRATION');
                             $role_ids[] = $value;
                         }
                     }
-                    // The ROLE CAPABILITIES tag contains data from the role_capabilities table associated with selected ROLES
+                    // The ROLE_CAPABILITIES tag contains data from the role_capabilities table associated with selected ROLES
                     $xml->begin_tag('ROLE_CAPABILITIES');
                         // Loop through provided role  IDs
                         if ($rolecaps = $DB->get_records('role_capabilities', array('contextid' => $sitecontext->id, 'roleid' => end($role_ids)))) {
@@ -110,6 +110,23 @@ $xml->begin_tag('MOODLE_ROLES_MIGRATION');
                             }
                         }
                     $xml->end_tag('ROLE_CAPABILITIES');
+
+                    // The ROLE_CONTEXTLEVELS tag contains data from the role_capabilities table associated with selected ROLES
+                    $xml->begin_tag('ROLE_CONTEXTLEVELS');
+                        // Loop through provided role  IDs
+                        if ($ctxlevs = $DB->get_records('role_context_levels', array('roleid' => end($role_ids)))) {
+                            foreach( $ctxlevs as $key => $lev ) {
+                                $lev_array = (array) $lev;
+                                // Loop through columns and create tag for each one
+                                // Only print the context levels if they're associated with one of our roles
+                                if ( in_array($lev->roleid, $role_ids)) {
+                                    $xml->begin_tag('ROLE_CONTEXTLEVEL');
+                                    $xml->full_tag('CONTEXTLEVEL', $lev->contextlevel);
+                                    $xml->end_tag('ROLE_CONTEXTLEVEL');
+                                }
+                            }
+                        }
+                    $xml->end_tag('ROLE_CONTEXTLEVELS');
                 $xml->end_tag('ROLE');
             }
         }
