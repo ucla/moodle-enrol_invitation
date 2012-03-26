@@ -23,11 +23,12 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['iown']='I own the copyright';
-$string['ucown']='The UC Regents own the copyright';
-$string['lib']='Item is licensed by the UCLA Library';
-$string['public'] = 'Item is in the public domain';
-$string['cc'] = 'Item is available for this use via Creative Commons license';
-$string['obtained']='I have obtained written permission from the copyright holder';
-$string['fairuse']='I am using this item under fair use';
-$string['tbd']='Upload by faculty designate; copyright status to be determined';
+$string['allrightsreserved'] = 'All rights reserved';
+$string['cc'] = 'Creative Commonss';
+$string['cc-nc'] = 'Creative Commons - No Commercial';
+$string['cc-nc-nd'] = 'Creative Commons - No Commercial NoDerivs';
+$string['cc-nc-sa'] = 'Creative Commons - No Commercial ShareAlike';
+$string['cc-nd'] = 'Creative Commons - NoDerivs';
+$string['cc-sa'] = 'Creative Commons - ShareAlike';
+$string['public'] = 'Public domain';
+$string['unknown'] = 'Other';

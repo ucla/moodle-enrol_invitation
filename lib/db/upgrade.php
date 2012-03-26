@@ -6991,20 +6991,6 @@ FROM
         // Main savepoint reached
         upgrade_main_savepoint(true, 2011120500.03);
     }
-    
-    // Change copyright information
-    if ($oldversion <  2011120501.01){
-        $DB->execute("truncate table mdl_license");
-        $DB->execute("INSERT INTO `mdl_license` VALUES
-        (1,'iown','I own the copyright',NULL,1,2012032200),
-        (2,'ucown','The UC Regents own the copyright',NULL,1,2012032200),
-        (3,'lib','Item is licensed by the UCLA Library',NULL,1,2012032200),
-        (4,'public','Item is in the public domain','http://creativecommons.org/licenses/publicdomain/',1,2010033100),
-        (5,'cc','Item is available for this use via Creative Commons license','http://creativecommons.org/licenses/by/3.0/',1,2010033100),
-        (6,'obtained','I have obtained written permission from the copyright holder',NULL,1,2012032200),
-        (7,'fairuse','I am using this item under fair use',NULL,1,2012032200),
-        (8,'tbd','Upload by faculty designate; copyright status to be determined',NULL,1,2012032200)");
-       }
 
     return true;
 }

@@ -139,6 +139,30 @@ function xmldb_local_ucla_upgrade($oldversion=0) {
         // ucla savepoint reached
         upgrade_plugin_savepoint(true, 2012020100, 'local', 'ucla');
     }
+    
+    if ($oldversion < 2012020101) {
+        // Disable existing licenses
+        $sql = "UPDATE mdl_license set enabled = 0 where version < 2012032200";
+        $DB->execute($sql);
+        // Insert new record.
+        $sql = "INSERT INTO mdl_license (shortname, fullname, source, enabled,version) VALUES 
+                ('iown','I own the copyright',NULL,1,2012032200),
+                ('ucown','The UC Regents own the copyright',NULL,1,2012032200),
+                ('lib','Item is licensed by the UCLA Library',NULL,1,2012032200),
+                ('public','Item is in the public domain','http://creativecommons.org/licenses/publicdomain/',1,2010033100),
+                ('cc','Item is available for this use via Creative Commons license','http://creativecommons.org/licenses/by/3.0/',1,2010033100),
+                ('obtained','I have obtained written permission from the copyright holder',NULL,1,2012032200),
+                ('fairuse','I am using this item under fair use',NULL,1,2012032200),
+                ('tbd','Upload by faculty designate; copyright status to be determined',NULL,1,2012032200)";
+        
+        $DB->execute($sql);
+        
+        // ucla savepoint reached
+        upgrade_plugin_savepoint(true, 2012020101, 'local', 'ucla');
+    }
+    
+    
+    
 
 
     return $result;
