@@ -192,6 +192,23 @@ class course_handler extends browseby_handler {
 
         $use_local_courses = $this->get_config('use_local_courses');
 
+        $coursepcs = array();
+        foreach ($courseslist as $k => $course) {
+            if ($this->ignore_course($course)) {
+                unset($courseslist[$k]);
+                continue;
+            }
+
+            if (isset($course->profcode)) {
+                $pc = $course->profcode;
+                if (!isset($coursepcs[$k])) {
+                    $coursepcs[$k] = array();
+                }
+
+                $coursepcs[$k][$pc] = $pc;
+            }
+        }
+
         // Takes a denormalized Array of course-instructors and
         // returns a set of courses into $fullcourseslist
         $fullcourseslist = array();

@@ -81,6 +81,7 @@ abstract class browseby_handler {
                 $ignorecoursenum = trim($ignorecoursenum);
 
                 if ($coursecode > $ignorecoursenum) {
+                    debugging("SKIP $coursecode > $ignorecoursenum");
                     return true;
                 }
             }
