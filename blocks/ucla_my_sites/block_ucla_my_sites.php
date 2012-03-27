@@ -119,7 +119,7 @@ class block_ucla_my_sites extends block_base {
                 
                 // make link
                 $collab_link = sprintf('<a href="%s/course/view.php?id=%d">%s<a/>', 
-                        $CFG->wwwroot, $collab->id, $class->fullname);                
+                        $CFG->wwwroot, $collab->id, $collab->fullname);                
                 
                 // get user's role               
                 $roles = get_user_roles_in_course($USER->id, $collab->id);                
