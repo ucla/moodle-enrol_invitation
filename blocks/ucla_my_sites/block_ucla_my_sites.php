@@ -97,9 +97,9 @@ class block_ucla_my_sites extends block_base {
                 $class_link = sprintf('<a href="%s/course/view.php?id=%d">%s<a/>', 
                         $CFG->wwwroot, $class->id, $title);
                 
-                // get user's role                
-                // TO DO: Remove link from string
+                // get user's role               
                 $roles = get_user_roles_in_course($USER->id, $class->id);                
+                $roles = strip_tags($roles);    // remove links from role string
                 
                 $t->data[] = array($class_link, $roles);
             }
@@ -109,7 +109,26 @@ class block_ucla_my_sites extends block_base {
         // print collaboration sites (if any)
         if (!empty($collaboration_sites)) {
             $content[] = html_writer::tag('h3', get_string('collaborationsites', 
-                    'block_ucla_my_sites'), array('class' => 'mysitesdivider'));            
+                    'block_ucla_my_sites'), array('class' => 'mysitesdivider'));          
+            
+            $t = new html_table();
+            $t->head = array(get_string('collaborationsitesnamecol', 'block_ucla_my_sites'), 
+                    get_string('rolescol', 'block_ucla_my_sites'));      
+            
+            foreach ($collaboration_sites as $collab) {
+                
+                // make link
+                $collab_link = sprintf('<a href="%s/course/view.php?id=%d">%s<a/>', 
+                        $CFG->wwwroot, $collab->id, $class->fullname);                
+                
+                // get user's role               
+                $roles = get_user_roles_in_course($USER->id, $collab->id);                
+                $roles = strip_tags($roles);    // remove links from role string  
+                
+                $t->data[] = array($collab_link, $roles);                
+            }
+                
+            $content[] = html_writer::table($t);    
         }
         
         $this->content->text = implode($content);
