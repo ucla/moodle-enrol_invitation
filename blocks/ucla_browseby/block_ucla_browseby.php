@@ -62,16 +62,12 @@ class block_ucla_browseby extends block_list {
 
     /**
      *  Returns the applicable places that this block can be added.
-     *  This block really cannot be added anywhere, so we just made a place
-     *  up (hacky). If we do not do this, we will get this
-     *  plugin_devective_exception.
      **/
     function applicable_formats() {
         return array(
             'site-index' => true,
             'course-view' => false,
-            'my' => false,
-            'blocks-ucla_control_panel' => false,
+            'my' => false
         );
     }
 
@@ -106,6 +102,10 @@ class block_ucla_browseby extends block_list {
         }
 
         $this->sync($this->termslist);
+    }
+
+    function cron() {
+        $this->run_sync();
     }
 
     function sync($terms, $subjareas=null) {
@@ -218,11 +218,16 @@ class block_ucla_browseby extends block_list {
 
         return registrar_query::run_registrar_query($q, $d, true);
     }
-
-    protected function get_all_terms() {
+    protected function get_records($t, $p, $o, $s) {
         global $DB;
 
-        $termobjs = $DB->get_records('ucla_request_classes', null, '',
+        return $DB->get_records($t, $p, $o, $s);
+    }
+
+    function get_all_terms() {
+        global $DB;
+
+        $termobjs = $this->get_records('ucla_request_classes', null, '',
             'DISTINCT term');
 
         $terms = array();

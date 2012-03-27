@@ -2,7 +2,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2012032700;
+$plugin->version = 2012032702;
 $plugin->component = 'block_ucla_browseby';
-// Disable cron, but there is another interface for it
-$plugin->cron = 0;
+$plugin->cron = (60 * 60 * 24);

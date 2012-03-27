@@ -26,6 +26,10 @@ class course_handler extends browseby_handler {
         urc.courseid
     ";
 
+    const browseall_order_helper = "
+        ORDER BY subj_area, course_code 
+    ";
+
     function get_params() {
         // This uses division in breadcrumbs
         return array('subjarea', 'uid', 'division', 'alpha');
@@ -87,7 +91,7 @@ class course_handler extends browseby_handler {
                     ON ubci.uid = user.idnumber
                 WHERE ubc.subjarea = :subjarea
                 $termwhere
-            ";
+            " . self::browseall_order_helper;
 
             $param['subjarea'] = $subjarea;
 
@@ -133,7 +137,7 @@ class course_handler extends browseby_handler {
                     ON ubci.uid = user.idnumber
                 WHERE 
                     ubi.uid = :uid
-            ";
+            " . self::browseall_order_helper;
 
             $param['uid'] = $instructor;
 
