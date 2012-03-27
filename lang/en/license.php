@@ -35,5 +35,13 @@ $string['unknown'] = 'Other';
 
 // BEGIN UCLA MOD: CCLE-2669 - Copyright Modifications
 // lang strings are required to be here for user defined licenses
-$string['ucown'] = 'The UC Regents own the copyright';
+$string['iown']='I own the copyright';
+$string['ucown']='The UC Regents own the copyright';
+$string['lib']='Item is licensed by the UCLA Library';
+$string['public1'] = 'Item is in the public domain';
+$string['cc1'] = 'Item is available for this use via Creative Commons license';
+$string['obtained']='I have obtained written permission from the copyright holder';
+$string['fairuse']='I am using this item under fair use';
+$string['tbd']='Upload by faculty designate; copyright status to be determined';
+
 // END UCLA MOD: CCLE-2669
