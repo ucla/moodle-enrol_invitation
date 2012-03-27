@@ -50,3 +50,10 @@
 #browsebycourseslist tbody tr td {
     text-align: left;
 }
+
+#browsebymain h3 {
+    margin-top: 12px;
+    padding-top: 12px;
+    padding-bottom: 8px;
+    clear: both;
+}
