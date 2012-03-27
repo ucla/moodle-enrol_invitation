@@ -52,7 +52,10 @@ $string['newcoursecategory'] = 'New course category id field';
 $string['newcoursefullname'] = 'New course full name field';
 $string['newcourseidnumber'] = 'New course ID number field';
 $string['newcourseshortname'] = 'New course short name field';
-$string['pluginname'] = 'External database';
+// BEGIN UCLA MOD: CCLE-2275 - ENROLLMENT - Prepop/View
+//$string['pluginname'] = 'External database';
+$string['pluginname'] = 'UCLA registrar';
+// END UCLA MOD: CCLE-2275
 $string['pluginname_desc'] = 'You can use an external database (of nearly any kind) to control your enrolments. It is assumed your external database contains at least a field containing a course ID, and a field containing a user ID. These are compared against fields that you choose in the local course and user tables.';
 $string['remotecoursefield'] = 'Remote course field';
 $string['remotecoursefield_desc'] = 'The name of the field in the remote table that we are using to match entries in the course table.';

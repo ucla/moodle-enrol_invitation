@@ -47,7 +47,13 @@ class ucla_reg_classinfo_cron {
         $reg = registrar_query::get_registrar_query('ccle_getclasses');
 
         // Get courses from our request table
-        $courses = ucla_get_courses_by_terms($terms, false);
+        list($sqlin, $params) = $DB->get_in_or_equal($terms);
+        $where = 'term ' . $sqlin;
+
+        $records = $DB->get_records_select('ucla_request_classes',
+            $where, $params);
+
+        $courses = index_ucla_course_requests($records);
 
         echo "\nGot " . count($courses) . " courses to update.\n";
 
@@ -140,7 +146,8 @@ class ucla_reg_classinfo_cron {
             ++$num_not_found;
         }       
         
-        echo "\nUpdated: $uc . Inserted: $ic . Not found at registrar: $num_not_found . Failed sanity: $fscc\n";
+        echo "\nUpdated: $uc . Inserted: $ic . Not found at registrar: "
+            . "$num_not_found . Failed sanity: $fscc\n";
 
         return true;
     }
