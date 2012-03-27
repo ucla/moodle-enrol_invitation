@@ -32,3 +32,8 @@ $string['cc-nd'] = 'Creative Commons - NoDerivs';
 $string['cc-sa'] = 'Creative Commons - ShareAlike';
 $string['public'] = 'Public domain';
 $string['unknown'] = 'Other';
+
+// BEGIN UCLA MOD: CCLE-2669 - Copyright Modifications
+// lang strings are required to be here for user defined licenses
+$string['ucown'] = 'The UC Regents own the copyright';
+// END UCLA MOD: CCLE-2669
