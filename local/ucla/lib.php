@@ -579,14 +579,6 @@ function ucla_validator($type, $value) {
 }
 
 /**
- *  Convenience function to check if a term is a summer term.
- *  Use this instead of preg_match()ing yourself.
- **/
-function is_summer_term($term) {
-    return ucla_validator('term', $term) && preg_match('/1$/', $term);
-}
-
-/**
  * Given a pseudorole (from get_pseudorole), returns what moodle role a user
  * should be assigned for a given department. First a look-up is done in the 
  * database for a given pseudorole and subject area. Then the function looks
