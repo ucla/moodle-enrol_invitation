@@ -731,7 +731,4 @@ function ucla_send_mail($to, $subj, $body='', $header='') {
     return true;
 }
 
-function to_display_case($string) {
-    return ucwords(strtolower($string));
-}
 // EOF
