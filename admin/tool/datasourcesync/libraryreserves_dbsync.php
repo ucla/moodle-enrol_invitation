@@ -49,7 +49,7 @@ function update_libraryreserves_db(){
        die("\n".get_string('errlrfileopen','tool_datasourcesync')."\n"); 
    }
 
-   $curfields = $DB->get_records_sql("DESCRIBE {$CFG->prefix}"."ucla_libraryreserves");
+   $curfields = $DB->get_records_sql("DESCRIBE {$CFG->prefix}"."ucla_library_reserves");
    
    foreach ($curfields as $fieldname => $fielddata) {
        
@@ -96,7 +96,7 @@ function update_libraryreserves_db(){
    $data = &$data_incoming;
 
    // Drop table and refill with data
-   $DB->delete_records('ucla_libraryreserves');
+   $DB->delete_records('ucla_library_reserves');
 
    $insert_count = 0;
    $line = 1;
@@ -110,7 +110,7 @@ function update_libraryreserves_db(){
        }
 
        try {
-           $index = $DB->insert_record('ucla_libraryreserves', $row);
+           $index = $DB->insert_record('ucla_library_reserves', $row);
        } catch(Exception $e) {
            // Do nothing, to handle cases where rows are invalid beyond norms.  Does not insert row.
        }
