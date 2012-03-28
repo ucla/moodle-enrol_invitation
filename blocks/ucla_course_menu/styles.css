@@ -33,6 +33,12 @@
     padding-bottom: 0px;
 }
 
+.block_ucla_course_menu.block .content
+{
+    padding-left:0px;
+    padding-right:0px;
+}
+
 .block_ucla_course_menu .content .block_tree.list .type_structure {
     border-bottom: 1px solid #FFF;
 }

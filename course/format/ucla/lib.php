@@ -60,49 +60,12 @@ function callback_ucla_load_content(&$navigation, $course, $coursenode) {
     $path = $CFG->wwwroot . '/course/view.php';
     $ref_url = new moodle_url($path, array('id' => $course->id));
 
-    $supernode =& find_course_link_helper($navigation, $ref_url);
-
-    if ($supernode !== false) {
-        $supernode->action->params(array(
-            'topic' => UCLA_FORMAT_DISPLAY_LANDING
-        ));
-    }
-    
-    // Add the course preferences
-    $course_pref = new moodle_url($CFG->wwwroot 
-        . '/course/format/ucla/edit.php',
-        array('courseid' => $course->id));
-
-    $supernode->add(get_string('course_pref', 'format_ucla'), $course_pref);
-
+    $coursenode->action->params(array(
+        'topic' => UCLA_FORMAT_DISPLAY_LANDING
+    ));
+  
     return $navigation->load_generic_course_sections($course, $coursenode, 
         'ucla');
-}
-
-/**
- *  It's a dfs, but a bfs is better.
- **/
-function find_course_link_helper(&$navigation, $reference) {
-    if (!is_object($navigation)) {
-        return false;
-    }
-
-    if (isset($navigation->action) 
-      && get_class($navigation->action) == 'moodle_url') {
-        if ($navigation->action->compare($reference)) {
-            return $navigation;
-        }
-    }
-
-    foreach ($navigation->children as &$child) {
-        $res = find_course_link_helper($child, $reference);
-
-        if ($res !== false) {
-            return $res;
-        }
-    }
-
-    return false;
 }
 
 /**
@@ -169,10 +132,6 @@ function callback_ucla_ajax_support() {
 function ucla_format_display_instructors($course) {
     if (function_exists('is_collab_site') && is_collab_site($course)) {
         return false;
-    } else {
-        if (empty($course->idnumber)) {
-            return false;
-        }
     }
 
     return true;
@@ -196,7 +155,9 @@ function ucla_format_figure_section($course, $course_prefs = null) {
     if ($landing_page === false) {
         $landing_page = $course->marker;
     } 
-    
+
+    // Shifting landing page section for storage purposes
+    $landing_page++;
 
     /**
      *  Landing page and determining which section to display
@@ -204,14 +165,16 @@ function ucla_format_figure_section($course, $course_prefs = null) {
     $topic = optional_param(callback_ucla_request_key(), 
         UCLA_FORMAT_DISPLAY_PREVIOUS, PARAM_INT);
 
+    $topic++;
+
     $displaysection = null;
     $to_topic = null;
     $cid = $course->id;
 
-    if ($topic == (UCLA_FORMAT_DISPLAY_ALL) || $topic > 0) {
+    if ($topic == (UCLA_FORMAT_DISPLAY_ALL + 1) || $topic > 0) {
         // This means that a topic was explicitly declared
         $to_topic = $topic;
-    } else if ($topic == (UCLA_FORMAT_DISPLAY_LANDING)) {
+    } else if ($topic == (UCLA_FORMAT_DISPLAY_LANDING + 1)) {
         debugging('explicit landing page');
         $to_topic = $landing_page;
     } else {
@@ -224,7 +187,7 @@ function ucla_format_figure_section($course, $course_prefs = null) {
         }
     }
 
-    $displaysection = $to_topic;
+    $displaysection = $to_topic - 1;
 
     return array($to_topic, $displaysection);
 }

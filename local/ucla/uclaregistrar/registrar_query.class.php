@@ -25,8 +25,13 @@ abstract class registrar_query {
 
     const query_results = 'good';
     const failed_inputs = 'bad';
+    const failed_outputs = 'badoutputs';
 
+    // These are the calls that caused bad inputs
     var $previous_bad_inputs = array();
+
+    // THese are the bad outputs
+    var $bad_outputs = array();
 
     var $notrim = false;
 
@@ -50,10 +55,12 @@ abstract class registrar_query {
         }
         
         $er = $rq->get_bad_data();
+        $bo = $rq->get_bad_outputs();
 
         return array(
             self::query_results => $rt, 
-            self::failed_inputs => $er
+            self::failed_inputs => $er,
+            self::failed_outputs => $bo
         );
     }
 
@@ -119,6 +126,7 @@ abstract class registrar_query {
      *  This function will utilize the ODBC connection and retrieve data.
      *
      *  @param $driving_data The data to run a set of queries on.
+     *  @return Array( Array( ) )
      **/
     function retrieve_registrar_info($driving_data) {
         // Empty the bad data
@@ -154,6 +162,8 @@ abstract class registrar_query {
                         }
                     } else {
                         // We need to return the malevolent data...
+                        $this->bad_outputs[count($this->previous_bad_inputs)] 
+                            = $fields;
                         $this->previous_bad_inputs[] = $driving_datum;
                     }
                 }
@@ -171,6 +181,10 @@ abstract class registrar_query {
      **/
     function get_bad_data() {
         return $this->previous_bad_inputs;
+    }
+
+    function get_bad_outputs() {
+        return $this->bad_outputs;
     }
 
     /**

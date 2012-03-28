@@ -32,15 +32,6 @@ class enrol_self_enrol_form extends moodleform {
     protected $instance;
     protected $toomany = false;
 
-    /**
-     * Overriding this function to get unique form id for multiple self enrolments
-     *
-     * @return string form identifier
-     */
-    protected function get_form_identifier() {
-        $formid = $this->_customdata->id.'_'.get_class($this);
-        return $formid;
-    }
 
     /**
      * Overriding this function to get unique form id for multiple self enrolments

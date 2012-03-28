@@ -28,7 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir.'/filelib.php');
 require_once($CFG->libdir.'/completionlib.php');
 
-global $CFG, $USER;
+global $CFG, $USER, $PAGE;
 
 // Course preferences
 $course_prefs = new ucla_course_prefs($course->id);
@@ -171,14 +171,42 @@ if (ucla_format_display_instructors($course)) {
  **/
 // Registrar information TODO
 // Pretty version of term
-$course_reg_infos = false;
 
-$course_term = 'No Term'; 
+// PLEASE Use $courseinfos as read-only
+$courseinfos = ucla_get_course_info($course->id);
 
-$course_subj = '';
-$course_coursenum = 'No Registrar Information';
+// Formatting and determining information to display for these courses
+$regcoursetext = '';
+$termtext = '';
+if (!empty($courseinfos)) {
+    $theterm = false;
+    $displayinfos = array();
+    foreach ($courseinfos as $key => $courseinfo) {
+        $thisterm = $courseinfo->term;
+        if (!$theterm) {
+            $theterm = $thisterm;
+        } else if ($theterm != $thisterm) {
+            debugging('Mismatching terms in crosslisted course.'
+                . $theterm . ' vs ' . $thisterm);
+        }
 
-// Display the top of the inside of the middle (the heading)
+        $course_text = $courseinfo->subj_area . $courseinfo->coursenum . '-' . 
+                $courseinfo->sectnum;
+        
+        // if section is cancelled, then cross it out
+        if (enrolstat_is_cancelled($courseinfo->enrolstat)) {
+            $course_text = html_writer::tag('span', $course_text, 
+                    array('class' => 'course_text_cancelled'));
+        }
+        
+        $displayinfos[$key] = $course_text;
+    }
+
+    $regcoursetext = implode(' / ', $displayinfos);
+    $termtext = ucla_term_to_text($theterm);
+}
+
+// This is for the sets of instructors in a course
 $imploder = array();
 foreach ($instructors as $instructor) {
     if (in_array($instructor->shortname, $instructor_types['Instructor'])) {
@@ -192,15 +220,20 @@ if (empty($imploder)) {
     $inst_text = implode(' / ', $imploder);
 }
 
-$heading_text = $course_term.' - '.$course_subj.' '.$course_coursenum.' - '.
-    $inst_text;
+$heading_text = '';
+if (!empty($termtext)) {
+    $heading_text = $termtext . ' - ' . $regcoursetext . ' - ' . $inst_text;
+    $heading_text = html_writer::tag('div', $heading_text);
+}
 
-$heading_text .= html_writer::empty_tag('br');
-$heading_text .= $OUTPUT->heading($course->fullname, 2);
+echo $OUTPUT->heading($heading_text . $course->fullname, 2, 'headingblock');
 
-echo html_writer::tag('div', $heading_text, array(
-        'class' => ''
-    ));
+
+// Handle cancelled classes
+if (is_course_cancelled($courseinfos)) {
+    echo $OUTPUT->box(get_string('coursecancelled', 'format_ucla'), 
+        'noticebox coursecancelled');
+}
 
 /**
  *  Progress icon for track completion!
@@ -532,19 +565,37 @@ while ($section <= $course->numsections) {
             if ($section == 0) {
                 // Course Information specific has a different section
                 // header
-                if ($course_reg_infos) {
+                if (!empty($courseinfos)) {
+                    // We need the stuff...
+                    $regclassurls = array();
+                    $regfinalurls = array();
+                    foreach ($courseinfos as $key => $courseinfo) {
+                        $displayinfo = $displayinfos[$key];
+                        
+                        $url = new moodle_url($courseinfo->url);
+                        $regclassurls[$key] = html_writer::link(
+                            $url, $displayinfo
+                        );
+
+                        $regfinalurls[$key] = html_writer::link(
+                            build_registrar_finals_url($courseinfo),
+                            $displayinfo
+                        );
+                    }
+
                     $registrar_info = get_string('reg_listing', 
                         'format_ucla');
+
+                    $registrar_info .= implode(', ', $regclassurls);
                     $registrar_info .= html_writer::empty_tag('br');
 
                     $registrar_info .= get_string('reg_finalcd', 
                         'format_ucla');
+                    $registrar_info .= implode(', ', $regfinalurls);
                     $registrar_info .= html_writer::empty_tag('br');
                 } else {
                     $registrar_info = get_string('reg_unavail', 
                         'format_ucla');
-
-                    debugging($registrar_info);
                     $registrar_info = '';
                 }
 
@@ -617,7 +668,10 @@ while ($section <= $course->numsections) {
                         $table->align = $aligns;
 
                         $table->attributes['class'] = 'boxalignleft';
-                        $table->data[] = $desired_info;
+                        
+                        // use array_values, to remove array keys, which are 
+                        // mistaken as another css class for given column
+                        $table->head = array_values($desired_info);
 
                         foreach ($goal_users as $user) {
                             $user_row = array();

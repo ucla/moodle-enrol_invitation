@@ -61,10 +61,89 @@ function ucla_require_registrar() {
 }
 
 /**
+ *  Responder for results from ccle_courseinstructorsget to see if
+ *  the user is a dummy user.
+ *  @param $ucla_id String of the UID number
+ *  @return boolean 
+ **/
+function is_dummy_ucla_user($ucla_id) {
+    // dummy THE STAFF
+    if ($ucla_id == '100399990') {
+        return true;
+    } 
+
+    // dummy TA
+    if ($ucla_id == '200399999') {
+        return true;
+    }
+
+    return false;
+}
+
+/**
  *  Checks if an enrol-stat code means a course is cancelled.
  **/
 function enrolstat_is_cancelled($enrolstat) {
     return strtolower($enrolstat) == 'x';
+}
+
+/** 
+ *  Checks if a course should be considered cancelled.
+ *  Note that this does require an enrolstat, which means that
+ *      the data needs to come from ucla_reg_classinfo.
+ *  Note that misformed data will throw an exception.
+ *  @param  $courseset  Array( Object->enrolstat, ... )
+ *  @return boolean     true = cancelled
+ **/
+function is_course_cancelled($courseset) {
+    // No information, assume not-cancellable
+    if (empty($courseset)) {
+        return false;
+    }
+
+    $cancelled = true;
+    foreach ($courseset as $course) {
+        if (empty($course->enrolstat)) {
+            throw new coding_exception('missing enrolstat');
+        } else if (!enrolstat_is_cancelled($course->enrolstat)) {
+            $cancelled = false;
+        }
+    }
+
+    return $cancelled;
+}
+
+/**
+ *  Builds the URL for the Registrar's finals information page.
+ *  TODO Make the URL a configuration variable.
+ **/
+function build_registrar_finals_url($courseinfo) {
+    if (!empty($courseinfo->term) 
+            && ucla_validator('term', $courseinfo->term)) {
+        $term = $courseinfo->term;
+    } else {
+        return false;
+    }
+
+    if (!empty($courseinfo->srs)
+            && ucla_validator('srs', $courseinfo->srs)) {
+        $srs = $courseinfo->srs;
+    } else {
+        return false;
+    }
+
+    $regurl = 'http://www.registrar.ucla.edu/schedule/subdet.aspx';
+
+    $params = array(
+        'term' => $term,
+        'srs' => $srs
+    );
+
+    foreach ($params as $param => $value) {
+        $paramstrs[] = $param . '=' . $value;
+    }
+
+    return $regurl . '?' . implode('&', $paramstrs);
 }
 
 /**
@@ -202,28 +281,35 @@ function ucla_get_courses_by_terms($terms) {
 }
 
 /**
- *  Returns a pretty looking term.
- *  TODO replace with termcaching
- *  TODO work with different millenia
+ *  Returns a pretty looking term in the format of 12S => Spring 2012.
+ * 
+ * @param string term
+ * @param char session      If session is passed, then, assuming the term is 
+ *                          summer, will return 121, A => Summer Session A 2012
  **/
-function ucla_term_to_text($term) {
+function ucla_term_to_text($term, $session=null) {
     $term_letter = strtolower(substr($term, -1, 1));
-    $years = substr($term, 0, 2);
-
-    $termtext = "20$years ";
+    $termtext = '';
     if ($term_letter == "f") {
-        $termtext .= " Fall";
+        $termtext = "Fall";
     } else if ($term_letter == "w") {
         // W -> Winter
-        $termtext .= " Winter";
+        $termtext = "Winter";
     } else if ($term_letter == "s") {
         // S -> Spring
-        $termtext .= " Spring";
+        $termtext = "Spring";
     } else {
         // 1 -> Summer
-        $termtext .= " Summer Session " . $session;            
+        if (!empty($session)) {
+            $termtext = "Summer Session " . strtoupper($session);   
+        } else {
+            $termtext = "Summer";
+        }
     }
 
+    $years = substr($term, 0, 2);
+    $termtext .= " 20$years";    
+    
     return $termtext;
 }
 
@@ -439,52 +525,71 @@ function role_mapping($profcode, array $other_roles,
  * Refer to Jira: CCLE-2320
  * 
  * role InstSet     Pseudo Role
- * 01   any         instructor
+ * 01   any         editingteacher
  * 02	01,02       ta
  * 02	01,02,03    ta
  * 02	02,03       ta_instructor
- * 03	any	        supervising_instructor
- * 22	any	        student_instructor
+ * 03	any	    supervising_instructor
+ * 22	any	    facilitator
  * 
  * @param int $profcode        Registrar prof code
  * @param array $other_roles   Other roles a user has
  * 
- * @return string              Returns either: instructor, ta, ta_instructor,
+ * @return string              Returns either: editingteacher, ta, ta_instructor,
  *                             supervising_instructor, or student_instructor
  */
 function get_pseudorole($profcode, array $other_roles) {
-    $max = 0;
-
+    $hasrole = array_pad(array(), 23, false);   // need to create 23, because 22 
+                                            // needs to be an index    
     foreach ($other_roles as $other_role) {
-        $ivor = intval($other_role);
-        $hasrole[$ivor] = true;
-
-        if ($ivor > $max) {
-            $max = $ivor;
-        }
+        $hasrole[intval($other_role)] = true;
     }
 
-    // Fill in the rest of these to avoid no-index notifications
-    for ($i = 1; $i < $max; $i++) {
-        if (!isset($hasrole[$i])) {
-            $hasrole[$i] = false;
-        }
-    }
-
-    switch ($profcode) {
+    switch (intval($profcode)) {
         case 1:
-            return "instructor";
+            return "editingteacher";
         case 2:
-            if ($hasrole[1] && $hasrole[2]) {
-                return "ta";
-            } else if ($hasrole[1] && !$hasrole[2] && $hasrole[3]) {
+            if (!$hasrole[1] && $hasrole[3]) {
                 return "ta_instructor";
+            } else {
+                return "ta";
             }
         case 3:
             return "supervising_instructor";
         case 22:
-            return "student_instructor";
+            return "editinginstructor";
     }
+}
+
+/**
+ *  This is a function to return the pseudoroles for student enrolment
+ *  code values.
+ *  @return string - pseudorole, false - not enrolled
+ **/
+function get_student_pseudorole($studentcode) {
+    $code = strtolower(trim($studentcode));
+    $psrole = false;
+
+    switch($code) {
+        case 'w':   // waitlist
+        case 'h':   // held (unex)
+        case 'p':   // pending
+            $psrole = 'waitlisted';
+            break;
+        case 'e':   // enrolled
+        case 'a':   // approved (unex)
+            $psrole = 'student';
+            break;
+        default:
+            // This includes codes:
+            // d = dropped
+            // c = cancelled
+            // If they do not have an explicitly declared role code,
+            // then they are considered unenrolled
+            $psrole = false;
+    }
+
+    return $psrole;
 }
 
 /**

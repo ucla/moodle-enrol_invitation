@@ -219,10 +219,6 @@ function registrar_to_requests($courses) {
     $defaults = get_requestor_defaults();
 
     foreach ($courses as $ak => $course) {
-        if (requestor_ignore_entry($course)) {
-            continue;
-        }
-
         if (is_object($course)) {
             $course = get_object_vars($course);
         }

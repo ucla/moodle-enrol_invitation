@@ -1478,13 +1478,15 @@ class uclacoursecreator {
             if ($emailing['to'] == '') {
                 // Attempt to find user
                 if (!isset($local_emails[$userid])) {
+                    // No email, specify that and send to BCCs
                     $this->println("Cannot email $userid " 
                         . $emailing['lastname']);
 
+                    $add_subject = ' (No email)';
+
                     $email_summary_data[$csrs][$userid] .= "! " 
                         . $emailing['lastname']
-                        . "\t $userid \tFAILED - No email address.\n";
-                    continue;
+                        . "\t $userid \tNo email address.\n";
                 } else {
                     $emailing['to'] = $local_emails[$userid];
 
@@ -1499,17 +1501,13 @@ class uclacoursecreator {
             $block_email = $emailing['block'];
             unset($emailing['block']);
             
-            // Set the destination
-            $email_to = $emailing['to'];
-
             // Handle special emails to THE STAFF and TA
-            // These are filler users 
-            if ($userid == '100399990') {
+            if (is_dummy_ucla_user($userid)) {
                 $email_to = '';
-                $add_subject = ' (THE STAFF)';
-            } else if ($userid == '200399999') {
-                $email_to = '';
-                $add_subject = ' (TA)';
+                $add_subject = ' (' . $emailing['lastname'] . ')';
+            } else {
+                // Set the destination
+                $email_to = $emailing['to'];
             }
 
             unset($emailing['userid']);
@@ -1546,7 +1544,8 @@ class uclacoursecreator {
                 $headers = '';
                 $email_subject = '-not parsed - ' 
                     . $emailing['coursenum-sect'] . ' '
-                    . $emailing['url'];
+                    . $emailing['url'] 
+                    . $add_subject;
 
                 $email_body = '!-not parsed-!';
             } else {
@@ -1968,7 +1967,7 @@ class uclacoursecreator {
         unlink($test_file);
 
         // This is saved for creating XML and log files
-        $this->shell_date = date('Ymd-Gi');
+        $this->shell_date = date('Ymd-Hi');
         $this->full_date = date('r');
     }
 
