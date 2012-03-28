@@ -15,6 +15,12 @@ class subjarea_handler extends browseby_handler {
             'block_ucla_browseby'), $urlobj);
     }
 
+    static function get_pretty_division($division) {
+        $divisionobj = self::get_division($division);
+        $division = to_display_case($divisionobj->fullname);
+        return $division;
+    }
+
     function handle($args) {
         global $OUTPUT;
 
@@ -100,11 +106,4 @@ class subjarea_handler extends browseby_handler {
 
         return array($t, $s);
     }
-
-//    protected function get_division($division) {
-//        global $DB;
-//
-//        return $DB->get_record('ucla_reg_division', 
-//            array('code' => $division));
-//    }
 }
