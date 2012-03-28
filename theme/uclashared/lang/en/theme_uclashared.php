@@ -7,10 +7,10 @@ $string['choosereadme'] = 'The theme from University of California, Los Angeles.
 
 // The footer links
 $string['foodis_contact_ccle'] = 'Contact CCLE';
-$string['foolin_contact_ccle'] = 'https://ccle.ucla.edu/course/view/aboutccle?topic=7';
+$string['foolin_contact_ccle'] = 'https://pilot.ccle.ucla.edu/course/view.php?id=110&topic=8';
 
 $string['foodis_about_ccle'] = 'About CCLE';
-$string['foolin_about_ccle'] = 'https://ccle.ucla.edu/course/view/aboutccle?topic=0';
+$string['foolin_about_ccle'] = 'https://pilot.ccle.ucla.edu/course/view.php?id=110&topic=0';
 
 $string['foodis_privacy'] = 'Privacy Policy';
 $string['foolin_privacy'] = $CFG->wwwroot . '/privacy_notice.php';
