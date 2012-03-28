@@ -61,7 +61,7 @@ $CFG->directorypermissions = 0777;
 $CFG->passwordsaltmain = '';
 
 // determines current term
-$CFG->currentterm = '12W';
+$CFG->currentterm = '12S';
 
 // Registrar
 $CFG->registrar_dbtype = 'odbc_mssql';
