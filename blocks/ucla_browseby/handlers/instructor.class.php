@@ -44,7 +44,7 @@ class instructor_handler extends browseby_handler {
                 NULL AS profcode,
                 ro.shortname AS rolename
             FROM {user} us
-        " . db_helper::join_role_assignments_request_classes_sql . "
+        " . db_helper::join_role_assignments_request_classes_sql() . "
             $shortnamewhere
         )";
 

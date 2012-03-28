@@ -12,19 +12,21 @@ class db_helper {
      *  Table alias needed: user -> us
      *  Table aliases used: ra, ro, ct, co, rc
      **/
-    const join_role_assignments_request_classes_sql = "
+    function join_role_assignments_request_classes_sql() {
+        return "
         INNER JOIN {role_assignments} ra
             ON ra.userid = us.id
         INNER JOIN {role} ro
             ON ro.id = ra.roleid
         INNER JOIN {context} ct
-            ON ct.id = ra.contextid
+            ON ct.id = ra.contextid AND ct.contextlevel = "
+                . CONTEXT_COURSE . "
         INNER JOIN {course} co
             ON co.id = ct.instanceid
         INNER JOIN {ucla_request_classes} rc
             ON co.id = rc.courseid
-    ";
-        
+        ";
+    }
 
     /** 
      *  Will check a table for entries, insert and update entries provided
