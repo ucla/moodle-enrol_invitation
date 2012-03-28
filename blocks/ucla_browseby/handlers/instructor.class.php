@@ -108,7 +108,8 @@ class instructor_handler extends browseby_handler {
         // Show all users form local and browseall tables
         $sql = "
             SELECT
-                CONCAT(uid, '-', term, '-', srs) AS rsid,
+                CONCAT(uid, '-', term, '-', srs, '-', 
+                    COALESCE(profcode, rolename)) AS rsid,
                 uid,
                 users.term,
                 users.srs,
@@ -135,6 +136,7 @@ class instructor_handler extends browseby_handler {
 
         // Decide which users to have the ability to display in the 
         // chart
+        // TODO It might be more efficient to just add another query
         $coursepcs = array();
         foreach ($users as $k => $user) {
             if ($this->ignore_course($user)) {
@@ -169,6 +171,7 @@ class instructor_handler extends browseby_handler {
 
             // If a letter is selected, then we need to limit the number
             // of terms selectable to prevent dead-end results
+            // TODO optimize with another query?
             $uterm = $user->term;
             if ($letter !== null) {
                 if ($lnletter == $letter) {

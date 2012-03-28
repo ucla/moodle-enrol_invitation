@@ -731,4 +731,70 @@ function ucla_send_mail($to, $subj, $body='', $header='') {
     return true;
 }
 
+/**
+ *  Sorts a set of terms.
+ *  @param  $terms  Array( term, ... )
+ *  @return Array( term_in_order, ... )
+ **/
+function terms_arr_sort($terms) {
+    $ksorter = array();
+
+    // enumerate terms
+    foreach ($terms as $k => $term) {
+        $ksorter[$k] = term_enum($term);
+    }
+
+    // sort
+    asort($ksorter);
+  
+    // denumerate terms
+    $sorted = array();
+    foreach ($ksorter as $k => $v) {
+        $sorted[] = $terms[$k];
+    }
+
+    return $sorted;
+}
+
+/**
+ *  PHP side function to order terms.
+ *  @param  $term   term
+ *  @return string sortable term
+ **/
+function term_enum($term) {
+    if (!ucla_validator('term', $term)) {
+        print_error('improperenum');
+    }
+    
+    $r = array(
+        'W' => 0,
+        'S' => 1,
+        '1' => 2,
+        'F' => 3
+    );
+
+    return substr($term, 0, -1) . $r[$term[2]];
+}
+
+/**
+ *  Compare-to function.
+ *  @param  $term   The first
+ *  @param  $term   The second
+ *  @return 
+ *      first > second return -1
+ *      first == second return 0
+ *      first < second return 1
+ **/
+function term_cmp_fn($term, $other) {
+    $et = term_enum($term);
+    $eo = term_enum($other);
+    if ($et > $eo) {
+        return -1;
+    } else if ($et < $eo) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
 // EOF

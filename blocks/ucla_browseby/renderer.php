@@ -1,6 +1,11 @@
 <?php
 
+/**
+ *  To be honest, i don't know why i called it "block_" ucla_browseby_renderer
+ **/
 class block_ucla_browseby_renderer {
+    const browsebytableid = 'browsebycourseslist';
+
     static function ucla_custom_list_render($data, $min=8, $split=2, 
                                             $customclass='') {
         $s = '';
@@ -59,18 +64,10 @@ class block_ucla_browseby_renderer {
      **/
     static function ucla_browseby_courses_list($courses) {
         $disptable = new html_table();
-        $disptable->id = 'browsebycourseslist';
+        $disptable->id = self::browsebytableid;
+        $disptable->head = self::ucla_browseby_course_list_headers();
 
-        // add table headers
-        $headelements = array('course', 'instructors', 'coursetitle');
-
-        foreach ($headelements as $headelement) {
-            $disptable->head[] = get_string($headelement, 
-                'block_ucla_browseby');
-        }        
-        
         $data = array();
-
         foreach ($courses as $course) {
             if (!empty($course->nonlinkdispname)) {
                 $courselink = $course->nonlinkdispname . ' '
@@ -89,6 +86,18 @@ class block_ucla_browseby_renderer {
         $disptable->data = $data;
 
         return $disptable;
+    }
+
+    static function ucla_browseby_course_list_headers() {
+        $headelements = array('course', 'instructors', 'coursetitle');
+        $headstrs = array();
+
+        foreach ($headelements as $headelement) {
+            $headstrs[] = get_string($headelement, 
+                'block_ucla_browseby');
+        }
+
+        return $headstrs;
     }
 
     /**
@@ -137,19 +146,24 @@ class block_ucla_browseby_renderer {
         global $DB, $PAGE;
 
         if (!empty($restrictor_where)) {
-            $terms = $DB->get_records_select('ucla_reg_classinfo', 
+            $termobjs = $DB->get_records_select('ucla_reg_classinfo', 
                 $restrictor_where, $restrictor_params, '', 'DISTINCT term');
         } else {
-            $terms = $DB->get_records('ucla_reg_classinfo', null, '',
+            $termobjs = $DB->get_records('ucla_reg_classinfo', null, '',
                 'DISTINCT term');
         }
+
+        foreach ($termobjs as $term) {
+            $terms[] = $term->term;
+        }
+
+        $terms = terms_arr_sort($terms);
 
         $urls = array();
         $page = $PAGE->url;
         $default = '';
         foreach ($terms as $term) {
             $thisurl = clone($page);
-            $term = $term->term;
             $thisurl->param('term', $term);
             $url = $thisurl->out(false);
 
@@ -165,5 +179,4 @@ class block_ucla_browseby_renderer {
         return $selects;
     }
 }
-
 

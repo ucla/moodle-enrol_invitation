@@ -192,6 +192,10 @@ class course_handler extends browseby_handler {
             return array(false, false);
         }
 
+        if (empty($courseslist)) {
+            print_error('noresults');
+        }
+
         $use_local_courses = $this->get_config('use_local_courses');
 
         $coursepcs = array();
@@ -302,14 +306,19 @@ class course_handler extends browseby_handler {
             }
 
             $table = new html_table();
-            
+            $table->id = 'browsebycourseslist';
+
+            $table->head = block_ucla_browseby_renderer::
+                ucla_browseby_course_list_headers();
+
             foreach ($sessionsplits as $session => $courses) {
                 $sessioncell = new html_table_cell();
-                $sessioncell->text = $OUTPUT->heading(get_string(
-                    'session_break', 'block_ucla_browseby', $session), 3);
+                $sessioncell->text = get_string(
+                    'session_break', 'block_ucla_browseby', $session);
 
                 $sessioncell->colspan = '3';
                 $sessionrow = new html_table_row();
+                $sessionrow->attributes['class'] = 'header summersession';
                 $sessionrow->cells[] = $sessioncell;
                 
                 $subtable = block_ucla_browseby_renderer::
@@ -344,7 +353,16 @@ class course_handler extends browseby_handler {
      *  }
      **/
     function fullname($userinfo) {
-        $name = ucla_format_name(fullname($userinfo));
+        if (empty($userinfo->firstname) || empty($userinfo->lastname)) {
+            if (!empty($userinfo->firstname)) {
+                $name = $userinfo->firstname;
+            } else {
+                $name = $userinfo->lastname;
+            }
+        } else {
+            $name = ucla_format_name(fullname($userinfo));
+        }
+
         if (!empty($userinfo->userlink)) {
             $userurl = $userinfo->userlink;
 

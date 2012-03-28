@@ -36,7 +36,6 @@
 }
 
 #browsebymain .browsebylist {
-    margin: auto;
     min-width: 590px;
     width: 780px;
 }
@@ -55,22 +54,24 @@
     background-color: #536895;
 }
 
+#browsebycourseslist .r0 {
+    background-color: #EEE;
+}
+
 #browsebycourseslist .header {
     background-color: #536895;
     color: white;
 }
 
-#browsebycourseslist .r0 {
-    background-color: #EEE;
+#browsebycourseslist .summersession td {
 }
+
 #browsebycourseslist .cell {
     background-color: inherit;
 }
 
 #browsebymain h3 {
-    margin-top: 12px;
-    padding-top: 12px;
-    padding-bottom: 8px;
+    padding: 4px 0 4px 0;
     clear: both;
 }
 
