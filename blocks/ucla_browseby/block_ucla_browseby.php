@@ -60,6 +60,10 @@ class block_ucla_browseby extends block_list {
         return false;
     }
 
+    function instance_allow_multiple() {
+        return false;
+    }
+
     /**
      *  Returns the applicable places that this block can be added.
      **/
@@ -185,6 +189,35 @@ class block_ucla_browseby extends block_list {
             
         return true;
     }
+    
+    function get_all_terms() {
+        global $DB;
+
+        $termobjs = $this->get_records('ucla_request_classes', null, '',
+            'DISTINCT term');
+
+        $terms = array();
+        foreach ($termobjs as $termobj) {
+            $terms[] = $termobj->term;
+        }
+
+        return $terms;
+    }
+
+    static function add_to_frontpage() {
+        global $SITE;
+        $fakepage = new moodle_page();
+        $fakepage->set_course($SITE);
+        $fakepage->set_pagelayout('frontpage');
+        $fakepage->set_pagetype('site-index');
+        $bm =& $fakepage->blocks;
+        $bm->load_blocks();
+        $bm->create_all_block_instances();
+        if (!$bm->is_block_present('ucla_browseby')) {
+            $bm->add_block('ucla_browseby', BLOCK_POS_LEFT, 0, false); 
+            // There's no API to guarantee that this was successful :D
+        }
+    }
 
     /**
      *  Decoupled functions
@@ -224,19 +257,6 @@ class block_ucla_browseby extends block_list {
         return $DB->get_records($t, $p, $o, $s);
     }
 
-    function get_all_terms() {
-        global $DB;
-
-        $termobjs = $this->get_records('ucla_request_classes', null, '',
-            'DISTINCT term');
-
-        $terms = array();
-        foreach ($termobjs as $termobj) {
-            $terms[] = $termobj->term;
-        }
-
-        return $terms;
-    }
 }
 
 /** eof **/

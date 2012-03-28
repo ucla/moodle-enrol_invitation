@@ -13,4 +13,8 @@ function xmldb_block_ucla_browseby_install() {
     $res = ob_get_clean();
 
     echo str_replace("\n", "<br>", $res);
+
+    echo "Adding block to site...";
+    blocks_add_default_course_blocks(get_site());
+    echo "done.<br>";
 }
