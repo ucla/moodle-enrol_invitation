@@ -8,5 +8,9 @@ function xmldb_block_ucla_browseby_upgrade($oldversion = 0) {
 
     xmldb_block_ucla_browseby_install();
 
+   
+    // Add automatically to site home
+    
+
     return $result;
 }

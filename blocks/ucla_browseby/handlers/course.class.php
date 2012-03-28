@@ -106,7 +106,8 @@ class course_handler extends browseby_handler {
                 // figure out how to generalize  and reuse
                 // Display the specific division's subjareas link
                 $navbarstr = get_string('subjarea_title', 
-                    'block_ucla_browseby', $args['division']);
+                    'block_ucla_browseby',
+                    subjarea_handler::get_pretty_division($args['division']));
             } else {
                 // Came from all subjareas
                 $navbarstr = get_string('all_subjareas',
