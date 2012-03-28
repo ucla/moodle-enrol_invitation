@@ -61,6 +61,14 @@ class block_ucla_browseby_renderer {
         $disptable = new html_table();
         $disptable->id = 'browsebycourseslist';
 
+        // add table headers
+        $headelements = array('course', 'instructors', 'coursetitle');
+
+        foreach ($headelements as $headelement) {
+            $disptable->head[] = get_string($headelement, 
+                'block_ucla_browseby');
+        }        
+        
         $data = array();
 
         foreach ($courses as $course) {
@@ -84,7 +92,7 @@ class block_ucla_browseby_renderer {
     }
 
     /**
-     *  Convenience functino, use this.
+     *  Convenience function, use this.
      *  @param  $terms Array() Possible terms to select from, in form
      *     YYT (i.e. 11F)
      *  @param  $default string default one to pick
@@ -114,9 +122,10 @@ class block_ucla_browseby_renderer {
                                    $restrictor_params=null) {
         global $OUTPUT;
 
-        return get_string('term', 'local_ucla') . ':' 
+        $contents = get_string('term', 'local_ucla') . ':' 
             . $OUTPUT->render(self::terms_selector($defaultterm, 
-                $restrictor_where, $restrictor_params));
+                $restrictor_where, $restrictor_params));               
+        return html_writer::tag('div', $contents, array('class' => 'term_selector'));
     }
 
     /**

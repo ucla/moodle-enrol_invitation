@@ -36,8 +36,7 @@ class subjarea_handler extends browseby_handler {
             $conds['division'] = $division;
             $where = 'WHERE rci.division = :division';
 
-            $divisionobj = $this->get_division($division);
-            $division = to_display_case($divisionobj->fullname);
+            $division = $this->get_division($division);
 
             self::alter_navbar();
 
@@ -102,10 +101,10 @@ class subjarea_handler extends browseby_handler {
         return array($t, $s);
     }
 
-    protected function get_division($division) {
-        global $DB;
-
-        return $DB->get_record('ucla_reg_division', 
-            array('code' => $division));
-    }
+//    protected function get_division($division) {
+//        global $DB;
+//
+//        return $DB->get_record('ucla_reg_division', 
+//            array('code' => $division));
+//    }
 }

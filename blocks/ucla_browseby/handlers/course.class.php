@@ -69,7 +69,7 @@ class course_handler extends browseby_handler {
             $terms_select_where = 'subj_area = ?';
             $terms_select_param = array($subjarea);
 
-            $subjareapretty = to_display_case(
+            $subjareapretty = ucla_format_name(
                 $this->get_pretty_subjarea($subjarea));
 
             $t = get_string('coursesinsubjarea', 'block_ucla_browseby',
@@ -98,11 +98,9 @@ class course_handler extends browseby_handler {
                 // Add the generic division thing
                 subjarea_handler::alter_navbar();
 
-                // This is from subjarea_handler, but I cannot
-                // figure out how to generalize  and reuse
                 // Display the specific division's subjareas link
                 $navbarstr = get_string('subjarea_title', 
-                    'block_ucla_browseby', $args['division']);
+                    'block_ucla_browseby', $this->get_division($args['division']));
             } else {
                 // Came from all subjareas
                 $navbarstr = get_string('all_subjareas',
@@ -284,14 +282,6 @@ class course_handler extends browseby_handler {
         
         $s .= block_ucla_browseby_renderer::render_terms_selector(
             $args['term'], $terms_select_where, $terms_select_param);
-
-        $headelements = array('course', 'instructors', 'coursedesc');
-        $headelementsdisp = array();
-
-        foreach ($headelements as $headelement) {
-            $headelementsdisp[] = get_string($headelement, 
-                'block_ucla_browseby');
-        }
 
         if ($issummer) { 
             $sessionsplits = array();

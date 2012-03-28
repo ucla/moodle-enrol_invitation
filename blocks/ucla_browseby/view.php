@@ -49,7 +49,7 @@ $PAGE->navbar->add($title);
 $PAGE->set_heading($SITE->fullname);
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading($title);
+echo $OUTPUT->heading($title, 1, 'headingblock');
 
 echo html_writer::tag('div', $innercontents, array('id' => 'browsebymain'));
 

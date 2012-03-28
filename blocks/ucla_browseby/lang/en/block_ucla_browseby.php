@@ -11,11 +11,11 @@ $string['link_collab'] = 'Collaboration sites';
 $string['link_mycourses'] = 'My sites';
 
 // This is for errors
-$string['illegaltype'] = 'View for "{$a}" does not exist.';
+$string['illegaltype'] = 'Browse by "{$a}" does not exist.';
 
 // Subject area
 $string['subjarea_title'] = 'Subject areas in {$a}';
-$string['all_subjareas'] = 'All hosted subject areas'; 
+$string['all_subjareas'] = 'Subject areas'; 
 
 // Divisions
 $string['division_title'] = 'Divisions';
@@ -24,7 +24,7 @@ $string['division_noterm'] = 'No divisions were found for this term, please try 
 
 // Instructors
 $string['instructorsall'] = 'Instructors';
-$string['instructorswith'] = 'Instructors, last name starting with "{$a}"';
+$string['instructorswith'] = 'Instructors with a last name starting with "{$a}"';
 $string['instructosallterm'] = 'All instructors for {$a}';
 $string['noinstructorsterm'] = 'There are no instructors teaching on this server for {$a}, please try another term.';
 $string['noinstructors'] = 'There were no instructors found.';
@@ -32,7 +32,7 @@ $string['selectinstructorletter'] = "Please select a letter to view instructors.
 
 // Instructors -> courses
 $string['coursesbyinstr'] = 'Courses taught by {$a}';
-$string['coursesinsubjarea'] = 'Courses in "{$a}"';
+$string['coursesinsubjarea'] = 'Courses in {$a}';
 
 // Collaborations
 $string['collab_notfound'] = 'No collaboration sites found.';
@@ -75,4 +75,4 @@ $string['registrar_link'] = 'Registrar';
 // Headers in courses view
 $string['course'] = 'Course';
 $string['instructors'] = 'Instructors';
-$string['coursedesc'] = 'Course description';
+$string['coursetitle'] = 'Course title';

@@ -85,7 +85,7 @@ abstract class browseby_handler {
                 $ignorecoursenum = trim($ignorecoursenum);
 
                 if ($coursecode > $ignorecoursenum) {
-                    debugging("SKIP $coursecode > $ignorecoursenum");
+                    //debugging("SKIP $coursecode > $ignorecoursenum");
                     return true;
                 }
             }
@@ -146,6 +146,13 @@ abstract class browseby_handler {
 
     protected function role_mapping($pc, $o, $sa="*SYSTEM*") {
         return role_mapping($pc, $o, $sa);
+    }
+    
+    protected function get_division($division_code) {
+        global $DB;
+
+        return ucla_format_name($DB->get_field('ucla_reg_division', 'fullname',
+            array('code' => $division_code)));        
     }
 }
 

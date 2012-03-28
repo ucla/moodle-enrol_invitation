@@ -2,8 +2,8 @@
  *  Stylesheet for browseby functionality.
  **/
 
-#browsebymain {
-    text-align: center;
+#browsebymain table {
+    width: 100%;
 }
 
 #browsebymain .list0 {
@@ -51,9 +51,39 @@
     text-align: left;
 }
 
+#browsebycourseslist thead {
+    background-color: #536895;
+}
+
+#browsebycourseslist .header {
+    background-color: #536895;
+    color: white;
+}
+
+#browsebycourseslist .r0 {
+    background-color: #EEE;
+}
+#browsebycourseslist .cell {
+    background-color: inherit;
+}
+
 #browsebymain h3 {
     margin-top: 12px;
     padding-top: 12px;
     padding-bottom: 8px;
     clear: both;
+}
+
+/* term selector stylings */
+#browsebymain .term_selector {
+    color: #536895;
+    font-size: 0.8em;
+    margin-top: -6px;
+}
+#browsebymain .term_selector input, #browsebymain .term_selector select {
+    font-size: 9px;
+}
+#browsebymain .term_selector .urlselect, #browsebymain .term_selector .urlselect form {
+    padding-left: 2px;
+    display: inline-block;
 }
