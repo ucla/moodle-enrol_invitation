@@ -67,7 +67,7 @@ class block_ucla_browseby extends block_list {
         return array(
             'site-index' => true,
             'course-view' => false,
-            'my' => false
+            'my' => true
         );
     }
 
