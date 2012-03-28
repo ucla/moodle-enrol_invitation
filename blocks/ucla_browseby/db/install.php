@@ -15,6 +15,6 @@ function xmldb_block_ucla_browseby_install() {
     echo str_replace("\n", "<br>", $res);
 
     echo "Adding block to site...";
-    blocks_add_default_course_blocks(get_site());
+    block_ucla_browseby::add_to_frontpage();
     echo "done.<br>";
 }
