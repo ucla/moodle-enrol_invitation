@@ -5,6 +5,8 @@
 * See CCLE-2314 for details.
 **/
 
+$string['pluginname'] = 'Data source synchronization';
+
 /** Strings for bruincast_dbsync **/ 
 // Error messages
 $string['errbcmsglocation'] = "ERROR: No location set for bruincast data.";
