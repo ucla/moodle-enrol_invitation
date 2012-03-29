@@ -195,41 +195,14 @@ abstract class registrar_query {
     }
 
     /**
-     *  Returns an index to use for the return data.
+     *  Returns an index to use for the return data. Default is to not
+     *  index the results in any way, and have a default integer index.
      *  
      *  @param $fields Array The data to be indexed.
      *  @param $oldfields Array The data that was sent in.
      *  @return string The key to use for the index.
      **/
-    function get_key($fields, $oldfields) {
-        if (is_object($fields)) {
-            $fields = get_object_vars($fields);
-        }
-
-        $termfield = false;
-        if (!isset($fields['term'])) {
-            if (isset($oldfields['term'])) {
-                $termfield = 'term';
-            } else if (isset($this->unindexed_key_translate['term'])
-                    && isset($oldfields[
-                        $this->unindexed_key_translate['term']
-                    ])) {
-                $termfield = $this->unindexed_key_translate['term'];
-            } 
-
-            $fields['term'] = $oldfields[$termfield];
-        }
-
-        $isc = isset($fields['srs']);
-
-        if (isset($fields['term']) && $isc) {
-            return make_idnumber($fields);
-        }
-
-        if ($isc) {
-            return $fields['srs'];
-        }
-
+    function get_key($fields) {
         return null;
     }
 
