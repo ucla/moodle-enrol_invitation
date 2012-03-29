@@ -98,21 +98,20 @@ class instructor_handler extends browseby_handler {
         // Show all users form local and browseall tables
         $sql = "
             SELECT
-                CONCAT(uid, '-', term, '-', srs, '-', 
-                    COALESCE(profcode, rolename)) AS rsid,
+                CONCAT(uid, '-', term, '-', srs, '-', rolename) AS rsid,
                 uid,
                 users.term,
                 users.srs,
                 firstname,
                 lastname,
+                rolename,
                 ubci.catlg_no AS course_code,
                 ubci.activitytype,
-                profcode,
-                rolename,
                 ubci.subjarea
             FROM " . self::combined_select_sql_helper() . " users
             INNER JOIN {ucla_browseall_classinfo} ubci 
                 USING(term, srs)
+            GROUP BY rsid
             ORDER BY lastname
         ";
 

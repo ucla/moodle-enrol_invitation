@@ -3,27 +3,27 @@
 class course_handler extends browseby_handler {
     const browseall_sql_helper =  "
         SELECT 
-        CONCAT(ubc.term, '-', ubc.srs, '-', ubci.uid) AS 'recordsetid',
-        ubc.section AS 'sectnum',
-        ubc.course AS 'coursenum',
-        ubc.activitytype,
-        ubc.subjarea as 'subj_area',
-        ubc.url,
-        ubc.term,
-        ubc.srs,
-        ubc.ses_grp_cd AS session_group,
-        ubc.session AS session_code,
-        ubc.coursetitlelong AS course_title,
-        ubc.sectiontitle AS section_title,
-        ubc.sect_enrl_stat_cd AS enrolstat,
-        ubc.catlg_no AS course_code,
-        ubc.activitytype, 
-        user.id AS uid,
-        COALESCE(user.firstname, ubci.firstname) AS firstname,
-        COALESCE(user.lastname, ubci.lastname) AS lastname,
-        ubci.profcode,
-        user.url AS userlink,
-        urc.courseid
+            CONCAT(ubc.term, '-', ubc.srs, '-', ubci.uid) AS 'recordsetid',
+            ubc.section AS 'sectnum',
+            ubc.course AS 'coursenum',
+            ubc.activitytype,
+            ubc.subjarea AS 'subj_area',
+            ubc.url,
+            ubc.term,
+            ubc.srs,
+            ubc.ses_grp_cd AS session_group,
+            ubc.session AS session_code,
+            ubc.coursetitlelong AS course_title,
+            ubc.sectiontitle AS section_title,
+            ubc.sect_enrl_stat_cd AS enrolstat,
+            ubc.catlg_no AS course_code,
+            ubc.activitytype, 
+            user.id AS uid,
+            COALESCE(user.firstname, ubci.firstname) AS firstname,
+            COALESCE(user.lastname, ubci.lastname) AS lastname,
+            ubci.profcode,
+            user.url AS userlink,
+            urc.courseid
     ";
 
     const browseall_order_helper = "
@@ -122,7 +122,8 @@ class course_handler extends browseby_handler {
             $instructor = $args['uid'];
 
             $sqlhelp = instructor_handler::combined_select_sql_helper();
-            
+           
+            // This will not include people enrolled only locally.
             $sql = self::browseall_sql_helper . "
                 FROM $sqlhelp ubi
                 LEFT JOIN {ucla_browseall_classinfo} ubc
