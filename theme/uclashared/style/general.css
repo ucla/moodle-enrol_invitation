@@ -365,3 +365,20 @@ html, body {background-color:#FFF; height:100%;}
 /** Overide for RTL layout **/
 .dir-rtl #page-header .navbar .breadcrumb {float:right;}
 .dir-rtl #page-header .navbar .navbutton {float:left;}
+
+/* Banner notice on pilot to indicate place to get help */
+/* corner banner */
+#topleftcornerbanner {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: block;
+    height: 85px;
+    width: 85px;
+    background: url([[pix:theme|pilot_help_banner]]) no-repeat;
+    text-indent: -999em;
+    text-decoration: none;
+}
+.headermain {
+    margin-left: 2.0em !important;
+}
