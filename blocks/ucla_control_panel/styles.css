@@ -3,12 +3,10 @@
 
 .odd {
     background:gray;
-    display:inline;
 }
 
 .even {
-    background:red;
-    display:inline;
+    background:white;
 }
 
 .left {

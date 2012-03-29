@@ -40,6 +40,36 @@ class rolemappings_test extends UnitTestCase {
     }
     
     /**
+     * Call get_moodlerole with a subject area not defined in the config file
+     * to make sure that it returns the default value.
+     */
+    function test_get_moodlerole_with_default() {
+        global $CFG, $DB;
+        require($CFG->dirroot . '/local/ucla/rolemappings.php');
+        
+        foreach ($role as $pseudorole => $results) {
+            foreach ($results as $subject_area => $moodle_role) {
+                // only test *SYSTEM* subject areas
+                if ($subject_area != '*SYSTEM*') {
+                    continue;
+                }
+                
+                // find the moodle role id for given moodle role
+                $role_entry = $DB->get_record('role', array('shortname' => $moodle_role));                
+                if (empty($role_entry)) {
+                    $this->assertTrue(false, sprintf('No moodle role "%s" not found', $moodle_role));
+                } else {
+                    $default_result = get_moodlerole($pseudorole, $subject_area);    
+                    // now get result for a non-defined subject area
+                    $undefined_result = get_moodlerole($pseudorole, 'NON-EXISTENT SUBJECT AREA');                    
+                    
+                    $this->assertEqual($default_result, $undefined_result);                    
+                }
+            }
+        }
+    }    
+    
+    /**
      * For a given specific profcode and a set of profcodes, the function should 
      * return the given psudo role.
      * 
@@ -110,23 +140,23 @@ class rolemappings_test extends UnitTestCase {
         $result = get_pseudorole('03', array('03'));
         $this->assertEqual($result, 'supervising_instructor');          
 
-         // testing: 22   any	        editinginstructor 
+         // testing: 22   any	        editingteacher 
         $result = get_pseudorole('22', array());
-        $this->assertEqual($result, 'editinginstructor');
+        $this->assertEqual($result, 'editingteacher');
         $result = get_pseudorole('22', array('01'));
-        $this->assertEqual($result, 'editinginstructor');        
+        $this->assertEqual($result, 'editingteacher');        
         $result = get_pseudorole('22', array('01','02'));
-        $this->assertEqual($result, 'editinginstructor');        
+        $this->assertEqual($result, 'editingteacher');        
         $result = get_pseudorole('22', array('01','02','03'));
-        $this->assertEqual($result, 'editinginstructor');      
+        $this->assertEqual($result, 'editingteacher');      
         $result = get_pseudorole('22', array('01','03'));
-        $this->assertEqual($result, 'editinginstructor');      
+        $this->assertEqual($result, 'editingteacher');      
         $result = get_pseudorole('22', array('02'));
-        $this->assertEqual($result, 'editinginstructor');                
+        $this->assertEqual($result, 'editingteacher');                
         $result = get_pseudorole('22', array('02','03'));
-        $this->assertEqual($result, 'editinginstructor');      
+        $this->assertEqual($result, 'editingteacher');      
         $result = get_pseudorole('22', array('03'));
-        $this->assertEqual($result, 'editinginstructor');                 
+        $this->assertEqual($result, 'editingteacher');                 
     }
     
     function test_get_student_pseudorole() {
@@ -147,6 +177,16 @@ class rolemappings_test extends UnitTestCase {
             $result = get_student_pseudorole($code);
             $this->assertFalse($result);
         }
+    }
+    
+    /**
+     * Test the function role_mapping(). 
+     */
+    function test_role_mapping() {
+        // test course with student instructor
+        $expected = get_moodlerole('editingteacher');        
+        $actual = role_mapping('22', array('03'));        
+        $this->assertEqual($expected, $actual);
     }
 }
 ?>

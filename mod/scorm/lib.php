@@ -185,7 +185,8 @@ function scorm_update_instance($scorm, $mform=null) {
 
     } else if ($scorm->scormtype === SCORM_TYPE_IMSREPOSITORY) {
         $scorm->reference = $scorm->packageurl;
-
+    } else if ($scorm->scormtype === SCORM_TYPE_AICCURL) {
+        $scorm->reference = $scorm->packageurl;
     } else {
         return false;
     }
@@ -501,7 +502,7 @@ function scorm_cron () {
 
         mtrace('Updating scorm packages which require daily update');//We are updating
 
-        $scormsupdate = $DB->get_records('scorm', array('updatefreq'=>UPDATE_EVERYDAY));
+        $scormsupdate = $DB->get_records_select('scorm', 'updatefreq = ? AND scormtype <> ?', array(SCORM_UPDATE_EVERYDAY, SCORM_TYPE_LOCAL));
         foreach ($scormsupdate as $scormupdate) {
             scorm_parse($scormupdate, true);
         }
