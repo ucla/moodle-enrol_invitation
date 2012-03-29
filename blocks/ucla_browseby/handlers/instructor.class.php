@@ -6,36 +6,26 @@ class instructor_handler extends browseby_handler {
     }
 
     /**
-     *  Builds a sub-table that combines all available users,
-     *  both from the registrar and from the local machine.
+     *  Builds a sub-table that combines all available users, limited
+     *  by local machine.
      **/
     static function combined_select_sql_helper() {
         global $CFG;
 
         ucla_require_db_helper();
 
-        $ilr = $CFG->instructor_levels_roles;
-        $shortnamewhere = '';
-        if (!empty($ilr['Instructor'])) {
-            $shortnamesused = implode("','", $ilr['Instructor']);
-
-            if (!empty($shortnamesused)) {
-                $shortnamewhere = "WHERE ro.shortname IN ('$shortnamesused') ";
-            }
-        }
-
         $sql = "(
             SELECT
-                us.id AS uid,
+                us.id       AS userid,
+                us.idnumber AS idnumber,
+                us.firstname,
+                us.lastname,
                 term,
                 srs,
-                firstname,
-                lastname,
-                NULL AS profcode,
-                ro.shortname AS rolename
+                profcode
             FROM {user} us
-        " . db_helper::join_role_assignments_request_classes_sql() . "
-            $shortnamewhere
+            INNER JOIN {ucla_browseall_instrinfo} ubii
+                ON ubii.uid = us.idnumber
         )";
 
         return $sql;
@@ -95,23 +85,25 @@ class instructor_handler extends browseby_handler {
         }
 
         ucla_require_db_helper();
+
         // Show all users form local and browseall tables
         $sql = "
             SELECT
-                CONCAT(uid, '-', term, '-', srs, '-', rolename) AS rsid,
-                uid,
-                users.term,
-                users.srs,
-                firstname,
-                lastname,
-                rolename,
+                CONCAT(
+                    ubi.userid, '-', ubi.term, '-', ubi.srs
+                ) AS rsid,
+                ubi.userid,
+                ubi.term,
+                ubi.srs,
+                ubi.firstname,
+                ubi.lastname,
                 ubci.catlg_no AS course_code,
                 ubci.activitytype,
                 ubci.subjarea
-            FROM " . self::combined_select_sql_helper() . " users
+            FROM " . self::combined_select_sql_helper() . " ubi
             INNER JOIN {ucla_browseall_classinfo} ubci 
-                USING(term, srs)
-            GROUP BY rsid
+                ON  ubi.term = ubci.term 
+                AND ubi.srs = ubci.srs
             ORDER BY lastname
         ";
 
@@ -222,8 +214,8 @@ class instructor_handler extends browseby_handler {
                 $lettertable, 0, 1, 'flattened-list');
 
             if ($letter !== null) {
-                $table = $this->list_builder_helper($users, 'uid',
-                    'fullname', 'course', 'uid', $term);
+                $table = $this->list_builder_helper($users, 'userid',
+                    'fullname', 'course', 'user', $term);
 
                 $s .= block_ucla_browseby_renderer::ucla_custom_list_render(
                     $table);
