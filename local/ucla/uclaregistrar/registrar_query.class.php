@@ -27,6 +27,13 @@ abstract class registrar_query {
     const failed_inputs = 'bad';
     const failed_outputs = 'badoutputs';
 
+    // This is a member field that allows unindexed arguments passed in
+    // for generation of stored procedure statements to be properly used
+    // by this master class, primarily in get_key().
+    // It is very preferable to not use this variable, and to index
+    // your driving data for the query with more meaningful values.
+    var $unindexed_key_translate = null;
+
     // These are the calls that caused bad inputs
     var $previous_bad_inputs = array();
 
@@ -154,7 +161,7 @@ abstract class registrar_query {
                     if ($this->validate($fields, $driving_datum)) {
                         $res = $this->clean_row($fields);
 
-                        $key = $this->get_key($res);
+                        $key = $this->get_key($res, $driving_datum);
                         if ($key == null) {
                             $direct_data[] = $res;
                         } else {
@@ -191,14 +198,35 @@ abstract class registrar_query {
      *  Returns an index to use for the return data.
      *  
      *  @param $fields Array The data to be indexed.
+     *  @param $oldfields Array The data that was sent in.
      *  @return string The key to use for the index.
      **/
-    function get_key($fields) {
+    function get_key($fields, $oldfields) {
         if (is_object($fields)) {
             $fields = get_object_vars($fields);
         }
 
-        if (isset($fields['srs'])) {
+        $termfield = false;
+        if (!isset($fields['term'])) {
+            if (isset($oldfields['term'])) {
+                $termfield = 'term';
+            } else if (isset($this->unindexed_key_translate['term'])
+                    && isset($oldfields[
+                        $this->unindexed_key_translate['term']
+                    ])) {
+                $termfield = $this->unindexed_key_translate['term'];
+            } 
+
+            $fields['term'] = $oldfields[$termfield];
+        }
+
+        $isc = isset($fields['srs']);
+
+        if (isset($fields['term']) && $isc) {
+            return make_idnumber($fields);
+        }
+
+        if ($isc) {
             return $fields['srs'];
         }
 
@@ -241,6 +269,8 @@ abstract class registrar_query {
      *
      *  @param $args Array The arguments to be used in generating the 
      *      remote query.
+     *      It is prefereable to have them indexed meaningfully:
+     *          i.e. 'term', 'subjarea', 'srs'
      **/
     abstract function remote_call_generate($args);
     

@@ -49,6 +49,16 @@ function ucla_verify_configuration_setup() {
     return $returner;
 }
 
+/**
+ *  Convenience function to include db-helpers.
+ **/
+function ucla_require_db_helper() {
+    global $CFG;
+
+    require_once($CFG->dirroot
+        . '/local/ucla/dbhelpers.php');
+}
+
 /** 
  *  Convenience function to include all the Registrar connection 
  *  functionality.
@@ -162,6 +172,25 @@ function enrolstat_string($enrolstat) {
     }
 
     return $rs;
+}
+
+/**
+ *  Creates a display-ready string for a course.
+ *  Slightly similar to shortname...
+ *  @param $courseinfo Array with fields
+ *      subj_area - the subject area
+ *      coursenum - the course number
+ *      sectnum   - the number of the section
+ *  @param $displayone boolean True to display the sectnum of 1
+ **/
+function ucla_make_course_title($courseinfo, $displayone=false) {
+    $sectnum = '-' . $courseinfo['sectnum'];
+    if ($displayone && $courseinfo['sectnum'] == 1) {
+        $sectnum = '';
+    }
+
+    return $courseinfo['subj_area'] . ' ' . trim($courseinfo['coursenum'])
+        . $sectnum;
 }
 
 /** 
@@ -405,16 +434,14 @@ function ucla_format_name($name=null) {
  *  Populates the reg-class-info cron, the subject areas and the divisions.
  **/
 function local_ucla_cron() {
-    global $CFG;
+    global $DB, $CFG;
 
     // TODO Do a better job figuring this out
-    $terms = $CFG->currentterm;
+    $terms = array($CFG->currentterm);
 
     include_once($CFG->dirroot . '/local/ucla/cronlib.php');
     ucla_require_registrar();
 
-    $terms = array($terms);
-    
     // Customize these times...?
     $works = array('classinfo', 'subjectarea', 'division');
 
@@ -702,6 +729,72 @@ function ucla_send_mail($to, $subj, $body='', $header='') {
     }
 
     return true;
+}
+
+/**
+ *  Sorts a set of terms.
+ *  @param  $terms  Array( term, ... )
+ *  @return Array( term_in_order, ... )
+ **/
+function terms_arr_sort($terms) {
+    $ksorter = array();
+
+    // enumerate terms
+    foreach ($terms as $k => $term) {
+        $ksorter[$k] = term_enum($term);
+    }
+
+    // sort
+    asort($ksorter);
+  
+    // denumerate terms
+    $sorted = array();
+    foreach ($ksorter as $k => $v) {
+        $sorted[] = $terms[$k];
+    }
+
+    return $sorted;
+}
+
+/**
+ *  PHP side function to order terms.
+ *  @param  $term   term
+ *  @return string sortable term
+ **/
+function term_enum($term) {
+    if (!ucla_validator('term', $term)) {
+        print_error('improperenum');
+    }
+    
+    $r = array(
+        'W' => 0,
+        'S' => 1,
+        '1' => 2,
+        'F' => 3
+    );
+
+    return substr($term, 0, -1) . $r[$term[2]];
+}
+
+/**
+ *  Compare-to function.
+ *  @param  $term   The first
+ *  @param  $term   The second
+ *  @return 
+ *      first > second return -1
+ *      first == second return 0
+ *      first < second return 1
+ **/
+function term_cmp_fn($term, $other) {
+    $et = term_enum($term);
+    $eo = term_enum($other);
+    if ($et > $eo) {
+        return -1;
+    } else if ($et < $eo) {
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 // EOF

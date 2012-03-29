@@ -2,7 +2,7 @@
 
 require_once(dirname(__FILE__) . '/registrar_query.class.php');
 
-class registrar_cis_coursegetall extends registrar_query {
+class registrar_ccle_coursegetall extends registrar_query {
     var $unindexed_key_translate = array('term' => 0, 'subjarea' => 1);
 
     function validate($new, $old) {
@@ -27,6 +27,7 @@ class registrar_cis_coursegetall extends registrar_query {
             return false;
         }
 
-        return "EXECUTE CIS_courseGetAll '$term', '$sa'";
+        return "EXECUTE ccle_courseGetAll '$term', '$sa'";
     }
 }
+

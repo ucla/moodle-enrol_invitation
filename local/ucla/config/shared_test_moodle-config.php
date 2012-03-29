@@ -71,6 +71,19 @@ $CFG->registrar_dbpass = '';
 $CFG->registrar_dbname = 'srdb';
 $CFG->registrar_dbencoding = 'ISO-8859-1';
 
+// Format and browseby and anything else that requires instructors to be 
+// displayed, we need to determine which roles should be displayed.
+$CFG->instructor_levels_roles = array(
+    'Instructor' => array(
+        'editinginstructor',
+        'ta_instructor'
+    ),
+    'Teaching Assistant' => array(
+        'ta',
+        'ta_admin'
+    )
+);
+
 // Course builder
 $terms_to_built = array('11F', '12W', '12S', '121', '12F');
 
