@@ -84,7 +84,7 @@ $CFG->instructor_levels_roles = array(
 );
 
 // Course builder
-$terms_to_built = array('12W', '12S', '121', '12F');
+$terms_to_built = array('12S', '121', '12F');
 
 // Course Requestor
 $CFG->forced_plugin_settings['tool_uclacourserequestor']['terms'] = $terms_to_built;
