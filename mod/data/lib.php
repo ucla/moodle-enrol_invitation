@@ -2804,9 +2804,11 @@ function data_export_ods($export, $dataname, $count) {
  * @param int $dataid
  * @param array $fields
  * @param array $selectedfields
+ * @param int $currentgroup group ID of the current group. This is used for
+ * exporting data while maintaining group divisions.
  * @return array
  */
-function data_get_exportdata($dataid, $fields, $selectedfields) {
+function data_get_exportdata($dataid, $fields, $selectedfields, $currentgroup=0) {
     global $DB;
 
     $exportdata = array();
@@ -2826,7 +2828,15 @@ function data_get_exportdata($dataid, $fields, $selectedfields) {
     $line = 1;
     foreach($datarecords as $record) {
         // get content indexed by fieldid
-        if( $content = $DB->get_records('data_content', array('recordid'=>$record->id), 'fieldid', 'fieldid, content, content1, content2, content3, content4') ) {
+        if ($currentgroup) {
+            $select = 'SELECT c.fieldid, c.content, c.content1, c.content2, c.content3, c.content4 FROM {data_content} c, {data_records} r WHERE c.recordid = ? AND r.id = c.recordid AND r.groupid = ?';
+            $where = array($record->id, $currentgroup);
+        } else {
+            $select = 'SELECT fieldid, content, content1, content2, content3, content4 FROM {data_content} WHERE recordid = ?';
+            $where = array($record->id);
+        }
+
+        if( $content = $DB->get_records_sql($select, $where) ) {
             foreach($fields as $field) {
                 $contents = '';
                 if(isset($content[$field->field->id])) {
@@ -2852,6 +2862,78 @@ function data_get_exportdata($dataid, $fields, $selectedfields) {
 function data_get_file_areas($course, $cm, $context) {
     $areas = array();
     return $areas;
+}
+
+/**
+ * File browsing support for data module.
+ *
+ * @param file_browser $browser
+ * @param array $areas
+ * @param stdClass $course
+ * @param cm_info $cm
+ * @param context $context
+ * @param string $filearea
+ * @param int $itemid
+ * @param string $filepath
+ * @param string $filename
+ * @return file_info_stored file_info_stored instance or null if not found
+ */
+function mod_data_get_file_info($browser, $areas, $course, $cm, $context, $filearea, $itemid, $filepath, $filename) {
+    global $CFG, $DB;
+
+    if ($context->contextlevel != CONTEXT_MODULE) {
+        return null;
+    }
+
+    if ($filearea === 'content') {
+        if (!$content = $DB->get_record('data_content', array('id'=>$itemid))) {
+            return null;
+        }
+
+        if (!$field = $DB->get_record('data_fields', array('id'=>$content->fieldid))) {
+            return null;
+        }
+
+        if (!$record = $DB->get_record('data_records', array('id'=>$content->recordid))) {
+            return null;
+        }
+
+        if (!$data = $DB->get_record('data', array('id'=>$field->dataid))) {
+            return null;
+        }
+
+        //check if approved
+        if ($data->approval and !$record->approved and !data_isowner($record) and !has_capability('mod/data:approve', $context)) {
+            return null;
+        }
+
+        // group access
+        if ($record->groupid) {
+            $groupmode = groups_get_activity_groupmode($cm, $course);
+            if ($groupmode == SEPARATEGROUPS and !has_capability('moodle/site:accessallgroups', $context)) {
+                if (!groups_is_member($record->groupid)) {
+                    return null;
+                }
+            }
+        }
+
+        $fieldobj = data_get_field($field, $data, $cm);
+
+        $filepath = is_null($filepath) ? '/' : $filepath;
+        $filename = is_null($filename) ? '.' : $filename;
+        if (!$fieldobj->file_ok($filepath.$filename)) {
+            return null;
+        }
+
+        $fs = get_file_storage();
+        if (!($storedfile = $fs->get_file($context->id, 'mod_data', $filearea, $itemid, $filepath, $filename))) {
+            return null;
+        }
+        $urlbase = $CFG->wwwroot.'/pluginfile.php';
+        return new file_info_stored($browser, $context, $storedfile, $urlbase, $filearea, $itemid, true, true, false);
+    }
+
+    return null;
 }
 
 /**
@@ -3036,6 +3118,7 @@ function data_extend_settings_navigation(settings_navigation $settings, navigati
  * @return bool
  */
 function data_presets_save($course, $cm, $data, $path) {
+    global $USER;
     $fs = get_file_storage();
     $filerecord = new stdClass;
     $filerecord->contextid = DATA_PRESET_CONTEXT;
@@ -3043,6 +3126,7 @@ function data_presets_save($course, $cm, $data, $path) {
     $filerecord->filearea = DATA_PRESET_FILEAREA;
     $filerecord->itemid = 0;
     $filerecord->filepath = '/'.$path.'/';
+    $filerecord->userid = $USER->id;
 
     $filerecord->filename = 'preset.xml';
     $fs->create_file_from_string($filerecord, data_presets_generate_xml($course, $cm, $data));
@@ -3144,7 +3228,7 @@ function data_presets_export($course, $cm, $data, $tostorage=false) {
     $presetname = clean_filename($data->name) . '-preset-' . gmdate("Ymd_Hi");
     $exportsubdir = "mod_data/presetexport/$presetname";
     make_temp_directory($exportsubdir);
-    $exportdir = "$CFG->dataroot/$exportsubdir";
+    $exportdir = "$CFG->tempdir/$exportsubdir";
 
     // Assemble "preset.xml":
     $presetxmldata = data_presets_generate_xml($course, $cm, $data);

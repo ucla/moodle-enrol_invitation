@@ -128,6 +128,9 @@ function file_prepare_standard_editor($data, $field, array $options, $context=nu
     if (is_null($itemid) or is_null($context)) {
         $contextid = null;
         $itemid = null;
+        if (!isset($data)) {
+            $data = new stdClass();
+        }
         if (!isset($data->{$field})) {
             $data->{$field} = '';
         }
@@ -3187,6 +3190,10 @@ function file_pluginfile($relativepath, $forcedownload) {
             print_error('siteblogdisable', 'blog');
         }
 
+        $entryid = (int)array_shift($args);
+        if (!$entry = $DB->get_record('post', array('module'=>'blog', 'id'=>$entryid))) {
+            send_file_not_found();
+        }
         if ($CFG->bloglevel < BLOG_GLOBAL_LEVEL) {
             require_login();
             if (isguestuser()) {
@@ -3197,10 +3204,6 @@ function file_pluginfile($relativepath, $forcedownload) {
                     send_file_not_found();
                 }
             }
-        }
-        $entryid = (int)array_shift($args);
-        if (!$entry = $DB->get_record('post', array('module'=>'blog', 'id'=>$entryid))) {
-            send_file_not_found();
         }
 
         if ('publishstate' === 'public') {
