@@ -412,7 +412,7 @@ class uclacoursecreator {
                 $moodleroleid = role_mapping($instructor->role, $profcode_set,
                     $subj_area);
             } catch (moodle_exception $e) {
-                var_dump($e);
+                $this->println(print_r($e, true));
                 throw $e;
             }
 

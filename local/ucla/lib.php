@@ -557,13 +557,13 @@ function role_mapping($profcode, array $other_roles,
  * 02	01,02,03    ta
  * 02	02,03       ta_instructor
  * 03	any	    supervising_instructor
- * 22	any	    facilitator
+ * 22	any	    editingteacher
  * 
  * @param int $profcode        Registrar prof code
  * @param array $other_roles   Other roles a user has
  * 
- * @return string              Returns either: editingteacher, ta, ta_instructor,
- *                             supervising_instructor, or student_instructor
+ * @return string              Returns either: editingteacher, ta,
+ *                             ta_instructor, or supervising_instructor
  */
 function get_pseudorole($profcode, array $other_roles) {
     $hasrole = array_pad(array(), 23, false);   // need to create 23, because 22 
@@ -584,7 +584,7 @@ function get_pseudorole($profcode, array $other_roles) {
         case 3:
             return "supervising_instructor";
         case 22:
-            return "editinginstructor";
+            return "editingteacher";
     }
 }
 

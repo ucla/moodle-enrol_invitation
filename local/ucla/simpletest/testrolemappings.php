@@ -140,23 +140,23 @@ class rolemappings_test extends UnitTestCase {
         $result = get_pseudorole('03', array('03'));
         $this->assertEqual($result, 'supervising_instructor');          
 
-         // testing: 22   any	        editinginstructor 
+         // testing: 22   any	        editingteacher 
         $result = get_pseudorole('22', array());
-        $this->assertEqual($result, 'editinginstructor');
+        $this->assertEqual($result, 'editingteacher');
         $result = get_pseudorole('22', array('01'));
-        $this->assertEqual($result, 'editinginstructor');        
+        $this->assertEqual($result, 'editingteacher');        
         $result = get_pseudorole('22', array('01','02'));
-        $this->assertEqual($result, 'editinginstructor');        
+        $this->assertEqual($result, 'editingteacher');        
         $result = get_pseudorole('22', array('01','02','03'));
-        $this->assertEqual($result, 'editinginstructor');      
+        $this->assertEqual($result, 'editingteacher');      
         $result = get_pseudorole('22', array('01','03'));
-        $this->assertEqual($result, 'editinginstructor');      
+        $this->assertEqual($result, 'editingteacher');      
         $result = get_pseudorole('22', array('02'));
-        $this->assertEqual($result, 'editinginstructor');                
+        $this->assertEqual($result, 'editingteacher');                
         $result = get_pseudorole('22', array('02','03'));
-        $this->assertEqual($result, 'editinginstructor');      
+        $this->assertEqual($result, 'editingteacher');      
         $result = get_pseudorole('22', array('03'));
-        $this->assertEqual($result, 'editinginstructor');                 
+        $this->assertEqual($result, 'editingteacher');                 
     }
     
     function test_get_student_pseudorole() {
@@ -177,6 +177,16 @@ class rolemappings_test extends UnitTestCase {
             $result = get_student_pseudorole($code);
             $this->assertFalse($result);
         }
+    }
+    
+    /**
+     * Test the function role_mapping(). 
+     */
+    function test_role_mapping() {
+        // test course with student instructor
+        $expected = get_moodlerole('editingteacher');        
+        $actual = role_mapping('22', array('03'));        
+        $this->assertEqual($expected, $actual);
     }
 }
 ?>
