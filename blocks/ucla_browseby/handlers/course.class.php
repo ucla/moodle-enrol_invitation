@@ -18,7 +18,7 @@ class course_handler extends browseby_handler {
         ubc.sect_enrl_stat_cd AS enrolstat,
         ubc.catlg_no AS course_code,
         ubc.activitytype, 
-        ubci.uid,
+        user.id AS uid,
         COALESCE(user.firstname, ubci.firstname) AS firstname,
         COALESCE(user.lastname, ubci.lastname) AS lastname,
         ubci.profcode,
@@ -127,7 +127,7 @@ class course_handler extends browseby_handler {
                 FROM $sqlhelp ubi
                 LEFT JOIN {ucla_browseall_classinfo} ubc
                     USING(term, srs)
-                LEFT JOIN $sqlhelp ubci
+                LEFT JOIN {ucla_browseall_instrinfo} ubci
                     USING(term, srs)
                 LEFT JOIN {ucla_request_classes} urc
                     USING(term, srs)

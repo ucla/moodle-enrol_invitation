@@ -26,17 +26,7 @@ class instructor_handler extends browseby_handler {
 
         $sql = "(
             SELECT
-                uid,
-                term,
-                srs,
-                firstname, 
-                lastname,
-                profcode AS profcode,
-                NULL AS rolename
-            FROM {ucla_browseall_instrinfo}
-        UNION
-            SELECT
-                us.idnumber,
+                us.id AS uid,
                 term,
                 srs,
                 firstname,
