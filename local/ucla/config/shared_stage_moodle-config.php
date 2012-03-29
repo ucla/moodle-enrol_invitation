@@ -60,7 +60,7 @@ $CFG->directorypermissions = 0777;
 $CFG->passwordsaltmain = '';
 
 // determines current term
-$CFG->currentterm = '12W';
+$CFG->currentterm = '12S';
 
 // Registrar
 $CFG->registrar_dbtype = 'odbc_mssql';
@@ -172,6 +172,9 @@ $CFG->filter_mediaplugin_enable_rm = true;
 // to enable database unit testing
 $CFG->unittestprefix = 'tst_';
 
+// Site administration > Users > Permissions > User policies
+$CFG->autologinguests = true;
+
 // Site administration > Courses > Course default settings
 $CFG->forced_plugin_settings['moodlecourse']['format'] = 'ucla';
 $CFG->forced_plugin_settings['moodlecourse']['maxbytes'] = 1572864000;  // 1.5GB
@@ -204,6 +207,9 @@ $CFG->clamfailureonupload = 'donothing';
 // Site administration > Server > System paths
 $CFG->pathtodu = '/usr/bin/du';
 $CFG->aspellpath = '/usr/bin/aspell';
+
+// Site administration > Server > Session handling
+$CFG->dbsessions = false;
 
 /** 
  *  Automatic Shibboleth configurations.
