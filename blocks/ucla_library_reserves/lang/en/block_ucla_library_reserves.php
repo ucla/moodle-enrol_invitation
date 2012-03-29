@@ -1,5 +1,6 @@
 <?php
-    $string['pluginname'] = 'Library reserves';
+    $string['pluginname'] = 'UCLA library reserves';
+
     $string['title'] = 'Library reserves';
 
     $string['displayname'] - 'Library Reserves';

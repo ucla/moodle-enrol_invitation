@@ -55,10 +55,14 @@ class block_ucla_library_reserves extends block_base {
 
                 if (!empty($coursesrs) && !empty($courseterm)) {
                     $lrnodes = $DB->get_record('ucla_library_reserves', array('quarter'=>$courseterm,'srs'=>$coursesrs)); // get entry in libraryreserves table by the generated courseid
-            
-                    // If srs did not work as lookup, use the term, instructor, and 
+
+                    // If srs did not work as lookup, use the term, courseid, and department code 
                     if($lrnodes == false) {
-                        $lrnodes = $DB->get_record('ucla_library_reserves', array('quarter'=>$courseterm));
+                        $reginfo = ucla_get_reg_classinfo($courseterm, $coursesrs);
+
+                        if(!empty($reginfo)) {
+                            $lrnodes = $DB->get_record('ucla_library_reserves', array('quarter'=>$courseterm, 'department_code'=>$reginfo->subj_area, ''=>$reginfo->coursenum));
+                        }
                     }
                 }
 
