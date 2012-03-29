@@ -937,6 +937,7 @@ class uclacoursecreator {
             $name_categories[$catname] = $cat;
         }
 
+        $truecatreferences = array();
         foreach ($rci_courses as $reqkey => $rci_course) {
             if (!isset($requests[$reqkey]) 
                     || $requests[$reqkey]->hostcourse == 0) {
@@ -988,10 +989,12 @@ class uclacoursecreator {
                 // As the loop continues, the parent will be set
                 $immediate_parent_catid = $name_categories[$namecheck]->id;
             }
+
+            $truecatreferences[$trans] = $name_categories[$namecheck];
         }
 
         // Save this for when building courses
-        $this->categories_cache = $name_categories;
+        $this->categories_cache = $truecatreferences;
 
         // creates the category paths, very necessary
         fix_course_sortorder();
@@ -1112,6 +1115,8 @@ class uclacoursecreator {
                 // Default category (miscellaneous), but this may lead to 
                 // the first category displayed in course/category.php
                 $category = get_course_category(1);
+                $this->println('Could not find category: ' . $CATegory_name
+                    . ', putting course into ' . $category->name);
             }
 
             if ($this->match_summer($term)) {
