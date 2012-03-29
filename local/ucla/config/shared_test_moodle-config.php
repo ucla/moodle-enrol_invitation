@@ -173,6 +173,9 @@ $CFG->filter_mediaplugin_enable_rm = true;
 // to enable database unit testing
 $CFG->unittestprefix = 'tst_';
 
+/// CCLE-2810 - My Sites - disallow customized "My Moodle" page
+$CFG->forcedefaultmymoodle = true;
+
 // Site administration > Users > Permissions > User policies
 $CFG->autologinguests = true;
 

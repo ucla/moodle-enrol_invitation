@@ -158,6 +158,9 @@ $CFG->filter_mediaplugin_enable_qt = true;
 $CFG->filter_mediaplugin_enable_wmp = true;
 $CFG->filter_mediaplugin_enable_rm = true;
 
+/// CCLE-2810 - My Sites - disallow customized "My Moodle" page
+$CFG->forcedefaultmymoodle = true;
+
 // Site administration > Users > Permissions > User policies
 $CFG->autologinguests = true;
 
