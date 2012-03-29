@@ -61,7 +61,7 @@ class block_ucla_library_reserves extends block_base {
                         $reginfo = ucla_get_reg_classinfo($courseterm, $coursesrs);
 
                         if(!empty($reginfo)) {
-                            $lrnodes = $DB->get_record('ucla_library_reserves', array('quarter'=>$courseterm, 'department_code'=>$reginfo->subj_area, ''=>$reginfo->coursenum));
+                            $lrnodes = $DB->get_record('ucla_library_reserves', array('quarter'=>$courseterm, 'department_code'=>$reginfo->subj_area, 'department_code'=>$reginfo->coursenum));
                         }
                     }
                 }
