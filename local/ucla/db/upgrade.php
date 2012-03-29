@@ -139,6 +139,94 @@ function xmldb_local_ucla_upgrade($oldversion=0) {
         // ucla savepoint reached
         upgrade_plugin_savepoint(true, 2012020100, 'local', 'ucla');
     }
+    
+    if ($oldversion < 2012032705) {
+        require_once($CFG->libdir.'/licenselib.php');
+        
+       // Disable existing licenses
+       license_manager::disable('allrightsreserved');
+       license_manager::disable('cc');
+       license_manager::disable('cc-nc');
+       license_manager::disable('cc-nc-nd');
+       license_manager::disable('cc-nc-sa');
+       license_manager::disable('cc-nd');
+       license_manager::disable('cc-sa');
+       license_manager::disable('public');
+       license_manager::disable('unknown');
+       
+        // Add new licenses
+        $license = new stdClass();
+        
+        $license->shortname = 'iown';
+        $license->fullname = 'I own the copyright';
+        $license->source = null;
+        $license->enabled = true;        
+        $license->version = '2012032200';
+        license_manager::add($license);        
+        license_manager::enable($license->shortname);
+        
+        $license->shortname = 'ucown';
+        $license->fullname = 'The UC Regents own the copyright';
+        $license->source = null;
+        $license->enabled = true;        
+        $license->version = '2012032200';
+        license_manager::add($license);        
+        license_manager::enable($license->shortname);
+        
+        $license->shortname = 'lib';
+        $license->fullname = 'Item is licensed by the UCLA Library';
+        $license->source = null;
+        $license->enabled = true;        
+        $license->version = '2012032200';
+        license_manager::add($license);        
+        license_manager::enable($license->shortname);
+        
+        $license->shortname = 'public1';
+        $license->fullname = 'Item is in the public domain';
+        $license->source = 'http://creativecommons.org/licenses/publicdomain/';
+        $license->enabled = true;        
+        $license->version = '2012032200';
+        license_manager::add($license);        
+        license_manager::enable($license->shortname);
+        
+        $license->shortname = 'cc1';
+        $license->fullname = 'Item is available for this use via Creative Commons license';
+        $license->source = 'http://creativecommons.org/licenses/by/3.0/';
+        $license->enabled = true;        
+        $license->version = '2012032200';
+        license_manager::add($license);        
+        license_manager::enable($license->shortname);
+        
+        $license->shortname = 'obtained';
+        $license->fullname = 'I have obtained written permission from the copyright holder';
+        $license->source = NULL;
+        $license->enabled = true;        
+        $license->version = '2012032200';
+        license_manager::add($license);        
+        license_manager::enable($license->shortname);
+        
+        $license->shortname = 'fairuse';
+        $license->fullname = 'I am using this item under fair use';
+        $license->source = NULL;
+        $license->enabled = true;        
+        $license->version = '2012032200';
+        license_manager::add($license);        
+        license_manager::enable($license->shortname);
+        
+        $license->shortname = 'tbd';
+        $license->fullname = 'Upload by faculty designate; copyright status to be determined';
+        $license->source = NULL;
+        $license->enabled = true;        
+        $license->version = '2012032200';
+        license_manager::add($license);        
+        license_manager::enable($license->shortname);
+        
+        // ucla savepoint reached
+        upgrade_plugin_savepoint(true, 2012032705, 'local', 'ucla');
+    }
+    
+    
+    
 
 
     return $result;

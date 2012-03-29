@@ -177,6 +177,9 @@ $CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 1;
 // Site administration > Plugins > Activity modules > Assignment
 $CFG->assignment_maxbytes = 10485760;   // 100MB
 
+// Site administration > Plugins > Licences > Manage licences
+$CFG->sitedefaultlicense = 'iown';
+
 // Site administration > Security > Site policies
 $CFG->fullnamedisplay = 'language'; // CCLE-2550 - Lastname, Firstname sorting
 $CFG->cronclionly = true;
