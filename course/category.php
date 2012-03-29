@@ -278,9 +278,15 @@
         echo '<form id="movecourses" action="category.php" method="post"><div>';
         echo '<input type="hidden" name="sesskey" value="'.sesskey().'" />';
         echo '<table border="0" cellspacing="2" cellpadding="4" class="generalbox boxaligncenter"><tr>';
+        
+        // START UCLA MOD: CCLE-2878 - Display course short name field in Add/Edit screen course list   
+        echo '<th class="header" scope="col" width="125px">'.get_string('shortnamecourse').'</th>';
+        // END UCLA MOD: CCLE-2878
         echo '<th class="header" scope="col">'.$strcourses.'</th>';
         if ($editingon) {
-            echo '<th class="header" scope="col">'.$stredit.'</th>';
+            // START UCLA MOD: CCLE-2878 - Display course short name field in Add/Edit screen course list               
+            echo '<th class="header" scope="col" width="150px">'.$stredit.'</th>';
+            // END UCLA MOD: CCLE-2878            
             echo '<th class="header" scope="col">'.$strselect.'</th>';
         } else {
             echo '<th class="header" scope="col">&nbsp;</th>';
@@ -314,6 +320,11 @@
 
             $linkcss = $acourse->visible ? '' : ' class="dimmed" ';
             echo '<tr>';
+            
+            // START UCLA MOD: CCLE-2878 - Display course short name field in Add/Edit screen course list   
+            echo '<td><a '.$linkcss.' href="view.php?id='.$acourse->id.'">'. format_string($acourse->shortname) .'</a></td>';
+            // END UCLA MOD: CCLE-2878            
+            
             $coursename = get_course_display_name_for_list($acourse);
             echo '<td><a '.$linkcss.' href="view.php?id='.$acourse->id.'">'. format_string($coursename) .'</a></td>';
             if ($editingon) {
