@@ -176,7 +176,8 @@ $CFG->assignment_maxbytes = 10485760;   // 100MB
 $CFG->sitedefaultlicense = 'iown';
 
 // Site administration > Security > Site policies
-$CFG->forceloginforprofiles = true; // temporary until "CCLE-2368 - PIX.PHP security fix" is done
+$CFG->forceloginforprofiles = true; 
+$CFG->forceloginforprofileimage = true; // temporary until "CCLE-2368 - PIX.PHP security fix" is done
 $CFG->fullnamedisplay = 'language'; // CCLE-2550 - Lastname, Firstname sorting
 $CFG->cronclionly = true;
 
