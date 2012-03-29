@@ -45,3 +45,9 @@ h1, h2, h3 {margin: 0;}
 .theme_screenshot p {font-size: 0.9em; margin: 0 0 1em;}
 .theme_description {margin-left: 300px;}
 .theme_description h2 {padding-top: 0.5em;}
+
+.external-link {
+    padding-right: 15px;
+    padding-bottom: -2px;
+    background: transparent url([[pix:theme|external]]) no-repeat center right;
+}

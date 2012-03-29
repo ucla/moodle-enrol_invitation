@@ -163,7 +163,7 @@ class grade_report_grader extends grade_report {
             $separategroups = true;
             $mygroups = groups_get_user_groups($this->course->id);
             $mygroups = $mygroups[0]; // ignore groupings
-            // reorder the groups fro better perf bellow
+            // reorder the groups fro better perf below
             $current = array_search($this->currentgroup, $mygroups);
             if ($current !== false) {
                 unset($mygroups[$current]);
@@ -1037,7 +1037,7 @@ class grade_report_grader extends grade_report {
         $module = array(
             'name'      => 'gradereport_grader',
             'fullpath'  => '/grade/report/grader/module.js',
-            'requires'  => array('base', 'dom', 'event', 'event-mouseenter', 'event-key', 'io-base', 'json-parse', 'overlay')
+            'requires'  => array('base', 'dom', 'event', 'event-mouseenter', 'event-key', 'io-queue', 'json-parse', 'overlay')
         );
         $PAGE->requires->js_init_call('M.gradereport_grader.init_report', $jsarguments, false, $module);
         $PAGE->requires->strings_for_js(array('addfeedback','feedback', 'grade'), 'grades');
