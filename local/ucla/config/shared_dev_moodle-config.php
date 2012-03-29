@@ -61,7 +61,7 @@ $CFG->directorypermissions = 0777;
 $CFG->passwordsaltmain = '';
 
 // determines current term
-$CFG->currentterm = '12W';
+$CFG->currentterm = '12S';
 
 // Registrar
 $CFG->registrar_dbtype = 'odbc_mssql';
@@ -71,8 +71,21 @@ $CFG->registrar_dbpass = '';
 $CFG->registrar_dbname = 'srdb';
 $CFG->registrar_dbencoding = 'ISO-8859-1';
 
+// Format and browseby and anything else that requires instructors to be 
+// displayed, we need to determine which roles should be displayed.
+$CFG->instructor_levels_roles = array(
+    'Instructor' => array(
+        'editinginstructor',
+        'ta_instructor'
+    ),
+    'Teaching Assistant' => array(
+        'ta',
+        'ta_admin'
+    )
+);
+
 // Course builder
-$terms_to_built = array('11F', '12W', '12S', '121', '12F');
+$terms_to_built = array('12S', '121', '12F');
 
 // Course Requestor
 $CFG->forced_plugin_settings['tool_uclacourserequestor']['terms'] = $terms_to_built;
@@ -130,7 +143,7 @@ $CFG->debugpageinfo = true; // show page information
 // UCLA Theme settings
 $CFG->themedesignermode = true;
 $CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'dev';
-$CFG->forced_plugin_settings['theme_uclashared']['logo_sub_dropdown'] = true;
+$CFG->forced_plugin_settings['theme_uclashared']['logo_sub_dropdown'] = false;
 $CFG->cachejs = false;
 
 // Newly created courses for ucla formats should only have the course menu block
@@ -183,6 +196,15 @@ $CFG->filter_mediaplugin_enable_qt = true;
 $CFG->filter_mediaplugin_enable_wmp = true;
 $CFG->filter_mediaplugin_enable_rm = true;
 
+// to enable database unit testing
+$CFG->unittestprefix = 'tst_';
+
+/// CCLE-2810 - My Sites - disallow customized "My Moodle" page
+$CFG->forcedefaultmymoodle = true;
+
+// Site administration > Users > Permissions > User policies
+$CFG->autologinguests = true;
+
 // Site administration > Courses > Course default settings
 $CFG->forced_plugin_settings['moodlecourse']['format'] = 'ucla';
 $CFG->forced_plugin_settings['moodlecourse']['maxbytes'] = 1572864000;  // 1.5GB
@@ -191,9 +213,20 @@ $CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 1;
 // Site administration > Plugins > Activity modules > Assignment
 $CFG->assignment_maxbytes = 10485760;   // 100MB
 
+// Site administration > Plugins > Licences > Manage licences
+$CFG->sitedefaultlicense = 'iown';
+
 // Site administration > Security > Site policies
+$CFG->forceloginforprofiles = true; 
+$CFG->forceloginforprofileimage = true; // temporary until "CCLE-2368 - PIX.PHP security fix" is done
 $CFG->fullnamedisplay = 'language'; // CCLE-2550 - Lastname, Firstname sorting
 $CFG->cronclionly = true;
+
+// Site administration > Appearance > Navigation
+$CFG->defaulthomepage = 1;    // user's home page should be "My Moodle" (HOMEPAGE_MY)
+
+// Site administration > Server > Session handling
+$CFG->dbsessions = false;
 
 /** 
  *  Automatic Shibboleth configurations.

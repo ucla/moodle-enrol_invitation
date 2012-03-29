@@ -51,3 +51,5 @@ Other options:
 $string['current_term_not_set'] = '$CFG->currentterm is not set!';
 
 $string['cron_quit_out'] = 'This is most likely a moodle cron instance... Quitting...';
+
+$string['checklogs'] = 'Please check the logs for more details';

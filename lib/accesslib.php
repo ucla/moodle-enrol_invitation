@@ -1002,6 +1002,7 @@ function get_empty_accessdata() {
     $accessdata['rdef_lcc']   = 0;       // rdef_count during the last compression
     $accessdata['loaded']     = array(); // loaded course contexts
     $accessdata['time']       = time();
+    $accessdata['rsw']        = array();
 
     return $accessdata;
 }
@@ -1149,7 +1150,7 @@ function reload_all_capabilities() {
 
     // copy switchroles
     $sw = array();
-    if (isset($USER->access['rsw'])) {
+    if (!empty($USER->access['rsw'])) {
         $sw = $USER->access['rsw'];
     }
 
@@ -3924,22 +3925,21 @@ function get_user_capability_course($capability, $userid = null, $doanything = t
     // Note the result can be used directly as a context (we are going to), the course
     // fields are just appended.
 
+    $contextpreload = context_helper::get_preload_record_columns_sql('x');
+
     $courses = array();
-    $rs = $DB->get_recordset_sql("SELECT x.*, c.id AS courseid $fieldlist
+    $rs = $DB->get_recordset_sql("SELECT c.id $fieldlist, $contextpreload
                                     FROM {course} c
-                                   INNER JOIN {context} x
-                                         ON (c.id=x.instanceid AND x.contextlevel=".CONTEXT_COURSE.")
+                                    JOIN {context} x ON (c.id=x.instanceid AND x.contextlevel=".CONTEXT_COURSE.")
                                 $orderby");
     // Check capability for each course in turn
-    foreach ($rs as $coursecontext) {
-        if (has_capability($capability, $coursecontext, $userid, $doanything)) {
+    foreach ($rs as $course) {
+        context_helper::preload_from_record($course);
+        $context = context_course::instance($course->id);
+        if (has_capability($capability, $context, $userid, $doanything)) {
             // We've got the capability. Make the record look like a course record
             // and store it
-            $coursecontext->id = $coursecontext->courseid;
-            unset($coursecontext->courseid);
-            unset($coursecontext->contextlevel);
-            unset($coursecontext->instanceid);
-            $courses[] = $coursecontext;
+            $courses[] = $course;
         }
     }
     $rs->close();
@@ -4006,16 +4006,14 @@ function role_switch($roleid, context $context) {
     //
     // Note: it is not possible to switch to roles that do not have course:view
 
-    // Add the switch RA
-    if (!isset($USER->access['rsw'])) {
-        $USER->access['rsw'] = array();
+    if (!isset($USER->access)) {
+        load_all_capabilities();
     }
 
+
+    // Add the switch RA
     if ($roleid == 0) {
         unset($USER->access['rsw'][$context->path]);
-        if (empty($USER->access['rsw'])) {
-            unset($USER->access['rsw']);
-        }
         return true;
     }
 
@@ -5043,17 +5041,6 @@ abstract class context extends stdClass {
     }
 
     /**
-     * Returns human readable context level name.
-     *
-     * @static
-     * @return string the human readable context level name.
-     */
-    protected static function get_level_name() {
-        // must be implemented in all context levels
-        throw new coding_exception('can not get level name of abstract context');
-    }
-
-    /**
      * Returns human readable context identifier.
      *
      * @param boolean $withprefix whether to prefix the name of the context with the
@@ -5540,7 +5527,7 @@ class context_system extends context {
      * @static
      * @return string the human readable context level name.
      */
-    protected static function get_level_name() {
+    public static function get_level_name() {
         return get_string('coresystem');
     }
 
@@ -5778,7 +5765,7 @@ class context_user extends context {
      * @static
      * @return string the human readable context level name.
      */
-    protected static function get_level_name() {
+    public static function get_level_name() {
         return get_string('user');
     }
 
@@ -5946,7 +5933,7 @@ class context_coursecat extends context {
      * @static
      * @return string the human readable context level name.
      */
-    protected static function get_level_name() {
+    public static function get_level_name() {
         return get_string('category');
     }
 
@@ -6166,7 +6153,7 @@ class context_course extends context {
      * @static
      * @return string the human readable context level name.
      */
-    protected static function get_level_name() {
+    public static function get_level_name() {
         return get_string('course');
     }
 
@@ -6381,7 +6368,7 @@ class context_module extends context {
      * @static
      * @return string the human readable context level name.
      */
-    protected static function get_level_name() {
+    public static function get_level_name() {
         return get_string('activitymodule');
     }
 
@@ -6457,6 +6444,7 @@ class context_module extends context {
         }
 
         $modfile = "$CFG->dirroot/mod/$module->name/lib.php";
+        $extracaps = array();
         if (file_exists($modfile)) {
             include_once($modfile);
             $modfunction = $module->name.'_get_extra_capabilities';
@@ -6464,16 +6452,14 @@ class context_module extends context {
                 $extracaps = $modfunction();
             }
         }
-        if (empty($extracaps)) {
-            $extracaps = array();
-        }
 
         $extracaps = array_merge($subcaps, $extracaps);
-
+        $extra = '';
         list($extra, $params) = $DB->get_in_or_equal(
-            $extracaps, SQL_PARAMS_NAMED, 'cap0');
-        $extra = "OR name $extra";
-
+            $extracaps, SQL_PARAMS_NAMED, 'cap0', true, '');
+        if (!empty($extra)) {
+            $extra = "OR name $extra";
+        }
         $sql = "SELECT *
                   FROM {capabilities}
                  WHERE (contextlevel = ".CONTEXT_MODULE."
@@ -6617,7 +6603,7 @@ class context_block extends context {
      * @static
      * @return string the human readable context level name.
      */
-    protected static function get_level_name() {
+    public static function get_level_name() {
         return get_string('block');
     }
 
@@ -7286,7 +7272,7 @@ function get_role_context_caps($roleid, context $context) {
         }
     }
 
-    // now go through the contexts bellow given context
+    // now go through the contexts below given context
     $searchcontexts = array_keys($context->get_child_contexts());
     foreach ($searchcontexts as $cid) {
         if ($capabilities = $DB->get_records('role_capabilities', array('roleid'=>$roleid, 'contextid'=>$cid))) {

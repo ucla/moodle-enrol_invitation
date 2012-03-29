@@ -1,0 +1,36 @@
+.mysitesdivider {
+    display: block;
+    margin-bottom: 0.5em !important;
+    border-bottom: 1px solid #536895;
+    font-weight: bold;
+    color: #394A6E;
+    padding-bottom: 1px;
+}
+
+.block_ucla_my_sites, .block_ucla_my_sites .content {
+    background-color: white !important;
+}
+
+.block_ucla_my_sites .header {
+    margin-bottom: 0.5em;
+}
+
+.block_ucla_my_sites table {
+    width: 100%;
+}
+
+.block_ucla_my_sites table thead {
+    line-height: 0.5em;
+}
+
+.block_ucla_my_sites .r0 {
+    background-color: #EFF2FA;
+}
+
+.block_ucla_my_sites .r1 {
+    background-color: white;
+}
+
+.block_ucla_my_sites .lastcol {
+    width: 120px;
+}

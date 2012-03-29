@@ -709,7 +709,7 @@ function feedback_set_events($feedback) {
 
     // the open-event
     if ($feedback->timeopen > 0) {
-        $event = null;
+        $event = new stdClass();
         $event->name         = get_string('start', 'feedback').' '.$feedback->name;
         $event->description  = format_module_intro('feedback', $feedback, $feedback->coursemodule);
         $event->courseid     = $feedback->course;
@@ -731,7 +731,7 @@ function feedback_set_events($feedback) {
 
     // the close-event
     if ($feedback->timeclose > 0) {
-        $event = null;
+        $event = new stdClass();
         $event->name         = get_string('stop', 'feedback').' '.$feedback->name;
         $event->description  = format_module_intro('feedback', $feedback, $feedback->coursemodule);
         $event->courseid     = $feedback->course;
@@ -958,7 +958,7 @@ function feedback_get_complete_users($cm,
     }
 
     $ufields = user_picture::fields('u');
-    $sql = 'SELECT DISTINCT '.$ufields.'
+    $sql = 'SELECT DISTINCT '.$ufields.', c.timemodified as completed_timemodified
             FROM {user} u, {feedback_completed} c '.$fromgroup.'
             WHERE '.$where.' anonymous_response = :anon
                 AND u.id = c.userid
