@@ -190,8 +190,8 @@ $CFG->clamscan = '/usr/bin/clamscan';
 $CFG->quarantinedir = '/usr/local/clamquarantine';
 $CFG->clamfailureonupload = 'donothing';
 
-//// Site administration > Appearance > Navigation
-//$CFG->defaulthomepage = 1;    // user's home page should be "My Moodle" (HOMEPAGE_MY)
+// Site administration > Appearance > Navigation
+$CFG->defaulthomepage = 1;    // user's home page should be "My Moodle" (HOMEPAGE_MY)
 
 // Site administration > Server > System paths
 $CFG->pathtodu = '/usr/bin/du';

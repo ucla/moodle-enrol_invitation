@@ -220,8 +220,8 @@ $CFG->sitedefaultlicense = 'iown';
 $CFG->fullnamedisplay = 'language'; // CCLE-2550 - Lastname, Firstname sorting
 $CFG->cronclionly = true;
 
-//// Site administration > Appearance > Navigation
-//$CFG->defaulthomepage = 1;    // user's home page should be "My Moodle" (HOMEPAGE_MY)
+// Site administration > Appearance > Navigation
+$CFG->defaulthomepage = 1;    // user's home page should be "My Moodle" (HOMEPAGE_MY)
 
 // Site administration > Server > Session handling
 $CFG->dbsessions = false;
