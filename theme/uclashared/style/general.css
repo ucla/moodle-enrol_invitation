@@ -322,18 +322,18 @@ html, body {background-color:#FFF; height:100%;}
 .dir-rtl #page-header .navbar .navbutton {float:left;}
 
 /** CCLE-2380 Rearrange Materials (editControlLinks) Links **/
-#left-column div.editControlLinks a {
+#region-pre div.editControlLinks a {
 	color: #FF6666;
 	font-size: 0.8em;
 	font-weight: normal;
 
 }
 
-#left-column div.editControlLinks {
+#region-pre div.editControlLinks {
 	text-align: center;
 }
 
-#middle-column div.editControlLinks {
+#region-main div.editControlLinks {
 font-size: .8em;
 margin-top: 2px;
 padding-left: 22px;
@@ -346,7 +346,7 @@ float:left;
   width:80%;*/
 }
 
-#middle-column div.editControlLinks2 {
+#region-main div.editControlLinks2 {
 font-size: .8em;
 margin-top: 2px;
 padding-left: 42px;
@@ -357,7 +357,7 @@ top: 0px;
   float:left;
 }
    
-#middle-column div.editControlLinks a { 
+#region-main div.editControlLinks a { 
 color: #ff6666;
 margin-right: 10px;
 text-decoration: none;
@@ -369,16 +369,16 @@ width:100%;
 clear:left;
 display:block;
 }
-#middle-column div.editControlLinks2 a {
+#region-main div.editControlLinks2 a {
 color: #ff6666;
 margin-right: 10px;
 text-decoration: none;
 }
 
-#middle-column div.section_add_menus {
+#region-main div.section_add_menus {
     float:right;
 }
-#middle-column div.editControlLinks a:hover {
+#region-main div.editControlLinks a:hover {
 color: red;
 margin-right: 10px;
 text-decoration: underline;
@@ -386,7 +386,7 @@ text-decoration: underline;
 img.spacer {  /* used for debugging to locate indent spacers */
 background: #fff;
 }
-/*\*/ * html #middle-column div.editControlLinks {
+/*\*/ * html #region-main div.editControlLinks {
 padding-left: 0;
 background: transparent;
 background-image: none;

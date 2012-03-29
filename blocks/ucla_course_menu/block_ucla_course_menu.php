@@ -267,7 +267,7 @@ class block_ucla_course_menu extends block_navigation {
             $topicstr='&topic='.$topic;
         }        
         if ($this->page->user_is_editing()) {
-            $this->title .= '<div class="editControlLinks"><a title="Rearrange Materials" href="'.$CFG->wwwroot.'/blocks/ucla_rearrange/rearrange.php?course_id='.$this->page->course->id.$topicstr.' ">Rearrange Materials</a></div>';
+            $this->title .= '</h2><div class="editControlLinks"><a title="Rearrange Materials" href="'.$CFG->wwwroot.'/blocks/ucla_rearrange/rearrange.php?course_id='.$this->page->course->id.$topicstr.' ">Rearrange Materials</a></div>';
         }
 
         foreach ($allblocks as $block) {
