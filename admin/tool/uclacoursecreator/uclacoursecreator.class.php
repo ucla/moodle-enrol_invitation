@@ -928,6 +928,7 @@ class uclacoursecreator {
         $fakeroot = new stdclass();
         $fakeroot->name = 'Root';
         $fakeroot->id = 0;
+        $fakeroot->parent = 'None';
         $id_categories[0] = $fakeroot;
 
         $name_categories = array();
