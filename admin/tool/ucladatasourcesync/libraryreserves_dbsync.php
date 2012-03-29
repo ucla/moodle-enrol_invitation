@@ -37,6 +37,7 @@ function update_libraryreserves_db(){
                if ($line != "=== EOF ===\n") {
                            # remove the newline at the end of each line
                                    $line = rtrim($line);
+
                                         $incoming_data[$line_num] = explode("\t", $line);
                }
    }
@@ -85,6 +86,11 @@ function update_libraryreserves_db(){
             
            if ($field_name == 'srs') {
                $data = sprintf('%09s', $data);
+           }
+
+           if ($field_name == 'course_number')
+           {
+               $data = ltrim($data,'0');
            }
           
            $data_incoming[$row][$field] = $data;
