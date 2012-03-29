@@ -628,7 +628,15 @@ function optional_param_array($parname, $default, $type) {
             debugging('Invalid key name in optional_param_array() detected: '.$key.', parameter: '.$parname);
             continue;
         }
-        $result[$key] = clean_param($value, $type);
+        // START UCLA MODIFICATION CCLE-2662 - Roles Migration Local Plugin
+        // Implementing patch provided by plugin creator to make tool work for
+        // Moodle 2.2: http://tracker.moodle.org/browse/MDL-31793
+        if (is_array($value)) {
+            $result[$key] = clean_param_array($value, $type);
+        } else {
+            $result[$key] = clean_param($value, $type);
+        }
+        // END UCLA MODIFICATION CCLE-2662        
     }
 
     return $result;
