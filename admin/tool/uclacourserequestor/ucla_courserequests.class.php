@@ -72,7 +72,7 @@ class ucla_courserequests {
     }
 
     static function get_editables() {
-        return array('mailinst', 'nourlupdate');
+        return array('mailinst', 'nourlupdate', 'action');
     }
 
     /**
@@ -180,18 +180,22 @@ class ucla_courserequests {
                 continue;
             }
 
+            if ($changeset['action'] == UCLA_COURSE_BUILT) {
+                // You cannot change after you've already built a request.
+                continue;
+            }
+
             // Figure out what we're going to end up changing for each entry
             $setprops = array();
             foreach ($checkers as $editable) {
                 if (empty($changeset[$editable])) {
                     $v = 0;
                 } else {
-                    $v = 1;
+                    $v = $changeset[$editable];
                 }
 
                 // this is the value that has is agreed on by the set
                 unset($k);
-
                 foreach ($this->setindex[$setid] as $course) {
                     if (!isset($course[$editable])) {
                         $k = null;
@@ -203,6 +207,7 @@ class ucla_courserequests {
                     if (!isset($k)) {
                         $k = $cv;
                     } else if ($k != $cv) {
+                        // Disagreeing course objects
                         $k = null;
                         break;
                     }

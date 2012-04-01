@@ -689,7 +689,7 @@ function request_ignored($request) {
 /**
  *  This takes all the data for a request, and prepares it to be displayed
  *  as text to a user, including all errors that need to be included.
- *  - THIS SHOULD NEVER CHANGE THE VALUES REPRESENTED BY $requestinfo!!
+ *  This SHOULD NEVER change the values represented by $requestinfo!!
  **/
 function prep_request_entry($requestinfo) {
     global $DB;
@@ -728,13 +728,12 @@ function prep_request_entry($requestinfo) {
 
     // People edit these per row 
     $editable = false;
-    $raction = $requestinfo['action'];
 
-    if ($raction == UCLA_COURSE_TOBUILD && empty($requestinfo[$errs])
-            && !$ignored) {
+    if ($requestinfo['action'] != UCLA_COURSE_BUILT 
+            && empty($requestinfo[$errs]) && !$ignored) {
         $editable = true;
     }
-    
+
     // Request time
     $timestr = '';
     $f = 'timerequested';
@@ -749,17 +748,34 @@ function prep_request_entry($requestinfo) {
     unset($requestinfo[$f]);
 
     // Handle fields where you can use get_string()
-    $translatable = array('action');
+    $tr = 'action';
+    $oldval = $requestinfo[$tr];
+    $inputname = "$key-$tr";
 
-    foreach ($translatable as $tr) {
-        $oldval = $requestinfo[$tr];
+    if ($oldval == UCLA_COURSE_FAILED) {
+        $options = array(
+            UCLA_COURSE_TOBUILD => 
+                requestor_statuses_translate(UCLA_COURSE_TOBUILD), 
+            UCLA_COURSE_FAILED => 
+                requestor_statuses_translate(UCLA_COURSE_FAILED)
+        );
 
+        $formatted[$tr] = html_writer::select($options, $inputname, 
+            UCLA_COURSE_FAILED);
+    } else {
         $formatted[$tr] = 
             html_writer::tag('span', requestor_statuses_translate($oldval),
-                array('class' => $oldval));
-
-        unset($requestinfo[$tr]);
+                array('class' => $oldval)) 
+            . html_writer::empty_tag('input', array(
+                'name' => $inputname, 
+                'type' => 'hidden', 
+                'value' => $oldval
+            ));
+                    
     }
+
+    unset($requestinfo[$tr]);
+    
 
     // Handle separate empty fields with new strings
     $translatables = array('id', 'courseid');
@@ -810,6 +826,10 @@ function prep_request_entry($requestinfo) {
     }
 
     foreach ($editables as $editme) {
+        if (isset($formatted[$editme])) {
+            continue;
+        }
+
         // The defaults should've been handled these a long time ago
         if (!isset($requestinfo[$editme])) {
             $oldval = false;
