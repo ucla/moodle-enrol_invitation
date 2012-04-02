@@ -79,9 +79,11 @@ class ucla_cp_renderer {
      *  Builds the string with the string and the descriptions, pre and post.
      *  @param ucla_cp_module $item_obj - This is the identifier for the 
      *      current control panel item.
+     *  @param link_attributes - Attributes associated with the object if the 
+     *  object is a link.
      *  @return string The DOMs of the control panel description and link.
      **/
-    static function general_descriptive_link($item_obj) {
+    static function general_descriptive_link($item_obj, $link_attributes = null) {
         $fitem = '';
 
         $bucp = $item_obj->associated_block(); 
@@ -104,7 +106,7 @@ class ucla_cp_renderer {
                 $item_obj), array('class' => 'disabled'));
         } else {
             $fitem .= html_writer::link($link, get_string($item, $bucp, 
-                $item_obj));
+                $item_obj), $link_attributes);
         }
 
         // One needs to explicitly hide the post description
