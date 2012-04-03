@@ -598,9 +598,10 @@ while ($section <= $course->numsections) {
                 $center_content .= html_writer::tag('div', $registrar_info,
                     array('class' => 'registrar-info'));
 
-                $center_content .= html_writer::tag('div', 
-                    format_text($course->summary),
+                $center_content .= html_writer::start_tag('div', 
                     array('class' => 'summary'));
+
+                $center_content .= format_text($course->summary);
                 
                 // Editing button for course summary
                 if ($editing && $has_capability_update) {
@@ -626,6 +627,8 @@ while ($section <= $course->numsections) {
                     $center_content .= html_writer::empty_tag('br');
                     $center_content .= html_writer::empty_tag('br');
                 }
+
+                $center_content .= html_writer::end_tag('div');
    
                 // Instructor informations
                 $instr_info = '';
@@ -777,6 +780,7 @@ while ($section <= $course->numsections) {
         if ($editing) {
             echo $right_side;
         }
+
         echo $center_content;
 
         // End of the section
