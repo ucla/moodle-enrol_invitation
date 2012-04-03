@@ -543,11 +543,16 @@ while ($section <= $course->numsections) {
 
         //////////////// Actual Section Content /////////////////////////
         $css_classes = 'content';
+        if ($editing) {
+            $css_classes .= ' editing';
+        }
         $center_content = html_writer::start_tag('div', 
             array('class' => $css_classes));
             
-        // Do not display hidden sections to students
         if (!$has_capability_viewhidden and !$thissection->visible) {
+            // Do not display hidden section contents to students, if we have
+            // the option to show the fact that sections are hidden to students
+            // enabled.
             $center_content .= get_string('notavailable');
         } else {
             $section_title_class = 'headerblock header outline';
@@ -692,6 +697,12 @@ while ($section <= $course->numsections) {
                 // Callback to determine the section title displayed
                 $section_name = get_section_name($course, $thissection);
 
+                if ($has_capability_viewhidden && !$thissection->visible) {
+                    $section_name .= html_writer::tag('span',
+                        ' (' . get_string('hiddenfromstudents') . ')', 
+                        array('class' => 'hidden'));
+                }
+
                 // Print the section name
                 $center_content .= $OUTPUT->heading($section_name, 2, 
                     $section_title_class);
@@ -760,7 +771,12 @@ while ($section <= $course->numsections) {
         $center_content .= html_writer::end_tag('div');
 
         echo $left_side;
-        echo $right_side;
+
+        // No need to display the box thing if there are no AJAX editing
+        // commands that rely on that to be there
+        if ($editing) {
+            echo $right_side;
+        }
         echo $center_content;
 
         // End of the section
