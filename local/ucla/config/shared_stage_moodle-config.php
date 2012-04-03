@@ -217,6 +217,9 @@ $CFG->aspellpath = '/usr/bin/aspell';
 // Site administration > Server > Session handling
 $CFG->dbsessions = false;
 
+// Site administration > Server > Performance
+$CFG->extramemorylimit = '1024M';
+
 /** 
  *  Automatic Shibboleth configurations.
  *  Disabling in favor for GUI configurations.
