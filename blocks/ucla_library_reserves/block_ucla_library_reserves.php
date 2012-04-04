@@ -61,7 +61,7 @@ class block_ucla_library_reserves extends block_base {
                         $reginfo = ucla_get_reg_classinfo($courseterm, $coursesrs);
 
                         if(!empty($reginfo)) {
-                            $lrnodes = $DB->get_record('ucla_library_reserves', array('quarter'=>$courseterm, 'department_code'=>$reginfo->subj_area, 'department_code'=>$reginfo->coursenum));
+                            $lrnodes = $DB->get_record('ucla_library_reserves', array('quarter'=>$courseterm, 'department_code'=>$reginfo->subj_area, 'course_number'=>$reginfo->coursenum));
                         }
                     }
                 }
@@ -70,7 +70,9 @@ class block_ucla_library_reserves extends block_base {
                 if($lrnodes != false) {
 
                     if (!empty($lrnodes->url)) {
-                        $nodes = array(navigation_node::create(get_string('displayname','block_ucla_library_reserves'), new moodle_url($lrnodes->url))); 
+
+                        // Must hardcode the naming string since this is a static function
+                        $nodes = array(navigation_node::create('Library Reserves', new moodle_url($lrnodes->url))); 
                         break;
                     }
 
