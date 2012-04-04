@@ -584,7 +584,6 @@ class enrol_database_plugin extends enrol_plugin {
 
             // get list of users that need to be enrolled and their roles
             $requested_roles = array();
-            // Split this query into multiple StorProc calls and use that for the small chunk inside
 
             // START UCLA MODIFICATION CCLE-2275: Prepopulate (ucla tinkering)
             if (!empty($enrolment_info[$course->mapping])) {
@@ -609,7 +608,10 @@ class enrol_database_plugin extends enrol_plugin {
                             $user->timecreated = time();
                             $user->password = '';
                             $user->auth = 'shibboleth';
-                            $user->{$localuserfield} = $fields[$userfield];
+                            $user->mnethostid = $CFG->mnet_localhost_id;
+                            
+                            // This will fill in user fields with stored procedure
+                            // data such as firstname lastname
                             foreach ($fields as $k => $v) {
                                 $user->{$k} = $v;
                             }
