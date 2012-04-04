@@ -30,6 +30,11 @@ require_once($CFG->libdir.'/completionlib.php');
 
 global $CFG, $USER, $PAGE;
 
+// Include our custom ajax overwriters.
+// This needs to be printed after the headers, but before the footers.
+echo html_writer::script(false, 
+    new moodle_url('/course/format/ucla/sections.js'));
+
 // Course preferences
 $course_prefs = new ucla_course_prefs($course->id);
 
@@ -43,7 +48,7 @@ list($to_topic, $displaysection) = ucla_format_figure_section($course,
 course_set_display($course->id, $to_topic);
 
 // Leave in marker functionality, this isn't really used except visually
-// TODO maybe use it for other stuff
+// TODO maybe use it for other stuff, like landing page?
 if (($marker >= 0) 
         && has_capability('moodle/course:setcurrentsection', $context) 
         && confirm_sesskey()) {
@@ -70,7 +75,8 @@ $has_capability_update = has_capability('moodle/course:update', $context);
 $get_accesshide = get_accesshide(get_string('currenttopic', 'access'));
 
 // Cache all these get_string(), because you know, they're cached already...
-$streditsummary   = get_string('editsummary');
+$streditsummary   = get_string('editcoursetitle', 'format_ucla');
+$streditsectionsummary = get_string('editsectiontitle', 'format_ucla');
 $stradd           = get_string('add');
 $stractivities    = get_string('activities');
 $strshowalltopics = get_string('showalltopics');
@@ -613,13 +619,7 @@ while ($section <= $course->numsections) {
 
                     $moodle_url = new moodle_url('edit.php', $url_options);
 
-                    $img_options = array(
-                            'src' => $OUTPUT->pix_url('t/edit'),
-                            'class' => 'icon edit',
-                            'alt' => $streditsummary
-                        );
-
-                    $innards = html_writer::empty_tag('img', $img_options);
+                    $innards = $streditsummary;
 
                     $center_content .= html_writer::link($moodle_url, 
                         $innards, $link_options);
@@ -702,7 +702,7 @@ while ($section <= $course->numsections) {
 
                 if ($has_capability_viewhidden && !$thissection->visible) {
                     $section_name .= html_writer::tag('span',
-                        ' (' . get_string('hiddenfromstudents') . ')', 
+                        ' (' . get_string('hidden', 'calendar') . ')', 
                         array('class' => 'hidden'));
                 }
 
@@ -737,26 +737,22 @@ while ($section <= $course->numsections) {
                         'id' => $thissection->id,
                     );
 
-                $link_options = array('title' => $streditsummary);
+                $link_options = array('title' => $streditsectionsummary);
 
                 $moodle_url = new moodle_url('editsection.php', $url_options);
 
-                $img_options = array(
-                        'src' => $OUTPUT->pix_url('t/edit'),
-                        'class' => 'icon edit',
-                        'alt' => $streditsummary
-                    );
-
-                $innards = html_writer::empty_tag('img', $img_options);
+                $innards = $streditsectionsummary;
 
                 $center_content .= html_writer::link($moodle_url, 
                     $innards, $link_options);
 
-                $center_content .= html_writer::empty_tag('br');
-                $center_content .= html_writer::empty_tag('br');
             }
 
             $center_content .= html_writer::end_tag('div');
+
+            if ($editing) {
+                $center_content .= $right_side;
+            }
 
             ob_start();
             print_section($course, $thissection, $mods, $modnamesused);
@@ -778,7 +774,7 @@ while ($section <= $course->numsections) {
         // No need to display the box thing if there are no AJAX editing
         // commands that rely on that to be there
         if ($editing) {
-            echo $right_side;
+//            echo $right_side;
         }
 
         echo $center_content;

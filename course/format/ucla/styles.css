@@ -29,7 +29,7 @@
 .course-content .section.main .left.side a {visibility:visible;}
 
 .course-content ul.topics li.section .content.editing {
-    margin: 0 33px 0 20px;
+    margin: 0 0 0 20px;
 }
 
 .course-content ul.topics li.section .content .sectionname {
@@ -53,9 +53,13 @@
 
 .course-content ul.topics li.section .right {
     width: 40px;
-    float: right;
+    float: none;
     text-align: left;
-    /* display: none; */
+    display: inline;
+}
+
+.course-content ul.topics li.section .right div {
+    display: inline;
 }
 
 .course-content ul.topics li.section .content .registrar-info {
