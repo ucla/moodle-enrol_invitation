@@ -47,7 +47,7 @@ class block_ucla_weeksdisplay extends block_base {
         
         //Include registrar files.
         ucla_require_registrar();
-        
+        global $CFG;
         //If the current term is not valid, heuristically initialize it.
         if(ucla_validator('term', $CFG->currentterm) == false) {
             init_currentterm();
@@ -61,14 +61,76 @@ class block_ucla_weeksdisplay extends block_base {
         //Compare the session start date with the system date
         $system_date = date('c');
         if(isset($regular_sessions[RG])) {
-            //Compare 
-            cmp_dates($system_date,$regular_sessions[RG][7]);
-            
+            $is_date_in_session = 
+                    is_date_in_session($system_date,$regular_sessions[RG]);
+            if($is_date_in_session == 0){
+                //get_current_week_display($system_date, $regular_sessions[RG])
+            }
         }
         //else if();
         
     }
 
+   /**
+    * Takes in a session and a date belonging to that session, and returns the
+    * current_week_display string associated with the date
+    * 
+    * @param date string that starts with the format YYYY-MM-DD that has to be 
+    * either within the session start/end dates, or before the sessions start
+    * date and after the previous session's end date.
+    * @param session a session object returned by ucla_getterms registrar query
+    * @return the current_week_display string with format:
+    * <Quarter> <Year> - Week <Week number> on a normal week.
+    * <Quarter> <Year> - Finals Week for week 11.
+    * <Quarter> <Year> - Week 0 if instruction_start > session_start
+    * <Quarter> <Year> for all other days that don't fit the stuff above.
+    * Summer <Year> - Session A, Week <Week number>
+    * Summer <Year> - Session A, Week <Week number> / Session C, Week <Week number>
+    * Summer <Year> - Session C, Week <Week number> 
+    * for the various summer sessions.
+    */      
+    function get_current_week_display($date, $session){
+        //Array whose index represents the month (1 = January, etc) and value
+        //has the number of days in that month. Februrary is defined as 28 days.
+        $days_per_month[1] = 31;
+        // <editor-fold defaultstate="collapsed" desc="Rest of days_per_month declaration">        
+        $days_per_month[2] = 28;
+        $days_per_month[3] = 31;
+        $days_per_month[4] = 30;
+        $days_per_month[5] = 31;
+        $days_per_month[6] = 30;
+        $days_per_month[7] = 31;
+        $days_per_month[8] = 31;
+        $days_per_month[9] = 31;
+        $days_per_month[10] = 31;
+        $days_per_month[11] = 30;
+        $days_per_month[12] = 31; // </editor-fold>
+
+        $session_start_date = $session[5];
+        $session_end_date = $session[6];
+        $instruction_start_date = $session[7];
+ 
+        $date_vs_session_start = cmpdate($date, $session_start_date);
+        $date_vs_end = cmpdate($date, $session_end_date);       
+        $date_vs_instruction_start = cmpdate($date, $instruction_start_date);
+        
+  
+        $parsed_date = parse_date($date);
+        $parsed_session_start_date = parse_date($session[5]);
+        $parsed_session_end_date = parse_date($session[6]);
+        $parsed_instruction_start_date = parse_date($session[7]);        
+        //If the date is in Week 0.
+        if($date_vs_session_start >= 0 && $date_vs_instruction_start < 0){
+            return ucla_term_to_text($session[0])." - Week 0";
+        }
+        else if($date_vs_instruction_start >= 0 && $date_vs_session_end >= 0){
+            //$parsed_instruction_start_date
+            
+        }
+        //else if()
+        
+    }
+    
    /**
     * Compare
     * @param date string that starts with the format YYYY-MM-DD
@@ -78,7 +140,24 @@ class block_ucla_weeksdisplay extends block_base {
     *         -1 if date1 comes before the instruction start date.
     */  
     function is_date_in_session($date, $session){
+        //TODO: Check if this is a valid session?
+        $session_start_date = $session[5];
+        $session_end_date = $session[6];
         
+        $date_vs_start = cmpdate($date, $session_start_date);
+        $date_vs_end = cmpdate($date, $session_end_date);
+        
+        //If the date comes after start of session and before end of session
+        //("after" and "before" include if date is the same as session dates)        
+        if($date_vs_start >= 0 && $date_vs_end <= 0) {
+            return 0;
+        } else if($date_vs_start <= -1) {
+            //If the date comes before the start of session
+            return -1;
+        } else { //if($date_vs_end == 1){
+            //If the date comes after the end of session
+            return 1;
+        }
     }
     
    /**
@@ -126,7 +205,7 @@ class block_ucla_weeksdisplay extends block_base {
     *         [4] =>  (session_name, currently blank) 
     *         [5] => 2009-01-05 00:00:00.000 (session_start) 
     *         [6] => 2009-03-28 00:00:00.000 (session_end) 
-    *         [7] => 2009-01-05 00:00:00.000 (instruction start) 
+    *         [7] => 2009-01-12 00:00:00.000 (instruction start) 
     */
     function find_regular_sessions($query_obj){
         
@@ -158,10 +237,7 @@ class block_ucla_weeksdisplay extends block_base {
         $date_obj['day'] = intval(substr($date, 8, 2));    
         return $date_obj;
     }    
-    
-    function validate_currentterm(){
-        
-    }
+
    /**
     * Compares 2 dates and returns which one is earlier.
     * @param date1, date2  strings that start with the format YYYY-MM-DD

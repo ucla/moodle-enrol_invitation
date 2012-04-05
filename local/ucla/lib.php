@@ -314,7 +314,7 @@ function ucla_get_courses_by_terms($terms) {
  * 
  * @param string term
  * @param char session      If session is passed, then, assuming the term is 
- *                          summer, will return 121, A => Summer Session A 2012
+ *                          summer, will return 121, A => Summer 2012 - Session A
  **/
 function ucla_term_to_text($term, $session=null) {
     $term_letter = strtolower(substr($term, -1, 1));
@@ -329,15 +329,15 @@ function ucla_term_to_text($term, $session=null) {
         $termtext = "Spring";
     } else {
         // 1 -> Summer
-        if (!empty($session)) {
-            $termtext = "Summer Session " . strtoupper($session);   
-        } else {
-            $termtext = "Summer";
-        }
+        $termtext = "Summer";
     }
 
     $years = substr($term, 0, 2);
     $termtext .= " 20$years";    
+    
+    if ($term_letter == "1" && !empty($session)) {
+        $termtext .= " - Session " . strtoupper($session);   
+    }   
     
     return $termtext;
 }
