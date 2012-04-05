@@ -227,11 +227,11 @@ class block_ucla_course_menu extends block_navigation {
                 if(is_number($sectionname)) {
                     $sectionname = get_string('sectionname', "format_weeks") 
                             . " " . $sectionname;
-                }
+                }              
             }
 
             $sectionname = strip_tags($sectionname);
-
+            
             if (!$viewhiddensections && !$section->visible) {
                 continue;
             }
@@ -244,6 +244,11 @@ class block_ucla_course_menu extends block_navigation {
                     $topic_param => $sectnum
                 )), navigation_node::TYPE_SECTION
             );
+            
+            // Indicate that section is hidden
+            if(!$section->visible) {
+                $elements[$key]->classes = array("block_ucla_course_menu_hidden");
+            }
         }
 
         // TODO get navigation to detect this if it is view all.
@@ -256,7 +261,7 @@ class block_ucla_course_menu extends block_navigation {
                     $topic_param => UCLA_FORMAT_DISPLAY_ALL
                 )), navigation_node::TYPE_SECTION);
         }
-
+        
         return $elements;
     }
 
