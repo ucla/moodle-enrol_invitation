@@ -52,14 +52,15 @@
 }
 
 .course-content ul.topics li.section .right {
-    width: 40px;
     float: none;
     text-align: left;
     display: inline;
+    padding-left: 18px;
 }
 
 .course-content ul.topics li.section .right div {
     display: inline;
+    padding: 0 2px 0 8px;
 }
 
 .course-content ul.topics li.section .content .registrar-info {
@@ -71,8 +72,23 @@
     margin: 1em 0;
 }
 
-.course-content ul.topics li.section .content h2 {
+.course-content ul.topics li.section .sectionheader {
     border-bottom: 1px solid #ABBAD1;
+}
+
+.course-content ul.topics li.section .sectionheader h2 {
+    display: inline;
+}
+
+.course-content ul.topics li.section .sectionheader div span {
+    margin-right: 2px;
+}
+
+.course-content ul.topics li.section .sectionheader div span a,
+.course-content ul.topics li.section .sectionheader div a,
+.course-content ul.topics li.section .sectionheader div div {
+    color: #FF6666;
+    padding-left: 8px;
 }
 
 .section .groupinglabel {
@@ -81,6 +97,7 @@
 
 .section .content h2 .hidden {
     color: #666666;
+    padding-left: 4px;
 }
 
 .jumpmenu {
