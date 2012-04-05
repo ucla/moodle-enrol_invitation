@@ -1,3 +1,12 @@
+.course-content .section.main .left.side {
+    visibility:hidden;
+    float: left;
+    width: 0px !important;
+    padding: 0px !important;
+}
+.course-content .section.main .left.side .accesshide {visibility:visible;}
+.course-content .section.main .left.side a {visibility:visible;}
+
 .course-content ul.topics {
     margin: 0;
 }
@@ -9,9 +18,8 @@
     border: 0;
 }
 
-.course-content ul.topics li.section .content .defsection {
-    font-style: italic;
-    color: gray;
+.course-content ul.topics li.section.hidden {
+    background-color: #C0C0C0;
 }
 
 .course-content ul.topics li.section .content {
@@ -19,25 +27,28 @@
     padding: 5px 8px 5px 8px;
 }
 
-.course-content .section.main .left.side {
-    visibility:hidden;
-    float: left;
-    width: 0px !important;
-    padding: 0px !important;
+.course-content ul.topics li.section .content .editbutton a {
+    color: #FF6666;
+    margin: 0;
 }
-.course-content .section.main .left.side .accesshide {visibility:visible;}
-.course-content .section.main .left.side a {visibility:visible;}
 
 .course-content ul.topics li.section .content.editing {
     margin: 0 0 0 20px;
 }
 
-.course-content ul.topics li.section .content .sectionname {
-    margin: 0;
+.course-content ul.topics li.section .content .registrar-info {
+    color: gray;
+    font-weight: bold;
 }
 
-.course-content ul.topics li.section.hidden {
-    background-color: #C0C0C0;
+
+.course-content ul.topics li.section .content .defsection {
+    font-style: italic;
+    color: gray;
+}
+
+.course-content ul.topics li.section .content .sectionname {
+    margin: 0;
 }
 
 .course-content ul.topics li.section .content .section_add_menus {
@@ -61,11 +72,6 @@
 .course-content ul.topics li.section .right div {
     display: inline;
     padding: 0 2px 0 8px;
-}
-
-.course-content ul.topics li.section .content .registrar-info {
-    color: gray;
-    font-weight: bold;
 }
 
 .course-content ul.topics li.section .content p {

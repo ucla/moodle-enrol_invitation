@@ -544,11 +544,7 @@ while ($section <= $course->numsections) {
                 $center_content .= html_writer::tag('div', $registrar_info,
                     array('class' => 'registrar-info'));
 
-                $center_content .= html_writer::start_tag('div', 
-                    array('class' => 'summary'));
 
-                $center_content .= format_text($course->summary);
-                
                 // Editing button for course summary
                 if ($editing && $has_capability_update) {
                     $url_options = array(
@@ -561,13 +557,16 @@ while ($section <= $course->numsections) {
 
                     $innards = $streditsummary;
 
-                    $center_content .= html_writer::link($moodle_url, 
-                        $innards, $link_options);
+                    $center_content .= html_writer::tag('span', 
+                        html_writer::link($moodle_url, 
+                            $innards, $link_options),
+                        array('class' => 'editbutton'));
 
-                    $center_content .= html_writer::empty_tag('br');
-                    $center_content .= html_writer::empty_tag('br');
                 }
 
+                $center_content .= html_writer::start_tag('div', 
+                    array('class' => 'summary'));
+                $center_content .= format_text($course->summary);
                 $center_content .= html_writer::end_tag('div');
    
                 // Instructor informations
