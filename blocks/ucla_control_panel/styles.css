@@ -53,3 +53,6 @@ h2.main.copan-title {
 #my_ucla_functions.generaltable, #my_ucla_functions.generaltable .cell {
     border: none;
 }
+#my_ucla_functions.generaltable {
+    width: 100%;  
+}
