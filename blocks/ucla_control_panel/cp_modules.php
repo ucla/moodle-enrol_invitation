@@ -195,6 +195,9 @@ $modules[] = new ucla_cp_module('course_grades', new moodle_url(
 
 /******************************** Student Functions *********************/
 //Only display this section if the user is a student in the course.
+//TODO: this module currently depends on the myucla_row_renderer since that
+//renderer opens links in new tabs (which the normal renderer does not normally
+//do. If the control panel is to be refactored later, make this not terrib
 if(has_role_in_context("student",$context)){
     $temp_cap = null;
     $temp_tag = array('ucla_cp_mod_student');
@@ -216,13 +219,18 @@ if(has_role_in_context("student",$context)){
     //Do not display these courses if the user is not currently on a valid course page.
     if (! empty($course_info)){
         //Add all course related links.
+        $temp_tag = array('ucla_cp_mod_myucla');
+        $temp_cap = null;
+        $modules[] = new ucla_cp_module('ucla_cp_mod_myucla', null, null, $temp_cap);
+        
+        $myucla_row = new ucla_cp_myucla_row_module($temp_tag,$temp_cap);
         $first_course = array_shift(array_values($course_info));
         $course_term = $first_course->term;
         $course_srs = $first_course->srs;
-        $modules[] =  new ucla_cp_module('student_myucla_grades', new moodle_url(
-        'https://be.my.ucla.edu/directLink.aspx?featureID=71&term='.$course_term.'&srs='.$course_srs), $temp_tag, $temp_cap);
-        $modules[] =  new ucla_cp_module('student_myucla_classmates', new moodle_url(
-        'https://be.my.ucla.edu/directLink.aspx?featureID=72&term='.$course_term.'&srs='.$course_srs), $temp_tag, $temp_cap);
+        $myucla_row->add_element( new ucla_cp_module('student_myucla_grades', new moodle_url(
+        'https://be.my.ucla.edu/directLink.aspx?featureID=71&term='.$course_term.'&srs='.$course_srs), 'ucla_cp_mod_myucla', $temp_cap));
+        $myucla_row->add_element( new ucla_cp_module('student_myucla_classmates', new moodle_url(
+        'https://be.my.ucla.edu/directLink.aspx?featureID=72&term='.$course_term.'&srs='.$course_srs), 'ucla_cp_mod_myucla', $temp_cap));
         if($first_course->term[2]=='1'){//summer course
             global $DB;
 
@@ -235,9 +243,11 @@ if(has_role_in_context("student",$context)){
                 $session = '';
             }
         }
-        $modules[] = new ucla_cp_module('student_myucla_textbooks', new moodle_url(
+        $myucla_row->add_element( new ucla_cp_module('student_myucla_textbooks', new moodle_url(
                 'http://www.collegestore.org/textbookstore/main.asp?remote=1&ref=ucla&term='.$course_term.$session.'&course='.$course_srs.'&getbooks=Display+books')
-                , $temp_tag, $temp_cap);   
+                , 'ucla_cp_mod_myucla', $temp_cap));  
+        
+        $modules[] = $myucla_row;
     }
 }
 //Functions for features that haven't been implemented in moodle 2.0 yet.
