@@ -5,7 +5,8 @@
 
 require_once(dirname(__FILE__) . '/../../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
-require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/uclacoursecreator/uclacoursecreator.class.php');
+$uccdirr = '/tool/uclacoursecreator/uclacoursecreator.class.php';
+require_once($CFG->dirroot . '/' . $CFG->admin . $uccdirr);
 $thisdir = '/' . $CFG->admin . '/tool/uclacourserequestor/';
 require_once($CFG->dirroot . $thisdir . 'lib.php');
 
@@ -399,23 +400,25 @@ if (!empty($requeststable->data)) {
             'value' => base64_encode(serialize($pass_uclacrqs)),
             'name' => $uf 
         ));
-    try {
-        $coursebuilder->handle_locking(true);
-        $coursebuilder->handle_locking(false);
-        echo html_writer::tag('input', '', array(
-            'type' => 'submit',
-            'name' => 'buildcourses',	
-            'value' => get_string('buildcourses', $rucr),
-            'class' => 'right',
-        ));
-    } catch(course_creator_exception $e) {
-        echo html_writer::tag('input', '', array(
-            'type' => 'submit',
-            'name' => 'buildcourses',	
-            'value' => get_string('alreadybuild', $rucr),
-            'class' => 'right',
-            'disabled' => true
-         ));
+    if (get_config('theme_uclashared', 'running_environment')!= 'prod') {
+        try {
+            $coursebuilder->handle_locking(true);
+            $coursebuilder->handle_locking(false);
+            echo html_writer::tag('input', '', array(
+                'type' => 'submit',
+                'name' => 'buildcourses',	
+                'value' => get_string('buildcourses', $rucr),
+                'class' => 'right',
+            ));
+        } catch(course_creator_exception $e) {
+            echo html_writer::tag('input', '', array(
+                'type' => 'submit',
+                'name' => 'buildcourses',	
+                'value' => get_string('alreadybuild', $rucr),
+                'class' => 'right',
+                'disabled' => true
+            ));
+        }
     }        
     echo html_writer::table($requeststable);
 
