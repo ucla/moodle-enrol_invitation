@@ -70,9 +70,14 @@ class block_ucla_weeksdisplay extends block_base {
     }
 
    /**
-    * Checks the system 
-    */
-    function is_current_date_in_session(){
+    * Compare
+    * @param date string that starts with the format YYYY-MM-DD
+    * @param session a session object returned by ucla_getterms registrar query
+    * @return 1 if date comes after the session's session_end date.
+    *         0 if date is between the instruction start and session end dates.
+    *         -1 if date1 comes before the instruction start date.
+    */  
+    function is_date_in_session($date, $session){
         
     }
     
@@ -138,6 +143,21 @@ class block_ucla_weeksdisplay extends block_base {
         
         return $regular_sessions;
     }
+
+   /**
+    * @param date string that starts with the format YYYY-MM-DD
+    * @return a date object with indices year,month,day.
+    * Date['year'] = YYYY
+    * Date['month'] = MM
+    * Date['day'] = DD
+    */
+    function parse_date($date){
+        
+        $date_obj['year'] = intval(substr($date, 0, 4));
+        $date_obj['month'] = intval(substr($date, 5, 2));        
+        $date_obj['day'] = intval(substr($date, 8, 2));    
+        return $date_obj;
+    }    
     
     function validate_currentterm(){
         
@@ -150,31 +170,24 @@ class block_ucla_weeksdisplay extends block_base {
     *         -1 if date1 comes before date2.
     */   
     function cmp_dates($date1, $date2){
+        $date1_obj = parse_date($date1);
+        $date2_obj = parse_date($date2);
         
-        $date1_year = intval(substr($date1, 2, 2));
-        $date2_year = intval(substr($date2, 2, 2));
-        
-        if($date1_year > $date2_year) { 
+        if($date1_obj['year'] > $date2_obj['year']) { 
             return 1; 
-        } else if($date1_year < $date2_year) { 
+        } else if($date1_obj['year'] < $date2_obj['year']) { 
             return -1; 
-        } else { //$date1_year == $date2_year
+        } else { //$date1 year == $date2 year            
             
-            $date1_month = intval(substr($date1, 5, 2));
-            $date2_month = intval(substr($date2, 5, 2)); 
-            
-            if($date1_month > $date2_month){
+            if($date1_obj['month'] > $date2_obj['month']){
                 return 1;
-            } else if($date1_month < $date2_month){
+            } else if($date1_obj['month'] < $date2_obj['month']){
                 return -1;
             } else { //$date1_month == $date2_month
-                
-                $date1_day = intval(substr($date1, 8, 2));   
-                $date2_day = intval(substr($date2, 8, 2));  
-                
-                if($date1_day > $date2_day){
+                               
+                if($date1_obj['day'] > $date2_obj['day']){
                     return 1;
-                } else if($date1_day < $date2_day){
+                } else if($date1_obj['day'] < $date2_obj['day']){
                     return -1;
                 } else{
                     return 0;
@@ -186,3 +199,4 @@ class block_ucla_weeksdisplay extends block_base {
 }
 
 //EOF
+
