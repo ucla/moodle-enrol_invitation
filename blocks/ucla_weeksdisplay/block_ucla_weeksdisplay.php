@@ -21,6 +21,17 @@ require_once($CFG->dirroot . '/local/ucla/lib.php');
 
 class block_ucla_weeksdisplay extends block_base {
     
+    /*
+     * Session code for a regular fall/winter/spring session.
+     */
+    const RG = 'RG'; 
+     /*
+     * Session codes for the various regular summer sessions.
+     */   
+    const S1 = '6A'; 
+    const S2 = '8A';
+    const S3 = '6C';
+    
     function init() {
         $this->title = get_string('pluginname', 'block_ucla_weeksdisplay');
        // $this->content_type = BLOCK_TYPE_TEXT;
@@ -31,6 +42,146 @@ class block_ucla_weeksdisplay extends block_base {
         global $CFG;
         return ucla_term_to_text($CFG->currentterm);
     }
+    
+    function cron(){
+        
+        //Include registrar files.
+        ucla_require_registrar();
+        
+        //If the current term is not valid, heuristically initialize it.
+        if(ucla_validator('term', $CFG->currentterm) == false) {
+            init_currentterm();
+        }
+        
+        //Run the query and parse out the regular sessions.
+        $query_result = registrar_query::run_registrar_query(
+                'ucla_getterms', array($CFG->currentterm));
+        $regular_sessions = find_regular_sessions($query_result);
+        
+        //Compare the session start date with the system date
+        $system_date = date('c');
+        if(isset($regular_sessions[RG])) {
+            //Compare 
+            cmp_dates($system_date,$regular_sessions[RG][7]);
+            
+        }
+        //else if();
+        
+    }
+
+   /**
+    * Checks the system 
+    */
+    function is_current_date_in_session(){
+        
+    }
+    
+   /**
+    * Sets $CFG->currentterm to the current term based on the system date.
+    * Note that this function heuristically sets the term, and may not be
+    * accurate 100% of the time.
+    */
+    function init_currentterm(){
+        global $CFG;
+        $date = date('c'); //returns string of format 2004-02-12T15:19:21+00:00
+        $year = substr($date, 2, 2); 
+        
+        //Figure out what quarter it is based on the month.
+        $month = intval(substr($date, 5, 2));
+        if($month <= 0 || $month > 12) {
+            debugging("Invalid system date month: ".$month);
+        } else if($month <= 3){
+            $CFG->currentterm = $year."W";
+        } else if($month <= 6) {
+            $CFG->currentterm = $year."S";   
+        } else if($month <= 9) {
+            $CFG->currentterm = $year."1";
+        } else {//if($month <= 12) 
+            $CFG->currentterm = $year."F";
+        }        
+    }
+    
+   /**
+    * Parses the object returned by a ucla_getterms registrar query 
+    * (which is an array of session objects for the term),
+    * and returns an array of the regular sessions (it's session variable is 
+    * either RG, 6A, 6C, or 8A, which are the only ones we care about)
+    * within the object.
+    * 
+    * @param query object $query_obj the object returned by the query.
+    * @return an array of "regular" session objects.
+    * 
+    * Notes: a session object contains the following values:
+    * (the only relevant values are 0,3,5,6,7).
+    *  format: [Index] => Example value (what the value represents)
+    *         [0] => 09W (term) 
+    *         [1] => 2009-01-05 00:00:00.000 (term_start) 
+    *         [2] => 2009-03-28 00:00:00.000  (term_end) 
+    *         [3] => RG (session) 
+    *         [4] =>  (session_name, currently blank) 
+    *         [5] => 2009-01-05 00:00:00.000 (session_start) 
+    *         [6] => 2009-03-28 00:00:00.000 (session_end) 
+    *         [7] => 2009-01-05 00:00:00.000 (instruction start) 
+    */
+    function find_regular_sessions($query_obj){
+        
+        $regular_sessions;
+        
+        foreach($query_obj as $session){
+            
+            //If the session is a "regular" session, add it to the list.
+            if($session[3] == RG || $session[3] == S1 
+                    || $session[3] == S2 || $session[3] == S3){
+                $regular_sessions[$session[3]] = $session;
+            }
+        }
+        
+        return $regular_sessions;
+    }
+    
+    function validate_currentterm(){
+        
+    }
+   /**
+    * Compares 2 dates and returns which one is earlier.
+    * @param date1, date2  strings that start with the format YYYY-MM-DD
+    * @return 1 if date1 comes after date2.
+    *         0 if date1 is the same as date2
+    *         -1 if date1 comes before date2.
+    */   
+    function cmp_dates($date1, $date2){
+        
+        $date1_year = intval(substr($date1, 2, 2));
+        $date2_year = intval(substr($date2, 2, 2));
+        
+        if($date1_year > $date2_year) { 
+            return 1; 
+        } else if($date1_year < $date2_year) { 
+            return -1; 
+        } else { //$date1_year == $date2_year
+            
+            $date1_month = intval(substr($date1, 5, 2));
+            $date2_month = intval(substr($date2, 5, 2)); 
+            
+            if($date1_month > $date2_month){
+                return 1;
+            } else if($date1_month < $date2_month){
+                return -1;
+            } else { //$date1_month == $date2_month
+                
+                $date1_day = intval(substr($date1, 8, 2));   
+                $date2_day = intval(substr($date2, 8, 2));  
+                
+                if($date1_day > $date2_day){
+                    return 1;
+                } else if($date1_day < $date2_day){
+                    return -1;
+                } else{
+                    return 0;
+                }
+            }     
+        }   
+    }    
     
 }
 
