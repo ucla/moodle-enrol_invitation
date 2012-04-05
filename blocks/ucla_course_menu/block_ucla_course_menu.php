@@ -209,7 +209,7 @@ class block_ucla_course_menu extends block_navigation {
 
         $viewhiddensections = has_capability(
             'moodle/course:viewhiddensections', $this->page->context);
-
+        
         foreach ($sections as $section) {
             // TESTINGCCLE-531: Course setting for num sections not reflected.
             if ($section->section > $this->page->course->numsections) {
@@ -221,6 +221,13 @@ class block_ucla_course_menu extends block_navigation {
                     $section);
             } else {
                 $sectionname = $section->name;
+                
+                // We want to pre-pend section names with 'Week' if the name 
+                // is a number
+                if(is_number($sectionname)) {
+                    $sectionname = get_string('sectionname', "format_weeks") 
+                            . " " . $sectionname;
+                }
             }
 
             $sectionname = strip_tags($sectionname);

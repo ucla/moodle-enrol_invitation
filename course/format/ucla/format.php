@@ -311,7 +311,8 @@ while ($section <= $course->numsections) {
         $thissection = new stdClass;
         $thissection->course  = $course->id;   
         $thissection->section = $section;
-        $thissection->name = null;
+        // Assign the week number as default name
+        $thissection->name = $section;
         $thissection->summary = '';
         $thissection->summaryformat = FORMAT_HTML;
         $thissection->visible  = 1;
