@@ -5,7 +5,7 @@
 
 require_once(dirname(__FILE__) . '/../../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
-
+require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/uclacoursecreator/uclacoursecreator.class.php');
 $thisdir = '/' . $CFG->admin . '/tool/uclacourserequestor/';
 require_once($CFG->dirroot . $thisdir . 'lib.php');
 
@@ -23,7 +23,6 @@ if (!has_capability('tool/uclacourserequestor:edit', $syscontext)) {
 
 $selterm = optional_param('term', false, PARAM_ALPHANUM);
 $selected_term = $selterm ? $selterm : get_config($rucr, 'selected_term');
-
 if (!$selected_term) {
     $selected_term = $CFG->currentterm;
 }
@@ -59,7 +58,6 @@ $top_forms = array(
 );
 
 $termstr = get_config($rucr, 'terms');
-
 if (!empty($termstr)) {
     $terms = array();
 
@@ -88,7 +86,6 @@ $nv_cd = array(
     'terms' => $terms,
     'prefields' => $prefieldsdata
 );
-
 // We're going to display the forms, but later
 $cached_forms = array();
 
@@ -140,10 +137,11 @@ foreach ($top_forms as $gk => $group) {
 // In this situation, we are assuming all information is
 // logically correct but properly sanitized
 $saverequeststates = false;
+$coursebuilder = new uclacoursecreator();
+$forcebuild = false;
 $changes = array();
 if ($requests === null) {
     $prevs = data_submitted();
-
     if (!empty($prevs)) {
         if (!empty($prevs->formcontext)) {
             $groupid = $prevs->formcontext;
@@ -154,8 +152,16 @@ if ($requests === null) {
             $saverequeststates = true;
         }
 
+        if (!empty($prevs->{'buildcourses'})) {
+            try {
+                $coursebuilder->handle_locking(true);
+                $coursebuilder->handle_locking(false);
+                $forcebuild = true;
+            } catch(course_creator_exception $e) {
+                print "Lock file exists!";
+            }
+        }        
         $requests = array();
-
         $rkeyset = array();
         // Unchangables
         if (!empty($prevs->{$uf})) {
@@ -201,8 +207,7 @@ $errormessages = array();
 // At this point, requests are indexed by setid.
 if (isset($uclacrqs)) {
     $requestswitherrors = $uclacrqs->validate_requests($groupid);
-
-    if ($saverequeststates) {
+	if ($saverequeststates) {
         $successfuls = $uclacrqs->commit();
 
         // Reloading the 3rd form
@@ -273,9 +278,19 @@ if (isset($uclacrqs)) {
             }
         }
     }
-
+    if($forcebuild == true) {
+        $termlist = array();
+        foreach ($requestswitherrors as $course) {
+                foreach($course as $value) {
+                if($value['action'] == "build")
+                $termlist[] = $value['term'];
+                }
+        }
+        $termlist = array_unique($termlist);
+        $coursebuilder->set_term_list($termlist);
+        $coursebuilder->cron();
+    }
     $tabledata = prepare_requests_for_display($requestswitherrors, $groupid);
-
     $rowclasses = array();
     foreach ($tabledata as $key => $data) {
         if (!empty($data['errclass'])) {
@@ -384,14 +399,32 @@ if (!empty($requeststable->data)) {
             'value' => base64_encode(serialize($pass_uclacrqs)),
             'name' => $uf 
         ));
-
+    try {
+        $coursebuilder->handle_locking(true);
+        $coursebuilder->handle_locking(false);
+        echo html_writer::tag('input', '', array(
+            'type' => 'submit',
+            'name' => 'buildcourses',	
+            'value' => get_string('buildcourses', $rucr),
+            'class' => 'right',
+        ));
+    } catch(course_creator_exception $e) {
+        echo html_writer::tag('input', '', array(
+            'type' => 'submit',
+            'name' => 'buildcourses',	
+            'value' => get_string('alreadybuild', $rucr),
+            'class' => 'right',
+            'disabled' => true
+         ));
+    }        
     echo html_writer::table($requeststable);
+
     echo html_writer::tag('input', '', array(
             'type' => 'submit',
             'name' => 'checkrequests',
             'id' => 'checkrequests',
             'value' => get_string('checkchanges', $rucr),
-            'class' => 'right'
+            'class' => 'right',
         ));
 
     echo html_writer::tag('input', '', array(

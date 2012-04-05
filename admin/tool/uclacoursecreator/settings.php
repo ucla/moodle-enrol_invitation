@@ -16,12 +16,12 @@
 defined('MOODLE_INTERNAL') || die;
 
 // Add UCLA course creator to the admin block
-$ADMIN->add('development', new admin_externalpage(
-        'uclacoursecreator', 
-        get_string('pluginname2', 'tool_uclacoursecreator'),
-        $CFG->wwwroot . '/' . $CFG->admin . '/tool/uclacoursecreator/index.php'
-        // Specify a capability to view this page here
-    ));
-
+/* Disabled
+$ADMIN->add('courses', new admin_externalpage(
+		'uclacoursecreator',
+		get_string('pluginname', 'tool_uclacoursecreator'),
+		$CFG->wwwroot . '/' . $CFG->admin . '/tool/uclacoursecreator/index.php'
+		// Specify a capability to view this page here
+	));
 //*/
 

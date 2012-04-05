@@ -51,7 +51,7 @@ class uclacoursecreator {
     private $force_fail = false;
 
     // Set to true to hide output?
-    private $no_send_mails = false;
+    private $no_send_mails = true;//false;
 
     // Private identifier for this cron task
     private $db_id;
@@ -2140,12 +2140,10 @@ class uclacoursecreator {
 
             $lockfp = fopen($cc_lock, 'x');
             fclose($lockfp);
-
             $this->println('Lock successful.');
         } else {
             if ($fe) {
                 unlink($cc_lock);
-
                 $this->println('Unlock successful');
             } else {
                 if ($warn) {

@@ -16,7 +16,6 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['pluginname'] = 'UCLA course creator';
-$string['pluginname2'] = 'Build Course Now';
 $string['uclacoursecreator'] = $string['pluginname'];
 $string['cli_helpmsg'] = 
 "USAGE: cli_autocreate.php ([TERM] ([TERM] ... ))
