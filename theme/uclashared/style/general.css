@@ -324,17 +324,19 @@ html, body {background-color:#FFF; height:100%;}
 /** CCLE-2380 Rearrange Materials (editControlLinks) Links **/
 #region-pre div.editControlLinks a {
 	color: #FF6666;
-	font-size: 0.8em;
+	font-size: 1em;
 	font-weight: normal;
 
 }
+
+
 
 #region-pre div.editControlLinks {
 	text-align: center;
 }
 
 #region-main div.editControlLinks {
-font-size: .8em;
+font-size: 1em;
 margin-top: 2px;
 padding-left: 22px;
 /*background: url(./pix/line-commands.gif) 8px 1px no-repeat;*/
@@ -347,7 +349,7 @@ float:left;
 }
 
 #region-main div.editControlLinks2 {
-font-size: .8em;
+font-size: 1em;
 margin-top: 2px;
 padding-left: 42px;
 background: url(./pix/line-commands.gif) 8px 1px no-repeat;

@@ -6,6 +6,7 @@
 }
 
 .sectiontitle {
+    background: transparent url(./uclashared/pix/bgFormHdr.jpg) top left repeat;
     font-weight: bold;
     position: relative;
     display: block;
@@ -50,7 +51,7 @@
 .section-item {
     margin: 4px;
     background-color: #D1DBEF;
-    padding: 4px 0px 4px 0px;
+    padding: 0px 0px 4px 0px;
     list-style: none;
 }
 
