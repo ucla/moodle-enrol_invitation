@@ -302,7 +302,6 @@ if (isset($uclacrqs)) {
     $requeststable->id = 'uclacourserequestor_requests';
     $requeststable->head = $possfields;
     $requeststable->data = $tabledata;
-
     // For errors
     $requeststable->rowclasses = $rowclasses;
 }
@@ -338,7 +337,6 @@ foreach ($cached_forms as $gn => $group) {
             array('target' => '_blank')
         );             
     }
-         
     echo $OUTPUT->box_end();
 }
 
@@ -388,7 +386,6 @@ if (!empty($requeststable->data)) {
         ));
 
     echo html_writer::table($requeststable);
-
     echo html_writer::tag('input', '', array(
             'type' => 'submit',
             'name' => 'checkrequests',

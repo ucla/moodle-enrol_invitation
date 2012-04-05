@@ -16,6 +16,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['pluginname'] = 'UCLA course creator';
+$string['pluginname2'] = 'Build Course Now';
 $string['uclacoursecreator'] = $string['pluginname'];
 $string['cli_helpmsg'] = 
 "USAGE: cli_autocreate.php ([TERM] ([TERM] ... ))
@@ -53,3 +54,4 @@ $string['current_term_not_set'] = '$CFG->currentterm is not set!';
 $string['cron_quit_out'] = 'This is most likely a moodle cron instance... Quitting...';
 
 $string['checklogs'] = 'Please check the logs for more details';
+$string['checkterms'] = 'Select the term to build courses';

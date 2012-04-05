@@ -146,7 +146,6 @@ class uclacoursecreator {
             $this->finish_cron();
             return false;
         }
-
         /** Run the course creator **/
         // Figure out what terms we're running
         $termlist = $this->get_terms_creating();
@@ -178,7 +177,6 @@ class uclacoursecreator {
                 if ($retrieved) {
                     // Get official data from Registrar
                     $this->requests_to_rci();
-
                     // Prepare the categories
                     $this->prepare_categories();
 
@@ -871,8 +869,9 @@ class uclacoursecreator {
 
         // Run the Stored Procedure with the data
         $return = registrar_query::run_registrar_query('ccle_getclasses',
+        $rc = new registrar_ccle_getclasses();
+	$return = registrar_query::run_registrar_query('ccle_getclasses',
             $tr, true);
-
         foreach ($return as $k => $v) {
             $v = (object)$v;
             unset($return[$k]);
