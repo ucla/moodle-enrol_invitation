@@ -657,6 +657,11 @@ while ($section <= $course->numsections) {
 
                 // Callback to determine the section title displayed
                 $section_name = get_section_name($course, $thissection);
+                
+                // Fix section name when it's a single number
+                if(is_numeric($section_name)) {
+                    $section_name = get_string('sectionname', "format_weeks") . " " . $section_name;
+                }
 
                 if ($has_capability_viewhidden && !$thissection->visible) {
                     $section_name .= html_writer::tag('span',
