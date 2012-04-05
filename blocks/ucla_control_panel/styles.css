@@ -49,3 +49,7 @@ h2.main.copan-title {
 .control-panel-button img {
     margin-top: 10px;
 }
+
+#my_ucla_functions.generaltable, #my_ucla_functions.generaltable .cell {
+    border: none;
+}

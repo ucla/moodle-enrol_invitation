@@ -26,7 +26,7 @@ class ucla_cp_myucla_row_renderer extends ucla_cp_renderer {
      **/
     static function control_panel_contents($contents) {
         $table = new html_table();
-        $table->attributes = array ('id' => 'myUCLAFunctions');
+        $table->id = 'my_ucla_functions';
         
         //For each row module
         foreach ($contents as $content_rows) {
@@ -35,8 +35,9 @@ class ucla_cp_myucla_row_renderer extends ucla_cp_renderer {
             $table_row = new html_table_row();
             //For each element in the row module
             foreach ($content_rows_elements as $content_item) {
-               $table_row->cells[] = html_writer::tag('td',ucla_cp_renderer::general_descriptive_link(
-                    $content_item, array("target"=>"_empty")));
+               $table_row->cells[] = 
+                       ucla_cp_renderer::general_descriptive_link($content_item, 
+                               array("target"=>"_blank"));
             }
             $table->data[] = $table_row;
         }

@@ -60,10 +60,9 @@ if (! empty($course_info)){
     
     //If this is a summer course
     if($first_course->term[2]=='1') { 
-        global $DB;
-        if(!$session = $DB->get_field('ucla_reg_classinfo', 
-                                'session_group', 'term', $first_course->term, 
-                                'srs', $first_course->srs)) {
+        if(!$session = $DB->get_field('ucla_reg_classinfo', 'session_group', 
+                array('term' => $first_course->term, 
+                      'srs' => $first_course->srs))) {
             $session = '';
         }
     } else {
@@ -74,6 +73,7 @@ if (! empty($course_info)){
     foreach ($course_info as $info_for_one_course){
         $myucla_row = new ucla_cp_myucla_row_module($temp_tag,$temp_cap);
         if (count($course_info) > 1){
+            // add course title if displaying cross-listed courses
             $myucla_row->add_element( new ucla_cp_text_module($info_for_one_course->subj_area
                     .$info_for_one_course->coursenum.'-' .$info_for_one_course->sectnum, 
                             $temp_tag, $temp_cap) );
