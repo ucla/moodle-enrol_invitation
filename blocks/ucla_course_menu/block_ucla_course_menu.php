@@ -127,11 +127,9 @@ class block_ucla_course_menu extends block_navigation {
             return $this->content;
         }
 
-        parent::get_content();
-
         $renderer = $this->get_renderer();
          
-        //CCLE-2380 Rearrange Course Materials link when editing is on
+        //CCLE-2380 Rearrange Course Materials link when editing is on        
         if ($this->page->user_is_editing()) {            
             // rearrange link
             $rearrange = html_writer::link(
