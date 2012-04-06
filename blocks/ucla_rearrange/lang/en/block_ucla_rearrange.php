@@ -1,6 +1,6 @@
 <?php
 
-$string['pluginname'] = 'UCLA Rearrange framework';
+$string['pluginname'] = 'Rearrange materials';
 
 $string['sectionexpand'] = 'Expand';
 $string['sectioncollapse'] = 'Collapse';
@@ -8,7 +8,7 @@ $string['sectioncollapse'] = 'Collapse';
 $string['allexpand'] = 'Expand all';
 $string['allcollapse'] = 'Collapse all';
 
-$string['rearrange_sections'] = 'Section rearranger';
+$string['rearrange_sections'] = 'Rearrange materials';
 
 $string['error_section_noold'] = 'Missing section translation for {$a}';
 $string['error_section_previous'] = 'Course has a section without id! Changes have been ignored.';

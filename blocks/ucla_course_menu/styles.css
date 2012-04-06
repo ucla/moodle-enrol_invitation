@@ -60,3 +60,19 @@
 .block_ucla_course_menu .content .block_tree.list .type_activity p {
     margin:0px 0px 0px 0px;
 }
+
+/** CCLE-2380 Rearrange Materials Link **/
+.block_ucla_course_menu .edit_control_links {
+    background-color: #D1DBEF;
+    text-align: center;    
+}
+.block_ucla_course_menu .edit_control_links a {
+	color: #FF6666;
+	font-weight: normal;
+}
+
+/* CCLE-2829 - Remove "Site Menu" block heading */
+.block_ucla_course_menu .header {
+    display: none;
+}
+

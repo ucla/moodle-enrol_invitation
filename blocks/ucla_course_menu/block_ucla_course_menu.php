@@ -6,7 +6,7 @@ require_once($CFG->dirroot . '/blocks/navigation/block_navigation.php');
 
 class block_ucla_course_menu extends block_navigation {
     var $contentgenerated = false;
-
+   
     const DEFAULT_TRIM_LENGTH = 50;
 
     // Hook function used to get other blocks' junk into this trunk
@@ -132,15 +132,15 @@ class block_ucla_course_menu extends block_navigation {
         $renderer = $this->get_renderer();
          
         //CCLE-2380 Rearrange Course Materials link when editing is on
-        $this->content->text = '';
-        //passing topic value to rearrange feature        
-        $topic = optional_param('topic',NULL,PARAM_CLEAN);
-        $topicstr = '';
-        if(!empty($topic)){
-            $topicstr='&topic='.$topic;
-        }        
-        if ($this->page->user_is_editing()) {
-            $this->content->text .= '<div class="editControlLinks"><a title="Rearrange Materials" href="'.$CFG->wwwroot.'/blocks/ucla_rearrange/rearrange.php?course_id='.$this->page->course->id.$topicstr.' ">Rearrange Materials</a></div>';
+        if ($this->page->user_is_editing()) {            
+            // rearrange link
+            $rearrange = html_writer::link(
+                    new moodle_url('/blocks/ucla_rearrange/rearrange.php', 
+                        array('course_id' => $this->page->course->id, 
+                              'topic' => optional_param('topic',NULL,PARAM_INT))), 
+                    get_string('pluginname', 'block_ucla_rearrange'));            
+            $this->content->text .= html_writer::tag('div', $rearrange, 
+                    array('class' => 'edit_control_links'));
         }
        
         // get non-module nodes
@@ -361,6 +361,22 @@ class block_ucla_course_menu extends block_navigation {
         
         return $elements;
     }
+    
+    /**
+     * CCLE-2829 - Remove "Site Menu" block heading
+     * @return boolean true
+     */
+    function hide_header() {
+        return true;
+    }    
+    
+    /**
+     * Disallow docking to hide dock icon when header is removed
+     * @return boolean false
+     */
+    function instance_can_be_docked() {
+        return false;
+    }    
 }
 
 // EOF
