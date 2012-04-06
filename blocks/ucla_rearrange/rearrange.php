@@ -214,7 +214,7 @@ $PAGE->set_title($restrc);
 $PAGE->set_heading($restrc);
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading($restr);
+echo $OUTPUT->heading($restr, 2, 'headingblock');
 
 if ($data != false) {
     echo $OUTPUT->box(
