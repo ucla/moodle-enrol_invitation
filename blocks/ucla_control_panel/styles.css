@@ -40,7 +40,7 @@ h2.main.copan-title {
     padding: 4px 0;
 }
 
-.item span {
+.item span, #my_ucla_functions .post-link {
     color:gray;
     display:block;
     font-style:italic;

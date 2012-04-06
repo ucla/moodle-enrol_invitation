@@ -110,10 +110,10 @@ $string['student_grades_post'] = 'View your grades on CCLE.';
 $string['student_change_password'] = 'Change Password';
 $string['student_change_password_post'] = 'Click this link to change your password.';
 $string['student_myucla_grades'] = 'Grades (MyUCLA)';
-$string['student_myucla_grades_post'] = '';//'View your grades on MyUCLA (if your instructor has made them available).';
+$string['student_myucla_grades_post'] = 'View your grades on MyUCLA (if your instructor has made them available).';
 $string['student_myucla_classmates'] = 'Classmates (MyUCLA)';
-$string['student_myucla_classmates_post'] = '';//'View a list of your classmates on MyUCLA.';
+$string['student_myucla_classmates_post'] = 'View a list of your classmates on MyUCLA.';
 $string['student_myucla_textbooks'] = 'Textbooks (MyUCLA)';
-$string['student_myucla_textbooks_post'] = '';//'View required textbooks for this course on MyUCLA.';
+$string['student_myucla_textbooks_post'] = 'View required textbooks for this course on MyUCLA.';
 
 /** End of File **/
