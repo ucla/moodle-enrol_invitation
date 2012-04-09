@@ -523,7 +523,8 @@ function forum_cron() {
                 }
 
                 // Don't send email if the forum is Q&A and the user has not posted
-                if ($forum->type == 'qanda' && !forum_get_user_posted_time($discussion->id, $userto->id)) {
+                // Initial topics are still mailed
+                if ($forum->type == 'qanda' && !forum_get_user_posted_time($discussion->id, $userto->id) && $pid != $discussion->firstpost) {
                     mtrace('Did not email '.$userto->id.' because user has not posted in discussion');
                     continue;
                 }
@@ -2921,6 +2922,7 @@ function forum_get_course_forum($courseid, $type) {
     }
 
     // Doesn't exist, so create one now.
+    $forum = new stdClass();
     $forum->course = $courseid;
     $forum->type = "$type";
     switch ($forum->type) {
@@ -4551,9 +4553,10 @@ function forum_get_subscribed_forums($course) {
     $sql = "SELECT f.id
               FROM {forum} f
                    LEFT JOIN {forum_subscriptions} fs ON (fs.forum = f.id AND fs.userid = ?)
-             WHERE f.forcesubscribe <> ".FORUM_DISALLOWSUBSCRIBE."
+             WHERE f.course = ?
+                   AND f.forcesubscribe <> ".FORUM_DISALLOWSUBSCRIBE."
                    AND (f.forcesubscribe = ".FORUM_FORCESUBSCRIBE." OR fs.id IS NOT NULL)";
-    if ($subscribed = $DB->get_records_sql($sql, array($USER->id))) {
+    if ($subscribed = $DB->get_records_sql($sql, array($USER->id, $course->id))) {
         foreach ($subscribed as $s) {
             $subscribed[$s->id] = $s->id;
         }
@@ -7905,7 +7908,7 @@ function forum_get_forums_user_posted_in($user, array $courseids = null, $discus
  *               ->posts: An array containing the posts to show for this request.
  */
 function forum_get_posts_by_user($user, array $courses, $musthaveaccess = false, $discussionsonly = false, $limitfrom = 0, $limitnum = 50) {
-    global $DB, $USER;
+    global $DB, $USER, $CFG;
 
     $return = new stdClass;
     $return->totalcount = 0;    // The total number of posts that the current user is able to view

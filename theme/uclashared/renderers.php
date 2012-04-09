@@ -272,8 +272,8 @@ class theme_uclashared_core_renderer extends core_renderer {
             'about_ccle',
             'privacy',
             'copyright',
+            'separator',            
             'school',
-            'separator',
             'registrar',
             'myucla'
         );
@@ -297,7 +297,7 @@ class theme_uclashared_core_renderer extends core_renderer {
                 $link_href = get_string('foolin_' . $link, $this->theme);
 
                 $link_a = html_writer::tag('a', $link_display, 
-                    array('href' => $link_href));
+                    array('href' => $link_href, 'target' => '_blank'));
 
                 $footer_string .= '&nbsp;' . $link_a;
             }
@@ -350,5 +350,25 @@ class theme_uclashared_core_renderer extends core_renderer {
         } 
 
         return $c;
+    }
+}
+
+class ucla_html_writer extends html_writer {
+    /**
+     *  Hack to add external link icon.
+     **/
+    static function link($url, $text, $attr=null) {
+        global $CFG;
+        if (strpos($url->out(), $CFG->wwwroot) === false) {
+            if (empty($attr)) {
+                $attr['class'] = '';
+            } else {
+                $attr['class'] .= ' ';
+            }
+
+            $attr['class'] .= 'external-link';
+        }
+
+        return parent::link($url, $text, $attr);
     }
 }

@@ -20,6 +20,7 @@
  * @copyright 2011 NCSU DELTA | <http://delta.ncsu.edu>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 defined('MOODLE_INTERNAL') || die;
 
 // Build new admin page object for IMPORT ROLES
@@ -38,6 +39,6 @@ $exportobject = new admin_externalpage(
                         'moodle/site:config'
                         );
 
-// Register new admin page object roles category (User->Roles)
+// Register new admin page object under User -> Roles
 $ADMIN->add('roles', $importobject);
 $ADMIN->add('roles', $exportobject);
