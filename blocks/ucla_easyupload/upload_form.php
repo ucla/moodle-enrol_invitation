@@ -89,11 +89,21 @@ abstract class easy_upload_form extends moodleform {
        $mform->addElement('header', '', get_string('select_copyright',
            self::associated_block));
           
-       $mform->addElement('html', html_writer::tag('div', get_string('select_copyright_list', self::associated_block)));
+       $mform->addElement('html', html_writer::tag('label', 
+               get_string('select_copyright_list', self::associated_block), 
+               array('for' => 'id_license')));
+       
        // Show the copyright selector
        $mform->addElement('select', 'license','', $copyrights);
        $mform->addHelpButton('license', 'license', 'block_ucla_easyupload');
        $mform->addRule('license', null, 'required');
+        $mform->setDefaults(
+            array(
+                'license' => array(
+                    'license' => $CFG->sitedefaultlicense
+                )
+            )
+        );       
 
         // If needed, add the section rearranges.
         // This part appears to be a part of 'add to section'
@@ -112,14 +122,7 @@ abstract class easy_upload_form extends moodleform {
             $PAGE->requires->js_init_code(
                 'M.block_ucla_easyupload.initiate_sortable_content()'
             );
-        }
-        
-        
-        
-        
-          
-          
-          
+        }          
         // End code that probably needs to go somewhere else
 
         if (class_exists('PublicPrivate_Site')) {
