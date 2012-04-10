@@ -38,11 +38,13 @@ $sections = get_all_sections($course_id);
 
 $sectnums = array();
 $sectionnames = array();
+$sectionvisibility = array();
 foreach ($sections as $section) {
     $sid = $section->id;
     $sectids[$sid] = $sid;
     $sectnums[$sid] = $section->section;
     $sectionnames[$sid] = get_section_name($course, $section);
+    $sectionvisibility[$sid] = $section->visible;
 }
 
 $modinfo =& get_fast_modinfo($course);
@@ -86,11 +88,19 @@ foreach ($sectionnodeshtml as $section => $snh) {
         $sectionzero = $section;
     }
 
+    $is_hidden_text = '';
+    if (!$sectionvisibility[$section]) {
+        $is_hidden_text = ' ' . html_writer::tag('span', 
+                '(' . get_string('hidden', 'calendar') . ')', 
+                array('class' => block_ucla_rearrange::hiddenclass));        
+    }
+    
     $sectionshtml .= html_writer::tag(
         'li', 
         html_writer::tag(
             'div', 
-            html_writer::tag('span', $sectionnames[$section] . $expand_button,
+            html_writer::tag('span', $sectionnames[$section] . $is_hidden_text . 
+                    $expand_button,
                     array(
                         'class' => 'sectiontitle'
                     ) 

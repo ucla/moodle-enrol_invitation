@@ -33,6 +33,9 @@ class block_ucla_rearrange extends block_base {
 
     // Non-nesting class
     const nonnesting = 'ns-invisible';
+    
+    // Style "hidden" indicator for non-visisble sections/modules
+    const hiddenclass = 'ucla_rearrange_hidden';
 
     /**
      *  Required for Moodle.
@@ -45,7 +48,8 @@ class block_ucla_rearrange extends block_base {
     /**
      *  Returns an array of root modnode objects for a particular section.
      *  @param $section     The section number
-     *  @param $sequence    The sequence of course modules in the section
+     *  @param $sectinfo    Section info that includes the sequence of course 
+     *                      modules in the section
      *  @param $mods        The list of mods from get_all_mods().
      *  @param $modinfo     The mod information from get_all_mods().
      **/
@@ -74,8 +78,10 @@ class block_ucla_rearrange extends block_base {
 
                 $display_text = format_string($modinfo->cms[$mod_id]->name,
                     true, $course_id);
+                $is_hidden = !$modinfo->cms[$mod_id]->visible;
 
-                $nodes[] = new modnode($mod_id, $display_text, $cm->indent);
+                $nodes[] = new modnode($mod_id, $display_text, $cm->indent, 
+                        false, $is_hidden);
             }
         }
 
@@ -126,7 +132,7 @@ class block_ucla_rearrange extends block_base {
      *  UL and LI DOM Objects ready to be spit out into JSON.
      **/
     static function get_section_modules_rendered(&$course_id, &$sections, 
-            &$mods, &$modinfo) {
+            &$mods, &$modinfo) {        
         $snodes = self::get_sections_modnodes($course_id, $sections, $mods,
             $modinfo);
 
@@ -347,14 +353,26 @@ class modnode {
     var $modtext;
     var $modindent;
     var $invis = false;
+    var $is_hidden = false;
 
     var $children = array();
 
-    function __construct($id, $text, $indent, $invis=false) {
+    /**
+     * Constructor
+     * 
+     * @param type $id          ID of module
+     * @param type $text        Text to display for node
+     * @param type $indent      How far to indent node
+     * @param type $invis       If true, then applies invisible class for node
+     * @param type $is_hidden   If true, then adds in text to indicate if given
+     *                          node/module if hidden
+     */
+    function __construct($id, $text, $indent, $invis=false, $is_hidden=false) {
         $this->modid = $id;
         $this->modtext = $text;
         $this->modindent = $indent;
         $this->invis = $invis;
+        $this->is_hidden = $is_hidden;
     }
 
     function add_child(&$node) {
@@ -382,11 +400,18 @@ class modnode {
 
         }
 
-        $self = html_writer::tag('li', $this->modtext . $childrender, array(
-            'id' => 'ele-' . $this->modid,
-            'class' => $class
+        $is_hidden_text = '';
+        if ($this->is_hidden) {
+            $is_hidden_text = ' ' . html_writer::tag('span', 
+                    '(' . get_string('hidden', 'calendar') . ')', 
+                    array('class' => block_ucla_rearrange::hiddenclass));
+        }
+        
+        $self = html_writer::tag('li', $this->modtext . $is_hidden_text . 
+                $childrender, array('id' => 'ele-' . $this->modid,
+                                    'class' => $class
         ));
-
+        
         return $self;
     }
 
