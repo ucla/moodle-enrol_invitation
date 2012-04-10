@@ -70,9 +70,3 @@
 	color: #FF6666;
 	font-weight: normal;
 }
-
-/* CCLE-2829 - Remove "Site Menu" block heading */
-.block_ucla_course_menu .header {
-    display: none;
-}
-
