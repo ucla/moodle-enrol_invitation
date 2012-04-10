@@ -281,6 +281,10 @@ $CFG->forced_plugin_settings['enrol_database']['localrolefield'] = 'id';
 // lose grading data
 $CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 3;    // Disable course enrolment and remove roles
 
+// CCLE-2910 - UNEX student support
+$CFG->forced_plugin_settings['enrol_database']['fblocaluserfield'] = 'username';
+$CFG->forced_plugin_settings['enrol_database']['fbremoteuserfield'] = 'username';
+
 // This will bootstrap the moodle functions.
 require_once($_dirroot_ . '/lib/setup.php');
 
