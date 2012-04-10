@@ -104,7 +104,7 @@ class instructor_handler extends browseby_handler {
             INNER JOIN {ucla_browseall_classinfo} ubci 
                 ON  ubi.term = ubci.term 
                 AND ubi.srs = ubci.srs
-            ORDER BY lastname
+            ORDER BY ubi.lastname, ubi.firstname
         ";
 
         $users = $this->get_records_sql($sql);
