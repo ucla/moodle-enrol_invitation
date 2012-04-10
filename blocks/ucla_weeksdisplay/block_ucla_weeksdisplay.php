@@ -17,6 +17,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once(dirname(__FILE__) . '/../moodleblock.class.php');
+
+global $CFG;
 require_once($CFG->dirroot . '/local/ucla/lib.php');
 
 class block_ucla_weeksdisplay extends block_base {
@@ -174,11 +176,10 @@ class block_ucla_weeksdisplay extends block_base {
         
         $unix_date = strtotime($date);
         $unix_ses_start_date = strtotime($session[5]);
-        $unix_ses_end_date = strtotime($session[6]);
         $unix_instr_start_date = strtotime($session[7]); 
         
-        $date_vs_ses_start = find_earlier_date($date, $session_start_date);
-        $date_vs_ses_end = find_earlier_date($date, $session_end_date);       
+        $date_vs_ses_start = find_earlier_date($date, $ses_start_date);
+        $date_vs_ses_end = find_earlier_date($date, $ses_end_date);       
         $date_vs_instr_start 
             = find_earlier_date($date, $instruction_start_date);
         $ses_start_vs_instr_start  
@@ -187,9 +188,8 @@ class block_ucla_weeksdisplay extends block_base {
         //If the date is in Week 0.
         if($date_vs_ses_start >= 0 && $date_vs_instr_start < 0){
             return ucla_term_to_text($session[0])." - Week 0";
-        }
-        // If the date is in Week 1- Finals Week
-        else if($date_vs_instr_start >= 0 && $date_vs_ses_end <= 0){
+        } else if($date_vs_instr_start >= 0 && $date_vs_ses_end <= 0){
+            // If the date is in Week 1- Finals Week    
             //TODO: Summer sessions: ses start == instr start?
             
             //Week 1 always starts the first monday after session start date.
@@ -222,12 +222,11 @@ class block_ucla_weeksdisplay extends block_base {
             
             //Find the number of weeks elapsed from the first day to the current day.
             $weeks_from_first_day 
-                = ((date("z", $date) - $first_day_of_first_week) % 7) + 1;
+                = ((date("z", $unix_date) - $first_day_of_first_week) % 7) + 1;
             
             return ucla_term_to_text($session[0])." - Week ". $weeks_from_first_day;            
             
-        }
-        else{
+        } else{
             return ucla_term_to_text($session[0]);
         }
         
@@ -320,10 +319,9 @@ class block_ucla_weeksdisplay extends block_base {
     *         [6] => 2009-03-28 00:00:00.000 (session_end) 
     *         [7] => 2009-01-12 00:00:00.000 (instruction start) 
     */
-    function find_regular_sessions($query_obj){
-        
-        $regular_sessions;
-        
+    function find_regular_sessions($query_obj){        
+        //TODO: Test local scope stuff
+        $regular_sessions = NULL;
         foreach($query_obj as $session){
             
             //If the session is a "regular" session, add it to the list.
@@ -367,23 +365,23 @@ class block_ucla_weeksdisplay extends block_base {
         //Traverse years until the two years are equal.
         if($earlier_date_year < $later_date_year) { 
             //Round the earlier date to beginning of the next year to make calculations easier.
-            $unix_date1_day_of_year = date('z',$unix_date1);
+            $earlier_date_day_of_year = date('z',$unix_date1);
             $days_in_year = (date('L',$unix_date1)) ? 366 : 365;
             //+1 because the unix date day of year starts at 0.
-            $days_difference += ($days_in_year - $unix_date1_day_of_year + 1);
-            $unix_date1_year++;
+            $days_difference += ($days_in_year - $earlier_date_day_of_year + 1);
+            $earlier_date_year++;
             
             //Traverse whole years until you reach date2's year.
-            while($unix_date1_year < $unix_date2_year){
-                $days_in_year = (is_leap_year($unix_date1_year)) ? 366 : 365;
+            while($earlier_date_year < $later_date_year){
+                $days_in_year = (is_leap_year($earlier_date_year)) ? 366 : 365;
                 $days_difference += ($days_in_year + 1);
-                $unix_date1_year++;
+                $earlier_date_year++;
             }
         } 
         //Add the number of days from the beginning of the year to the later date.
-        $unix_date2_day_of_year = date('z',$unix_date2);
-        $days_in_year = (is_leap_year($unix_date1_year)) ? 366 : 365;
-        $days_difference += ($days_in_year - $unix_date2_day_of_year + 1);
+        $$later_date_year_day_of_year = date('z',$unix_date2);
+        $days_in_year = (is_leap_year($earlier_date_year)) ? 366 : 365;
+        $days_difference += ($days_in_year - $later_date_year + 1);
         
         //Return a negative number if date1 comes before date2.
         if($earlier_date_result == -1){ $days_difference *= -1;}
