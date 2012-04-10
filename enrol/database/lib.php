@@ -61,6 +61,15 @@ class enrol_database_plugin extends enrol_plugin {
         $names = explode(',', $reg['full_name_person']);
         $firstmiddle = explode(' ', trim($names[1]));
 
+        if (empty($names[1])) {
+            // No first name...they're just a very generic person apparently
+            $firstmiddle = array('');
+            mtrace('Improperly named entry from class roster: '
+                . $names[0] . ' ' . $reg['bolid'] . ' ' . $reg['stu_id']);
+        } else {
+            $firstmiddle = explode(' ', trim($names[1]));
+        }
+
         return array(
             $this->get_config('remoteuserfield') => $reg['stu_id'],
             'firstname' => $firstmiddle[0],
