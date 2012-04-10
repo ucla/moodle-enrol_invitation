@@ -63,6 +63,9 @@ if ($ADMIN->fulltree) {
     $options = array('id'=>'id', 'idnumber'=>'idnumber', 'email'=>'email', 'username'=>'username'); // only local users if username selected, no mnet users!
     $settings->add(new admin_setting_configselect('enrol_database/localuserfield', get_string('localuserfield', 'enrol_database'), '', 'idnumber', $options));
 
+    // CCLE-2910: Fixing for UNEX students, to allow prepop to match by username
+    $settings->add(new admin_setting_configselect('enrol_database/fblocaluserfield', get_string('fblocaluserfield', 'enrol_database'), '', 'username', $options));
+    
     $options = array('id'=>'id', 'shortname'=>'shortname', 'fullname'=>'fullname');
     $settings->add(new admin_setting_configselect('enrol_database/localrolefield', get_string('localrolefield', 'enrol_database'), '', 'shortname', $options));
 
@@ -75,6 +78,8 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('enrol_database/remotecoursefield', get_string('remotecoursefield', 'enrol_database'), get_string('remotecoursefield_desc', 'enrol_database'), ''));
 
     $settings->add(new admin_setting_configtext('enrol_database/remoteuserfield', get_string('remoteuserfield', 'enrol_database'), get_string('remoteuserfield_desc', 'enrol_database'), ''));
+
+    $settings->add(new admin_setting_configtext('enrol_database/fbremoteuserfield', get_string('fbremoteuserfield', 'enrol_database'), get_string('fbremoteuserfield_desc', 'enrol_database'), 'username'));
 
     $settings->add(new admin_setting_configtext('enrol_database/remoterolefield', get_string('remoterolefield', 'enrol_database'), get_string('remoterolefield_desc', 'enrol_database'), ''));
 

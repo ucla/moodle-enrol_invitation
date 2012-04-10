@@ -56,6 +56,11 @@ $string['newcourseshortname'] = 'New course short name field';
 //$string['pluginname'] = 'External database';
 $string['pluginname'] = 'UCLA registrar';
 // END UCLA MOD: CCLE-2275
+// BEGIN UCLA MOD: CCLE-2910 - UNEX help
+$string['fblocaluserfield'] = 'Fallback local user field';
+$string['fbremoteuserfield'] = 'Fallback remote user field';
+$string['fbremoteuserfield_desc'] = 'The name of the field in the remote table if we cannot find a match with remoteuserfield.';
+// END UCLA MOD: CCLE-2910
 $string['pluginname_desc'] = 'You can use an external database (of nearly any kind) to control your enrolments. It is assumed your external database contains at least a field containing a course ID, and a field containing a user ID. These are compared against fields that you choose in the local course and user tables.';
 $string['remotecoursefield'] = 'Remote course field';
 $string['remotecoursefield_desc'] = 'The name of the field in the remote table that we are using to match entries in the course table.';
