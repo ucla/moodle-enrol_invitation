@@ -58,14 +58,16 @@ class enrol_database_plugin extends enrol_plugin {
      *  user results (named after the stored procedure).
      **/
     public function translate_ccle_roster_class($reg) {
-        $names = explode(',', $reg['full_name_person']);
-        $firstmiddle = explode(' ', trim($names[1]));
+        $names = explode(',', trim($reg['full_name_person']));
 
-        if (empty($names[1])) {
-            // No first name...they're just a very generic person apparently
+        if (empty($names)) {
+            // no name?!
+            mtrace('WARNING: Found user with no name from class roster: '. print_r($reg, true));    
+            $names[0] = '';
             $firstmiddle = array('');
-            mtrace('Improperly named entry from class roster: '
-                . $names[0] . ' ' . $reg['bolid'] . ' ' . $reg['stu_id']);
+        } else if (empty($names[1])) {
+            // No first name, they must be a rock star
+            $firstmiddle = array('');
         } else {
             $firstmiddle = explode(' ', trim($names[1]));
         }
@@ -495,9 +497,6 @@ class enrol_database_plugin extends enrol_plugin {
                     }
 
                     $user = $this->translate_ccle_roster_class($student);
-
-                    $names = explode(',', $student['full_name_person']);
-                    $firstmiddle = explode(' ', trim($names[1]));
 
                     $user[$rolefield] = $roles[
                         get_moodlerole($studentpr, $subjarea)
