@@ -44,7 +44,8 @@
 }
 
 .block_ucla_course_menu .content .block_tree.list .type_structure p,
-.block_ucla_course_menu .content .block_tree.list .type_activity p {
+.block_ucla_course_menu .content .block_tree.list .type_activity p,
+.block_ucla_course_menu .content .block_tree.list .type_custom p {
     margin: 0;
     margin-left: 3px;
 }
