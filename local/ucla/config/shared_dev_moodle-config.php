@@ -153,30 +153,6 @@ $CFG->defaultblocks_ucla = 'ucla_course_menu';
 $CFG->enableavailability = true;
 $CFG->enablecompletion = true;  // needs to be enabled so that completion
                                 // of tasks can be one of the conditions
-$CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 1;
-
-// CCLE-2229 - Force public/private to be on
-$CFG->enablegroupmembersonly = true; // needs to be on for public-private to work
-$CFG->enablepublicprivate = true;
-
-// CCLE-2792 - Enable multimedia filters
-// NOTE: you still need to manually set the "Active?" value of the "Multimedia 
-// plugins" filter at "Site administration > Plugins > Filters > Manage filters"
-$CFG->filter_mediaplugin_enable_youtube = true;
-$CFG->filter_mediaplugin_enable_vimeo = true;
-$CFG->filter_mediaplugin_enable_mp3 = true;
-$CFG->filter_mediaplugin_enable_flv = true;
-$CFG->filter_mediaplugin_enable_swf = true;
-$CFG->filter_mediaplugin_enable_html5audio = true;
-$CFG->filter_mediaplugin_enable_html5video = true;
-$CFG->filter_mediaplugin_enable_qt = true;
-$CFG->filter_mediaplugin_enable_wmp = true;
-$CFG->filter_mediaplugin_enable_rm = true;
-
-// Enable conditional activities
-$CFG->enableavailability = true;
-$CFG->enablecompletion = true;  // needs to be enabled so that completion
-                                // of tasks can be one of the conditions
 
 // CCLE-2229 - Force public/private to be on
 $CFG->enablegroupmembersonly = true; // needs to be on for public-private to work
@@ -208,7 +184,8 @@ $CFG->autologinguests = true;
 // Site administration > Courses > Course default settings
 $CFG->forced_plugin_settings['moodlecourse']['format'] = 'ucla';
 $CFG->forced_plugin_settings['moodlecourse']['maxbytes'] = 1572864000;  // 1.5GB
-$CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 1;
+// CCLE-2903 - Don't set completion tracking to be course default
+$CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 0;
 
 // Site administration > Plugins > Activity modules > Assignment
 $CFG->assignment_maxbytes = 10485760;   // 100MB
@@ -219,6 +196,7 @@ $CFG->sitedefaultlicense = 'iown';
 // Site administration > Security > Site policies
 $CFG->forceloginforprofiles = true; 
 $CFG->forceloginforprofileimage = true; // temporary until "CCLE-2368 - PIX.PHP security fix" is done
+$CFG->maxeditingtime = 900; // 15 minutes
 $CFG->fullnamedisplay = 'language'; // CCLE-2550 - Lastname, Firstname sorting
 $CFG->cronclionly = true;
 

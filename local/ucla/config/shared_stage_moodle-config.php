@@ -181,7 +181,8 @@ $CFG->autologinguests = true;
 // Site administration > Courses > Course default settings
 $CFG->forced_plugin_settings['moodlecourse']['format'] = 'ucla';
 $CFG->forced_plugin_settings['moodlecourse']['maxbytes'] = 1572864000;  // 1.5GB
-$CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 1;
+// CCLE-2903 - Don't set completion tracking to be course default
+$CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 0;
 
 // Site administration > Plugins > Activity modules > Assignment
 $CFG->assignment_maxbytes = 10485760;   // 100MB
@@ -192,6 +193,7 @@ $CFG->sitedefaultlicense = 'iown';
 // Site administration > Security > Site policies
 $CFG->forceloginforprofiles = true; 
 $CFG->forceloginforprofileimage = true; // temporary until "CCLE-2368 - PIX.PHP security fix" is done
+$CFG->maxeditingtime = 900; // 15 minutes
 $CFG->fullnamedisplay = 'language'; // CCLE-2550 - Lastname, Firstname sorting
 $CFG->cronclionly = true;
 
@@ -215,6 +217,9 @@ $CFG->aspellpath = '/usr/bin/aspell';
 
 // Site administration > Server > Session handling
 $CFG->dbsessions = false;
+
+// Site administration > Server > Performance
+$CFG->extramemorylimit = '1024M';
 
 /** 
  *  Automatic Shibboleth configurations.
