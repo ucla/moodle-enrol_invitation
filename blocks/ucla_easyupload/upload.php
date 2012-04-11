@@ -136,7 +136,7 @@ foreach ($sections as $section) {
     if ($section->section > $course->numsections) {
         continue;
     }
-
+    
     $sid = $section->id;
     $sectionnames[$sid] = get_section_name($course, $section);
 

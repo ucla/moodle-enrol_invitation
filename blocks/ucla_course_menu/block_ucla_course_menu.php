@@ -6,7 +6,7 @@ require_once($CFG->dirroot . '/blocks/navigation/block_navigation.php');
 
 class block_ucla_course_menu extends block_navigation {
     var $contentgenerated = false;
-
+   
     const DEFAULT_TRIM_LENGTH = 50;
 
     // Hook function used to get other blocks' junk into this trunk
@@ -121,22 +121,34 @@ class block_ucla_course_menu extends block_navigation {
      *  Called by Moodle.
      **/
     function get_content() {
+        global $CFG;
+        
         if ($this->contentgenerated === true) {
             return $this->content;
         }
 
-        parent::get_content();
-
         $renderer = $this->get_renderer();
-
+         
+        //CCLE-2380 Rearrange Course Materials link when editing is on        
+        if ($this->page->user_is_editing()) {            
+            // rearrange link
+            $rearrange = html_writer::link(
+                    new moodle_url('/blocks/ucla_rearrange/rearrange.php', 
+                        array('course_id' => $this->page->course->id, 
+                              'topic' => optional_param('topic',NULL,PARAM_INT))), 
+                    get_string('pluginname', 'block_ucla_rearrange'));            
+            $this->content->text .= html_writer::tag('div', $rearrange, 
+                    array('class' => 'edit_control_links'));
+        }
+       
         // get non-module nodes
         $section_elements = $this->create_section_elements();
         $block_elements = $this->create_block_elements();
         $elements = array_merge($section_elements, $block_elements);        
         $this->trim_nodes($elements);        
-        $this->content->text = $renderer->navigation_node($elements,
+        $this->content->text .= $renderer->navigation_node($elements,
             array('class' => 'block_tree list'));
-        
+
         // Separate out module nodes so that we can have a different style
         // to them.
         $module_elements = $this->create_module_elements();     
@@ -251,7 +263,7 @@ class block_ucla_course_menu extends block_navigation {
      *  items.
      **/
     function create_block_elements() {
-        global $CFG;
+        global $CFG, $COURSE;
 
         $elements = array();
 
@@ -352,6 +364,22 @@ class block_ucla_course_menu extends block_navigation {
         
         return $elements;
     }
+    
+    /**
+     * CCLE-2829 - Remove "Site Menu" block heading
+     * @return boolean true
+     */
+    function hide_header() {
+        return true;
+    }    
+    
+    /**
+     * Disallow docking to hide dock icon when header is removed
+     * @return boolean false
+     */
+    function instance_can_be_docked() {
+        return false;
+    }    
 }
 
 // EOF
