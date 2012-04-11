@@ -374,6 +374,7 @@ function ucla_format_name($name=null) {
      *  - If name has a hypen
      *  - If name has an aprostrophe
      *  - If name starts with "MC"
+     *  - If name has conjunctions, e.g. "and", "of", "the", "as", "a"
      */    
 
     // has space? 
@@ -426,6 +427,11 @@ function ucla_format_name($name=null) {
         $name[2] = strtoupper($name[2]);    // make 3rd character uppercase
     }
 
+    // If name has conjunctions, e.g. "and", "of", "the", "as", "a"
+    if (in_array(strtolower($name), array('and', 'of', 'the', 'as', 'a'))) {
+        $name = strtolower($name);
+    }
+    
     return $name;
 
 }

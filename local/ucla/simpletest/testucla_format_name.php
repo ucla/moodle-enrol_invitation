@@ -74,13 +74,25 @@ class ucla_format_name_test extends UnitTestCase {
         $result = ucla_format_name("WOMEN'S STUDIES");
         $this->assertEqual($result, "Women's Studies");              
     }
+
+    /**
+     * Make sure that conjunctions are not capitlized, e.g. "and", "of", "the", 
+     * "as", "a". Needed when formatting subject areas.
+     */
+    function test_conjunctions() {
+        $result = ucla_format_name("Conservation Of Archaeological And Ethnographic Materials");
+        $this->assertEqual($result, "Conservation of Archaeological and Ethnographic Materials");   
+
+        $result = ucla_format_name("Indigenous Languages OF THE Americas");
+        $this->assertEqual($result, "Indigenous Languages of the Americas");          
+    }
     
     /**
      * Now test a complex string with every special case in it
      */
     function test_complex_string() {
         $result = ucla_format_name("MCMARY HAD A LITTLE-LAMB & IT'S FLEECE / WAS WHITE AS SNOW");
-        $this->assertEqual($result, "McMary Had A Little-Lamb & It's Fleece / Was White As Snow");    
+        $this->assertEqual($result, "McMary Had a Little-Lamb & It's Fleece / Was White as Snow");    
     }
 }
 ?>

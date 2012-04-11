@@ -84,10 +84,6 @@ class subjarea_handler extends browseby_handler {
 
         $terms = array();
         foreach ($subjectareas as $k => $subjarea) {
-            // Save this query...
-            $this->subjareas_pretty[$subjarea->subjarea] = 
-                $subjarea->subj_area_full;
-
             // Figure out which terms we can include in the drop down
             $tt = $subjarea->term;
             $terms[$tt] = $tt;
