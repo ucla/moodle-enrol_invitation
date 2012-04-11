@@ -81,7 +81,9 @@ class ucla_cp_module_email_students extends ucla_cp_module {
                     break;
                 }
             }
-        } else {
+        } 
+        
+        if (is_null($course_module)) {
             debugging('could not find one news forum');
             return false;
         }

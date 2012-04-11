@@ -41,10 +41,26 @@ $string['modify_sections_post'] = '';
 $string['turn_editing_on'] = 'Delete or update materials';
 $string['turn_editing_on_post'] = '(or duplicate, hide, make public)';
 
+/** Stuff from myucla functions **/
+$string['ucla_cp_mod_myucla'] = 'MyUCLA functions';
+
+$string['download_roster'] = 'Download Roster';
+$string['download_roster_post'] = '';
+$string['photo_roster'] = 'Photo Roster';
+$string['photo_roster_post'] = '';
+$string['myucla_gradebook'] = 'MyUCLA Gradebook';
+$string['myucla_gradebook_post'] = '';
+$string['turn_it_in'] = 'Turn-It-In';
+$string['turn_it_in_post'] = '';
+$string['email_roster'] = 'Email Roster';
+$string['email_roster_post'] = '';
+$string['asucla_textbooks'] = 'ASUCLA Textbooks';
+$string['asucla_textbooks_post'] = '';
+
 /** Stuff from other **/
 $string['ucla_cp_mod_other'] = 'Other commands';
 
-$string['import_classweb'] = 'Import ClasWeb site';
+$string['import_classweb'] = 'Import ClassWeb site';
 $string['import_classweb_post'] = 'Import content from a previous course on ClassWeb to this site.';
 
 $string['import_moodle'] = 'Import Moodle course data';
@@ -85,5 +101,19 @@ $string['course_grades_post'] = 'View your Moodle gradebook. Activate the advanc
 
 $string['course_edit'] = 'Course settings';
 $string['course_edit_post'] = 'Edit the full name and description of the course or hide the course from students.';
+
+
+/** Stuff for Student Control Panel **/
+$string['ucla_cp_mod_student'] = 'Other commands';
+$string['student_grades'] = 'Grades';
+$string['student_grades_post'] = 'View your grades on CCLE.';
+$string['student_change_password'] = 'Change Password';
+$string['student_change_password_post'] = 'Click this link to change your password.';
+$string['student_myucla_grades'] = 'Grades (MyUCLA)';
+$string['student_myucla_grades_post'] = 'View your grades on MyUCLA (if your instructor has made them available).';
+$string['student_myucla_classmates'] = 'Classmates (MyUCLA)';
+$string['student_myucla_classmates_post'] = 'View a list of your classmates on MyUCLA.';
+$string['student_myucla_textbooks'] = 'Textbooks (MyUCLA)';
+$string['student_myucla_textbooks_post'] = 'View required textbooks for this course on MyUCLA.';
 
 /** End of File **/

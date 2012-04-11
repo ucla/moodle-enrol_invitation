@@ -12,6 +12,8 @@ require_once($CFG->dirroot.
     '/blocks/ucla_control_panel/block_ucla_control_panel.php');
 require_once($CFG->dirroot.
     '/blocks/ucla_control_panel/ucla_cp_renderer.php');
+require_once($CFG->dirroot.
+    '/blocks/ucla_control_panel/modules/ucla_cp_myucla_renderer.php');
 
 // Note that the unhiding of the Announcements forum is handled in
 // modules/email_students.php
@@ -72,7 +74,7 @@ if ($PAGE->user_allowed_editing()) {
 // Get all the elements, unfortunately, this is where we check whether
 // we are supposed to display the elements at all.
 $elements = block_ucla_control_panel::load_cp_elements($course, $context);
-// We do this here becausae of a hack for stylesheets.
+// We do this here because of a hack for stylesheets.
 
 // using core renderer
 echo $OUTPUT->header();
@@ -103,7 +105,6 @@ $PAGE->navigation->initialise();
 $no_elements = true;
 
 $sm = get_string_manager();
-
 // This is actually printing out each section of the control panel
 foreach ($elements as $view => $section_contents) {
     // TODO expand this or optimize this
@@ -112,10 +113,9 @@ foreach ($elements as $view => $section_contents) {
     }
 
     $no_elements = false;
-
+ 
     foreach ($section_contents as $tags => $modules) {
-        $viewstring = '';
-
+       
         // Is this group of stuff from elsewhere?
         if ($sm->string_exists($tags, 'block_ucla_control_panel')) {
             $viewstring = get_string($tags, 'block_ucla_control_panel');
@@ -139,6 +139,8 @@ foreach ($elements as $view => $section_contents) {
 
             echo ucla_cp_renderer::control_panel_contents($section_contents, 
                 false, 'row', 'general_icon_link');
+        } else if ($tags == 'ucla_cp_mod_myucla') {
+            echo ucla_cp_myucla_row_renderer::control_panel_contents($modules);             
         } else {
             $altrend = $tags . '_cp_render';
             if (class_exists($altrend) && method_exists($altrend, 
