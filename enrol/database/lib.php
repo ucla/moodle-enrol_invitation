@@ -59,7 +59,15 @@ class enrol_database_plugin extends enrol_plugin {
      **/
     public function translate_ccle_roster_class($reg) {
         $names = explode(',', $reg['full_name_person']);
-        $firstmiddle = explode(' ', trim($names[1]));
+
+        if (!isset($names[1])) {
+            $firstmiddle = $names[0];
+            $names[0] = '';
+            mtrace('Improperly named entry from class roster: '
+                . $firstmiddle . ' ' . $reg['bolid'] . ' ' . $reg['stu_id']);
+        } else {
+            $firstmiddle = explode(' ', trim($names[1]));
+        }
 
         return array(
             $this->get_config('remoteuserfield') => $reg['stu_id'],
@@ -465,9 +473,6 @@ class enrol_database_plugin extends enrol_plugin {
                     }
 
                     $user = $this->translate_ccle_roster_class($student);
-
-                    $names = explode(',', $student['full_name_person']);
-                    $firstmiddle = explode(' ', trim($names[1]));
 
                     $user[$rolefield] = $roles[
                         get_moodlerole($studentpr, $subjarea)
