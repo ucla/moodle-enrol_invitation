@@ -4,4 +4,4 @@
     $string['title'] = 'Library reserves';
 
     $string['headerlibraryreservesurl'] = 'Source URL';
-    $string['desclibraryreservesurl'] = 'CSV source URL for Library Reserves data';
+    $string['desclibraryreservesurl'] = 'CSV source URL for library reserves data';
