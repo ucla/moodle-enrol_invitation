@@ -145,14 +145,14 @@ class block_ucla_course_menu extends block_navigation {
         $section_elements = $this->create_section_elements();
         $block_elements = $this->create_block_elements();
         $elements = array_merge($section_elements, $block_elements);        
-        $this->trim_nodes($elements);        
-        $this->content->text .= $renderer->navigation_node($elements,
+        $elements = $this->trim_nodes($elements);        
+        $this->content->text = $renderer->navigation_node($elements,
             array('class' => 'block_tree list'));
 
         // Separate out module nodes so that we can have a different style
         // to them.
         $module_elements = $this->create_module_elements();     
-        $this->trim_nodes($module_elements); 
+        $elements = $this->trim_nodes($module_elements); 
         
         // For some reason cannot use html_writer::start_tag/html_writer::end_tag
         // so use hard-coded HTML.
