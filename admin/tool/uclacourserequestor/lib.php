@@ -298,7 +298,10 @@ function requestor_ignore_entry($data) {
     }
 
     $subj = $data->subj_area;
+
+    // Use this to compare exact strings
     $rawnum = trim($data->coursenum);
+    // Use this to compare course numbers 
     $num = (int)preg_replace('/[^0-9]/', '', $rawnum);
 
     if ($num > 495) {
@@ -311,7 +314,17 @@ function requestor_ignore_entry($data) {
 
     if ($subj == 'ASTR' && in_array($rawnum, array('277B', '296', '375'))) {
         return true;
-    }    
+    }
+
+    // CCLE-2894: Custom filtering for courses
+    $customfilter = get_config('tool_uclacourserequestor', 'customfilters');
+    if ($customfilter) {
+        foreach ($customfilter as $filter) {
+            if ($rawnum == trim($filter)) {
+                return true;
+            }
+        }
+    }
     
     return false;
 }
