@@ -65,6 +65,7 @@ class division_handler extends browseby_handler {
         FROM {ucla_reg_division} di
         INNER JOIN {ucla_reg_classinfo} rci
             ON rci.division = di.code
+        ORDER BY di.fullname
         ";
 
         return $DB->get_records_sql($sql);
