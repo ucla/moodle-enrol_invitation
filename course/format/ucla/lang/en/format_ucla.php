@@ -45,4 +45,4 @@ $string['show_all'] = 'Show All';
 
 // Custom format strings
 $string['editcoursetitle'] = 'Edit course description';
-$string['editsectiontitle'] = 'Edit section title';
+$string['editsectiontitle'] = 'Edit title';
