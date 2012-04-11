@@ -206,8 +206,8 @@ html, body {background-color:#FFF; height:100%;}
 .block h2,
 .block h3,
 .block h4 {margin:0px;}
-.block .header {padding:10px 6px 10px 6px;background-color:#D1DBEF;}
-.block .content {padding:0px 3px 0px 3px;background-color:#DFE7F4;}
+.block .header {padding:4px 6px;background-color:#D1DBEF;}
+.block .content {padding:0px 4px;background-color:#DFE7F4;}
 .block .content a {display:block;width:100%;}
 .block .content a:hover {text-decoration:none;} 
 
