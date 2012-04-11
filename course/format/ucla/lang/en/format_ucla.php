@@ -42,3 +42,7 @@ $string['course_pref'] = 'Course Preferences';
 $string['course_pref_for'] = 'UCLA Format Course Preferences for {$a}';
 $string['landing_page'] = 'Landing Page';
 $string['show_all'] = 'Show All';
+
+// Custom format strings
+$string['editcoursetitle'] = 'Edit course description';
+$string['editsectiontitle'] = 'Edit title';

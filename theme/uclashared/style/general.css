@@ -123,14 +123,9 @@ html, body {background-color:#FFF; height:100%;}
 
 .course-content .headingblock.outline {margin-top:0;}
 .course-content .section.main {border:1px solid #E3E3E3;margin-bottom:10px;background-color:#FFF;}
-.course-content .section.main .left.side {float:left;width:20px;padding:5px;}
-.course-content .section.main .right.side {float:right;width:20px;padding:5px;}
 .course-content .section.main .content {margin:0 30px 10px 30px;background-color:#FFF;}
 .course-content .section.main .content .section_add_menus {text-align:right;}
 
-.course-content .section.main .left.side {visibility:hidden;}
-.course-content .section.main .left.side .accesshide {visibility:visible;}
-.course-content .section.main .left.side a {visibility:visible;}
 
 #course-user .section {border:1px solid #DDD;margin:0 5% 1.5em 5%;}
 

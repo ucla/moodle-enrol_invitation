@@ -1,3 +1,12 @@
+.course-content .section.main .left.side {
+    visibility:hidden;
+    float: left;
+    width: 0px !important;
+    padding: 0px !important;
+}
+.course-content .section.main .left.side .accesshide {visibility:visible;}
+.course-content .section.main .left.side a {visibility:visible;}
+
 .course-content ul.topics {
     margin: 0;
 }
@@ -9,21 +18,41 @@
     border: 0;
 }
 
-.course-content ul.topics li.section .content .defsection {
-    font-style: italic;
-    color: gray;
+.course-content ul.topics li.section.hidden {
+    background-color: #C0C0C0;
 }
 
 .course-content ul.topics li.section .content {
-    margin: 0 40px 0 40px;
+    margin: 0;
+    padding: 5px 8px 5px 8px;
+}
+
+.course-content ul.topics li.section .content .editbutton a {
+    color: #FF6666;
+    margin: 0;
+}
+
+.course-content ul.topics li.section .content.editing {
+    margin: 0 0 0 20px;
+}
+
+.course-content ul.topics li.section .content .registrar-info {
+    color: gray;
+    font-weight: bold;
+}
+
+
+.course-content ul.topics li.section .content .defsection {
+    font-style: italic;
+    color: gray;
 }
 
 .course-content ul.topics li.section .content .sectionname {
     margin: 0;
 }
 
-.course-content ul.topics li.section.hidden {
-    background-color: #C0C0C0;
+.course-content ul.topics li.section .content .section_add_menus {
+    padding-right: 2px;
 }
 
 .course-content ul.topics li.section .left {
@@ -34,19 +63,47 @@
 }
 
 .course-content ul.topics li.section .right {
-    width: 40px;
-    float: right;
+    float: none;
     text-align: left;
-    /* display: none; */
+    display: inline;
+    padding-left: 18px;
 }
 
-.course-content ul.topics li.section .content .registrar-info {
-    color: gray;
-    font-weight: bold;
+.course-content ul.topics li.section .right div {
+    display: inline;
+    padding: 0 2px 0 8px;
 }
 
 .course-content ul.topics li.section .content p {
     margin: 1em 0;
+}
+
+.course-content ul.topics li.section .sectionheader {
+    border-bottom: 1px solid #ABBAD1;
+}
+
+.course-content ul.topics li.section .sectionheader h2 {
+    display: inline;
+}
+
+.course-content ul.topics li.section .sectionheader div span {
+    margin-right: 2px;
+}
+
+.course-content ul.topics li.section .sectionheader div span a,
+.course-content ul.topics li.section .sectionheader div a,
+.course-content ul.topics li.section .sectionheader div div {
+    color: #FF6666;
+    padding-left: 8px;
+}
+
+.section .groupinglabel {
+    color: #666666;
+}
+
+.section .content h2 .hidden {
+    color: #666666;
+    padding-left: 4px;
 }
 
 .jumpmenu {
