@@ -7,7 +7,9 @@
  **/
 
 // Satisfy Moodle's requirement for running CLI scripts
-define('CLI_SCRIPT', true);
+if (!defined('CLI_SCRIPT')) {
+    define('CLI_SCRIPT', true);
+}
 
 require_once(dirname(__FILE__) . '/../../../config.php');
 require_once($CFG->dirroot . '/local/ucla/lib.php');
