@@ -143,7 +143,7 @@ $CFG->debugpageinfo = true; // show page information
 // UCLA Theme settings
 $CFG->themedesignermode = true;
 $CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'dev';
-$CFG->forced_plugin_settings['theme_uclashared']['logo_sub_dropdown'] = false;
+$CFG->forced_plugin_settings['theme_uclashared']['logo_sub_dropdown'] = 0;
 $CFG->cachejs = false;
 
 // Newly created courses for ucla formats should only have the course menu block
