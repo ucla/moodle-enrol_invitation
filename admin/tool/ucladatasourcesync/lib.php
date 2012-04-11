@@ -1,20 +1,22 @@
 <?php
 /**
-* Library for use by the Datasource Syncronization Scripts of the Bruincast (CCLE-2314), Library reserves (CCLE-2312), and Video furnace (CCLE-2311) blocks
-*
-* See CCLE-2790 for details.
-**/
+ * Library for use by the Datasource Syncronization Scripts of the Bruincast 
+ * (CCLE-2314), Library reserves (CCLE-2312), and Video furnace (CCLE-2311)
+ *
+ * See CCLE-2790 for details.
+ **/
 
-//satisfy moodle's requirement for cli scripts
+// Satisfy Moodle's requirement for running CLI scripts
 define('CLI_SCRIPT', true);
 
-require_once(dirname(dirname(dirname(dirname(__FILE__)))) . "/config.php");
+require_once(dirname(__FILE__) . '/../../../config.php');
+require_once($CFG->dirroot . '/local/ucla/lib.php');
 
 /**
-* Returns an array of raw CSV data from the CSV file at datasource_url.
-* @param $datasource_url The URL of the CSV data to attempt to retrieve.
-**/
-function get_csv_data($datasource_url){
+ * Returns an array of raw CSV data from the CSV file at datasource_url.
+ * @param $datasource_url The URL of the CSV data to attempt to retrieve.
+ **/
+function get_csv_data($datasource_url) {
 
     $lines = array();
     $fp = fopen($datasource_url, 'r');
@@ -36,13 +38,13 @@ function get_csv_data($datasource_url){
 }
 
 /**
-* Returns an array of cleaned and parsed CSV data from the unsafe and/or unclean input array of data.
-* @param $data The array of unsafe CSV data.
-* @param $table_name The moodle DB table name against which to validate the field labels of the CSV data.
-* @note Currently only works with the Bruincast update script at ./bruincast_dbsync.php  May cause undefined behaviour if used with other datasets.
-**/
-function cleanup_csv_data($data_array, $table_name){
-    
+ * Returns an array of cleaned and parsed CSV data from the unsafe and/or unclean input array of data.
+ * @param $data The array of unsafe CSV data.
+ * @param $table_name The moodle DB table name against which to validate the field labels of the CSV data.
+ * @note Currently only works with the Bruincast update script at ./bruincast_dbsync.php  May cause undefined behaviour if used with other datasets.
+ **/
+function cleanup_csv_data($data_array, $table_name) {
+
     // get global variables
     global $CFG;
     global $DB;
@@ -51,7 +53,7 @@ function cleanup_csv_data($data_array, $table_name){
     $posfields = array();
 
     // Automatically ignore fields
-    $curfields = $DB->get_records_sql("DESCRIBE {$CFG->prefix}".$table_name);
+    $curfields = $DB->get_records_sql("DESCRIBE {$CFG->prefix}" . $table_name);
 
     foreach ($curfields as $fieldname => $fielddata) {
 
@@ -63,7 +65,7 @@ function cleanup_csv_data($data_array, $table_name){
         $posfields[$fieldname] = $fieldname;
     }
 
-    
+
 
     // Assuming the field descriptor line is going to come before all the other lines
     $field_descriptors_obtained = FALSE;
@@ -75,7 +77,7 @@ function cleanup_csv_data($data_array, $table_name){
         $fields_desc_line++;
 
         if ($fields_desc_line == $total_lines) {
-            die ("\n"."Could not find any lines that match any field in the DB!"."\n");
+            die("\nCould not find any lines that match any field in the DB!\n");
         }
 
         $file_fields = array();
@@ -87,7 +89,7 @@ function cleanup_csv_data($data_array, $table_name){
             } else {
                 $finfields[] = $field_name;
             }
-    
+
             $file_fields[$field_name] = $field_name;
         }
 
@@ -95,12 +97,11 @@ function cleanup_csv_data($data_array, $table_name){
         $field_descriptors_obtained = TRUE;
 
         foreach ($posfields as $fieldname => $field) {
-        
+
             if (!isset($file_fields[$field])) {
                 // This line is not the field descriptor line!
                 $field_descriptors_obtained = FALSE;
             }
-
         }
     }
 
@@ -114,12 +115,12 @@ function cleanup_csv_data($data_array, $table_name){
             echo "Line $line is badly formed!\n";
             continue;
         }
-    
+
         foreach ($incoming_data[$fields_desc_line] as $tab_num => $field_name) {
 
             $data = $incoming_data[$line][$tab_num];
             $field = trim($field_name);
-    
+
             if (in_array($field, $ignored_fields)) {
                 continue;
             }
@@ -138,7 +139,7 @@ function cleanup_csv_data($data_array, $table_name){
                     $data = 'Undefined';
                 }
             }
-        
+
             $data_incoming[$line][$field] = $data;
         }
     }
@@ -149,10 +150,11 @@ function cleanup_csv_data($data_array, $table_name){
         if (!isset($CFG->bruincast_errornotify_email) || $CFG->quiet_mode) {
             echo $invalid_restrictions;
         } else {
-            mail($CFG->bruincast_errornotify_email, 'BruinCast Data Issues (' . date('r') . ')', $invalid_restrictions);
+            ucla_send_mail($CFG->bruincast_errornotify_email, 
+                    'BruinCast Data Issues (' . date('r') . ')', $invalid_restrictions);
         }
     }
 
-    
+
     return $data_incoming;
 }
