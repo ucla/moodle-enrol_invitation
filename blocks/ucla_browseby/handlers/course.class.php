@@ -199,7 +199,7 @@ class course_handler extends browseby_handler {
             // There is no way to know what we are looking at
             return array(false, false);
         }
-
+        
         if (empty($courseslist)) {
             print_error('noresults');
         }
