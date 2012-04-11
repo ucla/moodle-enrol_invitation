@@ -298,7 +298,8 @@ function requestor_ignore_entry($data) {
     }
 
     $subj = $data->subj_area;
-    $num = $data->coursenum;
+    $rawnum = trim($data->coursenum);
+    $num = (int)preg_replace('/[^0-9]/', '', $rawnum);
 
     if ($num > 495) {
         return true;
@@ -308,7 +309,7 @@ function requestor_ignore_entry($data) {
         return true;
     }
 
-    if ($subj == 'ASTR' && in_array($num, array('277B', '296', '375'))) {
+    if ($subj == 'ASTR' && in_array($rawnum, array('277B', '296', '375'))) {
         return true;
     }    
     
