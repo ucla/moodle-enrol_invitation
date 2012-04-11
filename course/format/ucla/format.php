@@ -534,16 +534,11 @@ while ($section <= $course->numsections) {
                     $registrar_info .= get_string('reg_finalcd', 
                         'format_ucla');
                     $registrar_info .= implode(', ', $regfinalurls);
-                    $registrar_info .= html_writer::empty_tag('br');
-                } else {
-                    $registrar_info = get_string('reg_unavail', 
-                        'format_ucla');
-                    $registrar_info = '';
-                }
-
-                $center_content .= html_writer::tag('div', $registrar_info,
-                    array('class' => 'registrar-info'));
-
+                    
+                    $center_content .= html_writer::tag('div', $registrar_info,
+                        array('class' => 'registrar-info'));                
+                    $center_content .= html_writer::empty_tag('br');                    
+                }                
 
                 // Editing button for course summary
                 if ($editing && $has_capability_update) {
