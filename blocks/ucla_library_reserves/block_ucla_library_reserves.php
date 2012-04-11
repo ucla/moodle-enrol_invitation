@@ -54,14 +54,15 @@ class block_ucla_library_reserves extends block_base {
                 $courseterm = $courseentry->term;
 
                 if (!empty($coursesrs) && !empty($courseterm)) {
-                    $lrnodes = $DB->get_record('ucla_library_reserves', array('quarter'=>$courseterm,'srs'=>$coursesrs)); // get entry in libraryreserves table by the generated courseid
+                    $lrnodes = $DB->get_records('ucla_library_reserves', array('quarter'=>$courseterm,'srs'=>$coursesrs)); // get entry in libraryreserves table by the generated courseid
+
+                    $reginfo = ucla_get_reg_classinfo($courseterm, $coursesrs);
 
                     // If srs did not work as lookup, use the term, courseid, and department code 
                     if($lrnodes == false) {
-                        $reginfo = ucla_get_reg_classinfo($courseterm, $coursesrs);
 
                         if(!empty($reginfo)) {
-                            $lrnodes = $DB->get_record('ucla_library_reserves', array('quarter'=>$courseterm, 'department_code'=>$reginfo->subj_area, 'course_number'=>$reginfo->coursenum));
+                            $lrnodes = $DB->get_records('ucla_library_reserves', array('quarter'=>$courseterm, 'department_code'=>$reginfo->subj_area, 'course_number'=>$reginfo->coursenum));
                         }
                     }
                 }
@@ -69,13 +70,17 @@ class block_ucla_library_reserves extends block_base {
 
                 if($lrnodes != false) {
 
-                    if (!empty($lrnodes->url)) {
+                    foreach($lrnodes as $lrnode) {
 
-                        // Must hardcode the naming string since this is a static function
-                        $nodes = array(navigation_node::create('Library Reserves', new moodle_url($lrnodes->url))); 
-                        break;
+                        $reginfo = ucla_get_reg_classinfo($lrnode->quarter,$lrnode->srs);
+
+                        if (!empty($lrnode->url)) {
+
+                            // Must hardcode the naming string since this is a static function
+                            $nodes[] = navigation_node::create('Library Reserves '.$reginfo->subj_area.$reginfo->coursenum, new moodle_url($lrnode->url)); 
+                            break;
+                        }
                     }
-
                 }
             }
         }
