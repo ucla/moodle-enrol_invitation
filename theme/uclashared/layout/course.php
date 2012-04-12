@@ -120,7 +120,12 @@ echo $OUTPUT->doctype() ?>
                 <div id="region-main-wrap">
                     <div id="region-main">
                         <div class="region-content">
+			    <div class="cpheading">
+                                <div class="cp">
+                                   <h1>Control Panel</h1>
+                                </div>
                             <?php echo core_renderer::MAIN_CONTENT_TOKEN ?>
+			    </div>
                         </div>
                     </div>
                 </div>

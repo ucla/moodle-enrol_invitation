@@ -7,7 +7,30 @@ img.iconhelp {vertical-align:middle;}
 
 html, body {background-color:#FFF; height:100%;}
 #page {height:100%;background-color:transparent;margin:0 auto;}
-#page #page-content {background-color:#FFF; height:auto;}
+#page #page-content {background-color:#FFF; height:auto;
+width:99%;}
+
+#page #page-content #region-main-box { 
+
+margin: 5px;
+
+}
+
+
+#page #page-content #region-main { 
+margin-right:5px;
+  
+border:2px solid rgb(199,195,197);
+}
+
+#page #page-content .region-content{ 
+
+
+margin-top:-10px;
+margin-left: -10px;
+margin-right: -10px;
+
+}
 
 /** Header **/
 #page-header {
@@ -106,7 +129,7 @@ html, body {background-color:#FFF; height:100%;}
     border-bottom:1px solid #AFC5F0;    
     border-top:1px solid #AFC5F0;
     background-color:#D1DBEF;
-    padding:5px;
+    padding: 5px;
     color:#394A6E;
     font-size:18px;
 }
@@ -114,8 +137,8 @@ html, body {background-color:#FFF; height:100%;}
     font-size:0.8em;
     font-weight:normal;
     color:#494949
-}
 
+}
 
 .coursebox {width:100%;margin:10px 0px;border-bottom:1px solid #E3E3E3;overflow:hidden;padding-bottom:10px;}
 .coursebox .info {width:35%;float:left;}
@@ -201,7 +224,7 @@ html, body {background-color:#FFF; height:100%;}
 .loginbox .guestsub {margin-left:10%;margin-right:10%;padding:10px;margin-bottom:5px;border-top:1px solid #DDD;}
 
 /** Blocks **/
-.block {border:none;background-color:#DFE7F4;margin-bottom:10px;overflow:hidden;}
+.block {border:none;background-color:#DFE7F4;margin-bottom:10px; margin-right: 10px; overflow:hidden;}
 .block h1,
 .block h2,
 .block h3,
@@ -373,6 +396,7 @@ html, body {background-color:#FFF; height:100%;}
     background: url([[pix:theme|pilot_help_banner]]) no-repeat;
     text-indent: -999em;
     text-decoration: none;
+
 }
 .headermain {
     margin-left: 2.0em !important;
