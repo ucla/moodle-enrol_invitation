@@ -1,50 +1,19 @@
+
 <?php
-// This file is part of Moodle - http://moodle.org/
-//
-// Moodle is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Moodle is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * Unit tests for ucla_weeksdisplay.
+ */
+ 
+if (!defined('MOODLE_INTERNAL')) {
+    die('Direct access to this script is forbidden.'); //  It must be included from a Moodle page
+}
+ 
+// Make sure the code being tested is accessible.
+require_once($CFG->dirroot . '/blocks/ucla_weeksdisplay'); // Include the code to test
+ 
+class ucla_weeksdisplay_test extends UnitTestCase {
 
-defined('MOODLE_INTERNAL') || die();
-
-require_once(dirname(__FILE__) . '/../moodleblock.class.php');
-
-global $CFG;
-require_once($CFG->dirroot . '/local/ucla/lib.php');
-
-class block_ucla_weeksdisplay extends block_base {
-    
-    function init() {
-        $this->title = get_string('pluginname', 'block_ucla_weeksdisplay');
-    }
-    
-    //Displays the current quarter
-    function get_raw_content(){
-        global $CFG;
-        return ucla_term_to_text($CFG->currentterm);
-    }
-    
-    function cron(){
-        //Include registrar files.
-        ucla_require_registrar();
-        global $CFG;
-        //If the current term is not valid, heuristically initialize it.
-        if(ucla_validator('term', $CFG->currentterm) == false) {
-            init_currentterm();
-        }    
-        get_current_week_display($CFG->currentterm);
-    }
-    
-    function get_current_week_display($current_term){
+   function get_current_week_display($current_term){
         //Run the query and parse out the regular sessions.
         $query_result = registrar_query::run_registrar_query(
                 'ucla_getterms', array($current_term));
@@ -343,26 +312,19 @@ class block_ucla_weeksdisplay extends block_base {
                 return $year."F";
         }
     }
-
-   /**
-    * Takes in a UCLA term (Ex: 11F) and returns the term before it.
-    */       
-    function get_prev_term($current_term){
-        $year = intval(substr($current_term,0 , 2));
-        $quarter = $current_term[3];
-        switch($quarter){
-            case 'F':
-                return $year."1";
-            case 'W':                
-                return $year."F";
-            case 'S':
-                $prev_year = ($year == 0) ? "99" : sprintf("%02d", intval($year)-1);
-                return $prev_year."W";
-            case '1':
-                return $year."S";
-        }
-    } 
     
+    function test_get_prev_term(){
+        $result = get_prev_term("11F");
+        $this->assertEqual($result, "111");           
+        $result = get_prev_term("00S");
+        $this->assertEqual($result, "99W"); 
+        $result = get_prev_term("11W");
+        $this->assertEqual($result, "11F");  
+        $result = get_prev_term("111");
+        $this->assertEqual($result, "11S");  
+        $result = get_prev_term("11S");
+        $this->assertEqual($result, "10W");  
+    }
    /**
     * Cmp function for sorting find_regular_sessions. Returns the session
     * with the earliest session start date.
@@ -373,7 +335,8 @@ class block_ucla_weeksdisplay extends block_base {
     */ 
     function cmp_sessions($session1, $session2){                
         return cmp_dates($session1[5],$session2[5]);
-    }      
+    }         
+        
     
    /**
     * Compares 2 dates and returns which one is earlier and by how many days.
@@ -432,51 +395,62 @@ class block_ucla_weeksdisplay extends block_base {
         return $days_difference;
     }    
 
-    function is_leap_year($year){
-        return ($year % 4) ? true : false;
+    function test_is_leap_year(){
+        $result = is_leap_year(2000);
+        $this->assertEqual($result, true);
+        $result = is_leap_year(2001);
+        $this->assertEqual($result, false);
+        $result = is_leap_year(2002);
+        $this->assertEqual($result, false);
+        $result = is_leap_year(2003);
+        $this->assertEqual($result, false);        
+        $result = is_leap_year(2004);
+        $this->assertEqual($result, true);
+
     }
-    
-   /**
-    * Compares 2 dates and returns which one is earlier.
-    * @param date1, date2  strings that start with the format YYYY-MM-DD
-    * @return 1 if date1 comes after date2.
-    *         0 if date1 is the same as date2
-    *         -1 if date1 comes before date2.
-    */      
-    function find_earlier_date($date1, $date2){   
-        $unix_date1 = strtotime($date1);
-        $unix_date2 = strtotime($date2); 
-        $unix_date1_year = date("Y", $unix_date1);
-        $unix_date2_year = date("Y", $unix_date2);
-               
-        if($unix_date1_year > $unix_date2_year) { 
-            return 1; 
-        } else if($unix_date1_year < $unix_date2_year) { 
-            return -1; 
-        } else { //$date1 year == $date2 year            
-            $unix_date1_day_in_year = date("z", $unix_date1);
-            $unix_date2_day_in_year = date("z", $unix_date2);            
-            if($unix_date1_day_in_year > $unix_date2_day_in_year){
-                return 1;
-            } else if($unix_date1_day_in_year < $unix_date2_day_in_year){
-                return -1;
-            } else { //$unix_date1_day_in_year == $unix_date2_day_in_year
-                return 0;
-            }
-        }     
-     }    
+        
+    function test_find_earlier_date(){   
+        $result = find_earlier_date("2012-04-09", "2012-04-09");
+        $this->assertEqual($result, 0);
+        //Test Years
+        $result = find_earlier_date("2010-04-09", "2012-04-09");
+        $this->assertEqual($result, -1);       
+        $result = find_earlier_date("2012-04-09", "2010-04-09");
+        $this->assertEqual($result, 1);   
+        //Test Days
+        $result = find_earlier_date("2012-04-09", "2012-04-08");
+        $this->assertEqual($result, 1);   
+        $result = find_earlier_date("2012-04-08", "2012-04-09");
+        $this->assertEqual($result, -1);      
+        //Test Months
+        $result = find_earlier_date("2010-03-09", "2010-04-09");
+        $this->assertEqual($result, -1);           
+        $result = find_earlier_date("2010-04-09", "2012-03-09");
+        $this->assertEqual($result, 1);       
+        $result = find_earlier_date("2010-03-29", "2010-04-09");
+        $this->assertEqual($result, -1);           
+        $result = find_earlier_date("2010-04-09", "2012-03-29");
+        $this->assertEqual($result, 1);          
+    } 
+         
+    function test_get_dayofweek(){
+        $result = get_dayofweek("2012-04-09");
+        $this->assertEqual($result, "Mon");
+        $result = get_dayofweek("2012-04-10");
+        $this->assertEqual($result, "Tue");          
+        $result = get_dayofweek("2012-04-11");
+        $this->assertEqual($result, "Wed");
+        $result = get_dayofweek("2012-04-12");
+        $this->assertEqual($result, "Thu");       
+        $result = get_dayofweek("2012-04-13");
+        $this->assertEqual($result, "Fri");
+        $result = get_dayofweek("2012-04-14");
+        $this->assertEqual($result, "Sat");  
+        $result = get_dayofweek("2012-04-15");
+        $this->assertEqual($result, "Sun");         
+    }        
+ 
 }
 
-   /**
-    * Returns whether or not the date is within the dession.
-    * @param date string that starts with the format YYYY-MM-DD
-    * @return a string that represents the day of the week associated with date.
-    *  (Monday, Tuesday, etc.)
-    */     
-    function get_dayofweek($date){
-        $unix_date = strtotime($date);
-        return date($unix_date, 'D');
-    }
 
 //EOF
-
