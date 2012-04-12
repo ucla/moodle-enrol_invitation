@@ -50,7 +50,8 @@
     margin-left: 3px;
 }
 
-.block_ucla_course_menu .content .block_tree.list li.type_structure:hover {
+.block_ucla_course_menu .content .block_tree.list li.type_structure:hover,
+.block_ucla_course_menu .content .block_tree.list li.type_custom:hover {
     background-color: #FFB300;
 }
 
@@ -72,6 +73,6 @@
     text-align: center;    
 }
 .block_ucla_course_menu .edit_control_links a {
-	color: #FF6666;
-	font-weight: normal;
+    color: #FF6666;
+    font-weight: normal;
 }
