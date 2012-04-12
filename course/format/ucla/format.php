@@ -230,6 +230,26 @@ if (!empty($termtext)) {
 
 echo $OUTPUT->heading($heading_text . $course->fullname, 2, 'headingblock');
 
+/**
+ * Alert that displays when a visitor is not logged in, as the course will
+ * only show public content (a partial view) in this case.
+ *
+ * @author ebollens
+ * @version 20110719
+ */
+include_once($CFG->libdir.'/publicprivate/course.class.php');
+$publicprivate_course = new PublicPrivate_Course($course);
+if($publicprivate_course->is_activated() && isguestuser()) {
+    echo $OUTPUT->box_start('noticebox');
+
+    echo get_string('publicprivatenotice');
+    $loginbutton = new single_button(new moodle_url($CFG->wwwroot 
+            . '/login/index.php'), get_string('publicprivatelogin'));
+    $loginbutton->class = 'continuebutton';
+
+    echo $OUTPUT->render($loginbutton);
+    echo $OUTPUT->box_end();
+}
 
 // Handle cancelled classes
 if (is_course_cancelled($courseinfos)) {
