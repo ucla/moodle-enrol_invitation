@@ -9,7 +9,7 @@ if (!defined('MOODLE_INTERNAL')) {
 }
  
 // Make sure the code being tested is accessible.
-require_once($CFG->dirroot . '/blocks/ucla_weeksdisplay'); // Include the code to test
+require_once($CFG->dirroot . '/blocks/ucla_weeksdisplay/block_ucla_weeksdisplay.php'); // Include the code to test
 /*
  * Tests all functions in ucla weeksdisplay that do not modify the data
  */
@@ -183,38 +183,39 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         $sessions[] = $this->create_session_obj('10W','6C','2013-01-01','2013-02-01','2013-01-01');
         $sessions[] = $this->create_session_obj('10W','99A','2013-01-01','2013-02-01','2013-01-01');
         
-        $result = find_regular_sessions($sessions);
+        $result = block_ucla_weeksdisplay::find_regular_sessions($sessions);
         
         $answer[] = $this->create_session_obj('10W','RG','2012-01-01','2012-02-01','2012-01-01');
         $sessions[] = $this->create_session_obj('10W','8A','2013-01-01','2013-02-01','2013-01-01');
         $sessions[] = $this->create_session_obj('10W','6C','2013-01-01','2013-02-01','2013-01-01');
+        $result = block_ucla_weeksdisplay::find_regular_sessions($sessions);
         $this->assertEqual($result, $answer);        
         
     }          
     
     function test_get_next_term(){
-        $result = get_prev_term('11F');
+        $result = block_ucla_weeksdisplay::get_next_term('11F');
         $this->assertEqual($result, '11W');           
-        $result = get_prev_term('99W');
+        $result = block_ucla_weeksdisplay::get_next_term('99W');
         $this->assertEqual($result, '00S'); 
-        $result = get_prev_term('11W');
+        $result = block_ucla_weeksdisplay::get_next_term('11W');
         $this->assertEqual($result, '12S');  
-        $result = get_prev_term('111');
-        $this->assertEqual($result, '11W');  
-        $result = get_prev_term('11S');
+        $result = block_ucla_weeksdisplay::get_next_term('111');
         $this->assertEqual($result, '11F');  
+        $result = block_ucla_weeksdisplay::get_next_term('11S');
+        $this->assertEqual($result, '111');  
     } 
     
     function test_get_prev_term(){
-        $result = get_prev_term('11F');
+        $result = block_ucla_weeksdisplay::get_prev_term('11F');
         $this->assertEqual($result, '111');           
-        $result = get_prev_term('00S');
+        $result = block_ucla_weeksdisplay::get_prev_term('00S');
         $this->assertEqual($result, '99W'); 
-        $result = get_prev_term('11W');
+        $result = block_ucla_weeksdisplay::get_prev_term('11W');
         $this->assertEqual($result, '11F');  
-        $result = get_prev_term('111');
+        $result = block_ucla_weeksdisplay::get_prev_term('111');
         $this->assertEqual($result, '11S');  
-        $result = get_prev_term('11S');
+        $result = block_ucla_weeksdisplay::get_prev_term('11S');
         $this->assertEqual($result, '10W');  
     }
       
@@ -225,114 +226,114 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         //$term, $session, $session_start, $session_end, $instruction_start
         $session1 = $this->create_session_obj('10W','RG','2012-01-01','2012-02-01','2012-01-01');
         $session2 = $this->create_session_obj('10W','RG','2013-01-01','2013-02-01','2013-01-01');
-        $result = cmp_sessions($session1, $session2);
+        $result = block_ucla_weeksdisplay::cmp_sessions($session1, $session2);
         $this->assertEqual($result, -1);
         $session1 = $this->create_session_obj('10W','RG','2012-01-01','2012-02-01','2012-01-01');
         $session2 = $this->create_session_obj('10W','RG','2012-01-01','2012-02-01','2012-01-01');
-        $result = cmp_sessions($session1, $session2);
+        $result = block_ucla_weeksdisplay::cmp_sessions($session1, $session2);
         $this->assertEqual($result, 0);        
         $session1 = $this->create_session_obj('10W','RG','2012-01-01','2012-02-01','2012-01-01');
         $session2 = $this->create_session_obj('10W','RG','2012-01-01','2012-02-01','2012-01-01');
-        $result = cmp_sessions($session1, $session2);
+        $result = block_ucla_weeksdisplay::cmp_sessions($session1, $session2);
         $this->assertEqual($result, 1);                
     }
 
     function test_cmp_dates(){   
-        $result = cmp_dates('2012-04-09', '2012-04-09');
+        $result = block_ucla_weeksdisplay::cmp_dates('2012-04-09', '2012-04-09');
         $this->assertEqual($result, 0);
      //Test Dates where date1 comes before date2
         //Test Dates within the same year and month.
-        $result = cmp_dates('2012-04-09', '2012-04-10');
+        $result = block_ucla_weeksdisplay::cmp_dates('2012-04-09', '2012-04-10');
         $this->assertEqual($result, -1);   
-        $result = cmp_dates('2012-04-01', '2012-04-10');
-        $this->assertEqual($result, -10);   
+        $result = block_ucla_weeksdisplay::cmp_dates('2012-04-01', '2012-04-10');
+        $this->assertEqual($result, -9);   
         //Test Dates within the same year
-        $result = cmp_dates('2012-03-01', '2012-04-01');
+        $result = block_ucla_weeksdisplay::cmp_dates('2012-03-01', '2012-04-01');
         $this->assertEqual($result, -31);   
-        $result = cmp_dates('2012-01-01', '2012-12-31');
+        $result = block_ucla_weeksdisplay::cmp_dates('2012-01-01', '2012-12-31');
         $this->assertEqual($result, -365);      
-        $result = cmp_dates('2013-01-01', '2013-12-31');
+        $result = block_ucla_weeksdisplay::cmp_dates('2013-01-01', '2013-12-31');
         $this->assertEqual($result, -364);            
         //Test dates from different years.
-        $result = cmp_dates('2012-12-31', '2013-01-01');
+        $result = block_ucla_weeksdisplay::cmp_dates('2012-12-31', '2013-01-01');
         $this->assertEqual($result, -1);      
-        $result = cmp_dates('2012-12-31', '2014-01-01');
+        $result = block_ucla_weeksdisplay::cmp_dates('2012-12-31', '2014-01-01');
         $this->assertEqual($result, -366);  
-        $result = cmp_dates('2012-12-31', '2015-01-01');
+        $result = block_ucla_weeksdisplay::cmp_dates('2012-12-31', '2015-01-01');
         $this->assertEqual($result, -731);     
      //Test Dates where date1 comes after date2
         //Test Dates within the same year and month.
-        $result = cmp_dates('2012-04-10', '2012-04-09');
+        $result = block_ucla_weeksdisplay::cmp_dates('2012-04-10', '2012-04-09');
         $this->assertEqual($result, 1);   
-        $result = cmp_dates('2012-04-10', '2012-04-01');
-        $this->assertEqual($result, 10);   
+        $result = block_ucla_weeksdisplay::cmp_dates('2012-04-10', '2012-04-01');
+        $this->assertEqual($result, 9);   
         //Test Dates within the same year
-        $result = cmp_dates('2012-04-01', '2012-03-01');
+        $result = block_ucla_weeksdisplay::cmp_dates('2012-04-01', '2012-03-01');
         $this->assertEqual($result, 31);   
-        $result = cmp_dates('2012-12-01', '2012-01-31');
+        $result = block_ucla_weeksdisplay::cmp_dates('2012-12-01', '2012-01-31');
         $this->assertEqual($result, 365);      
-        $result = cmp_dates('2013-12-01', '2013-01-31');
+        $result = block_ucla_weeksdisplay::cmp_dates('2013-12-01', '2013-01-31');
         $this->assertEqual($result, 364);            
         //Test dates from different years.
-        $result = cmp_dates('2013-01-01', '2012-12-31');
+        $result = block_ucla_weeksdisplay::cmp_dates('2013-01-01', '2012-12-31');
         $this->assertEqual($result, 1);      
-        $result = cmp_dates('2014-01-01', '2012-12-31');
+        $result = block_ucla_weeksdisplay::cmp_dates('2014-01-01', '2012-12-31');
         $this->assertEqual($result, 366);  
-        $result = cmp_dates('2015-01-01', '2012-12-31');
+        $result = block_ucla_weeksdisplay::cmp_dates('2015-01-01', '2012-12-31');
         $this->assertEqual($result, 731);         
     }     
 
     function test_is_leap_year(){
-        $result = is_leap_year(2000);
+        $result = block_ucla_weeksdisplay::is_leap_year(2000);
         $this->assertEqual($result, true);
-        $result = is_leap_year(2001);
+        $result = block_ucla_weeksdisplay::is_leap_year(2001);
         $this->assertEqual($result, false);
-        $result = is_leap_year(2002);
+        $result = block_ucla_weeksdisplay::is_leap_year(2002);
         $this->assertEqual($result, false);
-        $result = is_leap_year(2003);
+        $result = block_ucla_weeksdisplay::is_leap_year(2003);
         $this->assertEqual($result, false);        
-        $result = is_leap_year(2004);
+        $result = block_ucla_weeksdisplay::is_leap_year(2004);
         $this->assertEqual($result, true);
     }
         
     function test_find_earlier_date(){   
-        $result = find_earlier_date('2012-04-09', '2012-04-09');
+        $result = block_ucla_weeksdisplay::find_earlier_date('2012-04-09', '2012-04-09');
         $this->assertEqual($result, 0);
     //Test Years
-        $result = find_earlier_date('2010-04-09', '2012-04-09');
+        $result = block_ucla_weeksdisplay::find_earlier_date('2010-04-09', '2012-04-09');
         $this->assertEqual($result, -1);       
-        $result = find_earlier_date('2012-04-09', '2010-04-09');
+        $result = block_ucla_weeksdisplay::find_earlier_date('2012-04-09', '2010-04-09');
         $this->assertEqual($result, 1);   
     //Test Days
-        $result = find_earlier_date('2012-04-09', '2012-04-08');
+        $result = block_ucla_weeksdisplay::find_earlier_date('2012-04-09', '2012-04-08');
         $this->assertEqual($result, 1);   
-        $result = find_earlier_date('2012-04-08', '2012-04-09');
+        $result = block_ucla_weeksdisplay::find_earlier_date('2012-04-08', '2012-04-09');
         $this->assertEqual($result, -1);      
     //Test Months
-        $result = find_earlier_date('2010-03-09', '2010-04-09');
+        $result = block_ucla_weeksdisplay::find_earlier_date('2010-03-09', '2010-04-09');
         $this->assertEqual($result, -1);           
-        $result = find_earlier_date('2010-04-09', '2012-03-09');
+        $result = block_ucla_weeksdisplay::find_earlier_date('2010-04-09', '2010-03-09');
         $this->assertEqual($result, 1);       
-        $result = find_earlier_date('2010-03-29', '2010-04-09');
+        $result = block_ucla_weeksdisplay::find_earlier_date('2010-03-29', '2010-04-09');
         $this->assertEqual($result, -1);           
-        $result = find_earlier_date('2010-04-09', '2012-03-29');
+        $result = block_ucla_weeksdisplay::find_earlier_date('2010-04-09', '2010-03-29');
         $this->assertEqual($result, 1);          
     } 
          
     function test_get_dayofweek(){
-        $result = get_dayofweek('2012-04-09');
+        $result = block_ucla_weeksdisplay::get_dayofweek('2012-04-09');
         $this->assertEqual($result, 'Mon');
-        $result = get_dayofweek('2012-04-10');
+        $result = block_ucla_weeksdisplay::get_dayofweek('2012-04-10');
         $this->assertEqual($result, 'Tue');          
-        $result = get_dayofweek('2012-04-11');
+        $result = block_ucla_weeksdisplay::get_dayofweek('2012-04-11');
         $this->assertEqual($result, 'Wed');
-        $result = get_dayofweek('2012-04-12');
+        $result = block_ucla_weeksdisplay::get_dayofweek('2012-04-12');
         $this->assertEqual($result, 'Thu');       
-        $result = get_dayofweek('2012-04-13');
+        $result = block_ucla_weeksdisplay::get_dayofweek('2012-04-13');
         $this->assertEqual($result, 'Fri');
-        $result = get_dayofweek('2012-04-14');
+        $result = block_ucla_weeksdisplay::get_dayofweek('2012-04-14');
         $this->assertEqual($result, 'Sat');  
-        $result = get_dayofweek('2012-04-15');
+        $result = block_ucla_weeksdisplay::get_dayofweek('2012-04-15');
         $this->assertEqual($result, 'Sun');         
     }        
  

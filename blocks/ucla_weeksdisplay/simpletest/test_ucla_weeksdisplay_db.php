@@ -9,12 +9,15 @@ if (!defined('MOODLE_INTERNAL')) {
 }
  
 // Make sure the code being tested is accessible.
-require_once($CFG->dirroot . '/blocks/ucla_weeksdisplay'); // Include the code to test
+require_once($CFG->dirroot . '/blocks/ucla_weeksdisplay/block_ucla_weeksdisplay.php'); // Include the code to test
 /*
  * Tests all functions in ucla weeksdisplay that do not modify the data
  */
-class ucla_weeksdisplay_nondb_test extends UnitTestCase {
+class ucla_weeksdisplay_db_test extends UnitTestCase {
 
+    function test_placeholder(){
+        
+    }
    function create_session_obj($term, $session, $session_start, $session_end, $instruction_start){
        $session[0] = $term;
        $session[3] = $session;
@@ -84,11 +87,6 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         }
     }
    
-   /**
-    * Sets $CFG->currentterm to the current term based on the system date.
-    * This function heuristically sets the term, and may not be 
-    * accurate 100% of the time.
-    */
     function init_currentterm(){
         global $CFG;
         $date = date('c'); //returns string of format 2004-02-12T15:19:21+00:00
