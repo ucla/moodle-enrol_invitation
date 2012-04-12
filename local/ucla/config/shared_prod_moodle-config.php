@@ -132,6 +132,9 @@ $block_ucla_help_support_contacts['System'] = 'dkearney';  // default
 $CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url']
         = 'ftp://ftp.library.ucla.edu/incoming/eres/voyager_reserves_data.txt';
 
+// CCLE-2301 - COURSE MENU BLOCK
+$CFG->forced_plugin_settings['block_ucla_course_menu']['trimlength'] = 22;
+
 // UCLA Theme settings
 $CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'prod';
 $CFG->forced_plugin_settings['theme_uclashared']['logo_sub_dropdown'] = 0;

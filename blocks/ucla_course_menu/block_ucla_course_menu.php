@@ -7,8 +7,6 @@ require_once($CFG->dirroot . '/blocks/navigation/block_navigation.php');
 class block_ucla_course_menu extends block_navigation {
     var $contentgenerated = false;
    
-    const DEFAULT_TRIM_LENGTH = 50;
-
     // Hook function used to get other blocks' junk into this trunk
     const BLOCK_HOOK_FN = 'get_navigation_nodes';
    
@@ -107,14 +105,6 @@ class block_ucla_course_menu extends block_navigation {
         }
 
         return $format_rk;
-    }
-
-    function get_config_var($var, $def) {
-        if (!empty($this->config->$var)) {
-            return $this->config->$var;
-        } 
-
-        return $def;
     }
 
     /**
@@ -352,10 +342,9 @@ class block_ucla_course_menu extends block_navigation {
      * 
      * return array             Returns array of trimmed navigation_nodes
      */
-    function trim_nodes($elements) {
-        $trimmode = $this->get_config_var('trimmode', self::TRIM_LEFT);
-        $trimlength = $this->get_config_var('trimlength', 
-            self::DEFAULT_TRIM_LENGTH);
+    function trim_nodes($elements) {        
+        $trimmode   = $this->config->trimmode;
+        $trimlength = $this->config->trimlength;
        
         foreach ($elements as $element) {
             $this->trim($element, $trimmode, $trimlength,
@@ -380,6 +369,28 @@ class block_ucla_course_menu extends block_navigation {
     function instance_can_be_docked() {
         return false;
     }    
+    
+    /**
+     * Set block defaults for trimlength and trimmode 
+     */
+    function specialization() {        
+        // set default values for trimlength and trimmode
+        $set_defaults = false;
+        if (!isset($this->config->trimlength)) {
+            // if this is the first time loading the block, then use default trimlength
+            $this->config->trimlength = get_config('block_ucla_course_menu', 'trimlength');
+            $set_defaults = true;
+        }
+        if (!isset($this->config->trimmode)) {
+            // if this is the first time loading the block, then use default trimlength
+            $this->config->trimmode = get_config('block_ucla_course_menu', 'trimmode');
+            $set_defaults = true;
+        }        
+        if (!empty($set_defaults)) {
+            $this->instance_config_commit();            
+        }        
+    }
+    
 }
 
 // EOF

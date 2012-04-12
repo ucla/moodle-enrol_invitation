@@ -138,6 +138,9 @@ $block_ucla_help_support_contacts['System'] = 'dkearney';  // default
 $CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url']
         = 'ftp://ftp.library.ucla.edu/incoming/eres/voyager_reserves_data.txt';
 
+// CCLE-2301 - COURSE MENU BLOCK
+$CFG->forced_plugin_settings['block_ucla_course_menu']['trimlength'] = 22;
+
 // useful DEV settings
 $CFG->debug = 38911;    // DEVELOPER level debugging messages
 $CFG->debugdisplay = true;  // show the debugging messages
