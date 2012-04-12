@@ -105,26 +105,6 @@ abstract class easy_upload_form extends moodleform {
             )
         );       
 
-        // If needed, add the section rearranges.
-        // This part appears to be a part of 'add to section'
-        if ($rearrange_avail && $this->allow_js_select) {
-            global $PAGE;
-
-            $mform->addElement('hidden', 'serialized', null, 
-                array('id' => 'serialized'));
-            
-            $mform->addElement('html', html_writer::tag('div', 
-                    html_writer::tag('div', get_string('rearrangejsrequired',
-                        self::associated_block), array('id' => 'thelist')),
-                array('id' => 'reorder-container'))
-            );
-
-            $PAGE->requires->js_init_code(
-                'M.block_ucla_easyupload.initiate_sortable_content()'
-            );
-        }          
-        // End code that probably needs to go somewhere else
-
         if (class_exists('PublicPrivate_Site')) {
             if (PublicPrivate_Site::is_enabled() 
                     && PublicPrivate_Course::is_publicprivate_capable(
