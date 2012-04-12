@@ -16,32 +16,46 @@ Control Panel Heading
 */
 
 .cpheading {
-text-align:center;
 }
 
 .cpheading .cp {
 background-image: -webkit-linear-gradient(top, rgba(199,195,197,0.7), white);
+text-align:center;
 
 }
 
 .cpheading .tabtree{
 
+text-align:left;
 }
 
 .cpheading h1{
-padding-top: 0.3em
+padding-top: 0.3em;
 }
 
 .cpheading h2{
-padding:10px;
+padding:5px 5px 5px 10px;
 background-image: -webkit-linear-gradient(top left, rgba(240,235,237,0.9), white );
+}
+
+.cpheading .item.left {
+padding-left: 1em;
+}
+
+.cpheading .r0.lastrow a{
+padding-left:0.5em;
+}
+
+.cpheading .tablecol.left {
+padding-left: 1em;
 }
 
 /**
  * Tabs
  */
 
-.tabtree {position: relative; margin-bottom: -1em;}
+.tabtree {position: relative; margin-bottom: -1em;
+}
 .tabtree h2 { background-image: -webkit-linear-gradient(top, white, rgba(240,235,237,0.9));} 
 .tabtree .tabrow0 {text-align: center; width: 100%; margin: 1em 0px;}
 .tabtree .tabrow0 li {display: inline; margin-right: -4px;}
@@ -77,5 +91,5 @@ background-image: -webkit-linear-gradient(top left, rgba(240,235,237,0.9), white
 .external-link {
     padding-right: 15px;
     padding-bottom: -2px;
-    background: transparent url([[pix:theme|external]]) no-repeat center right;
+    background: transparent url([[pix:theme|external]]) no-repeat center right; 
 }
