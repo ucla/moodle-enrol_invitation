@@ -120,7 +120,7 @@ class block_ucla_course_menu extends block_navigation {
         $renderer = $this->get_renderer();
          
         //CCLE-2380 Rearrange Course Materials link when editing is on        
-        if ($this->page->user_is_editing()) {            
+        if ($this->page->user_is_editing()) {     
             // rearrange link
             $rearrange = html_writer::link(
                     new moodle_url('/blocks/ucla_rearrange/rearrange.php', 
@@ -130,13 +130,13 @@ class block_ucla_course_menu extends block_navigation {
             $this->content->text .= html_writer::tag('div', $rearrange, 
                     array('class' => 'edit_control_links'));
         }
-       
+                       
         // get non-module nodes
         $section_elements = $this->create_section_elements();
         $block_elements = $this->create_block_elements();
         $elements = array_merge($section_elements, $block_elements);        
         $elements = $this->trim_nodes($elements);        
-        $this->content->text = $renderer->navigation_node($elements,
+        $this->content->text .= $renderer->navigation_node($elements,
             array('class' => 'block_tree list'));
 
         // Separate out module nodes so that we can have a different style
