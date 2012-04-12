@@ -32,12 +32,10 @@
  */
 
 
-require_once("../../../config.php");
+require(dirname(dirname(dirname(dirname(__FILE__)))) . '/config.php');
 require_once($CFG->libdir.'/adminlib.php');
 require_once($CFG->dirroot.'/admin/tool/configmanagement/configmanagementlib.php');
 
-
-// dirname file
 require_login();
 global $USER;
 global $ME;
@@ -61,11 +59,10 @@ echo $OUTPUT->header();
 $dir = $CFG->dataroot.'/1/';
 
 // SSC MODIFICATION #1161 deleted confirmation page prompt
-
-if (isset($_POST['save']) && empty($_POST['load'])) {
+if ( optional_param('save', NULL, PARAM_RAW) != NULL ) {
     //Save Configuration Settings
-    if (!empty($_POST['savefile'])) {
-        $dumpfile = $_POST['savefile'];
+    if ( optional_param('savefile', NULL, PARAM_RAW) != NULL ) {
+            $dumpfile = optional_param('savefile', NULL, PARAM_RAW);
     }
     else {
         // CCLE-164
@@ -154,7 +151,8 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
         
         // SSC MODIFICATION #1161 changed fwrite for "===<table name>===" to only write after $DB->get_records is returned true
         // diff_configdumps now do not include table names if that table was not selected or empty.
-        
+
+        echo html_writer::start_tag('div', array('id' => "adminsettings"));
         //Write plugins
         $configpluginlist = NULL;
         if(optional_param('plugins',0, PARAM_RAW)) {
@@ -263,20 +261,23 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
         }
         
         $rs_notempty = false;
-        foreach ($rs as $record) {
-            if (!$rs_notempty) {
-                fwrite($fp, $divider.'Role_Assignments'.$divider."\n");
-                $rs_notempty = true;
+        if (!empty($rs))
+        {
+            foreach ($rs as $record) {
+                if (!$rs_notempty) {
+                    fwrite($fp, $divider.'Role_Assignments'.$divider."\n");
+                    $rs_notempty = true;
+                }
+                // Exclude ID's if doing a diff -- also exclude timestart, timemodified
+                if($diffexclude) {
+                    $record->id = "";
+                    $record->timestart = $difftime;
+                    $record->timemodified = $difftime;
+                }
+                fwrite($fp, json_encode($record)."\n");
             }
-            // Exclude ID's if doing a diff -- also exclude timestart, timemodified
-            if($diffexclude) {
-                $record->id = "";
-                $record->timestart = $difftime;
-                $record->timemodified = $difftime;
-            }
-            fwrite($fp, json_encode($record)."\n");
+            $rs->close();
         }
-        $rs->close();
         if ($rs_notempty) {
             echo html_writer::tag('p', get_string('configroleassignmentstable', 'tool_configmanagement')." written.", array('class' => 'mdl-align'));
         } else {
@@ -463,7 +464,7 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
         }
         print_continue("index.php");
         fclose($fp);
-        
+        echo html_writer::end_tag('div');
     } else {
         print_error('configfileopenerror', 'tool_configmanagement', $redirectlink, $dumpfile);
     }
@@ -583,7 +584,7 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
     print_container("<label>".get_string('configsavefile', 'tool_configmanagement')."</label>", false, 'form-label');
     print_container('&nbsp;<input type="hidden" name="savefile" size="48" />', false, 'form-file defaultsnext');
     // Print the filename (do not allow it to be modified)
-    echo html_writer::start_tag('div', array('style'=>"float:left; margin-left:10px;"));
+    echo html_writer::start_tag('div', array('style'=>"float:left; margin-left:10px;", 'id' => "adminsettings"));
     echo $dir;
     echo html_writer::tag('span', 'file', array('id'=>"configfilename", 'style'=>"font-weight: bold"));
     echo html_writer::end_tag('div');
@@ -639,17 +640,11 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
     ';
     print_container($formcheckboxes, false, 'form-description');
     
-    //echo "<br />\n";
     echo html_writer::empty_tag('br');
-    //echo '<div style="width:100%; float:left; padding-top:10px;" >';
     echo html_writer::start_tag('div', array('style' => 'width:100%; float:left; padding-top:10px;')); 
-    //echo '<input type="submit" name="save" value="'.get_string('configsave', 'tool_configmanagement').'" onclick="validateConfigForm(this.form)" />'."\n";
     echo html_writer::empty_tag('input',
                                 array('type' => 'submit', 'name' => 'save', 'value'=> get_string('configsave', 'tool_configmanagement'),'onclick'=> "validateConfigForm(this.form)"));
-    //echo '</div>';
     echo html_writer::end_tag('div');
-    
-    //echo "<br />\n";
     echo html_writer::empty_tag('br');
     
     echo "\n";
@@ -664,4 +659,3 @@ if (isset($_POST['save']) && empty($_POST['load'])) {
     
 }
 echo $OUTPUT->footer();
-

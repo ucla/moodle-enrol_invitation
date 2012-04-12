@@ -35,6 +35,8 @@
 require_once('../../moodle/config.php');
 require_once("$CFG->libdir/configmanagementlib.php");
 
+define('CLI_SCRIPT', true);
+
 $dumpfile = get_string('configdefaultfile', 'admin');
 $divider = get_string('configdivider', 'admin');
 

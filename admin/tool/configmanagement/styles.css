@@ -1,17 +1,17 @@
 
-.mdl-align {
+#adminsettings .mdl-align {
   text-align: center;
 }
 
-.redfont {
+#adminsettings .redfont {
   color: red;
 }
 
-div {
+#adminsettings div {
 display: block;
 }
 
-label {
+#adminsettings label {
 cursor: default;
 }
 

@@ -33,6 +33,7 @@
 
 require_once('../../moodle/config.php');
 require_once("$CFG->libdir/configmanagementlib.php");
+define('CLI_SCRIPT', true);
 
 global $divider;
 global $dividerlen;
