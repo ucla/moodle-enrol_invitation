@@ -68,23 +68,31 @@ class block_ucla_browseby_renderer {
         $disptable->head = self::ucla_browseby_course_list_headers();
 
         $data = array();
-        foreach ($courses as $course) {
-            if (!empty($course->nonlinkdispname)) {
-                $courselink = $course->nonlinkdispname . ' '
-                    . html_writer::link(new moodle_url(
-                        $course->url), $course->dispname);
-            } else {
-                $courselink = ucla_html_writer::link(
-                    new moodle_url($course->url), $course->dispname);
+        if (!empty($courses)) {
+            foreach ($courses as $course) {
+                if (!empty($course->nonlinkdispname)) {
+                    $courselink = $course->nonlinkdispname . ' '
+                        . html_writer::link(new moodle_url(
+                            $course->url), $course->dispname);
+                } else {
+                    $courselink = ucla_html_writer::link(
+                        new moodle_url($course->url), $course->dispname);
+                }
+
+
+                $data[] = array($courselink, $course->instructors, 
+                    $course->fullname);
+                
+                $disptable->data = $data;                
             }
-
-
-            $data[] = array($courselink, $course->instructors, 
-                $course->fullname);
+        } else {
+            $cell = new html_table_cell(get_string('noresults', 'admin'));
+            $cell->colspan = 3;
+            $cell->style = 'text-align: center';
+            $row = new html_table_row(array($cell));            
+            $disptable->data[] = $row;
         }
-
-        $disptable->data = $data;
-
+        
         return $disptable;
     }
 

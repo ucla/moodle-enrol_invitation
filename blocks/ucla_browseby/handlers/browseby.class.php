@@ -54,7 +54,7 @@ abstract class browseby_handler {
             $urlobj->params($queryterms);
 
             $table[$k] = html_writer::link($urlobj, 
-                ucwords(strtolower($datum->{$dispfield}))
+                ucla_format_name(strtolower($datum->{$dispfield}))
             );
         }
 

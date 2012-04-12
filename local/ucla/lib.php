@@ -4,9 +4,9 @@
  **/
 
 defined('MOODLE_INTERNAL') || die();
-
+global $CFG;
 //require_once($CFG->libdir . '/uclalib.php');
-
+require_once($CFG->dirroot.'/lib/accesslib.php');
 /**
  *  @deprecated
  *  This will attempt to access this file from the web.
@@ -374,6 +374,7 @@ function ucla_format_name($name=null) {
      *  - If name has a hypen
      *  - If name has an aprostrophe
      *  - If name starts with "MC"
+     *  - If name has conjunctions, e.g. "and", "of", "the", "as", "a"
      */    
 
     // has space? 
@@ -426,6 +427,11 @@ function ucla_format_name($name=null) {
         $name[2] = strtoupper($name[2]);    // make 3rd character uppercase
     }
 
+    // If name has conjunctions, e.g. "and", "of", "the", "as", "a"
+    if (in_array(strtolower($name), array('and', 'of', 'the', 'as', 'a'))) {
+        $name = strtolower($name);
+    }
+    
     return $name;
 
 }
@@ -811,6 +817,34 @@ function is_collab_site($course) {
     if (empty($result)) {
         return true;
     }    
+    return false;
+}
+
+/**
+ *  Returns whether or not the user is the role specified by the role_shortname
+ *  in the role table
+ * 
+ * @param $role_shortname the name of the role's shortname entry in the db table
+ * @param $context the context in which to check the roles.
+ * 
+ * @return boolean true if the user has the role in the context, false otherwise
+ **/
+function has_role_in_context($role_shortname, $context){
+    
+    global $DB;
+    $does_role_exist = $DB->get_records('role', array('shortname'=>$role_shortname));
+    if(empty($does_role_exist)){
+        debugging("Role shortname not found in database table.");
+        return false;
+    }
+    
+    $roles_result = get_user_roles($context);
+
+    foreach($roles_result as $role){
+        if($role->shortname == $role_shortname){
+            return true;
+        }
+    } 
     return false;
 }
 

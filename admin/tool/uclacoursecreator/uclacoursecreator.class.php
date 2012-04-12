@@ -923,6 +923,14 @@ class uclacoursecreator {
    
         // Get all categories and index them
         $id_categories = get_categories();
+        
+        // Add "root" to available categories
+        $fakeroot = new stdclass();
+        $fakeroot->name = 'Root';
+        $fakeroot->id = 0;
+        $fakeroot->parent = 'None';
+        $id_categories[0] = $fakeroot;
+
         $name_categories = array();
 
         $forbidden_names = array();
@@ -936,6 +944,7 @@ class uclacoursecreator {
 
             $name_categories[$catname] = $cat;
         }
+
 
         $truecatreferences = array();
         foreach ($rci_courses as $reqkey => $rci_course) {
@@ -975,8 +984,11 @@ class uclacoursecreator {
                     $newcategory = $this->new_category($trans,
                         $immediate_parent_catid);
 
+                    // Figure name for display and debugging purposes
                     $parentname = 
                         $id_categories[$immediate_parent_catid]->name;
+
+                    $id_categories[$newcategory->id] = $newcategory;
 
                     $this->debugln('  Created ' . $type . ' category: '
                          . $trans . ' parent: ' . $parentname);

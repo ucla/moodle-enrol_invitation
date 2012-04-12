@@ -58,15 +58,26 @@ class enrol_database_plugin extends enrol_plugin {
      *  user results (named after the stored procedure).
      **/
     public function translate_ccle_roster_class($reg) {
-        $names = explode(',', $reg['full_name_person']);
-        $firstmiddle = explode(' ', trim($names[1]));
+        $names = explode(',', trim($reg['full_name_person']));
+
+        if (empty($names)) {
+            // no name?!
+            mtrace('WARNING: Found user with no name from class roster: '. print_r($reg, true));    
+            $names[0] = '';
+            $firstmiddle = array('');
+        } else if (empty($names[1])) {
+            // No first name, they must be a rock star
+            $firstmiddle = array('');
+        } else {
+            $firstmiddle = explode(' ', trim($names[1]));
+        }
 
         return array(
             $this->get_config('remoteuserfield') => $reg['stu_id'],
             'firstname' => $firstmiddle[0],
             'lastname'  => $names[0],
             'email'     => $reg['ss_email_addr'],
-            'username'  => $reg['bolid'] . '@ucla.edu'
+            $this->get_config('fbremoteuserfield') => $reg['bolid'] . '@ucla.edu'
         );
     }
 
@@ -80,7 +91,7 @@ class enrol_database_plugin extends enrol_plugin {
             'firstname' => $reg['first_name_person'],
             'lastname'  => $reg['last_name_person'],
             'email'     => $reg['ursa_email'],
-            'username'  => $reg['bolid'] . '@ucla.edu'
+            $this->get_config('fbremoteuserfield')  => $reg['bolid'] . '@ucla.edu'
         );
     }
 
@@ -326,6 +337,10 @@ class enrol_database_plugin extends enrol_plugin {
         $localuserfield   = $this->get_config('localuserfield');
         $localcoursefield = $this->get_config('localcoursefield');
 
+        // CCLE-2910: Fallback method of identifying UNEX students
+        $fbremoteuserfield = strtolower($this->get_config('fbremoteuserfield'));
+        $fblocaluserfield = $this->get_config('fblocaluserfield');
+
         $unenrolaction    = $this->get_config('unenrolaction');
         $defaultrole      = $this->get_config('defaultrole');
 
@@ -369,11 +384,19 @@ class enrol_database_plugin extends enrol_plugin {
 
         if ($terms === null) {
             if ($singlecourse === null) {
+                if ($verbose) {
+                    mtrace("Working for all terms.");
+                }
+
                 // No single course was provided, and no term was provided
                 $courses = $DB->get_records('ucla_request_classes');
                 $course_indexed = index_ucla_course_requests($courses, 'courseid');
                 unset($courses);
             } else {
+                if ($verbose) {
+                    mtrace("Working for single course $singlecourse");
+                }
+
                 // Get a single course 
                 $courses = ucla_get_course_info($singlecourse);
 
@@ -392,6 +415,10 @@ class enrol_database_plugin extends enrol_plugin {
                 $course_indexed = array($singlecourse => $course_set);
             }
         } else if (!empty($terms)) {
+            if ($verbose) {
+                mtrace("Working for " . implode(' ', $terms));
+            }
+
             $course_indexed = ucla_get_courses_by_terms($terms);
         }
 
@@ -406,6 +433,7 @@ class enrol_database_plugin extends enrol_plugin {
             $externalcourses[$courseid] = true;
 
             foreach ($set as $course) {
+
                 $regdata = array(array($course->term, $course->srs));
 
                 $subjarea = $course->department;
@@ -419,6 +447,7 @@ class enrol_database_plugin extends enrol_plugin {
                 $instrs = $results[registrar_query::query_results];
 
                 $otherroles = array();
+
                 // We need to flatten out all the available profcodes
                 foreach ($instrs as $instructor) {
                     $pc = $instructor['role'];
@@ -428,6 +457,7 @@ class enrol_database_plugin extends enrol_plugin {
                 // Now we need to save the roles per course
                 // TODO what should happen if in a crosslisted course a 
                 // professor gets two different roles?
+                $instructorcount = 0;
                 foreach ($instrs as $instructor) {
                     // No need to enrol "THE STAFF" or "TA"
                     if (is_dummy_ucla_user($instructor['ucla_id'])) {
@@ -445,6 +475,7 @@ class enrol_database_plugin extends enrol_plugin {
                     )];
 
                     $enrolment_info[$localmap][] = $user;
+                    $instructorcount++;
                 }
 
                 // grab the roster... from a different data source
@@ -453,7 +484,8 @@ class enrol_database_plugin extends enrol_plugin {
                 );
 
                 $roster = $results[registrar_query::query_results];
-
+                    
+                $studentcount = 0;
                 foreach ($roster as $student) {
                     // Do something to make it into a friendly format for the
                     // next section...
@@ -466,14 +498,17 @@ class enrol_database_plugin extends enrol_plugin {
 
                     $user = $this->translate_ccle_roster_class($student);
 
-                    $names = explode(',', $student['full_name_person']);
-                    $firstmiddle = explode(' ', trim($names[1]));
-
                     $user[$rolefield] = $roles[
                         get_moodlerole($studentpr, $subjarea)
                     ];
 
                     $enrolment_info[$localmap][] = $user;
+                    $studentcount++;
+                }
+
+                if ($verbose) {
+                    mtrace("Fetching data for course $courseid: " . $course->term 
+                        . ' ' . $course->srs . " $instructorcount instructors $studentcount students");
                 }
             }
         }
@@ -564,7 +599,17 @@ class enrol_database_plugin extends enrol_plugin {
             $current_roles  = array();
             $current_status = array();
             $user_mapping   = array();
-            $sql = "SELECT u.$localuserfield AS mapping, u.id, ue.status, ue.userid, ra.roleid
+
+            // START UCLA MOD CCLE-2910: Fixing issue with UNEX students,
+            // check for username
+            $user_fallback  = array();
+
+            $fallbacksqlselect = '';
+            if (!empty($fblocaluserfield)) {
+                $fallbacksqlselect = "u.$fblocaluserfield AS fallback, ";
+            }
+
+            $sql = "SELECT u.$localuserfield AS mapping, $fallbacksqlselect u.id, ue.status, ue.userid, ra.roleid
                       FROM {user} u
                       JOIN {user_enrolments} ue ON (ue.userid = u.id AND ue.enrolid = :enrolid)
                       JOIN {role_assignments} ra ON (ra.userid = u.id AND ra.itemid = ue.enrolid AND ra.component = 'enrol_database')
@@ -578,28 +623,67 @@ class enrol_database_plugin extends enrol_plugin {
             foreach ($rs as $ue) {
                 $current_roles[$ue->userid][$ue->roleid] = $ue->roleid;
                 $current_status[$ue->userid] = $ue->status;
-                $user_mapping[$ue->mapping] = $ue->userid;
+
+                // This is for UNEX students
+                if (!empty($ue->mapping)) {
+                    $user_mapping[$ue->mapping] = $ue->userid;
+                }
+
+                if (isset($ue->fallback)) {
+                    $user_fallback[$ue->fallback] = $ue->userid;
+                }
             }
             $rs->close();
 
             // get list of users that need to be enrolled and their roles
             $requested_roles = array();
-            // Split this query into multiple StorProc calls and use that for the small chunk inside
 
             // START UCLA MODIFICATION CCLE-2275: Prepopulate (ucla tinkering)
             if (!empty($enrolment_info[$course->mapping])) {
-                if ($localuserfield === 'username') {
-                    $usersearch = array('mnethostid'=>$CFG->mnet_localhost_id, 'deleted' =>0);
-                }
                 foreach ($enrolment_info[$course->mapping] as $fields) {
+                    $usersearch = array();
+
+                    if ($localuserfield === 'username') {
+                        $usersearch['mnethostid'] = $CFG->mnet_localhost_id; 
+                        $usersearch['deleted'] = 0;
+                    }
+
                     $fields = array_change_key_case($fields, CASE_LOWER);
                     if (empty($fields[$userfield])) {
                         //user identification is mandatory!
                     }
                     $mapping = $fields[$userfield];
-                    if (!isset($user_mapping[$mapping])) {
-                        $usersearch[$localuserfield] = $mapping;
-                        if (!$user = $DB->get_record('user', $usersearch, 'id', IGNORE_MULTIPLE)) {
+
+                    if (!empty($fblocaluserfield)) {
+                        $fallback = $fields[$fblocaluserfield];
+                    }
+
+                    if (empty($user_mapping[$mapping]) 
+                            || (!empty($fblocaluserfield) && empty($user_fallback[$fallback]))) {
+
+                        // Find the user from our database
+                        $sqlparams = array();
+                        $sqlbuilder = array();
+                        foreach ($usersearch as $f => $v) {
+                            $sqlbuilder[] = "$f = ?";
+                            $sqlparams[] = $v;
+                        }
+
+                        $searchstr = "$localuserfield = ?";
+                        $sqlparams[] = $mapping;
+
+                        if (!empty($fblocaluserfield)) {
+                            $searchstr = "($searchstr OR $fblocaluserfield = ?)";
+                            $sqlparams[] = $fallback;
+                        } 
+
+                        $sqlbuilder[] = $searchstr;
+                        $usersql = implode(' AND ', $sqlbuilder);
+
+                        $user = $DB->get_record_select('user', $usersql, $sqlparams, 
+                            "id, $localuserfield, $fblocaluserfield", IGNORE_MULTIPLE);
+
+                        if (!$user) {
                             // UCLA MODIFICATION CCLE-2275: Pre-populate needs
                             // to create users that do not exist.
                             // user does not exist or was deleted
@@ -609,17 +693,61 @@ class enrol_database_plugin extends enrol_plugin {
                             $user->timecreated = time();
                             $user->password = '';
                             $user->auth = 'shibboleth';
-                            $user->{$localuserfield} = $fields[$userfield];
+                            $user->mnethostid = $CFG->mnet_localhost_id;
+                            
+                            // This will fill in user fields with stored procedure
+                            // data such as firstname lastname
                             foreach ($fields as $k => $v) {
-                                $user->{$k} = $v;
+                                if ($k == $fbremoteuserfield) {
+                                    $user->{$fblocaluserfield} = $v;
+                                } else if ($k == $userfield) {
+                                    $user->{$localuserfield} = $v;
+                                } else {
+                                    $user->{$k} = $v;
+                                }
                             }
 
-                            $user->id = $DB->insert_record('user', $user);
+                            try {
+                                $user->id = $DB->insert_record('user', $user);
+                            } catch (dml_exception $e) {
+                                mtrace("Skipping enrollments for "   
+                                    . $user->username);
+                                mtrace($e->debuginfo);
+                                continue;
+                            }
                         }
-                        $user_mapping[$mapping] = $user->id;
+                        
                         $userid = $user->id;
+
+                        // Update our local DB with new information, if needed
+                        $needsupdate = false;
+                        if (empty($user->{$localuserfield})) {
+                            $user->{$localuserfield} = $mapping;
+                            mtrace("Updating user $userid: $localuserfield $mapping");
+                            $needsupdate = true;
+                        }
+
+                        if (empty($user->{$fblocaluserfield})) {
+                            $user->{$fblocaluserfield} = $fallback;
+                            mtrace("Updating user $userid: $fblocaluserfield $fallback");
+                            $needsupdate = true;
+                        }
+
+                        if ($needsupdate) {
+                            $DB->update_record('user', $user);
+                        }
+
+                        $user_mapping[$mapping] = $userid;
+                        if (!empty($fblocaluserfield)) {
+                            $user_fallback[$fallback] = $userid;
+                        }
                     } else {
-                        $userid = $user_mapping[$mapping];
+                        // CCLE-2910: adding fallback for UNEX students
+                        if (!empty($fblocaluserfield)) {
+                            $userid = $user_fallback[$fallback];
+                        } else {
+                            $userid = $user_mapping[$mapping];
+                        }
                     }
                     if (empty($fields[$rolefield]) or !isset($roles[$fields[$rolefield]])) {
                         if (!$defaultrole) {
@@ -635,6 +763,7 @@ class enrol_database_plugin extends enrol_plugin {
                 }
             }
             unset($user_mapping);
+            unset($user_fallback);
 
             // enrol all users and sync roles
             foreach ($requested_roles as $userid=>$userroles) {

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+  <XMLDB PATH="blocks/ucla_library_reserves/db" VERSION="20120202" COMMENT="XMLDB file for Moodle blocks/ucla_library_reserves">
+    <TABLES>
+      <TABLE NAME="ucla_library_reserves" COMMENT="Library reserves Database">
+        <FIELDS>
+          <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="course_number"/>
+          <FIELD NAME="course_number" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="id" NEXT="course_name"/>
+          <FIELD NAME="course_name" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" PREVIOUS="course_number" NEXT="department_code"/>
+          <FIELD NAME="department_code" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="course_name" NEXT="department_name"/>
+          <FIELD NAME="department_name" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" PREVIOUS="department_code" NEXT="instructor_last_name"/>
+          <FIELD NAME="instructor_last_name" TYPE="char" LENGTH="50" NOTNULL="false" SEQUENCE="false" PREVIOUS="department_name" NEXT="instructor_first_name"/>
+          <FIELD NAME="instructor_first_name" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" PREVIOUS="instructor_last_name" NEXT="reserves_list_title"/>
+
+          <FIELD NAME="reserves_list_title" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" PREVIOUS="instructor_first_name" NEXT="list_effective_date"/>
+          <FIELD NAME="list_effective_date" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" PREVIOUS="reserves_list_title" NEXT="list_ending_date"/>
+          <FIELD NAME="list_ending_date" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" PREVIOUS="list_effective_date" NEXT="url"/>
+          <FIELD NAME="url" TYPE="char" LENGTH="400" NOTNULL="false" SEQUENCE="false" PREVIOUS="list_ending_date" NEXT="srs"/>
+          <FIELD NAME="srs" TYPE="char" LENGTH="9" NOTNULL="false" SEQUENCE="false" PREVIOUS="url" NEXT="quarter"/>
+          <FIELD NAME="quarter" TYPE="char" LENGTH="3" NOTNULL="false" SEQUENCE="false" PREVIOUS="srs"/>
+        </FIELDS>
+        <KEYS>
+          <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        </KEYS>
+      </TABLE>
+    </TABLES>
+  </XMLDB>
