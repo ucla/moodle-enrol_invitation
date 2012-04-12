@@ -33,6 +33,7 @@ padding-top: 0.3em
 }
 
 .cpheading h2{
+padding:10px;
 background-image: -webkit-linear-gradient(top left, rgba(240,235,237,0.9), white );
 }
 
