@@ -142,7 +142,7 @@ class block_ucla_course_menu extends block_navigation {
         // Separate out module nodes so that we can have a different style
         // to them.
         $module_elements = $this->create_module_elements();     
-        $elements = $this->trim_nodes($module_elements); 
+        $module_elements = $this->trim_nodes($module_elements); 
         
         // For some reason cannot use html_writer::start_tag/html_writer::end_tag
         // so use hard-coded HTML.
