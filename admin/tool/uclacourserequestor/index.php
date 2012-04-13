@@ -105,6 +105,9 @@ $uclacrqs = null;
 // (for use when clicking 'checkchanges') 
 $pass_uclacrqs = null;
 
+// This is the global requestor previous value
+$requestorglobal = '';
+
 // This is the field in the postdata that should represent the state of
 // data in the current database for the requestors.
 $uf = 'unchangeables';
@@ -181,6 +184,20 @@ if ($requests === null) {
                 continue;
             }
         }
+       
+        // Replace entries without a requestor contact with the value for
+        // the global requestor
+        if (!empty($prevs->requestorglobal)) {
+            $requestorglobal = $prevs->requestorglobal;
+        }
+
+        foreach ($changes as $setid => $changeset) {
+            if (empty($changeset['requestoremail'])) {
+                $changeset['requestoremail'] = $requestorglobal;
+            }
+
+            $changes[$setid] = $changeset;
+        }
     }
 }
 
@@ -191,6 +208,9 @@ if ($uclacrqs !== null) {
 if (!empty($changes)) {
     $changed = $uclacrqs->apply_changes($changes, $groupid);
 }
+
+// These are the options that can be applied globally
+$globaloptions = array();
 
 // These are the messages that reflect positive changes
 $changemessages = array();
@@ -271,6 +291,29 @@ if (isset($uclacrqs)) {
                     $changemessages[$setid] = $retmess; 
                 }
             }
+        }
+    }
+
+    // Check to see if we need the requestor field
+    foreach ($requestswitherrors as $set) {
+        $first = reset($set);
+
+        $oneaction = $first['action'];
+        if ($oneaction == UCLA_COURSE_TOBUILD 
+                || $oneaction == UCLA_COURSE_FAILED) {
+            $requestor = html_writer::tag('label', get_string(
+                'requestorglobal', $rucr), array(
+                    'for' => 'requestorglobal'
+                ));
+
+            $requestor .= html_writer::tag('input', '', array(
+                    'type' => 'text',
+                    'value' => $requestorglobal,
+                    'name' => 'requestorglobal'
+                ));
+
+            $globaloptions[] = $requestor;
+            break;
         }
     }
 
@@ -376,6 +419,13 @@ if (!empty($requeststable->data)) {
         'method' => 'POST',
         'action' => $PAGE->url
     ));
+
+    if (!empty($globaloptions)) {
+        $globaloptionstable = new html_table();
+        $globaloptionstable->head = array(get_string('optionsforall', $rucr));
+        $globaloptionstable->data = array($globaloptions);
+        echo html_writer::table($globaloptionstable);
+    }
 
     echo html_writer::tag('input', '', array(
             'type' => 'hidden',

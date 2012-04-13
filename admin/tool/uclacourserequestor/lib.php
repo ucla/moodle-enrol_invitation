@@ -723,6 +723,7 @@ function prep_request_entry($requestinfo) {
 
     $ignored = request_ignored($requestinfo);
 
+    // Add build/delete button
     $actiondefault = null;
     $addedtext = '';
     $e = UCLA_REQUESTOR_CANCELLED;
@@ -785,11 +786,30 @@ function prep_request_entry($requestinfo) {
                 'type' => 'hidden', 
                 'value' => $oldval
             ));
-                    
     }
 
+    // Unset it so that it isn't re-displayed later
     unset($requestinfo[$tr]);
-    
+
+    $f = 'requestoremail';
+    $reval = '';
+    if ($oldval == UCLA_COURSE_FAILED || $oldval == UCLA_COURSE_BUILT) {
+        $reval = $requestinfo[$f];
+        unset($requestinfo[$f]);
+    } else {
+        if (empty($requestinfo[$f])) {
+            $requestinfo[$f] = '';
+        }
+
+        $reval = html_writer::empty_tag('input',
+            array(
+                'name' => "$key-$f",
+                'type' => 'text',
+                'value' => $requestinfo[$f]
+            ));
+    }
+
+    $formatted[$f] = $reval;
 
     // Handle separate empty fields with new strings
     $translatables = array('id', 'courseid');
@@ -987,7 +1007,6 @@ function prep_request_entry($requestinfo) {
     $formatted['instructor'] = $instrstr;
 
     unset($requestinfo['instructor']);
-
 
     // Include all the non-changable but displayed data.
     foreach ($requestinfo as $k => $v) {

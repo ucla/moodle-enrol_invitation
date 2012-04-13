@@ -72,7 +72,7 @@ class ucla_courserequests {
     }
 
     static function get_editables() {
-        return array('mailinst', 'nourlupdate', 'action');
+        return array('mailinst', 'nourlupdate', 'action', 'requestoremail');
     }
 
     /**
