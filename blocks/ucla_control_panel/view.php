@@ -25,7 +25,6 @@ require_once($CFG->dirroot . '/local/ucla/lib.php');
 
 $course_id = required_param('course_id', PARAM_INT); // course ID
 $module_view = optional_param('module', 'default', PARAM_ALPHANUMEXT);
-$edit = optional_param('edit', null, PARAM_BOOL);
 
 if (! $course = $DB->get_record('course', array('id' => $course_id))) {
     print_error('coursemisconf');
