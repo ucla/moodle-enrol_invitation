@@ -15,6 +15,8 @@ require_once($CFG->dirroot.
 require_once($CFG->dirroot.
     '/blocks/ucla_control_panel/modules/ucla_cp_myucla_renderer.php');
 
+require_once($CFG->dirroot . '/local/ucla/lib.php');
+
 // Note that the unhiding of the Announcements forum is handled in
 // modules/email_students.php
 
@@ -47,29 +49,7 @@ $PAGE->set_heading($course->fullname);
 $PAGE->set_pagelayout('course');
 $PAGE->set_pagetype('course-view-'.$course->format);
 
-if ($PAGE->user_allowed_editing()) {
-    // Stolen from course/view.php
-    if ($edit != null && confirm_sesskey()) {
-        $USER->editing = $edit;
-
-        if ($edit == 0 && !empty($USER->activitycopy) 
-          && $USER->activitycopycourse == $course->id) {
-            $USER->activitycopy = false;
-            $USER->activitycopycourse = NULL;
-        }
-
-        redirect($PAGE->url);
-    }
-
-    $buttons = $OUTPUT->edit_button(
-        new moodle_url(
-            '/blocks/ucla_control_panel/view.php', 
-            array('course_id' => $course_id)
-        )
-    );
-
-    $PAGE->set_button($buttons);
-}
+set_editing_mode_button();
 
 // Get all the elements, unfortunately, this is where we check whether
 // we are supposed to display the elements at all.

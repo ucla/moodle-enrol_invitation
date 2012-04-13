@@ -11,6 +11,8 @@ $thispath = '/blocks/ucla_rearrange';
 require_once($CFG->dirroot . $thispath . '/block_ucla_rearrange.php');
 require_once($CFG->dirroot . $thispath . '/rearrange_form.php');
 
+require_once($CFG->dirroot . '/local/ucla/lib.php');
+
 global $CFG, $PAGE, $OUTPUT;
 
 $course_id = required_param('course_id', PARAM_INT);
@@ -33,6 +35,8 @@ $PAGE->set_pagetype('course-view-' . $course->format);
 
 $PAGE->set_url('/blocks/ucla_rearrange/rearrange.php', 
         array('course_id' => $course_id));
+
+set_editing_mode_button();
 
 $sections = get_all_sections($course_id);
 

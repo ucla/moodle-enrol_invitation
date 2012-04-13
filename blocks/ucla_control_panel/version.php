@@ -15,5 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 $plugin->version = 2011072800;
+$plugin->dependencies = array(
+    'local_ucla' => 2012041300,
+);
 
 /** eof **/
