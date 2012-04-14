@@ -12,8 +12,12 @@ require_once($CFG->dirroot.'/lib/weblib.php');
 require_once($CFG->dirroot . '/lib/formslib.php');
 
 require_once($CFG->dirroot.'/local/ucla/lib.php');
+// Need this to build course titles
+require_once($CFG->dirroot.'/'.$CFG->admin.'/tool/uclacoursecreator/uclacoursecreator.class.php');
 
 class block_ucla_my_sites extends block_base {
+    private $cache = array();
+
     /**
      * block initializations
      */
@@ -31,6 +35,7 @@ class block_ucla_my_sites extends block_base {
      */
     public function get_content() {
         global $USER, $CFG;
+
         if($this->content !== NULL) {
             return $this->content;
         }
@@ -41,7 +46,8 @@ class block_ucla_my_sites extends block_base {
 
         $content = array();
 
-        $courses = enrol_get_my_courses('id, shortname', 'visible DESC,sortorder ASC');
+        $courses = enrol_get_my_courses('id, shortname', 
+            'visible DESC, sortorder ASC');
         $site = get_site();
         $course = $site; //just in case we need the old global $course hack
 
@@ -56,11 +62,92 @@ class block_ucla_my_sites extends block_base {
             $reg_info = ucla_get_course_info($c->id);
             if (!empty($reg_info)) {
                 $c->reg_info = $reg_info;
+                $c->url = sprintf('%s/course/view.php?id=%d', $CFG->wwwroot,
+                    $c->id);
                 $class_sites[] = $c;
             } else {
                 $collaboration_sites[] = $c;
             }
         }
+
+        // Append the list of sites from our stored procedure 
+        ucla_require_registrar();
+     
+        if (empty($USER->idnumber)) {
+            $remotecourses = false;
+        } else {
+            $remotecourses = registrar_query::run_registrar_query(
+                'ucla_get_user_classes', 
+                array(array('uid' => $USER->idnumber)), 
+                true
+            );
+        }
+
+        if ($remotecourses) {
+            foreach ($remotecourses as $remotecourse) {
+                if (empty($remotecourse['url'])) {
+                    continue;
+                }
+
+                $subj_area = $remotecourse['subj_area'];
+                list($term, $srs) = explode('-', 
+                    $remotecourse['termsrs']);
+
+                $rclass = new stdclass();
+                $rclass->url = $remotecourse['url'];
+                if (empty($remotecourse['class_title'])) {
+                    $classinfo = 
+                        $this->fetch_registrar_workaround(
+                            $remotecourse['termsrs']
+                        );
+
+                    $remotecourse['class_title'] = 
+                        uclacoursecreator::make_course_title(
+                            $classinfo['coursetitle'],
+                            $classinfo['sectiontitle']
+                        );
+                }
+
+                if (empty($remotecourse['act_type'])) {
+                    $classinfo = 
+                        $this->fetch_registrar_workaround(
+                            $remotecourse['termsrs']
+                        );
+
+                    $remotecourse['act_type'] = $classinfo['acttype'];
+                }
+
+                if (empty($remotecourse['session_group'])) {
+                    $classinfo = 
+                        $this->fetch_registrar_workaround(
+                            $remotecourse['termsrs']
+                        );
+
+                    $remotecourse['session_group'] = 
+                        $classinfo['session_group'];
+                }
+
+                $rclass->fullname = $remotecourse['class_title'];
+
+                $rreg_info = new stdclass();
+                $rreg_info->subj_area = $subj_area;
+                $rreg_info->acttype = $remotecourse['act_type'];
+                $rreg_info->coursenum = trim($remotecourse['catlg_no'], '0');
+                $rreg_info->sectnum = trim($remotecourse['sect_no'], '0');
+                $rreg_info->term = $term;
+                $rreg_info->session_group = $remotecourse['session_group'];
+
+                $rclass->reg_info = array($rreg_info);
+
+                $rclass->role = get_moodlerole($remotecourse['role'],
+                    $subj_area);
+
+                $class_sites[] = $rclass;
+            }
+        }
+
+        // In order to translate values returned by get_moodlerole
+        $allroles = get_all_roles();
 
         // print class sites
         $content[] = html_writer::tag('h3', get_string('classsites', 
@@ -70,13 +157,15 @@ class block_ucla_my_sites extends block_base {
                     'block_ucla_my_sites'));
         } else {
             $t = new html_table();
-            $t->head = array(get_string('classsitesnamecol', 'block_ucla_my_sites'), 
-                    get_string('rolescol', 'block_ucla_my_sites'));
+            $t->head = array(get_string('classsitesnamecol', 
+                'block_ucla_my_sites'), get_string('rolescol', 
+                'block_ucla_my_sites'));
             foreach ($class_sites as $class) {
                 // build class title in following format:
                 // <subject area> <cat_num>, <activity_type e.g. Lec, Sem> <sec_num> (<term name e.g. Winter 2012>): <full name>
                 
-                // there might be multiple reg_info records for cross-listed courses
+                // there might be multiple reg_info records for cross-listed 
+                // courses
                 $class_title = ''; $first_entry = true;
                 foreach ($class->reg_info as $reg_info) {
                     $first_entry ? $first_entry = false : $class_title .= '/';
@@ -90,40 +179,52 @@ class block_ucla_my_sites extends block_base {
                 $reg_info = $class->reg_info[0];
                 $title = sprintf('%s (%s): %s', 
                         $class_title,
-                        ucla_term_to_text($reg_info->term, $reg_info->session_group),
-                        $class->fullname);
+                        ucla_term_to_text($reg_info->term, 
+                            $reg_info->session_group), $class->fullname);
                 
                 // add link
-                $class_link = sprintf('<a href="%s/course/view.php?id=%d">%s<a/>', 
-                        $CFG->wwwroot, $class->id, $title);
+                if (!empty($class->url)) {
+                    $class_link = sprintf('<a href="%s">%s<a/>', $class->url, 
+                        $title);
+                }
                 
-                // get user's role               
-                $roles = get_user_roles_in_course($USER->id, $class->id);                
-                $roles = strip_tags($roles);    // remove links from role string
+                // get user's role
+                if (empty($class->id) && !empty($class->role)) {
+                    $roles = $allroles[$class->role]->name;
+                } else {
+                    $roles = get_user_roles_in_course($USER->id, $class->id);
+                }
+
+                // remove links from role string
+                $roles = strip_tags($roles);
                 
                 $t->data[] = array($class_link, $roles);
             }
-            $content[] = html_writer::table($t);            
+            $content[] = html_writer::table($t);
         }
         
         // print collaboration sites (if any)
         if (!empty($collaboration_sites)) {
             $content[] = html_writer::tag('h3', get_string('collaborationsites', 
-                    'block_ucla_my_sites'), array('class' => 'mysitesdivider'));          
+                    'block_ucla_my_sites'), array('class' => 'mysitesdivider'));
             
             $t = new html_table();
-            $t->head = array(get_string('collaborationsitesnamecol', 'block_ucla_my_sites'), 
-                    get_string('rolescol', 'block_ucla_my_sites'));      
+            $t->head = array(get_string('collaborationsitesnamecol', 
+                'block_ucla_my_sites'), get_string('rolescol', 
+                'block_ucla_my_sites'));      
             
             foreach ($collaboration_sites as $collab) {
                 
                 // make link
-                $collab_link = sprintf('<a href="%s/course/view.php?id=%d">%s<a/>', 
-                        $CFG->wwwroot, $collab->id, $collab->fullname);                
+                $collab_link = sprintf(
+                    '<a href="%s/course/view.php?id=%d">%s<a/>', 
+                    $CFG->wwwroot, $collab->id, $collab->fullname);
                 
                 // get user's role               
-                $roles = get_user_roles_in_course($USER->id, $collab->id);                
-                $roles = strip_tags($roles);    // remove links from role string  
+                $roles = get_user_roles_in_course($USER->id, $collab->id);
+
+                // remove links from role string  
+                $roles = strip_tags($roles);    
                 
                 $t->data[] = array($collab_link, $roles);                
             }
@@ -134,6 +235,27 @@ class block_ucla_my_sites extends block_base {
         $this->content->text = implode($content);
 
         return $this->content;
+    }
+
+    public function fetch_registrar_workaround($termsrs) {
+        if (!isset($this->cache[$termsrs])) {
+            $termsrs = $termsrs;
+            list($term, $srs) = explode('-', $termsrs);
+            $remotecourseinfo = registrar_query::run_registrar_query(
+                'ccle_getclasses',
+                array(array(
+                    'term' => $term,
+                    'srs' => $srs
+                )),
+                true
+            );
+
+            $classinfo = reset($remotecourseinfo);
+        } else {
+            $classinfo = $this->cache['termsrs'];
+        }
+
+        return $classinfo;
     }
 
     /**
@@ -154,4 +276,4 @@ class block_ucla_my_sites extends block_base {
         return array('my-index'=>true);
     }
 }
-?>
+
