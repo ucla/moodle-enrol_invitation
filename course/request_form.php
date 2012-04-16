@@ -55,6 +55,19 @@ class course_request_form extends moodleform {
             $list = implode(', ', $list);
             $mform->addElement('static', 'pendingcourses', get_string('courses'), $list);
         }
+        
+        // START UCLAMOD CCLE-????
+        // Site indicator elements
+        $mform->addElement('header','siteindicator', get_string('req_desc', 'tool_uclasiteindicator'));
+        $indicatorlist = ucla_site_indicator::get_indicators_list();
+        $mform->addElement('select', 'indicator_type', get_string('req_type', 'tool_uclasiteindicator'), $indicatorlist);
+        $mform->addHelpButton('indicator_type', 'req_type', 'tool_uclasiteindicator');
+        
+        $displaylist = ucla_site_indicator::get_categories_list();
+        $mform->addElement('select', 'indicator_category', get_string('req_category', 'tool_uclasiteindicator'), $displaylist);
+        $mform->addHelpButton('indicator_category', 'req_category', 'tool_uclasiteindicator');
+        
+        $mform->addElement('static', 'description', '', get_string('req_selopt_note', 'tool_uclasiteindicator'));
 
         $mform->addElement('header','coursedetails', get_string('courserequestdetails'));
 

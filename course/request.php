@@ -25,6 +25,7 @@
 
 require_once(dirname(__FILE__) . '/../config.php');
 require_once($CFG->dirroot . '/course/lib.php');
+require_once($CFG->dirroot . '/admin/tool/uclasiteindicator/lib.php');
 require_once($CFG->dirroot . '/course/request_form.php');
 
 $PAGE->set_url('/course/request.php');
@@ -60,7 +61,11 @@ if ($requestform->is_cancelled()){
 
 } else if ($data = $requestform->get_data()) {
     $request = course_request::create($data);
-
+    ucla_site_indicator::request($data);
+    echo "<pre>";
+    var_dump($data);
+    echo "</pre>";
+    
     // and redirect back to the course listing.
     notice(get_string('courserequestsuccess'), $returnurl);
 }
