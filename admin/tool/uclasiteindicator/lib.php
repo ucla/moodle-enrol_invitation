@@ -25,7 +25,29 @@ require_once($CFG->dirroot . '/blocks/ucla_help/ucla_help_lib.php');
 
 
 class ucla_site_indicator {
+       
+    private $courseid;
+    public $categoryid;
+    private $support;
+    private $type;
+    private $requestid;
+            
+    function __construct($courseid, $courserequestid) {
+        $request = $DB->get_record('ucla_site_indicator_request', array('requestid' => $courserequestid), '*', MUST_EXIST);
+        
+        $this->courseid = $courseid;
+        $this->support = $request->support;
+        $this->type = $request->type;
+        $this->categoryid = $request->categoryid;
+        $this->requestid = $courserequestid;
+    }
     
+    /**
+     * Returns list of available collab site indicators 
+     * @TODO: get list from database!
+     * 
+     * @return type 
+     */
     static function get_indicators_list() {
         return array('Instruction (with Intructor roles)', 
             'Non-Instruction (with Project roles)', 
@@ -33,6 +55,13 @@ class ucla_site_indicator {
             'Test (experimental)');
     }
     
+    /**
+     * Wrapper for getting site categories list.  
+     * @TODO: hide categorie we don't want to make visible
+     * 
+     * @param array $parentlist
+     * @return type 
+     */
     static function get_categories_list(&$parentlist = null) {
         $displaylist = array();
         if($parentlist == null) {
@@ -65,7 +94,7 @@ class ucla_site_indicator {
         $indicator_category = intval($data->indicator_category);
         
         // Find the ID of the course_request
-        $course = $DB->get_record('course_request', array('fullname' => $data->fullname, 
+        $request = $DB->get_record('course_request', array('fullname' => $data->fullname, 
             'shortname' => $data->shortname));
         
         // Determine support contact for JIRA ticket.  This uses the 
@@ -98,10 +127,52 @@ class ucla_site_indicator {
             // Get default support admin
             $contacts = self::get_supports_contact_list();
             $support_contact = $contacts['System'];
+            // @TODO: make a generic indicator category
+            $indicator_category = 0;
         }
         
+        // Now save to site indicator request table
+        $newindicator = new stdClass();
+        $newindicator->requestid = $request->id;
+        $newindicator->support = $support_contact;
+        $newindicator->type = $data->indicator_type;
+        $newindicator->categoryid = $indicator_category;
         
+        $DB->insert_record('ucla_site_indicator_request', $newindicator);
+    }
+    
+    
+    static function create($courseid, $courserequestid) {
+        $newindicator = new ucla_site_indicator($courseid, $courserequestid);
+        // Remove record in the request table
+        $newindicator->delete();
+        // Create record for course
+        $newindicator->create_indicator_entry();
+        // Send out JIRA ticket
+        $newindicator->send_jira_ticket();
         
+        return $newindicator->categoryid;
+    }
+
+    static function reject($courseid) {
+        global $DB;
+        $DB->delete_records('ucla_site_indicator_request', array('requestid' => $courseid));
+    }
+    
+    function create_indicator_entry() {
+        $newindicator = new stdClass();
+        $newindicator->courseid = $this->courseid;
+        $newindicator->type = $this->type;
         
+        $DB->insert_record('ucla_site_indicator_request', $newindicator);
+    }
+    
+    public function delete() {
+        self::reject($this->requestid);
+    }
+    
+    public function send_jira_ticket() {
+        echo "JIRA ticket created";
     }
 }
+

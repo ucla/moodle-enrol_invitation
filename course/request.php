@@ -61,10 +61,10 @@ if ($requestform->is_cancelled()){
 
 } else if ($data = $requestform->get_data()) {
     $request = course_request::create($data);
+    // START UCLAMOD CCLE-2389
+    // Save course to siteindicator request table
     ucla_site_indicator::request($data);
-    echo "<pre>";
-    var_dump($data);
-    echo "</pre>";
+    // END UCLAMOD CCLE-2389
     
     // and redirect back to the course listing.
     notice(get_string('courserequestsuccess'), $returnurl);
