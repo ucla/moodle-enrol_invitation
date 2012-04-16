@@ -4,9 +4,9 @@
  **/
 
 defined('MOODLE_INTERNAL') || die();
-
+global $CFG;
 //require_once($CFG->libdir . '/uclalib.php');
-
+require_once($CFG->dirroot.'/lib/accesslib.php');
 /**
  *  @deprecated
  *  This will attempt to access this file from the web.
@@ -47,6 +47,16 @@ function ucla_verify_configuration_setup() {
     curl_close($ch);
 
     return $returner;
+}
+
+/**
+ *  Convenience function to include db-helpers.
+ **/
+function ucla_require_db_helper() {
+    global $CFG;
+
+    require_once($CFG->dirroot
+        . '/local/ucla/dbhelpers.php');
 }
 
 /** 
@@ -162,6 +172,25 @@ function enrolstat_string($enrolstat) {
     }
 
     return $rs;
+}
+
+/**
+ *  Creates a display-ready string for a course.
+ *  Slightly similar to shortname...
+ *  @param $courseinfo Array with fields
+ *      subj_area - the subject area
+ *      coursenum - the course number
+ *      sectnum   - the number of the section
+ *  @param $displayone boolean True to display the sectnum of 1
+ **/
+function ucla_make_course_title($courseinfo, $displayone=false) {
+    $sectnum = '-' . $courseinfo['sectnum'];
+    if ($displayone && $courseinfo['sectnum'] == 1) {
+        $sectnum = '';
+    }
+
+    return $courseinfo['subj_area'] . ' ' . trim($courseinfo['coursenum'])
+        . $sectnum;
 }
 
 /** 
@@ -345,6 +374,7 @@ function ucla_format_name($name=null) {
      *  - If name has a hypen
      *  - If name has an aprostrophe
      *  - If name starts with "MC"
+     *  - If name has conjunctions, e.g. "and", "of", "the", "as", "a"
      */    
 
     // has space? 
@@ -397,6 +427,11 @@ function ucla_format_name($name=null) {
         $name[2] = strtoupper($name[2]);    // make 3rd character uppercase
     }
 
+    // If name has conjunctions, e.g. "and", "of", "the", "as", "a"
+    if (in_array(strtolower($name), array('and', 'of', 'the', 'as', 'a'))) {
+        $name = strtolower($name);
+    }
+    
     return $name;
 
 }
@@ -405,16 +440,14 @@ function ucla_format_name($name=null) {
  *  Populates the reg-class-info cron, the subject areas and the divisions.
  **/
 function local_ucla_cron() {
-    global $CFG;
+    global $DB, $CFG;
 
     // TODO Do a better job figuring this out
-    $terms = $CFG->currentterm;
+    $terms = array($CFG->currentterm);
 
     include_once($CFG->dirroot . '/local/ucla/cronlib.php');
     ucla_require_registrar();
 
-    $terms = array($terms);
-    
     // Customize these times...?
     $works = array('classinfo', 'subjectarea', 'division');
 
@@ -530,13 +563,13 @@ function role_mapping($profcode, array $other_roles,
  * 02	01,02,03    ta
  * 02	02,03       ta_instructor
  * 03	any	    supervising_instructor
- * 22	any	    facilitator
+ * 22	any	    editingteacher
  * 
  * @param int $profcode        Registrar prof code
  * @param array $other_roles   Other roles a user has
  * 
- * @return string              Returns either: editingteacher, ta, ta_instructor,
- *                             supervising_instructor, or student_instructor
+ * @return string              Returns either: editingteacher, ta,
+ *                             ta_instructor, or supervising_instructor
  */
 function get_pseudorole($profcode, array $other_roles) {
     $hasrole = array_pad(array(), 23, false);   // need to create 23, because 22 
@@ -557,7 +590,7 @@ function get_pseudorole($profcode, array $other_roles) {
         case 3:
             return "supervising_instructor";
         case 22:
-            return "editinginstructor";
+            return "editingteacher";
     }
 }
 
@@ -702,6 +735,117 @@ function ucla_send_mail($to, $subj, $body='', $header='') {
     }
 
     return true;
+}
+
+/**
+ *  Sorts a set of terms.
+ *  @param  $terms  Array( term, ... )
+ *  @return Array( term_in_order, ... )
+ **/
+function terms_arr_sort($terms) {
+    $ksorter = array();
+
+    // enumerate terms
+    foreach ($terms as $k => $term) {
+        $ksorter[$k] = term_enum($term);
+    }
+
+    // sort
+    asort($ksorter);
+  
+    // denumerate terms
+    $sorted = array();
+    foreach ($ksorter as $k => $v) {
+        $sorted[] = $terms[$k];
+    }
+
+    return $sorted;
+}
+
+/**
+ *  PHP side function to order terms.
+ *  @param  $term   term
+ *  @return string sortable term
+ **/
+function term_enum($term) {
+    if (!ucla_validator('term', $term)) {
+        print_error('improperenum');
+    }
+    
+    $r = array(
+        'W' => 0,
+        'S' => 1,
+        '1' => 2,
+        'F' => 3
+    );
+
+    return substr($term, 0, -1) . $r[$term[2]];
+}
+
+/**
+ *  Compare-to function.
+ *  @param  $term   The first
+ *  @param  $term   The second
+ *  @return 
+ *      first > second return -1
+ *      first == second return 0
+ *      first < second return 1
+ **/
+function term_cmp_fn($term, $other) {
+    $et = term_enum($term);
+    $eo = term_enum($other);
+    if ($et > $eo) {
+        return -1;
+    } else if ($et < $eo) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+/**
+ * Returns true if given course object is a collabration site, otherwise false.
+ * 
+ * Until the collab site indicator is implemented for now a course is a collab
+ * site if it doesn't exist in the ucla_request_classes table.
+ * 
+ * @param object $course
+ * @return boolean 
+ */
+function is_collab_site($course) {
+    $result = ucla_map_courseid_to_termsrses($course->id);
+    if (empty($result)) {
+        return true;
+    }    
+    return false;
+}
+
+/**
+ *  Returns whether or not the user is the role specified by the role_shortname
+ *  in the role table
+ * 
+ * @param $role_shortname the name of the role's shortname entry in the db table
+ * @param $context the context in which to check the roles.
+ * 
+ * @return boolean true if the user has the role in the context, false otherwise
+ **/
+function has_role_in_context($role_shortname, $context){
+    
+    global $DB;
+    $does_role_exist = $DB->get_records('role', array('shortname'=>$role_shortname));
+    if(empty($does_role_exist)){
+        debugging("Role shortname not found in database table.");
+        return false;
+    }
+    
+    $roles_result = get_user_roles($context);
+
+    foreach($roles_result as $role){
+        if($role->shortname == $role_shortname){
+            return true;
+        }
+    } 
+    return false;
 }
 
 // EOF

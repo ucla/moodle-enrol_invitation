@@ -60,7 +60,7 @@ $CFG->directorypermissions = 0777;
 $CFG->passwordsaltmain = '';
 
 // determines current term
-$CFG->currentterm = '12W';
+$CFG->currentterm = '12S';
 
 // Registrar
 $CFG->registrar_dbtype = 'odbc_mssql';
@@ -70,8 +70,21 @@ $CFG->registrar_dbpass = '';
 $CFG->registrar_dbname = 'srdb';
 $CFG->registrar_dbencoding = 'ISO-8859-1';
 
+// Format and browseby and anything else that requires instructors to be 
+// displayed, we need to determine which roles should be displayed.
+$CFG->instructor_levels_roles = array(
+    'Instructor' => array(
+        'editinginstructor',
+        'ta_instructor'
+    ),
+    'Teaching Assistant' => array(
+        'ta',
+        'ta_admin'
+    )
+);
+
 // Course builder
-$terms_to_built = array('12W', '12S', '121', '12F');
+$terms_to_built = array('12S', '121', '12F');
 
 // Course Requestor
 $CFG->forced_plugin_settings['tool_uclacourserequestor']['terms'] = $terms_to_built;
@@ -115,9 +128,16 @@ $block_ucla_help_settings = array('send_to' => 'jira',
 $CFG->forced_plugin_settings['block_ucla_help'] = $block_ucla_help_settings;
 $block_ucla_help_support_contacts['System'] = 'dkearney';  // default
 
+// CCLE-2312 - LIBRARY RESERVES BLOCK
+$CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url']
+        = 'ftp://ftp.library.ucla.edu/incoming/eres/voyager_reserves_data.txt';
+
+// CCLE-2301 - COURSE MENU BLOCK
+$CFG->forced_plugin_settings['block_ucla_course_menu']['trimlength'] = 22;
+
 // UCLA Theme settings
 $CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'prod';
-$CFG->forced_plugin_settings['theme_uclashared']['logo_sub_dropdown'] = true;
+$CFG->forced_plugin_settings['theme_uclashared']['logo_sub_dropdown'] = 0;
 
 // Newly created courses for ucla formats should only have the course menu block
 $CFG->defaultblocks_ucla = 'ucla_course_menu';
@@ -145,15 +165,28 @@ $CFG->filter_mediaplugin_enable_qt = true;
 $CFG->filter_mediaplugin_enable_wmp = true;
 $CFG->filter_mediaplugin_enable_rm = true;
 
+/// CCLE-2810 - My Sites - disallow customized "My Moodle" page
+$CFG->forcedefaultmymoodle = true;
+
+// Site administration > Users > Permissions > User policies
+$CFG->autologinguests = true;
+
 // Site administration > Courses > Course default settings
 $CFG->forced_plugin_settings['moodlecourse']['format'] = 'ucla';
 $CFG->forced_plugin_settings['moodlecourse']['maxbytes'] = 1572864000;  // 1.5GB
-$CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 1;
+// CCLE-2903 - Don't set completion tracking to be course default
+$CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 0;
 
 // Site administration > Plugins > Activity modules > Assignment
 $CFG->assignment_maxbytes = 10485760;   // 100MB
 
+// Site administration > Plugins > Licences > Manage licences
+$CFG->sitedefaultlicense = 'iown';
+
 // Site administration > Security > Site policies
+$CFG->forceloginforprofiles = true; 
+$CFG->forceloginforprofileimage = true; // temporary until "CCLE-2368 - PIX.PHP security fix" is done
+$CFG->maxeditingtime = 900; // 15 minutes
 $CFG->fullnamedisplay = 'language'; // CCLE-2550 - Lastname, Firstname sorting
 $CFG->cronclionly = true;
 
@@ -168,12 +201,18 @@ $CFG->clamscan = '/usr/bin/clamscan';
 $CFG->quarantinedir = '/usr/local/clamquarantine';
 $CFG->clamfailureonupload = 'donothing';
 
-//// Site administration > Appearance > Navigation
-//$CFG->defaulthomepage = 1;    // user's home page should be "My Moodle" (HOMEPAGE_MY)
+// Site administration > Appearance > Navigation
+$CFG->defaulthomepage = 1;    // user's home page should be "My Moodle" (HOMEPAGE_MY)
 
 // Site administration > Server > System paths
 $CFG->pathtodu = '/usr/bin/du';
 $CFG->aspellpath = '/usr/bin/aspell';
+
+// Site administration > Server > Session handling
+$CFG->dbsessions = false;
+
+// Site administration > Server > Performance
+$CFG->extramemorylimit = '1024M';
 
 /** 
  *  Automatic Shibboleth configurations.
@@ -239,6 +278,10 @@ $CFG->forced_plugin_settings['enrol_database']['localrolefield'] = 'id';
 // CCLE-2824 - Making sure that being assigned/unassigned/re-assigned doesn't 
 // lose grading data
 $CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 3;    // Disable course enrolment and remove roles
+
+// CCLE-2910 - UNEX student support
+$CFG->forced_plugin_settings['enrol_database']['fblocaluserfield'] = 'username';
+$CFG->forced_plugin_settings['enrol_database']['fbremoteuserfield'] = 'username';
 
 // This will bootstrap the moodle functions.
 require_once($_dirroot_ . '/lib/setup.php');

@@ -38,7 +38,7 @@ abstract class easy_upload_form extends moodleform {
 
         $course = $this->_customdata['course'];
         $this->course = $course;
-
+        
         $acts = $this->_customdata['activities'];
         $this->activities = $acts;
 
@@ -47,6 +47,7 @@ abstract class easy_upload_form extends moodleform {
 
         $type = $this->_customdata['type'];
         $sections = $this->_customdata['sectionnames'];
+        $copyrights=$this->_customdata['copyrights'];
         $rearrange_avail = $this->_customdata['rearrange'];
 
         $addtitle = 'dialog_add_' . $type;
@@ -84,7 +85,25 @@ abstract class easy_upload_form extends moodleform {
             $mform->addElement('hidden', 'introformat', FORMAT_HTML);
         }
 
-        // End code that probably needs to go somewhere else
+        // add copyright selection
+       $mform->addElement('header', '', get_string('select_copyright',
+           self::associated_block));
+          
+       $mform->addElement('html', html_writer::tag('label', 
+               get_string('select_copyright_list', self::associated_block), 
+               array('for' => 'id_license')));
+       
+       // Show the copyright selector
+       $mform->addElement('select', 'license','', $copyrights);
+       $mform->addHelpButton('license', 'license', 'block_ucla_easyupload');
+       $mform->addRule('license', null, 'required');
+        $mform->setDefaults(
+            array(
+                'license' => array(
+                    'license' => $CFG->sitedefaultlicense
+                )
+            )
+        );       
 
         if (class_exists('PublicPrivate_Site')) {
             if (PublicPrivate_Site::is_enabled() 
@@ -166,7 +185,7 @@ abstract class easy_upload_form extends moodleform {
                     array('optional' => true));
 
             // Do we display availability info to students?
-            $mform->addElement('select', 'showavailability', 
+           $mform->addElement('select', 'showavailability', 
                 get_string('showavailability', 'condition'), array(
                     CONDITION_STUDENTVIEW_SHOW
                         => get_string('showavailability_show', 'condition'),

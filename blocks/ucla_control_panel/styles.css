@@ -3,12 +3,10 @@
 
 .odd {
     background:gray;
-    display:inline;
 }
 
 .even {
-    background:red;
-    display:inline;
+    background:white;
 }
 
 .left {
@@ -40,7 +38,7 @@ h2.main.copan-title {
     padding: 4px 0;
 }
 
-.item span {
+.item span, #my_ucla_functions .post-link {
     color:gray;
     display:block;
     font-style:italic;
@@ -48,4 +46,11 @@ h2.main.copan-title {
 
 .control-panel-button img {
     margin-top: 10px;
+}
+
+#my_ucla_functions.generaltable, #my_ucla_functions.generaltable .cell {
+    border: none;
+}
+#my_ucla_functions.generaltable {
+    width: 100%;  
 }

@@ -1,6 +1,14 @@
 /* Make requestid, term, srs, department, course, status, email instructor,
    do not send URL to MyUCLA, delete cells are centered*/
-#uclacourserequestor_requests .c0, .c1, .c2, .c3, .c4, .c8, .c9, .c10, .c11 {
+#uclacourserequestor_requests .c0, 
+#uclacourserequestor_requests .c1, 
+#uclacourserequestor_requests .c2, 
+#uclacourserequestor_requests .c3, 
+#uclacourserequestor_requests .c4, 
+#uclacourserequestor_requests .c8, 
+#uclacourserequestor_requests .c9, 
+#uclacourserequestor_requests .c10, 
+#uclacourserequestor_requests .c11 {
     text-align: center;
 }
 

@@ -45,7 +45,7 @@ Header and Logo
     width: 100%;
     background: #fff;
 }
-#logo {
+a.logo {
     background: url([[setting:logo]]) no-repeat 0 0;
     width: 320px;
     height: 75px;
@@ -253,6 +253,11 @@ Course Section Topic & Weekly
     display: none; /* hides topic items title or weekly itens title */
     margin-bottom: 9px;
 }
+/*Login (Login page)*/
+.loginbox .loginform .form-label {width:46%;}
+.dir-rtl .loginbox .loginform .form-label {width:46%;}
+.loginbox .loginform .form-input {width:53%;}
+
 /*
 Login (Front Page)
 -----------------------*/
@@ -440,7 +445,3 @@ tab styles for ie6 & ie7
 .yui-skin-sam .yui-panel-container {
     z-index: 999999!important;
 }
-
-/* Custom CSS Settings
--------------------------*/
-[[setting:customcss]]

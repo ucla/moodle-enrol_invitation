@@ -34,7 +34,6 @@ $string['introdisc'] = 'This is a general discussion forum.';
 $string['reg_listing'] = 'For course location and time see Registrar Listing: ';
 $string['reg_finalcd'] = 'For official course description, final exam code'.
     ' and other course information see: ';
-$string['reg_unavail'] = 'The Registrar links are unavailable at this time.';
 $string['coursecancelled'] = 'THIS CLASS HAS BEEN CANCELLED';
 
 // Course preferences strings
@@ -42,3 +41,7 @@ $string['course_pref'] = 'Course Preferences';
 $string['course_pref_for'] = 'UCLA Format Course Preferences for {$a}';
 $string['landing_page'] = 'Landing Page';
 $string['show_all'] = 'Show All';
+
+// Custom format strings
+$string['editcoursetitle'] = 'Edit course description';
+$string['editsectiontitle'] = 'Edit title';

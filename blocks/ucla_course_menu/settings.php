@@ -32,7 +32,7 @@ require_once($CFG->dirroot . '/blocks/ucla_course_menu/block_ucla_course_menu.ph
 
 $settings->add(new admin_setting_configtext('block_ucla_course_menu/trimlength', 
         get_string('trimlength', 'block_ucla_course_menu'), '', 
-        10, PARAM_INT, 11));
+        22, PARAM_INT, 11));
 
 $options = array(
     block_ucla_course_menu::TRIM_RIGHT => 

@@ -18,12 +18,12 @@
 /**
  * Performs the XML generation for Moodle Roles based on input from the Roles Export Form
  * @package   moodlerolesmigration
- * @copyright 2011 NCSU DELTA | <http://delta.ncsu.edu>
+ * @copyright 2011 NCSU DELTA | <http://delta.ncsu.edu> and others
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 defined('MOODLE_INTERNAL') || die();
 
-global $CFG, $USER, $DB;
 // Include necessary XML libarary files
 require_once($CFG->dirroot.'/backup/util/xml/output/xml_output.class.php');
 require_once($CFG->dirroot.'/backup/util/xml/output/memory_xml_output.class.php');
@@ -92,7 +92,7 @@ $xml->begin_tag('MOODLE_ROLES_MIGRATION');
                             $role_ids[] = $value;
                         }
                     }
-                    // The ROLE CAPABILITIES tag contains data from the role_capabilities table associated with selected ROLES
+                    // The ROLE_CAPABILITIES tag contains data from the role_capabilities table associated with selected ROLES
                     $xml->begin_tag('ROLE_CAPABILITIES');
                         // Loop through provided role  IDs
                         if ($rolecaps = $DB->get_records('role_capabilities', array('contextid' => $sitecontext->id, 'roleid' => end($role_ids)))) {
@@ -110,6 +110,23 @@ $xml->begin_tag('MOODLE_ROLES_MIGRATION');
                             }
                         }
                     $xml->end_tag('ROLE_CAPABILITIES');
+
+                    // The ROLE_CONTEXTLEVELS tag contains data from the role_capabilities table associated with selected ROLES
+                    $xml->begin_tag('ROLE_CONTEXTLEVELS');
+                        // Loop through provided role  IDs
+                        if ($ctxlevs = $DB->get_records('role_context_levels', array('roleid' => end($role_ids)))) {
+                            foreach( $ctxlevs as $key => $lev ) {
+                                $lev_array = (array) $lev;
+                                // Loop through columns and create tag for each one
+                                // Only print the context levels if they're associated with one of our roles
+                                if ( in_array($lev->roleid, $role_ids)) {
+                                    $xml->begin_tag('ROLE_CONTEXTLEVEL');
+                                    $xml->full_tag('CONTEXTLEVEL', $lev->contextlevel);
+                                    $xml->end_tag('ROLE_CONTEXTLEVEL');
+                                }
+                            }
+                        }
+                    $xml->end_tag('ROLE_CONTEXTLEVELS');
                 $xml->end_tag('ROLE');
             }
         }
@@ -122,7 +139,7 @@ $xml->stop();
 if ($fs->create_file_from_string($fileinfo, $xml_output->get_allcontents())) {
     if ($file = $fs->get_file($fileinfo['contextid'], $fileinfo['component'], $fileinfo['filearea'], $fileinfo['itemid'], $fileinfo['filepath'], $fileinfo['filename'])) {
         $path = "/".$fileinfo['contextid']."/".$fileinfo['component']."/".$fileinfo['filearea']."/".$fileinfo['itemid'].$fileinfo['filepath'].$fileinfo['filename'];
-		$url = moodle_url::make_file_url($CFG->wwwroot."/pluginfile.php", $path);
+        $url = moodle_url::make_file_url($CFG->wwwroot."/pluginfile.php", $path);
         redirect($url);
     } else {
         send_file_not_found();
