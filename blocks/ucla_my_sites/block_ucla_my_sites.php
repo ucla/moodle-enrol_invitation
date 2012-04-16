@@ -44,6 +44,12 @@ class block_ucla_my_sites extends block_base {
         $this->content->text = '';
         $this->content->footer = '';
 
+        if (isset($CFG->currentterm)) {
+            $showterm = $CFG->currentterm;
+        } else {
+            $showterm = false;
+        }
+
         $content = array();
 
         $courses = enrol_get_my_courses('id, shortname', 
@@ -76,9 +82,14 @@ class block_ucla_my_sites extends block_base {
         if (empty($USER->idnumber)) {
             $remotecourses = false;
         } else {
+            $spparam = array('uid' => $USER->idnumber);
+            if ($showterm) {
+                $spparam['term'] = $showterm;
+            }
+
             $remotecourses = registrar_query::run_registrar_query(
                 'ucla_get_user_classes', 
-                array(array('uid' => $USER->idnumber)), 
+                array($spparam), 
                 true
             );
         }
@@ -154,7 +165,7 @@ class block_ucla_my_sites extends block_base {
                 'block_ucla_my_sites'), array('class' => 'mysitesdivider'));
         if (empty($class_sites)) {
             $content[] = html_writer::tag('p', get_string('noclasssites', 
-                    'block_ucla_my_sites'));
+                    'block_ucla_my_sites', ucla_term_to_text($showterm)));
         } else {
             $t = new html_table();
             $t->head = array(get_string('classsitesnamecol', 
@@ -184,7 +195,8 @@ class block_ucla_my_sites extends block_base {
                 
                 // add link
                 if (!empty($class->url)) {
-                    $class_link = sprintf('<a href="%s">%s<a/>', $class->url, 
+                    $class_link = ucla_html_writer::link(
+                        new moodle_url($class->url), 
                         $title);
                 }
                 
