@@ -146,7 +146,7 @@ class block_ucla_weeksdisplay extends block_base {
         
         //Ensure that non RG/8A/6C functions got in.
         $regular_sessions = block_ucla_weeksdisplay::find_regular_sessions($sessions);          
-        usort($regular_sessions, 'cmp_sessions');
+        usort($regular_sessions, 'block_ucla_weeksdisplay::cmp_sessions');
         
         //Handles special case where sessions overlap.
         if($regular_sessions[0][3] == '8A' && $regular_sessions[1][3] == '6C') {
@@ -195,13 +195,13 @@ class block_ucla_weeksdisplay extends block_base {
             // If the date is in Week 1 - Finals Week    
             //TODO: Summer sessions: ses start == instr start?
             
-            //Week 1 always starts the first monday after session start date.
+            //Week 1 always starts the first monday including or after session start date.
             //TODO: overflow stuff, documentation
-            $monday_of_first_week = date('z', $unix_ses_start_date);
+            $first_day_of_first_week = date('z', $unix_ses_start_date);
             // <editor-fold defaultstate='collapsed' desc='Find monday of first week'>
+            //Account for 
             switch (block_ucla_weeksdisplay::get_dayofweek($ses_start_date)) {
-                case 'Mon':
-                    $first_day_of_first_week += 7;
+                case 'Mon': 
                     break;
                 case 'Tue':
                     $first_day_of_first_week += 6;
@@ -224,7 +224,7 @@ class block_ucla_weeksdisplay extends block_base {
             }// </editor-fold>
             
             //Find the number of weeks elapsed from the first day to the current day.
-            return ((date('z', $unix_date) - $monday_of_first_week) % 7) + 1;                    
+            return ((date('z', $unix_date) - $first_of_first_week) % 7) + 1;                    
         } else {
             return -1;
         }                
@@ -238,33 +238,40 @@ class block_ucla_weeksdisplay extends block_base {
     * @return 1 if date comes after all session's session_end date.
     *         an array of sessions that the date is within
     *            if date is between the instruction start and session end dates.
-    *           if 
+    *          if the date is inbetween two sessions, returns the next session
+    *           that begins after the date.
     *         -1 if date1 comes before all session's instruction start date.
     */  
     public static function find_date_in_sessions($date, $sessions){
         $regular_sessions = block_ucla_weeksdisplay::find_regular_sessions($sessions);
         //Sort the sessions from earliest to latest.
-        usort($regular_sessions, 'cmp_sessions');
+        usort($regular_sessions, 'block_ucla_weeksdisplay::cmp_sessions');
+        
         
         $return_sessions = NULL;
         
+        
         for($i = 0; $i < count($regular_sessions); $i++) {
-            $session = $regular_sessions[i];
-            
+            $session = $regular_sessions[$i];
+;
             $session_start_date = $session[5];
             $session_end_date = $session[6];
 
             $date_vs_start = block_ucla_weeksdisplay::find_earlier_date($date, $session_start_date);
             $date_vs_end = block_ucla_weeksdisplay::find_earlier_date($date, $session_end_date);
-
+            /*print_r($session);
+            echo 'date : '.$date;
+              echo 'i: '.$i;
+            echo 'dateVs : '.$date_vs_start;
+             echo 'dateVe : '.$date_vs_end;*/
             if($date_vs_start <= -1 && $i == 0) {
                 //If the date comes before the start of the earliest session
                 return -1;
             } else if($date_vs_start <= -1) {
                 //If the date comes before the start of a session (this implicitly
                 //also means the date comes after the end of the session before this)
-                $return_sessions[] = $sessions[$i-1];
-                break;
+                $return_sessions[] = $sessions[$i];
+                break; //We only want one session in this case.
             } else if($date_vs_start >= 0 && $date_vs_end <= 0) {
                 //If the date comes after start of session and before end of session     
                 $return_sessions[] = $sessions[$i];
@@ -380,12 +387,12 @@ class block_ucla_weeksdisplay extends block_base {
     } 
     
    /**
-    * Cmp function for sorting find_regular_sessions. Returns the session
-    * with the earliest session start date.
+    * Cmp function for sorting find_regular_sessions. Returns the session with 
+    * the earliest session start date.
     * @param session1, session2  session objects returned by the registrar query
-    * @return 1 if session1 comes before session2.
+    * @return positive number (number of days) if session1 comes before session2.
     *         0 if date1 is the same as date2
-    *        -1 if session1 comes before session2
+    *        negative number if session1 comes before session2
     */ 
     public static function cmp_sessions($session1, $session2){                
         return block_ucla_weeksdisplay::cmp_dates($session1[5],$session2[5]);
@@ -423,7 +430,6 @@ class block_ucla_weeksdisplay extends block_base {
         if($earlier_date_year < $later_date_year) { 
             //Round the earlier date to beginning of the next year to make calculations easier.
             $earlier_date_day_of_year = date('z',$earlier_date);
-            echo "wutwuwtuwt".$earlier_date_day_of_year;
             $days_in_year = (block_ucla_weeksdisplay::is_leap_year($earlier_date)) ? 366 : 365;
             //date is now at the beginning of next year.
             $days_difference += ($days_in_year - $earlier_date_day_of_year);
@@ -438,20 +444,23 @@ class block_ucla_weeksdisplay extends block_base {
             //Add the number of days from the beginning of the year to the later date.
             $later_date_year_day_of_year = date('z',$later_date);
             $days_difference -=  $later_date_year_day_of_year;            
-        } 
-        else{
+        } else {
             $days_difference = date('z',$later_date) - date('z',$earlier_date);
         }
 
-        
         //Return a negative number if date1 comes before date2.
-        if($earlier_date_result == -1){ 
+        if($earlier_date_result == -1) { 
             $days_difference *= -1;
         }
         
         return $days_difference;
     }    
-
+   /**
+    * Determines whether or not the input year is a leap year.
+    * @param date a year of the format YYYY Ex: 2005.
+    * @return true if the year is a leap year
+    *         false if the year is not a leap year
+    */    
     public static function is_leap_year($year){
         return date('L', strtotime($year.'-01-01')) ? true : false;
     }
@@ -485,6 +494,7 @@ class block_ucla_weeksdisplay extends block_base {
             }
         }     
      } 
+     
    /**
     * Returns whether or not the date is within the dession.
     * @param date string that starts with the format YYYY-MM-DD
