@@ -787,17 +787,17 @@ function term_enum($term) {
  *  @param  $term   The first
  *  @param  $term   The second
  *  @return 
- *      first > second return -1
+ *      first > second return 1
  *      first == second return 0
- *      first < second return 1
+ *      first < second return -1
  **/
 function term_cmp_fn($term, $other) {
     $et = term_enum($term);
     $eo = term_enum($other);
     if ($et > $eo) {
-        return -1;
-    } else if ($et < $eo) {
         return 1;
+    } else if ($et < $eo) {
+        return -1;
     } else {
         return 0;
     }
