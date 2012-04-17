@@ -332,6 +332,7 @@ function ucla_term_to_text($term, $session=null) {
         $termtext = "Summer";
     } else {
         debugging("Invalid term letter: ".$term_letter);
+        return NULL;
     }
 
     $years = substr($term, 0, 2);
