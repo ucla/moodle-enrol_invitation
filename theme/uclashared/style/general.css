@@ -78,7 +78,7 @@ html, body {background-color:#FFF; height:100%;}
 .DownArrow:before {content:'▼ ';}
 
 /** Footer **/
-#page-footer {background-color: #565656; color:#FFF; padding-bottom: 5px; margin-top:10px; }
+#page-footer {background-color: #565656; color:#FFF; padding-bottom: 5px;}
 #page-footer #footer-links a {
     color: #A3BFFD; 
     margin-left: 5px; 

@@ -45,6 +45,8 @@ background-image: -moz-linear-gradient(top left, rgba(240,235,237,0.9), white );
 
 .item {
     min-height:50px;
+    display : inline-block;
+    clear : none;
    }
 
 .item span, #my_ucla_functions .post-link {
@@ -73,11 +75,12 @@ text-align:center;
 }
 
 .cpanel-wrapper {
-margin-bottom: 3em;
+
+margin-right:20px;
+margin-bottom:10px;
 border : 2px solid rgb(199,195,197);
 display : block;
-position: absolute;
-background-color: yellow;
+position : absolute;
 
 }
 
