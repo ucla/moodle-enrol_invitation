@@ -69,10 +69,21 @@ class block_ucla_my_sites extends block_base {
         foreach ($courses as $c) {
             $reg_info = ucla_get_course_info($c->id);
             if (!empty($reg_info)) {
-                $c->reg_info = $reg_info;
+                $courseterm = false;
+                foreach ($reg_info as $ri) {
+                    $c->reg_info[make_idnumber($ri)] = $ri;
+                    $courseterm = $ri->term;
+                }
+
                 $c->url = sprintf('%s/course/view.php?id=%d', $CFG->wwwroot,
                     $c->id);
-                $class_sites[] = $c;
+
+                // We need to toss local information, or at least not 
+                // display it twice
+                $availableterms[$courseterm] = $courseterm;
+                if ($courseterm == $showterm) {
+                    $class_sites[] = $c;
+                }
             } else {
                 $collaboration_sites[] = $c;
             }
@@ -112,13 +123,13 @@ class block_ucla_my_sites extends block_base {
 
                 $rclass = new stdclass();
                 $rclass->url = $remotecourse['url'];
-                if (empty($remotecourse['class_title'])) {
+                if (empty($remotecourse['course_title'])) {
                     $classinfo = 
                         $this->fetch_registrar_workaround(
                             $remotecourse['termsrs']
                         );
 
-                    $remotecourse['class_title'] = 
+                    $remotecourse['course_title'] = 
                         uclacoursecreator::make_course_title(
                             $classinfo['coursetitle'],
                             $classinfo['sectiontitle']
@@ -144,7 +155,7 @@ class block_ucla_my_sites extends block_base {
                         $classinfo['session_group'];
                 }
 
-                $rclass->fullname = $remotecourse['class_title'];
+                $rclass->fullname = $remotecourse['course_title'];
 
                 $rreg_info = new stdclass();
                 $rreg_info->subj_area = $subj_area;
@@ -152,6 +163,7 @@ class block_ucla_my_sites extends block_base {
                 $rreg_info->coursenum = trim($remotecourse['catlg_no'], '0');
                 $rreg_info->sectnum = trim($remotecourse['sect_no'], '0');
                 $rreg_info->term = $term;
+                $rreg_info->srs = $srs;
                 $rreg_info->session_group = $remotecourse['session_group'];
 
                 $rclass->reg_info = array($rreg_info);
@@ -159,8 +171,20 @@ class block_ucla_my_sites extends block_base {
                 $rclass->role = get_moodlerole($remotecourse['role'],
                     $subj_area);
 
-                $class_sites[] = $rclass;
+                // Now we need to figure out what exactly it is we need to 
+                // display in the situation of a conflict
+                // We are also assuming that the data in reg_classinfo
+                // is up to date?
+                $key = make_idnumber($rreg_info);
+                foreach ($class_sites as $k => $class_site) {
+                    foreach ($class_site->reg_info as $reginfo) {
+                        if ($key == make_idnumber($reginfo)) {
+                            $class_sites[$k]->role = $rclass->role;
+                        }
+                    }
+                }
 
+                $class_sites[] = $rclass;
             }
         }
 
@@ -206,7 +230,7 @@ class block_ucla_my_sites extends block_base {
                             $reg_info->sectnum);                    
                 }
                 
-                $reg_info = $class->reg_info[0];
+                $reg_info = reset($class->reg_info);
                 $title = sprintf('%s (%s): %s', 
                         $class_title,
                         ucla_term_to_text($reg_info->term, 
