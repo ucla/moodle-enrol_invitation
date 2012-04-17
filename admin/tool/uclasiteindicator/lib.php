@@ -192,5 +192,10 @@ class ucla_site_indicator {
     static function remove($courseid) {
         
     }
+    
+    static function is_collab($courseid) {
+        global $DB;
+        return $DB->record_exists('ucla_site_indicator', array('courseid' => $courseid));
+    }
 
 }
