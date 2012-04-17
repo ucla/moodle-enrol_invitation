@@ -15,6 +15,8 @@ require_once($CFG->dirroot.'/local/ucla/lib.php');
 // Need this to build course titles
 require_once($CFG->dirroot.'/'.$CFG->admin.'/tool/uclacoursecreator/uclacoursecreator.class.php');
 
+require_once($CFG->dirroot.'/blocks/ucla_browseby/handlers/browseby.class.php');
+
 class block_ucla_my_sites extends block_base {
     private $cache = array();
 
@@ -63,6 +65,9 @@ class block_ucla_my_sites extends block_base {
             unset($courses[$site->id]);
         }
 
+        // These are all the terms in the dropdown.
+        $availableterms = array();
+
         // go through each course and categorize them into either class or
         // collaboration sites
         $class_sites = array(); $collaboration_sites = array();
@@ -104,13 +109,15 @@ class block_ucla_my_sites extends block_base {
         }
 
         // Iterate through the courses and figure stuff out.
-        $availableterms = array();
         if ($remotecourses) {
             foreach ($remotecourses as $remotecourse) {
-                if (empty($remotecourse['url'])) {
+                $objrc = (object) $remotecourse;
+                $objrc->activitytype = $objrc->act_type;
+                $objrc->course_code = $objrc->catlg_no;
+                if (browseby_handler::ignore_course($objrc)) {
                     continue;
                 }
-
+                
                 $subj_area = $remotecourse['subj_area'];
                 list($term, $srs) = explode('-', 
                     $remotecourse['termsrs']);
@@ -241,6 +248,8 @@ class block_ucla_my_sites extends block_base {
                     $class_link = ucla_html_writer::link(
                         new moodle_url($class->url), 
                         $title);
+                } else {
+                    $class_link = $title;
                 }
                 
                 // get user's role
@@ -334,8 +343,9 @@ class block_ucla_my_sites extends block_base {
     public function make_terms_selector($terms, $default=false) {
         global $CFG, $PAGE;
 
+        $urls = array();
+
         $page = $PAGE->url;
-        $default = '';
         foreach ($terms as $term) {
             $thisurl = clone($page);
             $thisurl->param('term', $term);
@@ -343,7 +353,7 @@ class block_ucla_my_sites extends block_base {
 
             $urls[$url] = ucla_term_to_text($term);
 
-            if ($default!== false && $default== $term) {
+            if ($default !== false && $default == $term) {
                 $default = $url;
             }
         }

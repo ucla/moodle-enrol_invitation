@@ -77,10 +77,12 @@ abstract class browseby_handler {
         return false;
     }
     
-    function ignore_course($course) {
+    static function ignore_course($course) {
         if (!empty($course->course_code)) {
             $coursecode = intval(substr($course->course_code, 0, 4));
-            $ignorecoursenum = $this->get_config('ignore_coursenum');
+            $ignorecoursenum = get_config('block_ucla_browseby', 
+                'ignore_coursenum');
+
             if ($ignorecoursenum) {
                 $ignorecoursenum = trim($ignorecoursenum);
 
@@ -92,7 +94,8 @@ abstract class browseby_handler {
         }
 
         if (!empty($course->activitytype)) {
-            $allowacttypes = $this->get_config('allow_acttypes');
+            $allowacttypes = get_config('block_ucla_browseby', 
+                'allow_acttypes');
             if (empty($allowacttypes)) {
                 return false;
             } else {
@@ -111,22 +114,6 @@ abstract class browseby_handler {
         }
 
         return true;
-    }
-
-    /**
-     *  Decoupled functions.
-     **/
-    protected function get_config($name) {
-        if (!isset($this->configs)) {
-            $this->configs = get_config('block_ucla_browseby');
-        }
-
-
-        if (empty($this->configs->{$name})) {
-            return false;
-        }
-
-        return $this->configs->{$name};
     }
 
     protected function render_terms_restricted_helper($rt=false) {
