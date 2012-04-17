@@ -116,6 +116,22 @@ abstract class browseby_handler {
         return true;
     }
 
+    /**
+     *  Decoupled functions.
+     **/
+    protected function get_config($name) {
+        if (!isset($this->configs)) {
+            $this->configs = get_config('block_ucla_browseby');
+        }
+
+
+        if (empty($this->configs->{$name})) {
+            return false;
+        }
+
+        return $this->configs->{$name};
+    }
+
     protected function render_terms_restricted_helper($rt=false) {
         return block_ucla_browseby_renderer::render_terms_restricted_helper(
             $rt);
