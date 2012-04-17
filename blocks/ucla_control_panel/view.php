@@ -78,6 +78,9 @@ $elements = block_ucla_control_panel::load_cp_elements($course, $context);
 
 // using core renderer
 echo $OUTPUT->header();
+echo '<div class="cpanel-wrapper">';
+echo '<div class="cpheading"><h1>Control Panel</h1></div>';
+
 
 // So here we need to check which tabs we can actually display
 $tabs = array();
@@ -91,7 +94,11 @@ foreach ($elements as $view => $contents) {
         ));
 }
 
+//try set div here!
+echo '<div class ="thetabs">';
 print_tabs(array($tabs), $module_view);
+
+echo "</div>";
 
 if ($course->format != 'ucla') {
     echo $OUTPUT->box(get_string('formatincompatible', 
@@ -137,7 +144,8 @@ foreach ($elements as $view => $section_contents) {
                 $modules, 2
             );
 
-            echo ucla_cp_renderer::control_panel_contents($section_contents, 
+            echo ucla_cp_renderer::control_panel_contents
+($section_contents, 
                 false, 'row', 'general_icon_link');
         } else if ($tags == 'ucla_cp_mod_myucla') {
             echo ucla_cp_myucla_row_renderer::control_panel_contents($modules);             
@@ -147,10 +155,12 @@ foreach ($elements as $view => $section_contents) {
                     'render_cp_items')) {
                 echo $altrend::render_cp_items($modules);
             } else {
-                echo ucla_cp_renderer::control_panel_contents($modules, true);
+                 echo ucla_cp_renderer::control_panel_contents($modules, true);
             }
+    
         }
     }
+
 }
 
 if ($no_elements) {
@@ -158,6 +168,9 @@ if ($no_elements) {
         $module_view));
 }
 
+//this is temporary fix for the bottom border
+
+echo '</div>';
 echo $OUTPUT->footer();
 
 /** eof **/

@@ -1,4 +1,5 @@
 .tablerow {
+padding-left : 1em;
 }
 
 .odd {
@@ -24,19 +25,27 @@
 }
 
 .tablecol {
-    width:49%;
+    
+    width: 49%;
+}
+
+.tablecol .item{
+    padding-left:1em;
 }
 
 h2.main.copan-title {
     clear:left;
     text-align:left;
-    border-bottom:solid 1px gray;
+    border-bottom:solid 1px rgba(240,235,237,0.9);
+    border-top:solid 1px rgba(235,235,230,0.9);
+    padding:5px 5px 5px 10px;
+background-image: -webkit-linear-gradient(top left, rgba(240,235,237,0.9), white );
+background-image: -moz-linear-gradient(top left, rgba(240,235,237,0.9), white );
 }
 
 .item {
     min-height:50px;
-    padding: 4px 0;
-}
+   }
 
 .item span, #my_ucla_functions .post-link {
     color:gray;
@@ -54,3 +63,27 @@ h2.main.copan-title {
 #my_ucla_functions.generaltable {
     width: 100%;  
 }
+
+.cpheading {
+padding-top: 10px;
+
+background-image: -webkit-linear-gradient(top, rgba(199,195,197,0.7), white);
+background-image: -moz-linear-gradient(top, rgba(199,195,197,0.7), white);
+text-align:center;
+}
+
+.cpanel-wrapper {
+border : 2px solid rgb(199,195,197);
+display : block;
+ position:absolute;
+
+}
+
+.tabtree {
+margin-top:1em;
+}
+
+.thetabs {
+height:1.5em;
+}
+
