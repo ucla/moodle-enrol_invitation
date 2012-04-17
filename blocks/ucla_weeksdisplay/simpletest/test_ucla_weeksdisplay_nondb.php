@@ -27,7 +27,13 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
        return $new_session;
    } 
    
-   
+    /* <Quarter> <Year> - Week <Week number> on a normal week.
+    * <Quarter> <Year> - Finals Week for week 11.
+    * <Quarter> <Year> - Week 0 if instruction_start > session_start
+    * <Quarter> <Year> for all other days that don't fit the stuff above.
+    * Summer <Year> - Session A, Week <Week number>
+    * Summer <Year> - Session A, Week <Week number> / Session C, Week <Week number>
+    * Summer <Year> - Session C, Week <Week number> */   
    function test_get_current_week_display_string(){
        $sessions = NULL;
         $sessions[] = $this->create_session_obj('11F','RG','2011-09-19','2011-12-09','2011-09-22');
@@ -101,77 +107,96 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
         $this->assertEqual($result, "Fall 2011 - Finals Week"); 
 //Test Summer sessions
-        /*$session = $this->create_session_obj('10W','RG','2012-06-25','2012-08-03','2012-06-25'); 
+        //Test a single 8A summer session
+        $sessions = NULL;
+        $sessions[] = $this->create_session_obj('121','8A','2012-06-25','2012-08-17','2012-06-25'); 
         $date = '2012-06-25';
         $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
-        $this->assertEqual($result, 1);              
+        $this->assertEqual($result, "Summer 2012 - Session A, Week 1");              
         $date = '2012-07-02';
         $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
-        $this->assertEqual($result, 2);      
+        $this->assertEqual($result, "Summer 2012 - Session A, Week 2");      
         $date = '2012-07-09';
         $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
-        $this->assertEqual($result, 3);      
+        $this->assertEqual($result, "Summer 2012 - Session A, Week 3");      
         $date = '2012-07-16';
         $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
-        $this->assertEqual($result, 4);      
+        $this->assertEqual($result, "Summer 2012 - Session A, Week 4");      
         $date = '2012-07-23';
         $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
-        $this->assertEqual($result, 5);      
+        $this->assertEqual($result, "Summer 2012 - Session A, Week 5");      
         $date = '2012-07-30';
         $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
-        $this->assertEqual($result, 6);  */  
-      
-   
+        $this->assertEqual($result, "Summer 2012 - Session A, Week 6");              
+        $date = '2012-08-06';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Summer 2012 - Session A, Week 7");  
+        $date = '2012-08-13';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Summer 2012 - Session A, Week 8");          
+        //Test a single 6C summer session
+        $sessions = NULL;
+        $sessions[] = $this->create_session_obj('121','6C','2012-08-06','2012-09-14','2012-08-06'); 
+        $date = '2012-08-06';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Summer 2012 - Session C, Week 1");              
+        $date = '2012-08-19';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Summer 2012 - Session C, Week 2");      
+        $date = '2012-08-22';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Summer 2012 - Session C, Week 3");      
+        $date = '2012-08-30';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Summer 2012 - Session C, Week 4");      
+        $date = '2012-09-05';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Summer 2012 - Session C, Week 5");      
+        $date = '2012-09-10';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Summer 2012 - Session C, Week 6");           
+        //Test a 6C and 8A summer session with a 6A thrown in there to make sure it doesn't interfere.
+        $sessions = NULL;
+        $sessions[] = $this->create_session_obj('121','6C','2012-08-06','2012-09-14','2012-08-06'); 
+        $sessions[] = $this->create_session_obj('121','8A','2012-06-25','2012-08-17','2012-06-25'); 
+        $sessions[] = $this->create_session_obj('121','6A','2012-06-25','2012-08-03','2012-06-25'); 
+        /*$date = '2012-06-25';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Summer 2012 - Session A, Week 1");              
+        $date = '2012-07-02';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Summer 2012 - Session A, Week 2");      
+        $date = '2012-07-09';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Summer 2012 - Session A, Week 3");      
+        $date = '2012-07-16';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Summer 2012 - Session A, Week 4");      
+        $date = '2012-07-23';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Summer 2012 - Session A, Week 5");      
+        $date = '2012-07-30';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Summer 2012 - Session A, Week 6");     */         
+        $date = '2012-08-06';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Summer 2012 - Session A, Week 7 / Session C, Week 1");  
+        $date = '2012-08-13';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Summer 2012 - Session A, Week 8 / Session C, Week 2");       
+        $date = '2012-08-22';/*
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Summer 2012 - Session C, Week 3");      
+        $date = '2012-08-30';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Summer 2012 - Session C, Week 4");      
+        $date = '2012-09-05';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Summer 2012 - Session C, Week 5");      
+        $date = '2012-09-09';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Summer 2012 - Session C, Week 6");   */      
    }
-   /**
-    * Returns the current_week_display string associated with the date and sessions.
-    * 
-    * @param date string that starts with the format YYYY-MM-DD that has to be 
-    * either within the session start/end dates. 
-    * Exception: A date before the sessions startdate 
-    * and after the previous session's end date can be passed into this function
-    * as well, in which case it will just display <Quarter> <Year>.
-    * @param sessions an array of session objects 
-    *       returned by ucla_getterms registrar query.
-    *       The only sessions that will be parsed are the 'RG', '8A', '6C' ones.
-    *       This function assumes that there will be either only one session
-    *       in the array, or a 8A session followed by a 6C session.
-    * @return the current_week_display string with format:
-    * <Quarter> <Year> - Week <Week number> on a normal week.
-    * <Quarter> <Year> - Finals Week for week 11.
-    * <Quarter> <Year> - Week 0 if instruction_start > session_start
-    * <Quarter> <Year> for all other days that don't fit the stuff above.
-    * Summer <Year> - Session A, Week <Week number>
-    * Summer <Year> - Session A, Week <Week number> / Session C, Week <Week number>
-    * Summer <Year> - Session C, Week <Week number> 
-    * for the various summer sessions.
-    */      
-    function get_current_week_display_string($date, $sessions){
-        
-        //Ensure that non RG/8A/6C functions got in.
-        $regular_sessions = find_regular_sessions($sessions);          
-        usort($regular_sessions, 'cmp_sessions');
-        
-        //Handles special case where sessions overlap.
-        if($regular_sessions[0][3] == '8A' && $regular_sessions[1][3] == '6C') {
-            $week_number0 = get_week($date, $regular_sessions[0]);          
-            $week_number1 = get_week($date, $regular_sessions[1]);     
-                return ucla_term_to_text($regular_sessions[0], 'A').', Week '
-                       . $week_number0 . '/ Session C, Week ' . $week_number1;                                  
-        } else {
-            $week_number = get_week($date, $regular_sessions[0]);
-            
-            if($week_number == 11){       
-                return ucla_term_to_text($regular_sessions[0]).' - Finals Week';                      
-            }            
-            if($week_number >= 0){       
-                return ucla_term_to_text($regular_sessions[0]).' - Week '
-                        . $week_number;                      
-            } else { //If the date is before this term's start date.
-                return ucla_term_to_text($regular_sessions[0]);
-            }
-        }  
-    }
   
     function test_get_week(){
         $session = $this->create_session_obj('10W','RG','2012-02-01','2012-03-01','2012-02-01');

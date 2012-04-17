@@ -130,6 +130,8 @@ class block_ucla_weeksdisplay extends block_base {
     * @param sessions an array of session objects 
     *       returned by ucla_getterms registrar query.
     *       The only sessions that will be parsed are the 'RG', '8A', '6C' ones.
+    *       THIS FUNCTION ASSUMES THAT THERE WILL BE EITHER ONLY ONE SESSION IN
+    *       THE ARRAY, OR AN ARRAY CONTAINING ONE 8A SESSION AND 1 6C SESSION.
     *       This function assumes that there will be either only one session
     *       in the array, or a 8A session followed by a 6C session.
     * @return the current_week_display string with format:
@@ -149,22 +151,36 @@ class block_ucla_weeksdisplay extends block_base {
         usort($regular_sessions, 'block_ucla_weeksdisplay::cmp_sessions');
         
         //Handles special case where sessions overlap.
-        if($regular_sessions[0][3] == '8A' && $regular_sessions[1][3] == '6C') {
+        if(isset($regular_sessions[1]) 
+               && $regular_sessions[0][3] == '8A' && $regular_sessions[1][3] == '6C') {
             $week_number0 = block_ucla_weeksdisplay::get_week($date, $regular_sessions[0]);          
             $week_number1 = block_ucla_weeksdisplay::get_week($date, $regular_sessions[1]);     
                 return ucla_term_to_text($regular_sessions[0][0], 'A').', Week '
-                       . $week_number0 . '/ Session C, Week ' . $week_number1;                                  
+                       . $week_number0 . ' / Session C, Week ' . $week_number1;                                  
         } else {
-            $week_number = block_ucla_weeksdisplay::get_week($date, $regular_sessions[0]);
             
-            if($week_number == 11) {       
-                return ucla_term_to_text($regular_sessions[0][0]).' - Finals Week';                      
-            }            
-            if($week_number >= 0 && $week_number < 12) {       
-                return ucla_term_to_text($regular_sessions[0][0]).' - Week '
-                        . $week_number;                      
-            } else { //If the date is before this term's start date.
-                return ucla_term_to_text($regular_sessions[0][0]);
+            $week_number = block_ucla_weeksdisplay::get_week($date, $regular_sessions[0]);
+            $term_string = $regular_sessions[0][0];
+            //Summer sessions
+            if($regular_sessions[0][3] == '8A' || $regular_sessions[0][3] == '6C') {
+                if($week_number >= 0 && $week_number < 11) {       
+                    //Return the string with the correct session.
+                    return ucla_term_to_text($regular_sessions[0][0], $regular_sessions[0][3][1]).', Week '
+                            . $week_number;                      
+                } else { 
+                    return ucla_term_to_text($regular_sessions[0][0], $regular_sessions[0][3][1]);
+                }                
+            } else {
+                //Regular sessions
+                if($week_number == 11) {       
+                    return ucla_term_to_text($regular_sessions[0][0]).' - Finals Week';                      
+                }            
+                if($week_number >= 0 && $week_number < 12) {       
+                    return ucla_term_to_text($regular_sessions[0][0]).' - Week '
+                            . $week_number;                      
+                } else { //If the date is before this term's start date.
+                    return ucla_term_to_text($regular_sessions[0][0]);
+                }
             }
         }  
     }
@@ -195,7 +211,7 @@ class block_ucla_weeksdisplay extends block_base {
             
             //Week 1 always starts the first monday including or after session start date.
             //TODO: overflow stuff, documentation
-            $unix_ses_start_date = strtotime($session[5]);
+            $unix_ses_start_date = strtotime($ses_start_date);
             $first_day_of_first_week = date('z', $unix_ses_start_date);
             // <editor-fold defaultstate='collapsed' desc='Find monday of first week'>
             switch (block_ucla_weeksdisplay::get_dayofweek($ses_start_date)) {
@@ -365,6 +381,9 @@ class block_ucla_weeksdisplay extends block_base {
                 return $year.'1';
             case '1':
                 return $year.'F';
+            default:
+                debugging("Invalid term:".$current_term);
+                return NULL;
         }
     }
 
@@ -384,6 +403,9 @@ class block_ucla_weeksdisplay extends block_base {
                 return $prev_year.'W';
             case '1':
                 return $year.'S';
+            default:
+                debugging("Invalid term:".$current_term);
+                return NULL;                
         }
     } 
     
@@ -396,7 +418,7 @@ class block_ucla_weeksdisplay extends block_base {
     *        negative number if session1 comes before session2
     */ 
     public static function cmp_sessions($session1, $session2) {                
-        return block_ucla_weeksdisplay::cmp_dates($session1[5],$session2[5]);
+        return block_ucla_weeksdisplay::cmp_dates($session1[6],$session2[6]);
     }      
     
    /**
