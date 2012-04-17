@@ -1,7 +1,7 @@
 <?php 
 
 defined('MOODLE_INTERNAL') || die();
-
+define('RUN_CLI', php_sapi_name()=='cli');
 /**
  *  The course creator class.
  *
@@ -228,7 +228,7 @@ class uclacoursecreator {
 
     /** ******************* **/
     /*  Debugging Functions  */
-    /** ******************* **/
+    /** ******************* **/ 
 
     /**
      *  Will print to course creator log.
@@ -2123,28 +2123,32 @@ class uclacoursecreator {
         // Get a unique id for this lock
         $this->make_dbid();
         $this->check_write();
-
+        
         $cc_lock = $this->output_path . '/' . $this->db_id . '.lock';
         $fe = file_exists($cc_lock);
-
         // Prevent new requests that come in during course creation from 
         // affecting course creator
         if ($lock) {
             // We sometimes want to do a file lock
             if ($fe) {
                 $msg = "Lock file $cc_lock already exists!";
-
-                echo $msg . "\n";
-                throw new course_creator_exception($msg);
+                if(RUN_CLI) {
+                    echo $msg . "\n";
+                }
+                throw new course_creator_exception($msg); 
             }
 
             $lockfp = fopen($cc_lock, 'x');
             fclose($lockfp);
-            $this->println('Lock successful.');
+            if(RUN_CLI) {
+                $this->println('Lock successful.');
+            }
         } else {
             if ($fe) {
                 unlink($cc_lock);
-                $this->println('Unlock successful');
+                if(RUN_CLI) {
+                    $this->println('Unlock successful');
+                }
             } else {
                 if ($warn) {
                     $this->debugln(
@@ -2160,6 +2164,16 @@ class uclacoursecreator {
         return true;
     }
 
+    /**
+     * Tests to see if lock file exists
+     */
+    function lock_exists() {
+        $this->make_dbid();
+        $this->check_write();
+        $cc_lock = $this->output_path . '/' . $this->db_id . '.lock';
+        $fe = file_exists($cc_lock);
+        return($fe);
+    }
 
     /**
      *  Temporary wrapper for finishing up cron.

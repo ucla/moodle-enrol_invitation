@@ -2,7 +2,6 @@
 /**
  *  Course Requestor 
  **/
-
 require_once(dirname(__FILE__) . '/../../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 $uccdirr = '/tool/uclacoursecreator/uclacoursecreator.class.php';
@@ -152,15 +151,9 @@ if ($requests === null) {
         if (!empty($prevs->{UCLA_CR_SUBMIT})) {
             $saverequeststates = true;
         }
-
-        if (!empty($prevs->{'buildcourses'})) {
-            try {
-                $coursebuilder->handle_locking(true);
-                $coursebuilder->handle_locking(false);
-                $forcebuild = true;
-            } catch(course_creator_exception $e) {
-                print "Lock file exists!";
-            }
+        if (!empty($prevs->{'buildcourses'}) && 
+                !$coursebuilder->lock_exists()) {
+            $forcebuild = true;
         }        
         $requests = array();
         $rkeyset = array();
@@ -331,11 +324,27 @@ echo html_writer::start_tag('div', array('id' => $rucr));
 echo $OUTPUT->heading(get_string('pluginname', $rucr), 2, 'headingblock');
 
 // generate build schedule/notice (if any)
+$build_notes = get_config($rucr, 'build_notes').get_string('alreadybuild', $rucr);
+$build_notice = '';
+if (!empty($build_notes) && $coursebuilder->lock_exists()) {
+        $build_notice = html_writer::tag('div', $build_notes, array('id' => 'uclacourserequestor_notice'));   
+
+}
+
+
+
+// generate build schedule/notice (if any)
 $build_notes = get_config($rucr, 'build_notes');
+if ($coursebuilder->lock_exists()) { // if course build is in progress, let user know
+    if (!empty($build_notes)) {
+        $build_notes .= html_writer::empty_tag('br');        
+    }
+    $build_notes .= get_string('alreadybuild', $rucr);
+}
 if (!empty($build_notes)) {
     $build_notice = html_writer::tag('div', $build_notes, 
             array('id' => 'uclacourserequestor_notice'));    
-    echo $OUTPUT->box($build_notice, 'noticebox');    
+    echo $OUTPUT->box($build_notice, 'noticebox');      
 }
 
 foreach ($cached_forms as $gn => $group) {
@@ -401,25 +410,23 @@ if (!empty($requeststable->data)) {
             'name' => $uf 
         ));
     if (get_config('theme_uclashared', 'running_environment')!= 'prod') {
-        try {
-            $coursebuilder->handle_locking(true);
-            $coursebuilder->handle_locking(false);
-            echo html_writer::tag('input', '', array(
-                'type' => 'submit',
-                'name' => 'buildcourses',	
-                'value' => get_string('buildcourses', $rucr),
-                'class' => 'right',
-            ));
-        } catch(course_creator_exception $e) {
-            echo html_writer::tag('input', '', array(
-                'type' => 'submit',
-                'name' => 'buildcourses',	
-                'value' => get_string('alreadybuild', $rucr),
-                'class' => 'right',
-                'disabled' => true
-            ));
-        }
-    }        
+            if(!$coursebuilder->lock_exists()) {
+                echo html_writer::tag('input', '', array(
+                    'type' => 'submit',
+                    'name' => 'buildcourses',	
+                    'value' => get_string('buildcourses', $rucr),
+                    'class' => 'right',
+                ));
+            } else {
+                echo html_writer::tag('input', '', array(
+                    'type' => 'submit',
+                    'name' => 'buildcourses',	
+                    'value' => get_string('alreadybuild', $rucr),
+                    'class' => 'right',
+                    'disabled' => true
+                ));
+            }
+    }
     echo html_writer::table($requeststable);
 
     echo html_writer::tag('input', '', array(
@@ -443,5 +450,4 @@ if (!empty($requeststable->data)) {
 
 echo html_writer::end_tag('div');
 echo $OUTPUT->footer();
-
 // EoF
