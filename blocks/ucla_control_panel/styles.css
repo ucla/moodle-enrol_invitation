@@ -73,9 +73,11 @@ text-align:center;
 }
 
 .cpanel-wrapper {
+margin-bottom: 3em;
 border : 2px solid rgb(199,195,197);
 display : block;
- position:absolute;
+position: absolute;
+background-color: yellow;
 
 }
 
