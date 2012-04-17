@@ -348,7 +348,7 @@ if ($uploadform->is_cancelled()) {
         $sequencearr = array();
         foreach($newmods as $newmod) {
             if ($newmod->id == 'new') {
-                $newmod->id = $instanceid;
+                $newmod->id = $coursemoduleid;
             }
 
             $sequencearr[$newmod->id] = $newmod->id;
