@@ -12,9 +12,6 @@ require_once(dirname(__FILE__) . '/../../../config.php');
 
 require_once($CFG->libdir.'/formslib.php');
 
-abstract class uclaform extends moodleform {
-    
-}
 // To get categories
 require_once($CFG->dirroot . '/course/lib.php');
 
@@ -23,30 +20,75 @@ require_once($CFG->dirroot . '/local/ucla/jira.php');
 require_once($CFG->dirroot . '/blocks/ucla_help/ucla_help_lib.php');
 
 
-class indicator_entry {
-
+class site_indicator_entry {
     public $property;
-    public $course;
+    private $id;
+    
+    function __construct($courseid) {
+        global $DB;
+        
+        $indicator = $DB->get_record('ucla_siteindicator', array('courseid' => $courseid), '*', MUST_EXIST);
+        $this->property->courseid = $courseid;
+        $this->property->type = $indicator->type;
+        $this->id = $indicator->id;
+    }
+    
+    public function delete() {
+        global $DB;
+        $DB->delete_records('ucla_siteindicator', array('id' => $this->id));
+    }
+    
+    public function change_type($newtype) {
+        global $DB;
+        $option = array();
+        
+        // Handle int and short_name types
+        if(is_int($newtype)) {
+            
+        } else {
+            
+        }
+    }
+    
+    public function get_type() {
+        global $DB;
+        
+        if(isset($this->property->type_obj)) {
+            return $this->property->type_obj;
+        } else {
+            $typeobj = $DB->get_record('ucla_siteindicator_type', array('id' => $this->property->type), '*', MUST_EXIST);
+            $this->property->type_obj = $typeobj;
+            return $typeobj;
+        }
+    }
+}
+
+class site_indicator_request {
+
+    public $request;
+    public $entry;
+    private $id;
 
     function __construct($requestid) {
         global $DB;
-        
-        $request = $DB->get_record('ucla_site_indicator_request', array('requestid' => $requestid), '*', MUST_EXIST);
 
-        $this->property = new stdClass();
-        $this->course = new stdClass();
-        
-        $this->course->type = $request->type;
-        $this->property->support = $request->support;
-        $this->property->categoryid = $request->categoryid;
-        $this->property->requestid = $requestid;
+        $this->request = new stdClass();
+        $this->entry = new stdClass();
+                
+        $request = $DB->get_record('ucla_siteindicator_request', array('requestid' => $requestid), '*', MUST_EXIST);
+
+        $this->entry->type = $request->type;
+        $this->request->support = $request->support;
+        $this->request->categoryid = $request->categoryid;
+        $this->request->requestid = $requestid;
+        $this->id = $request->id;
     }
     
     function create_indicator_entry() {
         global $DB;
         
-        $DB->insert_record('ucla_site_indicator_request', $this->course);
-        self::remove_request($this->property->requestid);
+        $DB->insert_record('ucla_siteindicator', $this->entry);
+        $this->delete();
     }
     
     /**
@@ -56,14 +98,14 @@ class indicator_entry {
         echo "TODO: GENERATE JIRA TICKET";
     }
     
-    static function remove_request($courseid) {
+    public function delete() {
         global $DB;
-        $DB->delete_records('ucla_site_indicator_request', array('requestid' => $courseid));
+        $DB->delete_records('ucla_siteindicator_request', array('requestid' => $this->id));
     }
         
-    static function create_request($newindicator) {
+    static function create($newindicator) {
         global $DB;
-        $DB->insert_record('ucla_site_indicator_request', $newindicator);
+        $DB->insert_record('ucla_siteindicator_request', $newindicator);
     }
     
 }
@@ -167,16 +209,16 @@ class ucla_site_indicator {
         $newindicator->type = $data->indicator_type;
         $newindicator->categoryid = $indicator_category;
         
-        indicator_entry::create_request($newindicator);
+        site_indicator_request::create($newindicator);
     }
     
     
     static function create($courseid, $requestid) {
         global $DB;
 
-        if($DB->record_exists('ucla_site_indicator_request', array('requestid' => $requestid))) {
-            $newindicator = new indicator_entry($requestid);
-            $newindicator->course->id = $courseid;
+        if($DB->record_exists('ucla_siteindicator_request', array('requestid' => $requestid))) {
+            $newindicator = new site_indicator_request($requestid);
+            $newindicator->course->courseid = $courseid;
 
             // Create record for course
             $newindicator->create_indicator_entry();
@@ -185,11 +227,17 @@ class ucla_site_indicator {
         }
     }
 
-    static function reject($courseid) {
-        indicator_entry::remove_request($courseid);
+    static function reject($requestid) {
+        $request = new site_indicator_request($requestid);
+        $request->delete();
     }
     
     static function remove($courseid) {
+        $indicator = new site_indicator_entry($courseid);
+        $indicator->delete();
+    }
+    
+    static function get_site_indicator($courseid) {
         
     }
     

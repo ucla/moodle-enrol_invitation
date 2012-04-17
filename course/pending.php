@@ -53,7 +53,7 @@ if (!empty($approve) and confirm_sesskey()) {
     if ($courseid !== false) {
         // START UCLAMOD CCLE-2389
         $category = ucla_site_indicator::create($courseid, $approve);
-        redirect($CFG->wwwroot.'/course/edit.php?id=' . $courseid);
+        redirect($CFG->wwwroot.'/course/edit.php?id=' . $courseid . '&category=' . $category);
         // END UCLAMOD CCLE-2389
     } else {
         print_error('courseapprovedfailed');
@@ -79,7 +79,9 @@ if (!empty($reject)) {
 
         /// Reject the request
         $course->reject($data->rejectnotice);
+        // START UCLAMOD CCLE-2389
         ucla_site_indicator::reject($course->id);
+        // END UCLAMOD CCLE-2389
 
         /// Redirect back to the course listing.
         redirect($baseurl, get_string('courserejected'));

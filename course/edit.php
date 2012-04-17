@@ -43,7 +43,11 @@ if ($id) { // editing course
 
     $course = $DB->get_record('course', array('id'=>$id), '*', MUST_EXIST);
     require_login($course);
-    $category = $DB->get_record('course_categories', array('id'=>$course->category), '*', MUST_EXIST);
+    // START UCLAMOD CCLE-2389
+    // Force the category to be the one selected by the user and not the default
+    $catid = ($categoryid) ? $categoryid : $course->category;
+    $category = $DB->get_record('course_categories', array('id'=>$catid), '*', MUST_EXIST);
+    // END UCLAMOD CCLE-2389
     $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
     require_capability('moodle/course:update', $coursecontext);
     $PAGE->url->param('id',$id);
