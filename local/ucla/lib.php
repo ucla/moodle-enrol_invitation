@@ -327,9 +327,11 @@ function ucla_term_to_text($term, $session=null) {
     } else if ($term_letter == "s") {
         // S -> Spring
         $termtext = "Spring";
-    } else {
+    } else if ($term_letter == "1"){
         // 1 -> Summer
         $termtext = "Summer";
+    } else {
+        debugging("Invalid term letter: ".$term_letter);
     }
 
     $years = substr($term, 0, 2);

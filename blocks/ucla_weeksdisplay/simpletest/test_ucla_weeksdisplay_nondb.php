@@ -27,6 +27,102 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
        return $new_session;
    } 
    
+   
+   function test_get_current_week_display_string(){
+       $sessions = NULL;
+        $sessions[] = $this->create_session_obj('11F','RG','2011-09-19','2011-12-09','2011-09-22');
+    //Test days starting before and after the session.
+        $date = '2011-01-01';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Fall 2011"); 
+        $date = '2012-12-01';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Fall 2011");         
+    //Test days starting on different days of the week.    
+        
+        //Test 0 week.
+        $date = '2011-09-20';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Fall 2011 - Week 0"); 
+        $date = '2011-09-25';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Fall 2011 - Week 0");         
+        //Test all days of first week
+        $date = '2011-09-26';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Fall 2011 - Week 1");      
+        $date = '2011-09-27';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Fall 2011 - Week 1");      
+        $date = '2011-09-28';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Fall 2011 - Week 1");      
+        $date = '2011-09-29';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Fall 2011 - Week 1");      
+        $date = '2011-09-30';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Fall 2011 - Week 1");      
+        $date = '2011-10-01';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Fall 2011 - Week 1");      
+        $date = '2011-10-02';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Fall 2011 - Week 1");      
+        //Test week 2-11
+        $date = '2011-10-03';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Fall 2011 - Week 2");      
+        $date = '2011-10-16';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Fall 2011 - Week 3");      
+        $date = '2011-10-17';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Fall 2011 - Week 4");      
+        $date = '2011-10-28';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Fall 2011 - Week 5");      
+        $date = '2011-10-31';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Fall 2011 - Week 6");      
+        $date = '2011-11-08';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Fall 2011 - Week 7");      
+        $date = '2011-11-15';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Fall 2011 - Week 8");      
+        $date = '2011-11-23';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Fall 2011 - Week 9");      
+        $date = '2011-11-29';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Fall 2011 - Week 10");               
+        $date = '2011-12-05';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, "Fall 2011 - Finals Week"); 
+//Test Summer sessions
+        /*$session = $this->create_session_obj('10W','RG','2012-06-25','2012-08-03','2012-06-25'); 
+        $date = '2012-06-25';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, 1);              
+        $date = '2012-07-02';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, 2);      
+        $date = '2012-07-09';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, 3);      
+        $date = '2012-07-16';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, 4);      
+        $date = '2012-07-23';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, 5);      
+        $date = '2012-07-30';
+        $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
+        $this->assertEqual($result, 6);  */  
+      
+   
+   }
    /**
     * Returns the current_week_display string associated with the date and sessions.
     * 
@@ -76,14 +172,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
             }
         }  
     }
-
-   /**
-    * Returns the week of the session that the date is in.
-    * @param date string that starts with the format YYYY-MM-DD
-    * @param session a session object returned by the get_terms registrar query
-    * @return an int representing the week that the date is in.
-    * -1 if the date is not within the current week.
-    */    
+  
     function test_get_week(){
         $session = $this->create_session_obj('10W','RG','2012-02-01','2012-03-01','2012-02-01');
     //Test days starting before and after the session.
@@ -94,7 +183,87 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         $result = block_ucla_weeksdisplay::get_week($date, $session);
         $this->assertEqual($result, -1);         
     //Test days starting on different days of the week.    
-        
+        $session = $this->create_session_obj('10W','RG','2011-09-19','2011-12-09','2011-09-22');
+        //Test 0 week.
+        $date = '2011-09-20';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 0); 
+        $date = '2011-09-25';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 0);         
+        //Test all days of first week
+        $date = '2011-09-26';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 1);      
+        $date = '2011-09-27';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 1);      
+        $date = '2011-09-28';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 1);      
+        $date = '2011-09-29';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 1);      
+        $date = '2011-09-30';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 1);      
+        $date = '2011-10-01';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 1);      
+        $date = '2011-10-02';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 1);      
+        //Test week 2-11
+        $date = '2011-10-03';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 2);      
+        $date = '2011-10-16';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 3);      
+        $date = '2011-10-17';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 4);      
+        $date = '2011-10-28';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 5);      
+        $date = '2011-10-31';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 6);      
+        $date = '2011-11-08';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 7);      
+        $date = '2011-11-15';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 8);      
+        $date = '2011-11-23';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 9);      
+        $date = '2011-11-29';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 10);               
+        $date = '2011-12-05';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 11); 
+//Test Summer sessions
+        $session = $this->create_session_obj('10W','RG','2012-06-25','2012-08-03','2012-06-25'); 
+        $date = '2012-06-25';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 1);              
+        $date = '2012-07-02';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 2);      
+        $date = '2012-07-09';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 3);      
+        $date = '2012-07-16';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 4);      
+        $date = '2012-07-23';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 5);      
+        $date = '2012-07-30';
+        $result = block_ucla_weeksdisplay::get_week($date, $session);
+        $this->assertEqual($result, 6);              
     }
 
     
