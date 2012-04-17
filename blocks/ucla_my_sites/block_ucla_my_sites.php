@@ -34,7 +34,7 @@ class block_ucla_my_sites extends block_base {
      * @return object
      */
     public function get_content() {
-        global $USER, $CFG;
+        global $USER, $CFG, $OUTPUT;
 
         if($this->content !== NULL) {
             return $this->content;
@@ -44,10 +44,12 @@ class block_ucla_my_sites extends block_base {
         $this->content->text = '';
         $this->content->footer = '';
 
-        if (isset($CFG->currentterm)) {
+        // NOTE: this thing currently takes the term in the get param...
+        // so you may have some strange behavior if this block is not
+        // in the my-home page...
+        $showterm = optional_param('term', false, PARAM_RAW);
+        if (!$showterm && isset($CFG->currentterm)) {
             $showterm = $CFG->currentterm;
-        } else {
-            $showterm = false;
         }
 
         $content = array();
@@ -83,10 +85,6 @@ class block_ucla_my_sites extends block_base {
             $remotecourses = false;
         } else {
             $spparam = array('uid' => $USER->idnumber);
-            if ($showterm) {
-                $spparam['term'] = $showterm;
-            }
-
             $remotecourses = registrar_query::run_registrar_query(
                 'ucla_get_user_classes', 
                 array($spparam), 
@@ -94,6 +92,8 @@ class block_ucla_my_sites extends block_base {
             );
         }
 
+        // Iterate through the courses and figure stuff out.
+        $availableterms = array();
         if ($remotecourses) {
             foreach ($remotecourses as $remotecourse) {
                 if (empty($remotecourse['url'])) {
@@ -103,6 +103,12 @@ class block_ucla_my_sites extends block_base {
                 $subj_area = $remotecourse['subj_area'];
                 list($term, $srs) = explode('-', 
                     $remotecourse['termsrs']);
+
+                // Save the term
+                $availableterms[$term] = $term;
+                if ($term != $showterm) {
+                    continue;
+                }
 
                 $rclass = new stdclass();
                 $rclass->url = $remotecourse['url'];
@@ -154,14 +160,27 @@ class block_ucla_my_sites extends block_base {
                     $subj_area);
 
                 $class_sites[] = $rclass;
+
             }
+        }
+
+        // Now we need to handle all the terms
+        if (!empty($availableterms)) {
+            // Leaves them descending
+            $availableterms = terms_arr_sort($availableterms);
         }
 
         // In order to translate values returned by get_moodlerole
         $allroles = get_all_roles();
 
         // print class sites
-        $content[] = html_writer::tag('h3', get_string('classsites', 
+        $content[] = 
+            html_writer::tag('div', 
+                $OUTPUT->render(self::make_terms_selector($availableterms, 
+                    $showterm)),
+                array('class' => 'termselector')
+            )
+            . html_writer::tag('h3', get_string('classsites', 
                 'block_ucla_my_sites'), array('class' => 'mysitesdivider'));
         if (empty($class_sites)) {
             $content[] = html_writer::tag('p', get_string('noclasssites', 
@@ -286,6 +305,26 @@ class block_ucla_my_sites extends block_base {
      */
     public function applicable_formats() {
         return array('my-index'=>true);
+    }
+
+    public function make_terms_selector($terms, $default=false) {
+        global $CFG, $PAGE;
+
+        $page = $PAGE->url;
+        $default = '';
+        foreach ($terms as $term) {
+            $thisurl = clone($page);
+            $thisurl->param('term', $term);
+            $url = $thisurl->out(false);
+
+            $urls[$url] = ucla_term_to_text($term);
+
+            if ($default!== false && $default== $term) {
+                $default = $url;
+            }
+        }
+
+        return $selects = new url_select($urls, $default);
     }
 }
 

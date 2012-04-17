@@ -34,3 +34,7 @@
 .block_ucla_my_sites .lastcol {
     width: 120px;
 }
+
+.block_ucla_my_sites .content .termselector {
+    float: right;
+}
