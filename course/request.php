@@ -25,7 +25,6 @@
 
 require_once(dirname(__FILE__) . '/../config.php');
 require_once($CFG->dirroot . '/course/lib.php');
-require_once($CFG->dirroot . '/admin/tool/uclasiteindicator/lib.php');
 require_once($CFG->dirroot . '/course/request_form.php');
 
 $PAGE->set_url('/course/request.php');
