@@ -16,6 +16,7 @@ require_once($CFG->dirroot.'/local/ucla/lib.php');
 require_once($CFG->dirroot.'/'.$CFG->admin.'/tool/uclacoursecreator/uclacoursecreator.class.php');
 
 require_once($CFG->dirroot.'/blocks/ucla_browseby/handlers/browseby.class.php');
+require_once($CFG->dirroot.'/blocks/ucla_browseby/handlers/course.class.php');
 
 class block_ucla_my_sites extends block_base {
     private $cache = array();
@@ -111,10 +112,13 @@ class block_ucla_my_sites extends block_base {
         // Iterate through the courses and figure stuff out.
         if ($remotecourses) {
             foreach ($remotecourses as $remotecourse) {
+                // Do not use this object after thsi, this is because
+                // browsebyh_handler::ignore_course uses an object
                 $objrc = (object) $remotecourse;
                 $objrc->activitytype = $objrc->act_type;
                 $objrc->course_code = $objrc->catlg_no;
-                if (browseby_handler::ignore_course($objrc)) {
+                if (empty($objrc->url) 
+                        && browseby_handler::ignore_course($objrc)) {
                     continue;
                 }
                 
@@ -127,6 +131,8 @@ class block_ucla_my_sites extends block_base {
                 if ($term != $showterm) {
                     continue;
                 }
+
+                $remotecourse['url'] = '';
 
                 $rclass = new stdclass();
                 $rclass->url = $remotecourse['url'];
@@ -172,6 +178,7 @@ class block_ucla_my_sites extends block_base {
                 $rreg_info->term = $term;
                 $rreg_info->srs = $srs;
                 $rreg_info->session_group = $remotecourse['session_group'];
+                $rreg_info->course_code = $remotecourse['catlg_no'];
 
                 $rclass->reg_info = array($rreg_info);
 
@@ -249,7 +256,24 @@ class block_ucla_my_sites extends block_base {
                         new moodle_url($class->url), 
                         $title);
                 } else {
-                    $class_link = $title;
+                    // Courses without urls should not have information
+                    // stating that they are crosslisted
+                    if (count($class->reg_info) != 1) {
+                        debugging('strangeness!');
+                    } else {
+                        $class_link = $title . html_writer::link(
+                            new moodle_url(
+                                course_handler::registrar_url(reset(
+                                    $class->reg_info))
+                            ),
+                            '(' . html_writer::tag(
+                                    'span', 
+                                    get_string('registrar_link', 
+                                        'block_ucla_browseby'),
+                                    array('class' => 'registrar-link')
+                                ) . ')'
+                        );
+                    }
                 }
                 
                 // get user's role
@@ -264,6 +288,7 @@ class block_ucla_my_sites extends block_base {
                 
                 $t->data[] = array($class_link, $roles);
             }
+
             $content[] = html_writer::table($t);
         }
         
