@@ -157,7 +157,7 @@ abstract class easy_upload_form extends moodleform {
                 array('id' => 'serialized'));
             
             $mform->addElement('html', html_writer::tag('div', 
-                    html_writer::tag('div', get_string('rearrangejsrequired',
+                    html_writer::tag('ul', get_string('rearrangejsrequired',
                         self::associated_block), array('id' => 'thelist')),
                 array('id' => 'reorder-container'))
             );
