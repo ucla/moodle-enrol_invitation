@@ -15,7 +15,7 @@ require_once($CFG->libdir.'/formslib.php');
 // To get categories
 require_once($CFG->dirroot . '/course/lib.php');
 
-// Use the UCLA help block to get support contacts
+// For the UCLA help block -- to get support contacts and send jira ticket
 require_once($CFG->dirroot . '/local/ucla/jira.php');
 require_once($CFG->dirroot . '/blocks/ucla_help/ucla_help_lib.php');
 
@@ -61,6 +61,14 @@ class site_indicator_entry {
             return $typeobj;
         }
     }
+    
+    static function load($courseid) {
+        try {
+            return new site_indicator_entry($courseid);
+        } catch(Exception $e) {
+            return null;
+        }
+    }
 }
 
 class site_indicator_request {
@@ -94,8 +102,32 @@ class site_indicator_request {
     /**
      * @todo write this function! 
      */
-    private function generate_jira_ticket() {
-        echo "TODO: GENERATE JIRA TICKET";
+    public function generate_jira_ticket() {
+        global $DB;
+        
+        $requested_course = $DB->get_record('course_request', array('id' => $this->request->requestid));
+       
+        $requested_course->pending = $CFG->wwwroot . '/course/pending.php';
+        $requested_course->approve = $CFG->wwwroot . '/course/pending.php?approve=' . $this->request->requestid;
+        $requested_course->reject = $CFG->wwwroot . '/course/pending.php?reject=' . $this->request->requestid;
+        
+        $title = get_string('jira_title', 'tool_uclasiteindicator', $requested_course);
+        $message = get_string('jira_msg', 'tool_uclasiteindicator', $requested_course);
+        
+        
+        $params = array(
+            'pid' => get_config('block_ucla_help', 'jira_pid'),
+            'issuetype' => 1,
+            'os_username' => get_config('block_ucla_help', 'jira_user'),
+            'os_password' => get_config('block_ucla_help', 'jira_password'),
+            'summary' => $title,
+            'assignee' => $this->request->support,
+            'reporter' => $this->request->support,
+            'description' => $message,
+        );        
+
+        $result = do_request(get_config('block_ucla_help', 'jira_endpoint'), $params, 'POST');      
+        
     }
     
     public function delete() {
@@ -106,6 +138,10 @@ class site_indicator_request {
     static function create($newindicator) {
         global $DB;
         $DB->insert_record('ucla_siteindicator_request', $newindicator);
+        
+        // Get the request and generate jira ticket
+        $request = new site_indicator_request($newindicator->requestid);
+        $request->generate_jira_ticket();
     }
     
 }
