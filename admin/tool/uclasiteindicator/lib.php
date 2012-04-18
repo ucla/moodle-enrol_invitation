@@ -212,7 +212,13 @@ class ucla_site_indicator {
         site_indicator_request::create($newindicator);
     }
     
-    
+    /**
+     *
+     * @global type $DB
+     * @param type $courseid
+     * @param type $requestid
+     * @return type 
+     */
     static function create($courseid, $requestid) {
         global $DB;
 
@@ -227,16 +233,33 @@ class ucla_site_indicator {
         }
     }
 
+    /**
+     *
+     * @param type $requestid 
+     */
     static function reject($requestid) {
         $request = new site_indicator_request($requestid);
         $request->delete();
     }
     
-    static function remove($courseid) {
-        $indicator = new site_indicator_entry($courseid);
-        $indicator->delete();
+    /**
+     *
+     * @global type $DB
+     * @param type $courseid 
+     */
+    static function delete($courseid) {
+        global$DB;
+        
+        if($DB->record_exists('ucla_siteindicator', array('courseid' => $courseid))) {
+            $indicator = new site_indicator_entry($courseid);
+            $indicator->delete();
+        }
     }
     
+    /**
+     *
+     * @param type $courseid 
+     */
     static function get_site_indicator($courseid) {
         
     }

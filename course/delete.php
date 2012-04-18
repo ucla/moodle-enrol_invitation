@@ -3,6 +3,7 @@
 
     require_once(dirname(__FILE__) . '/../config.php');
     require_once($CFG->dirroot . '/course/lib.php');
+    require_once($CFG->dirroot . '/admin/tool/uclasiteindicator/lib.php');
 
     $id     = required_param('id', PARAM_INT);              // course id
     $delete = optional_param('delete', '', PARAM_ALPHANUM); // delete confirmation hash
@@ -76,6 +77,10 @@
     echo $OUTPUT->heading($strdeletingcourse);
 
     delete_course($course);
+    // START UCLAMOD CCLE-2389
+    // Remove indicator entry
+    ucla_site_indicator::delete($course->id);
+    // END UCLAMOD CCLE-2389
     fix_course_sortorder(); //update course count in catagories
 
     echo $OUTPUT->heading( get_string("deletedcourse", "", $courseshortname) );
