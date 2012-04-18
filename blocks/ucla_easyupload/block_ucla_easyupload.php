@@ -60,6 +60,11 @@ class block_ucla_easyupload extends block_base {
     static function block_ucla_rearrange_installed() {
         global $CFG;
 
+        // CCLE-2936 - Rearrange section in Easy upload suite in Control Panel 
+        // is broken - disabling rearrange block until issues with indenting
+        // blocks is resolved
+        return false;
+        
         $rearrangepath = $CFG->dirroot
             . '/blocks/ucla_rearrange/block_ucla_rearrange.php';
 
