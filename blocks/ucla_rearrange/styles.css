@@ -81,3 +81,12 @@
     position: relative;
     top: -1px;
 }
+
+.ucla_rearrange_form .fsubmit {
+    margin-left: 0 !important;
+}
+
+.ucla_rearrange_form .expandall {
+    margin-right: 0;
+    float: right;
+}

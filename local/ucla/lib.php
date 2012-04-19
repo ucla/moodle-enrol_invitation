@@ -829,23 +829,72 @@ function is_collab_site($course) {
  * 
  * @return boolean true if the user has the role in the context, false otherwise
  **/
-function has_role_in_context($role_shortname, $context){
+function has_role_in_context($role_shortname, $context) {
     
     global $DB;
     $does_role_exist = $DB->get_records('role', array('shortname'=>$role_shortname));
-    if(empty($does_role_exist)){
+    if(empty($does_role_exist)) {
         debugging("Role shortname not found in database table.");
         return false;
     }
     
     $roles_result = get_user_roles($context);
 
-    foreach($roles_result as $role){
-        if($role->shortname == $role_shortname){
+    foreach($roles_result as $role) {
+        if($role->shortname == $role_shortname) {
             return true;
         }
     } 
     return false;
+}
+
+/**
+ * Sets the editing button in the $PAGE element to be the url passed in.
+ * 
+ * Code copied from fragments of code in course/view.php to set the "Turn 
+ * editing on/off" button.
+ * 
+ * @global object $OUTPUT
+ * @global object $PAGE
+ * @global object $USER
+ * 
+ * @param moodle_url $url   Expecting moodle_url object. If null, then defaults
+ *                          redirecting user to $PAGE->url
+ */
+function set_editing_mode_button($url=null) {
+    global $OUTPUT, $PAGE, $USER;
+    
+    if (empty($url)) {
+        $url = $PAGE->url;
+    }
+    
+    // see if user is trying to turn editing on/off
+    // copied from course/view.php:line 12, 104-128, 153-155, 205-206
+    // (at the time of Moodle 2.2.2)
+    $edit = optional_param('edit', -1, PARAM_BOOL);
+    if (!isset($USER->editing)) {
+        $USER->editing = 0;
+    }    
+    if ($PAGE->user_allowed_editing()) {
+        if (($edit == 1) and confirm_sesskey()) {
+            $USER->editing = 1;
+            // edited to use url specified in function
+            redirect($url);
+        } else if (($edit == 0) and confirm_sesskey()) {
+            $USER->editing = 0;
+            if(!empty($USER->activitycopy) && $USER->activitycopycourse == $course->id) {
+                $USER->activitycopy       = false;
+                $USER->activitycopycourse = NULL;
+            }
+            // edited to use url specified in function
+            redirect($url);
+        }
+        // edited to use url specified in function
+        $buttons = $OUTPUT->edit_button($url);
+        $PAGE->set_button($buttons);                
+    } else {
+        $USER->editing = 0;
+    }
 }
 
 // EOF

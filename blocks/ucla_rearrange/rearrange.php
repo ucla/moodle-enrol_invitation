@@ -11,9 +11,12 @@ $thispath = '/blocks/ucla_rearrange';
 require_once($CFG->dirroot . $thispath . '/block_ucla_rearrange.php');
 require_once($CFG->dirroot . $thispath . '/rearrange_form.php');
 
+require_once($CFG->dirroot . '/local/ucla/lib.php');
+
 global $CFG, $PAGE, $OUTPUT;
 
 $course_id = required_param('course_id', PARAM_INT);
+$topic_num = optional_param('topic', null, PARAM_INT);
 
 $course = $DB->get_record('course', array('id' => $course_id),
     '*', MUST_EXIST);
@@ -32,7 +35,12 @@ $PAGE->set_pagelayout('course');
 $PAGE->set_pagetype('course-view-' . $course->format);
 
 $PAGE->set_url('/blocks/ucla_rearrange/rearrange.php', 
-        array('course_id' => $course_id));
+        array('course_id' => $course_id, 'topic' => $topic_num));
+
+// set editing url to be topic or default page
+$go_back_url = new moodle_url('/course/view.php', 
+        array('id' => $course_id, 'topic' => $topic_num));
+set_editing_mode_button($go_back_url);
 
 $sections = get_all_sections($course_id);
 
@@ -139,8 +147,12 @@ $rearrangeform = new ucla_rearrange_form(
     null,
     array(
         'course_id' => $course_id, 
-        'sections' => $sectids
-    )
+        'sections'  => $sectids,
+        'topic'     => $topic_num
+    ),
+    'post',
+    '',
+    array('class' => 'ucla_rearrange_form')
 );
 
 if ($data = $rearrangeform->get_data()) {
@@ -232,7 +244,7 @@ if ($data != false) {
     );
 
     echo $OUTPUT->continue_button(new moodle_url('/course/view.php',
-        array('id' => $course_id)));
+        array('id' => $course_id, 'topic' => $topic_num)));
 
 } else {
     $rearrangeform->display();
