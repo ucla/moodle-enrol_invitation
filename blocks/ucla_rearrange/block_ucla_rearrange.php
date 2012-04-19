@@ -59,7 +59,6 @@ class block_ucla_rearrange extends block_base {
         $nodes = array();
         $sectionmods = array();
 
-        $nodes[] = new modnode($section . "-" . 0, '', 0, true);
         $sectionmods = explode(',', $sectinfo->sequence);
 
         foreach ($sectionmods as $mod_id) {
@@ -86,6 +85,13 @@ class block_ucla_rearrange extends block_base {
         }
 
         $root_nodes = modnode::build($nodes);
+
+        // Add a pseudo-node that is required for section-to-section movement
+        // of modules
+        $root_nodes = array_merge(array(
+                new modnode($section . "-" . 0, '', 0, true)
+            ), $root_nodes);
+
 
         return $root_nodes;
     }
