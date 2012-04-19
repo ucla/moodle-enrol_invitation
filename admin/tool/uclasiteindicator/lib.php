@@ -15,11 +15,14 @@ require_once($CFG->libdir.'/formslib.php');
 // To get categories
 require_once($CFG->dirroot . '/course/lib.php');
 
-// For the UCLA help block -- to get support contacts and send jira ticket
+// From the UCLA help block -- to get support contacts and send jira ticket
 require_once($CFG->dirroot . '/local/ucla/jira.php');
 require_once($CFG->dirroot . '/blocks/ucla_help/ucla_help_lib.php');
 
 
+/**
+ * A site indicator entry unit 
+ */
 class site_indicator_entry {
     public $property;
     private $id;
@@ -33,11 +36,21 @@ class site_indicator_entry {
         $this->id = $indicator->id;
     }
     
+    /**
+     * Delete a site indicator entry
+     * 
+     * @global type $DB 
+     */
     public function delete() {
         global $DB;
         $DB->delete_records('ucla_siteindicator', array('id' => $this->id));
     }
     
+    /**
+     * @todo write this function
+     * @global type $DB
+     * @param type $newtype 
+     */
     public function change_type($newtype) {
         global $DB;
         $option = array();
@@ -50,10 +63,19 @@ class site_indicator_entry {
         }
     }
     
+    /**
+     * Get a site indicator type object.  Expect following object:
+     *  type->fullname
+     *  type->shortname
+     *  
+     * @global type $DB
+     * @return type 
+     */
     public function get_type() {
         global $DB;
         
         if(isset($this->property->type_obj)) {
+            // Cache the object
             return $this->property->type_obj;
         } else {
             $typeobj = $DB->get_record('ucla_siteindicator_type', array('id' => $this->property->type), '*', MUST_EXIST);
@@ -62,6 +84,13 @@ class site_indicator_entry {
         }
     }
     
+    /**
+     * Safe way of getting an indicator entry.  This will assign null if
+     * the entry does not exist.
+     * 
+     * @param type $courseid
+     * @return null|\site_indicator_entry 
+     */
     static function load($courseid) {
         try {
             return new site_indicator_entry($courseid);
@@ -71,6 +100,9 @@ class site_indicator_entry {
     }
 }
 
+/**
+ * A site indicator request unit 
+ */
 class site_indicator_request {
 
     public $request;
@@ -92,6 +124,11 @@ class site_indicator_request {
         $this->id = $request->id;
     }
     
+    /**
+     * Create a site indicator entry from a request.
+     * 
+     * @global type $DB 
+     */
     function create_indicator_entry() {
         global $DB;
         
@@ -100,7 +137,7 @@ class site_indicator_request {
     }
     
     /**
-     * @todo write this function! 
+     * @todo test this function! 
      */
     public function generate_jira_ticket() {
         global $DB;
@@ -130,11 +167,22 @@ class site_indicator_request {
         
     }
     
+    /**
+     * Delete the site indicator request from the table
+     * 
+     * @global type $DB 
+     */
     public function delete() {
         global $DB;
         $DB->delete_records('ucla_siteindicator_request', array('requestid' => $this->id));
     }
         
+    /**
+     * Create a site indicator request.  
+     * 
+     * @global type $DB
+     * @param obj $newindicator is an object 
+     */
     static function create($newindicator) {
         global $DB;
         $DB->insert_record('ucla_siteindicator_request', $newindicator);
@@ -146,7 +194,10 @@ class site_indicator_request {
     
 }
 
-
+/**
+ * Collection of site indicator functions, these are static functions 
+ * to work with the site indicator 
+ */
 class ucla_site_indicator {
     
     /**
@@ -191,7 +242,7 @@ class ucla_site_indicator {
     }
     
     /**
-     *
+     * Create 
      * @global type $DB
      * @param type $data 
      */
@@ -249,11 +300,13 @@ class ucla_site_indicator {
     }
     
     /**
-     *
+     * Create a site indicator entry from an existing request entry.  A course
+     * is needed to attach that course to the new to be made indicator entry.
+     * 
      * @global type $DB
-     * @param type $courseid
-     * @param type $requestid
-     * @return type 
+     * @param int $courseid course that will be attached to the site indicator entry
+     * @param int $requestid the id of existing request
+     * @return int category ID specified in the indicator request
      */
     static function create($courseid, $requestid) {
         global $DB;
@@ -293,14 +346,22 @@ class ucla_site_indicator {
     }
     
     /**
-     *
+     * 
      * @param type $courseid 
      */
     static function get_site_indicator($courseid) {
         
     }
     
-    static function is_collab($courseid) {
+    /**
+     * Check if a site is in the site indicator table.  If it is,
+     * then => site is collab
+     * 
+     * @global type $DB
+     * @param int $courseid of course
+     * @return bool true if site is in table 
+     */
+    static function is_collab_site($courseid) {
         global $DB;
         return $DB->record_exists('ucla_site_indicator', array('courseid' => $courseid));
     }
