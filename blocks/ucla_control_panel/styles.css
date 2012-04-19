@@ -81,10 +81,6 @@
     font-style: italic;
 }
 
-#cpanel-wrapper .control-panel-button img {
-    margin-top: 10px;
-}
-
 #cpanel-wrapper #my_ucla_functions.generaltable, #cpanel-wrapper #my_ucla_functions.generaltable .cell {
     border: none;    
 }
@@ -94,4 +90,9 @@
 #cpanel-wrapper #my_ucla_functions.generaltable .cell {
 
     padding-left: 1em;
+}
+
+/* Control panel button in header  */
+.control-panel-button img {
+    margin-top: 10px;
 }
