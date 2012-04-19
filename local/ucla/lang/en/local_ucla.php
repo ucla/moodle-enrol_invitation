@@ -24,3 +24,5 @@ $string['curl_failure'] = 'cURL is not installed, your configuration files\' web
 
 $string['term'] = 'Term';
 $string['invalidrolemapping'] = 'Could not find role mapping {$a}';
+
+$string['ucla:viewall_courselisting'] = 'Allows user to see all courses another user is associated with on their profile';
