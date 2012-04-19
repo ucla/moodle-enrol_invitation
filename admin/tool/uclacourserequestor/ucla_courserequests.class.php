@@ -379,6 +379,7 @@ class ucla_courserequests {
      *  Validates and injects errors into each request-course.
      **/
     function validate_requests($context) {
+        // Special case for enforcing validation before commit
         if ($context == null && !empty($this->_validated)) {
             return $this->_validated;
         }
@@ -394,6 +395,13 @@ class ucla_courserequests {
         foreach ($requestinfos as $setid => $set) {
             $hcthere = false;
             foreach ($set as $key => $course) {
+                if (isset($course['enrolstat'])
+                        && enrolstat_is_cancelled($course['enrolstat'])) {
+                    $requestinfos[$setid][$key]
+                        [UCLA_REQUESTOR_WARNING][UCLA_REQUESTOR_CANCELLED] 
+                            = true;
+                }
+
                 if (request_ignored($course)) {
                     $hcthere = true;
                     continue;
@@ -405,13 +413,6 @@ class ucla_courserequests {
                     if (isset($course['id'])) {
                         $course[$errs][UCLA_REQUESTOR_EXIST] = true;
                     }
-
-                }
-
-                if (isset($course['enrolstat'])
-                        && enrolstat_is_cancelled($course['enrolstat'])) {
-                    $course[UCLA_REQUESTOR_WARNING][UCLA_REQUESTOR_CANCELLED] 
-                        = true;
                 }
 
                 if ($course[$h] > 0) {
@@ -456,7 +457,13 @@ class ucla_courserequests {
             'SELECT MAX(`setid`) FROM ' . '{' . $urc . '}'
         ));
 
+        // This stores all the statuses of the previously handled
+        // results
         $results = array();
+
+        // This is the translations
+        $newsetids = array();
+
         $now = time();
 
         $i = 'instructor';
@@ -482,6 +489,11 @@ class ucla_courserequests {
             if ($this->is_unprepped_setid($setid)) {
                 $maxsetid++;
                 $set = apply_to_set($set, 'setid', $maxsetid);
+                $newsetids[$setid] = $maxsetid;
+            } else {
+                // This request was updated, its "new" setid is the same
+                // as before.
+                $newsetids[$setid] = $setid;
             }
 
             // Figure out what we're going to save for what course
@@ -582,7 +594,7 @@ class ucla_courserequests {
             $DB->delete_records_select($urc, $sqlwhere, $params);
         }
 
-        return $results;
+        return array($results, $newsetids);
     }
 }
 

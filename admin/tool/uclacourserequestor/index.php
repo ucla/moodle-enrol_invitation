@@ -220,29 +220,22 @@ $errormessages = array();
 
 // At this point, requests are indexed by setid.
 if (isset($uclacrqs)) {
+    // This is the form data before the save
     $requestswitherrors = $uclacrqs->validate_requests($groupid);
 
     if ($saverequeststates) {
-        $successfuls = $uclacrqs->commit();
+        list($successfuls, $newsetids) = $uclacrqs->commit();
 
-        // Reloading the 3rd form
-        $nv_cd['prefields'] = get_requestor_view_fields();
-        $cached_forms[UCLA_REQUESTOR_VIEW]['view'] 
-            = new requestor_view_form(null, $nv_cd);
-
-        // Take out successfuls from requests with errors
+        // figure out changes that have occurred
         foreach ($requestswitherrors as $setid => $set) {
-            // This is really dirty, if you think you can improve it,
-            // please do
             if (isset($successfuls[$setid])) {
-                // FROM HERE
                 $retcode = $successfuls[$setid];
+                $strid = ucla_courserequests::commit_flag_string($retcode);
+
                 if (ucla_courserequests::request_successfully_handled(
                         $retcode)) {
                     unset($requestswitherrors[$setid]);
                 }
-
-                $strid = ucla_courserequests::commit_flag_string($retcode);
 
                 $coursedescs = array();
                 foreach ($set as $course) {
@@ -250,8 +243,6 @@ if (isset($uclacrqs)) {
                 }
 
                 $coursedescstr = implode(' + ', $coursedescs);
-                
-                // cached by the callee
                 $retmess = get_string($strid, $rucr, $coursedescstr);
 
                 // We care only for updates
@@ -292,6 +283,14 @@ if (isset($uclacrqs)) {
                 }
             }
         }
+
+        // Apply to version that best represents the database
+        $pass_uclacrqs->apply_changes($changes, $groupid);
+
+        // Reloading the 3rd form
+        $nv_cd['prefields'] = get_requestor_view_fields();
+        $cached_forms[UCLA_REQUESTOR_VIEW]['view'] 
+            = new requestor_view_form(null, $nv_cd);
     }
 
     // Check to see if we need the requestor field
