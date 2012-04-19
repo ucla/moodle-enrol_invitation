@@ -58,6 +58,15 @@ $elements = block_ucla_control_panel::load_cp_elements($course, $context);
 // using core renderer
 echo $OUTPUT->header();
 
+if ($course->format != 'ucla') {
+    echo $OUTPUT->box(get_string('formatincompatible', 
+        'block_ucla_control_panel'));
+}
+
+echo html_writer::start_tag('div', array('id' => 'cpanel-wrapper'));
+echo html_writer::tag('h1', get_string('name', 'block_ucla_control_panel'), 
+        array('class' => 'cpheading'));
+
 // So here we need to check which tabs we can actually display
 $tabs = array();
 foreach ($elements as $view => $contents) {
@@ -70,12 +79,10 @@ foreach ($elements as $view => $contents) {
         ));
 }
 
+// display tags here
+echo html_writer::start_tag('div', array('class' => 'thetabs'));
 print_tabs(array($tabs), $module_view);
-
-if ($course->format != 'ucla') {
-    echo $OUTPUT->box(get_string('formatincompatible', 
-        'block_ucla_control_panel'));
-}
+echo html_writer::end_tag('div');
 
 // This has to be called manually... 
 $PAGE->navigation->initialise();
@@ -126,10 +133,12 @@ foreach ($elements as $view => $section_contents) {
                     'render_cp_items')) {
                 echo $altrend::render_cp_items($modules);
             } else {
-                echo ucla_cp_renderer::control_panel_contents($modules, true);
+                 echo ucla_cp_renderer::control_panel_contents($modules, true);
             }
+    
         }
     }
+
 }
 
 if ($no_elements) {
@@ -137,6 +146,9 @@ if ($no_elements) {
         $module_view));
 }
 
+//this is temporary fix for the bottom border
+
+echo html_writer::end_tag('div');
 echo $OUTPUT->footer();
 
 /** eof **/

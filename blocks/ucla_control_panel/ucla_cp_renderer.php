@@ -220,7 +220,7 @@ class ucla_cp_renderer {
                 $the_output .= html_writer::end_tag('div');
                 $row_contents .= $the_output;
             }
-
+            
             // Flip per row
             $eo = !$eo;
             
@@ -237,7 +237,7 @@ class ucla_cp_renderer {
             $full_table .= html_writer::tag('div', $row_contents, 
                 array('class' => 'table' . $orient . $evenodd));
         }
-
+        
         return $full_table;
     }
 }
