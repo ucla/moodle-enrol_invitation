@@ -35,7 +35,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
     * Summer <Year> - Session A, Week <Week number> / Session C, Week <Week number>
     * Summer <Year> - Session C, Week <Week number> */   
    function test_get_current_week_display_string(){
-       $sessions = NULL;
+        $sessions = NULL;
         $sessions[] = $this->create_session_obj('11F','RG','2011-09-19','2011-12-09','2011-09-22');
     //Test days starting before and after the session.
         $date = '2011-01-01';

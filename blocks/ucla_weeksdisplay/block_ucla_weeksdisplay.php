@@ -41,6 +41,13 @@ class block_ucla_weeksdisplay extends block_base {
         block_ucla_weeksdisplay::set_current_week_display(date('c'));
     }
     
+   /**
+    * Sets the current_week_display config variable based on the current_term 
+    * config and the given date
+    * 
+    * @param date string that starts with the format YYYY-MM-DD that is the
+    * date associated with the desired display string.
+    */     
     public static function set_current_week_display($date) {
         //Include registrar files.
         ucla_require_registrar();
@@ -56,13 +63,12 @@ class block_ucla_weeksdisplay extends block_base {
         //Run the query and parse out the regular sessions.
         $query_result = registrar_query::run_registrar_query(
                 'ucla_getterms', array($current_term), true);
-        //echo '$query_result: '; print_object($query_result['good']);
-        $regular_sessions = block_ucla_weeksdisplay::find_regular_sessions($query_result);
-        //echo '$regular_sessions: '; print_object($regular_sessions);
         //Compare the session start date with the system date
         $is_date_in_sessions = 
-                block_ucla_weeksdisplay::find_date_in_sessions($date,$regular_sessions);
+                block_ucla_weeksdisplay::find_date_in_sessions($date,$query_result);
+        //print_object($is_date_in_sessions);
         $return_string = NULL;
+        
         //If the date is in a previous term
         if($is_date_in_sessions == -1) {
             
@@ -74,22 +80,22 @@ class block_ucla_weeksdisplay extends block_base {
 
                 $is_date_in_sessions = 
                         block_ucla_weeksdisplay::find_date_in_sessions($date,$query_result);
-                if($is_date_in_sessions == 0) {
-                    set_config('current_week_display',
-                            block_ucla_weeksdisplay::get_current_week_display_string($date, $query_result),
-                            'local_ucla');
-                    break;
-                } else if($is_date_in_sessions == 1) {
+                if($is_date_in_sessions == 1) {
                     //If the date is between terms, return the string for the next term
                     $query_result = registrar_query::run_registrar_query(
-                            'ucla_getterms', array(block_ucla_weeksdisplay::get_next_term($prev_term)));   
-                    set_config('current_term', block_ucla_weeksdisplay::get_next_term($prev_term), 'local_ucla');
-                    set_config('current_week_display',
-                            block_ucla_weeksdisplay::get_current_week_display_string($date, $query_result),
-                            'local_ucla');
+                            'ucla_getterms', array(block_ucla_weeksdisplay::get_next_term($prev_term)), true);  
+                    //Workaround because of limitations in find date in sessions
+                    $regular_sessions = block_ucla_weeksdisplay::find_regular_sessions($query_result);
+
+                    block_ucla_weeksdisplay::set_term_configs(block_ucla_weeksdisplay::get_next_term($prev_term));
+                    block_ucla_weeksdisplay::set_current_week_display_config($date, $regular_sessions);
                     break;                            
-                }
-                
+                } else if($is_date_in_sessions != -1){
+                    ////if($is_date_in_sessions returned an array 
+                    block_ucla_weeksdisplay::set_current_week_display_config($date, $is_date_in_sessions);
+                    break;
+                }         
+                //else if ($is_date_in_sessions == -1)
                 $prev_term = get_prev_term($prev_term);
             }
             
@@ -103,23 +109,63 @@ class block_ucla_weeksdisplay extends block_base {
                
                 $is_date_in_sessions = 
                         block_ucla_weeksdisplay::find_date_in_sessions($date,$query_result);
-                if($is_date_in_sessions >= 0){
-                    set_config('current_term', $next_term, 'local_ucla');
-                    set_config('current_week_display',
-                            block_ucla_weeksdisplay::get_current_week_display_string($date, $query_result),
-                            'local_ucla');
-                } 
+                if($is_date_in_sessions == -1){
+                    block_ucla_weeksdisplay::set_term_configs($next_term);
+                    //Workaround because of limitations in find date in sessions
+                    $regular_sessions = block_ucla_weeksdisplay::find_regular_sessions($query_result);
+                    block_ucla_weeksdisplay::set_current_week_display_config($date, $regular_sessions);
+                    break;
+                } else if($is_date_in_sessions != 1) {
+                    //if $is_date_in_sessions returned an array 
+                    block_ucla_weeksdisplay::set_current_week_display_config($date, $is_date_in_sessions);
+                    break;
+                }
                 
+                //else if ($is_date_in_sessions == 1)
                 $next_term = block_ucla_weeksdisplay::get_next_term($next_term);
             }
+        } else { //($is_date_in_session is an array of matching query results) 
             
-        } else { //($is_date_in_session == 0) 
-          set_config('current_week_display', 
-                  block_ucla_weeksdisplay::get_current_week_display_string($date, $query_result),
-                  'local_ucla');
+            block_ucla_weeksdisplay::set_current_week_display_config($date, $is_date_in_sessions);
         }
     }
-   
+
+    /*
+     * Sets the current week display config variable associated with the date 
+     * and an array of query results that are supposed to be displayed with that date.
+     * 
+     * @param date string of the format YYYY-MM-DD.
+     * @param query_result an array of session objects that the date falls under.
+     * 
+     */
+    public static function set_current_week_display_config($date, $query_result){
+        $display_string = block_ucla_weeksdisplay::get_current_week_display_string($date, $query_result);
+        set_config('current_week_display', $display_string, 'local_ucla');
+    }
+    
+    /*
+     * To be called whenever the current_term needs to be set.
+     * Sets the configuration variables associated with the current term,
+     * including the ones used to 
+     * run course requestor/creator equal to a list of comma delimited terms,
+     * including the start_term and the 3 terms after it.
+     */
+    public static function set_term_configs($current_term){
+        //Generate the term list 
+        $term_string = NULL;
+        $term_string.=$current_term;
+        $next_term = block_ucla_weeksdisplay::get_next_term($current_term);
+        for($i = 0; $i < 3; $i++){
+            $term_string.=', '.$next_term;
+            $next_term = block_ucla_weeksdisplay::get_next_term($next_term);
+        }
+        
+        set_config('current_term', $current_term, 'local_ucla');
+        set_config('active_terms', $term_string, 'local_ucla');
+        set_config('terms', $term_string, 'tool_uclacourserequestor');
+        set_config('terms', $term_string, 'tool_uclacoursecreator');
+     
+    }
    /**
     * Returns the current_week_display string associated with the date and sessions.
     * 
@@ -284,17 +330,17 @@ class block_ucla_weeksdisplay extends block_base {
             } else if($date_vs_start <= -1) {
                 //If the date comes before the start of a session (this implicitly
                 //also means the date comes after the end of the session before this)
-                $return_sessions[] = $sessions[$i];
+                $return_sessions[] = $regular_sessions[$i];
                 break; //We only want one session in this case.
             } else if($date_vs_start >= 0 && $date_vs_end <= 0) {
                 //If the date comes after start of session and before end of session     
-                $return_sessions[] = $sessions[$i];
+                $return_sessions[] = $regular_sessions[$i];
             } else if($date_vs_end == 1 && $i == count($regular_sessions) - 1) {
                 //If the date comes after the end of the last session
                 return 1;
             }
         }
-        
+
         return $return_sessions;
     }
 
@@ -321,21 +367,18 @@ class block_ucla_weeksdisplay extends block_base {
     *         [7] => 2009-01-12 00:00:00.000 (instruction start) 
     */
     public static function find_regular_sessions($query_obj) {  
-        //echo '$sessions: '; print_object($query_obj);
-      //  $sessions = $query_obj['good'];
-       // echo '$sessions: '; print_object($sessions);
-        //TODO: Test local scope stuff
+        //Add checks to make sure the query object is correct.
         $regular_sessions = NULL;
         foreach($query_obj as $session){
-            //ASK ABOUT REGISTRAR RETURN VALUES
-            //echo '$session:'; print_object($session);
+
             //If the session is a 'regular' session, add it to the list.
             if($session['session'] == 'RG' || $session['session'] == '8A' 
                     || $session['session'] == '6C') {
                 $regular_sessions[] = $session;
             }
         }
-        
+
+
         return $regular_sessions;
     }      
     
