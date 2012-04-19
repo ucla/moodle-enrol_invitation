@@ -19,11 +19,11 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
     * Helper function to create session objects for other tests.
     */
    function create_session_obj($term, $session, $session_start, $session_end, $instruction_start){
-       $new_session[0] = $term;
-       $new_session[3] = $session;
-       $new_session[5] = $session_start;
-       $new_session[6] = $session_end;
-       $new_session[7] = $instruction_start;
+       $new_session['term'] = $term;
+       $new_session['session'] = $session;
+       $new_session['session_start'] = $session_start;
+       $new_session['session_end'] = $session_end;
+       $new_session['instruction_start'] = $instruction_start;
        return $new_session;
    } 
    
@@ -371,11 +371,11 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
     function test_get_next_term(){
         //Test all changes that can happen in one year, and the millenium case.
         $result = block_ucla_weeksdisplay::get_next_term('11F');
-        $this->assertEqual($result, '11W');           
-        $result = block_ucla_weeksdisplay::get_next_term('99W');
-        $this->assertEqual($result, '00S'); 
+        $this->assertEqual($result, '12W');           
+        $result = block_ucla_weeksdisplay::get_next_term('99F');
+        $this->assertEqual($result, '00W'); 
         $result = block_ucla_weeksdisplay::get_next_term('11W');
-        $this->assertEqual($result, '12S');  
+        $this->assertEqual($result, '11S');  
         $result = block_ucla_weeksdisplay::get_next_term('111');
         $this->assertEqual($result, '11F');  
         $result = block_ucla_weeksdisplay::get_next_term('11S');
@@ -386,14 +386,14 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         //Test all changes that can happen in one year, and the millenium case.
         $result = block_ucla_weeksdisplay::get_prev_term('11F');
         $this->assertEqual($result, '111');           
-        $result = block_ucla_weeksdisplay::get_prev_term('00S');
-        $this->assertEqual($result, '99W'); 
+        $result = block_ucla_weeksdisplay::get_prev_term('00W');
+        $this->assertEqual($result, '99F'); 
         $result = block_ucla_weeksdisplay::get_prev_term('11W');
-        $this->assertEqual($result, '11F');  
+        $this->assertEqual($result, '10F');  
         $result = block_ucla_weeksdisplay::get_prev_term('111');
         $this->assertEqual($result, '11S');  
         $result = block_ucla_weeksdisplay::get_prev_term('11S');
-        $this->assertEqual($result, '10W');  
+        $this->assertEqual($result, '11W');  
     }
       
     //Since this function just uses test_cmp_dates, it won't be as rigorously
