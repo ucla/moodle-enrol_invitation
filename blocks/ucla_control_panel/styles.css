@@ -25,7 +25,7 @@
 #cpanel-wrapper .tablerow {
     padding-left: 1em;
     clear: both; 
-    width: 100%
+    width: 100%;
 }
 
 #cpanel-wrapper .odd {
@@ -49,6 +49,7 @@
 #cpanel-wrapper .tablerow .item {
     display: block;
     width: 49%;
+    margin-bottom: 5px;
 }
 
 #cpanel-wrapper .tablecol {   
