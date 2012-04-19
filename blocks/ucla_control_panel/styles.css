@@ -8,8 +8,9 @@
 
 #cpanel-wrapper .cpheading {
     padding-top: 10px;
-    background-image: -webkit-linear-gradient(top, rgba(199,195,197,0.7), white);
-    background-image: -moz-linear-gradient(top, rgba(199,195,197,0.7), white);
+    filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr=rgba(199,195,197,0.7), endColorstr=white); /* for IE */    
+    background-image: -webkit-linear-gradient(top, rgba(199,195,197,0.7), white); /* for webkit browsers */
+    background-image: -moz-linear-gradient(top, rgba(199,195,197,0.7), white); /* for firefox 3.6+ */
     text-align: center;
 }
 
@@ -65,8 +66,9 @@
     border-top: solid 1px rgba(235,235,230,0.9);
     padding: 5px 5px 5px 10px;
     margin-bottom: 5px;
-    background-image: -webkit-linear-gradient(top left, rgba(240,235,237,0.9), white );
-    background-image: -moz-linear-gradient(top left, rgba(240,235,237,0.9), white );
+    filter: progid:DXImageTransform.Microsoft.gradient(GradientType=1,startColorstr=rgba(240,235,237,0.9), endColorstr=white); /* for IE */        
+    background-image: -webkit-linear-gradient(top left, rgba(240,235,237,0.9), white ); /* for webkit browsers */
+    background-image: -moz-linear-gradient(top left, rgba(240,235,237,0.9), white ); /* for firefox 3.6+ */
 }
 
 #cpanel-wrapper .item {
