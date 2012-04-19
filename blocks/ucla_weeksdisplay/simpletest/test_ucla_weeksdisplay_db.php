@@ -19,6 +19,7 @@ class ucla_weeksdisplay_db_test extends UnitTestCaseUsingDatabase {
         global $DB;
         $this->switch_to_test_db(); // All operations until end of test method will happen in test DB
         $this->create_test_table('config_plugins', 'lib');    
+        $this->create_test_table('config', 'lib'); 
     }
     
     
@@ -34,16 +35,16 @@ class ucla_weeksdisplay_db_test extends UnitTestCaseUsingDatabase {
     function test_init_currentterm(){
      
         block_ucla_weeksdisplay::init_currentterm('2012-12-12');
-        $result = get_config('local_ucla', 'current_term');
+        $result = get_config(NULL, 'currentterm');
         $this->assertEqual($result, '12F');
         block_ucla_weeksdisplay::init_currentterm('2012-01-12');
-        $result = get_config('local_ucla', 'current_term');
+        $result = get_config(NULL, 'currentterm');
         $this->assertEqual($result, '12W');        
         block_ucla_weeksdisplay::init_currentterm('2012-05-12');
-        $result = get_config('local_ucla', 'current_term');
+        $result = get_config(NULL, 'currentterm');
         $this->assertEqual($result, '12S');        
         block_ucla_weeksdisplay::init_currentterm('2012-08-12');
-        $result = get_config('local_ucla', 'current_term');
+        $result = get_config(NULL, 'currentterm');
         $this->assertEqual($result, '121');               
     }
 
@@ -219,7 +220,7 @@ class ucla_weeksdisplay_db_test extends UnitTestCaseUsingDatabase {
 
    function test_set_term_configs(){
        block_ucla_weeksdisplay::set_term_configs('11W');
-       $result = get_config('local_ucla', 'current_term');
+       $result = get_config(NULL, 'current_term');
        $this->assertEqual($result, '11W');  
        $result = get_config('local_ucla', 'active_terms');
        $this->assertEqual($result, '11W, 11S, 111, 11F'); 
@@ -228,7 +229,7 @@ class ucla_weeksdisplay_db_test extends UnitTestCaseUsingDatabase {
        $result = get_config('tool_uclacoursecreator', 'terms');
        $this->assertEqual($result, '11W, 11S, 111, 11F');  
        block_ucla_weeksdisplay::set_term_configs('11S');
-       $result = get_config('local_ucla', 'current_term');
+       $result = get_config(NULL, 'current_term');
        $this->assertEqual($result, '11S');  
        $result = get_config('local_ucla', 'active_terms');
        $this->assertEqual($result, '11S, 111, 11F, 12W'); 
@@ -237,7 +238,7 @@ class ucla_weeksdisplay_db_test extends UnitTestCaseUsingDatabase {
        $result = get_config('tool_uclacoursecreator', 'terms');
        $this->assertEqual($result, '11S, 111, 11F, 12W'); 
        block_ucla_weeksdisplay::set_term_configs('111');
-       $result = get_config('local_ucla', 'current_term');
+       $result = get_config(NULL, 'current_term');
        $this->assertEqual($result, '111');  
        $result = get_config('local_ucla', 'active_terms');
        $this->assertEqual($result, '111, 11F, 12W, 12S'); 
@@ -246,7 +247,7 @@ class ucla_weeksdisplay_db_test extends UnitTestCaseUsingDatabase {
        $result = get_config('tool_uclacoursecreator', 'terms');
        $this->assertEqual($result, '111, 11F, 12W, 12S'); 
        block_ucla_weeksdisplay::set_term_configs('11F');
-       $result = get_config('local_ucla', 'current_term');
+       $result = get_config(NULL, 'current_term');
        $this->assertEqual($result, '11F');  
        $result = get_config('local_ucla', 'active_terms');
        $this->assertEqual($result, '11F, 12W, 12S, 121'); 

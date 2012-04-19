@@ -31,6 +31,7 @@ class block_ucla_weeksdisplay extends block_base {
      * Returns the current week's display string
      */
     public function get_raw_content() {
+        block_ucla_weeksdisplay::set_current_week_display(date('c'));
         return get_config('local_ucla', 'current_week_display');
     }
     
@@ -47,15 +48,15 @@ class block_ucla_weeksdisplay extends block_base {
     public static function set_current_week_display($date) {
         //Include registrar files.
         ucla_require_registrar();
-        
-        $current_term = get_config('local_ucla', 'current_term');
+        global $CFG;
 
-        //If the current term is not valid, heuristically initialize it.
-        if(ucla_validator('term', $current_term) == false) {
+        //If the current term is not valid, heuristically initialize it.      
+        if(isset($CFG->currentterm) == false 
+                || ucla_validator('term', $CFG->currentterm) == false) {
             block_ucla_weeksdisplay::init_currentterm(date('c'));
-            $current_term = get_config('local_ucla', 'current_term');
         }    
 
+        $current_term = $CFG->currentterm;
         $query_result = registrar_query::run_registrar_query(
                 'ucla_getterms', array($current_term), true);       
         //Compare valid queries with the system date
@@ -162,7 +163,7 @@ class block_ucla_weeksdisplay extends block_base {
             $next_term = block_ucla_weeksdisplay::get_next_term($next_term);
         }
         
-        set_config('current_term', $current_term, 'local_ucla');
+        set_config('currentterm', $term_string);
         set_config('active_terms', $term_string, 'local_ucla');
         set_config('terms', $term_string, 'tool_uclacourserequestor');
         set_config('terms', $term_string, 'tool_uclacoursecreator');
@@ -370,13 +371,14 @@ class block_ucla_weeksdisplay extends block_base {
     }      
     
    /**
-    * Sets $CFG->currentterm to the current term based on the input date.
+    * Sets currentterm to the current term based on the input date.
     * This function heuristically sets the term, and may not be 
     * accurate 100% of the time.
     * 
     * @param date string of the format YYYY-MM-DD
     */
     public static function init_currentterm($date) {
+        
         $year = substr($date, 2, 2); 
 
         //Guess the quarter based on the month.
@@ -384,13 +386,13 @@ class block_ucla_weeksdisplay extends block_base {
         if($month <= 0 || $month > 12) {
             debugging('Invalid system date month: '.$month);
         } else if($month <= 3) {
-            set_config('current_term', $year.'W', 'local_ucla');
+            set_config('currentterm', $year.'W');
         } else if($month <= 6) {
-            set_config('current_term', $year.'S', 'local_ucla');   
+            set_config('currentterm', $year.'S');   
         } else if($month <= 9) {
-            set_config('current_term', $year.'1', 'local_ucla');
+            set_config('currentterm', $year.'1');
         } else {//if($month <= 12) 
-            set_config('current_term', $year.'F', 'local_ucla');
+            set_config('currentterm', $year.'F');
         }        
     }
     
