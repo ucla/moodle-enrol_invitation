@@ -70,9 +70,11 @@ if (!empty($reject)) {
     $default = new stdClass();
     $default->reject = $course->id;
     $rejectform->set_data($default);
+    
+    $silentrejectform = new silent_reject_request_form($baseurl);
 
 /// Standard form processing if statement.
-    if ($rejectform->is_cancelled()){
+    if ($rejectform->is_cancelled() || $silentrejectform->is_cancelled()){
         redirect($baseurl);
 
     } else if ($data = $rejectform->get_data()) {
@@ -85,10 +87,15 @@ if (!empty($reject)) {
 
         /// Redirect back to the course listing.
         redirect($baseurl, get_string('courserejected'));
+    } else if ($data = $silentrejectform->get_data()) {
+        $course->delete();
+        ucla_site_indicator::reject($course->id);
+        redirect($baseurl, get_string('courserejected'));
     }
 
 /// Display the form for giving a reason for rejecting the request.
     echo $OUTPUT->header($rejectform->focus());
+    $silentrejectform->display();
     $rejectform->display();
     echo $OUTPUT->footer();
     exit;

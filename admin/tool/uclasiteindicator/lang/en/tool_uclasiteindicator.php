@@ -32,3 +32,5 @@ $string['jira_msg'] = 'This is a DEV test message \n\n
     View the course request queue: {$a->pending}\n
     Approve: {$a->approve}\n
     Reject: {$a->reject}\n';
+
+$string['reject_label'] = 'reject label placeholder';

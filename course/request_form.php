@@ -156,3 +156,17 @@ class reject_request_form extends moodleform {
     }
 }
 
+/**
+ * Silent reject form 
+ */
+
+class silent_reject_request_form extends moodleform {
+    function definition() {
+        $mform =& $this->_form;
+        $mform->addElement('header','coursedetails', 'Reject Course without message');
+
+        $mform->addElement('static', 'description', 'label1', 'label2');
+
+        $this->add_action_buttons(true, get_string('reject'));
+    }
+}
