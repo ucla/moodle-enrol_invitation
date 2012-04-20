@@ -27,5 +27,5 @@
 // Adding 'Support Admin' capability to course requestor
 // This is needed to allow moodle to update the module
 //                  YYYYMMDDVV
-$plugin->version  = 2012020100;
+$plugin->version  = 2012041900;
 $plugin->requires = 2011022100;
