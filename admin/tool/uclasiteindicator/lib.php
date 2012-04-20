@@ -328,8 +328,9 @@ class ucla_site_indicator {
     static function create($courseid, $requestid) {
         global $DB;
 
-        if($DB->record_exists('ucla_siteindicator_request', array('requestid' => $requestid))) {
-            $newindicator = new site_indicator_request($requestid);
+        $newindicator = site_indicator_request::load($requestid);
+        
+        if($newindicator) {
             $newindicator->course->courseid = $courseid;
 
             // Create record for course
@@ -337,6 +338,8 @@ class ucla_site_indicator {
 
             return $newindicator->property->categoryid;
         }
+        
+        return 0;
     }
 
     /**
@@ -358,8 +361,9 @@ class ucla_site_indicator {
     static function delete($courseid) {
         global$DB;
         
-        if($DB->record_exists('ucla_siteindicator', array('courseid' => $courseid))) {
-            $indicator = new site_indicator_entry($courseid);
+        $indicator = site_indicator_entry::load($courseid);
+        
+        if($indicator) {
             $indicator->delete();
         }
     }
