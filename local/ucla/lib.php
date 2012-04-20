@@ -181,11 +181,16 @@ function enrolstat_string($enrolstat) {
  *      subj_area - the subject area
  *      coursenum - the course number
  *      sectnum   - the number of the section
+ *      Or object from ucla_get_reg_classinfo
  *  @param $displayone boolean True to display the sectnum of 1
  **/
-function ucla_make_course_title($courseinfo, $displayone=false) {
+function ucla_make_course_title($courseinfo, $displayone=true) {
+    if (is_object($courseinfo)) {
+        $courseinfo = get_object_vars($courseinfo);
+    }    
+    
     $sectnum = '-' . $courseinfo['sectnum'];
-    if ($displayone && $courseinfo['sectnum'] == 1) {
+    if (!$displayone && $courseinfo['sectnum'] == 1) {
         $sectnum = '';
     }
 
