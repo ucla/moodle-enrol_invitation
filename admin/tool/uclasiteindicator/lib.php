@@ -192,6 +192,20 @@ class site_indicator_request {
         $request->generate_jira_ticket();
     }
     
+    /**
+     * Safe loading of indicator request.
+     * 
+     * @param type $requestid
+     * @return null|\site_indicator_request 
+     */
+    static function load($requestid) {
+        try {
+            return new site_indicator_request($requestid);
+        } catch(Exception $e) {
+            return null;
+        }
+    }
+    
 }
 
 /**
@@ -327,8 +341,10 @@ class ucla_site_indicator {
      * @param type $requestid 
      */
     static function reject($requestid) {
-        $request = new site_indicator_request($requestid);
-        $request->delete();
+        $request = site_indicator_request::load($requestid);
+        if($request) {
+            $request->delete();
+        }
     }
     
     /**

@@ -71,26 +71,27 @@ if (!empty($reject)) {
     $default->reject = $course->id;
     $rejectform->set_data($default);
     
+    // START UCLAMOD CCLE-2389
     $silentrejectform = new silent_reject_request_form($baseurl);
+    $silentrejectform->set_data($default);
 
 /// Standard form processing if statement.
-    if ($rejectform->is_cancelled() || $silentrejectform->is_cancelled()){
+    if ($rejectform->is_cancelled()){
         redirect($baseurl);
 
     } else if ($data = $rejectform->get_data()) {
 
         /// Reject the request
         $course->reject($data->rejectnotice);
-        // START UCLAMOD CCLE-2389
         ucla_site_indicator::reject($course->id);
-        // END UCLAMOD CCLE-2389
 
         /// Redirect back to the course listing.
         redirect($baseurl, get_string('courserejected'));
     } else if ($data = $silentrejectform->get_data()) {
         $course->delete();
         ucla_site_indicator::reject($course->id);
-        redirect($baseurl, get_string('courserejected'));
+        
+        redirect($baseurl);
     }
 
 /// Display the form for giving a reason for rejecting the request.
@@ -99,6 +100,8 @@ if (!empty($reject)) {
     $rejectform->display();
     echo $OUTPUT->footer();
     exit;
+    // END UCLAMOD CCLE-2389
+
 }
 
 /// Print a list of all the pending requests.

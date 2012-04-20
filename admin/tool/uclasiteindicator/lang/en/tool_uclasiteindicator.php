@@ -33,4 +33,7 @@ $string['jira_msg'] = 'This is a DEV test message \n\n
     Approve: {$a->approve}\n
     Reject: {$a->reject}\n';
 
-$string['reject_label'] = 'reject label placeholder';
+$string['reject_header'] = 'Reject Course without a message';
+$string['reject_label'] = 'You can reject a course without sending a message.  Doing 
+    this will also remove the course from the pending list.';
+$string['course_rejected'] = 'Course has been rejected.';
