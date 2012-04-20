@@ -164,6 +164,17 @@ html, body {background-color:#FFF; height:100%;}
     color: black;
     text-decoration: underline;
 }
+.noticebox .generalbox {
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+.noticebox .generalbox .buttons {
+    margin: 0;
+}
+#notice.generalbox {
+    width: 100%;    
+}
 
 /** Success **/
 .box.successbox {
