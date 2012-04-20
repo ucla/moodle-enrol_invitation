@@ -86,24 +86,26 @@ abstract class easy_upload_form extends moodleform {
         }
 
         // add copyright selection
-       $mform->addElement('header', '', get_string('select_copyright',
-           self::associated_block));
-          
-       $mform->addElement('html', html_writer::tag('label', 
-               get_string('select_copyright_list', self::associated_block), 
-               array('for' => 'id_license')));
-       
-       // Show the copyright selector
-       $mform->addElement('select', 'license','', $copyrights);
-       $mform->addHelpButton('license', 'license', 'block_ucla_easyupload');
-       $mform->addRule('license', null, 'required');
-        $mform->setDefaults(
-            array(
-                'license' => array(
-                    'license' => $CFG->sitedefaultlicense
-                )
-            )
-        );       
+       if ($type == "file"){
+            $mform->addElement('header', '', get_string('select_copyright',
+                self::associated_block));
+
+            $mform->addElement('html', html_writer::tag('label', 
+                    get_string('select_copyright_list', self::associated_block), 
+                    array('for' => 'id_license')));
+
+            // Show the copyright selector
+            $mform->addElement('select', 'license','', $copyrights);
+            $mform->addHelpButton('license', 'license', 'block_ucla_easyupload');
+            $mform->addRule('license', null, 'required');
+                $mform->setDefaults(
+                    array(
+                        'license' => array(
+                            'license' => $CFG->sitedefaultlicense
+                        )
+                    )
+                );   
+       }
 
         if (class_exists('PublicPrivate_Site')) {
             if (PublicPrivate_Site::is_enabled() 
