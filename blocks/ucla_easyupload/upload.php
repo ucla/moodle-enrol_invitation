@@ -392,7 +392,10 @@ if (!isset($data) || !$data) {
     if (function_exists($fn)) {
         $key = $fn();
     }
-
+    
+    if (defined('UCLA_FORMAT_DISPLAY_LANDING')) {
+        $params['topic'] = UCLA_FORMAT_DISPLAY_LANDING;
+    }    
     $courseurl = new moodle_url('/course/view.php', $params);
     $courseret = new single_button($courseurl, get_string('returntocourse',
             'block_ucla_easyupload'), 'get');
