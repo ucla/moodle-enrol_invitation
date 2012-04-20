@@ -239,12 +239,24 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading($restr, 2, 'headingblock');
 
 if ($data != false) {
-    echo $OUTPUT->box(
-        get_string('rearrange_success', 'block_ucla_rearrange')
-    );
 
-    echo $OUTPUT->continue_button(new moodle_url('/course/view.php',
-        array('id' => $course_id, 'topic' => $topic_num)));
+    // allow user to either return to section they were on or go to course page
+    
+    // if format is UCLA, then this UCLA_FORMAT_DISPLAY_LANDING should exist
+    $params = array('id' => $course_id);
+    if (defined('UCLA_FORMAT_DISPLAY_LANDING')) {
+        $params['topic'] = UCLA_FORMAT_DISPLAY_LANDING;
+    }
+    $courseurl = new moodle_url('/course/view.php', $params);
+    $courseret = new single_button($courseurl, get_string('returntocourse',
+            'block_ucla_rearrange'), 'get');
+
+    $secturl = new moodle_url('/course/view.php', 
+            array('id' => $course_id, 'topic' => $topic_num));
+    $sectret = new single_button($secturl, get_string('returntosection', 
+            'block_ucla_rearrange'), 'get');
+
+    echo $OUTPUT->confirm(get_string('rearrange_success', 'block_ucla_rearrange'), $sectret, $courseret);        
 
 } else {
     $rearrangeform->display();
