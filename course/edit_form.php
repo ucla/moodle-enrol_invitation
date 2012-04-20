@@ -112,14 +112,16 @@ class course_edit_form extends moodleform {
         if (!empty($course->id)) {
             // only query for term-srs if course exists
             require_once($CFG->dirroot . '/local/ucla/lib.php');
-            $termsrses = ucla_map_courseid_to_termsrses($course->id);    
+            $course_info = ucla_get_course_info($course->id);    
             $idnumber = '';
-            if (!empty($termsrses)) {
+            if (!empty($course_info)) {
                 // create string
                 $first_entry = true;
-                foreach ($termsrses as $termsrs) {
+                foreach ($course_info as $course_record) {
                     $first_entry ? $first_entry = false : $idnumber .= ', ';
-                    $idnumber .= make_idnumber($termsrs);
+                    $idnumber .= sprintf('%s (%s)', 
+                            ucla_make_course_title($course_record), 
+                            make_idnumber($course_record));
                 }                    
             }
             $course->idnumber = $idnumber;     
