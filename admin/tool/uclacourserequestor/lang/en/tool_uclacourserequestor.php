@@ -98,3 +98,4 @@ $string['deletecoursefailed'] = "Unable to find course entry to delete: ";
 
 $string['changedto'] = ' to ';
 
+$string['uclacourserequestor:edit'] = 'Ability to view/use UCLA course requestor';

@@ -53,3 +53,5 @@ $string['error_nofile']             = 'Please select a valid XML definition file
 $string['error_emptyfile']          = 'Please select a non-empty XML file';
 $string['error_badxml']             = 'The selected file does not have a valid XML';
 $string['error_noaction']           = 'No import actions specified (Debug message)';
+
+$string['rolesmigration:view'] = 'Ability to use role migration tool';
