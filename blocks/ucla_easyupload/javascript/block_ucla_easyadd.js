@@ -50,9 +50,15 @@ M.block_ucla_easyupload.change_active_sortable = function() {
 M.block_ucla_easyupload.initiate_sortable_content = function() {
     var hookfn = M.block_ucla_easyupload.change_active_sortable;
 
+    // This is a special case for subheadings...
+    M.block_ucla_easyupload.displayname_field = 
+        '#id_' + $('#id_default_displayname_field').val();
+
     // Assign the event hook
     $('#id_section').change(hookfn);
-    $('#id_name').change(M.block_ucla_easyupload.update_new_element_name);
+    $(M.block_ucla_easyupload.displayname_field).change(
+        M.block_ucla_easyupload.update_new_element_name
+    );
 
     // Run the event
     hookfn();
@@ -62,7 +68,7 @@ M.block_ucla_easyupload.initiate_sortable_content = function() {
  *  Update the element name. TODO see if there is any better way
  **/
 M.block_ucla_easyupload.update_new_element_name = function() {
-    var value = $("#id_name").val();
+    var value = $(M.block_ucla_easyupload.displayname_field).val();
     var type = $("#id_type").val();
 
     $("#ele-new").html(

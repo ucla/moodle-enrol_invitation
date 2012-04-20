@@ -28,6 +28,11 @@ abstract class easy_upload_form extends moodleform {
     // @string 'public' or 'private'
     var $default_publicprivate = 'private';
 
+    // This is a hack for labels, but just in general
+    // it should refer to the field that is displayed that will
+    // help associate the javascript updating the rearrange
+    var $default_displayname_field = 'name';
+
     /**
      *  Called by moodleforms when we are rendering the form.
      **/
@@ -60,6 +65,10 @@ abstract class easy_upload_form extends moodleform {
 
         $mform->addElement('hidden', 'type', $type, array('id' => 'id_type'));
         $mform->addElement('hidden', 'modulename', $this->get_coursemodule());
+    
+        $mform->addElement('hidden', 'default_displayname_field', 
+            $this->default_displayname_field, 
+            array('id' => 'id_default_displayname_field'));
 
         // Use whatever the default display type is for the site. Can be either 
         // automatic, embed, force download, etc. Look in lib/resourcelib.php 
