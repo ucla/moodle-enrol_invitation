@@ -46,6 +46,17 @@ class block_ucla_rearrange extends block_base {
     }
 
     /**
+     *  Do not allow block to be added anywhere
+     */
+    function applicable_formats() {
+        return array(
+            'site-index' => false,
+            'course-view' => false,
+            'my' => false
+        );
+    }        
+    
+    /**
      *  Returns an array of root modnode objects for a particular section.
      *  @param $section     The section number
      *  @param $sectinfo    Section info that includes the sequence of course 
