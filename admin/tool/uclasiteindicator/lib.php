@@ -140,7 +140,7 @@ class site_indicator_request {
      * @todo test this function! 
      */
     public function generate_jira_ticket() {
-        global $DB;
+        global $DB , $CFG;
         
         $requested_course = $DB->get_record('course_request', array('id' => $this->request->requestid));
        
@@ -163,7 +163,10 @@ class site_indicator_request {
             'description' => $message,
         );        
 
-        $result = do_request(get_config('block_ucla_help', 'jira_endpoint'), $params, 'POST');      
+        echo "<pre>";
+        print_r($message);
+        echo "<pre>";
+        //$result = do_request(get_config('block_ucla_help', 'jira_endpoint'), $params, 'POST');      
         
     }
     
