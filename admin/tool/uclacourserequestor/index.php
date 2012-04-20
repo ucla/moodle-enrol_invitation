@@ -312,20 +312,16 @@ $registrar_link = new moodle_url(
 
 // Start rendering
 echo $OUTPUT->header();
+echo html_writer::start_tag('div', array('id' => $rucr));
+echo $OUTPUT->heading(get_string('pluginname', $rucr), 2, 'headingblock');
 
 // generate build schedule/notice (if any)
 $build_notes = get_config($rucr, 'build_notes');
-$build_notice = '';
 if (!empty($build_notes)) {
-    $build_notice = html_writer::tag('div', $build_notes, array('id' => 'uclacourserequestor_notice'));
+    $build_notice = html_writer::tag('div', $build_notes, 
+            array('id' => 'uclacourserequestor_notice'));    
+    echo $OUTPUT->box($build_notice, 'noticebox');    
 }
-
-echo $OUTPUT->box(
-    $OUTPUT->heading(
-        get_string('pluginname', $rucr)
-    ) . $build_notice, 
-    'generalbox categorybox box'
-);
 
 foreach ($cached_forms as $gn => $group) {
     echo $OUTPUT->box_start('generalbox');
@@ -346,14 +342,16 @@ foreach ($cached_forms as $gn => $group) {
     echo $OUTPUT->box_end();
 }
 
+// display notice to user regarding their requests
 if (!empty($changemessages)) {
     $messagestr = implode(html_writer::empty_tag('br'), $changemessages);
 
     if (!empty($messagestr)) {
-        echo $OUTPUT->box($messagestr);
+        echo $OUTPUT->box($messagestr, 'noticebox');
     }
 }
 
+// display error to user regarding their requests
 if (!empty($errormessages)) {
     $sm = get_string_manager();
     foreach ($errormessages as $message) {
@@ -366,7 +364,7 @@ if (!empty($errormessages)) {
                 $viewstr = $message;
             }
 
-            echo $OUTPUT->box(get_string($message, $rucr));
+            echo $OUTPUT->box(get_string($message, $rucr), 'errorbox');
         }
     }
 }
@@ -394,6 +392,7 @@ if (!empty($requeststable->data)) {
     echo html_writer::tag('input', '', array(
             'type' => 'submit',
             'name' => 'checkrequests',
+            'id' => 'checkrequests',
             'value' => get_string('checkchanges', $rucr),
             'class' => 'right'
         ));
@@ -401,6 +400,7 @@ if (!empty($requeststable->data)) {
     echo html_writer::tag('input', '', array(
             'type' => 'submit',
             'name' => UCLA_CR_SUBMIT,
+            'id' => UCLA_CR_SUBMIT,            
             'value' => get_string('submit' . $groupid, $rucr),
             'class' => 'right'
         ));
@@ -408,6 +408,7 @@ if (!empty($requeststable->data)) {
     echo html_writer::end_tag('form');
 }
 
+echo html_writer::end_tag('div');
 echo $OUTPUT->footer();
 
 // EoF

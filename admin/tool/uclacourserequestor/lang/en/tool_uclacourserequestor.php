@@ -40,6 +40,7 @@ $string['newrequestcourseid'] = 'Not built yet';
 $string['checkchanges'] = 'Validate requests without saving changes';
 $string['submitfetch'] = 'Submit requests';
 $string['submitviews'] = 'Save changes';
+$string['savefailed'] = 'Unable to save request';
 
 $string['norequestsfound'] = 'No courses found for given request.';
 
