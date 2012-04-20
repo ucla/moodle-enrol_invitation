@@ -96,14 +96,36 @@ class course_edit_form extends moodleform {
             $mform->setConstant('shortname', $course->shortname);
         }
 
-        $mform->addElement('text','idnumber', get_string('idnumbercourse'),'maxlength="100"  size="10"');
+        // START UCLA MOD: CCLE-2940 - TERM-SRS Numbers needed in Course ID Number field
+        // We aren't using idnumber to put in term-srs anymore, so just query 
+        // for term-srs using the cross-listing api and put in the results as
+        // a constant        
+//        $mform->addElement('text','idnumber', get_string('idnumbercourse'),'maxlength="100"  size="10"');
+//        $mform->addHelpButton('idnumber', 'idnumbercourse');
+//        $mform->setType('idnumber', PARAM_RAW);
+//        if (!empty($course->id) and !has_capability('moodle/course:changeidnumber', $coursecontext)) {
+//            $mform->hardFreeze('idnumber');
+//            $mform->setConstants('idnumber', $course->idnumber);
+//        }
+        $mform->addElement('static','idnumber', get_string('idnumbercourse'));
         $mform->addHelpButton('idnumber', 'idnumbercourse');
-        $mform->setType('idnumber', PARAM_RAW);
-        if (!empty($course->id) and !has_capability('moodle/course:changeidnumber', $coursecontext)) {
-            $mform->hardFreeze('idnumber');
-            $mform->setConstants('idnumber', $course->idnumber);
+        if (!empty($course->id)) {
+            // only query for term-srs if course exists
+            require_once($CFG->dirroot . '/local/ucla/lib.php');
+            $termsrses = ucla_map_courseid_to_termsrses($course->id);    
+            $idnumber = '';
+            if (!empty($termsrses)) {
+                // create string
+                $first_entry = true;
+                foreach ($termsrses as $termsrs) {
+                    $first_entry ? $first_entry = false : $idnumber .= ', ';
+                    $idnumber .= make_idnumber($termsrs);
+                }                    
+            }
+            $course->idnumber = $idnumber;     
         }
-
+        // END UCLA MOD: CCLE-2940
+        
 
         $mform->addElement('editor','summary_editor', get_string('coursesummary'), null, $editoroptions);
         $mform->addHelpButton('summary_editor', 'coursesummary');
