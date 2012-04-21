@@ -2,6 +2,7 @@
 
 /** Moodle Strings **/
 $string['pluginname'] = 'UCLA control panel';
+$string['name'] = 'Control panel';
 
 $string['badsetup'] = 'Folder "modules" is missing.';
 $string['badmodule'] = 'Could not load module {$a}.';
@@ -44,17 +45,17 @@ $string['turn_editing_on_post'] = '(or duplicate, hide, make public)';
 /** Stuff from myucla functions **/
 $string['ucla_cp_mod_myucla'] = 'MyUCLA functions';
 
-$string['download_roster'] = 'Download Roster';
+$string['download_roster'] = 'Download roster';
 $string['download_roster_post'] = '';
-$string['photo_roster'] = 'Photo Roster';
+$string['photo_roster'] = 'Photo roster';
 $string['photo_roster_post'] = '';
-$string['myucla_gradebook'] = 'MyUCLA Gradebook';
+$string['myucla_gradebook'] = 'MyUCLA gradebook';
 $string['myucla_gradebook_post'] = '';
 $string['turn_it_in'] = 'Turn-It-In';
 $string['turn_it_in_post'] = '';
-$string['email_roster'] = 'Email Roster';
+$string['email_roster'] = 'Email roster';
 $string['email_roster_post'] = '';
-$string['asucla_textbooks'] = 'ASUCLA Textbooks';
+$string['asucla_textbooks'] = 'ASUCLA textbooks';
 $string['asucla_textbooks_post'] = '';
 
 /** Stuff from other **/

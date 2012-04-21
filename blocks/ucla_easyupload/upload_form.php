@@ -28,6 +28,11 @@ abstract class easy_upload_form extends moodleform {
     // @string 'public' or 'private'
     var $default_publicprivate = 'private';
 
+    // This is a hack for labels, but just in general
+    // it should refer to the field that is displayed that will
+    // help associate the javascript updating the rearrange
+    var $default_displayname_field = 'name';
+
     /**
      *  Called by moodleforms when we are rendering the form.
      **/
@@ -60,6 +65,10 @@ abstract class easy_upload_form extends moodleform {
 
         $mform->addElement('hidden', 'type', $type, array('id' => 'id_type'));
         $mform->addElement('hidden', 'modulename', $this->get_coursemodule());
+    
+        $mform->addElement('hidden', 'default_displayname_field', 
+            $this->default_displayname_field, 
+            array('id' => 'id_default_displayname_field'));
 
         // Use whatever the default display type is for the site. Can be either 
         // automatic, embed, force download, etc. Look in lib/resourcelib.php 
@@ -86,24 +95,26 @@ abstract class easy_upload_form extends moodleform {
         }
 
         // add copyright selection
-       $mform->addElement('header', '', get_string('select_copyright',
-           self::associated_block));
-          
-       $mform->addElement('html', html_writer::tag('label', 
-               get_string('select_copyright_list', self::associated_block), 
-               array('for' => 'id_license')));
-       
-       // Show the copyright selector
-       $mform->addElement('select', 'license','', $copyrights);
-       $mform->addHelpButton('license', 'license', 'block_ucla_easyupload');
-       $mform->addRule('license', null, 'required');
-        $mform->setDefaults(
-            array(
-                'license' => array(
-                    'license' => $CFG->sitedefaultlicense
-                )
-            )
-        );       
+       if ($type == "file"){
+            $mform->addElement('header', '', get_string('select_copyright',
+                self::associated_block));
+
+            $mform->addElement('html', html_writer::tag('label', 
+                    get_string('select_copyright_list', self::associated_block), 
+                    array('for' => 'id_license')));
+
+            // Show the copyright selector
+            $mform->addElement('select', 'license','', $copyrights);
+            $mform->addHelpButton('license', 'license', 'block_ucla_easyupload');
+            $mform->addRule('license', null, 'required');
+                $mform->setDefaults(
+                    array(
+                        'license' => array(
+                            'license' => $CFG->sitedefaultlicense
+                        )
+                    )
+                );   
+       }
 
         if (class_exists('PublicPrivate_Site')) {
             if (PublicPrivate_Site::is_enabled() 
@@ -157,7 +168,7 @@ abstract class easy_upload_form extends moodleform {
                 array('id' => 'serialized'));
             
             $mform->addElement('html', html_writer::tag('div', 
-                    html_writer::tag('div', get_string('rearrangejsrequired',
+                    html_writer::tag('ul', get_string('rearrangejsrequired',
                         self::associated_block), array('id' => 'thelist')),
                 array('id' => 'reorder-container'))
             );

@@ -164,6 +164,17 @@ html, body {background-color:#FFF; height:100%;}
     color: black;
     text-decoration: underline;
 }
+.noticebox .generalbox {
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+.noticebox .generalbox .buttons {
+    margin: 0;
+}
+#notice.generalbox {
+    width: 100%;    
+}
 
 /** Success **/
 .box.successbox {
@@ -207,9 +218,7 @@ html, body {background-color:#FFF; height:100%;}
 .block h3,
 .block h4 {margin:0px;}
 .block .header {padding:4px 6px;background-color:#D1DBEF;}
-.block .content {padding:0px 4px;background-color:#DFE7F4;}
-.block .content a {display:block;width:100%;}
-.block .content a:hover {text-decoration:none;} 
+.block .content {padding:0px 6px 0px 6px;background-color:#DFE7F4;}
 
 /** Admin **/
 .box.adminwarning {text-align:center;border:1px solid #C8C9C7;background-color:#E3E3E3;margin-bottom:1em;padding:10px 10%;}

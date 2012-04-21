@@ -11,3 +11,7 @@
 .adminsearchform {
     text-align: center;
 }
+
+.rolecaps th {
+    color: black !important;
+}
