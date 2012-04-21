@@ -39,7 +39,8 @@ class block_ucla_weeksdisplay extends block_base {
         return array(
             'site-index' => false,
             'course-view' => false,
-            'my' => false
+            'my' => false,
+            'not-really-applicable' => true
         );
     }    
     
