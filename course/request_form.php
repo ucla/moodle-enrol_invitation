@@ -46,19 +46,24 @@ class course_request_form extends moodleform {
         global $DB, $USER;
 
         $mform =& $this->_form;
-
-        if ($pending = $DB->get_records('course_request', array('requester' => $USER->id))) {
-            $mform->addElement('header', 'pendinglist', get_string('coursespending'));
-            $list = array();
-            foreach ($pending as $cp) {
-                $list[] = format_string($cp->fullname);
-            }
-            $list = implode(', ', $list);
-            $mform->addElement('static', 'pendingcourses', get_string('courses'), $list);
-        }
         
         // START UCLAMOD CCLE-2389
-        // Site indicator form elements
+        // Do not show pending course requests to unauthorized viewers
+        $context = get_context_instance(CONTEXT_SYSTEM);
+        if(has_capability('tool/uclasiteindicator:view', $context)) {
+
+            if ($pending = $DB->get_records('course_request', array('requester' => $USER->id))) {
+                $mform->addElement('header', 'pendinglist', get_string('coursespending'));
+                $list = array();
+                foreach ($pending as $cp) {
+                    $list[] = format_string($cp->fullname);
+                }
+                $list = implode(', ', $list);
+                $mform->addElement('static', 'pendingcourses', get_string('courses'), $list);
+            }
+        }
+        
+        // Build the indicator types and display radio option group
         $mform->addElement('header','siteindicator', get_string('req_desc', 'tool_uclasiteindicator'));
         $types = ucla_site_indicator::get_indicator_types();
         $radioarray = array();

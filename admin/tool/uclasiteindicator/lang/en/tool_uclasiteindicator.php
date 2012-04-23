@@ -46,3 +46,6 @@ $string['reject_header'] = 'Reject Course without a message';
 $string['reject_label'] = 'You can reject a course without sending a message.  Doing 
     this will also remove the course from the pending list.';
 $string['course_rejected'] = 'Course has been rejected.';
+
+$string['uclasiteindicator:edit'] = 'This is the role description for edit';
+$string['uclasiteindicator:view'] = 'This is the role description for view';

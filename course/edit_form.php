@@ -42,9 +42,11 @@ class course_edit_form extends moodleform {
         $this->context = $context;
         
         // Site indicator info display
-        // @todo: add a capability check
-        $mform->addElement('header','uclasiteindicator', 'Site Indicator');
+        
+        if(has_capability('tool/uclasiteindicator:view', $systemcontext)) {
+            $mform->addElement('header','uclasiteindicator', 'Site Indicator');
 
+        }
 /// form definition with new course defaults
 //--------------------------------------------------------------------------------
         $mform->addElement('header','general', get_string('general', 'form'));
