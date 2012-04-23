@@ -243,11 +243,11 @@ class block_ucla_weeksdisplay extends block_base {
         $ses_end_date = $session['session_end'];
         $instr_start_date = $session['instruction_start'];       
         
-        $date_vs_ses_start = self::find_earlier_date($date, $ses_start_date);
-        $date_vs_ses_end = self::find_earlier_date($date, $ses_end_date);       
+        $date_vs_ses_start = self::cmp_dates($date, $ses_start_date);
+        $date_vs_ses_end = self::cmp_dates($date, $ses_end_date);       
         $date_vs_instr_start 
-            = self::find_earlier_date($date, $instr_start_date);
-        $ses_start_vs_instr_start = self::find_earlier_date($ses_start_date, $instr_start_date);  
+            = self::cmp_dates($date, $instr_start_date);
+        $ses_start_vs_instr_start = self::cmp_dates($ses_start_date, $instr_start_date);  
         
         //If the date is in Week 0.
         if($date_vs_ses_start >= 0 && $date_vs_instr_start < 0) {
@@ -310,16 +310,17 @@ class block_ucla_weeksdisplay extends block_base {
     *         -1 if date1 comes before all session's instruction start date.
     */  
     public static function find_date_in_sessions($date, $sessions) {
-        $return_sessions = NULL;
+        $return_sessions = array();
         $regular_sessions = self::find_regular_sessions($sessions);
         //Sort the sessions from earliest to latest.
         usort($regular_sessions, 'self::cmp_sessions');     
                 
-        for($i = 0; $i < count($regular_sessions); $i++) {
+        $regular_sessions_size = count($regular_sessions);
+        for($i = 0; $i < $regular_sessions_size; $i++) {
             $session = $regular_sessions[$i];
 
-            $date_vs_start = self::find_earlier_date($date, $session["session_start"]);
-            $date_vs_end = self::find_earlier_date($date, $session["session_end"]);
+            $date_vs_start = self::cmp_dates($date, $session["session_start"]);
+            $date_vs_end = self::cmp_dates($date, $session["session_end"]);
 
             if($date_vs_start <= -1 && $i == 0) {
                 //If the date comes before the start of the earliest session
@@ -328,14 +329,14 @@ class block_ucla_weeksdisplay extends block_base {
                 //If the date comes before the start of a session (this implicitly
                 //also means the date comes after the end of the session before this
                 //if the date has not been found in a previous session.)
-                if(isset($return_sessions) == false){
+                if(empty($return_sessions)){
                     $return_sessions[] = $regular_sessions[$i];
                 }
                 break; //No need to search rest because dates are chronologically sorted.
             } else if($date_vs_start >= 0 && $date_vs_end <= 0) {
                 //If the date comes after start of session and before end of session     
                 $return_sessions[] = $regular_sessions[$i];
-            } else if($date_vs_end == 1 && $i == count($regular_sessions) - 1) {
+            } else if($date_vs_end >= 1 && $i == $regular_sessions_size - 1) {
                 //If the date comes after the end of the last session
                 return 1;
             }
@@ -492,27 +493,6 @@ class block_ucla_weeksdisplay extends block_base {
     public static function is_leap_year($year) {
         return date('L', strtotime($year.'-01-01')) ? true : false;
     }
-    
-   /**
-    * Compares 2 dates and returns which one is earlier.
-    * 
-    * @param date1, date2  strings that start with the format YYYY-MM-DD
-    * @return 1 if date1 comes after date2.
-    *         0 if date1 is the same as date2
-    *         -1 if date1 comes before date2.
-    */      
-    public static function find_earlier_date($date1, $date2) {   
-        $unix_date1 = strtotime($date1);
-        $unix_date2 = strtotime($date2); 
-          
-        if($unix_date1 > $unix_date2) { 
-            return 1; 
-        } else if($unix_date1 < $unix_date2) { 
-            return -1; 
-        } else { //$date1 year == $date2 year            
-                return 0;
-        }     
-     } 
      
    /**
     * Returns whether or not the date is within the dession.

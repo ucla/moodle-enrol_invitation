@@ -472,31 +472,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         $result = block_ucla_weeksdisplay::is_leap_year(2004);
         $this->assertEqual($result, true);
     }
-        
-    function test_find_earlier_date(){   
-        $result = block_ucla_weeksdisplay::find_earlier_date('2012-04-09', '2012-04-09');
-        $this->assertEqual($result, 0);
-    //Test Years
-        $result = block_ucla_weeksdisplay::find_earlier_date('2010-04-09', '2012-04-09');
-        $this->assertEqual($result, -1);       
-        $result = block_ucla_weeksdisplay::find_earlier_date('2012-04-09', '2010-04-09');
-        $this->assertEqual($result, 1);   
-    //Test Days
-        $result = block_ucla_weeksdisplay::find_earlier_date('2012-04-09', '2012-04-08');
-        $this->assertEqual($result, 1);   
-        $result = block_ucla_weeksdisplay::find_earlier_date('2012-04-08', '2012-04-09');
-        $this->assertEqual($result, -1);      
-    //Test Months
-        $result = block_ucla_weeksdisplay::find_earlier_date('2010-03-09', '2010-04-09');
-        $this->assertEqual($result, -1);           
-        $result = block_ucla_weeksdisplay::find_earlier_date('2010-04-09', '2010-03-09');
-        $this->assertEqual($result, 1);       
-        $result = block_ucla_weeksdisplay::find_earlier_date('2010-03-29', '2010-04-09');
-        $this->assertEqual($result, -1);           
-        $result = block_ucla_weeksdisplay::find_earlier_date('2010-04-09', '2010-03-29');
-        $this->assertEqual($result, 1);          
-    } 
-         
+
     function test_get_dayofweek(){
         $result = block_ucla_weeksdisplay::get_dayofweek('2012-04-09');
         $this->assertEqual($result, 'Mon');
