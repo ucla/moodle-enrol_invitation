@@ -29,3 +29,6 @@ $plugin->version   = 2011112900;        // The current plugin version (Date: YYY
 $plugin->requires  = 2011112900;        // Requires this Moodle version
 $plugin->component = 'enrol_database';  // Full name of the plugin (used for diagnostics)
 //TODO: should we add cron sync?
+
+// UCLA MOD CCLE-2846: Enable events
+$plugin->version = 2012042300;
