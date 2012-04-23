@@ -2,7 +2,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-class block_bruincast extends block_base {
+class block_ucla_bruincast extends block_base {
 
     private $active; 
 
@@ -51,8 +51,8 @@ class block_bruincast extends block_base {
         }
 
         // initialize title and name
-        $this->title = get_string('title', 'block_bruincast');
-        $this->name = get_string('pluginname', 'block_bruincast');
+        $this->title = get_string('title', 'block_ucla_bruincast');
+        $this->name = get_string('pluginname', 'block_ucla_bruincast');
     }
 
     /**
@@ -77,12 +77,12 @@ class block_bruincast extends block_base {
 
         // set block content by whether or not course contents found
         if ($this->active) {
-            $this->content->text   = get_string('contfound', 'block_bruincast');
+            $this->content->text   = get_string('contfound', 'block_ucla_bruincast');
         } else {
-            $this->content->text   = get_string('contnotfound', 'block_bruincast');
+            $this->content->text   = get_string('contnotfound', 'block_ucla_bruincast');
         }
 
-        $this->content->footer     = get_string('footer', 'block_bruincast');
+        $this->content->footer     = get_string('footer', 'block_ucla_bruincast');
 
         return $this->content;
     }
@@ -102,7 +102,7 @@ class block_bruincast extends block_base {
         $present = false;
 
         // name has to be hardcoded, no way since $this references coursemenu on hook
-        if ($this->page->blocks->is_block_present("bruincast")) {
+        if ($this->page->blocks->is_block_present("ucla_bruincast")) {
             $present = true;
         }
 

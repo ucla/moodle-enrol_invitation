@@ -1,6 +1,6 @@
 <?php
-    $string['title'] = 'Bruincast';
-    $string['pluginname'] = "Bruincast";
+    $string['title'] = 'UCLA bruincast';
+    $string['pluginname'] = "UCLA bruincast";
 
     $string['contfound'] = 'Bruincast integration enabled.  Link is displayed in Course menu given proper user permissions.';
     $string['contnotfound'] = 'Bruincast integration enabled, but course content is not found.  Link is not displayed in Course menu.';
