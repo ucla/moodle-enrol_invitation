@@ -117,11 +117,11 @@ class site_indicator_request {
                 
         $request = $DB->get_record('ucla_siteindicator_request', array('requestid' => $requestid), '*', MUST_EXIST);
 
+        $this->id = $request->id;
         $this->entry->type = $request->type;
         $this->request->support = $request->support;
         $this->request->categoryid = $request->categoryid;
         $this->request->requestid = $requestid;
-        $this->id = $request->id;
     }
     
     /**
@@ -142,8 +142,12 @@ class site_indicator_request {
     public function generate_jira_ticket() {
         global $DB , $CFG;
         
+        // Get the information we need to print in the ticket
         $requested_course = $DB->get_record('course_request', array('id' => $this->request->requestid));
-       
+        $user = $DB->get_record('user', array('id' => $requested_course->requester));
+        $user_string = $user->firstname . ' ' . $user->lastname . ' (' . $user->email . ')';
+        
+        $requested_course->user = $user_string;
         $requested_course->pending = $CFG->wwwroot . '/course/pending.php';
         $requested_course->approve = $CFG->wwwroot . '/course/pending.php?approve=' . $this->request->requestid;
         $requested_course->reject = $CFG->wwwroot . '/course/pending.php?reject=' . $this->request->requestid;
@@ -224,10 +228,12 @@ class ucla_site_indicator {
      * @return type 
      */
     static function get_indicators_list() {
-        return array('Instruction (with Intructor roles)', 
+        return array(
+            'Instruction (with Intructor roles)', 
             'Non-Instruction (with Project roles)', 
             'Research (with Project roles)', 
-            'Test (experimental)');
+            'Test (experimental)'
+            );
     }
     
     /**

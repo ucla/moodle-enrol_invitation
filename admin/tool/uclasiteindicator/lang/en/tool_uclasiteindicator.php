@@ -6,8 +6,6 @@
  * @package siteindicator 
  */
 
-
-
 $string['plugintitle'] = 'UCLA Site Indicator';
 $string['description'] = 'Description';
 $string['pluginname'] = 'Site Indicator';
@@ -29,17 +27,19 @@ $string['req_selopt_note'] = 'If you select Other, you will have to specify the
 
 $string['jira_title'] = 'Collaboration course request: {$a->fullname}';
 $string['jira_msg'] = 'This is a DEV test message 
-The following course has been requested by {$a->requester}:
-  Fullname: {$a->fullname}
-  Shortname: {a->shortname}
-  
-  Summary: {$a->summary}
-  Reason: {$a->summary
+The following course has been requested by {$a->user}:
+Fullname: {$a->fullname}
+Shortname: {$a->shortname}
 
-  Approve: {$a->approve}
-  Reject: {$a->reject}
-  
-View the course request queue: {$a->pending}';
+Summary:
+{$a->summary}
+
+Reason: 
+{$a->reason}
+
+Approve: {$a->approve}
+Reject: {$a->reject}
+View other pending courses: {$a->pending}';
 
 $string['reject_header'] = 'Reject Course without a message';
 $string['reject_label'] = 'You can reject a course without sending a message.  Doing 
