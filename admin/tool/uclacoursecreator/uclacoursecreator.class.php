@@ -868,7 +868,6 @@ class uclacoursecreator {
         $requests =& $this->cron_term_cache['requests'];
 
         // Run the Stored Procedure with the data
-        $return = registrar_query::run_registrar_query('ccle_getclasses',
         $rc = new registrar_ccle_getclasses();
 	$return = registrar_query::run_registrar_query('ccle_getclasses',
             $tr, true);
