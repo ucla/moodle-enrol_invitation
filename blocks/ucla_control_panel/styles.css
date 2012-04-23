@@ -3,7 +3,7 @@
     margin-bottom: 10px;
     border: 2px solid rgb(199,195,197);
     display: block;
-    position: absolute;
+    float: left;    
 }
 
 #cpanel-wrapper .cpheading {
