@@ -163,7 +163,7 @@ class block_ucla_weeksdisplay extends block_base {
             $next_term = block_ucla_weeksdisplay::get_next_term($next_term);
         }
         
-        set_config('currentterm', $term_string);
+        set_config('currentterm', $current_term);
         set_config('active_terms', $term_string, 'local_ucla');
         set_config('terms', $term_string, 'tool_uclacourserequestor');
         set_config('terms', $term_string, 'tool_uclacoursecreator');
