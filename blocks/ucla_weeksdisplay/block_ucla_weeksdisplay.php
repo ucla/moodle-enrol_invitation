@@ -470,51 +470,16 @@ class block_ucla_weeksdisplay extends block_base {
     *         a negative number denoting how many days date1 comes before date2.
     */   
     public static function cmp_dates($date1, $date2) {
-        $unix_date1 = strtotime($date1);
-        $unix_date2 = strtotime($date2);  
         
-        $days_difference = 0; //The amount of days between date1 and date2. 
-        
-        $earlier_date_result = self::find_earlier_date($date1, $date2);
-        if($earlier_date_result == 0) {
-            return 0;
-        } else if($earlier_date_result == -1) {
-            $earlier_date = $unix_date1;
-            $later_date = $unix_date2;
-        } else { // $earlier_date_result == 1
-            $earlier_date = $unix_date2;
-            $later_date = $unix_date1;            
-        }
-        
-        $earlier_date_year = date('Y',$earlier_date);
-        $later_date_year = date('Y',$later_date);        
-        //Traverse years until the two years are equal.
-        if($earlier_date_year < $later_date_year) { 
-            //Round the earlier date to beginning of the next year to make calculations easier.
-            $earlier_date_day_of_year = date('z',$earlier_date);
-            $days_in_year = (self::is_leap_year($earlier_date)) ? 366 : 365;
-            $days_difference += ($days_in_year - $earlier_date_day_of_year);
-            $earlier_date_year++;
-            
-            //Traverse whole years until you reach date2's year.
-            while($earlier_date_year < $later_date_year) {
-                $days_in_year = (self::is_leap_year($earlier_date_year)) ? 366 : 365;
-                $days_difference += ($days_in_year);
-                $earlier_date_year++;
-            }
-            //Add the number of days from the beginning of the year to the later date.
-            $later_date_year_day_of_year = date('z',$later_date);
-            $days_difference -=  $later_date_year_day_of_year;            
-        } else {
-            $days_difference = date('z',$later_date) - date('z',$earlier_date);
-        }
+        $unix_date1 = new DateTime($date1);
+        $unix_date2 = new DateTime($date2);
+        $interval = $unix_date1->diff($unix_date2);
 
-        //Return a negative number if date1 comes before date2.
-        if($earlier_date_result == -1) { 
-            $days_difference *= -1;
+        if($unix_date1 <  $unix_date2){
+            return $interval->days * -1;
+        } else {
+            return $interval->days;
         }
-        
-        return $days_difference;
     }    
     
    /**
