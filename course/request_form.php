@@ -60,16 +60,29 @@ class course_request_form extends moodleform {
         // START UCLAMOD CCLE-2389
         // Site indicator form elements
         $mform->addElement('header','siteindicator', get_string('req_desc', 'tool_uclasiteindicator'));
-        $indicatorlist = ucla_site_indicator::get_indicators_list();
-        $mform->addElement('select', 'indicator_type', get_string('req_type', 'tool_uclasiteindicator'), $indicatorlist);
-        $mform->addHelpButton('indicator_type', 'req_type', 'tool_uclasiteindicator');
+        $types = ucla_site_indicator::get_indicator_types();
+        $radioarray = array();
+        foreach($types as $type) {
+            $descstring = '<strong>' . $type->fullname . '</strong> (' . ucfirst($type->role) . ') - ' . $type->description;
+            $attributes = array(
+                'class' => 'indicator_desc',
+                'value' => $type->id
+            );
+            $radioarray[] = &MoodleQuickForm::createElement('radio', 'radio_type', '', $descstring, $type->id, $attributes);
+        }
         
+        $mform->addGroup($radioarray, 'indicator_type', get_string('req_type', 'tool_uclasiteindicator'), array(' '), false);
+        $mform->addRule('indicator_type', 'you did not specify a type', 'required');
+        $mform->addHelpButton('indicator_type', 'req_type', 'tool_uclasiteindicator');
+
         $displaylist = ucla_site_indicator::get_categories_list();
         $mform->addElement('select', 'indicator_category', get_string('req_category', 'tool_uclasiteindicator'), $displaylist);
         $mform->addHelpButton('indicator_category', 'req_category', 'tool_uclasiteindicator');
-        // END UCLAMOD CCLE-2389
         
-        $mform->addElement('static', 'description', '', get_string('req_selopt_note', 'tool_uclasiteindicator'));
+        $mform->addElement('text', 'othercat', get_string('req_category_other', 'tool_uclasiteindicator'), 'maxlength="254" size="50"');
+        $mform->disabledIf('othercat', 'indicator_category', 'noteq', 0);
+        $mform->addHelpButton('othercat', 'req_category_other', 'tool_uclasiteindicator');
+        // END UCLAMOD CCLE-2389
 
         $mform->addElement('header','coursedetails', get_string('courserequestdetails'));
 

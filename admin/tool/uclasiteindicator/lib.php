@@ -394,5 +394,25 @@ class ucla_site_indicator {
         global $DB;
         return $DB->record_exists('ucla_site_indicator', array('courseid' => $courseid));
     }
+    
+    static function get_indicator_types() {
+        global $DB, $CFG;
+        
+        $query = "SELECT si.id, si.fullname AS
+                TYPE , sr.shortname, sr.description
+                FROM {$CFG->prefix}ucla_siteindicator_type AS si
+                JOIN {$CFG->prefix}ucla_siteindicator_rolemapping AS srm ON srm.typeid = si.id
+                JOIN {$CFG->prefix}ucla_siteindicator_roles AS sr ON sr.id = srm.roleid
+                ORDER BY si.sortorder";
+                
+//        $roles = $DB->get_records_sql($query);
+        $types = $DB->get_records('ucla_siteindicator_type', null, 'sortorder');
+        
+        return $types;
+    }
+    
+    static function get_indicators_by_type($type) {
+        
+    }
 
 }
