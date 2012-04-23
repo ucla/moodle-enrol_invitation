@@ -56,6 +56,12 @@ class block_ucla_library_reserves extends block_base {
                 if (!empty($coursesrs) && !empty($courseterm)) {
                     $lrnodes = $DB->get_records('ucla_library_reserves', array('quarter'=>$courseterm,'srs'=>$coursesrs)); // get entry in libraryreserves table by the generated courseid
 
+                    if($lrnodes) {
+                        $foundviasrs = true;
+                    }
+
+                    $foundviasrs = false;
+
                     $reginfo = ucla_get_reg_classinfo($courseterm, $coursesrs);
 
                     // If srs did not work as lookup, use the term, courseid, and department code 
@@ -74,8 +80,11 @@ class block_ucla_library_reserves extends block_base {
 
                         $reginfo = ucla_get_reg_classinfo($lrnode->quarter,$lrnode->srs);
 
-                        if (!empty($lrnode->url)) {
+                        $sectnum = $reginfo->sectnum;
+                        $coursesectnum = substr($COURSE->shortname,strrpos($COURSE->shortname, "-") + 1);
 
+                        if (!empty($lrnode->url) && ($sectnum == $coursesectnum || $foundviasrs)) {
+                            
                             // Must hardcode the naming string since this is a static function
                             $nodes[] = navigation_node::create('Library Reserves '.$reginfo->subj_area.$reginfo->coursenum, new moodle_url($lrnode->url)); 
                             break;
