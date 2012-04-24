@@ -149,7 +149,12 @@ if ($type == 'Files') {
                       'itemid' => 0,
                       'filepath' => '/',
                       'filename' => $filename,
-                      'userid' => $USER->id
+                      'userid' => $USER->id,
+    // BEGIN UCLA MOD: CCLE-2769 - Drag and drop file upload block on M2
+    // adding license info
+                      'license' => $CFG->sitedefaultlicense,
+                      'author' => fullname($USER)
+    // END UCLA MOD: CCLE-2769
                       );
     $fs->create_file_from_pathname($fileinfo, $filesrc);
 
