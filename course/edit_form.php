@@ -6,6 +6,7 @@ require_once($CFG->libdir.'/formslib.php');
 require_once($CFG->libdir.'/completionlib.php');
 require_once($CFG->libdir.'/publicprivate/course.class.php');
 require_once($CFG->libdir.'/publicprivate/site.class.php');
+require_once($CFG->dirroot . '/admin/tool/uclasiteindicator/lib.php');
 
 class course_edit_form extends moodleform {
     protected $course;
@@ -23,7 +24,9 @@ class course_edit_form extends moodleform {
         
         // START UCLAMOD CCLE-2389
         // Force the category that the user requested
-        $course->category = $category->id;
+        if($category->id) {
+            $course->category = $category->id;
+        }
 
         $systemcontext   = get_context_instance(CONTEXT_SYSTEM);
         $categorycontext = get_context_instance(CONTEXT_COURSECAT, $category->id);
@@ -43,8 +46,23 @@ class course_edit_form extends moodleform {
         
         // Site indicator info display
         
-        if(has_capability('tool/uclasiteindicator:view', $systemcontext)) {
-            $mform->addElement('header','uclasiteindicator', 'Site Indicator');
+        if(!empty($course->id) && has_capability('tool/uclasiteindicator:view', $systemcontext)) {
+            $mform->addElement('header','uclasiteindicator', get_string('pluginname', 'tool_uclasiteindicator'));
+            $indicator = site_indicator_entry::load($course->id);
+            
+            if($indicator) {
+                $indicator->load_type();
+                $indicator_type = $indicator->type_obj->fullname . ' - (' 
+                        . ucfirst($indicator->type_obj->role) . ' ' 
+                        . get_string('roles', 'tool_uclasiteindicator') . ')';
+                $mform->addElement('static', 'indicator', get_string('type', 'tool_uclasiteindicator'), 
+                        $indicator_type);
+            
+                
+            } else {
+                $mform->addElement('static', 'indicator', get_string('type', 'tool_uclasiteindicator'), 
+                        get_string('site_srs', 'tool_uclasiteindicator'));
+            }
 
         }
 /// form definition with new course defaults

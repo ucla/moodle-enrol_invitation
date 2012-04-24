@@ -25,6 +25,7 @@ require_once($CFG->dirroot . '/blocks/ucla_help/ucla_help_lib.php');
  */
 class site_indicator_entry {
     public $property;
+    public $type_obj;
     private $id;
     
     function __construct($courseid) {
@@ -34,6 +35,8 @@ class site_indicator_entry {
         $this->property->courseid = $courseid;
         $this->property->type = $indicator->type;
         $this->id = $indicator->id;
+        
+        $this->type_obj = null;
     }
     
     /**
@@ -71,15 +74,15 @@ class site_indicator_entry {
      * @global type $DB
      * @return type 
      */
-    public function get_type() {
+    public function load_type() {
         global $DB;
-        
-        if(isset($this->property->type_obj)) {
+
+        if(!empty($this->type_obj)) {
             // Cache the object
-            return $this->property->type_obj;
+            return $this->type_obj;
         } else {
             $typeobj = $DB->get_record('ucla_siteindicator_type', array('id' => $this->property->type), '*', MUST_EXIST);
-            $this->property->type_obj = $typeobj;
+            $this->type_obj = $typeobj;
             return $typeobj;
         }
     }
@@ -220,22 +223,7 @@ class site_indicator_request {
  * to work with the site indicator 
  */
 class ucla_site_indicator {
-    
-    /**
-     * Returns list of available collab site indicators 
-     * @todo: get list from database!
-     * 
-     * @return type 
-     */
-    static function get_indicators_list() {
-        return array(
-            'Instruction (with Intructor roles)', 
-            'Non-Instruction (with Project roles)', 
-            'Research (with Project roles)', 
-            'Test (experimental)'
-            );
-    }
-    
+
     /**
      * Wrapper for getting site categories list.  
      * @todo: hide categorie we don't want to make visible
@@ -337,7 +325,7 @@ class ucla_site_indicator {
         $newindicator = site_indicator_request::load($requestid);
         
         if($newindicator) {
-            $newindicator->course->courseid = $courseid;
+            $newindicator->entry->courseid = $courseid;
 
             // Create record for course
             $newindicator->create_indicator_entry();

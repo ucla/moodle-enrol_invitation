@@ -14,6 +14,10 @@ $string['site_instruction'] = 'Instruction (with Intructor roles)';
 $string['site_non_instruction'] = 'Non-Instruction (with Project roles)';
 $string['site_research'] = 'Research (with Project roles)';
 $string['site_test'] = 'Test (experimental)';
+$string['site_srs'] = 'Instruction site (listed at Registrar)';
+
+$string['type'] = 'Type:';
+$string['roles'] = 'roles';
 
 $string['req_desc'] = 'Type of site you are requesting';
 $string['req_type'] = 'Site type';
