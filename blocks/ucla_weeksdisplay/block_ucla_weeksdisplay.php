@@ -51,7 +51,7 @@ class block_ucla_weeksdisplay extends block_base {
         global $CFG;
 
         //If the current term is not valid, heuristically initialize it.      
-        if(isset($CFG->currentterm) == false 
+        if (isset($CFG->currentterm) == false 
                 || ucla_validator('term', $CFG->currentterm) == false) {
             self::init_currentterm(date('c'));
         }    
@@ -63,13 +63,13 @@ class block_ucla_weeksdisplay extends block_base {
         $is_date_in_sessions = 
                 self::find_date_in_sessions($date,$query_result);
         
-        if($is_date_in_sessions == NULL){
+        if ($is_date_in_sessions == NULL) {
             debugging('Registrar query did not return any valid sessions');
             return;
-        } else if($is_date_in_sessions == -1) {
+        } else if ($is_date_in_sessions == -1) {
             //If the date is in a previous term, go backwards until a term is found.
             $prev_term = self::get_prev_term($current_term);
-            while(1) {
+            while (1) {
                 
                 $query_result = registrar_query::run_registrar_query(
                         'ucla_getterms', array($prev_term), true);
@@ -77,10 +77,10 @@ class block_ucla_weeksdisplay extends block_base {
                 $is_date_in_sessions = 
                         self::find_date_in_sessions($date,$query_result);
                 
-                if($is_date_in_sessions == NULL) {
+                if ($is_date_in_sessions == NULL) {
                     debugging('Registrar query did not return any valid sessions');
                     return;
-                } else if($is_date_in_sessions == 1) {
+                } else if ($is_date_in_sessions == 1) {
                 //If the date is between terms, return the string for the later term
                     $query_result = registrar_query::run_registrar_query(
                             'ucla_getterms', array(self::get_next_term($prev_term)), true);  
@@ -90,7 +90,7 @@ class block_ucla_weeksdisplay extends block_base {
                     self::set_term_configs(self::get_next_term($prev_term));
                     self::set_current_week_display_config($date, $regular_sessions);
                     break;                            
-                } else if($is_date_in_sessions != -1){
+                } else if ($is_date_in_sessions != -1) {
                     ////if is_date_in_sessions returned an array 
                     self::set_current_week_display_config($date, $is_date_in_sessions);
                     break;
@@ -98,10 +98,10 @@ class block_ucla_weeksdisplay extends block_base {
                 //else if ($is_date_in_sessions == -1)
                 $prev_term = self::get_prev_term($prev_term);
             }       
-        }  else if($is_date_in_sessions == 1) {
+        }  else if ($is_date_in_sessions == 1) {
             //If the date is in a future term, keep on going forward until a term is found.
             $next_term = self::get_next_term($current_term);
-            while(1){
+            while (1) {
                 //error checking for if registrar query reaches forever?
                 $query_result = registrar_query::run_registrar_query(
                         'ucla_getterms', array($next_term), true);
@@ -109,17 +109,17 @@ class block_ucla_weeksdisplay extends block_base {
                 $is_date_in_sessions = 
                         self::find_date_in_sessions($date,$query_result);
                 
-                if($is_date_in_sessions == NULL) {
+                if ($is_date_in_sessions == NULL) {
                     debugging('Registrar query did not return any valid sessions');
                     return;
-                } else if($is_date_in_sessions == -1) {
+                } else if ($is_date_in_sessions == -1) {
                     //If the date is between terms, return the string for the later term
                     self::set_term_configs($next_term);
                     //Workaround because of limitations in find date in sessions
                     $regular_sessions = self::find_regular_sessions($query_result);
                     self::set_current_week_display_config($date, $regular_sessions);
                     break;
-                } else if($is_date_in_sessions != 1) {
+                } else if ($is_date_in_sessions != 1) {
                     //if is_date_in_sessions returned an array 
                     self::set_current_week_display_config($date, $is_date_in_sessions);
                     break;
@@ -158,7 +158,7 @@ class block_ucla_weeksdisplay extends block_base {
         $term_string = NULL;
         $term_string.=$current_term;
         $next_term = self::get_next_term($current_term);
-        for($i = 0; $i < 3; $i++){
+        for ($i = 0; $i < 3; $i++) {
             $term_string.=', '.$next_term;
             $next_term = self::get_next_term($next_term);
         }
@@ -199,7 +199,7 @@ class block_ucla_weeksdisplay extends block_base {
         usort($regular_sessions, 'self::cmp_sessions');
         
         //Handles special case where the 2 summer sessions overlap with the date.
-        if(isset($regular_sessions[1]) 
+        if (isset($regular_sessions[1]) 
                && $regular_sessions[0]['session'] == '8A' && $regular_sessions[1]['session'] == '6C') {
             $week_number0 = self::get_week($date, $regular_sessions[0]);          
             $week_number1 = self::get_week($date, $regular_sessions[1]);     
@@ -210,8 +210,8 @@ class block_ucla_weeksdisplay extends block_base {
             
             $week_number = self::get_week($date, $regular_sessions[0]);
             //Summer sessions
-            if($regular_sessions[0]['session'] == '8A' || $regular_sessions[0]['session'] == '6C') {
-                if($week_number >= 0 && $week_number < 11) {       
+            if ($regular_sessions[0]['session'] == '8A' || $regular_sessions[0]['session'] == '6C') {
+                if ($week_number >= 0 && $week_number < 11) {       
                     //Return the string with the correct session.
                     return ucla_term_to_text($regular_sessions[0]['term'], $regular_sessions[0]['session'][1]).', Week '
                             . $week_number;                      
@@ -219,10 +219,10 @@ class block_ucla_weeksdisplay extends block_base {
                     return ucla_term_to_text($regular_sessions[0]['term'], $regular_sessions[0]['session'][1]);
                 }                
             } else { //Regular sessions
-                 if($week_number >= 0 && $week_number < 11) {       
+                 if ($week_number >= 0 && $week_number < 11) {       
                     return ucla_term_to_text($regular_sessions[0]['term']).' - Week '
                             . $week_number;                      
-                } else if($week_number == 11) {       
+                } else if ($week_number == 11) {       
                     return ucla_term_to_text($regular_sessions[0]['term']).' - Finals Week';                      
                 } else { //If the date is before this term's start date.
                     return ucla_term_to_text($regular_sessions[0]['term']);
@@ -250,9 +250,9 @@ class block_ucla_weeksdisplay extends block_base {
         $ses_start_vs_instr_start = self::cmp_dates($ses_start_date, $instr_start_date);  
         
         //If the date is in Week 0.
-        if($date_vs_ses_start >= 0 && $date_vs_instr_start < 0) {
+        if ($date_vs_ses_start >= 0 && $date_vs_instr_start < 0) {
             return 0;
-        } else if($date_vs_instr_start >= 0 && $date_vs_ses_end <= 0) {
+        } else if ($date_vs_instr_start >= 0 && $date_vs_ses_end <= 0) {
             // If the date is in Week 1 - Finals Week    
             
             //Week 1 always starts the first monday including or after session start date.
@@ -316,16 +316,16 @@ class block_ucla_weeksdisplay extends block_base {
         usort($regular_sessions, 'self::cmp_sessions');     
                 
         $regular_sessions_size = count($regular_sessions);
-        for($i = 0; $i < $regular_sessions_size; $i++) {
+        for ($i = 0; $i < $regular_sessions_size; $i++) {
             $session = $regular_sessions[$i];
 
             $date_vs_start = self::cmp_dates($date, $session["session_start"]);
             $date_vs_end = self::cmp_dates($date, $session["session_end"]);
 
-            if($date_vs_start <= -1 && $i == 0) {
+            if ($date_vs_start <= -1 && $i == 0) {
                 //If the date comes before the start of the earliest session
                 return -1;
-            } else if($date_vs_start <= -1) {
+            } else if ($date_vs_start <= -1) {
                 //If the date comes before the start of a session (this implicitly
                 //also means the date comes after the end of the session before this
                 //if the date has not been found in a previous session.)
@@ -333,10 +333,10 @@ class block_ucla_weeksdisplay extends block_base {
                     $return_sessions[] = $regular_sessions[$i];
                 }
                 break; //No need to search rest because dates are chronologically sorted.
-            } else if($date_vs_start >= 0 && $date_vs_end <= 0) {
+            } else if ($date_vs_start >= 0 && $date_vs_end <= 0) {
                 //If the date comes after start of session and before end of session     
                 $return_sessions[] = $regular_sessions[$i];
-            } else if($date_vs_end >= 1 && $i == $regular_sessions_size - 1) {
+            } else if ($date_vs_end >= 1 && $i == $regular_sessions_size - 1) {
                 //If the date comes after the end of the last session
                 return 1;
             }
@@ -359,10 +359,10 @@ class block_ucla_weeksdisplay extends block_base {
     public static function find_regular_sessions($query_obj) {  
         //Add checks to make sure the query object is correct?
         $regular_sessions = NULL;
-        foreach($query_obj as $session){
+        foreach ($query_obj as $session) {
 
             //If the session is a 'regular' session, add it to the list.
-            if($session['session'] == 'RG' || $session['session'] == '8A' 
+            if ($session['session'] == 'RG' || $session['session'] == '8A' 
                     || $session['session'] == '6C') {
                 $regular_sessions[] = $session;
             }
@@ -384,13 +384,13 @@ class block_ucla_weeksdisplay extends block_base {
 
         //Guess the quarter based on the month.
         $month = intval(substr($date, 5, 2));
-        if($month <= 0 || $month > 12) {
+        if ($month <= 0 || $month > 12) {
             debugging('Invalid system date month: '.$month);
-        } else if($month <= 3) {
+        } else if ($month <= 3) {
             set_config('currentterm', $year.'W');
-        } else if($month <= 6) {
+        } else if ($month <= 6) {
             set_config('currentterm', $year.'S');   
-        } else if($month <= 9) {
+        } else if ($month <= 9) {
             set_config('currentterm', $year.'1');
         } else {//if($month <= 12) 
             set_config('currentterm', $year.'F');
@@ -433,7 +433,7 @@ class block_ucla_weeksdisplay extends block_base {
     public static function get_prev_term($current_term) {
         $year = intval(substr($current_term,0 , 2));
         $quarter = $current_term[2];
-        switch($quarter){
+        switch($quarter) {
             case 'F':
                 return $year.'1';
             case 'W':             
@@ -476,7 +476,7 @@ class block_ucla_weeksdisplay extends block_base {
         $unix_date2 = new DateTime($date2);
         $interval = $unix_date1->diff($unix_date2);
 
-        if($unix_date1 <  $unix_date2){
+        if ($unix_date1 <  $unix_date2) {
             return $interval->days * -1;
         } else {
             return $interval->days;

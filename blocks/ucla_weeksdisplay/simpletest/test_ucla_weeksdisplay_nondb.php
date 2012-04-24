@@ -18,7 +18,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
    /*
     * Helper function to create session objects for other tests.
     */
-   function create_session_obj($term, $session, $session_start, $session_end, $instruction_start){
+   function create_session_obj($term, $session, $session_start, $session_end, $instruction_start) {
        $new_session['term'] = $term;
        $new_session['session'] = $session;
        $new_session['session_start'] = $session_start;
@@ -34,7 +34,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
     * Summer <Year> - Session A, Week <Week number>
     * Summer <Year> - Session A, Week <Week number> / Session C, Week <Week number>
     * Summer <Year> - Session C, Week <Week number> */   
-   function test_get_current_week_display_string(){
+   function test_get_current_week_display_string() {
         $sessions = NULL;
         $sessions[] = $this->create_session_obj('11F','RG','2011-09-19','2011-12-09','2011-09-22');
     //Test days starting before and after the session.
@@ -160,6 +160,8 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         $sessions[] = $this->create_session_obj('121','6C','2012-08-06','2012-09-14','2012-08-06'); 
         $sessions[] = $this->create_session_obj('121','8A','2012-06-25','2012-08-17','2012-06-25'); 
         $sessions[] = $this->create_session_obj('121','6A','2012-06-25','2012-08-03','2012-06-25'); 
+        //Commented out because these cases don't work right now because the input should never
+        //be this for these outputs.
         /*$date = '2012-06-25';
         $result = block_ucla_weeksdisplay::get_current_week_display_string($date, $sessions); 
         $this->assertEqual($result, "Summer 2012 - Session A, Week 1");              
@@ -198,7 +200,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         $this->assertEqual($result, "Summer 2012 - Session C, Week 6");   */      
    }
   
-    function test_get_week(){
+    function test_get_week() {
         $session = $this->create_session_obj('10W','RG','2012-02-01','2012-03-01','2012-02-01');
     //Test days starting before and after the session.
         $date = '2012-01-01';
@@ -303,7 +305,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
     *           if 
     *         -1 if date1 comes before all session's instruction start date.
     */  
-    function test_find_date_in_sessions(){
+    function test_find_date_in_sessions() {
         
         $FebtoMarch = $this->create_session_obj('10W','RG','2012-02-01','2012-03-01','2012-02-01');
         $FebtoJune = $this->create_session_obj('10W','RG','2012-02-01','2012-06-01','2012-02-01');
@@ -351,7 +353,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
     }
        
 
-    function test_find_regular_sessions(){  
+    function test_find_regular_sessions() {  
         $sessions = NULL;
         $sessions[] = $this->create_session_obj('10W','RG','2012-01-01','2012-02-01','2012-01-01');
         $sessions[] = $this->create_session_obj('10W','6A','2013-01-01','2013-02-01','2013-01-01');
@@ -368,7 +370,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         $this->assertEqual($result, $answer);        
     }          
 
-    function test_get_next_term(){
+    function test_get_next_term() {
         //Test all changes that can happen in one year, and the millenium case.
         $result = block_ucla_weeksdisplay::get_next_term('11F');
         $this->assertEqual($result, '12W');           
@@ -382,7 +384,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         $this->assertEqual($result, '111');  
     } 
     
-    function test_get_prev_term(){
+    function test_get_prev_term() {
         //Test all changes that can happen in one year, and the millenium case.
         $result = block_ucla_weeksdisplay::get_prev_term('11F');
         $this->assertEqual($result, '111');           
@@ -398,7 +400,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
       
     //Since this function just uses test_cmp_dates, it won't be as rigorously
     //tested.
-    function test_cmp_sessions(){   
+    function test_cmp_sessions() {   
         
         //$term, $session, $session_start, $session_end, $instruction_start
         $session1 = $this->create_session_obj('10W','RG','2012-01-01','2012-02-01','2012-01-01');
@@ -415,7 +417,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         $this->assertEqual(($result > 1), true);                
     }
 
-    function test_cmp_dates(){   
+    function test_cmp_dates() {   
         $result = block_ucla_weeksdisplay::cmp_dates('2012-04-09', '2012-04-09');
         $this->assertEqual($result, 0);
      //Test Dates where date1 comes before date2
@@ -460,7 +462,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         $this->assertEqual($result, 731);         
     }     
 
-    function test_is_leap_year(){
+    function test_is_leap_year() {
         $result = block_ucla_weeksdisplay::is_leap_year(2000);
         $this->assertEqual($result, true);
         $result = block_ucla_weeksdisplay::is_leap_year(2001);
@@ -473,7 +475,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         $this->assertEqual($result, true);
     }
 
-    function test_get_dayofweek(){
+    function test_get_dayofweek() {
         $result = block_ucla_weeksdisplay::get_dayofweek('2012-04-09');
         $this->assertEqual($result, 'Mon');
         $result = block_ucla_weeksdisplay::get_dayofweek('2012-04-10');

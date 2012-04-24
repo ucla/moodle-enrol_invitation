@@ -23,7 +23,7 @@ class ucla_weeksdisplay_db_test extends UnitTestCaseUsingDatabase {
     }
     
     
-   function create_session_obj($term, $session, $session_start, $session_end, $instruction_start){
+   function create_session_obj($term, $session, $session_start, $session_end, $instruction_start) {
        $new_session['term'] = $term;
        $new_session['session'] = $session;
        $new_session['session_start'] = $session_start;
@@ -32,7 +32,7 @@ class ucla_weeksdisplay_db_test extends UnitTestCaseUsingDatabase {
        return $new_session;
    }     
     
-    function test_init_currentterm(){
+    function test_init_currentterm() {
      
         block_ucla_weeksdisplay::init_currentterm('2012-12-12');
         $result = get_config(NULL, 'currentterm');
@@ -48,7 +48,7 @@ class ucla_weeksdisplay_db_test extends UnitTestCaseUsingDatabase {
         $this->assertEqual($result, '121');               
     }
 
-   function test_set_current_week_display(){
+   function test_set_current_week_display() {
         $sessions = NULL;
         $sessions[] = $this->create_session_obj('11F','RG','2011-09-19','2011-12-09','2011-09-22');   
 //Date is within current term        
@@ -218,7 +218,7 @@ class ucla_weeksdisplay_db_test extends UnitTestCaseUsingDatabase {
         $this->assertEqual($result, "Summer 2012 - Session A, Week 2");  
    } 
 
-   function test_set_term_configs(){
+   function test_set_term_configs() {
        block_ucla_weeksdisplay::set_term_configs('11W');
        $result = get_config(NULL, 'currentterm');
        $this->assertEqual($result, '11W');  
@@ -257,7 +257,7 @@ class ucla_weeksdisplay_db_test extends UnitTestCaseUsingDatabase {
        $this->assertEqual($result, '11F, 12W, 12S, 121');        
    } 
    
-   function test_set_current_week_display_config(){
+   function test_set_current_week_display_config() {
                
         //Basic test because this function is just a wrapper function for the get_current_week_display_string.
         $sessions = NULL;
