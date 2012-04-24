@@ -359,7 +359,7 @@ class block_ucla_weeksdisplay extends block_base {
     public static function find_regular_sessions($query_obj) {  
         //Add checks to make sure the query object is correct?
         $regular_sessions = array();
-        foreach ($query_obj as $session) {
+        foreach ((array)$query_obj as $session) {
 
             //If the session is a 'regular' session, add it to the list.
             if ($session['session'] == 'RG' || $session['session'] == '8A' 
