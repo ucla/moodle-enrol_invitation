@@ -31,6 +31,7 @@ class block_ucla_weeksdisplay extends block_base {
      * Returns the current week's display string
      */
     public function get_raw_content() {
+        self::set_current_week_display(date('c'));
         return get_config('local_ucla', 'current_week_display');
     }
     
@@ -357,7 +358,7 @@ class block_ucla_weeksdisplay extends block_base {
     */
     public static function find_regular_sessions($query_obj) {  
         //Add checks to make sure the query object is correct?
-        $regular_sessions = NULL;
+        $regular_sessions = array();
         foreach ($query_obj as $session) {
 
             //If the session is a 'regular' session, add it to the list.
