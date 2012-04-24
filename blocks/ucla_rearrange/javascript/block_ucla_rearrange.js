@@ -325,3 +325,15 @@ M.block_ucla_rearrange.build_ns_config = function() {
     };
 };
 
+/**
+ * Warning message for unsaved work
+ **/
+M.block_ucla_rearrange.not_saved = true;
+M.block_ucla_rearrange.assignwindow = function()
+{
+    window.onbeforeunload = function() {
+        if (M.block_ucla_rearrange.not_saved)
+            return "Your work has not been saved.";
+    }
+};
+

@@ -26,8 +26,13 @@ class ucla_rearrange_form extends moodleform {
 
         $eall = get_string('allcollapse', 'block_ucla_rearrange');
 
-        $this->add_action_buttons();
-
+        //$this->add_action_buttons();
+        $buttonarray=array();
+        $buttonarray[] = &$mform->createElement('submit', 'submitbutton', 'Save Changes', array('onclick' => 'M.block_ucla_rearrange.not_saved = false;'));
+        $buttonarray[] = &$mform->createElement('cancel');
+        $mform->addGroup($buttonarray, 'buttonar', '', array(' '), false);
+        $mform->closeHeaderBefore('buttonar');
+        
         $mform->addElement('header');
 
         $classset = array('class' => 'expandall');
@@ -40,6 +45,11 @@ class ucla_rearrange_form extends moodleform {
 
         $mform->addElement('button', 'mass-expander-bot', $eall, $classset);
 
-        $this->add_action_buttons();
+        $buttonarray=array();
+        $buttonarray[] = &$mform->createElement('submit', 'submitbutton', 'Save Changes', array('onclick' => 'M.block_ucla_rearrange.not_saved = false;'));
+        $buttonarray[] = &$mform->createElement('cancel');
+        $mform->addGroup($buttonarray, 'buttonar', '', array(' '), false);
+        $mform->closeHeaderBefore('buttonar');
     }
 }
+

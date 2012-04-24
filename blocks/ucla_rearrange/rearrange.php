@@ -226,6 +226,7 @@ $PAGE->set_heading($restrc);
 echo $OUTPUT->header();
 echo $OUTPUT->heading($restr, 2, 'headingblock');
 
+
 if ($data != false) {
     echo $OUTPUT->box(
         get_string('rearrange_success', 'block_ucla_rearrange')
@@ -233,14 +234,20 @@ if ($data != false) {
 
     echo $OUTPUT->continue_button(new moodle_url('/course/view.php',
         array('id' => $course_id)));
+    
 
 } else {
     $rearrangeform->display();
     $PAGE->requires->js_init_code(
         'M.block_ucla_rearrange.initialize_rearrange_tool()'
     );
+    $PAGE->requires->js_init_code('M.block_ucla_rearrange.assignwindow()');
+
 }
 
+
+
 echo $OUTPUT->footer();
+
 
 // EOF
