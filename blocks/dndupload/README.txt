@@ -8,6 +8,12 @@ This is the Moodle 2.x version.
 It has been tested with Firefox 5, Chromium 14 and Chrome 12 (all running on Ubunutu 11.04). It has no chance of working in IE, so don't bother trying (it may start working with IE10 or later, depending on MS implementing some key features of HTML 5).
 It has only been tested with the 'Topic' course format.
 
+==Changes==
+
+2012-01-29 - Fixed error when uploading files if site default resource display is 'popup'
+2012-01-16 - Finish/Danish translations from Paul Nijbakker
+2012-01-12 - Now saves 'userid' in file database entry, so uploaded files appear in 'recent files' in file picker (thanks to Steve Miley)
+
 ==Installation==
 
 1. Unzip the files to a suitable location on your local machine

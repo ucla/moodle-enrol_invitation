@@ -53,6 +53,7 @@ if (!confirm_sesskey()) {
     dnd_send_error(DND_ERROR_INVALID_SESSKEY, 'Invalid sesskey');
 }
 
+$display = false;
 if ($type == 'Files') {
     // Extract the file data
     if (!array_key_exists('uploadfile', $_FILES)) {
@@ -76,20 +77,28 @@ if ($type == 'Files') {
     $icon = $OUTPUT->pix_url(file_extension_icon($filename)).'';
     $modulename = 'resource';
 
+    $display = get_config('resource', 'display');
+
 } else {
     $displayname = required_param('displayname', PARAM_TEXT);
     if ($type == 'url') {
         $contents = required_param('contents', PARAM_URL);
         $icon = $OUTPUT->pix_url(url_guess_icon($contents)).'';
         $modulename = 'url';
+        $display = get_config('url', 'display');
+
     } else if ($type == 'text') {
         $contents = required_param('contents', PARAM_TEXT);
         $icon = $OUTPUT->pix_url('icon', 'page').'';
         $modulename = 'page';
+        $display = get_config('page', 'display');
+
     } else if ($type == 'text/html') {
         $contents = required_param('contents', PARAM_CLEANHTML);
         $icon = $OUTPUT->pix_url('icon', 'page').'';
         $modulename = 'page';
+        $display = get_config('page', 'display');
+
     } else {
         dnd_send_error(DND_ERROR_INVALID_TYPE, 'Invalid upload type');
     }
@@ -114,13 +123,20 @@ $data->groupmembersonly = 0;
 $data->id = '';
 $data->files = false;
 
+$data->printheading = false; // Added to avoid any warnings due to not setting them
+$data->printintro = false;
+$data->popupwidth = 620;  // Default values from mod/resource/lib.php
+$data->popupheight = 450;
+
 // Create the course module
 $data->coursemodule = add_course_module($data);
 
 unset($data->id);
 
-// use default display setting for resources
-$data->display = get_config('resource', 'display'); 
+$data->display = $display;
+if ($data->display === false) {
+    $data->display = RESOURCELIB_DISPLAY_AUTO;
+}
 
 if ($type == 'Files') {
     // Create the relevant file
@@ -132,7 +148,8 @@ if ($type == 'Files') {
                       'filearea' => 'content',
                       'itemid' => 0,
                       'filepath' => '/',
-                      'filename' => $filename
+                      'filename' => $filename,
+                      'userid' => $USER->id
                       );
     $fs->create_file_from_pathname($fileinfo, $filesrc);
 
