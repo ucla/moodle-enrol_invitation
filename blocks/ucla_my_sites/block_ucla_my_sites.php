@@ -132,8 +132,6 @@ class block_ucla_my_sites extends block_base {
                     continue;
                 }
 
-                $remotecourse['url'] = '';
-
                 $rclass = new stdclass();
                 $rclass->url = $remotecourse['url'];
                 if (empty($remotecourse['course_title'])) {
