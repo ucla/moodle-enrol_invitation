@@ -31,7 +31,6 @@ class block_ucla_weeksdisplay extends block_base {
      * Returns the current week's display string
      */
     public function get_raw_content() {
-        self::set_current_week_display(date('c'));
         return get_config('local_ucla', 'current_week_display');
     }
     
@@ -329,7 +328,7 @@ class block_ucla_weeksdisplay extends block_base {
                 //If the date comes before the start of a session (this implicitly
                 //also means the date comes after the end of the session before this
                 //if the date has not been found in a previous session.)
-                if(empty($return_sessions)){
+                if (empty($return_sessions)) {
                     $return_sessions[] = $regular_sessions[$i];
                 }
                 break; //No need to search rest because dates are chronologically sorted.
@@ -433,7 +432,7 @@ class block_ucla_weeksdisplay extends block_base {
     public static function get_prev_term($current_term) {
         $year = intval(substr($current_term,0 , 2));
         $quarter = $current_term[2];
-        switch($quarter) {
+        switch ($quarter) {
             case 'F':
                 return $year.'1';
             case 'W':             
