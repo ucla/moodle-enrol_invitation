@@ -16,6 +16,7 @@ if ($hassiteconfig) { // speedup for non-admins, add all caps used on this page
     $temp->add(new admin_setting_configcheckbox('protectusernames', get_string('protectusernames', 'admin'), get_string('configprotectusernames', 'admin'), 1));
     $temp->add(new admin_setting_configcheckbox('forcelogin', get_string('forcelogin', 'admin'), get_string('configforcelogin', 'admin'), 0));
     $temp->add(new admin_setting_configcheckbox('forceloginforprofiles', get_string('forceloginforprofiles', 'admin'), get_string('configforceloginforprofiles', 'admin'), 1));
+    $temp->add(new admin_setting_configcheckbox('forceloginforprofileimage', get_string('forceloginforprofileimage', 'admin'), get_string('forceloginforprofileimage_help', 'admin'), 0));
     $temp->add(new admin_setting_configcheckbox('opentogoogle', get_string('opentogoogle', 'admin'), get_string('configopentogoogle', 'admin'), 0));
     $temp->add(new admin_setting_pickroles('profileroles',
         get_string('profileroles','admin'),
@@ -81,6 +82,7 @@ if ($hassiteconfig) { // speedup for non-admins, add all caps used on this page
     $temp->add(new admin_setting_configcheckbox('cookiesecure', get_string('cookiesecure', 'admin'), get_string('configcookiesecure', 'admin'), 0));
     $temp->add(new admin_setting_configcheckbox('cookiehttponly', get_string('cookiehttponly', 'admin'), get_string('configcookiehttponly', 'admin'), 0));
     $temp->add(new admin_setting_configcheckbox('allowframembedding', get_string('allowframembedding', 'admin'), get_string('allowframembedding_help', 'admin'), 0));
+    $temp->add(new admin_setting_configcheckbox('loginpasswordautocomplete', get_string('loginpasswordautocomplete', 'admin'), get_string('loginpasswordautocomplete_help', 'admin'), 0));
     $ADMIN->add('security', $temp);
 
 

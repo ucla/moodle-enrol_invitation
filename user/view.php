@@ -57,7 +57,7 @@ if (isguestuser($user)) {
 }
 
 if (!empty($CFG->forceloginforprofiles)) {
-    require_login(); // we can not log in to course due to the parent hack bellow
+    require_login(); // we can not log in to course due to the parent hack below
 }
 
 $PAGE->set_context($coursecontext);
@@ -283,7 +283,16 @@ if (!isset($hiddenfields['groups'])) {
 
 // Show other courses they may be in
 if (!isset($hiddenfields['mycourses'])) {
-    if ($mycourses = enrol_get_users_courses($user->id, true, NULL, 'visible DESC,sortorder ASC')) {
+    // BEGIN UCLA MOD: CCLE-2531 - REGISTRAR - Hiding course listing
+    // hide course listing if person viewing does not have the capability
+    // 'local/ucla:viewall_courselisting' for site/course/user context or
+    // is not the user themselves
+    if (($currentuser || 
+            has_capability('local/ucla:viewall_courselisting', $systemcontext) ||
+            has_capability('local/ucla:viewall_courselisting', $coursecontext) ||
+            has_capability('local/ucla:viewall_courselisting', $usercontext)) &&
+            $mycourses = enrol_get_users_courses($user->id, true, NULL, 'visible DESC,sortorder ASC')) {
+    // END UCLA MOD: CCLE-2531        
         $shown = 0;
         $courselisting = '';
         foreach ($mycourses as $mycourse) {
@@ -312,6 +321,12 @@ if (!isset($hiddenfields['mycourses'])) {
             }
         }
         print_row(get_string('courseprofiles').':', rtrim($courselisting,', '));
+    }
+}
+
+if (!isset($hiddenfields['suspended'])) {
+    if ($user->suspended) {
+        print_row('', get_string('suspended', 'auth'));
     }
 }
 

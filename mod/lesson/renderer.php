@@ -166,6 +166,7 @@ class mod_lesson_renderer extends plugin_renderer_base {
 
         $yeslink = html_writer::link(new moodle_url('/mod/lesson/view.php', array('id'=>$this->page->cm->id, 'pageid'=>$lastpageseenid, 'startlastseen'=>'yes')), get_string('yes'));
         $output .= html_writer::tag('span', $yeslink, array('class'=>'lessonbutton standardbutton'));
+        $output .= '&nbsp;';
 
         $nolink = html_writer::link(new moodle_url('/mod/lesson/view.php', array('id'=>$this->page->cm->id, 'pageid'=>$lesson->firstpageid, 'startlastseen'=>'no')), get_string('no'));
         $output .= html_writer::tag('span', $nolink, array('class'=>'lessonbutton standardbutton'));
@@ -538,20 +539,10 @@ class mod_lesson_renderer extends plugin_renderer_base {
         }
 
         // print out the Progress Bar.  Attempted to put as much as possible in the style sheets.
-        $cells = array();
-        if ($progress != 0) {  // some browsers do not repsect the 0 width.
-            $cells[0] = new html_table_cell();
-            $cells[0]->style = 'width:'.$progress.'%';
-            $cells[0]->attributes['class'] = 'progress_bar_completed';
-            $cells[0]->text = ' ';
-        }
-        $cells[] = '<div class="progress_bar_token"></div>';
+        $content = '<br />' . html_writer::tag('div', $progress . '%', array('class' => 'progress_bar_completed', 'style' => 'width: '. $progress . '%;'));
+        $printprogress = html_writer::tag('div', get_string('progresscompleted', 'lesson', $progress) . $content, array('class' => 'progress_bar'));
 
-        $table = new html_table();
-        $table->attributes['class'] = 'progress_bar_table';
-        $table->data = array(new html_table_row($cells));
-
-        return $this->output->box(html_writer::table($table), 'progress_bar');
+        return $this->output->box($printprogress, 'progress_bar');
     }
 
     /**

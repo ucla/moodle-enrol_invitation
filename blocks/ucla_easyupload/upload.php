@@ -9,6 +9,8 @@ require_once($CFG->dirroot . $thispath . '/block_ucla_easyupload.php');
 require_once($CFG->dirroot . $thispath . '/upload_form.php');
 
 @include_once($CFG->libdir . '/publicprivate/module.class.php');
+// Need to inlucde here.  License is not treated as plugin in the code
+@include_once($CFG->libdir. '/licenselib.php');
 
 global $CFG, $PAGE, $OUTPUT;
 
@@ -114,12 +116,27 @@ foreach ($modnames as $modname => $modnamestr) {
     }
 }
 
+// Prep copyrights for copyright selector
+$copyrights_result = array();
+$copyrights_result = license_manager::get_licenses(array('enabled'=>1));
+$copyrights = array();
+ foreach ($copyrights_result as $copyright) {
+    $sid = $copyright->shortname;
+    $copyrights[$sid] = $copyright->fullname;
+}
+
+
 // Prep things for section selector
 $sections = get_all_sections($course_id);
 
 $sectionnames = array();
 $indexed_sections = array();
+
 foreach ($sections as $section) {
+    if ($section->section > $course->numsections) {
+        continue;
+    }
+    
     $sid = $section->id;
     $sectionnames[$sid] = get_section_name($course, $section);
 
@@ -172,6 +189,8 @@ $uploadform = new $typeclass(null,
         'course' => $course, 
         // Needed for some get_string()
         'type' => $type, 
+        // Needed for copyright <SELECT>
+        'copyrights' => $copyrights,
         // Needed for the section <SELECT>
         'sectionnames' => $sectionnames,
         // Needed when picking resources 
@@ -233,7 +252,7 @@ if ($uploadform->is_cancelled()) {
 
     // Pilfered parts from /course/modedit.php
     $modulename = $data->modulename;
-
+    // Module resource
     $moddir = $CFG->dirroot . '/mod/' . $modulename;
     $modform = $moddir . '/mod_form.php';
     if (file_exists($modform)) {
@@ -329,7 +348,7 @@ if ($uploadform->is_cancelled()) {
         $sequencearr = array();
         foreach($newmods as $newmod) {
             if ($newmod->id == 'new') {
-                $newmod->id = $instanceid;
+                $newmod->id = $coursemoduleid;
             }
 
             $sequencearr[$newmod->id] = $newmod->id;
@@ -373,7 +392,10 @@ if (!isset($data) || !$data) {
     if (function_exists($fn)) {
         $key = $fn();
     }
-
+    
+    if (defined('UCLA_FORMAT_DISPLAY_LANDING')) {
+        $params['topic'] = UCLA_FORMAT_DISPLAY_LANDING;
+    }    
     $courseurl = new moodle_url('/course/view.php', $params);
     $courseret = new single_button($courseurl, get_string('returntocourse',
             'block_ucla_easyupload'), 'get');

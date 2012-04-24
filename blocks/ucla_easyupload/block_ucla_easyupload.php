@@ -141,6 +141,18 @@ class block_ucla_easyupload extends block_base {
 
         return $allmods;
     }
+    
+    /**
+     *  Do not allow block to be added anywhere
+     */
+    function applicable_formats() {
+        return array(
+            'site-index' => false,
+            'course-view' => false,
+            'my' => false,
+            'not-really-applicable' => true
+        );
+    }    
 }
 
 // End of file

@@ -192,7 +192,7 @@ class core_admin_renderer extends plugin_renderer_base {
         $output .= $this->maturity_info($maturity);
         $output .= $this->insecure_dataroot_warning($insecuredataroot);
         $output .= $this->display_errors_warning($errorsdisplayed);
-        $output .= $this->cron_overdue_warning($errorsdisplayed);
+        $output .= $this->cron_overdue_warning($cronoverdue);
         $output .= $this->db_problems($dbproblems);
         $output .= $this->maintenance_mode_warning($maintenancemode);
 
@@ -339,8 +339,10 @@ class core_admin_renderer extends plugin_renderer_base {
             return '';
         }
 
-        return $this->warning(get_string('sitemaintenancewarning2', 'admin',
-                new moodle_url('/admin/settings.php', array('section' => 'maintenancemode'))));
+        $url = new moodle_url('/admin/settings.php', array('section' => 'maintenancemode'));
+        $url = $url->out(); // get_string() does not support objects in params
+
+        return $this->warning(get_string('sitemaintenancewarning2', 'admin', $url));
     }
 
     /**
@@ -597,8 +599,7 @@ class core_admin_renderer extends plugin_renderer_base {
 
             if (is_null($otherplugin)) {
                 $ok = false;
-            }
-            if ($requiredversion != ANY_VERSION and $otherplugin->versiondisk < $requiredversion) {
+            } else if ($requiredversion != ANY_VERSION and $otherplugin->versiondisk < $requiredversion) {
                 $ok = false;
             }
 

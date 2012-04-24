@@ -1044,10 +1044,9 @@ class potential_assignees_below_course extends role_assign_user_selector_base {
         $sql   = " FROM {user} u
                   WHERE u.id IN ($enrolsql) $wherecondition
                         AND u.id NOT IN (
-                           SELECT u.id
-                             FROM {role_assignments} r, {user} u
+                           SELECT r.userid
+                             FROM {role_assignments} r
                             WHERE r.contextid = :contextid
-                                  AND u.id = r.userid
                                   AND r.roleid = :roleid)";
         $order = ' ORDER BY lastname ASC, firstname ASC';
 
@@ -1096,10 +1095,9 @@ class potential_assignees_course_and_above extends role_assign_user_selector_bas
         $sql = " FROM {user}
                 WHERE $wherecondition
                       AND id NOT IN (
-                         SELECT u.id
-                           FROM {role_assignments} r, {user} u
+                         SELECT r.userid
+                           FROM {role_assignments} r
                           WHERE r.contextid = :contextid
-                                AND u.id = r.userid
                                 AND r.roleid = :roleid)";
         $order = ' ORDER BY lastname ASC, firstname ASC';
 
@@ -1584,13 +1582,31 @@ class admins_existing_selector extends user_selector_base {
             return array();
         }
 
-        if ($search) {
-            $groupname = get_string('extusersmatching', 'role', $search);
-        } else {
-            $groupname = get_string('extusers', 'role');
+        $mainadmin = array();
+        $adminids = explode(',', $CFG->siteadmins);
+        foreach ($adminids as $id) {
+            if (isset($availableusers[$id])) {
+                $mainadmin = array($id=>$availableusers[$id]);
+                unset($availableusers[$id]);
+                break;
+            }
         }
 
-        return array($groupname => $availableusers);
+        $result = array();
+        if ($mainadmin) {
+            $result[get_string('mainadmin', 'role')] = $mainadmin;
+        }
+
+        if ($availableusers) {
+            if ($search) {
+                $groupname = get_string('extusersmatching', 'role', $search);
+            } else {
+                $groupname = get_string('extusers', 'role');
+            }
+            $result[$groupname] = $availableusers;
+        }
+
+        return $result;
     }
 
     protected function get_options() {

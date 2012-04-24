@@ -28,7 +28,7 @@ require_once(dirname(__FILE__) . '/../../lib.php');
 require_once(dirname(__FILE__) . '/ucla_course_prefs.class.php');
 require_once(dirname(__FILE__) . '/course_prefs_edit_form.class.php');
 
-$courseid = required_param('courseid', 0, PARAM_INT);
+$courseid = required_param('courseid', PARAM_INT);
 
 if ($courseid == SITEID) {
     print_error('cannoteditsiteform');

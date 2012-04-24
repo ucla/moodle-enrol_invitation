@@ -628,7 +628,15 @@ function optional_param_array($parname, $default, $type) {
             debugging('Invalid key name in optional_param_array() detected: '.$key.', parameter: '.$parname);
             continue;
         }
-        $result[$key] = clean_param($value, $type);
+        // START UCLA MODIFICATION CCLE-2662 - Roles Migration Local Plugin
+        // Implementing patch provided by plugin creator to make tool work for
+        // Moodle 2.2: http://tracker.moodle.org/browse/MDL-31793
+        if (is_array($value)) {
+            $result[$key] = clean_param_array($value, $type);
+        } else {
+            $result[$key] = clean_param($value, $type);
+        }
+        // END UCLA MODIFICATION CCLE-2662        
     }
 
     return $result;
@@ -1316,7 +1324,7 @@ function get_config($plugin, $name = NULL) {
         if ($localcfg) {
             return (object)$localcfg;
         } else {
-            return null;
+            return new stdClass();
         }
 
     } else {
@@ -1652,6 +1660,9 @@ function set_user_preference($name, $value, $user = null) {
         throw new coding_exception('Invalid value in set_user_preference() call, arrays are not allowed');
     }
     $value = (string)$value;
+    if (textlib::strlen($value) > 1333) { //value column maximum length is 1333 characters
+        throw new coding_exception('Invalid value in set_user_preference() call, value is is too long for the value column');
+    }
 
     if (is_null($user)) {
         $user = $USER;
@@ -1864,6 +1875,7 @@ function make_timestamp($year, $month=1, $day=1, $hour=0, $minute=0, $second=0, 
     $totalsecs = abs($totalsecs);
 
     if (!$str) {  // Create the str structure the slow way
+        $str = new stdClass();
         $str->day   = get_string('day');
         $str->days  = get_string('days');
         $str->hour  = get_string('hour');
@@ -2210,7 +2222,7 @@ function get_timezone_record($timezonename) {
     }
 
     return $cache[$timezonename] = $DB->get_record_sql('SELECT * FROM {timezone}
-                                                        WHERE name = ? ORDER BY year DESC', array($timezonename), true);
+                                                        WHERE name = ? ORDER BY year DESC', array($timezonename), IGNORE_MULTIPLE);
 }
 
 /**
@@ -2736,6 +2748,10 @@ function require_login($courseorid = NULL, $autologinguest = true, $cm = NULL, $
                 if ($preventredirect) {
                     throw new require_login_exception('Course is hidden');
                 }
+                // We need to override the navigation URL as the course won't have
+                // been added to the navigation and thus the navigation will mess up
+                // when trying to find it.
+                navigation_node::override_active_url(new moodle_url('/'));
                 notice(get_string('coursehidden'), $CFG->wwwroot .'/');
             }
         }
@@ -2760,7 +2776,11 @@ function require_login($courseorid = NULL, $autologinguest = true, $cm = NULL, $
 
         $access = false;
 
-        if (is_viewing($coursecontext, $USER)) {
+        if (is_role_switched($course->id)) {
+            // ok, user had to be inside this course before the switch
+            $access = true;
+
+        } else if (is_viewing($coursecontext, $USER)) {
             // ok, no need to mess with enrol
             $access = true;
 
@@ -3356,7 +3376,7 @@ function get_extra_user_fields($context, $already = array()) {
     }
 
     // Split showuseridentity on comma
-    if ($CFG->showuseridentity === '') {
+    if (empty($CFG->showuseridentity)) {
         // Explode gives wrong result with empty string
         $extra = array();
     } else {
@@ -3600,7 +3620,8 @@ function create_user_record($username, $password, $auth = 'manual') {
     }
     $newuser->confirmed = 1;
     $newuser->lastip = getremoteaddr();
-    $newuser->timemodified = time();
+    $newuser->timecreated = time();
+    $newuser->timemodified = $newuser->timecreated;
     $newuser->mnethostid = $CFG->mnet_localhost_id;
 
     $newuser->id = $DB->insert_record('user', $newuser);
@@ -3663,6 +3684,7 @@ function update_user_record($username) {
         }
         if ($newuser) {
             $newuser['id'] = $oldinfo->id;
+            $newuser['timemodified'] = time();
             $DB->update_record('user', $newuser);
             // fetch full user record for the event, the complete user data contains too much info
             // and we want to be consistent with other places that trigger this event
@@ -3765,6 +3787,12 @@ function delete_user($user) {
     // last course access not necessary either
     $DB->delete_records('user_lastaccess', array('userid'=>$user->id));
 
+    // remove all user tokens
+    $DB->delete_records('external_tokens', array('userid'=>$user->id));
+
+    // unauthorise the user for all services
+    $DB->delete_records('external_services_users', array('userid'=>$user->id));
+
     // force logout - may fail if file based sessions used, sorry
     session_kill_user($user->id);
 
@@ -3787,6 +3815,13 @@ function delete_user($user) {
     $updateuser->timemodified = time();
 
     $DB->update_record('user', $updateuser);
+    // Add this action to log
+    add_to_log(SITEID, 'user', 'delete', "view.php?id=$user->id", $user->firstname.' '.$user->lastname);
+
+
+    // We will update the user's timemodified, as it will be passed to the user_deleted event, which
+    // should know about this updated property persisted to the user's table.
+    $user->timemodified = $updateuser->timemodified;
 
     // notify auth plugin - do not block the delete even when plugin fails
     $authplugin = get_auth_plugin($user->auth);
@@ -4270,6 +4305,11 @@ function delete_course($courseorid, $showfeedback = true) {
 
     // delete the course and related context instance
     delete_context(CONTEXT_COURSE, $courseid);
+
+    // We will update the course's timemodified, as it will be passed to the course_deleted event,
+    // which should know about this updated property, as this event is meant to pass the full course record
+    $course->timemodified = time();
+
     $DB->delete_records("course", array("id"=>$courseid));
 
     //trigger events
@@ -4391,7 +4431,7 @@ function remove_course_contents($courseid, $showfeedback = true, array $options 
     // We have tried to delete everything the nice way - now let's force-delete any remaining module data
     $cms = $DB->get_records('course_modules', array('course'=>$course->id));
     foreach ($cms as $cm) {
-        if ($module = $DB->get_record('module', array('id'=>$cm->module))) {
+        if ($module = $DB->get_record('modules', array('id'=>$cm->module))) {
             try {
                 $DB->delete_records($module->name, array('id'=>$cm->instance));
             } catch (Exception $e) {
@@ -4978,19 +5018,31 @@ function email_to_user($user, $from, $subject, $messagetext, $messagehtml='', $a
     global $CFG, $FULLME;
 
     if (empty($user) || empty($user->email)) {
-        mtrace('Error: lib/moodlelib.php email_to_user(): User is null or has no email');
+        $nulluser = 'User is null or has no email';
+        error_log($nulluser);
+        if (CLI_SCRIPT) {
+            mtrace('Error: lib/moodlelib.php email_to_user(): '.$nulluser);
+        }
         return false;
     }
 
     if (!empty($user->deleted)) {
-        // do not mail delted users
-        mtrace('Error: lib/moodlelib.php email_to_user(): User is deleted');
+        // do not mail deleted users
+        $userdeleted = 'User is deleted';
+        error_log($userdeleted);
+        if (CLI_SCRIPT) {
+            mtrace('Error: lib/moodlelib.php email_to_user(): '.$userdeleted);
+        }
         return false;
     }
 
     if (!empty($CFG->noemailever)) {
         // hidden setting for development sites, set in config.php if needed
-        mtrace('Error: lib/moodlelib.php email_to_user(): Not sending email due to noemailever config setting');
+        $noemail = 'Not sending email due to noemailever config setting';
+        error_log($noemail);
+        if (CLI_SCRIPT) {
+            mtrace('Error: lib/moodlelib.php email_to_user(): '.$noemail);
+        }
         return true;
     }
 
@@ -5001,14 +5053,26 @@ function email_to_user($user, $from, $subject, $messagetext, $messagehtml='', $a
     }
 
     // skip mail to suspended users
-    if (isset($user->auth) && $user->auth=='nologin') {
+    if ((isset($user->auth) && $user->auth=='nologin') or (isset($user->suspended) && $user->suspended)) {
         return true;
+    }
+
+    if (!validate_email($user->email)) {
+        // we can not send emails to invalid addresses - it might create security issue or confuse the mailer
+        $invalidemail = "User $user->id (".fullname($user).") email ($user->email) is invalid! Not sending.";
+        error_log($invalidemail);
+        if (CLI_SCRIPT) {
+            mtrace('Error: lib/moodlelib.php email_to_user(): '.$invalidemail);
+        }
+        return false;
     }
 
     if (over_bounce_threshold($user)) {
         $bouncemsg = "User $user->id (".fullname($user).") is over bounce threshold! Not sending.";
         error_log($bouncemsg);
-        mtrace('Error: lib/moodlelib.php email_to_user(): '.$bouncemsg);
+        if (CLI_SCRIPT) {
+            mtrace('Error: lib/moodlelib.php email_to_user(): '.$bouncemsg);
+        }
         return false;
     }
 
@@ -5152,8 +5216,10 @@ function email_to_user($user, $from, $subject, $messagetext, $messagehtml='', $a
         }
         return true;
     } else {
-        mtrace('ERROR: '. $mail->ErrorInfo);
         add_to_log(SITEID, 'library', 'mailer', $FULLME, 'ERROR: '. $mail->ErrorInfo);
+        if (CLI_SCRIPT) {
+            mtrace('Error: lib/moodlelib.php email_to_user(): '.$mail->ErrorInfo);
+        }
         if (!empty($mail->SMTPDebug)) {
             echo '</pre>';
         }
@@ -7209,12 +7275,17 @@ class emoticon_manager {
  *
  * @todo Finish documenting this function
  *
- * @param string $data Data to encrypt
- * @return string The now encrypted data
+ * @param string $data        Data to encrypt.
+ * @param bool $usesecurekey  Lets us know if we are using the old or new password.
+ * @return string             The now encrypted data.
  */
-function rc4encrypt($data) {
-    $password = 'nfgjeingjk';
-    return endecrypt($password, $data, '');
+function rc4encrypt($data, $usesecurekey = false) {
+    if (!$usesecurekey) {
+        $passwordkey = 'nfgjeingjk';
+    } else {
+        $passwordkey = get_site_identifier();
+    }
+    return endecrypt($passwordkey, $data, '');
 }
 
 /**
@@ -7222,12 +7293,17 @@ function rc4encrypt($data) {
  *
  * @todo Finish documenting this function
  *
- * @param string $data Data to decrypt
- * @return string The now decrypted data
+ * @param string $data        Data to decrypt.
+ * @param bool $usesecurekey  Lets us know if we are using the old or new password.
+ * @return string             The now decrypted data.
  */
-function rc4decrypt($data) {
-    $password = 'nfgjeingjk';
-    return endecrypt($password, $data, 'de');
+function rc4decrypt($data, $usesecurekey = false) {
+    if (!$usesecurekey) {
+        $passwordkey = 'nfgjeingjk';
+    } else {
+        $passwordkey = get_site_identifier();
+    }
+    return endecrypt($passwordkey, $data, 'de');
 }
 
 /**
@@ -7457,7 +7533,6 @@ function get_core_subsystems() {
             'langconfig'  => NULL,
             'license'     => NULL,
             'mathslib'    => NULL,
-            'message'     => 'message',
             'message'     => 'message',
             'mimetypes'   => NULL,
             'mnet'        => 'mnet',
@@ -7766,35 +7841,50 @@ function get_list_of_plugins($directory='mod', $exclude='', $basedir='') {
     return $plugins;
 }
 
+/**
+* Invoke plugin's callback functions
+*
+* @param string $type plugin type e.g. 'mod'
+* @param string $name plugin name
+* @param string $feature feature name
+* @param string $action feature's action
+* @param array $params parameters of callback function, should be an array
+* @param mixed $default default value if callback function hasn't been defined, or if it retursn null.
+* @return mixed
+*
+* @todo Decide about to deprecate and drop plugin_callback() - MDL-30743
+*/
+function plugin_callback($type, $name, $feature, $action, $params = null, $default = null) {
+    return component_callback($type . '_' . $name, $feature . '_' . $action, (array) $params, $default);
+}
 
 /**
- * invoke plugin's callback functions
+ * Invoke component's callback functions
  *
- * @param string $type Plugin type e.g. 'mod'
- * @param string $name Plugin name
- * @param string $feature Feature name
- * @param string $action Feature's action
- * @param string $options parameters of callback function, should be an array
- * @param mixed $default default value if callback function hasn't been defined
+ * @param string $component frankenstyle component name, e.g. 'mod_quiz'
+ * @param string $function the rest of the function name, e.g. 'cron' will end up calling 'mod_quiz_cron'
+ * @param array $params parameters of callback function
+ * @param mixed $default default value if callback function hasn't been defined, or if it retursn null.
  * @return mixed
  */
-function plugin_callback($type, $name, $feature, $action, $options = null, $default=null) {
-    global $CFG; // this is needed for require_once() bellow
+function component_callback($component, $function, array $params = array(), $default = null) {
+    global $CFG; // this is needed for require_once() below
 
-    $component = clean_param($type . '_' . $name, PARAM_COMPONENT);
-    if (empty($component)) {
-        throw new coding_exception('Invalid component used in plugin_callback():' . $type . '_' . $name);
+    $cleancomponent = clean_param($component, PARAM_COMPONENT);
+    if (empty($cleancomponent)) {
+        throw new coding_exception('Invalid component used in plugin/component_callback():' . $component);
     }
+    $component = $cleancomponent;
 
     list($type, $name) = normalize_component($component);
     $component = $type . '_' . $name;
 
-    $function = $component.'_'.$feature.'_'.$action;
-    $oldfunction = $name.'_'.$feature.'_'.$action;
+    $oldfunction = $name.'_'.$function;
+    $function = $component.'_'.$function;
 
     $dir = get_component_directory($component);
     if (empty($dir)) {
-        throw new coding_exception('Invalid component used in plugin_callback():' . $type . '_' . $name);
+        throw new coding_exception('Invalid component used in plugin/component_callback():' . $component);
     }
 
     // Load library and look for function
@@ -7811,7 +7901,7 @@ function plugin_callback($type, $name, $feature, $action, $options = null, $defa
 
     if (function_exists($function)) {
         // Function exists, so just return function result
-        $ret = call_user_func_array($function, (array)$options);
+        $ret = call_user_func_array($function, $params);
         if (is_null($ret)) {
             return $default;
         } else {
@@ -8157,7 +8247,8 @@ function get_device_type() {
          return 'tablet';
     }
 
-    if (strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE 6.') !== false) {
+    // Safe way to check for IE6 and not get false positives for some IE 7/8 users
+    if (substr($_SERVER['HTTP_USER_AGENT'], 0, 34) === 'Mozilla/4.0 (compatible; MSIE 6.0;') {
         return 'legacy';
     }
 
@@ -9991,40 +10082,20 @@ function object_property_exists( $obj, $property ) {
  * Detect a custom script replacement in the data directory that will
  * replace an existing moodle script
  *
- * @param string $urlpath path to the original script
  * @return string|bool full path name if a custom script exists, false if no custom script exists
  */
-function custom_script_path($urlpath='') {
-    global $CFG;
+function custom_script_path() {
+    global $CFG, $SCRIPT;
 
-    // set default $urlpath, if necessary
-    if (empty($urlpath)) {
-        $urlpath = qualified_me(); // e.g. http://www.this-server.com/moodle/this-script.php
-    }
-
-    // $urlpath is invalid if it is empty or does not start with the Moodle wwwroot
-    if (empty($urlpath) or (strpos($urlpath, $CFG->wwwroot) === false )) {
+    if ($SCRIPT === null) {
+        // Probably some weird external script
         return false;
     }
 
-    // replace wwwroot with the path to the customscripts folder and clean path
-    $scriptpath = $CFG->customscripts . clean_param(substr($urlpath, strlen($CFG->wwwroot)), PARAM_PATH);
-
-    // remove the query string, if any
-    if (($strpos = strpos($scriptpath, '?')) !== false) {
-        $scriptpath = substr($scriptpath, 0, $strpos);
-    }
-
-    // remove trailing slashes, if any
-    $scriptpath = rtrim($scriptpath, '/\\');
-
-    // append index.php, if necessary
-    if (is_dir($scriptpath)) {
-        $scriptpath .= '/index.php';
-    }
+    $scriptpath = $CFG->customscripts . $SCRIPT;
 
     // check the custom script exists
-    if (file_exists($scriptpath)) {
+    if (file_exists($scriptpath) and is_file($scriptpath)) {
         return $scriptpath;
     } else {
         return false;

@@ -7,16 +7,16 @@ $string['choosereadme'] = 'The theme from University of California, Los Angeles.
 
 // The footer links
 $string['foodis_contact_ccle'] = 'Contact CCLE';
-$string['foolin_contact_ccle'] = 'https://ccle.ucla.edu/about/contact.html';
+$string['foolin_contact_ccle'] = 'https://pilot.ccle.ucla.edu/course/view.php?id=110&topic=8';
 
 $string['foodis_about_ccle'] = 'About CCLE';
-$string['foolin_about_ccle'] = 'http://ccle.ucla.edu/about.html';
+$string['foolin_about_ccle'] = 'https://pilot.ccle.ucla.edu/course/view.php?id=110&topic=0';
 
 $string['foodis_privacy'] = 'Privacy Policy';
-$string['foolin_privacy'] = 'http://ccle.ucla.edu/privacy_notice.php';
+$string['foolin_privacy'] = $CFG->wwwroot . '/privacy_notice.php';
 
 $string['foodis_copyright'] = 'Copyright Information';
-$string['foolin_copyright'] = 'http://ccle.ucla.edu/copyright_information.php';
+$string['foolin_copyright'] = $CFG->wwwroot . '/copyright_information.php';
 
 $string['foodis_school'] = 'UCLA Home';
 $string['foolin_school'] = 'http://www.ucla.edu/';
@@ -80,5 +80,9 @@ $string['env_prod'] = 'Production';
 $string['env_stage'] = 'Stage';
 $string['env_test'] = 'Test';
 $string['env_dev'] = 'Development';
+
+//BEGIN UCLA MOD: CCLE-2862-Main_site_logo_image_needs_alt_altribute
+$string['UCLA_CCLE_text'] = 'UCLA CCLE Common Collaboration and Learning Environment';
+//END UCLA MOD: CCLE-2862
 
 // EoF

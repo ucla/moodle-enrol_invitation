@@ -223,6 +223,16 @@ class qtype_multianswer extends question_type {
         }
         return $fractionsum / $fractionmax;
     }
+
+    public function move_files($questionid, $oldcontextid, $newcontextid) {
+        parent::move_files($questionid, $oldcontextid, $newcontextid);
+        $this->move_files_in_hints($questionid, $oldcontextid, $newcontextid);
+    }
+
+    protected function delete_files($questionid, $contextid) {
+        parent::delete_files($questionid, $contextid);
+        $this->delete_files_in_hints($questionid, $contextid);
+    }
 }
 
 
@@ -404,7 +414,7 @@ function qtype_multianswer_extract_question($text) {
                     && preg_match('~'.NUMERICAL_ALTERNATIVE_REGEX.'~',
                             $altregs[ANSWER_ALTERNATIVE_REGEX_ANSWER], $numregs)) {
                 $wrapped->answer[] = $numregs[NUMERICAL_CORRECT_ANSWER];
-                if ($numregs[NUMERICAL_ABS_ERROR_MARGIN]) {
+                if (array_key_exists(NUMERICAL_ABS_ERROR_MARGIN, $numregs)) {
                     $wrapped->tolerance["$answerindex"] =
                     $numregs[NUMERICAL_ABS_ERROR_MARGIN];
                 } else {

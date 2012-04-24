@@ -1,4 +1,13 @@
 /* When deubgging with performance profiling is turned on the next is normally 
  * hard to read. This styling will give the text more room so that it is visible
  */
-#page-footer .performanceinfo {text-align:center;margin-top:2.5em;background-color:#565656;}
+#page-footer .performanceinfo {text-align:center;margin-top:2.5em;margin-bottom:0}
+#page-footer .purgecaches {text-align:center;}
+#page-footer .purgecaches a {
+    color: #A3BFFD; 
+    font-weight:bold;    
+}
+#helppopupbox {
+    max-height:300px;
+    overflow:auto;
+}

@@ -1,0 +1,32 @@
+--
+-- Dumping data for table `mdl_ucla_reg_division`
+--
+
+INSERT INTO `mdl_ucla_reg_division` (`id`, `code`, `fullname`, `home`, `timestamp`) VALUES
+(1, 'AR', 'ARCHITECTURE AND URBAN PLANNING', 0, 0),
+(2, 'BB', 'BASIC BIOMEDICAL SCIENCES', 0, 0),
+(3, 'DN', 'DENTISTRY', 0, 0),
+(4, 'ED', 'EDUCATION', 0, 0),
+(5, 'EI', 'EDUCATION AND INFORMATION STUDIES', 0, 0),
+(6, 'EN', 'ENGINEERING AND APPLIED SCIENCE', 0, 0),
+(7, 'FA', 'FINE ARTS', 0, 0),
+(8, 'AT', 'SCHOOL OF THE ARTS', 0, 0),
+(9, 'AA', 'SCHOOL OF THE ARTS AND ARCHITECTURE', 0, 0),
+(10, 'TF', 'SCHOOL OF THEATER, FILM, AND TELEVISION', 0, 0),
+(11, 'GI', 'GENERAL CAMPUS', 0, 0),
+(12, 'GS', 'LETTERS AND SCIENCE', 0, 0),
+(13, 'HU', 'HUMANITIES', 0, 0),
+(14, 'IS', 'INTERNATIONAL INSTITUTE', 0, 0),
+(15, 'LB', 'LIBRARY AND INFORMATION SCIENCE', 0, 0),
+(16, 'LF', 'LIFE SCIENCE', 0, 0),
+(17, 'LW', 'LAW', 0, 0),
+(18, 'MG', 'MANAGEMENT', 0, 0),
+(19, 'MN', 'MEDICINE', 0, 0),
+(20, 'NS', 'NURSING', 0, 0),
+(21, 'PA', 'PUBLIC AFFAIRS', 0, 0),
+(22, 'PH', 'PUBLIC HEALTH', 0, 0),
+(23, 'PP', 'PUBLIC POLICY AND SOCIAL RESEARCH', 0, 0),
+(24, 'PS', 'PHYSICAL SCIENCE', 0, 0),
+(25, 'SS', 'SOCIAL SCIENCE', 0, 0),
+(26, 'SM', 'SUMMER SESSION', 0, 0),
+(27, 'SW', 'SOCIAL WELFARE', 0, 0);

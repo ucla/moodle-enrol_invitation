@@ -166,6 +166,7 @@ class lesson_page_type_essay extends lesson_page {
                 $essaystats->total++;
                 $pagestats[$temp->pageid] = $essaystats;
             } else {
+                $essaystats = new stdClass();
                 $essaystats->totalscore = $essayinfo->score;
                 $essaystats->total = 1;
                 $pagestats[$temp->pageid] = $essaystats;
@@ -177,6 +178,8 @@ class lesson_page_type_essay extends lesson_page {
         $answers = $this->get_answers();
         $formattextdefoptions = new stdClass;
         $formattextdefoptions->para = false;  //I'll use it widely in this page
+        $formattextdefoptions->context = $answerpage->context;
+
         foreach ($answers as $answer) {
             if ($useranswer != NULL) {
                 $essayinfo = unserialize($useranswer->useranswer);
@@ -205,6 +208,7 @@ class lesson_page_type_essay extends lesson_page {
                     $answerdata->score = get_string("havenotgradedyet", "lesson");
                 }
             } else {
+                $essayinfo = new stdClass();
                 $essayinfo->answer = get_string("didnotanswerquestion", "lesson");
             }
 
@@ -216,7 +220,7 @@ class lesson_page_type_essay extends lesson_page {
                 // dont think this should ever be reached....
                 $avescore = get_string("nooneansweredthisquestion", "lesson");
             }
-            $answerdata->answers[] = array(s($essayinfo->answer), $avescore);
+            $answerdata->answers[] = array(format_text($essayinfo->answer, FORMAT_MOODLE, $formattextdefoptions), $avescore);
             $answerpage->answerdata = $answerdata;
         }
         return $answerpage;

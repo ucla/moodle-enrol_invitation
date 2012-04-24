@@ -55,7 +55,7 @@ class quiz_responses_report extends quiz_attempt_report {
         $download = optional_param('download', '', PARAM_ALPHA);
 
         list($currentgroup, $students, $groupstudents, $allowed) =
-                $this->load_relevant_students($cm);
+                $this->load_relevant_students($cm, $course);
 
         $pageoptions = array();
         $pageoptions['id'] = $cm->id;
@@ -105,7 +105,7 @@ class quiz_responses_report extends quiz_attempt_report {
 
         // We only want to show the checkbox to delete attempts
         // if the user has permissions and if the report mode is showing attempts.
-        $candelete = has_capability('mod/quiz:deleteattempts', $this->context)
+        $includecheckboxes = has_capability('mod/quiz:deleteattempts', $this->context)
                 && ($attemptsmode != QUIZ_REPORT_ATTEMPTS_STUDENTS_WITH_NO);
 
         $displayoptions = array();
@@ -124,11 +124,14 @@ class quiz_responses_report extends quiz_attempt_report {
             $allowed = array();
         }
 
-        $attemptids = optional_param_array('attemptid', array(), PARAM_INT);
-        if ($attemptids && confirm_sesskey()) {
-            require_capability('mod/quiz:deleteattempts', $this->context);
-            $this->delete_selected_attempts($quiz, $cm, $attemptids, $allowed);
-            redirect($reporturl->out(false, $displayoptions));
+        if (empty($currentgroup) || $groupstudents) {
+            if (optional_param('delete', 0, PARAM_BOOL) && confirm_sesskey()) {
+                if ($attemptids = optional_param_array('attemptid', array(), PARAM_INT)) {
+                    require_capability('mod/quiz:deleteattempts', $this->context);
+                    $this->delete_selected_attempts($quiz, $cm, $attemptids, $allowed);
+                    redirect($reporturl->out(false, $displayoptions));
+                }
+            }
         }
 
         // Load the required questions.
@@ -143,7 +146,8 @@ class quiz_responses_report extends quiz_attempt_report {
                 array('context' => $displaycoursecontext));
 
         $table = new quiz_report_responses_table($quiz, $this->context, $qmsubselect,
-                $groupstudents, $students, $questions, $candelete, $reporturl, $displayoptions);
+                $qmfilter, $attemptsmode, $groupstudents, $students, $questions,
+                $includecheckboxes, $reporturl, $displayoptions);
         $filename = quiz_report_download_filename(get_string('responsesfilename', 'quiz_responses'),
                 $courseshortname, $quiz->name);
         $table->is_downloading($download, $filename,
@@ -194,8 +198,7 @@ class quiz_responses_report extends quiz_attempt_report {
                 }
             }
 
-            list($fields, $from, $where, $params) =
-                    $this->base_sql($quiz, $qmsubselect, $qmfilter, $attemptsmode, $allowed);
+            list($fields, $from, $where, $params) = $table->base_sql($allowed);
 
             $table->set_count_sql("SELECT COUNT(1) FROM $from WHERE $where", $params);
 
@@ -205,7 +208,7 @@ class quiz_responses_report extends quiz_attempt_report {
             $columns = array();
             $headers = array();
 
-            if (!$table->is_downloading() && $candelete) {
+            if (!$table->is_downloading() && $includecheckboxes) {
                 $columns[] = 'checkbox';
                 $headers[] = null;
             }

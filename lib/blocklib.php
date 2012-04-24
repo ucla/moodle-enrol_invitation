@@ -1467,8 +1467,10 @@ class block_manager {
         } else {
             $newweight = ceil($newweight);
             for ($weight = $bestgap - 1; $weight >= $newweight; $weight--) {
-                foreach ($usedweights[$weight] as $biid) {
-                    $this->reposition_block($biid, $newregion, $weight + 1);
+                if (array_key_exists($weight, $usedweights)) {
+                    foreach ($usedweights[$weight] as $biid) {
+                        $this->reposition_block($biid, $newregion, $weight + 1);
+                    }
                 }
             }
             $this->reposition_block($block->instance->id, $newregion, $newweight);
@@ -1673,7 +1675,7 @@ function generate_page_type_patterns($pagetype, $parentcontext = null, $currentc
 
     // Ensure that the * pattern is always available if editing block 'at distance', so
     // we always can 'bring back' it to the original context. MDL-30340
-    if ($currentcontext->id != $parentcontext->id && !isset($patterns['*'])) {
+    if ((!isset($currentcontext) or !isset($parentcontext) or $currentcontext->id != $parentcontext->id) && !isset($patterns['*'])) {
         // TODO: We could change the string here, showing its 'bring back' meaning
         $patterns['*'] = get_string('page-x', 'pagetype');
     }

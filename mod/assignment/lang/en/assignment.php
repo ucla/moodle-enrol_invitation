@@ -184,7 +184,9 @@ $string['submissions'] = 'Submissions';
 $string['submissionsaved'] = 'Your changes have been saved';
 $string['submissionsnotgraded'] = '{$a} submissions not graded';
 $string['submitassignment'] = 'Submit your assignment using this form';
-$string['submitedformarking'] = 'Assignment was already submitted for marking and can not be updated';
+//BEGIN UCLA MOD:CCLE-2870-Clearer Message regarding submitted assignments
+$string['submitedformarking'] = 'Assignment has been successfully submitted for marking and can not be updated';
+//END UCLA MOD:CCLE-2870
 $string['submitformarking'] = 'Final submission for assignment marking';
 $string['submitted'] = 'Submitted';
 $string['submittedfiles'] = 'Submitted files';

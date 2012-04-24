@@ -103,7 +103,7 @@ defined('MOODLE_INTERNAL') || die();
         if ($PAGE->user_is_editing() && has_capability('moodle/course:update', get_context_instance(CONTEXT_COURSE, $course->id))) {
             echo '<p><a title="'.$streditsummary.'" '.
                  ' href="editsection.php?id='.$thissection->id.'"><img src="'.$OUTPUT->pix_url('t/edit') . '" '.
-                 ' class="icon edit" alt="'.$streditsummary.'" /></a></p>';
+                 ' class="iconsmall edit" alt="'.$streditsummary.'" /></a></p>';
         }
         echo '</div>';
 
@@ -141,7 +141,7 @@ defined('MOODLE_INTERNAL') || die();
             $thissection = $sections[$section];
 
         } else {
-            unset($thissection);
+            $thissection = new stdClass();
             $thissection->course = $course->id;   // Create a new week structure
             $thissection->section = $section;
             $thissection->name    = null;
@@ -234,7 +234,7 @@ defined('MOODLE_INTERNAL') || die();
 
                 if ($PAGE->user_is_editing() && has_capability('moodle/course:update', get_context_instance(CONTEXT_COURSE, $course->id))) {
                     echo ' <a title="'.$streditsummary.'" href="editsection.php?id='.$thissection->id.'">'.
-                         '<img src="'.$OUTPUT->pix_url('t/edit') . '" class="icon edit" alt="'.$streditsummary.'" /></a><br /><br />';
+                         '<img src="'.$OUTPUT->pix_url('t/edit') . '" class="iconsmall edit" alt="'.$streditsummary.'" /></a><br /><br />';
                 }
                 echo '</div>';
 

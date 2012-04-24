@@ -6,12 +6,12 @@ img.icon,
 img.iconhelp {vertical-align:middle;}
 
 html, body {background-color:#FFF; height:100%;}
-#page {height:100%;background-color:transparent;margin:0 auto -41px;}
+#page {height:100%;background-color:transparent;margin:0 auto;}
 #page #page-content {background-color:#FFF; height:auto;}
 
 /** Header **/
 #page-header {
-    border-top:15px solid #565656; 
+    border-top:5px solid #565656; 
 }
 
 #page-header.env-prod {
@@ -68,9 +68,9 @@ html, body {background-color:#FFF; height:100%;}
 
 /** Dropdown **/
 #page-header #sublogo {margin-left:30px;margin-bottom:10px;}
-#page-header #sublogo #dropdown {width:110px;cursor:pointer;cursor:hand;color:#CCC;text-shadow: 0 1px 0 #000000;}
+#page-header #sublogo #dropdown {width:180px;cursor:pointer;cursor:hand;color:#CCC;text-shadow: 0 1px 0 #000000;}
 #page-header #sublogo .dropdownlist {margin-bottom:10px;height:45px;}
-#page-header #sublogo .dropdownlist p {font-weight: normal;width:110px; height:20px;margin-bottom:0px; 0 0 no-repeat;}
+#page-header #sublogo .dropdownlist p {font-weight: normal;width:110px; height:20px;margin-bottom:0px;}
 #page-header #sublogo .dropdownlist ul {width:925px; background:#536895;list-style-type:none;margin:0px;}
 #page-header #sublogo .dropdownlist span {display:inline;width:925px;color:#CCC;font-size:11px;margin:0px;font-weight:normal;font-style:italic;text-shadow: 0 1px 0 #000000;}
 #page-header #sublogo .dropdownlist li {list-style-type:none;float:left;width:185px;text-align:left;line-height:1em;}
@@ -78,7 +78,7 @@ html, body {background-color:#FFF; height:100%;}
 .DownArrow:before {content:'▼ ';}
 
 /** Footer **/
-#page-footer {background-color: #565656; color:#FFF; height:41px;}
+#page-footer {background-color: #565656; color:#FFF; padding-bottom: 5px;}
 #page-footer #footer-links a {
     color: #A3BFFD; 
     margin-left: 5px; 
@@ -101,19 +101,31 @@ html, body {background-color:#FFF; height:100%;}
 .generalbox {border: 1px solid #DDDDDD;}
 .generaltable td {border-width:0;}
 .sitetopic {border-width:0;}
-.headingblock {margin-bottom:10px;border-bottom:1px solid #AFC5F0;background-color:#D1DBEF;padding:4px 5px;}
+.headingblock {
+    margin-bottom:10px;
+    border-bottom:1px solid #AFC5F0;    
+    border-top:1px solid #AFC5F0;
+    background-color:#D1DBEF;
+    padding:5px;
+    color:#394A6E;
+    font-size:18px;
+}
+.headingblock div {
+    font-size:0.8em;
+    font-weight:normal;
+    color:#494949
+}
+
 
 .coursebox {width:100%;margin:10px 0px;border-bottom:1px solid #E3E3E3;overflow:hidden;padding-bottom:10px;}
 .coursebox .info {width:35%;float:left;}
 .coursebox .summary {width:60%;float:right;}
 
-.course-content ul {margin:0;}
 .course-content .headingblock.outline {margin-top:0;}
-.course-content .section.main {border:1px solid #E3E3E3;margin-bottom:10px;}
-.course-content .section.main .left.side {float:left;width:20px;padding:5px;}
-.course-content .section.main .right.side {float:right;width:20px;padding:5px;}
+.course-content .section.main {border:1px solid #E3E3E3;margin-bottom:10px;background-color:#FFF;}
 .course-content .section.main .content {margin:0 30px 10px 30px;background-color:#FFF;}
 .course-content .section.main .content .section_add_menus {text-align:right;}
+
 
 #course-user .section {border:1px solid #DDD;margin:0 5% 1.5em 5%;}
 
@@ -127,11 +139,55 @@ html, body {background-color:#FFF; height:100%;}
 
 /** Error **/
 .box.errorbox {
-    background-color: #FBB;
+    background-color: #C00;
     color: white;
-    border: #600 solid 1px;
+    border-top: 1px solid #c99;
+    border-bottom: 1px solid #c99;    
     padding: 10px;
     margin: 1em 15%;
+}
+.errorbox a {  /* make error link text with enough contrast */
+    color: white;
+    text-decoration: underline;
+}
+
+/** Notice **/
+.box.noticebox {
+    background-color: #FF9;
+    border-bottom: 1px solid #FC3;
+    border-top: 1px solid #FC3;
+    color: black;
+    padding: 10px;
+    margin: 1em 15%;
+}
+.noticebox a {  /* make notice link with enough contrast */
+    color: black;
+    text-decoration: underline;
+}
+.noticebox .generalbox {
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+.noticebox .generalbox .buttons {
+    margin: 0;
+}
+#notice.generalbox {
+    width: 100%;    
+}
+
+/** Success **/
+.box.successbox {
+    background-color: #E2F9E3;
+    border-bottom: 1px solid #9C9;
+    border-top: 1px solid #9C9;
+    color: #060;
+    padding: 10px;
+    margin: 1em 15%;
+}
+.successbox a {  /* make success link with enough contrast */
+    color: black;
+    text-decoration: underline;
 }
 
 .continuebutton {
@@ -156,13 +212,13 @@ html, body {background-color:#FFF; height:100%;}
 .loginbox .guestsub {margin-left:10%;margin-right:10%;padding:10px;margin-bottom:5px;border-top:1px solid #DDD;}
 
 /** Blocks **/
-.block {border:1px solid #AFC5F0;background-color: #D1DBEF;margin-bottom:10px;overflow:hidden;}
+.block {border:none;background-color:#DFE7F4;margin-bottom:10px;overflow:hidden;}
 .block h1,
 .block h2,
 .block h3,
 .block h4 {margin:0px;}
-.block .header {margin:10px 6px 3px 6px;}
-.block .content {margin:10px 6px 3px 6px;}
+.block .header {padding:4px 6px;background-color:#D1DBEF;}
+.block .content {padding:0px 6px 0px 6px;background-color:#DFE7F4;}
 
 /** Admin **/
 .box.adminwarning {text-align:center;border:1px solid #C8C9C7;background-color:#E3E3E3;margin-bottom:1em;padding:10px 10%;}
@@ -264,7 +320,6 @@ html, body {background-color:#FFF; height:100%;}
 #calendar td,
 #calendar th {border-width:0px;font-size:10px;padding:1px;width:14%;line-height:18px;vertical-align:top;}
 #calendar .maincalendar {width:auto;border:1px solid #DDD;}
-#calendar .maincalendar .heightcontainer {height:100%;position:relative;margin:1em;}
 #calendar .maincalendar .header {padding:5px;font-weight:bold;}
 #calendar .maincalendar .header .buttons {float:right;}
 #calendar .maincalendar table {width:100%;}
@@ -314,3 +369,20 @@ html, body {background-color:#FFF; height:100%;}
 /** Overide for RTL layout **/
 .dir-rtl #page-header .navbar .breadcrumb {float:right;}
 .dir-rtl #page-header .navbar .navbutton {float:left;}
+
+/* Banner notice on pilot to indicate place to get help */
+/* corner banner */
+#topleftcornerbanner {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: block;
+    height: 85px;
+    width: 85px;
+    background: url([[pix:theme|pilot_help_banner]]) no-repeat;
+    text-indent: -999em;
+    text-decoration: none;
+}
+.headermain {
+    margin-left: 2.0em !important;
+}

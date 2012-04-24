@@ -49,24 +49,36 @@ define('LASTACCESS_UPDATE_SECS', 60);
 
 /**
  * Returns $user object of the main admin user
- * primary admin = admin with lowest role_assignment id among admins
  *
  * @static stdClass $mainadmin
  * @return stdClass {@link $USER} record from DB, false if not found
  */
 function get_admin() {
+    global $CFG, $DB;
+
     static $mainadmin = null;
 
-    if (!isset($mainadmin)) {
-        if (! $admins = get_admins()) {
-            return false;
-        }
-        //TODO: add some admin setting for specifying of THE main admin
-        //      for now return the first assigned admin
-        $mainadmin = reset($admins);
+    if (isset($mainadmin)) {
+        return clone($mainadmin);
     }
-    // we must clone this otherwise code outside can break the static var
-    return clone($mainadmin);
+
+    if (empty($CFG->siteadmins)) {  // Should not happen on an ordinary site
+        return false;
+    }
+
+    foreach (explode(',', $CFG->siteadmins) as $id) {
+        if ($user = $DB->get_record('user', array('id'=>$id, 'deleted'=>0))) {
+            $mainadmin = $user;
+            break;
+        }
+    }
+
+    if ($mainadmin) {
+        return clone($mainadmin);
+    } else {
+        // this should not happen
+        return false;
+    }
 }
 
 /**
@@ -302,7 +314,7 @@ function get_users_listing($sort='lastaccess', $dir='ASC', $page=0, $recordsperp
 
     // warning: will return UNCONFIRMED USERS
     return $DB->get_records_sql("SELECT id, username, email, firstname, lastname, city, country,
-                                        lastaccess, confirmed, mnethostid$extrafields
+                                        lastaccess, confirmed, mnethostid, suspended $extrafields
                                    FROM {user}
                                   WHERE $select
                                   $sort", $params, $page, $recordsperpage);
@@ -1248,7 +1260,7 @@ function get_my_remotehosts() {
 function make_default_scale() {
     global $DB;
 
-    $defaultscale = NULL;
+    $defaultscale = new stdClass();
     $defaultscale->courseid = 0;
     $defaultscale->userid = 0;
     $defaultscale->name  = get_string('separateandconnected');
@@ -1945,19 +1957,26 @@ function count_login_failures($mode, $username, $lastlogin) {
 /// GENERAL HELPFUL THINGS  ///////////////////////////////////
 
 /**
- * Dump a given object's information in a PRE block.
+ * Dumps a given object's information for debugging purposes
  *
- * Mostly just used for debugging.
+ * When used in a CLI script, the object's information is written to the standard
+ * error output stream. When used in a web script, the object is dumped to a
+ * pre-formatted block with the "notifytiny" CSS class.
  *
  * @param mixed $object The data to be printed
- * @return void OUtput is echo'd
+ * @return void output is echo'd
  */
 function print_object($object) {
-    echo '<pre class="notifytiny">';
+
     // we may need a lot of memory here
     raise_memory_limit(MEMORY_EXTRA);
-    echo s(print_r($object, true));
-    echo '</pre>';
+
+    if (CLI_SCRIPT) {
+        fwrite(STDERR, print_r($object, true));
+        fwrite(STDERR, PHP_EOL);
+    } else {
+        echo html_writer::tag('pre', s(print_r($object, true)), array('class' => 'notifytiny'));
+    }
 }
 
 /**

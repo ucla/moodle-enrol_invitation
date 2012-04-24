@@ -17,12 +17,11 @@
 /**
  * The form for the export roles process.
  * @package   moodlerolesmigration
- * @copyright 2011 NCSU DELTA | <http://delta.ncsu.edu>
+ * @copyright 2011 NCSU DELTA | <http://delta.ncsu.edu> and others
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 defined('MOODLE_INTERNAL') || die();
 
-global $CFG;
 require_once($CFG->libdir.'/formslib.php');
 
 class export_roles_form extends moodleform {
@@ -40,25 +39,26 @@ class export_roles_form extends moodleform {
         $table->data = array();
 
         $table->head = array(get_string('name'),
-        					get_string('description'),
-        					get_string('shortname'),
-        					get_string('export', 'local_rolesmigration'));
+                            get_string('description'),
+                            get_string('shortname'),
+                            get_string('export', 'local_rolesmigration'));
 
         $roles = get_all_roles();
         foreach ($roles as $role) {
-	        $row = array();
-	        $roleurl = new moodle_url('/admin/roles/define.php', array('roleid' => $role->id, 'action' => 'view'));
-	        $row[0] = '<a href="'.$roleurl.'">'.format_string($role->name).'</a>';
-	        $row[1] = format_text($role->description, FORMAT_HTML);
-	        $row[2] = ($role->shortname);
-	        /* Export values are added from role checkboxes */
-	        $row[3] = '<input type="checkbox" name="export[]" value="'.$role->shortname.'" />';
-	
-	        $table->data[] = $row;
+            $row = array();
+            $roleurl = new moodle_url('/admin/roles/define.php', array('roleid' => $role->id, 'action' => 'view'));
+            $row[0] = '<a href="'.$roleurl.'">'.format_string($role->name).'</a>';
+            $row[1] = format_text($role->description, FORMAT_HTML);
+            $row[2] = ($role->shortname);
+            /* Export values are added from role checkboxes */
+            $row[3] = '<input type="checkbox" name="export[]" value="'.$role->shortname.'" />';
+
+            $table->data[] = $row;
         }
-                                                   
+
         $mform->addElement('html', html_writer::table($table));
         $mform->addElement('hidden', 'contextid', $contextid);
         $this->add_action_buttons(false, get_string('submitexport', 'local_rolesmigration'));
     }
 }
+

@@ -128,6 +128,9 @@ function file_prepare_standard_editor($data, $field, array $options, $context=nu
     if (is_null($itemid) or is_null($context)) {
         $contextid = null;
         $itemid = null;
+        if (!isset($data)) {
+            $data = new stdClass();
+        }
         if (!isset($data->{$field})) {
             $data->{$field} = '';
         }
@@ -1749,21 +1752,6 @@ function send_file($path, $filename, $lifetime = 'default' , $filter=0, $pathiss
         }
     }
 
-    if ($lifetime > 0 && !empty($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
-        // get unixtime of request header; clip extra junk off first
-        $since = strtotime(preg_replace('/;.*$/','',$_SERVER["HTTP_IF_MODIFIED_SINCE"]));
-        if ($since && $since >= $lastmodified) {
-            header('HTTP/1.1 304 Not Modified');
-            header('Expires: '. gmdate('D, d M Y H:i:s', time() + $lifetime) .' GMT');
-            header('Cache-Control: max-age='.$lifetime);
-            header('Content-Type: '.$mimetype);
-            if ($dontdie) {
-                return;
-            }
-            die;
-        }
-    }
-
     //do not put '@' before the next header to detect incorrect moodle configurations,
     //error should be better than "weird" empty lines for admins/users
     header('Last-Modified: '. gmdate('D, d M Y H:i:s', $lastmodified) .' GMT');
@@ -1960,21 +1948,6 @@ function send_stored_file($stored_file, $lifetime=86400 , $filter=0, $forcedownl
 
     $lastmodified = $stored_file->get_timemodified();
     $filesize     = $stored_file->get_filesize();
-
-    if ($lifetime > 0 && !empty($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
-        // get unixtime of request header; clip extra junk off first
-        $since = strtotime(preg_replace('/;.*$/','',$_SERVER["HTTP_IF_MODIFIED_SINCE"]));
-        if ($since && $since >= $lastmodified) {
-            header('HTTP/1.1 304 Not Modified');
-            header('Expires: '. gmdate('D, d M Y H:i:s', time() + $lifetime) .' GMT');
-            header('Cache-Control: max-age='.$lifetime);
-            header('Content-Type: '.$mimetype);
-            if ($dontdie) {
-                return;
-            }
-            die;
-        }
-    }
 
     if ($lifetime > 0 && !empty($_SERVER['HTTP_IF_MODIFIED_SINCE'])) {
         // get unixtime of request header; clip extra junk off first
@@ -3217,6 +3190,10 @@ function file_pluginfile($relativepath, $forcedownload) {
             print_error('siteblogdisable', 'blog');
         }
 
+        $entryid = (int)array_shift($args);
+        if (!$entry = $DB->get_record('post', array('module'=>'blog', 'id'=>$entryid))) {
+            send_file_not_found();
+        }
         if ($CFG->bloglevel < BLOG_GLOBAL_LEVEL) {
             require_login();
             if (isguestuser()) {
@@ -3227,10 +3204,6 @@ function file_pluginfile($relativepath, $forcedownload) {
                     send_file_not_found();
                 }
             }
-        }
-        $entryid = (int)array_shift($args);
-        if (!$entry = $DB->get_record('post', array('module'=>'blog', 'id'=>$entryid))) {
-            send_file_not_found();
         }
 
         if ('publishstate' === 'public') {
@@ -3434,8 +3407,10 @@ function file_pluginfile($relativepath, $forcedownload) {
                 $themename = array_shift($args);
                 $filename = array_shift($args);
             }
-            if ((!empty($CFG->forcelogin) and !isloggedin())) {
+            if ((!empty($CFG->forcelogin) and !isloggedin()) ||
+                    (!empty($CFG->forceloginforprofileimage) && (!isloggedin() || isguestuser()))) {
                 // protect images if login required and not logged in;
+                // also if login is required for profile images and is not logged in or guest
                 // do not use require_login() because it is expensive and not suitable here anyway
                 $redirect = true;
             }

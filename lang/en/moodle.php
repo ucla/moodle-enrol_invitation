@@ -237,6 +237,7 @@ $string['clickhelpiconformoreinfo'] = '... continues ... Click on the help icon 
 $string['clickhere'] = 'Click here ...';
 $string['clicktohideshow'] = 'Click to expand or collapse';
 $string['clicktochange'] = 'Click to change';
+$string['clicktochangeinbrackets'] = '{$a} (Click to change)';
 $string['closewindow'] = 'Close this window';
 $string['collapseall'] = 'Collapse all';
 $string['commentincontext'] = 'Find this comment in context';
@@ -670,6 +671,7 @@ $string['followingoptional'] = 'The following items are optional';
 $string['followingrequired'] = 'The following items are required';
 $string['force'] = 'Force';
 $string['forcedmode'] = 'forced mode';
+$string['forcedmodeinbrackets'] = '{$a} (forced mode)';
 $string['forcelanguage'] = 'Force language';
 $string['forceno'] = 'Do not force';
 $string['forcepasswordchange'] = 'Force password change';
@@ -1769,9 +1771,7 @@ $string['withoutuserdata'] = 'without user data';
 $string['withselectedusers'] = 'With selected users...';
 $string['withselectedusers_help'] = '* Send message - For sending a message to one or more participants
 * Add a new note - For adding a note to a selected participant
-* Add a common note - For adding the same note to more than one participant
-* Extend enrolment (individual) - For extending a selected student\'s access to the course, even when an enrolment period is set
-* Extend enrolment (common) - For extending more than one student\'s access to the course by the same amount';
+* Add a common note - For adding the same note to more than one participant';
 $string['withuserdata'] = 'with user data';
 $string['wordforstudent'] = 'Your word for Student';
 $string['wordforstudenteg'] = 'eg Student, Participant etc';
@@ -1834,7 +1834,7 @@ $string['publicprivaterestore'] = 'Default Public/Private on Restore';
 $string['publicprivaterestore_description'] = 'In the event that a restore occurs from an instance of Moodle that does not include public/private, if this setting is defined, the restored course will default to public/private enabled.';
 $string['publicprivate_option_enable'] = 'Course Editors Can Set Public/Private';
 $string['publicprivate_option_enable_description'] = 'If checked, course editors can turn public/private on/off. Otherwise, only administrators can do this.';
-$string['publicprivatenotice'] = 'This is the public display of the course site. <br />If you are enrolled, please log in to view private course materials.';
+$string['publicprivatenotice'] = 'This is the public display of the course site. If you are enrolled, please log in to view private course materials.';
 $string['publicprivatelogin'] = 'Log in';
 $string['publicprivatecannotedit'] = 'ERROR: This is a special grouping for public/private. It cannot be edited.';
 $string['publicprivatecannotremove_oneof'] = 'ERROR: One of the groups selected is a special group for public/private. It cannot be removed.';

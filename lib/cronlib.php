@@ -212,8 +212,9 @@ function cron_run() {
                                                  p.id as prefid
                                             FROM {user} u
                                             JOIN {user_preferences} p ON u.id=p.userid
-                                           WHERE p.name='create_password' AND p.value='1' AND u.email !='' ");
+                                           WHERE p.name='create_password' AND p.value='1' AND u.email !='' AND u.suspended = 0 AND u.auth != 'nologin'");
 
+        // note: we can not send emails to suspended accounts
         foreach ($newusers as $newuser) {
             if (setnew_password_and_mail($newuser)) {
                 unset_user_preference('create_password', $newuser);
@@ -297,35 +298,6 @@ function cron_run() {
         }
     }
     mtrace('Finished blocks');
-
-
-    //TODO: get rid of this bloody hardcoded quiz module stuff, this must be done from quiz_cron()!
-    mtrace("Starting quiz reports");
-    if ($reports = $DB->get_records_select('quiz_reports', "cron > 0 AND ((? - lastcron) > cron)", array($timenow))) {
-        foreach ($reports as $report) {
-            $cronfile = "$CFG->dirroot/mod/quiz/report/$report->name/cron.php";
-            if (file_exists($cronfile)) {
-                include_once($cronfile);
-                $cron_function = 'quiz_report_'.$report->name."_cron";
-                if (function_exists($cron_function)) {
-                    mtrace("Processing quiz report cron function $cron_function ...", '');
-                    $pre_dbqueries = null;
-                    $pre_dbqueries = $DB->perf_get_queries();
-                    $pre_time      = microtime(1);
-                    if ($cron_function()) {
-                        $DB->set_field('quiz_reports', "lastcron", $timenow, array("id"=>$report->id));
-                    }
-                    if (isset($pre_dbqueries)) {
-                        mtrace("... used " . ($DB->perf_get_queries() - $pre_dbqueries) . " dbqueries");
-                        mtrace("... used " . (microtime(1) - $pre_time) . " seconds");
-                    }
-                    @set_time_limit(0);
-                    mtrace("done.");
-                }
-            }
-        }
-    }
-    mtrace("Finished quiz reports");
 
 
     mtrace('Starting admin reports');

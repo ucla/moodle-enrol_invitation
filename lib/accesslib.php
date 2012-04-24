@@ -725,7 +725,7 @@ function get_user_access_sitewide($userid) {
     if (!empty($CFG->defaultuserroleid)) {
         $syscontext = context_system::instance();
         $accessdata['ra'][$syscontext->path][(int)$CFG->defaultuserroleid] = (int)$CFG->defaultuserroleid;
-        $raparents[$CFG->defaultuserroleid][$syscontext->path] = $syscontext->path;
+        $raparents[$CFG->defaultuserroleid][$syscontext->id] = $syscontext->id;
     }
 
     // load the "default frontpage role"
@@ -733,25 +733,27 @@ function get_user_access_sitewide($userid) {
         $frontpagecontext = context_course::instance(get_site()->id);
         if ($frontpagecontext->path) {
             $accessdata['ra'][$frontpagecontext->path][(int)$CFG->defaultfrontpageroleid] = (int)$CFG->defaultfrontpageroleid;
-            $raparents[$CFG->defaultfrontpageroleid][$frontpagecontext->path] = $frontpagecontext->path;
+            $raparents[$CFG->defaultfrontpageroleid][$frontpagecontext->id] = $frontpagecontext->id;
         }
     }
 
     // preload every assigned role at and above course context
-    $sql = "SELECT ctx.path, ra.roleid
+    $sql = "SELECT ctx.path, ra.roleid, ra.contextid
               FROM {role_assignments} ra
-              JOIN {context} ctx ON ctx.id = ra.contextid
-         LEFT JOIN {context} cctx
-                   ON (cctx.contextlevel = ".CONTEXT_COURSE." AND ctx.path LIKE ".$DB->sql_concat('cctx.path',"'/%'").")
-             WHERE ra.userid = :userid AND cctx.id IS NULL";
-
-
+              JOIN {context} ctx
+                   ON ctx.id = ra.contextid
+         LEFT JOIN {block_instances} bi
+                   ON (ctx.contextlevel = ".CONTEXT_BLOCK." AND bi.id = ctx.instanceid)
+         LEFT JOIN {context} bpctx
+                   ON (bpctx.id = bi.parentcontextid)
+             WHERE ra.userid = :userid
+                   AND (ctx.contextlevel <= ".CONTEXT_COURSE." OR bpctx.contextlevel < ".CONTEXT_COURSE.")";
     $params = array('userid'=>$userid);
     $rs = $DB->get_recordset_sql($sql, $params);
     foreach ($rs as $ra) {
         // RAs leafs are arrays to support multi-role assignments...
         $accessdata['ra'][$ra->path][(int)$ra->roleid] = (int)$ra->roleid;
-        $raparents[$ra->roleid][$ra->path] = $ra->path;
+        $raparents[$ra->roleid][$ra->contextid] = $ra->contextid;
     }
     $rs->close();
 
@@ -761,30 +763,32 @@ function get_user_access_sitewide($userid) {
 
     // now get overrides of interesting roles in all interesting child contexts
     // hopefully we will not run out of SQL limits here,
-    // users would have to have very many roles above course context...
+    // users would have to have very many roles at/above course context...
     $sqls = array();
     $params = array();
 
     static $cp = 0;
-    foreach ($raparents as $roleid=>$paths) {
+    foreach ($raparents as $roleid=>$ras) {
         $cp++;
-        list($paths, $rparams) = $DB->get_in_or_equal($paths, SQL_PARAMS_NAMED, 'p'.$cp.'_');
-        $params = array_merge($params, $rparams);
+        list($sqlcids, $cids) = $DB->get_in_or_equal($ras, SQL_PARAMS_NAMED, 'c'.$cp.'_');
+        $params = array_merge($params, $cids);
         $params['r'.$cp] = $roleid;
         $sqls[] = "(SELECT ctx.path, rc.roleid, rc.capability, rc.permission
                      FROM {role_capabilities} rc
                      JOIN {context} ctx
                           ON (ctx.id = rc.contextid)
-                LEFT JOIN {context} cctx
-                          ON (cctx.contextlevel = ".CONTEXT_COURSE."
-                              AND ctx.path LIKE ".$DB->sql_concat('cctx.path',"'/%'").")
                      JOIN {context} pctx
-                          ON (pctx.path $paths
+                          ON (pctx.id $sqlcids
                               AND (ctx.id = pctx.id
                                    OR ctx.path LIKE ".$DB->sql_concat('pctx.path',"'/%'")."
                                    OR pctx.path LIKE ".$DB->sql_concat('ctx.path',"'/%'")."))
+                LEFT JOIN {block_instances} bi
+                          ON (ctx.contextlevel = ".CONTEXT_BLOCK." AND bi.id = ctx.instanceid)
+                LEFT JOIN {context} bpctx
+                          ON (bpctx.id = bi.parentcontextid)
                     WHERE rc.roleid = :r{$cp}
-                          AND cctx.id IS NULL)";
+                          AND (ctx.contextlevel <= ".CONTEXT_COURSE." OR bpctx.contextlevel < ".CONTEXT_COURSE.")
+                   )";
     }
 
     // fixed capability order is necessary for rdef dedupe
@@ -998,6 +1002,7 @@ function get_empty_accessdata() {
     $accessdata['rdef_lcc']   = 0;       // rdef_count during the last compression
     $accessdata['loaded']     = array(); // loaded course contexts
     $accessdata['time']       = time();
+    $accessdata['rsw']        = array();
 
     return $accessdata;
 }
@@ -1145,7 +1150,7 @@ function reload_all_capabilities() {
 
     // copy switchroles
     $sw = array();
-    if (isset($USER->access['rsw'])) {
+    if (!empty($USER->access['rsw'])) {
         $sw = $USER->access['rsw'];
     }
 
@@ -1559,7 +1564,7 @@ function get_roles_with_capability($capability, $permission = null, $context = n
  * @return int new/existing id of the assignment
  */
 function role_assign($roleid, $userid, $contextid, $component = '', $itemid = 0, $timemodified = '') {
-    global $USER, $DB;
+    global $USER, $DB, $CFG;
 
     // first of all detect if somebody is using old style parameters
     if ($contextid === 0 or is_numeric($component)) {
@@ -1600,7 +1605,9 @@ function role_assign($roleid, $userid, $contextid, $component = '', $itemid = 0,
         $timemodified = time();
     }
 
-/// Check for existing entry
+    // Check for existing entry
+    // TODO: Revisit this sql_empty() use once Oracle bindings are improved. MDL-29765
+    $component = ($component === '') ? $DB->sql_empty() : $component;
     $ras = $DB->get_records('role_assignments', array('roleid'=>$roleid, 'contextid'=>$context->id, 'userid'=>$userid, 'component'=>$component, 'itemid'=>$itemid), 'id');
 
     if ($ras) {
@@ -1751,6 +1758,10 @@ function role_unassign_all(array $params, $subcontexts = false, $includemanual =
         }
     }
 
+    // TODO: Revisit this sql_empty() use once Oracle bindings are improved. MDL-29765
+    if (isset($params['component'])) {
+        $params['component'] = ($params['component'] === '') ? $DB->sql_empty() : $params['component'];
+    }
     $ras = $DB->get_records('role_assignments', $params);
     foreach($ras as $ra) {
         $DB->delete_records('role_assignments', array('id'=>$ra->id));
@@ -3914,22 +3925,21 @@ function get_user_capability_course($capability, $userid = null, $doanything = t
     // Note the result can be used directly as a context (we are going to), the course
     // fields are just appended.
 
+    $contextpreload = context_helper::get_preload_record_columns_sql('x');
+
     $courses = array();
-    $rs = $DB->get_recordset_sql("SELECT x.*, c.id AS courseid $fieldlist
+    $rs = $DB->get_recordset_sql("SELECT c.id $fieldlist, $contextpreload
                                     FROM {course} c
-                                   INNER JOIN {context} x
-                                         ON (c.id=x.instanceid AND x.contextlevel=".CONTEXT_COURSE.")
+                                    JOIN {context} x ON (c.id=x.instanceid AND x.contextlevel=".CONTEXT_COURSE.")
                                 $orderby");
     // Check capability for each course in turn
-    foreach ($rs as $coursecontext) {
-        if (has_capability($capability, $coursecontext, $userid, $doanything)) {
+    foreach ($rs as $course) {
+        context_helper::preload_from_record($course);
+        $context = context_course::instance($course->id);
+        if (has_capability($capability, $context, $userid, $doanything)) {
             // We've got the capability. Make the record look like a course record
             // and store it
-            $coursecontext->id = $coursecontext->courseid;
-            unset($coursecontext->courseid);
-            unset($coursecontext->contextlevel);
-            unset($coursecontext->instanceid);
-            $courses[] = $coursecontext;
+            $courses[] = $course;
         }
     }
     $rs->close();
@@ -3996,16 +4006,14 @@ function role_switch($roleid, context $context) {
     //
     // Note: it is not possible to switch to roles that do not have course:view
 
-    // Add the switch RA
-    if (!isset($USER->access['rsw'])) {
-        $USER->access['rsw'] = array();
+    if (!isset($USER->access)) {
+        load_all_capabilities();
     }
 
+
+    // Add the switch RA
     if ($roleid == 0) {
         unset($USER->access['rsw'][$context->path]);
-        if (empty($USER->access['rsw'])) {
-            unset($USER->access['rsw']);
-        }
         return true;
     }
 
@@ -5033,17 +5041,6 @@ abstract class context extends stdClass {
     }
 
     /**
-     * Returns human readable context level name.
-     *
-     * @static
-     * @return string the human readable context level name.
-     */
-    protected static function get_level_name() {
-        // must be implemented in all context levels
-        throw new coding_exception('can not get level name of abstract context');
-    }
-
-    /**
      * Returns human readable context identifier.
      *
      * @param boolean $withprefix whether to prefix the name of the context with the
@@ -5530,7 +5527,7 @@ class context_system extends context {
      * @static
      * @return string the human readable context level name.
      */
-    protected static function get_level_name() {
+    public static function get_level_name() {
         return get_string('coresystem');
     }
 
@@ -5768,7 +5765,7 @@ class context_user extends context {
      * @static
      * @return string the human readable context level name.
      */
-    protected static function get_level_name() {
+    public static function get_level_name() {
         return get_string('user');
     }
 
@@ -5936,7 +5933,7 @@ class context_coursecat extends context {
      * @static
      * @return string the human readable context level name.
      */
-    protected static function get_level_name() {
+    public static function get_level_name() {
         return get_string('category');
     }
 
@@ -6156,7 +6153,7 @@ class context_course extends context {
      * @static
      * @return string the human readable context level name.
      */
-    protected static function get_level_name() {
+    public static function get_level_name() {
         return get_string('course');
     }
 
@@ -6371,7 +6368,7 @@ class context_module extends context {
      * @static
      * @return string the human readable context level name.
      */
-    protected static function get_level_name() {
+    public static function get_level_name() {
         return get_string('activitymodule');
     }
 
@@ -6447,6 +6444,7 @@ class context_module extends context {
         }
 
         $modfile = "$CFG->dirroot/mod/$module->name/lib.php";
+        $extracaps = array();
         if (file_exists($modfile)) {
             include_once($modfile);
             $modfunction = $module->name.'_get_extra_capabilities';
@@ -6454,24 +6452,18 @@ class context_module extends context {
                 $extracaps = $modfunction();
             }
         }
-        if (empty($extracaps)) {
-            $extracaps = array();
-        }
 
         $extracaps = array_merge($subcaps, $extracaps);
-
-        // All modules allow viewhiddenactivities. This is so you can hide
-        // the module then override to allow specific roles to see it.
-        // The actual check is in course page so not module-specific
-        $extracaps[] = "moodle/course:viewhiddenactivities";
+        $extra = '';
         list($extra, $params) = $DB->get_in_or_equal(
-            $extracaps, SQL_PARAMS_NAMED, 'cap0');
-        $extra = "OR name $extra";
-
+            $extracaps, SQL_PARAMS_NAMED, 'cap0', true, '');
+        if (!empty($extra)) {
+            $extra = "OR name $extra";
+        }
         $sql = "SELECT *
                   FROM {capabilities}
                  WHERE (contextlevel = ".CONTEXT_MODULE."
-                       AND component = :component)
+                       AND (component = :component OR component = 'moodle'))
                        $extra";
         $params['component'] = "mod_$module->name";
 
@@ -6611,7 +6603,7 @@ class context_block extends context {
      * @static
      * @return string the human readable context level name.
      */
-    protected static function get_level_name() {
+    public static function get_level_name() {
         return get_string('block');
     }
 
@@ -7280,7 +7272,7 @@ function get_role_context_caps($roleid, context $context) {
         }
     }
 
-    // now go through the contexts bellow given context
+    // now go through the contexts below given context
     $searchcontexts = array_keys($context->get_child_contexts());
     foreach ($searchcontexts as $cid) {
         if ($capabilities = $DB->get_records('role_capabilities', array('roleid'=>$roleid, 'contextid'=>$cid))) {

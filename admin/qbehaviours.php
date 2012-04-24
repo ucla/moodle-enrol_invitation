@@ -52,16 +52,16 @@ foreach ($behaviours as $behaviour => $notused) {
     if (!array_key_exists($behaviour, $counts)) {
         $counts[$behaviour] = 0;
     }
-    $needed[$behaviour] = ($counts[$behaviour] > 0) &&
+    $needed[$behaviour] = ($counts[$behaviour] > 0) ||
             $pluginmanager->other_plugins_that_require('qbehaviour_' . $behaviour);
     $archetypal[$behaviour] = question_engine::is_behaviour_archetypal($behaviour);
 }
-
 foreach ($counts as $behaviour => $count) {
     if (!array_key_exists($behaviour, $behaviours)) {
-        $counts['missingtype'] += $count;
+        $counts['missing'] += $count;
     }
 }
+$needed['missing'] = true;
 
 // Work of the correct sort order.
 $config = get_config('question');
@@ -179,7 +179,7 @@ if (($delete = optional_param('delete', '', PARAM_PLUGIN)) && confirm_sesskey())
         unset($disabledbehaviours[$key]);
         set_config('disabledbehaviours', implode(',', $disabledbehaviours), 'question');
     }
-    $behaviourorder = explode(',', $config->behavioursortorder);
+    $behaviourorder = array_keys($sortedbehaviours);
     if (($key = array_search($delete, $behaviourorder)) !== false) {
         unset($behaviourorder[$key]);
         set_config('behavioursortorder', implode(',', $behaviourorder), 'question');
@@ -191,6 +191,7 @@ if (($delete = optional_param('delete', '', PARAM_PLUGIN)) && confirm_sesskey())
     // Remove event handlers and dequeue pending events
     events_uninstall('qbehaviour_' . $delete);
 
+    $a = new stdClass();
     $a->behaviour = $behaviourname;
     $a->directory = get_plugin_directory('qbehaviour', $delete);
     echo $OUTPUT->box(get_string('qbehaviourdeletefiles', 'question', $a), 'generalbox', 'notice');
@@ -248,7 +249,7 @@ foreach ($sortedbehaviours as $behaviour => $behaviourname) {
         $row[] = '';
     }
 
-    // Are people allowed to create new questions of this type?
+    // Are people allowed to select this behaviour?
     $rowclass = '';
     if ($archetypal[$behaviour]) {
         $enabled = array_search($behaviour, $disabledbehaviours) === false;

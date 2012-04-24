@@ -25,12 +25,17 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+global $CFG;
+
+require_once($CFG->dirroot . '/local/ucla/lib.php');
+
 /**  Course Preferences API **/
 require_once(dirname(__FILE__) . '/ucla_course_prefs.class.php');
 
-define('UCLA_FORMAT_DISPLAY_ALL', -1);
-define('UCLA_FORMAT_DISPLAY_PREVIOUS', -2);
-define('UCLA_FORMAT_DISPLAY_LANDING', -3);
+// None of these can be bigger than 0
+define('UCLA_FORMAT_DISPLAY_ALL', -2);
+define('UCLA_FORMAT_DISPLAY_PREVIOUS', -3);
+define('UCLA_FORMAT_DISPLAY_LANDING', -4);
 
 /**
  * Indicates this format uses sections.
@@ -59,49 +64,12 @@ function callback_ucla_load_content(&$navigation, $course, $coursenode) {
     $path = $CFG->wwwroot . '/course/view.php';
     $ref_url = new moodle_url($path, array('id' => $course->id));
 
-    $supernode =& find_course_link_helper($navigation, $ref_url);
-
-    if ($supernode !== false) {
-        $supernode->action->params(array(
-            'topic' => UCLA_FORMAT_DISPLAY_LANDING
-        ));
-    }
-    
-    // Add the course preferences
-    $course_pref = new moodle_url($CFG->wwwroot 
-        . '/course/format/ucla/edit.php',
-        array('courseid' => $course->id));
-
-    $supernode->add(get_string('course_pref', 'format_ucla'), $course_pref);
-
+    $coursenode->action->params(array(
+        'topic' => UCLA_FORMAT_DISPLAY_LANDING
+    ));
+  
     return $navigation->load_generic_course_sections($course, $coursenode, 
         'ucla');
-}
-
-/**
- *  It's a dfs, but a bfs is better.
- **/
-function find_course_link_helper(&$navigation, $reference) {
-    if (!is_object($navigation)) {
-        return false;
-    }
-
-    if (isset($navigation->action) 
-      && get_class($navigation->action) == 'moodle_url') {
-        if ($navigation->action->compare($reference)) {
-            return $navigation;
-        }
-    }
-
-    foreach ($navigation->children as &$child) {
-        $res = find_course_link_helper($child, $reference);
-
-        if ($res !== false) {
-            return $res;
-        }
-    }
-
-    return false;
 }
 
 /**
@@ -168,10 +136,6 @@ function callback_ucla_ajax_support() {
 function ucla_format_display_instructors($course) {
     if (function_exists('is_collab_site') && is_collab_site($course)) {
         return false;
-    } else {
-        if (empty($course->idnumber)) {
-            return false;
-        }
     }
 
     return true;
@@ -192,6 +156,12 @@ function ucla_format_figure_section($course, $course_prefs = null) {
 
     // Default to section 0 (course info) if there are no preferences
     $landing_page = $course_prefs->get_preference('landing_page', false);
+    if ($landing_page === false) {
+        $landing_page = $course->marker;
+    } 
+
+    // Shifting landing page section for storage purposes
+    $landing_page++;
 
     /**
      *  Landing page and determining which section to display
@@ -199,42 +169,30 @@ function ucla_format_figure_section($course, $course_prefs = null) {
     $topic = optional_param(callback_ucla_request_key(), 
         UCLA_FORMAT_DISPLAY_PREVIOUS, PARAM_INT);
 
-    /**
-     *  New landing page and topic view control.
-     *  We want to make sure that if a user is coming from a different course
-     *  that they goto the landing page.
-     *
-     *  This code uses the fact that the $USER global is cached and carried 
-     *  through
-     *  the session. 
-     *  Also uses the fact that course_get_display() will clear $USER->display 
-     *  whenever we traverse to a new course.
-     **/
+    $topic++;
 
     $displaysection = null;
     $to_topic = null;
+    $cid = $course->id;
 
-    if ($topic >= UCLA_FORMAT_DISPLAY_ALL) {
+    if ($topic == (UCLA_FORMAT_DISPLAY_ALL + 1) || $topic > 0) {
         // This means that a topic was explicitly declared
         $to_topic = $topic;
+    } else if ($topic == (UCLA_FORMAT_DISPLAY_LANDING + 1)) {
+        //debugging('explicit landing page');
+        $to_topic = $landing_page;
     } else {
-        if ($topic == UCLA_FORMAT_DISPLAY_LANDING 
-                || !isset($USER->display['course'])) {
-            debugging('UCLA Format: Landing page');
+        $to_topic = course_get_display($cid);
 
-            if ($landing_page === false) {
-                $to_topic = $course->marker;
-            } else {
-                $to_topic = $landing_page;
-            }
-        } else {
-            debugging('UCLA Format: Previously viewed page');
-
-            // This should show the previously viewed page
-            // This defaults to '0'
-            $displaysection = course_get_display($course->id);
+        // No previous history
+        if ($to_topic == 0) {
+            //debugging('implicit landing page');
+            $to_topic = $landing_page;
         }
     }
 
+    $displaysection = $to_topic - 1;
+
     return array($to_topic, $displaysection);
 }
+

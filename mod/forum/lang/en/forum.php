@@ -64,6 +64,7 @@ $string['cannotmovefromsingleforum'] = 'Cannot move discussion from a simple sin
 $string['cannotmovenotvisible'] = 'Forum not visible';
 $string['cannotmovetonotexist'] = 'You can\'t move to that forum - it doesn\'t exist!';
 $string['cannotmovetonotfound'] = 'Target forum not found in this course.';
+$string['cannotmovetosingleforum'] = 'Cannot move discussion to a simple single discussion forum';
 $string['cannotpurgecachedrss'] = 'Could not purge the cached RSS feeds for the source and/or destination forum(s) - check your file permissionsforums';
 $string['cannotremovesubscriber'] = 'Could not remove subscriber with id {$a} from this forum!';
 $string['cannotreply'] = 'You cannot reply to this post';
@@ -236,8 +237,10 @@ $string['more'] = 'more';
 $string['movedmarker'] = '(Moved)';
 $string['movethisdiscussionto'] = 'Move this discussion to ...';
 $string['mustprovidediscussionorpost'] = 'You must provide either a discussion id or post id to export';
-$string['namenews'] = 'News forum';
-$string['namenews_help'] = 'The news forum is a special forum for announcements that is automatically created when a course is created. A course can have only one news forum. Only teachers and administrators can post in the news forum. The "Latest news" block will display recent discussions from the news forum.';
+// BEGIN UCLA MOD: CCLE-2944 - Announcements forum is called News forum, should be Announcements
+$string['namenews'] = 'Announcements';
+$string['namenews_help'] = 'The announcements forum is a special forum that is automatically created when a course is created. A course can have only one announcements forum. Only teachers and administrators can post in the announcements forum. The "Latest news" block will display recent discussions from the announcements forum.';
+// END UCLA MOD: CCLE-2944
 $string['namesocial'] = 'Social forum';
 $string['nameteacher'] = 'Teacher forum';
 $string['newforumposts'] = 'New forum posts';

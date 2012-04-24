@@ -1,3 +1,4 @@
+
 <?php
 // This file is part of Moodle - http://moodle.org/
 //
@@ -34,40 +35,116 @@
 
 define('CLI_SCRIPT', true);
 
-require(dirname(dirname(dirname(dirname(__FILE__)))).'/config.php');
-require_once($CFG->libdir.'/clilib.php');
+$moodleroot = dirname(dirname(dirname(dirname(__FILE__)))); 
 
-// now get cli options
-list($options, $unrecognized) = cli_get_params(array('verbose'=>false, 'help'=>false), array('v'=>'verbose', 'h'=>'help'));
+require($moodleroot . '/config.php');
+require_once($CFG->dirroot . '/local/ucla/lib.php');
+require_once($CFG->dirroot . '/lib/clilib.php');
 
-if ($unrecognized) {
-    $unrecognized = implode("\n  ", $unrecognized);
-    cli_error(get_string('cliunknowoption', 'admin', $unrecognized));
-}
+
+list($options, $unrecognized) = cli_get_params(
+    array(
+        'current-term' => false,
+        'course-id' => false,
+        'help' => false,
+        'verbose' => false
+    ),
+    array(
+        'h' => 'help',
+        'v' => 'verbose'
+    )
+);
 
 if ($options['help']) {
-    $help =
+    $help = 
 "Execute enrol sync with external database.
 The enrol_database plugin must be enabled and properly configured.
 
+If no term is specified it will run for the terms defined in 
+get_config('tool_uclacoursecreator', 'terms')
+
 Options:
+--current-term        Run for the term specified in \$CFG->currentterm
 -v, --verbose         Print verbose progess information
 -h, --help            Print out this help
 
 Example:
-\$sudo -u www-data /usr/bin/php enrol/database/cli/sync.php
-
-Sample cron entry:
-# 5 minutes past 4am
-5 4 * * * \$sudo -u www-data /usr/bin/php /var/www/moodle/enrol/database/cli/sync.php
+\$sudo -u www-data /usr/bin/php enrol/database/cli/ucla_sync.php ([TERM] ([TERM] ... ))
+\$sudo -u www-data /usr/bin/php enrol/database/cli/ucla_sync.php --course-id [COURSEID]
 ";
-
     echo $help;
     die;
 }
 
+// Figure out non dashed options
+$reg_argv = array();
+
+$is_courseid = false;
+$singlecourseid = false;
+
+foreach ($argv as $arg) {
+    if (strpos($arg, '-') !== false) {
+        if ($arg == '--course-id') {
+            $is_courseid = true;
+        }
+
+        continue;
+    }
+
+    if ($is_courseid) {
+        $is_courseid = false;
+        if (is_numeric($arg)) {
+            $singlecourseid = $arg;
+        } 
+
+        continue;
+    }
+
+    $reg_argv[] = $arg;
+}
+
+// If we're doing a course, we don't need to figure out our terms.
+if ($singlecourseid !== false) {
+    $terms = null;
+} else {
+    // Figure out terms
+    $terms = array();
+
+    // Terms provided in arguments?
+    if (count($reg_argv) > 1) {
+        $terms = $reg_argv;
+    } 
+
+    // Include current term?
+    if ($options['current-term']) {
+        if (!empty($CFG->currentterm)) {
+            $terms = array($CFG->currentterm);
+        } else {
+            echo "Current term not set.";
+        }
+    }
+
+    // If use the terms in enrol_database configuration
+    if (empty($terms)) {
+        $terms = get_config('enrol_database', 'terms');
+    }
+}
+
+if (!empty($terms)) {
+    foreach ($terms as $key => $term) {
+        if (!ucla_validator('term', $term)) {
+            unset($terms[$key]);
+        }
+    }
+}
+
+if ($terms !== null && empty($terms)) {
+    echo "No terms to run for.\n";
+    exit(0);
+}
+
 if (!enrol_is_enabled('database')) {
-    echo('enrol_database plugin is disabled, sync is disabled'."\n");
+    echo('enrol_database_plugin is disabled, sync is disabled'."\n");
     exit(1);
 }
 
@@ -75,7 +152,9 @@ $verbose = !empty($options['verbose']);
 $enrol = enrol_get_plugin('database');
 $result = 0;
 
-$result = $result | $enrol->sync_courses($verbose);
-$result = $result | $enrol->sync_enrolments($verbose);
+// Note that this function will assume that a $terms parameter === NULL
+// means ALL terms, unless singlecourse is NOT NULL
+// Not providing an argument will mean all terms.
+$result = $result | $enrol->sync_enrolments($verbose, $terms, $singlecourseid);
 
 exit($result);

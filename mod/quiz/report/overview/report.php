@@ -47,7 +47,7 @@ class quiz_overview_report extends quiz_attempt_report {
         $download = optional_param('download', '', PARAM_ALPHA);
 
         list($currentgroup, $students, $groupstudents, $allowed) =
-                $this->load_relevant_students($cm);
+                $this->load_relevant_students($cm, $course);
 
         $pageoptions = array();
         $pageoptions['id'] = $cm->id;
@@ -106,7 +106,8 @@ class quiz_overview_report extends quiz_attempt_report {
 
         // We only want to show the checkbox to delete attempts
         // if the user has permissions and if the report mode is showing attempts.
-        $candelete = has_capability('mod/quiz:deleteattempts', $this->context)
+        $includecheckboxes = has_any_capability(
+                array('mod/quiz:regrade', 'mod/quiz:deleteattempts'), $this->context)
                 && ($attemptsmode != QUIZ_REPORT_ATTEMPTS_STUDENTS_WITH_NO);
 
         if ($attemptsmode == QUIZ_REPORT_ATTEMPTS_ALL) {
@@ -128,8 +129,8 @@ class quiz_overview_report extends quiz_attempt_report {
         $questions = quiz_report_get_significant_questions($quiz);
 
         $table = new quiz_report_overview_table($quiz, $this->context, $qmsubselect,
-                $groupstudents, $students, $detailedmarks, $questions, $candelete,
-                $reporturl, $displayoptions);
+                $qmfilter, $attemptsmode, $groupstudents, $students, $detailedmarks,
+                $questions, $includecheckboxes, $reporturl, $displayoptions);
         $filename = quiz_report_download_filename(get_string('overviewfilename', 'quiz_overview'),
                 $courseshortname, $quiz->name);
         $table->is_downloading($download, $filename,
@@ -218,8 +219,7 @@ class quiz_overview_report extends quiz_attempt_report {
                     "END) AS gradedattempt, ";
             }
 
-            list($fields, $from, $where, $params) =
-                    $this->base_sql($quiz, $qmsubselect, $qmfilter, $attemptsmode, $allowed);
+            list($fields, $from, $where, $params) = $table->base_sql($allowed);
 
             $table->set_count_sql("SELECT COUNT(1) FROM $from WHERE $where", $params);
 
@@ -290,7 +290,7 @@ class quiz_overview_report extends quiz_attempt_report {
             $columns = array();
             $headers = array();
 
-            if (!$table->is_downloading() && $candelete) {
+            if (!$table->is_downloading() && $includecheckboxes) {
                 $columns[] = 'checkbox';
                 $headers[] = null;
             }
@@ -320,7 +320,7 @@ class quiz_overview_report extends quiz_attempt_report {
                 $headers[] = get_string('regrade', 'quiz_overview');
             }
 
-            $this->add_grade_columns($quiz, $columns, $headers);
+            $this->add_grade_columns($quiz, $columns, $headers, false);
 
             $this->set_up_table_columns(
                     $table, $columns, $headers, $reporturl, $displayoptions, false);

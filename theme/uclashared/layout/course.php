@@ -2,10 +2,13 @@
 
 // Process and simplify all the options
 $hasheading = ($PAGE->heading);
-$hasnavbar = (empty($PAGE->layout_options['nonavbar']) && $PAGE->has_navbar());
+$hasnavbar = (empty($PAGE->layout_options['nonavbar']) 
+    && $PAGE->has_navbar());
 $hasfooter = (empty($PAGE->layout_options['nofooter']));
-$hassidepre = (empty($PAGE->layout_options['noblocks']) && $PAGE->blocks->region_has_content('side-pre', $OUTPUT));
-$hassidepost = (empty($PAGE->layout_options['noblocks']) && $PAGE->blocks->region_has_content('side-post', $OUTPUT));
+$hassidepre = (empty($PAGE->layout_options['noblocks']) 
+    && $PAGE->blocks->region_has_content('side-pre', $OUTPUT));
+$hassidepost = (empty($PAGE->layout_options['noblocks']) 
+    && $PAGE->blocks->region_has_content('side-post', $OUTPUT));
 $haslogininfo = (empty($PAGE->layout_options['nologininfo']));
 
 $envflag = 'prod';
@@ -14,15 +17,18 @@ if (!empty($PAGE->layout_options['environment'])) {
 }
 
 // START UCLA MODIFICATION CCLE-2452
-$showcontrolpanel = (!empty($PAGE->layout_options['controlpanel'])); // TODO Add capability check
+$showcontrolpanel = (!empty($PAGE->layout_options['controlpanel'])); 
 
-$showsidepre = ($hassidepre && !$PAGE->blocks->region_completely_docked('side-pre', $OUTPUT));
-$showsidepost = ($hassidepost && !$PAGE->blocks->region_completely_docked('side-post', $OUTPUT));
+$showsidepre = ($hassidepre 
+    && !$PAGE->blocks->region_completely_docked('side-pre', $OUTPUT));
+$showsidepost = ($hassidepost 
+    && !$PAGE->blocks->region_completely_docked('side-post', $OUTPUT));
     
 //$PAGE->requires->yui_module('yui2-animation');
 
 $custommenu = $OUTPUT->custom_menu();
-$hascustommenu = (empty($PAGE->layout_options['nocustommenu']) && !empty($custommenu));
+$hascustommenu = (empty($PAGE->layout_options['nocustommenu']) 
+    && !empty($custommenu));
 
 $bodyclasses = array();
 if ($showsidepre && !$showsidepost) {
@@ -32,6 +38,7 @@ if ($showsidepre && !$showsidepost) {
 } else if (!$showsidepost && !$showsidepre) {
     $bodyclasses[] = 'content-only';
 }
+
 if ($hascustommenu) {
     $bodyclasses[] = 'has_custom_menu';
 }
@@ -53,6 +60,8 @@ echo $OUTPUT->doctype() ?>
 <?php if ($hasheading || $hasnavbar) { ?>
     <div id="page-header" class="env-<?php echo $envflag ?>">
         <?php if ($hasheading) { ?>
+        <?php /* Banner notice on pilot to indicate place to get help */ ?>
+        <a id="topleftcornerbanner" title="Moodle 2 help" href="https://pilot.ccle.ucla.edu/course/view.php?id=110&topic=1">Moodle 2 help</a>        
         <div class="headermain">
             <div id="uclalogo">
                 <?php echo $OUTPUT->logo('ucla_ccle_logo', 'theme') ?>

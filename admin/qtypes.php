@@ -171,6 +171,7 @@ if (($delete = optional_param('delete', '', PARAM_PLUGIN)) && confirm_sesskey())
     // Remove event handlers and dequeue pending events
     events_uninstall('qtype_' . $delete);
 
+    $a = new stdClass();
     $a->qtype = $qtypename;
     $a->directory = $qtypes[$delete]->plugin_dir();
     echo $OUTPUT->box(get_string('qtypedeletefiles', 'question', $a), 'generalbox', 'notice');
@@ -217,7 +218,7 @@ foreach ($sortedqtypes as $qtypename => $localname) {
             $strcount = $counts[$qtypename]->numquestions;
         }
         if ($canviewreports) {
-            $row[] = html_writer::link(new moodle_url('/admin/report/questioninstances/index.php',
+            $row[] = html_writer::link(new moodle_url('/report/questioninstances/index.php',
                     array('qtype' => $qtypename)), $strcount, array('title' => get_string('showdetails', 'admin')));
         } else {
             $strcount;

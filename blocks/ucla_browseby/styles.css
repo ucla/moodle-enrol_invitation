@@ -1,0 +1,90 @@
+/**
+ *  Stylesheet for browseby functionality.
+ **/
+
+#browsebymain table {
+    width: 100%;
+}
+
+#browsebymain .list0 {
+    list-style: none outside none;
+    padding: 10px 0 0 0;
+    margin: 0;
+    min-width: 295px;
+    width: 100%;
+    float: left;
+}
+
+#browsebymain .list1 {
+    list-style: none outside none;
+    padding: 10px 0 0 0;
+    margin: 0;
+    min-width: 295px;
+    width: 50%;
+    float: left;
+}
+
+#browsebymain .flattened-list li {
+    display: inline;
+    padding: 8px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+#browsebymain .urlselect {
+    margin-bottom: 8px;
+}
+
+#browsebymain .browsebylist {
+    min-width: 590px;
+    width: 780px;
+}
+
+#browsebymain .registrar-link {
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+#browsebycourseslist tbody tr td {
+    text-align: left;
+}
+
+#browsebycourseslist thead {
+    background-color: #536895;
+}
+
+#browsebycourseslist .r0 {
+    background-color: #EEE;
+}
+
+#browsebycourseslist .header {
+    background-color: #536895;
+    color: white;
+}
+
+#browsebycourseslist .summersession td {
+}
+
+#browsebycourseslist .cell {
+    background-color: inherit;
+}
+
+#browsebymain h3 {
+    padding: 4px 0 4px 0;
+    clear: both;
+}
+
+/* term selector stylings */
+#browsebymain .term_selector {
+    color: #536895;
+    font-size: 0.8em;
+    margin-top: -6px;
+}
+#browsebymain .term_selector input, #browsebymain .term_selector select {
+    font-size: 9px;
+}
+#browsebymain .term_selector .urlselect, #browsebymain .term_selector .urlselect form {
+    padding-left: 2px;
+    display: inline-block;
+}

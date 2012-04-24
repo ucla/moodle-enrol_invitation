@@ -59,6 +59,53 @@ $CFG->directorypermissions = 0777;
 // logins using the Moodle login will not work.
 $CFG->passwordsaltmain = '';
 
+// determines current term
+$CFG->currentterm = '12S';
+
+// Registrar
+$CFG->registrar_dbtype = 'odbc_mssql';
+$CFG->registrar_dbhost = '';
+$CFG->registrar_dbuser = '';
+$CFG->registrar_dbpass = '';
+$CFG->registrar_dbname = 'srdb';
+$CFG->registrar_dbencoding = 'ISO-8859-1';
+
+// Format and browseby and anything else that requires instructors to be 
+// displayed, we need to determine which roles should be displayed.
+$CFG->instructor_levels_roles = array(
+    'Instructor' => array(
+        'editinginstructor',
+        'ta_instructor'
+    ),
+    'Teaching Assistant' => array(
+        'ta',
+        'ta_admin'
+    )
+);
+
+// Course builder
+$terms_to_built = array('12S', '121', '12F');
+
+// Course Requestor
+$CFG->forced_plugin_settings['tool_uclacourserequestor']['terms'] = $terms_to_built;
+$CFG->forced_plugin_settings['tool_uclacourserequestor']['selected_term'] = $CFG->currentterm;
+$CFG->forced_plugin_settings['tool_uclacourserequestor']['mailinst_default'] = true; 
+$CFG->forced_plugin_settings['tool_uclacourserequestor']['nourlupdate_default'] = false;
+
+// Course Creator
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['terms'] = $terms_to_built;
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['course_creator_email'] = 'ccle-operations@lists.ucla.edu';
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['email_template_dir'] = '/usr/local/moodle/config/course_creator/email_templates';
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['make_division_categories'] = true;
+
+// MyUCLA url updater
+$CFG->forced_plugin_settings['tool_myucla_url']['url_service'] = 'http://cis.ucla.edu/ieiWebMap/update.asp';
+$CFG->forced_plugin_settings['tool_myucla_url']['user_name'] = 'CCLE Admin';
+$CFG->forced_plugin_settings['tool_myucla_url']['user_email'] = 'ccle@ucla.edu';
+
+// Pre-pop
+$CFG->forced_plugin_settings['enrol_database']['terms'] = $terms_to_built;
+
 // turn off messaging (CCLE-2318 - MESSAGING)
 $CFG->messaging = false;
 
@@ -80,6 +127,92 @@ $block_ucla_help_settings = array('send_to' => 'jira',
         );
 $CFG->forced_plugin_settings['block_ucla_help'] = $block_ucla_help_settings;
 $block_ucla_help_support_contacts['System'] = 'dkearney';  // default
+
+// CCLE-2312 - LIBRARY RESERVES BLOCK
+$CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url']
+        = 'ftp://ftp.library.ucla.edu/incoming/eres/voyager_reserves_data.txt';
+
+// CCLE-2301 - COURSE MENU BLOCK
+$CFG->forced_plugin_settings['block_ucla_course_menu']['trimlength'] = 22;
+
+// UCLA Theme settings
+$CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'prod';
+$CFG->forced_plugin_settings['theme_uclashared']['logo_sub_dropdown'] = 0;
+
+// Newly created courses for ucla formats should only have the course menu block
+$CFG->defaultblocks_ucla = 'ucla_course_menu';
+
+// Enable conditional activities
+$CFG->enableavailability = true;
+$CFG->enablecompletion = true;  // needs to be enabled so that completion
+                                // of tasks can be one of the conditions
+
+// CCLE-2229 - Force public/private to be on
+$CFG->enablegroupmembersonly = true; // needs to be on for public-private to work
+$CFG->enablepublicprivate = true;
+
+// CCLE-2792 - Enable multimedia filters
+// NOTE: you still need to manually set the "Active?" value of the "Multimedia 
+// plugins" filter at "Site administration > Plugins > Filters > Manage filters"
+$CFG->filter_mediaplugin_enable_youtube = true;
+$CFG->filter_mediaplugin_enable_vimeo = true;
+$CFG->filter_mediaplugin_enable_mp3 = true;
+$CFG->filter_mediaplugin_enable_flv = true;
+$CFG->filter_mediaplugin_enable_swf = false;    // security risk if enabled
+$CFG->filter_mediaplugin_enable_html5audio = true;
+$CFG->filter_mediaplugin_enable_html5video = true;
+$CFG->filter_mediaplugin_enable_qt = true;
+$CFG->filter_mediaplugin_enable_wmp = true;
+$CFG->filter_mediaplugin_enable_rm = true;
+
+/// CCLE-2810 - My Sites - disallow customized "My Moodle" page
+$CFG->forcedefaultmymoodle = true;
+
+// Site administration > Users > Permissions > User policies
+$CFG->autologinguests = true;
+
+// Site administration > Courses > Course default settings
+$CFG->forced_plugin_settings['moodlecourse']['format'] = 'ucla';
+$CFG->forced_plugin_settings['moodlecourse']['maxbytes'] = 1572864000;  // 1.5GB
+// CCLE-2903 - Don't set completion tracking to be course default
+$CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 0;
+
+// Site administration > Plugins > Activity modules > Assignment
+$CFG->assignment_maxbytes = 10485760;   // 100MB
+
+// Site administration > Plugins > Licences > Manage licences
+$CFG->sitedefaultlicense = 'iown';
+
+// Site administration > Security > Site policies
+$CFG->forceloginforprofiles = true; 
+$CFG->forceloginforprofileimage = true; // temporary until "CCLE-2368 - PIX.PHP security fix" is done
+$CFG->maxeditingtime = 900; // 15 minutes
+$CFG->fullnamedisplay = 'language'; // CCLE-2550 - Lastname, Firstname sorting
+$CFG->cronclionly = true;
+
+// Site administration > Security > HTTP security
+$CFG->loginhttps = true;
+$CFG->cookiesecure = true;
+
+// Site administration > Security > Anti-Virus
+$CFG->runclamonupload = true;
+$CFG->pathtoclam = '/usr/bin/clamscan';
+$CFG->clamscan = '/usr/bin/clamscan';
+$CFG->quarantinedir = '/usr/local/clamquarantine';
+$CFG->clamfailureonupload = 'donothing';
+
+// Site administration > Appearance > Navigation
+$CFG->defaulthomepage = 1;    // user's home page should be "My Moodle" (HOMEPAGE_MY)
+
+// Site administration > Server > System paths
+$CFG->pathtodu = '/usr/bin/du';
+$CFG->aspellpath = '/usr/bin/aspell';
+
+// Site administration > Server > Session handling
+$CFG->dbsessions = false;
+
+// Site administration > Server > Performance
+$CFG->extramemorylimit = '1024M';
 
 /** 
  *  Automatic Shibboleth configurations.
@@ -128,6 +261,27 @@ $_config_private_ = $_dirroot_ . '/config_private.php';
 if (file_exists($_config_private_)) {
     require_once($_config_private_);
 }
+
+// set external database connection settings after config_private.php has
+// been read for the Registrar connection details
+$CFG->forced_plugin_settings['enrol_database']['dbtype'] = $CFG->registrar_dbtype;
+$CFG->forced_plugin_settings['enrol_database']['dbhost'] = $CFG->registrar_dbhost;
+$CFG->forced_plugin_settings['enrol_database']['dbuser'] = $CFG->registrar_dbuser;
+$CFG->forced_plugin_settings['enrol_database']['dbpass'] = $CFG->registrar_dbpass;
+$CFG->forced_plugin_settings['enrol_database']['dbname'] = $CFG->registrar_dbname;
+$CFG->forced_plugin_settings['enrol_database']['remoteenroltable'] = 'enroll2';
+$CFG->forced_plugin_settings['enrol_database']['remotecoursefield'] = 'termsrs';
+$CFG->forced_plugin_settings['enrol_database']['remoteuserfield'] = 'uid';
+$CFG->forced_plugin_settings['enrol_database']['remoterolefield'] = 'role';
+$CFG->forced_plugin_settings['enrol_database']['localcoursefield'] = 'id';
+$CFG->forced_plugin_settings['enrol_database']['localrolefield'] = 'id';
+// CCLE-2824 - Making sure that being assigned/unassigned/re-assigned doesn't 
+// lose grading data
+$CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 3;    // Disable course enrolment and remove roles
+
+// CCLE-2910 - UNEX student support
+$CFG->forced_plugin_settings['enrol_database']['fblocaluserfield'] = 'username';
+$CFG->forced_plugin_settings['enrol_database']['fbremoteuserfield'] = 'username';
 
 // This will bootstrap the moodle functions.
 require_once($_dirroot_ . '/lib/setup.php');

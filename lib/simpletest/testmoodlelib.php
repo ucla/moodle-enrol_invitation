@@ -296,6 +296,15 @@ class moodlelib_test extends UnitTestCase {
         $this->assertEqual(array('gecko', 'gecko19'), get_browser_version_classes());
     }
 
+    function test_get_device_type() {
+        // IE8 (common pattern ~1.5% of IE7/8 users have embedded IE6 agent))
+        $_SERVER['HTTP_USER_AGENT'] = 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; BT Openworld BB; Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1) ; Hotbar 10.2.197.0; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729; .NET CLR 2.0.50727)';
+        $this->assertEqual('default', get_device_type());
+        // Genuine IE6
+        $_SERVER['HTTP_USER_AGENT'] = 'Mozilla/4.0 (compatible; MSIE 6.0; AOL 9.0; Windows NT 5.1; SV1; FunWebProducts; .NET CLR 1.0.3705; Media Center PC 2.8)';
+        $this->assertEqual('legacy', get_device_type());
+    }
+
     function test_fix_utf8() {
         // make sure valid data including other types is not changed
         $this->assertidentical(null, fix_utf8(null));
@@ -1163,6 +1172,22 @@ class moodlelib_test extends UnitTestCase {
         $this->assertIdentical('ok', $USER->preference['_test_user_preferences_pref']);
         unset_user_preference('_test_user_preferences_pref');
         $this->assertTrue(!isset($USER->preference['_test_user_preferences_pref']));
+
+        // Test 1333 char values (no need for unicode, there are already tests for that in DB tests)
+        $longvalue = str_repeat('a', 1333);
+        set_user_preference('_test_long_user_preference', $longvalue);
+        $this->assertEqual($longvalue, get_user_preferences('_test_long_user_preference'));
+        $this->assertEqual($longvalue,
+                $DB->get_field('user_preferences', 'value', array('userid' => $USER->id, 'name' => '_test_long_user_preference')));
+
+        // Test > 1333 char values, coding_exception expected
+        $longvalue = str_repeat('a', 1334);
+        try {
+            set_user_preference('_test_long_user_preference', $longvalue);
+            $this->assertFail('Exception expected - longer than 1333 chars not allowed as preference value');
+        } catch (Exception $e) {
+            $this->assertTrue($e instanceof coding_exception);
+        }
 
         //test invalid params
         try {

@@ -1039,10 +1039,7 @@ abstract class enrol_plugin {
     protected function load_config() {
         if (!isset($this->config)) {
             $name = $this->get_name();
-            if (!$config = get_config("enrol_$name")) {
-                $config = new stdClass();
-            }
-            $this->config = $config;
+            $this->config = get_config("enrol_$name");
         }
     }
 
@@ -1088,22 +1085,37 @@ abstract class enrol_plugin {
      * @param stdClass $instance course enrol instance
      * All plugins allowing this must implement 'enrol/xxx:enrol' capability
      *
-     * @return bool - true means user with 'enrol/xxx:enrol' may enrol others freely, trues means nobody may add more enrolments manually
+     * @return bool - true means user with 'enrol/xxx:enrol' may enrol others freely, false means nobody may add more enrolments manually
      */
     public function allow_enrol(stdClass $instance) {
         return false;
     }
 
     /**
-     * Does this plugin allow manual unenrolments?
-     *
-     * @param stdClass $instance course enrol instance
+     * Does this plugin allow manual unenrolment of all users?
      * All plugins allowing this must implement 'enrol/xxx:unenrol' capability
      *
-     * @return bool - true means user with 'enrol/xxx:unenrol' may unenrol others freely, trues means nobody may touch user_enrolments
+     * @param stdClass $instance course enrol instance
+     * @return bool - true means user with 'enrol/xxx:unenrol' may unenrol others freely, false means nobody may touch user_enrolments
      */
     public function allow_unenrol(stdClass $instance) {
         return false;
+    }
+
+    /**
+     * Does this plugin allow manual unenrolment of a specific user?
+     * All plugins allowing this must implement 'enrol/xxx:unenrol' capability
+     *
+     * This is useful especially for synchronisation plugins that
+     * do suspend instead of full unenrolment.
+     *
+     * @param stdClass $instance course enrol instance
+     * @param stdClass $ue record from user_enrolments table, specifies user
+     *
+     * @return bool - true means user with 'enrol/xxx:unenrol' may unenrol this user, false means nobody may touch this user enrolment
+     */
+    public function allow_unenrol_user(stdClass $instance, stdClass $ue) {
+        return $this->allow_unenrol($instance);
     }
 
     /**
@@ -1554,6 +1566,26 @@ abstract class enrol_plugin {
     }
 
     /**
+     * Update instance status
+     *
+     * Override when plugin needs to do some action when enabled or disabled.
+     *
+     * @param stdClass $instance
+     * @param int $newstatus ENROL_INSTANCE_ENABLED, ENROL_INSTANCE_DISABLED
+     * @return void
+     */
+    public function update_status($instance, $newstatus) {
+        global $DB;
+
+        $instance->status = $newstatus;
+        $DB->update_record('enrol', $instance);
+
+        // invalidate all enrol caches
+        $context = context_course::instance($instance->courseid);
+        $context->mark_dirty();
+    }
+
+    /**
      * Delete course enrol plugin instance, unenrol all users.
      * @param object $instance
      * @return void
@@ -1579,6 +1611,10 @@ abstract class enrol_plugin {
 
         // finally drop the enrol row
         $DB->delete_records('enrol', array('id'=>$instance->id));
+
+        // invalidate all enrol caches
+        $context = context_course::instance($instance->courseid);
+        $context->mark_dirty();
     }
 
     /**

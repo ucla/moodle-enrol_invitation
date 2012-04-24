@@ -12,7 +12,6 @@ body {
 #page {
     width:100%;
     max-width: 1600px;
-    overflow:hidden;
     margin:0 auto;
 }
 
@@ -72,6 +71,7 @@ body {
 #page-content #region-main .region-content {
     overflow: hidden;
     margin: 20px;
+    padding-bottom: 20px;
 }
 
 #page-content #region-pre .region-content,

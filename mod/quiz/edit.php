@@ -275,8 +275,8 @@ if (($deleteemptypage !== false) && confirm_sesskey()) {
 $remove = optional_param('remove', false, PARAM_INT);
 if (($remove = optional_param('remove', false, PARAM_INT)) && confirm_sesskey()) {
     quiz_remove_question($quiz, $remove);
-    quiz_update_sumgrades($quiz);
     quiz_delete_previews($quiz);
+    quiz_update_sumgrades($quiz);
     redirect($afteractionurl);
 }
 
@@ -356,11 +356,19 @@ if (optional_param('savechanges', false, PARAM_BOOL) && confirm_sesskey()) {
         //move to the end of the selected page
         $pagebreakpositions = array_keys($questions, 0);
         $numpages = count($pagebreakpositions);
+
         // Ensure the target page number is in range.
-        $moveselectedonpage = max(1, min($moveselectedonpage, $pagebreakpositions));
+        for ($i = $moveselectedonpage; $i > $numpages; $i--) {
+            $questions[] = 0;
+            $pagebreakpositions[] = count($questions) - 1;
+        }
         $moveselectedpos = $pagebreakpositions[$moveselectedonpage - 1];
+
+        // Do the move.
         array_splice($questions, $moveselectedpos, 0, $selectedquestionids);
         $quiz->questions = implode(',', $questions);
+
+        // Update the database.
         $DB->set_field('quiz', 'questions', $quiz->questions, array('id' => $quiz->id));
         $deletepreviews = true;
     }
@@ -488,9 +496,7 @@ if ($quiz_reordertool) {
 quiz_print_status_bar($quiz);
 
 $tabindex = 0;
-if (!$quiz_reordertool) {
-    quiz_print_grading_form($quiz, $thispageurl, $tabindex);
-}
+quiz_print_grading_form($quiz, $thispageurl, $tabindex);
 
 $notifystrings = array();
 if ($quizhasattempts) {

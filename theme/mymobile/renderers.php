@@ -31,6 +31,9 @@
  * @copyright  John Stabinger
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+include_once ($CFG->dirroot. '/mod/choice/renderer.php');
+
 class theme_mymobile_renderer extends plugin_renderer_base {
 
     /**
@@ -339,7 +342,7 @@ class theme_mymobile_core_renderer extends core_renderer {
                 $loggedinas = $realuserinfo.$username.'     <a id="mypower" data-inline="true" data-role="button" data-icon="mypower" data-ajax="false" class="ui-btn-right mypower" href="'.$CFG->wwwroot.'/login/logout.php?sesskey='.sesskey().'\">'.get_string('logout').'</a>';
             }
         } else {
-            $loggedinas = '<a data-role="button" data-icon="alert" class="ui-btn-right nolog" href="'.$loginurl.'" data-prefetch>'.get_string('login').'</a>';
+            $loggedinas = '<a data-role="button" data-icon="alert" class="ui-btn-right nolog" href="'.$loginurl.'" data-ajax="false">'.get_string('login').'</a>';
         }
 
         // TODO: Enable $CFG->displayloginfailures and test as admin what happens after you succesfully
@@ -422,7 +425,7 @@ class theme_mymobile_core_renderer extends core_renderer {
         } else {
             $loggedinas = get_string('loggedinnot', 'moodle');
             if (!$loginpage) {
-                $loggedinas .= " (<a href=\"$loginurl\">".get_string('login').'</a>)';
+                $loggedinas .= " (<a href=\"$loginurl\" data-ajax=\"false\">".get_string('login').'</a>)';
             }
         }
 
@@ -785,7 +788,7 @@ class theme_mymobile_core_renderer extends core_renderer {
  * @copyright  John Stabinger
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class theme_mymobile_mod_choice_renderer extends plugin_renderer_base {
+class theme_mymobile_mod_choice_renderer extends mod_choice_renderer {
 
     /**
      * Returns HTML to display choices of option

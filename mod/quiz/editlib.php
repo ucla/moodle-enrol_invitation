@@ -248,8 +248,8 @@ function quiz_add_page_break_after($layout, $questionid) {
 function quiz_save_new_layout($quiz) {
     global $DB;
     $DB->set_field('quiz', 'questions', $quiz->questions, array('id' => $quiz->id));
-    quiz_update_sumgrades($quiz);
     quiz_delete_previews($quiz);
+    quiz_update_sumgrades($quiz);
 }
 
 /**
@@ -346,7 +346,7 @@ function quiz_move_question_down($layout, $questionid) {
  */
 function quiz_print_question_list($quiz, $pageurl, $allowdelete, $reordertool,
         $quiz_qbanktool, $hasattempts, $defaultcategoryobj) {
-    global $USER, $CFG, $DB, $OUTPUT;
+    global $CFG, $DB, $OUTPUT;
     $strorder = get_string('order');
     $strquestionname = get_string('questionname', 'quiz');
     $strgrade = get_string('grade');
@@ -462,19 +462,16 @@ function quiz_print_question_list($quiz, $pageurl, $allowdelete, $reordertool,
         $reordercheckboxlabel = '';
         $reordercheckboxlabelclose = '';
 
-        if ($qnum && empty($questions[$qnum])) {
-            continue;
-        }
-
         // If the questiontype is missing change the question type
         if ($qnum && !array_key_exists($qnum, $questions)) {
             $fakequestion = new stdClass();
-            $fakequestion->id = 0;
+            $fakequestion->id = $qnum;
+            $fakequestion->category = 0;
             $fakequestion->qtype = 'missingtype';
-            $fakequestion->name = get_string('deletedquestion', 'qtype_missingtype');
-            $fakequestion->questiontext = '<p>' .
-                    get_string('deletedquestion', 'qtype_missing') . '</p>';
-            $fakequestion->length = 0;
+            $fakequestion->name = get_string('missingquestion', 'quiz');
+            $fakequestion->questiontext = ' ';
+            $fakequestion->questiontextformat = FORMAT_HTML;
+            $fakequestion->length = 1;
             $questions[$qnum] = $fakequestion;
             $quiz->grades[$qnum] = 0;
 
@@ -581,7 +578,7 @@ function quiz_print_question_list($quiz, $pageurl, $allowdelete, $reordertool,
                                 array('title' => $strmovedown));
                     }
                 }
-                if ($allowdelete && (empty($question->id) ||
+                if ($allowdelete && ($question->qtype == 'missingtype' ||
                         question_has_capability_on($question, 'use', $question->category))) {
                     // remove from quiz, not question delete.
                     if (!$hasattempts) {
@@ -595,7 +592,7 @@ function quiz_print_question_list($quiz, $pageurl, $allowdelete, $reordertool,
                 }
                 ?>
             </div><?php
-                if ($question->qtype != 'description' && !$reordertool) {
+                if (!in_array($question->qtype, array('description', 'missingtype')) && !$reordertool) {
                     ?>
 <div class="points">
 <form method="post" action="edit.php" class="quizsavegradesform"><div>
@@ -777,7 +774,7 @@ function quiz_print_pagecontrols($quiz, $pageurl, $page, $hasattempts, $defaultc
  * @param object $quiz The quiz in the context of which the question is being displayed
  */
 function quiz_print_singlequestion($question, $returnurl, $quiz) {
-    echo '<div class="singlequestion">';
+    echo '<div class="singlequestion ' . $question->qtype . '">';
     echo quiz_question_edit_button($quiz->cmid, $question, $returnurl,
             quiz_question_tostring($question) . ' ');
     echo '<span class="questiontype">';
@@ -884,7 +881,7 @@ function quiz_print_randomquestion(&$question, &$pageurl, &$quiz, $quiz_qbanktoo
  * @param object $quiz The quiz in the context of which the question is being displayed
  */
 function quiz_print_singlequestion_reordertool($question, $returnurl, $quiz) {
-    echo '<div class="singlequestion">';
+    echo '<div class="singlequestion ' . $question->qtype . '">';
     echo '<label for="s' . $question->id . '">';
     echo print_question_icon($question);
     echo ' ' . quiz_question_tostring($question);
@@ -1106,6 +1103,10 @@ class quiz_question_bank_view extends question_bank_view {
                 'editaction', 'previewaction');
     }
 
+    protected function default_sort() {
+        return array('qtype' => 1, 'questionnametext' => 1);
+    }
+
     /**
      * Let the question bank display know whether the quiz has been attempted,
      * hence whether some bits of UI, like the add this question to the quiz icon,
@@ -1165,7 +1166,7 @@ class quiz_question_bank_view extends question_bank_view {
         $this->display_category_form($this->contexts->having_one_edit_tab_cap('edit'),
                 $this->baseurl, $categoryandcontext);
         echo "<p style=\"text-align:center;\"><b>";
-        print_string('selectcategoryabove', 'quiz');
+        print_string('selectcategoryabove', 'question');
         echo "</b></p>";
         echo $OUTPUT->box_end();
     }
@@ -1211,7 +1212,7 @@ class quiz_question_bank_view extends question_bank_view {
  *      the last value used +1.
  */
 function quiz_print_grading_form($quiz, $pageurl, $tabindex) {
-    global $USER, $OUTPUT;
+    global $OUTPUT;
     $strsave = get_string('save', 'quiz');
     echo '<form method="post" action="edit.php" class="quizsavegradesform"><div>';
     echo '<fieldset class="invisiblefieldset" style="display: block;">';

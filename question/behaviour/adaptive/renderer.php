@@ -42,6 +42,16 @@ class qbehaviour_adaptive_renderer extends qbehaviour_renderer {
     }
 
     public function feedback(question_attempt $qa, question_display_options $options) {
+        if ($qa->get_state() == question_state::$invalid) {
+            // If the latest answer was invalid, display an informative message
+            $output = '';
+            $info = $this->disregarded_info();
+            if ($info) {
+                $output = html_writer::tag('div', $info, array('class' => 'gradingdetails'));
+            }
+            return $output;
+        }
+
         // Try to find the last graded step.
 
         $gradedstep = $qa->get_behaviour()->get_graded_step($qa);
@@ -88,7 +98,11 @@ class qbehaviour_adaptive_renderer extends qbehaviour_renderer {
      */
     protected function penalty_info(question_attempt $qa, $mark,
             question_display_options $options) {
-        if (!$qa->get_question()->penalty) {
+
+        $currentpenalty = $qa->get_question()->penalty * $qa->get_max_mark();
+        $totalpenalty = $currentpenalty * $qa->get_last_behaviour_var('_try', 0);
+
+        if ($currentpenalty == 0) {
             return '';
         }
         $output = '';
@@ -101,9 +115,23 @@ class qbehaviour_adaptive_renderer extends qbehaviour_renderer {
         // Print information about any new penalty, only relevant if the answer can be improved.
         if ($qa->get_behaviour()->is_state_improvable($qa->get_state())) {
             $output .= ' ' . get_string('gradingdetailspenalty', 'qbehaviour_adaptive',
-                    format_float($qa->get_question()->penalty, $options->markdp));
+                    format_float($currentpenalty, $options->markdp));
+
+            // Print information about total penalties so far, if larger than current penalty.
+            if ($totalpenalty > $currentpenalty) {
+                $output .= ' ' . get_string('gradingdetailspenaltytotal', 'qbehaviour_adaptive',
+                        format_float($totalpenalty, $options->markdp));
+            }
         }
 
         return $output;
     }
+
+    /**
+     * Display information about a disregarded (incomplete) response.
+     */
+    protected function disregarded_info() {
+        return get_string('disregardedwithoutpenalty', 'qbehaviour_adaptive');
+    }
+
 }

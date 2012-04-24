@@ -24,7 +24,7 @@
  */
 
 $string['allrightsreserved'] = 'All rights reserved';
-$string['cc'] = 'Creative Commons';
+$string['cc'] = 'Creative Commonss';
 $string['cc-nc'] = 'Creative Commons - No Commercial';
 $string['cc-nc-nd'] = 'Creative Commons - No Commercial NoDerivs';
 $string['cc-nc-sa'] = 'Creative Commons - No Commercial ShareAlike';
@@ -32,3 +32,16 @@ $string['cc-nd'] = 'Creative Commons - NoDerivs';
 $string['cc-sa'] = 'Creative Commons - ShareAlike';
 $string['public'] = 'Public domain';
 $string['unknown'] = 'Other';
+
+// BEGIN UCLA MOD: CCLE-2669 - Copyright Modifications
+// lang strings are required to be here for user defined licenses
+$string['iown']='I own the copyright';
+$string['ucown']='The UC Regents own the copyright';
+$string['lib']='Item is licensed by the UCLA Library';
+$string['public1'] = 'Item is in the public domain';
+$string['cc1'] = 'Item is available for this use via Creative Commons license';
+$string['obtained']='I have obtained written permission from the copyright holder';
+$string['fairuse']='I am using this item under fair use';
+$string['tbd']='Upload by faculty designate; copyright status to be determined';
+
+// END UCLA MOD: CCLE-2669

@@ -236,6 +236,7 @@ if ($version > $CFG->version) {  // upgrade
         upgrade_core($version, true);
     }
 } else if ($version < $CFG->version) {
+    echo $CFG->version;
     // better stop here, we can not continue with plugin upgrades or anything else
     throw new moodle_exception('downgradedcore', 'error', new moodle_url('/admin/'));
 }
@@ -297,8 +298,8 @@ if (during_initial_install()) {
         }
     }
 
-    // at this stage there can be only one admin - users may change username, so do not rely on that
-    $adminuser = get_complete_user_data('id', $CFG->siteadmins);
+    // at this stage there can be only one admin unless more were added by install - users may change username, so do not rely on that
+    $adminuser = get_complete_user_data('id', reset(explode(',', $CFG->siteadmins)));
 
     if ($adminuser->password === 'adminsetuppending') {
         // prevent installation hijacking

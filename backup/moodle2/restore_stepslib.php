@@ -371,40 +371,35 @@ class restore_gradebook_structure_step extends restore_structure_step {
         }
         $rs->close();
 
-        //need to correct the grade category path and parent
+        // Need to correct the grade category path and parent
         $conditions = array(
             'courseid' => $this->get_courseid()
         );
-        $grade_category = new stdclass();
 
         $rs = $DB->get_recordset('grade_categories', $conditions);
-        if (!empty($rs)) {
-            //get all the parents correct first as grade_category::build_path() loads category parents from the DB
-            foreach($rs as $gc) {
-                if (!empty($gc->parent)) {
-                    $grade_category->id = $gc->id;
-                    $grade_category->parent = $this->get_mappingid('grade_category', $gc->parent);
-                    $DB->update_record('grade_categories', $grade_category);
-                }
-            }
-        }
-        if (isset($grade_category->parent)) {
-            unset($grade_category->parent);
-        }
-        $rs->close();
-
-        $rs = $DB->get_recordset('grade_categories', $conditions);
-        if (!empty($rs)) {
-            //now we can rebuild all the paths
-            foreach($rs as $gc) {
+        // Get all the parents correct first as grade_category::build_path() loads category parents from the DB
+        foreach ($rs as $gc) {
+            if (!empty($gc->parent)) {
+                $grade_category = new stdClass();
                 $grade_category->id = $gc->id;
-                $grade_category->path = grade_category::build_path($gc);
+                $grade_category->parent = $this->get_mappingid('grade_category', $gc->parent);
                 $DB->update_record('grade_categories', $grade_category);
             }
         }
         $rs->close();
 
-        //Restore marks items as needing update. Update everything now.
+        // Now we can rebuild all the paths
+        $rs = $DB->get_recordset('grade_categories', $conditions);
+        foreach ($rs as $gc) {
+            $grade_category = new stdClass();
+            $grade_category->id = $gc->id;
+            $grade_category->path = grade_category::build_path($gc);
+            $grade_category->depth = substr_count($grade_category->path, '/') - 1;
+            $DB->update_record('grade_categories', $grade_category);
+        }
+        $rs->close();
+
+        // Restore marks items as needing update. Update everything now.
         grade_regrade_final_grades($this->get_courseid());
     }
 }
@@ -688,7 +683,7 @@ class restore_create_included_users extends restore_execution_step {
 
     protected function define_execution() {
 
-        restore_dbops::create_included_users($this->get_basepath(), $this->get_restoreid(), $this->get_setting_value('user_files'), $this->task->get_userid());
+        restore_dbops::create_included_users($this->get_basepath(), $this->get_restoreid(), $this->task->get_userid());
     }
 }
 
@@ -1127,6 +1122,12 @@ class restore_course_structure_step extends restore_structure_step {
             $data->idnumber = '';
         } else {
             unset($data->idnumber);
+        }
+
+        // Any empty value for course->hiddensections will lead to 0 (default, show collapsed).
+        // It has been reported that some old 1.9 courses may have it null leading to DB error. MDL-31532
+        if (empty($data->hiddensections)) {
+            $data->hiddensections = 0;
         }
 
         // Only restrict modules if original course was and target site too for new courses
@@ -1805,15 +1806,20 @@ class restore_course_completion_structure_step extends restore_structure_step {
 
         $data->course = $this->get_courseid();
 
-        $params = array(
-            'course' => $data->course,
-            'criteriatype' => $data->criteriatype,
-            'method' => $data->method,
-            'value' => $data->value,
-        );
-        $DB->insert_record('course_completion_aggr_methd', $params);
+        // Only create the course_completion_aggr_methd records if
+        // the target course has not them defined. MDL-28180
+        if (!$DB->record_exists('course_completion_aggr_methd', array(
+                    'course' => $data->course,
+                    'criteriatype' => $data->criteriatype))) {
+            $params = array(
+                'course' => $data->course,
+                'criteriatype' => $data->criteriatype,
+                'method' => $data->method,
+                'value' => $data->value,
+            );
+            $DB->insert_record('course_completion_aggr_methd', $params);
+        }
     }
-
 }
 
 

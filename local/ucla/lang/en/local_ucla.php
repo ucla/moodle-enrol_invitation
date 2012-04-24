@@ -21,3 +21,8 @@ $string['pluginname'] = 'UCLA configurations';
 $string['access_failure'] = 'Your access control systems are not properly set up, configuration files in the "local/ucla/" directory may be web visible!';
 
 $string['curl_failure'] = 'cURL is not installed, your configuration files\' web visibility could not be tested!';
+
+$string['term'] = 'Term';
+$string['invalidrolemapping'] = 'Could not find role mapping {$a}';
+
+$string['ucla:viewall_courselisting'] = 'Allows user to see all courses another user is associated with on their profile';

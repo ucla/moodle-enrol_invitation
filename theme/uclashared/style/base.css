@@ -9,6 +9,7 @@ h1.main, h2.main, h3.main, h4.main, h5.main, h6.main {text-align: center;}
 .notifyproblem {padding: 10px; color: #660000; text-align: center;}
 .notifysuccess {padding: 10px; color: #006600; text-align: center;}
 .paging {text-align: center;}
+h1, h2, h3 {margin: 0;}
 
 /**
  * Tabs
@@ -44,3 +45,9 @@ h1.main, h2.main, h3.main, h4.main, h5.main, h6.main {text-align: center;}
 .theme_screenshot p {font-size: 0.9em; margin: 0 0 1em;}
 .theme_description {margin-left: 300px;}
 .theme_description h2 {padding-top: 0.5em;}
+
+.external-link {
+    padding-right: 15px;
+    padding-bottom: -2px;
+    background: transparent url([[pix:theme|external]]) no-repeat center right;
+}

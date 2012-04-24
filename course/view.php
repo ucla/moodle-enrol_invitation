@@ -107,32 +107,47 @@
     if ($PAGE->user_allowed_editing()) {
         if (($edit == 1) and confirm_sesskey()) {
             $USER->editing = 1;
-            redirect($PAGE->url);
+            // Redirect to site root if Editing is toggled on frontpage
+            if ($course->id == SITEID) {
+                redirect($CFG->wwwroot .'/?redirect=0');
+            } else {
+                redirect($PAGE->url);
+            }
         } else if (($edit == 0) and confirm_sesskey()) {
             $USER->editing = 0;
             if(!empty($USER->activitycopy) && $USER->activitycopycourse == $course->id) {
                 $USER->activitycopy       = false;
                 $USER->activitycopycourse = NULL;
             }
-            redirect($PAGE->url);
+            // Redirect to site root if Editing is toggled on frontpage
+            if ($course->id == SITEID) {
+                redirect($CFG->wwwroot .'/?redirect=0');
+            } else {
+                redirect($PAGE->url);
+            }
         }
 
-        if ($hide && confirm_sesskey()) {
-            set_section_visible($course->id, $hide, '0');
-        }
+        if (has_capability('moodle/course:update', $context)) {
+            if ($hide && confirm_sesskey()) {
+                set_section_visible($course->id, $hide, '0');
+            }
 
-        if ($show && confirm_sesskey()) {
-            set_section_visible($course->id, $show, '1');
-        }
+            if ($show && confirm_sesskey()) {
+                set_section_visible($course->id, $show, '1');
+            }
 
-        if (!empty($section)) {
-            if (!empty($move) and confirm_sesskey()) {
-                if (!move_section($course, $section, $move)) {
-                    echo $OUTPUT->notification('An error occurred while moving a section');
+            if (!empty($section)) {
+                if (!empty($move) and confirm_sesskey()) {
+                    if (move_section($course, $section, $move)) {
+                        if ($course->id == SITEID) {
+                            redirect($CFG->wwwroot . '/?redirect=0');
+                        } else {
+                            redirect($PAGE->url);
+                        }
+                    } else {
+                        echo $OUTPUT->notification('An error occurred while moving a section');
+                    }
                 }
-                // Clear the navigation cache at this point so that the affects
-                // are seen immediately on the navigation.
-                $PAGE->navigation->clear_cache();
             }
         }
     } else {
@@ -210,27 +225,6 @@
 
     // Course wrapper start.
     echo html_writer::start_tag('div', array('class'=>'course-content'));
-
-    /**
-     * Alert that displays when a visitor is not logged in, as the course will
-     * only show public content (a partial view) in this case.
-     *
-     * @author ebollens
-     * @version 20110719
-     */
-    include_once($CFG->libdir.'/publicprivate/course.class.php');
-    $publicprivate_course = new PublicPrivate_Course($course);
-    if($publicprivate_course->is_activated() && isguestuser()) {
-        echo $OUTPUT->box_start('noticebox');
-
-        echo get_string('publicprivatenotice');
-        $loginbutton = new single_button(new moodle_url($CFG->wwwroot 
-                . '/login/index.php'), get_string('publicprivatelogin'));
-        $loginbutton->class = 'continuebutton';
-
-        echo $OUTPUT->render($loginbutton);
-        echo $OUTPUT->box_end();
-    }
 
     $modinfo =& get_fast_modinfo($COURSE);
     get_all_mods($course->id, $mods, $modnames, $modnamesplural, $modnamesused);

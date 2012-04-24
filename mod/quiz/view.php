@@ -78,11 +78,6 @@ $completion->set_module_viewed($cm);
 // Initialize $PAGE, compute blocks
 $PAGE->set_url('/mod/quiz/view.php', array('id' => $cm->id));
 
-$edit = optional_param('edit', -1, PARAM_BOOL);
-if ($edit != -1 && $PAGE->user_allowed_editing()) {
-    $USER->editing = $edit;
-}
-
 // Get this user's attempts.
 $attempts = quiz_get_user_attempts($quiz->id, $USER->id, 'finished', true);
 $lastfinishedattempt = end($attempts);
@@ -94,7 +89,16 @@ if ($unfinishedattempt = quiz_get_user_attempt_unfinished($quiz->id, $USER->id))
 $numattempts = count($attempts);
 
 // Work out the final grade, checking whether it was overridden in the gradebook.
-$mygrade = quiz_get_best_grade($quiz, $USER->id);
+if (!$canpreview) {
+    $mygrade = quiz_get_best_grade($quiz, $USER->id);
+} else if ($lastfinishedattempt) {
+    // Users who can preview the quiz don't get a proper grade, so work out a
+    // plausible value to display instead, so the page looks right.
+    $mygrade = quiz_rescale_grade($lastfinishedattempt->sumgrades, $quiz, false);
+} else {
+    $mygrade = null;
+}
+
 $mygradeoverridden = false;
 $gradebookfeedback = '';
 
@@ -137,7 +141,7 @@ if ($attempts) {
     $viewobj->gradecolumn = $someoptions->marks >= question_display_options::MARK_AND_MAX &&
             quiz_has_grades($quiz);
     $viewobj->markcolumn = $viewobj->gradecolumn && ($quiz->grade != $quiz->sumgrades);
-    $viewobj->overallstats = $alloptions->marks >= question_display_options::MARK_AND_MAX;
+    $viewobj->overallstats = $lastfinishedattempt && $alloptions->marks >= question_display_options::MARK_AND_MAX;
 
     $viewobj->feedbackcolumn = quiz_has_feedback($quiz) && $alloptions->overallfeedback;
 } else {
@@ -212,13 +216,13 @@ if (!$viewobj->quizhasquestions) {
 
 echo $OUTPUT->header();
 
-// Guests can't do a quiz, so offer them a choice of logging in or going back.
 if (isguestuser()) {
-    echo $output->view_page_guest($course, $quiz, $cm, $context, $infomessages, $viewobj);
+    // Guests can't do a quiz, so offer them a choice of logging in or going back.
+    echo $output->view_page_guest($course, $quiz, $cm, $context, $viewobj->infomessages);
 } else if (!isguestuser() && !($canattempt || $canpreview
           || $viewobj->canreviewmine)) {
     // If they are not enrolled in this course in a good enough role, tell them to enrol.
-    echo $output->view_page_notenrolled($course, $quiz, $cm, $context, $infomessages, $viewobj);
+    echo $output->view_page_notenrolled($course, $quiz, $cm, $context, $viewobj->infomessages);
 } else {
     echo $output->view_page($course, $quiz, $cm, $context, $viewobj);
 }
