@@ -73,12 +73,12 @@ class course_request_form extends moodleform {
                 'class' => 'indicator_desc',
                 'value' => $type->id
             );
-            $radioarray[] = &MoodleQuickForm::createElement('radio', 'radio_type', '', $descstring, $type->id, $attributes);
+            $radioarray[] = &MoodleQuickForm::createElement('radio', 'indicator_type', '', $descstring, $type->id, $attributes);
         }
         
-        $mform->addGroup($radioarray, 'indicator_type', get_string('req_type', 'tool_uclasiteindicator'), array(' '), false);
-        $mform->addRule('indicator_type', 'you did not specify a type', 'required');
-        $mform->addHelpButton('indicator_type', 'req_type', 'tool_uclasiteindicator');
+        $mform->addGroup($radioarray, 'indicator_type_radios', get_string('req_type', 'tool_uclasiteindicator'), array('<br/>'), false);
+        $mform->addRule('indicator_type_radios', 'you did not specify a type', 'required');
+        $mform->addHelpButton('indicator_type_radios', 'req_type', 'tool_uclasiteindicator');
 
         $displaylist = ucla_site_indicator::get_categories_list();
         $mform->addElement('select', 'indicator_category', get_string('req_category', 'tool_uclasiteindicator'), $displaylist);

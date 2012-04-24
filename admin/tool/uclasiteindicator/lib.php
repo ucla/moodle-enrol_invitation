@@ -128,7 +128,8 @@ class site_indicator_request {
     }
     
     /**
-     * Create a site indicator entry from a request.
+     * Create a site indicator entry from a request.  This also deletes
+     * the request.
      * 
      * @global type $DB 
      */
@@ -139,7 +140,7 @@ class site_indicator_request {
         $this->delete();
     }
     
-    /**
+     /**
      * @todo test this function! 
      */
     public function generate_jira_ticket() {
@@ -147,17 +148,20 @@ class site_indicator_request {
         
         // Get the information we need to print in the ticket
         $requested_course = $DB->get_record('course_request', array('id' => $this->request->requestid));
-        $user = $DB->get_record('user', array('id' => $requested_course->requester));
-        $user_string = $user->firstname . ' ' . $user->lastname . ' (' . $user->email . ')';
         
-        $requested_course->user = $user_string;
+        // Format strings
+        $requested_course->type = $this->get_type_str();
+        $requested_course->user = $this->get_user_str($requested_course->requester);
+        $requested_course->category = $this->get_category_str();
+        $requested_course->summary = $this->fix_linebreaks($requested_course->summary);
+       
+        // Attach the pending course links
         $requested_course->pending = $CFG->wwwroot . '/course/pending.php';
         $requested_course->approve = $CFG->wwwroot . '/course/pending.php?approve=' . $this->request->requestid;
         $requested_course->reject = $CFG->wwwroot . '/course/pending.php?reject=' . $this->request->requestid;
         
         $title = get_string('jira_title', 'tool_uclasiteindicator', $requested_course);
         $message = get_string('jira_msg', 'tool_uclasiteindicator', $requested_course);
-        
         
         $params = array(
             'pid' => get_config('block_ucla_help', 'jira_pid'),
@@ -184,7 +188,7 @@ class site_indicator_request {
      */
     public function delete() {
         global $DB;
-        $DB->delete_records('ucla_siteindicator_request', array('requestid' => $this->id));
+        $DB->delete_records('ucla_siteindicator_request', array('id' => $this->id));
     }
         
     /**
@@ -215,6 +219,50 @@ class site_indicator_request {
             return null;
         }
     }
+
+    
+    private function fix_linebreaks($string) {
+        $fix = str_replace('</p>', "\n\n", $string);
+        $fix = preg_replace('#<br\s*/?>#i', "\n", $string);
+        $fix = strip_tags($fix);
+        return $fix;
+    }
+    
+    private function get_category_str() {
+        global $DB;
+        
+        if($this->request->categoryid) {
+            $category_string = "";
+            
+            $category = $DB->get_record('course_categories', array('id'=>$this->request->categoryid));
+            
+            if($category->parent) {
+                $parent = $DB->get_record('course_categories', array('id' => $category->parent));
+                $category_string = $parent->name . ' > ';
+            }
+            $category_string .= $category->name;
+        } else {
+            $category_string = "Other: ";
+        }
+    }
+    
+    private function get_type_str() {
+        global $DB;
+        
+        $type = ucla_site_indicator::get_type($this->entry->type);
+        $str = $type->fullname . ' (with ' . $type->role . ' role)';
+        
+        return $str;
+    }
+    
+    private function get_user_str($id) {
+        global $DB;
+        
+        $user = $DB->get_record('user', array('id' => $id));
+        $str = $user->firstname . ' ' . $user->lastname . ' (' . $user->email . ')';
+        return $str;        
+    }
+    
     
 }
 
@@ -320,8 +368,6 @@ class ucla_site_indicator {
      * @return int category ID specified in the indicator request
      */
     static function create($courseid, $requestid) {
-        global $DB;
-
         $newindicator = site_indicator_request::load($requestid);
         
         if($newindicator) {
@@ -335,17 +381,6 @@ class ucla_site_indicator {
         
         return 0;
     }
-
-    /**
-     *
-     * @param type $requestid 
-     */
-    static function reject($requestid) {
-        $request = site_indicator_request::load($requestid);
-        if($request) {
-            $request->delete();
-        }
-    }
     
     /**
      *
@@ -353,8 +388,6 @@ class ucla_site_indicator {
      * @param type $courseid 
      */
     static function delete($courseid) {
-        global$DB;
-        
         $indicator = site_indicator_entry::load($courseid);
         
         if($indicator) {
@@ -363,11 +396,15 @@ class ucla_site_indicator {
     }
     
     /**
-     * 
-     * @param type $courseid 
+     *
+     * @param type $requestid 
      */
-    static function get_site_indicator($courseid) {
-        
+    static function reject($requestid) {
+        $request = site_indicator_request::load($requestid);
+
+        if($request) {
+            $request->delete();
+        }
     }
     
     /**
@@ -384,23 +421,35 @@ class ucla_site_indicator {
     }
     
     static function get_indicator_types() {
-        global $DB, $CFG;
+        global $DB;
+//        global $CFG;
         
-        $query = "SELECT si.id, si.fullname AS
-                TYPE , sr.shortname, sr.description
-                FROM {$CFG->prefix}ucla_siteindicator_type AS si
-                JOIN {$CFG->prefix}ucla_siteindicator_rolemapping AS srm ON srm.typeid = si.id
-                JOIN {$CFG->prefix}ucla_siteindicator_roles AS sr ON sr.id = srm.roleid
-                ORDER BY si.sortorder";
+//        $query = "SELECT si.id, si.fullname AS
+//                TYPE , sr.shortname, sr.description
+//                FROM {$CFG->prefix}ucla_siteindicator_type AS si
+//                JOIN {$CFG->prefix}ucla_siteindicator_rolemapping AS srm ON srm.typeid = si.id
+//                JOIN {$CFG->prefix}ucla_siteindicator_roles AS sr ON sr.id = srm.roleid
+//                ORDER BY si.sortorder";
                 
 //        $roles = $DB->get_records_sql($query);
         $types = $DB->get_records('ucla_siteindicator_type', null, 'sortorder');
         
         return $types;
     }
-    
-    static function get_indicators_by_type($type) {
         
+    static function get_type($identifier) {
+        global $DB;
+        
+        if(is_int($identifier) || is_numeric($identifier)) {
+            $attributes = array('id' => $identifier);
+        } else {
+            $attributes = array('shortname' => $identifier);
+        }
+
+        $type = $DB->get_record('ucla_siteindicator_type', $attributes);
+        
+        return $type;
+
     }
 
 }

@@ -387,12 +387,7 @@ html, body {background-color:#FFF; height:100%;}
     margin-left: 2.0em !important;
 }
 
-/* Forces radio group options to be created on newlines */
-.fgroup span {
-    display:block;
-    clear:left;
-    line-height: 20px;
-}
+/* Adds some space after the radio item */
 .fgroup span .indicator_desc {
     margin-right: 5px;
 }
