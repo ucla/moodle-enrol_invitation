@@ -174,10 +174,10 @@ class site_indicator_request {
             'description' => $message,
         );        
 
-        echo "<pre>";
-        print_r($message);
-        echo "<pre>";
-        //$result = do_request(get_config('block_ucla_help', 'jira_endpoint'), $params, 'POST');      
+//        echo "<pre>";
+//        print_r($message);
+//        echo "<pre>";
+        $result = do_request(get_config('block_ucla_help', 'jira_endpoint'), $params, 'POST');      
         
     }
     
