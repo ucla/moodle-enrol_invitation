@@ -217,7 +217,7 @@ function ucla_map_courseid_to_termsrses($courseid) {
     global $DB;
 
     return $DB->get_records('ucla_request_classes', 
-        array('courseid' => $courseid), '', 'id, term, srs');
+        array('courseid' => $courseid), '', 'id, term, srs, hostcourse');
 }
 
 /**
@@ -260,7 +260,9 @@ function ucla_get_course_info($courseid) {
     $reginfos = array();
     $termsrses = ucla_map_courseid_to_termsrses($courseid);
     foreach ($termsrses as $termsrs) {
-        $reginfos[] = ucla_get_reg_classinfo($termsrs->term, $termsrs->srs);
+        $reginfoobj = ucla_get_reg_classinfo($termsrs->term, $termsrs->srs);
+        $reginfoobj->hostcourse = $termsrs->hostcourse;
+        $reginfos[] = $reginfoobj;
     }
 
     return $reginfos;
@@ -848,4 +850,24 @@ function has_role_in_context($role_shortname, $context){
     return false;
 }
 
-// EOF
+class ucla_html_writer extends html_writer {
+    /**
+     *  Hack to add external link icon.
+     **/
+    static function link($url, $text, $attr=null) {
+        global $CFG;
+        if (strpos($url->out(), $CFG->wwwroot) === false) {
+            if (empty($attr)) {
+                $attr['class'] = '';
+            } else {
+                $attr['class'] .= ' ';
+            }
+
+            $attr['class'] .= 'external-link';
+        }
+
+        $attr['target'] = '_blank';
+
+        return parent::link($url, $text, $attr);
+    }
+}

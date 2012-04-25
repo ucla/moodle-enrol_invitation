@@ -353,22 +353,3 @@ class theme_uclashared_core_renderer extends core_renderer {
     }
 }
 
-class ucla_html_writer extends html_writer {
-    /**
-     *  Hack to add external link icon.
-     **/
-    static function link($url, $text, $attr=null) {
-        global $CFG;
-        if (strpos($url->out(), $CFG->wwwroot) === false) {
-            if (empty($attr)) {
-                $attr['class'] = '';
-            } else {
-                $attr['class'] .= ' ';
-            }
-
-            $attr['class'] .= 'external-link';
-        }
-
-        return parent::link($url, $text, $attr);
-    }
-}

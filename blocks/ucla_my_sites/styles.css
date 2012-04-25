@@ -36,5 +36,22 @@
 }
 
 .block_ucla_my_sites .content .termselector {
-    float: right;
+    color: #536895;
+    font-size: 0.8em;
+    margin-top: -6px;
 }
+
+.block_ucla_my_sites .content .termselector select {
+    font-size: 9px;
+}
+
+.block_ucla_my_sites .content .termselector .urlselect {
+    display: inline-block;
+}
+
+.block_ucla_my_sites .registrar-link {
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+

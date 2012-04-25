@@ -12,8 +12,12 @@ require_once($CFG->dirroot.'/lib/weblib.php');
 require_once($CFG->dirroot . '/lib/formslib.php');
 
 require_once($CFG->dirroot.'/local/ucla/lib.php');
+
 // Need this to build course titles
 require_once($CFG->dirroot.'/'.$CFG->admin.'/tool/uclacoursecreator/uclacoursecreator.class.php');
+
+// Need this for host-course information
+require_once($CFG->dirroot.'/'.$CFG->admin.'/tool/uclacourserequestor/lib.php');
 
 require_once($CFG->dirroot.'/blocks/ucla_browseby/handlers/browseby.class.php');
 require_once($CFG->dirroot.'/blocks/ucla_browseby/handlers/course.class.php');
@@ -177,6 +181,7 @@ class block_ucla_my_sites extends block_base {
                 $rreg_info->srs = $srs;
                 $rreg_info->session_group = $remotecourse['session_group'];
                 $rreg_info->course_code = $remotecourse['catlg_no'];
+                $rreg_info->hostcourse = 1;
 
                 $rclass->reg_info = array($rreg_info);
 
@@ -200,26 +205,41 @@ class block_ucla_my_sites extends block_base {
             }
         }
 
+        // We want to sort things, so that it appears classy yo
+        usort($class_sites, array(get_class(), 'registrar_course_sort'));
+
         // Now we need to handle all the terms
+        $termoptstr = '';
         if (!empty($availableterms)) {
             // Leaves them descending
             $availableterms = terms_arr_sort($availableterms);
+
+            $termoptstr = get_string('term', 'local_ucla') . ': '
+                    . $OUTPUT->render(self::make_terms_selector(
+                        $availableterms, $showterm));
+        } else {
+            $noclasssitesoverride = 'noclasssitesatall';
         }
+
+        $termoptstr = html_writer::tag('div', $termoptstr,
+            array('class' => 'termselector'));
 
         // In order to translate values returned by get_moodlerole
         $allroles = get_all_roles();
 
         // print class sites
-        $content[] = 
-            html_writer::tag('div', 
-                $OUTPUT->render(self::make_terms_selector($availableterms, 
-                    $showterm)),
-                array('class' => 'termselector')
-            )
-            . html_writer::tag('h3', get_string('classsites', 
-                'block_ucla_my_sites'), array('class' => 'mysitesdivider'));
+        $content[] = $termoptstr . html_writer::tag('h3', 
+                get_string('classsites', 'block_ucla_my_sites'), 
+                    array('class' => 'mysitesdivider'));
         if (empty($class_sites)) {
-            $content[] = html_writer::tag('p', get_string('noclasssites', 
+
+            if (!isset($noclasssitesoverride)) {
+                $ncsstr = 'noclasssites';
+            } else {
+                $ncsstr = $noclasssitesoverride;
+            }
+
+            $content[] = html_writer::tag('p', get_string($ncsstr, 
                     'block_ucla_my_sites', ucla_term_to_text($showterm)));
         } else {
             $t = new html_table();
@@ -239,7 +259,7 @@ class block_ucla_my_sites extends block_base {
                             $reg_info->subj_area,
                             $reg_info->coursenum,
                             $reg_info->acttype,
-                            $reg_info->sectnum);                    
+                            $reg_info->sectnum);
                 }
                 
                 $reg_info = reset($class->reg_info);
@@ -247,7 +267,7 @@ class block_ucla_my_sites extends block_base {
                         $class_title,
                         ucla_term_to_text($reg_info->term, 
                             $reg_info->session_group), $class->fullname);
-                
+
                 // add link
                 if (!empty($class->url)) {
                     $class_link = ucla_html_writer::link(
@@ -259,6 +279,8 @@ class block_ucla_my_sites extends block_base {
                     if (count($class->reg_info) != 1) {
                         debugging('strangeness!');
                     } else {
+                        // THis external link generation mechanism should
+                        // be pulled outside this block
                         $class_link = $title . html_writer::link(
                             new moodle_url(
                                 course_handler::registrar_url(reset(
@@ -369,6 +391,11 @@ class block_ucla_my_sites extends block_base {
         $urls = array();
 
         $page = $PAGE->url;
+
+        // Hack to stop debugging message that says that the current
+        // term is not a local relative url.
+        $defaultfound = false;
+
         foreach ($terms as $term) {
             $thisurl = clone($page);
             $thisurl->param('term', $term);
@@ -378,10 +405,76 @@ class block_ucla_my_sites extends block_base {
 
             if ($default !== false && $default == $term) {
                 $default = $url;
+                $defaultfound = true;
             }
         }
 
+        if (!$defaultfound) {
+            $default = false;
+        }
+    
         return $selects = new url_select($urls, $default);
+    }
+
+    /**
+     *  Used with usort(), sorts a bunch of entries returned via 
+     *  ucla_get_reg_classinfo.
+     *    https://jira.ats.ucla.edu:8443/browse/CCLE-2832
+     *  Sorts via term, subject area, cat_num, sec_num
+     **/
+    static function registrar_course_sort($a, $b) {
+        if (empty($a->reg_info) || empty($b->reg_info)) {
+            throw new moodle_exception('cannotcomparecourses');
+        }
+
+        // Find the host course
+        $ariarr = array();
+        foreach ($a->reg_info as $k => $v) {
+            $ariarr[$k] = get_object_vars($v);
+        }
+
+        foreach ($b->reg_info as $k => $v) {
+            $briarr[$k] = get_object_vars($v);
+        }
+
+        $arik = set_find_host($ariarr);
+        $brik = set_find_host($briarr);
+
+        // If they're indeterminate
+        if ($arik === false || $brik === false) {
+            throw new moodle_exception(UCLA_REQUESTOR_BADHOST);
+        }
+
+        // Fetch the ones that are relevant to compare
+        $areginfo = $a->reg_info[$arik];
+        $areginfo->role = $a->role;
+
+        $breginfo = $b->reg_info[$brik];
+        $breginfo->role = $b->role;
+        
+        // This is an array of fields to compare by after the off-set
+        // term and role
+        $comparr = array('term', 'role', 'subj_area', 'course_code', 
+            'sectnum');
+
+        // Go through each of those fields until we hit an imbalance
+        foreach ($comparr as $field) {
+            if (!isset($areginfo->{$field})) {
+                return 1;
+            } 
+            
+            if (!isset($breginfo->{$field})) {
+                return -1;
+            }
+
+            $strcmpv = strcmp($areginfo->{$field}, $breginfo->{$field});
+
+            if ($strcmpv != 0) {
+                return $strcmpv;
+            }
+        }
+
+        return 0;
     }
 }
 
