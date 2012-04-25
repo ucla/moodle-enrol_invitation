@@ -20,16 +20,18 @@ class registrar_ccle_getclasses extends registrar_query {
     var $unindexed_key_translate = array('term' => 0, 'srs' => 1);
 
     function validate($new, $old) {
-        $tests = array('srs', 'term');
-
+        
+        $tests = array('term', 'session','session_start','session_end','instruction_end');
         foreach ($tests as $criteria) {
-            if (!isset($new[$criteria])
-                && $new[$criteria] != $old[$criteria]) {
-                
+            if (!isset($new[$criteria])) {
                 return false;
             }
         }
-
+        
+        if (!ucla_validator('term', $new['term'])) {
+            return false;
+        }
+        
         return true;
     }
 
