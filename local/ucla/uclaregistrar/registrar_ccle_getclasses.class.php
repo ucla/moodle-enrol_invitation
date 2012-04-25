@@ -23,15 +23,12 @@ class registrar_ccle_getclasses extends registrar_query {
         
         $tests = array('srs', 'term');
         foreach ($tests as $criteria) {
-            if (!isset($new[$criteria])) {
+            if (!isset($new[$criteria])
+                    && $new[$criteria] != $old[$criteria]) {
                 return false;
             }
         }
-        
-        if (!ucla_validator('term', $new['term'])) {
-            return false;
-        }
-        
+               
         return true;
     }
 
