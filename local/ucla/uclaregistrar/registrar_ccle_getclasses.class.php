@@ -21,7 +21,7 @@ class registrar_ccle_getclasses extends registrar_query {
 
     function validate($new, $old) {
         
-        $tests = array('term', 'session','session_start','session_end','instruction_end');
+        $tests = array('srs', 'term');
         foreach ($tests as $criteria) {
             if (!isset($new[$criteria])) {
                 return false;
