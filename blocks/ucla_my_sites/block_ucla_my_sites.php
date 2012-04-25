@@ -281,12 +281,12 @@ class block_ucla_my_sites extends block_base {
                     } else {
                         // THis external link generation mechanism should
                         // be pulled outside this block
-                        $class_link = $title . html_writer::link(
+                        $class_link = "$title " . html_writer::link(
                             new moodle_url(
                                 course_handler::registrar_url(reset(
                                     $class->reg_info))
                             ),
-                            ' (' . html_writer::tag(
+                            '(' . html_writer::tag(
                                     'span', 
                                     get_string('registrar_link', 
                                         'block_ucla_browseby'),
