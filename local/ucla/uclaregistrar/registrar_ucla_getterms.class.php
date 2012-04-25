@@ -6,7 +6,7 @@ class registrar_ucla_getterms extends registrar_query {
     var $unindexed_key_translate = array('term' => 0);
     
     function validate($new, $old) {
-        $tests = array('term', 'session','session_start','session_end','instruction_end');
+        $tests = array('term', 'session','session_start','session_end','instruction_start');
         foreach ($tests as $criteria) {
             if (!isset($new[$criteria])) {
                 return false;
