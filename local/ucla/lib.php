@@ -864,9 +864,8 @@ class ucla_html_writer extends html_writer {
             }
 
             $attr['class'] .= 'external-link';
+            $attr['target'] = '_blank';
         }
-
-        $attr['target'] = '_blank';
 
         return parent::link($url, $text, $attr);
     }
