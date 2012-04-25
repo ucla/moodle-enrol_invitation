@@ -31,7 +31,6 @@ class block_ucla_weeksdisplay extends block_base {
      * Returns the current week's display string
      */
     public function get_raw_content() {
-        self::set_current_week_display(date('c'));
         return get_config('local_ucla', 'current_week_display');
     }
     
