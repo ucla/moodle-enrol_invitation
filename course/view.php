@@ -22,6 +22,18 @@
         print_error('unspecifycourseid', 'error');
     }
 
+    // START UCLA MOD CCLE-2283: archive redirect
+    // This needs to run here...because otherwise we get errors for 
+    // non existing courses
+    $ucla_cvh = $CFG->dirroot . '/local/ucla/ucla_course_view_hook.php';
+    if (file_exists($ucla_cvh)) {
+        require_once($ucla_cvh);
+        if ($redirector = ucla_course_view_hook($name, $id)) {
+            redirect($redirector);
+        }
+    }
+    // END UCLA MOD CCLE-2283
+
     if (!empty($name)) {
         if (! ($course = $DB->get_record('course', array('shortname'=>$name)))) {
             print_error('invalidcoursenameshort', 'error');
