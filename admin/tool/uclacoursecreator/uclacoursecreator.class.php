@@ -2288,7 +2288,7 @@ class uclacoursecreator {
     function build_course_url($course) {
         // TODO put this in the proper namespace
         if (get_config('', 'ucla_friendlyurls_enabled')) {
-            return new moodle_url('/course/view/' . $course->shortname);
+            return new moodle_url(make_friendlyurl($course));
         }
 
         return new moodle_url('/course/view.php', array('id' => $course->id));

@@ -902,4 +902,13 @@ function set_editing_mode_button($url=null) {
     }
 }
 
+/**
+ *  Gets the FriendlyURL version of a course link.
+ *  @param $course  course object
+ *  @return string  URL to use, relative to $CFG->wwwroot
+ **/
+function make_friendlyurl($course) {
+    return '/course/view/' . rawurlencode($course->shortname);
+}
+
 // EOF
