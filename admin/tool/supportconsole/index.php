@@ -10,6 +10,9 @@
 //Only Allow Admin Users
 require_once("../../../config.php");
 require_once($CFG-> libdir.'/adminlib.php');
+require_once($CFG-> libdir.'/tablelib.php');
+
+require_once($CFG-> dirroot . '/local/ucla/lib.php');
 error_reporting(E_ALL); 
 ini_set( 'display_errors','1');
 
@@ -70,6 +73,27 @@ function printhead() {
         }*/
     } 
 }
+/*
+function createTable2($result_keys, $result_val)
+{
+global $CFG;
+$tbl= new flexible_table('sorted_table');
+   $tbl->define_columns($result_keys);
+   $tbl->define_headers($result_keys);
+   $tbl->sortable(true);
+   $tbl->define_baseurl("www.google.com");
+   $tbl->setup();
+  foreach($result_val as $res)
+    {
+        if($res instanceof stdClass){
+        $row=array_values(get_object_vars($res));}
+        else{
+        $row=array_values($res);}
+	$tbl->add_data($row);
+    }
+    $tbl->finish_output();
+}
+*/
 
 function createTable($result_keys, $result_val)
 {
@@ -85,7 +109,10 @@ echo'<table id="myTable" class="tablesorter" cellspacing="1">';
     echo "<tbody>";
     foreach($result_val as $res)
     {
-        $row=array_values(get_object_vars($res));
+	if($res instanceof stdClass){
+        $row=array_values(get_object_vars($res));}
+	else{
+	$row=array_values($res);}
         echo "<tr>";
         foreach($row as $res)
         {
@@ -767,10 +794,10 @@ createTable($result_keys,$result_val);
 */
 } 
 ////////////////////////////////////////////////////////////////////
+/*
 $title="Get All Fields for Classes View (enroll2) from Registrar by UID";
 // Note: this has code which allows post from Name Lookup report 
 if (empty($_POST['console'])) {
-    printhead();
 ?>
     <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
         <input type="submit" name="console" value="<?php echo $title; ?>">
@@ -785,10 +812,11 @@ if (empty($_POST['console'])) {
 } elseif (($_POST['console'] == "$title") or ($_POST['console'] == "SRDB")) {  # tie-in to link from name lookup
     echo "<h3>$title</h3>\n";
     if (!empty($_POST['uid']) and !empty($_POST['srdb_view'])) {
-        $db_conn = odbc_connect($CFG->registrar_dbhost, $CFG->registrar_dbuser, $CFG->registrar_dbpass) or die( "ERROR: Connection to Registrar failed.");
-
+        ucla_require_registrar();
+	/*$db_conn = odbc_connect($CFG->registrar_dbhost, $CFG->registrar_dbuser, $CFG->registrar_dbpass) or die( "ERROR: Connection to Registrar failed.");
+*/
         // SQL query to find the courses the user is enroled in
-        $wherefield = "uid";
+/*        $wherefield = "uid";
         $sortfield = "term_int DESC, subj_area, catlg_no, sect_no";
 
         $sql = "SELECT *
@@ -837,7 +865,7 @@ if (empty($_POST['console'])) {
         echo "Can't search with no UID.";
         exit;
     }
-}
+}*/
 ////////////////////////////////////////////////////////////////////
 	$title="Sort Class Sites by Count of Resources or Activities ";
 
@@ -995,7 +1023,7 @@ createTable($result_keys,$result_val);
 }
 ////////////////////////////////////////////////////////////////////
 $title="Get Class Roster from Registrar";
-$sp = array("CCLE_ROSTER_CLASS" => "CCLE_ROSTER_CLASS", "hu_facultyCourseStudentsGetAlpha2" => "hu_facultyCourseStudentsGetAlpha2", "CIS_ROSTER_CLASS" => "CIS_ROSTER_CLASS");
+$sp = array("ccle_roster_class" => "ccle_roster_class", "hu_facultyCourseStudentsGetAlpha2" => "hu_facultyCourseStudentsGetAlpha2", "CIS_ROSTER_CLASS" => "CIS_ROSTER_CLASS");
 
 if (empty($_POST['console'])) {
     printhead();
@@ -1019,33 +1047,45 @@ $stored_procedure = $sp[$_POST['sp']];
 echo "<h3>$title - ".$_POST['sp']."</h3>\n";     
 if (!empty($term) and !empty($srs)) {
 $db_conn = odbc_connect($CFG->registrar_dbhost, $CFG->registrar_dbuser, $CFG->registrar_dbpass) or die( "ERROR: Connection to Registrar failed.");
-if ($stored_procedure == 'hu_facultyCourseStudentsGetAlpha2') {
-    $sql = "EXECUTE $stored_procedure '$srs','$term'";
+ucla_require_registrar();
+    if($stored_procedure== 'CIS_ROSTER_CLASS'){$submit_procedure='ccle_getclasses';}else{$submit_procedure=$stored_procedure;}
+    $sql ="EXECUTE ".$submit_procedure."'$srs','$term'";
     $start_time = microtime(true);
-    $result = odbc_exec($db_conn, $sql) or die ("Query failed: error message = " . odbc_errormsg($db_conn));
+    $result = registrar_query::run_registrar_query($submit_procedure,array(array($term,$srs)),true);
+    $stop_time = microtime(true);
+    print_r($result);
+    echo '"' . $sql . '" took ' . ($stop_time - $start_time) . ' seconds <br>';
+   if($stored_procedure == 'CIS_ROSTER_CLASS'){
+   $result_arr=array_values($result);
+   $result_arr=$result_arr[0];
+    //$sql ="EXECUTE ".$stored_procedure.".'$result_arr['term']','$result_arr['subj_area']','$result_arr['crsidx']','$result_arr['classidx']";
+    $start_time = microtime(true);
+    $result = registrar_query::run_registrar_query($submit_procedure,array(array($result_arr['term'],$result_arr['subj_area'],$result_arr['crsidx'],$result_arr['classidx'])),true);
     $stop_time = microtime(true);
     echo '"' . $sql . '" took ' . ($stop_time - $start_time) . ' seconds <br>';
-} else if ($stored_procedure == 'CCLE_ROSTER_CLASS') {
-    $sql = "EXECUTE $stored_procedure '$term','$srs'";
-    $start_time = microtime(true);
-    $result = odbc_exec($db_conn, $sql) or die ("Query failed: error message = " . odbc_errormsg($db_conn));
-    $stop_time = microtime(true);
-    echo '"' . $sql . '" took ' . ($stop_time - $start_time) . ' seconds <br>';
-} else if ($stored_procedure == 'CIS_ROSTER_CLASS') {
-    $sql0 = "EXECUTE ccle_getClasses '$term', '$srs'";
-    $start_time0 = microtime(true);
-    $result0 = odbc_exec($db_conn, $sql0) or die ("Query failed: error message = " . odbc_errormsg($db_conn));
-    $stop_time0 = microtime(true);
-    echo '"' . $sql0 . '" took ' . ($stop_time0 - $start_time0) . ' seconds <br>';
-    $row0 = odbc_fetch_array($result0);
+
+/* $row0 = odbc_fetch_array($result0);
     odbc_free_result($result0);
     $sql = "EXECUTE CIS_ROSTER_CLASS '{$row0['term']}', '{$row0['subj_area']}', '{$row0['crsidx']}', '{$row0['classidx']}'";
     $start_time = microtime(true);
-    $result = odbc_exec($db_conn, $sql) or die ("Query failed: error message = " . odbc_errormsg($db_conn));
+   // $result = odbc_exec($db_conn, $sql) or die ("Query failed: error message = " . odbc_errormsg($db_conn));
     $stop_time = microtime(true);
     echo '"' . $sql . '" took ' . ($stop_time - $start_time) . ' seconds <br>';
+   */
 }
-    
+if(empty($result))
+        {
+        echo"No results were found";
+        }
+        else
+{
+    $result_val=array_values($result);
+    print_r($result_val[0]);
+    $result_keys=array_keys($result_val[0]);
+    createTable($result_keys, $result_val);
+
+}
+/*   
 echo "<table>\n";
 echo "<tr>\n";
 
@@ -1083,6 +1123,7 @@ odbc_close ($db_conn);
 echo "</table>\n";
 if ($nrows==0) echo "<br/><center> Nothing for $term and $srs. Try back later</center>  <br/>";
 else echo "<br/><center> Total Records:  $nrows </center>  <br/>";
+*/
 }    
 }
 ////////////////////////////////////////////////////////////////////
@@ -1321,19 +1362,49 @@ if (empty($_POST['console'])) {
 } elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
     printhead();
     echo "<h3>$title</h3>\n";
-    $result=mysql_query("SELECT * FROM 
-							(SELECT CONCAT('<a target=\"_blank\" href=\"{$CFG->wwwroot}/course/edit.php?id=',b.id,'\">',b.id,'</a>') as id, 
-							CONCAT('<a target=\"_blank\" href=\"{$CFG->wwwroot}/course/view.php?id=',b.id,'\">',b.shortname,'</a>') AS Course, 
+// CONCAT('<a target=\"_blank\" href=\"{$CFG->wwwroot}/course/edit.php?id=',b.id,'\">',b.id,'</a>')
+//CONCAT('<a target=\"_blank\" href=\"{$CFG->wwwroot}/course/view.php?id=',b.id,'\">',b.shortname,'</a>')
+    $result=$DB->get_records_sql("SELECT * FROM 
+							(SELECT b.id as id, b.shortname as Course,
 							if(a.sectiontitle is not NULL , CONCAT(a.coursetitle,': ',a.sectiontitle ),a.coursetitle) AS OldTitle, 
 							b.fullname AS NewTitle
 							FROM {$CFG->prefix}ucla_reg_classinfo a 
 							INNER JOIN {$CFG->prefix}course b 
 							ON (CONCAT(a.term,'-',a.srs) = b.idnumber OR CONCAT(a.term,'-Master_',a.srs) = b.idnumber)
 							ORDER BY b.shortname
-							) t WHERE OldTitle != NewTitle 
-						 ") or die(mysql_error());
-    $num_rows = mysql_num_rows($result);
-    echo "There are $num_rows classes.<P>";
+							) t WHERE OldTitle != NewTitle");
+	 $num_rows = sizeof($result);
+        if ($num_rows === 1) {
+            echo "There was 1 class.<P>";
+        }
+        else {
+            echo "There are $num_rows classes.<P>";
+        }
+
+
+if(empty($result))
+{   
+        echo"No results were found";
+}
+else
+{
+$result_val=array_values($result);
+$result_keys=array_keys(get_object_vars($result_val[0]));
+$counter=0;
+foreach($result_val as $res)
+{
+	$res->Course='<a target="_blank" href="'.$CFG->wwwroot.'/course/view.php?id='.$res->id.'>'.$res->shortname.'</a>' ;
+	$res->id='<a target="_blank" href="'.$CFG->wwwroot.'/course/edit.php?id='.$res->id.'>'.$res->id.'</a>';
+
+$result_val[$counter]=$res;
+$counter++;
+
+}
+createTable($result_keys, $result_val);
+
+}
+
+/*
     echo "<table>\n";
     $cols = 0;
     while ($get_info = mysql_fetch_assoc($result)){
@@ -1352,6 +1423,7 @@ if (empty($_POST['console'])) {
         echo "</tr>\n";
     }
     echo "</table>\n";
+*/
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 $title="Courses with Changed Descriptions";
