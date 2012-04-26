@@ -496,6 +496,17 @@ while ($section <= $course->numsections) {
                 }
 
             }
+			if ($PAGE->user_is_editing($course->id)) {
+				// BELOW line probably no longer required
+			   // echo '<DIV class="editControlLinks"><a title="'.$streditsummary.'" href="editsection.php?id='.$thissection->id.'">Edit Course Menu Section Summary</a></DIV><br />';
+									
+				//harsh modifications for GUI changes 
+				echo '<DIV class="editControlLinks2"><a title="Upload file" href="view.php?page=easyadd&id='.$course->id.'&type=file&topic='.$section.'">Upload file</a>';
+				echo '<a title="Add link" href="view.php?page=easyadd&id='.$course->id.'&type=link&topic='.$section.'">Add link</a>';
+				echo '<a title="Add text" href="view.php?page=easyadd&id='.$course->id.'&type=text&topic='.$section.'">Add text</a>';
+				echo '<a title="Add subheading" href="view.php?page=easyadd&id='.$course->id.'&type=header&topic='.$section.'">Add subheading</a></DIV></br>';
+				echo '<br>';
+			}
 
         }
 
