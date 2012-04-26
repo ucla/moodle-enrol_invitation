@@ -306,13 +306,21 @@ while ($section <= $course->numsections) {
     // the actual number of sections that exist
     if (!empty($sections[$section])) {
         $thissection = $sections[$section];
+        
+        // Save the name if the section name is NULL
+        // This writes the value to the database
+        if($section && NULL == $sections[$section]->name) {
+            $sections[$section]->name = get_string('sectionname', "format_weeks") . " " . $section;
+            $DB->update_record('course_sections', $sections[$section]);
+        }
+        
     } else {
         // Create a new section
         $thissection = new stdClass;
         $thissection->course  = $course->id;   
         $thissection->section = $section;
         // Assign the week number as default name
-        $thissection->name = $section;
+        $thissection->name = get_string('sectionname', "format_weeks") . " " . $section;
         $thissection->summary = '';
         $thissection->summaryformat = FORMAT_HTML;
         $thissection->visible  = 1;
@@ -657,11 +665,6 @@ while ($section <= $course->numsections) {
 
                 // Callback to determine the section title displayed
                 $section_name = get_section_name($course, $thissection);
-                
-                // Fix section name when it's a single number
-                if(is_numeric($section_name)) {
-                    $section_name = get_string('sectionname', "format_weeks") . " " . $section_name;
-                }
 
                 if ($has_capability_viewhidden && !$thissection->visible) {
                     $section_name .= html_writer::tag('span',

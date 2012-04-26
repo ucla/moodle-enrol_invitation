@@ -35,11 +35,6 @@ $PAGE->set_url('/course/editsection.php', array('id'=>$id));
 $section = $DB->get_record('course_sections', array('id' => $id), '*', MUST_EXIST);
 $course = $DB->get_record('course', array('id' => $section->course), '*', MUST_EXIST);
 
-// If a section's name is a number, treat it as null
-if(is_numeric($section->name)) {
-    $section->name = null;
-}
-
 require_login($course);
 $context = get_context_instance(CONTEXT_COURSE, $course->id);
 require_capability('moodle/course:update', $context);

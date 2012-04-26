@@ -80,6 +80,10 @@
     background-color: #DBDEE5;
 }
 
+.block_ucla_course_menu_hidden:hover {
+    background-color: #FFD26B;
+}
+
 .block_ucla_course_menu_hidden > a:first-child {
     color: #A6ACBA;
 }
