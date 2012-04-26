@@ -1,0 +1,401 @@
+From 99b6b0871f74a2155c453c0f4e541e6c920d304b Mon Sep 17 00:00:00 2001
+From: Adam Olley <adam.olley@netspot.com.au>
+Date: Thu, 17 Mar 2011 10:06:20 +1030
+Subject: [PATCH] Wimba WYSIWIG
+
+---
+ lib/editor/tinymce/lib.php                         |    4 +-
+ .../tiny_mce/3.3.9.2/plugins/wimba/css/wimba.css   |   26 +++++
+ .../3.3.9.2/plugins/wimba/editor_plugin.js         |   53 +++++++++++
+ .../3.3.9.2/plugins/wimba/editor_plugin_src.js     |   53 +++++++++++
+ .../tiny_mce/3.3.9.2/plugins/wimba/img/icon.gif    |  Bin 0 -> 1104 bytes
+ .../tiny_mce/3.3.9.2/plugins/wimba/js/wimba.js     |   53 +++++++++++
+ .../tiny_mce/3.3.9.2/plugins/wimba/wimba.php       |   99 ++++++++++++++++++++
+ lib/weblib.php                                     |    2 +
+ 8 files changed, 288 insertions(+), 2 deletions(-)
+ create mode 100755 lib/editor/tinymce/tiny_mce/3.3.9.2/plugins/wimba/css/wimba.css
+ create mode 100755 lib/editor/tinymce/tiny_mce/3.3.9.2/plugins/wimba/editor_plugin.js
+ create mode 100755 lib/editor/tinymce/tiny_mce/3.3.9.2/plugins/wimba/editor_plugin_src.js
+ create mode 100644 lib/editor/tinymce/tiny_mce/3.3.9.2/plugins/wimba/img/icon.gif
+ create mode 100644 lib/editor/tinymce/tiny_mce/3.3.9.2/plugins/wimba/js/wimba.js
+ create mode 100755 lib/editor/tinymce/tiny_mce/3.3.9.2/plugins/wimba/wimba.php
+
+diff --git a/lib/editor/tinymce/lib.php b/lib/editor/tinymce/lib.php
+index 5a54a91..efed9ff 100644
+--- a/lib/editor/tinymce/lib.php
++++ b/lib/editor/tinymce/lib.php
+@@ -124,7 +124,7 @@ class tinymce_texteditor extends texteditor {
+                     'apply_source_formatting' => true,
+                     'remove_script_host' => false,
+                     'entity_encoding' => "raw",
+-                    'plugins' => "{$xmedia}advimage,safari,table,style,layer,advhr,advlink,emotions,inlinepopups,searchreplace,paste,directionality,fullscreen,moodlenolink,{$xemoticon}{$xdragmath}nonbreaking,contextmenu,insertdatetime,save,iespell,preview,print,noneditable,visualchars,xhtmlxtras,template,pagebreak,spellchecker",
++                    'plugins' => "{$xmedia}advimage,safari,table,style,layer,advhr,advlink,emotions,inlinepopups,searchreplace,paste,directionality,fullscreen,moodlenolink,{$xemoticon}{$xdragmath}nonbreaking,contextmenu,insertdatetime,save,iespell,preview,print,noneditable,visualchars,xhtmlxtras,template,pagebreak,spellchecker,wimba",
+                     'theme_advanced_font_sizes' => "1,2,3,4,5,6,7",
+                     'theme_advanced_layout_manager' => "SimpleLayout",
+                     'theme_advanced_toolbar_align' => "left",
+@@ -133,7 +133,7 @@ class tinymce_texteditor extends texteditor {
+                     'theme_advanced_buttons2' => "bold,italic,underline,strikethrough,sub,sup,|,justifyleft,justifycenter,justifyright",
+                     'theme_advanced_buttons2_add' => "|,cleanup,removeformat,pastetext,pasteword,|,forecolor,backcolor,|,ltr,rtl",
+                     'theme_advanced_buttons3' => "bullist,numlist,outdent,indent,|,link,unlink,moodlenolink,|,image,{$xemoticon}{$xmedia}{$xdragmath}nonbreaking,charmap",
+-                    'theme_advanced_buttons3_add' => "table,|,code,spellchecker",
++                    'theme_advanced_buttons3_add' => "table,|,code,spellchecker,|,wimba",
+                     'theme_advanced_fonts' => "Trebuchet=Trebuchet MS,Verdana,Arial,Helvetica,sans-serif;Arial=arial,helvetica,sans-serif;Courier New=courier new,courier,monospace;Georgia=georgia,times new roman,times,serif;Tahoma=tahoma,arial,helvetica,sans-serif;Times New Roman=times new roman,times,serif;Verdana=verdana,arial,helvetica,sans-serif;Impact=impact;Wingdings=wingdings",
+                     'theme_advanced_resize_horizontal' => true,
+                     'theme_advanced_resizing' => true,
+diff --git a/lib/editor/tinymce/tiny_mce/3.3.9.2/plugins/wimba/css/wimba.css b/lib/editor/tinymce/tiny_mce/3.3.9.2/plugins/wimba/css/wimba.css
+new file mode 100755
+index 0000000..9ee1716
+--- /dev/null
++++ b/lib/editor/tinymce/tiny_mce/3.3.9.2/plugins/wimba/css/wimba.css
+@@ -0,0 +1,26 @@
++body{
++ text-align: center;
++ *text-align: center;
++ _text-align: center;
++ height:125px;
++ *height:140px;
++ _height:140px;
++}
++
++.wimba_boxTopTitle {
++    display:block;
++    height:25px;
++
++    text-align: left;
++    color: 404E58;  /* W6 */
++    font-size: 13px;
++    border-bottom-color: 404E58;  /* W6 */
++    border-bottom-style: solid;
++    border-bottom-width: 1px;
++}
++
++.wimba_boxText{
++    text-align: center;
++    color: 404E58;  /* W6 */
++    font-size: 13px;
++}
+diff --git a/lib/editor/tinymce/tiny_mce/3.3.9.2/plugins/wimba/editor_plugin.js b/lib/editor/tinymce/tiny_mce/3.3.9.2/plugins/wimba/editor_plugin.js
+new file mode 100755
+index 0000000..dfd6eaf
+--- /dev/null
++++ b/lib/editor/tinymce/tiny_mce/3.3.9.2/plugins/wimba/editor_plugin.js
+@@ -0,0 +1,53 @@
++/**
++ * @author NetSpot Pty Ltd
++ */
++
++(function() {
++	var each = tinymce.each;
++
++	tinymce.PluginManager.requireLangPack('wimba');
++
++	tinymce.create('tinymce.plugins.WimbaPlugin', {
++		init : function(ed, url) {
++			var t = this;
++			
++			t.editor = ed;
++			t.url = url;
++
++			// Register commands
++			ed.addCommand('mceWimba', function() {
++				ed.windowManager.open({
++					file : url + '/wimba.php',
++					width : 320 + parseInt(ed.getLang('wimba.delta_width', 0)),
++					height : 135 + parseInt(ed.getLang('wimba.delta_height', 0)),
++					inline : 1
++				}, {
++					plugin_url : url
++				});
++			});
++
++			// Register buttons
++			ed.addButton('wimba', {
++                    title : 'Blackboard Collaborate Voice Authoring', 
++                    image : url + '/img/icon.gif',
++                    cmd : 'mceWimba'});
++
++		},
++
++		_parse : function(s) {
++			return tinymce.util.JSON.parse('{' + s + '}');
++		},
++
++		getInfo : function() {
++			return {
++				longname : 'Wimba',
++				author : 'NetSpot Pty Ltd',
++				version : "1.0"
++			};
++		}
++
++	});
++
++	// Register plugin
++	tinymce.PluginManager.add('wimba', tinymce.plugins.WimbaPlugin);
++})();
+diff --git a/lib/editor/tinymce/tiny_mce/3.3.9.2/plugins/wimba/editor_plugin_src.js b/lib/editor/tinymce/tiny_mce/3.3.9.2/plugins/wimba/editor_plugin_src.js
+new file mode 100755
+index 0000000..dfd6eaf
+--- /dev/null
++++ b/lib/editor/tinymce/tiny_mce/3.3.9.2/plugins/wimba/editor_plugin_src.js
+@@ -0,0 +1,53 @@
++/**
++ * @author NetSpot Pty Ltd
++ */
++
++(function() {
++	var each = tinymce.each;
++
++	tinymce.PluginManager.requireLangPack('wimba');
++
++	tinymce.create('tinymce.plugins.WimbaPlugin', {
++		init : function(ed, url) {
++			var t = this;
++			
++			t.editor = ed;
++			t.url = url;
++
++			// Register commands
++			ed.addCommand('mceWimba', function() {
++				ed.windowManager.open({
++					file : url + '/wimba.php',
++					width : 320 + parseInt(ed.getLang('wimba.delta_width', 0)),
++					height : 135 + parseInt(ed.getLang('wimba.delta_height', 0)),
++					inline : 1
++				}, {
++					plugin_url : url
++				});
++			});
++
++			// Register buttons
++			ed.addButton('wimba', {
++                    title : 'Wimba Voice Authoring', 
++                    image : url + '/img/icon.gif',
++                    cmd : 'mceWimba'});
++
++		},
++
++		_parse : function(s) {
++			return tinymce.util.JSON.parse('{' + s + '}');
++		},
++
++		getInfo : function() {
++			return {
++				longname : 'Wimba',
++				author : 'NetSpot Pty Ltd',
++				version : "1.0"
++			};
++		}
++
++	});
++
++	// Register plugin
++	tinymce.PluginManager.add('wimba', tinymce.plugins.WimbaPlugin);
++})();
+diff --git a/lib/editor/tinymce/tiny_mce/3.3.9.2/plugins/wimba/img/icon.gif b/lib/editor/tinymce/tiny_mce/3.3.9.2/plugins/wimba/img/icon.gif
+new file mode 100644
+index 0000000000000000000000000000000000000000..6c97063fc1455f0ff1196e14cd6e956d98642425
+GIT binary patch
+literal 1104
+zcmZ?wbhEHb6k-r!_`a3l)8`-W-hT-T3w!<MV{~+MYHI4kN6+rwdvx>G{g*G_ojZRy
+zCnx9G^Vflafz{R3iHV8#A3RA&NC*!P&&tY*kB^Uth=_}ei;RrS&dx3=DM?F9v$wYo
+z2ndLcjm^x=ynW|kVPWB$x1XLoc`{@6yu7@;4<EmsJ$LEdyLYXvtx4Hsd-fiPPA^@v
+zW<z#fVOe9pr>EzGhfhzPJ|7vIw0-;b%9aVaRb7>hT`@5+Nl8hKP0fvsjdSKNOh`<A
+z@$zk6Vab|ZXB<8J>+0&7nwoNRbC;~!<KyEqYv#=NAHMno1Yf*(t)#T9u&#gW)~)9+
+zTnPz_%*aT0^^Yv6X<4###htr%qoN|S%33DPS$^m4!=uMe<>uvIzH&1rAvq~I#XmH9
+z-o{fN9v(}VE?u^4SxQRE+I5=>3JNxF*^!o(v2f*PH#fK3yn@xMRvkNjdj9<R!NI{n
+zK|#JD(LKErwr<;b>C*M)?#Y#v)g_G+tE+2kTKaeG+}YbdDIhXAD>r}QjQMlt%$YuW
+zUPe~V@e^l`9zA;I%$aM~@AOZY?CR=z>-K|;%*?CTZnyVN&dAK#wr$(<7jOFKZ@YZ?
+zhL@*jM|XcuPk(-XVM<y?dwY9QZe@CU`ofi43X95?tz6yK(d*&myJ*p((`PPh+PJZ}
+zxHzY<tg@=6xVQ)iR;*Z4TU*=O(lT$}yqB-urxZ2y_VyO!=cVPAZrr%_#L2Vi>6y=;
+zKQAt=ibyF63JTu4_u!YWzZix!Q2fcl$iT3bK?meZP@Z7m_|K5dDHFlXz^rR1BE#XZ
+zA<>a}BHvjK=jFj1?aYB2e=wguD4=HPV{oJ+;rtYJX|7xb;Zp((?TR5kIKH?xF_^nr
+zOq6mEU{Kbnbo(MG(0GWK&v8nP0EdF(<S^w$DMqdbCbct(=uKG^y69SiX`RsAjT@bL
+zrP)=)L<AIA{F<WJmIyp7e#xg|qvY~}!Ehn7q^Chv?S(JNeWFqeY&fkPUtVrvXN^-_
+z!KyfIx`<xZ9>Yy9uB_mZkSjUSv?7ejsW&VnlF3z+gGbUMV}pak#RXBS3>&>dSN5$D
+zTV&&NL0};hqh2`6w~l5{H*s5sfPjOE51H7R$|MYA6BryP8G3A6qno9$;9z%Ts+*b2
+rf&(X24Ery5coZ`%KEO~^k+bT;v7W`s-|n(EGOe4jVS)oABZD;nj$)+B
+
+literal 0
+HcmV?d00001
+
+diff --git a/lib/editor/tinymce/tiny_mce/3.3.9.2/plugins/wimba/js/wimba.js b/lib/editor/tinymce/tiny_mce/3.3.9.2/plugins/wimba/js/wimba.js
+new file mode 100644
+index 0000000..3a6b325
+--- /dev/null
++++ b/lib/editor/tinymce/tiny_mce/3.3.9.2/plugins/wimba/js/wimba.js
+@@ -0,0 +1,53 @@
++function onOK() {
++
++  var fields = ["f_mid", "f_rid"];
++  var param = new Object();
++  for (var i in fields) {
++    var id = fields[i];
++    var el = document.getElementById(id);
++    param[id] = el.value;
++  }
++  __dlg_close(param);
++  return false;
++};
++
++function insertWimba() {
++    var fe, f = document.forms[0], h;
++    var ed = tinyMCEPopup.editor;
++
++    tinyMCEPopup.restoreSelection();
++
++    if (!AutoValidator.validate(f)) {
++        tinyMCEPopup.alert(ed.getLang('invalid_data'));
++        return false;
++    }
++
++    fe = ed.selection.getNode();
++    url = f.f_rid.value + '__' + f.f_mid.value;
++
++    var onclick = "if(!YAHOO.util.Dom.get('"+url+"_iframe')) {";
++        onclick += "var va = document.createElement('iframe'); va.setAttribute('id','"+url+"_va');";
++        onclick += "va.setAttribute('frameborder', '0');";
++        onclick += "va.setAttribute('width', '0px');";
++        onclick += "va.setAttribute('height', '0px');";
++        onclick += "va.setAttribute('style', 'display: none; z-index: 1000;');";
++        onclick += "va.setAttribute('allowtransparency', 'true');";
++        onclick += "va.setAttribute('frameBorder', '0');";
++        onclick += "va.setAttribute('scrolling', 'no');";
++        onclick += "var child = document.createElement('iframe'); child.setAttribute('id','"+url+"_iframe');";
++        onclick += "child.setAttribute('src', '"+wwwroot+"/mod/voiceauthoring/displayWysiwyg.php?rid="+f.f_rid.value+"&mid="+f.f_mid.value+"');";
++        onclick += "child.setAttribute('frameborder', '0');";
++        onclick += "child.setAttribute('width', '0px');";
++        onclick += "child.setAttribute('height', '0px');";
++        onclick += "child.setAttribute('style', 'display: none;');";
++        onclick += "YAHOO.util.Dom.get('"+url+"_image').parentNode.appendChild(va);";
++        onclick += "YAHOO.util.Dom.get('"+url+"_image').parentNode.appendChild(child);";
++        onclick += "}return false;";
++
++    thtml = '<img title="Click to play" src="'+wwwroot+'/mod/voiceauthoring/lib/web/pictures/items/wimba_sound.png" id="'+url+'_image" onclick="'+onclick+'" />';
++
++    ed.execCommand('mceInsertRawHTML', false, thtml);
++
++    tinyMCEPopup.close();
++}
++
+diff --git a/lib/editor/tinymce/tiny_mce/3.3.9.2/plugins/wimba/wimba.php b/lib/editor/tinymce/tiny_mce/3.3.9.2/plugins/wimba/wimba.php
+new file mode 100755
+index 0000000..6d42674
+--- /dev/null
++++ b/lib/editor/tinymce/tiny_mce/3.3.9.2/plugins/wimba/wimba.php
+@@ -0,0 +1,99 @@
++<?php
++
++require_once(dirname(dirname(dirname(dirname(dirname(dirname(dirname(dirname(__FILE__)))))))) . '/config.php');
++require_once($CFG->dirroot."/mod/voiceauthoring/lib.php");
++
++$id = optional_param('id', SITEID, PARAM_INT);
++require_course_login($id);
++@header('Content-Type: text/html; charset=utf-8');
++$vtAction=new vtAction($USER->email);
++$vtUser = new VtUser(NULL);
++$vtUserRigths = new VtRights(NULL);
++
++$vtUserRigths->setProfile ('moodle.recorder.instructor');
++$type="record";
++
++$dbResource = $DB->get_record("voiceauthoring_resources", array("course" => 0));
++
++if($dbResource === false)// the resource is not yet created
++{
++  $result = $vtAction->createRecorder("Voice Authoring associated to the course 0");//create the resource on the vt
++  if( $result != null && $result->error != "error")
++  {
++    if( storeResource($result->getRid(),0,"recorder","wysiwig_recorder") )
++    {
++         $rid = $result->getRid();
++    }
++  }
++  $mid=0;
++}
++else
++{
++    $rid = $dbResource->rid;
++    $mid = $dbResource->mid+1;
++}
++
++$dbResource->mid = $mid;
++
++$DB->update_record("voiceauthoring_resources",$dbResource);
++$resource = voicetools_api_get_resource($rid);
++
++if( $resource )
++{
++    $message=new vtMessage(null);
++    $message->setMid($mid);
++
++    $result = $vtAction->getVtSession($resource,$vtUser,$vtUserRigths,$message);
++
++    if($result === false)
++    {
++        $error = "There is a problem to display the voice authoring";
++    }
++    $version = '2011031102';
++}
++
++?>
++<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
++<html>
++<head>
++<meta http-equiv="content-type" content="text/html; charset=utf-8" />
++<title><?php print_string("modulename","voiceauthoring");?></title>
++<script type="text/javascript">var wwwroot="<?php echo $CFG->wwwroot; ?>";</script>
++<script type="text/javascript" src="../../tiny_mce_popup.js?v=3.3.9.2"></script>
++<script type="text/javascript" src="js/wimba.js?v=<?php echo $version; ?>"></script>
++<script type="text/javascript" src="../../utils/validate.js"></script>
++<script type="text/javascript" src="../../utils/form_utils.js"></script>
++<link href="css/wimba.css" rel="stylesheet" type="text/css" />
++</head>
++<body>
++<form onsubmit="insertWimba();return false;" action="#">
++<input type="hidden" id="f_mid" name="f_mid" value="<?php echo $mid?>">
++<input type="hidden" id="f_rid" name="f_rid" value="<?php echo $rid?>">
++<div class="clearfix">
++    <span class="wimba_boxTopTitle"> Please record a message:</span>
++    <p style="padding-left:15px;">
++        <script type="text/javascript">
++          this.focus();
++        </script>
++        <script type="text/javascript" src="<?php echo $CFG->voicetools_servername; ?>/ve/record.js"></script>
++        <script type="text/javascript">
++            var w_p = new Object();
++            w_p.nid="<?php echo $result->getNid();?>";
++            w_p.language = "en";
++            w_p.autostart = "true";
++            tinyMCEPopup._onDOMLoaded = function() {};
++
++            if (window.w_ve_record_tag) w_ve_record_tag(w_p);
++            else document.write("Applet should be there, but the Wimba Voice server is down");
++        </script>
++    </p>
++</div>
++
++<div class="mceActionPanel">
++    <input type="submit" id="insert" name="insert" value="Insert" />
++    <input type="button" id="cancel" name="cancel" value="Cancel" onclick="tinyMCEPopup.close();" />
++</div>
++</form>
++
++</body>
++</html>
+diff --git a/lib/weblib.php b/lib/weblib.php
+index a2470dd..1352902 100644
+--- a/lib/weblib.php
++++ b/lib/weblib.php
+@@ -85,6 +85,8 @@ define('URL_MATCH_EXACT', 2);
+ global $ALLOWED_TAGS;
+ $ALLOWED_TAGS =
+ '<p><br><b><i><u><font><table><tbody><thead><tfoot><span><div><tr><td><th><ol><ul><dl><li><dt><dd><h1><h2><h3><h4><h5><h6><hr><img><a><strong><emphasis><em><sup><sub><address><cite><blockquote><pre><strike><param><acronym><nolink><lang><tex><algebra><math><mi><mn><mo><mtext><mspace><ms><mrow><mfrac><msqrt><mroot><mstyle><merror><mpadded><mphantom><mfenced><msub><msup><msubsup><munder><mover><munderover><mmultiscripts><mtable><mtr><mtd><maligngroup><malignmark><maction><cn><ci><apply><reln><fn><interval><inverse><sep><condition><declare><lambda><compose><ident><quotient><exp><factorial><divide><max><min><minus><plus><power><rem><times><root><gcd><and><or><xor><not><implies><forall><exists><abs><conjugate><eq><neq><gt><lt><geq><leq><ln><log><int><diff><partialdiff><lowlimit><uplimit><bvar><degree><set><list><union><intersect><in><notin><subset><prsubset><notsubset><notprsubset><setdiff><sum><product><limit><tendsto><mean><sdev><variance><median><mode><moment><vector><matrix><matrixrow><determinant><transpose><selector><annotation><semantics><annotation-xml><tt><code>';
++/* Wimba changes */
++$ALLOWED_TAGS .= '<iframe>';
+ 
+ /**
+  * Allowed protocols - array of protocols that are safe to use in links and so on
+-- 
+1.7.3.4
+
