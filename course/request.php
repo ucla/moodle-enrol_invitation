@@ -73,5 +73,8 @@ $PAGE->navbar->add($strtitle);
 echo $OUTPUT->header();
 echo $OUTPUT->heading($strtitle);
 // Show the request form.
+
+jira_api::auth();
+
 $requestform->display();
 echo $OUTPUT->footer();

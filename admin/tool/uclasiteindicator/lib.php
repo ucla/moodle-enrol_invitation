@@ -111,6 +111,7 @@ class site_indicator_request {
     public $request;
     public $entry;
     private $id;
+    private $key;
 
     function __construct($requestid) {
         global $DB;
@@ -157,7 +158,7 @@ class site_indicator_request {
        
         // Attach the pending course links
         $requested_course->pending = $CFG->wwwroot . '/course/pending.php';
-        $requested_course->approve = $CFG->wwwroot . '/course/pending.php?approve=' . $this->request->requestid;
+        $requested_course->approve = $CFG->wwwroot . '/course/pending.php?approve=' . $this->request->requestid . '&key=' . $this->key;
         $requested_course->reject = $CFG->wwwroot . '/course/pending.php?reject=' . $this->request->requestid;
         
         $title = get_string('jira_title', 'tool_uclasiteindicator', $requested_course);
@@ -203,9 +204,25 @@ class site_indicator_request {
         
         // Get the request and generate jira ticket
         $request = new site_indicator_request($newindicator->requestid);
+        $request->generate_key();
         $request->generate_jira_ticket();
     }
     
+    public function generate_key() {
+        global $DB;
+        
+        $request = $DB->get_record('course_request', array('id' => $this->request->requestid), '*', MUST_EXIST);
+        $hash = $request->fullname . $request->shortname . date('u');
+        $hash = md5($hash);
+        
+        $request = $DB->get_record('ucla_siteindicator_request', array('id' => $this->id), 'id');
+        $request->key = $hash;
+        $this->key = $hash;
+        
+        $DB->update_record('ucla_siteindicator_request', $request);
+    }
+
+
     /**
      * Safe loading of indicator request.
      * 
@@ -264,6 +281,57 @@ class site_indicator_request {
     }
     
     
+}
+
+// Reference: http://docs.atlassian.com/jira/REST/latest/
+// https://jira.ats.ucla.edu/CreateIssueDetails.jspa
+class jira_api {
+    const base_url = 'https://jira.ats.ucla.edu/rest/';
+    
+    static function auth() {
+//        $url = '/auth/latest/session';
+        $url = 'api/2.0.alpha1/issue';
+        
+        $data = array(
+            'fields' => array(
+                'project' => array('id' => '10077'),
+                'summary' => 'This is a test summary',
+                'description' => 'This is a test description',
+                'issuetype' => array('id' => '1'),
+                'assignee' => array('name' => 'aroman'),
+                'reporter' => array('name' => 'aroman')
+                )
+        );
+        
+        $auth = base64_encode(get_config('block_ucla_help', 'jira_user') . ':' . get_config('block_ucla_help', 'jira_password'));
+        $headers = array(
+            'Content-Type: application/json',
+            'X-Atlassian-Token: no-check',
+            'Authorization: Basic ' . $auth
+        );
+        
+//        echo "<pre>";
+//        print_r(json_encode($data));
+//        echo "</pre>";
+//        return;
+
+        echo jira_api::base_url . $url;
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, jira_api::base_url . $url); // set url to post to
+//        curl_setopt($ch, CURLOPT_FAILONERROR, 1);
+//        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);// allow redirects
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER,1); // return into a variable
+//        curl_setopt($ch, CURLOPT_TIMEOUT, 10); // times out after 4s
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_POST, 1); // set POST method
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data)); // add POST fields
+        $result = curl_exec($ch); // run the whole process
+        curl_close($ch);
+        
+        echo "<pre>";
+        echo print_r($result);
+        echo "</pre>";
+    }
 }
 
 /**
