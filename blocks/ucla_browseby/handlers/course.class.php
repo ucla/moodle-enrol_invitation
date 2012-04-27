@@ -27,7 +27,9 @@ class course_handler extends browseby_handler {
             COALESCE(user.firstname, ubii.firstname) AS firstname,
             COALESCE(user.lastname, ubii.lastname) AS lastname,
             ubii.profcode,
-            user.url AS userlink
+            user.url AS userlink,
+            mco.shortname as shortname,
+            mco.idnumber as idnumber
     ";
 
     const browseall_order_helper = "
@@ -93,6 +95,8 @@ class course_handler extends browseby_handler {
                     USING(term, srs)
                 LEFT JOIN {user} user
                     ON ubii.uid = user.idnumber
+                LEFT JOIN {course} mco
+                    ON mco.id = urc.courseid
                 WHERE ubci.subjarea = :subjarea
                 $termwhere
             " . self::browseall_order_helper;
@@ -141,6 +145,8 @@ class course_handler extends browseby_handler {
                     USING (term, srs)
                 LEFT JOIN {user} user
                     ON ubii.uid = user.idnumber
+                LEFT JOIN {course} mco
+                    ON mco.id = urc.courseid
                 WHERE 
                     ubi.userid = :user
             " . self::browseall_order_helper;
