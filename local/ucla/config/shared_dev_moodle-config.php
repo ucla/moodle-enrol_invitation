@@ -88,7 +88,7 @@ $CFG->instructor_levels_roles = array(
 $terms_to_built = array('12S', '121', '12F');
 
 // CCLE-2283: Friendly URLs
-$CFG->ucla_friendlyurls_enabled = true;
+$CFG->ucla_friendlyurls_enabled = false;
 
 // CCLE-2283: Redirect to archive (these have a high chance of changing)
 $CFG->remotetermcutoff = '12S';
