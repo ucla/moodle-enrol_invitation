@@ -3190,6 +3190,13 @@ class settings_navigation extends navigation_node {
         // add enrol nodes
         enrol_add_course_navigation($coursenode, $course);
 
+        // START UCLA MOD: CCLE-2972 - Move links to course reports from nav 
+        // block to settings and control panel
+        // - code copied from global_navigation class
+        // Add the essentials such as reports etc...
+        $this->add_course_essentials($coursenode, $course);      
+        // END UCLA MOD: CCLE-2972        
+        
         // Manage filters
         if (has_capability('moodle/filter:manage', $coursecontext) && count(filter_get_available_in_context($coursecontext))>0) {
             $url = new moodle_url('/filter/manage.php', array('contextid'=>$coursecontext->id));
@@ -3983,6 +3990,77 @@ class settings_navigation extends navigation_node {
     public function clear_cache() {
         $this->cache->volatile();
     }
+
+    // START UCLA MOD: CCLE-2972 - Move links to course reports from nav 
+    // block to settings and control panel
+    // - code copied from global_navigation class    
+    /**
+     * Adds essential course nodes to the navigation for the given course.
+     *
+     * This method adds nodes such as reports, blogs and participants
+     *
+     * @param navigation_node $coursenode
+     * @param stdClass $course
+     * @return bool
+     */
+    public function add_course_essentials($coursenode, stdClass $course) {
+        global $CFG;
+
+        if ($course->id == SITEID) {
+            return $this->add_front_page_course_essentials($coursenode, $course);
+        }
+
+        if ($coursenode == false || !($coursenode instanceof navigation_node) || $coursenode->get('participants', navigation_node::TYPE_CONTAINER)) {
+            return true;
+        }
+
+        //Participants
+        if (has_capability('moodle/course:viewparticipants', $this->page->context)) {
+            $participants = $coursenode->add(get_string('participants'), new moodle_url('/user/index.php?id='.$course->id), self::TYPE_CONTAINER, get_string('participants'), 'participants');
+            $currentgroup = groups_get_course_group($course, true);
+            if ($course->id == SITEID) {
+                $filterselect = '';
+            } else if ($course->id && !$currentgroup) {
+                $filterselect = $course->id;
+            } else {
+                $filterselect = $currentgroup;
+            }
+            $filterselect = clean_param($filterselect, PARAM_INT);
+            if (($CFG->bloglevel == BLOG_GLOBAL_LEVEL or ($CFG->bloglevel == BLOG_SITE_LEVEL and (isloggedin() and !isguestuser())))
+               and has_capability('moodle/blog:view', get_context_instance(CONTEXT_SYSTEM))) {
+                $blogsurls = new moodle_url('/blog/index.php', array('courseid' => $filterselect));
+                $participants->add(get_string('blogs','blog'), $blogsurls->out());
+            }
+            if (!empty($CFG->enablenotes) && (has_capability('moodle/notes:manage', $this->page->context) || has_capability('moodle/notes:view', $this->page->context))) {
+                $participants->add(get_string('notes','notes'), new moodle_url('/notes/index.php', array('filtertype'=>'course', 'filterselect'=>$course->id)));
+            }
+        } else if (count($this->extendforuser) > 0 || $this->page->course->id == $course->id) {
+            $participants = $coursenode->add(get_string('participants'), null, self::TYPE_CONTAINER, get_string('participants'), 'participants');
+        }
+
+        // View course reports
+        if (has_capability('moodle/site:viewreports', $this->page->context)) { // basic capability for listing of reports
+            $reportnav = $coursenode->add(get_string('reports'), null, self::TYPE_CONTAINER, null, null, new pix_icon('i/stats', ''));
+            $coursereports = get_plugin_list('coursereport'); // deprecated
+            foreach ($coursereports as $report=>$dir) {
+                $libfile = $CFG->dirroot.'/course/report/'.$report.'/lib.php';
+                if (file_exists($libfile)) {
+                    require_once($libfile);
+                    $reportfunction = $report.'_report_extend_navigation';
+                    if (function_exists($report.'_report_extend_navigation')) {
+                        $reportfunction($reportnav, $course, $this->page->context);
+                    }
+                }
+            }
+
+            $reports = get_plugin_list_with_function('report', 'extend_navigation_course', 'lib.php');
+            foreach ($reports as $reportfunction) {
+                $reportfunction($reportnav, $course, $this->page->context);
+            }
+        }
+        return true;
+    }   
+    // END UCLA MOD: CCLE-2972    
 }
 
 /**
