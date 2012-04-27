@@ -159,7 +159,7 @@ $sql = "
     WHERE 
         c.id = ?
         $additional_sql
-    ";
+    ORDER BY u.lastname, u.firstname";
 
 // Use this whenever you need to display instructors
 if (ucla_format_display_instructors($course)) {
