@@ -68,7 +68,7 @@ class course_request_form extends moodleform {
         $types = ucla_site_indicator::get_indicator_types();
         $radioarray = array();
         foreach($types as $type) {
-            $descstring = '<strong>' . $type->fullname . '</strong> (' . ucfirst($type->role) . ') - ' . $type->description;
+            $descstring = '<strong>' . $type->fullname . '</strong> - ' . $type->description;
             $attributes = array(
                 'class' => 'indicator_desc',
                 'value' => $type->id

@@ -26,7 +26,7 @@ require_once($CFG->dirroot . '/blocks/ucla_help/ucla_help_lib.php');
 class site_indicator_entry {
     public $property;
     public $type_obj;
-    private $id;
+    private $_id;
     
     function __construct($courseid) {
         global $DB;
@@ -34,7 +34,7 @@ class site_indicator_entry {
         $indicator = $DB->get_record('ucla_siteindicator', array('courseid' => $courseid), '*', MUST_EXIST);
         $this->property->courseid = $courseid;
         $this->property->type = $indicator->type;
-        $this->id = $indicator->id;
+        $this->_id = $indicator->id;
         
         $this->type_obj = null;
     }
@@ -46,7 +46,7 @@ class site_indicator_entry {
      */
     public function delete() {
         global $DB;
-        $DB->delete_records('ucla_siteindicator', array('id' => $this->id));
+        $DB->delete_records('ucla_siteindicator', array('id' => $this->_id));
     }
     
     /**
@@ -86,6 +86,27 @@ class site_indicator_entry {
             return $typeobj;
         }
     }
+    
+    public function get_assignable_roles() {
+        global $CFG, $DB;
+        $list = array();
+        
+        $query = "SELECT r.name
+                FROM {$CFG->prefix}role AS r
+                JOIN {$CFG->prefix}ucla_siteindicator_roleassign AS sra ON sra.roleid = r.id
+                JOIN {$CFG->prefix}ucla_siteindicator_rolemapping srm ON srm.siteroleid = sra.siteroleid
+                WHERE srm.typeid = {$this->property->type}";
+        
+        $records = $DB->get_records_sql($query);
+        
+        foreach($records as $rec) {
+            $list[] = $rec->name;
+        }
+        
+        return $list;                
+    }
+    
+    
     
     /**
      * Safe way of getting an indicator entry.  This will assign null if
@@ -158,7 +179,7 @@ class site_indicator_request {
        
         // Attach the pending course links
         $requested_course->pending = $CFG->wwwroot . '/course/pending.php';
-        $requested_course->approve = $CFG->wwwroot . '/course/pending.php?approve=' . $this->request->requestid . '&key=' . $this->key;
+        $requested_course->approve = $CFG->wwwroot . '/course/pending.php?request=' . $this->id . '&key=' . $this->key;
         $requested_course->reject = $CFG->wwwroot . '/course/pending.php?reject=' . $this->request->requestid;
         
         $title = get_string('jira_title', 'tool_uclasiteindicator', $requested_course);
@@ -175,10 +196,7 @@ class site_indicator_request {
             'description' => $message,
         );        
 
-//        echo "<pre>";
-//        print_r($message);
-//        echo "<pre>";
-        $result = do_request(get_config('block_ucla_help', 'jira_endpoint'), $params, 'POST');      
+        //$result = do_request(get_config('block_ucla_help', 'jira_endpoint'), $params, 'POST');      
         
     }
     
@@ -204,7 +222,7 @@ class site_indicator_request {
         
         // Get the request and generate jira ticket
         $request = new site_indicator_request($newindicator->requestid);
-        $request->generate_key();
+        //$request->generate_key();
         $request->generate_jira_ticket();
     }
     
@@ -214,10 +232,10 @@ class site_indicator_request {
         $request = $DB->get_record('course_request', array('id' => $this->request->requestid), '*', MUST_EXIST);
         $hash = $request->fullname . $request->shortname . date('u');
         $hash = md5($hash);
-        
+        $this->key = $hash;
+
         $request = $DB->get_record('ucla_siteindicator_request', array('id' => $this->id), 'id');
         $request->key = $hash;
-        $this->key = $hash;
         
         $DB->update_record('ucla_siteindicator_request', $request);
     }
@@ -348,14 +366,35 @@ class ucla_site_indicator {
      * @return type 
      */
     static function get_categories_list(&$parentlist = null) {
+        global $DB;
+        
         $displaylist = array();
         if($parentlist == null) {
             $parentlist = array();
         }
 
-        // @TODO: what capabilities will be required here?
-        // @TODO: sanitize category list if needed...
-        make_categories_list($displaylist, $parentlist, 'moodle/course:create');
+        //make_categories_list($displaylist, $parentlist, 'moodle/course:create');
+        // @todo: pick up from DB eventually
+        $exclusion_list = array('Miscellaneous');        
+        
+        // Division level categories
+        $categories = $DB->get_records('course_categories', array('parent' => 0));
+        
+        foreach($categories as $cat) {
+            
+            if(in_array($cat->name, $exclusion_list)) {
+                continue;
+            }
+
+            $displaylist[$cat->id] = $cat->name;
+            
+            // Subject area level categories
+            if($children = $DB->get_records('course_categories', array('parent' => $cat->id))) {
+                foreach($children as $child) {
+                    $displaylist[$child->id] = $cat->name . ' > ' . $child->name;
+                }
+            }
+        }
         
         $displaylist[0] = get_string('req_selopt_other', 'tool_uclasiteindicator');
         
@@ -444,7 +483,7 @@ class ucla_site_indicator {
             // Create record for course
             $newindicator->create_indicator_entry();
 
-            return $newindicator->property->categoryid;
+            return $newindicator->request->categoryid;
         }
         
         return 0;

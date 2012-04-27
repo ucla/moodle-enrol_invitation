@@ -27,6 +27,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+// Needed to filter roles
+require_once($CFG->dirroot . '/admin/tool/uclasiteindicator/lib.php');
+
 /**
  * This class provides a targeted tied together means of interfacing the enrolment
  * tasks together with a course.
@@ -464,6 +467,14 @@ class course_enrolment_manager {
         if ($this->_assignableroles === null) {
             $this->_assignableroles = get_assignable_roles($this->context, ROLENAME_ALIAS, false); // verifies unassign access control too
         }
+        
+        // @todo: filter the assignable roles.  Need to do a role-remap as well
+        $indicator = site_indicator_entry::load($this->course->id);
+        if($indicator) {
+            $allowedroles = $indicator->get_assignable_roles();
+            //$this->_assignableroles = array_intersect($this->_assignableroles, $allowedroles);
+        }
+
 
         if ($otherusers) {
             if (!is_array($this->_assignablerolesothers)) {

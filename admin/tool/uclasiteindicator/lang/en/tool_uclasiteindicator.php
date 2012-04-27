@@ -24,7 +24,7 @@ $string['req_type_help'] = 'This is a help string';
 $string['req_category'] = 'Site category';
 $string['req_category_help'] = 'Site category help string';
 $string['req_contacts'] = 'Support Contact';
-$string['req_selopt_other'] = 'Other (specify in: Reasons for wanting this course)';
+$string['req_selopt_other'] = 'Other (specify and provide reason)';
 $string['req_category_other'] = 'Other category';
 $string['req_category_other_help'] = 'If you select Other, you will have to specify the 
     categorywhere your course best belongs.  Use existing categories when possible.';
@@ -38,10 +38,10 @@ Fullname: {$a->fullname}
 Shortname: {$a->shortname}
 
 Summary:
-{$a->summary}
+* {$a->summary}
 
 Reason: 
-{$a->reason}
+* {$a->reason}
 
 Approve: 
 {$a->approve}
