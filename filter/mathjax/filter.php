@@ -33,12 +33,12 @@ class filter_mathjax extends moodle_text_filter {
     
     public function filter($text, array $options = array()) {
         // The presence of these indicates MathJax ought to process the block:
-        //   inline: \( ... \)
+        //   inline: \( ... \), $ ... $
         //   block: $$ ... $$, \[ ... \]
         //   tex environments: \begin{...} ... \end{...}
         //   mathml: <math> ... </math>
         
-        if (preg_match('/\$\$.+?\$\$|\\\\\\[.+?\\\\\\]|\\\\\\(.+?\\\\\\)|\\\\begin\\{|<math/s', $text)) {
+        if (preg_match('/\$.+?\$|\$\$.+?\$\$|\\\\\\[.+?\\\\\\]|\\\\\\(.+?\\\\\\)|\\\\begin\\{|<math/s', $text)) {
             return '<div class="filter-mathjax">'.$text.'</div>';
         }
         return $text;
