@@ -579,6 +579,14 @@ class enrol_database_plugin extends enrol_plugin {
         if ($rolefield) {
             $sqlfields[] = $rolefield;
         }
+        
+        // UCLA MOD CCLE-2924: Update user data with prepop.
+        $user_caches = array();
+
+        // These are fields that are arbitrarily updated.
+        // THe auth plugins are not usable in determining what fields to update
+        $updateuserfields = array('firstname', 'lastname', 'email');
+
         foreach ($existing as $course) {
             // CCLE-2275: Ignoring courses that are not selected to be
             // synchronized (such as courses in other terms)
@@ -594,6 +602,7 @@ class enrol_database_plugin extends enrol_plugin {
                 continue; //weird
             }
             $context = get_context_instance(CONTEXT_COURSE, $course->id);
+
 
             // get current list of enrolled users with their roles
             $current_roles  = array();
@@ -715,6 +724,9 @@ class enrol_database_plugin extends enrol_plugin {
                                 mtrace($e->debuginfo);
                                 continue;
                             }
+
+                            $user->id = $DB->insert_record('user', $user);
+                            $user_cache[$user->id] = $user;
                         }
                         
                         $userid = $user->id;
@@ -749,6 +761,26 @@ class enrol_database_plugin extends enrol_plugin {
                             $userid = $user_mapping[$mapping];
                         }
                     }
+
+                    // CCLE-2924: Update users: Match the user and update information if needed.
+                    if (!isset($user_cache[$userid])) {
+                        $user_cache[$userid] = $DB->get_record('user', array('id' => $userid));
+                    }
+
+                    $userinfo = $user_cache[$userid];
+                    $needsupdate = false;
+                    foreach ($updateuserfields as $updateuserfield) {
+                        if ($userinfo->{$updateuserfield} != $fields[$updateuserfield]) {
+                            $userinfo->{$updateuserfield} = $fields[$updateuserfield];
+                            $needsupdate = true;
+                        }
+                    }
+
+                    if ($needsupdate) {
+                        $DB->update_record('user', $user);
+                        $user_cache[$userid] = $userinfo;
+                    }
+
                     if (empty($fields[$rolefield]) or !isset($roles[$fields[$rolefield]])) {
                         if (!$defaultrole) {
                             // role is mandatory
