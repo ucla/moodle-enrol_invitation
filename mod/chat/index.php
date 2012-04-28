@@ -27,6 +27,9 @@ $strchat  = get_string('modulename', 'chat');
 /// Print the header
 $PAGE->navbar->add($strchats);
 $PAGE->set_title($strchats);
+//BEGIN UCLA MOD: CCLE-2950 - Theme header disappears when trying a chat
+$PAGE->set_heading($course->fullname);
+//END UCLA MOD: CCLE-2950
 echo $OUTPUT->header();
 
 /// Get all the appropriate data

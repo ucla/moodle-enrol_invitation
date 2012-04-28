@@ -49,7 +49,7 @@ $PAGE->set_pagelayout('admin');
 // Prepare and load Moodle Admin interface
 admin_externalpage_setup('uclacourserequestor');
 
-$subjareas = $DB->get_records('ucla_reg_subjectarea');
+$subjareas = $DB->get_records('ucla_reg_subjectarea', null, 'subjarea');
 
 $prefieldsdata = get_requestor_view_fields();
 
