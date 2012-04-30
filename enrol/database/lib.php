@@ -429,6 +429,7 @@ class enrol_database_plugin extends enrol_plugin {
         $enrolment_info = array();
 
         $failed_users = array();
+
         foreach ($course_indexed as $courseid => $set) {
             $externalcourses[$courseid] = true;
 
@@ -725,7 +726,6 @@ class enrol_database_plugin extends enrol_plugin {
                                 continue;
                             }
 
-                            $user->id = $DB->insert_record('user', $user);
                             $user_cache[$user->id] = $user;
                         }
                         
@@ -769,15 +769,32 @@ class enrol_database_plugin extends enrol_plugin {
 
                     $userinfo = $user_cache[$userid];
                     $needsupdate = false;
+
+                    $updatedebugstr = '';
+
                     foreach ($updateuserfields as $updateuserfield) {
                         if ($userinfo->{$updateuserfield} != $fields[$updateuserfield]) {
+
+                            if (!empty($updatedebugstr)) {
+                                $updatedebugstr .= "\n";
+                            }
+
+                            $updatedebugstr .= "Updating user $userid data: "
+                                . "$updateuserfield [{$userinfo->{$updateuserfield}}] "
+                                . "=> [{$fields[$updateuserfield]}]";
+
                             $userinfo->{$updateuserfield} = $fields[$updateuserfield];
+
                             $needsupdate = true;
                         }
                     }
 
                     if ($needsupdate) {
-                        $DB->update_record('user', $user);
+                        if ($verbose) {
+                            mtrace($updatedebugstr);
+                        }
+
+                        $DB->update_record('user', $userinfo);
                         $user_cache[$userid] = $userinfo;
                     }
 
