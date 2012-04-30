@@ -144,7 +144,19 @@ class block_ucla_weeksdisplay extends block_base {
         $display_string = self::get_current_week_display_string($date, $query_result);
         set_config('current_week_display', $display_string, 'local_ucla');
     }
-    
+
+     /*
+     * Sets the current week config variable to the input.
+     * 
+     * @param current_week int representing the current week: 
+     *                  1-10, 11 if it's finals week, -1 if the week can't be determined.
+     *                 if weeks overlap, like in summer, choose highest number
+     * [local_ucla][current_week] // int to hold value of what week it is (1-10, 11 is finals, 
+     * -1 is if week cannot be determined. )
+     */
+    public static function set_current_week_config($current_week){
+        set_config('current_week', $current_week, 'local_ucla');
+    }
     /*
      * To be called whenever the current_term needs to be set.
      * Sets the configuration variables associated with the current term,
@@ -158,7 +170,7 @@ class block_ucla_weeksdisplay extends block_base {
         $term_string.=$current_term;
         $next_term = self::get_next_term($current_term);
         for ($i = 0; $i < 3; $i++) {
-            $term_string.=', '.$next_term;
+            $term_string.=','.$next_term;
             $next_term = self::get_next_term($next_term);
         }
         
@@ -166,7 +178,6 @@ class block_ucla_weeksdisplay extends block_base {
         set_config('active_terms', $term_string, 'local_ucla');
         set_config('terms', $term_string, 'tool_uclacourserequestor');
         set_config('terms', $term_string, 'tool_uclacoursecreator');
-     
     }
    /**
     * Returns the current_week_display string associated with the date and sessions.
@@ -191,43 +202,51 @@ class block_ucla_weeksdisplay extends block_base {
     * Summer <Year> - Session A, Week <Week number> / Session C, Week <Week number>
     * Summer <Year> - Session C, Week <Week number> 
     * for the various summer sessions.
+    * @return Also sets the current_week config variable.
     */      
     public static function get_current_week_display_string($date, $sessions) {
         //Filter out sessions that aren't of term RG/8A/6C 
         $regular_sessions = self::find_regular_sessions($sessions);          
         usort($regular_sessions, 'self::cmp_sessions');
         
+        $display_string = "";
+        $current_week = NULL;
         //Handles special case where the 2 summer sessions overlap with the date.
         if (isset($regular_sessions[1]) 
                && $regular_sessions[0]['session'] == '8A' && $regular_sessions[1]['session'] == '6C') {
-            $week_number0 = self::get_week($date, $regular_sessions[0]);          
-            $week_number1 = self::get_week($date, $regular_sessions[1]);     
-                return ucla_term_to_text($regular_sessions[0]['term'], 'A').', Week '
-                       . $week_number0 . ' / Session C, Week ' . $week_number1;                                  
+            $week_numberA = self::get_week($date, $regular_sessions[0]);          
+            $week_numberC = self::get_week($date, $regular_sessions[1]); 
+            
+            $current_week = max($week_numberA, $week_numberC);
+            $display_string = ucla_term_to_text($regular_sessions[0]['term'], 'A').', Week '
+                    . $week_numberA . ' / Session C, Week ' . $week_numberC;                                  
         } else {
             //Handles cases that only have a single session.
             
-            $week_number = self::get_week($date, $regular_sessions[0]);
+             $current_week = self::get_week($date, $regular_sessions[0]);
             //Summer sessions
             if ($regular_sessions[0]['session'] == '8A' || $regular_sessions[0]['session'] == '6C') {
-                if ($week_number >= 0 && $week_number < 11) {       
+                if ( $current_week >= 0 &&  $current_week < 11) {       
                     //Return the string with the correct session.
-                    return ucla_term_to_text($regular_sessions[0]['term'], $regular_sessions[0]['session'][1]).', Week '
-                            . $week_number;                      
+                    $display_string = ucla_term_to_text($regular_sessions[0]['term'], $regular_sessions[0]['session'][1]).', Week '
+                            .  $current_week;                      
                 } else { 
-                    return ucla_term_to_text($regular_sessions[0]['term'], $regular_sessions[0]['session'][1]);
+                    $display_string = ucla_term_to_text($regular_sessions[0]['term'], $regular_sessions[0]['session'][1]);
                 }                
             } else { //Regular sessions
-                 if ($week_number >= 0 && $week_number < 11) {       
-                    return ucla_term_to_text($regular_sessions[0]['term']).' - Week '
-                            . $week_number;                      
-                } else if ($week_number == 11) {       
-                    return ucla_term_to_text($regular_sessions[0]['term']).' - Finals Week';                      
+                 if ( $current_week >= 0 &&  $current_week < 11) {       
+                    $display_string = ucla_term_to_text($regular_sessions[0]['term']).' - Week '
+                            .  $current_week;                      
+                } else if ( $current_week == 11) {       
+                    $display_string = ucla_term_to_text($regular_sessions[0]['term']).' - Finals Week';                      
                 } else { //If the date is before this term's start date.
-                    return ucla_term_to_text($regular_sessions[0]['term']);
+                    $display_string = ucla_term_to_text($regular_sessions[0]['term']);
                 }
             }
-        }  
+        }
+        
+        self::set_current_week_config($current_week);
+        return $display_string;
     }
 
    /**
