@@ -413,6 +413,9 @@ class block_ucla_weeksdisplay extends block_base {
         } else {//if($month <= 12) 
             set_config('currentterm', $year.'F');
         }        
+        
+        // if need to init currentterm, then also need to init terms for other tools
+        self::set_term_configs(get_config(NULL, 'currentterm'));
     }
     
    /**
