@@ -9,8 +9,9 @@
 $string['plugintitle'] = 'UCLA Site Indicator';
 $string['description'] = 'Description';
 $string['pluginname'] = 'Site Indicator';
-$string['type'] = 'Type:';
-$string['roles'] = 'roles';
+$string['type'] = 'Type';
+$string['roles'] = 'Roles';
+$string['site'] = 'site';
 
 $string['site_instruction'] = 'Instruction (with Intructor roles)';
 $string['site_non_instruction'] = 'Non-Instruction (with Project roles)';

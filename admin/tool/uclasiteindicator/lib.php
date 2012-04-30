@@ -55,15 +55,15 @@ class site_indicator_entry {
      * @param type $newtype 
      */
     public function change_type($newtype) {
-        global $DB;
-        $option = array();
-        
-        // Handle int and short_name types
-        if(is_int($newtype)) {
-            
-        } else {
-            
-        }
+//        global $DB;
+//        $option = array();
+//        
+//        // Handle int and short_name types
+//        if(is_int($newtype)) {
+//            
+//        } else {
+//            
+//        }
     }
     
     /**
@@ -106,7 +106,7 @@ class site_indicator_entry {
         return $list;                
     }
     
-    
+
     
     /**
      * Safe way of getting an indicator entry.  This will assign null if
@@ -142,11 +142,12 @@ class site_indicator_request {
                 
         $request = $DB->get_record('ucla_siteindicator_request', array('requestid' => $requestid), '*', MUST_EXIST);
 
-        $this->id = $request->id;
-        $this->entry->type = $request->type;
-        $this->request->support = $request->support;
-        $this->request->categoryid = $request->categoryid;
-        $this->request->requestid = $requestid;
+        $this->id = $request->id;                           // Indicator request ID
+        $this->entry->type = $request->type;                // Indicator type
+        $this->request->support = $request->support;        // Support Contact
+        $this->request->categoryid = $request->categoryid;  // Requested category
+        $this->request->requestid = $requestid;             // Request ID of course_request
+        $this->request->requester = $request->requester;    // User who requested the course
     }
     
     /**
@@ -159,7 +160,49 @@ class site_indicator_request {
         global $DB;
         
         $DB->insert_record('ucla_siteindicator', $this->entry);
+        $this->set_default_role();
         $this->delete();
+    }
+    
+    /**
+     * This sets the default role for the course requestor.  This role is based 
+     * on the site's role assignments.
+     * 
+     * @todo assign a dummy 'course creator' role
+     * 
+     * @global type $CFG
+     * @global type $DB
+     * @return type 
+     */
+    private function set_default_role() {
+        global $CFG, $DB;
+        
+        // Pick out the highest ranked role
+        $query = "SELECT r.id
+                FROM {$CFG->prefix}role AS r
+                JOIN {$CFG->prefix}ucla_siteindicator_roleassign AS sra ON sra.roleid = r.id
+                JOIN {$CFG->prefix}ucla_siteindicator_rolemapping srm ON srm.siteroleid = sra.siteroleid
+                WHERE srm.typeid = {$this->entry->type}
+                ORDER BY r.sortorder";
+        
+        $records = $DB->get_records_sql($query);
+
+        // Get role id
+        $records = array_shift($records);
+        
+        $roleid = $records->id;
+        
+        // We need to get the user
+        $userid = $this->request->requester;
+        $courseid = $this->entry->courseid;
+        
+        // Get context
+        $context = get_context_instance(CONTEXT_COURSE, $courseid);
+        
+        // Assign role
+        require_capability('moodle/role:assign', $context);
+        
+        return role_assign($roleid, $userid, $context->id, '', NULL);
     }
     
      /**
@@ -282,10 +325,9 @@ class site_indicator_request {
     }
     
     private function get_type_str() {
-        global $DB;
-        
+       
         $type = ucla_site_indicator::get_type($this->entry->type);
-        $str = $type->fullname . ' (with ' . $type->role . ' role)';
+        $str = $type->fullname;
         
         return $str;
     }
@@ -461,6 +503,7 @@ class ucla_site_indicator {
         $newindicator->support = $support_contact;
         $newindicator->type = $data->indicator_type;
         $newindicator->categoryid = $indicator_category;
+        $newindicator->requester = $request->requester;
         
         site_indicator_request::create($newindicator);
     }
@@ -491,7 +534,6 @@ class ucla_site_indicator {
     
     /**
      *
-     * @global type $DB
      * @param type $courseid 
      */
     static function delete($courseid) {
@@ -529,16 +571,7 @@ class ucla_site_indicator {
     
     static function get_indicator_types() {
         global $DB;
-//        global $CFG;
-        
-//        $query = "SELECT si.id, si.fullname AS
-//                TYPE , sr.shortname, sr.description
-//                FROM {$CFG->prefix}ucla_siteindicator_type AS si
-//                JOIN {$CFG->prefix}ucla_siteindicator_rolemapping AS srm ON srm.typeid = si.id
-//                JOIN {$CFG->prefix}ucla_siteindicator_roles AS sr ON sr.id = srm.roleid
-//                ORDER BY si.sortorder";
-                
-//        $roles = $DB->get_records_sql($query);
+
         $types = $DB->get_records('ucla_siteindicator_type', null, 'sortorder');
         
         return $types;
@@ -558,5 +591,5 @@ class ucla_site_indicator {
         return $type;
 
     }
-
+    
 }

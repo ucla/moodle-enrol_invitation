@@ -52,13 +52,15 @@ class course_edit_form extends moodleform {
             
             if($indicator) {
                 $indicator->load_type();
-                $indicator_type = $indicator->type_obj->fullname . ' - (' 
-                        . ucfirst($indicator->type_obj->role) . ' ' 
-                        . get_string('roles', 'tool_uclasiteindicator') . ')';
+                $indicator_type = $indicator->type_obj->fullname . ' '
+                        . get_string('site', 'tool_uclasiteindicator');
                 $mform->addElement('static', 'indicator', get_string('type', 'tool_uclasiteindicator'), 
                         $indicator_type);
-            
                 
+                $roles = $indicator->get_assignable_roles();
+                $mform->addElement('static', 'indicator_roles', get_string('roles', 'tool_uclasiteindicator'), 
+                        implode(', ', $roles));
+            
             } else {
                 $mform->addElement('static', 'indicator', get_string('type', 'tool_uclasiteindicator'), 
                         get_string('site_srs', 'tool_uclasiteindicator'));
