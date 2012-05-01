@@ -208,11 +208,6 @@ class course_handler extends browseby_handler {
 
         $coursepcs = array();
         foreach ($courseslist as $k => $course) {
-            if ($this->ignore_course($course)) {
-                $courseslist[$k]->no_display = true;
-                continue;
-            }
-
             if (isset($course->profcode)) {
                 $pc = $course->profcode;
                 if (!isset($coursepcs[$k])) {
