@@ -120,7 +120,18 @@ class block_ucla_course_menu extends block_navigation {
         $renderer = $this->get_renderer();
          
         //CCLE-2380 Rearrange Course Materials link when editing is on        
-        if ($this->page->user_is_editing()) {     
+        if ($this->page->user_is_editing()) {    
+
+	   //CCLE-2379 Modify Course Menu Sections 	
+	   $modify_coursemenu = html_writer::link(
+                    new moodle_url('/blocks/ucla_modify_coursemenu/modify_coursemenu.php', 
+                        array('course_id' => $this->page->course->id, 
+                              'topic' => optional_param('topic',NULL,PARAM_INT))), 
+                    get_string('pluginname', 'block_ucla_modify_coursemenu'));            
+            $this->content->text .= html_writer::tag('div', $modify_coursemenu, 
+                    array('class' => 'edit_control_links'));
+        }
+ 
             // rearrange link
             $rearrange = html_writer::link(
                     new moodle_url('/blocks/ucla_rearrange/rearrange.php', 
@@ -129,7 +140,6 @@ class block_ucla_course_menu extends block_navigation {
                     get_string('pluginname', 'block_ucla_rearrange'));            
             $this->content->text .= html_writer::tag('div', $rearrange, 
                     array('class' => 'edit_control_links'));
-        }
                        
         // get non-module nodes
         $section_elements = $this->create_section_elements();
