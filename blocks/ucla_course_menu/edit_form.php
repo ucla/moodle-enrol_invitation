@@ -22,7 +22,7 @@ class block_ucla_course_menu_edit_form extends block_edit_form {
         $mform->addElement('text', 'config_trimlength', 
             get_string('trimlength', $this->block->blockname));
         $mform->setDefault('config_trimlength', 
-            block_ucla_course_menu::DEFAULT_TRIM_LENGTH);
+                get_config('block_ucla_course_menu', 'trimlength'));
         $mform->setType('config_trimlength', PARAM_INT);
     }
 }

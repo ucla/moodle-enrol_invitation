@@ -20,11 +20,9 @@
  * ---------------------------------------------------------------------------------------------------------------------
  */
 
-.active_tree_node {
-    font-weight: bold !important;
-}
+.block_ucla_course_menu .block_tree .active_tree_node {font-weight:normal}
 
-.module_elements_section {
+.block_ucla_course_menu .module_elements_section {
     background-color: #EFEFEF;
     margin: -1px -14px 0px -14px;
     padding-left: 14px;
@@ -33,13 +31,14 @@
     padding-bottom: 0px;
 }
 
-.block_ucla_course_menu.block .content
-{
+.block_ucla_course_menu.block .content {
     padding-left:0px;
     padding-right:0px;
 }
 
-.block_ucla_course_menu .content .block_tree.list .type_structure {
+.block_ucla_course_menu .content .block_tree.list .type_structure,
+.block_ucla_course_menu .content .block_tree.list .type_activity,
+.block_ucla_course_menu .content .block_tree.list .type_custom {
     border-bottom: 1px solid #FFF;
 }
 
@@ -63,9 +62,9 @@
     background-color: rgb(200,200,200);
 }
 
-.block_ucla_course_menu .content .block_tree.list .type_activity {
-    border-bottom: 1px solid #FFF;
-}
+.block_ucla_course_menu .content {padding:0px 4px;background-color:#DFE7F4;}
+.block_ucla_course_menu .content a {display:block;width:100%;}
+.block_ucla_course_menu .content a:hover {text-decoration:none;} 
 
 /** CCLE-2380 Rearrange Materials Link **/
 .block_ucla_course_menu .edit_control_links {
@@ -75,4 +74,16 @@
 .block_ucla_course_menu .edit_control_links a {
     color: #FF6666;
     font-weight: normal;
+}
+
+.block_ucla_course_menu_hidden {
+    background-color: #DBDEE5;
+}
+
+.block_ucla_course_menu_hidden:hover {
+    background-color: #FFD26B;
+}
+
+.block_ucla_course_menu_hidden > a:first-child {
+    color: #A6ACBA;
 }

@@ -159,14 +159,14 @@ if (ucla_cp_module::load('assign_roles')) {
 // Backup
 $modules[] = new ucla_cp_module('backup_copy', new moodle_url(
                         $CFG->wwwroot . '/backup/backup.php', array('id' => $course->id)),
-                $temp_tag, $temp_cap);
+                $temp_tag, 'moodle/backup:backupcourse');
 
 
 // Restore
 $modules[] = new ucla_cp_module('backup_restore', new moodle_url(
                         $CFG->wwwroot . '/backup/restorefile.php', array('contextid' =>
                     $context->id)),
-                $temp_tag, $temp_cap);
+                $temp_tag, 'moodle/restore:restorecourse');
 
 // Change course settings!
 $modules[] = new ucla_cp_module('course_edit', new moodle_url(
@@ -177,12 +177,21 @@ $modules[] = new ucla_cp_module('course_edit', new moodle_url(
 $modules[] = new ucla_cp_module('course_files', new moodle_url(
                         $CFG->wwwroot . '/files/coursefilesedit.php',
                         array('contextid' => $context->id)),
-                $temp_tag, $temp_cap);
+                $temp_tag, 'moodle/course:managefiles');
 
 // Grade viewer
 $modules[] = new ucla_cp_module('course_grades', new moodle_url(
                         $CFG->wwwroot . '/grade/index.php', array('id' => $course->id)),
                 $temp_tag, null);
+
+// Activity report (In M19 there was one link to get all reports, however in 
+// M2 no such link exists anymore. The most used report is the activity report
+// so that's why we are linking to it from control panel. Other report links
+// can be found in the course administration section in the settings block 
+// thanks to CCLE-2972
+$modules[] = new ucla_cp_module('reports', 
+        new moodle_url('/report/outline/index.php', array('id' => $course->id)), 
+        $temp_tag, 'report/outline:view');
 
 /* * ****************************** Student Functions ******************** */
 //Only display this section if the user is a student in the course.

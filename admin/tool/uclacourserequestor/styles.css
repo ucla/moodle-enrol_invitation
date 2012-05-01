@@ -16,3 +16,16 @@
     color: #c00;
     text-align: center;
 }
+
+#tool_uclacourserequestor #checkrequests {
+    margin-left: 5px;
+}
+
+#tool_uclacourserequestor .right {
+    float: right;     
+}
+
+#tool_uclacourserequestor h2.main {
+    text-align: left;
+    
+}

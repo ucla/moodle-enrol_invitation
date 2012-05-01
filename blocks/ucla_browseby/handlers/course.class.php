@@ -240,8 +240,7 @@ class course_handler extends browseby_handler {
                     $this->fullname($course);
             } else {
                 $courseobj = new stdclass(); 
-                $courseobj->dispname 
-                    = ucla_make_course_title(get_object_vars($course));
+                $courseobj->dispname = ucla_make_course_title($course);
 
                 if ($use_local_courses && !empty($course->courseid)) {
                     $course->id = $course->courseid;

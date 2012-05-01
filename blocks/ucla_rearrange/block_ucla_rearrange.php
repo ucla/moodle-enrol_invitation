@@ -46,6 +46,18 @@ class block_ucla_rearrange extends block_base {
     }
 
     /**
+     *  Do not allow block to be added anywhere
+     */
+    function applicable_formats() {
+        return array(
+            'site-index' => false,
+            'course-view' => false,
+            'my' => false,
+            'not-really-applicable' => true
+        );
+    }        
+    
+    /**
      *  Returns an array of root modnode objects for a particular section.
      *  @param $section     The section number
      *  @param $sectinfo    Section info that includes the sequence of course 
@@ -59,7 +71,6 @@ class block_ucla_rearrange extends block_base {
         $nodes = array();
         $sectionmods = array();
 
-        $nodes[] = new modnode($section . "-" . 0, '', 0, true);
         $sectionmods = explode(',', $sectinfo->sequence);
 
         foreach ($sectionmods as $mod_id) {
@@ -86,6 +97,13 @@ class block_ucla_rearrange extends block_base {
         }
 
         $root_nodes = modnode::build($nodes);
+
+        // Add a pseudo-node that is required for section-to-section movement
+        // of modules
+        $root_nodes = array_merge(array(
+                new modnode($section . "-" . 0, '', 0, true)
+            ), $root_nodes);
+
 
         return $root_nodes;
     }

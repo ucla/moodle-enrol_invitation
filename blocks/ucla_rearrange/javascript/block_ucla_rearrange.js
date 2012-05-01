@@ -158,7 +158,13 @@ M.block_ucla_rearrange.create_sortable = function() {
             helperclass: M.block_ucla_rearrange.sortablehelperclass,
             opacity: 0.5,
             fit: true,
-            onChange: M.block_ucla_rearrange.assign_serialized
+            onChange: M.block_ucla_rearrange.assign_serialized,
+            onStop: function() {
+                // Strange functionality ported from 1.9 to fix
+                // issues when sections are moved in rearrange tool.
+                M.block_ucla_rearrange.destroy_nested_sortable();
+                M.block_ucla_rearrange.create_nested_sortable();
+            }
         }
     );
 
