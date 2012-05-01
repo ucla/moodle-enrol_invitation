@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: *
+Allow: /about/
+Allow: /copyright_information.php
+Allow: /privacy_notice.php
+Allow: /course/view.php?id=110
+Allow: /blocks/ucla_browseby/
