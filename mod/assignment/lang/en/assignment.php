@@ -218,3 +218,7 @@ $string['viewfeedback'] = 'View assignment grades and feedback';
 $string['viewmysubmission'] = 'View my submission';
 $string['viewsubmissions'] = 'View {$a} submitted assignments';
 $string['yoursubmission'] = 'Your submission';
+
+// BEGIN UCLA MOD: CCLE-2969 - Some submissions to Assignments tool cannot be downloaded by instructor
+$string['submissionnotice'] = 'Be sure to click "Save changes" or your files will not be saved.';
+// END UCLA MOD: CCLE-2969
