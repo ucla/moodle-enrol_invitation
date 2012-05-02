@@ -1,7 +1,7 @@
 User-agent: *
-Disallow: *
-Allow: /about/
+Disallow: /
 Allow: /copyright_information.php
 Allow: /privacy_notice.php
+Allow: /course/view/aboutccle
 Allow: /course/view.php?id=110
 Allow: /blocks/ucla_browseby/
