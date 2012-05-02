@@ -1649,11 +1649,13 @@ class uclacoursecreator {
                     $this->email_fill_template($used_param, $emailing);
 
                 // Setup the email
-                $from = $email_params['from'];
-                $bcc = $email_params['bcc'];
+                $from = trim($email_params['from']);
+                $bcc = trim($email_params['bcc']);
 
-                // Headers, include the Blind Carbon Copy
-                $headers = "From: $from \r\n Bcc: $bcc \r\n";
+                // Headers, include the Blind Carbon Copy and From
+                // (make sure there are no errant spaces or else email headers
+                // wouldn't parse correctly)
+                $headers = "From: $from\r\nBcc: $bcc\r\n";
            
                 $email_subject = $email_params['subject'];
 
