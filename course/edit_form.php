@@ -45,21 +45,27 @@ class course_edit_form extends moodleform {
         $this->context = $context;
         
         // Site indicator info display
-        
-        if(!empty($course->id) && has_capability('tool/uclasiteindicator:view', $systemcontext)) {
+        if(!empty($course->id)) {
             $mform->addElement('header','uclasiteindicator', get_string('pluginname', 'tool_uclasiteindicator'));
             $indicator = site_indicator_entry::load($course->id);
             
             if($indicator) {
                 $indicator->load_type();
-                $indicator_type = $indicator->type_obj->fullname . ' '
-                        . get_string('site', 'tool_uclasiteindicator');
+                $indicator_type = '<strong>' . $indicator->type_obj->fullname . ' '
+                        . get_string('site', 'tool_uclasiteindicator') . '</strong>';
                 $mform->addElement('static', 'indicator', get_string('type', 'tool_uclasiteindicator'), 
                         $indicator_type);
                 
                 $roles = $indicator->get_assignable_roles();
                 $mform->addElement('static', 'indicator_roles', get_string('roles', 'tool_uclasiteindicator'), 
                         implode(', ', $roles));
+                
+                // Change the site type
+                // @todo: make this work!
+                if(has_capability('tool/uclasiteindicator:view', $systemcontext)) {
+                    $typelist = array('Do not change', 'Instruction', 'Non-Instruction');
+                    $mform->addElement('select', 'indicator_change', 'Change type', $typelist);
+                }
             
             } else {
                 $mform->addElement('static', 'indicator', get_string('type', 'tool_uclasiteindicator'), 

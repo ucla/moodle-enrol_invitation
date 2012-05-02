@@ -40,9 +40,49 @@ require_capability('moodle/site:approvecourse', get_context_instance(CONTEXT_SYS
 
 $approve = optional_param('approve', 0, PARAM_INT);
 $reject = optional_param('reject', 0, PARAM_INT);
+$request = optional_param('request', 0, PARAM_INT);
 
 $baseurl = $CFG->wwwroot . '/course/pending.php';
 admin_externalpage_setup('coursespending');
+
+// Landing page to process a site indicator request from URL
+if(!empty($request)) {
+    
+    $request = new site_indicator_request($request);
+    $course = new course_request($request->request->requestid);
+    
+    $table = new html_table();
+    $table->attributes['class'] = 'pendingcourserequests generaltable';
+    $table->align = array('left', 'center');
+    $table->head = array('Pending course details', get_string('action'));
+
+    $row = array();
+    
+    $details = html_writer::start_tag('p');
+    $details .= html_writer::tag('strong', 'Fullname:');
+    $details .= html_writer::empty_tag('br');
+    $details .= $course->fullname;
+    $details .= html_writer::empty_tag('br');
+    $details .= html_writer::tag('strong', 'Shortname:');
+    $details .= html_writer::empty_tag('br');
+    $details .= $course->shortname;
+    $details .= html_writer::end_tag('p');
+    $details .= html_writer::tag('strong', 'Summary:');
+    $details .= $course->summary;
+    $details .= html_writer::tag('strong', 'Reason:');
+    $details .= html_writer::tag('p', $course->reason);
+    
+    $row[] = $details;
+    $row[] = $OUTPUT->single_button(new moodle_url($baseurl, array('approve' => $course->id, 'sesskey' => sesskey())), get_string('approve'), 'get') .
+            $OUTPUT->single_button(new moodle_url($baseurl, array('reject' => $course->id)), get_string('rejectdots'), 'get');
+    
+    $table->data[] = $row;
+    
+    echo $OUTPUT->header();
+    echo html_writer::table($table);
+    echo $OUTPUT->footer();
+    exit;
+}
 
 /// Process approval of a course.
 if (!empty($approve) and confirm_sesskey()) {
