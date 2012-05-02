@@ -151,7 +151,7 @@ if (optional_param('save', NULL, PARAM_TEXT) != NULL) {
         echo html_writer::start_tag('div', array('id' => "configmanagement"));
         //Write plugins
         $configpluginlist = NULL;
-        if (optional_param('plugins', 0, PARAM_RAW)) {
+        if (optional_param('plugins', 0, PARAM_BOOL)) {
             // Sort by name if doing diff
             $sort = ($dodiff) ? 'name' : 'id';
             $configpluginlist = $DB->get_records('config_plugins', NULL, $sort);
@@ -177,7 +177,7 @@ if (optional_param('save', NULL, PARAM_TEXT) != NULL) {
         //Write Roles, role capabilities, and related tables
         //Roles
         $records = NULL;
-        if (optional_param('roles', 0, PARAM_RAW)) {
+        if (optional_param('roles', 0, PARAM_BOOL)) {
             // Sort by shortname if doing diff
             $sort = ($dodiff) ? 'shortname' : 'id';
             $records = $DB->get_records('role', NULL, $sort);
