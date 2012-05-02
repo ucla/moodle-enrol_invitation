@@ -87,7 +87,6 @@ $string['assign_roles_post'] = 'Use this to assign roles specifically for {$a->s
 $string['assign_roles_master'] = 'Assign roles for {$a->shortname} (current course)';
 $string['assign_roles_master_post'] = 'Use this to assign roles (change people to students, TAs or guests to grant or remove privileges) specifically for {$a->shortname}.';
 
-
 $string['backup_copy'] = 'Create course backup';
 $string['backup_copy_post'] = 'Make a copy of your course for use on another Moodle site.';
 
@@ -103,6 +102,8 @@ $string['course_grades_post'] = 'View your Moodle gradebook. Activate the advanc
 $string['course_edit'] = 'Course settings';
 $string['course_edit_post'] = 'Edit the full name and description of the course or hide the course from students.';
 
+$string['reports'] = 'Reports';
+$string['reports_post'] = 'View course logs to see student activity.';
 
 /** Stuff for Student Control Panel **/
 $string['ucla_cp_mod_student'] = 'Other commands';

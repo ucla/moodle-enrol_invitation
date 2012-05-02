@@ -71,6 +71,9 @@ $THEME->layouts = array(
         'file' => $tf_course,
         'regions' => $enabledregions,
         'defaultregion' => $defaultregion,
+        'options' => array(
+            'controlpanel' => true
+        )
     ),
 
     // The site home page.
