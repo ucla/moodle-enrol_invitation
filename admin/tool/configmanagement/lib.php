@@ -107,10 +107,10 @@ function write_roles($fp, $divider, $endl="<br />\n") {
     $records = get_records('role', '', '', 'id');
     if ($records) {
         write_records_to_file($fp, $records);
-        echo get_string('configroletable', 'admin')." written.$endl";
+        echo get_string('configroletable', 'tool_configmanagement')." written.$endl";
     }
     else {
-        echo get_string('configroletable', 'admin')." skipped.$endl";
+        echo get_string('configroletable', 'tool_configmanagement')." skipped.$endl";
     }
 
     //Role Allow Assign
@@ -118,10 +118,10 @@ function write_roles($fp, $divider, $endl="<br />\n") {
     $records = get_records('role_allow_assign', '', '', 'id');
     if ($records) {
         write_records_to_file($fp, $records);
-        echo get_string('configroleallowassigntable', 'admin')." written.$endl";
+        echo get_string('configroleallowassigntable', 'tool_configmanagement')." written.$endl";
     }
     else {
-        echo get_string('configroleallowassigntable', 'admin')." skipped.$endl";
+        echo get_string('configroleallowassigntable', 'tool_configmanagement')." skipped.$endl";
     }
 
     //Role Allow Override
@@ -129,10 +129,10 @@ function write_roles($fp, $divider, $endl="<br />\n") {
     $records = get_records('role_allow_override', '', '', 'id');
     if ($records) {
         write_records_to_file($fp, $records);
-        echo get_string('configroleallowoverridetable', 'admin')." written.$endl";
+        echo get_string('configroleallowoverridetable', 'tool_configmanagement')." written.$endl";
     }
     else {
-        echo get_string('configroleallowoverridetable', 'admin')." skipped.$endl";
+        echo get_string('configroleallowoverridetable', 'tool_configmanagement')." skipped.$endl";
     }
 
     //Role Assignments
@@ -144,10 +144,10 @@ function write_roles($fp, $divider, $endl="<br />\n") {
         while ($record = rs_fetch_next_record($rs)) {
             fwrite($fp, json_encode($record)."\n");
         }
-        echo get_string('configroleassignmentstable', 'admin')." written.$endl";
+        echo get_string('configroleassignmentstable', 'tool_configmanagement')." written.$endl";
     }
     else {
-        echo get_string('configroleassignmentstable', 'admin')." skipped.$endl";
+        echo get_string('configroleassignmentstable', 'tool_configmanagement')." skipped.$endl";
     }
     unset($rs); //Clean-up
 
@@ -162,10 +162,10 @@ function write_roles($fp, $divider, $endl="<br />\n") {
             }
         }
         write_records_to_file($fp, $records);
-        echo get_string('configrolecapabilitiestable', 'admin')." written.$endl";
+        echo get_string('configrolecapabilitiestable', 'tool_configmanagement')." written.$endl";
     }
     else {
-        echo get_string('configrolecapabilitiestable', 'admin')." skipped.$endl";
+        echo get_string('configrolecapabilitiestable', 'tool_configmanagement')." skipped.$endl";
     }
 
     //Role Names
@@ -173,10 +173,10 @@ function write_roles($fp, $divider, $endl="<br />\n") {
     $records = get_records('role_names', '', '', 'id');
     if ($records) {
         write_records_to_file($fp, $records);
-        echo get_string('configrolenamestable', 'admin')." written.$endl";
+        echo get_string('configrolenamestable', 'tool_configmanagement')." written.$endl";
     }
     else {
-        echo get_string('configrolenamestable', 'admin')." skipped.$endl";
+        echo get_string('configrolenamestable', 'tool_configmanagement')." skipped.$endl";
     }
 
     //Role Sort Order
@@ -184,10 +184,10 @@ function write_roles($fp, $divider, $endl="<br />\n") {
     $records = get_records('role_sortorder', '', '', 'id');
     if ($records) {
         write_records_to_file($fp, $records);
-        echo get_string('configrolesortordertable', 'admin')." written.$endl";
+        echo get_string('configrolesortordertable', 'tool_configmanagement')." written.$endl";
     }
     else {
-        echo get_string('configrolesortordertable', 'admin')." skipped.$endl";
+        echo get_string('configrolesortordertable', 'tool_configmanagement')." skipped.$endl";
     }
 }
 
@@ -1040,11 +1040,11 @@ function update_special_case_logins() {
         }
 
         // Keep the same passwords for admin and guest
-        if($unsafebackuprow->username == 'admin') {
-            $rec = get_record('user','username','admin');
+        if($unsafebackuprow->username == 'tool_configmanagement') {
+            $rec = get_record('user','username','tool_configmanagement');
             $unsafebackuprow->password = $rec->password;
             $unsafebackuprow->email = $rec->email;
-        } else if($unsafebackuprow->username == 'admin') {
+        } else if($unsafebackuprow->username == 'tool_configmanagement') {
             $rec = get_record('user','username','guest');
             $unsafebackuprow->password = $rec->password;
         }
@@ -1157,7 +1157,8 @@ function write_configphp($fp) {
 
     $line = fgets($fpconfig);
     while(!feof($fpconfig)) {
-        if( preg_match('/->.*=/',$line, $var) && preg_match("/'.*'|TRUE|true|FALSE|false|[0-9]|\".*\"|array.*\)/", $line, $value)) {
+        if( preg_match('/->.*=/',$line, $var) && 
+                preg_match("/'.*'|TRUE|true|FALSE|false|[0-9]|\".*\"|array.*\)/", $line, $value)) {
             $var = str_replace($search, '', $var[0]);
             $value = str_replace($search2,'',$value[0]);
 

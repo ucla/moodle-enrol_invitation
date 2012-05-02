@@ -31,57 +31,59 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once('../../moodle/config.php');
-require_once("$CFG->libdir/configmanagementlib.php");
 define('CLI_SCRIPT', true);
+require(dirname(dirname(dirname(dirname(__FILE__)))) . '/config.php');
+require_once($CFG->dirroot.'/admin/tool/configmanagement/lib.php');
 
-global $divider;
-global $dividerlen;
-global $fp;
-    
-$dumpfile = get_string('configdefaultfile', 'admin');
-$divider = get_string('configdivider', 'admin');
+// don't want this to be runnable
 
-if ($argc > 1 && is_string($argv[1])) {
-    //$dumpfile = $argv[1];   //Allow more access 
-    $dumpfile = clean_param($argv[1], PARAM_PATH);    //Strict access
-}
-if ($argc > 2 && is_string($argv[2])) {
-    $divider = $argv[2];
-}
-$dividerlen = strlen($divider);
-
-//NOTE: If file.php doesn't have security fixes, don't pick course 1
-//      In standard Moodle installations, non-admins can access course 1 
-$dir = $CFG->dataroot.'/1/';
-if(file_exists($dir.$dumpfile) && $fp = fopen($dir.$dumpfile,'r')){
-    while (!feof($fp)) {
-        $line = fgets($fp);
-        
-        if (stripos($line, $divider.'Config'.$divider) !== false) {
-            update_config();
-            echo get_string('configconfigtable', 'admin')." completed\n";
-        }
-
-        if (stripos($line, $divider.'Plugins'.$divider) !== false) {
-            update_config_plugins();                
-            echo get_string('configconfigpluginstable', 'admin')." completed\n";
-        }
-
-        if (stripos($line, $divider.'Roles'.$divider) !== false) {
-            update_role_tables();                
-            echo get_string('configallroletables', 'admin')." completed\n";
-        }
-
-        if (stripos($line, $divider.'Users') !== false) {
-            update_special_case_logins();                
-            echo get_string('configusertable', 'admin')." completed\n";
-        }
-    }
-    
-    fclose($fp);
-}
-else {
-    die(get_string('configfileopenerror', 'admin', $dumpfile));
-}
+//global $divider;
+//global $dividerlen;
+//global $fp;
+//    
+//$dumpfile = get_string('configdefaultfile', 'tool_configmanagement');
+//$divider = get_string('configdivider', 'tool_configmanagement');
+//
+//if ($argc > 1 && is_string($argv[1])) {
+//    //$dumpfile = $argv[1];   //Allow more access 
+//    $dumpfile = clean_param($argv[1], PARAM_PATH);    //Strict access
+//}
+//if ($argc > 2 && is_string($argv[2])) {
+//    $divider = $argv[2];
+//}
+//$dividerlen = strlen($divider);
+//
+////NOTE: If file.php doesn't have security fixes, don't pick course 1
+////      In standard Moodle installations, non-admins can access course 1 
+//$dir = $CFG->dataroot.'/1/';
+//if(file_exists($dir.$dumpfile) && $fp = fopen($dir.$dumpfile,'r')){
+//    while (!feof($fp)) {
+//        $line = fgets($fp);
+//        
+//        if (stripos($line, $divider.'Config'.$divider) !== false) {
+//            update_config();
+//            echo get_string('configconfigtable', 'tool_configmanagement')." completed\n";
+//        }
+//
+//        if (stripos($line, $divider.'Plugins'.$divider) !== false) {
+//            update_config_plugins();                
+//            echo get_string('configconfigpluginstable', 'tool_configmanagement')." completed\n";
+//        }
+//
+//        if (stripos($line, $divider.'Roles'.$divider) !== false) {
+//            update_role_tables();                
+//            echo get_string('configallroletables', 'tool_configmanagement')." completed\n";
+//        }
+//
+//        if (stripos($line, $divider.'Users') !== false) {
+//            update_special_case_logins();                
+//            echo get_string('configusertable', 'tool_configmanagement')." completed\n";
+//        }
+//    }
+//    
+//    fclose($fp);
+//}
+//else {
+//    die(get_string('configfileopenerror', 'admin', $dumpfile));
+//}
 ?>

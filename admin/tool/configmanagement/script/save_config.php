@@ -32,13 +32,12 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once('../../moodle/config.php');
-require_once("$CFG->libdir/configmanagementlib.php");
-
 define('CLI_SCRIPT', true);
+require(dirname(dirname(dirname(dirname(__FILE__)))) . '/config.php');
+require_once($CFG->dirroot.'/admin/tool/configmanagement/locallib.php');
 
-$dumpfile = get_string('configdefaultfile', 'admin');
-$divider = get_string('configdivider', 'admin');
+$dumpfile = get_string('configdefaultfile', 'tool_configmanagement');
+$divider = get_string('configdivider', 'tool_configmanagement');
 
 if ($argc > 1 && is_string($argv[1])) {
     //$dumpfile = $argv[1];   //Allow more access 
@@ -48,24 +47,23 @@ if ($argc > 2 && is_string($argv[2])) {
     $divider = $argv[2];
 }
 
-//NOTE: If file.php doesn't have security fixes, don't pick course 1
+// NOTE: If file.php doesn't have security fixes, don't pick course 1
 //      In standard Moodle installations, non-admins can access those files 
-$dir = $CFG->dataroot.'/1/';
+$dir = $CFG->dataroot.'/configmanagement/';
 if (!file_exists($dir)) {        
     if (!mkdir($dir, 0777, true)) {
         error('Cannot create directory', $ME);
     }
 }
 
-//Don't allow script to overwrite code!
+// Don't allow script to overwrite code!
 if (strpos($dir, $CFG->dataroot) === false && file_exists($dir.$dumpfile)) {
     if (substr($dumpfile, -4, 4) === '.php' || substr($dumpfile, -4, 4) === '.html') {
-        echo "$dumpfile is already in use.  Cannot overwrite.\n";
-        die;
+        die("$dumpfile is already in use.  Cannot overwrite.\n");
     }
 }
 
-//Open file for write
+// Open file for write
 if($fp = fopen($dir.$dumpfile,'w')){
     //Write config
     fwrite($fp, $divider.'Config'.$divider."\n");
@@ -92,10 +90,10 @@ if($fp = fopen($dir.$dumpfile,'w')){
                 fwrite($fp, json_encode($configentry)."\n");
             }
         }
-        echo get_string('configconfigtable', 'admin')." written.\n";
+        echo get_string('configconfigtable', 'tool_configmanagement')." written.\n";
     }
     else {
-        echo get_string('configconfigtable', 'admin')." skipped.\n";
+        echo get_string('configconfigtable', 'tool_configmanagement')." skipped.\n";
     }
 
     //Write plugins
@@ -109,10 +107,10 @@ if($fp = fopen($dir.$dumpfile,'w')){
                 fwrite($fp, json_encode($configentry)."\n");
             }
         }		  
-        echo get_string('configconfigpluginstable', 'admin')." written.\n";
+        echo get_string('configconfigpluginstable', 'tool_configmanagement')." written.\n";
     }
     else {
-        echo get_string('configconfigpluginstable', 'admin')." skipped.\n";
+        echo get_string('configconfigpluginstable', 'tool_configmanagement')." skipped.\n";
     }
 
     //Write Roles, role capabilities, and related tables
@@ -123,30 +121,30 @@ if($fp = fopen($dir.$dumpfile,'w')){
     $records = get_records('block', '', '', 'id');
     if ($records) {
         write_records_to_file($fp, $records);
-        echo get_string('configblocktable', 'admin')." written.\n";
+        echo get_string('configblocktable', 'tool_configmanagement')." written.\n";
     }
     else {
-        echo get_string('configblocktable', 'admin')." skipped.\n";
+        echo get_string('configblocktable', 'tool_configmanagement')." skipped.\n";
     }
     
     fwrite($fp, $divider.'Modules'.$divider."\n");    
     $records = get_records('modules', '', '', 'id');
     if ($records) {
         write_records_to_file($fp, $records);
-        echo get_string('configmodulestable', 'admin')." written.\n";
+        echo get_string('configmodulestable', 'tool_configmanagement')." written.\n";
     }
     else {
-        echo get_string('configmodulestable', 'admin')." skipped.\n";
+        echo get_string('configmodulestable', 'tool_configmanagement')." skipped.\n";
     }
 
     fwrite($fp, $divider.'Users'.$divider."\n");
     $records = get_records('user', 'auth', 'manual', 'id');
     if ($records) {
         write_records_to_file($fp, $records);
-        echo get_string('configusertable', 'admin')." written.\n";
+        echo get_string('configusertable', 'tool_configmanagement')." written.\n";
     }
     else {
-        get_string('configusertable', 'admin')." skipped.\n";
+        get_string('configusertable', 'tool_configmanagement')." skipped.\n";
     }
     fclose($fp);
 } else {
