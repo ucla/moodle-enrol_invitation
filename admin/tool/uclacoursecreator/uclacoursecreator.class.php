@@ -546,7 +546,6 @@ class uclacoursecreator {
     /**
      *  Allows mails to be sent to requestors and instructors.
      *  @param  $b  true = no mails sent, false = mails sent
-
      **/
     function set_mailer($b) {
         $this->no_send_mails = $b;
@@ -1149,7 +1148,7 @@ class uclacoursecreator {
         foreach ($existingcourses as $eck => $existingcourse) {
             // Mark these as already built...
             unset($newcourses[$eck]);
-            $this->debugln("! $eck built outside of course creator");
+            $this->debugln("!WARNING $eck built outside of course creator");
         }
 
         $this->debugln('Creating courses...');
@@ -1359,21 +1358,20 @@ class uclacoursecreator {
     function send_emails() {
         if (empty($this->cron_term_cache['url_info'])) {
             $this->debugln(
-                'Warning: We have no URL information for E-Mails.'
+                'ERROR: We have no URL information for emails.'
             );
-
             return false;
         }   
-        
+
         if (!isset($this->cron_term_cache['trim_requests'])) {
             $this->trim_requests();
         }
 
         // This should fill the term cache 'instructors' with data from 
         // ccle_CourseInstructorsGet
-        $this->println('Getting ' 
+        $this->println('Getting instructors for ' 
             . count($this->cron_term_cache['trim_requests']) 
-            . ' instructors from registrar...');
+            . ' request(s) from registrar...');
 
         $results = registrar_query::run_registrar_query(
             'ccle_courseinstructorsget', 
@@ -1547,11 +1545,12 @@ class uclacoursecreator {
 
             $local_emails =& $this->cron_term_cache['local_emails'];
         }
-
+        
         if (!$this->send_mails()) {
             $this->debugln('--- Email sending disabled ---');
-        }
-
+            // continue so that we can see debugging messages
+        }        
+        
         // TODO move the rest of this out
         // Parsed
         // This may take the most memory
