@@ -11,3 +11,6 @@
     max-height:300px;
     overflow:auto;
 }
+. quizattemptcounts .no-overflow {
+	overflow:auto;
+}
