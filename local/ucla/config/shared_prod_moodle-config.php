@@ -44,11 +44,11 @@ $CFG->dbpass    = '';
 $CFG->prefix    = 'mdl_';
 $CFG->dboptions = array(
     'dbpersist' => 0,
-    'dbsocket'  => 1 
+    'dbsocket'  => 0 
 );
 
-$CFG->wwwroot  = '';
-$CFG->dataroot = ''; 
+$CFG->wwwroot  = 'https://pilot.ccle.ucla.edu';
+$CFG->dataroot = '/moodle/moodle_data'; 
 
 // This determines what the admin folder is called.
 $CFG->admin    = 'admin';
@@ -111,9 +111,6 @@ $CFG->messaging = false;
 
 // CCLE-2590 - Implement Auto-detect Shibboleth Login
 $CFG->shib_logged_in_cookie = '_ucla_sso';
-
-// default file resources display to "Force Download"
-$CFG->forced_plugin_settings['resource'] = array('display' => 4);
 
 // CCLE-2306 - HELP SYSTEM BLOCK
 // if using JIRA, jira_user, jira_password, jira_pid should be defined in config_private.php
@@ -179,6 +176,25 @@ $CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 0;
 
 // Site administration > Plugins > Activity modules > Assignment
 $CFG->assignment_maxbytes = 10485760;   // 100MB
+
+// Site administration > Plugins > Activity modules > Folder
+$CFG->forced_plugin_settings['folder']['requiremodintro'] = false;
+
+// Site administration > Plugins > Activity modules > IMS content package
+$CFG->forced_plugin_settings['imscp']['requiremodintro'] = false;
+
+// Site administration > Plugins > Activity modules > Page
+$CFG->forced_plugin_settings['page']['requiremodintro'] = false;
+$CFG->forced_plugin_settings['page']['printheading'] = false;
+
+// Site administration > Plugins > Activity modules > File
+$CFG->forced_plugin_settings['resource']['requiremodintro'] = false;
+$CFG->forced_plugin_settings['resource']['printheading'] = false;
+$CFG->forced_plugin_settings['resource'] = array('display' => 4);   // "Force Download"
+
+// Site administration > Plugins > Activity modules > URL
+$CFG->forced_plugin_settings['url']['requiremodintro'] = false;
+$CFG->forced_plugin_settings['url']['printheading'] = false;
 
 // Site administration > Plugins > Licences > Manage licences
 $CFG->sitedefaultlicense = 'iown';
