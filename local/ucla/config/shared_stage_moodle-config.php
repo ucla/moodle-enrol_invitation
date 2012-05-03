@@ -204,7 +204,7 @@ $CFG->forced_plugin_settings['page']['printheading'] = false;
 // Site administration > Plugins > Activity modules > File
 $CFG->forced_plugin_settings['resource']['requiremodintro'] = false;
 $CFG->forced_plugin_settings['resource']['printheading'] = false;
-$CFG->forced_plugin_settings['resource'] = array('display' => 4);   // "Force Download"
+$CFG->forced_plugin_settings['resource']['display'] = 4;   // "Force Download"
 
 // Site administration > Plugins > Activity modules > URL
 $CFG->forced_plugin_settings['url']['requiremodintro'] = false;
