@@ -61,7 +61,7 @@ $CFG->directorypermissions = 0777;
 $CFG->passwordsaltmain = '';
 
 // determines current term
-$CFG->currentterm = '12S';
+//$CFG->currentterm = '12S';
 
 // Registrar
 $CFG->registrar_dbtype = 'odbc_mssql';
@@ -88,13 +88,13 @@ $CFG->instructor_levels_roles = array(
 $terms_to_built = array('12S', '121', '12F');
 
 // Course Requestor
-$CFG->forced_plugin_settings['tool_uclacourserequestor']['terms'] = $terms_to_built;
-$CFG->forced_plugin_settings['tool_uclacourserequestor']['selected_term'] = $CFG->currentterm;
+//$CFG->forced_plugin_settings['tool_uclacourserequestor']['terms'] = $terms_to_built;
+//$CFG->forced_plugin_settings['tool_uclacourserequestor']['selected_term'] = $CFG->currentterm;
 $CFG->forced_plugin_settings['tool_uclacourserequestor']['mailinst_default'] = false; 
 $CFG->forced_plugin_settings['tool_uclacourserequestor']['nourlupdate_default'] = true;
 
 // Course Creator
-$CFG->forced_plugin_settings['tool_uclacoursecreator']['terms'] = $terms_to_built;
+//$CFG->forced_plugin_settings['tool_uclacoursecreator']['terms'] = $terms_to_built;
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['course_creator_email'] = 'ccle-operations@lists.ucla.edu';
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['email_template_dir'] = '/usr/local/moodle/m2test_config/ccle_email_templates/course_creator';
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['make_division_categories'] = true;
