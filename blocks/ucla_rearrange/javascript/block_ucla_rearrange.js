@@ -301,10 +301,32 @@ M.block_ucla_rearrange.compare_section_toggle = function(text) {
     return false;
 };
 
+M.block_ucla_rearrange.set_init_selective_expand = function(x) {
+    
+      var sectionsToChange = [];
+
+    $("#ns-list-"+x).each(function() {
+         sectionsToChange.push($(this).parent());   
+     });
+   
+    for (var jqr in sectionsToChange) {
+        M.block_ucla_rearrange.toggle_section($(sectionsToChange[jqr]));
+    }
+        
+};
+
+M.block_ucla_rearrange.collapse = function() {
+     M.block_ucla_rearrange.event_expand_all();
+            // Change the text
+     M.block_ucla_rearrange.toggle_all_text();
+
+};
+
 /**
  *  Custom spec-ed out function for initalziation of rearrange.
  **/
-M.block_ucla_rearrange.initialize_rearrange_tool = function() {
+M.block_ucla_rearrange.initialize_rearrange_tool = function(topicNumber, secNum) {
+     
     $(M.block_ucla_rearrange.containerjq).html(M.block_ucla_rearrange.sections);
 
     M.block_ucla_rearrange.create_sortable();
@@ -312,6 +334,10 @@ M.block_ucla_rearrange.initialize_rearrange_tool = function() {
     M.block_ucla_rearrange.create_nested_sortable();
     M.block_ucla_rearrange.create_expandables();
     M.block_ucla_rearrange.create_expand_all();
+    if(topicNumber != 0) {
+    M.block_ucla_rearrange.collapse();
+    M.block_ucla_rearrange.set_init_selective_expand(secNum);
+    }
 };
 
 /**

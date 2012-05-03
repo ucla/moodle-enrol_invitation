@@ -235,6 +235,7 @@ $restrc = "$restr: {$course->shortname}";
 $PAGE->set_title($restrc);
 $PAGE->set_heading($restrc);
 
+
 echo $OUTPUT->header();
 echo $OUTPUT->heading($restr, 2, 'headingblock');
 
@@ -259,9 +260,11 @@ if ($data != false) {
     echo $OUTPUT->confirm(get_string('rearrange_success', 'block_ucla_rearrange'), $sectret, $courseret);        
 
 } else {
+    $topic = $_GET["topic"];
+    $secid = ($sections[$topic]->id);
     $rearrangeform->display();
     $PAGE->requires->js_init_code(
-        'M.block_ucla_rearrange.initialize_rearrange_tool()'
+        "M.block_ucla_rearrange.initialize_rearrange_tool('$topic', '$secid')"
     );
 }
 
