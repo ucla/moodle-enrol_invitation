@@ -113,11 +113,10 @@ class block_ucla_my_sites extends block_base {
             );
         }
 
-        // Iterate through the courses and figure stuff out.
         if ($remotecourses) {
             foreach ($remotecourses as $remotecourse) {
                 // Do not use this object after thsi, this is because
-                // browsebyh_handler::ignore_course uses an object
+                // browseby_handler::ignore_course uses an object
                 $objrc = (object) $remotecourse;
                 $objrc->activitytype = $objrc->act_type;
                 $objrc->course_code = $objrc->catlg_no;
@@ -136,40 +135,11 @@ class block_ucla_my_sites extends block_base {
                     continue;
                 }
 
+                // We're going to format this object to return
+                // something similar to what locally-existing courses
+                // return
                 $rclass = new stdclass();
                 $rclass->url = $remotecourse['url'];
-                if (empty($remotecourse['course_title'])) {
-                    $classinfo = 
-                        $this->fetch_registrar_workaround(
-                            $remotecourse['termsrs']
-                        );
-
-                    $remotecourse['course_title'] = 
-                        uclacoursecreator::make_course_title(
-                            $classinfo['coursetitle'],
-                            $classinfo['sectiontitle']
-                        );
-                }
-
-                if (empty($remotecourse['act_type'])) {
-                    $classinfo = 
-                        $this->fetch_registrar_workaround(
-                            $remotecourse['termsrs']
-                        );
-
-                    $remotecourse['act_type'] = $classinfo['acttype'];
-                }
-
-                if (empty($remotecourse['session_group'])) {
-                    $classinfo = 
-                        $this->fetch_registrar_workaround(
-                            $remotecourse['termsrs']
-                        );
-
-                    $remotecourse['session_group'] = 
-                        $classinfo['session_group'];
-                }
-
                 $rclass->fullname = $remotecourse['course_title'];
 
                 $rreg_info = new stdclass();
@@ -188,20 +158,24 @@ class block_ucla_my_sites extends block_base {
                 $rclass->role = get_moodlerole($remotecourse['role'],
                     $subj_area);
 
-                // Now we need to figure out what exactly it is we need to 
-                // display in the situation of a conflict
-                // We are also assuming that the data in reg_classinfo
-                // is up to date?
+                // If this particular course already exists locally, then there
+                // is no real need to add another copy of it to the list of
+                // my sites
                 $key = make_idnumber($rreg_info);
+                $localexists = false;
                 foreach ($class_sites as $k => $class_site) {
                     foreach ($class_site->reg_info as $reginfo) {
                         if ($key == make_idnumber($reginfo)) {
                             $class_sites[$k]->role = $rclass->role;
+
+                            $localexists = true;
                         }
                     }
                 }
 
-                $class_sites[] = $rclass;
+                if (!$localexists) {
+                    $class_sites[] = $rclass;
+                }
             }
         }
 
@@ -228,11 +202,10 @@ class block_ucla_my_sites extends block_base {
         $allroles = get_all_roles();
 
         // print class sites
-        $content[] = $termoptstr . html_writer::tag('h3', 
+        $content[] = html_writer::tag('h3', 
                 get_string('classsites', 'block_ucla_my_sites'), 
-                    array('class' => 'mysitesdivider'));
+                    array('class' => 'mysitesdivider')) . $termoptstr;
         if (empty($class_sites)) {
-
             if (!isset($noclasssitesoverride)) {
                 $ncsstr = 'noclasssites';
             } else {
@@ -344,27 +317,6 @@ class block_ucla_my_sites extends block_base {
         $this->content->text = implode($content);
 
         return $this->content;
-    }
-
-    public function fetch_registrar_workaround($termsrs) {
-        if (!isset($this->cache[$termsrs])) {
-            $termsrs = $termsrs;
-            list($term, $srs) = explode('-', $termsrs);
-            $remotecourseinfo = registrar_query::run_registrar_query(
-                'ccle_getclasses',
-                array(array(
-                    'term' => $term,
-                    'srs' => $srs
-                )),
-                true
-            );
-
-            $classinfo = reset($remotecourseinfo);
-        } else {
-            $classinfo = $this->cache['termsrs'];
-        }
-
-        return $classinfo;
     }
 
     /**

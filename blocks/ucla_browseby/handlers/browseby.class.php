@@ -67,14 +67,14 @@ abstract class browseby_handler {
     function get_pretty_subjarea($subjarea) {
         global $DB;
     
-        $sa = $DB->get_record('ucla_reg_subjectarea', 
-            array('subjarea' => $subjarea));
+        $sa = $DB->get_field('ucla_reg_subjectarea', 
+            'subj_area_full', array('subjarea' => $subjarea));
 
         if ($sa) {
-            return $sa->subj_area_full;
+            return $sa;
         }
 
-        return false;
+        return $subjarea;
     }
     
     static function ignore_course($course) {
