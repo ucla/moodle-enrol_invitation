@@ -87,11 +87,12 @@ $CFG->instructor_levels_roles = array(
 $terms_to_built = array('12S', '121', '12F');
 
 // CCLE-2283: Friendly URLs
-$CFG->ucla_friendlyurls_enabled = true;
-
-// CCLE-2283: Redirect to archive (these have a high chance of changing)
-$CFG->remotetermcutoff = '12S';
-$CFG->archiveserver = 'https://archive.ccle.ucla.edu';
+// CCLE-2283: Redirect to archive 
+$CFG->forced_plugin_settings['local_ucla'] = array(
+    'friendly_urls_enabled' => true,
+    'remotetermcutoff' => '12S',
+    'archiveserver' => 'https://archive.ccle.ucla.edu'
+);
 
 // Course Requestor
 $CFG->forced_plugin_settings['tool_uclacourserequestor']['terms'] = $terms_to_built;

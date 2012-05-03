@@ -34,7 +34,7 @@ function extern_server_course($course) {
     $name_param = optional_param('name', '', PARAM_RAW);
     $id_param = optional_param('id', '', PARAM_INT);
 
-    $friendlyurlsenabled = !empty($CFG->ucla_friendlyurls_enabled);
+    $friendlyurlsenabled = get_config('local_ucla', 'friendly_urls_enabled');
     $forcename = !empty($CFG->forcecoursegettoname) || $friendlyurlsenabled;
 
     $redirect = false;

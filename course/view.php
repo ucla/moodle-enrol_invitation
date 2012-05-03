@@ -23,12 +23,12 @@
     }
 
     // START UCLA MOD CCLE-2283: archive redirect
-    // This needs to run here...because otherwise we get errors for 
-    // non existing courses
-    $ucla_cvh = $CFG->dirroot . '/local/ucla/ucla_course_view_hook.php';
+    // This needs to run here, otherwise we get errors for non-existing
+    // courses
+    $ucla_cvh = $CFG->dirroot . '/local/ucla/course_view_hook.php';
     if (file_exists($ucla_cvh)) {
         require_once($ucla_cvh);
-        if ($redirector = ucla_course_view_hook($name, $id)) {
+        if ($redirector = local_ucla_course_view_hook($name, $id)) {
             redirect($redirector);
         }
     }
