@@ -54,3 +54,7 @@ $string['configerrorinsertingrecord'] = 'There was a problem inserting records.'
 $string['configerror_dirfail'] = 'Cannot create directory';
 $string['configerror_cannotoverwrite'] = '$dumpfile is already in use.  Cannot overwrite.';
 // END UCLA MODIFICATIONS
+
+$string['config_dump_files_header'] = 'Existing configdumps files';
+$string['no_config_dump_files'] = 'No configdumps files created yet';
+$string['confirm_deletion'] = 'Are you sure you want to delete this config dump file?';

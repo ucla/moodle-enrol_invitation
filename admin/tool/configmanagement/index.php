@@ -31,7 +31,7 @@
  */
 require(dirname(dirname(dirname(dirname(__FILE__)))) . '/config.php');
 require_once($CFG->libdir . '/adminlib.php');
-require_once($CFG->dirroot . '/admin/tool/configmanagement/lib.php');
+require_once($CFG->dirroot.'/'.$CFG->admin.'/tool/configmanagement/lib.php');
 
 require_login();
 global $USER;
@@ -48,7 +48,7 @@ $PAGE->set_pagelayout('admin');
 $redirectlink = $CFG->wwwroot . '/' . $CFG->admin . '/tool/configmanagement/index.php';
 
 if (!is_siteadmin($USER->id)) {
-    error(get_string('adminsonlybanner'));
+    print_error('accessdenied', 'admin');
 }
 
 // Prepare and load Moodle Admin interface
@@ -465,6 +465,9 @@ if (optional_param('save', NULL, PARAM_TEXT) != NULL) {
 } else {
     //User Interface
     $filedate = date('m.d.y_a.g.i');
+    
+    // TO DO: Move all this js to outside file, so that it can be cached,
+    // and maybe use YUI
     echo '
     <script type="text/javascript">
     // START SSC MODIFICATION #1161 changed the default so that roles are now unchecked
@@ -629,22 +632,72 @@ if (optional_param('save', NULL, PARAM_TEXT) != NULL) {
         selectDiff();
         </script>
     ';
+    
     print_container($formcheckboxes, false, 'form-description');
-
     echo html_writer::empty_tag('br');
     echo html_writer::start_tag('div', array('style' => 'width:100%; float:left; padding-top:10px;'));
     echo html_writer::empty_tag('input', array('type' => 'submit', 'name' => 'save', 'value' => get_string('configsave', 'tool_configmanagement'), 'onclick' => "validateConfigForm(this.form)"));
     echo html_writer::end_tag('div');
     echo html_writer::empty_tag('br');
-
     echo "\n";
-
     print_container_end();
 
     //End of fields
     echo html_writer::end_tag('fieldset');
-
+    
+    // display existing config dump files
+    echo html_writer::start_tag('fieldset');
+    echo html_writer::tag('h3', get_string('config_dump_files_header', 'tool_configmanagement'));
+    $diff_files = get_config_dumps($dir); 
+    if (empty($diff_files)) {
+        echo html_writer::tag('p', get_string('no_config_dump_files', 'tool_configmanagement'), 
+                array('class' => 'redfont'));
+    } else {
+        // create list of 
+        $baseurl = $CFG->wwwroot . '/' .$CFG->admin . '/tool/configmanagement/view.php';
+        foreach ($diff_files as $index => $diff_file) {
+            // give link to view
+            $diff_files[$index] = html_writer::link(new moodle_url($baseurl, 
+                    array('name' => $diff_file)), $diff_file);
+            // then add link to delete (with very bad javascript confirm prompt)
+            // TODO: use YUI or put the javascript prompt in separate js file
+            $action = new action_link(
+                    new moodle_url($baseurl, array('delete' => $diff_file)),
+                    new pix_icon('t/delete', get_string("delete"), 'moodle', array('class' => 'iconsmall')),
+                    null,
+                    array('class' => 'editing_delete', 'title' => get_string("delete"),
+                        'onclick' => 'return confirm("'.get_string('confirm_deletion', 'tool_configmanagement').'")')
+            );            
+            $diff_files[$index] .= $OUTPUT->spacer() .html_writer::tag('span', $OUTPUT->render($action), array('class' => 'commands'));
+        }
+        
+        echo html_writer::alist($diff_files);
+    }
+    echo html_writer::end_tag('fieldset');
+    
     //Form buttons
     echo html_writer::end_tag('form');
 }
+
 echo $OUTPUT->footer();
+
+/**
+ * Returns an array of config dump files in given directory.
+ * 
+ * @param string $path_to_dumps 
+ * 
+ * @return array    Returns array of file names, if any.
+ */
+function get_config_dumps($path_to_dumps) {
+    $result = array();
+    if ($handle = opendir($path_to_dumps)) {
+        /* This is the correct way to loop over the directory. */
+        while (false !== ($entry = readdir($handle))) {
+            if (is_file($path_to_dumps . DIRECTORY_SEPARATOR . $entry)) {
+                $result[] = $entry;
+            }
+        }
+        closedir($handle);
+    }    
+    return $result;
+}

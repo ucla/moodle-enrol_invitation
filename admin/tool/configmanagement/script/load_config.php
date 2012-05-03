@@ -33,7 +33,7 @@
 
 define('CLI_SCRIPT', true);
 require(dirname(dirname(dirname(dirname(__FILE__)))) . '/config.php');
-require_once($CFG->dirroot.'/admin/tool/configmanagement/lib.php');
+require_once($CFG->dirroot.'/'.$CFG->admin.'/tool/configmanagement/lib.php');
 
 // don't want this to be runnable
 

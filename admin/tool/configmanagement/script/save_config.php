@@ -34,7 +34,7 @@
 
 define('CLI_SCRIPT', true);
 require(dirname(dirname(dirname(dirname(__FILE__)))) . '/config.php');
-require_once($CFG->dirroot.'/admin/tool/configmanagement/locallib.php');
+require_once($CFG->dirroot.'/'.$CFG->admin.'/tool/configmanagement/lib.php');
 
 $dumpfile = get_string('configdefaultfile', 'tool_configmanagement');
 $divider = get_string('configdivider', 'tool_configmanagement');
