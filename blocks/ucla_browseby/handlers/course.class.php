@@ -28,8 +28,8 @@ class course_handler extends browseby_handler {
             COALESCE(user.lastname, ubii.lastname) AS lastname,
             ubii.profcode,
             user.url AS userlink,
-            mco.shortname as shortname,
-            mco.idnumber as idnumber
+            mco.shortname AS shortname,
+            mco.idnumber AS idnumber
     ";
 
     const browseall_order_helper = "

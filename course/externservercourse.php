@@ -26,7 +26,7 @@ function extern_server_course($course) {
         
     // This is a catch to check if friendly urls was the methodology
     // to reach this location, so not to infinitely redirect
-    if (preg_match('"' . make_friendlyurl($course) . '"',
+    if (preg_match('"' . make_friendly_url($course) . '"',
             $_SERVER['REQUEST_URI'])) {
         return false;
     }
@@ -70,7 +70,7 @@ function extern_server_course($course) {
         // Now we're going to really friendly URL this
         $realurl->remove_params('name');
         $friendly = new moodle_url(
-            make_friendlyurl($course),
+            make_friendly_url($course),
             $realurl->params());
         $redirect = $friendly;
     }
