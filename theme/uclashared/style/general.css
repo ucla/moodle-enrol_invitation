@@ -386,3 +386,9 @@ html, body {background-color:#FFF; height:100%;}
 .headermain {
     margin-left: 2.0em !important;
 }
+
+/* CCLE-2993 - Shorten textarea for intro/description field */
+#id_introeditor, #id_introeditor_tbl, #id_intro {
+    height:150px;    
+    width: 275px;   /* only applicable for intro forms that don't use TinyMCE */
+}
