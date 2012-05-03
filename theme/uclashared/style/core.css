@@ -11,6 +11,10 @@
     max-height:300px;
     overflow:auto;
 }
-. quizattemptcounts .no-overflow {
+
+ /* START UCLA Modification: feature/CCLE-2909-browser-cutting-off-quiz-result-screen */
+
+.quizattemptcounts .no-overflow {
 	overflow:auto;
 }
+ /* END UCLA Modification: feature/CCLE-2909-browser-cutting-off-quiz-result-screen */
