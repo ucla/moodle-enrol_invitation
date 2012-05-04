@@ -67,7 +67,7 @@ if (optional_param('save', NULL, PARAM_TEXT) != NULL) {
         // CCLE-164
         // Name format that we want: type_configdump_date_time.txt
         $dumpfile = optional_param('configoptions', 'diff', PARAM_ALPHA) . "_configdump_";
-        $dumpfile .= date('m.d.y_a.g.i') . ".txt";
+        $dumpfile .= date('Y.m.d_H.i') . ".txt";
     }
     $dumpfile = basename($dumpfile);
 
@@ -102,7 +102,7 @@ if (optional_param('save', NULL, PARAM_TEXT) != NULL) {
     echo $OUTPUT->heading(get_string('configsaveconfiguration', 'tool_configmanagement'));
 
     // CCLE-164 - show filename and location
-    echo html_writer::tag('p', 'Settings saved to file: ' . "$dir.$dumpfile", array('class' => 'mdl-align'));
+    echo html_writer::tag('p', 'Settings saved to file: ' . $dir . $dumpfile, array('class' => 'mdl-align'));
 
     //Open file for write
     if ($fp = fopen($dir . $dumpfile, 'w')) {
@@ -467,7 +467,7 @@ if (optional_param('save', NULL, PARAM_TEXT) != NULL) {
     }
 } else {
     //User Interface
-    $filedate = date('m.d.y_a.g.i');
+    $filedate = date('Y.m.d_H.i');
     
     // TO DO: Move all this js to outside file, so that it can be cached,
     // and maybe use YUI
@@ -669,7 +669,7 @@ if (optional_param('save', NULL, PARAM_TEXT) != NULL) {
                     new pix_icon('t/delete', get_string("delete"), 'moodle', array('class' => 'iconsmall')),
                     null,
                     array('class' => 'editing_delete', 'title' => get_string("delete"),
-                        'onclick' => 'return confirm("'.get_string('confirm_deletion', 'tool_configmanagement').'")')
+                        'onclick' => 'return confirm("'.get_string('confirm_deletion', 'tool_configmanagement', $diff_file).'")')
             );            
             $diff_files[$index] .= $OUTPUT->spacer() .html_writer::tag('span', $OUTPUT->render($action), array('class' => 'commands'));
         }
@@ -702,5 +702,8 @@ function get_config_dumps($path_to_dumps) {
         }
         closedir($handle);
     }    
+    
+    sort($result);
+    
     return $result;
 }
