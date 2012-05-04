@@ -18,7 +18,7 @@ $rucr = 'tool_uclacourserequestor';
 
 // Adding 'Support Admin' capability to course requestor
 if (!has_capability('tool/uclacourserequestor:edit', $syscontext)) {
-    print_error('adminsonlybanner');
+    print_error('accessdenied', 'admin');
 }
 
 $selterm = optional_param('term', false, PARAM_ALPHANUM);
