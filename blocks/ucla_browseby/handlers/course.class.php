@@ -23,7 +23,7 @@ class course_handler extends browseby_handler {
             ubci.catlg_no AS course_code,
             ubci.activitytype, 
             urc.courseid,
-            user.id AS userid,
+            COALESCE(user.id, user.idnumber, ubii.uid) AS userid,
             COALESCE(user.firstname, ubii.firstname) AS firstname,
             COALESCE(user.lastname, ubii.lastname) AS lastname,
             ubii.profcode,
@@ -231,7 +231,7 @@ class course_handler extends browseby_handler {
             // Apend instructors, since they could have duplicate rows
             if (isset($fullcourseslist[$k])) {
                 $courseobj = $fullcourseslist[$k];
-                $courseobj->instructors[$course->uid] = 
+                $courseobj->instructors[$course->userid] = 
                     $this->fullname($course);
             } else {
                 $courseobj = new stdclass(); 
