@@ -231,8 +231,9 @@ class course_handler extends browseby_handler {
             // Apend instructors, since they could have duplicate rows
             if (isset($fullcourseslist[$k])) {
                 $courseobj = $fullcourseslist[$k];
-                $courseobj->instructors[$course->userid] = 
-                    $this->fullname($course);
+                if ($instructor_name = $this->fullname($course)) {
+                    $courseobj->instructors[$course->userid] = $instructor_name;
+                }
             } else {
                 $courseobj = new stdclass(); 
                 $courseobj->dispname = ucla_make_course_title($course);
@@ -270,8 +271,9 @@ class course_handler extends browseby_handler {
                         $course->course_title, $course->section_title
                     );
 
-                $courseobj->instructors = 
-                    array($course->userid => $this->fullname($course));
+                if ($instructor_name = $this->fullname($course)) {
+                    $courseobj->instructors[$course->userid] = $instructor_name;
+                }                
 
                 $courseobj->session_group = $course->session_group;
             }
