@@ -243,7 +243,7 @@ class block_ucla_my_sites extends block_base {
 
                 // add link
                 if (!empty($class->url)) {
-                    $class_link = ucla_html_writer::link(
+                    $class_link = ucla_html_writer::external_link(
                         new moodle_url($class->url), 
                         $title);
                 } else {
@@ -252,7 +252,7 @@ class block_ucla_my_sites extends block_base {
                     if (count($class->reg_info) != 1) {
                         debugging('strangeness!');
                     } else {
-                        // THis external link generation mechanism should
+                        // This external link generation mechanism should
                         // be pulled outside this block
                         $class_link = "$title " . html_writer::link(
                             new moodle_url(

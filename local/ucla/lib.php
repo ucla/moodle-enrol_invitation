@@ -908,7 +908,7 @@ class ucla_html_writer extends html_writer {
     /**
      *  Hack to add external link icon.
      **/
-    static function link($url, $text, $attr=null) {
+    static function external_link($url, $text, $attr=null) {
         global $CFG;
         if (strpos($url->out(), $CFG->wwwroot) === false) {
             if (empty($attr)) {
@@ -918,6 +918,7 @@ class ucla_html_writer extends html_writer {
             }
 
             $attr['class'] .= 'external-link';
+            $attr['title'] = get_string('external-link', 'local_ucla');            
             $attr['target'] = '_blank';
         }
 

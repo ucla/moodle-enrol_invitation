@@ -26,3 +26,5 @@ $string['term'] = 'Term';
 $string['invalidrolemapping'] = 'Could not find role mapping {$a}';
 
 $string['ucla:viewall_courselisting'] = 'Allows user to see all courses another user is associated with on their profile';
+
+$string['external-link'] = 'External website (opens new window)';
