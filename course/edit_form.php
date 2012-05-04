@@ -62,7 +62,7 @@ class course_edit_form extends moodleform {
                 
                 // Change the site type
                 // @todo: make this work!
-                if(has_capability('tool/uclasiteindicator:view', $systemcontext)) {
+                if(has_capability('tool/uclasiteindicator:edit', $systemcontext)) {
                     $typelist = array('Do not change', 'Instruction', 'Non-Instruction');
                     $mform->addElement('select', 'indicator_change', 'Change type', $typelist);
                 }

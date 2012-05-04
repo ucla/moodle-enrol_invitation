@@ -34,7 +34,7 @@ class site_indicator_entry {
     function __construct($courseid) {
         global $DB;
         
-        $indicator = $DB->get_record('ucla_siteindicator', array('courseid' => $courseid), '*', MUST_EXIST);
+        $indicator = $DB->get_record('ucla_indicator', array('courseid' => $courseid), '*', MUST_EXIST);
         $this->property->courseid = $courseid;
         $this->property->type = $indicator->type;
         $this->_id = $indicator->id;
@@ -47,7 +47,7 @@ class site_indicator_entry {
      */
     public function delete() {
         global $DB;
-        $DB->delete_records('ucla_siteindicator', array('id' => $this->_id));
+        $DB->delete_records('ucla_indicator', array('id' => $this->_id));
     }
     
     /**
@@ -81,7 +81,7 @@ class site_indicator_entry {
             // Cache the object
             return $this->type_obj;
         } else {
-            $typeobj = $DB->get_record('ucla_siteindicator_type', array('id' => $this->property->type), '*', MUST_EXIST);
+            $typeobj = $DB->get_record('ucla_indicator_type', array('id' => $this->property->type), '*', MUST_EXIST);
             $this->type_obj = $typeobj;
             return $typeobj;
         }
@@ -93,8 +93,8 @@ class site_indicator_entry {
         
         $query = "SELECT r.name
                 FROM {$CFG->prefix}role AS r
-                JOIN {$CFG->prefix}ucla_siteindicator_roleassign AS sra ON sra.roleid = r.id
-                JOIN {$CFG->prefix}ucla_siteindicator_rolemapping srm ON srm.siteroleid = sra.siteroleid
+                JOIN {$CFG->prefix}ucla_indicator_assign AS sra ON sra.roleid = r.id
+                JOIN {$CFG->prefix}ucla_indicator_mapping srm ON srm.siteroleid = sra.siteroleid
                 WHERE srm.typeid = {$this->property->type}";
         
         $records = $DB->get_records_sql($query);
@@ -142,7 +142,7 @@ class site_indicator_request {
         $this->request = new stdClass();
         $this->entry = new stdClass();
                 
-        $request = $DB->get_record('ucla_siteindicator_request', 
+        $request = $DB->get_record('ucla_indicator_request', 
                 array('requestid' => $requestid), '*', MUST_EXIST);
 
         $this->id = $request->id;                           // Indicator request ID
@@ -162,7 +162,7 @@ class site_indicator_request {
     function create_indicator_entry() {
         global $DB;
         
-        $DB->insert_record('ucla_siteindicator', $this->entry);
+        $DB->insert_record('ucla_indicator', $this->entry);
         
         $this->set_default_role();
         $this->delete();
@@ -181,8 +181,8 @@ class site_indicator_request {
         // Pick out the highest ranked role
         $query = "SELECT r.id
                 FROM {$CFG->prefix}role AS r
-                JOIN {$CFG->prefix}ucla_siteindicator_roleassign AS sra ON sra.roleid = r.id
-                JOIN {$CFG->prefix}ucla_siteindicator_rolemapping srm ON srm.siteroleid = sra.siteroleid
+                JOIN {$CFG->prefix}ucla_indicator_assign AS sra ON sra.roleid = r.id
+                JOIN {$CFG->prefix}ucla_indicator_mapping srm ON srm.siteroleid = sra.siteroleid
                 WHERE srm.typeid = {$this->entry->type}
                 ORDER BY r.sortorder";
         
@@ -262,7 +262,7 @@ class site_indicator_request {
     public function delete() {
         global $DB;
         
-        $DB->delete_records('ucla_siteindicator_request', 
+        $DB->delete_records('ucla_indicator_request', 
                 array('id' => $this->id));
     }
         
@@ -274,7 +274,7 @@ class site_indicator_request {
     static function create($newindicator) {
         global $DB;
         
-        $DB->insert_record('ucla_siteindicator_request', $newindicator);
+        $DB->insert_record('ucla_indicator_request', $newindicator);
         
         // Get the request and generate jira ticket
         $request = new site_indicator_request($newindicator->requestid);
@@ -475,9 +475,9 @@ class ucla_site_indicator {
                 AND r.shortname = ?";
         
         $record = $DB->get_records_sql($query, array($categoryid, 'manager'));
-        echo "<pre>";
-        var_dump($record);
-        echo "</pre>";
+//        echo "<pre>";
+//        var_dump($record);
+//        echo "</pre>";
         
         return -1;
     }
@@ -498,7 +498,6 @@ class ucla_site_indicator {
         // Determine support contact for JIRA ticket. 
         $contacts = self::get_support_contacts_list();
         $contact = self::get_support_contact($data->indicator_category, $contacts);
-        $catman = self::get_category_manager($data->indicator_category);
 
         // Now save to site indicator request table
         $newindicator = new stdClass();
@@ -507,7 +506,6 @@ class ucla_site_indicator {
         $newindicator->type = $data->indicator_type;
         $newindicator->categoryid = $data->indicator_category;
         $newindicator->requester = $request->requester;
-        $newindicator->catadminid = $catman;
         
         site_indicator_request::create($newindicator);
     }
@@ -578,7 +576,7 @@ class ucla_site_indicator {
     static function get_indicator_types() {
         global $DB;
 
-        return $DB->get_records('ucla_siteindicator_type', 
+        return $DB->get_records('ucla_indicator_type', 
                 array('visible' => 1), 'sortorder');
     }
         
@@ -591,10 +589,22 @@ class ucla_site_indicator {
             $attributes = array('shortname' => $identifier);
         }
 
-        $type = $DB->get_record('ucla_siteindicator_type', $attributes);
+        $type = $DB->get_record('ucla_indicator_type', $attributes);
         
         return $type;
 
     }
     
+}
+
+class ucla_indicator_admin {
+    static function create_types_sql() {
+        $query = "INSERT INTO `mdl_ucla_indicator_type` (`id`, `sortorder`, `fullname`, `shortname`, `description`, `visible`) VALUES
+                (1, 0, 'Instruction', 'instruction', 'This is the description of the instruction role', 1),
+                (2, 0, 'Non-Instruction', 'non_instruction', 'This describes the project role', 1),
+                (3, 0, 'Research', 'research', 'this describes the project role as it applies to research', 1),
+                (4, 0, 'Test', 'test', 'this describes the test role', 1),
+                (5, 0, 'Instruction (Listed at Registrar)', 'registrar', 'An instruction site with an SRS number that is listed at the Registrar', 0)";
+        
+    }
 }
