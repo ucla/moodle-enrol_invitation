@@ -159,7 +159,7 @@ $sql = "
     WHERE 
         c.id = ?
         $additional_sql
-    ";
+    ORDER BY u.lastname, u.firstname";
 
 // Use this whenever you need to display instructors
 if (ucla_format_display_instructors($course)) {
@@ -306,12 +306,21 @@ while ($section <= $course->numsections) {
     // the actual number of sections that exist
     if (!empty($sections[$section])) {
         $thissection = $sections[$section];
+        
+        // Save the name if the section name is NULL
+        // This writes the value to the database
+        if($section && NULL == $sections[$section]->name) {
+            $sections[$section]->name = get_string('sectionname', "format_weeks") . " " . $section;
+            $DB->update_record('course_sections', $sections[$section]);
+        }
+        
     } else {
         // Create a new section
         $thissection = new stdClass;
         $thissection->course  = $course->id;   
         $thissection->section = $section;
-        $thissection->name = null;
+        // Assign the week number as default name
+        $thissection->name = get_string('sectionname', "format_weeks") . " " . $section;
         $thissection->summary = '';
         $thissection->summaryformat = FORMAT_HTML;
         $thissection->visible  = 1;

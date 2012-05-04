@@ -116,16 +116,21 @@ class block_ucla_course_menu extends block_navigation {
         if ($this->contentgenerated === true) {
             return $this->content;
         }
-
+        
         $renderer = $this->get_renderer();
          
         //CCLE-2380 Rearrange Course Materials link when editing is on        
-        if ($this->page->user_is_editing()) {     
+        // only display rearrange tool in ucla format
+        if ($this->page->user_is_editing() && 
+                $this->get_course_format() == 'ucla' && 
+                function_exists('ucla_format_figure_section')) {
+            list($thistopic, $ds) = ucla_format_figure_section($this->page->course);        
+            
             // rearrange link
             $rearrange = html_writer::link(
                     new moodle_url('/blocks/ucla_rearrange/rearrange.php', 
                         array('course_id' => $this->page->course->id, 
-                              'topic' => optional_param('topic',NULL,PARAM_INT))), 
+                              'topic' => $ds)), 
                     get_string('pluginname', 'block_ucla_rearrange'));            
             $this->content->text .= html_writer::tag('div', $rearrange, 
                     array('class' => 'edit_control_links'));
@@ -204,7 +209,7 @@ class block_ucla_course_menu extends block_navigation {
 
         $viewhiddensections = has_capability(
             'moodle/course:viewhiddensections', $this->page->context);
-
+        
         foreach ($sections as $section) {
             // TESTINGCCLE-531: Course setting for num sections not reflected.
             if ($section->section > $this->page->course->numsections) {
@@ -219,7 +224,7 @@ class block_ucla_course_menu extends block_navigation {
             }
 
             $sectionname = strip_tags($sectionname);
-
+            
             if (!$viewhiddensections && !$section->visible) {
                 continue;
             }
@@ -232,6 +237,11 @@ class block_ucla_course_menu extends block_navigation {
                     $topic_param => $sectnum
                 )), navigation_node::TYPE_SECTION
             );
+            
+            // Indicate that section is hidden
+            if(!$section->visible) {
+                $elements[$key]->classes = array("block_ucla_course_menu_hidden");
+            }
         }
 
         // TODO get navigation to detect this if it is view all.
@@ -244,7 +254,7 @@ class block_ucla_course_menu extends block_navigation {
                     $topic_param => UCLA_FORMAT_DISPLAY_ALL
                 )), navigation_node::TYPE_SECTION);
         }
-
+        
         return $elements;
     }
 

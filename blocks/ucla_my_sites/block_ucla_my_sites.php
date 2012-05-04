@@ -115,7 +115,7 @@ class block_ucla_my_sites extends block_base {
 
         if ($remotecourses) {
             foreach ($remotecourses as $remotecourse) {
-                // Do not use this object after thsi, this is because
+                // Do not use this object after this, this is because
                 // browseby_handler::ignore_course uses an object
                 $objrc = (object) $remotecourse;
                 $objrc->activitytype = $objrc->act_type;
@@ -399,10 +399,14 @@ class block_ucla_my_sites extends block_base {
 
         // Fetch the ones that are relevant to compare
         $areginfo = $a->reg_info[$arik];
-        $areginfo->role = $a->role;
-
+        if (isset($a->role)) {
+            $areginfo->role = $a->role;
+        }
+        
         $breginfo = $b->reg_info[$brik];
-        $breginfo->role = $b->role;
+        if (isset($b->role)) {
+            $breginfo->role = $b->role;
+        }
         
         // This is an array of fields to compare by after the off-set
         // term and role

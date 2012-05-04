@@ -20,4 +20,7 @@ $string['rearrange_success'] = 'Your sections and modules have be successfully r
 $string['rearrange'] = 'Rearrange course materials';
 $string['rearrange_post'] = '';
 
+$string['returntocourse'] = 'Return to course';
+$string['returntosection'] = 'Return to section';
+
 // EoF
