@@ -96,7 +96,7 @@ if (optional_param('save', NULL, PARAM_TEXT) != NULL) {
     $divider = get_string('configdivider', 'tool_configmanagement');
     // Use this time to keep time fields constant for diff
     $difftime = 1234567890;
-    $dodiff = (optional_param('configoptions', 0, PARAM_BOOL) == 'diff') ? true : false;
+    $dodiff = (optional_param('configoptions', 0, PARAM_ALPHA) == 'diff') ? true : false;
     $diffexclude = ($dodiff && optional_param('exc_id_time', 0, PARAM_BOOL)) ? true : false;
 
     echo $OUTPUT->heading(get_string('configsaveconfiguration', 'tool_configmanagement'));
@@ -116,7 +116,10 @@ if (optional_param('save', NULL, PARAM_TEXT) != NULL) {
         }
         if ($configlist) {
             //Don't include these fields due to security reasons
-            $excludeconfiglist = array("enrol_dbpass",
+            $excludeconfiglist = array('dbpass',
+                'elluminate_auth_password',
+                'jira_password',
+                'jabberpassword',
                 'resource_secretphrase',
                 'recaptchapublickey',
                 'recaptchaprivatekey',

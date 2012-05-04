@@ -25,10 +25,9 @@
  *       role_capabilities, role_names, role_sortorder,
  *   block, modules,
  *   user
- * The following fields in config are skipped:
- *   enrol_dbpass, resource_secretphrase, recaptchapublickey, recaptchaprivatekey,
- *   cronremotepassword, proxyuser, proxypassword, quiz_password, quiz_fix_password,
- *   smtpuser, smtppass, supportemail, supportname, supportpage
+ * 
+ * $excludeconfiglist contains the fields in config that are skipped
+ * 
  * The following fields in config_plugins are skipped:
  *   open_ssl
  # In the role_capabilities tables, all modifierids are set to null.
