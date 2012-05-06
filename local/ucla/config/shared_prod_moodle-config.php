@@ -178,23 +178,23 @@ $CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 0;
 $CFG->assignment_maxbytes = 10485760;   // 100MB
 
 // Site administration > Plugins > Activity modules > Folder
-$CFG->forced_plugin_settings['folder']['requiremodintro'] = false;
+$CFG->forced_plugin_settings['folder']['requiremodintro'] = 0;
 
 // Site administration > Plugins > Activity modules > IMS content package
-$CFG->forced_plugin_settings['imscp']['requiremodintro'] = false;
+$CFG->forced_plugin_settings['imscp']['requiremodintro'] = 0;
 
 // Site administration > Plugins > Activity modules > Page
-$CFG->forced_plugin_settings['page']['requiremodintro'] = false;
-$CFG->forced_plugin_settings['page']['printheading'] = false;
+$CFG->forced_plugin_settings['page']['requiremodintro'] = 0;
+$CFG->forced_plugin_settings['page']['printheading'] = 1;
 
 // Site administration > Plugins > Activity modules > File
-$CFG->forced_plugin_settings['resource']['requiremodintro'] = false;
-$CFG->forced_plugin_settings['resource']['printheading'] = false;
+$CFG->forced_plugin_settings['resource']['requiremodintro'] = 0;
+$CFG->forced_plugin_settings['resource']['printheading'] = 1;
 $CFG->forced_plugin_settings['resource']['display'] = 4;   // "Force Download"
 
 // Site administration > Plugins > Activity modules > URL
-$CFG->forced_plugin_settings['url']['requiremodintro'] = false;
-$CFG->forced_plugin_settings['url']['printheading'] = false;
+$CFG->forced_plugin_settings['url']['requiremodintro'] = 0;
+$CFG->forced_plugin_settings['url']['printheading'] = 1;
 
 // Site administration > Plugins > Licences > Manage licences
 $CFG->sitedefaultlicense = 'iown';
