@@ -28,8 +28,8 @@
 $string['assignrole'] = 'Assign role';
 $string['cannotsendmoreinvitationfortoday'] = 'No invitation left for today. Try later.';
 $string['defaultrole'] = 'Default role assignment';
-$string['defaultrole_desc'] = 'Select role which should be assigned to users during invitation enrolments';
-$string['editenrolment'] = 'Edit enrolment';
+$string['defaultrole_desc'] = 'Select role which should be assigned to users during invitation enrollments';
+$string['editenrollment'] = 'Edit enrollment';
 $string['emailaddressnumber'] = 'Email address {$a}';
 $string['emailmessageinvitation'] = '{$a->managername} invited you to join {$a->fullname}. 
 
@@ -42,7 +42,7 @@ You will need to create an account if you don\'t have one yet.
 {$a->siteurl}';
 $string['emailmessageuserenrolled'] = '{$a->userfullname} has enrolled in {$a->coursefullname}.
     
-Click the following link to check the new enrolments: {$a->courseenrolledusersurl}
+Click the following link to check the new enrollments: {$a->courseenroledusersurl}
 
 {$a->sitename}
 -------------
@@ -52,13 +52,13 @@ $string['emailtitleinvitation'] = 'You have been invited to join {$a->fullname}.
 $string['emailtitleuserenrolled'] = '{$a->userfullname} has enrolled in {$a->coursefullname}.';
 $string['enrolenddate'] = 'End date';
 $string['enrolenddate_help'] = 'If enabled, users can be enrolled until this date only.';
-$string['enrolenddaterror'] = 'Enrolment end date cannot be earlier than start date';
-$string['enrolperiod'] = 'Enrolment duration';
-$string['enrolperiod_desc'] = 'Default length of time that the enrolment is valid (in seconds). If set to zero, the enrolment duration will be unlimited by default.';
-$string['enrolperiod_help'] = 'Length of time that the enrolment is valid, starting with the moment the user is enrolled. If disabled, the enrolment duration will be unlimited.';
+$string['enrolenddaterror'] = 'enrollment end date cannot be earlier than start date';
+$string['enrolperiod'] = 'enrollment duration';
+$string['enrolperiod_desc'] = 'Default length of time that the enrollment is valid (in seconds). If set to zero, the enrollment duration will be unlimited by default.';
+$string['enrolperiod_help'] = 'Length of time that the enrollment is valid, starting with the moment the user is enrolled. If disabled, the enrollment duration will be unlimited.';
 $string['enrolstartdate'] = 'Start date';
 $string['enrolstartdate_help'] = 'If enabled, users can be enrolled from this date onward only.';
-$string['expiredtoken'] = 'Invalid token - enrolment process has stopped.';
+$string['expiredtoken'] = 'Invalid token - enrollment process has stopped.';
 $string['invitationpagehelp'] = '<ul><li>You have {$a} invitation(s) left for today.</li><li>Each invitation is unique and expires once used.</li></ul>';
 $string['inviteusers'] = 'Invite users';
 $string['maxinviteerror'] = 'It must be a number.';
@@ -66,10 +66,17 @@ $string['maxinviteperday'] = 'Maximum invitation per day';
 $string['maxinviteperday_help'] = 'Maximum invitation that can be send per day for a course.';
 $string['noinvitationinstanceset'] = 'No invitation enrolmenet instance has been found. Please add an invitation enrol instance to your course first.';
 $string['nopermissiontosendinvitation'] = 'No permission to send invitation';
-$string['pluginname'] = 'Invitation';
-$string['pluginname_desc'] = 'The Invitation module allows to send invitation by email. These invitations can be used only once. Users clicking on the email link are automatically enrolled.';
-$string['status'] = 'Allow invitation enrolments';
+$string['pluginname'] = 'Site invitation';
+$string['pluginname_desc'] = 'The site invitation module allows to send invitation by email. These invitations can be used only once. Users clicking on the email link are automatically enrolled.';
+$string['status'] = 'Allow site invitations';
 $string['status_desc'] = 'Allow users to invite people to enrol into a course by default.';
 $string['unenrol'] = 'Unenrol user';
 $string['unenroluser'] = 'Do you really want to unenrol "{$a->user}" from course "{$a->course}"?';
 $string['unenrolselfconfirm'] = 'Do you really want to unenrol yourself from course "{$a}"?';
+
+// Capabilities strings
+$string['invitation:config'] = 'Configure site invitation instances';
+$string['invitation:enrol'] = 'Invite users';
+$string['invitation:manage'] = 'Manage site invitation assignments';
+$string['invitation:unenrol'] = 'Unassign users from the course';
+$string['invitation:unenrolself'] = 'Unassign self from the course';
