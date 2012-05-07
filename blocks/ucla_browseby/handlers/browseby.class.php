@@ -86,7 +86,8 @@ abstract class browseby_handler {
         if (!empty($course->course_code)) {
             $coursecode = intval(substr($course->course_code, 0, 4));
 
-            $ignorecoursenums = $this->get_config('ignore_coursenum');
+            $ignorecoursenums = get_config('block_ucla_browseby', 
+                    'ignore_coursenum');
             if ($ignorecoursenums) {
 
                 // Special formatting
