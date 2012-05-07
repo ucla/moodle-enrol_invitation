@@ -42,7 +42,8 @@ if (!has_capability('enrol/invitation:enrol', $context)) {
 }
 
 $PAGE->set_context($context);
-$PAGE->set_url('/enrol/invitation/invitation.php');
+$PAGE->set_url(new moodle_url('/enrol/invitation/invitation.php', 
+        array('courseid' => $courseid)));
 $PAGE->set_pagelayout('course');
 $PAGE->set_course($course);
 $PAGE->set_heading(get_string('inviteusers', 'enrol_invitation'));
@@ -72,7 +73,7 @@ if ($data and confirm_sesskey()) {
 
 //OUTPUT form
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('inviteusers', 'enrol_invitation'), 3, 'main');
+echo $OUTPUT->heading(get_string('inviteusers', 'enrol_invitation'));
 echo html_writer::tag('div', get_string('invitationpagehelp', 'enrol_invitation', $invitationleft),
         array('class' => 'invitationpagehelp'));
 if ($invitationleft > 0) {
