@@ -3,7 +3,8 @@
 /**
  * Capabilities
  *
- * @package    siteindicator
+ * @package     ucla
+ * @subpackage  uclasiteindicator
  */
 
 $capabilities = array(

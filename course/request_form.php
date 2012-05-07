@@ -83,10 +83,6 @@ class course_request_form extends moodleform {
         $displaylist = ucla_site_indicator::get_categories_list();
         $mform->addElement('select', 'indicator_category', get_string('req_category', 'tool_uclasiteindicator'), $displaylist);
         $mform->addHelpButton('indicator_category', 'req_category', 'tool_uclasiteindicator');
-        
-        $mform->addElement('text', 'othercat', get_string('req_category_other', 'tool_uclasiteindicator'), 'maxlength="254" size="50"');
-        $mform->disabledIf('othercat', 'indicator_category', 'noteq', 0);
-        $mform->addHelpButton('othercat', 'req_category_other', 'tool_uclasiteindicator');
         // END UCLAMOD CCLE-2389
 
         $mform->addElement('header','coursedetails', get_string('courserequestdetails'));

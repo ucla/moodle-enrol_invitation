@@ -1,7 +1,7 @@
 <?php
 
 /**
- * UCLA Site Indicator
+ * UCLA Site Indicator 
  * 
  * @package     ucla
  * @subpackage  uclasiteindicator
@@ -21,7 +21,7 @@ require_once($CFG->dirroot . '/blocks/ucla_help/ucla_help_lib.php');
 
 
 /**
- * A site indicator entry unit 
+ * A site indicator entry - represents a site indicator for a given course 
  */
 class site_indicator_entry {
     
@@ -68,9 +68,9 @@ class site_indicator_entry {
     }
     
     /**
-     * Get a site indicator type object.  Expect following object:
-     *  type->fullname
-     *  type->shortname
+     * Get a site indicator type object.  
+     * 
+     * @todo: is this still needed?
      *  
      * @return type 
      */
@@ -87,6 +87,11 @@ class site_indicator_entry {
         }
     }
     
+    /**
+     * Get assignable roles for this indicator
+     * 
+     * @return type 
+     */
     public function get_assignable_roles() {
         global $CFG, $DB;
         $list = array();
@@ -126,7 +131,7 @@ class site_indicator_entry {
 }
 
 /**
- * A site indicator request unit 
+ * A site indicator request - retrieves a course request 
  */
 class site_indicator_request {
 
@@ -206,8 +211,10 @@ class site_indicator_request {
         return role_assign($roleid, $userid, $context->id, '', NULL);
     }
     
-     /**
-     * @todo test this function! 
+    /**
+     * Generates a JIRA ticket and assigns it to a support contact
+     * 
+     * @todo finish this function
      */
     public function generate_jira_ticket() {
         global $DB , $CFG;
@@ -257,7 +264,6 @@ class site_indicator_request {
     
     /**
      * Delete the site indicator request 
-     * 
      */
     public function delete() {
         global $DB;
@@ -343,56 +349,10 @@ class site_indicator_request {
     
 }
 
-// Reference: http://docs.atlassian.com/jira/REST/latest/
-// https://jira.ats.ucla.edu/CreateIssueDetails.jspa
-class jira_api {
-    const base_url = 'https://jira.ats.ucla.edu/rest/';
-    
-    static function auth() {
-//        $url = '/auth/latest/session';
-        $url = 'api/2.0.alpha1/issue';
-        
-        $data = array(
-            'fields' => array(
-                'project' => array('id' => '10077'),
-                'summary' => 'This is a test summary',
-                'description' => 'This is a test description',
-                'issuetype' => array('id' => '1'),
-                'assignee' => array('name' => 'aroman'),
-                'reporter' => array('name' => 'aroman')
-                )
-        );
-        
-        $auth = base64_encode(get_config('block_ucla_help', 'jira_user') . ':' 
-                . get_config('block_ucla_help', 'jira_password'));
-        $headers = array(
-            'Content-Type: application/json',
-            'X-Atlassian-Token: no-check',
-            'Authorization: Basic ' . $auth
-        );
-        
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, jira_api::base_url . $url); // set url to post to
-//        curl_setopt($ch, CURLOPT_FAILONERROR, 1);
-//        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);// allow redirects
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER,1); // return into a variable
-//        curl_setopt($ch, CURLOPT_TIMEOUT, 10); // times out after 4s
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_POST, 1); // set POST method
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data)); // add POST fields
-        $result = curl_exec($ch); // run the whole process
-        curl_close($ch);
-        
-        echo "<pre>";
-        echo print_r($result);
-        echo "</pre>";
-    }
-}
-
 
 /**
- * Collection of site indicator functions, these are static functions 
- * to work with the site indicator 
+ * Collection of site indicator functions.
+ * 
  */
 class ucla_site_indicator {
 
@@ -442,16 +402,30 @@ class ucla_site_indicator {
         return $displaylist;
     }
     
+    /**
+     * Get list of available support contacts
+     * 
+     * @return type 
+     */
     static function get_support_contacts_list() {
         $manager = get_support_contacts_manager();
         $support_contacts = $manager->get_support_contacts();
         return $support_contacts;
     }
     
+    /**
+     * Get a specific support contact for a given category.  If the contact
+     * is not found, the parent category will be searched.
+     * 
+     * @param type $categoryid
+     * @param type $contacts
+     * @return type 
+     */
     static function get_support_contact($categoryid, &$contacts) {
         global $DB;
         // Attempt to find the support contact for category
-        $category = $DB->get_record('course_categories', array('id' => $categoryid));
+        $category = $DB->get_record('course_categories', 
+                array('id' => $categoryid));
 
         if(key_exists($category->name, $contacts)) {
             return $contacts[$category->name];
@@ -462,6 +436,17 @@ class ucla_site_indicator {
         return $contacts['System'];
     }
     
+    /**
+     * Given a category ID, retrieve the user assigned a category manager. 
+     * This will eventually be used to filter the 'pending request' list 
+     * so that only the category manager is able to see coruses requested 
+     * in their category.
+     * 
+     * @todo: finish implementing
+     * 
+     * @param type $categoryid
+     * @return type 
+     */
     static function get_category_manager($categoryid) {
         global $DB;
         
@@ -475,10 +460,7 @@ class ucla_site_indicator {
                 AND r.shortname = ?";
         
         $record = $DB->get_records_sql($query, array($categoryid, 'manager'));
-//        echo "<pre>";
-//        var_dump($record);
-//        echo "</pre>";
-        
+
         return -1;
     }
     
@@ -507,11 +489,12 @@ class ucla_site_indicator {
         $newindicator->categoryid = $data->indicator_category;
         $newindicator->requester = $request->requester;
         
+        // Finally, create request
         site_indicator_request::create($newindicator);
     }
     
     /**
-     * Create a site indicator entry from an existing request entry.  A course
+     * Create a site indicator entry from an existing request.  A course
      * is needed to attach that course to the new to be made indicator entry.
      * 
      * @param int $courseid course that will be attached to the site indicator entry
@@ -519,9 +502,8 @@ class ucla_site_indicator {
      * @return int category ID specified in the indicator request
      */
     static function create($courseid, $requestid) {
-        $newindicator = site_indicator_request::load($requestid);
-        
-        if($newindicator) {
+                
+        if($newindicator = site_indicator_request::load($requestid)) {
             $newindicator->entry->courseid = $courseid;
 
             // Create record for course
@@ -539,40 +521,22 @@ class ucla_site_indicator {
      * @param type $courseid 
      */
     static function delete($courseid) {
-        $indicator = site_indicator_entry::load($courseid);
-        
-        if($indicator) {
+        if($indicator = site_indicator_entry::load($courseid)) {
             $indicator->delete();
         }
     }
     
     /**
-     * Reject a indicator request
+     * Reject a indicator request.  Also deletes the request
      * 
      * @param type $requestid 
      */
     static function reject($requestid) {
-        $request = site_indicator_request::load($requestid);
-
-        if($request) {
+        if($request = site_indicator_request::load($requestid)) {
             $request->delete();
         }
     }
-    
-    /**
-     * Check if a site is in the site indicator table.  If it is,
-     * then => site is collab
-     * 
-     * @global type $DB
-     * @param int $courseid of course
-     * @return bool true if site is in table 
-     */
-    static function is_collab_site($courseid) {
-        global $DB;
-        return $DB->record_exists('ucla_site_indicator', 
-                array('courseid' => $courseid));
-    }
-    
+
     static function get_indicator_types() {
         global $DB;
 
@@ -597,6 +561,9 @@ class ucla_site_indicator {
     
 }
 
+/**
+ * @todo: implement admin functions 
+ */
 class ucla_indicator_admin {
     static function create_types_sql() {
         $query = "INSERT INTO `mdl_ucla_indicator_type` (`id`, `sortorder`, `fullname`, `shortname`, `description`, `visible`) VALUES

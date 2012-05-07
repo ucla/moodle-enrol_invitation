@@ -45,6 +45,7 @@ $request = optional_param('request', 0, PARAM_INT);
 $baseurl = $CFG->wwwroot . '/course/pending.php';
 admin_externalpage_setup('coursespending');
 
+// START UCLAMOD CCLE-2389
 // Landing page to process a site indicator request from URL
 if(!empty($request)) {
     
@@ -83,6 +84,7 @@ if(!empty($request)) {
     echo $OUTPUT->footer();
     exit;
 }
+// END UCLAMOD CCLE-2389
 
 /// Process approval of a course.
 if (!empty($approve) and confirm_sesskey()) {

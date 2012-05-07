@@ -1,4 +1,11 @@
 <?php
+/**
+ * UCLA Site Indicator 
+ * 
+ * @package     ucla
+ * @subpackage  uclasiteindicator
+ * @author      Alfonso Roman
+ */
 
 require_once(dirname(__FILE__) . '/../../../config.php');
 require_once($CFG->libdir . '/adminlib.php');

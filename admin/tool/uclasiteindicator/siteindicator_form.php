@@ -1,4 +1,13 @@
 <?php
+/**
+ * UCLA Site Indicator 
+ * 
+ * @todo        need to create admin interface
+ * 
+ * @package     ucla
+ * @subpackage  uclasiteindicator
+ * @author      Alfonso Roman
+ */
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');    ///  It must be included from a Moodle page
