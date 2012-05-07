@@ -207,7 +207,7 @@ class enrol_invitation_plugin extends enrol_plugin {
             $invitelink = new moodle_url('/enrol/invitation/invitation.php', 
                 array('courseid'=>$instance->courseid, 'id'=>$instance->id));
             $button = new enrol_user_button($invitelink, 
-                    get_string('inviteusers', 'enrol_invitation'), 'post');
+                    get_string('inviteusers', 'enrol_invitation'), 'get');
             return $button;
         } else {
             return false;
