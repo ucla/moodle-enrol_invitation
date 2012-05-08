@@ -283,7 +283,7 @@ if (isset($uclacrqs)) {
         $requestswitherrors = $uclacrqs->validate_requests($groupid);
 
         // Apply to version that best represents the database
-        $pass_uclacrqs->apply_changes($changes, $groupid);
+        $pass_uclacrqs = clone($uclacrqs);
 
         // Reloading the 3rd form
         $nv_cd['prefields'] = get_requestor_view_fields();
@@ -437,14 +437,6 @@ if (!empty($requeststable->data)) {
         ));
 
     echo html_writer::table($requeststable);
-
-/*
-    echo html_writer::tag('input', '', array(
-            'type' => 'submit',
-            'name' => 'checkrequests',
-            'value' => get_string('checkchanges', $rucr),
-            'class' => 'right'
-        ));*/
 
     echo html_writer::tag('input', '', array(
             'type' => 'submit',
