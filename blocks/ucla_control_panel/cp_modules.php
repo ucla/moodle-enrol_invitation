@@ -193,6 +193,11 @@ $modules[] = new ucla_cp_module('reports',
         new moodle_url('/report/outline/index.php', array('id' => $course->id)), 
         $temp_tag, 'report/outline:view');
 
+// Groups
+$modules[] = new ucla_cp_module('groups',
+        new moodle_url('/group/index.php', array('id' => $course->id)), 
+        $temp_tag, 'moodle/course:managegroups');
+
 /* * ****************************** Student Functions ******************** */
 //Only display this section if the user is a student in the course.
 //TODO: this module currently depends on the myucla_row_renderer since that
