@@ -235,7 +235,6 @@ $restrc = "$restr: {$course->shortname}";
 $PAGE->set_title($restrc);
 $PAGE->set_heading($restrc);
 
-
 echo $OUTPUT->header();
 echo $OUTPUT->heading($restr, 2, 'headingblock');
 
@@ -260,21 +259,20 @@ if ($data != false) {
     echo $OUTPUT->confirm(get_string('rearrange_success', 'block_ucla_rearrange'), $sectret, $courseret);        
 
 } else {
-    $topic = $_GET["topic"];
     /*for topic < 0, the secid doesnt matter because we will expand all
      * However, if will give warning if we use $secid = ($sections[$topic]->id);
      * as there is no secid for topic < 0.
      */
-    if($topic < 0) { 
+    if($topic_num < 0) { 
        $secid = ($sections[0]->id);         
         } 
     else {
-    $secid = ($sections[$topic]->id);
+    $secid = ($sections[$topic_num]->id);
     }
     
     $rearrangeform->display();
     $PAGE->requires->js_init_code(
-        "M.block_ucla_rearrange.initialize_rearrange_tool('$topic', '$secid')"
+        "M.block_ucla_rearrange.initialize_rearrange_tool('$topic_num', '$secid')"
     );
 }
 
