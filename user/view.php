@@ -285,14 +285,14 @@ if (!isset($hiddenfields['groups'])) {
 if (!isset($hiddenfields['mycourses'])) {
     // BEGIN UCLA MOD: CCLE-2531 - REGISTRAR - Hiding course listing
     // hide course listing if person viewing does not have the capability
-    // 'local/ucla:viewall_courselisting' for site/course/user context or
+    // 'moodle/user:viewalldetails' for site/course/user context or
     // is not the user themselves
     if (($currentuser || 
-            has_capability('local/ucla:viewall_courselisting', $systemcontext) ||
-            has_capability('local/ucla:viewall_courselisting', $coursecontext) ||
-            has_capability('local/ucla:viewall_courselisting', $usercontext)) &&
+            has_capability('moodle/user:viewalldetails', $systemcontext) ||
+            has_capability('moodle/user:viewalldetails', $coursecontext) ||
+            has_capability('moodle/user:viewalldetails', $usercontext)) &&
             $mycourses = enrol_get_users_courses($user->id, true, NULL, 'visible DESC,sortorder ASC')) {
-    // END UCLA MOD: CCLE-2531        
+    // END UCLA MOD: CCLE-2531
         $shown = 0;
         $courselisting = '';
         foreach ($mycourses as $mycourse) {
