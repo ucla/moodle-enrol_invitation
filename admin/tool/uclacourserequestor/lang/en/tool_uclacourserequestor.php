@@ -67,7 +67,7 @@ $string['crosslists'] = 'Crosslisted SRSes';
 $string['deletefetch'] = 'Ignore';
 $string['deleteviews'] = 'Remove request';
 
-$string['addmorecrosslist'] = 'Add another entry';
+$string['addmorecrosslist'] = 'Add SRS';
 
 $string['clchange_removed'] = 'Removed crosslist: ';
 $string['clchange_added'] = 'Added crosslist: ';
@@ -82,7 +82,7 @@ $string['nosrsfound'] = 'Could not find course with this SRS.';
 $string['queuetobebuilt'] = "Courses in queue to be built";
 $string['queueempty'] = "The queue is empty. All courses have been built as of now.";
 
-$string['alreadysubmitted'] = "This SRS number has already been submitted as a request. Please disable the building of this course to stop seeing this notice.";
+$string['alreadysubmitted'] = "This SRS number has already been submitted as a request. To change this request, use \"" . $string['viewcourses'] . '"';
 $string['checktermsrs'] = "Cannot find course. Please check the term and SRS again.";
 $string['childcourse'] =  " has either been submitted for course creation or is a child course";
 $string['duplicatekeys'] = "Duplicate entry. The alias is already inserted.";

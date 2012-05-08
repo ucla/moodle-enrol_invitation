@@ -143,6 +143,7 @@ foreach ($top_forms as $gk => $group) {
 // In this situation, we are assuming all information is
 // logically correct but properly sanitized
 $saverequeststates = false;
+
 $changes = array();
 if ($requests === null) {
     $prevs = data_submitted();
@@ -224,18 +225,13 @@ if (isset($uclacrqs)) {
     $requestswitherrors = $uclacrqs->validate_requests($groupid);
 
     if ($saverequeststates) {
-        list($successfuls, $newsetids) = $uclacrqs->commit();
+        $successfuls = $uclacrqs->commit();
 
         // figure out changes that have occurred
         foreach ($requestswitherrors as $setid => $set) {
             if (isset($successfuls[$setid])) {
                 $retcode = $successfuls[$setid];
                 $strid = ucla_courserequests::commit_flag_string($retcode);
-
-                if (ucla_courserequests::request_successfully_handled(
-                        $retcode)) {
-                    unset($requestswitherrors[$setid]);
-                }
 
                 $coursedescs = array();
                 foreach ($set as $course) {
@@ -283,6 +279,8 @@ if (isset($uclacrqs)) {
                 }
             }
         }
+
+        $requestswitherrors = $uclacrqs->validate_requests($groupid);
 
         // Apply to version that best represents the database
         $pass_uclacrqs->apply_changes($changes, $groupid);
@@ -440,12 +438,13 @@ if (!empty($requeststable->data)) {
 
     echo html_writer::table($requeststable);
 
+/*
     echo html_writer::tag('input', '', array(
             'type' => 'submit',
             'name' => 'checkrequests',
             'value' => get_string('checkchanges', $rucr),
             'class' => 'right'
-        ));
+        ));*/
 
     echo html_writer::tag('input', '', array(
             'type' => 'submit',

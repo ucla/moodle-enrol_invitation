@@ -8,3 +8,11 @@
     color: #c00;
     text-align: center;
 }
+
+#uclacourserequestor_requests tbody .warning {
+    font-weight: bold;
+}
+
+#uclacourserequestor_requests tbody .error {
+    color: #c00;
+}

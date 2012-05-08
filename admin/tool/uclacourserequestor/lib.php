@@ -24,6 +24,9 @@ define('UCLA_REQUEST_IGNORE', 'ignore');
 // Meta Error
 define('UCLA_REQUESTOR_ERROR', 'error');
 define('UCLA_REQUESTOR_WARNING', 'warning');
+define('UCLA_REQUESTOR_KEEP', 'keepintable');
+
+define('UCLA_REQUEST_WARNING_CHECKED', 'warning-checked');
 
 // Errors
 define('UCLA_REQUESTOR_EXIST', 'alreadysubmitted');
@@ -71,6 +74,13 @@ function get_course_request($term, $srs) {
  *          Array of terms 
  *              OR
  *          Array of Array('term' => term, 'srs' => srs)
+ *  @return 
+ *      Array(
+ *          term-srs => Array(
+ *              request-fields
+ *          ),
+ *          ...
+ *      )
  **/
 function get_course_requests($inputs=array()) {
     global $DB;
@@ -140,19 +150,21 @@ function get_set($setid) {
     $set = $DB->get_records('ucla_request_classes', 
         array('setid' => $setid));
 
-    $iset = array();
+    if (!$set) {
+        return false;
+    }
 
+    $iset = array();
     foreach ($set as $request) {
         $k = make_idnumber($request);
-
         $iset[$k] = prep_request_from_db($request);
     }
-    
+
     return $iset;
 }
 
 /**
- *  Wrapper function for set_field_select.
+ *  Wrapper function for set_field
  **/
 function associate_set_to_course($setid, $courseid) {
     global $DB;
@@ -160,6 +172,7 @@ function associate_set_to_course($setid, $courseid) {
     return $DB->set_field('ucla_request_classes', 'courseid', 
         $courseid, array('setid' => $setid));
 }
+
 
 /** 
  *  Convenience function to apply a change to a set in memory.
@@ -185,7 +198,7 @@ function apply_to_set($set, $field, $val) {
  *  @param  $r  Array|Object
  *  @return Array(
  *      ... ,
- *      'instructor' => Array(),
+ *      'instructor' => Array('instructors'),
  *      ... 
  *  )
  *
@@ -197,8 +210,17 @@ function prep_request_from_db($r) {
 
     $f = 'instructor';
     if (is_string($r[$f])) {
-        $v = $r[$f];
-        $r[$f] = array($v => $v);
+        $v = explode('/', $r[$f]);
+
+        $instarr = array();
+        foreach ($v as $inst) {
+            $tinst = trim($inst);
+            if (!empty($tinst)) {
+                $instarr[$tinst] = $tinst;
+            }
+        }
+        
+        $r[$f] = $instarr;
     }
 
     return $r;
@@ -250,7 +272,7 @@ function get_request_info($term, $srs) {
         return $exists;
     }
 
-    // This is expensive
+    // This is very expensive
     $reted = get_course_info_from_registrar($term, $srs);
 
     $ret = false;
@@ -278,6 +300,44 @@ function get_crosslisted_courses($term, $srs) {
     } catch (Exception $e) {
         throw new Exception('Could not connect to Registrar Crosslisting '
             . 'Webservice');
+    }
+   
+    $exts = false;
+
+    // Extract out Array('term' => , 'srs' => )
+    if (!empty($r->getConSchedData)) {
+        $exts = array();
+
+        foreach ($r->getConSchedData as $termsrs) {
+            $ext = extract_term_srs_xml($termsrs);
+
+            if (!$ext) {
+                continue;
+            }
+
+            $exts[] = $ext;
+        }
+    }
+
+    return $exts;
+}
+
+/**
+ *  Convenience function to extract the term and SRS from the returned
+ *  XML-parsed-node-object.
+ **/
+function extract_term_srs_xml($xml) {
+    $t = array('term', 'srs');
+    $r = array();
+
+    foreach ($t as $k) {
+        if (!isset($xml->{$k})) {
+            return false;
+        }
+
+        if (!empty($xml->{$k}->{0})) {
+            $r[$k] = sprintf('%s', $xml->{$k}->{0});
+        }
     }
 
     return $r;
@@ -337,7 +397,7 @@ function prep_registrar_entry($regdata, $instinfo, $defaults=array()) {
     $term = $regdata['term'];
     $srs = $regdata['srs'];
 
-    // Generate a fresh php array.
+    // Generate a request array
     $req = array();
     $req['term'] = $term;
     $req['srs'] = $srs;
@@ -397,7 +457,7 @@ function get_requestor_defaults() {
 
     $configs = get_config('tool_uclacourserequestor');
 
-    $editables = ucla_courserequests::get_editables();
+    $editables = request_get_editables();
     $translate_tf = array('true' => 1, 'false' => 0);
 
     // These are options that are soft, defaults changed through UI
@@ -442,6 +502,7 @@ function get_crosslist_set_for_host($host) {
         return false;
     }
 
+    // If it's already existing in our database, just use that
     if (isset($host['setid'])) {
         return get_set($host['setid']);
     }
@@ -455,33 +516,17 @@ function get_crosslist_set_for_host($host) {
     // crosslists checked
     $clists = get_crosslisted_courses($host['term'], $host['srs']);
 
-    if (!empty($clists->getConSchedData)) {
-        $exts = array();
-
-        foreach ($clists->getConSchedData as $termsrs) {
-            $ext = extract_term_srs_xml($termsrs);
-
-            if (!$ext) {
-                continue;
-            }
-
-            $exts[] = $ext;
+    foreach ($clists as $clist) {
+        $clkey = make_idnumber($clist);
+        
+        if (!empty($set[$clkey])) {
+            $setter = $set[$clkey];
+        } else {
+            // This will get us just the single course we are looking for
+            $setter = get_request_info($clist['term'], $clist['srs']);
         }
 
-        $new = get_course_requests($exts);
-
-        foreach ($exts as $ext) {
-            $clkey = make_idnumber($ext);
-            
-            if (!empty($new[$clkey])) {
-                $setter = $new[$clkey];
-            } else {
-                // This will get us just the single course we are looking for
-                $setter = get_request_info($ext['term'], $ext['srs']);
-            }
-
-            $set[$clkey] = $setter;
-        }
+        $set[$clkey] = $setter;
     }
 
     $set = set_host_calculate($hostkey, $set);
@@ -503,7 +548,6 @@ function set_host_calculate($orighost, $set) {
 
         if (!$hostexists && $request[$h]) {
             $hostexists = $key;
-            break;
         } 
     }
 
@@ -551,29 +595,10 @@ function get_course_from_reginfo($regdata) {
     return $regdata['coursenum'] . '-' . $regdata['sectnum'];
 }
 
-/**
- *  Convenience function to extract the term and SRS from the returned
- *  XML-parsed-node-object.
- **/
-function extract_term_srs_xml($xml) {
-    $t = array('term', 'srs');
-    $r = array();
-
-    foreach ($t as $k) {
-        if (!isset($xml->{$k})) {
-            return false;
-        }
-
-        if (!empty($xml->{$k}->{0})) {
-            $r[$k] = sprintf('%s', $xml->{$k}->{0});
-        }
-    }
-
-    return $r;
-}
 
 /**
- *  Flattens the requests.
+ *  Takes a set of sets, and returns a flat requests list, with each
+ *  request maintaing its own crosslists.
  **/
 function prepare_requests_for_display($requestinfos, $context) {
     // Here, we finally turn our setid-indexed flat array into
@@ -700,10 +725,13 @@ function request_ignored($request) {
     return false;
 }
 
+function request_get_editables() {
+    return array('mailinst', 'nourlupdate', 'action', 'requestoremail');
+}
+
 /**
  *  This takes all the data for a request, and prepares it to be displayed
  *  as text to a user, including all errors that need to be included.
- *  This SHOULD NEVER change the values represented by $requestinfo!!
  **/
 function prep_request_entry($requestinfo) {
     global $DB;
@@ -711,6 +739,8 @@ function prep_request_entry($requestinfo) {
     $errs = UCLA_REQUESTOR_ERROR;
     $wars = UCLA_REQUESTOR_WARNING;
     $worstnote = null;
+
+    // Shortcut/optimization
     $br = html_writer::empty_tag('br');
 
     $rucr = 'tool_uclacourserequestor';
@@ -718,7 +748,7 @@ function prep_request_entry($requestinfo) {
     // This is the returned display-ready row
     $formatted = array();
 
-    // Find the host and stuff...
+    // Will be used to identify changes for sets
     $key = $requestinfo['setid'];
 
     $ignored = request_ignored($requestinfo);
@@ -730,26 +760,55 @@ function prep_request_entry($requestinfo) {
     if (isset($requestinfo[$wars][$e])) {
         $worstnote = $wars;
         $addedtext = $br . get_string($e, $rucr);
-        unset($requestinfo[$errs][$e]);
+        // This hidden field will who us that this request has already
+        // been viewed at least once
+        $addedtext .= html_writer::tag('input', 
+            '', array(
+                'value' => 1,
+                'name' => "$key-" . request_warning_checked_key($requestinfo),
+                'type' => 'hidden'
+            ));
+    }
+    
+    // Handle the action drop down
+    $tr = 'action';
+    $actionval = $requestinfo[$tr];
+    $inputname = "$key-$tr";
+
+    $fail = UCLA_COURSE_FAILED;
+    $buil = UCLA_COURSE_TOBUILD;
+    if ($actionval == $fail) {
+        $options = array(
+            $buil => requestor_statuses_translate($buil), 
+            $fail => requestor_statuses_translate($fail)
+        );
+
+        $trstr = html_writer::select($options, $inputname, $fail);
+    } else {
+        // No choices if it does not involving changing from 
+        // 'failed' to 'build'
+        $trstr = 
+            html_writer::tag('span', requestor_statuses_translate($actionval),
+                array('class' => $actionval)) 
+            . html_writer::empty_tag('input', array(
+                'name' => $inputname, 
+                'type' => 'hidden', 
+                'value' => $actionval
+            ));
     }
 
-    $maybeexists = array('delete', 'build');
-    foreach ($maybeexists as $k) {
-        if (isset($requestinfo[$k])) {
-            $formatted[$k] = html_writer::checkbox("$key-$k", '1', 
-                $requestinfo[$k], $addedtext);
-        }
-    }
+    // Finished with 'action'
+    $formatted[$tr] = $trstr;
+    unset($requestinfo[$tr]);
 
-    // People edit these per row 
+    // If there is any relevance to changing the values, we're going
+    // to let the user edit the row
     $editable = false;
-
-    if ($requestinfo['action'] != UCLA_COURSE_BUILT 
-            && empty($requestinfo[$errs]) && !$ignored) {
+    if ($actionval != UCLA_COURSE_BUILT) {
         $editable = true;
     }
 
-    // Request time
+    // Request time...
     $timestr = '';
     $f = 'timerequested';
     $dds = 'Y-m-d g:i A';
@@ -759,101 +818,94 @@ function prep_request_entry($requestinfo) {
         $timestr = date($dds);
     }
 
+    // Finished with timerequested
     $formatted[$f] = $timestr;
     unset($requestinfo[$f]);
+    
+    // Deal with id field
+    $e = UCLA_REQUESTOR_EXIST;
+    $f = 'id';
+    $idstr = '';
 
-    // Handle fields where you can use get_string()
-    $tr = 'action';
-    $oldval = $requestinfo[$tr];
-    $inputname = "$key-$tr";
+    // Will disable building of this course
+    $buildoptions = array();
 
-    if ($oldval == UCLA_COURSE_FAILED) {
-        $options = array(
-            UCLA_COURSE_TOBUILD => 
-                requestor_statuses_translate(UCLA_COURSE_TOBUILD), 
-            UCLA_COURSE_FAILED => 
-                requestor_statuses_translate(UCLA_COURSE_FAILED)
-        );
+    if (!empty($requestinfo[$f])) {
+        if (!empty($requestinfo[$errs][$e])) {
+            $worstnote = $errs;
+            $idstr = get_string($e, $rucr) . ' ';
+            $editable = false;
 
-        $formatted[$tr] = html_writer::select($options, $inputname, 
-            UCLA_COURSE_FAILED);
-    } else {
-        $formatted[$tr] = 
-            html_writer::tag('span', requestor_statuses_translate($oldval),
-                array('class' => $oldval)) 
-            . html_writer::empty_tag('input', array(
-                'name' => $inputname, 
-                'type' => 'hidden', 
-                'value' => $oldval
-            ));
+            // This error only occurs when building
+            $buildoptions['disabled'] = true;
+        } else {
+            $idstr .= $requestinfo[$f];
+        }
+    }
+           
+    $formatted[$f] = $idstr;
+    unset($requestinfo[$f]);
+    
+    // Add delete/build (action) checkboxes
+    $maybeexists = array('delete', 'build');
+    foreach ($maybeexists as $k) {
+        if (isset($requestinfo[$k])) {
+            $formatted[$k] = html_writer::checkbox("$key-$k", '1', 
+                $requestinfo[$k], $addedtext, $buildoptions);
+        }
     }
 
-    // Unset it so that it isn't re-displayed later
-    unset($requestinfo[$tr]);
-
+    // requestoremail or 'contact'
     $f = 'requestoremail';
     $reval = '';
-    if ($oldval == UCLA_COURSE_FAILED || $oldval == UCLA_COURSE_BUILT) {
-        $reval = $requestinfo[$f];
+    if ($actionval == UCLA_COURSE_FAILED 
+            || $actionval== UCLA_COURSE_BUILT) {
+        // Append '' to prevent a checkbox from appearing
+        $reval = $requestinfo[$f] . '';
         unset($requestinfo[$f]);
     } else {
         if (empty($requestinfo[$f])) {
             $requestinfo[$f] = '';
         }
 
-        $reval = html_writer::empty_tag('input',
-            array(
+        $reqprops = array(
                 'name' => "$key-$f",
                 'type' => 'text',
                 'value' => $requestinfo[$f]
-            ));
+            );
+
+        if (!$editable) {
+            $reqprops['disabled'] = true;
+        }
+
+        $reval = html_writer::empty_tag('input', $reqprops);
     }
 
     $formatted[$f] = $reval;
+    unset($requestinfo[$f]);
 
-    // Handle separate empty fields with new strings
-    $translatables = array('id', 'courseid');
-
-    // Convention?
-    foreach ($translatables as $tr) {
-        if (!isset($requestinfo[$tr])) {
-            continue;
-        }
-
-        $oldval = $requestinfo[$tr];
-        $newval = '';
-
-        if ($oldval == null) {
-            $newval = get_string('newrequest' . $tr, $rucr);
-        } else {
-            // if on 'courseid', then make link to a course
-            if ('courseid' == $tr) {                
-                $newval = html_writer::link(new moodle_url(
-                    '/course/view.php', 
-                    array('id' => $oldval)), 
-                    $oldval, 
-                    array('target' => '_blank'
-                ));
-            } else {
-                $newval = $oldval;                
-            }
-        }
-
-        $formatted[$tr] = $newval;
+    // courseid
+    $f = 'courseid';
+    $fstr = '';
+    if (!empty($requestinfo[$f])) {
+        $courseid = $requestinfo[$f];
+        $fstr = html_writer::link(new moodle_url(
+                '/course/view.php', 
+                array('id' => $courseid
+            )), 
+            $courseid, 
+            array('target' => '_blank')
+        );
     }
 
-    // We could slightly more automate this
-    $e = UCLA_REQUESTOR_EXIST;
-    if (!empty($requestinfo[$errs][$e])) {
-        $worstnote = $errs;
-        $formatted['id'] = get_string($e, $rucr);
-        unset($requestinfo[$errs][$e]);
-    }
+    $formatted[$f] = $fstr;
+    unset($requestinfo[$f]);
+    // Finished with courseid
+    
 
-    // Handle checkboxes
-    $editables = ucla_courserequests::get_editables();
+    // Handle other checkboxes
+    $editables = request_get_editables();
 
-    // This is a deprecated local variable
     $sharedattr = array();
     if (!$editable) {
         $sharedattr['disabled'] = true;
@@ -861,6 +913,11 @@ function prep_request_entry($requestinfo) {
 
     foreach ($editables as $editme) {
         if (isset($formatted[$editme])) {
+            continue;
+        }
+
+        if ($actionval == UCLA_COURSE_BUILT) {
+            $requestinfo[$editme] = null;
             continue;
         }
 
@@ -884,8 +941,10 @@ function prep_request_entry($requestinfo) {
         'type' => 'text',
         'name' => "$ff"
     );
-    
-    if ($ignored) {
+
+    $cleditable = $editable || $actionval == UCLA_COURSE_BUILT;
+
+    if (!$cleditable) {
         $clinputattr['disabled'] = true;
     }
 
@@ -915,6 +974,10 @@ function prep_request_entry($requestinfo) {
 
                 $errstr = '';
                 foreach ($ocl[$errs] as $error => $true) {
+                    if ($error == UCLA_REQUESTOR_EXIST) {
+                        continue;
+                    }
+
                     $errstr .= get_string($error, $rucr);
                     unset($ocl[$errs][$error]);
                 }
@@ -922,42 +985,59 @@ function prep_request_entry($requestinfo) {
                 // There was an error, display editable field and error msg
                 $clinputattr['value'] = $clsrs;
 
-                $clinput = html_writer::tag(
-                    'div',
-                    html_writer::tag(
-                        'div', 
-                        $errstr . $br . html_writer::empty_tag(
-                            'input', 
-                            $clinputattr
-                        ) . "$br $moreinfo", 
-                        array('class' => 'error')
-                    ),
-                    array('class' => 'mform')
-                );
+                $clinput = $errstr . $br . html_writer::empty_tag(
+                        'input', 
+                        $clinputattr
+                    ) . "$br $moreinfo";
+
+                // Secret to keep crosslists alive
+                if (!$editable) {
+                    $clinput .= html_writer::empty_tag(
+                        'input',
+                        array(
+                            'type' => 'hidden',
+                            'value' => $clsrs,
+                            'name' => $ff
+                        )
+                    );
+                }
             } else {
                 $warstr = '';
+                // If there is a warning, uncheck box by default
+                $defaultclbuild = true;
+
+                $clinput = '';
 
                 if (!empty($ocl[$wars])) {
                     if ($worstnote == null) {
                         $worstnote = $wars;
                     }
 
+                    $defaultclbuild = false;
+
                     foreach ($ocl[$wars] as $warning => $true) {
-                        $warstr .= get_string($warning, $rucr);
+                        $warstr .= $br . get_string($warning, $rucr);
                     }
+
+                    $clinput = html_writer::tag('input',
+                        '', array(
+                            'name' => "$key-"   
+                                . request_warning_checked_key($ocl),
+                            'value' => 1,
+                            'type' => 'hidden'
+                        ));
                 }
 
                 // Display check box
-                $clinput = html_writer::checkbox(
+                $clinput .= html_writer::checkbox(
                     $ff,
                     $clsrs, 
-                    true, 
-                    $clkey . $moreinfo,
+                    $defaultclbuild, 
+                    "$clkey $moreinfo",
                     $clinputattr
                 ) . html_writer::tag(
                         'span', 
-                        $warstr,
-                        array('class' => 'warning')
+                        $warstr
                     );
             }
 
@@ -970,8 +1050,8 @@ function prep_request_entry($requestinfo) {
         }
     }
   
-    if (!$ignored) {
-        // Add a new thing
+    // Add a new crosslist dialog
+    if ($cleditable) {
         unset($clinputattr['value']);     
         $riclstr .= html_writer::empty_tag('input', $clinputattr);
         $riclstr .= html_writer::empty_tag(
@@ -1043,6 +1123,18 @@ function prep_request_entry($requestinfo) {
     }
 
     return $ordfor;
+}
+
+/**
+ *  Designates a warning-viewed handler for warnings.
+ *  @param $request The request should be an array with keys
+ *      'term', 'srs'
+ *  @return string The string to use in the name field of the input
+ *      that represents that a particular warning has been viewed.
+ *      Currently used by ucla_courserequests->commit()
+ **/
+function request_warning_checked_key($request) {
+    return make_idnumber($request) . '-' . UCLA_REQUEST_WARNING_CHECKED;
 }
 
 /**
