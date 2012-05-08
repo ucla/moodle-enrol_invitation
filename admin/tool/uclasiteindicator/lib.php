@@ -12,9 +12,6 @@ require_once(dirname(__FILE__) . '/../../../config.php');
 
 require_once($CFG->libdir.'/formslib.php');
 
-// To get categories
-require_once($CFG->dirroot . '/course/lib.php');
-
 // From the UCLA help block -- to get support contacts and send jira ticket
 require_once($CFG->dirroot . '/local/ucla/jira.php');
 require_once($CFG->dirroot . '/blocks/ucla_help/ucla_help_lib.php');
@@ -93,16 +90,16 @@ class site_indicator_entry {
      * @return type 
      */
     public function get_assignable_roles() {
-        global $CFG, $DB;
+        global $DB;
         $list = array();
         
         $query = "SELECT r.name
-                FROM {$CFG->prefix}role AS r
-                JOIN {$CFG->prefix}ucla_indicator_assign AS sra ON sra.roleid = r.id
-                JOIN {$CFG->prefix}ucla_indicator_mapping srm ON srm.siteroleid = sra.siteroleid
-                WHERE srm.typeid = {$this->property->type}";
+                FROM {role} AS r
+                JOIN {ucla_indicator_assign} AS sra ON sra.roleid = r.id
+                JOIN {ucla_indicator_mapping} srm ON srm.siteroleid = sra.siteroleid
+                WHERE srm.typeid = ?";
         
-        $records = $DB->get_records_sql($query);
+        $records = $DB->get_records_sql($query, array($this->property->type));
         
         foreach($records as $rec) {
             $list[] = $rec->name;
@@ -181,17 +178,17 @@ class site_indicator_request {
      * @return type 
      */
     private function set_default_role() {
-        global $CFG, $DB;
+        global $DB;
         
         // Pick out the highest ranked role
         $query = "SELECT r.id
-                FROM {$CFG->prefix}role AS r
-                JOIN {$CFG->prefix}ucla_indicator_assign AS sra ON sra.roleid = r.id
-                JOIN {$CFG->prefix}ucla_indicator_mapping srm ON srm.siteroleid = sra.siteroleid
-                WHERE srm.typeid = {$this->entry->type}
+                FROM {role} AS r
+                JOIN {ucla_indicator_assign} AS sra ON sra.roleid = r.id
+                JOIN {ucla_indicator_mapping} srm ON srm.siteroleid = sra.siteroleid
+                WHERE srm.typeid = ?
                 ORDER BY r.sortorder";
         
-        $records = $DB->get_records_sql($query);
+        $records = $DB->get_records_sql($query, array($this->entry->type));
 
         // Get role id
         $records = array_shift($records);
@@ -537,6 +534,11 @@ class ucla_site_indicator {
         }
     }
 
+    /** 
+     * Retrieves sorted indicator types as array of objects
+     * 
+     * @return type array
+     */
     static function get_indicator_types() {
         global $DB;
 
@@ -565,13 +567,35 @@ class ucla_site_indicator {
  * @todo: implement admin functions 
  */
 class ucla_indicator_admin {
-    static function create_types_sql() {
-        $query = "INSERT INTO `mdl_ucla_indicator_type` (`id`, `sortorder`, `fullname`, `shortname`, `description`, `visible`) VALUES
-                (1, 0, 'Instruction', 'instruction', 'This is the description of the instruction role', 1),
-                (2, 0, 'Non-Instruction', 'non_instruction', 'This describes the project role', 1),
-                (3, 0, 'Research', 'research', 'this describes the project role as it applies to research', 1),
-                (4, 0, 'Test', 'test', 'this describes the test role', 1),
-                (5, 0, 'Instruction (Listed at Registrar)', 'registrar', 'An instruction site with an SRS number that is listed at the Registrar', 0)";
+    
+    /**
+     * Quick and dirty way to update the DB for testing
+     */
+    static function pre_populate_sql() {
+        global $DB;
         
+        // Populate types
+        $query1 = "INSERT INTO {ucla_indicator_type} (id, sortorder, fullname, shortname, description, visible) VALUES
+                (1, 0, '".get_string('site_instruction', 'tool_uclasiteindicator')."', 'instruction', '".get_string('site_instruction_desc', 'tool_uclasiteindicator')."', 1),
+                (2, 0, '".get_string('site_non_instruction', 'tool_uclasiteindicator')."', 'non_instruction', '".get_string('site_non_instruction_desc', 'tool_uclasiteindicator')."', 1),
+                (3, 0, '".get_string('site_research', 'tool_uclasiteindicator')."', 'research', '".get_string('site_research_desc', 'tool_uclasiteindicator')."', 1),
+                (4, 0, '".get_string('site_test', 'tool_uclasiteindicator')."', 'test', '".get_string('site_test_desc', 'tool_uclasiteindicator')."', 1),
+                (5, 0, '".get_string('site_registrar', 'tool_uclasiteindicator')."', 'registrar', '".get_string('site_registrar_desc', 'tool_uclasiteindicator')."', 0)";
+        $DB->execute($query1);
+        
+        // Populate collab site roles
+        $query2 = "INSERT INTO {ucla_indicator_siteroles} (id, name) VALUES
+                (1, 'Instruction'),
+                (2, 'Project'),
+                (3, 'Test')";
+        $DB->execute($query2);
+        
+        // Populate mapping of types and site roles
+        $query3 = "INSERT INTO {ucla_indicator_mapping} (id, typeid, siteroleid) VALUES
+                (1, 1, 1),
+                (2, 2, 2),
+                (3, 3, 2),
+                (4, 4, 3)";
+        $DB->execute($query3);
     }
 }

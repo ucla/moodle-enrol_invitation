@@ -203,21 +203,22 @@ class collab_handler extends browseby_handler {
         if (!$colcat) {
             $colcat = $this->get_category('Collaboration Sites');
         }
+        
+        // START UCLA MOD CCLE-2389 - adding site indicator support. 
+        // Don't give up quite yet..
+        if (!$colcat) {
+            $colcat->categories = $this->get_category_tree();
+        }
+        // END UCLA MOD CCLE-2389
 
         // Give up
         if (!$colcat) {
-            $allcats = $this->get_category_tree();
-            $list = array();
-            foreach($allcats as $cat) {
-                $list[] = $cat;
-            }
-            $colcat->categories = $list;
-//            return false;
+            return false;
         }
 
         return $colcat;
     }
-   
+    
     /**
      *  Finds the category from the tree.
      **/

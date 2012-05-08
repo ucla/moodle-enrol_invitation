@@ -14,12 +14,19 @@ $string['type'] = 'Type';
 $string['roles'] = 'Roles';
 $string['site'] = 'site';
 
-// Descriptions
-$string['site_instruction'] = 'Instruction (with Intructor roles)';
-$string['site_non_instruction'] = 'Non-Instruction (with Project roles)';
-$string['site_research'] = 'Research (with Project roles)';
-$string['site_test'] = 'Test (experimental)';
-$string['site_srs'] = 'Instruction site (listed at Registrar)';
+// Site descriptions
+$string['site_instruction'] = 'Instruction';
+$string['site_instruction_desc'] = 'An instruction site that is not listed at 
+    the registrar.';
+$string['site_non_instruction'] = 'Non-Instruction';
+$string['site_non_instruction_desc'] = 'A collaboration site.';
+$string['site_research'] = 'Research';
+$string['site_research_desc'] = 'A research collaboration site';
+$string['site_test'] = 'Test';
+$string['site_test_desc'] = 'A temporary test site.';
+$string['site_registrar'] = 'Instruction (listed at Registrar)';
+$string['site_registrar_desc'] = 'An instruction site with an SRS number that is listed at the registrar';
+
 
 // Request
 $string['req_desc'] = 'Type of site you are requesting';

@@ -22,12 +22,33 @@ class siteindicator_form extends moodleform {
 
         $mform =& $this->_form;
         
+        $roles = $this->_customdata['roles'];
 
-//        $mform->addElement('header','siteindicator_types', 'Add indicator types');
+        $records = $DB->get_records('role', null, '', 'id, name');
+        foreach($records as $rec) {
+            $rolelist[$rec->id] = $rec->name;
+        }
         
         $mform->addElement('header','siteindicator_types', 'Indicator role assignments');
-
-        $this->add_action_buttons(true, get_string('requestcourse'));
+        
+        foreach($roles as $role) {
+            $records = $DB->get_records('ucla_indicator_assign', array('siteroleid' => $role->id));
+            $assignments = array();
+            
+            foreach($records as $rec) {
+                $assignments[] = $rec->roleid;
+            }
+            $select = &$mform->addElement('select', strtolower($role->name), $role->name, $rolelist, array('size' => '15'));
+            $select->setMultiple(true);
+            $select->setSelected($assignments);
+        }
+        
+        $buttonarray=array();
+        $buttonarray[] = &$mform->createElement('submit', 'submitbutton', get_string('savechanges'));
+        $buttonarray[] = &$mform->createElement('reset', 'resetbutton', get_string('revert'));
+        $mform->addGroup($buttonarray, 'buttonar', '', array(' '), false);
+        $mform->closeHeaderBefore('buttonar');
+//        $this->add_action_buttons(true, 'Update role assignments');
     }
 
 }
