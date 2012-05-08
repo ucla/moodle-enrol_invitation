@@ -334,7 +334,7 @@ M.block_ucla_rearrange.initialize_rearrange_tool = function(topicNumber, secNum)
     M.block_ucla_rearrange.create_nested_sortable();
     M.block_ucla_rearrange.create_expandables();
     M.block_ucla_rearrange.create_expand_all();
-    if(topicNumber != 0) {
+    if(topicNumber > 0) {
     M.block_ucla_rearrange.collapse();
     M.block_ucla_rearrange.set_init_selective_expand(secNum);
     }
