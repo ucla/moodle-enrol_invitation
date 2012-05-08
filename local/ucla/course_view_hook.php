@@ -38,7 +38,7 @@ function local_ucla_course_view_hook($shortname, $id) {
     $termcmp = term_cmp_fn($maybeterm, $remotetermcutoff);
     $reginfo = false;
 
-    // Optimize
+    // Do not check for any courses after the specified term
     if ($termcmp > 0) {
         return false;
     }
@@ -47,18 +47,14 @@ function local_ucla_course_view_hook($shortname, $id) {
         $course = $DB->get_record('course', array('shortname' => $shortname));
         if ($course) {
             $id = $course->id;
-        }   
+        } 
     }
 
-    $reginfo = ucla_map_courseid_to_termsrses($id);
-
-    // Regular course, belongs to THIS server, requested on THIS
-    // server
-    if (!$reginfo) {
+    // This course doesn't exist on this local server
+    if (empty($id) || !ucla_map_courseid_to_termsrs($id)) {
         // Then we goto 1.9 server for older terms
         return $redirurl;
-    }
+    } 
 
-    // Normal or collab site
     return false;
 }
