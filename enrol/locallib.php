@@ -27,9 +27,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-// Needed to filter roles
-require_once($CFG->dirroot . '/admin/tool/uclasiteindicator/lib.php');
-
 /**
  * This class provides a targeted tied together means of interfacing the enrolment
  * tasks together with a course.
@@ -464,6 +461,10 @@ class course_enrolment_manager {
      * @return array
      */
     public function get_assignable_roles($otherusers = false) {
+        // START UCLA MOD CCLE-2389
+        global $CFG;
+        require_once($CFG->dirroot . '/admin/tool/uclasiteindicator/lib.php');
+        
         if ($this->_assignableroles === null) {
             $this->_assignableroles = get_assignable_roles($this->context, ROLENAME_ALIAS, false); // verifies unassign access control too
         }
@@ -473,12 +474,13 @@ class course_enrolment_manager {
         // all the available roles.
         if($indicator = site_indicator_entry::load($this->course->id)) {
             $systemcontext   = get_context_instance(CONTEXT_SYSTEM);
-            
+
             if(!has_capability('tool/uclasiteindicator:edit', $systemcontext)) {
                 $allowedroles = $indicator->get_assignable_roles();
                 $this->_assignableroles = array_intersect($this->_assignableroles, $allowedroles);
             }
         }
+        // END UCLA MOD CCLE-2389
 
         if ($otherusers) {
             if (!is_array($this->_assignablerolesothers)) {
