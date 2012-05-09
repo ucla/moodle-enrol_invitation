@@ -421,22 +421,24 @@ if (!empty($requeststable->data)) {
         }
     }
     if ($configprod != 'prod' && $showbutton) {
-            if(!$coursebuilder->lock_exists()) {
-                echo html_writer::tag('input', '', array(
-                    'type' => 'submit',
-                    'name' => 'buildcourses',	
-                    'value' => get_string('buildcoursenow', $rucr),
-                    'class' => 'right',
-                ));
-            } else {
-                echo html_writer::tag('input', '', array(
-                    'type' => 'submit',
-                    'name' => 'buildcourses',	
-                    'value' => get_string('alreadybuild', $rucr),
-                    'class' => 'right',
-                    'disabled' => true
-                ));
-            }
+        if(!$coursebuilder->lock_exists()) {
+            echo html_writer::tag('input', '', array(
+                'type' => 'submit',
+                'name' => 'buildcourses',	
+                'value' => get_string('buildcoursenow', $rucr),
+                'class' => 'right',
+                'id' => 'buildcourses'
+            ));
+        } else {
+            echo html_writer::tag('input', '', array(
+                'type' => 'submit',
+                'name' => 'buildcourses',	
+                'value' => get_string('alreadybuild', $rucr),
+                'class' => 'right',
+                'disabled' => true
+            ));
+        }
+        echo html_writer::empty_tag('br');            
     }
     echo html_writer::table($requeststable);
 
