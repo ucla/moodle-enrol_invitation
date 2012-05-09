@@ -272,6 +272,8 @@ if (isset($uclacrqs)) {
             }
         }
     }
+    
+    // user wants to build courses now
     if($forcebuild == true) {
         $termlist = array();
         foreach ($requestswitherrors as $course) {
@@ -282,9 +284,9 @@ if (isset($uclacrqs)) {
             }
         }
         $termlist = array_unique($termlist);
-        $coursebuilder->set_term_list($termlist);
-        $coursebuilder->cron();
+        events_trigger('build_courses_now', $termlist);
     }
+    
     $tabledata = prepare_requests_for_display($requestswitherrors, $groupid);
     $rowclasses = array();
     foreach ($tabledata as $key => $data) {
@@ -325,22 +327,17 @@ echo html_writer::start_tag('div', array('id' => $rucr));
 echo $OUTPUT->heading(get_string('pluginname', $rucr), 2, 'headingblock');
 
 // generate build schedule/notice (if any)
-$build_notes = get_config($rucr, 'build_notes').get_string('alreadybuild', $rucr);
-$build_notice = '';
-if (!empty($build_notes) && $coursebuilder->lock_exists()) {
-        $build_notice = html_writer::tag('div', $build_notes, array('id' => 'uclacourserequestor_notice'));   
-
-}
-
-
-
-// generate build schedule/notice (if any)
 $build_notes = get_config($rucr, 'build_notes');
 if ($coursebuilder->lock_exists()) { // if course build is in progress, let user know
     if (!empty($build_notes)) {
         $build_notes .= html_writer::empty_tag('br');        
     }
     $build_notes .= get_string('alreadybuild', $rucr);
+} else if (course_build_queued()) {
+    if (!empty($build_notes)) {
+        $build_notes .= html_writer::empty_tag('br');        
+    }
+    $build_notes .= get_string('queuebuild', $rucr);
 }
 if (!empty($build_notes)) {
     $build_notice = html_writer::tag('div', $build_notes, 
@@ -381,7 +378,7 @@ if (!empty($errormessages)) {
     foreach ($errormessages as $message) {
         if (!empty($message)) {
             $contextspecificm = $message . '-' . $groupid;
-
+            
             if ($sm->string_exists($contextspecificm, $rucr)) {
                 $viewstr = $contextspecificm;
             } else {
@@ -410,18 +407,25 @@ if (!empty($requeststable->data)) {
             'value' => base64_encode(serialize($pass_uclacrqs)),
             'name' => $uf 
         ));
+    
+    // only display build now button any "View existing requests" are set  to
+    // "to be built"
     $showbutton = false;
-    $configprod = get_config('theme_uclashared', 'running_environment');
-    foreach ($requestswitherrors as $course) {
-        foreach($course as $value) {
-            if($value['action'] == "build") {
-                $showbutton = true;
-                break;
+    if ('views' == $groupid) {
+        foreach ($requestswitherrors as $course) {
+            foreach($course as $value) {
+                if($value['action'] == "build") {
+                    $showbutton = true;
+                    break;
+                }
             }
         }
     }
+    
+    // only display built now button for non-prod environments
+    $configprod = get_config('theme_uclashared', 'running_environment');    
     if ($configprod != 'prod' && $showbutton) {
-        if(!$coursebuilder->lock_exists()) {
+        if (!$coursebuilder->lock_exists() && !course_build_queued()) {
             echo html_writer::tag('input', '', array(
                 'type' => 'submit',
                 'name' => 'buildcourses',	
@@ -430,16 +434,25 @@ if (!empty($requeststable->data)) {
                 'id' => 'buildcourses'
             ));
         } else {
+            $button_status = '';
+            if ($coursebuilder->lock_exists()) {
+                $button_status = get_string('alreadybuild', $rucr);
+            } else if (course_build_queued()) {
+                $button_status = get_string('queuebuild', $rucr);                
+            }
+            
+            // if course build is happening/queued, disable button
             echo html_writer::tag('input', '', array(
                 'type' => 'submit',
                 'name' => 'buildcourses',	
-                'value' => get_string('alreadybuild', $rucr),
+                'value' => $button_status,
                 'class' => 'right',
                 'disabled' => true
             ));
         }
         echo html_writer::empty_tag('br');            
     }
+    
     echo html_writer::table($requeststable);
 
     echo html_writer::tag('input', '', array(
@@ -463,4 +476,15 @@ if (!empty($requeststable->data)) {
 
 echo html_writer::end_tag('div');
 echo $OUTPUT->footer();
-// EoF
+
+// script functions
+
+/**
+ * Looks in the event tables and checks if a request to build courses now has
+ * been submitted.
+ * 
+ * @return boolean 
+ */
+function course_build_queued() {
+    return events_pending_count('build_courses_now');
+}

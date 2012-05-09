@@ -14,6 +14,8 @@ $string['views'] = 'View existing requests';
 $string['viewcourses'] = "View/Edit existing requests";
 $string['buildcoursenow'] = "Build courses now";
 $string['alreadybuild'] = "Course build in progress";
+$string['queuebuild'] = "Course build queued";
+
 // Status readable 
 $string['build'] = "To be built";
 $string['failed'] = "Failed";
