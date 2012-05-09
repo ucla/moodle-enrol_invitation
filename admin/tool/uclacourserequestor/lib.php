@@ -850,8 +850,18 @@ function prep_request_entry($requestinfo) {
     $maybeexists = array('delete', 'build');
     foreach ($maybeexists as $k) {
         if (isset($requestinfo[$k])) {
+            $actval = $requestinfo[$k];
+
+            // It needs to be checked in the case of errors where all the
+            // checkboxes are disabled
+            if (!$editable 
+                    && $actionval != UCLA_COURSE_BUILT
+                    && $actionval != UCLA_COURSE_FAILED) {
+                $actval = true;
+            }
+
             $formatted[$k] = html_writer::checkbox("$key-$k", '1', 
-                $requestinfo[$k], $addedtext, $buildoptions);
+                $actval, $addedtext, $buildoptions);
         }
     }
 
