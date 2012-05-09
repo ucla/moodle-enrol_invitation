@@ -275,10 +275,11 @@ if (isset($uclacrqs)) {
     if($forcebuild == true) {
         $termlist = array();
         foreach ($requestswitherrors as $course) {
-                foreach($course as $value) {
-                if($value['action'] == "build")
-                $termlist[] = $value['term'];
+            foreach($course as $value) {
+                if($value['action'] == "build") {
+                    $termlist[] = $value['term'];
                 }
+            }
         }
         $termlist = array_unique($termlist);
         $coursebuilder->set_term_list($termlist);
@@ -409,12 +410,22 @@ if (!empty($requeststable->data)) {
             'value' => base64_encode(serialize($pass_uclacrqs)),
             'name' => $uf 
         ));
-    if (get_config('theme_uclashared', 'running_environment')!= 'prod') {
+    $showbutton = false;
+    $configprod = get_config('theme_uclashared', 'running_environment');
+    foreach ($requestswitherrors as $course) {
+        foreach($course as $value) {
+            if($value['action'] == "build") {
+                $showbutton = true;
+                break;
+            }
+        }
+    }
+    if ($configprod != 'prod' && $showbutton) {
             if(!$coursebuilder->lock_exists()) {
                 echo html_writer::tag('input', '', array(
                     'type' => 'submit',
                     'name' => 'buildcourses',	
-                    'value' => get_string('buildcourses', $rucr),
+                    'value' => get_string('buildcoursenow', $rucr),
                     'class' => 'right',
                 ));
             } else {

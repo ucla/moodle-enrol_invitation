@@ -1,5 +1,4 @@
 <?php 
-
 defined('MOODLE_INTERNAL') || die();
 define('RUN_CLI', php_sapi_name()=='cli');
 /**
@@ -251,7 +250,9 @@ class uclacoursecreator {
      *  @param $mesg The message to print.
      **/
     function println($mesg='') {
-        $this->printl($mesg . "\n");
+        if(RUN_CLI) {
+            $this->printl($mesg . "\n");
+        }
     }
 
     /**

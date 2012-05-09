@@ -12,7 +12,7 @@ $string['builddept'] = "Get department courses";
 
 $string['views'] = 'View existing requests';
 $string['viewcourses'] = "View/Edit existing requests";
-$string['buildcourses'] = "Force course build";
+$string['buildcoursenow'] = "Build courses now";
 $string['alreadybuild'] = "Course build in progress";
 // Status readable 
 $string['build'] = "To be built";
