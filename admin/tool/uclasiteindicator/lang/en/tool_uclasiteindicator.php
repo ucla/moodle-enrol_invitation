@@ -7,12 +7,13 @@
  */
 
 // Plugin
-$string['plugintitle'] = 'UCLA Site Indicator';
+$string['plugintitle'] = 'UCLA site indicator';
 $string['description'] = 'Description';
-$string['pluginname'] = 'Site Indicator';
+$string['pluginname'] = 'Site indicator';
 $string['type'] = 'Type';
 $string['roles'] = 'Roles';
 $string['site'] = 'site';
+$string['del_msg'] = 'Site indicator entry';
 
 // Site descriptions
 $string['site_instruction'] = 'Instruction';
@@ -63,11 +64,13 @@ Approve or reject course:
 {$a->action}';
 
 // Reject
-$string['reject_header'] = 'Reject Course without a message';
+$string['reject_header'] = 'Reject course without a message';
 $string['reject_label'] = 'You can reject a course without sending a message.  Doing 
     this will also remove the course from the pending list.';
 $string['course_rejected'] = 'Course has been rejected.';
 
 // Acess descriptions
-$string['uclasiteindicator:edit'] = 'This is the role description for edit';
-$string['uclasiteindicator:view'] = 'This is the role description for view';
+$string['uclasiteindicator:edit'] = 'This permission allows you to view and edit 
+    site indicator information.';
+$string['uclasiteindicator:view'] = 'This permission allows you to view site indicator 
+    information.';

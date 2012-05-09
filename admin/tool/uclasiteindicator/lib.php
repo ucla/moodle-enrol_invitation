@@ -513,17 +513,6 @@ class ucla_site_indicator {
     }
     
     /**
-     * Delete an indicator entry
-     * 
-     * @param type $courseid 
-     */
-    static function delete($courseid) {
-        if($indicator = site_indicator_entry::load($courseid)) {
-            $indicator->delete();
-        }
-    }
-    
-    /**
      * Reject a indicator request.  Also deletes the request
      * 
      * @param type $requestid 

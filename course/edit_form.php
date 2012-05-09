@@ -22,12 +22,6 @@ class course_edit_form extends moodleform {
         $editoroptions = $this->_customdata['editoroptions'];
         $returnto = $this->_customdata['returnto'];
         
-        // START UCLAMOD CCLE-2389
-        // Force the category that the user requested
-        if($category->id) {
-            $course->category = $category->id;
-        }
-
         $systemcontext   = get_context_instance(CONTEXT_SYSTEM);
         $categorycontext = get_context_instance(CONTEXT_COURSECAT, $category->id);
 
@@ -44,6 +38,7 @@ class course_edit_form extends moodleform {
         $this->course  = $course;
         $this->context = $context;
         
+        // START UCLAMOD CCLE-2389
         // Site indicator info display
         if(!empty($course->id)) {
             $mform->addElement('header','uclasiteindicator', get_string('pluginname', 'tool_uclasiteindicator'));
