@@ -61,7 +61,7 @@ $CFG->directorypermissions = 0777;
 $CFG->passwordsaltmain = '';
 
 // determines current term
-$CFG->currentterm = '12S';
+//$CFG->currentterm = '12S';
 
 // Registrar
 $CFG->registrar_dbtype = 'odbc_mssql';
@@ -88,13 +88,13 @@ $CFG->instructor_levels_roles = array(
 $terms_to_built = array('12S', '121', '12F');
 
 // Course Requestor
-$CFG->forced_plugin_settings['tool_uclacourserequestor']['terms'] = $terms_to_built;
-$CFG->forced_plugin_settings['tool_uclacourserequestor']['selected_term'] = $CFG->currentterm;
+//$CFG->forced_plugin_settings['tool_uclacourserequestor']['terms'] = $terms_to_built;
+//$CFG->forced_plugin_settings['tool_uclacourserequestor']['selected_term'] = $CFG->currentterm;
 $CFG->forced_plugin_settings['tool_uclacourserequestor']['mailinst_default'] = false; 
 $CFG->forced_plugin_settings['tool_uclacourserequestor']['nourlupdate_default'] = true;
 
 // Course Creator
-$CFG->forced_plugin_settings['tool_uclacoursecreator']['terms'] = $terms_to_built;
+//$CFG->forced_plugin_settings['tool_uclacoursecreator']['terms'] = $terms_to_built;
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['course_creator_email'] = 'ccle-operations@lists.ucla.edu';
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['email_template_dir'] = '';
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['make_division_categories'] = true;
@@ -117,9 +117,6 @@ $CFG->divertallemailsto = 'ccle-operations@lists.ucla.edu';
 
 // CCLE-2590 - Implement Auto-detect Shibboleth Login
 $CFG->shib_logged_in_cookie = '_ucla_sso';
-
-// default file resources display to "Force Download"
-$CFG->forced_plugin_settings['resource'] = array('display' => 4);
 
 // CCLE-2306 - HELP SYSTEM BLOCK
 // if using JIRA, jira_user, jira_password, jira_pid should be defined in config_private.php
@@ -199,6 +196,25 @@ $CFG->langstringcache = false;
 
 // Site administration > Plugins > Activity modules > Assignment
 $CFG->assignment_maxbytes = 10485760;   // 100MB
+
+// Site administration > Plugins > Activity modules > Folder
+$CFG->forced_plugin_settings['folder']['requiremodintro'] = 0;
+
+// Site administration > Plugins > Activity modules > IMS content package
+$CFG->forced_plugin_settings['imscp']['requiremodintro'] = 0;
+
+// Site administration > Plugins > Activity modules > Page
+$CFG->forced_plugin_settings['page']['requiremodintro'] = 0;
+$CFG->forced_plugin_settings['page']['printheading'] = 1;
+
+// Site administration > Plugins > Activity modules > File
+$CFG->forced_plugin_settings['resource']['requiremodintro'] = 0;
+$CFG->forced_plugin_settings['resource']['printheading'] = 1;
+$CFG->forced_plugin_settings['resource']['display'] = 4;   // "Force Download"
+
+// Site administration > Plugins > Activity modules > URL
+$CFG->forced_plugin_settings['url']['requiremodintro'] = 0;
+$CFG->forced_plugin_settings['url']['printheading'] = 1;
 
 // Site administration > Plugins > Licences > Manage licences
 $CFG->sitedefaultlicense = 'iown';
