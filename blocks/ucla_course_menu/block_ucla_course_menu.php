@@ -6,9 +6,7 @@ require_once($CFG->dirroot . '/blocks/navigation/block_navigation.php');
 
 class block_ucla_course_menu extends block_navigation {
     var $contentgenerated = false;
-
-    const DEFAULT_TRIM_LENGTH = 50;
-
+   
     // Hook function used to get other blocks' junk into this trunk
     const BLOCK_HOOK_FN = 'get_navigation_nodes';
    
@@ -109,38 +107,47 @@ class block_ucla_course_menu extends block_navigation {
         return $format_rk;
     }
 
-    function get_config_var($var, $def) {
-        if (!empty($this->config->$var)) {
-            return $this->config->$var;
-        } 
-
-        return $def;
-    }
-
     /**
      *  Called by Moodle.
      **/
     function get_content() {
+        global $CFG;
+        
         if ($this->contentgenerated === true) {
             return $this->content;
         }
-
-        parent::get_content();
-
+        
         $renderer = $this->get_renderer();
-
+         
+        //CCLE-2380 Rearrange Course Materials link when editing is on        
+        // only display rearrange tool in ucla format
+        if ($this->page->user_is_editing() && 
+                $this->get_course_format() == 'ucla' && 
+                function_exists('ucla_format_figure_section')) {
+            list($thistopic, $ds) = ucla_format_figure_section($this->page->course);        
+            
+            // rearrange link
+            $rearrange = html_writer::link(
+                    new moodle_url('/blocks/ucla_rearrange/rearrange.php', 
+                        array('course_id' => $this->page->course->id, 
+                              'topic' => $ds)), 
+                    get_string('pluginname', 'block_ucla_rearrange'));            
+            $this->content->text .= html_writer::tag('div', $rearrange, 
+                    array('class' => 'edit_control_links'));
+        }
+                       
         // get non-module nodes
         $section_elements = $this->create_section_elements();
         $block_elements = $this->create_block_elements();
         $elements = array_merge($section_elements, $block_elements);        
-        $this->trim_nodes($elements);        
-        $this->content->text = $renderer->navigation_node($elements,
+        $elements = $this->trim_nodes($elements);        
+        $this->content->text .= $renderer->navigation_node($elements,
             array('class' => 'block_tree list'));
-        
+
         // Separate out module nodes so that we can have a different style
         // to them.
         $module_elements = $this->create_module_elements();     
-        $this->trim_nodes($module_elements); 
+        $module_elements = $this->trim_nodes($module_elements); 
         
         // For some reason cannot use html_writer::start_tag/html_writer::end_tag
         // so use hard-coded HTML.
@@ -202,7 +209,7 @@ class block_ucla_course_menu extends block_navigation {
 
         $viewhiddensections = has_capability(
             'moodle/course:viewhiddensections', $this->page->context);
-
+        
         foreach ($sections as $section) {
             // TESTINGCCLE-531: Course setting for num sections not reflected.
             if ($section->section > $this->page->course->numsections) {
@@ -217,7 +224,7 @@ class block_ucla_course_menu extends block_navigation {
             }
 
             $sectionname = strip_tags($sectionname);
-
+            
             if (!$viewhiddensections && !$section->visible) {
                 continue;
             }
@@ -230,6 +237,11 @@ class block_ucla_course_menu extends block_navigation {
                     $topic_param => $sectnum
                 )), navigation_node::TYPE_SECTION
             );
+            
+            // Indicate that section is hidden
+            if(!$section->visible) {
+                $elements[$key]->classes = array("block_ucla_course_menu_hidden");
+            }
         }
 
         // TODO get navigation to detect this if it is view all.
@@ -242,7 +254,7 @@ class block_ucla_course_menu extends block_navigation {
                     $topic_param => UCLA_FORMAT_DISPLAY_ALL
                 )), navigation_node::TYPE_SECTION);
         }
-
+        
         return $elements;
     }
 
@@ -251,7 +263,7 @@ class block_ucla_course_menu extends block_navigation {
      *  items.
      **/
     function create_block_elements() {
-        global $CFG;
+        global $CFG, $COURSE;
 
         $elements = array();
 
@@ -340,10 +352,9 @@ class block_ucla_course_menu extends block_navigation {
      * 
      * return array             Returns array of trimmed navigation_nodes
      */
-    function trim_nodes($elements) {
-        $trimmode = $this->get_config_var('trimmode', self::TRIM_LEFT);
-        $trimlength = $this->get_config_var('trimlength', 
-            self::DEFAULT_TRIM_LENGTH);
+    function trim_nodes($elements) {        
+        $trimmode   = $this->config->trimmode;
+        $trimlength = $this->config->trimlength;
        
         foreach ($elements as $element) {
             $this->trim($element, $trimmode, $trimlength,
@@ -352,6 +363,44 @@ class block_ucla_course_menu extends block_navigation {
         
         return $elements;
     }
+    
+    /**
+     * CCLE-2829 - Remove "Site Menu" block heading
+     * @return boolean true
+     */
+    function hide_header() {
+        return true;
+    }    
+    
+    /**
+     * Disallow docking to hide dock icon when header is removed
+     * @return boolean false
+     */
+    function instance_can_be_docked() {
+        return false;
+    }    
+    
+    /**
+     * Set block defaults for trimlength and trimmode 
+     */
+    function specialization() {        
+        // set default values for trimlength and trimmode
+        $set_defaults = false;
+        if (!isset($this->config->trimlength)) {
+            // if this is the first time loading the block, then use default trimlength
+            $this->config->trimlength = get_config('block_ucla_course_menu', 'trimlength');
+            $set_defaults = true;
+        }
+        if (!isset($this->config->trimmode)) {
+            // if this is the first time loading the block, then use default trimlength
+            $this->config->trimmode = get_config('block_ucla_course_menu', 'trimmode');
+            $set_defaults = true;
+        }        
+        if (!empty($set_defaults)) {
+            $this->instance_config_commit();            
+        }        
+    }
+    
 }
 
 // EOF

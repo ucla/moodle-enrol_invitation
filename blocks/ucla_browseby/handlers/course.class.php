@@ -3,27 +3,31 @@
 class course_handler extends browseby_handler {
     const browseall_sql_helper =  "
         SELECT 
-        CONCAT(ubc.term, '-', ubc.srs, '-', ubci.uid) AS 'recordsetid',
-        ubc.section AS 'sectnum',
-        ubc.course AS 'coursenum',
-        ubc.activitytype,
-        ubc.subjarea as 'subj_area',
-        ubc.url,
-        ubc.term,
-        ubc.srs,
-        ubc.ses_grp_cd AS session_group,
-        ubc.session AS session_code,
-        ubc.coursetitlelong AS course_title,
-        ubc.sectiontitle AS section_title,
-        ubc.sect_enrl_stat_cd AS enrolstat,
-        ubc.catlg_no AS course_code,
-        ubc.activitytype, 
-        ubci.uid,
-        COALESCE(user.firstname, ubci.firstname) AS firstname,
-        COALESCE(user.lastname, ubci.lastname) AS lastname,
-        ubci.profcode,
-        user.url AS userlink,
-        urc.courseid
+            CONCAT(
+                ubci.term, '-', 
+                ubci.srs, '-', 
+                ubii.uid
+            ) AS 'recordsetid',
+            ubci.section AS 'sectnum',
+            ubci.course AS 'coursenum',
+            ubci.activitytype,
+            ubci.subjarea AS 'subj_area',
+            ubci.url,
+            ubci.term,
+            ubci.srs,
+            ubci.ses_grp_cd AS session_group,
+            ubci.session AS session_code,
+            ubci.coursetitlelong AS course_title,
+            ubci.sectiontitle AS section_title,
+            ubci.sect_enrl_stat_cd AS enrolstat,
+            ubci.catlg_no AS course_code,
+            ubci.activitytype, 
+            urc.courseid,
+            COALESCE(user.id, user.idnumber, ubii.uid) AS userid,
+            COALESCE(user.firstname, ubii.firstname) AS firstname,
+            COALESCE(user.lastname, ubii.lastname) AS lastname,
+            ubii.profcode,
+            user.url AS userlink
     ";
 
     const browseall_order_helper = "
@@ -32,7 +36,7 @@ class course_handler extends browseby_handler {
 
     function get_params() {
         // This uses division in breadcrumbs
-        return array('subjarea', 'uid', 'division', 'alpha');
+        return array('subjarea', 'user', 'division', 'alpha');
     }
 
     function handle($args) {
@@ -55,7 +59,7 @@ class course_handler extends browseby_handler {
 
         if (isset($args['term'])) {
             $term = $args['term'];
-            $termwhere = ' AND ubc.term = :term ';
+            $termwhere = ' AND ubci.term = :term ';
             $param['term'] = $args['term'];
         } else {
             $termwhere = '';
@@ -82,14 +86,14 @@ class course_handler extends browseby_handler {
             // Get all courses in this subject area but from 
             // our browseall tables
             $sql = self::browseall_sql_helper . "
-                FROM {ucla_browseall_classinfo} ubc
-                INNER JOIN {ucla_browseall_instrinfo} ubci
+                FROM {ucla_browseall_classinfo} ubci
+                INNER JOIN {ucla_browseall_instrinfo} ubii
                     USING(term, srs)
                 LEFT JOIN {ucla_request_classes} urc
                     USING(term, srs)
                 LEFT JOIN {user} user
-                    ON ubci.uid = user.idnumber
-                WHERE ubc.subjarea = :subjarea
+                    ON ubii.uid = user.idnumber
+                WHERE ubci.subjarea = :subjarea
                 $termwhere
             " . self::browseall_order_helper;
 
@@ -103,8 +107,11 @@ class course_handler extends browseby_handler {
                 subjarea_handler::alter_navbar();
 
                 // Display the specific division's subjareas link
-                $navbarstr = get_string('subjarea_title', 
-                    'block_ucla_browseby', $this->get_division($args['division']));
+                $navbarstr = get_string(
+                    'subjarea_title', 
+                    'block_ucla_browseby', 
+                    $this->get_division($args['division'])
+                );
             } else {
                 // Came from all subjareas
                 $navbarstr = get_string('all_subjareas',
@@ -115,29 +122,30 @@ class course_handler extends browseby_handler {
             $urlobj->remove_params('subjarea');
             $urlobj->params(array('type' => 'subjarea'));
             $PAGE->navbar->add($navbarstr, $urlobj);
-        } else if (isset($args['uid'])) {
+        } else if (isset($args['user'])) {
             ucla_require_db_helper();
 
             // This is the local-system specific instructor's courses view
-            $instructor = $args['uid'];
+            $instructor = $args['user'];
 
             $sqlhelp = instructor_handler::combined_select_sql_helper();
-            
+           
+            // This will not include people enrolled only locally.
             $sql = self::browseall_sql_helper . "
                 FROM $sqlhelp ubi
-                LEFT JOIN {ucla_browseall_classinfo} ubc
-                    USING(term, srs)
-                LEFT JOIN $sqlhelp ubci
-                    USING(term, srs)
+                LEFT JOIN {ucla_browseall_classinfo} ubci
+                    USING (term, srs)
+                LEFT JOIN {ucla_browseall_instrinfo} ubii
+                    USING (term, srs)
                 LEFT JOIN {ucla_request_classes} urc
-                    USING(term, srs)
+                    USING (term, srs)
                 LEFT JOIN {user} user
-                    ON ubci.uid = user.idnumber
+                    ON ubii.uid = user.idnumber
                 WHERE 
-                    ubi.uid = :uid
+                    ubi.userid = :user
             " . self::browseall_order_helper;
 
-            $param['uid'] = $instructor;
+            $param['user'] = $instructor;
 
             $courseslist = $this->get_records_sql($sql, $param);
 
@@ -149,7 +157,7 @@ class course_handler extends browseby_handler {
                 $tt = $course->term;
                 $terms_avail[$tt] = $tt;
 
-                if ($instruser == false && $course->uid == $instructor) {
+                if ($instruser == false && $course->userid == $instructor) {
                     $instruser = $course;
                 }
             }
@@ -184,14 +192,14 @@ class course_handler extends browseby_handler {
             }
 
             $urlobj = clone($PAGE->url);
-            $urlobj->remove_params('uid');
+            $urlobj->remove_params('user');
             $urlobj->params(array('type' => 'instructor'));
             $PAGE->navbar->add($navbarstr, $urlobj);
         } else {
             // There is no way to know what we are looking at
             return array(false, false);
         }
-
+        
         if (empty($courseslist)) {
             print_error('noresults');
         }
@@ -200,11 +208,6 @@ class course_handler extends browseby_handler {
 
         $coursepcs = array();
         foreach ($courseslist as $k => $course) {
-            if ($this->ignore_course($course)) {
-                $courseslist[$k]->no_display = true;
-                continue;
-            }
-
             if (isset($course->profcode)) {
                 $pc = $course->profcode;
                 if (!isset($coursepcs[$k])) {
@@ -228,12 +231,12 @@ class course_handler extends browseby_handler {
             // Apend instructors, since they could have duplicate rows
             if (isset($fullcourseslist[$k])) {
                 $courseobj = $fullcourseslist[$k];
-                $courseobj->instructors[$course->uid] = 
-                    $this->fullname($course);
+                if ($instructor_name = $this->fullname($course)) {
+                    $courseobj->instructors[$course->userid] = $instructor_name;
+                }
             } else {
                 $courseobj = new stdclass(); 
-                $courseobj->dispname 
-                    = ucla_make_course_title(get_object_vars($course));
+                $courseobj->dispname = ucla_make_course_title($course);
 
                 if ($use_local_courses && !empty($course->courseid)) {
                     $course->id = $course->courseid;
@@ -268,8 +271,9 @@ class course_handler extends browseby_handler {
                         $course->course_title, $course->section_title
                     );
 
-                $courseobj->instructors = 
-                    array($course->uid => $this->fullname($course));
+                if ($instructor_name = $this->fullname($course)) {
+                    $courseobj->instructors[$course->userid] = $instructor_name;
+                }                
 
                 $courseobj->session_group = $course->session_group;
             }

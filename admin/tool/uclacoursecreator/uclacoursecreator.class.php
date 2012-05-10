@@ -546,7 +546,6 @@ class uclacoursecreator {
     /**
      *  Allows mails to be sent to requestors and instructors.
      *  @param  $b  true = no mails sent, false = mails sent
-
      **/
     function set_mailer($b) {
         $this->no_send_mails = $b;
@@ -923,6 +922,14 @@ class uclacoursecreator {
    
         // Get all categories and index them
         $id_categories = get_categories();
+        
+        // Add "root" to available categories
+        $fakeroot = new stdclass();
+        $fakeroot->name = 'Root';
+        $fakeroot->id = 0;
+        $fakeroot->parent = 'None';
+        $id_categories[0] = $fakeroot;
+
         $name_categories = array();
 
         $forbidden_names = array();
@@ -936,6 +943,7 @@ class uclacoursecreator {
 
             $name_categories[$catname] = $cat;
         }
+
 
         $truecatreferences = array();
         foreach ($rci_courses as $reqkey => $rci_course) {
@@ -975,8 +983,11 @@ class uclacoursecreator {
                     $newcategory = $this->new_category($trans,
                         $immediate_parent_catid);
 
+                    // Figure name for display and debugging purposes
                     $parentname = 
                         $id_categories[$immediate_parent_catid]->name;
+
+                    $id_categories[$newcategory->id] = $newcategory;
 
                     $this->debugln('  Created ' . $type . ' category: '
                          . $trans . ' parent: ' . $parentname);
@@ -1137,7 +1148,7 @@ class uclacoursecreator {
         foreach ($existingcourses as $eck => $existingcourse) {
             // Mark these as already built...
             unset($newcourses[$eck]);
-            $this->debugln("! $eck built outside of course creator");
+            $this->debugln("!WARNING $eck built outside of course creator");
         }
 
         $this->debugln('Creating courses...');
@@ -1347,21 +1358,20 @@ class uclacoursecreator {
     function send_emails() {
         if (empty($this->cron_term_cache['url_info'])) {
             $this->debugln(
-                'Warning: We have no URL information for E-Mails.'
+                'ERROR: We have no URL information for emails.'
             );
-
             return false;
         }   
-        
+
         if (!isset($this->cron_term_cache['trim_requests'])) {
             $this->trim_requests();
         }
 
         // This should fill the term cache 'instructors' with data from 
         // ccle_CourseInstructorsGet
-        $this->println('Getting ' 
+        $this->println('Getting instructors for ' 
             . count($this->cron_term_cache['trim_requests']) 
-            . ' instructors from registrar...');
+            . ' request(s) from registrar...');
 
         $results = registrar_query::run_registrar_query(
             'ccle_courseinstructorsget', 
@@ -1535,11 +1545,12 @@ class uclacoursecreator {
 
             $local_emails =& $this->cron_term_cache['local_emails'];
         }
-
+        
         if (!$this->send_mails()) {
             $this->debugln('--- Email sending disabled ---');
-        }
-
+            // continue so that we can see debugging messages
+        }        
+        
         // TODO move the rest of this out
         // Parsed
         // This may take the most memory
@@ -1638,11 +1649,13 @@ class uclacoursecreator {
                     $this->email_fill_template($used_param, $emailing);
 
                 // Setup the email
-                $from = $email_params['from'];
-                $bcc = $email_params['bcc'];
+                $from = trim($email_params['from']);
+                $bcc = trim($email_params['bcc']);
 
-                // Headers, include the Blind Carbon Copy
-                $headers = "From: $from \r\n Bcc: $bcc \r\n";
+                // Headers, include the Blind Carbon Copy and From
+                // (make sure there are no errant spaces or else email headers
+                // wouldn't parse correctly)
+                $headers = "From: $from\r\nBcc: $bcc\r\n";
            
                 $email_subject = $email_params['subject'];
 
@@ -2216,12 +2229,15 @@ class uclacoursecreator {
      *  Will change the state of the object.
      **/
     function figure_terms() {
-        if ($this->get_config('terms')) {
-            $terms_list = $this->get_config('terms');
+        $terms_list = $this->get_config('terms');
+        if (!is_array($terms_list)) {
+            // then must be a comma-deliminated term list
+            $terms_list = explode(',', $terms_list);
         }
-
+        
         if (isset($terms_list)) {
-            foreach ($terms_list as $term) {
+            foreach ($terms_list as &$term) {
+                $term = trim($term);
                 if (!$this->validate_term($term)) {
                     throw new course_creator_exception(
                         'Improper term ' . $term

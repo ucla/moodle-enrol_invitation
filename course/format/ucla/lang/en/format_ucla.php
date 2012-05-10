@@ -23,8 +23,8 @@
 
 // Moodle general format strings
 $string['sectionname'] = 'Section';
-$string['pluginname'] = 'UCLA Format';
-$string['section0name'] = 'Site Info';
+$string['pluginname'] = 'UCLA format';
+$string['section0name'] = 'Site info';
 
 // SSC forum strings
 $string['discforum'] = 'Discussion forum';
@@ -34,11 +34,14 @@ $string['introdisc'] = 'This is a general discussion forum.';
 $string['reg_listing'] = 'For course location and time see Registrar Listing: ';
 $string['reg_finalcd'] = 'For official course description, final exam code'.
     ' and other course information see: ';
-$string['reg_unavail'] = 'The Registrar links are unavailable at this time.';
 $string['coursecancelled'] = 'THIS CLASS HAS BEEN CANCELLED';
 
 // Course preferences strings
-$string['course_pref'] = 'Course Preferences';
-$string['course_pref_for'] = 'UCLA Format Course Preferences for {$a}';
-$string['landing_page'] = 'Landing Page';
-$string['show_all'] = 'Show All';
+$string['course_pref'] = 'Course preferences';
+$string['course_pref_for'] = 'UCLA course preferences for {$a}';
+$string['landing_page'] = 'Landing page';
+$string['show_all'] = 'Show all';
+
+// Custom format strings
+$string['editcoursetitle'] = 'Edit course description';
+$string['editsectiontitle'] = 'Edit title';

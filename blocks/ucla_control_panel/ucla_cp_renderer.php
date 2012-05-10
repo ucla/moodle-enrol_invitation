@@ -17,8 +17,15 @@
 class ucla_cp_renderer {
     private $history = array();
 
+    
+    static function cmp($a, $b) {
+        return( strcmp($a->get_key(), $b->get_key()) );
+    }
+    
     /**
      *  get_content_array()
+     * @param int $size the size of the tables you want the data sorted into.
+     * @param bool $sort whether or not you want to items sorted based on name.
      *
      *  @return Array This will return the data sorted into tables.
      *      Normally, this table will be 2 levels deep (Array => Array).
@@ -28,7 +35,7 @@ class ucla_cp_renderer {
      *      <item>_pre represents strings that are printed before the link.
      *      <item>_post represents the string that is printed after the link.
      **/
-    static function get_content_array($contents, $size=null) {
+    static function get_content_array($contents, $size=null, $sort=true) {
         $all_stuff = array();
 
         // This is the number of groups to sort this into
@@ -44,10 +51,10 @@ class ucla_cp_renderer {
             $action = $content;
             $title = $content->get_key();
 
-            $all_stuff[$title] = $action;
+            $all_stuff[] = $action;
         }
 
-        ksort($all_stuff);
+       usort($all_stuff,"ucla_cp_renderer::cmp");
 
         $disp_stuff = array();
 
@@ -72,11 +79,13 @@ class ucla_cp_renderer {
      *  Builds the string with the string and the descriptions, pre and post.
      *  @param ucla_cp_module $item_obj - This is the identifier for the 
      *      current control panel item.
+     *  @param link_attributes - Attributes associated with the object if the 
+     *  object is a link.
      *  @return string The DOMs of the control panel description and link.
      **/
-    static function general_descriptive_link($item_obj) {
+    static function general_descriptive_link($item_obj, $link_attributes = null) {
         $fitem = '';
-        
+
         $bucp = $item_obj->associated_block(); 
 
         $item = $item_obj->item_name;
@@ -87,12 +96,17 @@ class ucla_cp_renderer {
                 $bucp, $item_obj), array('class' => 'pre-link'));
         }
 
-        if ($link === null) {
+        //If the object is plain text, just include the object name in the string.
+        if (get_class($item_obj) == 'ucla_cp_text_module') {
+            $fitem.= $item;
+        }
+        //If the object is a tag 
+        else if ($link === null) {
             $fitem .= html_writer::tag('span', get_string($item, $bucp,
                 $item_obj), array('class' => 'disabled'));
         } else {
             $fitem .= html_writer::link($link, get_string($item, $bucp, 
-                $item_obj));
+                $item_obj), $link_attributes);
         }
 
         // One needs to explicitly hide the post description
@@ -119,15 +133,23 @@ class ucla_cp_renderer {
         $item = $item_obj->item_name;
 
         $fitem = '';
-        $fitem .= html_writer::empty_tag('img', 
-            array('src' => $OUTPUT->pix_url('cp_' . $item, $item_obj->associated_block())));
-
+        //BEGIN UCLA MOD: CCLE-2869-Add Empty Alt attribute for icons on Control Panel
+        $fitem .= html_writer::start_tag('a', array('href' => $item_obj->get_action()));
+        $fitem .= html_writer::start_tag('img', 
+                array('src' => $OUTPUT->pix_url('cp_' . $item, $item_obj->associated_block()), 'alt' => ''));
+        $fitem .= get_string($item, $item_obj->associated_block(), $item_obj);
+        $fitem .= html_writer::end_tag('a');
+        
         if ($item_obj->get_opt('post') === null) {
             $item_obj->set_opt('post', false);
         }
-
-        $fitem .= ucla_cp_renderer::general_descriptive_link($item_obj);
-
+        
+        if ($item_obj->get_opt('post') !== false) {
+            $fitem .= html_writer::tag('span', get_string($item . '_post', 
+                $bucp, $item_obj), array('class' => 'post-link'));
+        }
+        
+        //END UCLA MOD: CCLE-2869
         return $fitem;
     }
    
@@ -199,14 +221,14 @@ class ucla_cp_renderer {
 
                 $the_output = html_writer::start_tag('div', 
                     array('class' => 'item' . $add_class));
-
+                
                 $the_output .= ucla_cp_renderer::$handler(
                     $content_link);
-
+                
                 $the_output .= html_writer::end_tag('div');
                 $row_contents .= $the_output;
             }
-
+            
             // Flip per row
             $eo = !$eo;
             
@@ -223,7 +245,7 @@ class ucla_cp_renderer {
             $full_table .= html_writer::tag('div', $row_contents, 
                 array('class' => 'table' . $orient . $evenodd));
         }
-
+        
         return $full_table;
     }
 }

@@ -61,7 +61,7 @@ $CFG->directorypermissions = 0777;
 $CFG->passwordsaltmain = '';
 
 // determines current term
-$CFG->currentterm = '12S';
+//$CFG->currentterm = '12S';
 
 // Registrar
 $CFG->registrar_dbtype = 'odbc_mssql';
@@ -88,13 +88,13 @@ $CFG->instructor_levels_roles = array(
 $terms_to_built = array('12S', '121', '12F');
 
 // Course Requestor
-$CFG->forced_plugin_settings['tool_uclacourserequestor']['terms'] = $terms_to_built;
-$CFG->forced_plugin_settings['tool_uclacourserequestor']['selected_term'] = $CFG->currentterm;
+//$CFG->forced_plugin_settings['tool_uclacourserequestor']['terms'] = $terms_to_built;
+//$CFG->forced_plugin_settings['tool_uclacourserequestor']['selected_term'] = $CFG->currentterm;
 $CFG->forced_plugin_settings['tool_uclacourserequestor']['mailinst_default'] = false; 
 $CFG->forced_plugin_settings['tool_uclacourserequestor']['nourlupdate_default'] = true;
 
 // Course Creator
-$CFG->forced_plugin_settings['tool_uclacoursecreator']['terms'] = $terms_to_built;
+//$CFG->forced_plugin_settings['tool_uclacoursecreator']['terms'] = $terms_to_built;
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['course_creator_email'] = 'ccle-operations@lists.ucla.edu';
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['email_template_dir'] = '';
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['make_division_categories'] = true;
@@ -118,9 +118,6 @@ $CFG->divertallemailsto = 'ccle-operations@lists.ucla.edu';
 // CCLE-2590 - Implement Auto-detect Shibboleth Login
 $CFG->shib_logged_in_cookie = '_ucla_sso';
 
-// default file resources display to "Force Download"
-$CFG->forced_plugin_settings['resource'] = array('display' => 4);
-
 // CCLE-2306 - HELP SYSTEM BLOCK
 // if using JIRA, jira_user, jira_password, jira_pid should be defined in config_private.php
 $block_ucla_help_settings = array('send_to' => 'jira',
@@ -134,6 +131,13 @@ $block_ucla_help_settings = array('send_to' => 'jira',
 $CFG->forced_plugin_settings['block_ucla_help'] = $block_ucla_help_settings;
 $block_ucla_help_support_contacts['System'] = 'dkearney';  // default
 
+// CCLE-2312 - LIBRARY RESERVES BLOCK
+$CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url']
+        = 'ftp://ftp.library.ucla.edu/incoming/eres/voyager_reserves_data.txt';
+
+// CCLE-2301 - COURSE MENU BLOCK
+$CFG->forced_plugin_settings['block_ucla_course_menu']['trimlength'] = 22;
+
 // useful DEV settings
 $CFG->debug = 38911;    // DEVELOPER level debugging messages
 $CFG->debugdisplay = true;  // show the debugging messages
@@ -143,35 +147,11 @@ $CFG->debugpageinfo = true; // show page information
 // UCLA Theme settings
 $CFG->themedesignermode = true;
 $CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'dev';
-$CFG->forced_plugin_settings['theme_uclashared']['logo_sub_dropdown'] = false;
+$CFG->forced_plugin_settings['theme_uclashared']['logo_sub_dropdown'] = 0;
 $CFG->cachejs = false;
 
 // Newly created courses for ucla formats should only have the course menu block
 $CFG->defaultblocks_ucla = 'ucla_course_menu';
-
-// Enable conditional activities
-$CFG->enableavailability = true;
-$CFG->enablecompletion = true;  // needs to be enabled so that completion
-                                // of tasks can be one of the conditions
-$CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 1;
-
-// CCLE-2229 - Force public/private to be on
-$CFG->enablegroupmembersonly = true; // needs to be on for public-private to work
-$CFG->enablepublicprivate = true;
-
-// CCLE-2792 - Enable multimedia filters
-// NOTE: you still need to manually set the "Active?" value of the "Multimedia 
-// plugins" filter at "Site administration > Plugins > Filters > Manage filters"
-$CFG->filter_mediaplugin_enable_youtube = true;
-$CFG->filter_mediaplugin_enable_vimeo = true;
-$CFG->filter_mediaplugin_enable_mp3 = true;
-$CFG->filter_mediaplugin_enable_flv = true;
-$CFG->filter_mediaplugin_enable_swf = true;
-$CFG->filter_mediaplugin_enable_html5audio = true;
-$CFG->filter_mediaplugin_enable_html5video = true;
-$CFG->filter_mediaplugin_enable_qt = true;
-$CFG->filter_mediaplugin_enable_wmp = true;
-$CFG->filter_mediaplugin_enable_rm = true;
 
 // Enable conditional activities
 $CFG->enableavailability = true;
@@ -208,10 +188,33 @@ $CFG->autologinguests = true;
 // Site administration > Courses > Course default settings
 $CFG->forced_plugin_settings['moodlecourse']['format'] = 'ucla';
 $CFG->forced_plugin_settings['moodlecourse']['maxbytes'] = 1572864000;  // 1.5GB
-$CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 1;
+// CCLE-2903 - Don't set completion tracking to be course default
+$CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 0;
+
+// Site administration > Language > Language settings
+$CFG->langstringcache = false;
 
 // Site administration > Plugins > Activity modules > Assignment
 $CFG->assignment_maxbytes = 10485760;   // 100MB
+
+// Site administration > Plugins > Activity modules > Folder
+$CFG->forced_plugin_settings['folder']['requiremodintro'] = 0;
+
+// Site administration > Plugins > Activity modules > IMS content package
+$CFG->forced_plugin_settings['imscp']['requiremodintro'] = 0;
+
+// Site administration > Plugins > Activity modules > Page
+$CFG->forced_plugin_settings['page']['requiremodintro'] = 0;
+$CFG->forced_plugin_settings['page']['printheading'] = 1;
+
+// Site administration > Plugins > Activity modules > File
+$CFG->forced_plugin_settings['resource']['requiremodintro'] = 0;
+$CFG->forced_plugin_settings['resource']['printheading'] = 1;
+$CFG->forced_plugin_settings['resource']['display'] = 4;   // "Force Download"
+
+// Site administration > Plugins > Activity modules > URL
+$CFG->forced_plugin_settings['url']['requiremodintro'] = 0;
+$CFG->forced_plugin_settings['url']['printheading'] = 1;
 
 // Site administration > Plugins > Licences > Manage licences
 $CFG->sitedefaultlicense = 'iown';
@@ -219,6 +222,7 @@ $CFG->sitedefaultlicense = 'iown';
 // Site administration > Security > Site policies
 $CFG->forceloginforprofiles = true; 
 $CFG->forceloginforprofileimage = true; // temporary until "CCLE-2368 - PIX.PHP security fix" is done
+$CFG->maxeditingtime = 900; // 15 minutes
 $CFG->fullnamedisplay = 'language'; // CCLE-2550 - Lastname, Firstname sorting
 $CFG->cronclionly = true;
 
@@ -293,6 +297,10 @@ $CFG->forced_plugin_settings['enrol_database']['localrolefield'] = 'id';
 // CCLE-2824 - Making sure that being assigned/unassigned/re-assigned doesn't 
 // lose grading data
 $CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 3;    // Disable course enrolment and remove roles
+
+// CCLE-2910 - UNEX student support
+$CFG->forced_plugin_settings['enrol_database']['fblocaluserfield'] = 'username';
+$CFG->forced_plugin_settings['enrol_database']['fbremoteuserfield'] = 'username';
 
 // This will bootstrap the moodle functions.
 require_once($_dirroot_ . '/lib/setup.php');

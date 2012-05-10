@@ -12,6 +12,10 @@ require_once($CFG->dirroot.
     '/blocks/ucla_control_panel/block_ucla_control_panel.php');
 require_once($CFG->dirroot.
     '/blocks/ucla_control_panel/ucla_cp_renderer.php');
+require_once($CFG->dirroot.
+    '/blocks/ucla_control_panel/modules/ucla_cp_myucla_renderer.php');
+
+require_once($CFG->dirroot . '/local/ucla/lib.php');
 
 // Note that the unhiding of the Announcements forum is handled in
 // modules/email_students.php
@@ -21,7 +25,6 @@ require_once($CFG->dirroot.
 
 $course_id = required_param('course_id', PARAM_INT); // course ID
 $module_view = optional_param('module', 'default', PARAM_ALPHANUMEXT);
-$edit = optional_param('edit', null, PARAM_BOOL);
 
 if (! $course = $DB->get_record('course', array('id' => $course_id))) {
     print_error('coursemisconf');
@@ -45,37 +48,24 @@ $PAGE->set_heading($course->fullname);
 $PAGE->set_pagelayout('course');
 $PAGE->set_pagetype('course-view-'.$course->format);
 
-if ($PAGE->user_allowed_editing()) {
-    // Stolen from course/view.php
-    if ($edit != null && confirm_sesskey()) {
-        $USER->editing = $edit;
-
-        if ($edit == 0 && !empty($USER->activitycopy) 
-          && $USER->activitycopycourse == $course->id) {
-            $USER->activitycopy = false;
-            $USER->activitycopycourse = NULL;
-        }
-
-        redirect($PAGE->url);
-    }
-
-    $buttons = $OUTPUT->edit_button(
-        new moodle_url(
-            '/blocks/ucla_control_panel/view.php', 
-            array('course_id' => $course_id)
-        )
-    );
-
-    $PAGE->set_button($buttons);
-}
+set_editing_mode_button();
 
 // Get all the elements, unfortunately, this is where we check whether
 // we are supposed to display the elements at all.
 $elements = block_ucla_control_panel::load_cp_elements($course, $context);
-// We do this here becausae of a hack for stylesheets.
+// We do this here because of a hack for stylesheets.
 
 // using core renderer
 echo $OUTPUT->header();
+
+if ($course->format != 'ucla') {
+    echo $OUTPUT->box(get_string('formatincompatible', 
+        'block_ucla_control_panel'));
+}
+
+echo html_writer::start_tag('div', array('id' => 'cpanel-wrapper'));
+echo html_writer::tag('h1', get_string('name', 'block_ucla_control_panel'), 
+        array('class' => 'cpheading'));
 
 // So here we need to check which tabs we can actually display
 $tabs = array();
@@ -89,12 +79,10 @@ foreach ($elements as $view => $contents) {
         ));
 }
 
+// display tags here
+echo html_writer::start_tag('div', array('class' => 'thetabs'));
 print_tabs(array($tabs), $module_view);
-
-if ($course->format != 'ucla') {
-    echo $OUTPUT->box(get_string('formatincompatible', 
-        'block_ucla_control_panel'));
-}
+echo html_writer::end_tag('div');
 
 // This has to be called manually... 
 $PAGE->navigation->initialise();
@@ -103,7 +91,6 @@ $PAGE->navigation->initialise();
 $no_elements = true;
 
 $sm = get_string_manager();
-
 // This is actually printing out each section of the control panel
 foreach ($elements as $view => $section_contents) {
     // TODO expand this or optimize this
@@ -112,10 +99,9 @@ foreach ($elements as $view => $section_contents) {
     }
 
     $no_elements = false;
-
+ 
     foreach ($section_contents as $tags => $modules) {
-        $viewstring = '';
-
+       
         // Is this group of stuff from elsewhere?
         if ($sm->string_exists($tags, 'block_ucla_control_panel')) {
             $viewstring = get_string($tags, 'block_ucla_control_panel');
@@ -139,16 +125,20 @@ foreach ($elements as $view => $section_contents) {
 
             echo ucla_cp_renderer::control_panel_contents($section_contents, 
                 false, 'row', 'general_icon_link');
+        } else if ($tags == 'ucla_cp_mod_myucla') {
+            echo ucla_cp_myucla_row_renderer::control_panel_contents($modules);             
         } else {
             $altrend = $tags . '_cp_render';
             if (class_exists($altrend) && method_exists($altrend, 
                     'render_cp_items')) {
                 echo $altrend::render_cp_items($modules);
             } else {
-                echo ucla_cp_renderer::control_panel_contents($modules, true);
+                 echo ucla_cp_renderer::control_panel_contents($modules, true);
             }
+    
         }
     }
+
 }
 
 if ($no_elements) {
@@ -156,6 +146,9 @@ if ($no_elements) {
         $module_view));
 }
 
+//this is temporary fix for the bottom border
+
+echo html_writer::end_tag('div');
 echo $OUTPUT->footer();
 
 /** eof **/

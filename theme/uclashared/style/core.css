@@ -7,3 +7,8 @@
     color: #A3BFFD; 
     font-weight:bold;    
 }
+#helppopupbox {
+    max-height:300px;
+    overflow:auto;
+}
+ 

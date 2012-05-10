@@ -116,21 +116,16 @@ html, body {background-color:#FFF; height:100%;}
     color:#494949
 }
 
+
 .coursebox {width:100%;margin:10px 0px;border-bottom:1px solid #E3E3E3;overflow:hidden;padding-bottom:10px;}
 .coursebox .info {width:35%;float:left;}
 .coursebox .summary {width:60%;float:right;}
 
-.course-content ul {margin:0;}
 .course-content .headingblock.outline {margin-top:0;}
 .course-content .section.main {border:1px solid #E3E3E3;margin-bottom:10px;background-color:#FFF;}
-.course-content .section.main .left.side {float:left;width:20px;padding:5px;}
-.course-content .section.main .right.side {float:right;width:20px;padding:5px;}
 .course-content .section.main .content {margin:0 30px 10px 30px;background-color:#FFF;}
 .course-content .section.main .content .section_add_menus {text-align:right;}
 
-.course-content .section.main .left.side {visibility:hidden;}
-.course-content .section.main .left.side .accesshide {visibility:visible;}
-.course-content .section.main .left.side a {visibility:visible;}
 
 #course-user .section {border:1px solid #DDD;margin:0 5% 1.5em 5%;}
 
@@ -168,6 +163,17 @@ html, body {background-color:#FFF; height:100%;}
 .noticebox a {  /* make notice link with enough contrast */
     color: black;
     text-decoration: underline;
+}
+.noticebox .generalbox {
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+.noticebox .generalbox .buttons {
+    margin: 0;
+}
+#notice.generalbox {
+    width: 100%;    
 }
 
 /** Success **/
@@ -211,10 +217,8 @@ html, body {background-color:#FFF; height:100%;}
 .block h2,
 .block h3,
 .block h4 {margin:0px;}
-.block .header {padding:10px 6px 10px 6px;background-color:#D1DBEF;}
-.block .content {padding:0px 3px 0px 3px;background-color:#DFE7F4;}
-.block .content a {display:block;width:100%;}
-.block .content a:hover {text-decoration:none;} 
+.block .header {padding:4px 6px;background-color:#D1DBEF;}
+.block .content {padding:0px 6px 0px 6px;background-color:#DFE7F4;}
 
 /** Admin **/
 .box.adminwarning {text-align:center;border:1px solid #C8C9C7;background-color:#E3E3E3;margin-bottom:1em;padding:10px 10%;}

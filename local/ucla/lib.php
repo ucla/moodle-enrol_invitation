@@ -4,9 +4,9 @@
  **/
 
 defined('MOODLE_INTERNAL') || die();
-
+global $CFG;
 //require_once($CFG->libdir . '/uclalib.php');
-
+require_once($CFG->dirroot.'/lib/accesslib.php');
 /**
  *  @deprecated
  *  This will attempt to access this file from the web.
@@ -181,11 +181,16 @@ function enrolstat_string($enrolstat) {
  *      subj_area - the subject area
  *      coursenum - the course number
  *      sectnum   - the number of the section
+ *      Or object from ucla_get_reg_classinfo
  *  @param $displayone boolean True to display the sectnum of 1
  **/
-function ucla_make_course_title($courseinfo, $displayone=false) {
+function ucla_make_course_title($courseinfo, $displayone=true) {
+    if (is_object($courseinfo)) {
+        $courseinfo = get_object_vars($courseinfo);
+    }    
+    
     $sectnum = '-' . $courseinfo['sectnum'];
-    if ($displayone && $courseinfo['sectnum'] == 1) {
+    if (!$displayone && $courseinfo['sectnum'] == 1) {
         $sectnum = '';
     }
 
@@ -314,7 +319,7 @@ function ucla_get_courses_by_terms($terms) {
  * 
  * @param string term
  * @param char session      If session is passed, then, assuming the term is 
- *                          summer, will return 121, A => Summer Session A 2012
+ *                          summer, will return 121, A => Summer 2012 - Session A
  **/
 function ucla_term_to_text($term, $session=null) {
     $term_letter = strtolower(substr($term, -1, 1));
@@ -327,17 +332,20 @@ function ucla_term_to_text($term, $session=null) {
     } else if ($term_letter == "s") {
         // S -> Spring
         $termtext = "Spring";
-    } else {
+    } else if ($term_letter == "1"){
         // 1 -> Summer
-        if (!empty($session)) {
-            $termtext = "Summer Session " . strtoupper($session);   
-        } else {
-            $termtext = "Summer";
-        }
+        $termtext = "Summer";
+    } else {
+        debugging("Invalid term letter: ".$term_letter);
+        return NULL;
     }
 
     $years = substr($term, 0, 2);
     $termtext .= " 20$years";    
+    
+    if ($term_letter == "1" && !empty($session)) {
+        $termtext .= " - Session " . strtoupper($session);   
+    }   
     
     return $termtext;
 }
@@ -374,6 +382,7 @@ function ucla_format_name($name=null) {
      *  - If name has a hypen
      *  - If name has an aprostrophe
      *  - If name starts with "MC"
+     *  - If name has conjunctions, e.g. "and", "of", "the", "as", "a"
      */    
 
     // has space? 
@@ -426,6 +435,11 @@ function ucla_format_name($name=null) {
         $name[2] = strtoupper($name[2]);    // make 3rd character uppercase
     }
 
+    // If name has conjunctions, e.g. "and", "of", "the", "as", "a"
+    if (in_array(strtolower($name), array('and', 'of', 'the', 'as', 'a'))) {
+        $name = strtolower($name);
+    }
+    
     return $name;
 
 }
@@ -812,6 +826,83 @@ function is_collab_site($course) {
         return true;
     }    
     return false;
+}
+
+/**
+ *  Returns whether or not the user is the role specified by the role_shortname
+ *  in the role table
+ * 
+ * @param $role_shortname the name of the role's shortname entry in the db table
+ * @param $context the context in which to check the roles.
+ * 
+ * @return boolean true if the user has the role in the context, false otherwise
+ **/
+function has_role_in_context($role_shortname, $context) {
+    
+    global $DB;
+    $does_role_exist = $DB->get_records('role', array('shortname'=>$role_shortname));
+    if(empty($does_role_exist)) {
+        debugging("Role shortname not found in database table.");
+        return false;
+    }
+    
+    $roles_result = get_user_roles($context);
+
+    foreach($roles_result as $role) {
+        if($role->shortname == $role_shortname) {
+            return true;
+        }
+    } 
+    return false;
+}
+
+/**
+ * Sets the editing button in the $PAGE element to be the url passed in.
+ * 
+ * Code copied from fragments of code in course/view.php to set the "Turn 
+ * editing on/off" button.
+ * 
+ * @global object $OUTPUT
+ * @global object $PAGE
+ * @global object $USER
+ * 
+ * @param moodle_url $url   Expecting moodle_url object. If null, then defaults
+ *                          redirecting user to $PAGE->url
+ */
+function set_editing_mode_button($url=null) {
+    global $OUTPUT, $PAGE, $USER;
+    
+    if (empty($url)) {
+        $url = $PAGE->url;
+    }
+    
+    // see if user is trying to turn editing on/off
+    // copied from course/view.php:line 12, 104-128, 153-155, 205-206
+    // (at the time of Moodle 2.2.2)
+    $edit = optional_param('edit', -1, PARAM_BOOL);
+    if (!isset($USER->editing)) {
+        $USER->editing = 0;
+    }    
+    if ($PAGE->user_allowed_editing()) {
+        if (($edit == 1) and confirm_sesskey()) {
+            $USER->editing = 1;
+            // edited to use url specified in function
+            redirect($url);
+        } else if (($edit == 0) and confirm_sesskey()) {
+            $USER->editing = 0;
+            if(!empty($USER->activitycopy) && $USER->activitycopycourse == $course->id) {
+                $USER->activitycopy       = false;
+                $USER->activitycopycourse = NULL;
+            }
+            // edited to use url specified in function
+            redirect($url);
+        }
+        // edited to use url specified in function
+        $buttons = $OUTPUT->edit_button($url);
+        $PAGE->set_button($buttons);                
+    } else {
+        $USER->editing = 0;
+    }
 }
 
 // EOF

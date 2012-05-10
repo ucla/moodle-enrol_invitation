@@ -179,14 +179,14 @@ function ucla_format_figure_section($course, $course_prefs = null) {
         // This means that a topic was explicitly declared
         $to_topic = $topic;
     } else if ($topic == (UCLA_FORMAT_DISPLAY_LANDING + 1)) {
-        debugging('explicit landing page');
+        //debugging('explicit landing page');
         $to_topic = $landing_page;
     } else {
         $to_topic = course_get_display($cid);
 
         // No previous history
         if ($to_topic == 0) {
-            debugging('implicit landing page');
+            //debugging('implicit landing page');
             $to_topic = $landing_page;
         }
     }

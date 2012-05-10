@@ -216,8 +216,10 @@ class theme_uclashared_core_renderer extends core_renderer {
         } 
 
         $pix_url = $this->pix_url($pix, $pix_loc);
-
-        $logo_img = html_writer::empty_tag('img', array('src' => $pix_url));
+        //UCLA MOD BEGIN: CCLE-2862-Main_site_logo_image_needs_alt_attribute
+        $logo_alt = get_string('UCLA_CCLE_text', 'theme_uclashared');
+        $logo_img = html_writer::empty_tag('img', array('src' => $pix_url, 'alt' => $logo_alt));
+        //UCLA MOD END: CCLE-2862
         $link = html_writer::link($address, $logo_img);
 
         return $link;

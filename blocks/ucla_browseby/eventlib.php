@@ -63,12 +63,16 @@ function browseby_extract_term_subjareas($requests) {
 /**
  *  Starts and runs a browseby instance-sync.
  **/
-function run_browseby_sync($terms, $subjareas=null) {
-    if (empty($terms)) {
+function run_browseby_sync($terms, $subjareas=null, $forceall=false) {
+    if (!$forceall && empty($terms)) {
         return true;
     }
 
     $b = block_instance('ucla_browseby');
+    if ($forceall) {
+        $terms = $b->get_all_terms();
+    }
+
     $b->sync($terms, $subjareas);
 
     return true;

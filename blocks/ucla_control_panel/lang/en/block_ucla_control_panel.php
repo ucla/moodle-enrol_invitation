@@ -2,6 +2,7 @@
 
 /** Moodle Strings **/
 $string['pluginname'] = 'UCLA control panel';
+$string['name'] = 'Control panel';
 
 $string['badsetup'] = 'Folder "modules" is missing.';
 $string['badmodule'] = 'Could not load module {$a}.';
@@ -41,10 +42,26 @@ $string['modify_sections_post'] = '';
 $string['turn_editing_on'] = 'Delete or update materials';
 $string['turn_editing_on_post'] = '(or duplicate, hide, make public)';
 
+/** Stuff from myucla functions **/
+$string['ucla_cp_mod_myucla'] = 'MyUCLA functions';
+
+$string['download_roster'] = 'Download roster';
+$string['download_roster_post'] = '';
+$string['photo_roster'] = 'Photo roster';
+$string['photo_roster_post'] = '';
+$string['myucla_gradebook'] = 'MyUCLA gradebook';
+$string['myucla_gradebook_post'] = '';
+$string['turn_it_in'] = 'Turn-It-In';
+$string['turn_it_in_post'] = '';
+$string['email_roster'] = 'Email roster';
+$string['email_roster_post'] = '';
+$string['asucla_textbooks'] = 'ASUCLA textbooks';
+$string['asucla_textbooks_post'] = '';
+
 /** Stuff from other **/
 $string['ucla_cp_mod_other'] = 'Other commands';
 
-$string['import_classweb'] = 'Import ClasWeb site';
+$string['import_classweb'] = 'Import ClassWeb site';
 $string['import_classweb_post'] = 'Import content from a previous course on ClassWeb to this site.';
 
 $string['import_moodle'] = 'Import Moodle course data';
@@ -70,7 +87,6 @@ $string['assign_roles_post'] = 'Use this to assign roles specifically for {$a->s
 $string['assign_roles_master'] = 'Assign roles for {$a->shortname} (current course)';
 $string['assign_roles_master_post'] = 'Use this to assign roles (change people to students, TAs or guests to grant or remove privileges) specifically for {$a->shortname}.';
 
-
 $string['backup_copy'] = 'Create course backup';
 $string['backup_copy_post'] = 'Make a copy of your course for use on another Moodle site.';
 
@@ -85,5 +101,21 @@ $string['course_grades_post'] = 'View your Moodle gradebook. Activate the advanc
 
 $string['course_edit'] = 'Course settings';
 $string['course_edit_post'] = 'Edit the full name and description of the course or hide the course from students.';
+
+$string['reports'] = 'Reports';
+$string['reports_post'] = 'View course logs to see student activity.';
+
+/** Stuff for Student Control Panel **/
+$string['ucla_cp_mod_student'] = 'Other commands';
+$string['student_grades'] = 'Grades';
+$string['student_grades_post'] = 'View your grades on CCLE.';
+$string['student_change_password'] = 'Change Password';
+$string['student_change_password_post'] = 'Click this link to change your password.';
+$string['student_myucla_grades'] = 'Grades (MyUCLA)';
+$string['student_myucla_grades_post'] = 'View your grades on MyUCLA (if your instructor has made them available).';
+$string['student_myucla_classmates'] = 'Classmates (MyUCLA)';
+$string['student_myucla_classmates_post'] = 'View a list of your classmates on MyUCLA.';
+$string['student_myucla_textbooks'] = 'Textbooks (MyUCLA)';
+$string['student_myucla_textbooks_post'] = 'View required textbooks for this course on MyUCLA.';
 
 /** End of File **/

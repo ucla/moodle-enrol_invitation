@@ -18,7 +18,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once(dirname(__FILE__) . '/../moodleblock.class.php');
 require_once(dirname(__FILE__) . '/ucla_cp_module.php');
-
+require_once($CFG->dirroot.'/local/ucla/lib.php');
 class block_ucla_control_panel extends block_base {
     /** Static variables for the static function **/
     const hook_fn = 'ucla_cp_hook';
@@ -44,7 +44,7 @@ class block_ucla_control_panel extends block_base {
     }
 
     /**
-     *  Returns the applicable places that this block can be adde.d
+     *  Returns the applicable places that this block can be added.
      *  This block really cannot be added anywhere, so we just made a place
      *  up (hacky). If we do not do this, we will get this
      *  plugin_devective_exception.
@@ -88,7 +88,7 @@ class block_ucla_control_panel extends block_base {
 
         if (!isset($views['default'])) {
             $views['default'] = array('ucla_cp_mod_common',
-                'block_myucla', 'ucla_cp_mod_other');
+                'ucla_cp_mod_myucla', 'ucla_cp_mod_other','ucla_cp_mod_student');
         }
 
         ksort($views);
@@ -159,25 +159,27 @@ class block_ucla_control_panel extends block_base {
         foreach ($block_modules as $block => $blocks_modules) {
             $modules = array_merge($modules, $blocks_modules);
         }
-
+        
         // Figure out which elements of the control panel to display and
         // which section to display the element in
         foreach ($modules as $module) {
+            //If the modules capability matches that of the current context.
             if ($module->validate($course, $context)) {
                 $module_name = $module->get_key();
-
+                
                 if (!$module->is_tag()) {
                     // If something fits with more than one tag, add
                     // it to both of them
+                    
                     foreach ($module->tags as $section) {
-                        $sections[$section][$module_name] = $module;
+                        $sections[$section][] = $module;
                     }
                 } else {
                     $tags[$module_name] = $module;
                 }
             }
         }
-       
+        
         // Eliminate unvalidated sections as well as repeated-displayed
         // sections
         // Note that these sections appear in the order they were placed
@@ -192,13 +194,13 @@ class block_ucla_control_panel extends block_base {
             }
 
             // Go through and make sure we're not repeating modules
-            foreach ($modules as $mkey => $module) {
+            /*foreach ($modules as $mkey => $module) {
                 if (isset($already_used[$mkey])) {
                     unset($sections[$tag][$mkey]);
                 } else {
                     $already_used[$mkey] = true;
                 }
-            }
+            }*/
         }
      
         // Now based on each view, sort the tags into their proper
@@ -234,7 +236,6 @@ class block_ucla_control_panel extends block_base {
 
             $all_modules[$tag][$tag] = $modules;
         }
-
         return $all_modules;
     }
 

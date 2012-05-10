@@ -26,7 +26,6 @@ function xmldb_local_ucla_install() {
     // Do stuff eventually
     $result = true;
 
-
     // Maybe add some tables we need?
     return $result;
 }

@@ -73,6 +73,7 @@ class subjarea_handler extends browseby_handler {
             INNER JOIN {ucla_reg_classinfo} rci
                 ON rci.subj_area = urs.subjarea
             $where
+            ORDER BY urs.subj_area_full
         ";
 
         $subjectareas = $this->get_records_sql($sql, $conds);
@@ -83,10 +84,6 @@ class subjarea_handler extends browseby_handler {
 
         $terms = array();
         foreach ($subjectareas as $k => $subjarea) {
-            // Save this query...
-            $this->subjareas_pretty[$subjarea->subjarea] = 
-                $subjarea->subj_area_full;
-
             // Figure out which terms we can include in the drop down
             $tt = $subjarea->term;
             $terms[$tt] = $tt;

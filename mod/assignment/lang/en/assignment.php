@@ -184,7 +184,9 @@ $string['submissions'] = 'Submissions';
 $string['submissionsaved'] = 'Your changes have been saved';
 $string['submissionsnotgraded'] = '{$a} submissions not graded';
 $string['submitassignment'] = 'Submit your assignment using this form';
-$string['submitedformarking'] = 'Assignment was already submitted for marking and can not be updated';
+//BEGIN UCLA MOD:CCLE-2870-Clearer Message regarding submitted assignments
+$string['submitedformarking'] = 'Assignment has been successfully submitted for marking and can not be updated';
+//END UCLA MOD:CCLE-2870
 $string['submitformarking'] = 'Final submission for assignment marking';
 $string['submitted'] = 'Submitted';
 $string['submittedfiles'] = 'Submitted files';
@@ -216,3 +218,7 @@ $string['viewfeedback'] = 'View assignment grades and feedback';
 $string['viewmysubmission'] = 'View my submission';
 $string['viewsubmissions'] = 'View {$a} submitted assignments';
 $string['yoursubmission'] = 'Your submission';
+
+// BEGIN UCLA MOD: CCLE-2969 - Some submissions to Assignments tool cannot be downloaded by instructor
+$string['submissionnotice'] = 'Be sure to click "Save changes" or your files will not be saved.';
+// END UCLA MOD: CCLE-2969

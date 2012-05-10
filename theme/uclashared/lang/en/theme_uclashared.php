@@ -81,4 +81,8 @@ $string['env_stage'] = 'Stage';
 $string['env_test'] = 'Test';
 $string['env_dev'] = 'Development';
 
+//BEGIN UCLA MOD: CCLE-2862-Main_site_logo_image_needs_alt_altribute
+$string['UCLA_CCLE_text'] = 'UCLA CCLE Common Collaboration and Learning Environment';
+//END UCLA MOD: CCLE-2862
+
 // EoF

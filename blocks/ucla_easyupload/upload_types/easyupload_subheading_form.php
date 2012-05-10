@@ -4,6 +4,7 @@ defined('MOODLE_INTERNAL') || die();
 
 class easyupload_subheading_form extends easy_upload_form {
     var $allow_js_select = true;
+    var $default_displayname_field = 'intro';
 
     function specification() {
         $mform =& $this->_form;

@@ -105,11 +105,11 @@ class block_ucla_browseby extends block_list {
             return true;
         }
 
-        $this->sync($this->termslist);
+        return $this->sync($this->termslist);
     }
 
     function cron() {
-        $this->run_sync();
+        return $this->run_sync();        
     }
 
     function sync($terms, $subjareas=null) {
@@ -182,7 +182,7 @@ class block_ucla_browseby extends block_list {
 
         echo "Synchronizing instrinfo...";
         $this->partial_sync_table('ucla_browseall_instrinfo', $instrinfos,
-            array('term', 'srs'), $where, $params);
+            array('term', 'srs', 'uid'), $where, $params);
         echo "done.\n";
 
         echo "Finished sync.\n";

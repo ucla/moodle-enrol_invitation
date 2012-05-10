@@ -5,7 +5,7 @@
  **/
 $capabilities = array(
     'tool/uclacourserequestor:edit' => array(
-        'riskbitmask' => RISK_CONFIG,
+        'riskbitmask' => RISK_SPAM | RISK_DATALOSS,
         'captype' => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
         'legacy' => array(
