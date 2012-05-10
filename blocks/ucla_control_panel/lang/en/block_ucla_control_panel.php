@@ -105,6 +105,9 @@ $string['course_edit_post'] = 'Edit the full name and description of the course 
 $string['reports'] = 'Reports';
 $string['reports_post'] = 'View course logs to see student activity.';
 
+$string['groups'] = 'Groups';
+$string['groups_post'] = 'Set up and manage course groups. These provide separate work areas for groups of students in Forums, Wikis and other tools.';
+
 /** Stuff for Student Control Panel **/
 $string['ucla_cp_mod_student'] = 'Other commands';
 $string['student_grades'] = 'Grades';
