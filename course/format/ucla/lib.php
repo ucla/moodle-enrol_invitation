@@ -145,7 +145,11 @@ function ucla_format_display_instructors($course) {
  *  Figures out the topic to display. Specific only to the UCLA course format.
  *  Uses a $_GET or $_POST param to figure out what's going on.
  *
- *  @return Array(
+ *  @return array       Returns an array with two results with the index:
+ *                      0 - $to_topic - the index of the section in 
+ *                                      course_display table (internal usage)
+ *                      1 - $displaysection - index of the section to use when 
+ *                                            writing urls (external usage)
  **/
 function ucla_format_figure_section($course, $course_prefs = null) {
     global $USER;
