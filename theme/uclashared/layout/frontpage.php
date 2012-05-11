@@ -15,18 +15,14 @@ if(!$OUTPUT->get_login_status()) {
         <li>Access your collaboration sites</li>
         <li>Request a collaboration site</li>
     </ul>
-
 </div>
 
 <div class="ribbon">
     <h3><span>Help & Feedback</span></h3>
-    <p>
     <ul>
         <li>Submit a help request</li>
         <li>view self-help articles</li>
         <li>Schedule training</li>
     </ul>
-
-    </p>
 </div>
 <? } ?>
