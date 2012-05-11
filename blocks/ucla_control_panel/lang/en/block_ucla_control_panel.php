@@ -108,6 +108,9 @@ $string['reports_post'] = 'View course logs to see student activity.';
 $string['groups'] = 'Groups';
 $string['groups_post'] = 'Set up and manage course groups. These provide separate work areas for groups of students in Forums, Wikis and other tools.';
 
+$string['quiz_bank'] = 'Quiz question bank';
+$string['quiz_bank_post'] = 'Edit the quiz questions for this course.';
+
 /** Stuff for Student Control Panel **/
 $string['ucla_cp_mod_student'] = 'Other commands';
 $string['student_grades'] = 'Grades';
