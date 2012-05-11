@@ -647,17 +647,21 @@ while ($section <= $course->numsections) {
                                     // Do nothing
                                 } else {
                                     $dest_data = $user->$field;
+                                    //This stores the information displayed on the course web page
+                                    //This is probably where I need to get the info from the new database
+                                    //$user is a $goal_user is a $instructor is a list of instructors
+                                    //taken from a database (line 166) (replace with new database calls here)
                                 }
 
                                 $user_row[$field] = $dest_data;
                             }
-
+                            //print_object($user_row);
                             $table->data[] = $user_row;
                         }
     
                         $instr_info .= html_writer::table($table);
                     }
-
+                    //print_object($instr_info);
                     $center_content .= html_writer::tag('div', $instr_info, 
                         array('class' => 'instr-info'));
                 }
@@ -725,7 +729,7 @@ while ($section <= $course->numsections) {
         $center_content .= html_writer::end_tag('div');
 
         echo $left_side;
-
+        //print_object($center_content);
         // No need to display the box thing if there are no AJAX editing
         // commands that rely on that to be there
         if ($editing) {
