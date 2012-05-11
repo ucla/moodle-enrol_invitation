@@ -81,6 +81,9 @@ $THEME->layouts = array(
         'file' => $tf_frontpage,
         'regions' => array('side-pre', 'side-post'),
         'defaultregion' => $defaultregion,
+        'options' => array(
+            'introbanner' => true,
+        ),
     ),
     // Server administration scripts.
     'admin' => array(
