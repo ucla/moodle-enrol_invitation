@@ -485,9 +485,16 @@ if ($mform->is_cancelled()) {
         }
 
 		// START UCLA modification patch/CCLE-2946-add-a-resource-default-to-private
-		$cm = get_coursemodule_from_id('', $fromform->coursemodule, 0, false, MUST_EXIST);
-		require_once($CFG->libdir.'/publicprivate/module.class.php');
-		PublicPrivate_Module::build($cm)->enable();
+		 require_once($CFG->libdir . '/publicprivate/site.class.php');
+		 require_once($CFG->libdir . '/publicprivate/course.class.php');
+		 if (class_exists('PublicPrivate_Site')) {
+            if (PublicPrivate_Site::is_enabled() 
+                    && PublicPrivate_Course::is_publicprivate_capable($course)) {
+						$cm = get_coursemodule_from_id('', $fromform->coursemodule, 0, false, MUST_EXIST);
+						require_once($CFG->libdir.'/publicprivate/module.class.php');
+						PublicPrivate_Module::build($cm)->enable();
+			}
+		 }
 		// END UCLA modification patch/CCLE-2946-add-a-resource-default-to-private
 
 
@@ -632,10 +639,10 @@ if ($mform->is_cancelled()) {
 
     if (isset($fromform->submitbutton)) {
         if (empty($showgradingmanagement)) {
-            redirect("$CFG->wwwroot/mod/$module->name/view.php?id=$fromform->coursemodule");
+           // redirect("$CFG->wwwroot/mod/$module->name/view.php?id=$fromform->coursemodule");
         } else {
             $returnurl = new moodle_url("/mod/$module->name/view.php", array('id' => $fromform->coursemodule));
-            redirect($gradingman->get_management_url($returnurl));
+           // redirect($gradingman->get_management_url($returnurl));
         }
     } else {
         redirect("$CFG->wwwroot/course/view.php?id={$course->id}#section-{$cw->section}");
