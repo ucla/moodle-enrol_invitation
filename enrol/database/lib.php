@@ -668,9 +668,7 @@ class enrol_database_plugin extends enrol_plugin {
                         $fallback = $fields[$fblocaluserfield];
                     }
 
-                    if (empty($user_mapping[$mapping]) 
-                            || (!empty($fblocaluserfield) && empty($user_fallback[$fallback]))) {
-
+                    if (empty($user_mapping[$mapping]) || (!empty($fblocaluserfield) && empty($user_fallback[$fallback]))) {
                         // Find the user from our database
                         $sqlparams = array();
                         $sqlbuilder = array();
@@ -772,9 +770,9 @@ class enrol_database_plugin extends enrol_plugin {
 
                     $updatedebugstr = '';
 
+                    // Go through updater fields and sync with registrar
                     foreach ($updateuserfields as $updateuserfield) {
-                        if ($userinfo->{$updateuserfield} != $fields[$updateuserfield]) {
-
+                        if (!empty($fields[$updateuserfield]) && $userinfo->{$updateuserfield} != $fields[$updateuserfield]) {
                             if (!empty($updatedebugstr)) {
                                 $updatedebugstr .= "\n";
                             }
