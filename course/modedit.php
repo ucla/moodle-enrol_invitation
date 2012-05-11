@@ -639,10 +639,10 @@ if ($mform->is_cancelled()) {
 
     if (isset($fromform->submitbutton)) {
         if (empty($showgradingmanagement)) {
-           // redirect("$CFG->wwwroot/mod/$module->name/view.php?id=$fromform->coursemodule");
+            redirect("$CFG->wwwroot/mod/$module->name/view.php?id=$fromform->coursemodule");
         } else {
             $returnurl = new moodle_url("/mod/$module->name/view.php", array('id' => $fromform->coursemodule));
-           // redirect($gradingman->get_management_url($returnurl));
+            redirect($gradingman->get_management_url($returnurl));
         }
     } else {
         redirect("$CFG->wwwroot/course/view.php?id={$course->id}#section-{$cw->section}");
