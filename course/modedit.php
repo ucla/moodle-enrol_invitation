@@ -394,6 +394,7 @@ if ($mform->is_cancelled()) {
 
     } else if (!empty($fromform->add)) {
 
+
         if (!empty($course->groupmodeforce) or !isset($fromform->groupmode)) {
             $fromform->groupmode = 0; // do not set groupmode
         }
@@ -482,6 +483,14 @@ if ($mform->is_cancelled()) {
             // set cm idnumber - uniqueness is already verified by form validation
             set_coursemodule_idnumber($fromform->coursemodule, $fromform->cmidnumber);
         }
+
+		// START UCLA modification patch/CCLE-2946-add-a-resource-default-to-private
+		$cm = get_coursemodule_from_id('', $fromform->coursemodule, 0, false, MUST_EXIST);
+		require_once($CFG->libdir.'/publicprivate/module.class.php');
+		PublicPrivate_Module::build($cm)->enable();
+		// END UCLA modification patch/CCLE-2946-add-a-resource-default-to-private
+
+
 
         // Set up conditions
         if ($CFG->enableavailability) {
