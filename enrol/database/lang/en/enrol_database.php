@@ -69,6 +69,10 @@ $string['remoteenroltable_desc'] = 'Specify the name of the table that contains 
 $string['remoterolefield'] = 'Remote role field';
 $string['remoterolefield_desc'] = 'The name of the field in the remote table that we are using to match entries in the roles table.';
 $string['remoteuserfield'] = 'Remote user field';
+// BEGIN UCLA MOD CCLE-2429: Update users on prepop delay based on useraccess
+$string['minuserupdatewaitdays'] = 'User information update delay';
+$string['minuserupdatewaitdays_desc'] = 'Number of days since a user\'s last login before updating their first name, last name and/or email from the external database.';
+// END UCLA MOD
 $string['settingsheaderdb'] = 'External database connection';
 $string['settingsheaderlocal'] = 'Local field mapping';
 $string['settingsheaderremote'] = 'Remote enrolment sync';
