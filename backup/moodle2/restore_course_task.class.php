@@ -188,12 +188,10 @@ class restore_course_task extends restore_task {
         $legacyfiles->set_ui(new backup_setting_ui_select($legacyfiles, $legacyfiles->get_name(), array(1=>get_string('yes'), 0=>get_string('no'))));
 
         $legacyfiles->get_ui()->set_label(get_string('setting_legacyfiles', 'backup'));
-
-        if ($this->get_target() == backup::TARGET_NEW_COURSE) {
-
-            $legacyfiles->set_value(true);
-
-        }
+		
+		// set default to true
+		// original patch set it to true only when restore as new course
+        $legacyfiles->set_value(true);
 
         $this->add_setting($legacyfiles);
 
