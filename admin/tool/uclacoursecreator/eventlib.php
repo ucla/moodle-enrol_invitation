@@ -2,6 +2,22 @@
 /*
  * Library hold functions that will be called for event handling
  */
+require_once(dirname(__FILE__) . '/uclacoursecreator.class.php');
+
+/**
+ * Respond to events that require course creator to build now.
+ * 
+ * @param array $terms  An array of terms to run course builder for
+ */
+function build_courses_now($terms) {
+    $bcc = new uclacoursecreator();
+
+    // This may take a while...
+    @set_time_limit(0);    
+    
+    $bcc->set_terms($terms);
+    $bcc->cron();    
+}
 
 /**
  * Checks if course has a ucla_course_menu block. If so, then it makes the
@@ -31,4 +47,3 @@ function move_site_menu_block($course) {
 
     return true;
 }
-?>

@@ -86,6 +86,11 @@ $CFG->instructor_levels_roles = array(
 // Course builder
 $terms_to_built = array('12S', '121', '12F');
 
+// Browseby CCLE-2894
+$CFG->forced_plugin_settings['block_ucla_browseby']['use_local_courses'] = false;
+$CFG->forced_plugin_settings['block_ucla_browseby']['ignore_coursenum'] = '194,295,296,375';
+$CFG->forced_plugin_settings['block_ucla_browseby']['allow_acttypes'] = 'LEC,SEM';
+
 // Course Requestor
 //$CFG->forced_plugin_settings['tool_uclacourserequestor']['terms'] = $terms_to_built;
 //$CFG->forced_plugin_settings['tool_uclacourserequestor']['selected_term'] = $CFG->currentterm;
@@ -195,6 +200,7 @@ $CFG->forced_plugin_settings['resource']['display'] = 4;   // "Force Download"
 // Site administration > Plugins > Activity modules > URL
 $CFG->forced_plugin_settings['url']['requiremodintro'] = 0;
 $CFG->forced_plugin_settings['url']['printheading'] = 1;
+$CFG->forced_plugin_settings['url']['display'] = 5; // RESOURCELIB_DISPLAY_OPEN
 
 // Site administration > Plugins > Licences > Manage licences
 $CFG->sitedefaultlicense = 'iown';
