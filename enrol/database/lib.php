@@ -591,7 +591,8 @@ class enrol_database_plugin extends enrol_plugin {
 
         // This configuration value comes in days, so multiply
         // This value is in seconds, or is false which is 0, meaning instantly/always
-        $minuserupdatewait = $this->get_config('minuserupdatewaitdays') * 60 * 60 * 24;
+        // 86400 == 60 * 60 * 24 (seconds in a day)
+        $minuserupdatewait = $this->get_config('minuserupdatewaitdays') * 86400;
        
         // This may cause seconds/minutes of disparity
         $currtime = time();
@@ -820,6 +821,9 @@ class enrol_database_plugin extends enrol_plugin {
                                 . '), but ignoring (minuserupdatewaitdays)');
                         }
                     }
+
+                    // Since we cloned, we want to clear memory
+                    unset($userinfo);
 
                     if (empty($fields[$rolefield]) or !isset($roles[$fields[$rolefield]])) {
                         if (!$defaultrole) {

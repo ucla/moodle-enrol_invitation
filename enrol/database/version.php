@@ -31,4 +31,5 @@ $plugin->component = 'enrol_database';  // Full name of the plugin (used for dia
 //TODO: should we add cron sync?
 
 // START UCLA MOD CCLE-2429 - Adding configuration for waiting before updating local user tables
-$plugin->version = 2012051100;
+// NOTE: since this is a core moodle change, we want to change the version numbers as minimally as possible
+$plugin->version   = 2011112901;
