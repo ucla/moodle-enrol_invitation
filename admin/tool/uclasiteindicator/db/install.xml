@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="admin/tool/uclasiteindicator/db" VERSION="20120503" COMMENT="XMLDB file for Moodle admin/tool/uclasiteindicator"
+<XMLDB PATH="admin/tool/uclasiteindicator/db" VERSION="20120511" COMMENT="XMLDB file for Moodle admin/tool/uclasiteindicator"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="ucla_indicator" COMMENT="ucla_indicator table retrofitted from MySQL" NEXT="ucla_indicator_assign">
+    <TABLE NAME="ucla_indicator" COMMENT="ucla_indicator table retrofitted from MySQL" NEXT="ucla_indicator_request">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="courseid"/>
         <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="type"/>
@@ -18,48 +18,7 @@
         <INDEX NAME="type" UNIQUE="false" FIELDS="type"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="ucla_indicator_assign" COMMENT="ucla_indicator_assign table retrofitted from MySQL" PREVIOUS="ucla_indicator" NEXT="ucla_indicator_mapping">
-      <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="siteroleid"/>
-        <FIELD NAME="siteroleid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="roleid"/>
-        <FIELD NAME="roleid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="siteroleid"/>
-      </FIELDS>
-      <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-      </KEYS>
-      <INDEXES>
-        <INDEX NAME="siteroleid" UNIQUE="false" FIELDS="siteroleid" NEXT="roleid"/>
-        <INDEX NAME="roleid" UNIQUE="false" FIELDS="roleid" PREVIOUS="siteroleid"/>
-      </INDEXES>
-    </TABLE>
-    <TABLE NAME="ucla_indicator_mapping" COMMENT="ucla_indicator_mapping table retrofitted from MySQL" PREVIOUS="ucla_indicator_assign" NEXT="ucla_indicator_reassign">
-      <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="typeid"/>
-        <FIELD NAME="typeid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="siteroleid"/>
-        <FIELD NAME="siteroleid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="typeid"/>
-      </FIELDS>
-      <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-      </KEYS>
-      <INDEXES>
-        <INDEX NAME="siteroleid" UNIQUE="false" FIELDS="siteroleid" NEXT="typeid"/>
-        <INDEX NAME="typeid" UNIQUE="false" FIELDS="typeid" PREVIOUS="siteroleid"/>
-      </INDEXES>
-    </TABLE>
-    <TABLE NAME="ucla_indicator_reassign" COMMENT="ucla_indicator_reassign table retrofitted from MySQL" PREVIOUS="ucla_indicator_mapping" NEXT="ucla_indicator_request">
-      <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="roleid"/>
-        <FIELD NAME="roleid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="equivalent"/>
-        <FIELD NAME="equivalent" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="roleid"/>
-      </FIELDS>
-      <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-      </KEYS>
-      <INDEXES>
-        <INDEX NAME="roleid" UNIQUE="false" FIELDS="roleid"/>
-      </INDEXES>
-    </TABLE>
-    <TABLE NAME="ucla_indicator_request" COMMENT="ucla_indicator_request table retrofitted from MySQL" PREVIOUS="ucla_indicator_reassign" NEXT="ucla_indicator_siteroles">
+    <TABLE NAME="ucla_indicator_request" COMMENT="ucla_indicator_request table retrofitted from MySQL" PREVIOUS="ucla_indicator" NEXT="ucla_indicator_type">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="requestid"/>
         <FIELD NAME="requestid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="support"/>
@@ -76,16 +35,7 @@
         <INDEX NAME="categoryid" UNIQUE="false" FIELDS="categoryid"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="ucla_indicator_siteroles" COMMENT="ucla_indicator_siteroles table retrofitted from MySQL" PREVIOUS="ucla_indicator_request" NEXT="ucla_indicator_type">
-      <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="name"/>
-        <FIELD NAME="name" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" PREVIOUS="id"/>
-      </FIELDS>
-      <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-      </KEYS>
-    </TABLE>
-    <TABLE NAME="ucla_indicator_type" COMMENT="ucla_indicator_type table retrofitted from MySQL" PREVIOUS="ucla_indicator_siteroles">
+    <TABLE NAME="ucla_indicator_type" COMMENT="ucla_indicator_type table retrofitted from MySQL" PREVIOUS="ucla_indicator_request">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="sortorder"/>
         <FIELD NAME="sortorder" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" SEQUENCE="false" PREVIOUS="id" NEXT="fullname"/>

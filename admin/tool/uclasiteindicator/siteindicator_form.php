@@ -22,7 +22,10 @@ class siteindicator_form extends moodleform {
 
         $mform =& $this->_form;
         
-        $roles = $this->_customdata['roles'];
+        $uclaindicator = $this->_customdata['uclaindicator'];
+        $rolegroups = $uclaindicator->get_site_rolegroups();
+        var_dump($rolegroups);
+        echo "<br/>";
 
         $records = $DB->get_records('role', null, '', 'id, name');
         foreach($records as $rec) {
@@ -31,16 +34,10 @@ class siteindicator_form extends moodleform {
         
         $mform->addElement('header','siteindicator_types', 'Indicator role assignments');
         
-        foreach($roles as $role) {
-            $records = $DB->get_records('ucla_indicator_assign', array('siteroleid' => $role->id));
-            $assignments = array();
-            
-            foreach($records as $rec) {
-                $assignments[] = $rec->roleid;
-            }
-            $select = &$mform->addElement('select', strtolower($role->name), $role->name, $rolelist, array('size' => '15'));
+        foreach($rolegroups as $k => $v) {
+            $select = &$mform->addElement('select', $k, $v, $rolelist, array('size' => '15'));
             $select->setMultiple(true);
-            $select->setSelected($assignments);
+            $select->setSelected($uclaindicator->get_roles_for_group($k));
         }
         
         $buttonarray=array();

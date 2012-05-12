@@ -15,6 +15,11 @@ $string['roles'] = 'Roles';
 $string['site'] = 'site';
 $string['del_msg'] = 'Site indicator entry';
 
+// Site role groups
+$string['r_project'] = 'Project';
+$string['r_instruction'] = 'Instruction';
+$string['r_test'] = 'Test';
+
 // Site descriptions
 $string['site_instruction'] = 'Instruction';
 $string['site_instruction_desc'] = 'An instruction site that is not listed at 

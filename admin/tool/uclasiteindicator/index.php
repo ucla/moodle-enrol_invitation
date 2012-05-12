@@ -55,8 +55,8 @@ if(empty($types)) {
     
 } else {
 
-    $roles = $DB->get_records('ucla_indicator_siteroles');
-
+    $uclaindicator = new ucla_site_indicator();
+    
     $table = new html_table();
     $table->attributes['class'] = 'generaltable';
     $table->align = array('left', 'left', 'left', 'center', 'center');
@@ -73,48 +73,14 @@ if(empty($types)) {
         $table->data[] = $row;
     }
 
-    $role_table = new html_table();
-    $role_table->attributes['class'] = 'generaltable';
-    $role_table->align = array('center', 'left');
-    $role_table->head = array('id', 'Type roles');
-
-    foreach($roles as $role) {
-        $role_table->data[] = $role;
-    }
-
-    $assignform = new siteindicator_form(null, array('roles' => $roles));
+    $assignform = new siteindicator_form(null, array('uclaindicator' => $uclaindicator));
 
     if($data = $assignform->get_data()) {
-
-        // Delete all records
-        $DB->delete_records('ucla_indicator_assign');
-
-        foreach($data->instruction as $i) {
-            $rec = new stdClass();
-            $rec->siteroleid = 1;
-            $rec->roleid = $i;
-            $DB->insert_record('ucla_indicator_assign', $rec);
-        }
-
-        foreach($data->project as $p) {
-            $rec = new stdClass();
-            $rec->siteroleid = 2;
-            $rec->roleid = $p;
-            $DB->insert_record('ucla_indicator_assign', $rec);
-        }
-
-        foreach($data->test as $t) {
-            $rec = new stdClass();
-            $rec->siteroleid = 3;
-            $rec->roleid = $t;
-            $DB->insert_record('ucla_indicator_assign', $rec);
-        }
+        $uclaindicator->update_role_assignments($data);
     }
 
     // Display indicator types
     echo html_writer::table($table);
-    // Display indicator roles
-    echo html_writer::table($role_table);
 
     $assignform->display();
 }

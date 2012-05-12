@@ -91,21 +91,10 @@ class site_indicator_entry {
      */
     public function get_assignable_roles() {
         global $DB;
-        $list = array();
         
-        $query = "SELECT r.name
-                FROM {role} AS r
-                JOIN {ucla_indicator_assign} AS sra ON sra.roleid = r.id
-                JOIN {ucla_indicator_mapping} srm ON srm.siteroleid = sra.siteroleid
-                WHERE srm.typeid = ?";
-        
-        $records = $DB->get_records_sql($query, array($this->property->type));
-        
-        foreach($records as $rec) {
-            $list[] = $rec->name;
-        }
-        
-        return $list;                
+        $uclaindicator = new ucla_site_indicator();
+        $roleids = $uclaindicator->get_roles_for_type($this->property->type);
+        $roles = $DB->get_records('role')
     }
     
 
@@ -352,6 +341,80 @@ class site_indicator_request {
  * 
  */
 class ucla_site_indicator {
+    
+    private $_indicatorrolegroups;
+    private $_roleassignments;
+    private $_typetorolemapping;
+    private $_plugin;
+    
+    function __construct() {
+        $this->_plugin = 'ucla_siteindicator';
+        
+        $this->_indicatorrolegroups = array(
+            'instruction' => get_string('r_instruction', 'tool_uclasiteindicator'),
+            'project' => get_string('r_project', 'tool_uclasiteindicator'),
+            'test' => get_string('r_test', 'tool_uclasiteindicator'),
+        );
+        
+        $this->_typetorolemapping = array(
+            'instruction' => 'instruction',
+            'non_instruction' => 'project',
+            'research' => 'project',
+            'test' => 'test',
+        );
+        
+        $this->set_role_assignments();
+    }
+    
+    private function set_role_assignments() {
+        if($assignmemnts = get_config($this->_plugin, 'roleassignment')) {
+            $this->_roleassignments = (array)json_decode($assignmemnts);
+        } else {
+            $this->create_role_assignments();
+        }
+    }
+    
+    private function create_role_assignments() {
+        $assignments = array();
+        
+        foreach($this->_indicatorrolegroups as $k => $v) {
+            $assignments[$k] = array();
+        }
+        
+        set_config('roleassignment', json_encode($assignments), $this->_plugin);
+        $this->_roleassignments = $assignments;
+    }
+    
+    public function get_site_rolegroups() {
+        return $this->_indicatorrolegroups;
+    }
+    
+    public function update_role_assignments($update) {
+
+        if(is_object($update)) {
+            $update = (array)$update;
+        }
+        $assignments = array();
+        foreach($this->_indicatorrolegroups as $k => $v) {
+            $assignments[$k] = $update[$k];
+        }
+        
+        $this->_roleassignments = $assignments;
+        set_config('roleassignment', json_encode($assignments), $this->_plugin);
+    }
+    
+    function get_roles_for_group($group) {
+        return $this->_roleassignments[$group];
+    }
+    
+    function get_roles_for_type($type) {
+        global $DB;
+        if(is_int($type)) {
+            $rec = $DB->get_record('ucla_indicator_types', array('id' => $type));
+            $type = $rec->shortname;
+        }
+        return $this->_roleassignments[$this->_typetorolemapping[$type]];
+    }
 
     /**
      * Returns a filtered categories list
@@ -571,20 +634,6 @@ class ucla_indicator_admin {
                 (4, 0, '".get_string('site_test', 'tool_uclasiteindicator')."', 'test', '".get_string('site_test_desc', 'tool_uclasiteindicator')."', 1),
                 (5, 0, '".get_string('site_registrar', 'tool_uclasiteindicator')."', 'registrar', '".get_string('site_registrar_desc', 'tool_uclasiteindicator')."', 0)";
         $DB->execute($query1);
-        
-        // Populate collab site roles
-        $query2 = "INSERT INTO {ucla_indicator_siteroles} (id, name) VALUES
-                (1, 'Instruction'),
-                (2, 'Project'),
-                (3, 'Test')";
-        $DB->execute($query2);
-        
-        // Populate mapping of types and site roles
-        $query3 = "INSERT INTO {ucla_indicator_mapping} (id, typeid, siteroleid) VALUES
-                (1, 1, 1),
-                (2, 2, 2),
-                (3, 3, 2),
-                (4, 4, 3)";
-        $DB->execute($query3);
+
     }
 }
