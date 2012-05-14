@@ -1210,16 +1210,18 @@ class restore_course_structure_step extends restore_structure_step {
     protected function after_execute() {
         // Add course related files, without itemid to match
         $this->add_related_files('course', 'summary', null);
-	
+        // START UCLA MOD: CCLE-2902 - Enable "legacy course files" repository for restored M19 courses on M2
+        // Patch from https://github.com/merrill-oakland/moodle/compare/master...MDL-32598
+	//$this->add_related_files('course', 'legacy', null);
+        // END UCLA MOD: CCLE-2902
     }
 }
 
-// START UCLA patch/CCLE-2902-enable-legacy-course-files-repository
+// START UCLA MOD: CCLE-2902 - Enable "legacy course files" repository for restored M19 courses on M2
 // Patch from https://github.com/merrill-oakland/moodle/compare/master...MDL-32598
-
 /**
-* Structure step that will migrate legacy files if present.
-*/
+ * Structure step that will migrate legacy files if present.
+ */
 class restore_course_legacy_files_step extends restore_structure_step {
     protected function define_structure() {
         $course = new restore_path_element('course', '/course');
@@ -1228,11 +1230,11 @@ class restore_course_legacy_files_step extends restore_structure_step {
     }
 
     /**
-* Processing functions go here
-*
-* @global moodledatabase $DB
-* @param stdClass $data
-*/
+     * Processing functions go here
+     *
+     * @global moodledatabase $DB
+     * @param stdClass $data
+     */
     public function process_course($data) {
         global $CFG, $DB;
 
@@ -1266,7 +1268,7 @@ class restore_course_legacy_files_step extends restore_structure_step {
     }
 
 }
-// END UCLA patch/CCLE-2902-enable-legacy-course-files-repository
+// END UCLA MOD: CCLE-2902
 
 
 /*
