@@ -30,7 +30,7 @@ $string['cannotsendmoreinvitationfortoday'] = 'No invitation left for today. Try
 $string['defaultrole'] = 'Default role assignment';
 $string['defaultrole_desc'] = 'Select role which should be assigned to users during invitation enrollments';
 $string['editenrollment'] = 'Edit enrollment';
-$string['emailaddressnumber'] = 'Email address {$a}';
+$string['emailaddressnumber'] = 'Email address';
 $string['emailmessageinvitation'] = '{$a->managername} invited you to join {$a->fullname}. 
 
 To join, click the following link: {$a->enrolurl}
@@ -59,7 +59,6 @@ $string['enrolperiod_help'] = 'Length of time that the enrollment is valid, star
 $string['enrolstartdate'] = 'Start date';
 $string['enrolstartdate_help'] = 'If enabled, users can be enrolled from this date onward only.';
 $string['expiredtoken'] = 'Invalid token - enrollment process has stopped.';
-$string['invitationpagehelp'] = '<ul><li>You have {$a} invitation(s) left for today.</li><li>Each invitation is unique and expires once used.</li></ul>';
 $string['inviteusers'] = 'Invite users';
 $string['maxinviteerror'] = 'It must be a number.';
 $string['maxinviteperday'] = 'Maximum invitation per day';
@@ -80,3 +79,7 @@ $string['invitation:enrol'] = 'Invite users';
 $string['invitation:manage'] = 'Manage site invitation assignments';
 $string['invitation:unenrol'] = 'Unassign users from the course';
 $string['invitation:unenrolself'] = 'Unassign self from the course';
+
+// Page tabs
+$string['tab_history'] = 'Invite History';
+$string['tab_invite'] = 'Invite Users';
