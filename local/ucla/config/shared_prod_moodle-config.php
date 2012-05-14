@@ -87,7 +87,7 @@ $CFG->instructor_levels_roles = array(
 $terms_to_built = array('12S', '121', '12F');
 
 // Browseby CCLE-2894
-$CFG->forced_plugin_settings['block_ucla_browseby']['use_local_courses'] = false;
+$CFG->forced_plugin_settings['block_ucla_browseby']['use_local_courses'] = 0;
 $CFG->forced_plugin_settings['block_ucla_browseby']['ignore_coursenum'] = '194,295,296,375';
 $CFG->forced_plugin_settings['block_ucla_browseby']['allow_acttypes'] = 'LEC,SEM';
 
