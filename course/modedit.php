@@ -484,18 +484,17 @@ if ($mform->is_cancelled()) {
             set_coursemodule_idnumber($fromform->coursemodule, $fromform->cmidnumber);
         }
 
-		// START UCLA modification patch/CCLE-2946-add-a-resource-default-to-private
-		 require_once($CFG->libdir . '/publicprivate/site.class.php');
-		 require_once($CFG->libdir . '/publicprivate/course.class.php');
-         if (PublicPrivate_Site::is_enabled() 
+        // START UCLA MOD: CCLE-2946 - Uploading resources via Moodle's 
+        // "Add a resource" dropdown adds content as public, not private.
+        require_once($CFG->libdir . '/publicprivate/site.class.php');
+        require_once($CFG->libdir . '/publicprivate/course.class.php');
+        if (PublicPrivate_Site::is_enabled() 
                     && PublicPrivate_Course::is_publicprivate_capable($course)) {
-						$cm = get_coursemodule_from_id('', $fromform->coursemodule, 0, false, MUST_EXIST);
-						require_once($CFG->libdir.'/publicprivate/module.class.php');
-						PublicPrivate_Module::build($cm)->enable();
-		}
-		// END UCLA modification patch/CCLE-2946-add-a-resource-default-to-private
-
-
+            $cm = get_coursemodule_from_id('', $fromform->coursemodule, 0, false, MUST_EXIST);
+            require_once($CFG->libdir.'/publicprivate/module.class.php');
+            PublicPrivate_Module::build($cm)->enable();
+        }
+        // END UCLA MOD: CCLE-2946
 
         // Set up conditions
         if ($CFG->enableavailability) {
