@@ -94,7 +94,7 @@ class site_indicator_entry {
         
         $uclaindicator = new ucla_site_indicator();
         $roleids = $uclaindicator->get_roles_for_type($this->property->type);
-        $roles = $DB->get_records('role')
+        $roles = $DB->get_records('role');
     }
     
 
