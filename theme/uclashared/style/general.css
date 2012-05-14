@@ -392,3 +392,54 @@ html, body {background-color:#FFF; height:100%;}
     height:150px;    
     width: 275px;   /* only applicable for intro forms that don't use TinyMCE */
 }
+
+/** Edit icon modifications **/
+.editing_update {
+    border-left: 1px solid #DDDDDD;
+    padding-left: 8px;
+    margin-left: 8px;
+}
+.editing_duplicate {
+    margin-right: 4px;
+}
+.editing_delete, .editing_makeprivate, .editing_makepublic {
+    border-right: 1px solid #DDDDDD;
+    padding-right: 8px;
+    margin-right: 8px;
+}
+/*.editing_hide {
+    float: right;
+}
+.editing_makeprivate {
+    float: right;
+}*/
+.topics .section li.activity {
+    padding: 5px 10px;
+    border-top: 1px solid #F5F5F5;
+    border-right: 1px solid white;
+}
+.topics .section li:nth-child(2n) {
+    background-color: #F9F9F9;
+}
+.topics .section li:hover {
+    background-color: #F5F5F5;
+/*    border-left: 1px dashed gray;*/
+/*    border-right: 1px dashed gray;*/
+}
+.mod-indent .commands {
+    width: 220px;
+    float:right;
+/*    margin-left: 10px;*/
+    margin-right: 10px;
+}
+.mod-indent .commands a {
+    margin-right: 2px;
+}
+.contentafterlink {
+    border: 1px solid #EEEEEE;
+    border-left: 5px solid #EEEEEE;
+    margin: 5px 20px;
+    padding: 0 0 0 15px;
+    background-color: #FFFFFF;
+    color: #777777;
+}
