@@ -3,3 +3,11 @@
 .enrol_invitation_item_icon {
     padding-right: 5px;
 }
+
+#enrol_invitation_page_tabs {
+    border-bottom: 1px solid black;
+}
+#enrol_invitation_page_tabs .tabtree, 
+#enrol_invitation_page_tabs .tabtree .tabrow0 {
+    margin-bottom: 0;
+}

@@ -213,3 +213,22 @@ class invitation_manager {
         $enrol->enrol_user($this->enrol_instance, $USER->id, $this->enrol_instance->roleid);
     }
 }
+
+/**
+ *
+ * @param type $active_tab  Either 'invite' or 'history'
+ */
+function print_page_tabs($active_tab) {
+    global $PAGE;
+    
+    $tabs[] = new tabobject('history', $PAGE->url, 
+            get_string('tab_history', 'enrol_invitation'));
+    $tabs[] = new tabobject('invite', $PAGE->url, 
+            get_string('tab_invite', 'enrol_invitation'));    
+ 
+    // display tags here
+    echo html_writer::start_tag('div', 
+            array('id' => 'enrol_invitation_page_tabs'));
+    print_tabs(array($tabs), $active_tab);
+    echo html_writer::end_tag('div');    
+}

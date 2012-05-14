@@ -52,18 +52,13 @@ class invitations_form extends moodleform {
         $invitationleft = $this->_customdata['leftinvitation']; 
         
         // Email address fields
-        for ($i = 1; $i <= $invitationleft; $i += 1) {
-            $mform->addElement('text', 'email' . $i, get_string('emailaddressnumber', 'enrol_invitation', $i), 'size="50"');
-            if ($i == 1) {
-                //first email address is required
-                $mform->addRule('email'.$i, get_string('required'), 'required');
-            }
-            $mform->setType('email'.$i, PARAM_EMAIL);
-        }
+        $mform->addElement('text', 'email', get_string('emailaddressnumber', 'enrol_invitation'), 'size="50"');
+        //first email address is required
+        $mform->addRule('email', get_string('required'), 'required');
 
-        if ($invitationleft > 0) {
-            $this->add_action_buttons(false, get_string('inviteusers', 'enrol_invitation'));
-        }
+        $mform->setType('email', PARAM_EMAIL);
+        
+        $this->add_action_buttons(false, get_string('inviteusers', 'enrol_invitation'));
     }
 
 }

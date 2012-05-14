@@ -73,13 +73,11 @@ if ($data and confirm_sesskey()) {
 
 //OUTPUT form
 echo $OUTPUT->header();
+
+// OUTPUT page tabs
+print_page_tabs('invite');
+
 echo $OUTPUT->heading(get_string('inviteusers', 'enrol_invitation'));
-echo html_writer::tag('div', get_string('invitationpagehelp', 'enrol_invitation', $invitationleft),
-        array('class' => 'invitationpagehelp'));
-if ($invitationleft > 0) {
-    $mform->display();
-} else {
-    echo $OUTPUT->single_button(new moodle_url('/course/view.php', array('id' => $courseid)), get_string('cancel'));
-}
+$mform->display();
 
 echo $OUTPUT->footer();
