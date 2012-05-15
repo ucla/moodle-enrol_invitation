@@ -23,8 +23,9 @@ class officehours_form extends moodleform {
         $mform->addElement('text', 'phone', get_string('phone', 'block_ucla_office_hours'));
         $mform->addElement('text', 'email', get_string('email', 'block_ucla_office_hours'));
         $mform->addElement('text', 'website', get_string('website', 'block_ucla_office_hours'));
-        $mform->addElement('button', 'save', get_string('save', 'block_ucla_office_hours'));
-        $mform->setType('office', PARAM_NOTAGS);
+        //$mform->addElement('button', 'save', get_string('save', 'block_ucla_office_hours'));
+        //$mform->addElement('button', 'save', get_string('cancel', 'block_ucla_office_hours'));
+        $this->add_action_buttons();
         //$mform->addRule('office', get_string('emptyfield', 'block_ucla_office_hours'), 'required', null, 'server');
         
     }

@@ -12,6 +12,7 @@ $string['emptyfield'] = 'One or more required fields were left empty.';
 $string['header'] = 'Update Office Hours and Contact Info';
 $string['edituser'] = 'Updating information for: ';
 $string['save'] = 'Save changes';
+$string['cancel'] = 'Cancel';
 
 
 //EOF

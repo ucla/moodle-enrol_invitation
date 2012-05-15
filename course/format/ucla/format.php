@@ -642,26 +642,35 @@ while ($section <= $course->numsections) {
                             foreach ($desired_info as $field => $header) {
                                 $dest_data = '';
                                 if ($field == 'fullname') {
-                                    $dest_data = fullname($user);
+                                    //BEGIN UCLA MOD: CCLE-2381 - Update Office Hours and Contact Info
+                                    if($editing && $has_capability_update) {
+                                        $update_url = new moodle_url($CFG->wwwroot.'/blocks/ucla_office_hours/officehours.php', 
+                                                array('course_id' => $course->id, 'edit_id' => $user->id));
+                                        $strupdate = get_string('editofficehours', 'format_ucla');
+                                        $dest_data = html_writer::tag('a', $strupdate, array('href' => $update_url)).' ';
+                                    }
+                                    $dest_data .= fullname($user);
+                                    //END UCLA MOD: CCLE-2381
                                 } else if (!isset($user->$field)) {
                                     // Do nothing
                                 } else {
+                                    //BEGIN UCLA MOD: CCLE-2381 - Update Office Hours and Contact Info
                                     $dest_data = $user->$field;
+                                    //print_object($title);
                                     //This stores the information displayed on the course web page
                                     //This is probably where I need to get the info from the new database
                                     //$user is a $goal_user is a $instructor is a list of instructors
                                     //taken from a database (line 166) (replace with new database calls here)
+                                    //END UCLA MOD: CCLE-2381
                                 }
 
                                 $user_row[$field] = $dest_data;
                             }
-                            //print_object($user_row);
                             $table->data[] = $user_row;
                         }
     
                         $instr_info .= html_writer::table($table);
                     }
-                    //print_object($instr_info);
                     $center_content .= html_writer::tag('div', $instr_info, 
                         array('class' => 'instr-info'));
                 }
@@ -729,7 +738,6 @@ while ($section <= $course->numsections) {
         $center_content .= html_writer::end_tag('div');
 
         echo $left_side;
-        //print_object($center_content);
         // No need to display the box thing if there are no AJAX editing
         // commands that rely on that to be there
         if ($editing) {
