@@ -4,8 +4,6 @@
 // To display this page, must set this config:
 // $CFG->customfrontpageinclude = "theme/uclashared/layout/frontpage.php";
 
-
-if(!$OUTPUT->get_login_status()) {
 ?>
 
 <div class="ribbon">
@@ -25,4 +23,3 @@ if(!$OUTPUT->get_login_status()) {
         <li>Schedule training</li>
     </ul>
 </div>
-<? } ?>

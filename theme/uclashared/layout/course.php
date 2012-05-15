@@ -10,8 +10,7 @@ $hassidepre = (empty($PAGE->layout_options['noblocks'])
 $hassidepost = (empty($PAGE->layout_options['noblocks']) 
     && $PAGE->blocks->region_has_content('side-post', $OUTPUT));
 $haslogininfo = (empty($PAGE->layout_options['nologininfo']));
-$hasintrobanner = (!empty($PAGE->layout_options['introbanner'])
-    && !$OUTPUT->get_login_status());
+$hasintrobanner = (!empty($PAGE->layout_options['introbanner']));
 
 $envflag = 'prod';
 if (!empty($PAGE->layout_options['environment'])) {

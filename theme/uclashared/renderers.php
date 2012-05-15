@@ -353,13 +353,6 @@ class theme_uclashared_core_renderer extends core_renderer {
 
         return $c;
     }
-    
-    /**
-     * Returns login status 
-     */
-    function get_login_status() {
-        return isloggedin();
-    }
 }
 
 class ucla_html_writer extends html_writer {
