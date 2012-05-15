@@ -28,7 +28,7 @@ html, body {background-color:#FFF; height:100%;}
 .ribbon {
     font: normal 12px/1.5 "Lucida Grande", arial, sans-serif;
     width: 300px;
-    margin: 0px auto 10px;
+    margin: 0px 25px 10px 25px;
     padding: 0 10px 4px;
     position: relative;
     color: #444;
@@ -41,7 +41,6 @@ html, body {background-color:#FFF; height:100%;}
     -moz-box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     float:left;
-    margin-left: 100px;
 }
 .ribbon h3 {
     font: bold 14px/1.3 "Lucida Grande", arial, sans-serif;

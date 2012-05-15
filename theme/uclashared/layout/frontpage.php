@@ -16,10 +16,10 @@
 </div>
 
 <div class="ribbon">
-    <h3><span>Help & Feedback</span></h3>
+    <h3>Help & Feedback</h3>
     <ul>
         <li>Submit a help request</li>
-        <li>view self-help articles</li>
+        <li>View self-help articles</li>
         <li>Schedule training</li>
     </ul>
 </div>
