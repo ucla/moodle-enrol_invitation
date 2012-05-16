@@ -28,3 +28,6 @@ $string['invalidrolemapping'] = 'Could not find role mapping {$a}';
 $string['ucla:viewall_courselisting'] = 'Allows user to see all courses another user is associated with on their profile';
 
 $string['external-link'] = 'External website (opens new window)';
+
+$string['student_access_week_title'] = 'Student previous term cutoff week';
+$string['student_access_week_desc'] = 'The number of week since the beginning of the current quarter in which students are allowed view a previous quarter\'s courses.';

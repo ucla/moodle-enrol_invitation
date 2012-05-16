@@ -73,6 +73,50 @@ class ucla_term_fn_test extends UnitTestCase {
         ));
     }
 
+    // A lot of the next_term and prev_term stuff is tested in 
+    // block_ucla_weeksdisplay
+
+    function test_fills() {
+        // Argument
+        $a = array(
+            '11F',
+            '12F',
+            '13F'
+        );
+
+        // Final
+        $f = array(
+            '11F', '12W', '12S', '121', 
+            '12F', '13W', '13S', '131',
+            '13F'
+        );
+
+        // Result
+        $r = terms_range('11F', '13F');
+        $this->assertEqual($r, $f);
+
+        $r = terms_arr_fill($a);
+        $this->assertEqual($r, $f);
+    }
+
+    function test_termrolefilter() {
+        // Previous term, before cutoff week
+        $r = term_role_can_view('11F', 'student', '12W', 1, 2);
+        $this->assertTrue($r !== false);
+
+        // Previous term, after cutoff week
+        $r = term_role_can_view('11F', 'student', '12W', 3, 2);
+        $this->assertTrue($r === false);
+      
+        // Future term, after cutoff week
+        $r = term_role_can_view('121', 'student', '12W', 3, 2);
+        $this->assertTrue($r !== false);
+        
+        // Previous term, after cutoff week, with powerful role
+        $r = term_role_can_view('11F', 'editinginstructor', '12W', 3, 2);
+        $this->assertTrue($r !== false);
+    }
+
     function test_validator() {
         try {
             $r = term_enum('3232');

@@ -7,6 +7,7 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 //require_once($CFG->libdir . '/uclalib.php');
 require_once($CFG->dirroot.'/lib/accesslib.php');
+
 /**
  *  @deprecated
  *  This will attempt to access this file from the web.
@@ -770,6 +771,194 @@ function terms_arr_sort($terms) {
     }
 
     return $sorted;
+}
+
+/**
+ *  Returns a set of terms that the user is allowed to access depending
+ *      on their role in a particular context.
+ *  Optimized usage of term_role_can_view()
+ *
+ *  @param  $terms Array of terms to check.
+ *  @param  $roleshortname The shortname to check against
+ *  @return Array of terms that can be accessed, from the set of terms
+ *      provided as the $terms argument.
+ **/
+function terms_arr_role_filter($terms, $roleshortname) {
+    // Pre-cache all these variables
+    $currterm = get_config(null, 'currentterm');
+    $currweek = get_config('local_ucla', 'current_week');
+
+    // This is the week that students get cut off from viewing previous terms
+    $studentprevweek = get_config('local_ucla', 'student_access_week');
+
+    $filtered_terms = array();
+    foreach ($terms as $term) {
+        if (term_role_can_view($term, $roleshortname, $currterm,
+                $currweek, $studentprevweek)) {
+            $filtered_terms[] = $term;
+        }
+    }
+
+    return $filtered_terms;
+}
+
+/**
+ *  Checks if a particular shortname given is allowed to view the 
+ *  the particular term.
+ *  @param  $term           Term to check
+ *  @param  $roleshortname  Shortname of role
+ *  @param  $currterm       Term to use as current term
+ *  @param  $currweek       Week to use as current week
+ *  @param  $limitweek      Week to use as cut-off week
+ **/
+function term_role_can_view($term, $roleshortname, $currterm=null, 
+                            $currweek=null, $limitweek=null) {
+    if ($limitweek === null) {
+        $limitweek = get_config('local_ucla', 'student_access_week');
+    }
+    
+    if ($currweek === null) {
+        $currweek = get_config('local_ucla', 'current_week');
+    }
+
+    if ($currterm === null) {
+        $currterm = get_config(null, 'currentterm');
+    } 
+    
+    // find the maximum-access-role
+    // Check out CCLE-2834 for documentation and reasoning
+    $canviewprev = false;
+    if (in_array($roleshortname, array(
+                // Role-mapped course editors
+                'ta_admin', 'ta_instructor', 'editinginstructor', 
+                    'supervising_instructor',
+                // Site adjuncts
+                'sa_1', 'sa_2', 'sa_3', 'sa_4'
+            ))) {
+        $canviewprev = true;
+    }
+
+    // Either can see all terms or can see until week 2, the previous term
+    if ($canviewprev || term_cmp_fn($term, $currterm) >= 0 
+        || ($currweek < 2 
+            && term_cmp_fn($term, term_get_prev($currterm)) == 0)) {
+        // This should evaluate to true
+        return $term;
+    }
+
+    return false;
+}
+
+function terms_arr_fill($terms) {
+    $startterm = reset($terms);
+    $endterm = end($terms);
+
+    try {
+        $terms = terms_range($startterm, $endterm);
+    } catch (moodle_exception $e) {
+        debugging("Improper term(s): $startterm $endterm");
+    }
+
+    return $terms;
+}
+
+function terms_range($startterm, $endterm) {
+    if (!ucla_validator('term', $startterm) 
+            || !ucla_validator('term', $endterm)) {
+        throw new moodle_exception('invalidterm', 'local_ucla');
+    }
+
+    $terms = array($startterm);
+
+    if (term_cmp_fn($startterm, $endterm) == 0) {
+        return $terms;
+    }
+
+    // We can get a reverse range, so handle that
+    $reverse = false;
+    if (term_cmp_fn($startterm, $endterm) > 0) {
+        $reverse = $startterm;
+        $startterm = $endterm;
+        $endterm = $reverse;
+    }
+
+    $nextterm = term_get_next($startterm);
+    $terms[] = $nextterm;
+
+    while (term_cmp_fn($nextterm, $endterm) < 0) {
+        $nextterm = term_get_next($nextterm);
+        $terms[] = $nextterm;
+    }
+
+    if ($reverse !== false) {
+        $terms = array_reverse($terms);
+    }
+
+    return $terms;
+}
+
+/**
+ *  Extracted from block_weekdisplay.
+ *  Takes in a UCLA term (Ex: 11F) and returns the term after it.
+ * 
+ *  @param current_term a valid term string (Ex: '11F')
+ *  @return the term after the current term.
+ **/       
+function term_get_next($term) {
+    if (!ucla_validator('term', $term)) {
+        return null;
+    }
+
+    $year = intval(substr($term, 0, 2));
+    $quarter = $term[2];
+
+    switch($quarter) {
+        case 'F':
+            $next_year = ($year == 99) ? '00' : 
+                    sprintf('%02d', intval($year) + 1);
+            return $next_year.'W';
+        case 'W':   
+            return $year.'S';
+        case 'S':
+            return $year.'1';
+        case '1':
+            return $year.'F';
+        default:
+            debugging("Invalid term: " . $term);
+            return NULL;
+    }
+}
+
+/**
+ *  Extracted from block_weekdisplay.
+ *  Takes in a UCLA term (Ex: 11F) and returns the term before it.
+ * 
+ *  @param current_term a valid term string (Ex: '11F')
+ *  @return the term after the current term.
+ **/       
+function term_get_prev($term) {
+    if (!ucla_validator('term', $term)) {
+        return null;
+    }
+
+    $year = intval(substr($term, 0, 2));
+    $quarter = $term[2];
+
+    switch ($quarter) {
+        case 'F':
+            return $year.'1';
+        case 'W':             
+            $prev_year = ($year == 0) ? '99' : 
+                    sprintf('%02d', intval($year) - 1);
+            return $prev_year.'F';
+        case 'S': 
+            return $year.'W';
+        case '1':
+            return $year.'S';
+        default:
+            debugging("Invalid term: " . $term);
+            return NULL;                
+    }
 }
 
 /**

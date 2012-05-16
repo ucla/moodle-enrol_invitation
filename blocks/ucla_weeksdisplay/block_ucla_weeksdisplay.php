@@ -439,24 +439,7 @@ class block_ucla_weeksdisplay extends block_base {
     * @return the term after the current term.
     */       
     public static function get_next_term($current_term) {
-        
-        $year = intval(substr($current_term,0 , 2));
-        $quarter = $current_term[2];
-
-        switch($quarter) {
-            case 'F':
-                $next_year = ($year == 99) ? '00' : sprintf('%02d', intval($year)+1);
-                return $next_year.'W';
-            case 'W':   
-                return $year.'S';
-            case 'S':
-                return $year.'1';
-            case '1':
-                return $year.'F';
-            default:
-                debugging("Invalid term:".$current_term);
-                return NULL;
-        }
+        return term_get_next($current_term);
     }
 
    /**
@@ -466,22 +449,7 @@ class block_ucla_weeksdisplay extends block_base {
     * @return the term after the current term.
     */       
     public static function get_prev_term($current_term) {
-        $year = intval(substr($current_term,0 , 2));
-        $quarter = $current_term[2];
-        switch ($quarter) {
-            case 'F':
-                return $year.'1';
-            case 'W':             
-                $prev_year = ($year == 0) ? '99' : sprintf('%02d', intval($year)-1);
-                return $prev_year.'F';
-            case 'S': 
-                return $year.'W';
-            case '1':
-                return $year.'S';
-            default:
-                debugging("Invalid term: ".$current_term);
-                return NULL;                
-        }
+        return term_get_prev($current_term);
     } 
     
    /**
