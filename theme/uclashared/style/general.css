@@ -11,7 +11,7 @@ html, body {background-color:#FFF; height:100%;}
 
 /** Front page display **/
 .introbanner {
-    height: 263px;
+    height: 163px;
     width: 100%;
     -moz-box-shadow:    inset 0 0 5px #000000;
     -webkit-box-shadow: inset 0 0 5px #000000;
