@@ -7,9 +7,9 @@
 require_once(dirname(__FILE__) . '/../../config.php');
 require_once($CFG->dirroot . '/course/lib.php');
 
-$thispath = '/blocks/ucla_rearrange';
-require_once($CFG->dirroot . $thispath . '/block_ucla_rearrange.php');
-require_once($CFG->dirroot . $thispath . '/rearrange_form.php');
+$thispath = '/blocks/ucla_modify_coursemenu';
+//require_once($CFG->dirroot . $thispath . '/block_ucla_modify_coursemenu.php');
+require_once($CFG->dirroot . $thispath . '/modify_coursemenu_form.php');
 
 require_once($CFG->dirroot . '/local/ucla/lib.php');
 
@@ -58,9 +58,49 @@ foreach ($sections as $section) {
 $modinfo =& get_fast_modinfo($course);
 get_all_mods($course_id, $mods, $modnames, $modnamesplural, $modnamesused);
 
-$sectionnodeshtml = block_ucla_rearrange::get_section_modules_rendered(
-    $course_id, $sections, $mods, $modinfo
+
+
+
+$modify_coursemenu_form = new ucla_modify_coursemenu_form(
+    null,
+    array(
+        'course_id' => $course_id, 
+        'sections'  => $sections,
+        'topic'     => $topic_num
+    ),
+    'post',
+    '',
+    array('class' => 'ucla_modify_coursemenu_form')
 );
+
+if ($data = $modify_coursemenu_form->get_data()) {
+    echo json_encode($data);
+   // echo "HERE";
+    echo json_encode($data->name);
+    
+    foreach ($data->name as $secid => $secname) {
+     //echo "Key: $; Value: $value<br />\n";   
+    
+    
+    
+    $sectionDB = $DB->get_record('course_sections', array('id' => "$secid"), '*', MUST_EXIST);
+
+    $sectionDB->name = $secname;
+    //echo json_encode($sectionDB);
+     //set_section_visible($courseid, $sectionnumber, $visibility) {
+   // set_section_visible("506", "1", 0);
+    //$sectionDB->name = "Week 2";
+    $DB->update_record('course_sections', $sectionDB);
+    }
+    
+    foreach($data->hide as $secid => $visible) {
+      echo $course_id;
+      echo $visible;
+    }
+    
+}
+
+
 
 // TODO put a title
 
@@ -72,6 +112,7 @@ $PAGE->set_heading($restrc);
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading($restr, 2, 'headingblock');
+ $modify_coursemenu_form->display();
 
 echo $OUTPUT->footer();
 
