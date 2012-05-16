@@ -17,22 +17,17 @@ $context = get_context_instance(CONTEXT_COURSE, $id);
 require_capability('moodle/grade:export', $context);
 require_capability('gradeexport/myucla:view', $context);
 
-
 $strgrades = get_string('grades', 'grades');
 $actionstr = get_string('pluginname', 'gradeexport_myucla');
 $navigation = grade_build_nav(__FILE__, $actionstr, array('courseid' => $course->id));
 
-    global $PAGE, $OUTPUT;
-    $PAGE->set_url('/grade/export/myucla/index.php', array('id'=>$id));
-    $PAGE->set_title($course->shortname.': '.get_string('grades'));
-    $PAGE->set_heading($course->fullname);
-    $PAGE->set_cacheable(true);
-    $PAGE->set_button('&nbsp;');
-    $PAGE->set_headingmenu(null);
-    echo $OUTPUT->header();
-    
-$plugin_info = grade_get_plugin_info($id, 'export', 'myucla');    
-print_grade_plugin_selector($plugin_info, 'export', 'myucla');
+$PAGE->set_url('/grade/export/myucla/index.php', array('id'=>$id));
+$PAGE->set_title($course->shortname.': '.get_string('grades'));
+$PAGE->set_heading($course->fullname);
+$PAGE->set_cacheable(true);
+print_grade_page_head($course->id, 'export', 'myucla', 
+        get_string('exportto', 'grades'). ''. 
+        get_string('pluginname', 'gradeexport_myucla'));
 
 if (!empty($CFG->gradepublishing)) {
     $CFG->gradepublishing = has_capability('gradeexport/myucla:publish', $context);

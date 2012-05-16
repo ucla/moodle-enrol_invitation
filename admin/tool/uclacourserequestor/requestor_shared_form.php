@@ -35,7 +35,7 @@ class requestor_shared_form extends moodleform {
         }
 
         $requestline[] =& $mform->createElement('submit', 'submit',
-            get_string($this->type, $ucr));
+             get_string($this->type, $ucr));
 
         $mform->addGroup($requestline, $gn, null, ' ', true);
         $mform->setDefaults(

@@ -3418,6 +3418,22 @@ function file_pluginfile($relativepath, $forcedownload) {
                 $filename = 'f1';
                 $redirect = true;
             }
+            
+            // START UCLA MOD: CCLE-2454 - PIX.PHP - Implement the solution agreed by dev
+            // the ideal implementation would be to have profile picture as a user 
+            // profile config option, like email display, but for now just reproduce
+            // functionality like it was in M19. Display profile image if the 
+            // viewer shares the same context            
+            require_once($CFG->dirroot . '/local/ucla/lib.php');
+            if (function_exists('has_shared_context') && 
+                    !has_shared_context($context->instanceid, $USER->id)) {
+                // if no shared context, then maybe viewer is admin/manager
+                if (!has_capability('moodle/user:viewalldetails', $context)) {
+                    $redirect = true;
+                }
+            }
+            // END UCLA MOD: CCLE-2454
+            
             if (!$redirect && !$file = $fs->get_file($context->id, 'user', 'icon', 0, '/', $filename.'/.png')) {
                 if (!$file = $fs->get_file($context->id, 'user', 'icon', 0, '/', $filename.'/.jpg')) {
                     $redirect = true;

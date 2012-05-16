@@ -1,7 +1,6 @@
 <?php 
-
 defined('MOODLE_INTERNAL') || die();
-
+define('RUN_CLI', php_sapi_name()=='cli');
 /**
  *  The course creator class.
  *
@@ -51,7 +50,7 @@ class uclacoursecreator {
     private $force_fail = false;
 
     // Set to true to hide output?
-    private $no_send_mails = false;
+    private $no_send_mails = true;//false;
 
     // Private identifier for this cron task
     private $db_id;
@@ -146,7 +145,6 @@ class uclacoursecreator {
             $this->finish_cron();
             return false;
         }
-
         /** Run the course creator **/
         // Figure out what terms we're running
         $termlist = $this->get_terms_creating();
@@ -178,7 +176,6 @@ class uclacoursecreator {
                 if ($retrieved) {
                     // Get official data from Registrar
                     $this->requests_to_rci();
-
                     // Prepare the categories
                     $this->prepare_categories();
 
@@ -230,7 +227,7 @@ class uclacoursecreator {
 
     /** ******************* **/
     /*  Debugging Functions  */
-    /** ******************* **/
+    /** ******************* **/ 
 
     /**
      *  Will print to course creator log.
@@ -253,7 +250,9 @@ class uclacoursecreator {
      *  @param $mesg The message to print.
      **/
     function println($mesg='') {
-        $this->printl($mesg . "\n");
+        if(RUN_CLI) {
+            $this->printl($mesg . "\n");
+        }
     }
 
     /**
@@ -870,9 +869,9 @@ class uclacoursecreator {
         $requests =& $this->cron_term_cache['requests'];
 
         // Run the Stored Procedure with the data
-        $return = registrar_query::run_registrar_query('ccle_getclasses',
+        $rc = new registrar_ccle_getclasses();
+	$return = registrar_query::run_registrar_query('ccle_getclasses',
             $tr, true);
-
         foreach ($return as $k => $v) {
             $v = (object)$v;
             unset($return[$k]);
@@ -2124,30 +2123,32 @@ class uclacoursecreator {
         // Get a unique id for this lock
         $this->make_dbid();
         $this->check_write();
-
+        
         $cc_lock = $this->output_path . '/' . $this->db_id . '.lock';
         $fe = file_exists($cc_lock);
-
         // Prevent new requests that come in during course creation from 
         // affecting course creator
         if ($lock) {
             // We sometimes want to do a file lock
             if ($fe) {
                 $msg = "Lock file $cc_lock already exists!";
-
-                echo $msg . "\n";
-                throw new course_creator_exception($msg);
+                if(RUN_CLI) {
+                    echo $msg . "\n";
+                }
+                throw new course_creator_exception($msg); 
             }
 
             $lockfp = fopen($cc_lock, 'x');
             fclose($lockfp);
-
-            $this->println('Lock successful.');
+            if(RUN_CLI) {
+                $this->println('Lock successful.');
+            }
         } else {
             if ($fe) {
                 unlink($cc_lock);
-
-                $this->println('Unlock successful');
+                if(RUN_CLI) {
+                    $this->println('Unlock successful');
+                }
             } else {
                 if ($warn) {
                     $this->debugln(
@@ -2163,6 +2164,16 @@ class uclacoursecreator {
         return true;
     }
 
+    /**
+     * Tests to see if lock file exists
+     */
+    function lock_exists() {
+        $this->make_dbid();
+        $this->check_write();
+        $cc_lock = $this->output_path . '/' . $this->db_id . '.lock';
+        $fe = file_exists($cc_lock);
+        return($fe);
+    }
 
     /**
      *  Temporary wrapper for finishing up cron.
@@ -2229,12 +2240,15 @@ class uclacoursecreator {
      *  Will change the state of the object.
      **/
     function figure_terms() {
-        if ($this->get_config('terms')) {
-            $terms_list = $this->get_config('terms');
+        $terms_list = $this->get_config('terms');
+        if (!is_array($terms_list)) {
+            // then must be a comma-deliminated term list
+            $terms_list = explode(',', $terms_list);
         }
-
+        
         if (isset($terms_list)) {
-            foreach ($terms_list as $term) {
+            foreach ($terms_list as &$term) {
+                $term = trim($term);
                 if (!$this->validate_term($term)) {
                     throw new course_creator_exception(
                         'Improper term ' . $term

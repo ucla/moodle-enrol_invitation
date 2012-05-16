@@ -23,7 +23,7 @@ class course_handler extends browseby_handler {
             ubci.catlg_no AS course_code,
             ubci.activitytype, 
             urc.courseid,
-            user.id AS userid,
+            COALESCE(user.id, user.idnumber, ubii.uid) AS userid,
             COALESCE(user.firstname, ubii.firstname) AS firstname,
             COALESCE(user.lastname, ubii.lastname) AS lastname,
             ubii.profcode,
@@ -208,11 +208,6 @@ class course_handler extends browseby_handler {
 
         $coursepcs = array();
         foreach ($courseslist as $k => $course) {
-            if ($this->ignore_course($course)) {
-                $courseslist[$k]->no_display = true;
-                continue;
-            }
-
             if (isset($course->profcode)) {
                 $pc = $course->profcode;
                 if (!isset($coursepcs[$k])) {
@@ -236,8 +231,9 @@ class course_handler extends browseby_handler {
             // Apend instructors, since they could have duplicate rows
             if (isset($fullcourseslist[$k])) {
                 $courseobj = $fullcourseslist[$k];
-                $courseobj->instructors[$course->uid] = 
-                    $this->fullname($course);
+                if ($instructor_name = $this->fullname($course)) {
+                    $courseobj->instructors[$course->userid] = $instructor_name;
+                }
             } else {
                 $courseobj = new stdclass(); 
                 $courseobj->dispname = ucla_make_course_title($course);
@@ -275,8 +271,9 @@ class course_handler extends browseby_handler {
                         $course->course_title, $course->section_title
                     );
 
-                $courseobj->instructors = 
-                    array($course->userid => $this->fullname($course));
+                if ($instructor_name = $this->fullname($course)) {
+                    $courseobj->instructors[$course->userid] = $instructor_name;
+                }                
 
                 $courseobj->session_group = $course->session_group;
             }
