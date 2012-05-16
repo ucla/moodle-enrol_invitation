@@ -11,6 +11,7 @@
     filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr=#B2C7C3C5, endColorstr=#FFFFFF); /* for IE */    
     background-image: -webkit-linear-gradient(top, rgba(199,195,197,0.7), white); /* for webkit browsers */
     background-image: -moz-linear-gradient(top, rgba(199,195,197,0.7), white); /* for firefox 3.6+ */
+    background-image: -o-linear-gradient(top, rgba(199,195,197,0.7), white); /* for opera */
     text-align: center;
 }
 
@@ -70,6 +71,7 @@
     filter: progid:DXImageTransform.Microsoft.gradient(GradientType=1,startColorstr=#E5F0EBED, endColorstr=#FFFFFF); /* for IE */        
     background-image: -webkit-linear-gradient(top left, rgba(240,235,237,0.9), white ); /* for webkit browsers */
     background-image: -moz-linear-gradient(top left, rgba(240,235,237,0.9), white ); /* for firefox 3.6+ */
+    background-image: -o-linear-gradient(top left, rgba(199,195,197,0.7), white); /* for opera */
 }
 
 #cpanel-wrapper .item {
