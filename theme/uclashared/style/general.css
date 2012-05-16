@@ -402,10 +402,15 @@ html, body {background-color:#FFF; height:100%;}
 .editing_duplicate {
     margin-right: 4px;
 }
-.editing_delete, .editing_makeprivate, .editing_makepublic {
+.editing_duplicate, .editing_makeprivate, .editing_makepublic {
     border-right: 1px solid #DDDDDD;
     padding-right: 8px;
     margin-right: 8px;
+}
+.editing_delete {
+    float: right;
+/*    border-left: 1px solid #DDDDDD;*/
+/*    padding-right: 8px;*/
 }
 /*.editing_hide {
     float: right;
@@ -417,11 +422,13 @@ html, body {background-color:#FFF; height:100%;}
     padding: 5px 10px;
     border-top: 1px solid #F5F5F5;
     border-right: 1px solid white;
+    clear:right;
+    max-width: 800px;
 }
-.topics .section li:nth-child(2n) {
+.topics .section li.activity:nth-child(2n) {
     background-color: #F9F9F9;
 }
-.topics .section li:hover {
+.topics .section li.activity:hover {
     background-color: #F5F5F5;
 /*    border-left: 1px dashed gray;*/
 /*    border-right: 1px dashed gray;*/
@@ -430,7 +437,7 @@ html, body {background-color:#FFF; height:100%;}
     width: 220px;
     float:right;
 /*    margin-left: 10px;*/
-    margin-right: 10px;
+    margin-right: 19px;
 }
 .mod-indent .commands a {
     margin-right: 2px;
@@ -442,4 +449,17 @@ html, body {background-color:#FFF; height:100%;}
     padding: 0 0 0 15px;
     background-color: #FFFFFF;
     color: #777777;
+}
+.path-course-view li.activity span.autocompletion, 
+.path-course-view li.activity form.togglecompletion {
+    right: 0;
+    top: 3px;
+}
+.course-content ul.topics li.section .content .section_add_menus {
+    background: none repeat scroll 0 0 #F9F9F9;
+    box-shadow: 0 5px 5px -6px #999 inset;
+    height: 30px;
+    margin-bottom: 10px;
+    padding: 10px;
+    max-width: 860px;
 }
