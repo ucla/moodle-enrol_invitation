@@ -78,6 +78,18 @@
     clear : none;
 }
 
+#cpanel-wrapper .general_icon {
+    float: left;
+}
+
+#cpanel-wrapper .general_icon_text {
+    padding: 10px 50px;
+}
+
+/*#cpanel-wrapper .item .post-link {
+    margin-left: 44px;
+}*/
+
 #cpanel-wrapper .item span, #cpanel-wrapper #my_ucla_functions .post-link {
     color: gray;
     display: block;
@@ -98,4 +110,10 @@
 /* Control panel button in header  */
 .control-panel-button img {
     margin-top: 10px;
+}
+
+/* Add spaces after links in "Other tools" section */
+#cpanel-wrapper .ucla_cp_mod_other .item, 
+#cpanel-wrapper .ucla_cp_mod_advanced .item {
+    padding-bottom: 1.0em;
 }
