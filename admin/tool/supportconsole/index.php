@@ -94,8 +94,37 @@ $tbl= new flexible_table('sorted_table');
     $tbl->finish_output();
 }
 */
-
 function createTable($result_keys, $result_val)
+{
+global $CFG;
+ $table = new html_table();
+$table->attributes['id']='myTable';
+$table->id='myTable';
+$table->attributes['class']='tablesorter';
+$table-> head= $result_keys;
+foreach ($result_val as $res){
+if($res instanceof stdClass){
+        $row=array_values(get_object_vars($res));}
+        else{
+        $row=array_values($res);}
+$table->data[] = $row;
+}
+echo html_writer::table($table);
+?>
+ <script src="http://jquery.com/src/jquery-latest.js"></script>
+<link rel="stylesheet" type="text/css" href="<?php echo $CFG->wwwroot;?>/lib/tablesorter/themes/blue/style.css" />
+<script type="text/javascript" src="<?php echo $CFG->wwwroot;?>/lib/tablesorter/jquery-latest.js"></script>
+<script type="text/javascript" src="<?php echo $CFG->wwwroot;?>/lib/tablesorter/jquery.tablesorter.js"></script>
+<script type="text/javascript">
+$(document).ready(function() 
+    { 
+        $("#myTable").tablesorter({widthFixed: true}); 
+    } 
+); 
+</script>
+<?php
+}
+/*function createTable2($result_keys, $result_val)
 {
 global $CFG;
 echo'<table id="myTable" class="tablesorter" cellspacing="1">';
@@ -135,7 +164,7 @@ $(document).ready(function()
 ); 
 </script>
 <?php
-}
+}*/
 
 ////////////////////////////////////////////////////////////////////
 $title="Show Logs: Last 1000 Lines of ";
@@ -248,7 +277,7 @@ if (empty($_POST['console'])) {
         or die("Unable to select DB {$CFG->dbname}");
    */
 
-    $result=$DB->get_records_sql("select b.name,b.shortname,component,count(*) as cnt from {$CFG->prefix}role_assignments a left join {$CFG->prefix}role b on(a.roleid=b.id) group by component,roleid");
+    $result=$DB->get_records_sql("select b.id,b.name,b.shortname,component,count(*) as cnt from {$CFG->prefix}role_assignments a left join {$CFG->prefix}role b on(a.roleid=b.id) group by component,roleid");
 //  $coursers = mysql_query("select id,idnumber from {$CFG->prefix}course where idnumber like '$term-$srs%'", $db_moodle) or die("Unable to get     course IDs from Moodle: " . mysql_error());
     $result_val=array_values($result);
     $result_keys=array_keys(get_object_vars($result_val[0]));
@@ -256,8 +285,19 @@ if (empty($_POST['console'])) {
 $admin_result=$CFG->siteadmins;
 if(empty($admin_result)& empty($result))
 {
-    print_error("There are no enrollments");
+   html_writer::error_text("There are no enrollments");
 }
+$counter=0;
+foreach( $result_val as $res){
+        if($res->component == '')
+        {
+            $res->component='manual';
+        }
+	unset($res->id);
+        $result_val[$counter]=$res;
+        $counter++;
+}
+
     $admin_cnt=count(explode(',',$admin_result));
     $adminObj= new stdClass;
     $adminObj->name = 'Admin';
@@ -265,16 +305,8 @@ if(empty($admin_result)& empty($result))
     $adminObj->component = 'manual';
     $adminObj->cnt=$admin_cnt;
     array_unshift($result_val,$adminObj);
-$counter=0;
-foreach( $result_val as $res)
-{
-	if($res->component == '')
-	{
-	    $res->component='manual';
-	    $result_val[$counter]=$res;
-	}
-	$counter++;
-}
+unset($result_keys[0]);
+
 createTable($result_keys,$result_val);
 } 
 ////////////////////////////////////////////////////////////////////
@@ -388,7 +420,7 @@ foreach($result_val as $res)
 {
         if($gradebookradio==true)
         {
-                $res->course='<a href='.$CFG->wwwroot.'/course/view.php?id='.$res->course.'>'.$res->shortname.'</a>';
+		$res->course=html_writer::link(new moodle_url('/course/view.php', array('id'=>$res->course)), $res->shortname);
                 unset($res->shortname);
         }
         unset($res->id);
@@ -398,26 +430,6 @@ foreach($result_val as $res)
 createTable($result_keys,$result_val);
 }
     // END UCLA SSC MODIFICATION #1095a
-/*
-    $cols = 0;
-    while ($get_info = mysql_fetch_assoc($result)){
-        if($cols == 0) {
-            $cols = 1;
-            echo "<tr>";
-            foreach($get_info as $col => $value) {
-                echo "<th align='left'>$col</th>";
-            }
-            echo "<tr>\n";
-        }
-        echo "<tr>\n";
-        foreach ($get_info as $field) {
-            echo "\t<td>$field</td>\n";
-        }
-        echo "</tr>\n";
-    }
-
-  }    
-    echo "</table>\n"; */
 } 
 ////////////////////////////////////////////////////////////////////
 $title="Show Logins During Last 24 Hours";
@@ -429,11 +441,6 @@ if (empty($_POST['console'])) {
 <?php
 } elseif ($_POST['console'] == "$title") { 
     echo "<h3>$title</h3>\n";
-/*    $db_moodle = mysql_connect($CFG->dbhost,$CFG->dbuser,$CFG->dbpass)
-        or die("Unable to connect to Moodle DB server {$CFG->dbhost}");
-     mysql_select_db($CFG->dbname, $db_moodle) 
-        or die("Unable to select DB {$CFG->dbname}");
-*/
      $log_query="select a.id, from_unixtime(time) as Time,b.Firstname,b.Lastname,IP,a.URL,Info
         from {$CFG->prefix}log a 
         left join {$CFG->prefix}user b on(a.userid=b.id)
@@ -462,24 +469,6 @@ foreach($result_val as $res)
             echo "There were $num_rows logins.<P>";
         }
 createTable($result_keys,$result_val);
-     /*   echo "<table>\n";
-        $cols = 0;
-        while ($get_info = mysql_fetch_assoc($result)){
-            if($cols == 0) {
-                $cols = 1;
-                echo "<tr>";
-                foreach($get_info as $col => $value) {
-                    echo "<th align='left'>$col</th>";
-                }
-                echo "<tr>\n";
-            }
-            echo "<tr>\n";
-            foreach ($get_info as $field) {
-                echo "\t<td>$field</td>\n";
-            }
-            echo "</tr>\n";
-        }    
-        echo "</table>\n"; */
 }
 } 
 ////////////////////////////////////////////////////////////////////
@@ -537,26 +526,6 @@ foreach($result_val as $res)
 createTable($result_keys,$result_val);
 }
 
-/*
-        echo "<table width=30% border=1>\n";
-        $cols = 0;
-        while ($get_info = mysql_fetch_assoc($result)){
-            if($cols == 0) {
-                $cols = 1;
-                echo "<tr>";
-                foreach($get_info as $col => $value) {
-                    echo "<th align='left'>$col</th>";
-                }
-                echo "<tr>\n";
-            }
-            echo "<tr>\n";
-            foreach ($get_info as $field) {
-                echo "\t<td align='center'>$field</td>\n";
-            }
-            echo "</tr>\n";
-        }    
-        echo "</table>\n"; 
-*/
 } 
 ////////////////////////////////////////////////////////////////////
 $title="Count of Moodle Log Entries by Day, Course for Last 7 days";
@@ -591,26 +560,6 @@ foreach($result_val as $res)
 createTable($result_keys,$result_val);
 }
 
-/*        
-echo "<table width=4dd0% border=1>\n";
-        $cols = 0;
-        while ($get_info = mysql_fetch_assoc($result)){
-            if($cols == 0) {
-                $cols = 1;
-                echo "<tr>";
-                foreach($get_info as $col => $value) {
-                    echo "<th align='left'>$col</th>";
-                }
-                echo "<tr>\n";
-            }
-            echo "<tr>\n";
-            foreach ($get_info as $field) {
-                echo "\t<td>$field</td>\n";
-            }
-            echo "</tr>\n";
-        }    
-        echo "</table>\n"; 
-*/
 } 
 ////////////////////////////////////////////////////////////////////
 $title="Count of Moodle Log Entries by Day, Course, User for Last 7 days";
@@ -645,27 +594,6 @@ foreach($result_val as $res)
 }
 createTable($result_keys,$result_val);
 }
-      
-/*
-        echo "<table width=60% border=0>\n";
-        $cols = 0;
-        while ($get_info = mysql_fetch_assoc($result)){
-            if($cols == 0) {
-                $cols = 1;
-                echo "<tr>";
-                foreach($get_info as $col => $value) {
-                    echo "<th align='left'>$col</th>";
-                }
-                echo "<tr>\n";
-            }
-            echo "<tr>\n";
-            foreach ($get_info as $field) {
-                echo "\t<td>$field</td>\n";
-            }
-            echo "</tr>\n";
-        }    
-        echo "</table>\n"; 
-*/
 } 
 ////////////////////////////////////////////////////////////////////
 //MDL-1196:"Comparison of ucla_request_classes & ucla_request_crosslisted with classes table." was removed due new tables not requiring the functions of this script
@@ -762,36 +690,6 @@ $res->SRBDButton='<form method="post" action="'.$serverAdd.' ">
 createTable($result_keys,$result_val);
 }
 
-/*        
-        echo "<table>\n";
-        $cols = 0;
-        while ($get_info = mysql_fetch_assoc($result)){
-            if($cols == 0) {
-                $cols = 1;
-                foreach($get_info as $col => $value) {
-                    echo "<th align='left'>$col</th>";
-                }
-                echo "<th align='left'>SRDB</th>"; # added column for SRDB lookup
-                echo "<tr>\n";
-            }
-            echo "<tr>\n";
-            foreach ($get_info as $col=>$field) {
-                if ($col === "idnumber") { $uid = $field; }  # save this for link to Registrar lookup
-                echo "\t<td>$field</td>\n";
-            }
-            echo "<td>";
-?>  
-    <form method="post" action="<?php echo $_SERVER['PHP_SELF']; ?>">
-        <input type="submit" name="console" value="SRDB">
-        <input type="hidden" name="uid" value="<?php echo $uid;?>">
-        <input type="hidden" name="srdb_view" value="enroll2">
-    </form>  
-<?php
-            echo "</td>";
-            echo "</tr>\n";
-        }    
-        echo "</table>\n"; -
-*/
 } 
 ////////////////////////////////////////////////////////////////////
 /*
@@ -868,10 +766,6 @@ if (empty($_POST['console'])) {
 }*/
 ////////////////////////////////////////////////////////////////////
 	$title="Sort Class Sites by Count of Resources or Activities ";
-
-/*$result=$DB->get_records_sql("select left(idnumber,3) as term,count(*) as cnt from {$CFG->prefix}course group by term");
-*/
-
 $result=$DB->get_records_sql("select term, count(*) as cnt from {$CFG->prefix}ucla_request_classes group by term");
 $item_names = array('resource','assignment','forum','questionnaire','quiz','ouwiki','lesson','exercise','forumposts');
 if (empty($_POST['console'])) {
@@ -915,30 +809,6 @@ $row=get_object_vars($tVal);
 							GROUP by c.id
 							ORDER BY Posts DESC
 							";
-/*
-      $num_rows = mysql_num_rows($result);
-      echo "There are $num_rows classes with posts<P>";
-    
-		echo "<table width=100% border=0>\n";
-
-        $cols = 0;
-        while ($get_info = mysql_fetch_assoc($result)){
-            if($cols == 0) {
-                $cols = 1;
-                echo "<tr>";
-                foreach($get_info as $col => $value) {
-                    echo "<th align='left'>$col</th>";
-                }
-                echo "<tr>\n";
-            }
-            echo "<tr>\n";
-            foreach ($get_info as $field) {
-                echo "\t<td>$field</td>\n";
-            }
-            echo "</tr>\n";
-        }
-        echo "</table>\n";
-*/
 	} else {
 	$log_query="SELECT c.id, COUNT(l.id) as count, c.shortname
         FROM {$CFG->prefix}$itemfile l
@@ -948,26 +818,6 @@ $row=get_object_vars($tVal);
         ORDER BY left(c.idnumber,3), count DESC";
 }
 $result=$DB->get_records_sql($log_query);
-/*
-        echo "<table width=60% border=0>\n";
-        $cols = 0;
-        while ($get_info = mysql_fetch_assoc($result)){
-            if($cols == 0) {
-                $cols = 1;
-                echo "<tr>";
-                foreach($get_info as $col => $value) {
-                    echo "<th align='left'>$col</th>";
-                }
-                echo "<tr>\n";
-            }
-            echo "<tr>\n";
-            foreach ($get_info as $field) {
-                echo "\t<td>$field</td>\n";
-            }
-            echo "</tr>\n";
-        }
-        echo "</table>\n";
-*/
 	if(empty($result))
 	{
         echo"No results were found";
@@ -976,10 +826,6 @@ $result=$DB->get_records_sql($log_query);
 {
 $result_val=array_values($result);
 $result_keys=array_keys(get_object_vars($result_val[0]));
-/*
-CONCAT('<a target=\"_blank\" href=\"{$CFG->wwwroot}/course/edit.php?id=',c.id,'\">',c.id,'</a>') as ID, 
-                                                        CONCAT('<a target=\"_blank\" href=\"{$CFG->wwwroot}/course/view.php?id=',c.id,'\">',c.shortname,'</a>') as Course 
-*/
 if($itemfile=='forumposts')
 {	$counter=0;
 	foreach ($result_val as $res)
@@ -1007,15 +853,6 @@ else{
 	        $counter++;
 	}
 }
-/*SELECT COUNT(l,id) count, CONCAT('<a target=\"_blank\" href=\"{$CFG->wwwroot}/course/view.php?id=',c.id,'\">',c.shortname,'</a>') as coursename
-*/
-/*
-unset($result_keys[0]);
-foreach($result_val as $res)
-{
-        unset($res->id);
-}
-*/
 createTable($result_keys,$result_val);
 }
 
@@ -1064,18 +901,10 @@ ucla_require_registrar();
     $stop_time = microtime(true);
     echo '"' . $sql . '" took ' . ($stop_time - $start_time) . ' seconds <br>';
 
-/* $row0 = odbc_fetch_array($result0);
-    odbc_free_result($result0);
-    $sql = "EXECUTE CIS_ROSTER_CLASS '{$row0['term']}', '{$row0['subj_area']}', '{$row0['crsidx']}', '{$row0['classidx']}'";
-    $start_time = microtime(true);
-   // $result = odbc_exec($db_conn, $sql) or die ("Query failed: error message = " . odbc_errormsg($db_conn));
-    $stop_time = microtime(true);
-    echo '"' . $sql . '" took ' . ($stop_time - $start_time) . ' seconds <br>';
-   */
 }
 if(empty($result))
         {
-        echo"No results were found";
+        echo"Nothing for $term and $srs. Try back later";
         }
         else
 {
@@ -1083,44 +912,10 @@ if(empty($result))
     print_r($result_val[0]);
     $result_keys=array_keys($result_val[0]);
     createTable($result_keys, $result_val);
+    echo"Total Records:sizeof($result)" ;
 
 }
-/*   
-echo "<table>\n";
-echo "<tr>\n";
-
-// Show the headings
-// Also store the field names so that we can find field values from the $fields_obj later
-
-$field_count = odbc_num_fields($result);
-for ($j = 1; $j <=$field_count; $j++) {
-    echo "<th>" . odbc_field_name ($result, $j ). "</th>\n";
-}
-echo "</tr>\n";
-$j=$j-1;
-// end of field names
-
-// Show the content
-$c=0; $nrows=0;
-while(odbc_fetch_row($result)) { // getting data
-   $c=$c+1;
-   if ( $c%2 == 0 )
-       echo "<tr bgcolor=\"#d0d0d0\" >\n";
-   else
-       echo "<tr bgcolor=\"#eeeeee\">\n";
-   for($i=1; $i<=odbc_num_fields($result); $i++) {       
-       echo "<td>";
-       echo odbc_result($result,$i);
-       echo "</td>";        
-       if ( $i%$j == 0 ) {
-	   $nrows+=1; // counting no of rows   
-       }  
-   }
-   echo "</tr>";
-}
-
-odbc_close ($db_conn);
-echo "</table>\n";
+/*
 if ($nrows==0) echo "<br/><center> Nothing for $term and $srs. Try back later</center>  <br/>";
 else echo "<br/><center> Total Records:  $nrows </center>  <br/>";
 */
@@ -1362,8 +1157,6 @@ if (empty($_POST['console'])) {
 } elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
     printhead();
     echo "<h3>$title</h3>\n";
-// CONCAT('<a target=\"_blank\" href=\"{$CFG->wwwroot}/course/edit.php?id=',b.id,'\">',b.id,'</a>')
-//CONCAT('<a target=\"_blank\" href=\"{$CFG->wwwroot}/course/view.php?id=',b.id,'\">',b.shortname,'</a>')
     $result=$DB->get_records_sql("SELECT * FROM 
 							(SELECT b.id as id, b.shortname as Course,
 							if(a.sectiontitle is not NULL , CONCAT(a.coursetitle,': ',a.sectiontitle ),a.coursetitle) AS OldTitle, 
@@ -1404,26 +1197,6 @@ createTable($result_keys, $result_val);
 
 }
 
-/*
-    echo "<table>\n";
-    $cols = 0;
-    while ($get_info = mysql_fetch_assoc($result)){
-		if($cols == 0) {
-            $cols = 1;
-            echo "<tr>";
-            foreach($get_info as $col => $value) {
-                echo "<th align='left'>$col</th>";
-            }
-            echo "<tr>\n";
-        }
-        echo "<tr>\n";
-        foreach ($get_info as $field) {
-            echo "\t<td>$field</td>\n";
-        }
-        echo "</tr>\n";
-    }
-    echo "</table>\n";
-*/
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 $title="Courses with Changed Descriptions";
@@ -1486,40 +1259,6 @@ if (empty($_POST['console'])) {
     $days=(int) $_POST['count'];
 	$days++;
     $distinct = ""; 
-/*
-    $db_moodle = mysql_connect($CFG->dbhost,$CFG->dbuser,$CFG->dbpass)or die("Unable to connect to Moodle DB server {$CFG->dbhost}");
-    mysql_select_db($CFG->dbname, $db_moodle) or die("Unable to select DB {$CFG->dbname}");
-    $days--;  # decrement days by 1 to get query to work
-     $result=mysql_query("SELECT 
-	    CONCAT('<a target = \"blank\" href=\"{$CFG->wwwroot}/admin/user.php?sesskey=$USER->sesskey&delete=',id,'\">','Delete','</a>') as Action,idnumber, 
-	    CONCAT('<a target = \"blank\" href=\"{$CFG->wwwroot}/user/view.php?id=',id,'\">',lastname,'</a>') as lastname, firstname,
-		if(timemodified=0,'Never',from_unixtime(timemodified,'%Y-%m-%d')) AS Time_Modified,
-		if(firstaccess=0,'Never',from_unixtime(firstaccess,'%Y-%m-%d')) AS First_Access,
-		if(lastaccess=0,'Never',from_unixtime(lastaccess,'%Y-%m-%d')) AS Last_Access,
-		if(lastlogin=0,'Never',from_unixtime(lastlogin,'%Y-%m-%d')) AS Last_Login
-		FROM {$CFG->prefix}user order by id desc limit $days", $db_moodle)
-        or die(mysql_error());
-      $num_rows = mysql_num_rows($result);
-	  echo "<h3>$title</h3>";
-        echo "<table width=80% border=0>\n";
-        $cols = 0;
-        while ($get_info = mysql_fetch_assoc($result)){
-            if($cols == 0) {
-                $cols = 1;
-                echo "<tr>";
-                foreach($get_info as $col => $value) {
-                    echo "<th align='left'>$col</th>";
-                }
-                echo "<tr>\n";
-            }
-            echo "<tr>\n";
-            foreach ($get_info as $field) {
-                echo "\t<td>$field</td>\n";
-            }
-            echo "</tr>\n";
-        }    
-        echo "</table>\n"; 
-*/
 $days--;
 $result=$DB->get_records_sql("SELECT 
 	id,
@@ -1634,7 +1373,6 @@ if (empty($_POST['console'])) {
                         group by shortname
                         order by shortname
 						 ");
-//CONCAT('<a target = \"blank\" href=\"{$CFG->wwwroot}/course/view/', shortname ,'\">',shortname,'</a>') as shortname
   if(empty($result))
 {
         echo"No results were found";
@@ -1666,26 +1404,6 @@ foreach($result_val as $res)
 createTable($result_keys,$result_val);
 }
 }
-/*
-//  print "<table width=60% border=0>\n";
-    print "<table>\n";
-    $cols = 0;
-    while ($get_info = mysql_fetch_assoc($result)){
-		if($cols == 0) {
-            $cols = 1;
-            print "<tr>";
-            foreach($get_info as $col => $value) {
-                print "<th align='left'>$col</th>";
-            }
-            print "<tr>\n";
-        }
-        print "<tr>\n";
-        foreach ($get_info as $field) {
-            print "\t<td>$field</td>\n";
-        }
-        print "</tr>\n";
-    }
-    print "</table>\n";*/
 
 ////////////////////////////////////////////////////////////////////
 $title="Assignments and Quizzes Due Soon from Date";
@@ -1722,28 +1440,6 @@ $result=$DB->get_records_sql("SELECT c.id , m.Due_date , c.shortname as Class , 
     INNER JOIN mdl_course c ON c.id = m.course
     ORDER BY `m`.`Due_Date` ASC
                                                  ");    
-/*
-$result=mysql_query("
-    SELECT m.Due_Date, CONCAT('<a href=\"{$CFG->wwwroot}/course/view/',c.shortname,'\">',c.shortname,'</a>') as Class, c.Fullname, m.modtype, m.Name
-    FROM ((
-            SELECT 'quiz' AS modtype, course, name, from_unixtime( timeclose ) AS Due_Date
-            FROM `mdl_quiz`
-            WHERE timeclose
-            BETWEEN  {$timefrom}
-            AND {$timefrom} + {$days}*24*3600
-        ) UNION (
-            SELECT 'assignment' AS modtype, course, name, from_unixtime( timedue , '%m-%d-%y %H:%i %a') AS Due_Date
-            FROM mdl_assignment
-            WHERE timedue
-            BETWEEN {$timefrom}
-            AND {$timefrom} + {$days}*24*3600
-        )
-    ) AS m
-    INNER JOIN mdl_course c ON c.id = m.course
-    ORDER BY `m`.`Due_Date` ASC
-						 ") or die(mysql_error());
-                         
-  */                     
   if(empty($result))
 {
         echo"No results were found";
@@ -1776,26 +1472,6 @@ foreach($result_val as $res)
 }
 createTable($result_keys,$result_val);
 }
-/*//  print "<table width=60% border=0>\n";
-    print "<table>\n";
-    $cols = 0;
-    while ($get_info = mysql_fetch_assoc($result)){
-		if($cols == 0) {
-            $cols = 1;
-            print "<tr>";
-            foreach($get_info as $col => $value) {
-                print "<th align='left'>$col</th>";
-            }
-            print "<tr>\n";
-        }
-        print "<tr>\n";
-        foreach ($get_info as $field) {
-            print "\t<td>$field</td>\n";
-        }
-        print "</tr>\n";
-    }
-    print "</table>\n";
-*/
 }
 
 ////////////////////////////////////////////////////////////////////
@@ -2295,42 +1971,6 @@ foreach($result_val as $res){
 	$counter ++;
 }
 createTable($result_keys, $result_val);
-/*
-    echo "<table>\n";
-    echo "<tr>\n";
-    echo "<th>Course</th>\n";
-    echo "<th>Modules count (course)</th>\n";
-    echo "<th>Modules instance count (course)</th>\n";
-    echo "<th>Module name</th>\n";
-    echo "<th>Instance count (module)</th>\n";
-    echo "</tr>\n";
-    $cols = 0;
-    while ($row = mysql_fetch_assoc($result)){
-        if (isset($course_indiv_module_counts[$row['c_shortname']][$row['m_name']]))
-            $course_indiv_module_counts[$row['c_shortname']][$row['m_name']] += $row['cnt'];
-        else
-            $course_indiv_module_counts[$row['c_shortname']][$row['m_name']] = $row['cnt'];
-        
-        if (isset($course_total_module_counts[$row['c_shortname']]))
-            $course_total_module_counts[$row['c_shortname']] += $row['cnt'];
-        else
-            $course_total_module_counts[$row['c_shortname']] = $row['cnt'];
-    }
-    
-    foreach ($course_total_module_counts as $course_shortname => $course_total_module_instance_count) {
-        foreach ($course_indiv_module_counts[$course_shortname] as $module_name => $module_instance_count) {
-            echo "<tr>\n";
-      #     echo "<td>" . $course_shortname . "</td>\n";
-            echo "<td>" . "<a target = \"blank\" href=\"{$CFG->wwwroot}/course/view/".$course_shortname."\">".$course_shortname."</a>\n";
-            echo "<td align=center>" . count($course_indiv_module_counts[$course_shortname]) . "</td>\n";
-            echo "<td align=center>" . $course_total_module_instance_count . "</td>\n";
-            echo "<td>" . $module_name . "</td>\n";
-            echo "<td align=center>" . $module_instance_count . "</td>\n";
-            echo "</tr>\n";
-        }
-    }
-    echo "</table>\n";
-*/
 }
 
 ?>
