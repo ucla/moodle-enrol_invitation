@@ -8,10 +8,6 @@ global $CFG;
 
 require_once($CFG->dirroot.'/lib/accesslib.php');
 
-// These are UCLA-added functions that aren't specific to the UCLA
-// codebase
-require_once($CFG->dirroot . '/local/ucla/accesslib.php');
-
 /**
  *  @deprecated
  *  This will attempt to access this file from the web.
@@ -778,35 +774,6 @@ function terms_arr_sort($terms) {
 }
 
 /**
- *  Returns a set of terms that the user is allowed to access depending
- *      on their role in a particular context.
- *  Optimized usage of term_role_can_view()
- *
- *  @param  $terms Array of terms to check.
- *  @param  $roleshortname The shortname to check against
- *  @return Array of terms that can be accessed, from the set of terms
- *      provided as the $terms argument.
- **/
-function terms_arr_role_filter($terms, $roleshortname) {
-    // Pre-cache all these variables
-    $currterm = get_config(null, 'currentterm');
-    $currweek = get_config('local_ucla', 'current_week');
-
-    // This is the week that students get cut off from viewing previous terms
-    $studentprevweek = get_config('local_ucla', 'student_access_week');
-
-    $filtered_terms = array();
-    foreach ($terms as $term) {
-        if (term_role_can_view($term, $roleshortname, $currterm,
-                $currweek, $studentprevweek)) {
-            $filtered_terms[] = $term;
-        }
-    }
-
-    return $filtered_terms;
-}
-
-/**
  *  Checks if a particular shortname given is allowed to view the 
  *  the particular term.
  *  @param  $term           Term to check
@@ -816,7 +783,17 @@ function terms_arr_role_filter($terms, $roleshortname) {
  *  @param  $limitweek      Week to use as cut-off week
  **/
 function term_role_can_view($term, $roleshortname, $currterm=null, 
-                            $currweek=null, $limitweek=null) {
+                            $currweek=null, $limitweek=null, $leastterm=null) {
+    if ($leastterm === null) {
+        $leastterm = get_config('local_ucla', 'oldest_available_term');
+    }
+
+    if (ucla_validator('term', $leastterm)) {
+        if (term_cmp_fn($term, $leasttearm) < 0) {
+            return false;
+        }
+    }
+
     if ($limitweek === null) {
         $limitweek = get_config('local_ucla', 'student_access_week');
     }
@@ -902,67 +879,27 @@ function terms_range($startterm, $endterm) {
 }
 
 /**
- *  Extracted from block_weekdisplay.
+ *  Wrapper for block_weekdisplay.
  *  Takes in a UCLA term (Ex: 11F) and returns the term after it.
  * 
  *  @param current_term a valid term string (Ex: '11F')
  *  @return the term after the current term.
  **/       
 function term_get_next($term) {
-    if (!ucla_validator('term', $term)) {
-        return null;
-    }
-
-    $year = intval(substr($term, 0, 2));
-    $quarter = $term[2];
-
-    switch($quarter) {
-        case 'F':
-            $next_year = ($year == 99) ? '00' : 
-                    sprintf('%02d', intval($year) + 1);
-            return $next_year.'W';
-        case 'W':   
-            return $year.'S';
-        case 'S':
-            return $year.'1';
-        case '1':
-            return $year.'F';
-        default:
-            debugging("Invalid term: " . $term);
-            return NULL;
-    }
+    return block_method_result('ucla_weeksdisplay', 'get_next_term', 
+        $term);
 }
 
 /**
- *  Extracted from block_weekdisplay.
+ *  Wrapper for block_weekdisplay.
  *  Takes in a UCLA term (Ex: 11F) and returns the term before it.
  * 
  *  @param current_term a valid term string (Ex: '11F')
  *  @return the term after the current term.
  **/       
 function term_get_prev($term) {
-    if (!ucla_validator('term', $term)) {
-        return null;
-    }
-
-    $year = intval(substr($term, 0, 2));
-    $quarter = $term[2];
-
-    switch ($quarter) {
-        case 'F':
-            return $year.'1';
-        case 'W':             
-            $prev_year = ($year == 0) ? '99' : 
-                    sprintf('%02d', intval($year) - 1);
-            return $prev_year.'F';
-        case 'S': 
-            return $year.'W';
-        case '1':
-            return $year.'S';
-        default:
-            debugging("Invalid term: " . $term);
-            return NULL;                
-    }
+    return block_method_result('ucla_weeksdisplay', 'get_prev_term',
+        $term);
 }
 
 /**

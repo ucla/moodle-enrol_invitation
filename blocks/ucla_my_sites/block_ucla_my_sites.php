@@ -78,7 +78,7 @@ class block_ucla_my_sites extends block_base {
         $class_sites = array(); $collaboration_sites = array();
         foreach ($courses as $c) {
             // Don't bother displaying sites that cannot be accessed
-            if (!has_course_access($c)) {
+            if (!can_access_course($c, null, '', true)) {
                 continue;
             }
 
@@ -96,23 +96,20 @@ class block_ucla_my_sites extends block_base {
                     $c->id);
 
                 $ccontext = context_course::instance($c->id);
-                $courseroles = get_user_roles($ccontext);
+                $courseras = get_user_roles($ccontext);
 
-                // We want the course-specific display name
-                $rolenames = array();
-                foreach ($courseroles as $role) {
-                    $rolenames[$role->roleid] = $role->name;
+                // Reindex by roleid, since that's what role_fix_names wants
+                $courseroles = array();
+                foreach ($courseras as $role) {
+                    $courseroles[$role->roleid] = $role;
                 }
 
-                $rolenames = role_fix_names($rolenames, $ccontext);
+                // We want the course-specific display name
+                $courseroles = role_fix_names($courseroles, $ccontext);
 
-                // Search and replace
-                foreach ($rolenames as $roleid => $customname) {
-                    foreach ($courseroles as $raid => $ra) {
-                        if ($ra->roleid == $roleid) {
-                            $ra->name = $customname;
-                        }
-                    }
+                // Replace role->name with role->localname
+                foreach ($courseroles as $role) {
+                    $role->name = $role->localname;
                 }
 
                 $c->roles = $courseroles;
@@ -165,7 +162,7 @@ class block_ucla_my_sites extends block_base {
                 $rrole = $allroles[get_moodlerole($remotecourse['role'],
                     $subj_area)];
 
-                // Remote courses are filtered generically by term
+                // Remote courses are filtered slightly more liberally
                 if (!term_role_can_view($term, $rrole->shortname)) {
                     continue;
                 }
@@ -214,9 +211,6 @@ class block_ucla_my_sites extends block_base {
             }
         }
         
-        // We want to sort things, so that it appears classy yo
-        usort($class_sites, array(get_class(), 'registrar_course_sort'));
-        
         // Filter out courses that are not part of the proper term
         foreach ($class_sites as $k => $class_site) {
             $firstreg = reset($class_site->reg_info);
@@ -241,6 +235,9 @@ class block_ucla_my_sites extends block_base {
                 debuggin('no roles');
             }
         }
+        
+        // We want to sort things, so that it appears classy yo
+        usort($class_sites, array(get_class(), 'registrar_course_sort'));
 
         // Display term selector
         $termoptstr = '';
@@ -458,13 +455,13 @@ class block_ucla_my_sites extends block_base {
 
         // Fetch the ones that are relevant to compare
         $areginfo = $a->reg_info[$arik];
-        if (isset($a->role)) {
-            $areginfo->role = $a->role;
+        if (isset($a->rolestr)) {
+            $areginfo->rolestr = $a->rolestr;
         }
         
         $breginfo = $b->reg_info[$brik];
-        if (isset($b->role)) {
-            $breginfo->role = $b->role;
+        if (isset($b->rolestr)) {
+            $breginfo->rolestr = $b->rolestr;
         }
 
         // Compare terms
@@ -474,7 +471,7 @@ class block_ucla_my_sites extends block_base {
         }
 
         // Compare roles
-        $rolenamecmp = strcmp($areginfo->role->name, $breginfo->role->name);
+        $rolenamecmp = strcmp($areginfo->rolestr, $breginfo->rolestr);
         if ($rolenamecmp != 0) {
             return $rolenamecmp;
         }
