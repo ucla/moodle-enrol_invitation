@@ -8,6 +8,9 @@ global $CFG;
 
 require_once($CFG->dirroot.'/lib/accesslib.php');
 
+// Contains our external-link generator thing
+require_once($CFG->dirroot.'/local/ucla/outputcomponents.php');
+
 /**
  *  @deprecated
  *  This will attempt to access this file from the web.
@@ -1034,28 +1037,6 @@ function set_editing_mode_button($url=null) {
         $PAGE->set_button($buttons);                
     } else {
         $USER->editing = 0;
-    }
-}
-
-class ucla_html_writer extends html_writer {
-    /**
-     *  Hack to add external link icon.
-     **/
-    static function external_link($url, $text, $attr=null) {
-        global $CFG;
-        if (strpos($url->out(), $CFG->wwwroot) === false) {
-            if (empty($attr)) {
-                $attr['class'] = '';
-            } else {
-                $attr['class'] .= ' ';
-            }
-
-            $attr['class'] .= 'external-link';
-            $attr['title'] = get_string('external-link', 'local_ucla');            
-            $attr['target'] = '_blank';
-        }
-
-        return parent::link($url, $text, $attr);
     }
 }
 

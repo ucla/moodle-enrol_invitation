@@ -393,6 +393,13 @@ class block_ucla_my_sites extends block_base {
         return array('my-index'=>true);
     }
 
+    /**
+     *  Creates the javascript-activated drop-down menu for terms selection.
+     *
+     *  @param  $terms  Array of terms
+     *  @param  $default    Term to select initially.
+     *  @return url_select  A list of terms that are drop-down-onchange-go
+     **/
     public function make_terms_selector($terms, $default=false) {
         global $CFG, $PAGE;
 
