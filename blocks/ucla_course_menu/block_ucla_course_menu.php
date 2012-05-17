@@ -209,7 +209,7 @@ class block_ucla_course_menu extends block_navigation {
 
         $viewhiddensections = has_capability(
             'moodle/course:viewhiddensections', $this->page->context);
-
+        
         foreach ($sections as $section) {
             // TESTINGCCLE-531: Course setting for num sections not reflected.
             if ($section->section > $this->page->course->numsections) {
@@ -224,7 +224,7 @@ class block_ucla_course_menu extends block_navigation {
             }
 
             $sectionname = strip_tags($sectionname);
-
+            
             if (!$viewhiddensections && !$section->visible) {
                 continue;
             }
@@ -237,6 +237,11 @@ class block_ucla_course_menu extends block_navigation {
                     $topic_param => $sectnum
                 )), navigation_node::TYPE_SECTION
             );
+            
+            // Indicate that section is hidden
+            if(!$section->visible) {
+                $elements[$key]->classes = array("block_ucla_course_menu_hidden");
+            }
         }
 
         // TODO get navigation to detect this if it is view all.
@@ -249,7 +254,7 @@ class block_ucla_course_menu extends block_navigation {
                     $topic_param => UCLA_FORMAT_DISPLAY_ALL
                 )), navigation_node::TYPE_SECTION);
         }
-
+        
         return $elements;
     }
 

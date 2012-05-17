@@ -37,12 +37,26 @@ if ($disablepostblocks) {
     $enabledregions[] = 'side-post';
 }
 
+/**
+ * CCLE-2882 - Control panel missing for some course pages
+ * 
+ * Going to use global $COURSE object and if it isn't the SITEID, then will
+ * enable the control panel for certain layouts that can exist in or out of 
+ * courses
+ */
+global $COURSE;
+$control_panel_option = array('controlpanel' => true);
+if (SITEID == $COURSE->id) {   // for most cases, user will usually be on course
+    $control_panel_option['controlpanel'] =  false;
+}
+
 $THEME->layouts = array(
     // Most backwards compatible layout without the blocks 
     // - this is the layout used by default
     'base' => array(
         'file' => $tf_general,
-        'regions' => array()
+        'regions' => array(),
+        'options' => $control_panel_option
     ),
     // Standard layout with blocks, this is recommended for most 
     // pages with general information
@@ -50,6 +64,7 @@ $THEME->layouts = array(
         'file' => $tf_general,
         'regions' => $enabledregions,
         'defaultregion' => $defaultregion,
+        'options' => $control_panel_option
     ),
     // Main course page
     'course' => array(
@@ -71,8 +86,10 @@ $THEME->layouts = array(
         'file' => $tf_course,
         'regions' => $enabledregions,
         'defaultregion' => $defaultregion,
+        'options' => array(
+            'controlpanel' => true
+        )
     ),
-
     // The site home page.
     'frontpage' => array(
         'file' => $tf_frontpage,
@@ -84,9 +101,7 @@ $THEME->layouts = array(
         'file' => $tf_general,
         'regions' => array('side-pre'),
         'defaultregion' => 'side-pre',
-        'options' => array(
-            'controlpanel' => true
-        )
+        'options' => $control_panel_option
     ),
     // My dashboard page
     'mydashboard' => array(
@@ -180,6 +195,7 @@ $THEME->layouts = array(
         'file' => $tf_report,
         'regions' => array('side-pre'),
         'defaultregion' => 'side-pre',
+        'options' => $control_panel_option
     ),
 );
 

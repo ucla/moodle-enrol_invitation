@@ -22,7 +22,7 @@ class ucla_term_to_text_test extends UnitTestCase {
         $this->assertEqual($result, 'Summer 2012');  
         // pass in session         
         $result = ucla_term_to_text('121', 'A');
-        $this->assertEqual($result, 'Summer Session A 2012');  
+        $this->assertEqual($result, 'Summer 2012 - Session A');  
     }
 }
 

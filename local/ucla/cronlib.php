@@ -171,7 +171,8 @@ class ucla_reg_subjectarea_cron {
         $ttte = 'ucla_reg_subjectarea';
 
         if (empty($terms)) {
-            return true;
+            debugging('NOTICE: empty $terms for ucla_reg_subjectarea_cron');
+            return true;    // maybe not an error
         }
 
         $reg = registrar_query::get_registrar_query('cis_subjectareagetall');
@@ -181,6 +182,11 @@ class ucla_reg_subjectarea_cron {
 
         $subjareas = $reg->retrieve_registrar_info($terms);
 
+        if (empty($subjareas)) {
+            debugging('ERROR: empty $subjareas for ucla_reg_subjectarea_cron');
+            return false;   // most likely an error
+        }        
+        
         $checkers = array();
         foreach ($subjareas as $k => $subjarea) {
             $newrec = new stdClass();
