@@ -197,6 +197,7 @@ $CFG->forcedefaultmymoodle = true;
 
 // Site administration > Advanced features
 $CFG->usetags = 0;
+$CFG->enablenotes = 0;
 
 // Site administration > Users > Permissions > User policies
 $CFG->autologinguests = true;
