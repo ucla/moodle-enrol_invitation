@@ -51,15 +51,15 @@ $string['title_division'] = 'Disable browse-by division';
 $string['title_subjarea'] = 'Disable browse-by subject areas';
 $string['title_instructor'] = 'Disable browse-by instructors';
 $string['title_collab'] = 'Disable browse collaboration sites';
-$string['title_ignore_coursenum'] = 'Minimum course number to hide';
+$string['title_ignore_coursenum'] = 'Course numbers to hide';
 $string['title_allow_acttypes'] = 'Activity types to allow';
 
 $string['desc_division'] = 'Check box to disable the ability to use divisions to narrow down subject areas to look at.';
 $string['desc_subjarea'] = 'Check box to disable the ability to use subject areas to narrow down courses to look at.';
 $string['desc_instructor'] = 'Check box to disable the ability to see the courses an instructor is teaching.';
 $string['desc_collab'] = 'Check box to disable the ability for guests to browse collaboration sites.';
-$string['desc_ignore_coursenum'] = 'Courses with a course number larger than this number will be hidden from the browse-by results unless they have an associated website in the Registrar.';
-$string['desc_allow_acttypes'] = 'Comma-delimited list. Courses with the activity type (i.e. LEC, SEM) specified in this list will be visible in the browse-by results. If you want all courses to be visible, leave this blank.';
+$string['desc_ignore_coursenum'] = 'Courses whose course number is equivalent to one of these values will NOT be displayed if they do NOT have an associated course site. Please leave this as a comma-separated field.';
+$string['desc_allow_acttypes'] = 'Comma-delimited list. Courses with the activity type (i.e. "LEC,SEM") specified in this list will be visible in the browse-by results. If you want all courses to be visible, leave this blank.';
 
 $string['title_syncallterms'] = 'Sync for all terms';
 $string['desc_syncallterms'] = 'Check box to enable synchronization of all terms that is available on this server. It will uncheck itself after it runs.';

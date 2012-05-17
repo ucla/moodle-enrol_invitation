@@ -76,23 +76,35 @@ abstract class browseby_handler {
 
         return $subjarea;
     }
-    
-    static function ignore_course($course) {
+   
+    /**
+     *  Determines whether the course should not be displayed if it doesn't 
+     *  a website.
+     **/
+    function ignore_course($course) {
+        // If the course is a particular number
         if (!empty($course->course_code)) {
             $coursecode = intval(substr($course->course_code, 0, 4));
-            $ignorecoursenum = get_config('block_ucla_browseby', 
-                'ignore_coursenum');
 
-            if ($ignorecoursenum) {
-                $ignorecoursenum = trim($ignorecoursenum);
+            $ignorecoursenums = get_config('block_ucla_browseby', 
+                    'ignore_coursenum');
+            if ($ignorecoursenums) {
 
-                if ($coursecode > $ignorecoursenum) {
-                    //debugging("SKIP $coursecode > $ignorecoursenum");
-                    return true;
+                // Special formatting
+                if (!is_array($ignorecoursenums)) {
+                    $ignorecoursenums = explode(',', $ignorecoursenums);
+                }
+
+                foreach ($ignorecoursenums as $ignorecoursenum) {
+                    $ignorecoursenum = trim($ignorecoursenum);
+                    if ($coursecode == $ignorecoursenum) {
+                        return true;
+                    }
                 }
             }
         }
 
+        // If the course is NOT a particular activity type
         if (!empty($course->activitytype)) {
             $allowacttypes = get_config('block_ucla_browseby', 
                 'allow_acttypes');

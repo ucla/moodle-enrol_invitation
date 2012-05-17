@@ -28,6 +28,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/local/ucla/lib.php');
+require_once($CFG->dirroot .'/user/lib.php');
 
 /**
  * Database enrolment plugin implementation.
@@ -588,6 +589,14 @@ class enrol_database_plugin extends enrol_plugin {
         // THe auth plugins are not usable in determining what fields to update
         $updateuserfields = array('firstname', 'lastname', 'email');
 
+        // This configuration value comes in days, so multiply
+        // This value is in seconds, or is false which is 0, meaning instantly/always
+        // 86400 == 60 * 60 * 24 (seconds in a day)
+        $minuserupdatewait = $this->get_config('minuserupdatewaitdays') * 86400;
+       
+        // This may cause seconds/minutes of disparity
+        $currtime = time();
+
         foreach ($existing as $course) {
             // CCLE-2275: Ignoring courses that are not selected to be
             // synchronized (such as courses in other terms)
@@ -668,9 +677,7 @@ class enrol_database_plugin extends enrol_plugin {
                         $fallback = $fields[$fblocaluserfield];
                     }
 
-                    if (empty($user_mapping[$mapping]) 
-                            || (!empty($fblocaluserfield) && empty($user_fallback[$fallback]))) {
-
+                    if (empty($user_mapping[$mapping]) || (!empty($fblocaluserfield) && empty($user_fallback[$fallback]))) {
                         // Find the user from our database
                         $sqlparams = array();
                         $sqlbuilder = array();
@@ -718,7 +725,7 @@ class enrol_database_plugin extends enrol_plugin {
                             }
 
                             try {
-                                $user->id = $DB->insert_record('user', $user);
+                                $user->id = user_create_user($user);
                             } catch (dml_exception $e) {
                                 mtrace("Skipping enrollments for "   
                                     . $user->username);
@@ -731,7 +738,9 @@ class enrol_database_plugin extends enrol_plugin {
                         
                         $userid = $user->id;
 
-                        // Update our local DB with new information, if needed
+                        // Update our local DB with new identifying information
+                        // since we either only came from user field or fallback
+                        // field
                         $needsupdate = false;
                         if (empty($user->{$localuserfield})) {
                             $user->{$localuserfield} = $mapping;
@@ -767,14 +776,15 @@ class enrol_database_plugin extends enrol_plugin {
                         $user_cache[$userid] = $DB->get_record('user', array('id' => $userid));
                     }
 
-                    $userinfo = $user_cache[$userid];
+                    // This clone might not be necessary, but this is useful for debugging purposes...
+                    $userinfo = clone($user_cache[$userid]);
                     $needsupdate = false;
 
                     $updatedebugstr = '';
 
+                    // Go through updater fields and sync with registrar
                     foreach ($updateuserfields as $updateuserfield) {
-                        if ($userinfo->{$updateuserfield} != $fields[$updateuserfield]) {
-
+                        if (!empty($fields[$updateuserfield]) && $userinfo->{$updateuserfield} != $fields[$updateuserfield]) {
                             if (!empty($updatedebugstr)) {
                                 $updatedebugstr .= "\n";
                             }
@@ -790,13 +800,30 @@ class enrol_database_plugin extends enrol_plugin {
                     }
 
                     if ($needsupdate) {
-                        if ($verbose) {
-                            mtrace($updatedebugstr);
-                        }
+                        if ($currtime - $userinfo->lastaccess > $minuserupdatewait) {
+                            if ($verbose) {
+                                mtrace($updatedebugstr);
+                            }
 
-                        $DB->update_record('user', $userinfo);
-                        $user_cache[$userid] = $userinfo;
+                            user_update_user($userinfo);
+
+                            // If the clone() is not above, then this line is not necessary
+                            $user_cache[$userid] = $userinfo;
+                        }  else if ($verbose) {
+                            // If the clone() is not above, this debugging message won't work
+                            $origuserinfo = $user_cache[$userid];
+
+                            $userstr = fullname($origuserinfo) . ' ' . $origuserinfo->email;
+                            $remoteuserstr = fullname($userinfo) . ' ' . $userinfo->email;
+
+                            mtrace('User data (' . $userstr 
+                                . ') does not match externaldb (' . $remoteuserstr 
+                                . '), but ignoring (minuserupdatewaitdays)');
+                        }
                     }
+
+                    // Since we cloned, we want to clear memory
+                    unset($userinfo);
 
                     if (empty($fields[$rolefield]) or !isset($roles[$fields[$rolefield]])) {
                         if (!$defaultrole) {

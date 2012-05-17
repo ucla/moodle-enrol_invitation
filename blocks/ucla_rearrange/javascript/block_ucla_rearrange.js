@@ -83,7 +83,7 @@ M.block_ucla_rearrange.create_nested_sortable = function() {
                 M.block_ucla_rearrange.serialize_target(targetid)
             }
         }
-    );
+        );
 };
 
 /**
@@ -103,7 +103,7 @@ M.block_ucla_rearrange.destroy_nested_sortable = function() {
                 buildtarget.NestedSortableDestroy();
             }
         }
-    );
+        );
 };
 
 /**
@@ -153,19 +153,19 @@ M.block_ucla_rearrange.create_sortable = function() {
     var tarjet = M.block_ucla_rearrange.sectionlist;
     var sectiontarjq = '#' + tarjet;
     $(sectiontarjq).Sortable(
-        {
-            accept: M.block_ucla_rearrange.sortableitem,
-            helperclass: M.block_ucla_rearrange.sortablehelperclass,
-            opacity: 0.5,
-            fit: true,
-            onChange: M.block_ucla_rearrange.assign_serialized,
-            onStop: function() {
-                // Strange functionality ported from 1.9 to fix
-                // issues when sections are moved in rearrange tool.
-                M.block_ucla_rearrange.destroy_nested_sortable();
-                M.block_ucla_rearrange.create_nested_sortable();
-            }
+    {
+        accept: M.block_ucla_rearrange.sortableitem,
+        helperclass: M.block_ucla_rearrange.sortablehelperclass,
+        opacity: 0.5,
+        fit: true,
+        onChange: M.block_ucla_rearrange.assign_serialized,
+        onStop: function() {
+            // Strange functionality ported from 1.9 to fix
+            // issues when sections are moved in rearrange tool.
+            M.block_ucla_rearrange.destroy_nested_sortable();
+            M.block_ucla_rearrange.create_nested_sortable();
         }
+    }
     );
 
     M.block_ucla_rearrange.serialize_target(tarjet);
@@ -198,7 +198,7 @@ M.block_ucla_rearrange.toggle_section = function(sectionjqo) {
  *  Toggles between 2 possible texts.
  **/
 M.block_ucla_rearrange.toggle_onoff_text = function(
-        jqobj, selectOn, selectOff, fn) {
+    jqobj, selectOn, selectOff, fn) {
     if (fn == undefined) {
         fn = 'text';
     }
@@ -237,7 +237,7 @@ M.block_ucla_rearrange.toggle_all_text = function() {
             M.block_ucla_rearrange.expandalltext,
             M.block_ucla_rearrange.collapsealltext,
             'val'
-        );
+            );
     });
 };
 
@@ -258,7 +258,7 @@ M.block_ucla_rearrange.verify_allsection_button = function() {
     });
 
     if (allSame != null && allSame != false
-            && !M.block_ucla_rearrange.compare_section_toggle(allSame)) { 
+        && !M.block_ucla_rearrange.compare_section_toggle(allSame)) { 
         M.block_ucla_rearrange.toggle_all_text();
     }
 };
@@ -291,10 +291,10 @@ M.block_ucla_rearrange.compare_section_toggle = function(text) {
     var current = $(M.block_ucla_rearrange.expandalljq).val();
 
     if (current == M.block_ucla_rearrange.expandalltext
-            && text == M.block_ucla_rearrange.expandtext) {
+        && text == M.block_ucla_rearrange.expandtext) {
         return true;
     } else if (current == M.block_ucla_rearrange.collapsealltext
-            && text == M.block_ucla_rearrange.collapsetext) {
+        && text == M.block_ucla_rearrange.collapsetext) {
         return true;
     }
 
@@ -304,14 +304,26 @@ M.block_ucla_rearrange.compare_section_toggle = function(text) {
 /**
  *  Custom spec-ed out function for initalziation of rearrange.
  **/
-M.block_ucla_rearrange.initialize_rearrange_tool = function() {
+M.block_ucla_rearrange.initialize_rearrange_tool = function(topicNumber, secNum) {
+     
     $(M.block_ucla_rearrange.containerjq).html(M.block_ucla_rearrange.sections);
 
     M.block_ucla_rearrange.create_sortable();
-
     M.block_ucla_rearrange.create_nested_sortable();
     M.block_ucla_rearrange.create_expandables();
     M.block_ucla_rearrange.create_expand_all();
+
+    // CCLE-2926 - Selective expand/collapse in rearrange tool
+    if(topicNumber >= 0) {
+        // collapse all 
+        M.block_ucla_rearrange.event_expand_all();        
+        M.block_ucla_rearrange.toggle_all_text();   // Change the text
+
+        // now only expand given section
+        $("#ns-list-"+secNum).each(function() {
+            M.block_ucla_rearrange.toggle_section($(this).parent());
+        });        
+    }
 };
 
 /**

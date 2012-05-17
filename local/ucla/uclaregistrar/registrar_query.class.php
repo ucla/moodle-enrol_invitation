@@ -78,7 +78,6 @@ abstract class registrar_query {
      **/
     static function get_registrar_query($queryname) {
         $classname = 'registrar_' . $queryname;
-        
         if (!class_exists($classname)) {
             $fn = dirname(__FILE__) . "/$classname.class.php";
             if (file_exists($fn)) {
@@ -278,9 +277,9 @@ abstract class registrar_query {
 
         // Manually coded check for odbc functionality, since moodle doesn't 
         // seem to like exceptions
-        if (strpos($dbtype, 'odbc') !== false) {
+	if (strpos($dbtype, 'odbc') !== false) {
             if (!function_exists('odbc_exec')) {
-                $this->handle_locking(false);
+		$this->handle_locking(false);
 
                 throw new Exception('FATAL ERROR: ODBC not installed!');
             }

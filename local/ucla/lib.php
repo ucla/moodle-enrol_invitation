@@ -1058,4 +1058,37 @@ class ucla_html_writer extends html_writer {
         return parent::link($url, $text, $attr);
     }
 }
+
+/**
+ * Checks the role_assignments table and sees if the viewer shares a context 
+ * with the target.
+ * 
+ * @param int $targetid     Id of user to check if viewer shares a context with
+ * @param int $userid       Defaults to null. If null, then will use currently
+ *                          logged in user.
+ * 
+ * @return boolean          True if viewer does share a context with target, 
+ *                          otherwise false. 
+ */
+function has_shared_context($targetid, $viewerid=null) {
+    global $DB, $USER;
+    
+    if (empty($viewerid)) {
+        $viewerid = $USER->id;
+    }
+    
+    // use raw SQL, because there is no built in moodle database api to join a 
+    // table on itself
+    $sql = "SELECT  COUNT(*)
+            FROM    {role_assignments} AS ra_target,
+                    {role_assignments} AS ra_viewer
+            WHERE   ra_target.userid=:targetid AND
+                    ra_viewer.userid=:viewerid AND
+                    ra_target.contextid=ra_viewer.contextid";
+    $result = $DB->get_field_sql($sql, array('targetid' => $targetid, 
+                                             'viewerid' => $viewerid));
+
+    // if there is a result, return true, otherwise false
+    return !empty($result);
+}
 // EOF
