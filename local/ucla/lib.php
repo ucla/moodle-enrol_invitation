@@ -795,7 +795,7 @@ function term_role_can_view($term, $roleshortname, $currterm=null,
     }
 
     if ($limitweek === null) {
-        $limitweek = get_config('local_ucla', 'student_access_week');
+        $limitweek = get_config('local_ucla', 'student_access_ends_week');
     }
     
     if ($currweek === null) {
@@ -821,7 +821,7 @@ function term_role_can_view($term, $roleshortname, $currterm=null,
 
     // Either can see all terms or can see until week 2, the previous term
     if ($canviewprev || term_cmp_fn($term, $currterm) >= 0 
-        || ($currweek < 2 
+        || ($currweek < $limitweek
             && term_cmp_fn($term, term_get_prev($currterm)) == 0)) {
         // This should evaluate to true
         return $term;

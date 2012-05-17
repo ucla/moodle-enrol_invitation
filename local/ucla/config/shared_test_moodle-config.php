@@ -87,6 +87,11 @@ $CFG->instructor_levels_roles = array(
 // Course builder
 $terms_to_built = array('12S', '121', '12F');
 
+// My Sites CCLE-2810
+// Term limiting
+$CFG->forced_plugin_settings['local_ucla']['student_access_ends_week'] = 3;
+$CFG->forced_plugin_settings['local_ucla']['oldest_available_term'] = '08S';
+
 // Browseby CCLE-2894
 $CFG->forced_plugin_settings['block_ucla_browseby']['use_local_courses'] = true;
 $CFG->forced_plugin_settings['block_ucla_browseby']['ignore_coursenum'] = '194,295,296,375';
