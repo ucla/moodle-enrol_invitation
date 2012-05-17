@@ -86,6 +86,16 @@ $CFG->instructor_levels_roles = array(
 // Course builder
 $terms_to_built = array('12S', '121', '12F');
 
+// CCLE-2283: Friendly URLs
+// CCLE-2283: Redirect to archive 
+$CFG->forced_plugin_settings['local_ucla'] = array(
+    'friendly_urls_enabled' => true,
+    'remotetermcutoff' => '12S',
+//    'archiveserver' => 'https://archive.ccle.ucla.edu'
+    // until June 17 don't redirect to archive server, because that doesn't exist
+    'archiveserver' => 'https://ccle.ucla.edu'
+);
+
 // Browseby CCLE-2894
 $CFG->forced_plugin_settings['block_ucla_browseby']['use_local_courses'] = 0;
 $CFG->forced_plugin_settings['block_ucla_browseby']['ignore_coursenum'] = '194,295,296,375';
