@@ -31,7 +31,7 @@ class course_handler extends browseby_handler {
     ";
 
     const browseall_order_helper = "
-        ORDER BY subj_area, course_code 
+        ORDER BY session_group, subj_area, course_code 
     ";
 
     function get_params() {
