@@ -305,6 +305,9 @@ $CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 3;    // Disab
 $CFG->forced_plugin_settings['enrol_database']['fblocaluserfield'] = 'username';
 $CFG->forced_plugin_settings['enrol_database']['fbremoteuserfield'] = 'username';
 
+// CCLE-2802 - Frontpage banner layout include
+$CFG->customfrontpageinclude = $_dirroot_ . '/theme/uclashared/layout/frontpage.php';
+
 // This will bootstrap the moodle functions.
 require_once($_dirroot_ . '/lib/setup.php');
 

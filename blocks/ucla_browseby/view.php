@@ -34,7 +34,7 @@ $PAGE->set_url('/blocks/ucla_browseby/view.php', $argvls);
 $PAGE->set_course($SITE);
 
 $PAGE->set_pagetype('site-index');
-$PAGE->set_pagelayout('frontpage');
+$PAGE->set_pagelayout('coursecategory');
 
 // This function will alter the $PAGE->navbar object
 list($title, $innercontents) = $handler->run_handler($argvls);
