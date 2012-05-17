@@ -5,8 +5,12 @@
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
-//require_once($CFG->libdir . '/uclalib.php');
+
 require_once($CFG->dirroot.'/lib/accesslib.php');
+
+// These are UCLA-added functions that aren't specific to the UCLA
+// codebase
+require_once($CFG->dirroot . '/local/ucla/accesslib.php');
 
 /**
  *  @deprecated

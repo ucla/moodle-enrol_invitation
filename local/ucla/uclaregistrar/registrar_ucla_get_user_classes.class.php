@@ -3,6 +3,8 @@
 require_once(dirname(__FILE__) . '/registrar_query.class.php');
 
 class registrar_ucla_get_user_classes extends registrar_query {
+    var $skip_clean_fields = array('catlg_no');
+
     function validate($new, $old) {
         return true;
     }

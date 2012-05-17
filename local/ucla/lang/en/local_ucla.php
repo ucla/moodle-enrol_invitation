@@ -29,5 +29,19 @@ $string['ucla:viewall_courselisting'] = 'Allows user to see all courses another 
 
 $string['external-link'] = 'External website (opens new window)';
 
+// Settings pages
 $string['student_access_week_title'] = 'Student previous term cutoff week';
 $string['student_access_week_desc'] = 'The number of week since the beginning of the current quarter in which students are allowed view a previous quarter\'s courses.';
+
+$string['currentterm_title'] = 'Current term';
+$string['currentterm_desc'] = 'Determines what value to use for anything that needs to know what the current term is.';
+
+$string['current_week_title'] = 'Current week';
+$string['current_week_desc'] = 'Determines what value to use for anything that needs to know what the current week is.';
+
+$string['privileged_roles_title'] = 'Roles that can view old terms';
+$string['privileged_roles_desc'] = 'The roles selected here can view old terms.';
+
+$string['currenttermweek_disabled'] = 'The ability to alter current term and current week through this interface has been disabled because those are automatically determined.';
+
+
