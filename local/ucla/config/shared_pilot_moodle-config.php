@@ -91,7 +91,9 @@ $terms_to_built = array('12S', '121', '12F');
 $CFG->forced_plugin_settings['local_ucla'] = array(
     'friendly_urls_enabled' => true,
     'remotetermcutoff' => '12S',
-    'archiveserver' => 'https://archive.ccle.ucla.edu'
+//    'archiveserver' => 'https://archive.ccle.ucla.edu'
+    // until June 17 don't redirect to archive server, because that doesn't exist
+    'archiveserver' => 'https://ccle.ucla.edu'
 );
 
 // Course Requestor
