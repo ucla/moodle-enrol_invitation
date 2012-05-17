@@ -77,9 +77,16 @@ class block_ucla_my_sites extends block_base {
         // collaboration sites
         $class_sites = array(); $collaboration_sites = array();
         foreach ($courses as $c) {
+            // Don't bother displaying sites that cannot be accessed
+            if (!has_course_access($c)) {
+                continue;
+            }
+
             $reg_info = ucla_get_course_info($c->id);
             if (!empty($reg_info)) {
                 $courseterm = false;
+                // TODO optimize here by making another table to reference
+                // each course object by its term-srs 
                 foreach ($reg_info as $ri) {
                     $c->reg_info[make_idnumber($ri)] = $ri;
                     $courseterm = $ri->term;
@@ -88,12 +95,33 @@ class block_ucla_my_sites extends block_base {
                 $c->url = sprintf('%s/course/view.php?id=%d', $CFG->wwwroot,
                     $c->id);
 
+                $ccontext = context_course::instance($c->id);
+                $courseroles = get_user_roles($ccontext);
+
+                // We want the course-specific display name
+                $rolenames = array();
+                foreach ($courseroles as $role) {
+                    $rolenames[$role->roleid] = $role->name;
+                }
+
+                $rolenames = role_fix_names($rolenames, $ccontext);
+
+                // Search and replace
+                foreach ($rolenames as $roleid => $customname) {
+                    foreach ($courseroles as $raid => $ra) {
+                        if ($ra->roleid == $roleid) {
+                            $ra->name = $customname;
+                        }
+                    }
+                }
+
+                $c->roles = $courseroles;
+                
+                $availableterms[$courseterm] = $courseterm;
+
                 // We need to toss local information, or at least not 
                 // display it twice
-                $availableterms[$courseterm] = $courseterm;
-                if ($courseterm == $showterm) {
-                    $class_sites[] = $c;
-                }
+                $class_sites[] = $c;
             } else {
                 $collaboration_sites[] = $c;
             }
@@ -112,12 +140,16 @@ class block_ucla_my_sites extends block_base {
                 true
             );
         }
+        
+        // In order to translate values returned by get_moodlerole
+        $allroles = get_all_roles();
 
         if ($remotecourses) {
             foreach ($remotecourses as $remotecourse) {
                 // Do not use this object after this, this is because
                 // browseby_handler::ignore_course uses an object
                 $objrc = (object) $remotecourse;
+                
                 $objrc->activitytype = $objrc->act_type;
                 $objrc->course_code = $objrc->catlg_no;
                 if (empty($objrc->url) 
@@ -126,14 +158,20 @@ class block_ucla_my_sites extends block_base {
                 }
                 
                 $subj_area = $remotecourse['subj_area'];
+
                 list($term, $srs) = explode('-', 
                     $remotecourse['termsrs']);
 
-                // Save the term
-                $availableterms[$term] = $term;
-                if ($term != $showterm) {
+                $rrole = $allroles[get_moodlerole($remotecourse['role'],
+                    $subj_area)];
+
+                // Remote courses are filtered generically by term
+                if (!term_role_can_view($term, $rrole->shortname)) {
                     continue;
                 }
+
+                // Save the term
+                $availableterms[$term] = $term;
 
                 // We're going to format this object to return
                 // something similar to what locally-existing courses
@@ -145,8 +183,9 @@ class block_ucla_my_sites extends block_base {
                 $rreg_info = new stdclass();
                 $rreg_info->subj_area = $subj_area;
                 $rreg_info->acttype = $remotecourse['act_type'];
-                $rreg_info->coursenum = trim($remotecourse['catlg_no'], '0');
-                $rreg_info->sectnum = trim($remotecourse['sect_no'], '0');
+                $rreg_info->coursenum = ltrim(trim($remotecourse['catlg_no']), 
+                    '0');
+                $rreg_info->sectnum = ltrim($remotecourse['sect_no'], '0');
                 $rreg_info->term = $term;
                 $rreg_info->srs = $srs;
                 $rreg_info->session_group = $remotecourse['session_group'];
@@ -155,38 +194,59 @@ class block_ucla_my_sites extends block_base {
 
                 $rclass->reg_info = array($rreg_info);
 
-                $rclass->role = get_moodlerole($remotecourse['role'],
-                    $subj_area);
-
-                // If this particular course already exists locally, then there
-                // is no real need to add another copy of it to the list of
-                // my sites
+                // If this particular course already exists locally, then 
+                // Overwrite the roles with the registrar's data
                 $key = make_idnumber($rreg_info);
                 $localexists = false;
                 foreach ($class_sites as $k => $class_site) {
                     foreach ($class_site->reg_info as $reginfo) {
                         if ($key == make_idnumber($reginfo)) {
-                            $class_sites[$k]->role = $rclass->role;
-
+                            $class_sites[$k]->roles[] = $rrole;
                             $localexists = true;
                         }
                     }
                 }
 
                 if (!$localexists) {
+                    $rclass->roles = array($rrole);
                     $class_sites[] = $rclass;
                 }
             }
         }
-
+        
         // We want to sort things, so that it appears classy yo
         usort($class_sites, array(get_class(), 'registrar_course_sort'));
+        
+        // Filter out courses that are not part of the proper term
+        foreach ($class_sites as $k => $class_site) {
+            $firstreg = reset($class_site->reg_info);
+            $courseterm = $firstreg->term;
 
-        // Now we need to handle all the terms
+            if ($showterm && $courseterm != $showterm) {
+                unset($class_sites[$k]);
+                continue;
+            }
+        }
+
+        // Figure out what to display in the Roles column
+        foreach ($class_sites as $k => $class_site) {
+            if (!empty($class_site->roles)) {
+                $rolenames = array();
+                foreach ($class_site->roles as $role) {
+                    $rolenames[] = $role->name;
+                }
+
+                $class_site->rolestr = implode(', ', $rolenames);
+            } else {
+                debuggin('no roles');
+            }
+        }
+
+        // Display term selector
         $termoptstr = '';
         if (!empty($availableterms)) {
             // Leaves them descending
-            $availableterms = terms_arr_sort($availableterms);
+            $availableterms = array_reverse(terms_arr_sort($availableterms));
 
             $termoptstr = get_string('term', 'local_ucla') . ': '
                     . $OUTPUT->render(self::make_terms_selector(
@@ -198,13 +258,12 @@ class block_ucla_my_sites extends block_base {
         $termoptstr = html_writer::tag('div', $termoptstr,
             array('class' => 'termselector'));
 
-        // In order to translate values returned by get_moodlerole
-        $allroles = get_all_roles();
-
         // print class sites
         $content[] = html_writer::tag('h3', 
                 get_string('classsites', 'block_ucla_my_sites'), 
                     array('class' => 'mysitesdivider')) . $termoptstr;
+
+        // Change message if there are no sites at all
         if (empty($class_sites)) {
             if (!isset($noclasssitesoverride)) {
                 $ncsstr = 'noclasssites';
@@ -270,10 +329,10 @@ class block_ucla_my_sites extends block_base {
                 }
                 
                 // get user's role
-                if (empty($class->id) && !empty($class->role)) {
-                    $roles = $allroles[$class->role]->name;
+                if (!empty($class->rolestr)) {
+                    $roles = $class->rolestr;
                 } else {
-                    $roles = get_user_roles_in_course($USER->id, $class->id);
+                    debugging('no roles found');
                 }
 
                 // remove links from role string
@@ -407,24 +466,41 @@ class block_ucla_my_sites extends block_base {
         if (isset($b->role)) {
             $breginfo->role = $b->role;
         }
-        
+
+        // Compare terms
+        $termcmp = term_cmp_fn($areginfo->term, $breginfo->term);
+        if ($termcmp != 0) {
+            return $termcmp * -1;
+        }
+
+        // Compare roles
+        $rolenamecmp = strcmp($areginfo->role->name, $breginfo->role->name);
+        if ($rolenamecmp != 0) {
+            return $rolenamecmp;
+        }
+
         // This is an array of fields to compare by after the off-set
         // term and role
-        $comparr = array('term', 'role', 'subj_area', 'course_code', 
-            'sectnum');
+        $comparr = array('subj_area', 'course_code', 'sectnum');
 
         // Go through each of those fields until we hit an imbalance
         foreach ($comparr as $field) {
-            if (!isset($areginfo->{$field})) {
-                return 1;
-            } 
-            
-            if (!isset($breginfo->{$field})) {
-                return -1;
+            $anotisset = !isset($areginfo->{$field});
+            $bnotisset = !isset($breginfo->{$field});
+
+            if ($anotisset && $bnotisset) {
+                continue;
+            } else {
+                if ($anotisset) {
+                    return -1;
+                } 
+                
+                if ($bnotisset) {
+                    return 1;
+                }
             }
 
             $strcmpv = strcmp($areginfo->{$field}, $breginfo->{$field});
-
             if ($strcmpv != 0) {
                 return $strcmpv;
             }
