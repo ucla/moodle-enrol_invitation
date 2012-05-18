@@ -25,6 +25,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// global strings
+$string['pluginname'] = 'Site invitation';
+$string['pluginname_desc'] = 'The site invitation module allows to send invitation by email. These invitations can be used only once. Users clicking on the email link are automatically enrolled.';
+
+
+// invite user strings
 $string['assignrole'] = 'Assign role';
 $string['cannotsendmoreinvitationfortoday'] = 'No invitation left for today. Try later.';
 $string['defaultrole'] = 'Default role assignment';
@@ -65,21 +71,19 @@ $string['maxinviteperday'] = 'Maximum invitation per day';
 $string['maxinviteperday_help'] = 'Maximum invitation that can be send per day for a course.';
 $string['noinvitationinstanceset'] = 'No invitation enrolmenet instance has been found. Please add an invitation enrol instance to your course first.';
 $string['nopermissiontosendinvitation'] = 'No permission to send invitation';
-$string['pluginname'] = 'Site invitation';
-$string['pluginname_desc'] = 'The site invitation module allows to send invitation by email. These invitations can be used only once. Users clicking on the email link are automatically enrolled.';
 $string['status'] = 'Allow site invitations';
 $string['status_desc'] = 'Allow users to invite people to enrol into a course by default.';
 $string['unenrol'] = 'Unenrol user';
 $string['unenroluser'] = 'Do you really want to unenrol "{$a->user}" from course "{$a->course}"?';
 $string['unenrolselfconfirm'] = 'Do you really want to unenrol yourself from course "{$a}"?';
 
-// Capabilities strings
+// invite history strings
+$string['invitehistory'] = 'Invite history';
+$string['noinvitehistory'] = 'No invites sent out yet';
+
+// capabilities strings
 $string['invitation:config'] = 'Configure site invitation instances';
 $string['invitation:enrol'] = 'Invite users';
 $string['invitation:manage'] = 'Manage site invitation assignments';
 $string['invitation:unenrol'] = 'Unassign users from the course';
 $string['invitation:unenrolself'] = 'Unassign self from the course';
-
-// Page tabs
-$string['tab_history'] = 'Invite History';
-$string['tab_invite'] = 'Invite Users';
