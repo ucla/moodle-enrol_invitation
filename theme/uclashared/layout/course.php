@@ -77,14 +77,22 @@ echo $OUTPUT->doctype() ?>
             <div id="control-panel">
             <?php echo $OUTPUT->control_panel_button() ?>
             </div>
+            <div id="weeks-display" class="weeks-display-with-control-panel">
+            <?php echo $OUTPUT->weeks_display() ?>
+            </div>
+            <?php
+
+            } else {
+
+            ?>
+            <div id="weeks-display" class="weeks-display">
+            <?php echo $OUTPUT->weeks_display() ?>
+            </div>
             <?php
 
             }
 
             ?>
-            <div id="weeks-display">
-            <?php echo $OUTPUT->weeks_display() ?>
-            </div>
 
             <?php
             if (!empty($PAGE->layout_options['langmenu'])) {
