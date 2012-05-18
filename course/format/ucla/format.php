@@ -647,7 +647,8 @@ while ($section <= $course->numsections) {
                                         $update_url = new moodle_url($CFG->wwwroot.'/blocks/ucla_office_hours/officehours.php', 
                                                 array('course_id' => $course->id, 'edit_id' => $user->id));
                                         $strupdate = get_string('editofficehours', 'format_ucla');
-                                        $dest_data = html_writer::tag('a', $strupdate, array('href' => $update_url)).' ';
+                                        $dest_data = html_writer::link($update_url, 
+                                                $strupdate, array('title' => $strupdate)).' ';
                                     }
                                     $dest_data .= fullname($user);
                                     //END UCLA MOD: CCLE-2381

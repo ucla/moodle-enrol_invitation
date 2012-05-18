@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<XMLDB PATH="blocks/ucla_office_hours/db" VERSION="20120501" COMMENT="XMLDB file for Moodle blocks/ucla_office_hours"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+    <TABLES>
+        <TABLE NAME="ucla_officehours" COMMENT="Holds information about office hours and contact info">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="userid"/>
+                <FIELD NAME="userid" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUMTYPE="false" 
+                    PREVIOUS="id" NEXT="courseid"/>
+                <FIELD NAME="courseid" TYPE="int" LENGTH="11" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" ENUM="false"
+                    PREVIOUS="userid" NEXT="officehours"/>
+                <FIELD NAME="officelocation" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" ENUM="false" 
+                    PREVIOUS="courseid" NEXT="officehours"/>    
+                <FIELD NAME="officehours" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" ENUM="false" 
+                    PREVIOUS="officelocation" NEXT="email"/>    
+                <FIELD NAME="email" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" ENUM="false" 
+                    PREVIOUS="officehours" NEXT="timemodified"/>    
+                <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" 
+                    PREVIOUS="email" NEXT="modiferid"/>    
+                <FIELD NAME="modifierid" TYPE="int" LENGTH="11" NOTNULL="true" UNSINGED="true" SEQUENCE="false" ENUM="false" 
+                    PREVIOUS="timemodified"/>    
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            </KEYS>
+            <INDEXES>
+                
+            </INDEXES>
+        </TABLE>
+    </TABLES>
