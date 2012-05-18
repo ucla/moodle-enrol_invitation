@@ -167,8 +167,27 @@ class invitation_manager {
     }
     
     /**
+     *
+     * @global type $DB
+     * @param type $courseid
+     * @return type 
+     */
+    public function get_invites($courseid = null) {
+        global $DB;
+        
+        if (empty($courseid)) {
+            $courseid = $this->courseid;
+        }
+
+        $invites = $DB->get_records('enrol_invitation', 
+                array('courseid' => $courseid));        
+        
+        return $invites;
+    }
+    
+    /**
      * Return the invitation instance for a specific course
-     * Note: as using $PAGE variable, this functio can only be called in a Moodle script page
+     * Note: as using $PAGE variable, this function can only be called in a Moodle script page
      * @global object $PAGE
      * @param int $courseid
      * @param boolean $mustexist when set, an exception is thrown if no instance is found
@@ -219,16 +238,17 @@ class invitation_manager {
  * @param type $active_tab  Either 'invite' or 'history'
  */
 function print_page_tabs($active_tab) {
-    global $PAGE;
+    global $CFG, $COURSE;
     
-    $tabs[] = new tabobject('history', $PAGE->url, 
-            get_string('tab_history', 'enrol_invitation'));
-    $tabs[] = new tabobject('invite', $PAGE->url, 
-            get_string('tab_invite', 'enrol_invitation'));    
+    $tabs[] = new tabobject('history', 
+                            new moodle_url('/enrol/invitation/history.php', 
+                                           array('courseid' => $COURSE->id)), 
+                            get_string('invitehistory', 'enrol_invitation'));
+    $tabs[] = new tabobject('invite',
+                            new moodle_url('/enrol/invitation/invitation.php', 
+                                           array('courseid' => $COURSE->id)), 
+                            get_string('inviteusers', 'enrol_invitation'));    
  
-    // display tags here
-    echo html_writer::start_tag('div', 
-            array('id' => 'enrol_invitation_page_tabs'));
+    // display tabs here
     print_tabs(array($tabs), $active_tab);
-    echo html_writer::end_tag('div');    
 }

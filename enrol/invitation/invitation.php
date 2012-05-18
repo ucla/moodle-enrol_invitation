@@ -24,10 +24,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require('../../config.php');
-require_once('locallib.php');
-require_once('invitation_forms.php');
-require_once("$CFG->dirroot/enrol/locallib.php");
+require(dirname(__FILE__) . '/../../config.php');
+require_once(dirname(__FILE__) . '/locallib.php');
+require_once(dirname(__FILE__) . '/invitation_forms.php');
+require_once($CFG->dirroot . '/enrol/locallib.php');
 require_login();
 
 $courseid = required_param('courseid', PARAM_INT);
