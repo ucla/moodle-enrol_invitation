@@ -2,10 +2,10 @@
 /**
  *  Course Requestor 
  **/
-
 require_once(dirname(__FILE__) . '/../../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
-
+$uccdirr = '/tool/uclacoursecreator/uclacoursecreator.class.php';
+require_once($CFG->dirroot . '/' . $CFG->admin . $uccdirr);
 $thisdir = '/' . $CFG->admin . '/tool/uclacourserequestor/';
 require_once($CFG->dirroot . $thisdir . 'lib.php');
 
@@ -23,7 +23,6 @@ if (!has_capability('tool/uclacourserequestor:edit', $syscontext)) {
 
 $selterm = optional_param('term', false, PARAM_ALPHANUM);
 $selected_term = $selterm ? $selterm : get_config($rucr, 'selected_term');
-
 if (!$selected_term) {
     $selected_term = $CFG->currentterm;
 }
@@ -59,7 +58,6 @@ $top_forms = array(
 );
 
 $termstr = get_config($rucr, 'terms');
-
 if (!empty($termstr)) {
     $terms = array();
 
@@ -88,7 +86,6 @@ $nv_cd = array(
     'terms' => $terms,
     'prefields' => $prefieldsdata
 );
-
 // We're going to display the forms, but later
 $cached_forms = array();
 
@@ -144,10 +141,12 @@ foreach ($top_forms as $gk => $group) {
 // logically correct but properly sanitized
 $saverequeststates = false;
 
+$coursebuilder = new uclacoursecreator();
+$forcebuild = false;
+
 $changes = array();
 if ($requests === null) {
     $prevs = data_submitted();
-
     if (!empty($prevs)) {
         if (!empty($prevs->formcontext)) {
             $groupid = $prevs->formcontext;
@@ -157,9 +156,11 @@ if ($requests === null) {
         if (!empty($prevs->{UCLA_CR_SUBMIT})) {
             $saverequeststates = true;
         }
-
+        if (!empty($prevs->{'buildcourses'}) && 
+                !$coursebuilder->lock_exists()) {
+            $forcebuild = true;
+        }        
         $requests = array();
-
         $rkeyset = array();
         // Unchangables
         if (!empty($prevs->{$uf})) {
@@ -223,8 +224,7 @@ $errormessages = array();
 if (isset($uclacrqs)) {
     // This is the form data before the save
     $requestswitherrors = $uclacrqs->validate_requests($groupid);
-
-    if ($saverequeststates) {
+	if ($saverequeststates) {
         $successfuls = $uclacrqs->commit();
 
         // figure out changes that have occurred
@@ -313,9 +313,22 @@ if (isset($uclacrqs)) {
             break;
         }
     }
-
+    
+    // user wants to build courses now
+    if($forcebuild == true) {
+        $termlist = array();
+        foreach ($requestswitherrors as $course) {
+            foreach($course as $value) {
+                if($value['action'] == "build") {
+                    $termlist[] = $value['term'];
+                }
+            }
+        }
+        $termlist = array_unique($termlist);
+        events_trigger('build_courses_now', $termlist);
+    }
+    
     $tabledata = prepare_requests_for_display($requestswitherrors, $groupid);
-
     $rowclasses = array();
     foreach ($tabledata as $key => $data) {
         if (!empty($data['errclass'])) {
@@ -342,7 +355,6 @@ if (isset($uclacrqs)) {
     $requeststable->id = 'uclacourserequestor_requests';
     $requeststable->head = $possfields;
     $requeststable->data = $tabledata;
-
     // For errors
     $requeststable->rowclasses = $rowclasses;
 }
@@ -357,10 +369,21 @@ echo $OUTPUT->heading(get_string('pluginname', $rucr), 2, 'headingblock');
 
 // generate build schedule/notice (if any)
 $build_notes = get_config($rucr, 'build_notes');
+if ($coursebuilder->lock_exists()) { // if course build is in progress, let user know
+    if (!empty($build_notes)) {
+        $build_notes .= html_writer::empty_tag('br');        
+    }
+    $build_notes .= get_string('alreadybuild', $rucr);
+} else if (course_build_queued()) {
+    if (!empty($build_notes)) {
+        $build_notes .= html_writer::empty_tag('br');        
+    }
+    $build_notes .= get_string('queuebuild', $rucr);
+}
 if (!empty($build_notes)) {
     $build_notice = html_writer::tag('div', $build_notes, 
             array('id' => 'uclacourserequestor_notice'));    
-    echo $OUTPUT->box($build_notice, 'noticebox');    
+    echo $OUTPUT->box($build_notice, 'noticebox');      
 }
 
 foreach ($cached_forms as $gn => $group) {
@@ -378,7 +401,6 @@ foreach ($cached_forms as $gn => $group) {
             array('target' => '_blank')
         );             
     }
-         
     echo $OUTPUT->box_end();
 }
 
@@ -397,7 +419,7 @@ if (!empty($errormessages)) {
     foreach ($errormessages as $message) {
         if (!empty($message)) {
             $contextspecificm = $message . '-' . $groupid;
-
+            
             if ($sm->string_exists($contextspecificm, $rucr)) {
                 $viewstr = $contextspecificm;
             } else {
@@ -433,7 +455,52 @@ if (!empty($requeststable->data)) {
             'value' => base64_encode(serialize($pass_uclacrqs)),
             'name' => $uf 
         ));
-
+    
+    // only display build now button any "View existing requests" are set  to
+    // "to be built"
+    $showbutton = false;
+    if ('views' == $groupid) {
+        foreach ($requestswitherrors as $course) {
+            foreach($course as $value) {
+                if($value['action'] == "build") {
+                    $showbutton = true;
+                    break;
+                }
+            }
+        }
+    }
+    
+    // only display built now button for non-prod environments
+    $configprod = get_config('theme_uclashared', 'running_environment');    
+    if ($configprod != 'prod' && $showbutton) {
+        if (!$coursebuilder->lock_exists() && !course_build_queued()) {
+            echo html_writer::tag('input', '', array(
+                'type' => 'submit',
+                'name' => 'buildcourses',	
+                'value' => get_string('buildcoursenow', $rucr),
+                'class' => 'right',
+                'id' => 'buildcourses'
+            ));
+        } else {
+            $button_status = '';
+            if ($coursebuilder->lock_exists()) {
+                $button_status = get_string('alreadybuild', $rucr);
+            } else if (course_build_queued()) {
+                $button_status = get_string('queuebuild', $rucr);                
+            }
+            
+            // if course build is happening/queued, disable button
+            echo html_writer::tag('input', '', array(
+                'type' => 'submit',
+                'name' => 'buildcourses',	
+                'value' => $button_status,
+                'class' => 'right',
+                'disabled' => true
+            ));
+        }
+        echo html_writer::empty_tag('br');            
+    }
+    
     echo html_writer::table($requeststable);
 
     echo html_writer::tag('input', '', array(
@@ -450,4 +517,14 @@ if (!empty($requeststable->data)) {
 echo html_writer::end_tag('div');
 echo $OUTPUT->footer();
 
-// EoF
+// script functions
+
+/**
+ * Looks in the event tables and checks if a request to build courses now has
+ * been submitted.
+ * 
+ * @return boolean 
+ */
+function course_build_queued() {
+    return events_pending_count('build_courses_now');
+}

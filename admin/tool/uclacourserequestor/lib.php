@@ -1187,18 +1187,15 @@ function get_requestor_view_fields() {
 
     $prefields = array('term', 'department', 'action');
     $prefieldstr = trim(implode(', ', $prefields));
-
     $rsid = 'CONCAT(' . $prefieldstr . ')';
     if (!$prefieldstr) {
         $prefieldstr = $rsid;
     } else {
         $prefieldstr = $rsid . ', ' . $prefieldstr;
     }
-
     $builtcategories = $DB->get_records('ucla_request_classes', null, 
         'department', 'DISTINCT ' . $prefieldstr);
-
-    $prefieldsdata = array();
+	$prefieldsdata = array();
     foreach ($builtcategories as $builts) {
         foreach ($prefields as $prefield) {
             $varname = $prefield;
@@ -1210,7 +1207,6 @@ function get_requestor_view_fields() {
             $prefieldsdata[$varname][$builts->$prefield] = $builts->$prefield;
         }
     }
-
     return $prefieldsdata;
 }
 
