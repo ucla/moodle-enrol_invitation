@@ -91,7 +91,7 @@ $terms_to_built = array('12S', '121', '12F');
 // CCLE-2283: Redirect to archive 
 $CFG->forced_plugin_settings['local_ucla'] = array(
     'friendly_urls_enabled' => false,
-    'remotetermcutoff' => '11F',
+    'remotetermcutoff' => '12S',
     'archiveserver' => 'https://archive.ccle.ucla.edu'
 );
 
