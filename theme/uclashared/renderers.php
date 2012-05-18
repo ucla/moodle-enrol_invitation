@@ -187,6 +187,7 @@ class theme_uclashared_core_renderer extends core_renderer {
      *  Calls the hook function that will return the current week we are on.
      **/
     function weeks_display() {
+
         $weeks_text = $this->call_separate_block_function(
                 'ucla_weeksdisplay', 'get_raw_content'
             );
@@ -232,7 +233,7 @@ class theme_uclashared_core_renderer extends core_renderer {
      *      displayed.
      **/
     function sublogo() {
-        $display_text   = get_config($this->theme, 'logo_sub_text');
+        $display_text   = $this->get_config($this->theme, 'logo_sub_text');
 
         return $display_text;
     }
@@ -282,7 +283,7 @@ class theme_uclashared_core_renderer extends core_renderer {
 
         $footer_string = '';
         
-        $custom_text = get_config($this->theme, 'footer_links');
+        $custom_text = $this->get_config($this->theme, 'footer_links');
 
         if ($custom_text != '') {
             $footer_string = $custom_text; 
@@ -319,39 +320,33 @@ class theme_uclashared_core_renderer extends core_renderer {
      *  TODO This function should not belong to this specific block
      **/
     function call_separate_block_function($blockname, $functionname) {
-        global $CFG;
-        $blockclassname = 'block_' . $blockname;
-
-        $blockfile = $CFG->dirroot . "/blocks/$blockname/$blockclassname.php";
-        if (file_exists($blockfile)) {
-            require_once($CFG->dirroot . '/blocks/moodleblock.class.php');
-            require_once($blockfile);
-        } else {
-            debugging('Could not find ' . $blockfile);
-            return false;
+        if (during_initial_install()) {
+            return '';
         }
 
-        $course = $this->page->course;
-
-        if (method_exists($blockclassname, $functionname)) {
-            $retval = $blockclassname::$functionname($course);
-        } else {
-            debugging('Could not find ' . $functionname . ' for ' 
-                . $blockclassname);
-            return false;
-        }
-
-        return $retval;
+        return block_method_result($blockname, $functionname, 
+            $this->page->course);
     }
 
     function get_environment() {
-        $c = get_config($this->theme, 'running_environment');
+        $c = $this->get_config($this->theme, 'running_environment');
 
         if (!$c) {
             return 'prod';
         } 
 
         return $c;
+    }
+
+    /**
+     *  Wrapper function to prevent initial install.
+     **/
+    function get_config($plugin, $var) {
+        if (!during_initial_install()) {
+            return get_config($plugin, $var);
+        } 
+
+        return false;
     }
 }
 
