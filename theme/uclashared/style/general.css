@@ -139,10 +139,11 @@ html, body {background-color:#FFF; height:100%;}
 #page-header .headermain #sublogo span { color: #CCC;}
 #page-header .headermain span {color:#C8C9C7;}
 
+#page-header .headermenu {font-size:0.9em;}
+#page-header .headermenu a {text-decoration: underline ; color: #FFF; font-weight: bold;}
 
 #page-header .navbar {background-color:#FFB300;width:100%;}
 #page-header .navbar {color:#000;}
-#page-header .headermenu a {text-decoration: underline ; color: #FFF; font-weight: bold;}
 #page-header .navbar a:link,
 #page-header .navbar a:visited {font-weight: bold; color:#536895;}
 #page-header .navbar .breadcrumb,
