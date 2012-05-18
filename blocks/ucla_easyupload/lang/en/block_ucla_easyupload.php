@@ -9,8 +9,8 @@ $string['select_section'] = 'Add to section';
 $string['returntocourse'] = 'Return to course';
 $string['returntosection'] = 'Return to section';
 $string['successfuladd'] = 'Successfully added {$a} to section.';
-$string['select_copyright']="Assign Copyright Status";
-$string['select_copyright_list']="Choose the most appropriate response regarding copyright status of this file";
+$string['select_copyright'] = 'Assign copyright status';
+$string['select_copyright_list'] = 'Choose the most appropriate copyright status for this file';
 
 // Should I split out the "to {$a}" part?
 $string['easyupload_link_form'] = 'Upload a link to {$a}';
@@ -46,24 +46,23 @@ $string['add_file_post'] = '';
 $string['add_link'] = 'Add a Link';
 $string['add_link_post'] = '';
 
-$string['add_activity'] = 'Add an Activity';
+$string['add_activity'] = 'Add an activity';
 $string['add_activity_post'] = 'Add an Assignment, Forum, Quiz, Wiki or other activity to a specific section of your class site.';
 
-$string['add_resource'] = 'Add a Resource';
+$string['add_resource'] = 'Add a resource';
 $string['add_resource_post'] = 'Create a separate text or web page, display a directory, use the advanced File Manager, or use the Book module.';
 
-$string['add_subheading'] = 'Add a Subheading';
+$string['add_subheading'] = 'Add a subheading';
 $string['add_subheading_post'] = 'Use subheadings within a section to organize links and files (e.g. Readings, Assignments).';
 
-$string['add_text'] = 'Add Text';
+$string['add_text'] = 'Add text';
 $string['add_text_post'] = 'Add text to appear on a course site.';
 
 $string['missingparam'] = 'Missing a parameter for redirection URL: {$a}';
 $string['redirectimplementationerror'] = 'The implementation for a redirect type is missing the function get_send_params().';
 
 // Rearrange
-$string['rearrangejsrequired'] = 'The Rearrange Tool requires JavaScript to
-work.';
+$string['rearrangejsrequired'] = 'The Rearrange Tool requires JavaScript to work.';
 
 //Specify license
 

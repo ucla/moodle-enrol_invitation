@@ -59,7 +59,7 @@ $string['asucla_textbooks'] = 'ASUCLA textbooks';
 $string['asucla_textbooks_post'] = '';
 
 /** Stuff from other **/
-$string['ucla_cp_mod_other'] = 'Other commands';
+$string['ucla_cp_mod_other'] = 'Other tools';
 
 $string['import_classweb'] = 'Import ClassWeb site';
 $string['import_classweb_post'] = 'Import content from a previous course on ClassWeb to this site.';
@@ -115,7 +115,7 @@ $string['quiz_bank_post'] = 'Edit the quiz questions for this course.';
 $string['ucla_cp_mod_student'] = 'Other commands';
 $string['student_grades'] = 'Grades';
 $string['student_grades_post'] = 'View your grades on CCLE.';
-$string['student_change_password'] = 'Change Password';
+$string['student_change_password'] = 'Change password';
 $string['student_change_password_post'] = 'Change your password.';
 $string['student_myucla_grades'] = 'Grades (MyUCLA)';
 $string['student_myucla_grades_post'] = 'View your grades on MyUCLA (if your instructor has made them available).';

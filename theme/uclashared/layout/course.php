@@ -10,6 +10,7 @@ $hassidepre = (empty($PAGE->layout_options['noblocks'])
 $hassidepost = (empty($PAGE->layout_options['noblocks']) 
     && $PAGE->blocks->region_has_content('side-post', $OUTPUT));
 $haslogininfo = (empty($PAGE->layout_options['nologininfo']));
+$hasintrobanner = (!empty($PAGE->layout_options['introbanner']));
 
 $envflag = 'prod';
 if (!empty($PAGE->layout_options['environment'])) {
@@ -76,14 +77,22 @@ echo $OUTPUT->doctype() ?>
             <div id="control-panel">
             <?php echo $OUTPUT->control_panel_button() ?>
             </div>
+            <div id="weeks-display" class="weeks-display-with-control-panel">
+            <?php echo $OUTPUT->weeks_display() ?>
+            </div>
+            <?php
+
+            } else {
+
+            ?>
+            <div id="weeks-display" class="weeks-display">
+            <?php echo $OUTPUT->weeks_display() ?>
+            </div>
             <?php
 
             }
 
             ?>
-            <div id="weeks-display">
-            <?php echo $OUTPUT->weeks_display() ?>
-            </div>
 
             <?php
             if (!empty($PAGE->layout_options['langmenu'])) {
@@ -102,6 +111,9 @@ echo $OUTPUT->doctype() ?>
         <?php } ?>
         <?php if ($hascustommenu) { ?>
         <div id="custommenu"><?php echo $custommenu; ?></div>
+        <?php } ?>
+        <?php if($hasintrobanner) { ?>
+        <div class="introbanner" ></div>
         <?php } ?>
         <?php if ($hasnavbar) { ?>
             <div class="navbar clearfix">

@@ -1210,9 +1210,65 @@ class restore_course_structure_step extends restore_structure_step {
     protected function after_execute() {
         // Add course related files, without itemid to match
         $this->add_related_files('course', 'summary', null);
-        $this->add_related_files('course', 'legacy', null);
+        // START UCLA MOD: CCLE-2902 - Enable "legacy course files" repository for restored M19 courses on M2
+        // Patch from https://github.com/merrill-oakland/moodle/compare/master...MDL-32598
+	//$this->add_related_files('course', 'legacy', null);
+        // END UCLA MOD: CCLE-2902
     }
 }
+
+// START UCLA MOD: CCLE-2902 - Enable "legacy course files" repository for restored M19 courses on M2
+// Patch from https://github.com/merrill-oakland/moodle/compare/master...MDL-32598
+/**
+ * Structure step that will migrate legacy files if present.
+ */
+class restore_course_legacy_files_step extends restore_structure_step {
+    protected function define_structure() {
+        $course = new restore_path_element('course', '/course');
+
+        return array($course);
+    }
+
+    /**
+     * Processing functions go here
+     *
+     * @global moodledatabase $DB
+     * @param stdClass $data
+     */
+    public function process_course($data) {
+        global $CFG, $DB;
+
+        $data = new object();
+        $data->id = $this->get_courseid();
+
+        // Check if we have legacy files, and enable them if we do.
+        $sql = 'SELECT count(*) AS newitemid, info
+				FROM {backup_files_temp}
+				WHERE backupid = ?
+				AND contextid = ?
+				AND component = ?
+				AND filearea = ?';
+        $params = array($this->get_restoreid(), $this->task->get_old_contextid(), 'course', 'legacy');
+
+        if ($DB->count_records_sql($sql, $params)) {
+            // Enable the legacy files.
+            $data->legacyfiles = 2;
+
+            // Course record ready, update it.
+            $DB->update_record('course', $data);
+        }
+
+    }
+
+    protected function after_execute() {
+        global $DB;
+
+        // Add course legacy files, without itemid to match.
+        $this->add_related_files('course', 'legacy', null);
+    }
+
+}
+// END UCLA MOD: CCLE-2902
 
 
 /*
