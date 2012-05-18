@@ -253,6 +253,7 @@ $CFG->clamfailureonupload = 'donothing';
 
 // Site administration > Appearance > Navigation
 $CFG->defaulthomepage = 1;    // user's home page should be "My Moodle" (HOMEPAGE_MY)
+$CFG->navlinkcoursesections = 1; // CCLE-3031 - Section Titles breadcrumbs aren't links
 
 // Site administration > Server > System paths
 $CFG->pathtodu = '/usr/bin/du';
