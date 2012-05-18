@@ -6,6 +6,7 @@
 
 require_once(dirname(__FILE__) . '/../../config.php');
 require_once($CFG->dirroot . '/course/lib.php');
+require_once($CFG->dirroot . '/course/format/ucla/ucla_course_prefs.class.php');
 
 $thispath = '/blocks/ucla_modify_coursemenu';
 //require_once($CFG->dirroot . $thispath . '/block_ucla_modify_coursemenu.php');
@@ -58,6 +59,16 @@ foreach ($sections as $section) {
 $modinfo =& get_fast_modinfo($course);
 get_all_mods($course_id, $mods, $modnames, $modnamesplural, $modnamesused);
 
+/*
+$course_preferences = new ucla_course_prefs($course_id);
+
+$course_preferences->set_preference('landing_page', '513');
+$course_preferences->commit();
+
+echo json_encode($course_preferences->get_course_preferences($course_id));
+*/
+
+ 
 
 
 
@@ -76,7 +87,7 @@ $modify_coursemenu_form = new ucla_modify_coursemenu_form(
 if ($data = $modify_coursemenu_form->get_data()) {
     echo json_encode($data);
    // echo "HERE";
-    echo json_encode($data->name);
+    //echo json_encode($data->name);
     
     foreach ($data->name as $secid => $secname) {
      //echo "Key: $; Value: $value<br />\n";   
@@ -88,16 +99,42 @@ if ($data = $modify_coursemenu_form->get_data()) {
     $sectionDB->name = $secname;
     //echo json_encode($sectionDB);
      //set_section_visible($courseid, $sectionnumber, $visibility) {
-   // set_section_visible("506", "1", 0);
+   // set_section_visible("506", 5, 1);
     //$sectionDB->name = "Week 2";
     $DB->update_record('course_sections', $sectionDB);
     }
     
-    foreach($data->hide as $secid => $visible) {
-      echo $course_id;
-      echo $visible;
+   // foreach ($data->hide as $sectnum => $hide)
+    if($data->delete) {
+        echo "HIHIH";
+      foreach($data->delete as $secnum => $delete) {
+        $sql = "delete from mdl_course_sections WHERE course='$course_id' AND section='$secnum'";
+        echo $sql;
+        //$DB->execute($sql);
+        //insert into mdl_course_sections VALUES('615', '506', '6', 'Week 6', '', '1', 'NULL', '1');
+    }
     }
     
+    for ($i = 0; $i < count($data->hide); $i++) {
+        set_section_visible($course_id, $i, $data->hide[$i]^1);
+    }
+    
+    /*
+    foreach ($data->delete as $secnum => $delete) {
+        $sql = "delete from mdl_course_sections WHERE course='$course_id' AND section='$secnum'";
+        echo $sql;
+        //$DB->execute($sql);
+    }
+    */
+  /*
+      $sql = "delete from mdl_course_sections WHERE course=506 AND section=6
+";
+        $DB->execute($sql);
+    */
+    
+        //insert into mdl_course_sections VALUES('615', '506', '6', 'Week 6', '', '1', 'NULL', '1');
+        //select section,name FROM mdl_course_sections WHERE course="506";
+    //rebuild_course_cache($course_id);
 }
 
 
@@ -107,6 +144,7 @@ if ($data = $modify_coursemenu_form->get_data()) {
 $restr = get_string('ucla_modify_course_menu', 'block_ucla_modify_coursemenu');
 $restrc = "$restr: {$course->shortname}";
 
+ $PAGE->requires->css('/blocks/ucla_modify_coursemenu/styles.css');
 $PAGE->set_title($restrc);
 $PAGE->set_heading($restrc);
 
