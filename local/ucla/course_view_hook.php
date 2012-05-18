@@ -51,7 +51,7 @@ function local_ucla_course_view_hook($shortname, $id) {
     }
 
     // This course doesn't exist on this local server
-    if (empty($id) || !ucla_map_courseid_to_termsrs($id)) {
+    if (empty($id) || !ucla_map_courseid_to_termsrses($id)) {
         // Then we goto 1.9 server for older terms
         return $redirurl;
     } 
