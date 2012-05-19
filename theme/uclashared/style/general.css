@@ -329,8 +329,12 @@ html, body {background-color:#FFF; height:100%;}
 .user th.header,
 .group th.header,
 .admin table tr th,
-.admin table tr th.header {background-color:#697F55;color:#FFF;border:2px solid #697F55;border-bottom-color:#111;}
-
+.admin table tr th.header {
+    background-color: #697F55 !important;
+    color: #FFF;
+    border: 2px solid #697F55 !important;
+    border-bottom-color: #111 !important;
+}
 .user th a:link,
 #categoryquestions th a:link,
 .group  th a:link,
