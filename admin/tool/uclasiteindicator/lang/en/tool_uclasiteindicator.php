@@ -32,7 +32,7 @@ $string['site_test'] = 'Test';
 $string['site_test_desc'] = 'A temporary test site.';
 $string['site_registrar'] = 'Instruction (listed at Registrar)';
 $string['site_registrar_desc'] = 'An instruction site with an SRS number that is listed at the registrar';
-
+$string['notype'] = 'This site has no association';
 
 // Request
 $string['req_desc'] = 'Type of site you are requesting';

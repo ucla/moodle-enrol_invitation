@@ -73,16 +73,16 @@ if(empty($types)) {
         $table->data[] = $row;
     }
 
-    $assignform = new siteindicator_form(null, array('uclaindicator' => $uclaindicator));
-
-    if($data = $assignform->get_data()) {
-        $uclaindicator->update_role_assignments($data);
-    }
+//    $assignform = new siteindicator_form(null, array('uclaindicator' => $uclaindicator));
+//
+//    if($data = $assignform->get_data()) {
+//        $uclaindicator->update_role_assignments($data);
+//    }
 
     // Display indicator types
     echo html_writer::table($table);
 
-    $assignform->display();
+    //$assignform->display();
 }
 
 echo $OUTPUT->box_end();

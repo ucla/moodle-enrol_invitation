@@ -15,6 +15,7 @@ require_once($CFG->libdir.'/formslib.php');
 // From the UCLA help block -- to get support contacts and send jira ticket
 require_once($CFG->dirroot . '/local/ucla/jira.php');
 require_once($CFG->dirroot . '/blocks/ucla_help/ucla_help_lib.php');
+require_once($CFG->dirroot . '/local/ucla/lib.php');
 
 
 /**
@@ -24,20 +25,21 @@ class site_indicator_entry {
     
     public $property;
     
-    public $type_obj;
+    public $type;
     
     private $_id;
     
     function __construct($courseid) {
         global $DB;
         
-        $indicator = $DB->get_record('ucla_indicator', array('courseid' => $courseid), '*', MUST_EXIST);
+        $indicator = $DB->get_record('ucla_indicator', 
+                array('courseid' => $courseid), '*', MUST_EXIST);
         $this->property->courseid = $courseid;
         $this->property->type = $indicator->type;
         $this->_id = $indicator->id;
         
-        $this->type_obj = null;
-    }
+        $this->get_typeinfo();
+   }
     
     /**
      * Delete a site indicator entry
@@ -53,35 +55,23 @@ class site_indicator_entry {
      * @param type $newtype 
      */
     public function change_type($newtype) {
-//        global $DB;
-//        $option = array();
-//        
-//        // Handle int and short_name types
-//        if(is_int($newtype)) {
-//            
-//        } else {
-//            
-//        }
+        global $DB;
+        // Get course context
+        
+        // Get enrolled users
+        
+        // for each user, 
+
     }
     
-    /**
-     * Get a site indicator type object.  
-     * 
-     * @todo: is this still needed?
-     *  
-     * @return type 
-     */
-    public function load_type() {
+    private function get_typeinfo() {
         global $DB;
 
-        if(!empty($this->type_obj)) {
-            // Cache the object
-            return $this->type_obj;
-        } else {
-            $typeobj = $DB->get_record('ucla_indicator_type', array('id' => $this->property->type), '*', MUST_EXIST);
-            $this->type_obj = $typeobj;
-            return $typeobj;
-        }
+        $type = $DB->get_record('ucla_indicator_type', 
+                array('id' => $this->property->type), '*', MUST_EXIST);
+        
+        $this->type_fullname = $type->fullname;
+        $this->type_shortname = $type->shortname;
     }
     
     /**
@@ -93,10 +83,15 @@ class site_indicator_entry {
         global $DB;
         
         $uclaindicator = new ucla_site_indicator();
-        $roleids = $uclaindicator->get_roles_for_type($this->property->type);
-        $roles = $DB->get_records('role');
-    }
-    
+        $roleids = (array)$uclaindicator->get_roles_for_type($this->property->type);
+        $roles = $DB->get_records_select('role', 'shortname IN ("' . implode('", "', $roleids) . '")');
+        $list = array();
+        
+        foreach($roles as $r) {
+            $list[$r->id] = $r->name;
+        }
+        return $list;
+    }    
 
     
     /**
@@ -342,65 +337,58 @@ class site_indicator_request {
  */
 class ucla_site_indicator {
     
-    private $_indicatorrolegroups;
+    private $_indicator_rolegroups;
     private $_roleassignments;
-    private $_typetorolemapping;
-    private $_plugin;
+    private $_type_to_rolegroup_mapping;
+    private $_role_remap;
     
     function __construct() {
-        $this->_plugin = 'ucla_siteindicator';
-        
-        $this->_indicatorrolegroups = array(
+       
+        $this->_indicator_rolegroups = array(
             'instruction' => get_string('r_instruction', 'tool_uclasiteindicator'),
             'project' => get_string('r_project', 'tool_uclasiteindicator'),
             'test' => get_string('r_test', 'tool_uclasiteindicator'),
         );
         
-        $this->_typetorolemapping = array(
+        // Supported site types:
+        //  Instruction
+        //  Non-Instruction
+        //  Research
+        //  Test
+        $this->_type_to_rolegroup_mapping = array(
             'instruction' => 'instruction',
             'non_instruction' => 'project',
             'research' => 'project',
             'test' => 'test',
         );
         
-        $this->set_role_assignments();
-    }
-    
-    private function set_role_assignments() {
-        if($assignmemnts = get_config($this->_plugin, 'roleassignment')) {
-            $this->_roleassignments = (array)json_decode($assignmemnts);
-        } else {
-            $this->create_role_assignments();
-        }
-    }
-    
-    private function create_role_assignments() {
-        $assignments = array();
+        // Define the roles allowed for a particular role group
+        $instruction = array(
+            'editinginstructor',
+            'supervising_instructor',
+            'nonediting_instructor',
+            'student',
+            );
+        $project = array(
+            'projectlead',
+            'projectcontributor',
+            'projectmember',
+            'projectviewer',
+        );
         
-        foreach($this->_indicatorrolegroups as $k => $v) {
-            $assignments[$k] = array();
-        }
-        
-        set_config('roleassignment', json_encode($assignments), $this->_plugin);
-        $this->_roleassignments = $assignments;
-    }
-    
-    public function get_site_rolegroups() {
-        return $this->_indicatorrolegroups;
-    }
-    
-    public function update_role_assignments($update) {
+        $this->_roleassignments = array(
+            'instruction' => $instruction,
+            'project' => $project,
+            'test' => array_merge($instruction, $project),
+        );
 
-        if(is_object($update)) {
-            $update = (array)$update;
-        }
-        $assignments = array();
-        foreach($this->_indicatorrolegroups as $k => $v) {
-            $assignments[$k] = $update[$k];
-        }
-        
-        $this->_roleassignments = $assignments;
-        set_config('roleassignment', json_encode($assignments), $this->_plugin);
+        // Re-mapping of roles for site type changes
+        $this->_role_remap = array(
+            'editinginstructor' => 'projectlead',
+            'supervising_instructor' => 'projectcontributor',
+            'nonediting_instructor' => 'projectmember',
+            'student' => 'projectviewer',
+        );
     }
     
     function get_roles_for_group($group) {
@@ -409,13 +397,14 @@ class ucla_site_indicator {
     
     function get_roles_for_type($type) {
         global $DB;
-        if(is_int($type)) {
-            $rec = $DB->get_record('ucla_indicator_types', array('id' => $type));
+        
+        if(is_numeric($type) || is_int($type)) {
+            $rec = $DB->get_record('ucla_indicator_type', array('id' => $type));
             $type = $rec->shortname;
         }
-        return $this->_roleassignments[$this->_typetorolemapping[$type]];
+        return $this->_roleassignments[$this->_type_to_rolegroup_mapping[$type]];
     }
-
+    
     /**
      * Returns a filtered categories list
      * 
@@ -594,24 +583,31 @@ class ucla_site_indicator {
     static function get_indicator_types() {
         global $DB;
 
-        return $DB->get_records('ucla_indicator_type', 
+        $types = $DB->get_records('ucla_indicator_type', 
                 array('visible' => 1), 'sortorder');
-    }
         
-    static function get_type($identifier) {
-        global $DB;
+        $list = array();
         
-        if(is_int($identifier) || is_numeric($identifier)) {
-            $attributes = array('id' => $identifier);
-        } else {
-            $attributes = array('shortname' => $identifier);
+        foreach($types as $t) {
+            $list[$t->id] = $t->fullname;
         }
-
-        $type = $DB->get_record('ucla_indicator_type', $attributes);
-        
-        return $type;
-
+        return $list;
     }
+        
+//    static function get_type($identifier) {
+//        global $DB;
+//        
+//        if(is_int($identifier) || is_numeric($identifier)) {
+//            $attributes = array('id' => $identifier);
+//        } else {
+//            $attributes = array('shortname' => $identifier);
+//        }
+//
+//        $type = $DB->get_record('ucla_indicator_type', $attributes);
+//        
+//        return $type;
+//
+//    }
     
 }
 

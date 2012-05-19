@@ -24,8 +24,6 @@ class siteindicator_form extends moodleform {
         
         $uclaindicator = $this->_customdata['uclaindicator'];
         $rolegroups = $uclaindicator->get_site_rolegroups();
-        var_dump($rolegroups);
-        echo "<br/>";
 
         $records = $DB->get_records('role', null, '', 'id, name');
         foreach($records as $rec) {

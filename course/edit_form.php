@@ -45,8 +45,7 @@ class course_edit_form extends moodleform {
             $indicator = site_indicator_entry::load($course->id);
             
             if($indicator) {
-                $indicator->load_type();
-                $indicator_type = '<strong>' . $indicator->type_obj->fullname . ' '
+                $indicator_type = '<strong>' . $indicator->type_fullname . ' '
                         . get_string('site', 'tool_uclasiteindicator') . '</strong>';
                 $mform->addElement('static', 'indicator', get_string('type', 'tool_uclasiteindicator'), 
                         $indicator_type);
@@ -58,13 +57,22 @@ class course_edit_form extends moodleform {
                 // Change the site type
                 // @todo: make this work!
                 if(has_capability('tool/uclasiteindicator:edit', $systemcontext)) {
-                    $typelist = array('Do not change', 'Instruction', 'Non-Instruction');
+                    $typelist = array('Do Not Change');
+
+                    $typelist = array_merge($typelist, ucla_site_indicator::get_indicator_types());
                     $mform->addElement('select', 'indicator_change', 'Change type', $typelist);
                 }
             
             } else {
-                $mform->addElement('static', 'indicator', get_string('type', 'tool_uclasiteindicator'), 
-                        get_string('site_srs', 'tool_uclasiteindicator'));
+                if(ucla_map_courseid_to_termsrses($this->course->id)) {
+                    $mform->addElement('static', 'indicator', 
+                            get_string('type', 'tool_uclasiteindicator'), 
+                            get_string('site_registrar', 'tool_uclasiteindicator'));
+                } else {
+                    $mform->addElement('static', 'indicator', 
+                            get_string('type', 'tool_uclasiteindicator'), 
+                            get_string('notype', 'tool_uclasiteindicator'));
+                }
             }
 
         }
