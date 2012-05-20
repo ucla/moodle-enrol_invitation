@@ -80,6 +80,14 @@ $string['unenrolselfconfirm'] = 'Do you really want to unenrol yourself from cou
 // invite history strings
 $string['invitehistory'] = 'Invite history';
 $string['noinvitehistory'] = 'No invites sent out yet';
+$string['historyinvitee'] = 'Invitee';
+$string['historyrole'] = 'Role';
+$string['historystatus'] = 'Status';
+$string['historydatesent'] = 'Date sent';
+$string['historydateexpiration'] = 'Expiration Date';
+$string['historyactions'] = 'Actions';
+$string['historyundefinedrole'] = 'Unable to find role. Please resent invite and choose another role.';
+$string['historyexpires_in'] = 'expires in';
 
 // capabilities strings
 $string['invitation:config'] = 'Configure site invitation instances';

@@ -1,4 +1,5 @@
 <?php
+
 // This file is not a part of Moodle - http://moodle.org/
 // This is a none core contributed module.
 //
@@ -17,18 +18,26 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+// invite status codes
+define('ENROL_INVITE_INVALID', -1);
+define('ENROL_INVITE_EXPIRED', 0);
+define('ENROL_INVITE_USED', 1);
+define('ENROL_INVITE_REVOKED', 2);
+define('ENROL_INVITE_RESENT', 3);
+define('ENROL_INVITE_ACTIVE', 4);
+
 class invitation_manager {
-    
     /*
      * The invitation enrol instance of a course
      */
+
     var $enrol_instance = null;
-    
+
     /*
      * The course id
      */
     var $courseid = null;
-    
+
     /**
      *
      * @param type $courseid 
@@ -37,7 +46,7 @@ class invitation_manager {
         $this->courseid = $courseid;
         $this->enrol_instance = $this->get_invitation_instance($courseid, $instancemustexist);
     }
-    
+
     /**
      * Return HTML invitation menu link for a given course 
      * It's mostly useful to add a link in a block menu - by default icon is displayed.
@@ -46,31 +55,27 @@ class invitation_manager {
      */
     public function get_menu_link($withicon = true) {
         global $OUTPUT;
-        
+
         $inviteicon = '';
         $link = '';
-       
-        if (has_capability('enrol/invitation:enrol',
-                        get_context_instance(CONTEXT_COURSE, $this->courseid))
+
+        if (has_capability('enrol/invitation:enrol', get_context_instance(CONTEXT_COURSE, $this->courseid))
                 and ($this->leftinvitationfortoday() > 0)) {
-            
+
             //display an icon with requested (css can be changed in stylesheet)
             if ($withicon) {
-                $inviteicon = html_writer::empty_tag('img',
-                            array('alt' => "invitation", 'class' => "enrol_invitation_item_icon", 'title' => "invitation",
-                                'src' => $OUTPUT->pix_url('invite', 'enrol_invitation')));
+                $inviteicon = html_writer::empty_tag('img', array('alt' => "invitation", 'class' => "enrol_invitation_item_icon", 'title' => "invitation",
+                            'src' => $OUTPUT->pix_url('invite', 'enrol_invitation')));
             }
-            
+
             $link = html_writer::link(
-                new moodle_url('/enrol/invitation/invitation.php',
-                        array('courseid' => $this->courseid)),
-                $inviteicon . get_string('inviteusers', 'enrol_invitation'));
-            
+                            new moodle_url('/enrol/invitation/invitation.php',
+                                    array('courseid' => $this->courseid)), $inviteicon . get_string('inviteusers', 'enrol_invitation'));
         }
-        
+
         return $link;
     }
-    
+
     /**
      * Return the number of invitation that can still be sent today for a specific course
      * If users accept quickly their invitation then you can send a lot more email per day
@@ -79,19 +84,18 @@ class invitation_manager {
      */
     public function leftinvitationfortoday($courseid = null) {
         global $DB;
-        
+
         if (empty($courseid)) {
             $courseid = $this->courseid;
         }
-        
+
         $onedayearlier = time() - (60 * 60 * 24);
-        $sentinvitations = $DB->get_records_select('enrol_invitation', 
-                'timesent > ? AND tokenused = 0', array($onedayearlier));
+        $sentinvitations = $DB->get_records_select('enrol_invitation', 'timesent > ? AND tokenused = 0', array($onedayearlier));
         $invitationleft = $this->enrol_instance->customint1 - count($sentinvitations);
-        $invitationleft = ($invitationleft>0)?$invitationleft:0;
+        $invitationleft = ($invitationleft > 0) ? $invitationleft : 0;
         return $invitationleft;
     }
-    
+
     /**
      * Send invitation (create a unique token for each of them)
      * @global type $USER
@@ -100,30 +104,29 @@ class invitation_manager {
      */
     public function send_invitations($data) {
         global $USER, $DB, $SITE;
-        
-         $data = (array) $data;
-        
+
+        $data = (array) $data;
+
         //check that the user didn't send more than MAX INVITATION invitation per day
         $invitationleft = $this->leftinvitationfortoday($data['courseid']);
-        
+
         //to send invitation you must able to edit the course - no need to be able to enrol into the course
-        if (has_capability('enrol/invitation:enrol',
-                        get_context_instance(CONTEXT_COURSE, $data['courseid']))) {
+        if (has_capability('enrol/invitation:enrol', get_context_instance(CONTEXT_COURSE, $data['courseid']))) {
             for ($indice = 1; $indice <= $invitationleft; $indice = $indice + 1) {
-                
+
                 $invitationleft = $invitationleft - 1;
                 if ($invitationleft < 0) {
                     throw new moodle_exception('cannotsendmoreinvitationfortoday', 'enrol_invitation');
                 }
-                
+
                 $email = $data['email' . $indice];
                 if (!empty($email)) {
 
                     //create unique token for invitation
-                    $token = md5(uniqid(rand(),1));
+                    $token = md5(uniqid(rand(), 1));
                     $existingtoken = $DB->get_record('enrol_invitation', array('token' => $token));
                     while (!empty($existingtoken)) {
-                        $token = md5(uniqid(rand(),1));
+                        $token = md5(uniqid(rand(), 1));
                         $existingtoken = $DB->get_record('enrol_invitation', array('token' => $token));
                     }
 
@@ -135,11 +138,11 @@ class invitation_manager {
                     $invitation->token = $token;
                     $invitation->tokenused = false;
                     $invitation->timesent = time();
-                    
+
                     $DB->insert_record('enrol_invitation', $invitation);
-                    
+
                     $enrolurl = new moodle_url('/enrol/invitation/enrol.php',
-                            array('enrolinvitationtoken' => $token, 'id' => $data['courseid']));
+                                    array('enrolinvitationtoken' => $token, 'id' => $data['courseid']));
 
                     //send invitation to the user
                     $contactuser = new object;
@@ -149,42 +152,63 @@ class invitation_manager {
                     $contactuser->maildisplay = true;
                     $emailinfo = new stdClass();
                     $emailinfo->fullname = $data['fullname'];
-                    $emailinfo->managername = $USER->firstname.' '.$USER->lastname;
+                    $emailinfo->managername = $USER->firstname . ' ' . $USER->lastname;
                     $emailinfo->enrolurl = $enrolurl->out(false);
                     $emailinfo->sitename = $SITE->fullname;
                     $siteurl = new moodle_url('/');
                     $emailinfo->siteurl = $siteurl->out(false);
-                    email_to_user($contactuser, $USER,
-                            get_string('emailtitleinvitation', 'enrol_invitation', $emailinfo),
-                            get_string('emailmessageinvitation', 'enrol_invitation', $emailinfo));
+                    email_to_user($contactuser, $USER, get_string('emailtitleinvitation', 'enrol_invitation', $emailinfo), get_string('emailmessageinvitation', 'enrol_invitation', $emailinfo));
                 }
             }
         } else {
             throw new moodle_exception('cannotsendinvitation', 'enrol_invitation',
                     new moodle_url('/course/view.php', array('id' => $data['courseid'])));
         }
-        
     }
-    
+
     /**
-     *
+     * Returns status of given invite. 
+     * 
+     * @param object $invite    Database record
+     * 
+     * @return int              Returns invite status code.
+     */
+    public function get_invite_status($invite) {
+        if (!is_object($invite)) {
+            return ENROL_INVITE_INVALID;
+        }
+
+        if ($invite->tokenused) {
+            // invite was used already
+            return ENROL_INVITE_USED;
+        } else if ($invite->timeexpiration < time()) {
+            // invite is expired
+            return ENROL_INVITE_EXPIRED;
+        } else {
+            return ENROL_INVITE_ACTIVE;
+        }
+        // TO DO: add ENROL_INVITE_REVOKED and ENROL_INVITE_RESENT status
+    }
+
+    /**
+     * Return all invites for given course.
+     * 
      * @global type $DB
      * @param type $courseid
      * @return type 
      */
     public function get_invites($courseid = null) {
         global $DB;
-        
+
         if (empty($courseid)) {
             $courseid = $this->courseid;
         }
 
-        $invites = $DB->get_records('enrol_invitation', 
-                array('courseid' => $courseid));        
-        
+        $invites = $DB->get_records('enrol_invitation', array('courseid' => $courseid));
+
         return $invites;
     }
-    
+
     /**
      * Return the invitation instance for a specific course
      * Note: as using $PAGE variable, this function can only be called in a Moodle script page
@@ -195,12 +219,12 @@ class invitation_manager {
      */
     public function get_invitation_instance($courseid, $mustexist = false) {
         global $PAGE, $CFG, $DB;
-        
+
         if (($courseid == $this->courseid) and !empty($this->enrol_instance)) {
             return $this->enrol_instance;
         }
-        
-         //find enrolment instance
+
+        //find enrolment instance
         $instance = null;
         require_once("$CFG->dirroot/enrol/locallib.php");
         $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
@@ -212,13 +236,12 @@ class invitation_manager {
                 }
             }
         }
-        
+
         if ($mustexist and empty($instance)) {
             throw new moodle_exception('noinvitationinstanceset', 'enrol_invitation');
         }
-        
+
         return $instance;
-        
     }
 
     /**
@@ -231,7 +254,10 @@ class invitation_manager {
         $enrol = enrol_get_plugin('invitation');
         $enrol->enrol_user($this->enrol_instance, $USER->id, $this->enrol_instance->roleid);
     }
+
 }
+
+
 
 /**
  *
@@ -239,16 +265,16 @@ class invitation_manager {
  */
 function print_page_tabs($active_tab) {
     global $CFG, $COURSE;
-    
-    $tabs[] = new tabobject('history', 
-                            new moodle_url('/enrol/invitation/history.php', 
-                                           array('courseid' => $COURSE->id)), 
-                            get_string('invitehistory', 'enrol_invitation'));
+
+    $tabs[] = new tabobject('history',
+                    new moodle_url('/enrol/invitation/history.php',
+                            array('courseid' => $COURSE->id)),
+                    get_string('invitehistory', 'enrol_invitation'));
     $tabs[] = new tabobject('invite',
-                            new moodle_url('/enrol/invitation/invitation.php', 
-                                           array('courseid' => $COURSE->id)), 
-                            get_string('inviteusers', 'enrol_invitation'));    
- 
+                    new moodle_url('/enrol/invitation/invitation.php',
+                            array('courseid' => $COURSE->id)),
+                    get_string('inviteusers', 'enrol_invitation'));
+
     // display tabs here
     print_tabs(array($tabs), $active_tab);
 }

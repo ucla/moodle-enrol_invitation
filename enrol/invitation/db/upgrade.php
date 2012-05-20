@@ -83,7 +83,46 @@ function xmldb_enrol_invitation_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2011100303, 'enrol', 'invitation');
     }
 
-
-
+    // add roleid, timeexpiration, added foreign keys and indexes and fixed 
+    // some default values
+    if ($oldversion < 2012051901) {
+        $table = new xmldb_table('enrol_invitation');
+        
+        // change defaults/null settings
+        $fields[] = new xmldb_field('timeused', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null, 'timeexpiration');         
+        $fields[] = new xmldb_field('creatorid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'creatorid');
+        foreach ($fields as $field) {
+            $dbman->change_field_default($table, $field);        
+            $dbman->change_field_notnull($table, $field);                   
+        }        
+        
+        // add fields
+        $fields[] = new xmldb_field('roleid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'userid');        
+        $fields[] = new xmldb_field('timeexpiration', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'timesent');
+        foreach ($fields as $field) {
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }            
+        }
+        
+        // add foreign keys
+        $keys[] = new xmldb_key('userid', XMLDB_KEY_FOREIGN, array('userid'), 'user', array('id'));        
+        $keys[] = new xmldb_key('courseid', XMLDB_KEY_FOREIGN, array('courseid'), 'course', array('id'));
+        $keys[] = new xmldb_key('roleid', XMLDB_KEY_FOREIGN, array('roleid'), 'role', array('id'));
+        $keys[] = new xmldb_key('creatorid', XMLDB_KEY_FOREIGN, array('creatorid'), 'user', array('id'));
+        foreach ($keys as $key) {
+            $dbman->add_key($table, $key);
+        }
+        
+        // add index
+        $index = new xmldb_index('token', XMLDB_INDEX_UNIQUE, array('token'));
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+        
+        // invitation savepoint reached
+        upgrade_plugin_savepoint(true, 2012051901, 'enrol', 'invitation');        
+    }
+    
     return true;
 }

@@ -31,6 +31,9 @@ require_once(dirname(__FILE__) . '/invitation_forms.php');
 require_once($CFG->dirroot . '/enrol/locallib.php');
 require_once($CFG->libdir . '/tablelib.php');
 
+// for distance_of_time_in_words
+require_once($CFG->dirroot . '/local/ucla/datetimehelpers.php');
+
 require_login();
 $courseid = required_param('courseid', PARAM_INT);
 $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
@@ -61,7 +64,7 @@ print_page_tabs('history');
 echo $OUTPUT->heading(get_string('invitehistory', 'enrol_invitation'));
 
 $invitationmanager = new invitation_manager($courseid);
-// course must have invitation plugin installed
+// course must have invitation plugin installed (will give error if not found)
 $invite_instance = $invitationmanager->get_invitation_instance($courseid, true);
 
 // get invites and display them
@@ -74,15 +77,70 @@ if (empty($invites)) {
             get_string('noinvitehistory', 'enrol_invitation'), 
             array('class' => 'noinvitehistory'));
 } else {
+    // columns to display
+    $columns = array(
+            'invitee'           => get_string('historyinvitee', 'enrol_invitation'),
+            'role'              => get_string('historyrole', 'enrol_invitation'),
+            'status'            => get_string('historystatus', 'enrol_invitation'),
+            'datesent'          => get_string('historydatesent', 'enrol_invitation'),
+            'dateexpiration'    => get_string('historydateexpiration', 'enrol_invitation'),
+            'actions'           => get_string('historyactions', 'enrol_invitation')
+    );
+    
     $table = new flexible_table('invitehistory');
-    $table->define_columns(array('invitee', 'role', 'status', 'date_sent', 'date_expiration', 'actions'));
-    $table->define_headers(array('Invitee', 'Role', 'Status', 'Date sent', 'Expiration Date', 'Actions'));
+    $table->define_columns(array_keys($columns));
+    $table->define_headers(array_values($columns));
     $table->define_baseurl($PAGE->url);
 
     $table->setup();
     
+    $role_cache = array();
     foreach ($invites as $invite) {
-        $table->add_data($invite);        
+        /* build display row
+         * [0] - invitee
+         * [1] - role
+         * [2] - status
+         * [3] - dates sent
+         * [4] - expiration date
+         * [5] - actions
+         */
+        
+        // display invitee
+        $row[0] = $invite->email;
+        
+        // figure out invited role
+        if (empty($role_cache[$invite->roleid])) {
+            $role = $DB->get_record('role', array('id' => $invite->roleid));
+            if (empty($role)) {
+                // cannot find role, give error
+                $role_cache[$invite->roleid] = 
+                        get_string('historyundefinedrole', 'enrol_invitation');
+            } else {
+                $role_cache[$invite->roleid] = $role->name;                
+            }
+        }
+        $row[1] = $role_cache[$invite->roleid];
+        
+        // what is the status of the invite?
+        $status = $invitationmanager->get_invite_status($invite);
+        $row[2] = $status;
+        
+        // when was the invite sent?
+        $row[3] = date('M n, Y g:ia', $invite->timesent);
+        
+        // when does the invite expire?
+        $row[4] = date('M n, Y g:ia', $invite->timeexpiration);
+        // if status is active, then state how many days/minutes left
+        if ($status == ENROL_INVITE_ACTIVE) {
+            $expires_text = sprintf('%s %s', 
+                    get_string('historyexpires_in', 'enrol_invitation'),
+                    distance_of_time_in_words(time(), $invite->timeexpiration, true));   
+            $row[4] .= ' ' . html_writer::tag('span', '(' . $expires_text . ')', array('expires-text'));
+        }
+        
+        // are there any actions user can do?
+        
+        $table->add_data($row); 
     }
     
     $table->finish_output();    

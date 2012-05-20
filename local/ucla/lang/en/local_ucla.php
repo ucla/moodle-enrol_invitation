@@ -26,3 +26,16 @@ $string['term'] = 'Term';
 $string['invalidrolemapping'] = 'Could not find role mapping {$a}';
 
 $string['ucla:viewall_courselisting'] = 'Allows user to see all courses another user is associated with on their profile';
+
+/* strings for datetimehelpers */
+
+// for distance_of_time_in_words
+$string['less_than_x_seconds'] = 'less than {$a} seconds';
+$string['half_minute'] = 'half a minute';
+$string['less_minute'] = 'less than a minute';
+$string['a_minute'] = '1 minute';
+$string['x_minutes'] = '{$a} minutes';
+$string['about_hour'] = 'about 1 hour';
+$string['about_x_hours'] = 'about {$a} hours';
+$string['a_day'] = '1 day';
+$string['x_days'] = '{$a} days';
