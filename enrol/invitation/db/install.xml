@@ -26,7 +26,7 @@
         <KEY NAME="creatorid" TYPE="foreign" FIELDS="creatorid" REFTABLE="user" REFFIELDS="id" PREVIOUS="roleid"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="token" UNIQUE="true" FIELDS="token" COMMENT="Tokens must be unique"/>
+        <INDEX NAME="token" UNIQUE="true" FIELDS="token" COMMENT="Invitation tokens must be unique"/>
       </INDEXES>
     </TABLE>
   </TABLES>
