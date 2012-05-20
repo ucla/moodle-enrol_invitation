@@ -11,6 +11,7 @@
     filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr=#B2C7C3C5, endColorstr=#FFFFFF); /* for IE */    
     background-image: -webkit-linear-gradient(top, rgba(199,195,197,0.7), white); /* for webkit browsers */
     background-image: -moz-linear-gradient(top, rgba(199,195,197,0.7), white); /* for firefox 3.6+ */
+    background-image: -o-linear-gradient(top, rgba(199,195,197,0.7), white); /* for opera */
     text-align: center;
 }
 
@@ -70,6 +71,7 @@
     filter: progid:DXImageTransform.Microsoft.gradient(GradientType=1,startColorstr=#E5F0EBED, endColorstr=#FFFFFF); /* for IE */        
     background-image: -webkit-linear-gradient(top left, rgba(240,235,237,0.9), white ); /* for webkit browsers */
     background-image: -moz-linear-gradient(top left, rgba(240,235,237,0.9), white ); /* for firefox 3.6+ */
+    background-image: -o-linear-gradient(top left, rgba(199,195,197,0.7), white); /* for opera */
 }
 
 #cpanel-wrapper .item {
@@ -77,6 +79,18 @@
     display : inline-block;
     clear : none;
 }
+
+#cpanel-wrapper .general_icon {
+    float: left;
+}
+
+#cpanel-wrapper .general_icon_text {
+    padding: 10px 50px;
+}
+
+/*#cpanel-wrapper .item .post-link {
+    margin-left: 44px;
+}*/
 
 #cpanel-wrapper .item span, #cpanel-wrapper #my_ucla_functions .post-link {
     color: gray;
@@ -98,4 +112,10 @@
 /* Control panel button in header  */
 .control-panel-button img {
     margin-top: 10px;
+}
+
+/* Add spaces after links in "Other tools" section */
+#cpanel-wrapper .ucla_cp_mod_other .item, 
+#cpanel-wrapper .ucla_cp_mod_advanced .item {
+    padding-bottom: 1.0em;
 }

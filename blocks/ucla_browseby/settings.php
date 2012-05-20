@@ -30,11 +30,11 @@ if ($ADMIN->fulltree) {
         'block_ucla_browseby/ignore_coursenum',
         get_string('title_ignore_coursenum', 'block_ucla_browseby'),
         get_string('desc_ignore_coursenum', 'block_ucla_browseby'),
-        '400'));
+        '194,295,296,375'));
 
     $settings->add(new admin_setting_configtext(
         'block_ucla_browseby/allow_acttypes',
         get_string('title_allow_acttypes', 'block_ucla_browseby'),
         get_string('desc_allow_acttypes', 'block_ucla_browseby'),
-        'LEC, SEM'));
+        'LEC,SEM'));
 }

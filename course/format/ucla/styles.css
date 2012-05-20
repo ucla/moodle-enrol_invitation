@@ -142,3 +142,9 @@
 .instr-info .r1 {
     background-color: white;
 }
+
+/* START feature/CCLE-3002-office-table-display */
+div.instr-info {
+	clear:both;
+}
+/* END feature/CCLE-3002-office-table-display */

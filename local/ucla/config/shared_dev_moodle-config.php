@@ -87,6 +87,19 @@ $CFG->instructor_levels_roles = array(
 // Course builder
 $terms_to_built = array('12S', '121', '12F');
 
+// CCLE-2283: Friendly URLs
+// CCLE-2283: Redirect to archive (these have a high chance of changing)
+$CFG->forced_plugin_settings['local_ucla'] = array(
+    'friendly_urls_enabled' => false,
+    'remotetermcutoff' => '',
+    'archiveserver' => ''
+);
+
+// Browseby CCLE-2894
+$CFG->forced_plugin_settings['block_ucla_browseby']['use_local_courses'] = true;
+$CFG->forced_plugin_settings['block_ucla_browseby']['ignore_coursenum'] = '194,295,296,375';
+$CFG->forced_plugin_settings['block_ucla_browseby']['allow_acttypes'] = 'LEC,SEM';
+
 // Course Requestor
 //$CFG->forced_plugin_settings['tool_uclacourserequestor']['terms'] = $terms_to_built;
 //$CFG->forced_plugin_settings['tool_uclacourserequestor']['selected_term'] = $CFG->currentterm;
@@ -182,6 +195,11 @@ $CFG->unittestprefix = 'tst_';
 /// CCLE-2810 - My Sites - disallow customized "My Moodle" page
 $CFG->forcedefaultmymoodle = true;
 
+// Site administration > Advanced features
+$CFG->usetags = 0;
+$CFG->enablenotes = 0;
+$CFG->bloglevel = 0; // Disable blog system completely
+
 // Site administration > Users > Permissions > User policies
 $CFG->autologinguests = true;
 
@@ -215,9 +233,13 @@ $CFG->forced_plugin_settings['resource']['display'] = 4;   // "Force Download"
 // Site administration > Plugins > Activity modules > URL
 $CFG->forced_plugin_settings['url']['requiremodintro'] = 0;
 $CFG->forced_plugin_settings['url']['printheading'] = 1;
+$CFG->forced_plugin_settings['url']['display'] = 5; // RESOURCELIB_DISPLAY_OPEN
 
 // Site administration > Plugins > Licences > Manage licences
 $CFG->sitedefaultlicense = 'iown';
+
+// Site administration > Plugins > Repositories > Common repository settings
+$CFG->legacyfilesinnewcourses = 1;  // allow all course to enable legacy course files
 
 // Site administration > Security > Site policies
 $CFG->forceloginforprofiles = true; 
@@ -228,6 +250,7 @@ $CFG->cronclionly = true;
 
 // Site administration > Appearance > Navigation
 $CFG->defaulthomepage = 1;    // user's home page should be "My Moodle" (HOMEPAGE_MY)
+$CFG->navlinkcoursesections = 1; // CCLE-3031 - Section Titles breadcrumbs aren't links
 
 // Site administration > Server > Session handling
 $CFG->dbsessions = false;
@@ -301,6 +324,9 @@ $CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 3;    // Disab
 // CCLE-2910 - UNEX student support
 $CFG->forced_plugin_settings['enrol_database']['fblocaluserfield'] = 'username';
 $CFG->forced_plugin_settings['enrol_database']['fbremoteuserfield'] = 'username';
+
+//// CCLE-2802 - Frontpage banner layout include
+//$CFG->customfrontpageinclude = $_dirroot_ . '/theme/uclashared/layout/frontpage.php';
 
 // This will bootstrap the moodle functions.
 require_once($_dirroot_ . '/lib/setup.php');

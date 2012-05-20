@@ -22,7 +22,10 @@ $handlers = array (
          'handlerfile'      => '/admin/tool/uclacoursecreator/eventlib.php',
          'handlerfunction'  => 'move_site_menu_block',
          'schedule'         => 'instant'
-     )
+     ),
+    'build_courses_now' => array (
+         'handlerfile'      => '/admin/tool/uclacoursecreator/eventlib.php',
+         'handlerfunction'  => 'build_courses_now',
+         'schedule'         => 'cron'
+     ), 
 );
-
-?>

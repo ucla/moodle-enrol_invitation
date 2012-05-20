@@ -63,7 +63,6 @@ if ($ext_argv['help']) {
     die(get_string('cli_helpmsg', 'tool_uclacoursecreator'));
 }
 
-$goals = array();
 $cur_term = false;
 
 $reg_argv = array();
@@ -86,10 +85,6 @@ $bcc = new uclacoursecreator();
 
 // This may screw up...
 ini_set('display_errors', '1');
-
-if (!empty($goals)) {
-    $bcc->set_srs_list($goals);
-}
 
 // Forcing fail 
 if ($ext_argv['fail']) {
