@@ -29,10 +29,8 @@
 $string['pluginname'] = 'Site invitation';
 $string['pluginname_desc'] = 'The site invitation module allows to send invitation by email. These invitations can be used only once. Users clicking on the email link are automatically enrolled.';
 
-
-// invite user strings
+// invite form strings
 $string['assignrole'] = 'Assign role';
-$string['cannotsendmoreinvitationfortoday'] = 'No invitation left for today. Try later.';
 $string['defaultrole'] = 'Default role assignment';
 $string['defaultrole_desc'] = 'Select role which should be assigned to users during invitation enrollments';
 $string['editenrollment'] = 'Edit enrollment';
@@ -71,6 +69,8 @@ $string['maxinviteperday'] = 'Maximum invitation per day';
 $string['maxinviteperday_help'] = 'Maximum invitation that can be send per day for a course.';
 $string['noinvitationinstanceset'] = 'No invitation enrolmenet instance has been found. Please add an invitation enrol instance to your course first.';
 $string['nopermissiontosendinvitation'] = 'No permission to send invitation';
+$string['norole'] = 'Please choose a role to invite users as';
+$string['role_desc'] = 'What role do you want to assign to your invited user?';
 $string['status'] = 'Allow site invitations';
 $string['status_desc'] = 'Allow users to invite people to enrol into a course by default.';
 $string['unenrol'] = 'Unenrol user';

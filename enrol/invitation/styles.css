@@ -3,3 +3,11 @@
 .enrol_invitation_item_icon {
     padding-right: 5px;
 }
+
+#page-enrol-invitation-invitation .role-name {
+    font-weight: bold;
+    padding-left: 0.5em;
+}
+#page-enrol-invitation-invitation .required .fradio {
+    color: black;
+}

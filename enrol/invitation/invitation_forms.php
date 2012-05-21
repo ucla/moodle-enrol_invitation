@@ -26,6 +26,9 @@ require_once ('locallib.php');
 require_once($CFG->dirroot . '/lib/formslib.php');
 require_once($CFG->dirroot . '/lib/enrollib.php');
 
+// required to get figure out roles
+require_once($CFG->dirroot . '/local/ucla/lib.php');
+
 /**
  * The mform class for sending invitation to enrol users in a course
  *
@@ -49,6 +52,19 @@ class invitations_form extends moodleform {
         $mform->setType('courseid', PARAM_INT);
         $mform->setDefault('courseid', $courseid);       
         
+        // set roles
+        $mform->addElement('static', 'role_desc', '', get_string('role_desc', 'enrol_invitation'));
+        
+        $roles = $this->get_appropiate_roles($courseid);
+        $label = get_string('assignrole', 'enrol_invitation');
+        foreach ($roles as $role) {
+            $role_string = html_writer::tag('span', $role->name . ':', 
+                    array('class' => 'role-name'));
+            $role_string .= ' ' . strip_tags($role->description);
+            $mform->addElement('radio', 'roleid', $label, $role_string, $role->id);
+            $label = '';    // only apply label to first role
+        }
+        $mform->addRule('roleid', get_string('norole', 'enrol_invitation'), 'required');
         
         // Email address fields
         $mform->addElement('text', 'email', get_string('emailaddressnumber', 'enrol_invitation'), 'size="50"');
@@ -58,6 +74,29 @@ class invitations_form extends moodleform {
         $mform->setType('email', PARAM_EMAIL);
         
         $this->add_action_buttons(false, get_string('inviteusers', 'enrol_invitation'));
+    }
+    
+    /**
+     * Private class method to return a list of appropiate roles for given
+     * course.
+     * 
+     * @param type $courseid 
+     */
+    private function get_appropiate_roles($courseid) {
+        global $DB, $USER;
+        $course = new stdClass();
+        $course->id = $courseid;
+        // project/research sites need to only use project roles
+        if (is_collab_site($course)) {
+            $roles = array('projectlead', 'projectcontributor', 
+                'projectparticipant', 'projectviewer');            
+        } else {
+            // TODO: add in support for instructional collab sites to use class roles                        
+            $roles = array('sa_2', 'sa_3', 'sa_4', 'sp_1', 'sp_2');
+        }
+        
+        // now get role names and descriptions
+        return $DB->get_records_list('role', 'shortname', $roles);        
     }
 
 }
