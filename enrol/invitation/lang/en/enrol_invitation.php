@@ -29,11 +29,77 @@
 $string['pluginname'] = 'Site invitation';
 $string['pluginname_desc'] = 'The site invitation module allows to send invitation by email. These invitations can be used only once. Users clicking on the email link are automatically enrolled.';
 
+// email message strings
+$string['emailmsghtml'] = 
+    'INSTRUCTIONS:'.
+    '<hr />'.
+    'You have been invited to access the course site: {$a->fullname}. You will ' . 
+    'need to log in to CCLE with your UCLA logon in order to confirm your access ' . 
+    'to the site. If you do not have a UCLA logon, please see the instructions ' . 
+    'below. Be advised that by clicking on the site access link provided in this ' . 
+    'email you are acknowledging that:<br />' .
+    ' --you are the person to whom this email was addressed and for whom this ' . 
+    '   invitation is intended;<br />' . 
+    ' --this invitation gives you access to the course site but does not enroll<br />' . 
+    '   you in the course;<br />' . 
+    ' --the link below will expire 14 days after the date of issue ({$a->expiration}).<br /><br />' .      
+    'ACCESS LINK:'.
+    '<hr />'.
+    '{$a->wwwroot}/enrol/invitation/enrol.php?key={$a->key} <br /><br />'.
+    'UCLA LOGON:'.
+    '<hr />'.
+    'If you currently do not have a UCLA Logon ID, you can obtain one here: ' . 
+    'https://logon.ucla.edu/activate.php. You do not need to be an enrolled ' . 
+    'student at UCLA or have a 9 digit UID to create a UCLA Logon. When you are ' . 
+    'asked to identify your role in the UCLA system, select the following  ' . 
+    'option: <br />' . 
+    '"I do not have a UCLA Identification Number and I am NONE OF THE ABOVE."<br /><br />'.
+    'CONTACT CCLE:'.
+    '<hr />'.    
+    'If you believe that you have received this message in error or are in need<br />' . 
+    'of assistance, please contact: {$a->supportemail}.';
+
+$string['emailmsgtxt'] = 
+    'INSTRUCTIONS:\n'.
+    '---------------------------------------------------------------------------\n'.
+    'You have been invited to access the course site: {$a->fullname}. You will ' . 
+    'need to log in to CCLE with your UCLA logon in order to confirm your access ' . 
+    'to the site. If you do not have a UCLA logon, please see the instructions ' . 
+    'below. Be advised that by clicking on the site access link provided in this ' . 
+    'email you are acknowledging that:\n' .
+    ' --you are the person to whom this email was addressed and for whom this\n' . 
+    '   invitation is intended;\n' . 
+    ' --this invitation gives you access to the course site but does not enroll\n' . 
+    '   you in the course;\n' . 
+    ' --the link below will expire 14 days after the date of issue ({$a->expiration}).\n\n' .      
+    'ACCESS LINK:\n'.
+    '---------------------------------------------------------------------------\n'.
+    '{$a->wwwroot}/enrol/invitation/enrol.php?key={$a->key} \n\n'.
+    'UCLA LOGON:\n'.
+    '---------------------------------------------------------------------------\n'.
+    'If you currently do not have a UCLA Logon ID, you can obtain one here: ' . 
+    'https://logon.ucla.edu/activate.php. You do not need to be an enrolled ' . 
+    'student at UCLA or have a 9 digit UID to create a UCLA Logon. When you are ' . 
+    'asked to identify your role in the UCLA system, select the following  ' . 
+    'option: \n' . 
+    '"I do not have a UCLA Identification Number and I am NONE OF THE ABOVE."\n\n'.
+    'CONTACT CCLE:\n'.
+    '---------------------------------------------------------------------------\n'.    
+    'If you believe that you have received this message in error or are in need ' . 
+    'of assistance, please contact: {$a->supportemail}.';
+
+$string['instructormsg'] = ''.
+    'MESSAGE FROM INSTRUCTOR:\n'.
+    '---------------------------------------------------------------------------\n'.
+    '{$a}\n\n';
+
 // invite form strings
 $string['assignrole'] = 'Assign role';
 $string['defaultrole'] = 'Default role assignment';
 $string['defaultrole_desc'] = 'Select role which should be assigned to users during invitation enrollments';
+$string['default_subject'] = 'Site invitation for {$a}';
 $string['editenrollment'] = 'Edit enrollment';
+$string['email_desc'] = 'Who do you want to invite? (please enter in an email address, UID, or UCLA LogonID';
 $string['emailaddressnumber'] = 'Email address';
 $string['emailmessageinvitation'] = '{$a->managername} invited you to join {$a->fullname}. 
 
@@ -63,14 +129,20 @@ $string['enrolperiod_help'] = 'Length of time that the enrollment is valid, star
 $string['enrolstartdate'] = 'Start date';
 $string['enrolstartdate_help'] = 'If enabled, users can be enrolled from this date onward only.';
 $string['expiredtoken'] = 'Invalid token - enrollment process has stopped.';
+$string['show_from_email'] = 'Allow invited users to contact me at {$a->email} (your address will be on the "FROM" field. If not selected, the "FROM" field will be {$a->supportemail}';
 $string['inviteusers'] = 'Invite users';
 $string['maxinviteerror'] = 'It must be a number.';
 $string['maxinviteperday'] = 'Maximum invitation per day';
 $string['maxinviteperday_help'] = 'Maximum invitation that can be send per day for a course.';
+$string['message'] = 'Message';
+$string['message_help'] = $string['emailmsghtml'];
+$string['message_help_link'] = 'see what instructions invitees are sent';
 $string['noinvitationinstanceset'] = 'No invitation enrolmenet instance has been found. Please add an invitation enrol instance to your course first.';
 $string['nopermissiontosendinvitation'] = 'No permission to send invitation';
 $string['norole'] = 'Please choose a role to invite users as';
+$string['notify_me'] = 'Notify me at {$a->email} when invited users accept this invitation';
 $string['role_desc'] = 'What role do you want to assign to your invited user?';
+$string['subject'] = 'Subject';
 $string['status'] = 'Allow site invitations';
 $string['status_desc'] = 'Allow users to invite people to enrol into a course by default.';
 $string['unenrol'] = 'Unenrol user';

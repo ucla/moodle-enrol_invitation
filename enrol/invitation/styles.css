@@ -8,6 +8,25 @@
     font-weight: bold;
     padding-left: 0.5em;
 }
-#page-enrol-invitation-invitation .required .fradio {
-    color: black;
+
+#page-enrol-invitation-invitation #id_email {
+    width: 50%;
+}
+
+#page-enrol-invitation-invitation #id_subject {
+    width: 99%;
+}
+
+#page-enrol-invitation-invitation #id_message {
+    width: 99%;
+    height: 6.0em;
+}
+
+#page-enrol-invitation-invitation #fitem_id_message .helplink {
+    display: block;
+}
+
+#page-enrol-invitation-invitation .fstatic {
+    font-weight: bold;
+    text-decoration: underline;
 }

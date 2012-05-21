@@ -43,7 +43,7 @@ class invitations_form extends moodleform {
      * The form definition
      */
     function definition() {
-        global $CFG, $USER, $OUTPUT, $PAGE;
+        global $CFG, $DB, $USER;
         $mform = & $this->_form;
 
         // Add some hidden fields
@@ -52,26 +52,57 @@ class invitations_form extends moodleform {
         $mform->setType('courseid', PARAM_INT);
         $mform->setDefault('courseid', $courseid);       
         
-        // set roles
-        $mform->addElement('static', 'role_desc', '', get_string('role_desc', 'enrol_invitation'));
+        // get course record, to be used later
+        $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
         
-        $roles = $this->get_appropiate_roles($courseid);
+        // set roles
+        $mform->addElement('static', 'role_desc', '', 
+                get_string('role_desc', 'enrol_invitation'));
+        
+        $roles = $this->get_appropiate_roles($course);
         $label = get_string('assignrole', 'enrol_invitation');
+        $role_group = array();
         foreach ($roles as $role) {
             $role_string = html_writer::tag('span', $role->name . ':', 
                     array('class' => 'role-name'));
             $role_string .= ' ' . strip_tags($role->description);
-            $mform->addElement('radio', 'roleid', $label, $role_string, $role->id);
-            $label = '';    // only apply label to first role
+            $role_group[] = &$mform->createElement('radio', 'roleid', '', 
+                    $role_string, $role->id);
         }
-        $mform->addRule('roleid', get_string('norole', 'enrol_invitation'), 'required');
+        $mform->addGroup($role_group, 'role_group', $label, 
+                html_writer::empty_tag('br'));
+        $mform->addGroupRule('role_group', 
+                get_string('norole', 'enrol_invitation'), 'required');
         
-        // Email address fields
-        $mform->addElement('text', 'email', get_string('emailaddressnumber', 'enrol_invitation'), 'size="50"');
-        //first email address is required
+        // email address field
+        $mform->addElement('static', 'role_desc', '', 
+                get_string('email_desc', 'enrol_invitation'));        
+        $mform->addElement('text', 'email', get_string('emailaddressnumber', 'enrol_invitation'));
         $mform->addRule('email', get_string('required'), 'required');
-
         $mform->setType('email', PARAM_EMAIL);
+        
+        // subject field
+        $mform->addElement('text', 'subject', get_string('subject', 'enrol_invitation'));
+        $mform->addRule('subject', get_string('required'), 'required');       
+        // default subject is "Site invitation for <course title>"        
+        $default_subject = get_string('default_subject', 'enrol_invitation', $course->fullname);
+        $mform->setDefault('subject', $default_subject);
+        
+        // message field
+        $mform->addElement('textarea', 'message', get_string('message', 'enrol_invitation'));
+        // put help text to show what default message invitee gets
+        $mform->addHelpButton('message', 'message', 'enrol_invitation', 
+                get_string('message_help_link', 'enrol_invitation'));
+        
+        // email options
+        // prepare string variables
+        $temp = new stdClass();
+        $temp->email = $USER->email;
+        $temp->supportemail = $CFG->supportemail;        
+        $mform->addElement('checkbox', 'show_from_email', '', 
+                get_string('show_from_email', 'enrol_invitation', $temp));
+        $mform->addElement('checkbox', 'notify_me', '', 
+                get_string('notify_me', 'enrol_invitation', $temp));
         
         $this->add_action_buttons(false, get_string('inviteusers', 'enrol_invitation'));
     }
@@ -80,12 +111,11 @@ class invitations_form extends moodleform {
      * Private class method to return a list of appropiate roles for given
      * course.
      * 
-     * @param type $courseid 
+     * @param object $course    Course record
      */
-    private function get_appropiate_roles($courseid) {
-        global $DB, $USER;
-        $course = new stdClass();
-        $course->id = $courseid;
+    private function get_appropiate_roles($course) {
+        global $DB;
+
         // project/research sites need to only use project roles
         if (is_collab_site($course)) {
             $roles = array('projectlead', 'projectcontributor', 
