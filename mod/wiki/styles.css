@@ -251,7 +251,15 @@ a.wiki_newentry:link, a.wiki_newentry:visited {
     margin-top: 10px;
     padding: 5px;
 }
-
+.generalbox ul {
+    list-style-type: disc;
+}
+.generalbox ul ul {
+    list-style-type: circle;
+}
+.generalbox ul ul ul {
+    list-style-type: square;
+}
 .wiki_navigation_container {
     margin: 0 auto;
 }
