@@ -5,8 +5,11 @@ a:hover {text-decoration:underline;}
 img.icon,
 img.iconhelp {vertical-align:middle;}
 
-span.iconsmall {margin-right: 10px;}
-span.commands a span.iconsmall {color: red;}
+.mod-indent span.commands { display: block;float: right; }
+span.commands a {margin-right: 10px;color: red;}
+span.commands a img.no-editing-icons {
+    display: none;
+}
 
 html, body {background-color:#FFF; height:100%;}
 #page {height:100%;background-color:transparent;margin:0 auto;}

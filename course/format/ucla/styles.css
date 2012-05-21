@@ -97,6 +97,10 @@
     padding-left: 8px;
 }
 
+.course-content ul.topics li.section .sectionheader div div img.no-editing-icons {
+    display:none;
+}
+
 .section .groupinglabel {
     color: #666666;
 }

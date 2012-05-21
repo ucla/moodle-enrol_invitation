@@ -368,8 +368,7 @@ class theme_uclashared_core_renderer extends core_renderer {
                 unset($attr['alt']);
                 unset($attr['title']);
 
-                $action->text = html_writer::tag('span', $displaytext,
-                    $attr);
+                $action->text = $displaytext;
             }
         }
 
