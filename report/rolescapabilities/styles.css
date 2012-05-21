@@ -1,0 +1,68 @@
+#page #legendcontainer {
+    float: left;
+    width: 35%;
+}
+
+#page #optionscontainer {
+    float: right;
+    width : 60%;
+}
+
+#page  #legend dt {
+    float: left;
+    margin-right: 10px;
+}
+
+#page  #legend dd {
+    margin-bottom: 5px;
+}
+
+#page  #legend dt span {
+    border: 1px solid black;
+}
+
+#page .rolecap {
+    clear: both;
+    margin-top: 1em;
+    border: 1px solid black;
+    border-collapse: collapse;
+    text-align: left;
+    width: 100%;
+}
+
+
+#page  .rolecap th,
+#page  .rolecap td {
+    border: 1px solid black;
+}
+
+#page  .rolecap td.capnotset,
+#page  #legend dt span.notset {
+    background-color: white;
+}
+
+#page .rolecap td.cap1,
+#page #legend dt span.allow {
+    background-color: green;
+}
+
+#page .rolecap td.cap-1,
+#page #legend dt span.prevent {
+    background-color: yellow;
+}
+
+#page .rolecap td.cap-1000,
+#page #legend dt span.deny {
+    background-color: red;
+}
+
+#page span.cap-desc a {
+display: block;
+text-align: left;
+}
+#page span.cap-desc span {
+text-align: left;
+}
+#page span.cap-name {
+display: block;
+}
