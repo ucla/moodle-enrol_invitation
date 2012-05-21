@@ -22,7 +22,6 @@ if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');    ///  It must be included from a Moodle page
 }
 
-
 require_once ('locallib.php');
 require_once($CFG->dirroot . '/lib/formslib.php');
 require_once($CFG->dirroot . '/lib/enrollib.php');
@@ -48,8 +47,8 @@ class invitations_form extends moodleform {
         $courseid = $this->_customdata['courseid']; 
         $mform->addElement('hidden', 'courseid');
         $mform->setType('courseid', PARAM_INT);
-        $mform->setDefault('courseid', $courseid);
-        $invitationleft = $this->_customdata['leftinvitation']; 
+        $mform->setDefault('courseid', $courseid);       
+        
         
         // Email address fields
         $mform->addElement('text', 'email', get_string('emailaddressnumber', 'enrol_invitation'), 'size="50"');

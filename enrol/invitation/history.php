@@ -70,8 +70,6 @@ $invite_instance = $invitationmanager->get_invitation_instance($courseid, true);
 // get invites and display them
 $invites = $invitationmanager->get_invites();
 
-print_object($invites);
-
 if (empty($invites)) {
     echo html_writer::tag('div', 
             get_string('noinvitehistory', 'enrol_invitation'), 
@@ -91,6 +89,7 @@ if (empty($invites)) {
     $table->define_columns(array_keys($columns));
     $table->define_headers(array_values($columns));
     $table->define_baseurl($PAGE->url);
+    $table->set_attribute('class', 'generaltable generalbox');
 
     $table->setup();
     
@@ -139,6 +138,7 @@ if (empty($invites)) {
         }
         
         // are there any actions user can do?
+        $row[5] = '';
         
         $table->add_data($row); 
     }

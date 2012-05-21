@@ -52,8 +52,7 @@ $PAGE->navbar->add(get_string('inviteusers', 'enrol_invitation'));
 
 $invitationmanager = new invitation_manager($courseid);
 $instance = $invitationmanager->get_invitation_instance($courseid, true);
-$invitationleft = $invitationmanager->leftinvitationfortoday($courseid);
-$mform = new invitations_form(null, array('courseid' => $courseid, 'leftinvitation' => $invitationleft));
+$mform = new invitations_form(null, array('courseid' => $courseid));
 $mform->set_data($invitationmanager);
 $data = $mform->get_data();
 $confirmation = '';

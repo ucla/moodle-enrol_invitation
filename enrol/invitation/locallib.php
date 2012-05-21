@@ -59,8 +59,7 @@ class invitation_manager {
         $inviteicon = '';
         $link = '';
 
-        if (has_capability('enrol/invitation:enrol', get_context_instance(CONTEXT_COURSE, $this->courseid))
-                and ($this->leftinvitationfortoday() > 0)) {
+        if (has_capability('enrol/invitation:enrol', get_context_instance(CONTEXT_COURSE, $this->courseid))) {
 
             //display an icon with requested (css can be changed in stylesheet)
             if ($withicon) {
@@ -77,26 +76,6 @@ class invitation_manager {
     }
 
     /**
-     * Return the number of invitation that can still be sent today for a specific course
-     * If users accept quickly their invitation then you can send a lot more email per day
-     * It is just to avoid spam.
-     * @return int number of left invitation to send 
-     */
-    public function leftinvitationfortoday($courseid = null) {
-        global $DB;
-
-        if (empty($courseid)) {
-            $courseid = $this->courseid;
-        }
-
-        $onedayearlier = time() - (60 * 60 * 24);
-        $sentinvitations = $DB->get_records_select('enrol_invitation', 'timesent > ? AND tokenused = 0', array($onedayearlier));
-        $invitationleft = $this->enrol_instance->customint1 - count($sentinvitations);
-        $invitationleft = ($invitationleft > 0) ? $invitationleft : 0;
-        return $invitationleft;
-    }
-
-    /**
      * Send invitation (create a unique token for each of them)
      * @global type $USER
      * @global type $DB
@@ -107,58 +86,44 @@ class invitation_manager {
 
         $data = (array) $data;
 
-        //check that the user didn't send more than MAX INVITATION invitation per day
-        $invitationleft = $this->leftinvitationfortoday($data['courseid']);
-
-        //to send invitation you must able to edit the course - no need to be able to enrol into the course
         if (has_capability('enrol/invitation:enrol', get_context_instance(CONTEXT_COURSE, $data['courseid']))) {
-            for ($indice = 1; $indice <= $invitationleft; $indice = $indice + 1) {
+            $email = $data['email'];
+            if (!empty($email)) {
 
-                $invitationleft = $invitationleft - 1;
-                if ($invitationleft < 0) {
-                    throw new moodle_exception('cannotsendmoreinvitationfortoday', 'enrol_invitation');
-                }
-
-                $email = $data['email' . $indice];
-                if (!empty($email)) {
-
-                    //create unique token for invitation
+                //create unique token for invitation
+                do {
                     $token = md5(uniqid(rand(), 1));
-                    $existingtoken = $DB->get_record('enrol_invitation', array('token' => $token));
-                    while (!empty($existingtoken)) {
-                        $token = md5(uniqid(rand(), 1));
-                        $existingtoken = $DB->get_record('enrol_invitation', array('token' => $token));
-                    }
+                    $existingtoken = $DB->get_record('enrol_invitation', array('token' => $token));                        
+                } while (!empty($existingtoken));
 
-                    //save token information in config (token value, course id, TODO: role id)
-                    $invitation = new stdClass();
-                    $invitation->courseid = $data['courseid'];
-                    $invitation->email = $email;
-                    $invitation->creatorid = $USER->id;
-                    $invitation->token = $token;
-                    $invitation->tokenused = false;
-                    $invitation->timesent = time();
+                //save token information in config (token value, course id, TODO: role id)
+                $invitation = new stdClass();
+                $invitation->courseid = $data['courseid'];
+                $invitation->email = $email;
+                $invitation->creatorid = $USER->id;
+                $invitation->token = $token;
+                $invitation->tokenused = false;
+                $invitation->timesent = time();
 
-                    $DB->insert_record('enrol_invitation', $invitation);
+                $DB->insert_record('enrol_invitation', $invitation);
 
-                    $enrolurl = new moodle_url('/enrol/invitation/enrol.php',
-                                    array('enrolinvitationtoken' => $token, 'id' => $data['courseid']));
+                $enrolurl = new moodle_url('/enrol/invitation/enrol.php',
+                                array('enrolinvitationtoken' => $token, 'id' => $data['courseid']));
 
-                    //send invitation to the user
-                    $contactuser = new object;
-                    $contactuser->email = $email;
-                    $contactuser->firstname = '';
-                    $contactuser->lastname = '';
-                    $contactuser->maildisplay = true;
-                    $emailinfo = new stdClass();
-                    $emailinfo->fullname = $data['fullname'];
-                    $emailinfo->managername = $USER->firstname . ' ' . $USER->lastname;
-                    $emailinfo->enrolurl = $enrolurl->out(false);
-                    $emailinfo->sitename = $SITE->fullname;
-                    $siteurl = new moodle_url('/');
-                    $emailinfo->siteurl = $siteurl->out(false);
-                    email_to_user($contactuser, $USER, get_string('emailtitleinvitation', 'enrol_invitation', $emailinfo), get_string('emailmessageinvitation', 'enrol_invitation', $emailinfo));
-                }
+                //send invitation to the user
+                $contactuser = new object;
+                $contactuser->email = $email;
+                $contactuser->firstname = '';
+                $contactuser->lastname = '';
+                $contactuser->maildisplay = true;
+                $emailinfo = new stdClass();
+                $emailinfo->fullname = $data['fullname'];
+                $emailinfo->managername = $USER->firstname . ' ' . $USER->lastname;
+                $emailinfo->enrolurl = $enrolurl->out(false);
+                $emailinfo->sitename = $SITE->fullname;
+                $siteurl = new moodle_url('/');
+                $emailinfo->siteurl = $siteurl->out(false);
+                email_to_user($contactuser, $USER, get_string('emailtitleinvitation', 'enrol_invitation', $emailinfo), get_string('emailmessageinvitation', 'enrol_invitation', $emailinfo));
             }
         } else {
             throw new moodle_exception('cannotsendinvitation', 'enrol_invitation',
