@@ -23,7 +23,12 @@ h1, h2, h3 {margin: 0;}
  * Tabs
  */
 .tabtree {
-   margin-bottom: 0; 
+    /* leave space after first tab row for additional tab rows */
+   margin-bottom: 3.5em; 
+}
+.tabtree .tabrow1.empty {
+    /* if there is not a second row, then remove spacing after first row */
+    margin-bottom: -3.5em;
 }
 .tabtree ul {
     text-align:center;
@@ -80,6 +85,9 @@ h1, h2, h3 {margin: 0;}
     padding:0px;
     position:absolute;
     width:100%;
+}
+.tabtree .tabrow1 {
+    background-color: #ddd;
 }
 .tabtree .tabrow1 li a,
 .tabtree .tabrow1 li a:hover,
