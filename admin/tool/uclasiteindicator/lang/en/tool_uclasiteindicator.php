@@ -14,6 +14,7 @@ $string['type'] = 'Type';
 $string['roles'] = 'Roles';
 $string['site'] = 'site';
 $string['del_msg'] = 'Site indicator entry';
+$string['change'] = 'Change type';
 
 // Site role groups
 $string['r_project'] = 'Project';

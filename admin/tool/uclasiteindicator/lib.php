@@ -25,8 +25,6 @@ class site_indicator_entry {
     
     public $property;
     
-    public $type;
-    
     private $_id;
     
     function __construct($courseid) {
@@ -38,7 +36,7 @@ class site_indicator_entry {
         $this->property->type = $indicator->type;
         $this->_id = $indicator->id;
         
-        $this->get_typeinfo();
+        $this->set_typeinfo();
    }
     
     /**
@@ -49,22 +47,56 @@ class site_indicator_entry {
         $DB->delete_records('ucla_indicator', array('id' => $this->_id));
     }
     
+    private function update() {
+        global $DB;
+        $DB->update_record('ucla_indicator',
+                array('id' => $this->_id, 'type' => $this->property->type));
+    }
+   
+    
     /**
-     * @todo write this function
-     * @global type $DB
-     * @param type $newtype 
+     * Change a site type.  Re-maps the role assignments if the site type
+     * is of a different role group
+     * 
+     * @param type $newtype of the site.
      */
     public function change_type($newtype) {
-        global $DB;
-        // Get course context
+        $uclaindicator = new ucla_site_indicator();
         
-        // Get enrolled users
+        $mygroup = $uclaindicator->get_rolegroup_for_type($this->property->type);
+        $newgroup = $uclaindicator->get_rolegroup_for_type($newtype);
         
-        // for each user, 
-
+        // Do we need to change role assignments?
+        if($newgroup != $mygroup) {
+            
+            // Get course context
+            $context = get_context_instance(CONTEXT_COURSE, $this->property->courseid);
+            
+            // Get enrolled users
+            $users = get_enrolled_users($context);
+            
+            // for each user, reassign roles
+            foreach($users as $u) {
+                $roles = get_user_roles($context, $u->id);
+                
+                foreach($roles as $r) {
+                    $oldrole = $r->shortname;
+                    
+                    // Only map roles that are remap-able
+                    if($newrole = $uclaindicator->get_remapped_role($newgroup, $oldrole)) {
+                        role_unassign($r->roleid, $u->id, $context->id);
+                        role_assign($newrole->id, $u->id, $context->id);
+                    }
+                }
+            }
+        }
+        
+        // Update new site type
+        $this->property->type = $newtype;
+        $this->update();
     }
     
-    private function get_typeinfo() {
+    private function set_typeinfo() {
         global $DB;
 
         $type = $DB->get_record('ucla_indicator_type', 
@@ -75,30 +107,33 @@ class site_indicator_entry {
     }
     
     /**
-     * Get assignable roles for this indicator
+     * Get assignable roles for this indicator.
      * 
-     * @return type 
+     * @return array of assignable roles 
      */
     public function get_assignable_roles() {
         global $DB;
         
         $uclaindicator = new ucla_site_indicator();
         $roleids = (array)$uclaindicator->get_roles_for_type($this->property->type);
-        $roles = $DB->get_records_select('role', 'shortname IN ("' . implode('", "', $roleids) . '")');
+        $roles = $DB->get_records_select('role', 
+                'shortname IN ("' . implode('", "', $roleids) . '")');
+        
         $list = array();
         
         foreach($roles as $r) {
             $list[$r->id] = $r->name;
         }
+        
         return $list;
     }    
 
     
     /**
-     * Safe way of getting an indicator entry. 
+     * Load an indicator.
      * 
      * @param type $courseid
-     * @return null|\site_indicator_entry 
+     * @return null|\site_indicator_entry if indicator exists
      */
     static function load($courseid) {
         try {
@@ -120,18 +155,18 @@ class site_indicator_request {
     
     public $entry;
     
-    private $id;
+    private $_id;
     
     function __construct($requestid) {
         global $DB;
 
         $this->request = new stdClass();
         $this->entry = new stdClass();
-                
+
         $request = $DB->get_record('ucla_indicator_request', 
                 array('requestid' => $requestid), '*', MUST_EXIST);
 
-        $this->id = $request->id;                           // Indicator request ID
+        $this->_id = $request->id;                           // Indicator request ID
         $this->entry->type = $request->type;                // Indicator type
         $this->request->support = $request->support;        // Support Contact
         $this->request->categoryid = $request->categoryid;  // Requested category
@@ -164,32 +199,22 @@ class site_indicator_request {
     private function set_default_role() {
         global $DB;
         
-        // Pick out the highest ranked role
-        $query = "SELECT r.id
-                FROM {role} AS r
-                JOIN {ucla_indicator_assign} AS sra ON sra.roleid = r.id
-                JOIN {ucla_indicator_mapping} srm ON srm.siteroleid = sra.siteroleid
-                WHERE srm.typeid = ?
-                ORDER BY r.sortorder";
+        // Get toprole
+        $uclaindicator = new ucla_site_indicator();
+        $roles = $uclaindicator->get_roles_for_type($this->entry->type);
+        $toprole = array_shift($roles);
         
-        $records = $DB->get_records_sql($query, array($this->entry->type));
-
-        // Get role id
-        $records = array_shift($records);
+        $role = $DB->get_record('role', array('shortname' => $toprole));
         
-        $roleid = $records->id;
-        
-        // We need to get the user
+        // Course and user info
         $userid = $this->request->requester;
         $courseid = $this->entry->courseid;
         
         // Get context
         $context = get_context_instance(CONTEXT_COURSE, $courseid);
         
-        // Assign role
-        require_capability('moodle/role:assign', $context);
-        
-        return role_assign($roleid, $userid, $context->id, '', NULL);
+        // Assign default role
+        role_assign($role->id, $userid, $context->id, '', NULL);
     }
     
     /**
@@ -212,7 +237,7 @@ class site_indicator_request {
        
         // Attach the pending course links
         $req_course->action = $CFG->wwwroot . '/course/pending.php?request=' 
-                . $this->id;
+                . $this->_id;
         
         // Prepare JIRA params
         $title = get_string('jira_title', 'tool_uclasiteindicator', $req_course);
@@ -250,7 +275,7 @@ class site_indicator_request {
         global $DB;
         
         $DB->delete_records('ucla_indicator_request', 
-                array('id' => $this->id));
+                array('id' => $this->_id));
     }
         
     /**
@@ -270,10 +295,10 @@ class site_indicator_request {
     
 
     /**
-     * Safe loading of indicator request.
+     * Load an indicator request.
      * 
      * @param type $requestid
-     * @return null|\site_indicator_request 
+     * @return null|\site_indicator_request if request exists
      */
     static function load($requestid) {
         try {
@@ -337,9 +362,17 @@ class site_indicator_request {
  */
 class ucla_site_indicator {
     
+    // A group of roles.  A group contains a set 
+    // of roles that are mutually excluseive from other groups.
     private $_indicator_rolegroups;
+    
+    // Sets of role assignments for a particular group.
     private $_roleassignments;
+    
+    // A mapping specifiying which role group belongs to a site type
     private $_type_to_rolegroup_mapping;
+    
+    // A role re-map scheme used when a site changes type
     private $_role_remap;
     
     function __construct() {
@@ -348,19 +381,19 @@ class ucla_site_indicator {
             'instruction' => get_string('r_instruction', 'tool_uclasiteindicator'),
             'project' => get_string('r_project', 'tool_uclasiteindicator'),
             'test' => get_string('r_test', 'tool_uclasiteindicator'),
-        );
+            );
         
         // Supported site types:
-        //  Instruction
-        //  Non-Instruction
-        //  Research
-        //  Test
+        //   Instruction
+        //   Non-Instruction
+        //   Research
+        //   Test
         $this->_type_to_rolegroup_mapping = array(
             'instruction' => 'instruction',
             'non_instruction' => 'project',
             'research' => 'project',
             'test' => 'test',
-        );
+            );
         
         // Define the roles allowed for a particular role group
         $instruction = array(
@@ -369,46 +402,109 @@ class ucla_site_indicator {
             'nonediting_instructor',
             'student',
             );
+        
         $project = array(
             'projectlead',
             'projectcontributor',
             'projectmember',
             'projectviewer',
-        );
+            );
         
+        // 
         $this->_roleassignments = array(
             'instruction' => $instruction,
             'project' => $project,
             'test' => array_merge($instruction, $project),
-        );
+            );
 
         // Re-mapping of roles for site type changes
         $this->_role_remap = array(
-            'editinginstructor' => 'projectlead',
-            'supervising_instructor' => 'projectcontributor',
-            'nonediting_instructor' => 'projectmember',
-            'student' => 'projectviewer',
-        );
+            'project' => array(
+                'editinginstructor' => 'projectlead',
+                'supervising_instructor' => 'projectcontributor',
+                'nonediting_instructor' => 'projectmember',
+                'student' => 'projectviewer',
+                ),
+            'instruction' => array(
+                'projectlead' => 'editinginstructor',
+                'projectcontributor' => 'supervising_instructor',
+                'projectmember' => 'nonediting_instructor',
+                'projectviewer' => 'student',
+                )
+            );
     }
     
+    /**
+     * For a given role group, returns the set of roles in that group.
+     * 
+     * @param string $group shortname of the role group
+     * @return array of roles (shortnames)
+     */
     function get_roles_for_group($group) {
         return $this->_roleassignments[$group];
     }
     
+    /**
+     * For a given type, returns the set of roles for that type.
+     * 
+     * @param mixed $type of site
+     * @return array of role (shortnames) 
+     */
     function get_roles_for_type($type) {
+        $ntype = $this->disambiguate_type($type);
+        return $this->_roleassignments[$this->_type_to_rolegroup_mapping[$ntype]];
+    }
+    
+    /**
+     * For a given type, returns the rolegroup assigned to the type.
+     * 
+     * @param mixed $type of site
+     * @return string role group 
+     */
+    function get_rolegroup_for_type($type) {
+        $ntype = $this->disambiguate_type($type);
+        return $this->_type_to_rolegroup_mapping[$ntype];
+    }
+    
+    /**
+     * For a given rolegroup and (non-rolegroup role, returns the equivalent role.
+     * 
+     * @param string $rolegroup of site
+     * @param string $role shortname
+     * @return null|$newrole if the mapping exists
+     */
+    function get_remapped_role($rolegroup, $role) {
+        global $DB;
+        
+        $newrole = new stdClass();
+
+        if(empty($this->_role_remap[$rolegroup][$role])) {
+            $newrole = null;
+        } else {
+            $newrole->shortname = $this->_role_remap[$rolegroup][$role];
+            $record = $DB->get_record('role', 
+                    array('shortname' => $newrole->shortname));
+            $newrole->id = $record->id;
+        }
+        
+        return $newrole;
+    }
+
+    private function disambiguate_type($type) {
         global $DB;
         
         if(is_numeric($type) || is_int($type)) {
             $rec = $DB->get_record('ucla_indicator_type', array('id' => $type));
             $type = $rec->shortname;
         }
-        return $this->_roleassignments[$this->_type_to_rolegroup_mapping[$type]];
+        return $type;
     }
-    
+
     /**
      * Returns a filtered categories list
      * 
-     * @todo: hide categorie we don't want to make visible
+     * @todo: hide categorie we don't want to make visible -- add option 
+     * in admin area
      * 
      * @param array $parentlist
      * @return type 
@@ -543,11 +639,10 @@ class ucla_site_indicator {
     }
     
     /**
-     * Create a site indicator entry from an existing request.  A course
-     * is needed to attach that course to the new to be made indicator entry.
+     * Create a site indicator entry from an existing request.  
      * 
-     * @param int $courseid course that will be attached to the site indicator entry
-     * @param int $requestid the id of existing request
+     * @param int $courseid for indicator entry
+     * @param int $requestid of existing indicator request
      * @return int category ID specified in the indicator request
      */
     static function create($courseid, $requestid) {
@@ -557,15 +652,11 @@ class ucla_site_indicator {
 
             // Create record for course
             $newindicator->create_indicator_entry();
-
-            return $newindicator->request->categoryid;
         }
-        
-        return 0;
     }
     
     /**
-     * Reject a indicator request.  Also deletes the request
+     * Reject a indicator request.
      * 
      * @param type $requestid 
      */
@@ -586,29 +677,8 @@ class ucla_site_indicator {
         $types = $DB->get_records('ucla_indicator_type', 
                 array('visible' => 1), 'sortorder');
         
-        $list = array();
-        
-        foreach($types as $t) {
-            $list[$t->id] = $t->fullname;
-        }
-        return $list;
+        return $types;
     }
-        
-//    static function get_type($identifier) {
-//        global $DB;
-//        
-//        if(is_int($identifier) || is_numeric($identifier)) {
-//            $attributes = array('id' => $identifier);
-//        } else {
-//            $attributes = array('shortname' => $identifier);
-//        }
-//
-//        $type = $DB->get_record('ucla_indicator_type', $attributes);
-//        
-//        return $type;
-//
-//    }
-    
 }
 
 /**

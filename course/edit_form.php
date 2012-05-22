@@ -55,12 +55,22 @@ class course_edit_form extends moodleform {
                         implode(', ', $roles));
                 
                 // Change the site type
-                // @todo: make this work!
                 if(has_capability('tool/uclasiteindicator:edit', $systemcontext)) {
-                    $typelist = array('Do Not Change');
-
-                    $typelist = array_merge($typelist, ucla_site_indicator::get_indicator_types());
-                    $mform->addElement('select', 'indicator_change', 'Change type', $typelist);
+//                    $typelist = array('Do Not Change');
+//
+//                    $typelist = array_merge($typelist, ucla_site_indicator::get_indicator_types(true));
+//                    $mform->addElement('select', 'indicator_change', 'Change type', $typelist);
+                    $types = ucla_site_indicator::get_indicator_types();
+                    $radioarray = array();
+                    foreach($types as $type) {
+                        $descstring = '<strong>' . $type->fullname . '</strong> - ' . $type->description;
+                        $attributes = array(
+                            'class' => 'indicator_desc',
+                            'value' => $type->id
+                        );
+                        $radioarray[] = &MoodleQuickForm::createElement('radio', 'indicator_change', '', $descstring, $type->id, $attributes);
+                    }
+                    $mform->addGroup($radioarray, 'indicator_type_radios', get_string('change', 'tool_uclasiteindicator'), array('<br/>'), false);
                 }
             
             } else {
