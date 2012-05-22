@@ -1,7 +1,7 @@
 <?php
 class block_ucla_modify_coursemenu extends block_base {
     public function init() {
-        $this->title = get_string('ucla_modify_course_menu', 'block_ucla_modify_course_menu');
+        $this->title = get_string('ucla_modify_course_menu', 'block_ucla_modify_coursemenu');
     }
     
     public function get_content() {
