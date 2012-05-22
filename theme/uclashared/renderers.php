@@ -359,7 +359,7 @@ class theme_uclashared_core_renderer extends core_renderer {
      **/
     function render_action_link($action) {
         if ($this->get_config($this->theme, 'use_text_icons') 
-                && $this->get_user_field('noeditingicons', false)) {
+                && get_user_preferences('noeditingicons', false)) {
             if ($action->text instanceof pix_icon) {
                 $icon = $action->text;
 
@@ -385,20 +385,6 @@ class theme_uclashared_core_renderer extends core_renderer {
         } 
 
         return false;
-    }
-
-    protected function get_user_field($n=null, $d=null, $u=null) {
-        global $USER;
-
-        if ($u == null) {
-            $u = $USER;
-        }
-
-        if (isset($u->profile[$n])) {
-            return $u->profile[$n];
-        }
-
-        return $d;
     }
 }
 

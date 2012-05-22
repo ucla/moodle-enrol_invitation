@@ -186,6 +186,14 @@ function useredit_shared_definition(&$mform, $editoroptions = null) {
         $mform->setDefault('trackforums', 0);
     }
 
+    // START UCLA MOD CCLE-3069: Allow user preference for editing icons 
+    // vs text
+    $choices = array();
+    $choices['0'] = get_string('useeditingicons', 'theme_uclashared');
+    $choices['1'] = get_string('donotuseeditingicons', 'theme_uclashared');
+    $mform->addElement('select', 'preference_noeditingicons', get_string('noeditingicons', 'theme_uclashared'), $choices);
+    // END UCLA MOD CCLE-3069
+
     $editors = editors_get_enabled();
     if (count($editors) > 1) {
         $choices = array();

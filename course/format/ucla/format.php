@@ -43,7 +43,7 @@ list($to_topic, $displaysection) = ucla_format_figure_section($course,
 course_set_display($course->id, $to_topic);
 
 // Leave in marker functionality, this isn't really used except visually
-// TODO maybe use it for other stuff, like landing page?
+// TODO maybe use it for other stuff
 if (($marker >= 0) 
         && has_capability('moodle/course:setcurrentsection', $context) 
         && confirm_sesskey()) {
@@ -96,11 +96,7 @@ if ($useajax) {
     echo html_writer::script(false, 
         new moodle_url('/course/format/ucla/sections.js'));
 
-    if (!empty($USER->profile['noeditingicons'])) {
-        $noeditingicons = $USER->profile['noeditingicons'];
-    } else {
-        $noeditingicons = false;
-    }
+    $noeditingicons = get_user_preferences('noeditingicons', false);
 
     if ($noeditingicons) {
         $editingiconsjs = 'true';
@@ -429,22 +425,32 @@ while ($section <= $course->numsections) {
                 $moodle_url = new moodle_url('editsection.php', 
                     $sect_url_options);
 
-                $innards = $streditsectionsummary;
-                $safe_controls[] = html_writer::link($moodle_url, 
-                    $innards, $link_options);
+                $img_options = array(
+                        'class' => 'small-icon edit',
+                        'alt' => $streditsummary
+                    );
 
-                // Add delete?
+                $innards = new pix_icon('t/edit', $streditsummary,
+                    'moodle', $img_options);
+
+                $safe_controls[] = new action_link(
+                        $moodle_url, $innards, null, $link_options
+                    );
+  
+                $safeinnards = '';
+                foreach ($safe_controls as $control) {
+                    $safeinnards .= $OUTPUT->render($control);
+                }
 
                 $right_side .= html_writer::tag(
-                    'span', 
-                    implode(' ', $safe_controls), 
-                    array('class' => 'safecontrol')
-                );
+                        'span', $safeinnards, array('class' => 'safecontrol')
+                    );
 
                 // // // // // // // // // // // // // // // // //
                 $add_url_options = array();
-                $link_options = array();
+                $link_options = array('class' => 'iconsmall');
                 $url_str = '';
+                $iconstr = '';
            
                 // Hide or show the section
                 if ($thissection->visible) {
@@ -452,20 +458,23 @@ while ($section <= $course->numsections) {
                     $url_str = '#section-'.$section;
 
                     $link_options['title'] = $strtopichide;
+                    $iconstr = 'i/hide';
                 } else {
                     $add_url_options['show'] = $section;
                     $url_str = '#section-'.$section;
                     
                     $link_options['title'] = $strtopicshow;
+                    $iconstr = 'i/show';
                 }
 
                 $moodle_url = new moodle_url('view.php' . $url_str,
                     array_merge($url_options, $add_url_options));
 
-                $innards = $link_options['title'];
+                $innards = new pix_icon($iconstr, $link_options['title'], 
+                    'moodle', $link_options);
 
                 $additional_controls[] = 
-                    html_writer::link($moodle_url, $innards, $link_options);
+                    new action_link($moodle_url, $innards, null, $link_options);
             }
 
             // // // // // // // // // // // // // // // // // //
@@ -484,14 +493,17 @@ while ($section <= $course->numsections) {
                     $url_str = '#section-'.($section - 1);
 
                     $link_options['title'] = $strmoveup;
+                    $link_options['class'] = 'iconsmall';
         
                     $moodle_url = new moodle_url('view.php' . $url_str,
                         array_merge($url_options, $add_url_options));
 
-                    $innards = $link_options['title'];
+                    $innards = new pix_icon('t/up', $link_options['title'],
+                        'moodle', $link_options);
 
                     $additional_controls[] = 
-                        html_writer::link($moodle_url, $innards, $link_options);
+                        new action_link($moodle_url, $innards, null,
+                            $link_options);
                 }
 
                 // // // // // // // // // // // // // // // // // //
@@ -509,23 +521,25 @@ while ($section <= $course->numsections) {
                     $url_str = '#section-'.($section + 1);
 
                     $link_options['title'] = $strmovedown;
+                    $link_options['class'] = 'iconsmall';
 
                     $moodle_url = new moodle_url('view.php' . $url_str,
                         array_merge($url_options, $add_url_options));
                     
-                    $innards = $link_options['title'];
+                    $innards = new pix_icon('t/down', $link_options['title'],
+                        'moodle', $link_options);
 
-                    $additional_controls[] = 
-                        html_writer::link($moodle_url, $innards, $link_options);
+                    $additional_controls[] = new action_link($moodle_url, 
+                        $innards, null, $link_options);
                 }
 
             }
 
         }
 
-        // Display all the additional controls
+        // Display all the additional controls on the same line as the header
         foreach ($additional_controls as $control) {
-            $right_side .= $control;
+            $right_side .= $OUTPUT->render($control);
         }
 
         $right_side .= html_writer::end_tag('div');
@@ -594,11 +608,17 @@ while ($section <= $course->numsections) {
 
                     $moodle_url = new moodle_url('edit.php', $url_options);
 
-                    $innards = $streditsummary;
+                    $img_options = array(
+                            'class' => 'icon edit',
+                            'alt' => $streditsummary
+                        );
+
+                    $innards = new pix_icon('t/edit', $link_options['title'], 
+                        'moodle', $img_options);
 
                     $center_content .= html_writer::tag('span', 
-                        html_writer::link($moodle_url, 
-                            $innards, $link_options),
+                        $OUTPUT->render(new action_link($moodle_url, 
+                            $innards, null, $link_options)),
                         array('class' => 'editbutton'));
 
                 }
@@ -719,7 +739,7 @@ while ($section <= $course->numsections) {
             } else {
                $center_content .= '&nbsp;';
             }
-            
+
             $center_content .= html_writer::end_tag('div');
 
             ob_start();
