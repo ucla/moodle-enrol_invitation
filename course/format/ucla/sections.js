@@ -17,6 +17,12 @@ M.format_ucla.mk_button_override = function(tag, imgSrc, text,
         return tagnode;
     }
 
+    if (M.format_ucla.no_editing_icons != undefined 
+            && !M.format_ucla.no_editing_icons) {
+        return tagnode;
+    }
+
+
     iconnode = tagnode.childNodes[0];
 
     iconnode.className = iconnode.className || '';
