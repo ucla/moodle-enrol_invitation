@@ -1,5 +1,5 @@
 <?php
-class block_ucla_modify_course_menu extends block_base {
+class block_ucla_modify_coursemenu extends block_base {
     public function init() {
         $this->title = get_string('ucla_modify_course_menu', 'block_ucla_modify_course_menu');
     }
