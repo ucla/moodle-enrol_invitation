@@ -677,7 +677,11 @@ class questionnaire_question {
                 $this->text = $row->response;
                 if(!empty($this->text)) {
                     $dateparts = split('-', $this->text);
-                    $this->text = gmmktime(0, 0, 0, $dateparts[1], $dateparts[2], $dateparts[0]); // Unix timestamp
+                    // START UCLA MOD: CCLE-3068 - Major problems with questionnaire date field 
+                    // applying patch mentioned here: http://moodle.org/mod/forum/discuss.php?d=181966#p847737                    
+                    //$this->text = gmmktime(0, 0, 0, $dateparts[1], $dateparts[2], $dateparts[0]); // Unix timestamp
+                    $this->text = make_timestamp($dateparts[0], $dateparts[1], $dateparts[2]); // Unix timestamp 
+                    // END UCLA MOD: CCLE-3068
                     $textidx = clean_text($this->text);
                     $this->counts[$textidx] = !empty($this->counts[$textidx]) ? ($this->counts[$textidx] + 1) : 1;
                 }

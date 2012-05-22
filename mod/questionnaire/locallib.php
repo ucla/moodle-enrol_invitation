@@ -1892,7 +1892,11 @@ class questionnaire {
                     // does not work with dates prior to 1900 under Windows
                         if (preg_match('/\d\d\d\d-\d\d-\d\d/', $val)) {
                             $dateparts = split('-', $val);
-                           $val = gmmktime(0, 0, 0, $dateparts[1], $dateparts[2], $dateparts[0]); // Unix timestamp
+                            // START UCLA MOD: CCLE-3068 - Major problems with questionnaire date field 
+                            // applying patch mentioned here: http://moodle.org/mod/forum/discuss.php?d=181966#p847737
+                           //$val = gmmktime(0, 0, 0, $dateparts[1], $dateparts[2], $dateparts[0]); // Unix timestamp
+                            $val = make_timestamp($dateparts[0], $dateparts[1], $dateparts[2]);
+                           // END UCLA MOD: CCLE-3068
                             $val = userdate ( $val, $dateformat);
                             $newrow[] = $val;
                         }
