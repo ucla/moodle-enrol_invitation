@@ -358,8 +358,7 @@ class theme_uclashared_core_renderer extends core_renderer {
      *  Overwriting pix icon renderers to not use icons for action buttons.
      **/
     function render_action_link($action) {
-        if ($this->get_config($this->theme, 'use_text_icons') 
-                && get_user_preferences('noeditingicons', false)) {
+        if (get_user_preferences('noeditingicons', false)) {
             if ($action->text instanceof pix_icon) {
                 $icon = $action->text;
 
