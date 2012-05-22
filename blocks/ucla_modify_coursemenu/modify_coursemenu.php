@@ -105,18 +105,26 @@ if ($data = $modify_coursemenu_form->get_data()) {
     }
     
    // foreach ($data->hide as $sectnum => $hide)
-    if($data->delete) {
-        echo "HIHIH";
-      foreach($data->delete as $secnum => $delete) {
-        $sql = "delete from mdl_course_sections WHERE course='$course_id' AND section='$secnum'";
-        echo $sql;
-        //$DB->execute($sql);
-        //insert into mdl_course_sections VALUES('615', '506', '6', 'Week 6', '', '1', 'NULL', '1');
-    }
-    }
     
     for ($i = 0; $i < count($data->hide); $i++) {
         set_section_visible($course_id, $i, $data->hide[$i]^1);
+    }
+    
+        if(isset($data->delete)) {
+        
+        $numsections = count($data->name)-1;
+        foreach($data->delete as $secnum => $delete) {
+            
+        
+        $sql = "delete from mdl_course_sections WHERE course='$course_id' AND section='$secnum'";
+       // echo $sql;
+        $DB->execute($sql);
+        $numsections--;          
+        
+        //insert into mdl_course_sections VALUES('615', '506', '6', 'Week 6', '', '1', 'NULL', '1');
+    }
+    $sql = "update mdl_course set numsections='$numsections' where id='$course_id'";
+    $DB->execute($sql);
     }
     
     /*
@@ -135,6 +143,8 @@ if ($data = $modify_coursemenu_form->get_data()) {
         //insert into mdl_course_sections VALUES('615', '506', '6', 'Week 6', '', '1', 'NULL', '1');
         //select section,name FROM mdl_course_sections WHERE course="506";
     //rebuild_course_cache($course_id);
+        redirect(new moodle_url('/blocks/ucla_modify_coursemenu/modify_coursemenu.php',
+                array('course_id' => $course_id, 'topic' => $topic_num)));
 }
 
 
