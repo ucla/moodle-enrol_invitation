@@ -96,7 +96,12 @@ if ($useajax) {
     echo html_writer::script(false, 
         new moodle_url('/course/format/ucla/sections.js'));
 
-    $noeditingicons = get_user_preferences('noeditingicons', false);
+    if (!empty($USER->profile['noeditingicons'])) {
+        $noeditingicons = $USER->profile['noeditingicons'];
+    } else {
+        $noeditingicons = false;
+    }
+
     if ($noeditingicons) {
         $editingiconsjs = 'true';
     } else {
