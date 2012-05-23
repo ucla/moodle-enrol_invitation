@@ -822,7 +822,7 @@ function term_cmp_fn($term, $other) {
  */
 function is_collab_site($course) {
     global $DB;
-    return $DB->record_exists('ucla_indicator', array('courseid' => $course->id));
+    return $DB->record_exists('ucla_siteindicator', array('courseid' => $course->id));
 }
 
 /**

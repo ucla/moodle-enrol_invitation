@@ -46,7 +46,7 @@ echo $OUTPUT->box($OUTPUT->heading(get_string('plugintitle', 'tool_uclasiteindic
 echo $OUTPUT->box_start('generalbox');
 echo $OUTPUT->heading(get_string('pluginname', 'tool_uclasiteindicator'));
 
-$types = $DB->get_records('ucla_indicator_type');
+$types = $DB->get_records('ucla_siteindicator_type');
 
 if(empty($types)) {
     ucla_indicator_admin::pre_populate_sql();

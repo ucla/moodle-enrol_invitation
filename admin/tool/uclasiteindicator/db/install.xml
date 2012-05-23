@@ -4,7 +4,7 @@
     xsi:noNamespaceSchemaLocation="../../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="ucla_indicator" COMMENT="ucla_indicator table retrofitted from MySQL" NEXT="ucla_indicator_request">
+    <TABLE NAME="ucla_siteindicator" COMMENT="ucla_siteindicator table retrofitted from MySQL" NEXT="ucla_siteindicator_request">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="courseid"/>
         <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="type"/>
@@ -18,7 +18,7 @@
         <INDEX NAME="type" UNIQUE="false" FIELDS="type"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="ucla_indicator_request" COMMENT="ucla_indicator_request table retrofitted from MySQL" PREVIOUS="ucla_indicator" NEXT="ucla_indicator_type">
+    <TABLE NAME="ucla_siteindicator_request" COMMENT="ucla_siteindicator_request table retrofitted from MySQL" PREVIOUS="ucla_siteindicator" NEXT="ucla_siteindicator_type">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="requestid"/>
         <FIELD NAME="requestid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="support"/>
@@ -35,7 +35,7 @@
         <INDEX NAME="categoryid" UNIQUE="false" FIELDS="categoryid"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="ucla_indicator_type" COMMENT="ucla_indicator_type table retrofitted from MySQL" PREVIOUS="ucla_indicator_request">
+    <TABLE NAME="ucla_siteindicator_type" COMMENT="ucla_siteindicator_type table retrofitted from MySQL" PREVIOUS="ucla_siteindicator_request">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="sortorder"/>
         <FIELD NAME="sortorder" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" SEQUENCE="false" PREVIOUS="id" NEXT="fullname"/>

@@ -30,7 +30,7 @@ class site_indicator_entry {
     function __construct($courseid) {
         global $DB;
         
-        $indicator = $DB->get_record('ucla_indicator', 
+        $indicator = $DB->get_record('ucla_siteindicator', 
                 array('courseid' => $courseid), '*', MUST_EXIST);
         $this->property->courseid = $courseid;
         $this->property->type = $indicator->type;
@@ -44,12 +44,12 @@ class site_indicator_entry {
      */
     public function delete() {
         global $DB;
-        $DB->delete_records('ucla_indicator', array('id' => $this->_id));
+        $DB->delete_records('ucla_siteindicator', array('id' => $this->_id));
     }
     
     private function update() {
         global $DB;
-        $DB->update_record('ucla_indicator',
+        $DB->update_record('ucla_siteindicator',
                 array('id' => $this->_id, 'type' => $this->property->type));
     }
    
@@ -99,7 +99,7 @@ class site_indicator_entry {
     private function set_typeinfo() {
         global $DB;
 
-        $type = $DB->get_record('ucla_indicator_type', 
+        $type = $DB->get_record('ucla_siteindicator_type', 
                 array('id' => $this->property->type), '*', MUST_EXIST);
         
         $this->type_fullname = $type->fullname;
@@ -153,14 +153,14 @@ class site_indicator_entry {
     static function force_create($courseid) {
         global $DB;
         
-        $rec = $DB->get_record('ucla_indicator_type', 
+        $rec = $DB->get_record('ucla_siteindicator_type', 
                 array('shortname' => 'test'));
         
         $new = new stdClass();
         $new->courseid = $courseid;
         $new->type = $rec->id;
         
-        $DB->insert_record('ucla_indicator', $new);
+        $DB->insert_record('ucla_siteindicator', $new);
     }
 }
 
@@ -181,7 +181,7 @@ class site_indicator_request {
         $this->request = new stdClass();
         $this->entry = new stdClass();
 
-        $request = $DB->get_record('ucla_indicator_request', 
+        $request = $DB->get_record('ucla_siteindicator_request', 
                 array('requestid' => $requestid), '*', MUST_EXIST);
 
         $this->_id = $request->id;                           // Indicator request ID
@@ -191,7 +191,7 @@ class site_indicator_request {
         $this->request->requestid = $requestid;             // Request ID of course_request
         $this->request->requester = $request->requester;    // User who requested the course
     }
-    
+ 
     /**
      * Create a site indicator entry from a request.  This also deletes
      * the request.
@@ -199,15 +199,14 @@ class site_indicator_request {
     function create_indicator_entry() {
         global $DB;
         
-        $DB->insert_record('ucla_indicator', $this->entry);
+        $DB->insert_record('ucla_siteindicator', $this->entry);
         
         $this->set_default_role();
         $this->delete();
     }
     
     /**
-     * This sets the default role for the course requestor.  This role is based 
-     * on the site's role assignments.
+     * Set default role for user who requested the course.
      * 
      * @todo assign a dummy 'course creator' role
      * @return type 
@@ -251,7 +250,7 @@ class site_indicator_request {
        
         // Attach the pending course links
         $req_course->action = $CFG->wwwroot . '/course/pending.php?request=' 
-                . $this->_id;
+                . $this->request->requestid;
         
         // Prepare JIRA params
         $title = get_string('jira_title', 'tool_uclasiteindicator', $req_course);
@@ -270,7 +269,7 @@ class site_indicator_request {
             'description' => $message,
         );
         
-        echo "support: " . $support . "<br/>";
+        echo "jira support user: " . $support . "<br/>";
         echo "<pre>";
         print_r($title);
         echo "</pre>";
@@ -288,7 +287,7 @@ class site_indicator_request {
     public function delete() {
         global $DB;
         
-        $DB->delete_records('ucla_indicator_request', 
+        $DB->delete_records('ucla_siteindicator_request', 
                 array('id' => $this->_id));
     }
         
@@ -300,7 +299,7 @@ class site_indicator_request {
     static function create($newindicator) {
         global $DB;
         
-        $DB->insert_record('ucla_indicator_request', $newindicator);
+        $DB->insert_record('ucla_siteindicator_request', $newindicator);
         
         // Get the request and generate jira ticket
         $request = new site_indicator_request($newindicator->requestid);
@@ -346,16 +345,16 @@ class site_indicator_request {
             }
             $category_string .= $category->name;
         } else {
-            $category_string = "Other: ";
+            $category_string = "Other -- specified in 'reason message'";
         }
     }
     
     private function get_type_str() {
-       
-        $type = ucla_site_indicator::get_type($this->entry->type);
-        $str = $type->fullname;
+        global $DB;
+        $rec = $DB->get_record('ucla_siteindicator_type', 
+                array('id' => $this->entry->type));
         
-        return $str;
+        return $rec->fullname;
     }
     
     private function get_user_str($id) {
@@ -508,7 +507,7 @@ class ucla_site_indicator {
         global $DB;
         
         if(is_numeric($type) || is_int($type)) {
-            $rec = $DB->get_record('ucla_indicator_type', array('id' => $type));
+            $rec = $DB->get_record('ucla_siteindicator_type', array('id' => $type));
             $type = $rec->shortname;
         }
         return $type;
@@ -690,7 +689,7 @@ class ucla_site_indicator {
     static function get_indicator_types() {
         global $DB;
 
-        $types = $DB->get_records('ucla_indicator_type', 
+        $types = $DB->get_records('ucla_siteindicator_type', 
                 array('visible' => 1), 'sortorder');
         
         return $types;
@@ -709,7 +708,7 @@ class ucla_indicator_admin {
         global $DB;
         
         // Populate types
-        $query1 = "INSERT INTO {ucla_indicator_type} (id, sortorder, fullname, shortname, description, visible) VALUES
+        $query1 = "INSERT INTO {ucla_siteindicator_type} (id, sortorder, fullname, shortname, description, visible) VALUES
                 (1, 0, '".get_string('site_instruction', 'tool_uclasiteindicator')."', 'instruction', '".get_string('site_instruction_desc', 'tool_uclasiteindicator')."', 1),
                 (2, 0, '".get_string('site_non_instruction', 'tool_uclasiteindicator')."', 'non_instruction', '".get_string('site_non_instruction_desc', 'tool_uclasiteindicator')."', 1),
                 (3, 0, '".get_string('site_research', 'tool_uclasiteindicator')."', 'research', '".get_string('site_research_desc', 'tool_uclasiteindicator')."', 1),
