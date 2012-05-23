@@ -8,7 +8,7 @@
 * See CCLE-2314 for details.
 **/
 
-require_once('lib.php');
+require_once(dirname(__FILE__).'lib.php');
 
 // Check to see if config variables are initialized
 if (!isset($CFG->bruincast_data)) {
@@ -46,6 +46,7 @@ function update_bruincast_db(){
 
     $insert_count = 0;
     $line = 0;
+    $index = false;
    
     for ($line = 0; $line < count($data); $line++) {
    
@@ -54,8 +55,6 @@ function update_bruincast_db(){
         foreach ($data[$line] as $field => $fieldvalue){
             $row->$field = $fieldvalue;
         }
-    
-        $index = false;
 
         try {
             $index = $DB->insert_record('ucla_bruincast', $row);

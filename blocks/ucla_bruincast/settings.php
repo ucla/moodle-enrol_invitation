@@ -20,14 +20,14 @@ if($ADMIN->fulltree) {
                 get_string('headerbruincasturl','block_ucla_bruincast'),
                 get_string('descbruincasturl','block_ucla_bruincast'),
                 'http://www.oid.ucla.edu/help/info/bcastlinks/',
-                PARAM_TEXT 
+                PARAM_URL 
             ));
     $settings->add(new admin_setting_configtext(
                 'bruincast_errornotify_email',
                 get_string('headererrornotifyemail','block_ucla_bruincast'),
                 get_string('descerrornotifyemail','block_ucla_bruincast'),
                 '',
-                PARAM_TEXT
+                PARAM_EMAIL
             ));
 
 }

@@ -10,14 +10,11 @@
         <FIELD NAME="term" TYPE="char" LENGTH="3" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="srs"/>
         <FIELD NAME="srs" TYPE="char" LENGTH="9" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="term" NEXT="restricted"/>
         <FIELD NAME="restricted" TYPE="char" LENGTH="12" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="srs" NEXT="bruincast_url"/>
-        <FIELD NAME="bruincast_url" TYPE="char" LENGTH="254" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="restricted"/>
+        <FIELD NAME="bruincast_url" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" ENUM="false" PREVIOUS="restricted"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
-      <INDEXES>
-        <INDEX NAME="termsrsindex" UNIQUE="false" FIELDS="term, srs"/>
-      </INDEXES>
     </TABLE>
   </TABLES>
 </XMLDB>

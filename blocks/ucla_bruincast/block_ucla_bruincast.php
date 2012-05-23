@@ -105,8 +105,7 @@ class block_ucla_bruincast extends block_base {
                                 // check if already a link
                                 foreach($previouslinks as $link)
                                 {
-                                    if($link == $bcnodes->bruincast_url)
-                                    {
+                                    if($link == $bcnodes->bruincast_url){
                                         $usedlink = true;
                                         break;
                                     }
