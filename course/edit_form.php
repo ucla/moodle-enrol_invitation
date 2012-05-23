@@ -41,6 +41,7 @@ class course_edit_form extends moodleform {
         // START UCLAMOD CCLE-2389
         // Site indicator info display
         if(!empty($course->id)) {
+            
             $mform->addElement('header','uclasiteindicator', get_string('pluginname', 'tool_uclasiteindicator'));
             $indicator = site_indicator_entry::load($course->id);
             
@@ -56,10 +57,6 @@ class course_edit_form extends moodleform {
                 
                 // Change the site type
                 if(has_capability('tool/uclasiteindicator:edit', $systemcontext)) {
-//                    $typelist = array('Do Not Change');
-//
-//                    $typelist = array_merge($typelist, ucla_site_indicator::get_indicator_types(true));
-//                    $mform->addElement('select', 'indicator_change', 'Change type', $typelist);
                     $types = ucla_site_indicator::get_indicator_types();
                     $radioarray = array();
                     foreach($types as $type) {
@@ -74,6 +71,7 @@ class course_edit_form extends moodleform {
                 }
             
             } else {
+                // Check if this is a registrar site
                 if(ucla_map_courseid_to_termsrses($this->course->id)) {
                     $mform->addElement('static', 'indicator', 
                             get_string('type', 'tool_uclasiteindicator'), 
@@ -82,10 +80,14 @@ class course_edit_form extends moodleform {
                     $mform->addElement('static', 'indicator', 
                             get_string('type', 'tool_uclasiteindicator'), 
                             get_string('notype', 'tool_uclasiteindicator'));
+                    // Allow making a collaboration site
+                    $mform->addElement('selectyesno', 'indicator_create', 
+                            get_string('sitecreate', 'tool_uclasiteindicator'));
                 }
             }
 
         }
+        // END UCLA MOD CCLE-2389
 /// form definition with new course defaults
 //--------------------------------------------------------------------------------
         $mform->addElement('header','general', get_string('general', 'form'));

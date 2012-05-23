@@ -15,6 +15,7 @@ $string['roles'] = 'Roles';
 $string['site'] = 'site';
 $string['del_msg'] = 'Site indicator entry';
 $string['change'] = 'Change type';
+$string['sitecreate'] = 'Create site indicator';
 
 // Site role groups
 $string['r_project'] = 'Project';
@@ -33,7 +34,7 @@ $string['site_test'] = 'Test';
 $string['site_test_desc'] = 'A temporary test site.';
 $string['site_registrar'] = 'Instruction (listed at Registrar)';
 $string['site_registrar_desc'] = 'An instruction site with an SRS number that is listed at the registrar';
-$string['notype'] = 'This site has no association';
+$string['notype'] = 'This site has no association.';
 
 // Request
 $string['req_desc'] = 'Type of site you are requesting';
@@ -76,7 +77,5 @@ $string['reject_label'] = 'You can reject a course without sending a message.  D
 $string['course_rejected'] = 'Course has been rejected.';
 
 // Acess descriptions
-$string['uclasiteindicator:edit'] = 'This permission allows you to view and edit 
-    site indicator information.';
-$string['uclasiteindicator:view'] = 'This permission allows you to view site indicator 
-    information.';
+$string['uclasiteindicator:edit'] = 'Edit site indicator information.';
+$string['uclasiteindicator:view'] = 'View site indicator information.';

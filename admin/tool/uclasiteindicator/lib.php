@@ -144,6 +144,24 @@ class site_indicator_entry {
             return null;
         }
     }
+    
+    /**
+     * Creates a site indicator and assigns it a 'test' type
+     * 
+     * @param type $courseid 
+     */
+    static function force_create($courseid) {
+        global $DB;
+        
+        $rec = $DB->get_record('ucla_indicator_type', 
+                array('shortname' => 'test'));
+        
+        $new = new stdClass();
+        $new->courseid = $courseid;
+        $new->type = $rec->id;
+        
+        $DB->insert_record('ucla_indicator', $new);
+    }
 }
 
 /**
@@ -177,8 +195,6 @@ class site_indicator_request {
     /**
      * Create a site indicator entry from a request.  This also deletes
      * the request.
-     * 
-     * @global type $DB 
      */
     function create_indicator_entry() {
         global $DB;
@@ -219,8 +235,6 @@ class site_indicator_request {
     
     /**
      * Generates a JIRA ticket and assigns it to a support contact
-     * 
-     * @todo finish this function
      */
     public function generate_jira_ticket() {
         global $DB , $CFG;
@@ -645,13 +659,15 @@ class ucla_site_indicator {
      * @param int $requestid of existing indicator request
      * @return int category ID specified in the indicator request
      */
-    static function create($courseid, $requestid) {
-                
-        if($newindicator = site_indicator_request::load($requestid)) {
-            $newindicator->entry->courseid = $courseid;
+    static function create($courseid, $requestid = 0) {
+
+        if($request = site_indicator_request::load($requestid)) {
+            $request->entry->courseid = $courseid;
 
             // Create record for course
-            $newindicator->create_indicator_entry();
+            $request->create_indicator_entry();
+        } else {
+            site_indicator_entry::force_create($courseid);
         }
     }
     
