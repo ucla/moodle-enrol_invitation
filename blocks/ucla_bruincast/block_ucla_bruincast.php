@@ -100,6 +100,19 @@ class block_ucla_bruincast extends block_base {
                             }
 
                         } else { // if not restricted, no need for restriction checking, just generate nodes
+                                $usedlink = false;
+
+                                // check if already a link
+                                foreach($previouslinks as $link)
+                                {
+                                    if($link == $bcnodes->bruincast_url)
+                                    {
+                                        $usedlink = true;
+                                        break;
+                                    }
+                                }
+
+
                                 if($usedlink || sizeof($previouslinks) == 0)
                                 {
                                 
