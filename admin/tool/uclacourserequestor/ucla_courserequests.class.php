@@ -178,8 +178,7 @@ class ucla_courserequests {
                 continue;
             }
 
-            if ($changeset['action'] == UCLA_COURSE_BUILT 
-                    || $changeset['action'] == UCLA_COURSE_FAILED) {
+            if ($changeset['action'] == UCLA_COURSE_BUILT) {
                 // You cannot change after you've already built a request.
                 continue;
             }

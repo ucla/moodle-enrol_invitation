@@ -867,8 +867,7 @@ function prep_request_entry($requestinfo) {
     // requestoremail or 'contact'
     $f = 'requestoremail';
     $reval = '';
-    if ($actionval == UCLA_COURSE_FAILED 
-            || $actionval== UCLA_COURSE_BUILT) {
+    if ($actionval== UCLA_COURSE_BUILT) {
         // Append '' to prevent a checkbox from appearing
         $reval = $requestinfo[$f] . '';
         unset($requestinfo[$f]);
