@@ -170,7 +170,7 @@ class ucla_courserequests {
                 $this->setindex[$setid] = apply_to_set($this->setindex[$setid],
                     $d, $appval);
 
-                if ($deletemode) {
+                if ($deletemode && $appval == 1) {
                     $this->deletes[$setid] = true;
                 }
 
@@ -178,7 +178,8 @@ class ucla_courserequests {
                 continue;
             }
 
-            if ($changeset['action'] == UCLA_COURSE_BUILT) {
+            if ($changeset['action'] == UCLA_COURSE_BUILT 
+                    || $changeset['action'] == UCLA_COURSE_FAILED) {
                 // You cannot change after you've already built a request.
                 continue;
             }

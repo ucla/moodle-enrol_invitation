@@ -716,13 +716,14 @@ function request_ignored($request) {
     $b = 'build';
     $d = 'delete';
 
+    $ignored = false;
     if (isset($request[$b])) {
-        return ($request[$b] == 0);
+        $ignored = ($request[$b] == 0);
     } else if (isset($request[$d])) {
-        return ($request[$d] != 0);
+        $ignored = ($request[$d] != 0);
     }
 
-    return false;
+    return $ignored;
 }
 
 function request_get_editables() {
@@ -750,8 +751,6 @@ function prep_request_entry($requestinfo) {
 
     // Will be used to identify changes for sets
     $key = $requestinfo['setid'];
-
-    $ignored = request_ignored($requestinfo);
 
     // Add build/delete button
     $actiondefault = null;
