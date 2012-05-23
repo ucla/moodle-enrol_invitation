@@ -485,3 +485,20 @@ html, body {background-color:#FFF; height:100%;}
     height:150px;    
     width: 275px;   /* only applicable for intro forms that don't use TinyMCE */
 }
+
+.text-icons .editing .section .activity .mod-indent .commands .editing_delete {
+    float: none;
+}
+.text-icons .editing .section .activity .mod-indent .commands a {
+    border: none;
+    margin-right: inherit;
+}
+.text-icons .editing .section .activity .mod-indent .commands {
+    width: inherit;
+    float: none;
+}
+
+.topics .text-icons .section li.activity {
+    max-width: 100%;
+}
+

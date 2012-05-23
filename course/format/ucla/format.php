@@ -372,6 +372,10 @@ while ($section <= $course->numsections) {
             $sectionstyle = '';
         }
 
+        if (isset($noeditingicons) && $noeditingicons) {
+            $sectionstyle .= ' text-icons';
+        } 
+
         $section_id = 'section-'.$section;
         $class_text = 'section main clearfix '.$sectionstyle;
 
