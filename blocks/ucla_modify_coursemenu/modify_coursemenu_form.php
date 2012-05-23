@@ -19,18 +19,34 @@ class ucla_modify_coursemenu_form extends moodleform {
         $mform->addElement('hidden', 'topic', $topic);   
        // echo json_encode($sections);
         
-        $mform->addElement('html', '&nbsp&nbspTitle &nbsp&nbsp&nbsp&nbsp&nbsp');
-        
-        $mform->addElement('html', '&nbsp&nbsp&nbspHide&nbsp&nbsp');
         
         
-        $mform->addElement('html', '&nbsp&nbsp&nbspDelete&nbsp&nbsp&nbsp');
-        
-        
-        $mform->addElement('html', '&nbsp&nbspLanding Page');
         
       
         
+        $mform->addElement('html', '<div class="headercontainer">');
+         $mform->addElement('html', '<div id="title">Title');
+        
+        $mform->addElement('html', '</div>');
+           $mform->addElement('html', '<div id="hide">Hide');
+        
+        $mform->addElement('html', '</div>');
+        
+           $mform->addElement('html', '<div id="delete">Delete');
+        
+        $mform->addElement('html', '</div>');
+        
+           $mform->addElement('html', '<div id="landing">Landing Page');
+        
+        $mform->addElement('html', '</div>');
+        
+        $mform->addElement('html', '</div>');
+        
+        $mform->addElement('html', '<br>');
+        
+        
+      
+        //$mform->addElement('html', '<table>');
         foreach ($sections as $section) {
        
       
@@ -38,22 +54,23 @@ class ucla_modify_coursemenu_form extends moodleform {
       
         //echo $section->section;
          //$mform->addElement('text', 'email', '', 'maxlength="100" size="25 value="HAHA" ');
-      
+ 
         
         $buttonarray=array();
        
         //$section->visible = 0;
        
-        $test = $section->section;
         
+      
+   
        
-        $buttonarray[] =& $mform->createElement('text', "name[$section->id]", "", "value='$section->name'");
+        $buttonarray[] =& $mform->createElement('text', "name[$section->id]", "", "value='$section->name'; class='namesection'");
        
-        $buttonarray[] =& $mform->createElement('advcheckbox', "hide[{$section->section}]", '',  '', array('group' => 1), array(0,1));
+        $buttonarray[] =& $mform->createElement('advcheckbox', "hide[{$section->section}]", '',  '', array('group' => 1, 'class' => 'hide'), array(0,1));
        
-        $buttonarray[] =& $mform->createElement('checkbox', "delete[$section->section]", '', '', '');
+        $buttonarray[] =& $mform->createElement('checkbox', "delete[$section->section]", '', '', "class='delete'");
         
-        $buttonarray[] =& $mform->createElement('radio', 'landing', '', '', "$section->id", '');
+        $buttonarray[] =& $mform->createElement('radio', 'landing', '', '', "$section->id", "class='landing'");
         
      
         $mform->addGroup($buttonarray, 'buttonar', '', array(' '), false);
@@ -61,11 +78,10 @@ class ucla_modify_coursemenu_form extends moodleform {
         $mform->setDefault('landing', 613);
         $mform->setDefault("hide[$section->section]", $section->visible^1);
         
-        
-       
+  
         }
         
-        $mform->addElement('html', '</table>');
+    
         
         $this->add_action_buttons();
   

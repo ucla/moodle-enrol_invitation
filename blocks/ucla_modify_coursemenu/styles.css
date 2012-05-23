@@ -1,4 +1,50 @@
-body {
+.namesection {
+    margin : 10px 10px 10px 0px;
+}
+
+.landing {
+    margin : 10px 10px 10px 40px;
+}
+
+.delete {
+    margin : 10px 10px 10px 40px;
+}
+
+.hide {
+    margin:10px;
+}
+
+div.headercontainer {
     
-    background-color:green;
+    height:20px;
+   
+    filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr=#B2C7C3C5, endColorstr=#FFFFFF); /* for IE */    
+    background-image: -webkit-linear-gradient(top, rgba(250,225,60,0.7), white); /* for webkit browsers */
+    background-image: -moz-linear-gradient(top, rgba(250,225,60,0.7), white); /* for firefox 3.6+ */
+    text-align: center;
+    font-weight: bold;
+}
+
+#title {
+    padding-left: 7em;
+    float:left;
+
+}
+
+#hide {
+    padding-left: 7em;
+    float:left;
+   
+}
+
+#delete {
+    padding-left: 2em;
+    float:left;
+    
+}
+
+#landing {
+    padding-left: 0.5em;
+    float:left;
+    
 }
