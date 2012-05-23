@@ -189,3 +189,12 @@ M.format_ucla.resource_class.toggle_groupmode = function() {
 
 M.format_ucla.override_moodle_fn(resource_class, 'toggle_groupmode',
     M.format_ucla.resource_class.toggle_groupmode);
+
+M.format_ucla.resource_class.toggle_publicprivate = function() {
+    resource_class.moodle.toggle_publicprivate.apply(this, arguments);
+
+    this.publicprivateButton.childNodes[0].data = this.publicprivateButton.title;
+}
+
+M.format_ucla.override_moodle_fn(resource_class, 'toggle_publicprivate',
+    M.format_ucla.resource_class.toggle_publicprivate);
