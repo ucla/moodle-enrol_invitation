@@ -8,7 +8,7 @@
 * See CCLE-2314 for details.
 **/
 
-require_once(dirname(__FILE__).'lib.php');
+require_once(dirname(__FILE__).'/lib.php');
 
 // Check to see if config variables are initialized
 if (!isset($CFG->bruincast_data)) {
