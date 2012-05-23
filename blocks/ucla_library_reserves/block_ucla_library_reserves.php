@@ -45,6 +45,8 @@ class block_ucla_library_reserves extends block_base {
        
         $nodes = array();
         $lrnodes = array();
+        $previouslinks = array();
+        $atleastone = false; 
 
         if (!empty($coursefound)) {
 
@@ -84,10 +86,28 @@ class block_ucla_library_reserves extends block_base {
                         $coursesectnum = substr($COURSE->shortname,strrpos($COURSE->shortname, "-") + 1);
 
                         if (!empty($lrnode->url) && ($sectnum == $coursesectnum || $foundviasrs)) {
+                            $usedlink = false;
+
+                            //check if already a link
+                            foreach($previouslinks as $link){
+                                if($link == $lrnode->url){
+                                    $usedlink = true;
+                                    break;
+                                }
+                            }
                             
-                            // Must hardcode the naming string since this is a static function
-                            $nodes[] = navigation_node::create('Library Reserves '.$reginfo->subj_area.$reginfo->coursenum, new moodle_url($lrnode->url)); 
-                            break;
+                            if($usedlink || sizeof($previouslinks) == 0){
+                                if(!$atleastone)
+                                {
+                                    $nodes[] = navigation_node::create('Library Reserves', new moodle_url($lrnode->url));
+                                }
+
+                                $atleastone = true;
+                            } else {
+                                // Must hardcode the naming string since this is a static function
+                                $nodes[] = navigation_node::create('Library Reserves '.$reginfo->subj_area.$reginfo->coursenum, new moodle_url($lrnode->url));
+                            }
+                                $previouslinks[] = $lrnode->url; 
                         }
                     }
                 }
