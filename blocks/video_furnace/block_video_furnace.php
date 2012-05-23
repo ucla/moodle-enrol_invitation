@@ -27,6 +27,14 @@ class block_video_furnace extends block_base {
     }
     
     public function get_content(){
+        if ($this->content !== null) {
+            return $this->content;
+        }
+
+        $this->content = new stdClass;
+
+        return $this->content;        
+        
         if (!isset($this->course)) {
             global $COURSE;
             $this->course = $COURSE;
@@ -35,17 +43,44 @@ class block_video_furnace extends block_base {
         return self::get_action_link($this->course);
     }
     
+    public function get_navigation_nodes($course) {
+        
+        $courseid = $course->id; // course id from the hook function
+        $coursefound = ucla_map_courseid_to_termsrses($courseid); 
+       
+        $nodes = array();
+
+        if (!empty($coursefound)) {                            
+            // Must hardcode the naming string since this is a static function
+            $nodes[] = navigation_node::create('Video Furnace', self::get_action_link($courseid)); 
+        }
+        return $nodes;
+    }
+    
     /**
      *  This will create a link to the control panel.
      **/
-    static function get_action_link($course) {
+    static function get_action_link($courseid) {
         global $CFG;
 
-        $courseid = $course->id;
-
-        return new moodle_url($CFG->wwwroot . '/blocks/video_furnace/'
-            . 'view.php', array('course_id' => $courseid));
+        return new moodle_url($CFG->wwwroot . '/blocks/video_furnace/view.php', array('course_id' => $courseid));
     }
+
+    /**
+     *  Returns the applicable places that this block can be added.
+     *  This block really cannot be added anywhere, so we just made a place
+     *  up (hacky). If we do not do this, we will get this
+     *  plugin_devective_exception.
+     **/
+    function applicable_formats() {
+        return array(
+            'site-index' => false,
+            'course-view' => false,
+            'my' => false,
+            'blocks-ucla_control_panel' => false,
+            'not-really-applicable' => true
+        );
+    }    
     
 }
 

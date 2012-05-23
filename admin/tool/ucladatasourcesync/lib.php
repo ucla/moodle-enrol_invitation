@@ -40,6 +40,35 @@ function get_csv_data($datasource_url) {
 }
 
 /**
+ * Returns an array of raw TSV data from the TSV file at datasource_url.
+ * @param $datasource_url The URL of the TSV data to attempt to retrieve.
+ **/
+function get_tsv_data($datasource_url) {
+
+    $fp = fopen($datasource_url, 'r');
+
+    $lines = "";
+
+    while (!feof($fp)) {
+        $lines .= fgets($fp); //Use tabs as a delimiter instead of commas.
+    }
+    //Workaround since the original file has carriage returns where newlines 
+    //should be.
+    $lines = explode(chr(13), $lines);
+    //Change lines from an array of lines to an array of arrays of CSV elements.
+    for($i = 1; $i < sizeof($lines); $i++){
+        $lines[$i] = str_getcsv($lines[$i], chr(9)); 
+    }
+
+    if (empty($lines)) {
+        echo "\n... ERROR: Could not open $datasource_url!\n";
+        exit(5);
+    }
+
+    return $lines;
+}
+
+/**
  * Returns an array of cleaned and parsed CSV data from the unsafe and/or unclean input array of data.
  * @param $data The array of unsafe CSV data.
  * @param $table_name The moodle DB table name against which to validate the field labels of the CSV data.

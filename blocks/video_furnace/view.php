@@ -1,11 +1,26 @@
 <?php
 
-global $CFG, $USER;
+require_once(dirname(__FILE__).'/../../config.php');
+global $CFG, $USER, $DB;
+
+require_once($CFG->dirroot.'/lib/moodlelib.php');
+require_once($CFG->dirroot.'/lib/accesslib.php');
+require_once($CFG->dirroot.'/local/ucla/lib.php');
+$course_id = required_param('course_id', PARAM_INT); // course ID
+
+if (! $course = $DB->get_record('course', array('id' => $course_id))) {
+    print_error('coursemisconf');
+}       
+
 require_login($course);
 
+$context = get_context_instance(CONTEXT_COURSE, $course->id, MUST_EXIST);
 // Are we allowed to display this page?
-if (is_user_enrolled_in_course($course)) {
+if (is_enrolled($context)) {
+    echo html_writer::start_tag('div', array('id' => 'vidfurn-wrapper'));
+    
     echo html_writer::tag('h1','Video Furnace',array('class' => 'classHeader'));
+    
     echo html_writer::tag('span',
         html_writer::tag('font',
                         'Please note that this media is intended for on-campus use only. Off-campus use is possible through use of the ' 
@@ -19,27 +34,24 @@ if (is_user_enrolled_in_course($course)) {
             .'.'
         ,array('size' => '1'))    
     ,array('id' => 'courseHdrSecondary'));
- 
 
     settype($term, 'string');
     settype($srs, 'string');
 
-    list($term, $srs) = explode('-', $course->idnumber);
-
-    $info = get_course_info($course->id);
+    $info = ucla_map_courseid_to_termsrses($course->id);
     foreach ($info as $each_course) {
-        $term = $each_course['term'];
-        $srs = $each_course['srs'];
+        $term = $each_course->term;
+        $srs = $each_course->srs;
 
 
         //Start UCLA SSC MODIFICATION 601
         echo html_writer::start_tag('div', array('id'=>'vidFurnaceContent'));
         if (count($info) > 1)  {
-                echo html_write::tag('h2', $each_course['class_num'].": ".$each_course['fullname']);
+                echo html_writer::tag('h2', $each_course->class_num.": ".$each_course->fullname);
         }
         //End UCLA SSC MODIFICATION 601
 
-        $videos = get_records_select('ucla_vidfurn', '`term` = "'. $term .'" AND `srs` = "'. $srs .'"');
+        $videos = $DB->get_records_select('ucla_vidfurn', '`term` = "'. $term .'" AND `srs` = "'. $srs .'"');
 
         // $cur_date = time() - strtotime('-3 week');  // testing not yet available
         // $cur_date = time() + strtotime('40 week');  // testing no longer available
@@ -75,7 +87,7 @@ if (is_user_enrolled_in_course($course)) {
             if (empty($cur_vids)) {
                 echo 'There are no videos currently available.';
             }
-        echo html_writer::end_tag('div');
+        echo html_writer::end_tag('div'); //array('class' => 'vidFurnaceLinks')
         
         if (!empty($future_vids)) {
             echo html_writer::tag('h3', 'Future Videos');
@@ -86,7 +98,7 @@ if (is_user_enrolled_in_course($course)) {
                         .html_writer::empty_tag('br')
                         .'&nbsp;&nbsp;&nbsp;&nbsp;This video will be available on '.date("Y-m-d",$video->start_date));
             }
-            echo html_writer::end_tag('div');
+            echo html_writer::end_tag('div'); //array('class'=>'vidFurnaceFuture')
         }
         if (!empty($past_vids)) {
             echo html_writer::tag('h3','Past Videos');
@@ -97,10 +109,11 @@ if (is_user_enrolled_in_course($course)) {
                     .html_writer::empty_tag('br')
                     .'&nbsp;&nbsp;&nbsp;&nbsp;This video no longer available as of '. date("Y-m-d",$video->stop_date));
             }
-            echo html_writer::end_tag('div');
+            echo html_writer::end_tag('div'); //array('class'=>'vidFurnacePast')
         }
-        echo html_writer::end_tag('div');
+        echo html_writer::end_tag('div'); //array('id'=>'vidFurnaceContent')      
     }
+    echo html_writer::end_tag('div'); //array('id'=>'vidfurn-wrapper')   
 }
 else {
     
