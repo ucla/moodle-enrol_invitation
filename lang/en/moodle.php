@@ -712,7 +712,10 @@ $string['fulllistofcourses'] = 'All courses';
 $string['fullname'] = 'Full name'; // @deprecated - use fullnamecourse or fullnameuser or some own context specific string
 $string['fullnamecourse'] = 'Course full name';
 $string['fullnamecourse_help'] = 'The full name of the course is displayed at the top of each page in the course and in the list of courses.';
-$string['fullnamedisplay'] = '{$a->firstname} {$a->lastname}';
+// BEGIN UCLA MOD: CCLE-2550 - Lastname, Firstname sorting
+//$string['fullnamedisplay'] = '{$a->firstname} {$a->lastname}';
+$string['fullnamedisplay'] = '{$a->lastname}, {$a->firstname}';
+// END UCLA MOD: CCLE-2550
 $string['fullnameuser'] = 'User full name';
 $string['fullprofile'] = 'Full profile';
 $string['fullsitename'] = 'Full site name';

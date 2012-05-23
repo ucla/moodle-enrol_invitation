@@ -66,6 +66,15 @@ class restore_course_task extends restore_task {
             $this->add_step(new restore_course_structure_step('course_info', 'course.xml'));
         }
 
+        // START UCLA MOD: CCLE-2902 - Enable "legacy course files" repository for restored M19 courses on M2
+        // Patch from https://github.com/merrill-oakland/moodle/compare/master...MDL-32598
+
+        // Executed conditionally if restoring to new course or if legacy_files setting is enabled
+        if ($this->get_target() == backup::TARGET_NEW_COURSE || $this->get_setting_value('legacy_files') == true) {
+            $this->add_step(new restore_course_legacy_files_step('legacy_files', 'course.xml'));
+        }
+        // END UCLA MOD: CCLE-2902
+        
         // Restore course role assignments and overrides (internally will observe the role_assignments setting)
         $this->add_step(new restore_ras_and_caps_structure_step('course_ras_and_caps', 'roles.xml'));
 
@@ -82,6 +91,11 @@ class restore_course_task extends restore_task {
         // Restore course comments (conditionally)
         if ($this->get_setting_value('comments')) {
             $this->add_step(new restore_comments_structure_step('course_comments', 'comments.xml'));
+        }
+
+        // Calendar events (conditionally)
+        if ($this->get_setting_value('calendarevents')) {
+            $this->add_step(new restore_calendarevents_structure_step('course_calendar', 'calendar.xml'));
         }
 
         // At the end, mark it as built
@@ -163,6 +177,23 @@ class restore_course_task extends restore_task {
             $overwrite->set_visibility(backup_setting::HIDDEN);
         }
         $this->add_setting($overwrite);
+
+        // START UCLA MOD: CCLE-2902 - Enable "legacy course files" repository for restored M19 courses on M2
+        // Patch from https://github.com/merrill-oakland/moodle/compare/master...MDL-32598
+
+        // Define legacy_files to decide if legacy files will be restored
+        $legacyfiles = new restore_course_legacy_files_setting('legacy_files', base_setting::IS_BOOLEAN, false);
+        $legacyfiles->set_ui(new backup_setting_ui_select($legacyfiles, $legacyfiles->get_name(), array(1=>get_string('yes'), 0=>get_string('no'))));
+        $legacyfiles->get_ui()->set_label(get_string('setting_legacyfiles', 'backup'));
+        
+        // set default to true
+        // original patch set it to true only when restore as new course        
+        //if ($this->get_target() == backup::TARGET_NEW_COURSE) {
+        //    $legacyfiles->set_value(true);
+        //}                
+        $legacyfiles->set_value(true);
+        $this->add_setting($legacyfiles);
+	// END UCLA MOD: CCLE-2902
 
     }
 }

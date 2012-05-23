@@ -39,6 +39,9 @@
 
     $context = get_context_instance(CONTEXT_MODULE, $cm->id);
     $PAGE->set_context($context);
+    //BEGIN UCLA MOD: CCLE-2950 - Theme header disappears when trying a chat
+    $PAGE->set_heading($course->fullname);
+    //END UCLA MOD: CCLE-2950    
 
     require_login($course->id, false, $cm);
 

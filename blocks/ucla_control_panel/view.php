@@ -116,6 +116,9 @@ foreach ($elements as $view => $section_contents) {
             }
         }
 
+        // start container for tags
+        echo html_writer::start_tag('div', array('class' => $tags));
+        
         echo $OUTPUT->heading($viewstring, 2, 'main copan-title');
   
         if ($tags == 'ucla_cp_mod_common') {
@@ -134,9 +137,11 @@ foreach ($elements as $view => $section_contents) {
                 echo $altrend::render_cp_items($modules);
             } else {
                  echo ucla_cp_renderer::control_panel_contents($modules, true);
-            }
-    
+            }   
         }
+        
+        // end container for tags
+        echo html_writer::end_tag('div');
     }
 
 }

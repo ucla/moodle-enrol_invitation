@@ -1,0 +1,31 @@
+.configmanagement .redfont {
+    color: red;
+}
+
+.configmanagement div {
+    display: block;
+}
+
+.configmanagement label {
+    cursor: default;
+}
+
+.configmanagement fieldset {
+    color: black;
+}
+
+.configmanagement .defaultsnext {
+    margin-right: 0.5em;
+    display: inline;
+}
+
+.configmanagement .form-label {
+    display: block;
+    float: left;
+    width: 12.5em;
+    text-align: right;
+}
+
+.configmanagement .configsaveinfo {
+    text-align: left;
+}

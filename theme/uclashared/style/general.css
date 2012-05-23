@@ -9,6 +9,84 @@ html, body {background-color:#FFF; height:100%;}
 #page {height:100%;background-color:transparent;margin:0 auto;}
 #page #page-content {background-color:#FFF; height:auto;}
 
+/** Front page display **/
+.introbanner {
+    height: 163px;
+    width: 100%;
+    -moz-box-shadow:    inset 0 0 5px #000000;
+    -webkit-box-shadow: inset 0 0 5px #000000;
+    box-shadow:         inset 0 0 5px #000000;
+    background: url([[pix:theme|banner]]) no-repeat black;
+}
+
+/** Front page ribon boxes **/
+.ribbon,
+.ribbon * {
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+}
+.ribbon {
+    font: normal 12px/1.5 "Lucida Grande", arial, sans-serif;
+    width: 300px;
+    margin: 0px 25px 10px 25px;
+    padding: 0 10px 4px;
+    position: relative;
+    color: #444;
+    background: #F9F7F8;
+    border: 1px solid #d2d2d2;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    -webkit-box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    -moz-box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    float:left;
+}
+.ribbon h3 {
+    font: bold 14px/1.3 "Lucida Grande", arial, sans-serif;
+    display: block;
+    height: 30px;
+    width: 310px;
+    margin: 0;
+    padding: 5px 10px;
+    position: relative;
+    left: -16px;
+    top: 8px;
+    color: #fff;
+    text-shadow: 0 1px 1px #111;
+    border-top: 1px solid #4F5F81;
+    border-bottom: 1px solid #4F5F81;
+    background: #333;
+    background: -webkit-gradient(linear, 0 0, 0 100%, from(#64728E), to(#4F5F80));
+    background: -webkit-linear-gradient(top, #64728E 0%, #4F5F80 100%);
+    background: -moz-linear-gradient(top, #64728E 0%, #4F5F80 100%);
+    background: -ms-linear-gradient(top, #64728E 0%, #4F5F80 100%);
+    background: -o-linear-gradient(top, #64728E 0%, #4F5F80 100%);
+    background: linear-gradient(top, #64728E 0%, #4F5F80 100%);
+
+    -webkit-border-radius: 2px 2px 0 0;
+    -moz-border-radius: 2px 2px 0 0;
+    border-radius: 2px 2px 0 0;
+    -webkit-box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    -moz-box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+.ribbon h3::before,
+.ribbon h3::after {
+    content: '';
+    display: block;
+    width: 0;
+    height: 0;
+    position: absolute;
+    bottom: -11px;
+    z-index: -10;
+    border: 5px solid;
+    border-color: #363F51 transparent transparent transparent;    
+}
+.ribbon h3::before {left: 0;}
+.ribbon h3::after {right: 0;}
+
+
 /** Header **/
 #page-header {
     border-top:5px solid #565656; 
@@ -21,6 +99,7 @@ html, body {background-color:#FFF; height:100%;}
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#536895', endColorstr='#444444'); /* for IE */
     background: -webkit-gradient(linear, left top, left bottom, from(#536895), to(#444444)); /* for webkit browsers */
     background: -moz-linear-gradient(top,  #536895,  #444444); /* for firefox 3.6+ */
+    background-image: -o-linear-gradient(top, #536895, #444444); /* for opera */
 }
 
 #page-header.env-stage {
@@ -30,6 +109,7 @@ html, body {background-color:#FFF; height:100%;}
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#911687', endColorstr='#444444'); /* for IE */
     background: -webkit-gradient(linear, left top, left bottom, from(#911687), to(#444444)); /* for webkit browsers */
     background: -moz-linear-gradient(top,  #911687,  #444444); /* for firefox 3.6+ */
+    background-image: -o-linear-gradient(top, #911687, #444444); /* for opera */
 }
 
 #page-header.env-test {
@@ -39,6 +119,7 @@ html, body {background-color:#FFF; height:100%;}
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FE921C', endColorstr='#444444'); /* for IE */
     background: -webkit-gradient(linear, left top, left bottom, from(#FE921C), to(#444444)); /* for webkit browsers */
     background: -moz-linear-gradient(top,  #FE921C,  #444444); /* for firefox 3.6+ */
+    background-image: -o-linear-gradient(top, #FE921C, #444444); /* for opera */
 }
 
 #page-header.env-dev {
@@ -48,6 +129,7 @@ html, body {background-color:#FFF; height:100%;}
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#3EA639', endColorstr='#444444'); /* for IE */
     background: -webkit-gradient(linear, left top, left bottom, from(#3EA639), to(#444444)); /* for webkit browsers */
     background: -moz-linear-gradient(top,  #3EA639,  #444444); /* for firefox 3.6+ */
+    background-image: -o-linear-gradient(top, #3EA639, #444444); /* for opera */
 }
 
 .hasnavbar #page-header {border-bottom-width:0px;}
@@ -57,17 +139,18 @@ html, body {background-color:#FFF; height:100%;}
 #page-header .headermain #sublogo span { color: #CCC;}
 #page-header .headermain span {color:#C8C9C7;}
 
+#page-header .headermenu {font-size:0.9em;}
+#page-header .headermenu a {text-decoration: underline ; color: #FFF; font-weight: bold;}
 
 #page-header .navbar {background-color:#FFB300;width:100%;}
 #page-header .navbar {color:#000;}
-#page-header .headermenu a {text-decoration: underline ; color: #FFF; font-weight: bold;}
 #page-header .navbar a:link,
 #page-header .navbar a:visited {font-weight: bold; color:#536895;}
 #page-header .navbar .breadcrumb,
 #page-header .navbar .navbutton {margin:5px 1em;}
 
 /** Dropdown **/
-#page-header #sublogo {margin-left:30px;margin-bottom:10px;}
+#page-header #sublogo {margin-left:30px;}
 #page-header #sublogo #dropdown {width:180px;cursor:pointer;cursor:hand;color:#CCC;text-shadow: 0 1px 0 #000000;}
 #page-header #sublogo .dropdownlist {margin-bottom:10px;height:45px;}
 #page-header #sublogo .dropdownlist p {font-weight: normal;width:110px; height:20px;margin-bottom:0px;}
@@ -387,7 +470,8 @@ html, body {background-color:#FFF; height:100%;}
     margin-left: 2.0em !important;
 }
 
-/* Adds some space after the radio item */
-.fgroup span .indicator_desc {
-    margin-right: 5px;
+/* CCLE-2993 - Shorten textarea for intro/description field */
+#id_introeditor, #id_introeditor_tbl, #id_intro {
+    height:150px;    
+    width: 275px;   /* only applicable for intro forms that don't use TinyMCE */
 }
