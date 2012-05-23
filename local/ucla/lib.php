@@ -906,6 +906,15 @@ function set_editing_mode_button($url=null) {
 }
 
 /**
+ *  Gets the FriendlyURL version of a course link.
+ *  @param $course  course object
+ *  @return string  URL to use, relative to $CFG->wwwroot
+ **/
+function make_friendly_url($course) {
+    return '/course/view/' . rawurlencode($course->shortname);
+}
+
+/*
  * Checks the role_assignments table and sees if the viewer shares a context 
  * with the target.
  * 

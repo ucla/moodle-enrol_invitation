@@ -1,0 +1,30 @@
+This is a filter for using MathJax in Moodle 2.x sites. For information on how
+to actually use MathJax, please look to http://mathjax.org for insight as I cannot
+provide assistance with the construction of equations in TeX or MathML.
+
+
+The latest developments and versions of this plugin can be found at
+  https://github.com/jonof/moodle-filter_mathjax
+
+Please report issues at
+  https://github.com/jonof/moodle-filter_mathjax/issues
+
+
+Some notes on usage:
+
+  * You might want to disable the TeX filter if you're using this filter in a course. The
+    two filters use the same delimiting sequences and you may notice interference between
+    them.
+  * Enabling the MathJax filter will cause the MathJax components to be invoked on all pages
+    below the level at which it is activated regardless of whether any MathJax sequences are
+    actually used in the page.
+    For example, if you enable the filter for a specific course, it will be active on all
+    pages of that course but not for any other courses in the Moodle site. If you enable it
+    at the system level, all courses and all pages in your Moodle site will include the
+    MathJax components.
+    My suggestion is to set up the filter as "Off, but available" at the site level and
+    then turn it 'On' in courses where you want to use it.
+
+
+Jonathon Fowler
+fowlerj@usq.edu.au

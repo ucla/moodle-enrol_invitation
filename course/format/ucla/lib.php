@@ -189,6 +189,17 @@ function callback_ucla_get_section_name($course, $section) {
 }
 
 /**
+ * Returns a URL to arrive directly at a section
+ *
+ * @param int $courseid The id of the course to get the link for
+ * @param int $sectionnum The section number to jump to
+ * @return moodle_url
+ */
+function callback_ucla_get_section_url($courseid, $sectionnum) {
+    return new moodle_url('/course/view.php', array('id' => $courseid, 'topic' => $sectionnum));
+}
+
+/**
  * Declares support for course AJAX features
  *
  * @see course_format_ajax_support()
