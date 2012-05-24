@@ -673,6 +673,12 @@ while ($section <= $course->numsections) {
             if ($section != 0) {
                 // End div for sectionheader
                 $center_content .= html_writer::end_tag('div');
+                
+                //Start CCLE-2800 JIT controls
+                $center_content .= html_writer::start_tag('div',
+                        array('class' => 'editControlLinks'));
+                $center_content .= html_writer::link('view.php', 'Test Link', 
+                        array());
             }
 
             // Display the section
