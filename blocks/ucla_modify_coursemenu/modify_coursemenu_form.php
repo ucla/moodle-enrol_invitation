@@ -54,7 +54,9 @@ class ucla_modify_coursemenu_form extends moodleform {
       
         //echo $section->section;
          //$mform->addElement('text', 'email', '', 'maxlength="100" size="25 value="HAHA" ');
- 
+        if($section->section == 0) {
+            continue;
+        }
         
         $buttonarray=array();
        
@@ -66,7 +68,7 @@ class ucla_modify_coursemenu_form extends moodleform {
        
         $buttonarray[] =& $mform->createElement('text', "name[$section->id]", "", "value='$section->name'; class='namesection'");
        
-        $buttonarray[] =& $mform->createElement('advcheckbox', "hide[{$section->section}]", '',  '', array('group' => 1, 'class' => 'hide'), array(0,1));
+        $buttonarray[] =& $mform->createElement('advcheckbox', "hide[$section->section]", '',  '', array('group' => 1, 'class' => 'hide'), array(0,1));
        
         $buttonarray[] =& $mform->createElement('checkbox', "delete[$section->section]", '', '', "class='delete'");
         
@@ -75,7 +77,7 @@ class ucla_modify_coursemenu_form extends moodleform {
      
         $mform->addGroup($buttonarray, 'buttonar', '', array(' '), false);
         
-        $mform->setDefault('landing', 613);
+       // $mform->setDefault('landing', 613);
         $mform->setDefault("hide[$section->section]", $section->visible^1);
         
   
