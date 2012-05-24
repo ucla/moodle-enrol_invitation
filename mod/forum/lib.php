@@ -516,6 +516,12 @@ function forum_cron() {
                 $course     = $courses[$forum->course];
                 $cm         =& $coursemodules[$forum->id];
 
+                // BEGIN UCLA MOD: CCLE-3045 - Add capability to disable emailing of forum posts to certain roles
+                if (!has_capability('mod/forum:receivemail', $modcontext)) {
+                    continue;   // user shouldn't get email
+                }
+                // END UCLA MOD: CCLE-3045                
+                
                 // Do some checks  to see if we can bail out now
                 // Only active enrolled users are in the list of subscribers
                 if (!isset($subscribedusers[$forum->id][$userto->id])) {
@@ -7438,7 +7444,12 @@ function forum_extend_settings_navigation(settings_navigation $settingsnav, navi
     $canmanage  = has_capability('mod/forum:managesubscriptions', $PAGE->cm->context);
     $subscriptionmode = forum_get_forcesubscribed($forumobject);
     $cansubscribe = ($activeenrolled && $subscriptionmode != FORUM_FORCESUBSCRIBE && ($subscriptionmode != FORUM_DISALLOWSUBSCRIBE || $canmanage));
-
+    // BEGIN UCLA MOD: CCLE-3045 - Add capability to disable emailing of forum posts to certain roles
+    if ($cansubscribe && !has_capability('mod/forum:receivemail', $PAGE->cm->context)) {
+        $cansubscribe = false;   // user shouldn't get email
+    }
+    // END UCLA MOD: CCLE-3045   
+    
     if ($canmanage) {
         $mode = $forumnode->add(get_string('subscriptionmode', 'forum'), null, navigation_node::TYPE_CONTAINER);
 
