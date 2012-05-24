@@ -523,7 +523,7 @@ html, body {background-color:#FFF; height:100%;}
 /*    margin-left: 10px;*/
     margin-right: 19px;
 }
-.mod-indent .commands a {
+.mod-indent .commands > a {
     margin-right: 2px;
 }
 .contentafterlink {
@@ -553,4 +553,19 @@ html, body {background-color:#FFF; height:100%;}
 .edit-iconfix-filler {
     height: 0;
     clear: right;
+}
+
+.text-icons .mod-indent span {
+    float: none;
+    width: auto;
+}
+
+.text-icons .mod-indent span > a {
+    border: none;
+    margin-right: 10px;
+    margin-left: 0;
+    padding: 0;
+}
+.text-icons .editing_delete {
+    float: none;
 }
