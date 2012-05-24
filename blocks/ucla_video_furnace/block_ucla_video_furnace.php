@@ -20,10 +20,10 @@ require_once(dirname(__FILE__) . '/../moodleblock.class.php');
 
 
 
-class block_video_furnace extends block_base {
+class block_ucla_video_furnace extends block_base {
     
     public function init(){
-        $this->title = get_string('plugin_name', 'block_video_furnace');
+        $this->title = get_string('plugin_name', 'block_ucla_video_furnace');
     }
     
     public function get_content(){
@@ -63,7 +63,7 @@ class block_video_furnace extends block_base {
     static function get_action_link($courseid) {
         global $CFG;
 
-        return new moodle_url($CFG->wwwroot . '/blocks/video_furnace/view.php', array('course_id' => $courseid));
+        return new moodle_url($CFG->wwwroot . '/blocks/ucla_video_furnace/view.php', array('course_id' => $courseid));
     }
 
     /**
@@ -77,7 +77,7 @@ class block_video_furnace extends block_base {
             'site-index' => false,
             'course-view' => false,
             'my' => false,
-            'blocks-ucla_control_panel' => false,
+            //'blocks-ucla_control_panel' => false,
             'not-really-applicable' => true
         );
     }    
