@@ -8,9 +8,8 @@
  * See CCLE-2311 for details
  **/
 require_once('lib.php');
-require_once('/../../../local/ucla/lib.php');
-# get CFG
-require_once(dirname(dirname(dirname(__FILE__))) . "/moodle/config.php");
+require_once(dirname(__FILE__) . '/../../../config.php');
+require_once($CFG->dirroot.'/local/ucla/lib.php');
 
 handle_cfgs();
 
@@ -24,14 +23,8 @@ function update_videofurnace_db() {
 
     echo get_string('vfstartnoti', 'tool_ucladatasourcesync');
 
-    $incoming_data = array();
-
-    if ($lines === FALSE) {
-        die("\n" . get_string('errvffileopen', 'tool_ucladatasourcesync') . "\n");
-    }    
-
-    $data = &get_csv_data($datasource_url);
-    $data = &cleanup_csv_data($data, "ucla_video_furnace");
+    $incoming_data = &get_tsv_data($datasource_url);
+    //$data = &cleanup_csv_data($data, "ucla_video_furnace");
 
     $vidfurn_table = 'ucla_video_furnace';
     # create mail data array for storing email contents
@@ -40,28 +33,32 @@ function update_videofurnace_db() {
         /* An array of all the data extracted from the datasource for this particular row. 
          * Used to check for duplicate entries in the table.
          */
-        $row_data_dup_check = array('term' => $row_data[0], 'srs' => $row_data[1], 'start_date' => $row_data[2],
-                        'stop_date' => $row_data[3], 'class' => $row_data[4], 'instructor' => $row_data[5], 'video_title' => $row_data[6],
-                        'video_url' => $row_data[7]);
         $row_data = $incoming_data[$row];
+        
     	# check if the row has the correct number of columns, skip it and log an error if it does not
         # if the row is empty, skip it but don't log an error
-        if ( (sizeof($row_data) == 1) && ($row_data[0] == "") ) {
+        if ( (sizeof($row_data) == 1) && ($row_data['term'] == "") ) {
             continue;
         } else if(sizeof($row_data) != 8) {
-            get_string('errinvalidrowlen', 'tool_ucladatasourcesync') . "\n";
+            echo get_string('errinvalidrowlen', 'tool_ucladatasourcesync') . "\n";
             continue;
         }
         
         fix_data_format($row_data);
-
+        
+        $row_data_dup_check = array($DB->sql_compare_text('term') => $row_data['term']); //.' AND', 'srs' => $row_data['srs']);
+            /*.' AND', 'start_date' => $row_data['start_date'].' AND',
+                        'stop_date' => $row_data['stop_date'].' AND', 'class' => $row_data['class'].' AND', 'instructor' => $row_data['instructor'].' AND', 'video_title' => $row_data['video_title'].' AND',
+                        'video_url' => $row_data['video_url']);    */  
         # check to see if the row exists in the existing data
         $result = $DB->get_records('ucla_video_furnace', $row_data_dup_check);
 		
         if(empty($result) == false) {
+            echo "wat";
             # if it does mark it so as not to delete it
             $DB->set_field($vidfurn_table, '_del_flag', false, $row_data_dup_check);
         } else {
+             echo "wa2t";
             # if it does not then insert it
             $DB->insert_record('ucla_video_furnace', $row_data);
             //mail_data[] = create_mail_object($row_data);
@@ -69,8 +66,8 @@ function update_videofurnace_db() {
     }
 
     # delete out-of-date rows according to the delete flag, then reset all of the delete flags
-    $DB->delete_records($table, array('_del_flag'=>true)); 
-    $DB->set_field_select($table, 'del_flag', true, 'true'); 
+    $DB->delete_records($vidfurn_table, array('_del_flag'=>true)); 
+    $DB->set_field_select($vidfurn_table, '_del_flag', true, 'true'); 
     
     /*if ($CFG->videofurnace_send_emails && !empty($mail_data)) {
         send_mail_data($mail_data);
@@ -210,23 +207,23 @@ function fix_data_format(&$row){
     # remove newlines from urls
     $row[7] = trim($row[7]);
 
-    $data_object = new stdClass();
+    $data_object = array();
     //$data_object->timestamp = time();
-    $data_object->term = $row[0];
-    $data_object->srs = $row[1];
-    $data_object->start_date = $row[2];
-    $data_object->stop_date = $row[3];
-    $data_object->class = $row[4];
-    $data_object->instructor = $row[5];
-    $data_object->video_title = $row[6];
-    $data_object->video_url = $row[7];
-    $data_object->delete_flag = false;
+    $data_object['term'] = $row[0];
+    $data_object['srs'] = $row[1];
+    $data_object['start_date'] = $row[2];
+    $data_object['stop_date'] = $row[3];
+    $data_object['class'] = $row[4];
+    $data_object['instructor'] = $row[5];
+    $data_object['video_title'] = $row[6];
+    $data_object['video_url'] = $row[7];
+    $data_object['delete_flag'] = false;
     
-    $courseid = ucla_map_termsrs_to_courseid($data_object->term, $data_object->srs);
+    /*$courseid = ucla_map_termsrs_to_courseid($data_object->term, $data_object->srs);
     if($courseid == false){
         echo('error, error!');
     }
-    $data_object->courseid = ucla_map_termsrs_to_courseid($data_object->term, $data_object->srs);
+    $data_object['courseid'] = ucla_map_termsrs_to_courseid($data_object->term, $data_object->srs);*/
     $row = $data_object;
 }    
     
