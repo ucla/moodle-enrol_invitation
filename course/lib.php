@@ -3344,6 +3344,10 @@ function make_editing_buttons(stdClass $mod, $absolute_ignored = true, $movesele
         }
     }
     $output .= html_writer::end_tag('span');
+    // START UCLA MOD CCLE-2803 
+    // This is an empty <div> that helps the edit icons render inside the <li> box
+    $output .= html_writer::tag('div', '', array('class' => 'edit-iconfix-filler'));
+    // END UCLA MOD CCLE-2803
     return $output;
 }
 
