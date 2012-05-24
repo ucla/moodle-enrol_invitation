@@ -45,20 +45,17 @@ function update_videofurnace_db() {
         }
         
         fix_data_format($row_data);
-        
-        $row_data_dup_check = array($DB->sql_compare_text('term') => $row_data['term']); //.' AND', 'srs' => $row_data['srs']);
-            /*.' AND', 'start_date' => $row_data['start_date'].' AND',
-                        'stop_date' => $row_data['stop_date'].' AND', 'class' => $row_data['class'].' AND', 'instructor' => $row_data['instructor'].' AND', 'video_title' => $row_data['video_title'].' AND',
-                        'video_url' => $row_data['video_url']);    */  
+        $row_data_dup_check = array('term' => $row_data['term'], 'srs' => $row_data['srs'], 'start_date' => $row_data['start_date'],
+                        'stop_date' => $row_data['stop_date'], 'class' => $row_data['class'], 'instructor' => $row_data['instructor'], 'video_title' => $row_data['video_title'],
+                        'video_url' => $row_data['video_url']);
+
         # check to see if the row exists in the existing data
         $result = $DB->get_records('ucla_video_furnace', $row_data_dup_check);
 		
         if(empty($result) == false) {
-            echo "wat";
             # if it does mark it so as not to delete it
-            $DB->set_field($vidfurn_table, '_del_flag', false, $row_data_dup_check);
+            $DB->set_field($vidfurn_table, '_del_flag', 0, $row_data_dup_check);
         } else {
-             echo "wa2t";
             # if it does not then insert it
             $DB->insert_record('ucla_video_furnace', $row_data);
             //mail_data[] = create_mail_object($row_data);
@@ -66,8 +63,8 @@ function update_videofurnace_db() {
     }
 
     # delete out-of-date rows according to the delete flag, then reset all of the delete flags
-    $DB->delete_records($vidfurn_table, array('_del_flag'=>true)); 
-    $DB->set_field_select($vidfurn_table, '_del_flag', true, 'true'); 
+    $DB->delete_records($vidfurn_table, array('_del_flag'=> 1)); 
+    $DB->set_field_select($vidfurn_table, '_del_flag', 1, 'true'); 
     
     /*if ($CFG->videofurnace_send_emails && !empty($mail_data)) {
         send_mail_data($mail_data);
@@ -217,13 +214,13 @@ function fix_data_format(&$row){
     $data_object['instructor'] = $row[5];
     $data_object['video_title'] = $row[6];
     $data_object['video_url'] = $row[7];
-    $data_object['delete_flag'] = false;
+    $data_object['_del_flag'] = 0;
     
-    /*$courseid = ucla_map_termsrs_to_courseid($data_object->term, $data_object->srs);
-    if($courseid == false){
+    $courseid = 1;//ucla_map_termsrs_to_courseid($data_object['term'], $data_object['srs']);
+    /*if($courseid == false){
         echo('error, error!');
-    }
-    $data_object['courseid'] = ucla_map_termsrs_to_courseid($data_object->term, $data_object->srs);*/
+    }*/
+    $data_object['courseid'] = $courseid;
     $row = $data_object;
 }    
     

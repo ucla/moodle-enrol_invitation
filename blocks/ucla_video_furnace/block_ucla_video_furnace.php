@@ -23,7 +23,7 @@ require_once(dirname(__FILE__) . '/../moodleblock.class.php');
 class block_ucla_video_furnace extends block_base {
     
     public function init(){
-        $this->title = get_string('plugin_name', 'block_ucla_video_furnace');
+        $this->title = get_string('pluginname', 'block_ucla_video_furnace');
     }
     
     public function get_content(){
