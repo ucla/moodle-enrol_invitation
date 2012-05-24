@@ -44,24 +44,21 @@ function get_csv_data($datasource_url) {
  * @param $datasource_url The URL of the TSV data to attempt to retrieve.
  **/
 function get_tsv_data($datasource_url) {
-
+    //Allows \r characters to be read as \n's. The config file has \r's instead of \n's.
+    ini_set('auto_detect_line_endings', true);
+    
     $fp = fopen($datasource_url, 'r');
+    $lines = array();
 
-    $lines = "";
-
-    while (!feof($fp)) {
-        $lines .= fgets($fp); //Use tabs as a delimiter instead of commas.
-    }
-    //Workaround since the original file has carriage returns where newlines 
-    //should be.
-    $lines = explode(chr(13), $lines);
-    //Change lines from an array of lines to an array of arrays of CSV elements.
-    for($i = 1; $i < sizeof($lines); $i++){
-        $lines[$i] = str_getcsv($lines[$i], chr(9)); 
+    if ($fp) {
+        while (!feof($fp)) {
+            $lines[] = fgetcsv($fp, 0, "\t","\n"); //Use tabs as a delimiter instead of commas.
+        }
     }
 
     if (empty($lines)) {
         echo "\n... ERROR: Could not open $datasource_url!\n";
+        //Why is the exit code 5?
         exit(5);
     }
 
@@ -96,8 +93,8 @@ function cleanup_csv_data($data_array, $table_name) {
         $posfields[$fieldname] = $fieldname;
     }
 
-
-
+    
+    
     // Assuming the field descriptor line is going to come before all the other lines
     $field_descriptors_obtained = FALSE;
     $fields_desc_line = -1;

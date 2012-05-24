@@ -12,25 +12,15 @@ require_once('/../../../local/ucla/lib.php');
 # get CFG
 require_once(dirname(dirname(dirname(__FILE__))) . "/moodle/config.php");
 
-
-//
 handle_cfgs();
 
-########## MAIN ##########
-# read the file into a two-dimensional array
-$lines = file($filename);
-foreach ($lines as $line_num => $line) {
-    $line = trim($line);
-    $incoming_data[$line_num] = explode("\t", $line); 
-}
-
-
 // Begin database update
-update_videofurnace_db($datasource_url);
+update_videofurnace_db();
 
-function update_videofurnace_db($datasource_url) {
+function update_videofurnace_db() {
     // get global variables
     global $CFG, $DB;
+    $datasource_url = 'http://164.67.141.31/~guest/VF_LINKS.TXT'; //get_config('block_video_furnace', 'source_url');
 
     echo get_string('vfstartnoti', 'tool_ucladatasourcesync');
 
@@ -40,12 +30,8 @@ function update_videofurnace_db($datasource_url) {
         die("\n" . get_string('errvffileopen', 'tool_ucladatasourcesync') . "\n");
     }    
 
-    $datasource_url = $CFG->video_furnace_data;
     $data = &get_csv_data($datasource_url);
     $data = &cleanup_csv_data($data, "ucla_video_furnace");
-    
-    # Set timestamp to now
-    $timestamp = time();
 
     $vidfurn_table = 'ucla_video_furnace';
     # create mail data array for storing email contents
@@ -60,13 +46,10 @@ function update_videofurnace_db($datasource_url) {
         $row_data = $incoming_data[$row];
     	# check if the row has the correct number of columns, skip it and log an error if it does not
         # if the row is empty, skip it but don't log an error
-        # echo "Row $row number of cols=",sizeof($row_data),"\n";
-        if ((sizeof($row_data) == 1) && ($row_data[0] == "")) {
+        if ( (sizeof($row_data) == 1) && ($row_data[0] == "") ) {
             continue;
-        } elseif (sizeof($row_data) != 8) {
-            /*echo("Incorrectly formed input data at row $row.\nRow Contents:\n");
-            printToFile($f,"Incorrectly formed input data at row $row.\nRow Contents:\n");
-            print_r($row_data);*/
+        } else if(sizeof($row_data) != 8) {
+            get_string('errinvalidrowlen', 'tool_ucladatasourcesync') . "\n";
             continue;
         }
         
@@ -92,10 +75,10 @@ function update_videofurnace_db($datasource_url) {
     /*if ($CFG->videofurnace_send_emails && !empty($mail_data)) {
         send_mail_data($mail_data);
     } */
+    
+    echo get_string('vfsuccessnoti', 'tool_ucladatasourcesync') . "\n";
  } 
 
- 
- 
  /* 
   * INCOMPLETE DO NOT USE
   */
@@ -228,7 +211,7 @@ function fix_data_format(&$row){
     $row[7] = trim($row[7]);
 
     $data_object = new stdClass();
-    $data_object->time_stamp = time();
+    //$data_object->timestamp = time();
     $data_object->term = $row[0];
     $data_object->srs = $row[1];
     $data_object->start_date = $row[2];
@@ -252,7 +235,7 @@ function fix_data_format(&$row){
  * cfg variables if they are initialized.
  */
 function handle_cfgs(){
-    ini_set('auto_detect_line_endings', true);
+    
 
     // Check to see that config variable is initialized
     $datasource_url = 'http://164.67.141.31/~guest/VF_LINKS.TXT'; //get_config('block_video_furnace', 'source_url');
@@ -304,6 +287,5 @@ function handle_cfgs(){
 
     */
 }    
-    
-
+   
 //EOF
