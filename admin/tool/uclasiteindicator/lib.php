@@ -689,10 +689,7 @@ class ucla_site_indicator {
     static function get_indicator_types() {
         global $DB;
 
-        $types = $DB->get_records('ucla_siteindicator_type', 
-                array('visible' => 1), 'sortorder');
-        
-        return $types;
+        return $DB->get_records('ucla_siteindicator_type');
     }
 }
 
@@ -702,19 +699,22 @@ class ucla_site_indicator {
 class ucla_indicator_admin {
     
     /**
-     * Quick and dirty way to update the DB for testing
+     * Populate the types table
      */
-    static function pre_populate_sql() {
+    static function sql_populate_types() {
         global $DB;
         
         // Populate types
         $query1 = "INSERT INTO {ucla_siteindicator_type} (id, sortorder, fullname, shortname, description, visible) VALUES
-                (1, 0, '".get_string('site_instruction', 'tool_uclasiteindicator')."', 'instruction', '".get_string('site_instruction_desc', 'tool_uclasiteindicator')."', 1),
-                (2, 0, '".get_string('site_non_instruction', 'tool_uclasiteindicator')."', 'non_instruction', '".get_string('site_non_instruction_desc', 'tool_uclasiteindicator')."', 1),
-                (3, 0, '".get_string('site_research', 'tool_uclasiteindicator')."', 'research', '".get_string('site_research_desc', 'tool_uclasiteindicator')."', 1),
-                (4, 0, '".get_string('site_test', 'tool_uclasiteindicator')."', 'test', '".get_string('site_test_desc', 'tool_uclasiteindicator')."', 1),
-                (5, 0, '".get_string('site_registrar', 'tool_uclasiteindicator')."', 'registrar', '".get_string('site_registrar_desc', 'tool_uclasiteindicator')."', 0)";
+                (1, '".get_string('site_instruction', 'tool_uclasiteindicator')."', 'instruction', '".get_string('site_instruction_desc', 'tool_uclasiteindicator')."'),
+                (2, '".get_string('site_non_instruction', 'tool_uclasiteindicator')."', 'non_instruction', '".get_string('site_non_instruction_desc', 'tool_uclasiteindicator')."'),
+                (3, '".get_string('site_research', 'tool_uclasiteindicator')."', 'research', '".get_string('site_research_desc', 'tool_uclasiteindicator')."'),
+                (4, '".get_string('site_test', 'tool_uclasiteindicator')."', 'test', '".get_string('site_test_desc', 'tool_uclasiteindicator')."')";
         $DB->execute($query1);
 
+    }
+    
+    static function foo() {
+        
     }
 }
