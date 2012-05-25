@@ -7,7 +7,6 @@
 require_once(dirname(__FILE__) . '/../../config.php');
 require_once($CFG->dirroot . '/course/lib.php');
 require_once($CFG->dirroot . '/course/format/ucla/ucla_course_prefs.class.php');
-
 $thispath = '/blocks/ucla_modify_coursemenu';
 //require_once($CFG->dirroot . $thispath . '/block_ucla_modify_coursemenu.php');
 require_once($CFG->dirroot . $thispath . '/modify_coursemenu_form.php');
@@ -114,7 +113,6 @@ if ($data = $modify_coursemenu_form->get_data()) {
         
         $numsections = count($sections)-1;
         foreach($data->delete as $secnum => $delete) {
-            
         
         $sql = "delete from mdl_course_sections WHERE course='$course_id' AND section='$secnum'";
        // echo $sql;
@@ -143,6 +141,7 @@ if ($data = $modify_coursemenu_form->get_data()) {
         //insert into mdl_course_sections VALUES('615', '506', '6', 'Week 6', '', '1', 'NULL', '1');
         //select section,name FROM mdl_course_sections WHERE course="506";
     //rebuild_course_cache($course_id);
+    
 
         redirect(new moodle_url('/blocks/ucla_modify_coursemenu/modify_coursemenu.php',
                 array('course_id' => $course_id, 'topic' => $topic_num)));
@@ -180,6 +179,7 @@ if(isset($_POST['submit'])) {
     $sql = "update mdl_course set numsections='$numsections' where id='$course_id'";
     $DB->execute($sql);
     //http://localhost:8080/moodle/course/view.php?id=506&topic=-4
+    setup_sections ($numsections, $sections, $DB, $course);
     rebuild_course_cache($course_id);
            redirect(new moodle_url('/blocks/ucla_modify_coursemenu/modify_coursemenu.php',
                 array('course_id' => $course_id, 'topic' => $topic_num)));
