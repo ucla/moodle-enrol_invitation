@@ -333,31 +333,36 @@ html, body {background-color:#FFF; height:100%;}
 .user th.header,
 .group th.header,
 .admin table tr th,
-.admin table tr th.header {
+.admin table tr th.header,
+.path-report-rolescapabilities table tr th {
     background-color: #697F55 !important;
     color: #FFF;
-    border: 2px solid #697F55 !important;
-    border-bottom-color: #111 !important;
+    border: 2px solid #697F55;
+    border-bottom-color: #111;
 }
 .user th a:link,
 #categoryquestions th a:link,
 .group  th a:link,
-.admin table tr th a:link {color:#FFF;text-decoration:none;}
+.admin table tr th a:link,
+.path-report-rolescapabilities table tr th a:link {color:#FFF;text-decoration:none;}
 
 .user th a:visited,
 #categoryquestions th a:visited,
 .group th a:visited,
-.admin table tr th a:visited {color:#FFF;text-decoration:underline;}
+.admin table tr th a:visited,
+.path-report-rolescapabilities table tr th a:visited {color:#FFF;text-decoration:underline;}
 
 .user tr td.cell,
 #categoryquestions tr td.cell,
 .group tr td.cell,
-.admin table tr td.cell {border:1px solid #C8C9C7;border-width:0px 1px;}
+.admin table tr td.cell,
+.path-report-rolescapabilities table tr td.cell {border:1px solid #C8C9C7;border-width:0px 1px;}
 
 .user .r1 .cell,
 #categoryquestions .r1 .cell,
 .group .r1 .cell,
-.admin table .r1 .cell {background-color:#EEE;}
+.admin table .r1 .cell,
+.path-report-rolescapabilitiestable table .r1 .cell {background-color:#EEE;}
 
 .admin .plugincompattable .r1 .cell {background-color:#FFF;}
 

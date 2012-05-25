@@ -128,7 +128,19 @@ class rolescapabilities_table extends capability_table_base {
                                                      'capability' => $capability->name),
                                                 '', 'capability,permission');
             if ($permission) {
-                echo '<td class="role cap', $permission[$capability->name] , '"></td>';
+                echo '<td class="role cap', $permission[$capability->name] , '">';
+                switch($permission[$capability->name]) {
+                    case CAP_ALLOW: 
+                        echo get_string('allow', 'role');
+                        break;
+                    case CAP_PREVENT: 
+                        echo get_string('prevent', 'role');
+                        break;
+                    case CAP_PROHIBIT: 
+                        echo get_string('prohibit', 'role');
+                        break;
+                }                
+                echo '</td>';
             } else {
                 echo '<td class="role capnotset"></td>';
             }
