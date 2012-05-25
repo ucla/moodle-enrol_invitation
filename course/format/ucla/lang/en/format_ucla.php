@@ -46,3 +46,10 @@ $string['show_all'] = 'Show all';
 $string['editcoursetitle'] = 'Edit course description';
 $string['editsectiontitle'] = 'Edit title';
 $string['editofficehours'] = 'update';
+
+// Office hours and contact information heading displays
+$string['office'] = 'Office';
+$string['phone'] = 'Phone';
+$string['email'] = 'E-Mail Address';
+$string['office_hours'] = 'Office Hours';
+

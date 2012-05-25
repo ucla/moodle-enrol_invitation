@@ -7,26 +7,30 @@
         <TABLE NAME="ucla_officehours" COMMENT="Holds information about office hours and contact info">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="userid"/>
-                <FIELD NAME="userid" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUMTYPE="false" 
+                <FIELD NAME="userid" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="false"
                     PREVIOUS="id" NEXT="courseid"/>
                 <FIELD NAME="courseid" TYPE="int" LENGTH="11" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" ENUM="false"
-                    PREVIOUS="userid" NEXT="officehours"/>
+                    PREVIOUS="userid" NEXT="officelocation"/>
                 <FIELD NAME="officelocation" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" ENUM="false" 
                     PREVIOUS="courseid" NEXT="officehours"/>    
                 <FIELD NAME="officehours" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" ENUM="false" 
                     PREVIOUS="officelocation" NEXT="email"/>    
                 <FIELD NAME="email" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" ENUM="false" 
-                    PREVIOUS="officehours" NEXT="timemodified"/>    
+                    PREVIOUS="officehours" NEXT="phone"/>    
+                <FIELD NAME="phone" TYPE="char" LENGTH="24" NOTNULL="true" SEQUENCE="false" ENUM="false"
+                    PREVIOUS="email" NEXT="timemodified"/>
                 <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" 
-                    PREVIOUS="email" NEXT="modiferid"/>    
-                <FIELD NAME="modifierid" TYPE="int" LENGTH="11" NOTNULL="true" UNSINGED="true" SEQUENCE="false" ENUM="false" 
+                    PREVIOUS="phone" NEXT="modifierid"/>    
+                <FIELD NAME="modifierid" TYPE="int" LENGTH="11" NOTNULL="true" SEQUENCE="false" ENUM="false" 
                     PREVIOUS="timemodified"/>    
             </FIELDS>
             <KEYS>
-                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="uid"/>
+                <KEY NAME="uid" TYPE="unique" FIELDS="courseid, userid" PREVIOUS="primary"/>
             </KEYS>
             <INDEXES>
-                
+                <INDEX NAME="userid" UNIQUE="false" FIELDS="userid"/>
             </INDEXES>
         </TABLE>
     </TABLES>
+</XMLDB>
