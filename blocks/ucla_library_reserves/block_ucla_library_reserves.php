@@ -50,29 +50,30 @@ class block_ucla_library_reserves extends block_base {
             $lrnodes = $DB->get_records('ucla_library_reserves',
                     array('quarter' => $courseentry->term, 'srs' => $courseentry->srs)); 
 
-            // If srs did not work as lookup, use the term, courseid, and 
-            // department code, but make sure that the term/srs for that record
-            // is the same section for the course entry (see CCLE-2938)
-            if (empty($lrnodes)) {
-                $sql = "SELECT  *
-                        FROM    {ucla_library_reserves} AS lr, 
-                                {ucla_reg_classinfo} AS lr_rci,
-                                {ucla_reg_classinfo} AS ce_rci
-                        WHERE   lr.quarter=:quarter AND
-                                lr.department_code=:department_code AND
-                                lr.course_number=:course_number AND
-                                lr.quarter=lr_rci.term AND
-                                lr.srs=lr_rci.srs AND
-                                ce_rci.term=:courseentry_term AND
-                                ce_rci.srs=:courseentry_srs AND
-                                lr_rci.sectnum=ce_rci.sectnum";                               
-                $lrnodes = $DB->get_records_sql($sql,
-                        array('quarter' => $courseentry->term, 
-                              'department_code' => $courseentry->subj_area, 
-                              'course_number' => $courseentry->coursenum,
-                              'courseentry_term' => $courseentry->term,
-                              'courseentry_srs' => $courseentry->srs));     
-            }
+            // commenting out, becuase this just doesn't work - rex (see CCLE-3080)
+//            // If srs did not work as lookup, use the term, courseid, and 
+//            // department code, but make sure that the term/srs for that record
+//            // is the same section for the course entry (see CCLE-2938)
+//            if (empty($lrnodes)) {
+//                $sql = "SELECT  *
+//                        FROM    {ucla_library_reserves} AS lr, 
+//                                {ucla_reg_classinfo} AS lr_rci,
+//                                {ucla_reg_classinfo} AS ce_rci
+//                        WHERE   lr.quarter=:quarter AND
+//                                lr.department_code=:department_code AND
+//                                lr.course_number=:course_number AND
+//                                lr.quarter=lr_rci.term AND
+//                                lr.srs=lr_rci.srs AND
+//                                ce_rci.term=:courseentry_term AND
+//                                ce_rci.srs=:courseentry_srs AND
+//                                lr_rci.sectnum=ce_rci.sectnum";                               
+//                $lrnodes = $DB->get_records_sql($sql,
+//                        array('quarter' => $courseentry->term, 
+//                              'department_code' => $courseentry->subj_area, 
+//                              'course_number' => $courseentry->coursenum,
+//                              'courseentry_term' => $courseentry->term,
+//                              'courseentry_srs' => $courseentry->srs));                
+//            }
             
             if (empty($lrnodes)) {                
                 continue;  // no record found for courseentry
