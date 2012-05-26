@@ -168,6 +168,9 @@ $string['forum:postwithoutthrottling'] = 'Exempt from post threshold';
 $string['forumname'] = 'Forum name';
 $string['forumposts'] = 'Forum posts';
 $string['forum:rate'] = 'Rate posts';
+// BEGIN UCLA MOD: CCLE-3045 - Add capability to disable emailing of forum posts to certain roles
+$string['forum:receivemail'] = 'Receive forum emails';
+// END UCLA MOD: CCLE-3045
 $string['forum:replynews'] = 'Reply to news';
 $string['forum:replypost'] = 'Reply to posts';
 $string['forums'] = 'Forums';

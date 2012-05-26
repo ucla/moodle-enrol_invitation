@@ -349,12 +349,12 @@ class course_edit_form extends moodleform {
                     $mform->setDefault('role_'.$role->id, $role->localname);
                 }
                 $mform->setType('role_'.$role->id, PARAM_TEXT);
-                if (!in_array($role->id, $assignableroles)) {
-                    $mform->setAdvanced('role_'.$role->id);
-                }
+               //BEGIN UCLA MOD: CCLE-2939- Suppress or Restrict Role Renaming
+               //Place all role renaming under "Advanced" button so only people who know how to rename roles will use it
+                $mform->setAdvanced('role_'.$role->id);
             }
         }
-
+               //END UCLA MOD: CCLE-2939
 //--------------------------------------------------------------------------------
         $this->add_action_buttons();
 //--------------------------------------------------------------------------------

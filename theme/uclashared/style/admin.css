@@ -12,6 +12,8 @@
     text-align: center;
 }
 
+table.rolecap {margin-left: auto;margin-right: auto;}
+table.rolecap tr.rolecap th {text-align: left;font-weight: normal;}
 .rolecaps th {
     color: black !important;
 }

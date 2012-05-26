@@ -84,9 +84,6 @@ $CFG->instructor_levels_roles = array(
     )
 );
 
-// Course builder
-$terms_to_built = array('12S', '121', '12F');
-
 // CCLE-2283: Friendly URLs
 // CCLE-2283: Redirect to archive (these have a high chance of changing)
 $CFG->forced_plugin_settings['local_ucla'] = array(
@@ -99,6 +96,9 @@ $CFG->forced_plugin_settings['local_ucla'] = array(
 $CFG->forced_plugin_settings['block_ucla_browseby']['use_local_courses'] = true;
 $CFG->forced_plugin_settings['block_ucla_browseby']['ignore_coursenum'] = '194,295,296,375';
 $CFG->forced_plugin_settings['block_ucla_browseby']['allow_acttypes'] = 'LEC,SEM';
+
+// Course builder \\
+//$terms_to_built = array('12S', '121', '12F');
 
 // Course Requestor
 //$CFG->forced_plugin_settings['tool_uclacourserequestor']['terms'] = $terms_to_built;
@@ -119,7 +119,7 @@ $CFG->forced_plugin_settings['tool_myucla_url']['user_email'] = 'ccle@ucla.edu';
 $CFG->forced_plugin_settings['tool_myucla_url']['override_debugging'] = true;   // test sending MyUCLA urls
 
 // Pre-pop
-$CFG->forced_plugin_settings['enrol_database']['terms'] = $terms_to_built;
+//$CFG->forced_plugin_settings['enrol_database']['terms'] = $terms_to_built;
 
 // turn off messaging (CCLE-2318 - MESSAGING)
 $CFG->messaging = false;
@@ -136,10 +136,10 @@ $CFG->shib_logged_in_cookie = '_ucla_sso';
 $block_ucla_help_settings = array('send_to' => 'jira',
                                   'jira_endpoint' => 'https://jira.ats.ucla.edu/CreateIssueDetails.jspa',
                                   'jira_default_assignee' => 'dkearney',
-                                  'boxtext' => '<ul>
-                                                    <li>Find FAQs, tutorials and a large database of help documentation at <strong><a title="cclehelp" href="https://ccle.ucla.edu/course/view/cclehelp">CCLE Help</a></strong></li>
-                                                    <li>Send your feedback including suggestions and comments to <a href="mailto:ccle@ucla.edu">ccle@ucla.edu</a></li>
-                                                </ul>'
+//                                  'boxtext' => '<ul>
+//                                                    <li>Find FAQs, tutorials and a large database of help documentation at <strong><a title="cclehelp" href="https://ccle.ucla.edu/course/view/cclehelp">CCLE Help</a></strong></li>
+//                                                    <li>Send your feedback including suggestions and comments to <a href="mailto:ccle@ucla.edu">ccle@ucla.edu</a></li>
+//                                                </ul>'
         );
 $CFG->forced_plugin_settings['block_ucla_help'] = $block_ucla_help_settings;
 $block_ucla_help_support_contacts['System'] = 'dkearney';  // default
