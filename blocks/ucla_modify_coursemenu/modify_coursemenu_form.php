@@ -7,7 +7,9 @@ require_once($CFG->dirroot . '/lib/formslib.php');
 class ucla_modify_coursemenu_form extends moodleform {
 
     function definition() {
-        global $CFG, $DB;
+        global $CFG, $DB, $array;
+        
+        $array = array();
 
         $mform =& $this->_form;
 
@@ -17,7 +19,7 @@ class ucla_modify_coursemenu_form extends moodleform {
 
         $mform->addElement('hidden', 'course_id', $course_id);
         $mform->addElement('hidden', 'topic', $topic);   
-       // echo json_encode($sections);
+    
         
         
         
@@ -62,7 +64,10 @@ class ucla_modify_coursemenu_form extends moodleform {
        
         //$section->visible = 0;
        
-        
+        if($section->sequence != null) {
+            array_push($array, $section->section);       
+           // echo json_encode($array);
+        }
       
    
        
@@ -87,6 +92,43 @@ class ucla_modify_coursemenu_form extends moodleform {
         
         $this->add_action_buttons();
   
+    }
+    
+    function search($secnum, $array) {
+        foreach($array as $num) {
+            if($num == $secnum) return 1;           
+        }
+        return 0;
+    }
+    
+    function get_data() {
+        global $array;
+        $warning = 0;
+        $mform =& $this->_form;
+
+        if (!$this->is_cancelled() and $this->is_submitted() and $this->is_validated()) {
+            $data = $mform->exportValues();
+            unset($data['sesskey']); // we do not need to return sesskey
+            unset($data['_qf__'.$this->_formname]);   // we do not need the submission marker too
+            if (empty($data)) {
+                return NULL;
+            } else {
+                $objdata = (object)$data;
+                if(isset($objdata->delete)) {
+                foreach($objdata->delete as $delete => $val) {
+                    if($this->search($delete, $array)) {
+                        $mform->addElement('html', 
+                                '<div id="warning">Cannot delete non-empty sections. Please delete or move existing content to delete it</div>');
+                                $warning = 1;                                
+                    }
+                }
+                }
+                if($warning) return 0;
+                else return $objdata;    
+            }
+        } else {
+            return NULL;
+        }
     }
     
      function is_cancelled() {

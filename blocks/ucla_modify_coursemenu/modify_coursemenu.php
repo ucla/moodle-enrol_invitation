@@ -112,6 +112,7 @@ if ($data = $modify_coursemenu_form->get_data()) {
         if(isset($data->delete)) {
         
         $numsections = count($sections)-1;
+        
         foreach($data->delete as $secnum => $delete) {
         
         $sql = "delete from mdl_course_sections WHERE course='$course_id' AND section='$secnum'";
