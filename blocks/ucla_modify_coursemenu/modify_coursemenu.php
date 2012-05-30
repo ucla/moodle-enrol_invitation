@@ -67,8 +67,34 @@ $course_preferences->commit();
 echo json_encode($course_preferences->get_course_preferences($course_id));
 */
 
- 
+$sectarr = array();
 
+
+/*
+ for ($i = 1; $i <= count($sectarr); $i++) {
+$sql = "update mdl_course_sections set section='$counter' where course='$course_id' and section='$key'";
+ }
+*/
+
+echo json_encode($sectarr);
+
+             $counter = 1;
+foreach($sections as $key => $value) {
+    if($key != 0) {
+        
+        //array_push($sectarr, $key);
+        $sql = "update mdl_course_sections set section='$counter' where course='$course_id' and section='$key'";
+        $DB->execute($sql);
+        $counter++;
+    }
+}
+
+
+
+
+
+  // $sql = "update mdl_course set numsections='$numsections' where id='$course_id'";
+   // $DB->execute($sql);
 
 
 $modify_coursemenu_form = new ucla_modify_coursemenu_form(
@@ -84,7 +110,7 @@ $modify_coursemenu_form = new ucla_modify_coursemenu_form(
 );
 
 if ($data = $modify_coursemenu_form->get_data()) {
-    echo json_encode($data);
+    //echo json_encode($data);
    // echo "HERE";
     //echo json_encode($data->name);
     
@@ -105,13 +131,18 @@ if ($data = $modify_coursemenu_form->get_data()) {
     
    // foreach ($data->hide as $sectnum => $hide)
     
-    for ($i = 1; $i < count($data->hide); $i++) {
-        set_section_visible($course_id, $i, $data->hide[$i]^1);
+  //  for ($i = 1; $i < count($data->hide); $i++) {
+    //    echo json_encode($i);
+        //set_section_visible($course_id, $i, $data->hide[$i]^1);
+   // }
+    
+    foreach ($data->hide as $sectnum => $hide) {
+        if($sectnum != 1) set_section_visible($course_id, $sectnum, $data->hide[$sectnum]^1);
     }
     
-        if(isset($data->delete)) {
-        
         $numsections = count($sections)-1;
+        
+        if(isset($data->delete)) {
         
         foreach($data->delete as $secnum => $delete) {
         
@@ -124,7 +155,10 @@ if ($data = $modify_coursemenu_form->get_data()) {
     }
     $sql = "update mdl_course set numsections='$numsections' where id='$course_id'";
     $DB->execute($sql);
+   
+    
     }
+    
     
     /*
     foreach ($data->delete as $secnum => $delete) {
@@ -142,8 +176,9 @@ if ($data = $modify_coursemenu_form->get_data()) {
         //insert into mdl_course_sections VALUES('615', '506', '6', 'Week 6', '', '1', 'NULL', '1');
         //select section,name FROM mdl_course_sections WHERE course="506";
     //rebuild_course_cache($course_id);
-    
 
+
+        
         redirect(new moodle_url('/blocks/ucla_modify_coursemenu/modify_coursemenu.php',
                 array('course_id' => $course_id, 'topic' => $topic_num)));
         
@@ -167,6 +202,8 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading($restr, 2, 'headingblock');
  $modify_coursemenu_form->display();
  
+
+ 
      echo "<form name='input' action='' method='post'>
 <input type='submit' value='Add New Section' name='submit' />
 </form>";
@@ -188,6 +225,8 @@ if(isset($_POST['submit'])) {
      
 
 echo $OUTPUT->footer();
+
+
 
 
 ?>
