@@ -3290,6 +3290,7 @@ function make_editing_buttons(stdClass $mod, $absolute_ignored = true, $movesele
         }
     }
 
+    /* UCLA MOD CCLE-3069: Remove group-mode and assign role buttons
     // groupmode
     if ($hasmanageactivities and $mod->groupmode !== false) {
         if ($mod->groupmode == SEPARATEGROUPS) {
@@ -3332,6 +3333,7 @@ function make_editing_buttons(stdClass $mod, $absolute_ignored = true, $movesele
             array('class' => 'editing_assign', 'title' => $str->assign)
         );
     }
+    //*/
 
     $output = html_writer::start_tag('span', array('class' => 'commands'));
     foreach ($actions as $action) {
