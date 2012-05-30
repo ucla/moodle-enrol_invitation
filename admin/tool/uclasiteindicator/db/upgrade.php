@@ -28,11 +28,11 @@ function xmldb_tool_uclasiteindicator_upgrade($oldversion) {
     $result = true;
 
     //                           YYYYMMDDVV
-    if ($result && $oldversion < 2012042303) {
+    if ($result && $oldversion < 2012042306) {
         $table = new xmldb_table('ucla_siteindicator_type');
         
         // Drop old table
-        if (!$dbman->table_exists($table)) {
+        if ($dbman->table_exists($table)) {
             $dbman->drop_table($table);
         }
         
@@ -54,11 +54,14 @@ function xmldb_tool_uclasiteindicator_upgrade($oldversion) {
         // Create table for ucla_siteindicator_type
         $dbman->create_table($table);
 
-        // uclasiteindicator savepoint reached
-        upgrade_plugin_savepoint(true, 2012042303, 'tool', 'uclasiteindicator');
-        
         // Populate table
         ucla_indicator_admin::sql_populate_types();
+        
+        // Find collab sites
+        ucla_indicator_admin::find_and_set_collab_sites();
+
+        // uclasiteindicator savepoint reached
+        upgrade_plugin_savepoint(true, 2012042306, 'tool', 'uclasiteindicator');
         
     }
 

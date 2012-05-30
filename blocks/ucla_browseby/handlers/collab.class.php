@@ -194,6 +194,14 @@ class collab_handler extends browseby_handler {
         global $CFG;
 
         $colcat = false;
+                
+        // START UCLA MOD CCLE-2389 - adding site indicator support
+        // Want the whole category tree for siteindicator to filter
+        if (!$colcat) {
+            $colcat->categories = $this->get_category_tree();
+        }
+        // END UCLA MOD CCLE-2389
+
         // Try a custom collaboration category name
         if (!empty($CFG->collaboration_category_name)) {
             $colcat = $this->get_category($CFG->collaboration_category_name);
@@ -203,13 +211,6 @@ class collab_handler extends browseby_handler {
         if (!$colcat) {
             $colcat = $this->get_category('Collaboration Sites');
         }
-        
-        // START UCLA MOD CCLE-2389 - adding site indicator support. 
-        // Don't give up quite yet..
-        if (!$colcat) {
-            $colcat->categories = $this->get_category_tree();
-        }
-        // END UCLA MOD CCLE-2389
 
         // Give up
         if (!$colcat) {

@@ -705,16 +705,39 @@ class ucla_indicator_admin {
         global $DB;
         
         // Populate types
-        $query1 = "INSERT INTO {ucla_siteindicator_type} (id, sortorder, fullname, shortname, description, visible) VALUES
+        $query = "INSERT INTO {ucla_siteindicator_type} (id, fullname, shortname, description) VALUES
                 (1, '".get_string('site_instruction', 'tool_uclasiteindicator')."', 'instruction', '".get_string('site_instruction_desc', 'tool_uclasiteindicator')."'),
                 (2, '".get_string('site_non_instruction', 'tool_uclasiteindicator')."', 'non_instruction', '".get_string('site_non_instruction_desc', 'tool_uclasiteindicator')."'),
                 (3, '".get_string('site_research', 'tool_uclasiteindicator')."', 'research', '".get_string('site_research_desc', 'tool_uclasiteindicator')."'),
                 (4, '".get_string('site_test', 'tool_uclasiteindicator')."', 'test', '".get_string('site_test_desc', 'tool_uclasiteindicator')."')";
-        $DB->execute($query1);
+        $DB->execute($query);
 
     }
     
-    static function foo() {
+    static function find_and_set_collab_sites() {
+        global $DB;
         
+        // We want to get all the courses (A) that do not belong to registrar (B)
+        // and are no in the site indicator table (C)
+        // This is a set subtraction: A - B - C
+        $query = "SELECT c.id 
+                FROM {course} AS c 
+                LEFT JOIN {ucla_request_classes} AS r ON r.courseid = c.id 
+                LEFT JOIN {ucla_siteindicator} AS s ON s.courseid = c.id 
+                WHERE c.id <> 1 
+                AND r.id IS NULL 
+                AND s.id IS NULL 
+                GROUP BY c.id";
+        $recs = $DB->get_records_sql($query);
+
+        $tuples = array();
+        foreach($recs as $r) {
+            $tuples[] = '(NULL,' . $r->id . ', 4)';
+        }
+
+        $query = "INSERT INTO {ucla_siteindicator} 
+                VALUES " . implode(', ', $tuples);
+        
+        $DB->execute($query);
     }
 }
