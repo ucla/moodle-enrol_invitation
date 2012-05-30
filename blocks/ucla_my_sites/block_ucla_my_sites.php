@@ -227,9 +227,10 @@ class block_ucla_my_sites extends block_base {
             if (!empty($class_site->roles)) {
                 $rolenames = array();
                 foreach ($class_site->roles as $role) {
-                    $rolenames[] = $role->name;
+                    $rolenames[] = trim($role->name);
                 }
-
+                $rolenames = array_unique($rolenames);
+                
                 $class_site->rolestr = implode(', ', $rolenames);
             } else {
                 debuggin('no roles');
