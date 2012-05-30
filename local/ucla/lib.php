@@ -792,7 +792,7 @@ function term_role_can_view($term, $roleshortname, $currterm=null,
     }
 
     if (ucla_validator('term', $leastterm)) {
-        if (term_cmp_fn($term, $leasttearm) < 0) {
+        if (term_cmp_fn($term, $leastterm) < 0) {
             return false;
         }
     }
