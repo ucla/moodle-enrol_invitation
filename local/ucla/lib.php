@@ -313,6 +313,67 @@ function ucla_get_courses_by_terms($terms) {
 
     return index_ucla_course_requests($records, 'courseid');
 }
+    
+/**
+ *  Based on what is set by the enrolment plugin, match user info
+ *  provided by the Registrar to the local database.
+ **/
+function ucla_registrar_user_to_moodle_user($reginfo,
+                                            $cachedconfigs=null) {
+    global $DB;
+
+    if ($cachedconfigs) {
+        $configs = $cachedconfigs;
+    } else {
+        $configs = get_config('enrol_database');
+    }
+
+    $userfield         = strtolower($configs->remoteuserfield);
+    $fbremoteuserfield = strtolower($configs->fbremoteuserfield);
+
+    $localuserfield   = $configs->localuserfield;
+    $fblocaluserfield = $configs->fblocaluserfield;
+
+    $sqlparams = array();
+    $sqlbuilder = array();
+
+    $usersearch = array();
+
+    if ($localuserfield === 'username') {
+        $usersearch['mnethostid'] = $CFG->mnet_localhost_id; 
+        $usersearch['deleted'] = 0;
+    }
+
+    foreach ($usersearch as $f => $v) {
+        $sqlbuilder[] = "$f = ?";
+        $sqlparams[] = $v;
+    }
+
+    $mapping = false;
+    $fallback = false;
+
+    if (!empty($reginfo[$userfield])) {
+        $mapping = $reginfo[$userfield];
+    }
+
+    if (!empty($reginfo[$fbremoteuserfield])) {
+        $fallback = $reginfo[$fbremoteuserfield];
+    }
+    
+    $searchstr = "$localuserfield = ?";
+    $sqlparams[] = $mapping;
+
+    if (!empty($fblocaluserfield)) {
+        $searchstr = "($searchstr OR $fblocaluserfield = ?)";
+        $sqlparams[] = $fallback;
+    } 
+
+    $sqlbuilder[] = $searchstr;
+    $usersql = implode(' AND ', $sqlbuilder);
+
+    return $DB->get_record_select('user', $usersql, $sqlparams, 
+        "id, $localuserfield, $fblocaluserfield", IGNORE_MULTIPLE);
+}
 
 /**
  *  Returns a pretty looking term in the format of 12S => Spring 2012.

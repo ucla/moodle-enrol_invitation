@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="blocks/ucla_group_manager/db" VERSION="20120530" COMMENT="XMLDB file for Moodle blocks/ucla_group_manager"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="ucla_group_sections" COMMENT="Each of these respond to a group that has been automatically created." NEXT="ucla_group_groupings">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="groupid"/>
+        <FIELD NAME="groupid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="The id of the group that is to be maintained." PREVIOUS="id" NEXT="term"/>
+        <FIELD NAME="term" TYPE="char" LENGTH="3" NOTNULL="true" SEQUENCE="false" COMMENT="The term of the section." PREVIOUS="groupid" NEXT="srs"/>
+        <FIELD NAME="srs" TYPE="char" LENGTH="9" NOTNULL="true" SEQUENCE="false" COMMENT="SRS of the section. Not of the main course." PREVIOUS="term"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="groupindex" UNIQUE="false" FIELDS="groupid" COMMENT="Index for groupid." NEXT="termsrsindex"/>
+        <INDEX NAME="termsrsindex" UNIQUE="false" FIELDS="term, srs" COMMENT="Index of the term and srs. Useful when updating existing groups." PREVIOUS="groupindex"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="ucla_group_groupings" COMMENT="Maintains automatically created groupings." PREVIOUS="ucla_group_sections">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="groupingid"/>
+        <FIELD NAME="groupingid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="The id of the grouping" PREVIOUS="id"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="groupingindex" UNIQUE="false" FIELDS="groupingid"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>
