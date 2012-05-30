@@ -61,7 +61,7 @@ if (is_enrolled($context)) {
 
 
 
-        $videos = get_video_data();
+        $videos = get_video_data($term, $srs);
 
         echo html_writer::tag('h3','Current Videos');
         
@@ -134,7 +134,8 @@ function init_page($course, $course_id, $context){
  * Obtains raw video data from the db, and returns a sorted version of that data based on 
  * the current system time.
  */
-function get_video_data($videos){
+function get_video_data($term, $srs){
+    global $DB;
     $videos = $DB->get_records_select('ucla_video_furnace', '`term` = "'. $term .'" AND `srs` = "'. $srs .'"');
     $cur_date = time();
     $cur_vids = array();
