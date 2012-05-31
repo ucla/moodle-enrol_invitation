@@ -1,0 +1,31 @@
+
+/* Style the browseby lists with zebra-stripes */
+#browsebymain {
+    padding: 5px;
+}
+
+#browsebymain .list0,
+#browsebymain .list1 {
+    margin-bottom: 20px;
+} 
+
+#browsebymain .list0 li,
+#browsebymain .list1 li {
+    border-top: 1px solid #EEEEEE;
+    padding: 5px;
+    margin: 0 10px;
+}
+
+#browsebymain .list0 li:nth-child(2n),
+#browsebymain .list1 li:nth-child(2n){
+    background-color: #F9F9F9;
+}
+
+#browsebymain .list0 li:hover,
+#browsebymain .list1 li:hover{
+    background-color: #F5F5F5;
+}
+
+.indicator_desc {
+    margin-right: 5px;
+}
