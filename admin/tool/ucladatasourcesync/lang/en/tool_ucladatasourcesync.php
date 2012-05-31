@@ -28,5 +28,14 @@ $string['errlrfileopen'] = "ERROR: Problem accessing data URL";
 $string['lrstartnoti'] = "Starting library reserves DB update:";
 $string['lrsuccessnoti'] = "records successfully inserted.";
 
+/** Strings for videofurnace_dbsync **/
+// Error messages
+$string['errvfmsglocation'] = "ERROR: No location set for video furnace data.";
+$string['errinvalidrowlen'] = "ERROR: Invalid row length in provided video furnace data.";
+$string['errvffileopen'] = "ERROR: Problem accessing data URL";
+
+//Notification messages
+$string['vfstartnoti'] = "Starting video furnace DB update:";
+$string['vfsuccessnoti'] = "records successfully inserted.";
 
 // EOF
