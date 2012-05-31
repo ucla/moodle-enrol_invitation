@@ -233,13 +233,27 @@ class block_ucla_my_sites extends block_base {
                 
                 $class_site->rolestr = implode(', ', $rolenames);
             } else {
-                debuggin('no roles');
+                debugging('no roles');
             }
         }
         
-        // We want to sort things, so that it appears classy yo
-        usort($class_sites, array(get_class(), 'registrar_course_sort'));
-
+        if (!empty($class_sites)) {
+            // We want to sort things, so that it appears classy yo
+            usort($class_sites, array(get_class(), 'registrar_course_sort'));
+            
+            // If viewing courses from 12S or earlier, give notice about archive 
+            // server. Only display this info if 'archiveserver' config is set.
+            if ((term_cmp_fn($showterm, '12S') == -1) && 
+                    (get_config('local_ucla', 'archiveserver'))) {
+                $content[] = $OUTPUT->box(get_string('shared_server_archive_notice', 
+                    'block_ucla_my_sites'), 'noticebox');
+            } else if (term_cmp_fn($showterm, $CFG->currentterm) == -1) {
+                // if viewing old term, give notice about student access
+                $content[] = $OUTPUT->box(get_string('student_access_notice', 
+                    'block_ucla_my_sites'), 'noticebox');                
+            }
+        }
+        
         // Display term selector
         $termoptstr = '';
         if (!empty($availableterms)) {
