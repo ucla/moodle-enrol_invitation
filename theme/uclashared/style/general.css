@@ -390,7 +390,7 @@ html, body {background-color:#FFF; height:100%;}
 /* START feature/CCLE-2800 JIT controls */
 #region-main-box div.editControlLinks {
 font-size: .9em;
-margin-top: 2px;
+margin-top: 1px;
 padding-left: 42px;
 background: url(./uclashared/pix/line-commands.gif) 8px 1px no-repeat;
 display: inline;
@@ -403,6 +403,12 @@ top: 0px;
 color: #ff6666;
 margin-right: 10px;
 text-decoration: none;
+}
+
+#region-main-box div.editControlLinks a:hover {
+color: red;
+margin-right: 10px;
+text-decoration: underline;
 }
 
 /* END feature/CCLE-2800 JIT controls */
