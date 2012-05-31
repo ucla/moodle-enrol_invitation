@@ -35,139 +35,51 @@ if (empty($SERVER{'HTTP_SHIB_UID'})) {
     }
     # authorization is handled at the directory level by Shib/Apache config in /etc/httpd/conf.d/shib.conf
 }
-
-function printhead() {  
-    static $headerprinted = 0;
-    $headerprinted++;
-    if ($headerprinted > 1) { 
-        return; 
-    } else {
-?>
-<font face=verdana>
-<table width=100%>
-    <tr>
-        <td>
-            <table width=80%>
-                <tr>
-                    <td align=right>
-                    <font color=white>
-                    <?php if (isset($displayname)) echo $displayname ?> currently logged in</font>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <h3><font color=white>MOODLE SUPPORT CONSOLE</font>
-                        </h3>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                    </td>
-                </tr>
-            </table>
-<?php
-// show return link on results screen
-/*        if (isset($_POST['console'])) { 
-            printhead(); 
-            echo "<a href=\"".$_SERVER['PHP_SELF']."\">Return</a>\n"; 
-        }*/
-    } 
-}
-/*
-function createTable2($result_keys, $result_val)
-{
-global $CFG;
-$tbl= new flexible_table('sorted_table');
-   $tbl->define_columns($result_keys);
-   $tbl->define_headers($result_keys);
-   $tbl->sortable(true);
-   $tbl->define_baseurl("www.google.com");
-   $tbl->setup();
-  foreach($result_val as $res)
-    {
-        if($res instanceof stdClass){
-        $row=array_values(get_object_vars($res));}
-        else{
-        $row=array_values($res);}
-	$tbl->add_data($row);
-    }
-    $tbl->finish_output();
-}
-*/
+// createTable creates a sortable table
+// Inputs $result_keys = an array of strings to be the header of the table
+//	 $result_val = an array of an array of strings or Object of strings that will be used to fill the table
 function createTable($result_keys, $result_val)
-{
-global $CFG;
- $table = new html_table();
-$table->attributes['id']='myTable';
-$table->id='myTable';
-$table->attributes['class']='tablesorter';
-$table-> head= $result_keys;
-foreach ($result_val as $res){
-if($res instanceof stdClass){
-        $row=array_values(get_object_vars($res));}
-        else{
-        $row=array_values($res);}
-$table->data[] = $row;
-}
-echo html_writer::table($table);
-?>
- <script src="http://jquery.com/src/jquery-latest.js"></script>
-<link rel="stylesheet" type="text/css" href="<?php echo $CFG->wwwroot;?>/lib/tablesorter/themes/blue/style.css" />
-<script type="text/javascript" src="<?php echo $CFG->wwwroot;?>/lib/tablesorter/jquery-latest.js"></script>
-<script type="text/javascript" src="<?php echo $CFG->wwwroot;?>/lib/tablesorter/jquery.tablesorter.js"></script>
-<script type="text/javascript">
-$(document).ready(function() 
-    { 
-        $("#myTable").tablesorter({widthFixed: true}); 
-    } 
-); 
-</script>
+{?>
+<style type="text/css">
+.user.r1.cell {margin-top:2cm;}
+</style>
 <?php
-}
-/*function createTable2($result_keys, $result_val)
-{
-global $CFG;
-echo'<table id="myTable" class="tablesorter" cellspacing="1">';
-    echo "<thead>";
-    echo "<tr>";
-    foreach($result_keys as $key){
-        echo '<th>'.$key.'</th>';
-    }
-    echo "</tr>";
-    echo "</thead>";
-    echo "<tbody>";
-    foreach($result_val as $res)
-    {
+    global $CFG;
+    $table = new html_table();
+    $table->attributes['id']='myTable';
+    $table->id='myTable';
+    $table->attributes['class']='tablesorter';
+    $table-> head= $result_keys;
+    foreach ($result_val as $res){
 	if($res instanceof stdClass){
-        $row=array_values(get_object_vars($res));}
-	else{
-	$row=array_values($res);}
-        echo "<tr>";
-        foreach($row as $res)
-        {
-            echo '<td>'.$res.'</td>';
-        }
-        echo "</tr>";
+        	$row=array_values(get_object_vars($res));}
+        else{
+        	$row=array_values($res);
+	}
+    $table->data[] = $row;
     }
-    echo "</tbody>";
-    echo "</table>\n";
-?>
- <script src="http://jquery.com/src/jquery-latest.js"></script>
-<link rel="stylesheet" type="text/css" href="<?php echo $CFG->wwwroot;?>/lib/tablesorter/themes/blue/style.css" />
-<script type="text/javascript" src="<?php echo $CFG->wwwroot;?>/lib/tablesorter/jquery-latest.js"></script>
-<script type="text/javascript" src="<?php echo $CFG->wwwroot;?>/lib/tablesorter/jquery.tablesorter.js"></script>
-<script type="text/javascript">
-$(document).ready(function() 
-    { 
-        $("#myTable").tablesorter({widthFixed: true}); 
-    } 
-); 
+    echo html_writer::table($table);
+    ?>
+ 	<script src="http://jquery.com/src/jquery-latest.js"></script>
+	<link rel="stylesheet" type="text/css" href="<?php echo $CFG->wwwroot;?>/local/ucla/tablesorter/themes/blue/style.css" />
+	<script type="text/javascript" src="<?php echo $CFG->wwwroot;?>/local/ucla/tablesorter/jquery-latest.js"></script>
+	<script type="text/javascript" src="<?php echo $CFG->wwwroot;?>/local/ucla/tablesorter/jquery.tablesorter.js"></script>
+	<script type="text/javascript">
+    		$(document).ready(function() 
+    		{ 
+       			$("#myTable").tablesorter();//{widthFixed: true}); 
+    		} 
+    		); 
+	
 </script>
 <?php
-}*/
+}
 
+if (empty($_POST['console'])) {
+	?><ol><?php
+}
 ////////////////////////////////////////////////////////////////////
-$title="Show Logs: Last 1000 Lines of ";
+$title=" Show Logs: Last 1000 Lines of ";
 $log_names = array('Apache Error'           => 'log_apache_error',
                    'Apache Access'          => 'log_apache_access',
                    'Apache SSL Access'      => 'log_apache_ssl_access',
@@ -191,9 +103,12 @@ foreach ($log_names as $log_title => $cfg_var) {
 
 if (empty($_POST['console'])) {
 ?>
+	<li>
     <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
         <input type="submit" name="console" value="<?php echo $title; ?>">
         <select name="logname">
+	</li>
+
 <?php
     foreach ($optnames as $logfile => $enable) {
         if ($enable) {
@@ -228,12 +143,14 @@ if (empty($_POST['console'])) {
 } 
 ////////////////////////////////////////////////////////////////////
 if (file_exists("/logs/prepop_db")) {
-    $title="List Prepopulate Cron Job Output Logfiles";
+    $title=" List Prepopulate Cron Job Output Logfiles ";
     if (empty($_POST['console'])) { 
 ?>
+        <li>
     <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
         <input type="submit" name="console" value="<?php echo $title; ?>">
     </form>
+        </li>
 <?php
     } elseif ($_POST['console'] == "$title") { 
         echo "<h3>$title</h3>\n";
@@ -244,12 +161,14 @@ if (file_exists("/logs/prepop_db")) {
     } 
     
 ////////////////////////////////////////////////////////////////////
-    $title="List Most Recent Prepopulate Cron Job Output";
+    $title=" List Most Recent Prepopulate Cron Job Output ";
     if (empty($_POST['console'])) { 
 ?>
+        <li>
     <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
         <input type="submit" name="console" value="<?php echo $title; ?>">
     </form>
+        </li>
 <?php 
     } elseif ($_POST['console'] == "$title") { 
         echo "<h3>$title</h3>\n";
@@ -261,12 +180,14 @@ if (file_exists("/logs/prepop_db")) {
     }
 }
 ////////////////////////////////////////////////////////////////////
-$title = "Show Role Assignments Distribution";
+$title=" Show Role Assignments Distribution ";
 if (empty($_POST['console'])) { 
 ?>
+        <li>
     <form method="post" action="<?php echo $_SERVER['PHP_SELF']; ?>">
         <input type="submit" name="console" value="<?php echo $title; ?>">
     </form>
+        </li>
 <?php
 } elseif ($_POST['console'] == "$title") { 
     echo "<h3>$title</h3>\n";
@@ -310,9 +231,10 @@ unset($result_keys[0]);
 createTable($result_keys,$result_val);
 } 
 ////////////////////////////////////////////////////////////////////
-$title="Show Last 100 Log Entries";
+$title=" Show Last 100 Log Entries ";
 if (empty($_POST['console'])) { 
 ?>
+        <li>
     <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
         <input type="submit" name="console" value="<?php echo $title; ?>">
         <!-- Start UCLA SSC MOD #619-->
@@ -322,6 +244,7 @@ if (empty($_POST['console'])) {
         <input type="radio" name="radio" value="gradebookfalse">Gradebook Failures
         <!-- End UCLA SSC MOD #619--> 
     </form>
+        </li>
 <?php
 } elseif ($_POST['console'] == "$title") { 
     //START UCLA SSC MODIFICATION #619
@@ -420,7 +343,8 @@ foreach($result_val as $res)
 {
         if($gradebookradio==true)
         {
-		$res->course=html_writer::link(new moodle_url('/course/view.php', array('id'=>$res->course)), $res->shortname);
+		$res->course=html_writer::link(new moodle_url('/course/view.php', array('id'=>$res->id)), $res->shortname,array('target'=>'_blank'));
+;
                 unset($res->shortname);
         }
         unset($res->id);
@@ -432,12 +356,14 @@ createTable($result_keys,$result_val);
     // END UCLA SSC MODIFICATION #1095a
 } 
 ////////////////////////////////////////////////////////////////////
-$title="Show Logins During Last 24 Hours";
+$title=" Show Logins During Last 24 Hours ";
 if (empty($_POST['console'])) { 
 ?>
+        <li>
     <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
         <input type="submit" name="console" value="<?php echo $title; ?>">
     </form>
+        </li>
 <?php
 } elseif ($_POST['console'] == "$title") { 
     echo "<h3>$title</h3>\n";
@@ -457,9 +383,14 @@ $result_val=array_values($result);
 $result_keys=array_keys(get_object_vars($result_val[0]));
 
 unset($result_keys[0]);
+$counter=0;
 foreach($result_val as $res)
 {
 	unset($res->id);
+	$res->url=html_writer::link(new moodle_url("/user/$res->url"), "$res->firstname $res->lastname",array('target'=>'_blank'));
+;
+	$result_val[$counter]=$res;
+	$counter++;
 }
         $num_rows = sizeof($result);
         if ($num_rows === 1) {
@@ -472,15 +403,17 @@ createTable($result_keys,$result_val);
 }
 } 
 ////////////////////////////////////////////////////////////////////
-$title="Count of Moodle Log by Day";
+$title=" Count of Moodle Log by Day ";
 if (empty($_POST['console'])) { 
 ?>
+        <li>
     <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
         <input type="submit" name="console" value="<?php echo $title; ?>">
         Days: <input type="textfield" name="days" size="3" VALUE="7">
         <input type="radio" name="radio" value="login" CHECKED>Logins
         <input type="radio" name="radio" value="entries">Log Entries
     </form>
+        </li>
 <?php
 // save for later when figure out how sql query should look    <input type="radio" name="radio" value="unique" CHECKED>Unique Logins
 } elseif ($_POST['console'] == "$title") { 
@@ -528,12 +461,14 @@ createTable($result_keys,$result_val);
 
 } 
 ////////////////////////////////////////////////////////////////////
-$title="Count of Moodle Log Entries by Day, Course for Last 7 days";
+$title=" Count of Moodle Log Entries by Day, Course for Last 7 days ";
 if (empty($_POST['console'])) { 
 ?>
+        <li>
     <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
         <input type="submit" name="console" value="<?php echo $title; ?>">
     </form>
+        </li>
 <?php
 } elseif ($_POST['console'] == "$title") { 
     echo "<h3>$title</h3>\n";
@@ -562,12 +497,14 @@ createTable($result_keys,$result_val);
 
 } 
 ////////////////////////////////////////////////////////////////////
-$title="Count of Moodle Log Entries by Day, Course, User for Last 7 days";
+$title=" Count of Moodle Log Entries by Day, Course, User for Last 7 days ";
 if (empty($_POST['console'])) { 
 ?>
+        <li>
     <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
         <input type="submit" name="console" value="<?php echo $title; ?>">
     </form>
+        </li>
 <?php
 } elseif ($_POST['console'] == "$title") { 
     echo "<h3>$title</h3>\n";
@@ -598,15 +535,17 @@ createTable($result_keys,$result_val);
 ////////////////////////////////////////////////////////////////////
 //MDL-1196:"Comparison of ucla_request_classes & ucla_request_crosslisted with classes table." was removed due new tables not requiring the functions of this script
 ////////////////////////////////////////////////////////////////////
-$title="Look up Moodle User by First or Last Name";
+$title=" Look up Moodle User by First or Last Name ";
 // Note: this report has an additional column at the end, with an SRDB button that points to the enroll2 Registrar class lookup
 if (empty($_POST['console'])) { 
 ?>
+	<li>
     <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
         <input type="submit" name="console" value="<?php echo $title; ?>">
         First Name: <input type="textfield" name="firstname">
         Last Name: <input type="textfield" name="lastname">
     </form>
+        </li>
 <?php
 } elseif ($_POST['console'] == "$title") { 
     echo "<h3>$title</h3>\n";
@@ -765,15 +704,17 @@ if (empty($_POST['console'])) {
     }
 }*/
 ////////////////////////////////////////////////////////////////////
-	$title="Sort Class Sites by Count of Resources or Activities ";
+$title=" Sort Class Sites by Count of Resources or Activities ";
 $result=$DB->get_records_sql("select term, count(*) as cnt from {$CFG->prefix}ucla_request_classes group by term");
 $item_names = array('resource','assignment','forum','questionnaire','quiz','ouwiki','lesson','exercise','forumposts');
 if (empty($_POST['console'])) {
 ?>
+        <li>
     <form method="post" action="<?php echo $_SERVER['PHP_SELF']; ?>">
-        <input type="submit" style="background:red" name="console" value="<?php echo $title; ?>">
+        <input type="submit" name="console" value="<?php echo $title; ?>">
         <select name="term">
         <option value="">TERM (count)</option>
+        </li>
 <?php
 $term_val=array_values($result);echo"next";
 foreach($term_val as $tVal)
@@ -830,8 +771,8 @@ if($itemfile=='forumposts')
 {	$counter=0;
 	foreach ($result_val as $res)
         {
-                $savedID='<a target="_blank" href='.$CFG->wwwroot.'/course/edit.php?id='.$res->id.'>'.$res->id.'</a>';
-                $savedCourse='<a target="_blank" href='.$CFG->wwwroot.'/course/view.php?id='.$res->id.'>'.$res->course.'</a>';
+		$savedID=html_writer::link(new moodle_url('/course/edit.php', array('id'=>$res->id)), $res->id,array('target'=>'_blank'));
+		$savedCourse=html_writer::link(new moodle_url('/course/view.php', array('id'=>$res->id)), $res->course,array('target'=>'_blank'));  
 		$res->id = $savedID;
 		$res->course = $savedCourse;
                 $result_val[$counter]= $res;
@@ -846,7 +787,7 @@ else{
 	$counter=0;
 	foreach ($result_val as $res)
 	{
-		$saved='<a target="_blank" href='.$CFG->wwwroot.'/course/view.php?id='.$res->id.'>'.$res->shortname.'</a>';
+		$saved=html_writer::link(new moodle_url('/course/view.php', array('id'=>$res->id)), $res->shortname,array('target'=>'_blank'));
 		$res->id = $saved;
 		unset($res->shortname);
 		$result_val[$counter]= $res;
@@ -859,12 +800,12 @@ createTable($result_keys,$result_val);
 
 }
 ////////////////////////////////////////////////////////////////////
-$title="Get Class Roster from Registrar";
+$title=" Get Class Roster from Registrar ";
 $sp = array("ccle_roster_class" => "ccle_roster_class", "hu_facultyCourseStudentsGetAlpha2" => "hu_facultyCourseStudentsGetAlpha2", "CIS_ROSTER_CLASS" => "CIS_ROSTER_CLASS");
 
 if (empty($_POST['console'])) {
-    printhead();
 ?>
+        <li>
     <form method="post" action="<?php echo $_SERVER['PHP_SELF']; ?>">
     <input type="submit" name="console" value="<?php echo $title; ?>">
 TERM: <input type="textfield" name="term" size="3" value="<?php echo $CFG->currentterm; ?>">
@@ -875,15 +816,14 @@ echo "<option value=\"$sp\">$sp</option>\n";
 } ?>
 </select>
 </form>
+        </li>
 <?php
 } elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
-printhead();
 $term     = $_POST['term'];
 $srs      = $_POST['srs'];
 $stored_procedure = $sp[$_POST['sp']];
 echo "<h3>$title - ".$_POST['sp']."</h3>\n";     
 if (!empty($term) and !empty($srs)) {
-$db_conn = odbc_connect($CFG->registrar_dbhost, $CFG->registrar_dbuser, $CFG->registrar_dbpass) or die( "ERROR: Connection to Registrar failed.");
 ucla_require_registrar();
     if($stored_procedure== 'CIS_ROSTER_CLASS'){$submit_procedure='ccle_getclasses';}else{$submit_procedure=$stored_procedure;}
     $sql ="EXECUTE ".$submit_procedure."'$srs','$term'";
@@ -909,10 +849,10 @@ if(empty($result))
         else
 {
     $result_val=array_values($result);
-    print_r($result_val[0]);
     $result_keys=array_keys($result_val[0]);
     createTable($result_keys, $result_val);
-    echo"Total Records:sizeof($result)" ;
+    $nrows= sizeof($result);
+    echo"Total Records: $nrows" ;
 
 }
 /*
@@ -922,86 +862,92 @@ else echo "<br/><center> Total Records:  $nrows </center>  <br/>";
 }    
 }
 ////////////////////////////////////////////////////////////////////
-$title="Get Class Instructors from Registrar";
+$title=" Get Class Instructors from Registrar ";
 
 if (empty($_POST['console'])) {
-printhead();
 ?>
+        <li>
 <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
 <input type="submit" name="console" value="<?php echo $title; ?>">
 TERM: <input type="textfield" name="term" size="3" value="<?php echo $CFG->currentterm; ?>">
-sRS: <input type="textfield" name="srs">
+SRS: <input type="textfield" name="srs">
     </form>
+        </li>
 <?php
 } elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
-    printhead();
 	$term     = $_POST['term'];
 	$srs      = $_POST['srs'];
-	$stored_procedure = "ccle_CourseInstructorsGet";
+	$stored_procedure = "ccle_courseinstructorsget";
     echo "<h3>$title - $stored_procedure</h3>\n";     
     if (!empty($term) and !empty($srs)) {
-        $db_conn = odbc_connect($CFG->registrar_dbhost, $CFG->registrar_dbuser, $CFG->registrar_dbpass) or die( "ERROR: Connection to Registrar failed.");
-        $result = odbc_exec($db_conn, "EXECUTE $stored_procedure '$term','$srs'")
-            or die ("Query failed: error message = " . mysql_error ());
+ucla_require_registrar();
+$result=registrar_query::run_registrar_query($stored_procedure,array(array($term,$srs)),true);
+if(empty($result))
+        {
+        echo"Nothing for $term and $srs. Try back later";
+        }
+        else
+{
+    $result_val=array_values($result);
+    $result_keys=array_keys($result_val[0]);
+    createTable($result_keys, $result_val);
+    $nrows= sizeof($result);
 
-        echo "<table>\n";
-        echo "<tr>\n";
-
-        // Show the headings
-        // Also store the field names so that we can find field values from the $fields_obj later
-
-            $field_count = odbc_num_fields($result);
-            for ($j = 1; $j <=$field_count; $j++) {
-                echo "<th>" . odbc_field_name ($result, $j ). "</th>\n";
-            }
-            echo "</tr>\n";
-            $j=$j-1;
-        // end of field names
-
-        // Show the content
-        $c=0; $nrows=0;
-        while(odbc_fetch_row($result)) { // getting data
-           $c=$c+1;
-           if ( $c%2 == 0 )
-               echo "<tr bgcolor=\"#d0d0d0\" >\n";
-           else
-               echo "<tr bgcolor=\"#eeeeee\">\n";
-           for($i=1; $i<=odbc_num_fields($result); $i++) {       
-               echo "<td>";
-               echo odbc_result($result,$i);
-               echo "</td>";        
-               if ( $i%$j == 0 ) {
-                   $nrows+=1; // counting no of rows   
-               }  
-           }
-           echo "</tr>";
-       }
-
-        odbc_close ($db_conn);
-        echo "</table>\n";
-        if ($nrows==0) echo "<br/><center> Nothing for $term and $srs. Try back later</center>  <br/>";
-        else echo "<br/><center> Total Records:  $nrows </center>  <br/>";
-   }    
+if ($nrows==0) echo "<center> Nothing for $term and $srs. Try back later</center> ";
+        else echo "<center> Total Records:  $nrows </center>";
+}}
+else echo "<br/><center> Please Enter a SRS and a Term.</center> <br/>";
 }
+
 ////////////////////////////////////////////////////////////////////
-$title="Get Class Information from Registrar";
+$title=" Get Class Information from Registrar ";
 
 if (empty($_POST['console'])) {
-    printhead();
 ?>
+        <li>
     <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
     <input type="submit" name="console" value="<?php echo $title; ?>">
     TERM: <input type="textfield" name="term" size="3" value="<?php echo $CFG->currentterm; ?>">
     SRS: <input type="textfield" name="srs">
     </form>
+        </li>
 <?php
 } elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
-    printhead();
 	$term     = $_POST['term'];
 	$srs      = $_POST['srs'];
-	$stored_procedure = "ccle_getClasses";
+	$stored_procedure = "ccle_getclasses";
     echo "<h3>$title - $stored_procedure $term $srs</h3>\n";     
     if (!empty($term) and !empty($srs)) {
+ucla_require_registrar();
+$result=registrar_query::run_registrar_query($stored_procedure,array(array($term,$srs)),true);
+if(empty($result))
+        {
+        echo"Nothing for $term and $srs. Try back later";
+        }
+        else
+{
+    $result_val=array_values($result);
+    $result_keys=array_keys($result_val[0]);
+        $counter=0;
+        foreach ($result_val as $res)
+        {
+                $saved=html_writer::link($res["url"],"Registrar");
+                $res["url"] = $saved;
+                $result_val[$counter]= $res;
+                $counter++;
+        }
+
+    createTable($result_keys, $result_val);
+    $nrows= sizeof($result);
+
+if ($nrows==0) echo "<center> Nothing for $term and $srs. Try back later</center> ";
+        else echo "<center> Total Records:  $nrows </center>";
+}}
+else echo "<br/><center> Please Enter a SRS and a Term.</center> <br/>";
+}
+   
+/*
+ if (!empty($term) and !empty($srs)) {
         $db_conn = odbc_connect($CFG->registrar_dbhost, $CFG->registrar_dbuser, $CFG->registrar_dbpass) or die( "ERROR: Connection to Registrar failed.");
         $result = odbc_exec($db_conn, "EXECUTE $stored_procedure '$term','$srs'")
             or die ("Query failed: error message = " . mysql_error ());
@@ -1021,19 +967,21 @@ if (empty($_POST['console'])) {
         odbc_close ($db_conn);
         echo "</table>\n";
    }    
-}
+}*/
 ////////////////////////////////////////////////////////////////////
-$title="Library Reserves Class List";
+$title=" Library Reserves Class List ";
 
 if (empty($_POST['console'])) {
-    printhead();
 ?>
+        <li>
     <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
     <input type="submit" name="console" value="<?php echo $title; ?>">
     </form>
+        </li>
 <?php
-} elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
-    printhead();
+} elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookupa
+$OUTPUT->error_text("the table {$CFG->prefix}ucla_libreserves was not implemented in moodle 2.0 at the time of the writing of this script");
+/*
     echo "<h3>$title</h3>\n";
     echo '<i>This only shows classes that match on term-srs. You can also check <a href="ftp://ftp.library.ucla.edu/incoming/eres/voyager_reserves_data.txt">The Library Reserves Datafeed</a></i><br><br>';
     $result=mysql_query("select CONCAT('<a href=\"{$CFG->wwwroot}/course/view/',b.shortname,'\">',b.shortname,'</a>') as class,b.idnumber from {$CFG->prefix}ucla_libreserves a inner join {$CFG->prefix}course b on CONCAT(a.term,'-',a.srs)=b.idnumber order by b.shortname", $db_moodle)
@@ -1059,19 +1007,20 @@ if (empty($_POST['console'])) {
         echo "</tr>\n";
     }
     echo "</table>\n";
+*/
 }
 ////////////////////////////////////////////////////////////////////
-$title="Video-Furnace List by Class";
+$title=" Video-Furnace List by Class ";
 
 if (empty($_POST['console'])) {
-    printhead();
 ?>
+        <li>
     <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
     <input type="submit" name="console" value="<?php echo $title; ?>">
     </form>
+        </li>
 <?php
 } elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
-    printhead();
     echo "<h3>$title</h3>\n";
     echo '<i>This only shows classes that match on term-srs.<br>You can also check the <a href="http://164.67.141.31/~guest/VF_LINKS.TXT">Video-Furnace Data Feed (UCLA IP address only.)</a></i><br><br>';
     $result=mysql_query("select CONCAT('<a href=\"{$CFG->wwwroot}/course/view/',b.shortname,'\">',b.shortname,'</a>') as class,b.idnumber,CONCAT('<a href=\"',a.video_url,'\">',a.video_title,'</a>') as video from {$CFG->prefix}ucla_vidfurn a inner join {$CFG->prefix}course b on CONCAT(a.term,'-',a.srs)=b.idnumber order by b.shortname", $db_moodle) or die(mysql_error());
@@ -1098,16 +1047,15 @@ if (empty($_POST['console'])) {
 }
 
 ////////////////////////////////////////////////////////////////////
-$title="List Collab Sites";
+$title=" List Collab Sites ";
 if (empty($_POST['console'])) {
-    printhead();
-?>
+?>        <li>
     <form method="post" action="<?php echo "${_SERVER['PHP_SELF']}"; ?>">
     <input type="submit" name="console" value="<?php echo $title; ?>">
     </form>
+        </li>
 <?php
 } elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
-    printhead();
     $result=mysql_query("select "
         . "elt(c.visible + 1, 'Hidden', 'Visible') as Hidden,elt(c.guest + 1, 'Private', 'Public') as Guest,c.format,cc.name, concat('<a href=\"{$CFG->wwwroot}/course/view.php?id=', c.id, '\">', c.shortname, '</a>') as 'Link', c.fullname "
         . "from mdl_course c "
@@ -1145,17 +1093,17 @@ if (empty($_POST['console'])) {
 }
 
 ////////////////////////////////////////////////////////////////////
-$title="Courses with Changed Titles";
+$title=" Courses with Changed Titles ";
 
 if (empty($_POST['console'])) {
-    printhead();
 ?>
+        <li>
     <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
     <input type="submit" name="console" value="<?php echo $title; ?>">
     </form>
+        </li>
 <?php
 } elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
-    printhead();
     echo "<h3>$title</h3>\n";
     $result=$DB->get_records_sql("SELECT * FROM 
 							(SELECT b.id as id, b.shortname as Course,
@@ -1186,8 +1134,8 @@ $result_keys=array_keys(get_object_vars($result_val[0]));
 $counter=0;
 foreach($result_val as $res)
 {
-	$res->Course='<a target="_blank" href="'.$CFG->wwwroot.'/course/view.php?id='.$res->id.'>'.$res->shortname.'</a>' ;
-	$res->id='<a target="_blank" href="'.$CFG->wwwroot.'/course/edit.php?id='.$res->id.'>'.$res->id.'</a>';
+	$res->Course=html_writer::link(new moodle_url('/course/view.php', array('id'=>$res->id)), $res->shortname,array('target'=>'_blank'));
+	$res->id=html_writer::link(new moodle_url('/course/edit.php', array('id'=>$res->id)), $res->id,array('target'=>'_blank'));
 
 $result_val[$counter]=$res;
 $counter++;
@@ -1199,23 +1147,23 @@ createTable($result_keys, $result_val);
 
 }
 //////////////////////////////////////////////////////////////////////////////////////////
-$title="Courses with Changed Descriptions";
+$title=" Courses with Changed Descriptions ";
 
 if (empty($_POST['console'])) {
-    printhead();
 ?>
+        <li>
     <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
     <input type="submit" name="console" value="<?php echo $title; ?>">
     TERM: <input type="textfield" name="term" size="3" value="<?php echo $CFG->currentterm; ?>">
     </form>
+        </li>
 <?php 
 } elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
-    printhead();
 	$term     = $_POST['term'];
     echo "<h3>$title $term</h3>\n";
-    $result=mysql_query("SELECT * FROM 
-							(SELECT CONCAT('<a target=\"_blank\" href=\"{$CFG->wwwroot}/course/edit.php?id=',b.id,'\">',b.id,'</a>') as id, 
-							CONCAT('<a target=\"_blank\" href=\"{$CFG->wwwroot}/course/view.php?id=',b.id,'\">',b.shortname,'</a>') AS Course, 
+    $result=$DB->get_records_sql("SELECT * FROM 
+							(SELECT b.id as id, 
+							b.shortname as Course, 
 							a.crs_desc AS OldDesc, 
 							b.summary AS NewDesc
 							FROM {$CFG->prefix}ucla_reg_classinfo a 
@@ -1223,36 +1171,46 @@ if (empty($_POST['console'])) {
 							ON (a.term='$term' and (CONCAT(a.term,'-',a.srs) = b.idnumber OR CONCAT(a.term,'-Master_',a.srs) = b.idnumber))
 							ORDER BY b.shortname
 							) t WHERE OldDesc != NewDesc
-						 ") or die(mysql_error());
-    $num_rows = mysql_num_rows($result);
-    echo "There are $num_rows classes.<P>";
-    echo "<table>\n";
-    $cols = 0;
-    while ($get_info = mysql_fetch_assoc($result)){
-		if($cols == 0) {
-            $cols = 1;
-            echo "<tr>";
-            foreach($get_info as $col => $value) {
-                echo "<th align='left'>$col</th>";
-            }
-            echo "<tr>\n";
-        }
-        echo "<tr>\n";
-        foreach ($get_info as $field) {
-            echo "\t<td>$field</td>\n";
-        }
-        echo "</tr>\n";
-    }
-    echo "</table>\n";
+						 ");
+if(empty($result))
+{
+        echo"No results were found";
+}
+else
+{
+$num_rows = sizeof($result);
+if($num_rows == 1)
+{
+ print "There is $num_rows class.<P>";
+}
+else
+{
+ print "There are $num_rows classes.<P>";
+}
+$result_val=array_values($result);
+$result_keys=array_keys(get_object_vars($result_val[0]));
+$counter=0;
+foreach($result_val as $res)
+{
+        $res->Course=html_writer::link(new moodle_url('/course/view.php', array('id'=>$res->id)), $res->shortname,array('target'=>'_blank'));
+        $res->id=html_writer::link(new moodle_url('/course/edit.php', array('id'=>$res->id)), $res->id,array('target'=>'_blank'));
+
+$result_val[$counter]=$res;
+$counter++;
+}
+createTable($result_keys, $result_val);
+}
 }
 ////////////////////////////////////////////////////////////////////
-$title="List of Users by Newest Accounts";
+$title=" List of Users by Newest Accounts ";
 if (empty($_POST['console'])) { 
 ?>
+        <li>
     <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
     <input type="submit" name="console" value="<?php echo $title; ?>">
     Count: <input type="textfield" name="count" size="3" VALUE="20">
     </form>
+        </li>
 <?php
 // save for later when figure out how sql query should look    <input type="radio" name="radio" value="unique" CHECKED>Unique Logins
 } elseif ($_POST['console'] == "$title") { 
@@ -1348,15 +1306,16 @@ if (empty($_POST['console'])) {
     print "</tbody></table>\n"; 
 }*/
 ////////////////////////////////////////////////////////////////////
-$title="Courses with no syllabus";
+$title=" Courses with no syllabus ";
 
 if (empty($_POST['console'])) {
-    printhead();
     ?>
+        <li>
     <form method="post" action="<?php echo "${_SERVER['PHP_SELF']}"; ?>">
     <input type="submit" name="console" value="<?php echo $title; ?>">
     TERM: <input type="textfield" name="term" size="3" VALUE="<?php echo $CFG->currentterm; ?>">
     </form>
+        </li>
     <?php
 } elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
     echo "<h3>$title for {$_POST['term']}</h3>\n";
@@ -1393,9 +1352,8 @@ $result_keys=array_keys(get_object_vars($result_val[0]));
 unset($result_keys[0]);
 $counter=0;
 foreach($result_val as $res)
-{
-        $saved='<a target="_blank" href='.$CFG->wwwroot.'/course/view.php?id='.$res->id.'>'.$res->shortname.'</a>';
-                $res->shortname = $saved;
+{	
+		$res->shortname=html_writer::link(new moodle_url('/course/view.php', array('id'=>$res->id)), $res->shortname,array('target'=>'_blank'));
 		unset($res->id);
                 $result_val[$counter]= $res;
                 $counter++;
@@ -1406,16 +1364,18 @@ createTable($result_keys,$result_val);
 }
 
 ////////////////////////////////////////////////////////////////////
-$title="Assignments and Quizzes Due Soon from Date";
+$title=" Assignments and Quizzes Due Soon from Date ";
 
 if (empty($_POST['console'])) {
     ?>
+        <li>
     <form method="post" action="<?php echo "${_SERVER['PHP_SELF']}"; ?>">
     <input type="submit" name="console" value="<?php echo $title; ?>">
     Start (MM/DD/YYYY): <input type="textfield" name="start" size="10" VALUE="<?php echo date('m/d/Y') ?>">
     Days From Start: <input type="textfield" name="days" size="3" VALUE="7">
     
     </form>
+        </li>
     <?php
 } elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
     $days = $_POST['days'];
@@ -1463,8 +1423,7 @@ unset($result_keys[0]);
 $counter=0;
 foreach($result_val as $res)
 {
-        $saved='<a target="_blank" href='.$CFG->wwwroot.'/course/view.php?id='.$res->id.'>'.$res->class.'</a>';
-                $res->class= $saved;
+$res->class=html_writer::link(new moodle_url('/course/view.php', array('id'=>$res->id)), $res->class,array('target'=>'_blank'));
                 unset($res->id);
                 $result_val[$counter]= $res;
                 $counter++;
@@ -1476,7 +1435,7 @@ createTable($result_keys,$result_val);
 
 ////////////////////////////////////////////////////////////////////
 // START SSC MODIFICATION #678
-$title="List syllabus count percentages in categories: None, Public, Private";
+$title=" List syllabus count percentages in categories: None, Public, Private ";
 
 $db_moodle = mysql_connect($CFG->dbhost,$CFG->dbuser,$CFG->dbpass)
     or die("Unable to connect to Moodle DB server {$CFG->dbhost}");
@@ -1484,8 +1443,8 @@ mysql_select_db($CFG->dbname, $db_moodle) or die("Unable to select DB {$CFG->dbn
 $result=mysql_query("select left(idnumber,3) as term,count(*) as cnt from {$CFG->prefix}course group by term", $db_moodle) or die(mysql_error());
 
 if (empty($_POST['console'])) {
-    printhead();
 ?>
+        <li>
     <form method="post" action="<?php echo "${_SERVER['PHP_SELF']}"; ?>">
     <input type="submit" name="console" value="<?php echo $title; ?>">
     <select name="term">
@@ -1500,10 +1459,9 @@ if (empty($_POST['console'])) {
     <input type="checkbox" name="draw" >Display Courses</input>
     <input type="checkbox" name="sort" >Sort by Syllabus Status</input>
     </form>
-    
+       </li>
 <?php
 } elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
-    printhead();
     $uterm = $_POST['term'];
     $draw_tables = isset($_POST['draw']) ? ($_POST['draw'] == 'on') : false;
     $sortbysyl = isset($_POST['sort']) ? ($_POST['sort'] == 'on') : false;
@@ -1801,7 +1759,6 @@ if (empty($_POST['console'])) {
 /** Removing this section for now, if sequencereport.php is functioning, uncomment this block.
 $title="Course Sections With Malformed Sequence";
 if (empty($_POST['console'])) { 
-    printhead();
 ?>
     <form method="post" action="sequencereport.php">
         <input type="submit" name="console" value="<?php echo $title; ?>">
@@ -1813,22 +1770,20 @@ if (empty($_POST['console'])) {
 ///////////////////////////////////////////////////////////////////////
 // START SSC MODIFICATION #828 : SRDB tests moved to support console //
 ///////////////////////////////////////////////////////////////////////
-$title = "SRDB Stored Procedure Tests";
-
+$title=" SRDB Stored Procedure Tests ";
 if (empty($_POST['console'])) {
-    printhead();
 ?>
-
+    <li>
     <form method="POST" action="<?php echo $_SERVER['PHP_SELF'] ?>">
     <input type="submit" name="console" value="<?php  echo $title ?>">
     <input type="text" name="query">
     <input type="checkbox" name="tabled">Display in tables</input>
     - - (e.g. ccle_ClassCalendar,10F,180052200)
     </form>
+    </li>
 <?php
 
 } else if ($_POST['console'] == $title) {
-    printhead();
 
     echo "<br>";
 
@@ -1920,13 +1875,15 @@ if (empty($_POST['console'])) {
 
 // END SSC MODIFICATION #828
 //////////////////////////////////////////////////////////////////////////////////////////
-$title="Count of Modules by Course";
+$title=" Count of Modules by Course ";
 
 if (empty($_POST['console'])) {
 ?>
+        <li>
     <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
     <input type="submit" name="console" value="<?php echo $title; ?>">
     </form>
+        </li>
 <?php 
 } elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
     echo "<h3>$title</h3>\n";
@@ -1973,11 +1930,10 @@ foreach($result_val as $res){
 createTable($result_keys, $result_val);
 }
 
-?>
-        </td>
-    </tr>
-</table>
+if (empty($_POST['console'])) {
+        ?></ul><?php
+}
 
-<?php
+
 echo $OUTPUT->footer();
 ?>  
