@@ -67,7 +67,6 @@ $course_preferences->commit();
 echo json_encode($course_preferences->get_course_preferences($course_id));
 */
 
-$sectarr = array();
 
 
 /*
@@ -76,7 +75,6 @@ $sql = "update mdl_course_sections set section='$counter' where course='$course_
  }
 */
 
-echo json_encode($sectarr);
 
              $counter = 1;
 foreach($sections as $key => $value) {
