@@ -269,16 +269,16 @@ class site_indicator_request {
             'description' => $message,
         );
         
-        echo "jira support user: " . $support . "<br/>";
-        echo "<pre>";
-        print_r($title);
-        echo "</pre>";
-        echo "<pre>";
-        print_r($message);
-        echo "</pre>";
+//        echo "jira support user: " . $support . "<br/>";
+//        echo "<pre>";
+//        print_r($title);
+//        echo "</pre>";
+//        echo "<pre>";
+//        print_r($message);
+//        echo "</pre>";
 
         // Create ticket
-        //$result = do_request(get_config('block_ucla_help', 'jira_endpoint'), $params, 'POST');      
+        do_request(get_config('block_ucla_help', 'jira_endpoint'), $params, 'POST');      
     }
     
     /**
@@ -347,6 +347,8 @@ class site_indicator_request {
         } else {
             $category_string = "Other -- specified in 'reason message'";
         }
+        
+        return $category_string;
     }
     
     private function get_type_str() {

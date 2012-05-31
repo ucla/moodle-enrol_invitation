@@ -68,6 +68,7 @@ class course_edit_form extends moodleform {
                         $radioarray[] = &MoodleQuickForm::createElement('radio', 'indicator_change', '', $descstring, $type->id, $attributes);
                     }
                     $mform->addGroup($radioarray, 'indicator_type_radios', get_string('change', 'tool_uclasiteindicator'), array('<br/>'), false);
+                    $mform->setDefault('indicator_change', $indicator->property->type);
                 }
             
             } else {

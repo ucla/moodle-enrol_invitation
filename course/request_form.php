@@ -103,7 +103,9 @@ class course_request_form extends moodleform {
 
         $mform->addElement('header','requestreason', get_string('courserequestreason'));
 
-        $mform->addElement('textarea', 'reason', get_string('courserequestsupport'), array('rows'=>'15', 'cols'=>'50'));
+        // START UCLA MOD CCLE-2389 - changing default size of 'reason' textbox
+        $mform->addElement('textarea', 'reason', get_string('courserequestsupport'), array('rows'=>'5', 'cols'=>'50'));
+        // END UCLA MOD CCLE-2389
         $mform->addRule('reason', get_string('missingreqreason'), 'required', null, 'client');
         $mform->setType('reason', PARAM_TEXT);
 
