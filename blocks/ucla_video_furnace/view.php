@@ -23,7 +23,7 @@ echo $OUTPUT->header();
 
 // Are we allowed to display this page?
 if (is_enrolled($context)) {
-    display_video_furnace_contents();
+    display_video_furnace_contents($course);
 }
 else {
     echo "Guests can not view this page";
@@ -34,7 +34,7 @@ echo $OUTPUT->footer();
 /**
  *  Prints out all of the html for displaying the video furnace page contents. 
  */
-function display_video_furnace_contents(){
+function display_video_furnace_contents($course){
     echo html_writer::start_tag('div', array('id' => 'vidfurn-wrapper'));
     
     echo html_writer::tag('h1','Video Furnace',array('class' => 'classHeader'));
@@ -54,7 +54,7 @@ function display_video_furnace_contents(){
     ,array('id' => 'courseHdrSecondary'));
 
     $course_info = ucla_get_course_info($course->id);
-
+    echo $course->id."wutuwutwwt";
     foreach ($course_info as $each_course) {
         //Start UCLA SSC MODIFICATION 601
         echo html_writer::start_tag('div', array('id'=>'vidFurnaceContent'));
@@ -66,9 +66,12 @@ function display_video_furnace_contents(){
         $videos = get_video_data($each_course);
         
         print_video_list($videos['current'], 'Current Videos', array('class'=>'vidFurnaceLinks'));
-        print_video_list($videos['future'], 'Future Videos', array('class'=>'vidFurnaceFuture'));
-        print_video_list($videos['past'], 'Past Videos', array('class'=>'vidFurnacePast'));
-
+        if(!empty($videos['future'])) {
+            print_video_list($videos['future'], 'Future Videos', array('class'=>'vidFurnaceFuture'));
+        }
+        if(!empty($videos['past'])) {
+            print_video_list($videos['past'], 'Past Videos', array('class'=>'vidFurnacePast'));
+        }
         echo html_writer::end_tag('div'); //array('id'=>'vidFurnaceContent')      
     }
     echo html_writer::end_tag('div'); //array('id'=>'vidfurn-wrapper')       
@@ -88,12 +91,12 @@ function get_video_data($course_info){
     $term = $course_info->term;
     $srs = $course_info->srs;
     $videos = $DB->get_records_select('ucla_video_furnace', '`term` = "'. $term .'" AND `srs` = "'. $srs .'"');
-    
+    print_object($course_info);
     $cur_date = time();
     $cur_vids = array();
     $future_vids = array();
     $past_vids = array();
-    //Sort the data chronologically
+    // Sort the data chronologically
     foreach($videos as $video) {
         if ($cur_date >= $video->start_date && $cur_date <= $video->stop_date) {
             $cur_vids[] = $video;
@@ -109,14 +112,13 @@ function get_video_data($course_info){
     // sort the different videos depending on their current status
     usort($cur_vids, 'cmp_title');
     usort($future_vids, 'cmp_start_date');
-    usort($past_vids, 'cmp_start_date_r');
+    usort($past_vids, 'cmp_end_date');
     
     return array('current'=>$cur_vids, 'future' => $future_vids, 'past' => $past_vids);
 }
 
 /**
- * Prints all of the html associated with a particular video list. If the list
- * is empty, the function does not print anything.
+ * Prints all of the html associated with a particular video list. 
  * 
  * @param array $video_list a list of videos to be displayed. Meant to be
  * used with data obtained from get_video_data.  
@@ -124,17 +126,17 @@ function get_video_data($course_info){
  * @param $section_attr an array containing the attributes to be associated with the div tag.
  */
 function print_video_list($video_list, $header_title, $section_attr){
-    if (!empty($video_list)) {
-        echo html_writer::tag('h3', $header_title);
-        echo html_writer::start_tag('div', array('class'=>'vidFurnacePast'));
-        foreach($video_list as $video) {
-            echo html_writer::tag('p', 
-                html_writer::tag('em',$video->video_title) 
-                .html_writer::empty_tag('br')
-                .'&nbsp;&nbsp;&nbsp;&nbsp;This video no longer available as of '. date("Y-m-d",$video->stop_date));
-        }
-        echo html_writer::end_tag('div'); //array('class'=>'vidFurnacePast')
-    }    
+
+    echo html_writer::tag('h3', $header_title);
+    echo html_writer::start_tag('div', $section_attr);
+    foreach($video_list as $video) {
+        echo html_writer::tag('p', 
+            html_writer::tag('em',$video->video_title) 
+            .html_writer::empty_tag('br')
+            .'&nbsp;&nbsp;&nbsp;&nbsp;This video no longer available as of '. date("Y-m-d",$video->stop_date));
+    }
+    echo html_writer::end_tag('div'); //array('class'=>'vidFurnacePast')
+      
 }
 
 // sort functions

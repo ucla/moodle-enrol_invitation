@@ -18,12 +18,13 @@ update_videofurnace_db();
 
 function update_videofurnace_db() {
     // get global variables
-    global $CFG, $DB;
+    global $DB;
     $datasource_url = 'http://164.67.141.31/~guest/VF_LINKS.TXT'; //get_config('block_video_furnace', 'source_url');
 
     echo get_string('vfstartnoti', 'tool_ucladatasourcesync');
 
     $incoming_data = &get_tsv_data($datasource_url);
+    //Haven't gotten around to merging the following cleanup code into matts function. should be done once there is time.
     //$data = &cleanup_csv_data($data, "ucla_video_furnace");
 
     $vidfurn_table = 'ucla_video_furnace';
@@ -58,7 +59,7 @@ function update_videofurnace_db() {
         } else {
             # if it does not then insert it
             $DB->insert_record('ucla_video_furnace', $row_data);
-            //mail_data[] = create_mail_object($row_data);
+           // update_mail_data($row_data, $mail_data);
         }
     }
 
@@ -76,52 +77,65 @@ function update_videofurnace_db() {
  /* 
   * INCOMPLETE DO NOT USE
   */
- function create_mail_object($row_data){
-                /*
-            # check if the movie is from a class in moodle, and add it to the class_info DB            
-            $termsrs = $row_data[0] . '-' . $row_data[1];
-            $check_mdl_class_stmt->bindParam(1, $termsrs);
-            $check_mdl_class_stmt->execute();
-            $result = $check_mdl_class_stmt->fetchAll();
-            
-            if ($result) {
-                $class_info = $result[0];
-                $idnum = $class_info['idnumber'];
+ function update_mail_data($row_data, &$mail_data){
+          /*  //Check if the movie is from a class in moodle
+            $term = $row_data[0];
+            $srs = $row_data[1];
+            $courseid = ucla_map_termsrs_to_courseid($term, $srs);
+            $course = ucla_get_course_info($course_id);
+           
+            if ($course) {
+                $class_info = $course[0];
+                $idnum = $courseid;
                 # if this is the first movie from this class create the contents and find the profs' emails
                 if (!isset($mail_data[$idnum])) {
-                    # create the subject
-                    $mail_data[$idnum]['email_subject'] = $row_data[4] . ' (' 
-                        . $row_data[0] . '): '
-                        . 'VideoFurnace movies added to your class website.';
-                    # find and store the instructors' emails for the course for later
-                    $courseid = $class_info['id'];
-                    $context = get_context_instance(CONTEXT_COURSE, $courseid);
-                    $get_emails_stmt->bindParam(1, $context->id);
-                    $get_emails_stmt->execute();
-                    $result = $get_emails_stmt->fetchAll();
-                    foreach ($result as $value) {
-                        if (!isset($mail_data[$idnum]['instruct_emails'])) {
-                            $mail_data[$idnum]['instruct_emails'] = $value['email'];
-                        } else {
-                            $mail_data[$idnum]['instruct_emails'] .= ', ' . $value['email'];
-                        }
-                    }
-
-                    # store the instructors name for use later
-                    $mail_data[$idnum]['instruct_name'] = $row_data[5];
-                    # create the email contents
-                    $mail_data[$idnum]['email_contents'] = $row_data[4] . ' (' . $row_data[0] 
-                                    . '): ' . $webroot . '/course/view/' . $class_info['shortname'] . "\n"
-                                    . 'Movies may be found at: '
-                                    . $webroot . '/course/view/' . $class_info['shortname'] . "?page=vidfurn\n"
-                                    . 'New movies:' . "\n\n";
+                    $mail_data[$idnum] = create_mail_object($row_data, $courseid, $course[0]);
                 }   
-
                 # add the movie to the email contents
                 $mail_data[$idnum]['email_contents'] .= "\t" . $row_data[6] . "\n\t\t"
-                                                     . 'Start: ' . date('Y-M-d', $row_data[2]) . "\n\t\t"
-                                                     . 'End: ' . date('Y-M-d', $row_data[3]) . "\n\n";
+                                                    . 'Start: ' . date('Y-M-d', $row_data[2]) . "\n\t\t"
+                                                    . 'End: ' . date('Y-M-d', $row_data[3]) . "\n\n";
             } */
+ }
+ 
+ function create_mail_object($row_data, $courseid, $course_info){
+   /* global $CFG;
+    # create the subject
+    $mail_object['email_subject'] = $row_data[4] . ' (' 
+        . $row_data[0] . '): '
+        . 'VideoFurnace movies added to your class website.';
+    # find and store the instructors' emails for the course for later
+    $context = get_context_instance(CONTEXT_COURSE, $courseid);
+    $get_emails_stmt->bindParam(1, $context->id);
+    $get_emails_stmt->execute();
+    $result = $get_emails_stmt->fetchAll();
+        $get_emails_stmt = $dbh->prepare("SELECT DISTINCT $usertable.email FROM $roleassntable
+                                      JOIN $usertable ON $roleassntable.userid = $usertable.id
+                                      WHERE $roleassntable.roleid IN $roles_to_email AND $roleassntable.contextid=?");
+        $roles_to_email = $CFG->videofurnace_roles_to_email;
+        $roletable     = $prefix . 'role';
+        $roleassntable = $prefix . 'role_assignments';
+        $usertable     = $prefix . 'user';
+
+    foreach ($result as $value) {
+        if (!isset($mail_object['instruct_emails'])) {
+            $mail_object['instruct_emails'] = $value['email'];
+        } else {
+            $mail_object['instruct_emails'] .= ', ' . $value['email'];
+        }
+    }
+
+    # store the instructors name for use later
+    $mail_object['instruct_name'] = $row_data[5];
+    # create the email contents
+    $mail_object['email_contents'] = $row_data[4] . ' (' . $row_data[0] 
+                    . '): ' . $CFG->dirroot . '/course/view/' . $course_info->shortname . "\n"
+                    . 'Movies may be found at: '
+                    . $CFG->dirroot . '/course/view/' . $course->shortname . "?page=vidfurn\n"
+                    . 'New movies:' . "\n\n";    
+
+    return $mail_object;*/
+     
  }
  
  
