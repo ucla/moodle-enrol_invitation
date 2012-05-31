@@ -673,27 +673,28 @@ while ($section <= $course->numsections) {
             if ($section != 0) {
                 // End div for sectionheader
                 $center_content .= html_writer::end_tag('div');
-                                            
-                //Start CCLE-2800 JIT controls
-                if ($editing) {
-                    $center_content .= html_writer::start_tag('div',
-                            array('class' => 'editControlLinks'));
-                    $center_content .= html_writer::link('modedit.php?add=resource&type=&course='.$course->id.'&section='.$section.'', 
-                            'Upload file', array());
-                    $center_content .= html_writer::link('modedit.php?add=url&type=&course='.$course->id.'&section='.$section.'', 
-                            'Add link', array());
-                    $center_content .= html_writer::link('modedit.php?add=label&type=&course='.$course->id.'&section='.$section.'', 
-                            'Add text', array());
-                    $center_content .= html_writer::link('modedit.php?add=subheading&type=&course='.$course->id.'&section='.$section.'', 
-                            'Add subheading', array());
-                    $center_content .= html_writer::end_tag('div');
-                }
-
-            }
+            }                                
 
             // Display the section
             $center_content .= html_writer::start_tag('div', 
                 array('class' => 'summary'));
+                //Start CCLE-2800 JIT controls
+            if ($section != 0) {
+                if ($editing) {
+                    $center_content .= html_writer::start_tag('div',
+                            array('class' => 'editControlLinks'));
+                    $center_content .= html_writer::link('../blocks/ucla_easyupload/upload.php?course_id='.$course->id.'&type=file&section='.$section.'', 
+                            'Upload file', array());
+                    $center_content .= html_writer::link('../blocks/ucla_easyupload/upload.php?course_id='.$course->id.'&type=link&section='.$section.'', 
+                            'Add link', array());
+                    $center_content .= html_writer::link('../blocks/ucla_easyupload/upload.php?course_id='.$course->id.'&type=text&section='.$section.'', 
+                            'Add text', array());
+                    $center_content .= html_writer::link('../blocks/ucla_easyupload/upload.php?course_id='.$course->id.'&type=subheading&section='.$section.'', 
+                            'Add subheading', array());
+                    $center_content .= html_writer::end_tag('div');
+                    $center_content .= html_writer::empty_tag('br');
+                }
+            }
 
             if ($thissection->summary) {
                 $summarytext = 
