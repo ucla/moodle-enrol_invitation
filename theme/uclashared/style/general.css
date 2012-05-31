@@ -386,3 +386,23 @@ html, body {background-color:#FFF; height:100%;}
 .headermain {
     margin-left: 2.0em !important;
 }
+
+/* START feature/CCLE-2800 JIT controls */
+#region-main-box div.editControlLinks {
+font-size: .9em;
+margin-top: 2px;
+padding-left: 42px;
+background: url(./uclashared/pix/line-commands.gif) 8px 1px no-repeat;
+display: inline;
+position: relative;
+top: 0px;
+  float:left;
+}
+
+#region-main-box div.editControlLinks a {
+color: #ff6666;
+margin-right: 10px;
+text-decoration: none;
+}
+
+/* END feature/CCLE-2800 JIT controls */

@@ -673,12 +673,22 @@ while ($section <= $course->numsections) {
             if ($section != 0) {
                 // End div for sectionheader
                 $center_content .= html_writer::end_tag('div');
-                
+                                            
                 //Start CCLE-2800 JIT controls
-                $center_content .= html_writer::start_tag('div',
-                        array('class' => 'editControlLinks'));
-                $center_content .= html_writer::link('view.php', 'Test Link', 
-                        array());
+                if ($editing) {
+                    $center_content .= html_writer::start_tag('div',
+                            array('class' => 'editControlLinks'));
+                    $center_content .= html_writer::link('modedit.php?add=resource&type=&course='.$course->id.'&section='.$section.'', 
+                            'Upload file', array());
+                    $center_content .= html_writer::link('modedit.php?add=url&type=&course='.$course->id.'&section='.$section.'', 
+                            'Add link', array());
+                    $center_content .= html_writer::link('modedit.php?add=label&type=&course='.$course->id.'&section='.$section.'', 
+                            'Add text', array());
+                    $center_content .= html_writer::link('modedit.php?add=subheading&type=&course='.$course->id.'&section='.$section.'', 
+                            'Add subheading', array());
+                    $center_content .= html_writer::end_tag('div');
+                }
+
             }
 
             // Display the section
