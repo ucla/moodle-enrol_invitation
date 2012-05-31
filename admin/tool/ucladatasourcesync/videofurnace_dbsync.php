@@ -11,15 +11,30 @@ require_once('lib.php');
 require_once(dirname(__FILE__) . '/../../../config.php');
 require_once($CFG->dirroot.'/local/ucla/lib.php');
 
-handle_cfgs();
+//Testing purposes, change this to get config later.
+$datasource_url = 'http://164.67.141.31/~guest/VF_LINKS.TXT'; //get_config('block_video_furnace', 'source_url');
+
+handle_cfgs($datasource_url);
 
 // Begin database update
-update_videofurnace_db();
+update_videofurnace_db($datasource_url);
 
-function update_videofurnace_db() {
+/**
+ * Main function for updating the video furnace db.
+ * 
+ * @todo This function should be working properly except for the part with the mail.
+ * @todo fix_data_format is currently implementing most of the functionality
+ * that cleanup_csv_data is supposed to do. cleanup_csv_data needs to be 
+ * modified to support this block. Note that even though this is tsv data,
+ * the cleanup_csv_data works for it as well due to the nature of the get_data
+ * function.
+ * @todo More debug information should be added to this entire section.
+ * @todo Update_mail_data and send_mail_data should be uncommented when
+ * they are working correctly.
+ */
+function update_videofurnace_db($datasource_url) {
     // get global variables
     global $DB;
-    $datasource_url = 'http://164.67.141.31/~guest/VF_LINKS.TXT'; //get_config('block_video_furnace', 'source_url');
 
     echo get_string('vfstartnoti', 'tool_ucladatasourcesync');
 
@@ -74,8 +89,14 @@ function update_videofurnace_db() {
     echo get_string('vfsuccessnoti', 'tool_ucladatasourcesync') . "\n";
  } 
 
- /* 
-  * INCOMPLETE DO NOT USE
+ /** 
+  * Adds new information to the mail_data array based on the information given from row_data
+  * 
+  * @param array $row_data data returned from cleanup_csv_data. 
+  * @param array $mail_data the array that the new mail object will be added to.
+  * 
+  * @todo $row_data was cleaned up in fix_data_format, so all instances of $row_data[i]
+  * need to be replaced with its appropriate counterpart ($row_data[0] should be $row_data['term'], for instance.
   */
  function update_mail_data($row_data, &$mail_data){
           /*  //Check if the movie is from a class in moodle
@@ -98,8 +119,21 @@ function update_videofurnace_db() {
             } */
  }
  
+ /**
+  *
+  * @param array $row_data - data returned from cleanup_csv_data
+  * @param int $courseid - Courseid of the course that the rowdata refers to.
+  * @param course object $course_info- Course information of the course that the rowdata refers to. 
+  * 
+  * @todo $row_data was cleaned up in fix_data_format, so all instances of $row_data[i]
+  * need to be replaced with its appropriate counterpart ($row_data[0] should be $row_data['term'], for instance.
+  * @todo The sql query needs to be updated to moodle 2.0 syntax. I'm guessing that the select statement can be 
+  * copied into get_records_sql, but i'm not entirely sure. https://svn.sscnet.ucla.edu/ccle/trunk/misc/videofurnace/vidfurn_dbsync.php
+  * is where the original code is at, so refer to that. The relevant parts should be commented in /// below.
+  * 
+  */
  function create_mail_object($row_data, $courseid, $course_info){
-   /* global $CFG;
+   /* global $CFG, $DB;
     # create the subject
     $mail_object['email_subject'] = $row_data[4] . ' (' 
         . $row_data[0] . '): '
@@ -108,14 +142,19 @@ function update_videofurnace_db() {
     $context = get_context_instance(CONTEXT_COURSE, $courseid);
     $get_emails_stmt->bindParam(1, $context->id);
     $get_emails_stmt->execute();
-    $result = $get_emails_stmt->fetchAll();
-        $get_emails_stmt = $dbh->prepare("SELECT DISTINCT $usertable.email FROM $roleassntable
-                                      JOIN $usertable ON $roleassntable.userid = $usertable.id
-                                      WHERE $roleassntable.roleid IN $roles_to_email AND $roleassntable.contextid=?");
-        $roles_to_email = $CFG->videofurnace_roles_to_email;
-        $roletable     = $prefix . 'role';
-        $roleassntable = $prefix . 'role_assignments';
-        $usertable     = $prefix . 'user';
+    
+    $result = get_records_sql(stuff goes here);
+    /// $result = $get_emails_stmt->fetchAll();
+    ///    $get_emails_stmt = $dbh->prepare("SELECT DISTINCT $usertable.email FROM $roleassntable
+    ///                                  JOIN $usertable ON $roleassntable.userid = $usertable.id
+    ///                                  WHERE $roleassntable.roleid IN $roles_to_email AND $roleassntable.contextid=?");
+    ///                $context = get_context_instance(CONTEXT_COURSE, $courseid);
+    ///                $get_emails_stmt->bindParam(1, $context->id); 
+    /// ? should be $context->id
+    ///    $roles_to_email = $CFG->videofurnace_roles_to_email;
+    ///    $roletable     = $prefix . 'role';
+    ///    $roleassntable = $prefix . 'role_assignments';
+    ///    $usertable     = $prefix . 'user';
 
     foreach ($result as $value) {
         if (!isset($mail_object['instruct_emails'])) {
@@ -139,8 +178,11 @@ function update_videofurnace_db() {
  }
  
  
-/* 
-* INCOMPLETE DO NOT USE
+/**
+ * E-mails people about new video furnace links based on the mail data given.
+ * 
+ * @todo Haven't worked on this function at all besides copy paste the relevant parts
+ * from 1.9 into here. 
 */
 function send_mail_data($mail_data){
    /* $currtime = date('Y-m-d H:i:s');
@@ -238,15 +280,14 @@ function fix_data_format(&$row){
     $row = $data_object;
 }    
     
-/*
+/**
  * Ensure that necessary cfg variables are initialized, and initializes some
  * cfg variables if they are initialized.
+ * 
+ * @todo there are a lot of config variables from 1.9 that I'm unsure about 
+ * porting over. 
  */
-function handle_cfgs(){
-    
-
-    // Check to see that config variable is initialized
-    $datasource_url = 'http://164.67.141.31/~guest/VF_LINKS.TXT'; //get_config('block_video_furnace', 'source_url');
+function handle_cfgs($datasource_url){
 
     if (empty($datasource_url)) {
         die("\n" . get_string('errvfmsglocation', 'tool_ucladatasourcesync') . "\n");

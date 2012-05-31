@@ -58,7 +58,7 @@ class block_ucla_video_furnace extends block_base {
     }
     
     /**
-     *  This will create a link to the control panel.
+     *  This will create a link to the ucla video furnace page.
      **/
     static function get_action_link($courseid) {
         global $CFG;
@@ -71,6 +71,7 @@ class block_ucla_video_furnace extends block_base {
      *  This block really cannot be added anywhere, so we just made a place
      *  up (hacky). If we do not do this, we will get this
      *  plugin_devective_exception.
+     * @todo Not really sure if theres an equivalent to 'blocks-ucla_control_panel' => false, for this block.
      **/
     function applicable_formats() {
         return array(

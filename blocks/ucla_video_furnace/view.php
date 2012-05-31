@@ -18,7 +18,6 @@ $context = get_context_instance(CONTEXT_COURSE, $course_id, MUST_EXIST);
 init_page($course, $course_id, $context);
 set_editing_mode_button();
 
-// using core renderer
 echo $OUTPUT->header();
 
 // Are we allowed to display this page?
@@ -54,7 +53,7 @@ function display_video_furnace_contents($course){
     ,array('id' => 'courseHdrSecondary'));
 
     $course_info = ucla_get_course_info($course->id);
-    echo $course->id."wutuwutwwt";
+
     foreach ($course_info as $each_course) {
         //Start UCLA SSC MODIFICATION 601
         echo html_writer::start_tag('div', array('id'=>'vidFurnaceContent'));
@@ -91,7 +90,7 @@ function get_video_data($course_info){
     $term = $course_info->term;
     $srs = $course_info->srs;
     $videos = $DB->get_records_select('ucla_video_furnace', '`term` = "'. $term .'" AND `srs` = "'. $srs .'"');
-    print_object($course_info);
+
     $cur_date = time();
     $cur_vids = array();
     $future_vids = array();
