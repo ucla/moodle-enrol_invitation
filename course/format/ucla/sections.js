@@ -13,9 +13,12 @@ M.format_ucla.mk_button_override = function(tag, imgSrc, text,
     var tagnode = this.old_mk_button(tag, imgSrc, text, attributes,
                                      imgAttributes);
 
-    if (attributes != null && attributes[0][1] == 'cursor:move') {
+    var ismovebutton = (attributes != null && attributes[0][1] == 'cursor:move');
+    /**
+    if (ismovebutton) {
         return tagnode;
     }
+    //*/
 
     if (M.format_ucla.no_editing_icons != undefined 
             && !M.format_ucla.no_editing_icons) {
@@ -32,13 +35,15 @@ M.format_ucla.mk_button_override = function(tag, imgSrc, text,
     //tagnode.removeChild(tagnode.firstChild);
 
     text_only = document.createTextNode(tagnode.title);
+    text_div = document.createElement('span');
+    text_div.appendChild(text_only);
 
     // THis is to prevent the other clicks from breaking things
     text_only.src = '';
     text_only.alt = '';
     text_only.title = '';
     
-    tagnode.insertBefore(text_only, iconnode);
+    tagnode.insertBefore(text_div, iconnode);
 
     return tagnode;
 }
