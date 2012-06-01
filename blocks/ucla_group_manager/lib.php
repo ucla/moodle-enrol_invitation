@@ -12,7 +12,6 @@ ucla_require_registrar();
  *  
  **/
 class ucla_group_manager {
-
     /**
      *  Fetches section enrollments for a particular course set.
      *  @param $courseid int
@@ -147,7 +146,6 @@ class ucla_group_manager {
         // First sort into correct groupings
         $secttypegroupings = array();
         foreach ($reqsecinfos as $termsrs => $reqinfo) {
-
             foreach ($reqinfo->sectionsinfo as $secttermsrs => $sectioninfo) {
                 $skey = self::get_section_type_key($sectioninfo->courseinfo);
 
@@ -203,7 +201,7 @@ class ucla_group_manager {
             }
         }
 
-        self::groups_add_members($group, $moodleusers);
+        self::groups_sync_members($group, $moodleusers);
 
         return $group;
     }
@@ -227,14 +225,26 @@ class ucla_group_manager {
         }
     }
 
+    static function groups_sync_members($group, $groupusers) {
+        // Determine which users to CUT...
+        // Actually don't bother, enrolments take care of that
+        //$currentusers = groups_get_members($group->id);
+        //$userenrols = self::get_users_enrolments_in_course($group->courseid);
+
+        return groups_add_members($group, $groupusers);
+    }
+
     /**
      *  Convenience function, adds many members to a group.
      **/
     static function groups_add_members($group, $users) {
-        foreach ($users as $moodleuser) {
+        $results = array();
+        foreach ($users as $key => $moodleuser) {
             // Make it an object to save a pointless dbq
-            groups_add_member($group, (object)$moodleuser);
+            $results[$key] = groups_add_member($group, (object)$moodleuser);
         }
+
+        return $results;
     }
 
     /**
@@ -405,5 +415,30 @@ class ucla_group_manager {
 
     protected static function match_registrar_user($reguser) {
         return ucla_registrar_user_to_moodle_user($reguser);
+    }
+
+    static function get_users_enrolments_in_course($courseid) {
+        global $DB;
+
+        $userenrols = $DB->get_records_sql('
+                SELECT ue.id, ue.userid, e.enrol
+                FROM {user_enrolments} ue
+                INNER JOIN {enrol} e ON ue.enrolid = e.id
+                WHERE e.courseid = ?
+            ', array($courseid));
+
+        $enrolsperuser = array();
+        foreach ($userenrols as $userenrol) {
+            $userid = $userenrol->userid;
+            if (!isset($enrolsperuser[$userid])) {
+                $enrolsperuser[$userid] = array();
+            }
+
+            $enrolname = $userenrol->enrol;
+
+            $enrolsperuser[$userid][$enrolname] = $enrolname;
+        }
+
+        return $enrolsperuser;
     }
 }

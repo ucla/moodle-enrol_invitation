@@ -372,7 +372,7 @@ function ucla_registrar_user_to_moodle_user($reginfo,
     $usersql = implode(' AND ', $sqlbuilder);
 
     return $DB->get_record_select('user', $usersql, $sqlparams, 
-        "id, $localuserfield, $fblocaluserfield", IGNORE_MULTIPLE);
+        "*", IGNORE_MULTIPLE);
 }
 
 /**
