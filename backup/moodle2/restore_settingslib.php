@@ -60,6 +60,13 @@ class restore_comments_setting extends restore_role_assignments_setting {}
 
 /**
  * root setting to control if restore will create
+ * events or no, depends of @restore_users_setting
+ * exactly in the same way than @restore_role_assignments_setting so we extend from it
+ */
+class restore_calendarevents_setting extends restore_role_assignments_setting {}
+
+/**
+ * root setting to control if restore will create
  * completion info or no, depends of @restore_users_setting
  * exactly in the same way than @restore_role_assignments_setting so we extend from it
  */
@@ -92,6 +99,13 @@ class restore_course_generic_setting extends course_backup_setting {}
  */
 class restore_course_overwrite_conf_setting extends restore_course_generic_setting {}
 
+// START UCLA MOD: CCLE-2902 - Enable "legacy course files" repository for restored M19 courses on M2
+// Patch from https://github.com/merrill-oakland/moodle/compare/master...MDL-32598
+/**
+ * Setting to define is we are going to bring in legacy files
+ */
+class restore_course_legacy_files_setting extends restore_course_generic_setting {}
+// END UCLA MOD: CCLE-2902
 
 class restore_course_generic_text_setting extends restore_course_generic_setting {
 

@@ -1,0 +1,1152 @@
+/*General css*/
+
+.general_font,.general_font table,.general_font input,.general_font select   {
+    font-family:Lucida Grande,Verdana,Arial,sans-serif;
+    font-size:11px;
+}
+
+fieldset{
+    border:none;    
+}
+
+label{
+	padding-left:5px;
+	vertical-align: top;
+}
+
+.LargeLabel_Width {
+    float:left;
+    width:200px;
+}
+
+.LargeCheckbox_Width {
+    display:block;
+    float:left;
+    margin-left:200px;
+}
+
+.TextRegular_Right {
+    font-size:11px;
+    text-align:right;
+    padding-right:10px;
+}
+
+.TextComment {
+    font-size:11px;
+    color: #555555;
+    font-style: italic;
+}
+
+.CommentLabel{
+	clear:left;
+	padding-left:125px;
+	padding-top:5px;
+}
+
+.LargeLabel_Width_Left {
+  float: left;
+  width: 200px;
+  padding: 0px;
+  margin: 0px;
+  vertical-align: top
+}
+
+.LargeLabel_Left {
+  float: left;
+  vertical-align: top
+}
+
+.Padding_LargeLabel {
+  padding-left: 200px;
+  padding-top: 0px;
+}
+
+.Reduce_space {
+  margin-top: 6px !important;
+  *padding_top:3px !important;
+}
+
+
+.AlignRight{
+    margin-left:215px;   
+    _margin-left:203px;
+}
+.Padding_100px {
+    
+    margin-left:100px;
+}
+.Padding_50px {
+    
+    margin-left:50px;
+}
+
+.Padding_200px {
+    
+    margin-left:200px;
+}
+
+.ReduceSpace {
+	padding_top:4px;	
+}
+
+.Black{
+	Color:black;
+}
+
+.Grey{
+	Color:grey;
+}
+
+.Bold{
+	font-weight:bold;	
+}
+
+label.Padding_50px{
+    font-size:11px;
+    text-align:right;
+    margin-left:50px;
+    padding-right:15px;
+}
+
+.Padding_MaxUser {
+    margin-left:100px;
+    _margin-left:105px;/*IE*/
+}
+
+h1
+{
+    font-size:12px; 
+}
+
+
+.hideElement
+{
+    display:none !important;
+}
+
+.required
+{
+    color:red;
+}
+
+.subPart
+{
+    padding-top:20px;
+    _padding-top:15px;
+}
+
+.SubOption
+{
+    margin-left:235px;
+    padding-top:4px
+}
+
+.smallSubOption
+{
+    margin-left:85px;
+}
+
+
+/*headerBar*/
+.headerBar
+{
+    position:relative;
+    width: 700px;
+    background-image: url( "../lib/web/pictures/backgrounds/headerbar.png" );
+    height : 32px;
+    border-bottom: solid 1px Black;
+}
+
+.headerBarRight
+{
+    position:absolute;
+    right:10px;
+    top:5px;
+}
+.headerBarRight select
+{
+    font-family:Lucida Grande,Verdana,Arial,sans-serif;
+    font-size:11px;
+    width:110px;
+}
+
+.headerBarLeft
+{
+    position:absolute;
+    left:10px;
+}
+
+.headerBarLeft span{
+    background:transparent url("../lib/web/pictures/items/headerbar-logo.png" ) no-repeat scroll top right;
+    behavior: url("../lib/web/js/lib/iepngfix/iepngfix.htc");
+    display:block;
+    width:80px;
+    height:25px;
+    text-indent:-9999px;
+    
+}
+
+    
+    
+/*toolBar*/
+
+.toolbar
+{
+    height: 72px;
+    width: 700px;
+    background-image: url( "../lib/web/pictures/backgrounds/toolbar.png" );
+    position:relative;
+    border-bottom: solid 1px Black;
+}
+
+
+/* ---BUTTONS ----------------------------------------------- */
+/*                                                            */
+/*  For regular, contextual and toolbar buttons               */
+/*                                                            */
+/*----------------------------------------------------------- */
+
+/* --- Button list style --- */
+ul.regular_btn_list, ul.contextual_bar, ul.toolbar_list, ul.toolbar-labels {
+    list-style-type: none;
+    padding: 0px;
+    margin: 0px;
+}
+
+ul.contextual_bar {
+    background: url("../lib/web/pictures/contextual_btn/contextual_bar.png") repeat-x;
+    height: 28px;
+}
+
+ul.toolbar_list {
+    background: url("../lib/web/pictures/backgrounds/toolbar.png") repeat-x;
+    height: 62px;
+    padding: 0 5px 0 5px;
+    float:left;
+ }
+
+ul.toolbar-labels {
+    background: url("../lib/web/pictures/toolbar_btn/toolbar-labels.png") repeat-x;
+    height: 78px;
+    padding: 0 5px 0 5px;
+}
+
+
+ul.regular_btn_list li, ul.contextual_bar li, ul.toolbar_list li, ul.toolbar-labels li {
+    float: left;
+    margin-right: 5px;
+    margin-left: 5px;
+}
+
+
+/* --- Buttons font style --- */
+ul.contextual_bar a, ul.regular_btn_list a, 
+.regular_btn, .regular_btn-disabled, .regular_btn-submit, .regular_btn-submit-disabled,  .regular_btn
+.contextual_btn, .contextual_btn-disabled, .contextual_btn-submit,  .contextual_btn-submit-disabled
+{
+    font-size: 11px !important;
+    font-family: Lucida Grande,Verdana,Arial,sans-serif !important;
+    font-weight: bold !important;
+    text-decoration: none !important;
+    text-align:center;
+    white-space:nowrap;
+    border: 0;
+}
+
+ul.toolbar a, ul.toolbar input, ul.toolbar-labels a, ul.toolbar-labels input, .toolbar_btn, .toolbar_btn-disabled {
+    text-decoration: none;
+    text-align:center;
+    white-space:nowrap;
+    color: black;
+    border: 0;
+}
+
+
+/* --- Buttons sizing --- */
+.regular_btn, .regular_btn-disabled, .regular_btn-submit, .regular_btn-submit-disabled,
+.contextual_btn, .contextual_btn-disabled, .contextual_btn-submit, .contextual_btn-submit-disabled, 
+.toolbar_btn, .toolbar_btn-disabled {
+    display:block;
+    float:left;
+    border: 0;
+    margin: 0;
+}
+
+.regular_btn, .regular_btn-disabled, .regular_btn-submit, .regular_btn-submit-disabled {
+    height: 20px;
+}
+
+.contextual_btn, .contextual_btn-disabled, .contextual_btn-submit, .contextual_btn-submit-disabled {
+    height: 28px;
+}
+
+.toolbar_btn, .toolbar_btn-disabled {
+    height: 48px;
+}
+
+
+/* --- Buttons layout --- */
+.regular_btn, .regular_btn-disabled {
+    background: transparent url("../lib/web/pictures/regular_btn/regular_btn-right.png") no-repeat scroll top right;
+    padding-right: 5px; /* sliding doors padding */
+}
+
+.regular_btn span, .regular_btn-disabled span {
+    background: transparent url("../lib/web/pictures/regular_btn/regular_btn-left.png") no-repeat;
+    display: block;
+    line-height: 10px;
+    /* added to inify the size*/
+    text-align:center;
+    padding: 5px 5px 5px 10px;
+}
+
+.regular_btn-submit, .regular_btn-submit-disabled {
+    background: transparent url("../lib/web/pictures/regular_btn/regular_btn-submit.png") no-repeat left top;
+    width: 120px;
+    line-height: 10px;
+    padding: 0px 10px 0px 10px;
+}
+
+.contextual_btn, .contextual_btn-disabled {
+    background: transparent url("../lib/web/pictures/contextual_btn/contextual_btn-right.png") no-repeat scroll top right;
+    padding-right: 10px; /* sliding doors padding */
+}
+
+.contextual_btn span, .contextual_btn-disabled span {
+    background: transparent url("../lib/web/pictures/contextual_btn/contextual_btn-left.png") no-repeat;
+    display: block;
+    line-height: 14px;
+    padding: 7px 0 7px 10px;
+}
+
+.contextual_btn-submit, .contextual_btn-submit-disabled {
+    background: transparent url("../lib/web/pictures/contextual_btn/contextual_btn-submit.png") no-repeat left top;
+    width: 100px;
+    line-height: 14px;
+    padding: 7px 10px 7px 10px;
+}
+
+.regular_btn-submit,.regular_btn, .contextual_btn-submit, .toolbar_btn a, .toolbar_btn input {
+    cursor: pointer;
+    cursor: hand;
+    color:#404E58!important;
+    text-decoration:none;
+}
+
+
+.toolbar_btn a, .toolbar_btn-disabled span, .toolbar_btn input, .toolbar_btn-disabled input {
+    background: transparent url("../lib/web/pictures/toolbar_btn/squared_btn.png") no-repeat top right;
+    width: 48px;
+    height: 48px;
+    display: block;
+    margin: 6px 0 8px 0; 
+    _padding-top:48px;
+    _height : 0px;
+    outline: none;
+}
+ 
+.toolbar_btn>a, .toolbar_btn-disabled>span, .toolbar_btn>input, .toolbar_btn-disabled>input {
+    line-height:114px;
+}
+   
+ 
+ul.toolbar .toolbar_btn a, ul.toolbar .toolbar_btn-disabled span, ul.toolbar .toolbar_btn input, ul.toolbar .toolbar_btn-disabled input {
+    overflow: hidden;  /* Disables button labels display */
+}
+
+
+/* --- Buttons Rollover state --- */
+.regular_btn a:hover, .regular_btn:hover, .regular_btn-submit:hover, .toolbar_btn a:hover {
+    text-shadow: 0px 0px 1px #A8B2BF;  /* W4 */
+}
+
+.contextual_btn a:hover, .contextual_btn:hover, .contextual_btn-submit:hover {
+    text-shadow: 0px 1px 1px #F2F3F9;  /* W2 */
+}
+
+
+/* --- Buttons Clicked state --- */
+.regular_btn:active, .regular_btn-submit:active, .contextual_btn:active, .contextual_btn-submit:active {
+    background-position: center right;
+}
+
+.regular_btn:active span {
+    background-position: center left;
+    padding: 6px 5px 4px 10px; /* push text down 1px */
+}
+
+.regular_btn-submit:active  {
+    padding: 2px 10px 0px 10px; /* push text down 1px */
+}
+
+.contextual_btn:active span {
+    background-position: center left;
+    padding: 8px 0 6px 10px; /* push text down 1px */
+}
+
+.contextual_btn-submit:active  {
+    padding: 8px 10px 6px 10px; /* push text down 1px */
+}
+
+.toolbar_btn a:active, .toolbar_btn input:active {
+    background-position: 0px -96px;
+    /* background-position: right center; doesn't work on IE! */
+}
+
+.toolbar_btn a.activities_btn:active {
+    background-position: 10px -96px !important ;
+    /* background-position: right center; doesn't work on IE! */
+}
+
+/* --- Buttons Disabled state --- */
+.regular_btn-disabled span, .contextual_btn-disabled span {
+    background-position: left bottom;
+}
+
+.regular_btn-disabled, .regular_btn-submit-disabled {
+    background-position: right bottom;
+    color: #CCCCCC!important; /* W5 */
+    cursor: default;
+    outline: none; 
+}
+
+.contextual_btn-disabled, .contextual_btn-submit-disabled {
+    background-position: right bottom;
+    color: #CCCCCC!important;
+    cursor: default;
+}
+
+.toolbar_btn-disabled {
+    color: #CCCCCC!important;
+    cursor: default;
+}
+
+
+/* --- Custom buttons --- */
+.toolbar_btn-disabled .appshare_btn, .toolbar_btn .appshare_btn {
+     width:48px; 
+     background: transparent url("../lib/web/pictures/toolbar_btn/settings.png") no-repeat top right;
+     behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc"); 
+}
+
+.toolbar_btn-disabled .appshare_btn { background-position:  0px -192px; }
+
+.toolbar_btn-disabled .launch_btn, .toolbar_btn .launch_btn { 
+    width:48px;
+    background: transparent url("../lib/web/pictures/toolbar_btn/launch.png") no-repeat top right;
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc"); 
+}
+
+.toolbar_btn-disabled .launch_btn { background-position:   0px -192px; }
+
+
+.toolbar_btn-disabled .activities_btn, .toolbar_btn .activities_btn 
+{ 
+    width:68px;
+    background: transparent url("../lib/web/pictures/toolbar_btn/add_activity.png") no-repeat top center;
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+}
+    
+.toolbar_btn-disabled .activities_btn { background-position:  10px -192px; }
+
+.toolbar_btn-disabled .new_btn, .toolbar_btn .new_btn { 
+    width:48px;
+    margin-right:50px;
+     background: transparent url("../lib/web/pictures/toolbar_btn/new.png") no-repeat top right;
+     behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc"); 
+}
+.toolbar_btn-disabled .new_btn { background-position:  0px -192px; }
+
+.toolbar_btn-disabled .content_btn, .toolbar_btn .content_btn { 
+    width:48px; 
+    background: transparent url("../lib/web/pictures/toolbar_btn/content.png") no-repeat top right;
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc"); 
+}
+.toolbar_btn-disabled .content_btn { background-position:  0px -192px; }
+
+.toolbar_btn-disabled .report_btn, .toolbar_btn .report_btn { 
+    width:48px;
+    margin-right:50px;
+    background: transparent url("../lib/web/pictures/toolbar_btn/reports.png") no-repeat top right; 
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+}
+
+.toolbar_btn-disabled .report_btn { background-position:  0px -192px; }
+
+.toolbar_btn-disabled .settings_btn, .toolbar_btn .settings_btn { 
+    width:48px;  
+    background:transparent url("../lib/web/pictures/toolbar_btn/settings.png") no-repeat top right; 
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+}
+.toolbar_btn-disabled .settings_btn { background-position:  0px -192px; }
+
+.toolbar_btn-disabled .delete_btn, .toolbar_btn .delete_btn { 
+    width:48px; 
+    background:transparent url("../lib/web/pictures/toolbar_btn/delete.png") no-repeat top right; 
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc"); 
+}
+.toolbar_btn-disabled .delete_btn { background-position:  0px -192px; }
+
+
+.rightComponent
+{ 
+    float: right;
+    margin-top:5px; 
+}
+
+/* ---SEARCH BOX -------------------------------------------- */
+/*                                                            */
+/*  Stylish search box, Apple-style.                          */
+/*                                                            */
+/*----------------------------------------------------------- */
+div.searchBox {
+    background: url("../lib/web/pictures/search/search-right.png") no-repeat top right;
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+    width: 100px;
+    height: 22px;
+    position: relative;
+}
+
+div.safari {
+    background: none!important;
+}
+
+div.searchBox input {
+    background: url("../lib/web/pictures/search/search-left.png") no-repeat top left;
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+    padding: 4px 10px 4px 23px;
+    float:left;
+    border:none;
+    margin-left: -20px;
+    _margin-left: 0px;
+    width: 120px;
+    height: 22px;
+    font-family:Lucida Grande,Verdana,Arial,sans-serif;
+    font-size:11px;
+}
+
+a#searchFieldResetBtn {
+    background: url("../lib/web/pictures/search/x_round-16_12.png") no-repeat top left; 
+    position:absolute;
+    right:2px;
+    top: 2px;
+    height: 16px;
+    width: 16px;
+    visibility: hidden;
+}
+
+a#searchFieldResetBtn:hover {
+    background: url("../lib/web/pictures/search/x_round-16_12-over.png") no-repeat top left;    
+}   
+
+
+/*list*/
+* html #list 
+{
+    float: right;
+    height: 415px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+ 
+}
+
+#list 
+{
+    float: right;
+    height: 395px;
+    overflow-y: scroll; 
+    overflow-x: hidden;   
+}
+*+html #table_list
+{
+   width:683px;  
+}
+#table_list
+{
+   width:700px;  
+}
+
+
+/* --- TABS ------------------------------------------------- */
+/*                                                            */
+/* For top-level and module tabs display                      */
+/*                                                            */
+/*----------------------------------------------------------- */
+
+/* --- Tab list style --- */
+.tab, .module_tab {
+    list-style:none;
+}
+
+.tab {
+    font-size: 13px;
+}
+
+.module_tab {
+    font-size: 11px;
+}
+
+
+/* --- Left Side of a tab --- */
+.tab li, .module_tab li {
+    float:left;
+    padding-left:5px;
+}
+
+.tab li {
+    background:url(../lib/web/pictures/tabs/tab-left.png) no-repeat;
+    background-position:0 -22px;
+}
+
+.module_tab li {
+    background:url(../lib/web/pictures/module_tab/module_tab-left.png) no-repeat;
+    background-position:0 -19px;
+}
+
+
+/* --- Right Side of a tab --- */
+.tab li span, .module_tab li span {
+    padding-left: 1px;
+    margin-right:0px; 
+    display:block;
+    float:left;
+}
+
+.tab li span {
+    background:url(../lib/web/pictures/tabs/tab-right.png) no-repeat;
+    background-position:right -22px;
+    height:22px;
+    line-height: 18px;
+}
+
+.module_tab li span {
+    background:url(../lib/web/pictures/module_tab/module_tab-right.png) no-repeat;
+    background-position:right -19px;
+    height:19px;
+    line-height: 16px;
+}
+
+
+/* --- Link Text layout --- */
+.tab li a, .module_tab li a {
+    padding-bottom: 0px;
+    padding-top: 0px;
+    text-decoration:none;
+    white-space:nowrap;
+    color: black;
+}
+
+.tab li a {
+    padding-left: 10px;
+    padding-right: 15px;
+}
+
+.module_tab li a {
+    padding-left: 5px;
+    padding-right: 10px;
+}
+
+.tab a:hover, .module_tab a:hover {
+    color: #404E58; /* W6 */
+}
+
+/* Commented Backslash Hack hides rule from IE5-Mac \*/
+.tab a, .module_tab a {float:none;}
+/* End IE5-Mac hack */
+
+
+/* --- Current tab selected --- */
+.tab .current {
+    background:url(../lib/web/pictures/tabs/tab-left.png) no-repeat left top;
+}
+
+.tab .current span {
+    background:url(../lib/web/pictures/tabs/tab-right.png) no-repeat right top;
+}
+
+.module_tab .current {
+    background:url(../lib/web/pictures/module_tab/module_tab-left.png) no-repeat left top;
+}
+
+.module_tab .current span {
+    background:url(../lib/web/pictures/module_tab/module_tab-right.png) no-repeat right top;
+}
+
+
+/* --- Disabled tab layout --- */
+.tab, .module_tab .disabled span {
+    color: #78879A; /* W5 */
+}
+
+.tab .disabled span {
+    padding-left: 10px;
+    padding-right: 15px;
+}
+
+.module_tab .disabled span {
+    padding-left: 5px;
+    padding-right: 10px;
+}
+
+
+/* --- Last tab displays a right border --- */
+.tab .lastTab span, .module_tab .lastTab span {
+    padding-left:0px;
+    margin-right:0px;
+}
+
+
+.tabContent{
+    margin-top:20px;;
+    margin-left:10px;
+    height:355px;    
+    _height:350px;
+}
+
+
+.tabContent p{
+    margin-top:10px;
+    *margin-top:5px;/*IE 7*/
+}
+
+#tabs
+{  
+    background-color:#F1F1F1;
+    _padding-top:5px;
+    height:18px;    
+    border-bottom: solid 1px  #78879A;
+}
+/* -- context bar -- */
+.contextBar
+{
+    height:30px;
+    background-color:#F1F1F1;
+    padding-top:15px;
+    padding-left:10px;
+}
+.nameElement{
+    font-weight: bold;
+    font-size: 12px;
+}
+
+
+/* --- Validation Bar --*/
+
+.validationBar
+{
+    height:25px;
+    border-top: solid 1px  #404E58;
+    background-color:#F1F1F1;
+}
+
+
+    
+/* ------ BOX ----------------------------------------------- */
+/*                                                            */
+/*  For dialogs and lightboxes                                */
+/*                                                            */
+/* ---------------------------------------------------------- */
+  
+div.wimba_box {
+    float: left;
+    display:block; 
+    /* DEFINE HERE YOUR WIDTH AND HEIGHT ATTRIBUTES */
+    width:300px;
+    height:400px;
+}
+
+
+.wimba_boxTopTitle {
+    display:block;
+    width:200px;
+    height:20px;
+
+    text-align: left;
+    color: #404E58;  /* W6 */
+    font-size: 13px;
+    border-bottom-color: #404E58;  /* W6 */
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+}
+
+.wimba_boxText{
+    text-align: center;
+    color: #404E58;  /* W6 */
+    font-size: 12px;
+}
+
+div.wimba_boxTop, div.wimba_boxBottom, div.wimba_boxTop-shadow, div.wimba_boxBottom-shadow {
+    display:block;
+}
+    
+    
+/* --- Without a shadow --- */     
+div.wimba_boxTop { 
+    background: transparent url("../lib/web/pictures/box/no_shadow/400/box-top-right.png") no-repeat scroll top right;
+}
+
+div.wimba_boxTop div.wimbaBoxTopDiv { 
+    padding: 18px 18px 8px 18px;
+    background: transparent url("../lib/web/pictures/box/no_shadow/400/box-top-left.png") no-repeat;
+}
+
+div.wimba_boxBottom { 
+    background: transparent url("../lib/web/pictures/box/no_shadow/400/box-bottom-right.png") no-repeat scroll top right;
+}
+
+div.wimba_boxBottom div { 
+    background: transparent url("../lib/web/pictures/box/no_shadow/400/box-bottom-left.png") no-repeat;
+    height: 10px; 
+}   
+    
+    
+/* --- With a shadow --- */  
+div.wimba_boxTop-shadow, div.wimba_boxBottom-shadow {
+    margin-left: 22px;  
+}     
+    
+div.wimba_boxTop-shadow div, div.wimba_boxBottom-shadow div { 
+    margin-left: -22px;  
+}   
+    
+div.wimba_boxTop-shadow { 
+    background: transparent url("../lib/web/pictures/box/shadow/400/box-top-right.png") no-repeat scroll top right;
+   
+}
+
+div.wimba_boxTop-shadow div {
+    padding: 30px 30px 8px 30px;
+    background: transparent url("../lib/web/pictures/box/shadow/400/box-top-left.png") no-repeat;
+    
+}
+
+div.wimba_boxBottom-shadow { 
+    background: transparent url("../lib/web/pictures/box/shadow/400/box-bottom-right.png") no-repeat scroll top right; 
+   
+}
+
+div.wimba_boxBottom-shadow div { 
+    background: transparent url("../lib/web/pictures/box/shadow/400/box-bottom-left.png") no-repeat;
+   
+    height: 22px;
+}
+
+.wimba_close_box {
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+    display:block;
+    float:right;
+    top:150px;
+    height:16px;
+    text-indent:-9999px;
+    width:16px;
+    margin-top:-30px;
+}
+
+.opac 
+{
+    z-index:2 !important;
+    position:absolute;
+    width:100%;
+    height:100%;
+    top:0px;
+    left:0px;
+    background-color:#000;
+    filter:alpha(opacity=33);
+    -moz-opacity:.33;
+    opacity:.33;
+}
+
+
+
+/* *********************
+    List of Rooms
+*/
+.element_expand span.roomWithArchives{
+
+    background:transparent url("../lib/web/pictures/items/listitem-show.png" ) no-repeat scroll top right;
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+    display:block;
+    width:40px;
+    height:16px;
+    text-indent:-9999px;
+}
+.roomWithoutArchives
+{  
+    display:block;
+    width:40px;
+    height:16px;
+    text-indent:-9999px;
+}
+.roomWithArchives_clicked
+{
+    background:transparent url("../lib/web/pictures/items/listitem-hide.png" ) no-repeat scroll top right;
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+    display:block;
+    width:40px;
+    height:16px;
+    text-indent:-9999px;
+}
+
+.subItem{
+    background:transparent url("../lib/web/pictures/items/listitem-subitem.jpg" ) no-repeat scroll top right;
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+    display:block;
+    width:40px;
+    height:16px;
+    text-indent:-9999px;
+}
+
+
+.subItem-selected{
+    background:transparent url("../lib/web/pictures/items/listitem-subitem-selected.jpg" ) no-repeat scroll top right;
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+    display:block;
+    width:40px;
+    height:16px;
+    text-indent:-9999px;
+}
+
+.element_available span{
+    background:transparent url("../lib/web/pictures/items/listitem-available.png" ) no-repeat scroll top left;
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+    display:block;
+    text-indent:-9999px;
+    height:16px;
+    width:40px;
+}
+
+.element_unavailable span{
+   background:transparent url("../lib/web/pictures/items/listitem-unavailable.png" ) no-repeat scroll top left;
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+    display:block;
+    text-indent:-9999px;
+    height:16px;
+    width:40px;
+}
+
+.element_available_ie span{
+    background:transparent url("../lib/web/pictures/items/listitem-available.jpg" ) no-repeat scroll top left;
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+    display:block;
+    text-indent:-9999px;
+    height:16px;
+    width:16px;
+}
+
+.element_available_ie-selected span{
+    background:transparent url("../lib/web/pictures/items/listitem-available_selected.jpg" ) no-repeat scroll top left;
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+    display:block;
+    text-indent:-9999px;
+    height:16px;
+    width:16px;
+}
+
+.element_unavailable_ie span{
+    background:transparent url("../lib/web/pictures/items/listitem-unavailable.jpg" ) no-repeat scroll top left;
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+    display:block;
+    text-indent:-9999px;
+    height:16px;
+    width:16px;
+}
+
+.element_unavailable_ie-selected span{
+    background:transparent url("../lib/web/pictures/items/listitem-unavailable_selected.jpg" ) no-repeat scroll top left;
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+    display:block;
+    text-indent:-9999px;
+    height:16px;
+    width:16px;
+}
+
+.element_information span{
+    background:transparent url("../lib/web/pictures/items/listitem-information-16_12.png" ) no-repeat scroll top left;
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+    display:block;
+    text-indent:-9999px;
+    height:16px;
+    width:16px;
+}
+
+.element_download_mp4{
+    background:transparent url("../lib/web/pictures/items/listitem-mp4.png" ) no-repeat scroll top left;
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+    display:block;
+    text-indent:-9999px;
+    height:13px;
+    width:27px;
+ 	margin-left:5px;
+    float:left;
+    cursor: pointer;
+}
+
+.element_download_mp3{
+    background:transparent url("../lib/web/pictures/items/listitem-mp3.png" ) no-repeat scroll top left;
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+    display:block;
+    text-indent:-9999px;
+    height:13px;
+    width:27px;
+    float:left;
+    cursor: pointer;
+    margin-left:25px;
+    margin-right:10px;
+}
+.element_name span{
+    display:block; 
+    width:280px;  
+    overflow:hidden;
+}
+
+
+
+.liveclassroom td{
+    border-bottom: 1px solid #A8B2BF;
+    height:18px;
+    cursor:default;
+     
+}
+
+.presentation td{
+    border-bottom: 1px solid #A8B2BF;
+    height:18px;
+    cursor:default;
+     
+}
+
+.podcaster td{
+    border-bottom: 1px solid #A8B2BF;
+    height:18px;
+    cursor:default;
+     
+}
+
+.board td{
+    border-bottom: 1px solid #A8B2BF;
+    height:18px;
+    cursor:default;
+     
+}
+
+.archive{
+    color:#666666;
+    font-family:Verdana;
+    font-style:italic;
+}
+
+.orphanedarchivestudent{
+    border-bottom: 1px solid #A8B2BF;
+    height:18px;
+    cursor:default;
+    display:none;
+}
+
+.selected{
+    background-color:#c3dbf7;   
+}
+
+.phone{
+    background:transparent url("../lib/web/pictures/items/phone_32.png" ) no-repeat scroll top left;
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+    text-indent:40px;
+    height:32px;
+    padding-top:10px;
+}
+
+.phone div{/* for the transparency fix*/
+     background:none!important;
+}
+
+.tooltip
+{
+    display: none;
+    position: absolute;
+    z-index: 1;
+    background-color: #ffffd0;
+    padding: 2px;
+    margin: 2px;
+    left: 0px;
+    top: 0px;
+    font-family: Verdana;
+    font-size: 8pt;
+    cursor: default;
+}
+.popupDialContent{
+    display:block;
+    width:220px;
+    background-color:#efefef;
+    border:1px solid #b8b8b8;
+    padding:5px;
+    margin:10px;
+}
+
+
+
+/*Error */
+.error_title{
+    font-weight: bold;
+    font-size: 14pt;
+    margin-left:150px;
+    display:block;
+}
+
+.warning{  
+    background:transparent url("../lib/web/pictures/items/warning.png" ) no-repeat scroll top left;
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+    display:block;
+    text-indent:-9999px;
+    height:60px;
+    width:60px;
+}
+
+
+/* Config page */
+
+.config_title{
+    background:transparent url("../lib/web/pictures/items/Wlogo-W_only-60.png" ) no-repeat scroll top left;
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+    display:block;
+    font-weight: bold;
+    text-indent:60px;
+    padding-top:10px;
+    font-size: 16pt;
+    height:60px;
+    color:#3c4b5b;
+}
+
+/* Message Bar */
+
+.message
+{  
+    background-color: #ffff99;
+    position:absolute;
+    bottom:1px;
+    height: 20px;
+    width:700px;
+}
+
+    
+.info{
+    background:transparent url("../lib/web/pictures/items/listitem-info.png" ) no-repeat scroll top left;
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+    display:block;
+    text-indent:-9999px;
+    height:16px;
+    width:16px;
+    float: left;
+    margin-left:10px;
+    padding-right:10px;
+    
+}
+    
+.close{
+    background:transparent url("../lib/web/pictures/buttons/flat/close/x_round-16_14.png" ) no-repeat scroll top left;
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+    text-indent:-9999px;
+    height:16px;
+    width:16px;
+    position:absolute;
+    top:2px;
+    right:10px;
+}

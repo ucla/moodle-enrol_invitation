@@ -216,9 +216,10 @@ function useredit_shared_definition(&$mform, $editoroptions = null) {
     $mform->setDefault('screenreader', 0);
     $mform->addHelpButton('screenreader', 'screenreaderuse');
 
+    // BEGIN UCLA MOD: CCLE-2997 - Don't make city/country for user profiles required
     $mform->addElement('text', 'city', get_string('city'), 'maxlength="120" size="21"');
     $mform->setType('city', PARAM_MULTILANG);
-    $mform->addRule('city', $strrequired, 'required', null, 'client');
+    //$mform->addRule('city', $strrequired, 'required', null, 'client');
     if (!empty($CFG->defaultcity)) {
         $mform->setDefault('city', $CFG->defaultcity);
     }
@@ -226,10 +227,11 @@ function useredit_shared_definition(&$mform, $editoroptions = null) {
     $choices = get_string_manager()->get_list_of_countries();
     $choices= array(''=>get_string('selectacountry').'...') + $choices;
     $mform->addElement('select', 'country', get_string('selectacountry'), $choices);
-    $mform->addRule('country', $strrequired, 'required', null, 'client');
+    //$mform->addRule('country', $strrequired, 'required', null, 'client');
     if (!empty($CFG->country)) {
         $mform->setDefault('country', $CFG->country);
     }
+    // END UCLA MOD: CCLE-2997    
 
     $choices = get_list_of_timezones();
     $choices['99'] = get_string('serverlocaltime');
@@ -287,7 +289,10 @@ function useredit_shared_definition(&$mform, $editoroptions = null) {
 
     /// Moodle optional fields
     $mform->addElement('header', 'moodle_optional', get_string('optional', 'form'));
-
+    // BEGIN UCLA MOD: CCLE-3079 - User profile "Optional" section should be hidden behind "Show advanced" like in M19
+    $mform->setAdvanced('moodle_optional');
+    // END UCLA MOD: CCLE-3079
+    
     $mform->addElement('text', 'url', get_string('webpage'), 'maxlength="255" size="50"');
     $mform->setType('url', PARAM_URL);
 

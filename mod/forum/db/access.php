@@ -345,5 +345,18 @@ $capabilities = array(
             'manager' => CAP_ALLOW
         )
     ),
+    // BEGIN UCLA MOD: CCLE-3045 - Add capability to disable emailing of forum posts to certain roles
+    'mod/forum:receivemail' => array(
+
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => array(
+            'student' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW
+        )
+    ),    
+    // END UCLA MOD: CCLE-3045
 );
 

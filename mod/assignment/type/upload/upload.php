@@ -74,6 +74,11 @@ if ($mform->is_cancelled()) {
 
 echo $OUTPUT->header();
 
+// BEGIN UCLA MOD: CCLE-2969 - Some submissions to Assignments tool cannot be downloaded by instructor
+// Display notice that they must save changes or their uploaded file will get lost
+echo $OUTPUT->box(get_string('submissionnotice', 'assignment'), 'noticebox');
+// END UCLA MOD: CCLE-2969
+
 echo $OUTPUT->box_start('generalbox');
 if ($instance->can_upload_file($submission) && ($id==null)) {
     $data = new stdClass();

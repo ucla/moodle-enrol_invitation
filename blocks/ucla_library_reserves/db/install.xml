@@ -21,6 +21,10 @@
         <KEYS>
           <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
         </KEYS>
+        <INDEXES>
+            <INDEX NAME="term_srs" UNIQUE="false" FIELDS="quarter,srs" NEXT="term_course"/>
+            <INDEX NAME="term_course" UNIQUE="false" FIELDS="quarter,department_code,course_number" PREVIOUS="term_srs"/>
+        </INDEXES>
       </TABLE>
     </TABLES>
   </XMLDB>

@@ -92,12 +92,14 @@ if ($editing) {
 
 // Include our custom ajax overwriters.
 // This needs to be printed after the headers, but before the footers.
-echo html_writer::script(false, 
-    new moodle_url('/course/format/ucla/sections.js'));
+if ($useajax) {
+    echo html_writer::script(false, 
+        new moodle_url('/course/format/ucla/sections.js'));
 
-echo html_writer::script("
-M.format_ucla.strings['hidden'] = '$strishidden';
-");
+    echo html_writer::script("
+    M.format_ucla.strings['hidden'] = '$strishidden';
+    ");
+}
 
 /**
  *  Get instructor information.
