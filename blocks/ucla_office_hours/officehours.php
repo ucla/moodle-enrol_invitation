@@ -45,9 +45,12 @@ set_editing_mode_button();
 $PAGE->navigation->initialise();
 $PAGE->navbar->add(get_string('header', 'block_ucla_office_hours'));
 
-$defaults = $DB->get_record('ucla_officehours', array('courseid' => $course_id, 'userid' => $edit_id),
-                'officelocation, officehours, phone, email');
-
+echo $OUTPUT->header();
+    
+if(! $defaults = $DB->get_record('ucla_officehours', array('courseid' => $course_id, 'userid' => $edit_id),
+                'officelocation, officehours, phone, email')) {
+    $defaults = '';
+}
 $edit_user = $DB->get_record('user', array('id'=>$edit_id), '*', MUST_EXIST);
 $edit_name = $edit_user->firstname . ' ' . $edit_user->lastname;
 $e_url = $DB->get_record('user', array('id'=>$edit_id), 'url', MUST_EXIST)->url;
@@ -58,20 +61,20 @@ if ($updateform->is_cancelled()) { //If the cancel button is clicked, return to 
     $url = new moodle_url($CFG->wwwroot.'/course/view.php', array('id'=>$course_id, 'topic'=>0));
     redirect($url);
 } else if($data = $updateform->get_data()) { //Otherwise, process data
-    
+
     //If this course/user pair is not in the database, attempt to add it in
     if(! $DB->get_record('ucla_officehours', 
         array('courseid' => $course_id, 'userid' => $edit_id)) ) {
-        
+
         if(! $DB->insert_record('ucla_officehours', 
-                array('courseid' => $course_id, 'userid' => $edit_id, 
+            array('courseid' => $course_id, 'userid' => $edit_id, 
                 'timemodified' => time(), 'modifierid' => $USER->id) ) 
                 ){ //Attempt to add course/user pair into database
             print_error('cannotinsertrecord');
         }
     }
     //Update information
-    
+
     $update_data = new StdClass();
     $entry = $DB->get_record('ucla_officehours', array('courseid'=>$course_id, 'userid'=>$edit_id), 'id');
     $update_data->id = $entry->id ;
@@ -83,37 +86,32 @@ if ($updateform->is_cancelled()) { //If the cancel button is clicked, return to 
     $update_data->officelocation = $data->office;
     $update_data->email = $data->email;
     $update_data->phone = $data->phone;
-    
+
     $DB->update_record('ucla_officehours', $update_data);
-    
-    /*
-    $DB->set_field('ucla_officehours', 'modifierid', $USER->id, 
-            array('courseid' => $course_id, 'userid' => $edit_id));
-    $DB->set_field('ucla_officehours', 'timemodified', time(), 
-            array('courseid' => $course_id, 'userid' => $edit_id));
-    
-    $DB->set_field('ucla_officehours', 'officehours', $data->officehours, 
-            array('courseid' => $course_id, 'userid' => $edit_id));
-    $DB->set_field('ucla_officehours', 'officelocation', $data->office, 
-            array('courseid' => $course_id, 'userid' => $edit_id));
-    $DB->set_field('ucla_officehours', 'email', $data->email, 
-            array('courseid' => $course_id, 'userid' => $edit_id));
-    $DB->set_field('ucla_officehours', 'phone', $data->phone, 
-            array('courseid' => $course_id, 'userid' => $edit_id));
-    */
-    
+
     $userchange = $DB->get_record('user', array('id' => $edit_id), '*', MUST_EXIST);
     if($data->website != $userchange->url) {
         $userchange->url = $data->website;
         user_update_user($userchange);
     }
+
+    //TODO: format the display properly
+    $rurl = new moodle_url($CFG->wwwroot.'/course/view.php', 
+            array('id'=>$course_id, 'topic'=>0));
+    $confirmation = '';
+    echo get_string('success', 'block_ucla_office_hours');
+    echo get_string('confirmation_message', 'block_ucla_office_hours');
+    echo get_string('confirmation_redirect1', 'block_ucla_office_hours');
+    $confirmation .= html_writer::link($rurl, 'here');
+    echo $confirmation;
+    echo get_string('confirmation_redirect2', 'block_ucla_office_hours');
     
-    $url = new moodle_url($CFG->wwwroot.'/course/view.php', array('id'=>$course_id, 'topic'=>0));
-    redirect($url);
+}else {
+    $updateform->display();
 }
 
-echo $OUTPUT->header();
-$updateform->display();
+//echo $OUTPUT->header();
+//$updateform->display();
 echo $OUTPUT->footer();
 
 //EOF

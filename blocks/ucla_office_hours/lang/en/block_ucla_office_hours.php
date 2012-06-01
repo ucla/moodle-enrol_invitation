@@ -20,6 +20,13 @@ $string['website_info'] = 'Website';
 $string['website_info_help'] = 'This website field will update your website in your profile page.
     It is not displayed on the course web page.';
 
+$string['success'] = 'Success!';
+$string['confirmation_message'] = 
+    'Your office hours and contact information has been successfully updated! 
+     The information will be displayed on the Site Info page for this course.';
+$string['confirmation_redirect1'] = 'Click ';
+$string['confirmation_redirect2'] =' to go to the Site Info page of your course where the updated information can be seen.';
+
 $string['office'] = 'officelocation';
 $string['phone'] = 'phone';
 $string['email'] = 'email';

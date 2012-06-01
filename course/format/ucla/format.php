@@ -637,12 +637,13 @@ while ($section <= $course->numsections) {
                         // mistaken as another css class for given column
                         $table->head = array_values($desired_info);
 
+                        //BEGIN UCLA MOD: CCLE-2381 - Update Office Hours and Contact Info
                         foreach ($goal_users as $user) {
                             $user_row = array();
+                            $office_info = $DB->get_record('ucla_officehours', 
+                                            array('courseid' => $course->id, 'userid' => $user->id));
                             foreach ($desired_info as $field => $header) {
                                 $dest_data = '';
-                                
-                                //BEGIN UCLA MOD: CCLE-2381 - Update Office Hours and Contact Info
                                 if ($field == 'fullname') {
                                     if($editing && $has_capability_update) {
                                         $update_url = new moodle_url($CFG->wwwroot.'/blocks/ucla_office_hours/officehours.php', 
@@ -657,22 +658,13 @@ while ($section <= $course->numsections) {
                                             array('courseid' => $course->id, 'userid' => $user->id));
                                     if($office_info){ 
                                         //If there is an entry in the database
-                                        if($field == 'office') {
-                                            $dest_data = ''.$office_info->officelocation;
-                                        } else if($field == 'phone') {
-                                            $dest_data = ''.$office_info->phone;
-                                        } else if($field == 'email') {
-                                            if($office_info->email == '') {
-                                                //Default email
-                                                $dest_data = $user->$field;
-                                            } else { 
-                                                //Class specific email
-                                                $dest_data = ''.$office_info->email;
-                                            }
-                                        } else if ($field == 'office_hours') {
-                                            $dest_data = ''.$office_info->officehours;
+                                        if($field == 'email' && $office_info->email == '') {
+                                            //If no email is specified, then use default email
+                                            $dest_data = $user->$field;
                                         }
-                                        
+                                        else {
+                                            $dest_data = $office_info->{get_string($field,'block_ucla_office_hours')};
+                                        }
                                     } else { 
                                         //Insert course/user into database
                                         //This may not be the best behavior because if there is an error, 
@@ -692,12 +684,12 @@ while ($section <= $course->numsections) {
                                         }
                                     }
                                 }
-                                //END UCLA MOD: CCLE-2381
                                 
                                 $user_row[$field] = $dest_data;
                             }
                             $table->data[] = $user_row;
                         }
+                        //END UCLA MOD: CCLE-2381
     
                         $instr_info .= html_writer::table($table);
                     }

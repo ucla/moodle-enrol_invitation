@@ -25,11 +25,10 @@
                     PREVIOUS="timemodified"/>    
             </FIELDS>
             <KEYS>
-                <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="uid"/>
-                <KEY NAME="uid" TYPE="unique" FIELDS="courseid, userid" PREVIOUS="primary"/>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
             </KEYS>
             <INDEXES>
-                <INDEX NAME="userid" UNIQUE="false" FIELDS="userid"/>
+                <INDEX NAME="cuid" UNIQUE="true" FIELDS="courseid, userid"/>
             </INDEXES>
         </TABLE>
     </TABLES>
