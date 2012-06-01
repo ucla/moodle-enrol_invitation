@@ -12,13 +12,19 @@ defined('MOODLE_INTERNAL') || die();
  * @return boolean          Returns false on error, otherwise true. 
  */
 function add_site_invitation_plugin($course) {
+    // make sure you aren't trying something silly like adding enrollment plugin
+    // to siteid
+    if ($course->id == SITEID) {
+        return false;
+    }    
+    
     // This hopefully means that this plugin IS enabled
     $invitation = enrol_get_plugin('invitation');
     if (empty($invitation)) {
         debugging('Site invitation enrolment plugin is not installed');
         return false;
     }
-    
+        
     // returns instance id, else returns NULL
     $instance_id = $invitation->add_instance($course);    
     if (is_null($instance_id)) {
