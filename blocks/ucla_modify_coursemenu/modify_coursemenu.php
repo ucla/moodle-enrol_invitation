@@ -34,7 +34,7 @@ $PAGE->set_context($context);
 $PAGE->set_pagelayout('course');
 $PAGE->set_pagetype('course-view-' . $course->format);
 
-$PAGE->set_url('/blocks/ucla_rearrange/rearrange.php', 
+$PAGE->set_url('/blocks/ucla_modify_coursemenu/modify_coursemenu.php', 
         array('course_id' => $course_id, 'topic' => $topic_num));
 
 // set editing url to be topic or default page
@@ -58,135 +58,74 @@ foreach ($sections as $section) {
 $modinfo =& get_fast_modinfo($course);
 get_all_mods($course_id, $mods, $modnames, $modnamesplural, $modnamesused);
 
-/*
+
 $course_preferences = new ucla_course_prefs($course_id);
+   $landing_page = $course_preferences->get_preference('landing_page', false);
+    if ($landing_page === false) {
+        $landing_page = 0;
+    } 
 
-$course_preferences->set_preference('landing_page', '513');
-$course_preferences->commit();
-
-echo json_encode($course_preferences->get_course_preferences($course_id));
-*/
-
-
-
-/*
- for ($i = 1; $i <= count($sectarr); $i++) {
-$sql = "update mdl_course_sections set section='$counter' where course='$course_id' and section='$key'";
- }
-*/
-
-
-             $counter = 1;
-foreach($sections as $key => $value) {
+    //reorder the section numbers in the database
+    $counter = 1;
+    foreach($sections as $key => $value) {
     if($key != 0) {
-        
-        //array_push($sectarr, $key);
         $sql = "update mdl_course_sections set section='$counter' where course='$course_id' and section='$key'";
         $DB->execute($sql);
-        $counter++;
+        $counter++;       
     }
 }
-
-
-
-
-
-  // $sql = "update mdl_course set numsections='$numsections' where id='$course_id'";
-   // $DB->execute($sql);
-
 
 $modify_coursemenu_form = new ucla_modify_coursemenu_form(
     null,
     array(
         'course_id' => $course_id, 
         'sections'  => $sections,
-        'topic'     => $topic_num
+        'topic'     => $topic_num,
+        'landing_page' => $landing_page
     ),
     'post',
     '',
     array('class' => 'ucla_modify_coursemenu_form')
 );
 
+//extract the data from the form and update the database
 if ($data = $modify_coursemenu_form->get_data()) {
-    //echo json_encode($data);
-   // echo "HERE";
-    //echo json_encode($data->name);
     
-    foreach ($data->name as $secid => $secname) {
-     //echo "Key: $; Value: $value<br />\n";   
-    
-    
-    
+    echo json_encode($data);
+    //updating the names
+    foreach ($data->name as $secid => $secname) { 
     $sectionDB = $DB->get_record('course_sections', array('id' => "$secid"), '*', MUST_EXIST);
-
     $sectionDB->name = $secname;
-    //echo json_encode($sectionDB);
-     //set_section_visible($courseid, $sectionnumber, $visibility) {
-   // set_section_visible("506", 5, 1);
-    //$sectionDB->name = "Week 2";
     $DB->update_record('course_sections', $sectionDB);
     }
     
-   // foreach ($data->hide as $sectnum => $hide)
-    
-  //  for ($i = 1; $i < count($data->hide); $i++) {
-    //    echo json_encode($i);
-        //set_section_visible($course_id, $i, $data->hide[$i]^1);
-   // }
-    
+    //update the section visibility
     foreach ($data->hide as $sectnum => $hide) {
-        if($sectnum != 1) set_section_visible($course_id, $sectnum, $data->hide[$sectnum]^1);
+        if($sectnum != 0) set_section_visible($course_id, $sectnum, $data->hide[$sectnum]^1);
     }
     
-        $numsections = count($sections)-1;
-        
+        $numsections = count($sections)-1;        
         if(isset($data->delete)) {
-        
+        //delete the checked sections
+            if($secnum !=0 ) {
         foreach($data->delete as $secnum => $delete) {
-        
         $sql = "delete from mdl_course_sections WHERE course='$course_id' AND section='$secnum'";
-       // echo $sql;
         $DB->execute($sql);
-        $numsections--;          
-        
-        //insert into mdl_course_sections VALUES('615', '506', '6', 'Week 6', '', '1', 'NULL', '1');
+        $numsections--; 
+        }
     }
+    //update the number of sections in the database
     $sql = "update mdl_course set numsections='$numsections' where id='$course_id'";
-    $DB->execute($sql);
+    $DB->execute($sql);  
+    }
    
+    $course_preferences->set_preference('landing_page', $data->landing);
+    $course_preferences->commit();
     
-    }
-    
-    
-    /*
-    foreach ($data->delete as $secnum => $delete) {
-        $sql = "delete from mdl_course_sections WHERE course='$course_id' AND section='$secnum'";
-        echo $sql;
-        //$DB->execute($sql);
-    }
-    */
-  /*
-      $sql = "delete from mdl_course_sections WHERE course=506 AND section=6
-";
-        $DB->execute($sql);
-    */
-    
-        //insert into mdl_course_sections VALUES('615', '506', '6', 'Week 6', '', '1', 'NULL', '1');
-        //select section,name FROM mdl_course_sections WHERE course="506";
-    //rebuild_course_cache($course_id);
-
-
-        
-        redirect(new moodle_url('/blocks/ucla_modify_coursemenu/modify_coursemenu.php',
+    redirect(new moodle_url('/blocks/ucla_modify_coursemenu/modify_coursemenu.php',
                 array('course_id' => $course_id, 'topic' => $topic_num)));
         
 }
-
-
-
-
-
-// TODO put a title
 
 
 $restr = get_string('ucla_modify_course_menu', 'block_ucla_modify_coursemenu');
@@ -210,11 +149,9 @@ echo $OUTPUT->heading($restr, 2, 'headingblock');
 if(isset($_POST['submit'])) {
     $numsections = count($sections)-1;
     $numsections++;
-    //$sql = "insert into mdl_course_sections VALUES('615', '506', '6', 'Week 6', '', '1', 'NULL', '1')";
-    
     $sql = "update mdl_course set numsections='$numsections' where id='$course_id'";
     $DB->execute($sql);
-    //http://localhost:8080/moodle/course/view.php?id=506&topic=-4
+
     setup_sections ($numsections, $sections, $DB, $course);
     rebuild_course_cache($course_id);
            redirect(new moodle_url('/blocks/ucla_modify_coursemenu/modify_coursemenu.php',
@@ -223,8 +160,5 @@ if(isset($_POST['submit'])) {
      
 
 echo $OUTPUT->footer();
-
-
-
 
 ?>

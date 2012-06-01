@@ -175,7 +175,7 @@ function ucla_format_figure_section($course, $course_prefs = null) {
     global $USER;
 
     if ($course_prefs == null || !is_object($course_prefs)) {
-        $course_prefs = new ucla_course_prefs($course_prefs);
+        $course_prefs = new ucla_course_prefs($course->id);
     }
 
     // Default to section 0 (course info) if there are no preferences
