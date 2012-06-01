@@ -107,13 +107,15 @@ if ($data = $modify_coursemenu_form->get_data()) {
         $numsections = count($sections)-1;        
         if(isset($data->delete)) {
         //delete the checked sections
-            if($secnum !=0 ) {
+
         foreach($data->delete as $secnum => $delete) {
+        if($sectnum != 0) {
         $sql = "delete from mdl_course_sections WHERE course='$course_id' AND section='$secnum'";
         $DB->execute($sql);
         $numsections--; 
         }
-    }
+        }
+    
     //update the number of sections in the database
     $sql = "update mdl_course set numsections='$numsections' where id='$course_id'";
     $DB->execute($sql);  
