@@ -2,5 +2,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2012053000;
+// Initial revision
+//$plugin->version = 2012053000;
 
+// Added groups_members tracking
+$plugin->version = 2012060100;

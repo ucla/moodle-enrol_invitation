@@ -6,6 +6,8 @@ require_once($CFG->dirroot . '/local/ucla/lib.php');
 require_once($CFG->dirroot . '/group/lib.php');
 //require_once($CFG->dirroot . '/lib/enrollib.php');
 require_once($CFG->dirroot . '/enrol/database/lib.php');
+require_once($CFG->dirroot . '/blocks/ucla_group_manager/ucla_synced_group.class.php');
+
 ucla_require_registrar();
 
 /**
@@ -103,16 +105,31 @@ class ucla_group_manager {
     static function sync_course($courseid) {
         $reqsecinfos = self::course_sectionroster($courseid);
 
-        // should NOT be divisible in any logical way, we should try to enforce
-        // usage of groupings
+        echo "Creating groups...";
+        // groups created should NOT be divisible in any logical way, 
+        // we should try to enforce usage of groupings
         foreach ($reqsecinfos as $termsrs => &$reqinfo) {
-            $groups = array();
             foreach ($reqinfo->sectionsinfo as $secttermsrs => &$sectioninfo) {
-                $sectioninfo->group = self::create_tracked_group(
-                        $sectioninfo
+                $sectiongroup = new ucla_synced_group(
+                        $sectioninfo->courseinfo
                     );
+               
+                $moodleusers = array();
+                foreach ($sectioninfo->roster as $student) {
+                    $moodleuser = ucla_registrar_user_to_moodle_user($student);
+                    if ($moodleuser) {
+                        $moodleusers[$moodleuser->id] = $moodleuser;
+                    }
+                }
+
+                $sectiongroup->sync_members($moodleusers);
+                $sectiongroup->save();
+
+                $sectioninfo->group = $sectiongroup;
             }
         }
+
+        echo "done.\n";
 
         // When we hit that next foreach, if this is not unset, for some
         // reason PHP decides to set the address that $reqinfo is pointing
@@ -126,7 +143,10 @@ class ucla_group_manager {
             return true;
         }
 
+        $trackedgroupings = array();
+
         //   Groupings: per crosslist
+        echo "Creating crosslist groupings...";
         foreach ($reqsecinfos as $termsrs => $reqinfo) {
             $reqgroups = array();
 
@@ -139,11 +159,17 @@ class ucla_group_manager {
                     $reqinfo->courseinfo, 'crosslist'
                 );
 
-            self::create_tracked_grouping($groupingdata, $reqgroups);
+            $trackedgrouping = 
+                self::create_tracked_grouping($groupingdata, $reqgroups);
+
+            $trackedgroupings[$trackedgrouping] = $trackedgrouping;
         }
+
+        echo "done.\n";
 
         //   Groupings: per act-type && number
         // First sort into correct groupings
+        echo "Creating section groupings...";
         $secttypegroupings = array();
         foreach ($reqsecinfos as $termsrs => $reqinfo) {
             foreach ($reqinfo->sectionsinfo as $secttermsrs => $sectioninfo) {
@@ -167,45 +193,29 @@ class ucla_group_manager {
         // Make groupings and assign groups
         $secttypegroupingids = array();
         foreach ($secttypegroupings as $skey => $secttypegrouping) {
-            self::create_tracked_grouping($secttypegrouping->groupingdata,
-                $secttypegrouping->groups);
+            $trackedgrouping = self::create_tracked_grouping(
+                    $secttypegrouping->groupingdata,
+                    $secttypegrouping->groups
+                );
+
+            $trackedgroupings[$trackedgrouping] = $trackedgrouping;
         }
 
-        //return $users;
+        $coursetrackedgroupings = self::get_course_tracked_groupings(
+            $courseid);
+
+        echo "done.\n";
+
+        foreach ($coursetrackedgroupings as $ctg) {
+            if (!isset($trackedgroupings[$ctg->id])) {
+                groups_delete_grouping($ctg->id);
+            }
+        }
     }
 
     /**
-     *  Creates a tracked group and populates it.
-     *  @param $sectioninfo
-     *      object with fields
-     *          courseinfo => registrar data for making the group
-     *          roster     => registrar data for users, object with field:
-     *              moodleuserinfo => Moodle user info (optional) for speed
+     *  This is how we distinguish sections.
      **/
-    static function create_tracked_group($sectioninfo) {
-        $group = self::make_tracked_group($sectioninfo->courseinfo);
-
-        // TODO clean up
-        foreach ($sectioninfo->roster as $k => $roster) {
-            if (!isset($roster['moodleuserinfo'])) {
-                $roster['moodleuserinfo'] = self::match_registrar_user($roster);
-                $sectioninfo->roster[$k] = $roster;
-            }
-        }
-
-        $moodleusers = array();
-        foreach ($sectioninfo->roster as $roster) {
-            if (!empty($roster['moodleuserinfo'])) {
-                $moodleuser = $roster['moodleuserinfo'];
-                $moodleusers[$moodleuser->id] = $moodleuser;
-            }
-        }
-
-        self::groups_sync_members($group, $moodleusers);
-
-        return $group;
-    }
-
     static function get_section_type_key($sectioninfo) {
         return get_string('grouping_section_type_name', 
             'block_ucla_group_manager', $sectioninfo);
@@ -223,88 +233,6 @@ class ucla_group_manager {
 
             groups_assign_grouping($groupingid, $group->id);
         }
-    }
-
-    static function groups_sync_members($group, $groupusers) {
-        // Determine which users to CUT...
-        // Actually don't bother, enrolments take care of that
-        //$currentusers = groups_get_members($group->id);
-        //$userenrols = self::get_users_enrolments_in_course($group->courseid);
-
-        return groups_add_members($group, $groupusers);
-    }
-
-    /**
-     *  Convenience function, adds many members to a group.
-     **/
-    static function groups_add_members($group, $users) {
-        $results = array();
-        foreach ($users as $key => $moodleuser) {
-            // Make it an object to save a pointless dbq
-            $results[$key] = groups_add_member($group, (object)$moodleuser);
-        }
-
-        return $results;
-    }
-
-    /**
-     *  Takes the result of the stored procedure ccle_class_sections and some
-     *  with which it creates a moodle group, which will be kept track of
-     *  as an auto-sync group.
-     **/
-    static function make_tracked_group($reginfo) {
-        $group = new object();
-
-        $exists = self::get_tracked_group($reginfo);
-        if ($exists) {
-            return $exists;
-        }
-
-        // TODO standardize procedure for making name?
-        $group->name = get_string('group_name', 'block_ucla_group_manager',
-            $reginfo);
-        
-        $group->description = get_string('group_desc', 
-            'block_ucla_group_manager', $reginfo);
-
-        // TODO Is this useful?
-        $group->enrolmentkey = '';
-
-        $group->courseid = $reginfo['courseid'];
-
-        // TODO is there are policy?
-        $group->hidepicture = 0;
-
-        $group->id = groups_create_group($group);
-        
-        // TODO add some mechanism to know that this group is speshul
-        self::track_new_group($group, $reginfo);
-
-        return $group;
-    }
-
-    /**
-     *  Checks if a particular section has an associated group.
-     **/
-    static function get_tracked_group($reginfo) {
-        global $DB;
-
-        $params = array(
-                'term' => $reginfo['term'],
-                'srs' => $reginfo['srs'],
-                'courseid' => $reginfo['courseid']
-            );
-
-        return $DB->get_record_sql('
-            SELECT gr.*
-            FROM {groups} gr
-            INNER JOIN {ucla_group_sections} ugs
-                ON ugs.groupid = gr.id
-            WHERE 
-                    ugs.term = :term
-                AND ugs.srs = :srs
-                AND gr.courseid = :courseid
-        ', $params);
     }
 
     /**
@@ -337,6 +265,7 @@ class ucla_group_manager {
     /**
      *  Convenience function to create a tracked grouping, and then assigns
      *  a bunch of groups to it.
+     *  @return int grouping.id
      **/
     static function create_tracked_grouping($groupingdata, $groups=array()) {
         $exists = self::get_tracked_grouping($groupingdata, $groups);
@@ -354,6 +283,9 @@ class ucla_group_manager {
         return $groupingid;
     }
 
+    /**
+     *  Get tracked groupings from a course.
+     **/
     static function get_course_tracked_groupings($courseid) {
         global $DB;
         return $DB->get_records_sql(
@@ -366,6 +298,10 @@ class ucla_group_manager {
              );
     }
 
+    /**
+     *  Attempts to search through all course trackings, finding
+     *  a matching grouping, based on groups assigned.
+     **/
     static function get_tracked_grouping($groupingdata, $groups) {
         $courseid = $groupingdata->courseid;
 
@@ -384,7 +320,7 @@ class ucla_group_manager {
         sort($neededgroupids, SORT_NUMERIC);
     
         foreach ($trackedcoursegroupings as $grouping) {
-            $groupingsgroups = groups_get_all_groups($groupingdata->courseid,
+            $groupingsgroups = groups_get_all_groups($courseid,
                 null, $grouping->id);
             $providedgroupids = array(); 
 
@@ -411,34 +347,5 @@ class ucla_group_manager {
         $dbobj->groupingid = $groupingid;
 
         $DB->insert_record('ucla_group_groupings', $dbobj);
-    }
-
-    protected static function match_registrar_user($reguser) {
-        return ucla_registrar_user_to_moodle_user($reguser);
-    }
-
-    static function get_users_enrolments_in_course($courseid) {
-        global $DB;
-
-        $userenrols = $DB->get_records_sql('
-                SELECT ue.id, ue.userid, e.enrol
-                FROM {user_enrolments} ue
-                INNER JOIN {enrol} e ON ue.enrolid = e.id
-                WHERE e.courseid = ?
-            ', array($courseid));
-
-        $enrolsperuser = array();
-        foreach ($userenrols as $userenrol) {
-            $userid = $userenrol->userid;
-            if (!isset($enrolsperuser[$userid])) {
-                $enrolsperuser[$userid] = array();
-            }
-
-            $enrolname = $userenrol->enrol;
-
-            $enrolsperuser[$userid][$enrolname] = $enrolname;
-        }
-
-        return $enrolsperuser;
     }
 }
