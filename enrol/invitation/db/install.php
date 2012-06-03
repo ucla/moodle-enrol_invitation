@@ -34,6 +34,11 @@ function xmldb_enrol_invitation_install() {
     // and http://docs.moodle.org/dev/Data_manipulation_API#Using_Recordsets
     $courses_records = $DB->get_recordset('course');    
     foreach ($courses_records as $course) {
+        // make sure that we aren't adding the SITEID
+        if ($course->id == SITEID) {
+            continue;
+        }
+        
         if (!add_site_invitation_plugin($course)) {
             debugging('Cannot add enrol plugin for courseid ' . $course->id);
         }        
