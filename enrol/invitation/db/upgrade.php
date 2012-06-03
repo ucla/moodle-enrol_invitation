@@ -124,5 +124,41 @@ function xmldb_enrol_invitation_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2012051901, 'enrol', 'invitation');        
     }
     
+    // rename creatorid to inviterid & add subject, message, notify_inviter, 
+    // show_from_email columns
+    if ($oldversion < 2012060300) {
+        $table = new xmldb_table('enrol_invitation');
+        
+        // 1) rename creatorid to inviterid
+        
+        // first delete old key
+        $key = new xmldb_key('creatorid', XMLDB_KEY_FOREIGN, array('creatorid'), 'user', array('id'));
+        $dbman->drop_key($table, $key);        
+        
+        // rename creatorid to inviterid
+        $field = new xmldb_field('creatorid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'timeused');
+        $dbman->rename_field($table, $field, 'inviterid');    
+        
+        // re-add key
+        $key = new xmldb_key('inviterid', XMLDB_KEY_FOREIGN, array('inviterid'), 'user', array('id'));
+        $dbman->add_key($table, $key);        
+        
+        // 2) add subject, message, notify_inviter, show_from_email columns
+        $fields[] = new xmldb_field('subject', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null, 'inviterid');
+        $fields[] = new xmldb_field('message', XMLDB_TYPE_TEXT, 'small', null, null, null, null, 'subject');
+        $fields[] = new xmldb_field('notify_inviter', XMLDB_TYPE_INTEGER, '1', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'message');                
+        $fields[] = new xmldb_field('show_from_email', XMLDB_TYPE_INTEGER, '1', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'notify_inviter');
+        
+        foreach ($fields as $field) {
+            // Conditionally launch add field subject
+            if (!$dbman->field_exists($table, $field)) {
+                $dbman->add_field($table, $field);
+            }                    
+        }
+
+        // invitation savepoint reached
+        upgrade_plugin_savepoint(true, 2012060300, 'enrol', 'invitation');           
+    }
+    
     return true;
 }

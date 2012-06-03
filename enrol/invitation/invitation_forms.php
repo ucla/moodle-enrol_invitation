@@ -78,7 +78,7 @@ class invitations_form extends moodleform {
         $mform->addElement('static', 'role_desc', '', 
                 get_string('email_desc', 'enrol_invitation'));        
         $mform->addElement('text', 'email', get_string('emailaddressnumber', 'enrol_invitation'));
-        $mform->addRule('email', get_string('required'), 'required');
+        $mform->addRule('email', get_string('err_email', 'form'), 'required');
         $mform->setType('email', PARAM_EMAIL);
         
         // subject field
@@ -101,8 +101,8 @@ class invitations_form extends moodleform {
         $temp->supportemail = $CFG->supportemail;        
         $mform->addElement('checkbox', 'show_from_email', '', 
                 get_string('show_from_email', 'enrol_invitation', $temp));
-        $mform->addElement('checkbox', 'notify_me', '', 
-                get_string('notify_me', 'enrol_invitation', $temp));
+        $mform->addElement('checkbox', 'notify_inviter', '', 
+                get_string('notify_inviter', 'enrol_invitation', $temp));
         
         $this->add_action_buttons(false, get_string('inviteusers', 'enrol_invitation'));
     }
