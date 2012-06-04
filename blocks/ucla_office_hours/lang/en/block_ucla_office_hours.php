@@ -27,9 +27,4 @@ $string['confirmation_message'] =
 $string['confirmation_redirect1'] = 'Click ';
 $string['confirmation_redirect2'] =' to go to the Site Info page of your course where the updated information can be seen.';
 
-$string['office'] = 'officelocation';
-$string['phone'] = 'phone';
-$string['email'] = 'email';
-$string['office_hours'] = 'officehours';
-
 //EOF

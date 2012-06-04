@@ -658,13 +658,23 @@ while ($section <= $course->numsections) {
                                             array('courseid' => $course->id, 'userid' => $user->id));
                                     if($office_info){ 
                                         //If there is an entry in the database
-                                        if($field == 'email' && $office_info->email == '') {
-                                            //If no email is specified, then use default email
-                                            $dest_data = $user->$field;
+                                        
+                                        if($field == 'email') {
+                                            if( $office_info->email == '') {
+                                                //If no email is specified, then use default email
+                                                $dest_data = $user->$field;
+                                            } else {
+                                                //Class specific email
+                                                $dest_data = $office_info->email;
+                                            }
+                                        } else if($field == 'office') {
+                                            $dest_data = $office_info->officelocation;
+                                        } else if($field == 'phone') {
+                                            $dest_data = $office_info->phone;
+                                        } else if($field == 'office_hours') {
+                                            $dest_data = $office_info->officehours;
                                         }
-                                        else {
-                                            $dest_data = $office_info->{get_string($field,'block_ucla_office_hours')};
-                                        }
+                                        
                                     } else { 
                                         //Insert course/user into database
                                         //This may not be the best behavior because if there is an error, 

@@ -99,19 +99,20 @@ if ($updateform->is_cancelled()) { //If the cancel button is clicked, return to 
     $rurl = new moodle_url($CFG->wwwroot.'/course/view.php', 
             array('id'=>$course_id, 'topic'=>0));
     $confirmation = '';
-    echo get_string('success', 'block_ucla_office_hours');
-    echo get_string('confirmation_message', 'block_ucla_office_hours');
-    echo get_string('confirmation_redirect1', 'block_ucla_office_hours');
+    $confirmation .= html_writer::tag('h1', get_string('success', 'block_ucla_office_hours'));
+    $confirmation .= html_writer::tag('div', get_string('confirmation_message', 'block_ucla_office_hours'));
+    $confirmation .= html_writer::start_tag('div') . get_string('confirmation_redirect1', 'block_ucla_office_hours');
     $confirmation .= html_writer::link($rurl, 'here');
+    $confirmation .= get_string('confirmation_redirect2', 'block_ucla_office_hours');
+    $confirmation .= html_writer::end_tag('div');
     echo $confirmation;
-    echo get_string('confirmation_redirect2', 'block_ucla_office_hours');
     
 }else {
     $updateform->display();
 }
 
-//echo $OUTPUT->header();
-//$updateform->display();
+print_object($edit_user);
+
 echo $OUTPUT->footer();
 
 //EOF
