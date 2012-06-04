@@ -28,7 +28,11 @@
     padding-left: 14px;
     padding-right: 14px;
     padding-top: 0px;
-    padding-bottom: 0px;
+    padding-bottom: 0px;    
+}
+
+.block_ucla_course_menu .module_elements_section a {
+    color: #4C4C4C;    
 }
 
 .block_ucla_course_menu.block .content {
@@ -63,7 +67,7 @@
 }
 
 .block_ucla_course_menu .content {padding:0px 4px;background-color:#DFE7F4;}
-.block_ucla_course_menu .content a {display:block;width:100%;}
+.block_ucla_course_menu .content a {display:block;width:100%;font-weight: bold}
 .block_ucla_course_menu .content a:hover {text-decoration:none;} 
 
 /** CCLE-2380 Rearrange Materials Link **/
@@ -74,4 +78,16 @@
 .block_ucla_course_menu .edit_control_links a {
     color: #FF6666;
     font-weight: normal;
+}
+
+.block_ucla_course_menu_hidden {
+    background-color: #DBDEE5;
+}
+
+.block_ucla_course_menu_hidden:hover {
+    background-color: #FFD26B;
+}
+
+.block_ucla_course_menu_hidden > a:first-child {
+    color: #A6ACBA;
 }

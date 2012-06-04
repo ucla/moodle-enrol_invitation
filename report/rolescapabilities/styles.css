@@ -1,0 +1,71 @@
+.path-report-rolescapabilities #legendcontainer {
+    float: left;
+    width: 35%;
+}
+
+.path-report-rolescapabilities #optionscontainer {
+    float: right;
+    width : 60%;
+}
+
+.path-report-rolescapabilities #legend dt {
+    float: left;
+    margin-right: 10px;
+}
+
+.path-report-rolescapabilities #legend dd {
+    margin-bottom: 5px;
+}
+
+.path-report-rolescapabilities #legend dt span {
+    border: 1px solid black;
+}
+
+.path-report-rolescapabilities .rolecap {
+    clear: both;
+    margin-top: 1em;
+    border: 1px solid black;
+    border-collapse: collapse;
+    text-align: left;
+    width: 100%;
+}
+
+.path-report-rolescapabilities .rolecap th,
+.path-report-rolescapabilities .rolecap td {
+    border: 1px solid black;
+}
+
+.path-report-rolescapabilities .rolecap td.role {
+    text-align: center;
+}
+
+.path-report-rolescapabilities  .rolecap td.capnotset,
+.path-report-rolescapabilities  #legend dt span.notset {
+    background-color: white;
+}
+
+.path-report-rolescapabilities .rolecap td.cap1,
+.path-report-rolescapabilities #legend dt span.allow {
+    background-color: green;
+}
+
+.path-report-rolescapabilities .rolecap td.cap-1,
+.path-report-rolescapabilities #legend dt span.prevent {
+    background-color: yellow;
+}
+
+.path-report-rolescapabilities .rolecap td.cap-1000,
+.path-report-rolescapabilities #legend dt span.deny {
+    background-color: red;
+}
+
+.path-report-rolescapabilities span.cap-desc a {
+    display: block;
+    text-align: left;
+}
+.path-report-rolescapabilities span.cap-desc span {
+    text-align: left;
+}
+.path-report-rolescapabilities span.cap-name {
+    display: block;
+}

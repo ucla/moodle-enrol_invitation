@@ -70,7 +70,6 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configselect('enrol_database/localrolefield', get_string('localrolefield', 'enrol_database'), '', 'shortname', $options));
 
 
-
     $settings->add(new admin_setting_heading('enrol_database_remoteheader', get_string('settingsheaderremote', 'enrol_database'), ''));
 
     $settings->add(new admin_setting_configtext('enrol_database/remoteenroltable', get_string('remoteenroltable', 'enrol_database'), get_string('remoteenroltable_desc', 'enrol_database'), ''));
@@ -89,6 +88,11 @@ if ($ADMIN->fulltree) {
         $student = reset($student);
         $settings->add(new admin_setting_configselect('enrol_database/defaultrole', get_string('defaultrole', 'enrol_database'), get_string('defaultrole_desc', 'enrol_database'), $student->id, $options));
     }
+   
+    // START UCLA MOD CCLE-2924 - Prevent blind updating of users, give a time-out before registrar information trumps
+    // shibboleth information
+    $settings->add(new admin_setting_configtext('enrol_database/minuserupdatewaitdays', get_string('minuserupdatewaitdays', 'enrol_database'), get_string('minuserupdatewaitdays_desc', 'enrol_database'), 30));
+    // END UCLA MOD 
 
     $settings->add(new admin_setting_configcheckbox('enrol_database/ignorehiddencourses', get_string('ignorehiddencourses', 'enrol_database'), get_string('ignorehiddencourses_desc', 'enrol_database'), 0));
 
@@ -97,7 +101,6 @@ if ($ADMIN->fulltree) {
                      ENROL_EXT_REMOVED_SUSPEND        => get_string('extremovedsuspend', 'enrol'),
                      ENROL_EXT_REMOVED_SUSPENDNOROLES => get_string('extremovedsuspendnoroles', 'enrol'));
     $settings->add(new admin_setting_configselect('enrol_database/unenrolaction', get_string('extremovedaction', 'enrol'), get_string('extremovedaction_help', 'enrol'), ENROL_EXT_REMOVED_UNENROL, $options));
-
 
 
     $settings->add(new admin_setting_heading('enrol_database_newcoursesheader', get_string('settingsheadernewcourses', 'enrol_database'), ''));

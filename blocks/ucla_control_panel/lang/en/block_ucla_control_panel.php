@@ -59,7 +59,7 @@ $string['asucla_textbooks'] = 'ASUCLA textbooks';
 $string['asucla_textbooks_post'] = '';
 
 /** Stuff from other **/
-$string['ucla_cp_mod_other'] = 'Other commands';
+$string['ucla_cp_mod_other'] = 'Other tools';
 
 $string['import_classweb'] = 'Import ClassWeb site';
 $string['import_classweb_post'] = 'Import content from a previous course on ClassWeb to this site.';
@@ -87,7 +87,6 @@ $string['assign_roles_post'] = 'Use this to assign roles specifically for {$a->s
 $string['assign_roles_master'] = 'Assign roles for {$a->shortname} (current course)';
 $string['assign_roles_master_post'] = 'Use this to assign roles (change people to students, TAs or guests to grant or remove privileges) specifically for {$a->shortname}.';
 
-
 $string['backup_copy'] = 'Create course backup';
 $string['backup_copy_post'] = 'Make a copy of your course for use on another Moodle site.';
 
@@ -103,13 +102,21 @@ $string['course_grades_post'] = 'View your Moodle gradebook. Activate the advanc
 $string['course_edit'] = 'Course settings';
 $string['course_edit_post'] = 'Edit the full name and description of the course or hide the course from students.';
 
+$string['reports'] = 'Reports';
+$string['reports_post'] = 'View course logs to see student activity.';
+
+$string['groups'] = 'Groups';
+$string['groups_post'] = 'Set up and manage course groups. These provide separate work areas for groups of students in Forums, Wikis and other tools.';
+
+$string['quiz_bank'] = 'Quiz question bank';
+$string['quiz_bank_post'] = 'Edit the quiz questions for this course.';
 
 /** Stuff for Student Control Panel **/
 $string['ucla_cp_mod_student'] = 'Other commands';
 $string['student_grades'] = 'Grades';
 $string['student_grades_post'] = 'View your grades on CCLE.';
-$string['student_change_password'] = 'Change Password';
-$string['student_change_password_post'] = 'Click this link to change your password.';
+$string['student_change_password'] = 'Change password';
+$string['student_change_password_post'] = 'Change your password.';
 $string['student_myucla_grades'] = 'Grades (MyUCLA)';
 $string['student_myucla_grades_post'] = 'View your grades on MyUCLA (if your instructor has made them available).';
 $string['student_myucla_classmates'] = 'Classmates (MyUCLA)';

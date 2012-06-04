@@ -1210,9 +1210,65 @@ class restore_course_structure_step extends restore_structure_step {
     protected function after_execute() {
         // Add course related files, without itemid to match
         $this->add_related_files('course', 'summary', null);
-        $this->add_related_files('course', 'legacy', null);
+        // START UCLA MOD: CCLE-2902 - Enable "legacy course files" repository for restored M19 courses on M2
+        // Patch from https://github.com/merrill-oakland/moodle/compare/master...MDL-32598
+	//$this->add_related_files('course', 'legacy', null);
+        // END UCLA MOD: CCLE-2902
     }
 }
+
+// START UCLA MOD: CCLE-2902 - Enable "legacy course files" repository for restored M19 courses on M2
+// Patch from https://github.com/merrill-oakland/moodle/compare/master...MDL-32598
+/**
+ * Structure step that will migrate legacy files if present.
+ */
+class restore_course_legacy_files_step extends restore_structure_step {
+    protected function define_structure() {
+        $course = new restore_path_element('course', '/course');
+
+        return array($course);
+    }
+
+    /**
+     * Processing functions go here
+     *
+     * @global moodledatabase $DB
+     * @param stdClass $data
+     */
+    public function process_course($data) {
+        global $CFG, $DB;
+
+        $data = new object();
+        $data->id = $this->get_courseid();
+
+        // Check if we have legacy files, and enable them if we do.
+        $sql = 'SELECT count(*) AS newitemid, info
+				FROM {backup_files_temp}
+				WHERE backupid = ?
+				AND contextid = ?
+				AND component = ?
+				AND filearea = ?';
+        $params = array($this->get_restoreid(), $this->task->get_old_contextid(), 'course', 'legacy');
+
+        if ($DB->count_records_sql($sql, $params)) {
+            // Enable the legacy files.
+            $data->legacyfiles = 2;
+
+            // Course record ready, update it.
+            $DB->update_record('course', $data);
+        }
+
+    }
+
+    protected function after_execute() {
+        global $DB;
+
+        // Add course legacy files, without itemid to match.
+        $this->add_related_files('course', 'legacy', null);
+    }
+
+}
+// END UCLA MOD: CCLE-2902
 
 
 /*
@@ -1563,6 +1619,76 @@ class restore_comments_structure_step extends restore_structure_step {
                 }
             }
         }
+    }
+}
+
+/**
+ * This structure steps restores the calendar events
+ */
+class restore_calendarevents_structure_step extends restore_structure_step {
+
+    protected function define_structure() {
+
+        $paths = array();
+
+        $paths[] = new restore_path_element('calendarevents', '/events/event');
+
+        return $paths;
+    }
+
+    public function process_calendarevents($data) {
+        global $DB;
+
+        $data = (object)$data;
+        $oldid = $data->id;
+        $restorefiles = true; // We'll restore the files
+        // Find the userid and the groupid associated with the event. Return if not found.
+        $data->userid = $this->get_mappingid('user', $data->userid);
+        if ($data->userid === false) {
+            return;
+        }
+        if (!empty($data->groupid)) {
+            $data->groupid = $this->get_mappingid('group', $data->groupid);
+            if ($data->groupid === false) {
+                return;
+            }
+        }
+
+        $params = array(
+                'name'           => $data->name,
+                'description'    => $data->description,
+                'format'         => $data->format,
+                'courseid'       => $this->get_courseid(),
+                'groupid'        => $data->groupid,
+                'userid'         => $data->userid,
+                'repeatid'       => $data->repeatid,
+                'modulename'     => $data->modulename,
+                'eventtype'      => $data->eventtype,
+                'timestart'      => $this->apply_date_offset($data->timestart),
+                'timeduration'   => $data->timeduration,
+                'visible'        => $data->visible,
+                'uuid'           => $data->uuid,
+                'sequence'       => $data->sequence,
+                'timemodified'    => $this->apply_date_offset($data->timemodified));
+        if ($this->name == 'activity_calendar') {
+            $params['instance'] = $this->task->get_activityid();
+        } else {
+            $params['instance'] = 0;
+        }
+        $sql = 'SELECT id FROM {event} WHERE name = ? AND courseid = ? AND
+                repeatid = ? AND modulename = ? AND timestart = ? AND timeduration =?
+                AND ' . $DB->sql_compare_text('description', 255) . ' = ' . $DB->sql_compare_text('?', 255);
+        $arg = array ($params['name'], $params['courseid'], $params['repeatid'], $params['modulename'], $params['timestart'], $params['timeduration'], $params['description']);
+        $result = $DB->record_exists_sql($sql, $arg);
+        if (empty($result)) {
+            $newitemid = $DB->insert_record('event', $params);
+            $this->set_mapping('event_description', $oldid, $newitemid, $restorefiles);
+        }
+
+    }
+    protected function after_execute() {
+        // Add related files
+        $this->add_related_files('calendar', 'event_description', 'event_description');
     }
 }
 

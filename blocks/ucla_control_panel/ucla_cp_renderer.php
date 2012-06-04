@@ -54,7 +54,7 @@ class ucla_cp_renderer {
             $all_stuff[] = $action;
         }
 
-       usort($all_stuff,"ucla_cp_renderer::cmp");
+        usort($all_stuff,"ucla_cp_renderer::cmp");
 
         $disp_stuff = array();
 
@@ -132,16 +132,33 @@ class ucla_cp_renderer {
 
         $item = $item_obj->item_name;
 
-        $fitem = '';
-        $fitem .= html_writer::empty_tag('img', 
-            array('src' => $OUTPUT->pix_url('cp_' . $item, $item_obj->associated_block())));
-
+        $item_string = get_string($item, $item_obj->associated_block(), $item_obj);
+        
+        $fitem = '';       
+        //BEGIN UCLA MOD: CCLE-2869-Add Empty Alt attribute for icons on Control Panel
+        $fitem .= html_writer::start_tag('a', array('href' => $item_obj->get_action()));
+        $fitem .= html_writer::start_tag('img', 
+                array('src' => $OUTPUT->pix_url('cp_' . $item, $item_obj->associated_block()), 
+                      'alt' => $item_string . ' icon', 'class' => 'general_icon'));
+        $fitem .= html_writer::end_tag('a');
+        
         if ($item_obj->get_opt('post') === null) {
             $item_obj->set_opt('post', false);
         }
 
-        $fitem .= ucla_cp_renderer::general_descriptive_link($item_obj);
-
+        $fitem .= html_writer::start_tag('span', array('class' => 'general_icon_text'));
+        $fitem .= html_writer::start_tag('a', array('href' => $item_obj->get_action()));
+        $fitem .= $item_string;
+        $fitem .= html_writer::end_tag('a');
+        
+        if ($item_obj->get_opt('post') !== false) {
+            $fitem .= html_writer::tag('span', get_string($item . '_post', 
+                $bucp, $item_obj), array('class' => 'post-link'));
+        }
+        
+        $fitem .= html_writer::end_tag('span');
+        
+        //END UCLA MOD: CCLE-2869
         return $fitem;
     }
    
@@ -213,10 +230,10 @@ class ucla_cp_renderer {
 
                 $the_output = html_writer::start_tag('div', 
                     array('class' => 'item' . $add_class));
-
+                
                 $the_output .= ucla_cp_renderer::$handler(
                     $content_link);
-
+                
                 $the_output .= html_writer::end_tag('div');
                 $row_contents .= $the_output;
             }

@@ -273,7 +273,13 @@ $string['invalidcomponent'] = 'Invalid component name';
 $string['invalidconfirmdata'] = 'Invalid confirmation data';
 $string['invalidcontext'] = 'Invalid context';
 $string['invalidcourse'] = 'Invalid course';
-$string['invalidcourseid'] = 'You are trying to use an invalid course ID: ({$a})';
+// BEGIN UCLA MOD: CCLE-2283 - FRIENDLY URL'S - be friendly on course not found
+//$string['invalidcourseid'] = 'You are trying to use an invalid course ID: ({$a})';
+$string['invalidcourseid'] = 'Sorry, but we couldn\'t find your course on the current server.<br />' . 
+        'If the course you are trying to find was from Spring 2012 or earlier it has been moved ' .
+        'to our archive server: <blockquote><a href="https://archive.ccle.ucla.edu">https://archive.ccle.ucla.edu</a></blockquote>' . 
+        'Please try looking for it there.';
+// END UCLA MOD: CCLE-2283
 $string['invalidcourselevel'] = 'Incorrect context level';
 $string['invalidcoursemodule'] = 'Invalid course module ID';
 $string['invalidcoursenameshort'] = 'Invalid short course name';

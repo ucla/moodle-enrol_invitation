@@ -70,7 +70,10 @@ class mod_wiki_mod_form extends moodleform_mod {
         if (!empty($this->_instance)) {
             $attr['disabled'] = 'disabled';
         } else {
-            $attr['value'] = get_string('firstpagetitle', 'wiki');
+            // START UCLA MOD: CCLE-2973 - Change default Wiki "First page name"
+            //$attr['value'] = get_string('firstpagetitle', 'wiki');
+            $attr['value'] = '';
+            // END UCLA MOD: CCLE-2973
         }
 
         $mform->addElement('text', 'firstpagetitle', get_string('firstpagetitle', 'wiki'), $attr);

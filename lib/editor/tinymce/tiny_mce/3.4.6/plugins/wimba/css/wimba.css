@@ -1,0 +1,26 @@
+body{
+ text-align: center;
+ *text-align: center;
+ _text-align: center;
+ height:125px;
+ *height:140px;
+ _height:140px;
+}
+
+.wimba_boxTopTitle {
+    display:block;
+    height:25px;
+
+    text-align: left;
+    color: 404E58;  /* W6 */
+    font-size: 13px;
+    border-bottom-color: 404E58;  /* W6 */
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+}
+
+.wimba_boxText{
+    text-align: center;
+    color: 404E58;  /* W6 */
+    font-size: 13px;
+}
