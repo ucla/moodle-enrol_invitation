@@ -111,7 +111,6 @@ if ($updateform->is_cancelled()) { //If the cancel button is clicked, return to 
     $updateform->display();
 }
 
-print_object($edit_user);
 
 echo $OUTPUT->footer();
 
