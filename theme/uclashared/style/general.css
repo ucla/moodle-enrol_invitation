@@ -484,3 +484,34 @@ html, body {background-color:#FFF; height:100%;}
     height:150px;    
     width: 275px;   /* only applicable for intro forms that don't use TinyMCE */
 }
+
+/* Footer link pages */
+h1.footer-page-title {
+    text-align: left;
+    font-family: verdana, sans serif;
+    font-size: 2.1em;
+    font-weight: bold;
+    color: #536895;
+    font-variant: small-caps;
+    letter-spacing: 0.05em;
+    padding: 0 0 0 0;
+    margin: 0.5em 1em 0.8em 0;
+}
+h2.footer-page-header {
+    text-align: left;
+    font-family: verdana, sans serif;
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #536895;
+    letter-spacing: 0.05em;
+    padding: 0 0 0 0;
+    margin: 1.6em 1em 0.5em 0;
+}
+p.footer-page-text {
+    font-family: verdana, sans serif;
+    font-size: 100%;
+    color: #424142;
+    line-height: 1.12em;
+    margin:0 1em 1.2em 0;
+    padding:0 0 0 0;
+}

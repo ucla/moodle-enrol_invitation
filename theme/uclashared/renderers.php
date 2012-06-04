@@ -274,6 +274,7 @@ class theme_uclashared_core_renderer extends core_renderer {
             'about_ccle',
             'privacy',
             'copyright',
+            'uclalinks',
             'separator',            
             'school',
             'registrar',

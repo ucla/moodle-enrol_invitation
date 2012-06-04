@@ -13,10 +13,13 @@ $string['foodis_about_ccle'] = 'About CCLE';
 $string['foolin_about_ccle'] = 'https://pilot.ccle.ucla.edu/course/view.php?id=110&topic=0';
 
 $string['foodis_privacy'] = 'Privacy Policy';
-$string['foolin_privacy'] = $CFG->wwwroot . '/privacy_notice.php';
+$string['foolin_privacy'] = $CFG->wwwroot . '/view.php?page=privacy';
 
 $string['foodis_copyright'] = 'Copyright Information';
-$string['foolin_copyright'] = $CFG->wwwroot . '/copyright_information.php';
+$string['foolin_copyright'] = $CFG->wwwroot . '/view.php?page=copyright';
+
+$string['foodis_uclalinks'] = 'UCLA Links';
+$string['foolin_uclalinks'] = $CFG->wwwroot . '/view.php?page=link';
 
 $string['foodis_school'] = 'UCLA Home';
 $string['foolin_school'] = 'http://www.ucla.edu/';
@@ -85,4 +88,5 @@ $string['env_dev'] = 'Development';
 $string['UCLA_CCLE_text'] = 'UCLA CCLE Common Collaboration and Learning Environment';
 //END UCLA MOD: CCLE-2862
 
+$string['page_notfound'] = 'The page you requested does not exist';
 // EoF
