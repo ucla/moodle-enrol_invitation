@@ -16,15 +16,16 @@ require_once($CFG->dirroot . '/local/ucla/lib.php');
 
 /**
  * Returns an array of raw CSV data from the CSV file at datasource_url.
+ * 
  * @param $datasource_url The URL of the CSV data to attempt to retrieve.
- **/
+ *
+ */
 function get_csv_data($datasource_url) {
 
     $lines = array();
     $fp = fopen($datasource_url, 'r');
 
     if ($fp) {
-        $lines = '';
 
         while (!feof($fp)) {
             $lines[] = fgetcsv($fp);
@@ -40,18 +41,21 @@ function get_csv_data($datasource_url) {
 }
 
 /**
- * Returns an array of cleaned and parsed CSV data from the unsafe and/or unclean input array of data.
+ * Returns an array of cleaned and parsed CSV data from the unsafe and/or 
+ * unclean input array of data.
+ *
  * @param $data The array of unsafe CSV data.
  * @param $table_name The moodle DB table name against which to validate the field labels of the CSV data.
  * @note Currently only works with the Bruincast update script at ./bruincast_dbsync.php  May cause undefined behaviour if used with other datasets.
- **/
-function cleanup_csv_data($data_array, $table_name) {
+ *
+ */
+function cleanup_csv_data(&$data_array, $table_name) {
 
     // get global variables
     global $CFG;
     global $DB;
 
-    $incoming_data = &$data_array; // mmm... memory savings.....
+    $incoming_data = $data_array; // mmm... memory savings.....
     $posfields = array();
 
     // Automatically ignore fields
@@ -110,6 +114,7 @@ function cleanup_csv_data($data_array, $table_name) {
     // Reindex the data for nicer formatting
     $data_incoming = array();
     $invalid_restrictions = array();
+    
     for ($line = $fields_desc_line + 1; $line < count($incoming_data); $line++) {
 
         // Make sure this line has data as we have fields

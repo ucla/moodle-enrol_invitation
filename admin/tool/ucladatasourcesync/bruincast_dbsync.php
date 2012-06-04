@@ -1,12 +1,13 @@
 <?php
 /**
-* Command line script to parse, verify, and update Bruincast entries in the Moodle database.
-*
-* $CFG->bruincast_data, $CFG->bruincast_errornotify_email, and $CFG->quiet_mode are defined
-* in the plugin configuration at Site administration->Plugins->Blocks->Bruincast
-*
-* See CCLE-2314 for details.
-**/
+ * Command line script to parse, verify, and update Bruincast entries in the Moodle database.
+ *
+ * $CFG->bruincast_data, $CFG->bruincast_errornotify_email, and $CFG->quiet_mode are defined
+ * in the plugin configuration at Site administration->Plugins->Blocks->Bruincast
+ *
+ * See CCLE-2314 for details.
+ *
+ */
 
 require_once(dirname(__FILE__).'/lib.php');
 
