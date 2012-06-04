@@ -373,6 +373,11 @@ class theme_uclashared_core_renderer extends core_renderer {
                     unset($attr['title']);
 
                     $action->text = $displaytext;                    
+                } else  {
+                    unset($attr['alt']);
+                    unset($attr['title']);
+
+                    $action->text = $displaytext;                                        
                 }
             }
         }
