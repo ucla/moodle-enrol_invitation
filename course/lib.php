@@ -3323,6 +3323,7 @@ function make_editing_buttons(stdClass $mod, $absolute_ignored = true, $movesele
             array('class' => 'editing_assign', 'title' => $str->assign)
         );
     }
+    //*/
     
     // START UCLA MOD CCLE-2803 
     // Moving rendering order of delete button to fix tab order
