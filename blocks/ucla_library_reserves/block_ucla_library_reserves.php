@@ -38,68 +38,22 @@ class block_ucla_library_reserves extends block_base {
         $nodes = array();
         $links = array();        
         
-        $courseid = $COURSE->id; // course id from the hook function
-        $courseinfo = ucla_get_course_info($courseid);
-        
-        if (empty($courseinfo)) {
-            return $nodes;
-        }
-                
-        foreach ($courseinfo as $index => $courseentry) {
-            // see if term/srs is found in library_reserves table
-            $lrnodes = $DB->get_records('ucla_library_reserves',
-                    array('quarter' => $courseentry->term, 'srs' => $courseentry->srs)); 
+        $reserves = $DB->get_records('ucla_library_reserves', 
+                array('courseid' => $COURSE->id));
 
-            // commenting out, becuase this just doesn't work - rex (see CCLE-3080)
-//            // If srs did not work as lookup, use the term, courseid, and 
-//            // department code, but make sure that the term/srs for that record
-//            // is the same section for the course entry (see CCLE-2938)
-//            if (empty($lrnodes)) {
-//                $sql = "SELECT  *
-//                        FROM    {ucla_library_reserves} AS lr, 
-//                                {ucla_reg_classinfo} AS lr_rci,
-//                                {ucla_reg_classinfo} AS ce_rci
-//                        WHERE   lr.quarter=:quarter AND
-//                                lr.department_code=:department_code AND
-//                                lr.course_number=:course_number AND
-//                                lr.quarter=lr_rci.term AND
-//                                lr.srs=lr_rci.srs AND
-//                                ce_rci.term=:courseentry_term AND
-//                                ce_rci.srs=:courseentry_srs AND
-//                                lr_rci.sectnum=ce_rci.sectnum";                               
-//                $lrnodes = $DB->get_records_sql($sql,
-//                        array('quarter' => $courseentry->term, 
-//                              'department_code' => $courseentry->subj_area, 
-//                              'course_number' => $courseentry->coursenum,
-//                              'courseentry_term' => $courseentry->term,
-//                              'courseentry_srs' => $courseentry->srs));                
-//            }
-            
-            if (empty($lrnodes)) {                
-                continue;  // no record found for courseentry
-            }                
-            
-            /* since we found some library reserve entries, create link array
-             * in the format [reserve link] => ['subj_area'] 
-             *                                 ['coursenum']
-             */  
-            foreach ($lrnodes as $lrnode) {
-                $links[$lrnode->url]['subj_area'] = $courseentry->subj_area;
-                $links[$lrnode->url]['coursenum'] = $courseentry->coursenum;
-            }
-        }
-
-        // if only one unique url was found, then just give the name "Library reserves"
+        // if only one entry was found, then just give the name "Library reserves"
         $lr_string = get_string('title', 'block_ucla_library_reserves');        
-        if (count($links) == 1) {
+        if (count($reserves) == 1) {
+            $link = array_pop($reserves);
             $nodes[] = navigation_node::create($lr_string,
-                            new moodle_url(array_pop(array_keys($links))));            
+                            new moodle_url($link->url));            
         } else {
             // else display link with subj_area and coursenum appended
-            foreach ($links as $url => $entry) {
+            foreach ($reserves as $reserve) {
                 $nodes[] = navigation_node::create(sprintf('%s %s %s', 
-                        $lr_string, $entry['subj_area'], $entry['coursenum']), 
-                        new moodle_url($url));                 
+                        $lr_string, $reserve->department_code, 
+                        $reserve->course_number), 
+                        new moodle_url($reserve->url));                 
             }            
         }
         

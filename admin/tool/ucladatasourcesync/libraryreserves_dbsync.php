@@ -18,112 +18,207 @@ if (empty($datasource_url)) {
 // Begin database update
 update_libraryreserves_db($datasource_url);
 
-function update_libraryreserves_db($datasource_url) {
-    // get global variables
-    global $CFG, $DB;
+/**
+ * Sets up array to be used to validate library reserve data source.
+ * 
+ * Expects library reserves data to be in the following format:
+ * Course Number: VARCHAR2(10)
+ * Course Name: VARCHAR2(40)
+ * Department Code: VARCHAR2(10)
+ * Department Name: VARCHAR2(40)
+ * Instructor Last Name: VARCHAR2(50)
+ * Instructor First Name: VARCHAR2(40)
+ * Reserves List Title: VARCHAR2(40)
+ * List Effective Date: YYYY-MM-DD
+ * List Ending Date: YYYY-MM-DD
+ * URL: VARCHAR2
+ * SRS Number: VARCHAR2(9)
+ * Quarter: CHAR(3)
+ * 
+ * @return mixed
+ */
+function define_data_source() {
+    $ret_val = array();
+    
+    /* [index in datasource] => ['name']
+     *                          ['type']
+     *                          ['min_size']
+     *                          ['max_size']
+     */    
+    $ret_val[0] = array('name' => 'course_number',
+                        'type' => 'coursenum',
+                        'min_size' => '0',
+                        'max_size' => '10');
+    $ret_val[1] = array('name' => 'course_name',
+                        'type' => 'string',
+                        'min_size' => '0',
+                        'max_size' => '40');
+    $ret_val[2] = array('name' => 'department_code',
+                        'type' => 'string',
+                        'min_size' => '0',
+                        'max_size' => '10');
+    $ret_val[3] = array('name' => 'department_name',
+                        'type' => 'string',
+                        'min_size' => '0',
+                        'max_size' => '50');
+    $ret_val[4] = array('name' => 'instructor_last_name',
+                        'type' => 'string',
+                        'min_size' => '0',
+                        'max_size' => '50');
+    $ret_val[5] = array('name' => 'instructor_first_name',
+                        'type' => 'string',
+                        'min_size' => '0',
+                        'max_size' => '40');
+    $ret_val[6] = array('name' => 'reserves_list_title',
+                        'type' => 'string',
+                        'min_size' => '0',
+                        'max_size' => '40');
+    $ret_val[7] = array('name' => 'list_effective_date',
+                        'type' => 'date_dashed',
+                        'min_size' => '10',
+                        'max_size' => '10');
+    $ret_val[8] = array('name' => 'list_ending_date',
+                        'type' => 'date_dashed',
+                        'min_size' => '10',
+                        'max_size' => '10');
+    $ret_val[9] = array('name' => 'url',
+                        'type' => 'url',
+                        'min_size' => '1',
+                        'max_size' => '400');
+    $ret_val[10]= array('name' => 'srs',
+                        'type' => 'srs',
+                        'min_size' => '7',  // in case leading zeroes are removed
+                        'max_size' => '9');
+    $ret_val[11]= array('name' => 'quarter',
+                        'type' => 'term',
+                        'min_size' => '3',
+                        'max_size' => '3');
+    
+    return $ret_val;
+}
 
-    echo get_string('lrstartnoti', 'tool_ucladatasourcesync');
+function parse_datasource($datasource_url) 
+{
+    $parsed_data = array();
 
-    $incoming_data = array();
-
+    // get fields that should be in data source
+    $fields = define_data_source();    
+    
+    
     # read the file into a two-dimensional array
     $lines = file($datasource_url);
-
     if ($lines === FALSE) {
         die("\n" . get_string('errlrfileopen', 'tool_ucladatasourcesync') . "\n");
     }    
     
+    $num_entries = 0;
     foreach ($lines as $line_num => $line) {
         # stop processing data if we hit the end of the file
-        if ($line != "=== EOF ===\n") {
-            # remove the newline at the end of each line
-            $line = rtrim($line);
-
-            $incoming_data[$line_num] = explode("\t", $line);
+        if ($line == "=== EOF ===\n") {
+            break;
         }
-    }
-
-    $curfields = $DB->get_records_sql("DESCRIBE {$CFG->prefix}" . "ucla_library_reserves");
-
-    $fields = array();
-    foreach ($curfields as $fieldname => $fielddata) {
-
-        // Skip the field 'id'
-        if ($fieldname == 'id') {
+                
+        # remove the newline at the end of each line
+        $line = rtrim($line);
+        $incoming_data = explode("\t", $line);
+        
+        // Check if all entries have the correct number of columns          
+        if (count($incoming_data) != count($fields)) {
+            // if first line, then don't give error, just skip it
+            if ($line_num != 0) {   
+                echo(get_string('errinvalidrowlen', 'tool_ucladatasourcesync', 
+                        $line_num) . "\n");
+            }
             continue;
         }
-
-        $fields[$fieldname] = $fieldname;
-    }
-
-    $data_incoming = array();
-
-    // Check if all entries have the correct number of columns  
-    $num_incoming_data = count($incoming_data);
-    for ($row = 1; $row < $num_incoming_data; $row++) {
-        if (count($incoming_data[$row]) != count($fields)) {
-            die("\n" . get_string('errinvalidrowlen', 'tool_ucladatasourcesync') . "\n");
-        }
-
-        // Bind field label to data
-
-        $tabnum = 0;
-
-        foreach ($fields as $tab_num => $field_name) {
-
-            $data = $incoming_data[$row][$tabnum];
-            $field = trim($field_name);
-
-            if ($fieldname == 'id') {
-                continue;
+        
+        // Bind incoming data field to local database table.
+        // Don't fail if fields are invalid, just note it and continue, because
+        // data is very messy, but we will try to work with it when trying to 
+        // match a library reserve entry with a course.
+        $invalid_fields = array();
+        foreach ($fields as $field_num => $field_def) {
+            // validate/clean data
+            $data = validate_field($field_def['type'], 
+                    $incoming_data[$field_num], $field_def['min_size'], 
+                    $field_def['max_size']);            
+            if ($data === FALSE) {
+                $invalid_fields[] = $field_def['name'];                
             }
+            
+            $parsed_data[$num_entries][$field_def['name']] = $data;
+            ++$field_num;
+        }
+        
+        // give warning about errors
+        if (!empty($invalid_fields)) {
+            $error = new stdClass();
+            $error->fields = implode(', ', $invalid_fields);
+            $error->line_num = $line_num;
+            $error->data = print_r($incoming_data, true);                        
+            echo(get_string('warninvalidfields', 'tool_ucladatasourcesync', 
+                    $error) . "\n");      
+        }
+                
+        ++$num_entries;
+    }
+ 
+    return $parsed_data;
+}
 
-            if ($field_name == 'srs') {
-                $data = sprintf('%09s', $data);
+function update_libraryreserves_db($datasource_url) {
+    // get global variables
+    global $CFG, $DB;
+
+    echo get_string('lrstartnoti', 'tool_ucladatasourcesync') . "\n";
+
+    $parsed_data = parse_datasource($datasource_url);    
+    if (empty($parsed_data)) {
+        echo get_string('lrstartnoti', 'tool_ucladatasourcesync') . "\n";        
+    }
+
+    // wrap everything in a transaction, because we don't want to have an empty
+    // table while data is being updated
+    $num_entries_inserted = 0;
+    try {
+        $transaction = $DB->start_delegated_transaction();
+        
+        // Drop table and refill with data
+        $DB->delete_records('ucla_library_reserves');
+
+        foreach ($parsed_data as $reserve_entry) {
+            // through each entry and try to match it to a course 
+            
+            // cat_num might have x, indicating a sec_num
+            $result = explode('x', $reserve_entry['course_number']);
+            $sec_num = null;
+            $cat_num = $result[0];
+            if (isset($result[1])) {
+                $sec_num = $result[1];
             }
-
-            if ($field_name == 'course_number') {
-                $data = ltrim($data, '0');
+            $courseid = match_course($reserve_entry['quarter'], 
+                    $reserve_entry['srs'], $reserve_entry['department_code'], 
+                    $cat_num, $sec_num);
+            if (!empty($courseid)) {
+                $reserve_entry['courseid'] = $courseid;                
             }
-
-            $data_incoming[$row][$field] = $data;
-
-            $tabnum++;
+            
+            if ($DB->insert_record('ucla_library_reserves', $reserve_entry)) {
+                ++$num_entries_inserted;
+            }
         }
-    }
-
-    $data = &$data_incoming;
-
-    // Drop table and refill with data
-    $DB->delete_records('ucla_library_reserves');
-
-    $insert_count = 0;
-    $line = 1;
-    $row = new stdClass();
-    $index = FALSE;
-
-    $num_data = count($data);
-    for ($line; $line < $num_data; $line++) {
-
-        foreach ($data[$line] as $field => $fieldvalue) {
-            $row->$field = $fieldvalue;
-        }
-
-        try {
-            $index = $DB->insert_record('ucla_library_reserves', $row);
-        } catch (Exception $e) {
-            // Do nothing, to handle cases where rows are invalid beyond norms.  Does not insert row.
-        }
-
-        if ($index) {
-            $insert_count++;
-        }
-    }
-
-    if ($insert_count == 0) {
-        echo "\n" . get_string('errbcinsert', 'tool_ucladatasourcesync') . "\n";
-    } else {
-        echo "\n... " . $insert_count . " " . get_string('lrsuccessnoti', 'tool_ucladatasourcesync') . "\n";
-    }
+        
+        if ($num_entries_inserted == 0) {
+            throw new moodle_exception('errbcinsert', 'tool_ucladatasourcesync');
+        }        
+        
+        // Assuming the both inserts work, we get to the following line.
+        $transaction->allow_commit();
+    } catch(Exception $e) {
+        $transaction->rollback($e);
+    }    
+    
+    echo  get_string('lrsuccessnoti', 'tool_ucladatasourcesync', 
+            $num_entries_inserted) . "\n";
 }
 

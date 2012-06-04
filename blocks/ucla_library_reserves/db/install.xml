@@ -1,30 +1,34 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-  <XMLDB PATH="blocks/ucla_library_reserves/db" VERSION="20120202" COMMENT="XMLDB file for Moodle blocks/ucla_library_reserves">
-    <TABLES>
-      <TABLE NAME="ucla_library_reserves" COMMENT="Library reserves Database">
-        <FIELDS>
-          <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="course_number"/>
-          <FIELD NAME="course_number" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="id" NEXT="course_name"/>
-          <FIELD NAME="course_name" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" PREVIOUS="course_number" NEXT="department_code"/>
-          <FIELD NAME="department_code" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="course_name" NEXT="department_name"/>
-          <FIELD NAME="department_name" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" PREVIOUS="department_code" NEXT="instructor_last_name"/>
-          <FIELD NAME="instructor_last_name" TYPE="char" LENGTH="50" NOTNULL="false" SEQUENCE="false" PREVIOUS="department_name" NEXT="instructor_first_name"/>
-          <FIELD NAME="instructor_first_name" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" PREVIOUS="instructor_last_name" NEXT="reserves_list_title"/>
-
-          <FIELD NAME="reserves_list_title" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" PREVIOUS="instructor_first_name" NEXT="list_effective_date"/>
-          <FIELD NAME="list_effective_date" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" PREVIOUS="reserves_list_title" NEXT="list_ending_date"/>
-          <FIELD NAME="list_ending_date" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" PREVIOUS="list_effective_date" NEXT="url"/>
-          <FIELD NAME="url" TYPE="char" LENGTH="400" NOTNULL="false" SEQUENCE="false" PREVIOUS="list_ending_date" NEXT="srs"/>
-          <FIELD NAME="srs" TYPE="char" LENGTH="9" NOTNULL="false" SEQUENCE="false" PREVIOUS="url" NEXT="quarter"/>
-          <FIELD NAME="quarter" TYPE="char" LENGTH="3" NOTNULL="false" SEQUENCE="false" PREVIOUS="srs"/>
-        </FIELDS>
-        <KEYS>
-          <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-        </KEYS>
-        <INDEXES>
-            <INDEX NAME="term_srs" UNIQUE="false" FIELDS="quarter,srs" NEXT="term_course"/>
-            <INDEX NAME="term_course" UNIQUE="false" FIELDS="quarter,department_code,course_number" PREVIOUS="term_srs"/>
-        </INDEXES>
-      </TABLE>
-    </TABLES>
-  </XMLDB>
+<XMLDB PATH="blocks/ucla_library_reserves/db" VERSION="20120603" COMMENT="XMLDB file for Moodle blocks/ucla_library_reserves"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="ucla_library_reserves" COMMENT="Library reserves Database">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="course_number"/>
+        <FIELD NAME="course_number" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="id" NEXT="course_name"/>
+        <FIELD NAME="course_name" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" PREVIOUS="course_number" NEXT="department_code"/>
+        <FIELD NAME="department_code" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="course_name" NEXT="department_name"/>
+        <FIELD NAME="department_name" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" PREVIOUS="department_code" NEXT="instructor_last_name"/>
+        <FIELD NAME="instructor_last_name" TYPE="char" LENGTH="50" NOTNULL="false" SEQUENCE="false" PREVIOUS="department_name" NEXT="instructor_first_name"/>
+        <FIELD NAME="instructor_first_name" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" PREVIOUS="instructor_last_name" NEXT="reserves_list_title"/>
+        <FIELD NAME="reserves_list_title" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" PREVIOUS="instructor_first_name" NEXT="list_effective_date"/>
+        <FIELD NAME="list_effective_date" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" PREVIOUS="reserves_list_title" NEXT="list_ending_date"/>
+        <FIELD NAME="list_ending_date" TYPE="char" LENGTH="40" NOTNULL="false" SEQUENCE="false" PREVIOUS="list_effective_date" NEXT="url"/>
+        <FIELD NAME="url" TYPE="char" LENGTH="400" NOTNULL="false" SEQUENCE="false" PREVIOUS="list_ending_date" NEXT="srs"/>
+        <FIELD NAME="srs" TYPE="char" LENGTH="9" NOTNULL="false" SEQUENCE="false" PREVIOUS="url" NEXT="quarter"/>
+        <FIELD NAME="quarter" TYPE="char" LENGTH="3" NOTNULL="false" SEQUENCE="false" PREVIOUS="srs" NEXT="courseid"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" PREVIOUS="quarter"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="courseid"/>
+        <KEY NAME="courseid" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id" PREVIOUS="primary"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="term_srs" UNIQUE="false" FIELDS="quarter, srs" NEXT="term_course"/>
+        <INDEX NAME="term_course" UNIQUE="false" FIELDS="quarter, department_code, course_number" PREVIOUS="term_srs"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>
