@@ -22,9 +22,14 @@ M.format_ucla.mk_button_override = function(tag, imgSrc, text,
 
     if (M.format_ucla.no_editing_icons != undefined 
             && !M.format_ucla.no_editing_icons) {
-        return tagnode;
+        return tagnode;            
     }
 
+    // keep move,indent,unindent as icons
+    if (M.format_ucla.no_editing_icons == 2 && (text == 'Move' || 
+            text == 'Indent' || text == 'Unindent')) {
+        return tagnode;            
+    }
 
     iconnode = tagnode.childNodes[0];
 
