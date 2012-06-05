@@ -704,6 +704,13 @@ abstract class restore_dbops {
                 throw new restore_dbops_exception('file_not_found_in_pool', $file);
             }
             if (!$fs->file_exists($newcontextid, $component, $filearea, $rec->newitemid, $file->filepath, $file->filename)) {
+				// START UCLA MOD: feature/CCLE-2669-copyright-modifications
+				// If the file does not have copyright status stated, set it to default copyright
+				global $CFG;
+				if ($file->license == NULL){
+					$file->license = $CFG->sitedefaultlicense;
+				}
+				// END UCLA MOD: feature/CCLE-2669-copyright-modifications
                 $file_record = array(
                     'contextid'   => $newcontextid,
                     'component'   => $component,

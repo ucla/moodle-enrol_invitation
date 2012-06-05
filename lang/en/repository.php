@@ -105,7 +105,7 @@ $string['filesizenull'] = 'File size cannot be determined';
 $string['getfile'] = 'Select this file';
 $string['hidden'] = 'Hidden';
 $string['choosealink'] = 'Choose a link...';
-$string['chooselicense'] = 'Choose license';
+$string['chooselicense'] = 'Copyright status <a title="Help with Copyright Status" href="/moodle/help.php?component=block_ucla_easyupload&identifier=license&lang=en" target=_blank><img class="iconhelp" alt="Help with Copyright Status" src="/moodle/theme/image.php?theme=uclashared&image=help">';
 $string['iconview'] = 'View as icons';
 $string['instance'] = 'instance';
 $string['instancedeleted'] = 'Instance deleted';
