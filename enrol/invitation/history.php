@@ -131,10 +131,11 @@ if (empty($invites)) {
         }
         
         // when was the invite sent?
-        $row[3] = date('M n, Y g:ia', $invite->timesent);
+        $row[3] = date('M j, Y g:ia', $invite->timesent);
         
         // when does the invite expire?
-        $row[4] = date('M n, Y g:ia', $invite->timeexpiration);
+        $row[4] = date('M j, Y g:ia', $invite->timeexpiration);
+        
         // if status is active, then state how many days/minutes left
         if ($status == get_string('status_invite_active', 'enrol_invitation')) {
             $expires_text = sprintf('%s %s', 

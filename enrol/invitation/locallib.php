@@ -117,7 +117,7 @@ class invitation_manager {
                 $message_params = new stdClass();
                 $message_params->fullname = 
                         sprintf('%s: %s', $course->shortname, $course->fullname);
-                $message_params->expiration = date('M n, Y g:ia', $invitation->timeexpiration);
+                $message_params->expiration = date('M j, Y g:ia', $invitation->timeexpiration);
                 $message_params->inviteurl = 
                         new moodle_url('/enrol/invitation/enrol.php', 
                                 array('enrolinvitationtoken' => $token, 
@@ -262,14 +262,14 @@ class invitation_manager {
         
         if (empty($invite->userid) || empty($invite->tokenused) || 
                 empty($invite->courseid) || empty($invite->timeused)) {
-            debugging('one of required fields empty');
+            //debugging('one of required fields empty');
             return false;
         }
         
         // find user
         $user = $DB->get_record('user', array('id' => $invite->userid));        
         if (empty($user)) {
-            debugging('could not find user');
+            //debugging('could not find user');
             return false;
         }
         $ret_val->username = sprintf('%s %s', $user->firstname, $user->lastname);
@@ -279,13 +279,13 @@ class invitation_manager {
         $ret_val->roles = get_user_roles_in_course($invite->userid, $invite->courseid);
         if (empty($ret_val->roles)) {
             // if no roles, then they must have been booted out later            
-            debugging('no roles found');
+            //debugging('no roles found');
             return false;
         }
         $ret_val->roles = strip_tags($ret_val->roles);
         
         // format string when invite was used
-        $ret_val->timeused = date('M n, Y g:ia', $invite->timeused);
+        $ret_val->timeused = date('M j, Y g:ia', $invite->timeused);
         
         return $ret_val;
     }
