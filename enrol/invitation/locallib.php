@@ -18,19 +18,10 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-// invite status codes
-define('ENROL_INVITE_INVALID', -1);
-define('ENROL_INVITE_EXPIRED', 0);
-define('ENROL_INVITE_USED', 1);
-define('ENROL_INVITE_REVOKED', 2);
-define('ENROL_INVITE_RESENT', 3);
-define('ENROL_INVITE_ACTIVE', 4);
-
 class invitation_manager {
     /*
      * The invitation enrol instance of a course
      */
-
     var $enrol_instance = null;
 
     /*
@@ -82,14 +73,14 @@ class invitation_manager {
      * @param type $data 
      */
     public function send_invitations($data) {
-        global $USER, $DB, $SITE;
+        global $DB, $CFG, $COURSE, $USER;
 
-        $data = (array) $data;
+        if (has_capability('enrol/invitation:enrol', get_context_instance(CONTEXT_COURSE, $data->courseid))) {
 
-        if (has_capability('enrol/invitation:enrol', get_context_instance(CONTEXT_COURSE, $data['courseid']))) {
-            $email = $data['email'];
-            if (!empty($email)) {
-
+            // get course record, to be used later
+            $course = $DB->get_record('course', array('id' => $data->courseid), '*', MUST_EXIST);            
+            
+            if (!empty($data->email)) {
                 //create unique token for invitation
                 do {
                     $token = md5(uniqid(rand(), 1));
@@ -98,32 +89,63 @@ class invitation_manager {
 
                 //save token information in config (token value, course id, TODO: role id)
                 $invitation = new stdClass();
-                $invitation->courseid = $data['courseid'];
-                $invitation->email = $email;
-                $invitation->creatorid = $USER->id;
                 $invitation->token = $token;
-                $invitation->tokenused = false;
-                $invitation->timesent = time();
+                $invitation->email = $data->email;
+                $invitation->roleid = $data->role_group['roleid'];                
+                $invitation->courseid = $data->courseid;    
+                $invitation->tokenused = false;   
+                
+                // set time
+                $timesent = time();
+                $invitation->timesent = $timesent;
+                $invitation->timeexpiration = $timesent + 
+                        get_config('enrol_invitation', 'enrolperiod');
+
+                $invitation->inviterid = $USER->id;               
+                $invitation->notify_inviter = empty($data->notify_inviter) ? 0 : 1;
+                $invitation->show_from_email = empty($data->show_from_email) ? 0 : 1;                           
+                
+                $invitation->subject = $data->subject;                               
+                
+                // construct message: custom (if any) + template
+                $message = '';
+                if (!empty($invitation->message)) {
+                    $message .= get_string('instructormsg', 'enrol_invitation', 
+                            $invitation->message);
+                }
+                // construct invite message
+                $message_params = new stdClass();
+                $message_params->fullname = 
+                        sprintf('%s: %s', $course->shortname, $course->fullname);
+                $message_params->inviteurl = 
+                        new moodle_url('/enrol/invitation/enrol.php', 
+                                array('enrolinvitationtoken' => $token, 
+                                      'id' => $data->courseid));
+                $message_params->supportemail = $CFG->supportemail;
+                $message .= get_string('emailmsgtxt', 'enrol_invitation', 
+                        $message_params);                
+                $invitation->message = $message;
 
                 $DB->insert_record('enrol_invitation', $invitation);
 
-                $enrolurl = new moodle_url('/enrol/invitation/enrol.php',
-                                array('enrolinvitationtoken' => $token, 'id' => $data['courseid']));
-
+                // change FROM to be $CFG->supportemail if user has show_from_email off
+                $fromuser = $USER;
+                if (!empty($invitation->show_from_email)) {
+                    $fromuser = new stdClass();
+                    $fromuser->email = $CFG->supportemail;
+                    $fromuser->firstname = '';
+                    $fromuser->lastname = '';
+                    $fromuser->maildisplay = true;
+                }
+                
                 //send invitation to the user
-                $contactuser = new object;
-                $contactuser->email = $email;
+                $contactuser = new stdClass();
+                $contactuser->email = $invitation->email;
                 $contactuser->firstname = '';
                 $contactuser->lastname = '';
                 $contactuser->maildisplay = true;
-                $emailinfo = new stdClass();
-                $emailinfo->fullname = $data['fullname'];
-                $emailinfo->managername = $USER->firstname . ' ' . $USER->lastname;
-                $emailinfo->enrolurl = $enrolurl->out(false);
-                $emailinfo->sitename = $SITE->fullname;
-                $siteurl = new moodle_url('/');
-                $emailinfo->siteurl = $siteurl->out(false);
-                email_to_user($contactuser, $USER, get_string('emailtitleinvitation', 'enrol_invitation', $emailinfo), get_string('emailmessageinvitation', 'enrol_invitation', $emailinfo));
+                email_to_user($contactuser, $fromuser, $invitation->subject, 
+                        $invitation->message);
             }
         } else {
             throw new moodle_exception('cannotsendinvitation', 'enrol_invitation',
@@ -136,23 +158,23 @@ class invitation_manager {
      * 
      * @param object $invite    Database record
      * 
-     * @return int              Returns invite status code.
+     * @return string              Returns invite status string.
      */
     public function get_invite_status($invite) {
         if (!is_object($invite)) {
-            return ENROL_INVITE_INVALID;
+            return get_string('status_invite_invalid', 'enrol_invitation');
         }
 
         if ($invite->tokenused) {
             // invite was used already
-            return ENROL_INVITE_USED;
+            return get_string('status_invite_used', 'enrol_invitation');
         } else if ($invite->timeexpiration < time()) {
             // invite is expired
-            return ENROL_INVITE_EXPIRED;
+            return get_string('status_invite_expired', 'enrol_invitation');
         } else {
-            return ENROL_INVITE_ACTIVE;
+            return get_string('status_invite_active', 'enrol_invitation');
         }
-        // TO DO: add ENROL_INVITE_REVOKED and ENROL_INVITE_RESENT status
+        // TO DO: add status_invite_revoked and status_invite_resent status
     }
 
     /**
@@ -213,16 +235,60 @@ class invitation_manager {
      * Enrol the user following the invitation data
      * @param object $invitation 
      */
-    public function enroluser() {
-        global $USER, $DB, $PAGE, $CFG;
+    public function enroluser($invitation) {
+        global $USER;
 
         $enrol = enrol_get_plugin('invitation');
-        $enrol->enrol_user($this->enrol_instance, $USER->id, $this->enrol_instance->roleid);
+        $enrol->enrol_user($this->enrol_instance, $USER->id, $invitation->roleid);
     }
 
+    /**
+     * Figures out who used an invite.
+     * 
+     * @param object $invite    Invitation record
+     * 
+     * @return object           Returns an object with following values:
+     *                          ['username'] - name of who used invite
+     *                          ['useremail'] - email of who used invite
+     *                          ['roles'] - roles the user has for course that 
+     *                                      they were invited
+     *                          ['timeused'] - formatted string of time used
+     *                          Returns false on error or if invite wasn't used.
+     */
+    public function who_used_invite($invite) {
+        global $DB;
+        $ret_val = new stdClass();
+        
+        if (empty($invite->userid) || empty($invite->tokenused) || 
+                empty($invite->courseid) || empty($invite->timeused)) {
+            debugging('one of required fields empty');
+            return false;
+        }
+        
+        // find user
+        $user = $DB->get_record('user', array('id' => $invite->userid));        
+        if (empty($user)) {
+            debugging('could not find user');
+            return false;
+        }
+        $ret_val->username = sprintf('%s %s', $user->firstname, $user->lastname);
+        $ret_val->useremail = $user->email;
+        
+        // find their roles for course
+        $ret_val->roles = get_user_roles_in_course($invite->userid, $invite->courseid);
+        if (empty($ret_val->roles)) {
+            // if no roles, then they must have been booted out later            
+            debugging('no roles found');
+            return false;
+        }
+        $ret_val->roles = strip_tags($ret_val->roles);
+        
+        // format string when invite was used
+        $ret_val->timeused = date('M n, Y g:ia', $invite->timeused);
+        
+        return $ret_val;
+    }
 }
-
-
 
 /**
  *

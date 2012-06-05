@@ -50,33 +50,36 @@ $PAGE->set_heading(get_string('inviteusers', 'enrol_invitation'));
 $PAGE->set_title(get_string('inviteusers', 'enrol_invitation'));
 $PAGE->navbar->add(get_string('inviteusers', 'enrol_invitation'));
 
+echo $OUTPUT->header();
+print_page_tabs('invite');  // OUTPUT page tabs
+echo $OUTPUT->heading(get_string('inviteusers', 'enrol_invitation'));
+
 $invitationmanager = new invitation_manager($courseid);
+
+// make sure that site has invitation plugin installed
 $instance = $invitationmanager->get_invitation_instance($courseid, true);
+
 $mform = new invitations_form(null, array('courseid' => $courseid));
 $mform->set_data($invitationmanager);
+
 $data = $mform->get_data();
-$confirmation = '';
 if ($data and confirm_sesskey()) {
-    $data->fullname = $fullname;
     $invitationmanager->send_invitations($data);
+    
+    $courseurl = new moodle_url('/course/view.php', array('id' => $courseid));
+    $courseret = new single_button($courseurl, get_string('returntocourse',
+                            'enrol_invitation'), 'get');
 
-    echo $OUTPUT->header();
-    echo $OUTPUT->heading(get_string('inviteusers', 'enrol_invitation'), 3, 'main');
-    $confirmation = $OUTPUT->notification(get_string('emailssent', 'enrol_invitation'),
-            'notifysuccess');
-    echo $confirmation;
-    echo $OUTPUT->continue_button(new moodle_url('/course/view.php', array('id' => $courseid)));
-    echo $OUTPUT->footer();
-    exit();
+    $secturl = new moodle_url('/enrol/invitation/invitation.php',
+                    array('courseid' => $courseid));
+    $sectret = new single_button($secturl, get_string('returntoinvite',
+                            'enrol_invitation'), 'get');    
+    
+    echo $OUTPUT->confirm(get_string('invitationsuccess', 'enrol_invitation'),
+            $sectret, $courseret);    
+    
+} else {
+    $mform->display();
 }
-
-//OUTPUT form
-echo $OUTPUT->header();
-
-// OUTPUT page tabs
-print_page_tabs('invite');
-
-echo $OUTPUT->heading(get_string('inviteusers', 'enrol_invitation'));
-$mform->display();
 
 echo $OUTPUT->footer();

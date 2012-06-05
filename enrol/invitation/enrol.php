@@ -27,81 +27,100 @@
 require('../../config.php');
 require($CFG->dirroot . '/enrol/invitation/locallib.php');
 
-require_login();
+require_login(null, false);
 
 //check if param token exist
-$enrolinvitationtoken = required_param('enrolinvitationtoken', PARAM_ALPHANUM);
+$enrolinvitationtoken = required_param('token', PARAM_ALPHANUM);
 
-if (!empty($enrolinvitationtoken)) {
+//retrieve the token info
+$invitation = $DB->get_record('enrol_invitation', 
+        array('token' => $enrolinvitationtoken, 'tokenused' => false));
 
-    $id = required_param('id', PARAM_INT);
+//if token is valid, enrol the user into the course          
+if (empty($invitation) or empty($invitation->courseid)) {
+    throw new moodle_exception('expiredtoken', 'enrol_invitation');
+}
 
-    //retrieve the token info
-    $invitation = $DB->get_record('enrol_invitation', array('token' => $enrolinvitationtoken, 'tokenused' => false));
+// make sure that course exists
+$course = $DB->get_record('course', array('id' => $invitation->courseid), '*', MUST_EXIST);
+$context = get_context_instance(CONTEXT_COURSE, $course->id);
 
-    //if token is valid, enrol the user into the course          
-    if (empty($invitation) or empty($invitation->courseid) or ($invitation->courseid != $id)) {
-        throw new moodle_exception('expiredtoken', 'enrol_invitation');
-    }
+// set up page
+$PAGE->set_context($context);
+$PAGE->set_url(new moodle_url('/enrol/invitation/enrol.php', 
+        array('token' => $enrolinvitationtoken)));
+$PAGE->set_pagelayout('course');
+$PAGE->set_course($course);
+$PAGE->set_heading(get_string('invitation_acceptance_title', 'enrol_invitation'));
+$PAGE->set_title(get_string('invitation_acceptance_title', 'enrol_invitation'));
+$PAGE->navbar->add(get_string('invitation_acceptance_title', 'enrol_invitation'));
 
-    //get
-    $invitationmanager = new invitation_manager($id);
-    $instance = $invitationmanager->get_invitation_instance($id);
+//get
+$invitationmanager = new invitation_manager($invitation->courseid);
+$instance = $invitationmanager->get_invitation_instance($invitation->courseid);
 
-    //First multiple check related to the invitation plugin config
+//First multiple check related to the invitation plugin config
+//@todo better handle exceptions here
 
-    if (isguestuser()) {
-        // can not enrol guest!!
-        return null;
-    }
-    if ($DB->record_exists('user_enrolments', array('userid' => $USER->id, 'enrolid' => $instance->id))) {
-        //TODO: maybe we should tell them they are already enrolled, but can not access the course
-        return null;
-    }
+if (isguestuser()) {
+    // can not enrol guest!!
+    echo $OUTPUT->header();
+    echo $OUTPUT->box_start('noticebox');
 
-    if ($instance->enrolstartdate != 0 and $instance->enrolstartdate > time()) {
-        //TODO: inform that we can not enrol yet
-        return null;
-    }
+    echo get_string('loggedinnot');
+    $loginbutton = new single_button(new moodle_url($CFG->wwwroot 
+            . '/login/index.php'), get_string('login'));
+    $loginbutton->class = 'continuebutton';
 
-    if ($instance->enrolenddate != 0 and $instance->enrolenddate < time()) {
-        //TODO: inform that enrolment is not possible any more
-        return null;
-    }
+    echo $OUTPUT->render($loginbutton);
+    echo $OUTPUT->box_end();
+    echo $OUTPUT->footer();
+    exit;
+}
 
-    if (empty($instance->roleid)) {
-        return null;
-    }
+if ($DB->record_exists('user_enrolments', 
+        array('userid' => $USER->id, 'enrolid' => $instance->id))) {
+    //TODO: maybe we should tell them they are already enrolled, but can not access the course
+    debugging('user_enrolments exists');
+    return null;
+}
 
-    //enrol the user into the course
-    require_once($CFG->dirroot . '/enrol/invitation/locallib.php');
-    $invitationmanager = new invitation_manager($invitation->courseid);
-    $invitationmanager->enroluser();
+//enrol the user into the course
+require_once($CFG->dirroot . '/enrol/invitation/locallib.php');
+$invitationmanager = new invitation_manager($invitation->courseid);
+$invitationmanager->enroluser($invitation);
 
-    //Set token as used
-    $invitation->tokenused = true;
-    $invitation->timeused = time();
-    $invitation->userid = $USER->id;
-    $DB->update_record('enrol_invitation', $invitation);
+//Set token as used and mark which user was assigned the token
+$invitation->tokenused = true;
+$invitation->timeused = time();
+$invitation->userid = $USER->id;
+$DB->update_record('enrol_invitation', $invitation);
 
+if (!empty($invitation->notify_inviter)) {
     //send an email to the user who sent the invitation        
-    $teacher = $DB->get_record('user', array('id' => $invitation->creatorid));
+    $inviter = $DB->get_record('user', array('id' => $invitation->notify_inviter));
+
     $contactuser = new object;
-    $contactuser->email = $teacher->email;
-    $contactuser->firstname = $teacher->firstname;
-    $contactuser->lastname = $teacher->lastname;
+    $contactuser->email = $inviter->email;
+    $contactuser->firstname = $inviter->firstname;
+    $contactuser->lastname = $inviter->lastname;
     $contactuser->maildisplay = true;
+
     $emailinfo = new stdClass();
-    $emailinfo->userfullname = $USER->firstname . ' ' . $USER->lastname;
+    $emailinfo->userfullname = $USER->firstname . ' ' . $USER->lastname;        
     $courseenrolledusersurl = new moodle_url('/enrol/users.php', array('id' => $invitation->courseid));
     $emailinfo->courseenrolledusersurl = $courseenrolledusersurl->out(false);
+
     $course = $DB->get_record('course', array('id' => $invitation->courseid));
     $emailinfo->coursefullname = $course->fullname;
     $emailinfo->sitename = $SITE->fullname;
     $siteurl = new moodle_url('/');
     $emailinfo->siteurl = $siteurl->out(false);
-    email_to_user($contactuser, get_admin(), get_string('emailtitleuserenrolled', 'enrol_invitation', $emailinfo), get_string('emailmessageuserenrolled', 'enrol_invitation', $emailinfo));
 
-    $courseurl = new moodle_url('/course/view.php', array('id' => $id));
-    redirect($courseurl);
+    email_to_user($contactuser, get_admin(), 
+            get_string('emailtitleuserenrolled', 'enrol_invitation', $emailinfo), 
+            get_string('emailmessageuserenrolled', 'enrol_invitation', $emailinfo));
 }
+
+$courseurl = new moodle_url('/course/view.php', array('id' => $invitation->courseid));
+redirect($courseurl);

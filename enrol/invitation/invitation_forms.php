@@ -85,7 +85,8 @@ class invitations_form extends moodleform {
         $mform->addElement('text', 'subject', get_string('subject', 'enrol_invitation'));
         $mform->addRule('subject', get_string('required'), 'required');       
         // default subject is "Site invitation for <course title>"        
-        $default_subject = get_string('default_subject', 'enrol_invitation', $course->fullname);
+        $default_subject = get_string('default_subject', 'enrol_invitation', 
+                sprintf('%s: %s', $course->shortname, $course->fullname));
         $mform->setDefault('subject', $default_subject);
         
         // message field
@@ -103,6 +104,8 @@ class invitations_form extends moodleform {
                 get_string('show_from_email', 'enrol_invitation', $temp));
         $mform->addElement('checkbox', 'notify_inviter', '', 
                 get_string('notify_inviter', 'enrol_invitation', $temp));
+        $mform->setDefault('show_from_email', 1);
+        $mform->setDefault('notify_inviter', 0);        
         
         $this->add_action_buttons(false, get_string('inviteusers', 'enrol_invitation'));
     }

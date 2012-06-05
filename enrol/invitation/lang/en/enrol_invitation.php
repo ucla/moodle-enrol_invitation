@@ -74,7 +74,7 @@ $string['emailmsgtxt'] =
     ' --the link below will expire 14 days after the date of issue ({$a->expiration}).\n\n' .      
     'ACCESS LINK:\n'.
     '---------------------------------------------------------------------------\n'.
-    '{$a->wwwroot}/enrol/invitation/enrol.php?key={$a->key} \n\n'.
+    '{$a->inviteurl} \n\n'.
     'UCLA LOGON:\n'.
     '---------------------------------------------------------------------------\n'.
     'If you currently do not have a UCLA Logon ID, you can obtain one here: ' . 
@@ -101,25 +101,16 @@ $string['default_subject'] = 'Site invitation for {$a}';
 $string['editenrollment'] = 'Edit enrollment';
 $string['email_desc'] = 'Who do you want to invite? (please enter an email address)';
 $string['emailaddressnumber'] = 'Email address';
-$string['emailmessageinvitation'] = '{$a->managername} invited you to join {$a->fullname}. 
 
-To join, click the following link: {$a->enrolurl}
-
-You will need to create an account if you don\'t have one yet.
-
-{$a->sitename}
------------------------------
-{$a->siteurl}';
+$string['emailtitleuserenrolled'] = '{$a->userfullname} has enrolled in {$a->coursefullname}.';
 $string['emailmessageuserenrolled'] = '{$a->userfullname} has enrolled in {$a->coursefullname}.
     
-Click the following link to check the new enrollments: {$a->courseenroledusersurl}
+Click the following link to check the new enrolments: {$a->courseenrolledusersurl}
 
 {$a->sitename}
 -------------
 {$a->siteurl}';
-$string['emailssent'] = 'Email(s) have been sent.';
-$string['emailtitleinvitation'] = 'You have been invited to join {$a->fullname}.';
-$string['emailtitleuserenrolled'] = '{$a->userfullname} has enrolled in {$a->coursefullname}.';
+
 $string['enrolenddate'] = 'End date';
 $string['enrolenddate_help'] = 'If enabled, users can be enrolled until this date only.';
 $string['enrolenddaterror'] = 'enrollment end date cannot be earlier than start date';
@@ -129,8 +120,8 @@ $string['enrolperiod_help'] = 'Length of time that the enrollment is valid, star
 $string['enrolstartdate'] = 'Start date';
 $string['enrolstartdate_help'] = 'If enabled, users can be enrolled from this date onward only.';
 $string['expiredtoken'] = 'Invalid token - enrollment process has stopped.';
-$string['show_from_email'] = 'Allow invited users to contact me at {$a->email} (your address will be on the "FROM" field. If not selected, the "FROM" field will be {$a->supportemail}';
-$string['inviteusers'] = 'Invite users';
+$string['show_from_email'] = 'Allow invited user to contact me at {$a->email} (your address will be on the "FROM" field. If not selected, the "FROM" field will be {$a->supportemail})';
+$string['inviteusers'] = 'Invite user';
 $string['maxinviteerror'] = 'It must be a number.';
 $string['maxinviteperday'] = 'Maximum invitation per day';
 $string['maxinviteperday_help'] = 'Maximum invitation that can be send per day for a course.';
@@ -139,7 +130,7 @@ $string['message_help'] = $string['emailmsghtml'];
 $string['message_help_link'] = 'see what instructions invitees are sent';
 $string['noinvitationinstanceset'] = 'No invitation enrolmenet instance has been found. Please add an invitation enrol instance to your course first.';
 $string['nopermissiontosendinvitation'] = 'No permission to send invitation';
-$string['norole'] = 'Please choose a role to invite users as';
+$string['norole'] = 'Please choose a role to invite user as';
 $string['notify_inviter'] = 'Notify me at {$a->email} when invited users accept this invitation';
 $string['role_desc'] = 'What role do you want to assign to your invited user?';
 $string['subject'] = 'Subject';
@@ -148,6 +139,14 @@ $string['status_desc'] = 'Allow users to invite people to enrol into a course by
 $string['unenrol'] = 'Unenrol user';
 $string['unenroluser'] = 'Do you really want to unenrol "{$a->user}" from course "{$a->course}"?';
 $string['unenrolselfconfirm'] = 'Do you really want to unenrol yourself from course "{$a}"?';
+
+// after invite sent strings
+$string['invitationsuccess'] = 'Invitation successfully sent';
+$string['returntocourse'] = 'Return to course';
+$string['returntoinvite'] = 'Send another invite';
+
+// processing invitation acceptance strings
+$string['invitation_acceptance_title'] = 'Site invitation acceptance';
 
 // invite history strings
 $string['invitehistory'] = 'Invite history';
@@ -160,6 +159,15 @@ $string['historydateexpiration'] = 'Expiration Date';
 $string['historyactions'] = 'Actions';
 $string['historyundefinedrole'] = 'Unable to find role. Please resent invite and choose another role.';
 $string['historyexpires_in'] = 'expires in';
+$string['used_by'] = ' by {$a->username} ({$a->roles}, {$a->useremail}) on {$a->timeused}';
+
+// invite status strings
+$string['status_invite_invalid'] = 'Invalid';
+$string['status_invite_expired'] = 'Expired';
+$string['status_invite_used'] = 'Used';
+$string['status_invite_revoked'] = 'Revoked';
+$string['status_invite_resent'] = 'Resent';
+$string['status_invite_active'] = 'Active';
 
 // capabilities strings
 $string['invitation:config'] = 'Configure site invitation instances';

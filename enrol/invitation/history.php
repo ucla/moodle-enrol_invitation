@@ -82,7 +82,7 @@ if (empty($invites)) {
             'status'            => get_string('historystatus', 'enrol_invitation'),
             'datesent'          => get_string('historydatesent', 'enrol_invitation'),
             'dateexpiration'    => get_string('historydateexpiration', 'enrol_invitation'),
-            'actions'           => get_string('historyactions', 'enrol_invitation')
+//            'actions'           => get_string('historyactions', 'enrol_invitation')
     );
     
     $table = new flexible_table('invitehistory');
@@ -101,7 +101,7 @@ if (empty($invites)) {
          * [2] - status
          * [3] - dates sent
          * [4] - expiration date
-         * [5] - actions
+         * [5] - actions (@todo)
          */
         
         // display invitee
@@ -124,21 +124,27 @@ if (empty($invites)) {
         $status = $invitationmanager->get_invite_status($invite);
         $row[2] = $status;
         
+        // if status was used, figure out who used the invite
+        $result = $invitationmanager->who_used_invite($invite);
+        if (!empty($result)) {
+            $row[2] .= get_string('used_by', 'enrol_invitation', $result);                
+        }
+        
         // when was the invite sent?
         $row[3] = date('M n, Y g:ia', $invite->timesent);
         
         // when does the invite expire?
         $row[4] = date('M n, Y g:ia', $invite->timeexpiration);
         // if status is active, then state how many days/minutes left
-        if ($status == ENROL_INVITE_ACTIVE) {
+        if ($status == get_string('status_invite_active', 'enrol_invitation')) {
             $expires_text = sprintf('%s %s', 
                     get_string('historyexpires_in', 'enrol_invitation'),
                     distance_of_time_in_words(time(), $invite->timeexpiration, true));   
             $row[4] .= ' ' . html_writer::tag('span', '(' . $expires_text . ')', array('expires-text'));
         }
         
-        // are there any actions user can do?
-        $row[5] = '';
+//        // are there any actions user can do?
+//        $row[5] = '';
         
         $table->add_data($row); 
     }
