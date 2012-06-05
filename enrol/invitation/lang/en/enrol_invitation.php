@@ -45,7 +45,7 @@ $string['emailmsghtml'] =
     ' --the link below will expire 14 days after the date of issue ({$a->expiration}).<br /><br />' .      
     'ACCESS LINK:'.
     '<hr />'.
-    '{$a->wwwroot}/enrol/invitation/enrol.php?key={$a->key} <br /><br />'.
+    '{$a->inviteurl} <br /><br />'.
     'UCLA LOGON:'.
     '<hr />'.
     'If you currently do not have a UCLA Logon ID, you can obtain one here: ' . 
@@ -126,8 +126,37 @@ $string['maxinviteerror'] = 'It must be a number.';
 $string['maxinviteperday'] = 'Maximum invitation per day';
 $string['maxinviteperday_help'] = 'Maximum invitation that can be send per day for a course.';
 $string['message'] = 'Message';
-$string['message_help'] = $string['emailmsghtml'];
+
 $string['message_help_link'] = 'see what instructions invitees are sent';
+$string['message_help'] = 
+    'INSTRUCTIONS:'.
+    '<hr />'.
+    'You have been invited to access the course site: [course name]. You will ' . 
+    'need to log in to CCLE with your UCLA logon in order to confirm your access ' . 
+    'to the site. If you do not have a UCLA logon, please see the instructions ' . 
+    'below. Be advised that by clicking on the site access link provided in this ' . 
+    'email you are acknowledging that:<br />' .
+    ' --you are the person to whom this email was addressed and for whom this ' . 
+    '   invitation is intended;<br />' . 
+    ' --this invitation gives you access to the course site but does not enroll<br />' . 
+    '   you in the course;<br />' . 
+    ' --the link below will expire 14 days after the date of issue ([expiration date]).<br /><br />' .      
+    'ACCESS LINK:'.
+    '<hr />'.
+    '[invite url] <br /><br />'.
+    'UCLA LOGON:'.
+    '<hr />'.
+    'If you currently do not have a UCLA Logon ID, you can obtain one here: ' . 
+    'https://logon.ucla.edu/activate.php. You do not need to be an enrolled ' . 
+    'student at UCLA or have a 9 digit UID to create a UCLA Logon. When you are ' . 
+    'asked to identify your role in the UCLA system, select the following  ' . 
+    'option: <br />' . 
+    '"I do not have a UCLA Identification Number and I am NONE OF THE ABOVE."<br /><br />'.
+    'CONTACT CCLE:'.
+    '<hr />'.    
+    'If you believe that you have received this message in error or are in need ' . 
+    'of assistance, please contact: [support email].';
+
 $string['noinvitationinstanceset'] = 'No invitation enrolmenet instance has been found. Please add an invitation enrol instance to your course first.';
 $string['nopermissiontosendinvitation'] = 'No permission to send invitation';
 $string['norole'] = 'Please choose a role to invite user as';

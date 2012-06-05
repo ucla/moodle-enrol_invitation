@@ -117,6 +117,7 @@ class invitation_manager {
                 $message_params = new stdClass();
                 $message_params->fullname = 
                         sprintf('%s: %s', $course->shortname, $course->fullname);
+                $message_params->expiration = date('M n, Y g:ia', $invitation->timeexpiration);
                 $message_params->inviteurl = 
                         new moodle_url('/enrol/invitation/enrol.php', 
                                 array('enrolinvitationtoken' => $token, 
