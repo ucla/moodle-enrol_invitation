@@ -145,14 +145,7 @@ class invitation_manager {
                 $contactuser->lastname = '';
                 $contactuser->maildisplay = true;
                 email_to_user($contactuser, $fromuser, $invitation->subject, 
-                        $invitation->message);
-                
-                print_object($contactuser);
-                print_object($fromuser);
-                print_object($invitation->subject);
-                print_object($invitation->message);
-                
-                
+                        $invitation->message);                
             }
         } else {
             throw new moodle_exception('cannotsendinvitation', 'enrol_invitation',
