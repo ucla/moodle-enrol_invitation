@@ -109,19 +109,18 @@ class invitation_manager {
                 
                 // construct message: custom (if any) + template
                 $message = '';
-                if (!empty($invitation->message)) {
+                if (!empty($data->message)) {
                     $message .= get_string('instructormsg', 'enrol_invitation', 
-                            $invitation->message);
+                            $data->message);
                 }
-                // construct invite message
+                
                 $message_params = new stdClass();
                 $message_params->fullname = 
                         sprintf('%s: %s', $course->shortname, $course->fullname);
                 $message_params->expiration = date('M j, Y g:ia', $invitation->timeexpiration);
-                $message_params->inviteurl = 
-                        new moodle_url('/enrol/invitation/enrol.php', 
-                                array('enrolinvitationtoken' => $token, 
-                                      'id' => $data->courseid));
+                $inviteurl =  new moodle_url('/enrol/invitation/enrol.php', 
+                                array('token' => $token));
+                $message_params->inviteurl = $inviteurl->out(false);
                 $message_params->supportemail = $CFG->supportemail;
                 $message .= get_string('emailmsgtxt', 'enrol_invitation', 
                         $message_params);                
@@ -147,6 +146,13 @@ class invitation_manager {
                 $contactuser->maildisplay = true;
                 email_to_user($contactuser, $fromuser, $invitation->subject, 
                         $invitation->message);
+                
+                print_object($contactuser);
+                print_object($fromuser);
+                print_object($invitation->subject);
+                print_object($invitation->message);
+                
+                
             }
         } else {
             throw new moodle_exception('cannotsendinvitation', 'enrol_invitation',
