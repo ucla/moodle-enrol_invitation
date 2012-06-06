@@ -65,12 +65,12 @@ $instance = $invitationmanager->get_invitation_instance($invitation->courseid);
 if (isguestuser()) {
     // can not enrol guest!!
     echo $OUTPUT->header();
-    echo $OUTPUT->box_start('noticebox');
+    echo $OUTPUT->box_start('generalbox');
 
-    echo get_string('loggedinnot');
+    $notice_object = prepare_notice_object($invitation);        
+    echo get_string('loggedinnot', 'enrol_invitation', $notice_object);
     $loginbutton = new single_button(new moodle_url($CFG->wwwroot 
             . '/login/index.php'), get_string('login'));
-    $loginbutton->class = 'continuebutton';
 
     echo $OUTPUT->render($loginbutton);
     echo $OUTPUT->box_end();
@@ -91,21 +91,18 @@ if (isguestuser()) {
 $confirm = optional_param('confirm', 0, PARAM_BOOL);
 if (empty($confirm)) {
     echo $OUTPUT->header();
-    $courseurl = new moodle_url('/course/view.php', array('id' => $courseid));
-    $courseret = new single_button($courseurl, get_string('returntocourse',
-                            'enrol_invitation'), 'get');
-
-    $secturl = new moodle_url('/enrol/invitation/invitation.php',
-                    array('courseid' => $courseid));
-    $sectret = new single_button($secturl, get_string('returntoinvite',
-                            'enrol_invitation'), 'get');    
     
-    echo $OUTPUT->confirm(get_string('invitationsuccess', 'enrol_invitation'),
-            $sectret, $courseret);    
+    $accepturl = new moodle_url('/enrol/invitation/enrol.php', 
+            array('token' => $invitation->token, 'confirm' => true));
+    $accept = new single_button($accepturl, get_string('policyaccept'), 'get');
+    $cancel = new moodle_url('/');
+
+    $notice_object = prepare_notice_object($invitation);
+    echo $OUTPUT->confirm(get_string('invitationacceptance', 'enrol_invitation', 
+            $notice_object), $accept, $cancel);    
         
     echo $OUTPUT->footer();
-    exit;
-    
+    exit;    
 } else {
     // user confirmed, so add them
     require_once($CFG->dirroot . '/enrol/invitation/locallib.php');
@@ -151,4 +148,28 @@ if (empty($confirm)) {
     redirect($courseurl);    
 }
 
-
+/**
+ * Setups the object used in the notice strings for when a user is accepting 
+ * a site invitation.
+ * 
+ * @global moodle_database $DB
+ * 
+ * @param mixed $invitation
+ * 
+ * @return stdClass 
+ */
+function prepare_notice_object($invitation) {
+    global $CFG, $course, $DB;
+    
+    $notice_object = new stdClass();
+    $notice_object->email = $invitation->email;    
+    $notice_object->coursefullname = $course->fullname;    
+    $notice_object->supportemail = $CFG->supportemail;
+    
+    // get role name for use in acceptance message
+    $role = $DB->get_record('role', array('id' => $invitation->roleid));
+    $notice_object->rolename = $role->name;
+    $notice_object->roledescription = $role->description;
+ 
+    return $notice_object;
+}
