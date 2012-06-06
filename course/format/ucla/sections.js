@@ -45,7 +45,9 @@ M.format_ucla.mk_button_override = function(tag, imgSrc, text,
 
     // THis is to prevent the other clicks from breaking things
     text_only.src = '';
-    text_only.alt = '';
+    if (text == main.portal.strings['move']) {
+        text_only.alt = main.str.format_ucla['movealt'];
+    }
     text_only.title = '';
     
     tagnode.insertBefore(text_div, iconnode);

@@ -82,10 +82,10 @@ $string['env_test'] = 'Test';
 $string['env_dev'] = 'Development';
 
 // CCLE-3069: Editing icons preference
-$string['noeditingicons'] = 'Course editing buttons';
-$string['useeditingicons'] = 'Should be icons';
-$string['donotuseeditingicons'] = 'Should be text';
-$string['donotuseeditingicons2'] = 'Should be text2';
+$string['noeditingicons'] = 'Site editing style';
+$string['useeditingicons'] = 'Use icons';
+$string['donotuseeditingicons'] = 'Use text';
+$string['donotuseeditingicons2'] = 'Use text, except for buttons that move the module';
 
 //BEGIN UCLA MOD: CCLE-2862-Main_site_logo_image_needs_alt_altribute
 $string['UCLA_CCLE_text'] = 'UCLA CCLE Common Collaboration and Learning Environment';
