@@ -14,14 +14,25 @@ M.format_ucla.mk_button_override = function(tag, imgSrc, text,
                                      imgAttributes);
 
     var ismovebutton = (attributes != null && attributes[0][1] == 'cursor:move');
-    /**
+    /** try to keeep things consistent, no icons at all
     if (ismovebutton) {
         return tagnode;
     }
     //*/
 
+    var altstr = M.format_ucla.strings['movealt'];
+
+    iconnode = tagnode.childNodes[0];
+
+    if (ismovebutton) {
+        iconnode.alt = altstr;
+    }
+
+    // Don't do anything if we want icons
     if (M.format_ucla.no_editing_icons != undefined 
             && !M.format_ucla.no_editing_icons) {
+        // But we want to make things helpful
+        tagnode.title = altstr;
         return tagnode;            
     }
 
@@ -45,10 +56,11 @@ M.format_ucla.mk_button_override = function(tag, imgSrc, text,
 
     // THis is to prevent the other clicks from breaking things
     text_only.src = '';
-    if (text == main.portal.strings['move']) {
-        text_only.alt = main.str.format_ucla['movealt'];
-    }
     text_only.title = '';
+
+    if (ismovebutton) {
+        tagnode.title = altstr;
+    }
     
     tagnode.insertBefore(text_div, iconnode);
 

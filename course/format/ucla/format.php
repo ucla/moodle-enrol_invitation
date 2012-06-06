@@ -80,6 +80,7 @@ $strgroups        = get_string('groups');
 $strgroupmy       = get_string('groupmy');
 $strishidden      = '(' . get_string('hidden', 'calendar') . ')';
 $editing          = $PAGE->user_is_editing();
+$strmovealt = get_string('movealt', 'format_ucla');
 
 if ($editing) {
     $strtopichide       = get_string('hidetopicfromothers');
@@ -94,8 +95,6 @@ if ($editing) {
 // This needs to be printed after the headers, but before the footers.
 $noeditingicons = get_user_preferences('noeditingicons', 1);
 if ($useajax) {
-    $PAGE->requires->string_for_js('movealt', 'format_ucla');
-
     echo html_writer::script(false, 
         new moodle_url('/course/format/ucla/sections.js'));
 
@@ -107,6 +106,7 @@ if ($useajax) {
 
     echo html_writer::script("
     M.format_ucla.strings['hidden'] = '$strishidden';
+    M.format_ucla.strings['movealt'] = '$strmovealt';
     M.format_ucla.no_editing_icons = $noeditingicons;
     ");
 }
