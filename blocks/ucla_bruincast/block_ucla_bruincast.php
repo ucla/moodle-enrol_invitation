@@ -46,16 +46,17 @@ class block_ucla_bruincast extends block_base {
 
         if (!empty($coursefound)) {
 
-            foreach ($coursefound as $courseentry) {
+            foreach ($coursefound as $c) {
 
-                $coursesrs = $courseentry->srs; // generate the courseid as in bruincast table
-                $courseterm = $courseentry->term;
+//                $coursesrs = $courseentry->srs; // generate the courseid as in bruincast table
+//                $courseterm = $courseentry->term;
+//
+//                if (!empty($coursesrs)) {
+//                    $bcnodes = $DB->get_record('ucla_bruincast', array('srs' => $coursesrs, 'term' => $courseterm)); // get entry in bruincast table by the generated courseid
+//                }
 
-                if (!empty($coursesrs)) {
-                    $bcnodes = $DB->get_record('ucla_bruincast', array('srs' => $coursesrs, 'term' => $courseterm)); // get entry in bruincast table by the generated courseid
-                }
-
-                if (!empty($bcnodes)) {
+                if ($bcnodes = $DB->get_record('ucla_bruincast', 
+                        array('srs' => $c->srs, 'term' => $c->term))) {
 
                     if (!empty($bcnodes->bruincast_url)) {
 
