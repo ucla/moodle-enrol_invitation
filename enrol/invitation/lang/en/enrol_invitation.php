@@ -102,10 +102,16 @@ $string['editenrollment'] = 'Edit enrollment';
 $string['email_desc'] = 'Who do you want to invite? (please enter an email address)';
 $string['emailaddressnumber'] = 'Email address';
 
-$string['emailtitleuserenrolled'] = '{$a->userfullname} has enrolled in {$a->coursefullname}.';
-$string['emailmessageuserenrolled'] = '{$a->userfullname} has enrolled in {$a->coursefullname}.
+$string['notifymsg'] = 'Hello, I would like to inform you that user $a->username, with email $a->email has successful gained access to your course, $a->course';
+
+
+$string['emailtitleuserenrolled'] = '{$a->userfullname} has accepted invitation to {$a->coursefullname}.';
+$string['emailmessageuserenrolled'] = 'Hello,
+    
+{$a->userfullname} ({$a->useremail}) has accepted your site invitation and gained entry to {$a->coursefullname}.
     
 Click the following link to check the new enrolments: {$a->courseenrolledusersurl}
+Or click the following link to check your site invitation history: {$a->invitehistoryurl}
 
 {$a->sitename}
 -------------
@@ -119,7 +125,7 @@ $string['enrolperiod_desc'] = 'Default length of time that the enrollment is val
 $string['enrolperiod_help'] = 'Length of time that the enrollment is valid, starting with the moment the user is enrolled. If disabled, the enrollment duration will be unlimited.';
 $string['enrolstartdate'] = 'Start date';
 $string['enrolstartdate_help'] = 'If enabled, users can be enrolled from this date onward only.';
-$string['expiredtoken'] = 'Invalid token - enrollment process has stopped.';
+
 $string['show_from_email'] = 'Allow invited user to contact me at {$a->email} (your address will be on the "FROM" field. If not selected, the "FROM" field will be {$a->supportemail})';
 $string['inviteusers'] = 'Invite user';
 $string['maxinviteerror'] = 'It must be a number.';
@@ -157,17 +163,17 @@ $string['message_help'] =
     'If you believe that you have received this message in error or are in need ' . 
     'of assistance, please contact: [support email].';
 
-$string['noinvitationinstanceset'] = 'No invitation enrolmenet instance has been found. Please add an invitation enrol instance to your course first.';
+$string['noinvitationinstanceset'] = 'No invitation enrollment instance has been found. Please add an invitation enroll instance to your course first.';
 $string['nopermissiontosendinvitation'] = 'No permission to send invitation';
 $string['norole'] = 'Please choose a role to invite user as';
 $string['notify_inviter'] = 'Notify me at {$a->email} when invited users accept this invitation';
 $string['role_desc'] = 'What role do you want to assign to your invited user?';
 $string['subject'] = 'Subject';
 $string['status'] = 'Allow site invitations';
-$string['status_desc'] = 'Allow users to invite people to enrol into a course by default.';
-$string['unenrol'] = 'Unenrol user';
-$string['unenroluser'] = 'Do you really want to unenrol "{$a->user}" from course "{$a->course}"?';
-$string['unenrolselfconfirm'] = 'Do you really want to unenrol yourself from course "{$a}"?';
+$string['status_desc'] = 'Allow users to invite people to enroll into a course by default.';
+$string['unenrol'] = 'Unenroll user';
+$string['unenroluser'] = 'Do you really want to unenroll "{$a->user}" from course "{$a->course}"?';
+$string['unenrolselfconfirm'] = 'Do you really want to unenroll yourself from course "{$a}"?';
 
 // after invite sent strings
 $string['invitationsuccess'] = 'Invitation successfully sent';
@@ -176,6 +182,7 @@ $string['returntoinvite'] = 'Send another invite';
 
 // processing invitation acceptance strings
 $string['invitation_acceptance_title'] = 'Site invitation acceptance';
+$string['expiredtoken'] = 'Site invitation token is expired or has already been used.';
 
 // invite history strings
 $string['invitehistory'] = 'Invite history';

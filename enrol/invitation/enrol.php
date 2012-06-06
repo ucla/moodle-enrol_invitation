@@ -108,11 +108,14 @@ if (!empty($invitation->notify_inviter)) {
 
     $emailinfo = new stdClass();
     $emailinfo->userfullname = $USER->firstname . ' ' . $USER->lastname;        
+    $emailinfo->useremail = $USER->email;
     $courseenrolledusersurl = new moodle_url('/enrol/users.php', array('id' => $invitation->courseid));
     $emailinfo->courseenrolledusersurl = $courseenrolledusersurl->out(false);
-
+    $invitehistoryurl = new moodle_url('/enrol/invitation/history.php', array('id' => $invitation->courseid));
+    $emailinfo->invitehistoryurl = $invitehistoryurl->out(false);
+    
     $course = $DB->get_record('course', array('id' => $invitation->courseid));
-    $emailinfo->coursefullname = $course->fullname;
+    $emailinfo->coursefullname = sprintf('%s: %s', $course->shortname, $course->fullname);
     $emailinfo->sitename = $SITE->fullname;
     $siteurl = new moodle_url('/');
     $emailinfo->siteurl = $siteurl->out(false);
