@@ -112,6 +112,7 @@ class invitation_manager {
                 if (!empty($data->message)) {
                     $message .= get_string('instructormsg', 'enrol_invitation', 
                             $data->message);
+                    $invitation->message = $data->message;
                 }
                 
                 $message_params = new stdClass();
@@ -122,9 +123,7 @@ class invitation_manager {
                                 array('token' => $token));
                 $message_params->inviteurl = $inviteurl->out(false);
                 $message_params->supportemail = $CFG->supportemail;
-                $message .= get_string('emailmsgtxt', 'enrol_invitation', 
-                        $message_params);                
-                $invitation->message = $message;
+                $message .= get_string('emailmsgtxt', 'enrol_invitation', $message_params);            
 
                 $DB->insert_record('enrol_invitation', $invitation);
 
@@ -144,8 +143,7 @@ class invitation_manager {
                 $contactuser->firstname = '';
                 $contactuser->lastname = '';
                 $contactuser->maildisplay = true;
-                email_to_user($contactuser, $fromuser, $invitation->subject, 
-                        $invitation->message);                
+                email_to_user($contactuser, $fromuser, $invitation->subject, $message);                
             }
         } else {
             throw new moodle_exception('cannotsendinvitation', 'enrol_invitation',
