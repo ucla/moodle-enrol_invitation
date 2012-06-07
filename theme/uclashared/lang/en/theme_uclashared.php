@@ -31,7 +31,7 @@ $string['control_panel'] = 'Control Panel';
 
 $string['help_n_feedback'] = 'Help & Feedback';
 
-$string['copyright_information'] = '&copy; 2010 UC Regents';
+$string['copyright_information'] = '&copy; {$a} UC Regents';
 
 $string['separator__'] = ' | ';
 

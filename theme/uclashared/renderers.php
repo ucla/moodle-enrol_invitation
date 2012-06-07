@@ -309,7 +309,8 @@ class theme_uclashared_core_renderer extends core_renderer {
     }
 
     function copyright_info() {
-        return get_string('copyright_information', $this->theme);
+        $curr_year = date('Y');
+        return get_string('copyright_information', $this->theme, $curr_year);
     }
 
     /**
