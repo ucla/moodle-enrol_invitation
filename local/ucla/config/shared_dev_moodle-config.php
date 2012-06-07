@@ -84,13 +84,15 @@ $CFG->instructor_levels_roles = array(
     )
 );
 
-// CCLE-2283: Friendly URLs
-// CCLE-2283: Redirect to archive (these have a high chance of changing)
-$CFG->forced_plugin_settings['local_ucla'] = array(
-    'friendly_urls_enabled' => false,
-    'remotetermcutoff' => '',
-    'archiveserver' => ''
-);
+// To enable friendly urls in your dev instance, please add the config values to
+// your config_private.php
+//// CCLE-2283: Friendly URLs
+//// CCLE-2283: Redirect to archive (these have a high chance of changing)
+//$CFG->forced_plugin_settings['local_ucla'] = array(
+//    'friendly_urls_enabled' => false,
+//    'remotetermcutoff' => '',
+//    'archiveserver' => ''
+//);
 
 // Browseby CCLE-2894
 $CFG->forced_plugin_settings['block_ucla_browseby']['use_local_courses'] = true;

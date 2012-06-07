@@ -87,7 +87,7 @@ $CFG->instructor_levels_roles = array(
 // CCLE-2283: Friendly URLs
 // CCLE-2283: Redirect to archive 
 $CFG->forced_plugin_settings['local_ucla'] = array(
-    'friendly_urls_enabled' => false,
+    'friendly_urls_enabled' => true,
     'remotetermcutoff' => '12S',
     'archiveserver' => 'https://archive.ccle.ucla.edu'
 );
