@@ -46,3 +46,9 @@ $string['show_all'] = 'Show all';
 $string['editcoursetitle'] = 'Edit course description';
 $string['editsectiontitle'] = 'Edit title';
 $string['movealt'] = 'Click and drag to move';
+
+// JIT strings
+$string['file'] = 'Upload file';
+$string['link'] = 'Add link';
+$string['text'] = 'Add text';
+$string['subheading'] = 'Add subheading';

@@ -17,12 +17,15 @@ global $CFG, $PAGE, $OUTPUT;
 $course_id = required_param('course_id', PARAM_INT);
 $type = required_param('type', PARAM_ALPHA);
 
+$currsect = optional_param('section', 0, PARAM_INT);
+
 // Stolen from /course/edit.php
 $course = $DB->get_record('course', array('id' => $course_id), 
     '*', MUST_EXIST);
 
 require_login($course, true);
 $context = get_context_instance(CONTEXT_COURSE, $course_id);
+
 
 // Make sure you can view this page.
 require_capability('moodle/course:update', $context);
@@ -136,8 +139,12 @@ foreach ($sections as $section) {
     if ($section->section > $course->numsections) {
         continue;
     }
-    
+
     $sid = $section->id;
+    if ($section->section == $currsect) {
+        $defaultsection = $sid;
+    }
+
     $sectionnames[$sid] = get_section_name($course, $section);
 
     $indexed_sections[$sid] = $section;
@@ -176,7 +183,6 @@ if (block_ucla_easyupload::block_ucla_rearrange_installed()) {
 }
 // End rearrange behavior */
 
-// She was lovely
 $typeclass = block_ucla_easyupload::upload_type_exists($type);
 if (!$typeclass) {
     print_error('typenotexists');
@@ -193,6 +199,7 @@ $uploadform = new $typeclass(null,
         'copyrights' => $copyrights,
         // Needed for the section <SELECT>
         'sectionnames' => $sectionnames,
+        'defaultsection' => $defaultsection,
         // Needed when picking resources 
         'resources' => $resources,
         // Needed when picking activities

@@ -70,25 +70,32 @@ $has_capability_update = has_capability('moodle/course:update', $context);
 $get_accesshide = get_accesshide(get_string('currenttopic', 'access'));
 
 // Cache all these get_string(), because you know, they're cached already...
-$streditsummary   = get_string('editcoursetitle', 'format_ucla');
-$streditsectionsummary = get_string('editsectiontitle', 'format_ucla');
-$stradd           = get_string('add');
-$stractivities    = get_string('activities');
-$strshowalltopics = get_string('showalltopics');
-$strtopic         = get_string('topic');
-$strgroups        = get_string('groups');
-$strgroupmy       = get_string('groupmy');
+// these commented out strings seem to not be used anywhere
+//$stradd           = get_string('add');
+//$stractivities    = get_string('activities');
+//$strshowalltopics = get_string('showalltopics');
+//$strtopic         = get_string('topic');
+//$strgroups        = get_string('groups');
+//$strgroupmy       = get_string('groupmy');
 $strishidden      = '(' . get_string('hidden', 'calendar') . ')';
-$editing          = $PAGE->user_is_editing();
-$strmovealt = get_string('movealt', 'format_ucla');
 
+$editing = $PAGE->user_is_editing();
 if ($editing) {
+    $streditsummary     = get_string('editcoursetitle', 'format_ucla');
+    $streditsectionsummary = get_string('editsectiontitle', 'format_ucla');    
     $strtopichide       = get_string('hidetopicfromothers');
     $strtopicshow       = get_string('showtopicfromothers');
     $strmarkthistopic   = get_string('markthistopic');
     $strmarkedthistopic = get_string('markedthistopic');
     $strmoveup          = get_string('moveup');
     $strmovedown        = get_string('movedown');
+    $strmovealt         = get_string('movealt', 'format_ucla');    
+    
+    // CCLE-2800 - cache strings for JIT links
+    $jit_links = array('file' => get_string('file', 'format_ucla'),
+                       'link' => get_string('link', 'format_ucla'),
+                       'text' => get_string('text', 'format_ucla'),
+                       'subheading' => get_string('subheading', 'format_ucla'));    
 }
 
 // Include our custom ajax overwriters.
@@ -539,7 +546,6 @@ while ($section <= $course->numsections) {
                 }
 
             }
-
         }
 
         // Display all the additional controls on the same line as the header
@@ -723,11 +729,27 @@ while ($section <= $course->numsections) {
             if ($section != 0) {
                 // End div for sectionheader
                 $center_content .= html_writer::end_tag('div');
-            }
+            }                                
 
             // Display the section
             $center_content .= html_writer::start_tag('div', 
                 array('class' => 'summary'));
+            
+            // CCLE-2800 - JIT controls
+            if ($section != 0 && $editing) {
+                $center_content .= html_writer::start_tag('div',
+                        array('class' => 'jit_links'));
+                
+                foreach ($jit_links as $jit_type => $jit_string) {
+                    $link = new moodle_url('/blocks/ucla_easyupload/upload.php',
+                            array('course_id' => $course->id,
+                                  'type' => $jit_type,
+                                  'section' => $section));
+                    $center_content .= html_writer::link($link, $jit_string);
+                }
+                
+                $center_content .= html_writer::end_tag('div');
+            }
 
             if ($thissection->summary) {
                 $summarytext = 
