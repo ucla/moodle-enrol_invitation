@@ -125,12 +125,14 @@ if (empty($confirm)) {
         $contactuser->lastname = $inviter->lastname;
         $contactuser->maildisplay = true;
 
-        $emailinfo = new stdClass();
-        $emailinfo->userfullname = $USER->firstname . ' ' . $USER->lastname;        
+        $emailinfo = prepare_notice_object($invitation);
+        $emailinfo->userfullname = trim($USER->firstname . ' ' . $USER->lastname);        
         $emailinfo->useremail = $USER->email;
-        $courseenrolledusersurl = new moodle_url('/enrol/users.php', array('id' => $invitation->courseid));
+        $courseenrolledusersurl = new moodle_url('/enrol/users.php', 
+                array('id' => $invitation->courseid));
         $emailinfo->courseenrolledusersurl = $courseenrolledusersurl->out(false);
-        $invitehistoryurl = new moodle_url('/enrol/invitation/history.php', array('id' => $invitation->courseid));
+        $invitehistoryurl = new moodle_url('/enrol/invitation/history.php', 
+                array('id' => $invitation->courseid));
         $emailinfo->invitehistoryurl = $invitehistoryurl->out(false);
 
         $course = $DB->get_record('course', array('id' => $invitation->courseid));

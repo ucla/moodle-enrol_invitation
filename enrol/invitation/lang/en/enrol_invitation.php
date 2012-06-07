@@ -108,11 +108,10 @@ $string['notifymsg'] = 'Hello, I would like to inform you that user $a->username
 $string['emailtitleuserenrolled'] = '{$a->userfullname} has accepted invitation to {$a->coursefullname}.';
 $string['emailmessageuserenrolled'] = 'Hello,
     
-{$a->userfullname} ({$a->useremail}) has accepted your site invitation and gained entry to {$a->coursefullname}.
+{$a->userfullname} ({$a->useremail}) has accepted your invitation to access {$a->coursefullname} as a "{$a->rolename}". You can verify the status of this invitation by viewing either:
     
-To view new enrolments, please visit: {$a->courseenrolledusersurl}
-
-To view site invitation history, please visit: {$a->invitehistoryurl}
+    * the participant list for : {$a->courseenrolledusersurl}
+    *  your site invitation history: {$a->invitehistoryurl}
 
 {$a->sitename}
 -------------
@@ -184,8 +183,8 @@ $string['returntoinvite'] = 'Send another invite';
 // processing invitation acceptance strings
 $string['invitation_acceptance_title'] = 'Site invitation acceptance';
 $string['expiredtoken'] = 'Site invitation token is expired or has already been used.';
-$string['loggedinnot'] = '<p>This invitation to access "{$a->coursefullname}" in 
-    the role "{$a->rolename}"* is intended for {$a->email}. If you are not the 
+$string['loggedinnot'] = '<p>This invitation to access "{$a->coursefullname}" as 
+    a "{$a->rolename}" is intended for {$a->email}. If you are not the 
     intended recipient, please do not accept this invitation.</p>
     <p>
         Before you can accept this invitation you must be logged in to CCLE.
@@ -199,16 +198,10 @@ $string['loggedinnot'] = '<p>This invitation to access "{$a->coursefullname}" in
                 https://logon.ucla.edu/activate.php</a> 
             </li>
         </ul>        
-    </p>
-    <p>
-    * {$a->roledescription}
     </p>';
-$string['invitationacceptance'] = '<p>This invitation to access "{$a->coursefullname}" in 
-    the role "{$a->rolename}"* is intended for {$a->email}. If you are not the 
-    intended recipient, please do not accept this invitation.</p>
-    <p>
-    * {$a->roledescription}
-    </p>';
+$string['invitationacceptance'] = '<p>This invitation to access 
+    "{$a->coursefullname}" as a "{$a->rolename}" is intended for {$a->email}. 
+    If you are not the intended recipient, please do not accept this invitation.</p>';
 
 // invite history strings
 $string['invitehistory'] = 'Invite history';
