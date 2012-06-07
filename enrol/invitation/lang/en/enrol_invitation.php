@@ -115,7 +115,7 @@ $string['emailmessageuserenrolled'] = 'Hello,
 
 {$a->sitename}
 -------------
-{$a->siteurl}';
+{$a->supportemail}';
 
 $string['enrolenddate'] = 'End date';
 $string['enrolenddate_help'] = 'If enabled, users can be enrolled until this date only.';
