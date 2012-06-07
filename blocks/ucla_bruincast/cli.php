@@ -41,24 +41,23 @@ function update_bruincast_db(){
     $DB->delete_records('ucla_bruincast');
 
     // Insert records
-    $errcount = 0;
     try {
         foreach($clean_data as $cd) {
             $DB->insert_record('ucla_bruincast', $cd);
         }
+        
+        // Get total inserts
+        $insert_count = count($clean_data);
+        echo "\n... ".$insert_count." ".get_string('bcsuccessnoti','tool_ucladatasourcesync')."\n" ;
+        
+        // Find errors in the crosslisted courses and notify
+        check_crosslists($clean_data);
+        
     } catch (dml_exception $e) {
         // Report a DB insert error
         echo "\n".get_string('errbcinsert','tool_ucladatasourcesync')."\n";
-        $errcount++;
     }
-    
-    // Get total inserts
-    $insert_count = count($clean_data) - $errcount;
 
-    echo "\n... ".$insert_count." ".get_string('bcsuccessnoti','tool_ucladatasourcesync')."\n" ;
-
-    check_crosslists($clean_data);
-    // need get_course_info and other course functions first
 }
 
 /**

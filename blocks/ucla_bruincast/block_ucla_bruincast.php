@@ -36,6 +36,13 @@ class block_ucla_bruincast extends block_base {
     public function get_navigation_nodes($course) {
         // get global variable
         global $DB;
+        
+        $node_type = array(
+            'Restricted' => 'private',
+            'Open' => '',
+            'See Instructor' => 'See Instructor',
+            'Online' => 'E-Lecture'
+        );
 
         $courseid = $course->id; // course id from the hook function
         $coursefound = ucla_map_courseid_to_termsrses($courseid);
@@ -48,13 +55,6 @@ class block_ucla_bruincast extends block_base {
 
             foreach ($coursefound as $c) {
 
-//                $coursesrs = $courseentry->srs; // generate the courseid as in bruincast table
-//                $courseterm = $courseentry->term;
-//
-//                if (!empty($coursesrs)) {
-//                    $bcnodes = $DB->get_record('ucla_bruincast', array('srs' => $coursesrs, 'term' => $courseterm)); // get entry in bruincast table by the generated courseid
-//                }
-
                 if ($bcnodes = $DB->get_record('ucla_bruincast', 
                         array('srs' => $c->srs, 'term' => $c->term))) {
 
@@ -65,7 +65,6 @@ class block_ucla_bruincast extends block_base {
                         if (strcmp($bcnodes->restricted, "Restricted") == 0) {
                             // get contexts for permission checking
                             $context = get_context_instance(CONTEXT_COURSE, $courseid);
-                            $usercontext = get_context_instance(CONTEXT_USER, $courseid);
 
                             $usedlink = false;
 
@@ -82,7 +81,9 @@ class block_ucla_bruincast extends block_base {
                                 if ($usedlink || sizeof($previouslinks) == 0) {
 
                                     if (!$atleastone) {
-                                        $nodes[] = navigation_node::create('Bruincast', new moodle_url($bcnodes->bruincast_url));
+                                        $nodes[] = navigation_node::create(
+                                                'Bruincast' . ' (' . $node_type[$bcnodes->restricted] . ')', 
+                                                new moodle_url($bcnodes->bruincast_url));
                                     }
 
                                     $atleastone = true;
@@ -107,7 +108,9 @@ class block_ucla_bruincast extends block_base {
                             if ($usedlink || sizeof($previouslinks) == 0) {
 
                                 if (!$atleastone) {
-                                    $nodes[] = navigation_node::create('Bruincast', new moodle_url($bcnodes->bruincast_url));
+                                    $nodes[] = navigation_node::create(
+                                            'Bruincast' . ' (' . $node_type[$bcnodes->restricted] . ')', 
+                                            new moodle_url($bcnodes->bruincast_url));
                                 }
 
                                 $atleastone = true;
