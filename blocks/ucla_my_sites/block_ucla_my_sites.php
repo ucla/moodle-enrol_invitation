@@ -190,7 +190,7 @@ class block_ucla_my_sites extends block_base {
                 }
 
                 if (!$localexists) {
-                    $rclass->roles = array($rrole);
+                    $rclass->roles = $rrole->name;
                     $class_sites[] = $rclass;
                 }
             }
@@ -315,14 +315,7 @@ class block_ucla_my_sites extends block_base {
                     }
                 }
                 
-                // get user's role
-                if (!empty($class->rolestr)) {
-                    $roles = $class->rolestr;
-                } else {
-                    debugging('no roles found');
-                }
-                
-                $t->data[] = array($class_link, $roles);
+                $t->data[] = array($class_link, $class->rolestr);
             }
 
             $content[] = html_writer::table($t);
@@ -522,7 +515,7 @@ class block_ucla_my_sites extends block_base {
         } else if (!is_array($roles)) {
             return false;
         }
-                
+        
         $rolenames = array();
         foreach ($roles as $role) {
             $rolenames[] = trim($role);
