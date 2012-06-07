@@ -12,13 +12,16 @@ $string['foolin_contact_ccle'] = 'https://pilot.ccle.ucla.edu/course/view.php?id
 $string['foodis_about_ccle'] = 'About CCLE';
 $string['foolin_about_ccle'] = 'https://pilot.ccle.ucla.edu/course/view.php?id=110&topic=0';
 
-$string['foodis_privacy'] = 'Privacy Policy';
-$string['foolin_privacy'] = $CFG->wwwroot . '/privacy_notice.php';
+$string['foodis_privacy'] = 'Privacy policy';
+$string['foolin_privacy'] = $CFG->wwwroot . '/theme/uclashared/view.php?page=privacy';
 
-$string['foodis_copyright'] = 'Copyright Information';
-$string['foolin_copyright'] = $CFG->wwwroot . '/copyright_information.php';
+$string['foodis_copyright'] = 'Copyright information';
+$string['foolin_copyright'] = $CFG->wwwroot . '/theme/uclashared/view.php?page=copyright';
 
-$string['foodis_school'] = 'UCLA Home';
+$string['foodis_uclalinks'] = 'UCLA links';
+$string['foolin_uclalinks'] = $CFG->wwwroot . '/theme/uclashared/view.php?page=links';
+
+$string['foodis_school'] = 'UCLA home';
 $string['foolin_school'] = 'http://www.ucla.edu/';
 
 $string['foodis_registrar'] = 'Registrar';
@@ -91,4 +94,10 @@ $string['donotuseeditingicons2'] = 'Use text, except for buttons that move the m
 $string['UCLA_CCLE_text'] = 'UCLA CCLE Common Collaboration and Learning Environment';
 //END UCLA MOD: CCLE-2862
 
+// CCLE-2493 - UCLA Links / CCLE-2827 - Copyright Notice in Footer
+$string['copyright'] = 'CCLE copyright information';
+$string['privacy'] = 'CCLE privacy policy';
+$string['links'] = 'Useful links for UCLA class sites';
+$string['error'] = 'Error';     
+$string['page_notfound'] = 'The page you requested does not exist';
 // EoF

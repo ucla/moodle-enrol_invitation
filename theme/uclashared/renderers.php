@@ -275,6 +275,7 @@ class theme_uclashared_core_renderer extends core_renderer {
             'about_ccle',
             'privacy',
             'copyright',
+            'uclalinks',
             'separator',            
             'school',
             'registrar',
@@ -283,24 +284,29 @@ class theme_uclashared_core_renderer extends core_renderer {
 
         $footer_string = '';
         
-        $custom_text = $this->get_config($this->theme, 'footer_links');
+//        $custom_text = get_config($this->theme, 'footer_links');
+//        if ($custom_text != '') {
+//            $footer_string = $custom_text; 
+//            array_unshift($links, 'separator');
+//        }
 
-        if ($custom_text != '') {
-            $footer_string = $custom_text; 
-
-            array_unshift($links, 'separator');
-        }
-
+        // keep all links before seperator from opening into new window
+        $open_new_window = false;
         foreach ($links as $link) {
             if ($link == 'separator') {
                 $footer_string .= '&nbsp;';
                 $footer_string .= $this->separator();
+                $open_new_window = true;
             } else {
                 $link_display = get_string('foodis_' . $link, $this->theme);
                 $link_href = get_string('foolin_' . $link, $this->theme);
-
-                $link_a = html_writer::tag('a', $link_display, 
-                    array('href' => $link_href, 'target' => '_blank'));
+                if (empty($open_new_window)) {
+                    $params = array('href' => $link_href);
+                } else {
+                    $params = array('href' => $link_href, 'target' => '_blank');                    
+                }
+                
+                $link_a = html_writer::tag('a', $link_display, $params);
 
                 $footer_string .= '&nbsp;' . $link_a;
             }
