@@ -340,18 +340,6 @@ class theme_uclashared_core_renderer extends core_renderer {
     }
 
     /**
-     *  Wrapper function to prevent initial install.
-     **/
-    function get_config($plugin, $var) {
-        if (!during_initial_install()) {
-            return get_config($plugin, $var);
-        } 
-
-        return false;
-    }
-}
-
-    /**
      *  Overwriting pix icon renderers to not use icons for action buttons.
      **/
     function render_action_link($action) {
