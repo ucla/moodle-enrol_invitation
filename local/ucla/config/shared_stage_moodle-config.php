@@ -122,7 +122,7 @@ $CFG->messaging = false;
 
 // CCLE-2763 - Use new $CFG->divertallemailsto setting in 1.9 and 2.x 
 // development/testing environments
-$CFG->divertallemailsto = 'ccle-operations@lists.ucla.edu';
+$CFG->divertallemailsto = 'ccle-email-test@lists.ucla.edu';
 
 // CCLE-2590 - Implement Auto-detect Shibboleth Login
 $CFG->shib_logged_in_cookie = '_ucla_sso';
