@@ -1,26 +1,7 @@
-.namesection {
-    margin : 10px 10px 10px 0px;
-}
-
-
-.landing {
-    margin : 10px 10px 10px 40px;
-}
-
-.landingsi {
-    margin : 10px 10px 10px 140px;
-}
-
-.delete {
-    margin : 10px 10px 10px 40px;
-}
-
-.hide {
-    margin:10px;
-}
-
+/**
+ *  Stylings for course-section modification UI.
+ **/
 div.headercontainer {
-    
     height:20px;
    
     filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr=#B2C7C3C5, endColorstr=#FFFFFF); /* for IE */    
@@ -30,30 +11,19 @@ div.headercontainer {
     font-weight: bold;
 }
 
-#title {
-    padding-left: 7em;
-    float:left;
-
+#sections-table .animate-me {
+    display: none;
 }
 
-#hide {
-    padding-left: 7em;
-    float:left;
-   
+#sections-table tr {
+    border-bottom: solid 1px #EEE;
 }
 
-#delete {
-    padding-left: 2em;
-    float:left;
-    
+#sections-table tr.hidden-section {
+    background-color: gray;
+}
+/** This one must come AFTER hidden-section **/
+#sections-table tr.delete-section {
+    background-color: red;
 }
 
-#landing {
-    padding-left: 0.5em;
-    float:left;
-    
-}
-
-#warning {
-    color:red;
-}

@@ -129,7 +129,7 @@ class block_ucla_course_menu extends block_navigation {
             	   //CCLE-2379 Modify Course Menu Sections 	
 	   $modify_coursemenu = html_writer::link(
                     new moodle_url('/blocks/ucla_modify_coursemenu/modify_coursemenu.php', 
-                        array('course_id' => $this->page->course->id, 
+                        array('courseid' => $this->page->course->id, 
                               'topic' => optional_param('topic',NULL,PARAM_INT))), 
                     get_string('pluginname', 'block_ucla_modify_coursemenu'));            
             $this->content->text .= html_writer::tag('div', $modify_coursemenu, 
