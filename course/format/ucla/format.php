@@ -651,7 +651,7 @@ while ($section <= $course->numsections) {
                                                 array('course_id' => $course->id, 'edit_id' => $user->id));
                                         $strupdate = get_string('editofficehours', 'format_ucla');
                                         $dest_data = html_writer::link($update_url, 
-                                                $strupdate, array('title' => $strupdate)).' ';
+                                                $strupdate, array('title' => $strupdate, 'class' => 'editing-link')).' ';
                                     }
                                     $dest_data .= fullname($user);
                                 } else {
