@@ -105,7 +105,10 @@ $string['filesizenull'] = 'File size cannot be determined';
 $string['getfile'] = 'Select this file';
 $string['hidden'] = 'Hidden';
 $string['choosealink'] = 'Choose a link...';
-$string['chooselicense'] = 'Copyright status <a title="Help with Copyright Status" href="/moodle/help.php?component=block_ucla_easyupload&identifier=license&lang=en" target=_blank><img class="iconhelp" alt="Help with Copyright Status" src="/moodle/theme/image.php?theme=uclashared&image=help">';
+// START UCLA MOD: CCLE-2669 - Copyright Modifications
+//$string['chooselicense'] = 'Choose license';
+$string['chooselicense'] = 'Copyright status <a title="Help with Copyright Status" href="'.$CFG->wwwroot.'/help.php?component=block_ucla_easyupload&identifier=license&lang=en" target=_blank><img class="iconhelp" alt="Help with Copyright Status" src="'.$CFG->wwwroot.'/theme/image.php?theme=uclashared&image=help">';
+// END UCLA MOD: CCLE-2669
 $string['iconview'] = 'View as icons';
 $string['instance'] = 'instance';
 $string['instancedeleted'] = 'Instance deleted';
