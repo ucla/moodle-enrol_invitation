@@ -22,7 +22,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$module->version  = 2010110101;  // The current module version (Date: YYYYMMDDXX)
+// START UCLA MOD: CCLE-3114 - OASA_Event
+// change permission type to allow public questionnaires
+//$module->version  = 2010110101;  // The current module version (Date: YYYYMMDDXX)
+$module->version  = 2010110102;  // The current module version (Date: YYYYMMDDXX)
+// END UCLA MOD: CCLE-3114
 $module->requires = 2011120100;  // Requires this Moodle version
 $module->component = 'mod_questionnaire';
 $module->cron     = 60*60*12;    // Period for cron to check this module (secs)
