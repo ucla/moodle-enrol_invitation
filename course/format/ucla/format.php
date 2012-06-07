@@ -98,11 +98,11 @@ if ($useajax) {
     echo html_writer::script(false, 
         new moodle_url('/course/format/ucla/sections.js'));
 
-//    if ($noeditingicons) {
-//        $editingiconsjs = 'true';
-//    } else {
-//        $editingiconsjs = 'false';
-//    }
+    if ($noeditingicons) {
+        $editingiconsjs = 'true';
+    } else {
+        $editingiconsjs = 'false';
+    }
 
     echo html_writer::script("
     M.format_ucla.strings['hidden'] = '$strishidden';

@@ -366,19 +366,10 @@ class theme_uclashared_core_renderer extends core_renderer {
                 $attr = $icon->attributes;
                 $displaytext = $attr['alt'];
 
-                // display icons for move/ident/unindent
-                if ($noeditingicons == 2 && 
-                        !in_array($displaytext, array('Move', 'Indent', 'Unindent'))) {
-                    unset($attr['alt']);
-                    unset($attr['title']);
+                unset($attr['alt']);
+                unset($attr['title']);
 
-                    $action->text = $displaytext;                    
-                } else  {
-                    unset($attr['alt']);
-                    unset($attr['title']);
-
-                    $action->text = $displaytext;                                        
-                }
+                $action->text = $displaytext;
             }
         }
 

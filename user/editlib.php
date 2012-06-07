@@ -191,7 +191,6 @@ function useredit_shared_definition(&$mform, $editoroptions = null) {
     $choices = array();
     $choices['0'] = get_string('useeditingicons', 'theme_uclashared');
     $choices['1'] = get_string('donotuseeditingicons', 'theme_uclashared');
-    //$choices['2'] = get_string('donotuseeditingicons2', 'theme_uclashared');
     $mform->addElement('select', 'preference_noeditingicons', get_string('noeditingicons', 'theme_uclashared'), $choices);
     $mform->setDefault('preference_noeditingicons', 1);
     // END UCLA MOD CCLE-3069
