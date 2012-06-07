@@ -125,6 +125,13 @@ $modules[] = new ucla_cp_module('view_roster', new moodle_url(
                         $CFG->wwwroot . '/user/index.php', array('id' => $course->id)),
                 $temp_tag, $ta_cap);
 
+// Site invitation
+if (enrol_invitationenrol_available($course->id)) {
+    $modules[] = new ucla_cp_module('site_invitation', new moodle_url(
+                            $CFG->wwwroot . '/enrol/invitation/invitation.php', array('courseid' => $course->id)),
+                    $temp_tag, 'enrol/invitation:enrol');    
+}
+
 /******************************** Advanced Functions *********************/
 $modules[] = new ucla_cp_module('ucla_cp_mod_advanced', null, null, $temp_cap);
 
@@ -279,6 +286,26 @@ if (has_role_in_context("student", $context)) {
   echo '<dd>'.get_string('studentmanualclick','block_course_menu').'</dd>';
   }
  */
+
+/**
+ * Is the site invitation enrollment plugin installed for course?
+ * 
+ * @param int $courseid
+ * @return bool
+ */
+function enrol_invitationenrol_available($courseid) {
+    $result = false;
+
+    $enrolinstances = enrol_get_instances($courseid, true);
+    foreach($enrolinstances as $instance) {
+        if ($instance->enrol == 'invitation') {
+            $result = true;
+            break;
+        }
+    }
+
+    return $result;
+}
 
 /**
  * Returns term session code for course, if any.
