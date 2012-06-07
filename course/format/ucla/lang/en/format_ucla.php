@@ -45,3 +45,9 @@ $string['show_all'] = 'Show all';
 // Custom format strings
 $string['editcoursetitle'] = 'Edit course description';
 $string['editsectiontitle'] = 'Edit title';
+
+// JIT strings
+$string['file'] = 'Upload file';
+$string['link'] = 'Add link';
+$string['text'] = 'Add text';
+$string['subheading'] = 'Add subheading';

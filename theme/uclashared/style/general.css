@@ -479,30 +479,6 @@ html, body {background-color:#FFF; height:100%;}
     margin-left: 2.0em !important;
 }
 
-/* START feature/CCLE-2800 JIT controls */
-#region-main-box div.editControlLinks {
-margin-top: 2px;
-padding-left: 42px;
-background: url(./uclashared/pix/line-commands.gif) 8px 1px no-repeat;
-display: inline;
-position: relative;
-top: 0px;
-  float:left;
-}
-
-#region-main-box div.editControlLinks a {
-color: #ff6666;
-margin-right: 10px;
-text-decoration: none;
-}
-
-#region-main-box div.editControlLinks a:hover {
-color: red;
-margin-right: 10px;
-text-decoration: underline;
-}
-/* END feature/CCLE-2800 JIT controls */
-
 /* CCLE-2993 - Shorten textarea for intro/description field */
 #id_introeditor, #id_introeditor_tbl, #id_intro {
     height:150px;    

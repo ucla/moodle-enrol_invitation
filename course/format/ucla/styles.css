@@ -145,6 +145,27 @@
 
 /* START feature/CCLE-3002-office-table-display */
 div.instr-info {
-	clear:both;
+    clear:both;
 }
 /* END feature/CCLE-3002-office-table-display */
+
+/* START feature/CCLE-2800 JIT controls */
+.jit_links {
+    margin-top: 2px;
+    padding-left: 42px;
+    background: url([[pix:theme|jit_links]]) 8px 1px no-repeat;
+    display: inline;
+    position: relative;
+    top: 0px;
+    float:left;
+}
+.jit_links a:link, .jit_links a:visited {
+    color: #f66;
+    margin-right: 10px;
+    text-decoration: none;
+}
+.jit_links a:hover {
+    color: red;
+    text-decoration: underline;
+}
+/* END feature/CCLE-2800 JIT controls */
