@@ -95,23 +95,8 @@ class block_ucla_my_sites extends block_base {
                 $c->url = sprintf('%s/course/view.php?id=%d', $CFG->wwwroot,
                     $c->id);
 
-                $ccontext = context_course::instance($c->id);
-                $courseras = get_user_roles($ccontext);
-
-                // Reindex by roleid, since that's what role_fix_names wants
-                $courseroles = array();
-                foreach ($courseras as $role) {
-                    $courseroles[$role->roleid] = $role;
-                }
-
-                // We want the course-specific display name
-                $courseroles = role_fix_names($courseroles, $ccontext);
-
-                // Replace role->name with role->localname
-                foreach ($courseroles as $role) {
-                    $role->name = $role->localname;
-                }
-
+                $courseroles = get_user_roles_in_course($USER->id, $c->id);
+                $courseroles = explode(',', strip_tags($courseroles));
                 $c->roles = $courseroles;
                 
                 $availableterms[$courseterm] = $courseterm;
@@ -198,7 +183,7 @@ class block_ucla_my_sites extends block_base {
                 foreach ($class_sites as $k => $class_site) {
                     foreach ($class_site->reg_info as $reginfo) {
                         if ($key == make_idnumber($reginfo)) {
-                            $class_sites[$k]->roles[] = $rrole;
+                            $class_sites[$k]->roles[] = $rrole->name;
                             $localexists = true;
                         }
                     }
@@ -224,17 +209,7 @@ class block_ucla_my_sites extends block_base {
 
         // Figure out what to display in the Roles column
         foreach ($class_sites as $k => $class_site) {
-            if (!empty($class_site->roles)) {
-                $rolenames = array();
-                foreach ($class_site->roles as $role) {
-                    $rolenames[] = trim($role->name);
-                }
-                $rolenames = array_unique($rolenames);
-                
-                $class_site->rolestr = implode(', ', $rolenames);
-            } else {
-                debugging('no roles');
-            }
+            $class_site->rolestr = $this->format_roles($class_site->roles);
         }
         
         if (!empty($class_sites)) {
@@ -346,9 +321,6 @@ class block_ucla_my_sites extends block_base {
                 } else {
                     debugging('no roles found');
                 }
-
-                // remove links from role string
-                $roles = strip_tags($roles);
                 
                 $t->data[] = array($class_link, $roles);
             }
@@ -377,7 +349,7 @@ class block_ucla_my_sites extends block_base {
                 $roles = get_user_roles_in_course($USER->id, $collab->id);
 
                 // remove links from role string  
-                $roles = strip_tags($roles);    
+                $roles = $this->format_roles($roles);    
                 
                 $t->data[] = array($collab_link, $roles);                
             }
@@ -407,7 +379,7 @@ class block_ucla_my_sites extends block_base {
     public function applicable_formats() {
         return array('my-index'=>true);
     }
-
+    
     /**
      *  Creates the javascript-activated drop-down menu for terms selection.
      *
@@ -526,6 +498,39 @@ class block_ucla_my_sites extends block_base {
         }
 
         return 0;
+    }
+    
+    /**
+     * Given a role array or string, will format the roles into a display 
+     * friendly format.
+     * 
+     * @param mixed $roles      A comma deliminated string or array
+     * 
+     * @return string           If error, then returns false, otherwise returns
+     *                          a string of comma deliminated roles  
+     */
+    private function format_roles($roles) {
+        if (empty($roles)) {
+            debugging('no roles');
+            return '';
+        }
+                
+        // if roles is a string, then parse it
+        if (is_string($roles)) {
+            // most likely string from get_user_roles_in_course()
+            $roles = explode(',', strip_tags($roles));
+        } else if (!is_array($roles)) {
+            return false;
+        }
+                
+        $rolenames = array();
+        foreach ($roles as $role) {
+            $rolenames[] = trim($role);
+        }
+        $rolenames = array_unique($rolenames);
+        $rolenames = implode(', ', $rolenames);
+     
+        return $rolenames;
     }
 }
 
