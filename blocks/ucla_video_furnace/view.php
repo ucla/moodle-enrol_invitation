@@ -63,7 +63,6 @@ function display_video_furnace_contents($course){
         //End UCLA SSC MODIFICATION 601
 
         $videos = get_video_data($each_course);
-        
         print_video_list($videos['current'], 'Current Videos', array('class'=>'vidFurnaceLinks'));
         if(!empty($videos['future'])) {
             print_video_list($videos['future'], 'Future Videos', array('class'=>'vidFurnaceFuture'));
@@ -100,14 +99,14 @@ function get_video_data($course_info){
         if ($cur_date >= $video->start_date && $cur_date <= $video->stop_date) {
             $cur_vids[] = $video;
         }
-        else if($cur_date <= $video->start_date) {
+        else if($cur_date < $video->start_date) {
             $future_vids[] = $video;
         }
-        else if($cur_date >= $video->stop_date) {
+        else if($cur_date > $video->stop_date) {
             $past_vids[] = $video;
         }
+		
     }
-
     // sort the different videos depending on their current status
     usort($cur_vids, 'cmp_title');
     usort($future_vids, 'cmp_start_date');
@@ -130,9 +129,15 @@ function print_video_list($video_list, $header_title, $section_attr){
     echo html_writer::start_tag('div', $section_attr);
     foreach($video_list as $video) {
         echo html_writer::tag('p', 
-            html_writer::tag('em',$video->video_title) 
-            .html_writer::empty_tag('br')
-            .'&nbsp;&nbsp;&nbsp;&nbsp;This video no longer available as of '. date("Y-m-d",$video->stop_date));
+            html_writer::tag('em',
+			html_writer::link($video->video_url, $video->video_title)
+            .html_writer::empty_tag('br')));
+		if ($header_title == "Past Videos"){
+			echo '&nbsp;&nbsp;&nbsp;&nbsp;This video no longer available as of '. date("Y-m-d",$video->stop_date);
+		}
+		else if ($header_title == "Future Videos"){
+			echo '&nbsp;&nbsp;&nbsp;&nbsp;This video will be available on '. date("Y-m-d",$video->start_date);
+		}
     }
     echo html_writer::end_tag('div'); //array('class'=>'vidFurnacePast')
       

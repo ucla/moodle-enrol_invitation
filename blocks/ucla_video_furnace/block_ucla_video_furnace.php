@@ -19,7 +19,6 @@ defined('MOODLE_INTERNAL') || die();
 require_once(dirname(__FILE__) . '/../moodleblock.class.php');
 
 
-
 class block_ucla_video_furnace extends block_base {
     
     public function init(){
@@ -44,13 +43,17 @@ class block_ucla_video_furnace extends block_base {
     }
     
     public function get_navigation_nodes($course) {
+		global $DB;
         
         $courseid = $course->id; // course id from the hook function
         $coursefound = ucla_map_courseid_to_termsrses($courseid); 
-       
-        $nodes = array();
+	   	//get video list, if no video, do not show the "video furnace" link
+		foreach ($coursefound as $k=>$course){
+			$videos = $DB->get_records_select('ucla_video_furnace', '`term` = "'. $course->term .'" AND `srs` = "'. $course->srs .'"');
+		}
+		$nodes = array();
 
-        if (!empty($coursefound)) {                            
+        if (!empty($coursefound)&&!empty($videos)) {                            
             // Must hardcode the naming string since this is a static function
             $nodes[] = navigation_node::create('Video Furnace', self::get_action_link($courseid)); 
         }
@@ -81,8 +84,8 @@ class block_ucla_video_furnace extends block_base {
             //'blocks-ucla_control_panel' => false,
             'not-really-applicable' => true
         );
-    }    
-    
+    }
+		
 }
 
 
