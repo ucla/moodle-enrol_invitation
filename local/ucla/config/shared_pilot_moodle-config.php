@@ -90,6 +90,11 @@ $CFG->forced_plugin_settings['local_ucla'] = array(
     'archiveserver' => 'https://ccle.ucla.edu'
 );
 
+// My Sites CCLE-2810
+// Term limiting
+$CFG->forced_plugin_settings['local_ucla']['student_access_ends_week'] = 3;
+$CFG->forced_plugin_settings['local_ucla']['oldest_available_term'] = '08S';
+
 // Browseby CCLE-2894
 $CFG->forced_plugin_settings['block_ucla_browseby']['use_local_courses'] = 0;
 $CFG->forced_plugin_settings['block_ucla_browseby']['ignore_coursenum'] = '194,295,296,375';

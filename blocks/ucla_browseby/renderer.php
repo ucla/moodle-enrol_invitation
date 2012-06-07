@@ -75,7 +75,7 @@ class block_ucla_browseby_renderer {
                         . html_writer::link(new moodle_url(
                             $course->url), $course->dispname);
                 } else {
-                    $courselink = ucla_html_writer::link(
+                    $courselink = ucla_html_writer::external_link(
                         new moodle_url($course->url), $course->dispname);
                 }
 
