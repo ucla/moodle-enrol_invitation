@@ -11,6 +11,10 @@ h1.main, h2.main, h3.main, h4.main, h5.main, h6.main {text-align: center;}
 .paging {text-align: center;}
 h1, h2, h3 {margin: 0;}
 
+/* CCLE-2909 - Browser cutting off tables with many columns */
+#attemptsform .no-overflow, #page-admin-roles-allow #page-content .region-content {
+    overflow:auto;
+}
 
 /**
  * Tabs
