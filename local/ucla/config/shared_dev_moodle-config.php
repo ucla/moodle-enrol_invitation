@@ -248,6 +248,9 @@ $CFG->maxeditingtime = 900; // 15 minutes
 $CFG->fullnamedisplay = 'language'; // CCLE-2550 - Lastname, Firstname sorting
 $CFG->cronclionly = true;
 
+// Site administration > Appearance > Themes
+$CFG->theme = 'uclashared';
+
 // Site administration > Appearance > Navigation
 $CFG->defaulthomepage = 1;    // user's home page should be "My Moodle" (HOMEPAGE_MY)
 $CFG->navlinkcoursesections = 1; // CCLE-3031 - Section Titles breadcrumbs aren't links
