@@ -169,7 +169,7 @@ function prepare_notice_object($invitation) {
     // get role name for use in acceptance message
     $role = $DB->get_record('role', array('id' => $invitation->roleid));
     $notice_object->rolename = $role->name;
-    $notice_object->roledescription = $role->description;
+    $notice_object->roledescription = strip_tags($role->description);
  
     return $notice_object;
 }

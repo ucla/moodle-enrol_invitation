@@ -110,8 +110,9 @@ $string['emailmessageuserenrolled'] = 'Hello,
     
 {$a->userfullname} ({$a->useremail}) has accepted your site invitation and gained entry to {$a->coursefullname}.
     
-Click the following link to check the new enrolments: {$a->courseenrolledusersurl}
-Or click the following link to check your site invitation history: {$a->invitehistoryurl}
+To view new enrolments, please visit: {$a->courseenrolledusersurl}
+
+To view site invitation history, please visit: {$a->invitehistoryurl}
 
 {$a->sitename}
 -------------
@@ -183,36 +184,31 @@ $string['returntoinvite'] = 'Send another invite';
 // processing invitation acceptance strings
 $string['invitation_acceptance_title'] = 'Site invitation acceptance';
 $string['expiredtoken'] = 'Site invitation token is expired or has already been used.';
-$string['loggedinnot'] = '<p>This invitation was sent to {$a->email}. Accepting this 
-    invitation will grant you the "{$a->rolename}" role for "{$a->coursefullname}".
-    The "{$a->rolename}" role is described as:</p>
-    <blockquote>
-    {$a->roledescription}
-    </blockquote>   
+$string['loggedinnot'] = '<p>This invitation to access "{$a->coursefullname}" in 
+    the role "{$a->rolename}"* is intended for {$a->email}. If you are not the 
+    intended recipient, please do not accept this invitation.</p>
     <p>
-        However, you are not logged in yet. If you have an UCLA LogonID, please 
-        login to proceed. Else if you currently do not have a UCLA Logon ID, you 
-        can obtain one here: 
-        <a target="_blank" href="https://logon.ucla.edu/activate.php">https://logon.ucla.edu/activate.php</a> 
+        Before you can accept this invitation you must be logged in to CCLE.
+        <ul>
+            <li>
+                If you have an UCLA LogonID, please login now.
+            </li>
+            <li>
+                If you do not have an UCLA Logon ID, you can obtain one at:
+                <a target="_blank" href="https://logon.ucla.edu/activate.php">
+                https://logon.ucla.edu/activate.php</a> 
+            </li>
+        </ul>        
     </p>
     <p>
-        You do not need to be an enrolled student at UCLA or have a 9 digit UID 
-        to create a UCLA Logon. When you are asked to identify your role in the 
-        UCLA system, select the following  option:
-        <blockquote>
-            "I do not have a UCLA Identification Number and I am NONE OF THE ABOVE."
-        </blockquote>
-    </p>    
-    <p>If you are not the intended invited guest, then please notify 
-    <a href="mailto:{$a->supportemail}">{$a->supportemail}</a>.</p>';
-$string['invitationacceptance'] = '<p>This invitation was sent to {$a->email}. Accepting this 
-    invitation will grant you the "{$a->rolename}" role for "{$a->coursefullname}".
-    The "{$a->rolename}" role is described as:</p>
-    <blockquote>
-    {$a->roledescription}
-    </blockquote>       
-    <p>If you are not the intended invited guest, then please notify 
-    <a href="mailto:{$a->supportemail}">{$a->supportemail}</a>.</p>';
+    * {$a->roledescription}
+    </p>';
+$string['invitationacceptance'] = '<p>This invitation to access "{$a->coursefullname}" in 
+    the role "{$a->rolename}"* is intended for {$a->email}. If you are not the 
+    intended recipient, please do not accept this invitation.</p>
+    <p>
+    * {$a->roledescription}
+    </p>';
 
 // invite history strings
 $string['invitehistory'] = 'Invite history';
