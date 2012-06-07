@@ -353,6 +353,39 @@ class theme_uclashared_core_renderer extends core_renderer {
 
         return $c;
     }
+
+    /**
+     *  Overwriting pix icon renderers to not use icons for action buttons.
+     **/
+    function render_action_link($action) {
+        $noeditingicons = get_user_preferences('noeditingicons', 1);
+        if (!empty($noeditingicons)) {
+            if ($action->text instanceof pix_icon) {
+                $icon = $action->text;
+
+                $attr = $icon->attributes;
+                $displaytext = $attr['alt'];
+
+                unset($attr['alt']);
+                unset($attr['title']);
+
+                $action->text = $displaytext;
+            }
+        }
+
+        return parent::render_action_link($action);
+    }
+
+    /**
+     *  Wrapper function to prevent initial install.
+     **/
+    function get_config($plugin, $var) {
+        if (!during_initial_install()) {
+            return get_config($plugin, $var);
+        } 
+
+        return false;
+    }
 }
 
 class ucla_html_writer extends html_writer {
