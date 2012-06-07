@@ -37,13 +37,6 @@ class block_ucla_bruincast extends block_base {
         // get global variable
         global $DB;
         
-        $node_type = array(
-            'Restricted' => 'private',
-            'Open' => '',
-            'See Instructor' => 'See Instructor',
-            'Online' => 'E-Lecture'
-        );
-
         $courseid = $course->id; // course id from the hook function
         $coursefound = ucla_map_courseid_to_termsrses($courseid);
 
@@ -59,6 +52,9 @@ class block_ucla_bruincast extends block_base {
                         array('srs' => $c->srs, 'term' => $c->term))) {
 
                     if (!empty($bcnodes->bruincast_url)) {
+                        
+                        $node_type = 'node_' . strtolower($bcnodes->restricted);
+                        $node_type = str_replace(' ', '_', $node_type);
 
                         $reginfo = ucla_get_reg_classinfo($bcnodes->term, $bcnodes->srs);
 
@@ -82,7 +78,7 @@ class block_ucla_bruincast extends block_base {
 
                                     if (!$atleastone) {
                                         $nodes[] = navigation_node::create(
-                                                'Bruincast' . ' (' . $node_type[$bcnodes->restricted] . ')', 
+                                                'Bruincast ' .get_string($node_type, 'block_ucla_bruincast'), 
                                                 new moodle_url($bcnodes->bruincast_url));
                                     }
 
@@ -109,7 +105,7 @@ class block_ucla_bruincast extends block_base {
 
                                 if (!$atleastone) {
                                     $nodes[] = navigation_node::create(
-                                            'Bruincast' . ' (' . $node_type[$bcnodes->restricted] . ')', 
+                                            'Bruincast ' .get_string($node_type, 'block_ucla_bruincast'), 
                                             new moodle_url($bcnodes->bruincast_url));
                                 }
 
