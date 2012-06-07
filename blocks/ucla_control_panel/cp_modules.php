@@ -36,6 +36,8 @@ if (ucla_cp_module::load('email_students')) {
 $course_id = required_param('course_id', PARAM_INT); 
 $course = $DB->get_record('course', array('id'=>$course_id), '*', MUST_EXIST);
 $context = context_course::instance($course->id);
+//Needs to check if user is a TA
+//has_role_in_context('ta_instructor', $context) does not work
 if ( has_role_in_context('editinginstructor', $context) || 
         has_role_in_context('ta_instructor', $context) ) {
 

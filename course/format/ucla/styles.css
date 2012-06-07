@@ -32,6 +32,11 @@
     margin: 0;
 }
 
+.course-content ul.topics li.section .content .cell.c0 a {
+    color: #FF6666;
+    margin: 0;
+}
+
 .course-content ul.topics li.section .content.editing {
     margin: 0 0 0 20px;
 }

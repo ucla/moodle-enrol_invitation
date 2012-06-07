@@ -645,7 +645,8 @@ while ($section <= $course->numsections) {
                             foreach ($desired_info as $field => $header) {
                                 $dest_data = '';
                                 if ($field == 'fullname') {
-                                    if($editing && $has_capability_update) {
+                                    if($editing && $has_capability_update) { 
+                                        //Need to only display the update string for certain users
                                         $update_url = new moodle_url($CFG->wwwroot.'/blocks/ucla_office_hours/officehours.php', 
                                                 array('course_id' => $course->id, 'edit_id' => $user->id));
                                         $strupdate = get_string('editofficehours', 'format_ucla');
