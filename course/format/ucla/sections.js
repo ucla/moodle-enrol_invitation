@@ -50,8 +50,9 @@ M.format_ucla.mk_button_override = function(tag, imgSrc, text,
     text_div.appendChild(text_only);
 
     // THis is to prevent the other clicks from breaking things
-    text_only.src = '';
-    text_only.title = '';
+    text_div.src = '';
+    text_div.alt = '';
+    text_div.title = '';
 
     if (ismovebutton) {
         tagnode.title = altstr;
@@ -132,7 +133,7 @@ M.format_ucla.override_moodle_fn(section_class, 'init_buttons',
 M.format_ucla.section_class.toggle_hide = function(e, target, 
                                                    superficial) {
     section_class.moodle.toggle_hide.apply(this, [e, target, superficial]);
-    this.viewButton.childNodes[0].data = this.viewButton.title;
+    this.viewButton.childNodes[0].innerHTML = this.viewButton.title;
 
     var header = YAHOO.util.Dom.getElementsByClassName('header', 
         'h2', this.getEl())[0];
@@ -194,7 +195,7 @@ M.format_ucla.resource_class.toggle_hide = function(t, e, s, f) {
     resource_class.moodle.toggle_hide.apply(this, arguments);
 
     // Overwrite with alt
-    this.viewButton.childNodes[0].data = this.viewButton.title;
+    this.viewButton.childNodes[0].innerHTML= this.viewButton.title;
 };
 
 M.format_ucla.override_moodle_fn(resource_class, 'toggle_hide',
@@ -203,7 +204,7 @@ M.format_ucla.override_moodle_fn(resource_class, 'toggle_hide',
 M.format_ucla.resource_class.toggle_groupmode = function() {
     resource_class.moodle.toggle_groupmode.apply(this, arguments);
 
-    this.groupButton.childNodes[0].data = this.groupButton.title;
+    this.groupButton.childNodes[0].innerHTML = this.groupButton.title;
 }
 
 M.format_ucla.override_moodle_fn(resource_class, 'toggle_groupmode',
@@ -212,7 +213,7 @@ M.format_ucla.override_moodle_fn(resource_class, 'toggle_groupmode',
 M.format_ucla.resource_class.toggle_publicprivate = function() {
     resource_class.moodle.toggle_publicprivate.apply(this, arguments);
 
-    this.publicprivateButton.childNodes[0].data = this.publicprivateButton.title;
+    this.publicprivateButton.childNodes[0].innerHTML = this.publicprivateButton.title;
 }
 
 M.format_ucla.override_moodle_fn(resource_class, 'toggle_publicprivate',
