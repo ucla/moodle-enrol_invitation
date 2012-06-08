@@ -32,6 +32,14 @@
     margin: 0;
 }
 
+a.editing-link:link,
+a.editing-link:visited {
+    color: #F66;
+}
+a.editing-link:hover {
+    color: red;
+}
+
 .course-content ul.topics li.section .content.editing {
     margin: 0 0 0 20px;
 }

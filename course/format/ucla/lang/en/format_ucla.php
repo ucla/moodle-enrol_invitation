@@ -45,6 +45,7 @@ $string['show_all'] = 'Show all';
 // Custom format strings
 $string['editcoursetitle'] = 'Edit course description';
 $string['editsectiontitle'] = 'Edit title';
+$string['editofficehours'] = 'update';
 $string['movealt'] = 'Click and drag to move';
 
 // JIT strings
@@ -52,3 +53,9 @@ $string['file'] = 'Upload file';
 $string['link'] = 'Add link';
 $string['text'] = 'Add text';
 $string['subheading'] = 'Add subheading';
+
+// Office hours and contact information heading displays
+$string['office'] = 'Office';
+$string['phone'] = 'Phone';
+$string['email'] = 'Email address';
+$string['office_hours'] = 'Office hours';
