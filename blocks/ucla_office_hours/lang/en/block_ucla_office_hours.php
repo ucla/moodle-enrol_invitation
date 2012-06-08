@@ -3,22 +3,20 @@
 $string['pluginname'] = 'UCLA office hours';
 $string['ucla_office_hours'] = 'ucla office hours';
 
-$string['f_office'] = 'Office location';
+$string['header'] = 'Update office hours and contact info for {$a}';
+
+$string['header_office_info'] = 'Office information';
 $string['f_officehours'] = 'Office hours';
-$string['f_phone'] = 'Phone number';
+$string['f_officehours_text'] = 'Include the times and days of your office hours for this course';
+$string['f_office'] = 'Office location';
+$string['f_office_text'] = 'Enter your campus address or office hours meeting location';
+
+$string['header_contact_info'] = 'Contact information';
 $string['f_email'] = 'Email address';
-$string['f_website'] = 'Website';
-$string['header'] = 'Update office hours and contact info';
-$string['edituser'] = 'Updating information for: {$a}';
-$string['email_info'] = 'Email address';
-$string['email_info_help'] = 
-    'By default, the email address displayed on the course web page is the 
-    email address taken from the UCLA-registrar. 
-    If you would like to set a class specific email address, you can do that here.
-    If you would like to keep the email address taken from the UCLA-registrar, then leave this field blank.';
-$string['website_info'] = 'Website';
-$string['website_info_help'] = 'This website field will update your website in your profile page.
-    It is not displayed on the course web page.';
+$string['f_email_text'] = 'Enter alternative email address to display (will not redirect course emails). If blank, will display email on record: {$a}.';
+$string['f_phone'] = 'Phone number';
+$string['f_phone_text'] = 'Enter a number where students can reach you or leave a message. This number will be public.';
+$string['f_website'] = 'Personal website';
 
 $string['success'] = 'Success!';
 $string['confirmation_message'] = 

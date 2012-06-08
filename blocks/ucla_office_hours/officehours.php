@@ -20,6 +20,7 @@ $course = $DB->get_record('course', array('id' => $course_id), '*', MUST_EXIST);
 require_login($course, true);
 
 $edit_user = $DB->get_record('user', array('id' => $edit_id), '*', MUST_EXIST);
+$edit_user_name = $edit_user->firstname . ' ' . $edit_user->lastname;
 
 $context = get_context_instance(CONTEXT_COURSE, $course_id);
 $PAGE->set_context($context);
@@ -28,7 +29,7 @@ $PAGE->set_pagetype('course-view-' . $course->format);
 $PAGE->set_url('/blocks/ucla_office_hours/officehours.php',
         array('course_id' => $course_id, 'edit_id' => $edit_id));
 
-$page_title = get_string('header', 'block_ucla_office_hours');
+$page_title = get_string('header', 'block_ucla_office_hours', $edit_user_name);
 $PAGE->set_title($page_title);
 $PAGE->set_heading($page_title);
 
@@ -44,22 +45,16 @@ if (!block_ucla_office_hours::allow_editing($context, $edit_user->id)) {
 echo $OUTPUT->header();
 echo $OUTPUT->heading($page_title, 2, 'headingblock');
 
-// prepare form data
-
 // get office hours entry, if any
 $officehours_entry = $DB->get_record('ucla_officehours',
         array('courseid' => $course_id, 'userid' => $edit_id));
 
-// get user's name/url
-$edit_user_name = $edit_user->firstname . ' ' . $edit_user->lastname;
-$edit_user_url = $edit_user->url;
-
 $updateform = new officehours_form(NULL, 
         array('course_id' => $course_id, 
               'edit_id' => $edit_id, 
+              'edit_email' => $edit_user->email,
               'defaults' => $officehours_entry, 
-              'edit_name' => $edit_user_name, 
-              'url' => $edit_user_url),
+              'url' => $edit_user->url),
         'post',
         '',
         array('class' => 'officehours_form'));
@@ -103,21 +98,14 @@ if ($updateform->is_cancelled()) { //If the cancel button is clicked, return to 
         user_update_user($edit_user);
     }
 
-    //TODO: format the display properly
-    $rurl = new moodle_url($CFG->wwwroot . '/course/view.php',
-                    array('id' => $course_id, 'topic' => 0));
-    $confirmation = '';
-    $confirmation .= html_writer::tag('h1',
-                    get_string('success', 'block_ucla_office_hours'));
-    $confirmation .= html_writer::tag('div',
-                    get_string('confirmation_message', 'block_ucla_office_hours'));
-    $confirmation .= html_writer::start_tag('div') . get_string('confirmation_redirect1',
-                    'block_ucla_office_hours');
-    $confirmation .= html_writer::link($rurl, 'here');
-    $confirmation .= get_string('confirmation_redirect2',
-            'block_ucla_office_hours');
-    $confirmation .= html_writer::end_tag('div');
-    echo $confirmation;
+    // display success message
+    echo $OUTPUT->box_start('noticebox');
+    echo html_writer::tag('h1', get_string('success', 'block_ucla_office_hours'));
+    echo html_writer::tag('p', get_string('confirmation_message', 'block_ucla_office_hours'));
+    echo $OUTPUT->continue_button(new moodle_url($CFG->wwwroot . '/course/view.php',
+                    array('id' => $course_id, 'topic' => 0)));
+    echo $OUTPUT->box_end();    
+
 } else {
     $updateform->display();
 }
