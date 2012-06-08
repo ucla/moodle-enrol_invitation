@@ -40,7 +40,11 @@ function update_videofurnace_db($datasource_url) {
     //Haven't gotten around to merging the following cleanup code into matts function. should be done once there is time.
     //$data = &cleanup_csv_data($data, "ucla_video_furnace");
 
+	// remove old record
     $vidfurn_table = 'ucla_video_furnace';
+	$DB->delete_records($vidfurn_table); 
+	$insert_count = 0;
+
     # create mail data array for storing email contents
     $mail_data = array();  
     for ($row = 2; $row < sizeof($incoming_data); $row++) {
@@ -59,33 +63,20 @@ function update_videofurnace_db($datasource_url) {
         }
         
         fix_data_format($row_data);
-        $row_data_dup_check = array('term' => $row_data['term'], 'srs' => $row_data['srs'], 'start_date' => $row_data['start_date'],
-                        'stop_date' => $row_data['stop_date'], 'class' => $row_data['class'], 'instructor' => $row_data['instructor'], 'video_title' => $row_data['video_title'],
-                        'video_url' => $row_data['video_url']);
-
-        # check to see if the row exists in the existing data
-        $result = $DB->get_records('ucla_video_furnace', $row_data_dup_check);
-		
-        if(empty($result) == false) {
-            # if it does mark it so as not to delete it
-            $DB->set_field($vidfurn_table, '_del_flag', 0, $row_data_dup_check);
-        } else {
-            # if it does not then insert it
-            $DB->insert_record('ucla_video_furnace', $row_data);
-           // update_mail_data($row_data, $mail_data);
-        }
+      
+		$id = FALSE;
+	    $id = $DB->insert_record('ucla_video_furnace', $row_data);
+        // update_mail_data($row_data, $mail_data);
+		if ($id) {
+			$insert_count++;
+		}
     }
 
-    # delete out-of-date rows according to the delete flag, then reset all of the delete flags
-    $DB->delete_records($vidfurn_table, array('_del_flag'=> 1)); 
-    $DB->set_field_select($vidfurn_table, '_del_flag', 1, 'true'); 
-    
-    /*if ($CFG->videofurnace_send_emails && !empty($mail_data)) {
+    echo "\n... " . $insert_count . " " . get_string('vfsuccessnoti', 'tool_ucladatasourcesync') . "\n";
+	 /*if ($CFG->videofurnace_send_emails && !empty($mail_data)) {
         send_mail_data($mail_data);
     } */
-    
-    echo get_string('vfsuccessnoti', 'tool_ucladatasourcesync') . "\n";
- } 
+} 
 
  /** 
   * Adds new information to the mail_data array based on the information given from row_data

@@ -20,7 +20,6 @@
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-		<KEY NAME="term_srs_courseid_uq" TYPE="unique" FIELDS="courseid, term, srs" COMMENT="ensure not to read in duplicate data" PREVIOUS="primary"/>
       </KEYS>
     </TABLE>
   </TABLES>
