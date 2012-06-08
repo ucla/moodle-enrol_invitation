@@ -1,5 +1,6 @@
 M.block_ucla_modify_coursemenu = M.block_ucla_modify_coursemenu || {};
-M.block_ucla_modify_coursemenu.strings = M.block_ucla_modify_coursemenu || {};
+M.block_ucla_modify_coursemenu.strings = M.block_ucla_modify_coursemenu.strings || {};
+M.block_ucla_modify_coursemenu.pix= M.block_ucla_modify_coursemenu.pix || {};
 
 M.block_ucla_modify_coursemenu.drag_handle = 'drag-handle';
 
@@ -29,35 +30,22 @@ M.block_ucla_modify_coursemenu.catchHidden = function(section_id) {
 M.block_ucla_modify_coursemenu.make_dnd_table = function() {
     $('#' + M.block_ucla_modify_coursemenu.table_id).tableDnD({
         dragHandle: M.block_ucla_modify_coursemenu.drag_handle,
-        onDragClass: "dragging-row",
+        onDragClass: "always-row-dragging",
         onDragStart: function (table, cell) {
-            $("#" + M.block_ucla_modify_coursemenu.table_id + " tr").addClass(
-                    'never-show-drag-handle' 
-                );
-            $(cell).parent().removeClass('never-show-drag-handle');
-
-            if ($(cell).parent().hasClass('delete-section')) {
-                $(cell).parent().addClass('delete-section-dragging');
-            } else if ($(cell).parent().hasClass('new-section')) {
-                $(cell).parent().addClass('new-section-dragging');
+            // Handle special colors
+            var tabrow = $(cell).parent();
+            if (tabrow.hasClass('delete-section')) {
+                tabrow.addClass('delete-section-dragging');
+            } else if (tabrow.hasClass('new-section')) {
+                tabrow.addClass('new-section-dragging');
             } else {
-                $(cell).parent().addClass('regular-row-dragging');
+                tabrow.addClass('regular-row-dragging');
             }
         }, 
         onDrop: function (table, row) {
             $(row).removeClass('delete-section-dragging');
             $(row).removeClass('new-section-dragging');
             $(row).removeClass('regular-row-dragging');
-            $("#" + M.block_ucla_modify_coursemenu.table_id + " tr")
-                .removeClass('never-show-drag-handle');
-
-            if ($(row).hasClass('hidden-row')) { // IE6 fix
-                $(row).find('.hidden-checkbox').attr('checked', 'checked');
-            }
-
-            if ($(row).hasClass('delete-section')) {
-                $(row).find('.delete-checkbox').attr('checked', 'checked');
-            }
         }
     });
 }
@@ -72,14 +60,6 @@ M.block_ucla_modify_coursemenu.add_new_table_row = function() {
     $(jqlid + ' > tbody').append(bumc.generate_row_html());
 
     var newtr = $(jqlid + ' > tbody > tr:last');
-
-    // Add row listeners
-    newtr.hover(function () {
-        $(this.cells[0]).addClass('show-drag-handle');
-    }, function () {
-        $(this.cells[0]).removeClass('show-drag-handle');
-    });
-
 
     // Animate the particular row
     newtr.find('td').each(function(index, Element) {
@@ -144,7 +124,8 @@ M.block_ucla_modify_coursemenu.generate_row_html = function(sectiondata) {
     if (canmove) {
         // TODO add picture
         row_html += '<td class="' + M.block_ucla_modify_coursemenu.drag_handle
-            + '">' + '<img src="' + '' + '" />' + '</td>'
+            + '">' + '<img src="' + M.block_ucla_modify_coursemenu.pix.handle 
+            + '" class="hidden-handle" />' + '</td>'
     } else {
         row_html += '<td></td>';
     }
@@ -232,6 +213,14 @@ M.block_ucla_modify_coursemenu.attach_row_listeners = function(jq) {
 
         return true;
     });
+    
+    // Add row listeners
+    jq.hover(function () {
+        $(this).find('.drag-handle img').removeClass('hidden-handle');
+    }, function () {
+        $(this).find('.drag-handle img').addClass('hidden-handle');
+    });
+
 }
 
 M.block_ucla_modify_coursemenu.check_reset_landingpage = function() {

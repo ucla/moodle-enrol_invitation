@@ -10,6 +10,7 @@ require_once($CFG->dirroot . '/course/format/ucla/ucla_course_prefs.class.php');
 $thispath = '/blocks/ucla_modify_coursemenu';
 require_once($CFG->dirroot . $thispath . '/block_ucla_modify_coursemenu.php');
 require_once($CFG->dirroot . $thispath . '/modify_coursemenu_form.php');
+require_once($CFG->dirroot . $thispath . '/verify_modification_form.php');
 
 require_once($CFG->dirroot . '/local/ucla/lib.php');
 
@@ -70,10 +71,12 @@ $PAGE->requires->js('/blocks/ucla_modify_coursemenu/modify_coursemenu.js');
 // Provide format information to js
 $courseformat = $course->format;
 $format_compstr = 'format_' . $courseformat;
+
 $PAGE->requires->string_for_js('section0name', $format_compstr);
 $PAGE->requires->string_for_js('section0name', $format_compstr);
 $PAGE->requires->string_for_js('newsection', 'block_ucla_modify_coursemenu');
 $PAGE->requires->string_for_js('new_sectnum', 'block_ucla_modify_coursemenu');
+
 if ($courseformat == 'ucla') {
     $PAGE->requires->string_for_js('show_all', $format_compstr);
     block_ucla_modify_coursemenu::js_init_code_helper(
@@ -81,6 +84,7 @@ if ($courseformat == 'ucla') {
         );
 }
 
+// Load other things here for consistency 
 block_ucla_modify_coursemenu::many_js_init_code_helpers(array(
         'course_format'  => $format_compstr,
         'table_id'       => $maintableid,
@@ -92,7 +96,12 @@ block_ucla_modify_coursemenu::many_js_init_code_helpers(array(
             block_ucla_modify_coursemenu::sectionsorder_domnode,
         'serialized_id' => 
             block_ucla_modify_coursemenu::serialized_domnode,
-        'sectiondata' => $sections
+        'sectiondata' => $sections,
+    ));
+
+$PAGE->requires->js_init_code(
+    js_writer::set_variable('M.block_ucla_modify_coursemenu.pix.handle',
+        $OUTPUT->pix_url('handle', 'block_ucla_modify_coursemenu')->out()
     ));
 
 $PAGE->requires->js_init_code('M.block_ucla_modify_coursemenu.initialize()');
@@ -120,11 +129,19 @@ $modify_coursemenu_form = new ucla_modify_coursemenu_form(
     array('class' => 'ucla_modify_coursemenu_form')
 );
 
+// This is needed if we're deleting sections
+$verifyform = new verify_modification_form();
+$verifydata = false;
+
 $redirector = null;
+
+// Used to tell users that they cannot delete
+$sectionsnotify = array();
+$passthrudata = null;
 
 //extract the data from the form and update the database
 if ($modify_coursemenu_form->is_cancelled()) {
-    $redirector = $courseviewurl;
+    redirect($courseviewurl);
 } else if ($data = $modify_coursemenu_form->get_data()) {
     // TODO see if some of the fields can be parsed from within the MForm
     parse_str($data->serialized, $unserialized);
@@ -135,36 +152,175 @@ if ($modify_coursemenu_form->is_cancelled()) {
     foreach ($sectionorderparsed['sections-order'] as $k => $sectionid) {
         $sectnum = str_replace('section-', '', $sectionid);
         if ($sectnum == UCLA_FORMAT_DISPLAY_ALL 
-                || $sectnum == 0) {
+                || $sectnum == '0') {
             continue;
+        }
+
+        // subtract 1 since we have to compensate for the pseudo-show-all
+        // section
+        if (is_int($k)) {        
+            $k--;
         }
 
         $sectionorder[$k] = $sectnum;
     }
 
     // TODO make it consistent IN CODE how all these fields are generated
+    $sectiondata = array();
     foreach ($unserialized as $fieldid => $value) {
-        
+        list($fieldtype, $sectionkey) = explode('-', $fieldid);
+        if (!isset($sectiondata[$sectionkey])) {
+            $sectiondata[$sectionkey] = array();
+        }
+
+        // Try to synchronize with Moodle field names
+        if ($fieldtype == 'hidden') {
+            $fieldtype = 'visible';
+            $value = 0;
+        }
+
+        if ($fieldtype == 'title') {
+            $fieldtype = 'name';
+        }
+
+        $sectiondata[$sectionkey][$fieldtype] = $value;
     }
-    
-    // update the section 
-    // names, visibility
 
-    // reorder 
+    // Compare submitted data and current sections,
+    // Set the ordering and the to-be-deleted sections
+    $tobedeleted = array();
+    $couldnotdelete = array();
 
-    // delete 
-    // set landing page
-    $course_preferences->set_preference('landing_page', $data->landingpage);
-    $course_preferences->commit();
+    $newsectnum = 1;
+    foreach ($sectiondata as $oldsectnum => $sectdata) {
+        if (!isset($sections[$oldsectnum])) {
+            $sections[$oldsectnum] = (object) $sectdata;
+        }
+
+        $section = $sections[$oldsectnum];
+
+        if (!empty($sectdata['delete'])) {
+            if (!block_ucla_modify_coursemenu::section_can_delete($section)) {
+                $sectionsnotify[$oldsectnum] = $section;
+                $tobedeleted[] = $section;
+                unset($sections[$oldsectnum]);
+                continue;
+            }
+        }
+
+        $section->section = $newsectnum;
+        $newsectnum++;
+    }
+
+    // Delete some sections...how to do this?
+    $deletesectionids = array();
+    foreach ($tobedeleted as $todelete) {
+        // Double check?
+        if (isset($todelete->id)) {
+            $deletesectionids[] = $todelete->id;
+        }
+    }
+
+    if (!empty($deletesectionids)) {
+        $passthrudata = new object();
+        $passthrudata->sections = $sections;
+        $passthrudata->deletesectionids = $deletesectionids;
+        $passthrudata->landingpage = $data->landingpage;
+        $passthrudata->coursenumsections = $newsectnum - 1;
+    }
+
+    // We need to add a validation thing for deleting sections
+    if (!empty($sectionsnotify)) {
+        // Generate html to display in the verifcation form
+        $formdisplayhtml = get_string('deletesectioncontents',
+            'block_ucla_modify_coursemenu');
+
+        foreach ($sectionsnotify as $oldsectnum => $sectionnotify) {
+            $sectionhtml = $OUTPUT->heading($sectionnotify->name, 3) 
+                . html_writer::start_tag('ul');
+
+            $sequences = array_map('trim', explode(', ', 
+                $sectionnotify->sequence));
+
+            foreach ($sequences as $cminstid) {
+                $cminstance = $modinfo->cms[$cminstid];
+                list($cmcontent, $instancename) = 
+                    get_print_section_cm_text($cminstance, $course);
+
+                $sectionhtml .= html_writer::tag(
+                        'li',
+                        $instancename . ' (' 
+                            . get_string('modulename', 
+                                $cminstance->modname) . ')'
+                    );
+            }
+
+            $sectionhtml .= html_writer::end_tag('ul');
+        
+            $formdisplayhtml .= $sectionhtml;
+        }
+
+        $formdisplayhtml = $OUTPUT->box($formdisplayhtml, 
+            'modify-course-sections-summary generalbox');
+
+        $verifyform = new verify_modification_form(
+                null,
+                array(
+                    'passthrudata' => $passthrudata,
+                    'courseid' => $courseid,
+                    'displayhtml' => $formdisplayhtml
+                )
+            );
     
-    $redirector = new moodle_url(
-            '/blocks/ucla_modify_coursemenu/modify_coursemenu.php',
-            array('courseid' => $courseid)
-        );
+        $passthrudata = null;
+    }
+
+    $redirector = $courseviewurl;
+} else if ($verifyform->is_cancelled()) {
+    $modify_coursemenu_form = new ucla_modify_coursemenu_form(
+        null,
+        array(
+                'courseid' => $courseid, 
+                'sections'  => $sections,
+                'landing_page' => $landing_page
+            ),
+        'post',
+        '',
+        array('class' => 'ucla_modify_coursemenu_form')
+    );
 }
 
-if ($redirector !== null) {
-    redirect($redirector);
+// If we've verified we want to delete sections, or if we don't need
+// to verify
+$verifydata = $verifyform->get_data();
+if ($passthrudata || $verifydata) {
+    if (!$passthrudata) {
+        $passthrudata = unserialize($verifydata->passthrudata);
+    }
+
+    $deletesectionids = $passthrudata->deletesectionids;
+    if (!empty($deletesectionids)) {
+        $DB->delete_records_list('course_sections', 'id', 
+            $deletesectionids);
+    }
+
+    foreach ($passthrudata->sections as $section) {
+        if (!isset($section->id)) {
+            $DB->insert_record('course_sections', $section);
+        } else {
+            $DB->update_record('course_sections', $section);
+        }
+    }
+
+    $course_preferences->set_preference('landing_page', 
+        $passthrudata->landingpage);
+    $course_preferences->commit();
+
+    // Update the course numsections
+    $course->numsections = $passthrudata->coursenumsections;
+    update_course($course);
+
+    $redirector = $courseviewurl;
 }
 
 $restr = get_string('ucla_modify_course_menu', 'block_ucla_modify_coursemenu');
@@ -177,8 +333,16 @@ $PAGE->set_heading($restrc);
 echo $OUTPUT->header();
 echo $OUTPUT->heading($restr, 2, 'headingblock');
 
-echo html_writer::table($tablestructure);
-$modify_coursemenu_form->display();
+if ($data && !empty($sectionsnotify) && !$verifydata) {
+    $verifyform->display();
+} else if ($redirector != null) {
+    echo $OUTPUT->box(
+            get_string('successmodifysections', 'block_ucla_modify_coursemenu')
+        );
+} else {
+    echo html_writer::table($tablestructure);
+    $modify_coursemenu_form->display();
+}
  
 echo $OUTPUT->footer();
 

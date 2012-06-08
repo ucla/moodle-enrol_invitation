@@ -30,6 +30,20 @@ class block_ucla_modify_coursemenu extends block_base {
         return $this->content;
     }
 
+    function section_apply($oldsection, $newsection) {
+        foreach ($newsection as $f => $v) {
+            if (isset($oldsection->{$f})) {
+                $oldsection->{$f} = $v;
+            }
+        }
+
+        return $oldsection;
+    }
+
+    function section_can_delete($section) {
+        return empty($section->sequence);
+    }
+
     function js_init_code_helper($varname, $value) {
         global $PAGE;
 

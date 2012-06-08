@@ -20,10 +20,36 @@ div.headercontainer {
 }
 
 #sections-table tr.hidden-section {
-    background-color: gray;
-}
-/** This one must come AFTER hidden-section **/
-#sections-table tr.delete-section {
-    background-color: red;
+    /* in 1.9 hidden sections had no indication */
+    /* background-color: gray; */
 }
 
+#sections-table tr.new-section {
+    background-color: #FEE98A;
+}
+
+#sections-table tr.new-section-dragging {
+    background-color: #FEDE91;
+}
+
+/** This one must come AFTER hidden-section **/
+#sections-table tr.delete-section {
+    background-color: #FFA6A6;
+}
+
+#sections-table tr.delete-section-dragging {
+    background-color: #FF6161;
+}
+
+/** This one should come last **/
+#sections-table tr.regular-row-dragging {
+    background-color: #AAA;
+}
+
+#sections-table tr td img.hidden-handle {
+    visibility: hidden;
+}
+
+div.modify-course-sections-summary h3 {
+    text-align: left;
+}

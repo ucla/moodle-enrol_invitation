@@ -9,8 +9,6 @@ class ucla_modify_coursemenu_form extends moodleform {
      *  This is going to serve as a proxy for our custom UI.
      **/
     function definition() {
-        global $CFG, $DB;
-        
         $mform =& $this->_form;
 
         $courseid  = $this->_customdata['courseid'];
@@ -36,7 +34,6 @@ class ucla_modify_coursemenu_form extends moodleform {
             array(
                 'id' => block_ucla_modify_coursemenu::serialized_domnode
             ));
-
 
         $mform->addElement('html', html_writer::tag('div',
             get_string('javascriptrequired', 'group'), array('id' => 

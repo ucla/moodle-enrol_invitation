@@ -14,3 +14,5 @@ $string['delete'] = 'Delete';
 $string['landing_page'] = 'Landing page';
 
 $string['newsection'] = 'New section';
+$string['couldnotdeletesection'] = 'The section "{$a->name}" could not be deleted because it is not empty. Please empty the section before deleting it.';
+$string['deletesectioncontents'] = 'At least one of the section(s) you are deleting have content. Please check that these are the changes you wish to make.';
