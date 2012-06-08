@@ -13,64 +13,53 @@ require_once($CFG->dirroot . '/local/ucla/lib.php'); // Include the code to test
 class ucla_term_fn_test extends UnitTestCase {
     function test_sorts() {
         // Test year sort
-        $a = array(
-            '11F',
+        $test_cases[] = array(
             '02F',
             '03F',
             '09F',
-            '13F'
+            '11F',            
+            '13F',
         );
-
-        $sorted = terms_arr_sort($a);
-        $this->assertEqual($sorted, array(
-            '02F', 
-            '03F', 
-            '09F', 
-            '11F', 
-            '13F'
-        ));
 
         // Test terms sort
-        $a = array(
-            '11F',
+        $test_cases[] = array(
             '11W',
-            '111',
-            '11S'
+            '11S',
+            '111',            
+            '11F',            
         );
-
-        $sorted = terms_arr_sort($a);
-        $this->assertEqual($sorted, array(
-            '11W', 
-            '11S', 
-            '111', 
-            '11F'
-        ));
 
         // Test mixed sort
-        $a = array(
-            '12F',
-            '12W',
-            '121',
-            '12S',
-            '11F',
+        $test_cases[] = array(
             '11W',
+            '11S',
             '111',
-            '11S'
-        );
-
-        shuffle($a);
-
-        $sorted = terms_arr_sort($a);
-        $this->assertEqual($sorted, array(
-            '11W', 
-            '11S', 
-            '111', 
             '11F',
-            '12W', 
-            '12S', 
-            '121', 
-            '12F'
-        ));
+            '12W',
+            '12S',
+            '121',            
+            '12F',            
+        );
+        
+        // Test pre-y2k terms
+        $test_cases[] = array(
+            '65F',  // oldest term on record at Registrar
+            '81F',
+            '99S',
+            '00W',
+            '641'
+        );        
+
+        foreach ($test_cases as $ordered_list) {
+            $tmp_list = $ordered_list;
+            shuffle($tmp_list);
+            
+            // maybe once in a blue moon this will fail?
+            $this->assertNotEqual($ordered_list, $tmp_list);
+            
+            $tmp_list = terms_arr_sort($tmp_list);
+            $this->assertEqual($ordered_list, $tmp_list);
+        }      
     }
 
     // A lot of the next_term and prev_term stuff is tested in 
