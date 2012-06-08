@@ -242,6 +242,7 @@ $CFG->cronclionly = true;
 // Site administration > Security > HTTP security
 $CFG->loginhttps = true;
 $CFG->cookiesecure = true;
+$CFG->allowframembedding = 1; // CCLE-3021 - enabled because some collab sites need to be embedded
 
 // Site administration > Security > Anti-Virus
 $CFG->runclamonupload = true;

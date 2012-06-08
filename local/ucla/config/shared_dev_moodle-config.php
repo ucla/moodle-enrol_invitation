@@ -255,6 +255,9 @@ $CFG->maxeditingtime = 900; // 15 minutes
 $CFG->fullnamedisplay = 'language'; // CCLE-2550 - Lastname, Firstname sorting
 $CFG->cronclionly = true;
 
+// Site administration > Security > HTTP security
+$CFG->allowframembedding = 1; // CCLE-3021 - enabled because some collab sites need to be embedded
+
 // Site administration > Appearance > Themes
 $CFG->theme = 'uclashared';
 
