@@ -46,16 +46,18 @@ class block_ucla_video_furnace extends block_base {
 		global $DB;
         
         $courseid = $course->id; // course id from the hook function
-        $coursefound = ucla_map_courseid_to_termsrses($courseid); 
-	   	//get video list, if no video, do not show the "video furnace" link
-		foreach ($coursefound as $k=>$course){
-			$videos = $DB->get_records_select('ucla_video_furnace', '`term` = "'. $course->term .'" AND `srs` = "'. $course->srs .'"');
-		}
+        $coursefound = ucla_map_courseid_to_termsrses($courseid);
 		$nodes = array();
 
-        if (!empty($coursefound)&&!empty($videos)) {                            
-            // Must hardcode the naming string since this is a static function
-            $nodes[] = navigation_node::create('Video Furnace', self::get_action_link($courseid)); 
+        if (!empty($coursefound)){
+							
+			//get video list, if no video, do not show the "video furnace" link
+			$course = reset($coursefound);// get the first element and actually it will only return one element
+			$videos = $DB->get_records_select('ucla_video_furnace', '`term` = "'. $course->term .'" AND `srs` = "'. $course->srs .'"');
+			if (!empty($videos)) {
+				// Must hardcode the naming string since this is a static function
+	            $nodes[] = navigation_node::create('Video Furnace', self::get_action_link($courseid)); 
+			}
         }
         return $nodes;
     }

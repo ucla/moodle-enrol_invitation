@@ -50,7 +50,7 @@ function display_video_furnace_contents($course){
             .html_writer::link('http://www.oid.ucla.edu/units/imlab/faq/vf/index.html', 'Media Lab Video Furnace FAQ')
             .'.'
         ,array('size' => '1'))    
-    ,array('id' => 'courseHdrSecondary'));
+    ,array('id' => 'course-header-secondary'));
 
     $course_info = ucla_get_course_info($course->id);
 
@@ -128,16 +128,19 @@ function print_video_list($video_list, $header_title, $section_attr){
     echo html_writer::tag('h3', $header_title);
     echo html_writer::start_tag('div', $section_attr);
     foreach($video_list as $video) {
-        echo html_writer::tag('p', 
-            html_writer::tag('em',
-			html_writer::link($video->video_url, $video->video_title)
-            .html_writer::empty_tag('br')));
+        echo '<p><em>'; 
 		if ($header_title == "Past Videos"){
-			echo '&nbsp;&nbsp;&nbsp;&nbsp;This video no longer available as of '. date("Y-m-d",$video->stop_date);
+			echo $video->video_title;
+			echo '&nbsp;&nbsp;&nbsp;&nbsp;This video no longer available as of '. date("Y-m-d",$video->stop_date).'<br>';
 		}
 		else if ($header_title == "Future Videos"){
-			echo '&nbsp;&nbsp;&nbsp;&nbsp;This video will be available on '. date("Y-m-d",$video->start_date);
+			echo $video->video_title;
+			echo '&nbsp;&nbsp;&nbsp;&nbsp;This video will be available on '. date("Y-m-d",$video->start_date.'<br>');
 		}
+		else{
+			echo html_writer::link($video->video_url, $video->video_title);
+		}
+		echo '</em></p><br>';
     }
     echo html_writer::end_tag('div'); //array('class'=>'vidFurnacePast')
       

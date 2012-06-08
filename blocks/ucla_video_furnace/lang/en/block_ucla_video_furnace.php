@@ -14,7 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-$string['pluginname'] = 'UCLA Video Furnace';
+$string['pluginname'] = 'UCLA video furnace';
+$string['title'] = 'Video furnace';
+$string['headervideofurnaceurl'] = 'Source URL';
+$string['descvideofurnaceurl'] = 'CSV source URL for video furnace data';
+
 
 
 

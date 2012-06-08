@@ -2,8 +2,8 @@
 /**
  * Command line script to parse, verify, and update Video Furnace entries in the Moodle database.
  *
- * $CFG->libraryreserves_data is defined in the plugin configuration at 
- * Site administration->Plugins->Blocks->Library reserves
+ * $CFG->videofurnace_data is defined in the plugin configuration at 
+ * Site administration->Plugins->Blocks->Video furnace
  *
  * See CCLE-2311 for details
  **/
@@ -11,9 +11,7 @@ require_once('lib.php');
 require_once(dirname(__FILE__) . '/../../../config.php');
 require_once($CFG->dirroot.'/local/ucla/lib.php');
 
-//Testing purposes, change this to get config later.
-$datasource_url = 'http://164.67.141.31/~guest/VF_LINKS.TXT'; //get_config('block_video_furnace', 'source_url');
-
+// Check to see that config variable is initialized
 handle_cfgs($datasource_url);
 
 // Begin database update
@@ -289,9 +287,13 @@ function fix_data_format(&$row){
  */
 function handle_cfgs($datasource_url){
 
-    if (empty($datasource_url)) {
-        die("\n" . get_string('errvfmsglocation', 'tool_ucladatasourcesync') . "\n");
-    }
+	
+	// Check to see that config variable is initialized
+	$datasource_url = get_config('block_video_furnace', 'source_url');
+	if (empty($datasource_url)) {
+		die("\n" . get_string('errlrmsglocation', 'tool_ucladatasourcesync') . "\n");
+	}
+
     /* # SET DEBUG MODES
     # ignore checking for updated timestamp (for testing)
     $force_update = false;

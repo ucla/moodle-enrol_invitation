@@ -130,6 +130,10 @@ $block_ucla_help_settings = array('send_to' => 'jira',
 $CFG->forced_plugin_settings['block_ucla_help'] = $block_ucla_help_settings;
 $block_ucla_help_support_contacts['System'] = 'dkearney';  // default
 
+// CCLE-2311 - VIEDO FURNACE BLOCK
+$CFG->forced_plugin_settings['block_ucla_video_furnace']['source_url']
+        = 'http://164.67.141.31/~guest/VF_LINKS.TXT';
+
 // CCLE-2312 - LIBRARY RESERVES BLOCK
 $CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url']
         = 'ftp://ftp.library.ucla.edu/incoming/eres/voyager_reserves_data.txt';
