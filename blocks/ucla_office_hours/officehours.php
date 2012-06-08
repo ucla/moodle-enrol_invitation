@@ -37,7 +37,7 @@ set_editing_mode_button();
 $PAGE->navbar->add($page_title);
 
 // make sure that entry can be edited
-if (!allow_editing($context, $edit_user)) {
+if (!block_ucla_office_hours::allow_editing($context, $edit_user->id)) {
     print_error('cannotedit', 'block_ucla_office_hours');    
 }
 
@@ -48,8 +48,7 @@ echo $OUTPUT->heading($page_title, 2, 'headingblock');
 
 // get office hours entry, if any
 $officehours_entry = $DB->get_record('ucla_officehours',
-        array('courseid' => $course_id, 'userid' => $edit_id),
-        'officelocation, officehours, phone, email');
+        array('courseid' => $course_id, 'userid' => $edit_id));
 
 // get user's name/url
 $edit_user_name = $edit_user->firstname . ' ' . $edit_user->lastname;
@@ -81,11 +80,11 @@ if ($updateform->is_cancelled()) { //If the cancel button is clicked, return to 
         }
     }
     
-    //Update information
+    // Update information
+    $update_data = new stdClass();
     if (!empty($officehours_entry)) {
         // updating entry
-        $update_data->id = $entry->id;
-        
+        $update_data->id = $officehours_entry->id;        
     }
     $update_data->userid = $edit_id;
     $update_data->courseid = $course_id;
@@ -98,11 +97,10 @@ if ($updateform->is_cancelled()) { //If the cancel button is clicked, return to 
 
     $DB->update_record('ucla_officehours', $update_data);
 
-    $userchange = $DB->get_record('user', array('id' => $edit_id), '*',
-            MUST_EXIST);
-    if ($data->website != $userchange->url) {
-        $userchange->url = $data->website;
-        user_update_user($userchange);
+    // check if editing user's profile needs to change
+    if ($data->website != $edit_user->url) {
+        $edit_user->url = $data->website;
+        user_update_user($edit_user);
     }
 
     //TODO: format the display properly
@@ -125,57 +123,3 @@ if ($updateform->is_cancelled()) { //If the cancel button is clicked, return to 
 }
 
 echo $OUTPUT->footer();
-
-/**
- * Makes sure that $edit_user is an instructing role for $course. Also makes 
- * sure that user initializing editing has the ability to edit office hours.
- * 
- * @param mixed $course_context Course context
- * @param mixed $edit_user      User we are editing
- * 
- * @return boolean
- */
-function allow_editing($course_context, $edit_user) {
-    global $CFG, $USER;
-    
-    // do capability check (but always let user edit their own entry)
-    if (!has_capability('block/ucla_office_hours:editothers', $course_context) &&
-            $edit_user->id != $USER->id) {
-        debugging('failed capability check');
-        return false;
-    }
-    
-    /**
-    * Course and edit_user must be in the same course and must be one of the 
-    * roles defined in $CFG->instructor_levels_roles, which is currently:
-    * 
-    * $CFG->instructor_levels_roles = array(
-    *   'Instructor' => array(
-    *       'editinginstructor',
-    *       'ta_instructor'
-    *   ),
-    *   'Teaching Assistant' => array(
-    *       'ta',
-    *       'ta_admin'
-    *   )
-    * );
-    */    
-    
-    // format $CFG->instructor_levels_roles so it is easier to search
-    $allowed_roles = array_merge($CFG->instructor_levels_roles['Instructor'],
-            $CFG->instructor_levels_roles['Teaching Assistant']);
-    
-    // get user's roles
-    $roles = get_user_roles($course_context, $edit_user->id);
-    
-    // now see if any of those roles match anything in 
-    // $CFG->instructor_levels_roles
-    foreach ($roles as $role) {
-        if (in_array($role->shortname, $allowed_roles)) {
-            return true;
-        }        
-    }
-    
-    debugging('role not in instructor_levels_roles');    
-    return false;
-}

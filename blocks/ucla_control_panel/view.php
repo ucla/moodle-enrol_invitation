@@ -33,6 +33,11 @@ if (! $course = $DB->get_record('course', array('id' => $course_id))) {
 require_login($course, true);
 $context = get_context_instance(CONTEXT_COURSE, $course_id);
 
+// disallow guest users
+if (isguestuser()) {
+    redirect($CFG->wwwroot . '/course/view.php?id=' . $course_id);
+}
+
 // Initialize $PAGE
 $PAGE->set_url('/blocks/ucla_control_panel/view.php', 
     array('course_id' => $course_id));

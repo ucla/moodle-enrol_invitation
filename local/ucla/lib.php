@@ -832,13 +832,14 @@ function is_collab_site($course) {
  *  Returns whether or not the user is the role specified by the role_shortname
  *  in the role table
  * 
- * @param $role_shortname the name of the role's shortname entry in the db table
+ * @param $role_shortname   String or array. If string, then the role's 
+ *                          shortname. Else if array, then an array of role 
+ *                          shortnames
  * @param $context the context in which to check the roles.
  * 
  * @return boolean true if the user has the role in the context, false otherwise
  **/
-function has_role_in_context($role_shortname, $context) {
-    
+function has_role_in_context($role_shortname, $context) {    
     global $DB;
     $does_role_exist = $DB->get_records('role', array('shortname'=>$role_shortname));
     if(empty($does_role_exist)) {
@@ -846,10 +847,14 @@ function has_role_in_context($role_shortname, $context) {
         return false;
     }
     
+    // cast $role_shortname as array, if not already
+    if (!is_array($role_shortname)) {
+        $role_shortname = array($role_shortname);
+    }
+    
     $roles_result = get_user_roles($context);
-
     foreach($roles_result as $role) {
-        if($role->shortname == $role_shortname) {
+        if(in_array($role->shortname, $role_shortname)) {
             return true;
         }
     } 

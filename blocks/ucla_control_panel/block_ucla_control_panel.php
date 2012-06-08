@@ -202,7 +202,7 @@ class block_ucla_control_panel extends block_base {
                 }
             }*/
         }
-     
+        
         // Now based on each view, sort the tags into their proper
         // tabs
         $all_modules = array();
