@@ -17,7 +17,7 @@
 $string['pluginname'] = 'UCLA video furnace';
 $string['title'] = 'Video furnace';
 $string['headervideofurnaceurl'] = 'Source URL';
-$string['descvideofurnaceurl'] = 'CSV source URL for video furnace data';
+$string['descvideofurnaceurl'] = 'TSV source URL for video furnace data';
 
 
 

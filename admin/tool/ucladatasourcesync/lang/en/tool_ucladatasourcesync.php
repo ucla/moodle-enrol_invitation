@@ -31,7 +31,7 @@ $string['lrsuccessnoti'] = "records successfully inserted.";
 /** Strings for videofurnace_dbsync **/
 // Error messages
 $string['errvfmsglocation'] = "ERROR: No location set for video furnace data.";
-$string['errinvalidrowlen'] = "ERROR: Invalid row length in provided video furnace data.";
+$string['errvfinvalidrowlen'] = "ERROR: Invalid row length in provided video furnace data.";
 $string['errvffileopen'] = "ERROR: Problem accessing data URL";
 
 //Notification messages

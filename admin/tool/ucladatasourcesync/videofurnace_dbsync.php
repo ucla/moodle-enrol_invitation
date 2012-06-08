@@ -12,7 +12,7 @@ require_once(dirname(__FILE__) . '/../../../config.php');
 require_once($CFG->dirroot.'/local/ucla/lib.php');
 
 // Check to see that config variable is initialized
-handle_cfgs($datasource_url);
+$datasource_url = handle_cfgs();
 
 // Begin database update
 update_videofurnace_db($datasource_url);
@@ -54,7 +54,7 @@ function update_videofurnace_db($datasource_url) {
         if ( (sizeof($row_data) == 1) && ($row_data['term'] == "") ) {
             continue;
         } else if(sizeof($row_data) != 8) {
-            echo get_string('errinvalidrowlen', 'tool_ucladatasourcesync') . "\n";
+            echo get_string('errvfinvalidrowlen', 'tool_ucladatasourcesync') . "\n";
             continue;
         }
         
@@ -285,14 +285,15 @@ function fix_data_format(&$row){
  * @todo there are a lot of config variables from 1.9 that I'm unsure about 
  * porting over. 
  */
-function handle_cfgs($datasource_url){
+function handle_cfgs(){
 
 	
 	// Check to see that config variable is initialized
-	$datasource_url = get_config('block_video_furnace', 'source_url');
+	$datasource_url = get_config('block_ucla_video_furnace', 'source_url');
 	if (empty($datasource_url)) {
-		die("\n" . get_string('errlrmsglocation', 'tool_ucladatasourcesync') . "\n");
+		die("\n" . get_string('errvfmsglocation', 'tool_ucladatasourcesync') . "\n");
 	}
+	return $datasource_url;
 
     /* # SET DEBUG MODES
     # ignore checking for updated timestamp (for testing)
