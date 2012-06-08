@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="blocks/bruincast/db" VERSION="20120608" COMMENT="XMLDB file for Moodle blocks/bruincast"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="ucla_bruincast" COMMENT="Bruincast Database">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="term"/>
+        <FIELD NAME="term" TYPE="char" LENGTH="3" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="srs"/>
+        <FIELD NAME="srs" TYPE="char" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="term" NEXT="restricted"/>
+        <FIELD NAME="restricted" TYPE="char" LENGTH="12" NOTNULL="true" SEQUENCE="false" PREVIOUS="srs" NEXT="bruincast_url"/>
+        <FIELD NAME="bruincast_url" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="restricted"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="term_srs" UNIQUE="false" FIELDS="term, srs"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>
