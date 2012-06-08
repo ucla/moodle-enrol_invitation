@@ -118,11 +118,11 @@ M.block_ucla_modify_coursemenu.generate_row_html = function(sectiondata) {
             = M.str.block_ucla_modify_coursemenu.new_sectnum;
     }
 
-    row_html = '<tr class="' + trclasssupp 
-        + 'section-row" id="section-' + sectionident + '">';
-
+    // The row html, the beginning tr tag is written later, since
+    // we may need to add classes
+    // TODO maybe use js dom objects?
+    var row_html = '';
     if (canmove) {
-        // TODO add picture
         row_html += '<td class="' + M.block_ucla_modify_coursemenu.drag_handle
             + '">' + '<img src="' + M.block_ucla_modify_coursemenu.pix.handle 
             + '" class="hidden-handle" />' + '</td>'
@@ -143,10 +143,15 @@ M.block_ucla_modify_coursemenu.generate_row_html = function(sectiondata) {
 
     row_html += '<td>';
     if (sectiondata.no['hide'] == undefined) {
+        var is_checked = '';
+        if (sectiondata.visible == 0) {
+            is_checked = 'checked';
+            trclasssupp += 'hidden-section ';
+        }
 
         row_html += '<input class="hidden-checkbox" id="hidden-'
             + sectionident +'" name="hidden-'+ sectionident 
-            + '" type="checkbox" />';
+            + '" type="checkbox" ' + is_checked + ' />';
     }
     row_html += '</td>';
 
@@ -166,6 +171,9 @@ M.block_ucla_modify_coursemenu.generate_row_html = function(sectiondata) {
     row_html += '</td>';
 
     row_html += '</tr>';
+    
+    row_html = '<tr class="' + trclasssupp 
+        + 'section-row" id="section-' + sectionident + '">' + row_html;
 
     return row_html;
 }
@@ -194,7 +202,7 @@ M.block_ucla_modify_coursemenu.attach_row_listeners = function(jq) {
         return true;
     });
 
-    $(jq).find(".hidden-checkbox").change(function () {
+    var hiddenlistener = function() {
         var hidden = this.checked;
         var parentjq = $(this).parents('tr');
 
@@ -212,7 +220,13 @@ M.block_ucla_modify_coursemenu.attach_row_listeners = function(jq) {
 
 
         return true;
-    });
+    };
+    
+    // initialize states
+    var hiddencheckbox = jq.find(".hidden-checkbox");
+    hiddenlistener.apply(hiddencheckbox);
+
+    hiddencheckbox.change(hiddenlistener);
     
     // Add row listeners
     jq.hover(function () {

@@ -34,80 +34,7 @@ foreach ($sections as $k => $section) {
     $sections[$k] = $section;
 }
 
-$maintableid = block_ucla_modify_coursemenu::maintable_domnode;
-
-$tablestructure = new html_table();
-$tablestructure->id = $maintableid;
-
-// Basics
-$ts_head = array('', 'section', 'title', 'hide', 'delete');
-
-// This is an add-on
-$ts_head[] = 'landing_page';
-
-$ts_headstrs = array();
-foreach ($ts_head as $ts_header) {
-    if (!empty($ts_header)) {
-        $ts_header = get_string($ts_header, 'block_ucla_modify_coursemenu');
-    }
-
-    $ts_headstrs[] = $ts_header;
-}
-
-$tablestructure->head = $ts_headstrs;
-
-// Set up the page.
-$PAGE->set_context($context);
-
-$PAGE->set_pagelayout('course');
-$PAGE->set_pagetype('course-view-' . $course->format);
-$PAGE->set_url('/blocks/ucla_modify_coursemenu/modify_coursemenu.php', 
-        array('courseid' => $courseid));
-
-$PAGE->requires->js('/blocks/ucla_modify_coursemenu/js/jquery-1.3.2.min.js');
-$PAGE->requires->js('/blocks/ucla_modify_coursemenu/js/jquery.tablednd_0_5.js');
-$PAGE->requires->js('/blocks/ucla_modify_coursemenu/modify_coursemenu.js');
-
-// Provide format information to js
-$courseformat = $course->format;
-$format_compstr = 'format_' . $courseformat;
-
-$PAGE->requires->string_for_js('section0name', $format_compstr);
-$PAGE->requires->string_for_js('section0name', $format_compstr);
-$PAGE->requires->string_for_js('newsection', 'block_ucla_modify_coursemenu');
-$PAGE->requires->string_for_js('new_sectnum', 'block_ucla_modify_coursemenu');
-
-if ($courseformat == 'ucla') {
-    $PAGE->requires->string_for_js('show_all', $format_compstr);
-    block_ucla_modify_coursemenu::js_init_code_helper(
-            'showallsection', UCLA_FORMAT_DISPLAY_ALL
-        );
-}
-
-// Load other things here for consistency 
-block_ucla_modify_coursemenu::many_js_init_code_helpers(array(
-        'course_format'  => $format_compstr,
-        'table_id'       => $maintableid,
-        'primary_id'     => block_ucla_modify_coursemenu::primary_domnode,
-        'newsections_id' => block_ucla_modify_coursemenu::newnodes_domnode,
-        'landingpage_id' => 
-            block_ucla_modify_coursemenu::landingpage_domnode,
-        'sectionsorder_id' => 
-            block_ucla_modify_coursemenu::sectionsorder_domnode,
-        'serialized_id' => 
-            block_ucla_modify_coursemenu::serialized_domnode,
-        'sectiondata' => $sections,
-    ));
-
-$PAGE->requires->js_init_code(
-    js_writer::set_variable('M.block_ucla_modify_coursemenu.pix.handle',
-        $OUTPUT->pix_url('handle', 'block_ucla_modify_coursemenu')->out()
-    ));
-
-$PAGE->requires->js_init_code('M.block_ucla_modify_coursemenu.initialize()');
-
 $courseviewurl = new moodle_url('/course/view.php', array('id' => $courseid));
-set_editing_mode_button($courseviewurl);
 
 $modinfo =& get_fast_modinfo($course);
 
@@ -117,6 +44,17 @@ if ($landing_page === false) {
     $landing_page = 0;
 } 
 
+// Set up the page.
+$PAGE->set_context($context);
+
+$PAGE->set_pagelayout('course');
+$PAGE->set_pagetype('course-view-' . $course->format);
+$PAGE->set_url('/blocks/ucla_modify_coursemenu/modify_coursemenu.php', 
+        array('courseid' => $courseid));
+
+// Note that forms will call $OUTPUT->pix_url which uses
+// PAGE->theme which will autoload stuff I'm not certain enough to
+// document here, so call $PAGE->set_context before loading forms
 $modify_coursemenu_form = new ucla_modify_coursemenu_form(
     null,
     array(
@@ -194,21 +132,30 @@ if ($modify_coursemenu_form->is_cancelled()) {
     $newsectnum = 1;
     foreach ($sectiondata as $oldsectnum => $sectdata) {
         if (!isset($sections[$oldsectnum])) {
+            $sectdata['course'] = $courseid;
             $sections[$oldsectnum] = (object) $sectdata;
         }
 
         $section = $sections[$oldsectnum];
 
+        // check to delete
         if (!empty($sectdata['delete'])) {
-            if (!block_ucla_modify_coursemenu::section_can_delete($section)) {
+            // Notification mode needs to be turned on if the section is
+            // not empty
+            if (!block_ucla_modify_coursemenu::section_is_empty($section)) {
                 $sectionsnotify[$oldsectnum] = $section;
-                $tobedeleted[] = $section;
-                unset($sections[$oldsectnum]);
-                continue;
             }
+
+            $tobedeleted[] = $section;
+            unset($sections[$oldsectnum]);
+            continue;
         }
 
         $section->section = $newsectnum;
+
+        $section = block_ucla_modify_coursemenu::section_apply($section,
+            $sectdata);
+
         $newsectnum++;
     }
 
@@ -221,13 +168,11 @@ if ($modify_coursemenu_form->is_cancelled()) {
         }
     }
 
-    if (!empty($deletesectionids)) {
-        $passthrudata = new object();
-        $passthrudata->sections = $sections;
-        $passthrudata->deletesectionids = $deletesectionids;
-        $passthrudata->landingpage = $data->landingpage;
-        $passthrudata->coursenumsections = $newsectnum - 1;
-    }
+    $passthrudata = new object();
+    $passthrudata->sections = $sections;
+    $passthrudata->deletesectionids = $deletesectionids;
+    $passthrudata->landingpage = $data->landingpage;
+    $passthrudata->coursenumsections = $newsectnum;
 
     // We need to add a validation thing for deleting sections
     if (!empty($sectionsnotify)) {
@@ -305,9 +250,15 @@ if ($passthrudata || $verifydata) {
     }
 
     foreach ($passthrudata->sections as $section) {
+        // No need to update site info...
+        if ($section->section == 0) {
+            continue;
+        }
+
         if (!isset($section->id)) {
             $DB->insert_record('course_sections', $section);
         } else {
+            var_dump($section);
             $DB->update_record('course_sections', $section);
         }
     }
@@ -323,23 +274,92 @@ if ($passthrudata || $verifydata) {
     $redirector = $courseviewurl;
 }
 
+// Before doing any heavy PAGE-related lifting, see if we should redirect to
+// the success screen
+// This will come here when the modifier form is submitted, but a section 
+// with content is discovered, BUT the verify form has not been submitted
+if ($data && empty($sectionsnotify) || $verifydata) {
+    redirect($redirector);
+}
+
 $restr = get_string('ucla_modify_course_menu', 'block_ucla_modify_coursemenu');
 $restrc = "$restr: {$course->shortname}";
 
-//$PAGE->requires->css('/blocks/ucla_modify_coursemenu/styles.css');
+
+$PAGE->requires->js('/blocks/ucla_modify_coursemenu/js/jquery-1.3.2.min.js');
+$PAGE->requires->js('/blocks/ucla_modify_coursemenu/js/jquery.tablednd_0_5.js');
+$PAGE->requires->js('/blocks/ucla_modify_coursemenu/modify_coursemenu.js');
+
+// Provide format information to js
+$courseformat = $course->format;
+$format_compstr = 'format_' . $courseformat;
+
+$PAGE->requires->string_for_js('section0name', $format_compstr);
+$PAGE->requires->string_for_js('section0name', $format_compstr);
+$PAGE->requires->string_for_js('newsection', 'block_ucla_modify_coursemenu');
+$PAGE->requires->string_for_js('new_sectnum', 'block_ucla_modify_coursemenu');
+
+// Load other things here for consistency 
+$maintableid = block_ucla_modify_coursemenu::maintable_domnode;
+block_ucla_modify_coursemenu::many_js_init_code_helpers(array(
+        'course_format'  => $format_compstr,
+        'table_id'       => $maintableid,
+        'primary_id'     => block_ucla_modify_coursemenu::primary_domnode,
+        'newsections_id' => block_ucla_modify_coursemenu::newnodes_domnode,
+        'landingpage_id' => 
+            block_ucla_modify_coursemenu::landingpage_domnode,
+        'sectionsorder_id' => 
+            block_ucla_modify_coursemenu::sectionsorder_domnode,
+        'serialized_id' => 
+            block_ucla_modify_coursemenu::serialized_domnode,
+        'sectiondata' => $sections,
+    ));
+
+$PAGE->requires->js_init_code(
+    js_writer::set_variable('M.block_ucla_modify_coursemenu.pix.handle',
+        $OUTPUT->pix_url('handle', 'block_ucla_modify_coursemenu')->out()
+    ));
+
+$PAGE->requires->js_init_code('M.block_ucla_modify_coursemenu.initialize()');
+
+if ($courseformat == 'ucla') {
+    $PAGE->requires->string_for_js('show_all', $format_compstr);
+    block_ucla_modify_coursemenu::js_init_code_helper(
+            'showallsection', UCLA_FORMAT_DISPLAY_ALL
+        );
+}
+
 $PAGE->set_title($restrc);
 $PAGE->set_heading($restrc);
+
+set_editing_mode_button($courseviewurl);
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading($restr, 2, 'headingblock');
 
 if ($data && !empty($sectionsnotify) && !$verifydata) {
     $verifyform->display();
-} else if ($redirector != null) {
-    echo $OUTPUT->box(
-            get_string('successmodifysections', 'block_ucla_modify_coursemenu')
-        );
 } else {
+    $tablestructure = new html_table();
+    $tablestructure->id = $maintableid;
+
+    // Basics
+    $ts_head = array('', 'section', 'title', 'hide', 'delete');
+
+    // This is an add-on
+    $ts_head[] = 'landing_page';
+
+    $ts_headstrs = array();
+    foreach ($ts_head as $ts_header) {
+        if (!empty($ts_header)) {
+            $ts_header = get_string($ts_header, 'block_ucla_modify_coursemenu');
+        }
+
+        $ts_headstrs[] = $ts_header;
+    }
+
+    $tablestructure->head = $ts_headstrs;
+
     echo html_writer::table($tablestructure);
     $modify_coursemenu_form->display();
 }

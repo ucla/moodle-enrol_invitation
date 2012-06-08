@@ -40,7 +40,7 @@ class block_ucla_modify_coursemenu extends block_base {
         return $oldsection;
     }
 
-    function section_can_delete($section) {
+    function section_is_empty($section) {
         return empty($section->sequence);
     }
 
