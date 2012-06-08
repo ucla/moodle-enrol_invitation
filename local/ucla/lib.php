@@ -787,6 +787,11 @@ function terms_arr_sort($terms) {
  **/
 function term_role_can_view($term, $roleshortname, $currterm=null, 
                             $currweek=null, $limitweek=null, $leastterm=null) {
+    // Nobody can see courses from non-terms
+    if (!ucla_validator('term', $term)) {
+        return false;
+    }
+
     if ($leastterm === null) {
         $leastterm = get_config('local_ucla', 'oldest_available_term');
     }
