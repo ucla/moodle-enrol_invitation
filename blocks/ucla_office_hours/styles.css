@@ -1,0 +1,9 @@
+.officehours_form.mform .fitem .fitemtitle {
+    width: 20%;
+}
+.officehours_form.mform .fitem .felement {
+    margin-left: 21%
+}
+.officehours_form input[type="text"] {
+    width: 50%;
+}

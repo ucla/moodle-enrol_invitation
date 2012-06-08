@@ -1,5 +1,5 @@
 <?php
 
-$plugin->version = 2012050100;
+$plugin->version = 2012060700;
 
 //EOF
