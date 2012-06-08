@@ -10,24 +10,24 @@ require_once($CFG->dirroot .
 require_once($CFG->dirroot . '/local/ucla/lib.php');
 require_once($CFG->dirroot . '/user/lib.php');
 
-$course_id = required_param('course_id', PARAM_INT);
-$edit_id = required_param('edit_id', PARAM_INT);
+$courseid = required_param('courseid', PARAM_INT);
+$editid = required_param('editid', PARAM_INT);
 
-if ($course_id == SITEID) {
+if ($courseid == SITEID) {
     print_error('cannoteditsiteform');
 }
-$course = $DB->get_record('course', array('id' => $course_id), '*', MUST_EXIST);
+$course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 require_login($course, true);
 
-$edit_user = $DB->get_record('user', array('id' => $edit_id), '*', MUST_EXIST);
+$edit_user = $DB->get_record('user', array('id' => $editid), '*', MUST_EXIST);
 $edit_user_name = $edit_user->firstname . ' ' . $edit_user->lastname;
 
-$context = get_context_instance(CONTEXT_COURSE, $course_id);
+$context = get_context_instance(CONTEXT_COURSE, $courseid);
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('course');
 $PAGE->set_pagetype('course-view-' . $course->format);
 $PAGE->set_url('/blocks/ucla_office_hours/officehours.php',
-        array('course_id' => $course_id, 'edit_id' => $edit_id));
+        array('courseid' => $courseid, 'editid' => $editid));
 
 $page_title = get_string('header', 'block_ucla_office_hours', $edit_user_name);
 $PAGE->set_title($page_title);
@@ -47,11 +47,11 @@ echo $OUTPUT->heading($page_title, 2, 'headingblock');
 
 // get office hours entry, if any
 $officehours_entry = $DB->get_record('ucla_officehours',
-        array('courseid' => $course_id, 'userid' => $edit_id));
+        array('courseid' => $courseid, 'userid' => $editid));
 
 $updateform = new officehours_form(NULL, 
-        array('course_id' => $course_id, 
-              'edit_id' => $edit_id, 
+        array('courseid' => $courseid, 
+              'editid' => $editid, 
               'edit_email' => $edit_user->email,
               'defaults' => $officehours_entry, 
               'url' => $edit_user->url),
@@ -60,14 +60,14 @@ $updateform = new officehours_form(NULL,
         array('class' => 'officehours_form'));
 
 if ($updateform->is_cancelled()) { //If the cancel button is clicked, return to 'Site Info' page
-    $url = new moodle_url($CFG->wwwroot . '/course/view.php', array('id' => $course_id, 'topic' => 0));
+    $url = new moodle_url($CFG->wwwroot . '/course/view.php', array('id' => $courseid, 'topic' => 0));
     redirect($url);
 } else if ($data = $updateform->get_data()) { //Otherwise, process data
     
     // prepare new entry data
     $new_officehours_entry = new stdClass();
-    $new_officehours_entry->userid          = $edit_id;
-    $new_officehours_entry->courseid        = $course_id;
+    $new_officehours_entry->userid          = $editid;
+    $new_officehours_entry->courseid        = $courseid;
     $new_officehours_entry->modifierid      = $USER->id;
     $new_officehours_entry->timemodified    = time();
     $new_officehours_entry->officehours     = strip_tags(trim($data->officehours));
@@ -99,7 +99,7 @@ if ($updateform->is_cancelled()) { //If the cancel button is clicked, return to 
     echo html_writer::tag('h1', get_string('success', 'block_ucla_office_hours'));
     echo html_writer::tag('p', get_string('confirmation_message', 'block_ucla_office_hours'));
     echo $OUTPUT->continue_button(new moodle_url($CFG->wwwroot . '/course/view.php',
-                    array('id' => $course_id, 'topic' => 0)));
+                    array('id' => $courseid, 'topic' => 0)));
     echo $OUTPUT->box_end();    
 
 } else {

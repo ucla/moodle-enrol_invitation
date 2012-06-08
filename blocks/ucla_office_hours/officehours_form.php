@@ -10,15 +10,15 @@ class officehours_form extends moodleform {
     function definition(){
         global $CFG, $USER, $DB;
         
-        $edit_id = $this->_customdata['edit_id'];
+        $editid = $this->_customdata['editid'];
         $edit_email = $this->_customdata['edit_email'];        
-        $course_id = $this->_customdata['course_id'];
+        $courseid = $this->_customdata['courseid'];
         $defaults = $this->_customdata['defaults'];
         $website = $this->_customdata['url'];
         
         $mform = $this->_form;
-        $mform->addElement('hidden', 'course_id', $course_id);
-        $mform->addElement('hidden', 'edit_id', $edit_id);
+        $mform->addElement('hidden', 'courseid', $courseid);
+        $mform->addElement('hidden', 'editid', $editid);
         
         $mform->addElement('header', 'header_office_info', 
                 get_string('header_office_info', 'block_ucla_office_hours'));

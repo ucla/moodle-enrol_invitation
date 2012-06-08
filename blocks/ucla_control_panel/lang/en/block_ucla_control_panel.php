@@ -33,9 +33,6 @@ $string['email_students_exception_post'] = 'There was a problem detecting your a
 $string['email_students_hidden_pre'] = 'E-mail students is disabled when the Announcements forum is hidden.';
 $string['email_students_hidden'] = 'Make Announcements forum visible';
 
-$string['edit_office_hours'] = 'Update office hours & contact info';
-$string['edit_office_hours_post'] = 'Update your office hours, office location and phone number.';
-
 $string['modify_sections'] = 'Modify course menu sections';
 $string['modify_sections_post'] = '';
 

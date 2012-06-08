@@ -32,21 +32,6 @@ if (ucla_cp_module::load('email_students')) {
     $modules[] = new ucla_cp_module_email_students($course);
 }
 
-//BEGIN UCLA MOD: CCLE-2381 - Update Office Hours and Contact Info
-$officehours_block = $CFG->dirroot . 
-        '/blocks/ucla_office_hours/block_ucla_office_hours.php';
-if (file_exists($officehours_block)) {
-    require_once($officehours_block);
-    if (block_ucla_office_hours::allow_editing($context, $USER->id)) {
-        $modules[] = new ucla_cp_module('edit_office_hours', 
-                new moodle_url($CFG->wwwroot . '/blocks/ucla_office_hours/officehours.php', 
-                        array('course_id' => $course->id, 'edit_id' => $USER->id)),
-                array('ucla_cp_mod_common', 'ucla_cp_mod_other'), $ta_cap);
-        
-    }
-}
-//END UCLA MOD: CCLE-2381
-
 // For editing, it is a special UI case
 $spec_ops = array('pre' => false, 'post' => true);
 
