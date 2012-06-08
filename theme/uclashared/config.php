@@ -148,7 +148,8 @@ $THEME->layouts = array(
         'file' => $tf_general,
         'regions' => array(),
         'options' => array(
-            'nofooter' => true
+            'nofooter' => true,
+            'controlpanel' => true
         ),
     ),
     // Embeded pages, like iframe/object embeded in moodleform 
