@@ -787,6 +787,11 @@ function terms_arr_sort($terms) {
  **/
 function term_role_can_view($term, $roleshortname, $currterm=null, 
                             $currweek=null, $limitweek=null, $leastterm=null) {
+    // Nobody can see courses from non-terms
+    if (!ucla_validator('term', $term)) {
+        return false;
+    }
+
     if ($leastterm === null) {
         $leastterm = get_config('local_ucla', 'oldest_available_term');
     }
@@ -915,14 +920,24 @@ function term_enum($term) {
         print_error('improperenum');
     }
     
+    // assumption: 65F is the oldest term that registrar has
+    // so treat years 65 and older as 19XX and years before as 20XX
+    $year = (int) substr($term, 0, -1);
+    if ($year < 65) {
+        $year = str_pad($year, 2, '0', STR_PAD_LEFT); // fixes year 00-09 problems
+        $year = '20' . $year;
+    } else {
+        $year = '19' . $year;
+    }
+    
     $r = array(
         'W' => 0,
         'S' => 1,
         '1' => 2,
         'F' => 3
     );
-
-    return substr($term, 0, -1) . $r[$term[2]];
+    
+    return $year . $r[$term[2]];
 }
 
 /**

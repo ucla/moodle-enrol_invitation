@@ -33,15 +33,13 @@ $string['pluginname_desc'] = 'The site invitation module allows to send invitati
 $string['emailmsghtml'] = 
     'INSTRUCTIONS:'.
     '<hr />'.
-    'You have been invited to access the course site: {$a->fullname}. You will ' . 
+    'You have been invited to access the site: {$a->fullname}. You will ' . 
     'need to log in to CCLE with your UCLA logon in order to confirm your access ' . 
     'to the site. If you do not have a UCLA logon, please see the instructions ' . 
     'below. Be advised that by clicking on the site access link provided in this ' . 
     'email you are acknowledging that:<br />' .
     ' --you are the person to whom this email was addressed and for whom this ' . 
     '   invitation is intended;<br />' . 
-    ' --this invitation gives you access to the course site but does not enroll<br />' . 
-    '   you in the course;<br />' . 
     ' --the link below will expire 14 days after the date of issue ({$a->expiration}).<br /><br />' .      
     'ACCESS LINK:'.
     '<hr />'.
@@ -61,22 +59,20 @@ $string['emailmsghtml'] =
 
 $string['emailmsgtxt'] = 
     'INSTRUCTIONS:' . "\n" .
-    '---------------------------------------------------------------------------' . "\n" .
-    'You have been invited to access the course site: {$a->fullname}. You will ' . 
+    '------------------------------------------------------------' . "\n" .
+    'You have been invited to access the site: {$a->fullname}. You will ' . 
     'need to log in to CCLE with your UCLA logon in order to confirm your access ' . 
     'to the site. If you do not have a UCLA logon, please see the instructions ' . 
     'below. Be advised that by clicking on the site access link provided in this ' . 
     'email you are acknowledging that:' . "\n" .
     ' --you are the person to whom this email was addressed and for whom this' . 
     '   invitation is intended;' . "\n" . 
-    ' --this invitation gives you access to the course site but does not enroll' . 
-    '   you in the course;' . "\n" .
     ' --the link below will expire 14 days after the date of issue ({$a->expiration}).' . "\n\n" .      
     'ACCESS LINK:' . "\n" .
-    '---------------------------------------------------------------------------' . "\n" .
+    '------------------------------------------------------------' . "\n" .
     '{$a->inviteurl}' . "\n\n" .
     'UCLA LOGON:' . "\n" .
-    '---------------------------------------------------------------------------' . "\n" .
+    '------------------------------------------------------------' . "\n" .
     'If you currently do not have a UCLA Logon ID, you can obtain one here: ' . 
     'https://logon.ucla.edu/activate.php. You do not need to be an enrolled ' . 
     'student at UCLA or have a 9 digit UID to create a UCLA Logon. When you are ' . 
@@ -84,13 +80,13 @@ $string['emailmsgtxt'] =
     'option:' . "\n" .
     '"I do not have a UCLA Identification Number and I am NONE OF THE ABOVE."' . "\n\n" .
     'CONTACT CCLE:' . "\n" .
-    '---------------------------------------------------------------------------' . "\n" .    
+    '------------------------------------------------------------' . "\n" .    
     'If you believe that you have received this message in error or are in need ' . 
     'of assistance, please contact: {$a->supportemail}.';
 
 $string['instructormsg'] = 
     'MESSAGE FROM INSTRUCTOR:' . "\n" .
-    '---------------------------------------------------------------------------' . "\n" .
+    '------------------------------------------------------------' . "\n" .
     '{$a}' . "\n\n";
 
 // invite form strings
@@ -137,15 +133,13 @@ $string['message_help_link'] = 'see what instructions invitees are sent';
 $string['message_help'] = 
     'INSTRUCTIONS:'.
     '<hr />'.
-    'You have been invited to access the course site: [course name]. You will ' . 
+    'You have been invited to access the site: [site name]. You will ' . 
     'need to log in to CCLE with your UCLA logon in order to confirm your access ' . 
     'to the site. If you do not have a UCLA logon, please see the instructions ' . 
     'below. Be advised that by clicking on the site access link provided in this ' . 
     'email you are acknowledging that:<br />' .
     ' --you are the person to whom this email was addressed and for whom this ' . 
     '   invitation is intended;<br />' . 
-    ' --this invitation gives you access to the course site but does not enroll<br />' . 
-    '   you in the course;<br />' . 
     ' --the link below will expire 14 days after the date of issue ([expiration date]).<br /><br />' .      
     'ACCESS LINK:'.
     '<hr />'.
