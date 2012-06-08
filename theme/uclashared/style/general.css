@@ -503,8 +503,7 @@ html, body {background-color:#FFF; height:100%;}
     float: none;
 }
 .editing_makeprivate {
-    float: right;
-}*/
+}
 .topics .section li.activity {
     padding: 5px 10px;
     border-top: 1px solid #F5F5F5;
