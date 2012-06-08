@@ -178,17 +178,23 @@ if ($modify_coursemenu_form->is_cancelled()) {
     if (!empty($sectionsnotify)) {
         // Generate html to display in the verifcation form
         $formdisplayhtml = get_string('deletesectioncontents',
-            'block_ucla_modify_coursemenu');
+            'block_ucla_modify_coursemenu') . html_writer::empty_tag('br')
+                . $OUTPUT->heading(get_string('tbdel', 
+                    'block_ucla_modify_coursemenu'), 2);
 
+        // note: this section has potential to be copied if adding
+        // delete functionality in JIT buttons
+        // However, I do not want to function-ize it without properly
+        // interfaced renderers
         foreach ($sectionsnotify as $oldsectnum => $sectionnotify) {
-            $sectionhtml = $OUTPUT->heading($sectionnotify->name, 3) 
+            $sectionhtml = $OUTPUT->heading($sectionnotify->name, 4) 
                 . html_writer::start_tag('ul');
 
-            $sequences = array_map('trim', explode(', ', 
-                $sectionnotify->sequence));
+            $cminfos = block_ucla_modify_coursemenu::get_section_content(
+                    $sectionnotify, $course, $modinfo
+                );
 
-            foreach ($sequences as $cminstid) {
-                $cminstance = $modinfo->cms[$cminstid];
+            foreach ($cminfos as $cminstance) {
                 list($cmcontent, $instancename) = 
                     get_print_section_cm_text($cminstance, $course);
 
@@ -282,7 +288,7 @@ if ($data && empty($sectionsnotify) || $verifydata) {
     redirect($redirector);
 }
 
-$restr = get_string('ucla_modify_course_menu', 'block_ucla_modify_coursemenu');
+$restr = get_string('pluginname', 'block_ucla_modify_coursemenu');
 $restrc = "$restr: {$course->shortname}";
 
 

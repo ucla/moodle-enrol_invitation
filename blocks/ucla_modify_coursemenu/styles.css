@@ -50,6 +50,8 @@ div.headercontainer {
     visibility: hidden;
 }
 
-div.modify-course-sections-summary h3 {
+div.modify-course-sections-summary h2,
+div.modify-course-sections-summary h3,
+div.modify-course-sections-summary h4 {
     text-align: left;
 }
