@@ -39,12 +39,18 @@ class officehours_form extends moodleform {
         $mform->addElement('text', 'phone', get_string('f_phone', 'block_ucla_office_hours'));
         $mform->addElement('text', 'website', get_string('f_website', 'block_ucla_office_hours'));
         
+        // set rules and types
+        $mform->setType('officehours', PARAM_TEXT);   
+        $mform->setType('office', PARAM_TEXT);       
+        $mform->setType('phone', PARAM_TEXT);    
+        
         $mform->addRule('email', get_string('err_email', 'form'), 'email');     
         $mform->setType('email', PARAM_EMAIL);        
         
         $mform->setDefault('website', $website);
         $mform->setType('website', PARAM_URL);        
         
+        // set defaults
         if(!empty($defaults)) {
             $mform->setDefault('office', $defaults->officelocation);
             $mform->setDefault('officehours', $defaults->officehours);

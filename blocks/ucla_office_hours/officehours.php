@@ -63,35 +63,31 @@ if ($updateform->is_cancelled()) { //If the cancel button is clicked, return to 
     $url = new moodle_url($CFG->wwwroot . '/course/view.php', array('id' => $course_id, 'topic' => 0));
     redirect($url);
 } else if ($data = $updateform->get_data()) { //Otherwise, process data
-    //If this course/user pair is not in the database, attempt to add it in
-    if (!$DB->get_record('ucla_officehours',
-                    array('courseid' => $course_id, 'userid' => $edit_id))) {
-
-        if (!$DB->insert_record('ucla_officehours',
-                        array('courseid' => $course_id, 'userid' => $edit_id,
-                    'timemodified' => time(), 'modifierid' => $USER->id))
-        ) { //Attempt to add course/user pair into database
-            print_error('cannotinsertrecord');
-        }
-    }
     
-    // Update information
-    $update_data = new stdClass();
-    if (!empty($officehours_entry)) {
-        // updating entry
-        $update_data->id = $officehours_entry->id;        
-    }
-    $update_data->userid = $edit_id;
-    $update_data->courseid = $course_id;
-    $update_data->modifierid = $USER->id;
-    $update_data->timemodified = time();
-    $update_data->officehours = $data->officehours;
-    $update_data->officelocation = $data->office;
-    $update_data->email = $data->email;
-    $update_data->phone = $data->phone;
+    // prepare new entry data
+    $new_officehours_entry = new stdClass();
+    $new_officehours_entry->userid          = $edit_id;
+    $new_officehours_entry->courseid        = $course_id;
+    $new_officehours_entry->modifierid      = $USER->id;
+    $new_officehours_entry->timemodified    = time();
+    $new_officehours_entry->officehours     = strip_tags(trim($data->officehours));
+    $new_officehours_entry->officelocation  = $data->office;
+    $new_officehours_entry->email           = $data->email;
+    $new_officehours_entry->phone           = $data->phone;
 
-    $DB->update_record('ucla_officehours', $update_data);
-
+    try {
+        if (empty($officehours_entry)) {
+            // need to insert new record
+            $DB->insert_record('ucla_officehours', $new_officehours_entry);   
+        } else {
+            // use existing record id to update
+            $new_officehours_entry->id = $officehours_entry->id;        
+            $DB->update_record('ucla_officehours', $new_officehours_entry);        
+        }
+    } catch (dml_exception $e) {    
+        print_error('cannotinsertrecord');        
+    }   
+    
     // check if editing user's profile needs to change
     if ($data->website != $edit_user->url) {
         $edit_user->url = $data->website;
