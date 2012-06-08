@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="blocks/bruincast/db" VERSION="20120607" COMMENT="XMLDB file for Moodle blocks/bruincast"
+<XMLDB PATH="blocks/bruincast/db" VERSION="20120608" COMMENT="XMLDB file for Moodle blocks/bruincast"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -16,8 +16,7 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="term" UNIQUE="false" FIELDS="term" NEXT="srs"/>
-        <INDEX NAME="srs" UNIQUE="false" FIELDS="srs" PREVIOUS="term"/>
+        <INDEX NAME="term_srs" UNIQUE="false" FIELDS="term, srs"/>
       </INDEXES>
     </TABLE>
   </TABLES>

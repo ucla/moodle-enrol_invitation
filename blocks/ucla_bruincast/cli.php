@@ -37,9 +37,11 @@ function update_bruincast_db(){
         $clean_data[$obj->srs] = $obj;
     }
     
-    // Drop table and refill with data
-    $DB->delete_records('ucla_bruincast');
-
+    // Drop table if we have new data
+    if(!empty($clean_data)) {
+        $DB->delete_records('ucla_bruincast');
+    }
+    
     // Insert records
     try {
         foreach($clean_data as $cd) {
@@ -100,7 +102,7 @@ function check_crosslists(&$data) {
         }
     }
     
-    $mail_body = implode('\n', $problem_courses);
+    $mail_body = implode("\n", $problem_courses);
     
     // Send problem course details if we have any
     if (!isset($CFG->bruincast_errornotify_email) || $CFG->quiet_mode) {
