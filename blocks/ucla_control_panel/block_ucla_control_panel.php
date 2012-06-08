@@ -203,7 +203,6 @@ class block_ucla_control_panel extends block_base {
                 
                 if (isset($already_used[$mkey])) {
                     unset($sections[$tag][$index]);
-                    echo '$mkey = ' . $mkey;
                 } else {
                     $already_used[$mkey] = true;
                 }
