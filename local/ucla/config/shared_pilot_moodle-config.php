@@ -216,7 +216,7 @@ $CFG->forced_plugin_settings['url']['display'] = 5; // RESOURCELIB_DISPLAY_OPEN
 $CFG->sitedefaultlicense = 'tbd';
 
 // Site administration > Plugins > Repositories > Common repository settings
-$CFG->legacyfilesinnewcourses = 1;  // allow all course to enable legacy course files
+$CFG->legacyfilesinnewcourses = 0;  // disallow new course to enable legacy course files
 
 // Site administration > Security > Site policies
 $CFG->forceloginforprofiles = true; 
