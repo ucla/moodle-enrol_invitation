@@ -679,7 +679,7 @@ while ($section <= $course->numsections) {
                                     if ($editing && $has_capability_edit_office_hours) {
                                         //Need to only display the update string for certain users
                                         $update_url = new moodle_url($CFG->wwwroot . '/blocks/ucla_office_hours/officehours.php',
-                                                        array('course_id' => $course->id, 'edit_id' => $user->id));
+                                                        array('courseid' => $course->id, 'editid' => $user->id));
                                         $strupdate = get_string('editofficehours', 'format_ucla');
                                         $dest_data = html_writer::link($update_url, $strupdate, array('title' => $strupdate, 'class' => 'editing-link')) . ' ';
                                     }

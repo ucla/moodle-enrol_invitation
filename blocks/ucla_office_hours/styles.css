@@ -1,5 +1,5 @@
 .officehours_form input[type="text"] {
-    width: 50%;
+    width: 85%;
 }
 
 .officehours_form fieldset {
@@ -16,4 +16,22 @@
 
 .officehours_form .fstatic {
     font-style: italic;
+}
+
+/* remove spacing under alternative email field */
+.officehours_form #fitem_id_email {
+    margin-bottom: -0.5em;
+}
+
+/* make label fit long text */
+.officehours_form.mform .fitem .fitemtitle {
+    width: 20%;
+}
+.officehours_form.mform .fitem .felement {
+    margin-left: 21%;
+}
+
+/* for submit buttons */
+.officehours_form.mform .fitem fieldset.felement {
+    margin-left: 0;
 }
