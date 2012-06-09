@@ -43,11 +43,15 @@ div.headercontainer {
 
 /** This one should come last **/
 #sections-table tr.regular-row-dragging {
-    background-color: #AAA;
+    background-color: #F5F5F5;
 }
 
 #sections-table tr td img.hidden-handle {
     visibility: hidden;
+}
+
+#sections-table tr td.drag-handle > img {
+    cursor: ns-resize;
 }
 
 div.modify-course-sections-summary h2,

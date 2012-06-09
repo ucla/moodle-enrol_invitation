@@ -2,11 +2,25 @@
 
 /**
  *  Rearrange sections and course modules.
+ *  
+ *  How this works:
+ *      First, user is sent to the modify_coursemenu_form().
+ *      Once that data has been submitted with its funky JS UI,
+ *          they come back here, and modify_coursemenu_form()->get_data() is
+ *          processed.
+ *      If the processing states that a verification form is needed, it will
+ *          populate the verify_modifications_form() with "pass-thru" data
+ *          and display that form.
+ *      Once the verification form is processed, then the DB changes will
+ *          occur, and then a success message will be displayed.
+ *      If the processing states that no verification is needed, then the
+ *          DB changes occur, and then a success message is displayed.
  **/
-
 require_once(dirname(__FILE__) . '/../../config.php');
 require_once($CFG->dirroot . '/course/lib.php');
+// Hm, dependent on UCLA format...
 require_once($CFG->dirroot . '/course/format/ucla/ucla_course_prefs.class.php');
+require_once($CFG->dirroot . '/course/format/ucla/lib.php');
 $thispath = '/blocks/ucla_modify_coursemenu';
 require_once($CFG->dirroot . $thispath . '/block_ucla_modify_coursemenu.php');
 require_once($CFG->dirroot . $thispath . '/modify_coursemenu_form.php');
@@ -17,8 +31,16 @@ require_once($CFG->dirroot . '/local/ucla/lib.php');
 global $CFG, $PAGE, $OUTPUT;
 
 $courseid = required_param('courseid', PARAM_INT);
+$justshowsuccessmessage = optional_param('success', 0, PARAM_INT);
+
+// TODO Carry the previously viewed topic over and adjust it if it moves
+// via the course section modifier.
 
 $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
+$format_compstr = 'format_' . $course->format;
+
+// Provide format information
+$formatgetkey = callback_ucla_request_key();
 
 require_login($course, true);
 $context = get_context_instance(CONTEXT_COURSE, $courseid);
@@ -52,6 +74,44 @@ $PAGE->set_pagetype('course-view-' . $course->format);
 $PAGE->set_url('/blocks/ucla_modify_coursemenu/modify_coursemenu.php', 
         array('courseid' => $courseid));
 
+$confirmationurl = new moodle_url($PAGE->url,
+    array(
+            'courseid' => $courseid, 
+            'success' => true, 
+        ));
+
+$restr = get_string('pluginname', 'block_ucla_modify_coursemenu');
+$restrc = "$restr: {$course->shortname}";
+
+$PAGE->set_title($restrc);
+$PAGE->set_heading($restrc);
+
+// Sorry, but early escape, don't bother with work
+if ($justshowsuccessmessage) {
+    echo $OUTPUT->header();
+    echo $OUTPUT->heading($restr, 2, 'headingblock');
+
+    $allsectionsurl = clone($courseviewurl);
+    $allsectionsurl->params(array(
+            $formatgetkey => UCLA_FORMAT_DISPLAY_ALL
+        ));
+
+    $allsectionsbutton = new single_button($allsectionsurl, get_string(
+                'returntocourse', 'block_ucla_rearrange'
+            ), 'get');
+
+    $sectionbutton = new single_button($courseviewurl, get_string(
+                'returntosection', 'block_ucla_rearrange'
+            ), 'get');
+
+    echo $OUTPUT->confirm(get_string('successmodify', 
+            'block_ucla_modify_coursemenu'), $allsectionsbutton,
+        $sectionbutton);
+
+    echo $OUTPUT->footer();
+    die();
+}
+
 // Note that forms will call $OUTPUT->pix_url which uses
 // PAGE->theme which will autoload stuff I'm not certain enough to
 // document here, so call $PAGE->set_context before loading forms
@@ -60,7 +120,7 @@ $modify_coursemenu_form = new ucla_modify_coursemenu_form(
     array(
             'courseid' => $courseid, 
             'sections'  => $sections,
-            'landing_page' => $landing_page
+            'landing_page' => $landing_page,
         ),
     'post',
     '',
@@ -172,7 +232,7 @@ if ($modify_coursemenu_form->is_cancelled()) {
     $passthrudata->sections = $sections;
     $passthrudata->deletesectionids = $deletesectionids;
     $passthrudata->landingpage = $data->landingpage;
-    $passthrudata->coursenumsections = $newsectnum;
+    $passthrudata->coursenumsections = $newsectnum - 1;
 
     // We need to add a validation thing for deleting sections
     if (!empty($sectionsnotify)) {
@@ -219,21 +279,23 @@ if ($modify_coursemenu_form->is_cancelled()) {
                 array(
                     'passthrudata' => $passthrudata,
                     'courseid' => $courseid,
-                    'displayhtml' => $formdisplayhtml
+                    'displayhtml' => $formdisplayhtml,
                 )
             );
     
         $passthrudata = null;
     }
 
-    $redirector = $courseviewurl;
+    $redirector = $confirmationurl;
 } else if ($verifyform->is_cancelled()) {
+    // Fill in data with state that has been changed.
+    // TODO be more accurate
     $modify_coursemenu_form = new ucla_modify_coursemenu_form(
         null,
         array(
                 'courseid' => $courseid, 
                 'sections'  => $sections,
-                'landing_page' => $landing_page
+                'landing_page' => $landing_page,
             ),
         'post',
         '',
@@ -264,7 +326,6 @@ if ($passthrudata || $verifydata) {
         if (!isset($section->id)) {
             $DB->insert_record('course_sections', $section);
         } else {
-            var_dump($section);
             $DB->update_record('course_sections', $section);
         }
     }
@@ -277,7 +338,7 @@ if ($passthrudata || $verifydata) {
     $course->numsections = $passthrudata->coursenumsections;
     update_course($course);
 
-    $redirector = $courseviewurl;
+    $redirector = $confirmationurl;
 }
 
 // Before doing any heavy PAGE-related lifting, see if we should redirect to
@@ -288,17 +349,9 @@ if ($data && empty($sectionsnotify) || $verifydata) {
     redirect($redirector);
 }
 
-$restr = get_string('pluginname', 'block_ucla_modify_coursemenu');
-$restrc = "$restr: {$course->shortname}";
-
-
 $PAGE->requires->js('/blocks/ucla_modify_coursemenu/js/jquery-1.3.2.min.js');
 $PAGE->requires->js('/blocks/ucla_modify_coursemenu/js/jquery.tablednd_0_5.js');
 $PAGE->requires->js('/blocks/ucla_modify_coursemenu/modify_coursemenu.js');
-
-// Provide format information to js
-$courseformat = $course->format;
-$format_compstr = 'format_' . $courseformat;
 
 $PAGE->requires->string_for_js('section0name', $format_compstr);
 $PAGE->requires->string_for_js('section0name', $format_compstr);
@@ -326,17 +379,13 @@ $PAGE->requires->js_init_code(
         $OUTPUT->pix_url('handle', 'block_ucla_modify_coursemenu')->out()
     ));
 
+$PAGE->requires->string_for_js('show_all', $format_compstr);
+block_ucla_modify_coursemenu::js_init_code_helper(
+        'showallsection', UCLA_FORMAT_DISPLAY_ALL
+    );
+
 $PAGE->requires->js_init_code('M.block_ucla_modify_coursemenu.initialize()');
 
-if ($courseformat == 'ucla') {
-    $PAGE->requires->string_for_js('show_all', $format_compstr);
-    block_ucla_modify_coursemenu::js_init_code_helper(
-            'showallsection', UCLA_FORMAT_DISPLAY_ALL
-        );
-}
-
-$PAGE->set_title($restrc);
-$PAGE->set_heading($restrc);
 
 set_editing_mode_button($courseviewurl);
 

@@ -218,7 +218,6 @@ M.block_ucla_modify_coursemenu.attach_row_listeners = function(jq) {
                 parentjq
             );
 
-
         return true;
     };
     
@@ -248,8 +247,18 @@ M.block_ucla_modify_coursemenu.check_landingpageradio = function() {
 }
 
 M.block_ucla_modify_coursemenu.set_landingpageradio_default = function() {
-    // TODO set to previous value
-    $('[name=landingpageradios]:first').attr('checked', true);
+    var courseprefval = $('[name=landingpage]').val();
+    // TODO normalize building of names
+    var coursepreflandingsection = $('tr#section-' + courseprefval);
+    var destinationradio = coursepreflandingsection.find(
+            '[name=landingpageradios]:enabled'
+        );
+
+    if (destinationradio.length <= 0) {
+        destinationradio = $('[name=landingpageradios]:first');
+    }
+
+    destinationradio.attr('checked', true);
 }
 
 M.block_ucla_modify_coursemenu.set_landingpageradio_visible = function(
@@ -259,9 +268,9 @@ M.block_ucla_modify_coursemenu.set_landingpageradio_visible = function(
     // If any of the chckboxes are checked, the section cannot be set as
     // landing pages
     if ($(parentjq).find(':checked').length > 0) {
-        lpr.removeAttr('checked').hide();
+        lpr.removeAttr('checked').attr('disabled', true).hide();
     } else {
-        lpr.show();
+        lpr.removeAttr('disabled').show();
     }
 
     M.block_ucla_modify_coursemenu.check_reset_landingpage();

@@ -16,7 +16,7 @@ class verify_modification_form extends moodleform {
             $this->_customdata['courseid']);
 
         $mform->addElement('html', $this->_customdata['displayhtml']);
-
+        
         $this->add_action_buttons(true, get_string('deleteconfirm', 
             'block_ucla_modify_coursemenu'));
     }
