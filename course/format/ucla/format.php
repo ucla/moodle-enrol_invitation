@@ -433,10 +433,10 @@ while ($section <= $course->numsections) {
 
                 $img_options = array(
                         'class' => 'small-icon edit',
-                        'alt' => $streditsummary
+                        'alt' => $streditsectionsummary
                     );
 
-                $innards = new pix_icon('t/edit', $streditsummary,
+                $innards = new pix_icon('t/edit', $streditsectionsummary,
                     'moodle', $img_options);
 
                 $safe_controls[] = new action_link(
@@ -743,9 +743,24 @@ while ($section <= $course->numsections) {
             }                                
 
             // Display the section
-            $center_content .= html_writer::start_tag('div', 
-                array('class' => 'summary'));
             
+            // display section summary (don't display summary for section 0)
+            if (!empty($thissection->summary)) {
+                $center_content .= html_writer::start_tag('div', 
+                    array('class' => 'summary'));
+
+                $summarytext = file_rewrite_pluginfile_urls($thissection->summary, 
+                        'pluginfile.php', $context->id, 'course', 'section', $thissection->id);
+                $summaryformatoptions = new stdClass();
+                $summaryformatoptions->noclean = true;
+                $summaryformatoptions->overflowdiv = true;
+
+                $center_content .= format_text($summarytext, 
+                        $thissection->summaryformat, $summaryformatoptions);
+
+                $center_content .= html_writer::end_tag('div');                
+            }
+                
             // CCLE-2800 - JIT controls
             if ($section != 0 && $editing) {
                 $center_content .= html_writer::start_tag('div',
@@ -760,28 +775,19 @@ while ($section <= $course->numsections) {
                 }
                 
                 $center_content .= html_writer::end_tag('div');
-            }
-
-            if ($thissection->summary) {
-                $summarytext =
-                        file_rewrite_pluginfile_urls($thissection->summary, 'pluginfile.php', $context->id, 'course', 'section', $thissection->id);
-                $summaryformatoptions = new stdClass();
-                $summaryformatoptions->noclean = true;
-                $summaryformatoptions->overflowdiv = true;
-
-                $center_content .= format_text($summarytext, $thissection->summaryformat, $summaryformatoptions);
-            } else {
-                $center_content .= '&nbsp;';
-            }
-
-            $center_content .= html_writer::end_tag('div');
-
+            }                        
+            
             ob_start();
             print_section($course, $thissection, $mods, $modnamesused);
-            $center_content .= ob_get_clean();
-
-            $center_content .= html_writer::empty_tag('br');
-
+            $print_section_output = ob_get_clean();
+            $center_content .= $print_section_output;
+            
+            if (empty($print_section_output)) {
+                // add a spacers (note, 2 br tags look better than 1 p tag)
+                $center_content .= html_writer::empty_tag('br');
+                $center_content .= html_writer::empty_tag('br');                
+            }            
+            
             if ($editing) {
                 ob_start();
                 print_section_add_menus($course, $section, $modnames);

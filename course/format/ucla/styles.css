@@ -28,15 +28,23 @@
 }
 
 .course-content ul.topics li.section .content .editbutton a {
-    color: #FF6666;
     margin: 0;
 }
 
+/* red editing link styling (try to keep colors consistent */
 a.editing-link:link,
-a.editing-link:visited {
+a.editing-link:visited,
+.course-content ul.topics li.section .content .editbutton a,
+.sectionheader .right.side a,
+.jit_links a:link, .jit_links a:visited,
+span.commands a {
     color: #F66;
 }
-a.editing-link:hover {
+a.editing-link:hover,
+.course-content ul.topics li.section .content .editbutton a:hover,
+.sectionheader .right.side a:hover,
+.jit_links a:hover,
+span.commands a:hover {
     color: red;
 }
 
@@ -48,7 +56,6 @@ a.editing-link:hover {
     color: gray;
     font-weight: bold;
 }
-
 
 .course-content ul.topics li.section .content .defsection {
     font-style: italic;
@@ -101,7 +108,6 @@ a.editing-link:hover {
 .course-content ul.topics li.section .sectionheader div span a,
 .course-content ul.topics li.section .sectionheader div a,
 .course-content ul.topics li.section .sectionheader div div {
-    color: #FF6666;
     padding-left: 8px;
 }
 
@@ -139,7 +145,6 @@ a.editing-link:hover {
 }
 
 .instr-info table thead {
-    font-size: 1.2em;
     padding-right: 15px;
     background: #EFEFEF;
     border-bottom: 1px solid #CCC;
@@ -168,16 +173,16 @@ div.instr-info {
     background: url([[pix:theme|jit_links]]) 8px 1px no-repeat;
     display: inline;
     position: relative;
-    top: 0px;
-    float:left;
+    clear: both;
 }
-.jit_links a:link, .jit_links a:visited {
-    color: #f66;
+.jit_links a {
     margin-right: 10px;
-    text-decoration: none;
-}
-.jit_links a:hover {
-    color: red;
-    text-decoration: underline;
 }
 /* END feature/CCLE-2800 JIT controls */
+
+/* CCLE-3069 - Convert icons for "Turn editing on" into text */
+.mod-indent span.commands { display: block;float: right; }
+span.commands a {margin-right: 10px;}
+span.commands a img.no-editing-icons {
+    display: none;
+}
