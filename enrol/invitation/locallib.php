@@ -73,7 +73,7 @@ class invitation_manager {
      * @param type $data 
      */
     public function send_invitations($data) {
-        global $DB, $CFG, $COURSE, $USER;
+        global $DB, $CFG, $COURSE, $SITE, $USER;
 
         if (has_capability('enrol/invitation:enrol', get_context_instance(CONTEXT_COURSE, $data->courseid))) {
 
@@ -133,7 +133,7 @@ class invitation_manager {
                     $fromuser = new stdClass();
                     $fromuser->email = $CFG->supportemail;
                     $fromuser->firstname = '';
-                    $fromuser->lastname = '';
+                    $fromuser->lastname = $SITE->fullname;
                     $fromuser->maildisplay = true;
                 }
                 
