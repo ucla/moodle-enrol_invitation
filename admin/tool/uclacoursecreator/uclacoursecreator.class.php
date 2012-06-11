@@ -412,7 +412,9 @@ class uclacoursecreator {
                     $subj_area);
             } catch (moodle_exception $e) {
                 $this->println(print_r($e, true));
-                throw $e;
+
+                // Safe
+                return false;
             }
 
             $printstr .= $moodleroleid . '. ';

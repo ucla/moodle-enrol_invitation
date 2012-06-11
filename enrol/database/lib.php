@@ -188,7 +188,13 @@ class enrol_database_plugin extends enrol_plugin {
                         $roleid = $defaultrole;
                     } else {
                         // Map a Registrar-provided role to a local moodle role
-                        $roleid = get_moodlerole($fields[$rolefield], $fields['subj_area']);
+                        try {
+                            $roleid = get_moodlerole($fields[$rolefield], $fields['subj_area']);
+                        } catch (moodle_exception $me) {
+                            mtrace('could not get mapping for ' . $user->{$localuserfield} 
+                                . ' ' . $fields[$rolefield] . ' ' . $course->shortname);
+                            continue;
+                        }
                     }
 
                     if (empty($enrols[$course->id])) {
@@ -470,11 +476,19 @@ class enrol_database_plugin extends enrol_plugin {
                         $instructor
                     );
 
-                    $user[$rolefield] = $roles[role_mapping(
-                        $instructor['role'],
-                        $otherroles,
-                        $subjarea
-                    )];
+                    try {
+                        $role_mapping = role_mapping(
+                            $instructor['role'],
+                            $otherroles,
+                            $subjarea
+                        );
+                    } catch (moodle_exception $me) {
+                        // Print error?
+                        mtrace('could not get good mapping for ' . print_r($instructor, true));
+                        continue;
+                    }
+                    
+                    $user[$rolefield] = $roles[$role_mapping];
 
                     $enrolment_info[$localmap][] = $user;
                     $instructorcount++;
@@ -499,10 +513,15 @@ class enrol_database_plugin extends enrol_plugin {
                     }
 
                     $user = $this->translate_ccle_roster_class($student);
+                    try {
+                        $moodlerole = get_moodlerole($studentpr, $subjarea);
+                    } catch (moodle_exception $me) {
+                        mtrace('could not get mapping for student: ' . $studentpr 
+                            . ' [' . $student['enrl_stat_cd'] . ']');
+                        continue;
+                    }
 
-                    $user[$rolefield] = $roles[
-                        get_moodlerole($studentpr, $subjarea)
-                    ];
+                    $user[$rolefield] = $roles[$moodlerole];
 
                     $enrolment_info[$localmap][] = $user;
                     $studentcount++;
@@ -668,16 +687,20 @@ class enrol_database_plugin extends enrol_plugin {
                     }
 
                     $fields = array_change_key_case($fields, CASE_LOWER);
-                    if (empty($fields[$userfield])) {
-                        //user identification is mandatory!
+                    if (!empty($fields[$userfield])) {
+                        $mapping = $fields[$userfield];
+                    } else {
+                        $mapping = false;
                     }
-                    $mapping = $fields[$userfield];
 
                     if (!empty($fblocaluserfield)) {
                         $fallback = $fields[$fblocaluserfield];
+                    } else {
+                        $fallback = false;
                     }
 
-                    if (empty($user_mapping[$mapping]) || (!empty($fblocaluserfield) && empty($user_fallback[$fallback]))) {
+                    if ($mapping && empty($user_mapping[$mapping]) 
+                            || !empty($fblocaluserfield) && $fallback && empty($user_fallback[$fallback])) {
                         // Find the user from our database
                         $sqlparams = array();
                         $sqlbuilder = array();
@@ -692,7 +715,7 @@ class enrol_database_plugin extends enrol_plugin {
                         if (!empty($fblocaluserfield)) {
                             $searchstr = "($searchstr OR $fblocaluserfield = ?)";
                             $sqlparams[] = $fallback;
-                        } 
+                        }
 
                         $sqlbuilder[] = $searchstr;
                         $usersql = implode(' AND ', $sqlbuilder);
