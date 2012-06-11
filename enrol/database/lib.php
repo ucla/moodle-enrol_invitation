@@ -693,7 +693,7 @@ class enrol_database_plugin extends enrol_plugin {
                         $mapping = false;
                     }
 
-                    if (!empty($fblocaluserfield)) {
+                    if (!empty($fblocaluserfield) && !empty($fields[$fblocaluserfield])) {
                         $fallback = $fields[$fblocaluserfield];
                     } else {
                         $fallback = false;
