@@ -52,6 +52,11 @@ require_capability('moodle/course:manageactivities', $context);
 // set editing url to be topic or default page
 $sections = get_all_sections($courseid);
 foreach ($sections as $k => $section) {
+    if ($section->section > $course->numsections) {
+        unset($sections[$k]);
+        continue;
+    }
+
     $section->name = get_section_name($course, $section);
     $sections[$k] = $section;
 }
