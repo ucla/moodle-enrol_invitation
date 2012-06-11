@@ -56,8 +56,7 @@ class invitations_form extends moodleform {
         $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
         
         // set roles
-        $mform->addElement('static', 'role_desc', '', 
-                get_string('role_desc', 'enrol_invitation'));
+        $mform->addElement('header', 'header_role', get_string('header_role', 'enrol_invitation'));
         
         $roles = $this->get_appropiate_roles($course);
         $label = get_string('assignrole', 'enrol_invitation');
@@ -65,7 +64,15 @@ class invitations_form extends moodleform {
         foreach ($roles as $role) {
             $role_string = html_writer::tag('span', $role->name . ':', 
                     array('class' => 'role-name'));
-            $role_string .= ' ' . strip_tags($role->description);
+            
+            // role description has a <hr> tag to separate out info for users
+            // and admins
+            $role_description = explode('<hr />', $role->description);
+            
+            $role_description = $role_description[0];
+            $role_description = strip_tags($role_description, '<b><i><strong>');
+            
+            $role_string .= ' ' . $role_description;
             $role_group[] = &$mform->createElement('radio', 'roleid', '', 
                     $role_string, $role->id);
         }
@@ -75,8 +82,7 @@ class invitations_form extends moodleform {
                 get_string('norole', 'enrol_invitation'), 'required');
         
         // email address field
-        $mform->addElement('static', 'role_desc', '', 
-                get_string('email_desc', 'enrol_invitation'));        
+        $mform->addElement('header', 'header_email', get_string('header_email', 'enrol_invitation'));        
         $mform->addElement('text', 'email', get_string('emailaddressnumber', 'enrol_invitation'));
         $mform->addRule('email', get_string('err_email', 'form'), 'required');
         $mform->setType('email', PARAM_EMAIL);

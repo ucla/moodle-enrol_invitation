@@ -95,7 +95,7 @@ $string['defaultrole'] = 'Default role assignment';
 $string['defaultrole_desc'] = 'Select role which should be assigned to users during invitation enrollments';
 $string['default_subject'] = 'Site invitation for {$a}';
 $string['editenrollment'] = 'Edit enrollment';
-$string['email_desc'] = 'Who do you want to invite? (please enter an email address)';
+$string['header_email'] = 'Who do you want to invite?';
 $string['emailaddressnumber'] = 'Email address';
 
 $string['notifymsg'] = 'Hello, I would like to inform you that user $a->username, with email $a->email has successful gained access to your course, $a->course';
@@ -159,9 +159,9 @@ $string['message_help'] =
 
 $string['noinvitationinstanceset'] = 'No invitation enrollment instance has been found. Please add an invitation enroll instance to your course first.';
 $string['nopermissiontosendinvitation'] = 'No permission to send invitation';
-$string['norole'] = 'Please choose a role to invite user as';
+$string['norole'] = 'Please choose a role.';
 $string['notify_inviter'] = 'Notify me at {$a->email} when invited users accept this invitation';
-$string['role_desc'] = 'What role do you want to assign to your invited user?';
+$string['header_role'] = 'What role do you want to assign to your invited user?';
 $string['subject'] = 'Subject';
 $string['status'] = 'Allow site invitations';
 $string['status_desc'] = 'Allow users to invite people to enroll into a course by default.';

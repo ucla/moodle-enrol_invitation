@@ -26,7 +26,14 @@
     display: block;
 }
 
-#page-enrol-invitation-invitation .fstatic {
-    font-weight: bold;
-    text-decoration: underline;
+#page-enrol-invitation-invitationfieldset {
+    background: #FEFCF6;
+    border: 1px solid #B7AA96;
+}
+
+#page-enrol-invitation-invitation fieldset legend {
+    width: auto;
+    background: #FCE096;
+    color: #394A6E;    
+    padding: 0 20px;
 }
