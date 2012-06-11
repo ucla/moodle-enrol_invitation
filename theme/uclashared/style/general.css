@@ -485,18 +485,22 @@ html, body {background-color:#FFF; height:100%;}
     width: 275px;   /* only applicable for intro forms that don't use TinyMCE */
 }
 
-.text-icons .editing .section .activity .mod-indent .commands .editing_delete {
-    float: none;
+/* START CCLE-3069 - Edit icon modifications */
+.editing_update {
+    border-left: 1px solid #DDDDDD;
+    padding-left: 8px;
+    margin-left: 8px;
 }
-.text-icons .editing .section .activity .mod-indent .commands a {
-    border: none;
-    margin-right: inherit;
+.editing_duplicate {
+    margin-right: 4px;
 }
-.text-icons .editing .section .activity .mod-indent .commands {
-    width: inherit;
-    float: none;
+.editing_duplicate, .editing_makeprivate, .editing_makepublic {
+    border-right: 1px solid #DDDDDD;
+    padding-right: 8px;
+    margin-right: 8px;
 }
-.editing_makeprivate {
+.editing_delete {
+    float: right;
 }
 .topics .section li.activity {
     padding: 5px 10px;
@@ -504,21 +508,19 @@ html, body {background-color:#FFF; height:100%;}
     border-right: 1px solid white;
     clear:right;
 }
+/* set a max-width in order to keep edit icons close to corresponding item */
 .topics .editing .section li.activity {
-    max-width: 900px;
+    max-width: 950px;
 }
 .topics .section li.activity:nth-child(2n) {
     background-color: #F9F9F9;
 }
 .topics .section li.activity:hover {
     background-color: #F5F5F5;
-/*    border-left: 1px dashed gray;*/
-/*    border-right: 1px dashed gray;*/
 }
 .mod-indent .commands {
     width: 220px;
     float:right;
-/*    margin-left: 10px;*/
     margin-right: 19px;
 }
 .mod-indent .commands > a {
@@ -552,18 +554,17 @@ html, body {background-color:#FFF; height:100%;}
     height: 0;
     clear: right;
 }
-
 .text-icons .mod-indent span {
     float: none;
     width: auto;
 }
-
 .text-icons .mod-indent span > a {
     border: none;
-    margin-right: 10px;
+    margin-right: 19px;
     margin-left: 0;
     padding: 0;
 }
 .text-icons .editing_delete {
     float: none;
 }
+/* END CCLE-3069 */
