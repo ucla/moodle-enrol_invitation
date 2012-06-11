@@ -189,7 +189,7 @@ if ($modify_coursemenu_form->is_cancelled()) {
     $tobedeleted = array();
     $couldnotdelete = array();
 
-    $newsectnum = 1;
+    $newsectnum = 0;
     foreach ($sectiondata as $oldsectnum => $sectdata) {
         if (!isset($sections[$oldsectnum])) {
             $sectdata['course'] = $courseid;
@@ -210,13 +210,12 @@ if ($modify_coursemenu_form->is_cancelled()) {
             unset($sections[$oldsectnum]);
             continue;
         }
-
+        
+        $newsectnum++;
         $section->section = $newsectnum;
 
         $section = block_ucla_modify_coursemenu::section_apply($section,
             $sectdata);
-
-        $newsectnum++;
     }
 
     // Delete some sections...how to do this?
@@ -232,7 +231,7 @@ if ($modify_coursemenu_form->is_cancelled()) {
     $passthrudata->sections = $sections;
     $passthrudata->deletesectionids = $deletesectionids;
     $passthrudata->landingpage = $data->landingpage;
-    $passthrudata->coursenumsections = $newsectnum - 1;
+    $passthrudata->coursenumsections = $newsectnum;
 
     // We need to add a validation thing for deleting sections
     if (!empty($sectionsnotify)) {
