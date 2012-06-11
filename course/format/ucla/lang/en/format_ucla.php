@@ -57,5 +57,5 @@ $string['subheading'] = 'Add subheading';
 // Office hours and contact information heading displays
 $string['office'] = 'Office';
 $string['phone'] = 'Phone';
-$string['email'] = 'Email address';
+$string['email'] = 'Email';
 $string['office_hours'] = 'Office hours';

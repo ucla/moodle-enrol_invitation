@@ -648,10 +648,10 @@ while ($section <= $course->numsections) {
                         // TODO make this more modular
                         $desired_info = array(
                             'fullname' => $title,
+                            'email' => get_string('email', 'format_ucla'),                            
                             'office' => get_string('office', 'format_ucla'),
-                            'phone' => get_string('phone', 'format_ucla'),
-                            'email' => get_string('email', 'format_ucla'),
-                            'office_hours' => get_string('office_hours', 'format_ucla')
+                            'office_hours' => get_string('office_hours', 'format_ucla'),
+                            'phone' => get_string('phone', 'format_ucla'),                            
                         );
 
                         $cdi = count($desired_info);
