@@ -139,25 +139,40 @@ span.commands a:hover {
 /* stlying for instructors/tas contact listing and office hours */
 .instr-info table {
     margin-top: 10px;
-    border: 1px solid #CCC;
-    width: 100%;    
-    line-height: 0.9em;
+    border-collapse: collapse;
+    border-spacing: 0;
+    background-color: transparent;
+    width: 100%;
+    margin-bottom: 18px;
+    /* borrowed from bootstrap table */
+    border: 1px solid #dddddd;
+    border-collapse: separate;
+    *border-collapse: collapsed;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
 }
 
 .instr-info table thead {
-    padding-right: 15px;
     background: #EFEFEF;
-    border-bottom: 1px solid #CCC;
-    border-top: 1px solid #CCC;    
     color: #666;
 }
 
-.instr-info .r0 {
-    background-color: #F7F7F7;
+.instr-info table th, 
+.instr-info table td {
+    padding: 8px;
+    line-height: 18px;
+    text-align: left;
+    vertical-align: top;
 }
 
-.instr-info .r1 {
-    background-color: white;
+.instr-info table tbody tr:nth-child(odd) td,
+.instr-info table tbody tr:nth-child(odd) th {
+  background-color: #f9f9f9;
+}
+
+.instr-info table tbody td a {
+    margin-right: 10px;
 }
 
 /* START feature/CCLE-3002-office-table-display */
