@@ -631,7 +631,6 @@ createTable($result_keys,$result_val);
 
 } 
 ////////////////////////////////////////////////////////////////////
-/*
 $title="Get All Fields for Classes View (enroll2) from Registrar by UID";
 // Note: this has code which allows post from Name Lookup report 
 if (empty($_POST['console'])) {
@@ -650,10 +649,9 @@ if (empty($_POST['console'])) {
     echo "<h3>$title</h3>\n";
     if (!empty($_POST['uid']) and !empty($_POST['srdb_view'])) {
         ucla_require_registrar();
-	/*$db_conn = odbc_connect($CFG->registrar_dbhost, $CFG->registrar_dbuser, $CFG->registrar_dbpass) or die( "ERROR: Connection to Registrar failed.");
-*/
+	$db_conn = odbc_connect($CFG->registrar_dbhost, $CFG->registrar_dbuser, $CFG->registrar_dbpass) or die( "ERROR: Connection to Registrar failed.");
         // SQL query to find the courses the user is enroled in
-/*        $wherefield = "uid";
+        $wherefield = "uid";
         $sortfield = "term_int DESC, subj_area, catlg_no, sect_no";
 
         $sql = "SELECT *
@@ -702,7 +700,7 @@ if (empty($_POST['console'])) {
         echo "Can't search with no UID.";
         exit;
     }
-}*/
+}
 ////////////////////////////////////////////////////////////////////
 $title=" Sort Class Sites by Count of Resources or Activities ";
 $result=$DB->get_records_sql("select term, count(*) as cnt from {$CFG->prefix}ucla_request_classes group by term");
