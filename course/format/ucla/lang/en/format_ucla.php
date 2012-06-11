@@ -45,7 +45,7 @@ $string['show_all'] = 'Show all';
 // Custom format strings
 $string['editcoursetitle'] = 'Edit course description';
 $string['editsectiontitle'] = 'Edit title';
-$string['editofficehours'] = 'update';
+$string['editofficehours'] = 'Update';
 $string['movealt'] = 'Click and drag to move';
 
 // JIT strings

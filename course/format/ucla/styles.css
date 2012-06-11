@@ -138,7 +138,7 @@ span.commands a:hover {
 
 /* stlying for instructors/tas contact listing and office hours */
 .instr-info table {
-    margin-top: 10px;
+    margin-top: 20px;
     border-collapse: collapse;
     border-spacing: 0;
     background-color: transparent;
@@ -171,7 +171,7 @@ span.commands a:hover {
   background-color: #f9f9f9;
 }
 
-.instr-info table tbody td a {
+.instr-info table tbody td span {
     margin-right: 10px;
 }
 

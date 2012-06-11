@@ -681,7 +681,21 @@ while ($section <= $course->numsections) {
                                         $update_url = new moodle_url($CFG->wwwroot . '/blocks/ucla_office_hours/officehours.php',
                                                         array('courseid' => $course->id, 'editid' => $user->id));
                                         $strupdate = get_string('editofficehours', 'format_ucla');
-                                        $dest_data = html_writer::link($update_url, $strupdate, array('title' => $strupdate, 'class' => 'editing-link')) . ' ';
+                                        
+                                        // Add an edit icon/text (based on preference)
+                                        $link_options = array('title' => $strupdate);
+                                        $img_options = array(
+                                                'class' => 'icon edit iconsmall',
+                                                'alt' => $streditsummary
+                                            );
+
+                                        $innards = new pix_icon('t/edit', $link_options['title'], 
+                                            'moodle', $img_options);
+
+                                        $dest_data = html_writer::tag('span', 
+                                                $OUTPUT->render(new action_link($update_url, 
+                                                    $innards, null, $link_options)),
+                                                array('class' => 'editbutton'));
                                     }
                                     $dest_data .= fullname($user);
                                 } else {
