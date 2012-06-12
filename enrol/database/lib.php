@@ -442,14 +442,14 @@ class enrol_database_plugin extends enrol_plugin {
 
             foreach ($set as $course) {
 
-                $regdata = array(array($course->term, $course->srs));
+                $regdata = array($course->term, $course->srs);
 
                 $subjarea = $course->department;
                 $localmap = $course->courseid;
 
                 // grab the instructors... from a different data source
                 $results = registrar_query::run_registrar_query(
-                    'ccle_courseinstructorsget', $regdata
+                    'ccle_courseinstructorsget', $regdata, false
                 );
 
                 $instrs = $results[registrar_query::query_results];
@@ -496,7 +496,7 @@ class enrol_database_plugin extends enrol_plugin {
 
                 // grab the roster... from a different data source
                 $results = registrar_query::run_registrar_query(
-                    'ccle_roster_class', $regdata
+                    'ccle_roster_class', $regdata, false
                 );
 
                 $roster = $results[registrar_query::query_results];

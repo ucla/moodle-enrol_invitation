@@ -153,10 +153,9 @@ class block_ucla_browseby extends block_list {
 
             $thisreg = array('term' => $term, 
                 'subjarea' => $subjarea);
-            $toreg = array($thisreg);
 
             $courseinfo = $this->run_registrar_query(
-                'ccle_coursegetall', $toreg);
+                'ccle_coursegetall', $thisreg);
 
             foreach ($courseinfo as $ci) {
                 $ci['term'] = $term;
@@ -164,7 +163,7 @@ class block_ucla_browseby extends block_list {
             }
 
             $instrinfo = $this->run_registrar_query(
-                'ccle_getinstrinfo', $toreg);
+                'ccle_getinstrinfo', $thisreg);
 
             foreach ($instrinfo as $ii) {
                 $ii['subjarea'] = $subjarea;
@@ -249,7 +248,7 @@ class block_ucla_browseby extends block_list {
     protected function run_registrar_query($q, $d) {
         ucla_require_registrar();
 
-        return registrar_query::run_registrar_query($q, $d, true);
+        return registrar_query::run_registrar_query($q, $d);
     }
     protected function get_records($t, $p, $o, $s) {
         global $DB;

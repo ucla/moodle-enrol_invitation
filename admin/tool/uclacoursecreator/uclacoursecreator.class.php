@@ -871,30 +871,29 @@ class uclacoursecreator {
         $requests =& $this->cron_term_cache['requests'];
 
         // Run the Stored Procedure with the data
-        $rc = new registrar_ccle_getclasses();
-	$return = registrar_query::run_registrar_query('ccle_getclasses',
-            $tr, true);
-        foreach ($return as $k => $v) {
-            $v = (object)$v;
-            unset($return[$k]);
-            $return[self::cron_requests_key($v)] = $v;
-        }
-
+        $rci = array();
         $this->println('  Fetching course information from registrar...');
-        foreach ($requests as $tkey => $request) {
-            if (!isset($return[$tkey])) {
+        foreach ($tr as $k => $request) {
+            $requestdata = registrar_query::run_registrar_query(
+                    'ccle_getclasses', $request
+                );
+
+            if (!$requestdata) {
                 $this->debugln('Registrar did not find a course: '
                     . $tkey);
                 continue;
             }
 
-            $ob_re = $return[$tkey];
+            foreach ($requestdata as $rqd) {
+                $rqd = (object)$rqd;
+                $rci[self::cron_requests_key($rqd)] = $rqd;
+            }
         }
 
-        $this->println('. ' . count($return) 
+        $this->println('. ' . count($rci) 
             . ' courses exist at Registrar.');
 
-        $this->cron_term_cache['term_rci'] = $return;
+        $this->cron_term_cache['term_rci'] = $rci;
     }
 
     /**
@@ -1374,11 +1373,12 @@ class uclacoursecreator {
             . count($this->cron_term_cache['trim_requests']) 
             . ' request(s) from registrar...');
 
-        $results = registrar_query::run_registrar_query(
-            'ccle_courseinstructorsget', 
-            $this->cron_term_cache['trim_requests'],
-            true
-        );
+        $results = array();
+        foreach ($this->cron_term_cache['trim_requests'] as $tr_req) {
+            $results[] = registrar_query::run_registrar_query(
+                    'ccle_courseinstructorsget', $tr_req
+                );
+        }
 
         $this->println('Finished fetching from registrar.');
 
@@ -1388,7 +1388,9 @@ class uclacoursecreator {
         }
 
         foreach ($results as $res) {
-            $this->key_field_instructors($res);
+            foreach ($res as $inst) {
+                $this->key_field_instructors($inst);
+            }
         }
 
         // I think the old version works pretty well...

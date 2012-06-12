@@ -117,10 +117,8 @@ class block_ucla_my_sites extends block_base {
         } else {
             $spparam = array('uid' => $USER->idnumber);
             $remotecourses = registrar_query::run_registrar_query(
-                'ucla_get_user_classes', 
-                array($spparam), 
-                true
-            );
+                    'ucla_get_user_classes', $spparam
+                );
         }
         
         // In order to translate values returned by get_moodlerole

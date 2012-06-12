@@ -3,8 +3,6 @@
 require_once(dirname(__FILE__) . '/registrar_query.base.php');
 
 class registrar_ucla_getterms extends registrar_query {
-    var $unindexed_key_translate = array('term' => 0);
-    
     function validate($new, $old) {
         $tests = array('term', 'session','session_start','session_end','instruction_start');
         foreach ($tests as $criteria) {
@@ -20,9 +18,12 @@ class registrar_ucla_getterms extends registrar_query {
         return true;
     }
 
+    /**
+     *  This stored procedure only has 1 parameter, so it
+     *  violates convention.
+     **/
     function remote_call_generate($args) {
-        
-        //Exit if the term is not a valid term.
+        // Exit if the term is not a valid term.
         if (ucla_validator('term', $args) == false) {
             return false;
         }

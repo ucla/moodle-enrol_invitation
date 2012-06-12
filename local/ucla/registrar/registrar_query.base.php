@@ -151,7 +151,7 @@ abstract class registrar_query {
             return false;
         }
 
-        $qr = $this->remote_call_generate($driving_datum);
+        $qr = $this->remote_call_generate($driving_data);
 
         // Let's not fail hard
         if ($qr === false) {
@@ -164,10 +164,10 @@ abstract class registrar_query {
 
         if (!$recset->EOF) {
             while ($fields = $recset->FetchRow()) {
-                if ($this->validate($fields, $driving_datum)) {
+                if ($this->validate($fields, $driving_data)) {
                     $res = $this->clean_row($fields);
 
-                    $key = $this->get_key($res, $driving_datum);
+                    $key = $this->get_key($res, $driving_data);
                     if ($key == null) {
                         $direct_data[] = $res;
                     } else {
