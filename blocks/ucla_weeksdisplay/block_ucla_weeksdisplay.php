@@ -58,7 +58,7 @@ class block_ucla_weeksdisplay extends block_base {
 
         $current_term = $CFG->currentterm;
         $query_result = registrar_query::run_registrar_query(
-                'ucla_getterms', $current_term);       
+                'ucla_getterms', array($current_term));       
         //Compare valid queries with the system date
         $is_date_in_sessions = 
                 self::find_date_in_sessions($date,$query_result);
@@ -72,7 +72,7 @@ class block_ucla_weeksdisplay extends block_base {
             while (1) {
                 
                 $query_result = registrar_query::run_registrar_query(
-                        'ucla_getterms', $prev_term);
+                        'ucla_getterms', array($prev_term));
 
                 $is_date_in_sessions = 
                         self::find_date_in_sessions($date,$query_result);
@@ -83,7 +83,7 @@ class block_ucla_weeksdisplay extends block_base {
                 } else if ($is_date_in_sessions == 1) {
                 //If the date is between terms, return the string for the later term
                     $query_result = registrar_query::run_registrar_query(
-                            'ucla_getterms', self::get_next_term($prev_term));  
+                            'ucla_getterms', array(self::get_next_term($prev_term)));  
                     //Workaround because of limitations in find date in sessions
                     $regular_sessions = self::find_regular_sessions($query_result);
 
@@ -104,7 +104,7 @@ class block_ucla_weeksdisplay extends block_base {
             while (1) {
                 //error checking for if registrar query reaches forever?
                 $query_result = registrar_query::run_registrar_query(
-                        'ucla_getterms', $next_term);
+                        'ucla_getterms', array($next_term));
                
                 $is_date_in_sessions = 
                         self::find_date_in_sessions($date,$query_result);

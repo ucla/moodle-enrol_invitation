@@ -18,16 +18,13 @@ class registrar_ucla_getterms extends registrar_query {
         return true;
     }
 
-    /**
-     *  This stored procedure only has 1 parameter, so it
-     *  violates convention.
-     **/
     function remote_call_generate($args) {
         // Exit if the term is not a valid term.
-        if (ucla_validator('term', $args) == false) {
+        $term = $args[0];
+        if (ucla_validator('term', $term) == false) {
             return false;
         }
 
-        return "EXECUTE ucla_getterms '$args'";
+        return "EXECUTE ucla_getterms '$term'";
     }
 }
