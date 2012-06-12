@@ -214,7 +214,7 @@ $string['used_by'] = ' by {$a->username} ({$a->roles}, {$a->useremail}) on {$a->
 // invite status strings
 $string['status_invite_invalid'] = 'Invalid';
 $string['status_invite_expired'] = 'Expired';
-$string['status_invite_used'] = 'Used';
+$string['status_invite_used'] = 'Accepted';
 $string['status_invite_revoked'] = 'Revoked';
 $string['status_invite_resent'] = 'Resent';
 $string['status_invite_active'] = 'Active';
