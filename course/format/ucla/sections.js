@@ -31,8 +31,9 @@ M.format_ucla.mk_button_override = function(tag, imgSrc, text,
     // Don't do anything if we want icons
     if (M.format_ucla.no_editing_icons != undefined 
             && !M.format_ucla.no_editing_icons) {
-        // But we want to make things helpful
-        tagnode.title = altstr;
+        if (ismovebutton) {
+            tagnode.title = altstr;
+        }
         return tagnode;            
     }
 
@@ -49,7 +50,7 @@ M.format_ucla.mk_button_override = function(tag, imgSrc, text,
     text_div = document.createElement('span');
     text_div.appendChild(text_only);
 
-    // THis is to prevent the other clicks from breaking things
+    // This is to prevent the other clicks from breaking things
     text_div.src = '';
     text_div.alt = '';
     text_div.title = '';
