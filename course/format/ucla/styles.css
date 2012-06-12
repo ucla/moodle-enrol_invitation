@@ -36,6 +36,7 @@ a.editing-link:link,
 a.editing-link:visited,
 .course-content ul.topics li.section .content .editbutton a,
 .sectionheader .right.side a,
+.sectionheader .right.side span,
 .jit_links a:link, .jit_links a:visited,
 span.commands a {
     color: #F66;
@@ -43,9 +44,11 @@ span.commands a {
 a.editing-link:hover,
 .course-content ul.topics li.section .content .editbutton a:hover,
 .sectionheader .right.side a:hover,
+.sectionheader .right.side span:hover,
 .jit_links a:hover,
 span.commands a:hover {
     color: red;
+    text-decoration: underline;
 }
 
 .course-content ul.topics li.section .content.editing {
