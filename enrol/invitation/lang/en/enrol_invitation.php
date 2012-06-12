@@ -196,6 +196,7 @@ $string['loggedinnot'] = '<p>This invitation to access "{$a->coursefullname}" as
 $string['invitationacceptance'] = '<p>This invitation to access 
     "{$a->coursefullname}" as a "{$a->rolename}" is intended for {$a->email}. 
     If you are not the intended recipient, please do not accept this invitation.</p>';
+$string['invitationacceptancebutton'] = 'Accept invitation';
 
 // invite history strings
 $string['invitehistory'] = 'Invite history';

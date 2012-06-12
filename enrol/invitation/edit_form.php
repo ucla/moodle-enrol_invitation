@@ -47,30 +47,30 @@ class enrol_invitation_edit_form extends moodleform {
         $mform->addElement('select', 'status', get_string('status', 'enrol_invitation'), $options);
         $mform->setDefault('status', $plugin->get_config('status'));
         
-        //max invitation per day
-        $mform->addElement('text', 'customint1', get_string('maxinviteperday', 'enrol_invitation'));
-        $mform->addHelpButton('customint1', 'maxinviteperday', 'enrol_invitation');
-        $maxinviteperday = $plugin->get_config('customint1');
+//        //max invitation per day
+//        $mform->addElement('text', 'customint1', get_string('maxinviteperday', 'enrol_invitation'));
+//        $mform->addHelpButton('customint1', 'maxinviteperday', 'enrol_invitation');
+//        $maxinviteperday = $plugin->get_config('customint1');
 
-        if ($instance->id) {
-            $roles = get_default_enrol_roles($context, $instance->roleid);
-        } else {
-            $roles = get_default_enrol_roles($context, $plugin->get_config('roleid'));
-        }
-        $mform->addElement('select', 'roleid', get_string('assignrole', 'enrol_invitation'), $roles);
-        $mform->setDefault('roleid', $plugin->get_config('roleid'));
-
-        $mform->addElement('duration', 'enrolperiod', get_string('enrolperiod', 'enrol_invitation'), array('optional' => true, 'defaultunit' => 86400));
-        $mform->setDefault('enrolperiod', $plugin->get_config('enrolperiod'));
-        $mform->addHelpButton('enrolperiod', 'enrolperiod', 'enrol_invitation');
-
-        $mform->addElement('date_selector', 'enrolstartdate', get_string('enrolstartdate', 'enrol_invitation'), array('optional' => true));
-        $mform->setDefault('enrolstartdate', 0);
-        $mform->addHelpButton('enrolstartdate', 'enrolstartdate', 'enrol_invitation');
-
-        $mform->addElement('date_selector', 'enrolenddate', get_string('enrolenddate', 'enrol_invitation'), array('optional' => true));
-        $mform->setDefault('enrolenddate', 0);
-        $mform->addHelpButton('enrolenddate', 'enrolenddate', 'enrol_invitation');
+//        if ($instance->id) {
+//            $roles = get_default_enrol_roles($context, $instance->roleid);
+//        } else {
+//            $roles = get_default_enrol_roles($context, $plugin->get_config('roleid'));
+//        }
+//        $mform->addElement('select', 'roleid', get_string('assignrole', 'enrol_invitation'), $roles);
+//        $mform->setDefault('roleid', $plugin->get_config('roleid'));
+//
+//        $mform->addElement('duration', 'enrolperiod', get_string('enrolperiod', 'enrol_invitation'), array('optional' => true, 'defaultunit' => 86400));
+//        $mform->setDefault('enrolperiod', $plugin->get_config('enrolperiod'));
+//        $mform->addHelpButton('enrolperiod', 'enrolperiod', 'enrol_invitation');
+//
+//        $mform->addElement('date_selector', 'enrolstartdate', get_string('enrolstartdate', 'enrol_invitation'), array('optional' => true));
+//        $mform->setDefault('enrolstartdate', 0);
+//        $mform->addHelpButton('enrolstartdate', 'enrolstartdate', 'enrol_invitation');
+//
+//        $mform->addElement('date_selector', 'enrolenddate', get_string('enrolenddate', 'enrol_invitation'), array('optional' => true));
+//        $mform->setDefault('enrolenddate', 0);
+//        $mform->addHelpButton('enrolenddate', 'enrolenddate', 'enrol_invitation');
 
         $mform->addElement('hidden', 'id');
         $mform->addElement('hidden', 'courseid');

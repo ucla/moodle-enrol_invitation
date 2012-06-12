@@ -94,7 +94,8 @@ if (empty($confirm)) {
     
     $accepturl = new moodle_url('/enrol/invitation/enrol.php', 
             array('token' => $invitation->token, 'confirm' => true));
-    $accept = new single_button($accepturl, get_string('policyaccept'), 'get');
+    $accept = new single_button($accepturl, 
+            get_string('invitationacceptancebutton', 'enrol_invitation'), 'get');
     $cancel = new moodle_url('/');
 
     $notice_object = prepare_notice_object($invitation);

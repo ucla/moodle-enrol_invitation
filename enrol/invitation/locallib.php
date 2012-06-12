@@ -83,7 +83,7 @@ class invitation_manager {
             if (!empty($data->email)) {
                 //create unique token for invitation
                 do {
-                    $token = md5(uniqid(rand(), 1));
+                    $token = uniqid();
                     $existingtoken = $DB->get_record('enrol_invitation', array('token' => $token));                        
                 } while (!empty($existingtoken));
 
