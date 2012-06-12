@@ -1,6 +1,6 @@
 <?php
 
-require_once(dirname(__FILE__).'/registrar_query.class.php');
+require_once(dirname(__FILE__).'/registrar_query.base.php');
 
 class registrar_cis_subjectareagetall extends registrar_query {
     function validate($new, $old) {

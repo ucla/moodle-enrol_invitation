@@ -14,37 +14,46 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-require_once(dirname(__FILE__) . '/registrar_query.class.php');
+require_once(dirname(__FILE__).'/registrar_query.base.php');
 
-class registrar_ccle_courseinstructorsget extends registrar_query {
+class registrar_ccle_getclasses extends registrar_query {
     var $unindexed_key_translate = array('term' => 0, 'srs' => 1);
 
     function validate($new, $old) {
-        if (!isset($new['srs']) && $new['srs'] != $old['srs']) {
-            return false;
+        
+        $tests = array('srs', 'term');
+        foreach ($tests as $criteria) {
+            if (!isset($new[$criteria])
+                    && $new[$criteria] != $old[$criteria]) {
+                return false;
+            }
         }
-
-        if (!isset($new['ucla_id'])) {
-            return false;
-        }
-
+               
         return true;
     }
 
     function remote_call_generate($args) {
-        // TODO use validators
-        if (ucla_validator('term', $args[0])) {
-            $term = $args[0];
-        } else {
-            return false;
+        $k = null;
+
+        $m = 0;
+        $ls = array('term', 'srs');
+
+        foreach ($ls as $l) {
+            if (isset($args[$m])) {
+                $k = $m;
+            } else if (isset($args[$l])) {
+                $k = $l;
+            }
+
+            if (ucla_validator($l, $args[$k])) {
+                ${$l} = $args[$k];
+            } else {
+                return false;
+            }
+
+            $m++;
         }
 
-        if (ucla_validator('srs', $args[1])) {
-            $srs = $args[1];
-        } else {
-            return false;
-        }
-
-        return "EXECUTE ccle_CourseInstructorsGet '$term', '$srs'";
+        return "EXECUTE ccle_getClasses '$term', '$srs'";
     }
 }

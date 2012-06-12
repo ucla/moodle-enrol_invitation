@@ -71,7 +71,7 @@ function ucla_require_registrar() {
     global $CFG;
 
     require_once($CFG->dirroot 
-        . '/local/ucla/uclaregistrar/registrar_query.class.php');
+        . '/local/ucla/registrar/registrar_query.base.php');
 }
 
 /**

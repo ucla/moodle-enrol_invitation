@@ -1,6 +1,6 @@
 <?php
 
-require_once(dirname(__FILE__) . '/registrar_query.class.php');
+require_once(dirname(__FILE__) . '/registrar_query.base.php');
 
 class registrar_ucla_getterms extends registrar_query {
     var $unindexed_key_translate = array('term' => 0);

@@ -1,6 +1,6 @@
 <?php
 
-require_once(dirname(__FILE__) . '/registrar_query.class.php');
+require_once(dirname(__FILE__) . '/registrar_query.base.php');
 
 class registrar_cis_coursegetall extends registrar_query {
     var $unindexed_key_translate = array('term' => 0, 'subjarea' => 1);
