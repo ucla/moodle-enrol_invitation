@@ -36,6 +36,7 @@ class block_ucla_weeksdisplay extends block_base {
     
     public function cron() {
         self::set_current_week_display(date('c'));
+        return true;    // crons need to return true or they run all the time
     }
     
    /**

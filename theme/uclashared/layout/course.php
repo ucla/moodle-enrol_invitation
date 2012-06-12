@@ -12,11 +12,6 @@ $hassidepost = (empty($PAGE->layout_options['noblocks'])
 $haslogininfo = (empty($PAGE->layout_options['nologininfo']));
 $hasintrobanner = (!empty($PAGE->layout_options['introbanner']));
 
-$envflag = 'prod';
-if (!empty($PAGE->layout_options['environment'])) {
-    $envflag = $PAGE->layout_options['environment'];
-}
-
 // START UCLA MODIFICATION CCLE-2452
 $showcontrolpanel = (!empty($PAGE->layout_options['controlpanel'])); 
 

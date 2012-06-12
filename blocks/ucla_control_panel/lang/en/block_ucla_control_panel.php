@@ -33,9 +33,6 @@ $string['email_students_exception_post'] = 'There was a problem detecting your a
 $string['email_students_hidden_pre'] = 'E-mail students is disabled when the Announcements forum is hidden.';
 $string['email_students_hidden'] = 'Make Announcements forum visible';
 
-$string['edit_office_hours'] = 'Update office hours & contact info';
-$string['edit_office_hours_post'] = 'Update your office hours, office location and phone number.';
-
 $string['modify_sections'] = 'Modify course menu sections';
 $string['modify_sections_post'] = '';
 
@@ -75,6 +72,9 @@ $string['view_roster_post'] = 'Lists most recent logins of all students, TAs, an
 
 $string['edit_profile'] = 'Edit user profile';
 $string['edit_profile_post'] = 'You can change your personal information, upload a picture, turn your email on or off, etc.';
+
+$string['site_invitation'] = 'Invite users';
+$string['site_invitation_post'] = 'Invite a user into your site by email.';
 
 /** Stuff for advanced **/
 $string['more_advanced'] = 'Advanced functions';

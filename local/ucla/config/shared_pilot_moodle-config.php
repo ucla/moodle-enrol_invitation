@@ -90,6 +90,11 @@ $CFG->forced_plugin_settings['local_ucla'] = array(
     'archiveserver' => 'https://ccle.ucla.edu'
 );
 
+// My Sites CCLE-2810
+// Term limiting
+$CFG->forced_plugin_settings['local_ucla']['student_access_ends_week'] = 3;
+$CFG->forced_plugin_settings['local_ucla']['oldest_available_term'] = '08S';
+
 // Browseby CCLE-2894
 $CFG->forced_plugin_settings['block_ucla_browseby']['use_local_courses'] = 0;
 $CFG->forced_plugin_settings['block_ucla_browseby']['ignore_coursenum'] = '194,295,296,375';
@@ -208,10 +213,10 @@ $CFG->forced_plugin_settings['url']['printheading'] = 1;
 $CFG->forced_plugin_settings['url']['display'] = 5; // RESOURCELIB_DISPLAY_OPEN
 
 // Site administration > Plugins > Licences > Manage licences
-$CFG->sitedefaultlicense = 'iown';
+$CFG->sitedefaultlicense = 'tbd';
 
 // Site administration > Plugins > Repositories > Common repository settings
-$CFG->legacyfilesinnewcourses = 1;  // allow all course to enable legacy course files
+$CFG->legacyfilesinnewcourses = 0;  // disallow new course to enable legacy course files
 
 // Site administration > Security > Site policies
 $CFG->forceloginforprofiles = true; 
@@ -223,6 +228,7 @@ $CFG->cronclionly = true;
 // Site administration > Security > HTTP security
 $CFG->loginhttps = true;
 $CFG->cookiesecure = true;
+$CFG->allowframembedding = 1; // CCLE-3021 - enabled because some collab sites need to be embedded
 
 // Site administration > Security > Anti-Virus
 $CFG->runclamonupload = true;
@@ -230,6 +236,9 @@ $CFG->pathtoclam = '/usr/bin/clamscan';
 $CFG->clamscan = '/usr/bin/clamscan';
 $CFG->quarantinedir = '/usr/local/clamquarantine';
 $CFG->clamfailureonupload = 'donothing';
+
+// Site administration > Appearance > Themes
+$CFG->theme = 'uclashared';
 
 // Site administration > Appearance > Navigation
 $CFG->defaulthomepage = 1;    // user's home page should be "My Moodle" (HOMEPAGE_MY)

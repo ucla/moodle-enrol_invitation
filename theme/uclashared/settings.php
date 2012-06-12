@@ -26,14 +26,14 @@ if ($ADMIN->fulltree) {
             $default, $options);
     $settings->add($setting);
 
-    $the_setting = 'footer_links';
-    $name = $theme_name . '/' . $the_setting;
-    $title = get_string('setting_title_' . $the_setting, $theme_name);
-    $description = get_string('setting_desc_' . $the_setting, $theme_name);
-    $default = get_string('setting_default_' . $the_setting, $theme_name);
-    $setting = new admin_setting_configtextarea($name, $title, $description, 
-            $default, PARAM_RAW);
-    $settings->add($setting);
+//    $the_setting = 'footer_links';
+//    $name = $theme_name . '/' . $the_setting;
+//    $title = get_string('setting_title_' . $the_setting, $theme_name);
+//    $description = get_string('setting_desc_' . $the_setting, $theme_name);
+//    $default = get_string('setting_default_' . $the_setting, $theme_name);
+//    $setting = new admin_setting_configtextarea($name, $title, $description, 
+//            $default, PARAM_RAW);
+//    $settings->add($setting);
 
     // The sub text
     $the_setting = 'logo_sub_text';

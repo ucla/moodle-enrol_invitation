@@ -120,6 +120,7 @@ function xmldb_local_ucla_upgrade($oldversion=0) {
         upgrade_plugin_savepoint(true, 2012020100, 'local', 'ucla');
     }
     
+    // CCLE-2669 - Copyright Modifications - add licenses
     if ($oldversion < 2012032705) {
         require_once($CFG->libdir.'/licenselib.php');
         
@@ -194,7 +195,7 @@ function xmldb_local_ucla_upgrade($oldversion=0) {
         license_manager::enable($license->shortname);
         
         $license->shortname = 'tbd';
-        $license->fullname = 'Upload by faculty designate; copyright status to be determined';
+        $license->fullname = 'Copyright status not yet identified';
         $license->source = NULL;
         $license->enabled = true;        
         $license->version = '2012032200';
@@ -205,10 +206,22 @@ function xmldb_local_ucla_upgrade($oldversion=0) {
         upgrade_plugin_savepoint(true, 2012032705, 'local', 'ucla');
     }
     
+    // CCLE-2669 - Copyright Modifications - changed wording on tbd
+    if ($oldversion < 2012060402) {
+        require_once($CFG->libdir.'/licenselib.php');
+        
+        $license->shortname = 'tbd';
+        $license->fullname = 'Copyright status not yet identified';
+        $license->source = NULL;
+        $license->enabled = true;        
+        $license->version = '2012060400';
+        license_manager::add($license);        
+        license_manager::enable($license->shortname);
+        
+        // ucla savepoint reached
+        upgrade_plugin_savepoint(true, 2012060402, 'local', 'ucla');
+    }    
     
-    
-
-
     return $result;
 }
 

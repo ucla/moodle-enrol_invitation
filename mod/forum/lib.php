@@ -2991,6 +2991,21 @@ function forum_get_course_forum($courseid, $type) {
     }
     $DB->set_field("course_modules", "section", $sectionid, array("id" => $mod->coursemodule));
 
+    // UCLA MOD CCLE-3101: Forums created for courses should be private by
+    // default.
+    $publicprivatelib = $CFG->libdir . '/publicprivate/module.class.php';
+    if (file_exists($publicprivatelib)) {
+        require_once($publicprivatelib);
+
+        $ppc = new PublicPrivate_Course($courseid);
+        if ($ppc->is_activated()) {
+            $mod->id = $mod->coursemodule;
+            $ppm = new PublicPrivate_Module($mod->coursemodule);
+            $ppm->enable();
+        }
+    }
+    // END UCLA MOD
+
     include_once("$CFG->dirroot/course/lib.php");
     rebuild_course_cache($courseid);
 

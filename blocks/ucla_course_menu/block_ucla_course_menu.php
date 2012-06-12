@@ -136,25 +136,25 @@ class block_ucla_course_menu extends block_navigation {
                     array('class' => 'edit_control_links'));
         }
                        
-        // get non-module nodes
+        // get section nodes
         $section_elements = $this->create_section_elements();
-        $block_elements = $this->create_block_elements();
-        $elements = array_merge($section_elements, $block_elements);        
-        $elements = $this->trim_nodes($elements);        
-        $this->content->text .= $renderer->navigation_node($elements,
+        $section_elements = $this->trim_nodes($section_elements);        
+        $this->content->text .= $renderer->navigation_node($section_elements,
             array('class' => 'block_tree list'));
 
-        // Separate out module nodes so that we can have a different style
+        // Separate out non-section nodes so that we can have a different style
         // to them.
+        $block_elements = $this->create_block_elements();
         $module_elements = $this->create_module_elements();     
-        $module_elements = $this->trim_nodes($module_elements); 
+        $elements = array_merge($block_elements, $module_elements);                
+        $elements = $this->trim_nodes($elements); 
         
         // For some reason cannot use html_writer::start_tag/html_writer::end_tag
         // so use hard-coded HTML.
         // Need to use outside div, because cannot get styling to make 
         // background a different color to work with navigation_node class
         $this->content->text .= '<div class="module_elements_section">';       
-        $this->content->text .= $renderer->navigation_node($module_elements,
+        $this->content->text .= $renderer->navigation_node($elements,
             array('class' => 'block_tree list'));
         $this->content->text .= '</div>';        
         
