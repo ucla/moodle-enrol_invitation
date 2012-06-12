@@ -608,7 +608,7 @@ while ($section <= $course->numsections) {
                     $moodle_url = new moodle_url('edit.php', $url_options);
 
                     $img_options = array(
-                            'class' => 'icon edit',
+                            'class' => 'icon edit iconsmall',
                             'alt' => $streditsummary
                         );
 
