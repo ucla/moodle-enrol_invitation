@@ -19,7 +19,7 @@ $string['foodis_copyright'] = 'Copyright information';
 $string['foolin_copyright'] = $CFG->wwwroot . '/theme/uclashared/view.php?page=copyright';
 
 $string['foodis_uclalinks'] = 'UCLA links';
-$string['foolin_uclalinks'] = $CFG->wwwroot . '/theme/uclashared/view.php?page=links';
+$string['foolin_uclalinks'] = 'https://pilot.ccle.ucla.edu/course/view.php?id=110&topic=10';
 
 $string['foodis_school'] = 'UCLA home';
 $string['foolin_school'] = 'http://www.ucla.edu/';
