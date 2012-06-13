@@ -73,8 +73,21 @@ class ucla_synced_group {
         } else {
             $tsi = $this->sectioninfo;
 
-            $this->name = get_string('group_name', 'block_ucla_group_manager',
-                $tsi);
+            // Slightly not DRY
+            $groupnamefields = array('subj_area', 'coursenum', 'lectacttype', 
+                'lectnum', 'acttype', 'sectnum');
+    
+            $namestrs = array();
+            foreach ($groupnamefields as $groupnamefield) {
+                if (isset($tsi[$groupnamefield])) {
+                    $namestrs[] = $tsi[$groupnamefield];
+                }
+            }
+
+            $namestr = implode(' ', $namestrs);
+
+            // The name of this won't change...
+            $this->name = $namestr;
 
             $this->description = get_string('group_desc', 
                 'block_ucla_group_manager', $tsi);
@@ -122,6 +135,8 @@ class ucla_synced_group {
             if (!isset($this->membershipids[$moouid])) {
                 $this->membershipids[$moouid] = self::new_membership($moouid);
             }
+
+            groups_add_member($this->id, $moouid);
         }
     }
 

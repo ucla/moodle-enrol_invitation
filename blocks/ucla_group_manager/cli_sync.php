@@ -44,5 +44,8 @@ $results = null;
 if (isset($singlecourseid)) {
     $results = ucla_group_manager::sync_course($singlecourseid);
 } else {
+    // TODO work for selected terms
+    // TODO implement future terms
 
 }
+

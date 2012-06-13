@@ -27,4 +27,6 @@ function xmldb_block_ucla_group_manager_upgrade($oldversion=0) {
         // ucla_group_manager savepoint reached
         upgrade_block_savepoint(true, 2012060100, 'ucla_group_manager');
     }
+
+    return true;
 }
