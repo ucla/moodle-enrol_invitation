@@ -84,13 +84,20 @@ $CFG->instructor_levels_roles = array(
     )
 );
 
-// CCLE-2283: Friendly URLs
-// CCLE-2283: Redirect to archive (these have a high chance of changing)
-$CFG->forced_plugin_settings['local_ucla'] = array(
-    'friendly_urls_enabled' => false,
-    'remotetermcutoff' => '',
-    'archiveserver' => ''
-);
+// To enable friendly urls in your dev instance, please add the config values to
+// your config_private.php
+//// CCLE-2283: Friendly URLs
+//// CCLE-2283: Redirect to archive (these have a high chance of changing)
+//$CFG->forced_plugin_settings['local_ucla'] = array(
+//    'friendly_urls_enabled' => false,
+//    'remotetermcutoff' => '',
+//    'archiveserver' => ''
+//);
+
+// My Sites CCLE-2810
+// Term limiting
+$CFG->forced_plugin_settings['local_ucla']['student_access_ends_week'] = 3;
+$CFG->forced_plugin_settings['local_ucla']['oldest_available_term'] = '08S';
 
 // Browseby CCLE-2894
 $CFG->forced_plugin_settings['block_ucla_browseby']['use_local_courses'] = true;
@@ -126,7 +133,7 @@ $CFG->messaging = false;
 
 // CCLE-2763 - Use new $CFG->divertallemailsto setting in 1.9 and 2.x 
 // development/testing environments
-$CFG->divertallemailsto = 'ccle-operations@lists.ucla.edu';
+$CFG->divertallemailsto = 'ccle-email-test@lists.ucla.edu';
 
 // CCLE-2590 - Implement Auto-detect Shibboleth Login
 $CFG->shib_logged_in_cookie = '_ucla_sso';
@@ -236,10 +243,10 @@ $CFG->forced_plugin_settings['url']['printheading'] = 1;
 $CFG->forced_plugin_settings['url']['display'] = 5; // RESOURCELIB_DISPLAY_OPEN
 
 // Site administration > Plugins > Licences > Manage licences
-$CFG->sitedefaultlicense = 'iown';
+$CFG->sitedefaultlicense = 'tbd';
 
 // Site administration > Plugins > Repositories > Common repository settings
-$CFG->legacyfilesinnewcourses = 1;  // allow all course to enable legacy course files
+$CFG->legacyfilesinnewcourses = 0;  // disallow new course to enable legacy course files
 
 // Site administration > Security > Site policies
 $CFG->forceloginforprofiles = true; 
@@ -247,6 +254,12 @@ $CFG->forceloginforprofileimage = true; // temporary until "CCLE-2368 - PIX.PHP 
 $CFG->maxeditingtime = 900; // 15 minutes
 $CFG->fullnamedisplay = 'language'; // CCLE-2550 - Lastname, Firstname sorting
 $CFG->cronclionly = true;
+
+// Site administration > Security > HTTP security
+$CFG->allowframembedding = 1; // CCLE-3021 - enabled because some collab sites need to be embedded
+
+// Site administration > Appearance > Themes
+$CFG->theme = 'uclashared';
 
 // Site administration > Appearance > Navigation
 $CFG->defaulthomepage = 1;    // user's home page should be "My Moodle" (HOMEPAGE_MY)

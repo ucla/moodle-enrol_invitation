@@ -1,4 +1,3 @@
-
 <?php
 // This file is part of Moodle - http://moodle.org/
 //
@@ -40,7 +39,6 @@ $moodleroot = dirname(dirname(dirname(dirname(__FILE__))));
 require($moodleroot . '/config.php');
 require_once($CFG->dirroot . '/local/ucla/lib.php');
 require_once($CFG->dirroot . '/lib/clilib.php');
-
 
 list($options, $unrecognized) = cli_get_params(
     array(

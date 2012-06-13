@@ -136,6 +136,19 @@ if ($roles_in_file = roles_migration_get_incoming_roles()) {
                     print_error('shortname_to_replace_undefined');
                 }
 
+                // START UCLA MOD: CCLE-2662 - Roles Migration Local Plugin
+                // update role name, shortname, description, and archetype
+                // NOTE: cannot use specified 'sortorder' in xml file, because 
+                // of potential conflicts with unqiue sortorder index
+                $role_record->name         = $role->name;
+                $role_record->shortname    = $role->shortname;
+                $role_record->description  = $role->description;
+                $role_record->archetype    = $role->archetype;
+                if (!$DB->update_record('role', $role_record)) {
+                    print_error('error_update_role');                    
+                }                
+                // END UCLA MOD: CCLE-2662
+                
                 // ID or existing role
                 $role_id = $role_record->id;
 

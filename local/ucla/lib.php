@@ -5,8 +5,12 @@
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
-//require_once($CFG->libdir . '/uclalib.php');
+
 require_once($CFG->dirroot.'/lib/accesslib.php');
+
+// Contains our external-link generator thing
+require_once($CFG->dirroot.'/local/ucla/outputcomponents.php');
+
 /**
  *  @deprecated
  *  This will attempt to access this file from the web.
@@ -222,7 +226,7 @@ function ucla_map_courseid_to_termsrses($courseid) {
     global $DB;
 
     return $DB->get_records('ucla_request_classes', 
-        array('courseid' => $courseid), '', 'id, term, srs');
+        array('courseid' => $courseid), '', 'id, term, srs, hostcourse');
 }
 
 /**
@@ -265,7 +269,9 @@ function ucla_get_course_info($courseid) {
     $reginfos = array();
     $termsrses = ucla_map_courseid_to_termsrses($courseid);
     foreach ($termsrses as $termsrs) {
-        $reginfos[] = ucla_get_reg_classinfo($termsrs->term, $termsrs->srs);
+        $reginfoobj = ucla_get_reg_classinfo($termsrs->term, $termsrs->srs);
+        $reginfoobj->hostcourse = $termsrs->hostcourse;
+        $reginfos[] = $reginfoobj;
     }
 
     return $reginfos;
@@ -832,6 +838,140 @@ function terms_arr_sort($terms) {
 }
 
 /**
+ *  Checks if a particular shortname given is allowed to view the 
+ *  the particular term.
+ *  @param  $term           Term to check
+ *  @param  $roleshortname  Shortname of role
+ *  @param  $currterm       Term to use as current term
+ *  @param  $currweek       Week to use as current week
+ *  @param  $limitweek      Week to use as cut-off week
+ **/
+function term_role_can_view($term, $roleshortname, $currterm=null, 
+                            $currweek=null, $limitweek=null, $leastterm=null) {
+    // Nobody can see courses from non-terms
+    if (!ucla_validator('term', $term)) {
+        return false;
+    }
+
+    if ($leastterm === null) {
+        $leastterm = get_config('local_ucla', 'oldest_available_term');
+    }
+
+    if (ucla_validator('term', $leastterm)) {
+        if (term_cmp_fn($term, $leastterm) < 0) {
+            return false;
+        }
+    }
+
+    if ($limitweek === null) {
+        $limitweek = get_config('local_ucla', 'student_access_ends_week');
+    }
+    
+    if ($currweek === null) {
+        $currweek = get_config('local_ucla', 'current_week');
+    }
+
+    if ($currterm === null) {
+        $currterm = get_config(null, 'currentterm');
+    } 
+    
+    // find the maximum-access-role
+    // Check out CCLE-2834 for documentation and reasoning
+    $canviewprev = false;
+    if (in_array($roleshortname, array(
+                // Role-mapped course editors
+                'ta_admin', 'ta_instructor', 'editinginstructor', 
+                    'supervising_instructor',
+                // Site adjuncts
+                'sa_1', 'sa_2', 'sa_3', 'sa_4'
+            ))) {
+        $canviewprev = true;
+    }
+
+    // Either can see all terms or can see until week 2, the previous term
+    if ($canviewprev || term_cmp_fn($term, $currterm) >= 0 
+        || ($currweek < $limitweek
+            && term_cmp_fn($term, term_get_prev($currterm)) == 0)) {
+        // This should evaluate to true
+        return $term;
+    }
+
+    return false;
+}
+
+function terms_arr_fill($terms) {
+    $startterm = reset($terms);
+    $endterm = end($terms);
+
+    try {
+        $terms = terms_range($startterm, $endterm);
+    } catch (moodle_exception $e) {
+        debugging("Improper term(s): $startterm $endterm");
+    }
+
+    return $terms;
+}
+
+function terms_range($startterm, $endterm) {
+    if (!ucla_validator('term', $startterm) 
+            || !ucla_validator('term', $endterm)) {
+        throw new moodle_exception('invalidterm', 'local_ucla');
+    }
+
+    $terms = array($startterm);
+
+    if (term_cmp_fn($startterm, $endterm) == 0) {
+        return $terms;
+    }
+
+    // We can get a reverse range, so handle that
+    $reverse = false;
+    if (term_cmp_fn($startterm, $endterm) > 0) {
+        $reverse = $startterm;
+        $startterm = $endterm;
+        $endterm = $reverse;
+    }
+
+    $nextterm = term_get_next($startterm);
+    $terms[] = $nextterm;
+
+    while (term_cmp_fn($nextterm, $endterm) < 0) {
+        $nextterm = term_get_next($nextterm);
+        $terms[] = $nextterm;
+    }
+
+    if ($reverse !== false) {
+        $terms = array_reverse($terms);
+    }
+
+    return $terms;
+}
+
+/**
+ *  Wrapper for block_weekdisplay.
+ *  Takes in a UCLA term (Ex: 11F) and returns the term after it.
+ * 
+ *  @param current_term a valid term string (Ex: '11F')
+ *  @return the term after the current term.
+ **/       
+function term_get_next($term) {
+    return block_method_result('ucla_weeksdisplay', 'get_next_term', 
+        $term);
+}
+
+/**
+ *  Wrapper for block_weekdisplay.
+ *  Takes in a UCLA term (Ex: 11F) and returns the term before it.
+ * 
+ *  @param current_term a valid term string (Ex: '11F')
+ *  @return the term after the current term.
+ **/       
+function term_get_prev($term) {
+    return block_method_result('ucla_weeksdisplay', 'get_prev_term',
+        $term);
+}
+
+/**
  *  PHP side function to order terms.
  *  @param  $term   term
  *  @return string sortable term
@@ -841,14 +981,24 @@ function term_enum($term) {
         print_error('improperenum');
     }
     
+    // assumption: 65F is the oldest term that registrar has
+    // so treat years 65 and older as 19XX and years before as 20XX
+    $year = (int) substr($term, 0, -1);
+    if ($year < 65) {
+        $year = str_pad($year, 2, '0', STR_PAD_LEFT); // fixes year 00-09 problems
+        $year = '20' . $year;
+    } else {
+        $year = '19' . $year;
+    }
+    
     $r = array(
         'W' => 0,
         'S' => 1,
         '1' => 2,
         'F' => 3
     );
-
-    return substr($term, 0, -1) . $r[$term[2]];
+    
+    return $year . $r[$term[2]];
 }
 
 /**
@@ -856,17 +1006,17 @@ function term_enum($term) {
  *  @param  $term   The first
  *  @param  $term   The second
  *  @return 
- *      first > second return -1
+ *      first > second return 1
  *      first == second return 0
- *      first < second return 1
+ *      first < second return -1
  **/
 function term_cmp_fn($term, $other) {
     $et = term_enum($term);
     $eo = term_enum($other);
     if ($et > $eo) {
-        return -1;
-    } else if ($et < $eo) {
         return 1;
+    } else if ($et < $eo) {
+        return -1;
     } else {
         return 0;
     }
@@ -893,13 +1043,14 @@ function is_collab_site($course) {
  *  Returns whether or not the user is the role specified by the role_shortname
  *  in the role table
  * 
- * @param $role_shortname the name of the role's shortname entry in the db table
+ * @param $role_shortname   String or array. If string, then the role's 
+ *                          shortname. Else if array, then an array of role 
+ *                          shortnames
  * @param $context the context in which to check the roles.
  * 
  * @return boolean true if the user has the role in the context, false otherwise
  **/
-function has_role_in_context($role_shortname, $context) {
-    
+function has_role_in_context($role_shortname, $context) {    
     global $DB;
     $does_role_exist = $DB->get_records('role', array('shortname'=>$role_shortname));
     if(empty($does_role_exist)) {
@@ -907,10 +1058,14 @@ function has_role_in_context($role_shortname, $context) {
         return false;
     }
     
+    // cast $role_shortname as array, if not already
+    if (!is_array($role_shortname)) {
+        $role_shortname = array($role_shortname);
+    }
+    
     $roles_result = get_user_roles($context);
-
     foreach($roles_result as $role) {
-        if($role->shortname == $role_shortname) {
+        if(in_array($role->shortname, $role_shortname)) {
             return true;
         }
     } 

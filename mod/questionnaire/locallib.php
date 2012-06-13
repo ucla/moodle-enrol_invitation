@@ -2402,7 +2402,10 @@ class questionnaire {
             $groupid = -1;
         }
         $output = array();
-        $nbinfocols = 9; // change this if you want more info columns
+        // BEGIN UCLA MOD: CCLE-2596 - add UCLA UID to Questionnaire download
+        //$nbinfocols = 9; // change this if you want more info columns
+        $nbinfocols = 10; // change this if you want more info columns
+        // END UCLA MOD: CCLE-2596        
         $stringother = get_string('other', 'questionnaire');
         $columns = array(
                 get_string('response','questionnaire'),
@@ -2413,6 +2416,9 @@ class questionnaire {
                 get_string('group'),
                 get_string('id','questionnaire'),
                 get_string('fullname'),
+                // BEGIN UCLA MOD: CCLE-2596 - add UCLA UID to Questionnaire download
+                get_string('idnumber'),
+                // END UCLA MOD: CCLE-2596            
                 get_string('username')
             );
 
@@ -2425,6 +2431,9 @@ class questionnaire {
                 1,
                 0,
                 1,
+                // BEGIN UCLA MOD: CCLE-2596 - add UCLA UID to Questionnaire download
+                1,
+                // END UCLA MOD: CCLE-2596              
                 1,
             );
 
@@ -2663,7 +2672,7 @@ class questionnaire {
                     $courseid = $this->course->id;
                     $coursename = $this->course->fullname;
                 }
-            }
+            }            
             /// Moodle:
             //  If the username is numeric, try it as a Moodle user id.
             if (is_numeric($username)) {
@@ -2671,6 +2680,9 @@ class questionnaire {
                     $uid = $username;
                     $fullname = fullname($user);
                     $username = $user->username;
+                    // BEGIN UCLA MOD: CCLE-2596 - add UCLA UID to Questionnaire download
+                    $uidnumber = $user->idnumber;
+                    // END UCLA MOD: CCLE-2596    
                 }
             }
 
@@ -2697,6 +2709,9 @@ class questionnaire {
                 $fullname =  get_string('anonymous', 'questionnaire');
                 $username = '';
                 $uid = '';
+                // BEGIN UCLA MOD: CCLE-2596 - add UCLA UID to Questionnaire download
+                $uidnumber = '';
+                // END UCLA MOD: CCLE-2596                
             }
             $arr = array();
             array_push($arr, $qid);
@@ -2707,6 +2722,9 @@ class questionnaire {
             array_push($arr, $groupname);
             array_push($arr, $uid);
             array_push($arr, $fullname);
+            // BEGIN UCLA MOD: CCLE-2596 - add UCLA UID to Questionnaire download
+            array_push($arr, $uidnumber);
+            // END UCLA MOD: CCLE-2596            
             array_push($arr, $username);
 
             // merge it

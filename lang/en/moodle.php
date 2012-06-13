@@ -1050,8 +1050,10 @@ $string['movedown'] = 'Move down';
 $string['movefilestohere'] = 'Move files to here';
 $string['movefull'] = 'Move {$a} to this location';
 $string['movehere'] = 'Move to here';
-$string['moveleft'] = 'Move left';
-$string['moveright'] = 'Move right';
+// START UCLA MOD CCLE-2803: better editing icons or icons to text
+$string['moveleft'] = 'Unindent';
+$string['moveright'] = 'Indent';
+// END UCLA MOD
 $string['movesection'] = 'Move section {$a}';
 $string['moveselectedcoursesto'] = 'Move selected courses to...';
 $string['movetoanotherfolder'] = 'Move to another folder';

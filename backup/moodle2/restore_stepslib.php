@@ -1012,7 +1012,11 @@ class restore_section_structure_step extends restore_structure_step {
         $section->section = $data->number;
         // Section doesn't exist, create it with all the info from backup
         if (!$secrec = $DB->get_record('course_sections', (array)$section)) {
-            $section->name = $data->name;
+            // START UCLA MOD CCLE-3060 - restore m1.9 section name from <title>
+            //$section->name = $data->name;
+            $section->name = (empty($data->name) && !empty($data->title)) 
+                    ? $data->title : $data->name;
+            // END UCLA MOD CCLE-3060
             $section->summary = $data->summary;
             $section->summaryformat = $data->summaryformat;
             $section->sequence = '';
