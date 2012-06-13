@@ -4445,7 +4445,7 @@ function forum_delete_post($post, $children, $course, $cm, $forum, $skipcompleti
 
     $context = get_context_instance(CONTEXT_MODULE, $cm->id);
 
-    if ($children != 'ignore' && ($childposts = $DB->get_records('forum_posts', array('parent'=>$post->id)))) {
+    if ($children !== 'ignore' && ($childposts = $DB->get_records('forum_posts', array('parent'=>$post->id)))) {
        if ($children) {
            foreach ($childposts as $childpost) {
                forum_delete_post($childpost, true, $course, $cm, $forum, $skipcompletion);
@@ -5468,7 +5468,8 @@ function forum_print_latest_discussions($course, $forum, $maxdiscussions=-1, $di
 
                 $discussion->forum = $forum->id;
 
-                forum_print_post($discussion, $discussion, $forum, $cm, $course, $ownpost, 0, $link, false);
+                forum_print_post($discussion, $discussion, $forum, $cm, $course, $ownpost, 0, $link, false,
+                        '', null, true, $forumtracked);
             break;
         }
     }

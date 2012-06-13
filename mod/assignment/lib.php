@@ -415,6 +415,14 @@ class assignment_base {
         return $submitted;
     }
 
+    /**
+     * Returns whether the assigment supports lateness information
+     *
+     * @return bool This assignment type supports lateness (true, default) or no (false)
+     */
+    function supports_lateness() {
+        return true;
+    }
 
     /**
      * @todo Document this function
@@ -1409,6 +1417,7 @@ class assignment_base {
             $offset = $page * $perpage;
             $strupdate = get_string('update');
             $strgrade  = get_string('grade');
+            $strview  = get_string('view');
             $grademenu = make_grades_menu($this->assignment->grade);
 
             if ($ausers !== false) {
@@ -1442,8 +1451,8 @@ class assignment_base {
                             if ($auser->timemodified > 0) {
                                 $studentmodifiedcontent = $this->print_student_answer($auser->id)
                                         . userdate($auser->timemodified);
-                                if ($assignment->timedue && $auser->timemodified > $assignment->timedue) {
-                                    $studentmodifiedcontent .= assignment_display_lateness($auser->timemodified, $assignment->timedue);
+                                if ($assignment->timedue && $auser->timemodified > $assignment->timedue && $this->supports_lateness()) {
+                                    $studentmodifiedcontent .= $this->display_lateness($auser->timemodified);
                                     $rowclass = 'late';
                                 }
                             } else {
@@ -1525,6 +1534,9 @@ class assignment_base {
                         }
 
                         $buttontext = ($auser->status == 1) ? $strupdate : $strgrade;
+                        if ($final_grade->locked or $final_grade->overridden) {
+                            $buttontext = $strview;
+                        }
 
                         ///No more buttons, we use popups ;-).
                         $popup_url = '/mod/assignment/submissions.php?id='.$this->cm->id
@@ -1981,8 +1993,14 @@ class assignment_base {
      * @return array
      */
     function get_graders($user) {
+        global $DB;
+
         //potential graders
-        $potgraders = get_users_by_capability($this->context, 'mod/assignment:grade', '', '', '', '', '', '', false, false);
+        list($enrolledsql, $params) = get_enrolled_sql($this->context, 'mod/assignment:grade', 0, true);
+        $sql = "SELECT u.*
+                  FROM {user} u
+                  JOIN ($enrolledsql) je ON je.id = u.id";
+        $potgraders = $DB->get_records_sql($sql, $params);
 
         $graders = array();
         if (groups_get_activity_groupmode($this->cm) == SEPARATEGROUPS) {   // Separate groups are being used
@@ -3611,6 +3629,7 @@ function assignment_types() {
 
 function assignment_print_overview($courses, &$htmlarray) {
     global $USER, $CFG, $DB;
+    require_once($CFG->libdir.'/gradelib.php');
 
     if (empty($courses) || !is_array($courses) || count($courses) == 0) {
         return array();
@@ -3679,6 +3698,9 @@ function assignment_print_overview($courses, &$htmlarray) {
                                       assignment $sqlassignmentids", array_merge(array($USER->id), $assignmentidparams));
 
     foreach ($assignments as $assignment) {
+        $grading_info = grade_get_grades($assignment->course, 'mod', 'assignment', $assignment->id, $USER->id);
+        $final_grade = $grading_info->items[0]->grades[$USER->id];
+
         $str = '<div class="assignment overview"><div class="name">'.$strassignment. ': '.
                '<a '.($assignment->visible ? '':' class="dimmed"').
                'title="'.$strassignment.'" href="'.$CFG->wwwroot.
@@ -3712,9 +3734,9 @@ function assignment_print_overview($courses, &$htmlarray) {
 
                 $submission = $mysubmissions[$assignment->id];
 
-                if ($submission->teacher == 0 && $submission->timemarked == 0) {
+                if ($submission->teacher == 0 && $submission->timemarked == 0 && !$final_grade->grade) {
                     $str .= $strsubmitted . ', ' . $strnotgradedyet;
-                } else if ($submission->grade <= 0) {
+                } else if ($submission->grade <= 0 && !$final_grade->grade) {
                     $str .= $strsubmitted . ', ' . $strreviewed;
                 } else {
                     $str .= $strsubmitted . ', ' . $strgraded;
