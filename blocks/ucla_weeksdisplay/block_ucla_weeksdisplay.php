@@ -179,8 +179,6 @@ class block_ucla_weeksdisplay extends block_base {
         
         set_config('currentterm', $current_term);
         set_config('active_terms', $term_string, 'local_ucla');
-        set_config('terms', $term_string, 'tool_uclacourserequestor');
-        set_config('terms', $term_string, 'tool_uclacoursecreator');
     }
    /**
     * Returns the current_week_display string associated with the date and sessions.

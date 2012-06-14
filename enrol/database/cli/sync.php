@@ -124,7 +124,7 @@ if ($singlecourseid !== false) {
 
     // If use the terms in enrol_database configuration
     if (empty($terms)) {
-        $terms = get_config('enrol_database', 'terms');
+        $terms = get_active_terms();
     }
 }
 
