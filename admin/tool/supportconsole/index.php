@@ -1,85 +1,35 @@
 <?php
-###########################################
-# Name: console.php
-# Purpose: 1st attempt at a Support Console
-# Usage: restricted to those with access to class_requestor
-#
-# To Do: add queries as needed, use the Count of Moodle Log Entries sections as models since they auto-display the column headings
-# NOTE: Some of these reports will require configuration to your local log locations, databases, etc.
+/**
+ *  Purpose: 1st attempt at a Support Console
+ *  Usage: restricted to those with access to class_requestor
+ **/
 
-//Only Allow Admin Users
-require_once("../../../config.php");
-require_once($CFG-> libdir.'/adminlib.php');
-require_once($CFG-> libdir.'/tablelib.php');
+require_once(dirname(__FILE__) . "/../../../config.php");
+require_once($CFG->libdir . '/adminlib.php');
+require_once($CFG->dirroot . '/local/ucla/lib.php');
+require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/supportconsole/lib.php');
 
-require_once($CFG-> dirroot . '/local/ucla/lib.php');
+// Force debugging errors 
 error_reporting(E_ALL); 
 ini_set( 'display_errors','1');
 
-if (!isset($_POST['console']) || ($_POST['console'] !== "Show Logs: Last 1000 Lines of ")) {
-    admin_externalpage_setup('reportsupportconsole');
-    echo $OUTPUT->header();
-}
+$consolecommand = optional_param('console', null, PARAM_ALPHAEXT);
+$displayforms = empty($consolecommand);
+$alldata = data_submitted();
+
+admin_externalpage_setup('reportsupportconsole');
 
 require_login();
-require_capability('moodle/site:viewreports', get_context_instance(CONTEXT_SYSTEM));
+require_capability('moodle/site:viewreports', 
+    get_context_instance(CONTEXT_SYSTEM));
 
-if (empty($SERVER{'HTTP_SHIB_UID'})) {
-    $id = NULL;
-    $displayname = NULL;
-} else {
-    $id =  $_SERVER{'HTTP_SHIB_UID'};
-    $displayname =  $_SERVER{'HTTP_SHIB_CN'};
-    if(!isset($displayname)) {
-        $displayname = '';
-    }
-    # authorization is handled at the directory level by Shib/Apache config in /etc/httpd/conf.d/shib.conf
-}
-// createTable creates a sortable table
-// Inputs $result_keys = an array of strings to be the header of the table
-//	 $result_val = an array of an array of strings or Object of strings that will be used to fill the table
-function createTable($result_keys, $result_val)
-{?>
-<style type="text/css">
-.user.r1.cell {margin-top:2cm;}
-</style>
-<?php
-    global $CFG;
-    $table = new html_table();
-    $table->attributes['id']='myTable';
-    $table->id='myTable';
-    $table->attributes['class']='tablesorter';
-    $table-> head= $result_keys;
-    foreach ($result_val as $res){
-	if($res instanceof stdClass){
-        	$row=array_values(get_object_vars($res));}
-        else{
-        	$row=array_values($res);
-	}
-    $table->data[] = $row;
-    }
-    echo html_writer::table($table);
-    ?>
- 	<script src="http://jquery.com/src/jquery-latest.js"></script>
-	<link rel="stylesheet" type="text/css" href="<?php echo $CFG->wwwroot;?>/local/ucla/tablesorter/themes/blue/style.css" />
-	<script type="text/javascript" src="<?php echo $CFG->wwwroot;?>/local/ucla/tablesorter/jquery-latest.js"></script>
-	<script type="text/javascript" src="<?php echo $CFG->wwwroot;?>/local/ucla/tablesorter/jquery.tablesorter.js"></script>
-	<script type="text/javascript">
-    		$(document).ready(function() 
-    		{ 
-       			$("#myTable").tablesorter();//{widthFixed: true}); 
-    		} 
-    		); 
-	
-</script>
-<?php
-}
+// The primary goal is to keep as much as possible in one script
+$consoles = new tool_supportconsole_manager();
 
-if (empty($_POST['console'])) {
-	?><ol><?php
-}
 ////////////////////////////////////////////////////////////////////
-$title=" Show Logs: Last 1000 Lines of ";
+// CHECKING LOGS 
+////////////////////////////////////////////////////////////////////
+$title = "syslogs";
 $log_names = array('Apache Error'           => 'log_apache_error',
                    'Apache Access'          => 'log_apache_access',
                    'Apache SSL Access'      => 'log_apache_ssl_access',
@@ -87,9 +37,6 @@ $log_names = array('Apache Error'           => 'log_apache_error',
                    'Apache SSL Request'     => 'log_apache_ssl_request',
                    'Shibboleth Daemon'      => 'log_shibboleth_shibd',
                    'Shibboleth Transaction' => 'log_shibboleth_trans',
-                   'IMS Enterprise'         => 'enrol_logtolocation',
-                   'Course Creator'         => 'log_course_creator',
-                   'Course Creator Error'   => 'log_course_creator_error',
                    'Moodle Cron'            => 'log_moodle_cron');
 
 // START UCLA MODIFCATION SSC #769 - More configurable and dynamic paths for log files
@@ -101,641 +48,436 @@ foreach ($log_names as $log_title => $cfg_var) {
     }
 }
 
-if (empty($_POST['console'])) {
-?>
-	<li>
-    <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-        <input type="submit" name="console" value="<?php echo $title; ?>">
-        <select name="logname">
-	</li>
+$sectionhtml = '';
 
-<?php
-    foreach ($optnames as $logfile => $enable) {
-        if ($enable) {
-            echo "<option value=\"" . $log_names[$logfile] . "\">$logfile</option>\n";
-        } else {
-            echo "<option value=\"" . $log_names[$logfile] . "\" disabled>$logfile</option>\n";
+if ($displayforms) {
+    $logselects = array();
+    foreach ($optnames as $logname => $enable) {
+        $attarr = array(
+                'value' => $logname
+            );
+        if (!$enable) {
+            $attarr['disabled'] = true;
         }
-    } 
-?>
-        </select>
-        If an option is disabled, it means no log file was found.
-    </form>
 
-<?php
-} else if ($_POST['console'] == "$title") {
-    $logfile = preg_replace('/[^a-zA-Z_]/', '', $_POST['logname']);
+        $logselects[$logname] = html_writer::tag('option', 
+            $logname, $attarr);
+    } 
+
+    $logselect = html_writer::label('Select a log file', 'log-select')
+        . html_writer::tag('select', implode('', $logselects),
+            array('name' => 'logname', 'id' => 'log-select'));
+
+    $sectionhtml = supportconsole_simple_form($title, $logselect)   
+        . html_writer::tag('p', 'If a selection is disabled, then the corresponding log file was not found.');
+} else if ($consolecommand == $title) {
+    ob_start();
+    $log_file = required_param('logname', PARAM_ALPHAEXT);
 
     if (empty($logfile) || !preg_grep("/^$logfile$/", $log_names)) { 
-        echo "Invalid logfile name. $logfile <br>\n";
+        echo "Invalid logfile name. $logfile\n";
         exit;
     }
     
-    header('Content-type: text/plain');
-    echo $title . " " . $CFG->$logfile . "*\n";
-    echo "  Output is plain text instead of html to avoid interpretting html in log files. ";
-    echo "Use Browser Back Button to return to Console.\n\n";
+    echo $CFG->$logfile . "*\n";
    
     // Use the specified CFG variable to display the log names.
     $tail_command = "/usr/bin/tail -1000 ";
     system($tail_command . '`ls -t ' . $CFG->$logfile . '* | /usr/bin/head -1`');
-    exit;
+
+    $sectionhtml = htmlspecialchars(ob_get_clean());
 } 
-////////////////////////////////////////////////////////////////////
-if (file_exists("/logs/prepop_db")) {
-    $title=" List Prepopulate Cron Job Output Logfiles ";
-    if (empty($_POST['console'])) { 
-?>
-        <li>
-    <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-        <input type="submit" name="console" value="<?php echo $title; ?>">
-    </form>
-        </li>
-<?php
-    } elseif ($_POST['console'] == "$title") { 
-        echo "<h3>$title</h3>\n";
-        echo "<pre>\n";
-        system("ls -alt {$CFG->log_prepop_folder}/prepop_*");     //missing file
-        echo "</pre>\n";
+$consoles->push_console_html('logs', $title, $sectionhtml);
 
-    } 
-    
 ////////////////////////////////////////////////////////////////////
-    $title=" List Most Recent Prepopulate Cron Job Output ";
-    if (empty($_POST['console'])) { 
-?>
-        <li>
-    <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-        <input type="submit" name="console" value="<?php echo $title; ?>">
-    </form>
-        </li>
-<?php 
-    } elseif ($_POST['console'] == "$title") { 
-        echo "<h3>$title</h3>\n";
-        system("ls -alt {$CFG->log_prepop_folder}/prepop_* | head -1");   //missing file
-        echo "<pre>\n";
-        passthru("ls -t {$CFG->log_prepop_folder}/prepop_* | head -1 | xargs cat");   //missing file
+$title="prepopfiles";
+$sectionhtml = '';
+if ($displayforms) { 
+    $sectionhtml = supportconsole_simple_form($title);
+} else if ($consolecommand == "$title") { 
+    ob_start();
+    echo "<pre>\n";
+    system("ls -alt {$CFG->log_prepop_folder}/prepop_*");
+    echo "</pre>\n";
+    $sectionhtml = ob_end_clean();
+} 
+$consoles->push_console_html('logs', $title, $sectionhtml);
 
-        echo "</pre>\n";
-    }
+////////////////////////////////////////////////////////////////////
+$title = "prepopview";
+$sectionhtml = '';
+if ($displayforms) {
+    $sectionhtml = supportconsole_simple_form($title);
+} else if ($consolecommand == "$title") { 
+    ob_start();
+    system("ls -alt {$CFG->log_prepop_folder}/prepop_* | head -1");
+    echo "<pre>\n";
+    passthru("ls -t {$CFG->log_prepop_folder}/prepop_* | head -1 | xargs cat");
+    echo "</pre>\n";
+    $sectionhtml = ob_end_clean();
 }
+$consoles->push_console_html('logs', $title, $sectionhtml);
+
 ////////////////////////////////////////////////////////////////////
-$title=" Show Role Assignments Distribution ";
-if (empty($_POST['console'])) { 
-?>
-        <li>
-    <form method="post" action="<?php echo $_SERVER['PHP_SELF']; ?>">
-        <input type="submit" name="console" value="<?php echo $title; ?>">
-    </form>
-        </li>
-<?php
-} elseif ($_POST['console'] == "$title") { 
-    echo "<h3>$title</h3>\n";
-    
-   /*$db_moodle = mysql_connect($CFG->dbhost,$CFG->dbuser,$CFG->dbpass)
-        or die("Unable to connect to Moodle DB server {$CFG->dbhost}");
-     mysql_select_db($CFG->dbname, $db_moodle) 
-        or die("Unable to select DB {$CFG->dbname}");
-   */
+$title = 'moodlelog';
+$sectionhtml = '';
 
-    $result=$DB->get_records_sql("select b.id,b.name,b.shortname,component,count(*) as cnt from {$CFG->prefix}role_assignments a left join {$CFG->prefix}role b on(a.roleid=b.id) group by component,roleid");
-//  $coursers = mysql_query("select id,idnumber from {$CFG->prefix}course where idnumber like '$term-$srs%'", $db_moodle) or die("Unable to get     course IDs from Moodle: " . mysql_error());
-    $result_val=array_values($result);
-    $result_keys=array_keys(get_object_vars($result_val[0]));
+if ($displayforms) { 
+    $actions = $DB->get_records('log', array(), '', 'DISTINCT action');
+    $checkboxes = array();
 
-$admin_result=$CFG->siteadmins;
-if(empty($admin_result)& empty($result))
-{
-   html_writer::error_text("There are no enrollments");
-}
-$counter=0;
-foreach( $result_val as $res){
-        if($res->component == '')
-        {
-            $res->component='manual';
+    $sm = get_string_manager();
+    foreach ($actions as $action) {
+        $action = $action->action;
+        $stringid = $action . '_description';
+        if ($sm->string_exists($stringid, 'tool_supportconsole')) {
+            $actiondesc = get_string($stringid, 'tool_supportconsole');
+        } else {
+            $actiondesc = $action;
         }
-	unset($res->id);
-        $result_val[$counter]=$res;
-        $counter++;
-}
 
-    $admin_cnt=count(explode(',',$admin_result));
-    $adminObj= new stdClass;
-    $adminObj->name = 'Admin';
-    $adminObj->shortname = 'admin';
-    $adminObj->component = 'manual';
-    $adminObj->cnt=$admin_cnt;
-    array_unshift($result_val,$adminObj);
-unset($result_keys[0]);
+        // Todo descriptions
+        $checkboxes[] = html_writer::tag('li', 
+            html_writer::checkbox('actiontypes[]', $action, 
+                false, $actiondesc));
 
-createTable($result_keys,$result_val);
-} 
-////////////////////////////////////////////////////////////////////
-$title=" Show Last 100 Log Entries ";
-if (empty($_POST['console'])) { 
-?>
-        <li>
-    <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-        <input type="submit" name="console" value="<?php echo $title; ?>">
-        <!-- Start UCLA SSC MOD #619-->
-        <input type="radio" name="radio" value="all" CHECKED>All
-        <input type="radio" name="radio" value="admin">Admin Config Changes
-        <input type="radio" name="radio" value="gradebooktrue">Gradebook Successes
-        <input type="radio" name="radio" value="gradebookfalse">Gradebook Failures
-        <!-- End UCLA SSC MOD #619--> 
-    </form>
-        </li>
-<?php
-} elseif ($_POST['console'] == "$title") { 
-    //START UCLA SSC MODIFICATION #619
-    // START SSC MODIFICATION #1095
-    echo "<h3>$title";
-    $log_query = '';
-    if ($_POST['radio'] == "all") {
-	$gradebookradio = false;
-        $log_query = "select
-	    a.id, 
+    }
+
+    $sectionhtml = supportconsole_simple_form($title, 
+        html_writer::label('Select which types of log entries to view', 
+                'log-action-types')
+            . html_writer::tag('ul', implode('', $checkboxes), 
+                array('id' => 'log-action-types')));
+} elseif ($consolecommand == "$title") { 
+    $actions = required_param_array('actiontypes', PARAM_TEXT);
+    list($sql, $params) = $DB->get_in_or_equal($actions);
+    $wheresql = 'action ' . $sql;
+    $log_query = "
+        select
+            a.id, 
             from_unixtime(time) as time,
             b.firstname,
             b.lastname,
             ip,
             c.shortname,
+            c.id as courseid,
             module,
             action
-        from {$CFG->prefix}log a
-        left join {$CFG->prefix}user b on (a.userid=b.id)
-        left join {$CFG->prefix}course c on (a.course=c.id)
-        order by a.id desc limit 100";
-    
-    } else if($_POST['radio'] == "admin") {
-        echo " of Admin Config Changes\n";
-	$gradebookradio= false;
-        $log_query = "select a.id, from_unixtime(time) as time, a.userid, b.firstname,b.lastname,ip,info
-        from {$CFG->prefix}log a
-        left join {$CFG->prefix}user b on (a.userid=b.id)
-        where a.module='ucla admin' and a.action='config change'
-        order by a.id desc limit 100";
-    } else if ($_POST['radio'] == 'gradebooktrue') {
-        echo " of MyUCLA Gradebook successful pushes";
-	$gradebookradio= true;
-        $log_query = "select 
-	    a.id,
-            from_unixtime(time) as time, 
-            b.firstname, 
-            b.lastname, 
-            ip, 
-            info,
-	    a.course,
-	    c.shortname
-        from {$CFG->prefix}log a
-        left join {$CFG->prefix}user b on (a.userid = b.id)
-        left join {$CFG->prefix}course c on (a.course = c.id)
-        where a.action LIKE 'Gradebook push success'
-        order by a.id desc limit 200";
-    } else if ($_POST['radio'] == 'gradebookfalse') {
-        echo " of MyUCLA Gradebook failed pushes";
-	$gradebookradio= true;
-        $log_query = "select 
-            a.id,
-	    from_unixtime(time) as time, 
-            b.firstname, 
-            b.lastname, 
-            ip, 
-            info,
-	    a.course,
-	    c.shortname
-        from {$CFG->prefix}log a
-        left join {$CFG->prefix}user b on (a.userid = b.id)
-        left join {$CFG->prefix}course c on (a.course = c.id)
-        where a.action LIKE 'Gradebook push failure'
-        order by a.id desc limit 200";
+        from {log} a
+        left join {user} b on (a.userid = b.id)
+        left join {course} c on (a.course = c.id)
+        where $wheresql
+        order by a.id desc limit 100
+    ";
+
+    $results = $DB->get_records_sql($log_query, $params);
+
+    foreach ($results as $k => $result) {
+        if (!empty($result->courseid) && !empty($result->shortname)) {
+            $result->shortname = html_writer::link(
+                    new moodle_url('/course/view.php', 
+                        array('id' => $result->courseid)),
+                    $result->shortname
+                );
+            $results[$k] = $result;
+        }
     }
-    echo "</h3>";
-/*
-    $db_moodle = mysql_connect($CFG->dbhost,$CFG->dbuser,$CFG->dbpass)
-        or die("Unable to connect to Moodle DB server {$CFG->dbhost}");
-     mysql_select_db($CFG->dbname, $db_moodle) 
-        or die("Unable to select DB {$CFG->dbname}");
 
-    //END UCLA SSC MODIFICATION #619
-    $result=mysql_query($log_query, $db_moodle)
-        or die(mysql_error());
-*/
-
-  $result=$DB->get_records_sql($log_query);
-if(empty($result))
-{
-	echo"No results were found";
-}
-else
-{
-$result_val=array_values($result);
-$result_keys=array_keys(get_object_vars($result_val[0]));
-
-unset($result_keys[0]);
-if($gradebookradio ==true)
-{
-   unset($result_keys[7]);
-   $result_keys[6]='url';
-}
-$counter=0;
-foreach($result_val as $res)
-{
-        if($gradebookradio==true)
-        {
-		$res->course=html_writer::link(new moodle_url('/course/view.php', array('id'=>$res->id)), $res->shortname,array('target'=>'_blank'));
-;
-                unset($res->shortname);
-        }
-        unset($res->id);
-	$result_val[$counter]= $res;
-	$counter++;
-}
-createTable($result_keys,$result_val);
-}
-    // END UCLA SSC MODIFICATION #1095a
+    $sectionhtml = supportconsole_render_section_shortcut($title, $results,
+        $params);
 } 
+$consoles->push_console_html('logs', $title, $sectionhtml);
+
 ////////////////////////////////////////////////////////////////////
-$title=" Show Logins During Last 24 Hours ";
-if (empty($_POST['console'])) { 
-?>
-        <li>
-    <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-        <input type="submit" name="console" value="<?php echo $title; ?>">
-    </form>
-        </li>
-<?php
-} elseif ($_POST['console'] == "$title") { 
-    echo "<h3>$title</h3>\n";
-     $log_query="select a.id, from_unixtime(time) as Time,b.Firstname,b.Lastname,IP,a.URL,Info
-        from {$CFG->prefix}log a 
-        left join {$CFG->prefix}user b on(a.userid=b.id)
+$title='moodlelogins';
+$sectionhtml = '';
+if ($displayforms) { 
+    $sectionhtml = supportconsole_simple_form($title);
+} else if ($consolecommand == "$title") { 
+    ob_start();
+    $log_query = "
+        select 
+            a.id, 
+            from_unixtime(time) as Time,
+            b.Firstname,
+            b.Lastname,
+            IP,
+            a.URL,
+            Info
+        from {log} a 
+        left join {user} b on(a.userid=b.id)
         where from_unixtime(time)  >= DATE_SUB(CURDATE(), INTERVAL 1 DAY) and action='login'
-        order by a.id desc";
-	$result=$DB->get_records_sql($log_query);
-if(empty($result))
-{
-        echo"No results were found";
-}
-else
-{
-$result_val=array_values($result);
-$result_keys=array_keys(get_object_vars($result_val[0]));
+        order by a.id desc
+        ";
 
-unset($result_keys[0]);
-$counter=0;
-foreach($result_val as $res)
-{
-	unset($res->id);
-	$res->url=html_writer::link(new moodle_url("/user/$res->url"), "$res->firstname $res->lastname",array('target'=>'_blank'));
-;
-	$result_val[$counter]=$res;
-	$counter++;
-}
-        $num_rows = sizeof($result);
-        if ($num_rows === 1) {
-            echo "There was 1 login.<P>";
-        }
-        else {
-            echo "There were $num_rows logins.<P>";
-        }
-createTable($result_keys,$result_val);
-}
+    $result = $DB->get_records_sql($log_query);
+
+    foreach($result as $k => $res) {
+        unset($res->id);
+        $res->url = html_writer::link(new moodle_url("/user/$res->url"), 
+            "$res->firstname $res->lastname", array('target'=>'_blank'));
+        $result[$k] = $res;
+    }
+
+    echo supportconsole_render_table_shortcut($result, $title);
+
+    $sectionhtml = ob_get_clean();
 } 
+$consoles->push_console_html('logs', $title, $sectionhtml);
+
 ////////////////////////////////////////////////////////////////////
-$title=" Count of Moodle Log by Day ";
-if (empty($_POST['console'])) { 
-?>
-        <li>
-    <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-        <input type="submit" name="console" value="<?php echo $title; ?>">
-        Days: <input type="textfield" name="days" size="3" VALUE="7">
-        <input type="radio" name="radio" value="login" CHECKED>Logins
-        <input type="radio" name="radio" value="entries">Log Entries
-    </form>
-        </li>
-<?php
+// TODO Combine this one with the next one
+$title = 'moodlelogbyday';
+$sectionhtml = '';
+if ($displayforms) { 
+    $choiceshtml = html_writer::label('Days', 'days')
+        . html_writer::empty_tag('input', array(
+                'id' => 'days',
+                'type' => 'text',
+                'name' => 'days',
+                'value' => 7,
+                'size' => 3
+            ))
+        . html_writer::label('Show login entries only', 'radio-login')
+        . html_writer::empty_tag('input', array(
+                'id' => 'radio-login',
+                'type' => 'radio',
+                'name' => 'radio',
+                'value' => 'login',
+                'checked' => true
+            ))
+        . html_writer::label('Show all entries', 'radio-entries')
+        . html_writer::empty_tag('input', array(
+                'id' => 'radio-entries',
+                'type' => 'radio',
+                'name' => 'radio',
+                'value' => 'entries'
+            ));
+
+    $sectionhtml .= supportconsole_simple_form($title, $choiceshtml);
 // save for later when figure out how sql query should look    <input type="radio" name="radio" value="unique" CHECKED>Unique Logins
-} elseif ($_POST['console'] == "$title") { 
-    $whereclause=$_POST['radio'];
-    $days=(int) $_POST['days'];
-    $distinct = ""; 
+} else if ($consolecommand == "$title") {
+    $filter = required_param('radio', PARAM_TEXT);
+    $days = required_param('days', PARAM_INT);
+
     if ($days < 1 or $days > 999) {
-        echo "Invalid number of days.<br>\n";
+        print_error("Invalid number of days.");
         exit;
     }    
-    if ($whereclause!="login" and $whereclause!="entries") {
+
+    if ($filter != "login" and $filter != "entries") {
         echo "Invalid search options.<br>\n";
         exit;
     }    
-    if ($whereclause=="login") {
+
+    if ($filter ==" login") {
         $whereclause = "AND action='login'";
-        echo "<h3>Count of Moodle Logins for the Last $days Days</h3>\n";
+        $what = 'Logins';
     } else {
         $whereclause = "";
-        echo "<h3>Count of Moodle Log Entries from the Last $days Days</h3>\n";
+        $what = 'Log Entries';
     }    
+
+    $sectionhtml = "Count of Moodle $what from the Last $days Days";
     $days--;  # decrement days by 1 to get query to work
-     $result=$DB->get_records_sql("select a.id,from_unixtime(time,'%Y-%m-%d') as Date,count(*) as Count 
-        from {$CFG->prefix}log a 
-        where from_unixtime(time)  >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
-        $whereclause
-        group by Date
-        order by a.id desc");
-if(empty($result)) 
-{
-        echo"No results were found";
-}   
-else
-{   
-$result_val=array_values($result);
-$result_keys=array_keys(get_object_vars($result_val[0]));
+    $result = $DB->get_records_sql("
+        SELECT 
+            FROM_UNIXTIME(time,'%Y-%m-%d') AS date,
+            COUNT(*) AS count 
+        FROM {log} a 
+        WHERE FROM_UNIXTIME(time) >= DATE_SUB(CURDATE(), INTERVAL $days DAY) 
+            $whereclause
+        GROUP BY date
+        ORDER BY a.id DESC
+    ");
 
-unset($result_keys[0]);
-foreach($result_val as $res)
-{
-        unset($res->id);
-}
-createTable($result_keys,$result_val);
-}
-
+    $sectionhtml = supportconsole_render_section_shortcut($sectionhtml, $result);
 } 
+$consoles->push_console_html('logs', $title, $sectionhtml);
+
 ////////////////////////////////////////////////////////////////////
-$title=" Count of Moodle Log Entries by Day, Course for Last 7 days ";
-if (empty($_POST['console'])) { 
-?>
-        <li>
-    <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-        <input type="submit" name="console" value="<?php echo $title; ?>">
-    </form>
-        </li>
-<?php
-} elseif ($_POST['console'] == "$title") { 
-    echo "<h3>$title</h3>\n";
-     $result=$DB->get_records_sql("select a.id, from_unixtime(time,'%Y-%m-%d') as Date,c.shortname as Course,count(*) as Count 
-        from {$CFG->prefix}log a 
-        left join {$CFG->prefix}course c on(a.course=c.id) 
-        where from_unixtime(time)  >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) 
-        group by Date,Course 
-        order by a.id desc");
-if(empty($result)) 
-{
-        echo"No results were found";
-}   
-else
-{   
-$result_val=array_values($result);
-$result_keys=array_keys(get_object_vars($result_val[0]));
+// TODO combine with the next one
+$title = "moodlelogbydaycourse";
+$sectionhtml = '';
+if ($displayforms) { 
+    $sectionhtml .= supportconsole_simple_form($title);
+} else if ($consolecommand == "$title") { 
+     $result = $DB->get_records_sql("
+        SELECT 
+            a.id, 
+            FROM_UNIXTIME(time,'%Y-%m-%d') AS date, 
+            c.shortname AS course,
+            COUNT(*) AS count 
+        FROM {log} a 
+        LEFT JOIN {course} c ON a.course = c.id
+        WHERE FROM_UNIXTIME(time) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) 
+        GROUP BY date, course 
+        ORDER BY a.id DESC
+    ");
 
-unset($result_keys[0]);
-foreach($result_val as $res)
-{
-        unset($res->id);
-}
-createTable($result_keys,$result_val);
-}
-
+    $sectionhtml .= supportconsole_render_section_shortcut($title, $result);
 } 
-////////////////////////////////////////////////////////////////////
-$title=" Count of Moodle Log Entries by Day, Course, User for Last 7 days ";
-if (empty($_POST['console'])) { 
-?>
-        <li>
-    <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-        <input type="submit" name="console" value="<?php echo $title; ?>">
-    </form>
-        </li>
-<?php
-} elseif ($_POST['console'] == "$title") { 
-    echo "<h3>$title</h3>\n";
-     $result=$DB->get_records_sql("select a.id, from_unixtime(time,'%Y-%m-%d') as Day,c.shortname as Course,b.Firstname,b.Lastname,count(*) as Count 
-        from {$CFG->prefix}log a 
-        left join {$CFG->prefix}user b on(a.userid=b.id) 
-        left join {$CFG->prefix}course c on(a.course=c.id) 
-        where from_unixtime(time)  >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) 
-        group by day,course,a.userid 
-        order by a.id desc");
-  if(empty($result))  
-{
-        echo"No results were found";
-}
-else
-{   
-$result_val=array_values($result);
-$result_keys=array_keys(get_object_vars($result_val[0]));
+$consoles->push_console_html('logs', $title, $sectionhtml);
 
-unset($result_keys[0]);
-foreach($result_val as $res)
-{
-        unset($res->id);
-}
-createTable($result_keys,$result_val);
-}
+////////////////////////////////////////////////////////////////////
+$title = "moodlelogbydaycourseuser";
+$sectionhtml = '';
+
+if ($displayforms) { 
+    $sectionhtml = supportconsole_simple_form($title);
+} else if ($consolecommand == "$title") { 
+    $result = $DB->get_records_sql("
+        SELECT 
+            a.id, 
+            FROM_UNIXTIME(time,'%Y-%m-%d') AS day,
+            c.shortname AS course,
+            b.firstname,
+            b.lastname,
+            COUNT(*) AS count 
+        FROM {log} a 
+        LEFT JOIN {user} b ON a.userid = b.id
+        LEFT JOIN {course} c ON a.course = c.id
+        WHERE FROM_UNIXTIME(time) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) 
+        GROUP BY day, course, a.userid 
+        ORDER BY a.id DESC
+    ");
+    
+    $sectionhtml = supportconsole_render_section_shortcut($title, $result);
 } 
+$consoles->push_console_html('logs', $title, $sectionhtml);
+
 ////////////////////////////////////////////////////////////////////
-//MDL-1196:"Comparison of ucla_request_classes & ucla_request_crosslisted with classes table." was removed due new tables not requiring the functions of this script
+// TODO ghost courses in request classes table
+
 ////////////////////////////////////////////////////////////////////
-$title=" Look up Moodle User by First or Last Name ";
+$title = 'moodleusernamesearch';
+$sectionhtml = '';
 // Note: this report has an additional column at the end, with an SRDB button that points to the enroll2 Registrar class lookup
-if (empty($_POST['console'])) { 
-?>
-	<li>
-    <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-        <input type="submit" name="console" value="<?php echo $title; ?>">
-        First Name: <input type="textfield" name="firstname">
-        Last Name: <input type="textfield" name="lastname">
-    </form>
-        </li>
-<?php
-} elseif ($_POST['console'] == "$title") { 
-    echo "<h3>$title</h3>\n";
-    $firstname=htmlentities($_POST['firstname']);
-    $lastname =htmlentities($_POST['lastname']);
-?>
-    <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-        <input type="submit" name="console" value="<?php echo $title; ?>">
-        <select name="searchtype">
-        <option value="contains">contains</option>
-        <option value="equals">equals</option>
-        <option value="beginswith">begins with</option>
-        <option value="endswith">ends with</option>
-        </select>
-        First Name: <input type="textfield" name="firstname" value="<?php echo $firstname;?>">
-        Last Name: <input type="textfield" name="lastname" value="<?php echo $lastname;?>">
-    </form>
-<?php
-    $firstname = addslashes($firstname);
-    $lastname = addslashes($lastname);
+if ($displayforms) { 
+    $sectionhtml .= supportconsole_simple_form($title,
+        html_writer::label('Full or any part of name', 'name-lookup')
+            . html_writer::empty_tag('input', array(
+                    'type' => 'text',
+                    'name' => 'fullname',
+                    'id' => 'name-lookup'
+                )));
+} else if ($consolecommand == "$title") { 
+    $fullname = optional_param('fullname', false, PARAM_TEXT);
+    $users = get_users(true, $fullname, false, null, 'lastname, firstname ASC',
+        '', '', '', 100, 
+        'id AS userid, auth, username, firstname, lastname, idnumber, email, FROM_UNIXTIME(lastaccess) AS last_access, lastip');
 
-    //Use short-circuit eval to check for empty
-    if (empty($_POST['searchtype']) || $_POST['searchtype'] === "contains" || $_POST['searchtype'] === "endswith") {
-        $searchstart = '%';
-     }
-     else {
-         $searchstart = '';
-     }
-    if (empty($_POST['searchtype']) || $_POST['searchtype'] === "contains" || $_POST['searchtype'] === "beginswith") {
-        $searchend = '%';
-    }
-    else {
-        $searchend = '';
+    foreach($users as $k => $user) {
+        if (!empty($user->idnumber)) {
+            $user->srdblink = supportconsole_simple_form('enrollview',
+                html_writer::empty_tag('input', array(
+                    'type' => 'hidden',
+                    'name' => 'uid',
+                    'value' => $user->idnumber
+                )));
+        }
     }
 
-    if (!empty($firstname) and !empty($lastname)) {
-        $whereclause = "WHERE firstname LIKE \"$searchstart$firstname$searchend\" AND lastname LIKE \"$searchstart$lastname$searchend\" AND deleted=0"; 
-    } elseif (empty($firstname) and empty($lastname)) {
-        echo "Can't search without any names.";
-        exit;
-    } elseif (empty($firstname) and !empty($lastname)) {
-        $whereclause = "WHERE lastname LIKE \"$searchstart$lastname$searchend\" AND deleted=0"; 
-    } elseif (!empty($firstname) and empty($lastname)) {
-        $whereclause = "WHERE firstname LIKE \"$searchstart$firstname$searchend\" AND deleted=0"; 
-    }    
-      
-    echo "Searching $whereclause<br>\n"; 
-     $result=$DB->get_records_sql("select id,auth,username,firstname,lastname,idnumber,email,from_unixtime(lastaccess) as last_access,lastip
-        from {$CFG->prefix}user a 
-        $whereclause
-        order by a.lastname,a.firstname");
-        $num_rows = sizeof($result);
-        if ($num_rows === 1) {
-            echo "There is $num_rows row.<P>";
-        }
-        else {
-            echo "There are $num_rows rows.<P>";
-        }
-if(empty($result))  
-{
-        echo"No results were found";
-}
-else
-{   
-$result_val=array_values($result);
-$result_keys=array_keys(get_object_vars($result_val[0]));
-$result_keys[]='SRDB';
-$counter=0;
-foreach($result_val as $res)
-{
-	$uid=$res->idnumber;
-$serverAdd=$_SERVER['PHP_SELF'];
-$res->SRBDButton='<form method="post" action="'.$serverAdd.' ">
-        <input type="submit" name="console" value="SRDB">
-        <input type="hidden" name="uid" value="'.$uid.'">
-        <input type="hidden" name="srdb_view" value="enroll2">
-    </form>';
-       $result_val[$counter]=$res;
-
-}
-createTable($result_keys,$result_val);
-}
-
+    $sectionhtml .= supportconsole_render_section_shortcut($title, $users); 
 } 
+
+$consoles->push_console_html('users', $title, $sectionhtml);
 ////////////////////////////////////////////////////////////////////
-$title="Get All Fields for Classes View (enroll2) from Registrar by UID";
+// REGISTRAR DIRECT FEEDS LIONS MEAT
+////////////////////////////////////////////////////////////////////
+$title = "enrollview";
 // Note: this has code which allows post from Name Lookup report 
-if (empty($_POST['console'])) {
-?>
-    <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-        <input type="submit" name="console" value="<?php echo $title; ?>">
-        UID: <input type="textfield" name="uid">
-        SRDB view: 
-        <select name="srdb_view">
-        <option value="enroll2">enroll2 (fix for TAs)</option>
-        <!--<option value="enroll">enroll (fix for UNEX))</option>-->
-        </select>
-    </form>
-<?php
-} elseif (($_POST['console'] == "$title") or ($_POST['console'] == "SRDB")) {  # tie-in to link from name lookup
-    echo "<h3>$title</h3>\n";
-    if (!empty($_POST['uid']) and !empty($_POST['srdb_view'])) {
-        ucla_require_registrar();
-	$db_conn = odbc_connect($CFG->registrar_dbhost, $CFG->registrar_dbuser, $CFG->registrar_dbpass) or die( "ERROR: Connection to Registrar failed.");
-        // SQL query to find the courses the user is enroled in
-        $wherefield = "uid";
-        $sortfield = "term_int DESC, subj_area, catlg_no, sect_no";
+$sectionhtml = '';
+if ($displayforms) {
+    $sectionhtml .= supportconsole_simple_form($title, 
+        html_writer::label('UID', 'enroll-uid') 
+            . html_writer::empty_tag('input', array(
+                'id' => 'enroll-uid',
+                'name' => 'uid', 
+                'type' => 'text'
+            )));
+} else if ($consolecommand == $title) {
+    # tie-in to link from name lookup
+    $uid = required_param('uid', PARAM_INT);
+    ucla_require_registrar();
+    $adodb = registrar_query::open_registrar_connection();
 
-        $sql = "SELECT *
-        FROM " . $_POST['srdb_view'] . "
-        WHERE $wherefield = " . $_POST['uid'] . "
-        ORDER BY $sortfield";
-        $result = odbc_exec($db_conn,  $sql)
-            or die ("Query failed:");
-        echo "<table width=60% border=1>\n";
-        echo "<tr>\n";
+    if (ucla_validator('uid', $uid)) {
+        $recset = $adodb->Execute('SELECT * FROM enroll2 WHERE uid = ' . $uid 
+            . ' ORDER BY term_int DESC, subj_area, catlg_no, sect_no');
 
-        if ($result === false) {
-            echo "Error: Failure while accessing Registrar table, line: ".__LINE__."\n";
-        }
-        // Show the headings
-        // Also store the field names so that we can find field values from the $fields_obj later
-
-        $field_count = odbc_num_fields($result);
-        $field_names = array();
-        for ($i = 1; $i <= $field_count; $i++) {
-            $fieldname = odbc_field_name($result, $i);
-            echo "<th>" . $fieldname. "</th>\n";
-            $field_names[] = $fieldname;
+        $usercourses = array();
+        if (!$recset->EOF) {
+            while($fields = $recset->FetchRow()) {
+                $usercourses[] = $fields;
+            }
         }
 
-        // Show the content
-        $c=0; $nrows=0;
-        while(odbc_fetch_row($result)) { // getting data
-           $c=$c+1;
-           if ( $c%2 == 0 )
-               echo "<tr bgcolor=\"#d0d0d0\" >\n";
-           else
-               echo "<tr bgcolor=\"#eeeeee\">\n";
-           for($j=1; $j<=odbc_num_fields($result); $j++) {       
-               echo "<td>";
-               echo odbc_result($result,$j);
-               echo "</td>";        
-               if ( $j%$i == 0 ) {
-                   $nrows+=1; // counting no of rows   
-               }  
-           }
-           echo "</tr>";
-       }
-        echo "</table>\n";
+        $sectionhtml .= supportconsole_render_section_shortcut($title, $usercourses);
     } else {
-        echo "Can't search with no UID.";
-        exit;
+        $sectionhtml .= $OUTPUT->box($OUTPUT->heading($title, 2));
+        $sectionhtml .= 'Invalid UID: [' . $uid . ']';
     }
 }
-////////////////////////////////////////////////////////////////////
-$title=" Sort Class Sites by Count of Resources or Activities ";
-$result=$DB->get_records_sql("select term, count(*) as cnt from {$CFG->prefix}ucla_request_classes group by term");
-$item_names = array('resource','assignment','forum','questionnaire','quiz','ouwiki','lesson','exercise','forumposts');
-if (empty($_POST['console'])) {
-?>
-        <li>
-    <form method="post" action="<?php echo $_SERVER['PHP_SELF']; ?>">
-        <input type="submit" name="console" value="<?php echo $title; ?>">
-        <select name="term">
-        <option value="">TERM (count)</option>
-        </li>
-<?php
-$term_val=array_values($result);echo"next";
-foreach($term_val as $tVal)
-{
-$row=get_object_vars($tVal);
- if (!empty($row['term'])) {
-         echo  '<option value="'.$row['term'].'">'.$row['term'].'  ('.$row['cnt'].")</option>\n";
-     }
+
+$consoles->push_console_html('srdb', $title, $sectionhtml);
+
+// Dynamic
+ucla_require_registrar();
+$qs = registrar_query::get_all_available_queries();
+
+foreach ($qs as $query) {
+    $sectionhtml = '';
+    if ($displayforms) {
+        // Currently, it just says shitty things, but
+        // it needs to be fixed with registrar revamping
+        $sectionhtml .= supportconsole_simple_form($query,
+            html_writer::label('Param 1', 'spa1')
+                . html_writer::empty_tag('input', array(
+                    'name' => 'spa1',
+                    'type' => 'text',
+                    'id' => 'spa1'
+                )) . html_writer::label('Param 2', 'spa2')
+                . html_writer::empty_tag('input', array(
+                    'name' => 'spa2',
+                    'type' => 'text',
+                    'id' => 'spa2'
+                )));
+    } else if ($consolecommand == $query) {
+        $params[] = optional_param('spa1', '', PARAM_ALPHANUM); 
+        $params[] = optional_param('spa2', '', PARAM_ALPHANUM); 
+        $sendparams = array($params);
+
+        // Hack because of not following standards...
+        if ($query == 'ucla_getterms') {
+            $sendparams = $params;
+        }
+
+        $results = registrar_query::run_registrar_query($query,
+            $sendparams, true);
+
+        $sectionhtml .= supportconsole_render_section_shortcut($title, 
+            $results, $params);
+    }
+
+    $consoles->push_console_html('srdb', $query, $sectionhtml);
 }
 
-?>
-        </select>
-        <select name="itemname">
-<?php foreach ($item_names as $itemfile) {
-    echo "<option value=\"$itemfile\">$itemfile</option>\n";
-} ?>
-        </select>
+///////////////////////////////////////////////////////////////////////////////
+$title = "countmodules";
 
-    </form>
-<?php
-} elseif ($_POST['console'] == "$title") {
+
+// Use API
+$item_names = array();
+
+if ($displayforms) {
+    // $result = $DB->get_records_sql();
+    // Show number of courses per term?
+
+} else if ($consolecommand == "$title") {
 	$itemfile = $_POST['itemname'];
 	$term     = $_POST['term'];
+
     echo "<h3>$title $itemfile</h3>\n";
     echo "<i>Term: $term Resource/Activity: $itemfile</i><br>\n";
 	
@@ -755,305 +497,24 @@ $row=get_object_vars($tVal);
         WHERE c.idnumber like '$term%'        
         GROUP BY left(c.idnumber,3), course
         ORDER BY left(c.idnumber,3), count DESC";
-}
-$result=$DB->get_records_sql($log_query);
-	if(empty($result))
-	{
-        echo"No results were found";
-	}
-	else
-{
-$result_val=array_values($result);
-$result_keys=array_keys(get_object_vars($result_val[0]));
-if($itemfile=='forumposts')
-{	$counter=0;
-	foreach ($result_val as $res)
-        {
-		$savedID=html_writer::link(new moodle_url('/course/edit.php', array('id'=>$res->id)), $res->id,array('target'=>'_blank'));
-		$savedCourse=html_writer::link(new moodle_url('/course/view.php', array('id'=>$res->id)), $res->course,array('target'=>'_blank'));  
-		$res->id = $savedID;
-		$res->course = $savedCourse;
-                $result_val[$counter]= $res;
-                $counter++;
-        }
-
-}
-else{
-	unset($result_keys[2]);
-   	$result_keys[0]='coursename';
-
-	$counter=0;
-	foreach ($result_val as $res)
-	{
-		$saved=html_writer::link(new moodle_url('/course/view.php', array('id'=>$res->id)), $res->shortname,array('target'=>'_blank'));
-		$res->id = $saved;
-		unset($res->shortname);
-		$result_val[$counter]= $res;
-	        $counter++;
-	}
-}
-createTable($result_keys,$result_val);
-}
-
-
-}
-////////////////////////////////////////////////////////////////////
-$title=" Get Class Roster from Registrar ";
-$sp = array("ccle_roster_class" => "ccle_roster_class", "hu_facultyCourseStudentsGetAlpha2" => "hu_facultyCourseStudentsGetAlpha2", "CIS_ROSTER_CLASS" => "CIS_ROSTER_CLASS");
-
-if (empty($_POST['console'])) {
-?>
-        <li>
-    <form method="post" action="<?php echo $_SERVER['PHP_SELF']; ?>">
-    <input type="submit" name="console" value="<?php echo $title; ?>">
-TERM: <input type="textfield" name="term" size="3" value="<?php echo $CFG->currentterm; ?>">
-SRS: <input type="textfield" name="srs">
-<select name="sp">
-<?php foreach ($sp as $sp => $stored_procedure) {
-echo "<option value=\"$sp\">$sp</option>\n";
-} ?>
-</select>
-</form>
-        </li>
-<?php
-} elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
-$term     = $_POST['term'];
-$srs      = $_POST['srs'];
-$stored_procedure = $sp[$_POST['sp']];
-echo "<h3>$title - ".$_POST['sp']."</h3>\n";     
-if (!empty($term) and !empty($srs)) {
-ucla_require_registrar();
-    if($stored_procedure== 'CIS_ROSTER_CLASS'){$submit_procedure='ccle_getclasses';}else{$submit_procedure=$stored_procedure;}
-    $sql ="EXECUTE ".$submit_procedure."'$srs','$term'";
-    $start_time = microtime(true);
-    $result = registrar_query::run_registrar_query($submit_procedure,array(array($term,$srs)),true);
-    $stop_time = microtime(true);
-    print_r($result);
-    echo '"' . $sql . '" took ' . ($stop_time - $start_time) . ' seconds <br>';
-   if($stored_procedure == 'CIS_ROSTER_CLASS'){
-   $result_arr=array_values($result);
-   $result_arr=$result_arr[0];
-    //$sql ="EXECUTE ".$stored_procedure.".'$result_arr['term']','$result_arr['subj_area']','$result_arr['crsidx']','$result_arr['classidx']";
-    $start_time = microtime(true);
-    $result = registrar_query::run_registrar_query($submit_procedure,array(array($result_arr['term'],$result_arr['subj_area'],$result_arr['crsidx'],$result_arr['classidx'])),true);
-    $stop_time = microtime(true);
-    echo '"' . $sql . '" took ' . ($stop_time - $start_time) . ' seconds <br>';
-
-}
-if(empty($result))
-        {
-        echo"Nothing for $term and $srs. Try back later";
-        }
-        else
-{
-    $result_val=array_values($result);
-    $result_keys=array_keys($result_val[0]);
-    createTable($result_keys, $result_val);
-    $nrows= sizeof($result);
-    echo"Total Records: $nrows" ;
-
-}
-/*
-if ($nrows==0) echo "<br/><center> Nothing for $term and $srs. Try back later</center>  <br/>";
-else echo "<br/><center> Total Records:  $nrows </center>  <br/>";
-*/
-}    
-}
-////////////////////////////////////////////////////////////////////
-$title=" Get Class Instructors from Registrar ";
-
-if (empty($_POST['console'])) {
-?>
-        <li>
-<form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-<input type="submit" name="console" value="<?php echo $title; ?>">
-TERM: <input type="textfield" name="term" size="3" value="<?php echo $CFG->currentterm; ?>">
-SRS: <input type="textfield" name="srs">
-    </form>
-        </li>
-<?php
-} elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
-	$term     = $_POST['term'];
-	$srs      = $_POST['srs'];
-	$stored_procedure = "ccle_courseinstructorsget";
-    echo "<h3>$title - $stored_procedure</h3>\n";     
-    if (!empty($term) and !empty($srs)) {
-ucla_require_registrar();
-$result=registrar_query::run_registrar_query($stored_procedure,array(array($term,$srs)),true);
-if(empty($result))
-        {
-        echo"Nothing for $term and $srs. Try back later";
-        }
-        else
-{
-    $result_val=array_values($result);
-    $result_keys=array_keys($result_val[0]);
-    createTable($result_keys, $result_val);
-    $nrows= sizeof($result);
-
-if ($nrows==0) echo "<center> Nothing for $term and $srs. Try back later</center> ";
-        else echo "<center> Total Records:  $nrows </center>";
-}}
-else echo "<br/><center> Please Enter a SRS and a Term.</center> <br/>";
-}
-
-////////////////////////////////////////////////////////////////////
-$title=" Get Class Information from Registrar ";
-
-if (empty($_POST['console'])) {
-?>
-        <li>
-    <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-    <input type="submit" name="console" value="<?php echo $title; ?>">
-    TERM: <input type="textfield" name="term" size="3" value="<?php echo $CFG->currentterm; ?>">
-    SRS: <input type="textfield" name="srs">
-    </form>
-        </li>
-<?php
-} elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
-	$term     = $_POST['term'];
-	$srs      = $_POST['srs'];
-	$stored_procedure = "ccle_getclasses";
-    echo "<h3>$title - $stored_procedure $term $srs</h3>\n";     
-    if (!empty($term) and !empty($srs)) {
-ucla_require_registrar();
-$result=registrar_query::run_registrar_query($stored_procedure,array(array($term,$srs)),true);
-if(empty($result))
-        {
-        echo"Nothing for $term and $srs. Try back later";
-        }
-        else
-{
-    $result_val=array_values($result);
-    $result_keys=array_keys($result_val[0]);
-        $counter=0;
-        foreach ($result_val as $res)
-        {
-                $saved=html_writer::link($res["url"],"Registrar");
-                $res["url"] = $saved;
-                $result_val[$counter]= $res;
-                $counter++;
-        }
-
-    createTable($result_keys, $result_val);
-    $nrows= sizeof($result);
-
-if ($nrows==0) echo "<center> Nothing for $term and $srs. Try back later</center> ";
-        else echo "<center> Total Records:  $nrows </center>";
-}}
-else echo "<br/><center> Please Enter a SRS and a Term.</center> <br/>";
-}
-   
-/*
- if (!empty($term) and !empty($srs)) {
-        $db_conn = odbc_connect($CFG->registrar_dbhost, $CFG->registrar_dbuser, $CFG->registrar_dbpass) or die( "ERROR: Connection to Registrar failed.");
-        $result = odbc_exec($db_conn, "EXECUTE $stored_procedure '$term','$srs'")
-            or die ("Query failed: error message = " . mysql_error ());
-        echo "<table>\n";
-
-        // Show the content
-        $c=0; $nrows=0;
-        while(odbc_fetch_row($result)) { // getting data
-           for($i=1; $i<=odbc_num_fields($result); $i++) {       
-               echo "<tr bgcolor=\"#d0d0d0\" ><td><b>" . odbc_field_name ($result, $i ). "</b></td></tr>";
-               echo "<tr><td>";
-               echo odbc_result($result,$i);
-               echo "</td></tr>\n";        
-           }
-       }
-
-        odbc_close ($db_conn);
-        echo "</table>\n";
-   }    
-}*/
-////////////////////////////////////////////////////////////////////
-$title=" Library Reserves Class List ";
-
-if (empty($_POST['console'])) {
-?>
-        <li>
-    <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-    <input type="submit" name="console" value="<?php echo $title; ?>">
-    </form>
-        </li>
-<?php
-} elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookupa
-$OUTPUT->error_text("the table {$CFG->prefix}ucla_libreserves was not implemented in moodle 2.0 at the time of the writing of this script");
-/*
-    echo "<h3>$title</h3>\n";
-    echo '<i>This only shows classes that match on term-srs. You can also check <a href="ftp://ftp.library.ucla.edu/incoming/eres/voyager_reserves_data.txt">The Library Reserves Datafeed</a></i><br><br>';
-    $result=mysql_query("select CONCAT('<a href=\"{$CFG->wwwroot}/course/view/',b.shortname,'\">',b.shortname,'</a>') as class,b.idnumber from {$CFG->prefix}ucla_libreserves a inner join {$CFG->prefix}course b on CONCAT(a.term,'-',a.srs)=b.idnumber order by b.shortname", $db_moodle)
-        or die(mysql_error());
-    $num_rows = mysql_num_rows($result);
-    echo "There are $num_rows classes.<P>";
-    echo "<table width=60% border=0>\n";
-//  echo "<table>\n";
-    $cols = 0;
-    while ($get_info = mysql_fetch_assoc($result)){
-        if($cols == 0) {
-            $cols = 1;
-            echo "<tr>";
-            foreach($get_info as $col => $value) {
-                echo "<th align='left'>$col</th>";
-            }
-            echo "<tr>\n";
-        }
-        echo "<tr>\n";
-        foreach ($get_info as $field) {
-            echo "\t<td>$field</td>\n";
-        }
-        echo "</tr>\n";
     }
-    echo "</table>\n";
-*/
-}
-////////////////////////////////////////////////////////////////////
-$title=" Video-Furnace List by Class ";
+    $result=$DB->get_records_sql($log_query);
 
-if (empty($_POST['console'])) {
-?>
-        <li>
-    <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-    <input type="submit" name="console" value="<?php echo $title; ?>">
-    </form>
-        </li>
-<?php
-} elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
-    echo "<h3>$title</h3>\n";
-    echo '<i>This only shows classes that match on term-srs.<br>You can also check the <a href="http://164.67.141.31/~guest/VF_LINKS.TXT">Video-Furnace Data Feed (UCLA IP address only.)</a></i><br><br>';
-    $result=mysql_query("select CONCAT('<a href=\"{$CFG->wwwroot}/course/view/',b.shortname,'\">',b.shortname,'</a>') as class,b.idnumber,CONCAT('<a href=\"',a.video_url,'\">',a.video_title,'</a>') as video from {$CFG->prefix}ucla_vidfurn a inner join {$CFG->prefix}course b on CONCAT(a.term,'-',a.srs)=b.idnumber order by b.shortname", $db_moodle) or die(mysql_error());
-    $num_rows = mysql_num_rows($result);
-    echo "There are $num_rows classes.<P>";
-    echo "<table>\n";
-    $cols = 0;
-    while ($get_info = mysql_fetch_assoc($result)){
-        if($cols == 0) {
-            $cols = 1;
-            echo "<tr>";
-            foreach($get_info as $col => $value) {
-                echo "<th align='left'>$col</th>";
-            }
-            echo "<tr>\n";
-        }
-        echo "<tr>\n";
-        foreach ($get_info as $field) {
-            echo "\t<td>$field</td>\n";
-        }
-        echo "</tr>\n";
-    }
-    echo "</table>\n";
+// Display results with course edit and view links for forum posts
+// Display results with just course view links for others...
+// Split forum posts out of this
 }
 
+// TODO UCLA Datasync library views
+
 ////////////////////////////////////////////////////////////////////
-$title=" List Collab Sites ";
-if (empty($_POST['console'])) {
-?>        <li>
-    <form method="post" action="<?php echo "${_SERVER['PHP_SELF']}"; ?>">
-    <input type="submit" name="console" value="<?php echo $title; ?>">
-    </form>
-        </li>
-<?php
-} elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
+// CLASS SITES, CAMP SITES, HIND SIGHTS, MASS HEIGHTS
+////////////////////////////////////////////////////////////////////
+$title="collablist";
+$sectionhtml = '';
+if ($displayforms) {
+    $sectionhtml .= supportconsole_simple_form($title);
+} else if ($consolecommand == "$title") {  # tie-in to link from name lookup
     $result=mysql_query("select "
         . "elt(c.visible + 1, 'Hidden', 'Visible') as Hidden,elt(c.guest + 1, 'Private', 'Public') as Guest,c.format,cc.name, concat('<a href=\"{$CFG->wwwroot}/course/view.php?id=', c.id, '\">', c.shortname, '</a>') as 'Link', c.fullname "
         . "from mdl_course c "
@@ -1091,847 +552,342 @@ if (empty($_POST['console'])) {
 }
 
 ////////////////////////////////////////////////////////////////////
-$title=" Courses with Changed Titles ";
+$title = "courseregistrardifferences";
+$sectionhtml = '';
 
-if (empty($_POST['console'])) {
-?>
-        <li>
-    <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-    <input type="submit" name="console" value="<?php echo $title; ?>">
-    </form>
-        </li>
-<?php
-} elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
-    echo "<h3>$title</h3>\n";
-    $result=$DB->get_records_sql("SELECT * FROM 
-							(SELECT b.id as id, b.shortname as Course,
-							if(a.sectiontitle is not NULL , CONCAT(a.coursetitle,': ',a.sectiontitle ),a.coursetitle) AS OldTitle, 
-							b.fullname AS NewTitle
-							FROM {$CFG->prefix}ucla_reg_classinfo a 
-							INNER JOIN {$CFG->prefix}course b 
-							ON (CONCAT(a.term,'-',a.srs) = b.idnumber OR CONCAT(a.term,'-Master_',a.srs) = b.idnumber)
-							ORDER BY b.shortname
-							) t WHERE OldTitle != NewTitle");
-	 $num_rows = sizeof($result);
-        if ($num_rows === 1) {
-            echo "There was 1 class.<P>";
-        }
-        else {
-            echo "There are $num_rows classes.<P>";
-        }
+if ($displayforms) {
+    $sectionhtml .= supportconsole_simple_form($title, 
+        html_writer::label('Term', 'term-select')
+            . html_writer::empty_tag('input', array(
+                'type' => 'text',
+                'length' => 3,
+                'name' => 'term',
+                'id' => 'term-select'
+            )));
 
-
-if(empty($result))
-{   
-        echo"No results were found";
-}
-else
-{
-$result_val=array_values($result);
-$result_keys=array_keys(get_object_vars($result_val[0]));
-$counter=0;
-foreach($result_val as $res)
-{
-	$res->Course=html_writer::link(new moodle_url('/course/view.php', array('id'=>$res->id)), $res->shortname,array('target'=>'_blank'));
-	$res->id=html_writer::link(new moodle_url('/course/edit.php', array('id'=>$res->id)), $res->id,array('target'=>'_blank'));
-
-$result_val[$counter]=$res;
-$counter++;
-
-}
-createTable($result_keys, $result_val);
-
-}
-
-}
-//////////////////////////////////////////////////////////////////////////////////////////
-$title=" Courses with Changed Descriptions ";
-
-if (empty($_POST['console'])) {
-?>
-        <li>
-    <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-    <input type="submit" name="console" value="<?php echo $title; ?>">
-    TERM: <input type="textfield" name="term" size="3" value="<?php echo $CFG->currentterm; ?>">
-    </form>
-        </li>
-<?php 
-} elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
-	$term     = $_POST['term'];
+    // TODO Term selector
+} else if ($consolecommand == "$title") {  # tie-in to link from name lookup
+    $term = required_param('term', PARAM_ALPHANUM);
     echo "<h3>$title $term</h3>\n";
-    $result=$DB->get_records_sql("SELECT * FROM 
-							(SELECT b.id as id, 
-							b.shortname as Course, 
-							a.crs_desc AS OldDesc, 
-							b.summary AS NewDesc
-							FROM {$CFG->prefix}ucla_reg_classinfo a 
-							INNER JOIN {$CFG->prefix}course b 
-							ON (a.term='$term' and (CONCAT(a.term,'-',a.srs) = b.idnumber OR CONCAT(a.term,'-Master_',a.srs) = b.idnumber))
-							ORDER BY b.shortname
-							) t WHERE OldDesc != NewDesc
-						 ");
-if(empty($result))
-{
-        echo"No results were found";
-}
-else
-{
-$num_rows = sizeof($result);
-if($num_rows == 1)
-{
- print "There is $num_rows class.<P>";
-}
-else
-{
- print "There are $num_rows classes.<P>";
-}
-$result_val=array_values($result);
-$result_keys=array_keys(get_object_vars($result_val[0]));
-$counter=0;
-foreach($result_val as $res)
-{
-        $res->Course=html_writer::link(new moodle_url('/course/view.php', array('id'=>$res->id)), $res->shortname,array('target'=>'_blank'));
-        $res->id=html_writer::link(new moodle_url('/course/edit.php', array('id'=>$res->id)), $res->id,array('target'=>'_blank'));
+    $result = $DB->get_records_sql("
+        SELECT * 
+        FROM (
+            SELECT 
+                b.id as courseid, 
+                b.shortname as Course, 
+                a.crs_desc AS OldDesc, 
+                b.summary AS NewDesc,
+                a.coursetitle,
+                a.sectiontitle
+            FROM {ucla_reg_classinfo} a 
+            INNER JOIN {ucla_request_classes} r USING(term, srs)
+            INNER JOIN {course} b ON (b.id = r.courseid)
+        ) t 
+        WHERE OldDesc != NewDesc
+    ");
 
-$result_val[$counter]=$res;
-$counter++;
-}
-createTable($result_keys, $result_val);
-}
-}
-////////////////////////////////////////////////////////////////////
-$title=" List of Users by Newest Accounts ";
-if (empty($_POST['console'])) { 
-?>
-        <li>
-    <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-    <input type="submit" name="console" value="<?php echo $title; ?>">
-    Count: <input type="textfield" name="count" size="3" VALUE="20">
-    </form>
-        </li>
-<?php
-// save for later when figure out how sql query should look    <input type="radio" name="radio" value="unique" CHECKED>Unique Logins
-} elseif ($_POST['console'] == "$title") { 
-    $days=(int) $_POST['count'];
-	$days++;
-    $distinct = ""; 
-$days--;
-$result=$DB->get_records_sql("SELECT 
-	id,
-	idnumber,
-	lastname, 
-        firstname,
-                if(timemodified=0,'Never',from_unixtime(timemodified,'%Y-%m-%d')) AS Time_Modified,
-                if(firstaccess=0,'Never',from_unixtime(firstaccess,'%Y-%m-%d')) AS First_Access,
-                if(lastaccess=0,'Never',from_unixtime(lastaccess,'%Y-%m-%d')) AS Last_Access,
-                if(lastlogin=0,'Never',from_unixtime(lastlogin,'%Y-%m-%d')) AS Last_Login
-                FROM {$CFG->prefix}user order by id desc limit $days");
-if(empty($result))
-        {
-	        echo"No results were found";
+    foreach ($result as $k => $course) {
+        if (isset($course->courseid)) {
+            $course->courselink = html_writer::link(new moodle_url(
+                    '/course/view.php', array('id' => $course->courseid)
+                ), $course->course);
+            unset($course->course);
+            $result[$k] = $course;
         }
-        else
-{
-$result_val=array_values($result);
-$result_keys=array_keys(get_object_vars($result_val[0]));
-$result_keys[0] ="Action";
-$counter =0;
-foreach ($result as $res)
-{
-	$deleteURL = '<a target = "blank" href="'.$CFG->wwwroot.'/admin/user.php?sesskey='.$USER->sesskey.'&delete='.$res->id.'">Delete</a>';
-	$userURL= '<a target = "blank" href="'.$CFG->wwwroot.'/user/view.php?id='.$res->id.'">'.$res->lastname.'</a>';
-	$res->id=$deleteURL;
-	$res->lastname = $userURL;
-	$result_val[$counter]= $res;
+    }
 
-	$counter++;
+    $sectionhtml .= supportconsole_render_section_shortcut($title, $result,
+        $term);
 }
 
-createTable($result_keys, $result_val);
-}
-}
+$consoles->push_console_html('srdb', $title, $sectionhtml);
 ////////////////////////////////////////////////////////////////////
 // START SSC #775 - Adding missing reports from SSC into CommonCode
 /////////////////////////////////////////////////////////////////////////
 ///// Moodle 2.0 does not have TA Sites any longer thus this code was commented out
-/*
-$title="List of TA Sites by Term";
-if (empty($_POST['console'])) { 
-    printhead();
-    ?>
-    <form method="post" action="<?php echo "${_SERVER['PHP_SELF']}"; ?>">
-    <input type="submit" name="console" value="<?php echo $title; ?>">
-    TERM: <input type="textfield" name="term" size="3" VALUE="<?php echo $CFG->currentterm; ?>">
-    </form>
-    <?php
-} elseif ($_POST['console'] == "$title") { 
-    printhead();
-    $term=$_POST['term'];
-    $distinct = ""; 
-
-	$db_moodle = mysql_connect($CFG->dbhost,$CFG->dbuser,$CFG->dbpass)or die("Unable to connect to Moodle DB server {$CFG->dbhost}");
-    mysql_select_db($CFG->dbname, $db_moodle) or die("Unable to select DB {$CFG->dbname}");
-    $result = mysql_query("SELECT 
-     CONCAT('<a target = \"blank\" href=\"{$CFG->wwwroot}/course/view/', shortname ,'\">',shortname,'</a>') as course,
-     if(timestamp=0,'',from_unixtime(timestamp,'%y-%m-%d %r')) as timestamp,
-     CONCAT('<a target = \"blank\" href=\"{$CFG->wwwroot}/user/view.php?id=',b.id,'\">',b.firstname,' ',b.lastname,'</a>') as TA,
-     concat(c.firstname, ' ', c.lastname) as creator , type 
-     FROM {$CFG->prefix}ucla_tasites a 
-     LEFT JOIN {$CFG->prefix}user b ON a.taid=b.id 
-     LEFT JOIN {$CFG->prefix}user c on c.id = a.creator_id 
-     WHERE shortname like '$term%' ORDER BY shortname", $db_moodle)
-        or die(mysql_error());
-    $num_rows = mysql_num_rows($result);
-    print "<br/><br/>There are $num_rows classes.<P>";
-    print "<h3>$title</h3>";
-    print "<table class='tablesorter' width=80%>\n";
-    $cols = 0;
-    while ($get_info = mysql_fetch_assoc($result)){
-        if($cols == 0) {
-            $cols = 1;
-            print "<thead><tr>";
-            foreach($get_info as $col => $value) {
-                print "<th align='left'>$col</th>";
-            }
-            print "<tr></thead><tbody>\n";
-        }
-        print "<tr>\n";
-        foreach ($get_info as $field) {
-            print "\t<td>$field</td>\n";
-        }
-        print "</tr>\n";
-    }    
-    print "</tbody></table>\n"; 
-}*/
 ////////////////////////////////////////////////////////////////////
-$title=" Courses with no syllabus ";
+$title = "nosyllabuscourses";
+$sectionhtml = '';
 
-if (empty($_POST['console'])) {
-    ?>
-        <li>
-    <form method="post" action="<?php echo "${_SERVER['PHP_SELF']}"; ?>">
-    <input type="submit" name="console" value="<?php echo $title; ?>">
-    TERM: <input type="textfield" name="term" size="3" VALUE="<?php echo $CFG->currentterm; ?>">
-    </form>
-        </li>
-    <?php
-} elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
-    echo "<h3>$title for {$_POST['term']}</h3>\n";
-    $result=$DB->get_records_sql("select id,idnumber,
-                         shortname
-                         from {$CFG->prefix}course 
-                         where idnumber like '{$_POST['term']}%'
-                         and visible=1 
-                         and id not in 
-                            (select a.id 
-                            from {$CFG->prefix}course a 
-                            inner join {$CFG->prefix}resource b on a.id=b.course 
-                            where a.idnumber like '{$_POST['term']}%' and (b.name LIKE '%course description%' OR b.name LIKE '%course outline%' OR b.name LIKE '%syllabus%'))  
-                        group by shortname
-                        order by shortname
-						 ");
-  if(empty($result))
-{
-        echo"No results were found";
-}
-else
-{
-$num_rows = sizeof($result);
-if($num_rows == 1)
-{
- print "There is 1 class.<P>";
-}
-else
-{
- print "There are $num_rows classes.<P>";
-}
-$result_val=array_values($result);
-$result_keys=array_keys(get_object_vars($result_val[0]));
-unset($result_keys[0]);
-$counter=0;
-foreach($result_val as $res)
-{	
-		$res->shortname=html_writer::link(new moodle_url('/course/view.php', array('id'=>$res->id)), $res->shortname,array('target'=>'_blank'));
-		unset($res->id);
-                $result_val[$counter]= $res;
-                $counter++;
+if ($displayforms) {
+    $sectionhtml .= supportconsole_simple_form($title);
+    // TODO include global term selector
+} elseif ($consolecommand == "$title") {  # tie-in to link from name lookup
+    $term = required_param('term', PARAM_ALPHANUM);
+    if (!ucla_validator('term', $term)) {
+        print_error('invalidterm');
+    }
 
-}
-createTable($result_keys,$result_val);
-}
-}
-
-////////////////////////////////////////////////////////////////////
-$title=" Assignments and Quizzes Due Soon from Date ";
-
-if (empty($_POST['console'])) {
-    ?>
-        <li>
-    <form method="post" action="<?php echo "${_SERVER['PHP_SELF']}"; ?>">
-    <input type="submit" name="console" value="<?php echo $title; ?>">
-    Start (MM/DD/YYYY): <input type="textfield" name="start" size="10" VALUE="<?php echo date('m/d/Y') ?>">
-    Days From Start: <input type="textfield" name="days" size="3" VALUE="7">
-    
-    </form>
-        </li>
-    <?php
-} elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
-    $days = $_POST['days'];
-    echo "<h3>$title</h3>\n";
-    $timefrom = strtotime($_POST['start']);
-    echo '<h2> From ' . date('m/d/Y', $timefrom) . ' due until ' . date('m/d/Y', $timefrom + $days * 24 * 3600) . '</h2>';
-$result=$DB->get_records_sql("SELECT c.id , m.Due_date , c.shortname as Class , c.Fullname, m.modtype, m.Name
-    FROM ((
-            SELECT 'quiz' AS modtype, course, name, from_unixtime( timeclose ) AS Due_Date
-            FROM `mdl_quiz`
-            WHERE timeclose
-            BETWEEN  {$timefrom}
-            AND {$timefrom} + {$days}*24*3600
-        ) UNION (
-            SELECT 'assignment' AS modtype, course, name, from_unixtime( timedue , '%m-%d-%y %H:%i %a') AS Due_Date
-            FROM mdl_assignment
-            WHERE timedue
-            BETWEEN {$timefrom}
-            AND {$timefrom} + {$days}*24*3600
+    $result = $DB->get_records_sql("
+        SELECT a.id 
+        FROM {course} a 
+        INNER JOIN {resource} b ON a.id = b.course 
+        WHERE a.idnumber LIKE '{$_POST['term']}%' AND (
+               b.name LIKE '%course description%' 
+            OR b.name LIKE '%course outline%' 
+            OR b.name LIKE '%syllabus%'
         )
-    ) AS m
-    INNER JOIN mdl_course c ON c.id = m.course
-    ORDER BY `m`.`Due_Date` ASC
-                                                 ");    
-  if(empty($result))
-{
-        echo"No results were found";
-}
-else
-{
-$num_rows = sizeof($result);
-if($num_rows == 1)
-{
- print "There is $num_rows assignment/quiz.<P>";
+        group by shortname
+        order by shortname
+    ");
 
+    $sectionhtml .= supportconsole_render_section_shortcut($title, $result);
 }
 
-else
-{
- print "There are $num_rows assignments/quizzes.<P>";
-}
-$result_val=array_values($result);
-$result_keys=array_keys(get_object_vars($result_val[0]));
-unset($result_keys[0]);
-$counter=0;
-foreach($result_val as $res)
-{
-$res->class=html_writer::link(new moodle_url('/course/view.php', array('id'=>$res->id)), $res->class,array('target'=>'_blank'));
-                unset($res->id);
-                $result_val[$counter]= $res;
-                $counter++;
-
-}
-createTable($result_keys,$result_val);
-}
-}
+$consoles->push_console_html('modules', $title, $sectionhtml);
 
 ////////////////////////////////////////////////////////////////////
-// START SSC MODIFICATION #678
-$title=" List syllabus count percentages in categories: None, Public, Private ";
+$title = "assignmentquizzesduesoon";
+$sectionhtml = '';
 
-$db_moodle = mysql_connect($CFG->dbhost,$CFG->dbuser,$CFG->dbpass)
-    or die("Unable to connect to Moodle DB server {$CFG->dbhost}");
-mysql_select_db($CFG->dbname, $db_moodle) or die("Unable to select DB {$CFG->dbname}");
-$result=mysql_query("select left(idnumber,3) as term,count(*) as cnt from {$CFG->prefix}course group by term", $db_moodle) or die(mysql_error());
-
-if (empty($_POST['console'])) {
-?>
-        <li>
-    <form method="post" action="<?php echo "${_SERVER['PHP_SELF']}"; ?>">
-    <input type="submit" name="console" value="<?php echo $title; ?>">
-    <select name="term">
-    <option value="">TERM (count)</option>
-<?php
-    while ($row = mysql_fetch_assoc($result)) {
-        if (!empty($row['term'])) {
-            echo  '<option value="'.$row['term'].'"'.($row['term'] == $CFG->currentterm ? ' selected' : '').'>'.$row['term'].'  ('.$row['cnt'].")</option>\n";
-        }
-    }
-?>
-    <input type="checkbox" name="draw" >Display Courses</input>
-    <input type="checkbox" name="sort" >Sort by Syllabus Status</input>
-    </form>
-       </li>
-<?php
-} elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
-    $uterm = $_POST['term'];
-    $draw_tables = isset($_POST['draw']) ? ($_POST['draw'] == 'on') : false;
-    $sortbysyl = isset($_POST['sort']) ? ($_POST['sort'] == 'on') : false;
+if ($displayforms) {
+    $sectionhtml .= supportconsole_simple_form($title,
+        html_writer::label('Start date ("MM/DD/YYYY")', 'startdate')
+            . html_writer::empty_tag('input', array(
+                    'type' => 'text',
+                    'length' => 10,
+                    'name' => 'startdate',
+                    'id' => 'startdate',
+                    'value' => date('m/d/Y')
+                ))
+            . html_writer::label('Days from start', 'datedays')
+            . html_writer::empty_tag('input', array(
+                    'type' => 'text',
+                    'name' => 'datedays',
+                    'id' => 'datedays',
+                    'value' => 7
+                )));
+} else if ($consolecommand == "$title") {  # tie-in to link from name lookup
+    $timefromstr = required_param('startdate', PARAM_RAW);
+    $timefrom = strtotime($timefromstr);
     
-    echo "<h3>$title</h3>\n";
+    $days = required_param('datedays', PARAM_NUMBER);
+    $daysec = $days * 86400;
+    $timeto = $timefrom + $daysec;
     
-    //echo $draw_tables;
-    echo "For term  $uterm. ";
-    if ($draw_tables) {
-        echo "Print all courses. ";
-        if ($sortbysyl) {
-            echo "Sort by syllabus. ";
-        }
-    }
-    
-    ////////////////////////////// Get master and normal courses only
-    $sql_query = 
-    "SELECT c.id as cid, c.shortname, c.idnumber, r.name, cs.title, cs.summary, cs.sequence, cm.groupmembersonly, "
-        . "c.grouppublicprivate, c.guest "
-        . "FROM {$CFG->prefix}course c "
-        . "LEFT JOIN {$CFG->prefix}resource r ON r.course = c.id AND r.name LIKE '%yllabus%' "
-        . "LEFT JOIN {$CFG->prefix}course_sections cs ON cs.course = c.id AND cs.title LIKE '%yllabus%' "
-        . "LEFT JOIN {$CFG->prefix}course_modules cm ON cm.instance = r.id "
-        . "WHERE c.idnumber LIKE '$uterm%' "
-        . "AND c.id NOT IN "
-            . "(SELECT DISTINCT child_course FROM {$CFG->prefix}course_meta "
-            . "WHERE parent_course IN "
-                . "(SELECT DISTINCT id FROM {$CFG->prefix}course WHERE idnumber LIKE '$uterm%')"
-            . " )"
-        . "ORDER BY c.shortname";
+    $results = $DB->get_records_sql("
+        SELECT 
+            c.id AS courseid,
+            m.Due_date, 
+            c.shortname AS Class, 
+            c.Fullname,
+            m.modtype, 
+            m.Name
+        FROM ((
+            SELECT 
+                'quiz' AS modtype, 
+                course, 
+                name, 
+                FROM_UNIXTIME(timeclose) AS Due_Date
+                FROM {quiz}
+                WHERE timeclose
+                BETWEEN  {$timefrom} AND {$timeto}
+        ) UNION (
+            SELECT 
+                'assignment' AS modtype, 
+                course, 
+                name, 
+                FROM_UNIXTIME(timedue, '%m-%d-%y %H:%i %a') AS Due_Date
+            FROM {assignment}
+            WHERE timedue
+            BETWEEN {$timefrom} AND {$timeto}
+            )) AS m
+        INNER JOIN {course} c ON c.id = m.course
+        ORDER BY `m`.`Due_Date` ASC
+    ");    
 
-    $result = mysql_query($sql_query) or die(mysql_error());
-   
-    $num_rows = mysql_num_rows($result);
-
-    echo "<table border=1>\n";
-        
-    $cs = array();    
-    $atci = array();
-    
-    $cols = 0;
-    while ($get_info = mysql_fetch_assoc($result)) {
-
-        if (!isset($atci[$get_info['cid']])) {
-            $atci[$get_info['cid']] = array('cid' => $get_info['cid'], 'shortname' => $get_info['shortname'],
-                'idnumber' => $get_info['idnumber']);
-        }
-        
-        // Indexing:
-        // $cs[cid] == 0 means private
-        // $cs[cid] > 0 means public
-        // $cs[cid] < 0 means no syllabus
-        // Let's reset this if we have never checked this course
-        // OR if this course previously has a no/private syllabus
-        if (!isset($cs[$get_info['cid']]) || $cs[$get_info['cid']] < 0) {
-            $cs[$get_info['cid']] = 0;
-        }
-        
-        // They have a resource called syllabus
-        if (isset($get_info['name'])) {
-            // If the course has publicprivate enabled AND
-            // The module is set to viewed to private
-            if (isset($get_info['grouppublicprivate']) && $get_info['grouppublicprivate'] == 1 
-                && isset($get_info['groupmembersonly']) && $get_info['groupmembersonly'] == 1) {
-                // Private
-               
-            } else {
-                $cs[$get_info['cid']]++;
-            }
-        }
-        
-        // This means that they have a section remotely called Syllabus
-        if (isset($get_info['title'])) {
-            // If they have content summary
-            if (isset($get_info['summary'])) {
-                // If there can be guests AND
-                // PublicPrivate is disabled
-                // Then public site
-                if (isset($get_info['guest']) && $get_info['guest'] == 1
-                    && isset($get_info['grouppublicprivate']) && $get_info['grouppublicprivate'] == 0) {
-                    $cs[$get_info['cid']]++;
-                } else {
-                    
-                }
-            } 
-            
-            // If they have content in the section
-            if (isset($get_info['sequence']) && !empty($get_info['sequence'])) {
-                // Quick check, is the site public?
-                if (isset($get_info['guest']) && $get_info['guest'] == 1
-                    && isset($get_info['grouppublicprivate']) && $get_info['grouppublicprivate'] == 0) {
-                    
-                    $cs[$get_info['cid']]++;
-                } else {
-                    // No, goddammit, now we have to go through each sequence?
-                    $sql_query = 
-                        "SELECT cm.groupmembersonly "
-                    . "FROM {$CFG->prefix}course_modules cm "
-                    . "WHERE cm.instance IN (" . $get_info['sequence'] . ")";
-          
-                    $result_seq = mysql_query($sql_query) or die(mysql_error());                    
-                    while ($seq = mysql_fetch_assoc($result_seq)) {
-                        if (isset($seq['groupmembersonly']) && $seq['groupmembersonly'] == 0) {
-                            $cs[$get_info['cid']]++;
-                        }
-                    }
-                }
-            }
-            
-            // This means they have a title but no summary or sequence, 
-            // No syllabus in a syllabus section!
-            if (!isset($get_info['summary']) && !isset($get_info['sequence']) && !empty($get_info['sequence'])) {
-                $cs[$get_info['cid']] = -1;
-            }
-            
-        } 
-        
-        // No resource called syllabus and no 
-        if (!isset($get_info['title']) && !isset($get_info['name'])) {
-            $cs[$get_info['cid']] = -1;
-        }
-    }
-    echo "</table>\n";
-   
-    $count_none = 0;
-    $count_private = 0;
-    $count_public = 0;
-    
-    /////////////////////////////////// Cross check with child courses
-    $sql_query = 
-    "SELECT c.id as cid, c.shortname, c.idnumber, cm.child_course "
-        . "FROM mdl_course c "
-        . "LEFT JOIN {$CFG->prefix}course_meta cm ON cm.parent_course = c.id "
-        . "WHERE c.idnumber LIKE '$uterm%' "
-        . "ORDER BY c.id";
-
-    $result = mysql_query($sql_query) or die(mysql_error());
-   
-    $count_helper = array();
-    $child_record = array();
-    $child_rh = array();
-    // Get a list of parent*children and normal courses
-    while ($get_info = mysql_fetch_assoc($result)) {
-        if (isset($cs[$get_info['cid']])) {
-            
-            if (!isset($count_helper[$get_info['cid']])) {
-                $count_helper[$get_info['cid']] = 0;
-            }
-            
-            $count_helper[$get_info['cid']]++;
-            
-            if (isset($get_info['child_course'])) {
-                // This is a list of child courses, that have been
-                // counted towards a master course
-                $child_rh[$get_info['child_course']] = $get_info;
-            }
-        } else {
-            // All these courses should be child courses 
-            $child_record[$get_info['cid']] = $get_info;
+    foreach ($results as $k => $result) {
+        if (isset($result->courseid)) {
+            $result->courseid = html_writer::link(new moodle_url(
+                    '/course/view.php', array('id' => $result->courseid)
+                ));
+            $results[$k] = $result;
         }
     }
 
-    $null_count = 0;
-    foreach($child_record as $crk => $cr) {
-        if(!isset($child_rh[$crk])) {
-            $null_count++;
-            // Keep this.
-            //echo $cnt . " $crk: " . $cr['shortname'] . " " . $cr['idnumber'] . "<br>\n";
-            //$record = get_records_sql("SELECT * FROM mdl_course_meta WHERE child_course = '" . $crk . "'");
-            //foreach($record as $facts) {
-                //echo "Parent course: " . $facts->parent_course . " ";
-                //$courser = get_records_sql("SELECT * FROM mdl_course WHERE id = '" . $facts->parent_course . "'");
-                // This should give you sites that are child courses because they have
-                // TA Sites, which makes them a child course to a non-existant metacourse
-                //echo "<br>";
-            //}
-        }
-    }
-    
-    echo "<BR>";
-    
-    ///////////////////////////////////// DISPLAY INFORMATION
-    $child_cnt = count($child_record);
-
-    echo "Count of records (meta + normal courses): " . count($cs) . "<BR>";
-    
-    echo "There are $null_count invalid child courses.<BR>";
-    
-    foreach ($cs as $key => $value) {
-        if (!isset($count_helper[$key])) {
-            $count_helper[$key] = 1;
-        }
-        
-        if ($value < 0) {
-            $count_none += $count_helper[$key];
-        }
-        
-        if ($value == 0) {
-            $count_private += $count_helper[$key];
-        }
-        
-        if ($value > 0) {
-            $count_public += $count_helper[$key];
-        }
-    }           
-    
-    /////////////////// GENERATE CROSS REFERENCES ////////////////////
-    $records = get_records_sql("SELECT * FROM {$CFG->prefix}course WHERE idnumber LIKE '$uterm%'");
-    
-    
-    // The analyzed courses        
-    $total_checked = ($count_none + $count_private + $count_public);
-    
-    echo "There are " . $total_checked . " courses (child + normal courses) in analysis. <br>";
-    
-    echo "NONE: $count_none (" . number_format($count_none / $total_checked * 100, 0) . "%) <br>";
-    echo "PRIVATE: $count_private (" . number_format($count_private / $total_checked * 100, 0) . "%)<br>";
-    echo "PUBLIC: $count_public (" . number_format($count_public / $total_checked * 100, 0) . "%)<br>";
-    echo "That means " . ($count_private +  $count_public) . " (" 
-        . number_format(($count_public + $count_private) / $total_checked * 100, 0) . "%) "
-        . " have syllabi.<br>";
-        
-    $cols = 0;
-    if ($draw_tables) {
-        echo '<table border=1>';
-        $keyset = array();
-        
-        // Append additional data
-        foreach($atci as $key => $value) {
-            $value['syllabus'] = $cs[$key];
-            $value['count'] = $count_helper[$key];
-            $atci[$key] = $value;
-            if ($sortbysyl) {
-                $keyset[$cs[$key]] = $cs[$key];
-            }
-        }
-            
-        if ($sortbysyl) {
-            // Shortsort
-            sort($keyset);
-            
-            $atcis = array();
-            foreach($keyset as $key => $value) {
-                foreach($atci as $akey => $avalue) {
-                    if ($value == $avalue['syllabus']) {
-                        $atcis[$akey] = $avalue;
-                    }
-                }
-            }
-        } else {
-            $atcis = $atci;
-        }
-        
-        foreach($atcis as $key => $value) {
-            if($cols == 0) {
-                $cols = 1;
-                print "<tr>";
-                foreach($value as $col => $row) {
-                    print "<th align='left'>$col</th>";
-                }
-                print "<tr>\n";
-            }
-            print "<tr>\n";
-            foreach ($value as $title => $field) {
-                print "\t<td>";
-                if ($title == 'syllabus') {
-                    if ($field < 0) {
-                        echo '<span style="color:black;">None</span>';
-                    } else if ($field == 0) {
-                        echo '<span style="color:red;">Private</span>';
-                    } else if ($field > 0) {
-                        echo '<span style="color:green;">Public</span>';
-                    }
-                } else {
-                    if ($title == 'shortname') {
-                        echo '<a href="';
-                        echo $CFG->wwwroot . "/course/view.php?id=" . $key;
-                        echo '">' . $field . '</a>';
-                    } else {
-                        echo $field;
-                    }
-                    
-                }
-                echo "</td>\n";
-            }
-            print "</tr>\n";
-        }
-        
-        echo '</table>';
-    }
-}
-// END SSC MODIFICATION #678
-// END SSC MODIFICATION #775
-////////////////////////////////////////////////////////////////////
-/** Removing this section for now, if sequencereport.php is functioning, uncomment this block.
-$title="Course Sections With Malformed Sequence";
-if (empty($_POST['console'])) { 
-?>
-    <form method="post" action="sequencereport.php">
-        <input type="submit" name="console" value="<?php echo $title; ?>">
-    </form>
-<?php
-}**/
-
-
-///////////////////////////////////////////////////////////////////////
-// START SSC MODIFICATION #828 : SRDB tests moved to support console //
-///////////////////////////////////////////////////////////////////////
-$title=" SRDB Stored Procedure Tests ";
-if (empty($_POST['console'])) {
-?>
-    <li>
-    <form method="POST" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-    <input type="submit" name="console" value="<?php  echo $title ?>">
-    <input type="text" name="query">
-    <input type="checkbox" name="tabled">Display in tables</input>
-    - - (e.g. ccle_ClassCalendar,10F,180052200)
-    </form>
-    </li>
-<?php
-
-} else if ($_POST['console'] == $title) {
-
-    echo "<br>";
-
-    $tablarized = isset($_POST['tabled']);
-    $the_query = $_POST['query'];
-
-    // Handle it. DB handles that is.
-    $db_conn = odbc_connect($CFG->registrar_dbhost, $CFG->registrar_dbuser, $CFG->registrar_dbpass);
-
-    if (!$db_conn) {
-        echo "ERROR - Cannot connect to registrar database host " . $CFG->registrar_dbhost . "<br>";
-    } else {
-        if ($the_query != '') {
-            // Finally we will do the stored procedure
-            $odbc_params = explode(',', $the_query);
-    
-            // Build the query
-            $odbc_function = array_shift($odbc_params);
-
-            $odbc_query = 'EXECUTE ' . $odbc_function;
-            $odbc_query .= " '" . implode("', '", $odbc_params) . "'";
-
-            echo 'Running query: [' . $odbc_query . ']';
-
-        } else {
-            echo "Man, you gave us an empty query. We cannot do anything with that.";
-        }
-    }
-
-    if (isset($odbc_query)) {
-        $result = odbc_exec($db_conn, $odbc_query);
-
-        if ($result) {
-            // Store results
-            for ($i = 1; $i <= odbc_num_fields($result); $i++) {
-                $fields[] = odbc_field_name($result, $i);
-            }
-
-            while ($row = odbc_fetch_array($result)) {
-                $rows[] = $row;
-            }
-
-            if ($tablarized) {
-                // Draw results
-                echo '<table border="1">';
-                echo '<tr>';
-
-                foreach ($fields as $field) {
-                    echo '<th>';
-
-                    echo $field;
-
-                    echo '</th>';
-                }
-
-                echo '</tr>';
-
-                $colored_back = false;
-                foreach ($rows as $row) {
-                    echo '<tr ';
-                    if ($colored_back) {
-                        echo 'bgcolor="#eeeeee"';
-                    }                
-                    echo '>';
-
-                    $colored_back = !$colored_back;
-
-                    foreach ($row as $fiel => $data) {                
-                        echo '<td>';
-
-                        echo $data;
-
-                        echo '</td>';
-                    }
-
-                    echo '</tr>';
-                }
-
-                echo '</table>';
-            } else {
-                echo '"' . implode('","', $fields) . '"<br>';
-                foreach ($rows as $row) {
-                   echo '"' . implode('","', $row) . '"<br>';
-                }
-            }
-        }
-    }
+    $sectionhtml .= supportconsole_render_section_shortcut($title, $results,
+        array("From $timefromstr to " . date('m/d/Y', $timeto), "$days days"));
 }
 
-// END SSC MODIFICATION #828
+$consoles->push_console_html('modules', $title, $sectionhtml);
+
 //////////////////////////////////////////////////////////////////////////////////////////
-$title=" Count of Modules by Course ";
+$title = "modulespercourse";
+$sectionhtml = '';
 
-if (empty($_POST['console'])) {
-?>
-        <li>
-    <form method="post" action="<?php echo $_SERVER['PHP_SELF'] ?>">
-    <input type="submit" name="console" value="<?php echo $title; ?>">
-    </form>
-        </li>
-<?php 
-} elseif ($_POST['console'] == "$title") {  # tie-in to link from name lookup
-    echo "<h3>$title</h3>\n";
-    
-    // Mapping of [course shortname, module name] => count of instances of this module in this course
-    // count($course_indiv_module_counts[<course shortname>]) has the number kinds of modules used in this course
+if ($displayforms) {
+    $sectionhtml = supportconsole_simple_form($title);
+} elseif ($consolecommand == "$title") {  
+    // Mapping of [course shortname, module name] => count of 
+    // instances of this module in this course
+    // count($course_indiv_module_counts[<course shortname>]) has 
+    // the number kinds of modules used in this course
     $course_indiv_module_counts = array();
     
-    // Mapping of course shortname => count of instances of all modules in this course
+    // Mapping of course shortname => count of instances of 
+    // all modules in this course
     $course_total_module_counts = array();
     
-    $result=$DB->get_records_sql("SELECT cm.id,c.shortname AS c_shortname, m.name AS m_name, count( * ) AS cnt
-                         FROM mdl_course c
-                         JOIN mdl_course_modules cm ON c.id = cm.course
-                         JOIN mdl_modules m ON cm.module = m.id
-                         GROUP BY c.id, m.id");
+    $results = $DB->get_records_sql("
+        SELECT 
+            cm.id,
+            c.id AS courseid,
+            c.shortname AS shortname,
+            m.name AS modulename, 
+            count(*) AS cnt
+        FROM {course} c
+        JOIN {course_modules} cm ON c.id = cm.course
+        JOIN {modules} m ON cm.module = m.id
+        GROUP BY c.id, m.id
+    ");
 
-$result_val=array_values($result);
-$result_keys=array("Course",	"Module name", "Instance count (module)", "Modules count (course)","Modules instance count (course)");
+    $courseshortnames = array();
 
-$counter=0;
-foreach($result_val as $row){
-        if (isset($course_indiv_module_counts[$row->c_shortname][$row->m_name]))
-            $course_indiv_module_counts[$row->c_shortname][$row->m_name] += $row->cnt;
-        else
-            $course_indiv_module_counts[$row->c_shortname][$row->m_name] = $row->cnt;
-        
-        if (isset($course_total_module_counts[$row->c_shortname]))
-            $course_total_module_counts[$row->c_shortname] += $row->cnt;
-        else
-            $course_total_module_counts[$row->c_shortname] = $row->cnt;
+    foreach ($results as $result) {
+        $sn = $result->courseid;
+        $mn = $result->modulename;
+        $courseshortnames[$sn] = $result->shortname;
+
+        if (!isset($course_indiv_module_counts[$sn][$mn])) {
+            $course_indiv_module_counts[$sn][$mn] = 0;
+        }
+
+        $course_indiv_module_counts[$sn][$mn] += $result->cnt;
     }
-$counter =0;
-foreach($result_val as $res){
-	$res->indiv_mc ="<div align=center>".$course_indiv_module_counts[$res->c_shortname][$res->m_name]."</div>";
-	$res->ttl_mc ="<div align=center>".$course_total_module_counts[$res->c_shortname]."</div>";
-	$rescnt= "<div align=center>".$res->cnt."</div>";
-	$res->cnt = $rescnt;
-	$res->c_shortname ='<a target = "blank" href='.$CFG->wwwroot.'/course/view.php?id='.$res->id.'>'.$res->c_shortname.'</a>';
-	unset($res->id);
-	$result_val[$counter]=$res;
-	$counter ++;
-}
-createTable($result_keys, $result_val);
-}
 
-if (empty($_POST['console'])) {
-        ?></ul><?php
-}
+    $tabledata = array();
+    foreach ($course_indiv_module_counts as $courseid => $modulecounts) {
+        $rowdata = array(
+            'course' => html_writer::link(new moodle_url(
+                    '/course/view.php', array('id' => $courseid)
+                ), $courseshortnames[$courseid]),
+            'total' => array_sum($modulecounts)
+        );
 
 
+        foreach ($modulecounts as $modulename => $moduleinst) {
+            $rowdata[$modulename] = $moduleinst;
+        }
+
+        $tabledata[] = $rowdata;
+    }
+
+    $sectionhtml .= supportconsole_render_section_shortcut($title,
+        $tabledata);
+
+
+}
+
+$consoles->push_console_html('modules', $title, $sectionhtml);
+
+////////////////////////////////////////////////////////////////////
+// USER RELATED REPORTS 
+////////////////////////////////////////////////////////////////////
+$title = "roleassignments";
+$sectionhtml = '';
+if ($displayforms) { 
+    $sectionhtml .= supportconsole_simple_form($title);
+} else if ($consolecommand == "$title") { 
+    $results = $DB->get_records_sql("
+        SELECT 
+            a.id,
+            b.name,
+            b.shortname,
+            component,
+            COUNT(*) AS cnt 
+        FROM {role_assignments} a 
+        LEFT JOIN {role} b ON (a.roleid = b.id) 
+        GROUP BY component, roleid
+    ");
+
+    $admin_result = get_config(null, 'siteadmins');
+    if (empty($admin_result) && empty($result)) {
+       $sectionhtml .= html_writer::error_text("There are no enrollments");
+    }
+
+    foreach ($results as $key => $result) {
+        if ($result->component == '') {
+            $result->component = 'manual';
+        }
+    }
+
+    $admin_cnt = count(explode(',', $admin_result));
+    $adminrow = new object();
+    $adminrow->name = 'Administrators';
+    $adminrow->shortname = 'admin';
+    $adminrow->component = 'admin';
+    $adminrow->cnt = $admin_cnt;
+    $results[] = $adminrow;
+
+    $sectionhtml .= supportconsole_render_section_shortcut($title, $results);
+}
+
+$consoles->push_console_html('users', $title, $sectionhtml);
+
+////////////////////////////////////////////////////////////////////
+$title = "countnewusers";
+$sectionhtml = '';
+if ($displayforms) { 
+    $sectionhtml .= supportconsole_simple_form($title, 
+        html_writer::label('Number of users to show', 'count')
+            . html_writer::empty_tag('input', array(
+                'name' => 'count', 
+                'id' => 'count',
+                'value' => 20,
+                'size' => 3
+            )));
+// save for later when figure out how sql query should look    <input type="radio" name="radio" value="unique" CHECKED>Unique Logins
+} else if ($consolecommand == "$title") { 
+    $count = required_param('count', PARAM_INT);
+    $distinct = ""; 
+    $results = $DB->get_records_sql("
+        SELECT 
+            id,
+            idnumber,
+            lastname, 
+            firstname,
+            IF (timemodified = 0,
+                    'Never',
+                    FROM_UNIXTIME(timemodified, '%Y-%m-%d')
+                ) AS Time_Modified,
+            IF (firstaccess = 0,
+                    'Never',
+                    FROM_UNIXTIME(firstaccess, '%Y-%m-%d')
+                ) AS First_Access,
+            IF (lastaccess = 0,
+                    'Never',
+                    FROM_UNIXTIME(lastaccess, '%Y-%m-%d')
+                ) AS Last_Access,
+            IF (lastlogin = 0,
+                    'Never',
+                    FROM_UNIXTIME(lastlogin, '%Y-%m-%d')
+                ) AS Last_Login
+        FROM {user} 
+        ORDER BY id DESC 
+        LIMIT $count
+    ");
+
+    foreach ($results as $k => $result) {
+        $result->delete = html_writer::link(new moodle_url('/admin/user.php',
+            array('delete' => $result->id)), 'Delete');
+
+        $result->view = html_writer::link(new moodle_url('/user/view.php',
+            array('id' => $result->id)), 'View');
+
+        $results[$k] = $result;
+    }
+
+    $sectionhtml .= supportconsole_render_section_shortcut($title, $results);
+}
+
+$consoles->push_console_html('users', $title, $sectionhtml);
+
+
+echo $OUTPUT->header();
+if (!$displayforms) {
+    echo html_writer::link(new moodle_url($PAGE->url), 'Back');
+    echo $consoles->render_results();
+} else {
+    echo $consoles->render_forms();
+}
 echo $OUTPUT->footer();
-?>  

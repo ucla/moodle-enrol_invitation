@@ -95,6 +95,24 @@ abstract class registrar_query {
         return false;
     }
 
+    static function get_all_available_queries() {
+        $dirname = dirname(__FILE__);
+        $qfs = glob($dirname . '/*.class.php');
+
+        $queries = array();
+        foreach ($qfs as $query) {
+            if ($query == __FILE__) {
+                continue;
+            }
+
+            $query = str_replace($dirname . '/registrar_', '', $query);
+            $query = str_replace('.class.php', '', $query);
+            $queries[] = $query;
+        }
+
+        return $queries;
+    }
+
     /**
      *  Returns the ADOConnection object for registrar connection.
      *

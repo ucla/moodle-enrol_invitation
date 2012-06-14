@@ -1,0 +1,9 @@
+.supportconsole h3,
+.supportconsole h2 {
+    float: left;
+}
+
+.supportconsole .uclaconsole {
+    clear: both;
+    margin-left: 12px;
+}
