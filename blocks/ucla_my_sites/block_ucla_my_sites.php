@@ -183,6 +183,9 @@ class block_ucla_my_sites extends block_base {
                 foreach ($class_sites as $k => $class_site) {
                     foreach ($class_site->reg_info as $reginfo) {
                         if ($key == make_idnumber($reginfo)) {
+                            if(!is_array($class_sites[$k]->roles)) {
+                                $class_sites[$k]->roles = array();
+                            }
                             $class_sites[$k]->roles[] = $rrole->name;
                             $localexists = true;
                         }
