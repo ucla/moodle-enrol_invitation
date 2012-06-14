@@ -2242,24 +2242,9 @@ class uclacoursecreator {
      *  Will change the state of the object.
      **/
     function figure_terms() {
-        $terms_list = $this->get_config('terms');
-        if (!is_array($terms_list)) {
-            // then must be a comma-deliminated term list
-            $terms_list = explode(',', $terms_list);
-        }
-        
-        if (isset($terms_list)) {
-            foreach ($terms_list as &$term) {
-                $term = trim($term);
-                if (!$this->validate_term($term)) {
-                    throw new course_creator_exception(
-                        'Improper term ' . $term
-                    );
-                }
-            }
-
+        $terms_list = get_active_terms();        
+        if (!empty($terms_list)) {
             $this->terms_list = $terms_list;
-
             return $terms_list;
         }
 

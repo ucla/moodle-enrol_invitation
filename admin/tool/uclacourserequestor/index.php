@@ -57,24 +57,7 @@ $top_forms = array(
     UCLA_REQUESTOR_VIEW => array('view')
 );
 
-$termstr = get_config($rucr, 'terms');
-if (!empty($termstr)) {
-    $terms = array();
-
-    $interms = array();
-    if (is_array($termstr)) {
-        $interms = $termstr;
-    } else {
-        $interms = explode(',', $termstr);
-    }
-
-    foreach ($interms as $k => $t) {
-        unset($terms[$k]);
-        $tt = trim($t);
-        $terms[$tt] = $tt;
-    }
-}
-
+$terms = get_active_terms();
 if (empty($terms)) {
     $terms[$selected_term] = $selected_term;
 }
