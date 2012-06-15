@@ -51,6 +51,13 @@ $PAGE->set_heading($SITE->fullname);
 echo $OUTPUT->header();
 echo $OUTPUT->heading($title, 1, 'headingblock');
 
+// CCLE-3141 - Prepare for post M2 deployment
+if ($term == '12S') {
+    echo $OUTPUT->box(get_string('spring2012', 'block_ucla_browseby'), array('class' => 'noticebox'));
+} else if (term_cmp_fn($term, '12S') == -1) {
+    echo $OUTPUT->box(get_string('prespring2012', 'block_ucla_browseby'), array('class' => 'noticebox'));    
+}
+
 echo html_writer::tag('div', $innercontents, array('id' => 'browsebymain'));
 
 echo $OUTPUT->footer();
