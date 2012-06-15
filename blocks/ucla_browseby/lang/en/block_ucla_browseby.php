@@ -37,10 +37,10 @@ $string['coursesinsubjarea'] = 'Courses in {$a}';
 // Collaborations
 $string['collab_notfound'] = 'No collaboration sites found.';
 $string['collab_notcollab'] = 'This category is not considered a category for collaboration sites.';
-$string['collab_coursesincat'] = 'Courses in this category';
+$string['collab_coursesincat'] = 'Sites in this category';
 $string['collab_viewall'] = 'Collaboration sites';
 $string['collab_viewin'] = 'Collaboration sites in {$a}';
-$string['collab_nocoursesincat'] = 'No courses were found in this cateogry';
+$string['collab_nocoursesincat'] = 'No sites were found in this category';
 
 $string['sitename'] = 'Site name';
 $string['projectlead'] = 'Project lead';
@@ -71,8 +71,18 @@ $string['desc_use_local_courses'] = 'Check box to allow for local courses to ove
 $string['nousersinrole'] = 'N / A';
 $string['session_break'] = 'Summer session {$a}';
 $string['registrar_link'] = 'Registrar';
+$string['coursesnotfound'] = 'No courses found for given subject area and term';
 
 // Headers in courses view
 $string['course'] = 'Course';
 $string['instructors'] = 'Instructors';
 $string['coursetitle'] = 'Course title';
+
+// CCLE-3141 - Prepare for post M2 deployment
+$string['spring2012'] = 'If you cannot find the course for which ' . 
+        'you\'re looking, please visit our archive server ' . 
+        '(<a href="https://archive.ccle.ucla.edu">https://archive.ccle.ucla.edu</a>).';
+$string['prespring2012'] = 'You are currently on the CCLE production server ' . 
+        '(<a href="https://ccle.ucla.edu">https://ccle.ucla.edu</a>). For ' . 
+        'courses from Winter 2012 or earlier, please visit our archive server ' . 
+        '(<a href="https://archive.ccle.ucla.edu">https://archive.ccle.ucla.edu</a>).';
