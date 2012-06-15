@@ -224,37 +224,24 @@ class ucla_weeksdisplay_db_test extends UnitTestCaseUsingDatabase {
        $this->assertEqual($result, '11W');  
        $result = get_config('local_ucla', 'active_terms');
        $this->assertEqual($result, '11W,11S,111,11F'); 
-       $result = get_config('tool_uclacourserequestor', 'terms');
-       $this->assertEqual($result, '11W,11S,111,11F'); 
-       $result = get_config('tool_uclacoursecreator', 'terms');
-       $this->assertEqual($result, '11W,11S,111,11F');  
+       
        block_ucla_weeksdisplay::set_term_configs('11S');
        $result = get_config(NULL, 'currentterm');
        $this->assertEqual($result, '11S');  
        $result = get_config('local_ucla', 'active_terms');
        $this->assertEqual($result, '11S,111,11F,12W'); 
-       $result = get_config('tool_uclacourserequestor', 'terms');
-       $this->assertEqual($result, '11S,111,11F,12W'); 
-       $result = get_config('tool_uclacoursecreator', 'terms');
-       $this->assertEqual($result, '11S,111,11F,12W'); 
+
        block_ucla_weeksdisplay::set_term_configs('111');
        $result = get_config(NULL, 'currentterm');
        $this->assertEqual($result, '111');  
        $result = get_config('local_ucla', 'active_terms');
        $this->assertEqual($result, '111,11F,12W,12S'); 
-       $result = get_config('tool_uclacourserequestor', 'terms');
-       $this->assertEqual($result, '111,11F,12W,12S'); 
-       $result = get_config('tool_uclacoursecreator', 'terms');
-       $this->assertEqual($result, '111,11F,12W,12S'); 
+       
        block_ucla_weeksdisplay::set_term_configs('11F');
        $result = get_config(NULL, 'currentterm');
        $this->assertEqual($result, '11F');  
        $result = get_config('local_ucla', 'active_terms');
-       $this->assertEqual($result, '11F,12W,12S,121'); 
-       $result = get_config('tool_uclacourserequestor', 'terms');
-       $this->assertEqual($result, '11F,12W,12S,121'); 
-       $result = get_config('tool_uclacoursecreator', 'terms');
-       $this->assertEqual($result, '11F,12W,12S,121');        
+       $this->assertEqual($result, '11F,12W,12S,121');     
    } 
    
    function test_set_current_week_display_config() {
