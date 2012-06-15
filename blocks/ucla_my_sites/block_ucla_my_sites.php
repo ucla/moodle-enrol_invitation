@@ -51,6 +51,25 @@ class block_ucla_my_sites extends block_base {
         $this->content->text = '';
         $this->content->footer = '';
 
+        $content = array();        
+        
+        // NOTE: guest have access to "My moodle" for some strange reason, so 
+        // display a login notice for them
+        if (isguestuser($USER)) {            
+            $content[] =  $OUTPUT->box_start('noticebox');
+
+            $content[] = get_string('loginrequired', 'block_ucla_my_sites');
+            $loginbutton = new single_button(new moodle_url($CFG->wwwroot
+                                    . '/login/index.php'), get_string('login'));
+            $loginbutton->class = 'continuebutton';
+
+            $content[] = $OUTPUT->render($loginbutton);
+            $content[] = $OUTPUT->box_end();      
+            $this->content->text = implode($content);
+            
+            return $this->content;
+        }
+        
         // NOTE: this thing currently takes the term in the get param...
         // so you may have some strange behavior if this block is not
         // in the my-home page...
@@ -58,8 +77,6 @@ class block_ucla_my_sites extends block_base {
         if (!$showterm && isset($CFG->currentterm)) {
             $showterm = $CFG->currentterm;
         }
-
-        $content = array();
 
         $courses = enrol_get_my_courses('id, shortname', 
             'visible DESC, sortorder ASC');

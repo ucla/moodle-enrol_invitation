@@ -44,11 +44,11 @@ $CFG->dbpass    = '';
 $CFG->prefix    = 'mdl_';
 $CFG->dboptions = array(
     'dbpersist' => 0,
-    'dbsocket'  => 1 
+    'dbsocket'  => 0 
 );
 
-$CFG->wwwroot  = 'https://m2stage.ccle.ucla.edu';
-$CFG->dataroot = '/moodle_data'; 
+$CFG->wwwroot  = 'https://ccle.ucla.edu';
+$CFG->dataroot = '/moodle/moodle_data'; 
 
 // This determines what the admin folder is called.
 $CFG->admin    = 'admin';
@@ -85,9 +85,7 @@ $CFG->instructor_levels_roles = array(
 $CFG->forced_plugin_settings['local_ucla'] = array(
     'friendly_urls_enabled' => true,
     'remotetermcutoff' => '12S',
-//    'archiveserver' => 'https://archive.ccle.ucla.edu'
-    // until June 17 don't redirect to archive server, because that doesn't exist
-    'archiveserver' => 'https://ccle.ucla.edu'
+    'archiveserver' => 'https://archive.ccle.ucla.edu',
 );
 
 // My Sites CCLE-2810
@@ -96,15 +94,15 @@ $CFG->forced_plugin_settings['local_ucla']['student_access_ends_week'] = 3;
 $CFG->forced_plugin_settings['local_ucla']['oldest_available_term'] = '08S';
 
 // Browseby CCLE-2894
-$CFG->forced_plugin_settings['block_ucla_browseby']['use_local_courses'] = true;
+$CFG->forced_plugin_settings['block_ucla_browseby']['use_local_courses'] = 0;
 $CFG->forced_plugin_settings['block_ucla_browseby']['ignore_coursenum'] = '194,295,296,375';
 $CFG->forced_plugin_settings['block_ucla_browseby']['allow_acttypes'] = 'LEC,SEM';
 
 // Course builder \\
 
 // Course Requestor
-$CFG->forced_plugin_settings['tool_uclacourserequestor']['mailinst_default'] = false; 
-$CFG->forced_plugin_settings['tool_uclacourserequestor']['nourlupdate_default'] = true;
+$CFG->forced_plugin_settings['tool_uclacourserequestor']['mailinst_default'] = true; 
+$CFG->forced_plugin_settings['tool_uclacourserequestor']['nourlupdate_default'] = false;
 
 // Course Creator
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['course_creator_email'] = 'ccle-operations@lists.ucla.edu';
@@ -112,17 +110,12 @@ $CFG->forced_plugin_settings['tool_uclacoursecreator']['email_template_dir'] = '
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['make_division_categories'] = true;
 
 // MyUCLA url updater
-$CFG->forced_plugin_settings['tool_myucla_url']['url_service'] = 'https://m2test.ccle.ucla.edu/rex/myucla_url_updater/update.php';  // test server
-$CFG->forced_plugin_settings['tool_myucla_url']['user_name'] = 'CCLE Admin';   // name for registering URL with My.UCLA
-$CFG->forced_plugin_settings['tool_myucla_url']['user_email'] = 'ccle@ucla.edu';  // email for registering URL with My.UCLA
-$CFG->forced_plugin_settings['tool_myucla_url']['override_debugging'] = true;   // test sending MyUCLA urls
+$CFG->forced_plugin_settings['tool_myucla_url']['url_service'] = 'http://cis.ucla.edu/ieiWebMap/update.asp';
+$CFG->forced_plugin_settings['tool_myucla_url']['user_name'] = 'CCLE Admin';
+$CFG->forced_plugin_settings['tool_myucla_url']['user_email'] = 'ccle@ucla.edu';
 
 // turn off messaging (CCLE-2318 - MESSAGING)
 $CFG->messaging = false;
-
-// CCLE-2763 - Use new $CFG->divertallemailsto setting in 1.9 and 2.x 
-// development/testing environments
-$CFG->divertallemailsto = 'ccle-email-test@lists.ucla.edu';
 
 // CCLE-2590 - Implement Auto-detect Shibboleth Login
 $CFG->shib_logged_in_cookie = '_ucla_sso';
@@ -147,14 +140,8 @@ $CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url']
 // CCLE-2301 - COURSE MENU BLOCK
 $CFG->forced_plugin_settings['block_ucla_course_menu']['trimlength'] = 22;
 
-// useful STAGE settings
-$CFG->debug = 38911;    // DEVELOPER level debugging messages
-$CFG->debugdisplay = true;  // show the debugging messages
-$CFG->perfdebug = true; // show performance information
-$CFG->debugpageinfo = true; // show page information
-
 // UCLA Theme settings
-$CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'stage';
+$CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'prod';
 $CFG->forced_plugin_settings['theme_uclashared']['logo_sub_dropdown'] = 0;
 
 // Newly created courses for ucla formats should only have the course menu block
@@ -182,9 +169,6 @@ $CFG->filter_mediaplugin_enable_html5video = true;
 $CFG->filter_mediaplugin_enable_qt = true;
 $CFG->filter_mediaplugin_enable_wmp = true;
 $CFG->filter_mediaplugin_enable_rm = true;
-
-// to enable database unit testing
-$CFG->unittestprefix = 'tst_';
 
 /// CCLE-2810 - My Sites - disallow customized "My Moodle" page
 $CFG->forcedefaultmymoodle = true;
@@ -337,8 +321,8 @@ $CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 3;    // Disab
 $CFG->forced_plugin_settings['enrol_database']['fblocaluserfield'] = 'username';
 $CFG->forced_plugin_settings['enrol_database']['fbremoteuserfield'] = 'username';
 
-// CCLE-2802 - Frontpage banner layout include
-$CFG->customfrontpageinclude = $_dirroot_ . '/theme/uclashared/layout/frontpage.php';
+//// CCLE-2802 - Frontpage banner layout include
+//$CFG->customfrontpageinclude = $_dirroot_ . '/theme/uclashared/layout/frontpage.php';
 
 // This will bootstrap the moodle functions.
 require_once($_dirroot_ . '/lib/setup.php');
