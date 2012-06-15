@@ -464,6 +464,9 @@ html, body {background-color:#FFF; height:100%;}
 
 /* Banner notice on pilot to indicate place to get help */
 /* corner banner */
+/*
+CCLE-3141 - Prepare for post M2 deployment
+Turning off style, but leaving it here in case we need to reenable it in the future
 #topleftcornerbanner {
     position: absolute;
     left: 0;
@@ -477,7 +480,7 @@ html, body {background-color:#FFF; height:100%;}
 }
 .headermain {
     margin-left: 2.0em !important;
-}
+}*/
 
 /* CCLE-2993 - Shorten textarea for intro/description field */
 #id_introeditor, #id_introeditor_tbl, #id_intro {

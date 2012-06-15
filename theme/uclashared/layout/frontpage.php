@@ -9,17 +9,15 @@
 <div class="ribbon">
     <h3>My Sites</h3>
     <ul>
-        <li>Access your course sites</li>
-        <li>Access your collaboration sites</li>
-        <li>Request a collaboration site</li>
+        <li><a href="<?php echo $CFG->wwwroot;?>/my/index.php">Access your course and collaboration sites</a></li>
+        <li>Coming soon: Request a collaboration site</li>
     </ul>
 </div>
 
 <div class="ribbon">
     <h3>Help & Feedback</h3>
     <ul>
-        <li>Submit a help request</li>
-        <li>View self-help articles</li>
-        <li>Schedule training</li>
+        <li><a href="<?php echo $CFG->wwwroot;?>/blocks/ucla_help/index.php">Submit a help request</a></li>
+        <li><a target="_blank" href="http://docs.ccle.ucla.edu/index.php/Main_Page">View self-help articles</a></l
     </ul>
 </div>

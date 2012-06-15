@@ -63,8 +63,8 @@ echo $OUTPUT->header();
 
 echo html_writer::start_tag('div', array('id' => 'block_ucla_help'));
 
-echo html_writer::start_tag('div', array('id' => 'block_ucla_help_boxtext'));
-echo html_writer::tag('h3', get_string('helpbox_header', 'block_ucla_help'), 
+echo html_writer::start_tag('fieldset', array('id' => 'block_ucla_help_boxtext'));
+echo html_writer::tag('legend', get_string('helpbox_header', 'block_ucla_help'), 
         array('id' => 'block_ucla_help_boxtext_header'));
 
 // show specific text for helpbox (should be set in admin settings)
@@ -75,10 +75,10 @@ if (empty($boxtext)) {
 } else {
     echo format_text($boxtext, FORMAT_HTML);
 }
-echo html_writer::end_tag('div');
+echo html_writer::end_tag('fieldset');
 
-echo html_writer::start_tag('div', array('id' => 'block_ucla_help_formbox'));
-echo html_writer::tag('h3', get_string('helpform_header', 'block_ucla_help'), 
+echo html_writer::start_tag('fieldset', array('id' => 'block_ucla_help_formbox'));
+echo html_writer::tag('legend', get_string('helpform_header', 'block_ucla_help'), 
         array('id' => 'block_ucla_help_formbox_header'));
 
 // create form object for page
@@ -187,8 +187,8 @@ if ($fromform = $mform->get_data()) {
     echo get_string('helpform_text', 'block_ucla_help');    
     $mform->display();    
 }
+echo html_writer::end_tag('fieldset');
 
-echo html_writer::end_tag('div');
 echo html_writer::end_tag('div');
 
 echo $OUTPUT->footer();
