@@ -609,7 +609,7 @@ M.core_filepicker.init = function(Y, options) {
             if (!args.haslicense) {
                 // the license of the file
                 var licenses = this.options.licenses;
-                html += '<tr><td class="mdl-right"><label for="select-license-'+client_id+'">'+M.str.repository.chooselicense+' :</label></td>';
+               html += '<tr><td class="mdl-right"><label for="select-license-'+client_id+'">'+M.str.repository.chooselicense+' :</label></td>';
                 html += '<td class="mdl-left"><select name="license" id="select-license-'+client_id+'">';
                 var recentlicense = YAHOO.util.Cookie.get('recentlicense');
                 if (recentlicense) {
@@ -1148,7 +1148,19 @@ M.core_filepicker.init = function(Y, options) {
             str += '<td class="mdl-left"><input type="text" name="author" value="'+this.options.author+'" /></td>';
             str += '</tr>';
             str += '<tr>';
-            str += '<td class="mdl-right">'+M.str.repository.chooselicense+': </td>';
+
+			// START UCLA MOD: CCLE-3158 Use UCLA specific lang string for copyright help icon in filepicker
+			/**
+			*	To add in the help icon in the file picker for the copyright status we had to use the lang customization UI to 
+			*	override the lang string 'chooselicense' for en_us.
+			*	But that solution is not ideal, because for new installs that would need to be a manual process. 
+			*	The proper fix would be to edit the code that passes the string to the file picker to 
+			*	use get_string('chooselicense', 'local_ucla') and put in 'chooselicense' in the local/ucla plugin lang file.
+			**/
+			var copyright_help= this.options.copyright_help;
+			str += '<td class="mdl-right">'+copyright_help+': </td>';
+			// END UCLA MOD: CCLE-3158 Use UCLA specific lang string for copyright help icon in filepicker
+
             str += '<td class="mdl-left">';
             var licenses = this.options.licenses;
             str += '<select name="license" id="select-license-'+client_id+'">';
