@@ -56,8 +56,6 @@ echo $OUTPUT->doctype() ?>
 <?php if ($hasheading || $hasnavbar) { ?>
     <div id="page-header" class="env-<?php echo $envflag ?>">
         <?php if ($hasheading) { ?>
-        <?php /* Banner notice on pilot to indicate place to get help */ ?>
-        <a id="topleftcornerbanner" title="Moodle 2 help" href="https://pilot.ccle.ucla.edu/course/view.php?id=110&topic=1">Moodle 2 help</a>        
         <div class="headermain">
             <div id="uclalogo">
                 <?php echo $OUTPUT->logo('ucla_ccle_logo', 'theme') ?>

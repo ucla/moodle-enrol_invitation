@@ -1101,4 +1101,32 @@ function has_shared_context($targetid, $viewerid=null) {
     // if there is a result, return true, otherwise false
     return !empty($result);
 }
+
+/**
+ * Returns active terms. Used by course requestor, course creator, and pre-pop 
+ * enrollment to see what terms should be processed.
+ * 
+ * @return array        Returns an array of terms
+ */
+function get_active_terms() {
+    $ret_val = array();
+    
+    $terms = get_config('local_ucla', 'active_terms');
+    if (is_string($terms)) {    
+       // terms should a comma deliminated list (but might be array already if
+       // if defined in config file)
+       $terms = explode(',', $terms);
+    }
+    
+    if (!empty($terms)) {
+        foreach ($terms as $term) {
+            $term = trim($term);
+            if (ucla_validator('term', $term)) {
+                $ret_val[] = $term;
+            }                              
+        }
+    }    
+    
+    return $ret_val;
+}
 // EOF

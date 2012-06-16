@@ -170,17 +170,13 @@ class block_ucla_weeksdisplay extends block_base {
         $term_string = NULL;
         $term_string.=$current_term;
         $next_term = self::get_next_term($current_term);
-        // for now only look ahead 1 term, but after June 16/17, 2012 deployment
-        // changes this to either its old value of 3 or another value
-        for ($i = 0; $i < 1; $i++) {
+        for ($i = 0; $i < 3; $i++) {
             $term_string.=','.$next_term;
             $next_term = self::get_next_term($next_term);
         }
         
         set_config('currentterm', $current_term);
         set_config('active_terms', $term_string, 'local_ucla');
-        set_config('terms', $term_string, 'tool_uclacourserequestor');
-        set_config('terms', $term_string, 'tool_uclacoursecreator');
     }
    /**
     * Returns the current_week_display string associated with the date and sessions.
