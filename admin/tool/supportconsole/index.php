@@ -444,12 +444,13 @@ foreach ($qs as $query) {
                     'id' => 'spa2'
                 )));
     } else if ($consolecommand == $query) {
-        $params[] = optional_param('spa1', '', PARAM_ALPHANUM); 
-        $params[] = optional_param('spa2', '', PARAM_ALPHANUM); 
+        $params[] = optional_param('spa1', '', PARAM_NOTAGS); 
+        $params[] = optional_param('spa2', '', PARAM_NOTAGS); 
         $sendparams = array($params);
 
         // Hack because of not following standards...
-        if ($query == 'ucla_getterms') {
+        if ($query == 'ucla_getterms' 
+                || $query == 'cis_subjectareagetall') {
             $sendparams = $params;
         }
 
@@ -465,7 +466,6 @@ foreach ($qs as $query) {
 
 ///////////////////////////////////////////////////////////////////////////////
 $title = "countmodules";
-
 
 // Use API
 $item_names = array();
@@ -498,6 +498,7 @@ if ($displayforms) {
         GROUP BY left(c.idnumber,3), course
         ORDER BY left(c.idnumber,3), count DESC";
     }
+
     $result=$DB->get_records_sql($log_query);
 
 // Display results with course edit and view links for forum posts
@@ -888,6 +889,15 @@ if (!$displayforms) {
     echo html_writer::link(new moodle_url($PAGE->url), 'Back');
     echo $consoles->render_results();
 } else {
+    // Put srdb stuff first
+    $consoles->sort(
+        array(
+            'srdb' => array(
+                'ccle_getclasses' => ''
+            )
+        )
+    );
+
     echo $consoles->render_forms();
 }
 echo $OUTPUT->footer();

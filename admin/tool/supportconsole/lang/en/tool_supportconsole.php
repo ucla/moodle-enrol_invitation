@@ -37,7 +37,7 @@ $string['ccle_getclasses'] = 'Get information about course [term] [srs]';
 $string['ccle_getinstrinfo'] = 'Get information about an instructor [uid]';
 $string['ccle_roster_class'] = 'Get student roster for class [term] [srs]';
 $string['cis_coursegetall'] = 'Get all courses in a subject area (CIS) [term] [subject area code]';
-$string['cis_subjectareagetall'] = 'Get all subject area information [term]';
+$string['cis_subjectareagetall'] = 'Get all subject area codes and full names [term]';
 $string['ucla_getterms'] = 'Get terms information';
 
 $string['courseregistrardifferences'] = 'Compare course data with Registrar data.';

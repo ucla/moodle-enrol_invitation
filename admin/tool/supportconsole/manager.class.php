@@ -28,8 +28,51 @@ class tool_supportconsole_manager {
      *  elements.
      **/
     function sort($sorting, $unspecified_append=true) {
-        // Do stuff
+        // This code feels really 80s
+        $this->consolegroups = $this->breadth_sort($this->consolegroups,
+            $sorting, $unspecified_append);
     }
+
+    function breadth_sort($oldsort, $newsort, $appendremainders=true) {
+        // Make a new array, changing the internal ordering
+        // by appending data to the array in the order specified by
+        // new sort name
+        $newsorted = array();
+        foreach ($newsort as $newsortname => $newsortdata) {
+            if (!isset($oldsort[$newsortname])) {
+                continue;
+            }
+
+            if (is_array($newsortdata) && !empty($newsortdata)) {
+                $newsortdata = $this->breadth_sort(
+                        $oldsort[$newsortname], $newsortdata
+                    );
+            } else {
+                $newsortdata = $oldsort[$newsortname];
+            }
+
+            $newsorted[$newsortname] = $newsortdata;
+        }
+
+        // Make a new array, changing the internal ordering by
+        // removing data of that which is specified in the new ordering.
+        // The ones that are not specified will remain in the same order.
+        $oldsorted = array();
+        foreach ($oldsort as $oldsortname => $oldsortdata) {
+            if (!isset($newsort[$oldsortname])) {
+                $oldsorted[$oldsortname] = $oldsortdata;
+            }
+        }
+
+        if ($appendremainders) {
+            $sorted = array_merge($newsorted, $oldsorted);
+        } else {
+            $sorted = array_merge($oldsorted, $newsorted);
+        }
+
+        return $sorted;
+    }
+
 
     /**
      *  Renders in form mode...
