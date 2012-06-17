@@ -696,7 +696,10 @@ function initialise_fullme() {
             if (!defined('NO_MOODLE_COOKIES')) {
                 define('NO_MOODLE_COOKIES', true);
             }
-            redirect($CFG->wwwroot, get_string('wwwrootmismatch', 'error', $CFG->wwwroot), 3);
+            // BEGIN UCLA MOD: CCLE-3241 - Error about url mismatch when trying to go to pilot.ccle.ucla.edu
+            //redirect($CFG->wwwroot, get_string('wwwrootmismatch', 'error', $CFG->wwwroot), 3);
+            redirect($CFG->wwwroot, get_string('wwwrootmismatch', 'error', $CFG->wwwroot), 0);
+            // END UCLA MOD: CCLE-3241
         }
     }
 
