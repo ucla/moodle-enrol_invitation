@@ -848,9 +848,9 @@ class uclacoursecreator {
             $srs = $request->srs;
 
             $key = $term . '-' . $srs;
-
-            // Note that ordering is important
-            $trim_requests[$key] = array($term, $srs);
+            
+            // CCLE-3044 - Now keys are important
+            $trim_requests[$key] = array('term' => $term, 'srs' => $srs);
         }
 
         $this->cron_term_cache['trim_requests'] = $trim_requests;

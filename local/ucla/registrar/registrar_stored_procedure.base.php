@@ -49,6 +49,9 @@ abstract class registrar_stored_procedure extends registrar_query {
         $storedproc = $this->get_stored_procedure();
       
         $spargs = $this->unindexed_key_translate($args);
+        if (!$spargs) {
+            return false;
+        }
 
         foreach ($spargs as $strkey => $val) {
             try {
