@@ -1,43 +1,33 @@
 <?php
-// This file is part of Moodle - http://moodle.org/
-//
-// Moodle is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Moodle is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 defined('MOODLE_INTERNAL') || die;
 
 /**
  *  Registrar Connectivity class.
  *
- *  Essentially a wrapper for ODBC.
+ *  Essentially a wrapper for a wrapper for ODBC.
  **/
 abstract class registrar_query {
     // Holds onto the Registrar connection object.
     private $registrar_conn = null;
 
+    // Flags used to indicate keys of return value when
+    // you do not want to ignore invalid returns
     const query_results = 'good';
+    // I have an internal struggle of removing "generally unused"
+    // data at the this level.
+    // Pros: Don't have to it in many places. 
+    // Cons: Any time that the "generally unused" data becomes used,
+    //      changes expected behavior for all existing tools using this
+    //      stored procedure.
     const failed_outputs = 'bad';
 
-    // This is a member field that allows unindexed arguments passed in
-    // for generation of stored procedure statements to be properly used
-    // by this master class, primarily in get_key().
-    // It is very preferable to not use this variable, and to index
-    // your driving data for the query with more meaningful values.
-    var $unindexed_key_translate = null;
-
-    // THese are the bad outputs
+    // These are the bad outputs, or outputs that made
+    // $this->validate() return false
     var $bad_outputs = array();
 
     // Used to determine if trimming of stuff is needed.
+    // Array( $field, ... )
     var $notrim = false;
 
     /**
@@ -64,72 +54,13 @@ abstract class registrar_query {
         if ($ignorebad) {
             return $rt;
         }
-        
-        $bo = $rq->get_bad_outputs();
 
         return array(
             self::query_results => $rt, 
-            self::failed_outputs => $bo
+            self::failed_outputs => $rq->get_bad_outputs()
         );
     }
-
-    /**
-     *  Finds the file for the query and creates the query connection
-     *  object.
-     **/
-    static function get_registrar_query($queryname) {
-        $classname = 'registrar_' . $queryname;
-        if (!class_exists($classname)) {
-            $fn = dirname(__FILE__) . "/$classname.class.php";
-            if (file_exists($fn)) {
-                require_once($fn);
-            } else {
-                throw new registrar_stored_procedure_exception(
-                    $classname . ' not found'
-                );
-            }
-        }
-
-        if (class_exists($classname)) {
-            return new $classname();
-        }
-
-        return false;
-    }
-
-    /**
-     *  Returns the ADOConnection object for registrar connection.
-     *
-     *  Wrapper for @see open_registrar_connection().
-     *  
-     *  May change state of object.
-     *
-     *  @return ADOConnection The connection to the registrar.
-     **/
-    function get_registrar_connection() {
-        if ($this->registrar_conn == null) {
-            $this->registrar_conn =& $this->open_registrar_connection();
-        }
-
-        return $this->registrar_conn;
-    }
     
-    /**
-     *  Closes the ADOConnection object for Registrar connection.
-     *
-     *  May change the state of object.
-     **/
-    function close_registrar_connection() {
-        if ($this->registrar_conn == null) {
-            return false;
-        }
-
-        $this->registrar_conn->Close();
-        $this->registrar_conn = null;
-
-        return true;
-    }
-
     /**
      *  This function will utilize the ODBC connection and retrieve data.
      *
@@ -140,7 +71,6 @@ abstract class registrar_query {
      **/
     function retrieve_registrar_info($driving_data) {
         // Empty the bad data
-        $this->previous_bad_inputs = array();
 
         $direct_data = array();
 
@@ -184,12 +114,33 @@ abstract class registrar_query {
     }
 
     /**
-     *  Returns any bad data whose output did not pass validation.
+     *  Finds the file for the query and creates the query connection
+     *  object.
      **/
-    function get_bad_data() {
-        return $this->previous_bad_inputs;
-    }
+    static function get_registrar_query($queryname) {
+        $classname = 'registrar_' . $queryname;
+        if (!class_exists($classname)) {
+            $fn = dirname(__FILE__) . "/$classname.class.php";
+            if (file_exists($fn)) {
+                require_once($fn);
+            } else {
+                throw new registrar_stored_procedure_exception(
+                    $classname . ' not found'
+                );
+            }
+        }
 
+        if (class_exists($classname)) {
+            return new $classname();
+        }
+
+        return false;
+    }
+    
+    /**
+     *  Since a single query can return multiple results, if we want to 
+     *  allow good results but not bad ones, then we save them here.
+     **/
     function get_bad_outputs() {
         return $this->bad_outputs;
     }
@@ -212,13 +163,52 @@ abstract class registrar_query {
     function clean_row($fields) {
         $new = array_change_key_case($fields, CASE_LOWER);
 
+        $notrim = is_array($this->notrim) ? $this->notrim : array();
+        
         foreach ($new as $k => $v) {
+            if (in_array($k, $notrim)) {
+                continue;
+            }
+
             $new[$k] = trim($v);
         }
 
         $new = self::db_decode($new);
 
         return $new;
+    }
+
+    /**
+     *  Returns the ADOConnection object for registrar connection.
+     *
+     *  Wrapper for @see open_registrar_connection().
+     *  
+     *  May change state of object.
+     *
+     *  @return ADOConnection The connection to the registrar.
+     **/
+    function get_registrar_connection() {
+        if ($this->registrar_conn == null) {
+            $this->registrar_conn =& $this->open_registrar_connection();
+        }
+
+        return $this->registrar_conn;
+    }
+    
+    /**
+     *  Closes the ADOConnection object for Registrar connection.
+     *
+     *  May change the state of object.
+     **/
+    function close_registrar_connection() {
+        if ($this->registrar_conn == null) {
+            return false;
+        }
+
+        $this->registrar_conn->Close();
+        $this->registrar_conn = null;
+
+        return true;
     }
 
     /**
@@ -231,7 +221,8 @@ abstract class registrar_query {
      *  @param $new Array The row from the Registrar.
      *  @param $old Array The row from the driving data.
      *  @return boolean
-     *      If this returns false, the new entry will not be returned.
+     *      Registrar entries that fail to validate can be accessed
+     *      separately.
      **/
     abstract function validate($new, $old);
 

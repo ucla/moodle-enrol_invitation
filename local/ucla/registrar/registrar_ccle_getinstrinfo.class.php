@@ -1,19 +1,13 @@
 <?php
 
-require_once(dirname(__FILE__) . '/registrar_query.base.php');
+require_once(dirname(__FILE__) . '/registrar_stored_procedure.base.php');
 
-class registrar_ccle_getinstrinfo extends registrar_query {
-    function validate($new, $old) {
-        return true;
+class registrar_ccle_getinstrinfo extends registrar_stored_procedure {
+    function get_query_params() {
+        return array('term', 'srs');
     }
 
-    function remote_call_generate($args) {
-        $term = $args['term'];
-
-        if (!ucla_validator('term', $term)) {
-            return false;
-        }
-
-        return "EXECUTE ccle_GETINSTRINFO '$term', '{$args['subjarea']}'";
+    function get_stored_procedure()  {
+        return "ccle_GETINSTRINFO";
     }
 }

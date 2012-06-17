@@ -1,27 +1,21 @@
 <?php
 
-class registrar_ccle_roster_class extends registrar_query {
+require_once(dirname(__FILE__) . '/registrar_stored_procedure.base.php');
+
+class registrar_ccle_roster_class extends registrar_stored_procedure {
+    function get_query_params() {
+        return array('term', 'srs');
+    }
+
+    function get_stored_procedure() {
+        return 'CCLE_ROSTER_CLASS';
+    }
+
     function validate($new, $old) {
         if (empty($new['bolid'])) {
             return false;
         }
 
         return true;
-    }
-
-    function remote_call_generate($args) {
-        if (!ucla_validator('term', $args[0])) {
-            return false;
-        }
-
-        $term = $args[0];
-
-        if (!ucla_validator('srs', $args[1])) {
-            return false;
-        }
-
-        $srs = $args[1];
-
-        return "EXECUTE CCLE_ROSTER_CLASS '$term', '$srs'";
     }
 }

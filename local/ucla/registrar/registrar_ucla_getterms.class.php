@@ -1,10 +1,17 @@
 <?php
 
-require_once(dirname(__FILE__) . '/registrar_query.base.php');
+require_once(dirname(__FILE__) . '/registrar_stored_procedure.base.php');
 
-class registrar_ucla_getterms extends registrar_query {
+class registrar_ucla_getterms extends registrar_stored_procedure {
     function validate($new, $old) {
-        $tests = array('term', 'session','session_start','session_end','instruction_start');
+        $tests = array(
+                'term', 
+                'session',
+                'session_start', 
+                'session_end',
+                'instruction_start'
+            );
+
         foreach ($tests as $criteria) {
             if (!isset($new[$criteria])) {
                 return false;
@@ -18,13 +25,7 @@ class registrar_ucla_getterms extends registrar_query {
         return true;
     }
 
-    function remote_call_generate($args) {
-        // Exit if the term is not a valid term.
-        $term = $args[0];
-        if (ucla_validator('term', $term) == false) {
-            return false;
-        }
-
-        return "EXECUTE ucla_getterms '$term'";
+    function get_query_params() {
+        return array('term');
     }
 }
