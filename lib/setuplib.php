@@ -698,13 +698,10 @@ function initialise_fullme() {
             }
             // BEGIN UCLA MOD: CCLE-3241 - Error about url mismatch when trying to go to pilot.ccle.ucla.edu
             //redirect($CFG->wwwroot, get_string('wwwrootmismatch', 'error', $CFG->wwwroot), 3);
-            $url_to_redirect = $CFG->wwwroot;
-            if (!empty($_GET)) {
-                $url_to_redirect .= '?';
-                foreach ($_GET as $key => $value) {
-                    $url_to_redirect .= $key . '=' . $value;
-                }
-            }            
+            // do hack to handle pilot.ccle.ucla.edu urls
+            if ($rurl['host'] == 'pilot.ccle.ucla.edu') {                
+                $url_to_redirect = $rurl['scheme'] . '://' . $rurl['host'] . $rurl['fullpath'];
+            }
             redirect($url_to_redirect, get_string('wwwrootmismatch', 'error', $CFG->wwwroot), 0);
             // END UCLA MOD: CCLE-3241
         }
