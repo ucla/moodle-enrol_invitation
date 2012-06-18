@@ -335,10 +335,7 @@ function create_help_message(&$fromform)
     USER_autosubscribe       = " . @$description['autosubscribe'][$USER->autosubscribe] . "
     USER_trackforums         = " . @$description['trackforums'][$USER->trackforums] . "
     USER_timemodified        = " . @date('r' , $USER->timemodified) . "
-    USER_screenreader        = " . @$description['screenreader'][$USER->screenreader] . "
-    HTTP_SHIB_GIVENNAME      = " . @$_SERVER['HTTP_SHIB_GIVENNAME'] . "
-    HTTP_SHIB_PERSON_SURNAME = " . @$_SERVER['HTTP_SHIB_PERSON_SURNAME'] . "
-    HTTP_SHIB_MAIL           = " . @$_SERVER['HTTP_SHIB_MAIL'];
+    USER_screenreader        = " . @$description['screenreader'][$USER->screenreader];
     $body .= "\n";
     
     // get logging records
