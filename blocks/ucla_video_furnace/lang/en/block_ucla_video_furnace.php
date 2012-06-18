@@ -18,6 +18,7 @@ $string['pluginname'] = 'UCLA video furnace';
 $string['title'] = 'Video furnace';
 $string['headervideofurnaceurl'] = 'Source URL';
 $string['descvideofurnaceurl'] = 'TSV source URL for video furnace data';
+$string['guest_not_allow'] = 'Guests can not view this page';
 
 
 

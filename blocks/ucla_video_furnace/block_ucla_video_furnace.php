@@ -17,6 +17,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once(dirname(__FILE__) . '/../moodleblock.class.php');
+require_once($CFG->dirroot.'/blocks/ucla_video_furnace/lib.php');
 
 
 class block_ucla_video_furnace extends block_base {
@@ -25,6 +26,15 @@ class block_ucla_video_furnace extends block_base {
         $this->title = get_string('pluginname', 'block_ucla_video_furnace');
     }
     
+	 /**
+     *  This will create a link to the ucla video furnace page.
+     **/
+    static function get_action_link($courseid) {
+        global $CFG;
+
+        return new moodle_url($CFG->wwwroot . '/blocks/ucla_video_furnace/view.php', array('course_id' => $courseid));
+    }
+
     public function get_content(){
         if ($this->content !== null) {
             return $this->content;
@@ -39,7 +49,7 @@ class block_ucla_video_furnace extends block_base {
             $this->course = $COURSE;
         }
 
-        return self::get_action_link($this->course);
+        return get_action_link($this->course);
     }
     
     public function get_navigation_nodes($course) {
@@ -51,9 +61,13 @@ class block_ucla_video_furnace extends block_base {
 
         if (!empty($coursefound)){
 			//get video list, if no video, do not show the "video furnace" link
+			$condition_str = "";
 			foreach ($coursefound as $k=>$course){
-				$videos = $DB->get_records_select('ucla_video_furnace', '`term` = "'. $course->term .'" AND `srs` = "'. $course->srs .'"');
+				$condition_str .= '(`term` = "'.$course->term. '" AND `srs`= "'. $course->srs. '") OR ';
 			}
+			$condition_str = substr($condition_str, 0, -4); 
+			$videos = $DB->get_records_select('ucla_video_furnace', $condition_str);
+
 			if (!empty($videos)){
 				// Must hardcode the naming string since this is a static function
 	            $nodes[] = navigation_node::create('Video Furnace', self::get_action_link($courseid)); 
@@ -61,34 +75,6 @@ class block_ucla_video_furnace extends block_base {
 	    }
         return $nodes;
     }
-    
-    /**
-     *  This will create a link to the ucla video furnace page.
-     **/
-    static function get_action_link($courseid) {
-        global $CFG;
-
-        return new moodle_url($CFG->wwwroot . '/blocks/ucla_video_furnace/view.php', array('course_id' => $courseid));
-    }
-
-    /**
-     *  Returns the applicable places that this block can be added.
-     *  This block really cannot be added anywhere, so we just made a place
-     *  up (hacky). If we do not do this, we will get this
-     *  plugin_devective_exception.
-     * @todo Not really sure if theres an equivalent to 'blocks-ucla_control_panel' => false, for this block.
-     **/
-    function applicable_formats() {
-        return array(
-            'site-index' => false,
-            'course-view' => false,
-            'my' => false,
-            //'blocks-ucla_control_panel' => false,
-            'not-really-applicable' => true
-        );
-    }
-		
+ 
 }
 
-
-//EOF

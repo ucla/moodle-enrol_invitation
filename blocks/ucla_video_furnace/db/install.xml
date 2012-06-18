@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <XMLDB PATH="blocks/video_furnace/db" VERSION="20120524" COMMENT="XMLDB file for Moodle blocks/video_furnace"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
->
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd">
   <TABLES>
     <TABLE NAME="ucla_video_furnace" COMMENT="Contains the parsed video furnace data obtained from the datasource.">
       <FIELDS>
@@ -21,6 +20,10 @@
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
+	   <INDEXES>
+        <INDEX NAME="courseid" UNIQUE="false" FIELDS="courseid" NEXT="termsrs"/>
+        <INDEX NAME="termsrs" UNIQUE="false" FIELDS="term,srs" PREVIOUS="courseid"/>
+      </INDEXES>
     </TABLE>
   </TABLES>
 </XMLDB>
