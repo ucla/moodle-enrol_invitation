@@ -705,7 +705,7 @@ function initialise_fullme() {
                     $url_to_redirect .= $key . '=' . $value;
                 }
             }            
-            redirect($CFG->wwwroot, get_string('wwwrootmismatch', 'error', $url_to_redirect), 0);
+            redirect($url_to_redirect, get_string('wwwrootmismatch', 'error', $CFG->wwwroot), 0);
             // END UCLA MOD: CCLE-3241
         }
     }
