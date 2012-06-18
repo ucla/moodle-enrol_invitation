@@ -1,0 +1,11 @@
+#vidfurn-wrapper span.course-header-secondary {
+font-size: .8em;
+display: block;
+font-weight: bold;
+margin: 3px 2px 20px 0;
+color: #9f9f9f;
+}
+
+#vidfurn-wrapper span.course-header-secondary a {
+font-size: .9em;
+}

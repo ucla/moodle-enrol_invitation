@@ -14,7 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-// Version         YYYYMMDDVV
-$plugin->version = 2012060600;
-$plugin->component = 'local_ucla';
-$plugin->cron = 86400;  // every 24 hours
+$string['pluginname'] = 'UCLA video furnace';
+$string['title'] = 'Video furnace';
+$string['headervideofurnaceurl'] = 'Source URL';
+$string['descvideofurnaceurl'] = 'TSV source URL for video furnace data';
+$string['guest_not_allow'] = 'Guests can not view this page';
+
+
+
+
+
+
+
+
+
+
+//EOF

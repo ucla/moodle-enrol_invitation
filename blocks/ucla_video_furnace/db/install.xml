@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="blocks/video_furnace/db" VERSION="20120524" COMMENT="XMLDB file for Moodle blocks/video_furnace"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd">
+  <TABLES>
+    <TABLE NAME="ucla_video_furnace" COMMENT="Contains the parsed video furnace data obtained from the datasource.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="courseid"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="term"/>
+        <FIELD NAME="term" TYPE="char" LENGTH="3" NOTNULL="true" SEQUENCE="false" PREVIOUS="courseid" NEXT="srs"/>
+        <FIELD NAME="srs" TYPE="char" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="term" NEXT="start_date"/>
+        <FIELD NAME="start_date" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="srs" NEXT="stop_date"/>
+        <FIELD NAME="stop_date" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="start_date" NEXT="class"/>
+        <FIELD NAME="class" TYPE="char" LENGTH="150" NOTNULL="true" SEQUENCE="false" COMMENT="Name of the class that the video belongs to." PREVIOUS="stop_date" NEXT="instructor"/>
+        <FIELD NAME="instructor" TYPE="char" LENGTH="30" NOTNULL="true" SEQUENCE="false" PREVIOUS="class" NEXT="video_title"/>
+        <FIELD NAME="video_title" TYPE="char" LENGTH="200" NOTNULL="true" SEQUENCE="false" PREVIOUS="instructor" NEXT="video_url"/>
+        <FIELD NAME="video_url" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="video_title" NEXT="_del_flag"/>
+        <FIELD NAME="_del_flag" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="false" SEQUENCE="false" COMMENT="Used during the db sync to determine whether or not the entry should be deleted." PREVIOUS="video_url"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+	   <INDEXES>
+        <INDEX NAME="courseid" UNIQUE="false" FIELDS="courseid" NEXT="termsrs"/>
+        <INDEX NAME="termsrs" UNIQUE="false" FIELDS="term,srs" PREVIOUS="courseid"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>
