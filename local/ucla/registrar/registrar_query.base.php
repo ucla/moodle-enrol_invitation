@@ -70,8 +70,6 @@ abstract class registrar_query {
      *      empty array() - indicates good input, but no results
      **/
     function retrieve_registrar_info($driving_data) {
-        // Empty the bad data
-
         $direct_data = array();
 
         try {
@@ -85,6 +83,7 @@ abstract class registrar_query {
 
         // Let's not fail hard
         if ($qr === false) {
+            debugging('failed to generate query');
             return false;
         }
 
@@ -143,6 +142,10 @@ abstract class registrar_query {
      **/
     function get_bad_outputs() {
         return $this->bad_outputs;
+    }
+
+    function flush_bad_outputs() {
+        $this->bad_outputs = array();
     }
 
     /**

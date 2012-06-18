@@ -36,6 +36,7 @@ abstract class registrar_stored_procedure extends registrar_query {
             } else if (isset($args[$key])) {
                 $newarg = $args[$key];
             } else {
+                debugging('badly indexed parameters');
                 return false;
             }
 

@@ -1059,11 +1059,8 @@ function get_requestor_view_fields() {
  *  Takes about 0.015 second per entry.
  **/
 function get_courses_for_subj_area($term, $subjarea) {
-    $t = microtime(true);
     $result = registrar_query::run_registrar_query('cis_coursegetall',
-        array($term, $subjarea));
-    $e = microtime(true) - $t;
-    $c = (float) count($result);
+        array('term' => $term, 'subjarea' => $subjarea));
 
     return $result;
 }
@@ -1073,7 +1070,7 @@ function get_courses_for_subj_area($term, $subjarea) {
  **/
 function get_course_info_from_registrar($term, $srs) {
     $result = registrar_query::run_registrar_query('ccle_getclasses',
-        array($term, $srs));
+        array('term' => $term, 'srs' => $srs));
 
     if ($result) {
         return array_shift($result);
@@ -1087,7 +1084,7 @@ function get_course_info_from_registrar($term, $srs) {
  **/
 function get_instructor_info_from_registrar($term, $srs) {
     $result = registrar_query::run_registrar_query('ccle_courseinstructorsget',
-        array($term, $srs));
+        array('term' => $term, 'srs' => $srs));
     return $result;
 }
 
