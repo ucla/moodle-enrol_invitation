@@ -12,6 +12,7 @@ $string['builddept'] = "Get department courses";
 
 $string['views'] = 'View existing requests';
 $string['viewcourses'] = "View/Edit existing requests";
+$string['viewrequest'] = "Edit this request";
 $string['buildcoursenow'] = "Build courses now";
 $string['alreadybuild'] = "Course build in progress";
 $string['queuebuild'] = "Course build queued";
@@ -34,6 +35,7 @@ $string['warning'] = 'Some of the courses that you have requested have different
 $string['all_department'] = 'All departments';
 $string['all_term'] = 'All terms';
 $string['all_action'] = 'All statuses';
+$string['all_srs'] = '';
 
 $string['noinst'] = 'Not Assigned';
 
@@ -78,6 +80,8 @@ $string['addmorecrosslist'] = 'Add SRS';
 $string['clchange_removed'] = 'Removed crosslist: ';
 $string['clchange_added'] = 'Added crosslist: ';
 
+$string['nochanges'] = 'Nothing was changed.';
+
 // Crosslisting errors
 $string['illegalcrosslist'] = 'This SRS has already been requested to be built.';
 $string['hostandchild'] = 'This course or one of its crosslists has already been built, and is preventing this request from proceding.';
@@ -88,7 +92,7 @@ $string['nosrsfound'] = 'Could not find course with this SRS.';
 $string['queuetobebuilt'] = "Courses in queue to be built";
 $string['queueempty'] = "The queue is empty. All courses have been built as of now.";
 
-$string['alreadysubmitted'] = "This SRS number has already been submitted as a request. To change this request, use \"" . $string['viewcourses'] . '"';
+$string['alreadysubmitted'] = "This SRS number has already been submitted as a request.";
 $string['checktermsrs'] = "Cannot find course. Please check the term and SRS again.";
 $string['childcourse'] =  " has either been submitted for course creation or is a child course";
 $string['duplicatekeys'] = "Duplicate entry. The alias is already inserted.";

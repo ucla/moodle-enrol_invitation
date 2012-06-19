@@ -1,7 +1,7 @@
 <?php
 /**
  *  Course Requestor 
- *  This code can use some good refactoring
+ *  This code can use some good refactoring.
  **/
 require_once(dirname(__FILE__) . '/../../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
@@ -55,7 +55,7 @@ $prefieldsdata = get_requestor_view_fields();
 
 $top_forms = array(
     UCLA_REQUESTOR_FETCH => array('srs', 'subjarea'),
-    UCLA_REQUESTOR_VIEW => array('view')
+    UCLA_REQUESTOR_VIEW => array('view', 'hidden_srs_view')
 );
 
 $termstr = get_config($rucr, 'terms');
@@ -87,6 +87,7 @@ $nv_cd = array(
     'terms' => $terms,
     'prefields' => $prefieldsdata
 );
+
 // We're going to display the forms, but later
 $cached_forms = array();
 
@@ -143,6 +144,24 @@ foreach ($top_forms as $gk => $group) {
     }
 }
 
+// Special catch for our single term-srs viewer
+$getsrs = optional_param('srs', false, PARAM_ALPHANUM);
+if ($getsrs && $requests === null) {
+    $termsrsform = $cached_forms[UCLA_REQUESTOR_VIEW]['hidden_srs_view'];
+    $termsrsobj = new object();
+    $termsrsobj->{$termsrsform->groupname} = array(
+            'srs' => $getsrs,
+            'term' => $selterm
+        );
+
+    $requests = $termsrsform->respond($termsrsobj);
+    $groupid = UCLA_REQUESTOR_VIEW;
+    $uclacrqs = new ucla_courserequests();
+    foreach ($requests as $request) {
+        $uclacrqs->add_set($request);
+    }
+}
+
 
 // None of the forms took input, so maybe the center form?
 // In this situation, we are assuming all information is
@@ -164,6 +183,7 @@ if ($requests === null) {
         if (!empty($prevs->{UCLA_CR_SUBMIT})) {
             $saverequeststates = true;
         }
+
         if (!empty($prevs->{'buildcourses'}) && 
                 !$coursebuilder->lock_exists()) {
             $forcebuild = true;
@@ -293,6 +313,10 @@ if ($processrequests) {
             if (!isset($successfuls[$setid])) {
                 $requeststodisplay[$setid] = $set;
             }
+        }
+
+        if (empty($changed) && empty($requeststodisplay)) {
+            $changemessages[] = get_string('nochanges', $rucr);
         }
 
         // Apply to version that best represents the database

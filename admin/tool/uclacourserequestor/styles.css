@@ -37,3 +37,8 @@
     text-align: left;
     
 }
+
+/** This is currently overpowered by an !important **/
+#uclacourserequestor_requests thead {
+    background-color: #536895;
+}

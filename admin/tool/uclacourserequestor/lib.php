@@ -736,7 +736,7 @@ function request_get_editables() {
  *   This entire function and its functionality could use some good organizing
  **/
 function prep_request_entry($requestinfo) {
-    global $DB;
+    global $PAGE;
 
     $errs = UCLA_REQUESTOR_ERROR;
     $wars = UCLA_REQUESTOR_WARNING;
@@ -833,12 +833,22 @@ function prep_request_entry($requestinfo) {
     $idstr = '';
     if (!empty($requestinfo[$errs][$e])) {
         $worstnote = $errs;
-        $idstr = get_string($e, $rucr) . html_writer::empty_tag('br');
+
+        // Can't use an MForm due to disability to use nested form,
+        // so cannot be clever, unless decide to overwrite some PEAR
+        // Libraries... which is not desired
+        $gotosinglesrshtml = html_writer::link(new moodle_url(
+            $PAGE->url, array('srs' => $requestinfo['srs'], 
+                'term' => $requestinfo['term'])
+            ), get_string('viewrequest', $rucr));
+
+        $idstr = get_string($e, $rucr) . html_writer::empty_tag('br')
+            . $gotosinglesrshtml;
         $editable = false;
 
+    } else {
+        $idstr .= $requestinfo[$f];
     }
-        
-    $idstr .= $requestinfo[$f];
            
     $formatted[$f] = $idstr;
     unset($requestinfo[$f]);
@@ -1206,6 +1216,7 @@ function get_requestor_view_fields() {
             $prefieldsdata[$varname][$builts->$prefield] = $builts->$prefield;
         }
     }
+
     return $prefieldsdata;
 }
 
