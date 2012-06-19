@@ -50,14 +50,15 @@ require_capability('moodle/course:update', $context);
 require_capability('moodle/course:manageactivities', $context);
 
 // set editing url to be topic or default page
-$sections = get_all_sections($courseid);
-foreach ($sections as $k => $section) {
+$allsections = get_all_sections($courseid);
+$sections = array();
+foreach ($allsections as $k => $section) {
+    $section->name = get_section_name($course, $section);
+
     if ($section->section > $course->numsections) {
-        unset($sections[$k]);
         continue;
     }
 
-    $section->name = get_section_name($course, $section);
     $sections[$k] = $section;
 }
 
@@ -207,9 +208,8 @@ if ($modify_coursemenu_form->is_cancelled()) {
             // A "new" section according to course modifier UI, but has
             // course_sectons.section > course.numsections, i.e. section was
             // created, but course.numsections was lowered
-            if (isset($sections[$newsectnum])) {
-                $section = $sections[$newsectnum];
-                unset($sections[$newsectnum]);
+            if (isset($allsections[$newsectnum])) {
+                $section = $allsections[$newsectnum];
             } else {
                 // It's a new section
                 $sectdata['course'] = $courseid;
@@ -230,6 +230,7 @@ if ($modify_coursemenu_form->is_cancelled()) {
 
             $tobedeleted[] = $section;
             unset($sections[$oldsectnum]);
+            $newsectnum--;
             continue;
         }
         
