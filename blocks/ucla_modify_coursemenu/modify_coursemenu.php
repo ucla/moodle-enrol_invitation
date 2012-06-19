@@ -200,13 +200,25 @@ if ($modify_coursemenu_form->is_cancelled()) {
 
     $newsectnum = 0;
     foreach ($sectiondata as $oldsectnum => $sectdata) {
+        $newsectnum++;
+
+        // Fetch the old section's data
         if (!isset($sections[$oldsectnum])) {
-            $sectdata['course'] = $courseid;
-            $sections[$oldsectnum] = (object) $sectdata;
-
+            // A "new" section according to course modifier UI, but has
+            // course_sectons.section > course.numsections, i.e. section was
+            // created, but course.numsections was lowered
+            if (isset($sections[$newsectnum])) {
+                $section = $sections[$newsectnum];
+                unset($sections[$newsectnum]);
+            } else {
+                // It's a new section
+                $sectdata['course'] = $courseid;
+                $section = (object) $sectdata;
+            }
+        } else {
+            // It a section that existed, and was < course.numsections
+            $section = $sections[$oldsectnum];
         }
-
-        $section = $sections[$oldsectnum];
 
         // check to delete
         if (!empty($sectdata['delete'])) {
@@ -221,7 +233,6 @@ if ($modify_coursemenu_form->is_cancelled()) {
             continue;
         }
         
-        $newsectnum++;
         $section->section = $newsectnum;
             
         if ($landingpage == $oldsectnum) {
@@ -231,7 +242,7 @@ if ($modify_coursemenu_form->is_cancelled()) {
         $section = block_ucla_modify_coursemenu::section_apply($section,
             $sectdata);
 
-        //$sections[$oldsectnum] = $section;
+        $sections[$oldsectnum] = $section;
     }
 
     // Delete some sections...how to do this?
