@@ -1,6 +1,7 @@
 <?php
 /**
  *  Course Requestor 
+ *  This code can use some good refactoring
  **/
 require_once(dirname(__FILE__) . '/../../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
@@ -105,6 +106,9 @@ $pass_uclacrqs = null;
 // This is the global requestor previous value
 $requestorglobal = '';
 
+// These are the messages that are requestor errors
+$errormessages = array();
+
 // This is the field in the postdata that should represent the state of
 // data in the current database for the requestors.
 $uf = 'unchangeables';
@@ -123,6 +127,10 @@ foreach ($top_forms as $gk => $group) {
        
         if ($requests === null && $recieved = $fl->get_data()) {
             $requests = $fl->respond($recieved);
+            if (empty($requests)) {
+                $errormessages[] = 'norequestsfound';
+            }
+
             $groupid = $gk;
 
             // Place into our holder
@@ -203,6 +211,7 @@ if ($requests === null) {
     }
 }
 
+// Save the requests before applying changes
 if ($uclacrqs !== null) {
     $pass_uclacrqs = clone($uclacrqs);
 }
@@ -217,11 +226,9 @@ $globaloptions = array();
 // These are the messages that reflect positive changes
 $changemessages = array();
 
-// These are the messages that are requestor errors
-$errormessages = array();
+$norequests = $uclacrqs->is_empty();
 
-// At this point, requests are indexed by setid.
-if (isset($uclacrqs)) {
+if (isset($uclacrqs) && !$norequests) {
     // This is the form data before the save
     $requestswitherrors = $uclacrqs->validate_requests($groupid);
 	if ($saverequeststates) {
@@ -281,6 +288,12 @@ if (isset($uclacrqs)) {
         }
 
         $requestswitherrors = $uclacrqs->validate_requests($groupid);
+        $requeststodisplay = array();
+        foreach ($requestswitherrors as $setid => $set) {
+            if (!isset($successfuls[$setid])) {
+                $requeststodisplay[$setid] = $set;
+            }
+        }
 
         // Apply to version that best represents the database
         $pass_uclacrqs = clone($uclacrqs);
@@ -289,6 +302,12 @@ if (isset($uclacrqs)) {
         $nv_cd['prefields'] = get_requestor_view_fields();
         $cached_forms[UCLA_REQUESTOR_VIEW]['view'] 
             = new requestor_view_form(null, $nv_cd);
+    }
+
+    // If nobody has determined which requests to display, then disply
+    // all of them
+    if (!isset($requeststodisplay)) {
+        $requeststodisplay = $requestswitherrors;
     }
 
     // Check to see if we need the requestor field
@@ -315,20 +334,21 @@ if (isset($uclacrqs)) {
     }
     
     // user wants to build courses now
-    if($forcebuild == true) {
+    if ($forcebuild == true) {
         $termlist = array();
         foreach ($requestswitherrors as $course) {
             foreach($course as $value) {
-                if($value['action'] == "build") {
+                if ($value['action'] == UCLA_COURSE_TOBUILD) {
                     $termlist[] = $value['term'];
                 }
             }
         }
+
         $termlist = array_unique($termlist);
         events_trigger('build_courses_now', $termlist);
     }
-    
-    $tabledata = prepare_requests_for_display($requestswitherrors, $groupid);
+   
+    $tabledata = prepare_requests_for_display($requeststodisplay, $groupid);
     $rowclasses = array();
     foreach ($tabledata as $key => $data) {
         if (!empty($data['errclass'])) {
@@ -357,7 +377,7 @@ if (isset($uclacrqs)) {
     $requeststable->data = $tabledata;
     // For errors
     $requeststable->rowclasses = $rowclasses;
-}
+} 
 
 $registrar_link = new moodle_url(
     'http://www.registrar.ucla.edu/schedule/');
@@ -426,7 +446,7 @@ if (!empty($errormessages)) {
                 $viewstr = $message;
             }
 
-            echo $OUTPUT->box(get_string($message, $rucr), 'errorbox');
+            echo $OUTPUT->box(get_string($viewstr, $rucr), 'errorbox');
         }
     }
 }

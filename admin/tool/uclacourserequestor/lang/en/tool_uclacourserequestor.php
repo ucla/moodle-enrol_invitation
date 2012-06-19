@@ -45,7 +45,9 @@ $string['submitfetch'] = 'Submit requests';
 $string['submitviews'] = 'Save changes';
 $string['savefailed'] = 'Unable to save request';
 
-$string['norequestsfound'] = 'No courses found for given request.';
+$string['norequestsfound'] = 'No course(s) found at the Registrar.';
+// note - this is UCLA_REQUESTOR_VIEW constant's value
+$string['norequestsfound-views'] = 'No requests found.';
 
 $string['optionsforall'] = 'Options that can affect all requests';
 $string['requestorglobal'] = 'Email to contact when these courses are built: ';

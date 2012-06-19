@@ -72,6 +72,13 @@ class ucla_courserequests {
     }
 
     /**
+     *  Returns if there are no courses in this index.
+     **/
+    function is_empty() {
+        return empty($this->setindex);
+    }
+
+    /**
      *  Adds a set to the bunch of course requests.
      **/
     function add_set($set) {
@@ -356,6 +363,7 @@ class ucla_courserequests {
                 foreach ($newset as $nrkey => $newreq) {
                     $newreq[$h] = 0;
                     $newreq['setid'] = $setid;
+
                     if (!isset($courses[$nrkey])) {
                         $courses[$nrkey] = $newreq;
                         $addedcls[] = $newreq;

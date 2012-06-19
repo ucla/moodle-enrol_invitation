@@ -733,6 +733,7 @@ function request_get_editables() {
 /**
  *  This takes all the data for a request, and prepares it to be displayed
  *  as text to a user, including all errors that need to be included.
+ *   This entire function and its functionality could use some good organizing
  **/
 function prep_request_entry($requestinfo) {
     global $DB;
@@ -829,45 +830,23 @@ function prep_request_entry($requestinfo) {
     // Will disable building of this course
     $buildoptions = array();
 
-    if (!empty($requestinfo[$f])) {
-        if (!empty($requestinfo[$errs][$e])) {
-            $worstnote = $errs;
-            $idstr = get_string($e, $rucr) . ' ';
-            $editable = false;
+    $idstr = '';
+    if (!empty($requestinfo[$errs][$e])) {
+        $worstnote = $errs;
+        $idstr = get_string($e, $rucr) . html_writer::empty_tag('br');
+        $editable = false;
 
-            // This error only occurs when building
-            $buildoptions['disabled'] = true;
-        } else {
-            $idstr .= $requestinfo[$f];
-        }
     }
+        
+    $idstr .= $requestinfo[$f];
            
     $formatted[$f] = $idstr;
     unset($requestinfo[$f]);
     
-    // Add delete/build (action) checkboxes
-    $maybeexists = array('delete', 'build');
-    foreach ($maybeexists as $k) {
-        if (isset($requestinfo[$k])) {
-            $actval = $requestinfo[$k];
-
-            // It needs to be checked in the case of errors where all the
-            // checkboxes are disabled
-            if (!$editable 
-                    && $actionval != UCLA_COURSE_BUILT
-                    && $actionval != UCLA_COURSE_FAILED) {
-                $actval = true;
-            }
-
-            $formatted[$k] = html_writer::checkbox("$key-$k", '1', 
-                $actval, $addedtext, $buildoptions);
-        }
-    }
-
     // requestoremail or 'contact'
     $f = 'requestoremail';
     $reval = '';
-    if ($actionval== UCLA_COURSE_BUILT) {
+    if ($actionval == UCLA_COURSE_BUILT) {
         // Append '' to prevent a checkbox from appearing
         $reval = $requestinfo[$f] . '';
         unset($requestinfo[$f]);
@@ -1095,6 +1074,27 @@ function prep_request_entry($requestinfo) {
     $formatted['instructor'] = $instrstr;
 
     unset($requestinfo['instructor']);
+    
+    // Add delete/build (action) checkboxes
+    $maybeexists = array('delete', 'build');
+    foreach ($maybeexists as $k) {
+        if (isset($requestinfo[$k])) {
+            $actval = $requestinfo[$k];
+
+            if (!$editable 
+                    && $actionval != UCLA_COURSE_BUILT
+                    && $actionval != UCLA_COURSE_FAILED) {
+                $actval = true;
+            }
+
+            if ($worstnote == $errs) {
+                $buildoptions['disabled'] = true;
+            }
+
+            $formatted[$k] = html_writer::checkbox("$key-$k", '1', 
+                $actval, $addedtext, $buildoptions);
+        }
+    }
 
     // Include all the non-changable but displayed data.
     foreach ($requestinfo as $k => $v) {
@@ -1103,6 +1103,7 @@ function prep_request_entry($requestinfo) {
         }
     }
 
+    // Just reorder things 
     $ordfor = array();
     $notused = array();
     $ordered = array(
