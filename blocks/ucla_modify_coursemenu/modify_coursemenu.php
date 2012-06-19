@@ -194,11 +194,16 @@ if ($modify_coursemenu_form->is_cancelled()) {
     $tobedeleted = array();
     $couldnotdelete = array();
 
+    // Parse the landing page, for new sections, replace the data with proper
+    // section number
+    $landingpage = $data->landingpage;
+
     $newsectnum = 0;
     foreach ($sectiondata as $oldsectnum => $sectdata) {
         if (!isset($sections[$oldsectnum])) {
             $sectdata['course'] = $courseid;
             $sections[$oldsectnum] = (object) $sectdata;
+
         }
 
         $section = $sections[$oldsectnum];
@@ -218,9 +223,15 @@ if ($modify_coursemenu_form->is_cancelled()) {
         
         $newsectnum++;
         $section->section = $newsectnum;
+            
+        if ($landingpage == $oldsectnum) {
+            $landingpage = $newsectnum;
+        }
 
         $section = block_ucla_modify_coursemenu::section_apply($section,
             $sectdata);
+
+        //$sections[$oldsectnum] = $section;
     }
 
     // Delete some sections...how to do this?
@@ -235,7 +246,7 @@ if ($modify_coursemenu_form->is_cancelled()) {
     $passthrudata = new object();
     $passthrudata->sections = $sections;
     $passthrudata->deletesectionids = $deletesectionids;
-    $passthrudata->landingpage = $data->landingpage;
+    $passthrudata->landingpage = $landingpage;
     $passthrudata->coursenumsections = $newsectnum;
 
     // We need to add a validation thing for deleting sections

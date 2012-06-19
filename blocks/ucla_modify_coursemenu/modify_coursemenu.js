@@ -254,6 +254,7 @@ M.block_ucla_modify_coursemenu.set_landingpageradio_default = function() {
             '[name=landingpageradios]:enabled'
         );
 
+    // If the one we're looking for is not found, then just use the first one
     if (destinationradio.length <= 0) {
         destinationradio = $('[name=landingpageradios]:first');
     }
@@ -361,7 +362,7 @@ M.block_ucla_modify_coursemenu.start = function() {
         bumc.attach_row_listeners(newtr);
     });
     
-    bumc.check_reset_landingpage();
+    bumc.set_landingpageradio_default();
 
     // Form submission, transfer fake form data onto MForm fields
     $("#id_submitbutton").click(function () {				
