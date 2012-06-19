@@ -186,7 +186,7 @@ class ucla_courserequests {
             // Figure out what we're going to end up changing for each entry
             $setprops = array();
             foreach ($checkers as $editable) {
-                if (empty($changeset[$editable])) {
+                if (!isset($changeset[$editable])) {
                     $v = 0;
                 } else {
                     $v = $changeset[$editable];
