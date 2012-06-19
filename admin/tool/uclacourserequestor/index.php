@@ -226,9 +226,9 @@ $globaloptions = array();
 // These are the messages that reflect positive changes
 $changemessages = array();
 
-$norequests = $uclacrqs->is_empty();
+$processrequests = isset($uclacrqs) && !$uclacrqs->is_empty();
 
-if (isset($uclacrqs) && !$norequests) {
+if ($processrequests) {
     // This is the form data before the save
     $requestswitherrors = $uclacrqs->validate_requests($groupid);
 	if ($saverequeststates) {
