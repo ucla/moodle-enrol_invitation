@@ -44,7 +44,8 @@ $go_back_url = new moodle_url('/course/view.php',
                 array('id' => $course_id, 'topic' => $topic_num));
 set_editing_mode_button($go_back_url);
 
-$sections = get_all_sections($course_id);
+//CCLE-2930:rearrange tool now shows correct sections by limitimg it with the course numsections.
+$sections = array_slice(get_all_sections($course_id),0,$course->numsections+1);
 
 $sectnums = array();
 $sectionnames = array();
