@@ -27,11 +27,13 @@ class course_handler extends browseby_handler {
             COALESCE(user.firstname, ubii.firstname) AS firstname,
             COALESCE(user.lastname, ubii.lastname) AS lastname,
             ubii.profcode,
-            user.url AS userlink
+            user.url AS userlink,
+            mco.shortname AS shortname,
+            mco.idnumber AS idnumber
     ";
 
     const browseall_order_helper = "
-        ORDER BY subj_area, course_code 
+        ORDER BY session_group, subj_area, course_code 
     ";
 
     function get_params() {
@@ -93,6 +95,8 @@ class course_handler extends browseby_handler {
                     USING(term, srs)
                 LEFT JOIN {user} user
                     ON ubii.uid = user.idnumber
+                LEFT JOIN {course} mco
+                    ON mco.id = urc.courseid
                 WHERE ubci.subjarea = :subjarea
                 $termwhere
             " . self::browseall_order_helper;
@@ -141,6 +145,8 @@ class course_handler extends browseby_handler {
                     USING (term, srs)
                 LEFT JOIN {user} user
                     ON ubii.uid = user.idnumber
+                LEFT JOIN {course} mco
+                    ON mco.id = urc.courseid
                 WHERE 
                     ubi.userid = :user
             " . self::browseall_order_helper;
@@ -200,8 +206,14 @@ class course_handler extends browseby_handler {
             return array(false, false);
         }
         
+        $s .= block_ucla_browseby_renderer::render_terms_selector(
+            $args['term'], $terms_select_where, $terms_select_param);        
+        
         if (empty($courseslist)) {
-            print_error('noresults');
+            //print_error('noresults');
+            $s .= $OUTPUT->box(get_string('coursesnotfound', 
+                    'block_ucla_browseby'), array('class' => 'errorbox'));
+            return array($t, $s);
         }
 
         $use_local_courses = $this->get_config('use_local_courses');
@@ -292,9 +304,6 @@ class course_handler extends browseby_handler {
             $fullcourseslist[$k] = $course;
         }
         
-        $s .= block_ucla_browseby_renderer::render_terms_selector(
-            $args['term'], $terms_select_where, $terms_select_param);
-
         if ($issummer) { 
             $sessionsplits = array();
             foreach ($fullcourseslist as $k => $fullcourse) {

@@ -91,6 +91,11 @@ if ($usetracking = forum_tp_can_track_forums()) {
 $subscribed_forums = forum_get_subscribed_forums($course);
 
 $can_subscribe = is_enrolled($coursecontext);
+// BEGIN UCLA MOD: CCLE-3045 - Add capability to disable emailing of forum posts to certain roles
+if ($can_subscribe && !has_capability('mod/forum:receivemail', $coursecontext)) {
+    $can_subscribe = false;   // user shouldn't get email
+}
+// END UCLA MOD: CCLE-3045      
 if ($can_subscribe) {
     $generaltable->head[] = $strsubscribed;
     $generaltable->align[] = 'center';

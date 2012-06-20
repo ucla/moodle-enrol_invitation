@@ -75,7 +75,7 @@ class block_ucla_browseby_renderer {
                         . html_writer::link(new moodle_url(
                             $course->url), $course->dispname);
                 } else {
-                    $courselink = ucla_html_writer::link(
+                    $courselink = ucla_html_writer::external_link(
                         new moodle_url($course->url), $course->dispname);
                 }
 
@@ -114,7 +114,7 @@ class block_ucla_browseby_renderer {
      *     YYT (i.e. 11F)
      *  @param  $default string default one to pick
      **/
-    static function make_terms_selector($terms, $default=false) {
+    static function make_terms_selector($terms, $default=false) {        
         list($w, $p) = self::render_terms_restricted_helper($terms);
         return self::render_terms_selector($default, $w, $p);
     }
@@ -166,7 +166,11 @@ class block_ucla_browseby_renderer {
         }
 
         $terms = terms_arr_sort($terms);
-
+        $terms = array_reverse($terms);
+                
+        // CCLE-3141 - Prepare for post M2 deployment
+        $terms[] = '12W';   // make this say Winter 2012 or earlier
+        
         $urls = array();
         $page = $PAGE->url;
         $default = '';
@@ -175,13 +179,17 @@ class block_ucla_browseby_renderer {
             $thisurl->param('term', $term);
             $url = $thisurl->out(false);
 
-            $urls[$url] = ucla_term_to_text($term);
+            if ($term == '12W') {
+                $urls[$url] = 'Winter 2012 or earlier'; // yes, going to hardcode this...    
+            } else {
+                $urls[$url] = ucla_term_to_text($term);            
+            }
 
             if ($defaultterm !== false && $defaultterm == $term) {
                 $default = $url;
             }
         }
-
+        
         $selects = new url_select($urls, $default);
 
         return $selects;

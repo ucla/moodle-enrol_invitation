@@ -54,7 +54,7 @@ class ucla_cp_renderer {
             $all_stuff[] = $action;
         }
 
-       usort($all_stuff,"ucla_cp_renderer::cmp");
+        usort($all_stuff,"ucla_cp_renderer::cmp");
 
         $disp_stuff = array();
 
@@ -128,26 +128,35 @@ class ucla_cp_renderer {
     static function general_icon_link($item_obj) {
         global $OUTPUT;
 
-        $bucp = 'block_ucla_control_panel';
+        $bucp = $item_obj->associated_block();
 
         $item = $item_obj->item_name;
 
-        $fitem = '';
+        $item_string = get_string($item, $bucp, $item_obj);
+        
+        $fitem = '';       
         //BEGIN UCLA MOD: CCLE-2869-Add Empty Alt attribute for icons on Control Panel
         $fitem .= html_writer::start_tag('a', array('href' => $item_obj->get_action()));
         $fitem .= html_writer::start_tag('img', 
-                array('src' => $OUTPUT->pix_url('cp_' . $item, $item_obj->associated_block()), 'alt' => ''));
-        $fitem .= get_string($item, $item_obj->associated_block(), $item_obj);
+                array('src' => $OUTPUT->pix_url('cp_' . $item, $bucp), 
+                      'alt' => $item_string . ' icon', 'class' => 'general_icon'));
         $fitem .= html_writer::end_tag('a');
         
         if ($item_obj->get_opt('post') === null) {
             $item_obj->set_opt('post', false);
         }
+
+        $fitem .= html_writer::start_tag('span', array('class' => 'general_icon_text'));
+        $fitem .= html_writer::start_tag('a', array('href' => $item_obj->get_action()));
+        $fitem .= $item_string;
+        $fitem .= html_writer::end_tag('a');
         
         if ($item_obj->get_opt('post') !== false) {
             $fitem .= html_writer::tag('span', get_string($item . '_post', 
                 $bucp, $item_obj), array('class' => 'post-link'));
         }
+        
+        $fitem .= html_writer::end_tag('span');
         
         //END UCLA MOD: CCLE-2869
         return $fitem;

@@ -28,8 +28,27 @@
 }
 
 .course-content ul.topics li.section .content .editbutton a {
-    color: #FF6666;
     margin: 0;
+}
+
+/* red editing link styling (try to keep colors consistent */
+a.editing-link:link,
+a.editing-link:visited,
+.course-content ul.topics li.section .content .editbutton a,
+.sectionheader .right.side a,
+.sectionheader .right.side span,
+.jit_links a:link, .jit_links a:visited,
+span.commands a {
+    color: #F66;
+}
+a.editing-link:hover,
+.course-content ul.topics li.section .content .editbutton a:hover,
+.sectionheader .right.side a:hover,
+.sectionheader .right.side span:hover,
+.jit_links a:hover,
+span.commands a:hover {
+    color: red;
+    text-decoration: underline;
 }
 
 .course-content ul.topics li.section .content.editing {
@@ -40,7 +59,6 @@
     color: gray;
     font-weight: bold;
 }
-
 
 .course-content ul.topics li.section .content .defsection {
     font-style: italic;
@@ -93,8 +111,11 @@
 .course-content ul.topics li.section .sectionheader div span a,
 .course-content ul.topics li.section .sectionheader div a,
 .course-content ul.topics li.section .sectionheader div div {
-    color: #FF6666;
     padding-left: 8px;
+}
+
+.course-content ul.topics li.section .sectionheader div div img.no-editing-icons {
+    display:none;
 }
 
 .section .groupinglabel {
@@ -120,31 +141,66 @@
 
 /* stlying for instructors/tas contact listing and office hours */
 .instr-info table {
-    margin-top: 10px;
-    border: 1px solid #CCC;
-    width: 100%;    
-    line-height: 0.9em;
+    margin-top: 20px;
+    border-collapse: collapse;
+    border-spacing: 0;
+    background-color: transparent;
+    width: 100%;
+    margin-bottom: 18px;
+    /* borrowed from bootstrap table */
+    border: 1px solid #dddddd;
+    border-collapse: separate;
+    *border-collapse: collapsed;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
 }
 
 .instr-info table thead {
-    font-size: 1.2em;
-    padding-right: 15px;
     background: #EFEFEF;
-    border-bottom: 1px solid #CCC;
-    border-top: 1px solid #CCC;    
     color: #666;
 }
 
-.instr-info .r0 {
-    background-color: #F7F7F7;
+.instr-info table th, 
+.instr-info table td {
+    padding: 8px;
+    line-height: 18px;
+    text-align: left;
+    vertical-align: top;
 }
 
-.instr-info .r1 {
-    background-color: white;
+.instr-info table tbody tr:nth-child(odd) td,
+.instr-info table tbody tr:nth-child(odd) th {
+  background-color: #f9f9f9;
+}
+
+.instr-info table tbody td span {
+    margin-right: 10px;
 }
 
 /* START feature/CCLE-3002-office-table-display */
 div.instr-info {
-	clear:both;
+    clear:both;
 }
 /* END feature/CCLE-3002-office-table-display */
+
+/* START feature/CCLE-2800 JIT controls */
+.jit_links {
+    margin-top: 2px;
+    padding-left: 42px;
+    background: url([[pix:theme|jit_links]]) 8px 1px no-repeat;
+    display: inline;
+    position: relative;
+    clear: both;
+}
+.jit_links a {
+    margin-right: 10px;
+}
+/* END feature/CCLE-2800 JIT controls */
+
+/* CCLE-3069 - Convert icons for "Turn editing on" into text */
+.mod-indent span.commands { display: block;float: right; }
+span.commands a {margin-right: 10px;}
+span.commands a img.no-editing-icons {
+    display: none;
+}

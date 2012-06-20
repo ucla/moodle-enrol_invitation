@@ -43,7 +43,7 @@ class ucla_rearrange_form extends moodleform {
 
         $mform->addElement('button', 'mass-expander-bot', $eall, $classset);
 
-        $this->add_action_buttons(false);
+        $this->add_action_buttons();
     }
     
     /**

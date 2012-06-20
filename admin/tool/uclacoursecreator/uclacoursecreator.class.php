@@ -50,7 +50,7 @@ class uclacoursecreator {
     private $force_fail = false;
 
     // Set to true to hide output?
-    private $no_send_mails = true;//false;
+    private $no_send_mails = false;
 
     // Private identifier for this cron task
     private $db_id;
@@ -412,7 +412,9 @@ class uclacoursecreator {
                     $subj_area);
             } catch (moodle_exception $e) {
                 $this->println(print_r($e, true));
-                throw $e;
+
+                // Safe
+                return false;
             }
 
             $printstr .= $moodleroleid . '. ';
@@ -2240,24 +2242,9 @@ class uclacoursecreator {
      *  Will change the state of the object.
      **/
     function figure_terms() {
-        $terms_list = $this->get_config('terms');
-        if (!is_array($terms_list)) {
-            // then must be a comma-deliminated term list
-            $terms_list = explode(',', $terms_list);
-        }
-        
-        if (isset($terms_list)) {
-            foreach ($terms_list as &$term) {
-                $term = trim($term);
-                if (!$this->validate_term($term)) {
-                    throw new course_creator_exception(
-                        'Improper term ' . $term
-                    );
-                }
-            }
-
+        $terms_list = get_active_terms();        
+        if (!empty($terms_list)) {
             $this->terms_list = $terms_list;
-
             return $terms_list;
         }
 
@@ -2302,8 +2289,8 @@ class uclacoursecreator {
      **/
     function build_course_url($course) {
         // TODO put this in the proper namespace
-        if (get_config('', 'ucla_friendlyurls_enabled')) {
-            return new moodle_url('/course/view/' . $course->shortname);
+        if (get_config('local_ucla', 'friendly_urls_enabled')) {
+            return new moodle_url(make_friendly_url($course));
         }
 
         return new moodle_url('/course/view.php', array('id' => $course->id));

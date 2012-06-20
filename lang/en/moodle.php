@@ -712,7 +712,10 @@ $string['fulllistofcourses'] = 'All courses';
 $string['fullname'] = 'Full name'; // @deprecated - use fullnamecourse or fullnameuser or some own context specific string
 $string['fullnamecourse'] = 'Course full name';
 $string['fullnamecourse_help'] = 'The full name of the course is displayed at the top of each page in the course and in the list of courses.';
-$string['fullnamedisplay'] = '{$a->firstname} {$a->lastname}';
+// BEGIN UCLA MOD: CCLE-2550 - Lastname, Firstname sorting
+//$string['fullnamedisplay'] = '{$a->firstname} {$a->lastname}';
+$string['fullnamedisplay'] = '{$a->lastname}, {$a->firstname}';
+// END UCLA MOD: CCLE-2550
 $string['fullnameuser'] = 'User full name';
 $string['fullprofile'] = 'Full profile';
 $string['fullsitename'] = 'Full site name';
@@ -1047,8 +1050,10 @@ $string['movedown'] = 'Move down';
 $string['movefilestohere'] = 'Move files to here';
 $string['movefull'] = 'Move {$a} to this location';
 $string['movehere'] = 'Move to here';
-$string['moveleft'] = 'Move left';
-$string['moveright'] = 'Move right';
+// START UCLA MOD CCLE-2803: better editing icons or icons to text
+$string['moveleft'] = 'Unindent';
+$string['moveright'] = 'Indent';
+// END UCLA MOD
 $string['movesection'] = 'Move section {$a}';
 $string['moveselectedcoursesto'] = 'Move selected courses to...';
 $string['movetoanotherfolder'] = 'Move to another folder';

@@ -1,0 +1,383 @@
+h1
+{
+    font-family: Verdana,Arial,Helvetica,sans-serif;
+    font-size:12px; 
+}
+
+.general_font,.general_font table,.general_font input,.general_font select   {
+    font-family:Lucida Grande,Verdana,Arial,sans-serif;
+    font-size:11px;
+}
+.required
+{
+    color:red;
+}
+
+
+.LargeLabel_Width {
+    float:left;
+    width:200px;
+}
+
+.LargeCheckbox_Width {
+    display:block;
+    float:left;
+    margin-left:200px;
+}
+
+.TextRegular_Right {
+    font-size:11px;
+    text-align:right;
+    padding-right:15px;
+}
+
+/*headerBar*/
+.headerBar
+{
+    position:relative;
+    width: 700px;
+    background-image: url( "../lib/web/pictures/backgrounds/headerbar.png" );
+    height : 32px;
+    border-bottom: solid 1px Black;
+}
+
+.headerBarRight
+{
+    position:absolute;
+    right:10px;
+    top:
+}
+
+.headerBarLeft
+{
+    position:absolute;
+    left:10px;
+}
+
+.headerBarLeft span{
+    background:transparent url("../lib/web/pictures/items/headerbar-logo.png" ) no-repeat scroll top right;
+    display:block;
+    width:80px;
+    height:30px;
+    text-indent:-9999px;
+    
+}
+
+
+/* ---BUTTONS ----------------------------------------------- */
+/*                                                            */
+/*  For regular and contextual buttons                        */
+/*                                                            */
+/*----------------------------------------------------------- */
+
+/* --- Button list style --- */
+ul.regular_btn_list, ul.contextual_bar {
+  list-style-type: none;
+  padding: 0;
+  height: 15px;
+  margin:0;
+}
+
+ul.contextual_bar {
+  background: url( "../Pics/contextual_button/contextual_bar.png" ) repeat-x;
+}
+
+ul.regular_btn_list li, ul.contextual_bar li {
+  float: left;
+}
+
+ul.regular_btn_list li {
+  margin-right: 5px;
+  margin-left: 5px;
+}
+
+ul.contextual_bar li {
+  margin-right: 5px;
+  margin-left: 5px;
+}
+
+/* --- Buttons font style --- */
+ul.contextual_bar a, ul.regular_btn_list a,
+  .regular_btn, .regular_btn-disabled, .regular_btn-submit, .regular_btn-submit-disabled,
+  .contextual_btn, .contextual_btn-disabled, .contextual_btn-submit, .contextual_btn-submit-disabled,
+  .contextual_btn-submit-grade, .contextual_btn-submit-grade-disabled, .contextual_btn-submit-pause,
+  .contextual_btn-submit-reviewSession, .contextual_btn-submit-reviewSession-disabled {
+  
+  text-decoration: none !important;
+  text-align: center;
+  white-space: nowrap;
+  font-weight:bold;
+  border: 0;
+  font-size: 11px !important;
+  font-family: Verdana,Arial,Helvetica,sans-serif !important; 
+
+}
+
+/* --- Buttons sizing --- */
+.regular_btn, .regular_btn-disabled, .regular_btn-submit, .regular_btn-submit-disabled,
+  .contextual_btn, .contextual_btn-disabled, .contextual_btn-submit, .contextual_btn-submit-disabled,
+  .contextual_btn-submit-grade, contextual_btn-submit-grade-disabled, .contextual_btn-submit-pause,
+  .contextual_btn-submit-reviewSession, .contextual_btn-submit-reviewSession-disabled,
+  .contextual_previousLink, .contextual_nextLink, .contextual_previousLink-disabled, .contextual_nextLink-disabled,
+  .contextual_counterSelector {
+  display: block;
+  float: left;
+  border: 0;
+  margin: 0;
+}
+
+.regular_btn, .regular_btn-disabled, .regular_btn-submit, .regular_btn-submit-disabled {
+  height: 20px;
+}
+
+.contextual_btn, .contextual_btn-disabled, .contextual_btn-submit, .contextual_btn-submit-disabled,
+  .contextual_btn-submit-grade, .contextual_btn-submit-grade-disabled, .contextual_btn-submit-pause,
+  .contextual_btn-submit-reviewSession, .contextual_btn-submit-reviewSession-disabled,
+  .contextual_previousLink, .contextual_nextLink, .contextual_previousLink-disabled, .contextual_nextLink-disabled,
+  .contextual_counterSelector {
+  height: 28px;
+}
+
+.regular_btn-submit,.regular_btn, .contextual_btn-submit, .toolbar_btn a, .toolbar_btn input {
+    cursor: pointer;
+    cursor: hand;
+   color: #404E58 !important; /* W6 */
+    text-decoration:none;
+}
+
+/* --- Buttons layout --- */
+.regular_btn, .regular_btn-disabled {
+  background: transparent url( "../lib/web/pictures/regular_btn/regular_btn-right.png" ) no-repeat scroll top right;
+  padding-right: 5px; /* sliding doors padding */
+}
+
+.regular_btn span, .regular_btn-disabled span {
+  background: transparent url( "../lib/web/pictures/regular_btn/regular_btn-left.png" ) no-repeat;
+  display: block;
+  line-height: 10px;
+  padding: 5px 5px 5px 10px;
+  min-width: 110px;
+
+}
+
+.regular_btn-submit, .regular_btn-submit-disabled {
+  background: transparent url( "../lib/web/pictures/regular_btn/regular_btn-submit.png" ) no-repeat left top;
+  width: 120px;
+  line-height: 10px;
+  padding: 0 10px 0 10px;
+}
+
+.regular_btn-submit, .contextual_btn-submit {
+  cursor: pointer;
+  _cursor: hand;
+}
+
+/* --- Buttons Rollover state --- */
+.regular_btn a:hover, .regular_btn:hover, .regular_btn-submit:hover {
+  text-shadow: 0 0 1px #A8B2BF; /* W4 */
+}
+
+.contextual_btn a:hover, .contextual_btn:hover, .contextual_btn-submit:hover {
+  text-shadow: 0 1px 1px #F2F3F9; /* W2 */
+}
+
+/* --- Buttons Clicked state --- */
+.regular_btn:active, .regular_btn-submit:active {
+  background-position: center right;
+}
+
+.regular_btn:active span {
+  background-position: center left;
+  padding: 6px 5px 4px 10px; /* push text down 1px */
+}
+
+.regular_btn-submit:active {
+  padding: 2px 10px 0 10px; /* push text down 1px */
+}
+
+.contextual_btn:active, .contextual_btn-submit:active {
+  background-position: center right;
+}
+
+.contextual_btn:active span {
+  background-position: center left;
+  padding: 8px 0 6px 10px; /* push text down 1px */
+}
+
+.contextual_btn-submit:active {
+  padding: 8px 10px 6px 10px; /* push text down 1px */
+}
+
+/* --- Buttons Disabled state --- */
+.regular_btn-disabled, .regular_btn-submit-disabled {
+  background-position: right bottom;
+  color: #CCCCCC!important; /* W5 */
+  cursor: default;
+  outline: none; 
+}
+
+.regular_btn-disabled span {
+  background-position: left bottom;
+}
+
+
+.LargeLabel_Width {
+    float:left;
+    width:200px;
+}
+
+.LargeCheckbox_Width {
+    display:block;
+    float:left;
+    margin-left:200px;
+}
+
+.TextRegular_Right {
+    font-size:12px;
+    text-align:right;
+    padding-right:15px;
+    padding-top:4px;
+}
+
+.TextRegular {
+    font-size:12px;
+    text-align:right;
+    padding-top:4px;
+}
+
+.TextBigRegular {
+    font-size:16px;
+    text-align:right;
+    padding-top:4px;
+}
+
+/* ------ BOX ----------------------------------------------- */
+/*                                                            */
+/*  For dialogs and lightboxes                                */
+/*                                                            */
+/* ---------------------------------------------------------- */
+  
+div.wimba_box {
+    float: left;
+    display:block; 
+    /* DEFINE HERE YOUR WIDTH AND HEIGHT ATTRIBUTES */
+    _width:290px;
+    height:500px;
+}
+
+
+.wimba_boxTopTitle {
+    display:block;
+    width:250px;
+    height:25px;
+
+    text-align: left;
+    color: #404E58;  /* W6 */
+    font-size: 13px;
+    border-bottom-color: #404E58;  /* W6 */
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+}
+
+.wimba_boxText{
+    text-align: center;
+    color: #404E58;  /* W6 */
+    font-size: 13px;
+}
+
+div.wimba_boxTop, div.wimba_boxBottom, div.wimba_boxTop-shadow, div.wimba_boxBottom-shadow {
+    display:block;
+}
+    
+    
+/* --- Without a shadow --- */     
+div.wimba_boxTop { 
+    background: transparent url("../lib/web/pictures/box/no_shadow/400/box-top-right.png") no-repeat scroll top right;
+}
+
+div.wimba_boxTop div.wimbaBoxTopDiv { 
+    padding: 18px 18px 8px 18px;
+    background: transparent url("../lib/web/pictures/box/no_shadow/400/box-top-left.png") no-repeat;
+}
+
+div.wimba_boxBottom { 
+    background: transparent url("../lib/web/pictures/box/no_shadow/400/box-bottom-right.png") no-repeat scroll top right;
+}
+
+div.wimba_boxBottom div { 
+    background: transparent url("../lib/web/pictures/box/no_shadow/400/box-bottom-left.png") no-repeat;
+    height: 10px; 
+}   
+    
+    
+/* --- With a shadow --- */  
+div.wimba_boxTop-shadow, div.wimba_boxBottom-shadow {
+    margin-left: 22px;  // fixes div background alpha overlay problem 
+}     
+    
+div.wimba_boxTop-shadow div, div.wimba_boxBottom-shadow div { 
+    margin-left: -22px;  // fixes div background alpha overlay problem 
+}   
+    
+div.wimba_boxTop-shadow { 
+    background: transparent url("../lib/web/pictures/box/shadow/400/box-top-right.png") no-repeat scroll top right;
+}
+
+div.wimba_boxTop-shadow div {
+    padding: 30px 30px 8px 30px;
+    background: transparent url("../lib/web/pictures/box/shadow/400/box-top-left.png") no-repeat;
+}
+
+div.wimba_boxBottom-shadow { 
+    background: transparent url("../lib/web/pictures/box/shadow/400/box-bottom-right.png") no-repeat scroll top right;   
+}
+
+div.wimba_boxBottom-shadow div { 
+    background: transparent url("../lib/web/pictures/box/shadow/400/box-bottom-left.png") no-repeat;
+    height: 22px;
+}
+
+.wimba_close_box {
+    display:block;
+    float:right;
+    top:150px;
+    height:16px;
+    text-indent:-9999px;
+    width:16px;
+    margin-top:-30px;
+}
+
+.opac 
+{  
+    display:none;
+    z-index:2 !important;
+    position:absolute;
+    width:100%;
+    height:100%;
+    top:0px;
+    left:0px;
+    background-color:#000;
+    filter:alpha(opacity=33);
+    -moz-opacity:.33;
+    opacity:.33;
+  
+  
+}
+
+/*Error */
+.error_title{
+    font-weight: bold;
+    font-size: 14pt;
+    margin-left:60px;
+    padding-top:10px;
+    display:block;
+}
+
+.warning{  
+    background:transparent url("../lib/web/pictures/items/warning.png" ) no-repeat scroll top left;
+    behavior: url("lib/web/js/lib/iepngfix/iepngfix.htc");
+    display:block;
+    text-indent:-9999px;
+    height:60px;
+    width:60px;
+}

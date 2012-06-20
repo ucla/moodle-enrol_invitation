@@ -54,4 +54,8 @@ $string['error_emptyfile']          = 'Please select a non-empty XML file';
 $string['error_badxml']             = 'The selected file does not have a valid XML';
 $string['error_noaction']           = 'No import actions specified (Debug message)';
 
+// START UCLA MOD: CCLE-2662 - Roles Migration Local Plugin
+$string['error_update_role']           = 'Unable to update role information';
+// END UCLA MOD: CCLE-2662
+
 $string['rolesmigration:view'] = 'Ability to use role migration tool';

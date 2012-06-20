@@ -33,9 +33,6 @@ $string['email_students_exception_post'] = 'There was a problem detecting your a
 $string['email_students_hidden_pre'] = 'E-mail students is disabled when the Announcements forum is hidden.';
 $string['email_students_hidden'] = 'Make Announcements forum visible';
 
-$string['edit_office_hours'] = 'Update office hours & contact info';
-$string['edit_office_hours_post'] = 'Update your office hours, office location and phone number.';
-
 $string['modify_sections'] = 'Modify course menu sections';
 $string['modify_sections_post'] = '';
 
@@ -59,7 +56,7 @@ $string['asucla_textbooks'] = 'ASUCLA textbooks';
 $string['asucla_textbooks_post'] = '';
 
 /** Stuff from other **/
-$string['ucla_cp_mod_other'] = 'Other commands';
+$string['ucla_cp_mod_other'] = 'Other tools';
 
 $string['import_classweb'] = 'Import ClassWeb site';
 $string['import_classweb_post'] = 'Import content from a previous course on ClassWeb to this site.';
@@ -75,6 +72,9 @@ $string['view_roster_post'] = 'Lists most recent logins of all students, TAs, an
 
 $string['edit_profile'] = 'Edit user profile';
 $string['edit_profile_post'] = 'You can change your personal information, upload a picture, turn your email on or off, etc.';
+
+$string['site_invitation'] = 'Invite users';
+$string['site_invitation_post'] = 'Invite a user into your site by email.';
 
 /** Stuff for advanced **/
 $string['more_advanced'] = 'Advanced functions';
@@ -115,7 +115,7 @@ $string['quiz_bank_post'] = 'Edit the quiz questions for this course.';
 $string['ucla_cp_mod_student'] = 'Other commands';
 $string['student_grades'] = 'Grades';
 $string['student_grades_post'] = 'View your grades on CCLE.';
-$string['student_change_password'] = 'Change Password';
+$string['student_change_password'] = 'Change password';
 $string['student_change_password_post'] = 'Change your password.';
 $string['student_myucla_grades'] = 'Grades (MyUCLA)';
 $string['student_myucla_grades_post'] = 'View your grades on MyUCLA (if your instructor has made them available).';

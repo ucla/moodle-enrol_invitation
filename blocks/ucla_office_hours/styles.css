@@ -1,0 +1,37 @@
+.officehours_form input[type="text"] {
+    width: 85%;
+}
+
+.officehours_form fieldset {
+    background: #FEFCF6;
+    border: 1px solid #B7AA96;
+}
+
+.officehours_form fieldset legend {
+    width: auto;
+    background: #FCE096;
+    color: #394A6E;    
+    padding: 0 20px;
+}
+
+.officehours_form .fstatic {
+    font-style: italic;
+}
+
+/* remove spacing under alternative email field */
+.officehours_form #fitem_id_email {
+    margin-bottom: -0.5em;
+}
+
+/* make label fit long text */
+.officehours_form.mform .fitem .fitemtitle {
+    width: 20%;
+}
+.officehours_form.mform .fitem .felement {
+    margin-left: 21%;
+}
+
+/* for submit buttons */
+.officehours_form.mform .fitem fieldset.felement {
+    margin-left: 0;
+}

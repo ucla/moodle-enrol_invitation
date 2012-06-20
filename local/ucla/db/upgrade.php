@@ -13,26 +13,6 @@ function xmldb_local_ucla_upgrade($oldversion=0) {
     $dbman = $DB->get_manager();
 
     $result = true;
-    // copy over latest version of lang file for moodle.php
-    if ($result && $oldversion < 2011112800) {
-        // copy custom moodle.php to $CFG->dataroot/lang/en_local
-        $source = $CFG->dirroot . '/local/ucla/lang/en/moodle.php';
-        $dest = $CFG->dataroot . '/lang/en_local';
-        
-        // first make sure that path to destination exists and source exists
-        if ((file_exists($dest) || mkdir($dest, $CFG->directorypermissions, true)) 
-                && file_exists($source)) {
-            if (!copy($source, $dest . '/moodle.php')) {
-                debugging(sprintf('Could not copy %s to %s', $source, $dest));
-                $result = false;    // something went wrong
-            }                   
-        } else {
-            debugging('Either cannot create destination or source does not exist');
-            $result = false;    // something went wrong
-        } 
-        
-    }    
-    
     if ($oldversion < 2012012700) {
         // Define table ucla_reg_subjectarea to be created
         $table = new xmldb_table('ucla_reg_subjectarea');
@@ -140,6 +120,7 @@ function xmldb_local_ucla_upgrade($oldversion=0) {
         upgrade_plugin_savepoint(true, 2012020100, 'local', 'ucla');
     }
     
+    // CCLE-2669 - Copyright Modifications - add licenses
     if ($oldversion < 2012032705) {
         require_once($CFG->libdir.'/licenselib.php');
         
@@ -214,7 +195,7 @@ function xmldb_local_ucla_upgrade($oldversion=0) {
         license_manager::enable($license->shortname);
         
         $license->shortname = 'tbd';
-        $license->fullname = 'Upload by faculty designate; copyright status to be determined';
+        $license->fullname = 'Copyright status not yet identified';
         $license->source = NULL;
         $license->enabled = true;        
         $license->version = '2012032200';
@@ -225,10 +206,22 @@ function xmldb_local_ucla_upgrade($oldversion=0) {
         upgrade_plugin_savepoint(true, 2012032705, 'local', 'ucla');
     }
     
+    // CCLE-2669 - Copyright Modifications - changed wording on tbd
+    if ($oldversion < 2012060402) {
+        require_once($CFG->libdir.'/licenselib.php');
+        
+        $license->shortname = 'tbd';
+        $license->fullname = 'Copyright status not yet identified';
+        $license->source = NULL;
+        $license->enabled = true;        
+        $license->version = '2012060400';
+        license_manager::add($license);        
+        license_manager::enable($license->shortname);
+        
+        // ucla savepoint reached
+        upgrade_plugin_savepoint(true, 2012060402, 'local', 'ucla');
+    }    
     
-    
-
-
     return $result;
 }
 
