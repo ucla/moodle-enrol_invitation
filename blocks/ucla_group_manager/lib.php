@@ -71,10 +71,29 @@ class ucla_group_manager {
             $sections = registrar_query::run_registrar_query(
                 'ccle_class_sections', array($reqarr), true);
 
-            if ($debug) {
-                echo "  " . make_idnumber($reqarr) . " has " . count($sections) 
-                    . " sections\n";
+            echo "* " . make_idnumber($reqarr) . " has " . count($sections) 
+                . " sections\n";
+        
+            // Check this roster against section rosters to look for
+            // stragglers
+            $requestroster = 
+                registrar_query::run_registrar_query(
+                        'ccle_roster_class', 
+                        array(array($reqarr['term'], $reqarr['srs'])), 
+                        true
+                    );
+
+            $indexedrequestroster = array();
+            foreach ($requestroster as $student) {
+                $indexedrequestroster[] = 
+                    $enrol->translate_ccle_roster_class($student);
             }
+
+            $reqobj->roster = $indexedrequestroster;
+            $reqidnumber = make_idnumber($reqarr);
+            echo "* $reqidnumber has " . count($indexedrequestroster) 
+                . " students.\n";
+
 
             $reqobj = new stdclass();
             $reqarr['courseid'] = $courseid;
@@ -117,7 +136,7 @@ class ucla_group_manager {
                 }
                 
                 if ($debug) {
-                    echo "    " . make_idnumber($termsrsarr) . ' has ' 
+                    echo "-   " . make_idnumber($termsrsarr) . ' has ' 
                         . count($sectionroster) . " students\n";
                 }
 
@@ -126,26 +145,6 @@ class ucla_group_manager {
             }
 
             $reqobj->sectionsinfo = $sectionrosters;
-
-            // Check this roster against section rosters to look for
-            // stragglers
-            $requestroster = 
-                registrar_query::run_registrar_query(
-                        'ccle_roster_class', 
-                        array(array($reqarr['term'], $reqarr['srs'])), 
-                        true
-                    );
-
-            $indexedrequestroster = array();
-            foreach ($requestroster as $student) {
-                $indexedrequestroster[] = 
-                    $enrol->translate_ccle_roster_class($student);
-            }
-
-            $reqobj->roster = $indexedrequestroster;
-            $reqidnumber = make_idnumber($reqarr);
-            echo "    $reqidnumber has " . count($indexedrequestroster) 
-                . " students.\n";
 
             //*/
             $requestsectioninfos[make_idnumber($reqarr)] = $reqobj;
@@ -250,7 +249,7 @@ class ucla_group_manager {
         // Groupings are not necessary for courses that are not crosslisted,
         // Just use the public private grouping for ALL students
         if ($isnormalcourse) {
-            return true;
+            //return true;
         }
 
         // Set of all tracked groupids in course
@@ -270,6 +269,7 @@ class ucla_group_manager {
 
         $groupingspecfns = array();
 
+        // Dyanmically figure out which groups to create
         foreach ($classmethods as $classmethod) {
             $matches = array();
             // Get the type, and the function name
@@ -281,7 +281,7 @@ class ucla_group_manager {
         foreach ($groupingspecfns as $groupingtype => $groupingtypefn) {
             $organizedgroupings = array();
 
-            echo "Syncing groupings based on $groupingtype...";
+            echo "Syncing groupings based on \"$groupingtype\"...";
 
             foreach ($reqsecinfos as $reqinfo) {
                 foreach ($reqinfo->sectionsinfo as $sectioninfo) {
@@ -312,17 +312,23 @@ class ucla_group_manager {
 
                 sort($groupids, SORT_NUMERIC);
                 if ($groupids == $alltrackedgroupids) {
-                    echo "skip-full-group " . $groupingdata->name;
+                    echo "skip-all-group-grouping " 
+                        . $groupingdata->name . '...';
                     continue;
                 }
 
                 $trackedgrouping = self::create_tracked_grouping(
                         $groupingdata, $groups
                     );
+               
+                $sameflag = '';
+                if (!isset($trackedgroupings[$trackedgrouping])) {
+                    $trackedgroupings[$trackedgrouping] = true;
+                } else {
+                    $sameflag = 'repeat-';
+                }
 
-                $trackedgroupings[$trackedgrouping] = true;
-
-                echo '[' . $trackedgrouping . '] '
+                echo '[' . $sameflag . $trackedgrouping . '] '
                     . $groupingdata->name . "...";
 
             }
