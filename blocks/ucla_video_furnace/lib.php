@@ -26,24 +26,6 @@ function cmp_end_date($a, $b) {
 	return ($a->end_date < $b->end_date) ? 1 : -1;
 } 
 
-/**
- *  Returns the applicable places that this block can be added.
- *  This block really cannot be added anywhere, so we just made a place
- *  up (hacky). If we do not do this, we will get this
- *  plugin_devective_exception.
- * @todo Not really sure if theres an equivalent to 'blocks-ucla_control_panel' => false, for this block.
- **/
-function applicable_formats() {
-	return array(
-		'site-index' => false,
-		'course-view' => false,
-		'my' => false,
-		//'blocks-ucla_control_panel' => false,
-		'not-really-applicable' => true
-	);
-}
-
-
 
 /**
  * Obtains raw video data from the db, and returns a sorted version of that data based on 
@@ -59,9 +41,8 @@ function get_video_data($courseinfo){
 	//Get the video data
 	global $DB;
 	$nodes = array();
-	$videos = $DB->get_records_select('ucla_video_furnace', '`term` = "'.$courseinfo->term. '" AND `srs`= "'. $courseinfo->srs. '"');
+	$videos = $DB->get_records('ucla_video_furnace', array('term' => $courseinfo->term, 'srs' => $courseinfo->srs));
 	$cur_date = time();
-	echo $cur_date;
 	$cur_vids = array();
 	$future_vids = array();
 	$past_vids = array();
@@ -69,11 +50,9 @@ function get_video_data($courseinfo){
 	foreach($videos as $video) {
 		if ($cur_date >= $video->start_date && $cur_date <= $video->stop_date) {
 			$cur_vids[] = $video;
-		}
-		else if($cur_date < $video->start_date) {
+		} else if($cur_date < $video->start_date) {
 			$future_vids[] = $video;
-		}
-		else if($cur_date > $video->stop_date) {
+		} else if($cur_date > $video->stop_date) {
 			$past_vids[] = $video;
 		}
 	}
@@ -103,19 +82,15 @@ function print_video_list($video_list, $header_title, $section_attr){
 	echo html_writer::tag('h3', $header_title);
 	echo html_writer::start_tag('div', $section_attr);
 	foreach($video_list as $video) {
-		echo '<p><em>'; 
+		$output_str = "";
 		if ($header_title == "Past Videos"){
-			echo $video->video_title;
-			echo '&nbsp;&nbsp;&nbsp;&nbsp;This video no longer available as of '. date("Y-m-d",$video->stop_date).'<br>';
+			$output_str = $video->video_title . '&nbsp;&nbsp;&nbsp;&nbsp;This video no longer available as of '. date("Y-m-d",$video->stop_date).'<br>';
+		} else if ($header_title == "Future Videos"){
+			$output_str = $video->video_title . '&nbsp;&nbsp;&nbsp;&nbsp;This video will be available on '. date("Y-m-d",$video->start_date).'<br>';
+		} else{
+			$output_str = html_writer::link($video->video_url, $video->video_title);
 		}
-		else if ($header_title == "Future Videos"){
-			echo $video->video_title;
-			echo '&nbsp;&nbsp;&nbsp;&nbsp;This video will be available on '. date("Y-m-d",$video->start_date).'<br>';
-		}
-		else{
-			echo html_writer::link($video->video_url, $video->video_title);
-		}
-		echo '</em></p><br>';
+		echo html_writer::tag('p', $output_str, array('class'=>'vidFurnaceText')); 
 	}
 	echo html_writer::end_tag('div'); //array('class'=>'vidFurnacePast')
 	  
@@ -126,40 +101,30 @@ function print_video_list($video_list, $header_title, $section_attr){
  */
 function display_video_furnace_contents($course){
 	echo html_writer::start_tag('div', array('id' => 'vidfurn-wrapper'));
-	
 	echo html_writer::tag('h1','Video Furnace',array('class' => 'classHeader'));
-	
-	echo html_writer::tag('span',
-		html_writer::tag('font',
-						'Please note that this media is intended for on-campus use only. Off-campus use is possible through use of the ' 
-			.html_writer::link('http://www.bol.ucla.edu/services/vpn/', 'BOL VPN')   
-			.',however, you will likely experience hiccups, skips or other problems due to insufficient bandwidth. When launching the application, click "yes" 
-			or "always" to allow the applet to run on your computer. If the file does not run and you do not see the "certificate acceptance" message then 
-			you must install Java in order to use this media ('
-			.html_writer::link('http://java.sun.com', 'java.sun.com')
-			.'). For more help, go to the ' 
-			.html_writer::link('http://www.oid.ucla.edu/units/imlab/faq/vf/index.html', 'Media Lab Video Furnace FAQ')
-			.'.'
-		,array('size' => '1'))    
-	,array('id' => 'course-header-secondary'));
-
+	echo html_writer::tag('p', get_string('videofurnaceintro', 'block_ucla_video_furnace'), array('id' => 'course-header-secondary'));
 	$course_info = ucla_get_course_info($course->id);// return more than one class with the same class id
 
 	foreach ($course_info as $each_course) {
 		//Start UCLA SSC MODIFICATION 601
-		echo html_writer::start_tag('div', array('id'=>'vidFurnaceContent'));
+		echo html_writer::start_tag('div');
 		if (count($course_info) > 1)  {
 				echo html_writer::tag('h2', ucla_make_course_title($each_course));
 		}
 		//End UCLA SSC MODIFICATION 601
 
 		$videos = get_video_data($each_course);
-		print_video_list($videos['current'], 'Current Videos', array('class'=>'vidFurnaceLinks'));
+		if (!empty($videos['current'])){
+			print_video_list($videos['current'], get_string('currentvideo','block_ucla_video_furnace'), array('class'=>'vidFurnaceLinks'));
+		}else{
+			echo html_writer::tag('span', get_string('novideo', 'block_ucla_video_furnace'), array('class'=>'vidFurnaceText'));
+		}
+
 		if(!empty($videos['future'])) {
-			print_video_list($videos['future'], 'Future Videos', array('class'=>'vidFurnaceFuture'));
+			print_video_list($videos['future'], get_string('futurevideo','block_ucla_video_furnace'), array('class'=>'vidFurnaceText'));
 		}
 		if(!empty($videos['past'])) {
-			print_video_list($videos['past'], 'Past Videos', array('class'=>'vidFurnacePast'));
+			print_video_list($videos['past'], get_string('pastvideo','block_ucla_video_furnace'), array('class'=>'vidFurnaceText'));
 		}
 		echo html_writer::end_tag('div'); //array('id'=>'vidFurnaceContent')      
 	}

@@ -25,6 +25,15 @@ class block_ucla_video_furnace extends block_base {
     public function init(){
         $this->title = get_string('pluginname', 'block_ucla_video_furnace');
     }
+
+	function applicable_formats() {
+		return array(
+			'site-index' => false,
+			'course-view' => false,
+			'my' => false,
+			'not-really-applicable' => true
+		);
+	}
     
 	 /**
      *  This will create a link to the ucla video furnace page.
