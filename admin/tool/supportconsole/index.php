@@ -7,7 +7,9 @@
 require_once(dirname(__FILE__) . "/../../../config.php");
 require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->dirroot . '/local/ucla/lib.php');
-require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/supportconsole/lib.php');
+$admintooldir = '/' . $CFG->admin . '/tool/';
+require_once($CFG->dirroot . $admintooldir . 'supportconsole/lib.php');
+require_once($CFG->dirroot . $admintooldir . 'uclacoursecreator/uclacoursecreator.class.php');
 
 // Force debugging errors 
 error_reporting(E_ALL); 
@@ -118,6 +120,39 @@ if ($displayforms) {
 }
 $consoles->push_console_html('logs', $title, $sectionhtml);
 
+////////////////////////////////////////////////////////////////////
+$title = "prepoprun";
+$sectionhtml = '';
+if ($displayforms) {
+    $sectionhtml = supportconsole_simple_form($title, 
+        html_writer::label('Course.id', 'prepop-courseid')
+            . html_writer::empty_tag('input', array(
+                    'type' => 'text',
+                    'length' => 10,
+                    'id' => 'prepop-courseid',
+                    'name' => 'courseid'
+                )));
+} else if ($consolecommand == "$title") { 
+    $sectionhtml = '';
+    $courseid = required_param('courseid', PARAM_INT);
+    $dbenrol = enrol_get_plugin('database');
+    // Sadly, this cannot be output buffered...so
+    echo "<PRE>";
+    $dbenrol->sync_enrolments(true, null, $courseid);
+    echo "</PRE>";
+
+    $consoles->no_finish = true;
+}
+
+$consoles->push_console_html('users', $title, $sectionhtml);
+////////////////////////////////////////////////////////////////////
+$title = 'coursecreatorlogs';
+$sectionhtml = '';
+if ($displayforms) {
+    $sectionhtml = supportconsole_simple_form($title);
+} else if ($consolecommand == $title) {
+    
+}
 ////////////////////////////////////////////////////////////////////
 $title = 'moodlelog';
 $sectionhtml = '';
@@ -883,6 +918,10 @@ if ($displayforms) {
 
 $consoles->push_console_html('users', $title, $sectionhtml);
 
+if (isset($consoles->no_finish)) {
+    echo html_writer::link(new moodle_url($PAGE->url), 'Back');
+    die();
+}
 
 echo $OUTPUT->header();
 if (!$displayforms) {
