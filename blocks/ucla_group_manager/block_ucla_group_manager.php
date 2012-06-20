@@ -2,6 +2,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/blocks/moodleblock.class.php');
+require_once($CFG->dirroot . '/local/ucla/lib.php');
 
 class block_ucla_group_manager extends block_base {
     function init() {

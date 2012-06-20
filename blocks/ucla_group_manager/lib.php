@@ -127,7 +127,7 @@ class ucla_group_manager {
 
             $reqobj->sectionsinfo = $sectionrosters;
 
-            // TODO check this roster against section rosters to look for
+            // Check this roster against section rosters to look for
             // stragglers
             $requestroster = 
                 registrar_query::run_registrar_query(
@@ -147,6 +147,7 @@ class ucla_group_manager {
             echo "    $reqidnumber has " . count($indexedrequestroster) 
                 . " students.\n";
 
+            //*/
             $requestsectioninfos[make_idnumber($reqarr)] = $reqobj;
         }
 
@@ -158,22 +159,35 @@ class ucla_group_manager {
      **/
     static function sync_course($courseid) {
         $reqsecinfos = self::course_sectionroster($courseid);
+        if ($reqsecinfos === false) {
+            echo "Not a real course $courseid!\n";
+            return true;
+        }
 
-        echo "Syncing groups...";
+        $isnormalcourse = count($reqsecinfos) == 1;
+
+        echo "Syncing section groups...";
         // groups created should NOT be divisible in any logical way, 
         // we should try to enforce usage of groupings
         foreach ($reqsecinfos as $termsrs => &$reqinfo) {
-            // If there are no sections, then we want to create
-            // a group per course...
+            // If there are no sections, then we want to do something later
             if (empty($reqinfo->sectionsinfo)) {
-                $reqinfo->sectionsinfo[] = $reqinfo;
+                if ($isnormalcourse) {
+                    continue;
+                }
+
+                // Otherwise, we need to treat the crosslist as a section of
+                // its own
+                echo "crosslist-forced ";
+                $fakesection = new object();
+
+                $fakesection->roster = $reqinfo->roster;
+                $fakesection->courseinfo = $reqinfo->courseinfo;
+
+                $reqinfo->sectionsinfo = array($termsrs => $fakesection);
             }
 
             foreach ($reqinfo->sectionsinfo as $secttermsrs => &$sectioninfo) {
-                $sectiongroup = new ucla_synced_group(
-                        $sectioninfo->courseinfo
-                    );
-               
                 $moodleusers = array();
                 foreach ($sectioninfo->roster as $student) {
                     $moodleuser = ucla_registrar_user_to_moodle_user($student);
@@ -181,6 +195,10 @@ class ucla_group_manager {
                         $moodleusers[$moodleuser->id] = $moodleuser;
                     }
                 }
+
+                $sectiongroup = new ucla_synced_group(
+                        $sectioninfo->courseinfo
+                    );
 
                 $sectiongroup->sync_members($moodleusers);
                 $sectiongroup->save();
@@ -202,6 +220,7 @@ class ucla_group_manager {
         echo "Deleting obsolete groups...";
         // Delete unused groups
         $alltrackedgroups = self::get_tracked_groups($courseid);
+
         // Re-index this...optimization
         $existingtrackedgroups = array();
         foreach ($alltrackedgroups as $trackedgroup) {
@@ -228,11 +247,22 @@ class ucla_group_manager {
         echo "done.\n";
 
         // Create groupings
-        // Groupings are not necessary for courses that are not crosslisted
-        if (count($reqsecinfos) == 1) {
+        // Groupings are not necessary for courses that are not crosslisted,
+        // Just use the public private grouping for ALL students
+        if ($isnormalcourse) {
             return true;
         }
 
+        // Set of all tracked groupids in course
+        $alltrackedgroupids = array();
+        foreach ($alltrackedgroups as $trackedgroup) {
+            $alltrackedgroupids[] = $trackedgroup->groupid;
+        }
+
+        sort($alltrackedgroupids, SORT_NUMERIC);
+
+        // All the tracked groupings, used when checking which existing
+        // tracked groupings to delete
         $trackedgroupings = array();
 
         // Groupings
@@ -271,6 +301,20 @@ class ucla_group_manager {
                 $groupingdata = self::get_groupingdata(
                         $groupingname, $courseid
                     );
+
+                // We want to avoid groupings that just has ALL groups
+                // There is an unoptimization, can't simply compare
+                // equality for an array of groups
+                $groupids = array();
+                foreach ($groups as $group) {
+                    $groupids[] = $group->id;
+                }
+
+                sort($groupids, SORT_NUMERIC);
+                if ($groupids == $alltrackedgroupids) {
+                    echo "skip-full-group " . $groupingdata->name;
+                    continue;
+                }
 
                 $trackedgrouping = self::create_tracked_grouping(
                         $groupingdata, $groups
@@ -418,6 +462,7 @@ class ucla_group_manager {
             $neededgroupids[] = $group->id;
         }
 
+        // Could use self::groups_equals, but this is optimized
         sort($neededgroupids, SORT_NUMERIC);
    
         foreach ($trackedcoursegroupings as $grouping) {
@@ -436,6 +481,13 @@ class ucla_group_manager {
         }
 
         return false;
+    }
+
+    static function groups_equals($groups_a, $groups_b) {
+        sort($groups_a, SORT_NUMERIC);
+        sort($groups_b, SORT_NUMERIC);
+
+        return $groups_a == $groups_b;
     }
 
     /**

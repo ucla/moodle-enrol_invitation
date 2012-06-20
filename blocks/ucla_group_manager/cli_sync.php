@@ -11,10 +11,13 @@ list($ext_argv, $unrecog) = cli_get_params(
         'all' => false,
         'future' => false,
         'help' => false,
-        'course-id' => false
+        'course-id' => false,
+        'current-term' => true
     ),
     array(
         'h' => 'help',
+        'c' => 'current-term',
+        'f' => 'future'
     )
 );
 
@@ -39,6 +42,7 @@ foreach ($argv as $arg) {
 
     $reg_argv[] = $arg;
 }
+
 
 $results = null;
 if (isset($singlecourseid)) {
