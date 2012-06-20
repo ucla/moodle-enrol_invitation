@@ -13,6 +13,7 @@ $string['modules'] = 'Module tools';
 $string['syslogs'] = 'View last 1000 lines of a log';
 $string['prepopfiles'] = 'Show pre-pop files';
 $string['prepopview'] = 'Show latest pre-pop output';
+$string['prepoprun'] = 'Run prepop for one course';
 $string['moodlelog'] = 'Show last 100 log entries';
 $string['moodlelogins'] = 'Show logins during the last 24 hours';
 $string['moodlelogbyday'] = 'Count Moodle logs by day';
