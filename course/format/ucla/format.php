@@ -754,42 +754,42 @@ while ($section <= $course->numsections) {
             if ($section != 0) {
                 // End div for sectionheader
                 $center_content .= html_writer::end_tag('div');
-            }                                
 
-            // Display the section
-            
-            // display section summary (don't display summary for section 0)
-            if (!empty($thissection->summary)) {
-                $center_content .= html_writer::start_tag('div', 
-                    array('class' => 'summary'));
-
-                $summarytext = file_rewrite_pluginfile_urls($thissection->summary, 
-                        'pluginfile.php', $context->id, 'course', 'section', $thissection->id);
-                $summaryformatoptions = new stdClass();
-                $summaryformatoptions->noclean = true;
-                $summaryformatoptions->overflowdiv = true;
-
-                $center_content .= format_text($summarytext, 
-                        $thissection->summaryformat, $summaryformatoptions);
-
-                $center_content .= html_writer::end_tag('div');                
-            }
+                // Display the section
                 
-            // CCLE-2800 - JIT controls
-            if ($section != 0 && $editing) {
-                $center_content .= html_writer::start_tag('div',
-                        array('class' => 'jit_links'));
-                
-                foreach ($jit_links as $jit_type => $jit_string) {
-                    $link = new moodle_url('/blocks/ucla_easyupload/upload.php',
-                            array('course_id' => $course->id,
-                                  'type' => $jit_type,
-                                  'section' => $section));
-                    $center_content .= html_writer::link($link, $jit_string);
+                // display section summary (don't display summary for section 0)
+                if (!empty($thissection->summary)) {
+                    $center_content .= html_writer::start_tag('div', 
+                        array('class' => 'summary'));
+
+                    $summarytext = file_rewrite_pluginfile_urls($thissection->summary, 
+                            'pluginfile.php', $context->id, 'course', 'section', $thissection->id);
+                    $summaryformatoptions = new stdClass();
+                    $summaryformatoptions->noclean = true;
+                    $summaryformatoptions->overflowdiv = true;
+
+                    $center_content .= format_text($summarytext, 
+                            $thissection->summaryformat, $summaryformatoptions);
+
+                    $center_content .= html_writer::end_tag('div');                
                 }
-                
-                $center_content .= html_writer::end_tag('div');
-            }                        
+                    
+                // CCLE-2800 - JIT controls
+                if ($editing) {
+                    $center_content .= html_writer::start_tag('div',
+                            array('class' => 'jit_links'));
+                    
+                    foreach ($jit_links as $jit_type => $jit_string) {
+                        $link = new moodle_url('/blocks/ucla_easyupload/upload.php',
+                                array('course_id' => $course->id,
+                                      'type' => $jit_type,
+                                      'section' => $section));
+                        $center_content .= html_writer::link($link, $jit_string);
+                    }
+                    
+                    $center_content .= html_writer::end_tag('div');
+                }                        
+            }
             
             ob_start();
             print_section($course, $thissection, $mods, $modnamesused);
