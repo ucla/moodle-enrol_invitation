@@ -125,6 +125,15 @@ class block_ucla_course_menu extends block_navigation {
                 $this->get_course_format() == 'ucla' && 
                 function_exists('ucla_format_figure_section')) {
             list($thistopic, $ds) = ucla_format_figure_section($this->page->course);        
+
+            //CCLE-2379 Modify Course Menu Sections 	
+	   $modify_coursemenu = html_writer::link(
+                    new moodle_url('/blocks/ucla_modify_coursemenu/modify_coursemenu.php', 
+                        array('courseid' => $this->page->course->id, 
+                              'topic' => $ds)), 
+                    get_string('pluginname', 'block_ucla_modify_coursemenu'));            
+            $this->content->text .= html_writer::tag('div', $modify_coursemenu, 
+                    array('class' => 'edit_control_links'));            
             
             // rearrange link
             $rearrange = html_writer::link(

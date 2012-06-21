@@ -230,6 +230,30 @@ function ucla_format_display_instructors($course) {
     return true;
 }
 
+function setup_sections ($section, $sections, $DB, $course) {
+if (!empty($sections[$section])) {
+        $thissection = $sections[$section];
+        
+        // Save the name if the section name is NULL
+        // This writes the value to the database
+        if($section && NULL == $sections[$section]->name) {
+            $sections[$section]->name = get_string('sectionname', "format_weeks") . " " . $section;
+            $DB->update_record('course_sections', $sections[$section]);
+        }
+        
+    } else {
+        // Create a new section
+        $thissection = new stdClass;
+        $thissection->course  = $course->id;   
+        $thissection->section = $section;
+        // Assign the week number as default name
+        $thissection->name = get_string('sectionname', "format_weeks") . " " . $section;
+        $thissection->summary = '';
+        $thissection->summaryformat = FORMAT_HTML;
+        $thissection->visible  = 1;
+        $thissection->id = $DB->insert_record('course_sections', $thissection);
+    }
+}
 /**
  *  Figures out the topic to display. Specific only to the UCLA course format.
  *  Uses a $_GET or $_POST param to figure out what's going on.
@@ -244,7 +268,7 @@ function ucla_format_figure_section($course, $course_prefs = null) {
     global $USER;
 
     if ($course_prefs == null || !is_object($course_prefs)) {
-        $course_prefs = new ucla_course_prefs($course_prefs);
+        $course_prefs = new ucla_course_prefs($course->id);
     }
 
     // Default to section 0 (course info) if there are no preferences
@@ -282,6 +306,11 @@ function ucla_format_figure_section($course, $course_prefs = null) {
             //debugging('implicit landing page');
             $to_topic = $landing_page;
         }
+    }
+
+    // Fix if there was a change in number of sections
+    if ($to_topic > $course->numsections) {
+        $to_topic = $landing_page;
     }
 
     $displaysection = $to_topic - 1;
