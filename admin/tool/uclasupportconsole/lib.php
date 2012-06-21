@@ -54,7 +54,7 @@ function get_subject_area_selector($id, $selected_subject_area = null) {
  * @return string           Returns HTML to render term dropdown 
  */
 function get_term_selector($id, $selected_term = null) {
-    global $DB;  
+    global $CFG, $DB;  
     static $_term_selector_terms;  // to store cached copy of db record
     $ret_val = '';
     
