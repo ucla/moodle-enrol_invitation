@@ -1,5 +1,5 @@
 <?php
-$string['uclasupportconsole'] = 'UCLA support console';
+$string['pluginname'] = 'UCLA support console';
 
 $string['notitledesc'] = '(no description)';
 
@@ -51,3 +51,13 @@ $string['modulespercourse'] = 'Count module totals and module types per course';
 // Course
 $string['collablist'] = 'Show collaboration sites';
 
+// Capability string
+$string['tool/uclasupportconsole:view'] = 'Access UCLA support console';
+
+// Form input strings
+$string['choose_term'] = 'Choose term...';
+$string['term'] = 'Term';
+$string['srs'] = 'SRS';
+$string['subject_area'] = 'Subject area';
+$string['choose_subject_area'] = 'Choose subject area...';
+$string['uid'] = 'UID';

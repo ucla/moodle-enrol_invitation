@@ -21,8 +21,7 @@ $alldata = data_submitted();
 admin_externalpage_setup('reportsupportconsole');
 
 require_login();
-require_capability('moodle/site:viewreports', 
-    get_context_instance(CONTEXT_SYSTEM));
+require_capability('tool/uclasupportconsole:view', get_context_instance(CONTEXT_SYSTEM));
 
 // The primary goal is to keep as much as possible in one script
 $consoles = new tool_supportconsole_manager();
@@ -182,7 +181,7 @@ if ($displayforms) {
                 'log-action-types')
             . html_writer::tag('ul', implode('', $checkboxes), 
                 array('id' => 'log-action-types')));
-} elseif ($consolecommand == "$title") { 
+} else if ($consolecommand == "$title") { 
     $actions = required_param_array('actiontypes', PARAM_TEXT);
     list($sql, $params) = $DB->get_in_or_equal($actions);
     $wheresql = 'action ' . $sql;
@@ -456,36 +455,89 @@ if ($displayforms) {
 
 $consoles->push_console_html('srdb', $title, $sectionhtml);
 
-// Dynamic
+// Dynamic hardcoded (TODO make reqistrar_query return parameter types it expects)
 ucla_require_registrar();
 $qs = registrar_query::get_all_available_queries();
 
 foreach ($qs as $query) {
     $sectionhtml = '';
     if ($displayforms) {
-        // Currently, it just says shitty things, but
-        // it needs to be fixed with registrar revamping
-        $sectionhtml .= supportconsole_simple_form($query,
-            html_writer::label('Param 1', 'spa1')
-                . html_writer::empty_tag('input', array(
+        // generate input parameters
+        $input_html = '';
+        switch ($query) {
+            // uid
+            case 'ccle_getinstrinfo':
+                $input_html .= html_writer::label(get_string('uid', 'tool_uclasupportconsole'), $query.'_spa2');
+                $input_html .= html_writer::empty_tag('input', array (
                     'name' => 'spa1',
                     'type' => 'text',
-                    'id' => 'spa1'
-                )) . html_writer::label('Param 2', 'spa2')
-                . html_writer::empty_tag('input', array(
+                    'id' => $query.'_spa1'
+                ));                       
+                break;
+            // uid, term
+            case 'ucla_get_user_classes':
+                $input_html .= html_writer::label(get_string('uid', 'tool_uclasupportconsole'), $query.'_spa2');
+                $input_html .= html_writer::empty_tag('input', array (
+                    'name' => 'spa1',
+                    'type' => 'text',
+                    'id' => $query.'_spa1'
+                ));                       
+                $input_html .= get_term_selector($query);                
+                break;
+            // term, subject area
+            case 'cis_coursegetall':
+                $input_html .= get_term_selector($query);
+                $input_html .= get_subject_area_selector($query);
+                break;            
+            // term, srs
+            case 'ccle_coursegetall': 
+            case 'ccle_getclasses':
+            case 'ccle_courseinstructorsget':
+            case 'ccle_roster_class':
+                $input_html .= get_term_selector($query);
+                $input_html .= html_writer::label(get_string('srs', 'tool_uclasupportconsole'), $query.'_spa2');
+                $input_html .= html_writer::empty_tag('input', array (
                     'name' => 'spa2',
                     'type' => 'text',
-                    'id' => 'spa2'
-                )));
+                    'id' => $query.'_spa2'
+                ));               
+                break;
+            // term
+            case 'cis_subjectareagetall': 
+            case 'ucla_getterms':
+                $input_html .= get_term_selector($query);
+                break;
+            // unknown
+            default: 
+                break;
+        }
+        
+        if (empty($input_html)) {
+            continue;   // skip it
+        }     
+
+        $sectionhtml .= supportconsole_simple_form($query, $input_html);
     } else if ($consolecommand == $query) {
-        $params[] = optional_param('spa1', '', PARAM_NOTAGS); 
-        $params[] = optional_param('spa2', '', PARAM_NOTAGS); 
+        $spa1 = optional_param('spa1', '', PARAM_NOTAGS);
+        if (empty($spa1)) {
+            // if empty, then most likely term was passed
+            $params[] = optional_param('term', '', PARAM_ALPHANUM);
+        } else {
+            $params[] = $spa1;
+        }         
+        $spa2 = optional_param('spa2', '', PARAM_NOTAGS); 
+        if (empty($spa2)) {
+            // if empty, then most likely subject area was passed
+            $params[] = optional_param('subject_area', '', PARAM_ALPHANUM);
+        } else {
+            $params[] = $spa2;
+        }            
         $sendparams = array($params);
 
         // Hack because of not following standards...
         if ($query == 'ucla_getterms' 
                 || $query == 'cis_subjectareagetall') {
-            $sendparams = $params;
+            $sendparams = $params[0];
         }
 
         $results = registrar_query::run_registrar_query($query,
@@ -591,16 +643,7 @@ $title = "courseregistrardifferences";
 $sectionhtml = '';
 
 if ($displayforms) {
-    $sectionhtml .= supportconsole_simple_form($title, 
-        html_writer::label('Term', 'term-select')
-            . html_writer::empty_tag('input', array(
-                'type' => 'text',
-                'length' => 3,
-                'name' => 'term',
-                'id' => 'term-select'
-            )));
-
-    // TODO Term selector
+    $sectionhtml .= supportconsole_simple_form($title, get_term_selector($title));
 } else if ($consolecommand == "$title") {  # tie-in to link from name lookup
     $term = required_param('term', PARAM_ALPHANUM);
     echo "<h3>$title $term</h3>\n";
@@ -639,32 +682,35 @@ $consoles->push_console_html('srdb', $title, $sectionhtml);
 ////////////////////////////////////////////////////////////////////
 // START SSC #775 - Adding missing reports from SSC into CommonCode
 /////////////////////////////////////////////////////////////////////////
-///// Moodle 2.0 does not have TA Sites any longer thus this code was commented out
+///// Moodle 2.0 does not have TA Sites yet thus this code was commented out
 ////////////////////////////////////////////////////////////////////
+
+// Finding courses with no syllabus (temporary until we get a real syllabus tool working) 
 $title = "nosyllabuscourses";
 $sectionhtml = '';
-
 if ($displayforms) {
-    $sectionhtml .= supportconsole_simple_form($title);
-    // TODO include global term selector
-} elseif ($consolecommand == "$title") {  # tie-in to link from name lookup
+    $sectionhtml .= supportconsole_simple_form($title, get_term_selector($title));
+} else if ($consolecommand == $title) {  # tie-in to link from name lookup
     $term = required_param('term', PARAM_ALPHANUM);
     if (!ucla_validator('term', $term)) {
         print_error('invalidterm');
     }
 
-    $result = $DB->get_records_sql("
-        SELECT a.id 
-        FROM {course} a 
-        INNER JOIN {resource} b ON a.id = b.course 
-        WHERE a.idnumber LIKE '{$_POST['term']}%' AND (
-               b.name LIKE '%course description%' 
-            OR b.name LIKE '%course outline%' 
-            OR b.name LIKE '%syllabus%'
-        )
-        group by shortname
-        order by shortname
-    ");
+    $sql = "SELECT      r.id AS resource_id,
+                        r.name AS resource_name,
+                        c.shortname AS course_shortname
+            FROM        {course} c,
+                        {ucla_request_classes} urc
+            INNER JOIN  {resource} r ON a.id = b.course 
+            WHERE       urc.term=:term AND 
+                        urc.courseid=c.id AND (
+                            r.name LIKE '%course description%' OR 
+                            r.name LIKE '%course outline%' OR 
+                            r.name LIKE '%syllabus%'
+                        )
+            GROUP BY c.shortname
+            ORDER BY c.shortname";
+    $result = $DB->get_records_sql($sql, array('term' => $term));
 
     $sectionhtml .= supportconsole_render_section_shortcut($title, $result);
 }
@@ -752,7 +798,7 @@ $sectionhtml = '';
 
 if ($displayforms) {
     $sectionhtml = supportconsole_simple_form($title);
-} elseif ($consolecommand == "$title") {  
+} else if ($consolecommand == "$title") {  
     // Mapping of [course shortname, module name] => count of 
     // instances of this module in this course
     // count($course_indiv_module_counts[<course shortname>]) has 
