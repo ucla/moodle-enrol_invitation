@@ -50,6 +50,12 @@ $sectnums = array();
 $sectionnames = array();
 $sectionvisibility = array();
 foreach ($sections as $section) {
+    //CCLE-2930:rearrange tool now shows correct sections by limitimg it
+    //with the course numsections.
+    if ($section->section > $course->numsections) {
+	unset($sections[$section->section]);
+	continue;
+    }
     $sid = $section->id;
     $sectids[$sid] = $sid;
     $sectnums[$sid] = $section->section;
