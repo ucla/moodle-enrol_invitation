@@ -1,7 +1,7 @@
 <?php
 
 $string['pluginname'] = 'Modify sections';
-$string['modify_course_sections'] = 'Modify course menu sections';
+$string['modify_course_sections'] = 'Modify site menu sections';
 $string['addnewsection'] = 'Add new section';
 
 $string['deletingcontents'] = 'Delete content';
@@ -21,4 +21,4 @@ $string['deletesectioncontents'] = 'At least one of the section(s) you are delet
 $string['tbdel'] = 'To delete:';
 $string['deleteconfirm'] = 'Delete content';
 
-$string['successmodify'] = 'The sections have been successfully altered.';
+$string['successmodify'] = 'The sections have been successfully updated.';

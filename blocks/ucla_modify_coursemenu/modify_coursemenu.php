@@ -445,6 +445,6 @@ if ($data && !empty($sectionsnotify) && !$verifydata) {
     echo html_writer::table($tablestructure);
     $modify_coursemenu_form->display();
 }
- 
+
 echo $OUTPUT->footer();
 

@@ -130,9 +130,9 @@ M.block_ucla_modify_coursemenu.generate_row_html = function(sectiondata) {
         row_html += '<td></td>';
     }
 
-    row_html +=  '<td>' + sectionnumdisp + '</td>';
+    row_html +=  '<td class="col-section-num">' + sectionnumdisp + '</td>';
 
-    row_html += '<td>';
+    row_html += '<td class="col-section-title">';
     if (sectiondata.no['name'] == undefined) {
         row_html += '<input type="text" name="title-' + sectionident 
             + '" value="' + sectiondata.name + '" />'; 
@@ -141,7 +141,7 @@ M.block_ucla_modify_coursemenu.generate_row_html = function(sectiondata) {
     }
     row_html += '</td>';
 
-    row_html += '<td>';
+    row_html += '<td class="col-section-hide">';
     if (sectiondata.no['hide'] == undefined) {
         var is_checked = '';
         if (sectiondata.visible == 0) {
@@ -155,7 +155,7 @@ M.block_ucla_modify_coursemenu.generate_row_html = function(sectiondata) {
     }
     row_html += '</td>';
 
-    row_html += '<td>';
+    row_html += '<td class="col-section-delete">';
     if (sectiondata.no['delete'] == undefined) {
         row_html += '<input type="checkbox" class="delete-checkbox" '
             + 'id="delete-' + sectionident 
@@ -163,7 +163,7 @@ M.block_ucla_modify_coursemenu.generate_row_html = function(sectiondata) {
     }
     row_html += '</td>';
 
-    row_html += '<td>';
+    row_html += '<td class="col-section-landing">';
     if (sectiondata.no['landingpage'] == undefined) {
         row_html += '<input id="landing-page-' + sectionident 
             + '" type="radio" name="landingpageradios" />';

@@ -1,14 +1,33 @@
 /**
  *  Stylings for course-section modification UI.
  **/
-div.headercontainer {
-    height:20px;
-   
-    filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr=#B2C7C3C5, endColorstr=#FFFFFF); /* for IE */    
-    background-image: -webkit-linear-gradient(top, rgba(250,225,60,0.7), white); /* for webkit browsers */
-    background-image: -moz-linear-gradient(top, rgba(250,225,60,0.7), white); /* for firefox 3.6+ */
+
+#sections-table {
+    border-collapse: collapse;
+    border: 0;
+}
+
+#sections-table thead .header {
+    filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr=#FFB300, endColorstr=#FDDF96); /* for IE */    
+    background-image: -webkit-linear-gradient(top, rgba(254,187,54,0.7), rgba(253,223,150,0.7)); /* for webkit browsers */
+    background-image: -moz-linear-gradient(top, rgba(254,187,54,0.7), rgba(253,223,150,0.7)); /* for firefox 3.6+ */
+    background-image: -o-linear-gradient(top, rgba(254,187,54,0.7), rgba(253,223,150,0.7)); /* for opera */
+    font-size: larger;
+    border: 0;
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+#sections-table .section-row {
+    border: 0;
+    border-bottom: 1px solid gray;
+}
+
+#sections-table .col-section-num,
+#sections-table .col-section-hide,
+#sections-table .col-section-delete,
+#sections-table .col-section-landing {
     text-align: center;
-    font-weight: bold;
 }
 
 #sections-table .animate-me {
