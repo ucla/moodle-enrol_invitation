@@ -319,27 +319,7 @@ $sectionmenu = array();
 while ($section <= $course->numsections) {
     // This will auto create sections if we have numsections set < than 
     // the actual number of sections that exist
-    if (!empty($sections[$section])) {
-        $thissection = $sections[$section];
-
-        // Save the name if the section name is NULL
-        // This writes the value to the database
-        if ($section && NULL == $sections[$section]->name) {
-            $sections[$section]->name = get_string('sectionname', "format_weeks") . " " . $section;
-            $DB->update_record('course_sections', $sections[$section]);
-        }
-    } else {
-        // Create a new section
-        $thissection = new stdClass;
-        $thissection->course = $course->id;
-        $thissection->section = $section;
-        // Assign the week number as default name
-        $thissection->name = get_string('sectionname', "format_weeks") . " " . $section;
-        $thissection->summary = '';
-        $thissection->summaryformat = FORMAT_HTML;
-        $thissection->visible = 1;
-        $thissection->id = $DB->insert_record('course_sections', $thissection);
-    }
+    $thissection = setup_section($section, $sections, $course);
 
     // Check viewing capabilities of this section
     $showsection = ($has_capability_viewhidden

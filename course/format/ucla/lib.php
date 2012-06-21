@@ -230,8 +230,21 @@ function ucla_format_display_instructors($course) {
     return true;
 }
 
-function setup_sections ($section, $sections, $DB, $course) {
-if (!empty($sections[$section])) {
+/**
+ * Sets up given section. Will auto create section. if we have numsections set 
+ * < than the actual number of sections that exist.
+ * 
+ * @global type $DB
+ * @param int $section      Section id to get
+ * @param array $sections   Sections for course
+ * @param object $course 
+ * 
+ * @return object           Returns given section
+ */
+function setup_section($section, $sections, $course) {
+    global $DB;
+    
+    if (!empty($sections[$section])) {
         $thissection = $sections[$section];
         
         // Save the name if the section name is NULL
@@ -253,6 +266,8 @@ if (!empty($sections[$section])) {
         $thissection->visible  = 1;
         $thissection->id = $DB->insert_record('course_sections', $thissection);
     }
+    
+    return $thissection;
 }
 /**
  *  Figures out the topic to display. Specific only to the UCLA course format.
