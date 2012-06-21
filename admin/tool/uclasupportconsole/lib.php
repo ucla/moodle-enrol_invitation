@@ -59,7 +59,7 @@ function get_term_selector($id, $selected_term = null) {
     $ret_val = '';
     
     if (!ucla_validator('term', $selected_term)) {
-        $selected_term = get_config('currentterm');
+        $selected_term = $CFG->currentterm;
     }
   
     if (!isset($_term_selector_terms)) {
