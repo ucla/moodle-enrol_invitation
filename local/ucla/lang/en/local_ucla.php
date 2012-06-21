@@ -56,3 +56,5 @@ $string['about_hour'] = 'about 1 hour';
 $string['about_x_hours'] = 'about {$a} hours';
 $string['a_day'] = '1 day';
 $string['x_days'] = '{$a} days';
+
+$string['choosecopyright'] = 'Copyright status <a title="Help with Copyright Status" href="'.$CFG->wwwroot.'/help.php?component=block_ucla_easyupload&identifier=license&lang=en" target=_blank><img class="iconhelp" alt="Help with Copyright Status" src="'.$CFG->wwwroot.'/theme/image.php?theme=uclashared&image=help">';
