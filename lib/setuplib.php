@@ -701,6 +701,8 @@ function initialise_fullme() {
             // do hack to handle pilot.ccle.ucla.edu urls
             if ($rurl['host'] == 'pilot.ccle.ucla.edu') {                
                 $url_to_redirect = $rurl['scheme'] . '://' . $wwwroot['host'] . $rurl['fullpath'];
+            } else {
+                $url_to_redirect = $CFG->wwwroot;
             }
             redirect($url_to_redirect, get_string('wwwrootmismatch', 'error', $CFG->wwwroot), 0);
             // END UCLA MOD: CCLE-3241
