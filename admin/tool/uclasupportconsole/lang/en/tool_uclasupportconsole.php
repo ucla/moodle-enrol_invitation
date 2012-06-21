@@ -1,5 +1,5 @@
 <?php
-$string['supportconsole'] = 'UCLA support console';
+$string['uclasupportconsole'] = 'UCLA support console';
 
 $string['notitledesc'] = '(no description)';
 

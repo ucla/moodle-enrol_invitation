@@ -2,7 +2,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/supportconsole/manager.class.php');
+require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/uclasupportconsole/manager.class.php');
 
 function setup_js_tablesorter($tableid=null) {
     global $PAGE;

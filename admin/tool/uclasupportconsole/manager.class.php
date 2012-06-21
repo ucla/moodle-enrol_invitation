@@ -85,11 +85,11 @@ class tool_supportconsole_manager {
         foreach ($this->consolegroups as $groupname => $group) {
             $innercontent = '';
             foreach ($group as $titleid => $contenthtml) {
-                if ($sm->string_exists($titleid, 'tool_supportconsole')) {
-                    $titlestr = get_string($titleid, 'tool_supportconsole');
+                if ($sm->string_exists($titleid, 'tool_uclasupportconsole')) {
+                    $titlestr = get_string($titleid, 'tool_uclasupportconsole');
                 } else {
                     $titlestr = $titleid . ' ' 
-                        . get_string('notitledesc', 'tool_supportconsole');
+                        . get_string('notitledesc', 'tool_uclasupportconsole');
                 }
 
                 $sectioncontent = $OUTPUT->heading($titlestr, 3)
@@ -102,7 +102,7 @@ class tool_supportconsole_manager {
             }
 
             $render .= $OUTPUT->heading(get_string($groupname,
-                    'tool_supportconsole'), 1) . $innercontent;
+                    'tool_uclasupportconsole'), 1) . $innercontent;
         }
 
         return $render;
@@ -124,11 +124,11 @@ class tool_supportconsole_manager {
                     continue;
                 }
 
-                if ($sm->string_exists($titleid, 'tool_supportconsole')) {
-                    $titlestr = get_string($titleid, 'tool_supportconsole');
+                if ($sm->string_exists($titleid, 'tool_uclasupportconsole')) {
+                    $titlestr = get_string($titleid, 'tool_uclasupportconsole');
                 } else {
                     $titlestr = $titleid . ' ' 
-                        . get_string('notitledesc', 'tool_supportconsole');
+                        . get_string('notitledesc', 'tool_uclasupportconsole');
                 }
 
                 $prerender .= 

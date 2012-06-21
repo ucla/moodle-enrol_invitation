@@ -4,7 +4,7 @@
  **/
 $ADMIN->add('reports', new admin_externalpage(
         'reportsupportconsole', 
-        get_string('supportconsole', 'tool_supportconsole'), 
-        "$CFG->wwwroot/$CFG->admin/tool/supportconsole/index.php",
+        get_string('uclasupportconsole', 'tool_uclasupportconsole'), 
+        "$CFG->wwwroot/$CFG->admin/tool/uclasupportconsole/index.php",
         'moodle/site:viewreports'
     ));

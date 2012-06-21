@@ -7,3 +7,7 @@
     clear: both;
     margin-left: 12px;
 }
+
+.supportconsole label {
+    padding-right: 5px;
+}

@@ -1,14 +1,13 @@
 <?php
 /**
- *  Purpose: 1st attempt at a Support Console
- *  Usage: restricted to those with access to class_requestor
+ *  UCLA Support Console
  **/
 
 require_once(dirname(__FILE__) . "/../../../config.php");
 require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->dirroot . '/local/ucla/lib.php');
 $admintooldir = '/' . $CFG->admin . '/tool/';
-require_once($CFG->dirroot . $admintooldir . 'supportconsole/lib.php');
+require_once($CFG->dirroot . $admintooldir . 'uclasupportconsole/lib.php');
 require_once($CFG->dirroot . $admintooldir . 'uclacoursecreator/uclacoursecreator.class.php');
 
 // Force debugging errors 
@@ -165,8 +164,8 @@ if ($displayforms) {
     foreach ($actions as $action) {
         $action = $action->action;
         $stringid = $action . '_description';
-        if ($sm->string_exists($stringid, 'tool_supportconsole')) {
-            $actiondesc = get_string($stringid, 'tool_supportconsole');
+        if ($sm->string_exists($stringid, 'tool_uclasupportconsole')) {
+            $actiondesc = get_string($stringid, 'tool_uclasupportconsole');
         } else {
             $actiondesc = $action;
         }
