@@ -40,7 +40,8 @@ abstract class registrar_query {
     // THese are the bad outputs
     var $bad_outputs = array();
 
-    var $notrim = false;
+    // Use this to disable trimming of fields
+    var $skip_clean_fields = array();
 
     /**
      *  @return Array (
@@ -212,7 +213,9 @@ abstract class registrar_query {
         $new = array_change_key_case($fields, CASE_LOWER);
 
         foreach ($new as $k => $v) {
-            $new[$k] = trim($v);
+            if (!in_array($k, $this->skip_clean_fields)) {
+                $new[$k] = trim($v);
+            }
         }
 
         $new = self::db_decode($new);

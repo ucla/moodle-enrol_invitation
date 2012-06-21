@@ -67,14 +67,14 @@ abstract class browseby_handler {
     function get_pretty_subjarea($subjarea) {
         global $DB;
     
-        $sa = $DB->get_record('ucla_reg_subjectarea', 
-            array('subjarea' => $subjarea));
+        $sa = $DB->get_field('ucla_reg_subjectarea', 
+            'subj_area_full', array('subjarea' => $subjarea));
 
         if ($sa) {
-            return $sa->subj_area_full;
+            return $sa;
         }
 
-        return false;
+        return $subjarea;
     }
    
     /**
@@ -106,7 +106,8 @@ abstract class browseby_handler {
 
         // If the course is NOT a particular activity type
         if (!empty($course->activitytype)) {
-            $allowacttypes = $this->get_config('allow_acttypes');
+            $allowacttypes = get_config('block_ucla_browseby', 
+                'allow_acttypes');
             if (empty($allowacttypes)) {
                 return false;
             } else {

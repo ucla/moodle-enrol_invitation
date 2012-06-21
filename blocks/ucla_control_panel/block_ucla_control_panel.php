@@ -194,15 +194,21 @@ class block_ucla_control_panel extends block_base {
             }
 
             // Go through and make sure we're not repeating modules
-            /*foreach ($modules as $mkey => $module) {
+            foreach ($modules as $index => $module) {
+                $mkey = $module->get_key();
+                
+                if ($mkey == 'row_module') {
+                    continue;   // don't dedup myucla links
+                }
+                
                 if (isset($already_used[$mkey])) {
-                    unset($sections[$tag][$mkey]);
+                    unset($sections[$tag][$index]);
                 } else {
                     $already_used[$mkey] = true;
                 }
-            }*/
+            }
         }
-     
+        
         // Now based on each view, sort the tags into their proper
         // tabs
         $all_modules = array();
@@ -276,10 +282,12 @@ class block_ucla_control_panel extends block_base {
                 $blockmodules = $block_name::$static($course,
                     $context);
 
-                foreach ($blockmodules as $blockmodule) {
-                    $module = ucla_cp_module::build($blockmodule);
-                    $module->associated_block = $block_name;
-                    $cp_elements[$block_name][] = $module;
+                if (!empty($blockmodules)) {
+                    foreach ($blockmodules as $blockmodule) {
+                        $module = ucla_cp_module::build($blockmodule);
+                        $module->associated_block = $block_name;
+                        $cp_elements[$block_name][] = $module;
+                    }                    
                 }
             }
         }

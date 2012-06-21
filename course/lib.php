@@ -3225,16 +3225,6 @@ function make_editing_buttons(stdClass $mod, $absolute_ignored = true, $movesele
         );
     }
 
-    // Delete
-    if ($hasmanageactivities) {
-        $actions[] = new action_link(
-            new moodle_url($baseurl, array('delete' => $mod->id)),
-            new pix_icon('t/delete', $str->delete, 'moodle', array('class' => 'iconsmall')),
-            null,
-            array('class' => 'editing_delete', 'title' => $str->delete)
-        );
-    }
-
     // hideshow
     if (has_capability('moodle/course:activityvisibility', $modcontext)) {
         if ($mod->visible) {
@@ -3290,6 +3280,7 @@ function make_editing_buttons(stdClass $mod, $absolute_ignored = true, $movesele
         }
     }
 
+    /* UCLA MOD CCLE-3069: Remove group-mode and assign role buttons
     // groupmode
     if ($hasmanageactivities and $mod->groupmode !== false) {
         if ($mod->groupmode == SEPARATEGROUPS) {
@@ -3332,7 +3323,21 @@ function make_editing_buttons(stdClass $mod, $absolute_ignored = true, $movesele
             array('class' => 'editing_assign', 'title' => $str->assign)
         );
     }
-
+    //*/
+    
+    // START UCLA MOD CCLE-2803 
+    // Moving rendering order of delete button to fix tab order
+    // Delete
+    if ($hasmanageactivities) {
+        $actions[] = new action_link(
+            new moodle_url($baseurl, array('delete' => $mod->id)),
+            new pix_icon('t/delete', $str->delete, 'moodle', array('class' => 'iconsmall')),
+            null,
+            array('class' => 'editing_delete', 'title' => $str->delete)
+        );
+    }
+    // END UCLA MOD CCLE-2803
+    
     $output = html_writer::start_tag('span', array('class' => 'commands'));
     foreach ($actions as $action) {
         if ($action instanceof renderable) {
@@ -3342,6 +3347,10 @@ function make_editing_buttons(stdClass $mod, $absolute_ignored = true, $movesele
         }
     }
     $output .= html_writer::end_tag('span');
+    // START UCLA MOD CCLE-2803 
+    // This is an empty <div> that helps the edit icons render inside the <li> box
+    $output .= html_writer::tag('div', '', array('class' => 'edit-iconfix-filler'));
+    // END UCLA MOD CCLE-2803
     return $output;
 }
 

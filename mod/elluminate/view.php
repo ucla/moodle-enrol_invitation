@@ -238,8 +238,12 @@
     
    	$navigation = build_navigation('', $cm);
 
-    print_header_simple(format_string($elluminate->name), "", $navigation, "", "", true, $buttontext, navmenu($course, $cm));
-
+    // START UCLA MOD: CCLE-2882 - Control panel missing for some course pages 
+    //print_header_simple(format_string($elluminate->name), "", $navigation, "", "", true, $buttontext, navmenu($course, $cm));
+    $header_title = format_string($elluminate->name);
+    print_header_simple($header_title, $header_title, $navigation, "", "", true, $buttontext, navmenu($course, $cm));
+    // END UCLA MOD: CCLE-2882
+        
 	elive_groups_print_activity_menu($cm, 'view.php?id=' . $cm->id, false, $groupid);	
     $sesskey = !empty($USER->sesskey) ? $USER->sesskey : '';
 

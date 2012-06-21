@@ -26,7 +26,13 @@ $tf_embedded    = 'embedded.php';
 $tf_frontpage   = 'course.php';
 $tf_report      = 'course.php';
 
-$disablepostblocks = get_config($tn, 'disable_post_blocks');
+$noconfigs = during_initial_install();
+
+if ($noconfigs) {
+    $disablepostblocks = true;
+} else {
+    $disablepostblocks = get_config($tn, 'disable_post_blocks');
+}
 
 $defaultregion = 'side-post';
 $enabledregions = array('side-pre');
@@ -142,7 +148,8 @@ $THEME->layouts = array(
         'file' => $tf_general,
         'regions' => array(),
         'options' => array(
-            'nofooter' => true
+            'nofooter' => true,
+            'controlpanel' => true
         ),
     ),
     // Embeded pages, like iframe/object embeded in moodleform 
@@ -169,7 +176,8 @@ $THEME->layouts = array(
             'noblocks' => true, 
             'nofooter' => true, 
             'nonavbar' => true, 
-            'nocustommenu' => true
+            'nocustommenu' => true,
+            'nologininfo' => true
         ),
     ),
     // Should display the content and basic headers only.
@@ -180,7 +188,8 @@ $THEME->layouts = array(
             'noblocks' => true, 
             'nofooter' => true, 
             'nonavbar' => false, 
-            'nocustommenu' => true
+            'nocustommenu' => true,
+            'nologininfo' => true
         ),
     ),
     // The pagelayout used when a redirection is occuring.
@@ -205,7 +214,12 @@ $THEME->layouts = array(
 $THEME->rendererfactory = 'theme_overridden_renderer_factory';
 $THEME->enable_dock = true;
 
-$dropdown_contents = get_config('theme_' . $THEME->name, 'logo_sub_dropdown');
+if ($noconfigs) {
+    $dropdown_contents = false;
+} else {
+    $dropdown_contents = get_config('theme_' . $THEME->name, 'logo_sub_dropdown');
+}
+
 if ($dropdown_contents) {
     $THEME->javascripts[] = 'jquery-1.5.2.min'; 
     $THEME->javascripts[] = 'shared_server_dropdown';
