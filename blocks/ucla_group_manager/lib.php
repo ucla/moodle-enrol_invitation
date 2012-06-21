@@ -203,13 +203,12 @@ class ucla_group_manager {
                         $sectioninfo->courseinfo
                     );
 
-                echo "[{$sectiongroup->id}] {$sectiongroup->name}";
-
                 $sectiongroup->sync_members($moodleusers);
                 $sectiongroup->save();
 
                 $sectioninfo->group = $sectiongroup;
 
+                echo "[{$sectiongroup->id}] {$sectiongroup->name}";
                 echo "...";
             }
         }
