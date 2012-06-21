@@ -21,6 +21,9 @@ require_once(dirname(__FILE__) . '/../moodleblock.class.php');
 global $CFG;
 require_once($CFG->dirroot . '/local/ucla/lib.php');
 
+/**
+ * Class that represents a UCLA session 
+ */
 class ucla_session {
     
     private $_session;          // An array of session objects from registrar
@@ -44,39 +47,41 @@ class ucla_session {
         // Other info
         $this->_quarter = substr($session[0]['term'], 2);
         $this->_year = substr($session[0]['term'], 0, -1);
+        
+        // All session dates are tested against today
         $this->_today = substr(date('c'), 0, 10);
         
         // Start with undetermined week
         $this->_current_week = -1;
         
-        //
+        // Number of active terms to retrieve (not including current term)
         $this->_lookahead = 1;
     }
     
     
     /**
-     * Updates term information like the current week, or updates the term
-     * to the next term if that's needed
+     * Updates term information such as the current week/session, or sets 
+     * the next term if that's needed
      */
     function update() {
         
-        // Regular term in session
-        if(!$this->_summer) {
+        if(!$this->_summer) {   // Regular term in session
             
             // Check if quarter is in session
             if($this->in_session($this->_session['RG']->session_end)) {
             
-                // Check if instruction has started
+                // Check if instruction has started and update week
                 if($this->instruction_started($this->_session['RG']->instruction_start)) {
                     $weeks_str = $this->get_week_str($this->_session['RG']);
                 } else {
-                    // Get current week string
+                    // Get current quarter and year
                     $weeks_str = $this->get_quarter_and_year();
                 }
                 
                 // Update weeks display
                 $this->update_week_display($weeks_str);
-            } else { // Update term
+                
+            } else { // Update term when quarter is not in session
                 $next_term = $this->next_term();
                 $this->update_term($next_term);
             }
@@ -100,7 +105,7 @@ class ucla_session {
                 $quarter_week .= $this->get_week_str($this->_session['6C']);
             }
             
-            // Or we're in week prior to session start
+            // Or we're in week prior to session start, so display quarter and year
             if(empty($quarter_week)) {
                 $quarter_week = $this->get_quarter_and_year();
             }
@@ -143,18 +148,18 @@ class ucla_session {
     /**
      * Get the week string
      * 
-     * @param type $session
+     * @param obj $session
      * @return string 
      */
     private function get_week_str($session) {
         $quarter_year = $this->get_quarter_and_year();
         
+        // Append session for summer
         if($this->_summer) {
             $quarter_year .= ' ' . get_string('session', 'block_ucla_weeksdisplay') . ' ' . substr($session->session, -1);
         }
         
-        $week_str = $quarter_year  . ' - '
-                . $this->get_week_for_session($session);
+        $week_str = $quarter_year  . ' - ' . $this->get_week_for_session($session);
         
         return $week_str;
     }
@@ -173,15 +178,15 @@ class ucla_session {
     /**
      * Gets the current week for a given session object
      * 
-     * @param type $session
+     * @param obj $session
      * @return string containing week display
      */
     private function get_week_for_session($session) {
-        // Get a weeks count for instruction_star and today
+        // Get a weeks count offset for instruction_star and today
         $weeks_start = date('W', strtotime($session->instruction_start));
         $weeks_today = date('W', strtotime($this->_today));
         
-        // Adjust for week 1
+        // Offset week by +1 since week 1 will be week 0 if both values are equal
         $weeks = $weeks_today - $weeks_start + 1;
         
         // Adjust for Fall week 0
@@ -216,10 +221,10 @@ class ucla_session {
     }
 
     /** 
-     * Checks if a summer session is active
+     * Checks if a summer session is active given session start and end dates
      * 
-     * @param type $start of session
-     * @param type $end of session
+     * @param string $start of session
+     * @param string $end of session
      * @return boolean true if session is active
      */
     private function in_session_summer($start, $end) {
@@ -325,7 +330,7 @@ class ucla_session {
      *  
      */
     private function update_week() {
-        set_config('current_week', $this->_current_week, 'local_ucla');
+        block_ucla_weeksdisplay::set_current_week($this->_current_week);
     }
     
     /**
@@ -396,17 +401,17 @@ class block_ucla_weeksdisplay extends block_base {
         global $CFG;
 
         //If the current term is not valid, heuristically initialize it.      
-        if (isset($CFG->currentterm) == false 
-                || ucla_validator('term', $CFG->currentterm) == false) {
+        if(empty($CFG->currentterm) || !ucla_validator('term', $CFG->currentterm)) {
             self::init_currentterm(date('c'));
         }
-        
+
         $current_term = $CFG->currentterm;
-        $query_result = registrar_query::run_registrar_query(
-                'ucla_getterms', array($current_term), true);    
+
+        $query_result = registrar_query::run_registrar_query('ucla_getterms', 
+                array($current_term), true);    
         
-        $session_obj = new ucla_session($query_result);
-        $session_obj->update();
+        $session = new ucla_session($query_result);
+        $session->update();
     }
 
     /*
