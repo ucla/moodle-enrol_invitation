@@ -222,6 +222,20 @@ class ucla_synced_group {
              WHERE gm.groupid = ?', array($groupid)
         );
     }
+    
+    /**
+     *  Gets all the tracked group info.
+     **/
+    static function get_tracked_groups($courseid) {
+        global $DB;
+
+        return $DB->get_records_sql('
+            SELECT ugs.*, g.name, g.courseid
+            FROM {ucla_group_sections} ugs
+            INNER JOIN {groups} g ON g.id = ugs.groupid
+            WHERE g.courseid = ?
+        ', array($courseid));
+    }
 
     function load_members() {
         if (!isset($this->id)) {

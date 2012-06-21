@@ -4,9 +4,9 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/local/ucla/lib.php');
 require_once($CFG->dirroot . '/group/lib.php');
-//require_once($CFG->dirroot . '/lib/enrollib.php');
 require_once($CFG->dirroot . '/enrol/database/lib.php');
 require_once($CFG->dirroot . '/blocks/ucla_group_manager/ucla_synced_group.class.php');
+require_once($CFG->dirroot . '/blocks/ucla_group_manager/ucla_synced_grouping.class.php');
 
 ucla_require_registrar();
 
@@ -166,6 +166,7 @@ class ucla_group_manager {
         $isnormalcourse = count($reqsecinfos) == 1;
 
         echo "Syncing section groups...";
+
         // groups created should NOT be divisible in any logical way, 
         // we should try to enforce usage of groupings
         foreach ($reqsecinfos as $termsrs => &$reqinfo) {
@@ -188,8 +189,11 @@ class ucla_group_manager {
 
             foreach ($reqinfo->sectionsinfo as $secttermsrs => &$sectioninfo) {
                 $moodleusers = array();
+
+                // TODO speed this loop up
                 foreach ($sectioninfo->roster as $student) {
                     $moodleuser = ucla_registrar_user_to_moodle_user($student);
+
                     if ($moodleuser) {
                         $moodleusers[$moodleuser->id] = $moodleuser;
                     }
@@ -199,12 +203,14 @@ class ucla_group_manager {
                         $sectioninfo->courseinfo
                     );
 
+                echo "[{$sectiongroup->id}] {$sectiongroup->name}";
+
                 $sectiongroup->sync_members($moodleusers);
                 $sectiongroup->save();
 
                 $sectioninfo->group = $sectiongroup;
 
-                echo "[{$sectiongroup->id}] {$sectiongroup->name}...";
+                echo "...";
             }
         }
         
@@ -218,7 +224,9 @@ class ucla_group_manager {
 
         echo "Deleting obsolete groups...";
         // Delete unused groups
-        $alltrackedgroups = self::get_tracked_groups($courseid);
+        $alltrackedgroups = ucla_synced_group::get_tracked_groups(
+                $courseid
+            );
 
         // Re-index this...optimization
         $existingtrackedgroups = array();
@@ -286,8 +294,8 @@ class ucla_group_manager {
             foreach ($reqsecinfos as $reqinfo) {
                 foreach ($reqinfo->sectionsinfo as $sectioninfo) {
                     $groupfieldsid = self::get_grouping_type_key(
-                            $groupingtypefn, $sectioninfo->courseinfo
-                        );
+                                $groupingtypefn, $sectioninfo->courseinfo
+                            );
 
                     if (!isset($organizedgroupings[$groupfieldsid])) {
                         $organizedgroupings[$groupfieldsid] = array();
@@ -298,7 +306,7 @@ class ucla_group_manager {
             }
 
             foreach ($organizedgroupings as $groupingname => $groups) {
-                $groupingdata = self::get_groupingdata(
+                $groupingdata = ucla_synced_grouping::get_groupingdata(
                         $groupingname, $courseid
                     );
 
@@ -317,9 +325,10 @@ class ucla_group_manager {
                     continue;
                 }
 
-                $trackedgrouping = self::create_tracked_grouping(
-                        $groupingdata, $groups
-                    );
+                $trackedgrouping = 
+                    ucla_synced_grouping::create_tracked_grouping(
+                            $groupingdata, $groups
+                        );
                
                 $sameflag = '';
                 if (!isset($trackedgroupings[$trackedgrouping])) {
@@ -336,11 +345,12 @@ class ucla_group_manager {
             echo "done.\n";
         }
 
-
         // Remove no-longer used groupings
         echo "Deleting obsolete groupings...";
-        $coursetrackedgroupings = self::get_course_tracked_groupings(
-            $courseid);
+        $coursetrackedgroupings = 
+                ucla_synced_grouping::get_course_tracked_groupings(
+                        $courseid
+                    );
 
         foreach ($coursetrackedgroupings as $ctg) {
             if (!isset($trackedgroupings[$ctg->id])) {
@@ -354,21 +364,7 @@ class ucla_group_manager {
 
         return true;
     }
-
-    /**
-     *  Gets all the tracked group info.
-     **/
-    static function get_tracked_groups($courseid) {
-        global $DB;
-
-        return $DB->get_records_sql('
-            SELECT ugs.*, g.name, g.courseid
-            FROM {ucla_group_sections} ugs
-            INNER JOIN {groups} g ON g.id = ugs.groupid
-            WHERE g.courseid = ?
-        ', array($courseid));
-    }
-
+    
     /**
      *  This is how we distinguish sections.
      **/
@@ -385,126 +381,5 @@ class ucla_group_manager {
         }
 
         return implode(' ', $namestrs);
-    }
-
-    /**
-     *  Convenience function, adds many groups to a grouping.
-     **/
-    static function groups_many_assign_grouping($groupingid, $groups) {
-        foreach ($groups as $group) {
-            if (!isset($group->id)) {
-                // TODO Handle less-gracefully
-                continue;
-            }
-
-            groups_assign_grouping($groupingid, $group->id);
-        }
-    }
-
-    /** 
-     *  Simple wrapper.
-     **/
-    static function get_groupingdata($name, $courseid) {
-        $groupingdata = new object();
-        $groupingdata->name = $name;
-        $groupingdata->courseid = $courseid;
-
-        return $groupingdata;
-    }
-
-    /**
-     *  Convenience function to create a tracked grouping, and then assigns
-     *  a bunch of groups to it.
-     *  @return int grouping.id
-     **/
-    static function create_tracked_grouping($groupingdata, $groups=array()) {
-        $exists = self::get_tracked_grouping($groupingdata, $groups);
-        if ($exists) {
-            return $exists->id;
-        }
-
-        $groupingid = groups_create_grouping($groupingdata);
-        self::track_new_grouping($groupingid);
-
-        if (!empty($groups)) {
-            self::groups_many_assign_grouping($groupingid, $groups);
-        }
-
-        return $groupingid;
-    }
-
-    /**
-     *  Get tracked groupings from a course.
-     **/
-    static function get_course_tracked_groupings($courseid) {
-        global $DB;
-        return $DB->get_records_sql(
-                'SELECT gg.* 
-                 FROM {groupings} gg
-                 INNER JOIN {ucla_group_groupings} ugg
-                    ON ugg.groupingid = gg.id
-                 WHERE courseid = ?', 
-                 array($courseid)
-             );
-    }
-
-    /**
-     *  Attempts to search through all course trackings, finding
-     *  a matching grouping, based on groups assigned.
-     *  TODO make faster
-     **/
-    static function get_tracked_grouping($groupingdata, $groups) {
-        $courseid = $groupingdata->courseid;
-
-        $trackedcoursegroupings =
-            self::get_course_tracked_groupings($courseid);
-
-        if (empty($trackedcoursegroupings)) {
-            return false;
-        }
-
-        $neededgroupids = array();
-        foreach ($groups as $gkey => $group) {
-            $neededgroupids[] = $group->id;
-        }
-
-        // Could use self::groups_equals, but this is optimized
-        sort($neededgroupids, SORT_NUMERIC);
-   
-        foreach ($trackedcoursegroupings as $grouping) {
-            $groupingsgroups = groups_get_all_groups($courseid,
-                null, $grouping->id);
-            $providedgroupids = array(); 
-
-            foreach($groupingsgroups as $group) {
-                $providedgroupids[] = $group->id;
-            }
-
-            sort($providedgroupids, SORT_NUMERIC);
-            if ($providedgroupids == $neededgroupids) {
-                return $grouping;
-            }
-        }
-
-        return false;
-    }
-
-    static function groups_equals($groups_a, $groups_b) {
-        sort($groups_a, SORT_NUMERIC);
-        sort($groups_b, SORT_NUMERIC);
-
-        return $groups_a == $groups_b;
-    }
-
-    /**
-     *  Creates a tracked grouping. Does not check for existance.
-     **/
-    static function track_new_grouping($groupingid) {
-        global $DB;
-
-        $dbobj = new object();
-        $dbobj->groupingid = $groupingid;
-
-        $DB->insert_record('ucla_group_groupings', $dbobj);
     }
 }

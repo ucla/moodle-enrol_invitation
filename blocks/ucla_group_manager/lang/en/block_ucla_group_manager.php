@@ -10,3 +10,8 @@ $string['grouping_crosslist_desc'] = 'This grouping was automatically created to
 
 $string['grouping_section_type_name'] = '{$a->acttype} {$a->sectnum}';
 $string['grouping_section_type_desc'] = 'This grouping was automatically created to help maintain different sets of sections.';
+
+$string['ucla_groupmanagercannotremove'] = 'This grouping is a special grouping corresponding to UCLA course sections. This grouping can neither be modified nor removed.';
+$string['ucla_groupmanagercannotremove_one'] = 'The group selected is a special group for UCLA course sections. It cannot be removed.';
+$string['ucla_groupmanagercannotremove_oneof'] = 'One of the groups selected is a special group for UCLA course sections. It cannot be removed.';
+
