@@ -45,9 +45,18 @@ if(count($groupidarray)==0) {
     print_error('errorselectsome','group',$returnurl);
 }
 
-
+// Public private special group
 require_once($CFG->libdir.'/publicprivate/course.class.php');
 $publicprivate_course = new PublicPrivate_Course($courseid);
+
+// Synced section groups special groups
+require_once($CFG->dirroot . '/blocks/ucla_group_manager/ucla_synced_group.class.php');
+$trackedgroupobjs = ucla_synced_group::get_tracked_groups($courseid);
+$trackedgroups = array();
+
+foreach ($trackedgroupobjs as $groupobj) {
+    $trackedgroups[] = $groupobj->groupid;
+}
 
 if ($confirm && data_submitted()) {
     if (!confirm_sesskey() ) {
@@ -59,10 +68,22 @@ if ($confirm && data_submitted()) {
      *
      * @author ebollens
      * @version 20110719
+     * 
+     * Remove all groups except special groups.
+     * @version 2012061900
      */
-    foreach($groupidarray as $groupid) {
-        if(!$publicprivate_course->is_group($groupid))
-            groups_delete_group($groupid);
+    foreach($groupidarray as $key => $groupid) {
+        if (!$publicprivate_course->is_group($groupid)) {
+            unset($groupidarray[$key]);
+        }
+
+        if (in_array($groupid, $trackedgroups)) {
+            unset($groupidarray[$key]);
+        }
+    }
+
+    foreach ($groupidarray as $groupid) {
+        groups_delete_group($groupid);
     }
 
     redirect($returnurl);
@@ -72,24 +93,29 @@ if ($confirm && data_submitted()) {
     echo $OUTPUT->header();
 
     /**
-     * Alert that public/private grouping cannot be removed or otherwise present
-     * the remove confirmation box.
-     *
-     * @author ebollens
-     * @version 20110719
+     *  For specially tracked-groups, prevent deletion.
+     *  @version 2012061900
      */
-    $publicprivate_course_used = false;
-    foreach($groupidarray as $groupid)
-        if($publicprivate_course->is_group($groupid))
-            $publicprivate_course_used = true;
+    $istrackedgroup = false;
+    $pluginname = null;
+    foreach($groupidarray as $groupid) {
+        if ($publicprivate_course->is_group($groupid)) {
+            $istrackedgroup= 'publicprivate';
+            break;
+        } else if (in_array($groupid, $trackedgroups)) {
+            $istrackedgroup = 'ucla_groupmanager';
+            $pluginname = 'block_ucla_group_manager';
+            break;
+        }
+    }
     
-    if($publicprivate_course_used) {
-        $pluralize = 'publicprivatecannotremove_oneof';
+    if ($istrackedgroup) {
+        $pluralize = $istrackedgroup . 'cannotremove_oneof';
         if (count($groupidarray) <= 1) {
-            $pluralize = 'publicprivatecannotremove_one';
+            $pluralize = $istrackedgroup . 'cannotremove_one';
         }
 
-        $pluralizestr = get_string($pluralize);
+        $pluralizestr = get_string($pluralize, $pluginname);
         echo $OUTPUT->notification($pluralizestr);
         echo $OUTPUT->continue_button('index.php?id='.$courseid);
     } else {

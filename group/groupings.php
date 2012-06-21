@@ -91,8 +91,21 @@ if ($groupings = $DB->get_records('groupings', array('courseid'=>$course->id), '
          *
          * @author ebollens
          * @version 20110719
+         *  
+         * Adding functionality for section groups
+         * @version 2012062000
          */
-        if(!$publicprivate_course->is_grouping($grouping)) {
+        $editable = !$publicprivate_course->is_grouping($grouping);
+        
+        require_once($CFG->dirroot . '/blocks/ucla_group_manager/ucla_synced_grouping.class.php');
+        $trackedgroupings = 
+            ucla_synced_grouping::get_course_tracked_groupings($course->id);
+
+        foreach ($trackedgroupings as $trackedgrouping) {
+            $editable = $editable && $trackedgrouping->id != $grouping->id;
+        }
+
+        if($editable) {
             $buttons  = "<a title=\"$stredit\" href=\"grouping.php?id=$grouping->id\"><img".
                         " src=\"" . $OUTPUT->pix_url('t/edit') . "\" class=\"iconsmall\" alt=\"$stredit\" /></a> ";
             $buttons .= "<a title=\"$strdelete\" href=\"grouping.php?id=$grouping->id&amp;delete=1\"><img".
