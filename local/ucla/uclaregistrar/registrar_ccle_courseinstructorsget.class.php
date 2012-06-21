@@ -24,7 +24,13 @@ class registrar_ccle_courseinstructorsget extends registrar_query {
             return false;
         }
 
-        if (!isset($new['ucla_id'])) {
+        // No enrollment info
+        if (empty($new['ucla_id'])) {
+            return false;
+        }
+
+        // No shibboleth info
+        if (empty($new['bolid'])) {
             return false;
         }
 
