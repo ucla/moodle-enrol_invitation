@@ -2112,16 +2112,16 @@ function initialise_filepicker($args) {
 
     $return->licenses = $licenses;
 
-	// START UCLA MOD: CCLE-3158 Use UCLA specific lang string for copyright help icon in filepicker
-	/**
-	*	To add in the help icon in the file picker for the copyright status we had to use the lang customization UI to 
-	*	override the lang string 'chooselicense' for en_us.
-	*	But that solution is not ideal, because for new installs that would need to be a manual process. 
-	*	The proper fix would be to edit the code that passes the string to the file picker to 
-	*	use get_string('choosecopyright', 'local_ucla') and put in 'chooselicense' in the local/ucla plugin lang file.
-	**/
-	$return->copyright_help = get_string('choosecopyright', 'local_ucla');
-	// END UCLA MOD: CCLE-3158 Use UCLA specific lang string for copyright help icon in filepicker
+    // START UCLA MOD: CCLE-3158 Use UCLA specific lang string for copyright help icon in filepicker
+    /**
+    *	To add in the help icon in the file picker for the copyright status we had to use the lang customization UI to 
+    *	override the lang string 'chooselicense' for en_us.
+    *	But that solution is not ideal, because for new installs that would need to be a manual process. 
+    *	The proper fix would be to edit the code that passes the string to the file picker to 
+    *	use get_string('choosecopyright', 'local_ucla') and put in 'chooselicense' in the local/ucla plugin lang file.
+    **/
+    $return->copyright_help = get_string('choosecopyright', 'local_ucla');
+    // END UCLA MOD: CCLE-3158 Use UCLA specific lang string for copyright help icon in filepicker
 	
     $return->author = fullname($USER);
 

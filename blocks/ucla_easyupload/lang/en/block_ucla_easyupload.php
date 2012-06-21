@@ -86,11 +86,13 @@ the UCLA Library would prefer that you provide a link to licensed electronic
 resources rather than uploading the file to your CCLE course.</i>
 
 <strong>Item is in the public domain.</strong><br>
-Generally, an item is in the public domain if one of the following applies:<br>
-1)It was published in the U.S. before 1923.<br>
-2)It is a product of the federal government.<br>
-3)The term of copyright, which is generally the life of the author plus seventy 
-years, has expired.
+Generally, an item is in the public domain if one of the following applies:
+<ol>
+    <li>It was published in the U.S. before 1923.</li>
+    <li>It is a product of the federal government.</li>
+    <li>The term of copyright, which is generally the life of the author plus 
+    seventy years, has expired.</li>
+</ol>
 
 <strong>Item is available for this use via Creative Commons license.</strong>
 <br>
