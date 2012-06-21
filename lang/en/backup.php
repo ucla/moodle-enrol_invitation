@@ -42,7 +42,10 @@ $string['backupcoursesection'] = 'Section: {$a}';
 $string['backupcoursesections'] = 'Course sections';
 $string['backupdate'] = 'Date taken';
 $string['backupdetails'] = 'Backup details';
-$string['backupdetailsnonstandardinfo'] = 'The selected file is not a standard Moodle backup file. The restore process will try to convert the backup file into the standard format and then restore it.';
+// START UCLA MOD: CCLE-3023 - restore in Moodle2.x site menu block is  not displayed and not default to UCLA format   
+//$string['backupdetailsnonstandardinfo'] = 'The selected file is not a standard Moodle backup file. The restore process will try to convert the backup file into the standard format and then restore it.';
+$string['backupdetailsnonstandardinfo'] = 'The selected file is a {$a} backup file. The restore process will try to convert the backup file into a standard format and then restore it.';
+// END UCLA MOD: CCLE-3023
 $string['backupformat'] = 'Format';
 $string['backupformatmoodle1'] = 'Moodle 1';
 $string['backupformatmoodle2'] = 'Moodle 2';
