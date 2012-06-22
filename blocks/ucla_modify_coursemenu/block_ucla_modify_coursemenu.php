@@ -83,6 +83,11 @@ class block_ucla_modify_coursemenu extends block_base {
             }
         }
 
+        // The way that checkboxes in html work
+        if (!isset($newsection['visible'])) {
+            $oldsection->visible = 1;
+        }
+
         return $oldsection;
     }
 
