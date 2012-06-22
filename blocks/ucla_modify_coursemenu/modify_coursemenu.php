@@ -205,16 +205,10 @@ if ($modify_coursemenu_form->is_cancelled()) {
 
         // Fetch the old section's data
         if (!isset($sections[$oldsectnum])) {
-            // A "new" section according to course modifier UI, but has
-            // course_sectons.section > course.numsections, i.e. section was
-            // created, but course.numsections was lowered
-            if (isset($allsections[$newsectnum])) {
-                $section = $allsections[$newsectnum];
-            } else {
-                // It's a new section
-                $sectdata['course'] = $courseid;
-                $section = (object) $sectdata;
-            }
+            // It's a brand spanking new section, no existing sections to
+            // even remotely use.
+            $sectdata['course'] = $courseid;
+            $section = (object) $sectdata;
         } else {
             // It a section that existed, and was < course.numsections
             $section = $sections[$oldsectnum];
@@ -344,7 +338,32 @@ if ($passthrudata || $verifydata) {
             $deletesectionids);
     }
 
-    foreach ($passthrudata->sections as $section) {
+    $newsections = $passthrudata->sections;
+
+    // We need to shift existing course sections
+    $newcoursenumsections = $passthrudata->coursenumsections;
+    $oldcoursenumsections = $course->numsections;
+
+    if ($newcoursenumsections > $oldcoursenumsections) {
+        $numsectiondiff = $newcoursenumsections - $oldcoursenumsections;
+        $sectionshift = $oldcoursenumsections + 1;
+
+        // Section objects could've been manipulated
+        $allsectionskeys = array_keys($allsections);
+        $cursectionnum = reset($allsectionskeys);
+
+        while ($cursectionnum !== false) {
+            if ($cursectionnum > $oldcoursenumsections) {
+                $cursection = $allsections[$cursectionnum];
+                $cursection->section = $cursection->section + $numsectiondiff;
+                $newsections[$cursection->section] = $cursection;
+            }
+
+            $cursectionnum = next($allsectionskeys);
+        }
+    }
+
+    foreach ($newsections as $section) {
         // No need to update site info...
         if ($section->section == 0) {
             continue;
