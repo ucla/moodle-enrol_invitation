@@ -794,7 +794,7 @@ class uclacoursecreator {
                 $arrcourseset[$key] = get_object_vars($course);
             }
 
-            $hostcoursekey = set_find_host($arrcourseset);
+            $hostcoursekey = set_find_host_key($arrcourseset);
             $hostcourse = $courseset[$hostcoursekey];
             unset($courseset[$hostcoursekey]);
 

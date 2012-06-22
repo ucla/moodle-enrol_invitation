@@ -453,8 +453,8 @@ class block_ucla_my_sites extends block_base {
             $briarr[$k] = get_object_vars($v);
         }
 
-        $arik = set_find_host($ariarr);
-        $brik = set_find_host($briarr);
+        $arik = set_find_host_key($ariarr);
+        $brik = set_find_host_key($briarr);
 
         // If they're indeterminate
         if ($arik === false || $brik === false) {
