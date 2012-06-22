@@ -1,21 +1,7 @@
-#vidfurn-wrapper span.course-header-secondary {
-font-size: .8em;
+#vidfurnace-wrapper #videofurnaceintro {
+font-size: .9em;
 display: block;
 font-weight: bold;
 margin: 3px 2px 20px 0;
 color: #9f9f9f;
-}
-
-#vidfurn-wrapper span.course-header-secondary a {
-font-size: .9em;
-}
-
-#course-header-secondary {
-font-size: 1em;
-font-style:italic;
-}
-
-.vidFurnaceText {
-font-size: .9em;
-font-style:italic;
 }

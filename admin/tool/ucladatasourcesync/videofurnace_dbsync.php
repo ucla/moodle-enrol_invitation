@@ -250,12 +250,14 @@ function fix_data_format(&$row) {
     $data_object['video_url'] = $row[7];
     $data_object['_del_flag'] = 0;
 
-    // TODO look up matching courseid here
-    $courseid = 1; //ucla_map_termsrs_to_courseid($data_object['term'], $data_object['srs']);
-//    /* if($courseid == false){
-//      echo('error, error!');
-//      } */
-    $data_object['courseid'] = $courseid;
+    // find related course
+    // TODO: handle DIS srs numbers
+    $courseid = ucla_map_termsrs_to_courseid($data_object['term'], $data_object['srs']);
+    if (!empty($courseid)) {
+        // course was found on system!
+        $data_object['courseid'] = $courseid;
+    }
+    
     $row = $data_object;
 }
 

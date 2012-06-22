@@ -16,16 +16,24 @@
 
 $string['pluginname'] = 'UCLA video furnace';
 $string['title'] = 'Video furnace';
+$string['header'] = 'Video furnace: {$a}';
 $string['headervideofurnaceurl'] = 'Source URL';
 $string['descvideofurnaceurl'] = 'TSV source URL for video furnace data';
 $string['guest_not_allow'] = 'Guests can not view this page';
-$string['videofurnaceintro'] = 'Please note that this media is intended for on-campus use only. Off-campus use is possible through use of the 
-								<a href="http://www.bol.ucla.edu/services/vpn/" target=_blank>BOL VPN</a>, however, you will likely experience hiccups, skips or other problems due to insufficient bandwidth. When launching the application, click "yes" or "always" to allow the applet to run on your computer. If the file does not run and you do not see the "certificate acceptance" message then you must install Java in order to use this media <a href="http://java.sun.com" target=_blank>java.sun.com</a>. For more help, go to the <a href="http://www.oid.ucla.edu/units/imlab/faq/vf/index.html" target=_blank>Media Lab Video Furnace FAQ</a>';
+$string['videofurnaceintro'] = 'Please note that this media is intended for on-campus use only. 
+    Off-campus use is possible through use of the <a href="http://www.bol.ucla.edu/services/vpn/" target=_blank>BOL VPN</a>, 
+    however, you will likely experience hiccups, skips or other problems due to insufficient bandwidth.<br />
+    When launching the application, click "yes" or "always" to allow the applet to run on your computer. 
+    If the file does not run and you do not see the "certificate acceptance" message then you must install 
+    <a href="http://java.sun.com" target="_blank">Java (java.sun.com)</a> in order to use this media. For more help, 
+    go to the <a href="http://www.oid.ucla.edu/units/imlab/faq/vf/index.html" target="_blank">Media Lab Video Furnace FAQ</a>';
 
-$string['currentvideo'] = 'Current Videos';
-$string['futurevideo'] = 'Past Videos';
-$string['pastvideo'] = 'Future Videos';
-$string['novideo'] = 'No video available';
+$string['currentvideo'] = 'Current videos';
+$string['futurevideo'] = 'Future videos';
+$string['futurevideo_info'] = 'this video will be available on {$a}';
+$string['pastvideo'] = 'Past videos';
+$string['pastvideo_info'] = 'this video is no longer available as of {$a}';
+$string['novideo'] = 'No videos available';
 
 
 

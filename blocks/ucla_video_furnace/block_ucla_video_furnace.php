@@ -39,9 +39,8 @@ class block_ucla_video_furnace extends block_base {
      *  This will create a link to the ucla video furnace page.
      * */
     static function get_action_link($courseid) {
-        global $CFG;
-
-        return new moodle_url($CFG->wwwroot . '/blocks/ucla_video_furnace/view.php', array('course_id' => $courseid));
+        return new moodle_url('/blocks/ucla_video_furnace/view.php', 
+                array('courseid' => $courseid));
     }
 
     public function get_content() {
@@ -63,25 +62,16 @@ class block_ucla_video_furnace extends block_base {
 
     public function get_navigation_nodes($course) {
         global $DB;
-
-        $courseid = $course->id; // course id from the hook function
-        $coursefound = ucla_map_courseid_to_termsrses($courseid); // could return more than one course across terms
         $nodes = array();
-
-        if (!empty($coursefound)) {
-            //get video list, if no video, do not show the "video furnace" link
-            $condition_str = "";
-            foreach ($coursefound as $course) {
-                $condition_str .= '(`term` = "' . $course->term . '" AND `srs`= "' . $course->srs . '") OR ';
-            }
-            $condition_str = substr($condition_str, 0, -4);
-            $videos = $DB->get_records_select('ucla_video_furnace', $condition_str);
-
-            if (!empty($videos)) {
-                // Must hardcode the naming string since this is a static function
-                $nodes[] = navigation_node::create('Video furnace', self::get_action_link($courseid));
-            }
+        
+        $records_found = $DB->get_records('ucla_video_furnace', 
+                array('courseid' => $course->id));
+        
+        if (!empty($records_found)) {
+            // Must hardcode the naming string since this is a static function
+            $nodes[] = navigation_node::create('Video furnace', self::get_action_link($course->id));
         }
+        
         return $nodes;
     }
 
