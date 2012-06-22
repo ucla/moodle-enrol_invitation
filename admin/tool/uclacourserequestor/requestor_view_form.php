@@ -87,7 +87,7 @@ class requestor_view_form extends requestor_shared_form {
         foreach ($reqs as $req) {
             $req = get_object_vars($req);
             $set = get_crosslist_set_for_host($req);
-            $host = set_find_host($set);
+            $host = $set[set_find_host_key($set)];
 
             $sets[make_idnumber($host)] = $set;
         }
