@@ -41,9 +41,33 @@ function get_csv_data($datasource_url) {
 }
 
 /**
- * Returns an array of cleaned and parsed CSV data from the unsafe and/or 
- * unclean input array of data.
- *
+ * Returns an array of raw TSV data from the TSV file at datasource_url.
+ * @param $datasource_url The URL of the TSV data to attempt to retrieve.
+ **/
+function get_tsv_data($datasource_url) {
+    //Allows \r characters to be read as \n's. The config file has \r's instead of \n's.
+    ini_set('auto_detect_line_endings', true);
+    
+    $fp = fopen($datasource_url, 'r');
+    $lines = array();
+
+    if ($fp) {
+        while (!feof($fp)) {
+            $lines[] = fgetcsv($fp, 0, "\t","\n"); //Use tabs as a delimiter instead of commas.
+        }
+    }
+
+    if (empty($lines)) {
+        echo "\n... ERROR: Could not open $datasource_url!\n";
+        //Why is the exit code 5?
+        exit(5);
+    }
+
+    return $lines;
+}
+
+/**
+ * Returns an array of cleaned and parsed CSV data from the unsafe and/or unclean input array of data.
  * @param $data The array of unsafe CSV data.
  * @param $table_name The moodle DB table name against which to validate the field labels of the CSV data.
  * @note Currently only works with the Bruincast update script at ./bruincast_dbsync.php  May cause undefined behaviour if used with other datasets.
@@ -71,8 +95,8 @@ function cleanup_csv_data(&$data_array, $table_name) {
         $posfields[$fieldname] = $fieldname;
     }
 
-
-
+    
+    
     // Assuming the field descriptor line is going to come before all the other lines
     $field_descriptors_obtained = FALSE;
     $fields_desc_line = -1;
