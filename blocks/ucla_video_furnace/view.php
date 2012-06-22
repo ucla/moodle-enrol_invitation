@@ -22,7 +22,7 @@ set_editing_mode_button();
 echo $OUTPUT->header();
 
 // Are we allowed to display this page?
-if (is_enrolled($context)) {
+if (is_enrolled($context) || has_capability('moodle/course:view', $context)) {
     display_video_furnace_contents($course);
 } else {
     echo get_string('guest_not_allow', 'block_ucla_video_furnace');
