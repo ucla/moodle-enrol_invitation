@@ -446,7 +446,7 @@ if ($displayforms) {
             }
         }
 
-        $sectionhtml .= supportconsole_render_section_shortcut($title, $usercourses);
+        $sectionhtml .= supportconsole_render_section_shortcut($title, $usercourses, $uid);
     } else {
         $sectionhtml .= $OUTPUT->box($OUTPUT->heading($title, 2));
         $sectionhtml .= 'Invalid UID: [' . $uid . ']';
@@ -645,24 +645,23 @@ $sectionhtml = '';
 if ($displayforms) {
     $sectionhtml .= supportconsole_simple_form($title, get_term_selector($title));
 } else if ($consolecommand == "$title") {  # tie-in to link from name lookup
-    $term = required_param('term', PARAM_ALPHANUM);
-    echo "<h3>$title $term</h3>\n";
-    $result = $DB->get_records_sql("
-        SELECT * 
-        FROM (
-            SELECT 
-                b.id as courseid, 
-                b.shortname as Course, 
-                a.crs_desc AS OldDesc, 
-                b.summary AS NewDesc,
-                a.coursetitle,
-                a.sectiontitle
-            FROM {ucla_reg_classinfo} a 
-            INNER JOIN {ucla_request_classes} r USING(term, srs)
-            INNER JOIN {course} b ON (b.id = r.courseid)
-        ) t 
-        WHERE OldDesc != NewDesc
-    ");
+    $term = required_param('term', PARAM_ALPHANUM);    
+    $sql = "SELECT  c.id AS courseid,
+                    c.shortname AS course,
+                    regc.crs_desc AS old_description,
+                    c.summary AS new_description,
+                    regc.coursetitle,
+                    regc.sectiontitle
+            FROM    {course} AS c,
+                    {ucla_reg_classinfo} AS regc,
+                    {ucla_request_classes} AS reqc
+            WHERE   reqc.term=:term AND
+                    reqc.courseid=c.id AND
+                    reqc.term=regc.term AND
+                    reqc.hostcourse=1 AND
+                    reqc.srs=regc.srs AND
+                    STRCMP(c.summary, regc.crs_desc)!=0";
+    $result = $DB->get_records_sql($sql, array('term' => $term));
 
     foreach ($result as $k => $course) {
         if (isset($course->courseid)) {

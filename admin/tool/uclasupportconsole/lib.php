@@ -168,7 +168,14 @@ function supportconsole_render_section_shortcut($title, $data,
         $pretext = 'There are ' . $size . ' results';
     }
 
-    $pretext .= ' for inputs [' . implode(', ', $inputs) . '].';
+    if (!empty($inputs)) {
+        if (!is_array($inputs)) {
+            $inputs = (array) $inputs;
+        }
+        
+        // not every support console tool as input
+        $pretext .= ' for input [' . implode(', ', $inputs) . '].';
+    }
     return $OUTPUT->box($pretext) 
         . supportconsole_render_table_shortcut($data, $inputs);
 }
