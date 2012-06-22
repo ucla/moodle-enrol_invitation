@@ -1,4 +1,5 @@
 <?php
+
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -17,42 +18,41 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once(dirname(__FILE__) . '/../moodleblock.class.php');
-require_once($CFG->dirroot.'/blocks/ucla_video_furnace/lib.php');
-
+require_once($CFG->dirroot . '/blocks/ucla_video_furnace/lib.php');
 
 class block_ucla_video_furnace extends block_base {
-    
-    public function init(){
+
+    public function init() {
         $this->title = get_string('pluginname', 'block_ucla_video_furnace');
     }
 
-	function applicable_formats() {
-		return array(
-			'site-index' => false,
-			'course-view' => false,
-			'my' => false,
-			'not-really-applicable' => true
-		);
-	}
-    
-	 /**
+    function applicable_formats() {
+        return array(
+            'site-index' => false,
+            'course-view' => false,
+            'my' => false,
+            'not-really-applicable' => true
+        );
+    }
+
+    /**
      *  This will create a link to the ucla video furnace page.
-     **/
+     * */
     static function get_action_link($courseid) {
         global $CFG;
 
         return new moodle_url($CFG->wwwroot . '/blocks/ucla_video_furnace/view.php', array('course_id' => $courseid));
     }
 
-    public function get_content(){
+    public function get_content() {
         if ($this->content !== null) {
             return $this->content;
         }
 
         $this->content = new stdClass;
 
-        return $this->content;        
-        
+        return $this->content;
+
         if (!isset($this->course)) {
             global $COURSE;
             $this->course = $COURSE;
@@ -60,30 +60,30 @@ class block_ucla_video_furnace extends block_base {
 
         return get_action_link($this->course);
     }
-    
+
     public function get_navigation_nodes($course) {
-		global $DB;
-        
+        global $DB;
+
         $courseid = $course->id; // course id from the hook function
         $coursefound = ucla_map_courseid_to_termsrses($courseid); // could return more than one course across terms
-		$nodes = array();
+        $nodes = array();
 
-        if (!empty($coursefound)){
-			//get video list, if no video, do not show the "video furnace" link
-			$condition_str = "";
-			foreach ($coursefound as $k=>$course){
-				$condition_str .= '(`term` = "'.$course->term. '" AND `srs`= "'. $course->srs. '") OR ';
-			}
-			$condition_str = substr($condition_str, 0, -4); 
-			$videos = $DB->get_records_select('ucla_video_furnace', $condition_str);
+        if (!empty($coursefound)) {
+            //get video list, if no video, do not show the "video furnace" link
+            $condition_str = "";
+            foreach ($coursefound as $course) {
+                $condition_str .= '(`term` = "' . $course->term . '" AND `srs`= "' . $course->srs . '") OR ';
+            }
+            $condition_str = substr($condition_str, 0, -4);
+            $videos = $DB->get_records_select('ucla_video_furnace', $condition_str);
 
-			if (!empty($videos)){
-				// Must hardcode the naming string since this is a static function
-	            $nodes[] = navigation_node::create('Video Furnace', self::get_action_link($courseid)); 
-			}
-	    }
+            if (!empty($videos)) {
+                // Must hardcode the naming string since this is a static function
+                $nodes[] = navigation_node::create('Video furnace', self::get_action_link($courseid));
+            }
+        }
         return $nodes;
     }
- 
+
 }
 
