@@ -540,8 +540,11 @@ foreach ($qs as $query) {
             $sendparams = $params[0];
         }
 
-        $results = registrar_query::run_registrar_query($query,
-            $sendparams, true);
+        $allresults = registrar_query::run_registrar_query($query,
+            $sendparams);
+
+        $results = array_merge($allresults[registrar_query::query_results], 
+            $allresults[registrar_query::failed_outputs]);
 
         $sectionhtml .= supportconsole_render_section_shortcut($title, 
             $results, $params);
