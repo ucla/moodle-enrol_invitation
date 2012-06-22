@@ -135,6 +135,8 @@ $sections = get_all_sections($course_id);
 $sectionnames = array();
 $indexed_sections = array();
 
+$defaultsection = 0;
+
 foreach ($sections as $section) {
     if ($section->section > $course->numsections) {
         continue;
