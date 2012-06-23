@@ -2,10 +2,6 @@
 
 class registrar_ccle_roster_class extends registrar_query {
     function validate($new, $old) {
-        if (empty($new['bolid'])) {
-            return false;
-        }
-
         if (empty($new['stu_id'])) {
             return false;
         }
