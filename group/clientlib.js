@@ -170,17 +170,13 @@ UpdatableMembersCombo.prototype.refreshMembers = function () {
     }
 };
 
-/**
- *  Updates UI for groups editing, but with some UCLA modifications.
- *  Public/Private
- *  Section-groups
- **/
-UpdatableMembersCombo.prototype.refreshMembersTracked = function (trackedGroupids) {
+
+UpdatableMembersCombo.prototype.refreshMembersPublicPrivate = function (groupPublicPrivate) {
 
     // Get group selector and check selection type
     var selectEl = document.getElementById("groups");
     var selectionCount=0,groupId=0;
-    var includesTracked = false;
+    var includesPublicPrivate = false;
     if( selectEl ) {
         for (var i = 0; i < selectEl.options.length; i++) {
             if(selectEl.options[i].selected) {
@@ -188,10 +184,8 @@ UpdatableMembersCombo.prototype.refreshMembersTracked = function (trackedGroupid
                 if(!groupId) {
                     groupId=selectEl.options[i].value;
                 }
-                for (var tgi in trackedGroupids) {
-                    if(selectEl.options[i].value == trackedGroupids[tgi]){
-                        includesTracked = true;
-                    }
+                if(selectEl.options[i].value == groupPublicPrivate){
+                    includesPublicPrivate = true;
                 }
             }
         }
@@ -199,13 +193,13 @@ UpdatableMembersCombo.prototype.refreshMembersTracked = function (trackedGroupid
     var singleSelection=selectionCount == 1;
 
     // Add the loader gif image (we only load for single selections)
-    if(singleSelection) {
+    if(singleSelection && !includesPublicPrivate) {
         createLoaderImg("membersloader", "memberslabel", this.wwwRoot);
     }
 
     // Update the label.
     var spanEl = document.getElementById("thegroup");
-    if (singleSelection) {
+    if (singleSelection && !includesPublicPrivate) {
         spanEl.innerHTML = selectEl.options[selectEl.selectedIndex].title;
     } else {
         spanEl.innerHTML = '&nbsp;';
@@ -219,14 +213,15 @@ UpdatableMembersCombo.prototype.refreshMembersTracked = function (trackedGroupid
         }
     }
 
-    document.getElementById("showaddmembersform").disabled = !singleSelection || includesTracked;
-    document.getElementById("showeditgroupsettingsform").disabled = !singleSelection || includesTracked;
-    document.getElementById("deletegroup").disabled = selectionCount == 0 || includesTracked;
+    document.getElementById("showaddmembersform").disabled = !singleSelection || includesPublicPrivate;
+    document.getElementById("showeditgroupsettingsform").disabled = !singleSelection || includesPublicPrivate;
+    document.getElementById("deletegroup").disabled = selectionCount == 0 || includesPublicPrivate;
 
-    if (singleSelection) {
+    if(singleSelection && !includesPublicPrivate) {
         var sUrl = this.wwwRoot+"/group/index.php?id="+this.courseId+"&group="+groupId+"&act_ajax_getmembersingroup";
         YAHOO.util.Connect.asyncRequest("GET", sUrl, this.connectCallback, null);
     }
+    
 }
 
 
