@@ -60,42 +60,6 @@ require_capability('moodle/course:managegroups', $context);
 
 $returnurl = $CFG->wwwroot.'/group/index.php?id='.$course->id.'&group='.$id;
 
-if ($id and $delete) {
-    if (!$confirm) {
-        $PAGE->set_title(get_string('deleteselectedgroup', 'group'));
-        $PAGE->set_heading($course->fullname . ': '. get_string('deleteselectedgroup', 'group'));
-        echo $OUTPUT->header();
-
-        /**
-         * Alert that public/private grouping cannot be removed.
-         *
-         * @author ebollens
-         * @version 20110719
-         */
-        require_once($CFG->libdir.'/publicprivate/course.class.php');
-        $publicprivate_course = new PublicPrivate_Course($course);
-        if($publicprivate_course->is_group($group)) {
-            echo $OUTPUT->notification(get_string('publicprivatecannotremove'));
-            echo $OUTPUT->continue_button('groupings.php?id='.$courseid);
-        } else {
-            $optionsyes = array('id'=>$id, 'delete'=>1, 'courseid'=>$courseid, 'sesskey'=>sesskey(), 'confirm'=>1);
-            $optionsno  = array('id'=>$courseid);
-            $formcontinue = new single_button(new moodle_url('group.php', $optionsyes), get_string('yes'), 'get');
-            $formcancel = new single_button(new moodle_url($baseurl, $optionsno), get_string('no'), 'get');
-            echo $OUTPUT->confirm(get_string('deletegroupconfirm', 'group', $group->name), $formcontinue, $formcancel);
-        }
-        echo $OUTPUT->footer();
-        die;
-
-    } else if (confirm_sesskey()){
-        if (groups_delete_group($id)) {
-            redirect('index.php?id='.$course->id);
-        } else {
-            print_error('erroreditgroup', 'group', $returnurl);
-        }
-    }
-}
-
 // Prepare the description editor: We do support files for group descriptions
 $editoroptions = array('maxfiles'=>EDITOR_UNLIMITED_FILES, 'maxbytes'=>$course->maxbytes, 'trust'=>false, 'context'=>$context, 'noclean'=>true);
 if (!empty($group->id)) {
@@ -104,14 +68,46 @@ if (!empty($group->id)) {
     $group = file_prepare_standard_editor($group, 'description', $editoroptions, $context, 'group', 'description', null);
 }
 
+/**
+ * Require that group assignments are not made on the public/private group.
+ *
+ * @author ebollens
+ * @version 20110719
+ * 
+ * Group assignments for tracked course section groups prevented.
+ * @version 2012062000
+ **/
+require_once($CFG->libdir.'/publicprivate/course.class.php');
+$publicprivate_course = new PublicPrivate_Course($course);
+
+require_once($CFG->dirroot . '/blocks/ucla_group_manager/ucla_synced_group.class.php');
+$trackedgroups = ucla_synced_group::get_tracked_groups($course->id);
+$trackedgroupids = array();
+foreach ($trackedgroups as $trackedgroup) {
+    $trackedgroupids[] = (int)$trackedgroup->groupid;
+}
+
+$istrackedgroupmanager = in_array($group->id, $trackedgroupids);
+
+if ($istrackedgroupmanager) {
+    $cannoteditmessage = 'ucla_groupmanagercannotremove';
+    $cannoteditplugin = 'block_ucla_group_manager';
+} else {
+    $cannoteditmessage = 'publicprivatecannotremove';
+    $cannoteditplugin = '';
+}
+
+$istrackedgroup = $publicprivate_course->is_group($group) 
+    || $istrackedgroupmanager;
+
 /// First create the form
 $editform = new group_form(null, array('editoroptions'=>$editoroptions));
 $editform->set_data($group);
 
 if ($editform->is_cancelled()) {
     redirect($returnurl);
-
-} elseif ($data = $editform->get_data()) {
+// CCLE-2302 - Prevent editing of tracked groups
+} elseif ($data = $editform->get_data() && !$istrackedgroup) {
 
     if ($data->id) {
         groups_update_group($data, $editform, $editoroptions);
@@ -140,6 +136,20 @@ $PAGE->navbar->add($strheading);
 $PAGE->set_title($strgroups);
 $PAGE->set_heading($course->fullname . ': '.$strgroups);
 echo $OUTPUT->header();
+
+/**
+ * Alert that public/private group cannot be edited.
+ *
+ * @author ebollens
+ * @version 20110719
+ */
+if($istrackedgroup) {
+    echo $OUTPUT->notification(get_string($cannoteditmessage, $cannoteditplugin));
+    echo $OUTPUT->continue_button('index.php?id='.$course->id);
+    echo $OUTPUT->footer();
+    die;
+}
+
 echo '<div id="grouppicture">';
 if ($id) {
     print_group_picture($group, $course->id);

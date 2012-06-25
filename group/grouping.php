@@ -56,6 +56,24 @@ $returnurl = $CFG->wwwroot.'/group/groupings.php?id='.$course->id;
 
 require_once($CFG->libdir.'/publicprivate/course.class.php');
 $publicprivate_course = new PublicPrivate_Course($course);
+        
+require_once($CFG->dirroot 
+    . '/blocks/ucla_group_manager/ucla_synced_grouping.class.php');
+$trackedgroupings = 
+    ucla_synced_grouping::get_course_tracked_groupings($course->id);
+        
+$message = '';
+$plugin = '';
+if ($publicprivate_course->is_grouping($grouping)) {
+    $message = 'publicprivatecannotremove';
+} else {
+    foreach ($trackedgroupings as $trackedgrouping) {
+        if ($grouping->id == $trackedgrouping->id) {
+            $message = 'ucla_groupmanagercannotremove';
+            $plugin = 'block_ucla_group_manager';
+        }
+    }
+}
 
 if ($id and $delete) {
     if (!$confirm) {
@@ -69,10 +87,13 @@ if ($id and $delete) {
          *
          * @author ebollens
          * @version 20110719
+         *
+         * Similar alert for section groups.
+         * @version 2012062000
          */
-        if($publicprivate_course->is_grouping($grouping)) {
+        if(!empty($message)) {
             echo $OUTPUT->heading($course->fullname. ': '. get_string('deletegrouping', 'group'));
-            echo $OUTPUT->notification(get_string('publicprivatecannotremove'));
+            echo $OUTPUT->notification(get_string($message, $plugin));
             echo $OUTPUT->continue_button('groupings.php?id='.$courseid);
         } else {
             $optionsyes = array('id'=>$id, 'delete'=>1, 'courseid'=>$courseid, 'sesskey'=>sesskey(), 'confirm'=>1);
@@ -147,8 +168,8 @@ echo $OUTPUT->heading($strheading);
  * @author ebollens
  * @version 20110719
  */
-if($publicprivate_course->is_grouping($grouping)) {
-    echo $OUTPUT->notification(get_string('publicprivatecannotremove'));
+if(!empty($message)) {
+    echo $OUTPUT->notification(get_string($message, $plugin));
     echo $OUTPUT->continue_button('groupings.php?id='.$courseid);
     echo $OUTPUT->footer();
     die;
