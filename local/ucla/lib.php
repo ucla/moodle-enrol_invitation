@@ -335,10 +335,8 @@ function ucla_registrar_user_to_moodle_user($reginfo,
     }
 
     $userfield         = strtolower($configs->remoteuserfield);
-    $fbremoteuserfield = strtolower($configs->fbremoteuserfield);
 
     $localuserfield   = $configs->localuserfield;
-    $fblocaluserfield = $configs->fblocaluserfield;
 
     $sqlparams = array();
     $sqlbuilder = array();
@@ -356,23 +354,13 @@ function ucla_registrar_user_to_moodle_user($reginfo,
     }
 
     $mapping = false;
-    $fallback = false;
 
     if (!empty($reginfo[$userfield])) {
         $mapping = $reginfo[$userfield];
     }
-
-    if (!empty($reginfo[$fbremoteuserfield])) {
-        $fallback = $reginfo[$fbremoteuserfield];
-    }
     
     $searchstr = "$localuserfield = ?";
     $sqlparams[] = $mapping;
-
-    if (!empty($fblocaluserfield)) {
-        $searchstr = "($searchstr OR $fblocaluserfield = ?)";
-        $sqlparams[] = $fallback;
-    } 
 
     $sqlbuilder[] = $searchstr;
     $usersql = implode(' AND ', $sqlbuilder);
