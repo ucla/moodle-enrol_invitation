@@ -138,7 +138,7 @@ class block_ucla_course_menu extends block_navigation {
             // rearrange link
             $rearrange = html_writer::link(
                     new moodle_url('/blocks/ucla_rearrange/rearrange.php', 
-                        array('course_id' => $this->page->course->id, 
+                        array('courseid' => $this->page->course->id, 
                               'topic' => $ds)), 
                     get_string('pluginname', 'block_ucla_rearrange'));            
             $this->content->text .= html_writer::tag('div', $rearrange, 
