@@ -251,8 +251,11 @@ function match_course($term, $srs, $subject_area=null, $cat_num=null, $sec_num=n
                 WHERE   co.id=rc.courseid AND
                         rc.term = rci.term AND 
                         rc.srs = rci.srs AND
+                        rci.term = :term AND
                         rci.subj_area = :subj_area AND
                         rci.coursenum = :coursenum';
+                
+        $params['term'] = $term;
         $params['subj_area'] = $subject_area;
         $params['coursenum'] = $cat_num;
 
