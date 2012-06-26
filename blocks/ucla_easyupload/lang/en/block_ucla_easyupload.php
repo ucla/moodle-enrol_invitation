@@ -40,10 +40,10 @@ $string['dialog_add_text'] = 'Enter text';
 $string['dialog_add_text_box'] = 'Text you want displayed in section';
 
 // These are for the link into control panel
-$string['add_file'] = 'Upload a File';
+$string['add_file'] = 'Upload a file';
 $string['add_file_post'] = '';
 
-$string['add_link'] = 'Add a Link';
+$string['add_link'] = 'Add a link';
 $string['add_link_post'] = '';
 
 $string['add_activity'] = 'Add an activity';
