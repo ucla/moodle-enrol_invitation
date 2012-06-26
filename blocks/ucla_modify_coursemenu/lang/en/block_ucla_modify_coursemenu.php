@@ -1,9 +1,12 @@
 <?php
 
 $string['pluginname'] = 'Modify sections';
-$string['modify_course_sections'] = 'Modify site menu sections';
-$string['addnewsection'] = 'Add new section';
 
+// control panel hook text display
+$string['modify_course_sections'] = 'Modify site menu sections';
+$string['modify_course_sections_post'] = '';
+
+$string['addnewsection'] = 'Add new section';
 $string['deletingcontents'] = 'Delete content';
 
 // Javascript strings
