@@ -21,12 +21,15 @@ $string['bcsuccessnoti'] = "records successfully inserted.";
 /** Strings for libraryreserves_dbsync **/
 // Error messages
 $string['errlrmsglocation'] = "ERROR: No location set for library reserves data.";
-$string['errinvalidrowlen'] = "ERROR: Invalid row length in provided library reserves data.";
-$string['errlrfileopen'] = "ERROR: Problem accessing data URL";
+$string['errinvalidrowlen'] = 'ERROR: Invalid row length in line {$a}.';
+$string['errlrfileopen'] = "ERROR: Problem accessing data URL";;
+$string['warninvalidfields'] = 'WARNING: Found invalid field(s) {$a->fields} in parsed line {$a->line_num}: {$a->data}';
+$string['warnnonexistentsrs'] = 'WARNING: Found non-existent srs {$a->srs}: {$a->term}-{$a->srs}-{$a->subject_area}-{$a->cat_num}-{$a->sec_num}';
+$string['noticefoundaltcourseid'] = 'NOTICE: Found courseid {$a->courseid} by using term/subject/cat_num: {$a->term}-{$a->subject_area}-{$a->cat_num}-{$a->sec_num}';
 
 //Notification messages
 $string['lrstartnoti'] = "Starting library reserves DB update:";
-$string['lrsuccessnoti'] = "records successfully inserted.";
+$string['lrsuccessnoti'] = '{$a} records successfully inserted.';
 
 /** Strings for videofurnace_dbsync **/
 // Error messages
