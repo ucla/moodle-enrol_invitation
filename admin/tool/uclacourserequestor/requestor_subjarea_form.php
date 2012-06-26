@@ -68,13 +68,13 @@ class requestor_subjarea_form extends requestor_shared_form {
 
         foreach ($sacreq as $key => $course) {
             // ignore request that either need to be ignored for department
-            // builds or have already been requested
+            // builds or have already been requested, in terms of
+            // prepping from registrar to requests
             if (requestor_ignore_entry($course) || !empty($exists[$key])) {
                 unset($sacreq[$key]);
             }
         }
        
-        // And the ones not in the DB.
         $newones = registrar_to_requests($sacreq);
 
         $hcs = array_merge($exists, $newones);
