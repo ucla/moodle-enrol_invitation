@@ -165,25 +165,54 @@ function cleanup_csv_data($data_array, $table_name) {
  * For the different data sources, try to match the entry to a courseid.
  * 
  * @param string $term
- * @param int $srs
- * @param string $subject_area
- * @param string $cat_num 
+ * @param int $srs                  May be course srs or section srs
+ * @param string $subject_area      Default to null. 
+ * @param string $cat_num           Default to null. 
  * @param string $sec_num           Default to null. 
  * 
  * @return int  Course id
  */
-function match_course($term, $srs, $subject_area, $cat_num, $sec_num=null)
+function match_course($term, $srs, $subject_area=null, $cat_num=null, $sec_num=null)
 {
     global $DB;
     $ret_val = null;
+    $found_bad_srs = false; // used to track bad data source
+    
+    // prepare error message object (not going to be used most of the time,
+    // but useful to do it here than whenever and error is called)
+    $a = new stdClass();
+    $a->term = $term;
+    $a->srs = $srs;
+    $a->subject_area = $subject_area;
+    $a->cat_num = $cat_num;
+    $a->sec_num = $sec_num;
+
+    
+    if (!ucla_validator('srs', $srs)) {
+        $found_bad_srs = true;
+    }
     
     // If srs is valid, then try to look up courseid by term/srs
-    if (ucla_validator('srs', $srs)) {
-        // check to see if given $srs is a discussion srs, if so, use course srs
-
+    if (ucla_validator('term', $term) && !$found_bad_srs) {
         // try to find term/srs for course id
-        $ret_val = ucla_map_termsrs_to_courseid($term, $srs);        
-    } else {
+        $ret_val = ucla_map_termsrs_to_courseid($term, $srs);      
+        
+        if (empty($ret_val)) {
+            // see if course record exist at Registrar
+            ucla_require_registrar();            
+            $results = registrar_query::run_registrar_query(
+                    'ccle_getClasses', array($term, $srs), true);      
+            
+            if (empty($results)) {
+                // bad srs number, so try to match using $subject_area, 
+                // $cat_num, (and $sec_num)
+                echo get_string('warnnonexistentsrs', 'tool_ucladatasourcesync', $a) . "\n";
+                $found_bad_srs = true;
+            }
+        }  
+    }
+        
+    if (empty($ret_val) && !empty($subject_area) && !empty($cat_num)) {
         // Try to find course using subject area, catalog number,
         // and section number (if any).
         $sql = 'SELECT  courseid
@@ -197,7 +226,7 @@ function match_course($term, $srs, $subject_area, $cat_num, $sec_num=null)
                         rci.coursenum = :coursenum';
         $params['subj_area'] = $subject_area;
         $params['coursenum'] = $cat_num;
-        
+
         if (!empty($sec_num)) {
             $sql .= ' AND rci.sectnum = :sectnum';            
             $params['sectnum'] = $sec_num;           
@@ -207,9 +236,15 @@ function match_course($term, $srs, $subject_area, $cat_num, $sec_num=null)
         // only use record if there was one match, because might match courses
         // with many sections (see bug in CCLE-2938)
         if (count($records) == 1) {
-            $record = array_pop($records);
-            $ret_val = ucla_map_termsrs_to_courseid($record['term'], $record['srs']);  
+            $record = array_pop($records);           
+            $ret_val = $record->courseid;
         }        
+        
+        if (!empty($ret_val) && $found_bad_srs) {
+            // found courseid through alternative means! log it
+            $a->courseid = $ret_val;
+            echo get_string('noticefoundaltcourseid', 'tool_ucladatasourcesync', $a) . "\n";
+        }
     }
     
     return $ret_val;
