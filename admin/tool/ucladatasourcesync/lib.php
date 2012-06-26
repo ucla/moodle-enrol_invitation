@@ -230,7 +230,7 @@ function match_course($term, $srs, $subject_area=null, $cat_num=null, $sec_num=n
             // see if course record exist at Registrar
             ucla_require_registrar();            
             $results = registrar_query::run_registrar_query(
-                    'ccle_getClasses', array($term, $srs), true);      
+                    'ccle_getclasses', array($term, $srs), true);      
             
             if (empty($results)) {
                 // bad srs number, so try to match using $subject_area, 
