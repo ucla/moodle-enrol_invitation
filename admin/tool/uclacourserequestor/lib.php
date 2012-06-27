@@ -39,8 +39,6 @@ define('UCLA_REQUESTOR_VIEW', 'views');
 $uclalib = $CFG->dirroot . '/local/ucla/lib.php';
 require_once($uclalib);
 
-ucla_require_registrar();
-
 require_once($CFG->dirroot . '/' . $CFG->admin 
     . '/tool/uclacourserequestor/ucla_courserequests.class.php');
 
@@ -254,9 +252,10 @@ function get_request_info($term, $srs) {
     $reted = get_course_info_from_registrar($term, $srs);
 
     $ret = false;
-    if ($reted) {
-        $cos = array($reted);
-        $ret = reset(registrar_to_requests($cos));
+    if (!empty($reted)) {
+        $ret = reset(registrar_to_requests($reted));
+    } else if (is_array($reted)) {
+        $ret = $reted;
     }
 
     return $ret;
@@ -1071,10 +1070,6 @@ function get_courses_for_subj_area($term, $subjarea) {
 function get_course_info_from_registrar($term, $srs) {
     $result = registrar_query::run_registrar_query('ccle_getclasses',
         array('term' => $term, 'srs' => $srs));
-
-    if ($result) {
-        return array_shift($result);
-    }
 
     return $result;
 }

@@ -605,6 +605,10 @@ class uclacoursecreator {
      *  This will mark the entries as either finished or reset.
      *
      *  @param $done If we should mark the requests as done or reset them
+     *  TODO Instead of figuring out whether or not something is done or
+     *      not, have each individual subtask sort out stuff.
+     *      This function should only have to logic for determining if
+     *      a request failed or not, NOT how something failed and why.
      **/
     function mark_cron_term($done) {
         global $DB;
@@ -624,6 +628,12 @@ class uclacoursecreator {
 
         if (isset($this->cron_term_cache['created_courses'])) {
             $created_courses =& $this->cron_term_cache['created_courses'];
+        }
+
+        if (!empty($this->cron_term_cache['term_rci'])) {
+            $termrci =& $this->cron_term_cache['term_rci'];
+        } else {
+            $termrci = array();
         }
 
         // We're going to attempt to delete a course, and if we fail,
@@ -669,6 +679,11 @@ class uclacoursecreator {
                             . $course->shortname);
                     }
                 }
+            } else if (isset(
+                        $this->cron_term_cache['retry_requests'][$reqkey]
+                    )) {
+                $this->debugln(". $reqkey retry later");
+                $action = UCLA_COURSE_TOBUILD;
             } else {
                 $this->debugln("! Did not create a course for $reqkey");
             }
@@ -869,6 +884,7 @@ class uclacoursecreator {
         $tr = $this->cron_term_cache['trim_requests'];
 
         $requests =& $this->cron_term_cache['requests'];
+        $this->cron_term_cache['retry_requests'] = array();
 
         // Run the Stored Procedure with the data
         $rci = array();
@@ -878,9 +894,12 @@ class uclacoursecreator {
                     'ccle_getclasses', $request
                 );
 
-            if (!$requestdata) {
-                $this->debugln('Registrar did not find a course: '
-                    . $tkey);
+            if ($requestdata === false) {
+                $this->debugln('!! No response from Registrar !!');
+                $this->cron_term_cache['retry_requests'][$k] = true;
+                continue;
+            } else if (empty($requestdata)) {
+                $this->debugln('Registrar did not find a course: ' . $k);
                 continue;
             }
 

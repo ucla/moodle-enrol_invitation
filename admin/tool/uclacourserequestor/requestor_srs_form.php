@@ -39,7 +39,9 @@ class requestor_srs_form extends requestor_shared_form {
 
         $hc = get_request_info($ci['term'], $ci['srs']);
 
-        if ($hc) {
+        if ($hc === false) {
+            return $hc;
+        } else if ($hc) {
             $set = get_crosslist_set_for_host($hc);
         } else {
             return array();

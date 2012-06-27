@@ -69,12 +69,22 @@ class ucla_reg_classinfo_cron {
         $t = microtime(true);
         foreach ($records as $request) {
             // We can just put in $req, except it needs to be an array.
-            $regs[] = reset($reg->retrieve_registrar_info(
+            $reginfo = $reg->retrieve_registrar_info(
                     array(
                         'term' => $request->term,
                         'srs' => $request->srs
                     )
-                ));
+                );
+            if (!$reginfo) {
+                echo "No data for {$request->term} {$request->srs}\n";
+            } else {
+                $regs[] = reset($reginfo);
+            }
+        }
+
+        if (empty($regs)) {
+            debugging('ERROR: empty regs for ucla_reg_classinfo_cron');
+            return true;
         }
 
         $el = microtime(true) - $t;
@@ -185,11 +195,14 @@ class ucla_reg_subjectarea_cron {
 
         $subjareas = array();
         foreach ($terms as $term) {
-            $subjareas = array_merge($subjareas, 
-                    $reg->retrieve_registrar_info(
-                            array('term' => $term)
-                        )
-                );
+            $regdata = 
+                $reg->retrieve_registrar_info(
+                        array('term' => $term)
+                    );
+
+            if ($regdata) {
+                $subjareas = array_merge($subjareas, $regdata);
+            }
         }
 
         if (empty($subjareas)) {

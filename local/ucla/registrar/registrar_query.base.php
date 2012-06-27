@@ -40,7 +40,7 @@ abstract class registrar_query {
      *      'bad'  => array( Bad data,  might be empty )
      *  ) if $ignorebad == false
      *  @return false if the input does not validate
-     *  @throws registrar_stored_procedure_exception if no stored procedure
+     *  @throws registrar_query_exception if no stored procedure
      *      wrapper class is found
      **/
     static function run_registrar_query($queryname, $data, $ignorebad=true) {
@@ -74,7 +74,7 @@ abstract class registrar_query {
 
         try {
             $db_reg =& $this->get_registrar_connection();
-        } catch (registrar_stored_procedure_exception $e) {
+        } catch (registrar_query_exception $e) {
             error_log($e->getMessage());
             return false;
         }
@@ -123,7 +123,7 @@ abstract class registrar_query {
             if (file_exists($fn)) {
                 require_once($fn);
             } else {
-                throw new registrar_stored_procedure_exception(
+                throw new registrar_query_exception(
                     $classname . ' not found'
                 );
             }
@@ -197,6 +197,23 @@ abstract class registrar_query {
 
         return $this->registrar_conn;
     }
+
+    /**
+     *  Checks if there is a real connection to the Registrar.
+     *  Use this function if you want to check the connection without
+     *  having to deal with a registrar_query object.
+     **/
+    static function has_registrar_connection() {
+        $tester = new registrar_tester();
+        try {
+            $tester->get_registrar_connection();
+        } catch (registrar_query_exception $e) {
+            error_log($e->getMessage());
+            return false;
+        }
+
+        return true;
+    }
     
     /**
      *  Closes the ADOConnection object for Registrar connection.
@@ -262,7 +279,7 @@ abstract class registrar_query {
 
         $dbtype = get_config('', 'registrar_dbtype');
         if ($dbtype == '') {
-            throw new registrar_stored_procedure_exception(
+            throw new registrar_query_exception(
                 'Registrar DB not set!'
             );
         }
@@ -279,7 +296,7 @@ abstract class registrar_query {
         $extdb = $adodbclass($dbtype);
 
         if (!$extdb) {
-            throw new registrar_stored_procedure_exception(
+            throw new registrar_query_exception(
                 'Could not connect to registrar!'
             );
         }
@@ -300,7 +317,7 @@ abstract class registrar_query {
         );
 
         if ($status == false) {
-            throw new registrar_stored_procedure_exception(
+            throw new registrar_query_exception(
                 'registrar connection failed!'
             );
         }
@@ -367,6 +384,6 @@ abstract class registrar_query {
     }
 }
 
-class registrar_stored_procedure_exception extends moodle_exception {
+class registrar_query_exception extends moodle_exception {
     // Nothing...
 }

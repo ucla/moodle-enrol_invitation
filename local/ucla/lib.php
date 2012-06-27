@@ -64,14 +64,17 @@ function ucla_require_db_helper() {
 }
 
 /** 
- *  Convenience function to include all the Registrar connection 
- *  functionality.
+ *  Function to include all the Registrar connection functionality.
+ *  This function MUST NOT do anything other than load libraries.
+ *  
  **/
 function ucla_require_registrar() {
     global $CFG;
 
     require_once($CFG->dirroot 
         . '/local/ucla/registrar/registrar_stored_procedure.base.php');
+    require_once($CFG->dirroot 
+        . '/local/ucla/registrar/registrar_tester.php');
 }
 
 /**

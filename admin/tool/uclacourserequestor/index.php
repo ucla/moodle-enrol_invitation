@@ -11,6 +11,7 @@ require_once($CFG->dirroot . $thisdir . 'lib.php');
 
 global $DB, $ME, $USER;
 
+ucla_require_registrar();
 require_login();
 
 $syscontext = get_context_instance(CONTEXT_SYSTEM);
@@ -85,6 +86,9 @@ $uclacrqs = null;
 // (for use when clicking 'checkchanges') 
 $pass_uclacrqs = null;
 
+// These are the messages that are requestor errors
+$errormessages = array();
+
 // This is the field in the postdata that should represent the state of
 // data in the current database for the requestors.
 $uf = 'unchangeables';
@@ -105,16 +109,19 @@ foreach ($top_forms as $gk => $group) {
             $requests = $fl->respond($recieved);
             $groupid = $gk;
 
-            // Place into our holder
-            $uclacrqs = new ucla_courserequests();
-            foreach ($requests as $setid => $set) {
-                // This may get us strangeness
-                $uclacrqs->add_set($set);
+            if ($requests === false) {
+                $errormessages[] = 'registrarunavailable';
+            } else {
+                // Place into our holder
+                $uclacrqs = new ucla_courserequests();
+                foreach ($requests as $setid => $set) {
+                    // This may get us strangeness
+                    $uclacrqs->add_set($set);
+                }
             }
         }
     }
 }
-
 
 // None of the forms took input, so maybe the center form?
 // In this situation, we are assuming all information is
@@ -177,9 +184,6 @@ if (!empty($changes)) {
 
 // These are the messages that reflect positive changes
 $changemessages = array();
-
-// These are the messages that are requestor errors
-$errormessages = array();
 
 // At this point, requests are indexed by setid.
 if (isset($uclacrqs)) {

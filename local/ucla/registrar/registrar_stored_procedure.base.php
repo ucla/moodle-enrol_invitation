@@ -79,3 +79,7 @@ abstract class registrar_stored_procedure extends registrar_query {
         return true;
     }
 } 
+
+class registrar_stored_procedure_exception extends registrar_query_exception {
+    // Nothing
+}
