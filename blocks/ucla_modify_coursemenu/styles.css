@@ -1,0 +1,80 @@
+/**
+ *  Stylings for course-section modification UI.
+ **/
+
+#sections-table {
+    border-collapse: collapse;
+    border: 0;
+}
+
+#sections-table thead .header {
+    filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr=#FFB300, endColorstr=#FDDF96); /* for IE */    
+    background-image: -webkit-linear-gradient(top, rgba(254,187,54,0.7), rgba(253,223,150,0.7)); /* for webkit browsers */
+    background-image: -moz-linear-gradient(top, rgba(254,187,54,0.7), rgba(253,223,150,0.7)); /* for firefox 3.6+ */
+    background-image: -o-linear-gradient(top, rgba(254,187,54,0.7), rgba(253,223,150,0.7)); /* for opera */
+    font-size: larger;
+    border: 0;
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+#sections-table .section-row {
+    border: 0;
+    border-bottom: 1px solid gray;
+}
+
+#sections-table .col-section-num,
+#sections-table .col-section-hide,
+#sections-table .col-section-delete,
+#sections-table .col-section-landing {
+    text-align: center;
+}
+
+#sections-table .animate-me {
+    display: none;
+}
+
+#sections-table tr {
+    border-bottom: solid 1px #EEE;
+}
+
+#sections-table tr.hidden-section {
+    /* in 1.9 hidden sections had no indication */
+    /* background-color: gray; */
+}
+
+#sections-table tr.new-section {
+    background-color: #FEE98A;
+}
+
+#sections-table tr.new-section-dragging {
+    background-color: #FEDE91;
+}
+
+/** This one must come AFTER hidden-section **/
+#sections-table tr.delete-section {
+    background-color: #FFA6A6;
+}
+
+#sections-table tr.delete-section-dragging {
+    background-color: #FF6161;
+}
+
+/** This one should come last **/
+#sections-table tr.regular-row-dragging {
+    background-color: #F5F5F5;
+}
+
+#sections-table tr td img.hidden-handle {
+    visibility: hidden;
+}
+
+#sections-table tr td.drag-handle > img {
+    cursor: ns-resize;
+}
+
+div.modify-course-sections-summary h2,
+div.modify-course-sections-summary h3,
+div.modify-course-sections-summary h4 {
+    text-align: left;
+}

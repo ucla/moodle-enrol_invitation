@@ -206,8 +206,14 @@ class course_handler extends browseby_handler {
             return array(false, false);
         }
         
+        $s .= block_ucla_browseby_renderer::render_terms_selector(
+            $args['term'], $terms_select_where, $terms_select_param);        
+        
         if (empty($courseslist)) {
-            print_error('noresults');
+            //print_error('noresults');
+            $s .= $OUTPUT->box(get_string('coursesnotfound', 
+                    'block_ucla_browseby'), array('class' => 'errorbox'));
+            return array($t, $s);
         }
 
         $use_local_courses = $this->get_config('use_local_courses');
@@ -298,9 +304,6 @@ class course_handler extends browseby_handler {
             $fullcourseslist[$k] = $course;
         }
         
-        $s .= block_ucla_browseby_renderer::render_terms_selector(
-            $args['term'], $terms_select_where, $terms_select_param);
-
         if ($issummer) { 
             $sessionsplits = array();
             foreach ($fullcourseslist as $k => $fullcourse) {

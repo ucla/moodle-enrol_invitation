@@ -79,6 +79,10 @@
     color: #FF6666;
     font-weight: normal;
 }
+.block_ucla_course_menu .edit_control_links a:hover {
+    color: red;
+    text-decoration: underline;
+}
 
 .block_ucla_course_menu_hidden {
     background-color: #DBDEE5;

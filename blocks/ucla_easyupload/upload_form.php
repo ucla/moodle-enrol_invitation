@@ -52,8 +52,10 @@ abstract class easy_upload_form extends moodleform {
 
         $type = $this->_customdata['type'];
         $sections = $this->_customdata['sectionnames'];
-        $copyrights=$this->_customdata['copyrights'];
+        $copyrights = $this->_customdata['copyrights'];
         $rearrange_avail = $this->_customdata['rearrange'];
+
+        $defaultsection = $this->_customdata['defaultsection'];
 
         $addtitle = 'dialog_add_' . $type;
         $mform->addElement('header', 'general', get_string($addtitle,
@@ -100,12 +102,12 @@ abstract class easy_upload_form extends moodleform {
                 self::associated_block));
 
             $mform->addElement('html', html_writer::tag('label', 
-                    get_string('select_copyright_list', self::associated_block), 
+                    get_string('select_copyright_list', self::associated_block) . 
+                    ' ' . get_string('choosecopyright_helpicon', 'local_ucla'), 
                     array('for' => 'id_license')));
 
             // Show the copyright selector
             $mform->addElement('select', 'license','', $copyrights);
-            $mform->addHelpButton('license', 'license', 'block_ucla_easyupload');
             $mform->addRule('license', null, 'required');
                 $mform->setDefaults(
                     array(
@@ -158,6 +160,7 @@ abstract class easy_upload_form extends moodleform {
         $mform->addElement('select', 'section',
             get_string('select_section', self::associated_block), 
             $sections);
+        $mform->setDefault('section', $defaultsection);
 
         // If needed, add the section rearranges.
         // This part appears to be a part of 'add to section'

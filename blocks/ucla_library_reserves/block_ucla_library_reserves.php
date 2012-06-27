@@ -1,5 +1,4 @@
 <?php
-
 defined('MOODLE_INTERNAL') || die();
 
 require_once(dirname(dirname(dirname(__FILE__))) . '/local/ucla/lib.php');
@@ -7,21 +6,18 @@ require_once(dirname(dirname(dirname(__FILE__))) . '/local/ucla/lib.php');
 class block_ucla_library_reserves extends block_base {
 
     /**
-      * Called by moodle
-      **/
+     * Called by moodle
+     */
     public function init() {
-
         // Initialize name and title
-        $this->title = get_string('title','block_ucla_library_reserves');
-
+        $this->title = get_string('title', 'block_ucla_library_reserves');
     }
 
     /**
-      * Called by moodle
-      **/
+     * Called by moodle
+     */
     public function get_content() {
         global $COURSE;
-
 
         if ($this->content !== null) {
             return $this->content;
@@ -33,98 +29,64 @@ class block_ucla_library_reserves extends block_base {
     }
 
     /**
-      * Use UCLA Course menu block hook
-      **/
+     * Use UCLA Course menu block hook
+     */
     public function get_navigation_nodes($course) {
-
         // get global variables
-        global $DB,$COURSE;
-        
-        $courseid = $COURSE->id; // course id from the hook function
-        $coursefound = ucla_map_courseid_to_termsrses($courseid); 
-       
+        global $DB, $COURSE;
+
         $nodes = array();
-        $lrnodes = array();
+        $links = array();        
+        
+        $reserves = $DB->get_records('ucla_library_reserves', 
+                array('courseid' => $COURSE->id));
 
-        if (!empty($coursefound)) {
-
-            foreach($coursefound as $courseentry) {
-           
-                $coursesrs = $courseentry->srs; // generate the courseid as in libraryreserves table
-                $courseterm = $courseentry->term;
-
-                if (!empty($coursesrs) && !empty($courseterm)) {
-                    $lrnodes = $DB->get_records('ucla_library_reserves', array('quarter'=>$courseterm,'srs'=>$coursesrs)); // get entry in libraryreserves table by the generated courseid
-
-                    if($lrnodes) {
-                        $foundviasrs = true;
-                    }
-
-                    $foundviasrs = false;
-
-                    $reginfo = ucla_get_reg_classinfo($courseterm, $coursesrs);
-
-                    // If srs did not work as lookup, use the term, courseid, and department code 
-                    if($lrnodes == false) {
-
-                        if(!empty($reginfo)) {
-                            $lrnodes = $DB->get_records('ucla_library_reserves', array('quarter'=>$courseterm, 'department_code'=>$reginfo->subj_area, 'course_number'=>$reginfo->coursenum));
-                        }
-                    }
-                }
-
-
-                if($lrnodes != false) {
-
-                    foreach($lrnodes as $lrnode) {
-
-                        $reginfo = ucla_get_reg_classinfo($lrnode->quarter,$lrnode->srs);
-
-                        $sectnum = $reginfo->sectnum;
-                        $coursesectnum = substr($COURSE->shortname,strrpos($COURSE->shortname, "-") + 1);
-
-                        if (!empty($lrnode->url) && ($sectnum == $coursesectnum || $foundviasrs)) {
-                            
-                            // Must hardcode the naming string since this is a static function
-                            $nodes[] = navigation_node::create('Library Reserves '.$reginfo->subj_area.$reginfo->coursenum, new moodle_url($lrnode->url)); 
-                            break;
-                        }
-                    }
-                }
-            }
+        // if only one entry was found, then just give the name "Library reserves"
+        $lr_string = get_string('title', 'block_ucla_library_reserves');        
+        if (count($reserves) == 1) {
+            $link = array_pop($reserves);
+            $nodes[] = navigation_node::create($lr_string,
+                            new moodle_url($link->url));            
+        } else {
+            // else display link with subj_area and coursenum appended
+            foreach ($reserves as $reserve) {
+                $nodes[] = navigation_node::create(sprintf('%s %s %s', 
+                        $lr_string, $reserve->department_code, 
+                        $reserve->course_number), 
+                        new moodle_url($reserve->url));                 
+            }            
         }
-
+        
         return $nodes;
-
     }
 
     /**
-      * Called by moodle
-      **/
+     * Called by moodle
+     */
     public function applicable_formats() {
-        
+
         return array(
             'site-index' => false,
-            'course-view'=> false,
+            'course-view' => false,
             'my' => false,
             'block-ucla_library_reserves' => false,
             'not-really-applicable' => true
-        ); 
+        );
         // hack to make sure the block can never be instantiated
-        
     }
 
     /**
-      * Called by moodle
-      **/
+     * Called by moodle
+     */
     public function instance_allow_multiple() {
         return false; //disables multiple blocks per page
     }
 
     /**
-      * Called by moodle
-      **/
+     * Called by moodle
+     */
     public function instance_allow_config() {
         return false; // disables instance configuration
     }
+
 }

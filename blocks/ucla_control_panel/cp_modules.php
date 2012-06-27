@@ -25,17 +25,12 @@ $temp_tag = array('ucla_cp_mod_common');
 $modules[] = new ucla_cp_module('ucla_cp_mod_common', null, null, $temp_cap);
 
 // Capability needed for things that TAs can also do
-$ta_cap = 'moodle/course:enrolreview';
+$ta_cap = 'moodle/course:viewparticipants';
 
 // Course Forum Link
 if (ucla_cp_module::load('email_students')) {
     $modules[] = new ucla_cp_module_email_students($course);
 }
-
-/* Office hours TODO
-  $modules[] = new ucla_cp_module('edit_office_hours', new moodle_url('view.php'),
-  array('ucla_cp_mod_common', 'ucla_cp_mod_other'), $ta_cap);
-  /* Office hours */
 
 // For editing, it is a special UI case
 $spec_ops = array('pre' => false, 'post' => true);
@@ -47,15 +42,12 @@ $modules[] = new ucla_cp_module('turn_editing_on', new moodle_url(
 
 /******************************** MyUCLA Functions *********************/
 
-
 $course_info = ucla_get_course_info($course->id);
 // Do not display these courses if the user is not currently on a valid course page.
 if (!empty($course_info)) {
     $temp_tag = array('ucla_cp_mod_myucla');
-    //Redundency in case prev temp_cap isn't this one.
-    $temp_cap = 'moodle/course:update';
 
-    $modules[] = new ucla_cp_module('ucla_cp_mod_myucla', null, null, $temp_cap);
+    $modules[] = new ucla_cp_module('ucla_cp_mod_myucla', null, null, $ta_cap);
     $first_course = array_shift(array_values($course_info));
 
     // If this is a summer course
@@ -63,7 +55,7 @@ if (!empty($course_info)) {
 
     // Add individual links for each crosslisted course
     foreach ($course_info as $info_for_one_course) {
-        $myucla_row = new ucla_cp_myucla_row_module($temp_tag, $temp_cap);
+        $myucla_row = new ucla_cp_myucla_row_module($temp_tag, $ta_cap);
         if (count($course_info) > 1) {
             // add course title if displaying cross-listed courses
             $myucla_row->add_element(new ucla_cp_text_module($info_for_one_course->subj_area
@@ -74,29 +66,29 @@ if (!empty($course_info)) {
         $course_srs = $info_for_one_course->srs;
         $myucla_row->add_element(new ucla_cp_module('download_roster',
                         new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=74&term="
-                                . $course_term . "&srs=" . $course_srs), $temp_tag, $temp_cap));
+                                . $course_term . "&srs=" . $course_srs), $temp_tag, $ta_cap));
         $myucla_row->add_element(new ucla_cp_module('photo_roster',
                         new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=148&term="
-                                . $course_term . "&srs=" . $course_srs . "&spp=30&sd=true"), $temp_tag, $temp_cap));
+                                . $course_term . "&srs=" . $course_srs . "&spp=30&sd=true"), $temp_tag, $ta_cap));
         $myucla_row->add_element(new ucla_cp_module('myucla_gradebook',
                         new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=75&term="
-                                . $course_term . "&srs=" . $course_srs), $temp_tag, $temp_cap));
+                                . $course_term . "&srs=" . $course_srs), $temp_tag, $ta_cap));
         $myucla_row->add_element(new ucla_cp_module('turn_it_in',
                         new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=48&term="
-                                . $course_term . "&srs=" . $course_srs), $temp_tag, $temp_cap));
+                                . $course_term . "&srs=" . $course_srs), $temp_tag, $ta_cap));
         $myucla_row->add_element(new ucla_cp_module('email_roster',
                         new moodle_url("https://be.my.ucla.edu/login/directLink.aspx?featureID=73&term="
-                                . $course_term . "&srs=" . $course_srs), $temp_tag, $temp_cap));
+                                . $course_term . "&srs=" . $course_srs), $temp_tag, $ta_cap));
         $myucla_row->add_element(new ucla_cp_module('asucla_textbooks',
                         new moodle_url('http://www.collegestore.org/textbookstore/main.asp?remote=1&ref=ucla&term='
-                                . $course_term . $session . '&course=' . $course_srs . '&getbooks=Display+books'), $temp_tag, $temp_cap));
+                                . $course_term . $session . '&course=' . $course_srs . '&getbooks=Display+books'), $temp_tag, $ta_cap));
         $modules[] = $myucla_row;
     }
 }
 
 /******************************** Other Functions *********************/
 // Other Functions
-$modules[] = new ucla_cp_module('ucla_cp_mod_other', null, null, $temp_cap);
+$modules[] = new ucla_cp_module('ucla_cp_mod_other', null, null, $ta_cap);
 
 // Saving typing...
 $temp_tag = array('ucla_cp_mod_other');
@@ -104,7 +96,7 @@ $temp_tag = array('ucla_cp_mod_other');
 $temp_cap = 'moodle/course:update';
 // Edit user profile!
 $modules[] = new ucla_cp_module('edit_profile', new moodle_url(
-                        $CFG->wwwroot . '/user/edit.php'), $temp_tag, $temp_cap);
+                        $CFG->wwwroot . '/user/edit.php'), $temp_tag, 'moodle/user:editownprofile');
 
 /* Import from classweb!? TODO
   $modules[] = new ucla_cp_module('import_classweb', new moodle_url('view.php'),
@@ -112,8 +104,9 @@ $modules[] = new ucla_cp_module('edit_profile', new moodle_url(
   /* Import from classweb */
 
 // Import from existing moodle course
-$modules[] = new ucla_cp_module('import_moodle', new moodle_url($CFG->wwwroot
-                        . '/backup/import.php', array('id' => $course->id)), $temp_tag, $temp_cap);
+$modules[] = new ucla_cp_module('import_moodle', new moodle_url($CFG->wwwroot . 
+        '/backup/import.php', array('id' => $course->id)), $temp_tag, 
+        'moodle/restore:restoretargetimport');
 
 /* Create a TA-Site TODO 
   $modules[] = new ucla_cp_module('create_tasite', new moodle_url('view.php'),
@@ -123,7 +116,14 @@ $modules[] = new ucla_cp_module('import_moodle', new moodle_url($CFG->wwwroot
 // View moodle participants
 $modules[] = new ucla_cp_module('view_roster', new moodle_url(
                         $CFG->wwwroot . '/user/index.php', array('id' => $course->id)),
-                $temp_tag, $ta_cap);
+                $temp_tag, 'moodle/course:viewparticipants');
+
+// Site invitation
+if (enrol_invitationenrol_available($course->id)) {
+    $modules[] = new ucla_cp_module('site_invitation', new moodle_url(
+                            $CFG->wwwroot . '/enrol/invitation/invitation.php', array('courseid' => $course->id)),
+                    $temp_tag, 'enrol/invitation:enrol');    
+}
 
 /******************************** Advanced Functions *********************/
 $modules[] = new ucla_cp_module('ucla_cp_mod_advanced', null, null, $temp_cap);
@@ -214,14 +214,14 @@ if ($question_edit_contexts->have_one_edit_tab_cap('questions')) {
 //TODO: this module currently depends on the myucla_row_renderer since that
 //renderer opens links in new tabs (which the normal renderer does not normally
 //do. If the control panel is to be refactored later, make this not terrible
-if (has_role_in_context("student", $context)) {
+if (has_role_in_context('student', $context)) {
     $temp_cap = null;
     $temp_tag = array('ucla_cp_mod_student');
     $modules[] = new ucla_cp_module('ucla_cp_mod_student', null, null, $temp_cap);
 
 
     $modules[] = new ucla_cp_module('edit_profile', new moodle_url(
-            $CFG->wwwroot . '/user/edit.php'), $temp_tag, $temp_cap);
+            $CFG->wwwroot . '/user/edit.php'), $temp_tag, 'moodle/user:editownprofile');
     $modules[] = new ucla_cp_module('student_grades', new moodle_url(
             $CFG->wwwroot . '/grade/index.php?id=' . $course->id), $temp_tag, $temp_cap);
 
@@ -279,6 +279,26 @@ if (has_role_in_context("student", $context)) {
   echo '<dd>'.get_string('studentmanualclick','block_course_menu').'</dd>';
   }
  */
+
+/**
+ * Is the site invitation enrollment plugin installed for course?
+ * 
+ * @param int $courseid
+ * @return bool
+ */
+function enrol_invitationenrol_available($courseid) {
+    $result = false;
+
+    $enrolinstances = enrol_get_instances($courseid, true);
+    foreach($enrolinstances as $instance) {
+        if ($instance->enrol == 'invitation') {
+            $result = true;
+            break;
+        }
+    }
+
+    return $result;
+}
 
 /**
  * Returns term session code for course, if any.

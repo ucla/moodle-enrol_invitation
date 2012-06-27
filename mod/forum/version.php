@@ -25,7 +25,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$module->version   = 2011112900;       // The current module version (Date: YYYYMMDDXX)
+// BEGIN UCLA MOD: CCLE-3045 - Add capability to disable emailing of forum posts to certain roles
+$module->version   = 2011112901;       // The current module version (Date: YYYYMMDDXX)
+// END UCLA MOD: CCLE-3045
 $module->requires  = 2011112900;       // Requires this Moodle version
 $module->component = 'mod_forum';      // Full name of the plugin (used for diagnostics)
 $module->cron      = 60;

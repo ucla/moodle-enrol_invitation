@@ -6,6 +6,10 @@ class registrar_ccle_roster_class extends registrar_query {
             return false;
         }
 
+        if (empty($new['stu_id'])) {
+            return false;
+        }
+
         return true;
     }
 

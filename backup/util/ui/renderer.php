@@ -171,7 +171,11 @@ class core_backup_renderer extends plugin_renderer_base {
         $html  = html_writer::start_tag('div', array('class' => 'backup-restore nonstandardformat'));
         $html .= html_writer::start_tag('div', array('class' => 'backup-section'));
         $html .= $this->output->heading(get_string('backupdetails', 'backup'), 2, 'header');
-        $html .= $this->output->box(get_string('backupdetailsnonstandardinfo', 'backup'), 'noticebox');
+        // START UCLA MOD: CCLE-3023 - restore in Moodle2.x site menu block is  not displayed and not default to UCLA format 
+        // Friendlier notice to users  
+        //$html .= $this->output->box(get_string('backupdetailsnonstandardinfo', 'backup'), 'noticebox');
+        $html .= $this->output->box(get_string('backupdetailsnonstandardinfo', 'backup', get_string('backupformat'.$details['format'], 'backup')), 'noticebox');
+        // END UCLA MOD: CCLE-3023
         $html .= $this->backup_detail_pair(
             get_string('backupformat', 'backup'),
             get_string('backupformat'.$details['format'], 'backup'));

@@ -1,18 +1,7 @@
 <?php
-// This file is part of Moodle - http://moodle.org/
-//
-// Moodle is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Moodle is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+require_once($CFG->dirroot . '/enrol/renderer.php');
+
 class theme_uclashared_core_renderer extends core_renderer {
     private $sep = NULL;
     private $theme = 'theme_uclashared';
@@ -187,6 +176,7 @@ class theme_uclashared_core_renderer extends core_renderer {
      *  Calls the hook function that will return the current week we are on.
      **/
     function weeks_display() {
+
         $weeks_text = $this->call_separate_block_function(
                 'ucla_weeksdisplay', 'get_raw_content'
             );
@@ -232,7 +222,7 @@ class theme_uclashared_core_renderer extends core_renderer {
      *      displayed.
      **/
     function sublogo() {
-        $display_text   = get_config($this->theme, 'logo_sub_text');
+        $display_text   = $this->get_config($this->theme, 'logo_sub_text');
 
         return $display_text;
     }
@@ -274,6 +264,7 @@ class theme_uclashared_core_renderer extends core_renderer {
             'about_ccle',
             'privacy',
             'copyright',
+            'uclalinks',
             'separator',            
             'school',
             'registrar',
@@ -282,24 +273,29 @@ class theme_uclashared_core_renderer extends core_renderer {
 
         $footer_string = '';
         
-        $custom_text = get_config($this->theme, 'footer_links');
+//        $custom_text = get_config($this->theme, 'footer_links');
+//        if ($custom_text != '') {
+//            $footer_string = $custom_text; 
+//            array_unshift($links, 'separator');
+//        }
 
-        if ($custom_text != '') {
-            $footer_string = $custom_text; 
-
-            array_unshift($links, 'separator');
-        }
-
+        // keep all links before seperator from opening into new window
+        $open_new_window = false;
         foreach ($links as $link) {
             if ($link == 'separator') {
                 $footer_string .= '&nbsp;';
                 $footer_string .= $this->separator();
+                $open_new_window = true;
             } else {
                 $link_display = get_string('foodis_' . $link, $this->theme);
                 $link_href = get_string('foolin_' . $link, $this->theme);
-
-                $link_a = html_writer::tag('a', $link_display, 
-                    array('href' => $link_href, 'target' => '_blank'));
+                if (empty($open_new_window)) {
+                    $params = array('href' => $link_href);
+                } else {
+                    $params = array('href' => $link_href, 'target' => '_blank');                    
+                }
+                
+                $link_a = html_writer::tag('a', $link_display, $params);
 
                 $footer_string .= '&nbsp;' . $link_a;
             }
@@ -309,7 +305,8 @@ class theme_uclashared_core_renderer extends core_renderer {
     }
 
     function copyright_info() {
-        return get_string('copyright_information', $this->theme);
+        $curr_year = date('Y');
+        return get_string('copyright_information', $this->theme, $curr_year);
     }
 
     /**
@@ -319,33 +316,16 @@ class theme_uclashared_core_renderer extends core_renderer {
      *  TODO This function should not belong to this specific block
      **/
     function call_separate_block_function($blockname, $functionname) {
-        global $CFG;
-        $blockclassname = 'block_' . $blockname;
-
-        $blockfile = $CFG->dirroot . "/blocks/$blockname/$blockclassname.php";
-        if (file_exists($blockfile)) {
-            require_once($CFG->dirroot . '/blocks/moodleblock.class.php');
-            require_once($blockfile);
-        } else {
-            debugging('Could not find ' . $blockfile);
-            return false;
+        if (during_initial_install()) {
+            return '';
         }
 
-        $course = $this->page->course;
-
-        if (method_exists($blockclassname, $functionname)) {
-            $retval = $blockclassname::$functionname($course);
-        } else {
-            debugging('Could not find ' . $functionname . ' for ' 
-                . $blockclassname);
-            return false;
-        }
-
-        return $retval;
+        return block_method_result($blockname, $functionname, 
+            $this->page->course);
     }
 
     function get_environment() {
-        $c = get_config($this->theme, 'running_environment');
+        $c = $this->get_config($this->theme, 'running_environment');
 
         if (!$c) {
             return 'prod';
@@ -353,24 +333,51 @@ class theme_uclashared_core_renderer extends core_renderer {
 
         return $c;
     }
-}
 
-class ucla_html_writer extends html_writer {
     /**
-     *  Hack to add external link icon.
+     *  Overwriting pix icon renderers to not use icons for action buttons.
      **/
-    static function link($url, $text, $attr=null) {
-        global $CFG;
-        if (strpos($url->out(), $CFG->wwwroot) === false) {
-            if (empty($attr)) {
-                $attr['class'] = '';
-            } else {
-                $attr['class'] .= ' ';
-            }
+    function render_action_link($action) {
+        $noeditingicons = get_user_preferences('noeditingicons', 1);
+        if (!empty($noeditingicons)) {
+            if ($action->text instanceof pix_icon) {
+                $icon = $action->text;
 
-            $attr['class'] .= 'external-link';
+                $attr = $icon->attributes;
+                $displaytext = $attr['alt'];
+
+                unset($attr['alt']);
+                unset($attr['title']);
+
+                $action->text = $displaytext;
+            }
         }
 
-        return parent::link($url, $text, $attr);
+        return parent::render_action_link($action);
     }
+
+    /**
+     *  Wrapper function to prevent initial install.
+     **/
+    function get_config($plugin, $var) {
+        if (!during_initial_install()) {
+            return get_config($plugin, $var);
+        } 
+
+        return false;
+    }
+}
+
+// TODO move this to a more relevant location?
+class theme_uclashared_core_enrol_renderer extends core_enrol_renderer {
+    // Overriding functionality for enrol-users page
+    function user_groups_and_actions($userid, $groups, $allgroups, 
+                                     $canmanagegroups, $pageurl) {
+
+        // Easiest solution: prevent editing of groups from this UI
+        return parent::user_groups_and_actions($userid, $groups, $allgroups,
+            false, $pageurl);
+            
+    }
+
 }

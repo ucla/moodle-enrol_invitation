@@ -526,7 +526,7 @@ class ucla_courserequests {
             // Figure out what we're going to save for what course
             // to display when someonse uses the requestor
             // Also what the shortname is supposed to be...
-            $properhost = set_find_host($set);
+            $properhost = set_find_host_key($set);
 
             $set = apply_to_set($set, $h, 0);
             $set[$properhost][$h] = 1;
