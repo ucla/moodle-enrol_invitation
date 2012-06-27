@@ -66,7 +66,7 @@ class block_ucla_rearrange extends block_base {
      *  @param $modinfo     The mod information from get_all_mods().
      **/
     static function mods_to_modnode_tree($section, &$sectinfo, &$mods, 
-            &$modinfo, $course_id) {
+            &$modinfo, $courseid) {
 
         $nodes = array();
         $sectionmods = array();
@@ -88,7 +88,7 @@ class block_ucla_rearrange extends block_base {
                 }
 
                 $display_text = format_string($modinfo->cms[$mod_id]->name,
-                    true, $course_id);
+                    true, $courseid);
                 $is_hidden = !$modinfo->cms[$mod_id]->visible;
 
                 $nodes[] = new modnode($mod_id, $display_text, $cm->indent, 
@@ -108,14 +108,14 @@ class block_ucla_rearrange extends block_base {
         return $root_nodes;
     }
 
-    static function get_sections_modnodes($course_id, &$sections, &$mods,
+    static function get_sections_modnodes($courseid, &$sections, &$mods,
             &$modinfo) {
 
         $sectionnodes = array();
         foreach ($sections as $section) {
             $sectionnodes[$section->id] = 
                 self::mods_to_modnode_tree($section->section, 
-                    $section, $mods, $modinfo, $course_id);
+                    $section, $mods, $modinfo, $courseid);
         }
 
         return $sectionnodes;
@@ -149,9 +149,9 @@ class block_ucla_rearrange extends block_base {
      *  Convenience function, returns an array of the HTML rendered
      *  UL and LI DOM Objects ready to be spit out into JSON.
      **/
-    static function get_section_modules_rendered(&$course_id, &$sections, 
+    static function get_section_modules_rendered(&$courseid, &$sections, 
             &$mods, &$modinfo) {        
-        $snodes = self::get_sections_modnodes($course_id, $sections, $mods,
+        $snodes = self::get_sections_modnodes($courseid, $sections, $mods,
             $modinfo);
 
         return self::render_set_modnodes($snodes);
@@ -354,7 +354,7 @@ class block_ucla_rearrange extends block_base {
             'item_name' => 'rearrange',
             'tags' => array('ucla_cp_mod_common'),
             'action' => new moodle_url($thispath, array(
-                'course_id' => $course->id
+                'courseid' => $course->id
             )),
             'required_cap' => 'moodle/course:update'
         );

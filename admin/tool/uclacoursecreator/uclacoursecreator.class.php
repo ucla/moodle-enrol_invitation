@@ -50,7 +50,7 @@ class uclacoursecreator {
     private $force_fail = false;
 
     // Set to true to hide output?
-    private $no_send_mails = true;//false;
+    private $no_send_mails = false;
 
     // Private identifier for this cron task
     private $db_id;
@@ -809,7 +809,7 @@ class uclacoursecreator {
                 $arrcourseset[$key] = get_object_vars($course);
             }
 
-            $hostcoursekey = set_find_host($arrcourseset);
+            $hostcoursekey = set_find_host_key($arrcourseset);
             $hostcourse = $courseset[$hostcoursekey];
             unset($courseset[$hostcoursekey]);
 

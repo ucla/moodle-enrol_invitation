@@ -241,9 +241,10 @@ class block_ucla_my_sites extends block_base {
                 $content[] = $OUTPUT->box(get_string('shared_server_archive_notice', 
                     'block_ucla_my_sites'), 'noticebox');
             } else if (term_cmp_fn($showterm, $CFG->currentterm) == -1) {
-                // if viewing old term, give notice about student access
-                $content[] = $OUTPUT->box(get_string('student_access_notice', 
-                    'block_ucla_my_sites'), 'noticebox');                
+                // commented out until we actually start hiding past courses
+//                // if viewing old term, give notice about student access
+//                $content[] = $OUTPUT->box(get_string('student_access_notice', 
+//                    'block_ucla_my_sites'), 'noticebox');                
             }
         }
         
@@ -450,8 +451,8 @@ class block_ucla_my_sites extends block_base {
             $briarr[$k] = get_object_vars($v);
         }
 
-        $arik = set_find_host($ariarr);
-        $brik = set_find_host($briarr);
+        $arik = set_find_host_key($ariarr);
+        $brik = set_find_host_key($briarr);
 
         // If they're indeterminate
         if ($arik === false || $brik === false) {

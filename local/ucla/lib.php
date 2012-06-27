@@ -1125,7 +1125,7 @@ function get_active_terms() {
         foreach ($terms as $term) {
             $term = trim($term);
             if (ucla_validator('term', $term)) {
-                $ret_val[] = $term;
+                $ret_val[$term] = $term;
             }                              
         }
     }    
