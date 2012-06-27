@@ -7,27 +7,6 @@
  *  instead, and then call the function ucla_require_db_helper()
  **/
 class db_helper {
-    /**
-     * Use this to get a term-srs from a role assignment of a user.
-     *  Table alias needed: user -> us
-     *  Table aliases used: ra, ro, ct, co, rc
-     **/
-    function join_role_assignments_request_classes_sql() {
-        return "
-        INNER JOIN {role_assignments} ra
-            ON ra.userid = us.id
-        INNER JOIN {role} ro
-            ON ro.id = ra.roleid
-        INNER JOIN {context} ct
-            ON ct.id = ra.contextid AND ct.contextlevel = "
-                . CONTEXT_COURSE . "
-        INNER JOIN {course} co
-            ON co.id = ct.instanceid
-        INNER JOIN {ucla_request_classes} rc
-            ON co.id = rc.courseid
-        ";
-    }
-
     /** 
      *  Will check a table for entries, insert and update entries provided
      *  in the arguments.
@@ -52,22 +31,27 @@ class db_helper {
      *      )
      **/
     static function partial_sync_table($table, $tabledata, $syncfields,
-            $partialwhere=null, $partialparams=null) {
+            $partialwhere=null, $partialparams=null, $allowfulldelete=false) {
         global $DB;
 
         $partial = ($partialwhere === null || $partialparams === null);
 
         // Optimization for delete all
         if (empty($tabledata)) {
-            if ($partial) {
-                $r = $DB->delete_records_select($table, 
-                    $partialwhere, $partialparams);
-            } else {
-                // This means a full delete...
-                $r = $DB->delete_records($table);
-            }
+            if ($allowfulldelete) {
+                if ($partial) {
+                    $r = $DB->delete_records_select($table, 
+                        $partialwhere, $partialparams);
+                } else {
+                    // This means a full delete...
+                    $r = $DB->delete_records($table);
+                }
 
-            return $r;
+                return $r;
+            } else {
+                debugging('full-delete not allowed');
+                return 0;
+            }
         }
 
         // Get existing records to determine if we're going to insert or
@@ -162,69 +146,5 @@ class db_helper {
         }
 
         return serialize($prehash);
-    }
-
-
-
-    /**
-     *  Convenience function that automatically gets a bunch of stuff
-     *  regarding users in courses.
-     *  @param $where SQL string - does not need WHERE. 
-     *      For table names: 
-     *          use c for {course}
-     *          use u for {user}
-     *          use rcq for {ucla_request_classes}
-     *  NOTE: This kind of function might already exist in moodle somewhere...
-     **/
-    static function get_users_select($where='', $params=null, $groupby='') {
-        global $DB;
-
-        // Massive SQL statement because "we know how things work down there"
-        // This basically gets the users in a course
-        $sql = "
-        SELECT
-            CONCAT(c.id, '-', u.id, '-', r.id) AS rsid,
-            c.id AS course_id,
-            c.shortname,
-            c.fullname,
-            u.id AS user_id,
-            u.firstname,
-            u.lastname,
-            u.email,
-            u.address,
-            u.maildisplay,
-            u.url,
-            r.id AS role_id,
-            r.shortname AS role_shortname,
-            rcq.srs,
-            rcq.term
-        FROM {user} u
-        INNER JOIN {role_assignments} ra
-            ON ra.userid = u.id
-        INNER JOIN {role} r
-            ON r.id = ra.roleid
-        INNER JOIN {context} x 
-            ON x.id = ra.contextid
-        INNER JOIN {course} c
-            ON c.id = x.instanceid
-        INNER JOIN {ucla_request_classes} rcq
-            ON c.id = rcq.courseid
-        ";
-
-        if (!empty($where)) {
-            $sql .= "
-                WHERE $where
-            ";
-        }
-
-        if (!empty($groupby)) {
-            $sql .= "
-                GROUP BY $groupby
-            ";
-        }
-
-        $results = $DB->get_records_sql($sql, $params);
-
-        return $results;
     }
 }
