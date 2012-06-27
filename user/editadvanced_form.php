@@ -57,6 +57,11 @@ class user_editadvanced_form extends moodleform {
 
         $mform->addElement('advcheckbox', 'preference_auth_forcepasswordchange', get_string('forcepasswordchange'));
         $mform->addHelpButton('preference_auth_forcepasswordchange', 'forcepasswordchange');
+        
+        //BEGIN UCLA MOD: CCLE-2974-Disable "Force password change" option if authentication type is NOT manual.
+        $mform->disabledIf('preference_auth_forcepasswordchange', 'auth', 'neq','manual' );
+        //END UCLA MOD: CCLE-2974
+        
         /// shared fields
         useredit_shared_definition($mform, $editoroptions);
 
