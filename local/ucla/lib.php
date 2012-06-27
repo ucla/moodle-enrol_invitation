@@ -1126,7 +1126,9 @@ function get_active_terms() {
             }                              
         }
     }    
-    
-    return $ret_val;
+   
+    // The weeksdisplay block generates all the terms in correct order
+    // But in case this is from a Config file instead
+    return terms_arr_sort($ret_val);
 }
 // EOF
