@@ -287,11 +287,20 @@ class ucla_courserequests {
 
             // Figure out the term
             unset($theterm);
+            // Figure out the course
+            $thecourseid = null;
             foreach ($courses as $reqkey => $course) {
                 $cterm = $course['term'];
                 if (!isset($theterm)) { 
                     $theterm = $cterm;
                 } else if ($cterm != $theterm) {
+                    throw new moodle_exception('inconsistent_set');
+                }
+
+                $ccourseid = $course['courseid'];
+                if ($thecourseid == null) { 
+                    $thecourseid = $ccourseid;
+                } else if ($thecourseid != $ccourseid) {
                     throw new moodle_exception('inconsistent_set');
                 }
             }
@@ -306,6 +315,7 @@ class ucla_courserequests {
                     $newreq = $this->abandoned[$nclkey];
 
                     $newreq['setid'] = $setid;
+                    $newreq['courseid'] = $thecourseid;
 
                     $courses[$nclkey] = $newreq;
                     $addedcls[] = $newreq;
@@ -353,6 +363,7 @@ class ucla_courserequests {
                 foreach ($newset as $nrkey => $newreq) {
                     $newreq[$h] = 0;
                     $newreq['setid'] = $setid;
+                    $newreq['courseid'] = $thecourseid;
                     if (!isset($courses[$nrkey])) {
                         $courses[$nrkey] = $newreq;
                         $addedcls[] = $newreq;
