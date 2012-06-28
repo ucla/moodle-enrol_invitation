@@ -21,7 +21,7 @@ class registrar_ccle_getinstrinfo extends registrar_query {
         }
 
         if (!isset($args['subjarea']) && isset($args[1])) {
-            $args['subjectarea'] = $args[1];
+            $args['subjarea'] = $args[1];
         } else {
             return false;
         }
