@@ -770,7 +770,8 @@ function terms_arr_sort($terms) {
     // denumerate terms
     $sorted = array();
     foreach ($ksorter as $k => $v) {
-        $sorted[] = $terms[$k];
+        $term = $terms[$k];
+        $sorted[$term] = $term;
     }
 
     return $sorted;
