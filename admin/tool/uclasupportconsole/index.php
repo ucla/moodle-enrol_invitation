@@ -465,15 +465,6 @@ foreach ($qs as $query) {
         // generate input parameters
         $input_html = '';
         switch ($query) {
-            // uid
-            case 'ccle_getinstrinfo':
-                $input_html .= html_writer::label(get_string('uid', 'tool_uclasupportconsole'), $query.'_spa2');
-                $input_html .= html_writer::empty_tag('input', array (
-                    'name' => 'spa1',
-                    'type' => 'text',
-                    'id' => $query.'_spa1'
-                ));                       
-                break;
             // uid, term
             case 'ucla_get_user_classes':
                 $input_html .= html_writer::label(get_string('uid', 'tool_uclasupportconsole'), $query.'_spa2');
@@ -486,6 +477,7 @@ foreach ($qs as $query) {
                 break;
             // term, subject area
             case 'cis_coursegetall':
+            case 'ccle_getinstrinfo':
                 $input_html .= get_term_selector($query);
                 $input_html .= get_subject_area_selector($query);
                 break;            
