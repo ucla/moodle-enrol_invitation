@@ -324,7 +324,7 @@ function ucla_format_figure_section($course, $course_prefs = null) {
     }
 
     // Fix if there was a change in number of sections
-    if ($to_topic > $course->numsections) {
+    if ($to_topic > $course->numsections + 1) {
         $to_topic = $landing_page;
     }
 
