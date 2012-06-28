@@ -351,6 +351,14 @@ class ucla_courserequests {
                         $newset = array(
                             make_idnumber($nr) => $nr
                         );
+                    } else {
+                        // We are integrating an entire set
+                        $hostkey = set_find_host_key($newset);
+                        $newsetid = $newset[$hostkey]['setid'];
+                        // Remove this set from our index
+                        if (isset($this->setindex[$newsetid])) {
+                            unset($this->setindex[$newsetid]);
+                        }
                     }
                 } else {
                     // This was fetched from the Registrar, just add it
@@ -534,6 +542,17 @@ class ucla_courserequests {
             foreach ($set as $key => $request) {
                 if (request_ignored($request)) {
                     continue;
+                }
+
+                // Propagate the information from the set host, except for 
+                // hostcourse and instructor
+                if ($key != $properhost) {
+                    foreach ($set[$properhost] as $field => $val) {
+                        // Skip hostcourse, instructor and id fields
+                        if (in_array($field, array('courseid', 'setid'))) {
+                            $request[$field] = $val;
+                        }
+                    }
                 }
 
                 if (!empty($request[$i])) {
