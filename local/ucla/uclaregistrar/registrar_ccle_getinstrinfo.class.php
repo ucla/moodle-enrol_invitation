@@ -8,9 +8,21 @@ class registrar_ccle_getinstrinfo extends registrar_query {
     }
 
     function remote_call_generate($args) {
+        if (!isset($args['term']) && isset($args[0])) {
+            $args['term'] = $args[0];
+        } else {
+            return false;
+        }
+
         $term = $args['term'];
 
         if (!ucla_validator('term', $term)) {
+            return false;
+        }
+
+        if (!isset($args['subjarea']) && isset($args[1])) {
+            $args['subjectarea'] = $args[1];
+        } else {
             return false;
         }
 
