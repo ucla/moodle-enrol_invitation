@@ -46,6 +46,11 @@ $string['req_category_help'] = 'The site category will help determine where your
     site will be placed.  It also helps to determine the appropriate 
     support contact that will be responsible for creating your site.';
 
+
+// Pending
+$string['sitetype'] = 'Site type';
+$string['sitecat'] = 'Requested category';
+
 $string['req_contacts'] = 'Support Contact';
 $string['req_selopt_other'] = 'Other (provide reason below)';
 $string['req_category_other'] = 'Other category';
@@ -71,11 +76,44 @@ Approve or reject course:
 {$a->action}';
 
 // Reject
-$string['reject_header'] = 'Reject course without a message';
-$string['reject_label'] = 'You can reject a course without sending a message.  Doing 
-    this will also remove the course from the pending list.';
-$string['course_rejected'] = 'Course has been rejected.';
+$string['reject_yesno'] = 'Send an email to the user who requested the site?';
 
 // Acess descriptions
 $string['uclasiteindicator:edit'] = 'Edit site indicator information.';
 $string['uclasiteindicator:view'] = 'View site indicator information.';
+
+// Override default lang string: course -> site
+// Pending
+$string['coursespending'] = 'Pending collaboration sites requests';
+$string['nopendingcourses'] = 'There are no collaboration site requests pending approval';
+$string['shortnamecourse'] = 'Site short name';
+$string['fullnamecourse'] = 'Site full name';
+$string['requestreason'] = 'Reason for the site request';
+$string['backtocourselisting'] = 'Back to My home';
+
+// Request
+$string['courserequest'] = 'Collaboration site request';
+$string['courserequestsuccess'] = 'Your collaboration site request has been submitted. Please 
+    expect a response from your local support person regarding approval of 
+    your site request within a few days';
+$string['courserequestdetails'] = 'Details of the site you are requesting';
+$string['courserequestreason'] = 'Reasons for wanting this site';
+$string['fullnamecourse'] = 'Site full name';
+$string['fullnamecourse_help'] = 'The full name of the site is displayed at the 
+    top of each page.';
+$string['shortnamecourse'] = 'Site short name';
+$string['shortnamecourse_help'] = 'The short name of the site is displayed in 
+    the navigation and is used in the subject line of course email messages.  
+    This shortname is also used for your site\'s url.  Example:  
+    www.ccle.ucla.edu/course/short-name';
+
+$string['coursesummary_help'] = 'The site summary is displayed in the list of courses. A site 
+    search searches the summary text in addition to the site names.';
+$string['coursesummary'] = 'Site summary';
+
+$string['coursespending'] = 'Sites pending approval (for managers only)';
+$string['requestcourse'] = 'Request a collaboration site';
+
+// Reject
+$string['coursereasonforrejecting'] = 'Reject collaboration site request';
+$string['courserejected'] = 'Site has been rejected';

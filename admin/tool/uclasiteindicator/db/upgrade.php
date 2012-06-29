@@ -64,6 +64,41 @@ function xmldb_tool_uclasiteindicator_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2012042306, 'tool', 'uclasiteindicator');
         
     }
+    
+    if ($result && $oldversion < 2012062900) {
 
+        // Define field courseid to be added to ucla_siteindicator_request
+        $table = new xmldb_table('ucla_siteindicator_request');
+        $field = new xmldb_field('courseid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null, 'requester');
+
+        // Conditionally launch add field courseid
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        
+        // Define key requestid (unique) to be dropped form ucla_siteindicator_request
+        $key = new xmldb_key('requestid', XMLDB_KEY_UNIQUE, array('requestid'));
+
+        // Launch drop key requestid
+        $dbman->drop_key($table, $key);
+
+        // Changing nullability of field requestid on table ucla_siteindicator_request to null
+        $field = new xmldb_field('requestid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null, 'id');
+
+        // Launch change of nullability for field requestid
+        $dbman->change_field_notnull($table, $field);
+
+        // Define index requestid_idx (not unique) to be added to ucla_siteindicator_request
+        $index = new xmldb_index('requestid_idx', XMLDB_INDEX_NOTUNIQUE, array('requestid'));
+
+        // Conditionally launch add index requestid_idx
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // uclasiteindicator savepoint reached
+        upgrade_plugin_savepoint(true, 2012062900, 'tool', 'uclasiteindicator');
+    }
+    
     return $result;
 }

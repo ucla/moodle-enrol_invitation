@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="admin/tool/uclasiteindicator/db" VERSION="20120525" COMMENT="XMLDB file for Moodle admin/tool/uclasiteindicator"
+<XMLDB PATH="admin/tool/uclasiteindicator/db" VERSION="20120629" COMMENT="XMLDB file for Moodle admin/tool/uclasiteindicator"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../../lib/xmldb/xmldb.xsd"
 >
@@ -21,18 +21,19 @@
     <TABLE NAME="ucla_siteindicator_request" COMMENT="ucla_siteindicator_request table retrofitted from MySQL" PREVIOUS="ucla_siteindicator" NEXT="ucla_siteindicator_type">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="requestid"/>
-        <FIELD NAME="requestid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="support"/>
+        <FIELD NAME="requestid" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="support"/>
         <FIELD NAME="support" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" PREVIOUS="requestid" NEXT="type"/>
         <FIELD NAME="type" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="support" NEXT="categoryid"/>
         <FIELD NAME="categoryid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="type" NEXT="requester"/>
-        <FIELD NAME="requester" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="categoryid"/>
+        <FIELD NAME="requester" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="categoryid" NEXT="courseid"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" PREVIOUS="requester"/>
       </FIELDS>
       <KEYS>
-        <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="requestid"/>
-        <KEY NAME="requestid" TYPE="unique" FIELDS="requestid" PREVIOUS="primary"/>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="categoryid" UNIQUE="false" FIELDS="categoryid"/>
+        <INDEX NAME="categoryid" UNIQUE="false" FIELDS="categoryid" NEXT="requestid_idx"/>
+        <INDEX NAME="requestid_idx" UNIQUE="false" FIELDS="requestid" PREVIOUS="categoryid"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="ucla_siteindicator_type" COMMENT="ucla_siteindicator_type table retrofitted from MySQL" PREVIOUS="ucla_siteindicator_request">

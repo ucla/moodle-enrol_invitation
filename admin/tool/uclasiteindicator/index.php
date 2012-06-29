@@ -60,15 +60,13 @@ if(empty($types)) {
     $table = new html_table();
     $table->attributes['class'] = 'generaltable';
     $table->align = array('left', 'left', 'left', 'center', 'center');
-    $table->head = array('Indicator type', 'Shortname', 'Description', 'Visible', get_string('action'));
+    $table->head = array('Indicator type', 'Shortname', 'Description');
 
     foreach($types as $type) {
         $row = array();
         $row[] = $type->fullname;
         $row[] = $type->shortname;
         $row[] = $type->description;
-        $row[] = $type->visible;
-        $row[] = 'action!';
 
         $table->data[] = $row;
     }

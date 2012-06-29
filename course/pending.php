@@ -72,44 +72,36 @@ if (!empty($reject)) {
     $default->reject = $course->id;
     $rejectform->set_data($default);
     
-    // START UCLAMOD CCLE-2389
-    $silentrejectform = new silent_reject_request_form($baseurl);
-    $silentrejectform->set_data($default);
-
 /// Standard form processing if statement.
     if ($rejectform->is_cancelled()){
         redirect($baseurl);
 
     } else if ($data = $rejectform->get_data()) {
-
+        // START UCLAMOD CCLE-2389 - reject a collab site request
         /// Reject the request
-        $course->reject($data->rejectnotice);
+        if($data->email) {
+            $course->reject($data->rejectnotice);
+        } else {
+            $course->delete();
+        }
         ucla_site_indicator::reject($course->id);
 
         /// Redirect back to the course listing.
-        redirect($baseurl, get_string('courserejected'));
-    } else if ($data = $silentrejectform->get_data()) {
-        $course->delete();
-        ucla_site_indicator::reject($course->id);
-        
-        redirect($baseurl);
+        redirect($baseurl, get_string('courserejected', 'tool_uclasiteindicator'));
+        // END UCLAMOD CCLE-2389
     }
 
 /// Display the form for giving a reason for rejecting the request.
     echo $OUTPUT->header($rejectform->focus());
-    $silentrejectform->display();
     $rejectform->display();
     echo $OUTPUT->footer();
     exit;
-    // END UCLAMOD CCLE-2389
-
 }
 
 /// Print a list of all the pending requests.
 echo $OUTPUT->header();
 
-// START UCLA MOD CCLE-2389
-// Show only requested course
+// START UCLA MOD CCLE-2389 - show only a requested course
 if(!empty($request)) {
     $pending = $DB->get_records('course_request', array('id' => $request));
 } else {
@@ -117,26 +109,36 @@ if(!empty($request)) {
 }
 // END UCLA MOD CCLE-2389
 if (empty($pending)) {
-    echo $OUTPUT->heading(get_string('nopendingcourses'));
+    echo $OUTPUT->heading(get_string('nopendingcourses', 'tool_uclasiteindicator'));
 } else {
-    echo $OUTPUT->heading(get_string('coursespending'));
+    echo $OUTPUT->heading(get_string('coursespending', 'tool_uclasiteindicator'));
 
 /// Build a table of all the requests.
     $table = new html_table();
     $table->attributes['class'] = 'pendingcourserequests generaltable';
     $table->align = array('center', 'center', 'center', 'center', 'center', 'center');
-    $table->head = array(get_string('shortnamecourse'), get_string('fullnamecourse'),
-            get_string('requestedby'), get_string('summary'), get_string('requestreason'), get_string('action'));
+    // START UCLA MOD CCLE-2389 - override table strings and add a site type & requested category columns
+    $table->head = array(get_string('shortnamecourse', 'tool_uclasiteindicator'), get_string('fullnamecourse', 'tool_uclasiteindicator'),
+            get_string('sitetype', 'tool_uclasiteindicator'), get_string('sitecat', 'tool_uclasiteindicator'),
+            get_string('requestedby'), get_string('summary'), get_string('requestreason', 'tool_uclasiteindicator'), get_string('action'));
+    // END UCLA MOD CCLE-2389
 
     foreach ($pending as $course) {
         $course = new course_request($course);
 
         // Check here for shortname collisions and warn about them.
         $course->check_shortname_collision();
+        
+        // START UCLA MOD CCLE-2389 - Get site request obj
+        $ireq = new site_indicator_request($course->id);
 
         $row = array();
         $row[] = format_string($course->shortname);
         $row[] = format_string($course->fullname);
+        // Set site type and requested category
+        $row[] = $ireq->get_type_string();
+        $row[] = $ireq->get_category_string();
+        // END UCLA MOD CCLE-2389
         $row[] = fullname($course->get_requester());
         $row[] = $course->summary;
         $row[] = format_string($course->reason);
@@ -157,5 +159,7 @@ if (empty($pending)) {
 }
 
 /// Finish off the page.
-echo $OUTPUT->single_button($CFG->wwwroot . '/course/index.php', get_string('backtocourselisting'));
+// START UCLA MOD CCLE-2389 - redirect to homepage instead
+echo $OUTPUT->single_button($CFG->wwwroot . '/my/', get_string('backtocourselisting', 'tool_uclasiteindicator'));
+// END UCLA MOD CCLE-2389
 echo $OUTPUT->footer();

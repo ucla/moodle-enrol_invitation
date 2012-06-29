@@ -30,8 +30,9 @@ require_once($CFG->dirroot . '/course/request_form.php');
 $PAGE->set_url('/course/request.php');
 
 /// Where we came from. Used in a number of redirects.
-$returnurl = $CFG->wwwroot . '/course/index.php';
-
+// START UCLA MOD CCLE-2389 - redirecting to my-sites instead
+$returnurl = $CFG->wwwroot . '/my/';
+// END UCLA MOD CCLE-2389
 
 /// Check permissions.
 require_login();
@@ -50,7 +51,9 @@ $data = course_request::prepare();
 $requestform = new course_request_form($CFG->wwwroot . '/course/request.php', compact('editoroptions'));
 $requestform->set_data($data);
 
-$strtitle = get_string('courserequest');
+// START UCLAMOD CCLE-2389 - override string
+$strtitle = get_string('courserequest', 'tool_uclasiteindicator');
+// END UCLAMOD CCLE-2389 
 $PAGE->set_title($strtitle);
 $PAGE->set_heading($strtitle);
 
@@ -59,14 +62,14 @@ if ($requestform->is_cancelled()){
     redirect($returnurl);
 
 } else if ($data = $requestform->get_data()) {
+    // START UCLAMOD CCLE-2389 - clean shortname, add request to table, display message
+    ucla_site_indicator::clean_shortname($data);
     $request = course_request::create($data);
-    // START UCLAMOD CCLE-2389
-    // Save course to siteindicator request table
     ucla_site_indicator::request($data);
-    // END UCLAMOD CCLE-2389
     
     // and redirect back to the course listing.
-    notice(get_string('courserequestsuccess'), $returnurl);
+    notice(get_string('courserequestsuccess', 'tool_uclasiteindicator'), $returnurl);
+    // END UCLAMOD CCLE-2389
 }
 
 $PAGE->navbar->add($strtitle);

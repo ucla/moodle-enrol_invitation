@@ -53,7 +53,7 @@ class course_request_form extends moodleform {
         if(has_capability('tool/uclasiteindicator:view', $context)) {
 
             if ($pending = $DB->get_records('course_request', array('requester' => $USER->id))) {
-                $mform->addElement('header', 'pendinglist', get_string('coursespending'));
+                $mform->addElement('header', 'pendinglist', get_string('coursespending', 'tool_uclasiteindicator'));
                 $list = array();
                 foreach ($pending as $cp) {
                     $list[] = format_string($cp->fullname);
@@ -83,33 +83,35 @@ class course_request_form extends moodleform {
         $displaylist = ucla_site_indicator::get_categories_list();
         $mform->addElement('select', 'indicator_category', get_string('req_category', 'tool_uclasiteindicator'), $displaylist);
         $mform->addHelpButton('indicator_category', 'req_category', 'tool_uclasiteindicator');
-        // END UCLAMOD CCLE-2389
 
-        $mform->addElement('header','coursedetails', get_string('courserequestdetails'));
+        // Overriding lang strings
+        $mform->addElement('header','coursedetails', get_string('courserequestdetails', 'tool_uclasiteindicator'));
 
-        $mform->addElement('text', 'fullname', get_string('fullnamecourse'), 'maxlength="254" size="50"');
-        $mform->addHelpButton('fullname', 'fullnamecourse');
+        $mform->addElement('text', 'fullname', get_string('fullnamecourse', 'tool_uclasiteindicator'), 'maxlength="254" size="50"');
+        $mform->addHelpButton('fullname', 'fullnamecourse', 'tool_uclasiteindicator');
         $mform->addRule('fullname', get_string('missingfullname'), 'required', null, 'client');
         $mform->setType('fullname', PARAM_MULTILANG);
 
-        $mform->addElement('text', 'shortname', get_string('shortnamecourse'), 'maxlength="100" size="20"');
-        $mform->addHelpButton('shortname', 'shortnamecourse');
+        $mform->addElement('text', 'shortname', get_string('shortnamecourse', 'tool_uclasiteindicator'), 'maxlength="100" size="20"');
+        $mform->addHelpButton('shortname', 'shortnamecourse', 'tool_uclasiteindicator');
         $mform->addRule('shortname', get_string('missingshortname'), 'required', null, 'client');
         $mform->setType('shortname', PARAM_MULTILANG);
 
         $mform->addElement('editor', 'summary_editor', get_string('summary'), null, course_request::summary_editor_options());
-        $mform->addHelpButton('summary_editor', 'coursesummary');
+        $mform->addHelpButton('summary_editor', 'coursesummary', 'tool_uclasiteindicator');
         $mform->setType('summary_editor', PARAM_RAW);
 
-        $mform->addElement('header','requestreason', get_string('courserequestreason'));
+        $mform->addElement('header','requestreason', get_string('courserequestreason', 'tool_uclasiteindicator'));
 
-        // START UCLA MOD CCLE-2389 - changing default size of 'reason' textbox
+        // changing default size of 'reason' textbox
         $mform->addElement('textarea', 'reason', get_string('courserequestsupport'), array('rows'=>'5', 'cols'=>'50'));
-        // END UCLA MOD CCLE-2389
         $mform->addRule('reason', get_string('missingreqreason'), 'required', null, 'client');
         $mform->setType('reason', PARAM_TEXT);
 
-        $this->add_action_buttons(true, get_string('requestcourse'));
+        // Override submit button lang string
+        $this->add_action_buttons(true, get_string('requestcourse', 'tool_uclasiteindicator'));
+        // END UCLA MOD CCLE-2389
+
     }
 
     function validation($data, $files) {
@@ -162,31 +164,13 @@ class reject_request_form extends moodleform {
         $mform->addElement('hidden', 'reject', 0);
         $mform->setType('reject', PARAM_INT);
 
-        $mform->addElement('header','coursedetails', get_string('coursereasonforrejecting'));
-
-        $mform->addElement('textarea', 'rejectnotice', get_string('coursereasonforrejectingemail'), array('rows'=>'15', 'cols'=>'50'));
-        $mform->addRule('rejectnotice', get_string('missingreqreason'), 'required', null, 'client');
+        // START UCLA MOD CCLE-2389 - modify reject form to reject without emailing user
+        $mform->addElement('header','coursedetails', get_string('coursereasonforrejecting', 'tool_uclasiteindicator'));
+        $mform->addElement('selectyesno', 'email', get_string('reject_yesno', 'tool_uclasiteindicator'));
+        $mform->addElement('textarea', 'rejectnotice', get_string('coursereasonforrejectingemail'), array('rows'=>'5', 'cols'=>'50'));
+        $mform->disabledIf('rejectnotice', 'email', 0);
         $mform->setType('rejectnotice', PARAM_TEXT);
-
+        // END UCLA MOD CCLE-2389
         $this->add_action_buttons(true, get_string('reject'));
-    }
-}
-
-/**
- * Silent reject form 
- */
-
-class silent_reject_request_form extends moodleform {
-    function definition() {
-        $mform =& $this->_form;
-        
-        $mform->addElement('hidden', 'reject', 0);
-        $mform->setType('reject', PARAM_INT);
-        
-        $mform->addElement('header','coursedetails', get_string('reject_header', 'tool_uclasiteindicator'));
-
-        $mform->addElement('static', 'description', '', get_string('reject_label', 'tool_uclasiteindicator'));
-
-        $this->add_action_buttons(false, get_string('reject'));
     }
 }

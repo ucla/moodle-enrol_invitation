@@ -200,18 +200,29 @@ class site_indicator_request {
         global $DB;
         
         $DB->insert_record('ucla_siteindicator', $this->entry);
+        $this->_update_history();
+        $this->_set_default_role();
+    }
+    
+    private function _update_history() {
+        global $DB;
         
-        $this->set_default_role();
-        $this->delete();
+        $update = $this->request;
+        
+        $update->id = $this->_id;
+        $update->courseid = $this->entry->courseid;
+        $update->requestid = null;
+        $update->type = $this->entry->type;
+        
+        $DB->update_record('ucla_siteindicator_request', $update);
     }
     
     /**
      * Set default role for user who requested the course.
      * 
-     * @todo assign a dummy 'course creator' role
      * @return type 
      */
-    private function set_default_role() {
+    private function _set_default_role() {
         global $DB;
         
         // Get toprole
@@ -243,10 +254,10 @@ class site_indicator_request {
                 array('id' => $this->request->requestid));
         
         // Format strings
-        $req_course->type = $this->get_type_str();
+        $req_course->type = $this->get_type_string();
         $req_course->user = $this->get_user_str($req_course->requester);
-        $req_course->category = $this->get_category_str();
-        $req_course->summary = $this->fix_linebreaks($req_course->summary);
+        $req_course->category = $this->get_category_string();
+        $req_course->summary = $this->_fix_linebreaks($req_course->summary);
        
         // Attach the pending course links
         $req_course->action = $CFG->wwwroot . '/course/pending.php?request=' 
@@ -268,14 +279,6 @@ class site_indicator_request {
             'reporter' => $support,
             'description' => $message,
         );
-        
-//        echo "jira support user: " . $support . "<br/>";
-//        echo "<pre>";
-//        print_r($title);
-//        echo "</pre>";
-//        echo "<pre>";
-//        print_r($message);
-//        echo "</pre>";
 
         // Create ticket
         do_request(get_config('block_ucla_help', 'jira_endpoint'), $params, 'POST');      
@@ -320,16 +323,15 @@ class site_indicator_request {
             return null;
         }
     }
-
     
-    private function fix_linebreaks($string) {
+    private function _fix_linebreaks($string) {
         $fix = str_replace('</p>', "\n\n", $string);
         $fix = preg_replace('#<br\s*/?>#i', "\n", $string);
         $fix = strip_tags($fix);
         return $fix;
     }
     
-    private function get_category_str() {
+    function get_category_string() {
         global $DB;
         
         if($this->request->categoryid) {
@@ -351,7 +353,7 @@ class site_indicator_request {
         return $category_string;
     }
     
-    private function get_type_str() {
+    function get_type_string() {
         global $DB;
         $rec = $DB->get_record('ucla_siteindicator_type', 
                 array('id' => $this->entry->type));
@@ -665,7 +667,7 @@ class ucla_site_indicator {
         if($request = site_indicator_request::load($requestid)) {
             $request->entry->courseid = $courseid;
 
-            // Create record for course
+            // Create record for site
             $request->create_indicator_entry();
         } else {
             site_indicator_entry::force_create($courseid);
@@ -692,6 +694,25 @@ class ucla_site_indicator {
         global $DB;
 
         return $DB->get_records('ucla_siteindicator_type');
+    }
+    
+    /**
+     * Cleans the shortname to work with friendly URLs.  Replaces 
+     * bad characters with '-'
+     * 
+     * @param type $data 
+     */
+    static function clean_shortname(&$data) {
+        if(isset($data->shortname)) {
+            // Force lowercase
+            $clean = strtolower($data->shortname);
+            // Avoid spaces in shortnames
+            $clean = str_replace(' ', '-', $clean);
+            // Avoid slashes in shortnames
+            $clean = str_replace('/', '-', $clean);
+            $clean = str_replace('\\', '-', $clean);
+            $data->shortname = $clean;
+        }
     }
 }
 
@@ -732,14 +753,16 @@ class ucla_indicator_admin {
                 GROUP BY c.id";
         $recs = $DB->get_records_sql($query);
 
-        $tuples = array();
-        foreach($recs as $r) {
-            $tuples[] = '(NULL,' . $r->id . ', 4)';
-        }
+        if(!empty($recs)) {
+            $tuples = array();
+            foreach($recs as $r) {
+                $tuples[] = '(NULL,' . $r->id . ', 4)';
+            }
 
-        $query = "INSERT INTO {ucla_siteindicator} 
-                VALUES " . implode(', ', $tuples);
-        
-        $DB->execute($query);
+            $query = "INSERT INTO {ucla_siteindicator} 
+                    VALUES " . implode(', ', $tuples);
+
+            $DB->execute($query);
+        }
     }
 }
