@@ -108,6 +108,131 @@ class block_ucla_office_hours extends block_base {
         //debugging('role not in instructor_levels_roles');    
         return false;
     }
+    
+    /**
+     * Renders the office hours and contact information table to be displayed
+     * on the course webpage.
+     * 
+     * @param array     $instructors        Array of instructors
+     * @param array     $instructor_types   Array of instructor types
+     * @param mixed     $course             Current course
+     * @param mixed     $context            Course context
+     * 
+     * @return string HTML code
+     */
+    public static function render_office_hours_table($instructors, $instructor_types, $course, $context)
+    {
+        global $DB, $OUTPUT, $PAGE;
+        
+        $has_capability_edit_office_hours = has_capability('block/ucla_office_hours:editothers', $context);
+        $editing = $PAGE->user_is_editing();
+        $streditsummary     = get_string('editcoursetitle', 'format_ucla');
+        $instr_info_table = '';
+        
+        foreach ($instructor_types as $title => $rolenames) {
+            $goal_users = array();
+            foreach ($instructors as $user) {
+                if (in_array($user->shortname, $rolenames)) {
+                    $goal_users[$user->id] = $user;
+                }
+            }
+
+            if (empty($goal_users)) {
+                continue;
+            }
+
+            $table = new html_table();
+            $table->width = '*';
+
+            // TODO make this more modular
+            $desired_info = array(
+                'fullname' => $title,
+                'email' => get_string('email', 'format_ucla'),                            
+                'office' => get_string('office', 'format_ucla'),
+                'office_hours' => get_string('office_hours', 'format_ucla'),
+                'phone' => get_string('phone', 'format_ucla'),                            
+            );
+
+            $cdi = count($desired_info);
+            $aligns = array();
+            for ($i = 0; $i < $cdi; $i++) {
+                $aligns[] = 'left';
+            }
+
+            $table->align = $aligns;
+
+            $table->attributes['class'] = 'boxalignleft';
+
+            // use array_values, to remove array keys, which are 
+            // mistaken as another css class for given column
+            $table->head = array_values($desired_info);
+
+            //BEGIN UCLA MOD: CCLE-2381 - Update Office Hours and Contact Info
+            foreach ($goal_users as $user) {
+                $user_row = array();
+                $office_info = $DB->get_record('ucla_officehours', 
+                        array('courseid' => $course->id, 'userid' => $user->id));
+                foreach ($desired_info as $field => $header) {
+                    $dest_data = '';
+                    if ($field == 'fullname') {
+                        if ($editing && $has_capability_edit_office_hours) {
+                            //Need to only display the update string for certain users
+                            $update_url = new moodle_url($CFG->wwwroot . '/blocks/ucla_office_hours/officehours.php',
+                                            array('courseid' => $course->id, 'editid' => $user->id));
+                            $strupdate = get_string('editofficehours', 'format_ucla');
+
+                            // Add an edit icon/text (based on preference)
+                            $link_options = array('title' => $strupdate);
+                            $img_options = array(
+                                    'class' => 'icon edit iconsmall',
+                                    'alt' => $streditsummary
+                                );
+
+                            $innards = new pix_icon('t/edit', $link_options['title'], 
+                                'moodle', $img_options);
+
+                            $dest_data = html_writer::tag('span', 
+                                    $OUTPUT->render(new action_link($update_url, 
+                                        $innards, null, $link_options)),
+                                    array('class' => 'editbutton'));
+                        }
+                        $dest_data .= fullname($user);
+                    } else {
+                        if ($office_info) {
+                            //If there is an entry in the database                                        
+                            if ($field == 'email') {
+                                if (empty($office_info->email)) {
+                                    //If no email is specified, then use profile email
+                                    $dest_data = $user->$field;
+                                } else {
+                                    //Class specific email
+                                    $dest_data = $office_info->email;
+                                }
+                            } else if ($field == 'office') {
+                                $dest_data = $office_info->officelocation;
+                            } else if ($field == 'phone') {
+                                $dest_data = $office_info->phone;
+                            } else if ($field == 'office_hours') {
+                                $dest_data = $office_info->officehours;
+                            }
+                        } else {
+                            if ($field == 'email') {
+                                $dest_data = $user->$field;
+                            }
+                        }
+                    }
+
+                    $user_row[$field] = $dest_data;
+                }
+                $table->data[] = $user_row;
+            }
+            //END UCLA MOD: CCLE-2381
+
+            $instr_info_table .= html_writer::table($table);
+        }
+        
+        return $instr_info_table;
+    }
 }
 
 ?>
