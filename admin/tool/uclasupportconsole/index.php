@@ -529,7 +529,7 @@ foreach ($qs as $query) {
         // Hack because of not following standards...
         if ($query == 'ucla_getterms' 
                 || $query == 'cis_subjectareagetall') {
-            $sendparams = $params[0];
+            $sendparams = array($params[0]);
         }
 
         $allresults = registrar_query::run_registrar_query($query,
