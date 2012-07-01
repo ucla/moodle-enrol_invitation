@@ -195,13 +195,13 @@ $table->set_fields($fields, $renderer);
 $canassign = has_capability('moodle/role:assign', $manager->get_context());
 $users = $manager->get_users_for_display($manager, $table->sort, $table->sortdirection, $table->page, $table->perpage);
 foreach ($users as $userid=>&$user) {
-    // BEGIN UCLA MOD: CCLE-2275 - ENROLLMENT - Prepop/View
-    // don't show users with no roles, except for managers/admins
-    if (!$canassign && empty($user['roles'])) {
+    // BEGIN UCLA MOD: CCLE-2819 - ENROLLMENT - Prepop/View
+    // do not show users with empty roles
+    if (empty($user['roles'])) {
         unset($users[$userid]);
         continue;
     }
-    // END UCLA MOD: CCLE-2275
+    // END UCLA MOD: CCLE-2819
     
     $user['picture'] = $OUTPUT->render($user['picture']);
     $user['role'] = $renderer->user_roles_and_actions($userid, $user['roles'], $manager->get_assignable_roles(), $canassign, $PAGE->url);
