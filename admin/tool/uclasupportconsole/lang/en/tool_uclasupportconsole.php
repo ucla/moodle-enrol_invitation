@@ -32,7 +32,7 @@ $string['enrollview'] = 'Get courses for view enrollment (<a target="_blank" hre
 // The item itself will be there when the SP-object is coded, but there
 // will be no explanation unless the code here is changed (or the SRDB
 // layer is altered to include descriptions within the object).
-$string['ccle_coursegetall'] = 'Get all courses in a subject area (CCLE <a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=3305">ccle_coursegetall</a>)';
+$string['ccle_coursegetall'] = 'Get all courses in a subject area for BrowseBy (CCLE <a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=3305">ccle_coursegetall</a>)';
 $string['ccle_courseinstructorsget'] = 'Get instructors for course (<a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=3306">ccle_courseinstructorsget</a>)';
 $string['ccle_getclasses'] = 'Get information about course (<a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=3308">ccle_getclasses</a>)';
 $string['ccle_getinstrinfo'] = 'Get all instructors in a subject area (<a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=3309">ccle_getinstrinfo</a>)';

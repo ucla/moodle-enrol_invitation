@@ -461,20 +461,19 @@ foreach ($qs as $query) {
         switch ($query) {
             // uid, term
             case 'ucla_get_user_classes':
-
                 $input_html .= get_uid_input($query);      
                 $input_html .= get_term_selector($query);                
                 break;
             // term, subject area
-            case 'cis_coursegetall':
+            case 'ccle_coursegetall': 
             case 'ccle_getinstrinfo':
+            case 'cis_coursegetall':                                
                 $input_html .= get_term_selector($query);
                 $input_html .= get_subject_area_selector($query);
                 break;            
             // term, srs
-            case 'ccle_coursegetall': 
+            case 'ccle_courseinstructorsget':            
             case 'ccle_getclasses':
-            case 'ccle_courseinstructorsget':
             case 'ccle_roster_class':
                 $input_html .= get_term_selector($query);
                 $input_html .= get_srs_input($query);      
