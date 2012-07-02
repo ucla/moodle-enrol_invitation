@@ -66,7 +66,6 @@ $has_capability_viewhidden =
         has_capability('moodle/course:viewhiddensections', $context);
 
 $has_capability_update = has_capability('moodle/course:update', $context);
-$has_capability_edit_office_hours = has_capability('block/ucla_office_hours:editothers', $context); // Comment out??
 $get_accesshide = get_accesshide(get_string('currenttopic', 'access'));
 
 // Cache all these get_string(), because you know, they're cached already...

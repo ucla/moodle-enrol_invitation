@@ -122,7 +122,7 @@ class block_ucla_office_hours extends block_base {
      */
     public static function render_office_hours_table($instructors, $instructor_types, $course, $context)
     {
-        global $DB, $OUTPUT, $PAGE;
+        global $DB, $OUTPUT, $PAGE, $USER;
         
         $has_capability_edit_office_hours = has_capability('block/ucla_office_hours:editothers', $context);
         $editing = $PAGE->user_is_editing();
@@ -172,6 +172,7 @@ class block_ucla_office_hours extends block_base {
                 $user_row = array();
                 $office_info = $DB->get_record('ucla_officehours', 
                         array('courseid' => $course->id, 'userid' => $user->id));
+                $email_display = $DB->get_record('user', array('id' => $user->id), 'maildisplay')->maildisplay;
                 foreach ($desired_info as $field => $header) {
                     $dest_data = '';
                     if ($field == 'fullname') {
@@ -198,14 +199,18 @@ class block_ucla_office_hours extends block_base {
                         }
                         $dest_data .= fullname($user);
                     } else {
+                        // Determine if we should display the instructor's email
+                        $display_email = $field == 'email' && ($email_display == 2 && 
+                                (is_enrolled($context, $USER) || has_capability('moodle/course:update', $context) || 
+                                $email_display == 1));
+                        // If there is an entry in the database
                         if ($office_info) {
-                            //If there is an entry in the database                                        
-                            if ($field == 'email') {
+                            if ($display_email) {
                                 if (empty($office_info->email)) {
-                                    //If no email is specified, then use profile email
+                                    // If no email is specified, then use profile email
                                     $dest_data = $user->$field;
                                 } else {
-                                    //Class specific email
+                                    // Class specific email
                                     $dest_data = $office_info->email;
                                 }
                             } else if ($field == 'office') {
@@ -216,7 +221,7 @@ class block_ucla_office_hours extends block_base {
                                 $dest_data = $office_info->officehours;
                             }
                         } else {
-                            if ($field == 'email') {
+                            if ($display_email) {
                                 $dest_data = $user->$field;
                             }
                         }
