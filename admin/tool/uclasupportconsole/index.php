@@ -498,19 +498,20 @@ foreach ($qs as $query) {
         
         /* Possible params:
          * term
-         * subject_area
+         * subjarea
          * srs
          * uid
          */
         $params = array();
-        $possible_params = array('term', 'subject_area', 'srs', 'uid');
+        $possible_params = array('term', 'subjarea', 'srs', 'uid');
         foreach ($possible_params as $param_name) {
             if ($param_value = optional_param($param_name, '', PARAM_NOTAGS)) {
                 $params[$param_name] = $param_value;
             }
         }
-
-        $allresults = registrar_query::run_registrar_query($query, array($params));
+        $sendparams = array($params);
+        
+        $allresults = registrar_query::run_registrar_query($query, $sendparams);
 
         $results = array_merge($allresults[registrar_query::query_results], 
             $allresults[registrar_query::failed_outputs]);

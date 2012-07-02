@@ -50,7 +50,7 @@ function get_subject_area_selector($id, $selected_subject_area = null) {
     $ret_val .= html_writer::label(get_string('subject_area', 
             'tool_uclasupportconsole'), $id.'_subject_area_selector');
     $ret_val .= html_writer::select($_subject_area_selector_subjects, 
-            'subject_area', $selected_subject_area, 
+            'subjarea', $selected_subject_area, 
             get_string('choose_subject_area', 'tool_uclasupportconsole'), 
             array('id' => $id.'_subject_area_selector'));
         
