@@ -9,8 +9,22 @@ $string['users'] = 'User tools';
 $string['srdb'] = 'Registrar tools';
 $string['modules'] = 'Module tools';
 
-// Logs
+// System logs
 $string['syslogs'] = 'View last 1000 lines of a log';
+$string['syslogs_info'] = 'If a selection is disabled, then the corresponding log file was not found.';
+$string['syslogs_select'] = 'Select a log file';
+$string['syslogs_choose'] = 'Choose log...';
+$string['log_apache_error'] = 'Apache error';
+$string['log_apache_access'] = 'Apache access';
+$string['log_apache_ssl_access'] = 'Apache SSL access';
+$string['log_apache_ssl_error'] = 'Apache SSL error';
+$string['log_apache_ssl_request'] = 'Apache SSL access';
+$string['log_shibboleth_shibd'] = 'Shibboleth daemon';
+$string['log_shibboleth_trans'] = 'Shibboleth transaction';
+$string['log_moodle_cron'] = 'Moodle cron';
+$string['log_course_creator'] = 'Course creator';
+
+// Other logs
 $string['prepopfiles'] = 'Show pre-pop files';
 $string['prepopview'] = 'Show latest pre-pop output';
 $string['prepoprun'] = 'Run prepop for one course';

@@ -30,62 +30,71 @@ $consoles = new tool_supportconsole_manager();
 // CHECKING LOGS 
 ////////////////////////////////////////////////////////////////////
 $title = "syslogs";
-$log_names = array('Apache Error'           => 'log_apache_error',
-                   'Apache Access'          => 'log_apache_access',
-                   'Apache SSL Access'      => 'log_apache_ssl_access',
-                   'Apache SSL Error'       => 'log_apache_ssl_error',
-                   'Apache SSL Request'     => 'log_apache_ssl_request',
-                   'Shibboleth Daemon'      => 'log_shibboleth_shibd',
-                   'Shibboleth Transaction' => 'log_shibboleth_trans',
-                   'Moodle Cron'            => 'log_moodle_cron');
-
-// START UCLA MODIFCATION SSC #769 - More configurable and dynamic paths for log files
-foreach ($log_names as $log_title => $cfg_var) {
-    if (isset($CFG->$cfg_var) && file_exists($CFG->$cfg_var)) {
-        $optnames[$log_title] = TRUE;
-    } else {
-        $optnames[$log_title] = FALSE;
-    }
-}
+$syslogs_types = array('log_apache_error', 
+                       'log_apache_access',
+                       'log_apache_ssl_access',
+                       'log_apache_ssl_error',
+                       'log_apache_ssl_request',
+                       'log_shibboleth_shibd',
+                       'log_shibboleth_trans',
+                       'log_moodle_cron',
+                       'log_course_creator');
 
 $sectionhtml = '';
-
 if ($displayforms) {
     $logselects = array();
-    foreach ($optnames as $logname => $enable) {
-        $attarr = array(
-                'value' => $logname
-            );
-        if (!$enable) {
+    
+    // build select list for logs
+    foreach ($syslogs_types as $syslogs_type) {
+        $attarr = array('value' => $syslogs_type);
+
+        // see if logtype is set and accessible
+        $log_location = get_config('tool_uclasupportconsole', $syslogs_type);
+        if (empty($log_location) || !file_exists($log_location)) {
             $attarr['disabled'] = true;
-        }
-
-        $logselects[$logname] = html_writer::tag('option', 
-            $logname, $attarr);
+        }      
+        
+        $logselects[$syslogs_type] = html_writer::tag('option', 
+            get_string($syslogs_type, 'tool_uclasupportconsole'), $attarr);
     } 
+    
+    // add "Choose log..."
+    $logselects = array('none' => html_writer::tag('option', 
+            get_string('syslogs_choose', 'tool_uclasupportconsole'))) + $logselects;    
 
-    $logselect = html_writer::label('Select a log file', 'log-select')
-        . html_writer::tag('select', implode('', $logselects),
-            array('name' => 'logname', 'id' => 'log-select'));
+    $logselect = html_writer::label(get_string('syslogs_select', 'tool_uclasupportconsole'), $title) . 
+            html_writer::tag('select', implode('', $logselects),
+            array('name' => 'log', 'id' => $title));
 
-    $sectionhtml = supportconsole_simple_form($title, $logselect)   
-        . html_writer::tag('p', 'If a selection is disabled, then the corresponding log file was not found.');
+    $sectionhtml = supportconsole_simple_form($title, $logselect) . 
+            html_writer::tag('p', get_string('syslogs_info', 'tool_uclasupportconsole'));
 } else if ($consolecommand == $title) {
     ob_start();
-    $log_file = required_param('logname', PARAM_ALPHAEXT);
+    
+    $log_file = required_param('log', PARAM_ALPHAEXT);
+    $log_file = basename($log_file);
 
-    if (empty($logfile) || !preg_grep("/^$logfile$/", $log_names)) { 
+    // invalid log type
+    if (!in_array($log_file, $syslogs_types)) {
         echo "Invalid logfile name. $logfile\n";
-        exit;
+        exit;        
     }
     
-    echo $CFG->$logfile . "*\n";
-   
-    // Use the specified CFG variable to display the log names.
+    // else try to display it    
+    $log_location = get_config('tool_uclasupportconsole', $log_file);    
+    
+    // if viewing log_course_creator, then get latest log file
+    if ($log_file == 'log_course_creator') {
+        // get last log file
+        $last_pre_pop = exec(sprintf('ls -t1 %s | head -n1', $log_location));
+        $log_location = $log_location . $last_pre_pop;
+    }
+    
+    echo $log_location . "\n";
     $tail_command = "/usr/bin/tail -1000 ";
-    system($tail_command . '`ls -t ' . $CFG->$logfile . '* | /usr/bin/head -1`');
+    system($tail_command . ' ' . $log_location);
 
-    $sectionhtml = htmlspecialchars(ob_get_clean());
+    $sectionhtml = nl2br(htmlspecialchars(ob_get_clean()));
 } 
 $consoles->push_console_html('logs', $title, $sectionhtml);
 
