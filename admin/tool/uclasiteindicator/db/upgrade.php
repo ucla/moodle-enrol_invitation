@@ -100,5 +100,53 @@ function xmldb_tool_uclasiteindicator_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2012062900, 'tool', 'uclasiteindicator');
     }
     
+    if ($oldversion < 2012070202) {
+
+        // Define table ucla_siteindicator_type to be dropped
+        $table = new xmldb_table('ucla_siteindicator_type');
+
+        // Conditionally launch drop table for ucla_siteindicator_type
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+        
+        $table = new xmldb_table('ucla_siteindicator_request');
+        $field = new xmldb_field('support');
+
+        // Conditionally launch drop field support
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+        
+        $field = new xmldb_field('type', XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, null, 'requestid');
+
+        // Launch change of type for field type
+        $dbman->change_field_type($table, $field);
+
+        
+        // Define index type (not unique) to be dropped form ucla_siteindicator
+        $table = new xmldb_table('ucla_siteindicator');
+        $index = new xmldb_index('type', XMLDB_INDEX_NOTUNIQUE, array('type'));
+
+        // Conditionally launch drop index type
+        if ($dbman->index_exists($table, $index)) {
+            $dbman->drop_index($table, $index);
+        }
+        
+        $field = new xmldb_field('type', XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, null, 'courseid');
+
+        // Launch change of type for field type
+        $dbman->change_field_type($table, $field);
+        
+        $index = new xmldb_index('type', XMLDB_INDEX_NOTUNIQUE, array('type'));
+
+        // Conditionally launch add index type
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+        // uclasiteindicator savepoint reached
+        upgrade_plugin_savepoint(true, 2012070202, 'tool', 'uclasiteindicator');
+    }
+    
     return $result;
 }

@@ -55,7 +55,7 @@ if(empty($types)) {
     
 } else {
 
-    $uclaindicator = new ucla_site_indicator();
+    $uclaindicator = new siteindicator_manager();
     
     $table = new html_table();
     $table->attributes['class'] = 'generaltable';

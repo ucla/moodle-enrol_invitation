@@ -65,22 +65,22 @@ class course_request_form extends moodleform {
         
         // Build the indicator types and display radio option group
         $mform->addElement('header','siteindicator', get_string('req_desc', 'tool_uclasiteindicator'));
-        $types = ucla_site_indicator::get_indicator_types();
+        $types = siteindicator_manager::get_types_list();
         $radioarray = array();
         foreach($types as $type) {
-            $descstring = '<strong>' . $type->fullname . '</strong> - ' . $type->description;
+            $descstring = '<strong>' . $type['fullname'] . '</strong> - ' . $type['description'];
             $attributes = array(
                 'class' => 'indicator_desc',
-                'value' => $type->id
+                'value' => $type['shortname']
             );
-            $radioarray[] = &MoodleQuickForm::createElement('radio', 'indicator_type', '', $descstring, $type->id, $attributes);
+            $radioarray[] = &MoodleQuickForm::createElement('radio', 'indicator_type', '', $descstring, $type['shortname'], $attributes);
         }
         
         $mform->addGroup($radioarray, 'indicator_type_radios', get_string('req_type', 'tool_uclasiteindicator'), array('<br/>'), false);
         $mform->addRule('indicator_type_radios', 'you did not specify a type', 'required');
         $mform->addHelpButton('indicator_type_radios', 'req_type', 'tool_uclasiteindicator');
 
-        $displaylist = ucla_site_indicator::get_categories_list();
+        $displaylist = siteindicator_manager::get_categories_list();
         $mform->addElement('select', 'indicator_category', get_string('req_category', 'tool_uclasiteindicator'), $displaylist);
         $mform->addHelpButton('indicator_category', 'req_category', 'tool_uclasiteindicator');
 

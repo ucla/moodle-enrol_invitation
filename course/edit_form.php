@@ -43,10 +43,9 @@ class course_edit_form extends moodleform {
         if(!empty($course->id)) {
             
             $mform->addElement('header','uclasiteindicator', get_string('pluginname', 'tool_uclasiteindicator'));
-            $indicator = site_indicator_entry::load($course->id);
             
-            if($indicator) {
-                $indicator_type = '<strong>' . $indicator->type_fullname . ' '
+            if($indicator = siteindicator_site::load($course->id)) {
+                $indicator_type = '<strong>' . siteindicator_manager::get_types_list($indicator->type) . ' '
                         . get_string('site', 'tool_uclasiteindicator') . '</strong>';
                 $mform->addElement('static', 'indicator', get_string('type', 'tool_uclasiteindicator'), 
                         $indicator_type);
@@ -57,13 +56,13 @@ class course_edit_form extends moodleform {
                 
                 // Change the site type
                 if(has_capability('tool/uclasiteindicator:edit', $systemcontext)) {
-                    $types = ucla_site_indicator::get_indicator_types();
+                    $types = siteindicator_manager::get_types_list();
                     $radioarray = array();
                     foreach($types as $type) {
                         $descstring = '<strong>' . $type->fullname . '</strong> - ' . $type->description;
                         $attributes = array(
                             'class' => 'indicator_desc',
-                            'value' => $type->id
+                            'value' => $type->shortname
                         );
                         $radioarray[] = &MoodleQuickForm::createElement('radio', 'indicator_change', '', $descstring, $type->id, $attributes);
                     }

@@ -53,7 +53,7 @@ if (!empty($approve) and confirm_sesskey()) {
 
     if ($courseid !== false) {
         // START UCLAMOD CCLE-2389
-        ucla_site_indicator::create($courseid, $approve);
+        siteindicator_manager::approve($courseid, $approve);
         // END UCLAMOD CCLE-2389
         redirect($CFG->wwwroot.'/course/edit.php?id=' . $courseid);
     } else {
@@ -84,7 +84,7 @@ if (!empty($reject)) {
         } else {
             $course->delete();
         }
-        ucla_site_indicator::reject($course->id);
+        siteindicator_manager::reject($course->id);
 
         /// Redirect back to the course listing.
         redirect($baseurl, get_string('courserejected', 'tool_uclasiteindicator'));
@@ -130,14 +130,14 @@ if (empty($pending)) {
         $course->check_shortname_collision();
         
         // START UCLA MOD CCLE-2389 - Get site request obj
-        $ireq = new site_indicator_request($course->id);
+        $request = new siteindicator_request($course->id);
 
         $row = array();
         $row[] = format_string($course->shortname);
         $row[] = format_string($course->fullname);
         // Set site type and requested category
-        $row[] = $ireq->get_type_string();
-        $row[] = $ireq->get_category_string();
+        $row[] = siteindicator_manager::get_types_list($request->request->type);
+        $row[] = siteindicator_manager::get_categories_list($request->request->categoryid);
         // END UCLA MOD CCLE-2389
         $row[] = fullname($course->get_requester());
         $row[] = $course->summary;

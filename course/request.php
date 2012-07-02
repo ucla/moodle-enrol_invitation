@@ -63,9 +63,9 @@ if ($requestform->is_cancelled()){
 
 } else if ($data = $requestform->get_data()) {
     // START UCLAMOD CCLE-2389 - clean shortname, add request to table, display message
-    ucla_site_indicator::clean_shortname($data);
+    siteindicator_manager::clean_shortname($data);
     $request = course_request::create($data);
-    ucla_site_indicator::request($data);
+    siteindicator_manager::create_request($data);
     
     // and redirect back to the course listing.
     notice(get_string('courserequestsuccess', 'tool_uclasiteindicator'), $returnurl);
