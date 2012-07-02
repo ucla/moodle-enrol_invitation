@@ -26,7 +26,7 @@ $string['roleassignments'] = 'Count of role assignments on system';
 $string['countnewusers'] = 'Show most recently created users';
 
 // The SRDB
-$string['enrollview'] = 'Look up user courses by UID';
+$string['enrollview'] = 'Get courses for view enrollment (<a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=3318">enrol2</a>)';
 
 // For each stored procedure, the name is dynamically generated.
 // The item itself will be there when the SP-object is coded, but there
@@ -40,6 +40,7 @@ $string['ccle_roster_class'] = 'Get student roster for class (<a target="_blank"
 $string['cis_coursegetall'] = 'Get all courses in a subject area  (CIS <a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=3311">cis_coursegetall</a>)';
 $string['cis_subjectareagetall'] = 'Get all subject area codes and full names (<a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=3313">cis_subjectareagetall</a>)';
 $string['ucla_getterms'] = 'Get terms information (<a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=3315">ucla_getterms</a>)';
+$string['ucla_get_user_classes'] = 'Get courses for My sites (<a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=16788">ucla_get_user_classes</a>)';
 
 $string['courseregistrardifferences'] = 'Compare course data with Registrar data.';
 

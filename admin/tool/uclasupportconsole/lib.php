@@ -4,6 +4,21 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/uclasupportconsole/manager.class.php');
 
 /**
+ * Generates input field for SRS number
+ * 
+ * @param string $id        Id to use for label
+ * 
+ * @return string           Returns HTML to render SRS input 
+ */
+function get_srs_input($id) {
+    $ret_val = html_writer::label(get_string('srs', 
+            'tool_uclasupportconsole'), $id.'_srs');
+    $ret_val .= html_writer::empty_tag('input', 
+            array('type' => 'text', 'name' => 'srs', 'id' => $id.'_srs'));        
+    return $ret_val;
+}
+
+/**
  * Either creates or returns a subject area selector dropdown.
  * 
  * @global object $DB
@@ -63,19 +78,14 @@ function get_term_selector($id, $selected_term = null) {
     }
   
     if (!isset($_term_selector_terms)) {
-        // generate associative array: term => term_name
-        $sql = 'SELECT DISTINCT term
+        // generate associative array: term => term
+        $sql = 'SELECT DISTINCT term AS term_index,
+                                term AS term_value
                 FROM            {ucla_request_classes}
                 WHERE           1';
-        $results = $DB->get_records_sql($sql);
-        if (empty($results)) {
+        $terms = $DB->get_records_sql_menu($sql);
+        if (empty($terms)) {
             return '';
-        }
-
-        // now go through each term and find its name
-        $terms = array();
-        foreach ($results as $result) {
-            $terms[$result->term] = ucla_term_to_text($result->term);
         }
         
         // sort array in decending order
@@ -90,6 +100,21 @@ function get_term_selector($id, $selected_term = null) {
             array('id' => $id.'_term_selector'));
     
     
+    return $ret_val;
+}
+
+/**
+ * Generates input field for UID number
+ * 
+ * @param string $id        Id to use for label
+ * 
+ * @return string           Returns HTML to render UID input 
+ */
+function get_uid_input($id) {
+    $ret_val = html_writer::label(get_string('uid', 
+            'tool_uclasupportconsole'), $id.'_uid');
+    $ret_val .= html_writer::empty_tag('input', 
+            array('type' => 'text', 'name' => 'uid', 'id' => $id.'_uid'));        
     return $ret_val;
 }
 

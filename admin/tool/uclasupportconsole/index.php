@@ -422,13 +422,7 @@ $title = "enrollview";
 // Note: this has code which allows post from Name Lookup report 
 $sectionhtml = '';
 if ($displayforms) {
-    $sectionhtml .= supportconsole_simple_form($title, 
-        html_writer::label('UID', 'enroll-uid') 
-            . html_writer::empty_tag('input', array(
-                'id' => 'enroll-uid',
-                'name' => 'uid', 
-                'type' => 'text'
-            )));
+    $sectionhtml .= supportconsole_simple_form($title, get_uid_input($title));
 } else if ($consolecommand == $title) {
     # tie-in to link from name lookup
     $uid = required_param('uid', PARAM_INT);
@@ -467,12 +461,8 @@ foreach ($qs as $query) {
         switch ($query) {
             // uid, term
             case 'ucla_get_user_classes':
-                $input_html .= html_writer::label(get_string('uid', 'tool_uclasupportconsole'), $query.'_spa2');
-                $input_html .= html_writer::empty_tag('input', array (
-                    'name' => 'spa1',
-                    'type' => 'text',
-                    'id' => $query.'_spa1'
-                ));                       
+
+                $input_html .= get_uid_input($query);      
                 $input_html .= get_term_selector($query);                
                 break;
             // term, subject area
@@ -487,12 +477,7 @@ foreach ($qs as $query) {
             case 'ccle_courseinstructorsget':
             case 'ccle_roster_class':
                 $input_html .= get_term_selector($query);
-                $input_html .= html_writer::label(get_string('srs', 'tool_uclasupportconsole'), $query.'_spa2');
-                $input_html .= html_writer::empty_tag('input', array (
-                    'name' => 'spa2',
-                    'type' => 'text',
-                    'id' => $query.'_spa2'
-                ));               
+                $input_html .= get_srs_input($query);      
                 break;
             // term
             case 'cis_subjectareagetall': 
@@ -510,30 +495,22 @@ foreach ($qs as $query) {
 
         $sectionhtml .= supportconsole_simple_form($query, $input_html);
     } else if ($consolecommand == $query) {
-        $spa1 = optional_param('spa1', '', PARAM_NOTAGS);
-        if (empty($spa1)) {
-            // if empty, then most likely term was passed
-            $params[] = optional_param('term', '', PARAM_ALPHANUM);
-        } else {
-            $params[] = $spa1;
-        }         
-        $spa2 = optional_param('spa2', '', PARAM_NOTAGS); 
-        if (empty($spa2)) {
-            // if empty, then most likely subject area was passed
-            $params[] = optional_param('subject_area', '', PARAM_ALPHANUM);
-        } else {
-            $params[] = $spa2;
-        }            
-        $sendparams = array($params);
-
-        // Hack because of not following standards...
-        if ($query == 'ucla_getterms' 
-                || $query == 'cis_subjectareagetall') {
-            $sendparams = array($params[0]);
+        
+        /* Possible params:
+         * term
+         * subject_area
+         * srs
+         * uid
+         */
+        $params = array();
+        $possible_params = array('term', 'subject_area', 'srs', 'uid');
+        foreach ($possible_params as $param_name) {
+            if ($param_value = optional_param($param_name, '', PARAM_NOTAGS)) {
+                $params[$param_name] = $param_value;
+            }
         }
 
-        $allresults = registrar_query::run_registrar_query($query,
-            $sendparams);
+        $allresults = registrar_query::run_registrar_query($query, array($params));
 
         $results = array_merge($allresults[registrar_query::query_results], 
             $allresults[registrar_query::failed_outputs]);
