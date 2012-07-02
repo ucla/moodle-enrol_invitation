@@ -52,4 +52,14 @@ class block_ucla_help extends block_base {
             return $CFG->wwwroot . '/blocks/ucla_help/index.php?course=' . $COURSE->id;
         }
     }    
+    
+    public function applicable_formats() {
+        return array(
+            'site-index' => false,
+            'course-view' => false,
+            'my' => false,
+            'block-ucla_office_hours' => false,
+            'not-really-applicable' => true
+        );
+    }    
 }

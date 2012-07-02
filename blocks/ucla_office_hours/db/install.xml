@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="blocks/ucla_office_hours/db" VERSION="20120607" COMMENT="XMLDB file for Moodle blocks/ucla_office_hours"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="ucla_officehours" COMMENT="Holds information about office hours and contact info">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="userid"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="courseid"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="11" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" PREVIOUS="userid" NEXT="officelocation"/>
+        <FIELD NAME="officelocation" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" PREVIOUS="courseid" NEXT="officehours"/>
+        <FIELD NAME="officehours" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" PREVIOUS="officelocation" NEXT="email"/>
+        <FIELD NAME="email" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" PREVIOUS="officehours" NEXT="phone"/>
+        <FIELD NAME="phone" TYPE="char" LENGTH="24" NOTNULL="true" SEQUENCE="false" PREVIOUS="email" NEXT="timemodified"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="phone" NEXT="modifierid"/>
+        <FIELD NAME="modifierid" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="false" SEQUENCE="false" PREVIOUS="timemodified"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="courseid"/>
+        <KEY NAME="courseid" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id" PREVIOUS="primary" NEXT="userid"/>
+        <KEY NAME="userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id" PREVIOUS="courseid" NEXT="modifierid"/>
+        <KEY NAME="modifierid" TYPE="foreign" FIELDS="modifierid" REFTABLE="user" REFFIELDS="id" PREVIOUS="userid"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="cuid" UNIQUE="true" FIELDS="courseid, userid"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>

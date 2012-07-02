@@ -42,6 +42,6 @@ $string['public1'] = 'Item is in the public domain';
 $string['cc1'] = 'Item is available for this use via Creative Commons license';
 $string['obtained']='I have obtained written permission from the copyright holder';
 $string['fairuse']='I am using this item under fair use';
-$string['tbd']='Upload by faculty designate; copyright status to be determined';
+$string['tbd']='Copyright status not yet identified';
 
 // END UCLA MOD: CCLE-2669

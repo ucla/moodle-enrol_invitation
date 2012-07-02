@@ -1,4 +1,5 @@
 <?php
+
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -22,11 +23,10 @@
  * @package ucla
  * @subpackage format
  */
-
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->libdir.'/filelib.php');
-require_once($CFG->libdir.'/completionlib.php');
+require_once($CFG->libdir . '/filelib.php');
+require_once($CFG->libdir . '/completionlib.php');
 
 global $CFG, $USER, $PAGE;
 
@@ -37,13 +37,12 @@ $displaysection = null;
 $to_topic = null;
 
 // Use $displaysection when figuring out which section the user is viewing
-list($to_topic, $displaysection) = ucla_format_figure_section($course,
-    $course_prefs);
+list($to_topic, $displaysection) = ucla_format_figure_section($course, $course_prefs);
 
 course_set_display($course->id, $to_topic);
 
 // Leave in marker functionality, this isn't really used except visually
-// TODO maybe use it for other stuff, like landing page?
+// TODO maybe use it for other stuff
 if (($marker >= 0) 
         && has_capability('moodle/course:setcurrentsection', $context) 
         && confirm_sesskey()) {
@@ -53,57 +52,74 @@ if (($marker >= 0)
 
 /**
  *  Required forums for the UCLA format.
- **/
+ * */
 // Build our required forums
 $forum_new = forum_get_course_forum($course->id, 'news');
 $forum_gen = forum_get_course_forum($course->id, 'general');
 
 /**
  *  Important Non-Variants.
- **/
+ * */
 $context = get_context_instance(CONTEXT_COURSE, $course->id);
 
-$has_capability_viewhidden = 
-    has_capability('moodle/course:viewhiddensections', $context);
+$has_capability_viewhidden =
+        has_capability('moodle/course:viewhiddensections', $context);
 
 $has_capability_update = has_capability('moodle/course:update', $context);
+$has_capability_edit_office_hours = has_capability('block/ucla_office_hours:editothers', $context);
 $get_accesshide = get_accesshide(get_string('currenttopic', 'access'));
 
 // Cache all these get_string(), because you know, they're cached already...
-$streditsummary   = get_string('editcoursetitle', 'format_ucla');
-$streditsectionsummary = get_string('editsectiontitle', 'format_ucla');
-$stradd           = get_string('add');
-$stractivities    = get_string('activities');
-$strshowalltopics = get_string('showalltopics');
-$strtopic         = get_string('topic');
-$strgroups        = get_string('groups');
-$strgroupmy       = get_string('groupmy');
+// these commented out strings seem to not be used anywhere
+//$stradd           = get_string('add');
+//$stractivities    = get_string('activities');
+//$strshowalltopics = get_string('showalltopics');
+//$strtopic         = get_string('topic');
+//$strgroups        = get_string('groups');
+//$strgroupmy       = get_string('groupmy');
 $strishidden      = '(' . get_string('hidden', 'calendar') . ')';
-$editing          = $PAGE->user_is_editing();
 
+$editing = $PAGE->user_is_editing();
 if ($editing) {
+    $streditsummary     = get_string('editcoursetitle', 'format_ucla');
+    $streditsectionsummary = get_string('editsectiontitle', 'format_ucla');    
     $strtopichide       = get_string('hidetopicfromothers');
     $strtopicshow       = get_string('showtopicfromothers');
     $strmarkthistopic   = get_string('markthistopic');
     $strmarkedthistopic = get_string('markedthistopic');
     $strmoveup          = get_string('moveup');
     $strmovedown        = get_string('movedown');
+    $strmovealt         = get_string('movealt', 'format_ucla');    
+    
+    // CCLE-2800 - cache strings for JIT links
+    $jit_links = array('file' => get_string('file', 'format_ucla'),
+                       'link' => get_string('link', 'format_ucla'),
+                       'text' => get_string('text', 'format_ucla'),
+                       'subheading' => get_string('subheading', 'format_ucla'));    
 }
 
 // Include our custom ajax overwriters.
 // This needs to be printed after the headers, but before the footers.
+$noeditingicons = get_user_preferences('noeditingicons', 1);
 if ($useajax) {
-    echo html_writer::script(false, 
-        new moodle_url('/course/format/ucla/sections.js'));
+    echo html_writer::script(false, new moodle_url('/course/format/ucla/sections.js'));
+
+    if ($noeditingicons) {
+        $editingiconsjs = 'true';
+    } else {
+        $editingiconsjs = 'false';
+    }
 
     echo html_writer::script("
     M.format_ucla.strings['hidden'] = '$strishidden';
+    M.format_ucla.strings['movealt'] = '$strmovealt';
+    M.format_ucla.no_editing_icons = $noeditingicons;
     ");
 }
 
 /**
  *  Get instructor information.
- **/
+ * */
 // TODO see if there is an API call for this query
 // TODO if not, move outside to library
 $params = array();
@@ -132,7 +148,7 @@ try {
 
     list($in_roles, $new_params) = $DB->get_in_or_equal($roles);
 
-    $additional_sql = ' AND r.shortname '.$in_roles;
+    $additional_sql = ' AND r.shortname ' . $in_roles;
 
     $params = array_merge($params, $new_params);
 } catch (coding_exception $e) {
@@ -172,10 +188,9 @@ if (ucla_format_display_instructors($course)) {
 
 /**
  *  Registrar information Line
- **/
+ * */
 // Registrar information TODO
 // Pretty version of term
-
 // PLEASE Use $courseinfos as read-only
 $courseinfos = ucla_get_course_info($course->id);
 
@@ -191,18 +206,17 @@ if (!empty($courseinfos)) {
             $theterm = $thisterm;
         } else if ($theterm != $thisterm) {
             debugging('Mismatching terms in crosslisted course.'
-                . $theterm . ' vs ' . $thisterm);
+                    . $theterm . ' vs ' . $thisterm);
         }
 
-        $course_text = $courseinfo->subj_area . $courseinfo->coursenum . '-' . 
+        $course_text = $courseinfo->subj_area . $courseinfo->coursenum . '-' .
                 $courseinfo->sectnum;
-        
+
         // if section is cancelled, then cross it out
         if (enrolstat_is_cancelled($courseinfo->enrolstat)) {
-            $course_text = html_writer::tag('span', $course_text, 
-                    array('class' => 'course_text_cancelled'));
+            $course_text = html_writer::tag('span', $course_text, array('class' => 'course_text_cancelled'));
         }
-        
+
         $displayinfos[$key] = $course_text;
     }
 
@@ -239,14 +253,14 @@ echo $OUTPUT->heading($heading_text . $course->fullname, 2, 'headingblock');
  * @author ebollens
  * @version 20110719
  */
-include_once($CFG->libdir.'/publicprivate/course.class.php');
+include_once($CFG->libdir . '/publicprivate/course.class.php');
 $publicprivate_course = new PublicPrivate_Course($course);
-if($publicprivate_course->is_activated() && isguestuser()) {
+if ($publicprivate_course->is_activated() && isguestuser()) {
     echo $OUTPUT->box_start('noticebox');
 
     echo get_string('publicprivatenotice');
-    $loginbutton = new single_button(new moodle_url($CFG->wwwroot 
-            . '/login/index.php'), get_string('publicprivatelogin'));
+    $loginbutton = new single_button(new moodle_url($CFG->wwwroot
+                            . '/login/index.php'), get_string('publicprivatelogin'));
     $loginbutton->class = 'continuebutton';
 
     echo $OUTPUT->render($loginbutton);
@@ -255,50 +269,49 @@ if($publicprivate_course->is_activated() && isguestuser()) {
 
 // Handle cancelled classes
 if (is_course_cancelled($courseinfos)) {
-    echo $OUTPUT->box(get_string('coursecancelled', 'format_ucla'), 
-        'noticebox coursecancelled');
+    echo $OUTPUT->box(get_string('coursecancelled', 'format_ucla'), 'noticebox coursecancelled');
 }
 
 /**
  *  Progress icon for track completion!
- **/
+ * */
 // Print the Your progress icon if the track completion is enabled
 $completioninfo = new completion_info($course);
 echo $completioninfo->display_help_icon();
 
 /**
  *  Start printing the sections.
- **/
+ * */
 // Note, an ordered list would confuse - "1" could be the clipboard or summary.
-echo html_writer::start_tag('ul', array('class' => 'topics'))."\n";
+echo html_writer::start_tag('ul', array('class' => 'topics')) . "\n";
 
 /**
  *  The non-AJAX clipboard for moving resources.
- **/
+ * */
 /// If currently moving a file then show the current clipboard
 if (ismoving($course->id)) {
-    $stractivityclipboard = 
-        strip_tags(get_string(
-            'activityclipboard', '', $USER->activitycopyname
-        ));
+    $stractivityclipboard =
+            strip_tags(get_string(
+                    'activityclipboard', '', $USER->activitycopyname
+            ));
 
     $strcancel = get_string('cancel');
 
     $modurl = new moodle_url('mod.php', array(
-            'cancelcopy' => 'true',
-            'sesskey' => sesskey()
-        ));
+                'cancelcopy' => 'true',
+                'sesskey' => sesskey()
+            ));
 
     $modlink = html_writer::link($modurl, $strcancel);
-    
+
     echo html_writer::start_tag('li', array('class' => 'clipboard'));
-    echo $stractivityclipboard.'&nbsp;&nbsp;('.$modlink.')';
-    echo html_writer::end_tag('li')."\n";
+    echo $stractivityclipboard . '&nbsp;&nbsp;(' . $modlink . ')';
+    echo html_writer::end_tag('li') . "\n";
 }
 
 /**
  *  This is where we start to draw the actual sections.
- **/
+ * */
 $timenow = time();
 $section = 0;
 $sectionmenu = array();
@@ -306,38 +319,17 @@ $sectionmenu = array();
 while ($section <= $course->numsections) {
     // This will auto create sections if we have numsections set < than 
     // the actual number of sections that exist
-    if (!empty($sections[$section])) {
-        $thissection = $sections[$section];
-        
-        // Save the name if the section name is NULL
-        // This writes the value to the database
-        if($section && NULL == $sections[$section]->name) {
-            $sections[$section]->name = get_string('sectionname', "format_weeks") . " " . $section;
-            $DB->update_record('course_sections', $sections[$section]);
-        }
-        
-    } else {
-        // Create a new section
-        $thissection = new stdClass;
-        $thissection->course  = $course->id;   
-        $thissection->section = $section;
-        // Assign the week number as default name
-        $thissection->name = get_string('sectionname', "format_weeks") . " " . $section;
-        $thissection->summary = '';
-        $thissection->summaryformat = FORMAT_HTML;
-        $thissection->visible  = 1;
-        $thissection->id = $DB->insert_record('course_sections', $thissection);
-    }
+    $thissection = setup_section($section, $sections, $course);
 
     // Check viewing capabilities of this section
-    $showsection = ($has_capability_viewhidden 
-        or ($thissection->visible == '1')
-        or !$course->hiddensections);
+    $showsection = ($has_capability_viewhidden
+            or ($thissection->visible == '1')
+            or !$course->hiddensections);
 
     // If we are only displaying one section, save this section for the 
     // pull down menu later
-    if ($displaysection != UCLA_FORMAT_DISPLAY_ALL 
-                && $displaysection != $section) {
+    if ($displaysection != UCLA_FORMAT_DISPLAY_ALL
+            && $displaysection != $section) {
         // Show the section in the pull down only if we would've shown it
         // otherwise
 
@@ -363,24 +355,27 @@ while ($section <= $course->numsections) {
             $sectionstyle = '';
         }
 
+        if (isset($noeditingicons) && $noeditingicons) {
+            $sectionstyle .= ' text-icons';
+        } 
+
         $section_id = 'section-'.$section;
         $class_text = 'section main clearfix '.$sectionstyle;
 
         /////// The actual Section /////
         echo html_writer::start_tag('li', array(
-                'id' => $section_id,
-                'class' => $class_text
-            ));
+            'id' => $section_id,
+            'class' => $class_text
+        ));
 
         //// (LEFT) State ////
-        $left_side = html_writer::tag('div', $currenttext.$section, array(
-                'class' => 'left side'
-            ));
+        $left_side = html_writer::tag('div', $currenttext . $section, array(
+                    'class' => 'left side'
+                ));
 
         //// (RIGHT) Control ////
         // Note, 'right side' is BEFORE content.
-        $right_side = html_writer::start_tag('div', 
-            array('class' => 'right side'));
+        $right_side = html_writer::start_tag('div', array('class' => 'right side'));
 
         $additional_controls = array();
 
@@ -409,50 +404,63 @@ while ($section <= $course->numsections) {
 
                 // These are going to be under a hidden span so that 
                 // they are not replaced via javascript
-                $safe_controls= array();
+                $safe_controls = array();
 
                 $link_options = array('title' => $streditsectionsummary);
 
-                $moodle_url = new moodle_url('editsection.php', 
-                    $sect_url_options);
+                $moodle_url = new moodle_url('editsection.php',
+                                $sect_url_options);
 
-                $innards = $streditsectionsummary;
-                $safe_controls[] = html_writer::link($moodle_url, 
-                    $innards, $link_options);
+                $img_options = array(
+                        'class' => 'small-icon edit',
+                        'alt' => $streditsectionsummary
+                    );
 
-                // Add delete?
+                $innards = new pix_icon('t/edit', $streditsectionsummary,
+                    'moodle', $img_options);
+
+                $safe_controls[] = new action_link(
+                        $moodle_url, $innards, null, $link_options
+                    );
+  
+                $safeinnards = '';
+                foreach ($safe_controls as $control) {
+                    $safeinnards .= $OUTPUT->render($control);
+                }
 
                 $right_side .= html_writer::tag(
-                    'span', 
-                    implode(' ', $safe_controls), 
-                    array('class' => 'safecontrol')
-                );
+                        'span', $safeinnards, array('class' => 'safecontrol')
+                    );
 
                 // // // // // // // // // // // // // // // // //
                 $add_url_options = array();
-                $link_options = array();
+                $link_options = array('class' => 'iconsmall');
                 $url_str = '';
+                $iconstr = '';
            
                 // Hide or show the section
                 if ($thissection->visible) {
                     $add_url_options['hide'] = $section;
-                    $url_str = '#section-'.$section;
+                    $url_str = '#section-' . $section;
 
                     $link_options['title'] = $strtopichide;
+                    $iconstr = 'i/hide';
                 } else {
                     $add_url_options['show'] = $section;
-                    $url_str = '#section-'.$section;
-                    
+                    $url_str = '#section-' . $section;
+
                     $link_options['title'] = $strtopicshow;
+                    $iconstr = 'i/show';
                 }
 
                 $moodle_url = new moodle_url('view.php' . $url_str,
-                    array_merge($url_options, $add_url_options));
+                                array_merge($url_options, $add_url_options));
 
-                $innards = $link_options['title'];
+                $innards = new pix_icon($iconstr, $link_options['title'], 
+                    'moodle', $link_options);
 
                 $additional_controls[] = 
-                    html_writer::link($moodle_url, $innards, $link_options);
+                    new action_link($moodle_url, $innards, null, $link_options);
             }
 
             // // // // // // // // // // // // // // // // // //
@@ -468,17 +476,20 @@ while ($section <= $course->numsections) {
                     $add_url_options['section'] = $section;
                     $add_url_options['move'] = '-1';
 
-                    $url_str = '#section-'.($section - 1);
+                    $url_str = '#section-' . ($section - 1);
 
                     $link_options['title'] = $strmoveup;
+                    $link_options['class'] = 'iconsmall';
         
                     $moodle_url = new moodle_url('view.php' . $url_str,
-                        array_merge($url_options, $add_url_options));
+                                    array_merge($url_options, $add_url_options));
 
-                    $innards = $link_options['title'];
+                    $innards = new pix_icon('t/up', $link_options['title'],
+                        'moodle', $link_options);
 
                     $additional_controls[] = 
-                        html_writer::link($moodle_url, $innards, $link_options);
+                        new action_link($moodle_url, $innards, null,
+                            $link_options);
                 }
 
                 // // // // // // // // // // // // // // // // // //
@@ -493,26 +504,26 @@ while ($section <= $course->numsections) {
                     $add_url_options['section'] = $section;
                     $add_url_options['move'] = '1';
 
-                    $url_str = '#section-'.($section + 1);
+                    $url_str = '#section-' . ($section + 1);
 
                     $link_options['title'] = $strmovedown;
+                    $link_options['class'] = 'iconsmall';
 
                     $moodle_url = new moodle_url('view.php' . $url_str,
                         array_merge($url_options, $add_url_options));
                     
-                    $innards = $link_options['title'];
+                    $innards = new pix_icon('t/down', $link_options['title'],
+                        'moodle', $link_options);
 
-                    $additional_controls[] = 
-                        html_writer::link($moodle_url, $innards, $link_options);
+                    $additional_controls[] = new action_link($moodle_url, 
+                        $innards, null, $link_options);
                 }
-
             }
-
         }
 
-        // Display all the additional controls
+        // Display all the additional controls on the same line as the header
         foreach ($additional_controls as $control) {
-            $right_side .= $control;
+            $right_side .= $OUTPUT->render($control);
         }
 
         $right_side .= html_writer::end_tag('div');
@@ -523,9 +534,8 @@ while ($section <= $course->numsections) {
             $css_classes .= ' editing';
         }
 
-        $center_content = html_writer::start_tag('div', 
-            array('class' => $css_classes));
-        
+        $center_content = html_writer::start_tag('div', array('class' => $css_classes));
+
         if (!$has_capability_viewhidden and !$thissection->visible) {
             // Do not display hidden section contents to students, if we have
             // the option to show the fact that sections are hidden to students
@@ -544,57 +554,58 @@ while ($section <= $course->numsections) {
                     $regfinalurls = array();
                     foreach ($courseinfos as $key => $courseinfo) {
                         $displayinfo = $displayinfos[$key];
-                        
+
                         $url = new moodle_url($courseinfo->url);
                         $regclassurls[$key] = html_writer::link(
-                            $url, $displayinfo
+                                        $url, $displayinfo
                         );
 
                         $regfinalurls[$key] = html_writer::link(
-                            build_registrar_finals_url($courseinfo),
-                            $displayinfo
+                                        build_registrar_finals_url($courseinfo), $displayinfo
                         );
                     }
 
-                    $registrar_info = get_string('reg_listing', 
-                        'format_ucla');
+                    $registrar_info = get_string('reg_listing', 'format_ucla');
 
                     $registrar_info .= implode(', ', $regclassurls);
                     $registrar_info .= html_writer::empty_tag('br');
 
-                    $registrar_info .= get_string('reg_finalcd', 
-                        'format_ucla');
+                    $registrar_info .= get_string('reg_finalcd', 'format_ucla');
                     $registrar_info .= implode(', ', $regfinalurls);
-                    
-                    $center_content .= html_writer::tag('div', $registrar_info,
-                        array('class' => 'registrar-info'));                
-                    $center_content .= html_writer::empty_tag('br');                    
-                }                
+
+                    $center_content .= html_writer::tag('div', $registrar_info, array('class' => 'registrar-info'));
+                    $center_content .= html_writer::empty_tag('br');
+                }
 
                 // Editing button for course summary
                 if ($editing && $has_capability_update) {
                     $url_options = array(
-                            'id' => $course->id,
-                        );
+                        'id' => $course->id,
+                    );
 
                     $link_options = array('title' => $streditsummary);
 
                     $moodle_url = new moodle_url('edit.php', $url_options);
 
-                    $innards = $streditsummary;
+                    $img_options = array(
+                            'class' => 'icon edit iconsmall',
+                            'alt' => $streditsummary
+                        );
+
+                    $innards = new pix_icon('t/edit', $link_options['title'], 
+                        'moodle', $img_options);
 
                     $center_content .= html_writer::tag('span', 
-                        html_writer::link($moodle_url, 
-                            $innards, $link_options),
+                        $OUTPUT->render(new action_link($moodle_url, 
+                            $innards, null, $link_options)),
                         array('class' => 'editbutton'));
 
                 }
 
-                $center_content .= html_writer::start_tag('div', 
-                    array('class' => 'summary'));
+                $center_content .= html_writer::start_tag('div', array('class' => 'summary'));
                 $center_content .= format_text($course->summary);
                 $center_content .= html_writer::end_tag('div');
-   
+
                 // Instructor informations
                 $instr_info = '';
 
@@ -617,12 +628,12 @@ while ($section <= $course->numsections) {
                         // TODO make this more modular
                         $desired_info = array(
                             'fullname' => $title,
-//                            'office' => 'Office',
-//                            'phone' => 'Phone',
-                            'email' => 'E-Mail Address',
-//                            'office_hours' => 'Office Hours'
+                            'email' => get_string('email', 'format_ucla'),                            
+                            'office' => get_string('office', 'format_ucla'),
+                            'office_hours' => get_string('office_hours', 'format_ucla'),
+                            'phone' => get_string('phone', 'format_ucla'),                            
                         );
-                
+
                         $cdi = count($desired_info);
                         $aligns = array();
                         for ($i = 0; $i < $cdi; $i++) {
@@ -632,50 +643,88 @@ while ($section <= $course->numsections) {
                         $table->align = $aligns;
 
                         $table->attributes['class'] = 'boxalignleft';
-                        
+
                         // use array_values, to remove array keys, which are 
                         // mistaken as another css class for given column
                         $table->head = array_values($desired_info);
 
+                        //BEGIN UCLA MOD: CCLE-2381 - Update Office Hours and Contact Info
                         foreach ($goal_users as $user) {
                             $user_row = array();
+                            $office_info = $DB->get_record('ucla_officehours', 
+                                    array('courseid' => $course->id, 'userid' => $user->id));
                             foreach ($desired_info as $field => $header) {
                                 $dest_data = '';
                                 if ($field == 'fullname') {
-                                    $dest_data = fullname($user);
-                                } else if (!isset($user->$field)) {
-                                    // Do nothing
+                                    if ($editing && $has_capability_edit_office_hours) {
+                                        //Need to only display the update string for certain users
+                                        $update_url = new moodle_url($CFG->wwwroot . '/blocks/ucla_office_hours/officehours.php',
+                                                        array('courseid' => $course->id, 'editid' => $user->id));
+                                        $strupdate = get_string('editofficehours', 'format_ucla');
+                                        
+                                        // Add an edit icon/text (based on preference)
+                                        $link_options = array('title' => $strupdate);
+                                        $img_options = array(
+                                                'class' => 'icon edit iconsmall',
+                                                'alt' => $streditsummary
+                                            );
+
+                                        $innards = new pix_icon('t/edit', $link_options['title'], 
+                                            'moodle', $img_options);
+
+                                        $dest_data = html_writer::tag('span', 
+                                                $OUTPUT->render(new action_link($update_url, 
+                                                    $innards, null, $link_options)),
+                                                array('class' => 'editbutton'));
+                                    }
+                                    $dest_data .= fullname($user);
                                 } else {
-                                    $dest_data = $user->$field;
+                                    if ($office_info) {
+                                        //If there is an entry in the database                                        
+                                        if ($field == 'email') {
+                                            if (empty($office_info->email)) {
+                                                //If no email is specified, then use profile email
+                                                $dest_data = $user->$field;
+                                            } else {
+                                                //Class specific email
+                                                $dest_data = $office_info->email;
+                                            }
+                                        } else if ($field == 'office') {
+                                            $dest_data = $office_info->officelocation;
+                                        } else if ($field == 'phone') {
+                                            $dest_data = $office_info->phone;
+                                        } else if ($field == 'office_hours') {
+                                            $dest_data = $office_info->officehours;
+                                        }
+                                    } else {
+                                        if ($field == 'email') {
+                                            $dest_data = $user->$field;
+                                        }
+                                    }
                                 }
 
                                 $user_row[$field] = $dest_data;
                             }
-
                             $table->data[] = $user_row;
                         }
-    
+                        //END UCLA MOD: CCLE-2381
+
                         $instr_info .= html_writer::table($table);
                     }
-
-                    $center_content .= html_writer::tag('div', $instr_info, 
-                        array('class' => 'instr-info'));
+                    $center_content .= html_writer::tag('div', $instr_info, array('class' => 'instr-info'));
                 }
             } else {
-                $center_content .= html_writer::start_tag('div', 
-                    array('class' => 'sectionheader'));
+                $center_content .= html_writer::start_tag('div', array('class' => 'sectionheader'));
 
                 // Callback to determine the section title displayed
                 $section_name = get_section_name($course, $thissection);
 
                 if ($has_capability_viewhidden && !$thissection->visible) {
-                    $section_name .= html_writer::tag('span',
-                        $strishidden, array('class' => 'hidden'));
+                    $section_name .= html_writer::tag('span', $strishidden, array('class' => 'hidden'));
                 }
 
                 // Print the section name
-                $center_content .= $OUTPUT->heading($section_name, 2, 
-                    $section_title_class);
+                $center_content .= $OUTPUT->heading($section_name, 2, $section_title_class);
             }
 
             if ($editing) {
@@ -685,36 +734,54 @@ while ($section <= $course->numsections) {
             if ($section != 0) {
                 // End div for sectionheader
                 $center_content .= html_writer::end_tag('div');
-            }
 
-            // Display the section
-            $center_content .= html_writer::start_tag('div', 
-                array('class' => 'summary'));
+                // Display the section
+                
+                // display section summary (don't display summary for section 0)
+                if (!empty($thissection->summary)) {
+                    $center_content .= html_writer::start_tag('div', 
+                        array('class' => 'summary'));
 
-            if ($thissection->summary) {
-                $summarytext = 
-                    file_rewrite_pluginfile_urls($thissection->summary, 
-                        'pluginfile.php', $context->id, 'course', 
-                        'section', $thissection->id);
-                $summaryformatoptions = new stdClass();
-                $summaryformatoptions->noclean = true;
-                $summaryformatoptions->overflowdiv = true;
+                    $summarytext = file_rewrite_pluginfile_urls($thissection->summary, 
+                            'pluginfile.php', $context->id, 'course', 'section', $thissection->id);
+                    $summaryformatoptions = new stdClass();
+                    $summaryformatoptions->noclean = true;
+                    $summaryformatoptions->overflowdiv = true;
 
-                $center_content .= format_text($summarytext, 
-                    $thissection->summaryformat, 
-                    $summaryformatoptions);
-            } else {
-               $center_content .= '&nbsp;';
+                    $center_content .= format_text($summarytext, 
+                            $thissection->summaryformat, $summaryformatoptions);
+
+                    $center_content .= html_writer::end_tag('div');                
+                }
+                    
+                // CCLE-2800 - JIT controls
+                if ($editing) {
+                    $center_content .= html_writer::start_tag('div',
+                            array('class' => 'jit_links'));
+                    
+                    foreach ($jit_links as $jit_type => $jit_string) {
+                        $link = new moodle_url('/blocks/ucla_easyupload/upload.php',
+                                array('course_id' => $course->id,
+                                      'type' => $jit_type,
+                                      'section' => $section));
+                        $center_content .= html_writer::link($link, $jit_string);
+                    }
+                    
+                    $center_content .= html_writer::end_tag('div');
+                }                        
             }
             
-            $center_content .= html_writer::end_tag('div');
-
             ob_start();
             print_section($course, $thissection, $mods, $modnamesused);
-            $center_content .= ob_get_clean();
-
-            $center_content .= html_writer::empty_tag('br');
-
+            $print_section_output = ob_get_clean();
+            $center_content .= $print_section_output;
+            
+            if (empty($print_section_output)) {
+                // add a spacers (note, 2 br tags look better than 1 p tag)
+                $center_content .= html_writer::empty_tag('br');
+                $center_content .= html_writer::empty_tag('br');                
+            }            
+            
             if ($editing) {
                 ob_start();
                 print_section_add_menus($course, $section, $modnames);
@@ -725,7 +792,6 @@ while ($section <= $course->numsections) {
         $center_content .= html_writer::end_tag('div');
 
         echo $left_side;
-
         // No need to display the box thing if there are no AJAX editing
         // commands that rely on that to be there
         if ($editing) {
@@ -743,40 +809,37 @@ while ($section <= $course->numsections) {
 }
 
 // Orphaned activities custom written section
-if ($displaysection == UCLA_FORMAT_DISPLAY_ALL and $editing 
+if ($displaysection == UCLA_FORMAT_DISPLAY_ALL and $editing
         and $has_capability_update) {
     $modinfo = get_fast_modinfo($course);
 
-    foreach ($sections as $section=>$thissection) {
+    foreach ($sections as $section => $thissection) {
         if (empty($modinfo->sections[$section])) {
             continue;
         }
 
-        echo html_writer::start_tag('li',
-            array(
-                    'id' => 'section-'.$section,
-                    'class' => 'section main clearfix orphaned hidden'
-                ));
+        echo html_writer::start_tag('li', array(
+            'id' => 'section-' . $section,
+            'class' => 'section main clearfix orphaned hidden'
+        ));
 
-        echo html_writer::start_tag('div',
-            array(
-                'class' => 'left side'
-            ));
+        echo html_writer::start_tag('div', array(
+            'class' => 'left side'
+        ));
         echo html_writer::end_tag('div');
-           
+
         // Note: 'right side' is BEFORE content.
 
         echo html_writer::start_tag('div', array(
-                'class' => 'right side'
-            ));
+            'class' => 'right side'
+        ));
         echo html_writer::end_tag('div');
 
         echo html_writer::start_tag('div', array(
-                'class' => 'content'
-            ));
+            'class' => 'content'
+        ));
 
-        echo $OUTPUT->heading(get_string('orphanedactivities'), 3, 
-            'sectionname');
+        echo $OUTPUT->heading(get_string('orphanedactivities'), 3, 'sectionname');
 
         print_section($course, $thissection, $mods, $modnamesused);
 
@@ -785,11 +848,11 @@ if ($displaysection == UCLA_FORMAT_DISPLAY_ALL and $editing
     }
 }
 
-echo html_writer::end_tag('ul')."\n";
+echo html_writer::end_tag('ul') . "\n";
 
 if (!empty($sectionmenu)) {
-    $select = new single_select(new moodle_url('/course/view.php', 
-        array('id'=>$course->id)), 'topic', $sectionmenu);
+    $select = new single_select(new moodle_url('/course/view.php',
+                            array('id' => $course->id)), 'topic', $sectionmenu);
     $select->label = get_string('jumpto');
     $select->class = 'jumpmenu';
     $select->formid = 'sectionmenu';

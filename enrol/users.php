@@ -105,6 +105,9 @@ if ($action) {
          * Removes the user from the given group
          */
         case 'removemember':
+            /** CCLE-2302 - Remove ability to change group information from this
+             *  screen. Solves issue dealing with public private groups editable
+             *  from this screen as well as for section groups.
             if (has_capability('moodle/course:managegroups', $manager->get_context())) {
                 $groupid = required_param('group', PARAM_INT);
                 $userid  = required_param('user', PARAM_INT);
@@ -123,11 +126,14 @@ if ($action) {
                 }
                 $actiontaken = true;
             }
+            //*/
             break;
         /**
          * Makes the user a member of a given group
          */
         case 'addmember':
+            /** CCLE-2302 - Remove ability to change group information from this
+             *  screen. 
             if (has_capability('moodle/course:managegroups', $manager->get_context())) {
                 $userid = required_param('user', PARAM_INT);
                 $user = $DB->get_record('user', array('id'=>$userid), '*', MUST_EXIST);
@@ -142,6 +148,7 @@ if ($action) {
                 }
                 $actiontaken = true;
             }
+            //*/
             break;
     }
 

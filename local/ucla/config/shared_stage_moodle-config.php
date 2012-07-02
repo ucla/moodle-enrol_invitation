@@ -59,9 +59,6 @@ $CFG->directorypermissions = 0777;
 // logins using the Moodle login will not work.
 $CFG->passwordsaltmain = '';
 
-// determines current term
-//$CFG->currentterm = '12S';
-
 // Registrar
 $CFG->registrar_dbtype = 'odbc_mssql';
 $CFG->registrar_dbhost = '';
@@ -83,9 +80,6 @@ $CFG->instructor_levels_roles = array(
     )
 );
 
-// Course builder
-$terms_to_built = array('12S', '121', '12F');
-
 // CCLE-2283: Friendly URLs
 // CCLE-2283: Redirect to archive 
 $CFG->forced_plugin_settings['local_ucla'] = array(
@@ -96,19 +90,23 @@ $CFG->forced_plugin_settings['local_ucla'] = array(
     'archiveserver' => 'https://ccle.ucla.edu'
 );
 
+// My Sites CCLE-2810
+// Term limiting
+$CFG->forced_plugin_settings['local_ucla']['student_access_ends_week'] = 3;
+$CFG->forced_plugin_settings['local_ucla']['oldest_available_term'] = '08S';
+
 // Browseby CCLE-2894
 $CFG->forced_plugin_settings['block_ucla_browseby']['use_local_courses'] = true;
 $CFG->forced_plugin_settings['block_ucla_browseby']['ignore_coursenum'] = '194,295,296,375';
 $CFG->forced_plugin_settings['block_ucla_browseby']['allow_acttypes'] = 'LEC,SEM';
 
+// Course builder \\
+
 // Course Requestor
-//$CFG->forced_plugin_settings['tool_uclacourserequestor']['terms'] = $terms_to_built;
-//$CFG->forced_plugin_settings['tool_uclacourserequestor']['selected_term'] = $CFG->currentterm;
 $CFG->forced_plugin_settings['tool_uclacourserequestor']['mailinst_default'] = false; 
 $CFG->forced_plugin_settings['tool_uclacourserequestor']['nourlupdate_default'] = true;
 
 // Course Creator
-//$CFG->forced_plugin_settings['tool_uclacoursecreator']['terms'] = $terms_to_built;
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['course_creator_email'] = 'ccle-operations@lists.ucla.edu';
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['email_template_dir'] = '/usr/local/moodle/config/ccle_email_templates/course_creator';
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['make_division_categories'] = true;
@@ -119,15 +117,12 @@ $CFG->forced_plugin_settings['tool_myucla_url']['user_name'] = 'CCLE Admin';   /
 $CFG->forced_plugin_settings['tool_myucla_url']['user_email'] = 'ccle@ucla.edu';  // email for registering URL with My.UCLA
 $CFG->forced_plugin_settings['tool_myucla_url']['override_debugging'] = true;   // test sending MyUCLA urls
 
-// Pre-pop
-$CFG->forced_plugin_settings['enrol_database']['terms'] = $terms_to_built;
-
 // turn off messaging (CCLE-2318 - MESSAGING)
 $CFG->messaging = false;
 
 // CCLE-2763 - Use new $CFG->divertallemailsto setting in 1.9 and 2.x 
 // development/testing environments
-$CFG->divertallemailsto = 'ccle-operations@lists.ucla.edu';
+$CFG->divertallemailsto = 'ccle-email-test@lists.ucla.edu';
 
 // CCLE-2590 - Implement Auto-detect Shibboleth Login
 $CFG->shib_logged_in_cookie = '_ucla_sso';
@@ -137,13 +132,17 @@ $CFG->shib_logged_in_cookie = '_ucla_sso';
 $block_ucla_help_settings = array('send_to' => 'jira',
                                   'jira_endpoint' => 'https://jira.ats.ucla.edu/CreateIssueDetails.jspa',
                                   'jira_default_assignee' => 'dkearney',
-                                  'boxtext' => '<ul>
-                                                    <li>Find FAQs, tutorials and a large database of help documentation at <strong><a title="cclehelp" href="https://ccle.ucla.edu/course/view/cclehelp">CCLE Help</a></strong></li>
-                                                    <li>Send your feedback including suggestions and comments to <a href="mailto:ccle@ucla.edu">ccle@ucla.edu</a></li>
-                                                </ul>'
+//                                  'boxtext' => '<ul>
+//                                                    <li>Find FAQs, tutorials and a large database of help documentation at <strong><a title="cclehelp" href="https://ccle.ucla.edu/course/view/cclehelp">CCLE Help</a></strong></li>
+//                                                    <li>Send your feedback including suggestions and comments to <a href="mailto:ccle@ucla.edu">ccle@ucla.edu</a></li>
+//                                                </ul>'
         );
 $CFG->forced_plugin_settings['block_ucla_help'] = $block_ucla_help_settings;
 $block_ucla_help_support_contacts['System'] = 'dkearney';  // default
+
+// CCLE-2311 - VIEDO FURNACE BLOCK
+$CFG->forced_plugin_settings['block_ucla_video_furnace']['source_url']
+        = 'http://164.67.141.31/~guest/VF_LINKS.TXT';
 
 // CCLE-2312 - LIBRARY RESERVES BLOCK
 $CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url']
@@ -232,10 +231,10 @@ $CFG->forced_plugin_settings['url']['printheading'] = 1;
 $CFG->forced_plugin_settings['url']['display'] = 5; // RESOURCELIB_DISPLAY_OPEN
 
 // Site administration > Plugins > Licences > Manage licences
-$CFG->sitedefaultlicense = 'iown';
+$CFG->sitedefaultlicense = 'tbd';
 
 // Site administration > Plugins > Repositories > Common repository settings
-$CFG->legacyfilesinnewcourses = 1;  // allow all course to enable legacy course files
+$CFG->legacyfilesinnewcourses = 0;  // disallow new course to enable legacy course files
 
 // Site administration > Security > Site policies
 $CFG->forceloginforprofiles = true; 
@@ -247,6 +246,7 @@ $CFG->cronclionly = true;
 // Site administration > Security > HTTP security
 $CFG->loginhttps = true;
 $CFG->cookiesecure = true;
+$CFG->allowframembedding = 1; // CCLE-3021 - enabled because some collab sites need to be embedded
 
 // Site administration > Security > Anti-Virus
 $CFG->runclamonupload = true;
@@ -254,6 +254,9 @@ $CFG->pathtoclam = '/usr/bin/clamscan';
 $CFG->clamscan = '/usr/bin/clamscan';
 $CFG->quarantinedir = '/usr/local/clamquarantine';
 $CFG->clamfailureonupload = 'donothing';
+
+// Site administration > Appearance > Themes
+$CFG->theme = 'uclashared';
 
 // Site administration > Appearance > Navigation
 $CFG->defaulthomepage = 1;    // user's home page should be "My Moodle" (HOMEPAGE_MY)
@@ -338,8 +341,8 @@ $CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 3;    // Disab
 $CFG->forced_plugin_settings['enrol_database']['fblocaluserfield'] = 'username';
 $CFG->forced_plugin_settings['enrol_database']['fbremoteuserfield'] = 'username';
 
-//// CCLE-2802 - Frontpage banner layout include
-//$CFG->customfrontpageinclude = $_dirroot_ . '/theme/uclashared/layout/frontpage.php';
+// CCLE-2802 - Frontpage banner layout include
+$CFG->customfrontpageinclude = $_dirroot_ . '/theme/uclashared/layout/frontpage.php';
 
 // This will bootstrap the moodle functions.
 require_once($_dirroot_ . '/lib/setup.php');

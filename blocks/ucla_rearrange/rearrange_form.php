@@ -9,11 +9,11 @@ class ucla_rearrange_form extends moodleform {
     function definition() {
         $mform =& $this->_form;
 
-        $course_id  = $this->_customdata['course_id'];
+        $courseid  = $this->_customdata['courseid'];
         $topic      = $this->_customdata['topic'];        
         $sections   = $this->_customdata['sections'];
 
-        $mform->addElement('hidden', 'course_id', $course_id);
+        $mform->addElement('hidden', 'courseid', $courseid);
         $mform->addElement('hidden', 'topic', $topic);        
         
         $mform->addElement('hidden', 'serialized', '',
@@ -54,11 +54,11 @@ class ucla_rearrange_form extends moodleform {
         $result = parent::is_cancelled();
         
         if (!empty($result)) {
-            $course_id  = $this->_customdata['course_id'];
+            $courseid  = $this->_customdata['courseid'];
             $topic      = $this->_customdata['topic'];             
             
             redirect(new moodle_url('/course/view.php',
-                array('id' => $course_id, 'topic' => $topic)));
+                array('id' => $courseid, 'topic' => $topic)));
         }
     }
 }

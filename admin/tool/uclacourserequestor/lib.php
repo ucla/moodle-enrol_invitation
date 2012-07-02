@@ -505,7 +505,7 @@ function set_host_calculate($orighost, $set) {
 /**
  *  Returns the greatest host of the course.
  **/
-function set_find_host($set) {
+function set_find_host_key($set) {
     $hk = false;
     $h = 'hostcourse';
 
@@ -570,7 +570,7 @@ function prepare_requests_for_display($requestinfos, $context) {
     $errorrows = array();
 
     foreach ($requestinfos as $setid => $set) {
-        $displaykey = set_find_host($set);
+        $displaykey = set_find_host_key($set);
 
         $displayrow = $set[$displaykey];
 

@@ -11,19 +11,21 @@ h1.main, h2.main, h3.main, h4.main, h5.main, h6.main {text-align: center;}
 .paging {text-align: center;}
 h1, h2, h3 {margin: 0;}
 
-/* START UCLA Modification: feature/CCLE-2909-browser-cutting-off-quiz-result-screen */
-
-#attemptsform .no-overflow {
-	overflow:auto;
+/* CCLE-2909 - Browser cutting off tables with many columns */
+#attemptsform .no-overflow, #page-admin-roles-allow #page-content .region-content {
+    overflow:auto;
 }
- /* END UCLA Modification: feature/CCLE-2909-browser-cutting-off-quiz-result-screen */
-
 
 /**
  * Tabs
  */
 .tabtree {
-   margin-bottom: 0; 
+    /* leave space after first tab row for additional tab rows */
+   margin-bottom: 3.5em; 
+}
+.tabtree .tabrow1.empty {
+    /* if there is not a second row, then remove spacing after first row */
+    margin-bottom: -3.5em;
 }
 .tabtree ul {
     text-align:center;
@@ -80,6 +82,9 @@ h1, h2, h3 {margin: 0;}
     padding:0px;
     position:absolute;
     width:100%;
+}
+.tabtree .tabrow1 {
+    background-color: #ddd;
 }
 .tabtree .tabrow1 li a,
 .tabtree .tabrow1 li a:hover,

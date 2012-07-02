@@ -1012,7 +1012,11 @@ class restore_section_structure_step extends restore_structure_step {
         $section->section = $data->number;
         // Section doesn't exist, create it with all the info from backup
         if (!$secrec = $DB->get_record('course_sections', (array)$section)) {
-            $section->name = $data->name;
+            // START UCLA MOD CCLE-3060 - restore m1.9 section name from <title>
+            //$section->name = $data->name;
+            $section->name = (empty($data->name) && !empty($data->title)) 
+                    ? $data->title : $data->name;
+            // END UCLA MOD CCLE-3060
             $section->summary = $data->summary;
             $section->summaryformat = $data->summaryformat;
             $section->sequence = '';
@@ -1152,9 +1156,26 @@ class restore_course_structure_step extends restore_structure_step {
             $data->theme = '';
         }
 
+        // START UCLA MOD: CCLE-3023 - restore in Moodle2.x site menu block is 
+        // not displayed and not default to UCLA format
+        
+        // make sure that format exists
+        $formats = get_plugin_list('format');
+        if (!array_key_exists($data->format, $formats)){
+            // format not found, so use site default            
+            $data->format = get_config('moodlecourse', 'format');
+        }
+        
+        // make sure that site menu block is added
+        blocks_add_default_course_blocks($data);
+        
+        // trigger event so that move_site_menu_block is called
+        events_trigger('course_restored', $data);        
+        // END UCLA MOD: CCLE-3023
+        
         // Course record ready, update it
         $DB->update_record('course', $data);
-
+        
         // Role name aliases
         restore_dbops::set_course_role_names($this->get_restoreid(), $this->get_courseid());
     }

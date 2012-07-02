@@ -282,7 +282,13 @@ $string['invalidcourseid'] = 'Sorry, but we couldn\'t find your course on the cu
 // END UCLA MOD: CCLE-2283
 $string['invalidcourselevel'] = 'Incorrect context level';
 $string['invalidcoursemodule'] = 'Invalid course module ID';
-$string['invalidcoursenameshort'] = 'Invalid short course name';
+// BEGIN UCLA MOD: CCLE-2283 - FRIENDLY URL'S - be friendly on course not found
+//$string['invalidcoursenameshort'] = 'Invalid short course name';
+$string['invalidcoursenameshort'] = 'Sorry, but we couldn\'t find your course on the current server.<br />' . 
+        'If the course you are trying to find was from Spring 2012 or earlier it has been moved ' .
+        'to our archive server: <blockquote><a href="https://archive.ccle.ucla.edu">https://archive.ccle.ucla.edu</a></blockquote>' . 
+        'Please try looking for it there.';
+// END UCLA MOD: CCLE-2283
 $string['invaliddata'] = 'Data submitted is invalid';
 $string['invaliddatarootpermissions'] = 'Invalid permissions detected in $CFG->dataroot directory, administrator has to fix permissions.';
 $string['invaliddevicetype'] = 'Invalid device type';
