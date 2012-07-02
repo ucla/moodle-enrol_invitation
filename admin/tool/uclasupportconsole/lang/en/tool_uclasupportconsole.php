@@ -36,7 +36,7 @@ $string['ccle_coursegetall'] = 'Get all courses in a subject area for BrowseBy (
 $string['ccle_courseinstructorsget'] = 'Get instructors for course (<a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=3306">ccle_courseinstructorsget</a>)';
 $string['ccle_getclasses'] = 'Get information about course (<a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=3308">ccle_getclasses</a>)';
 $string['ccle_getinstrinfo'] = 'Get all instructors in a subject area (<a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=3309">ccle_getinstrinfo</a>)';
-$string['ccle_roster_class'] = 'Get student roster for class (<a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=3310">ccle_roster_class Page</a>)';
+$string['ccle_roster_class'] = 'Get student roster for class (<a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=3310">ccle_roster_class</a>)';
 $string['cis_coursegetall'] = 'Get all courses in a subject area  (CIS <a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=3311">cis_coursegetall</a>)';
 $string['cis_subjectareagetall'] = 'Get all subject area codes and full names (<a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=3313">cis_subjectareagetall</a>)';
 $string['ucla_getterms'] = 'Get terms information (<a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=3315">ucla_getterms</a>)';
