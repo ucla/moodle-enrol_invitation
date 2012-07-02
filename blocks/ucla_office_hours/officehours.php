@@ -48,6 +48,7 @@ echo $OUTPUT->heading($page_title, 2, 'headingblock');
 // get office hours entry, if any
 $officehours_entry = $DB->get_record('ucla_officehours',
         array('courseid' => $courseid, 'userid' => $editid));
+$officehours_entry->email_display = $edit_user->maildisplay;
 
 $updateform = new officehours_form(NULL, 
         array('courseid' => $courseid, 
@@ -91,6 +92,12 @@ if ($updateform->is_cancelled()) { //If the cancel button is clicked, return to 
     // check if editing user's profile needs to change
     if ($data->website != $edit_user->url) {
         $edit_user->url = $data->website;
+        user_update_user($edit_user);
+    }
+    
+    // If editing user changed email display settings
+    if ($data->email_settings != $edit_user->maildisplay) {
+        $edit_user->maildisplay = $data->email_settings;
         user_update_user($edit_user);
     }
 

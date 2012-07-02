@@ -122,7 +122,7 @@ class block_ucla_office_hours extends block_base {
      */
     public static function render_office_hours_table($instructors, $instructor_types, $course, $context)
     {
-        global $DB, $OUTPUT, $PAGE, $USER;
+        global $DB, $OUTPUT, $PAGE, $USER, $CFG;
         
         $has_capability_edit_office_hours = has_capability('block/ucla_office_hours:editothers', $context);
         $editing = $PAGE->user_is_editing();

@@ -17,6 +17,7 @@ $string['f_office_text'] = 'Enter your campus address or office hours meeting lo
 $string['header_contact_info'] = 'Contact information';
 $string['f_email_of_record'] = 'Email on record';
 $string['f_email'] = 'Alternative email';
+$string['f_email_display'] = 'Display settings';
 $string['f_email_text'] = '(for display purposes only - course emails will still be sent to {$a})';
 $string['f_phone'] = 'Phone number';
 $string['f_phone_text'] = 'Enter a number where students can reach you or leave a message. This number will be public.';
