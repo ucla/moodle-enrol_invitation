@@ -21,7 +21,7 @@ $string['moodlelogbydaycourse'] = 'Count Moodle logs by day and course';
 $string['moodlelogbydaycourseuser'] = 'Count Moodle logs by day, course and user';
 
 // Users
-$string['moodleusernamesearch'] = 'Show users with firstname and/or lastname.';
+$string['moodleusernamesearch'] = 'Show users with firstname and/or lastname';
 $string['roleassignments'] = 'Count of role assignments on system';
 $string['countnewusers'] = 'Show most recently created users';
 
@@ -42,7 +42,7 @@ $string['cis_subjectareagetall'] = 'Get all subject area codes and full names (<
 $string['ucla_getterms'] = 'Get terms information (<a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=3315">ucla_getterms</a>)';
 $string['ucla_get_user_classes'] = 'Get courses for My sites (<a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=16788">ucla_get_user_classes</a>)';
 
-$string['courseregistrardifferences'] = 'Compare course data with Registrar data.';
+$string['courseregistrardifferences'] = 'Show courses with changed descriptions';
 
 // Module
 $string['nosyllabuscourses'] = 'Show courses with no syllabus';
