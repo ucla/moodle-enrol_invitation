@@ -70,7 +70,7 @@ class course_request_form extends moodleform {
         foreach($types as $type) {
             $descstring = '<strong>' . $type['fullname'] . '</strong> - ' . $type['description'];
             $attributes = array(
-                'class' => 'indicator_desc',
+                'class' => 'indicator-form',
                 'value' => $type['shortname']
             );
             $radioarray[] = &MoodleQuickForm::createElement('radio', 'indicator_type', '', $descstring, $type['shortname'], $attributes);

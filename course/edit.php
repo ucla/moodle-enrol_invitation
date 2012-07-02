@@ -137,16 +137,8 @@ if ($editform->is_cancelled()) {
     } else {
         // Save any changes to the files used in the editor
         update_course($data, $editoroptions);
-        // START UCLA MOD CCLE-2389
-        // Update indicator type
-        if(!empty($data->indicator_change) && 
-                $indicator = siteindicator_site::load($course->id)) {
-            $indicator->change_type($data->indicator_change);
-        }
-        /// Or create indicator
-        if(!empty($data->indicator_create)) {
-            siteindicator_site::create($course->id);
-        }
+        // START UCLA MOD CCLE-2389 - update site indicator
+        siteindicator_manager::update_site($data);
         // END UCLA MOD CCLE-2389
     }
 

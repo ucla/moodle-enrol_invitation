@@ -26,6 +26,26 @@
     background-color: #F5F5F5;
 }
 
-.indicator_desc {
+.indicator-form {
     margin-right: 5px;
+}
+
+.indicator-block {
+    padding: 2px 4px;
+}
+.indicator-block a:link, 
+.indicator-block a:visited{
+    color: white;
+}
+
+.indicator-active {
+    background-color:#25bd00;
+}
+
+.indicator-pending {
+    background-color:#1a6cf3;
+}
+
+.indicator-reject {
+    color: red;
 }

@@ -58,7 +58,7 @@ $string['req_category_other_help'] = 'If you select "other," you will have to sp
     categorywhere your course best belongs.  Use existing categories when possible.';
 
 // Jira
-$string['jira_title'] = '{$a->type} site request: {$a->fullname}';
+$string['jira_title'] = '{$a->type} collab site request: {$a->fullname}';
 $string['jira_msg'] = 'The following collaboration site has been requested by: {$a->user}
 
 Type: {$a->type}
