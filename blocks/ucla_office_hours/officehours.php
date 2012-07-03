@@ -48,14 +48,15 @@ echo $OUTPUT->heading($page_title, 2, 'headingblock');
 // get office hours entry, if any
 $officehours_entry = $DB->get_record('ucla_officehours',
         array('courseid' => $courseid, 'userid' => $editid));
-$officehours_entry->email_display = $edit_user->maildisplay;
+$email_settings = $edit_user->maildisplay;
 
 $updateform = new officehours_form(NULL, 
         array('courseid' => $courseid, 
               'editid' => $editid, 
               'edit_email' => $edit_user->email,
               'defaults' => $officehours_entry, 
-              'url' => $edit_user->url),
+              'url' => $edit_user->url,
+              'email_settings' => $email_settings),
         'post',
         '',
         array('class' => 'officehours_form'));
