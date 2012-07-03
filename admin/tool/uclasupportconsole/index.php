@@ -637,37 +637,33 @@ $consoles->push_console_html('srdb', $title, $sectionhtml);
 ///// Moodle 2.0 does not have TA Sites yet thus this code was commented out
 ////////////////////////////////////////////////////////////////////
 
-// Finding courses with no syllabus (temporary until we get a real syllabus tool working) 
-$title = "nosyllabuscourses";
-$sectionhtml = '';
-if ($displayforms) {
-    $sectionhtml .= supportconsole_simple_form($title, get_term_selector($title));
-} else if ($consolecommand == $title) {  # tie-in to link from name lookup
-    $term = required_param('term', PARAM_ALPHANUM);
-    if (!ucla_validator('term', $term)) {
-        print_error('invalidterm');
-    }
-
-    $sql = "SELECT      r.id AS resource_id,
-                        r.name AS resource_name,
-                        c.shortname AS course_shortname
-            FROM        {course} c,
-                        {ucla_request_classes} urc
-            INNER JOIN  {resource} r ON a.id = b.course 
-            WHERE       urc.term=:term AND 
-                        urc.courseid=c.id AND (
-                            r.name LIKE '%course description%' OR 
-                            r.name LIKE '%course outline%' OR 
-                            r.name LIKE '%syllabus%'
-                        )
-            GROUP BY c.shortname
-            ORDER BY c.shortname";
-    $result = $DB->get_records_sql($sql, array('term' => $term));
-
-    $sectionhtml .= supportconsole_render_section_shortcut($title, $result);
-}
-
-$consoles->push_console_html('modules', $title, $sectionhtml);
+//// Finding courses with no syllabus (temporary until we get a real syllabus tool working) 
+//$title = "nosyllabuscourses";
+//$sectionhtml = '';
+//if ($displayforms) {
+//    $sectionhtml .= supportconsole_simple_form($title, get_term_selector($title));
+//} else if ($consolecommand == $title) {  # tie-in to link from name lookup
+//    $term = required_param('term', PARAM_ALPHANUM);
+//    if (!ucla_validator('term', $term)) {
+//        print_error('invalidterm');
+//    }
+//        
+//    $sql = "SELECT      c.id AS course_id,
+//                        c.shortname AS course_shortname
+//            FROM        {course} c                        
+//            JOIN        {ucla_request_classes} urc ON (urc.courseid=c.id)
+//            LEFT JOIN   {resource} r ON (r.course=c.id)            
+//            WHERE       urc.term=:term AND
+//                        r.name NOT LIKE '%course description%' AND 
+//                        r.name NOT LIKE '%course outline%' AND 
+//                        r.name NOT LIKE '%syllabus%'
+//            ORDER BY c.shortname";    
+//    $result = $DB->get_records_sql($sql, array('term' => $term));
+//
+//    $sectionhtml .= supportconsole_render_section_shortcut($title, $result);
+//}
+//
+//$consoles->push_console_html('modules', $title, $sectionhtml);
 
 ////////////////////////////////////////////////////////////////////
 $title = "assignmentquizzesduesoon";
@@ -733,7 +729,7 @@ if ($displayforms) {
         if (isset($result->courseid)) {
             $result->courseid = html_writer::link(new moodle_url(
                     '/course/view.php', array('id' => $result->courseid)
-                ));
+                ), $result->courseid);
             $results[$k] = $result;
         }
     }
