@@ -769,8 +769,21 @@ $title = "modulespercourse";
 $sectionhtml = '';
 
 if ($displayforms) {
-    $sectionhtml = supportconsole_simple_form($title);
+    // add filter for term/subject area, because this table can get very big
+    // and the query get return a ton of data
+    $input_html = get_term_selector($query);
+    $input_html .= get_subject_area_selector($query);        
+    
+    $sectionhtml = supportconsole_simple_form($title, $input_html);
 } else if ($consolecommand == "$title") {  
+    
+    // get optional filters
+    $term = optional_param('term', null, PARAM_ALPHANUM);
+    if (!ucla_validator('term', $term)) {
+        $term = null;
+    }    
+    $subjarea = optional_param('subjarea', null, PARAM_NOTAGS);
+    
     // Mapping of [course shortname, module name] => count of 
     // instances of this module in this course
     // count($course_indiv_module_counts[<course shortname>]) has 
@@ -781,18 +794,36 @@ if ($displayforms) {
     // all modules in this course
     $course_total_module_counts = array();
     
-    $results = $DB->get_records_sql("
-        SELECT 
-            cm.id,
-            c.id AS courseid,
-            c.shortname AS shortname,
-            m.name AS modulename, 
-            count(*) AS cnt
-        FROM {course} c
-        JOIN {course_modules} cm ON c.id = cm.course
-        JOIN {modules} m ON cm.module = m.id
-        GROUP BY c.id, m.id
-    ");
+    $params = array();
+    $sql = "SELECT  cm.id,
+                    c.id AS courseid,
+                    c.shortname AS shortname,
+                    m.name AS modulename, 
+                    count(*) AS cnt
+            FROM    {course} c
+            JOIN    {course_modules} cm ON c.id = cm.course
+            JOIN    {modules} m ON cm.module = m.id";
+    
+    // handle term/subject area filter
+    if (!empty($term) || !empty($subjarea)) {
+        $sql .= " JOIN  {ucla_request_classes} urc ON (urc.courseid=c.id)";
+    }        
+    if (!empty($term) && !empty($subjarea)) {
+        $sql .= " WHERE urc.term=:term AND
+                        urc.department=:subjarea";
+        $params['term'] = $term;
+        $params['subjarea'] = $subjarea;        
+    } else if (!empty($term)) {
+        $sql .= " WHERE urc.term=:term";
+        $params['term'] = $term;    
+    } else if (!empty($subjarea)) {
+        $sql .= " WHERE urc.department=:subjarea";
+        $params['subjarea'] = $subjarea;    
+    }    
+    
+    $sql .= " GROUP BY c.id, m.id";
+    
+    $results = $DB->get_records_sql($sql, $params);
 
     $courseshortnames = array();
 
@@ -826,7 +857,7 @@ if ($displayforms) {
     }
 
     $sectionhtml .= supportconsole_render_section_shortcut($title,
-        $tabledata);
+        $tabledata, $params);
 
 
 }
