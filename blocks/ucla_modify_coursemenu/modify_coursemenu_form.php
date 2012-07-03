@@ -43,6 +43,9 @@ class ucla_modify_coursemenu_form extends moodleform {
             get_string('addnewsection', 'block_ucla_modify_coursemenu'),
             array('id' => block_ucla_modify_coursemenu::add_section_button));
         
+        $mform->addElement('advcheckbox', 'autogeneratecontent', '',
+                ' ' . get_string('autogeneratecontent', 'block_ucla_modify_coursemenu'));
+        
         $this->add_action_buttons();
     }
 }
