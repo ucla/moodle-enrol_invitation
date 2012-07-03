@@ -339,8 +339,8 @@ $CFG->forced_plugin_settings['enrol_database']['localrolefield'] = 'id';
 $CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 3;    // Disable course enrolment and remove roles
 
 // CCLE-2910 - UNEX student support
-$CFG->forced_plugin_settings['enrol_database']['fblocaluserfield'] = 'username';
-$CFG->forced_plugin_settings['enrol_database']['fbremoteuserfield'] = 'username';
+
+
 
 // CCLE-2802 - Frontpage banner layout include
 $CFG->customfrontpageinclude = $_dirroot_ . '/theme/uclashared/layout/frontpage.php';
