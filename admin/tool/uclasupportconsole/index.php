@@ -137,6 +137,8 @@ $title = 'moodlelog';
 $sectionhtml = '';
 
 if ($displayforms) { 
+    $moodlelog_show_filter = optional_param('moodlelog_show_filter', 0, PARAM_BOOL);
+    
     $actions = $DB->get_records('log', array(), '', 'DISTINCT action');
     $checkboxes = array();
 
@@ -153,15 +155,37 @@ if ($displayforms) {
         // Todo descriptions
         $checkboxes[] = html_writer::tag('li', 
             html_writer::checkbox('actiontypes[]', $action, 
-                false, $actiondesc));
+                true, $actiondesc));
 
     }
 
-    $sectionhtml = supportconsole_simple_form($title, 
-        html_writer::label('Select which types of log entries to view', 
-                'log-action-types')
-            . html_writer::tag('ul', implode('', $checkboxes), 
-                array('id' => 'log-action-types')));
+    // show/hide action type filter, mainly for users with no js enabled
+    $form_content = '';
+    $action_types_container_params = array('id' => 'log-action-types-container');
+    if (!$moodlelog_show_filter) {
+        // display link to show filter
+        $form_content .= html_writer::start_tag('div');        
+        $form_content .= html_writer::link(
+                new moodle_url('/admin/tool/uclasupportconsole/index.php', 
+                        array('moodlelog_show_filter' => 1)), 
+                get_string('moodlelog_filter', 'tool_uclasupportconsole'), 
+                array('id' => 'show-log-types-filter', 
+                    // TODO: there has to be a better way to show/hide using YUI...
+                    'onclick' => "YAHOO.util.Dom.setStyle('log-action-types-container', 'display', '');YAHOO.util.Dom.setStyle('show-log-types-filter', 'display', 'none');return false;"));        
+        $form_content .= html_writer::end_tag('div');                
+        
+        // hide action types
+        $action_types_container_params['style'] = 'display:none';
+    }
+    
+    $form_content .= html_writer::start_tag('div', $action_types_container_params);
+    $form_content .= html_writer::label(get_string('moodlelog_select', 'tool_uclasupportconsole'), 
+                'log-action-types') . 
+                html_writer::tag('ul', implode('', $checkboxes), 
+                array('id' => 'log-action-types'));
+    $form_content .= html_writer::end_tag('div');
+    
+    $sectionhtml = supportconsole_simple_form($title, $form_content);
 } else if ($consolecommand == "$title") { 
     $actions = required_param_array('actiontypes', PARAM_TEXT);
     list($sql, $params) = $DB->get_in_or_equal($actions);
