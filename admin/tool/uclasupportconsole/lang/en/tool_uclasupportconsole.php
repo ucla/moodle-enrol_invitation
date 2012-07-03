@@ -23,6 +23,7 @@ $string['log_shibboleth_shibd'] = 'Shibboleth daemon';
 $string['log_shibboleth_trans'] = 'Shibboleth transaction';
 $string['log_moodle_cron'] = 'Moodle cron';
 $string['log_course_creator'] = 'Course creator';
+$string['log_prepop'] = 'Pre-pop';
 
 // Other logs
 $string['prepopfiles'] = 'Show pre-pop files';

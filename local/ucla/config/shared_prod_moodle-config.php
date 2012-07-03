@@ -335,6 +335,7 @@ $CFG->forced_plugin_settings['tool_uclasupportconsole']['log_shibboleth_shibd'] 
 $CFG->forced_plugin_settings['tool_uclasupportconsole']['log_shibboleth_trans'] = '/var/log/shibboleth/transaction.log';
 $CFG->forced_plugin_settings['tool_uclasupportconsole']['log_moodle_cron'] = '/home/moodle/logs/moodlecron/moodlecron.out';
 $CFG->forced_plugin_settings['tool_uclasupportconsole']['log_course_creator'] = $CFG->dataroot . '/course_creator/';
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_prepop'] = '/home/moodle/logs/prepop_logs/';
 
 // This will bootstrap the moodle functions.
 require_once($_dirroot_ . '/lib/setup.php');

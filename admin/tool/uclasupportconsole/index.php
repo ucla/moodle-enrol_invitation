@@ -38,7 +38,8 @@ $syslogs_types = array('log_apache_error',
                        'log_shibboleth_shibd',
                        'log_shibboleth_trans',
                        'log_moodle_cron',
-                       'log_course_creator');
+                       'log_course_creator',
+                       'log_prepop');
 
 $sectionhtml = '';
 if ($displayforms) {
@@ -83,8 +84,8 @@ if ($displayforms) {
     // else try to display it    
     $log_location = get_config('tool_uclasupportconsole', $log_file);    
     
-    // if viewing log_course_creator, then get latest log file
-    if ($log_file == 'log_course_creator') {
+    // if viewing log_course_creator/log_prepop, then get latest log file
+    if ($log_file == 'log_course_creator' || $log_file == 'log_prepop') {
         // get last log file
         $last_pre_pop = exec(sprintf('ls -t1 %s | head -n1', $log_location));
         $log_location = $log_location . $last_pre_pop;
@@ -99,40 +100,11 @@ if ($displayforms) {
 $consoles->push_console_html('logs', $title, $sectionhtml);
 
 ////////////////////////////////////////////////////////////////////
-$title="prepopfiles";
-$sectionhtml = '';
-if ($displayforms) { 
-    $sectionhtml = supportconsole_simple_form($title);
-} else if ($consolecommand == "$title") { 
-    ob_start();
-    echo "<pre>\n";
-    system("ls -alt {$CFG->log_prepop_folder}/prepop_*");
-    echo "</pre>\n";
-    $sectionhtml = ob_end_clean();
-} 
-$consoles->push_console_html('logs', $title, $sectionhtml);
-
-////////////////////////////////////////////////////////////////////
-$title = "prepopview";
-$sectionhtml = '';
-if ($displayforms) {
-    $sectionhtml = supportconsole_simple_form($title);
-} else if ($consolecommand == "$title") { 
-    ob_start();
-    system("ls -alt {$CFG->log_prepop_folder}/prepop_* | head -1");
-    echo "<pre>\n";
-    passthru("ls -t {$CFG->log_prepop_folder}/prepop_* | head -1 | xargs cat");
-    echo "</pre>\n";
-    $sectionhtml = ob_end_clean();
-}
-$consoles->push_console_html('logs', $title, $sectionhtml);
-
-////////////////////////////////////////////////////////////////////
 $title = "prepoprun";
 $sectionhtml = '';
 if ($displayforms) {
     $sectionhtml = supportconsole_simple_form($title, 
-        html_writer::label('Course.id', 'prepop-courseid')
+        html_writer::label('Moodle course.id', 'prepop-courseid')
             . html_writer::empty_tag('input', array(
                     'type' => 'text',
                     'length' => 10,
@@ -144,9 +116,9 @@ if ($displayforms) {
     $courseid = required_param('courseid', PARAM_INT);
     $dbenrol = enrol_get_plugin('database');
     // Sadly, this cannot be output buffered...so
-    echo "<PRE>";
+    echo "<pre>";
     $dbenrol->sync_enrolments(true, null, $courseid);
-    echo "</PRE>";
+    echo "</pre>";
 
     $consoles->no_finish = true;
 }
