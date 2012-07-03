@@ -200,13 +200,14 @@ class block_ucla_office_hours extends block_base {
                         $dest_data .= fullname($user);
                     } else {
                         // Determine if we should display the instructor's email
-                        $display_email = $field == 'email' && ($email_display == 2 && 
+                        $has_alt_email = !empty($office_info->email);
+                        $display_email = ($field == 'email') && (($email_display == 2 && 
                                 (is_enrolled($context, $USER) || has_capability('moodle/course:update', $context) || 
-                                $email_display == 1));
+                                $email_display == 1)) || ($email_display == 0 && $has_alt_email)) ;
                         // If there is an entry in the database
                         if ($office_info) {
                             if ($display_email) {
-                                if (empty($office_info->email)) {
+                                if (!$has_alt_email) {
                                     // If no email is specified, then use profile email
                                     $dest_data = $user->$field;
                                 } else {
