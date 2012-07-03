@@ -90,14 +90,9 @@ if ($updateform->is_cancelled()) { //If the cancel button is clicked, return to 
         print_error('cannotinsertrecord');        
     }   
     
-    // check if editing user's profile needs to change
-    if ($data->website != $edit_user->url) {
+    // check if editing user's profile needs to change (website or email settings)
+    if ($data->website != $edit_user->url || $data->email_settings != $edit_user->maildisplay) {
         $edit_user->url = $data->website;
-        user_update_user($edit_user);
-    }
-    
-    // If editing user changed email display settings
-    if ($data->email_settings != $edit_user->maildisplay) {
         $edit_user->maildisplay = $data->email_settings;
         user_update_user($edit_user);
     }
