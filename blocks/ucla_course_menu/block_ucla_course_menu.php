@@ -153,10 +153,15 @@ class block_ucla_course_menu extends block_navigation {
 
         // Separate out non-section nodes so that we can have a different style
         // to them.
+        
+        //Conditionally display these elements
         $block_elements = $this->create_block_elements();
-        $module_elements = $this->create_module_elements();     
+        $module_elements = $this->create_module_elements(); // In particular, this one displays the Files and Forum part
         $elements = array_merge($block_elements, $module_elements);                
         $elements = $this->trim_nodes($elements); 
+        
+        print_object($block_elements);
+        print_object($module_elements);
         
         // For some reason cannot use html_writer::start_tag/html_writer::end_tag
         // so use hard-coded HTML.
