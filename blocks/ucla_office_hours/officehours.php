@@ -48,13 +48,15 @@ echo $OUTPUT->heading($page_title, 2, 'headingblock');
 // get office hours entry, if any
 $officehours_entry = $DB->get_record('ucla_officehours',
         array('courseid' => $courseid, 'userid' => $editid));
+$email_settings = $edit_user->maildisplay;
 
 $updateform = new officehours_form(NULL, 
         array('courseid' => $courseid, 
               'editid' => $editid, 
               'edit_email' => $edit_user->email,
               'defaults' => $officehours_entry, 
-              'url' => $edit_user->url),
+              'url' => $edit_user->url,
+              'email_settings' => $email_settings),
         'post',
         '',
         array('class' => 'officehours_form'));
@@ -88,9 +90,10 @@ if ($updateform->is_cancelled()) { //If the cancel button is clicked, return to 
         print_error('cannotinsertrecord');        
     }   
     
-    // check if editing user's profile needs to change
-    if ($data->website != $edit_user->url) {
+    // check if editing user's profile needs to change (website or email settings)
+    if ($data->website != $edit_user->url || $data->email_settings != $edit_user->maildisplay) {
         $edit_user->url = $data->website;
+        $edit_user->maildisplay = $data->email_settings;
         user_update_user($edit_user);
     }
 
