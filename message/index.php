@@ -116,8 +116,9 @@ if (!empty($user2id)) {
 }
 unset($user2id);
 
-//the current user isnt involved in this discussion at all
-if ($user1->id != $USER->id && (!empty($user2) && $user2->id != $USER->id) && !has_capability('moodle/site:readallmessages', $context)) {
+// Is the user involved in the conversation?
+// Do they have the ability to read other user's conversations?
+if (!message_current_user_is_involved($user1, $user2) && !has_capability('moodle/site:readallmessages', $context)) {
     print_error('accessdenied','admin');
 }
 

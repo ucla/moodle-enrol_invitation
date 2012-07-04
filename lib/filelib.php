@@ -1564,8 +1564,18 @@ function get_mimetype_description($mimetype, $capitalise=false) {
  */
 function send_file_not_found() {
     global $CFG, $COURSE;
-    header('HTTP/1.0 404 not found');
+    send_header_404();
     print_error('filenotfound', 'error', $CFG->wwwroot.'/course/view.php?id='.$COURSE->id); //this is not displayed on IIS??
+}
+/**
+ * Helper function to send correct 404 for server.
+ */
+function send_header_404() {
+    if (substr(php_sapi_name(), 0, 3) == 'cgi') {
+        header("Status: 404 Not Found");
+    } else {
+        header('HTTP/1.0 404 not found');
+    }
 }
 
 /**
@@ -1616,12 +1626,19 @@ function prepare_file_content_sending() {
 function send_temp_file($path, $filename, $pathisstring=false) {
     global $CFG;
 
+    if (check_browser_version('Firefox', '1.5')) {
+        // only FF is known to correctly save to disk before opening...
+        $mimetype = mimeinfo('type', $filename);
+    } else {
+        $mimetype = 'application/x-forcedownload';
+    }
+
     // close session - not needed anymore
     @session_get_instance()->write_close();
 
     if (!$pathisstring) {
         if (!file_exists($path)) {
-            header('HTTP/1.0 404 not found');
+            send_header_404();
             print_error('filenotfound', 'error', $CFG->wwwroot.'/');
         }
         // executed after normal finish or abort
@@ -1647,6 +1664,13 @@ function send_temp_file($path, $filename, $pathisstring=false) {
         header('Pragma: no-cache');
     }
     header('Accept-Ranges: none'); // Do not allow byteserving
+
+    if ($mimetype === 'text/plain') {
+        // there is no encoding specified in text files, we need something consistent
+        header('Content-Type: text/plain; charset=utf-8');
+    } else {
+        header('Content-Type: '.$mimetype);
+    }
 
     //flush the buffers - save memory and disable sid rewrite
     // this also disables zlib compression
