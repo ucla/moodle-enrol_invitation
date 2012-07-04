@@ -318,6 +318,7 @@ function print_log($course, $user=0, $date=0, $order="l.time ASC", $page=0, $per
         echo $OUTPUT->footer();
         exit;
     }
+    print_object($logs);
 
     $courses = array();
 
@@ -367,7 +368,7 @@ function print_log($course, $user=0, $date=0, $order="l.time ASC", $page=0, $per
     if (empty($logs['logs'])) {
         $logs['logs'] = array();
     }
-
+    // probably need to check that $logs['logs'] actually contains upload data
     foreach ($logs['logs'] as $log) {
 
         if (isset($ldcache[$log->module][$log->action])) {

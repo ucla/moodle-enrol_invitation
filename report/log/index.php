@@ -153,6 +153,8 @@ if (!empty($chooselog)) {
             report_log_print_mnet_selector_form($hostid, $course, $user, $date, $modname, $modid, $modaction, $group, $showcourses, $showusers, $logformat);
 
             if ($hostid == $CFG->mnet_localhost_id) {
+                // Edit print_log to display added files correctly
+                print_object($modaction); // Nothing displays when $modaction == 'add'
                 print_log($course, $user, $date, 'l.time DESC', $page, $perpage,
                         "index.php?id=$course->id&amp;chooselog=1&amp;user=$user&amp;date=$date&amp;modid=$modid&amp;modaction=$modaction&amp;group=$group",
                         $modname, $modid, $modaction, $group);

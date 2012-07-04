@@ -1852,6 +1852,12 @@ function get_logs($select, array $params=null, $order='l.time DESC', $limitfrom=
               LEFT JOIN {user} u ON l.userid = u.id
            $select
             $order";
+    
+    //print_object($params);
+    print_object($sql);
+    // There are entries with 'add' in the 'action' field in this db, 
+    // just need to get it out somehow
+    //print_object($DB->get_records('log')); 
 
     return $DB->get_records_sql($sql, $params, $limitfrom, $limitnum) ;
 }
