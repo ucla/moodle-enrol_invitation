@@ -770,7 +770,8 @@ function terms_arr_sort($terms) {
     // denumerate terms
     $sorted = array();
     foreach ($ksorter as $k => $v) {
-        $sorted[] = $terms[$k];
+        $term = $terms[$k];
+        $sorted[$term] = $term;
     }
 
     return $sorted;
@@ -1126,7 +1127,9 @@ function get_active_terms() {
             }                              
         }
     }    
-    
-    return $ret_val;
+   
+    // The weeksdisplay block generates all the terms in correct order
+    // But in case this is from a Config file instead
+    return terms_arr_sort($ret_val);
 }
 // EOF
