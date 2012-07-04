@@ -972,11 +972,8 @@ function term_cmp_fn($term, $other) {
  * @return boolean 
  */
 function is_collab_site($course) {
-    $result = ucla_map_courseid_to_termsrses($course->id);
-    if (empty($result)) {
-        return true;
-    }    
-    return false;
+    global $DB;
+    return $DB->record_exists('ucla_siteindicator', array('courseid' => $course->id));
 }
 
 /**

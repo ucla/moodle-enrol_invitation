@@ -6,6 +6,7 @@ require_once($CFG->libdir.'/formslib.php');
 require_once($CFG->libdir.'/completionlib.php');
 require_once($CFG->libdir.'/publicprivate/course.class.php');
 require_once($CFG->libdir.'/publicprivate/site.class.php');
+require_once($CFG->dirroot . '/admin/tool/uclasiteindicator/lib.php');
 
 class course_edit_form extends moodleform {
     protected $course;
@@ -20,7 +21,7 @@ class course_edit_form extends moodleform {
         $category      = $this->_customdata['category'];
         $editoroptions = $this->_customdata['editoroptions'];
         $returnto = $this->_customdata['returnto'];
-
+        
         $systemcontext   = get_context_instance(CONTEXT_SYSTEM);
         $categorycontext = get_context_instance(CONTEXT_COURSECAT, $category->id);
 
@@ -36,7 +37,57 @@ class course_edit_form extends moodleform {
 
         $this->course  = $course;
         $this->context = $context;
+        
+        // START UCLAMOD CCLE-2389
+        // Site indicator info display
+        if(!empty($course->id)) {
+            
+            $mform->addElement('header','uclasiteindicator', get_string('pluginname', 'tool_uclasiteindicator'));
+            
+            if($indicator = siteindicator_site::load($course->id)) {
+                $indicator_type = '<strong>' . siteindicator_manager::get_types_list($indicator->type) . ' '
+                        . get_string('site', 'tool_uclasiteindicator') . '</strong>';
+                $mform->addElement('static', 'indicator', get_string('type', 'tool_uclasiteindicator'), 
+                        $indicator_type);
+                
+                $roles = $indicator->get_assignable_roles();
+                $mform->addElement('static', 'indicator_roles', get_string('roles', 'tool_uclasiteindicator'), 
+                        implode(', ', $roles));
+                
+                // Change the site type
+                if(has_capability('tool/uclasiteindicator:edit', $systemcontext)) {
+                    $types = siteindicator_manager::get_types_list();
+                    $radioarray = array();
+                    foreach($types as $type) {
+                        $descstring = '<strong>' . $type->fullname . '</strong> - ' . $type->description;
+                        $attributes = array(
+                            'class' => 'indicator_desc',
+                            'value' => $type->shortname
+                        );
+                        $radioarray[] = &MoodleQuickForm::createElement('radio', 'indicator_change', '', $descstring, $type->id, $attributes);
+                    }
+                    $mform->addGroup($radioarray, 'indicator_type_radios', get_string('change', 'tool_uclasiteindicator'), array('<br/>'), false);
+                    $mform->setDefault('indicator_change', $indicator->property->type);
+                }
+            
+            } else {
+                // Check if this is a registrar site
+                if(ucla_map_courseid_to_termsrses($this->course->id)) {
+                    $mform->addElement('static', 'indicator', 
+                            get_string('type', 'tool_uclasiteindicator'), 
+                            get_string('site_registrar', 'tool_uclasiteindicator'));
+                } else {
+                    $mform->addElement('static', 'indicator', 
+                            get_string('type', 'tool_uclasiteindicator'), 
+                            get_string('notype', 'tool_uclasiteindicator'));
+                    // Allow making a collaboration site
+                    $mform->addElement('selectyesno', 'indicator_create', 
+                            get_string('sitecreate', 'tool_uclasiteindicator'));
+                }
+            }
 
+        }
+        // END UCLA MOD CCLE-2389
 /// form definition with new course defaults
 //--------------------------------------------------------------------------------
         $mform->addElement('header','general', get_string('general', 'form'));

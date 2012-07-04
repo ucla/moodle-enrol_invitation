@@ -206,6 +206,9 @@ $table->set_fields($fields, $renderer);
 
 $canassign = has_capability('moodle/role:assign', $manager->get_context());
 $users = $manager->get_users_for_display($manager, $table->sort, $table->sortdirection, $table->page, $table->perpage);
+//echo "<pre>";
+//var_dump($users);
+//echo "</pre>";
 foreach ($users as $userid=>&$user) {
     // BEGIN UCLA MOD: CCLE-2819 - ENROLLMENT - Prepop/View
     // do not show users with empty roles
