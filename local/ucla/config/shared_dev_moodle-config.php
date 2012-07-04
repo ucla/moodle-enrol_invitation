@@ -206,6 +206,18 @@ $CFG->unittestprefix = 'tst_';
 /// CCLE-2810 - My Sites - disallow customized "My Moodle" page
 $CFG->forcedefaultmymoodle = true;
 
+/*
+ * $string['log_apache_error'] = 'Apache error';
+$string['log_apache_access'] = 'Apache access';
+$string['log_apache_ssl_access'] = 'Apache SSL access';
+$string['log_apache_ssl_error'] = 'Apache SSL error';
+$string['log_apache_ssl_request'] = 'Apache SSL access';
+$string['log_shibboleth_shibd'] = 'Shibboleth daemon';
+$string['log_shibboleth_trans'] = 'Shibboleth transaction';
+$string['log_moodle_cron'] = 'Moodle cron';
+ * 
+ */
+
 // Site administration > Advanced features
 $CFG->usetags = 0;
 $CFG->enablenotes = 0;
@@ -347,6 +359,14 @@ $CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 3;    // Disab
 
 // CCLE-2802 - Frontpage banner layout include
 $CFG->customfrontpageinclude = $_dirroot_ . '/theme/uclashared/layout/frontpage.php';
+
+// CCLE-2364 - SUPPORT CONSOLE (put after $_dirroot_, because needs $CFG->dataroot to be set)
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_apache_error'] = '/var/log/httpd/error_log';
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_apache_access'] = '/var/log/httpd/access_log';
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_apache_ssl_access'] = '/var/log/httpd/ssl_access_log';
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_apache_ssl_error'] = '/var/log/httpd/ssl_error_log';
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_apache_ssl_request'] = '/var/log/httpd/ssl_request_log';
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_course_creator'] = $CFG->dataroot . '/course_creator/';
 
 // This will bootstrap the moodle functions.
 require_once($_dirroot_ . '/lib/setup.php');

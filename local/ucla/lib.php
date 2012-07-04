@@ -937,8 +937,8 @@ function term_enum($term) {
         '1' => 2,
         'F' => 3
     );
-    
-    return $year . $r[$term[2]];
+
+    return $year . $r[substr($term, 2, 1)];
 }
 
 /**
