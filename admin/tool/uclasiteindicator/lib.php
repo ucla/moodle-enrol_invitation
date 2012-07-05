@@ -548,6 +548,10 @@ class siteindicator_manager {
         
         $displaylist[0] = get_string('req_selopt_other', 'tool_uclasiteindicator');
         
+        // add "Choose a category..." option
+        $displaylist = array('' => get_string('req_selopt_choose', 
+                'tool_uclasiteindicator')) + $displaylist;
+        
         return $displaylist;
     }
     
