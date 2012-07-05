@@ -13,7 +13,8 @@ h1, h2, h3 {margin: 0;}
 
 /* CCLE-2909 - Browser cutting off tables with many columns */
 #attemptsform .no-overflow, #page-admin-roles-allow #page-content .region-content,
-#page-admin-tool-uclasupportconsole-index .region-content {
+#page-admin-tool-uclasupportconsole-index .region-content,
+#page-admin-uclacourserequestor .region-content {
     overflow:auto;
 }
 

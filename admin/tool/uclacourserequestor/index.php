@@ -43,7 +43,7 @@ define('UCLA_CR_SUBMIT', 'submitrequests');
 $PAGE->set_url($thisdir . $thisfile);
 $PAGE->set_context($syscontext);
 $PAGE->set_heading(get_string('pluginname', $rucr));
-$PAGE->set_pagetype('admin-*');
+$PAGE->set_pagetype('admin-uclacourserequestor');
 $PAGE->set_pagelayout('admin');
 
 // Prepare and load Moodle Admin interface
