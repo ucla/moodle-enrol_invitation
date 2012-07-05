@@ -61,6 +61,10 @@ class siteindicator_site {
     public function change_type($newtype) {
         $uclaindicator = new siteindicator_manager();
         
+        if(!in_array($newtype, $uclaindicator::get_types_list())) {
+            return;
+        }
+        
         $mygroup = $uclaindicator->get_rolegroup_for_type($this->property->type);
         $newgroup = $uclaindicator->get_rolegroup_for_type($newtype);
         
@@ -781,15 +785,7 @@ class siteindicator_manager {
         
         return $recs;
     }
-}
-
-/**
- * @todo: implement admin functions 
- */
-class ucla_indicator_admin {
-
-
-
+    
     static function find_and_set_collab_sites() {
         global $DB;
         
@@ -804,18 +800,27 @@ class ucla_indicator_admin {
                 AND r.id IS NULL 
                 AND s.id IS NULL 
                 GROUP BY c.id";
-        $recs = $DB->get_records_sql($query);
+        $recs = $DB->get_recordset_sql($query);
 
-        if(!empty($recs)) {
+        // Insert values into the siteindicator table
+        if($recs->valid()) {
             $tuples = array();
             foreach($recs as $r) {
-                $tuples[] = '(NULL,' . $r->id . ', 4)';
+                $tuples[] = '(NULL,' . $r->id . ', "test")';
             }
 
             $query = "INSERT INTO {ucla_siteindicator} 
                     VALUES " . implode(', ', $tuples);
 
             $DB->execute($query);
+            
+            // Change the role mapping
+            foreach($recs as $r) {
+                $indicator = siteindicator_site::load($r->id);
+                $indicator->change_type('project');
+            }
         }
+        
+        $recs->close();
     }
 }
