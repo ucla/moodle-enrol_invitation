@@ -298,29 +298,9 @@ class siteindicator_manager {
     static $types = array();
     
     function __construct() {
-        
-        $this->_types = array(
-            'instruction' => array(
-                'shortname' => 'instruction',
-                'fullname' => get_string('site_instruction', 'tool_uclasiteindicator'),
-                'description' => get_string('site_instruction_desc', 'tool_uclasiteindicator'),
-                ),
-            'non_instruction' => array(
-                'shortname' => 'non_instruction',
-                'fullname' => get_string('site_noninstruction', 'tool_uclasiteindicator'),
-                'description' => get_string('site_noninstruction_desc', 'tool_uclasiteindicator'),
-                ),
-            'research' => array(
-                'shortname' => 'research',
-                'fullname' => get_string('site_research', 'tool_uclasiteindicator'),
-                'description' => get_string('site_research', 'tool_uclasiteindicator'),
-                ),
-            'test' => array(
-                'shortname' => 'test',
-                'fullname' => get_string('site_test', 'tool_uclasiteindicator'),
-                'description' => get_string('site_test_desc', 'tool_uclasiteindicator'),
-                ),
-        );
+
+        // setup the types list
+        $this->get_types_list();
         
         $this->_indicator_rolegroups = array(
             'instruction' => get_string('r_instruction', 'tool_uclasiteindicator'),
@@ -462,7 +442,7 @@ class siteindicator_manager {
                 'research' => array(
                     'shortname' => 'research',
                     'fullname' => get_string('site_research', 'tool_uclasiteindicator'),
-                    'description' => get_string('site_research', 'tool_uclasiteindicator'),
+                    'description' => get_string('site_research_desc', 'tool_uclasiteindicator'),
                     ),
                 'test' => array(
                     'shortname' => 'test',
@@ -702,7 +682,6 @@ class siteindicator_manager {
             $request->delete();
         }
     }
-
     
     static function get_username($userid) {
         global $DB;
