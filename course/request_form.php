@@ -48,20 +48,20 @@ class course_request_form extends moodleform {
         $mform =& $this->_form;
         
         // START UCLAMOD CCLE-2389
-        // Do not show pending course requests to unauthorized viewers
-        $context = get_context_instance(CONTEXT_SYSTEM);
-        if(has_capability('tool/uclasiteindicator:view', $context)) {
-
-            if ($pending = $DB->get_records('course_request', array('requester' => $USER->id))) {
-                $mform->addElement('header', 'pendinglist', get_string('coursespending', 'tool_uclasiteindicator'));
-                $list = array();
-                foreach ($pending as $cp) {
-                    $list[] = format_string($cp->fullname);
-                }
-                $list = implode(', ', $list);
-                $mform->addElement('static', 'pendingcourses', get_string('courses'), $list);
-            }
-        }
+//        // Do not show pending course requests to unauthorized viewers
+//        $context = get_context_instance(CONTEXT_SYSTEM);
+//        if(has_capability('tool/uclasiteindicator:view', $context)) {
+//
+//            if ($pending = $DB->get_records('course_request', array('requester' => $USER->id))) {
+//                $mform->addElement('header', 'pendinglist', get_string('coursespending', 'tool_uclasiteindicator'));
+//                $list = array();
+//                foreach ($pending as $cp) {
+//                    $list[] = format_string($cp->fullname);
+//                }
+//                $list = implode(', ', $list);
+//                $mform->addElement('static', 'pendingcourses', get_string('courses'), $list);
+//            }
+//        }
         
         // Build the indicator types and display radio option group
         $mform->addElement('header','siteindicator', get_string('req_desc', 'tool_uclasiteindicator'));
@@ -70,19 +70,20 @@ class course_request_form extends moodleform {
         foreach($types as $type) {
             $descstring = '<strong>' . $type['fullname'] . '</strong> - ' . $type['description'];
             $attributes = array(
-                'class' => 'indicator_desc',
+                'class' => 'indicator-form',
                 'value' => $type['shortname']
             );
             $radioarray[] = &MoodleQuickForm::createElement('radio', 'indicator_type', '', $descstring, $type['shortname'], $attributes);
         }
         
         $mform->addGroup($radioarray, 'indicator_type_radios', get_string('req_type', 'tool_uclasiteindicator'), array('<br/>'), false);
-        $mform->addRule('indicator_type_radios', 'you did not specify a type', 'required');
+        $mform->addRule('indicator_type_radios', get_string('req_type_error', 'tool_uclasiteindicator'), 'required');
         $mform->addHelpButton('indicator_type_radios', 'req_type', 'tool_uclasiteindicator');
 
         $displaylist = siteindicator_manager::get_categories_list();
         $mform->addElement('select', 'indicator_category', get_string('req_category', 'tool_uclasiteindicator'), $displaylist);
         $mform->addHelpButton('indicator_category', 'req_category', 'tool_uclasiteindicator');
+        $mform->addRule('indicator_category', get_string('req_category_error', 'tool_uclasiteindicator'), 'required', null, 'client');
 
         // Overriding lang strings
         $mform->addElement('header','coursedetails', get_string('courserequestdetails', 'tool_uclasiteindicator'));
@@ -150,6 +151,10 @@ class course_request_form extends moodleform {
             }
         }
 
+//        if (empty($data->indicator_category)) {
+//            $errors['indicator_category'] = get_string($foundcoursenames)
+//        }
+        
         return $errors;
     }
 }

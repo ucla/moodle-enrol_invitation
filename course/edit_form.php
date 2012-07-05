@@ -19,6 +19,13 @@ class course_edit_form extends moodleform {
 
         $course        = $this->_customdata['course']; // this contains the data of this form
         $category      = $this->_customdata['category'];
+        // START UCLA MOD CCLE-2389 - override with site request category,
+        // This forces the edit form to display the requested category. 
+        // If the category is changed, that preference is also saved by siteindicator
+        if(!empty($course->id) && $request = siteindicator_request::load($course->id)) {
+            $course->category = $request->request->categoryid;
+        }
+        // END UCLA MOD CCLE-2389
         $editoroptions = $this->_customdata['editoroptions'];
         $returnto = $this->_customdata['returnto'];
         
@@ -38,14 +45,13 @@ class course_edit_form extends moodleform {
         $this->course  = $course;
         $this->context = $context;
         
-        // START UCLAMOD CCLE-2389
-        // Site indicator info display
+        // START UCLAMOD CCLE-2389 - site indicator info display
         if(!empty($course->id)) {
             
             $mform->addElement('header','uclasiteindicator', get_string('pluginname', 'tool_uclasiteindicator'));
             
             if($indicator = siteindicator_site::load($course->id)) {
-                $indicator_type = '<strong>' . siteindicator_manager::get_types_list($indicator->type) . ' '
+                $indicator_type = '<strong>' . siteindicator_manager::get_types_list($indicator->property->type) . ' '
                         . get_string('site', 'tool_uclasiteindicator') . '</strong>';
                 $mform->addElement('static', 'indicator', get_string('type', 'tool_uclasiteindicator'), 
                         $indicator_type);
@@ -59,12 +65,12 @@ class course_edit_form extends moodleform {
                     $types = siteindicator_manager::get_types_list();
                     $radioarray = array();
                     foreach($types as $type) {
-                        $descstring = '<strong>' . $type->fullname . '</strong> - ' . $type->description;
+                        $descstring = '<strong>' . $type['fullname'] . '</strong> - ' . $type['description'];
                         $attributes = array(
-                            'class' => 'indicator_desc',
-                            'value' => $type->shortname
+                            'class' => 'indicator-form',
+                            'value' => $type['shortname']
                         );
-                        $radioarray[] = &MoodleQuickForm::createElement('radio', 'indicator_change', '', $descstring, $type->id, $attributes);
+                        $radioarray[] = &MoodleQuickForm::createElement('radio', 'indicator_change', '', $descstring, $type['shortname'], $attributes);
                     }
                     $mform->addGroup($radioarray, 'indicator_type_radios', get_string('change', 'tool_uclasiteindicator'), array('<br/>'), false);
                     $mform->setDefault('indicator_change', $indicator->property->type);

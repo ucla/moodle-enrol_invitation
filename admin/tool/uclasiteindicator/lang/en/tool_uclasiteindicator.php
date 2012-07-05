@@ -7,9 +7,8 @@
  */
 
 // Plugin
-$string['plugintitle'] = 'UCLA site indicator';
 $string['description'] = 'Description';
-$string['pluginname'] = 'Site indicator';
+$string['pluginname'] = 'UCLA site indicator';
 $string['type'] = 'Type';
 $string['roles'] = 'Roles';
 $string['site'] = 'site';
@@ -34,18 +33,19 @@ $string['site_test'] = 'Test';
 $string['site_test_desc'] = 'A temporary test site.';
 $string['site_registrar'] = 'Instruction (listed at Registrar)';
 $string['site_registrar_desc'] = 'An instruction site with an SRS number that is listed at the registrar';
-$string['notype'] = 'This site has no association.';
+$string['notype'] = 'This site has no type';
 
 // Request
 $string['req_desc'] = 'Type of site you are requesting';
 $string['req_type'] = 'Site type';
 $string['req_type_help'] = 'The site type is used to determine what 
-    site roles will be enabled.  ';
+    site roles will be enabled.';
+$string['req_type_error'] = 'Please choose a site type';
 $string['req_category'] = 'Site category';
 $string['req_category_help'] = 'The site category will help determine where your 
     site will be placed.  It also helps to determine the appropriate 
     support contact that will be responsible for creating your site.';
-
+$string['req_category_error'] = 'Please choose a category';
 
 // Pending
 $string['sitetype'] = 'Site type';
@@ -53,12 +53,13 @@ $string['sitecat'] = 'Requested category';
 
 $string['req_contacts'] = 'Support Contact';
 $string['req_selopt_other'] = 'Other (provide reason below)';
+$string['req_selopt_choose'] = 'Choose a category...';
 $string['req_category_other'] = 'Other category';
 $string['req_category_other_help'] = 'If you select "other," you will have to specify the 
-    categorywhere your course best belongs.  Use existing categories when possible.';
+    category where your course best belongs.  Use existing categories when possible.';
 
 // Jira
-$string['jira_title'] = '{$a->type} site request: {$a->fullname}';
+$string['jira_title'] = '{$a->type} collab site request: {$a->fullname}';
 $string['jira_msg'] = 'The following collaboration site has been requested by: {$a->user}
 
 Type: {$a->type}
