@@ -30,7 +30,7 @@ $thisfile = $thisdir . 'index.php';
 // Initialize $PAGE
 $PAGE->set_url($thisdir . $thisfile);
 $PAGE->set_context($syscontext);
-$PAGE->set_heading(get_string('plugintitle', 'tool_uclasiteindicator'));
+$PAGE->set_heading(get_string('pluginname', 'tool_uclasiteindicator'));
 $PAGE->set_pagetype('admin-*');
 $PAGE->set_pagelayout('admin');
 
@@ -41,7 +41,7 @@ admin_externalpage_setup('uclasiteindicator');
 echo $OUTPUT->header();
 
 // Heading
-echo $OUTPUT->box($OUTPUT->heading(get_string('plugintitle', 'tool_uclasiteindicator')), 'generalbox categorybox box');
+echo $OUTPUT->box($OUTPUT->heading(get_string('pluginname', 'tool_uclasiteindicator')), 'generalbox categorybox box');
 
 echo $OUTPUT->box_start('generalbox');
 echo $OUTPUT->heading('Site types');

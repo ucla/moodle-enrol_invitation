@@ -115,7 +115,7 @@ class siteindicator_site {
         $list = array();
         
         foreach($roles as $r) {
-            $list[$r->id] = $r->name;
+            $list[$r->id] = trim($r->name);
         }
         
         return $list;
