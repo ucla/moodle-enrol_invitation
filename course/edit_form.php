@@ -22,7 +22,7 @@ class course_edit_form extends moodleform {
         // START UCLA MOD CCLE-2389 - override with site request category,
         // This forces the edit form to display the requested category. 
         // If the category is changed, that preference is also saved by siteindicator
-        if($request = siteindicator_request::load($course->id)) {
+        if(!empty($course->id) && $request = siteindicator_request::load($course->id)) {
             $course->category = $request->request->categoryid;
         }
         // END UCLA MOD CCLE-2389
