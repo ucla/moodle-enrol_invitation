@@ -10,7 +10,7 @@
     <h3>My Sites</h3>
     <ul>
         <li><a href="<?php echo $CFG->wwwroot;?>/my/index.php">Access your course and collaboration sites</a></li>
-        <li>Request a collaboration site <span class="notify">Coming soon</span></li>
+        <li><a href="<?php echo $CFG->wwwroot;?>/course/request.php">Request a collaboration site</a></li>
     </ul>
 </div>
 
