@@ -58,12 +58,8 @@ class siteindicator_site {
      * 
      * @param type $newtype of the site.
      */
-    public function change_type($newtype) {
+    public function set_type($newtype) {
         $uclaindicator = new siteindicator_manager();
-        
-        if(!in_array($newtype, $uclaindicator::get_types_list())) {
-            return;
-        }
         
         $mygroup = $uclaindicator->get_rolegroup_for_type($this->property->type);
         $newgroup = $uclaindicator->get_rolegroup_for_type($newtype);
@@ -140,15 +136,17 @@ class siteindicator_site {
     
     static function create($site) {
         global $DB;
-        if(is_int($site)) {
+        if(is_scalar($site)) {
             $new = new stdClass();
             $new->courseid = $site;
             $new->type = 'test';
-
-            $DB->insert_record('ucla_siteindicator', $new);
-        } else {
-            $DB->insert_record('ucla_siteindicator', $site);
+        
+            $site = $new;
         }
+        
+        $DB->insert_record('ucla_siteindicator', $site);
+        
+        return new siteindicator_site($site->courseid);
     }
 }
 
@@ -227,7 +225,11 @@ class siteindicator_request {
      */
     private function _set_default_role() {
         global $DB;
-        
+                
+        // Course and user info
+        $userid = $this->request->requester;
+        $courseid = $this->entry->courseid;
+
         // Get toprole
         $uclaindicator = new siteindicator_manager();
         $roles = $uclaindicator->get_roles_for_type($this->entry->type);
@@ -235,9 +237,8 @@ class siteindicator_request {
         
         $role = $DB->get_record('role', array('shortname' => $toprole));
         
-        // Course and user info
-        $userid = $this->request->requester;
-        $courseid = $this->entry->courseid;
+        // Manually enroll course requester
+        enrol_try_internal_enrol($courseid, $userid, $role->id);        
         
         // Get context
         $context = get_context_instance(CONTEXT_COURSE, $courseid);
@@ -713,7 +714,7 @@ class siteindicator_manager {
     static function update_site($data) {
         /// Handle a type change
         if(!empty($data->indicator_change) && $indicator = siteindicator_site::load($data->id)) {
-            $indicator->change_type($data->indicator_change);
+            $indicator->set_type($data->indicator_change);
         }
         /// Or create indicator
         if(!empty($data->indicator_create)) {
@@ -806,22 +807,11 @@ class siteindicator_manager {
                 GROUP BY c.id";
         $recs = $DB->get_recordset_sql($query);
 
-        // Insert values into the siteindicator table
+        // Create new sites, and turn them into project sites
         if($recs->valid()) {
-            $tuples = array();
             foreach($recs as $r) {
-                $tuples[] = '(NULL,' . $r->id . ', "test")';
-            }
-
-            $query = "INSERT INTO {ucla_siteindicator} 
-                    VALUES " . implode(', ', $tuples);
-
-            $DB->execute($query);
-            
-            // Change the role mapping
-            foreach($recs as $r) {
-                $indicator = siteindicator_site::load($r->id);
-                $indicator->change_type('project');
+                $site = siteindicator_site::create($r->id);
+                $site->set_type('research');
             }
         }
         
