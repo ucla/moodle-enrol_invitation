@@ -12,10 +12,12 @@ class ucla_modify_coursemenu_form extends moodleform {
         $mform =& $this->_form;
 
         $courseid  = $this->_customdata['courseid'];
+        $topic = $this->_customdata['topic'];
         $sections   = $this->_customdata['sections'];
         $landing_page = $this->_customdata['landing_page'];
 
         $mform->addElement('hidden', 'courseid', $courseid);
+        $mform->addElement('hidden', 'topic', $topic);
 
         $mform->addElement('hidden', 'newsections', '',
             array('id' => block_ucla_modify_coursemenu::newnodes_domnode));

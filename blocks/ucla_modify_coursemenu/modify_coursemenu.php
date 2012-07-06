@@ -35,6 +35,8 @@ $justshowsuccessmessage = optional_param('success', 0, PARAM_INT);
 
 // TODO Carry the previously viewed topic over and adjust it if it moves
 // via the course section modifier.
+$topic = optional_param('topic', 0, PARAM_INT);
+print_object($topic);
 
 $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 $format_compstr = 'format_' . $course->format;
@@ -62,7 +64,7 @@ foreach ($allsections as $k => $section) {
     $sections[$k] = $section;
 }
 
-$courseviewurl = new moodle_url('/course/view.php', array('id' => $courseid));
+$courseviewurl = new moodle_url('/course/view.php', array('id' => $courseid, 'topic' => $topic));
 
 $modinfo =& get_fast_modinfo($course);
 
@@ -83,6 +85,7 @@ $PAGE->set_url('/blocks/ucla_modify_coursemenu/modify_coursemenu.php',
 $confirmationurl = new moodle_url($PAGE->url,
     array(
             'courseid' => $courseid, 
+            'topic' => $topic,
             'success' => true, 
         ));
 
@@ -106,6 +109,8 @@ if ($justshowsuccessmessage) {
                 'returntocourse', 'block_ucla_rearrange'
             ), 'get');
 
+    print_object($courseviewurl);
+    print_object($allsectionsurl);
     $sectionbutton = new single_button($courseviewurl, get_string(
                 'returntosection', 'block_ucla_rearrange'
             ), 'get');
@@ -125,6 +130,7 @@ $modify_coursemenu_form = new ucla_modify_coursemenu_form(
     null,
     array(
             'courseid' => $courseid, 
+            'topic' => $topic,
             'sections'  => $sections,
             'landing_page' => $landing_page,
         ),
@@ -150,7 +156,15 @@ if ($modify_coursemenu_form->is_cancelled()) {
     // TODO see if some of the fields can be parsed from within the MForm
     parse_str($data->serialized, $unserialized);
     parse_str($data->sectionsorder, $sectionorderparsed);
-
+    
+    print_object($unserialized);
+    print_object($sectionorderparsed);
+    //print_object($sectionorderparsed['sections-order']);
+    //print_object($sections);
+    print_object(array_search("title-$topic", array_keys($unserialized)) + 2);
+    
+    $unserialized["title-$topic"];
+    
     // TODO make it consistent IN CODE how section id's are generated
     $sectionorder = array();
     foreach ($sectionorderparsed['sections-order'] as $k => $sectionid) {
@@ -315,6 +329,7 @@ if ($modify_coursemenu_form->is_cancelled()) {
         null,
         array(
                 'courseid' => $courseid, 
+                'topic' => $topic,
                 'sections'  => $sections,
                 'landing_page' => $landing_page,
             ),
@@ -392,7 +407,7 @@ if ($passthrudata || $verifydata) {
 // This will come here when the modifier form is submitted, but a section 
 // with content is discovered, BUT the verify form has not been submitted
 if ($data && empty($sectionsnotify) || $verifydata) {
-    redirect($redirector);
+    //redirect($redirector);
 }
 
 $PAGE->requires->js('/blocks/ucla_modify_coursemenu/js/jquery-1.3.2.min.js');
