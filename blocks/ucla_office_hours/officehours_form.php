@@ -40,6 +40,9 @@ class officehours_form extends moodleform {
                 get_string('header_contact_info', 'block_ucla_office_hours'));
         
         // email of record
+        if (empty($edit_email)) {
+            $edit_email = get_string('f_email_of_record_empty', 'block_ucla_office_hours');
+        }
         $mform->addElement('static', 'f_email_of_record', 
                 get_string('f_email_of_record', 'block_ucla_office_hours'), $edit_email);
         
