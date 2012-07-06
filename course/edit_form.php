@@ -58,7 +58,7 @@ class course_edit_form extends moodleform {
                 
                 $roles = $indicator->get_assignable_roles();
                 $mform->addElement('static', 'indicator_roles', get_string('roles', 'tool_uclasiteindicator'), 
-                        implode(', ', $roles));
+                        '<strong>' . implode('</strong>, <strong>', $roles) . '</strong>');
                 
                 // Change the site type
                 if(has_capability('tool/uclasiteindicator:edit', $systemcontext)) {

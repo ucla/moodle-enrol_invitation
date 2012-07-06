@@ -75,5 +75,12 @@ function xmldb_tool_uclasiteindicator_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2012070202, 'tool', 'uclasiteindicator');
     }
     
+    if ($oldversion < 2012070505) {
+        
+        siteindicator_manager::find_and_set_collab_sites();
+        
+        upgrade_plugin_savepoint(true, 2012070505, 'tool', 'uclasiteindicator');
+    }
+    
     return $result;
 }
