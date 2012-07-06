@@ -107,7 +107,7 @@ $string['emailmessageuserenrolled'] = 'Hello,
 {$a->userfullname} ({$a->useremail}) has accepted your invitation to access {$a->coursefullname} as a "{$a->rolename}". You can verify the status of this invitation by viewing either:
     
     * the participant list for : {$a->courseenrolledusersurl}
-    *  your site invitation history: {$a->invitehistoryurl}
+    * your site invitation history: {$a->invitehistoryurl}
 
 {$a->sitename}
 -------------
