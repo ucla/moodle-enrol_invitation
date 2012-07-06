@@ -362,12 +362,15 @@ class siteindicator_manager {
             'supervising_instructor',
             'nonediting_instructor',
             'student',
+            'ta_instructor',
+            'ta_admin',
+            'ta',
             );
         
         $project = array(
             'projectlead',
             'projectcontributor',
-            'projectmember',
+            'projectparticipant',
             'projectviewer',
             );
         
@@ -381,16 +384,19 @@ class siteindicator_manager {
         // Re-mapping of roles for site type changes
         $this->_role_remap = array(
             'project' => array(
-                'editinginstructor' => 'projectlead',
-                'supervising_instructor' => 'projectcontributor',
-                'nonediting_instructor' => 'projectmember',
-                'student' => 'projectviewer',
+                'editinginstructor'         => 'projectlead',
+                'supervising_instructor'    => 'projectcontributor',
+                'nonediting_instructor'     => 'projectparticipant',
+                'student'                   => 'projectviewer',
+                'ta_instructor'             => 'projectcontributor',
+                'ta_admin '                 => 'projectcontributor',
+                'ta'                        => 'projectparticipant',
                 ),
             'instruction' => array(
-                'projectlead' => 'editinginstructor',
-                'projectcontributor' => 'supervising_instructor',
-                'projectmember' => 'nonediting_instructor',
-                'projectviewer' => 'student',
+                'projectlead'           => 'editinginstructor',
+                'projectcontributor'    => 'supervising_instructor',
+                'projectmember'         => 'nonediting_instructor',
+                'projectviewer'         => 'student',
                 )
             );
     }
