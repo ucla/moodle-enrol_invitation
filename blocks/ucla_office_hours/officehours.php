@@ -94,6 +94,7 @@ if ($updateform->is_cancelled()) { //If the cancel button is clicked, return to 
     if ($data->website != $edit_user->url || $data->email_settings != $edit_user->maildisplay) {
         $edit_user->url = $data->website;
         $edit_user->maildisplay = $data->email_settings;
+        unset($edit_user->password);
         user_update_user($edit_user);
     }
 
