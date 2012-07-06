@@ -797,7 +797,7 @@ class siteindicator_manager {
         if($recs->valid()) {
             foreach($recs as $r) {
                 $site = siteindicator_site::create($r->id);
-                $site->set_type('research');
+                $site->set_type('non_instruction');
             }
         }
         
