@@ -129,7 +129,7 @@ class invitation_manager {
 
                 // change FROM to be $CFG->supportemail if user has show_from_email off
                 $fromuser = $USER;
-                if (!empty($invitation->show_from_email)) {
+                if (empty($invitation->show_from_email)) {                
                     $fromuser = new stdClass();
                     $fromuser->email = $CFG->supportemail;
                     $fromuser->firstname = '';
