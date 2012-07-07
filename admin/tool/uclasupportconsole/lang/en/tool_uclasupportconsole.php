@@ -79,3 +79,6 @@ $string['srs'] = 'SRS';
 $string['subject_area'] = 'Subject area';
 $string['choose_subject_area'] = 'Choose subject area...';
 $string['uid'] = 'UID';
+
+// capability strings
+$string['uclasupportconsole:view'] = 'Use UCLA support console';
