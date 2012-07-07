@@ -82,6 +82,8 @@ class siteindicator_site {
                     
                     // Only map roles that are remap-able
                     if($newrole = $uclaindicator->get_remapped_role($newgroup, $oldrole)) {
+                        print_object($newrole);
+                        
                         role_unassign($r->roleid, $u->id, $context->id);
                         role_assign($newrole->id, $u->id, $context->id);
                     }
@@ -425,7 +427,7 @@ class siteindicator_manager {
         
         $newrole = new stdClass();
 
-        if(empty($this->_role_remap[$rolegroup][$role])) {
+        if (empty($this->_role_remap[$rolegroup][$role])) {
             $newrole = null;
         } else {
             $newrole->shortname = $this->_role_remap[$rolegroup][$role];
@@ -698,15 +700,18 @@ class siteindicator_manager {
     }
 
     static function update_site($data) {
-        /// Handle a type change
-        if(!empty($data->indicator_change) && $indicator = siteindicator_site::load($data->id)) {
+        $indicator = siteindicator_site::load($data->id);
+        if (empty($indicator)) {
+            // no indicator yet, so create it
+            $indicator = siteindicator_site::create($data->id);          
+        }
+        
+        // Handle a type change
+        if(!empty($data->indicator_change)) {
             $indicator->set_type($data->indicator_change);
         }
-        /// Or create indicator
-        if(!empty($data->indicator_create)) {
-            siteindicator_site::create($data->id);
-        }
-        /// Update category
+        
+        // Update category
         if($request = siteindicator_request::load($data->id)) {
             if ($request->request->categoryid != $data->category) {
                 $request->update_category($data->category);

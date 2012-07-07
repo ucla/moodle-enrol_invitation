@@ -15,6 +15,7 @@ $string['site'] = 'site';
 $string['del_msg'] = 'Site indicator entry';
 $string['change'] = 'Change type';
 $string['sitecreate'] = 'Create site indicator';
+$string['no_indicator_type'] = 'Please choose a site type below';
 
 // Site role groups
 $string['r_project'] = 'Project';
