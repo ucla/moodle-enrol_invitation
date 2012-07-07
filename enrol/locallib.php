@@ -359,6 +359,19 @@ class course_enrolment_manager {
                              FROM {role_assignments} r, {user} u
                             WHERE r.contextid = :contextid AND
                                   u.id = r.userid)";
+
+        // START UCLA MOD: CCLE-2530 - REGISTRAR SECURITY - Restrict Assign Roles to only admins
+        if (!has_capability('local/ucla:assign_all', $this->context)) {
+            $sql   = " FROM {user} u
+                    WHERE $wherecondition
+                        AND u.id IN (
+                            SELECT u.id
+                                FROM {role_assignments} r, {user} u
+                                WHERE r.contextid = :contextid AND
+                                    u.id = r.userid)";                    
+        }
+        // END UCLA MOD: CCLE-2530        
+        
         $order = ' ORDER BY lastname ASC, firstname ASC';
 
         $params['contextid'] = $this->context->id;

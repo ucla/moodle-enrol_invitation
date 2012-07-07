@@ -63,3 +63,6 @@ $string['choosecopyright_helpicon'] = '<a title="Help with Copyright Status" hre
         $CFG->wwwroot.'/help.php?component=block_ucla_easyupload&identifier=license&lang=en" target="_blank"><img class="iconhelp" alt="Help with Copyright Status" src="'.
         $CFG->wwwroot.'/theme/image.php?theme=uclashared&image=help"></a>';
 $string['choosecopyright'] = 'Copyright status ' . $string['choosecopyright_helpicon'];
+
+// capability strings
+$string['ucla:assign_all'] = 'CCLE-2530: Restricting moodle/role:assign to only see users in the current course. Users with this capability to see the entire user database.';
