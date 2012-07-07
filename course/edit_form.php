@@ -58,7 +58,10 @@ class course_edit_form extends moodleform {
             // either creating a new site or user is in a collab site
             $mform->addElement('header','uclasiteindicator', get_string('pluginname', 'tool_uclasiteindicator'));
 
-            $indicator = siteindicator_site::load($course->id);
+            $indicator = null;
+            if (!empty($course->id)) {
+                $indicator = siteindicator_site::load($course->id);
+            }
             
             if(!empty($indicator)) {
                 $indicator_type = '<strong>' . siteindicator_manager::get_types_list($indicator->property->type) . ' '
