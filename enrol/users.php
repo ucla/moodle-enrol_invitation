@@ -204,6 +204,13 @@ if (!has_capability('moodle/course:viewhiddenuserfields', $context)) {
 
 $table->set_fields($fields, $renderer);
 
+// BEGIN UCLA MOD: CCLE-2819 - ENROLLMENT - Prepop/View
+$is_siteadmin = false;
+if (is_siteadmin()) {
+    $is_siteadmin = true;
+}
+// END UCLA MOD: CCLE-2819
+
 $canassign = has_capability('moodle/role:assign', $manager->get_context());
 $users = $manager->get_users_for_display($manager, $table->sort, $table->sortdirection, $table->page, $table->perpage);
 //echo "<pre>";
@@ -212,7 +219,7 @@ $users = $manager->get_users_for_display($manager, $table->sort, $table->sortdir
 foreach ($users as $userid=>&$user) {
     // BEGIN UCLA MOD: CCLE-2819 - ENROLLMENT - Prepop/View
     // do not show users with empty roles
-    if (empty($user['roles'])) {
+    if (empty($user['roles']) && !$is_siteadmin) {
         unset($users[$userid]);
         continue;
     }
