@@ -342,7 +342,6 @@ class siteindicator_manager {
         $instruction = array(
             'editinginstructor',
             'supervising_instructor',
-            'nonediting_instructor',
             'student',
             'ta_instructor',
             'ta_admin',
@@ -368,17 +367,16 @@ class siteindicator_manager {
             'project' => array(
                 'editinginstructor'         => 'projectlead',
                 'supervising_instructor'    => 'projectcontributor',
-                'nonediting_instructor'     => 'projectparticipant',
-                'student'                   => 'projectviewer',
-                'ta_instructor'             => 'projectcontributor',
+                'student'                   => 'projectparticipant',
+                'ta_instructor'             => 'projectlead',
                 'ta_admin '                 => 'projectcontributor',
                 'ta'                        => 'projectparticipant',
                 ),
             'instruction' => array(
                 'projectlead'           => 'editinginstructor',
-                'projectcontributor'    => 'supervising_instructor',
-                'projectmember'         => 'nonediting_instructor',
-                'projectviewer'         => 'student',
+                'projectcontributor'    => 'ta_admin',
+                'projectmember'         => 'student',
+                'projectviewer'         => 'sp_2',
                 )
             );
     }
