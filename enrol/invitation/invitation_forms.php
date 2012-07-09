@@ -123,19 +123,47 @@ class invitations_form extends moodleform {
      * @param object $course    Course record
      */
     private function get_appropiate_roles($course) {
-        global $DB;
-
+        global $CFG, $DB;
+        $roles = array();
+        
         // project/research sites need to only use project roles
         if (is_collab_site($course)) {
-            $roles = array('projectlead', 'projectcontributor', 
-                'projectparticipant', 'projectviewer');            
+            // see if site indicator is installed
+            $site_type = '';
+            $collab_site_indicator = dirname(__FILE__) . '/../../' . 
+                    $CFG->admin . '/tool/uclasiteindicator/lib.php';
+            if (file_exists($collab_site_indicator)) {
+                require($collab_site_indicator);
+                // try to get type
+                $siteindicator_site = siteindicator_site::load($course->id);
+                if (!empty($siteindicator_site)) {
+                    $site_type = $siteindicator_site->property->type;
+                }
+            }
+            
+            // figure out what roles to display
+            // See CCLE-2948/CCLE-2949/CCLE-2913/site indicator
+            switch ($site_type) {
+                case 'test':    
+                    $roles = array('editinginstructor', 'student', 'sa_1', 
+                                   'sa_2', 'sa_3', 'sa_4', 'sp_1', 'sp_2', 
+                                   'projectlead', 'projectcontributor', 
+                                   'projectparticipant', 'projectviewer');      
+                    break;
+                case 'instruction':
+                    $roles = array('editinginstructor', 'student', 'sa_1', 
+                                   'sa_2', 'sa_3', 'sa_4', 'sp_2');                    
+                    break;
+                default:    // default to project roles 
+                    $roles = array('projectlead', 'projectcontributor', 
+                                   'projectparticipant', 'projectviewer');     
+            }
         } else {
-            // TODO: add in support for instructional collab sites to use class roles                        
             $roles = array('sa_2', 'sa_3', 'sa_4', 'sp_1', 'sp_2');
         }
         
         // now get role names and descriptions
-        return $DB->get_records_list('role', 'shortname', $roles);        
+        return $DB->get_records_list('role', 'shortname', $roles, 'sortorder');        
     }
 
 }

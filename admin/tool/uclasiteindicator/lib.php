@@ -82,8 +82,6 @@ class siteindicator_site {
                     
                     // Only map roles that are remap-able
                     if($newrole = $uclaindicator->get_remapped_role($newgroup, $oldrole)) {
-                        print_object($newrole);
-                        
                         role_unassign($r->roleid, $u->id, $context->id);
                         role_assign($newrole->id, $u->id, $context->id);
                     }
@@ -107,11 +105,9 @@ class siteindicator_site {
         $uclaindicator = new siteindicator_manager();
         
         $roleids = (array)$uclaindicator->get_roles_for_type($this->property->type);
-        $roles = $DB->get_records_select('role', 
-                'shortname IN ("' . implode('", "', $roleids) . '")');
+        $roles = $DB->get_records_list('role', 'shortname', $roleids, 'sortorder');   
         
-        $list = array();
-        
+        $list = array();        
         foreach($roles as $r) {
             $list[$r->id] = trim($r->name);
         }
@@ -339,13 +335,15 @@ class siteindicator_manager {
             );
         
         // Define the roles allowed for a particular role group
+        // See CCLE-2948/CCLE-2949/CCLE-2913/site invite
         $instruction = array(
             'editinginstructor',
-            'supervising_instructor',
             'student',
-            'ta_instructor',
-            'ta_admin',
-            'ta',
+            'sa_1',
+            'sa_2',
+            'sa_3',
+            'sa_4',
+            'sp_2',
             );
         
         $project = array(
@@ -355,28 +353,24 @@ class siteindicator_manager {
             'projectviewer',
             );
         
-        // 
         $this->_roleassignments = array(
             'instruction' => $instruction,
             'project' => $project,
             'test' => array_merge($instruction, $project),
             );
 
-        // Re-mapping of roles for site type changes
+        //Roles are re-mapped
+        //Instructor <-> project lead
+        //Student <-> project participant
+        //Everything else is left alone.....
         $this->_role_remap = array(
             'project' => array(
-                'editinginstructor'         => 'projectlead',
-                'supervising_instructor'    => 'projectcontributor',
-                'student'                   => 'projectparticipant',
-                'ta_instructor'             => 'projectlead',
-                'ta_admin '                 => 'projectcontributor',
-                'ta'                        => 'projectparticipant',
+                'editinginstructor' => 'projectlead',
+                'student'           => 'projectparticipant',
                 ),
             'instruction' => array(
                 'projectlead'           => 'editinginstructor',
-                'projectcontributor'    => 'ta_admin',
-                'projectmember'         => 'student',
-                'projectviewer'         => 'sp_2',
+                'projectparticipant'    => 'student',
                 )
             );
     }

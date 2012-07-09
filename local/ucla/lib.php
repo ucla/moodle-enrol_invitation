@@ -965,9 +965,6 @@ function term_cmp_fn($term, $other) {
 /**
  * Returns true if given course object is a collabration site, otherwise false.
  * 
- * Until the collab site indicator is implemented for now a course is a collab
- * site if it doesn't exist in the ucla_request_classes table.
- * 
  * @param object $course
  * @return boolean 
  */
