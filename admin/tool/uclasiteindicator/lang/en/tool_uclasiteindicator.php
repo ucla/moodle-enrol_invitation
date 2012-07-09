@@ -119,3 +119,17 @@ $string['requestcourse'] = 'Request a collaboration site';
 // Reject
 $string['coursereasonforrejecting'] = 'Reject collaboration site request';
 $string['courserejected'] = 'Site has been rejected';
+
+// admin tool reports
+$string['reports_heading'] = 'Reports';
+$string['reports_intro'] = 'Please choose a report type to view:';
+$string['sitetypes'] = 'Site types';
+$string['requesthistory'] = 'Request history';
+$string['norequesthistory'] = 'No requests found';
+$string['site_requester'] = 'Site requester';
+$string['site_status'] = 'Site status';
+$string['orphans'] = 'Orphan sites (non-SRS sites with no site type)';
+$string['noorphans'] = 'No orphan sites found';
+$string['sitelisting'] = 'Site listings';
+$string['nositelisting'] = 'No sites found';
+$string['back'] = 'Back';

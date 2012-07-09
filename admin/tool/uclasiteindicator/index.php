@@ -18,13 +18,12 @@ require_once($CFG->dirroot . $thisdir . 'siteindicator_form.php');
 
 global $DB, $ME, $USER;
 
-$baseurl = $CFG->wwwroot . '/' . $CFG->admin . '/tool/uclasiteindicator/index.php';
+$baseurl = $CFG->wwwroot . '/' . $CFG->admin . '/tool/uclasiteindicator';
 
 require_login();
 
 $syscontext = get_context_instance(CONTEXT_SYSTEM);
-require_capability('tool/uclasiteindicator:edit', $syscontext);
-
+require_capability('tool/uclasiteindicator:view', $syscontext);
 
 $thisfile = $thisdir . 'index.php';
 // Initialize $PAGE
@@ -41,82 +40,30 @@ admin_externalpage_setup('uclasiteindicator');
 echo $OUTPUT->header();
 
 // Heading
-echo $OUTPUT->box($OUTPUT->heading(get_string('pluginname', 'tool_uclasiteindicator')), 'generalbox categorybox box');
+echo $OUTPUT->heading(get_string('pluginname', 'tool_uclasiteindicator'), 2, 'headingblock');
 
 echo $OUTPUT->box_start('generalbox');
-echo $OUTPUT->heading('Site types');
 
-$types = siteindicator_manager::get_types_list();
+echo $OUTPUT->heading(get_string('reports_heading', 'tool_uclasiteindicator'));
+echo html_writer::tag('p', get_string('reports_intro', 'tool_uclasiteindicator'));
 
-$table = new html_table();
-$table->attributes['class'] = 'generaltable';
-$table->align = array('left', 'left', 'left');
-$table->head = array('Indicator type', 'Shortname', 'Description');
+// NOTE: report types need to match script name, have corresponding entry in 
+// lang file and be located in "report" directory
+$report_types = array(
+    'orphans',
+    'requesthistory',
+    'sitelisting',
+    'sitetypes',
+);
 
-foreach($types as $type) {
-    $row = array();
-    $row[] = $type['fullname'];
-    $row[] = $type['shortname'];
-    $row[] = $type['description'];
-
-    $table->data[] = $row;
-}
-// Display indicator types
-echo html_writer::table($table);
-
-echo $OUTPUT->heading('Request history');
-$history = siteindicator_manager::get_request_history();
-
-$table = new html_table();
-$table->attributes['class'] = 'generaltable';
-$table->head = array('Request type', 'Current category', 'Site name', 'Site requester', 'Site status');
-
-foreach($history as $h) {
-    $row = array();
-    $row[] = $h->type;
-    $row[] = siteindicator_manager::get_categories_list($h->categoryid);
-    $name = siteindicator_manager::get_username($h->requester);
-
-    if($h->courseid) {
-        $course = $DB->get_record('course', array('id' => $h->courseid));
-        
-        // Site name
-        $sitename = $course->fullname;
-        $link = html_writer::link($CFG->wwwroot . '/course/view.php?id=' . $h->courseid, $sitename);
-        $row[] = html_writer::tag('span', $course->shortname . '<br/>' . $link);
-        
-        // Requester
-        $row[] = html_writer::link($CFG->wwwroot . '/user/profile.php?id=' . $h->requester, $name);
-
-        // Site status
-        $link = html_writer::link($CFG->wwwroot . '/course/view.php?id=' . $h->courseid, 'Active');
-        $row[] = html_writer::tag('span', $link, array('class' => 'indicator-active indicator-block'));
-    } else if($h->requestid) {
-        $course = $DB->get_record('course', array('id' => $h->requestid));
-        
-        // Site name
-        $sitename = $course->shortname . '<br/>' . $course->fullname;
-        $row[] = html_writer::tag('span', $sitename);
-        
-        // Requester
-        $row[] = html_writer::link($CFG->wwwroot . '/user/profile.php?id=' . $h->requester, $name);
-        
-        // Status
-        $link = html_writer::link($CFG->wwwroot . '/course/pending.php?request=' . $h->requestid, 'Pending');
-        $row[] = html_writer::tag('span', $link, array('class' => 'indicator-pending indicator-block'));
-    } else {
-        // Site name is empty
-        $row[] = html_writer::tag('span', '&lt;empty&gt;');
-        // Requester
-        $row[] = html_writer::link($CFG->wwwroot . '/user/profile.php?id=' . $h->requester, $name);
-        // Site status
-        $row[] = html_writer::tag('span', 'Rejected', array('class' => 'indicator-reject indicator-block'));
-    }
-
-    $table->data[] = $row;
+// create nodes to put in ordered list
+foreach ($report_types as $index => $report_type) {
+    $url = $baseurl . '/report/' . $report_type . '.php';
+    $report_types[$index] = html_writer::link($url, 
+            get_string($report_type, 'tool_uclasiteindicator'));
 }
 
-echo html_writer::table($table);
+echo html_writer::alist($report_types, array(), 'ol');
 
 //echo $OUTPUT->heading('Orphan sites');
 //$orphans = siteindicator_manager::get_orphans();

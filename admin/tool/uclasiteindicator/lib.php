@@ -100,19 +100,9 @@ class siteindicator_site {
      * @return array of assignable roles 
      */
     public function get_assignable_roles() {
-        global $DB;
-        
-        $uclaindicator = new siteindicator_manager();
-        
-        $roleids = (array)$uclaindicator->get_roles_for_type($this->property->type);
-        $roles = $DB->get_records_list('role', 'shortname', $roleids, 'sortorder');   
-        
-        $list = array();        
-        foreach($roles as $r) {
-            $list[$r->id] = trim($r->name);
-        }
-        
-        return $list;
+        global $DB;        
+        $uclaindicator = new siteindicator_manager();        
+        return $uclaindicator->get_assignable_roles($this->property->type);
     }    
 
     
@@ -761,18 +751,40 @@ class siteindicator_manager {
     static function get_orphans() {
         global $DB;
         
-        $query = "SELECT c.id 
-                FROM {course} AS c 
+        $sql = "SELECT  c.id,
+                        c.shortname,
+                        c.fullname
+                FROM    {course} AS c 
                 LEFT JOIN {ucla_request_classes} AS r ON r.courseid = c.id 
                 LEFT JOIN {ucla_siteindicator} AS s ON s.courseid = c.id 
-                WHERE c.id <> 1 
-                AND r.id IS NULL 
-                AND s.id IS NULL 
-                GROUP BY c.id";
-        $recs = $DB->get_records_sql($query);
+                WHERE   c.id <> 1 AND 
+                        r.id IS NULL AND 
+                        s.id IS NULL 
+                ORDER BY c.shortname";
+        $recs = $DB->get_records_sql($sql);
         
         return $recs;
     }
+    
+    /**
+     * Returns list of collaboration sites and their site type.
+     */
+    static function get_sites() {
+        global $DB;
+        
+        $sql = "SELECT  c.id,
+                        c.shortname,
+                        c.fullname,
+                        c.category,
+                        s.type
+                FROM    {course} AS c,
+                        {ucla_siteindicator} AS s
+                WHERE   s.courseid = c.id
+                ORDER BY c.shortname";
+        $recs = $DB->get_records_sql($sql);
+        
+        return $recs;
+    }    
     
     static function find_and_set_collab_sites() {
         global $DB;
@@ -800,4 +812,23 @@ class siteindicator_manager {
         
         $recs->close();
     }
+    
+    /**
+     * Get assignable roles for given site type.
+     * 
+     * @return array of assignable roles 
+     */
+    public function get_assignable_roles($type) {
+        global $DB;
+        
+        $roleids = $this->get_roles_for_type($type);
+        $roles = $DB->get_records_list('role', 'shortname', $roleids, 'sortorder');   
+        
+        $list = array();        
+        foreach($roles as $r) {
+            $list[$r->id] = trim($r->name);
+        }
+        
+        return $list;
+    }        
 }
