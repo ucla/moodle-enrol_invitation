@@ -8,6 +8,11 @@ class registrar_cis_subjectareagetall extends registrar_query {
     }
 
     function remote_call_generate($args) {
+        // if array, then just get first element.
+        if (is_array($args)) {
+            $args = array_shift($args);
+        }        
+        
         if (ucla_validator('term', $args)) {
             $term = $args;
         } else {
