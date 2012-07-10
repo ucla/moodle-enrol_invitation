@@ -204,18 +204,18 @@ class course_edit_form extends moodleform {
             $mform->hardFreeze('summary_editor');
         }
 
-        $courseformats = get_plugin_list('format');
-        $formcourseformats = array();
-        foreach ($courseformats as $courseformat => $formatdir) {
-            $formcourseformats[$courseformat] = get_string('pluginname', "format_$courseformat");
-        }
         if (has_capability('local/ucla:editadvancedcoursesettings', $coursecontext)) {
+            $courseformats = get_plugin_list('format');
+            $formcourseformats = array();
+            foreach ($courseformats as $courseformat => $formatdir) {
+                $formcourseformats[$courseformat] = get_string('pluginname', "format_$courseformat");
+            }
             $mform->addElement('select', 'format', get_string('format'), $formcourseformats);
             $mform->addHelpButton('format', 'format');
             $mform->setDefault('format', $courseconfig->format);
         } else {
-            $mform->addElement('static', 'format_readonly', 
-                    get_string('format'), $formcourseformats[$courseconfig->format]);
+            $mform->addElement('static', 'format_readonly', get_string('format'),
+                    get_string('pluginname', "format_$courseconfig->format"));
             $mform->addHelpButton('format_readonly', 'format');
         }
         
