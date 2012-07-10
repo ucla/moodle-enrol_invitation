@@ -13,6 +13,7 @@ $string['errbcmsglocation'] = "ERROR: No location set for bruincast data.";
 $string['errbcmsgemail'] = "ERROR: No email set for bruincast error notification.";
 $string['errbcmsgquiet'] = "ERROR: Cannot access configuration option quiet_mode.";
 $string['errbcinsert'] = "ERROR: Problem writing to the database.";
+$string['errbcinvalidrowlen'] = "ERROR: Invalid row length in provided bruincast data.";
 
 // Notication messages
 $string['bcstartnoti'] = "Starting bruincast DB update:";

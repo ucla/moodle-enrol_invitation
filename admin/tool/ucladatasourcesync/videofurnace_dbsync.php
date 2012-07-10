@@ -18,6 +18,43 @@ $datasource_url = handle_cfgs();
 // Begin database update
 update_videofurnace_db($datasource_url);
 
+function define_data_source() {
+    $ret_val = array();
+
+    $ret_val[0] = array('name' => 'term',
+                        'type' => 'term',
+                        'min_size' => '3',
+                        'max_size' => '3');
+    $ret_val[1] = array('name' => 'srs',
+                        'type' => 'srs',
+                        'min_size' => '7',
+                        'max_size' => '9');
+    $ret_val[2] = array('name' => 'start_date',
+                        'type' => 'date_slashed',
+                        'min_size' => '10',
+                        'max_size' => '10');
+    $ret_val[3] = array('name' => 'stop_date',
+                        'type' => 'date_slashed',
+                        'min_size' => '10',
+                        'max_size' => '10');
+    $ret_val[4] = array('name' => 'class',
+                        'type' => 'string',
+                        'min_size' => '0',
+                        'max_size' => '50');
+    $ret_val[5] = array('name' => 'instructor',
+                        'type' => 'string',
+                        'min_size' => '0',
+                        'max_size' => '100');
+    $ret_val[6] = array('name' => 'video_title',
+                        'type' => 'string',
+                        'min_size' => '0',
+                        'max_size' => '40');
+    $ret_val[7] = array('name' => 'video_url',
+                        'type' => 'url',
+                        'min_size' => '1',
+                        'max_size' => '400');
+    return $ret_val;
+}
 /**
  * Main function for updating the video furnace db.
  * 
@@ -36,7 +73,8 @@ function update_videofurnace_db($datasource_url) {
     global $DB;
 
     echo get_string('vfstartnoti', 'tool_ucladatasourcesync');
-
+    
+    $fields = define_data_source();
     $incoming_data = &get_tsv_data($datasource_url);
     //Haven't gotten around to merging the following cleanup code into matts function. should be done once there is time.
     //$data = &cleanup_csv_data($data, "ucla_video_furnace");
@@ -58,10 +96,31 @@ function update_videofurnace_db($datasource_url) {
         // if the row is empty, skip it but don't log an error
         if ((sizeof($row_data) == 1) && ($row_data['term'] == "")) {
             continue;
-        } else if (sizeof($row_data) != 8) {
+        } else if (sizeof($row_data) != sizeof($fields)) {
             echo get_string('errvfinvalidrowlen', 'tool_ucladatasourcesync') . "\n";
             continue;
         }
+        $invalid_fields = array();
+        foreach ($fields as $field_num => $field_def) {
+            // validate/clean data
+            $data = validate_field($field_def['type'],
+                    $row_data[$field_num], $field_def['min_size'],
+                    $field_def['max_size']);
+            if ($data === FALSE) {
+                $invalid_fields[] = $field_def['name'];
+            }
+        }
+
+        // give warning about errors
+        if (!empty($invalid_fields)) {
+            $error = new stdClass();
+            $error->fields = implode(', ', $invalid_fields);
+            $error->line_num = $row;
+            $error->data = print_r($row_data, true);                       
+            echo(get_string('warninvalidfields', 'tool_ucladatasourcesync',
+                    $error) . "\n");
+        }
+
 
         fix_data_format($row_data);
 
@@ -252,7 +311,7 @@ function fix_data_format(&$row) {
 
     // find related course
     // TODO: handle DIS srs numbers
-    $courseid = ucla_map_termsrs_to_courseid($data_object['term'], $data_object['srs']);
+    $courseid = match_course($data_object['term'], $data_object['srs']);
     if (!empty($courseid)) {
         // course was found on system!
         $data_object['courseid'] = $courseid;
