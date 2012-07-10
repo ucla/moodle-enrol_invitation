@@ -720,14 +720,15 @@ if ($displayforms) {
     
     $results = $DB->get_records_sql("
         SELECT 
-            c.id AS courseid,
+            m.id AS module_id,
             m.Due_date, 
-            c.shortname AS Class, 
-            c.Fullname,
+            c.shortname, 
+            c.fullname,
             m.modtype, 
             m.Name
         FROM ((
             SELECT 
+                id,
                 'quiz' AS modtype, 
                 course, 
                 name, 
@@ -737,6 +738,7 @@ if ($displayforms) {
                 BETWEEN  {$timefrom} AND {$timeto}
         ) UNION (
             SELECT 
+                id,
                 'assignment' AS modtype, 
                 course, 
                 name, 
