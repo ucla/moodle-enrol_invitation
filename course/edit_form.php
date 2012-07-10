@@ -126,7 +126,8 @@ class course_edit_form extends moodleform {
                 $mform->setConstant('category', $category->id);
             }
         } else {
-            if (has_capability('moodle/course:changecategory', $coursecontext)) {
+            if (has_capability('moodle/course:changecategory', $coursecontext)
+                    && has_capability('local/ucla:editadvancedcoursesettings', $coursecontext)) {
                 $displaylist = array();
                 $parentlist = array();
                 make_categories_list($displaylist, $parentlist, 'moodle/course:create');
@@ -208,10 +209,16 @@ class course_edit_form extends moodleform {
         foreach ($courseformats as $courseformat => $formatdir) {
             $formcourseformats[$courseformat] = get_string('pluginname', "format_$courseformat");
         }
-        $mform->addElement('select', 'format', get_string('format'), $formcourseformats);
-        $mform->addHelpButton('format', 'format');
-        $mform->setDefault('format', $courseconfig->format);
-
+        if (has_capability('local/ucla:editadvancedcoursesettings', $coursecontext)) {
+            $mform->addElement('select', 'format', get_string('format'), $formcourseformats);
+            $mform->addHelpButton('format', 'format');
+            $mform->setDefault('format', $courseconfig->format);
+        } else {
+            $mform->addElement('static', 'format_readonly', 
+                    get_string('format'), $formcourseformats[$courseconfig->format]);
+            $mform->addHelpButton('format_readonly', 'format');
+        }
+        
         for ($i = 0; $i <= $courseconfig->maxsections; $i++) {
             $sectionmenu[$i] = "$i";
         }
@@ -243,9 +250,15 @@ class course_edit_form extends moodleform {
         $mform->setDefault('showreports', $courseconfig->showreports);
 
         $choices = get_max_upload_sizes($CFG->maxbytes);
-        $mform->addElement('select', 'maxbytes', get_string('maximumupload'), $choices);
-        $mform->addHelpButton('maxbytes', 'maximumupload');
-        $mform->setDefault('maxbytes', $courseconfig->maxbytes);
+        if (has_capability('local/ucla:editadvancedcoursesettings', $coursecontext)) {
+            $mform->addElement('select', 'maxbytes', get_string('maximumupload'), $choices);
+            $mform->addHelpButton('maxbytes', 'maximumupload');
+            $mform->setDefault('maxbytes', $courseconfig->maxbytes);
+        } else {
+            $mform->addElement('static', 'maxbytes_readonly', 
+                    get_string('maximumupload'), $choices[$courseconfig->maxbytes]);
+            $mform->addHelpButton('maxbytes_readonly', 'maximumupload');
+        }
 
         if (!empty($course->legacyfiles) or !empty($CFG->legacyfilesinnewcourses)) {
             if (empty($course->legacyfiles)) {
@@ -337,14 +350,15 @@ class course_edit_form extends moodleform {
         }
 
 //--------------------------------------------------------------------------------
-        $mform->addElement('header','', get_string('language'));
+        if (has_capability('local/ucla:editadvancedcoursesettings', $coursecontext)) {
+            $mform->addElement('header','', get_string('language'));
 
-        $languages=array();
-        $languages[''] = get_string('forceno');
-        $languages += get_string_manager()->get_list_of_translations();
-        $mform->addElement('select', 'lang', get_string('forcelanguage'), $languages);
-        $mform->setDefault('lang', $courseconfig->lang);
-
+            $languages=array();
+            $languages[''] = get_string('forceno');
+            $languages += get_string_manager()->get_list_of_translations();
+            $mform->addElement('select', 'lang', get_string('forcelanguage'), $languages);
+            $mform->setDefault('lang', $courseconfig->lang);
+        }
 //--------------------------------------------------------------------------------
         if (completion_info::is_enabled_for_site()) {
             $mform->addElement('header','', get_string('progress','completion'));
