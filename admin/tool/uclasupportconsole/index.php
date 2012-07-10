@@ -262,7 +262,7 @@ if ($displayforms) {
         $result[$k] = $res;        
     }
 
-    echo supportconsole_render_table_shortcut($result, $title);
+    echo supportconsole_render_section_shortcut($title, $result);
 
     $sectionhtml = ob_get_clean();
 } 
@@ -381,10 +381,11 @@ if ($displayforms) {
         FROM {log} a 
         LEFT JOIN {user} b ON a.userid = b.id
         LEFT JOIN {course} c ON a.course = c.id
-        WHERE FROM_UNIXTIME(time) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) 
+        WHERE FROM_UNIXTIME(time) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND
+            c.id!=:siteid
         GROUP BY day, course, a.userid 
         ORDER BY a.id DESC
-    ");
+    ", array('siteid' => SITEID));
     
     $sectionhtml = supportconsole_render_section_shortcut($title, $result);
 } 
