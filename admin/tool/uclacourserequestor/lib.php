@@ -1097,7 +1097,9 @@ function prep_request_entry($requestinfo) {
                 $actval = true;
             }
 
-            if ($worstnote == $errs) {
+            // Also disable if we have $addedtext
+            // This is the case when a course is marked as cancelled
+            if ($worstnote == $errs || !empty($addedtext)) {
                 $buildoptions['disabled'] = true;
             }
 
