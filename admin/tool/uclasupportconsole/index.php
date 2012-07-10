@@ -353,10 +353,11 @@ if ($displayforms) {
             COUNT(*) AS count 
         FROM {log} a 
         LEFT JOIN {course} c ON a.course = c.id
-        WHERE FROM_UNIXTIME(time) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) 
+        WHERE FROM_UNIXTIME(time) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND
+                c.id!=:siteid
         GROUP BY date, course 
         ORDER BY a.id DESC
-    ");
+    ", array('siteid' => SITEID));
 
     $sectionhtml .= supportconsole_render_section_shortcut($title, $result);
 } 
