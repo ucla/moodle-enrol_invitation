@@ -126,6 +126,7 @@ class course_edit_form extends moodleform {
                 $mform->setConstant('category', $category->id);
             }
         } else {
+            //if (has_capability('moodle/course:changecategory', $coursecontext)) {
             if (has_capability('moodle/course:changecategory', $coursecontext)
                     && has_capability('local/ucla:editadvancedcoursesettings', $coursecontext)) {
                 $displaylist = array();
@@ -204,6 +205,17 @@ class course_edit_form extends moodleform {
             $mform->hardFreeze('summary_editor');
         }
 
+        /*
+        $courseformats = get_plugin_list('format');
+        $formcourseformats = array();
+        foreach ($courseformats as $courseformat => $formatdir) {
+            $formcourseformats[$courseformat] = get_string('pluginname', "format_$courseformat");
+        }
+        $mform->addElement('select', 'format', get_string('format'), $formcourseformats);
+        $mform->addHelpButton('format', 'format');
+        $mform->setDefault('format', $courseconfig->format);
+        */
+        // BEGIN UCLA MOD: CCLE-3278-Change-options-on-course-edit-settings-page
         if (has_capability('local/ucla:editadvancedcoursesettings', $coursecontext)) {
             $courseformats = get_plugin_list('format');
             $formcourseformats = array();
@@ -218,6 +230,7 @@ class course_edit_form extends moodleform {
                     get_string('pluginname', "format_$courseconfig->format"));
             $mform->addHelpButton('format_readonly', 'format');
         }
+        // END UCLA MOD: CCLE-3278
         
         for ($i = 0; $i <= $courseconfig->maxsections; $i++) {
             $sectionmenu[$i] = "$i";
@@ -250,6 +263,12 @@ class course_edit_form extends moodleform {
         $mform->setDefault('showreports', $courseconfig->showreports);
 
         $choices = get_max_upload_sizes($CFG->maxbytes);
+        /*
+        $mform->addElement('select', 'maxbytes', get_string('maximumupload'), $choices);
+        $mform->addHelpButton('maxbytes', 'maximumupload');
+        $mform->setDefault('maxbytes', $courseconfig->maxbytes); 
+        */
+        // BEGIN UCLA MOD: CCLE-3278-Change-options-on-course-edit-settings-page
         if (has_capability('local/ucla:editadvancedcoursesettings', $coursecontext)) {
             $mform->addElement('select', 'maxbytes', get_string('maximumupload'), $choices);
             $mform->addHelpButton('maxbytes', 'maximumupload');
@@ -259,6 +278,7 @@ class course_edit_form extends moodleform {
                     get_string('maximumupload'), $choices[$courseconfig->maxbytes]);
             $mform->addHelpButton('maxbytes_readonly', 'maximumupload');
         }
+        // END UCLA MOD: CCLE-3278
 
         if (!empty($course->legacyfiles) or !empty($CFG->legacyfilesinnewcourses)) {
             if (empty($course->legacyfiles)) {
@@ -350,6 +370,16 @@ class course_edit_form extends moodleform {
         }
 
 //--------------------------------------------------------------------------------
+        /*
+        $mform->addElement('header','', get_string('language'));
+
+        $languages=array();
+        $languages[''] = get_string('forceno');
+        $languages += get_string_manager()->get_list_of_translations();
+        $mform->addElement('select', 'lang', get_string('forcelanguage'), $languages);
+        $mform->setDefault('lang', $courseconfig->lang);
+        */
+        // BEGIN UCLA MOD: CCLE-3278-Change-options-on-course-edit-settings-page
         if (has_capability('local/ucla:editadvancedcoursesettings', $coursecontext)) {
             $mform->addElement('header','', get_string('language'));
 
@@ -359,6 +389,7 @@ class course_edit_form extends moodleform {
             $mform->addElement('select', 'lang', get_string('forcelanguage'), $languages);
             $mform->setDefault('lang', $courseconfig->lang);
         }
+        // END UCLA MOD: CCLE-3278
 //--------------------------------------------------------------------------------
         if (completion_info::is_enabled_for_site()) {
             $mform->addElement('header','', get_string('progress','completion'));
