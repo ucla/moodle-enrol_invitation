@@ -34,8 +34,8 @@ $string['moodlelog_select'] = 'Select which types of log entries to view';
 $string['moodlelog_filter'] = 'Filter log by action types';
 $string['moodlelogins'] = 'Show logins during the last 24 hours';
 $string['moodlelogbyday'] = 'Count Moodle logs by day';
-$string['moodlelogbydaycourse'] = 'Count Moodle logs by day and course';
-$string['moodlelogbydaycourseuser'] = 'Count Moodle logs by day, course and user';
+$string['moodlelogbydaycourse'] = 'Count Moodle logs by day and course (past 7 days)';
+$string['moodlelogbydaycourseuser'] = 'Count Moodle logs by day, course and user (past 7 days)';
 
 // Users
 $string['moodleusernamesearch'] = 'Show users with firstname and/or lastname';
