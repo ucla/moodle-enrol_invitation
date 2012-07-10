@@ -349,18 +349,34 @@ class siteindicator_manager {
             'test' => array_merge($instruction, $project),
             );
 
-        //Roles are re-mapped
-        //Instructor <-> project lead
-        //Student <-> project participant
-        //Everything else is left alone.....
+        // remap roles
+        // see CCLE-2913
         $this->_role_remap = array(
             'project' => array(
                 'editinginstructor' => 'projectlead',
-                'student'           => 'projectparticipant',
+                'nonediting_instructor' => 'projectcontributor',
+                'sa_1'      => 'projectlead',
+                'sa_2'      => 'projectcontributor',
+                'sa_3'      => 'projectparticipant',
+                'sa_4'      => 'projectcontributor',
+                'student'   => 'projectparticipant',                
+                'sp_1'      => 'projectparticipant',             
+                'sp_2'      => 'projectviewer',                
+                'supervising_instructor' => 'projectlead',
+                'ta_instructor' => 'projectlead',
+                'ta_admin' => 'projectlead',
+                'ta' => 'projectparticipant',
                 ),
             'instruction' => array(
                 'projectlead'           => 'editinginstructor',
+                'projectcontributor'    => 'sa_4',
                 'projectparticipant'    => 'student',
+                'projectviewer'         => 'sp_2',                
+                'nonediting_instructor' => 'sa_3',
+                'supervising_instructor' => 'sa_2',
+                'ta_instructor' => 'sa_1',
+                'ta_admin' => 'sa_1',
+                'ta' => 'sa_4',
                 )
             );
     }
