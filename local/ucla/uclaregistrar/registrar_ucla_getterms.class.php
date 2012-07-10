@@ -22,6 +22,11 @@ class registrar_ucla_getterms extends registrar_query {
 
     function remote_call_generate($args) {
         
+        // if array, then just get first element.
+        if (is_array($args)) {
+            $args = array_shift($args);
+        }
+        
         //Exit if the term is not a valid term.
         if (ucla_validator('term', $args) == false) {
             return false;

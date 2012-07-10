@@ -1,6 +1,7 @@
 <?php
 /**
  *  Course Requestor 
+ *  This code can use some good refactoring.
  **/
 require_once(dirname(__FILE__) . '/../../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
@@ -42,7 +43,7 @@ define('UCLA_CR_SUBMIT', 'submitrequests');
 $PAGE->set_url($thisdir . $thisfile);
 $PAGE->set_context($syscontext);
 $PAGE->set_heading(get_string('pluginname', $rucr));
-$PAGE->set_pagetype('admin-*');
+$PAGE->set_pagetype('admin-uclacourserequestor');
 $PAGE->set_pagelayout('admin');
 
 // Prepare and load Moodle Admin interface
@@ -54,7 +55,7 @@ $prefieldsdata = get_requestor_view_fields();
 
 $top_forms = array(
     UCLA_REQUESTOR_FETCH => array('srs', 'subjarea'),
-    UCLA_REQUESTOR_VIEW => array('view')
+    UCLA_REQUESTOR_VIEW => array('view', 'hidden_srs_view')
 );
 
 $terms = get_active_terms();
@@ -69,6 +70,7 @@ $nv_cd = array(
     'terms' => $terms,
     'prefields' => $prefieldsdata
 );
+
 // We're going to display the forms, but later
 $cached_forms = array();
 
@@ -84,6 +86,12 @@ $uclacrqs = null;
 // This is a holder that will maintain the original data 
 // (for use when clicking 'checkchanges') 
 $pass_uclacrqs = null;
+
+// This is the global requestor previous value
+$requestorglobal = '';
+
+// These are the messages that are requestor errors
+$errormessages = array();
 
 // This is the field in the postdata that should represent the state of
 // data in the current database for the requestors.
@@ -103,6 +111,10 @@ foreach ($top_forms as $gk => $group) {
        
         if ($requests === null && $recieved = $fl->get_data()) {
             $requests = $fl->respond($recieved);
+            if (empty($requests)) {
+                $errormessages[] = 'norequestsfound';
+            }
+
             $groupid = $gk;
 
             // Place into our holder
@@ -115,13 +127,33 @@ foreach ($top_forms as $gk => $group) {
     }
 }
 
+// Special catch for our single term-srs viewer
+$getsrs = optional_param('srs', false, PARAM_ALPHANUM);
+if ($getsrs && $requests === null) {
+    $termsrsform = $cached_forms[UCLA_REQUESTOR_VIEW]['hidden_srs_view'];
+    $termsrsobj = new object();
+    $termsrsobj->{$termsrsform->groupname} = array(
+            'srs' => $getsrs,
+            'term' => $selterm
+        );
+
+    $requests = $termsrsform->respond($termsrsobj);
+    $groupid = UCLA_REQUESTOR_VIEW;
+    $uclacrqs = new ucla_courserequests();
+    foreach ($requests as $request) {
+        $uclacrqs->add_set($request);
+    }
+}
+
 
 // None of the forms took input, so maybe the center form?
 // In this situation, we are assuming all information is
 // logically correct but properly sanitized
 $saverequeststates = false;
+
 $coursebuilder = new uclacoursecreator();
 $forcebuild = false;
+
 $changes = array();
 if ($requests === null) {
     $prevs = data_submitted();
@@ -134,6 +166,7 @@ if ($requests === null) {
         if (!empty($prevs->{UCLA_CR_SUBMIT})) {
             $saverequeststates = true;
         }
+
         if (!empty($prevs->{'buildcourses'}) && 
                 !$coursebuilder->lock_exists()) {
             $forcebuild = true;
@@ -164,9 +197,24 @@ if ($requests === null) {
                 continue;
             }
         }
+       
+        // Replace entries without a requestor contact with the value for
+        // the global requestor
+        if (!empty($prevs->requestorglobal)) {
+            $requestorglobal = $prevs->requestorglobal;
+        }
+
+        foreach ($changes as $setid => $changeset) {
+            if (empty($changeset['requestoremail'])) {
+                $changeset['requestoremail'] = $requestorglobal;
+            }
+
+            $changes[$setid] = $changeset;
+        }
     }
 }
 
+// Save the requests before applying changes
 if ($uclacrqs !== null) {
     $pass_uclacrqs = clone($uclacrqs);
 }
@@ -175,35 +223,24 @@ if (!empty($changes)) {
     $changed = $uclacrqs->apply_changes($changes, $groupid);
 }
 
+// These are the options that can be applied globally
+$globaloptions = array();
+
 // These are the messages that reflect positive changes
 $changemessages = array();
 
-// These are the messages that are requestor errors
-$errormessages = array();
+$processrequests = isset($uclacrqs) && !$uclacrqs->is_empty();
 
-// At this point, requests are indexed by setid.
-if (isset($uclacrqs)) {
+if ($processrequests) {
+    // This is the form data before the save
     $requestswitherrors = $uclacrqs->validate_requests($groupid);
 	if ($saverequeststates) {
         $successfuls = $uclacrqs->commit();
 
-        // Reloading the 3rd form
-        $nv_cd['prefields'] = get_requestor_view_fields();
-        $cached_forms[UCLA_REQUESTOR_VIEW]['view'] 
-            = new requestor_view_form(null, $nv_cd);
-
-        // Take out successfuls from requests with errors
+        // figure out changes that have occurred
         foreach ($requestswitherrors as $setid => $set) {
-            // This is really dirty, if you think you can improve it,
-            // please do
             if (isset($successfuls[$setid])) {
-                // FROM HERE
                 $retcode = $successfuls[$setid];
-                if (ucla_courserequests::request_successfully_handled(
-                        $retcode)) {
-                    unset($requestswitherrors[$setid]);
-                }
-
                 $strid = ucla_courserequests::commit_flag_string($retcode);
 
                 $coursedescs = array();
@@ -212,8 +249,6 @@ if (isset($uclacrqs)) {
                 }
 
                 $coursedescstr = implode(' + ', $coursedescs);
-                
-                // cached by the callee
                 $retmess = get_string($strid, $rucr, $coursedescstr);
 
                 // We care only for updates
@@ -254,23 +289,73 @@ if (isset($uclacrqs)) {
                 }
             }
         }
+
+        $requestswitherrors = $uclacrqs->validate_requests($groupid);
+        $requeststodisplay = array();
+        foreach ($requestswitherrors as $setid => $set) {
+            if (!isset($successfuls[$setid])) {
+                $requeststodisplay[$setid] = $set;
+            }
+        }
+
+        if (empty($changed) && empty($requeststodisplay)) {
+            $changemessages[] = get_string('nochanges', $rucr);
+        }
+
+        // Apply to version that best represents the database
+        $pass_uclacrqs = clone($uclacrqs);
+
+        // Reloading the 3rd form
+        $nv_cd['prefields'] = get_requestor_view_fields();
+        $cached_forms[UCLA_REQUESTOR_VIEW]['view'] 
+            = new requestor_view_form(null, $nv_cd);
+    }
+
+    // If nobody has determined which requests to display, then disply
+    // all of them
+    if (!isset($requeststodisplay)) {
+        $requeststodisplay = $requestswitherrors;
+    }
+
+    // Check to see if we need the requestor field
+    foreach ($requestswitherrors as $set) {
+        $first = reset($set);
+
+        $oneaction = $first['action'];
+        if ($oneaction == UCLA_COURSE_TOBUILD 
+                || $oneaction == UCLA_COURSE_FAILED) {
+            $requestor = html_writer::tag('label', get_string(
+                'requestorglobal', $rucr), array(
+                    'for' => 'requestorglobal'
+                ));
+
+            $requestor .= html_writer::tag('input', '', array(
+                    'type' => 'text',
+                    'value' => $requestorglobal,
+                    'name' => 'requestorglobal'
+                ));
+
+            $globaloptions[] = $requestor;
+            break;
+        }
     }
     
     // user wants to build courses now
-    if($forcebuild == true) {
+    if ($forcebuild == true) {
         $termlist = array();
         foreach ($requestswitherrors as $course) {
             foreach($course as $value) {
-                if($value['action'] == "build") {
+                if ($value['action'] == UCLA_COURSE_TOBUILD) {
                     $termlist[] = $value['term'];
                 }
             }
         }
+
         $termlist = array_unique($termlist);
         events_trigger('build_courses_now', $termlist);
     }
-    
-    $tabledata = prepare_requests_for_display($requestswitherrors, $groupid);
+   
+    $tabledata = prepare_requests_for_display($requeststodisplay, $groupid);
     $rowclasses = array();
     foreach ($tabledata as $key => $data) {
         if (!empty($data['errclass'])) {
@@ -299,7 +384,7 @@ if (isset($uclacrqs)) {
     $requeststable->data = $tabledata;
     // For errors
     $requeststable->rowclasses = $rowclasses;
-}
+} 
 
 $registrar_link = new moodle_url(
     'http://www.registrar.ucla.edu/schedule/');
@@ -368,7 +453,7 @@ if (!empty($errormessages)) {
                 $viewstr = $message;
             }
 
-            echo $OUTPUT->box(get_string($message, $rucr), 'errorbox');
+            echo $OUTPUT->box(get_string($viewstr, $rucr), 'errorbox');
         }
     }
 }
@@ -378,6 +463,13 @@ if (!empty($requeststable->data)) {
         'method' => 'POST',
         'action' => $PAGE->url
     ));
+
+    if (!empty($globaloptions)) {
+        $globaloptionstable = new html_table();
+        $globaloptionstable->head = array(get_string('optionsforall', $rucr));
+        $globaloptionstable->data = array($globaloptions);
+        echo html_writer::table($globaloptionstable);
+    }
 
     echo html_writer::tag('input', '', array(
             'type' => 'hidden',
@@ -437,14 +529,6 @@ if (!empty($requeststable->data)) {
     }
     
     echo html_writer::table($requeststable);
-
-    echo html_writer::tag('input', '', array(
-            'type' => 'submit',
-            'name' => 'checkrequests',
-            'id' => 'checkrequests',
-            'value' => get_string('checkchanges', $rucr),
-            'class' => 'right',
-        ));
 
     echo html_writer::tag('input', '', array(
             'type' => 'submit',

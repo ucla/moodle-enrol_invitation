@@ -142,7 +142,6 @@ $CFG->forced_plugin_settings['block_ucla_course_menu']['trimlength'] = 22;
 
 // UCLA Theme settings
 $CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'prod';
-$CFG->forced_plugin_settings['theme_uclashared']['logo_sub_dropdown'] = 0;
 
 // Newly created courses for ucla formats should only have the course menu block
 $CFG->defaultblocks_ucla = 'ucla_course_menu';
@@ -186,6 +185,9 @@ $CFG->forced_plugin_settings['moodlecourse']['format'] = 'ucla';
 $CFG->forced_plugin_settings['moodlecourse']['maxbytes'] = 1572864000;  // 1.5GB
 // CCLE-2903 - Don't set completion tracking to be course default
 $CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 0;
+
+// Site administration > Courses > Course request
+$CFG->enablecourserequests = 1;
 
 // Site administration > Plugins > Activity modules > Assignment
 $CFG->assignment_maxbytes = 10485760;   // 100MB
@@ -323,6 +325,19 @@ $CFG->forced_plugin_settings['enrol_database']['fbremoteuserfield'] = 'username'
 
 //// CCLE-2802 - Frontpage banner layout include
 $CFG->customfrontpageinclude = $_dirroot_ . '/theme/uclashared/layout/frontpage.php';
+
+// CCLE-2364 - SUPPORT CONSOLE (put after $_dirroot_, because needs $CFG->dataroot to be set)
+$log_date = date('Y-m-d') . '-00_00';
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_apache_error'] = '/var/log/httpd/error_log.' . $log_date;
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_apache_access'] = '/var/log/httpd/access_log.' . $log_date;
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_apache_ssl_access'] = '/var/log/httpd/ssl_access_log.' . $log_date;
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_apache_ssl_error'] = '/var/log/httpd/ssl_error_log.' . $log_date;
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_apache_ssl_request'] = '/var/log/httpd/ssl_request_log.' . $log_date;
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_shibboleth_shibd'] = '/var/log/shibboleth/shibd.log';
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_shibboleth_trans'] = '/var/log/shibboleth/transaction.log';
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_moodle_cron'] = '/home/moodle/logs/moodlecron/moodlecron.out';
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_course_creator'] = $CFG->dataroot . '/course_creator/';
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_prepop'] = '/home/moodle/logs/prepop_logs/';
 
 // This will bootstrap the moodle functions.
 require_once($_dirroot_ . '/lib/setup.php');

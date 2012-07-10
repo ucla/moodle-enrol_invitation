@@ -1516,9 +1516,8 @@ function print_section($course, $section, $mods, $modnamesused, $absolute=false,
             // 2. the activity has dates set which do not include current, or
             // 3. the activity has any other conditions set (regardless of whether
             //    current user meets them)
-            $canviewhidden = has_capability(
-                'moodle/course:viewhiddenactivities',
-                get_context_instance(CONTEXT_MODULE, $mod->id));
+            $modcontext = context_module::instance($mod->id);
+            $canviewhidden = has_capability('moodle/course:viewhiddenactivities', $modcontext);
             $accessiblebutdim = false;
             if ($canviewhidden) {
                 $accessiblebutdim = !$mod->visible;
@@ -1734,9 +1733,10 @@ function print_section($course, $section, $mods, $modnamesused, $absolute=false,
                 }
                 if ($completionicon) {
                     $imgsrc = $OUTPUT->pix_url('i/completion-'.$completionicon);
-                    $imgalt = s(get_string('completion-alt-'.$completionicon, 'completion'));
+                    $formattedname = format_string($mod->name, true, array('context' => $modcontext));
+                    $imgalt = get_string('completion-alt-' . $completionicon, 'completion', $formattedname);
                     if ($completion == COMPLETION_TRACKING_MANUAL && !$isediting) {
-                        $imgtitle = s(get_string('completion-title-'.$completionicon, 'completion'));
+                        $imgtitle = get_string('completion-title-' . $completionicon, 'completion', $formattedname);
                         $newstate =
                             $completiondata->completionstate==COMPLETION_COMPLETE
                             ? COMPLETION_INCOMPLETE
@@ -1755,6 +1755,7 @@ function print_section($course, $section, $mods, $modnamesused, $absolute=false,
                         echo "
 <form class='togglecompletion$extraclass' method='post' action='".$CFG->wwwroot."/course/togglecompletion.php'><div>
 <input type='hidden' name='id' value='{$mod->id}' />
+<input type='hidden' name='modulename' value='".s($mod->name)."' />
 <input type='hidden' name='sesskey' value='".sesskey()."' />
 <input type='hidden' name='completionstate' value='$newstate' />
 <input type='image' src='$imgsrc' alt='$imgalt' title='$imgtitle' />
@@ -1777,7 +1778,7 @@ function print_section($course, $section, $mods, $modnamesused, $absolute=false,
             // see the activity itself, or for staff)
             if (!$mod->uservisible) {
                 echo '<div class="availabilityinfo">'.$mod->availableinfo.'</div>';
-            } else if ($canviewhidden && !empty($CFG->enableavailability)) {
+            } else if ($canviewhidden && !empty($CFG->enableavailability) && $mod->visible) {
                 $ci = new condition_info($mod);
                 $fullinfo = $ci->get_full_information();
                 if($fullinfo) {
@@ -2089,6 +2090,11 @@ function get_course_category_tree($id = 0, $depth = 0) {
     if ($depth > 0) {
         // This is a recursive call so return the required array
         return array($categories, $categoryids);
+    }
+
+    if (empty($categoryids)) {
+        // No categories available (probably all hidden).
+        return array();
     }
 
     // The depth is 0 this function has just been called so we can finish it off
@@ -2856,6 +2862,8 @@ function delete_course_module($id) {
     // very quick on an empty table)
     $DB->delete_records('course_modules_completion', array('coursemoduleid' => $cm->id));
     $DB->delete_records('course_modules_availability', array('coursemoduleid'=> $cm->id));
+    $DB->delete_records('course_completion_criteria', array('moduleinstance' => $cm->id,
+                                                            'criteriatype' => COMPLETION_CRITERIA_TYPE_ACTIVITY));
 
     delete_context(CONTEXT_MODULE, $cm->id);
     return $DB->delete_records('course_modules', array('id'=>$cm->id));

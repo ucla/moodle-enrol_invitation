@@ -24,7 +24,7 @@ function add_site_invitation_plugin($course) {
         debugging('Site invitation enrolment plugin is not installed');
         return false;
     }
-        
+
     // returns instance id, else returns NULL
     $instance_id = $invitation->add_instance($course);    
     if (is_null($instance_id)) {

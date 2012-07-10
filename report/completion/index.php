@@ -91,6 +91,9 @@ if ($group === 0 && $course->groupmode == SEPARATEGROUPS) {
  * Load data
  */
 
+// Retrieve course_module data for all modules in the course
+$modinfo = get_fast_modinfo($course);
+
 // Get criteria for course
 $completion = new completion_info($course);
 
@@ -335,6 +338,7 @@ if (!$csv) {
         exit;
     }
 
+    print '<div id="completion-progress-wrapper" class="no-overflow">';
     print '<table id="completion-progress" class="generaltable flexible boxaligncenter completionreport" style="text-align: left" cellpadding="5" border="1">';
 
     // Print criteria group names
@@ -492,13 +496,10 @@ if (!$csv) {
         switch ($criterion->criteriatype) {
 
             case COMPLETION_CRITERIA_TYPE_ACTIVITY:
-                // Load activity
-                $activity = $criterion->get_mod_instance();
-
                 // Display icon
                 $icon = $OUTPUT->pix_url('icon', $criterion->module);
                 $iconlink = $CFG->wwwroot.'/mod/'.$criterion->module.'/view.php?id='.$criterion->moduleinstance;
-                $icontitle = $activity->name;
+                $icontitle = $modinfo->cms[$criterion->moduleinstance]->name;
                 $iconalt = get_string('modulename', $criterion->module);
                 break;
 
@@ -577,10 +578,7 @@ foreach ($progress as $user) {
         if ($criterion->criteriatype == COMPLETION_CRITERIA_TYPE_ACTIVITY) {
 
             // Load activity
-            $mod = $criterion->get_mod_instance();
-            $activity = $DB->get_record('course_modules', array('id' => $criterion->moduleinstance));
-            $activity->name = $mod->name;
-
+            $activity = $modinfo->cms[$criterion->moduleinstance];
 
             // Get progress information and state
             if (array_key_exists($activity->id,$user->progress)) {
@@ -606,7 +604,7 @@ foreach ($progress as $user) {
                 ($activity->completion==COMPLETION_TRACKING_AUTOMATIC ? 'auto' : 'manual').
                 '-'.$completiontype;
 
-            $describe=get_string('completion-alt-auto-'.$completiontype,'completion');
+            $describe = get_string('completion-' . $completiontype, 'completion');
             $a=new StdClass;
             $a->state=$describe;
             $a->date=$date;
@@ -635,7 +633,7 @@ foreach ($progress as $user) {
         $completiontype = $is_complete ? 'y' : 'n';
         $completionicon = 'completion-auto-'.$completiontype;
 
-        $describe = get_string('completion-alt-auto-'.$completiontype, 'completion');
+        $describe = get_string('completion-' . $completiontype, 'completion');
 
         $a = new stdClass();
         $a->state    = $describe;
@@ -649,7 +647,7 @@ foreach ($progress as $user) {
         } else {
 
             if ($allow_marking_criteria === $criterion->id) {
-                $describe = get_string('completion-alt-auto-'.$completiontype,'completion');
+                $describe = get_string('completion-' . $completiontype, 'completion');
 
                 print '<td class="completion-progresscell">'.
                     '<a href="'.$CFG->wwwroot.'/course/togglecompletion.php?user='.$user->id.'&amp;course='.$course->id.'&amp;rolec='.$allow_marking_criteria.'&amp;sesskey='.sesskey().'">'.
@@ -674,7 +672,7 @@ foreach ($progress as $user) {
     $ccompletion = new completion_completion($params);
     $completiontype =  $ccompletion->is_complete() ? 'y' : 'n';
 
-    $describe = get_string('completion-alt-auto-'.$completiontype, 'completion');
+    $describe = get_string('completion-' . $completiontype, 'completion');
 
     $a = new StdClass;
     $a->state    = $describe;
@@ -707,6 +705,7 @@ if ($csv) {
     exit;
 }
 print '</table>';
+print '</div>';
 print $pagingbar;
 
 print '<ul class="progress-actions"><li><a href="index.php?course='.$course->id.

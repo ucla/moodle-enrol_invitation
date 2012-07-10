@@ -201,6 +201,7 @@ function lesson_unseen_branch_jump($lesson, $userid) {
     // this function searches through the lesson pages to find all the branch tables
     // that follow the flagged branch table
     $pageid = $lessonpages[$start]->nextpageid; // move down from the flagged branch table
+    $branchtables = array();
     while ($pageid != 0) {  // grab all of the branch table till eol
         if ($lessonpages[$pageid]->qtype == LESSON_PAGE_BRANCHTABLE) {
             $branchtables[] = $lessonpages[$pageid]->id;
@@ -740,8 +741,10 @@ abstract class lesson_add_page_form_base extends moodleform {
         if ($this->_customdata['edit'] === true) {
             $mform->addElement('hidden', 'edit', 1);
             $this->add_action_buttons(get_string('cancel'), get_string('savepage', 'lesson'));
-        } else {
+        } else if ($this->qtype === 'questiontype') {
             $this->add_action_buttons(get_string('cancel'), get_string('addaquestionpage', 'lesson'));
+        } else {
+            $this->add_action_buttons(get_string('cancel'), get_string('savepage', 'lesson'));
         }
     }
 

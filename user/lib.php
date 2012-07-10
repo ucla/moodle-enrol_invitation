@@ -39,6 +39,15 @@ function user_create_user($user) {
             $user = (object)$user;
     }
 
+    //check username
+    if ($user->username !== textlib::strtolower($user->username)) {
+        throw new moodle_exception('usernamelowercase');
+    } else {
+        if ($user->username !== clean_param($user->username, PARAM_USERNAME)) {
+            throw new moodle_exception('invalidusername');
+        }
+    }
+
     // save the password in a temp value for later
     if (isset($user->password)) {
         $userpassword = $user->password;
@@ -78,6 +87,17 @@ function user_update_user($user) {
     // set the timecreate field to the current time
     if (!is_object($user)) {
             $user = (object)$user;
+    }
+
+    //check username
+    if (isset($user->username)) {
+        if ($user->username !== textlib::strtolower($user->username)) {
+            throw new moodle_exception('usernamelowercase');
+        } else {
+            if ($user->username !== clean_param($user->username, PARAM_USERNAME)) {
+                throw new moodle_exception('invalidusername');
+            }
+        }
     }
 
     // unset password here, for updating later
@@ -333,11 +353,12 @@ function user_get_user_details($user, $course = null, array $userfields = array(
         }
     }
 
-    if (in_array('email', $userfields) && ($currentuser
+    if (in_array('email', $userfields) && ($isadmin // The admin is allowed the users email
+      or $currentuser // Of course the current user is as well
       or $canviewuseremail  // this is a capability in course context, it will be false in usercontext
       or $user->maildisplay == 1
       or ($user->maildisplay == 2 and enrol_sharing_course($user, $USER)))) {
-        $userdetails['email'] = $user->email;;
+        $userdetails['email'] = $user->email;
     }
 
     if (in_array('interests', $userfields) && !empty($CFG->usetags)) {

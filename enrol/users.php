@@ -190,18 +190,40 @@ $fields = array(
     'group' => get_string('groups', 'group'),
     'enrol' => get_string('enrolmentinstances', 'enrol')
 );
+
+// Remove hidden fields if the user has no access
+if (!has_capability('moodle/course:viewhiddenuserfields', $context)) {
+    $hiddenfields = array_flip(explode(',', $CFG->hiddenuserfields));
+    if (isset($hiddenfields['lastaccess'])) {
+        unset($fields['lastseen']);
+    }
+    if (isset($hiddenfields['groups'])) {
+        unset($fields['group']);
+    }
+}
+
 $table->set_fields($fields, $renderer);
+
+// BEGIN UCLA MOD: CCLE-2819 - ENROLLMENT - Prepop/View
+$is_siteadmin = false;
+if (is_siteadmin()) {
+    $is_siteadmin = true;
+}
+// END UCLA MOD: CCLE-2819
 
 $canassign = has_capability('moodle/role:assign', $manager->get_context());
 $users = $manager->get_users_for_display($manager, $table->sort, $table->sortdirection, $table->page, $table->perpage);
+//echo "<pre>";
+//var_dump($users);
+//echo "</pre>";
 foreach ($users as $userid=>&$user) {
-    // BEGIN UCLA MOD: CCLE-2275 - ENROLLMENT - Prepop/View
-    // don't show users with no roles, except for managers/admins
-    if (!$canassign && empty($user['roles'])) {
+    // BEGIN UCLA MOD: CCLE-2819 - ENROLLMENT - Prepop/View
+    // do not show users with empty roles
+    if (empty($user['roles']) && !$is_siteadmin) {
         unset($users[$userid]);
         continue;
     }
-    // END UCLA MOD: CCLE-2275
+    // END UCLA MOD: CCLE-2819
     
     $user['picture'] = $OUTPUT->render($user['picture']);
     $user['role'] = $renderer->user_roles_and_actions($userid, $user['roles'], $manager->get_assignable_roles(), $canassign, $PAGE->url);

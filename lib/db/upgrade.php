@@ -4992,7 +4992,8 @@ WHERE gradeitemid IS NOT NULL AND grademax IS NOT NULL");
                         break;
                     case CONTEXT_COURSECAT :
                     case CONTEXT_SYSTEM :
-                        $context = get_system_context();
+                        // Stored in the front-page course.
+                        $context = get_context_instance(CONTEXT_COURSE, get_site()->id);
                         break;
                     default :
                         continue;
@@ -7030,6 +7031,86 @@ FROM
         upgrade_main_savepoint(true, 2011120501.12);
     }
 
+    if ($oldversion < 2011120502.08) {
+        require_once($CFG->libdir . '/completion/completion_criteria.php');
+        // Delete orphaned criteria which were left when modules were removed
+        if ($DB->get_dbfamily() === 'mysql') {
+            $sql = "DELETE cc FROM {course_completion_criteria} cc
+                    LEFT JOIN {course_modules} cm ON cm.id = cc.moduleinstance
+                    WHERE cm.id IS NULL AND cc.criteriatype = ".COMPLETION_CRITERIA_TYPE_ACTIVITY;
+        } else {
+            $sql = "DELETE FROM {course_completion_criteria}
+                    WHERE NOT EXISTS (
+                        SELECT 'x' FROM {course_modules}
+                        WHERE {course_modules}.id = {course_completion_criteria}.moduleinstance)
+                    AND {course_completion_criteria}.criteriatype = ".COMPLETION_CRITERIA_TYPE_ACTIVITY;
+        }
+        $DB->execute($sql);
+
+        // Main savepoint reached
+        upgrade_main_savepoint(true, 2011120502.08);
+    }
+
+    if ($oldversion < 2011120503.03) { // fix invalid course_completion_records MDL-27368
+        //first get all instances of duplicate records
+        $sql = 'SELECT userid, course FROM {course_completions} WHERE (deleted IS NULL OR deleted <> 1) GROUP BY userid, course HAVING (count(id) > 1)';
+        $duplicates = $DB->get_recordset_sql($sql, array());
+
+        foreach ($duplicates as $duplicate) {
+            $pointer = 0;
+            //now get all the records for this user/course
+            $sql = 'userid = ? AND course = ? AND (deleted IS NULL OR deleted <> 1)';
+            $completions = $DB->get_records_select('course_completions', $sql,
+                array($duplicate->userid, $duplicate->course), 'timecompleted DESC, timestarted DESC');
+            $needsupdate = false;
+            $origcompletion = null;
+            foreach ($completions as $completion) {
+                $pointer++;
+                if ($pointer === 1) { //keep 1st record but delete all others.
+                    $origcompletion = $completion;
+                } else {
+                    //we need to keep the "oldest" of all these fields as the valid completion record.
+                    $fieldstocheck = array('timecompleted', 'timestarted', 'timeenrolled');
+                    foreach ($fieldstocheck as $f) {
+                        if ($origcompletion->$f > $completion->$f) {
+                            $origcompletion->$f = $completion->$f;
+                            $needsupdate = true;
+                        }
+                    }
+                    $DB->delete_records('course_completions', array('id'=>$completion->id));
+                }
+            }
+            if ($needsupdate) {
+                $DB->update_record('course_completions', $origcompletion);
+            }
+        }
+
+        // Main savepoint reached
+        upgrade_main_savepoint(true, 2011120503.03);
+    }
+
+    if ($oldversion < 2011120503.09) {
+        // Drop some old backup tables, not used anymore
+
+        // Define table backup_files to be dropped
+        $table = new xmldb_table('backup_files');
+
+        // Conditionally launch drop table for backup_files
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+
+        // Define table backup_ids to be dropped
+        $table = new xmldb_table('backup_ids');
+
+        // Conditionally launch drop table for backup_ids
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+
+        // Main savepoint reached
+        upgrade_main_savepoint(true, 2011120503.09);
+    }
+
     return true;
 }
-

@@ -244,7 +244,10 @@ $string['guestnocomment'] = 'Guests are not allowed to post comments!';
 $string['guestnoeditprofile'] = 'The guest user cannot edit their profile';
 $string['guestnoeditprofileother'] = 'The guest user profile cannot be edited';
 $string['guestnorate'] = 'Guests are not allowed to rate entries';
-$string['guestsarenotallowed'] = 'The guest user is not allowed to do this';
+// START UCLA MOD: CCLE-2389 - friendlier error message when users are not logged in
+//$string['guestsarenotallowed'] = 'The guest user is not allowed to do this';
+$string['guestsarenotallowed'] = 'Please login to access to this page';
+// END UCLA MOD: CCLE-2389
 $string['hackdetected'] = 'Hack attack detected!';
 $string['hashpoolproblem'] = 'Incorrect pool file content {$a}.';
 $string['headersent'] = 'Headers already sent';
@@ -300,6 +303,7 @@ $string['invalidfiletype'] = '"{$a}" is not a valid file type';
 $string['invalidformatpara'] = 'Incorrect format for choose parameter';
 $string['invalidformdata'] = 'Incorrect form data';
 $string['invalidfunction'] = 'Incorrect function';
+$string['invalidgradeitemid'] = 'Incorrect grade item id';
 $string['invalidgradeitmeid'] = 'Incorrect grade item id';
 $string['invalidgroupid'] = 'Incorrect group id specified';
 $string['invalidipformat'] = 'Invalid IP address format';

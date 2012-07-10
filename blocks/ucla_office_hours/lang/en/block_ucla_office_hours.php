@@ -15,9 +15,11 @@ $string['f_office'] = 'Office location';
 $string['f_office_text'] = 'Enter your campus address or office hours meeting location';
 
 $string['header_contact_info'] = 'Contact information';
-$string['f_email_of_record'] = 'Email on record';
+$string['f_email_of_record'] = 'Email of record';
+$string['f_email_of_record_empty'] = 'No email of record found';
 $string['f_email'] = 'Alternative email';
-$string['f_email_text'] = '(for display purposes only - course emails will still be sent to {$a})';
+$string['f_email_display'] = 'Email of record display settings';
+$string['f_email_text'] = '(for display purposes only - course emails will still be sent to "{$a}")';
 $string['f_phone'] = 'Phone number';
 $string['f_phone_text'] = 'Enter a number where students can reach you or leave a message. This number will be public.';
 $string['f_website'] = 'Personal website';
