@@ -236,12 +236,11 @@ if ($displayforms) {
     $log_query = "
         select 
             a.id, 
-            from_unixtime(time) as Time,
-            b.Firstname,
-            b.Lastname,
-            IP,
-            a.URL,
-            Info
+            from_unixtime(time) as logintime,
+            b.firstname,
+            b.lastname,
+            ip,
+            a.url
         from {log} a 
         left join {user} b on(a.userid=b.id)
         where from_unixtime(time)  >= DATE_SUB(CURDATE(), INTERVAL 1 DAY) and action='login'
@@ -251,10 +250,16 @@ if ($displayforms) {
     $result = $DB->get_records_sql($log_query);
 
     foreach($result as $k => $res) {
-        unset($res->id);
-        $res->url = html_writer::link(new moodle_url("/user/$res->url"), 
+        $res->user = html_writer::link(new moodle_url("/user/$res->url"), 
             "$res->firstname $res->lastname", array('target'=>'_blank'));
-        $result[$k] = $res;
+        
+        // unset unneeded data for display
+        unset($res->id);      
+        unset($res->firstname);     
+        unset($res->lastname);     
+        unset($res->url);     
+
+        $result[$k] = $res;        
     }
 
     echo supportconsole_render_table_shortcut($result, $title);
