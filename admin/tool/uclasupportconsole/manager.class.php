@@ -102,7 +102,16 @@ class tool_supportconsole_manager {
             }
 
             $render .= $OUTPUT->heading(get_string($groupname,
-                    'tool_uclasupportconsole'), 1) . $innercontent;
+                    'tool_uclasupportconsole'), 1);
+                    
+            if ($groupname == 'srdb') {
+                // if displaying Registrar tools, give link to Registrar
+                $render .= html_writer::link('http://www.registrar.ucla.edu/schedule/', 
+                        get_string('srslookup', 'tool_uclasupportconsole'),
+                        array('target' => '_blank'));
+            }
+            
+            $render .= $innercontent;
         }
 
         return $render;

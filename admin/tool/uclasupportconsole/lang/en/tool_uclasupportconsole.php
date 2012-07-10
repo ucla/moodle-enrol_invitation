@@ -3,7 +3,7 @@ $string['pluginname'] = 'UCLA support console';
 
 $string['notitledesc'] = '(no description)';
 
-// Tittles
+// Titles
 $string['logs'] = 'Log tools';
 $string['users'] = 'User tools';
 $string['srdb'] = 'Registrar tools';
@@ -79,6 +79,8 @@ $string['srs'] = 'SRS';
 $string['subject_area'] = 'Subject area';
 $string['choose_subject_area'] = 'Choose subject area...';
 $string['uid'] = 'UID';
+
+$string['srslookup'] = "SRS number lookup (Registrar)";
 
 // capability strings
 $string['uclasupportconsole:view'] = 'Use UCLA support console';

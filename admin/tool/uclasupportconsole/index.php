@@ -972,6 +972,10 @@ if (isset($consoles->no_finish)) {
 }
 
 echo $OUTPUT->header();
+
+// Heading
+echo $OUTPUT->heading(get_string('pluginname', 'tool_uclasupportconsole'), 2, 'headingblock');
+
 if (!$displayforms) {
     echo html_writer::link(new moodle_url($PAGE->url), 'Back');
     echo $consoles->render_results();
