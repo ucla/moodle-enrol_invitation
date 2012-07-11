@@ -21,35 +21,35 @@ update_videofurnace_db($datasource_url);
 function define_data_source() {
     $ret_val = array();
 
-    $ret_val[0] = array('name' => 'term',
+    $ret_val[] = array('name' => 'term',
                         'type' => 'term',
                         'min_size' => '3',
                         'max_size' => '3');
-    $ret_val[1] = array('name' => 'srs',
+    $ret_val[] = array('name' => 'srs',
                         'type' => 'srs',
                         'min_size' => '7',
                         'max_size' => '9');
-    $ret_val[2] = array('name' => 'start_date',
+    $ret_val[] = array('name' => 'start_date',
                         'type' => 'date_slashed',
                         'min_size' => '10',
                         'max_size' => '10');
-    $ret_val[3] = array('name' => 'stop_date',
+    $ret_val[] = array('name' => 'stop_date',
                         'type' => 'date_slashed',
                         'min_size' => '10',
                         'max_size' => '10');
-    $ret_val[4] = array('name' => 'class',
+    $ret_val[] = array('name' => 'class',
                         'type' => 'string',
                         'min_size' => '0',
                         'max_size' => '50');
-    $ret_val[5] = array('name' => 'instructor',
+    $ret_val[] = array('name' => 'instructor',
                         'type' => 'string',
                         'min_size' => '0',
                         'max_size' => '100');
-    $ret_val[6] = array('name' => 'video_title',
+    $ret_val[] = array('name' => 'video_title',
                         'type' => 'string',
                         'min_size' => '0',
                         'max_size' => '40');
-    $ret_val[7] = array('name' => 'video_url',
+    $ret_val[] = array('name' => 'video_url',
                         'type' => 'url',
                         'min_size' => '1',
                         'max_size' => '400');

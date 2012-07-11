@@ -30,23 +30,23 @@ update_bruincast_db();
 function define_data_source() {
     $ret_val = array();
 
-    $ret_val[0] = array('name' => 'term',
+    $ret_val[] = array('name' => 'term',
                         'type' => 'term',
                         'min_size' => '3',
                         'max_size' => '3');
-    $ret_val[1] = array('name' => 'srs',
+    $ret_val[] = array('name' => 'srs',
                         'type' => 'srs',
                         'min_size' => '7',
                         'max_size' => '9');
-    $ret_val[2] = array('name' => 'class',
+    $ret_val[] = array('name' => 'class',
                         'type' => 'string',
                         'min_size' => '0',
                         'max_size' => '50');
-    $ret_val[3] = array('name' => 'restricted',
+    $ret_val[] = array('name' => 'restricted',
                         'type' => 'string',
                         'min_size' => '0',
                         'max_size' => '20');
-    $ret_val[4] = array('name' => 'bruincast_url',
+    $ret_val[] = array('name' => 'bruincast_url',
                         'type' => 'url',
                         'min_size' => '1',
                         'max_size' => '400');
