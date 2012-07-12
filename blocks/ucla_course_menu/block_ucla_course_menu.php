@@ -98,7 +98,7 @@ class block_ucla_course_menu extends block_navigation {
             $format_rk = $fn();
         } else {
             // Just assume it is topic
-            $format_rk = callback_topics_request_key();
+            $format_rk = 'topic';
 
             debugging('Could not access GET param for format! Using [' 
                 . $format_rk . ']');
