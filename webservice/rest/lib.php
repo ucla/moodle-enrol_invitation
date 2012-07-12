@@ -40,7 +40,6 @@ class webservice_rest_client {
 
     /** @var string token */
     private $token;
-    private $format;
 
     /** @var string returned value format: xml or json */
     private $format;

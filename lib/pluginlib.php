@@ -350,28 +350,6 @@ class plugin_manager {
     }
 
     /**
-     * Defines a list of all plugins that were originally shipped in the standard Moodle distribution,
-     * but are not anymore and are deleted during upgrades.
-     *
-     * The main purpose of this list is to hide missing plugins during upgrade.
-     *
-     * @param string $type plugin type
-     * @param string $name plugin name
-     * @return bool
-     */
-    public static function is_deleted_standard_plugin($type, $name) {
-        static $plugins = array(
-            'block' => array('admin', 'admin_tree', 'loancalc', 'search'),
-            'filter' => array('mod_data', 'mod_glossary'),
-        );
-
-        if (!isset($plugins[$type])) {
-            return false;
-        }
-        return in_array($name, $plugins[$type]);
-    }
-
-    /**
      * Defines a white list of all plugins shipped in the standard Moodle distribution
      *
      * @param string $type

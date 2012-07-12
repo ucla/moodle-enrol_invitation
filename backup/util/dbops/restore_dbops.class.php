@@ -908,6 +908,15 @@ abstract class restore_dbops {
 
                 // create the file in the filepool if it does not exist yet
                 if (!$fs->file_exists($newcontextid, $component, $filearea, $rec->newitemid, $file->filepath, $file->filename)) {
+                    
+                    // START UCLA MOD: CCLE-2669 - Copyright Modifications
+                    // If the file does not have copyright status stated, set it to default copyright
+                    if ($file->license == NULL){
+                        global $CFG;
+                        $file->license = $CFG->sitedefaultlicense;
+                    }
+                    // END UCLA MOD: CCLE-2669
+                    
                     $file_record = array(
                         'contextid'   => $newcontextid,
                         'component'   => $component,

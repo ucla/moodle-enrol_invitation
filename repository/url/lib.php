@@ -215,15 +215,6 @@ EOD;
         }
     }
 
-    /**
-     * file types supported by url downloader plugin
-     *
-     * @return array
-     */
-    public function supported_filetypes() {
-        return array('web_image');
-    }
-
     public function supported_returntypes() {
         return (FILE_INTERNAL | FILE_EXTERNAL);
     }
