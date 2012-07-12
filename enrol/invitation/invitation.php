@@ -64,7 +64,27 @@ $mform->set_data($invitationmanager);
 
 $data = $mform->get_data();
 if ($data and confirm_sesskey()) {
-    $invitationmanager->send_invitations($data);
+    
+    // Check for the invitation of multiple users
+    // Parse $data->email for semi-colon, comma, or space seperated values
+    $data->email = rtrim(ltrim($data->email));
+    $seperator = ''; // Assuming only one delimiter is used
+    if (strpos($data->email, ';') != false) {
+        $seperator = ';';
+    } else if (strpos($data->email, ',') != false) {
+        $seperator = ',';
+    } else if (strpos($data->email, ' ') != false) {
+        $seperator = ' ';
+    }
+    // Using arbitrary limit of 100 email addresses
+    $dsv_emails = explode($seperator, $data->email, 100);
+    
+    foreach ($dsv_emails as $email_value) {
+        $data->email = $email_value;
+        $invitationmanager->send_invitations($data);
+    }
+    
+    //$invitationmanager->send_invitations($data);
     
     $courseurl = new moodle_url('/course/view.php', array('id' => $courseid));
     $courseret = new single_button($courseurl, get_string('returntocourse',
