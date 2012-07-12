@@ -33,11 +33,6 @@ require_once('simpletestcoveragelib.php');
 require_once('ex_simple_test.php');
 require_once('ex_reporter.php');
 
-// Always run the unit tests in developer debug mode.
-$CFG->debug = DEBUG_DEVELOPER;
-error_reporting($CFG->debug);
-raise_memory_limit(MEMORY_EXTRA);
-
 // page parameters
 $path         = optional_param('path', null, PARAM_PATH);
 $showpasses   = optional_param('showpasses', false, PARAM_BOOL);
@@ -45,6 +40,8 @@ $codecoverage = optional_param('codecoverage', false, PARAM_BOOL);
 $showsearch   = optional_param('showsearch', false, PARAM_BOOL);
 
 admin_externalpage_setup('toolsimpletest', '', array('showpasses'=>$showpasses, 'showsearch'=>$showsearch));
+
+raise_memory_limit(MEMORY_EXTRA);
 
 $unittest = true;
 
@@ -143,26 +140,6 @@ echo '<input type="submit" value="' . get_string('runtests', 'tool_unittest') . 
 echo '</fieldset>';
 echo '</form>';
 echo $OUTPUT->box_end();
-
-$otherpages = array();
-$otherpages['PDF lib test'] = new moodle_url('/admin/tool/unittest/other/pdflibtestpage.php');
-if (debugging('', DEBUG_DEVELOPER)) {
-    $otherpages['TODO checker'] = new moodle_url('/admin/tool/unittest/other/todochecker.php');
-}
-
-// print list of extra test pages that are not simpletests,
-// not everything there is good enough to show to our users
-if ($otherpages) {
-    echo $OUTPUT->box_start('generalbox boxwidthwide boxaligncenter');
-    echo $OUTPUT->heading(get_string('othertestpages', 'tool_unittest'));
-    echo '<ul>';
-    foreach ($otherpages as $name=>$url) {
-        echo '<li>'.html_writer::link($url, $name).'</li>';
-    }
-    echo '</ul>';
-    echo $OUTPUT->box_end();
-}
-
 
 // Print link to latest code coverage for this report type
 if (is_null($path) || !$codecoverage) {

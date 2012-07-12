@@ -42,7 +42,8 @@ class assignment_online extends assignment_base {
                 'noclean'  => false,
                 'maxfiles' => EDITOR_UNLIMITED_FILES,
                 'maxbytes' => $this->course->maxbytes,
-                'context'  => $this->context
+                'context'  => $this->context,
+                'return_types' => FILE_INTERNAL | FILE_EXTERNAL
             );
 
             $data = new stdClass();
@@ -208,14 +209,21 @@ class assignment_online extends assignment_base {
         $popup = $OUTPUT->action_link($link, shorten_text(trim(strip_tags(format_text($submission->data1,$submission->data2))), 15), $action, array('title'=>get_string('submission', 'assignment')));
 
         $output = '<div class="files">'.
-                  '<img src="'.$OUTPUT->pix_url('f/html') . '" class="icon" alt="html" />'.
+                  $OUTPUT->pix_icon(file_extension_icon('.htm'), 'html', 'moodle', array('class' => 'icon')).
                   $popup .
                   '</div>';
                   return $output;
     }
 
-    function print_user_files($userid, $return=false) {
-        global $OUTPUT, $CFG;
+    function print_user_files($userid=0, $return=false) {
+        global $OUTPUT, $CFG, $USER;
+
+        if (!$userid) {
+            if (!isloggedin()) {
+                return '';
+            }
+            $userid = $USER->id;
+        }
 
         if (!$submission = $this->get_submission($userid)) {
             return '';
@@ -226,7 +234,7 @@ class assignment_online extends assignment_base {
         $popup = $OUTPUT->action_link($link, get_string('popupinnewwindow','assignment'), $action, array('title'=>get_string('submission', 'assignment')));
 
         $output = '<div class="files">'.
-                  '<img align="middle" src="'.$OUTPUT->pix_url('f/html') . '" height="16" width="16" alt="html" />'.
+                  $OUTPUT->pix_icon(file_extension_icon('.htm'), 'html', 'moodle', array('height' => 16, 'width' => 16)).
                   $popup .
                   '</div>';
 
@@ -368,7 +376,7 @@ class assignment_online extends assignment_base {
         }
     }
 
-    public function send_file($filearea, $args) {
+    public function send_file($filearea, $args, $forcedownload, array $options=array()) {
         global $USER;
         require_capability('mod/assignment:view', $this->context);
 
@@ -384,7 +392,8 @@ class assignment_online extends assignment_base {
         }
 
         session_get_instance()->write_close(); // unlock session during fileserving
-        send_stored_file($file, 60*60, 0, true);
+
+        send_stored_file($file, 60*60, 0, true, $options);
     }
 
     /**

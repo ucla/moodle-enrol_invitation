@@ -829,11 +829,11 @@ function data_tags_check($dataid, $template) {
 /**
  * Adds an instance of a data
  *
- * @global object
- * @param object $data
- * @return $int
+ * @param stdClass $data
+ * @param mod_data_mod_form $mform
+ * @return int intance id
  */
-function data_add_instance($data) {
+function data_add_instance($data, $mform = null) {
     global $DB;
 
     if (empty($data->assessed)) {
@@ -1036,8 +1036,7 @@ function data_get_user_grades($data, $userid=0) {
 /**
  * Update activity grades
  *
- * @global object
- * @global object
+ * @category grade
  * @param object $data
  * @param int $userid specific user only, 0 means all
  * @param bool $nullifnone
@@ -1097,9 +1096,9 @@ function data_upgrade_grades() {
 /**
  * Update/create grade item for given data
  *
- * @global object
- * @param object $data object with extra cmidnumber
- * @param mixed optional array/object of grade(s); 'reset' means reset grades in gradebook
+ * @category grade
+ * @param stdClass $data A database instance with extra cmidnumber property
+ * @param mixed $grades Optional array/object of grade(s); 'reset' means reset grades in gradebook
  * @return object grade_item
  */
 function data_grade_item_update($data, $grades=NULL) {
@@ -1132,7 +1131,7 @@ function data_grade_item_update($data, $grades=NULL) {
 /**
  * Delete grade item for given data
  *
- * @global object
+ * @category grade
  * @param object $data object
  * @return object grade_item
  */
@@ -1141,71 +1140,6 @@ function data_grade_item_delete($data) {
     require_once($CFG->libdir.'/gradelib.php');
 
     return grade_update('mod/data', $data->course, 'mod', 'data', $data->id, 0, NULL, array('deleted'=>1));
-}
-
-/**
- * returns a list of participants of this database
- *
- * Returns the users with data in one data
- * (users with records in data_records, data_comments and ratings)
- *
- * @todo: deprecated - to be deleted in 2.2
- *
- * @param int $dataid
- * @return array
- */
-function data_get_participants($dataid) {
-    global $DB;
-
-    $params = array('dataid' => $dataid);
-
-    $sql = "SELECT DISTINCT u.id, u.id
-              FROM {user} u,
-                   {data_records} r
-             WHERE r.dataid = :dataid AND
-                   u.id = r.userid";
-    $records = $DB->get_records_sql($sql, $params);
-
-    $sql = "SELECT DISTINCT u.id, u.id
-              FROM {user} u,
-                   {data_records} r,
-                   {comments} c
-             WHERE r.dataid = ? AND
-                   u.id = r.userid AND
-                   r.id = c.itemid AND
-                   c.commentarea = 'database_entry'";
-    $comments = $DB->get_records_sql($sql, $params);
-
-    $sql = "SELECT DISTINCT u.id, u.id
-              FROM {user} u,
-                   {data_records} r,
-                   {ratings} a
-             WHERE r.dataid = ? AND
-                   u.id = r.userid AND
-                   r.id = a.itemid AND
-                   a.component = 'mod_data' AND
-                   a.ratingarea = 'entry'";
-    $ratings = $DB->get_records_sql($sql, $params);
-
-    $participants = array();
-
-    if ($records) {
-        foreach ($records as $record) {
-            $participants[$record->id] = $record;
-        }
-    }
-    if ($comments) {
-        foreach ($comments as $comment) {
-            $participants[$comment->id] = $comment;
-        }
-    }
-    if ($ratings) {
-        foreach ($ratings as $rating) {
-            $participants[$rating->id] = $rating;
-        }
-    }
-
-    return $participants;
 }
 
 // junk functions
@@ -2725,7 +2659,7 @@ function data_export_csv($export, $delimiter_name, $dataname, $count, $return=fa
     $filename .= '.csv';
     if (empty($return)) {
         header("Content-Type: application/download\n");
-        header("Content-Disposition: attachment; filename=$filename");
+        header("Content-Disposition: attachment; filename=\"$filename\"");
         header('Expires: 0');
         header('Cache-Control: must-revalidate,post-check=0,pre-check=0');
         header('Pragma: public');
@@ -2866,17 +2800,22 @@ function data_get_exportdata($dataid, $fields, $selectedfields, $currentgroup=0)
     return $exportdata;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// File API                                                                   //
+////////////////////////////////////////////////////////////////////////////////
+
 /**
  * Lists all browsable file areas
  *
- * @param object $course
- * @param object $cm
- * @param object $context
+ * @package  mod_data
+ * @category files
+ * @param stdClass $course course object
+ * @param stdClass $cm course module object
+ * @param stdClass $context context object
  * @return array
  */
 function data_get_file_areas($course, $cm, $context) {
-    $areas = array();
-    return $areas;
+    return array('content' => get_string('areacontent', 'mod_data'));
 }
 
 /**
@@ -2893,76 +2832,92 @@ function data_get_file_areas($course, $cm, $context) {
  * @param string $filename
  * @return file_info_stored file_info_stored instance or null if not found
  */
-function mod_data_get_file_info($browser, $areas, $course, $cm, $context, $filearea, $itemid, $filepath, $filename) {
-    global $CFG, $DB;
+function data_get_file_info($browser, $areas, $course, $cm, $context, $filearea, $itemid, $filepath, $filename) {
+    global $CFG, $DB, $USER;
 
     if ($context->contextlevel != CONTEXT_MODULE) {
         return null;
     }
 
-    if ($filearea === 'content') {
-        if (!$content = $DB->get_record('data_content', array('id'=>$itemid))) {
-            return null;
-        }
-
-        if (!$field = $DB->get_record('data_fields', array('id'=>$content->fieldid))) {
-            return null;
-        }
-
-        if (!$record = $DB->get_record('data_records', array('id'=>$content->recordid))) {
-            return null;
-        }
-
-        if (!$data = $DB->get_record('data', array('id'=>$field->dataid))) {
-            return null;
-        }
-
-        //check if approved
-        if ($data->approval and !$record->approved and !data_isowner($record) and !has_capability('mod/data:approve', $context)) {
-            return null;
-        }
-
-        // group access
-        if ($record->groupid) {
-            $groupmode = groups_get_activity_groupmode($cm, $course);
-            if ($groupmode == SEPARATEGROUPS and !has_capability('moodle/site:accessallgroups', $context)) {
-                if (!groups_is_member($record->groupid)) {
-                    return null;
-                }
-            }
-        }
-
-        $fieldobj = data_get_field($field, $data, $cm);
-
-        $filepath = is_null($filepath) ? '/' : $filepath;
-        $filename = is_null($filename) ? '.' : $filename;
-        if (!$fieldobj->file_ok($filepath.$filename)) {
-            return null;
-        }
-
-        $fs = get_file_storage();
-        if (!($storedfile = $fs->get_file($context->id, 'mod_data', $filearea, $itemid, $filepath, $filename))) {
-            return null;
-        }
-        $urlbase = $CFG->wwwroot.'/pluginfile.php';
-        return new file_info_stored($browser, $context, $storedfile, $urlbase, $filearea, $itemid, true, true, false);
+    if (!isset($areas[$filearea])) {
+        return null;
     }
 
-    return null;
+    if (is_null($itemid)) {
+        require_once($CFG->dirroot.'/mod/data/locallib.php');
+        return new data_file_info_container($browser, $course, $cm, $context, $areas, $filearea);
+    }
+
+    if (!$content = $DB->get_record('data_content', array('id'=>$itemid))) {
+        return null;
+    }
+
+    if (!$field = $DB->get_record('data_fields', array('id'=>$content->fieldid))) {
+        return null;
+    }
+
+    if (!$record = $DB->get_record('data_records', array('id'=>$content->recordid))) {
+        return null;
+    }
+
+    if (!$data = $DB->get_record('data', array('id'=>$field->dataid))) {
+        return null;
+    }
+
+    //check if approved
+    if ($data->approval and !$record->approved and !data_isowner($record) and !has_capability('mod/data:approve', $context)) {
+        return null;
+    }
+
+    // group access
+    if ($record->groupid) {
+        $groupmode = groups_get_activity_groupmode($cm, $course);
+        if ($groupmode == SEPARATEGROUPS and !has_capability('moodle/site:accessallgroups', $context)) {
+            if (!groups_is_member($record->groupid)) {
+                return null;
+            }
+        }
+    }
+
+    $fieldobj = data_get_field($field, $data, $cm);
+
+    $filepath = is_null($filepath) ? '/' : $filepath;
+    $filename = is_null($filename) ? '.' : $filename;
+    if (!$fieldobj->file_ok($filepath.$filename)) {
+        return null;
+    }
+
+    $fs = get_file_storage();
+    if (!($storedfile = $fs->get_file($context->id, 'mod_data', $filearea, $itemid, $filepath, $filename))) {
+        return null;
+    }
+
+    // Checks to see if the user can manage files or is the owner.
+    // TODO MDL-33805 - Do not use userid here and move the capability check above.
+    if (!has_capability('moodle/course:managefiles', $context) && $storedfile->get_userid() != $USER->id) {
+        return null;
+    }
+
+    $urlbase = $CFG->wwwroot.'/pluginfile.php';
+
+    return new file_info_stored($browser, $context, $storedfile, $urlbase, $itemid, true, true, false, false);
 }
 
 /**
  * Serves the data attachments. Implements needed access control ;-)
  *
- * @param object $course
- * @param object $cm
- * @param object $context
- * @param string $filearea
- * @param array $args
- * @param bool $forcedownload
+ * @package  mod_data
+ * @category files
+ * @param stdClass $course course object
+ * @param stdClass $cm course module object
+ * @param stdClass $context context object
+ * @param string $filearea file area
+ * @param array $args extra arguments
+ * @param bool $forcedownload whether or not force download
+ * @param array $options additional options affecting the file serving
  * @return bool false if file not found, does not return if found - justsend the file
  */
-function data_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload) {
+function data_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options=array()) {
     global $CFG, $DB;
 
     if ($context->contextlevel != CONTEXT_MODULE) {
@@ -3025,7 +2980,7 @@ function data_pluginfile($course, $cm, $context, $filearea, $args, $forcedownloa
         }
 
         // finally send the file
-        send_stored_file($file, 0, 0, true); // download MUST be forced - security!
+        send_stored_file($file, 0, 0, true, $options); // download MUST be forced - security!
     }
 
     return false;
@@ -3341,6 +3296,9 @@ function data_presets_export($course, $cm, $data, $tostorage=false) {
  * Capability check has been done in comment->check_permissions(), we
  * don't need to do it again here.
  *
+ * @package  mod_data
+ * @category comment
+ *
  * @param stdClass $comment_param {
  *              context  => context the context object
  *              courseid => int course id
@@ -3367,6 +3325,9 @@ function data_comment_permissions($comment_param) {
 
 /**
  * Validate comment parameter before perform other comments actions
+ *
+ * @package  mod_data
+ * @category comment
  *
  * @param stdClass $comment_param {
  *              context  => context the context object
@@ -3447,26 +3408,6 @@ function data_comment_validate($comment_param) {
 function data_page_type_list($pagetype, $parentcontext, $currentcontext) {
     $module_pagetype = array('mod-data-*'=>get_string('page-mod-data-x', 'data'));
     return $module_pagetype;
-}
-
-/**
- * Checks to see if the user has permission to delete the preset.
- * @param stdClass $context  Context object.
- * @param stdClass $preset  The preset object that we are checking for deletion.
- * @return bool  Returns true if the user can delete, otherwise false.
- */
-function data_user_can_delete_preset($context, $preset) {
-    global $USER;
-
-    if (has_capability('mod/data:manageuserpresets', $context)) {
-        return true;
-    } else {
-        $candelete = false;
-        if ($preset->userid == $USER->id) {
-            $candelete = true;
-        }
-        return $candelete;
-    }
 }
 
 /**
@@ -3573,7 +3514,7 @@ function data_get_recordids($alias, $searcharray, $dataid, $recordids) {
  * @param array $recordids     An array of record IDs.
  * @param string $selectdata   Information for the select part of the sql statement.
  * @param string $sortorder    Additional sort parameters
- * @return array sqlselect     sqlselect['sql] has the sql string, sqlselect['params'] contains an array of parameters.
+ * @return array sqlselect     sqlselect['sql'] has the sql string, sqlselect['params'] contains an array of parameters.
  */
 function data_get_advanced_search_sql($sort, $data, $recordids, $selectdata, $sortorder) {
     global $DB;
@@ -3636,4 +3577,24 @@ function data_get_advanced_search_sql($sort, $data, $recordids, $selectdata, $so
     $sqlselect['sql'] = "$nestselectsql $nestfromsql $sortorder";
     $sqlselect['params'] = $inparam;
     return $sqlselect;
+}
+
+/**
+ * Checks to see if the user has permission to delete the preset.
+ * @param stdClass $context  Context object.
+ * @param stdClass $preset  The preset object that we are checking for deletion.
+ * @return bool  Returns true if the user can delete, otherwise false.
+ */
+function data_user_can_delete_preset($context, $preset) {
+    global $USER;
+
+    if (has_capability('mod/data:manageuserpresets', $context)) {
+        return true;
+    } else {
+        $candelete = false;
+        if ($preset->userid == $USER->id) {
+            $candelete = true;
+        }
+        return $candelete;
+    }
 }

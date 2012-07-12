@@ -26,6 +26,39 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+global $CFG;
+require_once($CFG->libdir.'/formslib.php');
+
+
+abstract class question_wizard_form extends moodleform {
+    /**
+     * Add all the hidden form fields used by question/question.php.
+     */
+    protected function add_hidden_fields() {
+        $mform = $this->_form;
+
+        $mform->addElement('hidden', 'id');
+        $mform->setType('id', PARAM_INT);
+
+        $mform->addElement('hidden', 'inpopup');
+        $mform->setType('inpopup', PARAM_INT);
+
+        $mform->addElement('hidden', 'cmid');
+        $mform->setType('cmid', PARAM_INT);
+
+        $mform->addElement('hidden', 'courseid');
+        $mform->setType('courseid', PARAM_INT);
+
+        $mform->addElement('hidden', 'returnurl');
+        $mform->setType('returnurl', PARAM_LOCALURL);
+
+        $mform->addElement('hidden', 'scrollpos');
+        $mform->setType('scrollpos', PARAM_INT);
+
+        $mform->addElement('hidden', 'appendqnumstring');
+        $mform->setType('appendqnumstring', PARAM_ALPHA);
+    }
+}
 
 abstract class question_wizard_form extends moodleform {
     /**
@@ -435,7 +468,8 @@ abstract class question_edit_form extends question_wizard_form {
         if (!empty($question->questiontext)) {
             $questiontext = $question->questiontext;
         } else {
-            $questiontext = '';
+            $questiontext = $this->_form->getElement('questiontext')->getValue();
+            $questiontext = $questiontext['text'];
         }
         $questiontext = file_prepare_draft_area($draftid, $this->context->id,
                 'question', 'questiontext', empty($question->id) ? null : (int) $question->id,
@@ -451,7 +485,8 @@ abstract class question_edit_form extends question_wizard_form {
         $draftid = file_get_submitted_draft_itemid('generalfeedback');
 
         if (empty($question->generalfeedback)) {
-            $question->generalfeedback = '';
+            $generalfeedback = $this->_form->getElement('generalfeedback')->getValue();
+            $question->generalfeedback = $generalfeedback['text'];
         }
 
         $feedback = file_prepare_draft_area($draftid, $this->context->id,

@@ -267,7 +267,7 @@ function chat_print_recent_activity($course, $viewfullnames, $timestart) {
 
     $past     = array();
     $current  = array();
-    $modinfo =& get_fast_modinfo($course); // reference needed because we might load the groups
+    $modinfo = get_fast_modinfo($course); // reference needed because we might load the groups
 
     foreach ($mcms as $cmid=>$mcm) {
         if (!array_key_exists($cmid, $modinfo->cms)) {
@@ -424,37 +424,6 @@ function chat_cron () {
     $DB->execute($sql);
 
     return true;
-}
-
-/**
- * Returns the users with data in one chat
- * (users with records in chat_messages, students)
- *
- * @todo: deprecated - to be deleted in 2.2
- *
- * @param int $chatid
- * @param int $groupid
- * @return array
- */
-function chat_get_participants($chatid, $groupid=0) {
-    global $DB;
-
-    $params = array('groupid'=>$groupid, 'chatid'=>$chatid);
-
-    if ($groupid) {
-        $groupselect = " AND (c.groupid=:groupid OR c.groupid='0')";
-    } else {
-        $groupselect = "";
-    }
-
-    //Get students
-    $students = $DB->get_records_sql("SELECT DISTINCT u.id, u.id
-                                        FROM {user} u, {chat_messages} c
-                                       WHERE c.chatid = :chatid $groupselect
-                                             AND u.id = c.userid", $params);
-
-    //Return students array (it contains an array of unique users)
-    return ($students);
 }
 
 /**

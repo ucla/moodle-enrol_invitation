@@ -873,7 +873,7 @@ class question_bank_view {
         }
 
         // Create the url of the new question page to forward to.
-        $returnurl = str_replace($CFG->wwwroot, '', $pageurl->out(false));
+        $returnurl = $pageurl->out_as_local_url(false);
         $this->editquestionurl = new moodle_url('/question/question.php',
                 array('returnurl' => $returnurl));
         if ($cm !== null){
@@ -1703,12 +1703,6 @@ function question_edit_setup($edittab, $baseurl, $requirecmid = false, $requirec
 }
 
 /**
- * Required for legacy reasons. Was originally global then changed to class static
- * as of Moodle 2.0
- */
-$QUESTION_EDITTABCAPS = question_edit_contexts::$caps;
-
-/**
  * Make sure user is logged in as required in this context.
  */
 function require_login_in_context($contextorid = null){
@@ -1744,9 +1738,11 @@ function require_login_in_context($contextorid = null){
  * Print a form to let the user choose which question type to add.
  * When the form is submitted, it goes to the question.php script.
  * @param $hiddenparams hidden parameters to add to the form, in addition to
- * the qtype radio buttons.
+ *      the qtype radio buttons.
+ * @param $allowedqtypes optional list of qtypes that are allowed. If given, only
+ *      those qtypes will be shown. Example value array('description', 'multichoice').
  */
-function print_choose_qtype_to_add_form($hiddenparams) {
+function print_choose_qtype_to_add_form($hiddenparams, array $allowedqtypes = null) {
     global $CFG, $PAGE, $OUTPUT;
     $PAGE->requires->js('/question/qbank.js');
     echo '<div id="chooseqtypehead" class="hd">' . "\n";
@@ -1762,7 +1758,10 @@ function print_choose_qtype_to_add_form($hiddenparams) {
     echo '<div class="instruction">' . get_string('selectaqtypefordescription', 'question') . "</div>\n";
     echo '<div class="realqtypes">' . "\n";
     $fakeqtypes = array();
-    foreach (question_bank::get_creatable_qtypes() as $qtype) {
+    foreach (question_bank::get_creatable_qtypes() as $qtypename => $qtype) {
+        if ($allowedqtypes && !in_array($qtypename, $allowedqtypes)) {
+            continue;
+        }
         if ($qtype->is_real_question_type()) {
             print_qtype_to_add_option($qtype);
         } else {
@@ -1786,23 +1785,19 @@ function print_choose_qtype_to_add_form($hiddenparams) {
 
 /**
  * Private function used by the preceding one.
- * @param $qtype the question type.
+ * @param question_type $qtype the question type.
  */
 function print_qtype_to_add_option($qtype) {
-    if (get_string_manager()->string_exists('pluginnamesummary', $qtype->plugin_name())) {
-        $summary = get_string('pluginnamesummary', $qtype->plugin_name());
-    } else {
-        $summary = get_string($qtype->name() . 'summary', $qtype->plugin_name());
-    }
-
     echo '<div class="qtypeoption">' . "\n";
-    echo '<label for="qtype_' . $qtype->name() . '">';
-    echo '<input type="radio" name="qtype" id="qtype_' . $qtype->name() . '" value="' . $qtype->name() . '" />';
+    echo '<label for="' . $qtype->plugin_name() . '">';
+    echo '<input type="radio" name="qtype" id="' . $qtype->plugin_name() .
+            '" value="' . $qtype->name() . '" />';
     echo '<span class="qtypename">';
     $fakequestion = new stdClass();
     $fakequestion->qtype = $qtype->name();
     echo print_question_icon($fakequestion);
-    echo $qtype->menu_name() . '</span><span class="qtypesummary">' . $summary;
+    echo $qtype->menu_name() . '</span><span class="qtypesummary">' .
+            get_string('pluginnamesummary', $qtype->plugin_name());
     echo "</span></label>\n";
     echo "</div>\n";
 }

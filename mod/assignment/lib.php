@@ -197,6 +197,11 @@ class assignment_base {
 
         echo '<div class="reportlink">'.$this->submittedlink().'</div>';
         echo '<div class="clearer"></div>';
+        if (has_capability('moodle/site:config', get_context_instance(CONTEXT_SYSTEM))) {
+            echo $OUTPUT->notification(get_string('upgradenotification', 'assignment'));
+            $adminurl = new moodle_url('/admin/tool/assignmentupgrade/listnotupgraded.php');
+            echo $OUTPUT->single_button($adminurl, get_string('viewassignmentupgradetool', 'assignment'));
+        }
     }
 
 
@@ -602,6 +607,8 @@ class assignment_base {
 
     /**
      * Update grade item for this submission.
+     *
+     * @param stdClass $submission The submission instance
      */
     function update_grade($submission) {
         assignment_update_grades($this->assignment, $submission->userid);
@@ -1106,7 +1113,7 @@ class assignment_base {
             }
         }
 
-        $submitform = new mod_assignment_grading_form( null, $mformdata );
+        $submitform = new assignment_grading_form( null, $mformdata );
 
          if (!$display) {
             $ret_data = new stdClass();
@@ -1977,11 +1984,15 @@ class assignment_base {
     }
 
     /**
+     * Sends a file
+     *
      * @param string $filearea
      * @param array $args
+     * @param bool $forcedownload whether or not force download
+     * @param array $options additional options affecting the file serving
      * @return bool
      */
-    function send_file($filearea, $args) {
+    function send_file($filearea, $args, $forcedownload, array $options=array()) {
         debugging('plugin does not implement file sending', DEBUG_DEVELOPER);
         return false;
     }
@@ -2107,7 +2118,7 @@ class assignment_base {
                 $filename = $file->get_filename();
                 $mimetype = $file->get_mimetype();
                 $path = file_encode_url($CFG->wwwroot.'/pluginfile.php', '/'.$this->context->id.'/mod_assignment/submission/'.$submission->id.'/'.$filename);
-                $output .= '<a href="'.$path.'" ><img src="'.$OUTPUT->pix_url(file_mimetype_icon($mimetype)).'" class="icon" alt="'.$mimetype.'" />'.s($filename).'</a>';
+                $output .= '<a href="'.$path.'" >'.$OUTPUT->pix_icon(file_file_icon($file), get_mimetype_description($file), 'moodle', array('class' => 'icon')).s($filename).'</a>';
                 if ($CFG->enableportfolios && $this->portfolio_exportable() && has_capability('mod/assignment:exportownsubmission', $this->context)) {
                     $button->set_callback_options('assignment_portfolio_caller', array('id' => $this->cm->id, 'submissionid' => $submission->id, 'fileid' => $file->get_id()), '/mod/assignment/locallib.php');
                     $button->set_format_by_file($file);
@@ -2411,7 +2422,7 @@ class assignment_base {
 } ////// End of the assignment_base class
 
 
-class mod_assignment_grading_form extends moodleform {
+class assignment_grading_form extends moodleform {
     /** @var stores the advaned grading instance (if used in grading) */
     private $advancegradinginstance;
 
@@ -2480,6 +2491,9 @@ class mod_assignment_grading_form extends moodleform {
         return $this->advancegradinginstance;
     }
 
+    /**
+     * Add the grades configuration section to the assignment configuration form
+     */
     function add_grades_section() {
         global $CFG;
         $mform =& $this->_form;
@@ -2569,7 +2583,7 @@ class mod_assignment_grading_form extends moodleform {
         }
     }
 
-    function add_action_buttons() {
+    function add_action_buttons($cancel = true, $submitlabel = NULL) {
         $mform =& $this->_form;
         //if there are more to be graded.
         if ($this->_customdata->nextid>0) {
@@ -2717,8 +2731,12 @@ function assignment_update_instance($assignment){
  * Adds an assignment instance
  *
  * This is done by calling the add_instance() method of the assignment type class
+ *
+ * @param stdClass $assignment
+ * @param mod_assignment_mod_form $mform
+ * @return int intance id
  */
-function assignment_add_instance($assignment) {
+function assignment_add_instance($assignment, $mform = null) {
     global $CFG;
 
     $assignment->assignmenttype = clean_param($assignment->assignmenttype, PARAM_PLUGIN);
@@ -2900,9 +2918,9 @@ function assignment_cron () {
 /**
  * Return grade for given user or all users.
  *
- * @param int $assignmentid id of assignment
- * @param int $userid optional user id, 0 means all users
- * @return array array of grades, false if none
+ * @param stdClass $assignment An assignment instance
+ * @param int $userid Optional user id, 0 means all users
+ * @return array An array of grades, false if none
  */
 function assignment_get_user_grades($assignment, $userid=0) {
     global $CFG, $DB;
@@ -2927,8 +2945,10 @@ function assignment_get_user_grades($assignment, $userid=0) {
 /**
  * Update activity grades
  *
- * @param object $assignment
+ * @category grade
+ * @param stdClass $assignment Assignment instance
  * @param int $userid specific user only, 0 means all
+ * @param bool $nullifnone Not used
  */
 function assignment_update_grades($assignment, $userid=0, $nullifnone=true) {
     global $CFG, $DB;
@@ -2983,8 +3003,9 @@ function assignment_upgrade_grades() {
 /**
  * Create grade item for given assignment
  *
- * @param object $assignment object with extra cmidnumber
- * @param mixed optional array/object of grade(s); 'reset' means reset grades in gradebook
+ * @category grade
+ * @param stdClass $assignment An assignment instance with extra cmidnumber property
+ * @param mixed $grades Optional array/object of grade(s); 'reset' means reset grades in gradebook
  * @return int 0 if ok, error code otherwise
  */
 function assignment_grade_item_update($assignment, $grades=NULL) {
@@ -3021,6 +3042,7 @@ function assignment_grade_item_update($assignment, $grades=NULL) {
 /**
  * Delete grade item for given assignment
  *
+ * @category grade
  * @param object $assignment object
  * @return object assignment
  */
@@ -3035,52 +3057,22 @@ function assignment_grade_item_delete($assignment) {
     return grade_update('mod/assignment', $assignment->courseid, 'mod', 'assignment', $assignment->id, 0, NULL, array('deleted'=>1));
 }
 
-/**
- * Returns the users with data in one assignment (students and teachers)
- *
- * @todo: deprecated - to be deleted in 2.2
- *
- * @param $assignmentid int
- * @return array of user objects
- */
-function assignment_get_participants($assignmentid) {
-    global $CFG, $DB;
-
-    //Get students
-    $students = $DB->get_records_sql("SELECT DISTINCT u.id, u.id
-                                        FROM {user} u,
-                                             {assignment_submissions} a
-                                       WHERE a.assignment = ? and
-                                             u.id = a.userid", array($assignmentid));
-    //Get teachers
-    $teachers = $DB->get_records_sql("SELECT DISTINCT u.id, u.id
-                                        FROM {user} u,
-                                             {assignment_submissions} a
-                                       WHERE a.assignment = ? and
-                                             u.id = a.teacher", array($assignmentid));
-
-    //Add teachers to students
-    if ($teachers) {
-        foreach ($teachers as $teacher) {
-            $students[$teacher->id] = $teacher;
-        }
-    }
-    //Return students array (it contains an array of unique users)
-    return ($students);
-}
 
 /**
  * Serves assignment submissions and other files.
  *
- * @param object $course
- * @param object $cm
- * @param object $context
- * @param string $filearea
- * @param array $args
- * @param bool $forcedownload
+ * @package  mod_assignment
+ * @category files
+ * @param stdClass $course course object
+ * @param stdClass $cm course module object
+ * @param stdClass $context context object
+ * @param string $filearea file area
+ * @param array $args extra arguments
+ * @param bool $forcedownload whether or not force download
+ * @param array $options additional options affecting the file serving
  * @return bool false if file not found, does not return if found - just send the file
  */
-function assignment_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload) {
+function assignment_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options=array()) {
     global $CFG, $DB;
 
     if ($context->contextlevel != CONTEXT_MODULE) {
@@ -3097,7 +3089,7 @@ function assignment_pluginfile($course, $cm, $context, $filearea, $args, $forced
     $assignmentclass = 'assignment_'.$assignment->assignmenttype;
     $assignmentinstance = new $assignmentclass($cm->id, $assignment, $cm, $course);
 
-    return $assignmentinstance->send_file($filearea, $args);
+    return $assignmentinstance->send_file($filearea, $args, $forcedownload, $options);
 }
 /**
  * Checks if a scale is being used by an assignment
@@ -3214,7 +3206,7 @@ function assignment_print_recent_activity($course, $viewfullnames, $timestart) {
          return false;
     }
 
-    $modinfo =& get_fast_modinfo($course); // reference needed because we might load the groups
+    $modinfo = get_fast_modinfo($course); // reference needed because we might load the groups
     $show    = array();
     $grader  = array();
 
@@ -3297,7 +3289,7 @@ function assignment_get_recent_mod_activity(&$activities, &$index, $timestart, $
         $course = $DB->get_record('course', array('id'=>$courseid));
     }
 
-    $modinfo =& get_fast_modinfo($course);
+    $modinfo = get_fast_modinfo($course);
 
     $cm = $modinfo->cms[$cmid];
 
@@ -3822,8 +3814,9 @@ function assignment_get_types() {
 
 /**
  * Removes all grades from gradebook
- * @param int $courseid
- * @param string optional type
+ *
+ * @param int $courseid The ID of the course to reset
+ * @param string $type Optional type of assignment to limit the reset to a particular assignment type
  */
 function assignment_reset_gradebook($courseid, $type='') {
     global $CFG, $DB;
@@ -3972,10 +3965,12 @@ function assignment_pack_files($filesforzipping) {
 /**
  * Lists all file areas current user may browse
  *
- * @param object $course
- * @param object $cm
- * @param object $context
- * @return array
+ * @package  mod_assignment
+ * @category files
+ * @param stdClass $course course object
+ * @param stdClass $cm course module object
+ * @param stdClass $context context object
+ * @return array available file areas
  */
 function assignment_get_file_areas($course, $cm, $context) {
     $areas = array();
@@ -3999,7 +3994,7 @@ function assignment_get_file_areas($course, $cm, $context) {
  * @param string $filename
  * @return file_info_stored file_info_stored instance or null if not found
  */
-function mod_assignment_get_file_info($browser, $areas, $course, $cm, $context, $filearea, $itemid, $filepath, $filename) {
+function assignment_get_file_info($browser, $areas, $course, $cm, $context, $filearea, $itemid, $filepath, $filename) {
     global $CFG, $DB, $USER;
 
     if ($context->contextlevel != CONTEXT_MODULE || $filearea != 'submission') {

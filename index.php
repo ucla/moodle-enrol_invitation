@@ -42,6 +42,9 @@
     $PAGE->set_url('/', $urlparams);
     $PAGE->set_course($SITE);
 
+    // Prevent caching of this page to stop confusion when changing page after making AJAX changes
+    $PAGE->set_cacheable(false);
+
     if ($CFG->forcelogin) {
         require_login();
     } else {
@@ -75,7 +78,7 @@
     }
 
 /// If the hub plugin is installed then we let it take over the homepage here
-    if (get_config('local_hub', 'hubenabled') && file_exists($CFG->dirroot.'/local/hub/lib.php')) {
+    if (file_exists($CFG->dirroot.'/local/hub/lib.php') and get_config('local_hub', 'hubenabled')) {
         require_once($CFG->dirroot.'/local/hub/lib.php');
         $hub = new local_hub();
         $continue = $hub->display_homepage();
@@ -101,6 +104,7 @@
     echo $OUTPUT->header();
     
 /// Print Section or custom info
+    get_all_mods($SITE->id, $mods, $modnames, $modnamesplural, $modnamesused);
     if (!empty($CFG->customfrontpageinclude)) {
         include($CFG->customfrontpageinclude);
 
@@ -108,6 +112,7 @@
 
         if (!$section = $DB->get_record('course_sections', array('course'=>$SITE->id, 'section'=>1))) {
             $DB->delete_records('course_sections', array('course'=>$SITE->id, 'section'=>1)); // Just in case
+            $section = new stdClass();
             $section->course = $SITE->id;
             $section->section = 1;
             $section->summary = '';
@@ -115,6 +120,7 @@
             $section->sequence = '';
             $section->visible = 1;
             $section->id = $DB->insert_record('course_sections', $section);
+            rebuild_course_cache($SITE->id, true);
         }
 
         if (!empty($section->sequence) or !empty($section->summary) or $editing) {
@@ -143,7 +149,6 @@
                      " class=\"iconsmall\" alt=\"$streditsummary\" /></a><br /><br />";
             }
 
-            get_all_mods($SITE->id, $mods, $modnames, $modnamesplural, $modnamesused);
             print_section($SITE, $section, $mods, $modnamesused, true);
 
             if ($editing) {
@@ -151,6 +156,12 @@
             }
             echo $OUTPUT->box_end();
         }
+    }
+    // Include course AJAX
+    if (include_course_ajax($SITE, $modnamesused)) {
+        // Add the module chooser
+        $renderer = $PAGE->get_renderer('core', 'course');
+        echo $renderer->course_modchooser(get_module_metadata($SITE, $modnames), $SITE);
     }
 
     if (isloggedin() and !isguestuser() and isset($CFG->frontpageloggedin)) {
@@ -174,7 +185,7 @@
                     $newsforumcontext = get_context_instance(CONTEXT_MODULE, $newsforumcm->id, MUST_EXIST);
 
                     $forumname = format_string($newsforum->name, true, array('context' => $newsforumcontext));
-                    echo html_writer::tag('a', get_string('skipa', 'access', moodle_strtolower(strip_tags($forumname))), array('href'=>'#skipsitenews', 'class'=>'skip-block'));
+                    echo html_writer::tag('a', get_string('skipa', 'access', textlib::strtolower(strip_tags($forumname))), array('href'=>'#skipsitenews', 'class'=>'skip-block'));
 
                     if (isloggedin()) {
                         $SESSION->fromdiscussion = $CFG->wwwroot;
@@ -200,13 +211,13 @@
 
             case FRONTPAGECOURSELIST:
                 if (isloggedin() and !$hassiteconfig and !isguestuser() and empty($CFG->disablemycourses)) {
-                    echo html_writer::tag('a', get_string('skipa', 'access', moodle_strtolower(get_string('mycourses'))), array('href'=>'#skipmycourses', 'class'=>'skip-block'));
+                    echo html_writer::tag('a', get_string('skipa', 'access', textlib::strtolower(get_string('mycourses'))), array('href'=>'#skipmycourses', 'class'=>'skip-block'));
                     echo $OUTPUT->heading(get_string('mycourses'), 2, 'headingblock header');
                     print_my_moodle();
                     echo html_writer::tag('span', '', array('class'=>'skip-block-to', 'id'=>'skipmycourses'));
                 } else if ((!$hassiteconfig and !isguestuser()) or ($DB->count_records('course') <= FRONTPAGECOURSELIMIT)) {
                     // admin should not see list of courses when there are too many of them
-                    echo html_writer::tag('a', get_string('skipa', 'access', moodle_strtolower(get_string('availablecourses'))), array('href'=>'#skipavailablecourses', 'class'=>'skip-block'));
+                    echo html_writer::tag('a', get_string('skipa', 'access', textlib::strtolower(get_string('availablecourses'))), array('href'=>'#skipavailablecourses', 'class'=>'skip-block'));
                     echo $OUTPUT->heading(get_string('availablecourses'), 2, 'headingblock header');
                     print_courses(0);
                     echo html_writer::tag('span', '', array('class'=>'skip-block-to', 'id'=>'skipavailablecourses'));
@@ -214,7 +225,7 @@
             break;
 
             case FRONTPAGECATEGORYNAMES:
-                echo html_writer::tag('a', get_string('skipa', 'access', moodle_strtolower(get_string('categories'))), array('href'=>'#skipcategories', 'class'=>'skip-block'));
+                echo html_writer::tag('a', get_string('skipa', 'access', textlib::strtolower(get_string('categories'))), array('href'=>'#skipcategories', 'class'=>'skip-block'));
                 echo $OUTPUT->heading(get_string('categories'), 2, 'headingblock header');
                 echo $OUTPUT->box_start('generalbox categorybox');
                 print_whole_category_list(NULL, NULL, NULL, -1, false);
@@ -224,7 +235,7 @@
             break;
 
             case FRONTPAGECATEGORYCOMBO:
-                echo html_writer::tag('a', get_string('skipa', 'access', moodle_strtolower(get_string('courses'))), array('href'=>'#skipcourses', 'class'=>'skip-block'));
+                echo html_writer::tag('a', get_string('skipa', 'access', textlib::strtolower(get_string('courses'))), array('href'=>'#skipcourses', 'class'=>'skip-block'));
                 echo $OUTPUT->heading(get_string('courses'), 2, 'headingblock header');
                 $renderer = $PAGE->get_renderer('core','course');
                 // if there are too many courses, budiling course category tree could be slow,

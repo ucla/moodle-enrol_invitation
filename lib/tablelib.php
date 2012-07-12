@@ -132,17 +132,6 @@ class flexible_table {
     }
 
     /**
-     * Backwards-compatible constructor, so that legacy code subclassing
-     * flexible_table does not break.
-     * @deprecated since Moodle 2.0. Will be removed in Moodle 2.1.
-     */
-    function flexible_table($uniqueid) {
-        debugging('Please update your code to user PHP5-style parent::__construct(...), ' .
-                'not parent::flexible_table(...).');
-        $this->__construct($uniqueid);
-    }
-
-    /**
      * Call this to pass the download type. Use :
      *         $download = optional_param('download', '', PARAM_ALPHA);
      * To get the download type. We assume that if you call this function with
@@ -1272,17 +1261,6 @@ class table_sql extends flexible_table {
         // some sensible defaults
         $this->set_attribute('cellspacing', '0');
         $this->set_attribute('class', 'generaltable generalbox');
-    }
-
-    /**
-     * Backwards-compatible constructor, so that legacy code subclassing
-     * table_sql does not break.
-     * @deprecated since Moodle 2.0. Will be removed in Moodle 2.1.
-     */
-    function table_sql($uniqueid) {
-        debugging('Please update your code to user PHP5-style parent::__construct(...), ' .
-                'not parent::table_sql(...).');
-        $this->__construct($uniqueid);
     }
 
     /**

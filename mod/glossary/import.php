@@ -31,7 +31,7 @@ if (! $glossary = $DB->get_record("glossary", array("id"=>$cm->instance))) {
     print_error('invalidid', 'glossary');
 }
 
-require_login($course->id, false, $cm);
+require_login($course, false, $cm);
 
 $context = get_context_instance(CONTEXT_MODULE, $cm->id);
 require_capability('mod/glossary:import', $context);
@@ -87,7 +87,7 @@ if ($xml = glossary_read_imported_file($result)) {
         $xmlglossary = $xml['GLOSSARY']['#']['INFO'][0]['#'];
 
         if ( $xmlglossary['NAME'][0]['#'] ) {
-            unset($glossary);
+            $glossary = new stdClass();
             $glossary->name = ($xmlglossary['NAME'][0]['#']);
             $glossary->course = $course->id;
             $glossary->globalglossary = ($xmlglossary['GLOBALGLOSSARY'][0]['#']);
@@ -191,7 +191,7 @@ if ($xml = glossary_read_imported_file($result)) {
     for($i = 0; $i < $sizeofxmlentries; $i++) {
         // Inserting the entries
         $xmlentry = $xmlentries[$i];
-        unset($newentry);
+        $newentry = new stdClass();
         $newentry->concept = trim($xmlentry['#']['CONCEPT'][0]['#']);
         $newentry->definition = trusttext_strip($xmlentry['#']['DEFINITION'][0]['#']);
         if ( isset($xmlentry['#']['CASESENSITIVE'][0]['#']) ) {
@@ -213,7 +213,7 @@ if ($xml = glossary_read_imported_file($result)) {
                     $dupentry = $DB->record_exists_select('glossary_entries',
                                     'glossaryid = :glossaryid AND LOWER(concept) = :concept', array(
                                         'glossaryid' => $glossary->id,
-                                        'concept'    => moodle_strtolower($newentry->concept)));
+                                        'concept'    => textlib::strtolower($newentry->concept)));
                 }
                 if ($dupentry) {
                     $permissiongranted = 0;

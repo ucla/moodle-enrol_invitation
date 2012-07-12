@@ -35,8 +35,10 @@ $add    = optional_param('add', '', PARAM_ALPHA);     // module name
 $update = optional_param('update', 0, PARAM_INT);
 $return = optional_param('return', 0, PARAM_BOOL);    //return to course/view.php if false or mod/modname/view.php if true
 $type   = optional_param('type', '', PARAM_ALPHANUM); //TODO: hopefully will be removed in 2.0
+$sectionreturn = optional_param('sr', 0, PARAM_INT);
 
 $url = new moodle_url('/course/modedit.php');
+$url->param('sr', $sectionreturn);
 if (!empty($return)) {
     $url->param('return', $return);
 }
@@ -59,7 +61,7 @@ if (!empty($add)) {
 
     $cw = get_course_section($section, $course->id);
 
-    if (!course_allowed_module($course, $module->id)) {
+    if (!course_allowed_module($course, $module->name)) {
         print_error('moduledisable');
     }
 
@@ -79,6 +81,7 @@ if (!empty($add)) {
     $data->coursemodule     = '';
     $data->add              = $add;
     $data->return           = 0; //must be false if this is an add, go back to course view on cancel
+    $data->sr               = $sectionreturn;
 
     if (plugin_supports('mod', $data->modulename, FEATURE_MOD_INTRO, true)) {
         $draftid_editor = file_get_submitted_draft_itemid('introeditor');
@@ -147,6 +150,7 @@ if (!empty($add)) {
     $data->modulename         = $module->name;
     $data->instance           = $cm->instance;
     $data->return             = $return;
+    $data->sr                 = $sectionreturn;
     $data->update             = $update;
     $data->completion         = $cm->completion;
     $data->completionview     = $cm->completionview;
@@ -260,7 +264,7 @@ if ($mform->is_cancelled()) {
     if ($return && !empty($cm->id)) {
         redirect("$CFG->wwwroot/mod/$module->name/view.php?id=$cm->id");
     } else {
-        redirect("$CFG->wwwroot/course/view.php?id=$course->id#section-".$cw->section);
+        redirect(course_get_url($course, $sectionreturn));
     }
 } else if ($fromform = $mform->get_data()) {
     if (empty($fromform->coursemodule)) {
@@ -364,7 +368,7 @@ if ($mform->is_cancelled()) {
         }
 
         if (!$updateinstancefunction($fromform, $mform)) {
-            print_error('cannotupdatemod', '', "view.php?id={$course->id}#section-{$cw->section}", $fromform->modulename);
+            print_error('cannotupdatemod', '', course_get_url($course, $cw->section), $fromform->modulename);
         }
 
         // make sure visibility is set correctly (in particular in calendar)
@@ -450,9 +454,9 @@ if ($mform->is_cancelled()) {
             $DB->delete_records('course_modules', array('id'=>$fromform->coursemodule));
 
             if (!is_number($returnfromfunc)) {
-                print_error('invalidfunction', '', "view.php?id={$course->id}#section-{$cw->section}");
+                print_error('invalidfunction', '', course_get_url($course, $cw->section));
             } else {
-                print_error('cannotaddnewmodule', '', "view.php?id={$course->id}#section-{$cw->section}", $fromform->modulename);
+                print_error('cannotaddnewmodule', '', course_get_url($course, $cw->section), $fromform->modulename);
             }
         }
 
@@ -642,7 +646,7 @@ if ($mform->is_cancelled()) {
             redirect($gradingman->get_management_url($returnurl));
         }
     } else {
-        redirect("$CFG->wwwroot/course/view.php?id={$course->id}#section-{$cw->section}");
+        redirect(course_get_url($course, $sectionreturn));
     }
     exit;
 

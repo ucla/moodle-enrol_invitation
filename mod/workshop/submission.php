@@ -87,6 +87,21 @@ if ($submission->id and !$workshop->modifying_submission_allowed($USER->id)) {
     $editable = false;
 }
 
+if ($canviewall) {
+    // check this flag against the group membership yet
+    if (groups_get_activity_groupmode($workshop->cm) == SEPARATEGROUPS) {
+        // user must have accessallgroups or share at least one group with the submission author
+        if (!has_capability('moodle/site:accessallgroups', $workshop->context)) {
+            $usersgroups = groups_get_activity_allowed_groups($workshop->cm);
+            $authorsgroups = groups_get_all_groups($workshop->course->id, $submission->authorid, $workshop->cm->groupingid, 'g.id');
+            $sharedgroups = array_intersect_key($usersgroups, $authorsgroups);
+            if (empty($sharedgroups)) {
+                $canviewall = false;
+            }
+        }
+    }
+}
+
 if ($editable and $workshop->useexamples and $workshop->examplesmode == workshop::EXAMPLES_BEFORE_SUBMISSION
         and !has_capability('mod/workshop:manageexamples', $workshop->context)) {
     // check that all required examples have been assessed by the user
@@ -129,10 +144,11 @@ if ($edit) {
                         'subdirs'   => false,
                         'maxfiles'  => $maxfiles,
                         'maxbytes'  => $maxbytes,
-                        'context'   => $workshop->context
+                        'context'   => $workshop->context,
+                        'return_types' => FILE_INTERNAL | FILE_EXTERNAL
                       );
 
-    $attachmentopts = array('subdirs' => true, 'maxfiles' => $maxfiles, 'maxbytes' => $maxbytes);
+    $attachmentopts = array('subdirs' => true, 'maxfiles' => $maxfiles, 'maxbytes' => $maxbytes, 'return_types' => FILE_INTERNAL);
     $submission     = file_prepare_standard_editor($submission, 'content', $contentopts, $workshop->context,
                                         'mod_workshop', 'submission_content', $submission->id);
     $submission     = file_prepare_standard_filemanager($submission, 'attachment', $attachmentopts, $workshop->context,

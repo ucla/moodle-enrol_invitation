@@ -18,12 +18,20 @@
 /**
  * Form for editing HTML block instances.
  *
- * @package   block_html
  * @copyright 2010 Petr Skoda (http://skodak.org)
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   block_html
+ * @category  files
+ * @param stdClass $course course object
+ * @param stdClass $birecord_or_cm block instance record
+ * @param stdClass $context context object
+ * @param string $filearea file area
+ * @param array $args extra arguments
+ * @param bool $forcedownload whether or not force download
+ * @param array $options additional options affecting the file serving
+ * @return bool
  */
-
-function block_html_pluginfile($course, $birecord_or_cm, $context, $filearea, $args, $forcedownload) {
+function block_html_pluginfile($course, $birecord_or_cm, $context, $filearea, $args, $forcedownload, array $options=array()) {
     global $SCRIPT;
 
     if ($context->contextlevel != CONTEXT_BLOCK) {
@@ -57,7 +65,7 @@ function block_html_pluginfile($course, $birecord_or_cm, $context, $filearea, $a
     }
 
     session_get_instance()->write_close();
-    send_stored_file($file, 60*60, 0, $forcedownload);
+    send_stored_file($file, 60*60, 0, $forcedownload, $options);
 }
 
 /**

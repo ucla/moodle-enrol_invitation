@@ -153,7 +153,20 @@ $editoroptions = array(
 );
 
 $user = file_prepare_standard_editor($user, 'description', $editoroptions, $personalcontext, 'user', 'profile', 0);
-$userform = new user_edit_form(null, array('editoroptions'=>$editoroptions, 'userid' => $user->id));
+// Prepare filemanager draft area.
+$draftitemid = 0;
+$filemanagercontext = $editoroptions['context'];
+$filemanageroptions = array('maxbytes'       => $CFG->maxbytes,
+                             'subdirs'        => 0,
+                             'maxfiles'       => 1,
+                             'accepted_types' => 'web_image');
+file_prepare_draft_area($draftitemid, $filemanagercontext->id, 'user', 'newicon', 0, $filemanageroptions);
+$user->imagefile = $draftitemid;
+//create form
+$userform = new user_edit_form(null, array(
+    'editoroptions' => $editoroptions,
+    'filemanageroptions' => $filemanageroptions,
+    'userid' => $user->id));
 if (empty($user->country)) {
     // MDL-16308 - we must unset the value here so $CFG->country can be used as default one
     unset($user->country);
@@ -212,7 +225,7 @@ if ($usernew = $userform->get_data()) {
 
     //update user picture
     if (!empty($CFG->gdversion) and empty($CFG->disableuserimages)) {
-        useredit_update_picture($usernew, $userform);
+        useredit_update_picture($usernew, $userform, $filemanageroptions);
     }
 
     // update mail bounces

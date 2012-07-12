@@ -20,10 +20,9 @@
  * There are classes for loading all the information about a quiz and attempts,
  * and for displaying the navigation panel.
  *
- * @package    mod
- * @subpackage quiz
- * @copyright  2008 onwards Tim Hunt
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   mod_quiz
+ * @copyright 2008 onwards Tim Hunt
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
@@ -34,9 +33,9 @@ defined('MOODLE_INTERNAL') || die();
  * Class for quiz exceptions. Just saves a couple of arguments on the
  * constructor for a moodle_exception.
  *
- * @copyright  2008 Tim Hunt
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @since      Moodle 2.0
+ * @copyright 2008 Tim Hunt
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @since     Moodle 2.0
  */
 class moodle_quiz_exception extends moodle_exception {
     public function __construct($quizobj, $errorcode, $a = null, $link = '', $debuginfo = null) {
@@ -73,7 +72,7 @@ class quiz {
     protected $accessmanager = null;
     protected $ispreviewuser = null;
 
-    // Constructor =========================================================================
+    // Constructor =============================================================
     /**
      * Constructor, assuming we already have the necessary data loaded.
      *
@@ -112,13 +111,22 @@ class quiz {
         $course = $DB->get_record('course', array('id' => $quiz->course), '*', MUST_EXIST);
         $cm = get_coursemodule_from_instance('quiz', $quiz->id, $course->id, false, MUST_EXIST);
 
-        // Update quiz with override information
+        // Update quiz with override information.
         $quiz = quiz_update_effective_access($quiz, $userid);
 
         return new quiz($quiz, $cm, $course);
     }
 
-    // Functions for loading more data =====================================================
+    /**
+     * Create a {@link quiz_attempt} for an attempt at this quiz.
+     * @param object $attemptdata row from the quiz_attempts table.
+     * @return quiz_attempt the new quiz_attempt object.
+     */
+    public function create_attempt_object($attemptdata) {
+        return new quiz_attempt($attemptdata, $this->quiz, $this->cm, $this->course);
+    }
+
+    // Functions for loading more data =========================================
 
     /**
      * Load just basic information about all the questions in this quiz.
@@ -152,7 +160,7 @@ class quiz {
         get_question_options($questionstoprocess);
     }
 
-    // Simple getters ======================================================================
+    // Simple getters ==========================================================
     /** @return int the course id. */
     public function get_courseid() {
         return $this->course->id;
@@ -176,6 +184,11 @@ class quiz {
     /** @return string the name of this quiz. */
     public function get_quiz_name() {
         return $this->quiz->name;
+    }
+
+    /** @return int the quiz navigation method. */
+    public function get_navigation_method() {
+        return $this->quiz->navmethod;
     }
 
     /** @return int the number of attempts allowed at this quiz (0 = infinite). */
@@ -269,7 +282,7 @@ class quiz {
         return require_capability($capability, $this->context, $userid, $doanything);
     }
 
-    // URLs related to this attempt ========================================================
+    // URLs related to this attempt ============================================
     /**
      * @return string the URL of this quiz's view page.
      */
@@ -319,7 +332,15 @@ class quiz {
         return new moodle_url('/mod/quiz/review.php', array('attempt' => $attemptid));
     }
 
-    // Bits of content =====================================================================
+    /**
+     * @param int $attemptid the id of an attempt.
+     * @return string the URL of the review of that attempt.
+     */
+    public function summary_url($attemptid) {
+        return new moodle_url('/mod/quiz/summary.php', array('attempt' => $attemptid));
+    }
+
+    // Bits of content =========================================================
 
     /**
      * @param bool $unfinished whether there is currently an unfinished attempt active.
@@ -384,7 +405,7 @@ class quiz {
         return '';
     }
 
-    // Private methods =====================================================================
+    // Private methods =========================================================
     /**
      * Check that the definition of a particular question is loaded, and if not throw an exception.
      * @param $id a questionid.
@@ -406,16 +427,26 @@ class quiz {
  * @since      Moodle 2.0
  */
 class quiz_attempt {
-    // Fields initialised in the constructor.
+
+    /** @var string to identify the in progress state. */
+    const IN_PROGRESS = 'inprogress';
+    /** @var string to identify the overdue state. */
+    const OVERDUE     = 'overdue';
+    /** @var string to identify the finished state. */
+    const FINISHED    = 'finished';
+    /** @var string to identify the abandoned state. */
+    const ABANDONED   = 'abandoned';
+
+    // Basic data.
     protected $quizobj;
     protected $attempt;
-    protected $quba;
 
-    // Fields set later if that data is needed.
-    protected $pagelayout; // array page no => array of numbers on the page in order.
+    // More details of what happened for each question.
+    protected $quba;
+    protected $pagelayout; // Array page no => array of numbers on the page in order.
     protected $reviewoptions = null;
 
-    // Constructor =========================================================================
+    // Constructor =============================================================
     /**
      * Constructor assuming we already have the necessary data loaded.
      *
@@ -451,7 +482,7 @@ class quiz_attempt {
         $course = $DB->get_record('course', array('id' => $quiz->course), '*', MUST_EXIST);
         $cm = get_coursemodule_from_instance('quiz', $quiz->id, $course->id, false, MUST_EXIST);
 
-        // Update quiz with override information
+        // Update quiz with override information.
         $quiz = quiz_update_effective_access($quiz, $attempt->userid);
 
         return new quiz_attempt($attempt, $quiz, $cm, $course);
@@ -475,6 +506,14 @@ class quiz_attempt {
      */
     public static function create_from_usage_id($usageid) {
         return self::create_helper(array('uniqueid' => $usageid));
+    }
+
+    /**
+     * @param string $state one of the state constants like IN_PROGRESS.
+     * @return string the human-readable state name.
+     */
+    public static function state_name($state) {
+        return quiz_attempt_state_name($state);
     }
 
     private function determine_layout() {
@@ -516,7 +555,7 @@ class quiz_attempt {
         }
     }
 
-    // Simple getters ======================================================================
+    // Simple getters ==========================================================
     public function get_quiz() {
         return $this->quizobj->get_quiz();
     }
@@ -543,6 +582,11 @@ class quiz_attempt {
     /** @return string the name of this quiz. */
     public function get_quiz_name() {
         return $this->quizobj->get_quiz_name();
+    }
+
+    /** @return int the quiz navigation method. */
+    public function get_navigation_method() {
+        return $this->quizobj->get_navigation_method();
     }
 
     /** @return object the course_module object. */
@@ -602,17 +646,32 @@ class quiz_attempt {
         return $this->attempt->attempt;
     }
 
+    /** @return string one of the quiz_attempt::IN_PROGRESS, FINISHED, OVERDUE or ABANDONED constants. */
+    public function get_state() {
+        return $this->attempt->state;
+    }
+
     /** @return int the id of the user this attempt belongs to. */
     public function get_userid() {
         return $this->attempt->userid;
     }
 
+    /** @return int the current page of the attempt. */
+    public function get_currentpage() {
+        return $this->attempt->currentpage;
+    }
+
+    public function get_sum_marks() {
+        return $this->attempt->sumgrades;
+    }
+
     /**
      * @return bool whether this attempt has been finished (true) or is still
-     *     in progress (false).
+     *     in progress (false). Be warned that this is not just state == self::FINISHED,
+     *     it also includes self::ABANDONED.
      */
     public function is_finished() {
-        return $this->attempt->timefinish != 0;
+        return $this->attempt->state == self::FINISHED || $this->attempt->state == self::ABANDONED;
     }
 
     /** @return bool whether this attempt is a preview attempt. */
@@ -701,6 +760,21 @@ class quiz_attempt {
                 $this->require_capability('mod/quiz:reviewmyattempts');
             }
         }
+    }
+
+    /**
+     * Checks whether a user may navigate to a particular slot
+     */
+    public function can_navigate_to($slot) {
+        switch ($this->get_navigation_method()) {
+            case QUIZ_NAVMETHOD_FREE:
+                return true;
+                break;
+            case QUIZ_NAVMETHOD_SEQ:
+                return false;
+                break;
+        }
+        return true;
     }
 
     /**
@@ -897,7 +971,60 @@ class quiz_attempt {
         return $this->quba->get_question_action_time($slot);
     }
 
-    // URLs related to this attempt ========================================================
+    /**
+     * Get the time remaining for an in-progress attempt, if the time is short
+     * enought that it would be worth showing a timer.
+     * @param int $timenow the time to consider as 'now'.
+     * @return int|false the number of seconds remaining for this attempt.
+     *      False if there is no limit.
+     */
+    public function get_time_left($timenow) {
+        if ($this->attempt->state != self::IN_PROGRESS) {
+            return false;
+        }
+        return $this->get_access_manager($timenow)->get_time_left($this->attempt, $timenow);
+    }
+
+    /**
+     * @return int the time when this attempt was submitted. 0 if it has not been
+     * submitted yet.
+     */
+    public function get_submitted_date() {
+        return $this->attempt->timefinish;
+    }
+
+    /**
+     * If the attempt is in an applicable state, work out the time by which the
+     * student should next do something.
+     * @return int timestamp by which the student needs to do something.
+     */
+    public function get_due_date() {
+        $deadlines = array();
+        if ($this->quizobj->get_quiz()->timelimit) {
+            $deadlines[] = $this->attempt->timestart + $this->quizobj->get_quiz()->timelimit;
+        }
+        if ($this->quizobj->get_quiz()->timeclose) {
+            $deadlines[] = $this->quizobj->get_quiz()->timeclose;
+        }
+        if ($deadlines) {
+            $duedate = min($deadlines);
+        } else {
+            return false;
+        }
+
+        switch ($this->attempt->state) {
+            case self::IN_PROGRESS:
+                return $duedate;
+
+            case self::OVERDUE:
+                return $duedate + $this->quizobj->get_quiz()->graceperiod;
+
+            default:
+                throw new coding_exception('Unexpected state: ' . $this->attempt->state);
+        }
+    }
+
+    // URLs related to this attempt ============================================
     /**
      * @return string quiz view url.
      */
@@ -959,7 +1086,7 @@ class quiz_attempt {
         return $this->page_and_question_url('review', $slot, $page, $showall, $thispage);
     }
 
-    // Bits of content =====================================================================
+    // Bits of content =========================================================
 
     /**
      * If $reviewoptions->attempt is false, meaning that students can't review this
@@ -1117,25 +1244,80 @@ class quiz_attempt {
     // Methods for processing ==================================================
 
     /**
+     * Check this attempt, to see if there are any state transitions that should
+     * happen automatically.
+     * @param int $timestamp the timestamp that should be stored as the modifed
+     * @param bool $studentisonline is the student currently interacting with Moodle?
+     */
+    public function handle_if_time_expired($timestamp, $studentisonline) {
+        global $DB;
+
+        $timeleft = $this->get_access_manager($timestamp)->get_time_left($this->attempt, $timestamp);
+
+        if ($timeleft === false || $timeleft > 0) {
+            return; // Time has not yet expired.
+        }
+
+        // If the attempt is already overdue, look to see if it should be abandoned ...
+        if ($this->attempt->state == self::OVERDUE) {
+            $timeoverdue = -$timeleft;
+            if ($timeoverdue > $this->quizobj->get_quiz()->graceperiod) {
+                $this->process_abandon($timestamp, $studentisonline);
+            }
+
+            return; // ... and we are done.
+        }
+
+        if ($this->attempt->state != self::IN_PROGRESS) {
+            return; // Attempt is already in a final state.
+        }
+
+        // Otherwise, we were in quiz_attempt::IN_PROGRESS, and time has now expired.
+        // Transition to the appropriate state.
+        switch ($this->quizobj->get_quiz()->overduehandling) {
+            case 'autosubmit':
+                $this->process_finish($timestamp, false);
+                return;
+
+            case 'graceperiod':
+                $this->process_going_overdue($timestamp, $studentisonline);
+                return;
+
+            case 'autoabandon':
+                $this->process_abandon($timestamp, $studentisonline);
+                return;
+        }
+    }
+
+    /**
      * Process all the actions that were submitted as part of the current request.
      *
      * @param int $timestamp the timestamp that should be stored as the modifed
      * time in the database for these actions. If null, will use the current time.
      */
-    public function process_all_actions($timestamp) {
+    public function process_submitted_actions($timestamp, $becomingoverdue = false) {
         global $DB;
+
+        $transaction = $DB->start_delegated_transaction();
+
         $this->quba->process_all_actions($timestamp);
         question_engine::save_questions_usage_by_activity($this->quba);
 
         $this->attempt->timemodified = $timestamp;
-        if ($this->attempt->timefinish) {
+        if ($this->attempt->state == self::FINISHED) {
             $this->attempt->sumgrades = $this->quba->get_total_mark();
         }
-        $DB->update_record('quiz_attempts', $this->attempt);
+        if ($becomingoverdue) {
+            $this->process_going_overdue($timestamp, true);
+        } else {
+            $DB->update_record('quiz_attempts', $this->attempt);
+        }
 
-        if (!$this->is_preview() && $this->attempt->timefinish) {
+        if (!$this->is_preview() && $this->attempt->state == self::FINISHED) {
             quiz_save_best_grade($this->get_quiz(), $this->get_userid());
         }
+
+        $transaction->allow_commit();
     }
 
     /**
@@ -1143,13 +1325,20 @@ class quiz_attempt {
      * flagged state was changed in the request.
      */
     public function save_question_flags() {
+        $transaction = $DB->start_delegated_transaction();
         $this->quba->update_question_flags();
         question_engine::save_questions_usage_by_activity($this->quba);
+        $transaction->allow_commit();
     }
 
-    public function finish_attempt($timestamp) {
-        global $DB, $USER;
-        $this->quba->process_all_actions($timestamp);
+    public function process_finish($timestamp, $processsubmitted) {
+        global $DB;
+
+        $transaction = $DB->start_delegated_transaction();
+
+        if ($processsubmitted) {
+            $this->quba->process_all_actions($timestamp);
+        }
         $this->quba->finish_all_questions($timestamp);
 
         question_engine::save_questions_usage_by_activity($this->quba);
@@ -1157,26 +1346,92 @@ class quiz_attempt {
         $this->attempt->timemodified = $timestamp;
         $this->attempt->timefinish = $timestamp;
         $this->attempt->sumgrades = $this->quba->get_total_mark();
+        $this->attempt->state = self::FINISHED;
         $DB->update_record('quiz_attempts', $this->attempt);
 
         if (!$this->is_preview()) {
             quiz_save_best_grade($this->get_quiz(), $this->attempt->userid);
 
-            // Trigger event
-            $eventdata = new stdClass();
-            $eventdata->component   = 'mod_quiz';
-            $eventdata->attemptid   = $this->attempt->id;
-            $eventdata->timefinish  = $this->attempt->timefinish;
-            $eventdata->userid      = $this->attempt->userid;
-            $eventdata->submitterid = $USER->id;
-            $eventdata->quizid      = $this->get_quizid();
-            $eventdata->cmid        = $this->get_cmid();
-            $eventdata->courseid    = $this->get_courseid();
-            events_trigger('quiz_attempt_submitted', $eventdata);
+            // Trigger event.
+            $this->fire_state_transition_event('quiz_attempt_submitted', $timestamp);
 
             // Tell any access rules that care that the attempt is over.
             $this->get_access_manager($timestamp)->current_attempt_finished();
         }
+
+        $transaction->allow_commit();
+    }
+
+    /**
+     * Mark this attempt as now overdue.
+     * @param int $timestamp the time to deem as now.
+     * @param bool $studentisonline is the student currently interacting with Moodle?
+     */
+    public function process_going_overdue($timestamp, $studentisonline) {
+        global $DB;
+
+        $transaction = $DB->start_delegated_transaction();
+        $this->attempt->timemodified = $timestamp;
+        $this->attempt->state = self::OVERDUE;
+        $DB->update_record('quiz_attempts', $this->attempt);
+
+        $this->fire_state_transition_event('quiz_attempt_overdue', $timestamp);
+
+        $transaction->allow_commit();
+    }
+
+    /**
+     * Mark this attempt as abandoned.
+     * @param int $timestamp the time to deem as now.
+     * @param bool $studentisonline is the student currently interacting with Moodle?
+     */
+    public function process_abandon($timestamp, $studentisonline) {
+        global $DB;
+
+        $transaction = $DB->start_delegated_transaction();
+        $this->attempt->timemodified = $timestamp;
+        $this->attempt->state = self::ABANDONED;
+        $DB->update_record('quiz_attempts', $this->attempt);
+
+        $this->fire_state_transition_event('quiz_attempt_abandoned', $timestamp);
+
+        $transaction->allow_commit();
+    }
+
+    /**
+     * Fire a state transition event.
+     * @param string $event the type of event. Should be listed in db/events.php.
+     * @param int $timestamp the timestamp to include in the event.
+     */
+    protected function fire_state_transition_event($event, $timestamp) {
+        global $USER;
+
+        // Trigger event.
+        $eventdata = new stdClass();
+        $eventdata->component   = 'mod_quiz';
+        $eventdata->attemptid   = $this->attempt->id;
+        $eventdata->timestamp   = $timestamp;
+        $eventdata->userid      = $this->attempt->userid;
+        $eventdata->quizid      = $this->get_quizid();
+        $eventdata->cmid        = $this->get_cmid();
+        $eventdata->courseid    = $this->get_courseid();
+
+        // I don't think if (CLI_SCRIPT) is really the right logic here. The
+        // question is really 'is $USER currently set to a real user', but I cannot
+        // see standard Moodle function to answer that question. For example,
+        // cron fakes $USER.
+        if (CLI_SCRIPT) {
+            $eventdata->submitterid = null;
+        } else {
+            $eventdata->submitterid = $USER->id;
+        }
+
+        if ($event == 'quiz_attempt_submitted') {
+            // Backwards compatibility for this event type. $eventdata->timestamp is now preferred.
+            $eventdata->timefinish = $timestamp;
+        }
+
+        events_trigger($event, $eventdata);
     }
 
     /**
@@ -1196,7 +1451,7 @@ class quiz_attempt {
                 get_string('gradingattempt', 'quiz_grading', $a));
     }
 
-    // Private methods =====================================================================
+    // Private methods =========================================================
 
     /**
      * Get a URL for a particular question on a particular page of the quiz.
@@ -1213,7 +1468,7 @@ class quiz_attempt {
      * @return The requested URL.
      */
     protected function page_and_question_url($script, $slot, $page, $showall, $thispage) {
-        // Fix up $page
+        // Fix up $page.
         if ($page == -1) {
             if (!is_null($slot) && !$showall) {
                 $page = $this->quba->get_question($slot)->_page;
@@ -1309,6 +1564,7 @@ abstract class quiz_nav_panel_base {
             $button->id          = 'quiznavbutton' . $slot;
             $button->number      = $qa->get_question()->_number;
             $button->stateclass  = $qa->get_state_class($showcorrectness);
+            $button->navmethod   = $this->attemptobj->get_navigation_method();
             if (!$showcorrectness && $button->stateclass == 'notanswered') {
                 $button->stateclass = 'complete';
             }
@@ -1375,7 +1631,11 @@ abstract class quiz_nav_panel_base {
  */
 class quiz_attempt_nav_panel extends quiz_nav_panel_base {
     public function get_question_url($slot) {
-        return $this->attemptobj->attempt_url($slot, -1, $this->page);
+        if ($this->attemptobj->can_navigate_to($slot)) {
+            return $this->attemptobj->attempt_url($slot, -1, $this->page);
+        } else {
+            return null;
+        }
     }
 
     public function render_before_button_bits(mod_quiz_renderer $output) {
@@ -1386,7 +1646,7 @@ class quiz_attempt_nav_panel extends quiz_nav_panel_base {
     public function render_end_bits(mod_quiz_renderer $output) {
         return html_writer::link($this->attemptobj->summary_url(),
                 get_string('endtest', 'quiz'), array('class' => 'endtestlink')) .
-                $output->countdown_timer() .
+                $output->countdown_timer($this->attemptobj, time()) .
                 $this->render_restart_preview_link($output);
     }
 }

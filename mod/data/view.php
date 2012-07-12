@@ -230,8 +230,7 @@
         $search = '';
     }
 
-    $textlib = textlib_get_instance();
-    if ($textlib->strlen($search) < 2) {
+    if (textlib::strlen($search) < 2) {
         $search = '';
     }
     $SESSION->dataprefs[$data->id]['search'] = $search;   // Make it sticky
@@ -560,7 +559,6 @@ if ($showactivity) {
                 $where .= ' AND u.id = ' . $USER->id;
                 $params['myid2'] = $USER->id;
             }
-
             $i = 0;
             if (!empty($advanced)) {                                                  //If advanced box is checked.
                 foreach($search_array as $key => $val) {                              //what does $search_array hold?
@@ -588,6 +586,8 @@ if ($showactivity) {
     /// To actually fetch the records
 
         $fromsql    = "FROM $tables $advtables $where $advwhere $groupselect $approveselect $searchselect $advsearchselect";
+        $sqlcount   = "SELECT $count $fromsql";   // Total number of records when searching
+        $sqlmax     = "SELECT $count FROM $tables $where $groupselect $approveselect"; // number of all recoirds user may see
         $allparams  = array_merge($params, $advparams);
 
         $recordids = data_get_all_recordids($data->id);

@@ -55,6 +55,43 @@ class enrol_database_plugin extends enrol_plugin {
     }
 
     /**
+     * Does this plugin allow manual unenrolment of a specific user?
+     * Yes, but only if user suspended...
+     *
+     * @param stdClass $instance course enrol instance
+     * @param stdClass $ue record from user_enrolments table
+     *
+     * @return bool - true means user with 'enrol/xxx:unenrol' may unenrol this user, false means nobody may touch this user enrolment
+     */
+    public function allow_unenrol_user(stdClass $instance, stdClass $ue) {
+        if ($ue->status == ENROL_USER_SUSPENDED) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Gets an array of the user enrolment actions
+     *
+     * @param course_enrolment_manager $manager
+     * @param stdClass $ue A user enrolment object
+     * @return array An array of user_enrolment_actions
+     */
+    public function get_user_enrolment_actions(course_enrolment_manager $manager, $ue) {
+        $actions = array();
+        $context = $manager->get_context();
+        $instance = $ue->enrolmentinstance;
+        $params = $manager->get_moodlepage()->url->params();
+        $params['ue'] = $ue->id;
+        if ($this->allow_unenrol_user($instance, $ue) && has_capability('enrol/database:unenrol', $context)) {
+            $url = new moodle_url('/enrol/unenroluser.php', $params);
+            $actions[] = new user_enrolment_action(new pix_icon('t/delete', ''), get_string('unenrol', 'enrol'), $url, array('class'=>'unenrollink', 'rel'=>$ue->id));
+        }
+        return $actions;
+    }
+
+    /**
      *  Function to translate the stored procedures results to Moodle 
      *  user results (named after the stored procedure).
      **/
@@ -102,8 +139,8 @@ class enrol_database_plugin extends enrol_plugin {
         }
 
         return '';
-    }
-
+    }    
+    
     /**
      * Forces synchronisation of user enrolments with external database,
      * does not create new courses.
@@ -560,9 +597,7 @@ class enrol_database_plugin extends enrol_plugin {
 
         $preventfullunenrol = empty($externalcourses);
         if ($preventfullunenrol and $unenrolaction == ENROL_EXT_REMOVED_UNENROL) {
-            if ($verbose) {
-                mtrace('  Preventing unenrolment of all current users, because it might result in major data loss, there has to be at least one record in external enrol table, sorry.');
-            }
+            mtrace('  Preventing unenrolment of all current users, because it might result in major data loss, there has to be at least one record in external enrol table, sorry.');
         }
 
         // first find all existing courses with enrol instance
@@ -995,6 +1030,8 @@ class enrol_database_plugin extends enrol_plugin {
         $idnumber  = strtolower($this->get_config('newcourseidnumber'));
         $category  = strtolower($this->get_config('newcoursecategory'));
 
+        $localcategoryfield = $this->get_config('localcategoryfield', 'id');
+
         $sqlfields = array($fullname, $shortname);
         if ($category) {
             $sqlfields[] = $category;
@@ -1026,17 +1063,17 @@ class enrol_database_plugin extends enrol_plugin {
                         }
                         continue;
                     }
-                    if ($category and !$DB->record_exists('course_categories', array('id'=>$fields[$category]))) {
+                    if ($category and !$coursecategory = $DB->get_record('course_categories', array($localcategoryfield=>$fields[$category]), 'id')) {
                         if ($verbose) {
-                            mtrace('  error: invalid category id, can not create course: '.$fields[$shortname]);
+                            mtrace('  error: invalid category '.$localcategoryfield.', can not create course: '.$fields[$shortname]);
                         }
                         continue;
                     }
                     $course = new stdClass();
                     $course->fullname  = $fields[$fullname];
                     $course->shortname = $fields[$shortname];
-                    $course->idnumber  = $idnumber ? $fields[$idnumber] : NULL;
-                    $course->category  = $category ? $fields[$category] : NULL;
+                    $course->idnumber  = $idnumber ? $fields[$idnumber] : '';
+                    $course->category  = $category ? $coursecategory->id : NULL;
                     $createcourses[] = $course;
                 }
             }
@@ -1170,9 +1207,12 @@ class enrol_database_plugin extends enrol_plugin {
             ob_start(); //start output buffer to allow later use of the page headers
         }
 
-        $result = $extdb->Connect($this->get_config('dbhost'), $this->get_config('dbuser'), $this->get_config('dbpass'), $this->get_config('dbname'), true);
-        if (!$result) {
-            return null;
+        // the dbtype my contain the new connection URL, so make sure we are not connected yet
+        if (!$extdb->IsConnected()) {
+            $result = $extdb->Connect($this->get_config('dbhost'), $this->get_config('dbuser'), $this->get_config('dbpass'), $this->get_config('dbname'), true);
+            if (!$result) {
+                return null;
+            }
         }
 
         $extdb->SetFetchMode(ADODB_FETCH_ASSOC);
@@ -1204,7 +1244,7 @@ class enrol_database_plugin extends enrol_plugin {
             }
             return $text;
         } else {
-            return textlib_get_instance()->convert($text, 'utf-8', $dbenc);
+            return textlib::convert($text, 'utf-8', $dbenc);
         }
     }
 
@@ -1219,7 +1259,7 @@ class enrol_database_plugin extends enrol_plugin {
             }
             return $text;
         } else {
-            return textlib_get_instance()->convert($text, $dbenc, 'utf-8');
+            return textlib::convert($text, $dbenc, 'utf-8');
         }
     }
 }

@@ -14,11 +14,15 @@ class user_editadvanced_form extends moodleform {
 
         $mform =& $this->_form;
         $editoroptions = null;
+        $filemanageroptions = null;
         $userid = $USER->id;
 
         if (is_array($this->_customdata)) {
             if (array_key_exists('editoroptions', $this->_customdata)) {
                 $editoroptions = $this->_customdata['editoroptions'];
+            }
+            if (array_key_exists('filemanageroptions', $this->_customdata)) {
+                $filemanageroptions = $this->_customdata['filemanageroptions'];
             }
             if (array_key_exists('userid', $this->_customdata)) {
                 $userid = $this->_customdata['userid'];
@@ -68,7 +72,7 @@ class user_editadvanced_form extends moodleform {
         //END UCLA MOD: CCLE-2974
         
         /// shared fields
-        useredit_shared_definition($mform, $editoroptions);
+        useredit_shared_definition($mform, $editoroptions, $filemanageroptions);
 
         /// Next the customisable profile fields
         profile_definition($mform, $userid);
@@ -179,7 +183,7 @@ class user_editadvanced_form extends moodleform {
                 $err['username'] = get_string('usernameexists');
             }
             //check allowed characters
-            if ($usernew->username !== moodle_strtolower($usernew->username)) {
+            if ($usernew->username !== textlib::strtolower($usernew->username)) {
                 $err['username'] = get_string('usernamelowercase');
             } else {
                 if ($usernew->username !== clean_param($usernew->username, PARAM_USERNAME)) {

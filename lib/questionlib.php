@@ -1669,14 +1669,16 @@ class question_edit_contexts {
 /**
  * Helps call file_rewrite_pluginfile_urls with the right parameters.
  *
+ * @package  core_question
+ * @category files
  * @param string $text text being processed
  * @param string $file the php script used to serve files
- * @param int $contextid
+ * @param int $contextid context ID
  * @param string $component component
  * @param string $filearea filearea
  * @param array $ids other IDs will be used to check file permission
- * @param int $itemid
- * @param array $options
+ * @param int $itemid item ID
+ * @param array $options options
  * @return string
  */
 function question_rewrite_question_urls($text, $file, $contextid, $component,
@@ -1717,8 +1719,9 @@ function question_rewrite_questiontext_preview_urls($questiontext, $contextid,
  * @param int $questionid the question id
  * @param array $args the remaining file arguments (file path).
  * @param bool $forcedownload whether the user must be forced to download the file.
+ * @param array $options additional options affecting the file serving
  */
-function question_send_questiontext_file($questionid, $args, $forcedownload) {
+function question_send_questiontext_file($questionid, $args, $forcedownload, $options) {
     global $DB;
 
     $question = $DB->get_record_sql('
@@ -1733,7 +1736,7 @@ function question_send_questiontext_file($questionid, $args, $forcedownload) {
         send_file_not_found();
     }
 
-    send_stored_file($file, 0, 0, $forcedownload);
+    send_stored_file($file, 0, 0, $forcedownload, $options);
 }
 
 /**
@@ -1749,14 +1752,17 @@ function question_send_questiontext_file($questionid, $args, $forcedownload) {
  *
  * Does not return, either calls send_file_not_found(); or serves the file.
  *
- * @param object $course course settings object
- * @param object $context context object
+ * @package  core_question
+ * @category files
+ * @param stdClass $course course settings object
+ * @param stdClass $context context object
  * @param string $component the name of the component we are serving files for.
  * @param string $filearea the name of the file area.
  * @param array $args the remaining bits of the file path.
  * @param bool $forcedownload whether the user must be forced to download the file.
+ * @param array $options additional options affecting the file serving
  */
-function question_pluginfile($course, $context, $component, $filearea, $args, $forcedownload) {
+function question_pluginfile($course, $context, $component, $filearea, $args, $forcedownload, array $options=array()) {
     global $DB, $CFG;
 
     if ($filearea === 'questiontext_preview') {
@@ -1764,7 +1770,7 @@ function question_pluginfile($course, $context, $component, $filearea, $args, $f
         $questionid = array_shift($args);
 
         component_callback($component, 'questiontext_preview_pluginfile', array(
-                $context, $questionid, $args, $forcedownload));
+                $context, $questionid, $args, $forcedownload, $options));
 
         send_file_not_found();
     }
@@ -1837,7 +1843,7 @@ function question_pluginfile($course, $context, $component, $filearea, $args, $f
     if ($module === 'core_question_preview') {
         require_once($CFG->dirroot . '/question/previewlib.php');
         return question_preview_question_pluginfile($course, $context,
-                $component, $filearea, $qubaid, $slot, $args, $forcedownload);
+                $component, $filearea, $qubaid, $slot, $args, $forcedownload, $options);
 
     } else {
         $dir = get_component_directory($module);
@@ -1847,12 +1853,19 @@ function question_pluginfile($course, $context, $component, $filearea, $args, $f
         include_once("$dir/lib.php");
 
         $filefunction = $module . '_question_pluginfile';
-        if (!function_exists($filefunction)) {
-            send_file_not_found();
+        if (function_exists($filefunction)) {
+            $filefunction($course, $context, $component, $filearea, $qubaid, $slot,
+                $args, $forcedownload, $options);
         }
 
-        $filefunction($course, $context, $component, $filearea, $qubaid, $slot,
-                $args, $forcedownload);
+        // Okay, we're here so lets check for function without 'mod_'.
+        if (strpos($module, 'mod_') === 0) {
+            $filefunctionold  = substr($module, 4) . '_question_pluginfile';
+            if (function_exists($filefunctionold)) {
+                $filefunctionold($course, $context, $component, $filearea, $qubaid, $slot,
+                    $args, $forcedownload, $options);
+            }
+        }
 
         send_file_not_found();
     }
@@ -1860,12 +1873,16 @@ function question_pluginfile($course, $context, $component, $filearea, $args, $f
 
 /**
  * Serve questiontext files in the question text when they are displayed in this report.
- * @param context $context the context
+ *
+ * @package  core_files
+ * @category files
+ * @param stdClass $context the context
  * @param int $questionid the question id
  * @param array $args remaining file args
  * @param bool $forcedownload
+ * @param array $options additional options affecting the file serving
  */
-function core_question_questiontext_preview_pluginfile($context, $questionid, $args, $forcedownload) {
+function core_question_questiontext_preview_pluginfile($context, $questionid, $args, $forcedownload, array $options=array()) {
     global $DB;
 
     // Verify that contextid matches the question.
@@ -1882,7 +1899,7 @@ function core_question_questiontext_preview_pluginfile($context, $questionid, $a
 
     question_require_capability_on($question, 'use');
 
-    question_send_questiontext_file($questionid, $args, $forcedownload);
+    question_send_questiontext_file($questionid, $args, $forcedownload, $options);
 }
 
 /**
