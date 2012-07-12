@@ -34,7 +34,6 @@ require_once(dirname(__FILE__) . '/ucla_course_prefs.class.php');
 
 // None of these can be bigger than 0
 define('UCLA_FORMAT_DISPLAY_ALL', -2);
-define('UCLA_FORMAT_DISPLAY_PREVIOUS', -3);
 define('UCLA_FORMAT_DISPLAY_LANDING', -4);
 
 /**
@@ -299,7 +298,7 @@ function ucla_format_figure_section($course, $course_prefs = null) {
      *  Landing page and determining which section to display
      **/
     $topic = optional_param(callback_ucla_request_key(), 
-        UCLA_FORMAT_DISPLAY_PREVIOUS, PARAM_INT);
+        UCLA_FORMAT_DISPLAY_LANDING, PARAM_INT);
 
     $topic++;
 
@@ -310,17 +309,8 @@ function ucla_format_figure_section($course, $course_prefs = null) {
     if ($topic == (UCLA_FORMAT_DISPLAY_ALL + 1) || $topic > 0) {
         // This means that a topic was explicitly declared
         $to_topic = $topic;
-    } else if ($topic == (UCLA_FORMAT_DISPLAY_LANDING + 1)) {
-        //debugging('explicit landing page');
-        $to_topic = $landing_page;
     } else {
-        $to_topic = course_get_display($cid);
-
-        // No previous history
-        if ($to_topic == 0) {
-            //debugging('implicit landing page');
-            $to_topic = $landing_page;
-        }
+        $to_topic = $landing_page;
     }
 
     // Fix if there was a change in number of sections
