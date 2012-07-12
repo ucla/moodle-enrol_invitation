@@ -223,10 +223,11 @@ function callback_ucla_ajax_support() {
  *  Determines if the format should display instructors for this page.
  **/
 function ucla_format_display_instructors($course) {
-    if (function_exists('is_collab_site') && is_collab_site($course)) {
-        global $CFG;
-        require_once($CFG->dirroot . '/admin/tool/uclasiteindicator/lib.php');
-        $collabsites = siteindicator_manager::get_sites($course);
+    global $CFG;
+    
+    require_once($CFG->dirroot . '/admin/tool/uclasiteindicator/lib.php');
+    
+    if ($collabsites = siteindicator_manager::get_sites($course)) {
         $sitetype = $collabsites[$course->id]->type;
         if ($sitetype == 'instruction' || $sitetype == 'test') {
             return true;
