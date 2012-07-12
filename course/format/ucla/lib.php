@@ -228,9 +228,11 @@ function ucla_format_display_instructors($course) {
     require_once($CFG->dirroot . '/admin/tool/uclasiteindicator/lib.php');
     
     if ($collabsites = siteindicator_manager::get_sites($course)) {
-        $sitetype = $collabsites[$course->id]->type;
-        if ($sitetype == 'instruction' || $sitetype == 'test') {
-            return true;
+        if (array_key_exists($course->id,  $collabsites)) {
+            $sitetype = $collabsites[$course->id]->type;
+            if ($sitetype == 'instruction' || $sitetype == 'test') {
+                return true;
+            }
         }
         return false;
     }
