@@ -36,6 +36,8 @@ require_once($CFG->dirroot . '/local/ucla/datetimehelpers.php');
 
 require_login();
 $courseid = required_param('courseid', PARAM_INT);
+$inviteid = optional_param('inviteid', 0, PARAM_INT);
+$actionid = optional_param('actionid', 0, PARAM_INT);
 $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 
 $context = get_context_instance(CONTEXT_COURSE, $courseid);
@@ -75,6 +77,36 @@ if (empty($invites)) {
             get_string('noinvitehistory', 'enrol_invitation'), 
             array('class' => 'noinvitehistory'));
 } else {
+    
+    // BEGIN UCLA MOD: CCLE-2960-Viewing-history-of-invites-and-status
+    // Update the invitations if the user decided to revoke/resend an invite
+    if ($inviteid && $actionid) {
+        /*
+         * $actionid == 1 : Revoke invite
+         * $actionid == 2 : Resend invite
+         */
+        if (!$uinvite = $invites[$inviteid]) {
+            print_error('invalidinviteid');
+        }
+        if ($actionid == 1) {
+            // Do something more than just set the expiration date to 0?
+            $uinvite->timeexpiration = time()-1;
+            echo $OUTPUT->box_start('noticebox');
+            echo html_writer::tag('h3', get_string('revoke_invite_sucess', 'enrol_invitation'));
+            echo $OUTPUT->box_end();
+        } else if ($actionid == 2) {
+            // Is it necessary to distinguish between resending an invite 
+            // that has expired versus one that is still active?
+            $uinvite->timeexpiration = time() + get_config('enrol_invitation', 'enrolperiod');
+            echo $OUTPUT->box_start('noticebox');
+            echo html_writer::tag('h3', get_string('resend_invite_sucess', 'enrol_invitation'));
+            echo $OUTPUT->box_end();
+        } else {
+            print_error('invalidactionid');
+        }
+    }
+    // END UCLA MOD: CCLE-2960
+    
     // columns to display
     $columns = array(
             'invitee'           => get_string('historyinvitee', 'enrol_invitation'),
@@ -147,29 +179,28 @@ if (empty($invites)) {
         // BEGIN UCLA MOD: CCLE-2960-Viewing-history-of-invites-and-status
         // are there any actions user can do?
         $row[5] = '';
-        $url = '';
+        $url = new moodle_url('/enrol/invitation/history.php', 
+                array('courseid' => $courseid, 'inviteid' => $invite->id));
+        // Same if statement as above, seperated for clarity
         if ($status == get_string('status_invite_active', 'enrol_invitation')) {
-            // Create links to revoke or resend an invite
+            // Create link to revoke an invite
+            $url->param('actionid', 1);
             $row[5] .= html_writer::link($url, get_string('action_revoke_invite', 'enrol_invitation'));
-            // $invite->timeexpiration = 0; Set the invite to be expired? Or maybe something more elegent
+            $row[5] .= html_writer::start_tag('br');
+            // Create link to resend an invite
+            $url->param('actionid', 2);
             $row[5] .= html_writer::link($url, get_string('action_resend_invite', 'enrol_invitation'));
-            // $invite->timeexpiration = $invite->timeexpiration + get_config('enrol_invitation', 'enrolperiod'); 
-            // or
-            // $invite->timeexpiration = time() + get_config('enrol_invitation', 'enrolperiod');
         } else if ($status == get_string('status_invite_expired', 'enrol_invitation')) {
             // Create link to resend invite
+            $url->param('actionid', 2);
             $row[5] .= html_writer::link($url, get_string('action_resend_invite', 'enrol_invitation'));
-            // $invite->timeexpiration = time() + get_config('enrol_invitation', 'enrolperiod');
-            // Probably need to do more than just extend expiration date
         }
-        // For each case, send the user to the confirmation page with appropriate data
-        
         // END UCLA MOD: CCLE-2960
         
-        $table->add_data($row); 
+        $table->add_data($row);
     }
     
-    $table->finish_output();    
+    $table->finish_output();
 }
 
 echo $OUTPUT->footer();

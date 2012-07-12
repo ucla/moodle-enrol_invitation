@@ -171,6 +171,8 @@ $string['unenrolselfconfirm'] = 'Do you really want to unenroll yourself from co
 
 // after invite sent strings
 $string['invitationsuccess'] = 'Invitation successfully sent';
+$string['revoke_invite_sucess'] = 'Invitation sucessfully revoked';
+$string['resend_invite_sucess'] = 'Invitation sucessfully resent';
 $string['returntocourse'] = 'Return to course';
 $string['returntoinvite'] = 'Send another invite';
 
