@@ -82,7 +82,7 @@ if (empty($invites)) {
             'status'            => get_string('historystatus', 'enrol_invitation'),
             'datesent'          => get_string('historydatesent', 'enrol_invitation'),
             'dateexpiration'    => get_string('historydateexpiration', 'enrol_invitation'),
-//            'actions'           => get_string('historyactions', 'enrol_invitation')
+            'actions'           => get_string('historyactions', 'enrol_invitation')
     );
     
     $table = new flexible_table('invitehistory');
@@ -144,8 +144,27 @@ if (empty($invites)) {
             $row[4] .= ' ' . html_writer::tag('span', '(' . $expires_text . ')', array('expires-text'));
         }
         
-//        // are there any actions user can do?
-//        $row[5] = '';
+        // BEGIN UCLA MOD: CCLE-2960-Viewing-history-of-invites-and-status
+        // are there any actions user can do?
+        $row[5] = '';
+        $url = '';
+        if ($status == get_string('status_invite_active', 'enrol_invitation')) {
+            // Create links to revoke or resend an invite
+            $row[5] .= html_writer::link($url, get_string('action_revoke_invite', 'enrol_invitation'));
+            // $invite->timeexpiration = 0; Set the invite to be expired? Or maybe something more elegent
+            $row[5] .= html_writer::link($url, get_string('action_resend_invite', 'enrol_invitation'));
+            // $invite->timeexpiration = $invite->timeexpiration + get_config('enrol_invitation', 'enrolperiod'); 
+            // or
+            // $invite->timeexpiration = time() + get_config('enrol_invitation', 'enrolperiod');
+        } else if ($status == get_string('status_invite_expired', 'enrol_invitation')) {
+            // Create link to resend invite
+            $row[5] .= html_writer::link($url, get_string('action_resend_invite', 'enrol_invitation'));
+            // $invite->timeexpiration = time() + get_config('enrol_invitation', 'enrolperiod');
+            // Probably need to do more than just extend expiration date
+        }
+        // For each case, send the user to the confirmation page with appropriate data
+        
+        // END UCLA MOD: CCLE-2960
         
         $table->add_data($row); 
     }

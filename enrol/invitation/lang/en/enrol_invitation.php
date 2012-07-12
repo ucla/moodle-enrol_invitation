@@ -219,6 +219,10 @@ $string['status_invite_revoked'] = 'Revoked';
 $string['status_invite_resent'] = 'Resent';
 $string['status_invite_active'] = 'Active';
 
+// invite action strings
+$string['action_revoke_invite'] = 'Revoke invite';
+$string['action_resend_invite'] = 'Resend invite';
+
 // capabilities strings
 $string['invitation:config'] = 'Configure site invitation instances';
 $string['invitation:enrol'] = 'Invite users';
