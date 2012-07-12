@@ -59,7 +59,7 @@ $invitationmanager = new invitation_manager($courseid);
 // make sure that site has invitation plugin installed
 $instance = $invitationmanager->get_invitation_instance($courseid, true);
 
-$mform = new invitations_form(null, array('courseid' => $courseid));
+$mform = new invitations_form(null, array('course' => $course));
 $mform->set_data($invitationmanager);
 
 $data = $mform->get_data();

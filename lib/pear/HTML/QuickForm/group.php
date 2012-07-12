@@ -265,6 +265,9 @@ class HTML_QuickForm_group extends HTML_QuickForm_element
      */
     function getGroupType()
     {
+        // To avoid possible errors when _createElementsIfNotExist() creates 
+        // nothing, initialize $type to empty string
+        $type = '';
         $this->_createElementsIfNotExist();
         $prevType = '';
         foreach (array_keys($this->_elements) as $key) {

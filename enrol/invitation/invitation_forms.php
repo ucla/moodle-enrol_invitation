@@ -47,13 +47,10 @@ class invitations_form extends moodleform {
         $mform = & $this->_form;
 
         // Add some hidden fields
-        $courseid = $this->_customdata['courseid']; 
+        $course = $this->_customdata['course']; 
         $mform->addElement('hidden', 'courseid');
         $mform->setType('courseid', PARAM_INT);
-        $mform->setDefault('courseid', $courseid);       
-        
-        // get course record, to be used later
-        $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
+        $mform->setDefault('courseid', $course->id);       
         
         // set roles
         $mform->addElement('header', 'header_role', get_string('header_role', 'enrol_invitation'));
