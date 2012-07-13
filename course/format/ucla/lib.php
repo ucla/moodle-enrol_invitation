@@ -233,8 +233,8 @@ function ucla_format_display_instructors($course) {
             if ($sitetype == 'instruction' || $sitetype == 'test') {
                 return true;
             }
+            return false;
         }
-        return false;
     }
 
     return true;
