@@ -52,11 +52,6 @@ class enrol_invitation_plugin extends enrol_plugin {
         return array(new pix_icon('invite', get_string('pluginname', 'enrol_invitation'), 'enrol_invitation'));
     }
 
-    public function roles_protected() {
-        // users with role assign cap may tweak the roles later
-        return false;
-    }
-
     public function allow_unenrol(stdClass $instance) {
         // users with unenrol cap may unenrol other users manually - requires enrol/invitation:unenrol
         return true;
