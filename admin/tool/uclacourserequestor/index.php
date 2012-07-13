@@ -58,7 +58,7 @@ $top_forms = array(
     UCLA_REQUESTOR_VIEW => array('view', 'hidden_srs_view')
 );
 
-$terms = get_active_terms();
+$terms = get_active_terms(true);
 if (empty($terms)) {
     $terms[$selected_term] = $selected_term;
 }
@@ -106,6 +106,9 @@ foreach ($top_forms as $gk => $group) {
         require_once($filename);
 
         $fl = new $classname(null, $nv_cd);
+        
+        //Remove
+        //print_object ($fl);
 
         $cached_forms[$gk][$form] = $fl;
        
@@ -409,7 +412,9 @@ if ($coursebuilder->lock_exists()) { // if course build is in progress, let user
 }
 if (!empty($build_notes)) {
     $build_notice = html_writer::tag('div', $build_notes, 
-            array('id' => 'uclacourserequestor_notice'));    
+            array('id' => 'uclacourserequestor_notice'));
+    //Remove
+    print_object($build_notice);
     echo $OUTPUT->box($build_notice, 'noticebox');      
 }
 
@@ -418,7 +423,7 @@ foreach ($cached_forms as $gn => $group) {
     echo $OUTPUT->heading(get_string($gn, $rucr));
 
     foreach ($group as $form) {
-         $form->display();         
+         $form->display();    
     }
     
     if ('fetch' == $gn) {
