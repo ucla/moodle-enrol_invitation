@@ -66,7 +66,6 @@ $has_capability_viewhidden =
         has_capability('moodle/course:viewhiddensections', $context);
 
 $has_capability_update = has_capability('moodle/course:update', $context);
-$has_capability_edit_office_hours = has_capability('block/ucla_office_hours:editothers', $context);
 $get_accesshide = get_accesshide(get_string('currenttopic', 'access'));
 
 // Cache all these get_string(), because you know, they're cached already...
@@ -319,27 +318,7 @@ $sectionmenu = array();
 while ($section <= $course->numsections) {
     // This will auto create sections if we have numsections set < than 
     // the actual number of sections that exist
-    if (!empty($sections[$section])) {
-        $thissection = $sections[$section];
-
-        // Save the name if the section name is NULL
-        // This writes the value to the database
-        if ($section && NULL == $sections[$section]->name) {
-            $sections[$section]->name = get_string('sectionname', "format_weeks") . " " . $section;
-            $DB->update_record('course_sections', $sections[$section]);
-        }
-    } else {
-        // Create a new section
-        $thissection = new stdClass;
-        $thissection->course = $course->id;
-        $thissection->section = $section;
-        // Assign the week number as default name
-        $thissection->name = get_string('sectionname', "format_weeks") . " " . $section;
-        $thissection->summary = '';
-        $thissection->summaryformat = FORMAT_HTML;
-        $thissection->visible = 1;
-        $thissection->id = $DB->insert_record('course_sections', $thissection);
-    }
+    $thissection = setup_section($section, $sections, $course);
 
     // Check viewing capabilities of this section
     $showsection = ($has_capability_viewhidden
@@ -630,107 +609,9 @@ while ($section <= $course->numsections) {
                 $instr_info = '';
 
                 if (!empty($instructors)) {
-                    foreach ($instructor_types as $title => $rolenames) {
-                        $goal_users = array();
-                        foreach ($instructors as $user) {
-                            if (in_array($user->shortname, $rolenames)) {
-                                $goal_users[$user->id] = $user;
-                            }
-                        }
-
-                        if (empty($goal_users)) {
-                            continue;
-                        }
-
-                        $table = new html_table();
-                        $table->width = '*';
-
-                        // TODO make this more modular
-                        $desired_info = array(
-                            'fullname' => $title,
-                            'email' => get_string('email', 'format_ucla'),                            
-                            'office' => get_string('office', 'format_ucla'),
-                            'office_hours' => get_string('office_hours', 'format_ucla'),
-                            'phone' => get_string('phone', 'format_ucla'),                            
-                        );
-
-                        $cdi = count($desired_info);
-                        $aligns = array();
-                        for ($i = 0; $i < $cdi; $i++) {
-                            $aligns[] = 'left';
-                        }
-
-                        $table->align = $aligns;
-
-                        $table->attributes['class'] = 'boxalignleft';
-
-                        // use array_values, to remove array keys, which are 
-                        // mistaken as another css class for given column
-                        $table->head = array_values($desired_info);
-
-                        //BEGIN UCLA MOD: CCLE-2381 - Update Office Hours and Contact Info
-                        foreach ($goal_users as $user) {
-                            $user_row = array();
-                            $office_info = $DB->get_record('ucla_officehours', 
-                                    array('courseid' => $course->id, 'userid' => $user->id));
-                            foreach ($desired_info as $field => $header) {
-                                $dest_data = '';
-                                if ($field == 'fullname') {
-                                    if ($editing && $has_capability_edit_office_hours) {
-                                        //Need to only display the update string for certain users
-                                        $update_url = new moodle_url($CFG->wwwroot . '/blocks/ucla_office_hours/officehours.php',
-                                                        array('courseid' => $course->id, 'editid' => $user->id));
-                                        $strupdate = get_string('editofficehours', 'format_ucla');
-                                        
-                                        // Add an edit icon/text (based on preference)
-                                        $link_options = array('title' => $strupdate);
-                                        $img_options = array(
-                                                'class' => 'icon edit iconsmall',
-                                                'alt' => $streditsummary
-                                            );
-
-                                        $innards = new pix_icon('t/edit', $link_options['title'], 
-                                            'moodle', $img_options);
-
-                                        $dest_data = html_writer::tag('span', 
-                                                $OUTPUT->render(new action_link($update_url, 
-                                                    $innards, null, $link_options)),
-                                                array('class' => 'editbutton'));
-                                    }
-                                    $dest_data .= fullname($user);
-                                } else {
-                                    if ($office_info) {
-                                        //If there is an entry in the database                                        
-                                        if ($field == 'email') {
-                                            if (empty($office_info->email)) {
-                                                //If no email is specified, then use profile email
-                                                $dest_data = $user->$field;
-                                            } else {
-                                                //Class specific email
-                                                $dest_data = $office_info->email;
-                                            }
-                                        } else if ($field == 'office') {
-                                            $dest_data = $office_info->officelocation;
-                                        } else if ($field == 'phone') {
-                                            $dest_data = $office_info->phone;
-                                        } else if ($field == 'office_hours') {
-                                            $dest_data = $office_info->officehours;
-                                        }
-                                    } else {
-                                        if ($field == 'email') {
-                                            $dest_data = $user->$field;
-                                        }
-                                    }
-                                }
-
-                                $user_row[$field] = $dest_data;
-                            }
-                            $table->data[] = $user_row;
-                        }
-                        //END UCLA MOD: CCLE-2381
-
-                        $instr_info .= html_writer::table($table);
-                    }
+                    $instr_info .= block_ucla_office_hours::render_office_hours_table(
+                            $instructors, $instructor_types, $course, $context);
+                    
                     $center_content .= html_writer::tag('div', $instr_info, array('class' => 'instr-info'));
                 }
             } else {
@@ -754,42 +635,42 @@ while ($section <= $course->numsections) {
             if ($section != 0) {
                 // End div for sectionheader
                 $center_content .= html_writer::end_tag('div');
-            }                                
 
-            // Display the section
-            
-            // display section summary (don't display summary for section 0)
-            if (!empty($thissection->summary)) {
-                $center_content .= html_writer::start_tag('div', 
-                    array('class' => 'summary'));
-
-                $summarytext = file_rewrite_pluginfile_urls($thissection->summary, 
-                        'pluginfile.php', $context->id, 'course', 'section', $thissection->id);
-                $summaryformatoptions = new stdClass();
-                $summaryformatoptions->noclean = true;
-                $summaryformatoptions->overflowdiv = true;
-
-                $center_content .= format_text($summarytext, 
-                        $thissection->summaryformat, $summaryformatoptions);
-
-                $center_content .= html_writer::end_tag('div');                
-            }
+                // Display the section
                 
-            // CCLE-2800 - JIT controls
-            if ($section != 0 && $editing) {
-                $center_content .= html_writer::start_tag('div',
-                        array('class' => 'jit_links'));
-                
-                foreach ($jit_links as $jit_type => $jit_string) {
-                    $link = new moodle_url('/blocks/ucla_easyupload/upload.php',
-                            array('course_id' => $course->id,
-                                  'type' => $jit_type,
-                                  'section' => $section));
-                    $center_content .= html_writer::link($link, $jit_string);
+                // display section summary (don't display summary for section 0)
+                if (!empty($thissection->summary)) {
+                    $center_content .= html_writer::start_tag('div', 
+                        array('class' => 'summary'));
+
+                    $summarytext = file_rewrite_pluginfile_urls($thissection->summary, 
+                            'pluginfile.php', $context->id, 'course', 'section', $thissection->id);
+                    $summaryformatoptions = new stdClass();
+                    $summaryformatoptions->noclean = true;
+                    $summaryformatoptions->overflowdiv = true;
+
+                    $center_content .= format_text($summarytext, 
+                            $thissection->summaryformat, $summaryformatoptions);
+
+                    $center_content .= html_writer::end_tag('div');                
                 }
-                
-                $center_content .= html_writer::end_tag('div');
-            }                        
+                    
+                // CCLE-2800 - JIT controls
+                if ($editing) {
+                    $center_content .= html_writer::start_tag('div',
+                            array('class' => 'jit_links'));
+                    
+                    foreach ($jit_links as $jit_type => $jit_string) {
+                        $link = new moodle_url('/blocks/ucla_easyupload/upload.php',
+                                array('course_id' => $course->id,
+                                      'type' => $jit_type,
+                                      'section' => $section));
+                        $center_content .= html_writer::link($link, $jit_string);
+                    }
+                    
+                    $center_content .= html_writer::end_tag('div');
+                }                        
+            }
             
             ob_start();
             print_section($course, $thissection, $mods, $modnamesused);

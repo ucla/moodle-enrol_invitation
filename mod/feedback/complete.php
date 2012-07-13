@@ -375,8 +375,18 @@ if ($feedback_can_submit) {
 
     if (isset($savereturn) && $savereturn == 'saved') {
         if ($feedback->page_after_submit) {
+
+            require_once($CFG->libdir . '/filelib.php');
+
+            $page_after_submit_output = file_rewrite_pluginfile_urls($feedback->page_after_submit,
+                                                                    'pluginfile.php',
+                                                                    $context->id,
+                                                                    'mod_feedback',
+                                                                    'page_after_submit',
+                                                                    0);
+
             echo $OUTPUT->box_start('generalbox boxaligncenter boxwidthwide');
-            echo format_text($feedback->page_after_submit,
+            echo format_text($page_after_submit_output,
                              $feedback->page_after_submitformat,
                              array('overflowdiv' => true));
             echo $OUTPUT->box_end();
@@ -497,11 +507,8 @@ if ($feedback_can_submit) {
                 //get the value
                 $frmvaluename = $feedbackitem->typ . '_'. $feedbackitem->id;
                 if (isset($savereturn)) {
-                    if (isset($formdata->{$frmvaluename})) {
-                        $value = $formdata->{$frmvaluename};
-                    } else {
-                        $value = null;
-                    }
+                    $value = isset($formdata->{$frmvaluename}) ? $formdata->{$frmvaluename} : null;
+                    $value = feedback_clean_input_value($feedbackitem, $value);
                 } else {
                     if (isset($feedbackcompletedtmp->id)) {
                         $value = feedback_get_item_value($feedbackcompletedtmp->id,
@@ -520,6 +527,7 @@ if ($feedback_can_submit) {
                     feedback_print_item_complete($feedbackitem, $value, $highlightrequired);
                     echo $OUTPUT->box_end();
                 }
+
                 echo $OUTPUT->box_end();
 
                 $lastbreakposition = $feedbackitem->position; //last item-pos (item or pagebreak)

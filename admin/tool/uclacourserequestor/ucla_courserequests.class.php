@@ -32,7 +32,7 @@ class ucla_courserequests {
     private $_validated = null;
 
     /**
-     *  Determines if the request was properly removed based on the flag
+     *  Determines if the request was properly saved based on the flag
      *  returned by commit().
      **/
     static function request_successfully_handled($flag) {
@@ -71,8 +71,11 @@ class ucla_courserequests {
         return $s;
     }
 
-    static function get_editables() {
-        return array('mailinst', 'nourlupdate');
+    /**
+     *  Returns if there are no courses in this index.
+     **/
+    function is_empty() {
+        return empty($this->setindex);
     }
 
     /**
@@ -80,12 +83,14 @@ class ucla_courserequests {
      **/
     function add_set($set) {
         $this->_validated = false;
-
+        
+        // Go through and figure out the setid provided in the set
         $setid = null;
         $f = 'setid';
         foreach ($set as $rq) {
             if (isset($rq[$f])) {
                 if ($setid == null) {
+                    // Set the setid to the first one we find
                     $setid = $rq[$f];
                 } else if ($setid != $rq[$f]) {
                     debugging('Mismatching setid expected ' . $setid 
@@ -98,10 +103,7 @@ class ucla_courserequests {
             $setid = $this->get_unprepped_setid();
         }
 
-        foreach ($set as $k => $r) {
-            $set[$k][$f] = $setid;
-        }
-
+        $set = apply_to_set($set, $f, $setid);
         $this->setindex[$setid] = $set;
     }
 
@@ -129,7 +131,10 @@ class ucla_courserequests {
     function apply_changes($changes, $context) {
         $this->_validated = false;
 
-        $checkers = self::get_editables();
+        // Store this for later
+        $this->_changes_copy = $changes;
+
+        $checkers = request_get_editables();
 
         if ($context == UCLA_REQUESTOR_FETCH) {
             $d = 'build';
@@ -172,7 +177,7 @@ class ucla_courserequests {
                 $this->setindex[$setid] = apply_to_set($this->setindex[$setid],
                     $d, $appval);
 
-                if ($deletemode) {
+                if ($deletemode && $appval == 1) {
                     $this->deletes[$setid] = true;
                 }
 
@@ -180,18 +185,22 @@ class ucla_courserequests {
                 continue;
             }
 
+            if ($changeset['action'] == UCLA_COURSE_BUILT) {
+                // You cannot change after you've already built a request.
+                continue;
+            }
+
             // Figure out what we're going to end up changing for each entry
             $setprops = array();
             foreach ($checkers as $editable) {
-                if (empty($changeset[$editable])) {
+                if (!isset($changeset[$editable])) {
                     $v = 0;
                 } else {
-                    $v = 1;
+                    $v = $changeset[$editable];
                 }
 
                 // this is the value that has is agreed on by the set
                 unset($k);
-
                 foreach ($this->setindex[$setid] as $course) {
                     if (!isset($course[$editable])) {
                         $k = null;
@@ -203,6 +212,7 @@ class ucla_courserequests {
                     if (!isset($k)) {
                         $k = $cv;
                     } else if ($k != $cv) {
+                        // Disagreeing course objects
                         $k = null;
                         break;
                     }
@@ -287,11 +297,20 @@ class ucla_courserequests {
 
             // Figure out the term
             unset($theterm);
+            // Figure out the course
+            $thecourseid = null;
             foreach ($courses as $reqkey => $course) {
                 $cterm = $course['term'];
                 if (!isset($theterm)) { 
                     $theterm = $cterm;
                 } else if ($cterm != $theterm) {
+                    throw new moodle_exception('inconsistent_set');
+                }
+
+                $ccourseid = $course['courseid'];
+                if ($thecourseid == null) { 
+                    $thecourseid = $ccourseid;
+                } else if ($thecourseid != $ccourseid) {
                     throw new moodle_exception('inconsistent_set');
                 }
             }
@@ -306,6 +325,7 @@ class ucla_courserequests {
                     $newreq = $this->abandoned[$nclkey];
 
                     $newreq['setid'] = $setid;
+                    $newreq['courseid'] = $thecourseid;
 
                     $courses[$nclkey] = $newreq;
                     $addedcls[] = $newreq;
@@ -341,6 +361,14 @@ class ucla_courserequests {
                         $newset = array(
                             make_idnumber($nr) => $nr
                         );
+                    } else {
+                        // We are integrating an entire set
+                        $hostkey = set_find_host_key($newset);
+                        $newsetid = $newset[$hostkey]['setid'];
+                        // Remove this set from our index
+                        if (isset($this->setindex[$newsetid])) {
+                            unset($this->setindex[$newsetid]);
+                        }
                     }
                 } else {
                     // This was fetched from the Registrar, just add it
@@ -353,6 +381,7 @@ class ucla_courserequests {
                 foreach ($newset as $nrkey => $newreq) {
                     $newreq[$h] = 0;
                     $newreq['setid'] = $setid;
+                    $newreq['courseid'] = $thecourseid;
                     if (!isset($courses[$nrkey])) {
                         $courses[$nrkey] = $newreq;
                         $addedcls[] = $newreq;
@@ -374,25 +403,37 @@ class ucla_courserequests {
      *  Validates and injects errors into each request-course.
      **/
     function validate_requests($context) {
-        if ($context == null && !empty($this->_validated)) {
-            return $this->_validated;
-        }
+        // Special case for enforcing validation before commit
+        if ($context == null) {
+            if (!empty($this->_validated)) {
+                return $this->_validated;
+            }
 
+            throw new coding_exception();
+        }
+    
+        // Make sure we don't build courses twice
         $builtcourses = array();
         $requestinfos = $this->setindex;
 
-        // Split the requests between host courses and non-host courses
         $h = 'hostcourse';
         $errs = UCLA_REQUESTOR_ERROR;
-
         $e = UCLA_REQUESTOR_BADCL;
         foreach ($requestinfos as $setid => $set) {
             $hcthere = false;
             foreach ($set as $key => $course) {
+                if (isset($course['enrolstat'])
+                        && enrolstat_is_cancelled($course['enrolstat'])) {
+                    $course[UCLA_REQUESTOR_WARNING][UCLA_REQUESTOR_CANCELLED]
+                        = true;
+                }
+
+                /*
                 if (request_ignored($course)) {
+                    $requestinfos[$setid][$key] = $course;
                     $hcthere = true;
                     continue;
-                }
+                }*/
 
                 // Avoid affecting existing requests when fetching requests from
                 // the Registrar
@@ -400,13 +441,6 @@ class ucla_courserequests {
                     if (isset($course['id'])) {
                         $course[$errs][UCLA_REQUESTOR_EXIST] = true;
                     }
-
-                }
-
-                if (isset($course['enrolstat'])
-                        && enrolstat_is_cancelled($course['enrolstat'])) {
-                    $course[UCLA_REQUESTOR_WARNING][UCLA_REQUESTOR_CANCELLED] 
-                        = true;
                 }
 
                 if ($course[$h] > 0) {
@@ -415,8 +449,15 @@ class ucla_courserequests {
 
                 if (isset($builtcourses[$key])) {
                     $course[$errs][$e] = true;
+
+                    $badsetid = $builtcourses[$key];
+                    // Mark that other requests are causing problems
+                    foreach ($requestinfos[$badsetid] as $crkey => $badreq) {
+                        $requestinfos[$badsetid][$crkey][UCLA_REQUESTOR_KEEP] 
+                            = true;
+                    }
                 } else {
-                    $builtcourses[$key] = true;
+                    $builtcourses[$key] = $setid;
                 }
 
                 $requestinfos[$setid][$key] = $course;
@@ -451,7 +492,10 @@ class ucla_courserequests {
             'SELECT MAX(`setid`) FROM ' . '{' . $urc . '}'
         ));
 
+        // This stores all the statuses of the previously handled
+        // results
         $results = array();
+
         $now = time();
 
         $i = 'instructor';
@@ -462,8 +506,26 @@ class ucla_courserequests {
             $requestentries = array();
             $thisresult = self::savesuccess;
 
+            // Check for failsafes
             foreach ($set as $k => $r) {
+                // Don't submit things with errors
                 if (!empty($r[UCLA_REQUESTOR_ERROR])) {
+                    $failset = true;
+                    break;
+                }
+
+                // Don't save requests that were just added but
+                // have a warning
+                if (!empty($r[UCLA_REQUESTOR_WARNING])
+                        && empty(
+                            $this->_changes_copy[$setid]
+                                [request_warning_checked_key($r)]
+                            )) {
+                    $failset = true;
+                    break;
+                }
+
+                if (request_ignored($r)) {
                     $failset = true;
                     break;
                 }
@@ -482,7 +544,7 @@ class ucla_courserequests {
             // Figure out what we're going to save for what course
             // to display when someonse uses the requestor
             // Also what the shortname is supposed to be...
-            $properhost = set_find_host($set);
+            $properhost = set_find_host_key($set);
 
             $set = apply_to_set($set, $h, 0);
             $set[$properhost][$h] = 1;
@@ -490,6 +552,17 @@ class ucla_courserequests {
             foreach ($set as $key => $request) {
                 if (request_ignored($request)) {
                     continue;
+                }
+
+                // Propagate the information from the set host, except for 
+                // hostcourse and instructor
+                if ($key != $properhost) {
+                    foreach ($set[$properhost] as $field => $val) {
+                        // Skip hostcourse, instructor and id fields
+                        if (in_array($field, array('courseid', 'setid'))) {
+                            $request[$field] = $val;
+                        }
+                    }
                 }
 
                 if (!empty($request[$i])) {
@@ -508,6 +581,9 @@ class ucla_courserequests {
                         $thisresult = self::insertsuccess;
 
                         $set[$key]['id'] = $insertid;
+
+                        // Update the internal version
+                        $this->setindex[$setid] = $set;
                     }
                 } catch (dml_exception $e) {
                     var_dump($e);
@@ -549,6 +625,10 @@ class ucla_courserequests {
             try {
                 if ($DB->delete_records($urc, array('setid' => $setid))) {
                     $thisresult = self::deletesuccess;
+
+                    // Update internal data representation
+                    unset($this->setindex[$setid]);
+
                     if ($coursetodelete) {
                         // Attempt to delete the courses
                         if (!delete_course($coursetodelete, false)) {

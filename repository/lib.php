@@ -1253,7 +1253,7 @@ abstract class repository {
             }
 
             $type = repository::get_type_by_id($i->options['typeid']);
-            $table->data[] = array($i->name, $type->get_readablename(), $settings, $delete);
+            $table->data[] = array(format_string($i->name), $type->get_readablename(), $settings, $delete);
 
             //display a grey row if the type is defined as not visible
             if (isset($type) && !$type->get_visible()) {
@@ -1450,7 +1450,7 @@ abstract class repository {
         $ft = new filetype_parser;
         $meta = new stdClass();
         $meta->id   = $this->id;
-        $meta->name = $this->get_name();
+        $meta->name = format_string($this->get_name());
         $meta->type = $this->options['type'];
         $meta->icon = $OUTPUT->pix_url('icon', 'repository_'.$meta->type)->out(false);
         $meta->supported_types = $ft->get_extensions($this->supported_filetypes());
@@ -1762,6 +1762,7 @@ abstract class repository {
             // it can be empty, then moodle will look for instance name from language string
             $mform->addElement('text', 'pluginname', get_string('pluginname', 'repository'), array('size' => '40'));
             $mform->addElement('static', 'pluginnamehelp', '', get_string('pluginnamehelp', 'repository'));
+            $mform->setType('pluginname', PARAM_TEXT);
         }
     }
 
@@ -1904,6 +1905,7 @@ final class repository_instance_form extends moodleform {
 
         $mform->addElement('text', 'name', get_string('name'), 'maxlength="100" size="30"');
         $mform->addRule('name', $strrequired, 'required', null, 'client');
+        $mform->setType('name', PARAM_TEXT);
     }
 
     public function definition() {
@@ -2112,6 +2114,17 @@ function initialise_filepicker($args) {
 
     $return->licenses = $licenses;
 
+    // START UCLA MOD: CCLE-3158 Use UCLA specific lang string for copyright help icon in filepicker
+    /**
+    *	To add in the help icon in the file picker for the copyright status we had to use the lang customization UI to 
+    *	override the lang string 'chooselicense' for en_us.
+    *	But that solution is not ideal, because for new installs that would need to be a manual process. 
+    *	The proper fix would be to edit the code that passes the string to the file picker to 
+    *	use get_string('choosecopyright', 'local_ucla') and put in 'chooselicense' in the local/ucla plugin lang file.
+    **/
+    $return->copyright_help = get_string('choosecopyright', 'local_ucla');
+    // END UCLA MOD: CCLE-3158 Use UCLA specific lang string for copyright help icon in filepicker
+	
     $return->author = fullname($USER);
 
     $ft = new filetype_parser();

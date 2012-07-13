@@ -133,7 +133,7 @@ if (empty($confirm)) {
                 array('id' => $invitation->courseid));
         $emailinfo->courseenrolledusersurl = $courseenrolledusersurl->out(false);
         $invitehistoryurl = new moodle_url('/enrol/invitation/history.php', 
-                array('id' => $invitation->courseid));
+                array('courseid' => $invitation->courseid));
         $emailinfo->invitehistoryurl = $invitehistoryurl->out(false);
 
         $course = $DB->get_record('course', array('id' => $invitation->courseid));

@@ -15,6 +15,7 @@ class officehours_form extends moodleform {
         $courseid = $this->_customdata['courseid'];
         $defaults = $this->_customdata['defaults'];
         $website = $this->_customdata['url'];
+        $email_settings = $this->_customdata['email_settings'];
         
         $mform = $this->_form;
         $mform->addElement('hidden', 'courseid', $courseid);
@@ -39,13 +40,22 @@ class officehours_form extends moodleform {
                 get_string('header_contact_info', 'block_ucla_office_hours'));
         
         // email of record
+        if (empty($edit_email)) {
+            $edit_email = get_string('f_email_of_record_empty', 'block_ucla_office_hours');
+        }
         $mform->addElement('static', 'f_email_of_record', 
                 get_string('f_email_of_record', 'block_ucla_office_hours'), $edit_email);
+        
+        // email display settings
+        $display_opt = array(get_string('emaildisplayno', 'moodle'), 
+                            get_string('emaildisplayyes', 'moodle'), get_string('emaildisplaycourse', 'moodle'));
+        $mform->addElement('select', 'email_settings', get_string('f_email_display', 'block_ucla_office_hours'), $display_opt);
+        $mform->setDefault('email_settings', $email_settings);
         
         // alternative email
         $mform->addElement('text', 'email', get_string('f_email', 'block_ucla_office_hours'));
         $mform->addElement('static', 'f_email_text', '', 
-                get_string('f_email_text', 'block_ucla_office_hours', $edit_email));            
+                get_string('f_email_text', 'block_ucla_office_hours', $edit_email));
         
         // phone
         $mform->addElement('static', 'f_phone_text', '', 

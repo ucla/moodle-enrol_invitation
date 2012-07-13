@@ -16,11 +16,11 @@ require_once($CFG->dirroot . '/local/ucla/lib.php');
 
 global $CFG, $PAGE, $OUTPUT;
 
-$course_id = required_param('course_id', PARAM_INT);
-$course = $DB->get_record('course', array('id' => $course_id), '*', MUST_EXIST);
+$courseid = required_param('courseid', PARAM_INT);
+$course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 
 require_login($course, true);
-$context = get_context_instance(CONTEXT_COURSE, $course_id);
+$context = get_context_instance(CONTEXT_COURSE, $courseid);
 
 // Make sure you can view this page.
 require_capability('moodle/course:update', $context);
@@ -37,19 +37,25 @@ $PAGE->set_pagelayout('course');
 $PAGE->set_pagetype('course-view-' . $course->format);
 
 $PAGE->set_url('/blocks/ucla_rearrange/rearrange.php',
-        array('course_id' => $course_id, 'topic' => $topic_num));
+        array('courseid' => $courseid, 'topic' => $topic_num));
 
 // set editing url to be topic or default page
 $go_back_url = new moodle_url('/course/view.php',
-                array('id' => $course_id, 'topic' => $topic_num));
+                array('id' => $courseid, 'topic' => $topic_num));
 set_editing_mode_button($go_back_url);
 
-$sections = get_all_sections($course_id);
+$sections = get_all_sections($courseid);
 
 $sectnums = array();
 $sectionnames = array();
 $sectionvisibility = array();
 foreach ($sections as $section) {
+    //CCLE-2930:rearrange tool now shows correct sections by limitimg it
+    //with the course numsections.
+    if ($section->section > $course->numsections) {
+	unset($sections[$section->section]);
+	continue;
+    }
     $sid = $section->id;
     $sectids[$sid] = $sid;
     $sectnums[$sid] = $section->section;
@@ -58,10 +64,10 @@ foreach ($sections as $section) {
 }
 
 $modinfo = & get_fast_modinfo($course);
-get_all_mods($course_id, $mods, $modnames, $modnamesplural, $modnamesused);
+get_all_mods($courseid, $mods, $modnames, $modnamesplural, $modnamesused);
 
 $sectionnodeshtml = block_ucla_rearrange::get_section_modules_rendered(
-                $course_id, $sections, $mods, $modinfo
+                $courseid, $sections, $mods, $modinfo
 );
 
 $sectionlist = block_ucla_rearrange::sectionlist;
@@ -147,7 +153,7 @@ block_ucla_rearrange::setup_nested_sortable_js($sectionshtml,
 $rearrangeform = new ucla_rearrange_form(
                 null,
                 array(
-                    'course_id' => $course_id,
+                    'courseid' => $courseid,
                     'sections' => $sectids,
                     'topic' => $topic_num
                 ),
@@ -224,7 +230,7 @@ if ($data = $rearrangeform->get_data()) {
             $sectiontranslation);
 
     // Now we need to swap all the contents in each section...
-    rebuild_course_cache($course_id);
+    rebuild_course_cache($courseid);
 }
 
 // TODO put a title
@@ -242,7 +248,7 @@ if ($data != false) {
 
     // allow user to either return to section they were on or go to course page
     // if format is UCLA, then this UCLA_FORMAT_DISPLAY_LANDING should exist
-    $params = array('id' => $course_id);
+    $params = array('id' => $courseid);
     if (defined('UCLA_FORMAT_DISPLAY_LANDING')) {
         $params['topic'] = UCLA_FORMAT_DISPLAY_LANDING;
     }
@@ -251,7 +257,7 @@ if ($data != false) {
                             'block_ucla_rearrange'), 'get');
 
     $secturl = new moodle_url('/course/view.php',
-                    array('id' => $course_id, 'topic' => $topic_num));
+                    array('id' => $courseid, 'topic' => $topic_num));
     $sectret = new single_button($secturl, get_string('returntosection',
                             'block_ucla_rearrange'), 'get');
 

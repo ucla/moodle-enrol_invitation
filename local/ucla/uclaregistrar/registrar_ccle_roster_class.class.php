@@ -1,8 +1,10 @@
 <?php
 
 class registrar_ccle_roster_class extends registrar_query {
+    var $unindexed_key_translate = array('term' => 0, 'srs' => 1);
+    
     function validate($new, $old) {
-        if (empty($new['bolid'])) {
+        if (empty($new['stu_id'])) {
             return false;
         }
 
@@ -10,18 +12,22 @@ class registrar_ccle_roster_class extends registrar_query {
     }
 
     function remote_call_generate($args) {
-        if (!ucla_validator('term', $args[0])) {
-            return false;
+        if (isset($args[0])) {
+            $term = $args[0];
+        } else {
+            $term = $args['term'];
         }
 
-        $term = $args[0];
-
-        if (!ucla_validator('srs', $args[1])) {
-            return false;
+        if (isset($args[1])) {
+            $srs = $args[1];
+        } else {
+            $srs = $args['srs'];
         }
 
-        $srs = $args[1];
+        if (!ucla_validator('term', $term) || !ucla_validator('srs', $srs)) {
+            return false;
+        }  
 
-        return "EXECUTE CCLE_ROSTER_CLASS '$term', '$srs'";
+        return "EXECUTE ccle_roster_class '$term', '$srs'";
     }
 }

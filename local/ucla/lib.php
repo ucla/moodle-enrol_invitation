@@ -819,7 +819,8 @@ function terms_arr_sort($terms) {
     // denumerate terms
     $sorted = array();
     foreach ($ksorter as $k => $v) {
-        $sorted[] = $terms[$k];
+        $term = $terms[$k];
+        $sorted[$term] = $term;
     }
 
     return $sorted;
@@ -985,8 +986,8 @@ function term_enum($term) {
         '1' => 2,
         'F' => 3
     );
-    
-    return $year . $r[$term[2]];
+
+    return $year . $r[substr($term, 2, 1)];
 }
 
 /**
@@ -1013,18 +1014,12 @@ function term_cmp_fn($term, $other) {
 /**
  * Returns true if given course object is a collabration site, otherwise false.
  * 
- * Until the collab site indicator is implemented for now a course is a collab
- * site if it doesn't exist in the ucla_request_classes table.
- * 
  * @param object $course
  * @return boolean 
  */
 function is_collab_site($course) {
-    $result = ucla_map_courseid_to_termsrses($course->id);
-    if (empty($result)) {
-        return true;
-    }    
-    return false;
+    global $DB;
+    return $DB->record_exists('ucla_siteindicator', array('courseid' => $course->id));
 }
 
 /**
@@ -1149,5 +1144,35 @@ function has_shared_context($targetid, $viewerid=null) {
 
     // if there is a result, return true, otherwise false
     return !empty($result);
+}
+
+/**
+ * Returns active terms. Used by course requestor, course creator, and pre-pop 
+ * enrollment to see what terms should be processed.
+ * 
+ * @return array        Returns an array of terms
+ */
+function get_active_terms() {
+    $ret_val = array();
+    
+    $terms = get_config('local_ucla', 'active_terms');
+    if (is_string($terms)) {    
+       // terms should a comma deliminated list (but might be array already if
+       // if defined in config file)
+       $terms = explode(',', $terms);
+    }
+    
+    if (!empty($terms)) {
+        foreach ($terms as $term) {
+            $term = trim($term);
+            if (ucla_validator('term', $term)) {
+                $ret_val[$term] = $term;
+            }                              
+        }
+    }    
+   
+    // The weeksdisplay block generates all the terms in correct order
+    // But in case this is from a Config file instead
+    return terms_arr_sort($ret_val);
 }
 // EOF

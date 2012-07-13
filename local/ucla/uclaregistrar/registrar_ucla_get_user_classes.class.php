@@ -10,6 +10,14 @@ class registrar_ucla_get_user_classes extends registrar_query {
     }
 
     function remote_call_generate($args) {
+        if (!isset($args['uid']) && isset($args[0])) {
+            $args['uid'] = $args[0];
+        }
+
+        if (!isset($args['term']) && isset($args[1])) {
+            $args['term'] = $args[1];
+        }
+            
         $uid = $args['uid'];
 
         $termstr = '';

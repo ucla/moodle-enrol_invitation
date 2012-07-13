@@ -118,4 +118,5 @@
 #cpanel-wrapper .ucla_cp_mod_other .item, 
 #cpanel-wrapper .ucla_cp_mod_advanced .item {
     padding-bottom: 1.0em;
+    width: 100%;
 }

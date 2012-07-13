@@ -14,5 +14,10 @@ $handlers = array(
         'handlerfile'     => '/enrol/invitation/eventslib.php',
         'handlerfunction' => 'add_site_invitation_plugin',
         'schedule'        => 'instant'
-    )
+    ),
+    'course_restored' => array (
+         'handlerfile'      => '/enrol/invitation/eventslib.php',
+         'handlerfunction'  => 'add_site_invitation_plugin',
+         'schedule'         => 'instant'
+     ),    
 );

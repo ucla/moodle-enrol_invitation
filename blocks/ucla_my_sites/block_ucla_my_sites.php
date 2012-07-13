@@ -51,6 +51,25 @@ class block_ucla_my_sites extends block_base {
         $this->content->text = '';
         $this->content->footer = '';
 
+        $content = array();        
+        
+        // NOTE: guest have access to "My moodle" for some strange reason, so 
+        // display a login notice for them
+        if (isguestuser($USER)) {            
+            $content[] =  $OUTPUT->box_start('noticebox');
+
+            $content[] = get_string('loginrequired', 'block_ucla_my_sites');
+            $loginbutton = new single_button(new moodle_url($CFG->wwwroot
+                                    . '/login/index.php'), get_string('login'));
+            $loginbutton->class = 'continuebutton';
+
+            $content[] = $OUTPUT->render($loginbutton);
+            $content[] = $OUTPUT->box_end();      
+            $this->content->text = implode($content);
+            
+            return $this->content;
+        }
+        
         // NOTE: this thing currently takes the term in the get param...
         // so you may have some strange behavior if this block is not
         // in the my-home page...
@@ -58,8 +77,6 @@ class block_ucla_my_sites extends block_base {
         if (!$showterm && isset($CFG->currentterm)) {
             $showterm = $CFG->currentterm;
         }
-
-        $content = array();
 
         $courses = enrol_get_my_courses('id, shortname', 
             'visible DESC, sortorder ASC');
@@ -183,6 +200,9 @@ class block_ucla_my_sites extends block_base {
                 foreach ($class_sites as $k => $class_site) {
                     foreach ($class_site->reg_info as $reginfo) {
                         if ($key == make_idnumber($reginfo)) {
+                            if(!is_array($class_sites[$k]->roles)) {
+                                $class_sites[$k]->roles = array();
+                            }
                             $class_sites[$k]->roles[] = $rrole->name;
                             $localexists = true;
                         }
@@ -223,9 +243,10 @@ class block_ucla_my_sites extends block_base {
                 $content[] = $OUTPUT->box(get_string('shared_server_archive_notice', 
                     'block_ucla_my_sites'), 'noticebox');
             } else if (term_cmp_fn($showterm, $CFG->currentterm) == -1) {
-                // if viewing old term, give notice about student access
-                $content[] = $OUTPUT->box(get_string('student_access_notice', 
-                    'block_ucla_my_sites'), 'noticebox');                
+                // commented out until we actually start hiding past courses
+//                // if viewing old term, give notice about student access
+//                $content[] = $OUTPUT->box(get_string('student_access_notice', 
+//                    'block_ucla_my_sites'), 'noticebox');                
             }
         }
         
@@ -432,8 +453,8 @@ class block_ucla_my_sites extends block_base {
             $briarr[$k] = get_object_vars($v);
         }
 
-        $arik = set_find_host($ariarr);
-        $brik = set_find_host($briarr);
+        $arik = set_find_host_key($ariarr);
+        $brik = set_find_host_key($briarr);
 
         // If they're indeterminate
         if ($arik === false || $brik === false) {

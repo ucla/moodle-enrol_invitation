@@ -38,9 +38,15 @@ $popup      = optional_param('popup', 0, PARAM_INT); //==1 if in a popup window?
 list($context, $course, $cm) = get_context_info_array($contextid);
 require_login($course, false, $cm);
 
-$url = new moodle_url('/rating/index.php', array('contextid'=>$contextid,'itemid'=>$itemid,'scaleid'=>$scaleid));
-if ($sort !== 0) {
+$url = new moodle_url('/rating/index.php', array('contextid'=>$contextid,'component'=>$component,'itemid'=>$itemid,'scaleid'=>$scaleid));
+if (!empty($ratingarea)) {
+    $url->param('ratingarea', $ratingarea);
+}
+if (!empty($sort)) {
     $url->param('sort', $sort);
+}
+if (!empty($popup)) {
+    $url->param('popup', $popup);
 }
 $PAGE->set_url($url);
 $PAGE->set_context($context);
@@ -84,10 +90,9 @@ if (!$ratings) {
     $msg = get_string('noratings','rating');
     echo html_writer::tag('div', $msg, array('class'=>'mdl-align'));
 } else {
-    $sorturl  = new moodle_url('/index.php', array('contextid' => $contextid, 'itemid' => $itemid, 'scaleid' => $scaleid));
-    if ($popup) {
-        $sorturl->param('popup', $popup);
-    }
+    // To get the sort URL, copy the current URL and remove any previous sort
+    $sorturl = new moodle_url($url);
+    $sorturl->remove_params('sort');
 
     $table = new html_table;
     $table->cellpadding = 3;
@@ -102,8 +107,10 @@ if (!$ratings) {
     $table->colclasses = array('', 'firstname', 'rating', 'time');
     $table->data = array();
 
-    //if the scale was changed after ratings were submitted some ratings may have a value above the current maximum
-    $maxrating = count($scalemenu) - 1;
+    // If the scale was changed after ratings were submitted some ratings may have a value above the current maximum
+    // We can't just do count($scalemenu) - 1 as custom scales start at index 1, not 0
+    $maxrating = max(array_keys($scalemenu));
+
     foreach ($ratings as $rating) {
         //Undo the aliasing of the user id column from user_picture::fields()
         //we could clone the rating object or preserve the rating id if we needed it again

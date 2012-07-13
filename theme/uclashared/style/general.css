@@ -41,6 +41,7 @@ html, body {background-color:#FFF; height:100%;}
     -moz-box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     float:left;
+    height: 135px;
 }
 .ribbon h3 {
     font: bold 14px/1.3 "Lucida Grande", arial, sans-serif;
@@ -464,6 +465,9 @@ html, body {background-color:#FFF; height:100%;}
 
 /* Banner notice on pilot to indicate place to get help */
 /* corner banner */
+/*
+CCLE-3141 - Prepare for post M2 deployment
+Turning off style, but leaving it here in case we need to reenable it in the future
 #topleftcornerbanner {
     position: absolute;
     left: 0;
@@ -477,7 +481,7 @@ html, body {background-color:#FFF; height:100%;}
 }
 .headermain {
     margin-left: 2.0em !important;
-}
+}*/
 
 /* CCLE-2993 - Shorten textarea for intro/description field */
 #id_introeditor, #id_introeditor_tbl, #id_intro {
@@ -568,3 +572,10 @@ html, body {background-color:#FFF; height:100%;}
     float: none;
 }
 /* END CCLE-3069 */
+
+.notify	{
+    background: #FFFF00;
+    color: #FF3399 !important;
+    font-size: 0.8em !important;
+    padding: 0 2px;
+}

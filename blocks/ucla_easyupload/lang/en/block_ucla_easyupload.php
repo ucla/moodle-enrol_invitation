@@ -40,10 +40,10 @@ $string['dialog_add_text'] = 'Enter text';
 $string['dialog_add_text_box'] = 'Text you want displayed in section';
 
 // These are for the link into control panel
-$string['add_file'] = 'Upload a File';
+$string['add_file'] = 'Upload a file';
 $string['add_file_post'] = '';
 
-$string['add_link'] = 'Add a Link';
+$string['add_link'] = 'Add a link';
 $string['add_link_post'] = '';
 
 $string['add_activity'] = 'Add an activity';
@@ -66,69 +66,76 @@ $string['rearrangejsrequired'] = 'The Rearrange Tool requires JavaScript to work
 
 //Specify license
 
-//Begin UCLA Changes
-$string['license'] = 'Copyrights';
+// CCLE-2669 - Copyright Modifications - help text
+$string['license'] = 'Copyright status';
 $string['license_help']='This question requires you to declare the copyright 
 status of the item you are uploading. Each option is explained in greater detail 
 below.
     
-<strong>I own the copyright.</strong><br>
+<strong>I own the copyright.</strong>
+<br />
 You are an author of this work and have not transferred the rights to a 
 publisher or any other person.
 
-<strong>UC Regents own the copyright.</strong><br>
+<strong>The UC Regents own the copyright.</strong>
+<br />
 This item’s copyright is owned by the University of California Regents; most 
 items created by UC staff fall into this category.
 
-<strong>Item is licensed by the UCLA Library.</strong><br>
+<strong>Item is licensed by the UCLA Library.</strong>
+<br />
 This item is made available in electronic form by the UCLA library. <i> Note: 
 the UCLA Library would prefer that you provide a link to licensed electronic 
 resources rather than uploading the file to your CCLE course.</i>
 
-<strong>Item is in the public domain.</strong><br>
-Generally, an item is in the public domain if one of the following applies:<br>
-1)It was published in the U.S. before 1923.<br>
-2)It is a product of the federal government.<br>
-3)The term of copyright, which is generally the life of the author plus seventy 
-years, has expired.
+<strong>Item is in the public domain.</strong>
+<br />
+Generally, an item is in the public domain if one of the following applies:
+<ol>
+    <li>It was published in the U.S. before 1923.</li>
+    <li>It is a product of the federal government.</li>
+    <li>The term of copyright, which is generally the life of the author plus 
+    seventy years, has expired.</li>
+</ol>
 
 <strong>Item is available for this use via Creative Commons license.</strong>
-<br>
+<br />
 Many items are made available through Creative Commons licenses, which specify 
-how an item may be reused without asking the copyright holder for permission.  
-Similar “open source” licenses would also fit under this category.  For more 
-information on Creative Commons licenses and how to locate items made available 
-in this manner, go to <a href=\'http://creativecommons.org/\' target=_blank>
-Creative Commons</a>.
+how an item may be reused without asking the copyright holder for permission. 
+Similar “open source” licenses would also fit under this category. See 
+<a href="http://creativecommons.org/" target="_blank">creativecommons.org</a> 
+for more information.
 
 <strong>I have obtained written permission from the copyright holder.</strong>
-<br>
+<br />
 This answer applies if you have contacted the copyright holder of the work and 
 have written permission to use the work in this manner.  Note: You should keep 
 this written permission on file.
 
-<strong>I am using this item under fair use.</strong><br>
+<strong>I am using this item under fair use.</strong><br />
 Fair use is a right specifically permitting educational, research, and scholarly 
 uses of copyrighted works.  However, <u>not every educational use is 
-automatically a fair use</u>; a four-factor analysis must be applied to each 
-item.  For more details go to the 
-<a href=\'http://www.universityofcalifornia.edu/copyright/fairuse.html\' target=_blank>
-UC copyright fair use page</a>.
+automatically a fair use</u>; a 
+<a href="http://copyright.universityofcalifornia.edu/fairuse.html#2" target="_blank">four-factor analysis</a> 
+must be applied to each item.
 
-<strong>Upload by faculty designate; copyright status to be determined.</strong>
-<br>
-Select only if this upload is being performed by <u>someone besides the 
+<strong>Copyright status not yet identified.</strong>
+<br />
+Select <strong>only</strong> if this upload is being performed by <u>someone besides the 
 instructor of record</u> at the instructor’s behest, but the instructor did not 
 clarify the copyright status.
 
-Note: if you believe none of these answers apply, you should not upload the 
-item. If you have questions regarding the above or need assistance in determining 
-copyright status, please email <a href=\'mailto:copyright@library.ucla.edu\'>
-copyright@library.ucla.edu</a> for a consultation. <strong>It is the instructor 
-of record’s responsibility to comply with copyright law in the handling of 
-course materials;</strong> see the 
-<a href=\''.$CFG->wwwroot.'/copyright_information.php\' target=_blank>CCLE 
-copyright information page</a> for more details.  
+Note: if you believe none of these answers apply, you should not upload the item. 
+For more details  on copyright status and fair use, go to the 
+<a href="http://copyright.universityofcalifornia.edu/fairuse.html" target="_blank">UC copyright fair use page</a>, 
+use ARL’s <a href="http://www.knowyourcopyrights.org/bm~doc/kycrbrochurebw.pdf" target="_blank">Know Your Copy Rights</a> 
+brochure, or read their great <a href="http://www.knowyourcopyrights.org/resourcesfac/faq/online.shtml" target="_blank">FAQ</a>.  
+If you have questions regarding the above or need assistance in determining 
+copyright status, please email <a href="mailto:copyright@library.ucla.edu">copyright@library.ucla.edu</a> 
+for a consultation. <strong>It is the instructor of record’s responsibility to 
+comply with copyright law in the handling of course materials;</strong> see the 
+<a href="'.$CFG->wwwroot.'/theme/uclashared/view.php?page=copyright">CCLE copyright information page</a>
+    for more details.
 ';
 
 /** End of file **/

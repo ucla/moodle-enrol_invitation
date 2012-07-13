@@ -1447,9 +1447,10 @@ class html_writer {
                     if (!($row instanceof html_table_row)) {
                         $newrow = new html_table_row();
 
-                        foreach ($row as $item) {
-                            $cell = new html_table_cell();
-                            $cell->text = $item;
+                        foreach ($row as $cell) {
+                            if (!($cell instanceof html_table_cell)) {
+                                $cell = new html_table_cell($cell);
+                            }
                             $newrow->cells[] = $cell;
                         }
                         $row = $newrow;
@@ -1589,7 +1590,7 @@ class js_writer {
      */
     public static function function_call($function, array $arguments = null, $delay=0) {
         if ($arguments) {
-            $arguments = array_map('json_encode', $arguments);
+            $arguments = array_map('json_encode', convert_to_array($arguments));
             $arguments = implode(', ', $arguments);
         } else {
             $arguments = '';
@@ -1611,7 +1612,7 @@ class js_writer {
      */
     public static function function_call_with_Y($function, array $extraarguments = null) {
         if ($extraarguments) {
-            $extraarguments = array_map('json_encode', $extraarguments);
+            $extraarguments = array_map('json_encode', convert_to_array($extraarguments));
             $arguments = 'Y, ' . implode(', ', $extraarguments);
         } else {
             $arguments = 'Y';
@@ -1630,7 +1631,7 @@ class js_writer {
      */
     public static function object_init($var, $class, array $arguments = null, array $requirements = null, $delay=0) {
         if (is_array($arguments)) {
-            $arguments = array_map('json_encode', $arguments);
+            $arguments = array_map('json_encode', convert_to_array($arguments));
             $arguments = implode(', ', $arguments);
         }
 
