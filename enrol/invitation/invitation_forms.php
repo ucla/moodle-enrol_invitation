@@ -83,9 +83,11 @@ class invitations_form extends moodleform {
         
         // email address field
         $mform->addElement('header', 'header_email', get_string('header_email', 'enrol_invitation'));        
-        $mform->addElement('text', 'email', get_string('emailaddressnumber', 'enrol_invitation'));
+        $mform->addElement('textarea', 'email', get_string('emailaddressnumber', 'enrol_invitation'), 
+                array('maxlength' => 1000));
         $mform->addRule('email', get_string('err_email', 'form'), 'required');
-        $mform->setType('email', PARAM_EMAIL);
+        // Check for correct email formating later
+        //$mform->setType('email', PARAM_EMAIL);
         
         // subject field
         $mform->addElement('text', 'subject', get_string('subject', 'enrol_invitation'));

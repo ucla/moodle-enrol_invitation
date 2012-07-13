@@ -65,26 +65,39 @@ $mform->set_data($invitationmanager);
 $data = $mform->get_data();
 if ($data and confirm_sesskey()) {
     
+    // BEGIN UCLA MOD: CCLE-2955-Invite-multiple-users
     // Check for the invitation of multiple users
     // Parse $data->email for semi-colon, comma, or space seperated values
     $data->email = rtrim(ltrim($data->email));
-    $seperator = ''; // Assuming only one delimiter is used
-    if (strpos($data->email, ';') != false) {
-        $seperator = ';';
-    } else if (strpos($data->email, ',') != false) {
-        $seperator = ',';
-    } else if (strpos($data->email, ' ') != false) {
-        $seperator = ' ';
-    }
-    // Using arbitrary limit of 100 email addresses
-    $dsv_emails = explode($seperator, $data->email, 100);
+    $delimiter = "/[;, ]/";
     
-    foreach ($dsv_emails as $email_value) {
-        $data->email = $email_value;
+    if (preg_match($delimiter, $data->email)) { // Invite multiple users
+        // Using arbitrary limit of 100 email addresses
+        $dsv_emails = preg_split($delimiter, $data->email, NULL, PREG_SPLIT_NO_EMPTY);
+        
+        // Same foreach loop twice: 
+        // First one determines if ALL of the emails are valid
+        // Second one will send out the invites only if ALL invites are valid
+        // We don't want to combine foreach loops because we don't want to send
+        // invites to all of the emails up to the incorrectly formatted email,
+        // which would be potentially confusing to the user
+        foreach ($dsv_emails as $email_value) {
+            $email_value = rtrim(ltrim($email_value));
+            if (!validate_param($email_value, PARAM_EMAIL)){
+                print_error('invalidemail');
+            }
+        }
+        foreach ($dsv_emails as $email_value) {
+            $email_value = rtrim(ltrim($email_value));
+            $data->email = $email_value;
+            $invitationmanager->send_invitations($data);
+        }
+    } else if (validate_param($data->email, PARAM_EMAIL)) { // Invite single user
         $invitationmanager->send_invitations($data);
+    } else {
+        print_error('invalidemail');
     }
-    
-    //$invitationmanager->send_invitations($data);
+    // END UCLA MOD: CCLE-2955
     
     $courseurl = new moodle_url('/course/view.php', array('id' => $courseid));
     $courseret = new single_button($courseurl, get_string('returntocourse',
