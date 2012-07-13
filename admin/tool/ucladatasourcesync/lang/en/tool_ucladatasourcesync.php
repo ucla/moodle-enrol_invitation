@@ -7,6 +7,9 @@
 
 $string['pluginname'] = 'UCLA data source synchronization';
 
+/** General strings **/
+$string['errcannotinsert'] = 'Cannot insert record: {$a}';
+
 /** Strings for bruincast_dbsync **/ 
 // Error messages
 $string['errbcmsglocation'] = "ERROR: No location set for bruincast data.";
