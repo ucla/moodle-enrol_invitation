@@ -69,33 +69,19 @@ if ($data and confirm_sesskey()) {
     // Check for the invitation of multiple users
     // Parse $data->email for semi-colon, comma, or space seperated values
     $data->email = rtrim(ltrim($data->email));
-    $delimiter = "/[;, ]/";
+    $delimiter = "/[;, \r\n]/";
     
     if (preg_match($delimiter, $data->email)) { // Invite multiple users
-        // Using arbitrary limit of 100 email addresses
         $dsv_emails = preg_split($delimiter, $data->email, NULL, PREG_SPLIT_NO_EMPTY);
+        // Already checked for invalid emails in validation() function
         
-        // Same foreach loop twice: 
-        // First one determines if ALL of the emails are valid
-        // Second one will send out the invites only if ALL invites are valid
-        // We don't want to combine foreach loops because we don't want to send
-        // invites to all of the emails up to the incorrectly formatted email,
-        // which would be potentially confusing to the user
-        foreach ($dsv_emails as $email_value) {
-            $email_value = rtrim(ltrim($email_value));
-            if (!validate_param($email_value, PARAM_EMAIL)){
-                print_error('invalidemail');
-            }
-        }
         foreach ($dsv_emails as $email_value) {
             $email_value = rtrim(ltrim($email_value));
             $data->email = $email_value;
             $invitationmanager->send_invitations($data);
         }
-    } else if (validate_param($data->email, PARAM_EMAIL)) { // Invite single user
+    } else { // Invite single user
         $invitationmanager->send_invitations($data);
-    } else {
-        print_error('invalidemail');
     }
     // END UCLA MOD: CCLE-2955
     

@@ -162,6 +162,8 @@ $string['nopermissiontosendinvitation'] = 'No permission to send invitation';
 $string['norole'] = 'Please choose a role.';
 $string['notify_inviter'] = 'Notify me at {$a->email} when invited users accept this invitation';
 $string['header_role'] = 'What role do you want to assign to the invitee?';
+$string['email_clarification'] = 'You may specify multiple email addresses by seperating 
+    them by semi-colons, commas, spaces, or individual lines';
 $string['subject'] = 'Subject';
 $string['status'] = 'Allow site invitations';
 $string['status_desc'] = 'Allow users to invite people to enroll into a course by default.';

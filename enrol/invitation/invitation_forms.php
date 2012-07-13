@@ -85,9 +85,10 @@ class invitations_form extends moodleform {
         $mform->addElement('header', 'header_email', get_string('header_email', 'enrol_invitation'));        
         $mform->addElement('textarea', 'email', get_string('emailaddressnumber', 'enrol_invitation'), 
                 array('maxlength' => 1000));
-        $mform->addRule('email', get_string('err_email', 'form'), 'required');
-        // Check for correct email formating later
-        //$mform->setType('email', PARAM_EMAIL);
+        $mform->addRule('email', null, 'required', null, 'client');
+        $mform->setType('email', PARAM_TEXT);
+        // Check for correct email formating later in validation() function
+        $mform->addElement('static', 'email_clarification', '', get_string('email_clarification', 'enrol_invitation'));
         
         // subject field
         $mform->addElement('text', 'subject', get_string('subject', 'enrol_invitation'));
@@ -166,6 +167,33 @@ class invitations_form extends moodleform {
         
         // now get role names and descriptions
         return $DB->get_records_list('role', 'shortname', $roles, 'sortorder');        
+    }
+    
+    /*
+     * Validate the email field here, rather than in definition, to allow 
+     * multiple email addresses to be specified
+     */
+    function validation($data) {
+        $errors = array();
+        $emails = rtrim(ltrim($data['email']));
+        $delimiter = "/[;, \r\n]/";
+        if (preg_match($delimiter, $emails)) {
+            // Multiple email address specified
+            $dsv_emails = preg_split($delimiter, $emails, NULL, PREG_SPLIT_NO_EMPTY);
+            foreach ($dsv_emails as $email_value) {
+                $email_value = rtrim(ltrim($email_value));
+                if (!filter_var($email_value, FILTER_VALIDATE_EMAIL)){
+                    $errors['email'] = get_string('err_email', 'form');
+                }
+            }
+        } else if (!filter_var($emails, FILTER_VALIDATE_EMAIL)) {
+            // Invalid single email address
+            $errors['email'] = get_string('err_email', 'form');
+        } else {
+            // Something else went wrong
+            $errors['email'] = get_string('err_email', 'form');
+        }
+        return $errors;
     }
 
 }
