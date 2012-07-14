@@ -28,6 +28,15 @@ class invitation_manager {
      * The course id
      */
     var $courseid = null;
+    
+    // For revoking an active invite
+    const INVITE_REVOKE = 1;
+    
+    // For extending the expiration time of an active invite
+    const INVITE_EXTEND = 2;
+    
+    // For resending an expired or revoked invite
+    const INVITE_RESEND = 3;
 
     /**
      *
@@ -286,6 +295,34 @@ class invitation_manager {
         
         return $ret_val;
     }
+    
+    // BEGIN UCLA MOD: CCLE-2960-Viewing-history-of-invites-and-status
+    /**
+     * Updates the invitation denoted by $invite.
+     * The old invite fields will be overwritten by the values in $field.
+     * 
+     * @param int    $courseid   id of the course to which the invite belongs to
+     * @param int    $inviteid   id of invite to be updated
+     * @param array  $fields     array of fields to be updated
+     * 
+     * @return bool              determine if the invite was sucessfully updated
+     */
+    public function update_invite($courseid, $inviteid, $fields) {
+        global $DB;
+        
+        if ( $DB->get_record('enrol_invitation', array('courseid' => $courseid,  'id' => $inviteid)) ) {
+            foreach ($fields as $field_key => $field_value) {
+                $DB->set_field('enrol_invitation', $field_key, $field_value, 
+                        array('courseid' => $courseid,  'id' => $inviteid));
+            }
+        } else {
+            // invite does not exist in the db
+            return false;
+        }
+        
+        return true;
+    }
+    // END UCLA MOD: CCLE-2960
 }
 
 /**

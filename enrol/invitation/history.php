@@ -79,31 +79,36 @@ if (empty($invites)) {
 } else {
     
     // BEGIN UCLA MOD: CCLE-2960-Viewing-history-of-invites-and-status
-    // Update the invitations if the user decided to revoke/resend an invite
+    // Update invitation if the user decided to revoke/extend/resend an invite
     if ($inviteid && $actionid) {
-        /*
-         * $actionid == 1 : Revoke invite
-         * $actionid == 2 : Resend invite
-         */
-        if (!$uinvite = $invites[$inviteid]) {
+        if (!$curr_invite = $invites[$inviteid]) {
             print_error('invalidinviteid');
         }
-        if ($actionid == 1) {
-            // Do something more than just set the expiration date to 0?
-            $uinvite->timeexpiration = time()-1;
+        if ($actionid == invitation_manager::INVITE_REVOKE) {
+            $invitationmanager->update_invite($curr_invite->courseid, 
+                    $curr_invite->id, array('timeexpiration' => time()-1) );
+            
             echo $OUTPUT->box_start('noticebox');
             echo html_writer::tag('h3', get_string('revoke_invite_sucess', 'enrol_invitation'));
             echo $OUTPUT->box_end();
-        } else if ($actionid == 2) {
-            // Is it necessary to distinguish between resending an invite 
-            // that has expired versus one that is still active?
-            $uinvite->timeexpiration = time() + get_config('enrol_invitation', 'enrolperiod');
+            
+        } else if ($actionid == invitation_manager::INVITE_EXTEND) {
+            $invitationmanager->update_invite($curr_invite->courseid, $curr_invite->id, 
+                    array('timeexpiration' => time() + get_config('enrol_invitation', 'enrolperiod')) );
+            // Send out another email
+
             echo $OUTPUT->box_start('noticebox');
-            echo html_writer::tag('h3', get_string('resend_invite_sucess', 'enrol_invitation'));
+            echo html_writer::tag('h3', get_string('extend_invite_sucess', 'enrol_invitation'));
             echo $OUTPUT->box_end();
+            
+        } else if ($actionid == invitation_manager::INVITE_RESEND) {
+            // Send user to invite form with prefilled data
         } else {
             print_error('invalidactionid');
         }
+        
+        // Get the updated invites
+        $invites = $invitationmanager->get_invites();
     }
     // END UCLA MOD: CCLE-2960
     
@@ -184,15 +189,15 @@ if (empty($invites)) {
         // Same if statement as above, seperated for clarity
         if ($status == get_string('status_invite_active', 'enrol_invitation')) {
             // Create link to revoke an invite
-            $url->param('actionid', 1);
+            $url->param('actionid', invitation_manager::INVITE_REVOKE);
             $row[5] .= html_writer::link($url, get_string('action_revoke_invite', 'enrol_invitation'));
             $row[5] .= html_writer::start_tag('br');
-            // Create link to resend an invite
-            $url->param('actionid', 2);
-            $row[5] .= html_writer::link($url, get_string('action_resend_invite', 'enrol_invitation'));
+            // Create link to extend an invite
+            $url->param('actionid', invitation_manager::INVITE_EXTEND);
+            $row[5] .= html_writer::link($url, get_string('action_extend_invite', 'enrol_invitation'));
         } else if ($status == get_string('status_invite_expired', 'enrol_invitation')) {
             // Create link to resend invite
-            $url->param('actionid', 2);
+            $url->param('actionid', invitation_manager::INVITE_RESEND);
             $row[5] .= html_writer::link($url, get_string('action_resend_invite', 'enrol_invitation'));
         }
         // END UCLA MOD: CCLE-2960
