@@ -41,33 +41,12 @@ $potentialmembersselector = new group_non_members_selector('addselect', array('g
  *
  * @author ebollens
  * @version 20110719
- * 
- * Group assignments for tracked course section groups prevented.
- **/
+ */
+
 require_once($CFG->libdir.'/publicprivate/course.class.php');
 $publicprivate_course = new PublicPrivate_Course($course);
 
-require_once($CFG->dirroot . '/blocks/ucla_group_manager/ucla_synced_group.class.php');
-$trackedgroups = ucla_synced_group::get_tracked_groups($course->id);
-$trackedgroupids = array();
-foreach ($trackedgroups as $trackedgroup) {
-    $trackedgroupids[] = (int)$trackedgroup->groupid;
-}
-
-$istrackedgroupmanager = in_array($group->id, $trackedgroupids);
-
-if ($istrackedgroupmanager) {
-    $cannoteditmessage = 'ucla_groupmanagercannotremove';
-    $cannoteditplugin = 'block_ucla_group_manager';
-} else {
-    $cannoteditmessage = 'publicprivatecannotremove';
-    $cannoteditplugin = '';
-}
-
-$istrackedgroup = $publicprivate_course->is_group($group) 
-    || $istrackedgroupmanager;
-
-if (optional_param('add', false, PARAM_BOOL) && confirm_sesskey() && !$istrackedgroup) {
+if (optional_param('add', false, PARAM_BOOL) && confirm_sesskey() && !$publicprivate_course->is_group($group)) {
     $userstoadd = $potentialmembersselector->get_selected_users();
     if (!empty($userstoadd)) {
         foreach ($userstoadd as $user) {
@@ -80,7 +59,7 @@ if (optional_param('add', false, PARAM_BOOL) && confirm_sesskey() && !$istracked
     }
 }
 
-if (optional_param('remove', false, PARAM_BOOL) && confirm_sesskey() && !$istrackedgroup) {
+if (optional_param('remove', false, PARAM_BOOL) && confirm_sesskey() && !$publicprivate_course->is_group($group)) {
     $userstoremove = $groupmembersselector->get_selected_users();
     if (!empty($userstoremove)) {
         foreach ($userstoremove as $user) {
@@ -119,8 +98,8 @@ echo $OUTPUT->heading(get_string('adduserstogroup', 'group').": $groupname", 3);
  * @author ebollens
  * @version 20110719
  */
-if($istrackedgroup) {
-    echo $OUTPUT->notification(get_string($cannoteditmessage, $cannoteditplugin));
+if($publicprivate_course->is_group($group)) {
+    echo $OUTPUT->notification(get_string('publicprivatecannotremove'));
     echo $OUTPUT->continue_button('index.php?id='.$course->id);
     echo $OUTPUT->footer();
     die;

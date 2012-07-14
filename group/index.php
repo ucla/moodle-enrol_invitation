@@ -174,23 +174,10 @@ if (ajaxenabled()) {
      *
      * @author ebollens
      * @version 20110719
-     * Added slight generalization for group-management tool
-     * @version 2012062000
      */
     require_once($CFG->libdir.'/publicprivate/course.class.php');
     $publicprivate_course = new PublicPrivate_Course($course);
-
-    require_once($CFG->dirroot.'/blocks/ucla_group_manager/ucla_synced_group.class.php');
-
-    $trackedgroups = ucla_synced_group::get_tracked_groups($course->id);
-    $trackedgroupids = array();
-    foreach ($trackedgroups as $trackedgroup) {
-        $trackedgroupids[] = (int)$trackedgroup->groupid;
-    }
-
-    $trackedgroupids[] = (int)$publicprivate_course->get_group();
-
-    $onchange = 'M.core_group.membersCombo.refreshMembersTracked('.json_encode($trackedgroupids).')';
+    $onchange = 'M.core_group.membersCombo.refreshMembersPublicPrivate('.$publicprivate_course->get_group().')';
 } else {
     $onchange = '';
 }
