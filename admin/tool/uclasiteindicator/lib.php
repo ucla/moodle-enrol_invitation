@@ -831,4 +831,97 @@ class siteindicator_manager {
         
         return $list;
     }        
+    
+    static function filter_category_tree(&$tree) {
+        
+        foreach($tree as &$t) {
+            if(empty($t->category)) {
+                $t->category = null;
+                continue;
+            }
+            self::dig_tree($t);
+        }
+    }
+    
+    static function dig_tree(&$tree) {
+        // Dig into category tree
+        if(!empty($tree->categories)) {
+            foreach($tree->categories as &$cat) {
+                if(self::dig_tree($cat)) {
+//                    unset($cat);
+                    $cat = null;
+                }
+            }
+        }
+        
+        // Check courses
+        if(!empty($tree->courses)) {
+            foreach($tree->courses as &$c) {
+                
+                $collab = siteindicator_site::load($c->id);
+                
+                if(empty($collab) || $collab->property->type == 'test') {
+//                    unset($c);
+                    $c = null;
+                }
+            }
+            
+                    
+            if(count($tree->courses) == 0) {
+                return true;
+            }
+        }
+
+    }
+    
+    static function searchbox_js_require() {
+        global $PAGE, $CFG;
+        
+        $rest_url = $CFG->wwwroot . '/tool/uclasiteindicator/rest.php';
+        
+        $thisdir = '/' . $CFG->admin . '/tool/uclasiteindicator/';
+        $PAGE->requires->js(new moodle_url($thisdir . '/module.js'));
+        $PAGE->requires->js_init_call('M.mod_mymod.init', array($rest_url, 'foo'));
+
+    }
+    
+    static function print_collab_searchbox() {
+        $input = html_writer::tag('input', '', array('id' => 'ac_input', 'placeholder' => 'Search for a collaboration site'));
+        $out = html_writer::tag('div', $input, array('class' => 'ac-search-div'));
+        return $out;
+    }
+    
+    static function get_query_result_json($q) {
+        global $DB;
+        
+        // Get collab sites (exclude test sites)
+        $query = "
+            SELECT c.id, c.fullname, c.shortname
+            FROM {course} c
+            JOIN {ucla_siteindicator} si ON c.id = si.courseid
+            WHERE c.fullname LIKE '%{$q}%' 
+            AND si.type <> 'test'";
+        
+        $recs = $DB->get_records_sql($query);
+        
+        // Format results
+        $results = array();
+        
+        foreach($recs as $r) {
+            $obj = new stdClass();
+            $obj->text = $r->shortname . ': ' . $r->fullname;
+            $obj->id = $r->id;
+            $results[] = $obj;
+        }
+        
+        // Format output
+        $out = new stdClass();
+        
+        $out->query = $q;
+        $out->results = $results;
+        $out->numresults = count($results);
+        
+        // Return as JSON text
+        return json_encode($out);
+    }
 }

@@ -49,3 +49,24 @@
 .indicator-reject {
     color: red;
 }
+
+#ac_input {
+    width: 720px;
+}
+.ac-search-div {
+    width: 100%;
+    padding: 0 20px;
+    padding-bottom: 10px;
+}
+.yui3-aclist-input {
+    font-size: 16px;
+    color: #555555;
+    padding: 6px;
+    border: 1px solid #DDD;
+}
+
+.yui3-aclist-item {
+    border-bottom: 1px solid #EEEEEE;
+    font-size: 14px;
+    color: #111;
+}

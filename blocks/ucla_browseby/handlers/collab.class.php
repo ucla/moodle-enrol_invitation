@@ -17,16 +17,27 @@ class collab_handler extends browseby_handler {
         $collablibfile = $CFG->dirroot . '/' . $CFG->admin 
             .'/tool/siteindicator/siteindicatorlib.php';
 
+        require_once($CFG->dirroot . '/' . $CFG->admin . 
+                '/tool/uclasiteindicator/lib.php');
+        
+        // Get YUI searchbox script
+        siteindicator_manager::searchbox_js_require();
+
         $collab_cat = false;
 
         $t = '';
         $s = '';
+        
+        // Print the search box
+        $s .= siteindicator_manager::print_collab_searchbox();
 
         if (file_exists($collablibfile)) {
             // TODO
+            
             return array(false, false);
         } else {
             $collab_cat = $this->get_collaboration_category();
+            siteindicator_manager::filter_category_tree($collab_cat->categories);
             $subcats = array();
 
             // Check if the category specified is a sub-category
@@ -94,29 +105,32 @@ class collab_handler extends browseby_handler {
                 debugging('No roles to use in printing!');
             } else {
                 foreach ($collab_cat->courses as $course) {
-                    if(is_collab_site($course)) {
-                        $context = $this->get_context_instance(CONTEXT_COURSE,
-                            $course->id);
-
-                        $viewroles = $this->get_role_users($roleids, $context,
-                            false, 'u.id, u.firstname, u.lastname, r.shortname');
-
-                        $courseroles = array();
-                        foreach ($viewroles as $viewrole) {
-                            $rsh = $viewrole->shortname;
-                            if (isset($iroles[$rsh])) {
-                                if (!isset($courseroles[$rsh])) {
-                                    $courseroles[$rsh] = array();
-                                }
-
-                                $courseroles[$rsh][] = $viewrole;
-                            }
-                        }
-
-                        $course->roles = $courseroles;
-
-                        $courselist[] = $course;
+                    // Skip NULL courses
+                    if(empty($course)) {
+                        continue;
                     }
+                    
+                    $context = $this->get_context_instance(CONTEXT_COURSE,
+                        $course->id);
+
+                    $viewroles = $this->get_role_users($roleids, $context,
+                        false, 'u.id, u.firstname, u.lastname, r.shortname');
+
+                    $courseroles = array();
+                    foreach ($viewroles as $viewrole) {
+                        $rsh = $viewrole->shortname;
+                        if (isset($iroles[$rsh])) {
+                            if (!isset($courseroles[$rsh])) {
+                                $courseroles[$rsh] = array();
+                            }
+
+                            $courseroles[$rsh][] = $viewrole;
+                        }
+                    }
+
+                    $course->roles = $courseroles;
+
+                    $courselist[] = $course;
                 }
             }
         }
@@ -137,7 +151,7 @@ class collab_handler extends browseby_handler {
         $list = '';
         if (!empty($courselist)) {
             $title = get_string('collab_coursesincat', 
-                'block_ucla_browseby');
+                'block_ucla_browseby') . ': ' . $collab_cat->name;
             $data = array();
 
             foreach ($courselist as $course) {
@@ -147,6 +161,7 @@ class collab_handler extends browseby_handler {
                     $course->fullname
                 );
 
+                $nameslist = array();
                 foreach ($roleids as $shortname => $roleid) {
                     $nameimploder = array();
 
@@ -155,14 +170,14 @@ class collab_handler extends browseby_handler {
                             $nameimploder[] = fullname($role);
                         }
                     }
-
+                    
                     if (!empty($nameimploder)) {
-                        $datum[] = implode(' / ', $nameimploder);
-                    } else {
-                        $datum[] = get_string('nousersinrole', 
-                            'block_ucla_browseby');
+                        $nameslist[] = implode(' / ', $nameimploder);
                     }
                 }
+                
+                $datum[] = empty($nameslist) ? get_string('nousersinrole', 
+                            'block_ucla_browseby') : implode(' ', $nameslist);
 
                 $data[] = $datum;
             }
@@ -170,7 +185,7 @@ class collab_handler extends browseby_handler {
             $table = new html_table();
             $table->data = $data;
 
-            $headers = array('sitename', 'projectlead', 'coursecreators');
+            $headers = array('sitename', 'projectlead');
             $dispheaders = array();
 
             foreach ($headers as $header) {
