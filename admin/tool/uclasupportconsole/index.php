@@ -880,39 +880,46 @@ $title = "roleassignments";
 $sectionhtml = '';
 if ($displayforms) { 
     $sectionhtml .= supportconsole_simple_form($title);
-} else if ($consolecommand == "$title") { 
-    $results = $DB->get_records_sql("
-        SELECT 
-            a.id,
-            b.name,
-            b.shortname,
-            component,
-            COUNT(*) AS cnt 
-        FROM {role_assignments} a 
-        LEFT JOIN {role} b ON (a.roleid = b.id) 
-        GROUP BY component, roleid
-    ");
+} else if ($consolecommand == "$title") {     
+
+    $sql = "SELECT  ra.id,
+                    r.name,                    
+                    c.contextlevel,
+                    ra.component,
+                    si.type,
+                    COUNT(*) AS count
+            FROM    {role_assignments} ra 
+            JOIN    {context} c ON c.id = ra.contextid
+            JOIN    {role} r ON (ra.roleid = r.id) 
+            LEFT JOIN   {ucla_siteindicator} si ON 
+                        (c.instanceid=si.courseid AND
+                         c.contextlevel=50)
+            GROUP BY contextlevel, ra.component, r.id
+            ORDER BY c.contextlevel ASC, r.sortorder ASC";
+    $results = $DB->get_records_sql($sql);
 
     $admin_result = get_config(null, 'siteadmins');
     if (empty($admin_result) && empty($result)) {
        $sectionhtml .= html_writer::error_text("There are no enrollments");
-    }
+    } else {
+        // get siteadmins, they are a different breed
+        $admin_cnt = count(explode(',', $admin_result));
+        $adminrow = new object();
+        $adminrow->name = 'Site administrators';
+        $adminrow->contextlevel = CONTEXT_SYSTEM;
+        $adminrow->component = 'admin';
+        $adminrow->count = $admin_cnt;
+        $results[] = $adminrow;
 
-    foreach ($results as $key => $result) {
-        if ($result->component == '') {
-            $result->component = 'manual';
+        foreach ($results as $key => $result) {
+            if ($result->component == '') {
+                $result->component = 'manual';
+            }
+            $result->contextlevel = get_contextlevel_name($result->contextlevel);
         }
-    }
 
-    $admin_cnt = count(explode(',', $admin_result));
-    $adminrow = new object();
-    $adminrow->name = 'Administrators';
-    $adminrow->shortname = 'admin';
-    $adminrow->component = 'admin';
-    $adminrow->cnt = $admin_cnt;
-    $results[] = $adminrow;
-
-    $sectionhtml .= supportconsole_render_section_shortcut($title, $results);
+        $sectionhtml .= supportconsole_render_section_shortcut($title, $results);
+        }
 }
 
 $consoles->push_console_html('users', $title, $sectionhtml);
