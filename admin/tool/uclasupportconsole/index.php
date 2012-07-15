@@ -886,10 +886,14 @@ if ($displayforms) {
                     r.name,                    
                     c.contextlevel,
                     ra.component,
-                    COUNT(*) AS count 
+                    si.type,
+                    COUNT(*) AS count
             FROM    {role_assignments} ra 
             JOIN    {context} c ON c.id = ra.contextid
             JOIN    {role} r ON (ra.roleid = r.id) 
+            LEFT JOIN   {ucla_siteindicator} si ON 
+                        (c.instanceid=si.courseid AND
+                         c.contextlevel=50)
             GROUP BY contextlevel, ra.component, r.id
             ORDER BY c.contextlevel ASC, r.sortorder ASC";
     $results = $DB->get_records_sql($sql);
