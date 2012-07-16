@@ -189,10 +189,8 @@ class invitations_form extends moodleform {
         } else if (!filter_var($emails, FILTER_VALIDATE_EMAIL)) {
             // Invalid single email address
             $errors['email'] = get_string('err_email', 'form');
-        } else {
-            // Something else went wrong
-            $errors['email'] = get_string('err_email', 'form');
         }
+        
         return $errors;
     }
 
