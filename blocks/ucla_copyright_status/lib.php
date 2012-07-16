@@ -163,7 +163,9 @@ function display_copyright_status_contents($courseid, $filter){
 	echo html_writer::start_tag('ul');
 	foreach($license_options as $k=>$v){
 		if ($k != 'all'){
-			echo html_writer::tag('li', $v.':'.html_writer::start_tag('span', array('class'=>'stat_num')).'('.$stat_array[$k].'/'.$stat_array['total'].', '.number_format($stat_array[$k]*100/$stat_array['total'],0,'','').'%)'.html_writer::end_tag('span'));
+			$stat_count = isset($stat_array[$k])?$stat_array[$k]:0;
+			$stat_count = isset($stat_array[$k])?$stat_array[$k]:0;
+			echo html_writer::tag('li', $v.':'.html_writer::start_tag('span', array('class'=>'stat_num')).'('.$stat_count.'/'.$stat_array['total'].', '.number_format($stat_count*100/$stat_array['total'],0,'','').'%)'.html_writer::end_tag('span'));
 		}
 	}
 	echo html_writer::end_tag('ul');
