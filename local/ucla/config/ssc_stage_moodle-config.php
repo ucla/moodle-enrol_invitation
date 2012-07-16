@@ -271,7 +271,8 @@ $CFG->alternateloginurl = $CFG->wwwroot . '/login/ucla_login.php?shibboleth';
 // Oddly, all the auth_shibboleth config lookups are of auth/shibboleth
 $CFG->forced_plugin_settings['auth/shibboleth']['user_attribute'] = 'HTTP_SHIB_EDUPERSON_PRINCIPALNAME';
 $CFG->forced_plugin_settings['auth/shibboleth']['convert_data'] = $_dirroot_ . '/shib_transform.php';
-$CFG->forced_plugin_settings['auth/shibboleth']['logout_handler'] = $CFG->wwwroot . '/shibboleth.sso/Logout';
+// This is written in config_private.php since this is an Alias'ed instance
+//$CFG->forced_plugin_settings['auth/shibboleth']['logout_handler'] = $CFG->wwwroot . '/shibboleth.sso/Logout';
 $CFG->forced_plugin_settings['auth/shibboleth']['logout_return_url'] = 'https://shb.ais.ucla.edu/shibboleth-idp/Logout';
 $CFG->forced_plugin_settings['auth/shibboleth']['login_name'] = 'Shibboleth Login';
 
