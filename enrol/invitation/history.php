@@ -102,6 +102,10 @@ if (empty($invites)) {
             
         } else if ($actionid == invitation_manager::INVITE_RESEND) {
             // Send user to invite form with prefilled data
+            $redirect = new moodle_url('/enrol/invitation/invitation.php', 
+                    array('courseid' => $curr_invite->courseid, 'inviteid' => $curr_invite->id));
+            redirect($redirect);
+            
         } else {
             print_error('invalidactionid');
         }

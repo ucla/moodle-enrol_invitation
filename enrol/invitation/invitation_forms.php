@@ -48,6 +48,7 @@ class invitations_form extends moodleform {
 
         // Add some hidden fields
         $course = $this->_customdata['course']; 
+        $prefilled = $this->_customdata['prefilled'];
         $mform->addElement('hidden', 'courseid');
         $mform->setType('courseid', PARAM_INT);
         $mform->setDefault('courseid', $course->id);       
@@ -109,6 +110,16 @@ class invitations_form extends moodleform {
                 get_string('notify_inviter', 'enrol_invitation', $temp));
         $mform->setDefault('show_from_email', 1);
         $mform->setDefault('notify_inviter', 0);        
+        
+        // Set defaults if the user is resending an invite that expired
+        if ( !empty($prefilled) ) {
+            // TODO: set the default value for the role assignment radio buttons
+            $mform->setDefault('email', $prefilled['email']);
+            $mform->setDefault('subject', $prefilled['subject']);
+            $mform->setDefault('message', $prefilled['message']);
+            $mform->setDefault('show_from_email', $prefilled['show_from_email']);
+            $mform->setDefault('notify_inviter', $prefilled['notify_inviter']);
+        }
         
         $this->add_action_buttons(false, get_string('inviteusers', 'enrol_invitation'));
     }
