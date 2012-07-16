@@ -1099,12 +1099,10 @@ function prep_request_entry($requestinfo) {
             } 
             // If the course is built, uncheck checkbox.
             else if (!$editable && $actionval == UCLA_COURSE_BUILT) {
-                print_object('Built!');
                 $actval = false;
             }
             // If the course has an error, uncheck checkbox.
             else if (!$editable && $actionval == UCLA_COURSE_FAILED) {
-                print_object('Failed.');
                 $actval = false;
             }
 
