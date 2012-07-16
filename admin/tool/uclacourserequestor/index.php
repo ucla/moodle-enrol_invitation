@@ -470,7 +470,7 @@ if (!empty($requeststable->data)) {
         $globaloptionstable->data = array($globaloptions);
         echo html_writer::table($globaloptionstable);
     }
-
+    
     echo html_writer::tag('input', '', array(
             'type' => 'hidden',
             'value' => $groupid,
