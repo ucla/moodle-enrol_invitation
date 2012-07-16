@@ -273,7 +273,6 @@ $CFG->forced_plugin_settings['enrol_database']['dbhost'] = $CFG->registrar_dbhos
 $CFG->forced_plugin_settings['enrol_database']['dbuser'] = $CFG->registrar_dbuser;
 $CFG->forced_plugin_settings['enrol_database']['dbpass'] = $CFG->registrar_dbpass;
 $CFG->forced_plugin_settings['enrol_database']['dbname'] = $CFG->registrar_dbname;
-$CFG->forced_plugin_settings['enrol_database']['dbencoding'] = $CFG->registrar_dbencoding;
 $CFG->forced_plugin_settings['enrol_database']['remoteenroltable'] = 'enroll2';
 $CFG->forced_plugin_settings['enrol_database']['remotecoursefield'] = 'termsrs';
 $CFG->forced_plugin_settings['enrol_database']['remoteuserfield'] = 'uid';
