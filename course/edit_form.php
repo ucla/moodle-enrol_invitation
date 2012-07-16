@@ -228,7 +228,7 @@ class course_edit_form extends moodleform {
         } else {
             $mform->addElement('static', 'format_readonly', get_string('format'),
                     get_string('pluginname', "format_$courseconfig->format"));
-            $mform->addHelpButton('format_readonly', 'format');
+            //$mform->addHelpButton('format_readonly', 'format');
         }
         // END UCLA MOD: CCLE-3278
         
@@ -276,7 +276,7 @@ class course_edit_form extends moodleform {
         } else {
             $mform->addElement('static', 'maxbytes_readonly', 
                     get_string('maximumupload'), $choices[$courseconfig->maxbytes]);
-            $mform->addHelpButton('maxbytes_readonly', 'maximumupload');
+            //$mform->addHelpButton('maxbytes_readonly', 'maximumupload');
         }
         // END UCLA MOD: CCLE-3278
 
