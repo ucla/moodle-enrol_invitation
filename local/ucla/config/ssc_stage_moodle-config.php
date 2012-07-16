@@ -252,6 +252,11 @@ $CFG->extramemorylimit = '1024M';
 // Load a custom private data
 // $CFG->dirroot is overwritten later
 $_dirroot_ = dirname(realpath(__FILE__)) . '/../../..';
+// If you want to have un-revisioned configuration data, place in this file.
+$_private_ = $_dirroot_ . '/config_private.php';
+if (file_exists($_private_)) {
+    require_once($_private_);
+}
 
 /** 
  *  Automatic Shibboleth configurations.
@@ -292,12 +297,6 @@ $CFG->forced_plugin_settings['auth/shibboleth']['field_lock_institution'] = 'loc
 /**
  *  End shibboleth configurations.
  **/
-
-// If you want to have un-revisioned configuration data, place in this file.
-$_private_ = $_dirroot_ . '/config_private.php';
-if (file_exists($_private_)) {
-    require_once($_private_);
-}
 
 // set external database connection settings after config_private.php has
 // been read for the Registrar connection details
