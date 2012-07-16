@@ -288,7 +288,7 @@ $CFG->forced_plugin_settings['enrol_database']['fblocaluserfield'] = 'username';
 $CFG->forced_plugin_settings['enrol_database']['fbremoteuserfield'] = 'username';
 
 //// CCLE-2802 - Frontpage banner layout include
-$CFG->customfrontpageinclude = $_dirroot_ . '/theme/uclashared/layout/frontpage.php';
+//$CFG->customfrontpageinclude = $_dirroot_ . '/theme/uclashared/layout/frontpage.php';
 
 // CCLE-2364 - SUPPORT CONSOLE (put after $_dirroot_, because needs $CFG->dataroot to be set)
 $log_date = date('Y-m-d') . '-00_00';
