@@ -1,5 +1,5 @@
 <?php
-
+error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 require_once(dirname(__FILE__).'/../../config.php');
 global $CFG, $DB;
 
@@ -30,14 +30,9 @@ set_editing_mode_button();
 
 echo $OUTPUT->header();
 
-// Are we allowed to display this page?
-//if (is_enrolled($context)) {
-	$filter = optional_param('filter_copyright', $CFG->sitedefaultlicense, PARAM_TEXT); 
-    display_copyright_status_contents($courseid, isset($filter)?$filter:'all');
-//}
-//else {
-//    echo get_string('permission_not_allow', 'block_ucla_copyright_status');
-//}        
+$filter = optional_param('filter_copyright', $CFG->sitedefaultlicense, PARAM_TEXT); 
+display_copyright_status_contents($courseid, isset($filter)?$filter:'all');
+
 
 echo $OUTPUT->footer();
 

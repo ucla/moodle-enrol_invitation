@@ -23,7 +23,7 @@ $string['author'] = 'Author';
 $string['permission_not_allow'] = 'You do not have access to this page';
 $string['copyright_status'] = 'View material by copyright status';
 $string['save_button'] = 'Save changes'; 
-$string['changes_saved'] = " Saved !!!";
+$string['changes_saved'] = "Changes saved";
 
 
 

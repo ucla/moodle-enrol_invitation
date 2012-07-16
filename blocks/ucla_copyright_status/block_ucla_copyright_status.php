@@ -45,14 +45,6 @@ class block_ucla_copyright_status extends block_base {
 
         return get_action_link($this->course);
     }
-    
-    public function get_navigation_nodes($course) {
-		global $DB;
- 
-        $courseid = $course->id; // course id from the hook function
-
-		$nodes[] = navigation_node::create('Copyright Status', self::get_action_link($courseid)); 
-        return $nodes;
-    }
+   
 }
 

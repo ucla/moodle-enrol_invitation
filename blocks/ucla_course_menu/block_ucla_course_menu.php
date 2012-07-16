@@ -134,6 +134,16 @@ class block_ucla_course_menu extends block_navigation {
                     get_string('pluginname', 'block_ucla_rearrange'));            
             $this->content->text .= html_writer::tag('div', $rearrange, 
                     array('class' => 'edit_control_links'));
+
+			 // copyright link
+            $copyright = html_writer::link(
+                    new moodle_url('/blocks/ucla_copyright_status/view.php', 
+                        array('courseid' => $this->page->course->id, 
+                              'topic' => $ds)), 
+                    get_string('pluginname', 'block_ucla_copyright_status'));            
+            $this->content->text .= html_writer::tag('div', $copyright, 
+                    array('class' => 'edit_control_links'));
+
         }
                        
         // get section nodes
