@@ -93,16 +93,16 @@ class invitation_manager {
                 //create unique token for invitation
                 do {
                     $token = uniqid();
-                    $existingtoken = $DB->get_record('enrol_invitation', array('token' => $token));                        
+                    $existingtoken = $DB->get_record('enrol_invitation', array('token' => $token));
                 } while (!empty($existingtoken));
 
                 //save token information in config (token value, course id, TODO: role id)
                 $invitation = new stdClass();
                 $invitation->token = $token;
                 $invitation->email = $data->email;
-                $invitation->roleid = $data->role_group['roleid'];                
-                $invitation->courseid = $data->courseid;    
-                $invitation->tokenused = false;   
+                $invitation->roleid = $data->role_group['roleid'];
+                $invitation->courseid = $data->courseid;
+                $invitation->tokenused = false;
                 
                 // set time
                 $timesent = time();
@@ -110,11 +110,11 @@ class invitation_manager {
                 $invitation->timeexpiration = $timesent + 
                         get_config('enrol_invitation', 'enrolperiod');
 
-                $invitation->inviterid = $USER->id;               
+                $invitation->inviterid = $USER->id;
                 $invitation->notify_inviter = empty($data->notify_inviter) ? 0 : 1;
-                $invitation->show_from_email = empty($data->show_from_email) ? 0 : 1;                           
+                $invitation->show_from_email = empty($data->show_from_email) ? 0 : 1;
                 
-                $invitation->subject = $data->subject;                               
+                $invitation->subject = $data->subject;
                 
                 // construct message: custom (if any) + template
                 $message = '';
@@ -132,13 +132,13 @@ class invitation_manager {
                                 array('token' => $token));
                 $message_params->inviteurl = $inviteurl->out(false);
                 $message_params->supportemail = $CFG->supportemail;
-                $message .= get_string('emailmsgtxt', 'enrol_invitation', $message_params);            
+                $message .= get_string('emailmsgtxt', 'enrol_invitation', $message_params);
 
                 $DB->insert_record('enrol_invitation', $invitation);
 
                 // change FROM to be $CFG->supportemail if user has show_from_email off
                 $fromuser = $USER;
-                if (empty($invitation->show_from_email)) {                
+                if (empty($invitation->show_from_email)) {
                     $fromuser = new stdClass();
                     $fromuser->email = $CFG->supportemail;
                     $fromuser->firstname = '';
@@ -152,14 +152,90 @@ class invitation_manager {
                 $contactuser->firstname = '';
                 $contactuser->lastname = '';
                 $contactuser->maildisplay = true;
-                email_to_user($contactuser, $fromuser, $invitation->subject, $message);                
+                email_to_user($contactuser, $fromuser, $invitation->subject, $message);
             }
         } else {
             throw new moodle_exception('cannotsendinvitation', 'enrol_invitation',
                     new moodle_url('/course/view.php', array('id' => $data['courseid'])));
         }
     }
-
+    
+    // BEGIN UCLA MOD: CCLE-2960-Viewing-history-of-invites-and-status
+    /**
+     * Resend an invite that was already sent by send_invitations()
+     * 
+     * @global $USER
+     * @global $DB
+     * @param $invite       Invite to be resent
+     */
+    public function resend_invite($invite) {
+        global $DB, $CFG, $SITE, $USER;
+        
+        $course = $DB->get_record('course', array('id' => $invite->courseid));
+        
+        $invitation = new stdClass();
+        $invitation->token = $invite->token;
+        $invitation->email = $invite->email;
+        $invitation->roleid = $invite->roleid;
+        $invitation->courseid = $invite->courseid;
+        $invitation->tokenused = false;
+        
+        // set time
+        $timesent = time();
+        $invitation->timesent = $timesent;
+        $invitation->timeexpiration = $timesent + 
+                get_config('enrol_invitation', 'enrolperiod');
+        
+        // update $invite to have the proper timesent/timeexpiration
+        $invitationmanager = new invitation_manager($invite->courseid);
+        $invitationmanager->update_invite($invite->courseid, $invite->id, 
+                array('timeexpiration' => $timesent + get_config('enrol_invitation', 'enrolperiod')) );
+        
+        $invitation->inviterid = $USER->id;
+        $invitation->notify_inviter = empty($invite->notify_inviter) ? 0 : 1;
+        $invitation->show_from_email = empty($invite->show_from_email) ? 0 : 1;
+        
+        // Prepend subject heading with a 'Reminder' string
+        $invitation->subject = get_string('reminder', 'enrol_invitation') . $invite->subject;
+        
+        // construct message: custom (if any) + template
+        $message = '';
+        if (!empty($invite->message)) {
+            $message .= get_string('instructormsg', 'enrol_invitation', 
+                    $invite->message);
+            $invitation->message = $invite->message;
+        }
+        
+        $message_params = new stdClass();
+        $message_params->fullname = 
+                sprintf('%s: %s', $course->shortname, $course->fullname);
+        $message_params->expiration = date('M j, Y g:ia', $invitation->timeexpiration);
+        $inviteurl =  new moodle_url('/enrol/invitation/enrol.php', 
+                array('token' => $invite->token));
+        $message_params->inviteurl = $inviteurl->out(false);
+        $message_params->supportemail = $CFG->supportemail;
+        $message .= get_string('emailmsgtxt', 'enrol_invitation', $message_params);
+        
+        // change FROM to be $CFG->supportemail if user has show_from_email off
+        $fromuser = $USER;
+        if (empty($invitation->show_from_email)) {
+            $fromuser = new stdClass();
+            $fromuser->email = $CFG->supportemail;
+            $fromuser->firstname = '';
+            $fromuser->lastname = $SITE->fullname;
+            $fromuser->maildisplay = true;
+        }
+        
+        //send invitation to the user
+        $contactuser = new stdClass();
+        $contactuser->email = $invitation->email;
+        $contactuser->firstname = '';
+        $contactuser->lastname = '';
+        $contactuser->maildisplay = true;
+        email_to_user($contactuser, $fromuser, $invitation->subject, $message);
+    }
+    // END UCLA MOD: CCLE-2960
+    
     /**
      * Returns status of given invite. 
      * 

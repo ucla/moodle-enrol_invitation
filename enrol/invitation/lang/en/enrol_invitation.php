@@ -30,6 +30,8 @@ $string['pluginname'] = 'Site invitation';
 $string['pluginname_desc'] = 'The site invitation module allows to send invitation by email. These invitations can be used only once. Users clicking on the email link are automatically enrolled.';
 
 // email message strings
+$string['reminder'] = 'Reminder: ';
+
 $string['emailmsghtml'] = 
     'INSTRUCTIONS:'.
     '<hr />'.

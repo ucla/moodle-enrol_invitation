@@ -92,10 +92,9 @@ if (empty($invites)) {
             echo html_writer::tag('h3', get_string('revoke_invite_sucess', 'enrol_invitation'));
             echo $OUTPUT->box_end();
             
-        } else if ($actionid == invitation_manager::INVITE_EXTEND) {
-            $invitationmanager->update_invite($curr_invite->courseid, $curr_invite->id, 
-                    array('timeexpiration' => time() + get_config('enrol_invitation', 'enrolperiod')) );
-            // Send out another email
+        } else if ($actionid == invitation_manager::INVITE_EXTEND) {            
+            // Resend invite and resend the email
+            $invitationmanager->resend_invite($curr_invite);
 
             echo $OUTPUT->box_start('noticebox');
             echo html_writer::tag('h3', get_string('extend_invite_sucess', 'enrol_invitation'));
