@@ -1009,7 +1009,7 @@ class block_manager {
         $controls = array();
         $actionurl = $this->page->url->out(false, array('sesskey'=> sesskey()));
 
-        if ($this->page->user_can_edit_blocks()) {
+        if ($this->page->user_can_edit_blocks() && $block->user_can_edit()) {
             // Move icon.
             $controls[] = array('url' => $actionurl . '&bui_moveid=' . $block->instance->id,
                     'icon' => 't/move', 'caption' => get_string('move'));

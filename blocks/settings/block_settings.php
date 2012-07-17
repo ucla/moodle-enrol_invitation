@@ -51,6 +51,10 @@ class block_settings extends block_base {
         $this->blockname = get_class($this);
         $this->title = get_string('pluginname', $this->blockname);
     }
+    
+    function user_can_edit() {
+        return false;
+    }
 
     /**
      * All multiple instances of this block
