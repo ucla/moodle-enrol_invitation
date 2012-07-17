@@ -308,8 +308,6 @@ abstract class easy_upload_form extends moodleform {
         }
         // END code from /course/moodleform_mod.php to display availability restrictions
         
-        print_object($_POST);
-        
         $this->add_action_buttons();
     }
 
