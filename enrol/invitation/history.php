@@ -85,8 +85,8 @@ if (empty($invites)) {
             print_error('invalidinviteid');
         }
         if ($actionid == invitation_manager::INVITE_REVOKE) {
-            $invitationmanager->update_invite($curr_invite->courseid, 
-                    $curr_invite->id, array('timeexpiration' => time()-1) );
+            $DB->set_field('enrol_invitation', 'timeexpiration', time()-1, 
+                    array('courseid' => $curr_invite->courseid, 'id' => $curr_invite->id) );
             
             echo $OUTPUT->box_start('noticebox');
             echo html_writer::tag('h3', get_string('revoke_invite_sucess', 'enrol_invitation'));
@@ -94,7 +94,7 @@ if (empty($invites)) {
             
         } else if ($actionid == invitation_manager::INVITE_EXTEND) {            
             // Resend invite and resend the email
-            $invitationmanager->resend_invite($curr_invite);
+            $invitationmanager->send_invitations($curr_invite, true);
 
             echo $OUTPUT->box_start('noticebox');
             echo html_writer::tag('h3', get_string('extend_invite_sucess', 'enrol_invitation'));
