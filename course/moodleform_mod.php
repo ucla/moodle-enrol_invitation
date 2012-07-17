@@ -528,6 +528,15 @@ abstract class moodleform_mod extends moodleform {
                                    get_string('addgrades', 'condition'), true);
             $mform->addHelpButton('conditiongradegroup[0]', 'gradecondition', 'condition');
 
+            // BEGIN UCLA MOD: CCLE-3237 - hide certain availability restrictions under "Advanced"
+            // handle case in which user choose to add more fields
+            $total = $mform->getElement('conditiongraderepeats')->getValue();
+            for ($i=0; $i<$total; $i++) {
+                $mform->setAdvanced('conditiongradegroup[' . $i . ']');                    
+            }                
+            $mform->setAdvanced('conditiongradeadds');                                    
+            // END UCLA MOD: CCLE-3237                 
+            
             // Conditions based on completion
             $completion = new completion_info($COURSE);
             if ($completion->is_enabled()) {
@@ -561,6 +570,15 @@ abstract class moodleform_mod extends moodleform {
                     'conditioncompletionrepeats','conditioncompletionadds',2,
                     get_string('addcompletions','condition'),true);
                 $mform->addHelpButton('conditioncompletiongroup[0]', 'completioncondition', 'condition');
+                
+                // BEGIN UCLA MOD: CCLE-3237 - hide certain availability restrictions under "Advanced"
+                // handle case in which user choose to add more fields
+                $total = $mform->getElement('conditioncompletionrepeats')->getValue();
+                for ($i=0; $i<$total; $i++) {
+                    $mform->setAdvanced('conditioncompletiongroup[' . $i . ']');                    
+                }                
+                $mform->setAdvanced('conditioncompletionadds');                                    
+                // END UCLA MOD: CCLE-3237                   
             }
 
             // Do we display availability info to students?
@@ -568,6 +586,10 @@ abstract class moodleform_mod extends moodleform {
                     array(CONDITION_STUDENTVIEW_SHOW=>get_string('showavailability_show', 'condition'),
                     CONDITION_STUDENTVIEW_HIDE=>get_string('showavailability_hide', 'condition')));
             $mform->setDefault('showavailability', CONDITION_STUDENTVIEW_SHOW);
+            
+            // BEGIN UCLA MOD: CCLE-3237 - hide certain availability restrictions under "Advanced"
+            $mform->setAdvanced('showavailability');                                            
+            // END UCLA MOD: CCLE-3237                   
         }
 
         // Conditional activities: completion tracking section

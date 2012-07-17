@@ -181,7 +181,8 @@ abstract class easy_upload_form extends moodleform {
             );
         }
 
-        // Stolen from /course/moodleform_mod.php:429
+        // Stolen from /course/moodleform_mod.php:471 (Moodle 2.2.4)
+        // replaced references of $COURSE with $this->course
         if (!empty($CFG->enableavailability) && $this->enable_availability) {
             // Conditional availability
 
@@ -242,11 +243,20 @@ abstract class easy_upload_form extends moodleform {
                                    get_string('addgrades', 'condition'), true);
             $mform->addHelpButton('conditiongradegroup[0]', 'gradecondition', 'condition');
 
+            // BEGIN UCLA MOD: CCLE-3237 - hide certain availability restrictions under "Advanced"
+            // handle case in which user choose to add more fields
+            $total = $mform->getElement('conditiongraderepeats')->getValue();
+            for ($i=0; $i<$total; $i++) {
+                $mform->setAdvanced('conditiongradegroup[' . $i . ']');                    
+            }                
+            $mform->setAdvanced('conditiongradeadds');                                    
+            // END UCLA MOD: CCLE-3237                  
+            
             // Conditions based on completion
             $completion = new completion_info($this->course);
             if ($completion->is_enabled()) {
                 $completionoptions = array();
-                $modinfo = get_fast_modinfo($COURSE);
+                $modinfo = get_fast_modinfo($this->course);
                 foreach($modinfo->cms as $id=>$cm) {
                     // Add each course-module if it:
                     // (a) has completion turned on
@@ -275,6 +285,15 @@ abstract class easy_upload_form extends moodleform {
                     'conditioncompletionrepeats','conditioncompletionadds',2,
                     get_string('addcompletions','condition'),true);
                 $mform->addHelpButton('conditioncompletiongroup[0]', 'completioncondition', 'condition');
+                
+                // BEGIN UCLA MOD: CCLE-3237 - hide certain availability restrictions under "Advanced"
+                // handle case in which user choose to add more fields
+                $total = $mform->getElement('conditioncompletionrepeats')->getValue();
+                for ($i=0; $i<$total; $i++) {
+                    $mform->setAdvanced('conditioncompletiongroup[' . $i . ']');                    
+                }                
+                $mform->setAdvanced('conditioncompletionadds');                                    
+                // END UCLA MOD: CCLE-3237                         
             }
 
             // Do we display availability info to students?
@@ -282,8 +301,15 @@ abstract class easy_upload_form extends moodleform {
                     array(CONDITION_STUDENTVIEW_SHOW=>get_string('showavailability_show', 'condition'),
                     CONDITION_STUDENTVIEW_HIDE=>get_string('showavailability_hide', 'condition')));
             $mform->setDefault('showavailability', CONDITION_STUDENTVIEW_SHOW);
+            
+            // BEGIN UCLA MOD: CCLE-3237 - hide certain availability restrictions under "Advanced"
+            $mform->setAdvanced('showavailability');                                            
+            // END UCLA MOD: CCLE-3237       
         }
-
+        // END code from /course/moodleform_mod.php to display availability restrictions
+        
+        print_object($_POST);
+        
         $this->add_action_buttons();
     }
 
