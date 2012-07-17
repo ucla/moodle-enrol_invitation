@@ -159,27 +159,27 @@ function display_copyright_status_contents($courseid, $filter){
 	// display statistics 
 	$all_copyrights = get_files_copyright_status_by_course($courseid, 'all');
 	$stat_array = calculate_copyright_status_statistics($all_copyrights, $licenses);
-	echo html_writer::start_tag('div', array('id' => 'stat'));
+	echo html_writer::start_tag('div', array('id' => 'block_ucla_copyright_status_stat'));
 	echo html_writer::start_tag('ul');
 	foreach($license_options as $k=>$v){
 		if ($k != 'all'){
 			$stat_count = isset($stat_array[$k])?$stat_array[$k]:0;
 			$stat_count = isset($stat_array[$k])?$stat_array[$k]:0;
-			echo html_writer::tag('li', $v.':'.html_writer::start_tag('span', array('class'=>'stat_num')).'('.$stat_count.'/'.$stat_array['total'].', '.number_format($stat_count*100/$stat_array['total'],0,'','').'%)'.html_writer::end_tag('span'));
+			echo html_writer::tag('li', $v.':'.html_writer::start_tag('span', array('class'=>'block_ucla_copyright_status_stat_num')).'('.$stat_count.'/'.$stat_array['total'].', '.number_format($stat_count*100/$stat_array['total'],0,'','').'%)'.html_writer::end_tag('span'));
 		}
 	}
 	echo html_writer::end_tag('ul');
 	echo html_writer::end_tag('div');
 	// end display statistics
 
-	echo html_writer::start_tag('form', array('id'=>'form_copyright_status_list', 'action'=>$PAGE->url->out(), 'method'=>'post'));
-	echo html_writer::start_tag('div', array('id' => 'cp'));
+	echo html_writer::start_tag('form', array('id'=>'block_ucla_copyright_status_form_copyright_status_list', 'action'=>$PAGE->url->out(), 'method'=>'post'));
+	echo html_writer::start_tag('div', array('id' => 'block_ucla_copyright_status_cp'));
 
 	// display copyright filter
-	echo html_writer::start_tag('div', array('id' => 'filter'));
-	echo html_writer::tag('span', get_string('copyright_status', 'block_ucla_copyright_status'));
-	echo html_writer::select($license_options, 'filter_copyright', $filter, false, array('id'=>'id_filter_copyright'));
-	$PAGE->requires->js_init_call('M.util.init_select_autosubmit', array('form_copyright_status_list', 'id_filter_copyright', ''));
+	echo html_writer::start_tag('div', array('id' => 'block_ucla_copyright_status_filter'));
+	echo html_writer::tag('span', get_string('copyright_status', 'block_ucla_copyright_status'), array('id'=>'block_ucla_copyright_status_t1'));
+	echo html_writer::select($license_options, 'filter_copyright', $filter, false, array('id'=>'block_ucla_copyright_status_id_filter_copyright'));
+	$PAGE->requires->js_init_call('M.util.init_select_autosubmit', array('form_copyright_status_list', 'block_ucla_copyright_status_id_filter_copyright', ''));
 	echo html_writer::end_tag('div');
 	// end display copyright filter
 
@@ -195,22 +195,30 @@ function display_copyright_status_contents($courseid, $filter){
 		$select_copyright = html_writer::select($license_options, 'filecopyright_'.$record->id, $record->license);
 		$t->data[] = array($record->filename, strftime("%B %d %Y %r",$record->timemodified), $record->author, $select_copyright); 
 	}
-	echo html_writer::start_tag('div', array('id'=>'id_cp_list'));
-    echo html_writer::table($t);    
+	echo html_writer::start_tag('div', array('id'=>'block_ucla_copyright_status_id_cp_list'));
+	if (count($course_copyright_status_list)>0){
+		echo html_writer::table($t);  
+	}
+	else{
+		echo get_string('no_files', 'block_ucla_copyright_status');
+	}
 	echo html_writer::end_tag('div');
 	// end display copyright status list
 
-	echo html_writer::end_tag('div'); // div id = cp
+	echo html_writer::end_tag('div'); 
+	echo html_writer::end_tag('form');
 
-	// display button
+	// display save changes button
    // $bt_options['action'] = 'edit';
 	//echo $OUTPUT->render(new single_button(new moodle_url($url, $bt_options), get_string('save_button', 'block_ucla_copyright_status'), 'form_copyright_status_list'));
-	echo html_writer::end_tag('form');
-	echo "<input type='button' id ='btn1' value='save changes'>";
-	echo html_writer::start_tag('span', array('id'=>'changes_saved'));
-	echo html_writer::end_tag('span');
-	echo html_writer::start_tag('div', array('id' => 'd1'));
-	echo html_writer::end_tag('div');
+	if (count($course_copyright_status_list)>0){
+		echo "<input type='button' id ='block_ucla_copyright_status_btn1' value='save changes'>";
+		echo html_writer::start_tag('span', array('id'=>'block_ucla_copyright_status_changes_saved'));
+		echo html_writer::end_tag('span');
+		echo html_writer::start_tag('div', array('id' => 'block_ucla_copyright_status_d1'));
+		echo html_writer::end_tag('div');
+	}
+	// end display save changes button
 	// end output screen
 }
 

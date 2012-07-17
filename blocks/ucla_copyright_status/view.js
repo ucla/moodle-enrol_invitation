@@ -1,5 +1,5 @@
 /**
- * On select store strings with file ids to an element
+ * On select copyright status store strings with file ids to an element
  * 
  */
  
@@ -9,8 +9,8 @@ YUI().use('event-delegate', function(Y){
 		// event process function
 		var item_value = this.get('value');
 		var item_key = this.get('id');
-		$('#d1').data(item_key, item_value);
-	 }, '#id_cp_list', 'select');
+		$('#block_ucla_copyright_status_d1').data(item_key, item_value);
+	 }, '#block_ucla_copyright_status_id_cp_list', 'select');
 });
 
 
@@ -21,10 +21,10 @@ YUI().use('event-delegate', function(Y){
 
 YUI().use('node-base', function(Y){
 	var btnl_Click = function(e){
-		$('#d1').data('action', 'edit');
-		$.post('#', $('#d1').data());
-		$('#changes_saved').text(M.str.block_ucla_copyright_status.changes_saved);
+		$('#block_ucla_copyright_status_d1').data('action', 'edit');
+		$.post('#', $('#block_ucla_copyright_status_d1').data());
+		$('#block_ucla_copyright_status_changes_saved').text(M.str.block_ucla_copyright_status.changes_saved);
 	};
-	Y.on('click', btnl_Click, '#btn1');
+	Y.on('click', btnl_Click, '#block_ucla_copyright_status_btn1');
 });
 
