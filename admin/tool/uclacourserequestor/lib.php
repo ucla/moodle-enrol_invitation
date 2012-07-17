@@ -1096,13 +1096,11 @@ function prep_request_entry($requestinfo) {
                     && $actionval != UCLA_COURSE_BUILT
                     && $actionval != UCLA_COURSE_FAILED) {
                 $actval = true;
-            } 
-            // If the course is built, uncheck checkbox.
-            else if (!$editable && $actionval == UCLA_COURSE_BUILT) {
+            } else if (!$editable && $actionval == UCLA_COURSE_BUILT) {
+                // If the course is built, uncheck checkbox.
                 $actval = false;
-            }
-            // If the course has an error, uncheck checkbox.
-            else if (!$editable && $actionval == UCLA_COURSE_FAILED) {
+            } else if (!$editable && $actionval == UCLA_COURSE_FAILED) {
+                // If the course has an error, uncheck checkbox.
                 $actval = false;
             }
 
