@@ -753,10 +753,10 @@ function ucla_send_mail($to, $subj, $body='', $header='') {
 
 /**
  *  Sorts a set of terms.
- *  @param  $terms  Array( term, ... )
+ *  @param  $terms          Array( term, ... )
+ *  @param  $descending     Optional parameter to sort with most recent term 
+ *      first.
  *  @return Array( term_in_order, ... )
- *  EDIT: 07-13-2012
- *      Added an optional parameter to sort descending (most recent first)
  **/
 function terms_arr_sort($terms, $descending = 'false') {
     $ksorter = array();
@@ -1107,10 +1107,9 @@ function has_shared_context($targetid, $viewerid=null) {
  * Returns active terms. Used by course requestor, course creator, and pre-pop 
  * enrollment to see what terms should be processed.
  * 
- * @return array        Returns an array of terms
- * 
- * EDIT: 07-13-2012
- *      Added an optional parameter to sort descending (most recent first)
+ * @param  $descending     Optional parameter to sort active terms with most 
+ *      recent first.
+ * @return array           Returns an array of terms
  */
 function get_active_terms($descending = 'false') {
     $ret_val = array();
