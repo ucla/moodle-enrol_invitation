@@ -119,8 +119,6 @@ class invitation_manager {
                 
                 // update invite to have the proper timesent/timeexpiration
                 if ($resend) {
-                    $DB->set_field('enrol_invitation', 'timesent', $invitation->timesent, 
-                            array('courseid' => $data->courseid,  'id' => $data->id));
                     $DB->set_field('enrol_invitation', 'timeexpiration', $invitation->timeexpiration, 
                             array('courseid' => $data->courseid,  'id' => $data->id));
                     
