@@ -2,7 +2,7 @@
 
 class collab_handler extends browseby_handler {
     static function get_default_roles_visible() {
-        return array('projectlead', 'coursecreator');
+        return array('project_lead', 'coursecreator', 'editinginstructor');
     }
 
     function get_params() {
@@ -94,27 +94,29 @@ class collab_handler extends browseby_handler {
                 debugging('No roles to use in printing!');
             } else {
                 foreach ($collab_cat->courses as $course) {
-                    $context = $this->get_context_instance(CONTEXT_COURSE,
-                        $course->id);
+                    if(is_collab_site($course)) {
+                        $context = $this->get_context_instance(CONTEXT_COURSE,
+                            $course->id);
 
-                    $viewroles = $this->get_role_users($roleids, $context,
-                        false, 'u.id, u.firstname, u.lastname, r.shortname');
+                        $viewroles = $this->get_role_users($roleids, $context,
+                            false, 'u.id, u.firstname, u.lastname, r.shortname');
 
-                    $courseroles = array();
-                    foreach ($viewroles as $viewrole) {
-                        $rsh = $viewrole->shortname;
-                        if (isset($iroles[$rsh])) {
-                            if (!isset($courseroles[$rsh])) {
-                                $courseroles[$rsh] = array();
+                        $courseroles = array();
+                        foreach ($viewroles as $viewrole) {
+                            $rsh = $viewrole->shortname;
+                            if (isset($iroles[$rsh])) {
+                                if (!isset($courseroles[$rsh])) {
+                                    $courseroles[$rsh] = array();
+                                }
+
+                                $courseroles[$rsh][] = $viewrole;
                             }
-
-                            $courseroles[$rsh][] = $viewrole;
                         }
+
+                        $course->roles = $courseroles;
+
+                        $courselist[] = $course;
                     }
-
-                    $course->roles = $courseroles;
-
-                    $courselist[] = $course;
                 }
             }
         }
@@ -192,6 +194,14 @@ class collab_handler extends browseby_handler {
         global $CFG;
 
         $colcat = false;
+                
+        // START UCLA MOD CCLE-2389 - adding site indicator support
+        // Want the whole category tree for siteindicator to filter
+        if (!$colcat) {
+            $colcat->categories = $this->get_category_tree();
+        }
+        // END UCLA MOD CCLE-2389
+
         // Try a custom collaboration category name
         if (!empty($CFG->collaboration_category_name)) {
             $colcat = $this->get_category($CFG->collaboration_category_name);
@@ -209,7 +219,7 @@ class collab_handler extends browseby_handler {
 
         return $colcat;
     }
-   
+    
     /**
      *  Finds the category from the tree.
      **/

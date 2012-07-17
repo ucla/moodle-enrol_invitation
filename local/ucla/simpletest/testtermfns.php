@@ -57,8 +57,8 @@ class ucla_term_fn_test extends UnitTestCase {
             // maybe once in a blue moon this will fail?
             $this->assertNotEqual($ordered_list, $tmp_list);
             
-            $tmp_list = terms_arr_sort($tmp_list);
-            $this->assertEqual($ordered_list, $tmp_list);
+            $tmp_list = terms_arr_sort($tmp_list);            
+            $this->assertEqual($ordered_list, array_values($tmp_list));
         }      
     }
 

@@ -1487,12 +1487,18 @@ function roles_get_potential_user_selector($context, $name, $options) {
             $blockinsidecourse = in_array($parentcontext->contextlevel, array(CONTEXT_MODULE, CONTEXT_COURSE));
         }
 
+        // START UCLA MOD: CCLE-2530 - REGISTRAR SECURITY - Restrict Assign Roles to only admins
+        if (!$blockinsidecourse && !has_capability('local/ucla:assign_all', $context)) {
+            $blockinsidecourse = true;  // force viewing of only users in course               
+        }
+        // END UCLA MOD: CCLE-2530   
+        
         if (($context->contextlevel == CONTEXT_MODULE || $blockinsidecourse) &&
                 !is_inside_frontpage($context)) {
             $potentialuserselector = new potential_assignees_below_course('addselect', $options);
         } else {
             $potentialuserselector = new potential_assignees_course_and_above('addselect', $options);
-        }
+        }        
     return $potentialuserselector;
 }
 

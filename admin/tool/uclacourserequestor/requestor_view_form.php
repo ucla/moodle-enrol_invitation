@@ -76,13 +76,22 @@ class requestor_view_form extends requestor_shared_form {
             }
         }
 
-        $reqs = $DB->get_records('ucla_request_classes', $filters);
+        // No need to repeat courses if we're not searching for a specific
+        // course
+        if (!isset($filters['srs'])) {
+            $filters['hostcourse'] = 1;
+        }
 
+        $reqs = $DB->get_records('ucla_request_classes', $filters,
+            'term, department, course');
+
+        $sets = array();
         foreach ($reqs as $req) {
             $req = get_object_vars($req);
             $set = get_crosslist_set_for_host($req);
+            $host = $set[set_find_host_key($set)];
 
-            $sets[] = $set;
+            $sets[make_idnumber($host)] = $set;
         }
 
         return $sets;

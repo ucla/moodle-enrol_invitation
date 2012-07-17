@@ -24,7 +24,7 @@ class registrar_ccle_courseinstructorsget extends registrar_query {
             return false;
         }
 
-        if (!isset($new['ucla_id'])) {
+        if (empty($new['ucla_id'])) {
             return false;
         }
 
@@ -32,19 +32,22 @@ class registrar_ccle_courseinstructorsget extends registrar_query {
     }
 
     function remote_call_generate($args) {
-        // TODO use validators
-        if (ucla_validator('term', $args[0])) {
+        if (isset($args[0])) {
             $term = $args[0];
         } else {
-            return false;
+            $term = $args['term'];
         }
 
-        if (ucla_validator('srs', $args[1])) {
+        if (isset($args[1])) {
             $srs = $args[1];
         } else {
-            return false;
+            $srs = $args['srs'];
         }
 
-        return "EXECUTE ccle_CourseInstructorsGet '$term', '$srs'";
+        if (!ucla_validator('term', $term) || !ucla_validator('srs', $srs)) {
+            return false;
+        }  
+
+        return "EXECUTE ccle_courseinstructorsget '$term', '$srs'";
     }
 }

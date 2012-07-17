@@ -149,6 +149,10 @@ $block_ucla_help_settings = array('send_to' => 'jira',
 $CFG->forced_plugin_settings['block_ucla_help'] = $block_ucla_help_settings;
 $block_ucla_help_support_contacts['System'] = 'dkearney';  // default
 
+// CCLE-2311 - VIEDO FURNACE BLOCK
+$CFG->forced_plugin_settings['block_ucla_video_furnace']['source_url']
+        = 'http://164.67.141.31/~guest/VF_LINKS.TXT';
+
 // CCLE-2312 - LIBRARY RESERVES BLOCK
 $CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url']
         = 'ftp://ftp.library.ucla.edu/incoming/eres/voyager_reserves_data.txt';
@@ -164,7 +168,6 @@ $CFG->debugpageinfo = true; // show page information
 
 // UCLA Theme settings
 $CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'test';
-$CFG->forced_plugin_settings['theme_uclashared']['logo_sub_dropdown'] = 0;
 
 // Newly created courses for ucla formats should only have the course menu block
 $CFG->defaultblocks_ucla = 'ucla_course_menu';
@@ -211,6 +214,9 @@ $CFG->forced_plugin_settings['moodlecourse']['format'] = 'ucla';
 $CFG->forced_plugin_settings['moodlecourse']['maxbytes'] = 1572864000;  // 1.5GB
 // CCLE-2903 - Don't set completion tracking to be course default
 $CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 0;
+
+// Site administration > Courses > Course request
+$CFG->enablecourserequests = 1;
 
 // Site administration > Plugins > Activity modules > Assignment
 $CFG->assignment_maxbytes = 10485760;   // 100MB
@@ -263,6 +269,9 @@ $CFG->clamfailureonupload = 'donothing';
 // Site administration > Appearance > Navigation
 $CFG->defaulthomepage = 1;    // user's home page should be "My Moodle" (HOMEPAGE_MY)
 $CFG->navlinkcoursesections = 1; // CCLE-3031 - Section Titles breadcrumbs aren't links
+
+// Site administration > Appearance > Courses
+$CFG->courselistshortnames = 1;
 
 // Site administration > Server > System paths
 $CFG->pathtodu = '/usr/bin/du';
@@ -340,11 +349,22 @@ $CFG->forced_plugin_settings['enrol_database']['localrolefield'] = 'id';
 $CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 3;    // Disable course enrolment and remove roles
 
 // CCLE-2910 - UNEX student support
-$CFG->forced_plugin_settings['enrol_database']['fblocaluserfield'] = 'username';
-$CFG->forced_plugin_settings['enrol_database']['fbremoteuserfield'] = 'username';
+
+
 
 // CCLE-2802 - Frontpage banner layout include
 $CFG->customfrontpageinclude = $_dirroot_ . '/theme/uclashared/layout/frontpage.php';
+
+// CCLE-2364 - SUPPORT CONSOLE (put after $_dirroot_, because needs $CFG->dataroot to be set)
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_apache_error'] = '/var/log/httpd/m2test.err';
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_apache_access'] = '/var/log/httpd/access_log';
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_apache_ssl_access'] = '/var/log/httpd/ssl_access_log';
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_apache_ssl_error'] = '/var/log/httpd/ssl_m2test.err';
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_apache_ssl_request'] = '/var/log/httpd/ssl_request_log';
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_shibboleth_shibd'] = '/var/log/shibboleth/shibd.log';
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_shibboleth_trans'] = '/var/log/shibboleth/transaction.log';
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_moodle_cron'] = '/home/moodle/logs/moodlecron/m2test_moodlecron.out';
+$CFG->forced_plugin_settings['tool_uclasupportconsole']['log_course_creator'] = $CFG->dataroot . '/course_creator/';
 
 // This will bootstrap the moodle functions.
 require_once($_dirroot_ . '/lib/setup.php');

@@ -794,7 +794,7 @@ class uclacoursecreator {
                 $arrcourseset[$key] = get_object_vars($course);
             }
 
-            $hostcoursekey = set_find_host($arrcourseset);
+            $hostcoursekey = set_find_host_key($arrcourseset);
             $hostcourse = $courseset[$hostcoursekey];
             unset($courseset[$hostcoursekey]);
 
@@ -2001,10 +2001,10 @@ class uclacoursecreator {
                     $this->println("ERROR: course not email $requestor");
                 }
             } else {
-                $this->debugln("Would have emailed: $requestor");
+                $this->debugln("Would have emailed: $requestor [$req_mes]");
             }
 
-            $this->emailln("Requestor: $requestor for $req_summary");
+            $this->emailln("Requestor: $requestor for $crecou_cnt courses");
         }
     }
 

@@ -28,7 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 
 class tinymce_texteditor extends texteditor {
     /** @var string active version - directory name */
-    public $version = '3.4.6';
+    public $version = '3.4.9';
 
     public function supported_by_browser() {
         if (check_browser_version('MSIE', 6)) {
@@ -184,6 +184,12 @@ class tinymce_texteditor extends texteditor {
         if (!empty($options['required'])) {
             $params['init_instance_callback'] = 'M.editor_tinymce.onblur_event';
         }
+		
+		// START UCLA MOD: feature/CCLE-3239-nanogong-voice tool
+		$params['plugins'] .= ',nanogong';
+		$params['theme_advanced_buttons3'] .=',nanogong';
+		// END UCLA MOD: feature/CCLE-3239-nanogong-voice tool
+
         return $params;
     }
 }

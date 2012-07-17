@@ -146,7 +146,7 @@ foreach ($sections as $section) {
     if ($section->section == $currsect) {
         $defaultsection = $sid;
     }
-
+    
     $sectionnames[$sid] = get_section_name($course, $section);
 
     $indexed_sections[$sid] = $section;

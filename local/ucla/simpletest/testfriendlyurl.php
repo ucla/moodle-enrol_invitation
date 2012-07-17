@@ -59,7 +59,11 @@ class friendly_url_test extends UnitTestCase {
 
         $ret = extern_server_course($courseobj);
 
-        $this->assertEqual($CFG->wwwroot . '/course/view/TEST', $ret->out());
+        if ($ret instanceof moodle_url) {
+            $this->assertEqual($CFG->wwwroot . '/course/view/TEST', $ret->out());
+        } else {
+            $this->assertTrue(false, 'extern_server_course returning false');                                 
+        }
 
         $CFG->forced_plugin_settings['local_ucla']['friendly_urls_enabled']
             = false;
@@ -71,9 +75,13 @@ class friendly_url_test extends UnitTestCase {
         $CFG->forcecoursegettoname = true;
 
         $ret = extern_server_course($courseobj);
-
-        $this->assertEqual($CFG->wwwroot . '/course/view.php?name=TEST',
-            $ret->out());
+        
+        if ($ret instanceof moodle_url) {
+            $this->assertEqual($CFG->wwwroot . '/course/view.php?name=TEST',
+                $ret->out());
+        } else {
+            $this->assertTrue(false, 'extern_server_course returning false');                                 
+        }
 
         if (isset($oldcfg)) {
             $CFG->forced_plugin_settings['local_ucla']['friendly_urls_enabled']

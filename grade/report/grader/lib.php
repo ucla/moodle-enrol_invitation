@@ -135,12 +135,11 @@ class grade_report_grader extends grade_report {
 
         $this->baseurl = new moodle_url('index.php', array('id' => $this->courseid));
 
-        $studentsperpage = $this->get_pref('studentsperpage');
-        if (!empty($studentsperpage)) {
-            $this->baseurl->params(array('perpage' => $studentsperpage, 'page' => $this->page));
+        if (!empty($this->page)) {
+            $this->baseurl->params(array('page' => $this->page));
         }
 
-        $this->pbarurl = new moodle_url('/grade/report/grader/index.php', array('id' => $this->courseid, 'perpage' => $studentsperpage));
+        $this->pbarurl = new moodle_url('/grade/report/grader/index.php', array('id' => $this->courseid));
 
         $this->setup_groups();
 
@@ -198,7 +197,7 @@ class grade_report_grader extends grade_report {
             }
 
             if (!$gradeitem = grade_item::fetch(array('id'=>$itemid, 'courseid'=>$this->courseid))) { // we must verify course id here!
-                print_error('invalidgradeitmeid');
+                print_error('invalidgradeitemid');
             }
 
             // Pre-process grade
@@ -340,8 +339,7 @@ class grade_report_grader extends grade_report {
         list($enrolledsql, $enrolledparams) = get_enrolled_sql($this->context);
 
         //fields we need from the user table
-        $userfields = user_picture::fields('u');
-        $userfields .= get_extra_user_fields_sql($this->context);
+        $userfields = user_picture::fields('u', get_extra_user_fields($this->context));
 
         $sortjoin = $sort = $params = null;
 
@@ -360,6 +358,9 @@ class grade_report_grader extends grade_report {
                     break;
                 case 'firstname':
                     $sort = "u.firstname $this->sortorder, u.lastname $this->sortorder";
+                    break;
+                case 'email':
+                    $sort = "u.email $this->sortorder";
                     break;
                 case 'idnumber':
                 default:
@@ -778,7 +779,7 @@ class grade_report_grader extends grade_report {
                     $headerlink = $this->gtree->get_element_header($element, true, $this->get_pref('showactivityicons'), false);
 
                     $itemcell = new html_table_cell();
-                    $itemcell->attributes['class'] = $type . ' ' . $catlevel . 'highlightable';
+                    $itemcell->attributes['class'] = $type . ' ' . $catlevel . ' highlightable';
 
                     if ($element['object']->is_hidden()) {
                         $itemcell->attributes['class'] .= ' hidden';

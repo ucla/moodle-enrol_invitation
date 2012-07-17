@@ -24,13 +24,13 @@ $string['unknowntag'] = 'Ungrouped functions';
 /** Stuff from common **/
 $string['ucla_cp_mod_common'] = 'Most commonly used';
 
-$string['email_students'] = 'E-mail students';
+$string['email_students'] = 'Email students';
 $string['email_students_post'] = '(via Announcements forum)';
 
-$string['email_students_exception'] = 'E-mail students';
+$string['email_students_exception'] = 'Email students';
 $string['email_students_exception_post'] = 'There was a problem detecting your announcements forum. This is most likely caused by the fact you are using an incompatible course format.';
 
-$string['email_students_hidden_pre'] = 'E-mail students is disabled when the Announcements forum is hidden.';
+$string['email_students_hidden_pre'] = 'Email students is disabled when the Announcements forum is hidden.';
 $string['email_students_hidden'] = 'Make Announcements forum visible';
 
 $string['modify_sections'] = 'Modify course menu sections';

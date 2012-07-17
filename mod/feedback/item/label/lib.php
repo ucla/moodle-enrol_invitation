@@ -167,7 +167,8 @@ class feedback_item_label extends feedback_item_base {
                                                $filearea,
                                                $item->id);
 
-        echo format_text($output, FORMAT_HTML, array('overflowdiv'=>true));
+        $formatoptions = array('overflowdiv'=>true, 'trusted'=>$CFG->enabletrusttext);
+        echo format_text($output, FORMAT_HTML, $formatoptions);
     }
 
     /**
@@ -268,5 +269,13 @@ class feedback_item_label extends feedback_item_base {
     public function get_printval($item, $value) {
     }
     public function get_analysed($item, $groupid = false, $courseid = false) {
+    }
+
+    public function value_type() {
+        return PARAM_BOOL;
+    }
+
+    public function clean_input_value($value) {
+        return '';
     }
 }

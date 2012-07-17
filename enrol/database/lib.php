@@ -78,7 +78,7 @@ class enrol_database_plugin extends enrol_plugin {
             'firstname' => $firstmiddle[0],
             'lastname'  => $names[0],
             'email'     => $reg['ss_email_addr'],
-            $this->get_config('fbremoteuserfield') => $reg['bolid'] . '@ucla.edu'
+            'username'  => $this->normalize_bolid($reg['bolid'])
         );
     }
 
@@ -92,8 +92,16 @@ class enrol_database_plugin extends enrol_plugin {
             'firstname' => $reg['first_name_person'],
             'lastname'  => $reg['last_name_person'],
             'email'     => $reg['ursa_email'],
-            $this->get_config('fbremoteuserfield')  => $reg['bolid'] . '@ucla.edu'
+            'username'  => $this->normalize_bolid($reg['bolid'])
         );
+    }
+
+    public function normalize_bolid($bolid) {
+        if (!empty($bolid)) {
+            return $bolid . '@ucla.edu';
+        }
+
+        return '';
     }
 
     /**
@@ -133,6 +141,11 @@ class enrol_database_plugin extends enrol_plugin {
         if (!property_exists($user, $localuserfield)) {
             debugging('Invalid $user parameter in sync_user_enrolments(), missing '.$localuserfield);
             $user = $DB->get_record('user', array('id'=>$user->id));
+        }
+
+        if (empty($user->{$localuserfield})) {
+            error_log('MOODLE_ENROL_DATABASE: Cannot do login-time enrolment for ' . fullname($user));
+            return;
         }
 
         // create roles mapping
@@ -344,10 +357,6 @@ class enrol_database_plugin extends enrol_plugin {
         $localuserfield   = $this->get_config('localuserfield');
         $localcoursefield = $this->get_config('localcoursefield');
 
-        // CCLE-2910: Fallback method of identifying UNEX students
-        $fbremoteuserfield = strtolower($this->get_config('fbremoteuserfield'));
-        $fblocaluserfield = $this->get_config('fblocaluserfield');
-
         $unenrolaction    = $this->get_config('unenrolaction');
         $defaultrole      = $this->get_config('defaultrole');
 
@@ -435,13 +444,12 @@ class enrol_database_plugin extends enrol_plugin {
 
         $enrolment_info = array();
 
-        $failed_users = array();
 
         foreach ($course_indexed as $courseid => $set) {
             $externalcourses[$courseid] = true;
+            $failed_users = array();
 
             foreach ($set as $course) {
-
                 $regdata = array(array($course->term, $course->srs));
 
                 $subjarea = $course->department;
@@ -453,6 +461,9 @@ class enrol_database_plugin extends enrol_plugin {
                 );
 
                 $instrs = $results[registrar_query::query_results];
+                foreach ($results[registrar_query::failed_outputs] as $failed) {
+                    $failed_users[] = $failed;
+                }
 
                 $otherroles = array();
 
@@ -500,6 +511,9 @@ class enrol_database_plugin extends enrol_plugin {
                 );
 
                 $roster = $results[registrar_query::query_results];
+                foreach ($results[registrar_query::failed_outputs] as $failed) {
+                    $failed_users[] = $failed;
+                }
                     
                 $studentcount = 0;
                 foreach ($roster as $student) {
@@ -511,8 +525,9 @@ class enrol_database_plugin extends enrol_plugin {
                     if ($studentpr === false) {
                         continue;
                     }
-
+                    
                     $user = $this->translate_ccle_roster_class($student);
+
                     try {
                         $moodlerole = get_moodlerole($studentpr, $subjarea);
                     } catch (moodle_exception $me) {
@@ -532,11 +547,13 @@ class enrol_database_plugin extends enrol_plugin {
                         . ' ' . $course->srs . " $instructorcount instructors $studentcount students");
                 }
             }
-        }
 
-        // Notify someone of users without a logonid 
-        if (!empty($failed_users)) {
-
+            // Notify someone of users without a logonid 
+            if (!empty($failed_users)) {
+                foreach ($failed_users as $failed) {
+                    mtrace("Bad data from Registrar: " . print_r($failed, true));
+                }
+            }
         }
 
         // END CCLE-2275: Fetch users and limit courses to run sync on.
@@ -638,16 +655,7 @@ class enrol_database_plugin extends enrol_plugin {
             $current_status = array();
             $user_mapping   = array();
 
-            // START UCLA MOD CCLE-2910: Fixing issue with UNEX students,
-            // check for username
-            $user_fallback  = array();
-
-            $fallbacksqlselect = '';
-            if (!empty($fblocaluserfield)) {
-                $fallbacksqlselect = "u.$fblocaluserfield AS fallback, ";
-            }
-
-            $sql = "SELECT u.$localuserfield AS mapping, $fallbacksqlselect u.id, ue.status, ue.userid, ra.roleid
+            $sql = "SELECT u.$localuserfield AS mapping, ue.status, ue.userid, ra.roleid
                       FROM {user} u
                       JOIN {user_enrolments} ue ON (ue.userid = u.id AND ue.enrolid = :enrolid)
                       JOIN {role_assignments} ra ON (ra.userid = u.id AND ra.itemid = ue.enrolid AND ra.component = 'enrol_database')
@@ -666,10 +674,6 @@ class enrol_database_plugin extends enrol_plugin {
                 if (!empty($ue->mapping)) {
                     $user_mapping[$ue->mapping] = $ue->userid;
                 }
-
-                if (isset($ue->fallback)) {
-                    $user_fallback[$ue->fallback] = $ue->userid;
-                }
             }
             $rs->close();
 
@@ -677,14 +681,16 @@ class enrol_database_plugin extends enrol_plugin {
             $requested_roles = array();
 
             // START UCLA MODIFICATION CCLE-2275: Prepopulate (ucla tinkering)
+            $defaultusersearch = array();
+            
+            if ($localuserfield === 'username') {
+                $defaultusersearch['mnethostid'] = $CFG->mnet_localhost_id; 
+                $defaultusersearch['deleted'] = 0;
+            }
+
             if (!empty($enrolment_info[$course->mapping])) {
                 foreach ($enrolment_info[$course->mapping] as $fields) {
-                    $usersearch = array();
-
-                    if ($localuserfield === 'username') {
-                        $usersearch['mnethostid'] = $CFG->mnet_localhost_id; 
-                        $usersearch['deleted'] = 0;
-                    }
+                    $usersearch = $defaultusersearch;
 
                     $fields = array_change_key_case($fields, CASE_LOWER);
                     if (!empty($fields[$userfield])) {
@@ -693,14 +699,9 @@ class enrol_database_plugin extends enrol_plugin {
                         $mapping = false;
                     }
 
-                    if (!empty($fblocaluserfield) && !empty($fields[$fblocaluserfield])) {
-                        $fallback = $fields[$fblocaluserfield];
-                    } else {
-                        $fallback = false;
-                    }
-
-                    if ($mapping && empty($user_mapping[$mapping]) 
-                            || !empty($fblocaluserfield) && $fallback && empty($user_fallback[$fallback])) {
+                    // If the inital query to load all users does not contain a refernce
+                    // to the user we are looking for, but we have a match in $mapping 
+                    if ($mapping && empty($user_mapping[$mapping])) {
                         // Find the user from our database
                         $sqlparams = array();
                         $sqlbuilder = array();
@@ -712,16 +713,11 @@ class enrol_database_plugin extends enrol_plugin {
                         $searchstr = "$localuserfield = ?";
                         $sqlparams[] = $mapping;
 
-                        if (!empty($fblocaluserfield)) {
-                            $searchstr = "($searchstr OR $fblocaluserfield = ?)";
-                            $sqlparams[] = $fallback;
-                        }
-
                         $sqlbuilder[] = $searchstr;
                         $usersql = implode(' AND ', $sqlbuilder);
 
                         $user = $DB->get_record_select('user', $usersql, $sqlparams, 
-                            "id, $localuserfield, $fblocaluserfield", IGNORE_MULTIPLE);
+                            "id, $localuserfield", IGNORE_MULTIPLE);
 
                         if (!$user) {
                             // UCLA MODIFICATION CCLE-2275: Pre-populate needs
@@ -734,17 +730,25 @@ class enrol_database_plugin extends enrol_plugin {
                             $user->password = '';
                             $user->auth = 'shibboleth';
                             $user->mnethostid = $CFG->mnet_localhost_id;
-                            
+
                             // This will fill in user fields with stored procedure
                             // data such as firstname lastname
                             foreach ($fields as $k => $v) {
-                                if ($k == $fbremoteuserfield) {
-                                    $user->{$fblocaluserfield} = $v;
-                                } else if ($k == $userfield) {
+                                if ($k == $userfield) {
                                     $user->{$localuserfield} = $v;
                                 } else {
                                     $user->{$k} = $v;
                                 }
+                            }
+
+                            if (empty($fields['username'])) {
+                                if ($verbose) {
+                                    mtrace('# Cannot create user - no '
+                                        . 'username [' . $fields['uid'] 
+                                        . '] [' . fullname((object)$fields) 
+                                        . ']');
+                                }
+                                continue;
                             }
 
                             try {
@@ -757,6 +761,11 @@ class enrol_database_plugin extends enrol_plugin {
                             }
 
                             $user_cache[$user->id] = $user;
+                            
+                            if ($verbose) {
+                                mtrace('. Created new user ' . $user->id
+                                    . ' [' . $mapping . '] [' . $user->username . ']');
+                            }
                         }
                         
                         $userid = $user->id;
@@ -765,15 +774,9 @@ class enrol_database_plugin extends enrol_plugin {
                         // since we either only came from user field or fallback
                         // field
                         $needsupdate = false;
-                        if (empty($user->{$localuserfield})) {
+                        if (!empty($mapping) && empty($user->{$localuserfield})) {
                             $user->{$localuserfield} = $mapping;
                             mtrace("Updating user $userid: $localuserfield $mapping");
-                            $needsupdate = true;
-                        }
-
-                        if (empty($user->{$fblocaluserfield})) {
-                            $user->{$fblocaluserfield} = $fallback;
-                            mtrace("Updating user $userid: $fblocaluserfield $fallback");
                             $needsupdate = true;
                         }
 
@@ -781,17 +784,12 @@ class enrol_database_plugin extends enrol_plugin {
                             $DB->update_record('user', $user);
                         }
 
-                        $user_mapping[$mapping] = $userid;
-                        if (!empty($fblocaluserfield)) {
-                            $user_fallback[$fallback] = $userid;
+                        if (!empty($mapping)) {
+                            $user_mapping[$mapping] = $userid;
                         }
                     } else {
-                        // CCLE-2910: adding fallback for UNEX students
-                        if (!empty($fblocaluserfield)) {
-                            $userid = $user_fallback[$fallback];
-                        } else {
-                            $userid = $user_mapping[$mapping];
-                        }
+                        // Don't use fallback
+                        $userid = $user_mapping[$mapping];
                     }
 
                     // CCLE-2924: Update users: Match the user and update information if needed.
@@ -862,7 +860,6 @@ class enrol_database_plugin extends enrol_plugin {
                 }
             }
             unset($user_mapping);
-            unset($user_fallback);
 
             // enrol all users and sync roles
             foreach ($requested_roles as $userid=>$userroles) {
@@ -1102,6 +1099,19 @@ class enrol_database_plugin extends enrol_plugin {
                 $newcourse->idnumber  = $fields->idnumber;
                 $newcourse->category  = $fields->category ? $fields->category : $defaultcategory;
 
+                // Detect duplicate data once again, above we can not find duplicates
+                // in external data using DB collation rules...
+                if ($DB->record_exists('course', array('shortname' => $newcourse->shortname))) {
+                    if ($verbose) {
+                        mtrace("  can not insert new course, duplicate shortname detected: ".$newcourse->shortname);
+                    }
+                    continue;
+                } else if (!empty($newcourse->idnumber) and $DB->record_exists('course', array('idnumber' => $newcourse->idnumber))) {
+                    if ($verbose) {
+                        mtrace("  can not insert new course, duplicate idnumber detected: ".$newcourse->idnumber);
+                    }
+                    continue;
+                }
                 $c = create_course($newcourse);
                 if ($verbose) {
                     mtrace("  creating course: $c->id, $c->fullname, $c->shortname, $c->idnumber, $c->category");
