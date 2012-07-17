@@ -106,9 +106,6 @@ foreach ($top_forms as $gk => $group) {
         require_once($filename);
 
         $fl = new $classname(null, $nv_cd);
-        
-        //Remove
-        //print_object ($fl);
 
         $cached_forms[$gk][$form] = $fl;
        
@@ -413,8 +410,6 @@ if ($coursebuilder->lock_exists()) { // if course build is in progress, let user
 if (!empty($build_notes)) {
     $build_notice = html_writer::tag('div', $build_notes, 
             array('id' => 'uclacourserequestor_notice'));
-    //Remove
-    print_object($build_notice);
     echo $OUTPUT->box($build_notice, 'noticebox');      
 }
 

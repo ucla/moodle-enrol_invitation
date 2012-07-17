@@ -763,12 +763,12 @@ function terms_arr_sort($terms, $descending = 'false') {
 
     // enumerate terms
     foreach ($terms as $k => $term) {
-        $ksorter[$k] = term_enum($term);
-    }
+            $ksorter[$k] = term_enum($term);
+        }
 
     // sort
     asort($ksorter);
-  
+    
     // denumerate terms
     $sorted = array();
     foreach ($ksorter as $k => $v) {

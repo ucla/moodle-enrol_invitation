@@ -42,10 +42,10 @@ class requestor_shared_form extends moodleform {
             array(
                 $gn => array(
                     'term' => $term
+                    )
                 )
-            )
         );
-
+        
         $this->post_specification();
     }
 
