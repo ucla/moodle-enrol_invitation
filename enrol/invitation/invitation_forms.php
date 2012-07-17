@@ -113,7 +113,7 @@ class invitations_form extends moodleform {
         
         // Set defaults if the user is resending an invite that expired
         if ( !empty($prefilled) ) {
-            // TODO: set the default value for the role assignment radio buttons
+            $mform->setDefault('role_group[roleid]', $prefilled['roleid']);
             $mform->setDefault('email', $prefilled['email']);
             $mform->setDefault('subject', $prefilled['subject']);
             $mform->setDefault('message', $prefilled['message']);
