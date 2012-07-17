@@ -67,20 +67,11 @@ if ($data and confirm_sesskey()) {
     
     // BEGIN UCLA MOD: CCLE-2955-Invite-multiple-users
     // Check for the invitation of multiple users
-    // Parse $data->email for semi-colon, comma, or space seperated values
-    $data->email = rtrim(ltrim($data->email));
-    $delimiter = "/[;, \r\n]/";
+    $delimiters = "/[;, \r\n]/";
+    $email_list = invitations_form::parse_dsv_emails($data->email, $delimiters);
     
-    if (preg_match($delimiter, $data->email)) { // Invite multiple users
-        $dsv_emails = preg_split($delimiter, $data->email, NULL, PREG_SPLIT_NO_EMPTY);
-        // Already checked for invalid emails in validation() function
-        
-        foreach ($dsv_emails as $email_value) {
-            $email_value = rtrim(ltrim($email_value));
-            $data->email = $email_value;
-            $invitationmanager->send_invitations($data);
-        }
-    } else { // Invite single user
+    foreach ($email_list as $email) {
+        $data->email = $email;
         $invitationmanager->send_invitations($data);
     }
     // END UCLA MOD: CCLE-2955

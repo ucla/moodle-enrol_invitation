@@ -175,23 +175,46 @@ class invitations_form extends moodleform {
      */
     function validation($data) {
         $errors = array();
-        $emails = rtrim(ltrim($data['email']));
-        $delimiter = "/[;, \r\n]/";
-        if (preg_match($delimiter, $emails)) {
-            // Multiple email address specified
-            $dsv_emails = preg_split($delimiter, $emails, NULL, PREG_SPLIT_NO_EMPTY);
-            foreach ($dsv_emails as $email_value) {
-                $email_value = rtrim(ltrim($email_value));
-                if (!filter_var($email_value, FILTER_VALIDATE_EMAIL)){
-                    $errors['email'] = get_string('err_email', 'form');
-                }
-            }
-        } else if (!filter_var($emails, FILTER_VALIDATE_EMAIL)) {
-            // Invalid single email address
+        $delimiters = "/[;, \r\n]/";
+        $email_list = invitations_form::parse_dsv_emails($data['email'], $delimiters);
+        
+        if ( empty($email_list) ) {
             $errors['email'] = get_string('err_email', 'form');
         }
         
         return $errors;
+    }
+    
+    /**
+    * Parses a string containing delimiter seperated values for email addresses.
+    * Returns an empty array if an invalid email is found.
+    * 
+    * @param string $emails           string of emails to be parsed
+    * @param string $delimiters       list of delimiters as regex
+    * @return array $parsed_emails    array of emails
+    */
+    static function parse_dsv_emails($emails, $delimiters) {
+        $parsed_emails = array();
+        $emails = rtrim(ltrim($emails));
+        if (preg_match($delimiters, $emails)) {
+            // Multiple email addresses specified
+            $dsv_emails = preg_split($delimiters, $emails, NULL, PREG_SPLIT_NO_EMPTY);
+            foreach ($dsv_emails as $email_value) {
+                $email_value = rtrim(ltrim($email_value));
+                if (!clean_param($email_value, PARAM_EMAIL)){
+                    return array();
+                }
+                $parsed_emails[] = $email_value;
+            }
+        } else if (clean_param($emails, PARAM_EMAIL)) {
+            // single email
+            return (array)$emails;
+        } else {
+            return array();
+        }
+        
+        return $parsed_emails;
+        
     }
 
 }
