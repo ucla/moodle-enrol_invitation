@@ -486,14 +486,15 @@ if ($mform->is_cancelled()) {
 
         // START UCLA MOD: CCLE-2946 - Uploading resources via Moodle's 
         // "Add a resource" dropdown adds content as public, not private.
-        require_once($CFG->libdir . '/publicprivate/site.class.php');
         require_once($CFG->libdir . '/publicprivate/course.class.php');
-        if (PublicPrivate_Site::is_enabled() 
-                    && PublicPrivate_Course::is_publicprivate_capable($course)) {
-            $cm = get_coursemodule_from_id('', $fromform->coursemodule, 0, false, MUST_EXIST);
-            require_once($CFG->libdir.'/publicprivate/module.class.php');
-            PublicPrivate_Module::build($cm)->enable();
-        }
+		$cm = get_coursemodule_from_id('', $fromform->coursemodule, 0, false, MUST_EXIST);
+		if($course->grouppublicprivate == 1){
+			PublicPrivate_Module::build($cm)->enable();
+		}
+		// Turn off default grouping for modules that don't provide group mode but only if public/private is off
+        elseif($add=='resource' || $add=='glossary' || $add=='label') {
+			PublicPrivate_Module::build($cm)->disable();
+		}
         // END UCLA MOD: CCLE-2946
 
         // Set up conditions
