@@ -195,12 +195,12 @@ class invitations_form extends moodleform {
     */
     static function parse_dsv_emails($emails, $delimiters) {
         $parsed_emails = array();
-        $emails = rtrim(ltrim($emails));
+        $emails = trim($emails);
         if (preg_match($delimiters, $emails)) {
             // Multiple email addresses specified
             $dsv_emails = preg_split($delimiters, $emails, NULL, PREG_SPLIT_NO_EMPTY);
             foreach ($dsv_emails as $email_value) {
-                $email_value = rtrim(ltrim($email_value));
+                $email_value = trim($email_value);
                 if (!clean_param($email_value, PARAM_EMAIL)){
                     return array();
                 }
