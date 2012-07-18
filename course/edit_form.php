@@ -126,9 +126,11 @@ class course_edit_form extends moodleform {
                 $mform->setConstant('category', $category->id);
             }
         } else {
+            // BEGIN UCLA MOD: CCLE-3278-Change-options-on-course-edit-settings-page
             //if (has_capability('moodle/course:changecategory', $coursecontext)) {
             if (has_capability('moodle/course:changecategory', $coursecontext)
                     && has_capability('local/ucla:editadvancedcoursesettings', $coursecontext)) {
+            // END UCLA MOD: CCLE-3278
                 $displaylist = array();
                 $parentlist = array();
                 make_categories_list($displaylist, $parentlist, 'moodle/course:create');
@@ -205,6 +207,7 @@ class course_edit_form extends moodleform {
             $mform->hardFreeze('summary_editor');
         }
 
+        // BEGIN UCLA MOD: CCLE-3278-Change-options-on-course-edit-settings-page
         /*
         $courseformats = get_plugin_list('format');
         $formcourseformats = array();
@@ -215,7 +218,6 @@ class course_edit_form extends moodleform {
         $mform->addHelpButton('format', 'format');
         $mform->setDefault('format', $courseconfig->format);
         */
-        // BEGIN UCLA MOD: CCLE-3278-Change-options-on-course-edit-settings-page
         if (has_capability('local/ucla:editadvancedcoursesettings', $coursecontext)) {
             $courseformats = get_plugin_list('format');
             $formcourseformats = array();
@@ -263,12 +265,12 @@ class course_edit_form extends moodleform {
         $mform->setDefault('showreports', $courseconfig->showreports);
 
         $choices = get_max_upload_sizes($CFG->maxbytes);
+        // BEGIN UCLA MOD: CCLE-3278-Change-options-on-course-edit-settings-page
         /*
         $mform->addElement('select', 'maxbytes', get_string('maximumupload'), $choices);
         $mform->addHelpButton('maxbytes', 'maximumupload');
         $mform->setDefault('maxbytes', $courseconfig->maxbytes); 
         */
-        // BEGIN UCLA MOD: CCLE-3278-Change-options-on-course-edit-settings-page
         if (has_capability('local/ucla:editadvancedcoursesettings', $coursecontext)) {
             $mform->addElement('select', 'maxbytes', get_string('maximumupload'), $choices);
             $mform->addHelpButton('maxbytes', 'maximumupload');
@@ -370,6 +372,7 @@ class course_edit_form extends moodleform {
         }
 
 //--------------------------------------------------------------------------------
+        // BEGIN UCLA MOD: CCLE-3278-Change-options-on-course-edit-settings-page
         /*
         $mform->addElement('header','', get_string('language'));
 
@@ -379,7 +382,6 @@ class course_edit_form extends moodleform {
         $mform->addElement('select', 'lang', get_string('forcelanguage'), $languages);
         $mform->setDefault('lang', $courseconfig->lang);
         */
-        // BEGIN UCLA MOD: CCLE-3278-Change-options-on-course-edit-settings-page
         if (has_capability('local/ucla:editadvancedcoursesettings', $coursecontext)) {
             $mform->addElement('header','', get_string('language'));
 
