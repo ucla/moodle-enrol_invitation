@@ -486,7 +486,7 @@ if ($mform->is_cancelled()) {
 
         // START UCLA MOD: CCLE-2946 - Uploading resources via Moodle's 
         // "Add a resource" dropdown adds content as public, not private.
-        require_once($CFG->libdir . '/publicprivate/course.class.php');
+        require_once($CFG->libdir . '/publicprivate/module.class.php');
 		$cm = get_coursemodule_from_id('', $fromform->coursemodule, 0, false, MUST_EXIST);
 		if($course->grouppublicprivate == 1){
 			PublicPrivate_Module::build($cm)->enable();
