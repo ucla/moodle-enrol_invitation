@@ -20,6 +20,11 @@ class block_ucla_course_menu extends block_navigation {
         $this->title = get_string('title', $this->blockname);
     }
 
+    //Hide the delete icon, make block undeletable.
+    function user_can_edit() {
+        return false;
+    }
+
     /**
      *  Called by Moodle.
      **/
