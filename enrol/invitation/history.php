@@ -57,13 +57,14 @@ $PAGE->set_heading(get_string('invitehistory', 'enrol_invitation'));
 $PAGE->set_title(get_string('invitehistory', 'enrol_invitation'));
 $PAGE->navbar->add(get_string('invitehistory', 'enrol_invitation'));
 
-//OUTPUT form
-echo $OUTPUT->header();
-
-// OUTPUT page tabs
-print_page_tabs('history');
-
-echo $OUTPUT->heading(get_string('invitehistory', 'enrol_invitation'));
+// Do not display the page if we are going to be redirecting the user
+if ($actionid != invitation_manager::INVITE_RESEND) {
+    // OUTPUT form
+    echo $OUTPUT->header();
+    // OUTPUT page tabs
+    print_page_tabs('history');
+    echo $OUTPUT->heading(get_string('invitehistory', 'enrol_invitation'));
+}
 
 $invitationmanager = new invitation_manager($courseid);
 // course must have invitation plugin installed (will give error if not found)
@@ -85,6 +86,7 @@ if (empty($invites)) {
             print_error('invalidinviteid');
         }
         if ($actionid == invitation_manager::INVITE_REVOKE) {
+            // Set the invite to be expired
             $DB->set_field('enrol_invitation', 'timeexpiration', time()-1, 
                     array('courseid' => $curr_invite->courseid, 'id' => $curr_invite->id) );
             
@@ -93,7 +95,7 @@ if (empty($invites)) {
             echo $OUTPUT->box_end();
             
         } else if ($actionid == invitation_manager::INVITE_EXTEND) {            
-            // Resend invite and resend the email
+            // Resend the invite and email
             $invitationmanager->send_invitations($curr_invite, true);
 
             echo $OUTPUT->box_start('noticebox');
@@ -101,7 +103,7 @@ if (empty($invites)) {
             echo $OUTPUT->box_end();
             
         } else if ($actionid == invitation_manager::INVITE_RESEND) {
-            // Send user to invite form with prefilled data
+            // Send the user to the invite form with prefilled data
             $redirect = new moodle_url('/enrol/invitation/invitation.php', 
                     array('courseid' => $curr_invite->courseid, 'inviteid' => $curr_invite->id));
             redirect($redirect);
