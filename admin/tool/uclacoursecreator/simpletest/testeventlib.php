@@ -60,16 +60,99 @@ class eventlib_test extends UnitTestCaseUsingDatabase {
     }
     
     /**
-     * Test clearing of MyUCLA urls in proper situations 
+     * Test clearing of an existing MyUCLA url.
      */
-    function test_myuclaurls () {
+    function test_existing_myuclaurl () {
+        global $CFG;
+        
         $cc = new uclacoursecreator();
         $myucla_urlupdater = $cc->get_myucla_urlupdater();        
         
-        // situation 1: url exist, is for current server => should clear it
+        // url exist, is for current server => should clear it
         
-        // create url
+        // first create url for course
+        $url_course = array('term' => $this->noncrosslisted[0]['term'],
+                            'srs' => $this->noncrosslisted[0]['srs'],
+                            'url' => $CFG->wwwroot . '/course/view.php?id=' . $this->noncrosslist_course1);
+        $result = $myucla_urlupdater->send_MyUCLA_urls(array($url_course), true); 
+        $this->assertTrue(strpos(array_pop($result), $myucla_urlupdater::expected_success_message));
         
+        // now run delete function
+        $course = new stdClass();
+        $course->id = $this->noncrosslist_course1;        
+        $result = handle_course_deleted($course);
+        $this->assertTrue($result);        
+        
+        // verify that myucla url is deleted
+        $result = $myucla_urlupdater->send_MyUCLA_urls(array($url_course)); 
+        $result = array_pop($result);
+        $this->assertTrue(empty($result));
+    }
+    
+    /**
+     * Test clearing of an existing MyUCLA url for a crosslisted course.
+     */
+    function test_existing_myuclaurl_crosslisted () {
+        global $CFG;
+        
+        $cc = new uclacoursecreator();
+        $myucla_urlupdater = $cc->get_myucla_urlupdater();        
+        
+        // url exist, is for current server => should clear it
+        
+        // first create url for course
+        foreach ($this->crosslisted as $crosslist) {
+            $url_course = array('term' => $crosslist['term'],
+                                'srs' => $crosslist['srs'],
+                                'url' => $CFG->wwwroot . '/course/view.php?id=' . $this->crosslist_course1);
+            $result = $myucla_urlupdater->send_MyUCLA_urls(array($url_course), true); 
+            $this->assertTrue(strpos(array_pop($result), $myucla_urlupdater::expected_success_message));           
+        }
+        
+        // now run delete function
+        $course = new stdClass();
+        $course->id = $this->crosslist_course1;        
+        $result = handle_course_deleted($course);
+        $this->assertTrue($result);        
+        
+        // verify that myucla urls are deleted
+        foreach ($this->crosslisted as $crosslist) {
+            $url_course = array('term' => $crosslist['term'],
+                                'srs' => $crosslist['srs']);
+            $result = $myucla_urlupdater->send_MyUCLA_urls(array($url_course)); 
+            $result = array_pop($result);
+            $this->assertTrue(empty($result));     
+        }
+    }    
+    
+    /**
+     * Test not clearing of an existing MyUCLA url that isn't on current server.
+     */
+    function test_existing_nonlocal_myuclaurl () {
+        global $CFG;
+        
+        $cc = new uclacoursecreator();
+        $myucla_urlupdater = $cc->get_myucla_urlupdater();        
+        
+        // url exist, is for current server => should clear it
+        
+        // first create url for course
+        $url_course = array('term' => $this->noncrosslisted[0]['term'],
+                            'srs' => $this->noncrosslisted[0]['srs'],
+                            'url' => 'http://ucla.edu');
+        $result = $myucla_urlupdater->send_MyUCLA_urls(array($url_course), true); 
+        $this->assertTrue(strpos(array_pop($result), $myucla_urlupdater::expected_success_message));
+        
+        // now run delete function
+        $course = new stdClass();
+        $course->id = $this->noncrosslist_course1;        
+        $result = handle_course_deleted($course);
+        $this->assertTrue($result);        
+        
+        // verify that myucla url is not deleted
+        $result = $myucla_urlupdater->send_MyUCLA_urls(array($url_course)); 
+        $result = array_pop($result);
+        $this->assertEqual($result, $url_course['url']);
     }
     
     // setup/teardown functions
@@ -103,7 +186,7 @@ class eventlib_test extends UnitTestCaseUsingDatabase {
                   'hostcourse' => '1'),
             array('term' => '12F',
                   'srs' => '333333333',
-                  'courseid' => '3',
+                  'courseid' => $this->crosslist_course1,
                   'setid' => '3',
                   'hostcourse' => '0'),
             );

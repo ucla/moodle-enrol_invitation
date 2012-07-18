@@ -55,7 +55,7 @@ function handle_course_deleted($course) {
         $course = array();  // make sure it is clean for each loop
         $course = array('term'  => $ucla_request_class->term, 
                         'srs'   => $ucla_request_class->srs);        
-        
+
         $result = $myucla_urlupdater->send_MyUCLA_urls(array($course));        
         $class_url = array_pop($result);  // returns indexed array    
         
@@ -67,7 +67,7 @@ function handle_course_deleted($course) {
         // 2b) If has urls and they are pointing to the current server, then clear them        
         $course['url'] = '';
         $result = $myucla_urlupdater->send_MyUCLA_urls(array($course), true);        
-        if (false !== strpos(array_pop($result), $myucla_urlupdater::expected_success_message)) {
+        if (false === strpos(array_pop($result), $myucla_urlupdater::expected_success_message)) {
             // has error, track it and continue
             $has_error = true;
         }            
