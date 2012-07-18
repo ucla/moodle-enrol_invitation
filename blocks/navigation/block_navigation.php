@@ -61,10 +61,6 @@ class block_navigation extends block_base {
         $this->title = get_string('pluginname', $this->blockname);
     }
     
-    function user_can_edit() {
-        return false;
-    }
-
     /**
      * All multiple instances of this block
      * @return bool Returns true

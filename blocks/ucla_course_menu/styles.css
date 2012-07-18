@@ -39,6 +39,9 @@
     padding-left:0px;
     padding-right:0px;
 }
+.block_ucla_course_menu .header .commands {
+    display:none;
+}
 
 .block_ucla_course_menu .content .block_tree.list .type_structure,
 .block_ucla_course_menu .content .block_tree.list .type_activity,
