@@ -135,10 +135,7 @@ $sections = get_all_sections($course_id);
 $sectionnames = array();
 $indexed_sections = array();
 
-// if default section is greater than course numsections, default to 0
-if (!isset($defaultsection) || $defaultsection > $course->numsections) {
-    $defaultsection = 0;
-}
+$defaultsection = 0;
 
 foreach ($sections as $section) {
     if ($section->section > $course->numsections) {
