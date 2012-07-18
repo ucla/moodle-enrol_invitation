@@ -753,10 +753,12 @@ function ucla_send_mail($to, $subj, $body='', $header='') {
 
 /**
  *  Sorts a set of terms.
- *  @param  $terms  Array( term, ... )
+ *  @param  $terms          Array( term, ... )
+ *  @param  $descending     Optional parameter to sort with most recent term 
+ *      first.
  *  @return Array( term_in_order, ... )
  **/
-function terms_arr_sort($terms) {
+function terms_arr_sort($terms, $descending = 'false') {
     $ksorter = array();
 
     // enumerate terms
@@ -766,14 +768,18 @@ function terms_arr_sort($terms) {
 
     // sort
     asort($ksorter);
-  
+    
     // denumerate terms
     $sorted = array();
     foreach ($ksorter as $k => $v) {
         $term = $terms[$k];
         $sorted[$term] = $term;
     }
-
+    
+    // sort in descending order
+    if ($descending == 'true') {
+        $sorted = array_reverse($sorted);
+    }
     return $sorted;
 }
 
@@ -1101,9 +1107,11 @@ function has_shared_context($targetid, $viewerid=null) {
  * Returns active terms. Used by course requestor, course creator, and pre-pop 
  * enrollment to see what terms should be processed.
  * 
- * @return array        Returns an array of terms
+ * @param  $descending     Optional parameter to sort active terms with most 
+ *      recent first.
+ * @return array           Returns an array of terms
  */
-function get_active_terms() {
+function get_active_terms($descending = 'false') {
     $ret_val = array();
     
     $terms = get_config('local_ucla', 'active_terms');
@@ -1124,6 +1132,6 @@ function get_active_terms() {
    
     // The weeksdisplay block generates all the terms in correct order
     // But in case this is from a Config file instead
-    return terms_arr_sort($ret_val);
+    return terms_arr_sort($ret_val, $descending);
 }
 // EOF

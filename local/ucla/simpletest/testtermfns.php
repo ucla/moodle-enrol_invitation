@@ -61,6 +61,38 @@ class ucla_term_fn_test extends UnitTestCase {
             $this->assertEqual($ordered_list, array_values($tmp_list));
         }      
     }
+    
+    // EDIT: 07-13-2012
+    // Added an optional parameter to sort descending (most recent first)
+    function test_decreasing_sort() {
+        // Test terms decreasing sort
+        $test_cases[] = array(
+            '11F',  // Newest term on record
+            '111',
+            '11S',
+            '11W'
+        );
+        
+        // Test mixed terms decreasing sort
+        $test_cases[] = array(
+            '12F',  // Newest term on record
+            '121',
+            '12S',
+            '12W',
+            '11F'
+        );
+        
+        foreach ($test_cases as $ordered_list) {
+            $tmp_list = $ordered_list;
+            shuffle($tmp_list);
+            
+            // maybe once in a blue moon this will fail?
+            $this->assertNotEqual($ordered_list, $tmp_list);
+            
+            $tmp_list = terms_arr_sort($tmp_list, true);            
+            $this->assertEqual($ordered_list, array_values($tmp_list));
+        }    
+    }
 
     // A lot of the next_term and prev_term stuff is tested in 
     // block_ucla_weeksdisplay

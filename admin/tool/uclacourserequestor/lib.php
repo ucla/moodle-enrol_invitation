@@ -1206,7 +1206,7 @@ function get_requestor_view_fields() {
     }
     $builtcategories = $DB->get_records('ucla_request_classes', null, 
         'department', 'DISTINCT ' . $prefieldstr);
-	$prefieldsdata = array();
+    $prefieldsdata = array();
     foreach ($builtcategories as $builts) {
         foreach ($prefields as $prefield) {
             $varname = $prefield;
@@ -1214,11 +1214,12 @@ function get_requestor_view_fields() {
             if (!isset($prefieldsdata[$varname])) {
                 $prefieldsdata[$varname] = array();
             }
-
+            
             $prefieldsdata[$varname][$builts->$prefield] = $builts->$prefield;
         }
     }
-
+    
+    $prefieldsdata['term'] = terms_arr_sort($prefieldsdata['term'], true);
     return $prefieldsdata;
 }
 
