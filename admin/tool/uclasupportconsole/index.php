@@ -968,8 +968,8 @@ if ($displayforms) {
     ");
 
     foreach ($results as $k => $result) {
-        $result->delete = html_writer::link(new moodle_url('/admin/user.php',
-            array('delete' => $result->id)), 'Delete');
+        //$result->delete = html_writer::link(new moodle_url('/admin/user.php',
+        //    array('delete' => $result->id)), 'Delete');
 
         $result->view = html_writer::link(new moodle_url('/user/view.php',
             array('id' => $result->id)), 'View');
