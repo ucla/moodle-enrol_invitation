@@ -64,7 +64,17 @@ $mform->set_data($invitationmanager);
 
 $data = $mform->get_data();
 if ($data and confirm_sesskey()) {
-    $invitationmanager->send_invitations($data);
+    
+    // BEGIN UCLA MOD: CCLE-2955-Invite-multiple-users
+    // Check for the invitation of multiple users
+    $delimiters = "/[;, \r\n]/";
+    $email_list = invitations_form::parse_dsv_emails($data->email, $delimiters);
+    
+    foreach ($email_list as $email) {
+        $data->email = $email;
+        $invitationmanager->send_invitations($data);
+    }
+    // END UCLA MOD: CCLE-2955
     
     $courseurl = new moodle_url('/course/view.php', array('id' => $courseid));
     $courseret = new single_button($courseurl, get_string('returntocourse',
