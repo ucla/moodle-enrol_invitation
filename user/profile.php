@@ -299,7 +299,7 @@ profile_display_fields($user->id);
 
 
 if (!isset($hiddenfields['mycourses'])) {
-    if ($mycourses = enrol_get_users_courses($user->id, true, NULL, 'visible DESC,sortorder ASC')) {
+    if ($mycourses = enrol_get_all_users_courses($user->id, true, NULL, 'visible DESC,sortorder ASC')) {
         $shown=0;
         $courselisting = '';
         foreach ($mycourses as $mycourse) {
@@ -377,5 +377,5 @@ echo $OUTPUT->footer();
 
 
 function print_row($left, $right) {
-    echo "\n<tr><td class=\"label c0\">$left</td><td class=\"info c1\">$right</td></tr>\n";
+    echo "\n<tr><th class=\"label c0\">$left</th><td class=\"info c1\">$right</td></tr>\n";
 }

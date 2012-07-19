@@ -17,6 +17,14 @@
     text-align: center;
 }
 
+#uclacourserequestor_requests tbody .warning {
+    font-weight: bold;
+}
+
+#uclacourserequestor_requests tbody .error {
+    color: #c00;
+}
+
 #tool_uclacourserequestor #checkrequests {
     margin-left: 5px;
 }
@@ -28,4 +36,9 @@
 #tool_uclacourserequestor h2.main {
     text-align: left;
     
+}
+
+/** This is currently overpowered by an !important **/
+#uclacourserequestor_requests thead {
+    background-color: #536895;
 }

@@ -281,6 +281,7 @@ if (!$csv) {
         exit;
     }
 
+    print '<div id="completion-progress-wrapper" class="no-overflow">';
     print '<table id="completion-progress" class="generaltable flexible boxaligncenter" style="text-align:left"><tr style="vertical-align:top">';
 
     // User heading / sort option
@@ -387,12 +388,13 @@ foreach($progress as $user) {
             ($activity->completion==COMPLETION_TRACKING_AUTOMATIC ? 'auto' : 'manual').
             '-'.$completiontype;
 
-        $describe=get_string('completion-alt-auto-'.$completiontype,'completion');
+        $modcontext = context_module::instance($activity->id);
+        $describe = get_string('completion-' . $completiontype, 'completion');
         $a=new StdClass;
         $a->state=$describe;
         $a->date=$date;
         $a->user=fullname($user);
-        $a->activity=strip_tags($activity->name);
+        $a->activity = format_string($activity->name, true, array('context' => $modcontext));
         $fulldescribe=get_string('progress-title','completion',$a);
 
         if ($csv) {
@@ -415,6 +417,7 @@ if ($csv) {
     exit;
 }
 print '</table>';
+print '</div>';
 print $pagingbar;
 
 print '<ul class="progress-actions"><li><a href="index.php?course='.$course->id.

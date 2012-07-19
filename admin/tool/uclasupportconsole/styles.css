@@ -1,0 +1,18 @@
+.supportconsole h3,
+.supportconsole h2 {
+    float: left;
+}
+
+.supportconsole .uclaconsole {
+    clear: both;
+    margin-left: 12px;
+}
+
+.supportconsole label {
+    padding-right: 5px;
+    padding-left: 5px;
+}
+
+#log-action-types {
+    list-style-type: none;
+}

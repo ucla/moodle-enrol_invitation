@@ -52,11 +52,6 @@ class enrol_invitation_plugin extends enrol_plugin {
         return array(new pix_icon('invite', get_string('pluginname', 'enrol_invitation'), 'enrol_invitation'));
     }
 
-    public function roles_protected() {
-        // users with role assign cap may tweak the roles later
-        return false;
-    }
-
     public function allow_unenrol(stdClass $instance) {
         // users with unenrol cap may unenrol other users manually - requires enrol/invitation:unenrol
         return true;
@@ -107,17 +102,17 @@ class enrol_invitation_plugin extends enrol_plugin {
     }
     
     /**
-     * Add new instance of enrol plugin.
+     * Ensures existence instance of enrol plugin.
      * @param object $course
      * @param array instance fields
-     * @return int id of new instance, null if can not be created
+     * @return int id of instance, null if can not be created
      */
     public function add_instance($course, array $fields = NULL) {
         global $DB;
 
-        if ($DB->record_exists('enrol', array('courseid'=>$course->id, 'enrol'=>'invitation'))) {
-            // only one instance allowed, sorry
-            return NULL;
+        if ($result = $DB->get_record('enrol', array('courseid'=>$course->id, 'enrol'=>'invitation'))) {
+            // instance already exists, so just give id
+            return $result->id;
         }
 
         return parent::add_instance($course, $fields);

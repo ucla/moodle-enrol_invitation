@@ -126,11 +126,28 @@ class quiz_grading_report extends quiz_default_report {
                     $this->currentgroup, '', false);
         }
 
+        $questionsinquiz = quiz_questions_in_quiz($quiz->questions);
+        $counts = null;
+        if ($slot && $questionsinquiz) {
+            // Make sure there is something to do.
+            $statecounts = $this->get_question_state_summary(array($slot));
+            foreach ($statecounts as $record) {
+                if ($record->questionid == $questionid) {
+                    $counts = $record;
+                    break;
+                }
+            }
+            // If not, redirect back to the list.
+            if (!$counts || $counts->$grade == 0) {
+                redirect($this->list_questions_url(), get_string('alldoneredirecting', 'quiz_grading'));
+            }
+        }
+
         // Start output.
         $this->print_header_and_tabs($cm, $course, $quiz, 'grading');
 
         // What sort of page to display?
-        if (!quiz_questions_in_quiz($quiz->questions)) {
+        if (!$questionsinquiz) {
             echo quiz_no_questions_message($quiz, $cm, $this->context);
 
         } else if (!$slot) {
@@ -138,7 +155,7 @@ class quiz_grading_report extends quiz_default_report {
 
         } else {
             $this->display_grading_interface($slot, $questionid, $grade,
-                    $pagesize, $page, $shownames, $showidnumbers, $order);
+                    $pagesize, $page, $shownames, $showidnumbers, $order, $counts);
         }
         return true;
     }
@@ -313,24 +330,8 @@ class quiz_grading_report extends quiz_default_report {
     }
 
     protected function display_grading_interface($slot, $questionid, $grade,
-            $pagesize, $page, $shownames, $showidnumbers, $order) {
+            $pagesize, $page, $shownames, $showidnumbers, $order, $counts) {
         global $OUTPUT;
-
-        // Make sure there is something to do.
-        $statecounts = $this->get_question_state_summary(array($slot));
-
-        $counts = null;
-        foreach ($statecounts as $record) {
-            if ($record->questionid == $questionid) {
-                $counts = $record;
-                break;
-            }
-        }
-
-        // If not, redirect back to the list.
-        if (!$counts || $counts->$grade == 0) {
-            redirect($this->list_questions_url(), get_string('alldoneredirecting', 'quiz_grading'));
-        }
 
         if ($pagesize * $page >= $counts->$grade) {
             $page = 0;
@@ -454,11 +455,7 @@ class quiz_grading_report extends quiz_default_report {
 
         foreach ($qubaids as $qubaid) {
             foreach ($slots as $slot) {
-                $prefix = 'q' . $qubaid . ':' . $slot . '_';
-                $mark = optional_param($prefix . '-mark', null, PARAM_NUMBER);
-                $maxmark = optional_param($prefix . '-maxmark', null, PARAM_NUMBER);
-                $minfraction = optional_param($prefix . ':minfraction', null, PARAM_NUMBER);
-                if (!is_null($mark) && ($mark < $minfraction * $maxmark || $mark > $maxmark)) {
+                if (!question_behaviour::is_manual_grade_in_range($qubaid, $slot)) {
                     return false;
                 }
             }

@@ -82,8 +82,10 @@ class requestor_view_form extends requestor_shared_form {
             $filters['hostcourse'] = 1;
         }
 
-        $reqs = $DB->get_records('ucla_request_classes', $filters);
+        $reqs = $DB->get_records('ucla_request_classes', $filters,
+            'term, department, course');
 
+        $sets = array();
         foreach ($reqs as $req) {
             $req = get_object_vars($req);
             $set = get_crosslist_set_for_host($req);

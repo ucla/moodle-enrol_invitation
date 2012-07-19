@@ -2000,6 +2000,9 @@ function is_enrolled(context $context, $user = null, $withcapability = '', $only
             $coursecontext->reload_if_dirty();
             if (isset($USER->enrol['enrolled'][$coursecontext->instanceid])) {
                 if ($USER->enrol['enrolled'][$coursecontext->instanceid] > time()) {
+                    if ($withcapability and !has_capability($withcapability, $context, $userid)) {
+                        return false;
+                    }
                     return true;
                 }
             }
@@ -2549,6 +2552,7 @@ function update_capabilities($component = 'moodle') {
         }
     }
     // Add new capabilities to the stored definition.
+    $existingcaps = $DB->get_records_menu('capabilities', array(), 'id', 'id, name');
     foreach ($newcaps as $capname => $capdef) {
         $capability = new stdClass();
         $capability->name         = $capname;
@@ -2559,7 +2563,7 @@ function update_capabilities($component = 'moodle') {
 
         $DB->insert_record('capabilities', $capability, false);
 
-        if (isset($capdef['clonepermissionsfrom']) && in_array($capdef['clonepermissionsfrom'], $storedcaps)){
+        if (isset($capdef['clonepermissionsfrom']) && in_array($capdef['clonepermissionsfrom'], $existingcaps)){
             if ($rolecapabilities = $DB->get_records('role_capabilities', array('capability'=>$capdef['clonepermissionsfrom']))){
                 foreach ($rolecapabilities as $rolecapability){
                     //assign_capability will update rather than insert if capability exists
@@ -4552,7 +4556,7 @@ function role_change_permission($roleid, $context, $capname, $permission) {
  * @property-read string $path path to context, starts with system context
  * @property-read dept $depth
  */
-abstract class context extends stdClass {
+abstract class context extends stdClass implements IteratorAggregate {
 
     /*
      * Google confirms that no other important framework is using "context" class,
@@ -4757,6 +4761,25 @@ abstract class context extends stdClass {
      */
     public function __unset($name) {
         debugging('Can not unset context instance properties!');
+    }
+
+    // ====== implementing method from interface IteratorAggregate ======
+
+    /**
+     * Create an iterator because magic vars can't be seen by 'foreach'.
+     *
+     * Now we can convert context object to array using convert_to_array(),
+     * and feed it properly to json_encode().
+     */
+    public function getIterator() {
+        $ret = array(
+            'id'           => $this->id,
+            'contextlevel' => $this->contextlevel,
+            'instanceid'   => $this->instanceid,
+            'path'         => $this->path,
+            'depth'        => $this->depth
+        );
+        return new ArrayIterator($ret);
     }
 
     // ====== general context methods ======
@@ -5898,12 +5921,24 @@ class context_user extends context {
     protected static function build_paths($force) {
         global $DB;
 
-        // first update normal users
+        // First update normal users.
+        $path = $DB->sql_concat('?', 'id');
+        $pathstart = '/' . SYSCONTEXTID . '/';
+        $params = array($pathstart);
+
+        if ($force) {
+            $where = "depth <> 2 OR path IS NULL OR path <> ({$path})";
+            $params[] = $pathstart;
+        } else {
+            $where = "depth = 0 OR path IS NULL";
+        }
+
         $sql = "UPDATE {context}
                    SET depth = 2,
-                       path = ".$DB->sql_concat("'/".SYSCONTEXTID."/'", 'id')."
-                 WHERE contextlevel=".CONTEXT_USER;
-        $DB->execute($sql);
+                       path = {$path}
+                 WHERE contextlevel = " . CONTEXT_USER . "
+                   AND ($where)";
+        $DB->execute($sql, $params);
     }
 }
 

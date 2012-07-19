@@ -276,6 +276,8 @@ function upgrade_plugins($type, $startcallback, $endcallback, $verbose) {
     $plugs = get_plugin_list($type);
 
     foreach ($plugs as $plug=>$fullplug) {
+        // Reset time so that it works when installing a large number of plugins
+        set_time_limit(600);
         $component = clean_param($type.'_'.$plug, PARAM_COMPONENT); // standardised plugin name
 
         // check plugin dir is valid name
@@ -831,11 +833,12 @@ function log_update_descriptions($component) {
  * @return void
  */
 function external_update_descriptions($component) {
-    global $DB;
+    global $DB, $CFG;
 
     $defpath = get_component_directory($component).'/db/services.php';
 
     if (!file_exists($defpath)) {
+        require_once($CFG->dirroot.'/lib/externallib.php');
         external_delete_descriptions($component);
         return;
     }
@@ -899,6 +902,7 @@ function external_update_descriptions($component) {
     $dbservices = $DB->get_records('external_services', array('component'=>$component));
     foreach ($dbservices as $dbservice) {
         if (empty($services[$dbservice->name])) {
+            $DB->delete_records('external_tokens', array('externalserviceid'=>$dbservice->id));
             $DB->delete_records('external_services_functions', array('externalserviceid'=>$dbservice->id));
             $DB->delete_records('external_services_users', array('externalserviceid'=>$dbservice->id));
             $DB->delete_records('external_services', array('id'=>$dbservice->id));
@@ -990,22 +994,6 @@ function external_update_descriptions($component) {
             $DB->insert_record('external_services_functions', $newf);
         }
     }
-}
-
-/**
- * Delete all service and external functions information defined in the specified component.
- * @param string $component name of component (moodle, mod_assignment, etc.)
- * @return void
- */
-function external_delete_descriptions($component) {
-    global $DB;
-
-    $params = array($component);
-
-    $DB->delete_records_select('external_services_users', "externalserviceid IN (SELECT id FROM {external_services} WHERE component = ?)", $params);
-    $DB->delete_records_select('external_services_functions', "externalserviceid IN (SELECT id FROM {external_services} WHERE component = ?)", $params);
-    $DB->delete_records('external_services', array('component'=>$component));
-    $DB->delete_records('external_functions', array('component'=>$component));
 }
 
 /**

@@ -114,6 +114,11 @@ if ($editform->is_cancelled()) {
         // In creating the course
         $course = create_course($data, $editoroptions);
 
+        // START UCLA MOD CCLE-2389 - update site indicator
+        $data->id = $course->id;    // new course was created
+        siteindicator_manager::update_site($data);
+        // END UCLA MOD CCLE-2389        
+        
         // Get the context of the newly created course
         $context = get_context_instance(CONTEXT_COURSE, $course->id, MUST_EXIST);
 
@@ -136,9 +141,14 @@ if ($editform->is_cancelled()) {
         }
     } else {
         // Save any changes to the files used in the editor
-        update_course($data, $editoroptions);
+        update_course($data, $editoroptions);        
+        // START UCLA MOD CCLE-2389 - update site indicator
+        if (is_collab_site($course)) {
+            siteindicator_manager::update_site($data);
+        }
+        // END UCLA MOD CCLE-2389                
     }
-
+    
     switch ($returnto) {
         case 'category':
         case 'topcat': //redirecting to where the new course was created by default.
