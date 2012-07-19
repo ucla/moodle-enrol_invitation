@@ -1,5 +1,5 @@
 <?php
-
+error_reporting(E_ALL);
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -488,8 +488,16 @@ if ($mform->is_cancelled()) {
         // "Add a resource" dropdown adds content as public, not private.
         require_once($CFG->libdir . '/publicprivate/module.class.php');
 		$cm = get_coursemodule_from_id('', $fromform->coursemodule, 0, false, MUST_EXIST);
-		if($course->grouppublicprivate == 1){
-			PublicPrivate_Module::build($cm)->enable();
+		if($course->enablepublicprivate == 1){
+			//if user select grouping, assign the groupingid, otherwise, set as course default setting
+			if ($fromform->groupingid > 0){
+				$conditions = array('id'=>$cm->id);
+				$DB->set_field('course_modules', 'groupingid', $fromform->groupingid, $conditions);
+				$DB->set_field('course_modules', 'groupmembersonly', 1, $conditions);
+			}
+			else{
+				PublicPrivate_Module::build($cm)->enable();
+			}
 		}
 		// Turn off default grouping for modules that don't provide group mode but only if public/private is off
         elseif($add=='resource' || $add=='glossary' || $add=='label') {
