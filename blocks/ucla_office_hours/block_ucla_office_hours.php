@@ -179,6 +179,7 @@ class block_ucla_office_hours extends block_base {
                 $office_info = $DB->get_record('ucla_officehours', 
                         array('courseid' => $course->id, 'userid' => $user->id));
                 $email_display = $DB->get_record('user', array('id' => $user->id), 'maildisplay')->maildisplay;
+                $instr_website = $DB->get_record('user', array('id' => $user->id), 'url')->url;
                 foreach ($desired_info as $field => $header) {
                     $dest_data = '';
                     if ($field == 'fullname') {
@@ -203,7 +204,15 @@ class block_ucla_office_hours extends block_base {
                                         $innards, null, $link_options)),
                                     array('class' => 'editbutton'));
                         }
-                        $dest_data .= fullname($user);
+                        if (!empty($instr_website)) {
+                            if (strpos($instr_website, 'http://') === false 
+                                    && strpos($instr_website, 'https://') === false) {
+                                $instr_website = 'http://' . $instr_website;
+                            }
+                            $dest_data .= html_writer::link($instr_website, fullname($user));
+                        } else {
+                            $dest_data .= fullname($user);
+                        }
                     } else {
                         $has_alt_email = !empty($office_info->email);
                         /* Determine if we should display the instructor's email:
