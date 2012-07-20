@@ -15,30 +15,25 @@ class collab_handler extends browseby_handler {
         $navbar =& $PAGE->navbar;
 
         $collablibfile = $CFG->dirroot . '/' . $CFG->admin 
-            .'/tool/siteindicator/siteindicatorlib.php';
-
-        require_once($CFG->dirroot . '/' . $CFG->admin . 
-                '/tool/uclasiteindicator/lib.php');
-        
-        // Get YUI searchbox script
-        siteindicator_manager::searchbox_js_require();
+            .'/tool/uclasiteindicator/lib.php';
 
         $collab_cat = false;
 
         $t = '';
         $s = '';
-        
-        // Print the search box
-        $s .= siteindicator_manager::print_collab_searchbox();
 
         if (file_exists($collablibfile)) {
-            // TODO
             
-            return array(false, false);
-        } else {
+            require_once($collablibfile);
+        
+            // Get YUI searchbox script
+            siteindicator_manager::searchbox_js_require();
+
+            // Print the search box
+            $s .= siteindicator_manager::print_collab_searchbox();
+
             $collab_cat = $this->get_collaboration_category();
-            siteindicator_manager::filter_category_tree($collab_cat->categories);
-            $subcats = array();
+            siteindicator_manager::filter_category_tree($collab_cat);
 
             // Check if the category specified is a sub-category
             // of the collaboration category; if so, use that
@@ -56,6 +51,9 @@ class collab_handler extends browseby_handler {
                 $t = get_string('collab_viewin', 'block_ucla_browseby',
                     $collab_subcat->name);
             }
+        } else {
+            // 
+            return array(false, false);
         }
 
         if (!$collab_cat) {
@@ -137,13 +135,28 @@ class collab_handler extends browseby_handler {
    
         $rendercatlist = array();
         foreach ($categorylist as $category) {
-            $rendercatlist[] = html_writer::link(
-                new moodle_url('/blocks/ucla_browseby/view.php',
-                    array('category' => $category->id, 'type' => 'collab')),
-                $category->name
-            );
+            if(!empty($category)) {
+                $rendercatlist[] = html_writer::link(
+                    new moodle_url('/blocks/ucla_browseby/view.php',
+                        array('category' => $category->id, 'type' => 'collab')),
+                    $category->name
+                );
+            }
         }
 
+        // Category heading
+        if(empty($collab_cat->name)) {
+            $title = get_string('collab_allcatsincat', 
+                    'block_ucla_browseby');
+        } else {
+            $title = get_string('collab_catsincat', 
+                    'block_ucla_browseby') . $collab_cat->name;
+        }
+        
+        if(!empty($rendercatlist)) {
+            $s .= $this->heading($title, 3);
+        }
+        
         $s .= block_ucla_browseby_renderer::ucla_custom_list_render(
             $rendercatlist);
 
@@ -151,7 +164,7 @@ class collab_handler extends browseby_handler {
         $list = '';
         if (!empty($courselist)) {
             $title = get_string('collab_coursesincat', 
-                'block_ucla_browseby') . ': ' . $collab_cat->name;
+                'block_ucla_browseby') . $collab_cat->name;
             $data = array();
 
             foreach ($courselist as $course) {
@@ -250,7 +263,7 @@ class collab_handler extends browseby_handler {
 
     function find_category($name, $categories, $field='name') {
         foreach ($categories as $category) {
-            if ($category->{$field} == $name) {
+            if (!empty($category) && $category->{$field} == $name) {
                 return $category;
             } 
            

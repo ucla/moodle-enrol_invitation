@@ -833,43 +833,35 @@ class siteindicator_manager {
     }        
     
     static function filter_category_tree(&$tree) {
-        
-        foreach($tree as &$t) {
-            if(empty($t->category)) {
-                $t->category = null;
-                continue;
-            }
-            self::dig_tree($t);
-        }
+        self::traverse_tree($tree);
     }
     
-    static function dig_tree(&$tree) {
+    static function traverse_tree(&$tree) {
         // Dig into category tree
         if(!empty($tree->categories)) {
             foreach($tree->categories as &$cat) {
-                if(self::dig_tree($cat)) {
-//                    unset($cat);
+                if(!self::traverse_tree($cat)) {
                     $cat = null;
                 }
             }
         }
         
         // Check courses
+        // @todo: preload the collab id's so we don't hit the database recursively..
         if(!empty($tree->courses)) {
+            
+            $hascollab = false;
+
             foreach($tree->courses as &$c) {
-                
                 $collab = siteindicator_site::load($c->id);
-                
                 if(empty($collab) || $collab->property->type == 'test') {
-//                    unset($c);
                     $c = null;
+                } else {
+                    $hascollab = true;
                 }
             }
             
-                    
-            if(count($tree->courses) == 0) {
-                return true;
-            }
+            return $hascollab;
         }
 
     }
@@ -877,17 +869,20 @@ class siteindicator_manager {
     static function searchbox_js_require() {
         global $PAGE, $CFG;
         
-        $rest_url = $CFG->wwwroot . '/tool/uclasiteindicator/rest.php';
+        $rest_url = $CFG->wwwroot . '/admin/tool/uclasiteindicator/rest.php';
+        $course_url = $CFG->wwwroot . '/course/view.php?id=';
         
         $thisdir = '/' . $CFG->admin . '/tool/uclasiteindicator/';
-        $PAGE->requires->js(new moodle_url($thisdir . '/module.js'));
-        $PAGE->requires->js_init_call('M.mod_mymod.init', array($rest_url, 'foo'));
+        $PAGE->requires->js(new moodle_url($thisdir . '/autocomplete.js'));
+        $PAGE->requires->js_init_call('M.collab_autocomplete.init', 
+                array($rest_url, $course_url));
 
     }
     
     static function print_collab_searchbox() {
         $input = html_writer::tag('input', '', array('id' => 'ac_input', 'placeholder' => 'Search for a collaboration site'));
         $out = html_writer::tag('div', $input, array('class' => 'ac-search-div'));
+        
         return $out;
     }
     

@@ -37,8 +37,11 @@ $string['coursesinsubjarea'] = 'Courses in {$a}';
 // Collaborations
 $string['collab_notfound'] = 'No collaboration sites found.';
 $string['collab_notcollab'] = 'This category is not considered a category for collaboration sites.';
-$string['collab_coursesincat'] = 'Sites in this category';
+$string['collab_coursesincat'] = 'Sites in: ';
+$string['collab_catsincat'] = 'Categories in: ';
+$string['collab_nocatsincat'] = 'Available collaboration site categories';
 $string['collab_viewall'] = 'Collaboration sites';
+$string['collab_allcatsincat'] = 'Available collaboration site categories';
 $string['collab_viewin'] = 'Collaboration sites in {$a}';
 $string['collab_nocoursesincat'] = 'No sites were found in this category';
 
