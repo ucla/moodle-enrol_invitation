@@ -369,7 +369,10 @@ if ($uploadform->is_cancelled()) {
         $newmodules = array($sectionid => $newmods);
         block_ucla_rearrange::move_modules_section_bulk($newmodules);
     }
-
+    
+    add_to_log($data->course_id, $data->modulename, 'add', 
+            "/view.php?id=$data->coursemodule", $data->name);
+    
     rebuild_course_cache($course_id);
 }
 
