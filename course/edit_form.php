@@ -54,16 +54,18 @@ class course_edit_form extends moodleform {
 //                    get_string('site_registrar', 'tool_uclasiteindicator'));
         } else {
             $can_edit_sitetype = has_capability('tool/uclasiteindicator:edit', $systemcontext);
-            
-            // either creating a new site or user is in a collab site
-            $mform->addElement('header','uclasiteindicator', get_string('pluginname', 'tool_uclasiteindicator'));
 
             $indicator = null;
             if (!empty($course->id)) {
                 $indicator = siteindicator_site::load($course->id);
+            }            
+            
+            // only display site type info if there is a type and user can edit
+            if ($can_edit_sitetype || !empty($indicator)) {
+                $mform->addElement('header','uclasiteindicator', get_string('pluginname', 'tool_uclasiteindicator'));
             }
             
-            if(!empty($indicator)) {
+            if(!empty($indicator)) {                
                 $indicator_type = '<strong>' . siteindicator_manager::get_types_list($indicator->property->type) . ' '
                         . get_string('site', 'tool_uclasiteindicator') . '</strong>';
                 $mform->addElement('static', 'indicator', get_string('type', 'tool_uclasiteindicator'), 
