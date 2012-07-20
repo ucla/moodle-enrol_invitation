@@ -91,6 +91,8 @@ $string['instructormsg'] =
     '------------------------------------------------------------' . "\n" .
     '{$a}' . "\n\n";
 
+$string['duplicate_emails'] = 'You have specified duplicate emails.';
+
 // invite form strings
 $string['assignrole'] = 'Assign role';
 $string['defaultrole'] = 'Default role assignment';

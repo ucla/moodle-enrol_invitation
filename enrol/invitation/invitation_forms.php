@@ -190,6 +190,15 @@ class invitations_form extends moodleform {
             $errors['email'] = get_string('err_email', 'form');
         }
         
+        // check for duplicate emails
+        $duplicate = array_count_values($email_list);
+        foreach ($duplicate as $val) {
+            if ($val > 1) {
+                $errors['email'] = get_string('duplicate_emails', 'enrol_invitation');
+                break;
+            }
+        }
+        
         return $errors;
     }
     
