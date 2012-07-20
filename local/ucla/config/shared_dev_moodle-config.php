@@ -260,6 +260,11 @@ $CFG->forced_plugin_settings['url']['requiremodintro'] = 0;
 $CFG->forced_plugin_settings['url']['printheading'] = 1;
 $CFG->forced_plugin_settings['url']['display'] = 5; // RESOURCELIB_DISPLAY_OPEN
 
+// Site administration > Blocks > UCLA bruincast
+$CFG->forced_plugin_settings['block_ucla_bruincast']['source_url'] = 'http://www.oid.ucla.edu/help/info/bcastlinks/';
+$CFG->forced_plugin_settings['block_ucla_bruincast']['errornotify_email'] = 'ccle-operations@lists.ucla.edu';
+$CFG->forced_plugin_settings['block_ucla_bruincast']['quiet_mode'] = 1;
+
 // Site administration > Plugins > Licences > Manage licences
 $CFG->sitedefaultlicense = 'tbd';
 
