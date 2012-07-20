@@ -143,7 +143,9 @@ if ($editform->is_cancelled()) {
         // Save any changes to the files used in the editor
         update_course($data, $editoroptions);        
         // START UCLA MOD CCLE-2389 - update site indicator
-        if (is_collab_site($course)) {
+        // CCLE-3402/CCLE-3401 - only update if non-srs course
+        $is_course_site = ucla_map_courseid_to_termsrses($course->id);
+        if (empty($is_course_site)) {
             siteindicator_manager::update_site($data);
         }
         // END UCLA MOD CCLE-2389                
