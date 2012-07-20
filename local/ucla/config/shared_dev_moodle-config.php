@@ -227,7 +227,7 @@ $CFG->autologinguests = true;
 
 // Site administration > Courses > Course default settings
 $CFG->forced_plugin_settings['moodlecourse']['format'] = 'ucla';
-$CFG->forced_plugin_settings['moodlecourse']['maxbytes'] = 1572864000;  // 1.5GB
+$CFG->forced_plugin_settings['moodlecourse']['maxbytes'] = 2147483648;  // 2GB
 // CCLE-2903 - Don't set completion tracking to be course default
 $CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 0;
 
