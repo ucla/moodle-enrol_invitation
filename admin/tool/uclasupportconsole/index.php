@@ -833,7 +833,7 @@ if ($displayforms) {
     $sql .= " GROUP BY c.id, m.id";
     
     $results = $DB->get_records_sql($sql, $params);
-
+    
     $courseshortnames = array();
 
     foreach ($results as $result) {
@@ -847,7 +847,7 @@ if ($displayforms) {
 
         $course_indiv_module_counts[$sn][$mn] += $result->cnt;
     }
-
+    
     $tabledata = array();
     foreach ($course_indiv_module_counts as $courseid => $modulecounts) {
         $rowdata = array(
@@ -864,9 +864,42 @@ if ($displayforms) {
 
         $tabledata[] = $rowdata;
     }
-
+    
+    // Create an array with only the module names: $field
+    $field = array();
+    $tempfield = array();
+    
+    foreach ($tabledata as $tabledatum) {
+        foreach ($tabledatum as $tablef => $tablev) {
+            if ($tablef == 'id') {
+                continue;
+            }
+            
+            if ($tablef == 'course' || $tablef == 'total') {
+                $field[$tablef] = $tablef;
+                continue;
+            }
+            
+            $tempfield[$tablef] = $tablef;
+        }
+    }
+    
+    asort($tempfield);
+    $field = array_merge($field, $tempfield);
+    
+    foreach ($tabledata as & $courses) {
+        $tempfield = $field;
+        // Merge the courses array into the tempfield array.
+        $courses = array_merge($tempfield, $courses);
+        foreach ($courses as $module => & $count) {
+            // If course does not have the module, make its count = 0.
+            if ($module != 'course' && !is_numeric($count)) {
+                $count = NULL;
+            }   
+        }    
+    }
     $sectionhtml .= supportconsole_render_section_shortcut($title,
-        $tabledata, $params);
+             $tabledata, $params);
 
 
 }
