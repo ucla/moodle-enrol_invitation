@@ -33,6 +33,8 @@ require_login();
 $courseid = required_param('courseid', PARAM_INT);
 $courseurl = new moodle_url('/course/view.php', array('id' => $courseid));
 
+$inviteid = optional_param('inviteid', 0, PARAM_INT);
+
 $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 $fullname = $course->fullname;
 $context = get_context_instance(CONTEXT_COURSE, $courseid);
@@ -59,7 +61,23 @@ $invitationmanager = new invitation_manager($courseid);
 // make sure that site has invitation plugin installed
 $instance = $invitationmanager->get_invitation_instance($courseid, true);
 
-$mform = new invitations_form(null, array('courseid' => $courseid));
+// If the user was sent to this page by selecting 'resend invite', then
+// prefill the form with the data used to resend the invite
+$prefilled = array();
+if ($inviteid) {
+    if ( $invite = $DB->get_record('enrol_invitation', array('courseid' => $courseid, 'id' => $inviteid)) ) {
+        $prefilled['roleid'] = $invite->roleid;
+        $prefilled['email'] = $invite->email;
+        $prefilled['subject'] = $invite->subject;
+        $prefilled['message'] = $invite->message;
+        $prefilled['show_from_email'] = $invite->show_from_email;
+        $prefilled['notify_inviter'] = $invite->notify_inviter;
+    } else {
+        print_error('invalidinviteid');
+    }
+}
+
+$mform = new invitations_form(null, array('course' => $course, 'prefilled' => $prefilled));
 $mform->set_data($invitationmanager);
 
 $data = $mform->get_data();

@@ -28,6 +28,15 @@ class invitation_manager {
      * The course id
      */
     var $courseid = null;
+    
+    // For revoking an active invite
+    const INVITE_REVOKE = 1;
+    
+    // For extending the expiration time of an active invite
+    const INVITE_EXTEND = 2;
+    
+    // For resending an expired or revoked invite
+    const INVITE_RESEND = 3;
 
     /**
      *
@@ -70,9 +79,10 @@ class invitation_manager {
      * Send invitation (create a unique token for each of them)
      * @global type $USER
      * @global type $DB
-     * @param type $data 
+     * @param type $data       data processed from the invite form, or an invite
+     * @param bool $resend     resend the invite specified by $data
      */
-    public function send_invitations($data) {
+    public function send_invitations($data, $resend = false) {
         global $DB, $CFG, $COURSE, $SITE, $USER;
 
         if (has_capability('enrol/invitation:enrol', get_context_instance(CONTEXT_COURSE, $data->courseid))) {
@@ -81,31 +91,46 @@ class invitation_manager {
             $course = $DB->get_record('course', array('id' => $data->courseid), '*', MUST_EXIST);            
             
             if (!empty($data->email)) {
-                //create unique token for invitation
-                do {
-                    $token = uniqid();
-                    $existingtoken = $DB->get_record('enrol_invitation', array('token' => $token));                        
-                } while (!empty($existingtoken));
-
+                
+                // Create a new token only if we are not resending an active invite
+                if ($resend) {
+                    $token = $data->token;
+                } else {
+                    //create unique token for invitation
+                    do {
+                        $token = uniqid();
+                        $existingtoken = $DB->get_record('enrol_invitation', array('token' => $token));
+                    } while (!empty($existingtoken));
+                }
+                
                 //save token information in config (token value, course id, TODO: role id)
                 $invitation = new stdClass();
-                $invitation->token = $token;
                 $invitation->email = $data->email;
-                $invitation->roleid = $data->role_group['roleid'];                
-                $invitation->courseid = $data->courseid;    
-                $invitation->tokenused = false;   
+                $invitation->courseid = $data->courseid;
+                $invitation->token = $token;
+                $invitation->tokenused = false;
+                $invitation->roleid = $resend ? $data->roleid : $data->role_group['roleid'];
                 
                 // set time
                 $timesent = time();
                 $invitation->timesent = $timesent;
                 $invitation->timeexpiration = $timesent + 
                         get_config('enrol_invitation', 'enrolperiod');
-
-                $invitation->inviterid = $USER->id;               
-                $invitation->notify_inviter = empty($data->notify_inviter) ? 0 : 1;
-                $invitation->show_from_email = empty($data->show_from_email) ? 0 : 1;                           
                 
-                $invitation->subject = $data->subject;                               
+                // update invite to have the proper timesent/timeexpiration
+                if ($resend) {
+                    $DB->set_field('enrol_invitation', 'timeexpiration', $invitation->timeexpiration, 
+                            array('courseid' => $data->courseid,  'id' => $data->id));
+                    
+                    // Prepend subject heading with a 'Reminder' string
+                    $invitation->subject = get_string('reminder', 'enrol_invitation');
+                }
+                
+                $invitation->subject .= $data->subject;
+
+                $invitation->inviterid = $USER->id;
+                $invitation->notify_inviter = empty($data->notify_inviter) ? 0 : 1;
+                $invitation->show_from_email = empty($data->show_from_email) ? 0 : 1;
                 
                 // construct message: custom (if any) + template
                 $message = '';
@@ -123,13 +148,15 @@ class invitation_manager {
                                 array('token' => $token));
                 $message_params->inviteurl = $inviteurl->out(false);
                 $message_params->supportemail = $CFG->supportemail;
-                $message .= get_string('emailmsgtxt', 'enrol_invitation', $message_params);            
+                $message .= get_string('emailmsgtxt', 'enrol_invitation', $message_params);
 
-                $DB->insert_record('enrol_invitation', $invitation);
-
+                if (!$resend) {
+                    $DB->insert_record('enrol_invitation', $invitation);
+                }
+                
                 // change FROM to be $CFG->supportemail if user has show_from_email off
                 $fromuser = $USER;
-                if (empty($invitation->show_from_email)) {                
+                if (empty($invitation->show_from_email)) {
                     $fromuser = new stdClass();
                     $fromuser->email = $CFG->supportemail;
                     $fromuser->firstname = '';
@@ -143,14 +170,14 @@ class invitation_manager {
                 $contactuser->firstname = '';
                 $contactuser->lastname = '';
                 $contactuser->maildisplay = true;
-                email_to_user($contactuser, $fromuser, $invitation->subject, $message);                
+                email_to_user($contactuser, $fromuser, $invitation->subject, $message);
             }
         } else {
             throw new moodle_exception('cannotsendinvitation', 'enrol_invitation',
                     new moodle_url('/course/view.php', array('id' => $data['courseid'])));
         }
     }
-
+    
     /**
      * Returns status of given invite. 
      * 
@@ -286,6 +313,7 @@ class invitation_manager {
         
         return $ret_val;
     }
+    
 }
 
 /**

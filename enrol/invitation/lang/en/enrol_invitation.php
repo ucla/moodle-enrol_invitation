@@ -30,6 +30,8 @@ $string['pluginname'] = 'Site invitation';
 $string['pluginname_desc'] = 'The site invitation module allows to send invitation by email. These invitations can be used only once. Users clicking on the email link are automatically enrolled.';
 
 // email message strings
+$string['reminder'] = 'Reminder: ';
+
 $string['emailmsghtml'] = 
     'INSTRUCTIONS:'.
     '<hr />'.
@@ -173,6 +175,9 @@ $string['unenrolselfconfirm'] = 'Do you really want to unenroll yourself from co
 
 // after invite sent strings
 $string['invitationsuccess'] = 'Invitation successfully sent';
+$string['revoke_invite_sucess'] = 'Invitation sucessfully revoked';
+$string['extend_invite_sucess'] = 'Invitation sucessfully extended';
+$string['resend_invite_sucess'] = 'Invitation sucessfully resent';
 $string['returntocourse'] = 'Return to course';
 $string['returntoinvite'] = 'Send another invite';
 
@@ -220,6 +225,11 @@ $string['status_invite_used'] = 'Accepted';
 $string['status_invite_revoked'] = 'Revoked';
 $string['status_invite_resent'] = 'Resent';
 $string['status_invite_active'] = 'Active';
+
+// invite action strings
+$string['action_revoke_invite'] = 'Revoke invite';
+$string['action_extend_invite'] = 'Extend invite';
+$string['action_resend_invite'] = 'Resend invite';
 
 // capabilities strings
 $string['invitation:config'] = 'Configure site invitation instances';
