@@ -91,7 +91,7 @@ if (empty($invites)) {
                     array('courseid' => $curr_invite->courseid, 'id' => $curr_invite->id) );
             
             echo $OUTPUT->box_start('noticebox');
-            echo html_writer::tag('h3', get_string('revoke_invite_sucess', 'enrol_invitation'));
+            echo html_writer::tag('span', get_string('revoke_invite_sucess', 'enrol_invitation'));
             echo $OUTPUT->box_end();
             
         } else if ($actionid == invitation_manager::INVITE_EXTEND) {            
@@ -99,7 +99,7 @@ if (empty($invites)) {
             $invitationmanager->send_invitations($curr_invite, true);
 
             echo $OUTPUT->box_start('noticebox');
-            echo html_writer::tag('h3', get_string('extend_invite_sucess', 'enrol_invitation'));
+            echo html_writer::tag('span', get_string('extend_invite_sucess', 'enrol_invitation'));
             echo $OUTPUT->box_end();
             
         } else if ($actionid == invitation_manager::INVITE_RESEND) {
