@@ -356,7 +356,8 @@ if ($displayforms) {
         WHERE FROM_UNIXTIME(time) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND
                 c.id!=:siteid
         GROUP BY date, course 
-        ORDER BY a.id DESC
+        ORDER BY count DESC
+        LIMIT 100
     ", array('siteid' => SITEID));
 
     $sectionhtml .= supportconsole_render_section_shortcut($title, $result);
@@ -384,7 +385,8 @@ if ($displayforms) {
         WHERE FROM_UNIXTIME(time) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND
             c.id!=:siteid
         GROUP BY day, course, a.userid 
-        ORDER BY a.id DESC
+        ORDER BY count DESC
+        LIMIT 100
     ", array('siteid' => SITEID));
     
     $sectionhtml = supportconsole_render_section_shortcut($title, $result);
