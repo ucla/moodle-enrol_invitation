@@ -178,8 +178,9 @@ class block_ucla_office_hours extends block_base {
                 $user_row = array();
                 $office_info = $DB->get_record('ucla_officehours', 
                         array('courseid' => $course->id, 'userid' => $user->id));
-                $email_display = $DB->get_record('user', array('id' => $user->id), 'maildisplay')->maildisplay;
-                $instr_website = $DB->get_record('user', array('id' => $user->id), 'url')->url;
+                $instr = $DB->get_record('user', array('id' => $user->id));
+                $email_display = $instr->maildisplay;
+                $instr_website = $instr->url;
                 foreach ($desired_info as $field => $header) {
                     $dest_data = '';
                     if ($field == 'fullname') {
