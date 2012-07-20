@@ -148,8 +148,8 @@ class block_ucla_office_hours extends block_base {
             $desired_info = array(
                 'fullname' => $title,
                 'email' => get_string('email', 'format_ucla'),                            
-                'office' => get_string('office', 'format_ucla'),
-                'office_hours' => get_string('office_hours', 'format_ucla'),
+                'officelocation' => get_string('office', 'format_ucla'),
+                'officehours' => get_string('office_hours', 'format_ucla'),
                 'phone' => get_string('phone', 'format_ucla'),                            
             );
 
@@ -167,8 +167,6 @@ class block_ucla_office_hours extends block_base {
             // mistaken as another css class for given column
             $table->head = array_values($desired_info);
 
-            //BEGIN UCLA MOD: CCLE-2381 - Update Office Hours and Contact Info
-            
             // Determine if the user is enrolled in the course or is an admin
             // Assuming 'moodle/course:update' is a sufficient capability to 
             // to determine if a user is an admin or not
@@ -176,17 +174,14 @@ class block_ucla_office_hours extends block_base {
             
             foreach ($goal_users as $user) {
                 $user_row = array();
-                $office_info = $DB->get_record('ucla_officehours', 
-                        array('courseid' => $course->id, 'userid' => $user->id));
-                $instr = $DB->get_record('user', array('id' => $user->id));
-                $email_display = $instr->maildisplay;
-                $instr_website = $instr->url;
+                $email_display = $user->maildisplay;
+                $instr_website = $user->url;
                 foreach ($desired_info as $field => $header) {
                     $dest_data = '';
                     if ($field == 'fullname') {
                         if ($editing && $has_capability_edit_office_hours) {
                             //Need to only display the update string for certain users
-                            $update_url = new moodle_url($CFG->wwwroot . '/blocks/ucla_office_hours/officehours.php',
+                            $update_url = new moodle_url('/blocks/ucla_office_hours/officehours.php',
                                             array('courseid' => $course->id, 'editid' => $user->id));
                             $strupdate = get_string('editofficehours', 'format_ucla');
 
@@ -214,45 +209,39 @@ class block_ucla_office_hours extends block_base {
                         } else {
                             $dest_data .= fullname($user);
                         }
-                    } else {
-                        $has_alt_email = !empty($office_info->email);
+                    } else if ($field == 'email') {
+                        $has_alt_email = !empty($user->officeemail);
+                        
                         /* Determine if we should display the instructor's email:
                          * 2 -> Allow only other course members to see my email address
                          * 1 -> Allow everyone to see my email address
                          * 0 -> Hide my email address from everyone
-                         */
+                         */                        
+                        // always display email if an alterative was set
                         $display_email = ($email_display == 2 && $enrolled_or_admin) || 
                                          ($email_display == 1) || 
                                          ($email_display == 0 && $has_alt_email);
-                        // If there is an entry in the database
-                        if ($office_info) {
-                            if ($field == 'email' && $display_email) {
-                                if (!$has_alt_email) {
-                                    // If no email is specified, then use profile email
-                                    $dest_data = $user->$field;
-                                } else {
-                                    // Otherwise, class specific email
-                                    $dest_data = $office_info->email;
-                                }
-                            } else if ($field == 'office') {
-                                $dest_data = $office_info->officelocation;
-                            } else if ($field == 'phone') {
-                                $dest_data = $office_info->phone;
-                            } else if ($field == 'office_hours') {
-                                $dest_data = $office_info->officehours;
-                            }
-                        } else {
-                            if ($field == 'email' && $display_email) {
-                                $dest_data = $user->$field;
-                            }
-                        }
-                    }
+                        
+                        if ($display_email) {
+                            if ($has_alt_email) {
+                                // user has alternative email set, so use that
+                                $dest_data = $user->officeemail;  
+                            } else {
+                                // otherwise use profile email
+                                $dest_data = $user->email;
+                            }                                                      
+                        } // else user does not want their email to display
 
+                    } else {
+                        if (isset($user->$field)) {
+                            $dest_data = $user->$field;
+                        }                        
+                    }
+                        
                     $user_row[$field] = $dest_data;
                 }
                 $table->data[] = $user_row;
             }
-            //END UCLA MOD: CCLE-2381
 
             $instr_info_table .= html_writer::table($table);
         }
