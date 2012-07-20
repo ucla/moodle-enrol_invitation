@@ -39,21 +39,50 @@ foreach ($courses as $course) {
 
 // Create the form for selecting collab sites to reset
 $selectform = new bulkcoursereset_form(NULL, array('course_list' => $course_list));
+
 if ($selectform->is_cancelled()) {
-    
+    // do nothing
 } else if ($data = $selectform->get_data()) {
     
-}
-$selectform->display();
+    // Copied from course/reset.php
+    if (isset($data->selectdefault)) {
+        $_POST = array();
+        $selectform = new bulkcoursereset_form(NULL, array('course_list' => $course_list));
+        $selectform->load_defaults();
 
-// Create the form deletion options
-// Should probably go in the else if() statement above
-$resetform = new course_reset_form();
-if ($resetform->is_cancelled()) {
-    
-} else if ($data = $resetform->get_data()) {
-    print_object($data);
+    } else if (isset($data->deselectall)) {
+        $_POST = array();
+        $selectform = new bulkcoursereset_form(NULL, array('course_list' => $course_list));
+
+    } else {
+        
+        foreach ($data->course_list as $courseid) {
+            $reset_data = $data;
+            unset($reset_data->course_list);
+            $reset_data->reset_start_date_old = $DB->get_record('course', array('id' => $courseid))->startdate;
+            $status = reset_course_userdata($reset_data);
+            
+            $reset_data = array();
+            foreach ($status as $item) {
+                $line = array();
+                $line[] = $item['component'];
+                $line[] = $item['item'];
+                $line[] = ($item['error']===false) ? get_string('ok') : '<div class="notifyproblem">'.$item['error'].'</div>';
+                $reset_data[] = $line;
+            }
+            
+            $table = new html_table();
+            $table->head  = array(get_string('resetcomponent'), get_string('resettask'), get_string('resetstatus'));
+            $table->size  = array('20%', '40%', '40%');
+            $table->align = array('left', 'left', 'left');
+            $table->width = '80%';
+            $table->data  = $reset_data;
+            echo html_writer::table($table);
+        }
+        
+    }
 }
-$resetform->display();
+
+$selectform->display();
 
 echo $OUTPUT->footer();
