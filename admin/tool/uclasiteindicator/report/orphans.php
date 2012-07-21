@@ -44,6 +44,10 @@ if (empty($orphans)) {
     echo html_writer::tag('p', get_string('noorphans', 'tool_uclasiteindicator'));
 } else {
     $table = new html_table();
+    
+    // prepare table sorting functionality
+    $table->id = setup_js_tablesorter('uclasiteindicator_orphan_report');
+    
     $table->attributes['class'] = 'generaltable';
     $table->align = array('left', 'left');
     $table->head = array(get_string('shortname') . ' (' . count($orphans) . ')', get_string('fullname'));

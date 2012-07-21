@@ -159,24 +159,6 @@ function html_table_auto_headers($data) {
     return $table;
 }
 
-function setup_js_tablesorter($tableid=null) {
-    global $PAGE;
-
-    $PAGE->requires->js('/local/ucla/tablesorter/jquery-latest.js');
-    $PAGE->requires->js('/local/ucla/tablesorter/jquery.tablesorter.js');
-    $PAGE->requires->css('/local/ucla/tablesorter/themes/blue/style.css');
-
-    if (!$tableid) {
-        $tableid = uniqid();
-    }
-
-    $PAGE->requires->js_init_code('$(document).ready(function() { $("#' 
-        . $tableid . '").addClass("tablesorter").tablesorter('
-        . '{widgets: ["zebra"]}); });');
-
-    return $tableid;
-}
-
 /**
  *  Used when you want to display a title and a table.
  **/

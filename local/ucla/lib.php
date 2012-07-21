@@ -1134,4 +1134,33 @@ function get_active_terms($descending = 'false') {
     // But in case this is from a Config file instead
     return terms_arr_sort($ret_val, $descending);
 }
+
+/**
+ * Sets up the JQuery plugin to sort a given table.
+ *  
+ * @global object $PAGE
+ * 
+ * @param string $tableid   Optional. If entered, will be used to associate 
+ *                          which table to enable sorting. If not passed will
+ *                          generate a unique id number.
+ * @return string           Returns table id, either the one passed in or the
+ *                          one auto-generated.
+ */
+function setup_js_tablesorter($tableid=null) {
+    global $PAGE;
+
+    $PAGE->requires->js('/local/ucla/tablesorter/jquery-latest.js');
+    $PAGE->requires->js('/local/ucla/tablesorter/jquery.tablesorter.js');
+    $PAGE->requires->css('/local/ucla/tablesorter/themes/blue/style.css');
+
+    if (!$tableid) {
+        $tableid = uniqid();
+    }
+
+    $PAGE->requires->js_init_code('$(document).ready(function() { $("#' 
+        . $tableid . '").addClass("tablesorter").tablesorter('
+        . '{widgets: ["zebra"]}); });');
+
+    return $tableid;
+}
 // EOF

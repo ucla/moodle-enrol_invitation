@@ -39,6 +39,10 @@ echo $OUTPUT->heading(get_string('sitetypes', 'tool_uclasiteindicator'), 2, 'hea
 echo html_writer::link($baseurl . '/index.php', get_string('back', 'tool_uclasiteindicator'));
 
 $table = new html_table();
+    
+// prepare table sorting functionality
+$table->id = setup_js_tablesorter('uclasiteindicator_sitetypes_report');
+    
 $table->attributes['class'] = 'generaltable';
 $table->align = array('left', 'left', 'left');
 $table->head = array(get_string('type', 'tool_uclasiteindicator'), 
