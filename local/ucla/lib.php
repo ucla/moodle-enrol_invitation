@@ -755,10 +755,10 @@ function ucla_send_mail($to, $subj, $body='', $header='') {
  *  Sorts a set of terms.
  *  @param  $terms          Array( term, ... )
  *  @param  $descending     Optional parameter to sort with most recent term 
- *      first.
+ *                          first.
  *  @return Array( term_in_order, ... )
  **/
-function terms_arr_sort($terms, $descending = 'false') {
+function terms_arr_sort($terms, $descending = false) {
     $ksorter = array();
 
     // enumerate terms
@@ -777,8 +777,8 @@ function terms_arr_sort($terms, $descending = 'false') {
     }
     
     // sort in descending order
-    if ($descending == 'true') {
-        $sorted = array_reverse($sorted);
+    if ($descending == true) {
+        $sorted = array_reverse($sorted, true);
     }
     return $sorted;
 }
