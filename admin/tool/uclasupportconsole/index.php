@@ -832,7 +832,8 @@ if ($displayforms) {
         $params['subjarea'] = $subjarea;    
     }    
     
-    $sql .= " GROUP BY c.id, m.id";
+    $sql .= " GROUP BY c.id, m.id
+             ORDER BY c.shortname";
     
     $results = $DB->get_records_sql($sql, $params);
     
