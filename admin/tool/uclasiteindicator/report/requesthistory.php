@@ -31,6 +31,9 @@ $PAGE->set_pagelayout('admin');
 // Prepare and load Moodle Admin interface
 admin_externalpage_setup('uclasiteindicator');
 
+// prepare table sorting functionality
+$tableid = setup_js_tablesorter('uclasiteindicator_requesthistory_report');
+
 // Render page
 echo $OUTPUT->header();
 
@@ -44,10 +47,7 @@ if (empty($history)) {
     echo html_writer::tag('p', get_string('norequesthistory', 'tool_uclasiteindicator'));
 } else {
     $table = new html_table();
-    
-    // prepare table sorting functionality
-    $table->id = setup_js_tablesorter('uclasiteindicator_requesthistory_report');
-    
+    $table->id = $tableid;    
     $table->attributes['class'] = 'generaltable';
     $table->head = array(get_string('type', 'tool_uclasiteindicator') . ' (' . 
         count($history) . ')', get_string('category'), 
