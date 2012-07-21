@@ -311,22 +311,29 @@ if ($modify_coursemenu_form->is_cancelled()) {
     }
     
     // BEGIN UCLA MOD: CCLE-3273-Carry-over-previously-viewed-topic
-    
+    $move_to_landingpage = false;
     // Remove sections that were deleted
     $pos1 = array_keys($unserialized);
     $rm_delete = preg_grep("/delete-[0-9]/", $pos1);
     foreach ($rm_delete as $key => $val) {
+        if ($key == $topic) {
+            $move_to_landingpage = true;
+        }
         unset($pos1[$key]);
         unset($pos1[$key-1]);
     }
     $pos2 = array_values($pos1);
     
-    // If we are on 'Site info' or 'Show all', then stay on the same topic since
-    // these topics will never move
-    // Otherwise, if we are on a topic that can be moved, find where the topic
-    // could possibly have moved to
-    $new_topic = ($topic == 0 || $topic == -2) ? $topic : array_search("title-$topic", $pos2) + 1;
-    
+    if ($move_to_landingpage) {
+        // If the section we are on was deleted, then move to the landing page
+        $newtopic = UCLA_FORMAT_DISPLAY_LANDING;
+    } else {
+        // If we are on 'Site info' or 'Show all', then stay on the same topic
+        // because these topics will never move
+        // Otherwise, if we are on a topic that can be moved, determine where 
+        // the topic could possibly have moved to
+        $new_topic = ($topic == 0 || $topic == UCLA_FORMAT_DISPLAY_ALL) ? $topic : array_search("title-$topic", $pos2) + 1;
+    }
     $confirmationurl = new moodle_url($PAGE->url,
     array(
             'courseid' => $courseid, 
