@@ -14,12 +14,18 @@ class bulkcoursereset_form extends course_reset_form {
         $mform = $this->_form;
         
         $course_list = $this->_customdata['course_list'];
+        $course_selected = $this->_customdata['course_selected'];
         
         $mform->addElement('header', 'header_selectcourse', 
                 get_string('header_selectcourse', 'tool_uclabulkcoursereset'));
         
         $mform->addElement('select', 'course_list', 
                 get_string('course_select', 'tool_uclabulkcoursereset'), $course_list, array('multiple' => 'multiple'));
+        $mform->addRule('course_list', get_string('missing_course_select', 'tool_uclabulkcoursereset'), 'required');
+        
+        if (!empty($course_selected)) {
+            $mform->setDefault('course_list', $course_selected);
+        }
         
         parent::definition();
     }

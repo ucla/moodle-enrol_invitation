@@ -38,21 +38,25 @@ foreach ($courses as $course) {
 }
 
 // Create the form for selecting collab sites to reset
-$selectform = new bulkcoursereset_form(NULL, array('course_list' => $course_list));
+$selectform = new bulkcoursereset_form(NULL, array('course_list' => $course_list, 'course_selected' => NULL));
 
 if ($selectform->is_cancelled()) {
-    // do nothing
+    // do nothing?
+    //$redirect = new moodle_url('/my');
+    //redirect($redirect);
 } else if ($data = $selectform->get_data()) {
     
-    // Copied from course/reset.php
+    // Copied and modified from course/reset.php
     if (isset($data->selectdefault)) {
         $_POST = array();
-        $selectform = new bulkcoursereset_form(NULL, array('course_list' => $course_list));
+        $selectform = new bulkcoursereset_form(NULL, 
+                array('course_list' => $course_list, 'course_selected' => $data->course_list));
         $selectform->load_defaults();
 
     } else if (isset($data->deselectall)) {
         $_POST = array();
-        $selectform = new bulkcoursereset_form(NULL, array('course_list' => $course_list));
+        $selectform = new bulkcoursereset_form(NULL, 
+                array('course_list' => $course_list, 'course_selected' => NULL));
 
     } else {
         
@@ -79,6 +83,9 @@ if ($selectform->is_cancelled()) {
             $table->data  = $reset_data;
             echo html_writer::table($table);
         }
+        echo $OUTPUT->continue_button('/admin/tool/uclabulkcoursereset/index.php');
+        echo $OUTPUT->footer();
+        exit;
         
     }
 }
