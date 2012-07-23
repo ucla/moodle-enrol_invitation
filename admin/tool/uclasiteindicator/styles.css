@@ -53,16 +53,21 @@
 #ac_input {
     width: 720px;
 }
+.ac-search-wrapper {
+    border: 1px solid #DDD;
+    float: left;
+}
 .ac-search-div {
     width: 100%;
     padding: 0 20px;
-    padding-bottom: 10px;
+    margin-bottom: 20px;
+    float: left;
 }
 .yui3-aclist-input {
     font-size: 16px;
     color: #555555;
     padding: 6px;
-    border: 1px solid #DDD;
+    border: 4px solid #EEE;
 }
 
 .yui3-aclist-item {

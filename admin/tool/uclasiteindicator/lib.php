@@ -833,32 +833,43 @@ class siteindicator_manager {
     }        
     
     static function filter_category_tree(&$tree) {
-        self::traverse_tree($tree);
+        global $DB;
+       
+        $recs = $DB->get_records_select('ucla_siteindicator', 'type <> "test"',
+                null, '', 'courseid');
+        
+        $ids = array();
+        
+        foreach($recs as $r) {
+            $ids[] = $r->courseid;
+        }
+        
+        self::traverse_tree($tree, $ids);
     }
     
-    static function traverse_tree(&$tree) {
+    static function traverse_tree(&$tree, &$ids) {
         // Dig into category tree
         if(!empty($tree->categories)) {
             foreach($tree->categories as &$cat) {
-                if(!self::traverse_tree($cat)) {
+                if(!self::traverse_tree($cat, $ids)) {
                     $cat = null;
                 }
             }
         }
         
         // Check courses
-        // @todo: preload the collab id's so we don't hit the database recursively..
         if(!empty($tree->courses)) {
             
             $hascollab = false;
 
             foreach($tree->courses as &$c) {
-                $collab = siteindicator_site::load($c->id);
-                if(empty($collab) || $collab->property->type == 'test') {
-                    $c = null;
-                } else {
+                
+                if(in_array($c->id, $ids)) {
                     $hascollab = true;
+                } else {
+                    $c = null;
                 }
+                
             }
             
             return $hascollab;
@@ -881,7 +892,8 @@ class siteindicator_manager {
     
     static function print_collab_searchbox() {
         $input = html_writer::tag('input', '', array('id' => 'ac_input', 'placeholder' => 'Search for a collaboration site'));
-        $out = html_writer::tag('div', $input, array('class' => 'ac-search-div'));
+        $wrapper = html_writer::tag('div', $input, array('class' => 'ac-search-wrapper'));
+        $out = html_writer::tag('div', $wrapper, array('class' => 'ac-search-div'));
         
         return $out;
     }
