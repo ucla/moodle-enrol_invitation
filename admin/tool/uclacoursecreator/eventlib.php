@@ -98,8 +98,8 @@ function move_site_menu_block($course) {
             array('blockname' => 'ucla_course_menu', 
                   'parentcontextid' => $context->__get('id')));
     if (!empty($block_instance)) {
-        $ucla_course_menu = block_instance('ucla_course_menu', $block_instance->id);
-        $ucla_course_menu->set_default_location();
+        // calling block_instance will call set_default_location()
+        $ucla_course_menu = block_instance('ucla_course_menu', $block_instance);
     }
 
     return true;
