@@ -405,6 +405,21 @@ class block_ucla_course_menu extends block_navigation {
     }    
     
     /**
+     * Makes sure that the course menu block is in the top, left of the page.
+     */
+    function set_default_location() {
+        global $DB;        
+        // make sure that the block is in the top, left
+        if ($this->instance->defaultregion != BLOCK_POS_LEFT ||
+                $this->instance->defaultweight != -10) {
+            // block is not in proper location, so set it
+            $this->instance->defaultregion = BLOCK_POS_LEFT;            
+            $this->instance->defaultweight = -10;
+            $DB->update_record('block_instances', $this->instance);             
+        }
+    }
+    
+    /**
      * Set block defaults for trimlength and trimmode 
      */
     function specialization() {        
@@ -419,10 +434,12 @@ class block_ucla_course_menu extends block_navigation {
             // if this is the first time loading the block, then use default trimlength
             $this->config->trimmode = get_config('block_ucla_course_menu', 'trimmode');
             $set_defaults = true;
-        }        
+        }                
         if (!empty($set_defaults)) {
             $this->instance_config_commit();            
         }        
+        
+        $this->set_default_location();        
     }
     
 }
