@@ -65,5 +65,5 @@ $string['choosecopyright_helpicon'] = '<a title="Help with Copyright Status" hre
 $string['choosecopyright'] = 'Copyright status ' . $string['choosecopyright_helpicon'];
 
 // capability strings
-$string['ucla:assign_all'] = 'CCLE-2530: Users with this capability to see the entire user database when assigning roles';
-$string['ucla:editadvancedcoursesettings'] = 'CCLE-3278: Users without this capability cannot edit the course settings for category, format, maximum upload size, or language defaults';
+$string['ucla:assign_all'] = 'CCLE-2530: Can see the entire user database when assigning roles';
+$string['ucla:editadvancedcoursesettings'] = 'CCLE-3278: Can edit the course settings for category, format, maximum upload size, or language defaults';
