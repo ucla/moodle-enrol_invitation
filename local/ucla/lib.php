@@ -224,9 +224,14 @@ function make_idnumber($courseinfo) {
  **/
 function ucla_map_courseid_to_termsrses($courseid) {
     global $DB;
-
-    return $DB->get_records('ucla_request_classes', 
-        array('courseid' => $courseid), '', 'id, term, srs, hostcourse');
+    static $_cached_results = array();
+    
+    if (!isset($_cached_results[$courseid])) {
+        $_cached_results[$courseid] = $DB->get_records('ucla_request_classes', 
+            array('courseid' => $courseid), '', 'id, term, srs, hostcourse');
+    }
+    
+    return $_cached_results[$courseid];
 }
 
 /**
