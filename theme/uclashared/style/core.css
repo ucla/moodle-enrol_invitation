@@ -14,13 +14,6 @@
  
 .errorcode {display:none}
 
-.userenrolment tbody td {
-    border-right: 1px solid #dddddd;
-    
-    padding-left: 3pt;
-    padding-right: 3pt;
-}
-
 table.userenrolment  {
     margin-top: 20px;
     border-collapse: collapse;
@@ -36,12 +29,10 @@ table.userenrolment  {
     -moz-border-radius: 4px;
     border-radius: 4px;
 }
-
 table.userenrolment thead {
     background: #EFEFEF;
     color: #666;
 }
-
 table.userenrolment th, 
 table.userenrolment td {
     padding: 8px;
@@ -49,12 +40,18 @@ table.userenrolment td {
     text-align: left;
     vertical-align: top;
 }
-
 table.userenrolment tbody tr:nth-child(odd) td,
 table.userenrolment tbody tr:nth-child(odd) th {
   background-color: #f9f9f9;
 }
-
 table.userenrolment tbody td span {
     margin-right: 10px;
+}
+table.userenrolment tbody td {
+    border-right: 1px solid #dddddd;    
+    padding-left: 3pt;
+    padding-right: 3pt;
+}
+table.userenrolment tbody td.lastcol {
+    border-right: none;
 }
