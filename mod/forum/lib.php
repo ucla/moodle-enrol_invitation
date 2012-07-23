@@ -2996,15 +2996,12 @@ function forum_get_course_forum($courseid, $type) {
     $publicprivatelib = $CFG->libdir . '/publicprivate/module.class.php';
     if (file_exists($publicprivatelib)) {
         require_once($publicprivatelib);
-
-        $ppc = new PublicPrivate_Course($courseid);
-        if ($ppc->is_activated()) {
+        if (PublicPrivate_Course::build($courseid)->is_activated()) {
             $mod->id = $mod->coursemodule;
-            $ppm = new PublicPrivate_Module($mod->coursemodule);
-            $ppm->enable();
+            PublicPrivate_Module::build($mod->coursemodule)->enable();
         }
     }
-    // END UCLA MOD
+    // END UCLA MOD CCLE-3101
 
     include_once("$CFG->dirroot/course/lib.php");
     rebuild_course_cache($courseid);

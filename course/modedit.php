@@ -485,23 +485,16 @@ if ($mform->is_cancelled()) {
 
         // START UCLA MOD: CCLE-2946 - Uploading resources via Moodle's 
         // "Add a resource" dropdown adds content as public, not private.
-        require_once($CFG->libdir . '/publicprivate/module.class.php');
-		$cm = get_coursemodule_from_id('', $fromform->coursemodule, 0, false, MUST_EXIST);
-		if($course->enablepublicprivate == 1){
-			//if user select grouping, assign the groupingid, otherwise, set as course default setting
-			if ($fromform->groupingid > 0){
-				$conditions = array('id'=>$cm->id);
-				$DB->set_field('course_modules', 'groupingid', $fromform->groupingid, $conditions);
-				$DB->set_field('course_modules', 'groupmembersonly', 1, $conditions);
-			}
-			else{
-				PublicPrivate_Module::build($cm)->enable();
-			}
-		}
-		// Turn off default grouping for modules that don't provide group mode but only if public/private is off
-        elseif($add=='resource' || $add=='glossary' || $add=='label') {
-			PublicPrivate_Module::build($cm)->disable();
-		}
+        $publicprivatelib = $CFG->libdir . '/publicprivate/module.class.php';
+        if (file_exists($publicprivatelib)) {        
+            require_once($publicprivatelib);
+            if (PublicPrivate_Course::build($course)->is_activated()){
+                // If grouping isn't choosen, then default to public/private group
+                if (empty($fromform->groupingid)){
+                    PublicPrivate_Module::build($fromform->coursemodule)->enable();
+                }
+            }
+        }
         // END UCLA MOD: CCLE-2946
 
         // Set up conditions
