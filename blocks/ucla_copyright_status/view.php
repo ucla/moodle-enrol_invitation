@@ -29,8 +29,13 @@ set_editing_mode_button();
 
 echo $OUTPUT->header();
 
-$filter = optional_param('filter_copyright', $CFG->sitedefaultlicense, PARAM_TEXT); 
-display_copyright_status_contents($courseid, isset($filter)?$filter:'all');
+if (has_capability('moodle/course:update', $context)){
+	$filter = optional_param('filter_copyright', $CFG->sitedefaultlicense, PARAM_TEXT); 
+	display_copyright_status_contents($courseid, isset($filter)?$filter:'all');
+}
+else{
+	print_error('permission_not_allow', 'block_ucla_copyright_status');
+}
 
 
 echo $OUTPUT->footer();

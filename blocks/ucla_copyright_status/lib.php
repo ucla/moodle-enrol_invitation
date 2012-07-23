@@ -94,8 +94,7 @@ function calculate_copyright_status_statistics($filelist){
 
 function get_file_ids($fileid){
 	global $DB;
-	$sql_get_contenthash = "SELECT f.id, f.contenthash FROM {files} f WHERE f.id = ".$fileid;
-	$res_contenthash = $DB->get_records_sql($sql_get_contenthash);
+	$res_contenthash = $DB->get_records('files', array('id'=>$fileid), null, 'id, contenthash');
 	$sql_get_fileids = "SELECT f.id FROM {files} f where f.contenthash = '".$res_contenthash[$fileid]->contenthash ."'";
 	return $DB->get_records_sql($sql_get_fileids); // array of file ids with the same contenthash
 }
@@ -114,12 +113,11 @@ function update_copyright_status($data){
 		$id = trim($a[1]);
 		$value = trim($value);
 		if (isset($id)){
-			$id_array = array();// stored file id with same contenthash
 			$id_array_with_same_contenthash = get_file_ids($id);
 			// loop through all files with same contenthash
 			foreach ($id_array_with_same_contenthash as $fid => $other){
 				$params = array('id'=>$fid, 'license'=>$value, 'timemodified'=>time(), 'author'=>trim($USER->lastname).", ".trim($USER->firstname));
-				$DB->update_record_raw('files', $params);
+				$DB->update_record('files', $params);
 			} 
 		}
 	}
@@ -164,8 +162,7 @@ function display_copyright_status_contents($courseid, $filter){
 	foreach($license_options as $k=>$v){
 		if ($k != 'all'){
 			$stat_count = isset($stat_array[$k])?$stat_array[$k]:0;
-			$stat_count = isset($stat_array[$k])?$stat_array[$k]:0;
-			echo html_writer::tag('li', $v.':'.html_writer::start_tag('span', array('class'=>'block_ucla_copyright_status_stat_num')).'('.$stat_count.'/'.$stat_array['total'].', '.number_format($stat_count*100/$stat_array['total'],0,'','').'%)'.html_writer::end_tag('span'));
+			echo html_writer::tag('li', $v.':'.html_writer::start_tag('span', array('class'=>'block-ucla-copyright-status-stat-num')).'('.$stat_count.'/'.$stat_array['total'].', '.number_format($stat_count*100/$stat_array['total'],0,'','').'%)'.html_writer::end_tag('span'));
 		}
 	}
 	echo html_writer::end_tag('ul');
@@ -209,8 +206,6 @@ function display_copyright_status_contents($courseid, $filter){
 	echo html_writer::end_tag('form');
 
 	// display save changes button
-   // $bt_options['action'] = 'edit';
-	//echo $OUTPUT->render(new single_button(new moodle_url($url, $bt_options), get_string('save_button', 'block_ucla_copyright_status'), 'form_copyright_status_list'));
 	if (count($course_copyright_status_list)>0){
 		echo "<input type='button' id ='block_ucla_copyright_status_btn1' value='save changes'>";
 		echo html_writer::start_tag('span', array('id'=>'block_ucla_copyright_status_changes_saved'));

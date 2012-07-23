@@ -28,23 +28,5 @@ class block_ucla_copyright_status extends block_base {
 
         return new moodle_url($CFG->wwwroot . '/blocks/ucla_copyright_status/view.php', array('courseid' => $courseid));
     }
-
-    public function get_content(){
-        if ($this->content !== null) {
-            return $this->content;
-        }
-
-        $this->content = new stdClass;
-
-        return $this->content;        
-        
-        if (!isset($this->course)) {
-            global $COURSE;
-            $this->course = $COURSE;
-        }
-
-        return get_action_link($this->course);
-    }
-   
 }
 
