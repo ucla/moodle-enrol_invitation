@@ -39,8 +39,6 @@ $to_topic = null;
 // Use $displaysection when figuring out which section the user is viewing
 list($to_topic, $displaysection) = ucla_format_figure_section($course, $course_prefs);
 
-course_set_display($course->id, $to_topic);
-
 // Leave in marker functionality, this isn't really used except visually
 // TODO maybe use it for other stuff
 if (($marker >= 0) 
