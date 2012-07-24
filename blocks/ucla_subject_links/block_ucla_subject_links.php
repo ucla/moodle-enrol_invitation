@@ -32,31 +32,6 @@ class block_ucla_subject_links extends block_base {
      * Use UCLA Course menu block hook
      */
     public function get_navigation_nodes($course) {
-        /*// get global variables
-        global $DB, $COURSE;
-
-        $nodes = array();
-        $links = array();        
-        
-        $reserves = $DB->get_records('ucla_library_reserves', 
-                array('courseid' => $COURSE->id));
-
-        // if only one entry was found, then just give the name "Library reserves"
-        $lr_string = get_string('title', 'block_ucla_library_reserves');        
-        if (count($reserves) == 1) {
-            $link = array_pop($reserves);
-            $nodes[] = navigation_node::create($lr_string,
-                            new moodle_url($link->url));            
-        } else {
-            // else display link with subj_area and coursenum appended
-            foreach ($reserves as $reserve) {
-                $nodes[] = navigation_node::create(sprintf('%s %s %s', 
-                        $lr_string, $reserve->department_code, 
-                        $reserve->course_number), 
-                        new moodle_url($reserve->url));                 
-            }            
-        }
-        */
         global $CFG;
         $location = $CFG->dirroot . '/blocks/ucla_subject_links/content/';
         $subjname = subject_exist($course, $location);
