@@ -385,7 +385,7 @@ class course_handler extends browseby_handler {
             }
 
             $name = html_writer::link(new moodle_url($userurl),
-                $name);
+                $name, array('target' => '_blank'));
         } 
 
         return $name;

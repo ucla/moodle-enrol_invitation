@@ -88,4 +88,3 @@ class uclacoursecreator_test extends UnitTestCaseUsingDatabase {
         $this->uclacoursecreator = null;
     }    
 }
-?>

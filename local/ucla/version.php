@@ -15,6 +15,6 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 // Version         YYYYMMDDVV
-$plugin->version = 2012070600;
+$plugin->version = 2012071000;
 $plugin->component = 'local_ucla';
 $plugin->cron = 86400;  // every 24 hours

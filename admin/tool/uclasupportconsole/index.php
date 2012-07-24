@@ -356,7 +356,8 @@ if ($displayforms) {
         WHERE FROM_UNIXTIME(time) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND
                 c.id!=:siteid
         GROUP BY date, course 
-        ORDER BY a.id DESC
+        ORDER BY count DESC
+        LIMIT 100
     ", array('siteid' => SITEID));
 
     $sectionhtml .= supportconsole_render_section_shortcut($title, $result);
@@ -384,7 +385,8 @@ if ($displayforms) {
         WHERE FROM_UNIXTIME(time) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND
             c.id!=:siteid
         GROUP BY day, course, a.userid 
-        ORDER BY a.id DESC
+        ORDER BY count DESC
+        LIMIT 100
     ", array('siteid' => SITEID));
     
     $sectionhtml = supportconsole_render_section_shortcut($title, $result);
@@ -830,10 +832,11 @@ if ($displayforms) {
         $params['subjarea'] = $subjarea;    
     }    
     
-    $sql .= " GROUP BY c.id, m.id";
+    $sql .= " GROUP BY c.id, m.id
+             ORDER BY c.shortname";
     
     $results = $DB->get_records_sql($sql, $params);
-
+    
     $courseshortnames = array();
 
     foreach ($results as $result) {
@@ -847,7 +850,7 @@ if ($displayforms) {
 
         $course_indiv_module_counts[$sn][$mn] += $result->cnt;
     }
-
+    
     $tabledata = array();
     foreach ($course_indiv_module_counts as $courseid => $modulecounts) {
         $rowdata = array(
@@ -864,9 +867,42 @@ if ($displayforms) {
 
         $tabledata[] = $rowdata;
     }
-
+    
+    // Create an array with only the module names: $field
+    $field = array();
+    $tempfield = array();
+    
+    foreach ($tabledata as $tabledatum) {
+        foreach ($tabledatum as $tablef => $tablev) {
+            if ($tablef == 'id') {
+                continue;
+            }
+            
+            if ($tablef == 'course' || $tablef == 'total') {
+                $field[$tablef] = $tablef;
+                continue;
+            }
+            
+            $tempfield[$tablef] = $tablef;
+        }
+    }
+    
+    asort($tempfield);
+    $field = array_merge($field, $tempfield);
+    
+    foreach ($tabledata as & $courses) {
+        $tempfield = $field;
+        // Merge the courses array into the tempfield array.
+        $courses = array_merge($tempfield, $courses);
+        foreach ($courses as $module => & $count) {
+            // If course does not have the module, make its count = 0.
+            if ($module != 'course' && !is_numeric($count)) {
+                $count = NULL;
+            }   
+        }    
+    }
     $sectionhtml .= supportconsole_render_section_shortcut($title,
-        $tabledata, $params);
+             $tabledata, $params);
 
 
 }
@@ -968,8 +1004,8 @@ if ($displayforms) {
     ");
 
     foreach ($results as $k => $result) {
-        $result->delete = html_writer::link(new moodle_url('/admin/user.php',
-            array('delete' => $result->id)), 'Delete');
+        //$result->delete = html_writer::link(new moodle_url('/admin/user.php',
+        //    array('delete' => $result->id)), 'Delete');
 
         $result->view = html_writer::link(new moodle_url('/user/view.php',
             array('id' => $result->id)), 'View');
