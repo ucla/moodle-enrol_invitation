@@ -6,4 +6,4 @@ $string['header_resetcourses'] = 'Reset courses';
 $string['course_select'] = 'Select courses to reset';
 $string['missing_course_select'] = 'No courses were selected';
 
-$string['tool/uclabulkcoursereset:edit'] = 'Ability to view and use UCLA bulk course reset';
+$string['uclabulkcoursereset:edit'] = 'Ability to view and use UCLA bulk course reset';
