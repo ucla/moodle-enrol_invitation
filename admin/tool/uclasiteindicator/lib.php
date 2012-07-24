@@ -891,7 +891,8 @@ class siteindicator_manager {
     }
     
     static function print_collab_searchbox() {
-        $input = html_writer::tag('input', '', array('id' => 'ac_input', 'placeholder' => 'Search for a collaboration site'));
+        $input = html_writer::tag('input', '', array('id' => 'ac_input', 
+            'placeholder' => get_string('search_placeholder', 'tool_uclasiteindicator')));
         $wrapper = html_writer::tag('div', $input, array('class' => 'ac-search-wrapper'));
         $out = html_writer::tag('div', $wrapper, array('class' => 'ac-search-div'));
         

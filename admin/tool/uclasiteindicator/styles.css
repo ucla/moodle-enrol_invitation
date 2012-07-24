@@ -75,3 +75,11 @@
     font-size: 14px;
     color: #111;
 }
+
+.yui3-highlight {
+    background-color: #FF0;
+}
+
+.yui3-aclist-item-active .yui3-highlight {
+    background-color: #1a6cf3;
+}

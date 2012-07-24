@@ -133,3 +133,5 @@ $string['noorphans'] = 'No orphan sites found';
 $string['sitelisting'] = 'Site listings';
 $string['nositelisting'] = 'No sites found';
 $string['back'] = 'Back';
+
+$string['search_placeholder'] = 'Search for a collaboration site';

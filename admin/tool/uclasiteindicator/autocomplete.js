@@ -24,6 +24,7 @@ M.collab_autocomplete.init = function(Y) {
             resultHighlighter:  'phraseMatch',
             resultFilters:      'phraseMatch',
             minQueryLength:     3,
+            maxResults:         20,
             resultListLocator:  'results',
             resultTextLocator:  'text',
             source: rest_url + '?q={query}',
