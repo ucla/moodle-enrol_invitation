@@ -247,7 +247,7 @@ class course_edit_form extends moodleform {
             //$mform->addHelpButton('format_readonly', 'format');
             
             $coursedisplay_strings = array(COURSE_DISPLAY_SINGLEPAGE => get_string('coursedisplay_single'),
-                    COURSE_DISPLAY_MULTIPAGE => get_string('coursedisplay_multi');
+                    COURSE_DISPLAY_MULTIPAGE => get_string('coursedisplay_multi'));
             $coursedisplay_default = isset($courseconfig->coursedisplay) ? $courseconfig->coursedisplay : COURSE_DISPLAY_SINGLEPAGE;
             $mform->addElement('static', 'coursedisplay_readonly', get_string('coursedisplay'),
                     $coursedisplay_strings[$coursedisplay_default]);            
