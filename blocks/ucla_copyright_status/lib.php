@@ -157,16 +157,20 @@ function display_copyright_status_contents($courseid, $filter){
 	// display statistics 
 	$all_copyrights = get_files_copyright_status_by_course($courseid, 'all');
 	$stat_array = calculate_copyright_status_statistics($all_copyrights, $licenses);
-	echo html_writer::start_tag('div', array('id' => 'block_ucla_copyright_status_stat'));
-	echo html_writer::start_tag('ul');
-	foreach($license_options as $k=>$v){
-		if ($k != 'all'){
-			$stat_count = isset($stat_array[$k])?$stat_array[$k]:0;
-			echo html_writer::tag('li', $v.':'.html_writer::start_tag('span', array('class'=>'block-ucla-copyright-status-stat-num')).'('.$stat_count.'/'.$stat_array['total'].', '.number_format($stat_count*100/$stat_array['total'],0,'','').'%)'.html_writer::end_tag('span'));
+
+	//if no files, do not calculate
+	if ($stat_array['total']>0){
+		echo html_writer::start_tag('div', array('id' => 'block_ucla_copyright_status_stat'));
+		echo html_writer::start_tag('ul');
+		foreach($license_options as $k=>$v){
+			if ($k != 'all'){
+				$stat_count = isset($stat_array[$k])?$stat_array[$k]:0;
+				echo html_writer::tag('li', $v.':'.html_writer::start_tag('span', array('class'=>'block-ucla-copyright-status-stat-num')).'('.$stat_count.'/'.$stat_array['total'].', '.number_format($stat_count*100/$stat_array['total'],0,'','').'%)'.html_writer::end_tag('span'));
+			}
 		}
+		echo html_writer::end_tag('ul');
+		echo html_writer::end_tag('div');
 	}
-	echo html_writer::end_tag('ul');
-	echo html_writer::end_tag('div');
 	// end display statistics
 
 	echo html_writer::start_tag('form', array('id'=>'block_ucla_copyright_status_form_copyright_status_list', 'action'=>$PAGE->url->out(), 'method'=>'post'));
