@@ -128,11 +128,7 @@ class course_edit_form extends moodleform {
                 $mform->setConstant('category', $category->id);
             }
         } else {
-            // BEGIN UCLA MOD: CCLE-3278-Change-options-on-course-edit-settings-page
-            //if (has_capability('moodle/course:changecategory', $coursecontext)) {
-            if (has_capability('moodle/course:changecategory', $coursecontext)
-                    && has_capability('local/ucla:editadvancedcoursesettings', $coursecontext)) {
-            // END UCLA MOD: CCLE-3278
+            if (has_capability('moodle/course:changecategory', $coursecontext)) {
                 $displaylist = array();
                 $parentlist = array();
                 make_categories_list($displaylist, $parentlist, 'moodle/course:create');
@@ -210,6 +206,12 @@ class course_edit_form extends moodleform {
         }
 
         // BEGIN UCLA MOD: CCLE-3278-Change-options-on-course-edit-settings-page
+        $has_editadvancedcoursesettings = false;
+        if (empty($coursecontext) || 
+                has_capability('local/ucla:editadvancedcoursesettings', $coursecontext)) {
+            // handle case in which a new course is being created
+            $has_editadvancedcoursesettings = true;
+        }
         /*
         $courseformats = get_plugin_list('format');
         $formcourseformats = array();
@@ -220,7 +222,7 @@ class course_edit_form extends moodleform {
         $mform->addHelpButton('format', 'format');
         $mform->setDefault('format', $courseconfig->format);
         */
-        if (has_capability('local/ucla:editadvancedcoursesettings', $coursecontext)) {
+        if ($has_editadvancedcoursesettings) {
             $courseformats = get_plugin_list('format');
             $formcourseformats = array();
             foreach ($courseformats as $courseformat => $formatdir) {
@@ -232,7 +234,6 @@ class course_edit_form extends moodleform {
         } else {
             $mform->addElement('static', 'format_readonly', get_string('format'),
                     get_string('pluginname', "format_$courseconfig->format"));
-            //$mform->addHelpButton('format_readonly', 'format');
         }
         // END UCLA MOD: CCLE-3278
         
@@ -273,7 +274,7 @@ class course_edit_form extends moodleform {
         $mform->addHelpButton('maxbytes', 'maximumupload');
         $mform->setDefault('maxbytes', $courseconfig->maxbytes); 
         */
-        if (has_capability('local/ucla:editadvancedcoursesettings', $coursecontext)) {
+        if ($has_editadvancedcoursesettings) {
             $mform->addElement('select', 'maxbytes', get_string('maximumupload'), $choices);
             $mform->addHelpButton('maxbytes', 'maximumupload');
             $mform->setDefault('maxbytes', $courseconfig->maxbytes);
@@ -384,7 +385,7 @@ class course_edit_form extends moodleform {
         $mform->addElement('select', 'lang', get_string('forcelanguage'), $languages);
         $mform->setDefault('lang', $courseconfig->lang);
         */
-        if (has_capability('local/ucla:editadvancedcoursesettings', $coursecontext)) {
+        if ($has_editadvancedcoursesettings) {
             $mform->addElement('header','', get_string('language'));
 
             $languages=array();
