@@ -155,7 +155,7 @@ try {
     $additional_sql = '';
 }
 
-// This is going to be changed to JOIN on to office hours
+// Join on office hours info as well to get all information in one query
 $sql = "
     SELECT 
         CONCAT(u.id, '-', r.id) as recordset_id,
@@ -163,7 +163,13 @@ $sql = "
         u.firstname,
         u.lastname,
         u.email,
-        r.shortname
+        u.maildisplay,
+        u.url,
+        r.shortname,
+        oh.officelocation,
+        oh.officehours,
+        oh.email as officeemail,
+        oh.phone
     FROM {course} c
     JOIN {context} ct
         ON (ct.instanceid = c.id)
@@ -173,6 +179,8 @@ $sql = "
         ON (ra.roleid = r.id)
     JOIN {user} u
         ON (u.id = ra.userid)
+    LEFT JOIN {ucla_officehours} oh
+        ON (u.id = oh.userid AND c.id = oh.courseid)
     WHERE 
         c.id = ?
         $additional_sql

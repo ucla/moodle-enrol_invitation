@@ -36,6 +36,8 @@ require_once($CFG->dirroot . '/local/ucla/datetimehelpers.php');
 
 require_login();
 $courseid = required_param('courseid', PARAM_INT);
+$inviteid = optional_param('inviteid', 0, PARAM_INT);
+$actionid = optional_param('actionid', 0, PARAM_INT);
 $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 
 $context = get_context_instance(CONTEXT_COURSE, $courseid);
@@ -55,13 +57,14 @@ $PAGE->set_heading(get_string('invitehistory', 'enrol_invitation'));
 $PAGE->set_title(get_string('invitehistory', 'enrol_invitation'));
 $PAGE->navbar->add(get_string('invitehistory', 'enrol_invitation'));
 
-//OUTPUT form
-echo $OUTPUT->header();
-
-// OUTPUT page tabs
-print_page_tabs('history');
-
-echo $OUTPUT->heading(get_string('invitehistory', 'enrol_invitation'));
+// Do not display the page if we are going to be redirecting the user
+if ($actionid != invitation_manager::INVITE_RESEND) {
+    // OUTPUT form
+    echo $OUTPUT->header();
+    // OUTPUT page tabs
+    print_page_tabs('history');
+    echo $OUTPUT->heading(get_string('invitehistory', 'enrol_invitation'));
+}
 
 $invitationmanager = new invitation_manager($courseid);
 // course must have invitation plugin installed (will give error if not found)
@@ -75,6 +78,45 @@ if (empty($invites)) {
             get_string('noinvitehistory', 'enrol_invitation'), 
             array('class' => 'noinvitehistory'));
 } else {
+    
+    // BEGIN UCLA MOD: CCLE-2960-Viewing-history-of-invites-and-status
+    // Update invitation if the user decided to revoke/extend/resend an invite
+    if ($inviteid && $actionid) {
+        if (!$curr_invite = $invites[$inviteid]) {
+            print_error('invalidinviteid');
+        }
+        if ($actionid == invitation_manager::INVITE_REVOKE) {
+            // Set the invite to be expired
+            $DB->set_field('enrol_invitation', 'timeexpiration', time()-1, 
+                    array('courseid' => $curr_invite->courseid, 'id' => $curr_invite->id) );
+            
+            echo $OUTPUT->box_start('noticebox');
+            echo html_writer::tag('span', get_string('revoke_invite_sucess', 'enrol_invitation'));
+            echo $OUTPUT->box_end();
+            
+        } else if ($actionid == invitation_manager::INVITE_EXTEND) {            
+            // Resend the invite and email
+            $invitationmanager->send_invitations($curr_invite, true);
+
+            echo $OUTPUT->box_start('noticebox');
+            echo html_writer::tag('span', get_string('extend_invite_sucess', 'enrol_invitation'));
+            echo $OUTPUT->box_end();
+            
+        } else if ($actionid == invitation_manager::INVITE_RESEND) {
+            // Send the user to the invite form with prefilled data
+            $redirect = new moodle_url('/enrol/invitation/invitation.php', 
+                    array('courseid' => $curr_invite->courseid, 'inviteid' => $curr_invite->id));
+            redirect($redirect);
+            
+        } else {
+            print_error('invalidactionid');
+        }
+        
+        // Get the updated invites
+        $invites = $invitationmanager->get_invites();
+    }
+    // END UCLA MOD: CCLE-2960
+    
     // columns to display
     $columns = array(
             'invitee'           => get_string('historyinvitee', 'enrol_invitation'),
@@ -82,7 +124,7 @@ if (empty($invites)) {
             'status'            => get_string('historystatus', 'enrol_invitation'),
             'datesent'          => get_string('historydatesent', 'enrol_invitation'),
             'dateexpiration'    => get_string('historydateexpiration', 'enrol_invitation'),
-//            'actions'           => get_string('historyactions', 'enrol_invitation')
+            'actions'           => get_string('historyactions', 'enrol_invitation')
     );
     
     $table = new flexible_table('invitehistory');
@@ -144,13 +186,31 @@ if (empty($invites)) {
             $row[4] .= ' ' . html_writer::tag('span', '(' . $expires_text . ')', array('expires-text'));
         }
         
-//        // are there any actions user can do?
-//        $row[5] = '';
+        // BEGIN UCLA MOD: CCLE-2960-Viewing-history-of-invites-and-status
+        // are there any actions user can do?
+        $row[5] = '';
+        $url = new moodle_url('/enrol/invitation/history.php', 
+                array('courseid' => $courseid, 'inviteid' => $invite->id));
+        // Same if statement as above, seperated for clarity
+        if ($status == get_string('status_invite_active', 'enrol_invitation')) {
+            // Create link to revoke an invite
+            $url->param('actionid', invitation_manager::INVITE_REVOKE);
+            $row[5] .= html_writer::link($url, get_string('action_revoke_invite', 'enrol_invitation'));
+            $row[5] .= html_writer::start_tag('br');
+            // Create link to extend an invite
+            $url->param('actionid', invitation_manager::INVITE_EXTEND);
+            $row[5] .= html_writer::link($url, get_string('action_extend_invite', 'enrol_invitation'));
+        } else if ($status == get_string('status_invite_expired', 'enrol_invitation')) {
+            // Create link to resend invite
+            $url->param('actionid', invitation_manager::INVITE_RESEND);
+            $row[5] .= html_writer::link($url, get_string('action_resend_invite', 'enrol_invitation'));
+        }
+        // END UCLA MOD: CCLE-2960
         
-        $table->add_data($row); 
+        $table->add_data($row);
     }
     
-    $table->finish_output();    
+    $table->finish_output();
 }
 
 echo $OUTPUT->footer();

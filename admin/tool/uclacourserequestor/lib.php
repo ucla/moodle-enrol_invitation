@@ -1084,10 +1084,18 @@ function prep_request_entry($requestinfo) {
     $formatted['instructor'] = $instrstr;
 
     unset($requestinfo['instructor']);
-    
+
     // Add delete/build (action) checkboxes
     $maybeexists = array('delete', 'build');
-    foreach ($maybeexists as $k) {
+    foreach ($maybeexists as $k) {        
+        // CCLE-3103 - When deleting a course add in a trigger to also 
+        // delete the course request and My.UCLA url
+        // Preventing requests from being deleted in this UI. It should be
+        // deleted by deleting the actual course   
+        if ($k == 'delete' && !empty($formatted['courseid'])) {
+            continue;
+        }
+        
         if (isset($requestinfo[$k])) {
             $actval = $requestinfo[$k];
 
@@ -1206,7 +1214,7 @@ function get_requestor_view_fields() {
     }
     $builtcategories = $DB->get_records('ucla_request_classes', null, 
         'department', 'DISTINCT ' . $prefieldstr);
-	$prefieldsdata = array();
+    $prefieldsdata = array();
     foreach ($builtcategories as $builts) {
         foreach ($prefields as $prefield) {
             $varname = $prefield;
@@ -1214,11 +1222,12 @@ function get_requestor_view_fields() {
             if (!isset($prefieldsdata[$varname])) {
                 $prefieldsdata[$varname] = array();
             }
-
+            
             $prefieldsdata[$varname][$builts->$prefield] = $builts->$prefield;
         }
     }
-
+    
+    $prefieldsdata['term'] = terms_arr_sort($prefieldsdata['term'], true);
     return $prefieldsdata;
 }
 

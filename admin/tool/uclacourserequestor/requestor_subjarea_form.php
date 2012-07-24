@@ -29,7 +29,7 @@ class requestor_subjarea_form extends requestor_shared_form {
 
         $term = $ci['term'];
         $sa = $ci['subjarea'];
-
+        
         // Fetch all possible courses
         $sac = get_courses_for_subj_area($term, $sa);
 

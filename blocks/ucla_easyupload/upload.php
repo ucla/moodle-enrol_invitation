@@ -135,10 +135,7 @@ $sections = get_all_sections($course_id);
 $sectionnames = array();
 $indexed_sections = array();
 
-// if default section is greater than course numsections, default to 0
-if (!isset($defaultsection) || $defaultsection > $course->numsections) {
-    $defaultsection = 0;
-}
+$defaultsection = 0;
 
 foreach ($sections as $section) {
     if ($section->section > $course->numsections) {
@@ -372,7 +369,10 @@ if ($uploadform->is_cancelled()) {
         $newmodules = array($sectionid => $newmods);
         block_ucla_rearrange::move_modules_section_bulk($newmodules);
     }
-
+    
+    add_to_log($data->course_id, $data->modulename, 'add', 
+            "/view.php?id=$data->coursemodule", $data->name);
+    
     rebuild_course_cache($course_id);
 }
 

@@ -36,7 +36,6 @@ function local_ucla_course_view_hook($shortname, $id) {
     }
 
     $termcmp = term_cmp_fn($maybeterm, $remotetermcutoff);
-    $reginfo = false;
 
     // Do not check for any courses after the specified term
     if ($termcmp > 0) {
@@ -51,7 +50,7 @@ function local_ucla_course_view_hook($shortname, $id) {
     }
 
     // This course doesn't exist on this local server
-    if (empty($id) || !ucla_map_courseid_to_termsrses($id)) {
+    if (empty($id)) {
         // Then we goto 1.9 server for older terms
         return $redirurl;
     } 

@@ -64,12 +64,28 @@ function update_videofurnace_db($datasource_url) {
         }
 
         fix_data_format($row_data);
-
-        $id = $DB->insert_record('ucla_video_furnace', $row_data);
-        // update_mail_data($row_data, $mail_data);
-        if ($id) {
-            $insert_count++;
+        
+        $id = null;
+        try {
+            $id = $DB->insert_record('ucla_video_furnace', $row_data);
+        } catch (Exception $e) {
+            // Handle CCLE-3378 - Video furnace crashing on video title "ClŽo de 5 ˆ 7"
+            if (strpos($e->error, 'video_title')) {
+                //try to recover by converting titles to ASCII
+                $row_data[6] = textlib::specialtoascii($row_data[6]);
+                try {
+                    $id = $DB->insert_record('ucla_video_furnace', $row_data);                    
+                } catch (Exception $e) {
+                    // error, log this and print out error
+                    echo get_string('errcannotinsert', 'tool_ucladatasourcesync', $e->error);
+                }
+            }
         }
+                
+        if (!empty($id)) {
+            // update_mail_data($row_data, $mail_data);
+            $insert_count++;
+        }        
     }
 
     echo "\n... " . $insert_count . " " . get_string('vfsuccessnoti', 'tool_ucladatasourcesync') . "\n";
@@ -232,7 +248,7 @@ function fix_data_format(&$row) {
     $row[3] = fix_date_format($row[3]);
 
     // remove quotes surrounding class names and movie titles
-    $row[4] = preg_replace('/^"(.*)"$/', '$1', $row[4]);
+    $row[4] = preg_replace('/^"(.*)"$/', '$1', $row[4]);    
     $row[6] = preg_replace('/^"(.*)"$/', '$1', $row[6]);
 
     // remove newlines from urls

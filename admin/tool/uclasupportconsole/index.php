@@ -356,7 +356,8 @@ if ($displayforms) {
         WHERE FROM_UNIXTIME(time) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND
                 c.id!=:siteid
         GROUP BY date, course 
-        ORDER BY a.id DESC
+        ORDER BY count DESC
+        LIMIT 100
     ", array('siteid' => SITEID));
 
     $sectionhtml .= supportconsole_render_section_shortcut($title, $result);
@@ -384,7 +385,8 @@ if ($displayforms) {
         WHERE FROM_UNIXTIME(time) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND
             c.id!=:siteid
         GROUP BY day, course, a.userid 
-        ORDER BY a.id DESC
+        ORDER BY count DESC
+        LIMIT 100
     ", array('siteid' => SITEID));
     
     $sectionhtml = supportconsole_render_section_shortcut($title, $result);
@@ -830,10 +832,11 @@ if ($displayforms) {
         $params['subjarea'] = $subjarea;    
     }    
     
-    $sql .= " GROUP BY c.id, m.id";
+    $sql .= " GROUP BY c.id, m.id
+             ORDER BY c.shortname";
     
     $results = $DB->get_records_sql($sql, $params);
-
+    
     $courseshortnames = array();
 
     foreach ($results as $result) {
@@ -847,7 +850,7 @@ if ($displayforms) {
 
         $course_indiv_module_counts[$sn][$mn] += $result->cnt;
     }
-
+    
     $tabledata = array();
     foreach ($course_indiv_module_counts as $courseid => $modulecounts) {
         $rowdata = array(
@@ -864,9 +867,42 @@ if ($displayforms) {
 
         $tabledata[] = $rowdata;
     }
-
+    
+    // Create an array with only the module names: $field
+    $field = array();
+    $tempfield = array();
+    
+    foreach ($tabledata as $tabledatum) {
+        foreach ($tabledatum as $tablef => $tablev) {
+            if ($tablef == 'id') {
+                continue;
+            }
+            
+            if ($tablef == 'course' || $tablef == 'total') {
+                $field[$tablef] = $tablef;
+                continue;
+            }
+            
+            $tempfield[$tablef] = $tablef;
+        }
+    }
+    
+    asort($tempfield);
+    $field = array_merge($field, $tempfield);
+    
+    foreach ($tabledata as & $courses) {
+        $tempfield = $field;
+        // Merge the courses array into the tempfield array.
+        $courses = array_merge($tempfield, $courses);
+        foreach ($courses as $module => & $count) {
+            // If course does not have the module, make its count = 0.
+            if ($module != 'course' && !is_numeric($count)) {
+                $count = NULL;
+            }   
+        }    
+    }
     $sectionhtml .= supportconsole_render_section_shortcut($title,
-        $tabledata, $params);
+             $tabledata, $params);
 
 
 }
@@ -880,39 +916,46 @@ $title = "roleassignments";
 $sectionhtml = '';
 if ($displayforms) { 
     $sectionhtml .= supportconsole_simple_form($title);
-} else if ($consolecommand == "$title") { 
-    $results = $DB->get_records_sql("
-        SELECT 
-            a.id,
-            b.name,
-            b.shortname,
-            component,
-            COUNT(*) AS cnt 
-        FROM {role_assignments} a 
-        LEFT JOIN {role} b ON (a.roleid = b.id) 
-        GROUP BY component, roleid
-    ");
+} else if ($consolecommand == "$title") {     
+
+    $sql = "SELECT  ra.id,
+                    r.name,                    
+                    c.contextlevel,
+                    ra.component,
+                    si.type,
+                    COUNT(*) AS count
+            FROM    {role_assignments} ra 
+            JOIN    {context} c ON c.id = ra.contextid
+            JOIN    {role} r ON (ra.roleid = r.id) 
+            LEFT JOIN   {ucla_siteindicator} si ON 
+                        (c.instanceid=si.courseid AND
+                         c.contextlevel=50)
+            GROUP BY contextlevel, ra.component, r.id
+            ORDER BY c.contextlevel ASC, r.sortorder ASC";
+    $results = $DB->get_records_sql($sql);
 
     $admin_result = get_config(null, 'siteadmins');
     if (empty($admin_result) && empty($result)) {
        $sectionhtml .= html_writer::error_text("There are no enrollments");
-    }
+    } else {
+        // get siteadmins, they are a different breed
+        $admin_cnt = count(explode(',', $admin_result));
+        $adminrow = new object();
+        $adminrow->name = 'Site administrators';
+        $adminrow->contextlevel = CONTEXT_SYSTEM;
+        $adminrow->component = 'admin';
+        $adminrow->count = $admin_cnt;
+        $results[] = $adminrow;
 
-    foreach ($results as $key => $result) {
-        if ($result->component == '') {
-            $result->component = 'manual';
+        foreach ($results as $key => $result) {
+            if ($result->component == '') {
+                $result->component = 'manual';
+            }
+            $result->contextlevel = get_contextlevel_name($result->contextlevel);
         }
-    }
 
-    $admin_cnt = count(explode(',', $admin_result));
-    $adminrow = new object();
-    $adminrow->name = 'Administrators';
-    $adminrow->shortname = 'admin';
-    $adminrow->component = 'admin';
-    $adminrow->cnt = $admin_cnt;
-    $results[] = $adminrow;
-
-    $sectionhtml .= supportconsole_render_section_shortcut($title, $results);
+        $sectionhtml .= supportconsole_render_section_shortcut($title, $results);
+        }
 }
 
 $consoles->push_console_html('users', $title, $sectionhtml);
@@ -961,8 +1004,8 @@ if ($displayforms) {
     ");
 
     foreach ($results as $k => $result) {
-        $result->delete = html_writer::link(new moodle_url('/admin/user.php',
-            array('delete' => $result->id)), 'Delete');
+        //$result->delete = html_writer::link(new moodle_url('/admin/user.php',
+        //    array('delete' => $result->id)), 'Delete');
 
         $result->view = html_writer::link(new moodle_url('/user/view.php',
             array('id' => $result->id)), 'View');

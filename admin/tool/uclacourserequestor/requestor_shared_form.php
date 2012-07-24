@@ -45,7 +45,7 @@ class requestor_shared_form extends moodleform {
                 )
             )
         );
-
+        
         $this->post_specification();
     }
 

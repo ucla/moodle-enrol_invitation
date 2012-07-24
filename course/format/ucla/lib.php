@@ -221,11 +221,28 @@ function callback_ucla_ajax_support() {
 
 /**
  *  Determines if the format should display instructors for this page.
- **/
+ * 
+ * @param object $course
+ * @return boolean
+ */
 function ucla_format_display_instructors($course) {
-    if (function_exists('is_collab_site') && is_collab_site($course)) {
-        return false;
+    global $CFG;
+    
+    require_once($CFG->dirroot . '/admin/tool/uclasiteindicator/lib.php');
+
+    // only display office hours for registrar sites or instructional or test
+    // collaboration sites
+    if ($collabsites = siteindicator_manager::get_sites($course)) {
+        if (array_key_exists($course->id,  $collabsites)) {
+            $sitetype = $collabsites[$course->id]->type;
+            if ($sitetype != 'instruction' && $sitetype != 'test') {
+                return false;
+            }
+        }
     }
+    
+    // Note that untagged collaboration websites will also show the office hours
+    // block, but that is okay; they should be tagged anyways.
 
     return true;
 }
