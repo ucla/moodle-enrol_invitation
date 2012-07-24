@@ -66,4 +66,4 @@ $string['choosecopyright'] = 'Copyright status ' . $string['choosecopyright_help
 
 // capability strings
 $string['ucla:assign_all'] = 'CCLE-2530: Can see the entire user database when assigning roles';
-$string['ucla:editadvancedcoursesettings'] = 'CCLE-3278: Can edit the course settings for category, format, maximum upload size, or language defaults';
+$string['ucla:editadvancedcoursesettings'] = 'CCLE-3278: Can edit the course settings for format, maximum upload size, or language defaults';
