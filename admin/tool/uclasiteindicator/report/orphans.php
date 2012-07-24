@@ -31,6 +31,9 @@ $PAGE->set_pagelayout('admin');
 // Prepare and load Moodle Admin interface
 admin_externalpage_setup('uclasiteindicator');
 
+// prepare table sorting functionality
+$tableid = setup_js_tablesorter('uclasiteindicator_orphan_report');
+
 // Render page
 echo $OUTPUT->header();
 
@@ -44,6 +47,7 @@ if (empty($orphans)) {
     echo html_writer::tag('p', get_string('noorphans', 'tool_uclasiteindicator'));
 } else {
     $table = new html_table();
+    $table->id = $tableid;    
     $table->attributes['class'] = 'generaltable';
     $table->align = array('left', 'left');
     $table->head = array(get_string('shortname') . ' (' . count($orphans) . ')', get_string('fullname'));

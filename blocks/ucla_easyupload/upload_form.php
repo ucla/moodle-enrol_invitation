@@ -181,37 +181,133 @@ abstract class easy_upload_form extends moodleform {
             );
         }
 
-        // Stolen from /course/moodleform_mod.php:429
+        // Stolen from /course/moodleform_mod.php:471 (Moodle 2.2.4)
+        // replaced references of $COURSE with $this->course
         if (!empty($CFG->enableavailability) && $this->enable_availability) {
             // Conditional availability
-            $mform->addElement('header', 'availabilityconditionsheader', 
-                get_string('availabilityconditions', 'condition'));
 
-            $mform->addElement('date_selector', 'availablefrom', 
-                get_string('availablefrom', 'condition'), 
-                    array('optional' => true));
+            // Available from/to defaults to midnight because then the display
+            // will be nicer where it tells users when they can access it (it
+            // shows only the date and not time).
+            $date = usergetdate(time());
+            $midnight = make_timestamp($date['year'], $date['mon'], $date['mday']);
 
-            $mform->addHelpButton('availablefrom', 'availablefrom', 
-                'condition');
+            // From/until controls
+            $mform->addElement('header', 'availabilityconditionsheader',
+                    get_string('availabilityconditions', 'condition'));
+            $mform->addElement('date_time_selector', 'availablefrom',
+                    get_string('availablefrom', 'condition'),
+                    array('optional' => true, 'defaulttime' => $midnight));
+            $mform->addHelpButton('availablefrom', 'availablefrom', 'condition');
+            $mform->addElement('date_time_selector', 'availableuntil',
+                    get_string('availableuntil', 'condition'),
+                    array('optional' => true, 'defaulttime' => $midnight));
 
-            $mform->addElement('date_selector', 'availableuntil', 
-                get_string('availableuntil', 'condition'), 
-                    array('optional' => true));
+            // Conditions based on grades
+            $gradeoptions = array();
+            $items = grade_item::fetch_all(array('courseid'=>$this->course->id));
+            $items = $items ? $items : array();
+            foreach($items as $id=>$item) {
+                // Do not include grades for current item
+                if (!empty($this->_cm) && $this->_cm->instance == $item->iteminstance
+                    && $this->_cm->modname == $item->itemmodule
+                    && $item->itemtype == 'mod') {
+                    continue;
+                }
+                $gradeoptions[$id] = $item->get_name();
+            }
+            asort($gradeoptions);
+            $gradeoptions = array(0=>get_string('none','condition'))+$gradeoptions;
+
+            $grouparray = array();
+            $grouparray[] =& $mform->createElement('select','conditiongradeitemid','',$gradeoptions);
+            $grouparray[] =& $mform->createElement('static', '', '',' '.get_string('grade_atleast','condition').' ');
+            $grouparray[] =& $mform->createElement('text', 'conditiongrademin','',array('size'=>3));
+            $grouparray[] =& $mform->createElement('static', '', '','% '.get_string('grade_upto','condition').' ');
+            $grouparray[] =& $mform->createElement('text', 'conditiongrademax','',array('size'=>3));
+            $grouparray[] =& $mform->createElement('static', '', '','%');
+            $group = $mform->createElement('group','conditiongradegroup',
+                get_string('gradecondition', 'condition'),$grouparray);
+
+            // Get version with condition info and store it so we don't ask
+            // twice
+            if(!empty($this->_cm)) {
+                $ci = new condition_info($this->_cm, CONDITION_MISSING_EXTRATABLE);
+                $this->_cm = $ci->get_full_course_module();
+                $count = count($this->_cm->conditionsgrade)+1;
+            } else {
+                $count = 1;
+            }
+
+            $this->repeat_elements(array($group), $count, array(), 'conditiongraderepeats', 'conditiongradeadds', 2,
+                                   get_string('addgrades', 'condition'), true);
+            $mform->addHelpButton('conditiongradegroup[0]', 'gradecondition', 'condition');
+
+            // BEGIN UCLA MOD: CCLE-3237 - hide certain availability restrictions under "Advanced"
+            // handle case in which user choose to add more fields
+            $total = $mform->getElement('conditiongraderepeats')->getValue();
+            for ($i=0; $i<$total; $i++) {
+                $mform->setAdvanced('conditiongradegroup[' . $i . ']');                    
+            }                
+            $mform->setAdvanced('conditiongradeadds');                                    
+            // END UCLA MOD: CCLE-3237                  
+            
+            // Conditions based on completion
+            $completion = new completion_info($this->course);
+            if ($completion->is_enabled()) {
+                $completionoptions = array();
+                $modinfo = get_fast_modinfo($this->course);
+                foreach($modinfo->cms as $id=>$cm) {
+                    // Add each course-module if it:
+                    // (a) has completion turned on
+                    // (b) is not the same as current course-module
+                    if ($cm->completion && (empty($this->_cm) || $this->_cm->id != $id)) {
+                        $completionoptions[$id]=$cm->name;
+                    }
+                }
+                asort($completionoptions);
+                $completionoptions = array(0=>get_string('none','condition'))+$completionoptions;
+
+                $completionvalues=array(
+                    COMPLETION_COMPLETE=>get_string('completion_complete','condition'),
+                    COMPLETION_INCOMPLETE=>get_string('completion_incomplete','condition'),
+                    COMPLETION_COMPLETE_PASS=>get_string('completion_pass','condition'),
+                    COMPLETION_COMPLETE_FAIL=>get_string('completion_fail','condition'));
+
+                $grouparray = array();
+                $grouparray[] =& $mform->createElement('select','conditionsourcecmid','',$completionoptions);
+                $grouparray[] =& $mform->createElement('select','conditionrequiredcompletion','',$completionvalues);
+                $group = $mform->createElement('group','conditioncompletiongroup',
+                    get_string('completioncondition', 'condition'),$grouparray);
+
+                $count = empty($this->_cm) ? 1 : count($this->_cm->conditionscompletion)+1;
+                $this->repeat_elements(array($group),$count,array(),
+                    'conditioncompletionrepeats','conditioncompletionadds',2,
+                    get_string('addcompletions','condition'),true);
+                $mform->addHelpButton('conditioncompletiongroup[0]', 'completioncondition', 'condition');
+                
+                // BEGIN UCLA MOD: CCLE-3237 - hide certain availability restrictions under "Advanced"
+                // handle case in which user choose to add more fields
+                $total = $mform->getElement('conditioncompletionrepeats')->getValue();
+                for ($i=0; $i<$total; $i++) {
+                    $mform->setAdvanced('conditioncompletiongroup[' . $i . ']');                    
+                }                
+                $mform->setAdvanced('conditioncompletionadds');                                    
+                // END UCLA MOD: CCLE-3237                         
+            }
 
             // Do we display availability info to students?
-           $mform->addElement('select', 'showavailability', 
-                get_string('showavailability', 'condition'), array(
-                    CONDITION_STUDENTVIEW_SHOW
-                        => get_string('showavailability_show', 'condition'),
-                    CONDITION_STUDENTVIEW_HIDE 
-                        => get_string('showavailability_hide', 'condition')
-                )
-            );
-
-            $mform->setDefault('showavailability', 
-                CONDITION_STUDENTVIEW_SHOW);
+            $mform->addElement('select', 'showavailability', get_string('showavailability', 'condition'),
+                    array(CONDITION_STUDENTVIEW_SHOW=>get_string('showavailability_show', 'condition'),
+                    CONDITION_STUDENTVIEW_HIDE=>get_string('showavailability_hide', 'condition')));
+            $mform->setDefault('showavailability', CONDITION_STUDENTVIEW_SHOW);
+            
+            // BEGIN UCLA MOD: CCLE-3237 - hide certain availability restrictions under "Advanced"
+            $mform->setAdvanced('showavailability');                                            
+            // END UCLA MOD: CCLE-3237       
         }
-
+        // END code from /course/moodleform_mod.php to display availability restrictions
+        
         $this->add_action_buttons();
     }
 
@@ -230,6 +326,18 @@ abstract class easy_upload_form extends moodleform {
      *  @return String
      **/
     abstract function get_coursemodule();
+
+    /**
+     *  Validation for availability.
+     **/
+    function validation($data, $files) {
+        // Conditions: Don't let them set dates which make no sense
+        if (array_key_exists('availablefrom', $data) &&
+            $data['availablefrom'] && $data['availableuntil'] &&
+            $data['availablefrom'] >= $data['availableuntil']) {
+            $errors['availablefrom'] = get_string('badavailabledates', 'condition');
+        }
+    }
 }
 
 // Gotta run this code or else we get some interesting errors.

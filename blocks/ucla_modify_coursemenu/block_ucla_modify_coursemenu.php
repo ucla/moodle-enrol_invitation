@@ -135,5 +135,19 @@ class block_ucla_modify_coursemenu extends block_base {
             'required_cap' => 'moodle/course:update'
         ));
     }
+    
+    /**
+     * Called by moodle
+     */
+    public function applicable_formats() {
+
+        return array(
+            'site-index' => false,
+            'course-view' => false,
+            'my' => false,
+            'not-really-applicable' => true
+        );
+        // hack to make sure the block can never be instantiated
+    }    
 
 } 

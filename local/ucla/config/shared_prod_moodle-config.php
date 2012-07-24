@@ -182,7 +182,7 @@ $CFG->autologinguests = true;
 
 // Site administration > Courses > Course default settings
 $CFG->forced_plugin_settings['moodlecourse']['format'] = 'ucla';
-$CFG->forced_plugin_settings['moodlecourse']['maxbytes'] = 1572864000;  // 1.5GB
+$CFG->forced_plugin_settings['moodlecourse']['maxbytes'] = 2147483648;  // 2GB
 // CCLE-2903 - Don't set completion tracking to be course default
 $CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 0;
 
@@ -243,6 +243,9 @@ $CFG->theme = 'uclashared';
 // Site administration > Appearance > Navigation
 $CFG->defaulthomepage = 1;    // user's home page should be "My Moodle" (HOMEPAGE_MY)
 $CFG->navlinkcoursesections = 1; // CCLE-3031 - Section Titles breadcrumbs aren't links
+
+// Site administration > Appearance > Courses
+$CFG->courselistshortnames = 1;
 
 // Site administration > Server > System paths
 $CFG->pathtodu = '/usr/bin/du';

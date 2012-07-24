@@ -26,7 +26,8 @@
     display: block;
 }
 
-#page-enrol-invitation-invitationfieldset {
+#page-enrol-invitation-invitation #header_role,
+#page-enrol-invitation-invitation #header_email {
     background: #FEFCF6;
     border: 1px solid #B7AA96;
 }

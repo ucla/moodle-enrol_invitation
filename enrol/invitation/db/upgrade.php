@@ -160,5 +160,60 @@ function xmldb_enrol_invitation_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2012060300, 'enrol', 'invitation');           
     }
     
+    // fix role_assignments to include enrol_invitation 
+    if ($oldversion < 2012071303) {
+        /**
+         * Go through each accepted invite and look for an entry in 
+         * role_assignments with component set to "" and userid, roleid, and 
+         * context match given invite's user, role, course context.
+         */
+        
+        // get all invites (use record set, since it can be huge)
+        $invites = $DB->get_recordset('enrol_invitation', array('tokenused' => 1));
+        
+        if ($invites->valid()) {
+            foreach ($invites as $invite) {
+                // get course context
+                $coursecontext = context_course::instance($invite->courseid);
+                if (empty($coursecontext)) {
+                    continue;
+                }
+                
+                // find course's enrollment plugin to use as itemid later on
+                $invitation_enrol = $DB->get_record('enrol', 
+                        array('enrol' => 'invitation',
+                              'courseid' => $invite->courseid));
+                if (empty($invitation_enrol)) {
+                    continue;
+                }
+                
+                // find corresponding role_assignments record (there SHOULD only
+                // be one record, but testing/playing around might result in 
+                // dups, just choose one)
+                $role_assignment = $DB->get_record('role_assignments', 
+                        array('roleid' => $invite->roleid,
+                              'contextid' => $coursecontext->id,
+                              'userid' => $invite->userid,
+                              'component' => ''),
+                        '*',
+                        IGNORE_MULTIPLE);
+                if (empty($role_assignment)) {
+                    continue;
+                }
+                
+                // set component & itemid
+                $role_assignment->component = 'enrol_invitation';
+                $role_assignment->itemid    = $invitation_enrol->id;
+                
+                // save it
+                $DB->update_record('role_assignments', $role_assignment, true);
+            }
+            $invites->close();            
+        }
+        
+        // invitation savepoint reached
+        upgrade_plugin_savepoint(true, 2012071303, 'enrol', 'invitation');                         
+    }
+    
     return true;
 }
