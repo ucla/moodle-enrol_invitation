@@ -33,4 +33,9 @@ $handlers = array (
          'handlerfunction'  => 'build_courses_now',
          'schedule'         => 'cron'
      ), 
+    'course_deleted' => array (
+         'handlerfile'      => '/admin/tool/uclacoursecreator/eventlib.php',
+         'handlerfunction'  => 'handle_course_deleted',
+         'schedule'         => 'instant'
+     ),
 );

@@ -107,7 +107,7 @@ $string['deletesuccess'] = "Deleted request entry: {\$a}";
 $string['deletecoursesuccess'] = "Delete request entry: {\$a}, along with course.";
 $string['savesuccess'] = "Updated request entry: {\$a}";
 $string['insertsuccess'] = "Inserted request entry: {\$a}";
-$string['deletecoursefailed'] = "Unable to find course entry to delete: ";
+$string['deletecoursefailed'] = "Cannot delete request. To delete request please delete the actual course.";
 $string['savefailed'] = 'Request entry could not be saved: {$a}';
 
 $string['changedto'] = ' to ';

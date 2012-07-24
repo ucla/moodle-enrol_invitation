@@ -2,7 +2,8 @@
     width: 85%;
 }
 
-.officehours_form fieldset {
+.officehours_form #header_office_info,
+.officehours_form #header_contact_info {
     background: #FEFCF6;
     border: 1px solid #B7AA96;
 }

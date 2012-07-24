@@ -47,13 +47,11 @@ class invitations_form extends moodleform {
         $mform = & $this->_form;
 
         // Add some hidden fields
-        $courseid = $this->_customdata['courseid']; 
+        $course = $this->_customdata['course']; 
+        $prefilled = $this->_customdata['prefilled'];
         $mform->addElement('hidden', 'courseid');
         $mform->setType('courseid', PARAM_INT);
-        $mform->setDefault('courseid', $courseid);       
-        
-        // get course record, to be used later
-        $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
+        $mform->setDefault('courseid', $course->id);       
         
         // set roles
         $mform->addElement('header', 'header_role', get_string('header_role', 'enrol_invitation'));
@@ -83,9 +81,12 @@ class invitations_form extends moodleform {
         
         // email address field
         $mform->addElement('header', 'header_email', get_string('header_email', 'enrol_invitation'));        
-        $mform->addElement('text', 'email', get_string('emailaddressnumber', 'enrol_invitation'));
-        $mform->addRule('email', get_string('err_email', 'form'), 'required');
-        $mform->setType('email', PARAM_EMAIL);
+        $mform->addElement('textarea', 'email', get_string('emailaddressnumber', 'enrol_invitation'), 
+                array('maxlength' => 1000));
+        $mform->addRule('email', null, 'required', null, 'client');
+        $mform->setType('email', PARAM_TEXT);
+        // Check for correct email formating later in validation() function
+        $mform->addElement('static', 'email_clarification', '', get_string('email_clarification', 'enrol_invitation'));
         
         // subject field
         $mform->addElement('text', 'subject', get_string('subject', 'enrol_invitation'));
@@ -112,6 +113,16 @@ class invitations_form extends moodleform {
                 get_string('notify_inviter', 'enrol_invitation', $temp));
         $mform->setDefault('show_from_email', 1);
         $mform->setDefault('notify_inviter', 0);        
+        
+        // Set defaults if the user is resending an invite that expired
+        if ( !empty($prefilled) ) {
+            $mform->setDefault('role_group[roleid]', $prefilled['roleid']);
+            $mform->setDefault('email', $prefilled['email']);
+            $mform->setDefault('subject', $prefilled['subject']);
+            $mform->setDefault('message', $prefilled['message']);
+            $mform->setDefault('show_from_email', $prefilled['show_from_email']);
+            $mform->setDefault('notify_inviter', $prefilled['notify_inviter']);
+        }
         
         $this->add_action_buttons(false, get_string('inviteusers', 'enrol_invitation'));
     }
@@ -164,6 +175,54 @@ class invitations_form extends moodleform {
         
         // now get role names and descriptions
         return $DB->get_records_list('role', 'shortname', $roles, 'sortorder');        
+    }
+    
+    /*
+     * Validate the email field here, rather than in definition, to allow 
+     * multiple email addresses to be specified
+     */
+    function validation($data) {
+        $errors = array();
+        $delimiters = "/[;, \r\n]/";
+        $email_list = invitations_form::parse_dsv_emails($data['email'], $delimiters);
+        
+        if ( empty($email_list) ) {
+            $errors['email'] = get_string('err_email', 'form');
+        }
+        
+        return $errors;
+    }
+    
+    /**
+    * Parses a string containing delimiter seperated values for email addresses.
+    * Returns an empty array if an invalid email is found.
+    * 
+    * @param string $emails           string of emails to be parsed
+    * @param string $delimiters       list of delimiters as regex
+    * @return array $parsed_emails    array of emails
+    */
+    static function parse_dsv_emails($emails, $delimiters) {
+        $parsed_emails = array();
+        $emails = trim($emails);
+        if (preg_match($delimiters, $emails)) {
+            // Multiple email addresses specified
+            $dsv_emails = preg_split($delimiters, $emails, NULL, PREG_SPLIT_NO_EMPTY);
+            foreach ($dsv_emails as $email_value) {
+                $email_value = trim($email_value);
+                if (!clean_param($email_value, PARAM_EMAIL)){
+                    return array();
+                }
+                $parsed_emails[] = $email_value;
+            }
+        } else if (clean_param($emails, PARAM_EMAIL)) {
+            // single email
+            return (array)$emails;
+        } else {
+            return array();
+        }
+        
+        return $parsed_emails;
+        
     }
 
 }
