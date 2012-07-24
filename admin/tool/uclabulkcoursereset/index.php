@@ -27,7 +27,7 @@ $collab_sites = siteindicator_manager::get_sites();
 
 $courses = array();
 foreach ($collab_sites as $site) {
-    if ($site->type == 'test') {
+    if ($site->type == 'test' && has_capability('moodle/course:reset', context_course::instance($site->id))) {
         $courses[] = $site;
     }
 }
@@ -58,12 +58,20 @@ if ($selectform->is_cancelled()) {
         $selectform = new bulkcoursereset_form(NULL, 
                 array('course_list' => $course_list, 'course_selected' => NULL));
 
-    } else {
+    } else if (!empty($data->course_list)){
         
         foreach ($data->course_list as $courseid) {
+            $crs_site = siteindicator_site::load($courseid);
+            if (is_null($crs_site) || $crs_site->property->type != 'test') {
+                continue;
+            }
+            if (!has_capability('moodle/course:reset', context_course::instance($courseid))) {
+                continue;
+            }
             $reset_data = $data;
             unset($reset_data->course_list);
-            $reset_data->reset_start_date_old = $DB->get_record('course', array('id' => $courseid))->startdate;
+            $course_info = $DB->get_record('course', array('id' => $courseid));
+            $reset_data->reset_start_date_old = $course_info->startdate;
             $status = reset_course_userdata($reset_data);
             
             $reset_data = array();
@@ -75,6 +83,8 @@ if ($selectform->is_cancelled()) {
                 $reset_data[] = $line;
             }
             
+            $course_link = new moodle_url('/course/view.php', array('id' => $courseid));
+            echo html_writer::link($course_link, $course_info->fullname);
             $table = new html_table();
             $table->head  = array(get_string('resetcomponent'), get_string('resettask'), get_string('resetstatus'));
             $table->size  = array('20%', '40%', '40%');
