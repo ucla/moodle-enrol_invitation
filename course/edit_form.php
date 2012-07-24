@@ -220,7 +220,7 @@ class course_edit_form extends moodleform {
         $mform->addHelpButton('format', 'format');
         $mform->setDefault('format', $courseconfig->format);
         */
-        if ($coursecontext and has_capability('local/ucla:editadvancedcoursesettings', $coursecontext)) {
+        if (has_capability('local/ucla:editadvancedcoursesettings', $coursecontext)) {
             $courseformats = get_plugin_list('format');
             $formcourseformats = array();
             foreach ($courseformats as $courseformat => $formatdir) {
@@ -273,7 +273,7 @@ class course_edit_form extends moodleform {
         $mform->addHelpButton('maxbytes', 'maximumupload');
         $mform->setDefault('maxbytes', $courseconfig->maxbytes); 
         */
-        if ($coursecontext and has_capability('local/ucla:editadvancedcoursesettings', $coursecontext)) {
+        if (has_capability('local/ucla:editadvancedcoursesettings', $coursecontext)) {
             $mform->addElement('select', 'maxbytes', get_string('maximumupload'), $choices);
             $mform->addHelpButton('maxbytes', 'maximumupload');
             $mform->setDefault('maxbytes', $courseconfig->maxbytes);
@@ -384,7 +384,7 @@ class course_edit_form extends moodleform {
         $mform->addElement('select', 'lang', get_string('forcelanguage'), $languages);
         $mform->setDefault('lang', $courseconfig->lang);
         */
-        if ($coursecontext and has_capability('local/ucla:editadvancedcoursesettings', $coursecontext)) {
+        if (has_capability('local/ucla:editadvancedcoursesettings', $coursecontext)) {
             $mform->addElement('header','', get_string('language'));
 
             $languages=array();
