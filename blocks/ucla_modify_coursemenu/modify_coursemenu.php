@@ -326,7 +326,7 @@ if ($modify_coursemenu_form->is_cancelled()) {
     
     if ($move_to_landingpage) {
         // If the section we are on was deleted, then move to the landing page
-        $newtopic = UCLA_FORMAT_DISPLAY_LANDING;
+        $new_topic = $landingpage;
     } else {
         // If we are on 'Site info' or 'Show all', then stay on the same topic
         // because these topics will never move
