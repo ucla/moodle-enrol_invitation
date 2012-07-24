@@ -1,0 +1,19 @@
+/* 
+    Document   : styles
+    Created on : Jul 24, 2012, 3:04:48 PM
+    Author     : alfonso
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+.region-content .block-ucla-alert {
+    background-color: #FAFAF8;
+    border: 1px solid #EBEBE2;
+/*    background-image: url([[pix:block_ucla_alert|pix/green.png]]);*/
+}
+
+.region-content .block-ucla-alert .content {
+    background-color: #FAFAF8;
+    padding: 0;
+}
+
