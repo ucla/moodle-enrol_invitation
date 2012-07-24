@@ -205,7 +205,8 @@ class block_ucla_office_hours extends block_base {
                                     && strpos($instr_website, 'https://') === false) {
                                 $instr_website = 'http://' . $instr_website;
                             }
-                            $dest_data .= html_writer::link($instr_website, fullname($user));
+                            $dest_data .= html_writer::link($instr_website, 
+                                    fullname($user), array('target' => '_blank'));
                         } else {
                             $dest_data .= fullname($user);
                         }
