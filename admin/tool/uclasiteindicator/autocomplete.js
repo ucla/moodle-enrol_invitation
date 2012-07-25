@@ -10,16 +10,8 @@ M.collab_autocomplete.init = function(Y) {
     
     YUI().use('autocomplete', 'autocomplete-highlighters', 'autocomplete-filters', function (Y) {
 
-        // Add the yui3-skin-sam class to the body so the default
-        // AutoComplete widget skin will be applied.
         Y.one('body').addClass('yui3-skin-sam');
 
-        // The following examples demonstrate some of the different
-        // result sources AutoComplete supports. You only need to
-        // pick one, you don't need them all. Assume the '#ac-input'
-        // element id used in this example refers to an <input>
-        // element on the page.
-        
         Y.one('#ac_input').plug(Y.Plugin.AutoComplete, {
             resultHighlighter:  'phraseMatch',
             resultFilters:      'phraseMatch',

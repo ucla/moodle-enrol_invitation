@@ -835,7 +835,7 @@ class siteindicator_manager {
     static function filter_category_tree(&$tree) {
         global $DB;
        
-        $recs = $DB->get_records_select('ucla_siteindicator', 'type <> "test"',
+        $recs = $DB->get_records_select('ucla_siteindicator', 'type NOT LIKE "test"',
                 null, '', 'courseid');
         
         $ids = array();
@@ -907,10 +907,10 @@ class siteindicator_manager {
             SELECT c.id, c.fullname, c.shortname
             FROM {course} c
             JOIN {ucla_siteindicator} si ON c.id = si.courseid
-            WHERE c.fullname LIKE '%{$q}%' 
-            AND si.type <> 'test'";
+            WHERE c.fullname LIKE :query 
+            AND si.type NOT LIKE 'test'";
         
-        $recs = $DB->get_records_sql($query);
+        $recs = $DB->get_records_sql($query, array('query' => '%'.$q.'%'));
         
         // Format results
         $results = array();

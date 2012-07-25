@@ -150,7 +150,7 @@ class collab_handler extends browseby_handler {
                     'block_ucla_browseby');
         } else {
             $title = get_string('collab_catsincat', 
-                    'block_ucla_browseby') . $collab_cat->name;
+                    'block_ucla_browseby', $collab_cat->name);
         }
         
         if(!empty($rendercatlist)) {
@@ -164,7 +164,7 @@ class collab_handler extends browseby_handler {
         $list = '';
         if (!empty($courselist)) {
             $title = get_string('collab_coursesincat', 
-                'block_ucla_browseby') . $collab_cat->name;
+                'block_ucla_browseby', $collab_cat->name);
             $data = array();
 
             foreach ($courselist as $course) {
