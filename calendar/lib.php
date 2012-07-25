@@ -1377,11 +1377,15 @@ function calendar_get_default_courses() {
 
     //$courses = enrol_get_my_courses();
     // BEGIN UCLA MOD: CCLE-3099-Calendar-all-courses-option-display-all-courses-in-category
-    // inefficient function call and subsequent reordering
-    $fields = 'category, sortorder, shortname, fullname, idnumber, startdate, visible, groupmode, groupmodeforce';
-    $category_courses = get_user_capability_course('moodle/course:view', NULL, true, $fields);
-    foreach ($category_courses as $course_obj) {
-        $courses[$course_obj->id] = $course_obj;
+    if (isguestuser() || is_siteadmin()) {
+        $courses = enrol_get_my_courses();
+    } else {
+        // inefficient function call and subsequent reordering
+        $fields = 'category, sortorder, shortname, fullname, idnumber, startdate, visible, groupmode, groupmodeforce';
+        $category_courses = get_user_capability_course('moodle/course:view', NULL, true, $fields);
+        foreach ($category_courses as $course_obj) {
+            $courses[$course_obj->id] = $course_obj;
+        }
     }
     // END UCLA MOD: CCLE-3099
 
