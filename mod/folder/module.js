@@ -36,6 +36,11 @@ M.mod_folder.init_tree = function(Y, expand_all) {
         if (expand_all) {
             tree.expandAll();
         }
+        
+        // Added feature to have tree collapsed.
+        else {
+            tree.collapseAll();
+        }
 
         tree.render();
     });

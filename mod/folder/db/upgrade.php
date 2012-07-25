@@ -56,6 +56,21 @@ function xmldb_folder_upgrade($oldversion) {
 
     // Moodle v2.2.0 release upgrade line
     // Put any upgrade step following this
+    
+    if ($oldversion < 2012072401) {
+
+        // Define field id to be added to folder
+        $table = new xmldb_table('folder');
+        $field = new xmldb_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null);
+
+        // Conditionally launch add field id
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // folder savepoint reached
+        upgrade_mod_savepoint(true, 2012072401, 'folder');
+    }
 
     return true;
 }

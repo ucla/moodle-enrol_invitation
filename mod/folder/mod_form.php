@@ -45,11 +45,12 @@ class mod_folder_mod_form extends moodleform_mod {
         }
         $mform->addRule('name', null, 'required', null, 'client');
         $this->add_intro_editor($config->requiremodintro);
-
+        
         //-------------------------------------------------------
         $mform->addElement('header', 'content', get_string('contentheader', 'folder'));
         $mform->addElement('filemanager', 'files', get_string('files'), null, array('subdirs'=>1, 'accepted_types'=>'*', 'return_types'=>FILE_INTERNAL));
 
+        $mform->addElement('advcheckbox', 'expanddir', get_string('expanddir', 'folder'));
         //-------------------------------------------------------
         $this->standard_coursemodule_elements();
 
