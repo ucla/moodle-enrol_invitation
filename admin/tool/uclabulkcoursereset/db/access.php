@@ -5,7 +5,7 @@ $capabilities = array(
         'riskbitmask' => RISK_DATALOSS,
         'captype' => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
-        'legacy' => array(
+        'archetype' => array(
             'manager' => CAP_ALLOW
         ),
     )

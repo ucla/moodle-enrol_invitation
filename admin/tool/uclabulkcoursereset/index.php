@@ -60,12 +60,9 @@ if ($selectform->is_cancelled()) {
 
     } else if (!empty($data->course_list)){
         
+        $valid_courseids = array_keys($course_list);
         foreach ($data->course_list as $courseid) {
-            $crs_site = siteindicator_site::load($courseid);
-            if (is_null($crs_site) || $crs_site->property->type != 'test') {
-                continue;
-            }
-            if (!has_capability('moodle/course:reset', context_course::instance($courseid))) {
+            if (!in_array($courseid, $valid_courseids)) {
                 continue;
             }
             $reset_data = $data;
