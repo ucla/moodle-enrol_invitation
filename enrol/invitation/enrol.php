@@ -38,6 +38,9 @@ $invitation = $DB->get_record('enrol_invitation',
 
 //if token is valid, enrol the user into the course          
 if (empty($invitation) or empty($invitation->courseid)) {
+    $course_id = empty($invitation->courseid) ? $SITE->id : $invitation->courseid;
+    add_to_log($course_id, 'enrol', 'view invalid/revoked/expired', 
+        "invitation/history.php?courseid=$course_id");
     throw new moodle_exception('expiredtoken', 'enrol_invitation');
 }
 
@@ -92,6 +95,9 @@ $confirm = optional_param('confirm', 0, PARAM_BOOL);
 if (empty($confirm)) {
     echo $OUTPUT->header();
     
+    add_to_log($invitation->courseid, 'enrol', 'view invite page', 
+        "invitation/history.php?courseid=$invitation->courseid", $course->fullname);
+    
     $accepturl = new moodle_url('/enrol/invitation/enrol.php', 
             array('token' => $invitation->token, 'confirm' => true));
     $accept = new single_button($accepturl, 
@@ -109,6 +115,9 @@ if (empty($confirm)) {
     require_once($CFG->dirroot . '/enrol/invitation/locallib.php');
     $invitationmanager = new invitation_manager($invitation->courseid);
     $invitationmanager->enroluser($invitation);
+    
+    add_to_log($invitation->courseid, 'enrol', 'accpet invite', 
+        "invitation/history.php?courseid=$invitation->courseid", $course->fullname);
 
     //Set token as used and mark which user was assigned the token
     $invitation->tokenused = true;
