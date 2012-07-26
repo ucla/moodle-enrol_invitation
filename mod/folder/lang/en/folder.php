@@ -35,4 +35,8 @@ $string['page-mod-folder-x'] = 'Any folder module page';
 $string['page-mod-folder-view'] = 'Folder module main page';
 $string['pluginadministration'] = 'Folder administration';
 $string['pluginname'] = 'Folder';
-$string['expanddir'] = 'Folders expanded';
+
+// START UCLA MOD: CCLE-3260 - Show folders collapsed by default
+// Adding option to show course folders collapsed by default.
+$string['show_expanded'] = 'Show folders expanded';
+// END UCLA MOD: CCLE-3260

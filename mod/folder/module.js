@@ -37,10 +37,12 @@ M.mod_folder.init_tree = function(Y, expand_all) {
             tree.expandAll();
         }
         
-        // Added feature to have tree collapsed.
+        // START UCLA MOD: CCLE-3260 - Show folders collapsed by default
+        // Adding option to show course folders collapsed by default.
         else {
             tree.collapseAll();
         }
+        // END UCLA MOD: CCLE-3260
 
         tree.render();
     });

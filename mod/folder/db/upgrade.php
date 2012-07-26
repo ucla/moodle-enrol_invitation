@@ -57,11 +57,14 @@ function xmldb_folder_upgrade($oldversion) {
     // Moodle v2.2.0 release upgrade line
     // Put any upgrade step following this
     
+    // START UCLA MOD: CCLE-3260 - Show folders collapsed by default
+    // Adding option to show course folders collapsed by default.
+    
     if ($oldversion < 2012072401) {
 
         // Define field id to be added to folder
         $table = new xmldb_table('folder');
-        $field = new xmldb_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null);
+        $field = new xmldb_field('show_expanded', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '1', 'timemodified');
 
         // Conditionally launch add field id
         if (!$dbman->field_exists($table, $field)) {
@@ -71,6 +74,8 @@ function xmldb_folder_upgrade($oldversion) {
         // folder savepoint reached
         upgrade_mod_savepoint(true, 2012072401, 'folder');
     }
+    
+    // END UCLA MOD: CCLE-3260
 
     return true;
 }

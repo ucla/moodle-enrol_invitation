@@ -268,14 +268,12 @@ if ($mform->is_cancelled()) {
         $course = $DB->get_record('course', array('id'=>$fromform->course), '*', MUST_EXIST);
         $fromform->instance     = '';
         $fromform->coursemodule = '';
-        $DB->set_field('folder', 'expanddir', $fromform->expanddir, array('course'=>$cm->course));
     } else {
         // Update
         $cm = get_coursemodule_from_id('', $fromform->coursemodule, 0, false, MUST_EXIST);
         $course = $DB->get_record('course', array('id'=>$cm->course), '*', MUST_EXIST);
         $fromform->instance     = $cm->instance;
         $fromform->coursemodule = $cm->id;
-        $DB->set_field('folder', 'expanddir', $fromform->expanddir, array('course'=>$cm->course));
     }
 
     if (!empty($fromform->coursemodule)) {
