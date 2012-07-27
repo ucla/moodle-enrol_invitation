@@ -166,7 +166,7 @@ function callback_ucla_definition() {
  * @return string
  */
 function callback_ucla_request_key() {
-    return 'topic';
+    return 'section';
 }
 
 /**
@@ -250,6 +250,9 @@ function ucla_format_display_instructors($course) {
  * Sets up given section. Will auto create section. if we have numsections set 
  * < than the actual number of sections that exist.
  * 
+ * NOTE: We are not using the Moodle API of get_course_section, because we want
+ * to set the section name in the database.
+ * 
  * @global type $DB
  * @param int $section      Section id to get
  * @param array $sections   Sections for course
@@ -266,7 +269,7 @@ function setup_section($section, $sections, $course) {
         // Save the name if the section name is NULL
         // This writes the value to the database
         if($section && NULL == $sections[$section]->name) {
-            $sections[$section]->name = get_string('sectionname', "format_weeks") . " " . $section;
+            $sections[$section]->name = get_string('sectionname', 'format_weeks') . ' ' . $section;
             $DB->update_record('course_sections', $sections[$section]);
         }
         
@@ -276,11 +279,12 @@ function setup_section($section, $sections, $course) {
         $thissection->course  = $course->id;   
         $thissection->section = $section;
         // Assign the week number as default name
-        $thissection->name = get_string('sectionname', "format_weeks") . " " . $section;
+        $thissection->name = get_string('sectionname', 'format_weeks') . ' ' . $section;
         $thissection->summary = '';
         $thissection->summaryformat = FORMAT_HTML;
         $thissection->visible  = 1;
         $thissection->id = $DB->insert_record('course_sections', $thissection);
+        rebuild_course_cache($course->id, true);
     }
     
     return $thissection;
