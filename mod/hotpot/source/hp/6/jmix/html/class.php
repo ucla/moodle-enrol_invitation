@@ -62,9 +62,11 @@ class hotpot_source_hp_6_jmix_html extends hotpot_source_hp_6_jmix {
             }
         }
 
-        if (! strpos($content, 'var Segments = new Array();')) {
-            // not jmix (file
-            return false;
+        if (! strpos($content, '<div id="SegmentDiv">')) { // drop-down
+            if (! strpos($content, '<div id="Drop')) { // drag-and-drop
+                // not a jmix file
+                return false;
+            }
         }
 
         return true;
