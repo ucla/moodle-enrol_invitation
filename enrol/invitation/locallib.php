@@ -174,11 +174,11 @@ class invitation_manager {
                 
                 // log activity after sending the email
                 if ($resend) {
-                    add_to_log($course->id, 'enrol', 'extend', 
-                            "invitation/history.php?courseid=$course->id", $course->fullname);
+                    add_to_log($course->id, 'course', 'enrol: extend', 
+                            "../enrol/invitation/history.php?courseid=$course->id", $course->fullname);
                 } else {
-                    add_to_log($course->id, 'enrol', 'send', 
-                            "invitation/history.php?courseid=$course->id", $course->fullname);
+                    add_to_log($course->id, 'course', 'enrol: send', 
+                            "../enrol/invitation/history.php?courseid=$course->id", $course->fullname);
                 }
             }
         } else {
