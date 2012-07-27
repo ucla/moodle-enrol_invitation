@@ -155,7 +155,7 @@ class questionnaire_question {
      * The class constructor
      *
      */
-    function questionnaire_question($id = 0, $question = null, $context = null) {
+    function __construct($id = 0, $question = null, $context = null) {
         global $DB;
         static $qtypes = null;
 
@@ -189,19 +189,12 @@ class questionnaire_question {
         $this->context = $context;
     }
 
-    /**
-     * Fake constructor to keep PHP5 happy
-     *
-     */
-    function __construct($id = 0, $question = null, $context = null) {
-        $this->questionnaire_question($id, $question, $context);
-    }
-
     function get_choices() {
         global $DB;
 
         if ($choices = $DB->get_records('questionnaire_quest_choice', array('question_id' => $this->id), 'id ASC')) {
-            foreach ($choices as $choice) {
+            foreach ($choices as $choice) { 
+                $this->choices[$choice->id] = new stdClass();
                 $this->choices[$choice->id]->content = $choice->content;
                 $this->choices[$choice->id]->value = $choice->value;
             }
@@ -242,10 +235,10 @@ class questionnaire_question {
         $val = optional_param('q'.$this->id, '', PARAM_CLEAN);
         // only insert if non-empty content
         if($this->type_id == 10) { // numeric
-            $val = ereg_replace("[^0-9.\-]*(-?[0-9]*\.?[0-9]*).*", '\1', $val);
+            $val = preg_replace("/[^0-9.\-]*(-?[0-9]*\.?[0-9]*).*/", '\1', $val);
         }
 
-        if(ereg("[^ \t\n]",$val)) {
+        if(preg_match("/[^ \t\n]/",$val)) {
             $record = new Object();
             $record->response_id = $rid;
             $record->question_id = $this->id;
@@ -283,7 +276,7 @@ class questionnaire_question {
                     if (!isset($other)) {
                         continue;
                     }
-                    if(ereg("[^ \t\n]",$other)) {
+                    if(preg_match("/[^ \t\n]/",$other)) {
                         $record = new Object();
                         $record->response_id = $rid;
                         $record->question_id = $this->id;
@@ -296,13 +289,13 @@ class questionnaire_question {
                 }
             }
         }
-        if(ereg("other_q([0-9]+)", (isset($val)?$val:''), $regs)) {
+        if(preg_match("/other_q([0-9]+)/", (isset($val)?$val:''), $regs)) {
             $cid=$regs[1];
             $other = optional_param('q'.$this->id.'_'.$cid, null, PARAM_CLEAN);
             if (!isset($other)) {
                 break; // out of the case
             }
-            if(ereg("[^ \t\n]",$other)) {
+            if(preg_match("/[^ \t\n]/",$other)) {
                 $record = new object;
                 $record->response_id = $rid;
                 $record->question_id = $this->id;
@@ -337,7 +330,7 @@ class questionnaire_question {
                 } else {
                     array_push($val, $cid);
                 }
-                if(ereg("[^ \t\n]",$other)) {
+                if(preg_match("/[^ \t\n]/",$other)) {
                     $record = new Object();
                     $record->response_id = $rid;
                     $record->question_id = $this->id;
@@ -355,7 +348,7 @@ class questionnaire_question {
         foreach($val as $cid) {
             $cid = clean_param($cid, PARAM_CLEAN);
             if ($cid != 0) { //do not save response if choice is empty
-                if(ereg("other_q[0-9]+", $cid))
+                if(preg_match("/other_q[0-9]+/", $cid))
                     continue;
                 $record = new Object();
                 $record->response_id = $rid;
@@ -545,7 +538,7 @@ class questionnaire_question {
             $select = 'question_id='.$this->id.' AND content NOT LIKE \'!other%\' ORDER BY id ASC'; //JR 4 NOV 2009 added ORDER
             if ($rows = $DB->get_records_select('questionnaire_quest_choice', $select)) {
                 foreach ($rows as $row) {
-                    $this->counts[$row->content] = null;
+                    $this->counts[$row->content] = new stdClass();
                     $nbna = $DB->count_records('questionnaire_response_rank', array('question_id' => $this->id, 'choice_id' => $row->id, 'rank' => '-1'));
                     $this->counts[$row->content]->nbna = $nbna;
                 }
@@ -676,12 +669,8 @@ class questionnaire_question {
             /// Count identical answers (case insensitive)
                 $this->text = $row->response;
                 if(!empty($this->text)) {
-                    $dateparts = split('-', $this->text);
-                    // START UCLA MOD: CCLE-3068 - Major problems with questionnaire date field 
-                    // applying patch mentioned here: http://moodle.org/mod/forum/discuss.php?d=181966#p847737                    
-                    //$this->text = gmmktime(0, 0, 0, $dateparts[1], $dateparts[2], $dateparts[0]); // Unix timestamp
+                    $dateparts = preg_split('/-/', $this->text);
                     $this->text = make_timestamp($dateparts[0], $dateparts[1], $dateparts[2]); // Unix timestamp 
-                    // END UCLA MOD: CCLE-3068
                     $textidx = clean_text($this->text);
                     $this->counts[$textidx] = !empty($this->counts[$textidx]) ? ($this->counts[$textidx] + 1) : 1;
                 }
@@ -1207,7 +1196,7 @@ class questionnaire_question {
         foreach ($this->choices as $cid => $choice) {
             $content = $choice->content;
             // check for number from 1 to 3 digits, followed by the equal sign = (to accomodate named degrees)
-            if (ereg("^([0-9]{1,3})=(.*)$", $content,$ndd)) {
+            if (preg_match("/^([0-9]{1,3})=(.*)$/", $content,$ndd)) {
                 $n[$nameddegrees] = format_text($ndd[2], FORMAT_HTML);
                 $this->choices[$cid] = '';
                 $nameddegrees++;
@@ -1268,7 +1257,7 @@ class questionnaire_question {
                 echo '<tr>';
                 $content = $choice->content;
                 if ($osgood) {
-                    list($content, $contentright) = split('[|]', $content);
+                    list($content, $contentright) = preg_split('/[|]/', $content);
                 }
                 echo '<td class="'.$bgr.'">'.format_text($content, FORMAT_HTML).'&nbsp;</td>';
                 if ($bgr == 'qntype r0') {
@@ -1579,7 +1568,7 @@ class questionnaire_question {
         $n = array();
         foreach ($this->choices as $cid => $choice) {
             $content = $choice->content;
-             if (ereg("^[0-9]{1,3}=", $content,$ndd)) {
+             if (preg_match("/^[0-9]{1,3}=/", $content,$ndd)) {
                 $n[$nameddegrees] = format_text(substr($content, strlen($ndd[0])), FORMAT_HTML);
                 $cidnamed[$cid] = true;
                 $nameddegrees++;
@@ -1620,7 +1609,7 @@ class questionnaire_question {
                     $content = $contents->text;
                 }
                 if ($osgood) {
-                    list($content, $contentright) = split('[|]', $content);
+                    list($content, $contentright) = preg_split('/[|]/', $content);
                 }
                 echo '<td align="left">'.format_text($content, FORMAT_HTML).'&nbsp;</td>';
                 $bg = 'qntype c0';
@@ -1940,7 +1929,7 @@ class questionnaire_question {
         foreach ($this->choices as $choice) {
             // to take into account languages filter
             $content = (format_text($choice->content, FORMAT_HTML));
-            if (ereg("^[0-9]{1,3}=", $content,$ndd)) {
+            if (preg_match("/^[0-9]{1,3}=/", $content,$ndd)) {
                 $n[$nameddegrees] = substr($content, strlen($ndd[0]));
                 $nameddegrees++;
             }
@@ -1980,7 +1969,7 @@ class questionnaire_question {
         if (!empty($this->counts) && is_array($this->counts)) {
             while(list($content) = each($this->counts)) {
                 // eliminate potential named degrees on Likert scale
-                 if (!ereg("^[0-9]{1,3}=", $content)) {
+                 if (!preg_match("/^[0-9]{1,3}=/", $content)) {
                     if (isset($this->counts[$content]->avg)) {
                         $avg = $this->counts[$content]->avg;
                     } else {
@@ -2001,7 +1990,7 @@ class questionnaire_question {
                     }
 
                     if ($osgood) {
-                        list($content, $contentright) = split('[|]', $content);
+                        list($content, $contentright) = preg_split('/[|]/', $content);
                     } else {
                         $contents = choice_values($content);
                         if ($contents->modname) {
