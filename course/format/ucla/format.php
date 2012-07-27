@@ -107,7 +107,7 @@ if ($editing) {
 // Include our custom ajax overwriters.
 // This needs to be printed after the headers, but before the footers.
 $noeditingicons = get_user_preferences('noeditingicons', 1);
-if (ajaxenabled()) {
+if (ajaxenabled() && !empty($editing)) {
     echo html_writer::script(false, new moodle_url('/course/format/ucla/sections.js'));
 
     if ($noeditingicons) {
