@@ -90,11 +90,9 @@ function xmldb_hotpot_upgrade($oldversion) {
             'gradeweighting' => new xmldb_field('grade', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'attemptlimit'),
         );
 
-        // fix previous fields (remove them if they don't exist)
-        xmldb_hotpot_fix_previous_field($dbman, $table, $fields);
-
         foreach ($fields as $newname => $field) {
             if ($dbman->field_exists($table, $field)) {
+                xmldb_hotpot_fix_previous_field($dbman, $table, $field);
                 $dbman->change_field_type($table, $field);
                 if ($field->getName() != $newname) {
                     $dbman->rename_field($table, $field, $newname);
@@ -140,11 +138,9 @@ function xmldb_hotpot_upgrade($oldversion) {
             new xmldb_field('discarddetails', XMLDB_TYPE_INTEGER, '2', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'clickreporting')
         );
 
-        // fix previous fields (remove them if they don't exist)
-        xmldb_hotpot_fix_previous_field($dbman, $table, $fields);
-
         foreach ($fields as $field) {
             if (! $dbman->field_exists($table, $field)) {
+                xmldb_hotpot_fix_previous_field($dbman, $table, $field);
                 $dbman->add_field($table, $field);
             }
         }
@@ -285,11 +281,9 @@ function xmldb_hotpot_upgrade($oldversion) {
             new xmldb_field('grademethod', XMLDB_TYPE_INTEGER, '4', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0')
         );
 
-        // fix previous fields (remove them if they don't exist)
-        xmldb_hotpot_fix_previous_field($dbman, $table, $fields);
-
         foreach ($fields as $field) {
             if ($dbman->field_exists($table, $field)) {
+                xmldb_hotpot_fix_previous_field($dbman, $table, $field);
                 $dbman->change_field_type($table, $field);
             }
         }
@@ -329,10 +323,8 @@ function xmldb_hotpot_upgrade($oldversion) {
         foreach ($tables as $tablename => $fields) {
             $table = new xmldb_table($tablename);
 
-            // fix previous fields (remove them if they don't exist)
-            xmldb_hotpot_fix_previous_field($dbman, $table, $fields);
-
             foreach ($fields as $field) {
+                xmldb_hotpot_fix_previous_field($dbman, $table, $field);
                 if ($dbman->field_exists($table, $field)) {
                     $dbman->change_field_type($table, $field);
                 } else {
@@ -615,12 +607,6 @@ function xmldb_hotpot_upgrade($oldversion) {
         upgrade_mod_savepoint(true, "$newversion", 'hotpot');
     }
 
-    $newversion = 2010080319;
-    if ($oldversion < $newversion) {
-        update_capabilities('mod/hotpot');
-        upgrade_mod_savepoint(true, "$newversion", 'hotpot');
-    }
-
     $newversion = 2010080325;
     if ($oldversion < $newversion) {
         $table = new xmldb_table('hotpot');
@@ -634,26 +620,93 @@ function xmldb_hotpot_upgrade($oldversion) {
         upgrade_mod_savepoint(true, "$newversion", 'hotpot');
     }
 
-    $newversion = 2010080327;
+    $newversion = 2010080330;
+    if ($oldversion < $newversion) {
+        require_once($CFG->dirroot.'/mod/hotpot/lib.php');
+        hotpot_refresh_events();
+    }
+
+    $newversion = 2010080333;
+    if ($oldversion < $newversion) {
+        update_capabilities('mod/hotpot');
+        upgrade_mod_savepoint(true, "$newversion", 'hotpot');
+    }
+
+    $newversion = 2010080338;
+    if ($oldversion < $newversion) {
+        $empty_cache = true;
+        upgrade_mod_savepoint(true, "$newversion", 'hotpot');
+    }
+
+    $newversion = 2010080339;
     if ($oldversion < $newversion) {
         $table = new xmldb_table('hotpot');
         $field = new xmldb_field('exitgrade', XMLDB_TYPE_INTEGER, '6', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0', 'exitcm');
+        xmldb_hotpot_fix_previous_field($dbman, $table, $field);
         if (! $dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
         upgrade_mod_savepoint(true, "$newversion", 'hotpot');
     }
 
-    $newversion = 2010080329;
+    $newversion = 2010080340;
     if ($oldversion < $newversion) {
-        $empty_cache = true;
+
+        // force all text fields to be long text, the default for Moodle 2.3 and later
+        $tables = array(
+            'hotpot' => array(
+                new xmldb_field('entrytext', XMLDB_TYPE_TEXT, 'long', null, XMLDB_NOTNULL),
+                new xmldb_field('exittext', XMLDB_TYPE_TEXT, 'long', null, XMLDB_NOTNULL)
+            ),
+            'hotpot_cache' => array(
+                new xmldb_field('content', XMLDB_TYPE_TEXT, 'long', null, XMLDB_NOTNULL)
+            ),
+            'hotpot_details' => array(
+                new xmldb_field('details', XMLDB_TYPE_TEXT, 'long', null, XMLDB_NOTNULL)
+            ),
+            'hotpot_questions' => array(
+                new xmldb_field('name', XMLDB_TYPE_TEXT, 'long', null, XMLDB_NOTNULL)
+            ),
+            'hotpot_strings' => array(
+                new xmldb_field('string', XMLDB_TYPE_TEXT, 'long', null, XMLDB_NOTNULL)
+            )
+        );
+
+        foreach ($tables as $tablename => $fields) {
+            $table = new xmldb_table($tablename);
+            foreach ($fields as $field) {
+                if ($dbman->field_exists($table, $field)) {
+                    $fieldname = $field->getName();
+                    $DB->set_field_select($tablename, $fieldname, '', "$fieldname IS NULL");
+                    $dbman->change_field_type($table, $field);
+                }
+            }
+        }
         upgrade_mod_savepoint(true, "$newversion", 'hotpot');
     }
 
-    $newversion = 2010080330;
+    $newversion = 2010080342;
     if ($oldversion < $newversion) {
-        require_once($CFG->dirroot.'/mod/hotpot/lib.php');
-        hotpot_refresh_events();
+        // force all MySQL integer fields to be signed, the default for Moodle 2.3 and later
+        if ($DB->get_dbfamily() == 'mysql') {
+            $prefix = $DB->get_prefix();
+            $tables = $DB->get_tables();
+            foreach ($tables as $table) {
+                if (substr($table, 0, 6)=='hotpot') {
+                    $rs = $DB->get_recordset_sql("SHOW COLUMNS FROM {$CFG->prefix}$table WHERE type LIKE '%unsigned%'");
+                    foreach ($rs as $column) {
+                        // copied from as "lib/db/upgradelib.php"
+                        $type = preg_replace('/\s*unsigned/i', 'signed', $column->type);
+                        $notnull = ($column->null === 'NO') ? 'NOT NULL' : 'NULL';
+                        $default = (is_null($column->default) || $column->default === '') ? '' : "DEFAULT '$column->default'";
+                        $autoinc = (stripos($column->extra, 'auto_increment') === false)  ? '' : 'AUTO_INCREMENT';
+                        $sql = "ALTER TABLE `{$prefix}$table` MODIFY COLUMN `$column->field` $type $notnull $default $autoinc";
+                        $DB->change_database_structure($sql);
+                    }
+                }
+            }
+        }
+        upgrade_mod_savepoint(true, "$newversion", 'hotpot');
     }
 
     if ($empty_cache) {
@@ -664,22 +717,33 @@ function xmldb_hotpot_upgrade($oldversion) {
 }
 
 /**
+ * xmldb_hotpot_fix_previous_fields
+ *
+ * @param xxx $dbman
+ * @param xmldb_table $table
+ * @param array of xmldb_field $fields (passed by reference)
+ * @return void, but may update some items in $fields array
+ */
+function xmldb_hotpot_fix_previous_fields($dbman, $table, &$fields) {
+    foreach ($fields as $i => $field) {
+        xmldb_hotpot_fix_previous_field($dbman, $table, $fields[$i]);
+    }
+}
+
+/**
  * xmldb_hotpot_fix_previous_field
  *
  * @param xxx $dbman
- * @param xxx $table
- * @param xxx $fields (passed by reference)
- * @return xxx
+ * @param xmldb_table $table
+ * @param xmldb_field $field (passed by reference)
+ * @return void, but may update $field->previous
  */
-function xmldb_hotpot_fix_previous_field($dbman, $table, &$fields) {
-    foreach ($fields as $i => $field) {
-        if (empty($field->previous)) {
-            continue; // no previous field
-        }
-        if ($dbman->field_exists($table, $field->previous)) {
-            continue; // previous field exists
-        }
-        // previous field does not exist, so remove it
-        $fields[$i]->previous = null;
+function xmldb_hotpot_fix_previous_field($dbman, $table, &$field) {
+    $previous = $field->getPrevious();
+    if (empty($previous) || $dbman->field_exists($table, $previous)) {
+        // $previous field exists - do nothing
+    } else {
+        // $previous field does not exist, so remove it
+        $field->setPrevious(null);
     }
 }
