@@ -25,8 +25,13 @@
 $string['sectionname'] = 'Section';
 $string['pluginname'] = 'UCLA format';
 $string['section0name'] = 'Site info';
+$string['currentsection'] = 'This section';
+$string['page-course-view-ucla'] = 'Any course main page in UCLA format';
+$string['page-course-view-ucla-x'] = 'Any course page in UCLA format';
+$string['hidefromothers'] = 'Hide section';
+$string['showfromothers'] = 'Show section';
 
-// SSC forum strings
+// forum strings
 $string['discforum'] = 'Discussion forum';
 $string['introdisc'] = 'This is a general discussion forum.';
 
@@ -53,9 +58,3 @@ $string['file'] = 'Upload file';
 $string['link'] = 'Add link';
 $string['text'] = 'Add text';
 $string['subheading'] = 'Add subheading';
-
-// Office hours and contact information heading displays
-$string['office'] = 'Office';
-$string['phone'] = 'Phone';
-$string['email'] = 'Email';
-$string['office_hours'] = 'Office hours';

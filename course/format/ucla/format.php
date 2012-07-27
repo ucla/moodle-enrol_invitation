@@ -30,6 +30,15 @@ require_once($CFG->libdir . '/completionlib.php');
 
 global $CFG, $USER, $PAGE;
 
+// Horrible backwards compatible parameter aliasing..
+if ($topic = optional_param('topic', 0, PARAM_INT)) {
+    $url = $PAGE->url;
+    $url->param('section', $topic);
+    debugging('Outdated topic param passed to course/view.php', DEBUG_DEVELOPER);
+    redirect($url);
+}
+// End backwards-compatible aliasing..
+
 // Course preferences
 $course_prefs = new ucla_course_prefs($course->id);
 
@@ -64,7 +73,7 @@ $has_capability_viewhidden =
         has_capability('moodle/course:viewhiddensections', $context);
 
 $has_capability_update = has_capability('moodle/course:update', $context);
-$get_accesshide = get_accesshide(get_string('currenttopic', 'access'));
+$get_accesshide = get_accesshide(get_string('currentsection', 'format_ucla'));
 
 // Cache all these get_string(), because you know, they're cached already...
 // these commented out strings seem to not be used anywhere
@@ -80,8 +89,8 @@ $editing = $PAGE->user_is_editing();
 if ($editing) {
     $streditsummary     = get_string('editcoursetitle', 'format_ucla');
     $streditsectionsummary = get_string('editsectiontitle', 'format_ucla');    
-    $strtopichide       = get_string('hidetopicfromothers');
-    $strtopicshow       = get_string('showtopicfromothers');
+    $strtopichide       = get_string('hidefromothers', 'format_ucla');
+    $strtopicshow       = get_string('showfromothers', 'format_ucla');
     $strmarkthistopic   = get_string('markthistopic');
     $strmarkedthistopic = get_string('markedthistopic');
     $strmoveup          = get_string('moveup');
@@ -98,7 +107,7 @@ if ($editing) {
 // Include our custom ajax overwriters.
 // This needs to be printed after the headers, but before the footers.
 $noeditingicons = get_user_preferences('noeditingicons', 1);
-if ($useajax) {
+if (ajaxenabled()) {
     echo html_writer::script(false, new moodle_url('/course/format/ucla/sections.js'));
 
     if ($noeditingicons) {
@@ -325,7 +334,7 @@ while ($section <= $course->numsections) {
     // This will auto create sections if we have numsections set < than 
     // the actual number of sections that exist
     $thissection = setup_section($section, $sections, $course);
-
+    
     // Check viewing capabilities of this section
     $showsection = ($has_capability_viewhidden
             or ($thissection->visible == '1')
