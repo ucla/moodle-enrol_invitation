@@ -1,11 +1,6 @@
-/* 
-    Document   : styles
-    Created on : Jul 24, 2012, 3:04:48 PM
-    Author     : alfonso
-    Description:
-        Purpose of the stylesheet follows.
-*/
 
+
+/* override default styling */
 .region-content .block-ucla-alert {
     background-color: #FAFAF8;
     border: 1px solid #EBEBE2;
@@ -15,5 +10,88 @@
 .region-content .block-ucla-alert .content {
     background-color: #FAFAF8;
     padding: 0;
+    font-family: Gill Sans, sans-serif;
+    color: #463A45;
 }
 
+/* general styles */
+.alert-block-msg {
+    padding: 5px;
+}
+.alert-block-msg .alert-block-list,
+.alert-block-msg-text{
+    font-size: 9pt;
+    line-height: 11pt;
+}
+.alert-block-list {
+    border-left: 5px solid #E9EBDF;
+    padding-left: 5px;
+    margin-bottom: 5px;
+}
+
+.alert-block-list-link:hover {
+    text-decoration: none;
+    background-color: #E9EBDF;
+}
+.alert-block-list-link a:hover {
+    text-decoration: none;
+}
+
+
+/* header styles */
+.alert-block-header {
+    width: 100%;
+    height: 79px;
+    background-image: url([[pix:block_ucla_alert|alert_mask]]);
+    background-repeat: no-repeat;
+    text-align: center;
+}
+
+.alert-block-header-title {
+    color: white;
+    font-size: 16pt;
+    font-family: Impact, Gill Sans, sans-serif;
+    padding: 4px 0;
+    text-transform: uppercase;
+}
+
+.alert-block-header-subtitle {
+    color: white;
+    font-size: 9pt;
+    font-family: Gill Sans, sans-serif;
+}
+
+
+
+/* header color variations */
+.alert-block-header-default, 
+.alert-block-header-green {
+    background-color: #88B851;
+}
+.alert-block-header-title-default,
+.alert-block-header-title-green {
+    text-shadow:1px 1px 3px #465E2A;
+}
+
+/* body */
+.alert-block-body-title {
+    text-transform: uppercase;
+    border-top: 1px solid #E9EBDF;
+    padding: 5px 0;
+    font-size: 11pt;
+    font-weight: bold;
+    letter-spacing: -0.3pt;
+    margin: 0 5px;
+}
+
+
+/* colors */
+.alert-block-list-default {
+    border-left-color: #E9EBDF;
+}
+.alert-block-list-blue {
+    border-left-color: #4A87BD;
+}
+.alert-block-list-green {
+    border-left-color: #88B851;
+}

@@ -2,20 +2,30 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot . '/blocks/ucla_alert/lib.php');
+
 class block_ucla_alert extends block_base {
+    
+    private $defaults;
+    
     public function init() {
         $this->title = get_string('pluginname', 'block_ucla_alert');
+        $this->defaults = array('alert_default');
     }
     
     public function get_content() {
+        global $CFG;
+
         if ($this->content !== null) {
             return $this->content;
         }
         
         // Hook modules here
         $this->content = new stdClass;
-        $this->content->text = 'The content of our SimpleHTML block!';
-        $this->content->footer = 'Footer here...';
+        
+        $this->content->text = $this->get_mod_content();
+        
+//        $this->content->footer = 'Footer here...';
 
         return $this->content;
     }
@@ -31,11 +41,23 @@ class block_ucla_alert extends block_base {
         return $attributes;
     }
     
-    function applicable_formats() {
+    public function applicable_formats() {
         return array(
             'site-index' => true,
             'course-view' => false,
             'my' => true,
         );
     }
+    
+    static function register_alert($alert) {
+        
+    }
+    
+    private function get_mod_content() {
+        
+        $default = new ucla_alertblock_header_default();
+        $body = new ucla_alertblock_body_default();
+        return $default->html_content() . $body->html_content();
+    }
+
 }
