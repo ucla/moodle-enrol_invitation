@@ -112,9 +112,8 @@ if (empty($confirm)) {
     exit;    
 } else {
     if ($invitation->email != $USER->email) {
-        add_to_log($invitation->courseid, 'course', 'enrol: invite does not belong to user', 
+        add_to_log($invitation->courseid, 'course', 'enrol: invite and user email do not match', 
             "../enrol/invitation/history.php?courseid=$invitation->courseid", $course->fullname);
-        print_error('wronguser');
     }
     // user confirmed, so add them
     require_once($CFG->dirroot . '/enrol/invitation/locallib.php');
