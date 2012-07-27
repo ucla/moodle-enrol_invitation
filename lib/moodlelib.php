@@ -2939,6 +2939,45 @@ function require_login($courseorid = NULL, $autologinguest = true, $cm = NULL, $
         }
     }
 
+    // START UCLA MOD: CCLE-3028 - Fix nonlogged users redirect on hidden content
+    // If a user who is not logged in tries to access private course information
+    // 
+    // Check visibility of activity to current user; includes visible flag, groupmembersonly,
+    // conditional availability, etc
+    if ($cm && !$cm->uservisible) {
+        if ($preventredirect) {
+            throw new require_login_exception('Activity is hidden');
+        }
+        
+        include_once($CFG->libdir . '/publicprivate/course.class.php');
+        $publicprivate_course = new PublicPrivate_Course($course);
+        // If a guest user tries to access private course information
+        if ($publicprivate_course->is_activated() && isguestuser()) {
+            
+            //global $PAGE;
+            $PAGE->set_url('/');
+            $PAGE->set_title('Login');
+            $PAGE->set_heading('Heading');
+            
+            echo $OUTPUT->header();
+            echo $OUTPUT->box_start('noticebox');
+
+            echo get_string('activityiscurrentlyhiddenfromguest');
+            $loginbutton = new single_button(new moodle_url($CFG->wwwroot
+                                    . '/login/index.php'), get_string('publicprivatelogin'));
+            $loginbutton->class = 'continuebutton';
+
+            echo $OUTPUT->render($loginbutton);
+            echo $OUTPUT->box_end();
+            exit;
+        } else {
+            redirect($CFG->wwwroot, get_string('activityiscurrentlyhidden'));
+        }
+    }
+    // END UCLA MOD: CCLE-3028
+    
+    /* 
+     * Replaced by CCLE-3028 Mod
     // Check visibility of activity to current user; includes visible flag, groupmembersonly,
     // conditional availability, etc
     if ($cm && !$cm->uservisible) {
@@ -2947,6 +2986,8 @@ function require_login($courseorid = NULL, $autologinguest = true, $cm = NULL, $
         }
         redirect($CFG->wwwroot, get_string('activityiscurrentlyhidden'));
     }
+     * 
+     */
 
     // Finally access granted, update lastaccess times
     user_accesstime_log($course->id);
