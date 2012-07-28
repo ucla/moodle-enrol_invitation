@@ -234,7 +234,7 @@ $processrequests = isset($uclacrqs) && !$uclacrqs->is_empty();
 if ($processrequests) {
     // This is the form data before the save
     $requestswitherrors = $uclacrqs->validate_requests($groupid);
-	if ($saverequeststates) {
+    if ($saverequeststates) {
         $successfuls = $uclacrqs->commit();
 
         // figure out changes that have occurred
@@ -283,6 +283,14 @@ if ($processrequests) {
                         $fieldstr = implode(', ', $fieldstrs);
 
                         $changemessages[$setid] = "$retmess -- $fieldstr";
+                    }
+                } else if ($retcode == ucla_courserequests::insertsuccess) {
+                    // If we need to get the course from the registrar
+                    $changemessages[$setid] = $retmess;
+                    foreach ($set as $course) {
+                        if ($course['hostcourse'] == 0 && $course['action'] == 'build') {
+                            crosslist_course_from_registrar($course['term'], $course['srs']);
+                        }
                     }
                 } else {
                     $changemessages[$setid] = $retmess; 
@@ -537,7 +545,7 @@ if (!empty($requeststable->data)) {
             'value' => get_string('submit' . $groupid, $rucr),
             'class' => 'right'
         ));
-
+    
     echo html_writer::end_tag('form');
 }
 
