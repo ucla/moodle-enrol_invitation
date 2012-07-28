@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/folder/db" VERSION="2012072401" COMMENT="XMLDB file for Folder module"
+<XMLDB PATH="mod/folder/db" VERSION="2012072600" COMMENT="XMLDB file for Folder module"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
