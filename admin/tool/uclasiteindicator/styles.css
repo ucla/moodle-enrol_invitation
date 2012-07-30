@@ -50,9 +50,16 @@
     color: red;
 }
 
+/* autocomplete search */
 #ac_input {
     width: 720px;
+    display: none;
 }
+/* only display if javascript is enabled */
+body.jsenabled #ac_input {
+    display: block;
+}
+
 .ac-search-wrapper {
     border: 1px solid #DDD;
     float: left;
