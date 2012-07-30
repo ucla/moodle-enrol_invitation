@@ -2949,27 +2949,10 @@ function require_login($courseorid = NULL, $autologinguest = true, $cm = NULL, $
             throw new require_login_exception('Activity is hidden');
         }
         
-        include_once($CFG->libdir . '/publicprivate/course.class.php');
-        $publicprivate_course = new PublicPrivate_Course($course);
         // If a guest user tries to access private course information
-        if ($publicprivate_course->is_activated() && isguestuser()) {
-            
-            //global $PAGE;
-            $PAGE->set_url('/');
-            $PAGE->set_title('Login');
-            $PAGE->set_heading('Heading');
-            
-            echo $OUTPUT->header();
-            echo $OUTPUT->box_start('noticebox');
-
-            echo get_string('activityiscurrentlyhiddenfromguest');
-            $loginbutton = new single_button(new moodle_url($CFG->wwwroot
-                                    . '/login/index.php'), get_string('publicprivatelogin'));
-            $loginbutton->class = 'continuebutton';
-
-            echo $OUTPUT->render($loginbutton);
-            echo $OUTPUT->box_end();
-            exit;
+        if (isloggedin() && isguestuser()) {
+            require_once($CFG->dirroot . '/local/ucla/lib.php');
+            prompt_login($PAGE, $OUTPUT, $CFG, $course);
         } else {
             redirect($CFG->wwwroot, get_string('activityiscurrentlyhidden'));
         }

@@ -67,3 +67,9 @@ $string['choosecopyright'] = 'Copyright status ' . $string['choosecopyright_help
 // capability strings
 $string['ucla:assign_all'] = 'CCLE-2530: Can see the entire user database when assigning roles';
 $string['ucla:editadvancedcoursesettings'] = 'CCLE-3278: Can edit the course settings for category, format, maximum upload size, or language defaults';
+
+// START UCLA MOD: CCLE-3028 - Fix nonlogged users redirect on hidden content
+// If a user who is not logged in tries to access private course information
+$string['notloggedin'] = 'Sorry, this activity is currently hidden. You must be logged in to view the content.';
+$string['loginredirect'] = 'Login Redirect';
+// END UCLA MOD: CCLE-3028

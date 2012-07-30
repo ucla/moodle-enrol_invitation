@@ -1168,4 +1168,14 @@ function setup_js_tablesorter($tableid=null) {
 
     return $tableid;
 }
+
+function prompt_login($PAGE, $OUTPUT, $CFG, $course) {
+    $PAGE->set_url('/');
+    $PAGE->set_course($course);
+    $PAGE->set_title($course->shortname);
+    $PAGE->set_heading($course->fullname);
+    $PAGE->navbar->add(get_string('loginredirect','local_ucla'));
+            
+    notice(get_string('notloggedin', 'local_ucla'), get_login_url());
+}
 // EOF

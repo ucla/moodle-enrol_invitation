@@ -33,10 +33,6 @@ $string['activities_help'] = 'Activities, such as forums, quizzes and wikis, ena
 $string['activity'] = 'Activity';
 $string['activityclipboard'] = 'Moving this activity: <b>{$a}</b>';
 $string['activityiscurrentlyhidden'] = 'Sorry, this activity is currently hidden';
-// START UCLA MOD: CCLE-3028 - Fix nonlogged users redirect on hidden content
-// If a user who is not logged in tries to access private course information
-$string['activityiscurrentlyhiddenfromguest'] = 'Sorry, this activity is currently hidden. You must be logged in to view the content.';
-// END UCLA MOD: CCLE-3028
 $string['activitymodule'] = 'Activity module';
 $string['activitymodules'] = 'Activity modules';
 $string['activityreport'] = 'Activity report';
