@@ -149,27 +149,38 @@ class block_ucla_browseby extends block_list {
             $term = $record->term;
             $subjarea = $record->subjarea;
 
-            echo "Handling $term $subjarea \n";
+            echo "Handling $term $subjarea...";
 
             $thisreg = array('term' => $term, 
                 'subjarea' => $subjarea);
-            $toreg = array($thisreg);
 
             $courseinfo = $this->run_registrar_query(
-                'ccle_coursegetall', $toreg);
+                'ccle_coursegetall', $thisreg);
 
-            foreach ($courseinfo as $ci) {
-                $ci['term'] = $term;
-                $courseinfos[] = $ci;
+            if ($courseinfo) {
+                foreach ($courseinfo as $ci) {
+                    $ci['term'] = $term;
+                    $courseinfos[] = $ci;
+                }
+            } else {
+                echo "no course data!\n";
+                continue;
             }
 
             $instrinfo = $this->run_registrar_query(
-                'ccle_getinstrinfo', $toreg);
+                'ccle_getinstrinfo', $thisreg);
 
-            foreach ($instrinfo as $ii) {
-                $ii['subjarea'] = $subjarea;
-                $instrinfos[] = $ii;
+            if ($instrinfo) {
+                foreach ($instrinfo as $ii) {
+                    $ii['subjarea'] = $subjarea;
+                    $instrinfos[] = $ii;
+                }
+            } else {
+                echo "no instr data!\n";
+                continue;
             }
+
+            echo "done\n";
         }
 
         // Save which courses need instructor informations.
@@ -247,9 +258,7 @@ class block_ucla_browseby extends block_list {
     }
    
     protected function run_registrar_query($q, $d) {
-        ucla_require_registrar();
-
-        return registrar_query::run_registrar_query($q, $d, true);
+        return registrar_query::run_registrar_query($q, $d);
     }
     protected function get_records($t, $p, $o, $s) {
         global $DB;
