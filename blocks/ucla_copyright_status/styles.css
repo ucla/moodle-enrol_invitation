@@ -1,5 +1,5 @@
 div#block_ucla_copyright_status_filter, div#block_ucla_copyright_status_id_cp_list, span#block_ucla_copyright_status_t1{
-	margin:20px 2px 20px 0;
+	margin:10px 2px 20px 0;
 }
 
 div#block_ucla_copyright_status_stat{
@@ -11,12 +11,73 @@ div#block_ucla_copyright_status_stat{
 	color: black;
 }
 
-span#block_ucla_copyright_status_changes_saved{
+.block-ucla-copyright-status-stat-num-red{
+	padding-left:5px;
 	color:red;
-	padding-left:20px;
 }
 
 .block-ucla-copyright-status-stat-num{
 	padding-left:5px;
-	color: blue;
+	color: green;
+}
+
+.block-ucla-copyright-status-list{
+	margin-top:5px;
+}
+
+.block-ucla-copyright-status-save-button{
+	text-align:center;
+}
+
+.block-ucla-copyright-status-red-text-item{
+	color:red;
+}
+
+#block-ucla-copyright-status-noscript{
+	margin-left:100px;
+	color:red;
+	font-weight:bold;
+}
+
+/* ucla bootstrap table */
+div table {
+    margin-top: 20px;
+    border-collapse: collapse;
+    border-spacing: 0;
+    background-color: transparent;
+    width: 100%;
+    margin-bottom: 18px;
+    /* borrowed from bootstrap table */
+    border: 1px solid #dddddd;
+    border-collapse: separate;
+    *border-collapse: collapsed;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+}
+
+div table thead {
+    background: #EFEFEF;
+    color: #666;
+}
+
+div table th, 
+.instr-info table td {
+    padding: 8px;
+    line-height: 18px;
+    text-align: left;
+    vertical-align: top;
+}
+
+div table tbody tr:nth-child(odd) td,
+div table tbody tr:nth-child(odd) th {
+  background-color: #f9f9f9;
+}
+
+div table tbody td span {
+    margin-right: 10px;
+}
+
+div table {
+    clear:both;
 }

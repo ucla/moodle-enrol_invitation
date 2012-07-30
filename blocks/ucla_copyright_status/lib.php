@@ -44,7 +44,7 @@ function init_copyright_page($course, $courseid, $context){
 */
 function get_files_copyright_status_by_course($courseid,$filter=null){
 	global $DB;
-	$sql = "SELECT f.id, f.filename, f.author, f.license, f.timemodified, f.contenthash
+	$sql = "SELECT f.id, f.filename, f.author, f.license, f.timemodified, f.contenthash, cm.id as cmid
          FROM {files} f
 		 INNER JOIN {context} c
 		 ON c.id = f.contextid
@@ -150,22 +150,27 @@ function display_copyright_status_contents($courseid, $filter){
 		$license_options[$license->shortname]=$license->fullname;
 	}
 
-
 	// start output screen
 	echo html_writer::tag('h1','Copyright Status',array('class' => 'classHeader'));
+	// if javascript disabled
+	echo html_writer::tag('noscript',get_string('javascriptdisabled', 'block_ucla_copyright_status'),array('id'=>'block-ucla-copyright-status-noscript'));
 
 	// display statistics 
-	$all_copyrights = get_files_copyright_status_by_course($courseid, 'all');
+	$all_copyrights = get_files_copyright_status_by_course($courseid);
 	$stat_array = calculate_copyright_status_statistics($all_copyrights, $licenses);
-
 	//if no files, do not calculate
 	if ($stat_array['total']>0){
 		echo html_writer::start_tag('div', array('id' => 'block_ucla_copyright_status_stat'));
 		echo html_writer::start_tag('ul');
 		foreach($license_options as $k=>$v){
 			if ($k != 'all'){
+				// if tbd, shown in red
+				$text_style_class = 'block-ucla-copyright-status-stat-num';
+				if ($k == $CFG->sitedefaultlicense){
+					$text_style_class = 'block-ucla-copyright-status-stat-num-red';
+				}
 				$stat_count = isset($stat_array[$k])?$stat_array[$k]:0;
-				echo html_writer::tag('li', $v.':'.html_writer::start_tag('span', array('class'=>'block-ucla-copyright-status-stat-num')).'('.$stat_count.'/'.$stat_array['total'].', '.number_format($stat_count*100/$stat_array['total'],0,'','').'%)'.html_writer::end_tag('span'));
+				echo html_writer::tag('li', $v.':'.html_writer::start_tag('span', array('class'=>$text_style_class)).'('.$stat_count.'/'.$stat_array['total'].', '.number_format($stat_count*100/$stat_array['total'],0,'','').'%)'.html_writer::end_tag('span'));
 			}
 		}
 		echo html_writer::end_tag('ul');
@@ -182,19 +187,21 @@ function display_copyright_status_contents($courseid, $filter){
 	echo html_writer::select($license_options, 'filter_copyright', $filter, false, array('id'=>'block_ucla_copyright_status_id_filter_copyright'));
 	$PAGE->requires->js_init_call('M.util.init_select_autosubmit', array('form_copyright_status_list', 'block_ucla_copyright_status_id_filter_copyright', ''));
 	echo html_writer::end_tag('div');
+	echo html_writer::tag('div', get_string('instruction_text1', 'block_ucla_copyright_status'), array('class'=>'block-ucla-copyright-status-red-text-item'));
 	// end display copyright filter
 
 	// display copyright status list
 	unset($license_options['all']);
     $t = new html_table();
-    $t->head = array(get_string('file', 'block_ucla_copyright_status'), 
+    $t->head = array('', get_string('file', 'block_ucla_copyright_status').get_string('choosecopyright', 'local_ucla'), 
 		get_string('updated_dt', 'block_ucla_copyright_status'),
-		get_string('author', 'block_ucla_copyright_status'),
-		get_string('license', 'block_ucla_copyright_status'));   
+		get_string('author', 'block_ucla_copyright_status'));
 	$course_copyright_status_list = get_files_copyright_status_by_course($courseid,$filter);
+	$count = 1;
     foreach ($course_copyright_status_list as $record) {
 		$select_copyright = html_writer::select($license_options, 'filecopyright_'.$record->id, $record->license);
-		$t->data[] = array($record->filename, strftime("%B %d %Y %r",$record->timemodified), $record->author, $select_copyright); 
+		$t->data[] = array($count, html_writer::tag('a', $record->filename, array('href'=>$CFG->wwwroot.'/mod/resource/view.php?id='.$record->cmid)).html_writer::tag('div',$select_copyright, array('class'=>'block-ucla-copyright-status-list')), strftime("%B %d %Y %r",$record->timemodified), $record->author); 
+		$count++;
 	}
 	echo html_writer::start_tag('div', array('id'=>'block_ucla_copyright_status_id_cp_list'));
 	if (count($course_copyright_status_list)>0){
@@ -208,12 +215,11 @@ function display_copyright_status_contents($courseid, $filter){
 
 	echo html_writer::end_tag('div'); 
 	echo html_writer::end_tag('form');
-
+	
 	// display save changes button
 	if (count($course_copyright_status_list)>0){
-		echo "<input type='button' id ='block_ucla_copyright_status_btn1' value='save changes'>";
-		echo html_writer::start_tag('span', array('id'=>'block_ucla_copyright_status_changes_saved'));
-		echo html_writer::end_tag('span');
+		echo html_writer::tag('div', '<input type=button id = \'block_ucla_copyright_status_btn1\' value=\''.get_string('save_button','block_ucla_copyright_status').'\'>',
+			array('class'=>'block-ucla-copyright-status-save-button'));
 		echo html_writer::start_tag('div', array('id' => 'block_ucla_copyright_status_d1'));
 		echo html_writer::end_tag('div');
 	}
