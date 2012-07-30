@@ -78,7 +78,6 @@ abstract class registrar_query {
             error_log($e->getMessage());
             return false;
         }
-
         $qr = $this->remote_call_generate($driving_data);
 
         // Let's not fail hard
