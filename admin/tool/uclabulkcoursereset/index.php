@@ -66,7 +66,8 @@ if ($selectform->is_cancelled()) {
                 continue;
             }
             $reset_data = $data;
-            unset($reset_data->course_list);
+            $reset_data->id = $courseid;
+            $reset_data->courseid = $courseid;
             $course_info = $DB->get_record('course', array('id' => $courseid));
             $reset_data->reset_start_date_old = $course_info->startdate;
             $status = reset_course_userdata($reset_data);
