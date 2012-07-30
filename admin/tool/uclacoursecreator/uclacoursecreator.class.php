@@ -1913,6 +1913,14 @@ class uclacoursecreator {
             $this->debugln('Registrar Class Info mass insert failed.');
 
             foreach ($term_rci as $rci_data) {
+                // maybe failed, because term/srs already exists in ucla_reg_classinfo
+                if($DB->record_exists('ucla_reg_classinfo', 
+                        array('term' => $rci_data->term, 'srs' => $rci_data->srs))) {
+                    $this->debugln('ucla_reg_classinfo record already exists: '
+                        . $rci_data->term . ' ' . $rci_data->srs);                    
+                    continue;
+                }
+                
                 try {
                     $DB->insert_record('ucla_reg_classinfo',
                         $rci_data);
