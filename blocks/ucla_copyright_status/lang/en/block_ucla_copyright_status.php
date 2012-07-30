@@ -1,7 +1,6 @@
 <?php
 $string['pluginname'] = 'Manage copyright status';
 $string['title'] = 'Manage copyright status';
-//$string['license'] = 'Copyright status';
 $string['file'] = 'File copyright status';
 $string['updated_dt'] = 'Updated date';
 $string['author'] = 'Author';
