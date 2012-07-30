@@ -450,7 +450,7 @@ class enrol_database_plugin extends enrol_plugin {
             $failed_users = array();
 
             foreach ($set as $course) {
-                $regdata = array(array($course->term, $course->srs));
+                $regdata = array($course->term, $course->srs);
 
                 $subjarea = $course->department;
                 $localmap = $course->courseid;
