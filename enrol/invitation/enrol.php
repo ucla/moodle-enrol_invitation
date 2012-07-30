@@ -36,8 +36,8 @@ $enrolinvitationtoken = required_param('token', PARAM_ALPHANUM);
 $invitation = $DB->get_record('enrol_invitation', 
         array('token' => $enrolinvitationtoken, 'tokenused' => false));
 
-//if token is valid, enrol the user into the course          
-if (empty($invitation) or empty($invitation->courseid) or $invitation->timeexpired < time()) {
+//if token is valid, enrol the user into the course   
+if (empty($invitation) or empty($invitation->courseid) or $invitation->timeexpiration < time()) {
     $course_id = empty($invitation->courseid) ? $SITE->id : $invitation->courseid;
     add_to_log($course_id, 'course', 'invitation expired', 
         "../enrol/invitation/history.php?courseid=$course_id", 
