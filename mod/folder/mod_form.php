@@ -53,7 +53,7 @@ class mod_folder_mod_form extends moodleform_mod {
         // START UCLA MOD: CCLE-3260 - Show folders collapsed by default
         // Adding option to show course folders collapsed by default.
         $mform->addElement('advcheckbox', 'show_expanded', get_string('show_expanded', 'folder'));
-        $mform->setDefault('show_expanded', 1);
+        $mform->setDefault('show_expanded', $config->show_expanded);
         // END UCLA MOD: CCLE-3260
         //-------------------------------------------------------
         $this->standard_coursemodule_elements();
