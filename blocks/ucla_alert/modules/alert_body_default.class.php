@@ -30,9 +30,6 @@ class ucla_alertblock_body_default extends ucla_alertblock_module {
             ),
         );
         
-        $obj->start = null;
-        $obj->end = null;
-        
         $this->defaults = array(
             'list' => array(
                 'color' => 'default',
