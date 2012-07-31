@@ -45,6 +45,7 @@ abstract class registrar_cacheable_stored_procedure extends registrar_stored_pro
     function retrieve_registrar_info($driving_data) {
         global $DB;
         $query_params = array();    // store values to pass into $DB object
+        $results = array();         // results to return
         
         // get information and parameters for this call
         $storedproc_cache = $this->get_stored_procedure() . '_cache';      
@@ -70,7 +71,7 @@ abstract class registrar_cacheable_stored_procedure extends registrar_stored_pro
         }        
         
         try {
-            $results = $DB->get_records_sql($sql, $query_params);           
+            $cache_results = $DB->get_records_sql($sql, $query_params);           
         } catch (Exception $e) {
             // query failed, maybe table is missing or columns mismatched
             throw new registrar_stored_procedure_exception(
@@ -78,7 +79,7 @@ abstract class registrar_cacheable_stored_procedure extends registrar_stored_pro
                             print_r($query_params, true)));
         }
         
-        if (empty($results)) {
+        if (empty($cache_results)) {
             //debugging('cache miss');
             
             // no valid cache found, so first delete any cache copy;
@@ -111,6 +112,13 @@ abstract class registrar_cacheable_stored_procedure extends registrar_stored_pro
                                         print_r($insert_params, true)));
                     }
                 }
+            }
+        } else {
+            //debugging('cache hit');
+
+            // format results so it is returned as an array
+            foreach ($cache_results as $cache_result) {
+                $results[] = (array) $cache_result;
             }
         }        
         return $results;
