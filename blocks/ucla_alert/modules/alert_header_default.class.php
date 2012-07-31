@@ -37,8 +37,6 @@ class ucla_alertblock_header_default extends ucla_alertblock_module {
                     ),
                 ),
         );
-        $obj->start = null;
-        $obj->end = null;
         
         $this->defaults = array(
             'header' => array(

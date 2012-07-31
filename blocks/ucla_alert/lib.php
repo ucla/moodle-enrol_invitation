@@ -65,19 +65,7 @@ abstract class ucla_alertblock_module {
         return html_writer::tag('div', $out,
                 array('class' => 'alert-block-msg'));
     }
-    
-    function available() {
-        if(empty($this->prop->start)) {
-            return true;
-        }
-    }
-    
-    function expired() {
-        if(empty($this->prop->end)) {
-            return false;
-        }
-    }
-    
+        
     protected function get_inner_content() {
         global $DB;
         $recods = $DB->get_records('ucla_alerts', 

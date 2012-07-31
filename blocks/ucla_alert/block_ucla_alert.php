@@ -7,10 +7,17 @@ require_once($CFG->dirroot . '/blocks/ucla_alert/lib.php');
 class block_ucla_alert extends block_base {
     
     private $defaults;
+    private $modules;
     
     public function init() {
         $this->title = get_string('pluginname', 'block_ucla_alert');
         $this->defaults = array('alert_default');
+        
+        // 
+        $this->modules = array(
+            'alert_header_default' => 'ucla_alertblock_header_default',
+            'alert_body_default' => 'ucla_alertblock_body_default',
+            );
     }
     
     public function get_content() {
@@ -54,10 +61,29 @@ class block_ucla_alert extends block_base {
     }
     
     private function get_mod_content() {
+        global $CFG;
         
-        $default = new ucla_alertblock_header_default();
-        $body = new ucla_alertblock_body_default();
-        return $default->html_content() . $body->html_content();
+        $out = '';
+        $path = $CFG->dirroot . '/blocks/ucla_alert/modules/';
+        
+        // Iterate through known mods
+        // @todo need logic to determine header
+        foreach($this->modules as $mod => $class) {
+        
+            if(file_exists($path . $mod . '.class.php')) {
+                
+                require_once $path .$mod . '.class.php';
+                
+                $load = new $class;
+                $out .= $load->html_content();
+            }
+        }
+        
+        return $out;
+        
+//        $default = new ucla_alertblock_header_default();
+//        $body = new ucla_alertblock_body_default();
+//        return $default->html_content() . $body->html_content();
     }
 
 }
