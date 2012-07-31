@@ -222,6 +222,38 @@ function xmldb_local_ucla_upgrade($oldversion=0) {
         upgrade_plugin_savepoint(true, 2012060402, 'local', 'ucla');
     }    
     
+    if ($oldversion < 2012073000) {
+        // Define table ccle_roster_class_cache to be created
+        $table = new xmldb_table('ccle_roster_class_cache');
+
+        // Adding fields to table ccle_roster_class_cache
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('param_term', XMLDB_TYPE_CHAR, '3', null, XMLDB_NOTNULL, null, null, 'id');
+        $table->add_field('param_srs', XMLDB_TYPE_CHAR, '9', null, XMLDB_NOTNULL, null, null, 'param_term');
+        $table->add_field('expires_on', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, 'param_srs');
+        $table->add_field('term_cd', XMLDB_TYPE_CHAR, '3', null, null, null, null, 'expires_on');
+        $table->add_field('stu_id', XMLDB_TYPE_CHAR, '9', null, null, null, null, 'term_cd');
+        $table->add_field('full_name_person', XMLDB_TYPE_CHAR, '70', null, null, null, null, 'stu_id');
+        $table->add_field('enrl_stat_cd', XMLDB_TYPE_CHAR, '1', null, null, null, null, 'full_name_person');
+        $table->add_field('ss_email_addr', XMLDB_TYPE_CHAR, '100', null, null, null, null, 'enrl_stat_cd');
+        $table->add_field('bolid', XMLDB_TYPE_CHAR, '100', null, null, null, null, 'ss_email_addr');
+
+        // Adding keys to table ccle_roster_class_cache
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+        
+        // Adding indexes to table ccle_roster_class_cache
+        $table->add_index('param_index', XMLDB_INDEX_NOTUNIQUE, array('param_term', 'param_srs', 'expires_on'));
+        $table->add_index('student_uid_lookup', XMLDB_INDEX_NOTUNIQUE, array('param_term', 'param_srs', 'stu_id'));
+
+        // Conditionally launch create table for ucla_reg_division
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // ucla savepoint reached
+        upgrade_plugin_savepoint(true, 2012073000, 'local', 'ucla');
+    }    
+    
     return $result;
 }
 
