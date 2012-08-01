@@ -632,12 +632,6 @@ function xmldb_hotpot_upgrade($oldversion) {
         upgrade_mod_savepoint(true, "$newversion", 'hotpot');
     }
 
-    $newversion = 2010080338;
-    if ($oldversion < $newversion) {
-        $empty_cache = true;
-        upgrade_mod_savepoint(true, "$newversion", 'hotpot');
-    }
-
     $newversion = 2010080339;
     if ($oldversion < $newversion) {
         $table = new xmldb_table('hotpot');
@@ -708,6 +702,13 @@ function xmldb_hotpot_upgrade($oldversion) {
         }
         upgrade_mod_savepoint(true, "$newversion", 'hotpot');
     }
+
+    $newversion = 2010080343;
+    if ($oldversion < $newversion) {
+        $empty_cache = true;
+        upgrade_mod_savepoint(true, "$newversion", 'hotpot');
+    }
+
 
     if ($empty_cache) {
         $DB->delete_records('hotpot_cache');
