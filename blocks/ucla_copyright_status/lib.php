@@ -42,7 +42,7 @@ function init_copyright_page($course, $courseid, $context){
 function get_files_copyright_status_by_course($courseid,$filter=null){
 	global $DB;
 	global $CFG;
-	$sql = "SELECT f.id, f.filename, f.author, f.license, f.timemodified, f.contenthash, cm.id as cmid
+	$sql = "SELECT f.id, f.filename, f.author, f.license, f.timemodified, f.contenthash, cm.id as cmid, r.name as rname
          FROM {files} f
 		 INNER JOIN {context} c
 		 ON c.id = f.contextid
@@ -149,8 +149,10 @@ function display_copyright_status_contents($courseid, $filter){
 	foreach($licenses as $license){
 		$license_options[$license->shortname]=$license->fullname;
 	}
+	$tid = setup_js_tablesorter();
 
 	// start output screen
+	echo $OUTPUT->header();
 	echo html_writer::tag('h1','Copyright Status',array('class' => 'classHeader'));
 	// if javascript disabled
 	echo html_writer::tag('noscript',get_string('javascriptdisabled', 'block_ucla_copyright_status'),array('id'=>'block-ucla-copyright-status-noscript'));
@@ -194,6 +196,7 @@ function display_copyright_status_contents($courseid, $filter){
 	// display copyright status list
 	unset($license_options['all']);
     $t = new html_table();
+	$t->id = $tid;
     $t->head = array('', get_string('choosecopyright', 'local_ucla'), 
 		get_string('updated_dt', 'block_ucla_copyright_status'),
 		get_string('author', 'block_ucla_copyright_status'));
@@ -201,7 +204,7 @@ function display_copyright_status_contents($courseid, $filter){
 	$count = 1;
     foreach ($course_copyright_status_list as $record) {
 		$select_copyright = html_writer::select($license_options, 'filecopyright_'.$record->id, $record->license);
-		$t->data[] = array($count, html_writer::tag('a', $record->filename, array('href'=>$CFG->wwwroot.'/mod/resource/view.php?id='.$record->cmid)).html_writer::tag('div',$select_copyright, array('class'=>'block-ucla-copyright-status-list')), strftime("%B %d %Y %r",$record->timemodified), $record->author); 
+		$t->data[] = array($count, html_writer::tag('a', !empty($record->rname)?$record->rname:$record->filename, array('href'=>$CFG->wwwroot.'/mod/resource/view.php?id='.$record->cmid)).html_writer::tag('div',$select_copyright, array('class'=>'block-ucla-copyright-status-list')), strftime("%B %d %Y %r",$record->timemodified), $record->author); 
 		$count++;
 	}
 	echo html_writer::start_tag('div', array('id'=>'block_ucla_copyright_status_id_cp_list'));
@@ -220,10 +223,13 @@ function display_copyright_status_contents($courseid, $filter){
 	// display save changes button
 	if (count($course_copyright_status_list)>0){
 		echo html_writer::tag('div', html_writer::empty_tag('input', array('id'=>'block_ucla_copyright_status_btn1', 'value'=>get_string('save_button','block_ucla_copyright_status'), 'type'=>'button')), array('class'=>'block-ucla-copyright-status-save-button'));
+		echo html_writer::start_tag('div', array('id'=>'changes_saved', 'class'=>'block-ucla-copyright-status-red-text-item block-ucla-copyright-status-save-button'));
+		echo html_writer::end_tag('div');
 		echo html_writer::start_tag('div', array('id' => 'block_ucla_copyright_status_d1'));
 		echo html_writer::end_tag('div');
 	}
 	// end display save changes button
+	echo $OUTPUT->footer();
 	// end output screen
 }
 

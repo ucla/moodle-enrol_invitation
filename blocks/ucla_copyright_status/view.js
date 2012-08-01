@@ -24,6 +24,7 @@ YUI().use('node-base', function(Y){
 		$('#block_ucla_copyright_status_d1').data('action', 'edit');
 		$.post('#', $('#block_ucla_copyright_status_d1').data(),
 			function(){
+				$('#changes_saved').text(M.str.block_ucla_copyright_status.changes_saved);
 				window.location.reload(true);
 			}
 		);

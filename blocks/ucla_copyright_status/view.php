@@ -6,6 +6,7 @@ require_once($CFG->dirroot.'/lib/moodlelib.php');
 require_once($CFG->dirroot.'/lib/accesslib.php');
 require_once($CFG->dirroot.'/local/ucla/lib.php');
 require_once($CFG->dirroot.'/blocks/ucla_copyright_status/lib.php');
+require_once($CFG->dirroot.'/local/ucla/lib.php');
 $courseid = required_param('courseid', PARAM_INT); // course ID
 $action = optional_param('action', null, PARAM_TEXT); 
 
@@ -27,8 +28,6 @@ init_copyright_page($course, $courseid, $context);
 
 set_editing_mode_button();
 
-echo $OUTPUT->header();
-
 if (has_capability('moodle/course:update', $context)){
 	$filter = optional_param('filter_copyright', $CFG->sitedefaultlicense, PARAM_TEXT); 
 	display_copyright_status_contents($courseid, isset($filter)?$filter:'all');
@@ -38,6 +37,5 @@ else{
 }
 
 
-echo $OUTPUT->footer();
 
 
