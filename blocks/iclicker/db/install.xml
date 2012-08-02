@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="blocks/iclicker/db" VERSION="20120417" COMMENT="XMLDB file for Moodle blocks/iclicker"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="iclicker_registration" COMMENT="iclicker registrations for the current system" NEXT="iclicker_user_key">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="timecreated"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="date this was created (unix timestamp)" PREVIOUS="id" NEXT="timemodified"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="date this record was last changed (unix timestamp)" PREVIOUS="timecreated" NEXT="clicker_id"/>
+        <FIELD NAME="clicker_id" TYPE="char" LENGTH="8" NOTNULL="true" SEQUENCE="false" PREVIOUS="timemodified" NEXT="owner_id"/>
+        <FIELD NAME="owner_id" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="this is probably the user_id" PREVIOUS="clicker_id" NEXT="location_id"/>
+        <FIELD NAME="location_id" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="optional location (course id)" PREVIOUS="owner_id" NEXT="activated"/>
+        <FIELD NAME="activated" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="1" SEQUENCE="false" PREVIOUS="location_id" NEXT="from_national"/>
+        <FIELD NAME="from_national" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" COMMENT="indicated if this was loaded from the national webservices or not" PREVIOUS="activated"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="clicker_id_index" UNIQUE="false" FIELDS="clicker_id" NEXT="owner_id_index"/>
+        <INDEX NAME="owner_id_index" UNIQUE="false" FIELDS="owner_id" PREVIOUS="clicker_id_index" NEXT="activated_index"/>
+        <INDEX NAME="activated_index" UNIQUE="false" FIELDS="activated" PREVIOUS="owner_id_index"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="iclicker_user_key" COMMENT="iclicker user keys for SSO" PREVIOUS="iclicker_registration">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="timecreated"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="timemodified"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="20" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="timecreated" NEXT="user_id"/>
+        <FIELD NAME="user_id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="false" PREVIOUS="timemodified" NEXT="user_key"/>
+        <FIELD NAME="user_key" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="user_id"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="pk_id" TYPE="primary" FIELDS="id" NEXT="uniq_user_id"/>
+        <KEY NAME="uniq_user_id" TYPE="unique" FIELDS="user_id" PREVIOUS="pk_id"/>
+      </KEYS>
+    </TABLE>
+  </TABLES>
+</XMLDB>
