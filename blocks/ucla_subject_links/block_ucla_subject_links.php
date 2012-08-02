@@ -34,12 +34,14 @@ class block_ucla_subject_links extends block_base {
     public function get_navigation_nodes($course) {
         global $CFG;
         $location = $CFG->dirroot . '/blocks/ucla_subject_links/content/';
-        $subjname = subject_exist($course, $location);
+        $subjname = self::subject_exist($course, $location);
         $nodes = array();
         if ($subjname != NULL) {
-            $subjname = strtoupper($subjname);
-            $url = new moodle_url('/blocks/ucla_subject_links/content/'.$subjname.'.htm');
-            $nodes[] = navigation_node::create($subjname.' Links', $url); 
+            foreach ($subjname as $sub) {
+                $sub = strtoupper($sub);
+                $url = new moodle_url('/blocks/ucla_subject_links/view.php/',array('course_id' => $course->id));
+                $nodes[] = navigation_node::create($sub.' Links', $url);
+            }
         }
         return $nodes;
     }
@@ -70,15 +72,18 @@ class block_ucla_subject_links extends block_base {
     public function instance_allow_config() {
         return false; // disables instance configuration
     }
-}
-if (!function_exists('subject_exist')) {
-    function subject_exist($course, $location) {
+
+    public function subject_exist($course, $location) {
+        $subjname = array();
         $courseinfo = ucla_get_course_info($course->id);
         foreach ($courseinfo as $cinfo) {
             $subject = $cinfo->subj_area;
+            $subject = preg_replace('/-\s/', '', $subject); 
+            if (file_exists($location.$subject.'.htm')) {
+                $subjname[] = $subject;
+            }
         }
-        $subjname = preg_replace('/-\s/ ', '', $subject); 
-        if (file_exists($location.$subjname.'.htm')) {
+        if (!empty($subjname)) {
             return $subjname;
         }
         return NULL; 
