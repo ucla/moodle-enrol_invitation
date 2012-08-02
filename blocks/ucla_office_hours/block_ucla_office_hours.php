@@ -201,8 +201,8 @@ class block_ucla_office_hours extends block_base {
                                     array('class' => 'editbutton'));
                         }
                         if (!empty($instr_website)) {
-                            if (strpos($instr_website, 'http://') === false 
-                                    && strpos($instr_website, 'https://') === false) {
+                            if (textlib::strpos($instr_website, 'http://') === false 
+                                    && textlib::strpos($instr_website, 'https://') === false) {
                                 $instr_website = 'http://' . $instr_website;
                             }
                             $dest_data .= html_writer::link($instr_website, 
