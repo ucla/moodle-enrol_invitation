@@ -12,6 +12,7 @@ require_once($CFG->dirroot . $thisdir . 'lib.php');
 
 global $DB, $ME, $USER;
 
+ucla_require_registrar();
 require_login();
 
 $syscontext = get_context_instance(CONTEXT_SYSTEM);
@@ -117,11 +118,15 @@ foreach ($top_forms as $gk => $group) {
 
             $groupid = $gk;
 
-            // Place into our holder
-            $uclacrqs = new ucla_courserequests();
-            foreach ($requests as $setid => $set) {
-                // This may get us strangeness
-                $uclacrqs->add_set($set);
+            if ($requests === false) {
+                $errormessages[] = 'registrarunavailable';
+            } else {
+                // Place into our holder
+                $uclacrqs = new ucla_courserequests();
+                foreach ($requests as $setid => $set) {
+                    // This may get us strangeness
+                    $uclacrqs->add_set($set);
+                }
             }
         }
     }
