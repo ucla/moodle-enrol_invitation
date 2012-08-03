@@ -100,8 +100,14 @@ abstract class question_edit_form extends question_wizard_form {
                 array('id' => $question->category), 'contextid');
         $this->context = get_context_instance_by_id($record->contextid);
 
-        $this->editoroptions = array('subdirs' => 1, 'maxfiles' => EDITOR_UNLIMITED_FILES,
+        //$this->editoroptions = array('subdirs' => 1, 'maxfiles' => EDITOR_UNLIMITED_FILES,
+        //        'context' => $this->context);
+        // BEGIN UCLA MOD: CCLE-3156
+        // Maybe make this an admin setting?
+        $this->editoroptions = array('subdirs' => 1, 'maxfiles' => EDITOR_UNLIMITED_FILES, 'trusttext'=>false, 'noclean'=>true,
                 'context' => $this->context);
+        // END UCLA MOD: CCLE-3156
+        
         $this->fileoptions = array('subdirs' => 1, 'maxfiles' => -1, 'maxbytes' => -1);
 
         $this->category = $category;
