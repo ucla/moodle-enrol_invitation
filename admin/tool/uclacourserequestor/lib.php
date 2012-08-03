@@ -828,6 +828,7 @@ function prep_request_entry($requestinfo) {
     $idstr = '';
 
     // Will disable building of this course
+    // when course is already built
     $buildoptions = array();
 
     $idstr = '';
@@ -841,11 +842,11 @@ function prep_request_entry($requestinfo) {
             $PAGE->url, array('srs' => $requestinfo['srs'], 
                 'term' => $requestinfo['term'])
             ), get_string('viewrequest', $rucr));
-
+        
         $idstr = get_string($e, $rucr) . html_writer::empty_tag('br')
             . $gotosinglesrshtml;
         $editable = false;
-
+        
     } else {
         $idstr .= $requestinfo[$f];
     }
@@ -1098,17 +1099,24 @@ function prep_request_entry($requestinfo) {
         
         if (isset($requestinfo[$k])) {
             $actval = $requestinfo[$k];
-
+            
             if (!$editable 
                     && $actionval != UCLA_COURSE_BUILT
                     && $actionval != UCLA_COURSE_FAILED) {
                 $actval = true;
+            } else if (!$editable && $actionval == UCLA_COURSE_BUILT) {
+                // If the course is built, uncheck checkbox.
+                $actval = false;
+            } else if (!$editable && $actionval == UCLA_COURSE_FAILED) {
+                // If the course has an error, uncheck checkbox.
+                $actval = false;
             }
 
             // Also disable if we have $addedtext
             // This is the case when a course is marked as cancelled
             if ($worstnote == $errs || !empty($addedtext)) {
                 $buildoptions['disabled'] = true;
+                $actval = false;
             }
 
             $formatted[$k] = html_writer::checkbox("$key-$k", '1', 
