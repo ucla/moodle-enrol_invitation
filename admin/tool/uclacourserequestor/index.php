@@ -392,7 +392,7 @@ if ($processrequests) {
 } 
 
 $registrar_link = new moodle_url(
-    'http://www.registrar.ucla.edu/schedule/');
+    'http://www.registrar.ucla.edu/schedule/search.aspx');
 
 // Start rendering
 echo $OUTPUT->header();
