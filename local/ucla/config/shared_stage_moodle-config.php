@@ -47,7 +47,7 @@ $CFG->dboptions = array(
     'dbsocket'  => 1 
 );
 
-$CFG->wwwroot  = 'https://m2stage.ccle.ucla.edu';
+$CFG->wwwroot  = 'https://stage.ccle.ucla.edu';
 $CFG->dataroot = '/moodle_data'; 
 
 // This determines what the admin folder is called.

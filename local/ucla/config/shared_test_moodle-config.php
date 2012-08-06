@@ -47,8 +47,8 @@ $CFG->dboptions = array(
     'dbsocket'  => 1 
 );
 
-$CFG->wwwroot  = 'https://m2test.ccle.ucla.edu';
-$CFG->dataroot = '/usr/local/moodle/m2testdata'; 
+$CFG->wwwroot  = 'https://test.ccle.ucla.edu';
+$CFG->dataroot = '/moodle_data'; 
 
 // This determines what the admin folder is called.
 $CFG->admin    = 'admin';
@@ -114,7 +114,7 @@ $CFG->forced_plugin_settings['tool_uclacourserequestor']['nourlupdate_default'] 
 // Course Creator
 //$CFG->forced_plugin_settings['tool_uclacoursecreator']['terms'] = $terms_to_built;
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['course_creator_email'] = 'ccle-operations@lists.ucla.edu';
-$CFG->forced_plugin_settings['tool_uclacoursecreator']['email_template_dir'] = '/usr/local/moodle/m2test_config/ccle_email_templates/course_creator';
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['email_template_dir'] = '/usr/local/moodle/config/ccle_email_templates/course_creator';
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['make_division_categories'] = true;
 
 // MyUCLA url updater
