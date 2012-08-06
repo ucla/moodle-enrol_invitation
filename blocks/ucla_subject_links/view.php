@@ -56,7 +56,7 @@ echo $OUTPUT->header();
 if ($subjname != NULL) {
     foreach ($subjname as $sub) {
         $sub = strtoupper($sub);
-        include($location . $sub . '.htm');           
+        include($location . $sub . '/index.htm');           
     }
 }
             
