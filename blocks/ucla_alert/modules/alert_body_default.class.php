@@ -9,21 +9,21 @@ class ucla_alertblock_body_default extends ucla_alertblock_module {
         $obj->type = 'default';
         $obj->title = get_string('mod_body_default_title', 'block_ucla_alert');
         $obj->content = array(
-            'main' => array(
+            'content' => array(
                 array(
+                    'type' => 'msg',
                     'content' => 'this is a message',
                     'start' => null,
                     'end' => null,
                 ),
-                
-            ),
-            'list' => array(
                 array(
+                    'type' => 'list',
                     'content' => 'Maecenas accumsan ante quis lacus pulvinar a rutrum nibh lobortis.',
                     'color' => 'blue',
 
                 ),
                 array(
+                    'type' => 'link',
                     'content' => 'Donec eu tortor vel sapien interdum viverra.',
                     'link' => 'http://www.foo.com',
                 ),

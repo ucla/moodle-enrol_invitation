@@ -13,29 +13,28 @@ class ucla_alertblock_header_default extends ucla_alertblock_module {
         $obj->title = 'all systems go!';
         $obj->subtitle  = 'As of ' . date('F j, Y');
         $obj->content = array(
-            'main' => array(
+            'content' => array(
                 array(
+                    'type' => 'msg',
                     'content' => 'You should be experiencing uninterrupted awesomeness on CCLE.',
                     'start' => null,
                     'end' => null,
-                )
-                
-            ),
-            'list' => array(
-                array( 
-                    'link' => null,
+                ),
+                array(
+                    'type' => 'list',
                     'color' => 'green',
                     'content' => 'Lorem ipsum dolor sit amet, consectetur 
                                 adipiscing elit. Proin fringilla 
                                 massa eget ante tristique condimentum. ', 
                     ),
                 array(
+                    'type' => 'link',
                     'link' => 'http://ccle.ucla.edu',
                     'color' => 'green',
                     'content' => 'Duis ultricies tortor vitae massa 
                                 scelerisque eu blandit neque bibendum.'
                     ),
-                ),
+            ),
         );
         
         $this->defaults = array(
