@@ -33,34 +33,37 @@ abstract class ucla_alertblock_module {
         
         $out = '';
         
-        // Put messages items in <p> tags
-        if(!empty($this->prop->content['main'])) {
-            foreach($this->prop->content['main'] as $msg) {
-                $out .= html_writer::tag('p', $msg['content'], 
-                        array('class' => 'alert-block-msg-text'));
-            }
-        }
+        // Check if we have content to print out
+        if(!empty($this->prop->content['content'])) {
+            // Set default color
+            $color = $this->defaults['list']['color'];
 
-        // Put list items in a <div> list
-        if(!empty($this->prop->content['list'])) {
-            foreach($this->prop->content['list'] as $list) {
+            // Print out content based on type
+            foreach($this->prop->content['content'] as $content) {
                 
-                $color = $this->defaults['list']['color'];
-                if(!empty($list['color'])) {
-                    $color = $list['color'];
+                // Override color
+                if(!empty($content['color'])) {
+                    $color = $content['color'];
                 }
                 
-                if(empty($list['link'])) {
-                    $out .= html_writer::tag('div', $list['content'],
-                            array('class' => 'alert-block-list alert-block-list-'.$color));
-                } else {
-                    $link = html_writer::link($list['link'], $list['content']);
-                    $out .= html_writer::tag('div', $link,
-                            array('class' => 'alert-block-list alert-block-list-link alert-block-list-'.$color));
+                switch($content['type']) {
+                    case 'msg':
+                        $out .= html_writer::tag('p', $content['content'], 
+                                array('class' => 'alert-block-msg-text'));
+                        break;
+                    case 'link':
+                        $link = html_writer::link($content['link'], $content['content']);
+                        $out .= html_writer::tag('div', $link,
+                                array('class' => 'alert-block-list alert-block-list-link alert-block-list-'.$color));
+                        break;
+                    case 'list':
+                        $out .= html_writer::tag('div', $content['content'],
+                                array('class' => 'alert-block-list alert-block-list-'.$color));
+                        break;
                 }
             }
         }
-        
+                
         // Output
         return html_writer::tag('div', $out,
                 array('class' => 'alert-block-msg'));
