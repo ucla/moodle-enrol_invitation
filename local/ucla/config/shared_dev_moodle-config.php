@@ -224,6 +224,7 @@ $CFG->bloglevel = 0; // Disable blog system completely
 
 // Site administration > Users > Permissions > User policies
 $CFG->autologinguests = true;
+$CFG->showuseridentity = 'idnumber,email';
 
 // Site administration > Courses > Course default settings
 $CFG->forced_plugin_settings['moodlecourse']['format'] = 'ucla';
