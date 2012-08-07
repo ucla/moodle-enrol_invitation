@@ -216,13 +216,17 @@ if ($question_edit_contexts->have_one_edit_tab_cap('questions')) {
 //renderer opens links in new tabs (which the normal renderer does not normally
 //do. If the control panel is to be refactored later, make this not terrible
 
+$is_role_switched_student = false;
+
 if (is_role_switched($course->id)) {
-    global $DB;
-    $studentRoleID = $DB->get_field('role', 'id', array('shortname' => 'student'), IGNORE_MISSING);
-    $userRoleID = ($USER->access['rsw'][$context->path]);
+    $student_role_id = $DB->get_field('role', 'id', array('shortname' => 'student'), IGNORE_MISSING);
+    $user_role_id = ($USER->access['rsw'][$context->path]);
+    if ($user_role_id == $student_role_id) {
+        $is_role_switched_student = true;
+    }
 }
 
-if (has_role_in_context('student', $context) || (is_role_switched($course->id) && $userRoleID == $studentRoleID)) {
+if (has_role_in_context('student', $context) || $is_role_switched_student) {
     $temp_cap = null;
     $temp_tag = array('ucla_cp_mod_student');
     $modules[] = new ucla_cp_module('ucla_cp_mod_student', null, null, $temp_cap);
