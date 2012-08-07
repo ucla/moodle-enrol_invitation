@@ -3944,6 +3944,12 @@ function get_user_capability_course($capability, $userid = null, $doanything = t
             // We've got the capability. Make the record look like a course record
             // and store it
             $courses[] = $course;
+            
+            // BEGIN UCLA MOD: CCLE-3099-Calendar-all-courses-option-display-all-courses-in-category
+            if (count($courses) >= 100) {
+                break;
+            }
+            // END UCLA MOD: CCLE-3099
         }
     }
     $rs->close();

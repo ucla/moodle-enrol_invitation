@@ -64,14 +64,17 @@ function ucla_require_db_helper() {
 }
 
 /** 
- *  Convenience function to include all the Registrar connection 
- *  functionality.
+ *  Function to include all the Registrar connection functionality.
+ *  This function MUST NOT do anything other than load libraries.
+ *  
  **/
 function ucla_require_registrar() {
     global $CFG;
 
     require_once($CFG->dirroot 
-        . '/local/ucla/uclaregistrar/registrar_query.class.php');
+        . '/local/ucla/registrar/registrar_stored_procedure.base.php');
+    require_once($CFG->dirroot 
+        . '/local/ucla/registrar/registrar_tester.php');
 }
 
 /**
@@ -1167,5 +1170,15 @@ function setup_js_tablesorter($tableid=null) {
         . '{widgets: ["zebra"]}); });');
 
     return $tableid;
+}
+
+function prompt_login($PAGE, $OUTPUT, $CFG, $course) {
+    $PAGE->set_url('/');
+    $PAGE->set_course($course);
+    $PAGE->set_title($course->shortname);
+    $PAGE->set_heading($course->fullname);
+    $PAGE->navbar->add(get_string('loginredirect','local_ucla'));
+            
+    notice(get_string('notloggedin', 'local_ucla'), get_login_url());
 }
 // EOF

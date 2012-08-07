@@ -847,4 +847,105 @@ class siteindicator_manager {
         
         return $list;
     }        
+    
+    static function filter_category_tree(&$tree) {
+        global $DB;
+       
+        $recs = $DB->get_records_select('ucla_siteindicator', 'type NOT LIKE "test"',
+                null, '', 'courseid');
+        
+        $ids = array();
+        
+        foreach($recs as $r) {
+            $ids[] = $r->courseid;
+        }
+        
+        self::traverse_tree($tree, $ids);
+    }
+    
+    static function traverse_tree(&$tree, &$ids) {
+        // Dig into category tree
+        if(!empty($tree->categories)) {
+            foreach($tree->categories as &$cat) {
+                if(!self::traverse_tree($cat, $ids)) {
+                    $cat = null;
+                }
+            }
+        }
+        
+        // Check courses
+        if(!empty($tree->courses)) {
+            
+            $hascollab = false;
+
+            foreach($tree->courses as &$c) {
+                
+                if(in_array($c->id, $ids)) {
+                    $hascollab = true;
+                } else {
+                    $c = null;
+                }
+                
+            }
+            
+            return $hascollab;
+        }
+
+    }
+    
+    static function searchbox_js_require() {
+        global $PAGE, $CFG;
+        
+        $rest_url = $CFG->wwwroot . '/admin/tool/uclasiteindicator/rest.php';
+        $course_url = $CFG->wwwroot . '/course/view.php?id=';
+        
+        $thisdir = '/' . $CFG->admin . '/tool/uclasiteindicator/';
+        $PAGE->requires->js(new moodle_url($thisdir . '/autocomplete.js'));
+        $PAGE->requires->js_init_call('M.collab_autocomplete.init', 
+                array($rest_url, $course_url));
+
+    }
+    
+    static function print_collab_searchbox() {
+        $input = html_writer::tag('input', '', array('id' => 'ac_input', 
+            'placeholder' => get_string('search_placeholder', 'tool_uclasiteindicator')));
+        $wrapper = html_writer::tag('div', $input, array('class' => 'ac-search-wrapper'));
+        $out = html_writer::tag('div', $wrapper, array('class' => 'ac-search-div'));
+        
+        return $out;
+    }
+    
+    static function get_query_result_json($q) {
+        global $DB;
+        
+        // Get collab sites (exclude test sites)
+        $query = "
+            SELECT c.id, c.fullname, c.shortname
+            FROM {course} c
+            JOIN {ucla_siteindicator} si ON c.id = si.courseid
+            WHERE c.fullname LIKE :query 
+            AND si.type NOT LIKE 'test'";
+        
+        $recs = $DB->get_records_sql($query, array('query' => '%'.$q.'%'));
+        
+        // Format results
+        $results = array();
+        
+        foreach($recs as $r) {
+            $obj = new stdClass();
+            $obj->text = $r->shortname . ': ' . $r->fullname;
+            $obj->id = $r->id;
+            $results[] = $obj;
+        }
+        
+        // Format output
+        $out = new stdClass();
+        
+        $out->query = $q;
+        $out->results = $results;
+        $out->numresults = count($results);
+        
+        // Return as JSON text
+        return json_encode($out);
+    }
 }

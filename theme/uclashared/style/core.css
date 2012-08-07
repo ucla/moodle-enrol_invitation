@@ -55,3 +55,14 @@ table.userenrolment tbody td {
 table.userenrolment tbody td.lastcol {
     border-right: none;
 }
+
+#notice.generalbox {
+    background-color: #FF9;
+    border-bottom: 1px solid #FC3;
+    border-top: 1px solid #FC3;
+    color: black;
+    padding: 10px;
+    margin: 10px;
+    width: 80%;
+}
+

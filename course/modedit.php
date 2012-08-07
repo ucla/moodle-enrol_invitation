@@ -51,7 +51,7 @@ if (!empty($add)) {
 
     $course = $DB->get_record('course', array('id'=>$course), '*', MUST_EXIST);
     $module = $DB->get_record('modules', array('name'=>$add), '*', MUST_EXIST);
-
+    
     require_login($course);
     $context = get_context_instance(CONTEXT_COURSE, $course->id);
     require_capability('moodle/course:manageactivities', $context);
@@ -114,18 +114,18 @@ if (!empty($add)) {
         $heading->what = $fullmodulename;
         $heading->to   = $sectionname;
         $pageheading = get_string('addinganewto', 'moodle', $heading);
-    } else {
-        $pageheading = get_string('addinganew', 'moodle', $fullmodulename);
+    } else { 
+       $pageheading = get_string('addinganew', 'moodle', $fullmodulename);
     }
 
 } else if (!empty($update)) {
-
+    
     $url->param('update', $update);
     $PAGE->set_url($url);
-
+    
     $cm = get_coursemodule_from_id('', $update, 0, false, MUST_EXIST);
     $course = $DB->get_record('course', array('id'=>$cm->course), '*', MUST_EXIST);
-
+    
     require_login($course, false, $cm); // needed to setup proper $COURSE
     $context = get_context_instance(CONTEXT_MODULE, $cm->id);
     require_capability('moodle/course:manageactivities', $context);
@@ -319,7 +319,7 @@ if ($mform->is_cancelled()) {
     $eventname = '';
 
     if (!empty($fromform->update)) {
-
+        
         if (!empty($course->groupmodeforce) or !isset($fromform->groupmode)) {
             $fromform->groupmode = $cm->groupmode; // keep original
         }
@@ -392,7 +392,7 @@ if ($mform->is_cancelled()) {
                    "$fromform->instance", $fromform->coursemodule);
 
     } else if (!empty($fromform->add)) {
-
+        
 
         if (!empty($course->groupmodeforce) or !isset($fromform->groupmode)) {
             $fromform->groupmode = 0; // do not set groupmode
@@ -648,7 +648,7 @@ if ($mform->is_cancelled()) {
     exit;
 
 } else {
-
+    
     $streditinga = get_string('editinga', 'moodle', $fullmodulename);
     $strmodulenameplural = get_string('modulenameplural', $module->name);
 
@@ -670,6 +670,6 @@ if ($mform->is_cancelled()) {
     }
 
     $mform->display();
-
+    
     echo $OUTPUT->footer();
 }
