@@ -286,12 +286,12 @@ if ($processrequests) {
                     }
                 } else if ($retcode == ucla_courserequests::insertsuccess) {
                     // If we need to get the course from the registrar
-                    $changemessages[$setid] = $retmess;
-                    foreach ($set as $course) {
-                        if ($course['hostcourse'] == 0 && $course['action'] == 'build') {
-                            crosslist_course_from_registrar($course['term'], $course['srs']);
+                    foreach ($changed[$setid]['crosslists']['added'] as $cross_course){
+                        if ($cross_course['hostcourse'] == 0 && $cross_course['action'] == 'build') {
+                            crosslist_course_from_registrar($cross_course['term'], $cross_course['srs']);
                         }
                     }
+                    $changemessages[$setid] = $retmess;
                 } else {
                     $changemessages[$setid] = $retmess; 
                 }
