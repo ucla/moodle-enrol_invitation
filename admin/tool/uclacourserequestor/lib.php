@@ -1269,17 +1269,23 @@ function get_instructor_info_from_registrar($term, $srs) {
 
 /**
  * Queries the registrar for the course and inserts it into ucla_reg_classinfo
+ * 
+ * @return true if term/srs pair exists, false otherwise
  */
 function crosslist_course_from_registrar($term, $srs) {
     global $DB;
     
     if ($DB->record_exists('ucla_reg_classinfo', array('srs' => $srs, 'term' => $term))) {
-        return;
+        return true;
     }
     
     $course = get_course_info_from_registrar($term, $srs);
     $course['id'] = make_idnumber($course);
-    $DB->insert_record('ucla_reg_classinfo', $course);
+    if (!empty($course)) {
+        $DB->insert_record('ucla_reg_classinfo', $course);
+        return true;
+    }
     
+    return false;
 }
 // EOF
