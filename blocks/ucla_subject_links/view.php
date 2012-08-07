@@ -13,7 +13,7 @@ require_once($CFG->dirroot.
 require_once($CFG->dirroot . '/local/ucla/lib.php');
 
 $courseid = required_param('course_id', PARAM_INT); // course ID
-$subjarea = required_param('subj_area', PARAM_TEXT);// subject area
+$subjarea = required_param('subj_area', PARAM_FILE);// subject area
 
 if (! $course = $DB->get_record('course', array('id' => $courseid))) {
     print_error('coursemisconf');
@@ -37,10 +37,14 @@ $PAGE->set_pagelayout('course');
 $PAGE->set_pagetype('course-view-'.$course->format);
 
 $location = $CFG->dirroot . '/blocks/ucla_subject_links/content/';
-
+$subjname = block_ucla_subject_links::get_subject_areas($course,$location);
 echo $OUTPUT->header();
- 
-include($location . $subjarea . '/index.htm');           
+
+if (block_ucla_subject_links::subject_exist($subjname, $subjarea)) { 
+    include($location . $subjarea . '/index.htm');
+} else {
+    echo $OUTPUT->box(get_string('error', 'block_ucla_subject_links'), 'noticebox');
+}               
             
 echo $OUTPUT->footer();
 
