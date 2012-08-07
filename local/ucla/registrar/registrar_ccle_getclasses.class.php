@@ -2,6 +2,8 @@
 require_once(dirname(__FILE__).'/registrar_stored_procedure.base.php');
 
 class registrar_ccle_getclasses extends registrar_stored_procedure {
+    var $notrim = array('crsidx', 'classidx', 'secidx');
+    
     function get_query_params() {
         return array('term', 'srs');
     }

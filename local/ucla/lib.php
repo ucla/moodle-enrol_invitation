@@ -461,18 +461,20 @@ function ucla_format_name($name=null) {
 /**
  *  Populates the reg-class-info cron, the subject areas and the divisions.
  **/
-function local_ucla_cron() {
+function local_ucla_cron($terms = array()) {
     global $DB, $CFG;
 
-    // TODO Do a better job figuring this out
-    $terms = array($CFG->currentterm);
+    if (empty($terms)) {
+        $terms = array($CFG->currentterm);        
+    }
 
     include_once($CFG->dirroot . '/local/ucla/cronlib.php');
     ucla_require_registrar();
 
     // Customize these times...?
-    $works = array('classinfo', 'subjectarea', 'division');
-
+    //$works = array('classinfo', 'subjectarea', 'division');
+    $works = array('classinfo', 'subjectarea');
+    
     foreach ($works as $work) {
         $cn = 'ucla_reg_' . $work . '_cron';
         if (class_exists($cn)) {
