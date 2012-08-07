@@ -22,6 +22,8 @@ admin_externalpage_setup('uclabulkcoursereset');
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('pluginname', 'tool_uclabulkcoursereset'), 2, 'headingblock');
 
+echo $OUTPUT->box(get_string('resetinfo'));
+
 // Get collab sites of type "test" from site indicator
 $collab_sites = siteindicator_manager::get_sites();
 
