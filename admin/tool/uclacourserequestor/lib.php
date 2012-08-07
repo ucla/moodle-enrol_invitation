@@ -1275,14 +1275,16 @@ function get_instructor_info_from_registrar($term, $srs) {
 function crosslist_course_from_registrar($term, $srs) {
     global $DB;
     
-    if ($DB->record_exists('ucla_reg_classinfo', array('srs' => $srs, 'term' => $term))) {
+    if ($DB->record_exists('ucla_reg_classinfo', array('term' => $term, 'srs' => $srs))) {
         return true;
     }
     
     $course = get_course_info_from_registrar($term, $srs);
-    $course['id'] = make_idnumber($course);
-    if (!empty($course)) {
+    if ( !empty($course) && isset($course['term']) && isset($course['srs']) ) {
         $DB->insert_record('ucla_reg_classinfo', $course);
+        return true;
+    } else if (!empty($course) && isset($course[0])) {
+        $DB->insert_record('ucla_reg_classinfo', $course[0]);
         return true;
     }
     
