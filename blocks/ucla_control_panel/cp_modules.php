@@ -210,11 +210,19 @@ if ($question_edit_contexts->have_one_edit_tab_cap('questions')) {
 }
 
 /* * ****************************** Student Functions ******************** */
-//Only display this section if the user is a student in the course.
+//Only display this section if the user is a student in the course
+//  or if a user "switches roles" to "student".
 //TODO: this module currently depends on the myucla_row_renderer since that
 //renderer opens links in new tabs (which the normal renderer does not normally
 //do. If the control panel is to be refactored later, make this not terrible
-if (has_role_in_context('student', $context)) {
+
+if (is_role_switched($course->id)) {
+    global $DB;
+    $studentRoleID = $DB->get_field('role', 'id', array('shortname' => 'student'), IGNORE_MISSING);
+    $userRoleID = ($USER->access['rsw'][$context->path]);
+}
+
+if (has_role_in_context('student', $context) || (is_role_switched($course->id) && $userRoleID == $studentRoleID)) {
     $temp_cap = null;
     $temp_tag = array('ucla_cp_mod_student');
     $modules[] = new ucla_cp_module('ucla_cp_mod_student', null, null, $temp_cap);
