@@ -769,7 +769,8 @@ class siteindicator_manager {
         
         $sql = "SELECT  c.id,
                         c.shortname,
-                        c.fullname
+                        c.fullname,
+                        c.category
                 FROM    {course} AS c 
                 LEFT JOIN {ucla_request_classes} AS r ON r.courseid = c.id 
                 LEFT JOIN {ucla_siteindicator} AS s ON s.courseid = c.id 

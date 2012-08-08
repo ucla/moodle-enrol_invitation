@@ -50,13 +50,24 @@ if (empty($orphans)) {
     $table->id = $tableid;    
     $table->attributes['class'] = 'generaltable';
     $table->align = array('left', 'left');
-    $table->head = array(get_string('shortname') . ' (' . count($orphans) . ')', get_string('fullname'));
+    $table->head = array(get_string('shortname') . ' (' . count($orphans) . ')', 
+        get_string('category'), get_string('fullname'));
 
+    $category_cache = array();
+    
     foreach($orphans as $orphan) {
         $row = array();
         $row[] = html_writer::link(new moodle_url($CFG->wwwroot . 
                 '/course/view.php', array('id' => $orphan->id)), 
                 $orphan->shortname, array('target' => '_blank'));
+
+        // print category
+        if (empty($category_cache[$orphan->category])) {
+            $category_cache[$orphan->category] = 
+                    siteindicator_manager::get_categories_list($orphan->category);  
+        }        
+        $row[] = $category_cache[$orphan->category];        
+        
         $row[] = $orphan->fullname;
         
         $table->data[] = $row;
