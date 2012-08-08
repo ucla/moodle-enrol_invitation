@@ -36,7 +36,7 @@ M.mod_folder.init_tree = function(Y, expand_all) {
         if (expand_all) {
             tree.expandAll();
         }
-
+        
         tree.render();
     });
 }

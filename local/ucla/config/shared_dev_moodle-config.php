@@ -224,6 +224,7 @@ $CFG->bloglevel = 0; // Disable blog system completely
 
 // Site administration > Users > Permissions > User policies
 $CFG->autologinguests = true;
+$CFG->showuseridentity = 'idnumber,email';
 
 // Site administration > Courses > Course default settings
 $CFG->forced_plugin_settings['moodlecourse']['format'] = 'ucla';
@@ -260,11 +261,18 @@ $CFG->forced_plugin_settings['url']['requiremodintro'] = 0;
 $CFG->forced_plugin_settings['url']['printheading'] = 1;
 $CFG->forced_plugin_settings['url']['display'] = 5; // RESOURCELIB_DISPLAY_OPEN
 
+// Site administration > Plugins > Enrollments > Guest access
+$CFG->forced_plugin_settings['enrol_guest']['defaultenrol'] = 1;
+$CFG->forced_plugin_settings['enrol_guest']['status'] = 0;  // 0 is yes, 1 is no
+
 // Site administration > Plugins > Licences > Manage licences
 $CFG->sitedefaultlicense = 'tbd';
 
 // Site administration > Plugins > Repositories > Common repository settings
 $CFG->legacyfilesinnewcourses = 0;  // disallow new course to enable legacy course files
+
+// Site administration > Plugins > Local plugins > UCLA configurations
+$CFG->forced_plugin_settings['local_ucla']['registrar_cache_ttl'] = 3600;   // 1 hour
 
 // Site administration > Security > Site policies
 $CFG->forceloginforprofiles = true; 

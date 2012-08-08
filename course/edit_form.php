@@ -53,7 +53,14 @@ class course_edit_form extends moodleform {
 //                    get_string('type', 'tool_uclasiteindicator'), 
 //                    get_string('site_registrar', 'tool_uclasiteindicator'));
         } else {
-            $can_edit_sitetype = has_capability('tool/uclasiteindicator:edit', $systemcontext);
+            // user can assign site type if they have the capability at site, 
+            // category, or course level
+            $can_edit_sitetype = false;
+            if (has_capability('tool/uclasiteindicator:edit', $systemcontext) || 
+                    has_capability('tool/uclasiteindicator:edit', $categorycontext) ||
+                    (!empty($coursecontext) && has_capability('tool/uclasiteindicator:edit', $coursecontext))) {
+                $can_edit_sitetype = true;
+            }
 
             $indicator = null;
             if (!empty($course->id)) {

@@ -336,6 +336,9 @@ function questionnaire_grades($questionnaireid) {
 function questionnaire_get_user_grades($questionnaire, $userid=0) {
     global $DB;
     $params = array();
+    // BEGIN UCLA MOD: CCLE-3341-Bulk-course-resets
+    $usersql = '';
+    // END UCLA MOD: CCLE-3341
     if (!empty($userid)) {
         $usersql = "AND u.id = ?";
         $params[] = $userid;

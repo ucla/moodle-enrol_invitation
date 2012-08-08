@@ -40,11 +40,23 @@ class mod_folder_renderer extends plugin_renderer_base {
 
     public function render_folder_tree(folder_tree $tree) {
         global $PAGE;
-
+        
         echo '<div id="folder_tree">';
         echo $this->htmllize_tree($tree, $tree->dir);
         echo '</div>';
-        $this->page->requires->js_init_call('M.mod_folder.init_tree', array(true));
+        
+        // START UCLA MOD: CCLE-3260 - Show folders collapsed by default
+        // Adding option to show course folders collapsed by default.
+        
+        //$this->page->requires->js_init_call('M.mod_folder.init_tree', array(true));
+        
+        $show_expanded = ($tree->folder->show_expanded);
+        if ($show_expanded == 1 ) {
+            $this->page->requires->js_init_call('M.mod_folder.init_tree', array(true));
+        } else {
+            $this->page->requires->js_init_call('M.mod_folder.init_tree', array(false));
+        }
+        // END UCLA MOD: CCLE-3260
     }
 
     /**
@@ -77,12 +89,12 @@ class folder_tree implements renderable {
     public $cm;
     public $course;
     public $dir;
-
+    
     public function __construct($folder, $cm, $course) {
         $this->folder = $folder;
         $this->cm     = $cm;
         $this->course = $course;
-
+        
         $this->context = get_context_instance(CONTEXT_MODULE, $cm->id);
         $fs = get_file_storage();
         $this->dir = $fs->get_area_tree($this->context->id, 'mod_folder', 'content', 0);
