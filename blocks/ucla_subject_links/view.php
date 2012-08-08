@@ -37,10 +37,10 @@ $PAGE->set_pagelayout('course');
 $PAGE->set_pagetype('course-view-'.$course->format);
 
 $location = $CFG->dirroot . '/blocks/ucla_subject_links/content/';
-$subjname = block_ucla_subject_links::get_subject_areas($course,$location);
+
 echo $OUTPUT->header();
 
-if (block_ucla_subject_links::subject_exist($subjname, $subjarea)) { 
+if (block_ucla_subject_links::subject_exist($course, $location, $subjarea)) { 
     include($location . $subjarea . '/index.htm');
 } else {
     echo $OUTPUT->box(get_string('error', 'block_ucla_subject_links'), 'noticebox');
