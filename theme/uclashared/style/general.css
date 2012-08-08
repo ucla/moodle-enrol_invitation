@@ -236,7 +236,7 @@ html, body {background-color:#FFF; height:100%;}
 }
 
 /** Notice **/
-.box.noticebox {
+.box.noticebox, #notice.generalbox {
     background-color: #FF9;
     border-bottom: 1px solid #FC3;
     border-top: 1px solid #FC3;
@@ -244,7 +244,7 @@ html, body {background-color:#FFF; height:100%;}
     padding: 10px;
     margin: 1em 15%;
 }
-.noticebox a {  /* make notice link with enough contrast */
+.noticebox a, #notice.generalbox a {  /* make notice link with enough contrast */
     color: black;
     text-decoration: underline;
 }
@@ -255,9 +255,6 @@ html, body {background-color:#FFF; height:100%;}
 }
 .noticebox .generalbox .buttons {
     margin: 0;
-}
-#notice.generalbox {
-    width: 100%;    
 }
 
 /** Success **/
