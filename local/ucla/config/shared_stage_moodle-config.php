@@ -233,6 +233,10 @@ $CFG->forced_plugin_settings['url']['requiremodintro'] = 0;
 $CFG->forced_plugin_settings['url']['printheading'] = 1;
 $CFG->forced_plugin_settings['url']['display'] = 5; // RESOURCELIB_DISPLAY_OPEN
 
+// Site administration > Plugins > Enrollments > Guest access
+$CFG->forced_plugin_settings['enrol_guest']['defaultenrol'] = 1;
+$CFG->forced_plugin_settings['enrol_guest']['status'] = 0;  // 0 is yes, 1 is no
+
 // Site administration > Plugins > Licences > Manage licences
 $CFG->sitedefaultlicense = 'tbd';
 
