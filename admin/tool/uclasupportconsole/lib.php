@@ -4,6 +4,31 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/uclasupportconsole/manager.class.php');
 
 /**
+ * Returns all avaiable registrar queries
+ * 
+ * @return array        Array of registrar queries avialble 
+ */
+function get_all_available_registrar_queries() {
+    global $CFG;
+    
+    $dirname = $CFG->dirroot .'/local/ucla/registrar';
+    $qfs = glob($dirname . '/*.class.php');
+
+    $queries = array();
+    foreach ($qfs as $query) {
+        if ($query == __FILE__) {
+            continue;
+        }
+
+        $query = str_replace($dirname . '/registrar_', '', $query);
+        $query = str_replace('.class.php', '', $query);
+        $queries[] = $query;
+    }
+
+    return $queries;    
+}
+
+/**
  * Generates input field for SRS number
  * 
  * @param string $id        Id to use for label
@@ -165,8 +190,11 @@ function html_table_auto_headers($data) {
 function supportconsole_render_section_shortcut($title, $data, 
                                                 $inputs=array()) {
     global $OUTPUT;
-    $size = count($data);
-
+    $size = 0;
+    if (!empty($data)) {
+        $size = count($data);        
+    }
+    
     if ($size == 0) {
         $pretext = 'There are no results';
     } else if ($size == 1) {
@@ -183,8 +211,14 @@ function supportconsole_render_section_shortcut($title, $data,
         // not every support console tool as input
         $pretext .= ' for input [' . implode(', ', $inputs) . '].';
     }
-    return $OUTPUT->box($pretext) 
-        . supportconsole_render_table_shortcut($data, $inputs);
+    
+    // only display table if there is data to display
+    if (empty($data)) {
+        return $OUTPUT->box($pretext);                
+    } else {
+        return $OUTPUT->box($pretext) . 
+                supportconsole_render_table_shortcut($data, $inputs);        
+    }    
 }
 
 function supportconsole_render_table_shortcut($data, $inputs) {

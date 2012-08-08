@@ -417,6 +417,33 @@ class block_ucla_course_menu extends block_navigation {
             $this->instance->defaultweight = -10;
             $DB->update_record('block_instances', $this->instance);             
         }
+        
+        // see if any other bocks are above this block
+        $where = 'contextid = :contextid AND blockinstanceid <> :id AND region = :region AND weight <= :weight';
+        $top_blocks = $DB->get_records_select('block_positions', $where, 
+                array('contextid' => $this->instance->parentcontextid, 
+                      'id' => $this->instance->id,
+                      'region' => $this->instance->defaultregion,
+                      'weight' => $this->instance->defaultweight));        
+        if (!empty($top_blocks)) {
+            // found blocks that are above site menu, move them down to -9
+            foreach ($top_blocks as $top_block) {
+                $top_block->weight = -9;
+                $DB->update_record('block_positions', $top_block, true);
+            }
+            
+            // if we found blocks above site menu, then site menu was moved down
+            $where = 'contextid = :contextid AND blockinstanceid = :id AND weight <> :weight';
+            $not_top_block = $DB->get_record_select('block_positions', $where, 
+                    array('contextid' => $this->instance->parentcontextid, 
+                          'id' => $this->instance->id,
+                          'weight' => $this->instance->defaultweight));            
+            if (!empty($not_top_block)) {
+                // we are not at the top, so fix it
+                $not_top_block->weight = $this->instance->defaultweight;
+                $DB->update_record('block_positions', $not_top_block, true);
+            }            
+        }
     }
     
     /**

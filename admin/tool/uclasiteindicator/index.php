@@ -65,35 +65,6 @@ foreach ($report_types as $index => $report_type) {
 
 echo html_writer::alist($report_types, array(), 'ol');
 
-//echo $OUTPUT->heading('Orphan sites');
-//$orphans = siteindicator_manager::get_orphans();
-//
-//$table = new html_table();
-//$table->attributes['class'] = 'generaltable';
-//$table->align = array('left', 'left', 'left', 'center', 'center');
-//$table->head = array('Request type', 'Current category', 'Site requester', 'Site status');
-//
-//foreach($history as $h) {
-//    $row = array();
-//    $row[] = $h->type;
-//    $row[] = siteindicator_manager::get_categories_list($h->categoryid);
-//    
-//    $name = siteindicator_manager::get_username($h->requester);
-//    $row[] = html_writer::link($CFG->wwwroot . '/user/profile.php?id=' . $h->requester, $name);
-//    
-//    if($h->courseid) {
-//        $link = html_writer::link($CFG->wwwroot . '/course/view.php?id=' . $h->courseid, 'Active');
-//        $row[] = html_writer::tag('span', $link, array('class' => 'indicator-active indicator-block'));
-//    } else if($h->requestid) {
-//        $link = html_writer::link($CFG->wwwroot . '/course/pending.php?request=' . $h->requestid, 'Pending');
-//        $row[] = html_writer::tag('span', $link, array('class' => 'indicator-pending indicator-block'));
-//    } else {
-//        $row[] = html_writer::tag('span', 'Rejected', array('class' => 'indicator-reject indicator-block'));
-//    }
-//
-//    $table->data[] = $row;
-//}
-
 echo $OUTPUT->box_end();
 echo $OUTPUT->footer();
 

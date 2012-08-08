@@ -64,14 +64,17 @@ function ucla_require_db_helper() {
 }
 
 /** 
- *  Convenience function to include all the Registrar connection 
- *  functionality.
+ *  Function to include all the Registrar connection functionality.
+ *  This function MUST NOT do anything other than load libraries.
+ *  
  **/
 function ucla_require_registrar() {
     global $CFG;
 
     require_once($CFG->dirroot 
-        . '/local/ucla/uclaregistrar/registrar_query.class.php');
+        . '/local/ucla/registrar/registrar_stored_procedure.base.php');
+    require_once($CFG->dirroot 
+        . '/local/ucla/registrar/registrar_tester.php');
 }
 
 /**
@@ -458,18 +461,20 @@ function ucla_format_name($name=null) {
 /**
  *  Populates the reg-class-info cron, the subject areas and the divisions.
  **/
-function local_ucla_cron() {
+function local_ucla_cron($terms = array()) {
     global $DB, $CFG;
 
-    // TODO Do a better job figuring this out
-    $terms = array($CFG->currentterm);
+    if (empty($terms)) {
+        $terms = array($CFG->currentterm);        
+    }
 
     include_once($CFG->dirroot . '/local/ucla/cronlib.php');
     ucla_require_registrar();
 
     // Customize these times...?
-    $works = array('classinfo', 'subjectarea', 'division');
-
+    //$works = array('classinfo', 'subjectarea', 'division');
+    $works = array('classinfo', 'subjectarea');
+    
     foreach ($works as $work) {
         $cn = 'ucla_reg_' . $work . '_cron';
         if (class_exists($cn)) {
@@ -1167,5 +1172,15 @@ function setup_js_tablesorter($tableid=null) {
         . '{widgets: ["zebra"]}); });');
 
     return $tableid;
+}
+
+function prompt_login($PAGE, $OUTPUT, $CFG, $course) {
+    $PAGE->set_url('/');
+    $PAGE->set_course($course);
+    $PAGE->set_title($course->shortname);
+    $PAGE->set_heading($course->fullname);
+    $PAGE->navbar->add(get_string('loginredirect','local_ucla'));
+            
+    notice(get_string('notloggedin', 'local_ucla'), get_login_url());
 }
 // EOF

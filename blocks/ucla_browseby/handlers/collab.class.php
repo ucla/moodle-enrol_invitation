@@ -15,7 +15,7 @@ class collab_handler extends browseby_handler {
         $navbar =& $PAGE->navbar;
 
         $collablibfile = $CFG->dirroot . '/' . $CFG->admin 
-            .'/tool/siteindicator/siteindicatorlib.php';
+            .'/tool/uclasiteindicator/lib.php';
 
         $collab_cat = false;
 
@@ -23,11 +23,17 @@ class collab_handler extends browseby_handler {
         $s = '';
 
         if (file_exists($collablibfile)) {
-            // TODO
-            return array(false, false);
-        } else {
+            
+            require_once($collablibfile);
+        
+            // Get YUI searchbox script
+            siteindicator_manager::searchbox_js_require();
+
+            // Print the search box
+            $s .= siteindicator_manager::print_collab_searchbox();
+
             $collab_cat = $this->get_collaboration_category();
-            $subcats = array();
+            siteindicator_manager::filter_category_tree($collab_cat);
 
             // Check if the category specified is a sub-category
             // of the collaboration category; if so, use that
@@ -45,6 +51,9 @@ class collab_handler extends browseby_handler {
                 $t = get_string('collab_viewin', 'block_ucla_browseby',
                     $collab_subcat->name);
             }
+        } else {
+            // 
+            return array(false, false);
         }
 
         if (!$collab_cat) {
@@ -94,42 +103,60 @@ class collab_handler extends browseby_handler {
                 debugging('No roles to use in printing!');
             } else {
                 foreach ($collab_cat->courses as $course) {
-                    if(is_collab_site($course)) {
-                        $context = $this->get_context_instance(CONTEXT_COURSE,
-                            $course->id);
-
-                        $viewroles = $this->get_role_users($roleids, $context,
-                            false, 'u.id, u.firstname, u.lastname, r.shortname');
-
-                        $courseroles = array();
-                        foreach ($viewroles as $viewrole) {
-                            $rsh = $viewrole->shortname;
-                            if (isset($iroles[$rsh])) {
-                                if (!isset($courseroles[$rsh])) {
-                                    $courseroles[$rsh] = array();
-                                }
-
-                                $courseroles[$rsh][] = $viewrole;
-                            }
-                        }
-
-                        $course->roles = $courseroles;
-
-                        $courselist[] = $course;
+                    // Skip NULL courses
+                    if(empty($course)) {
+                        continue;
                     }
+                    
+                    $context = $this->get_context_instance(CONTEXT_COURSE,
+                        $course->id);
+
+                    $viewroles = $this->get_role_users($roleids, $context,
+                        false, 'u.id, u.firstname, u.lastname, r.shortname');
+
+                    $courseroles = array();
+                    foreach ($viewroles as $viewrole) {
+                        $rsh = $viewrole->shortname;
+                        if (isset($iroles[$rsh])) {
+                            if (!isset($courseroles[$rsh])) {
+                                $courseroles[$rsh] = array();
+                            }
+
+                            $courseroles[$rsh][] = $viewrole;
+                        }
+                    }
+
+                    $course->roles = $courseroles;
+
+                    $courselist[] = $course;
                 }
             }
         }
    
         $rendercatlist = array();
         foreach ($categorylist as $category) {
-            $rendercatlist[] = html_writer::link(
-                new moodle_url('/blocks/ucla_browseby/view.php',
-                    array('category' => $category->id, 'type' => 'collab')),
-                $category->name
-            );
+            if(!empty($category)) {
+                $rendercatlist[] = html_writer::link(
+                    new moodle_url('/blocks/ucla_browseby/view.php',
+                        array('category' => $category->id, 'type' => 'collab')),
+                    $category->name
+                );
+            }
         }
 
+        // Category heading
+        if(empty($collab_cat->name)) {
+            $title = get_string('collab_allcatsincat', 
+                    'block_ucla_browseby');
+        } else {
+            $title = get_string('collab_catsincat', 
+                    'block_ucla_browseby', $collab_cat->name);
+        }
+        
+        if(!empty($rendercatlist)) {
+            $s .= $this->heading($title, 3);
+        }
+        
         $s .= block_ucla_browseby_renderer::ucla_custom_list_render(
             $rendercatlist);
 
@@ -137,7 +164,7 @@ class collab_handler extends browseby_handler {
         $list = '';
         if (!empty($courselist)) {
             $title = get_string('collab_coursesincat', 
-                'block_ucla_browseby');
+                'block_ucla_browseby', $collab_cat->name);
             $data = array();
 
             foreach ($courselist as $course) {
@@ -147,6 +174,7 @@ class collab_handler extends browseby_handler {
                     $course->fullname
                 );
 
+                $nameslist = array();
                 foreach ($roleids as $shortname => $roleid) {
                     $nameimploder = array();
 
@@ -155,14 +183,14 @@ class collab_handler extends browseby_handler {
                             $nameimploder[] = fullname($role);
                         }
                     }
-
+                    
                     if (!empty($nameimploder)) {
-                        $datum[] = implode(' / ', $nameimploder);
-                    } else {
-                        $datum[] = get_string('nousersinrole', 
-                            'block_ucla_browseby');
+                        $nameslist[] = implode(' / ', $nameimploder);
                     }
                 }
+                
+                $datum[] = empty($nameslist) ? get_string('nousersinrole', 
+                            'block_ucla_browseby') : implode(' ', $nameslist);
 
                 $data[] = $datum;
             }
@@ -170,7 +198,7 @@ class collab_handler extends browseby_handler {
             $table = new html_table();
             $table->data = $data;
 
-            $headers = array('sitename', 'projectlead', 'coursecreators');
+            $headers = array('sitename', 'projectlead');
             $dispheaders = array();
 
             foreach ($headers as $header) {
@@ -235,7 +263,7 @@ class collab_handler extends browseby_handler {
 
     function find_category($name, $categories, $field='name') {
         foreach ($categories as $category) {
-            if ($category->{$field} == $name) {
+            if (!empty($category) && $category->{$field} == $name) {
                 return $category;
             } 
            

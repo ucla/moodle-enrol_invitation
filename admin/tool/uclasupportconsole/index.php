@@ -465,7 +465,7 @@ $consoles->push_console_html('srdb', $title, $sectionhtml);
 
 // Dynamic hardcoded (TODO make reqistrar_query return parameter types it expects)
 ucla_require_registrar();
-$qs = registrar_query::get_all_available_queries();
+$qs = get_all_available_registrar_queries();
 
 foreach ($qs as $query) {
     $sectionhtml = '';
@@ -522,13 +522,9 @@ foreach ($qs as $query) {
                 $params[$param_name] = $param_value;
             }
         }
-        $sendparams = array($params);
         
-        $allresults = registrar_query::run_registrar_query($query, $sendparams);
-
-        $results = array_merge($allresults[registrar_query::query_results], 
-            $allresults[registrar_query::failed_outputs]);
-
+        $results = registrar_query::run_registrar_query($query, $params);
+        
         $sectionhtml .= supportconsole_render_section_shortcut($title, 
             $results, $params);
     }
@@ -782,8 +778,8 @@ $sectionhtml = '';
 if ($displayforms) {
     // add filter for term/subject area, because this table can get very big
     // and the query get return a ton of data
-    $input_html = get_term_selector($query);
-    $input_html .= get_subject_area_selector($query);        
+    $input_html = get_term_selector($title);
+    $input_html .= get_subject_area_selector($title);        
     
     $sectionhtml = supportconsole_simple_form($title, $input_html);
 } else if ($consolecommand == "$title") {  

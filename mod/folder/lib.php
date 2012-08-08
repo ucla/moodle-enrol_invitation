@@ -115,7 +115,7 @@ function folder_add_instance($data, $mform) {
  */
 function folder_update_instance($data, $mform) {
     global $CFG, $DB;
-
+    
     $cmid        = $data->coursemodule;
     $draftitemid = $data->files;
 
