@@ -15,4 +15,5 @@ $role['waitlisted']['*SYSTEM*'] = 'student'; // Student waitlisted in the course
 
 // Subject areas using limited TA roles
 $role['ta']['CHEM'] = 'ta'; 
+$role['ta']['LIFESCI'] = 'ta'; 
 $role['ta']['PHYSCI'] = 'ta'; 
