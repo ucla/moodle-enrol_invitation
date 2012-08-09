@@ -38,10 +38,16 @@ $PAGE->set_pagetype('course-view-'.$course->format);
 
 $location = $CFG->dirroot . '/blocks/ucla_subject_links/content/';
 
+function callback_subject_area($buffer) {
+    return (str_replace('%www_root%', 'content', $buffer));
+}
+
 echo $OUTPUT->header();
 
 if (block_ucla_subject_links::subject_exist($course, $location, $subjarea)) { 
-    include($location . $subjarea . '/index.htm');
+    ob_start('callback_subject_area');
+    readfile($location . $subjarea . '/index.htm');
+    ob_end_flush();
 } else {
     echo $OUTPUT->box(get_string('error', 'block_ucla_subject_links'), 'noticebox');
 }               
