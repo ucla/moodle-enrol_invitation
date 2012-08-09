@@ -1290,4 +1290,27 @@ function crosslist_course_from_registrar($term, $srs) {
     
     return false;
 }
+
+/**
+ * Update MyUCLA urls that link to ccle course pages
+ *
+ * @param string $term  course term
+ * @param string $srs   course srs
+ * @param string $url   course url for myucla to link to.
+ *                      An empty string or null will clear the url at MyUCLA
+ */
+function update_myucla_urls($term, $srs, $url) {
+    $url_updater = new myucla_urlupdater();
+    $course = array('term' => $term, 'srs' => $srs);
+    $update_course = array(
+        make_idnumber($course) => array(
+            'term' => $term, 
+            'srs' => $srs, 
+            'url' => $url
+        )
+    );
+
+    $url_updater->send_MyUCLA_urls($update_course, false);
+}
+
 // EOF

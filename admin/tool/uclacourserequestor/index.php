@@ -9,6 +9,7 @@ $uccdirr = '/tool/uclacoursecreator/uclacoursecreator.class.php';
 require_once($CFG->dirroot . '/' . $CFG->admin . $uccdirr);
 $thisdir = '/' . $CFG->admin . '/tool/uclacourserequestor/';
 require_once($CFG->dirroot . $thisdir . 'lib.php');
+require_once($CFG->dirroot . '/admin/tool/myucla_url/myucla_urlupdater.class.php');
 
 global $DB, $ME, $USER;
 
@@ -246,6 +247,9 @@ if ($processrequests) {
                 $coursedescs = array();
                 foreach ($set as $course) {
                     $coursedescs[] = requestor_dept_course($course);
+                    if ($course['hostcourse']) {
+                        $host_courseid = $course['courseid'];
+                    }
                 }
 
                 $coursedescstr = implode(' + ', $coursedescs);
@@ -270,6 +274,11 @@ if ($processrequests) {
                                     $fieldstrs[] = $actionstr 
                                     . make_idnumber($cl) . ' '
                                     . requestor_dept_course($cl);
+                                    
+                                    // update(remove) MyUCLA urls
+                                    if ($action == 'removed') {
+                                        update_myucla_urls($cl['term'], $cl['srs'], '');
+                                    }
                                 }
                             }
                         }
@@ -286,9 +295,18 @@ if ($processrequests) {
                     }
                 } else if ($retcode == ucla_courserequests::insertsuccess) {
                     // If we need to get the course from the registrar
-                    foreach ($changed[$setid]['crosslists']['added'] as $cross_course){
+                    foreach ($changed[$setid]['crosslists']['added'] as $cross_course) {
+                        $c_term = $cross_course['term'];
+                        $c_srs = $cross_course['srs'];
+                        
                         if ($cross_course['hostcourse'] == 0 && $cross_course['action'] == 'build') {
-                            crosslist_course_from_registrar($cross_course['term'], $cross_course['srs']);
+                            crosslist_course_from_registrar($c_term, $c_srs);
+                        }
+                        
+                        // update MyUCLA urls for the newly updated crosslist
+                        if (!empty($host_courseid)) {
+                            $c_url = $CFG->wwwroot . "/course/view.php?id=$host_courseid";
+                            update_myucla_urls($c_term, $c_srs, $c_url);
                         }
                     }
                     $changemessages[$setid] = $retmess;
