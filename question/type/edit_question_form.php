@@ -60,36 +60,6 @@ abstract class question_wizard_form extends moodleform {
     }
 }
 
-abstract class question_wizard_form extends moodleform {
-    /**
-     * Add all the hidden form fields used by question/question.php.
-     */
-    protected function add_hidden_fields() {
-        $mform = $this->_form;
-
-        $mform->addElement('hidden', 'id');
-        $mform->setType('id', PARAM_INT);
-
-        $mform->addElement('hidden', 'inpopup');
-        $mform->setType('inpopup', PARAM_INT);
-
-        $mform->addElement('hidden', 'cmid');
-        $mform->setType('cmid', PARAM_INT);
-
-        $mform->addElement('hidden', 'courseid');
-        $mform->setType('courseid', PARAM_INT);
-
-        $mform->addElement('hidden', 'returnurl');
-        $mform->setType('returnurl', PARAM_LOCALURL);
-
-        $mform->addElement('hidden', 'scrollpos');
-        $mform->setType('scrollpos', PARAM_INT);
-
-        $mform->addElement('hidden', 'appendqnumstring');
-        $mform->setType('appendqnumstring', PARAM_ALPHA);
-    }
-}
-
 /**
  * Form definition base class. This defines the common fields that
  * all question types need. Question types should define their own
