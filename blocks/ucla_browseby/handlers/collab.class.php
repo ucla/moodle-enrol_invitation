@@ -1,8 +1,10 @@
 <?php
 
 class collab_handler extends browseby_handler {
+    private $MAX_USER_DISPLAY = 5;
+    
     static function get_default_roles_visible() {
-        return array('project_lead', 'coursecreator', 'editinginstructor');
+        return array('projectlead', 'coursecreator', 'editinginstructor');
     }
 
     function get_params() {
@@ -114,7 +116,7 @@ class collab_handler extends browseby_handler {
                     $viewroles = $this->get_role_users($roleids, $context,
                         false, 'u.id, u.firstname, u.lastname, r.shortname');
 
-                    $courseroles = array();
+                    $courseroles = array();                    
                     foreach ($viewroles as $viewrole) {
                         $rsh = $viewrole->shortname;
                         if (isset($iroles[$rsh])) {
@@ -123,7 +125,7 @@ class collab_handler extends browseby_handler {
                             }
 
                             $courseroles[$rsh][] = $viewrole;
-                        }
+                        }                       
                     }
 
                     $course->roles = $courseroles;
@@ -175,18 +177,22 @@ class collab_handler extends browseby_handler {
                 );
 
                 $nameslist = array();
+                $nameimploder = array();                
                 foreach ($roleids as $shortname => $roleid) {
-                    $nameimploder = array();
-
                     if (!empty($course->roles[$shortname])) {
                         foreach ($course->roles[$shortname] as $role) {
                             $nameimploder[] = fullname($role);
                         }
-                    }
-                    
-                    if (!empty($nameimploder)) {
-                        $nameslist[] = implode(' / ', $nameimploder);
-                    }
+                    }                    
+                }
+                
+                if (!empty($nameimploder)) {
+                    // limit display of users
+                    if (count($nameimploder) > $this->MAX_USER_DISPLAY) {
+                        $nameimploder = array_slice($nameimploder, 0, $this->MAX_USER_DISPLAY);
+                        $nameimploder[] = get_string('moreusers', 'block_ucla_browseby');
+                    }                                                                                                   
+                    $nameslist[] = implode(' / ', $nameimploder);
                 }
                 
                 $datum[] = empty($nameslist) ? get_string('nousersinrole', 
