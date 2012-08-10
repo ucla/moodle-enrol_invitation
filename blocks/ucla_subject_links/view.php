@@ -39,7 +39,8 @@ $PAGE->set_pagetype('course-view-'.$course->format);
 $location = $CFG->dirroot . '/blocks/ucla_subject_links/content/';
 
 function callback_subject_area($buffer) {
-    return (str_replace('%www_root%', 'content', $buffer));
+    global $location;
+    return (str_replace('%www_root%', $location, $buffer));
 }
 
 echo $OUTPUT->header();
