@@ -83,17 +83,17 @@ $mod_nanogong_capabilities = array(
         )
     ),
 	// START UCLA MOD: CCLE-3435-fix-editor-for-Moodle2.3
-	'mod/nanogong:addinstance' => array(
-		'riskbitmask' => RISK_XSS,
+    'mod/nanogong:addinstance' => array(
+        'riskbitmask' => RISK_XSS,
 
-		'captype' => 'write',
-		'contextlevel' => CONTEXT_COURSE,
-		'archetypes' => array(
-			'teacher' => CAP_ALLOW,
-			'editingteacher' => CAP_ALLOW,
-			'manager' => CAP_ALLOW
-	),
-	'clonepermissionsfrom' => 'moodle/course:manageactivities'
-	),
-	// END UCLA MOD: CCLE-3435-fix-editor-for-Moodle2.3
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW
+    ),
+    'clonepermissionsfrom' => 'moodle/course:manageactivities'
+    ),
+    // END UCLA MOD: CCLE-3435-fix-editor-for-Moodle2.3
 );
