@@ -82,7 +82,7 @@ $mod_nanogong_capabilities = array(
             'manager' => CAP_ALLOW
         )
     ),
-	// START UCLA MOD: CCLE-3435-fix-editor-for-Moodle2.3
+    // START UCLA MOD: CCLE-3435-fix-editor-for-Moodle2.3
     'mod/nanogong:addinstance' => array(
         'riskbitmask' => RISK_XSS,
 
