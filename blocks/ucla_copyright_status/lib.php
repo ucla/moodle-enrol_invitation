@@ -228,7 +228,6 @@ function display_copyright_status_contents($courseid, $filter){
         echo html_writer::start_tag('form', array('id'=>'block_ucla_copyright_status_sform', 'action'=>$PAGE->url->out(), 'method'=>'post'));
         echo html_writer::tag('div', html_writer::empty_tag('input', array('id'=>'block_ucla_copyright_status_btn1', 'name'=>'action_edit', 'value'=>get_string('save_button','block_ucla_copyright_status'), 'type'=>'submit')), array('class'=>'block-ucla-copyright-status-save-button'));
         echo html_writer::empty_tag('input', array('id' => 'block_ucla_copyright_status_d1','name'=>'block_ucla_copyright_status_n1', 'type'=>'hidden', 'value'=>''));
-        echo html_writer::end_tag('div');
         echo html_writer::end_tag('form');
     }
     // end display save changes button
