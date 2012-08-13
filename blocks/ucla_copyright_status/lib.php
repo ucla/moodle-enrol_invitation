@@ -226,7 +226,7 @@ function display_copyright_status_contents($courseid, $filter){
         echo html_writer::empty_tag('input', array('id' => 'block_ucla_copyright_status_d1','name'=>'block_ucla_copyright_status_n1', 'type'=>'hidden', 'value'=>''));
     }
     // end display save changes button
-	echo html_writer::end_tag('form');
+    echo html_writer::end_tag('form');
     echo html_writer::end_tag('div'); 
     echo $OUTPUT->footer();
     // end output screen
