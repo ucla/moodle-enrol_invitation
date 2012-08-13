@@ -22,7 +22,7 @@ YUI().use('event-delegate', function(Y){
 
 YUI().use('node-base', function(Y){
     var btnl_Click = function(e){
-        $('#block_ucla_copyright_status_sform').serialize();
+        $('#block_ucla_copyright_status_form_copyright_status_list').serialize();
     };
     Y.on('click', btnl_Click, '#block_ucla_copyright_status_btn1');
 });

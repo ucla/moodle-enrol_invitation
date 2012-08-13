@@ -9,6 +9,7 @@ require_once($CFG->dirroot.'/blocks/ucla_copyright_status/lib.php');
 require_once($CFG->dirroot.'/local/ucla/lib.php');
 $courseid = required_param('courseid', PARAM_INT); // course ID
 $action = optional_param('action_edit', null, PARAM_TEXT); 
+$filter = optional_param('filter_copyright', null, PARAM_TEXT); 
 
 if (! $course = $DB->get_record('course', array('id' => $courseid))) {
     print_error('coursemisconf');
