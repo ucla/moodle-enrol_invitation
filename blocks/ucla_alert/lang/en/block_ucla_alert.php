@@ -2,5 +2,9 @@
 
 $string['pluginname'] = 'UCLA alert block';
 
-// Defaults
-$string['mod_body_default_title'] = 'CCLE message';
+// Header defaults
+$string['mod_header_default_title'] = 'all systems go!';
+$string['mod_header_default_msg'] = 'Nothin to report.';
+
+// Message defaults
+$string['mod_body_default_title'] = 'CCLE notices';

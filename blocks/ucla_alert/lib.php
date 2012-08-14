@@ -30,52 +30,57 @@ abstract class ucla_alertblock_module {
      * @return string html 
      */
     protected function get_body() {
+        global $DB;
         
         $out = '';
-        
-        // Check if we have content to print out
-        if(!empty($this->prop->content['content'])) {
-            // Set default color
-            $color = $this->defaults['list']['color'];
 
-            // Print out content based on type
-            foreach($this->prop->content['content'] as $content) {
+        // Get visible records for module
+        $records = $DB->get_records('ucla_alert', 
+                array('module' => $this->prop->mod, 'type' => $this->prop->type, 'visible' => 1),
+                'sortorder');
+        
+        foreach($records as $rec) {
+            $content = json_decode($rec->content);
+                        
+            // Check for links
+            if(strstr($content->content, '| http') || strstr($content->content, '|http')) {
+                $link = explode('|', $content->content);
+                $text = $link[0];
+                $url = $link[1];
                 
-                // Override color
-                if(!empty($content['color'])) {
-                    $color = $content['color'];
-                }
+                $content->content = html_writer::link($url, $text);
                 
-                switch($content['type']) {
-                    case 'msg':
-                        $out .= html_writer::tag('p', $content['content'], 
-                                array('class' => 'alert-block-msg-text'));
-                        break;
-                    case 'link':
-                        $link = html_writer::link($content['link'], $content['content']);
-                        $out .= html_writer::tag('div', $link,
-                                array('class' => 'alert-block-list alert-block-list-link alert-block-list-'.$color));
-                        break;
-                    case 'list':
-                        $out .= html_writer::tag('div', $content['content'],
-                                array('class' => 'alert-block-list alert-block-list-'.$color));
-                        break;
+                if(empty($content->type) || $content->type == 'title' || $content->type == 'msg') {
+                    $content->type = 'blue';
                 }
             }
+            
+            switch($content->type) {
+                default:
+                case 'msg':
+                    $out .= html_writer::tag('p', $content->content, 
+                            array('class' => 'alert-block-msg-text'));
+                    break;
+                case 'title':
+                    $out .= html_writer::tag('span', $content->content, 
+                            array('class' => 'alert-block-body-subtitle'));
+                    break;
+                case 'blue':
+                case 'cyan':
+                case 'green':
+                case 'orange':
+                case 'red':
+                    $out .= html_writer::tag('div', $content->content,
+                                array('class' => 'alert-block-list alert-block-list-'.$content->type));
+                    break;
+                }
         }
-                
+        
         // Output
         return html_writer::tag('div', $out,
-                array('class' => 'alert-block-msg'));
+                array('class' => 'alert-block-msg'));    
     }
         
-    protected function get_inner_content() {
-        global $DB;
-        $recods = $DB->get_records('ucla_alerts', 
-                array('mod' => $this->prop->mod, 'type' => $this->prop->type));
-        
-    }
-
     /**
      * All modules must generate their own html content 
      */

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="blocks/ucla_alert/db" VERSION="20120813" COMMENT="XMLDB file for Moodle blocks/ucla_alert"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="ucla_alert" COMMENT="ucla_alert table retrofitted from MySQL">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="module"/>
+        <FIELD NAME="module" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="type"/>
+        <FIELD NAME="type" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" PREVIOUS="module" NEXT="content"/>
+        <FIELD NAME="content" TYPE="text" LENGTH="small" NOTNULL="true" SEQUENCE="false" PREVIOUS="type" NEXT="sortorder"/>
+        <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="content" NEXT="visible"/>
+        <FIELD NAME="visible" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="sortorder"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="id" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="mod_type_visible" UNIQUE="false" FIELDS="module, type, visible" NEXT="sortorder"/>
+        <INDEX NAME="sortorder" UNIQUE="false" FIELDS="sortorder" PREVIOUS="mod_type_visible"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>
