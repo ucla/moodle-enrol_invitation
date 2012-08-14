@@ -96,20 +96,9 @@ class block_ucla_course_menu extends block_navigation {
      *  @return string
      **/
     function get_topic_get() {
-        $courseformat = $this->get_course_format();
-        $fn = 'callback_' . $courseformat . '_request_key';
-
-        if (function_exists($fn)) {
-            $format_rk = $fn();
-        } else {
-            // Just assume it is topic
-            $format_rk = 'topic';
-
-            debugging('Could not access GET param for format! Using [' 
-                . $format_rk . ']');
-        }
-
-        return $format_rk;
+        // In Moodle 2.3, there is no more callback_<format>_request_key,
+        // just use section
+        return 'section';
     }
 
     /**
