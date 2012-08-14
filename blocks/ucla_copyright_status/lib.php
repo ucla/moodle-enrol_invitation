@@ -59,7 +59,6 @@ function get_files_copyright_status_by_course($courseid,$filter=null){
     else if ($filter && $filter != 'all'){
         $sql .= " AND f.license = '$filter'";
     }
-    $sql .= " GROUP BY f.contenthash";
     return $DB->get_records_sql($sql);
 }
 
