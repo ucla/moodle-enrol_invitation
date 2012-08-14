@@ -190,7 +190,7 @@ class tinymce_texteditor extends texteditor {
         }
 		
         // START UCLA MOD: CCLE-2358-wimba-voice-tools/CCLE-3239-nanogong-voice tool
-        $params['plugins'] .= 'wimba,nanogong';
+        $params['plugins'] .= ',wimba,nanogong';
         $params['theme_advanced_buttons3'] .=',|,wimba,nanogong';
         // END UCLA MOD: CCLE-2358-wimba-voice-tools/CCLE-3239-nanogong-voice tool
 
