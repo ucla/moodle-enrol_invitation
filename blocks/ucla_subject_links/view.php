@@ -36,18 +36,16 @@ $PAGE->set_heading($course->fullname);
 $PAGE->set_pagelayout('course');
 $PAGE->set_pagetype('course-view-'.$course->format);
 
-$location = $CFG->dirroot . '/blocks/ucla_subject_links/content/';
-
 function callback_subject_area($buffer) {
-    global $location;
-    return (str_replace('%www_root%', $location, $buffer));
+    global $CFG;
+    return (str_replace('%www_root%', $CFG->wwwroot . '/blocks/ucla_subject_links/content', $buffer));
 }
 
 echo $OUTPUT->header();
 
-if (block_ucla_subject_links::subject_exist($course, $location, $subjarea)) { 
+if (block_ucla_subject_links::subject_exist($course, $subjarea)) { 
     ob_start('callback_subject_area');
-    readfile($location . $subjarea . '/index.htm');
+    readfile(block_ucla_subject_links::get_location() . $subjarea . '/index.htm');
     ob_end_flush();
 } else {
     echo $OUTPUT->box(get_string('error', 'block_ucla_subject_links'), 'noticebox');

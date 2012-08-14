@@ -4,7 +4,11 @@ defined('MOODLE_INTERNAL') || die();
 require_once(dirname(dirname(dirname(__FILE__))) . '/local/ucla/lib.php');
 
 class block_ucla_subject_links extends block_base {
-
+    
+    static function get_location() {
+        global $CFG;
+        return $CFG->dirroot . '/blocks/ucla_subject_links/content/';
+    }
     /**
      * Called by moodle
      */
@@ -19,12 +23,6 @@ class block_ucla_subject_links extends block_base {
     public function get_content() {
         global $COURSE;
 
-        if ($this->content !== null) {
-            return $this->content;
-        }
-
-        $this->content = new stdClass;
-
         return $this->content;
     }
 
@@ -32,9 +30,7 @@ class block_ucla_subject_links extends block_base {
      * Use UCLA Course menu block hook
      */
     public function get_navigation_nodes($course) {
-        global $CFG;
-        $location = $CFG->dirroot . '/blocks/ucla_subject_links/content/';
-        $subjname = self::get_subject_areas($course, $location);
+        $subjname = self::get_subject_areas($course);
         $nodes = array();
         if (!empty($subjname)) {
             foreach ($subjname as $sub) {
@@ -72,7 +68,7 @@ class block_ucla_subject_links extends block_base {
         return false; // disables instance configuration
     }
 
-    public function get_subject_areas($course, $location) {
+    public function get_subject_areas($course) {
         $subjname = array();
         $courseinfo = ucla_get_course_info($course->id);
         if (!empty($courseinfo)) {
@@ -80,7 +76,7 @@ class block_ucla_subject_links extends block_base {
                 $subject = $cinfo->subj_area;
                 $subject = preg_replace('/-\s/', '', $subject);
                 $subject = strtoupper($subject); 
-                if (file_exists($location.$subject.'/index.htm')) {
+                if (file_exists(self::get_location().$subject.'/index.htm')) {
                     $subjname[] = $subject;
                 }   
             }
@@ -88,8 +84,8 @@ class block_ucla_subject_links extends block_base {
         return $subjname; 
     }
     
-    public function subject_exist($course, $location, $subjarea) {
-        $subjname = self::get_subject_areas($course, $location);
+    public function subject_exist($course, $subjarea) {
+        $subjname = self::get_subject_areas($course);
         return in_array($subjarea, $subjname);
     }
 }
