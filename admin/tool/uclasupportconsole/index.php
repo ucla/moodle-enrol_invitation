@@ -507,16 +507,12 @@ foreach ($qs as $query) {
 
         $sectionhtml .= supportconsole_simple_form($query, $input_html);
     } else if ($consolecommand == $query) {
-        
-        /* Possible params:
-         * term
-         * subjarea
-         * srs
-         * uid
-         */
-        $params = array();
-        $possible_params = array('term', 'subjarea', 'srs', 'uid');
-        foreach ($possible_params as $param_name) {
+        // generate input parameters (optimized by putting inside 
+        // conditionals)
+        $storedproc = registrar_query::get_registrar_query($query);
+        $spparams = $storedproc->get_query_params();
+
+        foreach ($spparams as $param_name) {
             if ($param_value = optional_param($param_name, '', PARAM_NOTAGS)) {
                 $params[$param_name] = $param_value;
             }
