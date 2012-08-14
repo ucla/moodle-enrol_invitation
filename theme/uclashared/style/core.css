@@ -55,3 +55,6 @@ table.userenrolment tbody td {
 table.userenrolment tbody td.lastcol {
     border-right: none;
 }
+
+/* Formatting for UCLA Course Requestor */
+.mform .fitem fieldset.felement {margin-left:0%;padding-left:1%;margin-bottom:0}
