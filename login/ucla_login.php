@@ -117,7 +117,7 @@ if ($loginguest && !$frm) {
 }
 
 if ($frm !== false && isset($frm->username)) {
-    $frm->username = trim(moodle_strtolower($frm->username));
+    $frm->username = trim(textlib::strtolower($frm->username));
 
     if ($frm->username == 'guest' && empty($CFG->guestloginbutton)) {
         $user = false;

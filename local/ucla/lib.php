@@ -384,7 +384,7 @@ function is_summer_term($term) {
  * @return string       name in proper format
  **/
 function ucla_format_name($name=null) {
-    $name = ucfirst(strtolower(trim($name)));    
+    $name = ucfirst(textlib::strtolower(trim($name)));    
 
     if (empty($name)) {
         return '';
@@ -445,13 +445,13 @@ function ucla_format_name($name=null) {
     }    
 
     // starts with MC (and is more than 2 characters)?
-    if (strlen($name)>2 && (0 == strncasecmp($name, 'mc', 2))) {
-        $name[2] = strtoupper($name[2]);    // make 3rd character uppercase
+    if (textlib::strlen($name)>2 && (0 == strncasecmp($name, 'mc', 2))) {
+        $name[2] = textlib::strtoupper($name[2]);    // make 3rd character uppercase
     }
 
     // If name has conjunctions, e.g. "and", "of", "the", "as", "a"
-    if (in_array(strtolower($name), array('and', 'of', 'the', 'as', 'a'))) {
-        $name = strtolower($name);
+    if (in_array(textlib::strtolower($name), array('and', 'of', 'the', 'as', 'a'))) {
+        $name = textlib::strtolower($name);
     }
     
     return $name;
