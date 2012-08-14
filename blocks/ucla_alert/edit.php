@@ -9,7 +9,7 @@ require_once($CFG->dirroot . '/blocks/ucla_alert/ucla_alert_form.php');
 
 require_login();
 
-$PAGE->set_url('/blocks/ucla_alerts/view.php');
+$PAGE->set_url('/blocks/ucla_alert/edit.php');
 
 $PAGE->set_course($SITE);
 
