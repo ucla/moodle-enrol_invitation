@@ -38,6 +38,16 @@ if ($topic = optional_param('topic', 0, PARAM_INT)) {
 }
 // End backwards-compatible aliasing..
 
+// make sure that all sections exist for the course (-1 for site info)
+if (count($sections)-1 < $course->numsections) {
+    // we need to build sections
+    $section_num = 0;
+    while ($section_num <= $course->numsections) {
+        $sections[$section_num] = setup_section($section_num, $sections, $course);
+        ++$section_num;
+    }    
+}
+
 $context = context_course::instance($course->id);
 
 if (($marker >=0) && has_capability('moodle/course:setcurrentsection', $context) && confirm_sesskey()) {
@@ -46,8 +56,8 @@ if (($marker >=0) && has_capability('moodle/course:setcurrentsection', $context)
 }
 
 $renderer = $PAGE->get_renderer('format_ucla');
-
 $renderer->print_header();
+$renderer->print_js();
 
 if (optional_param('show_all', 0, PARAM_BOOL)) {
     // user wants to view all sections    

@@ -26,6 +26,9 @@ require_once($CFG->dirroot . '/local/ucla/lib.php');
 /**  Course Preferences API **/
 require_once(dirname(__FILE__) . '/ucla_course_prefs.class.php');
 
+define('UCLA_FORMAT_DISPLAY_ALL', -2);
+define('UCLA_FORMAT_DISPLAY_LANDING', -4);
+
 /**
  * Indicates this format uses sections.
  *
@@ -102,6 +105,47 @@ function callback_ucla_ajax_section_move($course) {
         }
     }
     return array('sectiontitles' => $titles, 'action' => 'move');
+}
+
+/**
+ * Sets up given section. Will auto create section. if we have numsections set 
+ * < than the actual number of sections that exist.
+ * 
+ * NOTE: We are not using the Moodle API of get_course_section, because we want
+ * to set the section name in the database.
+ * 
+ * @global type $DB
+ * @param int $section      Section id to get
+ * @param array $sections   Sections for course
+ * @param object $course 
+ * 
+ * @return object           Returns given section
+ */
+function setup_section($section, $sections, $course) {
+    global $DB;
+    
+    if (!empty($sections[$section])) {
+        $thissection = $sections[$section];        
+        // Set the name of the section name if it is null
+        if(!empty($section) && $thissection->name == null) {
+            $thissection->name = get_string('sectionname', 'format_weeks') . ' ' . $section;
+            $DB->update_record('course_sections', $thissection);
+        }        
+    } else {
+        // Create a new section
+        $thissection = new stdClass;
+        $thissection->course  = $course->id;   
+        $thissection->section = $section;
+        // Assign the week number as default name
+        $thissection->name = get_string('sectionname', 'format_weeks') . ' ' . $section;
+        $thissection->summary = '';
+        $thissection->summaryformat = FORMAT_HTML;
+        $thissection->visible  = 1;
+        $thissection->id = $DB->insert_record('course_sections', $thissection);
+        rebuild_course_cache($course->id, true);
+    }
+    
+    return $thissection;
 }
 
 /**
@@ -194,4 +238,40 @@ function ucla_format_display_instructors($course) {
     $instructors = $DB->get_records_sql($sql, $params);
 
     return $instructors;
+}
+
+/**
+ *  Figures out the section to display. Specific only to the UCLA course format.
+ *  Uses a $_GET or $_POST param to figure out what's going on.
+ *
+ *  @return int       Returns section number that user is viewing
+ */
+function ucla_format_figure_section($course, $course_prefs = null) {
+
+    // see if user is requesting a specific section
+    $section = optional_param('section', null, PARAM_INT);
+    if (!is_null($section)) {
+        // This means that a section was explicitly declared
+        return $section;
+    }
+    
+    // no specific section was requested, so see if user was looking for 
+    // "Show all" option
+    if (optional_param('show_all', 0, PARAM_BOOL)) {
+        return UCLA_FORMAT_DISPLAY_ALL;
+    }
+    
+    // no specific section and no "Show all", so just go to landing page    
+    if ($course_prefs == null || !is_object($course_prefs)) {
+        $course_prefs = new ucla_course_prefs($course->id);
+    }
+
+    // Default to course marker (usually section 0 (site info)) if there are no 
+    // landing page preference
+    $landing_page = $course_prefs->get_preference('landing_page', false);
+    if ($landing_page === false) {
+        $landing_page = $course->marker;
+    } 
+
+    return $landing_page;
 }

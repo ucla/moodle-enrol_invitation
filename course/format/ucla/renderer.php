@@ -53,6 +53,12 @@ class format_ucla_renderer extends format_section_renderer_base {
     // term for course that is being rendered
     private $term = null;
     
+    // is user editign the page?
+    private $user_is_editing = false;
+    
+    // strings to generate jit links
+    private $jit_links = array();
+    
     /**
      * Constructor method, do necessary setup for UCLA format.
      *
@@ -79,7 +85,16 @@ class format_ucla_renderer extends format_section_renderer_base {
         $this->course =& $page->course;
         
         // save context object
-        $this->context =& $page->context;        
+        $this->context =& $page->context;       
+        
+        // is user editing the page?
+        $this->user_is_editing = $page->user_is_editing();
+        
+        // CCLE-2800 - cache strings for JIT links
+        $this->jit_links = array('file' => get_string('file', 'format_ucla'),
+                                 'link' => get_string('link', 'format_ucla'),
+                                 'text' => get_string('text', 'format_ucla'),
+                                 'subheading' => get_string('subheading', 'format_ucla'));            
    }    
     
     /**
@@ -226,11 +241,37 @@ class format_ucla_renderer extends format_section_renderer_base {
     }
     
     /**
+     * Include our custom ajax overwriters to convert icons to text. This needs 
+     * to be printed after the headers, but before the footers.
+     */
+    public function print_js() {
+        $noeditingicons = get_user_preferences('noeditingicons', 1);
+        if (ajaxenabled() && !empty($this->user_is_editing)) {
+            echo html_writer::script(false, new moodle_url('/course/format/ucla/sections.js'));
+
+            if ($noeditingicons) {
+                $editingiconsjs = 'true';
+            } else {
+                $editingiconsjs = 'false';
+            }
+
+            $strishidden = '(' . get_string('hidden', 'calendar') . ')';
+            $strmovealt = get_string('movealt', 'format_ucla');
+            
+            echo html_writer::script("
+            M.format_ucla.strings['hidden'] = '$strishidden';
+            M.format_ucla.strings['movealt'] = '$strmovealt';
+            M.format_ucla.no_editing_icons = $noeditingicons;
+            ");
+        }        
+    }
+    
+    /**
      * Output html for content that belong in section 0, such as course 
      * description, final location, registrar links and the office hours block.
      */
     public function print_section_zero_content() {
-        global $CFG, $OUTPUT, $PAGE;
+        global $CFG, $OUTPUT;
         
         $center_content = '';
         
@@ -263,7 +304,7 @@ class format_ucla_renderer extends format_section_renderer_base {
         }
 
         // Editing button for course summary
-        if ($PAGE->user_is_editing()) {
+        if ($this->user_is_editing) {
             $streditsummary = get_string('editcoursetitle', 'format_ucla');
             $url_options = array(
                 'id' => $this->course->id,
@@ -314,7 +355,6 @@ class format_ucla_renderer extends format_section_renderer_base {
      * @param int $displaysection The section number in the course which is being displayed
      */
     public function print_single_section_page($course, $sections, $mods, $modnames, $modnamesused, $displaysection) {
-        global $PAGE;
 
         // Can we view the section in question?
         $context = context_course::instance($course->id);
@@ -373,7 +413,7 @@ class format_ucla_renderer extends format_section_renderer_base {
         echo $completioninfo->display_help_icon();
 
         print_section($course, $thissection, $mods, $modnamesused, true, '100%', false, true);
-        if ($PAGE->user_is_editing()) {
+        if ($this->user_is_editing) {
             print_section_add_menus($course, $displaysection, $modnames, false, false, true);
         }
         echo $this->section_footer();
@@ -402,9 +442,8 @@ class format_ucla_renderer extends format_section_renderer_base {
      * @return array of links with edit controls
      */
     protected function section_edit_controls($course, $section, $onsectionpage = false) {
-        global $PAGE;
-
-        if (!$PAGE->user_is_editing()) {
+        
+        if (!$this->user_is_editing) {
             return array();
         }
 
@@ -447,7 +486,6 @@ class format_ucla_renderer extends format_section_renderer_base {
      * @return string HTML to output.
      */
     protected function section_header($section, $course, $onsectionpage) {
-        global $PAGE;
 
         $o = '';
         $currenttext = '';
@@ -480,7 +518,7 @@ class format_ucla_renderer extends format_section_renderer_base {
         $o.= $this->format_summary_text($section);
 
         $context = context_course::instance($course->id);
-        if ($PAGE->user_is_editing() && has_capability('moodle/course:update', $context)) {
+        if ($this->user_is_editing && has_capability('moodle/course:update', $context)) {
             $url = new moodle_url('/course/editsection.php', array('id'=>$section->id));
 
             if ($onsectionpage) {
@@ -499,6 +537,30 @@ class format_ucla_renderer extends format_section_renderer_base {
     }    
     
     // PRIVATE METHODS \\
+
+    /**
+     * Generates JIT links for given section.
+     * 
+     * @param int $section  Section we are on
+     * 
+     * @return string       Returns JIT link html
+     */
+    private function get_jit_links($section) {
+        $ret_val = html_writer::start_tag('div',
+                array('class' => 'jit_links'));
+
+        foreach ($this->jit_links as $jit_type => $jit_string) {
+            $link = new moodle_url('/blocks/ucla_easyupload/upload.php',
+                    array('course_id' => $this->course->id,
+                          'type' => $jit_type,
+                          'section' => $section));
+            $ret_val .= html_writer::link($link, $jit_string);
+        }
+
+        $ret_val .= html_writer::end_tag('div');        
+        return $ret_val;
+    }
+            
     
     /**
      * If courseinfo is not empty, then will parse its contents into user 

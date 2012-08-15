@@ -10,11 +10,11 @@ class ucla_rearrange_form extends moodleform {
         $mform =& $this->_form;
 
         $courseid  = $this->_customdata['courseid'];
-        $topic      = $this->_customdata['topic'];        
+        $section      = $this->_customdata['section'];        
         $sections   = $this->_customdata['sections'];
 
         $mform->addElement('hidden', 'courseid', $courseid);
-        $mform->addElement('hidden', 'topic', $topic);        
+        $mform->addElement('hidden', 'section', $section);        
         
         $mform->addElement('hidden', 'serialized', '',
             array('id' => 'serialized'));

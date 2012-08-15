@@ -6,6 +6,9 @@ require_once($CFG->dirroot . '/blocks/navigation/block_navigation.php');
 
 class block_ucla_course_menu extends block_navigation {
     var $contentgenerated = false;
+    
+    // the section user is currently viewing
+    var $displaysection = 0;
    
     // Hook function used to get other blocks' junk into this trunk
     const BLOCK_HOOK_FN = 'get_navigation_nodes';
@@ -89,19 +92,6 @@ class block_ucla_course_menu extends block_navigation {
     }
 
     /**
-     *  Gets the GET param that is used to describe which topic
-     *  you are viewing for a particular course format.
-     *
-     *  @todo this function shouldn't be here...
-     *  @return string
-     **/
-    function get_topic_get() {
-        // In Moodle 2.3, there is no more callback_<format>_request_key,
-        // just use section
-        return 'section';
-    }
-
-    /**
      *  Called by Moodle.
      **/
     function get_content() {
@@ -110,21 +100,27 @@ class block_ucla_course_menu extends block_navigation {
         if ($this->contentgenerated === true) {
             return $this->content;
         }
+
+        // get course preferences and store section user is viewing
+        $course_prefs = null;
+        if (class_exists('ucla_course_prefs') && 
+                function_exists('ucla_format_figure_section')) {
+            $course_prefs = new ucla_course_prefs($this->page->course->id);            
+            $this->displaysection = ucla_format_figure_section($this->page->course, $course_prefs);                            
+        }         
         
         $renderer = $this->get_renderer();
          
         //CCLE-2380 Rearrange Course Materials link when editing is on        
         // only display rearrange tool in ucla format
         if ($this->page->user_is_editing() && 
-                $this->get_course_format() == 'ucla' && 
-                function_exists('ucla_format_figure_section')) {
-            list($thistopic, $ds) = ucla_format_figure_section($this->page->course);        
+                $this->get_course_format() == 'ucla') {
 
             //CCLE-2379 Modify Course Menu Sections 	
 	   $modify_coursemenu = html_writer::link(
                     new moodle_url('/blocks/ucla_modify_coursemenu/modify_coursemenu.php', 
                         array('courseid' => $this->page->course->id, 
-                              'topic' => $ds)), 
+                              'section' => $this->displaysection)), 
                     get_string('pluginname', 'block_ucla_modify_coursemenu'));            
             $this->content->text .= html_writer::tag('div', $modify_coursemenu, 
                     array('class' => 'edit_control_links'));            
@@ -133,7 +129,7 @@ class block_ucla_course_menu extends block_navigation {
             $rearrange = html_writer::link(
                     new moodle_url('/blocks/ucla_rearrange/rearrange.php', 
                         array('courseid' => $this->page->course->id, 
-                              'topic' => $ds)), 
+                              'section' => $this->displaysection)), 
                     get_string('pluginname', 'block_ucla_rearrange'));            
             $this->content->text .= html_writer::tag('div', $rearrange, 
                     array('class' => 'edit_control_links'));
@@ -144,13 +140,10 @@ class block_ucla_course_menu extends block_navigation {
         $section_elements = $this->trim_nodes($section_elements);        
         $this->content->text .= $renderer->navigation_node($section_elements,
             array('class' => 'block_tree list'));
-
+        
         // Separate out non-section nodes so that we can have a different style
         // to them.
         $block_elements = $this->create_block_elements();
-        if (class_exists('ucla_course_prefs')) {
-            $course_prefs = new ucla_course_prefs($this->page->course->id);            
-        } 
         
         $module_elements = array();
         if(!isset($course_prefs) ||
@@ -196,28 +189,22 @@ class block_ucla_course_menu extends block_navigation {
         $course_id = $this->page->course->id;
 
         // Create section links
-        $sections = get_all_sections($course_id);
+        $modinfo = get_fast_modinfo($this->page->course);
+        $sections = $modinfo->get_section_info_all();
 
         // the elements
         $elements = array();
 
-        $topic_param = $this->get_topic_get();
-        if ($this->get_course_format() == 'ucla' 
-                && function_exists('ucla_format_figure_section')) {
-            list($thistopic, $ds) = ucla_format_figure_section(
-                $this->page->course);
-
+        if ($this->get_course_format() == 'ucla') {
             navigation_node::override_active_url(
                 new moodle_url(
                     '/course/view.php',
                     array(
                         'id' => $course_id,
-                         $topic_param => $ds
+                        'section' => $this->displaysection
                     )
                 )
             );
-        } else {
-            $thistopic = false;
         }
 
         $viewhiddensections = has_capability(
@@ -247,24 +234,24 @@ class block_ucla_course_menu extends block_navigation {
             $elements[$key] = navigation_node::create($sectionname,
                 new moodle_url('/course/view.php', array(
                     'id' => $course_id,
-                    $topic_param => $sectnum
+                    'section' => $sectnum
                 )), navigation_node::TYPE_SECTION
             );
             
             // Indicate that section is hidden
             if(!$section->visible) {
-                $elements[$key]->classes = array("block_ucla_course_menu_hidden");
+                $elements[$key]->classes = array('block_ucla_course_menu_hidden');
             }
         }
 
         // TODO get navigation to detect this if it is view all.
-        if (defined('UCLA_FORMAT_DISPLAY_ALL')) {
+        if ($this->get_course_format() == 'ucla') {
             // Create view-all section link
             $elements['view-all'] = navigation_node::create(
                 get_string('show_all', 'format_ucla'),
                 new moodle_url('/course/view.php', array(
                     'id' => $course_id,
-                    $topic_param => UCLA_FORMAT_DISPLAY_ALL
+                    'show_all' => 1
                 )), navigation_node::TYPE_SECTION);
         }
         
