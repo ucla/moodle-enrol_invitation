@@ -5,7 +5,6 @@ class block_ucla_search extends block_base {
     
     public function init() {
         $this->title = get_string('pluginname', 'block_ucla_search');
-        $this->alert_edit_js();
     }
     
     public function get_content() {
@@ -15,7 +14,10 @@ class block_ucla_search extends block_base {
             return $this->content;
         }
         
-        // Hook modules here
+        
+        $this->alert_edit_js();
+
+                
         $this->content = new stdClass;
         
         $input = html_writer::tag('input', '', array('id' => 'advanced-search', 
@@ -31,8 +33,6 @@ class block_ucla_search extends block_base {
         
         $this->content->text = $wrapper;
         
-//        $this->content->footer = 'Footer here...';
-
         return $this->content;
     }
     
