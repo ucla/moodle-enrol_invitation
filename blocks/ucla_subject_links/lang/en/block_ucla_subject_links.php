@@ -2,7 +2,7 @@
 
 $string['pluginname'] = 'UCLA subject links';
 
-$string['title'] = 'Subject Links';
+$string['title'] = 'Subject links';
 
 $string['link_text'] = '{$a} Links';
 
