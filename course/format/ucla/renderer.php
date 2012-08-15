@@ -420,12 +420,10 @@ class format_ucla_renderer extends format_section_renderer_base {
         echo $this->end_section_list();
 
         // Display section bottom navigation.
-        $courselink = html_writer::link(course_get_url($course), get_string('returntomaincoursepage'));
         $sectionbottomnav = '';
         $sectionbottomnav .= html_writer::start_tag('div', array('class' => 'section-navigation mdl-bottom'));
         $sectionbottomnav .= html_writer::tag('span', $sectionnavlinks['previous'], array('class' => 'mdl-left'));
         $sectionbottomnav .= html_writer::tag('span', $sectionnavlinks['next'], array('class' => 'mdl-right'));
-        $sectionbottomnav .= html_writer::tag('div', $courselink, array('class' => 'mdl-align'));
         $sectionbottomnav .= html_writer::end_tag('div');
         echo $sectionbottomnav;
 
