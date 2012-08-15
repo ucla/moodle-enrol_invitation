@@ -294,19 +294,21 @@ if ($processrequests) {
                         $changemessages[$setid] = "$retmess -- $fieldstr";
                     }
                 } else if ($retcode == ucla_courserequests::insertsuccess) {
-                    // If we need to get the course from the registrar
-                    foreach ($changed[$setid]['crosslists']['added'] as $cross_course) {
-                        $c_term = $cross_course['term'];
-                        $c_srs = $cross_course['srs'];
-                        
-                        if ($cross_course['hostcourse'] == 0 && $cross_course['action'] == 'build') {
-                            crosslist_course_from_registrar($c_term, $c_srs);
-                        }
-                        
-                        // update MyUCLA urls for the newly updated crosslist
-                        if (!empty($host_courseid)) {
-                            $c_url = $CFG->wwwroot . "/course/view.php?id=$host_courseid";
-                            update_myucla_urls($c_term, $c_srs, $c_url);
+                    if ( isset($changed[$setid]['crosslists']['added']) ) {
+                        // If we need to get the course from the registrar
+                        foreach ($changed[$setid]['crosslists']['added'] as $cross_course) {
+                            $c_term = $cross_course['term'];
+                            $c_srs = $cross_course['srs'];
+
+                            if ($cross_course['hostcourse'] == 0 && $cross_course['action'] == 'build') {
+                                crosslist_course_from_registrar($c_term, $c_srs);
+                            }
+
+                            // update MyUCLA urls for the newly updated crosslist
+                            if (!empty($host_courseid)) {
+                                $c_url = $CFG->wwwroot . "/course/view.php?id=$host_courseid";
+                                update_myucla_urls($c_term, $c_srs, $c_url);
+                            }
                         }
                     }
                     $changemessages[$setid] = $retmess;
