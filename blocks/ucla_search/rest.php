@@ -93,37 +93,35 @@ foreach ($searchterms as $searchterm) {
         $params['ss'.$i] = "%$searchterm%";
     }
 }
-
-if (empty($searchcond)) {
-    $totalcount = 0;
-    return array();
-}
-
-$searchcond = implode(" AND ", $searchcond);
-
+    
 $courses = array();
 
-// Allow for an extra result..
-$limit_extra = $limit + 1;
+if (!empty($searchcond)) {
 
-// Modified to search visible courses & collab sites
-list($ccselect, $ccjoin) = context_instance_preload_sql('c.id', CONTEXT_COURSE, 'ctx');
-$sql = "SELECT c.* $ccselect
-        FROM {course} c
-    $collab_join 
-    $ccjoin
-        WHERE $searchcond AND c.id <> ".SITEID." 
-        AND c.visible = 1 
-        $collab_and 
-    ORDER BY fullname ASC 
-        LIMIT $limit_extra";
+    $searchcond = implode(" AND ", $searchcond);
 
-$rs = $DB->get_recordset_sql($sql, $params);
+    // Allow for an extra result..
+    $limit_extra = $limit + 1;
 
-foreach($rs as $course) {
-    $courses[$course->id] = $course;
+    // Modified to search visible courses & collab sites
+    list($ccselect, $ccjoin) = context_instance_preload_sql('c.id', CONTEXT_COURSE, 'ctx');
+    $sql = "SELECT c.* $ccselect
+            FROM {course} c
+        $collab_join 
+        $ccjoin
+            WHERE $searchcond AND c.id <> ".SITEID." 
+            AND c.visible = 1 
+            $collab_and 
+        ORDER BY fullname ASC 
+            LIMIT $limit_extra";
+
+    $rs = $DB->get_recordset_sql($sql, $params);
+
+    foreach($rs as $course) {
+        $courses[$course->id] = $course;
+    }
+    $rs->close();
 }
-$rs->close();
 
 $totalcount = count($courses);
 
