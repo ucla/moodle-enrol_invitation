@@ -8,6 +8,8 @@ require_once($CFG->dirroot . '/admin/tool/uclabulkcoursereset/bulkcoursereset_fo
 require_once($CFG->dirroot . '/admin/tool/uclasiteindicator/lib.php');
 require_once($CFG->dirroot . '/course/reset_form.php');
 
+require_once(dirname(__FILE__) . '/lib.php');
+
 require_login();
 
 // Set up $PAGE
@@ -22,7 +24,13 @@ admin_externalpage_setup('uclabulkcoursereset');
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('pluginname', 'tool_uclabulkcoursereset'), 2, 'headingblock');
 
-echo $OUTPUT->box(get_string('resetinfo'));
+// display notice with information about tool and its limitations
+$unsupported_modules = get_unsupported_modules();
+$unsupported_modules = html_writer::alist($unsupported_modules);
+
+$notice_text = get_string('resetinfo');
+$notice_text .= html_writer::tag('div', get_string('notice_text', 'tool_uclabulkcoursereset', $unsupported_modules));
+echo $OUTPUT->box($notice_text);
 
 // Get collab sites of type "test" from site indicator
 $collab_sites = siteindicator_manager::get_sites();
