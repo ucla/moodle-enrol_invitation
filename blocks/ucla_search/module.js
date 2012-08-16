@@ -1,10 +1,3 @@
-/* 
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
-
-
 
 M.ucla_search = {};
 
@@ -12,73 +5,71 @@ M.ucla_search.init = function(Y) {
 
     // Params
     rest_url = arguments[1];
-    course_url = arguments[2];
+    result_limit = arguments[2];
     
-    YUI().use('autocomplete', 'autocomplete-highlighters', 'autocomplete-filters', function (Y) {
+    YUI().use('autocomplete', 'autocomplete-highlighters', 'autocomplete-filters', 'io', function (Y) {
 
         var template = 
             '<div class="as-search-result">' + 
                 '<div class="as-search-result-shortname">' +
-                '{shortname}' +
+                    '{shortname}' +
                 '</div>' +
                 '<div class="as-search-result-fullname">' +
-                '{fullname}' +
+                    '{fullname}' +
                 '</div>' +
                 '<div class="as-search-result-summary">' +
-                '{summary}' +
+                    '{summary}' +
                 '</div>' +
             '</div>';
-        
-        function myformatter(query, results) {
+
+        function myFormatter(query, results) {
             return Y.Array.map(results, function(result) {
-                var foos = result.raw;
+                var out = result.raw;
                 
                 return Y.Lang.sub(template, {
-                    shortname : foos.shortname,
+                    shortname : out.shortname,
                     fullname : result.highlighted,
-                    summary: foos.summary
+                    summary: out.summary
                 });
             });
         }
+        
+        var collabCheck = Y.one('#as-collab-check');
 
         Y.one('body').addClass('yui3-skin-sam');
         
         Y.one('#advanced-search').plug(Y.Plugin.AutoComplete, {
-            resultFormatter:    myformatter,
+            resultFormatter:    myFormatter,
             resultHighlighter:  'phraseMatch',
-//            resultFilters:      'phraseMatch',
             minQueryLength:     3,
             maxResults:         11,
             resultListLocator:  'results',
             resultTextLocator:  'text',
-            source: rest_url + '?q={query}',
+            alwaysShowList:     true,
+            queryDelay:         200,
+            requestTemplate:    function(query) {
+                // Form query
+                var collab = collabCheck.get('checked') ? '&collab=1' : '&collab=0';
+                return '?q=' + query + collab + '&limit=' + result_limit;
+            },
+            source:             rest_url,
             on: {
                 select: function(e) {
-                    var url = course_url + e.result.raw.id;
-                    window.location = url;
+                    // Redirect to site
+                    window.location = e.result.raw.url;
+                },
+                hoveredItemChange: function(e) {
+//                    console.log(e.newVal);
+//                    if(e.newVal) {
+//                        e.newVal.one('div .as-search-result-summary').setStyle('display','block');
+//                    }
+//                    
+//                    if(e.prevVal) {
+//                        e.prevVal.one('div .as-search-result-summary').setStyle('display', 'none');
+//                    }
                 }
             }
         });
-        
-        Y.all('.as-search-result').on('hover', function(e) {
-            console.log(this.get('class'));
-        })
-        // Default
-//        Y.one('#advanced-search').plug(Y.Plugin.AutoComplete, {
-//            resultHighlighter:  'phraseMatch',
-//            resultFilters:      'phraseMatch',
-//            minQueryLength:     3,
-//            maxResults:         10,
-//            resultListLocator:  'results',
-//            resultTextLocator:  'text',
-//            source: 'http://localhost/moodle-dev/moodle/blocks/ucla_search/rest.php' + '?q={query}',
-//            on: {
-//                select: function(e) {
-//                    var url = course_url + e.result.raw.id;
-//                    window.location = url;
-//                }
-//            }
-//        });
 
     });
  
