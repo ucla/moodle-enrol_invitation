@@ -171,6 +171,15 @@ class invitation_manager {
                 $contactuser->lastname = '';
                 $contactuser->maildisplay = true;
                 email_to_user($contactuser, $fromuser, $invitation->subject, $message);
+                
+                // log activity after sending the email
+                if ($resend) {
+                    add_to_log($course->id, 'course', 'invitation extend', 
+                            "../enrol/invitation/history.php?courseid=$course->id", $course->fullname);
+                } else {
+                    add_to_log($course->id, 'course', 'invitation send', 
+                            "../enrol/invitation/history.php?courseid=$course->id", $course->fullname);
+                }
             }
         } else {
             throw new moodle_exception('cannotsendinvitation', 'enrol_invitation',
