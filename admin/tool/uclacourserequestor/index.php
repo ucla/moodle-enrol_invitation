@@ -9,7 +9,6 @@ $uccdirr = '/tool/uclacoursecreator/uclacoursecreator.class.php';
 require_once($CFG->dirroot . '/' . $CFG->admin . $uccdirr);
 $thisdir = '/' . $CFG->admin . '/tool/uclacourserequestor/';
 require_once($CFG->dirroot . $thisdir . 'lib.php');
-require_once($CFG->dirroot . '/admin/tool/myucla_url/myucla_urlupdater.class.php');
 
 global $DB, $ME, $USER;
 

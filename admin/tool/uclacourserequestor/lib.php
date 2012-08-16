@@ -47,6 +47,8 @@ ucla_require_registrar();
 require_once($CFG->dirroot . '/' . $CFG->admin 
     . '/tool/uclacourserequestor/ucla_courserequests.class.php');
 
+require_once($CFG->dirroot . '/admin/tool/myucla_url/myucla_urlupdater.class.php');
+
 /**
  *  Fetches a single course from the request table.
  **/
