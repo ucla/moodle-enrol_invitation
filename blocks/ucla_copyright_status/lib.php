@@ -167,11 +167,11 @@ function display_copyright_status_contents($courseid, $filter){
     foreach($licenses as $license){
         $license_options[$license->shortname]=$license->fullname;
     }
-    $tid = setup_js_tablesorter();
+    $tid = setup_js_tablesorter('copyright_status_table');
 
     // start output screen
     echo $OUTPUT->header();
-    echo html_writer::tag('h1','Copyright Status',array('class' => 'classHeader'));
+    echo $OUTPUT->heading(get_string('pluginname', 'block_ucla_copyright_status'), 2, 'headingblock');
     // if javascript disabled
     echo html_writer::tag('noscript',get_string('javascriptdisabled', 'block_ucla_copyright_status'),array('id'=>'block-ucla-copyright-status-noscript'));
 
@@ -214,27 +214,44 @@ function display_copyright_status_contents($courseid, $filter){
     unset($license_options['all']);
     $t = new html_table();
     $t->id = $tid;
-    $t->head = array('', get_string('choosecopyright', 'local_ucla'), 
+    $t->head = array(get_string('choosecopyright', 'local_ucla'), 
         get_string('updated_dt', 'block_ucla_copyright_status'),
         get_string('author', 'block_ucla_copyright_status'));
     $course_copyright_status_list = get_files_copyright_status_by_course($courseid,$filter);
     $files_list = process_files_list($course_copyright_status_list); 
-    $count = 1;
+
     foreach ($files_list as $contenthash_record) {
-        //loop through all the files with the same content hash
-        $flag = 1; //the first item in the same content hash has the flag value 1
-        $row = '';
-        $row_num = 1;
-        foreach ($contenthash_record as $id=>$record){
-            if ($flag){
-                $select_copyright = html_writer::select($license_options, 'filecopyright_'.$id, $record['license']);
-                $row_num = $count;
-                $flag = 0;
-            }
-            $row .= html_writer::tag('div', html_writer::tag('a', $record['filedisplayname'], array('href'=>$CFG->wwwroot.'/mod/resource/view.php?id='.$record['cmid'])));
-            $count++;
+        $file_names = array();
+        $file_dates = array();
+        $file_authors = array();          
+        $select_copyright = null;
+        
+        //loop through all the files with the same content hash        
+        foreach ($contenthash_record as $id=>$record){                         
+            $select_copyright = html_writer::select($license_options, 
+                    'filecopyright_'.$id, $record['license']);           
+
+            $file_names[] = html_writer::tag('a', $record['filedisplayname'], array('href'=>$CFG->wwwroot.'/mod/resource/view.php?id='.$record['cmid']));
+            $file_dates[] = strftime("%B %d %Y %r",$record['timemodified']);            
+            $file_authors[] = $record['author'];     
+        }           
+
+        // if there are mutliple records for a given contenthash, then display
+        // then in a ordered list
+        if (count($contenthash_record) > 1) {
+            $file_names = html_writer::alist($file_names, null, 'ol');
+            $file_dates = html_writer::alist($file_dates, null, 'ol');
+            $file_authors = html_writer::alist($file_authors, null, 'ol');
+        } else {
+            // only one file, so just show information normally
+            $file_names = array_pop($file_names);
+            $file_dates = array_pop($file_dates);
+            $file_authors = array_pop($file_authors);          
         }
-        $t->data[] = array($row_num, $row.html_writer::tag('div',$select_copyright, array('class'=>'block-ucla-copyright-status-list')), strftime("%B %d %Y %r",$record['timemodified']), $record['author']);
+        
+        $t->data[] = array($file_names . 
+            html_writer::tag('div',$select_copyright, array('class'=>'block-ucla-copyright-status-list')), 
+            $file_dates, $file_authors);
     }
     echo html_writer::start_tag('div', array('id'=>'block_ucla_copyright_status_id_cp_list'));
     if (count($course_copyright_status_list)>0){
