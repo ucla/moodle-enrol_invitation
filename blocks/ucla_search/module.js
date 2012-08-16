@@ -36,7 +36,8 @@ M.ucla_search.init = function(Y) {
         
         var collabCheck = Y.one('#as-collab-check');
 
-        Y.one('body').addClass('yui3-skin-sam');
+        // 
+        Y.one('body').addClass('yui3-skin-sam-autocomplete');
         
         Y.one('#advanced-search').plug(Y.Plugin.AutoComplete, {
             resultFormatter:    myFormatter,

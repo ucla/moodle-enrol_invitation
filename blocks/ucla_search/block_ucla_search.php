@@ -25,7 +25,19 @@ class block_ucla_search extends block_base {
         $this->content = new stdClass;
 
         // Fallback form for non-js 
-//        $fallback = html_writer::tag();
+        $search_url = $CFG->wwwroot . '/course/search.php';
+        $label = html_writer::tag('label', 'Search sites...', 
+                array('for' => 'coursesearchbox'));
+        $input = html_writer::tag('input', '',
+                array('id' => 'coursesearchbox', 'style' => 'width: 97%;',
+                    'size' => '30', 'name' => 'search', 'type' => 'text', 'value' => ''));
+        $button = html_writer::tag('input', '', array('value' => 'Go', 'type' => 'submit'));
+        $fieldset = html_writer::tag('fieldset', $label . $input . $button,
+                array('class' => 'coursesearchbox invisiblefieldset'));
+        
+        $fallback = html_writer::tag('form', $fieldset,
+                array('action' => $search_url, 'id' => 'coursesearch2',
+                    'style' => 'text-align: left;'));
 
         // Collab search checkbox
         $checkbox = html_writer::tag('input', '', 
@@ -38,10 +50,10 @@ class block_ucla_search extends block_base {
         // Input box + wrapper
         $input = html_writer::tag('input', '', array('id' => 'advanced-search', 
             'placeholder' => get_string('search', 'block_ucla_search')));
-        $wrapper = html_writer::tag('div', $input, array('id' => 'as-search-wrapper'));
+        $wrapper = html_writer::tag('div', $collab . $input, array('id' => 'as-search-wrapper'));
 
         // Write content
-        $this->content->text = $collab . $wrapper;
+        $this->content->text = $fallback . $wrapper;
         
         return $this->content;
     }
