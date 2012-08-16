@@ -55,7 +55,7 @@ class ucla_session {
         $this->_current_week = -1;
         
         // Number of active terms to retrieve (not including current term)
-        $this->_lookahead = 1;
+        $this->_lookahead = 3;
     }
     
     
