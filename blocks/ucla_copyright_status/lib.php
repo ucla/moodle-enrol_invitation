@@ -1,7 +1,6 @@
 <?php
-
 /**
- * Block class for UCLA Copyright Status Update
+ * Library file for UCLA Manage copyright status
  *
  * @package    ucla
  * @subpackage ucla_copyright_status
@@ -198,7 +197,6 @@ function display_copyright_status_contents($courseid, $filter){
     }
     // end display statistics
 
-
     echo html_writer::start_tag('div', array('id' => 'block_ucla_copyright_status_cp'));
     echo html_writer::start_tag('form', array('id'=>'block_ucla_copyright_status_form_copyright_status_list', 'action'=>$PAGE->url->out(), 'method'=>'post'));
 
@@ -254,7 +252,7 @@ function display_copyright_status_contents($courseid, $filter){
             $file_dates, $file_authors);
     }
     echo html_writer::start_tag('div', array('id'=>'block_ucla_copyright_status_id_cp_list'));
-    if (count($course_copyright_status_list)>0){
+    if (count($course_copyright_status_list) > 0){
         echo html_writer::tag('div', get_string('instruction_text1', 'block_ucla_copyright_status'), array('class'=>'block-ucla-copyright-status-red-text-item'));
         echo html_writer::table($t);  
     }
@@ -265,7 +263,7 @@ function display_copyright_status_contents($courseid, $filter){
     // end display copyright status list
 
     // display save changes button, hidden field data and submit form
-    if (count($course_copyright_status_list)>0){
+    if (count($course_copyright_status_list) > 0){
         echo html_writer::tag('div', html_writer::empty_tag('input', array('id'=>'block_ucla_copyright_status_btn1', 'name'=>'action_edit', 'value'=>get_string('save_button','block_ucla_copyright_status'), 'type'=>'submit')), array('class'=>'block-ucla-copyright-status-save-button'));
         echo html_writer::empty_tag('input', array('id' => 'block_ucla_copyright_status_d1','name'=>'block_ucla_copyright_status_n1', 'type'=>'hidden', 'value'=>''));
     }
