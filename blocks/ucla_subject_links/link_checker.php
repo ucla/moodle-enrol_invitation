@@ -12,6 +12,7 @@ require_once($CFG->dirroot. '/blocks/ucla_subject_links/block_ucla_subject_links
 // script variables
 $show_debugging_messages = false;
 $timeout = 10;   // 10 seconds
+$broken_links = array();    // should be indexed by file and then link
 
 $directory = new RecursiveDirectoryIterator(block_ucla_subject_links::get_location());
 $iterator = new RecursiveIteratorIterator($directory);
@@ -32,19 +33,37 @@ foreach ($regex as $files) {
             continue;   // no links!
         }
         
+        $found_broken_link = false;
         foreach ($links as $link) {
             // found links, now see if they are alive
             cmd_debug('pinging link ' . $link);
             if (pingLink($link)) {
                 cmd_debug('Link works! ' . $link);
             } else {
-                echo sprintf("DEAD link found (%s) in %s\n", $link, $file);
+                cmd_debug(sprintf("DEAD link found (%s) in %s\n", $link, $file));
+                $broken_links[$file][] = $link;
+                $found_broken_link = true;
             }
         }
+        
+        // if $show_debugging_messages is false, show some kind of progress
+        // indicator so we know script is processing
+        if (empty($show_debugging_messages)) {
+            if (!empty($found_broken_link)) {
+                echo '!';
+            } else {
+                echo '.';
+            }            
+        }        
     }
 }
 
 ini_set('default_socket_timeout', $oldtimeout);
+
+// now display results
+echo "Broken links found:\n";
+print_r($broken_links);
+
 echo "DONE!\n";
 
 
