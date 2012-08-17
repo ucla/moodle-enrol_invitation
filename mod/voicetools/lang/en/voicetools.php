@@ -44,4 +44,7 @@ $string["voiceauthoring_logs"]="Voice Authoring Logs";
 
 $string["general_logs"]="General Logs";
 $string['no_logs'] = 'There are no logs yet.';
+// START UCLA MOD: CCLE-3435-fix-editor-for-Moodle2.3
+$string['voicetools:addinstance'] = 'Add a new Voice Tool';
+// END UCLA MOD: CCLE-3435-fix-editor-for-Moodle2.3
 ?>
