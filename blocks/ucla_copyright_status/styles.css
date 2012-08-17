@@ -34,8 +34,7 @@ div#block_ucla_copyright_status_filter, div#block_ucla_copyright_status_id_cp_li
     text-align:left;
 }
 
-.block-ucla-copyright-status-red-text-item,
-.block-ucla-copyright-status-no-files{
+.block-ucla-copyright-status-red-text-item{
     color:red;
 }
 
