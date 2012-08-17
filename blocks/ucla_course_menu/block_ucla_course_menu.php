@@ -428,8 +428,9 @@ class block_ucla_course_menu extends block_navigation {
         }
         
         // check block_positions table
-        if ($this->instance->region != BLOCK_POS_LEFT ||
-                $this->instance->weight != -10) {
+        if (!empty($this->instance->blockpositionid) &&
+                ($this->instance->region != BLOCK_POS_LEFT ||
+                 $this->instance->weight != -10)) {
             // block is not in proper position for page, construct 
             // block_positions object
             $block_positions = new stdClass();
