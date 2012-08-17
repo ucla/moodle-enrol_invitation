@@ -397,17 +397,15 @@ if (!isset($data) || !$data) {
     $params = array('id' => $course_id);
 
     // These following lines could be extracted out into a function
-    // Get the _GET variable for the topic thing in the format
-    $key = 'topic';
-    $format = $course->format;
-    $fn = 'callback_' . $format . '_request_key';
-    if (function_exists($fn)) {
-        $key = $fn();
+    // Get the _GET variable for the section thing in the format
+    $key = 'section';
+    
+    $course_prefs = new ucla_course_prefs($course_id);
+    $landing_page = $course_prefs->get_preference('landing_page', false);
+    if ($landing_page !== false) {
+        $params['section'] = $landing_page;
     }
     
-    if (defined('UCLA_FORMAT_DISPLAY_LANDING')) {
-        $params['topic'] = UCLA_FORMAT_DISPLAY_LANDING;
-    }    
     $courseurl = new moodle_url('/course/view.php', $params);
     $courseret = new single_button($courseurl, get_string('returntocourse',
             'block_ucla_easyupload'), 'get');
