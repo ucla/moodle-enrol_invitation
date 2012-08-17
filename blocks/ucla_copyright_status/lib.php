@@ -179,7 +179,8 @@ function display_copyright_status_contents($courseid, $filter){
     $stat_array = calculate_copyright_status_statistics($all_copyrights);
     //if no files, do not calculate
     if ($stat_array['total']>0){
-        echo html_writer::start_tag('div', array('id' => 'block_ucla_copyright_status_stat'));
+        echo html_writer::start_tag('fieldset', array('id' => 'block_ucla_copyright_status_stat'));
+        echo html_writer::tag('legend', get_string('statistics', 'block_ucla_copyright_status'));
         echo html_writer::start_tag('ul');
         foreach($license_options as $k=>$v){
             if ($k != 'all'){
@@ -193,7 +194,7 @@ function display_copyright_status_contents($courseid, $filter){
             }
         }
         echo html_writer::end_tag('ul');
-        echo html_writer::end_tag('div');
+        echo html_writer::end_tag('fieldset');
     }
     // end display statistics
 

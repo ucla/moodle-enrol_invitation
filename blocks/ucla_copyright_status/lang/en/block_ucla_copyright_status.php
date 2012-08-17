@@ -1,6 +1,7 @@
 <?php
 $string['pluginname'] = 'Manage copyright status';
 $string['title'] = 'Manage copyright status';
+$string['statistics'] = 'Statistics';
 $string['updated_dt'] = 'Updated date';
 $string['author'] = 'Author';
 $string['permission_not_allow'] = 'You do not have access to this page';
@@ -11,11 +12,6 @@ $string['no_files'] = 'No materials found with this copyright status';
 $string['instruction_text1'] = 'Be sure to click the "Save changes" button at the bottom of the page when your changes are complete';
 $string['javascriptdisabled'] = 'Javascript is disabled on your browser. Please enable it to ensure the page function correctly.';
 
-
-
-
-
-
-
-
-//EOF
+// These are for the link into control panel
+$string['manage_copyright'] = 'Manage copyright status';
+$string['manage_copyright_post'] = 'View and edit the copyright status for uploaded files.';
