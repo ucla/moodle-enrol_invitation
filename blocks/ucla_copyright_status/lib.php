@@ -258,7 +258,7 @@ function display_copyright_status_contents($courseid, $filter){
         echo html_writer::table($t);  
     }
     else{
-        echo get_string('no_files', 'block_ucla_copyright_status');
+        echo html_writer::tag('span', get_string('no_files', 'block_ucla_copyright_status'), array('class' => 'block-ucla-copyright-status-no-files'));
     }
     echo html_writer::end_tag('div');
     // end display copyright status list
