@@ -1310,7 +1310,13 @@ function update_myucla_urls($term, $srs, $url) {
         )
     );
 
-    $url_updater->send_MyUCLA_urls($update_course, false);
+    // if a url already exists, then don't overwrite it
+    $result = $url_updater->send_MyUCLA_urls($update_course, false);
+    $curr_url = array_pop($result);
+    if ( empty($curr_url) ) {
+        $url_updater->send_MyUCLA_urls($update_course, true);
+    }
+    
 }
 
 // EOF
