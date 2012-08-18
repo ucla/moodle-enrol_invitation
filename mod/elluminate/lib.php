@@ -4,10 +4,10 @@
 // $Id: lib.php,v 1.1.2.4 2009/05/19 14:34:54 jfilip Exp $
 
 /**
- * Elluminate Live! Module
+ * Blackboard Collaborate Module
  *
- * Allows Elluminate Live! meetings to be created and managed on an
- * Elluminate Live! server via a Moodle activity module.
+ * Allows Blackboard Collaborate meetings to be created and managed on an
+ * Blackboard Collaborate server via a Moodle activity module.
  *
  * @version $Id: lib.php,v 1.1.2.4 2009/05/19 14:34:54 jfilip Exp $
  * @author Justin Filip <jfilip@oktech.ca>
@@ -20,7 +20,7 @@ require_once($CFG->libdir . '/eventslib.php');
 require_once($CFG->dirroot . '/calendar/lib.php');
 
 /**
- * Elluminate Live! role types.
+ * Blackboard Collaborate role types.
  */
 define('ELLUMINATELIVE_ROLE_SERVER_ADIMINISTRATOR', 0);
 define('ELLUMINATELIVE_ROLE_APPADMIN', 1);
@@ -28,7 +28,7 @@ define('ELLUMINATELIVE_ROLE_MODERATOR', 2);
 define('ELLUMINATELIVE_ROLE_PARTICIPANT', 3);
 
 /**
- * Elluminate Live! boundary time values (in minutes).
+ * Blackboard Collaborate boundary time values (in minutes).
  */
 $elluminate_boundary_times = array (
 	-1 => get_string('choose'),
@@ -40,17 +40,22 @@ $elluminate_boundary_times = array (
 );
 
 /**
- * Elluminate Live! boundary time default value.
+ * Blackboard Collaborate boundary time default value.
  */
 define('ELLUMINATELIVE_BOUNDARY_DEFAULT', 15);
 
 /**
- * Elluminate Live! seat reservation enabled string.
+ * Blackboard Collaborate max talkers default value.
+ */
+define('ELLUMINATELIVE_MAX_TALKERS', 1);
+
+/**
+ * Blackboard Collaborate seat reservation enabled string.
  */
 define('ELLUMINATELIVE_SEAT_RESERVATION_ENABLED', 'preferred');
 
 /**
- * Elluminate Live! recording values.
+ * Blackboard Collaborate recording values.
  */
 //define('ELLUMINATELIVE_RECORDING_NONE',      0);
 //define('ELLUMINATELIVE_RECORDING_MANUAL',    1);
@@ -61,19 +66,19 @@ define('ELLUMINATELIVE_RECORDING_MANUAL_NAME', 'remote');
 define('ELLUMINATELIVE_RECORDING_AUTOMATIC_NAME', 'on');
 
 /**
- * Elluminate Live! recording Type
+ * Blackboard Collaborate recording Type
  */
 define('ELLUMINATELIVE_RECORDING_MANUAL', 1);
 define('ELLUMINATELIVE_RECORDING_AUTOMATIC', 2);
 define('ELLUMINATELIVE_RECORDING_NONE', 3);
 
 /**
- * The Elluminate Live! XML namespace.
+ * The Blackboard Collaborate XML namespace.
  */
 define('ELLUMINATELIVE_XMLNS', 'http://www.soapware.org/');
 
 /**
- * How many times should we attempt to create an Elluminate Live! user account by adding an
+ * How many times should we attempt to create an Blackboard Collaborate user account by adding an
  * increasing integer on the end of a user name?
  */
 define('ELLUMINATELIVE_CREATE_USER_TRIES', 20);
@@ -93,13 +98,13 @@ define('ELLUMINATELIVE_PRELOAD_MEDIA', 'media');
  * Set to true so that any reminded added will have its time value set to trigger a message sent
  * at the next cron run.
  */
-define('REMINDER_DEBUG', false);
+define('ELLUMINATELIVE_REMINDER_DEBUG', false);
 
 /**
  * Reminder types
  */
-define('REMINDER_TYPE_DELTA', 0);
-define('REMINDER_TYPE_INTERVAL', 1);
+define('ELLUMINATELIVE_REMINDER_TYPE_DELTA', 0);
+define('ELLUMINATELIVE_REMINDER_TYPE_INTERVAL', 1);
 
 /**
  * When adding a new event, we can't calculate the number of available days so
@@ -107,8 +112,8 @@ define('REMINDER_TYPE_INTERVAL', 1);
  * value can be edited with the event later and then only an appropriate number
  * of days will be avaiable for chosing.
  */
-//define('REMINDER_DELTA_DEFAULT', 86400); // 1 day (24 * 60 * 60)
-define('REMINDER_DELTA_DEFAULT', DAYSECS);
+//define('ELLUMINATELIVE_REMINDER_DELTA_DEFAULT', 86400); // 1 day (24 * 60 * 60)
+define('ELLUMINATELIVE_REMINDER_DELTA_DEFAULT', DAYSECS);
 
 function elluminate_install() {
 	$result = true;
@@ -120,12 +125,12 @@ function elluminate_install() {
 	//$editingteacherrid = get_field('role', 'id', 'shortname', 'editingteacher');
 	//$teacherrid = get_field('role', 'id', 'shortname', 'teacher');
 
-	/// Fully setup the Elluminate Moderator role.
+	/// Fully setup the Blackboard Collaborate Moderator role.
 	/*
-	if ($result && !$mrole = get_record('role', 'shortname', 'elluminatemoderator')) {
+	if ($result && !$mrole = $DB->get_record('role', 'shortname', 'elluminatemoderator')) {
 		if ($rid = create_role(get_string('elluminatemoderator', 'elluminate'), 'elluminatemoderator', get_string('elluminatemoderatordescription', 'elluminate'))) {
 
-			$mrole = get_record('role', 'id', $rid);
+			$mrole = $DB->get_record('role', 'id', $rid);
 			$result = $result && assign_capability('mod/elluminate:moderatemeeting', CAP_ALLOW, $mrole->id, $sysctx->id);
 		} else {
 			$result = false;
@@ -141,12 +146,12 @@ function elluminate_install() {
 	}
 	*/
 
-	/// Fully setup the Elluminate Participant role.
+	/// Fully setup the Blackboard Collaborate Participant role.
 	/*
-	if ($result && !$prole = get_record('role', 'shortname', 'elluminateparticipant')) {
+	if ($result && !$prole = $DB->get_record('role', 'shortname', 'elluminateparticipant')) {
 		if ($rid = create_role(get_string('elluminateparticipant', 'elluminate'), 'elluminateparticipant', get_string('elluminateparticipantdescription', 'elluminate'))) {
 
-			$prole = get_record('role', 'id', $rid);
+			$prole = $DB->get_record('role', 'id', $rid);
 			$result = $result && assign_capability('mod/elluminate:joinmeeting', CAP_ALLOW, $prole->id, $sysctx->id);
 		} else {
 			$result = false;
@@ -252,6 +257,10 @@ function elluminate_add_instance($elluminate, $facilitatorid = false) {
 		$elluminate->boundarytimedisplay = 0;
 	}
 	
+	if (empty ($elluminate->maxtalkers)) {
+		$elluminate->maxtalkers = 1;
+	}
+	
 	if($elluminate->sessiontype == 0 || $elluminate->sessiontype == 1) {
 		$elluminate->groupmode = 0;
 		$elluminate->groupingid = 0;
@@ -293,6 +302,7 @@ function elluminate_add_instance($elluminate, $facilitatorid = false) {
 	}
 	$mod->groupmembersonly = 0;	
 	
+	
 	$sql = "SELECT cs.* FROM {course_sections} cs WHERE cs.course = :course AND cs.section = :section";
 	$sql_params = array('course'=>$elluminate->course, 'section'=>$elluminate->section);
 	$course_sections = $DB->get_records_sql($sql, $sql_params);
@@ -300,7 +310,6 @@ function elluminate_add_instance($elluminate, $facilitatorid = false) {
 	foreach ($course_sections as $course_section) {
 		$mod->section = $course_section->id;
 	}
-	
 	if(!($mod->id = add_course_module($mod))) {
 		return false;
 	}
@@ -316,6 +325,7 @@ function elluminate_add_instance($elluminate, $facilitatorid = false) {
 									  $elluminate->sessiontype,
 									  $elluminate->seats,
 									  $elluminate->boundarytime,
+									  $elluminate->maxtalkers,
 									  $elluminate->recordingmode,
 									  $mod->id,
 									  $USER->id);
@@ -329,7 +339,6 @@ function elluminate_add_instance($elluminate, $facilitatorid = false) {
 				$DB->update_record('elluminate', $elluminate);
 			} else {
 				elluminate_delete_instance($elluminate->id);							  	
-				error($create_result->message);	
 			}									  				
 		}
 	}	
@@ -351,7 +360,7 @@ function elluminate_add_instance($elluminate, $facilitatorid = false) {
 		elluminate_update_events($elluminate);
 	}
 	
-	$DB->delete_records('course_modules', array('id'=>$mod->id));		
+	$DB->delete_records('course_modules', array('id'=>$mod->id));
 	return $parentsessionid;
 }
 
@@ -366,7 +375,8 @@ function elluminate_insert_group_records($elluminate) {
 	
 	$search = array("<","&","\"","#","%");	
 	$replace = '';
-	
+	//var_export($elluminate);
+	print"================================";
 	if($elluminate->groupmode != 0) {
 		if($elluminate->sessiontype == 2) {
 			$groups = groups_get_all_groups($elluminate->course);
@@ -400,6 +410,7 @@ function elluminate_insert_group_records($elluminate) {
 			}			 		
 			 		
 			$elluminate->sessionname = str_replace($search, $replace, $elluminate->sessionname);	
+			//print_error(var_export($elluminate));
 			$elluminate->id = $DB->insert_record('elluminate', $elluminate);
 			elluminate_update_events($elluminate);
 		}
@@ -457,6 +468,7 @@ function elluminate_add_group_instance($elluminate, $cmid, $facilitatorid = fals
 							  $elluminate->sessiontype,
 							  $elluminate->seats,
 							  $new_boundarytime,
+							  $elluminate->maxtalkers,
 							  $elluminate->recordingmode,
 							  $cmid, 
 							  $elluminate->chairlist);
@@ -470,7 +482,7 @@ function elluminate_add_group_instance($elluminate, $cmid, $facilitatorid = fals
 		$elluminate->meetinginit = 0;
 		$DB->update_record('elluminate', $elluminate);
 		//error('An error occured while attempting to initialize your session.<br><br> A likely cause is your Moodle server time and the Elluminate scheduling server time is out of sync.<br><br>Please try again in a few minutes.');	
-		error($create_result->message);		
+		print_error($create_result->message);		
 	}						  	
 }
 
@@ -509,7 +521,7 @@ function elluminate_update_module_button($moduleid, $courseid, $string) {
     if (has_capability('moodle/course:manageactivities', get_context_instance(CONTEXT_MODULE, $moduleid))) {
         $string = get_string('updatethis', '', $string);
 
-        return "<form method=\"get\" action=\"$CFG->wwwroot/course/mod.php\" onsubmit=\"this.target='_top'; return true\">".//hack to allow edit on framed resources
+        return "<form method=\"get\" action=\"$CFG->wwwroot/course/mod.php\" onsubmit=\"this.target='{$CFG->framename}'; return true\">".//hack to allow edit on framed resources
                "<div>".
                "<input type=\"hidden\" name=\"update\" value=\"$moduleid\" />".
                "<input type=\"hidden\" name=\"return\" value=\"true\" />".
@@ -583,13 +595,27 @@ function elluminate_update_instance($elluminate) {
 		$elluminate->section . '&amp;sesskey=' . $USER->sesskey . '&amp;add=elluminate', get_string('meetingstartoverayear', 'elluminate', $a), 5);	
 	}	
 	
-	
-	
 	$elluminate->timemodified = time();
 	$elluminate->id = $elluminate->instance;	
-	if ($elluminate->sessiontype == 3) {
-		$elluminate->groupingid = $elluminate->grouping_id;
+	
+	if(empty($elluminate->groupparentid )) {
+		$elluminate->groupparentid = $meeting->groupparentid;
 	}
+	
+	if(empty($elluminate->customdescription)) {
+		$elluminate->customdescription = $meeting->customdescription;
+	}
+
+	if (!empty($elluminate->edit_groupmode)) {
+		$elluminate->groupmode = $elluminate->edit_groupmode;
+	}
+	if (empty($elluminate->sessiontype)) {
+		$elluminate->sessiontype = $meeting->sessiontype;	
+	}
+	if ($elluminate->sessiontype == 3) {
+			$elluminate->groupingid = $elluminate->grouping_id;
+	}
+	
 	
 	/// The start and end times don't make sense.
 	if ($elluminate->timestart > $elluminate->timeend) {
@@ -636,10 +662,14 @@ function elluminate_update_instance($elluminate) {
 		$elluminate->boundarytimedisplay = 0;
 	}
 	
+	if (empty ($elluminate->maxtalkers)) {
+		$elluminate->maxtalkers = 1;
+	}
+	
 	$elluminate->seats = 0;
 	$search = array("<","&","\"","#","%");	
 	$replace = '';
-	$elluminate->sessionname = str_replace($search, $replace, $elluminate->sessionname);		 		
+	$elluminate->sessionname = str_replace($search, $replace, $elluminate->name);		 		
 	
 	if(empty($elluminate->sessionname)) {
 		redirect($CFG->wwwroot . '/course/modedit.php?update=' . $update_id . '&amp;return=1', get_string('meetingnameempty', 'elluminate'), 5);
@@ -656,13 +686,14 @@ function elluminate_update_instance($elluminate) {
 								  $elluminate->sessiontype,
 								  $elluminate->seats,
 								  $elluminate->boundarytime,
+								  $elluminate->maxtalkers,
 								  $elluminate->recordingmode,
 								  '',
 								  $elluminate->id);
  
 		if($create_result->DefaultAdapterMeetingResponseShort->meetingId > 0) {
 		} else {							  	
-			error($create_result->message);	
+			print_error($create_result->message);	
 		}
 	}	
 		
@@ -744,6 +775,7 @@ function elluminate_update_group_records($elluminate) {
 		    $session->recordingmode = $elluminate->recordingmode;
 		    $session->boundarytime = $elluminate->boundarytime;
 		    $session->boundarytimedisplay = $elluminate->boundarytimedisplay;
+		    $session->maxtalkers = $elluminate->maxtalkers;
 		    $session->seats = $elluminate->seats;
 		    $session->grade = $elluminate->grade;
 		    $session->timemodified = $elluminate->timemodified;
@@ -781,6 +813,7 @@ function elluminate_update_group_records($elluminate) {
 								  $session->sessiontype,
 								  $session->seats,
 								  $session->boundarytime,
+								  $session->maxtalkers,
 								  $session->recordingmode,
 								  '',
 								  $session->id)) {
@@ -862,7 +895,7 @@ function elluminate_delete_instance($id) {
 	    } 
                
 		if($participant == false) {
-			error('You need to be invited to this private session in order to delete it.');
+			print_error('You need to be invited to this private session in order to delete it.');
 		}
     } 	
 			
@@ -920,7 +953,7 @@ function elluminate_check_for_orphaned_group_records($elluminate) {
 	}	
 }
 
-function display_grade($grade, $elluminate) {
+function elluminate_display_grade($grade, $elluminate) {
 
 	static $scalegrades = array (); // Cache scales for each assignment - they might have different scales!!
 
@@ -955,7 +988,7 @@ function elluminate_user_outline($course, $user, $mod, $elluminate) {
 	if ($attendance = $DB->get_record('elluminate_attendance', array('userid'=>$user->id, 'elluminateid'=>$elluminate->id))) {
 		$result = new stdClass;
 
-		$result->info = get_string('grade') . ': ' . display_grade($attendance->grade, $elluminate);
+		$result->info = get_string('grade') . ': ' . elluminate_display_grade($attendance->grade, $elluminate);
 		$result->time = $attendance->timemodified;
 
 		return $result;
@@ -980,7 +1013,7 @@ function elluminate_user_complete($course, $user, $mod, $elluminate) {
 
 function elluminate_print_recent_activity($course, $isteacher, $timestart) {
 	/// Given a course and a time, this module should find recent activity
-	/// that has occurred in elluminate activities and print it out.
+	/// that has occurred in Blackboard Collaborate activities and print it out.
 	/// Return true if there was output, or false is there was none.
 
 	global $CFG;
@@ -1038,15 +1071,16 @@ function elluminate_cron() {
 
 	global $CFG;
 	global $DB;
-	
-	/// If the plug-in is not configured to connect to Elluminate, return.
+
+	/// If the plug-in is not configured to connect to Blackboard Collaborate, return.
 	if (empty ($CFG->elluminate_auth_username) || empty ($CFG->elluminate_auth_username)) {
 		return true;
 	}
 
+
 	$timenow = time();
-	$cron_value = 1;	
-	if(empty($CFG->elluminate_last_cron_run)) {		
+	$cron_value = 1;
+	if(empty($CFG->elluminate_last_cron_run)) {
 		$obj = new stdClass;
 		$obj->name = 'elluminate_last_cron_run';
 		$obj->value = '1';
@@ -1054,29 +1088,39 @@ function elluminate_cron() {
 		elluminate_initialize_cron();
 		return;
 	} else {
-		$cron_value = $CFG->elluminate_last_cron_run;		
+		$cron_value = $CFG->elluminate_last_cron_run;
 		$obj = $DB->get_record('config', array('name'=>'elluminate_last_cron_run'));
 		$obj->value = $timenow;
-		$DB->update_record('config', $obj);		
-	}		
+		$DB->update_record('config', $obj);
+	}
 
-	if ($recordings = elluminate_list_all_recordings_for_times($cron_value  . '000', $timenow  . '000')) {		
-		foreach ($recordings as $recording) {					
-			if ($DB->record_exists('elluminate', array('meetingid'=>$recording->meetingid))) {
-				if (!$DB->record_exists('elluminate_recordings', array('recordingid'=>$recording->recordingid))) {
-					$er = new stdClass;
-					$er->meetingid = $recording->meetingid;
-					$er->recordingid = $recording->recordingid;
-					$er->created = $recording->created;
-					$er->recordingsize = $recording->size;
-					$er->visible = 1;
-					$er->groupvisible = 1;
-					$DB->insert_record('elluminate_recordings', $er);
+	
+	if ($recordings = elluminate_list_all_recordings_for_times($cron_value  . '000', $timenow  . '000')) {
+		$memory_limit = ini_get("memory_limit");
+		$memory_limit = $memory_limit * 0.95;
+		foreach ($recordings as $recording) {
+			if (memory_get_usage() > $memory_limit) {
+				add_to_log("", "elluminate", "Memory exceeded while running Cron job", "", "Cron");
+				break;
+			} else {
+				if ($DB->record_exists('elluminate', array('meetingid'=>$recording->meetingid))) {
+					if (!$DB->record_exists('elluminate_recordings', array('recordingid'=>$recording->recordingid))) {
+						$er = new stdClass;
+						$er->meetingid = $recording->meetingid;
+						$er->recordingid = $recording->recordingid;
+						$er->created = $recording->created;
+						$er->recordingsize = $recording->size;
+						$er->visible = 1;
+						$er->groupvisible = 1;
+						$DB->insert_record('elluminate_recordings', $er);
+					}
 				}
 			}
 		}
 	}
+
 	return true;
+
 }
 
 function elluminate_initialize_cron() {
@@ -1191,22 +1235,29 @@ function elluminate_update_grades($elluminate = null, $userid = 0, $nullifnone =
 		}
 
 	} else {
-		$sql = "SELECT a.*, cm.idnumber as cmidnumber, a.course as courseid
+		/*$sql = "SELECT a.*, cm.idnumber as cmidnumber, a.course as courseid
               FROM {elluminate} a
               INNER JOIN {course_modules} cm ON cm.instance = a.id
               INNER JOIN {modules} m ON m.id = cm.module
-              WHERE m.name='elluminate'";         
-
-		if ($rs = $DB->get_recordset_sql($sql)) {
-			foreach ($rs as $elluminate) {
-				if ($elluminate->grade != 0) {
-					elluminate_update_grades($elluminate);
-				} else {
-					elluminate_grade_item_update($elluminate);
-				}
+              WHERE m.name='elluminate'";*/
+		$params = array('a.id', 'cm.module', 'elluminate');
+		$sql = "SELECT a.*, cm.idnumber as cmidnumber, a.course as courseid
+			FROM {elluminate} a
+			INNER JOIN {course_modules} cm ON cm.instance = ?
+			INNER JOIN {modules} m ON m.id = ?
+			WHERE m.name=?";         
+		
+		$rs = $DB->get_recordset_sql($sql, $params);
+		
+		foreach ($rs as $elluminate) {
+			if ($elluminate->grade != 0) {
+				elluminate_update_grades($elluminate);
+			} else {
+				elluminate_grade_item_update($elluminate);
 			}
-			$rs->close();
 		}
+		$rs->close();
+		
 	}
 }
 
@@ -1247,10 +1298,12 @@ function elluminate_grade_item_update($elluminate, $grades = NULL) {
 	if (!isset ($elluminate->courseid)) {
 		$elluminate->courseid = $elluminate->course;
 	}
-
+	
+	var_export($elluminate);
 	if($elluminate->groupmode == 0) {
 		if (empty ($elluminate->cmidnumber)) {
 			if ($cm = get_coursemodule_from_instance('elluminate', $elluminate->id)) {
+				var_export($cm);
 				$elluminate->cmidnumber = $cm->id;
 			}
 		}
@@ -1418,29 +1471,6 @@ function elluminate_process_options(& $config) {
 }
 
 /**
- * Clean up the roles we created during install.
- *
- * @param none
- * @return bool True on success, False otherwise.
- */
-function elluminate_uninstall() {
-	$result = true;
-
-	/*
-	if ($mrole = get_record('role', 'shortname', 'elluminatemoderator')) {
-		$result = $result && delete_role($mrole->id);
-		$result = $result && $DB->delete_records('role_allow_assign', 'allowassign', $mrole->id);
-	}
-
-	if ($prole = get_record('role', 'shortname', 'elluminateparticipant')) {
-		$result = $result && delete_role($prole->id);
-		$result = $result && $DB->delete_records('role_allow_assign', 'allowassign', $prole->id);
-	}
-	*/
-	return $result;
-}
-
-/**
  * Returns an array of user objects reprsenting the participants for a given
  * meeting.
  *
@@ -1522,7 +1552,7 @@ function elluminate_has_course_event($meetingid) {
  * deleting users from a private event.
  *
  * @uses $CFG
- * @param long $meetingid The Elluminate Live! meeting record ID.
+ * @param long $meetingid The Blackboard Collaborate meeting record ID.
  * @return array An array of user IDs.
  */
 function elluminate_get_event_users($meetingid) {
@@ -1549,7 +1579,7 @@ function elluminate_get_event_users($meetingid) {
  *
  * If $moderators is not set to true, the users will be added as participants.
  *
- * @param object  $meeting    The Elluminate Live! activity database record.
+ * @param object  $meeting    The Blackboard Collaborate activity database record.
  * @param array   $userids    A list of Moodle user IDs to add to the meeting.
  * @param int     $groupid    The group ID this is specifically for.
  * @param boolean $moderators True if the users being added are moderators.
@@ -1641,7 +1671,7 @@ function elluminate_add_users($meeting, $userids, $groupid = 0, $moderators = fa
  *
  * If $moderators is not set to true, the users will be removed from the
  *
- * @param object  $meeting    The Elluminate Live! activity database record.
+ * @param object  $meeting    The Blackboard Collaborate activity database record.
  * @param array   $userids    A list of Moodle user IDs to remove from the meeting.
  * @param int     $groupid    The group ID this is specifically for.
  * @param boolean $moderators True if the users being removed are moderators.
@@ -1667,7 +1697,7 @@ function elluminate_del_users($meeting, $userids, $groupid = 0, $moderators = fa
 
 	$muserids = array ();
 
-	/// Remove each user from the meeting on the Elluminate Live! server.
+	/// Remove each user from the meeting on the Blackboard Collaborate server.
 	foreach ($userids as $userid) {
 		if ($userid != $meeting->creator) {			
 			$muserids[] = $userid;
@@ -1786,13 +1816,13 @@ function elluminate_cal_edit($meetingid, $delete = false) {
 	}
 	
         if (!$elluminate = $DB->get_record("elluminate", array('id'=>$meetingid))) {
-            error("Course module is incorrect");
+            print_error("Course module is incorrect");
         }
         if (!$course = $DB->get_record("course", array('id'=>$elluminate->course))) {
-            error("Course is misconfigured");
+            print_error("Course is misconfigured");
         }
         if (!$cm = get_coursemodule_from_instance("elluminate", $elluminate->id, $course->id)) {
-            error("Course Module ID was incorrect");
+            print_error("Course Module ID was incorrect");
         }	
 
 	/// Modifying any existing events.
@@ -1802,7 +1832,7 @@ function elluminate_cal_edit($meetingid, $delete = false) {
 			$deleted = false;
 
 			if (empty ($meeting->private) && empty ($event->userid)) {
-				if ($elm_id = get_field('elluminate_users', 'elm_id', 'userid', $event->userid)) {
+				if ($elm_id = $DB->get_field('elluminate_users', 'elm_id', 'userid', $event->userid)) {
 					if (!has_capability('mod/elluminate:moderatemeeting', $context, $USER->id, false)) {
 						$deleted = $DB->delete_records('event', array('id'=>$event->id));
 					}
@@ -1845,7 +1875,7 @@ function elluminate_cal_edit($meetingid, $delete = false) {
  * Adds a reminder for a calendar event.
  *
  * Please note that the last three parameters are only necessary when using
- * the REMINDER_TYPE_INTERVAL (1).
+ * the ELLUMINATELIVE_REMINDER_TYPE_INTERVAL (1).
  *
  * @param int $eventid ID of the event to add a reminder for.
  * @param int $rtype The type of reminder.
@@ -1858,13 +1888,13 @@ function elluminate_cal_edit($meetingid, $delete = false) {
 function elluminate_reminder_add_reminder($eventid, $rtype = 0, $timedelta = 0, $timeinterval = 0, $timeend = 0) {
 	// Make sure the event exists
 	if (!$event = $DB->get_record('event', array('id'=>intval($eventid)))) {
-		error('Invalid event ID: ' . $eventid);
+		print_error('Invalid event ID: ' . $eventid);
 	}
 
 	// Just check to make sure we have a valid reminder type
 	switch ($rtype) {
-		case REMINDER_TYPE_DELTA :
-		case REMINDER_TYPE_INTERVAL :
+		case ELLUMINATELIVE_REMINDER_TYPE_DELTA :
+		case ELLUMINATELIVE_REMINDER_TYPE_INTERVAL :
 			break;
 		default :
 			return false;
@@ -1885,7 +1915,7 @@ function elluminate_reminder_add_reminder($eventid, $rtype = 0, $timedelta = 0, 
 	}
 
 	// Send the reminder immediately (for testing purposes)
-	if (REMINDER_DEBUG) {
+	if (ELLUMINATELIVE_REMINDER_DEBUG) {
 		elluminate_reminder_send($reminder->id);
 		elluminate_reminder_remove($reminder->id);
 	}
@@ -1964,7 +1994,7 @@ function elluminate_reminder_edit($reminderid, $rtype, $timedelta = 0, $timeinte
 function elluminate_reminder_get_reminders($meetingid) {
 	// Make sure the event exists
 	if (!$meeting = $DB->get_record('event', array('id'=>intval($meetingid)))) {
-		error('Invalid meeting ID: ' . $meetingid);
+		print_error('Invalid meeting ID: ' . $meetingid);
 	}
 
 	// Get records
@@ -1973,7 +2003,7 @@ function elluminate_reminder_get_reminders($meetingid) {
 
 /**
  * Displays the HTML to edit / delete existing reminders and / or to add a new
- * reminder to an Elluminate Live! meeting.
+ * reminder to an Blackboard Collaborate meeting.
  *
  * @param int $meetingid ID of the meeting HTML form we are drawing into (leave
  *                       blank to just draw the form elements to add a new
@@ -1995,7 +2025,7 @@ function elluminate_reminder_draw_form($meetingid = 0) {
 	if ($meetingid) {
 		$delta = $elluminate->meetingtimebegin - time();
 	} else {
-		$delta = REMINDER_DELTA_DEFAULT;
+		$delta = ELLUMINATELIVE_REMINDER_DELTA_DEFAULT;
 	}
 
 	// Setup values for the select lists on the form
@@ -2080,7 +2110,7 @@ function elluminate_reminder_draw_form($meetingid = 0) {
 function elluminate_reminder_event_type($eventid) {
 	// Make sure the event exists
 	if (!$event = $DB->get_record('event', array('id'=>intval($eventid)))) {
-		error('Invalid event ID: ' . $eventid);
+		print_error('Invalid event ID: ' . $eventid);
 	}
 
 	$type = 'none';
@@ -2116,7 +2146,7 @@ function elluminate_reminder_interval_update($reminderid) {
 
 	// If the reminder type isn't of the Interval variety, we can't udpate
 	// the interval, can we?
-	if ($reminder->type != REMINDER_TYPE_INTERVAL) {
+	if ($reminder->type != ELLUMINATELIVE_REMINDER_TYPE_INTERVAL) {
 		return false;
 	}
 
@@ -2140,7 +2170,7 @@ function elluminate_reminder_interval_update($reminderid) {
 function elluminate_reminder_check($eventid) {
 	// Make sure the event exists
 	if (!$event = $DB->get_record('event', array('id'=>intval($eventid)))) {
-		error('Invalid event ID: ' . $eventid);
+		print_error('Invalid event ID: ' . $eventid);
 	}
 
 	// Get records
@@ -2149,7 +2179,7 @@ function elluminate_reminder_check($eventid) {
 	// Check each record to see if the time has passed to issue a reminder
 	foreach ($reminders as $reminder) {
 		switch ($reminder->type) {
-			case REMINDER_TYPE_DELTA :
+			case ELLUMINATELIVE_REMINDER_TYPE_DELTA :
 				// If the current time is past the delta before the event,
 				// send the message.
 				if (time() > $event->timestart - $reminder->timedelta) {
@@ -2161,7 +2191,7 @@ function elluminate_reminder_check($eventid) {
 				}
 				break;
 
-			case REMINDER_TYPE_INTERVAL :
+			case ELLUMINATELIVE_REMINDER_TYPE_INTERVAL :
 				if (time() > $event->timeend) {
 					// If we are passed the cutoff (end) time for this reminder,
 					// delete the reminder from the system.
@@ -2266,7 +2296,7 @@ function elluminate_reminder_send($reminderid) {
 function elluminate_reminder_message($eventid, $type) {
 	// Make sure the event exists
 	if (!$event = $DB->get_record('event', array('id'=>intval($eventid)))) {
-		error('Invalid event ID: ' . $eventid);
+		print_error('Invalid event ID: ' . $eventid);
 	}
 
 	switch ($type) {
@@ -2301,12 +2331,12 @@ function elluminate_reminder_message($eventid, $type) {
 /**
  * ===========================================================================
  * The following are all functions that deal with sending web services calls
- * to an Elluminate Live! server.
+ * to an Blackboard Collaborate server.
  * ===========================================================================
  */
 
 /**
- * Sends a command to an Elluminate Live! server via the web services interface.
+ * Sends a command to an Blackboard Collaborate server via the web services interface.
  *
  * The structure of the command arguments array is a two-dimensional array in
  * the following format:
@@ -2337,7 +2367,7 @@ function elluminate_send_soap_command_overide_errors($cfgServerUrl, $cfgUsername
 	if (file_exists($CFG->dirroot . '/mod/elluminate/elivenusoap.php')) {
 		require_once ($CFG->dirroot . '/mod/elluminate/elivenusoap.php');
 	} else {
-		error('No SOAP library files found!');
+		print_error('No SOAP library files found!');
 	}
 
 	if (substr($cfgServerUrl, strlen($cfgServerUrl) - 1, 1) != '/') {
@@ -2385,7 +2415,7 @@ function elluminate_send_soap_command_overide_errors($cfgServerUrl, $cfgUsername
 				error('Server not found.');
 			}
 
-			$str = '<b>Elluminate Live! error:<br /><br /></b> <i>' . $result->message . '</i>';
+			$str = '<b>Blackboard Collaborate error:<br /><br /></b> <i>' . $result->message . '</i>';
 
 			error($str);
 
@@ -2406,11 +2436,11 @@ function elluminate_send_soap_command_overide_errors($cfgServerUrl, $cfgUsername
 */
 
 /**
- * This tests for a valid connection to the configured Elluminate Live! server's
+ * This tests for a valid connection to the configured Blackboard Collaborate server's
  * web service interface.
  *
  * @uses $CFG
- * @param string $serverurl The URL pointing to the Elluminate Live! manager (optional).
+ * @param string $serverurl The URL pointing to the Blackboard Collaborate manager (optional).
  * @param string $adapter   The adapter name (optional).
  * @param string $username  The authentication username (optional).
  * @param string $password  The authentication password (optional).
@@ -2418,8 +2448,8 @@ function elluminate_send_soap_command_overide_errors($cfgServerUrl, $cfgUsername
  */
 function elluminate_test_connection($serverurl = '', $serveradapter = '',
 									$username = '', $password = '',
-									$boundary = '', $prepopulate = '',
-									$ws_debug = '') {
+									$boundary = '', $max_talkers = '',
+									$prepopulate = '', $ws_debug = '') {
 	global $CFG;
 
 	if (empty ($serverurl)) {
@@ -2435,13 +2465,14 @@ function elluminate_test_connection($serverurl = '', $serveradapter = '',
 		$password = $CFG->elluminate_auth_password;
 	}
 	
-	updateInsertTable('config', 'name', 'elluminate_server', $serverurl);	
-	updateInsertTable('config', 'name', 'elluminate_adapter', $serveradapter);
-	updateInsertTable('config', 'name', 'elluminate_auth_username', $username);
-	updateInsertTable('config', 'name', 'elluminate_auth_password', $password);
-	updateInsertTable('config', 'name', 'elluminate_boundary_default', $boundary);
-	updateInsertTable('config', 'name', 'elluminate_pre_populate_moderators', $prepopulate);
-	updateInsertTable('config', 'name', 'elluminate_ws_debug', $ws_debug);
+	elluminate_updateInsertTable('config', 'name', 'elluminate_server', $serverurl);	
+	elluminate_updateInsertTable('config', 'name', 'elluminate_adapter', $serveradapter);
+	elluminate_updateInsertTable('config', 'name', 'elluminate_auth_username', $username);
+	elluminate_updateInsertTable('config', 'name', 'elluminate_auth_password', $password);
+	elluminate_updateInsertTable('config', 'name', 'elluminate_boundary_default', $boundary);
+	elluminate_updateInsertTable('config', 'name', 'elluminate_max_talkers', $max_talkers);
+	elluminate_updateInsertTable('config', 'name', 'elluminate_pre_populate_moderators', $prepopulate);
+	elluminate_updateInsertTable('config', 'name', 'elluminate_ws_debug', $ws_debug);
 	
 	
 
@@ -2461,7 +2492,7 @@ function elluminate_test_connection($serverurl = '', $serveradapter = '',
 	return true;
 }
 
-function updateInsertTable($table, $search_param, $name, $value) {
+function elluminate_updateInsertTable($table, $search_param, $name, $value) {
 	global $DB;
 	
 	$update_config_obj = new Stdclass;
@@ -2479,7 +2510,7 @@ function updateInsertTable($table, $search_param, $name, $value) {
 /**
  * ##CHANGE DESCRIPTION!!!!
  *
- * Given a returned user object from an Elluminate Live! server, process
+ * Given a returned user object from an Blackboard Collaborate server, process
  * the object into a new, Moodle-useable object.
  *
  * The return object (on success) is of the following format:
@@ -2501,16 +2532,19 @@ function elluminate_process_user($id, $loginname, $email, $firstname, $lastname)
 	$user->email = $email;
 	$user->firstname = $firstname;
 	$user->lastname = $lastname;
-
+	
+	/// Determine what role to create this user as.
+	$role = ELLUMINATELIVE_ROLE_PARTICIPANT;
 	if (isadmin($id)) {
 		$role = ELLUMINATELIVE_ROLE_APPADMIN;
-	} else
-		if (isteacherinanycourse($id)) {
-			$role = ELLUMINATELIVE_ROLE_MODERATOR;
-		} else {
-			$role = ELLUMINATELIVE_ROLE_PARTICIPANT;
-		}
 
+		/// Editing Teachers = Moderator
+	} else {
+		if (has_capability('mod/elluminate:moderatemeeting', $context, $id)) {
+			$role = ELLUMINATELIVE_ROLE_MODERATOR;
+		}
+	}
+	
 	$user->role = $role;
 
 	if (!$DB->get_record('user', array('id'=>$id, 'deleted'=>'false'))) {
@@ -2523,7 +2557,7 @@ function elluminate_process_user($id, $loginname, $email, $firstname, $lastname)
 }
 
 /**
- * Given a returned meeting object from an Elluminate Live! server, process
+ * Given a returned meeting object from an Blackboard Collaborate server, process
  * the object into a new, Moodle-useable object.
  *
  * The return object (on sucess) is of the following format:
@@ -2588,6 +2622,7 @@ function elluminate_process_meeting($meetingadapter) {
 				foreach ($result as $entry) {
 					if (!empty ($entry)) {
 						$meeting->boundaryTime = $entry->boundaryTime;
+						$meeting->maxTalkers = $entry->maxTalkers;
 						$meeting->recordingModeType = $entry->recordingModeType;
 						$meeting->reserveSeats = $entry->reserveSeats;
 						$meeting->chairList = $meetingadapter->chairList;
@@ -2598,6 +2633,7 @@ function elluminate_process_meeting($meetingadapter) {
 
 	} else {
 		$meeting->boundaryTime = $meetingadapter->boundaryTime;
+		$meeting->maxTalkers = $meetingadapter->maxTalkers;
 		$meeting->recordingModeType = $meetingadapter->recordingModeType;
 		$meeting->reserveSeats = $meetingadapter->reserveSeats;
 		$meeting->chairList = $meetingadapter->chairList;
@@ -2629,7 +2665,7 @@ function elluminate_process_preload_list($obj) {
 }
 
 /**
- * Given a returned participant list object from an Elluminate Live! server,
+ * Given a returned participant list object from an Blackboard Collaborate server,
  * process the object into a new, Moodle-useable array of objects.
  *
  * The return array (on sucess) is of the following format:
@@ -2668,28 +2704,31 @@ function elluminate_process_participant_list($elluminate) {
 }
 
 /**
- * Create a new Elluminate Live! account for the supplied Moodle user ID.
+ * Create a new Blackboard Collaborate account for the supplied Moodle user ID.
  *
  * @param int $userid The Moodle user ID.
- * @return object|boolean The Elluminate Live! user object on success, False otherwise.
+ * @return object|boolean The Blackboard Collaborate user object on success, False otherwise.
  */
 function elluminate_new_user($userid, $password) {
 	if (!$user = $DB->get_record('user', array('id'=>$userid))) {
 		return false;
 	}
 
+	$context = get_context_instance(CONTEXT_MODULE, $cm->id);	
+	
 	/// Determine what role to create this user as.
 	$role = ELLUMINATELIVE_ROLE_PARTICIPANT;
-
+	
 	/// Admin = Application Administrator
 	if (isadmin($user->id)) {
 		$role = ELLUMINATELIVE_ROLE_APPADMIN;
 
-		/// Editing Teachers = Moderator
-	} else
-		if (isteacherinanycourse($user->id)) {
+	/// Editing Teachers = Moderator
+	} else {
+		if (has_capability('mod/elluminate:moderatemeeting', $context, $user->id)) {
 			$role = ELLUMINATELIVE_ROLE_MODERATOR;
 		}
+	}
 
 	/// Let's give it a whirl!
 	$result = elluminate_create_user($user->username, $password, $user->email, $user->firstname, $user->lastname, $role);
@@ -2704,9 +2743,9 @@ function elluminate_new_user($userid, $password) {
 }
 
 /**
- * Map an Elluminate Live! role value to it's string name.
+ * Map an Blackboard Collaborate role value to it's string name.
  *
- * @param int $role An Elluminate Live! role value.
+ * @param int $role An Blackboard Collaborate role value.
  * @return string The string name of the role value.
  */
 function elluminate_role_name($role) {
@@ -2729,13 +2768,13 @@ function elluminate_role_name($role) {
 }
 
 /**
- * Get a specific user record from the Elluminate Live! server.
+ * Get a specific user record from the Blackboard Collaborate server.
  *
  * See the comments for the elluminate_process_user() function for the format of the
  * returned user records returned in the array.
  *
- * @param int $userid The Elluminate Live! user ID.
- * @return object|boolean The Elluminate Live! user record or False on failure.
+ * @param int $userid The Blackboard Collaborate user ID.
+ * @return object|boolean The Blackboard Collaborate user record or False on failure.
  */
 function elluminate_get_user($userid) {
 
@@ -2747,8 +2786,8 @@ function elluminate_get_user($userid) {
 }
 
 /**
- * Create's a user on the configured Elluminate Live! server and, if successful,
- * stores the mapping between the Moodle user ID and the Elluminate information.
+ * Create's a user on the configured Blackboard Collaborate server and, if successful,
+ * stores the mapping between the Moodle user ID and the Blackboard Collaborate information.
  *
  * See the comments for the elluminate_process_user() function for the format of the
  * returned user records returned in the array.
@@ -2758,7 +2797,7 @@ function elluminate_get_user($userid) {
  * @param string $email The email address for this user.
  * @param string $firstname The first name for this user.
  * @param string $lastname The last name for this user.
- * @param int $role The Elluminate Live! Manager role.
+ * @param int $role The Blackboard Collaborate Manager role.
  * @param int $tries Used to append an integer to a username if the username
  *                   we tried to create already exists on the server.
  * @return object|boolean The user object or False on failure.
@@ -2792,7 +2831,7 @@ function elluminate_create_user($loginname, $loginpassword, $email, $firstname, 
  * array[]['user'] = user object
  * array[]['role'] = user role as a string
  *
- * @param int $meetingid The Elluminate Live! meeting ID.
+ * @param int $meetingid The Blackboard Collaborate meeting ID.
  * @param int $role The role type to return. (Default 0: return all)
  * @return array|boolean An array of users and roles or False on failure.
  */
@@ -2836,8 +2875,8 @@ function elluminate_list_participants($id, $role = 0) {
 /**
  * Determine if the user is a participant of the given meeting.
  *
- * @param int $meetingid The Elluminate Live! meeting ID.
- * @param int $userid The Elluminate Live! user ID.
+ * @param int $meetingid The Blackboard Collaborate meeting ID.
+ * @param int $userid The Blackboard Collaborate user ID.
  * @param boolean $moderator Is the user being added as a moderator? (default False)
  * @return boolean True if the user is a participant, False otherwise.
  */
@@ -2897,8 +2936,8 @@ function elluminate_is_participant($id, $userid, $moderator = false) {
 /**
  * Add a user as a participant to a given meeting.
  *
- * @param int $meetingid The Elluminate Live! meeting ID.
- * @param int $userid The Elluminate Live! user ID.
+ * @param int $meetingid The Blackboard Collaborate meeting ID.
+ * @param int $userid The Blackboard Collaborate user ID.
  * @param boolean $moderator Is the user being added as a moderator? (default False)
  * @return boolean True on success, False otherwise.
  */
@@ -2960,8 +2999,8 @@ function elluminate_add_participant($id, $userid, $moderator = false) {
 /**
  * Delete a participant(s) from a given meeting.
  * ## Needs to be tested
- * @param int $meetingid The Elluminate Live! meeting ID.
- * @param int $userid The Elluminate Live! user ID.
+ * @param int $meetingid The Blackboard Collaborate meeting ID.
+ * @param int $userid The Blackboard Collaborate user ID.
  * @return boolean True on success, False otherwise.
  */
 function elluminate_delete_participant($id, $muserids) {
@@ -2975,13 +3014,13 @@ function elluminate_delete_participant($id, $muserids) {
 		return false;
 	} else
 		if (is_object($elluminate)) {
-				$chairListArray = string_token_to_array($elluminate->chairlist, ",");
-				$nonCharList = string_token_to_array($elluminate->nonchairlist, ",");
+				$chairListArray = elluminate_string_token_to_array($elluminate->chairlist, ",");
+				$nonCharList = elluminate_string_token_to_array($elluminate->nonchairlist, ",");
 		}
 
 	$remove = array($muserids);
-	$newChairList = remove_items_from_array($chairListArray, $remove);
-	$newNonChairList = remove_items_from_array($nonCharList, $remove);
+	$newChairList = elluminate_remove_items_from_array($chairListArray, $remove);
+	$newNonChairList = elluminate_remove_items_from_array($nonCharList, $remove);
 
 	$chairList = implode(",", $newChairList);
 	$nonChairList = implode(",", $newNonChairList);
@@ -2992,12 +3031,12 @@ function elluminate_delete_participant($id, $muserids) {
 }
 
 /**
- * Get a list of meetings from the Elluminate Live! server.
+ * Get a list of meetings from the Blackboard Collaborate server.
  *
  * See the comments for the elluminate_processmeeting() function for the format
  * of the returned meeting records returned in the array.
  *
- * @param int $role The Elluminate Live! role type to fetch.
+ * @param int $role The Blackboard Collaborate role type to fetch.
  * @return mixed|boolean An array of user objects or False on failure.
  */
 function elluminate_list_meetings() {
@@ -3047,19 +3086,19 @@ function elluminate_list_all_recordings_for_times($starttime, $endtime) {
 		$recordings = array ();
 		if (is_array($result)) {
 			foreach ($result as $dummy_entry) {
-				$entry = getArrayEntry($dummy_entry, 0);
-				$recordings[] = setRecordingObject($entry);
+				$entry = elluminate_getArrayEntry($dummy_entry, 0);
+				$recordings[] = elluminate_setRecordingObject($entry);
 			}
 		} else {
-			$entry = getArrayEntry($result, 0);
-			$recordings[] = setRecordingObject($entry);
+			$entry = elluminate_getArrayEntry($result, 0);
+			$recordings[] = elluminate_setRecordingObject($entry);
 		}
 		return $recordings;
 	}
 }
 
 /**
- * Create a new Elluminate Live! meeting on the server.
+ * Create a new Blackboard Collaborate meeting on the server.
  *
  * @param int $start The start date and time of the meeting.
  * @param int $end The end date and time of the meeting.
@@ -3070,14 +3109,14 @@ function elluminate_list_all_recordings_for_times($starttime, $endtime) {
  * @param int $seats The number of seats to reserve for his meeting.
  * @return object|boolean The newly created meeting object or False on failure.
  */
-function elluminate_create_meeting($start, $end, $name, $facilitator, $password = '', $sessiontype, $seats = 0, $boundaryTime, $recordingModeType, $cmid, $creatorid) {
-	return elluminate_set_meeting('', $start, $end, $name, $facilitator, $password, $sessiontype, $seats, $boundaryTime, $recordingModeType, $cmid, $creatorid);
+function elluminate_create_meeting($start, $end, $name, $facilitator, $password = '', $sessiontype, $seats = 0, $boundaryTime, $maxTalkers, $recordingModeType, $cmid, $creatorid) {
+	return elluminate_set_meeting('', $start, $end, $name, $facilitator, $password, $sessiontype, $seats, $boundaryTime, $maxTalkers, $recordingModeType, $cmid, $creatorid);
 }
 
 /**
- * Modify an existing Elluminate Live! meeting on the server.
+ * Modify an existing Blackboard Collaborate meeting on the server.
  *
- * @param int $meetingid The Elluminate Live! meeting ID.
+ * @param int $meetingid The Blackboard Collaborate meeting ID.
  * @param int $start The start date and time of the meeting.
  * @param int $end The end date and time of the meeting.
  * @param string $name The name of the meeting.
@@ -3087,9 +3126,9 @@ function elluminate_create_meeting($start, $end, $name, $facilitator, $password 
  * @param int $seats The number of seats to reserve for his meeting.
  * @return object|boolean The newly created meeting object or False on failure.
  */
-function elluminate_update_meeting($meeting, $start, $end, $name, $facilitator, $password = '', $sessiontype, $seats = 0, $boundaryTime, $recordingModeType, $cmid = '') {
+function elluminate_update_meeting($meeting, $start, $end, $name, $facilitator, $password = '', $sessiontype, $seats = 0, $boundaryTime, $maxTalkers, $recordingModeType, $cmid = '') {
 
-	return elluminate_set_meeting($meeting, $start, $end, $name, $facilitator, $password, $sessiontype, $seats, $boundaryTime, $recordingModeType, $cmid);
+	return elluminate_set_meeting($meeting, $start, $end, $name, $facilitator, $password, $sessiontype, $seats, $boundaryTime, $maxTalkers, $recordingModeType, $cmid);
 	/// Check for an error.
 	/*if (isset ($result->Detail->Stack->Trace)) {
 		$return = '';
@@ -3104,7 +3143,7 @@ function elluminate_update_meeting($meeting, $start, $end, $name, $facilitator, 
 	return $result;*/
 }
 
-function elluminate_set_meeting($meeting, $start, $end, $name, $facilitator, $password, $sessiontype, $seats, $boundaryTime, $recordingModeType, $cmid = '', $creatorid = '') {
+function elluminate_set_meeting($meeting, $start, $end, $name, $facilitator, $password, $sessiontype, $seats, $boundaryTime, $maxTalkers, $recordingModeType, $cmid = '', $creatorid = '') {
 	global $USER;
 	global $CFG;
 	
@@ -3238,6 +3277,10 @@ function elluminate_set_meeting($meeting, $start, $end, $name, $facilitator, $pa
 		$args[12]['value'] = false;
 	}
 	$args[12]['type'] = 'xsd:boolean';
+	
+	$args[13]['name'] = 'maxTalkers';
+	$args[13]['value'] = $maxTalkers;
+	$args[13]['type'] = 'xsd:integer';
 
 	$result = elluminate_send_command('setMeeting', $args);
 
@@ -3252,9 +3295,9 @@ function elluminate_set_meeting($meeting, $start, $end, $name, $facilitator, $pa
 }
 
 /**
- * Delete a meeting on the Elluminate Live! server.
+ * Delete a meeting on the Blackboard Collaborate server.
  *
- * @param long $meetingid The Elluminate Live! meeting ID.
+ * @param long $meetingid The Blackboard Collaborate meeting ID.
  * @return boolean True on success, False otherwise.
  */
 function elluminate_delete_meeting($meetingid) {
@@ -3274,9 +3317,9 @@ function elluminate_delete_meeting($meetingid) {
 }
 
 /**
- * Get a meeting object from the Elluminate Live! server.
+ * Get a meeting object from the Blackboard Collaborate server.
  *
- * @param int $meetingid The Elluminate Live! meeting ID.
+ * @param int $meetingid The Blackboard Collaborate meeting ID.
  * @return object|boolean The meeting object or False on failure.
  */
 function elluminate_get_meeting($meetingid) {
@@ -3301,9 +3344,9 @@ function elluminate_get_meeting($meetingid) {
 }
 
 /**
- * Get a meeting object from the Elluminate Live! server.
+ * Get a meeting object from the Blackboard Collaborate server.
  *
- * @param int $meetingid The Elluminate Live! meeting ID.
+ * @param int $meetingid The Blackboard Collaborate meeting ID.
  * @return object|boolean The meeting object or False on failure.
  */
 function elluminate_get_meeting_full_response($meetingid) {
@@ -3360,7 +3403,7 @@ function elluminate_delete_recording($recordingid) {
 	return false;
 }
 
-function setRecordingObject($entry) {
+function elluminate_setRecordingObject($entry) {
 	$recording = new stdClass;
 	$recording->recordingid = $entry->id;
 	$recording->meetingid = $entry->meetingId;
@@ -3372,11 +3415,11 @@ function setRecordingObject($entry) {
 }
 
 /**
- * Set parameters for an Elluminate Live! meeting.
+ * Set parameters for an Blackboard Collaborate meeting.
  *
  * Only really useful for setting the forced recording status.
  *
- * @param long $meetingid The Elluminate Live! meeting ID.
+ * @param long $meetingid The Blackboard Collaborate meeting ID.
  * @param string $costcenter The cost center.
  * @param string $moderatornotes The moderator teleconference notes.
  * @param string $usernotes The user/participant teleconference notes.
@@ -3461,7 +3504,7 @@ function elluminate_get_meeting_parameters($meetingid) {
 /**
  * Get server parameters for a specific meeting.
  *
- * @param long $meetingid The Elluminate Live! meeting ID.
+ * @param long $meetingid The Blackboard Collaborate meeting ID.
  * @return object|boolean A server parameters object or False on failure.
  */
 function elluminate_get_server_parameters($meetingid) {
@@ -3494,7 +3537,7 @@ function elluminate_get_server_parameters($meetingid) {
 }
 
 /**
- * Get a list of recordings from the Elluminate Live! server and return them in
+ * Get a list of recordings from the Blackboard Collaborate server and return them in
  * a Moodle object format:
  *
  *  $recording->recordingid - Recording ID.
@@ -3522,12 +3565,12 @@ function elluminate_list_recordings($meetingId) {
 		$recordings = array ();
 		if (is_array($result)) {
 			foreach ($result as $dummy_entry) {
-				$entry = getArrayEntry($dummy_entry, 0);
-				$recordings[] = setRecordingObject($entry);
+				$entry = elluminate_getArrayEntry($dummy_entry, 0);
+				$recordings[] = elluminate_setRecordingObject($entry);
 			}
 		} else {
-			$entry = getArrayEntry($result, 0);
-			$recordings[] = setRecordingObject($entry);
+			$entry = elluminate_getArrayEntry($result, 0);
+			$recordings[] = elluminate_setRecordingObject($entry);
 		}
 		return $recordings;
 	}
@@ -3570,13 +3613,13 @@ function elluminate_recent_recordings() {
 		}
 
 		if ($meeting->sessiontype != 1) {
-			$return[] = createRecordingEntry($meeting, $recording);
+			$return[] = elluminate_createRecordingEntry($meeting, $recording);
 		} 
 	}
 	return $return;
 }
 
-function createRecordingEntry($meeting, $recording) {
+function elluminate_createRecordingEntry($meeting, $recording) {
 	$entry = new stdClass;
 	$entry->meetingid = $meeting->meetingid;
 	$entry->name = $meeting->name;
@@ -3588,9 +3631,9 @@ function createRecordingEntry($meeting, $recording) {
 }
 
 /**
- * Login a user and load a meeting object from the Elluminate Live! server.
+ * Login a user and load a meeting object from the Blackboard Collaborate server.
  *
- * @param long $meetingid The Elluminate Live! meeting ID.
+ * @param long $meetingid The Blackboard Collaborate meeting ID.
  * @param int $userid A Moodle user ID.
  * @return file|boolean A meeting.jnlp attachment to load a meeting or False on failure.
  */
@@ -3639,9 +3682,9 @@ function elluminate_build_meeting_jnlp($meetingid, $userid, $sessiontype, $ismod
 }
 
 /**
- * Login a user and load a recording object from the Elluminate Live! server.
+ * Login a user and load a recording object from the Blackboard Collaborate server.
  *
- * @param long $recordingid The Elluminate Live! recording ID.
+ * @param long $recordingid The Blackboard Collaborate recording ID.
  * @param int $userid A Moodle user ID.
  * @return file|boolean A meeting.jnlp attachment to load a meeting or False on failure.
  */
@@ -3727,7 +3770,7 @@ function elluminate_get_server_configuration() {
 }
 
 /**
- * Check to see if seat reservation is enabled on the Elluminate Live! server.
+ * Check to see if seat reservation is enabled on the Blackboard Collaborate server.
  * ## Currently there is no way to determine seat reservation checking through
  * ## the SAS default adapter.  Currently we simply return the value 'false'
  *
@@ -3800,15 +3843,22 @@ function elluminate_create_preload($type, $name, $mimetype, $length, $ownerid = 
  */
 function elluminate_upload_presentation_content($filename, $description, $content, $creatorid, $actual_filename) {
 	global $DB;
+	global $CFG;
 	$args = array ();
 
-	$memory_limit = ini_get("memory_limit");
-	$maxinputtime = ini_get("max_input_time");
-	$maxexecutiontime = ini_get("max_execution_time");
 	
-	ini_set('memory_limit', '-1');
+	if (empty($CFG -> mod_elluminate_memory_limit)) {
+		$memory_limit = ini_get("memory_limit");
+		ini_set('memory_limit', '-1');
+	} else {
+		$memory_limit = $CFG -> mod_elluminate_memory_limit;
+	}
+	echo $memory_limit;
+	$maxinputtime = ini_get("max_input_time");
+	set_time_limit(0);//MOOD-311 - Basically sets the 'max_execution_time' value to unlimited and then restores the previous value after execution ends
+	
+	
 	ini_set('max_input_time', '-1');
-	ini_set('max_execution_time', '-1');
 
 	$args[0]['name'] = 'filename';
 	$args[0]['value'] = $filename;
@@ -3828,11 +3878,12 @@ function elluminate_upload_presentation_content($filename, $description, $conten
 
 	$result = elluminate_send_command('uploadPresentationContent', $args);
 
-	if (is_string($result)) {
+	if (ini_get("memory_limit") == -1) {
 		ini_set('memory_limit', $memory_limit);
-		ini_set('max_input_time', $maxinputtime);
-		ini_set('max_execution_time', $maxexecutiontime);
-		
+	}
+	ini_set('max_input_time', $maxinputtime);
+	
+	if (is_string($result)) {
 		return false;
 	} else {		
 		if (is_object($result) && isset ($result->DefaultAdapterPresentationResponse)) {				
@@ -3844,17 +3895,10 @@ function elluminate_upload_presentation_content($filename, $description, $conten
 			
 			$DB->insert_record('elluminate_preloads', $preload);		
 				
-			ini_set('memory_limit', $memory_limit);
-			ini_set('max_input_time', $maxinputtime);
-			ini_set('max_execution_time', $maxexecutiontime);				
-				
 			return $preload;
 		}
 	}
-	
-	ini_set('memory_limit', $memory_limit);
-	ini_set('max_input_time', $maxinputtime);
-	ini_set('max_execution_time', $maxexecutiontime);
+
 	return false;
 }
 
@@ -3966,13 +4010,13 @@ function elluminate_list_meeting_preloads($meetingid) {
 }
 
 /**
- * Return the URL linking to the support page on the configured Elluminagte Live! server.
+ * Return the URL linking to the support page on the configured Blackboard Collaborate server.
  *
  * @param none
  * @return string The URL pointing to the support page.
  */
 function elluminate_support_link() {
-	return 'http://www.elluminate.com/support'; 
+	return 'http://support.blackboardcollaborate.com/ics/support/default.asp?deptID=8336'; 
 }
 
 /**
@@ -3981,7 +4025,7 @@ function elluminate_support_link() {
  * @param $str = The string to be converted to an array
  * @param $del = The delimeter
  */
-function string_token_to_array($str, $del) {
+function elluminate_string_token_to_array($str, $del) {
 	$array = array ();
 	$i = 0;
 
@@ -3996,7 +4040,7 @@ function string_token_to_array($str, $del) {
 	return $array;
 }
 
-function remove_items_from_array($mainlist, $itemstoremove) {
+function elluminate_remove_items_from_array($mainlist, $itemstoremove) {
 	$newarray = array ();
 	
 	foreach ($mainlist as $mainlistitem) {
@@ -4008,7 +4052,7 @@ function remove_items_from_array($mainlist, $itemstoremove) {
 	return $newarray;
 }
 
-function getArrayEntry($result, $index) {
+function elluminate_getArrayEntry($result, $index) {
 	$i = 0;
 	foreach ($result as $entry) {
 		if ($i == $index) {
@@ -4017,7 +4061,7 @@ function getArrayEntry($result, $index) {
 	}
 }
 
-function checkListForUserById($user, $userList) {
+function elluminate_checkListForUserById($user, $userList) {
 	foreach ($userList as $entry) {
 		if ($entry->id == $user->id)
 			return true;
@@ -4029,11 +4073,11 @@ function elluminate_list_all_recordings() {
 	$args = array ();
 
 	$args[0]['name'] = 'startTime';
-	$args[0]['value'] = getLastDayTimeInMilliseconds();
+	$args[0]['value'] = elluminate_getLastDayTimeInMilliseconds();
 	$args[0]['type'] = 'xsd:long';
 
 	$args[1]['name'] = 'endTime';
-	$args[1]['value'] = getCurrentTimeInMilliseconds();
+	$args[1]['value'] = elluminate_getCurrentTimeInMilliseconds();
 	$args[1]['type'] = 'xsd:long';
 
 	/// 31535940000 -- # of miliseconds in a year
@@ -4046,12 +4090,12 @@ function elluminate_list_all_recordings() {
 		$recordings = array ();
 		if (is_array($result)) {
 			foreach ($result as $dummy_entry) {
-				$entry = getArrayEntry($dummy_entry, 0);
-				$recordings[] = setRecordingObject($entry);
+				$entry = elluminate_getArrayEntry($dummy_entry, 0);
+				$recordings[] = elluminate_setRecordingObject($entry);
 			}
 		} else {
-			$entry = getArrayEntry($result, 0);
-			$recordings[] = setRecordingObject($entry);
+			$entry = elluminate_getArrayEntry($result, 0);
+			$recordings[] = elluminate_setRecordingObject($entry);
 		}
 		return $recordings;
 	}
@@ -4072,24 +4116,24 @@ function elluminate_list_all_recordings_for_meeting($meetingid) {
 		$recordings = array ();
 		if (is_array($result)) {
 			foreach ($result as $dummy_entry) {
-				$entry = getArrayEntry($dummy_entry, 0);
-				$recordings[] = setRecordingObject($entry);
+				$entry = elluminate_getArrayEntry($dummy_entry, 0);
+				$recordings[] = elluminate_setRecordingObject($entry);
 			}
 		} else {
-			$entry = getArrayEntry($result, 0);
-			$recordings[] = setRecordingObject($entry);
+			$entry = elluminate_getArrayEntry($result, 0);
+			$recordings[] = elluminate_setRecordingObject($entry);
 		}
 		return $recordings;
 	}
 }
 
-function getCurrentTimeInMilliseconds() {
+function elluminate_getCurrentTimeInMilliseconds() {
 	$currDate = date('U') * 1000;
 	$currDate = number_format($currDate, 0, '.', '');
 	return $currDate;
 }
 
-function getLastDayTimeInMilliseconds() {
+function elluminate_getLastDayTimeInMilliseconds() {
 	$lastDay = date('U') * 1000 - (24 * 60 * 60 * 1000);
 	$lastDay = number_format($lastDay, 0, '.', '');
 	return $lastDay;
@@ -4098,14 +4142,14 @@ function getLastDayTimeInMilliseconds() {
 /**
  * ===========================================================================
  * The following are all functions that deal with sending web services calls
- * to an Elluminate Live! server.
+ * to an Blackboard Collaborate server.
  * ===========================================================================
  */
 
 
 
 /**
- * Sends a command to an Elluminate Live! server via the web services interface.
+ * Sends a command to an Blackboard Collaborate server via the web services interface.
  *
  * The structure of the command arguments array is a two-dimensional array in
  * the following format:
@@ -4155,7 +4199,7 @@ function getLastDayTimeInMilliseconds() {
 		if (file_exists($CFG->dirroot . '/mod/elluminate/elivenusoap.php')) {
 			require_once ($CFG->dirroot . '/mod/elluminate/elivenusoap.php');
 		} else {
-			error('No SOAP library files found!');
+			print_error('No SOAP library files found!');
 		}       
 
         if (substr($serverurl, strlen($serverurl) - 1, 1) != '/') {
@@ -4196,12 +4240,12 @@ function getLastDayTimeInMilliseconds() {
             if (!empty($client->response) && ((strstr($client->response, 'HTTP') !== false) &&
                   strstr($client->response, '404') !== false)) {
 
-                debugging('Elluminate Live! Server not found');
+                debugging('Blackboard Collaborate Server not found');
                 return false;
             }
 
             echo '<p align="center"><b>Fault:</b></p>';
-            $str = '<b>Elluminate Live! error:<br /><br />Call:</b> <i>' . $command . '</i>';
+            $str = '<b>Blackboard Collaborate error:<br /><br />Call:</b> <i>' . $command . '</i>';
 
             if (!empty($CFG->elluminate_ws_debug) && !empty($client->debug_str)) {
                 $str .= '<br /><br /><b>Debug string:</b> <i>' . $client->debug_str . '</i>';
@@ -4485,7 +4529,7 @@ function getLastDayTimeInMilliseconds() {
 	function elluminate_get_groupings_single_select_array($courseid, $groupingid) {
 	    global $CFG, $USER, $SESSION;	
 
-		$groupings = get_records('groupings', 'courseid', $courseid, 'id', $groupingid, 'name ASC');
+		$groupings = $DB->get_records('groupings', array('courseid' => $courseid, 'id' => $groupingid), 'name ASC');
 		$groupingsarray = array();
 		foreach($groupings as $grouping) {
 			$groupingsarray[$grouping->id] = $grouping->name;
@@ -4546,4 +4590,44 @@ function elluminate_update_events($elluminate) {
 		
 	calendar_event::create($event);     
 }
-?>
+
+function elluminate_get_email_body($meetingid) {
+	$args = array ();
+
+	$args[0]['name'] = 'meetingList';
+	$args[0]['value'] = $meetingid;
+	$args[0]['type'] = 'xsd:string';
+	$result = elluminate_send_command('getEmailBody', $args);
+	
+	if (is_string($result)) {
+		return $result;
+	} else {
+		return false;
+	}
+}
+
+function elluminate_get_external_link_from_email_body($meetingid) {
+	$result = elluminate_get_email_body($meetingid);
+	if ($result === false) {
+		return false;
+	} else {
+		$sas_start_email_snippet = 'Session Link: ';
+		$elm_start_email_snippet = 'Meeting Link: ';
+		$start_index = strrpos($result, $sas_start_email_snippet);
+		if ($start_index === false) {
+			//This is an ELM session
+			$start_index = strrpos($result, $elm_start_email_snippet);
+			$end_email_snippet = 'Add to Calendar:';
+		} else {
+			//This is a SAS session
+			$end_email_snippet = 'Starts:';
+		}
+		$start_index = $start_index + 14;
+		$end_index = strpos($result, $end_email_snippet, $start_index);
+		$length = $end_index - $start_index;
+		$link = trim(substr($result, $start_index, $length));
+		//do some parsing and return the link
+		return $link;
+	}
+}
+

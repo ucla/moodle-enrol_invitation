@@ -115,4 +115,3 @@ function soap_encode_array($value, $name, $type, $namespace) {
     return new SoapParam($value, $name);
 }
 
-?>

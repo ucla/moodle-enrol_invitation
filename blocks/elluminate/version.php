@@ -1,10 +1,10 @@
 <?php
 
 /////////////////////////////////////////////////////////////////////////////////
-///  Code fragment to define the version of elluminate
+///  Code fragment to define the version of Blackboard Collaborate
 ///  This fragment is called by moodle_needs_upgrading() and /admin/index.php
 /////////////////////////////////////////////////////////////////////////////////
 
-$plugin->version  = 2011020200;  // The current module version (Date: YYYYMMDDXX)
+$plugin->version  = 2012040202;  // The current module version (Date: YYYYMMVERSION#)
 
 ?>

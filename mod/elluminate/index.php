@@ -8,11 +8,11 @@
 
     if ($id) {
         if (! $course = $DB->get_record('course', array('id'=>$id))) {
-            error("Course ID is incorrect");
+            print_error("Course ID is incorrect");
         }
     } else {
         if (! $course = get_site()) {
-            error("Could not find a top-level course!");
+            print_error("Could not find a top-level course!");
         }
     }
 
@@ -43,7 +43,7 @@
 /// Get all the appropriate data
 
     if (! $elluminates = get_all_instances_in_course("elluminate", $course)) {
-        notice("There are no Elluminate Live! meetings ", "../../course/view.php?id=$course->id");
+        notice("There are no Blackboard Collaborate meetings ", "../../course/view.php?id=$course->id");
         die;
     }
 
@@ -99,4 +99,4 @@
 
     print_footer($course);
 
-?>
+

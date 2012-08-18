@@ -57,7 +57,7 @@ $GLOBALS['_transient']['static']['nusoap_base']->globalDebugLevel = 9;
 
 // Updated 03-APR-2009, JDS/Moodlerooms
 // Fix to prevent clobbering. This library was breaking backup/restore
-// for courses with elluminate sessions as activities.
+// for courses with Blackboard Collaborate sessions as activities.
 // Use prefix in a variable? Leaving this option open...
 // $noclobber_prefix = "elive_";
 
@@ -7270,4 +7270,4 @@ class elive_soap_client extends elive_nusoap_base  {
 		return true;
 	}
 }
-?>
+
