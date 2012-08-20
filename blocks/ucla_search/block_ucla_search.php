@@ -3,13 +3,10 @@
 
 class block_ucla_search extends block_base {
     
-    private $search_result_limit;
+    const SEARCH_LIMIT = 10;
     
     public function init() {
         $this->title = get_string('pluginname', 'block_ucla_search');
-        
-        // Limit number of results returned
-        $this->search_result_limit = 10;
     }
     
     public function get_content() {
@@ -31,7 +28,8 @@ class block_ucla_search extends block_base {
         $input = html_writer::tag('input', '',
                 array('id' => 'coursesearchbox', 'style' => 'width: 97%;',
                     'size' => '30', 'name' => 'search', 'type' => 'text', 'value' => ''));
-        $button = html_writer::tag('input', '', array('value' => 'Go', 'type' => 'submit'));
+        $button = html_writer::tag('input', '', 
+                array('value' => 'Go', 'type' => 'submit'));
         $fieldset = html_writer::tag('fieldset', $label . $input . $button,
                 array('class' => 'coursesearchbox invisiblefieldset'));
         
@@ -39,17 +37,21 @@ class block_ucla_search extends block_base {
                 array('action' => $search_url, 'id' => 'coursesearch2',
                     'style' => 'text-align: left;'));
 
-        // Collab search checkbox
+        // Collab/course search checkboxes
         $checkbox = html_writer::tag('input', '', 
-                array('type' => 'checkbox', 'name' => 'as-collab-checkbox', 'id' => 'as-collab-check'));
+                array('type' => 'checkbox', 'name' => 'as-collab-checkbox', 'id' => 'as-collab-check', 'checked' => ''));
         $label = html_writer::tag('label', get_string('search_collab', 'block_ucla_search'),
                 array('for' => 'as-collab-check'));
-        $collab = html_writer::tag('div', $checkbox . $label,
+        $checkbox_course = html_writer::tag('input', '', 
+                array('type' => 'checkbox', 'name' => 'as-course-checkbox', 'id' => 'as-course-check', 'checked' => ''));
+        $label_course = html_writer::tag('label', get_string('search_course', 'block_ucla_search'),
+                array('for' => 'as-course-check'));
+        $collab = html_writer::tag('div', get_string('search_show', 'block_ucla_search') . ': <br/>' . $checkbox . $label . '<br/>' . $checkbox_course . $label_course,
                 array('class' => 'as-collab-checkbox'));
         
         // Input box + wrapper
         $input = html_writer::tag('input', '', array('id' => 'advanced-search', 
-            'placeholder' => get_string('search', 'block_ucla_search')));
+            'placeholder' => get_string('search_placeholder', 'block_ucla_search')));
         $wrapper = html_writer::tag('div', $collab . $input, array('id' => 'as-search-wrapper'));
 
         // Write content
@@ -83,7 +85,7 @@ class block_ucla_search extends block_base {
         $rest_url = $CFG->wwwroot . '/blocks/ucla_search/rest.php';
         
         $PAGE->requires->js('/blocks/ucla_search/module.js');
-        $PAGE->requires->js_init_call('M.ucla_search.init', array($rest_url, $this->search_result_limit));
+        $PAGE->requires->js_init_call('M.ucla_search.init', array($rest_url, self::SEARCH_LIMIT));
     }
 
 }

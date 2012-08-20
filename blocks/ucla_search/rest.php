@@ -3,13 +3,15 @@
 require_once(dirname(__FILE__) . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 
-$max_limit = 20;        // Maximum number of results (arbritrary)
-$summary_len = 75;      // Max length of summary text (arbitrary)
+define('SEARCH_MAX_LIMIT', 20);     // Maximum number of results (arbritrary)
+define('SEARCH_SUMMARY_LEN', 75);   // Max length of summary text (arbitrary)
+
 $url = $CFG->wwwroot . '/course/view.php?id=';  // Base course URL
 
 $query = required_param('q', PARAM_TEXT);
 $collab = optional_param('collab', 0, PARAM_INT);
-$limit = optional_param('limit', $max_limit, PARAM_INT);
+$course = optional_param('course', 0, PARAM_INT);
+$limit = optional_param('limit', SEARCH_MAX_LIMIT, PARAM_INT);
 
 // Ripped right out of the default search...
 $search = trim(strip_tags($query)); // trim & clean raw searched string
@@ -24,15 +26,26 @@ if ($search) {
 }
 
 // Limit the amount of results we can get
-$limit = $limit > $max_limit ? $max_limit : $limit;
+$limit = $limit > SEARCH_MAX_LIMIT ? SEARCH_MAX_LIMIT : $limit;
 
-// Create collab site part of query if needed...
-$collab_join = '';
+// Create collab site part of query...
+$collab_join = 'LEFT JOIN {ucla_siteindicator} AS si ON si.courseid = c.id ';
 $collab_and = '';
+$collab_select = ', si.courseid as collabcheck';
 
-if(!empty($collab)) {
+if(empty($course) && !empty($collab)) {
+    // Search only collab sites
+
     $collab_join = 'JOIN {ucla_siteindicator} si ON c.id = si.courseid';
     $collab_and = "AND si.type NOT LIKE 'test'";
+    $collab_select = ', si.courseid as collabcheck';
+    
+} else if (!empty($course) && empty($collab)) {
+    // Search only course sites
+    $collab_join = 'LEFT JOIN {ucla_siteindicator} AS si ON si.courseid = c.id ';
+    $collab_and = 'AND si.id IS NULL';
+    $collab_select = ', si.courseid as collabcheck';
+    
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -105,20 +118,24 @@ if (!empty($searchcond)) {
 
     // Modified to search visible courses & collab sites
     list($ccselect, $ccjoin) = context_instance_preload_sql('c.id', CONTEXT_COURSE, 'ctx');
-    $sql = "SELECT c.* $ccselect
+    $sql = "SELECT c.* $ccselect $collab_select 
             FROM {course} c
         $collab_join 
         $ccjoin
             WHERE $searchcond AND c.id <> ".SITEID." 
-            AND c.visible = 1 
             $collab_and 
         ORDER BY fullname ASC 
             LIMIT $limit_extra";
 
     $rs = $DB->get_recordset_sql($sql, $params);
-
     foreach($rs as $course) {
-        $courses[$course->id] = $course;
+        context_instance_preload($course);
+        $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+        if ($course->visible || has_capability('moodle/course:viewhiddencourses', $coursecontext)) {
+            $courses[$course->id] = $course;
+            
+//            print_object($course);
+        }
     }
     $rs->close();
 }
@@ -135,23 +152,30 @@ if(!empty($courses)) {
         $item = new stdClass();
         $item->shortname = $course->shortname;
         $item->fullname = $course->fullname;
+        
+        // Only display summary for collab sites
+        if(empty($course->collabcheck)) {
+            $item->summary = '';
+        } else {
+            $item->summary = $course->summary;
 
-        // Clean up summary
-        if(!empty($course->summary)) {
-            $su = strip_tags($course->summary);
-            $su = substr($su, 0, $summary_len);
-            $item->summary = $su;
-            
-            if(strlen($course->summary) > $summary_len) {
-                $item->summary .= '...';
+            // Clean up summary
+            if(!empty($course->summary)) {
+                $su = strip_tags($course->summary);
+                $su = substr($su, 0, SEARCH_SUMMARY_LEN);
+                $item->summary = $su;
+
+                if(strlen($course->summary) > SEARCH_SUMMARY_LEN) {
+                    $item->summary .= '...';
+                }
             }
         }
         
-        // for highlit results
+        // For highlit results
         $item->text = $course->fullname;
+        // For url click
         $item->url = $url . $course->id;
-        // to determine click..
-        $item->id = $course->id;
+
         $results[] = $item;
     }
 
@@ -160,7 +184,6 @@ if(!empty($courses)) {
 
         $results[$limit]->shortname = '';
         $results[$limit]->text = get_string('more_results', 'block_ucla_search');
-        $results[$limit]->id = '0';
         $results[$limit]->summary = '';
         $results[$limit]->url = $CFG->wwwroot . '/course/search.php?search=' . $search;
     }
@@ -171,7 +194,6 @@ if(!empty($courses)) {
     $item->shortname = '';
     $item->text = get_string('no_results', 'block_ucla_search');
     $item->summary = '';
-    $item->id = '';
     $item->url = '#';
     
     $results[] = $item;
