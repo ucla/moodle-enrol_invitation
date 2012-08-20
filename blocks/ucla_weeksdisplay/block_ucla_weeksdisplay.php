@@ -115,7 +115,7 @@ class ucla_session {
             }
             
             // Summer session ended, update term
-            if(!$this->in_session($this->_session['8A']->session_end)) {
+            if(!$this->in_session($this->_session['6C']->session_end)) {
                 $next_term = $this->next_term();
                 $this->update_term($next_term);
             }
