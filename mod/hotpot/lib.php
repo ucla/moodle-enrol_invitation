@@ -1219,23 +1219,41 @@ function hotpot_pluginfile_externalfile($context, $component, $filearea, $filepa
     $dirname = trim($filepath, '/');
 
     // assume path to target dir is same as path to main dir
-    $path = explode('/', trim($maindirname, '/'));
+    $path = explode('/', $maindirname);
 
     // traverse back up folder hierarchy if necessary
     $count = count(explode('/', $dirname));
     array_splice($path, -$count);
 
     // reconstruct expected dir path for source file
+    if ($dirname) {
+        $path[] = $dirname;
+    }
+    $source = $path;
+    $source[] = $filename;
+    $source = implode('/', $source);
     $path = implode('/', $path);
-    $path .= ($path && $dirname ? '/' : '').$dirname;
-    $source = $path.($path ? '/' : '').$filename;
 
-    // add our first choice source to the list of possible paths
-    $paths = array($path => $source);
+    // filepaths in the repository to search for the file
+    $paths = array();
+
+    // add to the list of possible paths
+    $paths[$path] = $source;
+
+    if ($dirname) {
+        $paths[$dirname] = $dirname.'/'.$filename;
+    }
+    if ($maindirname) {
+        $paths[$maindirname] = $maindirname.'/'.$filename;
+    }
+    if ($maindirname && $dirname) {
+        $paths[$maindirname.'/'.$dirname] = $maindirname.'/'.$dirname.'/'.$filename;
+        $paths[$dirname.'/'.$maindirname] = $dirname.'/'.$maindirname.'/'.$filename;
+    }
 
     // add leading and trailing "/" to dir names
-    $dirname = '/'.$dirname.'/';
-    $maindirname = '/'.$maindirname.'/';
+    $dirname = ($dirname=='' ? '/' : '/'.$dirname.'/');
+    $maindirname = ($maindirname=='' ? '/' : '/'.$maindirname.'/');
 
     // locate $dirname within $maindirname
     // typically it will be absent or occur just once,
@@ -1262,6 +1280,10 @@ function hotpot_pluginfile_externalfile($context, $component, $filearea, $filepa
     }
 
     foreach ($paths as $path => $source) {
+
+        if (! hotpot_pluginfile_dirpath_exists($path, $repository, $encodepath, $params)) {
+            continue;
+        }
 
         if ($encodepath) {
             $params['filepath'] = '/'.$path.($path=='' ? '' : '/');
@@ -1298,6 +1320,44 @@ function hotpot_pluginfile_externalfile($context, $component, $filearea, $filepa
 
     // external file not found (or found but not created)
     return false;
+}
+
+/**
+ * Determine if dir path exists or not in repository
+ *
+ * @param string   $dirpath
+ * @param stdclass $repository
+ * @param boolean  $encodepath
+ * @param array    $params
+ * @return boolean true if dir path exists in repository, false otherwise
+ */
+function hotpot_pluginfile_dirpath_exists($dirpath, $repository, $encodepath, $params) {
+    $dirs = explode('/', $dirpath);
+    foreach ($dirs as $i => $dir) {
+        $dirpath = implode('/', array_slice($dirs, 0, $i));
+
+        if ($encodepath) {
+            $params['filepath'] = '/'.$dirpath.($dirpath=='' ? '' : '/');
+            $params['filename'] = '.'; // "." signifies a directory
+            $dirpath = file_storage::pack_reference($params);
+        }
+
+        $exists = false;
+        $listing = $repository->get_listing($dirpath);
+        foreach ($listing['list'] as $file) {
+            if (empty($file['source'])) {
+                if ($file['title']==$dir) {
+                    $exists = true;
+                    break;
+                }
+            }
+        }
+        if (! $exists) {
+            return false;
+        }
+    }
+    // all dirs in path exist - success !!
+    return true;
 }
 
 /**

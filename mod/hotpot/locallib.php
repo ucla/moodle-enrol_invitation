@@ -1434,9 +1434,11 @@ class hotpot {
         if (empty($this->attempt)) {
 
             // get max attempt number so far
-            $select = 'hotpotid=? AND userid=?';
+            $select = 'MAX(attempt)';
+            $from   = '{hotpot_attempts}';
+            $where  = 'hotpotid=? AND userid=?';
             $params = array($this->id, $USER->id);
-            $max_attempt = $DB->count_records_select('hotpot_attempts', $select, $params, 'MAX(attempt)');
+            $max_attempt = $DB->get_field_sql("SELECT $select FROM $from WHERE $where", $params) + 1;
 
             // create attempt record
             $this->attempt = new stdClass();
