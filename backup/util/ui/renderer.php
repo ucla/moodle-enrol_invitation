@@ -253,7 +253,7 @@ class core_backup_renderer extends plugin_renderer_base {
             $html .= $this->backup_detail_input(get_string('restoretocurrentcourseadding', 'backup'), 'radio', 'target', backup::TARGET_CURRENT_ADDING, array('checked'=>'checked'));
             //$html .= $this->backup_detail_input(get_string('restoretocurrentcoursedeleting', 'backup'), 'radio', 'target', backup::TARGET_CURRENT_DELETING);
             // BEGIN UCLA MOD: CCLE-3446-Disable-course-delete-option-from-course-restore
-            if (has_capability('local/ucla:deletecoursecontentsandrestore', context_course::instance($currentcourse))) {
+            if (has_capability('local/ucla:deletecoursecontentsandrestore', context_system::instance())) {
                 $html .= $this->backup_detail_input(get_string('restoretocurrentcoursedeleting', 'backup'), 'radio', 'target', backup::TARGET_CURRENT_DELETING);
             }
             // END UCLA MOD: CCLE-3446
