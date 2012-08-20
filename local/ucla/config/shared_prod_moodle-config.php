@@ -220,6 +220,7 @@ $CFG->forced_plugin_settings['enrol_guest']['status'] = 0;  // 0 is yes, 1 is no
 
 // Site administration > Plugins > Blocks > i>clicker Moodle integrate
 $CFG->forced_plugin_settings['block_iclicker']['block_iclicker_notify_emails'] = 'ccle-operations@lists.ucla.edu';
+$CFG->block_iclicker_notify_emails = 'ccle-operations@lists.ucla.edu';  // due to bad coding, two variables exist to do the same thing 
 
 // Site administration > Plugins > Licences > Manage licences
 $CFG->sitedefaultlicense = 'tbd';
