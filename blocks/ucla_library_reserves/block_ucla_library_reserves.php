@@ -31,7 +31,7 @@ class block_ucla_library_reserves extends block_base {
     /**
      * Use UCLA Course menu block hook
      */
-    public function get_navigation_nodes($course) {
+    public static function get_navigation_nodes($course) {
         // get global variables
         global $DB, $COURSE;
 

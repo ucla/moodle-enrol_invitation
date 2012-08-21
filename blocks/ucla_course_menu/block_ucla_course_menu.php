@@ -18,6 +18,7 @@ class block_ucla_course_menu extends block_navigation {
         
         $this->blockname = get_class($this);
         $this->title = get_string('title', $this->blockname);
+        $this->content = new stdClass();
     }
 
     //Hide the delete icon, make block undeletable.
