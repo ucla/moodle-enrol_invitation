@@ -139,7 +139,7 @@ class block_ucla_course_menu extends block_navigation {
             $copyright = html_writer::link(
                     new moodle_url('/blocks/ucla_copyright_status/view.php', 
                         array('courseid' => $this->page->course->id, 
-                              'topic' => $ds)), 
+                              'section' => $this->displaysection)), 
                     get_string('pluginname', 'block_ucla_copyright_status'));            
             $this->content->text .= html_writer::tag('div', $copyright, 
                     array('class' => 'edit_control_links'));            
