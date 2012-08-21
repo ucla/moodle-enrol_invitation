@@ -39,7 +39,7 @@ class ucla_cp_module_assign_roles extends ucla_cp_module {
     }
 
     function autocap() {
-        return 'moodle/course:update';
+        return 'moodle/role:assign';
     }
     
     function get_key() {

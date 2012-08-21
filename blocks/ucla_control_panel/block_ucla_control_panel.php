@@ -132,18 +132,18 @@ class block_ucla_control_panel extends block_base {
 
         // Grab the possible collections of modules to display
         $views = block_ucla_control_panel::load_cp_views();
-
+        
         // Load all the control panel modules.
         $file = dirname(__FILE__) . '/cp_modules.php';
         if (!file_exists($file)) {
             debugging('No control panel module list ' . $file);
             return false;
         }
-
+        
         $modules = array();
-
+        
         include($file);
-
+        
         if (empty($modules)) {
             debugging('No modules found in ' . $file);
         }
@@ -155,7 +155,7 @@ class block_ucla_control_panel extends block_base {
         $block_modules = block_ucla_control_panel::load_cp_block_elements(
             $course, $context
         ); 
-
+        
         foreach ($block_modules as $block => $blocks_modules) {
             $modules = array_merge($modules, $blocks_modules);
         }
