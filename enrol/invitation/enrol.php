@@ -132,7 +132,7 @@ if (empty($confirm)) {
 
     if (!empty($invitation->notify_inviter)) {
         //send an email to the user who sent the invitation        
-        $inviter = $DB->get_record('user', array('id' => $invitation->notify_inviter));
+        $inviter = $DB->get_record('user', array('id' => $invitation->inviterid));
 
         $contactuser = new object;
         $contactuser->email = $inviter->email;
@@ -155,7 +155,7 @@ if (empty($confirm)) {
         $emailinfo->sitename = $SITE->fullname;
         $siteurl = new moodle_url('/');
         $emailinfo->siteurl = $siteurl->out(false);
-
+        
         email_to_user($contactuser, get_admin(), 
                 get_string('emailtitleuserenrolled', 'enrol_invitation', $emailinfo), 
                 get_string('emailmessageuserenrolled', 'enrol_invitation', $emailinfo));
