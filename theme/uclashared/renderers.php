@@ -178,7 +178,7 @@ class theme_uclashared_core_renderer extends core_renderer {
     function weeks_display() {
 
         $weeks_text = $this->call_separate_block_function(
-                'ucla_weeksdisplay', 'get_raw_content'
+                'ucla_weeksdisplay', 'get_week_display'
             );
 
         if (!$weeks_text) {
@@ -336,8 +336,11 @@ class theme_uclashared_core_renderer extends core_renderer {
 
     /**
      *  Overwriting pix icon renderers to not use icons for action buttons.
-     **/
-    function render_action_link($action) {
+     *
+     * @param action_link $link
+     * @return string HTML fragment
+     */
+    function render_action_link(action_link $action) {
         $noeditingicons = get_user_preferences('noeditingicons', 1);
         if (!empty($noeditingicons)) {
             if ($action->text instanceof pix_icon) {
