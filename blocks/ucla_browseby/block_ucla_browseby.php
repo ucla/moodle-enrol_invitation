@@ -38,6 +38,10 @@ class block_ucla_browseby extends block_list {
      **/
     function get_content() {
         global $CFG;
+        
+        if (is_null($this->content)) {
+            $this->content = new stdClass();
+        }       
         $this->content->icons = array();
 
         $link_types = browseby_handler_factory::get_available_types();
