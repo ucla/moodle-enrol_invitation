@@ -216,6 +216,9 @@ $CFG->enablecourserequests = 1;
 // Site administration > Plugins > Activity modules > Assignment
 $CFG->assignment_maxbytes = 10485760;   // 100MB
 
+// Site administration > Plugins > Activity modules > Book
+$CFG->forced_plugin_settings['book']['requiremodintro'] = 0;
+
 // Site administration > Plugins > Activity modules > Folder
 $CFG->forced_plugin_settings['folder']['requiremodintro'] = 0;
 
@@ -286,7 +289,10 @@ $CFG->dbsessions = false;
 // Site administration > Server > Performance
 $CFG->extramemorylimit = '1024M';
 
-// Site administration > Developement > Debugging
+// Site administration > Server > Update notifications
+$CFG->updateautocheck = 0;
+
+// Site administration > Development > Debugging
 $CFG->debug = 32767;    // DEVELOPER level debugging messages
 $CFG->debugdisplay = 1;  // show the debugging messages
 $CFG->perfdebug = 15; // show performance information
@@ -355,7 +361,7 @@ $CFG->forced_plugin_settings['enrol_database']['localcoursefield'] = 'id';
 $CFG->forced_plugin_settings['enrol_database']['localrolefield'] = 'id';
 // CCLE-2824 - Making sure that being assigned/unassigned/re-assigned doesn't 
 // lose grading data
-$CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 3;    // Disable course enrolment and remove roles
+$CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 0;    // Disable course enrolment and remove roles
 
 // CCLE-2910 - UNEX student support
 

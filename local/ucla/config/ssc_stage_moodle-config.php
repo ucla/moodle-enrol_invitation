@@ -243,7 +243,7 @@ $CFG->dbsessions = false;
 // Site administration > Server > Performance
 $CFG->extramemorylimit = '1024M';
 
-// Site administration > Developement > Debugging
+// Site administration > Development > Debugging
 $CFG->debug = 32767;    // DEVELOPER level debugging messages
 $CFG->debugdisplay = 1;  // show the debugging messages
 $CFG->perfdebug = 15; // show performance information
