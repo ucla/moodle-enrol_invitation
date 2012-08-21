@@ -29,6 +29,9 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/local/ucla/lib.php');
 require_once($CFG->dirroot .'/user/lib.php');
+// BEGIN UCLA MOD: CCLE-2824 - Making sure that being assigned/unassigned/re-assigned doesn't lose grading data  
+require_once($CFG->libdir .'/gradelib.php');
+// END UCLA MOD: CCLE-2824
 
 /**
  * Database enrolment plugin implementation.
@@ -285,6 +288,12 @@ class enrol_database_plugin extends enrol_plugin {
             } else {
                 $roleid = reset($roles);
                 $this->enrol_user($instance, $user->id, $roleid, 0, 0, ENROL_USER_ACTIVE);
+                // BEGIN UCLA MOD: CCLE-2824 - Making sure that being assigned/unassigned/re-assigned doesn't lose grading data        
+                // attempt to recover grades for a newly assigned user
+                if ($CFG->recovergradesdefault) {
+                    grade_recover_history_grades($user->id, $instance->courseid);
+                }                
+                // END UCLA MOD: CCLE-2824
             }
 
             if (!$context = get_context_instance(CONTEXT_COURSE, $instance->courseid)) {
@@ -300,7 +309,7 @@ class enrol_database_plugin extends enrol_plugin {
                 } else {
                     role_unassign($r->roleid, $user->id, $context->id, 'enrol_database', $instance->id);
                 }
-            }
+            }            
             foreach ($roles as $rid) {
                 if (!isset($existing[$rid])) {
                     role_assign($rid, $user->id, $context->id, 'enrol_database', $instance->id);
@@ -762,7 +771,6 @@ class enrol_database_plugin extends enrol_plugin {
                             $user = new stdclass();
                             $user->confirmed = 1;
                             $user->timecreated = time();
-                            $user->password = '';
                             $user->auth = 'shibboleth';
                             $user->mnethostid = $CFG->mnet_localhost_id;
 
@@ -861,6 +869,7 @@ class enrol_database_plugin extends enrol_plugin {
                                 mtrace($updatedebugstr);
                             }
 
+                            unset($userinfo->password); // we aren't updating a user's password
                             user_update_user($userinfo);
 
                             // If the clone() is not above, then this line is not necessary
@@ -906,6 +915,15 @@ class enrol_database_plugin extends enrol_plugin {
                         if ($verbose) {
                             mtrace("  enrolling: $userid ==> $course->shortname as ".$allroles[$roleid]->shortname);
                         }
+                        // BEGIN UCLA MOD: CCLE-2824 - Making sure that being assigned/unassigned/re-assigned doesn't lose grading data        
+                        // attempt to recover grades for a newly assigned user
+                        if ($CFG->recovergradesdefault) {                            
+                            $recovered_grades = grade_recover_history_grades($userid, $course->id);
+                            if ($recovered_grades && $verbose) {
+                                mtrace("  recovered grades: $userid ==> $course->shortname");
+                            }
+                        }                
+                        // END UCLA MOD: CCLE-2824                        
                     }
                 }
 

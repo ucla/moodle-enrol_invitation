@@ -229,6 +229,9 @@ $CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 0;
 // Site administration > Courses > Course request
 $CFG->enablecourserequests = 1;
 
+// Site administration > Grades > General settings
+$CFG->recovergradesdefault = 1;
+
 // Site administration > Language > Language settings
 $CFG->langstringcache = false;
 
