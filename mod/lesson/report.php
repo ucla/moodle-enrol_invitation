@@ -50,7 +50,7 @@ if (!empty($cm->groupingid)) {
                 FROM {lesson_attempts} a
                     INNER JOIN {user} u ON u.id = a.userid
                     INNER JOIN {groups_members} gm ON gm.userid = u.id
-                    INNER JOIN {groupings_groups} gg ON gm.groupid = :groupid
+                    INNER JOIN {groupings_groups} gg ON gg.groupid = :groupid
                 WHERE a.lessonid = :lessonid
                 ORDER BY u.lastname";
 } else {
