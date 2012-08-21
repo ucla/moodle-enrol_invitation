@@ -59,6 +59,9 @@ class format_ucla_renderer extends format_section_renderer_base {
     // strings to generate jit links
     private $jit_links = array();
     
+    // edit icons style preference
+    private $noeditingicons;
+    
     /**
      * Constructor method, do necessary setup for UCLA format.
      *
@@ -94,7 +97,9 @@ class format_ucla_renderer extends format_section_renderer_base {
         $this->jit_links = array('file' => get_string('file', 'format_ucla'),
                                  'link' => get_string('link', 'format_ucla'),
                                  'text' => get_string('text', 'format_ucla'),
-                                 'subheading' => get_string('subheading', 'format_ucla'));            
+                                 'subheading' => get_string('subheading', 'format_ucla'));     
+        
+        $this->noeditingicons = get_user_preferences('noeditingicons', 1);
    }    
     
     /**
@@ -245,7 +250,7 @@ class format_ucla_renderer extends format_section_renderer_base {
      * to be printed after the headers, but before the footers.
      */
     public function print_js() {
-        $noeditingicons = get_user_preferences('noeditingicons', 1);
+        $noeditingicons = $this->noeditingicons;
         if (ajaxenabled() && !empty($this->user_is_editing)) {
             echo html_writer::script(false, new moodle_url('/course/format/ucla/sections.js'));
 
@@ -496,6 +501,11 @@ class format_ucla_renderer extends format_section_renderer_base {
             } else if ($this->is_section_current($section, $course)) {
                 $sectionstyle = ' current';
             }
+        }
+        
+        // Apply section edit style
+        if($this->noeditingicons) {
+            $sectionstyle .= ' text-icons';
         }
 
         $o.= html_writer::start_tag('li', array('id' => 'section-'.$section->section,
