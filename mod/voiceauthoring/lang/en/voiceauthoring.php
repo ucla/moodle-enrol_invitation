@@ -73,4 +73,7 @@ $string['close'] = 'Close';
 $string['vtpopupshouldappear.1'] = 'The Voice Authoring applet should now appear.<br/> If it does not, please click ';
 $string['vtpopupshouldappear.2'] = 'this link';
 $string['vtpopupshouldappear.3'] = ' to open it. ';
+// START UCLA MOD: CCLE-3435-fix-editor-for-Moodle2.3
+$string['voiceauthoring:addinstance'] = 'Add a new Voice Authoring';
+// END UCLA MOD: CCLE-3435-fix-editor-for-Moodle2.3
 ?>
