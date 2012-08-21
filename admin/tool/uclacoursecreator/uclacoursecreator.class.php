@@ -2316,7 +2316,7 @@ class uclacoursecreator {
      *  @param $course The course object.
      *  @return string The URL of the course (no protocol).
      **/
-    function build_course_url($course) {
+    public static function build_course_url($course) {
         // TODO put this in the proper namespace
         if (get_config('local_ucla', 'friendly_urls_enabled')) {
             return new moodle_url(make_friendly_url($course));

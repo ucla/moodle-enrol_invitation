@@ -21,6 +21,7 @@ class block_ucla_course_menu extends block_navigation {
         
         $this->blockname = get_class($this);
         $this->title = get_string('title', $this->blockname);
+        $this->content = new stdClass();
     }
 
     //Hide the delete icon, make block undeletable.
@@ -447,9 +448,14 @@ class block_ucla_course_menu extends block_navigation {
     /**
      * Set block defaults for trimlength and trimmode 
      */
-    function specialization() {        
+    function specialization() {                
         // set default values for trimlength and trimmode
         $set_defaults = false;
+        
+        if (is_null($this->config)) {
+            $this->config = new stdClass();
+        }        
+        
         if (!isset($this->config->trimlength)) {
             // if this is the first time loading the block, then use default trimlength
             $this->config->trimlength = get_config('block_ucla_course_menu', 'trimlength');
