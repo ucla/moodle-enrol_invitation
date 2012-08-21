@@ -160,12 +160,6 @@ $CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url']
 // CCLE-2301 - COURSE MENU BLOCK
 $CFG->forced_plugin_settings['block_ucla_course_menu']['trimlength'] = 22;
 
-// useful TEST settings
-$CFG->debug = 38911;    // DEVELOPER level debugging messages
-$CFG->debugdisplay = true;  // show the debugging messages
-$CFG->perfdebug = true; // show performance information
-$CFG->debugpageinfo = true; // show page information
-
 // UCLA Theme settings
 $CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'test';
 
@@ -291,6 +285,12 @@ $CFG->dbsessions = false;
 
 // Site administration > Server > Performance
 $CFG->extramemorylimit = '1024M';
+
+// Site administration > Developement > Debugging
+$CFG->debug = 32767;    // DEVELOPER level debugging messages
+$CFG->debugdisplay = 1;  // show the debugging messages
+$CFG->perfdebug = 15; // show performance information
+$CFG->debugpageinfo = 1; // show page information
 
 /** 
  *  Automatic Shibboleth configurations.
