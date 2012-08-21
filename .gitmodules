@@ -1,0 +1,3 @@
+[submodule "blocks/ucla_subject_links/content"]
+	path = blocks/ucla_subject_links/content
+	url = git@github.com:ccle/ccle_subject_area_links.git

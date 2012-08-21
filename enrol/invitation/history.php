@@ -90,11 +90,14 @@ if (empty($invites)) {
             $DB->set_field('enrol_invitation', 'timeexpiration', time()-1, 
                     array('courseid' => $curr_invite->courseid, 'id' => $curr_invite->id) );
             
+            add_to_log($course->id, 'course', 'invitation revoke', 
+                            "../enrol/invitation/history.php?courseid=$course->id", $course->fullname);
+            
             echo $OUTPUT->box_start('noticebox');
             echo html_writer::tag('span', get_string('revoke_invite_sucess', 'enrol_invitation'));
             echo $OUTPUT->box_end();
             
-        } else if ($actionid == invitation_manager::INVITE_EXTEND) {            
+        } else if ($actionid == invitation_manager::INVITE_EXTEND) {
             // Resend the invite and email
             $invitationmanager->send_invitations($curr_invite, true);
 

@@ -43,7 +43,7 @@ class ucla_cp_module_email_students extends ucla_cp_module {
         $this->post_enabled = true;
 
         // Setting default capability
-        $this->capability = 'moodle/course:update';
+        $this->capability = 'mod/forum:addnews';
 
         // Test for forum functionality and catching
         $init_name = 'email_students';

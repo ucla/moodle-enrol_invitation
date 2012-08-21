@@ -1675,6 +1675,30 @@ function quiz_extend_settings_navigation($settings, $quiznode) {
     }
 
     question_extend_settings_navigation($quiznode, $PAGE->cm->context)->trim_if_empty();
+    
+    // BEGIN UCLA MOD - CCLE-3465 - Move quiz reports from Navigation block to Quiz administration section
+    // Code to generate reports was copied from quiz_extend_navigation
+    $context = get_context_instance(CONTEXT_MODULE, $PAGE->cm->id);
+    
+    if (has_any_capability(array('mod/quiz:viewreports', 'mod/quiz:grade'), $context)) {
+        require_once($CFG->dirroot.'/mod/quiz/report/reportlib.php');
+        $reportlist = quiz_report_list($context);
+
+        $url = new moodle_url('/mod/quiz/report.php',
+                array('id' => $PAGE->cm->id, 'mode' => reset($reportlist)));
+        $reportnode = $quiznode->add(get_string('results', 'quiz'), $url,
+                navigation_node::TYPE_SETTING,
+                null, null, new pix_icon('i/report', ''));
+
+        foreach ($reportlist as $report) {
+            $url = new moodle_url('/mod/quiz/report.php',
+                    array('id' => $PAGE->cm->id, 'mode' => $report));
+            $reportnode->add(get_string($report, 'quiz_'.$report), $url,
+                    navigation_node::TYPE_SETTING,
+                    null, 'quiz_report_' . $report, new pix_icon('i/item', ''));
+        }
+    }         
+    // END UCLA MOD - CCLE-3465
 }
 
 /**

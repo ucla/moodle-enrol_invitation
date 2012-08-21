@@ -55,6 +55,6 @@ class ucla_cp_module_easyupload extends ucla_cp_module {
     }
 
     function autocap() {
-        return 'moodle/course:update';
+        return 'moodle/course:manageactivities';
     }
 }

@@ -162,12 +162,6 @@ $CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url']
 // CCLE-2301 - COURSE MENU BLOCK
 $CFG->forced_plugin_settings['block_ucla_course_menu']['trimlength'] = 22;
 
-// useful DEV settings
-$CFG->debug = 38911;    // DEVELOPER level debugging messages
-$CFG->debugdisplay = true;  // show the debugging messages
-$CFG->perfdebug = true; // show performance information
-$CFG->debugpageinfo = true; // show page information
-
 // UCLA Theme settings
 $CFG->themedesignermode = true;
 $CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'dev';
@@ -258,8 +252,9 @@ $CFG->forced_plugin_settings['resource']['display'] = 4;   // "Force Download"
 
 // Site administration > Plugins > Activity modules > URL
 $CFG->forced_plugin_settings['url']['requiremodintro'] = 0;
+$CFG->forced_plugin_settings['url']['displayoptions'] = '0,1,2,3,4,5,6';    // allow every option
 $CFG->forced_plugin_settings['url']['printheading'] = 1;
-$CFG->forced_plugin_settings['url']['display'] = 5; // RESOURCELIB_DISPLAY_OPEN
+$CFG->forced_plugin_settings['url']['display'] = 3; // RESOURCELIB_DISPLAY_NEW
 
 // Site administration > Plugins > Enrollments > Guest access
 $CFG->forced_plugin_settings['enrol_guest']['defaultenrol'] = 1;
@@ -296,6 +291,12 @@ $CFG->courselistshortnames = 1;
 
 // Site administration > Server > Session handling
 $CFG->dbsessions = false;
+
+// Site administration > Developement > Debugging
+$CFG->debug = 32767;    // DEVELOPER level debugging messages
+$CFG->debugdisplay = 1;  // show the debugging messages
+$CFG->perfdebug = 15; // show performance information
+$CFG->debugpageinfo = 1; // show page information
 
 /** 
  *  Automatic Shibboleth configurations.
@@ -362,10 +363,6 @@ $CFG->forced_plugin_settings['enrol_database']['localrolefield'] = 'id';
 // CCLE-2824 - Making sure that being assigned/unassigned/re-assigned doesn't 
 // lose grading data
 $CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 3;    // Disable course enrolment and remove roles
-
-// CCLE-2910 - UNEX student support
-
-
 
 // CCLE-2802 - Frontpage banner layout include
 $CFG->customfrontpageinclude = $_dirroot_ . '/theme/uclashared/layout/frontpage.php';
