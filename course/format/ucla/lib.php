@@ -49,7 +49,7 @@ function callback_ucla_uses_sections() {
  * @return bool Returns true
  */
 function callback_ucla_load_content(&$navigation, $course, $coursenode) {
-    return $navigation->load_generic_course_sections($course, $coursenode, 'topics');
+    return $navigation->load_generic_course_sections($course, $coursenode, 'ucla');
 }
 
 /**
