@@ -700,6 +700,8 @@ function get_moodlerole($pseudorole, $subject_area='*SYSTEM*') {
 
     require($CFG->dirroot . '/local/ucla/rolemappings.php');
 
+    $subject_area = trim($subject_area);
+
     // if mapping exists in file, then don't care what values are in the db
     if (!empty($role[$pseudorole][$subject_area])) {
         if ($moodlerole = $DB->get_record('role', 

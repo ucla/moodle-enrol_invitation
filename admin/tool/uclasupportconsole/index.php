@@ -439,7 +439,7 @@ if ($displayforms) {
     $sectionhtml .= supportconsole_simple_form($title, get_uid_input($title));
 } else if ($consolecommand == $title) {
     # tie-in to link from name lookup
-    $uid = required_param('uid', PARAM_INT);
+    $uid = required_param('uid', PARAM_RAW);
     ucla_require_registrar();
     $adodb = registrar_query::open_registrar_connection();
 

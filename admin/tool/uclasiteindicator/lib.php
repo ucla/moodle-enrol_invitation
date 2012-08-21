@@ -865,33 +865,31 @@ class siteindicator_manager {
     }
     
     static function traverse_tree(&$tree, &$ids) {
+        $hascollab = false;
+        
         // Dig into category tree
         if(!empty($tree->categories)) {
             foreach($tree->categories as &$cat) {
                 if(!self::traverse_tree($cat, $ids)) {
                     $cat = null;
+                } else {
+                    $hascollab = true;
                 }
             }
         }
         
         // Check courses
-        if(!empty($tree->courses)) {
-            
-            $hascollab = false;
-
-            foreach($tree->courses as &$c) {
-                
+        if(!empty($tree->courses)) {            
+            foreach($tree->courses as &$c) {                
                 if(in_array($c->id, $ids)) {
                     $hascollab = true;
                 } else {
                     $c = null;
-                }
-                
+                }                
             }
-            
-            return $hascollab;
         }
-
+        
+        return $hascollab;
     }
     
     static function searchbox_js_require() {

@@ -148,6 +148,15 @@ class block_ucla_course_menu extends block_navigation {
                     get_string('pluginname', 'block_ucla_rearrange'));            
             $this->content->text .= html_writer::tag('div', $rearrange, 
                     array('class' => 'edit_control_links'));
+            
+            // copyright link
+            $copyright = html_writer::link(
+                    new moodle_url('/blocks/ucla_copyright_status/view.php', 
+                        array('courseid' => $this->page->course->id, 
+                              'topic' => $ds)), 
+                    get_string('pluginname', 'block_ucla_copyright_status'));            
+            $this->content->text .= html_writer::tag('div', $copyright, 
+                    array('class' => 'edit_control_links'));            
         }
                        
         // get section nodes
@@ -409,7 +418,7 @@ class block_ucla_course_menu extends block_navigation {
      */
     function set_default_location() {
         global $DB;        
-        // make sure that the block is in the top, left
+        // check block_instances table
         if ($this->instance->defaultregion != BLOCK_POS_LEFT ||
                 $this->instance->defaultweight != -10) {
             // block is not in proper location, so set it
@@ -417,6 +426,19 @@ class block_ucla_course_menu extends block_navigation {
             $this->instance->defaultweight = -10;
             $DB->update_record('block_instances', $this->instance);             
         }
+        
+        // check block_positions table
+        if (!empty($this->instance->blockpositionid) &&
+                ($this->instance->region != BLOCK_POS_LEFT ||
+                 $this->instance->weight != -10)) {
+            // block is not in proper position for page, construct 
+            // block_positions object
+            $block_positions = new stdClass();
+            $block_positions->id = $this->instance->blockpositionid;
+            $block_positions->region = BLOCK_POS_LEFT;
+            $block_positions->weight = -10;
+            $DB->update_record('block_positions', $block_positions);             
+        }        
         
         // see if any other bocks are above this block
         $where = 'contextid = :contextid AND blockinstanceid <> :id AND region = :region AND weight <= :weight';

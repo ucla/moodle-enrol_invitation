@@ -90,7 +90,7 @@ abstract class registrar_query {
 
         $recset = $db_reg->Execute($qr);
 
-        if (!$recset->EOF) {
+        if ($recset && !$recset->EOF) {
             while ($fields = $recset->FetchRow()) {
                 if ($this->validate($fields, $driving_data)) {
                     $res = $this->clean_row($fields);
