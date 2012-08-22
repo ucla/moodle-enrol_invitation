@@ -1,33 +1,34 @@
 The questionnaire module allows you to construct questionnaires (surveys) from a
-variety of question type. It is based on phpESP, and Open Source survey tool 
-(see: http://phpesp.sourceforge.net). 
+variety of question type. It was originally based on phpESP, and Open Source 
+survey tool (see: http://phpesp.sourceforge.net), but has since diverged. 
+
 --------------------------------------------------------------------------------
-Version 2005021101 - Updates:
+To Install:
 
-The management functions have been (stage 1) integrated into Moodle. This
-consists of using the existing phpESP tab screens, but building them into the
-standard Moodle module interfaces.
+1. Load the questionnaire module directory into your "mod" subdirectory.
+2. Visit your admin page to create all of the necessary data tables.
 
-Creating and editing questionnaires is done in two phases (similar to quizzes
-and resources). The first phase lets you enter all of the module parameters that
-affect how it works. The second phase is the content management (i.e. editing
-the actual survey).
+--------------------------------------------------------------------------------
+To Upgrade:
 
-The old methods of phpESP user and group management have been removed. Now,
-questionnaires are owned by the course they are created in, and can be managed
-by teachers of tha course.
+1. Copy all of the files into your 'mod/questionnaire' directory.
+2. Visit your admin page. The database will be updated.
+3. You may need to copy the 'lang/help/questionnaire/*' files to your language
+   directory.
+4. As part of the update, all existing surveys are assigned as either 'private',
+   'public' or 'temmplate'. Surveys assigned to a single questionnaire are set
+   to 'private' with the questionnaire's course as the owner. Surveys assigned
+   to multiple questionnaires in the same course are set to 'public' with the
+   questionnaire's course as the owner. Surveys assigned to multiple 
+   questionnaires in multiple courses are set to 'public' with the site ID as
+   the owner. Surveys that are not deleted but have no associated questionnaires
+   are set to 'template' with the site ID as the owner.
+   
+IF YOU ARE UPGRADING TO MOODLE 2.3...
 
-There are now three types of questionnaires:
-
-1. Private - belongs to the course it is defined in only.
-This is the standard Moodle module concept. You create a questionnaire and its
-survey content for the course it is defined in. Editing teachers of that course
-can change the questionnaire and all teachers can review the results.
-
-2. Public - can be shared among courses.
-This is a hybrid of the Moodle module concept. This provides a similar function
-to the 'library of surveys' from previous releases of this module. Public
-questionnaires can be assigned to a newly created questionnaire. If a
+Make sure that you upgrade the questionnaire module to the latest 2.2 version in
+a Moodle 2.2 install first.
+a
 questionnaire uses a public questionnaire from a different course, teachers
 cannot edit the content nor view the results in the course that is using it.
 Only teachers from the course that defined the original 'public' questionnaire
