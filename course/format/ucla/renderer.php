@@ -221,6 +221,7 @@ class format_ucla_renderer extends format_section_renderer_base {
      * Copied from base class method with following differences:
      *  - increase/decrease sections links include "show_all" parameter
      *  - print section 0 related stuff
+     *  - always show section content, even if editing is off
      *
      * @param stdClass $course The course entry from DB
      * @param array $sections The course_sections entries from the DB
@@ -285,19 +286,15 @@ class format_ucla_renderer extends format_section_renderer_base {
                 continue;
             }
 
-            if (!$PAGE->user_is_editing() && $course->coursedisplay == COURSE_DISPLAY_MULTIPAGE) {
-                // Display section summary only.
-                echo $this->section_summary($thissection, $course, $mods);
-            } else {
-                echo $this->section_header($thissection, $course, false);
-                if ($thissection->uservisible) {
-                    print_section($course, $thissection, $mods, $modnamesused);
-                    if ($PAGE->user_is_editing()) {
-                        print_section_add_menus($course, $section, $modnames);
-                    }
+            // always show section content, even if editing is off
+            echo $this->section_header($thissection, $course, false);
+            if ($thissection->uservisible) {
+                print_section($course, $thissection, $mods, $modnamesused);
+                if ($PAGE->user_is_editing()) {
+                    print_section_add_menus($course, $section, $modnames);
                 }
-                echo $this->section_footer();
             }
+            echo $this->section_footer();
 
             unset($sections[$section]);
         }

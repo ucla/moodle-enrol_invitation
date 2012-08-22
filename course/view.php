@@ -48,6 +48,25 @@
 
     $urlparams = array('id' => $course->id);
 
+    // START UCLA MOD: CCLE-3362 - Update ucla format to handle new format API
+    // Redirect old landing page (topic=-4) & show all (topic=-2) to new conventions
+    $topic = optional_param('topic', 0, PARAM_INT);
+    if ($section == -4 || $topic == -4) {
+        // new landing page is just giving course url without section=
+        redirect(new moodle_url('/course/view.php', $urlparams));
+    }
+    if ($section == -2 || $topic == -2) {
+        // new show all page is show_all=1
+        $urlparams['show_all'] = 1;
+        redirect(new moodle_url('/course/view.php', $urlparams));
+    }    
+    // support new "show_all" parameter, so that turn editing on/off keeps user on "show all"
+    $show_all = optional_param('show_all', false, PARAM_BOOL);
+    if ($show_all) {
+        $urlparams['show_all'] = 1;
+    }
+    // END UCLA MOD: CCLE-3362    
+    
     // Sectionid should get priority over section number
     if ($sectionid) {
         $section = $DB->get_field('course_sections', 'section', array('id' => $sectionid, 'course' => $course->id), MUST_EXIST);
@@ -55,7 +74,7 @@
     if ($section) {
         $urlparams['section'] = $section;
     }
-
+    
     $PAGE->set_url('/course/view.php', $urlparams); // Defined here to avoid notices on errors etc
 
     // Prevent caching of this page to stop confusion when changing page after making AJAX changes
