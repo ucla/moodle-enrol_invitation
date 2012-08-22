@@ -205,6 +205,29 @@ class block_ucla_course_menu extends block_navigation {
         // the elements
         $elements = array();
 
+        // for "Show all"
+        $showallurlparams = array(
+            'id' => $course_id,
+            'show_all' => 1
+        );              
+        
+        // set active url to make sure that section 0 and show all are highlighted
+        if ($this->get_course_format() == 'ucla') {
+            // This will allow the navigation node to highlight the 
+            // current section, including show all
+            // but this won't change it for the navigation bar
+            if ($this->displaysection == UCLA_FORMAT_DISPLAY_ALL) {          
+                navigation_node::override_active_url(
+                    new moodle_url('/course/view.php', $showallurlparams)
+                );
+            } else if ($this->displaysection >= 0) {
+                navigation_node::override_active_url(
+                    new moodle_url('/course/view.php', 
+                            array('id' => $course_id, 'section' => $this->displaysection))
+                );
+            }
+        }                
+        
         $viewhiddensections = has_capability(
             'moodle/course:viewhiddensections', $this->page->context);
         
@@ -242,22 +265,8 @@ class block_ucla_course_menu extends block_navigation {
             }
         }
 
+        // Create view-all section link
         if ($this->get_course_format() == 'ucla') {
-            $showallurlparams = array(
-                'id' => $course_id,
-                'show_all' => 1
-            );
-
-            // This will allow the navigation node to highlight the 
-            // current section, including show all
-            // but this won't change it for the navigation bar
-            if ($this->displaysection == UCLA_FORMAT_DISPLAY_ALL) {
-                navigation_node::override_active_url(
-                    new moodle_url('/course/view.php', $showallurlparams)
-                );
-            } 
-
-            // Create view-all section link
             $elements['view-all'] = navigation_node::create(
                 get_string('show_all', 'format_ucla'),
                 new moodle_url('/course/view.php', $showallurlparams), 
