@@ -28,11 +28,6 @@ require_once(dirname(__FILE__) . "/../config.php");
 
 $loginguest = optional_param('loginguest', 0, PARAM_INT);
 
-// Modified 200706191502 by Eric Bollens to Remove Hardcoding
-// Shibboleth requires HTTPS
-$PAGE->https_required();
-$CFG->httpswwwroot = str_replace("http://", "https://", $CFG->httpswwwroot);
-
 /** Modified 20071214 by Jovca
  * If the user got here via standard Moodle login redirect, he'll have the 
  * string "shibboleth" as a GET parameter, thanks to the Moodle setting for 
@@ -51,7 +46,7 @@ if (empty($SESSION->ucla_login_error)) {
 	$SESSION->ucla_login_error = NULL; 
 }
 
-$shibredir = $CFG->httpswwwroot . '/auth/shibboleth/index.php';
+$shibredir = $CFG->wwwroot . '/auth/shibboleth/index.php';
 if (!$errormsg and optional_param('shibboleth', false, PARAM_BOOL) !== false) {
     redirect($shibredir);
     exit();
@@ -98,8 +93,11 @@ $site = get_site();
 
 $loginsite = get_string('loginsite');
 
+//HTTPS is required in this page when $CFG->loginhttps enabled
+$PAGE->https_required();
+
 $context = get_context_instance(CONTEXT_SYSTEM);
-$PAGE->set_url("$CFG->httpswwwroot/login/ucla_login.php");
+$PAGE->set_url("$CFG->wwwroot/login/ucla_login.php");
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('login');
 
@@ -267,11 +265,28 @@ if ($session_has_timed_out && !data_submitted()) {
     $errorcode = 4;
 }
 
-if (get_moodle_cookie() === 'nobody') {
-    $frm->username = '';
+// make sure we really are on the https page when https login required
+$PAGE->verify_https_required();
+
+/// Generate the login page with forms
+
+if (!isset($frm) or !is_object($frm)) {
+    $frm = new stdClass();
+}
+
+if (empty($frm->username)) {
+    if (!empty($_GET["username"])) {
+        $frm->username = clean_param($_GET["username"], PARAM_RAW); // we do not want data from _POST here
+    } else {
+        $frm->username = get_moodle_cookie();
+    }
+
+    $frm->password = "";
+}
+
+if (!empty($frm->username)) {
     $focus = "password";
 } else {
-    $frm->username = get_moodle_cookie();
     $focus = "username";
 }
 
@@ -280,13 +295,27 @@ echo $OUTPUT->header();
 // We're going to get the built-in Moodle's login form, and then
 // try to search and replace the link to Moodle's login/index.php with a
 // link to our login/ucla_login.php
-ob_start();
-include("index_form.html");
-$form = ob_get_clean();
+if (isloggedin() and !isguestuser()) {
+    // prevent logging when already logged in, we do not want them to relogin by accident because sesskey would be changed
+    echo $OUTPUT->box_start();
+    $logout = new single_button(new moodle_url($CFG->httpswwwroot.'/login/logout.php', array('sesskey'=>sesskey(),'loginpage'=>1)), get_string('logout'), 'post');
+    $continue = new single_button(new moodle_url($CFG->httpswwwroot.'/login/index.php', array('cancel'=>1)), get_string('cancel'), 'get');
+    echo $OUTPUT->confirm(get_string('alreadyloggedin', 'error', fullname($USER)), $logout, $continue);
+    echo $OUTPUT->box_end();
+} else {
+    ob_start();
+    include("index_form.html");
+    $form = ob_get_clean();
 
-$target_form = str_replace($CFG->httpswwwroot . '/login/index.php', 
-    $PAGE->url, $form);
+    $target_form = str_replace($CFG->httpswwwroot . '/login/index.php', 
+        $PAGE->url, $form);
 
-echo $target_form;
+    echo $target_form;
+    if (!empty($CFG->loginpageautofocus)) {
+        //focus username or password
+        $PAGE->requires->js_init_call('M.util.focus_login_form', null, true);
+    }    
+}
+
 echo $OUTPUT->footer();
 
