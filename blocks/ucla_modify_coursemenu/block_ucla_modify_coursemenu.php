@@ -76,7 +76,7 @@ class block_ucla_modify_coursemenu extends block_base {
      *  Convenience function to overwrite values of oldsection with
      *  values in newsection, but only if oldsection has the field already.
      **/
-    function section_apply($oldsection, $newsection) {
+    static function section_apply($oldsection, $newsection) {
         foreach ($newsection as $f => $v) {
             if (isset($oldsection->{$f})) {
                 $oldsection->{$f} = $v;
@@ -104,7 +104,7 @@ class block_ucla_modify_coursemenu extends block_base {
      *  Convenience function for generating code that sets data to
      *  associated js object.
      **/
-    function js_init_code_helper($varname, $value) {
+    static function js_init_code_helper($varname, $value) {
         global $PAGE;
 
         $PAGE->requires->js_init_code(
@@ -118,7 +118,7 @@ class block_ucla_modify_coursemenu extends block_base {
     /**
      *  Convenience function.
      **/
-    function many_js_init_code_helpers($vararr) {
+    static function many_js_init_code_helpers($vararr) {
         foreach ($vararr as $vn => $vd) {
             self::js_init_code_helper($vn, $vd);
         }

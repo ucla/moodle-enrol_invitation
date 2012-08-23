@@ -63,7 +63,7 @@ foreach ($allsections as $k => $section) {
 
 $courseviewurl = new moodle_url('/course/view.php', array('id' => $courseid, 'section' => $section_num));
 
-$modinfo =& get_fast_modinfo($course);
+$modinfo = get_fast_modinfo($course);
 
 $course_preferences = new ucla_course_prefs($courseid);
 $landing_page = $course_preferences->get_preference('landing_page', false);
@@ -381,9 +381,8 @@ if ($passthrudata || $verifydata) {
 
     $deletesectionids = $passthrudata->deletesectionids;
     if (!empty($deletesectionids)) {
-        // commented out because it currently breaks the course/view.php page
-        //$DB->delete_records_list('course_sections', 'id', 
-        //    $deletesectionids);
+        $DB->delete_records_list('course_sections', 'id', 
+            $deletesectionids);
     }
 
     $newsections = $passthrudata->sections;
@@ -422,8 +421,10 @@ if ($passthrudata || $verifydata) {
         } else {
             //$DB->update_record('course_sections', $section);
             $update_section = $section;
-            $update_section->id = $DB->get_field('course_sections', 'id', 
-                    array('course' => $section->course, 'section' => $section->section));
+            $crs_sec = array('course' => $section->course, 'section' => $section->section);
+            if ($DB->record_exists('course_sections', $crs_sec)) {
+                $update_section->id = $DB->get_field('course_sections', 'id', $crs_sec);
+            }
             $DB->update_record('course_sections', $update_section);
         }
     }
