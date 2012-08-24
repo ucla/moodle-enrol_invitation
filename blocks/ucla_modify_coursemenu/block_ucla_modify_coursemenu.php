@@ -96,7 +96,7 @@ class block_ucla_modify_coursemenu extends block_base {
      *  but behavior changed.
      *  
      **/
-    function section_is_empty($section) {
+    static function section_is_empty($section) {
         return empty($section->sequence);
     }
 

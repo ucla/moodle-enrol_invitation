@@ -409,23 +409,33 @@ if ($passthrudata || $verifydata) {
             $cursectionnum = next($allsectionskeys);
         }
     }
-
-    foreach ($newsections as $section) {
-        // No need to update site info...
+    
+    // Update db entries to reflect changes in sections
+    // Each time we update/insert a section, we check if the course/section pair
+    // already exists, and if so, assign that db record a temporary section number
+    // Then update/insert the new record
+    $temp_num = $newcoursenumsections + 2;
+    foreach($newsections as $section) {
+        // Skip 'Site info' section
         if ($section->section == 0) {
             continue;
         }
-
+        
+        // Course/section pair is a unique index, and thus needs to be checked for duplicates
+        $course_section_pair = array('course' => $section->course, 'section' => $section->section);
+        
         if (!isset($section->id)) {
+            if ($DB->record_exists('course_sections', $course_section_pair)) {
+                $DB->set_field('course_sections', 'section', $temp_num, $course_section_pair);
+                $temp_num++;
+            }
             $DB->insert_record('course_sections', $section);
         } else {
-            //$DB->update_record('course_sections', $section);
-            $update_section = $section;
-            $crs_sec = array('course' => $section->course, 'section' => $section->section);
-            if ($DB->record_exists('course_sections', $crs_sec)) {
-                $update_section->id = $DB->get_field('course_sections', 'id', $crs_sec);
+            if ($DB->record_exists('course_sections', $course_section_pair)) {
+                $DB->set_field('course_sections', 'section', $temp_num, $course_section_pair);
+                $temp_num++;
             }
-            $DB->update_record('course_sections', $update_section);
+            $DB->update_record('course_sections', $section);
         }
     }
 
