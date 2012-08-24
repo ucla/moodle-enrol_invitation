@@ -62,7 +62,8 @@ foreach ($sections as $section) {
     $sectionvisibility[$sid] = $section->visible;
 }
 
-$modinfo = & get_fast_modinfo($course);
+$temp = get_fast_modinfo($course);
+$modinfo = & $temp;
 get_all_mods($courseid, $mods, $modnames, $modnamesplural, $modnamesused);
 
 $sectionnodeshtml = block_ucla_rearrange::get_section_modules_rendered(
@@ -146,6 +147,9 @@ $customvars = array(
 block_ucla_rearrange::setup_nested_sortable_js($sectionshtml,
         '.' . block_ucla_rearrange::pagelistclass, $customvars);
 
+// Used later to determine which section to redirect to after successful form submit
+$section_redirect = $section_num;
+
 // All prepped, now we need to add the actual rearrange form
 // The form is useful since it lets us maintain serialized data and
 // helps us filter stuff.
@@ -223,10 +227,17 @@ if ($data = $rearrangeform->get_data()) {
 
         $sectioncontents[$section] = $flattened;
     }
+    
+    // Section id to redirect to after moving the sections around
+    $sectionid = $DB->get_field('course_sections', 'id', array('course' => $course->id, 'section' => $section_num));
 
     // We're going to skip the API calls because it uses too many DBQ's
     block_ucla_rearrange::move_modules_section_bulk($sectioncontents,
             $sectiontranslation);
+    
+    // Set the section correct value after moving sections around
+    $section_redirect = $DB->get_field('course_sections', 'section', array('id' => $sectionid));
+    $_POST['section'] = $section_redirect;
 
     // Now we need to swap all the contents in each section...
     rebuild_course_cache($courseid);
@@ -250,14 +261,15 @@ if ($data != false) {
     $courseurl = new moodle_url('/course/view.php', $params);
     $courseret = new single_button($courseurl, get_string('returntocourse',
                             'block_ucla_rearrange'), 'get');
-
+    
+    // TODO: Add in logic to determine if we should redirect to 'Show all'
     $secturl = new moodle_url('/course/view.php',
-                    array('id' => $courseid, 'section' => $section_num));
+                    array('id' => $courseid, 'section' => $section_redirect));
     $sectret = new single_button($secturl, get_string('returntosection',
                             'block_ucla_rearrange'), 'get');
 
     echo $OUTPUT->confirm(get_string('rearrange_success', 'block_ucla_rearrange'),
-            $sectret, $courseret);
+            $courseret, $sectret);
 } else {
     /* for section < 0, the secid doesnt matter because we will expand all
      * However, if will give warning if we use $secid = ($sections[$section_num]->id);

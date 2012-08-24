@@ -267,7 +267,8 @@ class block_ucla_rearrange extends block_base {
         $clean = array();
         foreach ($sections as $sectionold => $sectiontext) {
             // Accounting for the unavailablity of section 0
-            $clean[$sectionold] = end(explode('-', $sectiontext));
+            $text = explode('-', $sectiontext);
+            $clean[$sectionold] = end($text);
         }
 
         return $clean;
@@ -284,7 +285,7 @@ class block_ucla_rearrange extends block_base {
      **/
     static function move_modules_section_bulk($sectionmodules, 
             $ordersections=array()) {
-        global $DB;
+        global $DB, $COURSE;
 
         // Split the arrary of oldsections with new modules into
         // an array of section sequences, and module indents?
@@ -339,7 +340,13 @@ class block_ucla_rearrange extends block_base {
             $DB->update_record('course_modules', $module, true);
         }
 
-        foreach ($sections as $sectnum => $section) {
+        $temp_num = count($sections) + 2;
+        foreach ($sections as $section) {
+            $course_section_pair = array('course' => $COURSE->id, 'section' => $section['section']);
+            if ($DB->record_exists('course_sections', $course_section_pair)) {
+                $DB->set_field('course_sections', 'section', $temp_num, $course_section_pair);
+                $temp_num++;
+            }
             $DB->update_record('course_sections', $section, true);
         }
     }

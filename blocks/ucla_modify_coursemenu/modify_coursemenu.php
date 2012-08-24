@@ -63,7 +63,8 @@ foreach ($allsections as $k => $section) {
 
 $courseviewurl = new moodle_url('/course/view.php', array('id' => $courseid, 'section' => $section_num));
 
-$modinfo = get_fast_modinfo($course);
+$temp = get_fast_modinfo($course);
+$modinfo = & $temp;
 
 $course_preferences = new ucla_course_prefs($courseid);
 $landing_page = $course_preferences->get_preference('landing_page', false);
