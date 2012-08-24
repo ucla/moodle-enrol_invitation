@@ -207,7 +207,8 @@ if ($frm !== false && isset($frm->username)) {
                 && !is_siteadmin() && !isguestuser()) {
             if ($urltogo == $CFG->wwwroot 
                     || $urltogo == $CFG->wwwroot.'/' 
-                    || $urltogo == $CFG->wwwroot.'/index.php') {
+                    || $urltogo == $CFG->wwwroot.'/index.php'
+                    || $urltogo == $CFG->wwwroot.'/login/ucla_login.php') {
                 $urltogo = $CFG->wwwroot.'/my/';
             }
         }
