@@ -164,6 +164,14 @@ span.commands a:hover {
 }
 /* END feature/CCLE-2800 JIT controls */
 
+/* CCLE-3458 - move icon styling */
+.editing_move_totext {
+    margin-left: 0;
+    margin-right: 19px;
+    padding: 0;
+    color: #FF6666;
+}
+
 /* CCLE-3069 - Convert icons for "Turn editing on" into text */
 .mod-indent span.commands { display: block;float: right; }
 span.commands a {margin-right: 10px;}
