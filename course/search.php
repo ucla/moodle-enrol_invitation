@@ -14,6 +14,10 @@
     $show      = optional_param('show', 0, PARAM_INT);
     $blocklist = optional_param('blocklist', 0, PARAM_INT);
     $modulelist= optional_param('modulelist', '', PARAM_PLUGIN);
+    // START UCLA MOD CCLE-2309 - filter collaboration sites
+    $collab = optional_param('collab', 0, PARAM_BOOL);
+    $course = optional_param('course', 0, PARAM_BOOL);
+    // END UCLA MOD  CCLE-2309
 
     // List of minimum capabilities which user need to have for editing/moving course
     $capabilities = array('moodle/course:create', 'moodle/category:manage');
@@ -56,7 +60,7 @@
     if ($CFG->forcelogin) {
         require_login();
     }
-
+    
     //Editing is possible if user have system or category level create and manage capability
     if (can_edit_in_category() || !empty($usercatlist)) {
         if ($edit !== -1) {
@@ -112,13 +116,23 @@
 
         echo $OUTPUT->header();
         echo $OUTPUT->box_start();
-        echo "<center>";
-        echo "<br />";
-        print_course_search("", false, "plain");
-        echo "<br /><p>";
-        print_string("searchhelp");
-        echo "</p>";
-        echo "</center>";
+        // START UCLA MOD CCLE-2309 - output yui search
+        $ucla_search = $CFG->dirroot . '/blocks/ucla_search/block_ucla_search.php';
+        if(file_exists($ucla_search)) {
+            require_once($ucla_search);
+            block_ucla_search::load_search_js(false);
+            echo block_ucla_search::print_course_search($search, $collab, $course);
+        } else {
+        
+            echo "<center>";
+            echo "<br />";
+            print_course_search("", false, "plain");
+            echo "<br /><p>";
+            print_string("searchhelp");
+            echo "</p>";
+            echo "</center>";
+        }
+        // END UCLA MOD CCLE-2309
         echo $OUTPUT->box_end();
         echo $OUTPUT->footer();
         exit;
@@ -191,8 +205,10 @@
             $totalcount = 0;
         }
     } else if (!empty($searchterm)) { //Donot do search for empty search request.
+        // START UCLA MOD CCLE-2309 - filter collaboration sites
         $courses = get_courses_search($searchterms, "fullname ASC",
-            $page, $perpage, $totalcount);
+            $page, $perpage, $totalcount, array('collab' => $collab, 'course' => $course));
+        // END UCLA MOD CCLE-2309
     }
 
     $searchform = '';
@@ -209,7 +225,9 @@
         $aurl = new moodle_url("$CFG->wwwroot/course/search.php", $params);
         $searchform = $OUTPUT->single_button($aurl, $string, 'get');
     } else {
-        $searchform = print_course_search($search, true, "navbar");
+        // START UCLA MOD CCLE-2309 - hide navigation search
+//        $searchform = print_course_search($search, true, "navbar");
+        // END UCLA MOD CCLE-2309
     }
 
     $PAGE->navbar->add($strcourses, new moodle_url('/course/index.php'));
@@ -222,7 +240,16 @@
     $PAGE->set_button($searchform);
 
     echo $OUTPUT->header();
-
+    
+    // START UCLA MOD CCLE-2309 - output yui search
+    $ucla_search = $CFG->dirroot . '/blocks/ucla_search/block_ucla_search.php';
+    if(file_exists($ucla_search)) {
+        require_once($ucla_search);
+        block_ucla_search::load_search_js(false);
+        echo block_ucla_search::print_course_search($search, $collab, $course);
+    }
+    // START UCLA MOD CCLE-2309
+    
     $lastcategory = -1;
     if ($courses) {
         echo $OUTPUT->heading("$strsearchresults: $totalcount");
@@ -373,7 +400,9 @@
 
     echo "<br /><br />";
 
-    print_course_search($search);
+    // START UCLA MOD CCLE-2309 - hiding standard search form
+//    print_course_search($search);
+    // END UCAL MOD CCLE-2309
 
     echo $OUTPUT->footer();
 
