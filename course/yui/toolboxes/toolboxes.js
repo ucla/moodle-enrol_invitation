@@ -482,8 +482,11 @@ YUI.add('moodle-course-toolboxes', function(Y) {
                 .setStyle('cursor', 'pointer')
                 .addClass(CSS.MOVELEFTCLASS)
                 .setAttribute('href', newlink)
-                .setAttribute('title', left_string);
-            anchor.appendChild(newicon);
+                .setAttribute('title', left_string)
+                // START UCLA MOD CCLE-3484 - unindent icon converted to text
+                .setHTML(left_string);
+//            anchor.appendChild(newicon);
+                // END UCLA MOD CCLE-3484
             anchor.on('click', this.move_left, this);
             moveright.insert(anchor, 'before');
         },
