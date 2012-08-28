@@ -32,6 +32,9 @@ class siteindicator_site {
         
         $indicator = $DB->get_record('ucla_siteindicator', 
                 array('courseid' => $courseid), '*', MUST_EXIST);
+        
+        $this->property = new stdClass();
+        
         $this->property->courseid = $courseid;
         $this->property->type = $indicator->type;
         $this->_id = $indicator->id;
