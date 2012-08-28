@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Moodle integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id: rest.php 149 2012-06-19 00:33:23Z azeckoski@gmail.com $ */
+/* $Id: rest.php 164 2012-08-22 20:11:41Z azeckoski@gmail.com $ */
 
 // this includes lib/setup.php and the standard set:
 //setup.php : setup which creates the globals
@@ -46,15 +46,15 @@ require_once ('controller.php');
  * This will check for a user and return the user_id if one can be found
  * @param string $msg the error message
  * @return int the user_id
- * @throws SecurityException if no user can be found
+ * @throws ClickerSecurityException if no user can be found
  */
-function get_and_check_current_user($msg) {
+function iclicker_get_and_check_current_user($msg) {
     $user_id = iclicker_service::get_current_user_id();
     if (! $user_id) {
-        throw new SecurityException("Only logged in users can $msg");
+        throw new ClickerSecurityException("Only logged in users can $msg");
     }
     if (! iclicker_service::is_admin($user_id) && ! iclicker_service::is_instructor($user_id)) {
-        throw new SecurityException("Only instructors can " . $msg);
+        throw new ClickerSecurityException("Only instructors can " . $msg);
     }
     return $user_id;
 }
@@ -62,9 +62,11 @@ function get_and_check_current_user($msg) {
 /**
  * Attempt to authenticate the current request based on request params and basic auth
  * @param iclicker_controller $cntlr the controller instance
- * @throws SecurityException if authentication is impossible given the request values
+ * @throws ClickerSecurityException if authentication is impossible given the request values
+ * @throws ClickerSSLRequiredException if the auth request is bad (requires SSL but SSL not used)
  */
-function handle_authn($cntlr) {
+function iclicker_handle_authn($cntlr) {
+    global $CFG;
     // extract the authn params
     $auth_username = optional_param(iclicker_controller::LOGIN, NULL, PARAM_NOTAGS);
     $auth_password = optional_param(iclicker_controller::PASSWORD, NULL, PARAM_NOTAGS);
@@ -75,6 +77,16 @@ function handle_authn($cntlr) {
         if (empty($auth_username)) {
             // attempt to get it from the header as a final try
             list($auth_username, $auth_password) = explode(':', base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6)));
+        }
+    }
+    if (iclicker_service::$block_iclicker_sso_enabled && !empty($auth_password)) {
+        // when SSO is enabled and the password is set it means this is not actually a user password so we can proceed without requiring SSL
+    } else {
+        // this is a user password so https must be used if the loginhttps option is enabled
+        $ssl_request = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+        $ssl_required = (isset($CFG->forcehttps) && $CFG->forcehttps == true) || (isset($CFG->loginhttps) && $CFG->loginhttps == true);
+        if ($ssl_required && !$ssl_request) {
+            throw new ClickerSSLRequiredException('SSL is required when performing a user login (and sending user passwords)');
         }
     }
     //$session_id = optional_param(iclicker_controller::SESSION_ID, NULL, PARAM_NOTAGS);
@@ -99,7 +111,7 @@ function handle_authn($cntlr) {
  * @param object $cntlr the controller instance
  * @return string the XML data OR null if none can be found
  */
-function get_xml_data($cntlr) {
+function iclicker_get_xml_data($cntlr) {
     $xml = optional_param(iclicker_controller::XML_DATA, NULL, PARAM_RAW_TRIMMED);
     if (empty($xml)) {
         $xml = $cntlr->body;
@@ -161,11 +173,11 @@ if ($valid) {
         } else {
             // NORMAL case handling
             // handle the request authn if needed
-            handle_authn($cntlr);
+            iclicker_handle_authn($cntlr);
             if ("GET" == $cntlr->method) {
                 if ("courses" == $pathSeg0) {
                     // handle retrieving the list of courses for an instructor
-                    $user_id = get_and_check_current_user("access instructor courses listings");
+                    $user_id = iclicker_get_and_check_current_user("access instructor courses listings");
                     $output = iclicker_service::encode_courses($user_id);
 
                 } else if ("students" == $pathSeg0) {
@@ -175,7 +187,7 @@ if ($valid) {
                         throw new InvalidArgumentException(
                                 "valid course_id must be included in the URL /students/{course_id}");
                     }
-                    get_and_check_current_user("access student enrollment listings");
+                    iclicker_get_and_check_current_user("access student enrollment listings");
                     $output = iclicker_service::encode_enrollments($course_id);
 
                 } else {
@@ -193,8 +205,8 @@ if ($valid) {
                         throw new InvalidArgumentException(
                                 "valid course_id must be included in the URL /gradebook/{course_id}");
                     }
-                    get_and_check_current_user("upload grades into the gradebook");
-                    $xml = get_xml_data($cntlr);
+                    iclicker_get_and_check_current_user("upload grades into the gradebook");
+                    $xml = iclicker_get_xml_data($cntlr);
                     try {
                         $gradebook = iclicker_service::decode_gradebook($xml);
                         // process gradebook data
@@ -220,15 +232,15 @@ if ($valid) {
                     }
 
                 } else if ("authenticate" == $pathSeg0) {
-                    get_and_check_current_user("authenticate via iclicker");
+                    iclicker_get_and_check_current_user("authenticate via iclicker");
                     // special return, non-XML
                     $cntlr->setStatus(204); //No content
                     $cntlr->sendResponse();
                     return; // SHORT CIRCUIT
 
                 } else if ("register" == $pathSeg0) {
-                    get_and_check_current_user("upload registrations data");
-                    $xml = get_xml_data($cntlr);
+                    iclicker_get_and_check_current_user("upload registrations data");
+                    $xml = iclicker_get_xml_data($cntlr);
                     $cr = iclicker_service::decode_registration($xml);
                     $owner_id = $cr->owner_id;
                     $message = '';
@@ -272,7 +284,7 @@ if ($valid) {
                 }
             }
         }
-    } catch (SecurityException $e) {
+    } catch (ClickerSecurityException $e) {
         $valid = false;
         $current_user_id = iclicker_service::get_current_user_id();
         if (! $current_user_id) {
@@ -287,6 +299,11 @@ if ($valid) {
         $output = "Invalid request: " . $e;
         //log.warn("i>clicker: " + $output, $e);
         $status = 400; //BAD_REQUEST;
+    } catch (ClickerSSLRequiredException $e) {
+        $valid = false;
+        $output = "SSL_REQUIRED: " . $e;
+        //log.warn("i>clicker: " + $output, $e);
+        $status = 426; //UPGRADE_REQUIRED;
     } catch (Exception $e) {
         $valid = false;
         $output = "Failure occurred: " . $e;
@@ -329,8 +346,7 @@ if ($valid) {
         " -- Invalid credentials or sessionId will result in a 401 (invalid credentials) or 403 (not authorized) status \n".
         " - Use ".iclicker_controller::COMPENSATE_METHOD." param to override the http method being used (e.g. POST /courses?".iclicker_controller::COMPENSATE_METHOD."=GET will force the method to be a GET despite sending as a POST) \n".
         " - Send data as the http request BODY or as a form parameter called ".iclicker_controller::XML_DATA." \n".
-        " - All endpoints return 403 if user is not an instructor \n";
+        " - All endpoints return 403 if user is not an instructor \n".
+        " - Version: ".iclicker_service::VERSION." (".iclicker_service::BLOCK_VERSION.") \n";
     $cntlr->sendResponse($msg);
 }
-
-?>

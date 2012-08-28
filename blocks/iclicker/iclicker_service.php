@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Moodle integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id: iclicker_service.php 148 2012-06-19 00:25:08Z azeckoski@gmail.com $ */
+/* $Id: iclicker_service.php 164 2012-08-22 20:11:41Z azeckoski@gmail.com $ */
 
 require_once (dirname(__FILE__).'/../../config.php');
 global $CFG,$USER,$COURSE;
@@ -35,15 +35,13 @@ require_once ($CFG->libdir.'/accesslib.php');
  * @return bool
  * @throws DOMException
  */
-function HandleXmlError($errno, $errstr, $errfile, $errline) {
+function iclicker_HandleXmlError($errno, $errstr, $errfile, $errline) {
     if ($errno==E_WARNING && (substr_count($errstr,"DOMDocument::loadXML()")>0)) {
         throw new DOMException($errstr);
     } else {
         return false;
     }
 }
-
-// TODO http://docs.moodle.org/dev/DB_layer_2.0_migration_docs
 
 /**
  * Defines an exception which can occur when validating clicker ids
@@ -100,12 +98,18 @@ class ClickerRegisteredException extends Exception {
 }
 
 /**
- * This marks an exception as being related to an authn or authz failure
+ * Indicates that this connection requires SSL
  */
-class SecurityException extends Exception {
+class ClickerSSLRequiredException extends Exception {
 }
 
-class WebservicesException extends Exception {
+/**
+ * This marks an exception as being related to an authn or authz failure
+ */
+class ClickerSecurityException extends Exception {
+}
+
+class ClickerWebservicesException extends Exception {
 }
 
 /**
@@ -114,8 +118,8 @@ class WebservicesException extends Exception {
 class iclicker_service {
 
     // CONSTANTS
-    const VERSION = '1.0';
-    const BLOCK_VERSION = 2012041700; // MUST match version.php
+    const VERSION = '1.1';
+    const BLOCK_VERSION = 2012082200; // MUST match version.php
     const BLOCK_NAME = 'block_iclicker';
     const BLOCK_PATH = '/blocks/iclicker';
     const REG_TABLENAME = 'iclicker_registration';
@@ -296,7 +300,7 @@ class iclicker_service {
      * @param $password
      * @param string $ssoKey [OPTIONAL] the sso key sent in the request OR null if there was not one
      * @return bool true if the authentication is successful
-     * @throws SecurityException  if auth invalid
+     * @throws ClickerSecurityException  if auth invalid
      */
     public static function authenticate_user($username, $password, $ssoKey=null) {
         global $USER;
@@ -308,12 +312,12 @@ class iclicker_service {
                 if ($user && self::checkUserKey($user->id, $password)) {
                     complete_user_login($user);
                 } else {
-                    throw new SecurityException('Could not SSO authenticate username ('.$username.')');
+                    throw new ClickerSecurityException('Could not SSO authenticate username ('.$username.')');
                 }
             } else {
                 $u = authenticate_user_login($username, $password);
                 if ($u === false) {
-                    throw new SecurityException('Could not authenticate username ('.$username.')');
+                    throw new ClickerSecurityException('Could not authenticate username ('.$username.')');
                 }
                 complete_user_login($u);
             }
@@ -324,26 +328,26 @@ class iclicker_service {
     /**
      * Ensure user is logged in and return the current user id
      * @return string the current user id
-     * @throws SecurityException if there is no current user
+     * @throws ClickerSecurityException if there is no current user
      * @static
      */
     public static function require_user() {
         global $USER;
         if (!isset($USER->id) || !$USER->id) {
-            throw new SecurityException('User must be logged in');
+            throw new ClickerSecurityException('User must be logged in');
         }
         return $USER->id;
     }
 
     /**
      * Gets the current user_id, return false if none can be found
-     * @return boolean the current user id OR null/false if no user
+     * @return int|boolean the current user id OR null/false if no user
      */
     public static function get_current_user_id() {
         $current_user = null;
         try {
             $current_user = self::require_user();
-        } catch (SecurityException $e) {
+        } catch (ClickerSecurityException $e) {
             $current_user = false;
         }
         return $current_user;
@@ -503,7 +507,7 @@ class iclicker_service {
             try {
                 $user_id = self::require_user();
             }
-            catch (SecurityException $e) {
+            catch (ClickerSecurityException $e) {
                 return false;
             }
         }
@@ -523,7 +527,7 @@ class iclicker_service {
             try {
                 $user_id = self::require_user();
             }
-            catch (SecurityException $e) {
+            catch (ClickerSecurityException $e) {
                 return false;
             }
         }
@@ -784,7 +788,7 @@ class iclicker_service {
      * @param string $key the passed in key (should already be sha-1 and hex encoded with the timestamp appended)
      * @return bool true if the key is valid, false if SSO shared keys are disabled
      * @throws InvalidArgumentException if the key format is invalid
-     * @throws SecurityException if the key timestamp has expired or the key does not match
+     * @throws ClickerSecurityException if the key timestamp has expired or the key does not match
      */
     public static function verifyKey($key) {
         if (empty($key)) {
@@ -813,13 +817,13 @@ class iclicker_service {
             $unixTime = time();
             $timeDiff = abs($timestamp - $unixTime);
             if ($timeDiff > 300) {
-                throw new SecurityException("i>clicker shared key timestamp is out of date, this timestamp ($timestamp) is more than 5 minutes different from the current time ($unixTime)");
+                throw new ClickerSecurityException("i>clicker shared key timestamp is out of date, this timestamp ($timestamp) is more than 5 minutes different from the current time ($unixTime)");
             }
 
             // finally we verify the key with the one in the config
             $sha1Hex = self::makeEncodedKey($timestamp);
             if ($actualKey !== $sha1Hex) {
-                throw new SecurityException("i>clicker encoded shared key ($actualKey) does not match with the key in Sakai");
+                throw new ClickerSecurityException("i>clicker encoded shared key ($actualKey) does not match with the key in Sakai");
             }
             $verified = true;
         }
@@ -867,7 +871,7 @@ class iclicker_service {
      * @param string $clicker_id the clicker id
      * @param int $user_id [optional] the user who registered the clicker (id)
      * @return stdClass|bool the registration object OR false if none found
-     * @throws InvalidArgumentException|SecurityException
+     * @throws InvalidArgumentException|ClickerSecurityException
      */
     public static function get_registration_by_clicker_id($clicker_id, $user_id = null) {
         global $DB;
@@ -888,7 +892,7 @@ class iclicker_service {
         $result = $DB->get_record(self::REG_TABLENAME, array('clicker_id' => $clicker_id, 'owner_id' => $user_id));
         if ($result) {
             if (!self::can_read_registration($result, $current_user_id)) {
-                throw new SecurityException("User ($current_user_id) not allowed to access registration ($result->id)");
+                throw new ClickerSecurityException("User ($current_user_id) not allowed to access registration ($result->id)");
             }
         }
         return $result;
@@ -968,7 +972,7 @@ class iclicker_service {
     public static function get_all_registrations($start = 0, $max = 0, $order = 'clicker_id', $search = '') {
         global $DB;
         if (!self::is_admin()) {
-            throw new SecurityException("Only admins can use this function");
+            throw new ClickerSecurityException("Only admins can use this function");
         }
         if ($max <= 0) {
             $max = 10;
@@ -1020,7 +1024,7 @@ class iclicker_service {
     public static function remove_registration($reg_id) {
         global $DB;
         if (!self::is_admin()) {
-            throw new SecurityException("Only admins can use this function");
+            throw new ClickerSecurityException("Only admins can use this function");
         }
         if (isset($reg_id)) {
             if ($DB->delete_records(self::REG_TABLENAME, array('id' => $reg_id))) {
@@ -1135,7 +1139,7 @@ class iclicker_service {
                 }
                 $reg_id = $clicker_registration->id;
             } else {
-                throw new SecurityException("Current user cannot update item ($clicker_registration->id) because they do not have permission");
+                throw new ClickerSecurityException("Current user cannot update item ($clicker_registration->id) because they do not have permission");
             }
         }
         return $reg_id;
@@ -1446,6 +1450,7 @@ class iclicker_service {
      * scores should contain grade_grade (user_id, score)
      * @return stdClass the saved gradebook with all items and scores in the same structure,
      * errors are recorded as grade_item->errors and score->error
+     * @throws InvalidArgumentException
      */
     public static function save_gradebook($gradebook) {
         if (! $gradebook) {
@@ -1465,6 +1470,13 @@ class iclicker_service {
             throw new InvalidArgumentException("No course found with course_id ($gradebook->course_id)");
         }
         $gb_saved->course = $course;
+
+        // extra permissions check on gradebook manage/update
+        $user_id = self::require_user();
+        $context = context_course::instance($course->id);
+        if (!has_capability('moodle/grade:manage', $context, $user_id)) {
+            throw new InvalidArgumentException("User ($user_id) cannot manage the gradebook in course $course->name (id: $course->id), content=$context");
+        }
 
         // attempt to get the default iclicker category first
         $default_iclicker_category = grade_category::fetch(array(
@@ -1627,7 +1639,7 @@ format.
         }
         $courses = self::get_courses_for_instructor($instructor_id);
         if (! $courses) {
-            throw new SecurityException("No courses found, only instructors can access instructor courses listings");
+            throw new ClickerSecurityException("No courses found, only instructors can access instructor courses listings");
         }
         $encoded = '<coursemembership username="';
         $encoded .= self::encode_for_xml($instructor->username);
@@ -1863,7 +1875,7 @@ format.
             throw new InvalidArgumentException("xml must be set");
         }
         // read the xml (try to anyway)
-        set_error_handler('HandleXmlError');
+        set_error_handler('iclicker_HandleXmlError');
         $doc = new DOMDocument();
         $doc->preserveWhiteSpace = false;
         if (! $doc->loadXML($xml, LIBXML_NOWARNING) ) {
@@ -2330,7 +2342,7 @@ format.
      * @param string $ws_operation the operation to perform (e.g. 'StudentsReport')
      * @param array $ws_arguments the SOAP arguments to send
      * @return array the results of the SOAP call
-     * @throws WebservicesException if the call fails
+     * @throws ClickerWebservicesException if the call fails
      */
     private static function ws_soap_call($ws_operation, $ws_arguments) {
         try {
@@ -2351,7 +2363,7 @@ format.
         } catch (Exception $e) {
             $msg = 'Failure in the i>clicker webservices: '.var_export($client,true);
             error_log($msg);
-            throw new WebservicesException($msg);
+            throw new ClickerWebservicesException($msg);
         }
         // convert result to an array
         $result = json_decode(json_encode($result),true);

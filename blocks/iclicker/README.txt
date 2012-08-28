@@ -1,6 +1,6 @@
 i>clicker integrate for Moodle 2
 ================================
-The >clicker integrate for Moodle 2 plug-in allows instructors to easily synchronize their i>clicker and i>grader data with 
+The >clicker integrate for Moodle 2 plug-in allows instructors to easily synchronize their i>clicker and i>grader data with
 their campus Moodle server. Learn more about i>clicker products and features from the i>clicker website. (http://www.iclicker.com)
 
 Features
@@ -17,7 +17,7 @@ Administrators
 
 Moodle Compatibility
 --------------------
-This version of the plug-in works with Moodle 2.x and supports single sign-on. Users running Moodle v1.8-1.9 
+This version of the plug-in works with Moodle 2.x and supports single sign-on. Users running Moodle v1.8-1.9
 without SSO may use the previous version of the plug-in. Installations of Moodle older than version 1.8 are not supported by the i>clicker integrate plug-in.
 
 This plugin will work with Moodle 2.x. It is developed as a Moodle plugin/block.

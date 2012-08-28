@@ -18,147 +18,146 @@
  */
 
 /** OVERALL page styles **/
-body {
-    margin-left: 0px;
-    margin-top: 0px;
-    margin-right: 0px;
-    margin-bottom: 0px;
+.iclicker {
+    margin-left: 0;
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
 }
 
-FORM {
+.iclicker FORM {
     display: inline;
-    margin: 0px;
-    padding: 0px;
+    margin: 0;
+    padding: 0;
 }
 
-INPUT.small {
+.iclicker INPUT.small {
     font: bold 80% 'trebuchet ms', helvetica, sans-serif;
 }
 
-TR.even {
+.iclicker TR.even {
     background-color: #d5f1ff;
 }
 
-TR.odd {
+.iclicker TR.odd {
     background-color: #ffffff;
 }
 
-TR.disabled {
+.iclicker TR.disabled {
     background-color: #FFCCCC;
 }
 
-.nav_links {
+.iclicker .nav_links {
     padding-top: 1em;
     padding-bottom: 1em;
     text-align: center;
     font-size: 0.9em;
 }
 
-.current_nav_link {
+.iclicker .current_nav_link {
     font-weight: bold;
 }
 
-.user_message {
+.iclicker .user_message {
     list-style: none;
 }
 
-.iclicker_version {
+.iclicker .iclicker_version {
     font-size: 0.7em;
     text-align: center;
 }
 
 /** SPECIFIC styles **/
-.messages_list {
-    margin: 0px;
+.iclicker .messages_list {
+    margin: 0;
 }
 
-.main_content {
+.iclicker .main_content {
     margin-top: 0.5em;
 }
 
-.paging_bar {
+.iclicker .paging_bar {
     font-size: 0.8em;
     padding: 0.5em;
     width: 90%
 }
 
-.paging_current {
+.iclicker .paging_current {
     font-weight: bold;
 }
 
-.registration_entry_holder {
+.iclicker .registration_entry_holder {
     background-color: #A2CDED;
     height: 35px;
     margin-top: 1em
 }
 
-.registration_entry {
+.iclicker .registration_entry {
     text-align: center;
     line-height: 35px;
 }
 
-.unregistered {
+.iclicker .unregistered {
     background-color: #FFCCCC;
 }
 
-UL.actionToolBar {
+.iclicker UL.actionToolBar {
     list-style: none;
 }
 
-.actionToolBar LI {
+.iclicker .actionToolBar LI {
     list-style: none;
     display: inline-block;
 }
 
-.actionToolBar A,.actionToolBar A:link {
+.iclicker .actionToolBar A,.actionToolBar A:link {
     margin-right: 0.5em;
     text-decoration: underline;
     white-space: nowrap;
     display: inline-block;
 }
 
-
-.admin_controls {
+.iclicker .admin_controls {
     text-align: right;
     width: 90%;
 }
 
-.admin_config {
+.iclicker .admin_config {
     margin-top: 1em;
     width: 60%;
 }
 
-.admin_config_sso {
+.iclicker .admin_config_sso {
     font-weight: bold;
     font-size: 1.1em;
 }
 
-.sso_enabled {
+.iclicker .sso_enabled {
     font-weight: bold;
 }
 
-.inst_sso_instructions {
+.iclicker .inst_sso_instructions {
     padding: 1em 0;
 }
 
-.inst_sso_controls {
+.iclicker .inst_sso_controls {
     padding: 0.5em;
     background-color: #EEE;
 }
 
-.sso_shared_key {}
+.iclicker .sso_shared_key {}
 
-.sso_control_message {
+.iclicker .sso_control_message {
     font-weight: bold;
 }
 
-.sso_control_key {
+.iclicker .sso_control_key {
     background-color: #FFFFFF;
     padding: 3px;
     border: 1px solid #CCC;
 }
 
-.admin_errors {
+.iclicker .admin_errors {
     margin-top: 1em;
     width: 90%;
     color: red;
@@ -166,12 +165,12 @@ UL.actionToolBar {
 
 
 /* sakai fieldsets are invisible */
-.visibleFS {
+.iclicker .visibleFS {
     border: 1px solid #ccc;
     padding: 0.5em 0.5em
 }
 
-.visibleFS legend {
+.iclicker .visibleFS legend {
     padding: 0.2em;
     color: orange;
     margin-left: 1em
@@ -179,13 +178,13 @@ UL.actionToolBar {
 
 
 /** ICLICKER styles from iclicker html **/
-.columns_container
+.iclicker .columns_container
 {
     width:100%;
     display:table;
 }
 
-.left_column
+.iclicker .left_column
 {
     width:48%;
     float:left;
@@ -193,7 +192,7 @@ UL.actionToolBar {
 
 }
 
-.right_column
+.iclicker .right_column
 {
     width:48%;
     float:right;
@@ -202,38 +201,38 @@ UL.actionToolBar {
     padding-left:2%;
 }
 
-img
+.iclicker img
 {
     margin:10px 0;
     display:block;
     clear:both;
 }
 
-h1
+.iclicker h1
 {
     font-size:16px;
     color:#5D5552;
 }
 
-h3
+.iclicker h3
 {
     font-size:13px;
     color:#000000;
 }
 
-p
+.iclicker p
 {
     width:96%;
 }
 
-p.highlighted
+.iclicker p.highlighted
 {
     background-color:#f2f2f2;
     padding:2%;
     width:94%;
 }
 
-table.remotes
+.iclicker table.remotes
 {
     width:98%;
     text-align:center;
@@ -242,14 +241,14 @@ table.remotes
     border-left:0;
 }
 
-table.remotes td
+.iclicker table.remotes td
 {
     border-left:1px solid #777777;
     border-top:1px solid #777777;
     padding:4px;
 }
 
-table.remotes th
+.iclicker table.remotes th
 {
     background-color:#666666;
     color:#ffffff;
@@ -270,9 +269,4 @@ table.remotes th
 {
     text-decoration:underline;
     color:#0F197B;
-}
-
-.ui-widget
-{
-    font-family:Arial;
 }

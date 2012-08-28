@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Moodle integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id: controller.php 149 2012-06-19 00:33:23Z azeckoski@gmail.com $ */
+/* $Id: controller.php 165 2012-08-23 01:12:09Z azeckoski@gmail.com $ */
 
 /**
  * Handles controller functions related to the views
@@ -83,9 +83,17 @@ class iclicker_controller {
         }
         // get the body
         if ($getBody) {
+            if (function_exists('http_get_request_body')) {
+                $this->body = http_get_request_body();
+            } else if (defined('STDIN')) {
+                $this->body = @stream_get_contents(STDIN);
+            } else {
             // Moodlerooms does not allow use of php://input
-            //$this->body = @file_get_contents('php://input');
-            $this->body = stream_get_contents(STDIN);
+            //  $this->body = @file_get_contents('php://input');
+                // cannot get the body
+                $this->setHeader('NO_BODY','Cannot retrieve request body content');
+                $this->body = null;
+            }
         }
         // allow for method overrides
         $current_method = $_SERVER['REQUEST_METHOD'];
@@ -145,6 +153,7 @@ class iclicker_controller {
                 case 401: $message='Unauthorized'; break;
                 case 403: $message='Forbidden'; break;
                 case 404: $message='Not Found'; break;
+                case 426: $message='Upgrade Required'; break;
                 default: $message='Internal Server Error';
             }
         }
@@ -249,7 +258,7 @@ class iclicker_controller {
         $this->results['instPath'] = iclicker_service::block_url('instructor.php');
         // admin/instructor check
         if (!iclicker_service::is_admin() && !iclicker_service::is_instructor()) {
-            throw new SecurityException("Current user is not an instructor and cannot access the instructor view");
+            throw new ClickerSecurityException("Current user is not an instructor and cannot access the instructor view");
         }
         $course_id = optional_param('courseId', false, PARAM_INT);
         $this->results['course_id'] = $course_id;
@@ -279,7 +288,7 @@ class iclicker_controller {
         $this->results['instPath'] = iclicker_service::block_url('instructor.php');
         // admin/instructor check
         if (!iclicker_service::is_admin() && !iclicker_service::is_instructor()) {
-            throw new SecurityException("Current user is not an instructor and cannot access the instructor view");
+            throw new ClickerSecurityException("Current user is not an instructor and cannot access the instructor view");
         }
         $this->results['sso_enabled'] = iclicker_service::$block_iclicker_sso_enabled;
         $current_user_id = iclicker_service::get_current_user_id();
@@ -308,7 +317,7 @@ class iclicker_controller {
         $this->results['status_url'] = iclicker_service::block_url('runner_status.php');
         // admin check
         if (!iclicker_service::is_admin()) {
-            throw new SecurityException("Current user is not an admin and cannot access the admin view");
+            throw new ClickerSecurityException("Current user is not an admin and cannot access the admin view");
         }
 
         // get sorting params

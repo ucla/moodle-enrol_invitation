@@ -17,11 +17,10 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Moodle integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id: index.php 107 2012-04-06 01:48:53Z azeckoski@gmail.com $ */
+/* $Id: index.php 161 2012-08-16 14:19:57Z azeckoski@gmail.com $ */
 
 // Permanent redirection
 require_once ('../../config.php');
 global $CFG, $USER, $COURSE;
 header("HTTP/1.1 301 Moved Permanently");
 header("Location: ".$CFG->httpswwwroot);
-?>

@@ -17,10 +17,14 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Moodle integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id: version.php 130 2012-04-18 01:29:49Z azeckoski@gmail.com $ */
+/* $Id: version.php 164 2012-08-22 20:11:41Z azeckoski@gmail.com $ */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2012041700;        // The current plugin version (Date: YYYYMMDDXX)
-$plugin->requires  = 2010090501;        // moodle 2.0.1 - Requires this Moodle version
-$plugin->component = 'block_iclicker';  // Full name of the plugin (used for diagnostics)
+// http://docs.moodle.org/dev/version.php
+$plugin->version    = 2012082200;        // The current plugin version (Date: YYYYMMDDXX) - must match iclicker_service constant
+$plugin->requires   = 2010112400;        // moodle 2.0 - Requires this Moodle version - Moodle 2.0 = 2010112400; Moodle 2.1 = 2011070100; Moodle 2.2 = 2011120100; Moodle 2.3 = 2012062500
+$plugin->cron       = 86400;
+$plugin->component  = 'block_iclicker';    // Full name of the plugin (used for diagnostics)
+$plugin->maturity   = MATURITY_STABLE;
+$plugin->release    = '1.1 (Build: '.$plugin->version.')'; // visible version - must match iclicker_service constant

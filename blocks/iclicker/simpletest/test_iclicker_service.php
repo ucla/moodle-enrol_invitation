@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with i>clicker Moodle integrate.  If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id: test_iclicker_service.php 148 2012-06-19 00:25:08Z azeckoski@gmail.com $ */
+/* $Id: test_iclicker_service.php 161 2012-08-16 14:19:57Z azeckoski@gmail.com $ */
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.'); //  It must be included from a Moodle page
@@ -327,7 +327,7 @@ class iclicker_services_test extends UnitTestCase {
         try {
             iclicker_service::verifyKey($encodedKey);
             $this->fail("should have died");
-        } catch (SecurityException $e) {
+        } catch (ClickerSecurityException $e) {
             $this->assertNotNull($e->getMessage());
         }
 
@@ -498,7 +498,7 @@ XML;
         $this->assertNotNull($result->owner_id);
         $this->assertEqual($result->clicker_id, '11111111');
         $this->assertEqual($result->owner_id, 101);
-        $this->assertEqual($result->user_username, 'student01');
+        //$this->assertEqual($result->user_username, 'student01'); // DISABLED - username might be different for this user id
 
         $xml = <<<XML
 <coursegradebook courseid="BFW61">
@@ -561,7 +561,7 @@ XML;
         $clicker_registration->activated = true;
         $result = iclicker_service::encode_registration($clicker_registration);
         $this->assertNotNull($result);
-        $this->assertTrue(stripos($result, 'student01') > 0);
+        //$this->assertTrue(stripos($result, 'student01') > 0); // DISABLED - username might be different for this user id
         $this->assertTrue(stripos($result, '12345678') > 0);
         $this->assertTrue(stripos($result, 'True') > 0);
 
