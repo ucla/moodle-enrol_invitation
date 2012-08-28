@@ -59,20 +59,17 @@ $renderer = $PAGE->get_renderer('format_ucla');
 $renderer->print_header();
 $renderer->print_js();
 
-if (optional_param('show_all', 0, PARAM_BOOL)) {
+// see what section user wants to view
+// NOTE: cannot depend on $displaysection, because it defaults to 0, so don't
+// know if user wants to see "Site info" or landing page
+$displaysection = ucla_format_figure_section($course);
+
+if ($displaysection == UCLA_FORMAT_DISPLAY_ALL) {
     // user wants to view all sections    
     $renderer->print_multiple_section_page($course, $sections, $mods, $modnames, $modnamesused);    
-} else if (!empty($displaysection)) {
+} else {
     // user wants to view a given section
     $renderer->print_single_section_page($course, $sections, $mods, $modnames, $modnamesused, $displaysection);
-} else {
-    // no section specified, so view landing page or section 0
-    $course_prefs = new ucla_course_prefs($course->id);
-    $landing_page = $course_prefs->get_preference('landing_page', false);    
-    if (empty($landing_page)) {
-        $landing_page = 0;  // no landing page, so use section 0
-    }
-    $renderer->print_single_section_page($course, $sections, $mods, $modnames, $modnamesused, $landing_page);            
 }
 
 // Include course format js module
