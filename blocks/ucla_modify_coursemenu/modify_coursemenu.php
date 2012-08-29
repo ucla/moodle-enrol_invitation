@@ -201,6 +201,7 @@ if ($modify_coursemenu_form->is_cancelled()) {
     // section number
     $landingpage = $data->landingpage;
 
+    $landingpage_changed = false;
     $newsectnum = 0;
     foreach ($sectiondata as $oldsectnum => $sectdata) {
         $newsectnum++;
@@ -232,8 +233,9 @@ if ($modify_coursemenu_form->is_cancelled()) {
         
         $section->section = $newsectnum;
             
-        if ($landingpage == $oldsectnum) {
+        if ($landingpage == $oldsectnum && !$landingpage_changed) {
             $landingpage = $newsectnum;
+            $landingpage_changed = true;
         }
 
         $section = block_ucla_modify_coursemenu::section_apply($section,
