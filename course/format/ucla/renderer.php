@@ -663,7 +663,9 @@ class format_ucla_renderer extends format_section_renderer_base {
             $o.= html_writer::end_tag('div');
             // End section header
             
-            $o .= $this->get_jit_links($section->section);
+            if ($this->user_is_editing) {
+                $o .= $this->get_jit_links($section->section);
+            }
             
             $o.= html_writer::start_tag('div', array('class' => 'summary'));
             $o.= $this->format_summary_text($section);
