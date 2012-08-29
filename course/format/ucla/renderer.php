@@ -600,12 +600,16 @@ class format_ucla_renderer extends format_section_renderer_base {
 
             $o.= $this->output->heading($this->section_title($section, $course), 3, 'sectionname');
 
-            $o .= $this->get_jit_links($section->section);
+            $context = context_course::instance($course->id);            
+            
+            // only show JIT links if user is editing
+            if ($this->user_is_editing && has_capability('moodle/course:update', $context)) {
+                $o .= $this->get_jit_links($section->section);
+            }
 
             $o.= html_writer::start_tag('div', array('class' => 'summary'));
             $o.= $this->format_summary_text($section);
 
-            $context = context_course::instance($course->id);
             if ($this->user_is_editing && has_capability('moodle/course:update', $context)) {
                 $url = new moodle_url('/course/editsection.php', array('id'=>$section->id));
 
