@@ -4024,7 +4024,7 @@ class settings_navigation extends navigation_node {
         global $CFG;
 
         if ($course->id == SITEID) {
-            return $this->add_front_page_course_essentials($coursenode, $course);
+            return $this->page->navigation->add_front_page_course_essentials($coursenode, $course);
         }
 
         if ($coursenode == false || !($coursenode instanceof navigation_node) || $coursenode->get('participants', navigation_node::TYPE_CONTAINER)) {
