@@ -234,6 +234,20 @@ $capabilities = array(
             'editingteacher' => CAP_ALLOW
          )
     ),
+    // START UCLA MOD: CCLE-2966-replace-elluminate-with-blackboard-web-conferencing
+    'mod/elluminate:addinstance' => array(
+        'riskbitmask' => RISK_SPAM,
+
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_MODULE,
+        'legacy' => array(
+            'admin' => CAP_ALLOW,
+			'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW
+    ),
+    'clonepermissionsfrom' => 'moodle/course:manageactivities'
+    ),
+    // END UCLA MOD: CCLE-2966-replace-elluminate-with-blackboard-web-conferencing
     
     // Ability to view guest link.
     'mod/elluminate:viewguestlink' => array(
