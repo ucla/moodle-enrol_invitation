@@ -221,7 +221,6 @@ class format_ucla_renderer extends format_section_renderer_base {
      * Output the html for a multiple section page.
      * 
      * Copied from base class method with following differences:
-     *  - increase/decrease sections links include "show_all" parameter
      *  - print section 0 related stuff
      *  - always show section content, even if editing is off
      *
@@ -650,6 +649,31 @@ class format_ucla_renderer extends format_section_renderer_base {
      */
     protected function start_section_list() {
         return html_writer::start_tag('ul', array('class' => 'topics'));
+    }    
+
+    /**
+     * Generate the header html of a stealth section
+     * 
+     * Copied from base class method with following differences:
+     *  - includes support for editing text instead of icons
+     *
+     * @param int $sectionno The section number in the coruse which is being dsiplayed
+     * @return string HTML to output.
+     */
+    protected function stealth_section_header($sectionno) {
+        // Apply section edit style
+        $sectionstyle = '';
+        if($this->noeditingicons) {
+            $sectionstyle .= ' text-icons';
+        }        
+        
+        $o = '';
+        $o.= html_writer::start_tag('li', array('id' => 'section-'.$sectionno, 'class' => "section main clearfix orphaned hidden$sectionstyle"));
+        $o.= html_writer::tag('div', '', array('class' => 'left side'));
+        $o.= html_writer::tag('div', '', array('class' => 'right side'));
+        $o.= html_writer::start_tag('div', array('class' => 'content'));
+        $o.= $this->output->heading(get_string('orphanedactivities'), 3, 'sectionname');
+        return $o;
     }    
     
     // PRIVATE METHODS \\
