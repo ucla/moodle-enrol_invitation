@@ -53,7 +53,7 @@ if (!$type) {
 }
 
 // Get all the informations for the form.
-$modinfo =& get_fast_modinfo($course);
+$modinfo = get_fast_modinfo($course);
 get_all_mods($course_id, $mods, $modnames, $modnamesplural, $modnamesused);
 
 // Prep things for activities
