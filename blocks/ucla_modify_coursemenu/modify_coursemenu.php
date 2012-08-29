@@ -104,6 +104,11 @@ if ($justshowsuccessmessage) {
                 'returntocourse', 'block_ucla_rearrange'
             ), 'get');
 
+    if ($show_all) {
+        $courseviewurl->remove_params('section');
+        $courseviewurl->param('show_all', 1);
+    }
+    
     $sectionbutton = new single_button($courseviewurl, get_string(
                 'returntosection', 'block_ucla_rearrange'
             ), 'get');
@@ -201,6 +206,7 @@ if ($modify_coursemenu_form->is_cancelled()) {
     // section number
     $landingpage = $data->landingpage;
 
+    $landingpage_changed = false;
     $newsectnum = 0;
     foreach ($sectiondata as $oldsectnum => $sectdata) {
         $newsectnum++;
@@ -232,8 +238,9 @@ if ($modify_coursemenu_form->is_cancelled()) {
         
         $section->section = $newsectnum;
             
-        if ($landingpage == $oldsectnum) {
+        if ($landingpage == $oldsectnum && !$landingpage_changed) {
             $landingpage = $newsectnum;
+            $landingpage_changed = true;
         }
 
         $section = block_ucla_modify_coursemenu::section_apply($section,
@@ -326,7 +333,6 @@ if ($modify_coursemenu_form->is_cancelled()) {
     }
     $pos2 = array_values($pos1);
     
-    // TODO: add in logic to dermine if landing page is 'Show all'
     if ($move_to_landingpage) {
         // If the section we are on was deleted, then move to the landing page
         $new_section = $landingpage;
@@ -343,12 +349,11 @@ if ($modify_coursemenu_form->is_cancelled()) {
             'success' => true, 
         )); 
     
-    // Redirect to 'Show all' if we were initially on it
-    // TODO: Currently does not work because "section=-2" is passed in when the 
-    // user is on 'Show all', instead of "show_all=1"
-    if ($show_all == 1) {
+    // Redirect to 'Show all' if we were initially on it or
+    // if the section we were on was deleted and the landing page is 'Show all'
+    if ($section_num == UCLA_FORMAT_DISPLAY_ALL || $new_section == UCLA_FORMAT_DISPLAY_ALL) {
         $confirmationurl->remove_params('section');
-        $confirmationurl->param('show_all', $show_all);
+        $confirmationurl->param('show_all', 1);
     }
     
     // END UCLA MOD: CCLE-3273
