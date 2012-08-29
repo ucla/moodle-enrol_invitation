@@ -91,7 +91,9 @@ class format_ucla_renderer extends format_section_renderer_base {
         $this->context =& $page->context;       
         
         // is user editing the page?
-        $this->user_is_editing = $page->user_is_editing();
+        if ($page->user_is_editing() && has_capability('moodle/course:update', $this->context)) {
+            $this->user_is_editing = true;
+        }
         
         // CCLE-2800 - cache strings for JIT links
         $this->jit_links = array('file' => get_string('file', 'format_ucla'),
@@ -251,7 +253,7 @@ class format_ucla_renderer extends format_section_renderer_base {
         echo $this->section_header($thissection, $course, true);
 
         print_section($course, $thissection, $mods, $modnamesused, true);
-        if ($PAGE->user_is_editing()) {
+        if ($this->user_is_editing) {
             print_section_add_menus($course, 0, $modnames);
         }
         echo $this->section_footer();
@@ -290,7 +292,7 @@ class format_ucla_renderer extends format_section_renderer_base {
             echo $this->section_header($thissection, $course, false);
             if ($thissection->uservisible) {
                 print_section($course, $thissection, $mods, $modnamesused);
-                if ($PAGE->user_is_editing()) {
+                if ($this->user_is_editing) {
                     print_section_add_menus($course, $section, $modnames);
                 }
             }
@@ -299,7 +301,7 @@ class format_ucla_renderer extends format_section_renderer_base {
             unset($sections[$section]);
         }
 
-        if ($PAGE->user_is_editing() and has_capability('moodle/course:update', $context)) {
+        if ($this->user_is_editing) {
             // Print stealth sections if present.
             $modinfo = get_fast_modinfo($course);
             foreach ($sections as $section => $thissection) {
@@ -520,7 +522,7 @@ class format_ucla_renderer extends format_section_renderer_base {
             return array();
         }
 
-        if (!has_capability('moodle/course:update', context_course::instance($course->id))) {
+        if (!$this->user_is_editing) {
             return array();
         }
 
@@ -600,17 +602,15 @@ class format_ucla_renderer extends format_section_renderer_base {
 
             $o.= $this->output->heading($this->section_title($section, $course), 3, 'sectionname');
 
-            $context = context_course::instance($course->id);            
-            
             // only show JIT links if user is editing
-            if ($this->user_is_editing && has_capability('moodle/course:update', $context)) {
+            if ($this->user_is_editing) {
                 $o .= $this->get_jit_links($section->section);
             }
 
             $o.= html_writer::start_tag('div', array('class' => 'summary'));
             $o.= $this->format_summary_text($section);
 
-            if ($this->user_is_editing && has_capability('moodle/course:update', $context)) {
+            if ($this->user_is_editing) {
                 $url = new moodle_url('/course/editsection.php', array('id'=>$section->id));
 
                 if ($onsectionpage) {
