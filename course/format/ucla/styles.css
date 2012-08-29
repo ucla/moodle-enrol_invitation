@@ -6,8 +6,11 @@
 .jumpmenu {text-align:center;}
 
 .sectionname {
-    border-bottom: 1px solid #ABBAD1; 
-    margin-bottom: 0 !important;
+    display: inline-block;
+}
+
+.sectionheader .right br {
+    display: none;
 }
 
 .course-content .section.main {

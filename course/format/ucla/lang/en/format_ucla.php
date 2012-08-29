@@ -53,6 +53,8 @@ $string['editcoursetitle'] = 'Edit course description';
 $string['editsectiontitle'] = 'Edit title';
 $string['editofficehours'] = 'Update';
 $string['movealt'] = 'Click and drag to move';
+$string['markthistopic'] = 'Highlight section';
+$string['markedthistopic'] = 'Section is highlighted';
 
 // JIT strings
 $string['file'] = 'Upload file';

@@ -515,7 +515,8 @@ class format_ucla_renderer extends format_section_renderer_base {
      * @return array of links with edit controls
      */
     protected function section_edit_controls($course, $section, $onsectionpage = false) {
-        
+        global $OUTPUT;
+
         if (!$this->user_is_editing) {
             return array();
         }
@@ -524,29 +525,85 @@ class format_ucla_renderer extends format_section_renderer_base {
             return array();
         }
 
+        $controls = array();
+
+        /// Edit title
+        $url = new moodle_url('/course/editsection.php', array('id'=>$section->id));
+        
+        if ($onsectionpage) {
+            $url->param('sectionreturn', 1);
+        }
+
+        $str = get_string('editsectiontitle', 'format_ucla');
+        $img_options = array('class' => 'small-icon edit', 'alt' => $str);
+
+        $innards = new pix_icon('t/edit', $str, 'moodle', $img_options);
+        $control = new action_link($url, $innards, null, array('title' => $str));
+
+        // Add 'edit title' icon
+        $controls[] = html_writer::tag(
+                'span', $OUTPUT->render($control), array('class' => 'safecontrol')
+            );
+        
+        /// Show/hide
+        if ($onsectionpage) {
+            $baseurl = course_get_url($course, $section->section);
+        } else {
+            $baseurl = course_get_url($course);
+        }
+        $baseurl->param('sesskey', sesskey());
+
+        $url = clone($baseurl);
+        if ($section->visible) { // Show the hide/show eye.
+            $strhidefromothers = get_string('hidefromothers', 'format_'.$course->format);
+            $url->param('hide', $section->section);
+            $str = $strhidefromothers;
+            $img_options = array('class' => 'iconsmall hide', 'alt' => $str);
+            $img = 'i/hide';
+        } else {
+            $strshowfromothers = get_string('showfromothers', 'format_'.$course->format);
+            $url->param('show',  $section->section);
+            $str = $strshowfromothers;
+            $img_options = array('class' => 'iconsmall hide', 'alt' => $str);
+            $img = 'i/show';
+        }
+        
+        $innards = new pix_icon($img, $str, 'moodle', $img_options);
+        $control = new action_link($url, $innards, null, array('title' => $str));
+
+        $controls[] = html_writer::tag(
+                'span', $OUTPUT->render($control), array('class' => 'editing_showhide')
+            );
+        
+        /// Light globe
         if ($onsectionpage) {
             $url = course_get_url($course, $section->section);
         } else {
             $url = course_get_url($course);
         }
+        
         $url->param('sesskey', sesskey());
 
-        $controls = array();
         if ($course->marker == $section->section) {  // Show the "light globe" on/off.
             $url->param('marker', 0);
-            $controls[] = html_writer::link($url,
-                                html_writer::empty_tag('img', array('src' => $this->output->pix_url('i/marked'),
-                                    'class' => 'icon ', 'alt' => get_string('markedthistopic'))),
-                                array('title' => get_string('markedthistopic'), 'class' => 'editing_highlight'));
+            $str = get_string('markedthistopic', 'format_ucla');
+            $img_options = array('class' => 'iconsmall', 'alt' => $str);
+            $img = 'i/marked'; 
         } else {
             $url->param('marker', $section->section);
-            $controls[] = html_writer::link($url,
-                            html_writer::empty_tag('img', array('src' => $this->output->pix_url('i/marker'),
-                                'class' => 'icon', 'alt' => get_string('markthistopic'))),
-                            array('title' => get_string('markthistopic'), 'class' => 'editing_highlight'));
+            $str = get_string('markthistopic', 'format_ucla');
+            $img_options = array('class' => 'iconsmall', 'alt' => $str);
+            $img = 'i/marker';
         }
+        
+        $innards = new pix_icon($img, $str, 'moodle', $img_options);
+        $control = new action_link($url, $innards, null, array('title' => $str));
 
-        return array_merge($controls, parent::section_edit_controls($course, $section, $onsectionpage));
+        $controls[] = html_writer::tag(
+                'span', $OUTPUT->render($control), array('class' => 'editing_highlight')
+            );
+
+        return $controls;
     }
 
     /**
@@ -594,29 +651,22 @@ class format_ucla_renderer extends format_section_renderer_base {
             $leftcontent = $this->section_left_content($section, $course, $onsectionpage);
             $o.= html_writer::tag('div', $leftcontent, array('class' => 'left side'));
 
-            $rightcontent = $this->section_right_content($section, $course, $onsectionpage);
-            $o.= html_writer::tag('div', $rightcontent, array('class' => 'right side'));
             $o.= html_writer::start_tag('div', array('class' => 'content'));
 
+            // Start section header with section links!
+            $o.= html_writer::start_tag('div', array('class' => 'sectionheader'));
             $o.= $this->output->heading($this->section_title($section, $course), 3, 'sectionname');
-
+            
+            $rightcontent = $this->section_right_content($section, $course, $onsectionpage);
+            $o.= html_writer::tag('div', $rightcontent, array('class' => 'right side'));
+            $o.= html_writer::end_tag('div');
+            // End section header
+            
             $o .= $this->get_jit_links($section->section);
-
+            
             $o.= html_writer::start_tag('div', array('class' => 'summary'));
             $o.= $this->format_summary_text($section);
 
-            $context = context_course::instance($course->id);
-            if ($this->user_is_editing && has_capability('moodle/course:update', $context)) {
-                $url = new moodle_url('/course/editsection.php', array('id'=>$section->id));
-
-                if ($onsectionpage) {
-                    $url->param('sectionreturn', 1);
-                }
-
-                $o.= html_writer::link($url,
-                    html_writer::empty_tag('img', array('src' => $this->output->pix_url('t/edit'), 'class' => 'iconsmall edit')),
-                    array('title' => get_string('editsummary')));
-            }
             $o.= html_writer::end_tag('div');
 
             $o .= $this->section_availability_message($section);            
@@ -624,7 +674,7 @@ class format_ucla_renderer extends format_section_renderer_base {
 
         return $o;
     }    
-
+    
     /**
      * Generate the section title
      *
