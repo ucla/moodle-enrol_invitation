@@ -236,7 +236,10 @@ if ($data = $rearrangeform->get_data()) {
             $sectiontranslation);
     
     // Set the section correct value after moving sections around
-    $section_redirect = $DB->get_field('course_sections', 'section', array('id' => $sectionid));
+    if ( !$section_redirect = $DB->get_field('course_sections', 'section', array('id' => $sectionid)) ) {
+        // If no field is found, then the section we were on was either 'Site info' or 'Show all'
+        $section_redirect = $section_num;
+    }
     $_POST['section'] = $section_redirect;
 
     // Now we need to swap all the contents in each section...
@@ -265,6 +268,10 @@ if ($data != false) {
     // TODO: Add in logic to determine if we should redirect to 'Show all'
     $secturl = new moodle_url('/course/view.php',
                     array('id' => $courseid, 'section' => $section_redirect));
+    if ($section_redirect == UCLA_FORMAT_DISPLAY_ALL) {
+        $secturl->remove_params('section');
+        $secturl->param('show_all', 1);
+    }
     $sectret = new single_button($secturl, get_string('returntosection',
                             'block_ucla_rearrange'), 'get');
 
