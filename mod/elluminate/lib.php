@@ -294,12 +294,15 @@ function elluminate_add_instance($elluminate, $facilitatorid = false) {
     $mod->indent = 0;
     $mod->visible = 1;
     $mod->visibleold = 1;
-    $mod->groupmode = $elluminate->groupmode;   
-    if($elluminate->grouping_id == NULL) {  
+    $mod->groupmode = $elluminate->groupmode;  
+	
+    //START UCLA MOD: feature23/CCLE-2966-elluminate-and-blackboard-web-conferencing
+    if($elluminate->groupingid == NULL) { 
         $mod->groupingid = 0;
     } else {
-        $mod->groupingid = $elluminate->grouping_id;
+        $mod->groupingid = $elluminate->groupingid;
     }
+    //END UCLA MOD: feature23/CCLE-2966-elluminate-and-blackboard-web-conferencing
     $mod->groupmembersonly = 0; 
     
     
@@ -625,7 +628,7 @@ function elluminate_update_instance($elluminate) {
         $elluminate->sessiontype = $meeting->sessiontype;   
     }
     if ($elluminate->sessiontype == 3) {
-            $elluminate->groupingid = $elluminate->grouping_id;
+        $elluminate->groupingid = $elluminate->grouping_id;
     }
     
     
