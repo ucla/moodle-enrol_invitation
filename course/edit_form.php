@@ -101,7 +101,7 @@ class course_edit_form extends moodleform {
                         'class' => 'indicator-form',
                         'value' => $type['shortname']
                     );
-                    $radioarray[] = &MoodleQuickForm::createElement('radio', 'indicator_change', '', $descstring, $type['shortname'], $attributes);
+                    $radioarray[] = $mform->createElement('radio', 'indicator_change', '', $descstring, $type['shortname'], $attributes);
                 }
                 $mform->addGroup($radioarray, 'indicator_type_radios', get_string('change', 'tool_uclasiteindicator'), array('<br/>'), false);
                 $mform->addGroupRule('indicator_type_radios', get_string('required'), 'required');
