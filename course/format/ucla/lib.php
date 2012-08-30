@@ -25,6 +25,7 @@
 require_once($CFG->dirroot . '/local/ucla/lib.php');
 /**  Course Preferences API **/
 require_once(dirname(__FILE__) . '/ucla_course_prefs.class.php');
+require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/uclasiteindicator/lib.php');
 
 define('UCLA_FORMAT_DISPLAY_ALL', -2);
 define('UCLA_FORMAT_DISPLAY_LANDING', -4);
@@ -77,11 +78,12 @@ function callback_ucla_load_content(&$navigation, $course, $coursenode) {
     if (block_instance('ucla_browseby')) {
         // Term is needed for browseby
         $courseinfos = ucla_map_courseid_to_termsrses($course->id);
+        $parentnode =& $coursenode->parent;
+
         if ($courseinfos) {
             $first = reset($courseinfos);
             $term = $first->term;
 
-            $parentnode =& $coursenode->parent;
 
             // Find the nodes that represent the division and subject areas
             while ($parentnode->type == navigation_node::TYPE_CATEGORY) {
@@ -134,6 +136,41 @@ function callback_ucla_load_content(&$navigation, $course, $coursenode) {
                     '/blocks/ucla_browseby/view.php',
                     $subjareaparams
                 );
+            }
+        } else if ($siteindicator = siteindicator_site::load($course->id)) {
+            // Use browse-by collab functions to find collab categories
+            $bbhf = new browseby_handler_factory();
+            $browsebycollab = $bbhf->get_type_handler('collab');
+
+            $collab_cat = $browsebycollab->get_collaboration_category();
+            siteindicator_manager::filter_category_tree($collab_cat);
+
+            $collabcatparams = array(
+                'type' => 'collab'
+            );
+
+            while ($parentnode->type == navigation_node::TYPE_CATEGORY) {
+                // Extract out the category id
+                if ($parentnode->action->param('id')) {
+                    $catid = $parentnode->action->param('id');
+
+                    // See if the catid is within an accepted set of
+                    // collaboration categories
+                    if ($browsebycollab->find_category(
+                                $catid,
+                                $collab_cat->categories,
+                                'id'
+                            )) {
+
+                        $collabcatparams['category'] = $catid;
+                        $parentnode->action = new moodle_url(
+                                '/blocks/ucla_browseby/view.php',
+                                $collabcatparams
+                            );
+                    }
+                }
+
+                $parentnode =& $parentnode->parent;
             }
         }
     }
