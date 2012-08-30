@@ -48,10 +48,9 @@ if (!empty($course_info)) {
     $temp_tag = array('ucla_cp_mod_myucla');
 
     $modules[] = new ucla_cp_module('ucla_cp_mod_myucla', null, null, $ta_cap);        
-    $first_course = array_shift($course_info);
     
     // If this is a summer course
-    $session = get_session_code($first_course);
+    $session = get_session_code($course_info[0]);
 
     // Add individual links for each crosslisted course
     foreach ($course_info as $info_for_one_course) {
