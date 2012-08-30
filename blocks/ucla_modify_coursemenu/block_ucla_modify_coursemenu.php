@@ -124,7 +124,7 @@ class block_ucla_modify_coursemenu extends block_base {
         }
     }
 
-    function ucla_cp_hook($course, $context) {
+    static function ucla_cp_hook($course, $context) {
         return array(array(
             'item_name' => 'modify_course_sections', 
             'action' => new moodle_url(
