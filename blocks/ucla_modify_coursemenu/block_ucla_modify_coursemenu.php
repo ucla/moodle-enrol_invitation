@@ -40,7 +40,7 @@ class block_ucla_modify_coursemenu extends block_base {
      *  @return array() of cm_info, can be used with get_print_section_cm_text
      *      or anything else...
      **/
-    function get_section_content($section, $course=null, $modinfo=null) {
+    static function get_section_content($section, $course=null, $modinfo=null) {
         global $DB;
         if ($modinfo == null) {
             if ($course == null) {
