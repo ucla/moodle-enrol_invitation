@@ -1256,9 +1256,9 @@ function rebuild_course_cache($courseid=0, $clearonly=false) {
     foreach ($rs as $course) {
         $modinfo = serialize(get_array_of_activities($course->id));
         $sectioncache = serialize(course_modinfo::build_section_cache($course->id));
-        $updateobj = (object)array('id' => $course->id,
+        $updateobj = array('id' => $course->id,
                 'modinfo' => $modinfo, 'sectioncache' => $sectioncache);
-        $DB->update_record("course", $updateobj);
+        $DB->update_record('course', $updateobj);
         // update cached global COURSE too ;-)
         if ($course->id == $COURSE->id) {
             $COURSE->modinfo = $modinfo;
