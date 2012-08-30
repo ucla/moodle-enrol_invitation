@@ -509,6 +509,10 @@ class format_ucla_renderer extends format_section_renderer_base {
     
     /**
      * Generate the edit controls of a section
+     * 
+     * Copied from base class method with following differences:
+     *  - removed section highlighter
+     *  - adding ability to edit/show/hide section 
      *
      * @param stdClass $course The course entry from DB
      * @param stdClass $section The course_section entry from DB
@@ -576,33 +580,33 @@ class format_ucla_renderer extends format_section_renderer_base {
                 'span', $OUTPUT->render($control), array('class' => 'editing_showhide')
             );
         
-        /// Light globe
-        if ($onsectionpage) {
-            $url = course_get_url($course, $section->section);
-        } else {
-            $url = course_get_url($course);
-        }
-        
-        $url->param('sesskey', sesskey());
-
-        if ($course->marker == $section->section) {  // Show the "light globe" on/off.
-            $url->param('marker', 0);
-            $str = get_string('markedthistopic', 'format_ucla');
-            $img_options = array('class' => 'iconsmall', 'alt' => $str);
-            $img = 'i/marked'; 
-        } else {
-            $url->param('marker', $section->section);
-            $str = get_string('markthistopic', 'format_ucla');
-            $img_options = array('class' => 'iconsmall', 'alt' => $str);
-            $img = 'i/marker';
-        }
-        
-        $innards = new pix_icon($img, $str, 'moodle', $img_options);
-        $control = new action_link($url, $innards, null, array('title' => $str));
-
-        $controls[] = html_writer::tag(
-                'span', $OUTPUT->render($control), array('class' => 'editing_highlight')
-            );
+//        /// Light globe
+//        if ($onsectionpage) {
+//            $url = course_get_url($course, $section->section);
+//        } else {
+//            $url = course_get_url($course);
+//        }
+//        
+//        $url->param('sesskey', sesskey());
+//
+//        if ($course->marker == $section->section) {  // Show the "light globe" on/off.
+//            $url->param('marker', 0);
+//            $str = get_string('markedthistopic', 'format_ucla');
+//            $img_options = array('class' => 'iconsmall', 'alt' => $str);
+//            $img = 'i/marked'; 
+//        } else {
+//            $url->param('marker', $section->section);
+//            $str = get_string('markthistopic', 'format_ucla');
+//            $img_options = array('class' => 'iconsmall', 'alt' => $str);
+//            $img = 'i/marker';
+//        }
+//        
+//        $innards = new pix_icon($img, $str, 'moodle', $img_options);
+//        $control = new action_link($url, $innards, null, array('title' => $str));
+//
+//        $controls[] = html_writer::tag(
+//                'span', $OUTPUT->render($control), array('class' => 'editing_highlight')
+//            );
 
         return $controls;
     }
