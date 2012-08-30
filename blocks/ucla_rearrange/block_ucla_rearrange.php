@@ -342,10 +342,13 @@ class block_ucla_rearrange extends block_base {
 
         $temp_num = count($sections) + 2;
         foreach ($sections as $section) {
-            $course_section_pair = array('course' => $COURSE->id, 'section' => $section['section']);
-            if ($DB->record_exists('course_sections', $course_section_pair)) {
-                $DB->set_field('course_sections', 'section', $temp_num, $course_section_pair);
-                $temp_num++;
+            // Check if we are updating course menu sections
+            if (isset($section['section'])) {
+                $course_section_pair = array('course' => $COURSE->id, 'section' => $section['section']);
+                if ($DB->record_exists('course_sections', $course_section_pair)) {
+                    $DB->set_field('course_sections', 'section', $temp_num, $course_section_pair);
+                    $temp_num++;
+                }
             }
             $DB->update_record('course_sections', $section, true);
         }
