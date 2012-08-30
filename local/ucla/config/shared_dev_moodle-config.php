@@ -241,6 +241,9 @@ $CFG->langstringcache = false;
 // Site administration > Plugins > Activity modules > Assignment
 $CFG->assignment_maxbytes = 10485760;   // 100MB
 
+// Site administration > Plugins > Activity modules > Blackboard Collaborate Session
+$CFG->elluminate_max_talkers = 2;
+
 // Site administration > Plugins > Activity modules > Folder
 $CFG->forced_plugin_settings['folder']['requiremodintro'] = 0;
 
