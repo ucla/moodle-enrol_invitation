@@ -452,8 +452,10 @@ if ($passthrudata || $verifydata) {
     // Update the course numsections
     $course->numsections = $passthrudata->coursenumsections;
     
-    // Get the new value for sectioncache (maybe there is a better way?)
+    // Get the new values for sectioncache and modinfo
+    // Maybe there is a better way?
     unset($course->sectioncache);
+    unset($course->modinfo);
     rebuild_course_cache($course->id);
     
     update_course($course);
