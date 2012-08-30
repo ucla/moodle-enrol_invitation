@@ -47,7 +47,7 @@ define('ELLUMINATELIVE_BOUNDARY_DEFAULT', 15);
 /**
  * Blackboard Collaborate max talkers default value.
  */
-define('ELLUMINATELIVE_MAX_TALKERS', 2);
+define('ELLUMINATELIVE_MAX_TALKERS', 1);
 
 /**
  * Blackboard Collaborate seat reservation enabled string.

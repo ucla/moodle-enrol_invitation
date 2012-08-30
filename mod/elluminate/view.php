@@ -22,7 +22,7 @@
     $hidegrouprecording = optional_param('hidegrouprecording', 0, PARAM_INT);
     $showgrouprecording = optional_param('showgrouprecording', 0, PARAM_INT);
 	$groupid			= optional_param('group', 0, PARAM_INT);
-
+        
     if ($id) {    
     	$PAGE->set_url('/mod/elluminate/view.php', array('id'=>$id));	
         if (!$cm = get_coursemodule_from_id('elluminate', $id)) {
@@ -244,7 +244,7 @@
     
    	$navigation = build_navigation('', $cm);
 
-    print_header_simple(format_string($elluminate->name), "", $navigation, "", "", true, $buttontext, navmenu($course, $cm));
+    print_header_simple(format_string($elluminate->name), $COURSE->fullname, $navigation, "", "", true, $buttontext, navmenu($course, $cm));
 
 	elive_groups_print_activity_menu($cm, 'view.php?id=' . $cm->id, false, $groupid);	
     $sesskey = !empty($USER->sesskey) ? $USER->sesskey : '';
