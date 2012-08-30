@@ -140,9 +140,14 @@ function setup_section($section, $sections, $course) {
         $thissection->name = get_string('sectionname', 'format_weeks') . ' ' . $section;
         $thissection->summary = '';
         $thissection->summaryformat = FORMAT_HTML;
-        $thissection->visible  = 1;
+        $thissection->visible  = 1;    
         $thissection->id = $DB->insert_record('course_sections', $thissection);
         rebuild_course_cache($course->id, true);
+        
+        // following information needed to be a true section_info object
+        $thissection->uservisible = true;
+        $thissection->availableinfo = null;
+        $thissection->showavailability = 0;            
     }
     
     return $thissection;
