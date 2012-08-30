@@ -196,24 +196,8 @@ class format_ucla_renderer extends format_section_renderer_base {
      * to be printed after the headers, but before the footers.
      */
     public function print_js() {
-        $noeditingicons = $this->noeditingicons;
         if (ajaxenabled() && !empty($this->user_is_editing)) {
-            echo html_writer::script(false, new moodle_url('/course/format/ucla/sections.js'));
-
-            if ($noeditingicons) {
-                $editingiconsjs = 'true';
-            } else {
-                $editingiconsjs = 'false';
-            }
-
-            $strishidden = '(' . get_string('hidden', 'calendar') . ')';
-            $strmovealt = get_string('movealt', 'format_ucla');
-            
-            echo html_writer::script("
-            M.format_ucla.strings['hidden'] = '$strishidden';
-            M.format_ucla.strings['movealt'] = '$strmovealt';
-            M.format_ucla.no_editing_icons = $noeditingicons;
-            ");
+            echo html_writer::script(false, new moodle_url('/course/format/ucla/module_override.js'));
         }        
     }
 
@@ -436,7 +420,7 @@ class format_ucla_renderer extends format_section_renderer_base {
      * @param int $displaysection The section number in the course which is being displayed
      */
     public function print_single_section_page($course, $sections, $mods, $modnames, $modnamesused, $displaysection) {
-
+        global $PAGE;
         // Can we view the section in question?
         $context = context_course::instance($course->id);
         $canviewhidden = has_capability('moodle/course:viewhiddensections', $context);
@@ -456,7 +440,7 @@ class format_ucla_renderer extends format_section_renderer_base {
             // Can't view this section.
             return;
         }
-
+        
         // Copy activity clipboard..
         echo $this->course_activity_clipboard($course, $displaysection);
 
@@ -785,4 +769,32 @@ class format_ucla_renderer extends format_section_renderer_base {
         
         $this->term = $theterm; // save term for course being displayed
     }    
+    
+    /**
+     * Load YUI module that overrides eidt move icon -> text
+     * 
+     * @global type $PAGE 
+     */
+    public function override_js() {
+        global $PAGE;
+        
+        $strishidden      = '(' . get_string('hidden', 'calendar') . ')';
+        $strmovealt         = get_string('movealt', 'format_ucla');   
+        
+        $noeditingicons = get_user_preferences('noeditingicons', 1);
+
+        if ($noeditingicons) {
+            $editingiconsjs = true;
+        } else {
+            $editingiconsjs = false;
+        }
+
+        $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init',
+                array(array(
+                    'noeditingicon' => $editingiconsjs,
+                    'hidden' => $strishidden,
+                    'movealt' => $strmovealt,
+                )), null, true);
+
+    }
 }

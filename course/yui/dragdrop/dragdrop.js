@@ -281,27 +281,6 @@ YUI.add('moodle-course-dragdrop', function(Y) {
                 this.setup_for_resource('#'+sectionnode.get('id')+' li.'+CSS.ACTIVITY);
             }, this);
         },
-        // START UCLA MOD CCLE-3458 - converting 'move' icon to text
-        get_drag_handle : function(title, classname, iconclass) {
-            var dragicon = Y.Node.create('<span></span>')
-                .setStyle('cursor', 'move')
-                .setHTML(title)
-                .addClass('editing_move_totext')
-                .setAttrs({
-                    'alt' : title,
-                    'title' : 'Drag to move'
-                });
-            if (iconclass) {
-                dragicon.addClass(iconclass);
-            }
-
-            var dragelement = Y.Node.create('<span></span>')
-                .addClass(classname)
-                .setAttribute('title', title)
-            dragelement.appendChild(dragicon);
-            return dragelement;
-        },
-        // END UCLA MOD CCLE-3458
         /**
          * Apply dragdrop features to the specified selector or node that refers to resource(s)
          *
@@ -427,7 +406,13 @@ YUI.add('moodle-course-dragdrop', function(Y) {
 
     M.course = M.course || {};
     M.course.init_resource_dragdrop = function(params) {
-        new DRAGRESOURCE(params);
+        // START UCLA MOD CCLE-3458 - we want to inherit and override
+        // this object's methods in order to show text instead of icons
+//        new DRAGRESOURCE(params);
+        M.course.init_resource_dragdrop = DRAGRESOURCE;
+        M.course.init_params = params;
+        // END UCLA MOD CCLE-3456
+
     }
     M.course.init_section_dragdrop = function(params) {
         new DRAGSECTION(params);
