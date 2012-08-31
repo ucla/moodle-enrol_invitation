@@ -174,6 +174,9 @@ function elluminate_supports($feature) {
         case FEATURE_GROUPS: return true;
         case FEATURE_GROUPMEMBERSONLY: return true;
         case FEATURE_BACKUP_MOODLE2: return true;
+        //START UCLA MOD: feature23/CCLE-2966-elluminate-and-blackboard-web-conferencing
+        case FEATURE_MOD_INTRO: return true;
+        //END UCLA MOD: feature23/CCLE-2966-elluminate-and-blackboard-web-conferencing
         default: return null;
     }
 }
