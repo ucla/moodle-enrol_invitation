@@ -295,7 +295,7 @@ function elluminate_add_instance($elluminate, $facilitatorid = false) {
     $mod->visible = 1;
     $mod->visibleold = 1;
     $mod->groupmode = $elluminate->groupmode;  
-	
+    
     //START UCLA MOD: feature23/CCLE-2966-elluminate-and-blackboard-web-conferencing
     if($elluminate->groupingid == NULL) { 
         $mod->groupingid = 0;
@@ -4569,8 +4569,13 @@ function elluminate_update_events($elluminate) {
     $event = new stdClass;
     foreach ($oldevents as $oldevent) {
         $event = $oldevent;
-    }   
-    $event->description = $elluminate->description;
+    }
+    //START UCLA MOD: feature23/CCLE-2966-elluminate-and-blackboard-web-conferencing
+    if (isset($elluminate->description)){
+        $event->description = $elluminate->description;
+    }
+    //END UCLA MOD: feature23/CCLE-2966-elluminate-and-blackboard-web-conferencing
+
     $event->courseid    = $elluminate->course; // Events module won't show user events when the courseid is nonzero
     
     if($elluminate->sessiontype == 0 || $elluminate->sessiontype == 1) { //course private
