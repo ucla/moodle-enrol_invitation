@@ -275,6 +275,9 @@ $CFG->extramemorylimit = '1024M';
 // Site administration > Server > Update notifications
 $CFG->updateautocheck = 0;
 
+// Site administration > Development > Experimental > Experimental settings
+$CFG->dndallowtextandlinks = 1;
+
 /** 
  *  Automatic Shibboleth configurations.
  *  Disabling in favor for GUI configurations.

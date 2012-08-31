@@ -295,6 +295,9 @@ $CFG->extramemorylimit = '1024M';
 // Site administration > Server > Update notifications
 $CFG->updateautocheck = 0;
 
+// Site administration > Development > Experimental > Experimental settings
+$CFG->dndallowtextandlinks = 1;
+
 // Site administration > Development > Debugging
 $CFG->debug = 32767;    // DEVELOPER level debugging messages
 $CFG->debugdisplay = 1;  // show the debugging messages

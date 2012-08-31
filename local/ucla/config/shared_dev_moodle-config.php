@@ -298,6 +298,9 @@ $CFG->courselistshortnames = 1;
 // Site administration > Server > Session handling
 $CFG->dbsessions = false;
 
+// Site administration > Development > Experimental > Experimental settings
+$CFG->dndallowtextandlinks = 1;
+
 // Site administration > Development > Debugging
 $CFG->debug = 32767;    // DEVELOPER level debugging messages
 $CFG->debugdisplay = 1;  // show the debugging messages
