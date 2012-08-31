@@ -240,7 +240,9 @@ class mod_elluminate_mod_form extends moodleform_mod {
 		$mform->disabledIf('groupname', 'groupsession', 'eq', 0);
 		
         $this->add_action_buttons();
-
+        //START UCLA MOD: feature23/CCLE-2966-elluminate-and-blackboard-web-conferencing
+        $this->add_intro_editor(false, get_string('description', 'elluminate'));
+        //END UCLA MOD: feature23/CCLE-2966-elluminate-and-blackboard-web-conferencing
     }
 
 }
