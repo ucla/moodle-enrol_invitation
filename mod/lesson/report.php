@@ -45,14 +45,16 @@ $ufields = user_picture::fields('u'); // These fields are enough
 $params = array("lessonid" => $lesson->id);
 // TODO: Improve this. Fetching all students always is crazy!
 if (!empty($cm->groupingid)) {
-    $params["groupid"] = $cm->groupingid;
+// UCLA MOD: CCLE-3472 - Lesson module problem - lesson shows no attempts even though gradebook records grades    
+    $params["groupingid"] = $cm->groupingid;
     $sql = "SELECT DISTINCT $ufields
                 FROM {lesson_attempts} a
                     INNER JOIN {user} u ON u.id = a.userid
                     INNER JOIN {groups_members} gm ON gm.userid = u.id
-                    INNER JOIN {groupings_groups} gg ON gg.groupid = :groupid
+                    INNER JOIN {groupings_groups} gg ON (gg.groupingid = :groupingid AND gm.groupid=gg.groupid)
                 WHERE a.lessonid = :lessonid
                 ORDER BY u.lastname";
+// END UCLA MOD: CCLE-3472
 } else {
     $sql = "SELECT DISTINCT $ufields
             FROM {user} u,
