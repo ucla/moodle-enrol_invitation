@@ -545,19 +545,21 @@ class format_ucla_renderer extends format_section_renderer_base {
             $str = $strhidefromothers;
             $img_options = array('class' => 'iconsmall hide', 'alt' => $str);
             $img = 'i/hide';
+            $class = 'editing_showhide';
         } else {
             $strshowfromothers = get_string('showfromothers', 'format_'.$course->format);
             $url->param('show',  $section->section);
             $str = $strshowfromothers;
             $img_options = array('class' => 'iconsmall hide', 'alt' => $str);
             $img = 'i/show';
+            $class = 'editing_showhide';
         }
         
         $innards = new pix_icon($img, $str, 'moodle', $img_options);
-        $control = new action_link($url, $innards, null, array('title' => $str));
+        $control = new action_link($url, $innards, null, array('title' => $str, 'class' => $class));
 
         $controls[] = html_writer::tag(
-                'span', $OUTPUT->render($control), array('class' => 'editing_showhide')
+                'span', $OUTPUT->render_action_link($control), array('class' => 'edit_section_showhide')
             );
         
         /// Light globe
@@ -779,19 +781,31 @@ class format_ucla_renderer extends format_section_renderer_base {
         global $PAGE;
         
         $strishidden      = '(' . get_string('hidden', 'calendar') . ')';
-        $strmovealt         = get_string('movealt', 'format_ucla');   
+        $strmovealt         = get_string('movealt', 'format_ucla');
+        $pp_make_private = get_string('publicprivatemakeprivate');
+        $pp_make_public = get_string('publicprivatemakepublic');
+        $pp_private_material = get_string('publicprivategroupingname');
         
         $noeditingicons = get_user_preferences('noeditingicons', 1);
 
-        if ($noeditingicons) {
-            $editingiconsjs = true;
-        } else {
-            $editingiconsjs = false;
-        }
+        $noeditingicons = empty($noeditingicons) ? false : true;
+
+        $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init_resource_toolbox',
+                array(array(
+                    'noeditingicon' => $noeditingicons,
+                    'makeprivate' => $pp_make_private,
+                    'makepublic' => $pp_make_public,
+                    'privatematerial' => $pp_private_material,
+                )), null, true);
+        
+        $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init_toolbox',
+                array(array(
+                    'noeditingicon' => $noeditingicons,
+                )), null, true);
 
         $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init',
                 array(array(
-                    'noeditingicon' => $editingiconsjs,
+                    'noeditingicon' => $noeditingicons,
                     'hidden' => $strishidden,
                     'movealt' => $strmovealt,
                 )), null, true);
