@@ -312,6 +312,11 @@
         // Add the module chooser
         $renderer = $PAGE->get_renderer('core', 'course');
         echo $renderer->course_modchooser(get_module_metadata($course, $modnames, $displaysection), $course);
+
+        // START UCLA MOD CCLE-3458 - override moodle dragdrop module
+        $renderer = $PAGE->get_renderer('format_ucla');
+        $renderer->override_js();
+        // END UCLA MOD CCLE-3458
     }
 
     echo $OUTPUT->footer();

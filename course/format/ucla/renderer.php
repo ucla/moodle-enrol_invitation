@@ -196,24 +196,8 @@ class format_ucla_renderer extends format_section_renderer_base {
      * to be printed after the headers, but before the footers.
      */
     public function print_js() {
-        $noeditingicons = $this->noeditingicons;
         if (ajaxenabled() && !empty($this->user_is_editing)) {
-            echo html_writer::script(false, new moodle_url('/course/format/ucla/sections.js'));
-
-            if ($noeditingicons) {
-                $editingiconsjs = 'true';
-            } else {
-                $editingiconsjs = 'false';
-            }
-
-            $strishidden = '(' . get_string('hidden', 'calendar') . ')';
-            $strmovealt = get_string('movealt', 'format_ucla');
-            
-            echo html_writer::script("
-            M.format_ucla.strings['hidden'] = '$strishidden';
-            M.format_ucla.strings['movealt'] = '$strmovealt';
-            M.format_ucla.no_editing_icons = $noeditingicons;
-            ");
+            echo html_writer::script(false, new moodle_url('/course/format/ucla/module_override.js'));
         }        
     }
 
@@ -436,7 +420,7 @@ class format_ucla_renderer extends format_section_renderer_base {
      * @param int $displaysection The section number in the course which is being displayed
      */
     public function print_single_section_page($course, $sections, $mods, $modnames, $modnamesused, $displaysection) {
-
+        global $PAGE;
         // Can we view the section in question?
         $context = context_course::instance($course->id);
         $canviewhidden = has_capability('moodle/course:viewhiddensections', $context);
@@ -456,7 +440,7 @@ class format_ucla_renderer extends format_section_renderer_base {
             // Can't view this section.
             return;
         }
-
+        
         // Copy activity clipboard..
         echo $this->course_activity_clipboard($course, $displaysection);
 
@@ -565,19 +549,21 @@ class format_ucla_renderer extends format_section_renderer_base {
             $str = $strhidefromothers;
             $img_options = array('class' => 'iconsmall hide', 'alt' => $str);
             $img = 'i/hide';
+            $class = 'editing_showhide';
         } else {
             $strshowfromothers = get_string('showfromothers', 'format_'.$course->format);
             $url->param('show',  $section->section);
             $str = $strshowfromothers;
             $img_options = array('class' => 'iconsmall hide', 'alt' => $str);
             $img = 'i/show';
+            $class = 'editing_showhide';
         }
         
         $innards = new pix_icon($img, $str, 'moodle', $img_options);
-        $control = new action_link($url, $innards, null, array('title' => $str));
+        $control = new action_link($url, $innards, null, array('title' => $str, 'class' => $class));
 
         $controls[] = html_writer::tag(
-                'span', $OUTPUT->render($control), array('class' => 'editing_showhide')
+                'span', $OUTPUT->render_action_link($control), array('class' => 'edit_section_showhide')
             );
         
 //        /// Light globe
@@ -789,4 +775,44 @@ class format_ucla_renderer extends format_section_renderer_base {
         
         $this->term = $theterm; // save term for course being displayed
     }    
+    
+    /**
+     * Load YUI module that overrides eidt move icon -> text
+     * 
+     * @global type $PAGE 
+     */
+    public function override_js() {
+        global $PAGE;
+        
+        $strishidden      = '(' . get_string('hidden', 'calendar') . ')';
+        $strmovealt         = get_string('movealt', 'format_ucla');
+        $pp_make_private = get_string('publicprivatemakeprivate');
+        $pp_make_public = get_string('publicprivatemakepublic');
+        $pp_private_material = get_string('publicprivategroupingname');
+        
+        $noeditingicons = get_user_preferences('noeditingicons', 1);
+
+        $noeditingicons = empty($noeditingicons) ? false : true;
+
+        $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init_resource_toolbox',
+                array(array(
+                    'noeditingicon' => $noeditingicons,
+                    'makeprivate' => $pp_make_private,
+                    'makepublic' => $pp_make_public,
+                    'privatematerial' => $pp_private_material,
+                )), null, true);
+        
+        $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init_toolbox',
+                array(array(
+                    'noeditingicon' => $noeditingicons,
+                )), null, true);
+
+        $PAGE->requires->yui_module('moodle-course-dragdrop-ucla', 'M.format_ucla.init',
+                array(array(
+                    'noeditingicon' => $noeditingicons,
+                    'hidden' => $strishidden,
+                    'movealt' => $strmovealt,
+                )), null, true);
+
+    }
 }
