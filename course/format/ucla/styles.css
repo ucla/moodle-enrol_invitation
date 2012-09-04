@@ -1,7 +1,6 @@
 .course-content ul.topics {margin:0;}
 .course-content ul.topics li.section {list-style: none;margin:5px 0 0 0;padding:0;}
 .course-content ul.topics li.section .content {margin:0 40px;}
-.course-content ul.topics li.section .left {width:40px;float:left;text-align:center;}
 .course-content ul.topics li.section .right {width:40px;float:right;text-align:center;}
 .jumpmenu {text-align:center;}
 
@@ -16,15 +15,6 @@
 .course-content .section.main {
     border: none !important;
 }
-
-.course-content .section.main .left.side {
-    visibility:hidden;
-    float: left;
-    width: 0px !important;
-    padding: 0px !important;
-}
-.course-content .section.main .left.side .accesshide {visibility:visible;}
-.course-content .section.main .left.side a {visibility:visible;}
 
 .course-content ul.topics {
     margin: 0;
@@ -85,13 +75,6 @@ span.commands a:hover {
 
 .course-content ul.topics li.section .content .section_add_menus {
     padding-right: 2px;
-}
-
-.course-content ul.topics li.section .left {
-    width: 40px;
-    float: left;
-    text-align: center;
-    /* display: none; */
 }
 
 .course-content ul.topics li.section .right {
@@ -180,4 +163,13 @@ span.commands a:hover {
 span.commands a {margin-right: 10px;}
 span.commands a img.no-editing-icons {
     display: none;
+}
+
+/** 
+ * Make secton move icon off to the left side, without shifting section header 
+ * and JIT links */
+.course-content ul.topics li.section .left {
+    margin-left: -0.7em;
+    margin-top: -1.0em;
+    width: auto;
 }

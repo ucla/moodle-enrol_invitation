@@ -565,35 +565,34 @@ class format_ucla_renderer extends format_section_renderer_base {
         $controls[] = html_writer::tag(
                 'span', $OUTPUT->render_action_link($control), array('class' => 'edit_section_showhide')
             );
-        
-//        /// Light globe
-//        if ($onsectionpage) {
-//            $url = course_get_url($course, $section->section);
-//        } else {
-//            $url = course_get_url($course);
-//        }
-//        
-//        $url->param('sesskey', sesskey());
-//
-//        if ($course->marker == $section->section) {  // Show the "light globe" on/off.
-//            $url->param('marker', 0);
-//            $str = get_string('markedthistopic', 'format_ucla');
-//            $img_options = array('class' => 'iconsmall', 'alt' => $str);
-//            $img = 'i/marked'; 
-//        } else {
-//            $url->param('marker', $section->section);
-//            $str = get_string('markthistopic', 'format_ucla');
-//            $img_options = array('class' => 'iconsmall', 'alt' => $str);
-//            $img = 'i/marker';
-//        }
-//        
-//        $innards = new pix_icon($img, $str, 'moodle', $img_options);
-//        $control = new action_link($url, $innards, null, array('title' => $str));
-//
-//        $controls[] = html_writer::tag(
-//                'span', $OUTPUT->render($control), array('class' => 'editing_highlight')
-//            );
 
+        // add move icons (dragdown.js removes these icons later)
+        if (!$onsectionpage) {
+            $url = clone($baseurl);
+            if ($section->section > 1) { // Add a arrow to move section up.
+                $url->param('section', $section->section);
+                $url->param('move', -1);
+                $strmoveup = get_string('moveup');
+
+                $controls[] = html_writer::link($url,
+                    html_writer::empty_tag('img', array('src' => $this->output->pix_url('t/up'),
+                    'class' => 'icon up', 'alt' => $strmoveup)),
+                    array('title' => $strmoveup, 'class' => 'moveup'));
+            }
+
+            $url = clone($baseurl);
+            if ($section->section < $course->numsections) { // Add a arrow to move section down.
+                $url->param('section', $section->section);
+                $url->param('move', 1);
+                $strmovedown =  get_string('movedown');
+
+                $controls[] = html_writer::link($url,
+                    html_writer::empty_tag('img', array('src' => $this->output->pix_url('t/down'),
+                    'class' => 'icon down', 'alt' => $strmovedown)),
+                    array('title' => $strmovedown, 'class' => 'movedown'));
+            }
+        }        
+        
         return $controls;
     }
 
@@ -667,7 +666,7 @@ class format_ucla_renderer extends format_section_renderer_base {
 
         return $o;
     }    
-    
+
     /**
      * Generate the section title
      *
