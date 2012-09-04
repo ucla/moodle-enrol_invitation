@@ -729,8 +729,44 @@ function get_courses_wmanagers($categoryid=0, $sort="c.sortorder ASC", $fields=a
  * @param int $totalcount Passed in by reference.
  * @return object {@link $COURSE} records
  */
-function get_courses_search($searchterms, $sort='fullname ASC', $page=0, $recordsperpage=50, &$totalcount) {
+function get_courses_search($searchterms, $sort='fullname ASC', $page=0, $recordsperpage=50, &$totalcount, $otherargs = null) {
     global $CFG, $DB;
+    
+    // START UCLA MOD CCLE-2309
+    /// Collaboration join conditions
+    $collab = null;
+    $course = null;
+    
+    if(!empty($otherargs)) {
+        $collab = $otherargs['collab'];
+        $course = $otherargs['course'];
+    }
+    
+    $collab_join = 'LEFT JOIN {ucla_siteindicator} AS si ON si.courseid = c.id ';
+    $collab_and = '';
+    $collab_select = ', si.courseid as collabcheck';
+    $rest_limit = '';
+    
+    // Limit sql query results 
+    if(!empty($otherargs)) {
+        $rest_limit = 'LIMIT ' . $recordsperpage;
+    }
+
+    if(empty($course) && !empty($collab)) {
+        // Search only collab sites
+
+        $collab_join = 'JOIN {ucla_siteindicator} si ON c.id = si.courseid';
+        $collab_and = "AND si.type NOT LIKE 'test'";
+        $collab_select = ', si.courseid as collabcheck';
+
+    } else if (!empty($course) && empty($collab)) {
+        // Search only course sites
+        $collab_join = 'LEFT JOIN {ucla_siteindicator} AS si ON si.courseid = c.id ';
+        $collab_and = 'AND si.id IS NULL';
+        $collab_select = ', si.courseid as collabcheck';
+
+    }
+    // END UCLA MOD CCLE-2309
 
     if ($DB->sql_regex_supported()) {
         $REGEXP    = $DB->sql_regex(true);
@@ -798,11 +834,16 @@ function get_courses_search($searchterms, $sort='fullname ASC', $page=0, $record
     $limitto   = $limitfrom + $recordsperpage;
 
     list($ccselect, $ccjoin) = context_instance_preload_sql('c.id', CONTEXT_COURSE, 'ctx');
-    $sql = "SELECT c.* $ccselect
-              FROM {course} c
-           $ccjoin
-             WHERE $searchcond AND c.id <> ".SITEID."
-          ORDER BY $sort";
+    // START UCLA MOD CCLE-2309 - modify query to support collab
+    $sql = "SELECT c.* $ccselect $collab_select 
+            FROM {course} c
+        $collab_join 
+        $ccjoin
+            WHERE $searchcond AND c.id <> ".SITEID." 
+            $collab_and 
+        ORDER BY $sort
+            $rest_limit";
+    // END UCLA MOD CCLE-2309
 
     $rs = $DB->get_recordset_sql($sql, $params);
     foreach($rs as $course) {

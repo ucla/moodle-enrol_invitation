@@ -28,11 +28,16 @@ class collab_handler extends browseby_handler {
             
             require_once($collablibfile);
         
-            // Get YUI searchbox script
-            siteindicator_manager::searchbox_js_require();
+            // START UCLA MOD CCLE-2309
+            $ucla_search = $CFG->dirroot . '/blocks/ucla_search/block_ucla_search.php';
 
-            // Print the search box
-            $s .= siteindicator_manager::print_collab_searchbox();
+            if(file_exists($ucla_search)) {
+                require_once($ucla_search);
+
+                block_ucla_search::load_browseby_search_js(true);
+                $s .= block_ucla_search::print_browseby_search();
+            }
+            // END UCLA MOD CCLE-2309
 
             $collab_cat = $this->get_collaboration_category();
             siteindicator_manager::filter_category_tree($collab_cat);
