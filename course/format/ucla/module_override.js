@@ -213,13 +213,24 @@ YUI.add('moodle-course-dragdrop-ucla', function(Y) {
 
         if(PREFERENCES_UCLA.noeditingicon) {
             var a = e.target;
-            // Preserver the image
+            
+            var parent = e.target.ancestor('.sectionheader')
+
+            // Preserve the image
             var i = a.one('img');
 
             if(a.get('text') == M.util.get_string('hidefromothers', 'format_ucla')) {
                 a.set('text', M.util.get_string('showfromothers', 'format_ucla'));
+                var newnode = Y.Node.create('<span></span>');
+                newnode.setHTML(PREFERENCES_UCLA.STRINGS.hidden)
+                        .setAttribute('class', 'hidden');
+
+                // Append '(hidden)'
+                parent.one('h3').appendChild(newnode);
             } else {
                 a.set('text', M.util.get_string('hidefromothers', 'format_ucla'));
+                // Remove '(hidden)'
+                parent.one('h3 span.hidden').remove()
             }
             a.insert(i);    
         }
@@ -238,6 +249,7 @@ YUI.add('moodle-course-dragdrop-ucla', function(Y) {
     
     M.format_ucla.init = function (params) {
         PREFERENCES_UCLA.STRINGS.movealt = params.movealt;
+        PREFERENCES_UCLA.STRINGS.hidden = params.hidden;
         PREFERENCES_UCLA.noeditingicon = params.noeditingicon;
         
         new DRAGRESOURCE_UCLA(M.course.init_params);

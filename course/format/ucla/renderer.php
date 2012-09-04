@@ -680,7 +680,15 @@ class format_ucla_renderer extends format_section_renderer_base {
      */
     public function section_title($section, $course) {
         $title = get_section_name($course, $section);
-        return $title;
+
+        // If section is not visible.. append '(hidden)'
+        $hidden = '';
+        if(empty($section->visible)) {
+            $hidden = html_writer::tag('span', '(' . get_string('hidden', 'calendar') . ')',
+                    array('class' => 'hidden'));
+        }
+        
+        return $title . $hidden;
     }   
    
     /**
