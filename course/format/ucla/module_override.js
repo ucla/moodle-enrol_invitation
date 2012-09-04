@@ -211,27 +211,33 @@ YUI.add('moodle-course-dragdrop-ucla', function(Y) {
     SECTIONTOOLBOX_UCLA.prototype.toggle_hide_section = function(e) {
         SECTIONTOOLBOX_UCLA.superclass.toggle_hide_section.apply(this, [e]);
 
-        if(PREFERENCES_UCLA.noeditingicon) {
-            var a = e.target;
-            
-            var parent = e.target.ancestor('.sectionheader')
+        var a = e.target;
 
-            // Preserve the image
-            var i = a.one('img');
+        // Make sure our node is <a> and not <img>
+        if(!a.hasChildNodes()) {
+            a = a.ancestor('a.editing_showhide');
+        }
+        
+        var parent = e.target.ancestor('.sectionheader')
 
-            if(a.get('text') == M.util.get_string('hidefromothers', 'format_ucla')) {
-                a.set('text', M.util.get_string('showfromothers', 'format_ucla'));
-                var newnode = Y.Node.create('<span></span>');
+        if(a.get('title') == M.util.get_string('hidefromothers', 'format_ucla')) {
+            // Remove '(hidden)'
+            parent.one('h3 span.hidden').remove()
+
+        } else {
+            var newnode = Y.Node.create('<span></span>');
                 newnode.setHTML(PREFERENCES_UCLA.STRINGS.hidden)
                         .setAttribute('class', 'hidden');
 
-                // Append '(hidden)'
-                parent.one('h3').appendChild(newnode);
-            } else {
-                a.set('text', M.util.get_string('hidefromothers', 'format_ucla'));
-                // Remove '(hidden)'
-                parent.one('h3 span.hidden').remove()
-            }
+            // Append '(hidden)'
+            parent.one('h3').appendChild(newnode);
+        }
+        
+        if(PREFERENCES_UCLA.noeditingicon) {
+            // Preserve the image
+            var i = a.one('img');
+            
+            a.set('text', a.get('title'));
             a.insert(i);    
         }
     }
