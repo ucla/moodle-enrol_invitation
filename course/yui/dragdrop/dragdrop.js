@@ -406,7 +406,13 @@ YUI.add('moodle-course-dragdrop', function(Y) {
 
     M.course = M.course || {};
     M.course.init_resource_dragdrop = function(params) {
-        new DRAGRESOURCE(params);
+        // START UCLA MOD CCLE-3458 - we want to inherit and override
+        // this object's methods in order to show text instead of icons
+//        new DRAGRESOURCE(params);
+        M.course.init_resource_dragdrop = DRAGRESOURCE;
+        M.course.init_params = params;
+        // END UCLA MOD CCLE-3456
+
     }
     M.course.init_section_dragdrop = function(params) {
         new DRAGSECTION(params);

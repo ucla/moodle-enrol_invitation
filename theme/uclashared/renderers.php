@@ -346,13 +346,16 @@ class theme_uclashared_core_renderer extends core_renderer {
             if ($action->text instanceof pix_icon) {
                 $icon = $action->text;
 
+                /// We want to preserve the icon (but hide it), 
+                /// so the YUI js references remain intact
+                $icon->attributes['style'] = 'display:none';
                 $attr = $icon->attributes;
                 $displaytext = $attr['alt'];
 
-                unset($attr['alt']);
-                unset($attr['title']);
+                $out = $this->render($icon);
 
-                $action->text = $displaytext;
+                // Output hidden icon and text
+                $action->text = $out . $displaytext;
             }
         }
 

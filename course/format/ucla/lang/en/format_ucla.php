@@ -18,16 +18,17 @@
 /**
  * Strings for component 'format_ucla'
  *
- * @package   ucla
+ * @package   format_ucla
+ * @copyright 2012 UC Regents
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-// Moodle general format strings
+$string['currentsection'] = 'This section';
 $string['sectionname'] = 'Section';
 $string['pluginname'] = 'UCLA format';
 $string['section0name'] = 'Site info';
-$string['currentsection'] = 'This section';
-$string['page-course-view-ucla'] = 'Any course main page in UCLA format';
-$string['page-course-view-ucla-x'] = 'Any course page in UCLA format';
+$string['page-course-view-topics'] = 'Any course main page in ucla format';
+$string['page-course-view-topics-x'] = 'Any course page in ucla format';
 $string['hidefromothers'] = 'Hide section';
 $string['showfromothers'] = 'Show section';
 
@@ -52,6 +53,8 @@ $string['editcoursetitle'] = 'Edit course description';
 $string['editsectiontitle'] = 'Edit title';
 $string['editofficehours'] = 'Update';
 $string['movealt'] = 'Click and drag to move';
+$string['markthistopic'] = 'Highlight section';
+$string['markedthistopic'] = 'Section is highlighted';
 
 // JIT strings
 $string['file'] = 'Upload file';

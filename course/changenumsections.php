@@ -55,5 +55,11 @@ if ($course->numsections >= 0) {
 
 $url = course_get_url($course);
 $url->set_anchor('changenumsections');
+
+// START UCLA MOD: CCLE-3362 - Update ucla format to handle new format API
+// Inject "show_all=1" so that multiple sections are shown on the same page
+$url->param('show_all', 1);
+// END UCLA MOD: CCLE-3362
+
 // Redirect to where we were..
 redirect($url);

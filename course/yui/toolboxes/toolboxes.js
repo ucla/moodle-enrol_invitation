@@ -482,7 +482,7 @@ YUI.add('moodle-course-toolboxes', function(Y) {
                 .setStyle('cursor', 'pointer')
                 .addClass(CSS.MOVELEFTCLASS)
                 .setAttribute('href', newlink)
-                .setAttribute('title', left_string);
+                .setAttribute('title', left_string)
             anchor.appendChild(newicon);
             anchor.on('click', this.move_left, this);
             moveright.insert(anchor, 'before');
@@ -654,7 +654,7 @@ YUI.add('moodle-course-toolboxes', function(Y) {
             // Section Visibility
             this.replace_button(toolboxtarget, CSS.RIGHTSIDE + ' ' + CSS.SHOWHIDE, this.toggle_hide_section);
         },
-        toggle_hide_section : function(e) {
+       toggle_hide_section : function(e) {
             // Prevent the default button action
             e.preventDefault();
 
@@ -713,11 +713,11 @@ YUI.add('moodle-course-toolboxes', function(Y) {
                     this.toggle_hide_resource_ui(button);
                 }
 
-                if (value == 0) {
-                    button.setStyle('cursor', 'auto');
-                } else {
-                    button.setStyle('cursor', 'pointer');
-                }
+//                if (value == 0) {
+//                    button.setStyle('cursor', 'auto');
+//                } else {
+//                    button.setStyle('cursor', 'pointer');
+//                }
             }, this);
         },
         toggle_highlight : function(e) {
@@ -786,11 +786,19 @@ YUI.add('moodle-course-toolboxes', function(Y) {
     M.course = M.course || {};
 
     M.course.init_resource_toolbox = function(config) {
-        return new RESOURCETOOLBOX(config);
+        // START UCLA MOD CCLE-3362 - adding support for text icons
+//        return new RESOURCETOOLBOX(config);
+        M.course.init_resource_toolbox_config = config;
+        M.course.init_resource_toolbox = RESOURCETOOLBOX;
+        // END UCLA MOD CCLE-3362
     };
 
     M.course.init_section_toolbox = function(config) {
-        return new SECTIONTOOLBOX(config);
+        // START UCLA MOD CCLE-3362 - adding support for text icons
+//        return new SECTIONTOOLBOX(config);
+        M.course.init_section_toolbox = SECTIONTOOLBOX;
+        M.course.init_section_toolbox_config = config;
+        // END UCLA MOD CCLE-3362
     };
 
 },

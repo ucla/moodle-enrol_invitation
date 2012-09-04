@@ -542,6 +542,7 @@ Turning off style, but leaving it here in case we need to reenable it in the fut
     top: 3px;
 }
 /* Add resource/activity bar */
+.course-content ul.topics li.section .content .section-modchooser,
 .course-content ul.topics li.section .content .section_add_menus {
     background: none repeat scroll 0 0 #F9F9F9;
     box-shadow: 0 5px 5px -6px #999 inset;
@@ -568,6 +569,18 @@ Turning off style, but leaving it here in case we need to reenable it in the fut
 .text-icons .editing_delete {
     float: none;
 }
+/* style 'edit title' message'*/
+.topics ul li span.editinstructions {
+    border: 1px solid #FF6666;
+    border-left: 5px solid #FF6666;
+    background-color: white;
+    color: #FF6666;
+    font-size: 10pt;
+    margin-bottom: 4px;
+    display: inline-block;
+    width: auto;
+}
+
 /* END CCLE-3069 */
 
 .notify	{
