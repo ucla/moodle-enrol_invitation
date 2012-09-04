@@ -174,7 +174,8 @@ YUI.add('moodle-course-dragdrop-ucla', function(Y) {
         SECTIONTOOLBOX_UCLA.superclass.toggle_hide_section.apply(this, [e]);
 
         if(PREFERENCES_UCLA.noeditingicon) {
-            var a = Y.one('span.edit_section_showhide a');
+            var a = e.target;
+            // Preserver the image
             var i = a.one('img');
 
             if(a.get('text') == M.util.get_string('hidefromothers', 'format_ucla')) {
