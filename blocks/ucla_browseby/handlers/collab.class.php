@@ -219,9 +219,6 @@ class collab_handler extends browseby_handler {
             $table->head = $dispheaders;
 
             $list = html_writer::table($table);
-        } else {
-            $title = get_string('collab_nocoursesincat', 
-                'block_ucla_browseby');
         }
 
         $s .= $this->heading($title, 3) . $list;
