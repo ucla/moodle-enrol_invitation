@@ -173,3 +173,5 @@ span.commands a img.no-editing-icons {
     margin-top: -1.0em;
     width: auto;
 }
+
+.path-course-view .single-section .completionprogress {margin-right: 0 !important;}
