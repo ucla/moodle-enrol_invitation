@@ -10,6 +10,8 @@ YUI.add('moodle-course-dragdrop-ucla', function(Y) {
     var CSS = {
         ACTIVITYLI : 'li.activity',
         COMMANDSPAN : 'span.commands',
+        EDITINGMOVE : 'editing_move',
+        ICONCLASS : 'iconsmall',
         GROUPINGSPAN : 'span.groupinglabel',
         MODINDENTDIV : 'div.mod-indent',
         PUBLICPRIVATE_PRIVATE : 'a.editing_makeprivate',
@@ -57,6 +59,42 @@ YUI.add('moodle-course-dragdrop-ucla', function(Y) {
         return h;
     }
     
+    /**
+     * Replace text on drag & drop
+     */
+    DRAGRESOURCE_UCLA.prototype.setup_for_resource = function(baseselector) {
+        DRAGRESOURCE_UCLA.superclass.setup_for_resource.apply(this, [baseselector]);
+        // Elements to replace
+        if(PREFERENCES_UCLA.noeditingicon) {
+            var items = [
+                'a.editing_title',
+                'a.editing_moveright',
+                'a.editing_update',
+                'a.editing_duplicate',
+                'a.editing_hide',
+                'a.editing_show',
+                'a.editing_makepublic',
+                'a.editing_makeprivate',
+                'a.editing_delete'
+            ];
+
+            Y.Node.all(baseselector).each(function(resourcesnode) {
+                // Replace with text
+                Y.Array.each(items, function(item) {
+                    var elem = resourcesnode.one(item);
+                    if(elem) {
+                        var img = elem.one('img');
+                        img.setAttribute('style', 'display:none');
+                        var text = elem.get('title');
+                        elem.set('text', text);
+                        elem.insert(img);
+                    }
+                });
+
+
+            }, this);
+        }
+    }
     
     /**
      * Update the show/hide text for resources
@@ -216,7 +254,7 @@ YUI.add('moodle-course-dragdrop-ucla', function(Y) {
     
     M.format_ucla.init_toolbox = function (params) {
         PREFERENCES_UCLA.noeditingicon = params.noeditingicon;
-
+        
         return new SECTIONTOOLBOX_UCLA(M.course.init_section_toolbox_config);
     }
 
