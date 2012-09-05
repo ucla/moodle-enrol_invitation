@@ -52,7 +52,12 @@ require_once('class.soap_server.php');*/
 
 // class variable emulation
 // cf. http://www.webkreator.com/php/techniques/php-static-class-variables.html
+
+// START UCLA MOD: CCLE-2966-replace-elluminate-with-blackboard-web-conferencing
+$GLOBALS = array();
+$GLOBALS['_transient']['static']['nusoap_base']=new stdClass();
 $GLOBALS['_transient']['static']['nusoap_base']->globalDebugLevel = 9;
+// END UCLA MOD: CCLE-2966-replace-elluminate-with-blackboard-web-conferencing
 
 
 // Updated 03-APR-2009, JDS/Moodlerooms

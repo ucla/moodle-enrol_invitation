@@ -3233,13 +3233,17 @@ function elluminate_set_meeting($meeting, $start, $end, $name, $facilitator, $pa
     } else {
         if($CFG->elluminate_pre_populate_moderators == 1) {
             $moderators = elluminate_get_course_moderators($cmid);
-            foreach ($moderators as $moderator) {
-                if ($currChairList == '') {
-                    $currChairList = $moderator->id;                                    
-                } else {
-                    $currChairList = $currChairList . ',' . $moderator->id;
-                }                   
+           // START UCLA MOD: CCLE-2966-replace-elluminate-with-blackboard-web-conferencing
+            if (is_array($moderators)){
+                foreach ($moderators as $moderator) {
+                    if ($currChairList == '') {
+                        $currChairList = $moderator->id;                                    
+                    } else {
+                        $currChairList = $currChairList . ',' . $moderator->id;
+                    }                   
+                }
             }
+            // START UCLA MOD: CCLE-2966-replace-elluminate-with-blackboard-web-conferencing
         } else {
             if(empty($creatorid)) {
                     $currChairList = $USER->id;
