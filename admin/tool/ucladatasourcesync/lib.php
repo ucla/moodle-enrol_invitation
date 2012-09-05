@@ -352,3 +352,28 @@ function validate_field($type, $field, $min_size=0, $max_size=100)
     
     return $field;
 }
+
+
+/**
+ * Gets table information from database for: bruincast, library reserves, and video furnace
+ * 
+ * @param string $table     The type of table you want to get information for.
+ *      options: "bruincast", "library_reserves", "video_furnace"
+ * 
+ * @return array            Returns an array containing: 
+ */
+function get_reserve_data($table)
+{
+    global $DB;
+    global $CFG;
+    
+    if ($table == 'bruincast') {
+        $result = $DB->get_records('ucla_' . $table, null, '','id, term, srs, bruincast_url');
+    } else if ($table == 'library_reserves') {
+        $result = $DB->get_records('ucla_' . $table, null, '','id, quarter, srs, url');
+    } else if ($table == 'video_furnace') {
+        $result = $DB->get_records('ucla_video_furnace', null, '', 'id, term, srs, video_title, video_url');
+    }
+    
+    return $result;
+}
