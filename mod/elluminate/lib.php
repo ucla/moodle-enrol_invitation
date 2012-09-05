@@ -332,7 +332,11 @@ function elluminate_add_instance($elluminate, $facilitatorid = false) {
                                       $elluminate->recordingmode,
                                       $mod->id,
                                       $USER->id);
-            $meetingid = $create_result->DefaultAdapterMeetingResponseShort->meetingId;
+            //START UCLA MOD: feature23/CCLE-2966-elluminate-and-blackboard-web-conferencing
+			if ($create_result->DefaultAdapterMeetingResponseShort->meetingId){
+                $meetingid = $create_result->DefaultAdapterMeetingResponseShort->meetingId;
+			}
+			//END UCLA MOD: feature23/CCLE-2966-elluminate-and-blackboard-web-conferencing
             if($meetingid > 0) {
                 $elluminate->meetingid = $meetingid;
                 if(!empty($elluminate->meetingid)) {
