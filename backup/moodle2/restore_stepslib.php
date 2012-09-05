@@ -16,15 +16,16 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package moodlecore
- * @subpackage backup-moodle2
- * @copyright 2010 onwards Eloy Lafuente (stronk7) {@link http://stronk7.com}
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Defines various restore steps that will be used by common tasks in restore
+ *
+ * @package     core_backup
+ * @subpackage  moodle2
+ * @category    backup
+ * @copyright   2010 onwards Eloy Lafuente (stronk7) {@link http://stronk7.com}
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/**
- * Define all the restore steps that will be used by common tasks in restore
- */
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * delete old directories and conditionally create backup_temp_ids table
@@ -589,7 +590,11 @@ class restore_load_included_files extends restore_structure_step {
         return array($file);
     }
 
-    // Processing functions go here
+    /**
+     * Process one <file> element from files.xml
+     *
+     * @param array $data the element data
+     */
     public function process_file($data) {
 
         $data = (object)$data; // handy
@@ -719,6 +724,17 @@ class restore_groups_structure_step extends restore_structure_step {
         $data = (object)$data; // handy
         $data->courseid = $this->get_courseid();
 
+        // Only allow the idnumber to be set if the user has permission and the idnumber is not already in use by
+        // another a group in the same course
+        $context = context_course::instance($data->courseid);
+        if (isset($data->idnumber) and has_capability('moodle/course:changeidnumber', $context, $this->task->get_userid())) {
+            if (groups_get_group_by_idnumber($data->courseid, $data->idnumber)) {
+                unset($data->idnumber);
+            }
+        } else {
+            unset($data->idnumber);
+        }
+
         $oldid = $data->id;    // need this saved for later
 
         $restorefiles = false; // Only if we end creating the group
@@ -767,6 +783,17 @@ class restore_groups_structure_step extends restore_structure_step {
 
         $data = (object)$data; // handy
         $data->courseid = $this->get_courseid();
+
+        // Only allow the idnumber to be set if the user has permission and the idnumber is not already in use by
+        // another a grouping in the same course
+        $context = context_course::instance($data->courseid);
+        if (isset($data->idnumber) and has_capability('moodle/course:changeidnumber', $context, $this->task->get_userid())) {
+            if (groups_get_grouping_by_idnumber($data->courseid, $data->idnumber)) {
+                unset($data->idnumber);
+            }
+        } else {
+            unset($data->idnumber);
+        }
 
         $oldid = $data->id;    // need this saved for later
         $restorefiles = false; // Only if we end creating the grouping
@@ -995,16 +1022,24 @@ class restore_process_categories_and_questions extends restore_execution_step {
 class restore_section_structure_step extends restore_structure_step {
 
     protected function define_structure() {
+        global $CFG;
+
+        $paths = array();
+
         $section = new restore_path_element('section', '/section');
+        $paths[] = $section;
+        if ($CFG->enableavailability) {
+            $paths[] = new restore_path_element('availability', '/section/availability');
+        }
 
         // Apply for 'format' plugins optional paths at section level
         $this->add_plugin_structure('format', $section);
 
-        return array($section);
+        return $paths;
     }
 
     public function process_section($data) {
-        global $DB;
+        global $CFG, $DB;
         $data = (object)$data;
         $oldid = $data->id; // We'll need this later
 
@@ -1025,6 +1060,18 @@ class restore_section_structure_step extends restore_structure_step {
             $section->summaryformat = $data->summaryformat;
             $section->sequence = '';
             $section->visible = $data->visible;
+            if (empty($CFG->enableavailability)) { // Process availability information only if enabled.
+                $section->availablefrom = 0;
+                $section->availableuntil = 0;
+                $section->showavailability = 0;
+            } else {
+                $section->availablefrom = isset($data->availablefrom) ? $this->apply_date_offset($data->availablefrom) : 0;
+                $section->availableuntil = isset($data->availableuntil) ? $this->apply_date_offset($data->availableuntil) : 0;
+                $section->showavailability = isset($data->showavailability) ? $data->showavailability : 0;
+            }
+            if (!empty($CFG->enablegroupmembersonly)) { // Only if enablegroupmembersonly is enabled
+                $section->groupingid = isset($data->groupingid) ? $this->get_mappingid('grouping', $data->groupingid) : 0;
+            }
             $newitemid = $DB->insert_record('course_sections', $section);
             $restorefiles = true;
 
@@ -1039,6 +1086,16 @@ class restore_section_structure_step extends restore_structure_step {
                 $section->summaryformat = $data->summaryformat;
                 $restorefiles = true;
             }
+            if (empty($secrec->groupingid)) {
+                if (!empty($CFG->enablegroupmembersonly)) { // Only if enablegroupmembersonly is enabled
+                    $section->groupingid = isset($data->groupingid) ? $this->get_mappingid('grouping', $data->groupingid) : 0;
+                }
+            }
+
+            // Don't update available from, available until, or show availability
+            // (I didn't see a useful way to define whether existing or new one should
+            // take precedence).
+
             $DB->update_record('course_sections', $section);
             $newitemid = $secrec->id;
         }
@@ -1062,9 +1119,59 @@ class restore_section_structure_step extends restore_structure_step {
         //}
     }
 
+    public function process_availability($data) {
+        global $DB;
+        $data = (object)$data;
+
+        $data->coursesectionid = $this->task->get_sectionid();
+
+        // NOTE: Other values in $data need updating, but these (cm,
+        // grade items) have not yet been restored, so are done later.
+
+        $newid = $DB->insert_record('course_sections_availability', $data);
+
+        // We do not need to map between old and new id but storing a mapping
+        // means it gets added to the backup_ids table to record which ones
+        // need updating. The mapping is stored with $newid => $newid for
+        // convenience.
+        $this->set_mapping('course_sections_availability', $newid, $newid);
+    }
+
     protected function after_execute() {
         // Add section related files, with 'course_section' itemid to match
         $this->add_related_files('course', 'section', 'course_section');
+    }
+
+    public function after_restore() {
+        global $DB;
+
+        $sectionid = $this->get_task()->get_sectionid();
+
+        // Get data object for current section availability (if any).
+        $data = $DB->get_record('course_sections_availability',
+                array('coursesectionid' => $sectionid), 'id, sourcecmid, gradeitemid', IGNORE_MISSING);
+
+        // If it exists, update mappings.
+        if ($data) {
+            // Only update mappings for entries which are created by this restore.
+            // Otherwise, when you restore to an existing course, it will mess up
+            // existing section availability entries.
+            if (!$this->get_mappingid('course_sections_availability', $data->id, false)) {
+                return;
+            }
+
+            // Update source cmid / grade id to new value.
+            $data->sourcecmid = $this->get_mappingid('course_module', $data->sourcecmid);
+            if (!$data->sourcecmid) {
+                $data->sourcecmid = null;
+            }
+            $data->gradeitemid = $this->get_mappingid('grade_item', $data->gradeitemid);
+            if (!$data->gradeitemid) {
+                $data->gradeitemid = null;
+            }
+
+            $DB->update_record('course_sections_availability', $data);
+        }
     }
 }
 
@@ -1076,6 +1183,21 @@ class restore_section_structure_step extends restore_structure_step {
  * the course record (never inserting)
  */
 class restore_course_structure_step extends restore_structure_step {
+    /**
+     * @var bool this gets set to true by {@link process_course()} if we are
+     * restoring an old coures that used the legacy 'module security' feature.
+     * If so, we have to do more work in {@link after_execute()}.
+     */
+    protected $legacyrestrictmodules = false;
+
+    /**
+     * @var array Used when {@link $legacyrestrictmodules} is true. This is an
+     * array with array keys the module names ('forum', 'quiz', etc.). These are
+     * the modules that are allowed according to the data in the backup file.
+     * In {@link after_execute()} we then have to prevent adding of all the other
+     * types of activity.
+     */
+    protected $legacyallowedmodules = array();
 
     protected function define_structure() {
 
@@ -1138,8 +1260,9 @@ class restore_course_structure_step extends restore_structure_step {
             $data->hiddensections = 0;
         }
 
-        // Only restrict modules if original course was and target site too for new courses
-        $data->restrictmodules = $data->restrictmodules && !empty($CFG->restrictmodulesfor) && $CFG->restrictmodulesfor == 'all';
+        // Set legacyrestrictmodules to true if the course was resticting modules. If so
+        // then we will need to process restricted modules after execution.
+        $this->legacyrestrictmodules = !empty($data->restrictmodules);
 
         $data->startdate= $this->apply_date_offset($data->startdate);
         if ($data->defaultgroupingid) {
@@ -1211,28 +1334,18 @@ class restore_course_structure_step extends restore_structure_step {
     }
 
     public function process_allowed_module($data) {
-        global $CFG, $DB;
-
         $data = (object)$data;
 
-        // only if enabled by admin setting
-        if (!empty($CFG->restrictmodulesfor) && $CFG->restrictmodulesfor == 'all') {
-            $available = get_plugin_list('mod');
-            $mname = $data->modulename;
-            if (array_key_exists($mname, $available)) {
-                if ($module = $DB->get_record('modules', array('name' => $mname, 'visible' => 1))) {
-                    $rec = new stdclass();
-                    $rec->course = $this->get_courseid();
-                    $rec->module = $module->id;
-                    if (!$DB->record_exists('course_allowed_modules', (array)$rec)) {
-                        $DB->insert_record('course_allowed_modules', $rec);
-                    }
-                }
-            }
+        // Backwards compatiblity support for the data that used to be in the
+        // course_allowed_modules table.
+        if ($this->legacyrestrictmodules) {
+            $this->legacyallowedmodules[$data->modulename] = 1;
         }
     }
 
     protected function after_execute() {
+        global $DB;
+
         // Add course related files, without itemid to match
         $this->add_related_files('course', 'summary', null);
         // START UCLA MOD: CCLE-2902 - Enable "legacy course files" repository for restored M19 courses on M2
@@ -1290,6 +1403,29 @@ class restore_course_legacy_files_step extends restore_structure_step {
 
         // Add course legacy files, without itemid to match.
         $this->add_related_files('course', 'legacy', null);
+
+        // Deal with legacy allowed modules.
+        if ($this->legacyrestrictmodules) {
+            $context = context_course::instance($this->get_courseid());
+
+            list($roleids) = get_roles_with_cap_in_context($context, 'moodle/course:manageactivities');
+            list($managerroleids) = get_roles_with_cap_in_context($context, 'moodle/site:config');
+            foreach ($managerroleids as $roleid) {
+                unset($roleids[$roleid]);
+            }
+
+            foreach (get_plugin_list('mod') as $modname => $notused) {
+                if (isset($this->legacyallowedmodules[$modname])) {
+                    // Module is allowed, no worries.
+                    continue;
+                }
+
+                $capability = 'mod/' . $modname . ':addinstance';
+                foreach ($roleids as $roleid) {
+                    assign_capability($capability, CAP_PREVENT, $roleid, $context);
+                }
+            }
+        }
     }
 
 }
@@ -2376,7 +2512,11 @@ class restore_block_instance_structure_step extends restore_structure_step {
         // If there is already one block of that type in the parent context
         // and the block is not multiple, stop processing
         // Use blockslib loader / method executor
-        if (!block_method_result($data->blockname, 'instance_allow_multiple')) {
+        if (!$bi = block_instance($data->blockname)) {
+            return false;
+        }
+
+        if (!$bi->instance_allow_multiple()) {
             if ($DB->record_exists_sql("SELECT bi.id
                                           FROM {block_instances} bi
                                           JOIN {block} b ON b.name = bi.blockname
@@ -2492,7 +2632,6 @@ class restore_module_structure_step extends restore_structure_step {
 
         $data = (object)$data;
         $oldid = $data->id;
-
         $this->task->set_old_moduleversion($data->version);
 
         $data->course = $this->task->get_courseid();
@@ -3030,6 +3169,331 @@ class restore_create_question_files extends restore_execution_step {
         $questionsrs->close();
     }
 }
+
+
+/**
+ * Try to restore aliases and references to external files.
+ *
+ * The queue of these files was prepared for us in {@link restore_dbops::send_files_to_pool()}.
+ * We expect that all regular (non-alias) files have already been restored. Make sure
+ * there is no restore step executed after this one that would call send_files_to_pool() again.
+ *
+ * You may notice we have hardcoded support for Server files, Legacy course files
+ * and user Private files here at the moment. This could be eventually replaced with a set of
+ * callbacks in the future if needed.
+ *
+ * @copyright 2012 David Mudrak <david@moodle.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class restore_process_file_aliases_queue extends restore_execution_step {
+
+    /** @var array internal cache for {@link choose_repository() */
+    private $cachereposbyid = array();
+
+    /** @var array internal cache for {@link choose_repository() */
+    private $cachereposbytype = array();
+
+    /**
+     * What to do when this step is executed.
+     */
+    protected function define_execution() {
+        global $DB;
+
+        $this->log('processing file aliases queue', backup::LOG_INFO);
+
+        $fs = get_file_storage();
+
+        // Load the queue.
+        $rs = $DB->get_recordset('backup_ids_temp',
+            array('backupid' => $this->get_restoreid(), 'itemname' => 'file_aliases_queue'),
+            '', 'info');
+
+        // Iterate over aliases in the queue.
+        foreach ($rs as $record) {
+            $info = unserialize(base64_decode($record->info));
+
+            // Try to pick a repository instance that should serve the alias.
+            $repository = $this->choose_repository($info);
+
+            if (is_null($repository)) {
+                $this->notify_failure($info, 'unable to find a matching repository instance');
+                continue;
+            }
+
+            if ($info->oldfile->repositorytype === 'local' or $info->oldfile->repositorytype === 'coursefiles') {
+                // Aliases to Server files and Legacy course files may refer to a file
+                // contained in the backup file or to some existing file (if we are on the
+                // same site).
+                try {
+                    $reference = file_storage::unpack_reference($info->oldfile->reference);
+                } catch (Exception $e) {
+                    $this->notify_failure($info, 'invalid reference field format');
+                    continue;
+                }
+
+                // Let's see if the referred source file was also included in the backup.
+                $candidates = $DB->get_recordset('backup_files_temp', array(
+                        'backupid' => $this->get_restoreid(),
+                        'contextid' => $reference['contextid'],
+                        'component' => $reference['component'],
+                        'filearea' => $reference['filearea'],
+                        'itemid' => $reference['itemid'],
+                    ), '', 'info, newcontextid, newitemid');
+
+                $source = null;
+
+                foreach ($candidates as $candidate) {
+                    $candidateinfo = unserialize(base64_decode($candidate->info));
+                    if ($candidateinfo->filename === $reference['filename']
+                            and $candidateinfo->filepath === $reference['filepath']
+                            and !is_null($candidate->newcontextid)
+                            and !is_null($candidate->newitemid) ) {
+                        $source = $candidateinfo;
+                        $source->contextid = $candidate->newcontextid;
+                        $source->itemid = $candidate->newitemid;
+                        break;
+                    }
+                }
+                $candidates->close();
+
+                if ($source) {
+                    // We have an alias that refers to another file also included in
+                    // the backup. Let us change the reference field so that it refers
+                    // to the restored copy of the original file.
+                    $reference = file_storage::pack_reference($source);
+
+                    // Send the new alias to the filepool.
+                    $fs->create_file_from_reference($info->newfile, $repository->id, $reference);
+                    $this->notify_success($info);
+                    continue;
+
+                } else {
+                    // This is a reference to some moodle file that was not contained in the backup
+                    // file. If we are restoring to the same site, keep the reference untouched
+                    // and restore the alias as is if the referenced file exists.
+                    if ($this->task->is_samesite()) {
+                        if ($fs->file_exists($reference['contextid'], $reference['component'], $reference['filearea'],
+                                $reference['itemid'], $reference['filepath'], $reference['filename'])) {
+                            $reference = file_storage::pack_reference($reference);
+                            $fs->create_file_from_reference($info->newfile, $repository->id, $reference);
+                            $this->notify_success($info);
+                            continue;
+                        } else {
+                            $this->notify_failure($info, 'referenced file not found');
+                            continue;
+                        }
+
+                    // If we are at other site, we can't restore this alias.
+                    } else {
+                        $this->notify_failure($info, 'referenced file not included');
+                        continue;
+                    }
+                }
+
+            } else if ($info->oldfile->repositorytype === 'user') {
+                if ($this->task->is_samesite()) {
+                    // For aliases to user Private files at the same site, we have a chance to check
+                    // if the referenced file still exists.
+                    try {
+                        $reference = file_storage::unpack_reference($info->oldfile->reference);
+                    } catch (Exception $e) {
+                        $this->notify_failure($info, 'invalid reference field format');
+                        continue;
+                    }
+                    if ($fs->file_exists($reference['contextid'], $reference['component'], $reference['filearea'],
+                            $reference['itemid'], $reference['filepath'], $reference['filename'])) {
+                        $reference = file_storage::pack_reference($reference);
+                        $fs->create_file_from_reference($info->newfile, $repository->id, $reference);
+                        $this->notify_success($info);
+                        continue;
+                    } else {
+                        $this->notify_failure($info, 'referenced file not found');
+                        continue;
+                    }
+
+                // If we are at other site, we can't restore this alias.
+                } else {
+                    $this->notify_failure($info, 'restoring at another site');
+                    continue;
+                }
+
+            } else {
+                // This is a reference to some external file such as in boxnet or dropbox.
+                // If we are restoring to the same site, keep the reference untouched and
+                // restore the alias as is.
+                if ($this->task->is_samesite()) {
+                    $fs->create_file_from_reference($info->newfile, $repository->id, $info->oldfile->reference);
+                    $this->notify_success($info);
+                    continue;
+
+                // If we are at other site, we can't restore this alias.
+                } else {
+                    $this->notify_failure($info, 'restoring at another site');
+                    continue;
+                }
+            }
+        }
+        $rs->close();
+    }
+
+    /**
+     * Choose the repository instance that should handle the alias.
+     *
+     * At the same site, we can rely on repository instance id and we just
+     * check it still exists. On other site, try to find matching Server files or
+     * Legacy course files repository instance. Return null if no matching
+     * repository instance can be found.
+     *
+     * @param stdClass $info
+     * @return repository|null
+     */
+    private function choose_repository(stdClass $info) {
+        global $DB, $CFG;
+        require_once($CFG->dirroot.'/repository/lib.php');
+
+        if ($this->task->is_samesite()) {
+            // We can rely on repository instance id.
+
+            if (array_key_exists($info->oldfile->repositoryid, $this->cachereposbyid)) {
+                return $this->cachereposbyid[$info->oldfile->repositoryid];
+            }
+
+            $this->log('looking for repository instance by id', backup::LOG_DEBUG, $info->oldfile->repositoryid, 1);
+
+            try {
+                $this->cachereposbyid[$info->oldfile->repositoryid] = repository::get_repository_by_id($info->oldfile->repositoryid, SYSCONTEXTID);
+                return $this->cachereposbyid[$info->oldfile->repositoryid];
+            } catch (Exception $e) {
+                $this->cachereposbyid[$info->oldfile->repositoryid] = null;
+                return null;
+            }
+
+        } else {
+            // We can rely on repository type only.
+
+            if (empty($info->oldfile->repositorytype)) {
+                return null;
+            }
+
+            if (array_key_exists($info->oldfile->repositorytype, $this->cachereposbytype)) {
+                return $this->cachereposbytype[$info->oldfile->repositorytype];
+            }
+
+            $this->log('looking for repository instance by type', backup::LOG_DEBUG, $info->oldfile->repositorytype, 1);
+
+            // Both Server files and Legacy course files repositories have a single
+            // instance at the system context to use. Let us try to find it.
+            if ($info->oldfile->repositorytype === 'local' or $info->oldfile->repositorytype === 'coursefiles') {
+                $sql = "SELECT ri.id
+                          FROM {repository} r
+                          JOIN {repository_instances} ri ON ri.typeid = r.id
+                         WHERE r.type = ? AND ri.contextid = ?";
+                $ris = $DB->get_records_sql($sql, array($info->oldfile->repositorytype, SYSCONTEXTID));
+                if (empty($ris)) {
+                    return null;
+                }
+                $repoids = array_keys($ris);
+                $repoid = reset($repoids);
+                try {
+                    $this->cachereposbytype[$info->oldfile->repositorytype] = repository::get_repository_by_id($repoid, SYSCONTEXTID);
+                    return $this->cachereposbytype[$info->oldfile->repositorytype];
+                } catch (Exception $e) {
+                    $this->cachereposbytype[$info->oldfile->repositorytype] = null;
+                    return null;
+                }
+            }
+
+            $this->cachereposbytype[$info->oldfile->repositorytype] = null;
+            return null;
+        }
+    }
+
+    /**
+     * Let the user know that the given alias was successfully restored
+     *
+     * @param stdClass $info
+     */
+    private function notify_success(stdClass $info) {
+        $filedesc = $this->describe_alias($info);
+        $this->log('successfully restored alias', backup::LOG_DEBUG, $filedesc, 1);
+    }
+
+    /**
+     * Let the user know that the given alias can't be restored
+     *
+     * @param stdClass $info
+     * @param string $reason detailed reason to be logged
+     */
+    private function notify_failure(stdClass $info, $reason = '') {
+        $filedesc = $this->describe_alias($info);
+        if ($reason) {
+            $reason = ' ('.$reason.')';
+        }
+        $this->log('unable to restore alias'.$reason, backup::LOG_WARNING, $filedesc, 1);
+        $this->add_result_item('file_aliases_restore_failures', $filedesc);
+    }
+
+    /**
+     * Return a human readable description of the alias file
+     *
+     * @param stdClass $info
+     * @return string
+     */
+    private function describe_alias(stdClass $info) {
+
+        $filedesc = $this->expected_alias_location($info->newfile);
+
+        if (!is_null($info->oldfile->source)) {
+            $filedesc .= ' ('.$info->oldfile->source.')';
+        }
+
+        return $filedesc;
+    }
+
+    /**
+     * Return the expected location of a file
+     *
+     * Please note this may and may not work as a part of URL to pluginfile.php
+     * (depends on how the given component/filearea deals with the itemid).
+     *
+     * @param stdClass $filerecord
+     * @return string
+     */
+    private function expected_alias_location($filerecord) {
+
+        $filedesc = '/'.$filerecord->contextid.'/'.$filerecord->component.'/'.$filerecord->filearea;
+        if (!is_null($filerecord->itemid)) {
+            $filedesc .= '/'.$filerecord->itemid;
+        }
+        $filedesc .= $filerecord->filepath.$filerecord->filename;
+
+        return $filedesc;
+    }
+
+    /**
+     * Append a value to the given resultset
+     *
+     * @param string $name name of the result containing a list of values
+     * @param mixed $value value to add as another item in that result
+     */
+    private function add_result_item($name, $value) {
+
+        $results = $this->task->get_results();
+
+        if (isset($results[$name])) {
+            if (!is_array($results[$name])) {
+                throw new coding_exception('Unable to append a result item into a non-array structure.');
+            }
+            $current = $results[$name];
+            $current[] = $value;
+            $this->task->add_result(array($name => $current));
+
+        } else {
+            $this->task->add_result(array($name => array($value)));
+        }
+    }
+}
+
 
 /**
  * Abstract structure step, to be used by all the activities using core questions stuff

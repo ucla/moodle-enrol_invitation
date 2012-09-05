@@ -391,7 +391,7 @@ class course_handler extends browseby_handler {
         return $name;
     }
 
-    function registrar_url($course) {
+    public static function registrar_url($course) {
         $page = 'http://www.registrar.ucla.edu/schedule/detselect';
 
         $term = $course->term;

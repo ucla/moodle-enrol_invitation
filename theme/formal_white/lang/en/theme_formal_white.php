@@ -24,9 +24,11 @@
  */
 
 $string['blockcolumnwidth'] = 'Blocks column width';
-$string['blockcolumnwidthdesc'] = 'This sets the blocks column width for the theme. <strong>Using widths lower than 200px, the calendar block is not supposed to fit.</strong>';
+$string['blockcolumnwidthdesc'] = 'This sets the blocks column width for the theme. <strong>If width is lower than 200px (blockcolumnwidth-2*blockpadding), the calendar block is not able to fit.</strong>';
 $string['blockcontentbgc'] = 'Blocks content background colour';
 $string['blockcontentbgcdesc'] = 'This sets the blocks content background colour for the theme.';
+$string['blockpadding'] = 'Margin around blocks';
+$string['blockpaddingdesc'] = 'This sets the margin between each block and the containing column.';
 $string['choosereadme'] = '
 <div class="clearfix">
     <div class="theme_screenshot">
@@ -56,30 +58,32 @@ $string['choosereadme'] = '
         <p>This, and all other themes included in the Moodle core, are licensed under the <a href="http://www.gnu.org/licenses/gpl.html">GNU General Public License</a>.
     </div>
 </div>';
+$string['configtitle'] = 'Formal white theme';
 $string['creditstomoodleorg'] = 'Display credits to moodle.org';
 $string['creditstomoodleorgdesc'] = 'Display the usual small moodle logo at the bottom of the page';
-$string['configtitle'] = 'Formal white theme';
+$string['ctmo_ineverypage'] = 'in every page'; // ctmo == credits to moodle org
 $string['ctmo_no'] = 'never'; // ctmo == credits to moodle org
 $string['ctmo_onfrontpageonly'] = 'in the front page only'; // ctmo == credits to moodle org
-$string['ctmo_ineverypage'] = 'in every page'; // ctmo == credits to moodle org
 $string['customcss'] = 'Custom CSS';
 $string['customcssdesc'] = 'Any CSS you enter here will be added to every page allowing your to easily customise this theme.';
-$string['displaylogo'] = 'Pages header content';
-$string['displaylogodesc'] = 'Choose whether display moodle logo or page heading text in the header.';
+$string['customlogourl'] = 'Custom logo';
+$string['customlogourldesc'] = 'Change the logo for this theme by entering the URL to an image you wish to use (i.e. http://www.yoursite.local/mylogo.png). As a reference the default logo is 200px wide, 50px high and a transparent png will work best.';
+$string['displayheading'] = 'Display page heading';
+$string['displaylogo'] = 'Display logo';
 $string['fontsizereference'] = 'Font size reference';
 $string['fontsizereferencedesc'] = 'This allows you to set the default font size for this theme. It is not recommended to set this higher than 13px as it is known to cause display problems with certain blocks.';
 $string['footnote'] = 'Footnote';
 $string['footnotedesc'] = 'The content from this textarea will be displayed in the footer of every page.';
-$string['frontpagelogo'] = 'Custom front page logo';
-$string['frontpagelogodesc'] = 'Change the logo that is displayed on the front page of your site by entering the URL to the image you wish to use (i.e. http://www.yoursite.local/myfrontpagelogo.png). This setting overrides the custom logo setting. As a reference the default logo is 300px wide, 80px high and a transparent png will work best.';
+$string['framemargin'] = 'Frame margin';
+$string['framemargindesc'] = 'Room between the frame and the edge of the browser window. (This setting will be ignored if "{$a}" is requested).';
+$string['frontpagelogourl'] = 'Custom front page logo';
+$string['frontpagelogourldesc'] = 'Change the logo that is displayed on the front page of your site by entering the URL to the image you wish to use (i.e. http://www.yoursite.local/myfrontpagelogo.png). This setting overrides the custom logo setting. As a reference the default logo is 300px wide, 80px high and a transparent png will work best.';
 $string['headerbgc'] = 'Header background colour';
 $string['headerbgcdesc'] = 'This sets the blocks header background colour for the theme.';
-$string['heading'] = 'Display page heading';
+$string['headercontent'] = 'Header content';
+$string['headercontentdesc'] = 'Choose whether display moodle logo or page heading text in the header.';
 $string['lblockcolumnbgc'] = 'Left column background colour';
 $string['lblockcolumnbgcdesc'] = 'This sets the left column background colour for the theme.';
-$string['logo'] = 'Custom logo';
-$string['logodesc'] = 'Change the logo for this theme by entering the URL to an image you wish to use (i.e. http://www.yoursite.local/mylogo.png). As a reference the default logo is 200px wide, 50px high and a transparent png will work best.';
-$string['moodlelogo'] = 'Display moodle logo';
 $string['noframe'] = 'Formal white 1.9 look';
 $string['noframedesc'] = 'Select this option to require your moodle page to look like moodle 1.*, alias, without the surrounding frame.';
 $string['pluginname'] = 'Formal white';

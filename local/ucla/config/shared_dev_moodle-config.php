@@ -162,12 +162,6 @@ $CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url']
 // CCLE-2301 - COURSE MENU BLOCK
 $CFG->forced_plugin_settings['block_ucla_course_menu']['trimlength'] = 22;
 
-// useful DEV settings
-$CFG->debug = 38911;    // DEVELOPER level debugging messages
-$CFG->debugdisplay = true;  // show the debugging messages
-$CFG->perfdebug = true; // show performance information
-$CFG->debugpageinfo = true; // show page information
-
 // UCLA Theme settings
 $CFG->themedesignermode = true;
 $CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'dev';
@@ -235,11 +229,17 @@ $CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 0;
 // Site administration > Courses > Course request
 $CFG->enablecourserequests = 1;
 
+// Site administration > Grades > General settings
+$CFG->recovergradesdefault = 1;
+
 // Site administration > Language > Language settings
 $CFG->langstringcache = false;
 
 // Site administration > Plugins > Activity modules > Assignment
 $CFG->assignment_maxbytes = 10485760;   // 100MB
+
+// Site administration > Plugins > Activity modules > Book
+$CFG->forced_plugin_settings['book']['requiremodintro'] = 0;
 
 // Site administration > Plugins > Activity modules > Folder
 $CFG->forced_plugin_settings['folder']['requiremodintro'] = 0;
@@ -301,6 +301,15 @@ $CFG->courselistshortnames = 1;
 
 // Site administration > Server > Session handling
 $CFG->dbsessions = false;
+
+// Site administration > Development > Experimental > Experimental settings
+$CFG->dndallowtextandlinks = 1;
+
+// Site administration > Development > Debugging
+$CFG->debug = 32767;    // DEVELOPER level debugging messages
+$CFG->debugdisplay = 1;  // show the debugging messages
+$CFG->perfdebug = 15; // show performance information
+$CFG->debugpageinfo = 1; // show page information
 
 /** 
  *  Automatic Shibboleth configurations.
@@ -364,13 +373,7 @@ $CFG->forced_plugin_settings['enrol_database']['remoteuserfield'] = 'uid';
 $CFG->forced_plugin_settings['enrol_database']['remoterolefield'] = 'role';
 $CFG->forced_plugin_settings['enrol_database']['localcoursefield'] = 'id';
 $CFG->forced_plugin_settings['enrol_database']['localrolefield'] = 'id';
-// CCLE-2824 - Making sure that being assigned/unassigned/re-assigned doesn't 
-// lose grading data
-$CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 3;    // Disable course enrolment and remove roles
-
-// CCLE-2910 - UNEX student support
-
-
+$CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 0;    // Unenrol user from course (make sure recovergradesdefault is set)
 
 // CCLE-2802 - Frontpage banner layout include
 $CFG->customfrontpageinclude = $_dirroot_ . '/theme/uclashared/layout/frontpage.php';

@@ -98,6 +98,55 @@ class plugin_defective_exception extends moodle_exception {
 }
 
 /**
+ * Sets maximum expected time needed for upgrade task.
+ * Please always make sure that upgrade will not run longer!
+ *
+ * The script may be automatically aborted if upgrade times out.
+ *
+ * @category upgrade
+ * @param int $max_execution_time in seconds (can not be less than 60 s)
+ */
+function upgrade_set_timeout($max_execution_time=300) {
+    global $CFG;
+
+    if (!isset($CFG->upgraderunning) or $CFG->upgraderunning < time()) {
+        $upgraderunning = get_config(null, 'upgraderunning');
+    } else {
+        $upgraderunning = $CFG->upgraderunning;
+    }
+
+    if (!$upgraderunning) {
+        if (CLI_SCRIPT) {
+            // never stop CLI upgrades
+            $upgraderunning = 0;
+        } else {
+            // web upgrade not running or aborted
+            print_error('upgradetimedout', 'admin', "$CFG->wwwroot/$CFG->admin/");
+        }
+    }
+
+    if ($max_execution_time < 60) {
+        // protection against 0 here
+        $max_execution_time = 60;
+    }
+
+    $expected_end = time() + $max_execution_time;
+
+    if ($expected_end < $upgraderunning + 10 and $expected_end > $upgraderunning - 10) {
+        // no need to store new end, it is nearly the same ;-)
+        return;
+    }
+
+    if (CLI_SCRIPT) {
+        // there is no point in timing out of CLI scripts, admins can stop them if necessary
+        set_time_limit(0);
+    } else {
+        set_time_limit($max_execution_time);
+    }
+    set_config('upgraderunning', $expected_end); // keep upgrade locked until this time
+}
+
+/**
  * Upgrade savepoint, marks end of each upgrade block.
  * It stores new main version, resets upgrade timeout
  * and abort upgrade if user cancels page loading.
@@ -105,7 +154,7 @@ class plugin_defective_exception extends moodle_exception {
  * Please do not make large upgrade blocks with lots of operations,
  * for example when adding tables keep only one table operation per block.
  *
- * @global object
+ * @category upgrade
  * @param bool $result false if upgrade step failed, true if completed
  * @param string or float $version main version
  * @param bool $allowabort allow user to abort script execution here
@@ -146,7 +195,7 @@ function upgrade_main_savepoint($result, $version, $allowabort=true) {
  * It stores module version, resets upgrade timeout
  * and abort upgrade if user cancels page loading.
  *
- * @global object
+ * @category upgrade
  * @param bool $result false if upgrade step failed, true if completed
  * @param string or float $version main version
  * @param string $modname name of module
@@ -186,7 +235,7 @@ function upgrade_mod_savepoint($result, $version, $modname, $allowabort=true) {
  * It stores block version, resets upgrade timeout
  * and abort upgrade if user cancels page loading.
  *
- * @global object
+ * @category upgrade
  * @param bool $result false if upgrade step failed, true if completed
  * @param string or float $version main version
  * @param string $blockname name of block
@@ -226,6 +275,7 @@ function upgrade_block_savepoint($result, $version, $blockname, $allowabort=true
  * It stores plugin version, resets upgrade timeout
  * and abort upgrade if user cancels page loading.
  *
+ * @category upgrade
  * @param bool $result false if upgrade step failed, true if completed
  * @param string or float $version main version
  * @param string $type name of plugin
@@ -257,6 +307,43 @@ function upgrade_plugin_savepoint($result, $version, $type, $plugin, $allowabort
     }
 }
 
+/**
+ * Detect if there are leftovers in PHP source files.
+ *
+ * During main version upgrades administrators MUST move away
+ * old PHP source files and start from scratch (or better
+ * use git).
+ *
+ * @return bool true means borked upgrade, false means previous PHP files were properly removed
+ */
+function upgrade_stale_php_files_present() {
+    global $CFG;
+
+    $someexamplesofremovedfiles = array(
+        // removed in 2.3dev
+        '/lib/minify/builder/',
+        // removed in 2.2dev
+        '/lib/yui/3.4.1pr1/',
+        // removed in 2.2
+        '/search/cron_php5.php',
+        '/course/report/log/indexlive.php',
+        '/admin/report/backups/index.php',
+        '/admin/generator.php',
+        // removed in 2.1
+        '/lib/yui/2.8.0r4/',
+        // removed in 2.0
+        '/blocks/admin/block_admin.php',
+        '/blocks/admin_tree/block_admin_tree.php',
+    );
+
+    foreach ($someexamplesofremovedfiles as $file) {
+        if (file_exists($CFG->dirroot.$file)) {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 /**
  * Upgrade plugins
@@ -1658,7 +1745,8 @@ function upgrade_plugin_mnet_functions($component) {
  * @return array
  */
 function admin_mnet_method_profile(Zend_Server_Reflection_Function_Abstract $function) {
-    $proto = array_pop($function->getPrototypes());
+    $protos = $function->getPrototypes();
+    $proto = array_pop($protos);
     $ret = $proto->getReturnValue();
     $profile = array(
         'parameters' =>  array(),
@@ -1675,4 +1763,79 @@ function admin_mnet_method_profile(Zend_Server_Reflection_Function_Abstract $fun
         );
     }
     return $profile;
+}
+
+
+/**
+ * This function finds duplicate records (based on combinations of fields that should be unique)
+ * and then progamatically generated a "most correct" version of the data, update and removing
+ * records as appropriate
+ *
+ * Thanks to Dan Marsden for help
+ *
+ * @param   string  $table      Table name
+ * @param   array   $uniques    Array of field names that should be unique
+ * @param   array   $fieldstocheck  Array of fields to generate "correct" data from (optional)
+ * @return  void
+ */
+function upgrade_course_completion_remove_duplicates($table, $uniques, $fieldstocheck = array()) {
+    global $DB;
+
+    // Find duplicates
+    $sql_cols = implode(', ', $uniques);
+
+    $sql = "SELECT {$sql_cols} FROM {{$table}} GROUP BY {$sql_cols} HAVING (count(id) > 1)";
+    $duplicates = $DB->get_recordset_sql($sql, array());
+
+    // Loop through duplicates
+    foreach ($duplicates as $duplicate) {
+        $pointer = 0;
+
+        // Generate SQL for finding records with these duplicate uniques
+        $sql_select = implode(' = ? AND ', $uniques).' = ?'; // builds "fieldname = ? AND fieldname = ?"
+        $uniq_values = array();
+        foreach ($uniques as $u) {
+            $uniq_values[] = $duplicate->$u;
+        }
+
+        $sql_order = implode(' DESC, ', $uniques).' DESC'; // builds "fieldname DESC, fieldname DESC"
+
+        // Get records with these duplicate uniques
+        $records = $DB->get_records_select(
+            $table,
+            $sql_select,
+            $uniq_values,
+            $sql_order
+        );
+
+        // Loop through and build a "correct" record, deleting the others
+        $needsupdate = false;
+        $origrecord = null;
+        foreach ($records as $record) {
+            $pointer++;
+            if ($pointer === 1) { // keep 1st record but delete all others.
+                $origrecord = $record;
+            } else {
+                // If we have fields to check, update original record
+                if ($fieldstocheck) {
+                    // we need to keep the "oldest" of all these fields as the valid completion record.
+                    // but we want to ignore null values
+                    foreach ($fieldstocheck as $f) {
+                        if ($record->$f && (($origrecord->$f > $record->$f) || !$origrecord->$f)) {
+                            $origrecord->$f = $record->$f;
+                            $needsupdate = true;
+                        }
+                    }
+                }
+                $DB->delete_records($table, array('id' => $record->id));
+            }
+        }
+        if ($needsupdate || isset($origrecord->reaggregate)) {
+            // If this table has a reaggregate field, update to force recheck on next cron run
+            if (isset($origrecord->reaggregate)) {
+                $origrecord->reaggregate = time();
+            }
+            $DB->update_record($table, $origrecord);
+        }
+    }
 }

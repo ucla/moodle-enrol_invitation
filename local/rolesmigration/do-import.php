@@ -38,9 +38,13 @@ if ($roles_in_file = roles_migration_get_incoming_roles()) {
                 if (!array_key_exists($role->shortname, $roles['create'])) {
                     print_error('new_shortname_undefined');
                 }
-                $textlib = textlib_get_instance();
-                $new_role_shortname = $textlib->specialtoascii($roles['create'][$role->shortname]['shortname']);
-                $new_role_shortname = $textlib->strtolower(clean_param($new_role_shortname, PARAM_ALPHANUMEXT));
+                //$textlib = textlib_get_instance();
+                //$new_role_shortname = $textlib->specialtoascii($roles['create'][$role->shortname]['shortname']);
+                //$new_role_shortname = $textlib->strtolower(clean_param($new_role_shortname, PARAM_ALPHANUMEXT));
+                // BEGIN UCLA MOD: CCLE-3423-use-textlib
+                $new_role_shortname = textlib::specialtoascii($roles['create'][$role->shortname]['shortname']);
+                $new_role_shortname = textlib::strtolower(clean_param($new_role_shortname, PARAM_ALPHANUMEXT));
+                // END UCLA MOD: CCLE-3423
                 $new_role_name = $roles['create'][$role->shortname]['name'];
 
                 // Code to make new role name/short name if same role name or shortname exists

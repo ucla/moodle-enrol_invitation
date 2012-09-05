@@ -18,15 +18,12 @@
 /**
  * Provides support for the conversion of moodle1 backup to the moodle2 format
  *
- * @package    workshopform
- * @subpackage comments
+ * @package    workshopform_comments
  * @copyright  2011 David Mudrak <david@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
-
-require_once($CFG->dirroot.'/mod/workshop/form/comments/db/upgradelib.php');
 
 /**
  * Conversion handler for the comments grading strategy data
@@ -47,4 +44,20 @@ class moodle1_workshopform_comments_handler extends moodle1_workshopform_handler
 
         return $converted;
     }
+}
+
+/**
+ * Transforms a given record from workshop_elements_old into an object to be saved into workshopform_comments
+ *
+ * @param stdClass $old legacy record from workshop_elements_old
+ * @param int $newworkshopid id of the new workshop instance that replaced the previous one
+ * @return stdclass to be saved in workshopform_comments
+ */
+function workshopform_comments_upgrade_element(stdclass $old, $newworkshopid) {
+    $new                    = new stdclass();
+    $new->workshopid        = $newworkshopid;
+    $new->sort              = $old->elementno;
+    $new->description       = $old->description;
+    $new->descriptionformat = FORMAT_HTML;
+    return $new;
 }

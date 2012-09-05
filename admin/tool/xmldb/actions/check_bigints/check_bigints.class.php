@@ -15,19 +15,16 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package    tool
- * @subpackage xmldb
+ * @package    tool_xmldb
  * @copyright  2003 onwards Eloy Lafuente (stronk7) {@link http://stronk7.com}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 /**
  * reporting about the ones not physically implemented as BIGINTs
- * and providing one SQL script to fix all them. Also, under MySQL,
- * it performs one check of signed bigints. MDL-11038
+ * and providing one SQL script to fix all them. MDL-11038
  *
- * @package    tool
- * @subpackage xmldb
+ * @package    tool_xmldb
  * @copyright  2003 onwards Eloy Lafuente (stronk7) {@link http://stronk7.com}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -53,7 +50,6 @@ class check_bigints extends XMLDBCheckAction {
             'wrongints' => 'tool_xmldb',
             'nowrongintsfound' => 'tool_xmldb',
             'yeswrongintsfound' => 'tool_xmldb',
-            'mysqlextracheckbigints' => 'tool_xmldb',
         ));
 
         // Correct fields must be type bigint for MySQL and int8 for PostgreSQL
@@ -90,8 +86,8 @@ class check_bigints extends XMLDBCheckAction {
                 $metacolumn = $metacolumns[$xmldb_field->getName()];
                 // Going to check this field in DB
                 $o.='            <li>' . $this->str['field'] . ': ' . $xmldb_field->getName() . ' ';
-                // Detect if the physical field is wrong and, under mysql, check for incorrect signed fields too
-                if ($metacolumn->type != $this->correct_type || ($this->dbfamily == 'mysql' && $xmldb_field->getUnsigned() && !$metacolumn->unsigned)) {
+                // Detect if the physical field is wrong
+                if ($metacolumn->type != $this->correct_type) {
                     $o.='<font color="red">' . $this->str['wrong'] . '</font>';
                     // Add the wrong field to the list
                     $obj = new stdClass();

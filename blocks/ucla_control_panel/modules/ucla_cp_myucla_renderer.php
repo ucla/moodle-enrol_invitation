@@ -24,7 +24,8 @@ class ucla_cp_myucla_row_renderer extends ucla_cp_renderer {
      *
      *  @param array $contents - The contents to diplay using the renderer.
      **/
-    static function control_panel_contents($contents) {
+    static function control_panel_contents($contents, $format=false, 
+            $orient='', $handler='') {
         $table = new html_table();
         $table->id = 'my_ucla_functions';
         

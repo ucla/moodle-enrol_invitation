@@ -275,7 +275,8 @@ function get_request_info($term, $srs) {
 
     $ret = false;
     if (!empty($reted)) {
-        $ret = reset(registrar_to_requests($reted));
+        $ret = registrar_to_requests($reted);
+        $ret = reset($ret);
     } else if (is_array($reted)) {
         $ret = $reted;
     }

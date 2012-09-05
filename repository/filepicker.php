@@ -67,7 +67,7 @@ $draftpath = optional_param('draftpath', '/',    PARAM_PATH);
 
 
 // user context
-$user_context = get_context_instance(CONTEXT_USER, $USER->id);
+$user_context = context_user::instance($USER->id);
 
 $PAGE->set_context($user_context);
 if (!$course = $DB->get_record('course', array('id'=>$courseid))) {
@@ -93,7 +93,8 @@ if ($repository = $DB->get_record_sql($sql, array($repo_id))) {
     }
 }
 
-$moodle_maxbytes = get_max_upload_file_size();
+$context = context::instance_by_id($contextid);
+$moodle_maxbytes = get_user_max_upload_file_size($context);
 // to prevent maxbytes greater than moodle maxbytes setting
 if ($maxbytes == 0 || $maxbytes>=$moodle_maxbytes) {
     $maxbytes = $moodle_maxbytes;
@@ -139,7 +140,15 @@ case 'search':
         echo '<table>';
         foreach ($search_result['list'] as $item) {
             echo '<tr>';
-            echo '<td><img src="'.$item['thumbnail'].'" />';
+            echo '<td>';
+            $style = '';
+            if (isset($item['thumbnail_height'])) {
+                $style .= 'max-height:'.$item['thumbnail_height'].'px;';
+            }
+            if (isset($item['thumbnail_width'])) {
+                $style .= 'max-width:'.$item['thumbnail_width'].'px;';
+            }
+            echo html_writer::empty_tag('img', array('src' => $item['thumbnail'], 'style' => $style));
             echo '</td><td>';
             if (!empty($item['url'])) {
                 echo html_writer::link($item['url'], $item['title'], array('target'=>'_blank'));
@@ -227,7 +236,15 @@ case 'sign':
             echo '<table>';
             foreach ($list['list'] as $item) {
                 echo '<tr>';
-                echo '<td><img src="'.$item['thumbnail'].'" />';
+                echo '<td>';
+                $style = '';
+                if (isset($item['thumbnail_height'])) {
+                    $style .= 'max-height:'.$item['thumbnail_height'].'px;';
+                }
+                if (isset($item['thumbnail_width'])) {
+                    $style .= 'max-width:'.$item['thumbnail_width'].'px;';
+                }
+                echo html_writer::empty_tag('img', array('src' => $item['thumbnail'], 'style' => $style));
                 echo '</td><td>';
                 if (!empty($item['url'])) {
                     echo html_writer::link($item['url'], $item['title'], array('target'=>'_blank'));
@@ -282,7 +299,15 @@ case 'download':
         $record->itemid   = $itemid;
         $record->license  = '';
         $record->author   = '';
-        $record->source   = $thefile['url'];
+
+        $now = time();
+        $record->timecreated  = $now;
+        $record->timemodified = $now;
+        $record->userid       = $USER->id;
+        $record->contextid = $user_context->id;
+
+        $sourcefield = $repo->get_file_source_info($thefile['url']);
+        $record->source = repository::build_source_field($sourcefield);
         try {
             $info = repository::move_to_filepool($thefile['path'], $record);
             redirect($home_url, get_string('downloadsucc', 'repository'));
@@ -300,7 +325,7 @@ case 'download':
 
 case 'confirm':
     echo $OUTPUT->header();
-    echo '<div><a href="'.me().'">'.get_string('back', 'repository').'</a></div>';
+    echo '<div><a href="'.s($PAGE->url->out(false)).'">'.get_string('back', 'repository').'</a></div>';
     echo '<img src="'.$thumbnail.'" />';
     echo '<form method="post">';
     echo '<table>';

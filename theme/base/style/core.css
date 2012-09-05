@@ -73,6 +73,8 @@ a.autolink.glossary:hover {cursor: help;}
 .collapsibleregioncaption {white-space: nowrap;}
 .collapsibleregioncaption img {vertical-align: middle;}
 .jsenabled .hiddenifjs {display: none;}
+.visibleifjs {display: none;}
+.jsenabled .visibleifjs {display: inline;}
 .jsenabled .collapsibleregion {overflow:hidden;}
 .jsenabled .collapsed .collapsibleregioninner {visibility: hidden;}
 .yui-overlay .yui-widget-bd {background-color:#FFEE69;border:1px solid #A6982B;border-top-color: #D4C237;color:#000000;left:0;padding:2px 5px;position:relative;top:0;z-index:1;}
@@ -149,8 +151,6 @@ a.skip:active {position: static;display: block;}
 .arrow,
 .arrow_button input {font-family: Arial,Helvetica,Courier,sans-serif;}
 
-#yui-module-debug {display:none;}
-
 /**
  * Header
  */
@@ -210,7 +210,7 @@ a.skip:active {position: static;display: block;}
 .mform .fitem .fitemtitle {width:15%;text-align:right;float:left;}
 .mform .fitem .fitemtitle div {display: inline;}
 .mform .fitem .felement {border-width: 0;width:80%;margin-left:16%;}
-.mform .fitem fieldset.felement {margin-left:0;padding-left:1%;margin-bottom:0}
+.mform .fitem fieldset.felement {margin-left:15%;padding-left:1%;margin-bottom:0}
 .mform .error,
 .mform .required {color:#A00;}
 .mform .required .fgroup span label {color:#000;}
@@ -444,100 +444,6 @@ body.tag .managelink {padding: 5px;}
 .tag_cloud .s1 {font-size: 0.9em;}
 .tag_cloud .s0 {font-size: 0.8em;}
 
-/**
- * File picker
- * Copyright (c) 2006 Yahoo! Inc. All rights reserved.
- * copy from yui/examples/treeview/assets/css/folders/tree.css
- * first or middle sibling, no children
- */
-/* first or middle sibling, no children */
-.file-picker .ygtvtn {background: url([[pix:moodle|y/tn]]) 0 0 no-repeat;width:17px;height:22px;}
-/* first or middle sibling, collapsable */
-.file-picker .ygtvtm {background: url([[pix:moodle|y/tm]]) 0 0 no-repeat;width:34px;height:22px;cursor:pointer;}
-/* first or middle sibling, collapsable, hover */
-.file-picker .ygtvtmh {background: url([[pix:moodle|y/tmh]]) 0 0 no-repeat;width:34px;height:22px;cursor:pointer;}
-/* first or middle sibling, expandable */
-.file-picker .ygtvtp {background: url([[pix:moodle|y/tp]]) 0 0 no-repeat;width:34px;height:22px;cursor:pointer;}
-/* first or middle sibling, expandable, hover */
-.file-picker .ygtvtph {background: url([[pix:moodle|y/tph]]) 0 0 no-repeat;width:34px;height:22px;cursor:pointer;}
-/* last sibling, no children */
-.file-picker .ygtvln {background: url([[pix:moodle|y/ln]]) 0 0 no-repeat;width:17px;height:22px;}
-/* Last sibling, collapsable */
-.file-picker .ygtvlm {background: url([[pix:moodle|y/lm]]) 0 0 no-repeat;width:34px;height:22px;cursor:pointer;}
-/* Last sibling, collapsable, hover */
-.file-picker .ygtvlmh {background: url([[pix:moodle|y/lmh]]) 0 0 no-repeat;width:34px;height:22px;cursor:pointer;}
-/* Last sibling, expandable */
-.file-picker .ygtvlp {background: url([[pix:moodle|y/lp]]) 0 0 no-repeat;width:34px;height:22px;cursor:pointer;}
-/* Last sibling, expandable, hover */
-.file-picker .ygtvlph {background: url([[pix:moodle|y/lph]]) 0 0 no-repeat;width:34px;height:22px;cursor:pointer;}
-/* Loading icon */
-.file-picker .ygtvloading {background: url([[pix:moodle|y/loading]]) 0 0 no-repeat;width:16px;height:22px;}
-/* the style for the empty cells that are used for rendering the depth* of the node */
-.file-picker .ygtvdepthcell {background: url([[pix:moodle|y/vline]]) 0 0 no-repeat;width:17px;height:22px;}
-.file-picker .ygtvblankdepthcell {width:17px;height:22px;}
-/* the style of the div around each node */
-.file-picker .ygtvitem  table{margin-bottom:0;}
-.file-picker .ygtvitem  td {border:none;padding:0;}
-/* the style of the div around each node's collection of children */
-* html .file-picker .ygtvchildren {height:1%;}
-/* the style of the text label in ygTextNode */
-.file-picker .ygtvlabel,
-.file-picker .ygtvlabel:link,
-.file-picker .ygtvlabel:visited,
-.file-picker .ygtvlabel:hover {margin-left:2px;text-decoration: none;}
-.file-picker {font-size:12px;}
-.file-picker strong {background:#FFFFCC;}
-.file-picker .fp-panel {padding:0;margin:0;text-align:left;}
-.file-picker .fp-login-form {text-align:center;}
-.file-picker .fp-searchbar {float:right;}
-.file-picker .fp-viewbar {width:300px;float:left;}
-.file-picker .fp-toolbar {padding: .8em;background: #FFFFCC;text-align:center;margin: 3px;}
-.file-picker .fp-toolbar a {padding: 0 .5em;}
-.file-picker .fp-list {list-style-type:none;padding:0;float:left;width:100%;margin:0;}
-.dir-rtl .file-picker .fp-list {text-align:right;}
-.file-picker .fp-list li {border-bottom:1px dotted gray;margin-bottom: 1em;}
-.file-picker .fp-repo-name {display:block;padding: .5em;margin-bottom: .5em;}
-.file-picker .fp-pathbar {margin: .4em;border-bottom: 1px dotted gray;}
-.file-picker .fp-pathbar a {padding: .4em;}
-.file-picker .fp-rename-form {text-align:center;}
-.file-picker .fp-rename-form p {margin: 1em;}
-.file-picker .fp-upload-form {margin: 2em 0;text-align:center;}
-.file-picker .fp-upload-btn {clear:both;margin-top: 2em;}
-.file-picker .fp-paging {margin:1em .5em;clear:both;text-align:center;line-height: 2.5em;}
-.file-picker .fp-paging a {padding: .5em;border: 1px solid #CCC;}
-.file-picker .fp-paging a.cur_page {border: 1px solid blue;}
-.file-picker .fp-popup {text-align:center;}
-.file-picker .fp-grid-panel{}
-.file-picker .fp-grid {float:left;text-align:center;}
-.file-picker .fp-grid div {overflow: hidden;}
-.file-picker .fp-grid p {margin:0;padding:0;background: #FFFFCC;}
-.file-picker .fp-grid .label {height:48px;text-align:center;}
-.file-picker .fp-grid span {color:gray;}
-.file-picker .fp-error {padding: 2em 0;margin: 3em 5px;text-align:center;background: #FFBBBB;}
-.file-picker .fp-emptylist, .file-picker .fp-msg {text-align:center;}
-.filepicker-filelist {padding: 5px;margin: 6px 0;background: #E9F4FF;border: #AACCEE 1px solid}
-/* file picker search dialog */
-.file-picker div.bd {text-align:left;}
-
-/**
- * File Manager
- */
-.filemanager-toolbar {margin: 5px 0;}
-.filemanager-toolbar a {border: 1px solid #AACCEE;background: #F4FAFF;color: black;padding: 3px;}
-.filemanager-toolbar a:hover {background: #FFFFFF;}
-.fm-breadcrumb {margin:0;}
-.filemanager-container {padding: 5px;margin: 6px 0;background: #E9F4FF;border: #AACCEE 1px solid}
-.filemanager-container ul{margin:0;padding:0;}
-.filemanager-container ul li{white-space:nowrap;list-style-type:none;}
-.filemanager-container ul li a{padding:0}
-.filemanager-loading{display:none}
-.jsenabled .filemanager-loading{display:block}
-.fm-menuicon{cursor: pointer;}
-#fm-move-div {margin: 6px;}
-#fm-move-div strong{color:red;}
-.fm-file-entry{border: 1px solid red;}
-.fm-operation {font-weight: bold;}
-
 /*
  * Backup and Restore CSS
  */
@@ -555,6 +461,8 @@ body.tag .managelink {padding: 5px;}
 .path-backup .backup_progress .backup_stage.backup_stage_current {font-weight:bold;color:inherit;}
 .path-backup .backup_progress .backup_stage.backup_stage_next {}
 .path-backup .backup_progress span.backup_stage.backup_stage_complete {color:inherit;}
+#page-backup-restore .filealiasesfailures {background-color:#ffd3d9}
+#page-backup-restore .filealiasesfailures .aliaseslist {width:90%;margin:0.8em auto;background-color:white;border:1px dotted #666;}
 
 /**
  * Web Service
@@ -755,12 +663,23 @@ body.tag .managelink {padding: 5px;}
 .dir-rtl .mod-indent-huge {margin-right:300px;margin-left:0;}
 
 .dir-rtl .felement.feditor select {margin-right:18.75%;margin-left:auto;}
-.dir-rtl .mform .fitem .felement {margin-right: 16%;margin-left:auto;}
+.dir-rtl .mform .fitem .felement {margin-right: 16%;margin-left:auto;text-align: right;}
 
-/* Resourcelib mp3 player size: only width could be changed here, height hardcoded in JS */
-.resourcecontent .resourcemediaplugin_mp3 object {height:25px; width: 600px}
+/* Audio player size in 'block' mode (can only change width, height is hardcoded in JS) */
+.resourcecontent .mediaplugin_mp3 object {height:25px; width: 600px}
+.resourcecontent audio.mediaplugin_html5audio {width: 600px}
+
 /** Large resource images should avoid hidden overflow **/
 .resourceimage {max-width: 100%;}
+
+/* Audio player size in 'inline' mode (can only change width, as above) */
+.mediaplugin_mp3 object {height:15px;width:300px}
+audio.mediaplugin_html5audio {width: 300px}
+
+/* TinyMCE moodle media preview frame should not have padding */
+.core_media_preview.pagelayout-embedded #content {padding:0;}
+.core_media_preview.pagelayout-embedded #maincontent {height:0;}
+.core_media_preview.pagelayout-embedded .mediaplugin {margin:0;}
 
 /*
 Fix for SubScript & SuperScript
@@ -809,8 +728,8 @@ sup {vertical-align: super;}
 .dir-rtl .ygtvcancel {background-position: 0 -8822px;}
 .dir-rtl .ygtvcancel:hover {background-position: 0 -8866px;}
 
-.dir-rtl #yui-gen4.yui-layout-unit-left  {left:500px !important;}
-.dir-rtl #yui-gen6.yui-layout-unit-center {left:0px !important;}
+.dir-rtl .file-picker .yui-layout-unit-left  {left:500px !important;}
+.dir-rtl .file-picker .yui-layout-unit-center {left:0px !important;}
 .dir-rtl.yui-skin-sam .yui-panel .hd {text-align:left;}
 .dir-rtl .yui-skin-sam .yui-layout .yui-layout-unit div.yui-layout-bd {text-align:right;}
 
@@ -891,3 +810,172 @@ sup {vertical-align: super;}
 #page-admin-setting-enrolsettingsflatfile.dir-rtl .informationbox {direction: ltr;text-align: left;}
 
 #page-admin-grade-edit-scale-edit.dir-rtl .error input#id_name {margin-right: 170px;}
+.initialbar a {padding-right: 2px;}
+
+/**
+ * Chooser Dialogue
+ *
+ * This CSS belong to the chooser dialogue which should work both with, and
+ * without javascript enabled
+ */
+/* Hide the dialog and it's title */
+.chooserdialoguebody,
+.choosertitle {
+    display:none;
+}
+
+.moodle-dialogue-base .moodle-dialogue {
+    background: none!important;
+    border: 0 none!important;
+}
+
+.chooserdialogue .moodle-dialogue-wrap {
+    height: auto;
+    background-color: #FFFFFF;
+    border: 1px solid #CCCCCC!important;
+    border-radius:10px;
+    box-shadow: 5px 5px 20px 0px #666666;
+    -webkit-box-shadow: 5px 5px 20px 0px #666666;
+    -moz-box-shadow: 5px 5px 20px 0px #666666;
+}
+
+.chooserdialogue .moodle-dialogue-hd {
+    font-size:12px!important;
+    font-weight: normal!important;
+    letter-spacing: 1px;
+    color:#333333!important;
+    text-align: center!important;
+    text-shadow: 1px 1px 1px #FFFFFF;
+    padding:5px 5px 5px 5px;
+    border-radius: 10px 10px 0px 0px;
+    border-bottom: 1px solid #BBBBBB!important;
+    background: #CCCCCC!important;
+    background: -webkit-gradient(linear, left top, left bottom, from(#FFFFFF), to(#CCCCCC))!important;
+    background: -moz-linear-gradient(top,  #FFFFFF,  #CCCCCC)!important;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FFFFFF', endColorstr='#CCCCCC')!important;
+    filter: dropshadow(color=#FFFFFF, offx=1, offy=1);
+}
+
+.chooserdialogue .moodle-dialogue-bd {
+    font-size: 12px;
+    color: #555555;
+    overflow: auto;
+    padding: 0px;
+    background: #F2F2F2;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+/* Center the submit buttons within the area */
+.choosercontainer #chooseform .submitbuttons {
+    margin: 0.7em 0;
+    text-align: center;
+}
+
+.choosercontainer #chooseform .submitbuttons input {
+    min-width: 100px;
+    margin: 0px 0.5em;
+}
+
+/* Various settings for the options area */
+.choosercontainer #chooseform .options {
+    position: relative;
+    border-bottom: 1px solid #BBBBBB;
+}
+
+/* Only set these options if we're showing the js container */
+.jsenabled .choosercontainer #chooseform .alloptions {
+    max-height: 550px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-width: 20.3em;
+    box-shadow: inset 0px 0px 30px 0px #CCCCCC;
+    -webkit-box-shadow: inset 0px 0px 30px 0px #CCCCCC;
+    -moz-box-shadow: inset 0px 0px 30px 0px #CCCCCC;
+}
+
+/* Settings for option rows and option subtypes */
+.choosercontainer #chooseform .moduletypetitle,
+.choosercontainer #chooseform .option,
+.choosercontainer #chooseform .nonoption {
+    margin-bottom: 0;
+    padding: 0 1.6em 0 1.6em;
+}
+
+.choosercontainer #chooseform .moduletypetitle {
+    text-transform: uppercase;
+    padding-top: 1.2em;
+    padding-bottom: 0.4em;
+}
+
+.choosercontainer #chooseform .option .typename,
+.choosercontainer #chooseform .option span.modicon img.icon,
+.choosercontainer #chooseform .nonoption .typename,
+.choosercontainer #chooseform .nonoption span.modicon img.icon {
+    padding: 0 0 0 0.5em;
+}
+
+.choosercontainer #chooseform .option input[type=radio],
+.choosercontainer #chooseform .option span.typename,
+.choosercontainer #chooseform .option span.modicon {
+    vertical-align: middle;
+}
+
+.choosercontainer #chooseform .option label {
+    display: block;
+    padding: 0.3em 0 0.1em 0;
+    border-bottom: 1px solid #FFFFFF;
+}
+
+.choosercontainer #chooseform .nonoption {
+    padding-left: 2.7em;
+    padding-top: 0.3em;
+    padding-bottom: 0.1em;
+}
+
+.choosercontainer #chooseform .subtype {
+    margin-bottom: 0;
+    padding: 0 1.6em 0 3.2em;
+}
+
+.choosercontainer #chooseform .subtype .typename {
+    margin: 0 0 0 0.2em;
+}
+
+/* The instruction/help area */
+.jsenabled .choosercontainer #chooseform .instruction,
+.jsenabled .choosercontainer #chooseform .typesummary {
+    display: none;
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    left: 20.3em;
+    margin: 0;
+    padding: 1.6em;
+    background-color: #FFFFFF;
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: 550px;
+    line-height: 2em;
+}
+
+.dir-rtl.jsenabled .choosercontainer #chooseform .instruction,
+.dir-rtl.jsenabled .choosercontainer #chooseform .typesummary {
+    left: 0px;
+    right: 18.5em;
+    border-right: 1px solid grey;
+}
+
+/* Selected option settings */
+.jsenabled .choosercontainer #chooseform .instruction,
+.choosercontainer #chooseform .selected .typesummary {
+    display: block;
+}
+
+.choosercontainer #chooseform .selected {
+    background-color: #FFFFFF;
+    box-shadow: 0px 0px 10px 0px #CCCCCC;
+    -webkit-box-shadow: 0px 0px 10px 0px #CCCCCC;
+    -moz-box-shadow: 0px 0px 10px 0px #CCCCCC;
+}

@@ -2,6 +2,18 @@
 // essential strings
 $string['modulename'] = 'HotPot';
 $string['modulenameplural'] = 'HotPots';
+$string['modulename_help'] = 'The HotPot module allows teachers to distribute interactive learning materials to their students via Moodle and view reports on the students\' responses and results. .
+
+A single HotPot activity consists of an optional entry page, a single elearning exercise, and an optional exit page. The elearning exercise may be a static web page or an interactive web page which offers students text, audio and visual prompts and records their responses. The elearning exercise is created on the teacher\'s computer using authoring software and then uploaded to Moodle.
+
+A HotPot activity can handle exercises created with the following authoring software:
+
+* Hot Potatoes (version 6)
+* Qedoc
+* Xerte
+* iSpring
+* any HTML editor';
+$string['modulename_link'] = 'mod/hotpot/view';
 $string['pluginadministration'] = 'HotPot administration';
 $string['pluginname'] = 'HotPot module';
 
@@ -14,6 +26,7 @@ $string['subplugintype_hotpotsource'] = 'Source file';
 $string['subplugintype_hotpotsource_plural'] = 'Source files';
 
 // roles strings
+$string['hotpot:addinstance'] = 'Add a new HotPot activity';
 $string['hotpot:attempt'] = 'Attempt a HotPot activity and submit results';
 $string['hotpot:deleteallattempts'] = 'Delete any user\'s attempts at a HotPot activity';
 $string['hotpot:deletemyattempts'] = 'Delete your own attempts at a HotPot activity';
@@ -126,7 +139,7 @@ $string['entry_dates'] = 'Dates';
 $string['entry_grading'] = 'Grading';
 $string['entry_title'] = 'Unit name as title';
 $string['entrycm'] = 'Previous activity';
-$string['entrycm_help'] = 'This setting specifies a Moodle activity and a minimum grade for that activity which must be achieved before this Quizport can be attempted.
+$string['entrycm_help'] = 'This setting specifies a Moodle activity and a minimum grade for that activity which must be achieved before this HotPot activity can be attempted.
 
 The teacher can select a specific activity,
 or one of the following general purpose settings:
@@ -229,16 +242,16 @@ $string['exit_whatnext_0'] = 'What would you like to do next?';
 $string['exit_whatnext_1'] = 'Choose your destiny ...';
 $string['exit_whatnext_default'] = 'Please choose one of the following:';
 $string['exitcm'] = 'Next activity';
-$string['exitcm_help'] = 'This setting specifies a Moodle activity to be done after this Quizport is completed.
+$string['exitcm_help'] = 'This setting specifies a Moodle activity to be done after this HotPot activity is completed. The optional grade is the minimum grade for this HotPot activity that is required before the next activity is shown.
 
 The teacher can select a specific activity, or a one of the following general purpose settings:
 
 * Next activity in this course
 * Next activity in this section
-* Next HotPot in this course
-* Next HotPot in this section
+* Next HotPot activity in this course
+* Next HotPot activity in this section
 
-If other exit page options are disabled, the student will go straight to next activity. Otherwise, the student will be shown a link to take them to the next activity when they are ready.';
+If other exit page options are disabled and the student has achieved the required grade on this HotPot activity, the next activity will be shown straight away. Otherwise, the student will be shown a link to the next activity, which they can click when they are ready.';
 $string['exitcmcourse'] = 'Next activity in this course';
 $string['exitcmsection'] = 'Next activity in this course section';
 $string['exitgrade'] = 'Next activity grade';

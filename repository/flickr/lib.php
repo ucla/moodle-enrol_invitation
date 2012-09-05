@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -16,21 +15,23 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * repository_flickr class
- * This plugin is used to access user's private flickr repository
+ * This plugin is used to access flickr pictures
  *
  * @since 2.0
- * @package    repository
- * @subpackage flickr
- * @copyright  2009 Dongsheng Cai
- * @author     Dongsheng Cai <dongsheng@moodle.com>
+ * @package    repository_flickr
+ * @copyright  2010 Dongsheng Cai {@link http://dongsheng.org}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
+require_once($CFG->dirroot . '/repository/lib.php');
 require_once($CFG->libdir.'/flickrlib.php');
 
 /**
+ * This plugin is used to access user's private flickr repository
  *
+ * @since 2.0
+ * @package    repository_flickr
+ * @copyright  2009 Dongsheng Cai {@link http://dongsheng.org}
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class repository_flickr extends repository {
     private $flickr;
@@ -221,9 +222,13 @@ class repository_flickr extends repository {
         return $this->search('', $page);
     }
 
-    public function get_link($photo_id) {
-        global $CFG;
-        $result = $this->flickr->photos_getSizes($photo_id);
+    /**
+     * Return photo url by given photo id
+     * @param string $photoid
+     * @return string
+     */
+    private function build_photo_url($photoid) {
+        $result = $this->flickr->photos_getSizes($photoid);
         $url = '';
         if(!empty($result[4])) {
             $url = $result[4]['source'];
@@ -235,23 +240,18 @@ class repository_flickr extends repository {
         return $url;
     }
 
+    public function get_link($photoid) {
+        return $this->build_photo_url($photoid);
+    }
+
     /**
      *
-     * @param string $photo_id
+     * @param string $photoid
      * @param string $file
      * @return string
      */
-    public function get_file($photo_id, $file = '') {
-        global $CFG;
-        $result = $this->flickr->photos_getSizes($photo_id);
-        $url = '';
-        if(!empty($result[4])) {
-            $url = $result[4]['source'];
-        } elseif(!empty($result[3])) {
-            $url = $result[3]['source'];
-        } elseif(!empty($result[2])) {
-            $url = $result[2]['source'];
-        }
+    public function get_file($photoid, $file = '') {
+        $url = $this->build_photo_url($photoid);
         $path = $this->prepare_file($file);
         $fp = fopen($path, 'w');
         $c = new curl;
@@ -266,7 +266,7 @@ class repository_flickr extends repository {
      * Add Plugin settings input to Moodle form
      * @param object $mform
      */
-    public function type_config_form($mform) {
+    public static function type_config_form($mform, $classname = 'repository') {
         global $CFG;
         $api_key = get_config('flickr', 'api_key');
         $secret = get_config('flickr', 'secret');
@@ -314,5 +314,15 @@ class repository_flickr extends repository {
     }
     public function supported_returntypes() {
         return (FILE_INTERNAL | FILE_EXTERNAL);
+    }
+
+    /**
+     * Return the source information
+     *
+     * @param string $photoid
+     * @return string|null
+     */
+    public function get_file_source_info($photoid) {
+        return $this->build_photo_url($photoid);
     }
 }

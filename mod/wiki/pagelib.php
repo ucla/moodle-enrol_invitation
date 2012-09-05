@@ -771,7 +771,7 @@ class page_wiki_editcomment extends page_wiki {
         }
     }
 
-    protected function setup_tabs() {
+    protected function setup_tabs($options = array()) {
         parent::setup_tabs(array('linkedwhenactive' => 'comments', 'activetab' => 'comments'));
     }
 
@@ -1009,7 +1009,7 @@ class page_wiki_preview extends page_wiki_edit {
         $PAGE->set_url($CFG->wwwroot . '/mod/wiki/edit.php', $params);
     }
 
-    protected function setup_tabs() {
+    protected function setup_tabs($options = array()) {
         parent::setup_tabs(array('linkedwhenactive' => 'view', 'activetab' => 'view'));
     }
 
@@ -1119,7 +1119,7 @@ class page_wiki_diff extends page_wiki {
         $PAGE->navbar->add(get_string('diff', 'wiki'));
     }
 
-    protected function setup_tabs() {
+    protected function setup_tabs($options = array()) {
         parent::setup_tabs(array('linkedwhenactive' => 'history', 'activetab' => 'history'));
     }
 
@@ -1877,7 +1877,7 @@ class page_wiki_restoreversion extends page_wiki {
         $PAGE->navbar->add(get_string('restoreversion', 'wiki'));
     }
 
-    protected function setup_tabs() {
+    protected function setup_tabs($options = array()) {
         parent::setup_tabs(array('linkedwhenactive' => 'history', 'activetab' => 'history'));
     }
 
@@ -1945,7 +1945,7 @@ class page_wiki_deletecomment extends page_wiki {
         $PAGE->navbar->add(get_string('deletecommentcheck', 'wiki'));
     }
 
-    protected function setup_tabs() {
+    protected function setup_tabs($options = array()) {
         parent::setup_tabs(array('linkedwhenactive' => 'comments', 'activetab' => 'comments'));
     }
 
@@ -2116,7 +2116,7 @@ class page_wiki_viewversion extends page_wiki {
         $PAGE->navbar->add(get_string('versionnum', 'wiki', $this->version->version));
     }
 
-    protected function setup_tabs() {
+    protected function setup_tabs($options = array()) {
         parent::setup_tabs(array('linkedwhenactive' => 'history', 'activetab' => 'history', 'inactivetabs' => array('edit')));
     }
 
