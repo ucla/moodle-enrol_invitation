@@ -243,12 +243,12 @@ if ($processrequests) {
                 $retcode = $successfuls[$setid];
                 $strid = ucla_courserequests::commit_flag_string($retcode);
 
+                $host_course = array();
                 $coursedescs = array();
                 foreach ($set as $course) {
                     $coursedescs[] = requestor_dept_course($course);
                     if ($course['hostcourse']) {
-                        $host_courseid = $course['courseid'];
-                        $host_urlupdate = $course['nourlupdate'];
+                        $host_course = $course;
                     }
                 }
 
@@ -276,7 +276,16 @@ if ($processrequests) {
                                     . requestor_dept_course($cl);
                                     
                                     // update(remove) MyUCLA urls
-                                    if ($action == 'removed') {
+                                    if ($action == 'removed' && !empty($host_course)) {
+                                        
+                                        $idtermsrs = array(make_idnumber($host_course) => 
+                                            array('term' => $host_course['term'], 
+                                                'srs' => $host_course['srs'])
+                                            );
+                                        
+                                        $url_updater = new myucla_urlupdater();
+                                        $class_url = array_pop($url_updater->send_MyUCLA_urls($idtermsrs, false));
+                                        
                                         if (strpos($class_url, $CFG->wwwroot) !== false) {
                                             update_myucla_urls($cl['term'], $cl['srs'], '');
                                         }
@@ -308,9 +317,12 @@ if ($processrequests) {
                             }
                             
                             // update MyUCLA urls for the newly updated crosslist
-                            if ($host_urlupdate == 0 && !empty($host_courseid)) {
-                                $c_url = $CFG->wwwroot . "/course/view.php?id=$host_courseid";
-                                update_myucla_urls($c_term, $c_srs, $c_url);
+                            if (!empty($host_course)) {
+                                $host_courseid = $host_course['courseid'];
+                                if ($host_course['nourlupdate'] == 0 && !empty($host_courseid)) {
+                                    $c_url = $CFG->wwwroot . "/course/view.php?id=$host_courseid";
+                                    update_myucla_urls($c_term, $c_srs, $c_url);
+                                }
                             }
                         }
                     } else {
