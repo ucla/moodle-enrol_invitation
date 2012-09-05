@@ -420,7 +420,8 @@ if ($passthrudata || $verifydata) {
     // Each time we update/insert a section, we check if the course/section pair
     // already exists, and if so, assign that db record a temporary section number
     // Then update/insert the new record
-    $temp_num = $newcoursenumsections + 2;
+    // Using the largest positive value that can be stored in an int, minus 1
+    $temp_num = 2147483646; // 2147483647-1
     foreach($newsections as $section) {
         // Skip 'Site info' section
         if ($section->section == 0) {
@@ -433,13 +434,13 @@ if ($passthrudata || $verifydata) {
         if (!isset($section->id)) {
             if ($DB->record_exists('course_sections', $course_section_pair)) {
                 $DB->set_field('course_sections', 'section', $temp_num, $course_section_pair);
-                $temp_num++;
+                $temp_num--;
             }
             $DB->insert_record('course_sections', $section);
         } else {
             if ($DB->record_exists('course_sections', $course_section_pair)) {
                 $DB->set_field('course_sections', 'section', $temp_num, $course_section_pair);
-                $temp_num++;
+                $temp_num--;
             }
             $DB->update_record('course_sections', $section);
         }
