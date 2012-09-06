@@ -59,6 +59,8 @@ function update_videofurnace_db($datasource_url) {
         if ((sizeof($row_data) == 1) && ($row_data['term'] == "")) {
             continue;
         } else if (sizeof($row_data) != 8) {
+            log_ucla_data('video furnace', 'read', 'Extracting data from data source', 
+                    get_string('errvfinvalidrowlen', 'tool_ucladatasourcesync'));
             echo get_string('errvfinvalidrowlen', 'tool_ucladatasourcesync') . "\n";
             continue;
         }
@@ -77,6 +79,8 @@ function update_videofurnace_db($datasource_url) {
                     $id = $DB->insert_record('ucla_video_furnace', $row_data);                    
                 } catch (Exception $e) {
                     // error, log this and print out error
+                    log_ucla_data('video furnace', 'write', 'Inserting video furnace data',
+                            get_string('errcannotinsert', 'tool_ucladatasourcesync', $e->error));
                     echo get_string('errcannotinsert', 'tool_ucladatasourcesync', $e->error);
                 }
             }
@@ -88,6 +92,8 @@ function update_videofurnace_db($datasource_url) {
         }        
     }
 
+    log_ucla_data('video furnace', 'update', get_string('vfsuccessnoti', 'tool_ucladatasourcesync'));
+    
     echo "\n... " . $insert_count . " " . get_string('vfsuccessnoti', 'tool_ucladatasourcesync') . "\n";
     /* if ($CFG->videofurnace_send_emails && !empty($mail_data)) {
       send_mail_data($mail_data);
@@ -288,6 +294,8 @@ function handle_cfgs() {
     // Check to see that config variable is initialized
     $datasource_url = get_config('block_ucla_video_furnace', 'source_url');
     if (empty($datasource_url)) {
+        log_ucla_data('video furnace', 'read', 'Initializing cfg variables', 
+                get_string('errvfmsglocation', 'tool_ucladatasourcesync'));
         die("\n" . get_string('errvfmsglocation', 'tool_ucladatasourcesync') . "\n");
     }
     return $datasource_url;

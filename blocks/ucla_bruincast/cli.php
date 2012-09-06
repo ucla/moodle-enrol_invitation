@@ -57,6 +57,8 @@ function update_bruincast_db(){
         
     } catch (dml_exception $e) {
         // Report a DB insert error
+        log_ucla_data('bruincast', 'write', 'Inserting bruincast data', 
+                get_string('errbcinsert','tool_ucladatasourcesync') );
         echo "\n".get_string('errbcinsert','tool_ucladatasourcesync')."\n";
     }
 
@@ -103,6 +105,11 @@ function check_crosslists(&$data) {
     }
     
     $mail_body = implode("\n", $problem_courses);
+    
+    // log any crosslist problems
+    if (trim($mail_body) != '') {
+        log_ucla_data('bruincast', 'read', $mail_body);
+    }
     
     // Send problem course details if we have any
     if (!isset($CFG->bruincast_errornotify_email) || $CFG->quiet_mode) {

@@ -12,6 +12,8 @@ require_once('lib.php');
 // Check to see that config variable is initialized
 $datasource_url = get_config('block_ucla_library_reserves', 'source_url');
 if (empty($datasource_url)) {
+    log_ucla_data('library reserves', 'read', 'Initializing cfg variables', 
+                get_string('errvfmsglocation', 'tool_ucladatasourcesync'));
     die("\n" . get_string('errlrmsglocation', 'tool_ucladatasourcesync') . "\n");
 }
 
@@ -108,6 +110,8 @@ function parse_datasource($datasource_url)
     # read the file into a two-dimensional array
     $lines = file($datasource_url);
     if ($lines === FALSE) {
+        log_ucla_data('library reserves', 'read', 'Reading data source url', 
+                get_string('errlrfileopen', 'tool_ucladatasourcesync'));
         die("\n" . get_string('errlrfileopen', 'tool_ucladatasourcesync') . "\n");
     }    
     
@@ -125,7 +129,9 @@ function parse_datasource($datasource_url)
         // Check if all entries have the correct number of columns          
         if (count($incoming_data) != count($fields)) {
             // if first line, then don't give error, just skip it
-            if ($line_num != 0) {   
+            if ($line_num != 0) { 
+                log_ucla_data('library reserves', 'read', 'Reading data source', 
+                        get_string('errinvalidrowlen', 'tool_ucladatasourcesync', $line_num) );
                 echo(get_string('errinvalidrowlen', 'tool_ucladatasourcesync', 
                         $line_num) . "\n");
             }
@@ -155,7 +161,11 @@ function parse_datasource($datasource_url)
             $error = new stdClass();
             $error->fields = implode(', ', $invalid_fields);
             $error->line_num = $line_num;
-            $error->data = print_r($incoming_data, true);                        
+            $error->data = print_r($incoming_data, true); 
+            
+            log_ucla_data('library reserve', 'read', 'Reading data source', 
+                    get_string('warninvalidfields', 'tool_ucladatasourcesync', $error) );
+            
             echo(get_string('warninvalidfields', 'tool_ucladatasourcesync', 
                     $error) . "\n");      
         }
@@ -209,6 +219,9 @@ function update_libraryreserves_db($datasource_url) {
         }
         
         if ($num_entries_inserted == 0) {
+            log_ucla_data('library reserve', 'write', 'Inserting library reserve data', 
+                    get_string('errbcinsert', 'tool_ucladatasourcesync') );
+            
             throw new moodle_exception('errbcinsert', 'tool_ucladatasourcesync');
         }        
         
@@ -217,6 +230,9 @@ function update_libraryreserves_db($datasource_url) {
     } catch(Exception $e) {
         $transaction->rollback($e);
     }    
+    
+    log_ucla_data('library reserves', 'update',  
+            get_string('lrsuccessnoti', 'tool_ucladatasourcesync', $num_entries_inserted) );
     
     echo  get_string('lrsuccessnoti', 'tool_ucladatasourcesync', 
             $num_entries_inserted) . "\n";

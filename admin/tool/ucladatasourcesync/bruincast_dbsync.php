@@ -14,15 +14,21 @@ require_once($CFG->dirroot . '/blocks/ucla_bruincast/cli.php');
 
 // Check to see if config variables are initialized
 if (!isset($CFG->bruincast_data)) {
-    die("\n".get_string('bcerrmsglocation','tool_ucladatasourcesync')."\n");
+    log_ucla_data('bruincast', 'read', 'Initializing cfg variables', 
+            get_string('errbcmsglocation','tool_ucladatasourcesync') );
+    die("\n".get_string('errbcmsglocation','tool_ucladatasourcesync')."\n");
 }
 
 if (!isset($CFG->bruincast_errornotify_email)) {
-    die("\n".get_string('bcerrmsgemail','tool_ucladatasourcesync')."\n");
+    log_ucla_data('bruincast', 'read', 'Initializing cfg variables', 
+            get_string('errbcmsgemail','tool_ucladatasourcesync') );
+    die("\n".get_string('errbcmsgemail','tool_ucladatasourcesync')."\n");
 }
 
 if (!isset($CFG->quiet_mode)) {
-    die("\n".get_string('bcerrmsgquiet','tool_ucladatasourcesync')."\n");
+    log_ucla_data('bruincast', 'read', 'Initializing cfg variables', 
+            get_string('errbcmsgquiet','tool_ucladatasourcesync') );
+    die("\n".get_string('errbcmsgquiet','tool_ucladatasourcesync')."\n");
 }
 
 // Begin database update
