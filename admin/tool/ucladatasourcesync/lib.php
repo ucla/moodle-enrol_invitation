@@ -367,22 +367,9 @@ function get_reserve_data($table)
     global $DB;
     global $CFG;
     
-    // The naming conventions of the fields in the three tables are different.
-    if ($table == 'bruincast') {
-        $term = 'term';
-        $video_url = 'bruincast_url';
-    } else if ($table == 'library_reserves') {
-        $term = 'quarter';
-        $video_url = 'url';
-    } else if ($table == 'video_furnace') {
-        $term = 'term';
-        $video_url = 'video_url';
-    }
-    
-    $result = $DB->get_records('ucla_' . $table, null, '', 'id, courseid, ' . $term . ', srs, ' . $video_url);
+    $result = $DB->get_records('ucla_' . $table);
     
     foreach ($result as $item) {
-        // Some items don't have courseids. Use courseid to get course shortname and course homepage
         if ($item->courseid != NULL) {
             $shortname = $DB->get_field('course', 'shortname', array('id' => ($item->courseid)));
             
@@ -390,15 +377,7 @@ function get_reserve_data($table)
             
             $shortnamewithlink = html_writer::link ($courseurl, $shortname);
             
-            $item->shortname = $shortnamewithlink;
-        }
-        // Video furnace videos have actual titles.
-        if ($table == 'video_furnace') {
-            $video_name = $DB->get_field('ucla_video_furnace', 'video_title', array('id' => ($item->id)));
-            
-            $item->$video_url = html_writer::link ($item->$video_url, $video_name);
-        } else {
-            $item->$video_url = html_writer::link ($item->$video_url, 'Video Link');
+            $item->courseid = $shortnamewithlink;
         }
     }
     
