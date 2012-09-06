@@ -367,51 +367,38 @@ function get_reserve_data($table)
     global $DB;
     global $CFG;
     
+    // The naming conventions of the fields in the three tables are different.
     if ($table == 'bruincast') {
-        $result = $DB->get_records('ucla_' . $table, null, '','id, courseid, term, srs, bruincast_url');
-        
-        foreach ($result as $item) {
-            $shortname = (array) ($DB->get_record('course', array('id'=>($item->courseid)), 'shortname'));
-            $shortname = array_pop($shortname);
-            
-            $courseurl = (string) (new moodle_url('/course/view.php', array('id' => $item->courseid)));
-            
-            $item->bruincast_url = html_writer::link ($item->bruincast_url, 'Video Link');
-            $shortnamewithlink = html_writer::link ($courseurl, $shortname);
-            
-            $item->shortname = $shortnamewithlink;
-        }
-        
+        $term = 'term';
+        $video_url = 'bruincast_url';
     } else if ($table == 'library_reserves') {
-        $result = $DB->get_records('ucla_' . $table, null, '','id, courseid, quarter, srs, url');
-        
-        foreach ($result as $item) {
-            $shortname = (array) ($DB->get_record('course', array('id'=>($item->courseid)), 'shortname'));
-            $shortname = array_pop($shortname);
+        $term = 'quarter';
+        $video_url = 'url';
+    } else if ($table == 'video_furnace') {
+        $term = 'term';
+        $video_url = 'video_url';
+    }
+    
+    $result = $DB->get_records('ucla_' . $table, null, '', 'id, courseid, ' . $term . ', srs, ' . $video_url);
+    
+    foreach ($result as $item) {
+        // Some items don't have courseids. Use courseid to get course shortname and course homepage
+        if ($item->courseid != NULL) {
+            $shortname = $DB->get_field('course', 'shortname', array('id' => ($item->courseid)));
             
-            $courseurl = (string) (new moodle_url('/course/view.php', array('id' => $item->courseid)));
+            $courseurl = new moodle_url('/course/view.php', array('id' => ($item->courseid)));
             
-            $item->url = html_writer::link ($item->url, 'Video Link');
             $shortnamewithlink = html_writer::link ($courseurl, $shortname);
             
             $item->shortname = $shortnamewithlink;
         }
-        
-    } else if ($table == 'video_furnace') {
-        $result = $DB->get_records('ucla_video_furnace', null, '', 'id, courseid, term, srs, video_title, video_url');
-        
-        foreach ($result as $item) {
-            $shortname = (array) ($DB->get_record('course', array('id'=>($item->courseid)), 'shortname'));
-            $shortname = array_pop($shortname);
+        // Video furnace videos have actual titles.
+        if ($table == 'video_furnace') {
+            $video_name = $DB->get_field('ucla_video_furnace', 'video_title', array('id' => ($item->id)));
             
-            $courseurl = (string) (new moodle_url('/course/view.php', array('id' => $item->courseid)));
-            
-            $item->video_url = html_writer::link ($item->video_url, $item->video_title);
-            $shortnamewithlink = html_writer::link ($courseurl, $shortname);
-            
-            $item->shortname = $shortnamewithlink;
-            
-            unset($item->video_title);
+            $item->$video_url = html_writer::link ($item->$video_url, $video_name);
+        } else {
+            $item->$video_url = html_writer::link ($item->$video_url, 'Video Link');
         }
     }
     
