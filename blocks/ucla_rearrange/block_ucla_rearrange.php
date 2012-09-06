@@ -340,14 +340,15 @@ class block_ucla_rearrange extends block_base {
             $DB->update_record('course_modules', $module, true);
         }
 
-        $temp_num = count($sections) + 2;
+        // Using the largest positive value that can be stored in an int, minus 1
+        $temp_num = 2147483646; // 2147483647-1
         foreach ($sections as $section) {
             // Check if we are updating course menu sections
             if (isset($section['section'])) {
                 $course_section_pair = array('course' => $COURSE->id, 'section' => $section['section']);
                 if ($DB->record_exists('course_sections', $course_section_pair)) {
                     $DB->set_field('course_sections', 'section', $temp_num, $course_section_pair);
-                    $temp_num++;
+                    $temp_num--;
                 }
             }
             $DB->update_record('course_sections', $section, true);
