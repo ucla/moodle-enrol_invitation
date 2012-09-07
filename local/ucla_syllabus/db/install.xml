@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/ucla_syllabus/db" VERSION="20120906" COMMENT="XMLDB file for Moodle local/ucla_syllabus"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="ucla_syllabus" COMMENT="Table containing settings for uploaded syllabi.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="courseid"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="display_name"/>
+        <FIELD NAME="display_name" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="Syllabus" SEQUENCE="false" PREVIOUS="courseid" NEXT="access_type"/>
+        <FIELD NAME="access_type" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="2" SEQUENCE="false" COMMENT="1 - public 2 - logged in users 3 - private" PREVIOUS="display_name" NEXT="is_preview"/>
+        <FIELD NAME="is_preview" TYPE="int" LENGTH="1" NOTNULL="false" UNSIGNED="false" SEQUENCE="false" PREVIOUS="access_type"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="fk-courseid"/>
+        <KEY NAME="fk-courseid" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id" PREVIOUS="primary"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="unique-syllabus-type" UNIQUE="true" FIELDS="courseid, access_type" COMMENT="Real uniqueness is courseid to access_type (1 or 2) and 3. Need to enforce that in code."/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>

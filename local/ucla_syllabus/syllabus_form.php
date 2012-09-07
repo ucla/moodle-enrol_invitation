@@ -37,6 +37,7 @@ class syllabus_form extends moodleform {
         global $CFG, $USER, $DB;
         
         $courseid = $this->_customdata['courseid'];
+        $filemanager_config = $this->_customdata['filemanager_config'];
         
         $mform = $this->_form;        
         $mform->addElement('hidden', 'id', $courseid);
@@ -45,12 +46,15 @@ class syllabus_form extends moodleform {
                 get_string('public_syllabus', 'local_ucla_syllabus'));
         
         // single file upload (pdf only)
-        $maxbytes = get_max_upload_file_size();
+        $mform->addElement('static', 'public_syllabus_help', '',
+                get_string('public_syllabus_help', 'local_ucla_syllabus'));
         $mform->addElement('filemanager', 'public_syllabus_file', 
                 sprintf('%s (%s)', get_string('uploadafile', 'moodle'), 
                         get_string('pdf_only', 'local_ucla_syllabus')), null, 
-                array('subdirs' => 0, 'maxbytes' => $maxbytes, 'maxfiles' => 1,
-                      'accepted_types' => array('.pdf') ));
+                $filemanager_config);
+        $mform->addRule('public_syllabus_file', 
+                get_string('public_syllabus_none_uploaded', 'local_ucla_syllabus'), 
+                'required');
 
         // access type
         $label = get_string('access', 'local_ucla_syllabus');
@@ -71,13 +75,50 @@ class syllabus_form extends moodleform {
        
         // display name
         $mform->addElement('text', 'display_name', get_string('display_name', 'local_ucla_syllabus'));
+        $mform->addRule('display_name', 
+                get_string('display_name_none_entered', 'local_ucla_syllabus'), 
+                'required');        
         
         // set defaults
         $mform->setDefaults(
-                array('access_types' => UCLA_SYLLABUS_LOGGEDIN,
+                array('access_types[access_type]' => UCLA_SYLLABUS_LOGGEDIN,
                       'display_name' => get_string('display_name_default', 'local_ucla_syllabus')));
        
         $this->add_action_buttons();
     }
     
+    /**
+     * Make sure the following is true:
+     *  - access_type is valid value
+     *  - make sure that only 1 public syllabus is being uploaded
+     * 
+     * @param array $data array of ("fieldname"=>value) of submitted data
+     * @param array $files array of uploaded files "element_name"=>tmp_file_path
+     * @return array of "element_name"=>"error_description" if there are errors,
+     */
+    function validation($data, $files) {
+        global $DB;
+        
+        $err = array();
+        
+        // check if access_type is valid value
+        if (!in_array($data['access_types']['access_type'], 
+                array(UCLA_SYLLABUS_PUBLIC, 
+                      UCLA_SYLLABUS_LOGGEDIN, 
+                      UCLA_SYLLABUS_PRIVATE))) {
+            $err['access_types'] = get_string('access_invalid', 'local_ucla_syllabus');
+        }
+        
+        // check if another public syllabus was uploaded
+        $where = 'courseid=:courseid AND (access_type=:public OR access_type=:loggedin)';
+        $result = $DB->record_exists_select('ucla_syllabus', $where, 
+                array('courseid' => $data['id'], 
+                      'public' => UCLA_SYLLABUS_PUBLIC, 
+                      'loggedin' => UCLA_SYLLABUS_LOGGEDIN));
+        if (!empty($result)) {
+            $err['access_types'] = get_string('invalid_public_syllabus', 'local_ucla_syllabus');
+        }        
+        
+        return $err;
+    }        
 }
