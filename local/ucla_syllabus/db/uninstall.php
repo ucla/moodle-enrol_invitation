@@ -27,6 +27,6 @@
 /**
  * Custom uninstallation procedure
  */
-function xmldb_newmodule_uninstall() {
+function xmldb_local_ucla_syllabus_uninstall() {
     return true;
 }
