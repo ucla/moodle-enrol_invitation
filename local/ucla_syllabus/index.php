@@ -28,15 +28,18 @@
  */
 
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
+require_once(dirname(__FILE__).'/class.ucla_syllabus.php');
 require_once(dirname(__FILE__).'/lib.php');
 require_once(dirname(__FILE__).'/syllabus_form.php');
 require_once($CFG->dirroot . '/local/ucla/lib.php');
+require_once($CFG->libdir . '/resourcelib.php');   // for embedding code
 
 // get script variables to be used later
 $id = required_param('id', PARAM_INT);   // course
 $course = $DB->get_record('course', array('id' => $id), '*', MUST_EXIST);
 $coursecontext = context_course::instance($course->id);
 $can_manage_syllabus = has_capability('local/ucla_syllabus:managesyllabus', $coursecontext);
+$ucla_syllabus = new ucla_syllabus($id);
 
 require_course_login($course);
 
@@ -110,7 +113,42 @@ if ($USER->editing && $can_manage_syllabus) {
 } else {
     // else just display syllabus
     echo $OUTPUT->header();
+    $title = ''; $body = '';
+
+    // see if there is a public syllabus uploaded
+    $public_syllabus = $ucla_syllabus->get_public_syllabus();
+    if (empty($public_syllabus)) {
+        // no public syllabus, so display no info
+        $title = get_string('display_name_default', 'local_ucla_syllabus');
+        $body = html_writer::tag('p', get_string('no_syllabus_uploaded', 'local_ucla_syllabus'));
         
+        // if user can upload a syllabus, let them know about turning editing on
+        if ($can_manage_syllabus) {
+            $body .= html_writer::tag('p', 
+                    get_string('no_syllabus_uploaded_help', 'local_ucla_syllabus'));
+        }
+    } else {
+        $title = $public_syllabus->display_name;
+
+        $fullurl = $ucla_syllabus->get_file_url($public_syllabus);
+        $mimetype = $public_syllabus->stored_file->get_mimetype();
+        $download_link = $ucla_syllabus->get_download_link($public_syllabus);        
+
+        // try to embed file using resource functions
+        if ($mimetype === 'application/pdf') {
+            $body .= resourcelib_embed_pdf($fullurl, $title, $download_link);
+        } else {            
+            $body .= resourcelib_embed_general($fullurl, $title, $download_link, $mimetype);
+        }
+        
+        // also add download link
+        $body .= html_writer::tag('div', $download_link, array('id' => 'download_link'));        
+    }
+    
+    // now display content
+    echo $OUTPUT->heading($title, 2, 'headingblock');   
+    echo $OUTPUT->container($body, 'ucla_syllabus-container');
+    
     // log for statistics later
     add_to_log($course->id, 'ucla_syllabus', 'view', 'index.php?id='.$course->id, '');    
 }
