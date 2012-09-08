@@ -33,7 +33,7 @@ require_once($CFG->libdir . '/formslib.php');
 
 class syllabus_form extends moodleform {
     
-    function definition(){
+    public function definition(){
         global $CFG, $USER, $DB;
         
         $courseid = $this->_customdata['courseid'];
@@ -44,6 +44,9 @@ class syllabus_form extends moodleform {
         
         $mform->addElement('header', 'header_public_syllabus', 
                 get_string('public_syllabus', 'local_ucla_syllabus'));
+        
+        // show upload form only if user does not have public syllabus file 
+        // already, or is editing an existing public form
         
         // single file upload (pdf only)
         $mform->addElement('static', 'public_syllabus_help', '',
@@ -61,10 +64,10 @@ class syllabus_form extends moodleform {
         $access_types = array();
         $access_types[] = $mform->createElement('radio', 'access_type', '',
                 get_string('accesss_public_info', 'local_ucla_syllabus'), 
-                UCLA_SYLLABUS_PUBLIC);
+                UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC);
         $access_types[] = $mform->createElement('radio', 'access_type', '', 
                 get_string('accesss_loggedin_info', 'local_ucla_syllabus'), 
-                UCLA_SYLLABUS_LOGGEDIN);
+                UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN);
         $mform->addGroup($access_types, 'access_types', $label, 
                 html_writer::empty_tag('br'));
         $mform->addGroupRule('access_types', 
@@ -81,11 +84,31 @@ class syllabus_form extends moodleform {
         
         // set defaults
         $mform->setDefaults(
-                array('access_types[access_type]' => UCLA_SYLLABUS_LOGGEDIN,
+                array('access_types[access_type]' => UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN,
                       'display_name' => get_string('display_name_default', 'local_ucla_syllabus')));
        
         $this->add_action_buttons();
     }
+
+    /**
+     * Helper function to see if a given course has a public syllabus.
+     * 
+     * @global type $DB
+     * @param type $courseid
+     * @return boolean
+     */
+    public function has_public_syllabus($courseid)
+    {
+        global $DB;
+
+        $where = 'courseid=:courseid AND (access_type=:public OR access_type=:loggedin)';
+        $result = $DB->record_exists_select('ucla_syllabus', $where, 
+                array('courseid' => $courseid, 
+                      'public' => UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC, 
+                      'loggedin' => UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN));
+        
+        return $result;
+    }    
     
     /**
      * Make sure the following is true:
@@ -96,29 +119,39 @@ class syllabus_form extends moodleform {
      * @param array $files array of uploaded files "element_name"=>tmp_file_path
      * @return array of "element_name"=>"error_description" if there are errors,
      */
-    function validation($data, $files) {
+    public function validation($data, $files) {
         global $DB;
         
         $err = array();
         
         // check if access_type is valid value
         if (!in_array($data['access_types']['access_type'], 
-                array(UCLA_SYLLABUS_PUBLIC, 
-                      UCLA_SYLLABUS_LOGGEDIN, 
-                      UCLA_SYLLABUS_PRIVATE))) {
+                array(UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC, 
+                      UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN, 
+                      UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE))) {
             $err['access_types'] = get_string('access_invalid', 'local_ucla_syllabus');
         }
         
-        // check if another public syllabus was uploaded
-        $where = 'courseid=:courseid AND (access_type=:public OR access_type=:loggedin)';
-        $result = $DB->record_exists_select('ucla_syllabus', $where, 
-                array('courseid' => $data['id'], 
-                      'public' => UCLA_SYLLABUS_PUBLIC, 
-                      'loggedin' => UCLA_SYLLABUS_LOGGEDIN));
-        if (!empty($result)) {
-            $err['access_types'] = get_string('invalid_public_syllabus', 'local_ucla_syllabus');
-        }        
+        // check if another public syllabus was uploaded        
+        if ($this->has_public_syllabus($data['id'])) {
+            $err['public_syllabus_file'] = 
+                    get_string('invalid_public_syllabus', 'local_ucla_syllabus');
+        }
         
         return $err;
     }        
+    
+    // PRIVATE FUNCTIONS
+    
+    /**
+     * Handles display of the public syllabus.
+     * 
+     *  - If no public syllabus is uploaded, then display form
+     *  - If public syllabus is uploaded, then don't display form, just filename
+     *    and ability to edit or delete
+     *  - If editing public syllabus, then 
+     */
+    private function display_public_syllabus() {
+        
+    }
 }

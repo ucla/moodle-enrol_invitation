@@ -30,12 +30,14 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+require_once(dirname(__FILE__).'/class.ucla_syllabus.php');
+
 defined('MOODLE_INTERNAL') || die();
 
 /** Constants */
-define('UCLA_SYLLABUS_PUBLIC', 1);
-define('UCLA_SYLLABUS_LOGGEDIN', 2);
-define('UCLA_SYLLABUS_PRIVATE', 3);
+define('UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC', 1);
+define('UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN', 2);
+define('UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE', 3);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Moodle core API                                                            //
@@ -50,7 +52,7 @@ define('UCLA_SYLLABUS_PRIVATE', 3);
  *
  * @return stdClass|null
  */
-function ucla_syllabus_user_outline($course, $user, $mod, $newmodule) {
+function local_ucla_syllabus_user_outline($course, $user, $mod, $newmodule) {
 
     $return = new stdClass();
     $return->time = 0;
@@ -68,7 +70,7 @@ function ucla_syllabus_user_outline($course, $user, $mod, $newmodule) {
  * @param stdClass $newmodule the module instance record
  * @return void, is supposed to echp directly
  */
-function ucla_syllabus_user_complete($course, $user, $mod, $newmodule) {
+function local_ucla_syllabus_user_complete($course, $user, $mod, $newmodule) {
 }
 
 /**
@@ -78,7 +80,7 @@ function ucla_syllabus_user_complete($course, $user, $mod, $newmodule) {
  *
  * @return boolean
  */
-function ucla_syllabus_print_recent_activity($course, $viewfullnames, $timestart) {
+function local_ucla_syllabus_print_recent_activity($course, $viewfullnames, $timestart) {
     return false;  //  True if anything was printed, otherwise false
 }
 
@@ -98,7 +100,7 @@ function ucla_syllabus_print_recent_activity($course, $viewfullnames, $timestart
  * @param int $groupid check for a particular group's activity only, defaults to 0 (all groups)
  * @return void adds items into $activities and increases $index
  */
-function ucla_syllabus_get_recent_mod_activity(&$activities, &$index, $timestart, $courseid, $cmid, $userid=0, $groupid=0) {
+function local_ucla_syllabus_get_recent_mod_activity(&$activities, &$index, $timestart, $courseid, $cmid, $userid=0, $groupid=0) {
 }
 
 /**
@@ -106,7 +108,7 @@ function ucla_syllabus_get_recent_mod_activity(&$activities, &$index, $timestart
 
  * @return void
  */
-function ucla_syllabus_print_recent_mod_activity($activity, $courseid, $detail, $modnames, $viewfullnames) {
+function local_ucla_syllabus_print_recent_mod_activity($activity, $courseid, $detail, $modnames, $viewfullnames) {
 }
 
 /**
@@ -117,7 +119,7 @@ function ucla_syllabus_print_recent_mod_activity($activity, $courseid, $detail, 
  * @return boolean
  * @todo Finish documenting this function
  **/
-function ucla_syllabus_cron () {
+function local_ucla_syllabus_cron () {
     return true;
 }
 
@@ -127,7 +129,7 @@ function ucla_syllabus_cron () {
  * @example return array('moodle/site:accessallgroups');
  * @return array
  */
-function ucla_syllabus_get_extra_capabilities() {
+function local_ucla_syllabus_get_extra_capabilities() {
     return array();
 }
 
@@ -136,45 +138,14 @@ function ucla_syllabus_get_extra_capabilities() {
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
- * Returns the lists of all browsable file areas within the given module context
+ * Serves the files from the ucla_syllabus file areas.
+ * 
+ * Depending on the syllabus access type, do the following checks:
+ *  - Public: allow download
+ *  - Logged in: check to see if user is logged in
+ *  - Private: check to see if user is associated with course
  *
- * The file area 'intro' for the activity introduction field is added automatically
- * by {@link file_browser::get_file_info_context_module()}
- *
- * @param stdClass $course
- * @param stdClass $cm
- * @param stdClass $context
- * @return array of [(string)filearea] => (string)description
- */
-function ucla_syllabus_get_file_areas($course, $cm, $context) {
-    return array();
-}
-
-/**
- * File browsing support for newmodule file areas
- *
- * @package mod_newmodule
- * @category files
- *
- * @param file_browser $browser
- * @param array $areas
- * @param stdClass $course
- * @param stdClass $cm
- * @param stdClass $context
- * @param string $filearea
- * @param int $itemid
- * @param string $filepath
- * @param string $filename
- * @return file_info instance or null if not found
- */
-function ucla_syllabus_get_file_info($browser, $areas, $course, $cm, $context, $filearea, $itemid, $filepath, $filename) {
-    return null;
-}
-
-/**
- * Serves the files from the newmodule file areas
- *
- * @package mod_newmodule
+ * @package local_uclas_syllabus
  * @category files
  *
  * @param stdClass $course the course object
@@ -185,16 +156,48 @@ function ucla_syllabus_get_file_info($browser, $areas, $course, $cm, $context, $
  * @param bool $forcedownload whether or not force download
  * @param array $options additional options affecting the file serving
  */
-function ucla_syllabus_pluginfile($course, $cm, $context, $filearea, array $args, $forcedownload, array $options=array()) {
+function local_ucla_syllabus_pluginfile($course, $cm, $context, $filearea, array $args, $forcedownload, array $options=array()) {
     global $DB, $CFG;
-
-    if ($context->contextlevel != CONTEXT_MODULE) {
-        send_file_not_found();
+    
+    // first get syllabus file
+    $ucla_syllabus = new ucla_syllabus($course->id);
+    $syllabus = $ucla_syllabus->get_syllabus($args[0]); // first argument should be ucla_syllabus id
+    
+    // do some sanity checks
+    if (empty($syllabus) || !isset($syllabus->stored_file)) {
+        // no syllabus
+        send_file_not_found();        
+    } else if ($syllabus->courseid != $course->id || 
+            $syllabus->stored_file->get_contextid() != $context->id) {
+        // given file doesn't belong to given course
+        print_error('err_syllabus_mismatch', 'local_ucla_syllabus');
     }
-
-    require_login($course, true, $cm);
-
-    send_file_not_found();
+    
+    // now check access type
+    $allow_download = false;
+    switch ($syllabus->access_type) {
+        case UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC:
+            $allow_download = true;
+            break;
+        case UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN:
+            require_login($course, true, $cm);
+            if (isloggedin()) {
+                $allow_download = true;
+            }
+            break;
+        case UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE:
+            // TODO later
+            break;
+        default:
+            break;
+    }
+    
+    if ($allow_download) {
+        // finally send the file
+        send_stored_file($syllabus->stored_file, 86400, 0, $forcedownload);
+    } else {
+        print_error('err_syllabus_not_allowed', 'local_ucla_syllabus');
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////////

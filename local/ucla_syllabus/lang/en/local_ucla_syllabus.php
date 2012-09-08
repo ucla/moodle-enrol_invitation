@@ -47,3 +47,13 @@ $string['display_name_none_entered'] = 'Please enter a display name';
 $string['cannnot_make_db_entry'] = 'Cannot insert entry into syllabus table.';
 $string['successful_upload'] = 'Successfully uploaded a syllabus';
 $string['invalid_public_syllabus'] = 'Can only have one public syllabus for course';
+
+// strings for displaying syllabus
+$string['no_syllabus_uploaded'] = 'No syllabus has been uploaded yet.';
+$string['no_syllabus_uploaded_help'] = 'To upload a syllabus file, please "Turn on editing".';
+$string['clicktodownload'] = 'Download: {$a}';
+
+// error general strings
+$string['err_missing_courseid'] = 'Missing required courseid';
+$string['err_syllabus_mismatch'] = 'Selected syllabus does not belong to course';
+$string['err_syllabus_not_allowed'] = 'Sorry, you must be logged in or assciated with the course to view this syllabus';
