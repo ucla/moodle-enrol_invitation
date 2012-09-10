@@ -193,4 +193,6 @@ $string['testconnectionnotice'] = 'Test the values in the form right now to veri
 $string['updateattendance'] = 'Update attendance';
 $string['youmustcreateanaccountfirst'] = 'You must create a new Blackboard Collaborate account before you can create sessions.';
 
-?>
+// START UCLA MOD: CCLE-2966 - Replace Elluminate with Blackboard Web Conferencing
+$string['elluminate:addinstance'] = 'Add a new Blackboard Collaborate Session';
+// END UCLA MOD: CCLE-2966 
