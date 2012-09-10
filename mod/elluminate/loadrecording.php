@@ -1,7 +1,7 @@
 <?php // $Id: loadrecording.php,v 1.1.2.2 2009/03/18 16:45:54 mchurch Exp $
 
 /**
- * Elluminate Live! recording load script.
+ * Blackboard Collaborate recording load script.
  * 
  * @version $Id: loadrecording.php,v 1.1.2.2 2009/03/18 16:45:54 mchurch Exp $
  * @author Justin Filip <jfilip@oktech.ca>
@@ -18,37 +18,37 @@
 
 
     if (!$recording = $DB->get_record('elluminate_recordings', array('id'=>$id))) {
-        error('Could not get recording (' . $id . ')');
+        print_error('Could not get recording (' . $id . ')');
     }
 
 	/*
     if (!$meeting = $DB->get_record('elluminate_session', 'meetingid', $recording->meetingid)) {
-        error('Could not get meeting (' . $recording->meetingid . ')');
+        print_error('Could not get meeting (' . $recording->meetingid . ')');
     }
     */
 
     if (!$elluminate = $DB->get_record('elluminate', array('meetingid'=>$recording->meetingid))) {
-        error('Could not load activity record.');
+        print_error('Could not load activity record.');
     }
 
     if (!$course = $DB->get_record('course', array('id'=>$elluminate->course))) {
-        error('Invalid course.');
+        print_error('Invalid course.');
     }    
 
 	if($elluminate->groupmode == 0 && $elluminate->groupparentid == 0) {
 	    if (! $cm = get_coursemodule_from_instance('elluminate', $elluminate->id, $course->id)) {
-	        error('Course Module ID was incorrect');
+	        print_error('Course Module ID was incorrect');
 	    }
 	} else if ($elluminate->groupmode != 0 && $elluminate->groupparentid != 0){
 		if (! $cm = get_coursemodule_from_instance('elluminate', $elluminate->groupparentid, $course->id)) {
-	        error('Course Module ID was incorrect');
+	        print_error('Course Module ID was incorrect');
 	    }
 	} else if ($elluminate->groupmode != 0 && $elluminate->groupparentid == 0){
 	    if (! $cm = get_coursemodule_from_instance('elluminate', $elluminate->id, $course->id)) {
-	        error('Course Module ID was incorrect');
+	        print_error('Course Module ID was incorrect');
 	    }
 	} else {
-		error('Elluminate Live! Group Error');
+		print_error('Blackboard Collaborate Group Error');
 	}
 
     require_course_login($course, true, $cm);
@@ -66,7 +66,7 @@
 
 /// Load the recording.
     if (!elluminate_build_recording_jnlp($recording->recordingid, $USER->id)) {
-        error('Could not load Elluminate Live! recording');
+        print_error('Could not load Blackboard Collaborate recording');
     }
 
-?>
+

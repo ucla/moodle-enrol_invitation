@@ -21,26 +21,41 @@ class mod_elluminate_mod_form extends moodleform_mod {
         global $CFG, $COURSE, $USER, $DB;
 
         $id = optional_param('update', '', PARAM_RAW);
+        
         if(!empty($id)) {     
 	        if (!$cm = get_coursemodule_from_id('elluminate', $id)) {
-	            error("Course Module ID was incorrect");
+	            print_error("Course Module ID was incorrect");
 	        }         
 	        if (!$elluminate = $DB->get_record("elluminate", array('id'=>$cm->instance))) {
-	            error("Course module is incorrect");
+	            print_error("Course module is incorrect");
 	        }
         }        
-		if(!empty($id)) {
-			if($cm->groupmode != $elluminate->groupmode) {		
-				elluminate_check_for_group_change($cm, $elluminate);
-				if (!$elluminate = $DB->get_record("elluminate", array('id'=>$cm->instance))) {
-		            error("Course module is incorrect");
-		        }
-		        //We're doing a redirect onto itself so that the changes are reflected on the UI
-		        //redirect($CFG->wwwroot . '/course/modedit.php?update=' . $cm->id. '&amp;return=0');		        		
-			} else {
-				elluminate_check_for_new_groups($elluminate);
-			}
-		}
+        if(!empty($id)) {
+        	//In Moodle 2.2.2 the groupmodeforce option is not being enforced on objects below the 
+        	//course level. So now we look to see if the force group mode is on or not. If groupmodeforce is not turned on for the
+        	//course, then we can trust the cm object to have the correct groupmode value. Otherwise, we do not trust the cm 
+        	//object and instead get the value from our existing course.
+        	if($cm->groupmode != $elluminate->groupmode) {
+        		if($COURSE->groupmodeforce == 0) {
+        			$elluminate->groupmode = $cm->groupmode;
+        		} else {
+        			$cm->groupmode = $elluminate->groupmode;
+        		}
+        		elluminate_check_for_group_change($cm, $elluminate);
+        		if (!$elluminate = $DB->get_record("elluminate", array('id'=>$cm->instance))) {
+        			print_error("Course module is incorrect");
+        		}
+        		//We're doing a redirect onto itself so that the changes are reflected on the UI
+        		//redirect($CFG->wwwroot . '/course/modedit.php?update=' . $cm->id. '&amp;return=0');
+        	} else {
+        		//print"<br></br>=============== we're in the esle";
+        		//print_error(var_export($elluminate));
+        		elluminate_check_for_new_groups($elluminate);
+        	}
+        }
+		//print"<br></br>=============== we're in the esle";
+		//print_error(var_export($elluminate));
+		
 		
         if(!empty($elluminate)) {
 	        $participant = false;
@@ -55,7 +70,7 @@ class mod_elluminate_mod_form extends moodleform_mod {
 		    } 
 	               
 			if($participant == false) {
-				error('You need to be invited to this private session in order to edit it.');
+				print_error('You need to be invited to this private session in order to edit it.');
 			}
         }               
                
@@ -65,6 +80,15 @@ class mod_elluminate_mod_form extends moodleform_mod {
 			30 => '30',
 			45 => '45',		
 			60 => '60'
+		);
+		
+		$elluminate_max_talkers = array(
+			1 => '1',
+			2 => '2',
+			3 => '3',
+			4 => '4',
+			5 => '5',
+			6 => '6'
 		);
         
 //-------------------------------------------------------------------------------
@@ -78,38 +102,43 @@ class mod_elluminate_mod_form extends moodleform_mod {
         $mform->setType('name', PARAM_RAW);
         $mform->addRule('name', null, 'required', null, 'client');
 		
+		//These are in place to pull the localized string and use it in the javascript
+		$mform->addElement('hidden', 'noGroupString', get_string('groupsnone'));
+		$mform->addElement('hidden', 'seperateGroupString', get_string('groupsseparate')); 
+		$mform->addElement('hidden', 'visibleGroupString', get_string('groupsvisible'));  
+						
 		$sessiontypes = array();
 		if($COURSE->groupmodeforce == '0') {
-			$sessiontypes[0] = 'Course';
-			$sessiontypes[1] = 'Private';		
+			$sessiontypes[0] = get_string('course', 'elluminate');
+			$sessiontypes[1] = get_string('private', 'elluminate');		
 			$has_groups = $DB->get_records('groups', array('courseid'=>$COURSE->id), 'name ASC');
 			if($has_groups != false) {
-				$sessiontypes[2] = 'Group';
+				$sessiontypes[2] = get_string('group', 'group');
 			}						
 			$has_groupings = $DB->get_records('groupings', array('courseid'=>$COURSE->id), 'name ASC');
 			if($has_groupings != false) {
-				$sessiontypes[3] = 'Grouping';
+				$sessiontypes[3] = get_string('grouping', 'group');
 			}			
 		} else {
 			if($COURSE->groupmode == 0) {
-				$sessiontypes[0] = 'Course';
-				$sessiontypes[1] = 'Private';
+				$sessiontypes[0] = get_string('course', 'elluminate');
+				$sessiontypes[1] = get_string('private', 'elluminate');
 				$has_groupings = $DB->get_records('groupings', array('courseid'=>$COURSE->id), 'name ASC');
 				if($has_groupings != false) {
-					$sessiontypes[3] = 'Grouping';
+					$sessiontypes[3] = get_string('grouping', 'group');
 				}				
 			} else if ($COURSE->groupmode > 0) {
 				$has_groups = $DB->get_records('groups', array('courseid'=>$COURSE->id), 'name ASC');
 				if($has_groups != false) {
-					$sessiontypes[2] = 'Group';
+					$sessiontypes[2] = get_string('group', 'group');
 				}		
 				$has_groupings = $DB->get_records('groupings', array('courseid'=>$COURSE->id), 'name ASC');
 				if($has_groupings != false) {
-					$sessiontypes[3] = 'Grouping';
+					$sessiontypes[3] = get_string('grouping', 'group');
 				}			
 			}			
 		}
-		$mform->addElement('select', 'sessiontype', 'Session Type', $sessiontypes);
+		$mform->addElement('select', 'sessiontype', get_string('sessiontype', 'elluminate'), $sessiontypes);
 		 
 		$mform->addElement('select', 'customname',  get_string('appendgroupname', 'elluminate'), array(0 => 'None', 1 => 'Only Group Name', 2 => 'Append Group Name to Title'));		
 		$mform->addElement('text', 'sessionname', get_string('customsessionname', 'elluminate'), array('size' => '64', 'maxlength' => '64'));
@@ -134,9 +163,10 @@ class mod_elluminate_mod_form extends moodleform_mod {
 			
 			$mform->disabledIf('sessiontype', 'isedit', 'eq', 'true');											
 		}
-		
-        $mform->addElement('htmleditor', 'description', get_string('description', 'elluminate'));
-        $mform->setType('description', PARAM_RAW);      			
+		//START UCLA MOD: feature23/CCLE-2966-elluminate-and-blackboard-web-conferencing
+        $this->add_intro_editor(false, get_string('description', 'elluminate'));
+        //END UCLA MOD: feature23/CCLE-2966-elluminate-and-blackboard-web-conferencing
+        $mform->setType('description', PARAM_RAW); 
 				
         $mform->addElement('checkbox', 'customdescription', get_string('customdescription', 'elluminate'));
         $mform->disabledIf('customdescription', 'sessiontype', 'eq', 0);
@@ -156,6 +186,16 @@ class mod_elluminate_mod_form extends moodleform_mod {
         $mform->addElement('select', 'recordingmode', get_string('recordingmode', 'elluminate') , $recording_options);
         $mform->setDefault('recordingmode', ELLUMINATELIVE_RECORDING_MANUAL);
         $mform->addHelpButton('recordingmode', 'recordingmode', 'elluminate');
+        
+        $mform -> addElement('select', 'maxtalkers', get_string('maxtalkers', 'elluminate'), $elluminate_max_talkers);
+        if(!empty($elluminate -> maxtalkers)) {
+        	$mform -> setDefault('maxtalkers', $elluminate -> maxtalkers);
+        } else if($CFG -> elluminate_max_talkers == '-1') {
+        	$mform -> setDefault('maxtalkers', ELLUMINATELIVE_MAX_TALKERS);
+        } else {
+        	$mform -> setDefault('maxtalkers', $CFG -> elluminate_max_talkers);
+        }
+        $mform -> addHelpButton('maxtalkers', 'maxtalkers', 'elluminate');
 
     	/// Don't allow choosing a boundary time if there is a globally defined default time.    	
         if ($CFG->elluminate_boundary_default != '-1') {
@@ -202,8 +242,8 @@ class mod_elluminate_mod_form extends moodleform_mod {
 		
         $this->add_action_buttons();
 
-    }
+	}
 
 }
 
-?>
+

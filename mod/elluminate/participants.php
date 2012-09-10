@@ -9,38 +9,39 @@
  * @author Remote Learner - http://www.remote-learner.net/
  */
 
-global $DB, $PAGE;
+global $DB,$PAGE;
 require_once dirname(dirname(dirname(__FILE__))) . '/config.php';
 require_once dirname(__FILE__) . '/lib.php';
 $PAGE->requires->js('/mod/elluminate/jquery-1.4.2.min.js');
 $PAGE->requires->js('/mod/elluminate/add_remove_submit.js');
-    
+
 $id = required_param('id', PARAM_INT);
+$PAGE->set_url('/mod/elluminate/participants.php', array('id'=>$id));
 $firstinitial = optional_param('firstinitial', '', PARAM_ALPHA);
 $lastinitial = optional_param('lastinitial', '', PARAM_ALPHA);
 $sort = optional_param('sort', '', PARAM_ALPHA);
 $dir = optional_param('dir', '', PARAM_ALPHA);
 
 if (!$elluminate = $DB->get_record('elluminate', array('id'=>$id))) {
-        error('Could not get meeting (' . $id . ')');
+        print_error('Could not get meeting (' . $id . ')');
     }
     if (!$course = $DB->get_record('course', array('id'=>$elluminate->course))) {
-        error('Invalid course.');
+        print_error('Invalid course.');
     }    
     if($elluminate->groupmode == 0 && $elluminate->groupparentid == 0) {
 	    if (! $cm = get_coursemodule_from_instance('elluminate', $elluminate->id, $course->id)) {
-	        error('Course Module ID was incorrect');
+	        print_error('Course Module ID was incorrect');
 	    }
 	} else if ($elluminate->groupmode != 0 && $elluminate->groupparentid != 0){
 		if (! $cm = get_coursemodule_from_instance('elluminate', $elluminate->groupparentid, $course->id)) {
-	        error('Course Module ID was incorrect');
+	        print_error('Course Module ID was incorrect');
 	    }
 	} else if ($elluminate->groupmode != 0 && $elluminate->groupparentid == 0){
 	    if (! $cm = get_coursemodule_from_instance('elluminate', $elluminate->id, $course->id)) {
-	        error('Course Module ID was incorrect');
+	        print_error('Course Module ID was incorrect');
 	    }
 	} else {
-		error('Elluminate Live! Group Error');
+		print_error('Blackboard Collaborate Group Error');
 	}
 
 require_course_login($course, true, $cm);
@@ -110,8 +111,9 @@ if (!empty ($curmods)) {
 }
 
 	/// Particpants can be teachers or students in this course who have an account on
-	/// the Elluminate server.
-	$allusers = $DB->get_records_sql("select u.id, u.firstname, u.lastname, u.username from mdl_role_assignments ra, mdl_context con, mdl_course c, mdl_user u where ra.userid=u.id and ra.contextid=con.id and con.instanceid=c.id and c.id=" . $elluminate->course);                                     
+	/// the Blackboard Collaborate server.
+	$allusers = $DB->get_records_sql("select u.id, u.firstname, u.lastname, u.username from {role_assignments} ra, {context} con, {course} c, {user} u where ra.userid=u.id and ra.contextid=con.id and con.instanceid=c.id and c.id=" . $elluminate->course);                                     
+//	$allusers = $DB->get_records_sql("select u.id, u.firstname, u.lastname, u.username from mdl_role_assignments ra, mdl_context con, mdl_course c, mdl_user u where ra.userid=u.id and ra.contextid=con.id and con.instanceid=c.id and c.id=" . $elluminate->course);                                     
     $ausers = array_keys($allusers);
     // if groupmembersonly used, only include members of the appropriate groups.
     if ($allusers and !empty($CFG->enablegroupings) and $cm->groupmembersonly) {
@@ -141,7 +143,6 @@ if (!empty ($curmods)) {
                                              get_string('availableparticipants', 'elluminate', $cavailusers);
     $strfilterdesc   = get_string('participantfilterdesc', 'elluminate');
     $strall          = get_string('all');
-    $alphabet        = explode(',', get_string('alphabet'));
 
 /// Print header.
     $navigation = build_navigation($strparticipants, $cm);
@@ -161,4 +162,4 @@ if (!empty ($curmods)) {
 	echo $OUTPUT->box_end();
     echo $OUTPUT->footer();
 
-?>
+

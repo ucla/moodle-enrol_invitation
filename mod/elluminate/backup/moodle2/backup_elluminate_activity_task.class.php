@@ -26,7 +26,7 @@ require_once($CFG->dirroot . '/mod/elluminate/backup/moodle2/backup_elluminate_s
 require_once($CFG->dirroot . '/mod/elluminate/backup/moodle2/backup_elluminate_settingslib.php'); // Because it exists (optional)
 
 /**
- * elluminate backup task that provides all the settings and steps to perform one
+ * Blackboard Collaborate backup task that provides all the settings and steps to perform one
  * complete backup of the activity
  */
 class backup_elluminate_activity_task extends backup_activity_task {
