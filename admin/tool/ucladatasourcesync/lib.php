@@ -210,6 +210,10 @@ function match_course($term, $srs, $subject_area=null, $cat_num=null, $sec_num=n
     $ret_val = null;
     $found_bad_srs = false; // used to track bad data source
     
+    // make sure that the SRS is the course SRS, not a discussion SRS
+    $srs = array_pop(array_shift(registrar_query::run_registrar_query(
+            'ccle_get_primary_srs', array($term, $srs), true)));
+    
     // prepare error message object (not going to be used most of the time,
     // but useful to do it here than whenever and error is called)
     $a = new stdClass();
