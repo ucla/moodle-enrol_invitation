@@ -4,7 +4,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/uclasupportconsole/manager.class.php');
 
 /**
- * Returns all avaiable registrar queries
+ * Returns all available registrar queries
  * 
  * @return array        Array of registrar queries avialble 
  */
@@ -188,15 +188,15 @@ function html_table_auto_headers($data) {
  *  Used when you want to display a title and a table.
  **/
 function supportconsole_render_section_shortcut($title, $data, 
-                                                $inputs=array()) {
+                                                $inputs=array(), $moreinfo=NULL) {
     global $OUTPUT;
     $size = 0;
     if (!empty($data)) {
         $size = count($data);        
     }
     
-    if ($size == 0) {
-        $pretext = 'There are no results';
+    if ($size == 0) { 
+       $pretext = 'There are no results';
     } else if ($size == 1) {
         $pretext = 'There is 1 result';
     } else {
@@ -215,10 +215,13 @@ function supportconsole_render_section_shortcut($title, $data,
     // only display table if there is data to display
     if (empty($data)) {
         return $OUTPUT->box($pretext);                
+    } else if ($moreinfo != NULL) {
+        return $OUTPUT->box($moreinfo) . $OUTPUT->box($pretext) . 
+                supportconsole_render_table_shortcut($data, $inputs);        
     } else {
         return $OUTPUT->box($pretext) . 
                 supportconsole_render_table_shortcut($data, $inputs);        
-    }    
+    }
 }
 
 function supportconsole_render_table_shortcut($data, $inputs) {

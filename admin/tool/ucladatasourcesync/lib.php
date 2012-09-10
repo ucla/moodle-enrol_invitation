@@ -359,3 +359,34 @@ function validate_field($type, $field, $min_size=0, $max_size=100)
     
     return $field;
 }
+
+
+/**
+ * Gets table information from database for: bruincast, library reserves, and video furnace
+ * 
+ * @param string $table     The type of table you want to get information for.
+ *      options: "bruincast", "library_reserves", "video_furnace"
+ * 
+ * @return array            Returns an array containing: 
+ */
+function get_reserve_data($table)
+{
+    global $DB;
+    global $CFG;
+    
+    $result = $DB->get_records('ucla_' . $table);
+    
+    foreach ($result as $item) {
+        if ($item->courseid != NULL) {
+            $shortname = $DB->get_field('course', 'shortname', array('id' => ($item->courseid)));
+            
+            $courseurl = new moodle_url('/course/view.php', array('id' => ($item->courseid)));
+            
+            $shortnamewithlink = html_writer::link ($courseurl, $shortname);
+            
+            $item->courseid = $shortnamewithlink;
+        }
+    }
+    
+    return $result;
+}
