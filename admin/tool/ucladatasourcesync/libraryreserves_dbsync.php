@@ -45,51 +45,51 @@ function define_data_source() {
      *                          ['min_size']
      *                          ['max_size']
      */    
-    $ret_val[0] = array('name' => 'course_number',
+    $ret_val[] = array('name' => 'course_number',
                         'type' => 'coursenum',
                         'min_size' => '0',
                         'max_size' => '10');
-    $ret_val[1] = array('name' => 'course_name',
+    $ret_val[] = array('name' => 'course_name',
                         'type' => 'string',
                         'min_size' => '0',
                         'max_size' => '40');
-    $ret_val[2] = array('name' => 'department_code',
+    $ret_val[] = array('name' => 'department_code',
                         'type' => 'string',
                         'min_size' => '0',
                         'max_size' => '10');
-    $ret_val[3] = array('name' => 'department_name',
+    $ret_val[] = array('name' => 'department_name',
                         'type' => 'string',
                         'min_size' => '0',
                         'max_size' => '50');
-    $ret_val[4] = array('name' => 'instructor_last_name',
+    $ret_val[] = array('name' => 'instructor_last_name',
                         'type' => 'string',
                         'min_size' => '0',
                         'max_size' => '50');
-    $ret_val[5] = array('name' => 'instructor_first_name',
+    $ret_val[] = array('name' => 'instructor_first_name',
                         'type' => 'string',
                         'min_size' => '0',
                         'max_size' => '40');
-    $ret_val[6] = array('name' => 'reserves_list_title',
+    $ret_val[] = array('name' => 'reserves_list_title',
                         'type' => 'string',
                         'min_size' => '0',
                         'max_size' => '40');
-    $ret_val[7] = array('name' => 'list_effective_date',
+    $ret_val[] = array('name' => 'list_effective_date',
                         'type' => 'date_dashed',
                         'min_size' => '10',
                         'max_size' => '10');
-    $ret_val[8] = array('name' => 'list_ending_date',
+    $ret_val[] = array('name' => 'list_ending_date',
                         'type' => 'date_dashed',
                         'min_size' => '10',
                         'max_size' => '10');
-    $ret_val[9] = array('name' => 'url',
+    $ret_val[] = array('name' => 'url',
                         'type' => 'url',
                         'min_size' => '1',
                         'max_size' => '400');
-    $ret_val[10]= array('name' => 'srs',
+    $ret_val[]= array('name' => 'srs',
                         'type' => 'srs',
                         'min_size' => '7',  // in case leading zeroes are removed
                         'max_size' => '9');
-    $ret_val[11]= array('name' => 'quarter',
+    $ret_val[]= array('name' => 'quarter',
                         'type' => 'term',
                         'min_size' => '3',
                         'max_size' => '3');

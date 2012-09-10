@@ -178,11 +178,14 @@ function cleanup_csv_data(&$data_array, $table_name) {
     if (!empty($invalid_restrictions)) {
         $invalid_restrictions = implode("\n", $invalid_restrictions);
 
-        if (!isset($CFG->bruincast_errornotify_email) || $CFG->quiet_mode) {
+        $bruincast_source_url = get_config('block_ucla_bruincast', 'source_url');
+        $bruincast_quiet_mode = get_config('block_ucla_bruincast', 'quiet_mode');
+        
+        if (empty($bruincast_source_url) || $bruincast_quiet_mode) {
             echo $invalid_restrictions;
         } else {
-            ucla_send_mail($CFG->bruincast_errornotify_email, 
-                    'BruinCast Data Issues (' . date('r') . ')', $invalid_restrictions);
+            ucla_send_mail($bruincast_source_url, 
+                    'BruinCast data issues (' . date('r') . ')', $invalid_restrictions);
         }
     }
 
