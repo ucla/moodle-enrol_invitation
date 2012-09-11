@@ -24,5 +24,9 @@
  */
 
 $string['managemyfiles'] = 'Manage my files';
-$string['pluginname'] = 'My private files';
-$string['privatefiles'] = 'Private files';
+// START UCLA MOD: CCLE-3470-Rename-private-files-to-my-ccle-files
+$string['pluginname'] = 'My CCLE files';
+$string['privatefiles'] = 'CCLE files';
+//$string['pluginname'] = 'My private files';
+//$string['privatefiles'] = 'Private files';
+// END UCLA MOD: CCLE-3470

@@ -50,7 +50,10 @@ $string['dorestore'] = 'Yes';
 $string['download'] = 'Download';
 $string['downloadable'] = 'courses I can download';
 $string['downloadablecourses'] = 'Downloadable courses';
-$string['downloadconfirmed'] = 'The backup has been saved in your private files {$a}';
+// START UCLA MOD: CCLE-3470-Rename-private-files-to-my-ccle-files
+$string['downloadconfirmed'] = 'The backup has been saved in your CCLE files {$a}';
+//$string['downloadconfirmed'] = 'The backup has been saved in your private files {$a}';
+// END UCLA MOD: CCLE-3470
 $string['downloaded'] = '...finished.';
 $string['downloadingcourse'] = 'Downloading course';
 $string['downloadingsize'] = 'Please wait the course file is downloading ({$a->total}Mb)...';
