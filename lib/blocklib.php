@@ -1158,7 +1158,9 @@ class block_manager {
             $PAGE->set_title($blocktitle . ': ' . $strdeletecheck);
             $PAGE->set_heading($site->fullname);
             echo $OUTPUT->header();
-            $confirmurl = new moodle_url("$deletepage->url?", array('sesskey' => sesskey(), 'bui_deleteid' => $block->instance->id, 'bui_confirm' => 1));
+            // BEING UCLA MOD: CCLE-3513 - Cannot delete blocks off frontpage
+            $confirmurl = new moodle_url($deletepage->url, array('sesskey' => sesskey(), 'bui_deleteid' => $block->instance->id, 'bui_confirm' => 1));
+            // END UCLA MOD: CCLE-3513
             $cancelurl = new moodle_url($deletepage->url);
             $yesbutton = new single_button($confirmurl, get_string('yes'));
             $nobutton = new single_button($cancelurl, get_string('no'));
