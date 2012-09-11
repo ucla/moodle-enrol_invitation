@@ -65,6 +65,8 @@ html, body {background-color:#FFF; height:100%;}
     background: -o-linear-gradient(top, #64728E 0%, #4F5F80 100%);
     background: linear-gradient(top, #64728E 0%, #4F5F80 100%);
 
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#64728E', endColorstr='#4F5F80'); /* for IE */    
+    
     -webkit-border-radius: 2px 2px 0 0;
     -moz-border-radius: 2px 2px 0 0;
     border-radius: 2px 2px 0 0;
