@@ -3,3 +3,15 @@
 #thelist {
     border: 1px solid black;
 }
+
+.easyupload_form fieldset.clearfix {
+    background: #FEFCF6;
+    border: 1px solid #B7AA96;
+}
+
+.easyupload_form fieldset legend {
+    width: auto;
+    background: #FCE096;
+    color: #394A6E;    
+    padding: 0 20px;
+}
