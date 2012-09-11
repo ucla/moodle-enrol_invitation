@@ -42,10 +42,8 @@ $CFG->dbname    = '';
 $CFG->dbuser    = '';
 $CFG->dbpass    = '';
 $CFG->prefix    = 'mdl_';
-$CFG->dboptions = array(
-    'dbpersist' => 0,
-    'dbsocket'  => 1 
-);
+$CFG->dboptions['dbpersist'] = 0;
+$CFG->dboptions['dbsocket']  = 1;
 
 $CFG->wwwroot  = '';
 $CFG->dataroot = ''; 
@@ -60,7 +58,7 @@ $CFG->directorypermissions = 0777;
 // logins using the Moodle login will not work.
 $CFG->passwordsaltmain = '';
 
-// determines current term
+// Determines current term
 //$CFG->currentterm = '12S';
 
 // Registrar
@@ -73,26 +71,16 @@ $CFG->registrar_dbencoding = 'ISO-8859-1';
 
 // Format and browseby and anything else that requires instructors to be 
 // displayed, we need to determine which roles should be displayed.
-$CFG->instructor_levels_roles = array(
-    'Instructor' => array(
-        'editinginstructor',
-        'ta_instructor'
-    ),
-    'Teaching Assistant' => array(
-        'ta',
-        'ta_admin'
-    )
-);
+$CFG->instructor_levels_roles['Instructor'] = array('editinginstructor', 'ta_instructor');
+$CFG->instructor_levels_roles['Teaching Assistant'] = array('ta', 'ta_admin');
 
 // To enable friendly urls in your dev instance, please add the config values to
 // your config_private.php
 //// CCLE-2283: Friendly URLs
 //// CCLE-2283: Redirect to archive (these have a high chance of changing)
-//$CFG->forced_plugin_settings['local_ucla'] = array(
-//    'friendly_urls_enabled' => false,
-//    'remotetermcutoff' => '',
-//    'archiveserver' => ''
-//);
+//$CFG->forced_plugin_settings['local_ucla']['friendly_urls_enabled] = false;
+//$CFG->forced_plugin_settings['local_ucla']['remotetermcutoff] = '';
+//$CFG->forced_plugin_settings['local_ucla']['archiveserver] = '';
 
 // My Sites CCLE-2810
 // Term limiting
@@ -140,24 +128,16 @@ $CFG->shib_logged_in_cookie = '_ucla_sso';
 
 // CCLE-2306 - HELP SYSTEM BLOCK
 // if using JIRA, jira_user, jira_password, jira_pid should be defined in config_private.php
-$block_ucla_help_settings = array('send_to' => 'jira',
-                                  'jira_endpoint' => 'https://jira.ats.ucla.edu/CreateIssueDetails.jspa',
-                                  'jira_default_assignee' => 'dkearney',
-//                                  'boxtext' => '<ul>
-//                                                    <li>Find FAQs, tutorials and a large database of help documentation at <strong><a title="cclehelp" href="https://ccle.ucla.edu/course/view/cclehelp">CCLE Help</a></strong></li>
-//                                                    <li>Send your feedback including suggestions and comments to <a href="mailto:ccle@ucla.edu">ccle@ucla.edu</a></li>
-//                                                </ul>'
-        );
-$CFG->forced_plugin_settings['block_ucla_help'] = $block_ucla_help_settings;
+$CFG->forced_plugin_settings['block_ucla_help']['send_to'] = 'jira';
+$CFG->forced_plugin_settings['block_ucla_help']['jira_endpoint'] = 'https://jira.ats.ucla.edu/CreateIssueDetails.jspa';
+$CFG->forced_plugin_settings['block_ucla_help']['jira_default_assignee'] = 'dkearney';
 $block_ucla_help_support_contacts['System'] = 'dkearney';  // default
 
 // CCLE-2311 - VIEDO FURNACE BLOCK
-$CFG->forced_plugin_settings['block_ucla_video_furnace']['source_url']
-        = 'http://164.67.141.31/~guest/VF_LINKS.TXT';
+$CFG->forced_plugin_settings['block_ucla_video_furnace']['source_url'] = 'http://164.67.141.31/~guest/VF_LINKS.TXT';
 
 // CCLE-2312 - LIBRARY RESERVES BLOCK
-$CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url']
-        = 'ftp://ftp.library.ucla.edu/incoming/eres/voyager_reserves_data.txt';
+$CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url'] = 'ftp://ftp.library.ucla.edu/incoming/eres/voyager_reserves_data.txt';
 
 // CCLE-2301 - COURSE MENU BLOCK
 $CFG->forced_plugin_settings['block_ucla_course_menu']['trimlength'] = 22;
@@ -205,17 +185,14 @@ $CFG->unittestprefix = 'tst_';
 /// CCLE-2810 - My Sites - disallow customized "My Moodle" page
 $CFG->forcedefaultmymoodle = true;
 
-/*
- * $string['log_apache_error'] = 'Apache error';
-$string['log_apache_access'] = 'Apache access';
-$string['log_apache_ssl_access'] = 'Apache SSL access';
-$string['log_apache_ssl_error'] = 'Apache SSL error';
-$string['log_apache_ssl_request'] = 'Apache SSL access';
-$string['log_shibboleth_shibd'] = 'Shibboleth daemon';
-$string['log_shibboleth_trans'] = 'Shibboleth transaction';
-$string['log_moodle_cron'] = 'Moodle cron';
- * 
- */
+//$string['log_apache_error'] = 'Apache error';
+//$string['log_apache_access'] = 'Apache access';
+//$string['log_apache_ssl_access'] = 'Apache SSL access';
+//$string['log_apache_ssl_error'] = 'Apache SSL error';
+//$string['log_apache_ssl_request'] = 'Apache SSL access';
+//$string['log_shibboleth_shibd'] = 'Shibboleth daemon';
+//$string['log_shibboleth_trans'] = 'Shibboleth transaction';
+//$string['log_moodle_cron'] = 'Moodle cron';
 
 // Site administration > Advanced features
 $CFG->usetags = 0;

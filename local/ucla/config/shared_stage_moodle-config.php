@@ -42,10 +42,8 @@ $CFG->dbname    = '';
 $CFG->dbuser    = '';
 $CFG->dbpass    = '';
 $CFG->prefix    = 'mdl_';
-$CFG->dboptions = array(
-    'dbpersist' => 0,
-    'dbsocket'  => 1 
-);
+$CFG->dboptions['dbpersist'] = 0;
+$CFG->dboptions['dbsocket']  = 1;
 
 $CFG->wwwroot  = 'https://stage.ccle.ucla.edu';
 $CFG->dataroot = '/moodle_data'; 
@@ -69,26 +67,14 @@ $CFG->registrar_dbencoding = 'ISO-8859-1';
 
 // Format and browseby and anything else that requires instructors to be 
 // displayed, we need to determine which roles should be displayed.
-$CFG->instructor_levels_roles = array(
-    'Instructor' => array(
-        'editinginstructor',
-        'ta_instructor'
-    ),
-    'Teaching Assistant' => array(
-        'ta',
-        'ta_admin'
-    )
-);
+$CFG->instructor_levels_roles['Instructor'] = array('editinginstructor', 'ta_instructor');
+$CFG->instructor_levels_roles['Teaching Assistant'] = array('ta', 'ta_admin');
 
 // CCLE-2283: Friendly URLs
 // CCLE-2283: Redirect to archive 
-$CFG->forced_plugin_settings['local_ucla'] = array(
-    'friendly_urls_enabled' => true,
-    'remotetermcutoff' => '12S',
-//    'archiveserver' => 'https://archive.ccle.ucla.edu'
-    // until June 17 don't redirect to archive server, because that doesn't exist
-    'archiveserver' => 'https://ccle.ucla.edu'
-);
+$CFG->forced_plugin_settings['local_ucla']['friendly_urls_enabled'] = true; 
+$CFG->forced_plugin_settings['local_ucla']['remotetermcutoff'] = '12S'; 
+$CFG->forced_plugin_settings['local_ucla']['archiveserver'] = 'https://ccle.ucla.edu'; 
 
 // My Sites CCLE-2810
 // Term limiting
@@ -129,24 +115,16 @@ $CFG->shib_logged_in_cookie = '_ucla_sso';
 
 // CCLE-2306 - HELP SYSTEM BLOCK
 // if using JIRA, jira_user, jira_password, jira_pid should be defined in config_private.php
-$block_ucla_help_settings = array('send_to' => 'jira',
-                                  'jira_endpoint' => 'https://jira.ats.ucla.edu/CreateIssueDetails.jspa',
-                                  'jira_default_assignee' => 'dkearney',
-//                                  'boxtext' => '<ul>
-//                                                    <li>Find FAQs, tutorials and a large database of help documentation at <strong><a title="cclehelp" href="https://ccle.ucla.edu/course/view/cclehelp">CCLE Help</a></strong></li>
-//                                                    <li>Send your feedback including suggestions and comments to <a href="mailto:ccle@ucla.edu">ccle@ucla.edu</a></li>
-//                                                </ul>'
-        );
-$CFG->forced_plugin_settings['block_ucla_help'] = $block_ucla_help_settings;
+$CFG->forced_plugin_settings['block_ucla_help']['send_to'] = 'jira';
+$CFG->forced_plugin_settings['block_ucla_help']['jira_endpoint'] = 'https://jira.ats.ucla.edu/CreateIssueDetails.jspa';
+$CFG->forced_plugin_settings['block_ucla_help']['jira_default_assignee'] = 'dkearney';
 $block_ucla_help_support_contacts['System'] = 'dkearney';  // default
 
 // CCLE-2311 - VIEDO FURNACE BLOCK
-$CFG->forced_plugin_settings['block_ucla_video_furnace']['source_url']
-        = 'http://164.67.141.31/~guest/VF_LINKS.TXT';
+$CFG->forced_plugin_settings['block_ucla_video_furnace']['source_url'] = 'http://164.67.141.31/~guest/VF_LINKS.TXT';
 
 // CCLE-2312 - LIBRARY RESERVES BLOCK
-$CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url']
-        = 'ftp://ftp.library.ucla.edu/incoming/eres/voyager_reserves_data.txt';
+$CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url'] = 'ftp://ftp.library.ucla.edu/incoming/eres/voyager_reserves_data.txt';
 
 // CCLE-2301 - COURSE MENU BLOCK
 $CFG->forced_plugin_settings['block_ucla_course_menu']['trimlength'] = 22;
@@ -186,11 +164,11 @@ $CFG->filter_mediaplugin_enable_qt = true;
 $CFG->filter_mediaplugin_enable_wmp = true;
 $CFG->filter_mediaplugin_enable_rm = true;
 
-// to enable database unit testing
-$CFG->unittestprefix = 'tst_';
-
 /// CCLE-2810 - My Sites - disallow customized "My Moodle" page
 $CFG->forcedefaultmymoodle = true;
+
+// to enable database unit testing
+$CFG->unittestprefix = 'tst_';
 
 // Site administration > Advanced features
 $CFG->usetags = 0;
@@ -286,46 +264,6 @@ $CFG->dbsessions = false;
 // Site administration > Server > Performance
 $CFG->extramemorylimit = '1024M';
 
-/** 
- *  Automatic Shibboleth configurations.
- *  Disabling in favor for GUI configurations.
- *  Keeping in code for sake of quick re-enabling and reference.
- *  To re-enable, add a '/' at the end of the following line.
- **
-$CFG->auth = 'shibboleth';
-$CFG->alternateloginurl = $CFG->wwwroot . '/login/ucla_login.php?shibboleth';
-
-$CFG->forced_plugin_settings['auth/shibboleth'] = array(
-    'user_attribute'    => 'HTTP_SHIB_EDUPERSON_PRINCIPALNAME',
-    'convert_data'      => $_dirroot_ . '/shib_transform.php',
-    'logout_handler'    => $CFG->wwwroot . '/Shibboleth.sso/Logout',
-    'logout_return_url' => 'https://shb.ais.ucla.edu/shibboleth-idp/Logout',
-    'login_name'        => 'Shibboleth Login',
-
-    'field_map_firstname'         => 'HTTP_SHIB_GIVENNAME',
-    'field_updatelocal_firstname' => 'onlogin',
-    'field_lock_firstname'        => 'locked',
-
-    'field_map_lastname'         => 'HTTP_SHIB_PERSON_SURNAME',
-    'field_updatelocal_lastname' => 'onlogin',
-    'field_lock_lastname'        => 'locked',
-
-    'field_map_email'        => 'HTTP_SHIB_MAIL',
-    'field_updatelocal_mail' => 'onlogin',
-    'field_lock_email'       => 'unlockedifempty',
-
-    'field_map_idnumber'         => 'HTTP_SHIB_UID',
-    'field_updatelocal_idnumber' => 'onlogin',
-    'field_lock_idnumber'        => 'locked',
-
-    'field_map_institution'         => 'HTTP_SHIB_IDENTITY_PROVIDER',
-    'field_updatelocal_institution' => 'onlogin',
-    'field_lock_institution'        => 'locked'
-);
-/**
- *  End shibboleth configurations.
- **/
-
 // If you want to have un-revisioned configuration data, place in config_private
 // $CFG->dirroot is overwritten later
 $_dirroot_ = dirname(realpath(__FILE__)) . '/../../..';
@@ -333,6 +271,44 @@ $_config_private_ = $_dirroot_ . '/config_private.php';
 if (file_exists($_config_private_)) {
     require_once($_config_private_);
 }
+
+/** 
+ *  Automatic Shibboleth configurations.
+ *  Disabling in favor for GUI configurations.
+ *  Keeping in code for sake of quick re-enabling and reference.
+ *  To re-enable, add a '/' at the end of the following line.
+ **/
+//$CFG->auth = 'shibboleth';
+//$CFG->alternateloginurl = $CFG->wwwroot . '/login/ucla_login.php?shibboleth';
+
+//$CFG->forced_plugin_settings['auth/shibboleth']['user_attribute'] = 'HTTP_SHIB_EDUPERSON_PRINCIPALNAME';
+//$CFG->forced_plugin_settings['auth/shibboleth']['convert_data'] = $_dirroot_ . '/shib_transform.php';
+//$CFG->forced_plugin_settings['auth/shibboleth']['logout_handler'] = $CFG->wwwroot . '/Shibboleth.sso/Logout';
+//$CFG->forced_plugin_settings['auth/shibboleth']['logout_return_url'] = 'https://shb.ais.ucla.edu/shibboleth-idp/Logout';
+//$CFG->forced_plugin_settings['auth/shibboleth']['login_name'] = 'Shibboleth Login';
+
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_map_firstname'] = 'HTTP_SHIB_GIVENNAME';
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_updatelocal_firstname'] = 'onlogin';
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_lock_firstname'] = 'locked';
+
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_map_lastname'] = 'HTTP_SHIB_PERSON_SURNAME';
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_updatelocal_lastname'] = 'onlogin';
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_lock_lastname'] = 'locked';
+
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_map_email'] = 'HTTP_SHIB_MAIL';
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_updatelocal_mail'] = 'onlogin';
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_lock_email'] = 'unlockedifempty';
+
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_map_idnumber'] = 'HTTP_SHIB_UID';
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_updatelocal_idnumber'] = 'onlogin';
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_lock_idnumber'] = 'locked';
+
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_map_institution'] = 'HTTP_SHIB_IDENTITY_PROVIDER';
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_updatelocal_institution'] = 'onlogin';
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_lock_institution'] = 'locked';
+/**
+ *  End shibboleth configurations.
+ **/
 
 // set external database connection settings after config_private.php has
 // been read for the Registrar connection details
