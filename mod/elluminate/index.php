@@ -57,7 +57,9 @@
     $strname  = get_string("name");
     $strweek  = get_string("week");
     $strtopic  = get_string("topic");
-
+    $strsection  = get_string("section");
+    
+    $table = new html_table();
     if ($course->format == "weeks") {
         $table->head  = array ($strweek, $strname);
         $table->align = array ("center", "left");
@@ -65,8 +67,8 @@
         $table->head  = array ($strtopic, $strname);
         $table->align = array ("center", "left", "left", "left");
     } else {
-        $table->head  = array ($strname);
-        $table->align = array ("left", "left", "left");
+        $table->head  = array ($strsection, $strname);
+        $table->align = array ("center", "left", "left", "left");
     }
 
 	$search =  array("@", "#", "$", "%", "^", "?", "&", "/", "\\", "'", ";", "\"", ",", ".", "<", ">","*");
@@ -87,20 +89,29 @@
 	            $link = "<a href=\"view.php?id=$elluminate->coursemodule\">$name</a>";
 	        }
 	
-	        if ($course->format == "weeks" or $course->format == "topics") {
-	            $table->data[] = array ($elluminate->section, $link);
-	        } else {
-	            $table->data[] = array ($link);
-	        }
+                // START UCLA MOD: CCLE-2966 - Replace Elluminate with Blackboard Web Conferencing
+//	        if ($course->format == "weeks" or $course->format == "topics") {
+//	            $table->data[] = array ($elluminate->section, $link);
+//	        } else {
+//	            $table->data[] = array ($link);
+//	        }
+	        $table->data[] = array ($elluminate->section, $link);
+                // END UCLA MOD: CCLE-2966
 		//}
     }
 
     echo "<br />";
 
-    print_table($table);
-
+    // START UCLA MOD: CCLE-2966 - Replace Elluminate with Blackboard Web Conferencing
+    //print_table($table);
+    echo html_writer::table($table);
+    // END UCLA MOD: CCLE-2966 
+    
 /// Finish the page
 
-    print_footer($course);
+    // START UCLA MOD: CCLE-2966 - Replace Elluminate with Blackboard Web Conferencing
+    //print_footer($course);
+    $OUTPUT->footer();
+    // END UCLA MOD: CCLE-2966 
 
 
