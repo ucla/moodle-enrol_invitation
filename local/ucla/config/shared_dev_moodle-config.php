@@ -265,6 +265,12 @@ $CFG->forced_plugin_settings['url']['displayoptions'] = '0,1,2,3,4,5,6';    // a
 $CFG->forced_plugin_settings['url']['printheading'] = 1;
 $CFG->forced_plugin_settings['url']['display'] = 3; // RESOURCELIB_DISPLAY_NEW
 
+// Site administration > Plugins > Assignment plugins > Feedback plugins > Feedback comments
+$CFG->forced_plugin_settings['assignfeedback_comments']['default'] = 1;
+
+// Site administration > Plugins > Assignment plugins > Feedback plugins > File feedback
+$CFG->forced_plugin_settings['assignfeedback_file']['default'] = 1;
+
 // Site administration > Plugins > Enrollments > Guest access
 $CFG->forced_plugin_settings['enrol_guest']['defaultenrol'] = 1;
 $CFG->forced_plugin_settings['enrol_guest']['status'] = 0;  // 0 is yes, 1 is no

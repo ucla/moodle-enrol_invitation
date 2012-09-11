@@ -129,8 +129,6 @@ class mod_assign_mod_form extends moodleform_mod {
         $mform->setDefault('preventlatesubmissions', 1);
         $mform->setDefault('submissiondrafts', 1);
         $mform->setDefault('sendnotifications', 0);        
-        $mform->setDefault('assignfeedback_comments_enabled', 1);
-        $mform->setDefault('assignfeedback_file_enabled', 1);
         // END UCLA MOD: CCLE-3511
     }
 
