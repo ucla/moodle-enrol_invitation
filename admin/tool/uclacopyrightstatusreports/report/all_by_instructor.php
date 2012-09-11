@@ -45,7 +45,6 @@ echo html_writer::tag('span', html_writer::link($baseurl . '/index.php', get_str
 echo html_writer::tag('span', html_writer::link($baseurl . '/report/all_filter.php', get_string('filterpage', 'tool_uclacopyrightstatusreports')),array('class'=>'spacer'));
 
 $list = get_copyright_list_by_instructor(&$filter_array);
-
 // output
 if (empty($list)) {
     echo html_writer::tag('p', get_string('no_all_by_instructor', 'tool_uclacopyrightstatusreports'));
@@ -67,26 +66,36 @@ if (empty($list)) {
 
     foreach($list as $item) {
         $filelist = array();
-        $filelist = get_files_copyright_status_by_course($item->courseid);
+        if ($item->courseid){
+            $filelist = get_files_copyright_status_by_course($item->courseid);
+        }
         $filestat = array();
-        $filestat = calculate_copyright_status_statistics($filelist);
+        if (!empty($filelist)){
+            $filestat = calculate_copyright_status_statistics($filelist);
+        }
         $row = array();
-        $row[] = $item->lastname.', '.$item->firstname;
-        $row[] = html_writer::link(new moodle_url($thisdir . 'report/course_copyright_detail.php', array('id' => $item->courseid)), 
-                $item->subjarea. ' '. $item->course, array('target' => '_blank'));
-        $row[] = $filestat['total']; 
-        $row[] = isset($filestat['tbd'])?$filestat['tbd']:0;
-        $row[] = isset($filestat['iown'])?$filestat['iown']:0;
-        $row[] = isset($filestat['ucown'])?$filestat['ucown']:0;
-        $row[] = isset($filestat['lib'])?$filestat['lib']:0;
-        $row[] = isset($filestat['public1'])?$filestat['public1']:0;
-        $row[] = isset($filestat['cc1'])?$filestat['cc1']:0;
-        $row[] = isset($filestat['obtained'])?$filestat['obtained']:0;
-        $row[] = isset($filestat['fairuse'])?$filestat['fairuse']:0;
-        $table->data[] = $row;
-    }
-    
-    echo html_writer::table($table);
+            $row[] = $item->lastname.', '.$item->firstname;
+            $row[] = html_writer::link(new moodle_url($thisdir . 'report/course_copyright_detail.php', array('id' => $item->courseid)), 
+                    $item->subjarea. ' '. $item->course, array('target' => '_blank'));
+            if (!empty($filestat)){
+                $row[] = $filestat['total']; 
+                $row[] = isset($filestat['tbd'])?$filestat['tbd']:0;
+                $row[] = isset($filestat['iown'])?$filestat['iown']:0;
+                $row[] = isset($filestat['ucown'])?$filestat['ucown']:0;
+                $row[] = isset($filestat['lib'])?$filestat['lib']:0;
+                $row[] = isset($filestat['public1'])?$filestat['public1']:0;
+                $row[] = isset($filestat['cc1'])?$filestat['cc1']:0;
+                $row[] = isset($filestat['obtained'])?$filestat['obtained']:0;
+                $row[] = isset($filestat['fairuse'])?$filestat['fairuse']:0;
+            }else{
+                $newcell = new html_table_cell();
+                $newcell->colspan = 9;
+                $newcell->text = get_string('no_file', 'tool_uclacopyrightstatusreports');
+                $row[] = $newcell;
+            }
+            $table->data[] = $row;
+        }
+        echo html_writer::table($table);
 }
 
 echo $OUTPUT->footer();

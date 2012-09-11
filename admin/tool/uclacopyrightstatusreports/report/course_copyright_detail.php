@@ -40,7 +40,8 @@ echo $OUTPUT->header();
 
 // Heading
 echo $OUTPUT->heading(get_string('detail_copyright', 'tool_uclacopyrightstatusreports'), 2, 'headingblock');
-echo html_writer::link($baseurl . '/index.php', get_string('back', 'tool_uclacopyrightstatusreports'));
+echo html_writer::tag('span', html_writer::link($baseurl . '/index.php', get_string('mainmenu', 'tool_uclacopyrightstatusreports')), array('class'=>'spacer'));
+echo html_writer::tag('span', html_writer::link($baseurl . '/report/all_filter.php', get_string('courselist', 'tool_uclacopyrightstatusreports')),array('class'=>'spacer'));
 
 // get license types
 $licensemanager = new license_manager();

@@ -130,7 +130,8 @@ $string['all_by_quarter'] = 'Details of all items by quarter';
 $string['all_by_academic_yr'] = 'Details of all items by academic year';
 $string['all_filter'] = 'Customize reports';
 $string['no_all_by_course'] = 'No course listed';
-$string['no_all_by_instructor'] = "No instructor listed";
+$string['no_all_by_instructor'] = 'No instructor listed';
+$string['no_file'] = 'No file listed for this course';
 $string['detail_copyright'] = 'Detail copyright status for the course files';
 
 // content
@@ -178,5 +179,6 @@ $string['nositelisting'] = 'No sites found';
 $string['back'] = 'Back';
 $string['mainmenu'] = 'Main menu';
 $string['filterpage'] = 'Filter report';
+$string['courselist'] = 'Course list';
 
 $string['search_placeholder'] = 'Search for a collaboration site';

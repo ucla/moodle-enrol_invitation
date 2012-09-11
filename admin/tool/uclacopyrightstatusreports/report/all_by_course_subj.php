@@ -107,23 +107,33 @@ if (empty($list)) {
             $subjarea = $item->subjarea;
         }
 
-
         $filelist = array();
-        $filelist = get_files_copyright_status_by_course($item->courseid);
+        if ($item->courseid){
+            $filelist = get_files_copyright_status_by_course($item->courseid);
+        }
         $filestat = array();
-        $filestat = calculate_copyright_status_statistics($filelist);
+        if (!empty($filelist)){
+            $filestat = calculate_copyright_status_statistics($filelist);
+        }
         $row = array();
         $row[] = html_writer::link(new moodle_url($thisdir . 'report/course_copyright_detail.php', array('id' => $item->courseid)), 
                 html_writer::tag('strong', $item->subjarea).' '.$item->course.' (section '.$item->section.')', array('target' => '_blank'));
-        $row[] = $filestat['total']; 
-        $row[] = isset($filestat['tbd'])?$filestat['tbd']:0;
-        $row[] = isset($filestat['iown'])?$filestat['iown']:0;
-        $row[] = isset($filestat['ucown'])?$filestat['ucown']:0;
-        $row[] = isset($filestat['lib'])?$filestat['lib']:0;
-        $row[] = isset($filestat['public1'])?$filestat['public1']:0;
-        $row[] = isset($filestat['cc1'])?$filestat['cc1']:0;
-        $row[] = isset($filestat['obtained'])?$filestat['obtained']:0;
-        $row[] = isset($filestat['fairuse'])?$filestat['fairuse']:0;
+        if (!empty($filestat)){
+            $row[] = $filestat['total']; 
+            $row[] = isset($filestat['tbd'])?$filestat['tbd']:0;
+            $row[] = isset($filestat['iown'])?$filestat['iown']:0;
+            $row[] = isset($filestat['ucown'])?$filestat['ucown']:0;
+            $row[] = isset($filestat['lib'])?$filestat['lib']:0;
+            $row[] = isset($filestat['public1'])?$filestat['public1']:0;
+            $row[] = isset($filestat['cc1'])?$filestat['cc1']:0;
+            $row[] = isset($filestat['obtained'])?$filestat['obtained']:0;
+            $row[] = isset($filestat['fairuse'])?$filestat['fairuse']:0;
+        }else{
+            $newcell = new html_table_cell();
+            $newcell->colspan = 9;
+            $newcell->text = get_string('no_file', 'tool_uclacopyrightstatusreports');
+            $row[] = $newcell;
+        }
         $table->data[] = $row;
 
         $tbd_subj += isset($filestat['tbd'])?$filestat['tbd']:0;
@@ -134,8 +144,7 @@ if (empty($list)) {
         $cc1_subj += isset($filestat['cc1'])?$filestat['cc1']:0;
         $obtained_subj += isset($filestat['obtained'])?$filestat['obtained']:0;
         $fairuse_subj += isset($filestat['fairuse'])?$filestat['fairuse']:0;
-        
-        
+         
     }
 
     // for the last subject area

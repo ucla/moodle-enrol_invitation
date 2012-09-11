@@ -12,6 +12,25 @@ require_once(dirname(__FILE__) . '/../../../config.php');
 
 require_once($CFG->libdir.'/formslib.php');
 require_once($CFG->dirroot . '/blocks/ucla_copyright_status/lib.php');
+require_once($CFG->dirroot. '/admin/tool/uclacourserequestor/lib.php');
+require_once($CFG->dirroot . '/local/ucla/registrar/registrar_query.base.php');
+
+
+/**
+* get list of terms
+*/
+
+function get_terms(){
+    global $DB;
+	$term_list = array();
+    $sql = 'SELECT DISTINCT term FROM {ucla_request_classes}';
+    $result = $DB->get_records_sql($sql);
+	foreach ($result as $item){
+		$term_list[$item->term] = $item->term;
+	}
+	return $term_list;
+
+}
 
 /**
 * get classes for current term
@@ -69,6 +88,34 @@ function get_copyright_list_by_course_subj(&$param){
     return $course_subj_list;
 }
 
+/**
+* get class by division
+**/
+function get_copyright_list_by_division(&$param){
+    global $DB;
+    $course_div_list = array();
+    $sql = 'SELECT rc.*, bc.*
+    FROM {ucla_request_classes} rc
+    INNER JOIN {ucla_browseall_classinfo} bc ON bc.term = rc.term and bc.srs = rc.srs';
+    if ($param['term']&&!$param['subj']){
+        $sql .=' WHERE rc.term = \''. $param['term'] . '\'';
+    }
+    else if ($param['subj']&&!$param['term']){
+        $sql .=' WHERE bc.subjarea = \''. $param['subj'] . '\'';
+    }
+    else{
+        $sql .= ' WHERE rc.term = \''. $param['term'] . '\' and bc.subjarea = \''. $param['subj'] . '\'';
+    }
+    $sql .= '   ORDER BY bc.subjarea, bc.course, bc.section';
+    $result = $DB->get_records_sql($sql);
+    foreach ($result as $row){
+		// get division
+		$div_row = array();
+		$div_row = get_course_info_from_registrar($param['term'], $row->srs);
+        $course_div_list['s'.$row->courseid] = $div_row;
+    }
+    return $course_div_list;
+}
 
 
 

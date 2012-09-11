@@ -35,25 +35,20 @@ $PAGE->set_pagelayout('admin');
 // Prepare and load Moodle Admin interface
 admin_externalpage_setup('uclacopyrightstatusreports');
 
-
-
 // Render page
 echo $OUTPUT->header();
 
 // Heading
-echo $OUTPUT->heading(get_string('all_by_course', 'tool_uclacopyrightstatusreports'), 2, 'headingblock');
-echo html_writer::link($baseurl . '/index.php', get_string('back', 'tool_uclacopyrightstatusreports'));
+echo $OUTPUT->heading(get_string('all_filter', 'tool_uclacopyrightstatusreports'), 2, 'headingblock');
+echo html_writer::link($baseurl . '/index.php', get_string('mainmenu', 'tool_uclacopyrightstatusreports'));
 
 
 $subj_list = get_subjarea($filter_term);
-$term_list = array(''=>'All', '12S'=>'Spring 2012');
+$term_list = get_terms();
 $instr_list = get_instructors_list_by_term($filter_term);
-
 
 // output
 echo html_writer::start_tag('div', array('id' => 'tool_uclacopyrightstatusreports_filter'));
-
-
 
 $PAGE->set_url($thisdir . 'report/all_by_course_subj.php');
 echo html_writer::start_tag('form', array('id'=>'tool_uclacopyrightstatusreports_course_form', 'action'=>$PAGE->url->out(), 'method'=>'post'));
@@ -70,11 +65,9 @@ $PAGE->set_url($thisdir . 'report/all_by_instructor.php');
 echo html_writer::start_tag('form', array('id'=>'tool_uclacopyrightstatusreports_form', 'action'=>$PAGE->url->out(), 'method'=>'post'));
 echo html_writer::select($instr_list, 'filter_instructor', $filter_instr_uid, array(''=>'Choose instructor'), array('id'=>'tool_uclacopyrightstatusreports_id_filter_instr'));
 echo html_writer::select($term_list, 'filter_term', $filter_term, false, array('id'=>'tool_uclacopyrightstatusreports_id_filter_term'));
-//$PAGE->requires->js_init_call('M.util.init_select_autosubmit', array('tool_uclacopyrightstatusreports_form', 'tool_uclacopyrightstatusreports_id_filter_instr', ''));
 echo html_writer::empty_tag('input', array('id' => 'tool_uclacopyrightstatusreports_btn1', 'name' => 'instr', 'value' => get_string('instr_button',
                             'tool_uclacopyrightstatusreports'), 'type' => 'submit'));
 echo html_writer::end_tag('form');
-
 
 echo html_writer::end_tag('div');
     
