@@ -832,7 +832,10 @@ function file_save_draft_area_files($draftitemid, $contextid, $component, $filea
             if ($oldfile->get_contenthash() != $newfile->get_contenthash() || $oldfile->get_filesize() != $newfile->get_filesize()) {
                 $oldfile->replace_content_with($newfile);
                 // push changes to all local files that are referencing this file
-                $fs->update_references_to_storedfile($this);
+                // BEGIN UCLA MOD: CCLE 3510 - fixing problems with file alias updating
+                //$fs->update_references_to_storedfile($this);
+                $fs->update_references_to_storedfile($oldfile);
+                // END UCLA MOD: CCLE 3510
             }
 
             // unchanged file or directory - we keep it as is

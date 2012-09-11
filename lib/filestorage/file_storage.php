@@ -1821,7 +1821,10 @@ class file_storage {
      * @param stored_file $storedfile
      */
     public function update_references_to_storedfile(stored_file $storedfile) {
-        global $CFG;
+        // BEGIN UCLA MOD: CCLE 3510 - fixing problems with file alias updating
+        //global $CFG;
+        global $CFG, $DB;
+        // END UCLA MOD: CCLE 3510
         $params = array();
         $params['contextid'] = $storedfile->get_contextid();
         $params['component'] = $storedfile->get_component();
