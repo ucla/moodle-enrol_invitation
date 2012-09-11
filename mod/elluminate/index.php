@@ -18,7 +18,10 @@
 
     require_course_login($course);
 
-
+    // START UCLA MOD: CCLE-2966 - Replace Elluminate with Blackboard Web Conferencing
+    $PAGE->set_url('/mod/elluminate/index.php', array('id'=>$id));
+    // END UCLA MOD: CCLE-2966
+    
     add_to_log($course->id, "elluminate", "view all", "index.php?id=$course->id", "");
 
 
@@ -36,8 +39,9 @@
 
 /// Print header.
     $navigation = build_navigation($strelluminates);
-    print_header_simple($strelluminates, "", $navigation, "", "", true, '');
-
+    // START UCLA MOD: CCLE-2966 - Replace Elluminate with Blackboard Web Conferencing
+    print_header_simple($strelluminates, $COURSE->fullname, $navigation, "", "", true, '');
+    // END UCLA MOD: CCLE-2966
     
 
 /// Get all the appropriate data
