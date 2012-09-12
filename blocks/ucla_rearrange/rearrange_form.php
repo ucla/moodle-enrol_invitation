@@ -54,11 +54,11 @@ class ucla_rearrange_form extends moodleform {
         $result = parent::is_cancelled();
         
         if (!empty($result)) {
-            $courseid  = $this->_customdata['courseid'];
-            $topic      = $this->_customdata['topic'];             
+            $courseid = $this->_customdata['courseid'];
+            $section  = $this->_customdata['section'];             
             
             redirect(new moodle_url('/course/view.php',
-                array('id' => $courseid, 'topic' => $topic)));
+                array('id' => $courseid, 'section' => $section)));
         }
     }
 }
