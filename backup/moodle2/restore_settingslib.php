@@ -104,6 +104,12 @@ class restore_course_generic_setting extends course_backup_setting {}
  */
 class restore_course_overwrite_conf_setting extends restore_course_generic_setting {}
 
+// START UCLA MOD: CCLE-2902 - Enable "legacy course files" repository for restored M19 courses on M2
+/**
+ * Setting to define is we are going to bring in legacy files.
+ */
+class restore_course_legacy_files_setting extends restore_course_generic_setting {}
+// END UCLA MOD: CCLE-2902
 
 class restore_course_generic_text_setting extends restore_course_generic_setting {
 

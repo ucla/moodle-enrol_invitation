@@ -236,6 +236,9 @@ $string['sectionactivities'] = 'Activities';
 $string['selectacategory'] = 'Select a category';
 $string['selectacourse'] = 'Select a course';
 $string['setting_overwriteconf'] = 'Overwrite course configuration';
+// START UCLA MOD: CCLE-2902 - Enable "legacy course files" repository for restored M19 courses on M2
+$string['setting_legacyfiles'] = 'Include legacy course files';
+// END UCLA MOD: CCLE-2902
 $string['setting_course_fullname'] = 'Course name';
 $string['setting_course_shortname'] = 'Course short name';
 $string['setting_course_startdate'] = 'Course startdate';
