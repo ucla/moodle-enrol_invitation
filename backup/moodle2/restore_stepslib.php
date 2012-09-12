@@ -1301,10 +1301,7 @@ class restore_course_structure_step extends restore_structure_step {
         }
         
         // make sure that site menu block is added
-        blocks_add_default_course_blocks($data);
-        
-        // trigger event so that move_site_menu_block is called
-        events_trigger('course_restored', $data);        
+        blocks_add_default_course_blocks($data);        
         // END UCLA MOD: CCLE-3023
         
         // Course record ready, update it

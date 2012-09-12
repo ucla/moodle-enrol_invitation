@@ -80,15 +80,15 @@ function handle_course_deleted($course) {
  * Checks if course has a ucla_course_menu block. If so, then it makes the
  * block have a defaultweight of -10 (move to the very 1st element)
  *  
- * @param object $course 
+ * @param int $courseid 
  * 
  * @return boolean
  */
-function move_site_menu_block($course) {
+function move_site_menu_block($courseid) {
     global $DB;
     
     // get course context
-    $context = get_context_instance(CONTEXT_COURSE, $course->id);    
+    $context = context_course::instance($courseid);    
     if (empty($context)) {
         return false;
     }
