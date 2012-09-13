@@ -28,13 +28,18 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/uclasiteindicator/lib.php');
+require_once($CFG->dirroot . '/local/ucla/lib.php');
+
 class uclaroles_manager {
     const ROLE_TYPE_SUPPORTSTAFF = 'supportstaff';    
     const ROLE_TYPE_INSTEQUIV = 'instequiv';
+    const ROLE_TYPE_REDUCEDEDITING = 'reducedediting';
     const ROLE_TYPE_STUDENTEQUIV = 'studentequiv';
-    const ROLE_TYPE_SECONDARY = 'secondary';
-    const ROLE_TYPE_CORE = 'core';
-    
+    const ROLE_TYPE_GUESTEQUIV = 'guestequiv';
+    const ROLE_TYPE_SECONDARY = 'secondaryaddon';
+    const ROLE_TYPE_CORE = 'moodle_core';
+        
     /**
      * Returns html table to display roles using given filter.
      * 
@@ -102,17 +107,8 @@ class uclaroles_manager {
             $found_role_type = null;
             
             // first, find out what role type this is
-            foreach ($role_types as $role_type => $type_text) {
-                if (strpos($role->description, $role_type) !== false) {
-                    $found_role_type = $role_type;
-                    break;  // found role type
-                }
-            }
-            
-            if (empty($found_role_type)) {
-                $found_role_type = 'noroletype';
-            }
-            
+            $found_role_type = self::find_role_type($role);
+                        
             // next, find what site types this role can be invited
             $invitable_types = array();
             foreach ($assignable_roles as $site_type => $type_roles) {
@@ -173,7 +169,7 @@ class uclaroles_manager {
      * @param string $site_type
      * 
      * @return array        Returns an array in the following format:
-     *                      [shortname] => [role]
+     *                      [shortname] => [name]
      */
     static function get_assignable_roles($site_type) {
         global $DB;
@@ -195,6 +191,30 @@ class uclaroles_manager {
     }
     
     /**
+     * Returns the list of assignable roles for given courseid.
+     * 
+     * @param int $courseid
+     * 
+     * @return array        Returns an array in the following format:
+     *                      [shortname] => [name]
+     */
+    static function get_assignable_roles_by_courseid($courseid) {
+        // first, find out what site type course is
+        $site_type = null;
+        
+        // see if it is a registrar course
+        $result = ucla_map_courseid_to_termsrses($courseid);        
+        if (!empty($result)) {  // found registrar course
+            $site_type = siteindicator_manager::SITE_TYPE_SRS_INSTRUCTION;
+        } else {
+            $indicator = new siteindicator_site($courseid);
+            $site_type = $indicator->property->type;
+        }
+        
+        return self::get_assignable_roles($site_type);
+    }
+    
+    /**
      * Returns an array of role types.
      * 
      * @return array
@@ -203,7 +223,9 @@ class uclaroles_manager {
        return array(
            uclaroles_manager::ROLE_TYPE_SUPPORTSTAFF => get_string(uclaroles_manager::ROLE_TYPE_SUPPORTSTAFF, 'tool_uclaroles'),
            uclaroles_manager::ROLE_TYPE_INSTEQUIV => get_string(uclaroles_manager::ROLE_TYPE_INSTEQUIV, 'tool_uclaroles'),
+           uclaroles_manager::ROLE_TYPE_REDUCEDEDITING => get_string(uclaroles_manager::ROLE_TYPE_REDUCEDEDITING, 'tool_uclaroles'),
            uclaroles_manager::ROLE_TYPE_STUDENTEQUIV => get_string(uclaroles_manager::ROLE_TYPE_STUDENTEQUIV, 'tool_uclaroles'),
+           uclaroles_manager::ROLE_TYPE_GUESTEQUIV => get_string(uclaroles_manager::ROLE_TYPE_GUESTEQUIV, 'tool_uclaroles'),
            uclaroles_manager::ROLE_TYPE_SECONDARY => get_string(uclaroles_manager::ROLE_TYPE_SECONDARY, 'tool_uclaroles'),
            uclaroles_manager::ROLE_TYPE_CORE => get_string(uclaroles_manager::ROLE_TYPE_CORE, 'tool_uclaroles'),); 
     }  
@@ -228,5 +250,62 @@ class uclaroles_manager {
         }     
         
         return $ret_val;
+    }
+
+    /**
+     * Takes array of role objects and orders them by role type
+     * 
+     * @param array $roles   An array of entries from role table
+     */
+    static function orderby_role_type($roles) {
+        $ret_val = array();
+        
+        // order ret_val by $role_type order
+        $role_types = self::get_role_types();
+        foreach ($role_types as $type => $name) {
+            $ret_val[$type] = array();
+        }        
+        
+        // go through each role and find its role type
+        foreach ($roles as $role) {
+            $type = self::find_role_type($role);
+            $ret_val[$type][] = $role;
+        }
+        
+        // remove all role types with no roles
+        foreach ($ret_val as $index => $roles) {
+            if (empty($roles)) {
+                unset($ret_val[$index]);
+            }
+        }
+        
+        return $ret_val;
+    }    
+    
+    // PRIVATE METHODS
+    
+    /**
+     * For given role object, finds what role type it is.
+     * @param object $role      Entry from role table
+     * 
+     * @return string           Returns role type. If none found, returns 
+     *                          'noroletype'.
+     */
+    private static function find_role_type($role) {
+        $found_role_type = null;        
+        $role_types = self::get_role_types();
+        
+        foreach ($role_types as $role_type => $type_text) {
+            if (strpos($role->description, $role_type) !== false) {
+                $found_role_type = $role_type;
+                break;  // found role type
+            } 
+        }    
+        
+        if (empty($found_role_type)) {
+            $found_role_type = 'noroletype';
+        }        
+        
+        return $found_role_type;
     }
 }
