@@ -35,15 +35,9 @@ require_login();
 $syscontext = get_context_instance(CONTEXT_SYSTEM);
 require_capability('tool/uclaroles:view', $syscontext);
 
-// Initialize $PAGE
-$PAGE->set_url($CFG->wwwroot . '/' . $CFG->admin . '/tool/uclaroles/index.php');
-$PAGE->set_context($syscontext);
-$PAGE->set_heading(get_string('pluginname', 'tool_uclaroles'));
-$PAGE->set_pagetype('admin-*');
-$PAGE->set_pagelayout('admin');
-
 // Prepare and load Moodle Admin interface
-admin_externalpage_setup('uclaroles');
+admin_externalpage_setup('uclaroles', '', null, 
+        $CFG->wwwroot . '/' . $CFG->admin . '/tool/uclaroles/index.php');
 
 // Render page
 echo $OUTPUT->header();

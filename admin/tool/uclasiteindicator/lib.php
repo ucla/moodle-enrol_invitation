@@ -292,6 +292,9 @@ class siteindicator_manager {
     const SITE_TYPE_RESEARCH = 'research';
     const SITE_TYPE_TEST = 'test';
     
+    // special site type that is not displayed or assignable
+    const SITE_TYPE_SRS_INSTRUCTION = 'srs_instruction';
+    
     // A group of roles.  A group contains a set 
     // of roles that are mutually excluseive from other groups.
     private $_indicator_rolegroups;
@@ -449,23 +452,23 @@ class siteindicator_manager {
         
         if(empty(self::$types)) {
             self::$types = array(
-                'instruction' => array(
-                    'shortname' => 'instruction',
+                self::SITE_TYPE_INSTRUCTION => array(
+                    'shortname' => self::SITE_TYPE_INSTRUCTION,
                     'fullname' => get_string('site_instruction', 'tool_uclasiteindicator'),
                     'description' => get_string('site_instruction_desc', 'tool_uclasiteindicator'),
                     ),
-                'non_instruction' => array(
-                    'shortname' => 'non_instruction',
+                self::SITE_TYPE_NON_INSTRUCTION => array(
+                    'shortname' => self::SITE_TYPE_NON_INSTRUCTION,
                     'fullname' => get_string('site_non_instruction', 'tool_uclasiteindicator'),
                     'description' => get_string('site_non_instruction_desc', 'tool_uclasiteindicator'),
                     ),
-                'research' => array(
-                    'shortname' => 'research',
+                self::SITE_TYPE_RESEARCH => array(
+                    'shortname' => self::SITE_TYPE_RESEARCH,
                     'fullname' => get_string('site_research', 'tool_uclasiteindicator'),
                     'description' => get_string('site_research_desc', 'tool_uclasiteindicator'),
                     ),
-                'test' => array(
-                    'shortname' => 'test',
+                self::SITE_TYPE_TEST => array(
+                    'shortname' => self::SITE_TYPE_TEST,
                     'fullname' => get_string('site_test', 'tool_uclasiteindicator'),
                     'description' => get_string('site_test_desc', 'tool_uclasiteindicator'),
                     ),
@@ -851,7 +854,7 @@ class siteindicator_manager {
         
         $list = array();        
         foreach($roles as $r) {
-            $list[$r->id] = trim($r->name);
+            $list[$r->shortname] = trim($r->name);
         }
         
         return $list;

@@ -35,3 +35,17 @@ $string['reports_intro'] = 'Please choose a report type to view:';
 
 // listing report
 $string['listing'] = 'Role listing';
+$string['role_type_dropdown'] = 'Role type: ';
+$string['supportstaff'] = 'Support staff';
+$string['instequiv'] = 'Instructor equivalent';
+$string['studentequiv'] = 'Student equivalent';
+$string['secondary'] = 'Secondary/Add-on';
+$string['core'] = 'Core Moodle';
+$string['site_type_dropdown'] = 'Site type: ';
+$string['srs_instruction'] = 'Registrar course';
+$string['invite_site_types'] = 'Invitable in following site types';
+$string['noroletype'] = 'No role type';
+
+// error strings
+$string['invalid_role_type'] = 'Invalid role type';
+$string['invalid_site_type'] = 'Invalid site type';
