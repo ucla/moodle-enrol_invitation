@@ -339,12 +339,12 @@ class siteindicator_manager {
         // See CCLE-2948/CCLE-2949/CCLE-2913/site invite
         $instruction = array(
             'editinginstructor',
+            'instructional_assistant',            
+            'editor',
+            'grader',            
             'student',
-            'sa_1',
-            'sa_2',
-            'sa_3',
-            'sa_4',
-            'sp_2',
+            'participant',
+            'visitor'
             );
         
         $project = array(
@@ -366,13 +366,13 @@ class siteindicator_manager {
             'project' => array(
                 'editinginstructor' => 'projectlead',
                 'nonediting_instructor' => 'projectcontributor',
-                'sa_1'      => 'projectlead',
-                'sa_2'      => 'projectcontributor',
-                'sa_3'      => 'projectparticipant',
-                'sa_4'      => 'projectcontributor',
+                'manager'      => 'projectlead',
+                'instructional_assistant'      => 'projectcontributor',
+                'grader'      => 'projectparticipant',
+                'editor'      => 'projectcontributor',
                 'student'   => 'projectparticipant',                
-                'sp_1'      => 'projectparticipant',             
-                'sp_2'      => 'projectviewer',                
+                'participant'      => 'projectparticipant',             
+                'visitor'      => 'projectviewer',                
                 'supervising_instructor' => 'projectlead',
                 'ta_instructor' => 'projectlead',
                 'ta_admin' => 'projectlead',
@@ -380,14 +380,14 @@ class siteindicator_manager {
                 ),
             'instruction' => array(
                 'projectlead'           => 'editinginstructor',
-                'projectcontributor'    => 'sa_4',
+                'projectcontributor'    => 'editor',
                 'projectparticipant'    => 'student',
-                'projectviewer'         => 'sp_2',                
-                'nonediting_instructor' => 'sa_3',
-                'supervising_instructor' => 'sa_2',
-                'ta_instructor' => 'sa_1',
-                'ta_admin' => 'sa_1',
-                'ta' => 'sa_4',
+                'projectviewer'         => 'visitor',                
+                'nonediting_instructor' => 'grader',
+                'supervising_instructor' => 'instructional_assistant',
+                'ta_instructor' => 'manager',
+                'ta_admin' => 'manager',
+                'ta' => 'participant',
                 )
             );
     }
