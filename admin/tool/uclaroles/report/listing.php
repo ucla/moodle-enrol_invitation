@@ -49,6 +49,8 @@ echo $OUTPUT->header();
 // Heading
 echo $OUTPUT->heading(get_string('pluginname', 'tool_uclaroles') . ': ' . 
         get_string('listing', 'tool_uclaroles'), 2, 'headingblock');
+echo html_writer::link($CFG->wwwroot . '/' . $CFG->admin . 
+        '/tool/uclaroles/index.php', get_string('back', 'tool_uclaroles'));
 
 // output selectors for role  and site type 
 $role_dropdown = output_role_type_dropdown($selected_role_type);

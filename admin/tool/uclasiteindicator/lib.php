@@ -346,7 +346,7 @@ class siteindicator_manager {
             'participant',
             'visitor'
             );
-        
+
         $project = array(
             'projectlead',
             'projectcontributor',

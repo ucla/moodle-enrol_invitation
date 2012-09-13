@@ -39,7 +39,38 @@ class uclaroles_manager {
     const ROLE_TYPE_GUESTEQUIV = 'guestequiv';
     const ROLE_TYPE_SECONDARY = 'secondaryaddon';
     const ROLE_TYPE_CORE = 'moodle_core';
+
+    /**
+     * Returns html table to display role mapping for system.
+     * 
+     * @return html_table
+     */
+    static function display_role_mappings() {
+        global $CFG;
+        require($CFG->dirroot . '/local/ucla/rolemappings.php');
         
+        $data = array();
+        foreach ($role as $registrar_role => $mapping) {
+            foreach ($mapping as $subject_area => $moodle_role) {
+                $row = new stdClass();
+                $row->registrar_role    = $registrar_role;
+                $row->subject_area      = $subject_area;
+                $row->moodle_role       = $moodle_role;
+                $data[] = $row;
+            }
+        }
+
+        $ret_val = new html_table();
+        $ret_val->head = array(
+            get_string('registrar_role', 'tool_uclaroles'),
+            get_string('subject_area', 'tool_uclaroles'),
+            get_string('moodle_role', 'tool_uclaroles'),            
+        );
+        $ret_val->data = $data;
+        
+        return $ret_val;
+    }    
+    
     /**
      * Returns html table to display roles using given filter.
      * 
@@ -176,8 +207,7 @@ class uclaroles_manager {
         $ret_val = array();
         
         if ($site_type == siteindicator_manager::SITE_TYPE_SRS_INSTRUCTION) {
-            $roleids = array('instructional_assistant', 'editor', 'grader', 
-                'participant', 'visitor');
+            $roleids = array('editor', 'grader', 'participant', 'visitor');
             $roles = $DB->get_records_list('role', 'shortname', $roleids, 'sortorder');   
             foreach($roles as $r) {
                 $ret_val[$r->shortname] = trim($r->name);
@@ -229,7 +259,7 @@ class uclaroles_manager {
            uclaroles_manager::ROLE_TYPE_SECONDARY => get_string(uclaroles_manager::ROLE_TYPE_SECONDARY, 'tool_uclaroles'),
            uclaroles_manager::ROLE_TYPE_CORE => get_string(uclaroles_manager::ROLE_TYPE_CORE, 'tool_uclaroles'),); 
     }  
-    
+
     /**
      * Returns an array of site types.
      * 

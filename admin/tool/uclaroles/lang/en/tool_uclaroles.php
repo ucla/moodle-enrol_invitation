@@ -32,6 +32,7 @@ $string['pluginname'] = 'UCLA roles';
 // admin tool reports
 $string['reports_heading'] = 'Reports';
 $string['reports_intro'] = 'Please choose a report type to view:';
+$string['back'] = 'Back';
 
 // listing report
 $string['listing'] = 'Role listing';
@@ -47,6 +48,12 @@ $string['site_type_dropdown'] = 'Site type: ';
 $string['srs_instruction'] = 'Registrar course';
 $string['invite_site_types'] = 'Invitable in following site types';
 $string['noroletype'] = 'No role type';
+
+// rolemapping report
+$string['rolemappings'] = 'Role mappings';
+$string['registrar_role'] = 'Registrar role';
+$string['subject_area'] = 'Subject area';
+$string['moodle_role'] = 'Moodle role';
 
 // error strings
 $string['invalid_role_type'] = 'Invalid role type';

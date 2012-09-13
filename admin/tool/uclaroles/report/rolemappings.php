@@ -16,7 +16,7 @@
 
 
 /**
- * Landing page to display available UCLA role reports.
+ * Report to list role mappings on system.
  *
  * @package    tool
  * @subpackage uclaroles
@@ -24,7 +24,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(dirname(__FILE__) . '/../../../config.php');
+require_once(dirname(__FILE__) . '/../../../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 
 require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/uclaroles/lib.php');
@@ -37,35 +37,19 @@ require_capability('tool/uclaroles:view', $syscontext);
 
 // Prepare and load Moodle Admin interface
 admin_externalpage_setup('uclaroles', '', null, 
-        $CFG->wwwroot . '/' . $CFG->admin . '/tool/uclaroles/index.php');
+        $CFG->wwwroot . '/' . $CFG->admin . '/tool/uclaroles/report/rolemappings.php');
 
 // Render page
 echo $OUTPUT->header();
 
 // Heading
-echo $OUTPUT->heading(get_string('pluginname', 'tool_uclaroles'), 2, 'headingblock');
+echo $OUTPUT->heading(get_string('pluginname', 'tool_uclaroles') . ': ' . 
+        get_string('rolemappings', 'tool_uclaroles'), 2, 'headingblock');
+echo html_writer::link($CFG->wwwroot . '/' . $CFG->admin . 
+        '/tool/uclaroles/index.php', get_string('back', 'tool_uclaroles'));
 
-echo $OUTPUT->box_start('generalbox');
+$rolemappings_table = uclaroles_manager::display_role_mappings();
 
-echo $OUTPUT->heading(get_string('reports_heading', 'tool_uclaroles'));
-echo html_writer::tag('p', get_string('reports_intro', 'tool_uclaroles'));
+echo html_writer::table($rolemappings_table);
 
-// NOTE: report types need to match script name, have corresponding entry in 
-// lang file and be located in "report" directory
-$report_types = array(
-    'listing',
-    'rolemappings'
-);
-
-// create nodes to put in ordered list
-foreach ($report_types as $index => $report_type) {
-    $url = '/' . $CFG->admin . '/tool/uclaroles/report/' . $report_type . '.php';
-    $report_types[$index] = html_writer::link(new moodle_url($url), 
-            get_string($report_type, 'tool_uclaroles'));
-}
-
-echo html_writer::alist($report_types, array(), 'ol');
-
-echo $OUTPUT->box_end();
 echo $OUTPUT->footer();
-

@@ -29,5 +29,6 @@ defined('MOODLE_INTERNAL') || die();
 $plugin->version = 2012091201;               
 
 $plugin->dependencies = array(
-    'tool_uclasiteindicator' => ANY_VERSION
+    'tool_uclasiteindicator' => ANY_VERSION,    
+    'local_ucla' => ANY_VERSION
 );
