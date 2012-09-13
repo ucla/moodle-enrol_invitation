@@ -286,6 +286,11 @@ class siteindicator_request {
  * 
  */
 class siteindicator_manager {
+    /* CONSTANTS */
+    const SITE_TYPE_INSTRUCTION = 'instruction';
+    const SITE_TYPE_NON_INSTRUCTION = 'non_instruction';
+    const SITE_TYPE_RESEARCH = 'research';
+    const SITE_TYPE_TEST = 'test';
     
     // A group of roles.  A group contains a set 
     // of roles that are mutually excluseive from other groups.
