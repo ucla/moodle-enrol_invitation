@@ -8,11 +8,18 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * Automatically add enrollment plugin for newly created courses.
  * 
- * @param int $courseid
+ * @param mixed $course     Can be object or int
  * @return boolean          Returns false on error, otherwise true. 
  */
-function add_site_invitation_plugin($courseid) {
+function add_site_invitation_plugin($course) {
     global $DB;
+    
+    // handle different parameter types
+    if (is_object($course)) {
+        $courseid = $course->id;
+    } else {
+        $courseid = $course;
+    }
     
     // make sure you aren't trying something silly like adding enrollment plugin
     // to siteid
