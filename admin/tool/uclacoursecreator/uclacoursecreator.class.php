@@ -1215,6 +1215,10 @@ class uclacoursecreator {
                 $fd[] = $runner->{$fora};
             }
 
+            if (empty($fd)) {
+                // DEBUGGING STATEMENT
+                $this->debugln('match_existings: empty $fd before calling get_in_or_equal') ;
+            }
             list($forasql, $foraparams) = $DB->get_in_or_equal($fd);
             $sqlstates[] = $fora . ' ' . $forasql;
 
@@ -1754,6 +1758,10 @@ class uclacoursecreator {
             $local_userids[] = $userid;
         }
 
+        if (empty($local_userids)) {
+            // DEBUGGING STATEMENT
+            $this->debugln('get_local_emails: empty $local_userids before calling get_in_or_equal') ;
+        }        
         list($sql_in, $params) = $DB->get_in_or_equal($local_userids);
         $sql_where = 'idnumber ' . $sql_in;
 
