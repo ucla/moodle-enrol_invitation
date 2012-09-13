@@ -207,7 +207,8 @@ class uclaroles_manager {
         $ret_val = array();
         
         if ($site_type == siteindicator_manager::SITE_TYPE_SRS_INSTRUCTION) {
-            $roleids = array('editor', 'grader', 'participant', 'visitor');
+            $roleids = array('instructional_assistant', 'editor', 'grader', 
+                'participant', 'visitor');
             $roles = $DB->get_records_list('role', 'shortname', $roleids, 'sortorder');   
             foreach($roles as $r) {
                 $ret_val[$r->shortname] = trim($r->name);
