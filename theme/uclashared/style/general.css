@@ -65,6 +65,8 @@ html, body {background-color:#FFF; height:100%;}
     background: -o-linear-gradient(top, #64728E 0%, #4F5F80 100%);
     background: linear-gradient(top, #64728E 0%, #4F5F80 100%);
 
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#64728E', endColorstr='#4F5F80'); /* for IE */    
+    
     -webkit-border-radius: 2px 2px 0 0;
     -moz-border-radius: 2px 2px 0 0;
     border-radius: 2px 2px 0 0;
@@ -236,7 +238,7 @@ html, body {background-color:#FFF; height:100%;}
 }
 
 /** Notice **/
-.box.noticebox {
+.box.noticebox, #notice.generalbox {
     background-color: #FF9;
     border-bottom: 1px solid #FC3;
     border-top: 1px solid #FC3;
@@ -244,7 +246,7 @@ html, body {background-color:#FFF; height:100%;}
     padding: 10px;
     margin: 1em 15%;
 }
-.noticebox a {  /* make notice link with enough contrast */
+.noticebox a, #notice.generalbox a {  /* make notice link with enough contrast */
     color: black;
     text-decoration: underline;
 }
@@ -255,9 +257,6 @@ html, body {background-color:#FFF; height:100%;}
 }
 .noticebox .generalbox .buttons {
     margin: 0;
-}
-#notice.generalbox {
-    width: 100%;    
 }
 
 /** Success **/
@@ -545,6 +544,7 @@ Turning off style, but leaving it here in case we need to reenable it in the fut
     top: 3px;
 }
 /* Add resource/activity bar */
+.course-content ul.topics li.section .content .section-modchooser,
 .course-content ul.topics li.section .content .section_add_menus {
     background: none repeat scroll 0 0 #F9F9F9;
     box-shadow: 0 5px 5px -6px #999 inset;
@@ -571,6 +571,18 @@ Turning off style, but leaving it here in case we need to reenable it in the fut
 .text-icons .editing_delete {
     float: none;
 }
+/* style 'edit title' message'*/
+.topics ul li span.editinstructions {
+    border: 1px solid #FF6666;
+    border-left: 5px solid #FF6666;
+    background-color: white;
+    color: #FF6666;
+    font-size: 10pt;
+    margin-bottom: 4px;
+    display: inline-block;
+    width: auto;
+}
+
 /* END CCLE-3069 */
 
 .notify	{
@@ -578,4 +590,20 @@ Turning off style, but leaving it here in case we need to reenable it in the fut
     color: #FF3399 !important;
     font-size: 0.8em !important;
     padding: 0 2px;
+}
+
+/* MAINTENANCE MODE MESSAGE STYLE */
+#page-maintenance-message .region-content h2{
+    padding: 8px 35px 8px 14px;
+    margin-bottom: 18px;
+    color: #c09853;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+    background-color: #fcf8e3;
+    border: 1px solid #fbeed5;
+    -webkit-border-radius: 4px;
+        -moz-border-radius: 4px;
+            border-radius: 4px;
+    color: #b94a48;
+    background-color: #f2dede;
+    border-color: #eed3d7;
 }

@@ -20,10 +20,9 @@
  * It is used either by the student whose attempts this is, after the attempt,
  * or by a teacher reviewing another's attempt during or afterwards.
  *
- * @package    mod
- * @subpackage quiz
- * @copyright  1999 onwards Martin Dougiamas  {@link http://moodle.com}
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   mod_quiz
+ * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
@@ -32,8 +31,8 @@ require_once($CFG->dirroot . '/mod/quiz/locallib.php');
 require_once($CFG->dirroot . '/mod/quiz/report/reportlib.php');
 
 $attemptid = required_param('attempt', PARAM_INT);
-$page = optional_param('page', 0, PARAM_INT);
-$showall = optional_param('showall', 0, PARAM_BOOL);
+$page      = optional_param('page', 0, PARAM_INT);
+$showall   = optional_param('showall', 0, PARAM_BOOL);
 
 $url = new moodle_url('/mod/quiz/review.php', array('attempt'=>$attemptid));
 if ($page !== 0) {
@@ -45,6 +44,7 @@ if ($showall !== 0) {
 $PAGE->set_url($url);
 
 $attemptobj = quiz_attempt::create($attemptid);
+$page = $attemptobj->force_page_number_into_range($page);
 
 // Check login.
 require_login($attemptobj->get_course(), false, $attemptobj->get_cm());
@@ -87,7 +87,7 @@ if ($options->flags == question_display_options::EDITABLE && optional_param('sav
 add_to_log($attemptobj->get_courseid(), 'quiz', 'review', 'review.php?attempt=' .
         $attemptobj->get_attemptid(), $attemptobj->get_quizid(), $attemptobj->get_cmid());
 
-// Work out appropriate title and whether blocks should be shown
+// Work out appropriate title and whether blocks should be shown.
 if ($attemptobj->is_preview_user() && $attemptobj->is_own_attempt()) {
     $strreviewtitle = get_string('reviewofpreview', 'quiz');
     navigation_node::override_active_url($attemptobj->start_attempt_url());
@@ -99,20 +99,20 @@ if ($attemptobj->is_preview_user() && $attemptobj->is_own_attempt()) {
     }
 }
 
-// Set up the page header
+// Set up the page header.
 $headtags = $attemptobj->get_html_head_contributions($page, $showall);
 $PAGE->set_title(format_string($attemptobj->get_quiz_name()));
 $PAGE->set_heading($attemptobj->get_course()->fullname);
 $accessmanager->setup_attempt_page($PAGE);
 
-// Summary table start ============================================================================
+// Summary table start. ============================================================================
 
 // Work out some time-related things.
 $attempt = $attemptobj->get_attempt();
 $quiz = $attemptobj->get_quiz();
 $overtime = 0;
 
-if ($attempt->timefinish) {
+if ($attempt->state == quiz_attempt::FINISHED) {
     if ($timetaken = ($attempt->timefinish - $attempt->timestart)) {
         if ($quiz->timelimit && $timetaken > ($quiz->timelimit + 60)) {
             $overtime = $timetaken - $quiz->timelimit;
@@ -140,6 +140,7 @@ if (!$attemptobj->get_quiz()->showuserpicture && $attemptobj->get_userid() != $U
                           fullname($student, true)),
     );
 }
+
 if ($attemptobj->has_capability('mod/quiz:viewreports')) {
     $attemptlist = $attemptobj->links_to_other_attempts($attemptobj->review_url(null, $page,
             $showall));
@@ -157,7 +158,12 @@ $summarydata['startedon'] = array(
     'content' => userdate($attempt->timestart),
 );
 
-if ($attempt->timefinish) {
+$summarydata['state'] = array(
+    'title'   => get_string('attemptstate', 'quiz'),
+    'content' => quiz_attempt::state_name($attempt->state),
+);
+
+if ($attempt->state == quiz_attempt::FINISHED) {
     $summarydata['completedon'] = array(
         'title'   => get_string('completedon', 'quiz'),
         'content' => userdate($attempt->timefinish),
@@ -179,7 +185,7 @@ if (!empty($overtime)) {
 $grade = quiz_rescale_grade($attempt->sumgrades, $quiz, false);
 if ($options->marks >= question_display_options::MARK_AND_MAX && quiz_has_grades($quiz)) {
 
-    if (!$attempt->timefinish) {
+    if ($attempt->state != quiz_attempt::FINISHED) {
         $summarydata['grade'] = array(
             'title'   => get_string('grade', 'quiz'),
             'content' => get_string('attemptstillinprogress', 'quiz'),
@@ -230,7 +236,7 @@ if ($options->overallfeedback && $feedback) {
     );
 }
 
-// Summary table end ==============================================================================
+// Summary table end. ==============================================================================
 
 if ($showall) {
     $slots = $attemptobj->get_slots();
@@ -244,7 +250,7 @@ $output = $PAGE->get_renderer('mod_quiz');
 
 // Arrange for the navigation to be displayed.
 $navbc = $attemptobj->get_navigation_panel($output, 'quiz_review_nav_panel', $page, $showall);
-$firstregion = reset($PAGE->blocks->get_regions());
-$PAGE->blocks->add_fake_block($navbc, $firstregion);
+$regions = $PAGE->blocks->get_regions();
+$PAGE->blocks->add_fake_block($navbc, reset($regions));
 
 echo $output->review_page($attemptobj, $slots, $page, $showall, $lastpage, $options, $summarydata);

@@ -488,9 +488,8 @@ class ucla_courserequests {
 
         $requests = $this->validate_requests(null);
 
-        $maxsetid = reset($DB->get_record_sql(
-            'SELECT MAX(`setid`) FROM ' . '{' . $urc . '}'
-        ));
+        $result = $DB->get_record_sql('SELECT MAX(`setid`) FROM ' . '{' . $urc . '}');
+        $maxsetid = reset($result);
 
         // This stores all the statuses of the previously handled
         // results
@@ -618,6 +617,15 @@ class ucla_courserequests {
                 }
             }
 
+            // CCLE-3103 - When deleting a course add in a trigger to also 
+            // delete the course request and My.UCLA url
+            // Preventing requests from being deleted in this UI. It should be
+            // deleted by deleting the actual course
+            if (!empty($coursetodelete)) {
+                $results[$setid] = self::deletecoursefailed;            
+                continue;
+            }
+            
             // Currently, we are NOT allowing any Moodle course data to 
             // be deleted via the requestors
             $coursetodelete = false;

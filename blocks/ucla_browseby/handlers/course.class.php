@@ -385,13 +385,13 @@ class course_handler extends browseby_handler {
             }
 
             $name = html_writer::link(new moodle_url($userurl),
-                $name);
+                $name, array('target' => '_blank'));
         } 
 
         return $name;
     }
 
-    function registrar_url($course) {
+    public static function registrar_url($course) {
         $page = 'http://www.registrar.ucla.edu/schedule/detselect';
 
         $term = $course->term;

@@ -213,13 +213,17 @@ if (is_siteadmin()) {
 
 $canassign = has_capability('moodle/role:assign', $manager->get_context());
 $users = $manager->get_users_for_display($manager, $table->sort, $table->sortdirection, $table->page, $table->perpage);
-//echo "<pre>";
-//var_dump($users);
-//echo "</pre>";
 foreach ($users as $userid=>&$user) {
     // BEGIN UCLA MOD: CCLE-2819 - ENROLLMENT - Prepop/View
-    // do not show users with empty roles
-    if (empty($user['roles']) && !$is_siteadmin) {
+    // do not show users with all enrollment methods "dimmed"
+    $active_enrollment_method = false;
+    foreach ($user['enrolments'] as $ue) {
+        if (empty($ue['dimmed'])) {
+            $active_enrollment_method = true;
+            break;
+        }
+    }        
+    if (empty($active_enrollment_method) && !$is_siteadmin) {
         unset($users[$userid]);
         continue;
     }

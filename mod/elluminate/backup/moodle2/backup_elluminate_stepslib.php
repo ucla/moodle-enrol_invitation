@@ -27,7 +27,7 @@
  */
 
 /**
- * Define the complete elluminate structure for backup, with file and id annotations
+ * Define the complete Blackboard Collaborate structure for backup, with file and id annotations
  */
 class backup_elluminate_activity_structure_step extends backup_activity_structure_step {
 
@@ -43,7 +43,7 @@ class backup_elluminate_activity_structure_step extends backup_activity_structur
             'groupparentid', 'name', 'sessionname', 'description',
             'intro','introformat','customname','customdescription',
             'timestart','timeend','recordingmode','boundarytime',
-            'boundarytimedisplay','chairlist','nonchairlist','grade',
+            'boundarytimedisplay','maxtalkers','chairlist','nonchairlist','grade',
             'timemodified'));		
 		
         $recordings = new backup_nested_element('recordings');

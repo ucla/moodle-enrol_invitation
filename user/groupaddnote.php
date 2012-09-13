@@ -45,7 +45,7 @@ if (! $course = $DB->get_record('course', array('id'=>$id))) {
 }
 
 $context = get_context_instance(CONTEXT_COURSE, $id);
-require_login($course->id);
+require_login($course);
 
 // to create notes the current user needs a capability
 require_capability('moodle/notes:manage', $context);
@@ -117,7 +117,7 @@ echo '<p>' . get_string('content', 'notes');
 echo '<br /><textarea name="content" rows="5" cols="50">' . strip_tags(@$content) . '</textarea></p>';
 
 echo '<p>';
-echo get_string('publishstate', 'notes');
+echo html_writer::label(get_string('publishstate', 'notes'), 'menustate');
 echo $OUTPUT->help_icon('publishstate', 'notes');
 echo html_writer::select($state_names, 'state', empty($state) ? NOTES_STATE_PUBLIC : $state, false);
 echo '</p>';

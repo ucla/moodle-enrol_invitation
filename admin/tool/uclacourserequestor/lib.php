@@ -42,8 +42,6 @@ define('UCLA_REQUESTOR_VIEW', 'views');
 $uclalib = $CFG->dirroot . '/local/ucla/lib.php';
 require_once($uclalib);
 
-ucla_require_registrar();
-
 require_once($CFG->dirroot . '/' . $CFG->admin 
     . '/tool/uclacourserequestor/ucla_courserequests.class.php');
 
@@ -276,9 +274,11 @@ function get_request_info($term, $srs) {
     $reted = get_course_info_from_registrar($term, $srs);
 
     $ret = false;
-    if ($reted) {
-        $cos = array($reted);
-        $ret = reset(registrar_to_requests($cos));
+    if (!empty($reted)) {
+        $ret = registrar_to_requests($reted);
+        $ret = reset($ret);
+    } else if (is_array($reted)) {
+        $ret = $reted;
     }
 
     return $ret;
@@ -828,6 +828,7 @@ function prep_request_entry($requestinfo) {
     $idstr = '';
 
     // Will disable building of this course
+    // when course is already built
     $buildoptions = array();
 
     $idstr = '';
@@ -841,11 +842,11 @@ function prep_request_entry($requestinfo) {
             $PAGE->url, array('srs' => $requestinfo['srs'], 
                 'term' => $requestinfo['term'])
             ), get_string('viewrequest', $rucr));
-
+        
         $idstr = get_string($e, $rucr) . html_writer::empty_tag('br')
             . $gotosinglesrshtml;
         $editable = false;
-
+        
     } else {
         $idstr .= $requestinfo[$f];
     }
@@ -1084,23 +1085,38 @@ function prep_request_entry($requestinfo) {
     $formatted['instructor'] = $instrstr;
 
     unset($requestinfo['instructor']);
-    
+
     // Add delete/build (action) checkboxes
     $maybeexists = array('delete', 'build');
-    foreach ($maybeexists as $k) {
+    foreach ($maybeexists as $k) {        
+        // CCLE-3103 - When deleting a course add in a trigger to also 
+        // delete the course request and My.UCLA url
+        // Preventing requests from being deleted in this UI. It should be
+        // deleted by deleting the actual course   
+        if ($k == 'delete' && !empty($formatted['courseid'])) {
+            continue;
+        }
+        
         if (isset($requestinfo[$k])) {
             $actval = $requestinfo[$k];
-
+            
             if (!$editable 
                     && $actionval != UCLA_COURSE_BUILT
                     && $actionval != UCLA_COURSE_FAILED) {
                 $actval = true;
+            } else if (!$editable && $actionval == UCLA_COURSE_BUILT) {
+                // If the course is built, uncheck checkbox.
+                $actval = false;
+            } else if (!$editable && $actionval == UCLA_COURSE_FAILED) {
+                // If the course has an error, uncheck checkbox.
+                $actval = false;
             }
 
             // Also disable if we have $addedtext
             // This is the case when a course is marked as cancelled
             if ($worstnote == $errs || !empty($addedtext)) {
                 $buildoptions['disabled'] = true;
+                $actval = false;
             }
 
             $formatted[$k] = html_writer::checkbox("$key-$k", '1', 
@@ -1206,7 +1222,7 @@ function get_requestor_view_fields() {
     }
     $builtcategories = $DB->get_records('ucla_request_classes', null, 
         'department', 'DISTINCT ' . $prefieldstr);
-	$prefieldsdata = array();
+    $prefieldsdata = array();
     foreach ($builtcategories as $builts) {
         foreach ($prefields as $prefield) {
             $varname = $prefield;
@@ -1214,11 +1230,12 @@ function get_requestor_view_fields() {
             if (!isset($prefieldsdata[$varname])) {
                 $prefieldsdata[$varname] = array();
             }
-
+            
             $prefieldsdata[$varname][$builts->$prefield] = $builts->$prefield;
         }
     }
-
+    
+    $prefieldsdata['term'] = terms_arr_sort($prefieldsdata['term'], true);
     return $prefieldsdata;
 }
 
@@ -1226,11 +1243,8 @@ function get_requestor_view_fields() {
  *  Takes about 0.015 second per entry.
  **/
 function get_courses_for_subj_area($term, $subjarea) {
-    $t = microtime(true);
     $result = registrar_query::run_registrar_query('cis_coursegetall',
-        array(array($term, $subjarea)), true);
-    $e = microtime(true) - $t;
-    $c = (float) count($result);
+        array('term' => $term, 'subjarea' => $subjarea));
 
     return $result;
 }
@@ -1240,11 +1254,7 @@ function get_courses_for_subj_area($term, $subjarea) {
  **/
 function get_course_info_from_registrar($term, $srs) {
     $result = registrar_query::run_registrar_query('ccle_getclasses',
-        array(array($term, $srs)), true);
-
-    if ($result) {
-        return array_shift($result);
-    }
+        array('term' => $term, 'srs' => $srs));
 
     return $result;
 }
@@ -1254,7 +1264,7 @@ function get_course_info_from_registrar($term, $srs) {
  **/
 function get_instructor_info_from_registrar($term, $srs) {
     $result = registrar_query::run_registrar_query('ccle_courseinstructorsget',
-        array(array($term, $srs)), true);
+        array('term' => $term, 'srs' => $srs));
     return $result;
 }
 

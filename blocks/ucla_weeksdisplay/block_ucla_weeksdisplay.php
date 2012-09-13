@@ -55,7 +55,7 @@ class ucla_session {
         $this->_current_week = -1;
         
         // Number of active terms to retrieve (not including current term)
-        $this->_lookahead = 1;
+        $this->_lookahead = 3;
     }
     
     
@@ -115,7 +115,7 @@ class ucla_session {
             }
             
             // Summer session ended, update term
-            if(!$this->in_session($this->_session['8A']->session_end)) {
+            if(!$this->in_session($this->_session['6C']->session_end)) {
                 $next_term = $this->next_term();
                 $this->update_term($next_term);
             }
@@ -361,7 +361,7 @@ class block_ucla_weeksdisplay extends block_base {
         $this->title = get_string('pluginname', 'block_ucla_weeksdisplay');
     }
     
-    /*
+    /**
      * Returns the current week's display string
      */
     public function get_raw_content() {
@@ -372,6 +372,13 @@ class block_ucla_weeksdisplay extends block_base {
         self::set_current_week_display(date('c'));
         return true;    // crons need to return true or they run all the time
     }
+    
+    /**
+     * Returns the current week's display string
+     */    
+    public static function get_week_display($str) {
+        return get_config('local_ucla', 'current_week_display');
+    }    
     
     public static function set_term($term) {
         set_config('currentterm', $term);
@@ -458,9 +465,6 @@ class block_ucla_weeksdisplay extends block_base {
         } else {//if($month <= 12) 
             set_config('currentterm', $year.'F');
         }        
-        
-        // if need to init currentterm, then also need to init terms for other tools
-        self::set_term_configs(get_config(NULL, 'currentterm'));
     }
     
    /**

@@ -29,9 +29,14 @@ class requestor_subjarea_form extends requestor_shared_form {
 
         $term = $ci['term'];
         $sa = $ci['subjarea'];
-
+        
         // Fetch all possible courses
         $sac = get_courses_for_subj_area($term, $sa);
+
+        // This means no registrar connection
+        if ($sac === false) {
+            return false;
+        }
 
         // The stored procedures returns fields with different names for 
         // the same semantic data

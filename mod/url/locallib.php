@@ -40,9 +40,9 @@ require_once("$CFG->dirroot/mod/url/lib.php");
 function url_appears_valid_url($url) {
     if (preg_match('/^(\/|https?:|ftp:)/i', $url)) {
         // note: this is not exact validation, we look for severely malformed URLs only
-        return preg_match('/^[a-z]+:\/\/([^:@\s]+:[^@\s]+@)?[a-z0-9_\.\-]+(:[0-9]+)?(\/[^#]*)?(#.*)?$/i', $url);
+        return (bool)preg_match('/^[a-z]+:\/\/([^:@\s]+:[^@\s]+@)?[a-z0-9_\.\-]+(:[0-9]+)?(\/[^#]*)?(#.*)?$/i', $url);
     } else {
-        return preg_match('/^[a-z]+:\/\/...*$/i', $url);
+        return (bool)preg_match('/^[a-z]+:\/\/...*$/i', $url);
     }
 }
 
@@ -228,6 +228,7 @@ function url_display_frame($url, $cm, $course) {
         $title = strip_tags($courseshortname.': '.format_string($url->name));
         $framesize = $config->framesize;
         $modulename = s(get_string('modulename','url'));
+        $contentframetitle = format_string($url->name);
         $dir = get_string('thisdirection', 'langconfig');
 
         $extframe = <<<EOF
@@ -239,7 +240,7 @@ function url_display_frame($url, $cm, $course) {
   </head>
   <frameset rows="$framesize,*">
     <frame src="$navurl" title="$modulename"/>
-    <frame src="$exteurl" title="$modulename"/>
+    <frame src="$exteurl" title="$contentframetitle"/>
   </frameset>
 </html>
 EOF;
@@ -306,39 +307,22 @@ function url_display_embed($url, $cm, $course) {
 
     $link = html_writer::tag('a', $fullurl, array('href'=>str_replace('&amp;', '&', $fullurl)));
     $clicktoopen = get_string('clicktoopen', 'url', $link);
+    $moodleurl = new moodle_url($fullurl);
 
     $extension = resourcelib_get_extension($url->externalurl);
+
+    $mediarenderer = $PAGE->get_renderer('core', 'media');
+    $embedoptions = array(
+        core_media::OPTION_TRUSTED => true,
+        core_media::OPTION_BLOCK => true
+    );
 
     if (in_array($mimetype, array('image/gif','image/jpeg','image/png'))) {  // It's an image
         $code = resourcelib_embed_image($fullurl, $title);
 
-    } else if ($mimetype == 'audio/mp3') {
-        // MP3 audio file
-        $code = resourcelib_embed_mp3($fullurl, $title, $clicktoopen);
-
-    } else if ($mimetype == 'video/x-flv' or $extension === 'f4v') {
-        // Flash video file
-        $code = resourcelib_embed_flashvideo($fullurl, $title, $clicktoopen);
-
-    } else if ($mimetype == 'application/x-shockwave-flash') {
-        // Flash file
-        $code = resourcelib_embed_flash($fullurl, $title, $clicktoopen);
-
-    } else if (substr($mimetype, 0, 10) == 'video/x-ms') {
-        // Windows Media Player file
-        $code = resourcelib_embed_mediaplayer($fullurl, $title, $clicktoopen);
-
-    } else if ($mimetype == 'video/quicktime') {
-        // Quicktime file
-        $code = resourcelib_embed_quicktime($fullurl, $title, $clicktoopen);
-
-    } else if ($mimetype == 'video/mpeg') {
-        // Mpeg file
-        $code = resourcelib_embed_mpeg($fullurl, $title, $clicktoopen);
-
-    } else if ($mimetype == 'audio/x-pn-realaudio-plugin') {
-        // RealMedia file
-        $code = resourcelib_embed_real($fullurl, $title, $clicktoopen);
+    } else if ($mediarenderer->can_embed_url($moodleurl, $embedoptions)) {
+        // Media (audio/video) file.
+        $code = $mediarenderer->embed_url($moodleurl, $title, 0, 0, $embedoptions);
 
     } else {
         // anything else - just try object tag enlarged as much as possible
@@ -565,14 +549,13 @@ function url_guess_icon($fullurl) {
 
     if (substr_count($fullurl, '/') < 3 or substr($fullurl, -1) === '/') {
         // most probably default directory - index.php, index.html, etc.
-        return 'f/web';
+        return file_extension_icon('.htm');
     }
 
-    $icon = mimeinfo('icon', $fullurl);
-    $icon = 'f/'.str_replace(array('.gif', '.png'), '', $icon);
+    $icon = file_extension_icon($fullurl);
 
-    if ($icon === 'f/html' or $icon === 'f/unknown') {
-        $icon = 'f/web';
+    if ($icon === file_extension_icon('')) {
+        return file_extension_icon('.htm');
     }
 
     return $icon;

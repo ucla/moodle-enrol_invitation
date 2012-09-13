@@ -31,6 +31,9 @@ $PAGE->set_pagelayout('admin');
 // Prepare and load Moodle Admin interface
 admin_externalpage_setup('uclasiteindicator');
 
+// prepare table sorting functionality
+$tableid = setup_js_tablesorter('uclasiteindicator_orphan_report');
+
 // Render page
 echo $OUTPUT->header();
 
@@ -44,15 +47,27 @@ if (empty($orphans)) {
     echo html_writer::tag('p', get_string('noorphans', 'tool_uclasiteindicator'));
 } else {
     $table = new html_table();
+    $table->id = $tableid;    
     $table->attributes['class'] = 'generaltable';
     $table->align = array('left', 'left');
-    $table->head = array(get_string('shortname') . ' (' . count($orphans) . ')', get_string('fullname'));
+    $table->head = array(get_string('shortname') . ' (' . count($orphans) . ')', 
+        get_string('category'), get_string('fullname'));
 
+    $category_cache = array();
+    
     foreach($orphans as $orphan) {
         $row = array();
         $row[] = html_writer::link(new moodle_url($CFG->wwwroot . 
                 '/course/view.php', array('id' => $orphan->id)), 
                 $orphan->shortname, array('target' => '_blank'));
+
+        // print category
+        if (empty($category_cache[$orphan->category])) {
+            $category_cache[$orphan->category] = 
+                    siteindicator_manager::get_categories_list($orphan->category);  
+        }        
+        $row[] = $category_cache[$orphan->category];        
+        
         $row[] = $orphan->fullname;
         
         $table->data[] = $row;

@@ -212,7 +212,8 @@ function questionnaire_update_instance($questionnaire) {
     questionnaire_grade_item_update($questionnaire);
 
     questionnaire_set_events($questionnaire);
-	questionnaire_update_grades($questionnaire);
+    // JR removed line because triggers error in moodle 2.3 STRICT STANDARDS mode ???
+	//questionnaire_update_grades($questionnaire);
     return $DB->update_record("questionnaire", $questionnaire);
 }
 
@@ -336,6 +337,9 @@ function questionnaire_grades($questionnaireid) {
 function questionnaire_get_user_grades($questionnaire, $userid=0) {
     global $DB;
     $params = array();
+    // BEGIN UCLA MOD: CCLE-3341-Bulk-course-resets
+    $usersql = '';
+    // END UCLA MOD: CCLE-3341
     if (!empty($userid)) {
         $usersql = "AND u.id = ?";
         $params[] = $userid;
@@ -365,6 +369,7 @@ function questionnaire_update_grades($questionnaire=null, $userid=0, $nullifnone
             $grades = array();
             foreach($graderecs as $v) {
                 if (!isset($grades[$v->userid])) {
+                    $grades[$v->userid] = new stdClass();
                     if ($v->rawgrade == -1) {
                         $grades[$v->userid]->rawgrade = null;
                     } else {

@@ -12,6 +12,7 @@ require_once($CFG->dirroot . $thisdir . 'lib.php');
 
 global $DB, $ME, $USER;
 
+ucla_require_registrar();
 require_login();
 
 $syscontext = get_context_instance(CONTEXT_SYSTEM);
@@ -58,7 +59,7 @@ $top_forms = array(
     UCLA_REQUESTOR_VIEW => array('view', 'hidden_srs_view')
 );
 
-$terms = get_active_terms();
+$terms = get_active_terms(true);
 if (empty($terms)) {
     $terms[$selected_term] = $selected_term;
 }
@@ -117,11 +118,15 @@ foreach ($top_forms as $gk => $group) {
 
             $groupid = $gk;
 
-            // Place into our holder
-            $uclacrqs = new ucla_courserequests();
-            foreach ($requests as $setid => $set) {
-                // This may get us strangeness
-                $uclacrqs->add_set($set);
+            if ($requests === false) {
+                $errormessages[] = 'registrarunavailable';
+            } else {
+                // Place into our holder
+                $uclacrqs = new ucla_courserequests();
+                foreach ($requests as $setid => $set) {
+                    // This may get us strangeness
+                    $uclacrqs->add_set($set);
+                }
             }
         }
     }
@@ -387,7 +392,7 @@ if ($processrequests) {
 } 
 
 $registrar_link = new moodle_url(
-    'http://www.registrar.ucla.edu/schedule/');
+    'http://www.registrar.ucla.edu/schedule/search.aspx');
 
 // Start rendering
 echo $OUTPUT->header();
@@ -409,7 +414,7 @@ if ($coursebuilder->lock_exists()) { // if course build is in progress, let user
 }
 if (!empty($build_notes)) {
     $build_notice = html_writer::tag('div', $build_notes, 
-            array('id' => 'uclacourserequestor_notice'));    
+            array('id' => 'uclacourserequestor_notice'));
     echo $OUTPUT->box($build_notice, 'noticebox');      
 }
 
@@ -418,7 +423,7 @@ foreach ($cached_forms as $gn => $group) {
     echo $OUTPUT->heading(get_string($gn, $rucr));
 
     foreach ($group as $form) {
-         $form->display();         
+         $form->display();    
     }
     
     if ('fetch' == $gn) {
@@ -470,7 +475,7 @@ if (!empty($requeststable->data)) {
         $globaloptionstable->data = array($globaloptions);
         echo html_writer::table($globaloptionstable);
     }
-
+    
     echo html_writer::tag('input', '', array(
             'type' => 'hidden',
             'value' => $groupid,

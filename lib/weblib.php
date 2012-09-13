@@ -187,7 +187,6 @@ function get_referer($stripquery=true) {
  * server, and the way PHP is compiled (ie. as a CGI, module, ISAPI, etc.)
  * <b>NOTE:</b> This function returns false if the global variables needed are not set.
  *
- * @global string
  * @return mixed String, or false if the global variables needed are not set
  */
 function me() {
@@ -196,22 +195,32 @@ function me() {
 }
 
 /**
- * Returns the name of the current script, WITH the full URL.
+ * Guesses the full URL of the current script.
  *
- * This function is necessary because PHP_SELF and REQUEST_URI and SCRIPT_NAME
- * return different things depending on a lot of things like your OS, Web
- * server, and the way PHP is compiled (ie. as a CGI, module, ISAPI, etc.
- * <b>NOTE:</b> This function returns false if the global variables needed are not set.
+ * This function is using $PAGE->url, but may fall back to $FULLME which
+ * is constructed from  PHP_SELF and REQUEST_URI or SCRIPT_NAME
  *
- * Like {@link me()} but returns a full URL
- * @see me()
- *
- * @global string
- * @return mixed String, or false if the global variables needed are not set
+ * @return mixed full page URL string or false if unknown
  */
 function qualified_me() {
-    global $FULLME;
-    return $FULLME;
+    global $FULLME, $PAGE, $CFG;
+
+    if (isset($PAGE) and $PAGE->has_set_url()) {
+        // this is the only recommended way to find out current page
+        return $PAGE->url->out(false);
+
+    } else {
+        if ($FULLME === null) {
+            // CLI script most probably
+            return false;
+        }
+        if (!empty($CFG->sslproxy)) {
+            // return only https links when using SSL proxy
+            return preg_replace('/^http:/', 'https:', $FULLME, 1);
+        } else {
+            return $FULLME;
+        }
+    }
 }
 
 /**
@@ -723,6 +732,61 @@ class moodle_url {
         $urlbase = "$CFG->wwwroot/file.php";
         return self::make_file_url($urlbase, '/'.$courseid.'/'.$filepath, $forcedownload);
     }
+
+    /**
+     * Returns URL a relative path from $CFG->wwwroot
+     *
+     * Can be used for passing around urls with the wwwroot stripped
+     *
+     * @param boolean $escaped Use &amp; as params separator instead of plain &
+     * @param array $overrideparams params to add to the output url, these override existing ones with the same name.
+     * @return string Resulting URL
+     * @throws coding_exception if called on a non-local url
+     */
+    public function out_as_local_url($escaped = true, array $overrideparams = null) {
+        global $CFG;
+
+        $url = $this->out($escaped, $overrideparams);
+
+        if (strpos($url, $CFG->wwwroot) !== 0) {
+            throw new coding_exception('out_as_local_url called on a non-local URL');
+        }
+
+        return str_replace($CFG->wwwroot, '', $url);
+    }
+
+    /**
+     * Returns the 'path' portion of a URL. For example, if the URL is
+     * http://www.example.org:447/my/file/is/here.txt?really=1 then this will
+     * return '/my/file/is/here.txt'.
+     *
+     * By default the path includes slash-arguments (for example,
+     * '/myfile.php/extra/arguments') so it is what you would expect from a
+     * URL path. If you don't want this behaviour, you can opt to exclude the
+     * slash arguments. (Be careful: if the $CFG variable slasharguments is
+     * disabled, these URLs will have a different format and you may need to
+     * look at the 'file' parameter too.)
+     *
+     * @param bool $includeslashargument If true, includes slash arguments
+     * @return string Path of URL
+     */
+    public function get_path($includeslashargument = true) {
+        return $this->path . ($includeslashargument ? $this->slashargument : '');
+    }
+
+    /**
+     * Returns a given parameter value from the URL.
+     *
+     * @param string $name Name of parameter
+     * @return string Value of parameter or null if not set
+     */
+    public function get_param($name) {
+        if (array_key_exists($name, $this->params)) {
+            return $this->params[$name];
+        } else {
+            return null;
+        }
+    }
 }
 
 /**
@@ -760,20 +824,17 @@ function data_submitted() {
  */
 function break_up_long_words($string, $maxsize=20, $cutchar=' ') {
 
-/// Loading the textlib singleton instance. We are going to need it.
-    $textlib = textlib_get_instance();
-
 /// First of all, save all the tags inside the text to skip them
     $tags = array();
     filter_save_tags($string,$tags);
 
 /// Process the string adding the cut when necessary
     $output = '';
-    $length = $textlib->strlen($string);
+    $length = textlib::strlen($string);
     $wordlength = 0;
 
     for ($i=0; $i<$length; $i++) {
-        $char = $textlib->substr($string, $i, 1);
+        $char = textlib::substr($string, $i, 1);
         if ($char == ' ' or $char == "\t" or $char == "\n" or $char == "\r" or $char == "<" or $char == ">") {
             $wordlength = 0;
         } else {
@@ -1029,6 +1090,7 @@ function format_text($text, $format = FORMAT_MOODLE, $options = NULL, $courseid_
 
     if ($options['filter']) {
         $filtermanager = filter_manager::instance();
+        $filtermanager->setup_page_for_filters($PAGE, $context); // Setup global stuff filters may have.
     } else {
         $filtermanager = new null_filter_manager();
     }
@@ -1240,7 +1302,9 @@ function format_string($string, $striplinks = true, $options = NULL) {
     $string = replace_ampersands_not_followed_by_entity($string);
 
     if (!empty($CFG->filterall)) {
-        $string = filter_manager::instance()->filter_string($string, $options['context']);
+        $filtermanager = filter_manager::instance();
+        $filtermanager->setup_page_for_filters($PAGE, $options['context']); // Setup global stuff filters may have.
+        $string = $filtermanager->filter_string($string, $options['context']);
     }
 
     // If the site requires it, strip ALL tags from this string
@@ -1431,9 +1495,7 @@ function trusttext_active() {
  * @return string The cleaned up text
  */
 function clean_text($text, $format = FORMAT_HTML, $options = array()) {
-    if (empty($text) or is_numeric($text)) {
-       return (string)$text;
-    }
+    $text = (string)$text;
 
     if ($format != FORMAT_HTML and $format != FORMAT_HTML) {
         // TODO: we need to standardise cleanup of text when loading it into editor first
@@ -1444,7 +1506,9 @@ function clean_text($text, $format = FORMAT_HTML, $options = array()) {
         return $text;
     }
 
-    $text = purify_html($text, $options);
+    if (is_purify_html_necessary($text)) {
+        $text = purify_html($text, $options);
+    }
 
     // Originally we tried to neutralise some script events here, it was a wrong approach because
     // it was trivial to work around that (for example using style based XSS exploits).
@@ -1452,6 +1516,53 @@ function clean_text($text, $format = FORMAT_HTML, $options = array()) {
     // rawurlencode(), htmlentities(), htmlspecialchars(), p(), s(), moodle_url, html_writer and friends!!!
 
     return $text;
+}
+
+/**
+ * Is it necessary to use HTMLPurifier?
+ * @private
+ * @param string $text
+ * @return bool false means html is safe and valid, true means use HTMLPurifier
+ */
+function is_purify_html_necessary($text) {
+    if ($text === '') {
+        return false;
+    }
+
+    if ($text === (string)((int)$text)) {
+        return false;
+    }
+
+    if (strpos($text, '&') !== false or preg_match('|<[^pesb/]|', $text)) {
+        // we need to normalise entities or other tags except p, em, strong and br present
+        return true;
+    }
+
+    $altered = htmlspecialchars($text, ENT_NOQUOTES, 'UTF-8', true);
+    if ($altered === $text) {
+        // no < > or other special chars means this must be safe
+        return false;
+    }
+
+    // let's try to convert back some safe html tags
+    $altered = preg_replace('|&lt;p&gt;(.*?)&lt;/p&gt;|m', '<p>$1</p>', $altered);
+    if ($altered === $text) {
+        return false;
+    }
+    $altered = preg_replace('|&lt;em&gt;([^<>]+?)&lt;/em&gt;|m', '<em>$1</em>', $altered);
+    if ($altered === $text) {
+        return false;
+    }
+    $altered = preg_replace('|&lt;strong&gt;([^<>]+?)&lt;/strong&gt;|m', '<strong>$1</strong>', $altered);
+    if ($altered === $text) {
+        return false;
+    }
+    $altered = str_replace('&lt;br /&gt;', '<br />', $altered);
+    if ($altered === $text) {
+        return false;
+    }
+
+    return true;
 }
 
 /**
@@ -1681,7 +1792,7 @@ function highlightfast($needle, $haystack) {
         return $haystack;
     }
 
-    $parts = explode(moodle_strtolower($needle), moodle_strtolower($haystack));
+    $parts = explode(textlib::strtolower($needle), textlib::strtolower($haystack));
 
     if (count($parts) === 1) {
         return $haystack;
@@ -2711,7 +2822,7 @@ function debugging($message = '', $level = DEBUG_NORMAL, $backtrace = null) {
         $forcedebug = in_array($USER->id, $debugusers);
     }
 
-    if (!$forcedebug and (empty($CFG->debug) || $CFG->debug < $level)) {
+    if (!$forcedebug and (empty($CFG->debug) || ($CFG->debug != -1 and $CFG->debug < $level))) {
         return false;
     }
 
@@ -2724,7 +2835,10 @@ function debugging($message = '', $level = DEBUG_NORMAL, $backtrace = null) {
             $backtrace = debug_backtrace();
         }
         $from = format_backtrace($backtrace, CLI_SCRIPT);
-        if (!empty($UNITTEST->running)) {
+        if (PHPUNIT_TEST) {
+            echo 'Debugging: ' . $message . "\n" . $from;
+
+        } else if (!empty($UNITTEST->running)) {
             // When the unit tests are running, any call to trigger_error
             // is intercepted by the test framework and reported as an exception.
             // Therefore, we cannot use trigger_error during unit tests.

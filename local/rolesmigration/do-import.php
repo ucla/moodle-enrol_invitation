@@ -38,9 +38,13 @@ if ($roles_in_file = roles_migration_get_incoming_roles()) {
                 if (!array_key_exists($role->shortname, $roles['create'])) {
                     print_error('new_shortname_undefined');
                 }
-                $textlib = textlib_get_instance();
-                $new_role_shortname = $textlib->specialtoascii($roles['create'][$role->shortname]['shortname']);
-                $new_role_shortname = $textlib->strtolower(clean_param($new_role_shortname, PARAM_ALPHANUMEXT));
+                //$textlib = textlib_get_instance();
+                //$new_role_shortname = $textlib->specialtoascii($roles['create'][$role->shortname]['shortname']);
+                //$new_role_shortname = $textlib->strtolower(clean_param($new_role_shortname, PARAM_ALPHANUMEXT));
+                // BEGIN UCLA MOD: CCLE-3423-use-textlib
+                $new_role_shortname = textlib::specialtoascii($roles['create'][$role->shortname]['shortname']);
+                $new_role_shortname = textlib::strtolower(clean_param($new_role_shortname, PARAM_ALPHANUMEXT));
+                // END UCLA MOD: CCLE-3423
                 $new_role_name = $roles['create'][$role->shortname]['name'];
 
                 // Code to make new role name/short name if same role name or shortname exists
@@ -68,20 +72,6 @@ if ($roles_in_file = roles_migration_get_incoming_roles()) {
 
                 // done finding a unique name
                 $role_id = create_role($currentfullname, $currentshortname, $role->description, $role->archetype);
-
-                // restore value of 'id' field for the role, if possible
-                if ($counter == 1) {
-                    // check if no role with given 'id' already exists
-                    $found_id = $DB->get_field("role", "id", array("id" => $role->id));
-                    if (empty($found_id)) {
-                        $sql = "UPDATE {role} SET id = :newid WHERE id = :oldid";
-                        $params = array('oldid'=> $role_id, 'newid' => $role->id);
-                        // update the role 'id' in DB
-                        $DB->execute($sql, $params);
-                        // update $role_id variable
-                        $role_id = $role->id;
-                    }
-                }
 
                 // Loop through incoming capabilities
                 foreach ($role->capabilities as $capability) {

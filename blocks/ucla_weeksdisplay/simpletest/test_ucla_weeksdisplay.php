@@ -145,7 +145,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         // For this particular summer, instruction starts at same time as session begins
         $this->assertEqual($session->get_display(), 'Summer 2011 - Session A, Week 1');
         $this->assertEqual('1', $session->get_week());
-        $this->assertEqual($session->get_terms(), '111,11F');
+        $this->assertEqual($session->get_terms(), '111,11F,12W,12S');
         
         ////////////////////////////////////////////////////////////////////////
         // At start of instruction in session A
@@ -162,7 +162,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         
         $this->assertEqual($sessionc->get_display(), 'Summer 2011 - Session A, Week 7 | Summer 2011 - Session C, Week 1');
         $this->assertEqual('7', $sessionc->get_week());
-        $this->assertEqual($session->get_terms(), '111,11F');
+        $this->assertEqual($session->get_terms(), '111,11F,12W,12S');
         
         ////////////////////////////////////////////////////////////////////////
         // At session C instruction start
@@ -178,7 +178,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         $session->update();
         $this->assertEqual($session->get_display(), 'Summer 2011 - Session A, Week 8 | Summer 2011 - Session C, Week 2');
         $this->assertEqual('8', $session->get_week());
-        $this->assertEqual($session->get_terms(), '111,11F');
+        $this->assertEqual($session->get_terms(), '111,11F,12W,12S');
         
         ////////////////////////////////////////////////////////////////////////
         // At end of session C (should display term 11F
@@ -199,7 +199,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         
         $this->assertEqual($session->get_display(), 'Fall 2011');
         $this->assertEqual('-1', $session->get_week());
-        $this->assertEqual($session->get_terms(), '11F,12W');
+        $this->assertEqual($session->get_terms(), '11F,12W,12S,121');
         
         ////////////////////////////////////////////////////////////////////////
         // At start of instruction
@@ -228,7 +228,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         $session->update();
         $this->assertEqual($session->get_display(), 'Fall 2011 - Finals week');
         $this->assertEqual('11', $session->get_week());
-        $this->assertEqual($session->get_terms(), '11F,12W');
+        $this->assertEqual($session->get_terms(), '11F,12W,12S,121');
         
         ////////////////////////////////////////////////////////////////////////
         // Test for day after end of fall 11 session
@@ -251,7 +251,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         
         $this->assertEqual($session->get_display(), 'Winter 2012');
         $this->assertEqual('-1', $session->get_week());
-        $this->assertEqual($session->get_terms(), '12W,12S');
+        $this->assertEqual($session->get_terms(), '12W,12S,121,12F');
 
         ////////////////////////////////////////////////////////////////////////
         // Test for start of winter 12 session
@@ -259,7 +259,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         $session->update();
         $this->assertEqual($session->get_display(), 'Winter 2012');
         $this->assertEqual('-1', $session->get_week());
-        $this->assertEqual($session->get_terms(), '12W,12S');
+        $this->assertEqual($session->get_terms(), '12W,12S,121,12F');
         
         ////////////////////////////////////////////////////////////////////////
         // Test for start of winter 12 instruction
@@ -267,7 +267,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         $session->update();
         $this->assertEqual($session->get_display(), 'Winter 2012 - Week 1');
         $this->assertEqual('1', $session->get_week());
-        $this->assertEqual($session->get_terms(), '12W,12S');
+        $this->assertEqual($session->get_terms(), '12W,12S,121,12F');
         
         ////////////////////////////////////////////////////////////////////////
         // Test for start of winter 12 finals week
@@ -275,7 +275,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         $session->update();
         $this->assertEqual($session->get_display(), 'Winter 2012 - Finals week');
         $this->assertEqual('11', $session->get_week());
-        $this->assertEqual($session->get_terms(), '12W,12S');
+        $this->assertEqual($session->get_terms(), '12W,12S,121,12F');
         
         ////////////////////////////////////////////////////////////////////////
         // Test for start of winter 12 session end
@@ -284,7 +284,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         
         $this->assertEqual($session->get_display(), 'Winter 2012 - Finals week');
         $this->assertEqual('11', $session->get_week());
-        $this->assertEqual($session->get_terms(), '12W,12S');
+        $this->assertEqual($session->get_terms(), '12W,12S,121,12F');
         
         ////////////////////////////////////////////////////////////////////////
         // Test for day after winter 12 session end
@@ -308,7 +308,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         
         $this->assertEqual($session->get_display(), 'Spring 2012');
         $this->assertEqual('-1', $session->get_week());
-        $this->assertEqual($session->get_terms(), '12S,121');
+        $this->assertEqual($session->get_terms(), '12S,121,12F,13W');
         
         ////////////////////////////////////////////////////////////////////////
         // Test for start of spring 12 session 
@@ -316,7 +316,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         $session->update();
         $this->assertEqual($session->get_display(), 'Spring 2012');
         $this->assertEqual('-1', $session->get_week());
-        $this->assertEqual($session->get_terms(), '12S,121');
+        $this->assertEqual($session->get_terms(), '12S,121,12F,13W');
         
         ////////////////////////////////////////////////////////////////////////
         // Test for start of spring 12 instruction start 
@@ -324,7 +324,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         $session->update();
         $this->assertEqual($session->get_display(), 'Spring 2012 - Week 1');
         $this->assertEqual('1', $session->get_week());
-        $this->assertEqual($session->get_terms(), '12S,121');
+        $this->assertEqual($session->get_terms(), '12S,121,12F,13W');
         
         ////////////////////////////////////////////////////////////////////////
         // Test for start of spring 12 finals week 
@@ -332,7 +332,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         $session->update();
         $this->assertEqual($session->get_display(), 'Spring 2012 - Finals week');
         $this->assertEqual('11', $session->get_week());
-        $this->assertEqual($session->get_terms(), '12S,121');
+        $this->assertEqual($session->get_terms(), '12S,121,12F,13W');
         
         ////////////////////////////////////////////////////////////////////////
         // Test for spring 12 session end
@@ -340,7 +340,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         $session->update();
         $this->assertEqual($session->get_display(), 'Spring 2012 - Finals week');
         $this->assertEqual('11', $session->get_week());
-        $this->assertEqual($session->get_terms(), '12S,121');
+        $this->assertEqual($session->get_terms(), '12S,121,12F,13W');
         
         ////////////////////////////////////////////////////////////////////////
         // Test for spring 12 day after session end
@@ -360,7 +360,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         
         $this->assertEqual($session->get_display(), 'Summer 2012');
         $this->assertEqual('-1', $session->get_week());
-        $this->assertEqual($session->get_terms(), '121,12F');
+        $this->assertEqual($session->get_terms(), '121,12F,13W,13S');
         
         ////////////////////////////////////////////////////////////////////////
         // Test for start of summer 12 session A
@@ -369,7 +369,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         $session->update();
         $this->assertEqual($session->get_display(), 'Summer 2012 - Session A, Week 1');
         $this->assertEqual('1', $session->get_week());
-        $this->assertEqual($session->get_terms(), '121,12F');
+        $this->assertEqual($session->get_terms(), '121,12F,13W,13S');
         
         ////////////////////////////////////////////////////////////////////////
         // Test for summer 12 session A instruction start
@@ -377,7 +377,7 @@ class ucla_weeksdisplay_nondb_test extends UnitTestCase {
         $session->update();
         $this->assertEqual($session->get_display(), 'Summer 2012 - Session A, Week 1');
         $this->assertEqual('1', $session->get_week());
-        $this->assertEqual($session->get_terms(), '121,12F');
+        $this->assertEqual($session->get_terms(), '121,12F,13W,13S');
         
         ////////////////////////////////////////////////////////////////////////
         // Test for summer 12 session C session start

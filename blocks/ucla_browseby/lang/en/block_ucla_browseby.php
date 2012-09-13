@@ -37,8 +37,11 @@ $string['coursesinsubjarea'] = 'Courses in {$a}';
 // Collaborations
 $string['collab_notfound'] = 'No collaboration sites found.';
 $string['collab_notcollab'] = 'This category is not considered a category for collaboration sites.';
-$string['collab_coursesincat'] = 'Sites in this category';
+$string['collab_coursesincat'] = 'Sites in {$a}';
+$string['collab_catsincat'] = 'Categories in {$a}';
+$string['collab_nocatsincat'] = 'Available collaboration site categories';
 $string['collab_viewall'] = 'Collaboration sites';
+$string['collab_allcatsincat'] = 'Available collaboration site categories';
 $string['collab_viewin'] = 'Collaboration sites in {$a}';
 $string['collab_nocoursesincat'] = 'No sites were found in this category';
 
@@ -68,6 +71,7 @@ $string['title_use_local_courses'] = 'Use local courses';
 $string['desc_use_local_courses'] = 'Check box to allow for local courses to override the URL that has been provided by the Registrar. Otherwise, the data that the Registrar has provided will be considered infallible.';
 
 // Courses view
+$string['moreusers'] = 'MORE...';
 $string['nousersinrole'] = 'N / A';
 $string['session_break'] = 'Summer session {$a}';
 $string['registrar_link'] = 'Registrar';

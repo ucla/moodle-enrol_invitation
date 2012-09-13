@@ -65,18 +65,6 @@ if ($id) { // editing course
 // Prepare course and the editor
 $editoroptions = array('maxfiles' => EDITOR_UNLIMITED_FILES, 'maxbytes'=>$CFG->maxbytes, 'trusttext'=>false, 'noclean'=>true);
 if (!empty($course)) {
-    $allowedmods = array();
-    if ($am = $DB->get_records('course_allowed_modules', array('course'=>$course->id))) {
-        foreach ($am as $m) {
-            $allowedmods[] = $m->module;
-        }
-    } else {
-        // this happens in case we edit course created before enabling module restrictions or somebody disabled everything :-(
-        if (empty($course->restrictmodules) and !empty($CFG->defaultallowedmodules)) {
-            $allowedmods = explode(',', $CFG->defaultallowedmodules);
-        }
-    }
-    $course->allowedmods = $allowedmods;
     //add context for editor
     $editoroptions['context'] = $coursecontext;
     $course = file_prepare_standard_editor($course, 'summary', $editoroptions, $coursecontext, 'course', 'summary', 0);
@@ -143,10 +131,15 @@ if ($editform->is_cancelled()) {
         // Save any changes to the files used in the editor
         update_course($data, $editoroptions);        
         // START UCLA MOD CCLE-2389 - update site indicator
-        siteindicator_manager::update_site($data);
+        // CCLE-3402/CCLE-3401 - only update if non-srs course
+        $is_course_site = ucla_map_courseid_to_termsrses($course->id);
+        if (empty($is_course_site)) {
+            siteindicator_manager::update_site($data);
+        }
         // END UCLA MOD CCLE-2389                
     }
-    
+    rebuild_course_cache($course->id);
+
     switch ($returnto) {
         case 'category':
         case 'topcat': //redirecting to where the new course was created by default.

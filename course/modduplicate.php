@@ -32,8 +32,9 @@ require_once($CFG->dirroot . '/backup/util/includes/backup_includes.php');
 require_once($CFG->dirroot . '/backup/util/includes/restore_includes.php');
 require_once($CFG->libdir . '/filelib.php');
 
-$cmid       = required_param('cmid',    PARAM_INT);
-$courseid   = required_param('course',  PARAM_INT);
+$cmid           = required_param('cmid', PARAM_INT);
+$courseid       = required_param('course', PARAM_INT);
+$sectionreturn  = optional_param('sr', 0, PARAM_INT);
 
 $course     = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 $cm         = get_coursemodule_from_id('', $cmid, $course->id, true, MUST_EXIST);
@@ -54,6 +55,15 @@ $PAGE->set_url(new moodle_url('/course/modduplicate.php', array('cmid' => $cm->i
 $PAGE->set_pagelayout('incourse');
 
 $output = $PAGE->get_renderer('core', 'backup');
+
+$a          = new stdClass();
+$a->modtype = get_string('modulename', $cm->modname);
+$a->modname = format_string($cm->name);
+
+if (!plugin_supports('mod', $cm->modname, FEATURE_BACKUP_MOODLE2)) {
+    $url = new moodle_url('/course/view.php#section-' . $cm->sectionnum, array('id' => $course->id));
+    print_error('duplicatenosupport', 'core', $url, $a);
+}
 
 // backup the activity
 
@@ -117,10 +127,6 @@ if (empty($CFG->keeptempdirectoriesonbackup)) {
     fulldelete($backupbasepath);
 }
 
-$a          = new stdClass();
-$a->modtype = get_string('modulename', $cm->modname);
-$a->modname = format_string($cm->name);
-
 echo $output->header();
 
 if ($newcmid) {
@@ -131,16 +137,14 @@ if ($newcmid) {
             get_string('duplicatecontedit'),
             'get'),
         new single_button(
-            new moodle_url('/course/view.php#section-' . $cm->sectionnum, array('id' => $cm->course)),
+            course_get_url($course, $sectionreturn),
             get_string('duplicatecontcourse'),
             'get')
     );
 
 } else {
     echo $output->notification(get_string('duplicatesuccess', 'core', $a), 'notifysuccess');
-    echo $output->continue_button(
-        new moodle_url('/course/view.php#section-' . $cm->sectionnum, array('id' => $course->id))
-    );
+    echo $output->continue_button(course_get_url($course, $sectionreturn));
 }
 
 echo $output->footer();

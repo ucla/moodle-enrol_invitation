@@ -17,9 +17,9 @@
 /**
  * Default message outputs configuration page
  *
- * @package    message
- * @copyright  2011 Lancaster University Network Services Limited
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   core_message
+ * @copyright 2011 Lancaster University Network Services Limited
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 require_once(dirname(__FILE__) . '/../config.php');
 require_once($CFG->dirroot . '/message/lib.php');
@@ -34,7 +34,7 @@ require_capability('moodle/site:config', get_context_instance(CONTEXT_SYSTEM));
 // Fetch processors
 $processors = get_message_processors(true);
 // Fetch message providers
-$providers = $DB->get_records('message_providers', null, 'name');
+$providers = get_message_providers();
 
 if (($form = data_submitted()) && confirm_sesskey()) {
     $preferences = array();

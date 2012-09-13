@@ -81,7 +81,7 @@ abstract class browseby_handler {
      *  Determines whether the course should not be displayed if it doesn't 
      *  a website.
      **/
-    function ignore_course($course) {
+    public static function ignore_course($course) {
         // If the course is a particular number
         if (!empty($course->course_code)) {
             $coursecode = intval(substr($course->course_code, 0, 4));

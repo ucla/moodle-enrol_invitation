@@ -605,6 +605,10 @@ class uclacoursecreator {
      *  This will mark the entries as either finished or reset.
      *
      *  @param $done If we should mark the requests as done or reset them
+     *  TODO Instead of figuring out whether or not something is done or
+     *      not, have each individual subtask sort out stuff.
+     *      This function should only have to logic for determining if
+     *      a request failed or not, NOT how something failed and why.
      **/
     function mark_cron_term($done) {
         global $DB;
@@ -624,6 +628,12 @@ class uclacoursecreator {
 
         if (isset($this->cron_term_cache['created_courses'])) {
             $created_courses =& $this->cron_term_cache['created_courses'];
+        }
+
+        if (!empty($this->cron_term_cache['term_rci'])) {
+            $termrci =& $this->cron_term_cache['term_rci'];
+        } else {
+            $termrci = array();
         }
 
         // We're going to attempt to delete a course, and if we fail,
@@ -669,6 +679,11 @@ class uclacoursecreator {
                             . $course->shortname);
                     }
                 }
+            } else if (isset(
+                        $this->cron_term_cache['retry_requests'][$reqkey]
+                    )) {
+                $this->debugln(". $reqkey retry later");
+                $action = UCLA_COURSE_TOBUILD;
             } else {
                 $this->debugln("! Did not create a course for $reqkey");
             }
@@ -848,9 +863,9 @@ class uclacoursecreator {
             $srs = $request->srs;
 
             $key = $term . '-' . $srs;
-
-            // Note that ordering is important
-            $trim_requests[$key] = array($term, $srs);
+            
+            // CCLE-3044 - Now keys are important
+            $trim_requests[$key] = array('term' => $term, 'srs' => $srs);
         }
 
         $this->cron_term_cache['trim_requests'] = $trim_requests;
@@ -869,32 +884,35 @@ class uclacoursecreator {
         $tr = $this->cron_term_cache['trim_requests'];
 
         $requests =& $this->cron_term_cache['requests'];
+        $this->cron_term_cache['retry_requests'] = array();
 
         // Run the Stored Procedure with the data
-        $rc = new registrar_ccle_getclasses();
-	$return = registrar_query::run_registrar_query('ccle_getclasses',
-            $tr, true);
-        foreach ($return as $k => $v) {
-            $v = (object)$v;
-            unset($return[$k]);
-            $return[self::cron_requests_key($v)] = $v;
-        }
-
+        $rci = array();
         $this->println('  Fetching course information from registrar...');
-        foreach ($requests as $tkey => $request) {
-            if (!isset($return[$tkey])) {
-                $this->debugln('Registrar did not find a course: '
-                    . $tkey);
+        foreach ($tr as $k => $request) {
+            $requestdata = registrar_query::run_registrar_query(
+                    'ccle_getclasses', $request
+                );
+
+            if ($requestdata === false) {
+                $this->debugln('!! No response from Registrar !!');
+                $this->cron_term_cache['retry_requests'][$k] = true;
+                continue;
+            } else if (empty($requestdata)) {
+                $this->debugln('Registrar did not find a course: ' . $k);
                 continue;
             }
 
-            $ob_re = $return[$tkey];
+            foreach ($requestdata as $rqd) {
+                $rqd = (object)$rqd;
+                $rci[self::cron_requests_key($rqd)] = $rqd;
+            }
         }
 
-        $this->println('. ' . count($return) 
+        $this->println('. ' . count($rci) 
             . ' courses exist at Registrar.');
 
-        $this->cron_term_cache['term_rci'] = $return;
+        $this->cron_term_cache['term_rci'] = $rci;
     }
 
     /**
@@ -1374,11 +1392,12 @@ class uclacoursecreator {
             . count($this->cron_term_cache['trim_requests']) 
             . ' request(s) from registrar...');
 
-        $results = registrar_query::run_registrar_query(
-            'ccle_courseinstructorsget', 
-            $this->cron_term_cache['trim_requests'],
-            true
-        );
+        $results = array();
+        foreach ($this->cron_term_cache['trim_requests'] as $tr_req) {
+            $results[] = registrar_query::run_registrar_query(
+                    'ccle_courseinstructorsget', $tr_req
+                );
+        }
 
         $this->println('Finished fetching from registrar.');
 
@@ -1388,7 +1407,9 @@ class uclacoursecreator {
         }
 
         foreach ($results as $res) {
-            $this->key_field_instructors($res);
+            foreach ($res as $inst) {
+                $this->key_field_instructors($inst);
+            }
         }
 
         // I think the old version works pretty well...
@@ -1892,6 +1913,14 @@ class uclacoursecreator {
             $this->debugln('Registrar Class Info mass insert failed.');
 
             foreach ($term_rci as $rci_data) {
+                // maybe failed, because term/srs already exists in ucla_reg_classinfo
+                if($DB->record_exists('ucla_reg_classinfo', 
+                        array('term' => $rci_data->term, 'srs' => $rci_data->srs))) {
+                    $this->debugln('ucla_reg_classinfo record already exists: '
+                        . $rci_data->term . ' ' . $rci_data->srs);                    
+                    continue;
+                }
+                
                 try {
                     $DB->insert_record('ucla_reg_classinfo',
                         $rci_data);
@@ -2287,7 +2316,7 @@ class uclacoursecreator {
      *  @param $course The course object.
      *  @return string The URL of the course (no protocol).
      **/
-    function build_course_url($course) {
+    public static function build_course_url($course) {
         // TODO put this in the proper namespace
         if (get_config('local_ucla', 'friendly_urls_enabled')) {
             return new moodle_url(make_friendly_url($course));

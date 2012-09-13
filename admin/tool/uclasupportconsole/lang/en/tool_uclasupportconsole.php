@@ -34,8 +34,8 @@ $string['moodlelog_select'] = 'Select which types of log entries to view';
 $string['moodlelog_filter'] = 'Filter log by action types';
 $string['moodlelogins'] = 'Show logins during the last 24 hours';
 $string['moodlelogbyday'] = 'Count Moodle logs by day';
-$string['moodlelogbydaycourse'] = 'Count Moodle logs by day and course (past 7 days)';
-$string['moodlelogbydaycourseuser'] = 'Count Moodle logs by day, course and user (past 7 days)';
+$string['moodlelogbydaycourse'] = 'Count Moodle logs by day and course (past 7 days, limited to top 100 results)';
+$string['moodlelogbydaycourseuser'] = 'Count Moodle logs by day, course and user (past 7 days, limited to top 100 results)';
 
 // Users
 $string['moodleusernamesearch'] = 'Show users with firstname and/or lastname';
@@ -58,6 +58,8 @@ $string['cis_coursegetall'] = 'Get all courses in a subject area  (CIS <a target
 $string['cis_subjectareagetall'] = 'Get all subject area codes and full names (<a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=3313">cis_subjectareagetall</a>)';
 $string['ucla_getterms'] = 'Get terms information (<a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=3315">ucla_getterms</a>)';
 $string['ucla_get_user_classes'] = 'Get courses for My sites (<a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=16788">ucla_get_user_classes</a>)';
+
+$string['unknownstoredprocparam'] = 'This stored procedure has a unknown parameter type. This needs to be changed in code.';
 
 $string['courseregistrardifferences'] = 'Show courses with changed descriptions';
 

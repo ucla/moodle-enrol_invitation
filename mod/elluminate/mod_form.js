@@ -65,10 +65,11 @@ function() {
 });
 
 function generate_group_box() {
-	$("#id_groupmode").find('option').remove().end();	
-	var nogroups = "<option value='0'>No Groups</option>"
-	var seperategroups = "<option value='1'>Separate Groups</option>"
-	var visiblegroups = "<option value='2'>Visible Groups</option>"
+	$("#id_groupmode").find('option').remove().end();  
+	
+	var nogroups = "<option value='0'>" + $('input[name$="noGroupString"]').val() + "</option>"
+	var seperategroups = "<option value='1'>" + $('input[name$="seperateGroupString"]').val() + "</option>"
+	var visiblegroups = "<option value='2'>" + $('input[name$="visibleGroupString"]').val() + "</option>"
 		
 	if(jQuery('#id_sessiontype').val() == '3') {
 		$("#id_groupmode").append(nogroups);

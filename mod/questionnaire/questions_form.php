@@ -27,7 +27,7 @@ require_once($CFG->dirroot.'/mod/questionnaire/lib.php');
 
 class questionnaire_questions_form extends moodleform {
 
-    function questionnaire_questions_form($action, $moveq=false) {
+    function __construct($action, $moveq=false) {
         $this->moveq = $moveq;
         return parent::moodleform($action);
     }
@@ -241,10 +241,10 @@ class questionnaire_questions_form extends moodleform {
 
     }
 
-    function validation($data){
-
+    function validation($data, $files){
+        return parent::validation($data, $files);
     }
-
+    
 }
 
 class questionnaire_edit_question_form extends moodleform {
@@ -471,8 +471,8 @@ class questionnaire_edit_question_form extends moodleform {
         $mform->addGroup($buttonarray, 'buttonar', '', array(' '), false);
     }
 
-    function validation($data){
-
+    function validation($data, $files){
+        return parent::validation($data, $files);
     }
-
+    
 }

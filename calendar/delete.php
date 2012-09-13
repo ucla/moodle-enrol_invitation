@@ -28,6 +28,7 @@ require_once('../config.php');
 require_once($CFG->dirroot.'/calendar/event_form.php');
 require_once($CFG->dirroot.'/calendar/lib.php');
 require_once($CFG->dirroot.'/course/lib.php');
+require_once($CFG->dirroot.'/calendar/renderer.php');
 
 $eventid = required_param('id', PARAM_INT);
 $confirm = optional_param('confirm', false, PARAM_BOOL);
@@ -123,7 +124,7 @@ echo $OUTPUT->box_end();
 $event->time = calendar_format_event_time($event, time(), null, false);
 $renderer = $PAGE->get_renderer('core_calendar');
 echo $renderer->start_layout();
-echo $renderer->event($event);
+echo $renderer->event($event, false);
 echo $renderer->complete_layout();
 
 echo $OUTPUT->box_end();

@@ -1,11 +1,20 @@
-.course-content .section.main .left.side {
-    visibility:hidden;
-    float: left;
-    width: 0px !important;
-    padding: 0px !important;
+.course-content ul.topics {margin:0;}
+.course-content ul.topics li.section {list-style: none;margin:5px 0 0 0;padding:0;}
+.course-content ul.topics li.section .content {margin:0 40px;}
+.course-content ul.topics li.section .right {width:40px;float:right;text-align:center;}
+.jumpmenu {text-align:center;}
+
+.sectionname {
+    display: inline-block;
 }
-.course-content .section.main .left.side .accesshide {visibility:visible;}
-.course-content .section.main .left.side a {visibility:visible;}
+
+.sectionheader .right br {
+    display: none;
+}
+
+.course-content .section.main {
+    border: none !important;
+}
 
 .course-content ul.topics {
     margin: 0;
@@ -34,7 +43,7 @@
 /* red editing link styling (try to keep colors consistent */
 a.editing-link:link,
 a.editing-link:visited,
-.course-content ul.topics li.section .content .editbutton a,
+.course-content .editbutton a,
 .sectionheader .right.side a,
 .sectionheader .right.side span,
 .jit_links a:link, .jit_links a:visited,
@@ -42,7 +51,7 @@ span.commands a {
     color: #F66;
 }
 a.editing-link:hover,
-.course-content ul.topics li.section .content .editbutton a:hover,
+.course-content .editbutton a:hover,
 .sectionheader .right.side a:hover,
 .sectionheader .right.side span:hover,
 .jit_links a:hover,
@@ -51,18 +60,13 @@ span.commands a:hover {
     text-decoration: underline;
 }
 
-.course-content ul.topics li.section .content.editing {
+.course-content .content.editing {
     margin: 0 0 0 20px;
 }
 
-.course-content ul.topics li.section .content .registrar-info {
+.course-content .registrar-info {
     color: gray;
     font-weight: bold;
-}
-
-.course-content ul.topics li.section .content .defsection {
-    font-style: italic;
-    color: gray;
 }
 
 .course-content ul.topics li.section .content .sectionname {
@@ -71,13 +75,6 @@ span.commands a:hover {
 
 .course-content ul.topics li.section .content .section_add_menus {
     padding-right: 2px;
-}
-
-.course-content ul.topics li.section .left {
-    width: 40px;
-    float: left;
-    text-align: center;
-    /* display: none; */
 }
 
 .course-content ul.topics li.section .right {
@@ -122,7 +119,7 @@ span.commands a:hover {
     color: #666666;
 }
 
-.section .content h2 .hidden {
+.section .content h3 .hidden {
     color: #666666;
     padding-left: 4px;
 }
@@ -153,9 +150,28 @@ span.commands a:hover {
 }
 /* END feature/CCLE-2800 JIT controls */
 
+/* CCLE-3458 - move icon styling */
+.editing_move_totext {
+    margin-left: 0;
+    margin-right: 19px;
+    padding: 0;
+    color: #FF6666;
+}
+
 /* CCLE-3069 - Convert icons for "Turn editing on" into text */
 .mod-indent span.commands { display: block;float: right; }
 span.commands a {margin-right: 10px;}
 span.commands a img.no-editing-icons {
     display: none;
 }
+
+/** 
+ * Make secton move icon off to the left side, without shifting section header 
+ * and JIT links */
+.course-content ul.topics li.section .left {
+    margin-left: -0.7em;
+    margin-top: -1.0em;
+    width: auto;
+}
+
+.path-course-view .single-section .completionprogress {margin-right: 0 !important;}

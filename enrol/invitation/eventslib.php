@@ -8,13 +8,15 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * Automatically add enrollment plugin for newly created courses.
  * 
- * @param object $course
+ * @param int $courseid
  * @return boolean          Returns false on error, otherwise true. 
  */
-function add_site_invitation_plugin($course) {
+function add_site_invitation_plugin($courseid) {
+    global $DB;
+    
     // make sure you aren't trying something silly like adding enrollment plugin
     // to siteid
-    if ($course->id == SITEID) {
+    if ($courseid == SITEID) {
         return false;
     }    
     
@@ -25,6 +27,9 @@ function add_site_invitation_plugin($course) {
         return false;
     }
 
+    // get course object
+    $course = $DB->get_record('course', array('id' => $courseid));
+    
     // returns instance id, else returns NULL
     $instance_id = $invitation->add_instance($course);    
     if (is_null($instance_id)) {

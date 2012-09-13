@@ -63,7 +63,7 @@ class requestor_view_form extends requestor_shared_form {
 
         $filters = $this->_customdata['prefields'];
         $ci = $data->{$this->groupname};
-
+        
         foreach ($filters as $filter => $result) {
             $all = $this->get_all_filter($filter);
             

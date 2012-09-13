@@ -6,6 +6,5 @@
 // format.
 //
 // The default blocks layout for this course format:
-// @todo change to uclacoursemenu and whatnot
-
-$format['defaultblocks'] = ':';
+    $format['defaultblocks'] = ':ucla_course_menu';
+//

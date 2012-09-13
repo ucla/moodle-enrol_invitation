@@ -16,11 +16,16 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package moodlecore
- * @subpackage backup-moodle2
- * @copyright 2010 onwards Eloy Lafuente (stronk7) {@link http://stronk7.com}
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Defines classes used to handle restore settings
+ *
+ * @package     core_backup
+ * @subpackage  moodle2
+ * @category    backup
+ * @copyright   2010 onwards Eloy Lafuente (stronk7) {@link http://stronk7.com}
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+defined('MOODLE_INTERNAL') || die();
 
 // TODO: Reduce these to the minimum because ui/dependencies are 100% separated
 
@@ -100,9 +105,8 @@ class restore_course_generic_setting extends course_backup_setting {}
 class restore_course_overwrite_conf_setting extends restore_course_generic_setting {}
 
 // START UCLA MOD: CCLE-2902 - Enable "legacy course files" repository for restored M19 courses on M2
-// Patch from https://github.com/merrill-oakland/moodle/compare/master...MDL-32598
 /**
- * Setting to define is we are going to bring in legacy files
+ * Setting to define is we are going to bring in legacy files.
  */
 class restore_course_legacy_files_setting extends restore_course_generic_setting {}
 // END UCLA MOD: CCLE-2902

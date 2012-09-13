@@ -52,7 +52,7 @@ class data_field_picture extends data_field_base {
                         if (empty($content->content1)) {
                             // Print icon if file already exists
                             $src = moodle_url::make_draftfile_url($itemid, '/', $file->get_filename());
-                            $displayname = '<img src="'.$OUTPUT->pix_url(file_mimetype_icon($file->get_mimetype())).'" class="icon" alt="'.$file->get_mimetype().'" />'. '<a href="'.$src.'" >'.s($file->get_filename()).'</a>';
+                            $displayname = $OUTPUT->pix_icon(file_file_icon($file), get_mimetype_description($file), 'moodle', array('class' => 'icon')). '<a href="'.$src.'" >'.s($file->get_filename()).'</a>';
 
                         } else {
                             $displayname = get_string('nofilesattached', 'repository');
@@ -75,7 +75,7 @@ class data_field_picture extends data_field_base {
         $options = new stdClass();
         $options->maxbytes  = $this->field->param3;
         $options->itemid    = $itemid;
-        $options->accepted_types = array('image');
+        $options->accepted_types = array('web_image');
         $options->return_types = FILE_INTERNAL;
         $options->context = $PAGE->context;
         if (!empty($file)) {
@@ -118,7 +118,8 @@ class data_field_picture extends data_field_base {
     }
 
     function display_search_field($value = '') {
-        return '<input type="text" size="16" name="f_'.$this->field->id.'" value="'.$value.'" />';
+        return '<label class="accesshide" for="f_'.$this->field->id.'">' . get_string('fieldname', 'data') . '</label>' .
+               '<input type="text" size="16" id="f_'.$this->field->id.'" name="f_'.$this->field->id.'" value="'.$value.'" />';
     }
 
     function parse_search_field() {
@@ -151,13 +152,13 @@ class data_field_picture extends data_field_base {
         if ($template == 'listtemplate') {
             $src = file_encode_url($CFG->wwwroot.'/pluginfile.php', '/'.$this->context->id.'/mod_data/content/'.$content->id.'/'.'thumb_'.$content->content);
             // no need to add width/height, because the thumb is resized properly
-            $str = '<a href="view.php?d='.$this->field->dataid.'&amp;rid='.$recordid.'"><img src="'.$src.'" alt="'.s($alt).'" title="'.s($title).'" style="border:0px" /></a>';
+            $str = '<a href="view.php?d='.$this->field->dataid.'&amp;rid='.$recordid.'"><img src="'.$src.'" alt="'.s($alt).'" title="'.s($title).'" class="list_picture"/></a>';
 
         } else {
             $src = file_encode_url($CFG->wwwroot.'/pluginfile.php', '/'.$this->context->id.'/mod_data/content/'.$content->id.'/'.$content->content);
             $width  = $this->field->param1 ? ' width="'.s($this->field->param1).'" ':' ';
             $height = $this->field->param2 ? ' height="'.s($this->field->param2).'" ':' ';
-            $str = '<a href="'.$src.'"><img '.$width.$height.' src="'.$src.'" alt="'.s($alt).'" title="'.s($title).'" style="border:0px" /></a>';
+            $str = '<a href="'.$src.'"><img '.$width.$height.' src="'.$src.'" alt="'.s($alt).'" title="'.s($title).'" class="list_picture"/></a>';
         }
 
         return $str;
@@ -197,7 +198,7 @@ class data_field_picture extends data_field_base {
         return true;
     }
 
-    function update_content($recordid, $value, $name) {
+    function update_content($recordid, $value, $name='') {
         global $CFG, $DB, $USER;
 
         if (!$content = $DB->get_record('data_content', array('fieldid'=>$this->field->id, 'recordid'=>$recordid))) {

@@ -21,4 +21,21 @@ $capabilities = array(
             'manager' => CAP_ALLOW,
         )
     ),
+    
+    'local/ucla:editadvancedcoursesettings' => array(
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => array(
+            'manager' => CAP_ALLOW,
+        )
+    ),
+    
+    'local/ucla:deletecoursecontentsandrestore' => array(
+        'riskbitmask' => RISK_DATALOSS,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => array(
+            'manager' => CAP_ALLOW,
+        )
+    )
 );

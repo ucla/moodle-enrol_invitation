@@ -7,10 +7,11 @@
 ?>
 
 <div class="ribbon">
-    <h3>My Sites</h3>
+    <h3>Login and...</h3>
     <ul>
-        <li><a href="<?php echo $CFG->wwwroot;?>/my/index.php">Login and access your course and collaboration sites</a></li>
-        <li><a href="<?php echo $CFG->wwwroot;?>/course/request.php">Login and request a collaboration site</a></li>
+        <li><a href="<?php echo $CFG->wwwroot;?>/my/index.php">View your sites</a></li>
+        <li><a target="_blank" href="https://archive.ccle.ucla.edu/">View sites created prior to Summer 2012</a></li>
+        <li><a href="<?php echo $CFG->wwwroot;?>/course/request.php">Request a collaboration site</a></li>
     </ul>
 </div>
 

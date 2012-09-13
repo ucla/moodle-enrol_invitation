@@ -42,9 +42,6 @@ if (!block_ucla_office_hours::allow_editing($context, $edit_user->id)) {
     print_error('cannotedit', 'block_ucla_office_hours');    
 }
 
-echo $OUTPUT->header();
-echo $OUTPUT->heading($page_title, 2, 'headingblock');
-
 // get office hours entry, if any
 $officehours_entry = $DB->get_record('ucla_officehours',
         array('courseid' => $courseid, 'userid' => $editid));
@@ -61,10 +58,16 @@ $updateform = new officehours_form(NULL,
         '',
         array('class' => 'officehours_form'));
 
-if ($updateform->is_cancelled()) { //If the cancel button is clicked, return to 'Site Info' page
+// If the cancel button is clicked, return to 'Site Info' page
+if ($updateform->is_cancelled()) { 
     $url = new moodle_url($CFG->wwwroot . '/course/view.php', array('id' => $courseid, 'topic' => 0));
     redirect($url);
-} else if ($data = $updateform->get_data()) { //Otherwise, process data
+}
+
+echo $OUTPUT->header();
+echo $OUTPUT->heading($page_title, 2, 'headingblock');
+
+if ($data = $updateform->get_data()) { //Otherwise, process data
     
     // prepare new entry data
     $new_officehours_entry = new stdClass();
