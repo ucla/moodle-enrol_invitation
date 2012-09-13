@@ -69,7 +69,7 @@ class ucla_group_manager {
 
         foreach ($requests_arr as $reqarr) {
             $sections = registrar_query::run_registrar_query(
-                'ccle_class_sections', array($reqarr), true);
+                'ccle_class_sections', $reqarr, true);
 
             echo "* " . make_idnumber($reqarr) . " has " . count($sections) 
                 . " sections\n";
@@ -79,7 +79,7 @@ class ucla_group_manager {
             $requestroster = 
                 registrar_query::run_registrar_query(
                         'ccle_roster_class', 
-                        array(array($reqarr['term'], $reqarr['srs'])), 
+                        array($reqarr['term'], $reqarr['srs']), 
                         true
                     );
 
@@ -121,9 +121,9 @@ class ucla_group_manager {
 
                 $termsrsarr = $section;
 
-                $rqa = array(array(
+                $rqa = array(
                         $termsrsarr['term'], $termsrsarr['srs']
-                    ));
+                    );
 
                 $sectionroster = 
                     registrar_query::run_registrar_query(
