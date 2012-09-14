@@ -48,6 +48,10 @@ if (count($sections)-1 < $course->numsections) {
     }    
 }
 
+// Build our required forums
+$forum_new = forum_get_course_forum($course->id, 'news');
+$forum_gen = forum_get_course_forum($course->id, 'general');
+
 $context = context_course::instance($course->id);
 
 if (($marker >=0) && has_capability('moodle/course:setcurrentsection', $context) && confirm_sesskey()) {
