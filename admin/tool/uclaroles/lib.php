@@ -242,6 +242,10 @@ class uclaroles_manager {
             $site_type = $indicator->property->type;
         }
         
+        // if site type is null, then default to instructional collab sites
+        if (empty($site_type)) {
+            $site_type =  siteindicator_manager::SITE_TYPE_INSTRUCTION;
+        }
         return self::get_assignable_roles($site_type);
     }
     

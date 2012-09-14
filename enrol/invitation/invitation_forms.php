@@ -59,10 +59,13 @@ class invitations_form extends moodleform {
         
         $site_roles = $this->get_appropiate_roles($course);
         $label = get_string('assignrole', 'enrol_invitation');
-        $role_group = array();
-        foreach ($site_roles as $role_type => $roles) {
-            $role_group[] = &$mform->createElement('static', 'role_type_header', '', 
-                    get_string($role_type, 'tool_uclaroles'));            
+        $role_group = array();        
+        foreach ($site_roles as $role_type => $roles) {          
+            $role_type_string = html_writer::tag('span', 
+                    get_string($role_type, 'tool_uclaroles'), 
+                    array('class' => 'role_type_header'));
+            $role_group[] = &$mform->createElement('static', 'role_type_header', 
+                    '', $role_type_string);            
             
             foreach ($roles as $role) {
                 $role_string = html_writer::tag('span', $role->name . ':', 
@@ -71,10 +74,12 @@ class invitations_form extends moodleform {
                 // role description has a <hr> tag to separate out info for users
                 // and admins
                 $role_description = explode('<hr />', $role->description);
-
+                
+                // need to clean html, because tinymce adds a lot of extra tags that mess up formatting
                 $role_description = $role_description[0];
-                $role_description = strip_tags($role_description, '<b><i><strong>');
-
+                // whitelist some formatting tags
+                $role_description = strip_tags($role_description, '<b><i><strong><ul><li><ol>');
+            
                 $role_string .= ' ' . $role_description;
                 $role_group[] = &$mform->createElement('radio', 'roleid', '', 
                         $role_string, $role->id);                
@@ -147,7 +152,7 @@ class invitations_form extends moodleform {
         
         $roles = uclaroles_manager::get_assignable_roles_by_courseid($course->id);
         // convert to just an array of shortnames
-        $roles = array_values($roles);
+        $roles = array_keys($roles);
         $roles = $DB->get_records_list('role', 'shortname', $roles, 'name');
         
         // sort roles into type
