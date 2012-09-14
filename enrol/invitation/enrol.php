@@ -106,8 +106,16 @@ if (empty($confirm)) {
     $cancel = new moodle_url('/');
 
     $notice_object = prepare_notice_object($invitation);
-    echo $OUTPUT->confirm(get_string('invitationacceptance', 'enrol_invitation', 
-            $notice_object), $accept, $cancel);    
+    
+    $invitationacceptance = get_string('invitationacceptance', 
+            'enrol_invitation', $notice_object);
+    
+    $privacy_notice = invitation_manager::get_project_privacy_notice($course->id, true);
+    if (!empty($privacy_notice)) {
+        $invitationacceptance .= $privacy_notice;
+    }
+    
+    echo $OUTPUT->confirm($invitationacceptance, $accept, $cancel);    
         
     echo $OUTPUT->footer();
     exit;    

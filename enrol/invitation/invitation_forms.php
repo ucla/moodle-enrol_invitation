@@ -87,7 +87,7 @@ class invitations_form extends moodleform {
         }
         $mform->addGroup($role_group, 'role_group', $label, 
                 html_writer::empty_tag('br'));
-        $mform->addGroupRule('role_group', 
+        $mform->addRule('role_group', 
                 get_string('norole', 'enrol_invitation'), 'required');
         
         // email address field
@@ -108,7 +108,7 @@ class invitations_form extends moodleform {
         $mform->setDefault('subject', $default_subject);
         
         // message field
-        $mform->addElement('textarea', 'message', get_string('message', 'enrol_invitation'));
+        $mform->addElement('textarea', 'message', get_string('message', 'enrol_invitation'));  
         // put help text to show what default message invitee gets
         $mform->addHelpButton('message', 'message', 'enrol_invitation', 
                 get_string('message_help_link', 'enrol_invitation'));
@@ -174,6 +174,8 @@ class invitations_form extends moodleform {
         if ( empty($email_list) ) {
             $errors['email'] = get_string('err_email', 'form');
         }
+        
+        print_object($data);
         
         return $errors;
     }

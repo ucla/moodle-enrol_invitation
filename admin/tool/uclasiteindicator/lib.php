@@ -294,6 +294,10 @@ class siteindicator_manager {
     // special site type that is not displayed or assignable
     const SITE_TYPE_SRS_INSTRUCTION = 'srs_instruction';
     
+    const SITE_GROUP_TYPE_INSTRUCTION = 'instruction';
+    const SITE_GROUP_TYPE_PROJECT = 'project';
+    const SITE_GROUP_TYPE_TEST = 'test';
+    
     // A group of roles.  A group contains a set 
     // of roles that are mutually excluseive from other groups.
     private $_indicator_rolegroups;
@@ -317,9 +321,9 @@ class siteindicator_manager {
         $this->get_types_list();
         
         $this->_indicator_rolegroups = array(
-            'instruction' => get_string('r_instruction', 'tool_uclasiteindicator'),
-            'project' => get_string('r_project', 'tool_uclasiteindicator'),
-            'test' => get_string('r_test', 'tool_uclasiteindicator'),
+            self::SITE_GROUP_TYPE_INSTRUCTION => get_string('r_instruction', 'tool_uclasiteindicator'),
+            self::SITE_GROUP_TYPE_PROJECT => get_string('r_project', 'tool_uclasiteindicator'),
+            self::SITE_GROUP_TYPE_TEST => get_string('r_test', 'tool_uclasiteindicator'),
             );
         
         // Supported site types:
@@ -328,10 +332,10 @@ class siteindicator_manager {
         //   Research
         //   Test
         $this->_type_to_rolegroup_mapping = array(
-            'instruction' => 'instruction',
-            'non_instruction' => 'project',
-            'research' => 'project',
-            'test' => 'test',
+            self::SITE_TYPE_INSTRUCTION => self::SITE_GROUP_TYPE_INSTRUCTION,
+            self::SITE_TYPE_NON_INSTRUCTION => self::SITE_GROUP_TYPE_PROJECT,
+            self::SITE_TYPE_RESEARCH => self::SITE_GROUP_TYPE_PROJECT,
+            self::SITE_TYPE_TEST => self::SITE_GROUP_TYPE_TEST,
             );
         
         // Define the roles allowed for a particular role group
@@ -383,8 +387,8 @@ class siteindicator_manager {
                 'projectviewer'         => 'visitor',                
                 'nonediting_instructor' => 'grader',
                 'supervising_instructor' => 'instructional_assistant',
-                'ta_instructor' => 'manager',
-                'ta_admin' => 'manager',
+                'ta_instructor' => 'instructional_assistant',
+                'ta_admin' => 'instructional_assistant',
                 'ta' => 'participant',
                 )
             );
