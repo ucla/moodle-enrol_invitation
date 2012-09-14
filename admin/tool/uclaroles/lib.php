@@ -238,14 +238,20 @@ class uclaroles_manager {
         if (!empty($result)) {  // found registrar course
             $site_type = siteindicator_manager::SITE_TYPE_SRS_INSTRUCTION;
         } else {
-            $indicator = new siteindicator_site($courseid);
-            $site_type = $indicator->property->type;
+            try {
+                $indicator = new siteindicator_site($courseid);
+                $site_type = $indicator->property->type;            
+            } catch (Exception $e) {
+                // throws an exception if no site type found, so just do nothing
+                // and use default below
+            }
         }
         
         // if site type is null, then default to instructional collab sites
         if (empty($site_type)) {
             $site_type =  siteindicator_manager::SITE_TYPE_INSTRUCTION;
         }
+        
         return self::get_assignable_roles($site_type);
     }
     
