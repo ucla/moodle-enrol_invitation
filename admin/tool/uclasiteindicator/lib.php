@@ -59,16 +59,15 @@ class siteindicator_site {
      * Change a site type.  Re-maps the role assignments if the site type
      * is of a different role group
      * 
-     * @param type $newtype of the site.
+     * @param string $newtype of the site.
      */
-    public function set_type($newtype) {
-        $uclaindicator = new siteindicator_manager();
-        
-        $mygroup = $uclaindicator->get_rolegroup_for_type($this->property->type);
-        $newgroup = $uclaindicator->get_rolegroup_for_type($newtype);
-        
+    public function set_type($newtype) {  
         // Do we need to change role assignments?
-        if($newgroup != $mygroup) {
+        if($newtype != $this->property->type) {
+            $uclaindicator = new siteindicator_manager();
+            
+            $mygroup = $uclaindicator->get_rolegroup_for_type($this->property->type);
+            $newgroup = $uclaindicator->get_rolegroup_for_type($newtype);            
             
             // Get course context
             $context = get_context_instance(CONTEXT_COURSE, $this->property->courseid);
@@ -90,11 +89,11 @@ class siteindicator_site {
                     }
                 }
             }
-        }
-        
-        // Update new site type
-        $this->property->type = $newtype;
-        $this->update();
+            
+            // Update new site type
+            $this->property->type = $newtype;
+            $this->update();            
+        }        
     }
     
     /**
