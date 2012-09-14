@@ -13,6 +13,8 @@ if (!defined('CLI_SCRIPT')) {
 
 require_once(dirname(__FILE__) . '/../../../config.php');
 require_once($CFG->dirroot . '/local/ucla/lib.php');
+require_once($CFG->dirroot . '/local/ucla/registrar/registrar_query.base.php');
+require_once($CFG->dirroot . '/local/ucla/registrar/registrar_ccle_get_primary_srs.class.php');
 
 /**
  * Returns an array of raw CSV data from the CSV file at datasource_url.
@@ -234,7 +236,7 @@ function match_course($term, $srs, $subject_area=null, $cat_num=null, $sec_num=n
         $ret_val = ucla_map_termsrs_to_courseid($term, $srs);      
         
         if (empty($ret_val)) {
-            // see if course record exist at Registrar
+            // see if course record exist at Registrar                                                                                               
             ucla_require_registrar();            
             $results = registrar_query::run_registrar_query(
                     'ccle_getclasses', array(array($term, $srs)), true);      

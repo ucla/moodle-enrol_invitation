@@ -129,6 +129,13 @@ function update_bruincast_db($source_url) {
     // Insert records
     try {
         foreach ($clean_data as $cd) {
+            $cd = (array) $cd;
+            $courseid = match_course($cd['term'], $cd['srs']);
+            
+            if (!empty($courseid)) {
+                $cd['courseid'] = $courseid;
+            }
+            
             $DB->insert_record('ucla_bruincast', $cd);
         }
 
