@@ -39,6 +39,7 @@ class uclaroles_manager {
     const ROLE_TYPE_GUESTEQUIV = 'guestequiv';
     const ROLE_TYPE_SECONDARY = 'secondaryaddon';
     const ROLE_TYPE_CORE = 'moodle_core';
+    const ROLE_TYPE_NA = 'noroletype';
 
     /**
      * Returns html table to display role mapping for system.
@@ -72,6 +73,64 @@ class uclaroles_manager {
     }    
     
     /**
+     * Returns html table to display role remapping for system.
+     * 
+     * @return html_table
+     */
+    static function display_role_remappings() {
+        global $DB;
+       
+        $ret_val = new html_table();
+        
+        /**
+         * Construct table in following format:
+         * Role | <site types as columns>
+         * <name> (<shortname>) | <what role it will be converted to>
+         */
+        
+        // create columns
+        $site_types = siteindicator_manager::get_types_list();
+        $ret_val->head[] = get_string('role');
+        foreach ($site_types as $site_type) {
+            $ret_val->head[] = $site_type['fullname'];
+        }
+                
+        // get roles with types
+        $roles = $DB->get_records('role', null, 'name');
+        $roles = self::orderby_role_type($roles);
+        
+        // ignore roles with no types or that are moodle_core
+        unset($roles[self::ROLE_TYPE_NA]);
+        unset($roles[self::ROLE_TYPE_CORE]);
+
+        // now generate rows
+        $siteindicator_manager = new siteindicator_manager();
+        $colspan = count($site_types) + 1;
+        foreach ($roles as $role_type => $role_array) {
+            $ret_val->data[] = self::generate_role_type_header($role_type, $colspan);
+            foreach ($role_array as $role) {
+                $row = new html_table_row();
+                $cells = array();
+                $cells[] = sprintf('%s (%s)', $role->name, $role->shortname);
+                foreach ($site_types as $site_type) {
+                    // get mapping
+                    $role_group = $siteindicator_manager->get_rolegroup_for_type($site_type['shortname']);
+                    $remapping_role = $siteindicator_manager->get_remapped_role($role_group, $role->shortname);
+                    if (empty($remapping_role)) {
+                        // no role remapping, so just output current role
+                        $cells[] = $role->shortname;
+                    } else {
+                        $cells[] = $remapping_role->shortname;                        
+                    }
+                }
+                $ret_val->data[] = new html_table_row($cells);
+            }
+        } 
+        
+        return $ret_val;
+    }        
+    
+    /**
      * Returns html table to display roles using given filter.
      * 
      * @global moodle_database $DB
@@ -81,7 +140,7 @@ class uclaroles_manager {
      * 
      * @return html_table
      */
-    static function display_roles_table($role_type = null, $site_type = null) {
+    static function display_roles($role_type = null, $site_type = null) {
         global $DB;
         $where = '';
         
@@ -173,19 +232,8 @@ class uclaroles_manager {
                 continue;
             }
             
-            // add row that list role type
-            if ($role_type == 'noroletype') {
-                $role_type_text = get_string('noroletype', 'tool_uclaroles');
-            } else {
-                $role_type_text = $role_types[$role_type];                
-            }
-            $row_cell = new html_table_cell($role_type_text);
-            $row_cell->colspan = 4;
-            $row_cell->header = true;
-            $row_header = new html_table_row(array($row_cell));
-            $row_header->attributes['class'] = 'role_type_header';                        
-            $table->data[] = $row_header;
-            
+            $table->data[] = self::generate_role_type_header($role_type, 4);
+
             foreach ($data as $row_data) {
                 $table->data[] = new html_table_row($row_data);
             }
@@ -261,14 +309,21 @@ class uclaroles_manager {
      * @return array
      */
     static function get_role_types() {
-       return array(
-           uclaroles_manager::ROLE_TYPE_SUPPORTSTAFF => get_string(uclaroles_manager::ROLE_TYPE_SUPPORTSTAFF, 'tool_uclaroles'),
-           uclaroles_manager::ROLE_TYPE_INSTEQUIV => get_string(uclaroles_manager::ROLE_TYPE_INSTEQUIV, 'tool_uclaroles'),
-           uclaroles_manager::ROLE_TYPE_REDUCEDEDITING => get_string(uclaroles_manager::ROLE_TYPE_REDUCEDEDITING, 'tool_uclaroles'),
-           uclaroles_manager::ROLE_TYPE_STUDENTEQUIV => get_string(uclaroles_manager::ROLE_TYPE_STUDENTEQUIV, 'tool_uclaroles'),
-           uclaroles_manager::ROLE_TYPE_GUESTEQUIV => get_string(uclaroles_manager::ROLE_TYPE_GUESTEQUIV, 'tool_uclaroles'),
-           uclaroles_manager::ROLE_TYPE_SECONDARY => get_string(uclaroles_manager::ROLE_TYPE_SECONDARY, 'tool_uclaroles'),
-           uclaroles_manager::ROLE_TYPE_CORE => get_string(uclaroles_manager::ROLE_TYPE_CORE, 'tool_uclaroles'),); 
+        static $role_types; // store cache, since this is called often
+        
+        if (!isset($role_types)) {
+            $role_types = array(
+                uclaroles_manager::ROLE_TYPE_SUPPORTSTAFF => get_string(uclaroles_manager::ROLE_TYPE_SUPPORTSTAFF, 'tool_uclaroles'),
+                uclaroles_manager::ROLE_TYPE_INSTEQUIV => get_string(uclaroles_manager::ROLE_TYPE_INSTEQUIV, 'tool_uclaroles'),
+                uclaroles_manager::ROLE_TYPE_REDUCEDEDITING => get_string(uclaroles_manager::ROLE_TYPE_REDUCEDEDITING, 'tool_uclaroles'),
+                uclaroles_manager::ROLE_TYPE_STUDENTEQUIV => get_string(uclaroles_manager::ROLE_TYPE_STUDENTEQUIV, 'tool_uclaroles'),
+                uclaroles_manager::ROLE_TYPE_GUESTEQUIV => get_string(uclaroles_manager::ROLE_TYPE_GUESTEQUIV, 'tool_uclaroles'),
+                uclaroles_manager::ROLE_TYPE_SECONDARY => get_string(uclaroles_manager::ROLE_TYPE_SECONDARY, 'tool_uclaroles'),
+                uclaroles_manager::ROLE_TYPE_CORE => get_string(uclaroles_manager::ROLE_TYPE_CORE, 'tool_uclaroles'),
+            );
+        }
+        
+       return $role_types;
     }  
 
     /**
@@ -344,9 +399,35 @@ class uclaroles_manager {
         }    
         
         if (empty($found_role_type)) {
-            $found_role_type = 'noroletype';
+            $found_role_type = self::ROLE_TYPE_NA;
         }        
         
         return $found_role_type;
+    }
+    
+    /**
+     * Returns the row header for given role type.
+     * 
+     * @param string $role_type
+     * @param int $colspan
+     * 
+     * @return html_table_row
+     */
+    private static function generate_role_type_header($role_type, $colspan) {   
+        $role_types = self::get_role_types();
+        
+        // add row that list role type
+        if ($role_type == self::ROLE_TYPE_NA) {
+            $role_type_text = get_string(self::ROLE_TYPE_NA, 'tool_uclaroles');
+        } else {
+            $role_type_text = $role_types[$role_type];                
+        }
+        $row_cell = new html_table_cell($role_type_text);
+        $row_cell->colspan = $colspan;
+        $row_cell->header = true;
+        $row_header = new html_table_row(array($row_cell));
+        $row_header->attributes['class'] = 'role_type_header';   
+        
+        return $row_header;                 
     }
 }

@@ -55,6 +55,10 @@ $string['registrar_role'] = 'Registrar role';
 $string['subject_area'] = 'Subject area';
 $string['moodle_role'] = 'Moodle role';
 
+// role remapping report
+$string['remapping'] = 'Role remapping';
+$string['remapping_intro'] = 'Displays how a role should be remapping when changing site types.';
+
 // error strings
 $string['invalid_role_type'] = 'Invalid role type';
 $string['invalid_site_type'] = 'Invalid site type';

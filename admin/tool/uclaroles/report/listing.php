@@ -57,7 +57,7 @@ $role_dropdown = output_role_type_dropdown($selected_role_type);
 $site_type_dropdown = output_site_type_dropdown($selected_site_type);
 echo print_dropdown($role_dropdown, $site_type_dropdown);
 
-$roles_table = uclaroles_manager::display_roles_table($selected_role_type, $selected_site_type);
+$roles_table = uclaroles_manager::display_roles($selected_role_type, $selected_site_type);
 //print_object($roles_table);
 
 echo html_writer::table($roles_table);
