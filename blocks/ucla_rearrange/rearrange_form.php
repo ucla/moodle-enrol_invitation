@@ -31,7 +31,7 @@ class ucla_rearrange_form extends moodleform {
 
         $this->add_action_buttons();
 
-        $mform->addElement('header');
+        $mform->addElement('header', 'header', get_string('sections'));
 
         $classset = array('class' => 'expandall');
         

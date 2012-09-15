@@ -375,7 +375,7 @@ h2.main {
 #files-index .column-content table td {border-width:0px;}
 
 /** Mforms **/
-.mform fieldset {border-color:#C8C9C7;}
+/*.mform fieldset {border-color:#C8C9C7;}*/
 
 /** Tags **/
 .tag-management-form {text-align:center;}
