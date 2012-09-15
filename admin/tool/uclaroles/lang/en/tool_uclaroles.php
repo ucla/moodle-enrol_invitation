@@ -47,6 +47,7 @@ $string['moodle_core'] = 'Core Moodle';
 $string['site_type_dropdown'] = 'Site type: ';
 $string['srs_instruction'] = 'Registrar course';
 $string['invite_site_types'] = 'Invitable in following site types';
+$string['assignable_context'] = 'Assignable context';
 $string['noroletype'] = 'No role type';
 
 // rolemapping report

@@ -345,7 +345,6 @@ class siteindicator_manager {
             'editor',
             'grader',            
             'student',
-            'participant',
             'visitor'
             );
 

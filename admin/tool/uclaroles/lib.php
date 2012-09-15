@@ -183,9 +183,19 @@ class uclaroles_manager {
             $assignable_roles[$site_type] = self::get_assignable_roles($site_type);
         }            
         
+        // get all context levels
+        $allcontextlevels = array(
+            CONTEXT_SYSTEM => get_string('coresystem'),
+            CONTEXT_USER => get_string('user'),
+            CONTEXT_COURSECAT => get_string('category'),
+            CONTEXT_COURSE => get_string('course'),
+            CONTEXT_MODULE => get_string('activitymodule'),
+            CONTEXT_BLOCK => get_string('block')
+        );        
+        
         /* table is outlined as follows:
          * Role type (row divider, alpha sort roles for each type by full name)
-         * Role (shortname) | Description | Invitable in following site types | Legacy type
+         * Role (shortname) | Description | Invitable in following site types | Assignable context | Legacy type
          */
         // have rows indexed in order of role types  
         $rows = array();
@@ -210,11 +220,19 @@ class uclaroles_manager {
                     }
                 }
             }
-        
+
+            // get assignable context levels
+            $contexts = get_role_contextlevels($role->id);
+            $context_display = array();
+            foreach ($contexts as $contextid) {
+                $context_display[] = $allcontextlevels[$contextid];
+            }
+            
             $rows[$found_role_type][] = array(
                 sprintf('%s (%s)', $role->name, $role->shortname),
                 $role->description,
                 implode(', ', $invitable_types),
+                implode(', ', $context_display),
                 $role->archetype
             );
         }
@@ -224,15 +242,17 @@ class uclaroles_manager {
         $table->head = array(
             sprintf('%s (%s)', get_string('role'), get_string('shortname')),
             get_string('description'),
-            get_string('invite_site_types', 'tool_uclaroles'),            
+            get_string('invite_site_types', 'tool_uclaroles'),   
+            get_string('assignable_context', 'tool_uclaroles'),
             get_string('legacytype', 'role'));
                
+        $colspan = count($table->head);
         foreach ($rows as $role_type => $data) {
             if (empty($data)) {
                 continue;
             }
             
-            $table->data[] = self::generate_role_type_header($role_type, 4);
+            $table->data[] = self::generate_role_type_header($role_type, $colspan);
 
             foreach ($data as $row_data) {
                 $table->data[] = new html_table_row($row_data);
