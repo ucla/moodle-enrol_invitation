@@ -55,9 +55,10 @@ $PAGE->set_url(new moodle_url('/enrol/invitation/enrol.php',
         array('token' => $enrolinvitationtoken)));
 $PAGE->set_pagelayout('course');
 $PAGE->set_course($course);
-$PAGE->set_heading(get_string('invitation_acceptance_title', 'enrol_invitation'));
-$PAGE->set_title(get_string('invitation_acceptance_title', 'enrol_invitation'));
-$PAGE->navbar->add(get_string('invitation_acceptance_title', 'enrol_invitation'));
+$page_title = get_string('invitation_acceptance_title', 'enrol_invitation');
+$PAGE->set_heading($page_title);
+$PAGE->set_title($page_title);
+$PAGE->navbar->add($page_title);
 
 //get
 $invitationmanager = new invitation_manager($invitation->courseid);
@@ -69,6 +70,10 @@ $instance = $invitationmanager->get_invitation_instance($invitation->courseid);
 if (isguestuser()) {
     // can not enrol guest!!
     echo $OUTPUT->header();
+
+    // Print out a heading
+    echo $OUTPUT->heading($page_title, 2, 'headingblock');
+    
     echo $OUTPUT->box_start('generalbox');
 
     $notice_object = prepare_notice_object($invitation);        
@@ -95,6 +100,9 @@ if (isguestuser()) {
 $confirm = optional_param('confirm', 0, PARAM_BOOL);
 if (empty($confirm)) {
     echo $OUTPUT->header();
+    
+    // Print out a heading
+    echo $OUTPUT->heading($page_title, 2, 'headingblock');
     
     add_to_log($invitation->courseid, 'course', 'invitation view', 
         "../enrol/invitation/history.php?courseid=$invitation->courseid", $course->fullname);
