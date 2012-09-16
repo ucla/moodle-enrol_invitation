@@ -453,7 +453,7 @@ class gradingform_rubric_controller extends gradingform_controller {
         global $CFG;
         return array(
             'maxfiles' => -1,
-            'maxbytes' => get_max_upload_file_size($CFG->maxbytes),
+            'maxbytes' => get_user_max_upload_file_size($context, $CFG->maxbytes),
             'context'  => $context,
         );
     }
@@ -556,7 +556,8 @@ class gradingform_rubric_controller extends gradingform_controller {
             return $this->get_instance($instance);
         }
         if ($itemid && $raterid) {
-            if ($rs = $DB->get_records('grading_instances', array('raterid' => $raterid, 'itemid' => $itemid), 'timemodified DESC', '*', 0, 1)) {
+            $params = array('definitionid' => $this->definition->id, 'raterid' => $raterid, 'itemid' => $itemid);
+            if ($rs = $DB->get_records('grading_instances', $params, 'timemodified DESC', '*', 0, 1)) {
                 $record = reset($rs);
                 $currentinstance = $this->get_current_instance($raterid, $itemid);
                 if ($record->status == gradingform_rubric_instance::INSTANCE_STATUS_INCOMPLETE &&

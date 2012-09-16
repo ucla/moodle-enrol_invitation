@@ -147,7 +147,7 @@ class instructor_handler extends browseby_handler {
             }
 
             $user->fullname = fullname($user);
-            $lnletter = strtoupper(substr($user->lastname, 0, 1));
+            $lnletter = textlib::strtoupper(substr($user->lastname, 0, 1));
             $lettermatches = ($letter !== null && $lnletter == $letter);
 
             // If a letter is selected, then we need to limit the number

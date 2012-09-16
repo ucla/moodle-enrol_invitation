@@ -1,6 +1,6 @@
 <?php //$Id: access.php,v 1.1.2.2 2009/03/18 16:45:48 mchurch Exp $
 //
-// Capability definitions for the elluminate module.
+// Capability definitions for the Blackboard Collaborate module.
 //
 // The capabilities are loaded into the database table when the module is
 // installed or updated. Whenever the capability definitions are updated,
@@ -31,9 +31,9 @@
 // For the core capabilities, the variable is $moodle_capabilities.
 
 
-$mod_elluminate_capabilities = array(
+$capabilities = array(
 
-    // Ability to see that the elluminatelive exists, and the basic information
+    // Ability to see that the Blackboard Collaborate exists, and the basic information
     // about it.
     'mod/elluminate:view' => array(
 
@@ -44,7 +44,7 @@ $mod_elluminate_capabilities = array(
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
             'coursecreator' => CAP_ALLOW,
-            'admin' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
             'user' => CAP_ALLOW,
             'guest' => CAP_ALLOW
         )
@@ -58,7 +58,7 @@ $mod_elluminate_capabilities = array(
         'legacy' => array(
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'admin' => CAP_ALLOW
+            'manager' => CAP_ALLOW
         )
     ),
     
@@ -69,7 +69,7 @@ $mod_elluminate_capabilities = array(
         'contextlevel' => CONTEXT_MODULE,
         'legacy' => array(
             'editingteacher' => CAP_ALLOW,
-            'admin' => CAP_ALLOW
+            'manager' => CAP_ALLOW
         )
     ),
     
@@ -83,7 +83,7 @@ $mod_elluminate_capabilities = array(
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
             'coursecreator' => CAP_ALLOW,
-            'admin' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
             'user' => CAP_ALLOW
         )
     ),
@@ -96,7 +96,7 @@ $mod_elluminate_capabilities = array(
         'contextlevel' => CONTEXT_MODULE,
         'legacy' => array(
             'editingteacher' => CAP_ALLOW,
-            'admin' => CAP_ALLOW
+            'manager' => CAP_ALLOW
         )
     ),
     
@@ -109,7 +109,7 @@ $mod_elluminate_capabilities = array(
             'student' => CAP_ALLOW,
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'admin' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
             'user' => CAP_ALLOW
          )
     ),
@@ -121,7 +121,7 @@ $mod_elluminate_capabilities = array(
         'contextlevel' => CONTEXT_MODULE,
         'legacy' => array(
             'editingteacher' => CAP_ALLOW,
-            'admin' => CAP_ALLOW
+            'manager' => CAP_ALLOW
          )
     ),
     
@@ -132,7 +132,7 @@ $mod_elluminate_capabilities = array(
         'contextlevel' => CONTEXT_MODULE,
         'legacy' => array(
             'editingteacher' => CAP_ALLOW,
-            'admin' => CAP_ALLOW
+            'manager' => CAP_ALLOW
          )
     ),
     
@@ -143,7 +143,7 @@ $mod_elluminate_capabilities = array(
         'contextlevel' => CONTEXT_MODULE,
         'legacy' => array(
             'editingteacher' => CAP_ALLOW,
-            'admin' => CAP_ALLOW
+            'manager' => CAP_ALLOW
          )
     ),
     
@@ -153,7 +153,7 @@ $mod_elluminate_capabilities = array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
         'legacy' => array(
-            'admin' => CAP_ALLOW
+            'manager' => CAP_ALLOW
          )
     ),
     
@@ -164,7 +164,7 @@ $mod_elluminate_capabilities = array(
         'contextlevel' => CONTEXT_MODULE,
         'legacy' => array(
             'editingteacher' => CAP_ALLOW,
-            'admin' => CAP_ALLOW
+            'manager' => CAP_ALLOW
         )
     ),
     
@@ -175,7 +175,7 @@ $mod_elluminate_capabilities = array(
         'contextlevel' => CONTEXT_MODULE,
         'legacy' => array(
             'editingteacher' => CAP_ALLOW,
-            'admin' => CAP_ALLOW
+            'manager' => CAP_ALLOW
         )
     ),
 
@@ -187,7 +187,7 @@ $mod_elluminate_capabilities = array(
         'legacy' => array(
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'admin' => CAP_ALLOW
+            'manager' => CAP_ALLOW
          )
     ),
 
@@ -199,7 +199,7 @@ $mod_elluminate_capabilities = array(
         'legacy' => array(
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'admin' => CAP_ALLOW
+            'manager' => CAP_ALLOW
          )
     ),
         
@@ -210,7 +210,7 @@ $mod_elluminate_capabilities = array(
         'contextlevel' => CONTEXT_MODULE,
         'legacy' => array(
             'editingteacher' => CAP_ALLOW,
-            'admin' => CAP_ALLOW
+            'manager' => CAP_ALLOW
          )
     ),
 
@@ -220,21 +220,49 @@ $mod_elluminate_capabilities = array(
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
         'legacy' => array(
-            'admin' => CAP_ALLOW
+            'manager' => CAP_ALLOW
          )
     ),
 
-    // Ability to manage any recordings.
+    // Ability to manage any preloads.
     'mod/elluminate:managepreloads' => array(
 
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
         'legacy' => array(
-            'admin' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW
+         )
+    ),
+
+    // START UCLA MOD: CCLE-2966-replace-elluminate-with-blackboard-web-conferencing
+    'mod/elluminate:addinstance' => array(
+        'riskbitmask' => RISK_SPAM,
+
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'legacy' => array(
+            'manager' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW
+    ),
+    'clonepermissionsfrom' => 'moodle/course:manageactivities'
+    ),
+    // END UCLA MOD: CCLE-2966-replace-elluminate-with-blackboard-web-conferencing
+    
+
+    // Ability to view guest link.
+    'mod/elluminate:viewguestlink' => array(
+
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_COURSE,
+        'legacy' => array(
+            'manager' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW
          )
     )
-    
+ 
 );
 
-?>
+

@@ -44,7 +44,16 @@ $message = null;
 if ($delete && confirm_sesskey()) {
     $externalbloguserid = $DB->get_field('blog_external', 'userid', array('id' => $delete));
     if ($externalbloguserid == $USER->id) {
+        // Delete the external blog
         $DB->delete_records('blog_external', array('id' => $delete));
+
+        // Delete the external blog's posts
+        $deletewhere = 'module = :module
+                            AND userid = :userid
+                            AND ' . $DB->sql_isnotempty('post', 'uniquehash', false, false) . '
+                            AND ' . $DB->sql_compare_text('content') . ' = ' . $DB->sql_compare_text(':delete');
+        $DB->delete_records_select('post', $deletewhere, array('module' => 'blog_external', 'userid' => $USER->id, 'delete' => $delete));
+
         $message = get_string('externalblogdeleted', 'blog');
     }
 }
@@ -68,7 +77,7 @@ if (!empty($blogs)) {
     $table = new html_table();
     $table->cellpadding = 4;
     $table->attributes['class'] = 'generaltable boxaligncenter';
-    $table->head = array(get_string('name'), get_string('url'), get_string('timefetched', 'blog'), get_string('valid', 'blog'), get_string('actions'));
+    $table->head = array(get_string('name'), get_string('url', 'blog'), get_string('timefetched', 'blog'), get_string('valid', 'blog'), get_string('actions'));
 
     foreach ($blogs as $blog) {
         if ($blog->failedlastsync) {

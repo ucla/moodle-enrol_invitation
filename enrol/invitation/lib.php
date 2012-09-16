@@ -234,25 +234,4 @@ class enrol_invitation_plugin extends enrol_plugin {
         }
         return $actions;
     }
-
-    /**
-     * Returns true if the plugin has one or more bulk operations that can be performed on
-     * user enrolments.
-     *
-     * @return bool
-     */
-    public function has_bulk_operations() {
-       return false;
-    }
-
-    /**
-     * Return an array of enrol_bulk_enrolment_operation objects that define
-     * the bulk actions that can be performed on user enrolments by the plugin.
-     *
-     * @return array
-     */
-    public function get_bulk_operations() {
-        return array();
-    }
-
 }

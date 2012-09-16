@@ -59,6 +59,8 @@ $string['cis_subjectareagetall'] = 'Get all subject area codes and full names (<
 $string['ucla_getterms'] = 'Get terms information (<a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=3315">ucla_getterms</a>)';
 $string['ucla_get_user_classes'] = 'Get courses for My sites (<a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=16788">ucla_get_user_classes</a>)';
 
+$string['unknownstoredprocparam'] = 'This stored procedure has a unknown parameter type. This needs to be changed in code.';
+
 $string['courseregistrardifferences'] = 'Show courses with changed descriptions';
 
 // Module

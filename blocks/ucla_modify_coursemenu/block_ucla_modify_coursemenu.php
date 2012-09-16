@@ -40,7 +40,7 @@ class block_ucla_modify_coursemenu extends block_base {
      *  @return array() of cm_info, can be used with get_print_section_cm_text
      *      or anything else...
      **/
-    function get_section_content($section, $course=null, $modinfo=null) {
+    static function get_section_content($section, $course=null, $modinfo=null) {
         global $DB;
         if ($modinfo == null) {
             if ($course == null) {
@@ -76,7 +76,7 @@ class block_ucla_modify_coursemenu extends block_base {
      *  Convenience function to overwrite values of oldsection with
      *  values in newsection, but only if oldsection has the field already.
      **/
-    function section_apply($oldsection, $newsection) {
+    static function section_apply($oldsection, $newsection) {
         foreach ($newsection as $f => $v) {
             if (isset($oldsection->{$f})) {
                 $oldsection->{$f} = $v;
@@ -96,7 +96,7 @@ class block_ucla_modify_coursemenu extends block_base {
      *  but behavior changed.
      *  
      **/
-    function section_is_empty($section) {
+    static function section_is_empty($section) {
         return empty($section->sequence);
     }
 
@@ -104,7 +104,7 @@ class block_ucla_modify_coursemenu extends block_base {
      *  Convenience function for generating code that sets data to
      *  associated js object.
      **/
-    function js_init_code_helper($varname, $value) {
+    static function js_init_code_helper($varname, $value) {
         global $PAGE;
 
         $PAGE->requires->js_init_code(
@@ -118,13 +118,13 @@ class block_ucla_modify_coursemenu extends block_base {
     /**
      *  Convenience function.
      **/
-    function many_js_init_code_helpers($vararr) {
+    static function many_js_init_code_helpers($vararr) {
         foreach ($vararr as $vn => $vd) {
             self::js_init_code_helper($vn, $vd);
         }
     }
 
-    function ucla_cp_hook($course, $context) {
+    static function ucla_cp_hook($course, $context) {
         return array(array(
             'item_name' => 'modify_course_sections', 
             'action' => new moodle_url(

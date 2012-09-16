@@ -82,7 +82,7 @@ if (empty($CFG->version)) {
     cli_error(get_string('missingconfigversion', 'debug'));
 }
 
-require("$CFG->dirroot/version.php");       // defines $version, $release and $maturity
+require("$CFG->dirroot/version.php");       // defines $version, $release, $branch and $maturity
 $CFG->target_release = $release;            // used during installation and upgrades
 
 if ($version < $CFG->version) {
@@ -109,7 +109,9 @@ if (!$envstatus) {
 }
 
 // Test plugin dependencies.
-if (!plugin_manager::instance()->all_plugins_ok($version)) {
+$failed = array();
+if (!plugin_manager::instance()->all_plugins_ok($version, $failed)) {
+    cli_problem(get_string('pluginscheckfailed', 'admin', array('pluginslist' => implode(', ', array_unique($failed)))));
     cli_error(get_string('pluginschecktodo', 'admin'));
 }
 
@@ -132,7 +134,8 @@ if (isset($maturity)) {
             echo get_string('morehelp') . ': ' . get_docs_url('admin/versions') . PHP_EOL;
             cli_separator();
         } else {
-            cli_error(get_string('maturitycorewarning', 'admin', $maturitylevel));
+            cli_problem(get_string('maturitycorewarning', 'admin', $maturitylevel));
+            cli_error(get_string('maturityallowunstable', 'admin'));
         }
     }
 }
@@ -150,6 +153,7 @@ if ($version > $CFG->version) {
     upgrade_core($version, true);
 }
 set_config('release', $release);
+set_config('branch', $branch);
 
 // unconditionally upgrade
 upgrade_noncore(true);

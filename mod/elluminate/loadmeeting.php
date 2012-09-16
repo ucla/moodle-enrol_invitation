@@ -2,7 +2,7 @@
 
 
 /**
- * Elluminate Live! meeting load script.
+ * Blackboard Collaborate meeting load script.
  *
  * @version $Id: loadmeeting.php,v 1.1.2.3 2009/03/19 20:26:50 jfilip Exp $
  * @author Justin Filip <jfilip@oktech.ca>
@@ -17,27 +17,27 @@
     $id = required_param('id', PARAM_INT);	
 
     if (!$elluminate = $DB->get_record('elluminate', array('id'=>$id))) {
-        error('Could not get meeting (' . $id . ')');
+        print_error('Could not get meeting (' . $id . ')');
     }
 
     if (!$course = $DB->get_record('course', array('id'=>$elluminate->course))) {
-        error('Invalid course.');
+        print_error('Invalid course.');
     }
 
 	if($elluminate->groupmode == 0 && $elluminate->groupparentid == 0) {
 	    if (! $cm = get_coursemodule_from_instance('elluminate', $elluminate->id, $course->id)) {
-	        error('Course Module ID was incorrect');
+	        print_error('Course Module ID was incorrect');
 	    }
 	} else if ($elluminate->groupmode != 0 && $elluminate->groupparentid != 0){
 		if (! $cm = get_coursemodule_from_instance('elluminate', $elluminate->groupparentid, $course->id)) {
-	        error('Course Module ID was incorrect');
+	        print_error('Course Module ID was incorrect');
 	    }
 	} else if ($elluminate->groupmode != 0 && $elluminate->groupparentid == 0){
 	    if (! $cm = get_coursemodule_from_instance('elluminate', $elluminate->id, $course->id)) {
-	        error('Course Module ID was incorrect');
+	        print_error('Course Module ID was incorrect');
 	    }
 	} else {
-		error('Elluminate Live! Group Error');
+		print_error('Blackboard Collaborate Group Error');
 	}
 
     
@@ -65,7 +65,7 @@
     $isparticipant = has_capability('mod/elluminate:joinmeeting', $context, $USER->id, false);
 
 	if ($elluminate->sessiontype == 1 && !$ismoderator && !$isparticipant) {
-        error('You must be invited to this meeting.');
+        print_error('You must be invited to this meeting.');
     }	
 
 	/// Do we need to assign a grade for this meeting?
@@ -118,11 +118,11 @@
 	/// Load the meeting.
 	if(!empty($elluminate->meetingid)) {
 	    if (!elluminate_build_meeting_jnlp($elluminate->meetingid, $USER->id, $elluminate->sessiontype, $modinsession)) {
-	        error('Could not launch Elluminate Live! meeting.');
+	        print_error('Could not launch Blackboard Collaborate meeting.');
 	    }
 	} else {
-		error('Could not launch Elluminate Live! meeting.  Error in initialization.');
+		print_error('Could not launch Blackboard Collaborate meeting.  Error in initialization.');
 	}
 
 
-?>
+

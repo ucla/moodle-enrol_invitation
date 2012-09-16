@@ -161,7 +161,7 @@ class block_ucla_office_hours extends block_base {
 
             $table->align = $aligns;
 
-            $table->attributes['class'] = 'boxalignleft';
+            $table->attributes['class'] = 'boxalignleft generaltable cellborderless';
 
             // use array_values, to remove array keys, which are 
             // mistaken as another css class for given column
@@ -201,8 +201,8 @@ class block_ucla_office_hours extends block_base {
                                     array('class' => 'editbutton'));
                         }
                         if (!empty($instr_website)) {
-                            if (strpos($instr_website, 'http://') === false 
-                                    && strpos($instr_website, 'https://') === false) {
+                            if (textlib::strpos($instr_website, 'http://') === false 
+                                    && textlib::strpos($instr_website, 'https://') === false) {
                                 $instr_website = 'http://' . $instr_website;
                             }
                             $dest_data .= html_writer::link($instr_website, 

@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -18,7 +17,7 @@
 /**
  * Edit page for grade outcomes.
  *
- * @package   moodlecore
+ * @package   core_grades
  * @copyright 2008 Nicolas Connault
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -97,7 +96,7 @@ if ($id) {
 
 if (!$courseid) {
     require_once $CFG->libdir.'/adminlib.php';
-    admin_externalpage_setup('scales');
+    admin_externalpage_setup('outcomes');
 }
 
 // default return url

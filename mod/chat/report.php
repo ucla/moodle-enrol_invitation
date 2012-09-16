@@ -41,7 +41,7 @@
     $PAGE->set_context($context);
     $PAGE->set_heading($course->fullname);
 
-    require_login($course->id, false, $cm);
+    require_login($course, false, $cm);
 
     if (empty($chat->studentlogs) && !has_capability('mod/chat:readlog', $context)) {
         notice(get_string('nopermissiontoseethechatlog', 'chat'));

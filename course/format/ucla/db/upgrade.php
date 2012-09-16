@@ -19,7 +19,7 @@
  *
  * @package    ucla
  * @subpackage format
- * @copyright  UC Regents
+ * @copyright  2012 UC Regents
  */
 
 defined('MOODLE_INTERNAL') || die();
@@ -55,4 +55,18 @@ function xmldb_format_ucla_upgrade($oldversion) {
         // ucla savepoint reached
         upgrade_plugin_savepoint(true, 2011051000, 'format', 'ucla');
     }
+    
+    // update all courses using ucla format to have $course->coursedisplay set 
+    // to COURSE_DISPLAY_MULTIPAGE
+    if ($oldversion < 2012061701) {
+        // get all courses using UCLA format
+        $courses = $DB->get_recordset('course', array('format' => 'ucla'));
+        foreach ($courses as $course) {
+            $course->coursedisplay = COURSE_DISPLAY_MULTIPAGE;
+            $DB->update_record('course', $course, true);
+        }
+        
+        // ucla savepoint reached
+        upgrade_plugin_savepoint(true, 2012061701, 'format', 'ucla');        
+    }   
 }

@@ -1,0 +1,272 @@
+/**
+ * Copyright (c) 2012 i>clicker (R) <http://www.iclicker.com/dnn/>
+ *
+ * This file is part of i>clicker Moodle integrate.
+ *
+ * i>clicker Moodle integrate is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * i>clicker Moodle integrate is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with i>clicker Moodle integrate.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** OVERALL page styles **/
+.iclicker {
+    margin-left: 0;
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+}
+
+.iclicker FORM {
+    display: inline;
+    margin: 0;
+    padding: 0;
+}
+
+.iclicker INPUT.small {
+    font: bold 80% 'trebuchet ms', helvetica, sans-serif;
+}
+
+.iclicker TR.even {
+    background-color: #d5f1ff;
+}
+
+.iclicker TR.odd {
+    background-color: #ffffff;
+}
+
+.iclicker TR.disabled {
+    background-color: #FFCCCC;
+}
+
+.iclicker .nav_links {
+    padding-top: 1em;
+    padding-bottom: 1em;
+    text-align: center;
+    font-size: 0.9em;
+}
+
+.iclicker .current_nav_link {
+    font-weight: bold;
+}
+
+.iclicker .user_message {
+    list-style: none;
+}
+
+.iclicker .iclicker_version {
+    font-size: 0.7em;
+    text-align: center;
+}
+
+/** SPECIFIC styles **/
+.iclicker .messages_list {
+    margin: 0;
+}
+
+.iclicker .main_content {
+    margin-top: 0.5em;
+}
+
+.iclicker .paging_bar {
+    font-size: 0.8em;
+    padding: 0.5em;
+    width: 90%
+}
+
+.iclicker .paging_current {
+    font-weight: bold;
+}
+
+.iclicker .registration_entry_holder {
+    background-color: #A2CDED;
+    height: 35px;
+    margin-top: 1em
+}
+
+.iclicker .registration_entry {
+    text-align: center;
+    line-height: 35px;
+}
+
+.iclicker .unregistered {
+    background-color: #FFCCCC;
+}
+
+.iclicker UL.actionToolBar {
+    list-style: none;
+}
+
+.iclicker .actionToolBar LI {
+    list-style: none;
+    display: inline-block;
+}
+
+.iclicker .actionToolBar A,.actionToolBar A:link {
+    margin-right: 0.5em;
+    text-decoration: underline;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+.iclicker .admin_controls {
+    text-align: right;
+    width: 90%;
+}
+
+.iclicker .admin_config {
+    margin-top: 1em;
+    width: 60%;
+}
+
+.iclicker .admin_config_sso {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.iclicker .sso_enabled {
+    font-weight: bold;
+}
+
+.iclicker .inst_sso_instructions {
+    padding: 1em 0;
+}
+
+.iclicker .inst_sso_controls {
+    padding: 0.5em;
+    background-color: #EEE;
+}
+
+.iclicker .sso_shared_key {}
+
+.iclicker .sso_control_message {
+    font-weight: bold;
+}
+
+.iclicker .sso_control_key {
+    background-color: #FFFFFF;
+    padding: 3px;
+    border: 1px solid #CCC;
+}
+
+.iclicker .admin_errors {
+    margin-top: 1em;
+    width: 90%;
+    color: red;
+}
+
+
+/* sakai fieldsets are invisible */
+.iclicker .visibleFS {
+    border: 1px solid #ccc;
+    padding: 0.5em 0.5em
+}
+
+.iclicker .visibleFS legend {
+    padding: 0.2em;
+    color: orange;
+    margin-left: 1em
+}
+
+
+/** ICLICKER styles from iclicker html **/
+.iclicker .columns_container
+{
+    width:100%;
+    display:table;
+}
+
+.iclicker .left_column
+{
+    width:48%;
+    float:left;
+    display:inline;
+
+}
+
+.iclicker .right_column
+{
+    width:48%;
+    float:right;
+    display:inline;
+    border-left:1px solid #A2A2A2;
+    padding-left:2%;
+}
+
+.iclicker img
+{
+    margin:10px 0;
+    display:block;
+    clear:both;
+}
+
+.iclicker h1
+{
+    font-size:16px;
+    color:#5D5552;
+}
+
+.iclicker h3
+{
+    font-size:13px;
+    color:#000000;
+}
+
+.iclicker p
+{
+    width:96%;
+}
+
+.iclicker p.highlighted
+{
+    background-color:#f2f2f2;
+    padding:2%;
+    width:94%;
+}
+
+.iclicker table.remotes
+{
+    width:98%;
+    text-align:center;
+    border-spacing:0;
+    border:1px solid #777777;
+    border-left:0;
+}
+
+.iclicker table.remotes td
+{
+    border-left:1px solid #777777;
+    border-top:1px solid #777777;
+    padding:4px;
+}
+
+.iclicker table.remotes th
+{
+    background-color:#666666;
+    color:#ffffff;
+    font-weight:normal;
+    padding:4px;
+}
+
+/*jQUERY OVERRIDES*/
+.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default ,
+.ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active, .ui-widget-content
+{
+    border:0!important;
+    background:none!important;
+}
+
+.ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited,
+.ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited
+{
+    text-decoration:underline;
+    color:#0F197B;
+}

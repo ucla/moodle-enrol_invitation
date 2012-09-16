@@ -65,4 +65,4 @@ class restore_elluminate_activity_structure_step extends restore_activity_struct
 		$this->add_related_files('mod_elluminate', 'intro', null);
 	}
 }
-?>
+

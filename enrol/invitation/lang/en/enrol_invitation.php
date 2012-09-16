@@ -91,6 +91,11 @@ $string['instructormsg'] =
     '------------------------------------------------------------' . "\n" .
     '{$a}' . "\n\n";
 
+// add special notice for project sites about privacy
+$string['project_privacy_notice'] = 'Please be aware that if you accept this ' . 
+        'invitation your profile information will be available to the other ' . 
+        'members of this project.';
+
 // invite form strings
 $string['assignrole'] = 'Assign role';
 $string['defaultrole'] = 'Default role assignment';
@@ -145,7 +150,7 @@ $string['message_help'] =
     ' --the link below will expire 14 days after the date of issue ([expiration date]).<br /><br />' .      
     'ACCESS LINK:'.
     '<hr />'.
-    '[invite url] <br /><br />'.
+    '[invite url]<br /><br />'.
     'UCLA LOGON:'.
     '<hr />'.
     'If you currently do not have a UCLA Logon ID, you can obtain one here: ' . 

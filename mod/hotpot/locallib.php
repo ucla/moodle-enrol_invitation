@@ -694,7 +694,7 @@ class hotpot {
      * @param xxx $type
      * @return xxx
      */
-    function text_page_options($type)  {
+    public static function text_page_options($type)  {
         if ($type=='entry') {
             return array(
                 'title'         => self::ENTRYOPTIONS_TITLE,
@@ -723,7 +723,7 @@ class hotpot {
      *
      * @return array of user_preferences used by the HotPot module
      */
-    function user_preferences_fieldnames() {
+    public static function user_preferences_fieldnames() {
         return array(
             // fields used only when adding a new HotPot
             'namesource','entrytextsource','exittextsource','quizchain',
@@ -827,8 +827,16 @@ class hotpot {
      * @param xxx $ids
      * @return xxx
      */
-    public function get_strings($ids)  {
+    public static function get_strings($ids)  {
         global $DB;
+
+        // convert $ids to an array, if necessary
+        if (is_string($ids)) {
+            $ids = explode(',', $ids);
+            $ids = array_filter($ids);
+        }
+
+        // return strings, if any
         if (empty($ids)) {
             return array();
         } else {
@@ -1426,9 +1434,11 @@ class hotpot {
         if (empty($this->attempt)) {
 
             // get max attempt number so far
-            $select = 'hotpotid=? AND userid=?';
+            $select = 'MAX(attempt)';
+            $from   = '{hotpot_attempts}';
+            $where  = 'hotpotid=? AND userid=?';
             $params = array($this->id, $USER->id);
-            $max_attempt = $DB->count_records_select('hotpot_attempts', $select, $params, 'MAX(attempt)');
+            $max_attempt = $DB->get_field_sql("SELECT $select FROM $from WHERE $where", $params) + 1;
 
             // create attempt record
             $this->attempt = new stdClass();
@@ -1832,7 +1842,7 @@ class hotpot {
         if ($shorterror) {
             return get_string('nomoreattempts', 'hotpot');
         } else {
-            $textlib = textlib_get_instance();
+            $textlib = hotpot_get_textlib();
             $attemptlimitstr = $textlib->moodle_strtolower(get_string('attemptlimit', 'hotpot'));
             $msg = html_writer::tag('b', format_string($this->name))." ($attemptlimitstr = $this->attemptlimit)";
             return html_writer::tag('p', get_string('nomoreattempts', 'hotpot')).html_writer::tag('p', $msg);

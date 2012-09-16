@@ -60,7 +60,7 @@ class block_ucla_video_furnace extends block_base {
         return get_action_link($this->course);
     }
 
-    public function get_navigation_nodes($course) {
+    public static function get_navigation_nodes($course) {
         global $DB;
         $nodes = array();
         

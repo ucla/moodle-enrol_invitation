@@ -26,11 +26,16 @@
 require_once("../config.php");
 require_once("lib.php");
 require_once($CFG->libdir.'/filelib.php');
+require_once($CFG->libdir . '/gradelib.php');
+require_once($CFG->libdir . '/completionlib.php');
+require_once($CFG->libdir . '/conditionlib.php');
+
 require_once('editsection_form.php');
 
 $id = required_param('id',PARAM_INT);    // Week/topic ID
+$sectionreturn = optional_param('sr', 0, PARAM_INT);
 
-$PAGE->set_url('/course/editsection.php', array('id'=>$id));
+$PAGE->set_url('/course/editsection.php', array('id'=>$id, 'sr'=> $sectionreturn));
 
 $section = $DB->get_record('course_sections', array('id' => $id), '*', MUST_EXIST);
 $course = $DB->get_record('course', array('id' => $section->course), '*', MUST_EXIST);
@@ -42,12 +47,24 @@ require_capability('moodle/course:update', $context);
 $editoroptions = array('context'=>$context ,'maxfiles' => EDITOR_UNLIMITED_FILES, 'maxbytes'=>$CFG->maxbytes, 'trusttext'=>false, 'noclean'=>true);
 $section = file_prepare_standard_editor($section, 'summary', $editoroptions, $context, 'course', 'section', $section->id);
 $section->usedefaultname = (is_null($section->name));
-$mform = new editsection_form(null, array('course'=>$course, 'editoroptions'=>$editoroptions));
+
+if (!empty($CFG->enableavailability)) {
+    // Get section availability conditions from sectioncache.
+    $modinfo = get_fast_modinfo($course);
+    $sectioninfo = $modinfo->get_section_info($section->section);
+    $section->conditionsgrade = $sectioninfo->conditionsgrade;
+    $section->conditionscompletion = $sectioninfo->conditionscompletion;
+}
+
+$mform = new editsection_form($PAGE->url, array('course' => $course, 'editoroptions' => $editoroptions,
+        'cs' => $section, 'showavailability' => $section->showavailability));
 $mform->set_data($section); // set current value
+
+$returnurl = course_get_url($course, $sectionreturn);
 
 /// If data submitted, then process and store.
 if ($mform->is_cancelled()){
-    redirect($CFG->wwwroot.'/course/view.php?id='.$course->id);
+    redirect($returnurl);
 
 } else if ($data = $mform->get_data()) {
     if (empty($data->usedefaultname)) {
@@ -58,10 +75,24 @@ if ($mform->is_cancelled()){
     $data = file_postupdate_standard_editor($data, 'summary', $editoroptions, $context, 'course', 'section', $section->id);
     $section->summary = $data->summary;
     $section->summaryformat = $data->summaryformat;
+    if (!empty($CFG->enableavailability)) {
+        $section->availablefrom = $data->availablefrom;
+        $section->availableuntil = $data->availableuntil;
+        if (!empty($data->groupingid)) {
+            $section->groupingid = $data->groupingid;
+        }
+        $section->showavailability = $data->showavailability;
+    }
     $DB->update_record('course_sections', $section);
+    if (!empty($CFG->enableavailability)) {
+        // Update grade and completion conditions
+        condition_info_section::update_section_from_form($section, $data);
+    }
+    rebuild_course_cache($course->id);
+
     add_to_log($course->id, "course", "editsection", "editsection.php?id=$section->id", "$section->section");
     $PAGE->navigation->clear_cache();
-    redirect("view.php?id=$course->id");
+    redirect($returnurl);
 }
 
 $sectionname  = get_section_name($course, $section);

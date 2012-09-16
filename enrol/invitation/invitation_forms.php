@@ -28,6 +28,7 @@ require_once($CFG->dirroot . '/lib/enrollib.php');
 
 // required to get figure out roles
 require_once($CFG->dirroot . '/local/ucla/lib.php');
+require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/uclaroles/lib.php');
 
 /**
  * The mform class for sending invitation to enrol users in a course
@@ -56,27 +57,37 @@ class invitations_form extends moodleform {
         // set roles
         $mform->addElement('header', 'header_role', get_string('header_role', 'enrol_invitation'));
         
-        $roles = $this->get_appropiate_roles($course);
+        $site_roles = $this->get_appropiate_roles($course);
         $label = get_string('assignrole', 'enrol_invitation');
-        $role_group = array();
-        foreach ($roles as $role) {
-            $role_string = html_writer::tag('span', $role->name . ':', 
-                    array('class' => 'role-name'));
+        $role_group = array();        
+        foreach ($site_roles as $role_type => $roles) {          
+            $role_type_string = html_writer::tag('span', 
+                    get_string($role_type, 'tool_uclaroles'), 
+                    array('class' => 'role_type_header'));
+            $role_group[] = &$mform->createElement('static', 'role_type_header', 
+                    '', $role_type_string);            
             
-            // role description has a <hr> tag to separate out info for users
-            // and admins
-            $role_description = explode('<hr />', $role->description);
+            foreach ($roles as $role) {
+                $role_string = html_writer::tag('span', $role->name . ':', 
+                        array('class' => 'role-name'));
+
+                // role description has a <hr> tag to separate out info for users
+                // and admins
+                $role_description = explode('<hr />', $role->description);
+                
+                // need to clean html, because tinymce adds a lot of extra tags that mess up formatting
+                $role_description = $role_description[0];
+                // whitelist some formatting tags
+                $role_description = strip_tags($role_description, '<b><i><strong><ul><li><ol>');
             
-            $role_description = $role_description[0];
-            $role_description = strip_tags($role_description, '<b><i><strong>');
-            
-            $role_string .= ' ' . $role_description;
-            $role_group[] = &$mform->createElement('radio', 'roleid', '', 
-                    $role_string, $role->id);
+                $role_string .= ' ' . $role_description;
+                $role_group[] = &$mform->createElement('radio', 'roleid', '', 
+                        $role_string, $role->id);                
+            }
         }
         $mform->addGroup($role_group, 'role_group', $label, 
                 html_writer::empty_tag('br'));
-        $mform->addGroupRule('role_group', 
+        $mform->addRule('role_group', 
                 get_string('norole', 'enrol_invitation'), 'required');
         
         // email address field
@@ -97,7 +108,7 @@ class invitations_form extends moodleform {
         $mform->setDefault('subject', $default_subject);
         
         // message field
-        $mform->addElement('textarea', 'message', get_string('message', 'enrol_invitation'));
+        $mform->addElement('textarea', 'message', get_string('message', 'enrol_invitation'));  
         // put help text to show what default message invitee gets
         $mform->addHelpButton('message', 'message', 'enrol_invitation', 
                 get_string('message_help_link', 'enrol_invitation'));
@@ -132,56 +143,30 @@ class invitations_form extends moodleform {
      * course.
      * 
      * @param object $course    Course record
+     * 
+     * @return array            Returns array of roles indexed by role type
      */
     private function get_appropiate_roles($course) {
         global $CFG, $DB;
         $roles = array();
         
-        // project/research sites need to only use project roles
-        if (is_collab_site($course)) {
-            // see if site indicator is installed
-            $site_type = '';
-            $collab_site_indicator = dirname(__FILE__) . '/../../' . 
-                    $CFG->admin . '/tool/uclasiteindicator/lib.php';
-            if (file_exists($collab_site_indicator)) {
-                require($collab_site_indicator);
-                // try to get type
-                $siteindicator_site = siteindicator_site::load($course->id);
-                if (!empty($siteindicator_site)) {
-                    $site_type = $siteindicator_site->property->type;
-                }
-            }
-            
-            // figure out what roles to display
-            // See CCLE-2948/CCLE-2949/CCLE-2913/site indicator
-            switch ($site_type) {
-                case 'test':    
-                    $roles = array('editinginstructor', 'student', 'sa_1', 
-                                   'sa_2', 'sa_3', 'sa_4', 'sp_1', 'sp_2', 
-                                   'projectlead', 'projectcontributor', 
-                                   'projectparticipant', 'projectviewer');      
-                    break;
-                case 'instruction':
-                    $roles = array('editinginstructor', 'student', 'sa_1', 
-                                   'sa_2', 'sa_3', 'sa_4', 'sp_2');                    
-                    break;
-                default:    // default to project roles 
-                    $roles = array('projectlead', 'projectcontributor', 
-                                   'projectparticipant', 'projectviewer');     
-            }
-        } else {
-            $roles = array('sa_2', 'sa_3', 'sa_4', 'sp_1', 'sp_2');
-        }
+        $roles = uclaroles_manager::get_assignable_roles_by_courseid($course->id);
+        // convert to just an array of shortnames
+        $roles = array_keys($roles);
+        $roles = $DB->get_records_list('role', 'shortname', $roles, 'name');
+        
+        // sort roles into type
+        $roles = uclaroles_manager::orderby_role_type($roles);
         
         // now get role names and descriptions
-        return $DB->get_records_list('role', 'shortname', $roles, 'sortorder');        
+        return $roles;        
     }
     
     /*
      * Validate the email field here, rather than in definition, to allow 
      * multiple email addresses to be specified
      */
-    function validation($data) {
+    function validation($data, $files) {
         $errors = array();
         $delimiters = "/[;, \r\n]/";
         $email_list = invitations_form::parse_dsv_emails($data['email'], $delimiters);
@@ -189,6 +174,8 @@ class invitations_form extends moodleform {
         if ( empty($email_list) ) {
             $errors['email'] = get_string('err_email', 'form');
         }
+        
+        print_object($data);
         
         return $errors;
     }

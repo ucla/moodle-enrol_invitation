@@ -488,9 +488,8 @@ class ucla_courserequests {
 
         $requests = $this->validate_requests(null);
 
-        $maxsetid = reset($DB->get_record_sql(
-            'SELECT MAX(`setid`) FROM ' . '{' . $urc . '}'
-        ));
+        $result = $DB->get_record_sql('SELECT MAX(`setid`) FROM ' . '{' . $urc . '}');
+        $maxsetid = reset($result);
 
         // This stores all the statuses of the previously handled
         // results

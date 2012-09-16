@@ -29,7 +29,7 @@ class block_ucla_subject_links extends block_base {
     /**
      * Use UCLA Course menu block hook
      */
-    public function get_navigation_nodes($course) {
+    public static function get_navigation_nodes($course) {
         $subjname = self::get_subject_areas($course);
         $nodes = array();
         if (!empty($subjname)) {
@@ -68,7 +68,7 @@ class block_ucla_subject_links extends block_base {
         return false; // disables instance configuration
     }
 
-    public function get_subject_areas($course) {
+    public static function get_subject_areas($course) {
         $subjname = array();
         $courseinfo = ucla_get_course_info($course->id);
         if (!empty($courseinfo)) {
@@ -76,7 +76,8 @@ class block_ucla_subject_links extends block_base {
                 $subject = $cinfo->subj_area;
                 $subject = preg_replace('/-\s/', '', $subject);
                 $subject = strtoupper($subject); 
-                if (file_exists(self::get_location().$subject.'/index.htm')) {
+                if (!in_array($subject, $subjname) && 
+                        file_exists(self::get_location().$subject.'/index.htm')) {
                     $subjname[] = $subject;
                 }   
             }

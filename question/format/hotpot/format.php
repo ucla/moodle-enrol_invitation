@@ -28,7 +28,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot.'/mod/hotpot/locallib.php');
+if (file_exists($CFG->dirroot.'/mod/hotpot/locallib.php')) {
+    require_once($CFG->dirroot.'/mod/hotpot/locallib.php');
+}
 
 /**
  * qformat_hotpot
@@ -45,7 +47,10 @@ class qformat_hotpot extends qformat_default {
      * @return xxx
      */
     function provide_import()  {
-        return true;
+        global $CFG;
+        // disable import if the HotPot module does not exist
+        // because we need "mod/hotpot/locallib.php"
+        return file_exists($CFG->dirroot.'/mod/hotpot/locallib.php');
     }
 
     /**
@@ -89,9 +94,18 @@ class qformat_hotpot extends qformat_default {
             return false;
         }
 
-        require_once($CFG->dirroot.'/mod/hotpot/source/hp/6/'.$quiztype.'/xml/class.php');
+        $classfile = $CFG->dirroot.'/mod/hotpot/source/hp/6/'.$quiztype.'/xml/class.php';
+        if (! file_exists($classfile)) {
+            $this->error('HotPot import class file missing: '.$classfile);
+            return false;
+        }
+        require_once($classfile);
 
         $classname = 'hotpot_source_hp_6_'.$quiztype.'_xml';
+        if (! class_exists($classname)) {
+            $this->error('HotPot import class missing: '.$classname);
+            return false;
+        }
         $source = new $classname(implode($lines, ' '), $this);
 
         // build XML tree for this HotPot
@@ -494,6 +508,10 @@ class qformat_hotpot extends qformat_default {
                 $question->questiontext = $this->hotpot_prepare_str($text);
                 $question->questiontextformat = FORMAT_HTML;
 
+				// CONTRIB-3565: initialize generalfeedback to prevent "can't be null" errors on Oracle
+				$question->generalfeedback = '';
+                $question->generalfeedbackformat = FORMAT_HTML;
+
                 $type = $source->xml_value($tags, $question_record."['question-type'][0]['#']");
                 //  1 : multiple choice
                 //  2 : short-answer
@@ -651,8 +669,14 @@ class qformat_hotpot extends qformat_default {
      * @return xxx
      */
     function hotpot_prepare_str($str)  {
-        // convert html entities to unicode (should we add slashes?)
-        $textlib = textlib_get_instance();
-        return $textlib->entities_to_utf8($str, true);
+        // convert html entities to unicode
+
+        if (method_exists('textlib', 'textlib')) {
+            // Moodle 2.0 and 2.1
+            $textlib = textlib_get_instance();
+            return $textlib->entities_to_utf8($str, true);
+        }
+
+        return textlib::entities_to_utf8($str, true);
     }
 } // end class

@@ -483,4 +483,7 @@ $string["grade_posts"]="Posts";
 $string["grade_avg_length"]="Avg. Length";
 $string["grade_points"]="Grades";
 $string["grade_open_board"]="Open Voice Board";
+// START UCLA MOD: CCLE-3435-fix-editor-for-Moodle2.3
+$string['voicepresentation:addinstance'] = 'Add a new Voice Presentation';
+// END UCLA MOD: CCLE-3435-fix-editor-for-Moodle2.3
 ?>

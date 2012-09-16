@@ -47,7 +47,7 @@ if (isset($_SERVER['HTTP_SHIB_DISPLAYNAME'])) {
 $suffix = '';
 
 if (!empty($displayname)) {
-    $displaynameinfo = split(',', $displayname);
+    $displaynameinfo = explode(',', $displayname);
     if (isset($displaynameinfo[0])) {
         $result[$ln] = strtoupper($displaynameinfo[0]);
     }

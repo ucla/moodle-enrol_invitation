@@ -171,8 +171,17 @@ $CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 0;
 // Site administration > Courses > Course request
 $CFG->enablecourserequests = 1;
 
+// Site administration > Grades > General settings
+$CFG->recovergradesdefault = 1;
+
 // Site administration > Plugins > Activity modules > Assignment
 $CFG->assignment_maxbytes = 10485760;   // 100MB
+
+// Site administration > Plugins > Activity modules > Book
+$CFG->forced_plugin_settings['book']['requiremodintro'] = 0;
+
+// Site administration > Plugins > Activity modules > Blackboard Collaborate Session
+$CFG->elluminate_max_talkers = 2;
 
 // Site administration > Plugins > Activity modules > Folder
 $CFG->forced_plugin_settings['folder']['requiremodintro'] = 0;
@@ -195,9 +204,22 @@ $CFG->forced_plugin_settings['url']['displayoptions'] = '0,1,2,3,4,5,6';    // a
 $CFG->forced_plugin_settings['url']['printheading'] = 1;
 $CFG->forced_plugin_settings['url']['display'] = 3; // RESOURCELIB_DISPLAY_NEW
 
+// Site administration > Plugins > Assignment plugins > Submission plugins > File submissions
+$CFG->forced_plugin_settings['assignsubmission_file']['maxbytes'] = 10485760;
+
+// Site administration > Plugins > Assignment plugins > Feedback plugins > Feedback comments
+$CFG->forced_plugin_settings['assignfeedback_comments']['default'] = 1;
+
+// Site administration > Plugins > Assignment plugins > Feedback plugins > File feedback
+$CFG->forced_plugin_settings['assignfeedback_file']['default'] = 1;
+
 // Site administration > Plugins > Enrollments > Guest access
 $CFG->forced_plugin_settings['enrol_guest']['defaultenrol'] = 1;
 $CFG->forced_plugin_settings['enrol_guest']['status'] = 0;  // 0 is yes, 1 is no
+
+// Site administration > Plugins > Blocks > i>clicker Moodle integrate
+$CFG->forced_plugin_settings['block_iclicker']['block_iclicker_notify_emails'] = 'ccle-operations@lists.ucla.edu';
+$CFG->block_iclicker_notify_emails = 'ccle-operations@lists.ucla.edu';  // due to bad coding, two variables exist to do the same thing 
 
 // Site administration > Plugins > Licences > Manage licences
 $CFG->sitedefaultlicense = 'tbd';
@@ -246,6 +268,12 @@ $CFG->dbsessions = false;
 
 // Site administration > Server > Performance
 $CFG->extramemorylimit = '1024M';
+
+// Site administration > Server > Update notifications
+$CFG->updateautocheck = 0;
+
+// Site administration > Development > Experimental > Experimental settings
+$CFG->dndallowtextandlinks = 1;
 
 // If you want to have un-revisioned configuration data, place in config_private
 // $CFG->dirroot is overwritten later
