@@ -237,6 +237,9 @@ $CFG->forced_plugin_settings['url']['displayoptions'] = '0,1,2,3,4,5,6';    // a
 $CFG->forced_plugin_settings['url']['printheading'] = 1;
 $CFG->forced_plugin_settings['url']['display'] = 3; // RESOURCELIB_DISPLAY_NEW
 
+// Site administration > Plugins > Assignment plugins > Submission plugins > File submissions
+$CFG->forced_plugin_settings['assignsubmission_file']['maxbytes'] = 104857600;
+
 // Site administration > Plugins > Assignment plugins > Feedback plugins > Feedback comments
 $CFG->forced_plugin_settings['assignfeedback_comments']['default'] = 1;
 
