@@ -472,7 +472,7 @@ if (!empty($build_notes)) {
 
 foreach ($cached_forms as $gn => $group) {
     echo $OUTPUT->box_start('generalbox');
-    echo $OUTPUT->heading(get_string($gn, $rucr));
+    echo $OUTPUT->heading(get_string($gn, $rucr), 3);
 
     foreach ($group as $form) {
          $form->display();    
