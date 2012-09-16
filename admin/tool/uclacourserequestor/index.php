@@ -239,7 +239,7 @@ $processrequests = isset($uclacrqs) && !$uclacrqs->is_empty();
 if ($processrequests) {
     // This is the form data before the save
     $requestswitherrors = $uclacrqs->validate_requests($groupid);
-	if ($saverequeststates) {
+    if ($saverequeststates) {
         $successfuls = $uclacrqs->commit();
 
         // figure out changes that have occurred
@@ -248,9 +248,13 @@ if ($processrequests) {
                 $retcode = $successfuls[$setid];
                 $strid = ucla_courserequests::commit_flag_string($retcode);
 
+                $host_course = array();
                 $coursedescs = array();
                 foreach ($set as $course) {
                     $coursedescs[] = requestor_dept_course($course);
+                    if ($course['hostcourse']) {
+                        $host_course = $course;
+                    }
                 }
 
                 $coursedescstr = implode(' + ', $coursedescs);
@@ -275,6 +279,22 @@ if ($processrequests) {
                                     $fieldstrs[] = $actionstr 
                                     . make_idnumber($cl) . ' '
                                     . requestor_dept_course($cl);
+                                    
+                                    // update(remove) MyUCLA urls
+                                    if ($action == 'removed' && !empty($host_course)) {
+                                        
+                                        $idtermsrs = array(make_idnumber($host_course) => 
+                                            array('term' => $host_course['term'], 
+                                                'srs' => $host_course['srs'])
+                                            );
+                                        
+                                        $url_updater = new myucla_urlupdater();
+                                        $class_url = array_pop($url_updater->send_MyUCLA_urls($idtermsrs, false));
+                                        
+                                        if (strpos($class_url, $CFG->wwwroot) !== false) {
+                                            update_myucla_urls($cl['term'], $cl['srs'], '');
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -289,6 +309,38 @@ if ($processrequests) {
 
                         $changemessages[$setid] = "$retmess -- $fieldstr";
                     }
+                } else if ($retcode == ucla_courserequests::insertsuccess) {
+                    if ( isset($changed[$setid]['crosslists']['added']) ) {
+                        // Adding new crosslist courses
+                        // If we need to get the course from the registrar
+                        foreach ($changed[$setid]['crosslists']['added'] as $cross_course) {
+                            $c_term = $cross_course['term'];
+                            $c_srs = $cross_course['srs'];
+
+                            if ($cross_course['hostcourse'] == 0 && $cross_course['action'] == 'build') {
+                                crosslist_course_from_registrar($c_term, $c_srs);
+                            }
+                            
+                            // update MyUCLA urls for the newly updated crosslist
+                            if (!empty($host_course)) {
+                                $host_courseid = $host_course['courseid'];
+                                if ($host_course['nourlupdate'] == 0 && !empty($host_courseid)) {
+                                    $c_url = $CFG->wwwroot . "/course/view.php?id=$host_courseid";
+                                    update_myucla_urls($c_term, $c_srs, $c_url);
+                                }
+                            }
+                        }
+                    } else {
+                        // Adding in new courses
+                        // update MyUCLA urls
+                        foreach ($set as $new_course) {
+                            if ($new_course['nourlupdate'] == 0 && !empty($new_course['courseid'])) {
+                                $new_url = $CFG->wwwroot . '/course/view.php?id=' . $new_course['courseid'];
+                                update_myucla_urls($new_course['term'], $new_course['srs'], $new_url);
+                            }
+                        }
+                    }
+                    $changemessages[$setid] = $retmess;
                 } else {
                     $changemessages[$setid] = $retmess; 
                 }
@@ -542,7 +594,7 @@ if (!empty($requeststable->data)) {
             'value' => get_string('submit' . $groupid, $rucr),
             'class' => 'right'
         ));
-
+    
     echo html_writer::end_tag('form');
 }
 
