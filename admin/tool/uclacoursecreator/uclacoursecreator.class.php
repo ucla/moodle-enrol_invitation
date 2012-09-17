@@ -1161,7 +1161,7 @@ class uclacoursecreator {
             $newcourses[$reqkey] = $courseobj;
         }
 
-        $existingcourses = self::match_existings($newcourses, 
+        $existingcourses = $this->match_existings($newcourses, 
             'course', array('shortname'));
 
         foreach ($existingcourses as $eck => $existingcourse) {
@@ -1200,7 +1200,7 @@ class uclacoursecreator {
      *  @param  $fields     Fields that need to bee in each Obj
      *  @return Array( of Obj ) of entries in the database.
      **/
-    static function match_existings($runners, $table, $fields) {
+    function match_existings($runners, $table, $fields) {
         global $DB;
 
         $returns = array();
