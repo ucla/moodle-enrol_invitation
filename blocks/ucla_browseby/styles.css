@@ -88,3 +88,7 @@
     padding-left: 2px;
     display: inline-block;
 }
+
+.block_ucla_browseby.block_ucla_course_menu .header {
+    display: block
+}
