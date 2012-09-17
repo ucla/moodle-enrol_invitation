@@ -27,8 +27,9 @@
 }
 
 #page-enrol-invitation-invitation .role_type_header {
-    color: black;
+    color: #536895;
     font-weight: bold;
-    font-style: italic;
-    font-size: larger;
+    text-transform:uppercase;
+    border-bottom: 1px dotted #536895;
+    font-size: x-small;    
 }
