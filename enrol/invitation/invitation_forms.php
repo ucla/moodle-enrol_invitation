@@ -175,8 +175,6 @@ class invitations_form extends moodleform {
             $errors['email'] = get_string('err_email', 'form');
         }
         
-        print_object($data);
-        
         return $errors;
     }
     
