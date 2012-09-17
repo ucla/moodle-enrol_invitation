@@ -1108,7 +1108,7 @@ $string['mustchangepassword'] = 'The new password must be different than the cur
 $string['mycourses'] = 'My courses';
 // START UCLA MOD: CCLE-3470-Rename-private-files-to-my-ccle-files
 $string['myfiles'] = 'My CCLE files';
-$string['myfilesmanage'] = 'Manage my CCLE files';
+$string['myfilesmanage'] = 'Manage My CCLE files';
 //$string['myfiles'] = 'My private files';
 //$string['myfilesmanage'] = 'Manage my private files';
 // END UCLA MOD: CCLE-3470

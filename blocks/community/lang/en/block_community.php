@@ -51,7 +51,7 @@ $string['download'] = 'Download';
 $string['downloadable'] = 'courses I can download';
 $string['downloadablecourses'] = 'Downloadable courses';
 // START UCLA MOD: CCLE-3470-Rename-private-files-to-my-ccle-files
-$string['downloadconfirmed'] = 'The backup has been saved in your CCLE files {$a}';
+$string['downloadconfirmed'] = 'The backup has been saved in My CCLE files {$a}';
 //$string['downloadconfirmed'] = 'The backup has been saved in your private files {$a}';
 // END UCLA MOD: CCLE-3470
 $string['downloaded'] = '...finished.';

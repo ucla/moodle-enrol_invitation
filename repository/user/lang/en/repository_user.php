@@ -27,9 +27,9 @@
 $string['pluginname_help'] = 'Files in user private area';
 $string['emptyfilelist'] = 'There are no files to show';
 // START UCLA MOD: CCLE-3470-Rename-private-files-to-my-ccle-files
-$string['configplugin'] = 'Configuration for user CCLE files repository';
-$string['pluginname'] = 'CCLE files';
-$string['user:view'] = 'View user CCLE files';
+$string['configplugin'] = 'Configuration for user My CCLE files repository';
+$string['pluginname'] = 'My CCLE files';
+$string['user:view'] = 'View user My CCLE files';
 
 //$string['configplugin'] = 'Configuration for user private files repository';
 //$string['pluginname'] = 'Private files';
