@@ -13,6 +13,18 @@ class theme_uclashared_core_renderer extends core_renderer {
 
         return $this->sep;
     }
+    
+    /**
+     * Attaches the meta tag needed for mobile display support
+     * 
+     * @return string 
+     */
+    function standard_head_html() {
+        $out = parent::standard_head_html();
+        // Add mobile support
+        $out .= '<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;" />' . "\n";
+        return $out;
+    }
 
     /** 
      *  Displays what user you are logged in as, and if needed, along with the 
