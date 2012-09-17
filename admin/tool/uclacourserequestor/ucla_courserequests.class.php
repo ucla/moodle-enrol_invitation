@@ -558,7 +558,7 @@ class ucla_courserequests {
                 if ($key != $properhost) {
                     foreach ($set[$properhost] as $field => $val) {
                         // Skip hostcourse, instructor and id fields
-                        if (in_array($field, array('courseid', 'setid'))) {
+                        if (in_array($field, array('courseid', 'setid', 'action'))) {
                             $request[$field] = $val;
                         }
                     }

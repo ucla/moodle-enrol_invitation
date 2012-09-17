@@ -289,7 +289,8 @@ if ($processrequests) {
                                             );
                                         
                                         $url_updater = new myucla_urlupdater();
-                                        $class_url = array_pop($url_updater->send_MyUCLA_urls($idtermsrs, false));
+                                        $results = $url_updater->send_MyUCLA_urls($idtermsrs, false);
+                                        $class_url = array_pop($results);
                                         
                                         if (strpos($class_url, $CFG->wwwroot) !== false) {
                                             update_myucla_urls($cl['term'], $cl['srs'], '');
