@@ -334,7 +334,7 @@ h2.main {
 .admin table tr th.header,
 .path-report-rolescapabilities table tr th {
     background-color: #697F55 !important;
-    color: #FFF;
+    color: #FFF !important;
     border: 2px solid #697F55;
     border-bottom-color: #111;
 }
