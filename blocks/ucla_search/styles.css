@@ -9,10 +9,14 @@
     margin-left: 5px;
 }
 #as-search-wrapper #advanced-search {
-    width: 158px;
+    width: 100%;
+    -webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
+
 }
 #as-search-wrapper {
-    border: 1px solid #D1DBEF;
+/*    border: 1px solid #D1DBEF;*/
     float: left;
     width: 100%;
     display: none;
@@ -31,7 +35,7 @@
     border: 0;
 }
 #as-search-wrapper .yui3-aclist-input {
-    font-size: 14px;
+    font-size: 1.2em;
     color: #555555;
     padding: 6px;
     border: 4px solid #DFE7F4;
@@ -58,17 +62,18 @@
 }
 #as-search-wrapper-page .as-search-result-shortname,
 #as-search-wrapper .as-search-result-shortname {
-    font-size: 10pt;
+    font-size: 1.0em;
     font-weight: bold;
 }
 #as-search-wrapper-page .as-search-result-fullname,
 #as-search-wrapper .as-search-result-fullname {
-    line-height: 10pt;
+    line-height: 1.0em;
+    font-size: 1.0em;
 }
 #as-search-wrapper-page .as-search-result-summary,
 #as-search-wrapper .as-search-result-summary {
-    line-height: 9pt;
-    font-size: 9pt;
+    line-height: 1em;
+    font-size: 1em;
     color: #555555;
     padding-top: 4px;
 }
@@ -84,7 +89,7 @@
     display: block;
 }
 .yui3-skin-sam-autocomplete .region-content {
-    min-height: 500px;
+/*    min-height: 500px;*/
 }
 #coursesearch2 {
     padding: 5px;
@@ -121,7 +126,10 @@
     color: #555555;
     padding: 6px;
     border: 4px solid #EEE;
-    width: 70%;
+    width: 100%;
+    -webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
 }
 
 #as-search-wrapper-page .yui3-aclist-item {

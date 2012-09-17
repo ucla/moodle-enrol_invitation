@@ -208,4 +208,38 @@ only screen and (min-width: 480px) and (max-width: 767px) {
         width: 90%;
     }
 
+    /* 
+        ADVANCED SEARCH 
+    
+        Make font-size larger for searchbox and results list
+    */
+    #as-search-wrapper .yui3-aclist-input {
+        font-size: 1.4em;
+    }
+    #as-search-wrapper-page .as-search-result-shortname,
+    #as-search-wrapper .as-search-result-shortname {
+        font-size: 1.2em;
+        font-weight: bold;
+    }
+    #as-search-wrapper-page .as-search-result-fullname,
+    #as-search-wrapper .as-search-result-fullname {
+        line-height: 1.2em;
+        font-size: 1.2em;
+    }
+    #as-search-wrapper-page .as-search-result-summary,
+    #as-search-wrapper .as-search-result-summary {
+        line-height: 1.1em;
+        font-size: 1.1em;
+        color: #555555;
+        padding-top: 4px;
+    }
+    .as-collab-checkbox {
+        font-size: 1.2em;
+    }
+    .as-collab-checkbox br {
+        display: none;
+    }
+    .as-collab-checkbox input {
+        margin-left: 10px;
+    }
 }
