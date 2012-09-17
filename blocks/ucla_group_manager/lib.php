@@ -88,14 +88,13 @@ class ucla_group_manager {
                 $indexedrequestroster[] = 
                     $enrol->translate_ccle_roster_class($student);
             }
-
+            
+            $reqobj = new stdclass();
             $reqobj->roster = $indexedrequestroster;
             $reqidnumber = make_idnumber($reqarr);
             echo "* $reqidnumber has " . count($indexedrequestroster) 
                 . " students.\n";
 
-
-            $reqobj = new stdclass();
             $reqarr['courseid'] = $courseid;
             $reqobj->courseinfo = $reqarr;
 
