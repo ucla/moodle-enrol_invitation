@@ -125,6 +125,7 @@ $string['all_by_course'] = 'All items for current term list by course';
 $string['all_by_instructor'] = 'All items for current term list by instructor (across all their courses)';
 $string['all_by_division'] = 'All items for current term list by division(which can be expressed in aggregate numbers for each status)';
 $string['all_by_course_subj'] = 'All items for current term list by course group by subject area (which can be expressed in aggregate numbers for each status)';
+$string['all_by_course_div'] = 'All items for current term list by course group by division and subject area (which can be expressed in aggregate numbers for each status)';
 $string['all_ccle'] = 'Details of all items within CCLE';
 $string['all_by_quarter'] = 'Details of all items by quarter';
 $string['all_by_academic_yr'] = 'Details of all items by academic year';
@@ -140,6 +141,9 @@ $string['class_shortdesc'] = "Description";
 $string['total_files'] = "Total files";
 $string['instructor_name'] = "Instructor";
 $string['file_name'] = 'File name';
+$string['subj_text'] = 'SUBTOTAL FOR subject area ';
+$string['div_text'] = 'SUBTOTAL FOR division ';
+
 
 
 // button

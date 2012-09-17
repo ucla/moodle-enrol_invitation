@@ -18,7 +18,7 @@ $baseurl = $CFG->wwwroot . '/' . $CFG->admin . '/tool/uclacopyrightstatusreports
 $filter_term = optional_param('term', $CFG->currentterm, PARAM_TEXT);
 $filter_instr_uid = optional_param('filter_instr_uid', '', PARAM_TEXT);
 $filter_subj = optional_param('filter_subj','', PARAM_TEXT);
-
+$filter_div = optional_param('filter_div','', PARAM_TEXT);
 
 require_login();
 
@@ -42,8 +42,8 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('all_filter', 'tool_uclacopyrightstatusreports'), 2, 'headingblock');
 echo html_writer::link($baseurl . '/index.php', get_string('mainmenu', 'tool_uclacopyrightstatusreports'));
 
-
-$subj_list = get_subjarea($filter_term);
+$div_list = get_division();
+$subj_list = get_subjarea();
 $term_list = get_terms();
 $instr_list = get_instructors_list_by_term($filter_term);
 
@@ -51,18 +51,23 @@ $instr_list = get_instructors_list_by_term($filter_term);
 echo html_writer::start_tag('div', array('id' => 'tool_uclacopyrightstatusreports_filter'));
 
 $PAGE->set_url($thisdir . 'report/all_by_course_subj.php');
-echo html_writer::start_tag('form', array('id'=>'tool_uclacopyrightstatusreports_course_form', 'action'=>$PAGE->url->out(), 'method'=>'post'));
-echo html_writer::select($subj_list, 'filter_subj', $filter_subj, array(''=>'Choose subject area'), array('id'=>'tool_uclacopyrightstatusreports_id_filter_subj'));
+echo html_writer::start_tag('form', array('id'=>'tool_uclacopyrightstatusreports_course_div_form', 'action'=>$PAGE->url->out(), 'method'=>'post'));
+echo html_writer::select($div_list, 'filter_div', $filter_div, array(''=>'Choose division'), array('id'=>'tool_uclacopyrightstatusreports_id_filter_div'));
 echo html_writer::select($term_list, 'filter_term', $filter_term, false, array('id'=>'tool_uclacopyrightstatusreports_id_filter_term_subj'));
-//$PAGE->requires->js_init_call('M.util.init_select_autosubmit', array('tool_uclacopyrightstatusreports_form', 'tool_uclacopyrightstatusreports_id_filter_instr', ''));
 echo html_writer::empty_tag('input', array('id' => 'tool_uclacopyrightstatusreports_btn2', 'name' => 'course', 'value' => get_string('course_button',
                             'tool_uclacopyrightstatusreports'), 'type' => 'submit'));
 echo html_writer::end_tag('form');
 
-
+$PAGE->set_url($thisdir . 'report/all_by_course_subj.php');
+echo html_writer::start_tag('form', array('id'=>'tool_uclacopyrightstatusreports_course_subj_form', 'action'=>$PAGE->url->out(), 'method'=>'post'));
+echo html_writer::select($subj_list, 'filter_subj', $filter_subj, array(''=>'Choose subject area'), array('id'=>'tool_uclacopyrightstatusreports_id_filter_subj'));
+echo html_writer::select($term_list, 'filter_term', $filter_term, false, array('id'=>'tool_uclacopyrightstatusreports_id_filter_term_subj'));
+echo html_writer::empty_tag('input', array('id' => 'tool_uclacopyrightstatusreports_btn2', 'name' => 'course', 'value' => get_string('course_button',
+                            'tool_uclacopyrightstatusreports'), 'type' => 'submit'));
+echo html_writer::end_tag('form');
 
 $PAGE->set_url($thisdir . 'report/all_by_instructor.php');
-echo html_writer::start_tag('form', array('id'=>'tool_uclacopyrightstatusreports_form', 'action'=>$PAGE->url->out(), 'method'=>'post'));
+echo html_writer::start_tag('form', array('id'=>'tool_uclacopyrightstatusreports_instructor_form', 'action'=>$PAGE->url->out(), 'method'=>'post'));
 echo html_writer::select($instr_list, 'filter_instructor', $filter_instr_uid, array(''=>'Choose instructor'), array('id'=>'tool_uclacopyrightstatusreports_id_filter_instr'));
 echo html_writer::select($term_list, 'filter_term', $filter_term, false, array('id'=>'tool_uclacopyrightstatusreports_id_filter_term'));
 echo html_writer::empty_tag('input', array('id' => 'tool_uclacopyrightstatusreports_btn1', 'name' => 'instr', 'value' => get_string('instr_button',

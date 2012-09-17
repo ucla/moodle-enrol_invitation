@@ -51,7 +51,7 @@ echo html_writer::tag('p', get_string('reports_intro', 'tool_uclacopyrightstatus
 $report_types = array(
     'all_by_course',
     'all_by_instructor',
-    'all_by_division',
+    'all_by_course_div',
     'all_by_course_subj',
     'all_ccle',
     'all_by_quarter',

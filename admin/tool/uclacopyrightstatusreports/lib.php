@@ -61,6 +61,20 @@ function get_subjarea(){
     return $subj_list;
 }
 
+/**
+* get division
+**/
+
+function get_division(){
+    global $DB;
+    $div_list = array();
+    $result=$DB->get_records('ucla_reg_division', null, 'code');
+    foreach ($result as $item){
+        $div_list[$item->code]=$item->fullname;
+    }
+    return $div_list;
+}
+
 
 /**
 * get class by subj area
@@ -93,10 +107,13 @@ function get_copyright_list_by_course_subj(&$param){
 **/
 function get_copyright_list_by_division(&$param){
     global $DB;
-    $course_div_list = array();
-    $sql = 'SELECT rc.*, bc.*
+	$course_list_div = array();
+    $sql = 'SELECT rc.*, bc.*, reg.division, reg.subj_area, di.fullname, subj.subj_area_full
     FROM {ucla_request_classes} rc
-    INNER JOIN {ucla_browseall_classinfo} bc ON bc.term = rc.term and bc.srs = rc.srs';
+    INNER JOIN {ucla_browseall_classinfo} bc ON bc.term = rc.term and bc.srs = rc.srs
+	INNER JOIN {ucla_reg_classinfo} reg on reg.srs=bc.srs and reg.term=bc.term
+	INNER JOIN {ucla_reg_division} di on di.code=reg.division
+	INNER JOIN {ucla_reg_subjectarea} subj on subj.subjarea=reg.subj_area';
     if ($param['term']&&!$param['subj']){
         $sql .=' WHERE rc.term = \''. $param['term'] . '\'';
     }
@@ -108,16 +125,11 @@ function get_copyright_list_by_division(&$param){
     }
     $sql .= '   ORDER BY bc.subjarea, bc.course, bc.section';
     $result = $DB->get_records_sql($sql);
-    foreach ($result as $row){
-		// get division
-		$div_row = array();
-		$div_row = get_course_info_from_registrar($param['term'], $row->srs);
-        $course_div_list['s'.$row->courseid] = $div_row;
-    }
-    return $course_div_list;
+	foreach ($result as $row){
+		$course_list_div[$row->division][$row->subj_area][]=$row;
+	}
+	return $course_list_div;
 }
-
-
 
 function get_classes_by_term($term){
     global $DB;
