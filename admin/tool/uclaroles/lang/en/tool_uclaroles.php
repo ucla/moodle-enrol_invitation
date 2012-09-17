@@ -28,6 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 
 // Plugin
 $string['pluginname'] = 'UCLA roles';
+$string['uclaroles:view'] = 'Ability to view UCLA roles report';
 
 // admin tool reports
 $string['reports_heading'] = 'Reports';
