@@ -23,13 +23,16 @@ $string['r_instruction'] = 'Instruction';
 $string['r_test'] = 'Test';
 
 // Site descriptions
-$string['site_instruction'] = 'Instruction';
-$string['site_instruction_desc'] = 'An instruction site that is not listed at 
-    the registrar.';
+$string['site_instruction'] = 'Instruction (IEI related)';
+$string['site_instruction_desc'] = 'A site that is related 
+        to courses offered at UCLA and provide units toward a degree';
+$string['site_instruction_niei'] = 'Instruction (non IEI related)';
+$string['site_instruction_niei_desc'] = 'An instruction site that is not IEI
+        related.';
 $string['site_non_instruction'] = 'Non-Instruction';
 $string['site_non_instruction_desc'] = 'A collaboration site.';
 $string['site_research'] = 'Research';
-$string['site_research_desc'] = 'A research collaboration site';
+$string['site_research_desc'] = 'A collaboration site primarily focused on research.';
 $string['site_test'] = 'Test';
 $string['site_test_desc'] = 'A temporary test site.';
 $string['site_registrar'] = 'Instruction (listed at Registrar)';

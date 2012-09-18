@@ -286,7 +286,8 @@ class siteindicator_request {
  */
 class siteindicator_manager {
     /* CONSTANTS */
-    const SITE_TYPE_INSTRUCTION = 'instruction';
+    const SITE_TYPE_INSTRUCTION = 'instruction';            // IEI instruction 
+    const SITE_TYPE_INSTRUCTION_NIEI = 'instruction_niei';  // Non-IEI instruction
     const SITE_TYPE_NON_INSTRUCTION = 'non_instruction';
     const SITE_TYPE_RESEARCH = 'research';
     const SITE_TYPE_TEST = 'test';
@@ -311,8 +312,6 @@ class siteindicator_manager {
     // A role re-map scheme used when a site changes type
     private $_role_remap;
     
-    private $_types;
-    
     static $types = array();
     
     function __construct() {
@@ -322,17 +321,20 @@ class siteindicator_manager {
         
         $this->_indicator_rolegroups = array(
             self::SITE_GROUP_TYPE_INSTRUCTION => get_string('r_instruction', 'tool_uclasiteindicator'),
+            self::SITE_TYPE_INSTRUCTION_NIEI => get_string('r_instruction', 'tool_uclasiteindicator'),
             self::SITE_GROUP_TYPE_PROJECT => get_string('r_project', 'tool_uclasiteindicator'),
             self::SITE_GROUP_TYPE_TEST => get_string('r_test', 'tool_uclasiteindicator'),
             );
         
         // Supported site types:
-        //   Instruction
+        //   Instruction (IEI)
+        //   Instruction (Non-IEI)
         //   Non-Instruction
         //   Research
         //   Test
         $this->_type_to_rolegroup_mapping = array(
             self::SITE_TYPE_INSTRUCTION => self::SITE_GROUP_TYPE_INSTRUCTION,
+            self::SITE_TYPE_INSTRUCTION_NIEI => self::SITE_GROUP_TYPE_INSTRUCTION,
             self::SITE_TYPE_NON_INSTRUCTION => self::SITE_GROUP_TYPE_PROJECT,
             self::SITE_TYPE_RESEARCH => self::SITE_GROUP_TYPE_PROJECT,
             self::SITE_TYPE_TEST => self::SITE_GROUP_TYPE_TEST,
@@ -457,6 +459,11 @@ class siteindicator_manager {
                     'shortname' => self::SITE_TYPE_INSTRUCTION,
                     'fullname' => get_string('site_instruction', 'tool_uclasiteindicator'),
                     'description' => get_string('site_instruction_desc', 'tool_uclasiteindicator'),
+                    ),
+                self::SITE_TYPE_INSTRUCTION_NIEI => array(
+                    'shortname' => self::SITE_TYPE_INSTRUCTION_NIEI,
+                    'fullname' => get_string('site_instruction_niei', 'tool_uclasiteindicator'),
+                    'description' => get_string('site_instruction_niei_desc', 'tool_uclasiteindicator'),
                     ),
                 self::SITE_TYPE_NON_INSTRUCTION => array(
                     'shortname' => self::SITE_TYPE_NON_INSTRUCTION,
