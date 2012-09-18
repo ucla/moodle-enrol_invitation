@@ -33,25 +33,26 @@ abstract class registrar_query {
     /**
      *  @param  $queryname - The name of the stored procedure.
      *  @param  $data   - The data to pass into stored procedure.
-     *  @param  $ignorebad - Changes the return values.
+     *  @param  $filtered - Default true. If false, then will make sure result
+     *                      includes bad data 
      *  @return Array ( Array( results ) )
      *  @return Array (
      *      'good' => array( Good data ),
      *      'bad'  => array( Bad data,  might be empty )
-     *  ) if $ignorebad == false
+     *  ) if $unfiltered == false
      *  @return false if the input does not validate
      *  @throws registrar_query_exception if no stored procedure
      *      wrapper class is found
      **/
-    static function run_registrar_query($queryname, $data, $ignorebad=true) {
+    static function run_registrar_query($queryname, $data, $filtered=true) {
         $rq = self::get_registrar_query(strtolower($queryname));
         if (!$rq) {
             return false;
         }
 
-        $rt = $rq->retrieve_registrar_info($data);
+        $rt = $rq->retrieve_registrar_info($data, $filtered);
 
-        if ($ignorebad) {
+        if ($filtered) {
             return $rt;
         }
 
@@ -65,11 +66,12 @@ abstract class registrar_query {
      *  This function will utilize the ODBC connection and retrieve data.
      *
      *  @param $driving_data The data to run a set of queries on.
+     *  @param  $filtered Not used in base class. Passed by run_registrar_query
      *  @return Array( Array( ) )
      *      false - indicates bad input
      *      empty array() - indicates good input, but no results
      **/
-    function retrieve_registrar_info($driving_data) {
+    function retrieve_registrar_info($driving_data, $filtered=true) {
         $direct_data = array();
 
         try {

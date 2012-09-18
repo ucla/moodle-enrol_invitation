@@ -456,7 +456,7 @@ if ($displayforms) {
 
         $sectionhtml .= supportconsole_render_section_shortcut($title, $usercourses, $uid);
     } else {
-        $sectionhtml .= $OUTPUT->box($OUTPUT->heading($title, 2));
+        $sectionhtml .= $OUTPUT->box($OUTPUT->heading($title, 3));
         $sectionhtml .= 'Invalid UID: [' . $uid . ']';
     }
 }
@@ -518,7 +518,11 @@ foreach ($qs as $query) {
             }
         }
         
-        $results = registrar_query::run_registrar_query($query, $params);
+                
+        // get all data, even bad, and uncached
+        $results = registrar_query::run_registrar_query($query, $params, false);
+        
+        $results = array_merge($results[registrar_query::query_results], $results[registrar_query::failed_outputs]);
         
         $sectionhtml .= supportconsole_render_section_shortcut($title, 
             $results, $params);

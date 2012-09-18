@@ -38,14 +38,21 @@ abstract class registrar_cacheable_stored_procedure extends registrar_stored_pro
      * registrar.
      *
      *  @param $driving_data The data to run a set of queries on.
+     *  @param  $cached Default true. If false, then will return uncached data
      *  @return Array( Array( ) )
      *      false - indicates bad input
      *      empty array() - indicates good input, but no results
      **/    
-    function retrieve_registrar_info($driving_data) {
+    function retrieve_registrar_info($driving_data, $cached=true) {
         global $DB;
         $query_params = array();    // store values to pass into $DB object
         $results = array();         // results to return
+        
+        // see if caching is turned off
+        if (!$cached) {
+            // just call parent
+            return parent::retrieve_registrar_info($driving_data);
+        }
         
         // get information and parameters for this call
         $storedproc_cache = $this->get_stored_procedure() . '_cache';      
