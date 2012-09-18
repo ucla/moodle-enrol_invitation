@@ -41,3 +41,22 @@ $alerts = $cntlr->getMessages(iclicker_controller::KEY_ERROR);
     </ul>
 </div>
 <?php } ?>
+
+<?php
+    // START UCLA MOD: CCLE-2203 - i>clicker integration
+    // add links to download UCLA specific i>clicker version    
+    if (basename($_SERVER['PHP_SELF']) != 'registration.php') {
+        // do not display on remote registration page
+        echo $OUTPUT->box_start('noticebox');
+        echo html_writer::tag('span', 'Download UCLA version of the i>clicker software:');
+        $packages = array('Win' => 'Windows version', 'Mac' => 'Mac version');
+        foreach ($packages as $package => $description) {
+            $packages[$package] = html_writer::link(
+                    new moodle_url(sprintf('/blocks/iclicker/files/CCLE Shared server - iclicker (%s).zip', 
+                            $package)), $description);     
+        }            
+        echo html_writer::alist($packages);
+        echo $OUTPUT->box_end();    
+    }
+    // END UCLA MOD: CCLE-2203
+?>
