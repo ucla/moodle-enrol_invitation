@@ -69,6 +69,13 @@
 	        $currentgroup = 0;
 	    }
 	}
+        
+    // START UCLA MOD: CCLE-2966 - Replace Elluminate with Blackboard Web Conferencing
+    // fixing bug in which empty description was causing errors when adding a moderator
+    if (!isset($elluminate->description)) {
+        $elluminate->description = '';
+    }
+    // END UCLA MOD: CCLE-2966
 
 /// Process data submission.
     if (($data = data_submitted($CFG->wwwroot . '/mod/elluminate/moderators.php')) && confirm_sesskey()) {
