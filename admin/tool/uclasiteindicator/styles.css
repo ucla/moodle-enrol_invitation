@@ -90,3 +90,7 @@ body.jsenabled #ac_input {
 .yui3-aclist-item-active .yui3-highlight {
     background-color: #1a6cf3;
 }
+
+#uclasiteindicator .fstaticlabel {
+    font-weight: bold;
+}
