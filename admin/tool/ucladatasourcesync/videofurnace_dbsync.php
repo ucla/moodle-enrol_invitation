@@ -264,7 +264,6 @@ function fix_data_format(&$row) {
     $data_object['instructor'] = $row[5];
     $data_object['video_title'] = $row[6];
     $data_object['video_url'] = $row[7];
-    $data_object['_del_flag'] = 0;
 
     // find related course
     // TODO: handle DIS srs numbers
