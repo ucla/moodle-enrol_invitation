@@ -26,7 +26,8 @@ br.clear-responsive-right {
 /* Media Queries */
 
 @media only screen and (max-width: 480px),
-only screen and (min-width: 480px) and (max-width: 767px) {
+only screen and (min-width: 480px) and (max-width: 767px),
+only screen and (min-device-width:768px) and (max-device-width:1024px) and (-webkit-min-device-pixel-ratio:0) {
 
     /* FRONT PAGE ADJUSTMENTS */
     .introbanner {
