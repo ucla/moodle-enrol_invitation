@@ -15,7 +15,7 @@ $string['site'] = 'site';
 $string['del_msg'] = 'Site indicator entry';
 $string['change'] = 'Change site type';
 $string['sitecreate'] = 'Create site indicator';
-$string['no_indicator_type'] = 'Please choose a site type below';
+$string['no_indicator_type'] = 'Please choose a site type below:';
 
 // Site role groups
 $string['r_project'] = 'Project';
@@ -23,15 +23,16 @@ $string['r_instruction'] = 'Instruction';
 $string['r_test'] = 'Test';
 
 // Site descriptions
-$string['site_instruction'] = 'Instruction';
-$string['site_instruction_desc'] = 'An instruction site that is not listed at 
-    the registrar.';
-$string['site_non_instruction'] = 'Non-Instruction';
-$string['site_non_instruction_desc'] = 'A collaboration site.';
+$string['site_instruction'] = 'Instruction (IEI-related)';
+$string['site_instruction_desc'] = 'instructional sites that supplement or support work being done toward the completion of a UCLA degree.';
+$string['site_instruction_noniei'] = 'Instruction (non-IEI-related)';
+$string['site_instruction_noniei_desc'] = 'instructional sites that do not contribute toward the completion of a UCLA degree.';
+$string['site_non_instruction'] = 'Other';
+$string['site_non_instruction_desc'] = 'collaboration sites used for administering or managing campus groups, organizing specific events (short-term or long-term), training etc.';
 $string['site_research'] = 'Research';
-$string['site_research_desc'] = 'A research collaboration site';
+$string['site_research_desc'] = 'collaboration sites primarily focused on research.';
 $string['site_test'] = 'Test';
-$string['site_test_desc'] = 'A temporary test site.';
+$string['site_test_desc'] = 'temporary sites used to evaluate CCLE/Moodle functionality and features.';
 $string['site_registrar'] = 'Instruction (listed at Registrar)';
 $string['site_registrar_desc'] = 'An instruction site with an SRS number that is listed at the registrar';
 $string['notype'] = 'This site has no type';
