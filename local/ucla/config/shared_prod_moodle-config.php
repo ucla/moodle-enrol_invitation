@@ -172,6 +172,9 @@ $CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 0;
 // Site administration > Courses > Course request
 $CFG->enablecourserequests = 1;
 
+// Site administration > Courses > Backups > General backup defaults
+$CFG->forced_plugin_settings['backup']['backup_general_users'] = 0;
+
 // Site administration > Grades > General settings
 $CFG->recovergradesdefault = 1;
 
