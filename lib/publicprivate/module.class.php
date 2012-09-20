@@ -233,5 +233,3 @@ class PublicPrivate_Module {
         return $this->_course_module_obj;
     }
 }
-
-?>

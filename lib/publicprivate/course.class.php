@@ -582,5 +582,3 @@ class PublicPrivate_Course {
         }
     }
 }
-
-?>
