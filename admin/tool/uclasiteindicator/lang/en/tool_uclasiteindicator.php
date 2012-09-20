@@ -23,12 +23,12 @@ $string['r_instruction'] = 'Instruction';
 $string['r_test'] = 'Test';
 
 // Site descriptions
-$string['site_instruction'] = 'Instruction (IEI-related)';
+$string['site_instruction'] = 'Instruction (degree-related)';
 $string['site_instruction_desc'] = 'instructional sites that supplement or support work being done toward the completion of a UCLA degree.';
-$string['site_instruction_noniei'] = 'Instruction (non-IEI-related)';
+$string['site_instruction_noniei'] = 'Instruction (non-degree-related)';
 $string['site_instruction_noniei_desc'] = 'instructional sites that do not contribute toward the completion of a UCLA degree.';
 $string['site_non_instruction'] = 'Other';
-$string['site_non_instruction_desc'] = 'collaboration sites used for administering or managing campus groups, organizing specific events (short-term or long-term), training etc.';
+$string['site_non_instruction_desc'] = 'collaboration sites used for administering or managing campus groups, organizing specific events (short-term or long-term), training, etc.';
 $string['site_research'] = 'Research';
 $string['site_research_desc'] = 'collaboration sites primarily focused on research.';
 $string['site_test'] = 'Test';
