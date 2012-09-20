@@ -45,11 +45,11 @@ function define_data_source() {
     $ret_val[] = array('name' => 'restricted',
         'type' => 'string',
         'min_size' => '0',
-        'max_size' => '20');
+        'max_size' => '12');
     $ret_val[] = array('name' => 'bruincast_url',
         'type' => 'url',
         'min_size' => '1',
-        'max_size' => '400');
+        'max_size' => '255');
     return $ret_val;
 }
 

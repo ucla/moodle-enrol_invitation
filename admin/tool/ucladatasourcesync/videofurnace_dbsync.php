@@ -31,28 +31,28 @@ function define_data_source() {
                         'max_size' => '9');
     $ret_val[] = array('name' => 'start_date',
                         'type' => 'date_slashed',
-                        'min_size' => '10',
+                        'min_size' => '6',
                         'max_size' => '10');
     $ret_val[] = array('name' => 'stop_date',
                         'type' => 'date_slashed',
-                        'min_size' => '10',
+                        'min_size' => '6',
                         'max_size' => '10');
     $ret_val[] = array('name' => 'class',
                         'type' => 'string',
                         'min_size' => '0',
-                        'max_size' => '50');
+                        'max_size' => '150');
     $ret_val[] = array('name' => 'instructor',
                         'type' => 'string',
                         'min_size' => '0',
-                        'max_size' => '100');
+                        'max_size' => '30');
     $ret_val[] = array('name' => 'video_title',
                         'type' => 'string',
                         'min_size' => '0',
-                        'max_size' => '40');
+                        'max_size' => '200');
     $ret_val[] = array('name' => 'video_url',
                         'type' => 'url',
                         'min_size' => '1',
-                        'max_size' => '400');
+                        'max_size' => '255');
     return $ret_val;
 }
 /**

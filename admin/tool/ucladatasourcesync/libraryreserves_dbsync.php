@@ -60,7 +60,7 @@ function define_data_source() {
     $ret_val[] = array('name' => 'department_name',
                         'type' => 'string',
                         'min_size' => '0',
-                        'max_size' => '50');
+                        'max_size' => '40');
     $ret_val[] = array('name' => 'instructor_last_name',
                         'type' => 'string',
                         'min_size' => '0',
@@ -75,11 +75,11 @@ function define_data_source() {
                         'max_size' => '40');
     $ret_val[] = array('name' => 'list_effective_date',
                         'type' => 'date_dashed',
-                        'min_size' => '10',
+                        'min_size' => '6',
                         'max_size' => '10');
     $ret_val[] = array('name' => 'list_ending_date',
                         'type' => 'date_dashed',
-                        'min_size' => '10',
+                        'min_size' => '6',
                         'max_size' => '10');
     $ret_val[] = array('name' => 'url',
                         'type' => 'url',
