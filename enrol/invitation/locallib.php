@@ -74,6 +74,44 @@ class invitation_manager {
 
         return $link;
     }
+    
+    /**
+     * Helper function to get privacy notice for project sites.
+     * 
+     * @global type $CFG
+     * 
+     * @param int $courseid
+     * @param boolean $html_format
+     * 
+     * @return string       Returns null if there is no privacy notice
+     */
+    public static function get_project_privacy_notice($courseid, $html_format=false) {
+        global $CFG;
+        require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/uclasiteindicator/lib.php');
+        $ret_val = null;
+        
+        // get current course's site type group
+        try {
+            $siteindicator_site = new siteindicator_site($courseid);
+            $site_type = $siteindicator_site->property->type;
+            $siteindicator_manager = new siteindicator_manager();
+            $site_type_group = $siteindicator_manager->get_rolegroup_for_type($site_type);
+            
+            // if site type group is project, then return some notice
+            if ($site_type_group == siteindicator_manager::SITE_GROUP_TYPE_PROJECT) {
+                if ($html_format) {
+                    $ret_val = html_writer::tag('p', 
+                            get_string('project_privacy_notice', 'enrol_invitation'));
+                } else {
+                    $ret_val = "\n\n" . get_string('project_privacy_notice', 'enrol_invitation');                   
+                }
+            }            
+        } catch (Exception $e) {
+            // throws exception if no site type found
+        }
+        
+        return $ret_val;
+    }    
 
     /**
      * Send invitation (create a unique token for each of them)
@@ -146,7 +184,15 @@ class invitation_manager {
                 $message_params->expiration = date('M j, Y g:ia', $invitation->timeexpiration);
                 $inviteurl =  new moodle_url('/enrol/invitation/enrol.php', 
                                 array('token' => $token));
-                $message_params->inviteurl = $inviteurl->out(false);
+                $inviteurl = $inviteurl->out(false);
+                
+                // append privacy notice, if needed
+                $privacy_notice = $this->get_project_privacy_notice($course->id, false);
+                if (!empty($privacy_notice)) {
+                    $inviteurl .= $privacy_notice;
+                }
+                
+                $message_params->inviteurl = $inviteurl;
                 $message_params->supportemail = $CFG->supportemail;
                 $message .= get_string('emailmsgtxt', 'enrol_invitation', $message_params);
 

@@ -195,6 +195,10 @@ class restore_controller extends backup implements loggable {
             // If the operation has ended without error (backup::STATUS_FINISHED_OK)
             // proceed by cleaning the object from database. MDL-29262.
             $this->save_controller(false, true);
+            
+            // START UCLA MOD: CCLE-3023 - add course_restored event so cleanup processes can occur
+            events_trigger('course_restored', $this->courseid);
+            // END UCLA MOD: CCLE-3023 
         }
     }
 

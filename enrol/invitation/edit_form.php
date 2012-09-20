@@ -80,22 +80,22 @@ class enrol_invitation_edit_form extends moodleform {
         $this->set_data($instance);
     }
 
-    function validation($data, $files) {
-        global $DB, $CFG;
-        $errors = parent::validation($data, $files);
-
-        list($instance, $plugin, $context) = $this->_customdata;
-
-        if ($data['status'] == ENROL_INSTANCE_ENABLED) {
-            if (!empty($data['enrolenddate']) and $data['enrolenddate'] < $data['enrolstartdate']) {
-                $errors['enrolenddate'] = get_string('enrolenddaterror', 'enrol_invitation');
-            }
-        }
-        
-        if ($data['customint1'] != clean_param($data['customint1'], PARAM_INT)) {
-            $errors['customint1'] = get_string('maxinviteerror', 'enrol_invitation');
-        }
-
-        return $errors;
-    }
+//    function validation($data, $files) {
+//        global $DB, $CFG;
+//        $errors = parent::validation($data, $files);
+//
+//        list($instance, $plugin, $context) = $this->_customdata;
+//
+//        if ($data['status'] == ENROL_INSTANCE_ENABLED) {
+//            if (!empty($data['enrolenddate']) and $data['enrolenddate'] < $data['enrolstartdate']) {
+//                $errors['enrolenddate'] = get_string('enrolenddaterror', 'enrol_invitation');
+//            }
+//        }
+//        
+//        if ($data['customint1'] != clean_param($data['customint1'], PARAM_INT)) {
+//            $errors['customint1'] = get_string('maxinviteerror', 'enrol_invitation');
+//        }
+//
+//        return $errors;
+//    }
 }

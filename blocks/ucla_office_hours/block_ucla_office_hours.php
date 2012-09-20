@@ -161,7 +161,7 @@ class block_ucla_office_hours extends block_base {
 
             $table->align = $aligns;
 
-            $table->attributes['class'] = 'boxalignleft';
+            $table->attributes['class'] = 'boxalignleft generaltable cellborderless';
 
             // use array_values, to remove array keys, which are 
             // mistaken as another css class for given column

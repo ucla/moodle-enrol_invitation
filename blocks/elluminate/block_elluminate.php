@@ -1,11 +1,11 @@
 <?php // $Id: block_elluminate.php,v 1.1.2.2 2009/03/18 16:45:57 mchurch Exp $
 
 /**
- * Elluminate Live! block.
+ * Blackboard Collaborate block.
  *
- * Allows students to manage their user information on the Elluminate Live!
+ * Allows students to manage their user information on the Blackboard Collaborate
  * server from Moodle and admins/teachers to add students and other users
- * to a remote Elluminate Live! server.
+ * to a remote Blackboard Collaborate server.
  *
  * @version $Id: block_elluminate.php,v 1.1.2.2 2009/03/18 16:45:57 mchurch Exp $
  * @author Justin Filip <jfilip@oktech.ca>

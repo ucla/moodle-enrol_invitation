@@ -42,10 +42,8 @@ $CFG->dbname    = '';
 $CFG->dbuser    = '';
 $CFG->dbpass    = '';
 $CFG->prefix    = 'mdl_';
-$CFG->dboptions = array(
-    'dbpersist' => 0,
-    'dbsocket'  => 1 
-);
+$CFG->dboptions['dbpersist'] = 0;
+$CFG->dboptions['dbsocket']  = 1;
 
 $CFG->wwwroot  = 'https://test.ccle.ucla.edu';
 $CFG->dataroot = '/moodle_data'; 
@@ -73,24 +71,16 @@ $CFG->registrar_dbencoding = 'ISO-8859-1';
 
 // Format and browseby and anything else that requires instructors to be 
 // displayed, we need to determine which roles should be displayed.
-$CFG->instructor_levels_roles = array(
-    'Instructor' => array(
-        'editinginstructor',
-        'ta_instructor'
-    ),
-    'Teaching Assistant' => array(
-        'ta',
-        'ta_admin'
-    )
-);
+$CFG->instructor_levels_roles['Instructor'] = array('editinginstructor', 'ta_instructor');
+$CFG->instructor_levels_roles['Teaching Assistant'] = array('ta', 'ta_admin');
 
-// CCLE-2283: Friendly URLs
-// CCLE-2283: Redirect to archive 
-$CFG->forced_plugin_settings['local_ucla'] = array(
-    'friendly_urls_enabled' => true,
-    'remotetermcutoff' => '12S',
-    'archiveserver' => 'https://archive.ccle.ucla.edu'
-);
+// To enable friendly urls in your dev instance, please add the config values to
+// your config_private.php
+//// CCLE-2283: Friendly URLs
+//// CCLE-2283: Redirect to archive (these have a high chance of changing)
+$CFG->forced_plugin_settings['local_ucla']['friendly_urls_enabled'] = true;
+$CFG->forced_plugin_settings['local_ucla']['remotetermcutoff'] = '12S';
+$CFG->forced_plugin_settings['local_ucla']['archiveserver'] = 'https://archive.ccle.ucla.edu';
 
 // My Sites CCLE-2810
 // Term limiting
@@ -138,24 +128,16 @@ $CFG->shib_logged_in_cookie = '_ucla_sso';
 
 // CCLE-2306 - HELP SYSTEM BLOCK
 // if using JIRA, jira_user, jira_password, jira_pid should be defined in config_private.php
-$block_ucla_help_settings = array('send_to' => 'jira',
-                                  'jira_endpoint' => 'https://jira.ats.ucla.edu/CreateIssueDetails.jspa',
-                                  'jira_default_assignee' => 'dkearney',
-//                                  'boxtext' => '<ul>
-//                                                    <li>Find FAQs, tutorials and a large database of help documentation at <strong><a title="cclehelp" href="https://ccle.ucla.edu/course/view/cclehelp">CCLE Help</a></strong></li>
-//                                                    <li>Send your feedback including suggestions and comments to <a href="mailto:ccle@ucla.edu">ccle@ucla.edu</a></li>
-//                                                </ul>'
-        );
-$CFG->forced_plugin_settings['block_ucla_help'] = $block_ucla_help_settings;
+$CFG->forced_plugin_settings['block_ucla_help']['send_to'] = 'jira';
+$CFG->forced_plugin_settings['block_ucla_help']['jira_endpoint'] = 'https://jira.ats.ucla.edu/CreateIssueDetails.jspa';
+$CFG->forced_plugin_settings['block_ucla_help']['jira_default_assignee'] = 'dkearney';
 $block_ucla_help_support_contacts['System'] = 'dkearney';  // default
 
 // CCLE-2311 - VIEDO FURNACE BLOCK
-$CFG->forced_plugin_settings['block_ucla_video_furnace']['source_url']
-        = 'http://164.67.141.31/~guest/VF_LINKS.TXT';
+$CFG->forced_plugin_settings['block_ucla_video_furnace']['source_url'] = 'http://164.67.141.31/~guest/VF_LINKS.TXT';
 
 // CCLE-2312 - LIBRARY RESERVES BLOCK
-$CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url']
-        = 'ftp://ftp.library.ucla.edu/incoming/eres/voyager_reserves_data.txt';
+$CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url'] = 'ftp://ftp.library.ucla.edu/incoming/eres/voyager_reserves_data.txt';
 
 // CCLE-2301 - COURSE MENU BLOCK
 $CFG->forced_plugin_settings['block_ucla_course_menu']['trimlength'] = 22;
@@ -222,6 +204,9 @@ $CFG->assignment_maxbytes = 10485760;   // 100MB
 // Site administration > Plugins > Activity modules > Book
 $CFG->forced_plugin_settings['book']['requiremodintro'] = 0;
 
+// Site administration > Plugins > Activity modules > Blackboard Collaborate Session
+$CFG->elluminate_max_talkers = 2;
+
 // Site administration > Plugins > Activity modules > Folder
 $CFG->forced_plugin_settings['folder']['requiremodintro'] = 0;
 
@@ -242,6 +227,15 @@ $CFG->forced_plugin_settings['url']['requiremodintro'] = 0;
 $CFG->forced_plugin_settings['url']['displayoptions'] = '0,1,2,3,4,5,6';    // allow every option
 $CFG->forced_plugin_settings['url']['printheading'] = 1;
 $CFG->forced_plugin_settings['url']['display'] = 3; // RESOURCELIB_DISPLAY_NEW
+
+// Site administration > Plugins > Assignment plugins > Submission plugins > File submissions
+$CFG->forced_plugin_settings['assignsubmission_file']['maxbytes'] = 10485760;
+
+// Site administration > Plugins > Assignment plugins > Feedback plugins > Feedback comments
+$CFG->forced_plugin_settings['assignfeedback_comments']['default'] = 1;
+
+// Site administration > Plugins > Assignment plugins > Feedback plugins > File feedback
+$CFG->forced_plugin_settings['assignfeedback_file']['default'] = 1;
 
 // Site administration > Plugins > Enrollments > Guest access
 $CFG->forced_plugin_settings['enrol_guest']['defaultenrol'] = 1;
@@ -356,6 +350,7 @@ if (file_exists($_config_private_)) {
     require_once($_config_private_);
 }
 
+// Site administration > Plugins > Enrolments > External database
 // set external database connection settings after config_private.php has
 // been read for the Registrar connection details
 $CFG->forced_plugin_settings['enrol_database']['dbtype'] = $CFG->registrar_dbtype;

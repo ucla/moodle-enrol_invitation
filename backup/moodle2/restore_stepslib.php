@@ -270,7 +270,14 @@ class restore_gradebook_structure_step extends restore_structure_step {
 
         $data->contextid = get_context_instance(CONTEXT_COURSE, $this->get_courseid())->id;
 
-        $newitemid = $DB->insert_record('grade_letters', $data);
+        $gradeletter = (array)$data;
+        unset($gradeletter['id']);
+        if (!$DB->record_exists('grade_letters', $gradeletter)) {
+            $newitemid = $DB->insert_record('grade_letters', $data);
+        } else {
+            $newitemid = $data->id;
+        }
+
         $this->set_mapping('grade_letter', $oldid, $newitemid);
     }
     protected function process_grade_setting($data) {
@@ -1294,10 +1301,7 @@ class restore_course_structure_step extends restore_structure_step {
         }
         
         // make sure that site menu block is added
-        blocks_add_default_course_blocks($data);
-        
-        // trigger event so that move_site_menu_block is called
-        events_trigger('course_restored', $data);        
+        blocks_add_default_course_blocks($data);        
         // END UCLA MOD: CCLE-3023
         
         // Course record ready, update it
@@ -1349,60 +1353,8 @@ class restore_course_structure_step extends restore_structure_step {
         // Add course related files, without itemid to match
         $this->add_related_files('course', 'summary', null);
         // START UCLA MOD: CCLE-2902 - Enable "legacy course files" repository for restored M19 courses on M2
-        // Patch from https://github.com/merrill-oakland/moodle/compare/master...MDL-32598
-	//$this->add_related_files('course', 'legacy', null);
+        //$this->add_related_files('course', 'legacy', null);
         // END UCLA MOD: CCLE-2902
-    }
-}
-
-// START UCLA MOD: CCLE-2902 - Enable "legacy course files" repository for restored M19 courses on M2
-// Patch from https://github.com/merrill-oakland/moodle/compare/master...MDL-32598
-/**
- * Structure step that will migrate legacy files if present.
- */
-class restore_course_legacy_files_step extends restore_structure_step {
-    protected function define_structure() {
-        $course = new restore_path_element('course', '/course');
-
-        return array($course);
-    }
-
-    /**
-     * Processing functions go here
-     *
-     * @global moodledatabase $DB
-     * @param stdClass $data
-     */
-    public function process_course($data) {
-        global $CFG, $DB;
-
-        $data = new object();
-        $data->id = $this->get_courseid();
-
-        // Check if we have legacy files, and enable them if we do.
-        $sql = 'SELECT count(*) AS newitemid, info
-				FROM {backup_files_temp}
-				WHERE backupid = ?
-				AND contextid = ?
-				AND component = ?
-				AND filearea = ?';
-        $params = array($this->get_restoreid(), $this->task->get_old_contextid(), 'course', 'legacy');
-
-        if ($DB->count_records_sql($sql, $params)) {
-            // Enable the legacy files.
-            $data->legacyfiles = 2;
-
-            // Course record ready, update it.
-            $DB->update_record('course', $data);
-        }
-
-    }
-
-    protected function after_execute() {
-        global $DB;
-
-        // Add course legacy files, without itemid to match.
-        $this->add_related_files('course', 'legacy', null);
 
         // Deal with legacy allowed modules.
         if ($this->legacyrestrictmodules) {
@@ -1427,10 +1379,59 @@ class restore_course_legacy_files_step extends restore_structure_step {
             }
         }
     }
+}
+
+// START UCLA MOD: CCLE-2902 - Enable "legacy course files" repository for restored M19 courses on M2
+/**
+ * Structure step that will migrate legacy files if present.
+ */
+class restore_course_legacy_files_step extends restore_structure_step {
+    protected function define_structure() {
+        $course = new restore_path_element('course', '/course');
+
+        return array($course);
+    }
+
+    /**
+     * Processing functions go here.
+     *
+     * @global moodledatabase $DB
+     * @param stdClass $data
+     */
+    public function process_course($data) {
+        global $CFG, $DB;
+
+        $data = new object();
+        $data->id = $this->get_courseid();
+
+        // Check if we have legacy files, and enable them if we do.
+        $sql = 'SELECT count(*) AS newitemid
+                  FROM {backup_files_temp}
+                 WHERE backupid = ?
+                   AND contextid = ?
+                   AND component = ?
+                   AND filearea  = ?';
+        $params = array($this->get_restoreid(), $this->task->get_old_contextid(), 'course', 'legacy');
+
+        if ($DB->count_records_sql($sql, $params)) {
+            // Enable the legacy files.
+            $data->legacyfiles = 2;
+
+            // Course record ready, update it.
+            $DB->update_record('course', $data);
+        }
+
+    }
+
+    protected function after_execute() {
+        global $DB;
+
+        // Add course legacy files, without itemid to match.
+        $this->add_related_files('course', 'legacy', null);
+    }
 
 }
 // END UCLA MOD: CCLE-2902
-
 
 /*
  * Structure step that will read the roles.xml file (at course/activity/block levels)
@@ -1811,6 +1812,23 @@ class restore_calendarevents_structure_step extends restore_structure_step {
         if (!empty($data->groupid)) {
             $data->groupid = $this->get_mappingid('group', $data->groupid);
             if ($data->groupid === false) {
+                return;
+            }
+        }
+        // Handle events with empty eventtype //MDL-32827
+        if(empty($data->eventtype)) {
+            if ($data->courseid == $SITE->id) {                                // Site event
+                $data->eventtype = "site";
+            } else if ($data->courseid != 0 && $data->groupid == 0 && ($data->modulename == 'assignment' || $data->modulename == 'assign')) {
+                // Course assingment event
+                $data->eventtype = "due";
+            } else if ($data->courseid != 0 && $data->groupid == 0) {      // Course event
+                $data->eventtype = "course";
+            } else if ($data->groupid) {                                      // Group event
+                $data->eventtype = "group";
+            } else if ($data->userid) {                                       // User event
+                $data->eventtype = "user";
+            } else {
                 return;
             }
         }
@@ -2461,17 +2479,21 @@ class restore_activity_grades_structure_step extends restore_structure_step {
 
     /**
      * process activity grade_letters. Note that, while these are possible,
-     * because grade_letters are contextid based, in proctice, only course
+     * because grade_letters are contextid based, in practice, only course
      * context letters can be defined. So we keep here this method knowing
      * it won't be executed ever. gradebook restore will restore course letters.
      */
     protected function process_grade_letter($data) {
         global $DB;
 
-        $data = (object)$data;
+        $data['contextid'] = $this->task->get_contextid();
+        $gradeletter = (object)$data;
 
-        $data->contextid = $this->task->get_contextid();
-        $newitemid = $DB->insert_record('grade_letters', $data);
+        // Check if it exists before adding it
+        unset($data['id']);
+        if (!$DB->record_exists('grade_letters', $data)) {
+            $newitemid = $DB->insert_record('grade_letters', $gradeletter);
+        }
         // no need to save any grade_letter mapping
     }
 }

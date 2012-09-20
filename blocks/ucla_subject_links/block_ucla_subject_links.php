@@ -76,7 +76,8 @@ class block_ucla_subject_links extends block_base {
                 $subject = $cinfo->subj_area;
                 $subject = preg_replace('/-\s/', '', $subject);
                 $subject = strtoupper($subject); 
-                if (file_exists(self::get_location().$subject.'/index.htm')) {
+                if (!in_array($subject, $subjname) && 
+                        file_exists(self::get_location().$subject.'/index.htm')) {
                     $subjname[] = $subject;
                 }   
             }

@@ -29,7 +29,3 @@ $plugin->version   = 2012061700;        // The current plugin version (Date: YYY
 $plugin->requires  = 2012061700;        // Requires this Moodle version
 $plugin->component = 'enrol_database';  // Full name of the plugin (used for diagnostics)
 //TODO: should we add cron sync?
-
-// START UCLA MOD CCLE-2429 - Adding configuration for waiting before updating local user tables
-// NOTE: since this is a core moodle change, we want to change the version numbers as minimally as possible
-$plugin->version   = 2011112901;

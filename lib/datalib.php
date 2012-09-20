@@ -1805,6 +1805,11 @@ function user_accesstime_log($courseid=0) {
         return;
     }
 
+    if (isguestuser()) {
+        // Do not update guest access times/ips for performance.
+        return;
+    }
+
     if (empty($courseid)) {
         $courseid = SITEID;
     }
