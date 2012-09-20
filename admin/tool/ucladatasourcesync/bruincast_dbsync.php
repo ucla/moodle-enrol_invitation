@@ -9,19 +9,22 @@
 require_once(dirname(__FILE__) . '/lib.php');
 
 // Check to see if config variables are initialized
-$bruincast_source_url = get_config('block_ucla_bruincast', 'source_url');
-if (empty($bruincast_source_url)) {
-    die("\n" . get_string('errbcmsglocation', 'tool_ucladatasourcesync') . "\n");
+if (!isset($CFG->bruincast_data)) {
+    log_ucla_data('bruincast', 'read', 'Initializing cfg variables', 
+            get_string('errbcmsglocation','tool_ucladatasourcesync') );
+    die("\n".get_string('errbcmsglocation','tool_ucladatasourcesync')."\n");
 }
 
-$bruincast_errornotify_email = get_config('block_ucla_bruincast', 'errornotify_email');
-if (empty($bruincast_errornotify_email)) {
-    die("\n" . get_string('errbcmsgemail', 'tool_ucladatasourcesync') . "\n");
+if (!isset($CFG->bruincast_errornotify_email)) {
+    log_ucla_data('bruincast', 'read', 'Initializing cfg variables', 
+            get_string('errbcmsgemail','tool_ucladatasourcesync') );
+    die("\n".get_string('errbcmsgemail','tool_ucladatasourcesync')."\n");
 }
 
-$bruincast_quiet_mode = get_config('block_ucla_bruincast', 'quiet_mode');
-if (empty($bruincast_quiet_mode) && $bruincast_quiet_mode != 0) {
-    die("\n" . get_string('errbcmsgquiet', 'tool_ucladatasourcesync') . "\n");
+if (!isset($CFG->quiet_mode)) {
+    log_ucla_data('bruincast', 'read', 'Initializing cfg variables', 
+            get_string('errbcmsgquiet','tool_ucladatasourcesync') );
+    die("\n".get_string('errbcmsgquiet','tool_ucladatasourcesync')."\n");
 }
 
 // Begin database update
