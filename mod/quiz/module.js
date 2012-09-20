@@ -96,7 +96,11 @@ M.mod_quiz.timer = {
             Y.one('#quiz-time-left').setContent(M.str.quiz.timesup);
             var input = Y.one('input[name=timeup]');
             input.set('value', 1);
-            input.ancestor('form').submit();
+            var form = input.ancestor('form');
+            if (form.one('input[name=finishattempt]')) {
+                form.one('input[name=finishattempt]').set('value', 0);
+            }
+            form.submit();
             return;
         }
 
@@ -271,7 +275,7 @@ M.mod_quiz.secure_window = {
         }, '#secureclosebutton');
     },
 
-    close: function(url, delay) {
+    close: function(Y, url, delay) {
         setTimeout(function() {
             if (window.opener) {
                 window.opener.document.location.reload();

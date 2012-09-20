@@ -15,25 +15,36 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * This plugin is used to access flickr pictures
+ *
+ * @since 2.0
+ * @package    repository_flickr_public
+ * @copyright  2010 Dongsheng Cai {@link http://dongsheng.org}
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+require_once($CFG->dirroot . '/repository/lib.php');
+require_once($CFG->libdir.'/flickrlib.php');
+require_once(dirname(__FILE__) . '/image.php');
+
+/**
  * repository_flickr_public class
  * This one is used to create public repository
  * You can set up a public account in admin page, so everyone can access
  * flickr photos from this plugin
  *
  * @since 2.0
- * @package    repository
- * @subpackage flickr_public
- * @copyright  2009 Dongsheng Cai
- * @author     Dongsheng Cai <dongsheng@moodle.com>
+ * @package    repository_flickr_public
+ * @copyright  2009 Dongsheng Cai {@link http://dongsheng.org}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-require_once($CFG->libdir.'/flickrlib.php');
-require_once(dirname(__FILE__) . '/image.php');
-
 class repository_flickr_public extends repository {
     private $flickr;
     public $photos;
+
+    /**
+     * Stores sizes of images to prevent multiple API call
+     */
+    static private $sizes = array();
 
     /**
      * constructor method
@@ -207,13 +218,14 @@ class repository_flickr_public extends repository {
 
     public function license4moodle ($license_id) {
         $license = array(
+            '0' => 'allrightsreserved',
             '1' => 'cc-nc-sa',
             '2' => 'cc-nc',
             '3' => 'cc-nc-nd',
             '4' => 'cc',
             '5' => 'cc-sa',
             '6' => 'cc-nd',
-            '7' => 'allrightsreserved'
+            '7' => 'other'
             );
         return $license[$license_id];
     }
@@ -224,7 +236,7 @@ class repository_flickr_public extends repository {
      * @param string $search_text
      * @return array
      */
-    public function search($search_text, $page = 1) {
+    public function search($search_text, $page = 0) {
         global $SESSION;
         $ret = array();
         if (empty($page)) {
@@ -390,70 +402,87 @@ class repository_flickr_public extends repository {
         return $str;
     }
 
-    public function get_link($photo_id) {
-        global $CFG;
-        $result = $this->flickr->photos_getSizes($photo_id);
-        $url = '';
-        if(!empty($result[4])) {
-            $url = $result[4]['source'];
-        } elseif(!empty($result[3])) {
-            $url = $result[3]['source'];
-        } elseif(!empty($result[2])) {
-            $url = $result[2]['source'];
+    /**
+     * Return photo url by given photo id
+     * @param string $photoid
+     * @return string
+     */
+    private function build_photo_url($photoid) {
+        $bestsize = $this->get_best_size($photoid);
+        if (!isset($bestsize['source'])) {
+            throw new repository_exception('cannotdownload', 'repository');
         }
-        return $url;
+        return $bestsize['source'];
+    }
+
+    /**
+     * Returns the best size for a photo
+     *
+     * @param string $photoid the photo identifier
+     * @return array of information provided by the API
+     */
+    protected function get_best_size($photoid) {
+        if (!isset(self::$sizes[$photoid])) {
+            // Sizes are returned from smallest to greatest.
+            self::$sizes[$photoid] = $this->flickr->photos_getSizes($photoid);
+        }
+        $sizes = self::$sizes[$photoid];
+        $bestsize = array();
+        if (is_array($sizes)) {
+            while ($bestsize = array_pop($sizes)) {
+                // Make sure the source is set. Exit the loop if found.
+                if (isset($bestsize['source'])) {
+                    break;
+                }
+            }
+        }
+        return $bestsize;
+    }
+
+    public function get_link($photoid) {
+        return $this->build_photo_id($photoid);
     }
 
     /**
      *
      * @global object $CFG
-     * @param string $photo_id
+     * @param string $photoid
      * @param string $file
      * @return string
      */
-    public function get_file($photo_id, $file = '') {
+    public function get_file($photoid, $file = '') {
         global $CFG;
-        $info = $this->flickr->photos_getInfo($photo_id);
+        $info = $this->flickr->photos_getInfo($photoid);
         if ($info['owner']['realname']) {
             $author = $info['owner']['realname'];
         } else {
             $author = $info['owner']['username'];
         }
         $copyright = get_string('author', 'repository') . ': ' . $author;
-        $result = $this->flickr->photos_getSizes($photo_id);
-        // download link
-        $source = '';
-        // flickr photo page
-        $url = '';
-        if (!empty($result[4])) {
-            $source = $result[4]['source'];
-            $url = $result[4]['url'];
-        } elseif(!empty($result[3])) {
-            $source = $result[3]['source'];
-            $url = $result[3]['url'];
-        } elseif(!empty($result[2])) {
-            $source = $result[2]['source'];
-            $url = $result[2]['url'];
+
+        // If we can read the original secret, it means that we have access to the original picture.
+        if (isset($info['originalsecret'])) {
+            $source = $this->flickr->buildPhotoURL($info, 'original');
+        } else {
+            $source = $this->build_photo_url($photoid);
         }
-        $path = $this->prepare_file($file);
-        $fp = fopen($path, 'w');
-        $c = new curl;
-        $c->download(array(array('url'=>$source, 'file'=>$fp)));
-        // must close file handler, otherwise gd lib will fail to process it
-        fclose($fp);
+
+        $result = parent::get_file($source, $file);
+        $path = $result['path'];
+
         if (!empty($this->usewatermarks)) {
             $img = new moodle_image($path);
             $img->watermark($copyright, array(10,10), array('ttf'=>true, 'fontsize'=>12))->saveas($path);
         }
 
-        return array('path'=>$path, 'url'=>$url, 'author'=>$info['owner']['realname'], 'license'=>$this->license4moodle($info['license']));
+        return array('path'=>$path, 'author'=>$info['owner']['realname'], 'license'=>$this->license4moodle($info['license']));
     }
 
     /**
      * Add Instance settings input to Moodle form
      * @param object $mform
      */
-    public function instance_config_form($mform) {
+    public static function instance_config_form($mform) {
         $mform->addElement('text', 'email_address', get_string('emailaddress', 'repository_flickr_public'));
         $mform->addElement('checkbox', 'usewatermarks', get_string('watermark', 'repository_flickr_public'));
         $mform->setDefault('usewatermarks', 0);
@@ -471,7 +500,7 @@ class repository_flickr_public extends repository {
      * Add Plugin settings input to Moodle form
      * @param object $mform
      */
-    public function type_config_form($mform) {
+    public static function type_config_form($mform, $classname = 'repository') {
         $api_key = get_config('flickr_public', 'api_key');
         if (empty($api_key)) {
             $api_key = '';
@@ -510,5 +539,15 @@ class repository_flickr_public extends repository {
     }
     public function supported_returntypes() {
         return (FILE_INTERNAL | FILE_EXTERNAL);
+    }
+
+    /**
+     * Return the source information
+     *
+     * @param string $photoid photo id
+     * @return string|null
+     */
+    public function get_file_source_info($photoid) {
+        return $this->build_photo_url($photoid);
     }
 }

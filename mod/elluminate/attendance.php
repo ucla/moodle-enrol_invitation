@@ -16,27 +16,27 @@
 
     $id = required_param('id', PARAM_INT);
 
-    if (!$meeting = $DB->get_record('elluminate', 'id', $id)) {
-        error('Incorrect meeting ID (' . $meetingid . ')');
+    if (!$meeting = $DB->get_record('elluminate', array('id' => $id))) {
+        print_error('Incorrect meeting ID (' . $meetingid . ')');
     }
 
-    if (!$course = $DB->get_record('course', 'id', $meeting->course)) {
-        error('Invalid course!');
+    if (!$course = $DB->get_record('course', array('id' => $meeting->course))) {
+        print_error('Invalid course!');
     }
 
 	if($meeting->sessiontype == 0 || $meeting->sessiontype == 1) {
     	if (!$cm = get_coursemodule_from_instance("elluminate", $meeting->id, $course->id)) {
-	        error('Invalid course module.');
+	        print_error('Invalid course module.');
 	    }
 	} else {
 		if($meeting->groupparentid == 0) {
 			if (!$cm = get_coursemodule_from_instance("elluminate", $meeting->id, $course->id)) {
-		        error('Invalid course module.');
+		        print_error('Invalid course module.');
 		    }	
 		} else {
-			$meeting = $DB->get_record('elluminate', 'id', $meeting->groupparentid);
+			$meeting = $DB->get_record('elluminate', array('id' => $meeting->groupparentid));
 			if (!$cm = get_coursemodule_from_instance("elluminate", $meeting->id, $course->id)) {
-		        error('Invalid course module.');
+		        print_error('Invalid course module.');
 		    }
 		}
 	}
@@ -62,8 +62,7 @@
     if ($canmanage && ($data = data_submitted($CFG->wwwroot . '/mod/elluminate/attendance.php')) && confirm_sesskey()) {
         foreach ($data->userids as $idx => $userid) {
             if ($data->attendance[$idx] > 0) {
-                if ($ea = $DB->get_record('elluminate_attendance', 'userid', $userid,
-                                     'elluminateid', $meeting->id)) {
+                if ($ea = $DB->get_record('elluminate_attendance', array('userid' => $userid, 'elluminateid' => $meeting->id))) {
                     if (empty($ea->grade)) {
                         $ea->grade = $meeting->grade;
 
@@ -82,8 +81,7 @@
 
                 }
             } else {
-                if ($ea = $DB->get_record('elluminate_attendance', 'userid', $userid,
-                                     'elluminateid', $meeting->id)) {
+                if ($ea = $DB->get_record('elluminate_attendance', array('userid' => $userid, 'elluminateid' => $meeting->id))) {
                     if (!empty($ea->grade)) {
                         $ea->grade = 0;
 
@@ -111,13 +109,15 @@
     $userids = array();
     // Get meeting participants.	
 	if($meeting->sessiontype == 0) {
-		$course_users = $DB->get_records_sql("select u.id from mdl_role_assignments ra, mdl_context con, mdl_course c, mdl_user u where ra.userid=u.id and ra.contextid=con.id and con.instanceid=c.id and c.id=" . $meeting->course);		                             	
+		$course_users = $DB->get_records_sql("select u.id from {role_assignments} ra, {context} con, {course} c, {user} u where ra.userid=u.id and ra.contextid=con.id and con.instanceid=c.id and c.id=" . $meeting->course);		                             	
+		//$course_users = $DB->get_records_sql("select u.id from mdl_role_assignments ra, mdl_context con, mdl_course c, mdl_user u where ra.userid=u.id and ra.contextid=con.id and con.instanceid=c.id and c.id=" . $meeting->course);		                             	
 	    $userids = array_keys($course_users);       	        	    
 	} else if ($meeting->sessiontype == 1) {
 		$userids = explode(',', $meeting->nonchairlist);	
 	} else if ($meeting->sessiontype == 2) {
 		//This will get all the people in the course
-		$course_users = $DB->get_records_sql("select u.id from mdl_role_assignments ra, mdl_context con, mdl_course c, mdl_user u where ra.userid=u.id and ra.contextid=con.id and con.instanceid=c.id and c.id=" . $meeting->course);		                             	
+		$course_users = $DB->get_records_sql("select u.id from {role_assignments} ra, {context} con, {course} c, {user} u where ra.userid=u.id and ra.contextid=con.id and con.instanceid=c.id and c.id=" . $meeting->course);		                             	
+		//$course_users = $DB->get_records_sql("select u.id from mdl_role_assignments ra, mdl_context con, mdl_course c, mdl_user u where ra.userid=u.id and ra.contextid=con.id and con.instanceid=c.id and c.id=" . $meeting->course);		                             	
 	    $userids = array_keys($course_users);		
 	} else if ($meeting->sessiontype == 3) {
 		$userids = array_keys(groups_get_grouping_members($meeting->groupingid, 'distinct u.id', 'u.id'));
@@ -136,7 +136,7 @@
 	}
 
     $select = 'SELECT u.id, u.firstname, u.lastname ';
-    $from   = 'FROM '.$CFG->prefix.'user u ';
+    $from = 'FROM {user} u ';
     $where  = 'WHERE u.id IN (' . $userids . ') ';
     $order  = 'ORDER BY u.firstname ASC, u.lastname ASC ';
     $sql    = $select.$from.$where.$order;
@@ -166,7 +166,7 @@
 
         foreach ($usersavail as $useravail) {
 	            $sql = "SELECT a.*
-	                    FROM {$CFG->prefix}elluminate_attendance a
+	                    FROM {elluminate_attendance} a
 	                    WHERE a.userid = {$useravail->id}
 	                    AND a.elluminateid = '{$meeting->id}'
 	                    AND a.grade > 0";
@@ -226,4 +226,4 @@
 	print_simple_box_end();
     print_footer($course);
 
-?>
+

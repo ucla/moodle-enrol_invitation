@@ -15,8 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package    uclaformat
- * @copyright  
+ * @package    format_ucla
+ * @copyright 2012 UC Regents
  * @license    
  */
 

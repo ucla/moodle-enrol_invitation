@@ -27,8 +27,7 @@ require_capability('moodle/course:update', $context);
 require_capability('moodle/course:manageactivities', $context);
 
 // see what section we are on
-$topic = ucla_format_figure_section($course);
-$topic_num = $topic[1];
+$section_num = ucla_format_figure_section($course);
 
 // Set up the page.
 $PAGE->set_context($context);
@@ -37,11 +36,11 @@ $PAGE->set_pagelayout('course');
 $PAGE->set_pagetype('course-view-' . $course->format);
 
 $PAGE->set_url('/blocks/ucla_rearrange/rearrange.php',
-        array('courseid' => $courseid, 'topic' => $topic_num));
+        array('courseid' => $courseid, 'section' => $section_num));
 
-// set editing url to be topic or default page
+// set editing url to be section or default page
 $go_back_url = new moodle_url('/course/view.php',
-                array('id' => $courseid, 'topic' => $topic_num));
+                array('id' => $courseid, 'section' => $section_num));
 set_editing_mode_button($go_back_url);
 
 $sections = get_all_sections($courseid);
@@ -63,7 +62,8 @@ foreach ($sections as $section) {
     $sectionvisibility[$sid] = $section->visible;
 }
 
-$modinfo = & get_fast_modinfo($course);
+$temp = get_fast_modinfo($course);
+$modinfo = & $temp;
 get_all_mods($courseid, $mods, $modnames, $modnamesplural, $modnamesused);
 
 $sectionnodeshtml = block_ucla_rearrange::get_section_modules_rendered(
@@ -147,6 +147,9 @@ $customvars = array(
 block_ucla_rearrange::setup_nested_sortable_js($sectionshtml,
         '.' . block_ucla_rearrange::pagelistclass, $customvars);
 
+// Used later to determine which section to redirect to after successful form submit
+$section_redirect = $section_num;
+
 // All prepped, now we need to add the actual rearrange form
 // The form is useful since it lets us maintain serialized data and
 // helps us filter stuff.
@@ -155,7 +158,7 @@ $rearrangeform = new ucla_rearrange_form(
                 array(
                     'courseid' => $courseid,
                     'sections' => $sectids,
-                    'topic' => $topic_num
+                    'section' => $section_num
                 ),
                 'post',
                 '',
@@ -224,10 +227,20 @@ if ($data = $rearrangeform->get_data()) {
 
         $sectioncontents[$section] = $flattened;
     }
+    
+    // Section id to redirect to after moving the sections around
+    $sectionid = $DB->get_field('course_sections', 'id', array('course' => $course->id, 'section' => $section_num));
 
     // We're going to skip the API calls because it uses too many DBQ's
     block_ucla_rearrange::move_modules_section_bulk($sectioncontents,
             $sectiontranslation);
+    
+    // Set the section correct value after moving sections around
+    if ( !$section_redirect = $DB->get_field('course_sections', 'section', array('id' => $sectionid)) ) {
+        // If no field is found, then the section we were on was either 'Site info' or 'Show all'
+        $section_redirect = $section_num;
+    }
+    $_POST['section'] = $section_redirect;
 
     // Now we need to swap all the contents in each section...
     rebuild_course_cache($courseid);
@@ -247,36 +260,37 @@ echo $OUTPUT->heading($restr, 2, 'headingblock');
 if ($data != false) {
 
     // allow user to either return to section they were on or go to course page
-    // if format is UCLA, then this UCLA_FORMAT_DISPLAY_LANDING should exist
     $params = array('id' => $courseid);
-    if (defined('UCLA_FORMAT_DISPLAY_LANDING')) {
-        $params['topic'] = UCLA_FORMAT_DISPLAY_LANDING;
-    }
     $courseurl = new moodle_url('/course/view.php', $params);
     $courseret = new single_button($courseurl, get_string('returntocourse',
                             'block_ucla_rearrange'), 'get');
-
+    
+    // TODO: Add in logic to determine if we should redirect to 'Show all'
     $secturl = new moodle_url('/course/view.php',
-                    array('id' => $courseid, 'topic' => $topic_num));
+                    array('id' => $courseid, 'section' => $section_redirect));
+    if ($section_redirect == UCLA_FORMAT_DISPLAY_ALL) {
+        $secturl->remove_params('section');
+        $secturl->param('show_all', 1);
+    }
     $sectret = new single_button($secturl, get_string('returntosection',
                             'block_ucla_rearrange'), 'get');
 
     echo $OUTPUT->confirm(get_string('rearrange_success', 'block_ucla_rearrange'),
-            $sectret, $courseret);
+            $courseret, $sectret);
 } else {
-    /* for topic < 0, the secid doesnt matter because we will expand all
-     * However, if will give warning if we use $secid = ($sections[$topic]->id);
-     * as there is no secid for topic < 0.
+    /* for section < 0, the secid doesnt matter because we will expand all
+     * However, if will give warning if we use $secid = ($sections[$section_num]->id);
+     * as there is no secid for section < 0.
      */
-    if ($topic_num < 0) {
+    if ($section_num < 0) {
         $secid = ($sections[0]->id);
     } else {
-        $secid = ($sections[$topic_num]->id);
+        $secid = ($sections[$section_num]->id);
     }
 
     $rearrangeform->display();
     $PAGE->requires->js_init_code(
-            "M.block_ucla_rearrange.initialize_rearrange_tool('$topic_num', '$secid')"
+            "M.block_ucla_rearrange.initialize_rearrange_tool('$section_num', '$secid')"
     );
 }
 

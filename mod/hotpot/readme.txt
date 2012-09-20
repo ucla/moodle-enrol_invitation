@@ -1,9 +1,8 @@
-===============================================
+======================================
 The HotPot module for Moodle 2.x
-and question import script for Hot Potatoes file format
-===============================================
+======================================
 
-   The HotPot module allows teachers to administer the following externally authored exercises via Moodle 2.x
+    The HotPot module allows teachers to administer the following externally authored exercises via Moodle 2.x
 
     - Hot Potatoes (version 6)
     - iSpring
@@ -11,15 +10,12 @@ and question import script for Hot Potatoes file format
     - TexToys
     - Xerte
 
-   The question import script for Hot Potatoes file format allows teachers
-    to import questions from Hot Potatoes (v6) files into the Moodle question bank.
+    This plugin is distributed under the terms of the General Public License
+    (see http://www.gnu.org/licenses/gpl.txt for details)
 
-   These plugins is distributed under the terms of the General Public License
-   (see http://www.gnu.org/licenses/gpl.txt for details)
+    This software is provided "AS IS" without a warranty of any kind.
 
-   This software is provided "AS IS" without a warranty of any kind.
-
-   Sponsors who have generously contributed to the development of this software:
+    Sponsors who have generously contributed to the development of this software:
       - Agencia de Gestio d'Ajuts Universitaris i de Recerca (AGAUR),
         Autonomous Government of Catalonia, Spain
         (via Josep M. Fontana, Universitat Pompeu Fabra)
@@ -28,21 +24,25 @@ and question import script for Hot Potatoes file format
       - Akashi National Technical College, Japan (via John Herbert)
       - Moodle HQ
 
+    Note: This plugin does NOT include the HotPot question import script.
+    If you want the HotPot question import script, it can be downloaded
+    from either of the following locations:
+
+        (i) the Moodle.org plugins repository
+        (ii) http://bateson.kanazawa-gu.ac.jp/moodle/zip/plugins_qformat_hotpot.zip
+
 ======================================
 To INSTALL or UPDATE the HotPot module
 ======================================
 
-    1. download from http://bateson.kanazawa-gu.ac.jp/moodle/zip/moodle-2.x.hotpot-module.zip
+    1. download zip file for this plugin from either of the following locations:
 
-    2. unzip file - creates folder called "moodle-2.x.hotpot-module"
+        (i) the Moodle.org plugins repository
+        (ii) http://bateson.kanazawa-gu.ac.jp/moodle/zip/plugins_mod_hotpot.zip
 
-    3. upload subfolderfolders of "moodle-2.x.hotpot-module"
+    2. unzip the zip file, to create a folder called "hotpot"
 
-        mod/hotpot
-        upload this to "mod/hotpot" on your Moodle site
-
-        question/format/hotpot
-        upload this to "question/format/hotpot" on your Moodle site
+    3. upload this "hotpot" folder to "mod/hotpot" on your Moodle 2.x site
 
     4. log in to Moodle as administrator to initiate install/upgrade
 
@@ -50,7 +50,7 @@ To INSTALL or UPDATE the HotPot module
         Settings -> Site administration -> Notifications
 
 ======================================
-To add HotPot activity to your Moodle course
+To add a HotPot activity to your Moodle course
 ======================================
 
     1. Login to Moodle, and navigate to a course page

@@ -53,7 +53,7 @@ if (!$type) {
 }
 
 // Get all the informations for the form.
-$modinfo =& get_fast_modinfo($course);
+$modinfo = get_fast_modinfo($course);
 get_all_mods($course_id, $mods, $modnames, $modnamesplural, $modnamesused);
 
 // Prep things for activities
@@ -208,7 +208,7 @@ $uploadform = new $typeclass(null,
         'activities' => $activities,
         // Needed to enable/disable rearrange
         'rearrange' => $rearrange_avail
-    ));
+    ), 'post', '', array('class' => 'easyupload_form'));
 
 if ($uploadform->is_cancelled()) {
     redirect($cpurl);
@@ -386,7 +386,7 @@ $PAGE->set_heading($title);
 echo $OUTPUT->header();
 
 // Print out a heading
-echo $OUTPUT->heading($title);
+echo $OUTPUT->heading($title, 2, 'headingblock');
 
 if (!isset($data) || !$data) {
     $uploadform->display();
@@ -396,24 +396,18 @@ if (!isset($data) || !$data) {
 
     $params = array('id' => $course_id);
 
-    // These following lines could be extracted out into a function
-    // Get the _GET variable for the topic thing in the format
-    $key = 'topic';
-    $format = $course->format;
-    $fn = 'callback_' . $format . '_request_key';
-    if (function_exists($fn)) {
-        $key = $fn();
+    $course_prefs = new ucla_course_prefs($course_id);
+    $landing_page = $course_prefs->get_preference('landing_page', false);
+    if ($landing_page !== false) {
+        $params['section'] = $landing_page;
     }
     
-    if (defined('UCLA_FORMAT_DISPLAY_LANDING')) {
-        $params['topic'] = UCLA_FORMAT_DISPLAY_LANDING;
-    }    
     $courseurl = new moodle_url('/course/view.php', $params);
     $courseret = new single_button($courseurl, get_string('returntocourse',
             'block_ucla_easyupload'), 'get');
 
     $secturl = new moodle_url('/course/view.php', $params);
-    $secturl->param($key, $indexed_sections[$sectionid]->section);
+    $secturl->param('section', $indexed_sections[$sectionid]->section);
     $sectret = new single_button($secturl, get_string('returntosection', 
             'block_ucla_easyupload'), 'get');
 

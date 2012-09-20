@@ -43,7 +43,21 @@ $capabilities = array(
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW
         )
-    )
+    ),
+    // START UCLA MOD: CCLE-3435-update-blackboard-voicetool-for-Moodle2.3
+    'mod/voiceauthoring:addinstance' => array(
+        'riskbitmask' => RISK_SPAM,
+
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'legacy' => array(
+            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW
+    ),
+    'clonepermissionsfrom' => 'moodle/course:manageactivities'
+    ),
+    // END UCLA MOD: CCLE-3435-update-blackboard-voicetool-for-Moodle2.3
 );
 
 ?>

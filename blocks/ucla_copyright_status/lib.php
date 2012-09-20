@@ -230,6 +230,8 @@ function display_copyright_status_contents($courseid, $filter) {
     $t->head = array(get_string('choosecopyright', 'local_ucla'),
         get_string('updated_dt', 'block_ucla_copyright_status'),
         get_string('author', 'block_ucla_copyright_status'));
+    $t->attributes[] = 'generaltable';
+    
     $course_copyright_status_list = get_files_copyright_status_by_course($courseid,
             $filter);
     $files_list = process_files_list($course_copyright_status_list);

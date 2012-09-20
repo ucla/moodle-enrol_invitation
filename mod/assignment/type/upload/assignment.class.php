@@ -383,7 +383,7 @@ class assignment_upload extends assignment_base {
         parent::submissions($mode);
     }
 
-    function process_feedback() {
+    function process_feedback($formdata=null) {
         if (!$feedback = data_submitted() or !confirm_sesskey()) {      // No incoming data?
             return false;
         }
@@ -607,8 +607,9 @@ class assignment_upload extends assignment_base {
             $eventdata->courseid     = $this->course->id;
             $eventdata->userid       = $USER->id;
             if ($files) {
-                $eventdata->files        = $files;
+                $eventdata->files        = $files; // This is depreceated - please use pathnamehashes instead!
             }
+            $eventdata->pathnamehashes = array_keys($files);
             events_trigger('assessable_file_uploaded', $eventdata);
             $returnurl  = new moodle_url('/mod/assignment/view.php', array('id'=>$this->cm->id));
             redirect($returnurl);
@@ -621,7 +622,7 @@ class assignment_upload extends assignment_base {
         die;
     }
 
-    function send_file($filearea, $args) {
+    function send_file($filearea, $args, $forcedownload, array $options=array()) {
         global $CFG, $DB, $USER;
         require_once($CFG->libdir.'/filelib.php');
 
@@ -645,7 +646,8 @@ class assignment_upload extends assignment_base {
             if (!$file = $fs->get_file_by_hash(sha1($fullpath)) or $file->is_directory()) {
                 return false;
             }
-            send_stored_file($file, 0, 0, true); // download MUST be forced - security!
+
+            send_stored_file($file, 0, 0, true, $options); // download MUST be forced - security!
 
         } else if ($filearea === 'response') {
             $submissionid = (int)array_shift($args);
@@ -665,7 +667,7 @@ class assignment_upload extends assignment_base {
             if (!$file = $fs->get_file_by_hash(sha1($fullpath)) or $file->is_directory()) {
                 return false;
             }
-            send_stored_file($file, 0, 0, true);
+            send_stored_file($file, 0, 0, true, $options);
         }
 
         return false;
@@ -849,7 +851,7 @@ class assignment_upload extends assignment_base {
         $mode     = optional_param('mode', '', PARAM_ALPHA);
         $offset   = optional_param('offset', 0, PARAM_INT);
 
-        require_login($this->course->id, false, $this->cm);
+        require_login($this->course, false, $this->cm);
 
         if (empty($mode)) {
             $urlreturn = 'view.php';
@@ -1128,7 +1130,7 @@ class assignment_upload extends assignment_base {
                     $filename = $file->get_filename();
                     $mimetype = $file->get_mimetype();
                     $link = file_encode_url($CFG->wwwroot.'/pluginfile.php', '/'.$this->context->id.'/mod_assignment/submission/'.$submission->id.'/'.$filename);
-                    $filenode->add($filename, $link, navigation_node::TYPE_SETTING, null, null, new pix_icon(file_mimetype_icon($mimetype),''));
+                    $filenode->add($filename, $link, navigation_node::TYPE_SETTING, null, null, new pix_icon(file_file_icon($file),''));
                 }
             }
         }
@@ -1148,7 +1150,7 @@ class assignment_upload extends assignment_base {
         require_once($CFG->libdir.'/filelib.php');
         $submissions = $this->get_submissions('','');
         if (empty($submissions)) {
-            print_error('errornosubmissions', 'assignment');
+            print_error('errornosubmissions', 'assignment', new moodle_url('/mod/assignment/submissions.php', array('id'=>$this->cm->id)));
         }
         $filesforzipping = array();
         $fs = get_file_storage();
@@ -1162,6 +1164,11 @@ class assignment_upload extends assignment_base {
         }
         $filename = str_replace(' ', '_', clean_filename($this->course->shortname.'-'.$this->assignment->name.'-'.$groupname.$this->assignment->id.".zip")); //name of new zip file.
         foreach ($submissions as $submission) {
+            // If assignment is open and submission is not finalized then don't add it to zip.
+            $submissionstatus = $this->is_finalized($submission);
+            if ($this->isopen() && empty($submissionstatus)) {
+                continue;
+            }
             $a_userid = $submission->userid; //get userid
             if ((groups_is_member($groupid,$a_userid)or !$groupmode or !$groupid)) {
                 $a_assignid = $submission->assignment; //get name of this assignment for use in the file names.
@@ -1178,6 +1185,12 @@ class assignment_upload extends assignment_base {
                 }
             }
         } // end of foreach loop
+
+        // Throw error if no files are added.
+        if (empty($filesforzipping)) {
+            print_error('errornosubmissions', 'assignment', new moodle_url('/mod/assignment/submissions.php', array('id'=>$this->cm->id)));
+        }
+
         if ($zipfile = assignment_pack_files($filesforzipping)) {
             send_temp_file($zipfile, $filename); //send file and delete after sending.
         }

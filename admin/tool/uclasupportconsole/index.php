@@ -518,55 +518,50 @@ $qs = get_all_available_registrar_queries();
 
 foreach ($qs as $query) {
     $sectionhtml = '';
+    $input_html = '';
     if ($displayforms) {
         // generate input parameters
-        $input_html = '';
-        switch ($query) {
-            // uid, term
-            case 'ucla_get_user_classes':
-                $input_html .= get_uid_input($query);      
-                $input_html .= get_term_selector($query);                
-                break;
-            // term, subject area
-            case 'ccle_coursegetall': 
-            case 'ccle_getinstrinfo':
-            case 'cis_coursegetall':                                
-                $input_html .= get_term_selector($query);
-                $input_html .= get_subject_area_selector($query);
-                break;            
-            // term, srs
-            case 'ccle_courseinstructorsget':            
-            case 'ccle_getclasses':
-            case 'ccle_roster_class':
-                $input_html .= get_term_selector($query);
-                $input_html .= get_srs_input($query);      
-                break;
-            // term
-            case 'cis_subjectareagetall': 
-            case 'ucla_getterms':
-                $input_html .= get_term_selector($query);
-                break;
-            // unknown
-            default: 
-                break;
+        $storedproc = registrar_query::get_registrar_query($query);
+
+        if (!$storedproc) {
+            continue;
         }
-        
+
+        $params = $storedproc->get_query_params();
+
+        foreach ($params as $param) {
+            switch($param) {
+                case 'term':
+                    $input_html .= get_term_selector($query);
+                    break;
+                case 'subjarea':
+                    $input_html .= get_subject_area_selector($query);
+                    break;
+                case 'uid':
+                    $input_html .= get_uid_input($query);
+                    break;
+                case 'srs':
+                    $input_html .= get_srs_input($query);
+                    break;
+                default:
+                    $input_html .= get_string('unknownstoredprocparam',
+                        'tool_uclasupportconsole');
+                    break;
+            }
+        }
+
         if (empty($input_html)) {
             continue;   // skip it
         }     
 
         $sectionhtml .= supportconsole_simple_form($query, $input_html);
     } else if ($consolecommand == $query) {
-        
-        /* Possible params:
-         * term
-         * subjarea
-         * srs
-         * uid
-         */
-        $params = array();
-        $possible_params = array('term', 'subjarea', 'srs', 'uid');
-        foreach ($possible_params as $param_name) {
+        // generate input parameters (optimized by putting inside 
+        // conditionals)
+        $storedproc = registrar_query::get_registrar_query($query);
+        $spparams = $storedproc->get_query_params();
+
+        foreach ($spparams as $param_name) {
             if ($param_value = optional_param($param_name, '', PARAM_NOTAGS)) {
                 $params[$param_name] = $param_value;
             }

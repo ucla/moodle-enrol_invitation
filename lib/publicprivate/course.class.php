@@ -265,6 +265,7 @@ class PublicPrivate_Course {
         $this->_course->grouppublicprivate = $newgroupid;
         $this->_course->groupingpublicprivate = $newgroupingid;
         $this->_course->guest = 1;
+        $this->_course->defaultgroupingid = $newgroupingid;
 
         try {
             update_course($this->_course);
@@ -325,6 +326,7 @@ class PublicPrivate_Course {
         $this->_course->enablepublicprivate = 0;
         $this->_course->grouppublicprivate = 0;
         $this->_course->groupingpublicprivate = 0;
+        $this->_course->defaultgroupingid = 0;
 
         try {
             update_course($this->_course);
@@ -398,7 +400,7 @@ class PublicPrivate_Course {
          * a supported query type, then takes O(N) to add all members 1-by-1.
          */
         try {
-            $DB->execute('INSERT IGNORE INTO '.$CFG->prefix.'groups_members
+            $DB->execute('INSERT IGNORE INTO '.$CFG->prefix.'groups_members (groupid, userid, timeadded)
                             SELECT DISTINCT '.$this->_course->grouppublicprivate.' AS groupid, ra.userid AS userid, '.time().' AS timeadded
                             FROM '.$CFG->prefix.'role_assignments ra
                             WHERE ra.contextid = '.$context->id.'
@@ -406,20 +408,18 @@ class PublicPrivate_Course {
                                     SELECT DISTINCT userid 
                                     FROM '.$CFG->prefix.'groups_members
                                     WHERE groupid = '.$this->_course->grouppublicprivate.')');
-        } catch(DML_Exception $e) {
+        } catch(DML_Exception $e) {            
             try {
                 $rs = $DB->get_records('role_assignments', array('contextid'=>$context->id));
 
                 $seen = array();
-                foreach($rs as $row)
-                {
-                    if(isset($seen[$row->id]))
-                    {
+                foreach($rs as $row) {
+                    if(isset($seen[$row->userid])) {
                         continue;
                     }
 
-                    $seen[$row->id] = true;
-
+                    $seen[$row->userid] = true;
+                    
                     $member = new object();
                     $member->groupid = $this->_course->grouppublicprivate;
                     $member->userid = $row->userid;
@@ -429,7 +429,7 @@ class PublicPrivate_Course {
                 }
             } catch(DML_Exception $e) {
                 throw new PublicPrivate_Course_Exception('Failed to add users with an explicit assignment to public/private group.', 401, $e);
-            }
+            }            
         }
     }
 

@@ -118,7 +118,7 @@ $yesno = array(get_string('no'), get_string('yes'));
 </tr>
 <tr valign="top" class="required">
     <td align="right">
-        <label for="menuversion"><?php print_string('auth_ldap_version_key', 'auth_ldap') ?></label>
+        <label for="menuldap_version"><?php print_string('auth_ldap_version_key', 'auth_ldap') ?></label>
     </td>
     <td>
         <?php
@@ -547,6 +547,6 @@ $help .= get_string('auth_updateremote_expl', 'auth');
 $help .= '<hr />';
 $help .= get_string('auth_updateremote_ldap', 'auth');
 
-print_auth_lock_options('ldap', $user_fields, $help, true, true);
+print_auth_lock_options($this->authtype, $user_fields, $help, true, true);
 ?>
 </table>

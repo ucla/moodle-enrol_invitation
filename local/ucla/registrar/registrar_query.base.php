@@ -73,7 +73,7 @@ abstract class registrar_query {
         $direct_data = array();
 
         try {
-            $db_reg =& $this->get_registrar_connection();
+            $db_reg = $this->get_registrar_connection();
         } catch (registrar_query_exception $e) {
             error_log($e->getMessage());
             return false;
@@ -191,7 +191,7 @@ abstract class registrar_query {
      **/
     function get_registrar_connection() {
         if ($this->registrar_conn == null) {
-            $this->registrar_conn =& $this->open_registrar_connection();
+            $this->registrar_conn = $this->open_registrar_connection();
         }
 
         return $this->registrar_conn;

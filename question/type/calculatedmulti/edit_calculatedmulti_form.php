@@ -180,7 +180,7 @@ class qtype_calculatedmulti_edit_form extends question_edit_form {
 
     public function data_preprocessing($question) {
         $question = parent::data_preprocessing($question);
-        $question = $this->data_preprocessing_answers($question, true);
+        $question = $this->data_preprocessing_answers($question, false);
         $question = $this->data_preprocessing_combined_feedback($question, true);
         $question = $this->data_preprocessing_hints($question, true, true);
 
@@ -194,8 +194,8 @@ class qtype_calculatedmulti_edit_form extends question_edit_form {
         return $question;
     }
 
-    protected function data_preprocessing_answers($question) {
-        $question = parent::data_preprocessing_answers($question);
+    protected function data_preprocessing_answers($question, $withanswerfiles = false) {
+        $question = parent::data_preprocessing_answers($question, $withanswerfiles);
         if (empty($question->options->answers)) {
             return $question;
         }

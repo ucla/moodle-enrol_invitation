@@ -22,13 +22,13 @@
 
     if (!empty($cmid)) {
         if (! $cm = get_coursemodule_from_id('elluminate', $cmid)) {
-            error("Course Module ID was incorrect");
+            print_error("Course Module ID was incorrect");
         }
     } else {
         $cm = null;
     }
-    if (! $course = $DB->get_record("course", "id", $id)) {
-        error("Course is misconfigured");
+    if (! $course = $DB->get_record("course", array("id" => $id))) {
+        print_error("Course is misconfigured");
     }
 
 /// Some capability checks.
@@ -100,4 +100,4 @@
     print_simple_box_end();
     print_footer('none');
 
-?>
+

@@ -143,7 +143,7 @@ if (!empty($groupid)) {
     }
 
     if (!$course = $DB->get_record('course', array('id'=>$group->courseid))) {
-        print_error(get_string('invalidcourseid', 'blog'));
+        print_error('invalidcourseid');
     }
 
     $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
@@ -192,6 +192,8 @@ if (!empty($userid)) {
         if (!blog_user_can_view_user_entry($userid)) {
             print_error('cannotviewcourseblog', 'blog');
         }
+
+        $PAGE->navigation->extend_for_user($user);
     }
 }
 

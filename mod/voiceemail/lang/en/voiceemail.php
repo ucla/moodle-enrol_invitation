@@ -93,4 +93,7 @@ $string['configuration_title'] = "Configuration of the Voice E-Mail";
 $string['nothing_selected'] = "Please configure the Block in order to send Voice E-Mails.";
 
 $string["voiceemail:presenter"] = "Has presenter access to Voice E-Mail";
+// START UCLA MOD: CCLE-3435-fix-editor-for-Moodle2.3
+$string['voiceemail:addinstance'] = 'Add a new Voice E-Mail';
+// END UCLA MOD: CCLE-3435-fix-editor-for-Moodle2.3
 ?>

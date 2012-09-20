@@ -156,3 +156,6 @@ $string['voicefeedback'] = 'Voice feedback';
 $string['commentmessage'] = 'Message from your teacher';
 $string['forentering'] = 'for entering feedback';
 $string['messagearea'] = 'Your message for the teacher';
+// START UCLA MOD: CCLE-3435-fix-editor-for-Moodle2.3
+$string['nanogong:addinstance'] = 'Add a new recording';
+// END UCLA MOD: CCLE-3435-fix-editor-for-Moodle2.3

@@ -25,4 +25,5 @@ CVS
 /.project
 /.buildpath
 /.cache
+phpunit.xml
 /config_private.php

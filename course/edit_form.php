@@ -101,7 +101,7 @@ class course_edit_form extends moodleform {
                         'class' => 'indicator-form',
                         'value' => $type['shortname']
                     );
-                    $radioarray[] = &MoodleQuickForm::createElement('radio', 'indicator_change', '', $descstring, $type['shortname'], $attributes);
+                    $radioarray[] = $mform->createElement('radio', 'indicator_change', '', $descstring, $type['shortname'], $attributes);
                 }
                 $mform->addGroup($radioarray, 'indicator_type_radios', get_string('change', 'tool_uclasiteindicator'), array('<br/>'), false);
                 $mform->addGroupRule('indicator_type_radios', get_string('required'), 'required');
@@ -228,6 +228,12 @@ class course_edit_form extends moodleform {
         $mform->addElement('select', 'format', get_string('format'), $formcourseformats);
         $mform->addHelpButton('format', 'format');
         $mform->setDefault('format', $courseconfig->format);
+        
+        $mform->addElement('select', 'coursedisplay', get_string('coursedisplay'),
+            array(COURSE_DISPLAY_SINGLEPAGE => get_string('coursedisplay_single'),
+                COURSE_DISPLAY_MULTIPAGE => get_string('coursedisplay_multi')));
+        $mform->addHelpButton('coursedisplay', 'coursedisplay');
+        $mform->setDefault('coursedisplay', COURSE_DISPLAY_SINGLEPAGE);         
         */
         if ($has_editadvancedcoursesettings) {
             $courseformats = get_plugin_list('format');
@@ -238,9 +244,21 @@ class course_edit_form extends moodleform {
             $mform->addElement('select', 'format', get_string('format'), $formcourseformats);
             $mform->addHelpButton('format', 'format');
             $mform->setDefault('format', $courseconfig->format);
+            
+            $mform->addElement('select', 'coursedisplay', get_string('coursedisplay'),
+                array(COURSE_DISPLAY_SINGLEPAGE => get_string('coursedisplay_single'),
+                    COURSE_DISPLAY_MULTIPAGE => get_string('coursedisplay_multi')));
+            $mform->addHelpButton('coursedisplay', 'coursedisplay');
+            $mform->setDefault('coursedisplay', COURSE_DISPLAY_SINGLEPAGE);                
         } else {
             $mform->addElement('static', 'format_readonly', get_string('format'),
                     get_string('pluginname', "format_$courseconfig->format"));
+            
+            $coursedisplay_strings = array(COURSE_DISPLAY_SINGLEPAGE => get_string('coursedisplay_single'),
+                    COURSE_DISPLAY_MULTIPAGE => get_string('coursedisplay_multi'));
+            $coursedisplay_default = isset($courseconfig->coursedisplay) ? $courseconfig->coursedisplay : COURSE_DISPLAY_SINGLEPAGE;
+            $mform->addElement('static', 'coursedisplay_readonly', get_string('coursedisplay'),
+                    $coursedisplay_strings[$coursedisplay_default]);            
         }
         // END UCLA MOD: CCLE-3278
         
@@ -377,7 +395,7 @@ class course_edit_form extends moodleform {
             if (!empty($course->id)) {
                 $mform->setConstant('visible', $course->visible);
             } else {
-                $mform->setConstant('visible', $category->visible);
+                $mform->setConstant('visible', $courseconfig->visible);
             }
         }
 
@@ -420,40 +438,6 @@ class course_edit_form extends moodleform {
             $mform->addElement('hidden', 'completionstartonenrol');
             $mform->setType('completionstartonenrol', PARAM_INT);
             $mform->setDefault('completionstartonenrol',0);
-        }
-
-//--------------------------------------------------------------------------------
-        if (has_capability('moodle/site:config', $systemcontext)) {
-            if (((!empty($course->requested) && $CFG->restrictmodulesfor == 'requested') || $CFG->restrictmodulesfor == 'all')) {
-                $mform->addElement('header', '', get_string('restrictmodules'));
-
-                $options = array();
-                $options['0'] = get_string('no');
-                $options['1'] = get_string('yes');
-                $mform->addElement('select', 'restrictmodules', get_string('restrictmodules'), $options);
-                if (!empty($CFG->restrictbydefault)) {
-                    $mform->setDefault('restrictmodules', 1);
-                }
-
-                $mods = array(0=>get_string('allownone'));
-                $mods += $DB->get_records_menu('modules', array('visible'=>1), 'name', 'id, name');
-                $mform->addElement('select', 'allowedmods', get_string('to'), $mods, array('multiple'=>'multiple', 'size'=>'10'));
-                $mform->disabledIf('allowedmods', 'restrictmodules', 'eq', 0);
-                // defaults are already in $course
-            } else {
-                // remove any mod restriction
-                $mform->addElement('hidden', 'restrictmodules', 0);
-                $mform->setType('restrictmodules', PARAM_INT);
-            }
-        } else {
-            $mform->addElement('hidden', 'restrictmodules');
-            $mform->setType('restrictmodules', PARAM_INT);
-            if (empty($course->id)) {
-                $mform->setConstant('restrictmodules', (int)($CFG->restrictmodulesfor == 'all'));
-            } else {
-                // keep previous
-                $mform->setConstant('restrictmodules', $course->restrictmodules);
-            }
         }
 
 /// customizable role names in this course

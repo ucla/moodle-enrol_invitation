@@ -55,11 +55,9 @@ class enrol_manual_potential_participant extends user_selector_base {
         $countfields = 'SELECT COUNT(1)';
 
         $sql = " FROM {user} u
-                WHERE $wherecondition AND
-                      u.id NOT IN (
-                          SELECT ue.userid
-                            FROM {user_enrolments} ue
-                            JOIN {enrol} e ON (e.id = ue.enrolid AND e.id = :enrolid))";
+            LEFT JOIN {user_enrolments} ue ON (ue.userid = u.id AND ue.enrolid = :enrolid)
+                WHERE $wherecondition
+                      AND ue.id IS NULL";
         $order = ' ORDER BY u.lastname ASC, u.firstname ASC';
 
         if (!$this->is_validating()) {
@@ -318,7 +316,7 @@ class enrol_manual_deleteselectedusers_operation extends enrol_bulk_enrolment_op
      * @param mixed $defaultcustomdata
      * @return enrol_manual_editselectedusers_form
      */
-    public function get_form($defaultaction = null, array $defaultcustomdata = null) {
+    public function get_form($defaultaction = null, $defaultcustomdata = null) {
         global $CFG;
         require_once($CFG->dirroot.'/enrol/manual/bulkchangeforms.php');
         if (!array($defaultcustomdata)) {
