@@ -295,8 +295,6 @@ function create_help_message(&$fromform)
     $description['trackforums'][1] = '1 - '.get_string('trackforumsyes');
     $description['screenreader'][0] = '0 - '.get_string('screenreaderno');
     $description['screenreader'][1] = '1 - '.get_string('screenreaderyes');
-    $description['ajax'][0] = '0 - '.get_string('ajaxno');
-    $description['ajax'][1] = '1 - '.get_string('ajaxyes');
     
     if (isset($USER->currentcourseaccess[$COURSE->id])) {
         $accesstime = date('r' , $USER->currentcourseaccess[$COURSE->id]);
@@ -331,7 +329,6 @@ function create_help_message(&$fromform)
     USER_lastip              = " . @$USER->lastip . "
     USER_maildisplay         = " . @$description['maildisplay'][$USER->maildisplay] . "
     USER_htmleditor          = " . @$description['htmleditor'][$USER->htmleditor] . "
-    USER_ajax (AJAX and Javascript) = " . @$description['ajax'][$USER->ajax] . "
     USER_autosubscribe       = " . @$description['autosubscribe'][$USER->autosubscribe] . "
     USER_trackforums         = " . @$description['trackforums'][$USER->trackforums] . "
     USER_timemodified        = " . @date('r' , $USER->timemodified) . "
