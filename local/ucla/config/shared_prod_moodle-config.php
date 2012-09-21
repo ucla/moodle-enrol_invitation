@@ -217,9 +217,12 @@ $CFG->forced_plugin_settings['assignfeedback_file']['default'] = 1;
 $CFG->forced_plugin_settings['enrol_guest']['defaultenrol'] = 1;
 $CFG->forced_plugin_settings['enrol_guest']['status'] = 0;  // 0 is yes, 1 is no
 
-// Site administration > Blocks > UCLA bruincast
+// Site administration > Plugins > Blocks > UCLA bruincast
 $CFG->forced_plugin_settings['block_ucla_bruincast']['source_url'] = 'http://www.oid.ucla.edu/help/info/bcastlinks/';
 $CFG->forced_plugin_settings['block_ucla_bruincast']['errornotify_email'] = 'ccle-operations@lists.ucla.edu';
+
+// Data Source Sync (bruincast, video furnace, library reserves) contact Email
+$CFG->forced_plugin_settings['tool_ucladatasourcesync']['contact_email']='ccle-operations@lists.ccle.ucla.edu';
 
 // Site administration > Plugins > Blocks > i>clicker Moodle integrate
 $CFG->forced_plugin_settings['block_iclicker']['block_iclicker_notify_emails'] = 'ccle-operations@lists.ucla.edu';

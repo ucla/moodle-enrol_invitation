@@ -28,7 +28,7 @@ if (!isset($CFG->quiet_mode)) {
 }
 
 // Begin database update
-update_bruincast_db($bruincast_source_url);
+update_bruincast_db($CFG->bruincast_data);
 
 function define_data_source() {
     $ret_val = array();
@@ -70,10 +70,10 @@ function define_data_source() {
  */
 function update_bruincast_db($source_url) {
     global $CFG, $DB;
-
+    
     echo get_string('bcstartnoti', 'tool_ucladatasourcesync');
 
-    $csv_data = &get_csv_data($source_url);
+    $csv_data = get_csv_data($source_url);
     $fields = define_data_source();
 
     // We know for the bruincast DATA that the first two rows are a
@@ -167,6 +167,8 @@ function update_bruincast_db($source_url) {
  */
 function check_crosslists(&$data) {
     global $CFG, $DB, $bruincast_errornotify_email, $bruincast_quiet_mode;
+    
+    $bruincast_errornotify_email = get_config('block_ucla_bruincast', 'errornotify_email');
 
     $problem_courses = array();
 

@@ -19,7 +19,8 @@ require_once($CFG->dirroot . '/local/ucla/registrar/registrar_ccle_get_primary_s
         
 require_once($CFG->dirroot . '/lib/moodlelib.php');
 
-const SUPPORT_EMAIL = 'ccle-operations@lists.ucla.edu';
+$support_email = get_config('contact_email', 'tool_ucladatasourcesync');
+define ('SUPPORT_EMAIL', $support_email);
 
 /**
  * Returns an array of raw CSV data from the CSV file at datasource_url.
