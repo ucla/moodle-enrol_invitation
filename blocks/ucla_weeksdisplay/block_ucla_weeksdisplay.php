@@ -419,11 +419,16 @@ class block_ucla_weeksdisplay extends block_base {
 
         $current_term = $CFG->currentterm;
 
-        $query_result = registrar_query::run_registrar_query('ucla_getterms', 
-                array($current_term), true);    
-        
-        $session = new ucla_session($query_result);
-        $session->update();
+        try {
+            $query_result = registrar_query::run_registrar_query('ucla_getterms', 
+                    array($current_term), true);    
+
+            $session = new ucla_session($query_result);
+            $session->update();
+        } catch(Exception $e) {
+            // mostly likely couldn't connect to registrar
+            mtrace($e->getMessage());
+        }
     }
 
 
