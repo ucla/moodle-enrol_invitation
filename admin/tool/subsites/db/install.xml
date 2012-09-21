@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+  <XMLDB PATH="admin/tool/subsites/db" VERSION="20120921" COMMENT="XMLDB file for Moodle admin/tool/subsites">
+    <TABLES>
+      <TABLE NAME="tool_subsites" COMMENT="Default comment for tool_subsites, please edit me">
+        <FIELDS>
+          <FIELD NAME="id" TYPE="int" LENGTH="10" UNSIGNED="true" NOTNULL="true" SEQUENCE="true" />
+        </FIELDS>
+        <KEYS>
+          <KEY NAME="primary" TYPE="primary" FIELDS="id" />
+        </KEYS>
+      </TABLE>
+    </TABLES>
+  </XMLDB>
