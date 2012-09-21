@@ -19,3 +19,4 @@ $role['ta']['EE BIOL'] = 'ta';
 $role['ta']['LIFESCI'] = 'ta';
 $role['ta']['MCD BIO'] = 'ta';
 $role['ta']['PHYSCI'] = 'ta';
+$role['ta']['NEUROSC'] = 'ta';
