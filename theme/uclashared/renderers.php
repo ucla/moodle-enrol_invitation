@@ -273,11 +273,11 @@ class theme_uclashared_core_renderer extends core_renderer {
 
         $footer_string = '';
         
-//        $custom_text = get_config($this->theme, 'footer_links');
-//        if ($custom_text != '') {
-//            $footer_string = $custom_text; 
-//            array_unshift($links, 'separator');
-//        }
+        $custom_text = trim(get_config($this->theme, 'footer_links'));
+        if (!empty($custom_text)) {
+            $footer_string = $custom_text; 
+            array_unshift($links, 'separator');
+        }
 
         // keep all links before seperator from opening into new window
         $open_new_window = false;
