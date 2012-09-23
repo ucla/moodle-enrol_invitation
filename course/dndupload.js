@@ -445,6 +445,9 @@ M.course_dndupload = {
             a: document.createElement('a'),
             icon: document.createElement('img'),
             namespan: document.createElement('span'),
+            /* START UCLA MOD: CCLE-3531 - Drag and drop files automatically public material */
+            groupingspan: document.createElement('span'),
+            /* END UCLA MOD: CCLE-3531 */            
             progressouter: document.createElement('span'),
             progress: document.createElement('span')
         };
@@ -468,6 +471,11 @@ M.course_dndupload = {
         resel.a.appendChild(resel.namespan);
 
         resel.div.appendChild(document.createTextNode(' '));
+
+        /* START UCLA MOD: CCLE-3531 - Drag and drop files automatically public material */
+        resel.groupingspan.className = 'groupinglabel';
+        resel.div.appendChild(resel.groupingspan);
+        /* END UCLA MOD: CCLE-3531 */
 
         resel.progressouter.className = 'dndupload-progress-outer';
         resel.progress.className = 'dndupload-progress-inner';
@@ -724,6 +732,15 @@ M.course_dndupload = {
                             resel.icon.src = result.icon;
                             resel.a.href = result.link;
                             resel.namespan.innerHTML = result.name;
+                            
+                            /* START UCLA MOD: CCLE-3531 - Drag and drop files automatically public material */
+                            if (result.groupingname) {
+                                resel.groupingspan.innerHTML = '(' + result.groupingname + ')';
+                            } else {
+                                resel.div.removeChild(resel.groupingspan);
+                            }
+                            /* END UCLA MOD: CCLE-3531 */
+                            
                             resel.div.removeChild(resel.progressouter);
                             resel.li.id = result.elementid;
                             resel.div.innerHTML += result.commands;
@@ -904,6 +921,15 @@ M.course_dndupload = {
                             resel.icon.src = result.icon;
                             resel.a.href = result.link;
                             resel.namespan.innerHTML = result.name;
+
+                            /* START UCLA MOD: CCLE-3531 - Drag and drop files automatically public material */
+                            if (result.groupingname) {
+                                resel.groupingspan.innerHTML = '(' + result.groupingname + ')';
+                            } else {
+                                resel.div.removeChild(resel.groupingspan);
+                            }
+                            /* END UCLA MOD: CCLE-3531 */
+                            
                             resel.div.removeChild(resel.progressouter);
                             resel.li.id = result.elementid;
                             resel.div.innerHTML += result.commands;
