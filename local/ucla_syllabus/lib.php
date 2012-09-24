@@ -16,11 +16,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Library of interface functions and constants for module newmodule
+ * Library of interface functions and constants for UCLA syllabus
  *
  * All the core Moodle functions, neeeded to allow the module to work
  * integrated in Moodle should be placed here.
- * All the newmodule specific functions, needed to implement all the module
+ * All the UCLA syllabus specific functions, needed to implement all the plugin
  * logic, should go to locallib.php. This will help to save some memory when
  * Moodle is performing actions across all modules.
  *
@@ -29,8 +29,6 @@
  * @copyright  2012 UC Regents
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-require_once(dirname(__FILE__).'/class.ucla_syllabus.php');
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -157,6 +155,7 @@ function local_ucla_syllabus_get_extra_capabilities() {
  * @param array $options additional options affecting the file serving
  */
 function local_ucla_syllabus_pluginfile($course, $cm, $context, $filearea, array $args, $forcedownload, array $options=array()) {
+    require_once(dirname(__FILE__).'/class.ucla_syllabus.php');
     global $DB, $CFG;
     
     // first get syllabus file
