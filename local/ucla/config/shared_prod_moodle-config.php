@@ -113,7 +113,7 @@ $CFG->shib_logged_in_cookie = '_ucla_sso';
 $CFG->forced_plugin_settings['block_ucla_help']['send_to'] = 'jira';
 $CFG->forced_plugin_settings['block_ucla_help']['jira_endpoint'] = 'https://jira.ats.ucla.edu/CreateIssueDetails.jspa';
 $CFG->forced_plugin_settings['block_ucla_help']['jira_default_assignee'] = 'dkearney';
-$block_ucla_help_support_contacts['System'] = 'dkearney';  // default
+//$block_ucla_help_support_contacts['System'] = 'dkearney';  // default
 
 // CCLE-2312 - LIBRARY RESERVES BLOCK
 $CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url'] = 'ftp://ftp.library.ucla.edu/incoming/eres/voyager_reserves_data.txt';
