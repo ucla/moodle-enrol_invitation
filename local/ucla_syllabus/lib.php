@@ -32,11 +32,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-/** Constants */
-define('UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC', 1);
-define('UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN', 2);
-define('UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE', 3);
-
 ////////////////////////////////////////////////////////////////////////////////
 // Moodle core API                                                            //
 ////////////////////////////////////////////////////////////////////////////////
@@ -155,15 +150,14 @@ function local_ucla_syllabus_get_extra_capabilities() {
  * @param array $options additional options affecting the file serving
  */
 function local_ucla_syllabus_pluginfile($course, $cm, $context, $filearea, array $args, $forcedownload, array $options=array()) {
-    require_once(dirname(__FILE__).'/class.ucla_syllabus.php');
+    require_once(dirname(__FILE__).'/locallib.php');
     global $DB, $CFG;
     
     // first get syllabus file
-    $ucla_syllabus = new ucla_syllabus($course->id);
-    $syllabus = $ucla_syllabus->get_syllabus($args[0]); // first argument should be ucla_syllabus id
+    $syllabus = ucla_syllabus_manager::instance($args[0]);  // first argument should be ucla_syllabus id
     
     // do some sanity checks
-    if (empty($syllabus) || !isset($syllabus->stored_file)) {
+    if (empty($syllabus) || !(isset($syllabus->stored_file))) {
         // no syllabus
         send_file_not_found();        
     } else if ($syllabus->courseid != $course->id || 
@@ -191,7 +185,7 @@ function local_ucla_syllabus_pluginfile($course, $cm, $context, $filearea, array
             break;
     }
     
-    if ($allow_download) {
+    if ($syllabus->can_view()) {
         // finally send the file
         send_stored_file($syllabus->stored_file, 86400, 0, $forcedownload);
     } else {
