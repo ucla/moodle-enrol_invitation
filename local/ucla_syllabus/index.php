@@ -28,8 +28,7 @@
  */
 
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
-require_once(dirname(__FILE__).'/class.ucla_syllabus.php');
-require_once(dirname(__FILE__).'/lib.php');
+require_once(dirname(__FILE__).'/locallib.php');
 require_once(dirname(__FILE__).'/syllabus_form.php');
 require_once($CFG->dirroot . '/local/ucla/lib.php');
 require_once($CFG->libdir . '/resourcelib.php');   // for embedding code
@@ -37,9 +36,9 @@ require_once($CFG->libdir . '/resourcelib.php');   // for embedding code
 // get script variables to be used later
 $id = required_param('id', PARAM_INT);   // course
 $course = $DB->get_record('course', array('id' => $id), '*', MUST_EXIST);
+$ucla_syllabus_manager = new ucla_syllabus_manager($course);
 $coursecontext = context_course::instance($course->id);
-$can_manage_syllabus = has_capability('local/ucla_syllabus:managesyllabus', $coursecontext);
-$ucla_syllabus = new ucla_syllabus($id);
+$can_manage_syllabus = $ucla_syllabus_manager->can_manage();
 
 require_course_login($course);
 
@@ -57,13 +56,10 @@ if ($can_manage_syllabus) {
                     array('id' => $course->id));
     set_editing_mode_button($url);
     
-    $maxbytes = get_max_upload_file_size();
-    $filemanager_config = array('subdirs' => 0, 'maxbytes' => $maxbytes, 'maxfiles' => 1,
-                      'accepted_types' => array('.pdf'));
-    
     // setup form
     $syllabus_form = new syllabus_form(null, 
-            array('courseid' => $course->id, 'filemanager_config' => $filemanager_config),
+            array('courseid' => $course->id, 
+                  'ucla_syllabus_manager' => $ucla_syllabus_manager),
             'post',
             '',
             array('class' => 'syllabus_form'));    
@@ -84,28 +80,13 @@ if ($USER->editing && $can_manage_syllabus) {
     echo $OUTPUT->heading(get_string('syllabus_manager', 'local_ucla_syllabus'), 2, 'headingblock');        
     
     // User is editing, so process or display form
-    if ($data = $syllabus_form->get_data() && confirm_sesskey()) {
-        
-        // first create a entry in ucla_syllabus
-        $ucla_syllabus_entry = new stdClass();
-        $ucla_syllabus_entry->courseid      = $data->id;
-        $ucla_syllabus_entry->display_name  = $data->display_name;
-        $ucla_syllabus_entry->access_type   = $data->access_types['access_type'];
-        $ucla_syllabus_entry->is_preview    = isset($data->is_preview) ? 1 : 0;
-
-        $insertedid = $DB->insert_record('ucla_syllabus', $ucla_syllabus_entry);        
-        if (empty($insertedid)) {        
-            print_error(get_string('cannnot_make_db_entry', 'local_ucla_syllabus'));
-        }
-        
-        // then save file, with link to ucla_syllabus
-        file_save_draft_area_files($data->public_syllabus_file, 
-                $coursecontext->id, 'local_ucla_syllabus', 'syllabus', 
-                $insertedid, $filemanager_config);
-        
-        // upload was successful, give success message to user
-        $OUTPUT->notification(get_string('successful_upload', 'local_ucla_syllabus'), 'notifysuccess');
-            
+    $data = $syllabus_form->get_data();
+    if (!empty($data) && confirm_sesskey()) {
+        $result = $ucla_syllabus_manager->save_syllabus($data);        
+        if ($result) {
+            // upload was successful, give success message to user            
+            $OUTPUT->notification(get_string('successful_upload', 'local_ucla_syllabus'), 'notifysuccess');
+        }        
     } else {        
         $syllabus_form->display();
     }
@@ -115,8 +96,10 @@ if ($USER->editing && $can_manage_syllabus) {
     echo $OUTPUT->header();
     $title = ''; $body = '';
 
+    $syllabi = $ucla_syllabus_manager->get_syllabi();
+    
     // see if there is a public syllabus uploaded
-    $public_syllabus = $ucla_syllabus->get_public_syllabus();
+    $public_syllabus = $syllabi['public'];
     if (empty($public_syllabus)) {
         // no public syllabus, so display no info
         $title = get_string('display_name_default', 'local_ucla_syllabus');
@@ -130,9 +113,9 @@ if ($USER->editing && $can_manage_syllabus) {
     } else {
         $title = $public_syllabus->display_name;
 
-        $fullurl = $ucla_syllabus->get_file_url($public_syllabus);
-        $mimetype = $public_syllabus->stored_file->get_mimetype();
-        $download_link = $ucla_syllabus->get_download_link($public_syllabus);        
+        $fullurl = $public_syllabus->get_file_url();
+        $mimetype = $public_syllabus->get_mimetype();
+        $download_link = $public_syllabus->get_download_link();        
 
         // try to embed file using resource functions
         if ($mimetype === 'application/pdf') {

@@ -52,6 +52,7 @@ $string['invalid_public_syllabus'] = 'Can only have one public syllabus for cour
 $string['no_syllabus_uploaded'] = 'No syllabus has been uploaded yet.';
 $string['no_syllabus_uploaded_help'] = 'To upload a syllabus file, please "Turn on editing".';
 $string['clicktodownload'] = 'Download: {$a}';
+$string['syllabus_needs_setup'] = 'Syllabus (needs setup)';
 
 // error general strings
 $string['err_missing_courseid'] = 'Missing required courseid';

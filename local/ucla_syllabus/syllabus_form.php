@@ -29,15 +29,17 @@
 
 defined('MOODLE_INTERNAL') || die;
 
+require_once(dirname(__FILE__).'/locallib.php');
 require_once($CFG->libdir . '/formslib.php');
 
 class syllabus_form extends moodleform {
+    private $ucla_syllabus_manager;
     
     public function definition(){
         global $CFG, $USER, $DB;
         
         $courseid = $this->_customdata['courseid'];
-        $filemanager_config = $this->_customdata['filemanager_config'];
+        $this->ucla_syllabus_manager = $this->_customdata['ucla_syllabus_manager'];
         
         $mform = $this->_form;        
         $mform->addElement('hidden', 'id', $courseid);
@@ -54,7 +56,7 @@ class syllabus_form extends moodleform {
         $mform->addElement('filemanager', 'public_syllabus_file', 
                 sprintf('%s (%s)', get_string('uploadafile', 'moodle'), 
                         get_string('pdf_only', 'local_ucla_syllabus')), null, 
-                $filemanager_config);
+                $this->ucla_syllabus_manager->get_filemanager_config());
         $mform->addRule('public_syllabus_file', 
                 get_string('public_syllabus_none_uploaded', 'local_ucla_syllabus'), 
                 'required');
@@ -89,26 +91,6 @@ class syllabus_form extends moodleform {
        
         $this->add_action_buttons();
     }
-
-    /**
-     * Helper function to see if a given course has a public syllabus.
-     * 
-     * @global type $DB
-     * @param type $courseid
-     * @return boolean
-     */
-    public function has_public_syllabus($courseid)
-    {
-        global $DB;
-
-        $where = 'courseid=:courseid AND (access_type=:public OR access_type=:loggedin)';
-        $result = $DB->record_exists_select('ucla_syllabus', $where, 
-                array('courseid' => $courseid, 
-                      'public' => UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC, 
-                      'loggedin' => UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN));
-        
-        return $result;
-    }    
     
     /**
      * Make sure the following is true:
@@ -132,8 +114,8 @@ class syllabus_form extends moodleform {
             $err['access_types'] = get_string('access_invalid', 'local_ucla_syllabus');
         }
         
-        // check if another public syllabus was uploaded        
-        if ($this->has_public_syllabus($data['id'])) {
+        // check if another public syllabus was uploaded  
+        if (ucla_syllabus_manager::has_public_syllabus($data['id'])) {            
             $err['public_syllabus_file'] = 
                     get_string('invalid_public_syllabus', 'local_ucla_syllabus');
         }

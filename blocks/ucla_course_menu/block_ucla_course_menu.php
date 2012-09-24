@@ -147,6 +147,19 @@ class block_ucla_course_menu extends block_navigation {
                        
         // get section nodes
         $section_elements = $this->create_section_elements();
+        
+        // add node for syllabus (if needed)
+        include_once($CFG->dirroot . '/local/ucla_syllabus/locallib.php');
+        if (class_exists('ucla_syllabus_manager')) {
+            global $COURSE;
+            $ucla_syllabus_manager = new ucla_syllabus_manager($COURSE);
+            $syllabus_node = $ucla_syllabus_manager->get_navigation_nodes();
+            if (!empty($syllabus_node)) {
+                // found node, so prepend to section elements
+                array_unshift($section_elements, $syllabus_node);
+            }
+        }        
+        
         $section_elements = $this->trim_nodes($section_elements);        
         $this->content->text .= $renderer->navigation_node($section_elements,
             array('class' => 'block_tree list'));
@@ -221,10 +234,15 @@ class block_ucla_course_menu extends block_navigation {
                     new moodle_url('/course/view.php', $showallurlparams)
                 );
             } else if ($this->displaysection >= 0) {
-                navigation_node::override_active_url(
-                    new moodle_url('/course/view.php', 
-                            array('id' => $course_id, 'section' => $this->displaysection))
-                );
+                // @todo there are other pages that we don't want the url to be 
+                // overridden, but for now just really care about the syllabus
+                if (strpos($this->page->url->get_path(), 
+                        '/local/ucla_syllabus/') === false) {
+                    navigation_node::override_active_url(
+                        new moodle_url('/course/view.php', 
+                                array('id' => $course_id, 'section' => $this->displaysection))
+                    );   
+                }
             }
         }                
         
