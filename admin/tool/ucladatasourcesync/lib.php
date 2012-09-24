@@ -14,6 +14,14 @@ if (!defined('CLI_SCRIPT')) {
 require_once(dirname(__FILE__) . '/../../../config.php');
 require_once($CFG->dirroot . '/local/ucla/lib.php');
 
+require_once($CFG->dirroot . '/local/ucla/registrar/registrar_query.base.php');
+require_once($CFG->dirroot . '/local/ucla/registrar/registrar_ccle_get_primary_srs.class.php');
+        
+require_once($CFG->dirroot . '/lib/moodlelib.php');
+
+$support_email = get_config('contact_email', 'tool_ucladatasourcesync');
+define ('SUPPORT_EMAIL', $support_email);
+
 /**
  * Returns an array of raw CSV data from the CSV file at datasource_url.
  * 
@@ -33,7 +41,10 @@ function get_csv_data($datasource_url) {
     }
 
     if (empty($lines)) {
-        echo "\n... ERROR: Could not open $datasource_url!\n";
+        $csverror = "... ERROR: Could not open $datasource_url!";
+        log_ucla_data('bruincast', 'parsing data', 'CSV data retrieval', $csverror);
+        
+        echo "\n$csverror\n";
         exit(5);
     }
 
@@ -58,7 +69,10 @@ function get_tsv_data($datasource_url) {
     }
 
     if (empty($lines)) {
-        echo "\n... ERROR: Could not open $datasource_url!\n";
+        $tsverror = "... ERROR: Could not open $datasource_url!";
+        log_ucla_data('video furnace', 'parsing data', 'TSV data retrieval', $tsverror);
+        
+        echo "\n$tsverror\n";
         //Why is the exit code 5?
         exit(5);
     }
@@ -178,11 +192,14 @@ function cleanup_csv_data(&$data_array, $table_name) {
     if (!empty($invalid_restrictions)) {
         $invalid_restrictions = implode("\n", $invalid_restrictions);
 
-        if (!isset($CFG->bruincast_errornotify_email) || $CFG->quiet_mode) {
+        $bruincast_source_url = get_config('block_ucla_bruincast', 'source_url');
+        $bruincast_quiet_mode = get_config('block_ucla_bruincast', 'quiet_mode');
+        
+        if (empty($bruincast_source_url) || $bruincast_quiet_mode) {
             echo $invalid_restrictions;
         } else {
-            ucla_send_mail($CFG->bruincast_errornotify_email, 
-                    'BruinCast Data Issues (' . date('r') . ')', $invalid_restrictions);
+            ucla_send_mail($bruincast_source_url, 
+                    'BruinCast data issues (' . date('r') . ')', $invalid_restrictions);
         }
     }
 
@@ -207,6 +224,12 @@ function match_course($term, $srs, $subject_area=null, $cat_num=null, $sec_num=n
     $ret_val = null;
     $found_bad_srs = false; // used to track bad data source
     
+    // make sure that the SRS is the course SRS, not a discussion SRS
+    $temp1 = registrar_query::run_registrar_query(
+            'ccle_get_primary_srs', array($term, $srs), true);
+    $temp2 = array_shift($temp1);
+    $srs = array_pop($temp2);
+    
     // prepare error message object (not going to be used most of the time,
     // but useful to do it here than whenever and error is called)
     $a = new stdClass();
@@ -227,7 +250,7 @@ function match_course($term, $srs, $subject_area=null, $cat_num=null, $sec_num=n
         $ret_val = ucla_map_termsrs_to_courseid($term, $srs);      
         
         if (empty($ret_val)) {
-            // see if course record exist at Registrar
+            // see if course record exist at Registrar                                                                                               
             ucla_require_registrar();            
             $results = registrar_query::run_registrar_query(
                     'ccle_getclasses', array(array($term, $srs)), true);      
@@ -351,4 +374,60 @@ function validate_field($type, $field, $min_size=0, $max_size=100)
     }
     
     return $field;
+}
+
+/**
+ * Gets table information from database for: bruincast, library reserves, and video furnace
+ * 
+ * @param string $table     The type of table you want to get information for.
+ *      options: "bruincast", "library_reserves", "video_furnace"
+ * 
+ * @return array            Returns an array containing: 
+ */
+function get_reserve_data($table)
+{
+    global $DB;
+    global $CFG;
+    
+    $result = $DB->get_records('ucla_' . $table);
+    
+    foreach ($result as $item) {
+        if ($item->courseid != NULL) {
+            $shortname = $DB->get_field('course', 'shortname', array('id' => ($item->courseid)));
+            
+            $courseurl = new moodle_url('/course/view.php', array('id' => ($item->courseid)));
+            
+            $shortnamewithlink = html_writer::link ($courseurl, $shortname);
+            
+            $item->courseid = $shortnamewithlink;
+        }
+    }
+    
+    return $result;
+}
+
+/**
+ * Generic logging of library reserves and video furnace data processing scripts
+ * Sends email to ccle support if an error occured
+ * 
+ * @param string $func     Activity to be logged 
+ *                         (video furnace, library reserve, bruincast)
+ * @param string $action   Action taken
+ * @param string $notice   Description of what is to be logged
+ * @param string $error    Possible errors that occured when running the script
+ */
+
+function log_ucla_data($func, $action, $notice, $error = '') {
+    global $SITE, $USER;
+    
+    $log_message = empty($error) ? $notice : $notice . PHP_EOL . $error;
+    add_to_log($SITE->id, $func, $action, '', $log_message);
+    
+    // If an error was reported, then send an email to ccle support
+    if (!empty($error)) {
+        $cclesupport = generate_email_supportuser();
+        $cclesupport->email = SUPPORT_EMAIL;
+        
+        email_to_user($cclesupport, $USER, $func . ' ' . $action, $notice . PHP_EOL . $error);
+    }
 }
