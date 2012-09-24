@@ -181,8 +181,21 @@ class enrol_meta_handler {
             return;
         }
 
+        // CCLE-2386
+        $promoroleid = isset($instance->customint2) 
+            ? $instance->customint2 
+            : false;
+        $promotorole = $promoroleid ? $instance->customint3 : false;
+        $promouserid = $promotorole 
+            && (empty($instance->customint4) 
+                || $instance->customint4 == $userid);
+
         // add new roles
         foreach ($parentroles as $rid) {
+            if ($rid == $promoroleid && $promouserid) {
+                $rid = $promotorole;
+            }
+
             if (!isset($roles[$rid])) {
                 role_assign($rid, $userid, $context->id, 'enrol_meta', $instance->id);
             }
@@ -578,6 +591,7 @@ function enrol_meta_sync($courseid = NULL, $verbose = false) {
     $params['activeuser'] = ENROL_USER_ACTIVE;
     $params['enabledinstance'] = ENROL_INSTANCE_ENABLED;
     $sql = "SELECT DISTINCT pra.roleid, pra.userid, c.id AS contextid, e.id AS enrolid, e.courseid
+        , e.customint2 AS promoroleid, e.customint3 AS promotoroleid, e.customint4 AS promouserid
               FROM {role_assignments} pra
               JOIN {user} u ON (u.id = pra.userid AND u.deleted = 0)
               JOIN {context} pc ON (pc.id = pra.contextid AND pc.contextlevel = :coursecontext AND pra.component $enabled)
@@ -595,9 +609,20 @@ function enrol_meta_sync($courseid = NULL, $verbose = false) {
 
     $rs = $DB->get_recordset_sql($sql, $params);
     foreach($rs as $ra) {
+        // CCLE-2386 - Meta course / Ta-sites
+        $oldrole = $ra->roleid;
+        $ra->roleid = enrol_meta_plugin::get_role_promotion($ra);
+        // TODO add check to make sure not to reassign roles
+
         role_assign($ra->roleid, $ra->userid, $ra->contextid, 'enrol_meta', $ra->enrolid);
         if ($verbose) {
-            mtrace("  assigning role: $ra->userid ==> $ra->courseid as ".$allroles[$ra->roleid]->shortname);
+            if ($oldrole != $ra->roleid) {
+                $promostr = ' (promoted)';
+            } else {
+                $promostr = '';
+            }
+
+            mtrace("  assigning role: $ra->userid ==> $ra->courseid as ".$allroles[$ra->roleid]->shortname.$promostr);
         }
     }
     $rs->close();
@@ -618,15 +643,31 @@ function enrol_meta_sync($courseid = NULL, $verbose = false) {
         $notignored = "";
     }
     $sql = "SELECT ra.roleid, ra.userid, ra.contextid, ra.itemid, e.courseid
+        , e.customint2 AS promoroleid, e.customint3 AS promotoroleid, e.customint4 AS promouserid, spra.roleid AS unpromoroleid
               FROM {role_assignments} ra
               JOIN {enrol} e ON (e.id = ra.itemid AND ra.component = 'enrol_meta' AND e.enrol = 'meta' $onecourse)
               JOIN {context} pc ON (pc.instanceid = e.customint1 AND pc.contextlevel = :coursecontext)
          LEFT JOIN {role_assignments} pra ON (pra.contextid = pc.id AND pra.userid = ra.userid AND pra.roleid = ra.roleid AND pra.component <> 'enrol_meta' $notignored)
+         LEFT JOIN {role_assignments} spra ON (spra.contextid = pc.id AND spra.userid = ra.userid AND spra.roleid = e.customint2 AND spra.component <> 'enrol_meta' $notignored)
          LEFT JOIN {user_enrolments} ue ON (ue.enrolid = e.id AND ue.userid = ra.userid AND ue.status = :activeuser)
              WHERE pra.id IS NULL OR ue.id IS NULL OR e.status <> :enabledinstance";
 
     $rs = $DB->get_recordset_sql($sql, $params);
     foreach($rs as $ra) {
+        // Check to make sure the role was NOT a promoted role
+        if (isset($ra->unpromoroleid)) {
+            $checkra = clone($ra);
+            $checkra->roleid = $ra->unpromoroleid;
+            if ($ra->roleid == enrol_meta_plugin::get_role_promotion($checkra)) {
+                $skip = true;
+            }
+            unset($check);
+            if (isset($skip)) {
+                unset($skip);
+                continue;
+            }
+        }
+        
         role_unassign($ra->roleid, $ra->userid, $ra->contextid, 'enrol_meta', $ra->itemid);
         if ($verbose) {
             mtrace("  unassigning role: $ra->userid ==> $ra->courseid as ".$allroles[$ra->roleid]->shortname);

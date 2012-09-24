@@ -31,6 +31,45 @@ defined('MOODLE_INTERNAL') || die();
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class enrol_meta_plugin extends enrol_plugin {
+    static function get_target_role($roleid, 
+                                    $promoroleid, $promotoroleid, 
+                                    $userid=null, $promouserid=null) {
+        $toroleid = $roleid;
+        if ($roleid == $promoroleid) {
+            // If there is a specific user only
+            if ($promouserid) {
+                if ($userid == $promouserid) {
+                    $toroleid = $promotoroleid;
+                }
+            } else {
+                $toroleid = $promotoroleid;
+            }
+        }
+
+        return $toroleid;
+    }
+
+    static function get_role_promotion($ra) {
+        if (!isset($ra->roleid) 
+                || !isset($ra->promoroleid) 
+                || !isset($ra->promotoroleid)) {
+            return false;
+        }
+
+        $userid = null;
+        $promouserid = null;
+
+        if (isset($ra->userid)) {
+            $userid = $ra->userid;
+        }
+
+        if (isset($ra->promouserid)) {
+            $promouserid = $ra->promouserid;
+        }
+
+        return self::get_target_role($ra->roleid, $ra->promoroleid, 
+                $ra->promotoroleid, $userid, $promouserid);
+    }
 
     /**
      * Returns localised name of enrol instance
