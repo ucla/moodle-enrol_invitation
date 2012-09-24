@@ -18,7 +18,6 @@ $THEME->sheets = array(
     'base',
     'core',     // custom core stlye changes
     'general',
-    'normalize',
     'responsive',
 );
 
