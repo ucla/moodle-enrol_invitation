@@ -1,9 +1,11 @@
 <?php
 
+require_once($CFG->dirroot . '/blocks/navigation/renderer.php');
+
 /**
  *  To be honest, i don't know why i called it "block_" ucla_browseby_renderer
  **/
-class block_ucla_browseby_renderer {
+class block_ucla_browseby_renderer extends block_navigation_renderer {
     const browsebytableid = 'browsebycourseslist';
 
     static function ucla_custom_list_render($data, $min=8, $split=2, 
@@ -207,5 +209,14 @@ class block_ucla_browseby_renderer {
 
         return $selects;
     }
+    
+    /**
+     *  Calls block_navigation_renderer's protected function.
+     **/
+    public function navigation_node($i, $a=array(), $e=null, 
+            array $o=array(), $d=1) {
+        return parent::navigation_node($i, $a, $e, $o, $d);
+    }
+
 }
 
