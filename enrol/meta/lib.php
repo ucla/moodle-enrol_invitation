@@ -31,6 +31,10 @@ defined('MOODLE_INTERNAL') || die();
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class enrol_meta_plugin extends enrol_plugin {
+    /**
+     *  Returns which role to assign a user based on promotion rules.
+     *  CCLE-2386
+     **/
     static function get_target_role($roleid, 
                                     $promoroleid, $promotoroleid, 
                                     $userid=null, $promouserid=null) {
@@ -49,6 +53,10 @@ class enrol_meta_plugin extends enrol_plugin {
         return $toroleid;
     }
 
+    /**
+     *  Convenience function.
+     *  CCLE-2386
+     **/
     static function get_role_promotion($ra) {
         if (!isset($ra->roleid) 
                 || !isset($ra->promoroleid) 
@@ -187,6 +195,23 @@ class enrol_meta_plugin extends enrol_plugin {
 
         require_once("$CFG->dirroot/enrol/meta/locallib.php");
         enrol_meta_sync();
+    }
+
+    /**
+     *  Check to see if this is an automatically created connection.
+     *  CCLE-2386
+     **/
+    function instance_deleteable($instance) {
+        global $DB;
+
+        if (isset($instance->customint2) 
+                && $DB->get_record('course', 
+                    array('id' => $instance->customint1))) {
+
+            return false;
+        }
+
+        return true;
     }
 }
 

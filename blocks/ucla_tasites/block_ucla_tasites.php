@@ -1,0 +1,349 @@
+<?php
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once($CFG->dirroot . '/blocks/moodleblock.class.php');
+require_once($CFG->dirroot . '/local/ucla/lib.php');
+require_once($CFG->dirroot . '/course/lib.php');
+
+/**
+ *  Class that contains the library of function calls that control logic
+ *  for TA-site functionality.
+ *  
+ *  Currently restricted to 1 role duple (ta, ta-admin)
+ **/
+class block_ucla_tasites extends block_base {
+    /**
+     *  API call. Called when loading Moodle.
+     **/
+    function init() {
+        $this->title = get_string('pluginname', 'block_ucla_tasites');
+    }
+
+    /**
+     *  Semantic (currying?) function.
+     **/
+    static function get_ta_admin_role_id() {
+        return self::get_ta_role_id(true);
+    }
+
+    /**
+     *  Gets the role id of one of the roles that are relevant.
+     *  Cached using static.
+     *
+     *  @param $promoted Return the promoted role?
+     **/
+    static function get_ta_role_id($promoted=false) {
+        global $CFG, $DB;
+        static $roleids;
+
+        $tarsn = self::get_ta_role_shortname($promoted);
+
+        if (!isset($roleids[$tarsn])) {
+            $roleids[$tarsn] = $DB->get_field('role', 'id', 
+                array('shortname' => $tarsn));
+        }
+
+        return $roleids[$tarsn];
+    }
+
+    /**
+     *  Gets the shortnames expected of the TA roles.
+     **/
+    static function get_ta_role_shortname($promoted=false) {
+        $role_substr = $promoted ? '_admin' : '';
+        $role_str = 'ta' . $role_substr;
+        $var_field = $role_str . '_role_shortname';
+
+        // Tarzan, but actually, TA role short-name
+        $tarsn = isset($CFG->{$var_field}) 
+            ? $CFG->{$var_field}
+            : $role_str;
+
+        return $tarsn; 
+    }
+
+    /**
+     *  Checks if a particular user can have a TA-site.
+     **/
+    static function can_have_tasite($user, $courseid) {
+        $tas = self::get_tasite_users($courseid);
+        foreach ($tas as $ta) {
+            // Check if I am one of the TAs, but this may NOT
+            // be the correct way
+            if ($ta->userid == $user->id) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     *  Checks if the TA-site can be made (does not exist).
+     *  @param $context Optimization if you already have a context instance.
+     **/
+    static function can_make_tasite($user, $courseid) {
+        // This might be a redundant check
+        // Maybe throw an exception if !self::can_have_tasite()?
+        return self::can_have_tasite($user, $courseid) 
+                && !self::get_tasite($courseid, $user);
+    }
+
+    /**
+     *  Gets all the enrol_meta instances associated that signifies
+     *  that a course is a TA-site.
+     **/
+    static function get_tasite_enrolments($courseid) {
+        global $DB;
+        
+        // Find all enrolments
+        $enrols = $DB->get_records(
+            'enrol', 
+            array(
+                'enrol' => 'meta',
+                'customint1' => $courseid,
+                'customint2' => self::get_ta_role_id(),
+                'customint3' => self::get_ta_admin_role_id()
+            ), 
+            '',
+            'customint4 as ownerid, '
+                . 'courseid, '
+                . 'customint1 as parentcourseid, '
+                . 'customint2 as ta_roleid, '
+                . 'customint3 as ta_admin_roleid'
+        );
+
+        return $enrols; 
+    }
+
+    /**
+     *  Gets all the TA-sites that are associated with a course.
+     *  Optimization, uses SQL-layer logic.
+     *  @return Array enrol_meta instances, indexed-by customint4,
+     *      with course field pointing to relevant {course} row
+     **/
+    static function get_tasites($courseid) {
+        global $DB;
+
+        $enrols = self::get_tasite_enrolments($courseid);
+
+        // Find related courses
+        $courseids = array();
+        foreach ($enrols as $enrolkey => $enrol) {
+            $courseids[$enrolkey] = $enrol->courseid;
+        }
+
+        $courses = $DB->get_records_list('course', 'id', $courseids);
+
+        // match users to courses
+        $tacourses = array();
+        foreach ($enrols as $key => $enrol) {
+            $course = $courses[$courseids[$key]];
+            $course->enrol = $enrol;
+
+            $tacourses[$enrol->ownerid] = $course;
+        }
+    
+        return $tacourses;
+    }
+
+    /**
+     *  Checks if there are any valid users that can have a TA-site.
+     *  Cached using static.
+     *
+     *  @return Array of role_assignments for users that can have 
+     *      TA-sites.
+     **/
+    static function get_tasite_users($courseid) {
+        static $retrar;
+
+        if (!isset($retrar[$courseid])) {
+            $role = new object();
+            $role->id = self::get_ta_role_id();
+
+            $context = get_context_instance(CONTEXT_COURSE, $courseid);
+            $retrar[$courseid] = get_users_from_role_on_context(
+                $role,
+                $context
+            );
+        }
+
+        return $retrar[$courseid];
+    }
+   
+    /**
+     *  Checks if the current user can have TA-sites.
+     *  @throws 
+     **/
+    static function check_access($courseid) {
+        return self::enabled() && self::can_access($courseid);
+    }
+   
+    /**
+     *  Checks if a user can create a specific or any TA-site.
+     *  @throws
+     **/
+    static function can_access($courseid, $user=false) {
+        global $USER;
+        $user = $user ? $user : $USER;
+
+        return self::can_have_tasite($user, $courseid)
+            || has_capability('moodle/course:update', 
+                    get_context_instance(CONTEXT_COURSE, $courseid), $user)
+            || require_capability('moodle/site:config', 
+                    get_context_instance(CONTEXT_SYSTEM), $user);
+    }
+  
+    /**
+     *  Semantic function that checks if there is any point in doing 
+     *  anything.
+     *  @throws block_ucla_tasites_exception 
+     **/
+    static function enabled() {
+        return self::validate_enrol_meta() && self::validate_roles();
+    }
+
+    /**
+     *  Checks that the roles have been correctly detected.
+     *  @throws block_ucla_tasites_exception 
+     **/
+    static function validate_roles() {
+        if (!self::get_ta_role_id()) {
+            throw new block_ucla_tasites_exception('setuprole', 
+                self::get_ta_role_shortname());
+        }
+
+        if (!self::get_ta_admin_role_id()) {
+            throw new block_ucla_tasites_exception('setuprole', 
+                self::get_ta_role_shortname(true));
+        }
+
+        return true;
+    }
+
+    /**
+     *  Checks that enrol_meta is enabled, and then enables the plugin
+     *  if possible. 
+     *
+     *  @throws block_ucla_tasites_exception
+     **/
+    static function validate_enrol_meta() {
+        if (!enrol_is_enabled('meta')) {
+            // Reference admin/enrol.php
+            try {
+                require_capability('moodle/site:config', 
+                    get_context_instance(CONTEXT_SYSTEM));
+            } catch (moodle_exception $e) {
+                throw new block_ucla_tasites_exception('setupenrol');
+            }
+       
+            $enabled = array_keys(enrol_get_plugins(true));
+            $enabled[] = 'meta';
+            set_config('enrol_plugins_enabled', implode(',', $enabled));
+
+            $syscontext = context_system::instance();
+            $syscontext->mark_dirty();
+        }
+
+        return true;
+    }
+
+    /**
+     *  Checks if a site is a TA-site.
+     *  Essentially distinguishes between one type of enrol_meta.
+     *  A site is a TA-site if there is a specialized enrol_meta.
+     **/
+    static function is_tasite($courseid) {
+        $instances = enrol_get_instances($courseid, true);
+
+        $tasite_enrol = false;
+
+        // Do a search?
+        foreach ($instances as $instance) {
+            if ($instance->enrol == 'meta') {
+                $tasite_enrol = $instance;
+            }
+        }
+
+        // No link to another course, definitely not a tasite
+        if (!$tasite_enrol) {
+            return false;
+        }
+
+        return self::is_tasite_enrol_meta_instance($tasite_enrol);
+    }
+
+    /**
+     *  Checks if the instance of enrol_meta is for a TA-site.
+     *  Maybe named is enrol meta instance for tasite?
+     **/
+    static function is_tasite_enrol_meta_instance($enrol) {
+        if (       empty($enrol->customint2) 
+                || empty($enrol->customint3)
+                || empty($enrol->customint4)
+                || $enrol->customint2 != self::get_ta_role_id()
+                || $enrol->customint3 != self::get_ta_admin_role_id()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     *  Used to keep track of naming schemas used in the form.
+     **/
+    static function checkbox_naming($tainfo) {
+        return $tainfo->id . '-checkbox';
+    }
+
+    /**
+     *  Used to keep track of naming schemas used in the form.
+     **/
+    static function action_naming($tainfo) {
+        return $tainfo->id . '-action';
+    }
+
+    /**
+     *  Creates a new course, assigns enrolments.
+     **/
+    static function create_tasite($tainfo) {
+        $course = clone($tainfo->parent_course);
+
+        // TODO Move into function, also handle same last names!
+        $course->shortname = $tainfo->parent_course->shortname 
+            . '-' . strtoupper($tainfo->lastname);
+        
+        $fullnamedata = new object();
+        $fullnamedata->course_fullname = $course->fullname;
+        $fullnamedata->fullname = $tainfo->fullname;
+        $course->fullname = get_string('tasitefor', 'block_ucla_tasites',
+            $fullnamedata);
+
+        // Hacks for public private
+        unset($course->grouppublicprivate);
+        unset($course->groupingpublicprivate);
+
+        $newcourse = create_course($course);
+        $course->id = $newcourse->id;
+
+        // TODO move into function?
+        $meta = new enrol_meta_plugin();
+        $meta->add_instance($course, array(
+            'customint1' => $tainfo->parent_course->id,
+            'customint2' => self::get_ta_role_id(),
+            'customint3' => self::get_ta_admin_role_id(),
+            'customint4' => $tainfo->id
+        ));
+
+        $meta->course_updated(false, $course, null);
+
+        return $newcourse;
+    }
+}
+
+class block_ucla_tasites_exception extends moodle_exception {
+    function __construct($errorcode, $a=null) {
+        parent::__construct($errorcode, 'block_ucla_tasites', '', $a);
+    }
+}
