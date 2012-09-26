@@ -75,7 +75,7 @@ function update_videofurnace_db($datasource_url) {
     echo get_string('vfstartnoti', 'tool_ucladatasourcesync');
     
     $fields = define_data_source();
-    $incoming_data = &get_tsv_data($datasource_url);
+    $incoming_data = get_tsv_data($datasource_url);
     //Haven't gotten around to merging the following cleanup code into matts function. should be done once there is time.
     //$data = &cleanup_csv_data($data, "ucla_video_furnace");
     // remove old record
