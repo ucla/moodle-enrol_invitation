@@ -162,9 +162,11 @@ function parse_datasource($datasource_url)
             $error->fields = implode(', ', $invalid_fields);
             $error->line_num = $line_num;
             $error->data = print_r($incoming_data, true); 
-            
-            log_ucla_data('library reserve', 'read', 'Reading data source', 
-                    get_string('warninvalidfields', 'tool_ucladatasourcesync', $error) );
+
+            // @todo commenting out for now, better to compile a list of these
+            // and send all errors in one email
+//            log_ucla_data('library reserve', 'read', 'Reading data source', 
+//                    get_string('warninvalidfields', 'tool_ucladatasourcesync', $error) );
             
             echo(get_string('warninvalidfields', 'tool_ucladatasourcesync', 
                     $error) . "\n");      

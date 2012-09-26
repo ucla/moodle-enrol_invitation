@@ -429,7 +429,8 @@ function log_ucla_data($func, $action, $notice, $error = '') {
     
     // If an error was reported, then send an email to ccle support
     if (!empty($error)) {
-        $cclesupport = generate_email_supportuser();        
+        $cclesupport = generate_email_supportuser();    
+        $contact_email = get_config('contact_email', 'tool_ucladatasourcesync');
         if (!empty($contact_email)) {
             $cclesupport->email = $contact_email;            
         }
