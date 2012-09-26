@@ -246,7 +246,7 @@ function match_course($term, $srs, $subject_area=null, $cat_num=null, $sec_num=n
 
             if (!empty($primary_srs) && $srs != $primary_srs) {
                 $a->primary_srs = $primary_srs;
-                echo get_string('warndiscussionsrs', 'tool_ucladatasourcesync', $a) . "\n";            
+                echo get_string('noticediscussionsrs', 'tool_ucladatasourcesync', $a) . "\n";            
                 $ret_val = ucla_map_termsrs_to_courseid($term, $primary_srs);
             }
 

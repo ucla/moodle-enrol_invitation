@@ -28,8 +28,8 @@ $string['errlrmsglocation'] = "ERROR: No location set for library reserves data.
 $string['errinvalidrowlen'] = 'ERROR: Invalid row length in line {$a}.';
 $string['errlrfileopen'] = "ERROR: Problem accessing data URL";;
 $string['warninvalidfields'] = 'WARNING: Found invalid field(s) {$a->fields} in parsed line {$a->line_num}: {$a->data}';
-$string['warndiscussionsrs'] = 'WARNING: Found discussion srs {$a->srs}, using primary {$a->primary_srs}';
 $string['warnnonexistentsrs'] = 'WARNING: Found non-existent srs {$a->term} {$a->srs}';
+$string['noticediscussionsrs'] = 'NOTICE: Found discussion srs {$a->srs}, using primary {$a->primary_srs}';
 $string['noticefoundaltcourseid'] = 'NOTICE: Found courseid {$a->courseid} by using term/subject/cat_num: {$a->term}-{$a->subject_area}-{$a->cat_num}-{$a->sec_num}';
 
 //Notification messages
