@@ -19,9 +19,6 @@ require_once($CFG->dirroot . '/local/ucla/registrar/registrar_ccle_get_primary_s
         
 require_once($CFG->dirroot . '/lib/moodlelib.php');
 
-$support_email = get_config('contact_email', 'tool_ucladatasourcesync');
-define ('SUPPORT_EMAIL', $support_email);
-
 /**
  * Returns an array of raw CSV data from the CSV file at datasource_url.
  * 
@@ -427,8 +424,10 @@ function log_ucla_data($func, $action, $notice, $error = '') {
     
     // If an error was reported, then send an email to ccle support
     if (!empty($error)) {
-        $cclesupport = generate_email_supportuser();
-        $cclesupport->email = SUPPORT_EMAIL;
+        $cclesupport = generate_email_supportuser();        
+        if (!empty($contact_email)) {
+            $cclesupport->email = $contact_email;            
+        }
         
         email_to_user($cclesupport, $USER, $func . ' ' . $action, $notice . PHP_EOL . $error);
     }
