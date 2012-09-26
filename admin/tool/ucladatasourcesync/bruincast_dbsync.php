@@ -110,16 +110,9 @@ function update_bruincast_db($source_url) {
             $obj->$v = $d[$k];
         }
 
-        // index by term-srs, so that check_crosslists can see if crosslists exist
-        if (isset($clean_data[$obj->term.'-'.$obj->srs])) {
-            $error = new stdClass();
-            $error->term = $obj->term;
-            $error->srs = $obj->srs;
-            $error->line_num = $data_num;
-            echo(get_string('warnduptermsrs', 'tool_ucladatasourcesync',
-                    $error) . "\n");
-        }
-        $clean_data[$obj->term.'-'.$obj->srs] = $obj;
+        // index by term-srs, so that check_crosslists can see if crosslists exist       
+        // there can be multiple entries for a given term/srs
+        $clean_data[$obj->term.'-'.$obj->srs][] = $obj;
     }
 
     // Drop table if we have new data
@@ -129,20 +122,22 @@ function update_bruincast_db($source_url) {
 
     // Insert records
     try {
-        foreach ($clean_data as &$cd) {
-            $courseid = match_course($cd->term, $cd->srs);
-            
-            if (!empty($courseid)) {
-                $cd->courseid = $courseid;
+        $insert_count = 0;
+        foreach ($clean_data as &$termsrs_entries) {
+            foreach ($termsrs_entries as &$cd) {
+                $courseid = match_course($cd->term, $cd->srs);
+
+                if (!empty($courseid)) {
+                    $cd->courseid = $courseid;
+                }
+
+                $DB->insert_record('ucla_bruincast', $cd);
+                ++$insert_count;
             }
-            
-            $DB->insert_record('ucla_bruincast', $cd);
         }
 
-        // Get total inserts
-        $insert_count = count($clean_data);
-        echo "\n... " . $insert_count . " " . get_string('bcsuccessnoti',
-                'tool_ucladatasourcesync') . "\n";
+        // Give total inserts
+        echo get_string('bcsuccessnoti', 'tool_ucladatasourcesync', $insert_count) . "\n";
 
         // Find errors in the crosslisted courses and notify
         check_crosslists($clean_data);
@@ -158,7 +153,7 @@ function update_bruincast_db($source_url) {
  * @global object $CFG
  * @global object $DB
  * 
-    * @param array $data Should be processed data that was validated and matched
+ * @param array $data   Should be processed data that was validated and matched
  */
 function check_crosslists(&$data) {
     global $CFG, $DB;
@@ -169,31 +164,34 @@ function check_crosslists(&$data) {
     $problem_courses = array();
 
     // Find crosslisted courses.
-    foreach ($data as $d) {
-        // Get the courseid for a particular TERM-SRS
-        if (isset($d->courseid)) {
-            $courseid = $d->courseid;
-        } else {
-            continue;   // course is not on the system
-        }
-        
-        // Find out if it's crosslisted
-        $courses = ucla_map_courseid_to_termsrses($courseid);
+    foreach ($data as $entries) {
+        foreach ($entries as $d) {
+            // Get the courseid for a particular TERM-SRS
+            if (isset($d->courseid)) {
+                $courseid = $d->courseid;
+            } else {
+                continue;   // course is not on the system
+            }
 
-        // Enforce:
-        // If for a crosslisted course, any of the bruincast urls are restricted,
-        //   then all of the courses need to have access to the bruincast.
-        if (count($courses) > 1) {
-            if (strtolower($d->restricted) == 'restricted') {
-                foreach ($courses as $c) {  
-                    if (empty($data[$obj->term.'-'.$obj->srs])) {
-                        $msg = "Restricted bruincast URL is not "
-                                . "associated with crosslisted coures:\n"
-                                . "url: " . $d->bruincast_url . "\n"
-                                . "srs: " . $d->srs . "\n"
-                                . "affected course srs: " . $c->srs . "\n";
+            // Find out if it's crosslisted
+            $courses = ucla_map_courseid_to_termsrses($courseid);
 
-                        $problem_courses[] = $msg;
+            // Enforce:
+            // If for a crosslisted course, any of the bruincast urls are restricted,
+            //   then all of the courses need to have access to the bruincast.
+            if (count($courses) > 1) {
+                if (strtolower($d->restricted) == 'restricted') {
+                    foreach ($courses as $c) {  
+                        if (empty($data[$c->term.'-'.$c->srs])) {
+                            $msg = "Restricted bruincast URL is not "
+                                    . "associated with crosslisted coures:\n"
+                                    . "url: " . $d->bruincast_url . "\n"
+                                    . "term: " . $d->term . "\n"
+                                    . "srs: " . $d->srs . "\n"
+                                    . "affected course srs: " . $c->srs . "\n";
+
+                            $problem_courses[] = $msg;
+                        }
                     }
                 }
             }
