@@ -9,26 +9,15 @@
 require_once(dirname(__FILE__) . '/lib.php');
 
 // Check to see if config variables are initialized
-if (!isset($CFG->bruincast_data)) {
+$source_url = get_config('block_ucla_bruincast', 'source_url');
+if (!empty($source_url)) {
     log_ucla_data('bruincast', 'read', 'Initializing cfg variables', 
             get_string('errbcmsglocation','tool_ucladatasourcesync') );
     die("\n".get_string('errbcmsglocation','tool_ucladatasourcesync')."\n");
 }
 
-if (!isset($CFG->bruincast_errornotify_email)) {
-    log_ucla_data('bruincast', 'read', 'Initializing cfg variables', 
-            get_string('errbcmsgemail','tool_ucladatasourcesync') );
-    die("\n".get_string('errbcmsgemail','tool_ucladatasourcesync')."\n");
-}
-
-if (!isset($CFG->quiet_mode)) {
-    log_ucla_data('bruincast', 'read', 'Initializing cfg variables', 
-            get_string('errbcmsgquiet','tool_ucladatasourcesync') );
-    die("\n".get_string('errbcmsgquiet','tool_ucladatasourcesync')."\n");
-}
-
 // Begin database update
-update_bruincast_db($CFG->bruincast_data);
+update_bruincast_db($source_url);
 
 function define_data_source() {
     $ret_val = array();
@@ -131,7 +120,7 @@ function update_bruincast_db($source_url) {
 
     // Insert records
     try {
-        foreach ($clean_data as $cd) {
+        foreach ($clean_data as &$cd) {
             $cd = (array) $cd;
             $courseid = match_course($cd['term'], $cd['srs']);
             
@@ -160,23 +149,26 @@ function update_bruincast_db($source_url) {
  * 
  * @global object $CFG
  * @global object $DB
- * @global string $bruincast_errornotify_email
- * @global boolean $bruincast_quiet_mode
  * 
- * @param array $data 
+    * @param array $data Should be processed data that was validated and matched
  */
 function check_crosslists(&$data) {
-    global $CFG, $DB, $bruincast_errornotify_email, $bruincast_quiet_mode;
+    global $CFG, $DB;
     
-    $bruincast_errornotify_email = get_config('block_ucla_bruincast', 'errornotify_email');
-
+    $errornotify_email = get_config('block_ucla_bruincast', 'errornotify_email');
+    $quiet_mode = get_config('block_ucla_bruincast', 'quiet_mode');
+    
     $problem_courses = array();
 
     // Find crosslisted courses.
     foreach ($data as $d) {
         // Get the courseid for a particular TERM-SRS
-        $courseid = match_course($d->term, $d->srs);
+        $courseid = $d['courseid'];
 
+        if (empty($courseid)) {
+            continue;   // course is not on the system
+        }
+        
         // Find out if it's crosslisted
         $courses = ucla_map_courseid_to_termsrses($courseid);
 
@@ -203,10 +195,10 @@ function check_crosslists(&$data) {
     $mail_body = implode("\n", $problem_courses);
 
     // Send problem course details if we have any
-    if (empty($bruincast_errornotify_email) || $bruincast_quiet_mode) {
+    if (empty($errornotify_email) || $quiet_mode) {
         echo $mail_body;
     } else if (trim($mail_body) != '') {
-        ucla_send_mail($bruincast_errornotify_email,
+        ucla_send_mail($errornotify_email,
                 'BruinCast data issues (' . date('r') . ')', $mail_body);
     }
 }
