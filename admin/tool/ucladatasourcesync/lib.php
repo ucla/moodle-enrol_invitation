@@ -236,12 +236,14 @@ function match_course($term, $srs, $subject_area=null, $cat_num=null, $sec_num=n
     $ret_val = ucla_map_termsrs_to_courseid($term, $srs);              
     if (empty($ret_val)) {
         // maybe given srs is a discussion, not course
-        $temp = registrar_query::run_registrar_query(
+        $primary_srs = null;
+        $result = registrar_query::run_registrar_query(
                 'ccle_get_primary_srs', array('term' => $term, 'srs' => $srs));
-        $temp = array_shift($temp);
-        $primary_srs = array_pop($temp);            
+        if (!empty($result)) {
+            $primary_srs = $result[0]['srs_crs_no'];                       
+        }
             
-        if ($srs != $primary_srs) {
+        if (!empty($primary_srs) && $srs != $primary_srs) {
             $a->primary_srs = $primary_srs;
             echo get_string('warndiscussionsrs', 'tool_ucladatasourcesync', $a) . "\n";            
             $ret_val = ucla_map_termsrs_to_courseid($term, $primary_srs);
@@ -263,8 +265,8 @@ function match_course($term, $srs, $subject_area=null, $cat_num=null, $sec_num=n
             }            
         }
     }
-        
-    if (empty($ret_val) && !empty($subject_area) && !empty($cat_num)) {
+            
+    if ($found_bad_srs && empty($ret_val) && !empty($subject_area) && !empty($cat_num)) {
         // Try to find course using subject area, catalog number,
         // and section number (if any).
         $sql = 'SELECT  courseid
