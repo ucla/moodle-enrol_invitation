@@ -9,6 +9,7 @@ require_once($CFG->dirroot . '/local/ucla/lib.php');
 $admintooldir = '/' . $CFG->admin . '/tool/';
 require_once($CFG->dirroot . $admintooldir . 'uclasupportconsole/lib.php');
 require_once($CFG->dirroot . $admintooldir . 'uclacoursecreator/uclacoursecreator.class.php');
+require_once($CFG->dirroot . '/admin/tool/ucladatasourcesync/lib.php');
 
 // Force debugging errors 
 error_reporting(E_ALL); 
@@ -391,6 +392,57 @@ if ($displayforms) {
     
     $sectionhtml = supportconsole_render_section_shortcut($title, $result);
 } 
+$consoles->push_console_html('logs', $title, $sectionhtml);
+
+////////////////////////////////////////////////////////////////////
+$title = "moodlevideofurnacelist";
+$sectionhtml = '';
+
+if ($displayforms) {
+    $sectionhtml = supportconsole_simple_form($title);
+} else if ($consolecommand == "$title") {
+    $result = get_reserve_data('video_furnace');
+    
+    $sourcelocation = get_config('block_ucla_video_furnace', 'source_url');
+    $sourcelink = html_writer::link($sourcelocation, $sourcelocation, array('target' => '_blank'));
+    $sourcefile = get_string('sourcefile', 'tool_uclasupportconsole', $sourcelink);
+    
+    $sectionhtml = supportconsole_render_section_shortcut($title, $result, array(), $sourcefile);
+}
+$consoles->push_console_html('logs', $title, $sectionhtml);
+
+////////////////////////////////////////////////////////////////////
+$title = "moodlelibraryreserveslist";
+$sectionhtml = '';
+
+if ($displayforms) {
+    $sectionhtml = supportconsole_simple_form($title);
+} else if ($consolecommand == "$title") {
+    $result = get_reserve_data('library_reserves');
+    
+    $sourcelocation = get_config('block_ucla_library_reserves', 'source_url');
+    $sourcelink = html_writer::link($sourcelocation, $sourcelocation, array('target' => '_blank'));
+    $sourcefile = get_string('sourcefile', 'tool_uclasupportconsole', $sourcelink);    
+    
+    $sectionhtml = supportconsole_render_section_shortcut($title, $result, array(), $sourcefile);
+}
+$consoles->push_console_html('logs', $title, $sectionhtml);
+
+////////////////////////////////////////////////////////////////////
+$title = "moodlebruincastlist";
+$sectionhtml = '';
+
+if ($displayforms) {
+    $sectionhtml = supportconsole_simple_form($title);
+} else if ($consolecommand == "$title") {
+    $result = get_reserve_data('bruincast');
+    
+    $sourcelocation = get_config('block_ucla_bruincast', 'source_url');
+    $sourcelink = html_writer::link($sourcelocation, $sourcelocation, array('target' => '_blank'));
+    $sourcefile = get_string('sourcefile', 'tool_uclasupportconsole', $sourcelink);    
+    
+    $sectionhtml = supportconsole_render_section_shortcut($title, $result, array(), $sourcefile);
+}
 $consoles->push_console_html('logs', $title, $sectionhtml);
 
 ////////////////////////////////////////////////////////////////////

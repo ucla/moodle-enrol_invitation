@@ -118,11 +118,13 @@ echo $OUTPUT->doctype() ?>
 <?php } ?>
 <!-- END OF HEADER -->
 
+    <?php $twocolumnlayout = $hassidepost ? '' : 'two-col-responsive'; ?>
+
     <div id="page-content">
         <div id="region-main-box">
             <div id="region-post-box">
             
-                <div id="region-main-wrap">
+                <div id="region-main-wrap" class="<?php echo $twocolumnlayout ?>">
                     <div id="region-main">
                         <div class="region-content">
                             <?php echo core_renderer::MAIN_CONTENT_TOKEN ?>
@@ -131,7 +133,8 @@ echo $OUTPUT->doctype() ?>
                 </div>
                 
                 <?php if ($hassidepre) { ?>
-                <div id="region-pre" class="block-region">
+                <br class="clear-responsive-left" />
+                <div id="region-pre" class="block-region <?php echo $twocolumnlayout ?>">
                     <div class="region-content">
                         <?php echo $OUTPUT->blocks_for_region('side-pre') ?>
                     </div>
@@ -139,6 +142,7 @@ echo $OUTPUT->doctype() ?>
                 <?php } ?>
                 
                 <?php if ($hassidepost) { ?>
+                <br class="clear-responsive-right" />
                 <div id="region-post" class="block-region">
                     <div class="region-content">
                         <?php echo $OUTPUT->blocks_for_region('side-post') ?>

@@ -1,0 +1,246 @@
+
+/* Add light shadows to blocks (looks good on mobile!) */
+.block {
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.067);
+    border: 1px solid #D1DBEF;
+}
+
+/* We don't want these <br> tags to be visible */
+br.clear-responsive-left,
+br.clear-responsive-right {
+    display: none;
+}
+
+/*.box.noticebox {
+  padding: 8px 35px 8px 14px;
+  margin-bottom: 18px;
+  color: #c09853;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  background-color: #fcf8e3;
+  border: 1px solid #fbeed5;
+  -webkit-border-radius: 4px;
+     -moz-border-radius: 4px;
+          border-radius: 4px;
+}*/
+
+/* Media Queries */
+
+@media only screen and (max-width: 480px),
+only screen and (min-width: 480px) and (max-width: 767px),
+only screen and (min-device-width:768px) and (max-device-width:1024px) and (-webkit-min-device-pixel-ratio:0) {
+
+    /* FRONT PAGE ADJUSTMENTS */
+    .introbanner {
+        clear: right;
+        background-size: 150% Auto;
+        height: 75px;
+    }
+    .ribbon {
+        width: 280px;
+    }
+    .ribbon h3 {
+        width: 300px;
+    }
+    
+    /* HEADER ADJUSTMENTS */
+    #page-header .headermenu{
+        width: 100%;
+        text-align: center;
+        font-size: 1em;
+        margin: 5px;
+        margin-top: 0px;
+    }
+    #page-header .headermenu .weeks-display {
+        margin: 0;
+    }
+    #page-header .headermain {
+        margin-bottom: 0;
+        margin-top: 7px;
+        text-align: center;
+        margin: 0;
+        width: 100%;
+    }
+    #page-header .headermain #uclalogo {
+        width: 150px;
+        overflow: hidden;
+        display: inline-block;
+    }
+    #page-header #sublogo {
+        display: none;
+    }
+    .side-pre-only #page-content #region-main {
+/*        margin-left: 0;
+        float: left;*/
+    }
+    #page #page-content {
+        min-width: 0;
+    }
+    
+    #uclalogo a img {
+        width: 250px;
+    }
+    #control-panel {
+        display: none;
+    }
+    
+    /* NAVIGATION */
+/*    #page-header .navbar .breadcrumb {
+        width: 100%;
+        margin: 0;
+    }
+    #page-header .navbar li {
+        font-size: 1.2em;
+    }
+    .navbar .breadcrumb ul li {
+        display: block;
+        padding: 4px 8px;
+    }
+    .navbar .breadcrumb ul li:nth-child(2n) {
+        background-color: #FFC800;
+    }
+    .navbar .breadcrumb ul li span.arrow {
+        display: none;
+    }*/
+
+    #page-header .navbar .navbutton {
+        display: none;
+    }
+    
+    /* MAIN PAGE COLUMNS */
+    
+    /* Create page breaks so that blocks fall inline */
+    .clear-responsive-right,
+    .clear-responsive-left {
+        display: block;
+        clear: both;
+    }
+    
+    /* Adjust the center column take up 100% screen width and be top element */
+    #page-content #region-main-box {
+        left: 0;
+    }
+    #page-content #region-post-box {
+        left: 0;
+        margin-left: 0;
+    }
+    #page-content #region-main {
+        margin-left: 0
+    }
+    #page-content #region-main-wrap {
+        float: none;
+        right: 0;
+    }
+    #page-content #region-main-wrap.two-col-responsive {
+/*        width: 60%;*/
+    }
+    
+    /* Adjust the left column to fall beneath center column at 100% width */
+    #page-content #region-pre {
+        left: 0;
+        margin-left: 0;
+        width: 50%;
+    }
+    #page-content #region-pre.two-col-responsive {
+        margin-left: 200px;
+    }
+    
+    /* Make the right column fall beneath left column */
+    #page-content #region-post {
+        width: 50%;
+    }
+    
+    /* COURSE PAGE ADJUSTMENTS */
+    .block_ucla_course_menu .content .block_tree.list .type_structure p, 
+    .block_ucla_course_menu .content .block_tree.list .type_activity p, 
+    .block_ucla_course_menu .content .block_tree.list .type_custom p {
+        font-size: 1.1em;
+        padding: 8px 14px;
+    }
+    
+    .side-pre-only #page-content #region-main {
+        width: 100%;
+    }
+    
+    .topics ul.section {
+        margin-left: 0;
+        margin-right: 0;
+        font-size: 1.2em
+    }
+    .topics ul.section div.mod-indent {
+        font-size: 1.2em;
+        margin: 4px 0;
+    }
+    
+    /* BROWSEBY ADJUSTMENTS */
+    #browsebymain .browsebylist {
+        min-width: 0;
+        width: 100%;
+    }
+    
+    #browsebymain .list1,
+    #browsebymain .list2 {
+        width: 100%;        
+    }
+    
+    #browsebymain .list2 {
+        clear: left;
+    } 
+    
+    #browsebymain .list1 a {
+        font-size: 1.2em;
+        padding: 4px 8px;
+    }
+    
+    /* FORM ADJUSTMENTS */
+    .mform .fitem .fitemtitle {
+        text-align: left;
+        width: 25%;
+    }
+    .mform .fitem .felement {
+        margin-left: 0;
+        clear:left;
+    }
+    /* Fix tinyMCE width */
+    .fitem .feditor textarea {
+        width: 100%;
+    }
+
+    #helppopupbox {
+        width: 90%;
+    }
+
+    /* 
+        ADVANCED SEARCH 
+    
+        Make font-size larger for searchbox and results list
+    */
+    #as-search-wrapper .yui3-aclist-input {
+        font-size: 1.4em;
+    }
+    #as-search-wrapper-page .as-search-result-shortname,
+    #as-search-wrapper .as-search-result-shortname {
+        font-size: 1.2em;
+        font-weight: bold;
+    }
+    #as-search-wrapper-page .as-search-result-fullname,
+    #as-search-wrapper .as-search-result-fullname {
+        line-height: 1.2em;
+        font-size: 1.2em;
+    }
+    #as-search-wrapper-page .as-search-result-summary,
+    #as-search-wrapper .as-search-result-summary {
+        line-height: 1.1em;
+        font-size: 1.1em;
+        color: #555555;
+        padding-top: 4px;
+    }
+    .as-collab-checkbox {
+        font-size: 1.2em;
+    }
+    .as-collab-checkbox br {
+        display: none;
+    }
+    .as-collab-checkbox input {
+        margin-left: 10px;
+    }
+}

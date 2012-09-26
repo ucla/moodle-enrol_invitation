@@ -358,6 +358,13 @@ class enrol_database_plugin extends enrol_plugin {
             }
         }
         $rs->close();
+
+        // START UCLA MOD: Events for login-time enrolment
+        $edata = new object();
+        $edata->user = $user;
+        $edata->enrols = $enrols;
+        events_trigger('sync_user_enrolments_finished', $edata);
+        // END UCLA MOD
     }
 
     /**
@@ -1004,6 +1011,12 @@ class enrol_database_plugin extends enrol_plugin {
         if ($verbose) {
             mtrace('...user enrolment synchronisation finished.');
         }
+
+        // START UCLA MOD: adding event to prepop 
+        $edata = new object();
+        $edata->courses = $course_indexed;
+        events_trigger('sync_enrolments_finished', $edata);
+        // END UCLA MOD
 
         return 0;
     }

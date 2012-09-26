@@ -36,6 +36,10 @@ $string['moodlelogins'] = 'Show logins during the last 24 hours';
 $string['moodlelogbyday'] = 'Count Moodle logs by day';
 $string['moodlelogbydaycourse'] = 'Count Moodle logs by day and course (past 7 days, limited to top 100 results)';
 $string['moodlelogbydaycourseuser'] = 'Count Moodle logs by day, course and user (past 7 days, limited to top 100 results)';
+$string['moodlevideofurnacelist'] = 'Video furnace';
+$string['moodlelibraryreserveslist'] = 'Library reserves';
+$string['moodlebruincastlist'] = 'Bruincast';
+$string['sourcefile'] = 'Data source: {$a}';
 
 // Users
 $string['moodleusernamesearch'] = 'Show users with firstname and/or lastname';

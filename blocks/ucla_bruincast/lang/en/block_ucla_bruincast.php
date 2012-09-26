@@ -1,15 +1,15 @@
 <?php
 $string['title'] = 'UCLA bruincast';
-$string['pluginname'] = "UCLA bruincast";
+$string['pluginname'] = 'UCLA bruincast';
 
-$string['headerbruincasturl'] = "Source URL";
-$string['descbruincasturl'] = "CSV source URL from the OID website";
+$string['source_url_header'] = 'Source URL';
+$string['source_url_desc'] = 'CSV source URL from the OID website';
 
-$string['headerquietmode'] = "Quiet mode";
-$string['descquietmode'] = "Suppress email notifcations";
+$string['quiet_mode_header'] = 'Quiet mode';
+$string['quiet_mode_desc'] = 'Suppress email notifcations';
 
-$string['headererrornotifyemail'] = "Notification email";
-$string['descerrornotifyemail'] = "Email for notification of Bruincast parsing errors";
+$string['errornotify_email_header'] = 'Notification email';
+$string['errornotify_email_desc'] = 'Email for notification of Bruincast parsing errors';
 
 // Types of bruincasts
 $string['node_restricted'] = '(private)';

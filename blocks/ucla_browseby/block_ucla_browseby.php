@@ -23,9 +23,10 @@ require_once($CFG->dirroot . '/blocks/ucla_browseby/'
     . 'browseby_handler_factory.class.php');
 require_once($CFG->dirroot . '/' . $CFG->admin 
     . '/tool/uclacoursecreator/uclacoursecreator.class.php');
+require_once($CFG->dirroot . '/blocks/navigation/renderer.php');
+require_once($CFG->dirroot . '/blocks/navigation/block_navigation.php');
 
-
-class block_ucla_browseby extends block_list {
+class block_ucla_browseby extends block_navigation {
     var $termslist = array();
 
     function init() {
@@ -42,22 +43,31 @@ class block_ucla_browseby extends block_list {
         if (is_null($this->content)) {
             $this->content = new stdClass();
         }       
-        $this->content->icons = array();
 
         $link_types = browseby_handler_factory::get_available_types();
 
         $blockconfig = get_config('block_ucla_browseby');
 
+        $elements = array();
+        
         foreach ($link_types as $link_type) {
             if (empty($blockconfig->{'disable_' . $link_type})) {
-                $this->content->items[] = html_writer::link(
+                $elements[] = navigation_node::create(
+                    get_string('link_' . $link_type, 'block_ucla_browseby'),
                     new moodle_url(
                         $CFG->wwwroot . '/blocks/ucla_browseby/view.php',
                         array('type' => $link_type)
-                    ), get_string('link_' . $link_type, 'block_ucla_browseby')
+                    ), navigation_node::TYPE_SECTION
                 );
             }
         }
+
+        $renderer = $this->page->get_renderer('block_ucla_browseby');
+        
+        $this->content->text = $renderer->navigation_node($elements,
+            array('class' => 'block_tree list'));
+        
+        return $this->content;
     }
 
     function instance_allow_config() {
@@ -68,6 +78,12 @@ class block_ucla_browseby extends block_list {
         return false;
     }
 
+    function html_attributes() {
+        $orig = parent::html_attributes();
+        $orig['class'] .= ' block_ucla_course_menu block_navigation';
+
+        return $orig;
+    }
     /**
      *  Returns the applicable places that this block can be added.
      **/

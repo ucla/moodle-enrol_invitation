@@ -145,6 +145,7 @@ $CFG->forced_plugin_settings['block_ucla_course_menu']['trimlength'] = 22;
 // UCLA Theme settings
 $CFG->themedesignermode = true;
 $CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'dev';
+$CFG->forced_plugin_settings['theme_uclashared']['footer_links'] = '';
 $CFG->cachejs = false;
 
 // Newly created courses for ucla formats should only have the course menu block
@@ -206,6 +207,9 @@ $CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 0;
 // Site administration > Courses > Course request
 $CFG->enablecourserequests = 1;
 
+// Site administration > Courses > Backups > General backup defaults
+$CFG->forced_plugin_settings['backup']['backup_general_users'] = 0;
+
 // Site administration > Grades > General settings
 $CFG->recovergradesdefault = 1;
 
@@ -254,6 +258,14 @@ $CFG->forced_plugin_settings['assignfeedback_file']['default'] = 1;
 // Site administration > Plugins > Enrollments > Guest access
 $CFG->forced_plugin_settings['enrol_guest']['defaultenrol'] = 1;
 $CFG->forced_plugin_settings['enrol_guest']['status'] = 0;  // 0 is yes, 1 is no
+
+// Site administration > Plugins > Blocks > UCLA bruincast
+$CFG->forced_plugin_settings['block_ucla_bruincast']['source_url'] = 'http://www.oid.ucla.edu/help/info/bcastlinks/';
+$CFG->forced_plugin_settings['block_ucla_bruincast']['errornotify_email'] = 'ccle-operations@lists.ucla.edu';
+$CFG->forced_plugin_settings['block_ucla_bruincast']['quiet_mode'] = 1;
+
+// Data Source Sync (bruincast, video furnace, library reserves) contact Email
+$CFG->forced_plugin_settings['tool_ucladatasourcesync']['contact_email']='ccle-operations@lists.ccle.ucla.edu';
 
 // Site administration > Plugins > Blocks > i>clicker Moodle integrate
 $CFG->forced_plugin_settings['block_iclicker']['block_iclicker_notify_emails'] = 'ccle-operations@lists.ucla.edu';

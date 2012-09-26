@@ -83,10 +83,19 @@ $string['instructors'] = 'Instructors';
 $string['coursetitle'] = 'Course title';
 
 // CCLE-3141 - Prepare for post M2 deployment
-$string['spring2012'] = 'If you cannot find the course for which ' . 
+$string['cutoff12S'] = 'If you cannot find the course for which ' . 
         'you\'re looking, please visit our archive server ' . 
         '(<a href="https://archive.ccle.ucla.edu">https://archive.ccle.ucla.edu</a>).';
-$string['prespring2012'] = 'You are currently on the CCLE production server ' . 
+$string['before12S'] = 'You are currently on the CCLE production server ' . 
         '(<a href="https://ccle.ucla.edu">https://ccle.ucla.edu</a>). For ' . 
         'courses from Winter 2012 or earlier, please visit our archive server ' . 
         '(<a href="https://archive.ccle.ucla.edu">https://archive.ccle.ucla.edu</a>).';
+
+$string['cutoff12F'] = 'If you cannot find the course for which ' . 
+        'you\'re looking, please visit our Production Server ' . 
+        '(<a href="https://classes.sscnet.ucla.edu">https://classes.sscnet.ucla.edu</a>).';
+$string['before12F'] = 'You are currently on the CCLE SSC Moodle 2 Pilot Server ' . 
+        '(<a href="https://moodle2.sscnet.ucla.edu">https://moodle2.sscnet.ucla.edu</a>). For ' . 
+        'courses from Summer 2012 or earlier, please visit our Production Server ' . 
+        '(<a href="https://classes.sscnet.ucla.edu">https://classes.sscnet.ucla.edu</a>).';
+

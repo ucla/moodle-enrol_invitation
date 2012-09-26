@@ -2,6 +2,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot . '/blocks/ucla_group_manager/lib.php');
+
 function ucla_sync_built_courses($edata) {
     // This hopefully means that this plugin IS enabled
     $enrol = enrol_get_plugin('database');
@@ -22,6 +24,7 @@ function ucla_sync_built_courses($edata) {
 
     foreach ($courseidsenrol as $courseid => $na) {
         // Not sure where to log errors...
+        // This will handle auto-groups
         $enrol->sync_enrolments($verbose, null, $courseid);
     }
     
