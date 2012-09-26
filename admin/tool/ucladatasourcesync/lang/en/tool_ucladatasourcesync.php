@@ -20,7 +20,7 @@ $string['errbcinvalidrowlen'] = "ERROR: Invalid row length in provided bruincast
 
 // Notication messages
 $string['bcstartnoti'] = "Starting bruincast DB update:";
-$string['bcsuccessnoti'] = "... {$a} records successfully inserted.";
+$string['bcsuccessnoti'] = '... {$a} records successfully inserted.';
 
 /** Strings for libraryreserves_dbsync **/
 // Error messages
