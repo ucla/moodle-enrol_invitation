@@ -422,19 +422,19 @@ function get_reserve_data($table)
  */
 
 function log_ucla_data($func, $action, $notice, $error = '') {
-    global $SITE, $USER;
+    global $SITE;
     
     $log_message = empty($error) ? $notice : $notice . PHP_EOL . $error;
+    $log_message = textlib::substr($log_message, 0, 252) . '...';
     add_to_log($SITE->id, $func, $action, '', $log_message);
     
     // If an error was reported, then send an email to ccle support
     if (!empty($error)) {
-        $cclesupport = generate_email_supportuser();    
         $contact_email = get_config('contact_email', 'tool_ucladatasourcesync');
         if (!empty($contact_email)) {
-            $cclesupport->email = $contact_email;            
+            $body = sprintf("Action: %s\nNotice: %s\nError: %s", $action, 
+                    $notice, $error);
+            ucla_send_mail($contact_email, 'Error from ' . $func, $body);
         }
-        
-        email_to_user($cclesupport, $USER, $func . ' ' . $action, $notice . PHP_EOL . $error);
     }
 }
