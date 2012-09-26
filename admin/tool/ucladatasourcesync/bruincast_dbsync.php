@@ -110,7 +110,16 @@ function update_bruincast_db($source_url) {
             $obj->$v = $d[$k];
         }
 
-        $clean_data[] = $obj;
+        // index by term-srs, so that check_crosslists can see if crosslists exist
+        if (isset($clean_data[$obj->term.'-'.$obj->srs])) {
+            $error = new stdClass();
+            $error->term = $obj->term;
+            $error->srs = $obj->srs;
+            $error->line_num = $data_num;
+            echo(get_string('warnduptermsrs', 'tool_ucladatasourcesync',
+                    $error) . "\n");
+        }
+        $clean_data[$obj->term.'-'.$obj->srs] = $obj;
     }
 
     // Drop table if we have new data
@@ -176,10 +185,10 @@ function check_crosslists(&$data) {
         //   then all of the courses need to have access to the bruincast.
         if (count($courses) > 1) {
             if (strtolower($d->restricted) == 'restricted') {
-                foreach ($courses as $c) {
-                    if (empty($data[$c->srs])) {
-                        $msg = "There is a restricted bruincast URL that is not \n"
-                                . "associated with crosslisted coures:"
+                foreach ($courses as $c) {  
+                    if (empty($data[$obj->term.'-'.$obj->srs])) {
+                        $msg = "Restricted bruincast URL is not "
+                                . "associated with crosslisted coures:\n"
                                 . "url: " . $d->bruincast_url . "\n"
                                 . "srs: " . $d->srs . "\n"
                                 . "affected course srs: " . $c->srs . "\n";
