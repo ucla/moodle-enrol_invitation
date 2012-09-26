@@ -226,7 +226,7 @@ function match_course($term, $srs, $subject_area=null, $cat_num=null, $sec_num=n
     
     // make sure that the SRS is the course SRS, not a discussion SRS
     $temp1 = registrar_query::run_registrar_query(
-            'ccle_get_primary_srs', array($term, $srs), true);
+            'ccle_get_primary_srs', array($term, $srs));
     $temp2 = array_shift($temp1);
     $srs = array_pop($temp2);
     
@@ -250,10 +250,9 @@ function match_course($term, $srs, $subject_area=null, $cat_num=null, $sec_num=n
         $ret_val = ucla_map_termsrs_to_courseid($term, $srs);      
         
         if (empty($ret_val)) {
-            // see if course record exist at Registrar                                                                                               
-            ucla_require_registrar();            
+            // see if course record exist at Registrar       
             $results = registrar_query::run_registrar_query(
-                    'ccle_getclasses', array(array($term, $srs)), true);      
+                    'ccle_getclasses', array($term, $srs));      
             
             if (empty($results)) {
                 // bad srs number, so try to match using $subject_area, 
