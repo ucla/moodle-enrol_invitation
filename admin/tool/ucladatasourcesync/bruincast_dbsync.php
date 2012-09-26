@@ -10,7 +10,7 @@ require_once(dirname(__FILE__) . '/lib.php');
 
 // Check to see if config variables are initialized
 $source_url = get_config('block_ucla_bruincast', 'source_url');
-if (!empty($source_url)) {
+if (empty($source_url)) {
     log_ucla_data('bruincast', 'read', 'Initializing cfg variables', 
             get_string('errbcmsglocation','tool_ucladatasourcesync') );
     die("\n".get_string('errbcmsglocation','tool_ucladatasourcesync')."\n");
