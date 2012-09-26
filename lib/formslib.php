@@ -610,10 +610,6 @@ abstract class moodleform {
             if (empty($data)) {
                 return NULL;
             } else {
-                
-                echo '<p>in get_data returning';
-                print_object((object)$data);
-                
                 return (object)$data;
             }
         } else {
