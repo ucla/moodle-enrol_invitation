@@ -59,7 +59,7 @@ if ($selfenrol == FALSE) {
     exit ('Self-enrollment is not enabled.' . "\n");
 }
 
-// Get enrollment instances
+// Get 'self' enrollment instance for function 'enrol_user'
 $enrol_instances = enrol_get_instances($courseid, TRUE);
 
 foreach ($enrol_instances as $enrol_instance) {
@@ -75,8 +75,8 @@ $enrol_plugin = enrol_get_plugin('self');
 $roleid = $DB->get_record('role', array('shortname' => $role), 'id');
 $roleid = $roleid->id;
 
-// Get mdl_context.id
-$context_id = $DB->get_record('context', array('instanceid' => $courseid, 'contextlevel' => 50), 'id');
+// Get the course's context_id
+$context_id = context_course::instance($courseid);
 $context_id = $context_id->id;
 
 // Find roleid's for roles with instructor priveledges
@@ -89,11 +89,18 @@ $id_tainstructor = $id_tainstructor->id;
 $sql_findusers = "
     SELECT DISTINCT mdl_role_assignments.userid
     FROM mdl_role_assignments
+    INNER JOIN mdl_context
+        ON mdl_role_assignments.contextid = mdl_context.id
+    INNER JOIN mdl_ucla_request_classes
+        ON mdl_context.instanceid = mdl_ucla_request_classes.courseid
     WHERE mdl_role_assignments.roleid IN (:id_editinginstructor, :id_tainstructor)
+        AND mdl_ucla_request_classes.term = :term
+        AND mdl_context.contextlevel = 50
     ";
 
 $params = array('id_editinginstructor' => $id_editinginstructor, 
-    'id_tainstructor' => $id_tainstructor);
+    'id_tainstructor' => $id_tainstructor,
+    'term' => $term);
 
 $a = $DB->get_recordset_sql($sql_findusers, $params);
 
@@ -113,6 +120,9 @@ foreach($a as $user_id) {
 
 $a->close();
 
-
-echo($users_added . ' users were added.' . "\n");
+if ($users_added == 1) {
+    echo($users_added . ' user was added.' . "\n");
+} else {
+    echo($users_added . ' users were added.' . "\n");
+}
 // EOF
