@@ -228,43 +228,49 @@ function match_course($term, $srs, $subject_area=null, $cat_num=null, $sec_num=n
     $a->cat_num = $cat_num;
     $a->sec_num = $sec_num;
     
-    // try to find term/srs for course id
-    $ret_val = ucla_map_termsrs_to_courseid($term, $srs);              
-    if (empty($ret_val)) {
-        // maybe given srs is a discussion, not course
-        $primary_srs = null;
-        $result = registrar_query::run_registrar_query(
-                'ccle_get_primary_srs', array('term' => $term, 'srs' => $srs));
-        if (!empty($result)) {
-            $primary_srs = $result[0]['srs_crs_no'];                       
-        }
-            
-        if (!empty($primary_srs) && $srs != $primary_srs) {
-            $a->primary_srs = $primary_srs;
-            echo get_string('warndiscussionsrs', 'tool_ucladatasourcesync', $a) . "\n";            
-            $ret_val = ucla_map_termsrs_to_courseid($term, $primary_srs);
-        }
-        
+    if (!ucla_validator('srs', $srs)) {
+        $found_bad_srs = true;
+    }    
+    
+    // If srs is valid, then try to look up courseid by term/srs
+    if (!$found_bad_srs) {    
+        $ret_val = ucla_map_termsrs_to_courseid($term, $srs);              
         if (empty($ret_val)) {
-            // if still couldn't find srs as either discussion or real srs on 
-            // system, maybe it doesn't exist?
+            // maybe given srs is a discussion, not course
+            $primary_srs = null;
+            $result = registrar_query::run_registrar_query(
+                    'ccle_get_primary_srs', array('term' => $term, 'srs' => $srs));
+            if (!empty($result)) {
+                $primary_srs = $result[0]['srs_crs_no'];                       
+            }
 
-            // see if course record exist at Registrar       
-            $results = registrar_query::run_registrar_query(
-                    'ccle_getclasses', array('term' => $term, 'srs' => $srs));      
-            
-            if (empty($results)) {
-                // bad srs number, so try to match using $subject_area, 
-                // $cat_num, (and $sec_num)
-                echo get_string('warnnonexistentsrs', 'tool_ucladatasourcesync', $a) . "\n";
-                $found_bad_srs = true;
-            }            
+            if (!empty($primary_srs) && $srs != $primary_srs) {
+                $a->primary_srs = $primary_srs;
+                echo get_string('warndiscussionsrs', 'tool_ucladatasourcesync', $a) . "\n";            
+                $ret_val = ucla_map_termsrs_to_courseid($term, $primary_srs);
+            }
+
+            if (empty($ret_val)) {
+                // if still couldn't find srs as either discussion or real srs on 
+                // system, maybe it doesn't exist?
+
+                // see if course record exist at Registrar       
+                $results = registrar_query::run_registrar_query(
+                        'ccle_getclasses', array('term' => $term, 'srs' => $srs));      
+
+                if (empty($results)) {
+                    // bad srs number, so try to match using $subject_area, 
+                    // $cat_num, (and $sec_num)
+                    echo get_string('warnnonexistentsrs', 'tool_ucladatasourcesync', $a) . "\n";
+                    $found_bad_srs = true;
+                }            
+            }
         }
     }
             
-    if ($found_bad_srs && empty($ret_val) && !empty($subject_area) && !empty($cat_num)) {
-        // Try to find course using subject area, catalog number,
-        // and section number (if any).
+    // Else, try to find course using subject area, catalog number, and section 
+    // number (if any).    
+    if (empty($ret_val) && !empty($subject_area) && !empty($cat_num)) {
         $sql = 'SELECT  courseid
                 FROM    {ucla_request_classes} rc, 
                         {ucla_reg_classinfo} rci,
