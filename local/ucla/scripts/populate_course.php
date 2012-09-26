@@ -37,12 +37,12 @@ define('CLI_SCRIPT', true);
 $role = student;
 
 // Requires:
-$path = dirname(__FILE__) . '/../../../config.php';
-require_once($path);
-$path = $CFG->dirroot . '/lib/enrollib.php';
-require_once($path);
+require_once(dirname(__FILE__) . '/../../../config.php');
+require_once($CFG->dirroot . '/lib/enrollib.php');
+require_once($CFG->dirroot . '/local/ucla/lib.php');
+require_once($CFG->dirroot . '/lib/setup.php');
 
-global $DB, $CFG;
+global $DB, $CFG, $SITE;
 
 // Needs two arguments, courseid and term
 if ($argc != 3) {
@@ -50,7 +50,16 @@ if ($argc != 3) {
 }
 
 $courseid = $argv[1];
+$courseid = (int) $courseid;
 $term = $argv[2];
+
+// Validate arguments
+if (!ucla_validator('term', $term)) {
+    exit ('The term parameter is incorrectly formatted.' . "\n");
+}
+if (!is_int($courseid) || $courseid == 0 || $courseid == $SITE->id) {
+    exit ('The courseid parameter is incorrectly formatted.' . "\n");
+}
 
 // Check if course has "self-enrollment" plugin enabled
 $selfenrol = enrol_selfenrol_available($courseid);
@@ -74,10 +83,6 @@ $enrol_plugin = enrol_get_plugin('self');
 // Get roleid from mdl_role.id, given $role
 $roleid = $DB->get_record('role', array('shortname' => $role), 'id');
 $roleid = $roleid->id;
-
-// Get the course's context_id
-$context_id = context_course::instance($courseid);
-$context_id = $context_id->id;
 
 // Find roleid's for roles with instructor priveledges
 $id_editinginstructor = $DB->get_record('role', array('shortname' => 'editinginstructor'), 'id');
