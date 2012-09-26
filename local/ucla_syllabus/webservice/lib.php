@@ -5,35 +5,40 @@ require_once(dirname(dirname(dirname(dirname(__FILE__)))).'/config.php');
 
 class syllabus_ws_item {
     
-    const MAX_TRIES = 3;
+    const MAX_ATTEMPTS = 3;
     
     private $_data;
     private $_criteria;
-    private $_tries;
+    private $_attempt;
 
     function __construct($record, $criteria) {
         $this->_data = $record;
         $this->_criteria = $criteria;
-        $this->_tries = 0;
+        $this->_attempt = 0;
     }
     
+    /**
+     * POST $payload to specified URL if the criteria matches
+     * 
+     * @param type $payload 
+     */
     public function notify($payload) {
         
         if($this->_match_criteria()) {
             
             // Attempt to POST at most MAX_TRIES times
-            while(self::MAX_TRIES > $this->_tries) {
+            while(self::MAX_ATTEMPTS > $this->_attempt) {
                 $result = $this->_post($payload);
                 
                 if(empty($result)) {
-                    $this->_tries++;
+                    $this->_attempt++;
                 } else {
                     break;
                 }
             }
             
             // If we kept ran out of tries, then report
-            if($this->_tries == self::MAX_TRIES) {
+            if($this->_attempt == self::MAX_ATTEMPTS) {
                 $this->_contact();
             }
         }
@@ -65,6 +70,7 @@ class syllabus_ws_item {
     }
     
     private function _match_srs() {
+        // @todo: trim the criteria SRS and compare the string to stored SRS
         if(isset($this->_data->srs) && isset($this->_criteria['srs'])) {
             return strstr($this->_criteria['srs'], $this->_data->srs);
         }
@@ -76,13 +82,19 @@ class syllabus_ws_item {
         $ch = curl_init();
         
         $sig = '';
+        $payload_json = json_encode($payload);
         
         // Encode token if needed
         if(isset($this->_data->token)) {
-            $sig = $this->_hash_payload($payload);
+            $sig = $this->_hash_payload($payload_json);
         }
 
         $data = array('payload' => base64_encode($payload) . '.' . $sig);
+        
+        // Attach binary file
+        if(isset($payload['file'])) {
+            $data['file'] = '@' . $payload['file'];
+        }
         
         // Setup curl POST
         curl_setopt($ch, CURLOPT_URL, $this->_data->url);
@@ -92,6 +104,8 @@ class syllabus_ws_item {
         
         // Execute
         $result = curl_exec($ch);
+        
+        curl_close($ch);
         
         return $result;
     }
@@ -109,7 +123,11 @@ class syllabus_ws_manager {
     const ACTION_ALERT = 1;
     
     /**
+     * Handle an event action.  
      * 
+     * $payload = array(
+     *          'file' => 'file.txt';
+     *      )
      * 
      * @param type $event
      * @param type $criteria
@@ -120,9 +138,8 @@ class syllabus_ws_manager {
         
         $records = $DB->get_records('ucla_syllabus_webservice',
                 array('enabled' => 1, 'action' => $event));
-        
-        $notifications = array();
-        
+
+        // Process actions
         foreach($records as $rec) {
             $notifications = new syllabus_ws_item($rec, $criteria);
             $notifications->notify($payload);
