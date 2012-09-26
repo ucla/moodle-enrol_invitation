@@ -9,6 +9,8 @@ class block_ucla_course_menu extends block_navigation {
    
     // Hook function used to get other blocks' junk into this trunk
     const BLOCK_HOOK_FN = 'get_navigation_nodes';
+
+    const BLOCK_EDITORS_FN = 'get_editing_link';
    
     /**
      *  Called by Moodle.
@@ -129,14 +131,35 @@ class block_ucla_course_menu extends block_navigation {
         if ($this->page->user_is_editing() && 
                 $this->get_course_format() == 'ucla' && 
                 function_exists('ucla_format_figure_section')) {
-            list($thistopic, $ds) = ucla_format_figure_section($this->page->course);        
+            list($thistopic, $ds) = ucla_format_figure_section(
+                    $this->page->course
+                );
 
-            //CCLE-2379 Modify Course Menu Sections 	
-	   $modify_coursemenu = html_writer::link(
+            $special_editing_links = $this->create_block_elements(
+                    self::BLOCK_EDITORS_FN
+                );
+
+            if (!empty($special_editing_links)) {
+                ksort($special_editing_links);
+
+                $links_html = '';
+
+                foreach ($special_editing_links as $special_editing_link) {
+                    $links_html .= html_writer::tag('div', 
+                        $special_editing_link, array(
+                            'class' => 'edit_control_links'
+                        ));
+                }
+
+                $this->context->text .= $links_html;
+            }
+
+            // CCLE-2379 Modify Course Menu Sections 	
+            $modify_coursemenu = html_writer::link(
                     new moodle_url('/blocks/ucla_modify_coursemenu/modify_coursemenu.php', 
                         array('courseid' => $this->page->course->id, 
                               'topic' => $ds)), 
-                    get_string('pluginname', 'block_ucla_modify_coursemenu'));            
+                    get_string('pluginname', 'block_ucla_modify_coursemenu'));
             $this->content->text .= html_writer::tag('div', $modify_coursemenu, 
                     array('class' => 'edit_control_links'));            
             
@@ -158,7 +181,7 @@ class block_ucla_course_menu extends block_navigation {
             $this->content->text .= html_writer::tag('div', $copyright, 
                     array('class' => 'edit_control_links'));            
         }
-                       
+
         // get section nodes
         $section_elements = $this->create_section_elements();
         $section_elements = $this->trim_nodes($section_elements);        
@@ -221,6 +244,17 @@ class block_ucla_course_menu extends block_navigation {
         // the elements
         $elements = array();
 
+        // Special cases
+        if (!empty($this->page->course->parentcourse)) {
+            $elements['parent-course'] = navigation_node::create(
+                get_string('parentcourse', 'block_ucla_course_menu'),
+                new moodle_url('/course/view.php', array(
+                        'id' => $this->page->course->parentcourse
+                    )),
+                navigation_node::TYPE_COURSE
+            );
+        }
+                
         $topic_param = $this->get_topic_get();
         if ($this->get_course_format() == 'ucla' 
                 && function_exists('ucla_format_figure_section')) {
@@ -295,10 +329,14 @@ class block_ucla_course_menu extends block_navigation {
      *  Iterates through the blocks and attempts to generate course menu
      *  items.
      **/
-    function create_block_elements() {
+    function create_block_elements($fn=null) {
         global $CFG, $COURSE;
 
         $elements = array();
+
+        if ($fn === null) {
+            $fn = self::BLOCK_HOOK_FN;
+        }
 
         if (!isset($this->page)) {
             return $elements;
@@ -309,20 +347,15 @@ class block_ucla_course_menu extends block_navigation {
         $elements = array();
 
         foreach ($allblocks as $block) {
-            $classname = 'block_' . $block->name;
+            // This function provided by core Moodle does not check for
+            // the existance of the function, thus the @ will suppress
+            // warning messages
+            $block_elements = @block_method_result($block->name, $fn, $course);
 
-            if (!class_exists($classname)) {
-                @include_once($CFG->dirroot . '/blocks/' . $block->name . '/' 
-                        . $classname . '.php');
-            }
-
-            if (method_exists($classname, self::BLOCK_HOOK_FN)) {
-                $fn = self::BLOCK_HOOK_FN;
-                $block_elements = 
-                    $classname::$fn($course);
-
+            if ($block_elements) {
                 $elements = array_merge($elements, $block_elements);
             }
+
         }
 
         return $elements;
