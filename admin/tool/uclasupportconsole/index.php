@@ -404,7 +404,8 @@ if ($displayforms) {
     $result = get_reserve_data('video_furnace');
     
     $sourcelocation = get_config('block_ucla_video_furnace', 'source_url');
-    $sourcefile = get_string('sourcefile', 'tool_uclasupportconsole', $sourcelocation);
+    $sourcelink = html_writer::link($sourcelocation, $sourcelocation, array('target' => '_blank'));
+    $sourcefile = get_string('sourcefile', 'tool_uclasupportconsole', $sourcelink);
     
     $sectionhtml = supportconsole_render_section_shortcut($title, $result, array(), $sourcefile);
 }
@@ -420,7 +421,8 @@ if ($displayforms) {
     $result = get_reserve_data('library_reserves');
     
     $sourcelocation = get_config('block_ucla_library_reserves', 'source_url');
-    $sourcefile = get_string('sourcefile', 'tool_uclasupportconsole', $sourcelocation);
+    $sourcelink = html_writer::link($sourcelocation, $sourcelocation, array('target' => '_blank'));
+    $sourcefile = get_string('sourcefile', 'tool_uclasupportconsole', $sourcelink);    
     
     $sectionhtml = supportconsole_render_section_shortcut($title, $result, array(), $sourcefile);
 }
@@ -435,8 +437,9 @@ if ($displayforms) {
 } else if ($consolecommand == "$title") {
     $result = get_reserve_data('bruincast');
     
-    $sourcelocation = $CFG->bruincast_data;
-    $sourcefile = get_string('sourcefile', 'tool_uclasupportconsole', $sourcelocation);
+    $sourcelocation = get_config('block_ucla_bruincast', 'source_url');
+    $sourcelink = html_writer::link($sourcelocation, $sourcelocation, array('target' => '_blank'));
+    $sourcefile = get_string('sourcefile', 'tool_uclasupportconsole', $sourcelink);    
     
     $sectionhtml = supportconsole_render_section_shortcut($title, $result, array(), $sourcefile);
 }
