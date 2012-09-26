@@ -163,9 +163,9 @@ function check_crosslists(&$data) {
     // Find crosslisted courses.
     foreach ($data as $d) {
         // Get the courseid for a particular TERM-SRS
-        $courseid = $d['courseid'];
-
-        if (empty($courseid)) {
+        if (isset($d['courseid'])) {
+            $courseid = $d['courseid'];
+        } else {
             continue;   // course is not on the system
         }
         
