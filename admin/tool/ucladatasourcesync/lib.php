@@ -14,8 +14,7 @@ if (!defined('CLI_SCRIPT')) {
 require_once(dirname(__FILE__) . '/../../../config.php');
 require_once($CFG->dirroot . '/local/ucla/lib.php');
 
-require_once($CFG->dirroot . '/local/ucla/registrar/registrar_query.base.php');
-require_once($CFG->dirroot . '/local/ucla/registrar/registrar_ccle_get_primary_srs.class.php');
+ucla_require_registrar();
         
 require_once($CFG->dirroot . '/lib/moodlelib.php');
 
