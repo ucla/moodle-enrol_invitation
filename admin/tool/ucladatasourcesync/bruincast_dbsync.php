@@ -60,7 +60,7 @@ function define_data_source() {
 function update_bruincast_db($source_url) {
     global $CFG, $DB;
     
-    echo get_string('bcstartnoti', 'tool_ucladatasourcesync');
+    echo get_string('bcstartnoti', 'tool_ucladatasourcesync') . "\n";
 
     $csv_data = get_csv_data($source_url);
     $fields = define_data_source();
@@ -125,7 +125,7 @@ function update_bruincast_db($source_url) {
             $courseid = match_course($cd['term'], $cd['srs']);
             
             if (!empty($courseid)) {
-                $cd['courseid'] = $courseid;
+                $cd->courseid = $courseid;
             }
             
             $DB->insert_record('ucla_bruincast', $cd);
@@ -163,8 +163,8 @@ function check_crosslists(&$data) {
     // Find crosslisted courses.
     foreach ($data as $d) {
         // Get the courseid for a particular TERM-SRS
-        if (isset($d['courseid'])) {
-            $courseid = $d['courseid'];
+        if (isset($d->courseid)) {
+            $courseid = $d->courseid;
         } else {
             continue;   // course is not on the system
         }
