@@ -12,44 +12,56 @@ class syllabus_ws_form extends moodleform {
         global $DB, $USER;
 
         $mform =& $this->_form;
-        $mform->addElement('header','header', 'Foobar');
+        $mform->addElement('header','header', get_string('ws_header', 'local_ucla_syllabus'));
         // Subject areas
         $mform->addElement('text', 
-                'subject_area', 
-                'Subject areas', 
-                array());
-        // Leading srs
+                'subjectareas', 
+                get_string('subject_areas', 'local_ucla_syllabus'), 
+                array('maxlength' => 200, 'size' => 50));
         $mform->addElement('text', 
                 'srs', 
-                'Leading SRS', 
-                array());
-        
-        // POST url
+                get_string('leadingsrs', 'local_ucla_syllabus'), 
+                array('maxlength' => 9));
+        $mform->addRule('srs', 
+                get_string('leadingsrs', 'local_ucla_syllabus'), 
+                'numeric',
+                null,
+                'client');
         $mform->addElement('text', 
                 'url', 
-                'URL', 
-                array());
-        $mform->addRule('url', 'You must provide a service URL', 'required');
+                get_string('post_url', 'local_ucla_syllabus'), 
+                array('maxlength' => 100, 'size' => 50));
+        $mform->addRule('url', 
+                get_string('post_url_required', 'local_ucla_syllabus'), 
+                'required',
+                null,
+                'client');
 
-        // Required email
         $mform->addElement('text', 
                 'contact', 
-                'Contact email', 
-                array());
-        $mform->addRule('contact', 'You must provide a contact email', 'required');
-        $mform->addRule('contact', 'Your email is invalid', 'email');
+                get_string('contact_email', 'local_ucla_syllabus'), 
+                array('maxlength' => 20, 'size' => 50));
+        $mform->addRule('contact', 
+                get_string('contact_email_required','local_ucla_syllabus'), 
+                'required',
+                null,
+                'client');
+        $mform->addRule('contact', 
+                get_string('contact_email_required','local_ucla_syllabus'), 
+                'email',
+                null,
+                'client');
         
-                
         // Optional token
         $mform->addElement('text', 
                 'token', 
-                'Token', 
-                array());
+                get_string('token','local_ucla_syllabus'),  
+                array('maxlength' => 64, 'size' => 50));
         
         $mform->addElement('select', 
                 'action', 
-                'Service action', 
-                array('Syllabus alert', 'Syllabus transfer'), 
+                get_string('select_action','local_ucla_syllabus'), 
+                syllabus_ws_manager::get_event_actions(), 
                 array());
         
         $this->add_action_buttons();

@@ -31,11 +31,15 @@ echo $OUTPUT->header();
 // Heading
 echo $OUTPUT->heading('this is a heading', 2, 'headingblock');
 
-echo $OUTPUT->box_start('generalbox');
-
 $wsform = new syllabus_ws_form();
+
+if($data = $wsform->get_data()) {
+    syllabus_ws_manager::add_subscription($data);
+}
 
 $wsform->display();
 
+echo $OUTPUT->box_start('generalbox');
+echo 'Report';
 echo $OUTPUT->box_end();
 echo $OUTPUT->footer();

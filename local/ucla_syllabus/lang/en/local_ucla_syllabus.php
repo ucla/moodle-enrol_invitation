@@ -58,3 +58,17 @@ $string['syllabus_needs_setup'] = 'Syllabus (needs setup)';
 $string['err_missing_courseid'] = 'Missing required courseid';
 $string['err_syllabus_mismatch'] = 'Selected syllabus does not belong to course';
 $string['err_syllabus_not_allowed'] = 'Sorry, you must be logged in or assciated with the course to view this syllabus';
+
+// web service
+$string['ws_header'] = 'Add web service subscription';
+$string['subject_areas'] = 'Subject areas';
+$string['leading_srs'] = 'Leading SRS';
+$string['leading_srs_rule'] = 'Numeric values only';
+$string['post_url'] = 'POST URL';
+$string['post_url_required'] = 'You must provide a POST url.';
+$string['contact_email'] = 'Contact email';
+$string['contact_email_required'] = 'You must provide a valid contact email.';
+$string['token'] = 'Token';
+$string['select_action'] = 'Service action';
+$string['action_alert'] = 'Syllabus alert';
+$string['action_transfer'] = 'Syllabus transfer';

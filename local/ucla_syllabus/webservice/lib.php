@@ -28,13 +28,12 @@ class syllabus_ws_item {
             
             // Attempt to POST at most MAX_TRIES times
             while(self::MAX_ATTEMPTS > $this->_attempt) {
-                $result = $this->_post($payload);
                 
-                if(empty($result)) {
-                    $this->_attempt++;
-                } else {
+                if($this->_post($payload)) {
                     break;
-                }
+                } 
+                
+                $this->_attempt++;
             }
             
             // If we kept ran out of tries, then report
@@ -61,7 +60,8 @@ class syllabus_ws_item {
     }
     
     private function _match_subject() {
-        if(isset($this->_data->subject) && isset($this->_criteria['subject'])) {
+        // @todo: test this
+        if(!empty($this->_data->subjectareas) && !empty($this->_criteria['subjectarea'])) {
             $subjects = explode('|', $this->_data->subject);
             return in_array($this->_criteria['subject'], $subjects);
         }
@@ -71,8 +71,8 @@ class syllabus_ws_item {
     
     private function _match_srs() {
         // @todo: trim the criteria SRS and compare the string to stored SRS
-        if(isset($this->_data->srs) && isset($this->_criteria['srs'])) {
-            return strstr($this->_criteria['srs'], $this->_data->srs);
+        if(!empty($this->_data->leadingsrs) && !empty($this->_criteria['srs'])) {
+            return strstr($this->_criteria['srs'], $this->_data->leadingsrs);
         }
         
         return false;
@@ -89,25 +89,36 @@ class syllabus_ws_item {
             $sig = $this->_hash_payload($payload_json);
         }
 
-        $data = array('payload' => base64_encode($payload) . '.' . $sig);
+        $data = array('payload' => base64_encode($payload_json) . '.' . $sig);
         
         // Attach binary file
         if(isset($payload['file'])) {
             $data['file'] = '@' . $payload['file'];
         }
         
+       
         // Setup curl POST
         curl_setopt($ch, CURLOPT_URL, $this->_data->url);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         
+        if(isset($payload['file'])) {
+            curl_setopt($ch, CURLOPT_INFILESIZE, filesize($payload['file']));
+        }
+        
         // Execute
-        $result = curl_exec($ch);
+        $result_json = curl_exec($ch);
         
         curl_close($ch);
         
-        return $result;
+        $result = json_decode($result_json);
+        
+        if(isset($result->status) && $result->status === syllabus_ws_manager::STATUS_OK) {
+            return true;
+        }
+        
+        return false;
     }
     
     private function _hash_payload($payload) {
@@ -121,6 +132,10 @@ class syllabus_ws_manager {
     // Types of events we'll handle
     const ACTION_TRANSFER = 0;
     const ACTION_ALERT = 1;
+    
+    // Status messages
+    const STATUS_OK = 0;
+    const STATUS_FAIL = 1;
     
     /**
      * Handle an event action.  
@@ -139,10 +154,46 @@ class syllabus_ws_manager {
         $records = $DB->get_records('ucla_syllabus_webservice',
                 array('enabled' => 1, 'action' => $event));
 
+        print_object($records);
         // Process actions
         foreach($records as $rec) {
             $notifications = new syllabus_ws_item($rec, $criteria);
             $notifications->notify($payload);
         }
+    }
+    
+    /**
+     * Add a new subscription to the webservice
+     * 
+     * @param type $data
+     * @return boolean 
+     */
+    static public function add_subscription($data) {
+        global $DB;
+        
+        // If nothing to do, then skip it
+        if(!isset($data->subjectareas) && !isset($data->srs)) {
+            return false;
+        }
+        
+        // Enable by default
+        $data->enabled = 1;
+
+        // Save
+        $DB->insert_record('ucla_syllabus_webservice', $data);
+    }
+    
+    /**
+     * Return list of events we're handling
+     * 
+     * @return array
+     */
+    static public function get_event_actions() {
+        $actions = array(
+            self::ACTION_TRANSFER => get_string('action_transfer','local_ucla_syllabus'),
+            self::ACTION_ALERT => get_string('action_alert','local_ucla_syllabus')
+        );
+        
+        return $actions;
     }
 }
