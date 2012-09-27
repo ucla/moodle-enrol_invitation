@@ -244,15 +244,18 @@ class block_ucla_course_menu extends block_navigation {
         // the elements
         $elements = array();
 
-        // Special cases
-        if (!empty($this->page->course->parentcourse)) {
-            $elements['parent-course'] = navigation_node::create(
-                get_string('parentcourse', 'block_ucla_course_menu'),
-                new moodle_url('/course/view.php', array(
-                        'id' => $this->page->course->parentcourse
-                    )),
-                navigation_node::TYPE_COURSE
-            );
+        // Special case for meta-sites
+        $enrols = enrol_get_instances($course_id, true);
+        foreach ($enrols as $enrol) {
+            if ($enrol->enrol == 'meta') {
+                $elements['parent-course'] = navigation_node::create(
+                    get_string('parentcourse', 'block_ucla_course_menu'),
+                    new moodle_url('/course/view.php', array(
+                            'id' => $enrol->customint1
+                        )),
+                    navigation_node::TYPE_COURSE
+                );
+            }
         }
                 
         $topic_param = $this->get_topic_get();
