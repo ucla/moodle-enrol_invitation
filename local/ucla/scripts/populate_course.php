@@ -40,9 +40,6 @@ $role = student;
 require_once(dirname(__FILE__) . '/../../../config.php');
 require_once($CFG->dirroot . '/lib/enrollib.php');
 require_once($CFG->dirroot . '/local/ucla/lib.php');
-require_once($CFG->dirroot . '/lib/setup.php');
-
-global $DB, $CFG, $SITE;
 
 // Needs two arguments, courseid and term
 if ($argc != 3) {
@@ -107,24 +104,28 @@ $params = array('id_editinginstructor' => $id_editinginstructor,
     'id_tainstructor' => $id_tainstructor,
     'term' => $term);
 
+$coursecontext = context_course::instance($courseid);
+
 $a = $DB->get_recordset_sql($sql_findusers, $params);
 
-$users_added = 0;
+if ($a->valid()) {
 
-foreach($a as $user_id) {
-    // For each user, add to course using "self-enrollment" plugin
-    $user_id = $user_id->userid;
+    $users_added = 0;
+
+    foreach($a as $user_id) {
+       // For each user, add to course using "self-enrollment" plugin
+       $user_id = $user_id->userid;
     
-    // If user is already in course, then don't enrol.
-    $coursecontext = context_course::instance($courseid);
-    if (!is_enrolled($coursecontext, $user_id, '', true)) {
-        $enrol_plugin->enrol_user($enrol_instance, $user_id, $roleid);
-        $users_added++;
+        // If user is already in course, then don't enrol.
+        if (!is_enrolled($coursecontext, $user_id, '', true)) {
+            $enrol_plugin->enrol_user($enrol_instance, $user_id, $roleid);
+            $users_added++;
+        }
     }
 }
 
 $a->close();
-
+    
 if ($users_added == 1) {
     echo($users_added . ' user was added.' . "\n");
 } else {
