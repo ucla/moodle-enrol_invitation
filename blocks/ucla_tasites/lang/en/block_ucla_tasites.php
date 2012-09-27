@@ -6,6 +6,10 @@ $string['no_tasites'] = 'There is no elegible {$a} to make a site for.';
 
 $string['tasitefor'] = '{$a->fullname} TA site: {$a->course_fullname}';
 
+// Control Panel
+$string['ucla_make_tasites'] = 'TA Sites';
+$string['ucla_make_tasites_post'] = 'Create, view or delete TA sites.';
+
 // Building
 $string['delete_tasites'] = 'Delete existing TA sites';
 $string['delete_tadesc'] = 'Check to delete TA site <a href="{$a->course_url}">{$a->course_shortname}</a> for {$a->fullname}.';

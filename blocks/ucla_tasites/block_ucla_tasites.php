@@ -340,6 +340,37 @@ class block_ucla_tasites extends block_base {
 
         return $newcourse;
     }
+
+    /**
+     *  Hook API call for control panel.
+     **/
+    static function ucla_cp_hook($course, $context) {
+        $courseid = $course->id;
+        $cp_module = false;
+
+        try {
+            $accessible = self::check_access($courseid);
+        } catch (moodle_exception $e) {
+            $accessible = false;
+        }
+
+        if (!self::is_tasite($courseid) && $accessible) {
+            $cp_module = array(
+                array(
+                    'item_name' => 'ucla_make_tasites',
+                    'action' => new moodle_url(
+                        '/blocks/ucla_tasites/index.php',
+                        array(
+                            'courseid' => $course->id
+                        )
+                    ),
+                    'tags' => array('ucla_cp_mod_other')
+                )
+            );
+        }
+
+        return $cp_module;
+    }
 }
 
 class block_ucla_tasites_exception extends moodle_exception {
