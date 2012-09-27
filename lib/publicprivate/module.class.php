@@ -82,7 +82,8 @@ class PublicPrivate_Module {
      * @return bool
      */
     public function is_public() {
-        return coursemodule_visible_for_user($this->_course_module(), 1);
+        global $CFG;
+        return coursemodule_visible_for_user($this->_course_module(), $CFG->siteguest);
     }
 
     /**
