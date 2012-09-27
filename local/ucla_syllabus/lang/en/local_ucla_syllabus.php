@@ -62,13 +62,25 @@ $string['err_syllabus_not_allowed'] = 'Sorry, you must be logged in or assciated
 // web service
 $string['ws_header'] = 'Add web service subscription';
 $string['subject_areas'] = 'Subject areas';
+$string['subject_areas_help'] = 'Multiple subject areas may be added in comma separated
+    lists';
 $string['leading_srs'] = 'Leading SRS';
 $string['leading_srs_rule'] = 'Numeric values only';
 $string['post_url'] = 'POST URL';
 $string['post_url_required'] = 'You must provide a POST url.';
 $string['contact_email'] = 'Contact email';
+$string['contact_email_help'] = 'This email will be used to report any problems 
+    encountered while attempting to access the provided url.';
 $string['contact_email_required'] = 'You must provide a valid contact email.';
 $string['token'] = 'Token';
+$string['token_help'] = 'Use a token to verify the authenticity of the 
+    messages you receive on the POST url.';
 $string['select_action'] = 'Service action';
 $string['action_alert'] = 'Syllabus alert';
 $string['action_transfer'] = 'Syllabus transfer';
+
+$string['heading'] = 'UCLA syllabus web service';
+$string['status'] = 'Status';
+$string['enable'] = 'Enable';
+$string['disable'] = 'Disable';
+$string['delete'] = 'Delete';

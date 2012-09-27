@@ -196,4 +196,20 @@ class syllabus_ws_manager {
         
         return $actions;
     }
+    
+    static public function get_subscriptions() {
+        global $DB;
+        return $DB->get_records('ucla_syllabus_webservice');
+    }
+    
+    static public function update_subscription($record) {
+        global $DB;
+        $DB->update_record('ucla_syllabus_webservice', $record);
+    }
+    
+    static public function delete_subscription($id) {
+        global $DB;
+        $DB->delete_records('ucla_syllabus_webservice', array('id' => $id));
+    }
+    
 }
