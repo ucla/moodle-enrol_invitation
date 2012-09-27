@@ -30,7 +30,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2012090501;               // The current block version (Date: YYYYMMDDXX)
+$plugin->version   = 2012092700;               // The current block version (Date: YYYYMMDDXX)
 $plugin->cron      = 0;               // Period for cron to check this module (secs)
 $plugin->component = 'local_ucla_syllabus'; // To check on upgrade, that module sits in correct place
 
