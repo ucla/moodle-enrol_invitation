@@ -247,7 +247,7 @@ $CFG->block_iclicker_notify_emails = 'ccle-operations@lists.ucla.edu';  // due t
 $CFG->sitedefaultlicense = 'tbd';
 
 // Site administration > Plugins > Repositories > Common repository settings
-$CFG->legacyfilesinnewcourses = 0;  // disallow new course to enable legacy course files
+$CFG->legacyfilesinnewcourses = 1;  // disallow new course to enable legacy course files
 
 // Site administration > Plugins > Local plugins > UCLA configurations
 $CFG->forced_plugin_settings['local_ucla']['registrar_cache_ttl'] = 3600;   // 1 hour
