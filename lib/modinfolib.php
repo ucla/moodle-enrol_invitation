@@ -1067,7 +1067,21 @@ class cm_info extends stdClass {
         } else {
             $this->available = true;
         }
-
+        
+        // START UCLA MOD: CCLE-3556 - Hiding section doesn't hide material in section
+        // check parent section visible as well
+        if (!isset($parentsection)) {
+            // might have been queried earlier
+            $parentsection = $this->modinfo->get_section_info($this->sectionnum);            
+        }
+        if (!$parentsection->visible) {
+            // Do not store info from section here, as that is already
+            // presented from the section (if appropriate) - just change
+            // the flag
+            $this->available = false;
+        }               
+        // END UCLA MOD: CCLE-3556
+        
         // Update visible state for current user
         $this->update_user_visible();
 
