@@ -42,16 +42,9 @@ if(!empty($delete) and confirm_sesskey()) {
     syllabus_ws_manager::delete_subscription($id);
 }
 
-// prepare table sorting functionality
-$tableid = setup_js_tablesorter('uclasiteindicator_sitetypes_report');
-
-// Render page
-echo $OUTPUT->header();
-
-// Heading
-echo $OUTPUT->heading(get_string('heading', 'local_ucla_syllabus'), 2, 'headingblock');
-
-$wsform = new syllabus_ws_form();
+// Process form form
+$subjareas = syllabus_ws_manager::get_subject_areas();
+$wsform = new syllabus_ws_form(null, array('subjareas' => $subjareas));
 
 if ($wsform->is_cancelled()){
     redirect($baseurl);
@@ -61,6 +54,16 @@ if ($wsform->is_cancelled()){
     redirect($baseurl);
 }
 
+// prepare table sorting functionality
+$tableid = setup_js_tablesorter('syllabus_webservice');
+
+// Render page
+echo $OUTPUT->header();
+
+// Heading
+echo $OUTPUT->heading(get_string('heading', 'local_ucla_syllabus'), 2, 'headingblock');
+
+// Display form
 $wsform->display();
 
 echo $OUTPUT->box_start('generalbox');
@@ -69,7 +72,7 @@ $table = new html_table();
 $table->id = $tableid;
 $table->attributes['class'] = 'generaltable';
 //$table->align = array('left', 'left', 'left');
-$table->head = array(get_string('subject_areas', 'local_ucla_syllabus'), 
+$table->head = array(get_string('subject_area', 'local_ucla_syllabus'), 
         get_string('leading_srs', 'local_ucla_syllabus'), 
         get_string('post_url', 'local_ucla_syllabus'), 
         get_string('token', 'local_ucla_syllabus'), 
@@ -83,7 +86,7 @@ $actions = syllabus_ws_manager::get_event_actions();
 
 foreach($subscriptions as $s) {    
     $row = array();
-    $row[] = $s->subjectareas;
+    $row[] = empty($s->subjectarea) ? '' : $subjareas[$s->subjectarea];
     $row[] = $s->leadingsrs;
     $row[] = $s->url;
     $row[] = $s->token;

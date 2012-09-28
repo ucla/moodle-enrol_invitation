@@ -12,13 +12,17 @@ class syllabus_ws_form extends moodleform {
         global $DB, $USER;
 
         $mform =& $this->_form;
+        $subjareas = $this->_customdata['subjareas'];
+        
         $mform->addElement('header','header', get_string('ws_header', 'local_ucla_syllabus'));
         
         // Subject areas
-        $mform->addElement('text', 'subjectareas', 
-                get_string('subject_areas', 'local_ucla_syllabus'), 
-                array('maxlength' => 200, 'size' => 50));
-        $mform->addHelpButton('subjectareas', 'subject_areas', 'local_ucla_syllabus');
+        
+        $mform->addElement('select', 'subjectarea', 
+                get_string('subject_area', 'local_ucla_syllabus'), 
+                $subjareas,
+                array());
+        $mform->addHelpButton('subjectarea', 'subject_area', 'local_ucla_syllabus');
         
         // Leading SRS
         $mform->addElement('text', 'leadingsrs', 
@@ -31,7 +35,7 @@ class syllabus_ws_form extends moodleform {
         // POST url
         $mform->addElement('text', 'url', 
                 get_string('post_url', 'local_ucla_syllabus'), 
-                array('maxlength' => 100, 'size' => 50));
+                array('maxlength' => 200, 'size' => 50));
         $mform->addRule('url', 
                 get_string('post_url_required', 'local_ucla_syllabus'), 
                 'required', null, 'client');
@@ -39,7 +43,7 @@ class syllabus_ws_form extends moodleform {
         // Contact email
         $mform->addElement('text', 'contact', 
                 get_string('contact_email', 'local_ucla_syllabus'), 
-                array('maxlength' => 20, 'size' => 50));
+                array('maxlength' => 100, 'size' => 50));
         $mform->addRule('contact', 
                 get_string('contact_email_required','local_ucla_syllabus'), 
                 'required', null, 'client');

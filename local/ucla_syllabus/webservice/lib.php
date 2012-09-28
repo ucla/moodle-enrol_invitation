@@ -46,8 +46,12 @@ class syllabus_ws_item {
     private function _contact() {
         
         // Send email message
-        $message = "Couldn't send POST";
-        $subject = "Couldn't send POST";
+        $data = array(
+            'url' => $this->_data->url
+        );
+        
+        $message = get_string('email_msg', 'local_ucla_syllabus', $data);
+        $subject = get_string('email_subject', 'local_ucla_syllabus');
         
         $to = $this->_data->contact;
         
@@ -60,10 +64,8 @@ class syllabus_ws_item {
     }
     
     private function _match_subject() {
-        // @todo: test this
-        if(!empty($this->_data->subjectareas) && !empty($this->_criteria['subjectarea'])) {
-            $subjects = explode('|', $this->_data->subject);
-            return in_array($this->_criteria['subject'], $subjects);
+        if(!empty($this->_data->subjectarea) && !empty($this->_criteria['subjectarea'])) {
+            return intval($this->_data->subjectarea) === intval($this->_criteria['subjectarea']);
         }
         
         return false;
@@ -77,8 +79,8 @@ class syllabus_ws_item {
         
         return false;
     }
-    
-    private function _post($payload) {
+
+    private function _post_json($payload) {
         $ch = curl_init();
         
         $sig = '';
@@ -92,20 +94,17 @@ class syllabus_ws_item {
         $data = array('payload' => base64_encode($payload_json) . '.' . $sig);
         
         // Attach binary file
-        if(isset($payload['file'])) {
+        if($this->_transfer() && isset($payload['file'])) {
             $data['file'] = '@' . $payload['file'];
+            $data['file_name'] = basename($payload['file']);
+            curl_setopt($ch, CURLOPT_INFILESIZE, filesize($payload['file']));
         }
-        
-       
+
         // Setup curl POST
         curl_setopt($ch, CURLOPT_URL, $this->_data->url);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        
-        if(isset($payload['file'])) {
-            curl_setopt($ch, CURLOPT_INFILESIZE, filesize($payload['file']));
-        }
         
         // Execute
         $result_json = curl_exec($ch);
@@ -121,9 +120,53 @@ class syllabus_ws_item {
         return false;
     }
     
+    private function _post($payload) {
+        $ch = curl_init();
+        
+        $sig = '';
+        
+        // Encode token if needed
+        if(isset($this->_data->token)) {
+            $sig = $this->_hash_payload(base64_encode($this->_data->token));
+        }
+
+        $data = $payload;
+        $data['algorithm'] = 'sha256';
+        $data['token'] = $sig;
+        
+        // Attach binary file
+        if($this->_transfer() && isset($payload['file'])) {
+            $data['file'] = '@' . $payload['file'];
+            $data['file_name'] = basename($payload['file']);
+            curl_setopt($ch, CURLOPT_INFILESIZE, filesize($payload['file']));
+        }
+        
+        // Setup curl POST
+        curl_setopt($ch, CURLOPT_URL, $this->_data->url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        
+        // Execute
+        $result = curl_exec($ch);
+        
+        curl_close($ch);
+
+        if($result === FALSE) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    
     private function _hash_payload($payload) {
-        $sig = hash_hmac('sha256', $payload, $this->_data->token, true);
+        $sig = hash_hmac('sha256', $payload, $this->_data->token);
         return base64_encode($sig);
+    }
+    
+    private function _transfer() {
+        return intval($this->_data->action) === syllabus_ws_manager::ACTION_TRANSFER;
     }
 }
 
@@ -148,13 +191,11 @@ class syllabus_ws_manager {
      * @param type $criteria
      * @param type $payload 
      */
-    static public function handle($event, $criteria, $payload) {
+    static public function handle($criteria, $payload) {
         global $DB;
         
-        $records = $DB->get_records('ucla_syllabus_webservice',
-                array('enabled' => 1, 'action' => $event));
+        $records = $DB->get_records('ucla_syllabus_webservice', array('enabled' => 1));
 
-        print_object($records);
         // Process actions
         foreach($records as $rec) {
             $notifications = new syllabus_ws_item($rec, $criteria);
@@ -172,7 +213,7 @@ class syllabus_ws_manager {
         global $DB;
         
         // If nothing to do, then skip it
-        if(!isset($data->subjectareas) && !isset($data->srs)) {
+        if(empty($data->subjectarea) && empty($data->leadingsrs)) {
             return false;
         }
         
@@ -195,6 +236,20 @@ class syllabus_ws_manager {
         );
         
         return $actions;
+    }
+    
+    /**
+     * Return list of subject areas
+     * 
+     * @return type 
+     */
+    static public function get_subject_areas() {
+        global $DB;
+        $records = $DB->get_records('ucla_reg_subjectarea', null, '', 'id, subj_area_full ');
+        foreach($records as &$r) {
+            $r = ucwords(strtolower($r->subj_area_full));
+        }
+        return array_merge(array(0 => 'Select subject area'), $records);
     }
     
     static public function get_subscriptions() {
