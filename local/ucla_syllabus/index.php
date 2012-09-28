@@ -93,7 +93,7 @@ if ($USER->editing && $can_manage_syllabus) {
             $url = new moodle_url('/local/ucla_syllabus/index.php',
                     array('action' => UCLA_SYLLABUS_ACTION_VIEW,
                           'id' => $course->id));
-            if (!isset($data->entryid)) {
+            if (isset($data->entryid)) {
                 // syllabus was updated
                 $success_msg = get_string('successful_update', 'local_ucla_syllabus');     
             } else {
