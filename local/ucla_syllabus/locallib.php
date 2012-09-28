@@ -322,6 +322,10 @@ abstract class ucla_sylabus {
      * @return boolean
      */
     public function __isset($name) {
+        // lazy load stored_file, since it is pretty complex
+        if ($name == 'stored_file') {
+            $this->stored_file;
+        }        
         return isset($this->properties->$name);
     }
 
@@ -375,14 +379,14 @@ abstract class ucla_sylabus {
     public function get_file_url() {
         global $CFG;
         
-        if (empty($this->properties) || !isset($this->properties->stored_file)) {
+        if (empty($this->properties) || !isset($this->stored_file)) {
             return '';
         }
 
-        $file = $this->properties->stored_file;
+        $file = $this->stored_file;
         
         $url = "{$CFG->wwwroot}/pluginfile.php/{$file->get_contextid()}/local_ucla_syllabus/syllabus";
-        $file = $this->properties->stored_file;
+        $file = $this->stored_file;
         $filename = $file->get_filename();
         $fileurl = $url.$file->get_filepath().$file->get_itemid().'/'.$filename;        
         
@@ -395,10 +399,10 @@ abstract class ucla_sylabus {
      * @return string
      */
     public function get_mimetype() {
-        if (empty($this->properties) || !isset($this->properties->stored_file)) {
+        if (!isset($this->stored_file)) {
             return '';
         }        
-        return $this->properties->stored_file->get_mimetype();        
+        return $this->stored_file->get_mimetype();        
     }
     
     /**
