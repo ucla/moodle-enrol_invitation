@@ -40,13 +40,15 @@ $string['accesss_public_info'] = 'Public: Anyone can view (incuding non-logged i
 $string['accesss_loggedin_info'] = 'UCLA community: Only logged in users can view';
 $string['access_none_selected'] = 'Please select an access type';
 $string['access_invalid'] = 'Invalid access type selected';
-$string['preview_info'] = 'Is this a "preview syllabus"? Which i a summarized version of the course syllabus intended for public consumption.';
+$string['preview_info'] = 'Is this a "preview syllabus"? Which is a summarized version of the course syllabus intended for public consumption.';
 $string['display_name'] = 'Display name';
 $string['display_name_default'] = 'Syllabus';
 $string['display_name_none_entered'] = 'Please enter a display name';
 $string['cannnot_make_db_entry'] = 'Cannot insert entry into syllabus table.';
-$string['successful_upload'] = 'Successfully uploaded a syllabus';
 $string['invalid_public_syllabus'] = 'Can only have one public syllabus for course';
+$string['public_syllabus_add'] = 'Add public syllabus';
+$string['private_syllabus_add'] = 'Add private syllabus';
+$string['no_syllabus'] = 'No syllabus uploaded';
 
 // strings for displaying syllabus
 $string['no_syllabus_uploaded'] = 'No syllabus has been uploaded yet.';
@@ -54,7 +56,16 @@ $string['no_syllabus_uploaded_help'] = 'To upload a syllabus file, please "Turn 
 $string['clicktodownload'] = 'Download: {$a}';
 $string['syllabus_needs_setup'] = 'Syllabus (needs setup)';
 
-// error general strings
+// success strings
+$string['successful_add'] = 'Successfully added a syllabus';
+$string['successful_delete'] = 'Successfully deleted a syllabus';
+$string['successful_update'] = 'Successfully updated a syllabus';
+
+// error strings
 $string['err_missing_courseid'] = 'Missing required courseid';
 $string['err_syllabus_mismatch'] = 'Selected syllabus does not belong to course';
 $string['err_syllabus_not_allowed'] = 'Sorry, you must be logged in or assciated with the course to view this syllabus';
+$string['err_syllabus_notexist'] = 'Sorry, but given syllabus does not exist';
+
+// capability strings
+$string['ucla_syllabus:managesyllabus'] = 'Allows ability to add, edit, and delete syllabus for a course';
