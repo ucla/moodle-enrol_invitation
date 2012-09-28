@@ -32,6 +32,34 @@ defined('MOODLE_INTERNAL') || die();
  */
 class enrol_meta_plugin extends enrol_plugin {
     /**
+     *  API call - lib/enrollib.php.
+     **/
+    function add_course_navigation($instancesnode, $instance) {
+        global $PAGE;
+
+        // This is technically a hack, $instancenode provides us
+        // the node from settings_navigation, not global_navigation
+        if (!empty($instance->customint1)) {
+            $pcourseid = $instance->customint1;
+            $courseid = $instance->courseid;
+
+            $pcoursenode =& $PAGE->navigation->find($pcourseid,
+                    navigation_node::TYPE_COURSE);
+
+            if (empty($pcoursenode)) {
+                return;
+            }
+
+            $coursenode =& $PAGE->navigation->find($courseid,
+                    navigation_node::TYPE_COURSE);
+
+            $pcoursenode->set_parent($coursenode->parent);
+            $coursenode->set_parent($pcoursenode);
+        }
+
+    }
+
+    /**
      *  Returns which role to assign a user based on promotion rules.
      *  CCLE-2386
      **/
