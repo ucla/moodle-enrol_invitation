@@ -501,6 +501,9 @@ class block_ucla_weeksdisplay extends block_base {
     * @return the term after the current term.
     */       
     public static function get_prev_term($current_term) {
+        if (empty($current_term)) {
+            return NULL;
+        }
         $year = intval(substr($current_term,0 , 2));
         $quarter = $current_term[2];
         switch ($quarter) {
