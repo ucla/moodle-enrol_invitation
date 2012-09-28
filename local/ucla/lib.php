@@ -1209,6 +1209,6 @@ function flash_display() {
 function flash_redirect($url, $success_msg) {    
     // message to indicate to user that content was edited
     $_SESSION['flash_success_msg']  = $success_msg;
-    redirect($url, $success_msg);
+    redirect($url);
 } 
 // EOF
