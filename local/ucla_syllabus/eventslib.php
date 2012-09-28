@@ -1,3 +1,0 @@
-<?php
-
-// Handling following events

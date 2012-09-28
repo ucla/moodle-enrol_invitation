@@ -22,21 +22,18 @@
     </TABLE>
     <TABLE NAME="ucla_syllabus_webservice" COMMENT="ucla_syllabus_webservice table retrofitted from MySQL" PREVIOUS="ucla_syllabus">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="subjectareas"/>
-        <FIELD NAME="subjectareas" TYPE="char" LENGTH="200" NOTNULL="false" SEQUENCE="false" PREVIOUS="id" NEXT="leadingsrs"/>
-        <FIELD NAME="leadingsrs" TYPE="char" LENGTH="9" NOTNULL="false" SEQUENCE="false" PREVIOUS="subjectareas" NEXT="url"/>
-        <FIELD NAME="url" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" PREVIOUS="leadingsrs" NEXT="token"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="subjectarea"/>
+        <FIELD NAME="subjectarea" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="id" NEXT="leadingsrs"/>
+        <FIELD NAME="leadingsrs" TYPE="char" LENGTH="9" NOTNULL="false" SEQUENCE="false" PREVIOUS="subjectarea" NEXT="url"/>
+        <FIELD NAME="url" TYPE="char" LENGTH="200" NOTNULL="true" SEQUENCE="false" PREVIOUS="leadingsrs" NEXT="token"/>
         <FIELD NAME="token" TYPE="char" LENGTH="64" NOTNULL="false" SEQUENCE="false" PREVIOUS="url" NEXT="contact"/>
-        <FIELD NAME="contact" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false" PREVIOUS="token" NEXT="enabled"/>
-        <FIELD NAME="enabled" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="contact" NEXT="action"/>
+        <FIELD NAME="contact" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" PREVIOUS="token" NEXT="enabled"/>
+        <FIELD NAME="enabled" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false" PREVIOUS="contact" NEXT="action"/>
         <FIELD NAME="action" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="enabled"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="id" TYPE="primary" FIELDS="id"/>
       </KEYS>
-      <INDEXES>
-        <INDEX NAME="enabled" UNIQUE="false" FIELDS="enabled, action"/>
-      </INDEXES>
     </TABLE>
   </TABLES>
 </XMLDB>

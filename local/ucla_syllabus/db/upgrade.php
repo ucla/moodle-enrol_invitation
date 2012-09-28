@@ -53,26 +53,23 @@ function xmldb_local_ucla_syllabus_upgrade($oldversion) {
     //
     // }
     
-    if ($oldversion < 2012092700) {
+    if ($oldversion < 2012092701) {
 
         // Define table ucla_syllabus_webservice to be created
         $table = new xmldb_table('ucla_syllabus_webservice');
 
         // Adding fields to table ucla_syllabus_webservice
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
-        $table->add_field('subject', XMLDB_TYPE_CHAR, '200', null, null, null, null);
+        $table->add_field('subjectarea', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
         $table->add_field('leadingsrs', XMLDB_TYPE_CHAR, '9', null, null, null, null);
-        $table->add_field('url', XMLDB_TYPE_CHAR, '100', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('url', XMLDB_TYPE_CHAR, '200', null, XMLDB_NOTNULL, null, null);
         $table->add_field('token', XMLDB_TYPE_CHAR, '64', null, null, null, null);
-        $table->add_field('contact', XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, null);
-        $table->add_field('enabled', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('contact', XMLDB_TYPE_CHAR, '100', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('enabled', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, null);
         $table->add_field('action', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
 
         // Adding keys to table ucla_syllabus_webservice
         $table->add_key('id', XMLDB_KEY_PRIMARY, array('id'));
-
-        // Adding indexes to table ucla_syllabus_webservice
-        $table->add_index('enabled', XMLDB_INDEX_NOTUNIQUE, array('enabled', 'action'));
 
         // Conditionally launch create table for ucla_syllabus_webservice
         if (!$dbman->table_exists($table)) {
@@ -80,7 +77,7 @@ function xmldb_local_ucla_syllabus_upgrade($oldversion) {
         }
 
         // ucla_syllabus savepoint reached
-        upgrade_plugin_savepoint(true, 2012092700, 'local', 'ucla_syllabus');
+        upgrade_plugin_savepoint(true, 2012092701, 'local', 'ucla_syllabus');
     }
 
     // Final return of upgrade result (true, all went good) to Moodle.
