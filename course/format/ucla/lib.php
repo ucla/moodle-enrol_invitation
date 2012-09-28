@@ -352,7 +352,7 @@ function ucla_format_display_instructors($course) {
             oh.phone
         FROM {course} c
         JOIN {context} ct
-            ON (ct.instanceid = c.id)
+            ON (ct.instanceid = c.id AND ct.contextlevel=50)
         JOIN {role_assignments} ra
             ON (ra.contextid = ct.id)
         JOIN {role} r
