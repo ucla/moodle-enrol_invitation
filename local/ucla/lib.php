@@ -1036,14 +1036,18 @@ function term_cmp_fn($term, $other) {
 }
 
 /**
- * Returns true if given course object is a collabration site, otherwise false.
+ * Returns true if given course is a collabration site (aka non-srs course), 
+ * otherwise false.
  * 
- * @param object $course
+ * @param int|object $course
  * @return boolean 
  */
 function is_collab_site($course) {
     global $DB;
-    return $DB->record_exists('ucla_siteindicator', array('courseid' => $course->id));
+    if (is_object($course)) {
+        $course = $course->id;
+    }
+    return !$DB->record_exists('ucla_request_classes', array('courseid' => $course));
 }
 
 /**

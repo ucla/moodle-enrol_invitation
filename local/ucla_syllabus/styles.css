@@ -13,3 +13,16 @@
 .syllabus_form .fstatic {
     font-style: italic;
 }
+
+.syllabus_form .no_syllabus {
+    font-size: larger;
+} 
+
+.syllabus_form .syllabus_help {
+    font-style: italic;
+}
+
+.syllabus_form .editing_links a {
+    color: #FF6666;
+    margin-left: 19px;
+}
