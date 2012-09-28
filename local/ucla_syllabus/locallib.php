@@ -37,6 +37,14 @@ define('UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC', 1);
 define('UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN', 2);
 define('UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE', 3);
 
+define('UCLA_SYLLABUS_TYPE_PUBLIC', 'public');
+define('UCLA_SYLLABUS_TYPE_PRIVATE', 'private');
+
+define('UCLA_SYLLABUS_ACTION_ADD', 'add');
+define('UCLA_SYLLABUS_ACTION_DELETE', 'delete');
+define('UCLA_SYLLABUS_ACTION_EDIT', 'edit');
+define('UCLA_SYLLABUS_ACTION_VIEW', 'view');
+
 class ucla_syllabus_manager {
     private $courseid;
     private $coursecontext;
@@ -53,9 +61,45 @@ class ucla_syllabus_manager {
                 'accepted_types' => array('.pdf'));        
     }
     
+    /**
+     * Returns if logged in user has the ability to manage syllabi for course.
+     * 
+     * @return boolean
+     */
     public function can_manage() {
         return has_capability('local/ucla_syllabus:managesyllabus', 
                 $this->coursecontext);
+    }
+    
+    /**
+     * Deletes given syllabus.
+     * 
+     * @param ucla_syllabus $syllabus   Expecting an object that is derived from
+     *                                  the ucla_syllabus class
+     */
+    public function delete_syllabus($syllabus) {
+        global $DB;
+        // do some sanity check
+        
+        // make sure parameter is valid object
+        if (!is_object($syllabus) || !($syllabus instanceof ucla_sylabus) ||
+                empty($syllabus->id)) {
+            print_error('err_syllabus_notexist', 'local_ucla_syllabus');
+        }
+        
+        // make sure that syllabus belongs to course
+        if ($syllabus->courseid != $this->courseid) {
+            print_error('err_syllabus_mismatch', 'local_ucla_syllabus');
+        }
+        
+        // first, delete files
+        $syllabus->stored_file->delete();
+        
+        // next, delete entry in syllabus table
+        $DB->delete_records('ucla_syllabus', array('id' => $syllabus->id));
+        
+        // trigger events
+        events_trigger('ucla_syllabus_deleted', $syllabus);
     }
     
     /**
@@ -80,15 +124,17 @@ class ucla_syllabus_manager {
         $ret_val = null;
 
         // @todo restrict syllabus tool to only SRS and instructional collab sites
+
+        // @todo add support for private syllabus. if user is enrolled, check
+        // if there is a private syllabus and display that instead
         
         // is there a syllabus uploaded?
-        if ($this->has_public_syllabus($this->courseid)) {
-            // @todo use syllabus displayname
-            $node_name = get_string('display_name_default', 
-                    'local_ucla_syllabus');
+        $public_syllabus_id = $this->has_public_syllabus($this->courseid);
+        if (!empty($public_syllabus_id)) {
+            $public_syllabus = new ucla_public_syllabus($public_syllabus_id);
+            $node_name = $public_syllabus->display_name;
         } else if ($this->can_manage()) {
-            $node_name = get_string('syllabus_needs_setup', 
-                    'local_ucla_syllabus');
+            $node_name = get_string('syllabus_needs_setup', 'local_ucla_syllabus');
         }
 
         if (!empty($node_name)) {
@@ -103,7 +149,8 @@ class ucla_syllabus_manager {
     
     public function get_syllabi() {
         global $DB;
-        $ret_val = array('public' => null, 'private' => null);        
+        $ret_val = array(UCLA_SYLLABUS_TYPE_PUBLIC => null, 
+                         UCLA_SYLLABUS_TYPE_PRIVATE => null);        
         
         // get all syllabus entries for course
         $records = $DB->get_records('ucla_syllabus', 
@@ -113,9 +160,9 @@ class ucla_syllabus_manager {
             switch ($record->access_type) {
                 case UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC:
                 case UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN:
-                    $ret_val['public'] = new ucla_public_syllabus($record->id);
+                    $ret_val[UCLA_SYLLABUS_TYPE_PUBLIC] = new ucla_public_syllabus($record->id);
                 case UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE:
-                    $ret_val['private'] = new ucla_private_syllabus($record->id);
+                    $ret_val[UCLA_SYLLABUS_TYPE_PRIVATE] = new ucla_private_syllabus($record->id);
             }            
         }
         
@@ -123,21 +170,22 @@ class ucla_syllabus_manager {
     }    
     
     /**
-     * Checks if given course has a public syllabus
+     * Checks if given course has a public syllabus. If so, then returns 
+     * syllabus id, otherwise false.
      * 
      * @global moodle_database $DB
      * 
      * @param int $courseid
      * 
-     * @return boolean
+     * @return int              Returns false if no syllabus found
      */
     public static function has_public_syllabus($courseid)
     {
         global $DB;
 
         $where = 'courseid=:courseid AND (access_type=:public OR access_type=:loggedin)';
-        $result = $DB->record_exists_select('ucla_syllabus', $where, 
-                array('courseid' => $courseid, 
+        $result = $DB->get_field_select('ucla_syllabus', 'id', $where, 
+                array('courseid' => $courseid,
                       'public' => UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC, 
                       'loggedin' => UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN));
         
@@ -167,9 +215,9 @@ class ucla_syllabus_manager {
      * Saves given syllabus data. Can either be an update (id must be set) or
      * insert as a new record.
      * 
-     * @param object $data  Data from syllabus form
+     * @param object $data  Data from syllabus form. Assumes it is validated
      * 
-     * @return boolean
+     * @return int      Returns recordid of added/updated syllabus
      */
     function save_syllabus($data) {
         global $DB;
@@ -177,6 +225,7 @@ class ucla_syllabus_manager {
         // first create a entry in ucla_syllabus
         $ucla_syllabus_entry = new stdClass();
         $recordid = null;
+        $eventname = '';
                 
         $ucla_syllabus_entry->courseid      = $data->id;
         $ucla_syllabus_entry->display_name  = $data->display_name;
@@ -195,13 +244,17 @@ class ucla_syllabus_manager {
             $recordid = $data->entryid;
             $ucla_syllabus_entry->id = $data->entryid;
             
-            $DB->update_record('ucla_syllabus', $ucla_syllabus_entry);            
+            $DB->update_record('ucla_syllabus', $ucla_syllabus_entry);        
+            
+            $eventname = 'ucla_syllabus_updated';            
         } else {
             // insert new record
             $recordid = $DB->insert_record('ucla_syllabus', $ucla_syllabus_entry);        
             if (empty($recordid)) {        
                 print_error(get_string('cannnot_make_db_entry', 'local_ucla_syllabus'));
             }            
+            
+            $eventname = 'ucla_syllabus_added';           
         }
         
         // then save file, with link to ucla_syllabus
@@ -209,7 +262,10 @@ class ucla_syllabus_manager {
                 $this->coursecontext->id, 'local_ucla_syllabus', 'syllabus', 
                 $recordid, $this->filemanager_config);        
         
-        return true;
+        // no errors, so trigger events
+        events_trigger($eventname, $recordid);
+        
+        return $recordid;
     }
 }
 
@@ -234,11 +290,7 @@ abstract class ucla_sylabus {
             $this->properties = $DB->get_record('ucla_syllabus', array('id' => $syllabusid));  
             if (empty($this->properties)) {
                 throw moodle_exception('Invalid syllabus id');
-            }
-
-            // now get file
-            $this->properties->stored_file = 
-                    $this->locate_syllabus_file($syllabusid);       
+            }    
         } else {
             $this->properties = new stdClass();
         }
@@ -250,7 +302,14 @@ abstract class ucla_sylabus {
      * @return mixed
      */
     public function __get($name) {
-        if (!isset($this->$name)) {
+        // lazy load stored_file, since it is pretty complex
+        if ($name == 'stored_file') {
+            if (!isset($this->properties->stored_file)) {
+                $this->properties->stored_file =  $this->locate_syllabus_file();
+            }
+        }
+        
+        if (!isset($this->properties) || !isset($this->properties->$name)) {
             debugging('ucla_sylabus called with invalid $name: ' . $name);  
             return null;
         }

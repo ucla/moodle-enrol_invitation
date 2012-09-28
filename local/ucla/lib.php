@@ -1240,4 +1240,30 @@ function prompt_login($PAGE, $OUTPUT, $CFG, $course) {
             
     notice(get_string('notloggedin', 'local_ucla'), get_login_url());
 }
+
+/**
+ * Displays flash successful messages from session.
+ * 
+ * @global object $OUTPUT
+ */
+function flash_display() {
+    global $OUTPUT;    
+    if (isset($_SESSION['flash_success_msg'])) {
+        echo $OUTPUT->notification($_SESSION['flash_success_msg'], 'notifysuccess');
+        unset($_SESSION['flash_success_msg']);
+    }
+}
+
+/**
+ * Copies the $success_msg in a session variable to be used on redirected page
+ * via flash_display()
+ *
+ * @param moodle_url|string $url A moodle_url to redirect to. Strings are not to be trusted!
+ * @param string $success_msg The message to display to the user
+ */
+function flash_redirect($url, $success_msg) {    
+    // message to indicate to user that content was edited
+    $_SESSION['flash_success_msg']  = $success_msg;
+    redirect($url, $success_msg);
+} 
 // EOF
