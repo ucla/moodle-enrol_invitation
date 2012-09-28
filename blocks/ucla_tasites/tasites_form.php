@@ -38,18 +38,22 @@ class tasites_form extends moodleform {
             $mform->addElement('header', $action . '_header', 
                 get_string($action . '_tasites', 'block_ucla_tasites'));
 
+            if ($action == 'view') {
+                $mform->addElement('html', html_writer::start_tag('ul'));
+            }
+
             foreach ($tas as $ta) {
                 // view is special
                 if ($action == 'view') {
                     $mform->addElement(
                         'html',
-                        html_writer::link(
+                        html_writer::tag('li', html_writer::link(
                             $ta->course_url,
                             get_string(
                                 $action . '_tadesc', 'block_ucla_tasites', 
                                 $ta
                             )
-                        )
+                        ))
                     );
                 } else {    
                     // This specifies whether to take the action or not
@@ -68,6 +72,10 @@ class tasites_form extends moodleform {
                     block_ucla_tasites::action_naming($ta),
                     $action
                 );
+            }
+
+            if ($action == 'view') {
+                $mform->addElement('html', html_writer::end_tag('ul'));
             }
         }
 
