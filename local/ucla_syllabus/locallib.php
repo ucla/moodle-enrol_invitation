@@ -120,10 +120,14 @@ class ucla_syllabus_manager {
      * @return navigation_node
      */
     public function get_navigation_nodes() {
+        global $USER;
         $node_name = null;  
         $ret_val = null;
 
-        // @todo restrict syllabus tool to only SRS and instructional collab sites
+        // restrict syllabus tool to only SRS sites
+        if (is_collab_site($this->courseid)) {
+            return $ret_val;
+        }
 
         // @todo add support for private syllabus. if user is enrolled, check
         // if there is a private syllabus and display that instead
@@ -133,7 +137,9 @@ class ucla_syllabus_manager {
         if (!empty($public_syllabus_id)) {
             $public_syllabus = new ucla_public_syllabus($public_syllabus_id);
             $node_name = $public_syllabus->display_name;
-        } else if ($this->can_manage()) {
+        } else if ($this->can_manage() && !empty($USER->editing)) {
+            // if no syllabus, then only show node for instructors to click on
+            // to add a syllabus when in editing mode
             $node_name = get_string('syllabus_needs_setup', 'local_ucla_syllabus');
         }
 

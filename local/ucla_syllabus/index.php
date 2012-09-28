@@ -81,7 +81,7 @@ if ($can_manage_syllabus) {
 }
     
 
-if ($USER->editing && $can_manage_syllabus) {        
+if (!empty($USER->editing) && $can_manage_syllabus) {        
     // User uploaded/edited a syllabus file, so handle it
     $data = $syllabus_form->get_data();
     if (!empty($data) && confirm_sesskey()) {

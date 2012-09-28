@@ -117,6 +117,9 @@ class syllabus_form extends moodleform {
         
         $mform->addElement('header', 'header_public_syllabus', 
                 get_string('public_syllabus', 'local_ucla_syllabus'));
+        $mform->addElement('html', html_writer::tag('div', 
+                get_string('public_syllabus_help', 'local_ucla_syllabus'),
+                array('class' => 'syllabus_help')));        
         
         // show upload form if user is editing
         if ($this->action == UCLA_SYLLABUS_ACTION_EDIT || 
@@ -143,12 +146,12 @@ class syllabus_form extends moodleform {
                                   'type' => UCLA_SYLLABUS_TYPE_PUBLIC)),
                         get_string('delete'));
                 
-                $edit_links = html_writer::tag('span', $edit_link . $del_link );
+                $edit_links = html_writer::tag('span', $edit_link . $del_link, array('class' => 'editing_links'));
                 $mform->addElement('html', $display_syllabus . $edit_links);
             } else {
                 // no syllabus added, so give a "add syllabus now" link
                 $text = html_writer::tag('div', get_string('no_syllabus', 
-                        'local_ucla_syllabus'), array('class', 'no_syllabus'));
+                        'local_ucla_syllabus'), array('class' => 'no_syllabus'));
                 $mform->addElement('html', '' . $text);     
                 $url = new moodle_url('/local/ucla_syllabus/index.php', 
                             array('id' => $this->courseid,
@@ -156,9 +159,9 @@ class syllabus_form extends moodleform {
                                   'type' => UCLA_SYLLABUS_TYPE_PUBLIC));
                 $text = get_string('public_syllabus_add', 'local_ucla_syllabus');
                 $link = html_writer::link($url, $text);
-                $mform->addElement('html', '' . $link);                
+                $mform->addElement('html', $link);                
             }
-        } 
+        }
     }
     
     /**
@@ -167,8 +170,6 @@ class syllabus_form extends moodleform {
         $mform = $this->_form;        
         
         // single file upload (pdf only)
-        $mform->addElement('static', 'public_syllabus_help', '',
-                get_string('public_syllabus_help', 'local_ucla_syllabus'));
         $mform->addElement('filemanager', 'public_syllabus_file', 
                 sprintf('%s (%s)', get_string('uploadafile', 'moodle'), 
                         get_string('pdf_only', 'local_ucla_syllabus')), null, 

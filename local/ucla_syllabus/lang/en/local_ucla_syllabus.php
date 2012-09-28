@@ -31,8 +31,13 @@ $string['pluginname'] = 'UCLA syllabus';
 
 // strings for uploading syllabus form
 $string['syllabus_manager'] = 'Syllabus Manager';
-$string['public_syllabus'] = 'Public syllabus';
-$string['public_syllabus_help'] = 'A public syllabus is viewable by viewers who are not associated with the course.';
+
+//$string['public_syllabus'] = 'Public syllabus';
+//$string['public_syllabus_help'] = 'A public syllabus is viewable by viewers who are not associated with the course.';
+//@todo once private syllabus is working uncomment the previous lines and delete the following:
+$string['public_syllabus'] = 'Syllabus';
+$string['public_syllabus_help'] = 'A syllabus can be viewable by people who are not associated with the course.';
+
 $string['public_syllabus_none_uploaded'] = 'Please upload a file';
 $string['pdf_only'] = 'PDF only';
 $string['access'] = 'Access';
@@ -54,7 +59,7 @@ $string['no_syllabus'] = 'No syllabus uploaded';
 $string['no_syllabus_uploaded'] = 'No syllabus has been uploaded yet.';
 $string['no_syllabus_uploaded_help'] = 'To upload a syllabus file, please "Turn on editing".';
 $string['clicktodownload'] = 'Download: {$a}';
-$string['syllabus_needs_setup'] = 'Syllabus (needs setup)';
+$string['syllabus_needs_setup'] = 'Syllabus (empty)';
 
 // success strings
 $string['successful_add'] = 'Successfully added a syllabus';
