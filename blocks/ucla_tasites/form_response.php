@@ -5,10 +5,12 @@ defined('MOODLE_INTERNAL') || die();
  *  This means that the user wishes to delete the TA site.
  **/
 function block_ucla_tasites_respond_delete($tainfo) {
+    /** Disabling for now
     ob_start();
     delete_course($tainfo->ta_site->id);
     $tainfo->delete_text = ob_get_clean();
     $tainfo->course_fullname = $tainfo->ta_site->fullname;
+    **/
 
     $r = new object();
     $r->mstr = 'deleted_tasite';

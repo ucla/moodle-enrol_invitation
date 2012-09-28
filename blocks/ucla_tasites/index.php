@@ -29,6 +29,8 @@ $PAGE->set_heading($course->fullname);
 $PAGE->set_pagelayout('course');
 $PAGE->set_pagetype('course-view-' . $course->format);
 
+$messages = array();
+
 // Get all potentional TA users and their according TA sites
 // from {role_assignments}
 $tas_ra = block_ucla_tasites::get_tasite_users($courseid);
@@ -83,23 +85,23 @@ if (!empty($tas_ra)) {
         foreach ($tasiteinfo as $tasite) {
             $actionname = block_ucla_tasites::action_naming($tasite);
 
-            if (!isset($data->{$actionname})) {
+            if (empty($data->{$actionname})) {
                 debugging('Could not find registered action for '   
                     . $tasite->username);
 
                 continue;
             }
-
+            
             $action = $data->{$actionname};
             $fn = 'block_ucla_tasites_respond_' . $action;
 
-            if (!function_exists($fn)) {
-                throw new block_ucla_tasites_exception('badresponse');
-            }
-
             // Confirm?
             // Create and Delete
-            if (isset($data->{block_ucla_tasites::checkbox_naming($tasite)})) {
+            if (!empty($data->{block_ucla_tasites::checkbox_naming($tasite)})) {
+                if (!function_exists($fn)) {
+                    throw new block_ucla_tasites_exception('badresponse', $fn);
+                }
+
                 $messages[] = $fn($tasite);
             }
         }
@@ -117,7 +119,7 @@ if (empty($tas_ra)) {
 
     throw new moodle_exception('no_tasites', 'block_ucla_tasites', '', 
             $rolefullname);
-} else if (!empty($messages)) {
+} else if (isset($data)) {
     foreach ($messages as $message) {
         echo $OUTPUT->box(get_string($message->mstr, 
             'block_ucla_tasites', $message->mstra));

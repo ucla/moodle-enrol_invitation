@@ -14,15 +14,20 @@ class tasites_form extends moodleform {
         $mform->addElement('hidden', 'courseid', $courseid);
 
         $formactions = array(
-            'build' => array(), 'view' => array()
+            'build' => array(), 
+//            'delete' => array(),
+            'view' => array()
         );
 
         foreach ($tasiteinfo as $tainfo) {
             if (empty($tainfo->ta_site)) {
-                $formactions['build'][] = $tainfo;
+                $formaction = 'build';
             } else {
-                $formactions['delete'][] = $tainfo;
+                //$formaction = 'delete';
+                $formaction = 'view';
             }
+
+            $formactions[$formaction][] = $tainfo;
         }
        
         foreach ($formactions as $action => $tas) {
@@ -30,23 +35,37 @@ class tasites_form extends moodleform {
                 continue;
             }
 
-            $mform->addElement('header', 'build', 
+            $mform->addElement('header', $action . '_header', 
                 get_string($action . '_tasites', 'block_ucla_tasites'));
 
             foreach ($tas as $ta) {
-                $taid = $tainfo->id;
+                // view is special
+                if ($action == 'view') {
+                    $mform->addElement(
+                        'html',
+                        html_writer::link(
+                            $ta->course_url,
+                            get_string(
+                                $action . '_tadesc', 'block_ucla_tasites', 
+                                $ta
+                            )
+                        )
+                    );
+                } else {    
+                    // This specifies whether to take the action or not
+                    $mform->addElement(
+                        'checkbox', 
+                        block_ucla_tasites::checkbox_naming($ta),
+                        $ta->fullname,
+                        get_string($action . '_tadesc', 'block_ucla_tasites', 
+                            $ta)
+                    );
+                }
 
-                $mform->addElement(
-                    'checkbox', 
-                    $taid . '-checkbox',
-                    $ta->fullname,
-                    get_string($action . '_tadesc', 'block_ucla_tasites', 
-                        $ta)
-                );
-
+                // This specifies what action to take for the TA
                 $mform->addElement(
                     'hidden',
-                    $taid . '-action',
+                    block_ucla_tasites::action_naming($ta),
                     $action
                 );
             }
