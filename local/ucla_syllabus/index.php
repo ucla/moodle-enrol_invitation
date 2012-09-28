@@ -153,13 +153,14 @@ if (!empty($USER->editing) && $can_manage_syllabus) {
 
         $fullurl = $public_syllabus->get_file_url();
         $mimetype = $public_syllabus->get_mimetype();
+        $clicktoopen = get_string('err_noembed', 'local_ucla_syllabus');
         $download_link = $public_syllabus->get_download_link();        
 
         // try to embed file using resource functions
         if ($mimetype === 'application/pdf') {
-            $body .= resourcelib_embed_pdf($fullurl, $title, $download_link);
+            $body .= resourcelib_embed_pdf($fullurl, $title, $clicktoopen);
         } else {            
-            $body .= resourcelib_embed_general($fullurl, $title, $download_link, $mimetype);
+            $body .= resourcelib_embed_general($fullurl, $title, $clicktoopen, $mimetype);
         }
         
         // also add download link

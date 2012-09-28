@@ -71,10 +71,10 @@ $string['err_missing_courseid'] = 'Missing required courseid';
 $string['err_syllabus_mismatch'] = 'Selected syllabus does not belong to course';
 $string['err_syllabus_not_allowed'] = 'Sorry, you must be logged in or assciated with the course to view this syllabus';
 $string['err_syllabus_notexist'] = 'Sorry, but given syllabus does not exist';
+$string['err_noembed'] = 'Unable to show embedded file. Please download file to view.';
 
 // capability strings
 $string['ucla_syllabus:managesyllabus'] = 'Allows ability to add, edit, and delete syllabus for a course';
-
 // web service
 $string['ws_header'] = 'Add web service subscription';
 $string['subject_area'] = 'Subject area';
