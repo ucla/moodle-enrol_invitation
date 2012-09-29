@@ -13,7 +13,6 @@ require_once($CFG->libdir . '/adminlib.php');
 $thisdir = '/' . $CFG->admin . '/tool/uclacopyrightstatusreports/';
 require_once($CFG->dirroot . $thisdir . 'lib.php');
 require_once($CFG->dirroot . '/blocks/ucla_copyright_status/lib.php');
-
 $baseurl = $CFG->wwwroot . '/' . $CFG->admin . '/tool/uclacopyrightstatusreports';
 $courseid = optional_param('id', 0, PARAM_INT);
 $filter_copyright = optional_param('filter_copyright', 'all', PARAM_TEXT);
@@ -57,13 +56,11 @@ echo html_writer::tag('noscript',
         get_string('javascriptdisabled', 'block_ucla_copyright_status'),
         array('id' => 'block-ucla-copyright-status-noscript'));
 
-
 // start output
 $PAGE->set_url($thisdir . 'report/course_copyright_detail.php', array('id'=>$courseid));
 echo html_writer::start_tag('div', array('id' => 'tool_uclacopyrightstatusreports_list_div'));
 echo html_writer::start_tag('form',
             array('id' => 'tool_uclacopyrightstatusreports_course_detail_form', 'action' => $PAGE->url->out(), 'method' => 'post'));
-
 
 // display copyright filter
 echo html_writer::start_tag('div',
@@ -77,7 +74,6 @@ $PAGE->requires->js_init_call('M.util.init_select_autosubmit',
         array('tool_uclacopyrightstatusreports_course_detail_form', 'tool_uclacopyrightstatusreports_course_detail_filter', ''));
 echo html_writer::end_tag('div');
 // end display copyright filter
-
 
 // display copyright status list
 $t = new html_table();
@@ -134,6 +130,5 @@ echo html_writer::end_tag('div');
 
 echo html_writer::end_tag('form');
 echo html_writer::end_tag('div');
-
 
 echo $OUTPUT->footer();

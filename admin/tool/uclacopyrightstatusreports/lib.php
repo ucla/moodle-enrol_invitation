@@ -13,7 +13,7 @@ require_once(dirname(__FILE__) . '/../../../config.php');
 require_once($CFG->libdir.'/formslib.php');
 require_once($CFG->dirroot . '/blocks/ucla_copyright_status/lib.php');
 require_once($CFG->dirroot. '/admin/tool/uclacourserequestor/lib.php');
-require_once($CFG->dirroot . '/local/ucla/registrar/registrar_query.base.php');
+require_once($CFG->dirroot . '/local/ucla/lib.php');
 
 
 /**
@@ -22,29 +22,14 @@ require_once($CFG->dirroot . '/local/ucla/registrar/registrar_query.base.php');
 
 function get_terms(){
     global $DB;
-	$term_list = array();
+    $term_list = array();
     $sql = 'SELECT DISTINCT term FROM {ucla_request_classes}';
     $result = $DB->get_records_sql($sql);
-	foreach ($result as $item){
-		$term_list[$item->term] = $item->term;
-	}
-	return $term_list;
-
-}
-
-/**
-* get classes for current term
-*/
-
-function get_copyright_list_by_class($term){
-    global $DB;
-    $sql = 'SELECT rc.*, bc.*
-    FROM {ucla_request_classes} rc
-    INNER JOIN {ucla_browseall_classinfo} bc ON bc.term = rc.term and bc.srs = rc.srs
-    WHERE rc.term = :term
-    ORDER BY bc.subjarea, bc.course, bc.section';
-    $params['term'] = $term;
-    return $DB->get_recordset_sql($sql,$params);
+    foreach ($result as $item){
+        $term_text = ucla_term_to_text($item->term);
+        $term_list[$item->term] = $term_text;
+    }
+    return $term_list;
 }
 
 /**
@@ -75,113 +60,77 @@ function get_division(){
     return $div_list;
 }
 
-
 /**
-* get class by subj area
+* get instructor
 **/
-function get_copyright_list_by_course_subj(&$param){
-    global $DB;
-    $course_subj_list = array();
-    $sql = 'SELECT rc.*, bc.*
-    FROM {ucla_request_classes} rc
-    INNER JOIN {ucla_browseall_classinfo} bc ON bc.term = rc.term and bc.srs = rc.srs';
-    if ($param['term']&&!$param['subj']){
-        $sql .=' WHERE rc.term = \''. $param['term'] . '\'';
-    }
-    else if ($param['subj']&&!$param['term']){
-        $sql .=' WHERE bc.subjarea = \''. $param['subj'] . '\'';
-    }
-    else{
-        $sql .= ' WHERE rc.term = \''. $param['term'] . '\' and bc.subjarea = \''. $param['subj'] . '\'';
-    }
-    $sql .= '   ORDER BY bc.subjarea, bc.course, bc.section';
-    $result = $DB->get_records_sql($sql);
-    foreach ($result as $row){
-        $course_subj_list['s'.$row->courseid] = $row;
-    }
-    return $course_subj_list;
-}
-
-/**
-* get class by division
-**/
-function get_copyright_list_by_division(&$param){
-    global $DB;
-	$course_list_div = array();
-    $sql = 'SELECT rc.*, bc.*, reg.division, reg.subj_area, di.fullname, subj.subj_area_full
-    FROM {ucla_request_classes} rc
-    INNER JOIN {ucla_browseall_classinfo} bc ON bc.term = rc.term and bc.srs = rc.srs
-	INNER JOIN {ucla_reg_classinfo} reg on reg.srs=bc.srs and reg.term=bc.term
-	INNER JOIN {ucla_reg_division} di on di.code=reg.division
-	INNER JOIN {ucla_reg_subjectarea} subj on subj.subjarea=reg.subj_area';
-    if ($param['term']&&!$param['subj']){
-        $sql .=' WHERE rc.term = \''. $param['term'] . '\'';
-    }
-    else if ($param['subj']&&!$param['term']){
-        $sql .=' WHERE bc.subjarea = \''. $param['subj'] . '\'';
-    }
-    else{
-        $sql .= ' WHERE rc.term = \''. $param['term'] . '\' and bc.subjarea = \''. $param['subj'] . '\'';
-    }
-    $sql .= '   ORDER BY bc.subjarea, bc.course, bc.section';
-    $result = $DB->get_records_sql($sql);
-	foreach ($result as $row){
-		$course_list_div[$row->division][$row->subj_area][]=$row;
-	}
-	return $course_list_div;
-}
-
-function get_classes_by_term($term){
-    global $DB;
-    return $DB->get_records('ucla_browseall_classinfo', 
-            array('term' => $term), '');
-}
-    /**
- * get instructor for current term
- */
-
-function get_browser_instructor_by_term($term){
-    global $DB;
-    return $DB->get_recordset('ucla_browseall_instructor', 
-            array('term' => $term), '');
-}
-
-function get_instructors_by_term($term){
-    global $DB;
-    $sql = 'SELECT rc.*, bi.*
-    FROM {ucla_request_classes} rc
-    INNER JOIN {ucla_browseall_instrinfo} bi ON bi.term = rc.term and bi.srs = rc.srs
-    WHERE rc.term = :term
-    ORDER BY bi.lastname, bi.firstname, rc.department, rc.course';
-    $params['term'] = $term;
-    return $DB->get_recordset_sql($sql,$params);
-}
-
-function get_instructors_list_by_term($term){
+function get_instructors_list_by_term($term=''){
     global $DB;
     $inst_list = array();
     $sql = 'select * from {ucla_browseall_instrinfo} group by uid';
     if ($term){
         $sql .= ' having term = \''.$term.'\'';
     }
-    $sql .= ' order by term, lastname, firstname'; 
+    $sql .= ' order by lastname, firstname'; 
     $result = $DB->get_records_sql($sql);
     foreach ($result as $inst){
         $inst_list['i'.$inst->uid] = $inst->lastname . ', ' . $inst->firstname;
     }
     return $inst_list;
 }
+/**
+* get class list (display list by course)
+*/
 
-function get_instructor_by_uid($uid){
+function get_copyright_list_by_class($term){
     global $DB;
-    return $DB->get_records('ucla_browseall_instrinfo', 
-    array('uid' => $uid), '');
+    $list = array();
+    $sql = 'SELECT rc.*, reg.*
+    FROM {ucla_request_classes} rc
+    INNER JOIN {ucla_reg_classinfo} reg ON reg.term = rc.term and reg.srs = rc.srs';
+    if($term){
+        $sql .=' WHERE rc.term = \''.$term.'\'';
+    }
+    $sql .= ' ORDER BY reg.subj_area, reg.coursenum, reg.sectnum';
+    $result = $DB->get_records_sql($sql);
+    foreach($result as $row){
+        $list[$row->term][]=$row;
+    }
+    return $list;
 }
 
+/** 
+* get all information of class list (display subject area, division and list by course)
+**/
+
+function get_all($listby){
+    global $DB;
+    $list = array();
+    $sql = 'SELECT rc.*, reg.*, di.fullname, subj.subj_area_full
+    FROM {ucla_request_classes} rc
+    INNER JOIN {ucla_reg_classinfo} reg on rc.srs=reg.srs and rc.term=reg.term
+    INNER JOIN {ucla_reg_division} di on di.code=reg.division
+    INNER JOIN {ucla_reg_subjectarea} subj on subj.subjarea=reg.subj_area
+    ORDER BY reg.term, reg.division, reg.subj_area, reg.coursenum, reg.sectnum';
+    $result = $DB->get_records_sql($sql);
+    foreach ($result as $row){
+        if ($listby == 'div'){
+            $list[$row->term][$row->division][$row->subj_area][] = $row;
+        }
+        else if ($listby == 'subj'){
+            $list[$row->term][$row->subj_area][] = $row;
+
+        }
+    }
+    return $list;
+}
+
+/**
+* get class list (display by instructor)
+**/
 
 function get_copyright_list_by_instructor(&$param){
     global $DB;
-    $inst_list = array();
+    $list = array();
     $sql = 'SELECT rc.*, bi.*
     FROM {ucla_request_classes} rc
     INNER JOIN {ucla_browseall_instrinfo} bi ON bi.term = rc.term and bi.srs = rc.srs';
@@ -191,33 +140,13 @@ function get_copyright_list_by_instructor(&$param){
     else if ($param['uid']&&!$param['term']){
         $sql .=' WHERE bi.uid = \''. $param['uid'] . '\'';
     }
-    else{
+    else if ($param['uid']&&$param['term']){
         $sql .= ' WHERE rc.term = \''. $param['term'] . '\' and bi.uid = \''. $param['uid'] . '\'';
     }
     $sql .= ' ORDER BY bi.lastname, bi.firstname, rc.department, rc.course';
     $result = $DB->get_records_sql($sql);
-    foreach ($result as $inst){
-        $inst_list['i'.$inst->uid] = $inst;
+    foreach ($result as $row){
+        $list[$row->term][$row->uid][] = $row;
     }
-    return $inst_list;
-}
-
-
-function get_all_copyright($term){
-    global $DB;
-    $query = "SELECT f.id, f.filename, f.author, f.license, f.timemodified, f.contenthash, cm.id as cmid, r.name as rname
-     FROM {files} f
-     INNER JOIN {context} c
-     ON c.id = f.contextid
-     INNER JOIN {course_modules} cm
-     ON cm.id = c.instanceid
-     INNER JOIN {resource} r
-     ON cm.instance = r.id
-     WHERE f.filename <> '.'
-     ORDER BY r.course";
-    return $DB->get_records_sql($sql);
-}
-
-function get_all_copyright_stat(){
-
+    return $list;
 }

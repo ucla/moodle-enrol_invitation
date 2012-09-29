@@ -1,9 +1,11 @@
 <?php
 
 /**
- * UCLA Site Indicator
- *
- * @package    uclasitindicator
+ * UCLA copyright status reports 
+ * 
+ * 
+ * @package     ucla
+ * @subpackage  uclacopyrightstatusreports
  */
 
 defined('MOODLE_INTERNAL') || die;
