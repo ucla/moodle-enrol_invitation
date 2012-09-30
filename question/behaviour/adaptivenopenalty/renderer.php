@@ -45,7 +45,4 @@ class qbehaviour_adaptivenopenalty_renderer extends qbehaviour_adaptive_renderer
     protected function disregarded_info() {
         return '';
     }
-    protected function disregarded_info() {
-        return '';
-    }
 }
