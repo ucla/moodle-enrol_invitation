@@ -2391,7 +2391,8 @@ class questionnaire {
             $groupid = -1;
         }
         $output = array();
-        $nbinfocols = 9; // change this if you want more info columns
+        // BEGIN UCLA MOD: CCLE-3072 - Properly align columns
+        //$nbinfocols = 9; // change this if you want more info columns
         $stringother = get_string('other', 'questionnaire');
         $columns = array(
                 get_string('response','questionnaire'),
@@ -2407,7 +2408,9 @@ class questionnaire {
                 // END UCLA MOD: CCLE-2596       
                 get_string('username')
             );
-
+        $nbinfocols = count($columns);
+        // END UCLA MOD: CCLE-3072
+        
         $types = array(
                 0,
                 0,
