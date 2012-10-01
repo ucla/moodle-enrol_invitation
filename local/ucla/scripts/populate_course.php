@@ -1,5 +1,4 @@
 <?php
-
 /*
  * CCLE-3532
  * 
@@ -10,7 +9,7 @@
  * 
  * Usage: php populate_course.php <courseid> <term>
  * 
- * Users that are enrolled are enrolled with a default role: student
+ * Users that are enrolled are enrolled with a default role: participant
  * 
  */
 
@@ -18,23 +17,8 @@ define('CLI_SCRIPT', true);
 
  /*
   * SET ROLE FOR ENROLLED USERS
-  * 
-  * Available options (full list in: mdl_role.shortname)
-  *     manager
-  *     manager_limited
-  *     editinginstructor
-  *     nonediting_instructor
-  *     supervising_instructor
-  *     ta_instructor
-  *     ta_admin
-  *     ta
-  *     sh_quiz_creator
-  *     student
-  *     project_lead
-  *     project_member
-  * 
   */
-$role = student;
+$role = 'participant';
 
 // Requires:
 require_once(dirname(__FILE__) . '/../../../config.php');
@@ -43,7 +27,7 @@ require_once($CFG->dirroot . '/local/ucla/lib.php');
 
 // Needs two arguments, courseid and term
 if ($argc != 3) {
-    exit ('Usage: xxx.php <courseid> <term>' . "\n");
+    exit ('Usage: populate_course.php <courseid> <term>' . "\n");
 }
 
 $courseid = $argv[1];
@@ -79,6 +63,9 @@ $enrol_plugin = enrol_get_plugin('self');
 
 // Get roleid from mdl_role.id, given $role
 $roleid = $DB->get_record('role', array('shortname' => $role), 'id');
+if (empty($roleid)) {
+    exit ('Unable to find role to enroll users.' . "\n");
+}
 $roleid = $roleid->id;
 
 // Find roleid's for roles with instructor priveledges
@@ -108,10 +95,8 @@ $coursecontext = context_course::instance($courseid);
 
 $a = $DB->get_recordset_sql($sql_findusers, $params);
 
+$users_added = 0;
 if ($a->valid()) {
-
-    $users_added = 0;
-
     foreach($a as $user_id) {
        // For each user, add to course using "self-enrollment" plugin
        $user_id = $user_id->userid;
