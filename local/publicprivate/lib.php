@@ -79,30 +79,91 @@ function handle_mod($mod) {
  * Cron for public/private to do some sanity checks:
  *  1) courses with public/private enabled should have the public/private 
  *     grouping as the default grouping
- *  2) group members for public/private grouping should only be in group once 
- *     (@todo)
- *  3) Make sure that enablegroupmembersonly is enabled if enablepublicprivate is
- *     enabled
+ *  2) group members for public/private grouping should only be in group once
+ *  3) Make sure that enablegroupmembersonly is enabled for course content
+ *     using the public/private goruping if enablepublicprivate is true
  */
-function local_publicprivate_cron() {
-    global $DB;
+function local_publicprivate_cron() {    
+    global $CFG, $DB;
+    require_once($CFG->libdir . '/publicprivate/course.class.php');    
     
-    // courses with public/private enabled should have the public/private 
-    // grouping as the default grouping
+    // 1) courses with public/private enabled should have the public/private 
+    //    grouping as the default grouping
+    mtrace('Looking for courses with invalid publicprivate groupings set');
     
     // first find all courses that have enablepublicprivate=1, but 
-    // have defaultgroupingid=0 (should be publicprivate grouping
+    // have defaultgroupingid=0 (should be publicprivate grouping)
+    
     $courses = $DB->get_recordset('course', array('enablepublicprivate' => 1, 
             'defaultgroupingid' => 0));
     if ($courses->valid()) {
         foreach ($courses as $course) {
+            if (empty($course->groupingpublicprivate)) {
+                // public/private is enabled, but there is no public/private 
+                // grouping?! disable pp and then reenable
+                $ppcourse = new PublicPrivate_Course($course);
+                $ppcourse->activate();
+                $course->groupingpublicprivate = $ppcourse->get_grouping();
+                mtrace(sprintf('  Activated public/private for course %d, groupingpublicprivate now %d', 
+                        $course->id, $course->groupingpublicprivate));                
+            }
+            
             $course->defaultgroupingid = $course->groupingpublicprivate;
             $result = $DB->update_record('course', $course, true);
             if ($result) {
-                mtrace(sprintf('  Setting defaultgroupingid to be ' . 
-                        '%d for course %d', 
+                mtrace(sprintf('  Set defaultgroupingid to be %d for course %d', 
                         $course->groupingpublicprivate, $course->id));
             }
         }
     }
+    
+    // 2) group members for public/private grouping should only be in group once
+    mtrace('Looking for duplicate groups_members entries');
+    
+    // just find any duplicate entries in groups_members table, since they 
+    // shouldn't be there anyways
+    $sql = "SELECT  duplicate.*
+            FROM    {groups_members} AS original,
+                    {groups_members} AS duplicate
+            WHERE   original.groupid=duplicate.groupid AND
+                    original.userid=duplicate.userid AND
+                    original.id!=duplicate.id";
+    $results = $DB->get_records_sql($sql);    
+    if (!empty($results)) {
+        $valid_group_members = array(); // keep track of which group members to keep       
+        foreach ($results as $result) {
+            $groupid    = $result->groupid;
+            $userid     = $result->userid;
+
+            if (!isset($valid_group_members[$groupid][$userid])) {
+                $valid_group_members[$groupid][$userid] = true;
+                continue;
+            }
+
+            // found duplicate, so delete it
+            $DB->delete_records('groups_members', array('id' => $result->id));
+            mtrace(sprintf('  Deleted duplicate entry in groups_members for ' . 
+                    'groupid %d and userid %d', $groupid, $userid));        
+        }
+    }
+    
+    // 3) Make sure that enablegroupmembersonly is enabled for course content 
+    //    using the public/private goruping if enablepublicprivate is true 
+    mtrace('Looking for private course content with enablepublicprivate=0');    
+    
+    $sql = "SELECT  cm.id                
+            FROM    {course} AS c,
+                    {course_modules} AS cm
+            WHERE   c.id=cm.course AND
+                    c.groupingpublicprivate=cm.groupingid AND
+                    cm.groupmembersonly=0";
+    $results = $DB->get_records_sql($sql);
+    if (!empty($results)) {
+        foreach ($results as $result) {
+            $DB->set_field('course_modules', 'groupmembersonly', 1, 
+                    array('id' => $result->id));
+            mtrace(sprintf('  Fixed groupmembersonly for course_module %d', 
+                    $result->id));
+        }    
+    }    
 }
