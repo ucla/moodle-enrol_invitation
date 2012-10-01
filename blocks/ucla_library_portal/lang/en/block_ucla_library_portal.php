@@ -11,4 +11,4 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['pluginname'] = 'UCLA library research portal';
-$string['portal_name'] = 'Library research portal';
+$string['portal_name'] = 'Library Research Portal';
