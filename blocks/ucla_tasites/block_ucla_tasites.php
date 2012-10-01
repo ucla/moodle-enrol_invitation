@@ -352,8 +352,7 @@ class block_ucla_tasites extends block_base {
 
         try {
             $accessible = self::check_access($courseid) 
-                && ($tasites = self::get_tasite_users($courseid))
-                && !empty($tasites)
+                && self::get_tasite_users($courseid)
                 && !self::is_tasite($courseid);
         } catch (moodle_exception $e) {
             // aka do nothing
