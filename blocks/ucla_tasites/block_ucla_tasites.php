@@ -348,13 +348,19 @@ class block_ucla_tasites extends block_base {
         $courseid = $course->id;
         $cp_module = false;
 
+        $accessible = false;
+
         try {
-            $accessible = self::check_access($courseid);
+            $accessible = self::check_access($courseid) 
+                && ($tasites = self::get_tasite_users($courseid))
+                && !empty($tasites)
+                && !self::is_tasite($courseid);
         } catch (moodle_exception $e) {
+            // aka do nothing
             $accessible = false;
         }
 
-        if (!self::is_tasite($courseid) && $accessible) {
+        if ($accessible) {
             $cp_module = array(
                 array(
                     'item_name' => 'ucla_make_tasites',
