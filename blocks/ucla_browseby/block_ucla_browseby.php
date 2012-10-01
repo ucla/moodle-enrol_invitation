@@ -129,7 +129,14 @@ class block_ucla_browseby extends block_navigation {
     }
 
     function cron() {
-        return $this->run_sync();        
+        $result = false;
+        try {
+            $result = $this->run_sync();
+        } catch(Exception $e) {
+            // mostly likely couldn't connect to registrar
+            mtrace($e->getMessage());
+        }
+        return $result;        
     }
 
     function sync($terms, $subjareas=null) {

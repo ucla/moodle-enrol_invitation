@@ -24,5 +24,3 @@ class PublicPrivate_Exception extends Exception {
             return $this->previous;
         }
 }
-
-?>
