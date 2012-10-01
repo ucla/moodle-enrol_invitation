@@ -175,8 +175,12 @@ class admin_setting_ucla_help_support_contact extends admin_setting {
      * @param array $form array of admin form fields and values
      * @return false|array of support_contacts
      */
-    protected function process_form_data(array $form) {
+    protected function process_form_data($form) {
         $NUM_FORM_ELEMENTS = 2;
+        
+        if (!is_array($form)) {
+            return false;
+        }
         
         $count = count($form); // number of form field values
         if ($count % $NUM_FORM_ELEMENTS) {
