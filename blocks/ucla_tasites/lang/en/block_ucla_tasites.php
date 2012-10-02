@@ -8,7 +8,7 @@ $string['tasitefor'] = '{$a->fullname} TA site: {$a->course_fullname}';
 
 // Control Panel
 $string['ucla_make_tasites'] = 'TA Sites';
-$string['ucla_make_tasites_post'] = 'Create, view or delete TA sites.';
+$string['ucla_make_tasites_post'] = 'Create new or view existing TA sites.';
 
 // Building
 $string['delete_tasites'] = 'Delete existing TA sites';

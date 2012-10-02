@@ -310,21 +310,23 @@ class block_ucla_tasites extends block_base {
     static function create_tasite($tainfo) {
         $course = clone($tainfo->parent_course);
 
-        // TODO Move into function, also handle same last names!
-        $course->shortname = $tainfo->parent_course->shortname 
-            . '-' . strtoupper($tainfo->lastname);
+        $course->shortname = self::new_name($tainfo);
         
         $fullnamedata = new object();
         $fullnamedata->course_fullname = $course->fullname;
+        // This is the fullname of the TA, sorry
         $fullnamedata->fullname = $tainfo->fullname;
+
         $course->fullname = get_string('tasitefor', 'block_ucla_tasites',
             $fullnamedata);
 
         // Hacks for public private
         unset($course->grouppublicprivate);
         unset($course->groupingpublicprivate);
-
+    
+        // @throws
         $newcourse = create_course($course);
+
         $course->id = $newcourse->id;
 
         // TODO move into function?
@@ -339,6 +341,37 @@ class block_ucla_tasites extends block_base {
         $meta->course_updated(false, $course, null);
 
         return $newcourse;
+    }
+
+    /**
+     *  Generates a shortname for the TA-site.
+     **/
+    static function new_name($tainfo, $usefirstname=false, $cascade=0) {
+        global $DB;
+
+        // would use calculate_course_names but that adds "Copy" to shortname
+        $coursename = $tainfo->parent_course->shortname . '-' 
+            . $tainfo->lastname;
+
+        if ($usefirstname) {
+            $coursename .= '-' . $tainfo->firstname;
+        }
+
+        if ($cascade) {
+            // This will be epically confusing
+            $coursename .= '-' . $cascade;
+        }
+
+        if ($DB->get_record('course', array('shortname' => $coursename), 
+                IGNORE_MULTIPLE)) {
+            if ($usefirstname) {
+                $cascade++;
+            }
+
+            return self::new_name($tainfo, true, $cascade);
+        }
+
+        return strtoupper($coursename);
     }
 
     /**

@@ -54,6 +54,7 @@ if (!empty($tas_ra)) {
     // from {enrol} indexed-by customint4
     $existing_tasites = block_ucla_tasites::get_tasites($courseid);
 
+    //  array of pseudo class
     $tasiteinfo = array();
     foreach ($users as $userid => $user) {
         if (!empty($existing_tasites[$userid])) {
@@ -69,6 +70,7 @@ if (!empty($tas_ra)) {
             $user->course_shortname = $ta_site->shortname;
         }
 
+        // Some more shortcuts 
         $user->fullname = fullname($user);
         $user->parent_course = $course;
 
