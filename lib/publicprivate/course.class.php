@@ -333,7 +333,11 @@ class PublicPrivate_Course {
         $this->_course->defaultgroupingid = 0;
 
         try {
-            update_course($this->_course);
+            //update_course($this->_course);
+            // used to call update_course(), but may lead to recusion problems
+            // when we start using the course_updated/course_added events, so
+            // just update database directly
+            $DB->update_record('course', $this->_course);            
         } catch(DML_Exception $e) {
             throw new PublicPrivate_Course_Exception('Failed to update course settings to disable public/private.', 301, $e);
         }
