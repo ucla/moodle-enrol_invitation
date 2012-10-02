@@ -138,8 +138,8 @@ only screen and (device-width: 768px) and (orientation: portrait) {
     /* MAIN PAGE COLUMNS */
     
     /* Create page breaks so that blocks fall inline */
-    .clear-responsive-right,
-    .clear-responsive-left {
+    br.clear-responsive-right,
+    br.clear-responsive-left {
         display: block;
         clear: both;
     }
