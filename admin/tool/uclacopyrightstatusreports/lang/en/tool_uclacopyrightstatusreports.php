@@ -44,12 +44,12 @@ $string['submit_button'] = 'submit';
 
 // license list
 $string['iown'] = 'I own';
-$string['ucown']='The UC Regents own';
-$string['lib']='Licensed by the UCLA Library';
-$string['public1'] = 'Public domain';
-$string['cc1'] = 'Creative Commons license';
-$string['obtained']='Written permission';
-$string['fairuse']= 'Fair use';
+$string['ucown']='Regents';
+$string['lib']='Library';
+$string['public1'] = 'PD';
+$string['cc1'] = 'CC';
+$string['obtained']='PERM';
+$string['fairuse']= 'Fair';
 $string['tbd'] = 'TBD';
 $string['iown_help'] = '<a title="'.get_string('iown', 'license').'"><img class="iconhelp" alt="Help with Copyright Status" src="'. $CFG->wwwroot.'/theme/image.php?theme=uclashared&image=help"></a>';
 $string['ucown_help'] = '<a title="'.get_string('ucown', 'license').'"><img class="iconhelp" alt="Help with Copyright Status" src="'. $CFG->wwwroot.'/theme/image.php?theme=uclashared&image=help"></a>';

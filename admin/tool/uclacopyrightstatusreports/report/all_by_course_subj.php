@@ -120,8 +120,9 @@ if (empty($list)) {
                     $filestat = calculate_copyright_status_statistics($filelist);
                 }
                 $row = array();
-                $row[] = html_writer::link(new moodle_url($thisdir . 'report/course_copyright_detail.php', array('id' => $item->courseid)), 
-                        html_writer::tag('strong', $item->subj_area).' '.$item->coursenum.' (section '.$item->sectnum.')', array('target' => '_blank'));
+                $row[] = html_writer::link(new moodle_url('/blocks/ucla_copyright_status/view.php', 
+						 array('courseid' => $item->courseid, 'section' => $item->sectnum)), 
+                         html_writer::tag('strong', $item->subj_area).' '.$item->coursenum.' (section '.$item->sectnum.')', array('target' => '_blank'));
                 if (!empty($filestat)){
                     $row[] = $filestat['total']; 
                     $row[] = isset($filestat['tbd'])?$filestat['tbd']:0;

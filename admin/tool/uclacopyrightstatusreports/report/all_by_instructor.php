@@ -93,8 +93,9 @@ if (empty($list)) {
                 }
                 $row = array();
                 $row[] = $item->lastname.', '.$item->firstname;
-                $row[] = html_writer::link(new moodle_url($thisdir . 'report/course_copyright_detail.php', array('id' => $item->courseid)), 
-                        $item->subjarea. ' '. $item->course, array('target' => '_blank'));
+                $row[] = html_writer::link(new moodle_url('/blocks/ucla_copyright_status/view.php', 
+                         array('courseid' => $item->courseid, 'section' => $item->sectnum)),  
+                         $item->subjarea. ' '. $item->course, array('target' => '_blank'));
                 if (!empty($filestat)){
                     $total = $filestat['total'];
                     $tbd = isset($filestat['tbd'])?$filestat['tbd']:0;

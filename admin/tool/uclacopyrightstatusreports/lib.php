@@ -131,8 +131,9 @@ function get_all($listby){
 function get_copyright_list_by_instructor(&$param){
     global $DB;
     $list = array();
-    $sql = 'SELECT rc.*, bi.*
+    $sql = 'SELECT reg.*, bi.*, rc.courseid, rc.department, rc.course
     FROM {ucla_request_classes} rc
+	INNER JOIN {ucla_reg_classinfo} reg ON reg.srs = rc.srs and reg.term=rc.term
     INNER JOIN {ucla_browseall_instrinfo} bi ON bi.term = rc.term and bi.srs = rc.srs';
     if ($param['term']&&!$param['uid']){
         $sql .=' WHERE rc.term = \''. $param['term'] . '\'';
