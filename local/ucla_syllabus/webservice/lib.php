@@ -80,46 +80,6 @@ class syllabus_ws_item {
         return false;
     }
 
-    private function _post_json($payload) {
-        $ch = curl_init();
-        
-        $sig = '';
-        $payload_json = json_encode($payload);
-        
-        // Encode token if needed
-        if(isset($this->_data->token)) {
-            $sig = $this->_hash_payload($payload_json);
-        }
-
-        $data = array('payload' => base64_encode($payload_json) . '.' . $sig);
-        
-        // Attach binary file
-        if($this->_transfer() && isset($payload['file'])) {
-            $data['file'] = '@' . $payload['file'];
-            $data['file_name'] = basename($payload['file']);
-            curl_setopt($ch, CURLOPT_INFILESIZE, filesize($payload['file']));
-        }
-
-        // Setup curl POST
-        curl_setopt($ch, CURLOPT_URL, $this->_data->url);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        
-        // Execute
-        $result_json = curl_exec($ch);
-        
-        curl_close($ch);
-        
-        $result = json_decode($result_json);
-        
-        if(isset($result->status) && $result->status === syllabus_ws_manager::STATUS_OK) {
-            return true;
-        }
-        
-        return false;
-    }
-    
     private function _post($payload) {
         $ch = curl_init();
 
@@ -133,22 +93,6 @@ class syllabus_ws_item {
         $data = $payload;
         $data['algorithm'] = 'sha256';
         $data['token'] = $sig;
-        
-        // Attach binary file
-        if($this->_transfer()) {
-            $file = $payload['stored_file'];
-            
-            // UGLY way of getting the file path
-            $cr = new stdClass();
-            $file->add_to_curl_request($cr, 'file');
-            $data['file'] = $cr->_tmp_file_post_params['file'];
-            
-            // Get filename
-            $data['file_name'] = $file->get_filename();
-        }
-        
-        // We dont want to send the stored_file
-        unset($data['stored_file']);
         
         // Setup curl POST
         curl_setopt($ch, CURLOPT_URL, $this->_data->url);
@@ -173,10 +117,6 @@ class syllabus_ws_item {
         $sig = hash_hmac('sha256', $payload, $this->_data->token);
         return base64_encode($sig);
     }
-    
-    private function _transfer() {
-        return intval($this->_data->action) === syllabus_ws_manager::ACTION_TRANSFER;
-    }
 }
 
 class syllabus_ws_manager {
@@ -200,10 +140,11 @@ class syllabus_ws_manager {
      * @param type $criteria
      * @param type $payload 
      */
-    static public function handle($criteria, $payload) {
+    static public function handle($event, $criteria, $payload) {
         global $DB;
         
-        $records = $DB->get_records('ucla_syllabus_webservice', array('enabled' => 1));
+        $records = $DB->get_records('ucla_syllabus_webservice', 
+                array('enabled' => 1, 'action' => $event));
 
         // Process actions
         foreach($records as $rec) {
@@ -212,18 +153,10 @@ class syllabus_ws_manager {
         }
     }
     
-    /**
-     * Given a syllabus object, setup the criteria for which 
-     * subscribers to the webservice will be notified and set up
-     * the payload that they are expecting.
-     * 
-     * @param object $syllabus
-     * @return array of $criteria and $payload 
-     */
-    static function setup($syllabus) {
-        global $DB, $CFG;
+    static function setup($courseid) {
+        global $DB;
         
-        $termsrs = ucla_map_courseid_to_termsrses($syllabus->courseid);
+        $termsrs = ucla_map_courseid_to_termsrses($courseid);
         $course = array_shift($termsrs);
         
         $srs = $course->srs;
@@ -238,13 +171,48 @@ class syllabus_ws_manager {
             'srs' => $srs, 
             'subjectarea' => $subjarea->id,
         );
-
+        
         $payload = array(
             'srs' => $srs,
             'term' => $term,
-            'url' => $CFG->wwwroot . '/course/view.php?id=' . $syllabus->courseid,
-            'stored_file' => $syllabus->stored_file,
         );
+        
+        return array($criteria, $payload);
+    }
+    
+    /**
+     * Given a syllabus object, setup the criteria for which 
+     * subscribers to the webservice will be notified and set up
+     * the payload that they are expecting.
+     * 
+     * @param object $syllabus
+     * @return array of $criteria and $payload 
+     */
+    static function setup_transfer($syllabus) {
+        
+        list($criteria, $payload) = self::setup($syllabus->courseid);
+        
+        $file = $syllabus->stored_file;
+            
+        // UGLY way of getting the file path
+        $cr = new stdClass();
+        $file->add_to_curl_request($cr, 'file');
+        $path = $cr->_tmp_file_post_params['file'];
+
+        $payload['file'] = $path;
+        $payload['file_name'] = $file->get_filename();
+        
+        return array($criteria, $payload);
+    }
+    
+    static function setup_alert($course) {
+        global $CFG;
+        
+        list($criteria, $payload) = self::setup($course->id);
+        
+        // Ignore subjectarea
+        $criteria['subjectarea'] = -1;
+        $payload['url'] = $CFG->wwwroot . '/course/view.php?id=' . $syllabus->courseid;
         
         return array($criteria, $payload);
     }

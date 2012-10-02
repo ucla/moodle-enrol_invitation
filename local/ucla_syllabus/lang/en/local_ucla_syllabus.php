@@ -91,8 +91,8 @@ $string['token'] = 'Token';
 $string['token_help'] = 'Use a token to verify the authenticity of the 
     messages you receive on the POST url.';
 $string['select_action'] = 'Service action';
-$string['action_alert'] = 'Alert';
-$string['action_transfer'] = 'Transfer';
+$string['action_alert'] = 'Course alert';
+$string['action_transfer'] = 'Syllabus transfer';
 
 $string['heading'] = 'UCLA syllabus web service';
 $string['status'] = 'Status';
