@@ -140,7 +140,9 @@ function useredit_shared_definition(&$mform, $editoroptions = null, $filemanager
         $mform->addElement('text', 'lastname',  get_string('lastname'),  'maxlength="100" size="30"');
     }
 
-    $mform->addRule('firstname', $strrequired, 'required', null, 'client');
+    // START UCLA MOD: CCLE-1107 - Make "First Name" not a required field within moodle
+    //$mform->addRule('firstname', $strrequired, 'required', null, 'client');
+    // END UCLA MOD: CCLE-1107
     $mform->setType('firstname', PARAM_NOTAGS);
 
     $mform->addRule('lastname', $strrequired, 'required', null, 'client');

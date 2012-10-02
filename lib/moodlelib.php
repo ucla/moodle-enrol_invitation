@@ -3359,7 +3359,10 @@ function user_not_fully_set_up($user) {
     if (isguestuser($user)) {
         return false;
     }
-    return (empty($user->firstname) or empty($user->lastname) or empty($user->email) or over_bounce_threshold($user));
+    // START UCLA MOD: CCLE-1107 - Make "First Name" not a required field within moodle
+    //return (empty($user->firstname) or empty($user->lastname) or empty($user->email) or over_bounce_threshold($user));
+    return (empty($user->lastname) or empty($user->email) or over_bounce_threshold($user));
+    // END UCLA MOD: CCLE-1107
 }
 
 /**
