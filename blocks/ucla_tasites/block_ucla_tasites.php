@@ -362,8 +362,7 @@ class block_ucla_tasites extends block_base {
             $coursename .= '-' . $cascade;
         }
 
-        if ($DB->get_record('course', array('shortname' => $coursename), 
-                IGNORE_MULTIPLE)) {
+        if ($DB->record_exists('course', array('shortname' => $coursename))) {
             if ($usefirstname) {
                 $cascade++;
             }
