@@ -1,6 +1,6 @@
 <?php
 
-require_once(dirname(dirname(dirname(dirname(__FILE__)))).'/config.php');
+require_once($CFG->dirroot . '/local/ucla/lib.php');
 
 
 class syllabus_ws_item {
@@ -122,11 +122,11 @@ class syllabus_ws_item {
     
     private function _post($payload) {
         $ch = curl_init();
-        
+
         $sig = '';
         
         // Encode token if needed
-        if(isset($this->_data->token)) {
+        if(!empty($this->_data->token)) {
             $sig = $this->_hash_payload(base64_encode($this->_data->token));
         }
 
@@ -135,17 +135,26 @@ class syllabus_ws_item {
         $data['token'] = $sig;
         
         // Attach binary file
-        if($this->_transfer() && isset($payload['file'])) {
-            $data['file'] = '@' . $payload['file'];
-            $data['file_name'] = basename($payload['file']);
-            curl_setopt($ch, CURLOPT_INFILESIZE, filesize($payload['file']));
+        if($this->_transfer()) {
+            $file = $payload['stored_file'];
+            
+            // UGLY way of getting the file path
+            $cr = new stdClass();
+            $file->add_to_curl_request($cr, 'file');
+            $data['file'] = $cr->_tmp_file_post_params['file'];
+            
+            // Get filename
+            $data['file_name'] = $file->get_filename();
         }
+        
+        // We dont want to send the stored_file
+        unset($data['stored_file']);
         
         // Setup curl POST
         curl_setopt($ch, CURLOPT_URL, $this->_data->url);
         curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         
         // Execute
         $result = curl_exec($ch);
@@ -201,6 +210,43 @@ class syllabus_ws_manager {
             $notifications = new syllabus_ws_item($rec, $criteria);
             $notifications->notify($payload);
         }
+    }
+    
+    /**
+     * Given a syllabus object, setup the criteria for which 
+     * subscribers to the webservice will be notified and set up
+     * the payload that they are expecting.
+     * 
+     * @param object $syllabus
+     * @return array of $criteria and $payload 
+     */
+    static function setup($syllabus) {
+        global $DB, $CFG;
+        
+        $termsrs = ucla_map_courseid_to_termsrses($syllabus->courseid);
+        $course = array_shift($termsrs);
+        
+        $srs = $course->srs;
+        $term = $course->term;
+        
+        // @todo: put this in a single SQL
+        $classinfo = ucla_get_reg_classinfo($term, $srs);
+        $subjarea = $DB->get_record('ucla_reg_subjectarea', 
+                array('subjarea' => $classinfo->subj_area));
+                
+        $criteria = array(
+            'srs' => $srs, 
+            'subjectarea' => $subjarea->id,
+        );
+
+        $payload = array(
+            'srs' => $srs,
+            'term' => $term,
+            'url' => $CFG->wwwroot . '/course/view.php?id=' . $syllabus->courseid,
+            'stored_file' => $syllabus->stored_file,
+        );
+        
+        return array($criteria, $payload);
     }
     
     /**
