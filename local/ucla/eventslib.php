@@ -23,6 +23,39 @@ function check_mod_parent_visiblity($mod) {
     rebuild_course_cache($mod->courseid, true);
 }
 
+/**
+ * Deletes a given user's repo keys or all users whose lastaccess is passed a 
+ * given time interval.
+ * 
+ * @param object $param     If called with parameter, it is most likely because
+ *                          it was called via the events api. Should contain
+ *                          a variable called "userid".
+ */
+function delete_repo_keys($param = null) {
+    global $DB;
+    $REPO_TIMEOUT_INTERVAL = 300;   // 5 minutes
+    $repo_keys = array('dropbox__access_key', 'dropbox__access_secret', 
+        'dropbox__request_secret', 'boxnet__auth_token');
+    if (isset($param) && isset($param->userid)) {
+        $param = $param->userid;
+    } else if (isset($param)) {
+        debugging('$param passed without userid set');
+        return false;   // exit out early if called in appropiately
+    }
+    
+    list($repo_where, $repo_params) = $DB->get_in_or_equal($repo_keys, SQL_PARAMS_NAMED, 'repo_key');
+    if (!is_null($param)) {
+        // delete repo keys for user
+        $repo_params['userid'] = $param;        
+        $DB->delete_records_select('user_preferences', "name $repo_where AND " . 
+                "userid=:userid", $repo_params);
+    } else {
+        // delete all repo keys 
+    }
+    
+    return true;
+}
+
 function ucla_sync_built_courses($edata) {
     require_once($CFG->dirroot . '/blocks/ucla_group_manager/lib.php');
     
