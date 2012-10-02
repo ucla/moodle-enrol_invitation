@@ -16,4 +16,9 @@ $handlers = array(
         'handlerfunction' => 'local_ucla_handle_mod',
         'schedule'        => 'instant'
     ),
+    'assessable_file_uploaded' => array(
+        'handlerfile'     => '/local/ucla/eventslib.php',
+        'handlerfunction' => 'delete_repo_keys',
+        'schedule'        => 'instant'
+    ),
 );
