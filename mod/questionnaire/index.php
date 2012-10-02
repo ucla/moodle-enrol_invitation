@@ -77,7 +77,10 @@
         $questionnaire = $questionnaires[$questionnaireid];
         $realm = $DB->get_field('questionnaire_survey', 'realm', array('id' => $questionnaire->sid));
         // template surveys should NOT be displayed as an activity to students
-        if (!($realm == 'template' && !has_capability('mod/questionnaire:manage',get_context_instance(CONTEXT_MODULE,$questionnaire->coursemodule)))) {
+        // START UCLA MOD: CCLE-3563 - Cannot access list of questionnaires if there is a template questionnaire.
+        //if (!($realm == 'template' && !has_capability('mod/questionnaire:manage',get_context_instance(CONTEXT_MODULE,$questionnaire->coursemodule)))) {
+        if (!($realm == 'template' && !has_capability('mod/questionnaire:manage',get_context_instance(CONTEXT_MODULE,$cm->id)))) {
+        // END UCLA MOD: CCLE-3563
             //Show normal if the mod is visible
             $link = "<a href=\"view.php?id=$cm->id\">$questionnaire->name</a>";
             $intro = format_module_intro('questionnaire', $questionnaire, $cm->id);
