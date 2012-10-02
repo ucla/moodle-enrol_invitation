@@ -50,10 +50,27 @@ function delete_repo_keys($param = null) {
         $DB->delete_records_select('user_preferences', "name $repo_where AND " . 
                 "userid=:userid", $repo_params);
     } else {
-        // delete all repo keys 
+        // delete all repo keys
+        $where = "userid IN (
+                    SELECT  id
+                    FROM    {user}
+                    WHERE   lastaccess<=UNIX_TIMESTAMP()-:timelimit
+                )";
+        $DB->delete_records_select('user_preferences', $where, 
+                array('timelimit' => $REPO_TIMEOUT_INTERVAL));
     }
     
     return true;
+}
+
+/**
+ * Created because cannot declare more than once function handler per event.
+ * 
+ * @param object $eventdata
+ */
+function local_ucla_handle_mod($eventdata) {
+    check_mod_parent_visiblity($eventdata);
+    delete_repo_keys($eventdata);
 }
 
 function ucla_sync_built_courses($edata) {
