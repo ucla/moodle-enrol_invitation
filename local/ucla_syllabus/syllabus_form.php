@@ -54,8 +54,7 @@ class syllabus_form extends moodleform {
             if ($this->type == UCLA_SYLLABUS_TYPE_PUBLIC) {
                 $this->display_public_syllabus($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC]);                
             } else if ($this->type == UCLA_SYLLABUS_TYPE_PRIVATE) {
-                // @todo later
-                // $this->display_private_syllabus($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE]);
+                $this->display_private_syllabus($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE]);
             }
             
             $mform->addElement('hidden', 'action', $this->action);
@@ -64,8 +63,7 @@ class syllabus_form extends moodleform {
         } else {
             // if viewing, then display both public/private syllabus forums
             $this->display_public_syllabus($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC]);
-            // @todo later
-            // $this->display_private_syllabus($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE]);
+            $this->display_private_syllabus($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE]);
         }                
     }
     
@@ -91,21 +89,89 @@ class syllabus_form extends moodleform {
             $err['access_types'] = get_string('access_invalid', 'local_ucla_syllabus');
         }
         
-//        // check if another public syllabus was uploaded  
-//        if (ucla_syllabus_manager::has_public_syllabus($data['id'])) {            
-//            $err['public_syllabus_file'] = 
-//                    get_string('invalid_public_syllabus', 'local_ucla_syllabus');
-//        }
+        // see if working with private syllabus file
+        if ($this->type == UCLA_SYLLABUS_TYPE_PRIVATE) {
+            // make sure that access_type is private
+            $data['access_types']['access_type'] = UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE;
+        }
+        
+        // make sure file was uploaded
+        $draftitemid = file_get_submitted_draft_itemid('syllabus_file');  
+        if (empty($draftitemid)) {
+            $err['syllabus_file'] = get_string('err_file_not_uploaded', 'local_ucla_syllabus');
+        }
         
         return $err;
     }        
     
     // PRIVATE FUNCTIONS
+
+    /**
+     * Handles display of the private syllabus.
+     * 
+     *  - If no private syllabus is uploaded, then display link to upload
+     *  - If editing private syllabus, then display form and set defaults 
+     *  - If private syllabus is uploaded, then don't display form, just 
+     *    filename and ability to edit or delete
+     * 
+     * @param ucla_private_syllabus $existing_syllabus
+     */
+    private function display_private_syllabus($existing_syllabus=null) {
+        $mform = $this->_form;        
+        
+        $mform->addElement('header', 'header_private_syllabus', 
+                get_string('private_syllabus', 'local_ucla_syllabus'));
+        $mform->addElement('html', html_writer::tag('div', 
+                get_string('private_syllabus_help', 'local_ucla_syllabus'),
+                array('class' => 'syllabus_help')));        
+        
+        // show upload form if user is editing
+        if ($this->action == UCLA_SYLLABUS_ACTION_EDIT || 
+                $this->action == UCLA_SYLLABUS_ACTION_ADD) {
+            $this->display_private_syllabus_form($existing_syllabus);
+        } else {
+            // display edit links for syllabus
+            if (!empty($existing_syllabus)) {
+                $display_syllabus = html_writer::tag('span', sprintf('%s (%s)', 
+                        $existing_syllabus->display_name, 
+                        $existing_syllabus->stored_file->get_filename()), 
+                        array('class' => 'displayname_filename'));         
+                
+                $edit_link = html_writer::link(
+                        new moodle_url('/local/ucla_syllabus/index.php', 
+                            array('id' => $this->courseid,
+                                  'action' => UCLA_SYLLABUS_ACTION_EDIT,
+                                  'type' => UCLA_SYLLABUS_TYPE_PRIVATE)),
+                        get_string('edit'));
+                $del_link = html_writer::link(
+                        new moodle_url('/local/ucla_syllabus/index.php', 
+                            array('id' => $this->courseid,
+                                  'action' => UCLA_SYLLABUS_ACTION_DELETE,
+                                  'type' => UCLA_SYLLABUS_TYPE_PRIVATE)),
+                        get_string('delete'));
+                
+                $edit_links = html_writer::tag('span', $edit_link . $del_link, array('class' => 'editing_links'));
+                $mform->addElement('html', $display_syllabus . $edit_links);
+            } else {
+                // no syllabus added, so give a "add syllabus now" link
+                $text = html_writer::tag('div', get_string('no_syllabus', 
+                        'local_ucla_syllabus'), array('class' => 'no_syllabus'));
+                $mform->addElement('html', '' . $text);     
+                $url = new moodle_url('/local/ucla_syllabus/index.php', 
+                            array('id' => $this->courseid,
+                                  'action' => UCLA_SYLLABUS_ACTION_ADD,
+                                  'type' => UCLA_SYLLABUS_TYPE_PRIVATE));
+                $text = get_string('private_syllabus_add', 'local_ucla_syllabus');
+                $link = html_writer::link($url, $text);
+                $mform->addElement('html', $link);                
+            }
+        }
+    }    
     
     /**
      * Handles display of the public syllabus.
      * 
-     *  - If no public syllabus is uploaded, then display form
+     *  - If no public syllabus is uploaded, then display link to upload
      *  - If editing public syllabus, then display form and set defaults 
      *  - If public syllabus is uploaded, then don't display form, just filename
      *    and ability to edit or delete
@@ -163,19 +229,68 @@ class syllabus_form extends moodleform {
             }
         }
     }
+
+    /**
+     * Displays form fields related to private syllabus.
+     */
+    private function display_private_syllabus_form($existing_syllabus) {
+        $mform = $this->_form;        
+        
+        // single file upload (pdf only)
+        $mform->addElement('filemanager', 'syllabus_file', 
+                get_string('upload_file', 'local_ucla_syllabus'), null, 
+                $this->ucla_syllabus_manager->get_filemanager_config());
+        $mform->addRule('syllabus_file', 
+                get_string('err_file_not_uploaded', 'local_ucla_syllabus'), 
+                'required');
+
+        // access type
+        $mform->addElement('hidden', 'access_types[access_type]', UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE);
+        
+        // display name
+        $mform->addElement('text', 'display_name', get_string('display_name', 'local_ucla_syllabus'));
+        $mform->addRule('display_name', 
+                get_string('display_name_none_entered', 'local_ucla_syllabus'), 
+                'required');          
+        
+        // set defaults or use existing syllabus
+        $defaults = array();
+        if (empty($existing_syllabus)) {
+            $defaults['display_name'] = get_string('display_name_default', 'local_ucla_syllabus');
+            $mform->setDefaults($defaults);
+        } else {            
+            // load existing files
+            $draftitemid = file_get_submitted_draft_itemid('syllabus_file');   
+            file_prepare_draft_area($draftitemid, 
+                    context_course::instance($this->courseid)->id, 
+                    'local_ucla_syllabus', 'syllabus', $existing_syllabus->id, 
+                    $this->ucla_syllabus_manager->get_filemanager_config());        
+
+            // set existing syllabus values
+            $data['display_name'] = $existing_syllabus->display_name;
+            $data['syllabus_file'] = $draftitemid;                     
+            
+            $this->set_data($data);
+            
+            // indicate that we are editing an existing syllabus
+            $mform->addElement('hidden', 'entryid', $existing_syllabus->id);
+        }
+        
+        $this->add_action_buttons();
+    }    
     
     /**
+     * Displays form fields related to public syllabus.
      */
     private function display_public_syllabus_form($existing_syllabus) {
         $mform = $this->_form;        
         
         // single file upload (pdf only)
-        $mform->addElement('filemanager', 'public_syllabus_file', 
-                sprintf('%s (%s)', get_string('uploadafile', 'moodle'), 
-                        get_string('pdf_only', 'local_ucla_syllabus')), null, 
+        $mform->addElement('filemanager', 'syllabus_file', 
+                get_string('upload_file', 'local_ucla_syllabus'), null, 
                 $this->ucla_syllabus_manager->get_filemanager_config());
-        $mform->addRule('public_syllabus_file', 
-                get_string('public_syllabus_none_uploaded', 'local_ucla_syllabus'), 
+        $mform->addRule('syllabus_file', 
+                get_string('err_file_not_uploaded', 'local_ucla_syllabus'), 
                 'required');
 
         // access type
@@ -209,7 +324,7 @@ class syllabus_form extends moodleform {
             $mform->setDefaults($defaults);
         } else {            
             // load existing files
-            $draftitemid = file_get_submitted_draft_itemid('public_syllabus_file');   
+            $draftitemid = file_get_submitted_draft_itemid('syllabus_file');   
             file_prepare_draft_area($draftitemid, 
                     context_course::instance($this->courseid)->id, 
                     'local_ucla_syllabus', 'syllabus', $existing_syllabus->id, 
@@ -219,7 +334,7 @@ class syllabus_form extends moodleform {
             $data['access_types[access_type]'] = $existing_syllabus->access_type;
             $data['display_name'] = $existing_syllabus->display_name;
             $data['is_preview'] = $existing_syllabus->is_preview;         
-            $data['public_syllabus_file'] = $draftitemid;                     
+            $data['syllabus_file'] = $draftitemid;                     
             
             $this->set_data($data);
             

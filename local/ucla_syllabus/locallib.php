@@ -128,18 +128,21 @@ class ucla_syllabus_manager {
         if (is_collab_site($this->courseid)) {
             return $ret_val;
         }
-
-        // @todo add support for private syllabus. if user is enrolled, check
-        // if there is a private syllabus and display that instead
         
         // is there a syllabus uploaded?
-        $public_syllabus_id = $this->has_public_syllabus($this->courseid);
-        if (!empty($public_syllabus_id)) {
-            $public_syllabus = new ucla_public_syllabus($public_syllabus_id);
-            $node_name = $public_syllabus->display_name;
+        $syllabi = $this->get_syllabi();
+        
+        if (!empty($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE]) && 
+                $syllabi[UCLA_SYLLABUS_TYPE_PRIVATE]->can_view()) {
+            // see if logged in user can view private syllabus
+            $node_name = $syllabi[UCLA_SYLLABUS_TYPE_PRIVATE]->display_name;            
+        } else if (!empty($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC]) && 
+                $syllabi[UCLA_SYLLABUS_TYPE_PUBLIC]->can_view()) {
+            // fallback on trying to see if user can view public syllabus
+            $node_name = $syllabi[UCLA_SYLLABUS_TYPE_PUBLIC]->display_name;  
         } else if ($this->can_manage() && !empty($USER->editing)) {
-            // if no syllabus, then only show node for instructors to click on
-            // to add a syllabus when in editing mode
+            // if no syllabus, then only show node for instructors to add a 
+            // syllabus when in editing mode
             $node_name = get_string('syllabus_needs_setup', 'local_ucla_syllabus');
         }
 
@@ -153,8 +156,14 @@ class ucla_syllabus_manager {
         return $ret_val;
     }    
     
+    /**
+     * Returns an array of syllabi for course indexed by type.
+     * 
+     * @global moodle_database $DB
+     * @return array
+     */
     public function get_syllabi() {
-        global $DB;
+        global $DB;        
         $ret_val = array(UCLA_SYLLABUS_TYPE_PUBLIC => null, 
                          UCLA_SYLLABUS_TYPE_PRIVATE => null);        
         
@@ -166,13 +175,39 @@ class ucla_syllabus_manager {
             switch ($record->access_type) {
                 case UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC:
                 case UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN:
-                    $ret_val[UCLA_SYLLABUS_TYPE_PUBLIC] = new ucla_public_syllabus($record->id);
+                    $ret_val[UCLA_SYLLABUS_TYPE_PUBLIC] = 
+                            new ucla_public_syllabus($record->id);
+                    break;
                 case UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE:
-                    $ret_val[UCLA_SYLLABUS_TYPE_PRIVATE] = new ucla_private_syllabus($record->id);
+                    $ret_val[UCLA_SYLLABUS_TYPE_PRIVATE] = 
+                            new ucla_private_syllabus($record->id);
+                    break;
             }            
         }
         
         return $ret_val;
+    }    
+
+    /**
+     * Checks if given course has a private syllabus. If so, then returns 
+     * syllabus id, otherwise false.
+     * 
+     * @global moodle_database $DB
+     * 
+     * @param int $courseid
+     * 
+     * @return int              Returns false if no syllabus found
+     */
+    public static function has_private_syllabus($courseid)
+    {
+        global $DB;
+
+        $where = 'courseid=:courseid AND access_type=:private';
+        $result = $DB->get_field_select('ucla_syllabus', 'id', $where, 
+                array('courseid' => $courseid,
+                      'private' => UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE));
+        
+        return $result;
     }    
     
     /**
@@ -264,7 +299,7 @@ class ucla_syllabus_manager {
         }
         
         // then save file, with link to ucla_syllabus
-        file_save_draft_area_files($data->public_syllabus_file, 
+        file_save_draft_area_files($data->syllabus_file, 
                 $this->coursecontext->id, 'local_ucla_syllabus', 'syllabus', 
                 $recordid, $this->filemanager_config);        
         
@@ -452,9 +487,10 @@ class ucla_private_syllabus extends ucla_sylabus {
      * 
      * @return boolean
      */    
-    public function can_view() { 
-        global $USER;
-        return is_enrolled($this->stored_file->get_contextid(), $USER->id);
+    public function can_view() {
+        $coursecontext = context::instance_by_id($this->stored_file->get_contextid());
+        return is_enrolled($coursecontext) || 
+                has_capability('local/ucla_syllabus:managesyllabus', $coursecontext);
     }    
 }
 
@@ -472,7 +508,6 @@ class ucla_public_syllabus extends ucla_sylabus {
                 $ret_val = true;
                 break;
             case UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN:
-                require_login($this->courseid, false);
                 if (isloggedin() && !isguestuser()) {
                     $ret_val = true;
                 }
@@ -482,13 +517,5 @@ class ucla_public_syllabus extends ucla_sylabus {
         }          
         
         return $ret_val;
-    }
-    
-    public function is_preview() {
-        if (isset($this->properties)) {
-            return $this->properties->is_preview;
-        }
-        debugging('ucla_public_syllabus called without setting properties');
-        return false;
     }
 }

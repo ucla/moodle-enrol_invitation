@@ -14,7 +14,7 @@
     font-style: italic;
 }
 
-.syllabus_form .no_syllabus {
+.no_syllabus {
     font-size: larger;
 } 
 
@@ -25,4 +25,9 @@
 .syllabus_form .editing_links a {
     color: #FF6666;
     margin-left: 19px;
+}
+
+.syllabus_disclaimer {
+    font-style: italic;
+    text-align: center;
 }

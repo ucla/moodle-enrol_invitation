@@ -135,26 +135,37 @@ if (!empty($USER->editing) && $can_manage_syllabus) {
     $title = ''; $body = '';
 
     $syllabi = $ucla_syllabus_manager->get_syllabi();
+
+    $syllabus_to_display = null;
+    if (!empty($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE]) && 
+            $syllabi[UCLA_SYLLABUS_TYPE_PRIVATE]->can_view()) {
+        // see if logged in user can view private syllabus
+        $syllabus_to_display = $syllabi[UCLA_SYLLABUS_TYPE_PRIVATE];            
+    } else if (!empty($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC]) && 
+            $syllabi[UCLA_SYLLABUS_TYPE_PUBLIC]->can_view()) {
+        // fallback on trying to see if user can view public syllabus
+        $syllabus_to_display = $syllabi[UCLA_SYLLABUS_TYPE_PUBLIC];  
+    }    
     
-    // see if there is a public syllabus uploaded
-    $public_syllabus = $syllabi[UCLA_SYLLABUS_TYPE_PUBLIC];
-    if (empty($public_syllabus)) {
-        // no public syllabus, so display no info
+    // setup what to display
+    if (empty($syllabus_to_display)) {
+        // no syllabus, so display no info
         $title = get_string('display_name_default', 'local_ucla_syllabus');
-        $body = html_writer::tag('p', get_string('no_syllabus_uploaded', 'local_ucla_syllabus'));
-        
+        $body = html_writer::tag('p', get_string('no_syllabus_uploaded', 'local_ucla_syllabus'), 
+                    array('class' => 'no_syllabus'));
+
         // if user can upload a syllabus, let them know about turning editing on
         if ($can_manage_syllabus) {
             $body .= html_writer::tag('p', 
                     get_string('no_syllabus_uploaded_help', 'local_ucla_syllabus'));
-        }
+        }        
     } else {
-        $title = $public_syllabus->display_name;
+        $title = $syllabus_to_display->display_name;
 
-        $fullurl = $public_syllabus->get_file_url();
-        $mimetype = $public_syllabus->get_mimetype();
+        $fullurl = $syllabus_to_display->get_file_url();
+        $mimetype = $syllabus_to_display->get_mimetype();
         $clicktoopen = get_string('err_noembed', 'local_ucla_syllabus');
-        $download_link = $public_syllabus->get_download_link();        
+        $download_link = $syllabus_to_display->get_download_link();        
 
         // try to embed file using resource functions
         if ($mimetype === 'application/pdf') {
@@ -162,9 +173,24 @@ if (!empty($USER->editing) && $can_manage_syllabus) {
         } else {            
             $body .= resourcelib_embed_general($fullurl, $title, $clicktoopen, $mimetype);
         }
-        
+
         // also add download link
-        $body .= html_writer::tag('div', $download_link, array('id' => 'download_link'));        
+        $body .= html_writer::tag('div', $download_link, array('id' => 'download_link')); 
+        
+        // if this is a preview syllabus, give some disclaimer text
+        // add some disclaimer text for public syllabus
+        if ($syllabus_to_display instanceof ucla_public_syllabus) {
+            $title .= '*';
+            $disclaimer_text = '';
+            if ($syllabus_to_display->is_preview) {
+                $disclaimer_text = get_string('preview_disclaimer', 'local_ucla_syllabus');
+
+            } else {                
+                $disclaimer_text = get_string('public_disclaimer', 'local_ucla_syllabus');
+            }
+            $body .= html_writer::tag('p', '*' . $disclaimer_text, 
+                    array('class' => 'syllabus_disclaimer'));
+        }        
     }
     
     // now display content
