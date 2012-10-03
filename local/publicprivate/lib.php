@@ -99,6 +99,10 @@ function local_publicprivate_cron() {
     if ($courses->valid()) {
         foreach ($courses as $course) {
             if (empty($course->groupingpublicprivate)) {
+                mtrace(sprintf('  Public/private for course %d not properly ' . 
+                        'setup, skipping', $course->id));
+                continue;
+                
                 // public/private is enabled, but there is no public/private 
                 // grouping?! disable pp and then reenable
                 $ppcourse = new PublicPrivate_Course($course);
@@ -113,7 +117,8 @@ function local_publicprivate_cron() {
                         $course->id, $course->groupingpublicprivate));                      
                 $ppcourse->activate();
                 $course->groupingpublicprivate = $ppcourse->get_grouping();          
-                mtrace(sprintf('  Activated public/private for course %d, groupingpublicprivate now %d', 
+                mtrace(sprintf('  Activated public/private for course %d, ' . 
+                        'groupingpublicprivate now %d', 
                         $course->id, $course->groupingpublicprivate));                                      
             }
             
