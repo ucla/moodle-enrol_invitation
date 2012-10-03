@@ -16,3 +16,9 @@
 
 /* Formatting for UCLA Course Requestor */
 .mform .fitem fieldset.felement {margin-left:0%;padding-left:1%;margin-bottom:0}
+
+/* CCLE-3533 - fixing activity/resource picker text wrap */
+.choosercontainer #chooseform .option span.typename {
+    display: inline-block;
+    width: 160px;
+}

@@ -192,13 +192,19 @@ class ucla_reg_subjectarea_cron {
         if (!$reg) {
             echo "No registrar module found.";
         }
-
+  
         $subjareas = array();
         foreach ($terms as $term) {
-            $regdata = 
-                $reg->retrieve_registrar_info(
-                        array('term' => $term)
-                    );
+            try {            
+                $regdata = 
+                    $reg->retrieve_registrar_info(
+                            array('term' => $term)
+                        );
+            } catch(Exception $e) {
+                // mostly likely couldn't connect to registrar
+                mtrace($e->getMessage());
+                return false;
+            }                      
 
             if ($regdata) {
                 $subjareas = array_merge($subjareas, $regdata);

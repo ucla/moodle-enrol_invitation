@@ -1,9 +1,4 @@
 <?php
-
-if(!PublicPrivate_Site::is_installed()) {
-    PublicPrivate_Site::install();
-}
-
 class PublicPrivate_Site {
     /**
      * Check if public/private is already enabled at the site level.
@@ -78,5 +73,3 @@ class PublicPrivate_Site {
         }
     }
 }
-
-?>

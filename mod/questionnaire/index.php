@@ -51,7 +51,11 @@
         die;
     }
 
-    $modinfo =& get_fast_modinfo($course);
+    // BEGIN UCLA MOD: CCLE-3072 - Fix strict standards notice
+    // $modinfo =& get_fast_modinfo($course);
+    $temp = get_fast_modinfo($course);
+    $modinfo =& $temp;
+    // END UCLA MOD: CCLE-3072
 
     if (!isset($modinfo->instances['questionnaire'])) {
         $modinfo->instances['questionnaire'] = array();

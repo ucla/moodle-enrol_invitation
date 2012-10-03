@@ -43,10 +43,8 @@ function callback_ucla_uses_sections() {
  * Used to display the course structure for a course where format=topic
  *
  * This is called automatically by {@link load_course()} if the current course
- * format = weeks.
+ * format = ucla.
  *
- * @param array $path An array of keys to the course node in the navigation
- * @param stdClass $modinfo The mod info object for the current course
  * @return bool Returns true
  */
 function callback_ucla_load_content(&$navigation, $course, $coursenode) {
@@ -54,15 +52,6 @@ function callback_ucla_load_content(&$navigation, $course, $coursenode) {
 
     // Sort of a dirty hack, but this so far is the best way to manipulate the
     // navbar since these callbacks are called before the format is included
-
-    // This is to specify that the breadcrumb link to the course will send you
-    // to the landing page.
-    $path = $CFG->wwwroot . '/course/view.php';
-    $ref_url = new moodle_url($path, array('id' => $course->id));
-
-    $coursenode->action->params(array(
-        'topic' => UCLA_FORMAT_DISPLAY_LANDING
-    ));
 
     // This is to prevent further diving and incorrect associations in the
     // navigation bar

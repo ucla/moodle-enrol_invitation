@@ -2391,7 +2391,8 @@ class questionnaire {
             $groupid = -1;
         }
         $output = array();
-        $nbinfocols = 9; // change this if you want more info columns
+        // BEGIN UCLA MOD: CCLE-3072 - Properly align columns
+        //$nbinfocols = 9; // change this if you want more info columns
         $stringother = get_string('other', 'questionnaire');
         $columns = array(
                 get_string('response','questionnaire'),
@@ -2407,7 +2408,9 @@ class questionnaire {
                 // END UCLA MOD: CCLE-2596       
                 get_string('username')
             );
-
+        $nbinfocols = count($columns);
+        // END UCLA MOD: CCLE-3072
+        
         $types = array(
                 0,
                 0,
@@ -2719,8 +2722,16 @@ class questionnaire {
                     $response[$columns[$i]] = join(',', $response[$columns[$i]]);
                 }*/
 
-            $qpos = key($columns[$i]);
-            $qname = current($columns[$i]);
+            //$qpos = key($columns[$i]);
+            //$qname = current($columns[$i]);
+            // BEGIN UCLA MOD: CCLE-3072 - Fixed warning messages for key() and current()
+            $qpos = null;
+            $qname = null;
+            if (is_array($columns[$i])) {
+                $qpos = key($columns[$i]);
+                $qname = current($columns[$i]);
+            }
+            // END UCLA MOD: CCLE-3072
             if (isset($response[$qpos][$qname]) && $response[$qpos][$qname] != '') {
                 $thisresponse = $response[$qpos][$qname];
             } else {
@@ -2741,6 +2752,9 @@ class questionnaire {
                         $thisresponse = format_text($thisresponse, FORMAT_HTML, $format_options);
                         $thisresponse = preg_replace("/[\r\n\t]/", ' ', $thisresponse);
                         $thisresponse = preg_replace('/"/', '""', $thisresponse);
+                        // BEGIN UCLA MOD: CCLE-3072 - Remove html special characters
+                        $thisresponse = html_entity_decode($thisresponse);
+                        // END UCLA MOD : CCLE-3072
                     }
                      // fall through
                 case 0:  //number
@@ -2761,8 +2775,18 @@ class questionnaire {
 
         for ($i = $nbinfocols;$i < $nbrespcols; $i++) {
             $sep = '';
-            $thisoutput = current($output[0][$i]);
-            $thiskey =  key($output[0][$i]);
+            
+            //$thisoutput = current($output[0][$i]);
+            //$thiskey =  key($output[0][$i]);
+            // BEGIN UCLA MOD: CCLE-3072 - Fixed warning messages for key() and current()
+            $thisoutput = null;
+            $thiskey = null;
+            if (is_array($output[0][$i])) {
+                $thisoutput = current($output[0][$i]);
+                $thiskey =  key($output[0][$i]);
+            }
+            // END UCLA MOD: CCLE-3072
+            
             // case of unnamed rate single possible answer (full stop char is used for support)
             if (strstr($thisoutput,'->.')) {
                 $thisoutput = str_replace('->.','',$thisoutput);
