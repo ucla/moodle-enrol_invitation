@@ -158,7 +158,7 @@ class block_ucla_browseby extends block_navigation {
             $params = array_merge($params, $saparams);
         }
 
-        $records = $this->get_records_select('ucla_reg_classinfo',
+        $records = $this->get_recordset_select('ucla_reg_classinfo',
             $where, $params, '', 'DISTINCT CONCAT(term, subj_area), term, '
                 . 'subj_area AS subjarea');
 
@@ -277,10 +277,10 @@ class block_ucla_browseby extends block_navigation {
         return $DB->get_in_or_equal($vars);
     }
 
-    protected function get_records_select($t, $w, $p, $s, $l) {
+    protected function get_recordset_select($t, $w, $p, $s, $l) {
         global $DB;
 
-        return $DB->get_records_select($t, $w, $p, $s, $l);
+        return $DB->get_recordset_select($t, $w, $p, $s, $l);
     }
    
     protected function run_registrar_query($q, $d) {

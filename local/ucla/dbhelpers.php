@@ -66,42 +66,42 @@ class db_helper {
 
         // Get existing records to determine if we're going to insert or
         // going to update
+        $fields = 'id, ' . implode(', ', $syncfields);
+
         if ($partial) {
-            $existingrecords = $DB->get_records_select($table, 
+            $existingrecords = $DB->get_recordset_select($table, 
                 $partialwhere, $partialparams);
         } else {
-            $existingrecords = $DB->get_records($table);
+            $existingrecords = $DB->get_recordset($table);
         }
 
-
-        // Since if it exists already we update, we're going to be
-        // constantly searching through this array, so we're going to
-        // speed it up by doing something they call "indexing"
+        // Array of primary keys for the table
         $existing_indexed = array();
         foreach ($existingrecords as $record) {
             $existing_indexed[self::dynamic_hash($record, $syncfields)]
-                = $record;
+                = $record->id;
         }
 
         $inserted = array();
         $updated = array();
 
+        // Decide to update if PK exists
         foreach ($tabledata as $data) {
             $hash = self::dynamic_hash($data, $syncfields);
 
             if (isset($existing_indexed[$hash])) {
-                $data['id'] = $existing_indexed[$hash]->id;
+                $data['id'] = $existing_indexed[$hash];
 
                 $DB->update_record($table, $data);
 
-                $updated[$hash] = $data;
+                $updated[$hash] = $data['id'];
             } else {
                 $id = $DB->insert_record($table, $data);
                 $data['id'] = $id;
 
-                $inserted[$hash] = $data;
+                $inserted[$hash] = $id;
 
-                $existing_indexed[$hash] = (object) $data;
+                $existing_indexed[$hash] = $id;
             }
         }
 
@@ -118,8 +118,10 @@ class db_helper {
                 continue;
             }
 
-            $delete_ids[] = $existing->id;
-            $deleted[] = get_object_vars($existing);
+            $delete_ids[] = $existing;
+
+            // Loss of reporting data
+            $deleted[] = $existing;
         }
 
         if (!empty($delete_ids)) {
