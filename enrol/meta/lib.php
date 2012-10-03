@@ -34,7 +34,7 @@ class enrol_meta_plugin extends enrol_plugin {
     /**
      *  API call - lib/enrollib.php.
      **/
-    function add_course_navigation($instancesnode, $instance) {
+    function add_course_navigation($instancesnode, stdclass $instance) {
         global $PAGE;
 
         // This is technically a hack, $instancenode provides us
@@ -43,14 +43,14 @@ class enrol_meta_plugin extends enrol_plugin {
             $pcourseid = $instance->customint1;
             $courseid = $instance->courseid;
 
-            $pcoursenode =& $PAGE->navigation->find($pcourseid,
+            $pcoursenode = $PAGE->navigation->find($pcourseid,
                     navigation_node::TYPE_COURSE);
 
             if (empty($pcoursenode)) {
                 return;
             }
 
-            $coursenode =& $PAGE->navigation->find($courseid,
+            $coursenode = $PAGE->navigation->find($courseid,
                     navigation_node::TYPE_COURSE);
 
             $pcoursenode->set_parent($coursenode->parent);
