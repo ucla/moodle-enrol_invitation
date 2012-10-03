@@ -107,18 +107,16 @@ function local_publicprivate_cron() {
                     // need to redo this course, something wrong happened
                     $ppcourse->deactivate();
                 }
+                mtrace(sprintf('  Activating public/private for course %d, groupingpublicprivate now %d', 
+                        $course->id, $course->groupingpublicprivate));                      
                 $ppcourse->activate();
-                $course->groupingpublicprivate = $ppcourse->get_grouping();
-                mtrace(sprintf('  Activated public/private for course %d, groupingpublicprivate now %d', 
-                        $course->id, $course->groupingpublicprivate));                
+                $course->groupingpublicprivate = $ppcourse->get_grouping();          
             }
             
             $course->defaultgroupingid = $course->groupingpublicprivate;
+            mtrace(sprintf('  Seting defaultgroupingid to be %d for course %d', 
+                    $course->groupingpublicprivate, $course->id));            
             $result = $DB->update_record('course', $course, true);
-            if ($result) {
-                mtrace(sprintf('  Set defaultgroupingid to be %d for course %d', 
-                        $course->groupingpublicprivate, $course->id));
-            }
         }
     }
     
@@ -146,9 +144,9 @@ function local_publicprivate_cron() {
             }
 
             // found duplicate, so delete it
-            $DB->delete_records('groups_members', array('id' => $result->id));
-            mtrace(sprintf('  Deleted duplicate entry in groups_members for ' . 
-                    'groupid %d and userid %d', $groupid, $userid));        
+            mtrace(sprintf('  Deleting duplicate entry in groups_members for ' . 
+                    'groupid %d and userid %d', $groupid, $userid));               
+            $DB->delete_records('groups_members', array('id' => $result->id));     
         }
     }
     
@@ -165,10 +163,10 @@ function local_publicprivate_cron() {
     $results = $DB->get_records_sql($sql);
     if (!empty($results)) {
         foreach ($results as $result) {
+            mtrace(sprintf('  Fixing groupmembersonly for course_module %d', 
+                    $result->id));            
             $DB->set_field('course_modules', 'groupmembersonly', 1, 
                     array('id' => $result->id));
-            mtrace(sprintf('  Fixed groupmembersonly for course_module %d', 
-                    $result->id));
         }    
     }    
 }
