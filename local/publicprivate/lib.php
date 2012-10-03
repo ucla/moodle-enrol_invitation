@@ -105,12 +105,16 @@ function local_publicprivate_cron() {
                 if ($ppcourse->is_activated()) {
                     // is activated, but has no groupingpublicprivate?!
                     // need to redo this course, something wrong happened
+                    mtrace(sprintf('  Deactivating public/private for course %d', 
+                            $course->id));                                          
                     $ppcourse->deactivate();
                 }
-                mtrace(sprintf('  Activating public/private for course %d, groupingpublicprivate now %d', 
+                mtrace(sprintf('  Activating public/private for course %d', 
                         $course->id, $course->groupingpublicprivate));                      
                 $ppcourse->activate();
                 $course->groupingpublicprivate = $ppcourse->get_grouping();          
+                mtrace(sprintf('  Activated public/private for course %d, groupingpublicprivate now %d', 
+                        $course->id, $course->groupingpublicprivate));                                      
             }
             
             $course->defaultgroupingid = $course->groupingpublicprivate;
