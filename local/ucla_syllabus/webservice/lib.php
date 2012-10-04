@@ -74,7 +74,8 @@ class syllabus_ws_item {
     private function _match_srs() {
         // @todo: trim the criteria SRS and compare the string to stored SRS
         if(!empty($this->_data->leadingsrs) && !empty($this->_criteria['srs'])) {
-            return strstr($this->_criteria['srs'], $this->_data->leadingsrs);
+            $trimmed = substr($this->_criteria['srs'], 0, strlen($this->_data->leadingsrs));
+            return strstr($trimmed, $this->_data->leadingsrs);
         }
         
         return false;
@@ -131,10 +132,6 @@ class syllabus_ws_manager {
     
     /**
      * Handle an event action.  
-     * 
-     * $payload = array(
-     *          'file' => 'file.txt';
-     *      )
      * 
      * @param type $event
      * @param type $criteria
@@ -212,7 +209,7 @@ class syllabus_ws_manager {
         
         // Ignore subjectarea
         $criteria['subjectarea'] = -1;
-        $payload['url'] = $CFG->wwwroot . '/course/view.php?id=' . $syllabus->courseid;
+        $payload['url'] = $CFG->wwwroot . '/course/view.php?id=' . $course->id;
         
         return array($criteria, $payload);
     }
