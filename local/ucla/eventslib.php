@@ -74,6 +74,7 @@ function local_ucla_handle_mod($eventdata) {
 }
 
 function ucla_sync_built_courses($edata) {
+    global $CFG;
     require_once($CFG->dirroot . '/blocks/ucla_group_manager/lib.php');
     
     // This hopefully means that this plugin IS enabled
