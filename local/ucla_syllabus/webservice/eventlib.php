@@ -12,6 +12,7 @@ require_once($CFG->dirroot . '/local/ucla_syllabus/locallib.php');
 function ucla_syllabus_handler($data) {
 
     if($syllabus = ucla_syllabus_manager::instance($data)) {
+        global $DB;
         
         /* outgoing syllabus logic:
          * 
@@ -30,8 +31,10 @@ function ucla_syllabus_handler($data) {
         } else {
             // We got a public syllabus
         
+            $course = $DB->get_record('course', array('id' => $syllabus->courseid));
+            
             // Get all the syllabi
-            $manager = new ucla_syllabus_manager($syllabus->courseid);
+            $manager = new ucla_syllabus_manager($course);
             $syllabi = $manager->get_syllabi();
 
             // Check if private syllabus exists
