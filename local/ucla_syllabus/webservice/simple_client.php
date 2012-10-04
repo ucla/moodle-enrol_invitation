@@ -1,45 +1,51 @@
 <?php
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-// Simple syllabus client example
+require_once(dirname(__FILE__) . '/../../../config.php');
 
+global $DB, $CFG;
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-// Include the library file
-include 'client.php';
+// Get server name
+$servername = $_SERVER['SERVER_NAME'];
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-// Receive expected payload
-$payload = syllabus_ws_client::get_payload();
+// Expected params
+$token = optional_param('token', '', PARAM_RAW);
+$term = optional_param('term', '', PARAM_ALPHANUM);
+$srs = optional_param('srs', 0, PARAM_INT);
+$url = optional_param('url', '', PARAM_URL);
+$filename = optional_param('file_name', '', PARAM_RAW);
 
-
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-// If you're expecting a file..
-$path = '.';
-
-if(!empty($payload)) {
-    syllabus_ws_client::save_file($payload, $path);
+// Decode filsize
+function human_filesize($bytes, $decimals = 2) {
+    $sz = 'BKMGTP';
+    $factor = floor((strlen($bytes) - 1) / 3);
+    return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . @$sz[$factor];
 }
 
+// Super secrete token
+$mytoken = '123abc';
+$self = parse_url($CFG->wwwroot);
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-// For testing purposes only, we'll write the contents of the payload into a
-// file called 'temp.txt'... This is to verify that we receieved something.
-$obj = serialize($payload);
-$handle = fopen('temp.txt', 'w+');
-fwrite($handle, $obj);
-fclose($handle);
+// Make sure we have a token, and make sure that request came from our server
+if(!empty($token) && $servername == $self['host']) {
+    $dtoken = hash_hmac('sha256', base64_encode($mytoken), $mytoken);
+    
+    if($dtoken == base64_decode($token)) {
+        $filesize = empty($filename) ? '' : filesize($_FILES['file']['tmp_name']);
+        $action = empty($filename) ? 'course' : 'syllabus';
+        
+        $data = array(
+            'action' => $action,
+            'token' => $mytoken,
+            'term' => $term,
+            'srs' => $srs,
+            'url' => $url,
+            'filename' => $filename,
+            'filesize' => human_filesize($filesize),
+            'timestamp' => time(),
+        );
 
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-// Return a status message, this is what our service expects
-if(!empty($payload)) {
-    $msg = array(
-        'status' => syllabus_ws_client::STATUS_OK
-    );
-} else {
-    $msg = array(
-        'status' => syllabus_ws_client::STATUS_FAIL
-    );
+        $sdata = array('data' => serialize($data));
+
+        $DB->insert_record('ucla_syllabus_client', (object)$sdata);
+    }
 }
-
-echo json_encode($msg);

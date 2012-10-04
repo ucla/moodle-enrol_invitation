@@ -7,6 +7,7 @@ require_once($CFG->libdir . '/adminlib.php');
 $thisdir = '/local/ucla_syllabus/webservice/';
 require_once($CFG->dirroot . $thisdir . 'lib.php');
 require_once($CFG->dirroot . $thisdir . 'webservice_form.php');
+require_once($CFG->dirroot . $thisdir . 'client.php');
 
 $status_update = optional_param('status_update', 0, PARAM_BOOL);
 $delete = optional_param('delete', 0, PARAM_BOOL);
@@ -67,6 +68,7 @@ echo $OUTPUT->heading(get_string('heading', 'local_ucla_syllabus'), 2, 'headingb
 $wsform->display();
 
 echo $OUTPUT->box_start('generalbox');
+echo $OUTPUT->heading('Subscribers');
 
 $table = new html_table();
 $table->id = $tableid;
@@ -108,6 +110,37 @@ foreach($subscriptions as $s) {
 
 // Display subscribers
 echo html_writer::table($table);
+
+echo $OUTPUT->box_end();
+
+echo $OUTPUT->box_start('generalbox');
+echo $OUTPUT->heading('Client test data');
+
+$data = syllabus_ws_client::get_data();
+
+$table = new html_table();
+$table->attributes['class'] = 'generaltable';
+$table->head = array('action', 'time', 'srs', 'term', 'token', 'url', 'file name', 'filesize');
+
+foreach($data as $d) {
+    
+    $d = (object)$d;
+    
+    $row = array();
+    $row[] = $d->action;
+    $row[] = date('Y-m-d H:i:s', $d->timestamp);
+    $row[] = empty($d->srs) ? 'none' : $d->srs;
+    $row[] = empty($d->term) ? 'none' : $d->term;
+    $row[] = $d->token;
+    $row[] = empty($d->url) ? 'none' : $d->url;
+    $row[] = empty($d->filename) ? 'none' : $d->filename;
+    $row[] = empty($d->filesize) ? '0' : $d->filesize;
+    
+    $table->data[] = $row;
+}
+
+echo html_writer::table($table);
+
 
 echo $OUTPUT->box_end();
 echo $OUTPUT->footer();
