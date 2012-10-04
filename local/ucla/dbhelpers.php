@@ -25,42 +25,52 @@ class db_helper {
      *      a smaller part of a table.
      *  @return
      *      Array( 
-     *          0 => Array(inserted entries), 
-     *          1 => Array(updated entries), 
-     *          2 => Array(deleted entries)
+     *          0 => Array(inserted entries ids), 
+     *          1 => Array(updated entries ids), 
+     *          2 => Array(deleted entries ids) (unless section truncate)
      *      )
      **/
     static function partial_sync_table($table, $tabledata, $syncfields,
             $partialwhere=null, $partialparams=null, $allowfulldelete=false) {
         global $DB;
 
-        $partial = ($partialwhere === null || $partialparams === null);
+        $partial = ($partialwhere || $partialparams);
 
         // Optimization for delete all
         if (empty($tabledata)) {
-            if ($allowfulldelete) {
-                if ($partial) {
-                    $r = $DB->delete_records_select($table, 
-                        $partialwhere, $partialparams);
-                } else {
-                    // This means a full delete...
-                    $r = $DB->delete_records($table);
-                }
+            $r = 0;
 
-                return $r;
+            if ($partial) {
+                $c = $DB->count_records_select($table,
+                    $partialwhere, $partialparams, 'COUNT(*)');
+
+                $r = $DB->delete_records_select($table, 
+                    $partialwhere, $partialparams);
+            } else if ($allowfulldelete) {
+                $c = $DB->count_records($table);
+
+                // This means a full delete...
+                $r = $DB->delete_records($table);
             } else {
                 debugging('full-delete not allowed');
-                return 0;
             }
+
+            if ($c > 0) {
+                $countarr = array_fill(0, $c, '');
+            } else {
+                $countarr = array();
+            }
+
+            return array(array(), array(), $countarr);
         }
 
         // Get existing records to determine if we're going to insert or
         // going to update
         if ($partial) {
-            $existingrecords = $DB->get_records($table);
-        } else {
             $existingrecords = $DB->get_records_select($table, 
                 $partialwhere, $partialparams);
+        } else {
+            $existingrecords = $DB->get_records($table);
         }
 
 

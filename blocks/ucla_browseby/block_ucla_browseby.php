@@ -166,11 +166,6 @@ class block_ucla_browseby extends block_navigation {
             return true;
         }
    
-        // These all share the same integer keys
-        $toreg = array();
-        $courseinfos = array();
-        $instrinfos = array();
-
         // Collect data from registrar
         foreach ($records as $record) {
             $term = $record->term;
@@ -185,43 +180,47 @@ class block_ucla_browseby extends block_navigation {
                 'ccle_coursegetall', $thisreg);
 
             if ($courseinfo) {
-                foreach ($courseinfo as $ci) {
+                foreach ($courseinfo as $key => $ci) {
                     $ci['term'] = $term;
-                    $courseinfos[] = $ci;
+                    $courseinfo[$key] = $ci;
                 }
             } else {
-                echo "no course data!\n";
-                continue;
+                echo "no course data...";
             }
 
             $instrinfo = $this->run_registrar_query(
                 'ccle_getinstrinfo', $thisreg);
 
             if ($instrinfo) {
-                foreach ($instrinfo as $ii) {
+                foreach ($instrinfo as $key => $ii) {
                     $ii['subjarea'] = $subjarea;
-                    $instrinfos[] = $ii;
+                    $instrinfo[$key] = $ii;
                 }
             } else {
-                echo "no instr data!\n";
-                continue;
+                echo "no instr data...";
             }
 
-            echo "done\n";
+            $where = 'term = ? AND subjarea = ?';
+            $params = array($term, $subjarea);
+
+            // Save which courses need instructor informations.
+            // We need to update the existing entries, and remove 
+            // non-existing ones.
+            echo "sync classinfo ";
+            $res = $this->partial_sync_table('ucla_browseall_classinfo', $courseinfo,
+                array('term', 'srs'), $where, $params);
+
+            echo '+' . count($res[0]) . ' =' . count($res[1]) . ' -' . count($res[2]) . '...';
+
+            echo "sync instrinfo ";
+            $res = $this->partial_sync_table('ucla_browseall_instrinfo', $instrinfo,
+                array('term', 'srs', 'uid'), $where, $params);
+
+            echo '+' . count($res[0]) . ' =' . count($res[1]) . ' -' . count($res[2]) . '...';
+
+            echo "done.\n";
         }
 
-        // Save which courses need instructor informations.
-        // We need to update the existing entries, and remove 
-        // non-existing ones.
-        echo "Synchronizing classinfo...";
-        $this->partial_sync_table('ucla_browseall_classinfo', $courseinfos,
-            array('term', 'srs'), $where, $params);
-        echo "done.\n";
-
-        echo "Synchronizing instrinfo...";
-        $this->partial_sync_table('ucla_browseall_instrinfo', $instrinfos,
-            array('term', 'srs', 'uid'), $where, $params);
-        echo "done.\n";
 
         echo "Finished sync.\n";
             
