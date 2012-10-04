@@ -162,11 +162,12 @@ class block_ucla_browseby extends block_navigation {
             $where, $params, '', 'DISTINCT CONCAT(term, subj_area), term, '
                 . 'subj_area AS subjarea');
 
-        if (empty($records)) {
+        // Check that there are records
+        if (!($records && $records->valid())) {
             return true;
         }
    
-        // Collect data from registrar
+        // Collect data from registrar, sync to local db
         foreach ($records as $record) {
             $term = $record->term;
             $subjarea = $record->subjarea;
@@ -210,6 +211,9 @@ class block_ucla_browseby extends block_navigation {
             $res = $this->partial_sync_table('ucla_browseall_classinfo', $courseinfo,
                 array('term', 'srs'), $where, $params);
 
+            // + inserted records
+            // = updated records
+            // - deleted records
             echo '+' . count($res[0]) . ' =' . count($res[1]) . ' -' . count($res[2]) . '...';
 
             echo "sync instrinfo ";

@@ -40,9 +40,11 @@ class db_helper {
         if (empty($tabledata)) {
             $r = 0;
 
+            // These count records could be alleviated if the DB layer
+            // used affected_rows of mysqli
             if ($partial) {
                 $c = $DB->count_records_select($table,
-                    $partialwhere, $partialparams, 'COUNT(*)');
+                    $partialwhere, $partialparams);
 
                 $r = $DB->delete_records_select($table, 
                     $partialwhere, $partialparams);
