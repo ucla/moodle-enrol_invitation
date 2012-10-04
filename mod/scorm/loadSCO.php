@@ -49,7 +49,16 @@ if (!empty($id)) {
 
 $PAGE->set_url('/mod/scorm/loadSCO.php', array('scoid'=>$scoid, 'id'=>$cm->id));
 
-require_login($course->id, false, $cm);
+if (!isloggedin()) { // Prevent login page from being shown in iframe.
+    // Using simple html instead of exceptions here as shown inside iframe/object.
+    echo html_writer::start_tag('html');
+    echo html_writer::tag('head', '');
+    echo html_writer::tag('body', get_string('loggedinnot'));
+    echo html_writer::end_tag('html');
+    exit;
+}
+
+require_login($course, false, $cm, false); // Call require_login anyway to set up globals correctly.
 
 //check if scorm closed
 $timenow = time();
@@ -145,6 +154,9 @@ add_to_log($course->id, 'scorm', 'launch', 'view.php?id='.$cm->id, $result, $cm-
 
 // which API are we looking for
 $LMS_api = (scorm_version_check($scorm->version, SCORM_12) || empty($scorm->version)) ? 'API' : 'API_1484_11';
+
+header('Content-Type: text/html; charset=UTF-8');
+
 ?>
 <html>
     <head>

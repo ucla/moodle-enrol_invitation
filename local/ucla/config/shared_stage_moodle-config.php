@@ -42,12 +42,10 @@ $CFG->dbname    = '';
 $CFG->dbuser    = '';
 $CFG->dbpass    = '';
 $CFG->prefix    = 'mdl_';
-$CFG->dboptions = array(
-    'dbpersist' => 0,
-    'dbsocket'  => 1 
-);
+$CFG->dboptions['dbpersist'] = 0;
+$CFG->dboptions['dbsocket']  = 1;
 
-$CFG->wwwroot  = 'https://m2stage.ccle.ucla.edu';
+$CFG->wwwroot  = 'https://stage.ccle.ucla.edu';
 $CFG->dataroot = '/moodle_data'; 
 
 // This determines what the admin folder is called.
@@ -69,26 +67,14 @@ $CFG->registrar_dbencoding = 'ISO-8859-1';
 
 // Format and browseby and anything else that requires instructors to be 
 // displayed, we need to determine which roles should be displayed.
-$CFG->instructor_levels_roles = array(
-    'Instructor' => array(
-        'editinginstructor',
-        'ta_instructor'
-    ),
-    'Teaching Assistant' => array(
-        'ta',
-        'ta_admin'
-    )
-);
+$CFG->instructor_levels_roles['Instructor'] = array('editinginstructor', 'ta_instructor');
+$CFG->instructor_levels_roles['Teaching Assistant'] = array('ta', 'ta_admin');
 
 // CCLE-2283: Friendly URLs
 // CCLE-2283: Redirect to archive 
-$CFG->forced_plugin_settings['local_ucla'] = array(
-    'friendly_urls_enabled' => true,
-    'remotetermcutoff' => '12S',
-//    'archiveserver' => 'https://archive.ccle.ucla.edu'
-    // until June 17 don't redirect to archive server, because that doesn't exist
-    'archiveserver' => 'https://ccle.ucla.edu'
-);
+$CFG->forced_plugin_settings['local_ucla']['friendly_urls_enabled'] = true; 
+$CFG->forced_plugin_settings['local_ucla']['remotetermcutoff'] = '12S'; 
+$CFG->forced_plugin_settings['local_ucla']['archiveserver'] = 'https://ccle.ucla.edu'; 
 
 // My Sites CCLE-2810
 // Term limiting
@@ -129,36 +115,23 @@ $CFG->shib_logged_in_cookie = '_ucla_sso';
 
 // CCLE-2306 - HELP SYSTEM BLOCK
 // if using JIRA, jira_user, jira_password, jira_pid should be defined in config_private.php
-$block_ucla_help_settings = array('send_to' => 'jira',
-                                  'jira_endpoint' => 'https://jira.ats.ucla.edu/CreateIssueDetails.jspa',
-                                  'jira_default_assignee' => 'dkearney',
-//                                  'boxtext' => '<ul>
-//                                                    <li>Find FAQs, tutorials and a large database of help documentation at <strong><a title="cclehelp" href="https://ccle.ucla.edu/course/view/cclehelp">CCLE Help</a></strong></li>
-//                                                    <li>Send your feedback including suggestions and comments to <a href="mailto:ccle@ucla.edu">ccle@ucla.edu</a></li>
-//                                                </ul>'
-        );
-$CFG->forced_plugin_settings['block_ucla_help'] = $block_ucla_help_settings;
+$CFG->forced_plugin_settings['block_ucla_help']['send_to'] = 'jira';
+$CFG->forced_plugin_settings['block_ucla_help']['jira_endpoint'] = 'https://jira.ats.ucla.edu/CreateIssueDetails.jspa';
+$CFG->forced_plugin_settings['block_ucla_help']['jira_default_assignee'] = 'dkearney';
 $block_ucla_help_support_contacts['System'] = 'dkearney';  // default
 
 // CCLE-2311 - VIEDO FURNACE BLOCK
-$CFG->forced_plugin_settings['block_ucla_video_furnace']['source_url']
-        = 'http://164.67.141.31/~guest/VF_LINKS.TXT';
+$CFG->forced_plugin_settings['block_ucla_video_furnace']['source_url'] = 'http://164.67.141.31/~guest/VF_LINKS.TXT';
 
 // CCLE-2312 - LIBRARY RESERVES BLOCK
-$CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url']
-        = 'ftp://ftp.library.ucla.edu/incoming/eres/voyager_reserves_data.txt';
+$CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url'] = 'ftp://ftp.library.ucla.edu/incoming/eres/voyager_reserves_data.txt';
 
 // CCLE-2301 - COURSE MENU BLOCK
 $CFG->forced_plugin_settings['block_ucla_course_menu']['trimlength'] = 22;
 
-// useful STAGE settings
-$CFG->debug = 38911;    // DEVELOPER level debugging messages
-$CFG->debugdisplay = true;  // show the debugging messages
-$CFG->perfdebug = true; // show performance information
-$CFG->debugpageinfo = true; // show page information
-
 // UCLA Theme settings
 $CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'stage';
+$CFG->forced_plugin_settings['theme_uclashared']['footer_links'] = '';
 
 // Newly created courses for ucla formats should only have the course menu block
 $CFG->defaultblocks_ucla = 'ucla_course_menu';
@@ -186,11 +159,11 @@ $CFG->filter_mediaplugin_enable_qt = true;
 $CFG->filter_mediaplugin_enable_wmp = true;
 $CFG->filter_mediaplugin_enable_rm = true;
 
-// to enable database unit testing
-$CFG->unittestprefix = 'tst_';
-
 /// CCLE-2810 - My Sites - disallow customized "My Moodle" page
 $CFG->forcedefaultmymoodle = true;
+
+// to enable database unit testing
+$CFG->unittestprefix = 'tst_';
 
 // Site administration > Advanced features
 $CFG->usetags = 0;
@@ -199,6 +172,7 @@ $CFG->bloglevel = 0; // Disable blog system completely
 
 // Site administration > Users > Permissions > User policies
 $CFG->autologinguests = true;
+$CFG->showuseridentity = 'idnumber,email';
 
 // Site administration > Courses > Course default settings
 $CFG->forced_plugin_settings['moodlecourse']['format'] = 'ucla';
@@ -209,8 +183,20 @@ $CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 0;
 // Site administration > Courses > Course request
 $CFG->enablecourserequests = 1;
 
+// Site administration > Courses > Backups > General backup defaults
+$CFG->forced_plugin_settings['backup']['backup_general_users'] = 0;
+
+// Site administration > Grades > General settings
+$CFG->recovergradesdefault = 1;
+
 // Site administration > Plugins > Activity modules > Assignment
 $CFG->assignment_maxbytes = 10485760;   // 100MB
+
+// Site administration > Plugins > Activity modules > Book
+$CFG->forced_plugin_settings['book']['requiremodintro'] = 0;
+
+// Site administration > Plugins > Activity modules > Blackboard Collaborate Session
+$CFG->elluminate_max_talkers = 2;
 
 // Site administration > Plugins > Activity modules > Folder
 $CFG->forced_plugin_settings['folder']['requiremodintro'] = 0;
@@ -229,14 +215,42 @@ $CFG->forced_plugin_settings['resource']['display'] = 4;   // "Force Download"
 
 // Site administration > Plugins > Activity modules > URL
 $CFG->forced_plugin_settings['url']['requiremodintro'] = 0;
+$CFG->forced_plugin_settings['url']['displayoptions'] = '0,1,2,3,4,5,6';    // allow every option
 $CFG->forced_plugin_settings['url']['printheading'] = 1;
-$CFG->forced_plugin_settings['url']['display'] = 5; // RESOURCELIB_DISPLAY_OPEN
+$CFG->forced_plugin_settings['url']['display'] = 3; // RESOURCELIB_DISPLAY_NEW
+
+// Site administration > Plugins > Assignment plugins > Submission plugins > File submissions
+$CFG->forced_plugin_settings['assignsubmission_file']['maxbytes'] = 10485760;
+
+// Site administration > Plugins > Assignment plugins > Feedback plugins > Feedback comments
+$CFG->forced_plugin_settings['assignfeedback_comments']['default'] = 1;
+
+// Site administration > Plugins > Assignment plugins > Feedback plugins > File feedback
+$CFG->forced_plugin_settings['assignfeedback_file']['default'] = 1;
+
+// Site administration > Plugins > Enrollments > Guest access
+$CFG->forced_plugin_settings['enrol_guest']['defaultenrol'] = 1;
+$CFG->forced_plugin_settings['enrol_guest']['status'] = 0;  // 0 is yes, 1 is no
+
+// Site administration > Plugins > Blocks > UCLA bruincast
+$CFG->forced_plugin_settings['block_ucla_bruincast']['source_url'] = 'http://www.oid.ucla.edu/help/info/bcastlinks/';
+$CFG->forced_plugin_settings['block_ucla_bruincast']['errornotify_email'] = 'ccle-operations@lists.ucla.edu';
+
+// Data Source Sync (bruincast, video furnace, library reserves) contact Email
+$CFG->forced_plugin_settings['tool_ucladatasourcesync']['contact_email']='ccle-operations@lists.ccle.ucla.edu';
+
+// Site administration > Plugins > Blocks > i>clicker Moodle integrate
+$CFG->forced_plugin_settings['block_iclicker']['block_iclicker_notify_emails'] = 'ccle-operations@lists.ucla.edu';
+$CFG->block_iclicker_notify_emails = 'ccle-operations@lists.ucla.edu';  // due to bad coding, two variables exist to do the same thing 
 
 // Site administration > Plugins > Licences > Manage licences
 $CFG->sitedefaultlicense = 'tbd';
 
 // Site administration > Plugins > Repositories > Common repository settings
-$CFG->legacyfilesinnewcourses = 0;  // disallow new course to enable legacy course files
+$CFG->legacyfilesinnewcourses = 1;  // enable new course to enable legacy course files
+
+// Site administration > Plugins > Local plugins > UCLA configurations
+$CFG->forced_plugin_settings['local_ucla']['registrar_cache_ttl'] = 3600;   // 1 hour
 
 // Site administration > Security > Site policies
 $CFG->forceloginforprofiles = true; 
@@ -277,45 +291,17 @@ $CFG->dbsessions = false;
 // Site administration > Server > Performance
 $CFG->extramemorylimit = '1024M';
 
-/** 
- *  Automatic Shibboleth configurations.
- *  Disabling in favor for GUI configurations.
- *  Keeping in code for sake of quick re-enabling and reference.
- *  To re-enable, add a '/' at the end of the following line.
- **
-$CFG->auth = 'shibboleth';
-$CFG->alternateloginurl = $CFG->wwwroot . '/login/ucla_login.php?shibboleth';
+// Site administration > Server > Update notifications
+$CFG->updateautocheck = 0;
 
-$CFG->forced_plugin_settings['auth/shibboleth'] = array(
-    'user_attribute'    => 'HTTP_SHIB_EDUPERSON_PRINCIPALNAME',
-    'convert_data'      => $_dirroot_ . '/shib_transform.php',
-    'logout_handler'    => $CFG->wwwroot . '/Shibboleth.sso/Logout',
-    'logout_return_url' => 'https://shb.ais.ucla.edu/shibboleth-idp/Logout',
-    'login_name'        => 'Shibboleth Login',
+// Site administration > Development > Experimental > Experimental settings
+$CFG->dndallowtextandlinks = 1;
 
-    'field_map_firstname'         => 'HTTP_SHIB_GIVENNAME',
-    'field_updatelocal_firstname' => 'onlogin',
-    'field_lock_firstname'        => 'locked',
-
-    'field_map_lastname'         => 'HTTP_SHIB_PERSON_SURNAME',
-    'field_updatelocal_lastname' => 'onlogin',
-    'field_lock_lastname'        => 'locked',
-
-    'field_map_email'        => 'HTTP_SHIB_MAIL',
-    'field_updatelocal_mail' => 'onlogin',
-    'field_lock_email'       => 'unlockedifempty',
-
-    'field_map_idnumber'         => 'HTTP_SHIB_UID',
-    'field_updatelocal_idnumber' => 'onlogin',
-    'field_lock_idnumber'        => 'locked',
-
-    'field_map_institution'         => 'HTTP_SHIB_IDENTITY_PROVIDER',
-    'field_updatelocal_institution' => 'onlogin',
-    'field_lock_institution'        => 'locked'
-);
-/**
- *  End shibboleth configurations.
- **/
+// Site administration > Development > Debugging
+$CFG->debug = 32767;    // DEVELOPER level debugging messages
+$CFG->debugdisplay = 1;  // show the debugging messages
+$CFG->perfdebug = 15; // show performance information
+$CFG->debugpageinfo = 1; // show page information
 
 // If you want to have un-revisioned configuration data, place in config_private
 // $CFG->dirroot is overwritten later
@@ -324,6 +310,44 @@ $_config_private_ = $_dirroot_ . '/config_private.php';
 if (file_exists($_config_private_)) {
     require_once($_config_private_);
 }
+
+/** 
+ *  Automatic Shibboleth configurations.
+ *  Disabling in favor for GUI configurations.
+ *  Keeping in code for sake of quick re-enabling and reference.
+ *  To re-enable, add a '/' at the end of the following line.
+ **/
+//$CFG->auth = 'shibboleth';
+//$CFG->alternateloginurl = $CFG->wwwroot . '/login/ucla_login.php?shibboleth';
+
+//$CFG->forced_plugin_settings['auth/shibboleth']['user_attribute'] = 'HTTP_SHIB_EDUPERSON_PRINCIPALNAME';
+//$CFG->forced_plugin_settings['auth/shibboleth']['convert_data'] = $_dirroot_ . '/shib_transform.php';
+//$CFG->forced_plugin_settings['auth/shibboleth']['logout_handler'] = $CFG->wwwroot . '/Shibboleth.sso/Logout';
+//$CFG->forced_plugin_settings['auth/shibboleth']['logout_return_url'] = 'https://shb.ais.ucla.edu/shibboleth-idp/Logout';
+//$CFG->forced_plugin_settings['auth/shibboleth']['login_name'] = 'Shibboleth Login';
+
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_map_firstname'] = 'HTTP_SHIB_GIVENNAME';
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_updatelocal_firstname'] = 'onlogin';
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_lock_firstname'] = 'locked';
+
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_map_lastname'] = 'HTTP_SHIB_PERSON_SURNAME';
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_updatelocal_lastname'] = 'onlogin';
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_lock_lastname'] = 'locked';
+
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_map_email'] = 'HTTP_SHIB_MAIL';
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_updatelocal_mail'] = 'onlogin';
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_lock_email'] = 'unlockedifempty';
+
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_map_idnumber'] = 'HTTP_SHIB_UID';
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_updatelocal_idnumber'] = 'onlogin';
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_lock_idnumber'] = 'locked';
+
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_map_institution'] = 'HTTP_SHIB_IDENTITY_PROVIDER';
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_updatelocal_institution'] = 'onlogin';
+//$CFG->forced_plugin_settings['auth/shibboleth']['field_lock_institution'] = 'locked';
+/**
+ *  End shibboleth configurations.
+ **/
 
 // set external database connection settings after config_private.php has
 // been read for the Registrar connection details
@@ -338,9 +362,7 @@ $CFG->forced_plugin_settings['enrol_database']['remoteuserfield'] = 'uid';
 $CFG->forced_plugin_settings['enrol_database']['remoterolefield'] = 'role';
 $CFG->forced_plugin_settings['enrol_database']['localcoursefield'] = 'id';
 $CFG->forced_plugin_settings['enrol_database']['localrolefield'] = 'id';
-// CCLE-2824 - Making sure that being assigned/unassigned/re-assigned doesn't 
-// lose grading data
-$CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 3;    // Disable course enrolment and remove roles
+$CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 0;    // Unenrol user from course (make sure recovergradesdefault is set)
 
 // CCLE-2910 - UNEX student support
 

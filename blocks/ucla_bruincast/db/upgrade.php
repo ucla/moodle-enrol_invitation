@@ -62,5 +62,20 @@ function xmldb_block_ucla_bruincast_upgrade($oldversion) {
         upgrade_block_savepoint(true, 2012011016, 'ucla_bruincast');        
     }
     
+    if ($oldversion < 2012091100) {
+
+        // Define field courseid to be added to ucla_bruincast
+        $table = new xmldb_table('ucla_bruincast');
+        $field = new xmldb_field('courseid', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null, 'id');
+
+        // Conditionally launch add field courseid
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // bruincast savepoint reached
+        upgrade_block_savepoint(true, 2012091100, 'ucla_bruincast');
+    }
+    
     return $result;
 }

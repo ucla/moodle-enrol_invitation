@@ -1,9 +1,11 @@
 <?php
 
+require_once($CFG->dirroot . '/blocks/navigation/renderer.php');
+
 /**
  *  To be honest, i don't know why i called it "block_" ucla_browseby_renderer
  **/
-class block_ucla_browseby_renderer {
+class block_ucla_browseby_renderer extends block_navigation_renderer {
     const browsebytableid = 'browsebycourseslist';
 
     static function ucla_custom_list_render($data, $min=8, $split=2, 
@@ -167,9 +169,18 @@ class block_ucla_browseby_renderer {
 
         $terms = terms_arr_sort($terms);
         $terms = array_reverse($terms);
+
+        // CCLE-3526: Dynamic selection of archive server notice
+        $precutoffterm = term_get_prev(
+            get_config('local_ucla', 'remotetermcutoff')
+        );
+
+        if (!$precutoffterm) {
+            $precutoffterm = '12W';
+        }
                 
         // CCLE-3141 - Prepare for post M2 deployment
-        $terms[] = '12W';   // make this say Winter 2012 or earlier
+        $terms[] = $precutoffterm;   // make this say Winter 2012 or earlier
         
         $urls = array();
         $page = $PAGE->url;
@@ -179,8 +190,12 @@ class block_ucla_browseby_renderer {
             $thisurl->param('term', $term);
             $url = $thisurl->out(false);
 
-            if ($term == '12W') {
-                $urls[$url] = 'Winter 2012 or earlier'; // yes, going to hardcode this...    
+            if (term_cmp_fn($term, $precutoffterm) < 0) {
+                // We have an option for cut-off term and earlier,
+                // so no point in displaying terms before the cut-off
+                continue;
+            } else if ($term == $precutoffterm) {
+                $urls[$url] = ucla_term_to_text($term) . ' or earlier'; // yes, going to hardcode this...    
             } else {
                 $urls[$url] = ucla_term_to_text($term);            
             }
@@ -194,5 +209,14 @@ class block_ucla_browseby_renderer {
 
         return $selects;
     }
+    
+    /**
+     *  Calls block_navigation_renderer's protected function.
+     **/
+    public function navigation_node($i, $a=array(), $e=null, 
+            array $o=array(), $d=1) {
+        return parent::navigation_node($i, $a, $e, $o, $d);
+    }
+
 }
 

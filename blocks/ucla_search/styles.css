@@ -1,0 +1,148 @@
+
+.block-ucla-search div.content {
+    padding: 0;
+}
+.as-collab-checkbox {
+    padding: 5px;
+}
+.as-collab-checkbox label {
+    margin-left: 5px;
+}
+#as-search-wrapper #advanced-search {
+    width: 100%;
+    -webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
+
+}
+#as-search-wrapper {
+/*    border: 1px solid #D1DBEF;*/
+    float: left;
+    width: 100%;
+    display: none;
+}
+
+/* YUI OVERRIDES */
+
+#as-search-wrapper .yui3-aclist {
+    display: block;
+    float: left;
+    position: relative !important;  /* Keeps content in the block */
+    clear: both;
+}
+#as-search-wrapper div.yui3-aclist-content {
+    box-shadow: 0px 0px 0px 0px #ccc;
+    border: 0;
+}
+#as-search-wrapper .yui3-aclist-input {
+    font-size: 1.2em;
+    color: #555555;
+    padding: 6px;
+    border: 4px solid #DFE7F4;
+}
+#as-search-wrapper .yui3-aclist-item {
+    border-bottom: 1px solid #D1DBEF;
+    padding: 0;
+}
+#as-search-wrapper .yui3-highlight {
+    background-color: #FF0;
+}
+#as-search-wrapper .yui3-aclist-item-active .yui3-highlight {
+    background-color: #1a6cf3;
+}
+#as-search-wrapper .yui3-aclist-item-active .as-search-result-summary {
+    color: #D1DBEF;
+}
+
+/* SEARCH TEMPLATE STYLES */
+
+#as-search-wrapper .as-search-result {
+    padding: 5px;
+    margin: 0;
+}
+#as-search-wrapper-page .as-search-result-shortname,
+#as-search-wrapper .as-search-result-shortname {
+    font-size: 1.0em;
+    font-weight: bold;
+}
+#as-search-wrapper-page .as-search-result-fullname,
+#as-search-wrapper .as-search-result-fullname {
+    line-height: 1.0em;
+    font-size: 1.0em;
+}
+#as-search-wrapper-page .as-search-result-summary,
+#as-search-wrapper .as-search-result-summary {
+    line-height: 1em;
+    font-size: 1em;
+    color: #555555;
+    padding-top: 4px;
+}
+
+
+/* JS ENABLED OVERRIDES */
+.yui3-skin-sam-autocomplete #coursesearch,
+.yui3-skin-sam-autocomplete #coursesearch2 {
+    display: none;
+}
+.yui3-skin-sam-autocomplete #as-search-wrapper-page,
+.yui3-skin-sam-autocomplete #as-search-wrapper {
+    display: block;
+}
+.yui3-skin-sam-autocomplete .region-content {
+/*    min-height: 500px;*/
+}
+#coursesearch2 {
+    padding: 5px;
+}
+
+/* COURSE SEARCH RESULTS PAGE OVERRIDES */
+.region-content .coursebox .info {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.region-content .coursebox .summary {
+    width: 100%;
+    float: left;
+}
+
+/* COURSE PAGE SEARCH BAR STYLES */
+/* autocomplete search */
+#as-search-wrapper-page {
+    width: 100%;
+    display: none;
+    margin-bottom: 20px;
+    text-align: center;
+}
+#as-search-wrapper-pages {
+    border: 1px solid #DDD;
+    float: left;
+}
+#as-search-wrapper-page .as-input-wrappers {
+    border: 1px solid #DDD;
+}
+#as-search-wrapper-page .yui3-aclist-input {
+    font-size: 16px;
+    color: #555555;
+    padding: 6px;
+    border: 4px solid #EEE;
+    width: 100%;
+    -webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
+}
+
+#as-search-wrapper-page .yui3-aclist-item {
+    text-align: left;
+    border-bottom: 1px solid #EEEEEE;
+    font-size: 14px;
+    color: #111;
+}
+
+#as-search-wrapper-page .yui3-highlight {
+    background-color: #FF0;
+}
+
+#as-search-wrapper-page .yui3-aclist-item-active .yui3-highlight {
+    background-color: #1a6cf3;
+}

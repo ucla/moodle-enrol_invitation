@@ -64,14 +64,17 @@ function ucla_require_db_helper() {
 }
 
 /** 
- *  Convenience function to include all the Registrar connection 
- *  functionality.
+ *  Function to include all the Registrar connection functionality.
+ *  This function MUST NOT do anything other than load libraries.
+ *  
  **/
 function ucla_require_registrar() {
     global $CFG;
 
     require_once($CFG->dirroot 
-        . '/local/ucla/uclaregistrar/registrar_query.class.php');
+        . '/local/ucla/registrar/registrar_stored_procedure.base.php');
+    require_once($CFG->dirroot 
+        . '/local/ucla/registrar/registrar_tester.php');
 }
 
 /**
@@ -324,6 +327,55 @@ function ucla_get_courses_by_terms($terms) {
 
     return index_ucla_course_requests($records, 'courseid');
 }
+    
+/**
+ *  Based on what is set by the enrolment plugin, match user info
+ *  provided by the Registrar to the local database.
+ **/
+function ucla_registrar_user_to_moodle_user($reginfo,
+                                            $cachedconfigs=null) {
+    global $DB;
+
+    if ($cachedconfigs) {
+        $configs = $cachedconfigs;
+    } else {
+        $configs = get_config('enrol_database');
+    }
+
+    $userfield         = strtolower($configs->remoteuserfield);
+
+    $localuserfield   = $configs->localuserfield;
+
+    $sqlparams = array();
+    $sqlbuilder = array();
+
+    $usersearch = array();
+
+    if ($localuserfield === 'username') {
+        $usersearch['mnethostid'] = $CFG->mnet_localhost_id; 
+        $usersearch['deleted'] = 0;
+    }
+
+    foreach ($usersearch as $f => $v) {
+        $sqlbuilder[] = "$f = ?";
+        $sqlparams[] = $v;
+    }
+
+    $mapping = false;
+
+    if (!empty($reginfo[$userfield])) {
+        $mapping = $reginfo[$userfield];
+    }
+    
+    $searchstr = "$localuserfield = ?";
+    $sqlparams[] = $mapping;
+
+    $sqlbuilder[] = $searchstr;
+    $usersql = implode(' AND ', $sqlbuilder);
+
+    return $DB->get_record_select('user', $usersql, $sqlparams, 
+        "*", IGNORE_MULTIPLE);
+}
 
 /**
  *  Returns a pretty looking term in the format of 12S => Spring 2012.
@@ -381,7 +433,7 @@ function is_summer_term($term) {
  * @return string       name in proper format
  **/
 function ucla_format_name($name=null) {
-    $name = ucfirst(strtolower(trim($name)));    
+    $name = ucfirst(textlib::strtolower(trim($name)));    
 
     if (empty($name)) {
         return '';
@@ -442,13 +494,13 @@ function ucla_format_name($name=null) {
     }    
 
     // starts with MC (and is more than 2 characters)?
-    if (strlen($name)>2 && (0 == strncasecmp($name, 'mc', 2))) {
-        $name[2] = strtoupper($name[2]);    // make 3rd character uppercase
+    if (textlib::strlen($name)>2 && (0 == strncasecmp($name, 'mc', 2))) {
+        $name[2] = textlib::strtoupper($name[2]);    // make 3rd character uppercase
     }
 
     // If name has conjunctions, e.g. "and", "of", "the", "as", "a"
-    if (in_array(strtolower($name), array('and', 'of', 'the', 'as', 'a'))) {
-        $name = strtolower($name);
+    if (in_array(textlib::strtolower($name), array('and', 'of', 'the', 'as', 'a'))) {
+        $name = textlib::strtolower($name);
     }
     
     return $name;
@@ -458,18 +510,20 @@ function ucla_format_name($name=null) {
 /**
  *  Populates the reg-class-info cron, the subject areas and the divisions.
  **/
-function local_ucla_cron() {
+function local_ucla_cron($terms = array()) {
     global $DB, $CFG;
 
-    // TODO Do a better job figuring this out
-    $terms = array($CFG->currentterm);
+    if (empty($terms)) {
+        $terms = array($CFG->currentterm);        
+    }
 
     include_once($CFG->dirroot . '/local/ucla/cronlib.php');
     ucla_require_registrar();
 
     // Customize these times...?
-    $works = array('classinfo', 'subjectarea', 'division');
-
+    //$works = array('classinfo', 'subjectarea', 'division');
+    $works = array('classinfo', 'subjectarea');
+    
     foreach ($works as $work) {
         $cn = 'ucla_reg_' . $work . '_cron';
         if (class_exists($cn)) {
@@ -489,6 +543,12 @@ function local_ucla_cron() {
         }
     }
 
+    // delete repo keys of users who haven't done anything in a short while,
+    // like uploading a file
+    include_once($CFG->dirroot . '/local/ucla/eventslib.php');
+    echo "Deleting repo keys\n";
+    delete_repo_keys();
+    
     return true;
 }
 
@@ -694,6 +754,8 @@ function get_moodlerole($pseudorole, $subject_area='*SYSTEM*') {
     global $CFG, $DB;
 
     require($CFG->dirroot . '/local/ucla/rolemappings.php');
+
+    $subject_area = trim($subject_area);
 
     // if mapping exists in file, then don't care what values are in the db
     if (!empty($role[$pseudorole][$subject_area])) {
@@ -1167,5 +1229,15 @@ function setup_js_tablesorter($tableid=null) {
         . '{widgets: ["zebra"]}); });');
 
     return $tableid;
+}
+
+function prompt_login($PAGE, $OUTPUT, $CFG, $course) {
+    $PAGE->set_url('/');
+    $PAGE->set_course($course);
+    $PAGE->set_title($course->shortname);
+    $PAGE->set_heading($course->fullname);
+    $PAGE->navbar->add(get_string('loginredirect','local_ucla'));
+            
+    notice(get_string('notloggedin', 'local_ucla'), get_login_url());
 }
 // EOF

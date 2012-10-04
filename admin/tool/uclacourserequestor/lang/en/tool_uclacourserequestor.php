@@ -6,6 +6,7 @@ $string['courserequestor:view'] = "View " . $string['pluginname'];
 $string['srslookup'] = "SRS number lookup (Registrar)";
 
 // Fetch from Registrar
+$string['registrarunavailable'] = 'The Registrar is unavailable, please try again later.';
 $string['fetch'] = 'Get courses from Registrar';
 $string['buildcourse'] = "Get course";
 $string['builddept'] = "Get department courses";
@@ -75,7 +76,7 @@ $string['crosslists'] = 'Crosslisted SRSes';
 $string['deletefetch'] = 'Ignore';
 $string['deleteviews'] = 'Remove request';
 
-$string['addmorecrosslist'] = 'Add SRS';
+$string['addmorecrosslist'] = 'Add additional SRS field';
 
 $string['clchange_removed'] = 'Removed crosslist: ';
 $string['clchange_added'] = 'Added crosslist: ';

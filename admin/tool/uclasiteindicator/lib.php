@@ -32,6 +32,9 @@ class siteindicator_site {
         
         $indicator = $DB->get_record('ucla_siteindicator', 
                 array('courseid' => $courseid), '*', MUST_EXIST);
+        
+        $this->property = new stdClass();
+        
         $this->property->courseid = $courseid;
         $this->property->type = $indicator->type;
         $this->_id = $indicator->id;
@@ -56,16 +59,15 @@ class siteindicator_site {
      * Change a site type.  Re-maps the role assignments if the site type
      * is of a different role group
      * 
-     * @param type $newtype of the site.
+     * @param string $newtype of the site.
      */
-    public function set_type($newtype) {
-        $uclaindicator = new siteindicator_manager();
-        
-        $mygroup = $uclaindicator->get_rolegroup_for_type($this->property->type);
-        $newgroup = $uclaindicator->get_rolegroup_for_type($newtype);
-        
+    public function set_type($newtype) {  
         // Do we need to change role assignments?
-        if($newgroup != $mygroup) {
+        if($newtype != $this->property->type) {
+            $uclaindicator = new siteindicator_manager();
+            
+            $mygroup = $uclaindicator->get_rolegroup_for_type($this->property->type);
+            $newgroup = $uclaindicator->get_rolegroup_for_type($newtype);            
             
             // Get course context
             $context = get_context_instance(CONTEXT_COURSE, $this->property->courseid);
@@ -87,11 +89,11 @@ class siteindicator_site {
                     }
                 }
             }
-        }
-        
-        // Update new site type
-        $this->property->type = $newtype;
-        $this->update();
+            
+            // Update new site type
+            $this->property->type = $newtype;
+            $this->update();            
+        }        
     }
     
     /**
@@ -283,6 +285,19 @@ class siteindicator_request {
  * 
  */
 class siteindicator_manager {
+    /* CONSTANTS */
+    const SITE_TYPE_INSTRUCTION = 'instruction';            // IEI instruction 
+    const SITE_TYPE_INSTRUCTION_NONIEI = 'instruction_noniei';  // Non-IEI instruction
+    const SITE_TYPE_NON_INSTRUCTION = 'non_instruction';
+    const SITE_TYPE_RESEARCH = 'research';
+    const SITE_TYPE_TEST = 'test';
+    
+    // special site type that is not displayed or assignable
+    const SITE_TYPE_SRS_INSTRUCTION = 'srs_instruction';
+    
+    const SITE_GROUP_TYPE_INSTRUCTION = 'instruction';
+    const SITE_GROUP_TYPE_PROJECT = 'project';
+    const SITE_GROUP_TYPE_TEST = 'test';
     
     // A group of roles.  A group contains a set 
     // of roles that are mutually excluseive from other groups.
@@ -297,8 +312,6 @@ class siteindicator_manager {
     // A role re-map scheme used when a site changes type
     private $_role_remap;
     
-    private $_types;
-    
     static $types = array();
     
     function __construct() {
@@ -307,35 +320,36 @@ class siteindicator_manager {
         $this->get_types_list();
         
         $this->_indicator_rolegroups = array(
-            'instruction' => get_string('r_instruction', 'tool_uclasiteindicator'),
-            'project' => get_string('r_project', 'tool_uclasiteindicator'),
-            'test' => get_string('r_test', 'tool_uclasiteindicator'),
+            self::SITE_GROUP_TYPE_INSTRUCTION => get_string('r_instruction', 'tool_uclasiteindicator'),
+            self::SITE_TYPE_INSTRUCTION_NONIEI => get_string('r_instruction', 'tool_uclasiteindicator'),
+            self::SITE_GROUP_TYPE_PROJECT => get_string('r_project', 'tool_uclasiteindicator'),
+            self::SITE_GROUP_TYPE_TEST => get_string('r_test', 'tool_uclasiteindicator'),
             );
         
         // Supported site types:
-        //   Instruction
+        //   Instruction (IEI)
+        //   Instruction (Non-IEI)
         //   Non-Instruction
         //   Research
         //   Test
         $this->_type_to_rolegroup_mapping = array(
-            'instruction' => 'instruction',
-            'non_instruction' => 'project',
-            'research' => 'project',
-            'test' => 'test',
+            self::SITE_TYPE_INSTRUCTION => self::SITE_GROUP_TYPE_INSTRUCTION,
+            self::SITE_TYPE_INSTRUCTION_NONIEI => self::SITE_GROUP_TYPE_INSTRUCTION,
+            self::SITE_TYPE_NON_INSTRUCTION => self::SITE_GROUP_TYPE_PROJECT,
+            self::SITE_TYPE_RESEARCH => self::SITE_GROUP_TYPE_PROJECT,
+            self::SITE_TYPE_TEST => self::SITE_GROUP_TYPE_TEST,
             );
         
         // Define the roles allowed for a particular role group
         // See CCLE-2948/CCLE-2949/CCLE-2913/site invite
         $instruction = array(
-            'editinginstructor',
+            'instructional_assistant',            
+            'editor',
+            'grader',            
             'student',
-            'sa_1',
-            'sa_2',
-            'sa_3',
-            'sa_4',
-            'sp_2',
+            'visitor'
             );
-        
+
         $project = array(
             'projectlead',
             'projectcontributor',
@@ -355,13 +369,13 @@ class siteindicator_manager {
             'project' => array(
                 'editinginstructor' => 'projectlead',
                 'nonediting_instructor' => 'projectcontributor',
-                'sa_1'      => 'projectlead',
-                'sa_2'      => 'projectcontributor',
-                'sa_3'      => 'projectparticipant',
-                'sa_4'      => 'projectcontributor',
+                'manager'      => 'projectlead',
+                'instructional_assistant'      => 'projectcontributor',
+                'grader'      => 'projectparticipant',
+                'editor'      => 'projectcontributor',
                 'student'   => 'projectparticipant',                
-                'sp_1'      => 'projectparticipant',             
-                'sp_2'      => 'projectviewer',                
+                'participant'      => 'projectparticipant',             
+                'visitor'      => 'projectviewer',                
                 'supervising_instructor' => 'projectlead',
                 'ta_instructor' => 'projectlead',
                 'ta_admin' => 'projectlead',
@@ -369,14 +383,14 @@ class siteindicator_manager {
                 ),
             'instruction' => array(
                 'projectlead'           => 'editinginstructor',
-                'projectcontributor'    => 'sa_4',
+                'projectcontributor'    => 'editor',
                 'projectparticipant'    => 'student',
-                'projectviewer'         => 'sp_2',                
-                'nonediting_instructor' => 'sa_3',
-                'supervising_instructor' => 'sa_2',
-                'ta_instructor' => 'sa_1',
-                'ta_admin' => 'sa_1',
-                'ta' => 'sa_4',
+                'projectviewer'         => 'visitor',                
+                'nonediting_instructor' => 'grader',
+                'supervising_instructor' => 'instructional_assistant',
+                'ta_instructor' => 'instructional_assistant',
+                'ta_admin' => 'instructional_assistant',
+                'ta' => 'participant',
                 )
             );
     }
@@ -441,23 +455,28 @@ class siteindicator_manager {
         
         if(empty(self::$types)) {
             self::$types = array(
-                'instruction' => array(
-                    'shortname' => 'instruction',
+                self::SITE_TYPE_INSTRUCTION => array(
+                    'shortname' => self::SITE_TYPE_INSTRUCTION,
                     'fullname' => get_string('site_instruction', 'tool_uclasiteindicator'),
                     'description' => get_string('site_instruction_desc', 'tool_uclasiteindicator'),
                     ),
-                'non_instruction' => array(
-                    'shortname' => 'non_instruction',
+                self::SITE_TYPE_INSTRUCTION_NONIEI => array(
+                    'shortname' => self::SITE_TYPE_INSTRUCTION_NONIEI,
+                    'fullname' => get_string('site_instruction_noniei', 'tool_uclasiteindicator'),
+                    'description' => get_string('site_instruction_noniei_desc', 'tool_uclasiteindicator'),
+                    ),
+                self::SITE_TYPE_NON_INSTRUCTION => array(
+                    'shortname' => self::SITE_TYPE_NON_INSTRUCTION,
                     'fullname' => get_string('site_non_instruction', 'tool_uclasiteindicator'),
                     'description' => get_string('site_non_instruction_desc', 'tool_uclasiteindicator'),
                     ),
-                'research' => array(
-                    'shortname' => 'research',
+                self::SITE_TYPE_RESEARCH => array(
+                    'shortname' => self::SITE_TYPE_RESEARCH,
                     'fullname' => get_string('site_research', 'tool_uclasiteindicator'),
                     'description' => get_string('site_research_desc', 'tool_uclasiteindicator'),
                     ),
-                'test' => array(
-                    'shortname' => 'test',
+                self::SITE_TYPE_TEST => array(
+                    'shortname' => self::SITE_TYPE_TEST,
                     'fullname' => get_string('site_test', 'tool_uclasiteindicator'),
                     'description' => get_string('site_test_desc', 'tool_uclasiteindicator'),
                     ),
@@ -769,7 +788,8 @@ class siteindicator_manager {
         
         $sql = "SELECT  c.id,
                         c.shortname,
-                        c.fullname
+                        c.fullname,
+                        c.category
                 FROM    {course} AS c 
                 LEFT JOIN {ucla_request_classes} AS r ON r.courseid = c.id 
                 LEFT JOIN {ucla_siteindicator} AS s ON s.courseid = c.id 
@@ -842,9 +862,108 @@ class siteindicator_manager {
         
         $list = array();        
         foreach($roles as $r) {
-            $list[$r->id] = trim($r->name);
+            $list[$r->shortname] = trim($r->name);
         }
         
         return $list;
     }        
+    
+    static function filter_category_tree(&$tree) {
+        global $DB;
+       
+        $recs = $DB->get_records_select('ucla_siteindicator', 'type NOT LIKE "test"',
+                null, '', 'courseid');
+        
+        $ids = array();
+        
+        foreach($recs as $r) {
+            $ids[] = $r->courseid;
+        }
+        
+        self::traverse_tree($tree, $ids);
+    }
+    
+    static function traverse_tree(&$tree, &$ids) {
+        $hascollab = false;
+        
+        // Dig into category tree
+        if(!empty($tree->categories)) {
+            foreach($tree->categories as &$cat) {
+                if(!self::traverse_tree($cat, $ids)) {
+                    $cat = null;
+                } else {
+                    $hascollab = true;
+                }
+            }
+        }
+        
+        // Check courses
+        if(!empty($tree->courses)) {            
+            foreach($tree->courses as &$c) {                
+                if(in_array($c->id, $ids)) {
+                    $hascollab = true;
+                } else {
+                    $c = null;
+                }                
+            }
+        }
+        
+        return $hascollab;
+    }
+    
+    static function searchbox_js_require() {
+        global $PAGE, $CFG;
+        
+        $rest_url = $CFG->wwwroot . '/admin/tool/uclasiteindicator/rest.php';
+        $course_url = $CFG->wwwroot . '/course/view.php?id=';
+        
+        $thisdir = '/' . $CFG->admin . '/tool/uclasiteindicator/';
+        $PAGE->requires->js(new moodle_url($thisdir . '/autocomplete.js'));
+        $PAGE->requires->js_init_call('M.collab_autocomplete.init', 
+                array($rest_url, $course_url));
+
+    }
+    
+    static function print_collab_searchbox() {
+        $input = html_writer::tag('input', '', array('id' => 'ac_input', 
+            'placeholder' => get_string('search_placeholder', 'tool_uclasiteindicator')));
+        $wrapper = html_writer::tag('div', $input, array('class' => 'ac-search-wrapper'));
+        $out = html_writer::tag('div', $wrapper, array('class' => 'ac-search-div'));
+        
+        return $out;
+    }
+    
+    static function get_query_result_json($q) {
+        global $DB;
+        
+        // Get collab sites (exclude test sites)
+        $query = "
+            SELECT c.id, c.fullname, c.shortname
+            FROM {course} c
+            JOIN {ucla_siteindicator} si ON c.id = si.courseid
+            WHERE c.fullname LIKE :query 
+            AND si.type NOT LIKE 'test'";
+        
+        $recs = $DB->get_records_sql($query, array('query' => '%'.$q.'%'));
+        
+        // Format results
+        $results = array();
+        
+        foreach($recs as $r) {
+            $obj = new stdClass();
+            $obj->text = $r->shortname . ': ' . $r->fullname;
+            $obj->id = $r->id;
+            $results[] = $obj;
+        }
+        
+        // Format output
+        $out = new stdClass();
+        
+        $out->query = $q;
+        $out->results = $results;
+        $out->numresults = count($results);
+        
+        // Return as JSON text
+        return json_encode($out);
+    }
 }

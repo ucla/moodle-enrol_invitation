@@ -41,7 +41,7 @@ if (! $cm = get_coursemodule_from_instance('data', $data->id, $data->course)) {
 }
 
 if(! $course = $DB->get_record('course', array('id'=>$cm->course))) {
-    print_error('invalidcourseid', '', '', $cm->course);
+    print_error('invalidcourseid');
 }
 
 // fill in missing properties needed for updating of instance
@@ -53,7 +53,7 @@ if (! $context = get_context_instance(CONTEXT_MODULE, $cm->id)) {
     print_error('invalidcontext', '');
 }
 
-require_login($course->id, false, $cm);
+require_login($course, false, $cm);
 require_capability(DATA_CAP_EXPORT, $context);
 
 // get fields for this database

@@ -1,7 +1,7 @@
 <?php // $Id: view.php,v 1.16 2009-06-05 20:12:38 jfilip Exp $
 
 /**
- * This page prints a particular instance of elluminate.
+ * This page prints a particular instance of Blackboard Collaborate.
  *
  * @version $Id: view.php,v 1.16 2009-06-05 20:12:38 jfilip Exp $
  * @author Justin Filip <jfilip@remote-learner.net>
@@ -12,9 +12,9 @@
     require_once dirname(dirname(dirname(__FILE__))) . '/config.php';
     require_once dirname(__FILE__) . '/lib.php';
 
-	global $DB, $PAGE;
+	global $DB, $COURSE;
     $id                 = optional_param('id', 0, PARAM_INT); // Course Module ID, or
-    $a                  = optional_param('a', 0, PARAM_INT);  // elluminate ID
+    $a                  = optional_param('a', 0, PARAM_INT);  // Blackboard Collaborate ID
     $editrecordingdesc  = optional_param('editrecordingdesc', 0, PARAM_INT);
     $delrecording       = optional_param('delrecording', 0, PARAM_INT);
     $hiderecording      = optional_param('hiderecording', 0, PARAM_INT);
@@ -22,52 +22,61 @@
     $hidegrouprecording = optional_param('hidegrouprecording', 0, PARAM_INT);
     $showgrouprecording = optional_param('showgrouprecording', 0, PARAM_INT);
 	$groupid			= optional_param('group', 0, PARAM_INT);
-
-    $url = new moodle_url('/mod/elluminate/view.php', array('id'=>$id));
-    $PAGE->set_url($url);    
-    
-    if ($id) {    	
+        
+    if ($id) {    
+    	$PAGE->set_url('/mod/elluminate/view.php', array('id'=>$id));	
         if (!$cm = get_coursemodule_from_id('elluminate', $id)) {
-            error("Course Module ID was incorrect");
+            print_error("Course Module ID was incorrect");
         }         
         if (!$course = $DB->get_record("course", array("id"=>$cm->course))) {
-            error("Course is misconfigured");
+            print_error("Course is misconfigured");
         }        
         if (!$elluminate = $DB->get_record("elluminate", array("id"=>$cm->instance))) {
-            error("Course module is incorrect");
+            print_error("Course module is incorrect");
         }
         if($elluminate->sessiontype == 0 && $elluminate->groupparentid > 0) {
         	$elluminate = $DB->get_record("elluminate", array("id"=>$elluminate->groupparentid));
         }             
-    } else {    	
+    } else {
+    	$PAGE->set_url('/mod/elluminate/view.php', array('id'=>$a));    	
         if (!$elluminate = $DB->get_record("elluminate", array("id"=>$a))) {
-            error("Course module is incorrect");
+            print_error("Course module is incorrect");
         }
         if (!$course = $DB->get_record("course", array("id"=>$elluminate->course))) {
-            error("Course is misconfigured");
+            print_error("Course is misconfigured");
         }
         if($elluminate->groupmode == 0) {
 	        if (!$cm = get_coursemodule_from_instance("elluminate", $elluminate->id, $course->id)) {
-	            error("Course Module ID was incorrect");
+	            print_error("Course Module ID was incorrect");
 	        }
         } else {
         	if($elluminate->groupid == 0) {
 	        	if (!$cm = get_coursemodule_from_instance("elluminate", $elluminate->id, $course->id)) {
-		            error("Course Module ID was incorrect");
+		            print_error("Course Module ID was incorrect");
 		        }
         	} else {
         		if (!$cm = get_coursemodule_from_instance("elluminate", $elluminate->groupparentid, $course->id)) {
-		            error("Course Module ID was incorrect");
+		            print_error("Course Module ID was incorrect");
 		        }
         	}
         	
         }	     
     }    
+	
+    //In Moodle 2.2.2 the groupmodeforce option is not being enforced on objects below the 
+    //course level. So now we look to see if the force group mode is on or not. If groupmodeforce is not turned on for the
+    //course, then we can trust the cm object to have the correct groupmode value. Otherwise, we do not trust the cm 
+    //object and instead get the value from our existing course.
+	if($cm->groupmode != $elluminate->groupmode) {
 		
-	if($cm->groupmode != $elluminate->groupmode) {		
+		if($course->groupmodeforce == 0) {
+			$elluminate->groupmode = $cm->groupmode;
+		} else {
+			$cm->groupmode = $elluminate->groupmode;
+		}
 		elluminate_check_for_group_change($cm, $elluminate);
-		$elluminate->groupmode = $cm->groupmode;
 	}
+	
 	elluminate_check_for_new_groups($elluminate);
 	
 	$context = get_context_instance(CONTEXT_MODULE, $cm->id);
@@ -75,8 +84,6 @@
 	
 	/// Check to see if groups are being used here
 	$groupmode    = $elluminate->groupmode;	
-	
-
 	
 	if($elluminate->sessiontype == 2 || $elluminate->sessiontype == 3) {
 		if(empty($groupid)) {	
@@ -106,7 +113,7 @@
 					break; 
 				}
 			} else {
-				error('You are not a member of any groups therefore cannot view this session.');
+				print_error('You are not a member of any groups therefore cannot view this session.');
 			}	
 		} else {
 			$currentgroupid = $groupid;
@@ -133,7 +140,7 @@
 			}
 		}		
 		if(!$elluminate) {
-			error('Error retrieving group sessions.');
+			print_error('Error retrieving group sessions.');
 		}		
 	} 
 	
@@ -146,8 +153,6 @@
     if (!$cm->visible){
         require_capability('moodle/course:viewhiddenactivities', $context);
     }
-
-    $PAGE->requires->js('/mod/elluminate/checkseats.js');
 	
     $candeleterecordings    = has_capability('mod/elluminate:deleterecordings', $context);
     $candeleteanyrecordings = has_capability('mod/elluminate:deleteanyrecordings', $context);
@@ -162,6 +167,7 @@
     $canmanagepreloads      = has_capability('mod/elluminate:managepreloads', $context);
     $canmoderatemeeting     = has_capability('mod/elluminate:moderatemeeting', $context, $USER->id);
     $canjoinmeeting         = has_capability('mod/elluminate:joinmeeting', $context, $USER->id);
+    $canviewguestlink         = has_capability('mod/elluminate:viewguestlink', $context);
 	
 	/// Determine if the current user can participate in this meeting.
     $participant = false;
@@ -238,12 +244,8 @@
     
    	$navigation = build_navigation('', $cm);
 
-    // START UCLA MOD: CCLE-2882 - Control panel missing for some course pages 
-    //print_header_simple(format_string($elluminate->name), "", $navigation, "", "", true, $buttontext, navmenu($course, $cm));
-    $header_title = format_string($elluminate->name);
-    print_header_simple($header_title, $header_title, $navigation, "", "", true, $buttontext, navmenu($course, $cm));
-    // END UCLA MOD: CCLE-2882
-        
+    print_header_simple(format_string($elluminate->name), $COURSE->fullname, $navigation, "", "", true, $buttontext, navmenu($course, $cm));
+
 	elive_groups_print_activity_menu($cm, 'view.php?id=' . $cm->id, false, $groupid);	
     $sesskey = !empty($USER->sesskey) ? $USER->sesskey : '';
 
@@ -272,7 +274,7 @@
         ($candeleteanyrecordings || ($candeleterecordings && ($elluminate->creator == $USER->id)))) {
 
         if (!$recording = $DB->get_record('elluminate_recordings', array('id'=>$delrecording))) {
-            error('Could not find meeting recording record');
+            print_error('Could not find meeting recording record');
         }
 
         if (optional_param('confirm', '', PARAM_ALPHANUM) == $sesskey) {
@@ -345,9 +347,6 @@
 
     add_to_log($course->id, "elluminate", "view", "view.php?id=$cm->id", "$elluminate->id");
 
-	
-    
-   
 	if($groupmode) {
 	    if (!empty($currentgroup)) {
 	        if (!empty($elluminate->customname)) {
@@ -357,7 +356,7 @@
 	            $elluminate->description = $groupname . ' - ' . $elluminate->description;
 	        }
 	    }
-	}	
+	}
 
     $formelements = array(
         get_string('name')                            => $elluminate->name,
@@ -474,17 +473,36 @@
         }
 	}
 
-    if ($participant && $hasstarted && !$hasfinished) {
-
-        $link = '<a href="' . $CFG->wwwroot .
+	if ($participant && !$hasfinished) {
+		//Create and display join session link
+		if ($hasstarted) {
+			$link = '<a href="' . $CFG->wwwroot .
         '/mod/elluminate/loadmeeting.php?id=' . $elluminate->id .
         '" target="_blank">' . get_string('joinsession', 'elluminate') . '</a>';
 
-        echo '<p class="elluminatejoinmeeting">' . $link . '</p>';
-        
-        echo get_string('supportlinktext', 'elluminate');
-        echo '<a href="' . elluminate_support_link() . '" target="_blank"> here </a>';
-    }
+			echo '<p class="elluminatejoinmeeting">' . $link . '</p>';
+
+			echo '<p class="elluminatesupportlink">';
+			echo get_string('supportlinktext', 'elluminate');
+			echo '<a href="' . elluminate_support_link() . '" target="_blank"> here </a></p>';
+		}
+		//Create and display external guest link
+		if ($canviewguestlink) {
+			$guest_link_text = elluminate_get_external_link_from_email_body($elluminate->meetingid);
+			 
+			if ($guest_link_text !== false) {
+				$guest_link = '<a href="' . $guest_link_text .	'" target = "_blank">' . $guest_link_text . '</a>';
+				echo '<p class="elluminateguestlink">' . get_string('guestlink', 'elluminate') . ': ' . $guest_link . '</p>';
+			} else {
+				if ($groupmode != 0) {
+					//This is a group/grouping session. If we cannot retrieve the link, it may be because they have to join the session first to have it created.
+					echo '<p class="elluminateguestlink">'. get_string('guestlinkgrouperror', 'elluminate') . '</p>';
+				} else {
+					echo '<p class="elluminateguestlink">'. get_string('guestlinkerror', 'elluminate') . '</p>';
+				}
+			}
+		}
+	}
 
 	echo '</div>';
 
@@ -512,7 +530,7 @@
 
             $link = '<a href="' . $CFG->wwwroot . '/mod/elluminate/loadrecording.php?id=' .
                     $recording->id . '" target="new">' . get_string('playrecording', 'elluminate') .
-                    '</a> - ' . userdate($recording->created) . ' - ' . $recording->recordingsize . ' KB';
+                    '</a> - ' . userdate($recording->created) . ' - ' . $recording->recordingsize . ' B';
 
         /// Include the recording description, if not empty.
             if (!empty($recording->description)) {
@@ -611,4 +629,3 @@
 /// Finish the page
     echo $OUTPUT->footer($course);
 
-?>

@@ -125,7 +125,7 @@ class block_ucla_easyupload extends block_base {
                 'tags' => array('ucla_cp_mod_common'),
                 'action' => new moodle_url($thispath,
                     array('course_id' => $course->id, 'type' => $common)),
-                'required_cap' => 'moodle/course:update'
+                'required_cap' => 'moodle/course:manageactivities'
             );
         }
         
@@ -135,7 +135,7 @@ class block_ucla_easyupload extends block_base {
                 'tags' => array('ucla_cp_mod_other'),
                 'action' => new moodle_url($thispath,
                     array('course_id' => $course->id, 'type' => $common)),
-                'required_cap' => 'moodle/course:update'
+                'required_cap' => 'moodle/course:manageactivities'
             );
         }
 

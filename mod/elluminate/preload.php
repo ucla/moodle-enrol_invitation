@@ -10,37 +10,43 @@
 	global $DB;
     require_once dirname(dirname(dirname(__FILE__))) . '/config.php';
     require_once dirname(__FILE__) . '/lib.php';
-    require_js($CFG->wwwroot . '/mod/elluminate/jquery-1.4.2.min.js');
-    require_js($CFG->wwwroot . '/mod/elluminate/preload.js');
+    $PAGE->requires->js('/mod/elluminate/jquery-1.4.2.min.js');
+	$PAGE->requires->js('/mod/elluminate/preload.js');
 
     $id     = optional_param('id', '', PARAM_INT);
+    $PAGE->set_url('/mod/elluminate/preload.php', array('id'=>$id));
     $delete = optional_param('delete', 0, PARAM_ALPHANUM);
+    
+    $a = new stdClass;
+    $a->uploadmaxfilesize = ini_get('upload_max_filesize');
+    $a->postmaxsize = ini_get('post_max_size');
 
 	if(empty($id)) {
-		error('Preload file was too large for upload!');
+		print_error('Preload file was too large for upload!');
 	}
     if (!$elluminate = $DB->get_record('elluminate', array('id'=>$id))) {
-        error('Could not get meeting (' . $id . ')');
+        print_error('Could not get meeting (' . $id . ')');
     }
     if (!$course = $DB->get_record('course', array('id'=>$elluminate->course))) {
-        error('Invalid course.');
+        print_error('Invalid course.');
     }    
     if($elluminate->groupmode == 0 && $elluminate->groupparentid == 0) {
 	    if (! $cm = get_coursemodule_from_instance('elluminate', $elluminate->id, $course->id)) {
-	        error('Course Module ID was incorrect');
+	        print_error('Course Module ID was incorrect');
 	    }
 	} else if ($elluminate->groupmode != 0 && $elluminate->groupparentid != 0){
 		if (! $cm = get_coursemodule_from_instance('elluminate', $elluminate->groupparentid, $course->id)) {
-	        error('Course Module ID was incorrect');
+	        print_error('Course Module ID was incorrect');
 	    }
 	} else if ($elluminate->groupmode != 0 && $elluminate->groupparentid == 0){
 	    if (! $cm = get_coursemodule_from_instance('elluminate', $elluminate->id, $course->id)) {
-	        error('Course Module ID was incorrect');
+	        print_error('Course Module ID was incorrect');
 	    }
 	} else {
-		error('Elluminate Live! Group Error');
+		print_error('Blackboard Collaborate Group Error');
 	}
-
+		
+	require_course_login($course, true, $cm);
     $context = get_context_instance(CONTEXT_MODULE, $cm->id);
     require_capability('mod/elluminate:managepreloads', $context);
 
@@ -52,7 +58,7 @@
         $currentgroup = 0;
     }
     
-    if(empty($elluminate->meetingid) && $elluminate->groupmode != 0) {
+    if(empty($elluminate->meetingid)) {
 		elluminate_group_instance_check($elluminate, $cm->id);
 	}
 
@@ -79,7 +85,7 @@
                 if ($preload->presentationid == $delete) {
                 /// Delete the preload from the meeting.
 				if (!elluminate_delete_preload($preload->presentationid, $elluminate->meetingid)) {
-                        error(get_string('preloaddeleteerror', 'elluminate'));
+                        print_error(get_string('preloaddeleteerror', 'elluminate'));
                     }
                     redirect($CFG->wwwroot . '/mod/elluminate/view.php?id=' . $cm->id,
                              get_string('preloaddeletesuccess', 'elluminate'), 5);
@@ -102,17 +108,17 @@
 			            
              /// Make sure the file uses a valid whiteboard preload file extension.
             if (!eregi('\.([a-zA-Z0-9]+)$', $filename, $match)) {
-                error(get_string('preloadnofileextension', 'elluminate'));
+                print_error(get_string('preloadnofileextension', 'elluminate'));
             }
 
             if (!isset($match[1])) {
-                error(get_string('preloadnofileextension', 'elluminate'));
+                print_error(get_string('preloadnofileextension', 'elluminate'));
             }           
 
         	/// Ensure that the document actually contains XML.  Only required for wbd and wbp files
         	if(strtolower($match[1]) == 'wbd' || strtolower($match[1]) == 'wbp') {
 	            if (!simplexml_load_file($filepath)) {
-	                error(get_string('preloadinvalidfilecontents', 'elluminate'));
+	                print_error(get_string('preloadinvalidfilecontents', 'elluminate', $a));
 	            }
         	}
         	
@@ -120,30 +126,30 @@
             	strtolower($match[1]) == 'wbp' ||
             	strtolower($match[1]) == 'elp' ||
             	strtolower($match[1]) == 'elpx')) {
-                error(get_string('preloadinvalidfileextension', 'elluminate'));
+                print_error(get_string('preloadinvalidfileextension', 'elluminate'));
             }    
                                    	
             if (empty($filesize)) {
                 //print_error('preloademptyfile', 'elluminate', $baseurl);
-                error(get_string('preloademptyfile', 'elluminate'));
+                print_error(get_string('preloadinvalidfilecontents', 'elluminate', $a));
             } 
 
        		 /// The file is valid, let's proceed with creating the preload.
        		/// Read the file contents into memory.
             if (!$filedata = file_get_contents($filepath)) {
-                error(get_string('preloadcouldnotreadfilecontents', 'elluminate'));
+                print_error(get_string('preloadcouldnotreadfilecontents', 'elluminate'));
             }
 
             /// Create the preload object on the server.
             $preload = elluminate_upload_presentation_content($filename, '', $filedata, $USER->id, $actual_filename);
             if (empty($preload->presentationid)) {
-                error(get_string('preloadcouldnotcreatepreload', 'elluminate'));
+                print_error(get_string('preloadcouldnotcreatepreload', 'elluminate'));
             }
 
         /// Associate the preload object with the meeting.
         
             if (!elluminate_set_session_presentation($preload->presentationid, $elluminate->meetingid)) {
-                error(get_string('preloadcouldnotaddpreloadtomeeting', 'elluminate'));
+                print_error(get_string('preloadcouldnotaddpreloadtomeeting', 'elluminate'));
             }
 		
             redirect($CFG->wwwroot . '/mod/elluminate/view.php?id=' . $cm->id,
@@ -158,10 +164,6 @@
 
 /// Print the main part of the page
     echo $OUTPUT->box_start('generalbox', 'notice');
-	    
-    $a = new stdClass;
-	$a->uploadmaxfilesize = ini_get('upload_max_filesize');
-	$a->postmaxsize = ini_get('post_max_size');
 
     echo '<p>'. get_string('preloadchoosewhiteboardfile', 'elluminate', $a) . '</p>';
     echo '<form action="preload.php" method="post" enctype="multipart/form-data">';
@@ -177,4 +179,4 @@
 	echo $OUTPUT->box_end();
     echo $OUTPUT->footer($course);
 
-?>
+

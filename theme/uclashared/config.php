@@ -18,6 +18,7 @@ $THEME->sheets = array(
     'base',
     'core',     // custom core stlye changes
     'general',
+    'responsive',
 );
 
 $tf_general     = 'course.php';

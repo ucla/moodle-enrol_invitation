@@ -23,9 +23,10 @@ require_once($CFG->dirroot . '/blocks/ucla_browseby/'
     . 'browseby_handler_factory.class.php');
 require_once($CFG->dirroot . '/' . $CFG->admin 
     . '/tool/uclacoursecreator/uclacoursecreator.class.php');
+require_once($CFG->dirroot . '/blocks/navigation/renderer.php');
+require_once($CFG->dirroot . '/blocks/navigation/block_navigation.php');
 
-
-class block_ucla_browseby extends block_list {
+class block_ucla_browseby extends block_navigation {
     var $termslist = array();
 
     function init() {
@@ -38,22 +39,35 @@ class block_ucla_browseby extends block_list {
      **/
     function get_content() {
         global $CFG;
-        $this->content->icons = array();
+        
+        if (is_null($this->content)) {
+            $this->content = new stdClass();
+        }       
 
         $link_types = browseby_handler_factory::get_available_types();
 
         $blockconfig = get_config('block_ucla_browseby');
 
+        $elements = array();
+        
         foreach ($link_types as $link_type) {
             if (empty($blockconfig->{'disable_' . $link_type})) {
-                $this->content->items[] = html_writer::link(
+                $elements[] = navigation_node::create(
+                    get_string('link_' . $link_type, 'block_ucla_browseby'),
                     new moodle_url(
                         $CFG->wwwroot . '/blocks/ucla_browseby/view.php',
                         array('type' => $link_type)
-                    ), get_string('link_' . $link_type, 'block_ucla_browseby')
+                    ), navigation_node::TYPE_SECTION
                 );
             }
         }
+
+        $renderer = $this->page->get_renderer('block_ucla_browseby');
+        
+        $this->content->text = $renderer->navigation_node($elements,
+            array('class' => 'block_tree list'));
+        
+        return $this->content;
     }
 
     function instance_allow_config() {
@@ -64,6 +78,12 @@ class block_ucla_browseby extends block_list {
         return false;
     }
 
+    function html_attributes() {
+        $orig = parent::html_attributes();
+        $orig['class'] .= ' block_ucla_course_menu block_navigation';
+
+        return $orig;
+    }
     /**
      *  Returns the applicable places that this block can be added.
      **/
@@ -109,7 +129,14 @@ class block_ucla_browseby extends block_list {
     }
 
     function cron() {
-        return $this->run_sync();        
+        $result = false;
+        try {
+            $result = $this->run_sync();
+        } catch(Exception $e) {
+            // mostly likely couldn't connect to registrar
+            mtrace($e->getMessage());
+        }
+        return $result;        
     }
 
     function sync($terms, $subjareas=null) {
@@ -149,27 +176,38 @@ class block_ucla_browseby extends block_list {
             $term = $record->term;
             $subjarea = $record->subjarea;
 
-            echo "Handling $term $subjarea \n";
+            echo "Handling $term $subjarea...";
 
             $thisreg = array('term' => $term, 
                 'subjarea' => $subjarea);
-            $toreg = array($thisreg);
 
             $courseinfo = $this->run_registrar_query(
-                'ccle_coursegetall', $toreg);
+                'ccle_coursegetall', $thisreg);
 
-            foreach ($courseinfo as $ci) {
-                $ci['term'] = $term;
-                $courseinfos[] = $ci;
+            if ($courseinfo) {
+                foreach ($courseinfo as $ci) {
+                    $ci['term'] = $term;
+                    $courseinfos[] = $ci;
+                }
+            } else {
+                echo "no course data!\n";
+                continue;
             }
 
             $instrinfo = $this->run_registrar_query(
-                'ccle_getinstrinfo', $toreg);
+                'ccle_getinstrinfo', $thisreg);
 
-            foreach ($instrinfo as $ii) {
-                $ii['subjarea'] = $subjarea;
-                $instrinfos[] = $ii;
+            if ($instrinfo) {
+                foreach ($instrinfo as $ii) {
+                    $ii['subjarea'] = $subjarea;
+                    $instrinfos[] = $ii;
+                }
+            } else {
+                echo "no instr data!\n";
+                continue;
             }
+
+            echo "done\n";
         }
 
         // Save which courses need instructor informations.
@@ -247,9 +285,7 @@ class block_ucla_browseby extends block_list {
     }
    
     protected function run_registrar_query($q, $d) {
-        ucla_require_registrar();
-
-        return registrar_query::run_registrar_query($q, $d, true);
+        return registrar_query::run_registrar_query($q, $d);
     }
     protected function get_records($t, $p, $o, $s) {
         global $DB;

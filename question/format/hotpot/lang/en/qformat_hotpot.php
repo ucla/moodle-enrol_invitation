@@ -16,7 +16,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Strings for component 'qformat_hotpot', language 'en', branch 'MOODLE_20_STABLE'
+ * Strings for component 'qformat_hotpot', language 'en'
  *
  * @package   qformat_hotpot
  * @copyright 2010 onwards Gordon Bateson <gordon.bateson@gmail.com>

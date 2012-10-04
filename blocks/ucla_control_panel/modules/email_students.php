@@ -43,7 +43,7 @@ class ucla_cp_module_email_students extends ucla_cp_module {
         $this->post_enabled = true;
 
         // Setting default capability
-        $this->capability = 'moodle/course:update';
+        $this->capability = 'mod/forum:addnews';
 
         // Test for forum functionality and catching
         $init_name = 'email_students';
@@ -57,7 +57,7 @@ class ucla_cp_module_email_students extends ucla_cp_module {
             $init_name = 'email_students_fix';
 
             $init_action = new moodle_url($CFG->wwwroot
-                . '/course/view.php', array('topic' => '-1',
+                . '/course/view.php', array('section' => '0',
                     'id' => $course->id));
         } else if (empty($course_forums)) {
             if ($course_forum !== false) {

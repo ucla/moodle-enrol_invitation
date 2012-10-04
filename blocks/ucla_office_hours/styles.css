@@ -2,19 +2,6 @@
     width: 85%;
 }
 
-.officehours_form #header_office_info,
-.officehours_form #header_contact_info {
-    background: #FEFCF6;
-    border: 1px solid #B7AA96;
-}
-
-.officehours_form fieldset legend {
-    width: auto;
-    background: #FCE096;
-    color: #394A6E;    
-    padding: 0 20px;
-}
-
 .officehours_form .fstatic {
     font-style: italic;
 }
@@ -35,45 +22,6 @@
 /* for submit buttons */
 .officehours_form.mform .fitem fieldset.felement {
     margin-left: 0;
-}
-
-/* stlying for instructors/tas contact listing and office hours */
-.instr-info table {
-    margin-top: 20px;
-    border-collapse: collapse;
-    border-spacing: 0;
-    background-color: transparent;
-    width: 100%;
-    margin-bottom: 18px;
-    /* borrowed from bootstrap table */
-    border: 1px solid #dddddd;
-    border-collapse: separate;
-    *border-collapse: collapsed;
-    -webkit-border-radius: 4px;
-    -moz-border-radius: 4px;
-    border-radius: 4px;
-}
-
-.instr-info table thead {
-    background: #EFEFEF;
-    color: #666;
-}
-
-.instr-info table th, 
-.instr-info table td {
-    padding: 8px;
-    line-height: 18px;
-    text-align: left;
-    vertical-align: top;
-}
-
-.instr-info table tbody tr:nth-child(odd) td,
-.instr-info table tbody tr:nth-child(odd) th {
-  background-color: #f9f9f9;
-}
-
-.instr-info table tbody td span {
-    margin-right: 10px;
 }
 
 /* START feature/CCLE-3002-office-table-display */

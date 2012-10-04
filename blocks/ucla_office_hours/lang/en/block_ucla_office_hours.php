@@ -6,6 +6,12 @@ $string['pluginname'] = 'UCLA office hours';
 $string['edit_office_hours'] = 'Update office hours & contact info';
 $string['edit_office_hours_post'] = 'Update your office hours, office location and phone number.';
 
+// Office hours and contact information heading displays
+$string['office'] = 'Office';
+$string['phone'] = 'Phone';
+$string['email'] = 'Email';
+$string['office_hours'] = 'Office hours';
+
 $string['header'] = 'Update office hours and contact info for {$a}';
 
 $string['header_office_info'] = 'Office information';

@@ -17,7 +17,7 @@ require_once($CFG->dirroot . '/local/ucla/lib.php');
 
 /******************************** Common Functions *********************/
 // Special section for special people
-$temp_cap = 'moodle/course:update';
+$temp_cap = 'moodle/course:manageactivities';
 // Saving typing time
 $temp_tag = array('ucla_cp_mod_common');
 
@@ -47,11 +47,10 @@ $course_info = ucla_get_course_info($course->id);
 if (!empty($course_info)) {
     $temp_tag = array('ucla_cp_mod_myucla');
 
-    $modules[] = new ucla_cp_module('ucla_cp_mod_myucla', null, null, $ta_cap);
-    $first_course = array_shift(array_values($course_info));
-
+    $modules[] = new ucla_cp_module('ucla_cp_mod_myucla', null, null, $ta_cap);        
+    
     // If this is a summer course
-    $session = get_session_code($first_course);
+    $session = get_session_code($course_info[0]);
 
     // Add individual links for each crosslisted course
     foreach ($course_info as $info_for_one_course) {
@@ -126,12 +125,10 @@ if (enrol_invitationenrol_available($course->id)) {
 }
 
 /******************************** Advanced Functions *********************/
-$modules[] = new ucla_cp_module('ucla_cp_mod_advanced', null, null, $temp_cap);
+$modules[] = new ucla_cp_module('ucla_cp_mod_advanced', null, null, 'moodle/course:manageactivities');
 
 // Saving typing...again
 $temp_tag = array('ucla_cp_mod_advanced');
-//Redundency in case prev temp_cap isn't this one.
-$temp_cap = 'moodle/course:update';
 
 // Role assignments for particular courses.
 if (ucla_cp_module::load('assign_roles')) {
@@ -171,7 +168,7 @@ $modules[] = new ucla_cp_module('backup_restore', new moodle_url(
 // Change course settings!
 $modules[] = new ucla_cp_module('course_edit', new moodle_url(
                         $CFG->wwwroot . '/course/edit.php', array('id' => $course->id)),
-                $temp_tag, $temp_cap);
+                $temp_tag, 'moodle/course:update');
 
 // This is for course files!
 $modules[] = new ucla_cp_module('course_files', new moodle_url(
@@ -182,7 +179,7 @@ $modules[] = new ucla_cp_module('course_files', new moodle_url(
 // Grade viewer
 $modules[] = new ucla_cp_module('course_grades', new moodle_url(
                         $CFG->wwwroot . '/grade/index.php', array('id' => $course->id)),
-                $temp_tag, null);
+                $temp_tag, 'gradereport/grader:view');
 
 // Activity report (In M19 there was one link to get all reports, however in 
 // M2 no such link exists anymore. The most used report is the activity report
@@ -210,11 +207,23 @@ if ($question_edit_contexts->have_one_edit_tab_cap('questions')) {
 }
 
 /* * ****************************** Student Functions ******************** */
-//Only display this section if the user is a student in the course.
+//Only display this section if the user is a student in the course
+//  or if a user "switches roles" to "student".
 //TODO: this module currently depends on the myucla_row_renderer since that
 //renderer opens links in new tabs (which the normal renderer does not normally
 //do. If the control panel is to be refactored later, make this not terrible
-if (has_role_in_context('student', $context)) {
+
+$is_role_switched_student = false;
+
+if (is_role_switched($course->id)) {
+    $student_role_id = $DB->get_field('role', 'id', array('shortname' => 'student'), IGNORE_MISSING);
+    $user_role_id = ($USER->access['rsw'][$context->path]);
+    if ($user_role_id == $student_role_id) {
+        $is_role_switched_student = true;
+    }
+}
+
+if (has_role_in_context('student', $context) || $is_role_switched_student) {
     $temp_cap = null;
     $temp_tag = array('ucla_cp_mod_student');
     $modules[] = new ucla_cp_module('ucla_cp_mod_student', null, null, $temp_cap);

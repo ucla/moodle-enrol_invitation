@@ -6,6 +6,9 @@ require_once($CFG->dirroot . '/blocks/navigation/block_navigation.php');
 
 class block_ucla_course_menu extends block_navigation {
     var $contentgenerated = false;
+    
+    // the section user is currently viewing
+    var $displaysection = 0;
    
     // Hook function used to get other blocks' junk into this trunk
     const BLOCK_HOOK_FN = 'get_navigation_nodes';
@@ -18,6 +21,7 @@ class block_ucla_course_menu extends block_navigation {
         
         $this->blockname = get_class($this);
         $this->title = get_string('title', $this->blockname);
+        $this->content = new stdClass();
     }
 
     //Hide the delete icon, make block undeletable.
@@ -89,30 +93,6 @@ class block_ucla_course_menu extends block_navigation {
     }
 
     /**
-     *  Gets the GET param that is used to describe which topic
-     *  you are viewing for a particular course format.
-     *
-     *  @todo this function shouldn't be here...
-     *  @return string
-     **/
-    function get_topic_get() {
-        $courseformat = $this->get_course_format();
-        $fn = 'callback_' . $courseformat . '_request_key';
-
-        if (function_exists($fn)) {
-            $format_rk = $fn();
-        } else {
-            // Just assume it is topic
-            $format_rk = callback_topics_request_key();
-
-            debugging('Could not access GET param for format! Using [' 
-                . $format_rk . ']');
-        }
-
-        return $format_rk;
-    }
-
-    /**
      *  Called by Moodle.
      **/
     function get_content() {
@@ -121,21 +101,27 @@ class block_ucla_course_menu extends block_navigation {
         if ($this->contentgenerated === true) {
             return $this->content;
         }
+
+        // get course preferences and store section user is viewing
+        $course_prefs = null;
+        if (class_exists('ucla_course_prefs') && 
+                function_exists('ucla_format_figure_section')) {
+            $course_prefs = new ucla_course_prefs($this->page->course->id);            
+            $this->displaysection = ucla_format_figure_section($this->page->course, $course_prefs);                            
+        }         
         
         $renderer = $this->get_renderer();
          
         //CCLE-2380 Rearrange Course Materials link when editing is on        
         // only display rearrange tool in ucla format
         if ($this->page->user_is_editing() && 
-                $this->get_course_format() == 'ucla' && 
-                function_exists('ucla_format_figure_section')) {
-            list($thistopic, $ds) = ucla_format_figure_section($this->page->course);        
+                $this->get_course_format() == 'ucla') {
 
             //CCLE-2379 Modify Course Menu Sections 	
 	   $modify_coursemenu = html_writer::link(
                     new moodle_url('/blocks/ucla_modify_coursemenu/modify_coursemenu.php', 
                         array('courseid' => $this->page->course->id, 
-                              'topic' => $ds)), 
+                              'section' => $this->displaysection)), 
                     get_string('pluginname', 'block_ucla_modify_coursemenu'));            
             $this->content->text .= html_writer::tag('div', $modify_coursemenu, 
                     array('class' => 'edit_control_links'));            
@@ -144,10 +130,19 @@ class block_ucla_course_menu extends block_navigation {
             $rearrange = html_writer::link(
                     new moodle_url('/blocks/ucla_rearrange/rearrange.php', 
                         array('courseid' => $this->page->course->id, 
-                              'topic' => $ds)), 
+                              'section' => $this->displaysection)), 
                     get_string('pluginname', 'block_ucla_rearrange'));            
             $this->content->text .= html_writer::tag('div', $rearrange, 
                     array('class' => 'edit_control_links'));
+            
+            // copyright link
+            $copyright = html_writer::link(
+                    new moodle_url('/blocks/ucla_copyright_status/view.php', 
+                        array('courseid' => $this->page->course->id, 
+                              'section' => $this->displaysection)), 
+                    get_string('pluginname', 'block_ucla_copyright_status'));            
+            $this->content->text .= html_writer::tag('div', $copyright, 
+                    array('class' => 'edit_control_links'));            
         }
                        
         // get section nodes
@@ -155,13 +150,10 @@ class block_ucla_course_menu extends block_navigation {
         $section_elements = $this->trim_nodes($section_elements);        
         $this->content->text .= $renderer->navigation_node($section_elements,
             array('class' => 'block_tree list'));
-
+        
         // Separate out non-section nodes so that we can have a different style
         // to them.
         $block_elements = $this->create_block_elements();
-        if (class_exists('ucla_course_prefs')) {
-            $course_prefs = new ucla_course_prefs($this->page->course->id);            
-        } 
         
         $module_elements = array();
         if(!isset($course_prefs) ||
@@ -207,30 +199,35 @@ class block_ucla_course_menu extends block_navigation {
         $course_id = $this->page->course->id;
 
         // Create section links
-        $sections = get_all_sections($course_id);
+        $modinfo = get_fast_modinfo($this->page->course);
+        $sections = $modinfo->get_section_info_all();
 
         // the elements
         $elements = array();
 
-        $topic_param = $this->get_topic_get();
-        if ($this->get_course_format() == 'ucla' 
-                && function_exists('ucla_format_figure_section')) {
-            list($thistopic, $ds) = ucla_format_figure_section(
-                $this->page->course);
-
-            navigation_node::override_active_url(
-                new moodle_url(
-                    '/course/view.php',
-                    array(
-                        'id' => $course_id,
-                         $topic_param => $ds
-                    )
-                )
-            );
-        } else {
-            $thistopic = false;
-        }
-
+        // for "Show all"
+        $showallurlparams = array(
+            'id' => $course_id,
+            'show_all' => 1
+        );              
+        
+        // set active url to make sure that section 0 and show all are highlighted
+        if ($this->get_course_format() == 'ucla') {
+            // This will allow the navigation node to highlight the 
+            // current section, including show all
+            // but this won't change it for the navigation bar
+            if ($this->displaysection == UCLA_FORMAT_DISPLAY_ALL) {          
+                navigation_node::override_active_url(
+                    new moodle_url('/course/view.php', $showallurlparams)
+                );
+            } else if ($this->displaysection >= 0) {
+                navigation_node::override_active_url(
+                    new moodle_url('/course/view.php', 
+                            array('id' => $course_id, 'section' => $this->displaysection))
+                );
+            }
+        }                
+        
         $viewhiddensections = has_capability(
             'moodle/course:viewhiddensections', $this->page->context);
         
@@ -258,25 +255,23 @@ class block_ucla_course_menu extends block_navigation {
             $elements[$key] = navigation_node::create($sectionname,
                 new moodle_url('/course/view.php', array(
                     'id' => $course_id,
-                    $topic_param => $sectnum
+                    'section' => $sectnum
                 )), navigation_node::TYPE_SECTION
             );
             
             // Indicate that section is hidden
             if(!$section->visible) {
-                $elements[$key]->classes = array("block_ucla_course_menu_hidden");
+                $elements[$key]->classes = array('block_ucla_course_menu_hidden');
             }
         }
 
-        // TODO get navigation to detect this if it is view all.
-        if (defined('UCLA_FORMAT_DISPLAY_ALL')) {
-            // Create view-all section link
+        // Create view-all section link
+        if ($this->get_course_format() == 'ucla') {
             $elements['view-all'] = navigation_node::create(
                 get_string('show_all', 'format_ucla'),
-                new moodle_url('/course/view.php', array(
-                    'id' => $course_id,
-                    $topic_param => UCLA_FORMAT_DISPLAY_ALL
-                )), navigation_node::TYPE_SECTION);
+                new moodle_url('/course/view.php', $showallurlparams), 
+                navigation_node::TYPE_SECTION
+            );
         }
         
         return $elements;
@@ -409,7 +404,7 @@ class block_ucla_course_menu extends block_navigation {
      */
     function set_default_location() {
         global $DB;        
-        // make sure that the block is in the top, left
+        // check block_instances table
         if ($this->instance->defaultregion != BLOCK_POS_LEFT ||
                 $this->instance->defaultweight != -10) {
             // block is not in proper location, so set it
@@ -417,14 +412,59 @@ class block_ucla_course_menu extends block_navigation {
             $this->instance->defaultweight = -10;
             $DB->update_record('block_instances', $this->instance);             
         }
+        
+        // check block_positions table
+        if (!empty($this->instance->blockpositionid) &&
+                ($this->instance->region != BLOCK_POS_LEFT ||
+                 $this->instance->weight != -10)) {
+            // block is not in proper position for page, construct 
+            // block_positions object
+            $block_positions = new stdClass();
+            $block_positions->id = $this->instance->blockpositionid;
+            $block_positions->region = BLOCK_POS_LEFT;
+            $block_positions->weight = -10;
+            $DB->update_record('block_positions', $block_positions);             
+        }        
+        
+        // see if any other bocks are above this block
+        $where = 'contextid = :contextid AND blockinstanceid <> :id AND region = :region AND weight <= :weight';
+        $top_blocks = $DB->get_records_select('block_positions', $where, 
+                array('contextid' => $this->instance->parentcontextid, 
+                      'id' => $this->instance->id,
+                      'region' => $this->instance->defaultregion,
+                      'weight' => $this->instance->defaultweight));        
+        if (!empty($top_blocks)) {
+            // found blocks that are above site menu, move them down to -9
+            foreach ($top_blocks as $top_block) {
+                $top_block->weight = -9;
+                $DB->update_record('block_positions', $top_block, true);
+            }
+            
+            // if we found blocks above site menu, then site menu was moved down
+            $where = 'contextid = :contextid AND blockinstanceid = :id AND weight <> :weight';
+            $not_top_block = $DB->get_record_select('block_positions', $where, 
+                    array('contextid' => $this->instance->parentcontextid, 
+                          'id' => $this->instance->id,
+                          'weight' => $this->instance->defaultweight));            
+            if (!empty($not_top_block)) {
+                // we are not at the top, so fix it
+                $not_top_block->weight = $this->instance->defaultweight;
+                $DB->update_record('block_positions', $not_top_block, true);
+            }            
+        }
     }
     
     /**
      * Set block defaults for trimlength and trimmode 
      */
-    function specialization() {        
+    function specialization() {                
         // set default values for trimlength and trimmode
         $set_defaults = false;
+        
+        if (is_null($this->config)) {
+            $this->config = new stdClass();
+        }        
+        
         if (!isset($this->config->trimlength)) {
             // if this is the first time loading the block, then use default trimlength
             $this->config->trimlength = get_config('block_ucla_course_menu', 'trimlength');

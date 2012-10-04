@@ -141,7 +141,7 @@ class tool_supportconsole_manager {
                 }
 
                 $prerender .= 
-                    $OUTPUT->box($OUTPUT->heading($titlestr, 2))
+                    $OUTPUT->box($OUTPUT->heading($titlestr, 3))
                         . $contenthtml;
             }
         }

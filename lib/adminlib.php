@@ -452,7 +452,7 @@ function get_used_table_names() {
 
         if ($loaded and $tables = $structure->getTables()) {
             foreach($tables as $table) {
-                $table_names[] = strtolower($table->name);
+                $table_names[] = strtolower($table->getName());
             }
         }
     }
@@ -1141,12 +1141,10 @@ class admin_externalpage implements part_of_admin_tree {
      * @return mixed array-object structure of found settings and pages
      */
     public function search($query) {
-        $textlib = textlib_get_instance();
-
         $found = false;
         if (strpos(strtolower($this->name), $query) !== false) {
             $found = true;
-        } else if (strpos($textlib->strtolower($this->visiblename), $query) !== false) {
+        } else if (strpos(textlib::strtolower($this->visiblename), $query) !== false) {
                 $found = true;
             }
         if ($found) {
@@ -1290,12 +1288,10 @@ class admin_settingpage implements part_of_admin_tree {
             return array($this->name => $result);
         }
 
-        $textlib = textlib_get_instance();
-
         $found = false;
         if (strpos(strtolower($this->name), $query) !== false) {
             $found = true;
-        } else if (strpos($textlib->strtolower($this->visiblename), $query) !== false) {
+        } else if (strpos(textlib::strtolower($this->visiblename), $query) !== false) {
                 $found = true;
             }
         if ($found) {
@@ -1617,17 +1613,16 @@ abstract class admin_setting {
         if (strpos(strtolower($this->name), $query) !== false) {
             return true;
         }
-        $textlib = textlib_get_instance();
-        if (strpos($textlib->strtolower($this->visiblename), $query) !== false) {
+        if (strpos(textlib::strtolower($this->visiblename), $query) !== false) {
             return true;
         }
-        if (strpos($textlib->strtolower($this->description), $query) !== false) {
+        if (strpos(textlib::strtolower($this->description), $query) !== false) {
             return true;
         }
         $current = $this->get_setting();
         if (!is_null($current)) {
             if (is_string($current)) {
-                if (strpos($textlib->strtolower($current), $query) !== false) {
+                if (strpos(textlib::strtolower($current), $query) !== false) {
                     return true;
                 }
             }
@@ -1635,7 +1630,7 @@ abstract class admin_setting {
         $default = $this->get_defaultsetting();
         if (!is_null($default)) {
             if (is_string($default)) {
-                if (strpos($textlib->strtolower($default), $query) !== false) {
+                if (strpos(textlib::strtolower($default), $query) !== false) {
                     return true;
                 }
             }
@@ -2160,49 +2155,6 @@ class admin_setting_configcheckbox extends admin_setting {
     }
 }
 
-/**
- * Extension of the configcheckbox for a disabled checkbox.
- *
- * @author ebollens
- * @version 20110719
- */
-class admin_setting_configcheckbox_disabled extends admin_setting_configcheckbox {
-
-    /**
-     * Returns an XHTML checkbox field
-     *
-     * @param string $data If $data matches yes then checkbox is checked
-     * @param string $query
-     * @return string XHTML field
-     */
-    public function output_html($data, $query='') {
-        $default = $this->get_defaultsetting();
-
-        if (!is_null($default)) {
-            if ((string)$default === $this->yes) {
-                $defaultinfo = get_string('checkboxyes', 'admin');
-            } else {
-                $defaultinfo = get_string('checkboxno', 'admin');
-            }
-        } else {
-            $defaultinfo = NULL;
-        }
-
-        if ((string)$data === $this->yes) { // convert to strings before comparison
-            $checked = 'checked="checked"';
-            $this->no = $this->yes;
-        } else {
-            $checked = '';
-            $this->yes = $this->no;
-        }
-
-        return format_admin_setting($this, $this->visiblename,
-        '<div class="form-checkbox defaultsnext" ><input type="hidden" name="'.$this->get_full_name().'" value="'.s($this->no).'" /> '
-            .'<input type="checkbox" id="'.$this->get_id().'" name="'.$this->get_full_name().'" value="'.s($this->yes).'" '.$checked.' DISABLED /></div>',
-        $this->description, true, '', $defaultinfo, $query);
-    }
-}
-
 
 /**
  * Multiple checkboxes, each represents different value, stored in csv format
@@ -2257,9 +2209,8 @@ class admin_setting_configmulticheckbox extends admin_setting {
             return true;
         }
 
-        $textlib = textlib_get_instance();
         foreach ($this->choices as $desc) {
-            if (strpos($textlib->strtolower($desc), $query) !== false) {
+            if (strpos(textlib::strtolower($desc), $query) !== false) {
                 return true;
             }
         }
@@ -2487,12 +2438,11 @@ class admin_setting_configselect extends admin_setting {
         if (!$this->load_choices()) {
             return false;
         }
-        $textlib = textlib_get_instance();
         foreach ($this->choices as $key=>$value) {
-            if (strpos($textlib->strtolower($key), $query) !== false) {
+            if (strpos(textlib::strtolower($key), $query) !== false) {
                 return true;
             }
-            if (strpos($textlib->strtolower($value), $query) !== false) {
+            if (strpos(textlib::strtolower($value), $query) !== false) {
                 return true;
             }
         }
@@ -2671,9 +2621,8 @@ class admin_setting_configmultiselect extends admin_setting_configselect {
             return true;
         }
 
-        $textlib = textlib_get_instance();
         foreach ($this->choices as $desc) {
-            if (strpos($textlib->strtolower($desc), $query) !== false) {
+            if (strpos(textlib::strtolower($desc), $query) !== false) {
                 return true;
             }
         }
@@ -4763,7 +4712,6 @@ class admin_page_managemods extends admin_externalpage {
 
         $found = false;
         if ($modules = $DB->get_records('modules')) {
-            $textlib = textlib_get_instance();
             foreach ($modules as $module) {
                 if (!file_exists("$CFG->dirroot/mod/$module->name/lib.php")) {
                     continue;
@@ -4773,7 +4721,7 @@ class admin_page_managemods extends admin_externalpage {
                     break;
                 }
                 $strmodulename = get_string('modulename', $module->name);
-                if (strpos($textlib->strtolower($strmodulename), $query) !== false) {
+                if (strpos(textlib::strtolower($strmodulename), $query) !== false) {
                     $found = true;
                     break;
                 }
@@ -4845,15 +4793,14 @@ class admin_setting_manageenrols extends admin_setting {
             return true;
         }
 
-        $textlib = textlib_get_instance();
-        $query = $textlib->strtolower($query);
+        $query = textlib::strtolower($query);
         $enrols = enrol_get_plugins(false);
         foreach ($enrols as $name=>$enrol) {
             $localised = get_string('pluginname', 'enrol_'.$name);
-            if (strpos($textlib->strtolower($name), $query) !== false) {
+            if (strpos(textlib::strtolower($name), $query) !== false) {
                 return true;
             }
-            if (strpos($textlib->strtolower($localised), $query) !== false) {
+            if (strpos(textlib::strtolower($localised), $query) !== false) {
                 return true;
             }
         }
@@ -5016,7 +4963,6 @@ class admin_page_manageblocks extends admin_externalpage {
 
         $found = false;
         if ($blocks = $DB->get_records('block')) {
-            $textlib = textlib_get_instance();
             foreach ($blocks as $block) {
                 if (!file_exists("$CFG->dirroot/blocks/$block->name/")) {
                     continue;
@@ -5026,7 +4972,7 @@ class admin_page_manageblocks extends admin_externalpage {
                     break;
                 }
                 $strblockname = get_string('pluginname', 'block_'.$block->name);
-                if (strpos($textlib->strtolower($strblockname), $query) !== false) {
+                if (strpos(textlib::strtolower($strblockname), $query) !== false) {
                     $found = true;
                     break;
                 }
@@ -5071,7 +5017,6 @@ class admin_page_managemessageoutputs extends admin_externalpage {
 
         $found = false;
         if ($processors = get_message_processors()) {
-            $textlib = textlib_get_instance();
             foreach ($processors as $processor) {
                 if (!$processor->available) {
                     continue;
@@ -5081,7 +5026,7 @@ class admin_page_managemessageoutputs extends admin_externalpage {
                     break;
                 }
                 $strprocessorname = get_string('pluginname', 'message_'.$processor->name);
-                if (strpos($textlib->strtolower($strprocessorname), $query) !== false) {
+                if (strpos(textlib::strtolower($strprocessorname), $query) !== false) {
                     $found = true;
                     break;
                 }
@@ -5143,10 +5088,9 @@ class admin_page_manageqbehaviours extends admin_externalpage {
         }
 
         $found = false;
-        $textlib = textlib_get_instance();
         require_once($CFG->dirroot . '/question/engine/lib.php');
         foreach (get_plugin_list('qbehaviour') as $behaviour => $notused) {
-            if (strpos($textlib->strtolower(question_engine::get_behaviour_name($behaviour)),
+            if (strpos(textlib::strtolower(question_engine::get_behaviour_name($behaviour)),
                     $query) !== false) {
                 $found = true;
                 break;
@@ -5191,10 +5135,9 @@ class admin_page_manageqtypes extends admin_externalpage {
         }
 
         $found = false;
-        $textlib = textlib_get_instance();
         require_once($CFG->dirroot . '/question/engine/bank.php');
         foreach (question_bank::get_all_qtypes() as $qtype) {
-            if (strpos($textlib->strtolower($qtype->local_name()), $query) !== false) {
+            if (strpos(textlib::strtolower($qtype->local_name()), $query) !== false) {
                 $found = true;
                 break;
             }
@@ -5233,7 +5176,6 @@ class admin_page_manageportfolios extends admin_externalpage {
         }
 
         $found = false;
-        $textlib = textlib_get_instance();
         $portfolios = get_plugin_list('portfolio');
         foreach ($portfolios as $p => $dir) {
             if (strpos($p, $query) !== false) {
@@ -5244,7 +5186,7 @@ class admin_page_manageportfolios extends admin_externalpage {
         if (!$found) {
             foreach (portfolio_instances(false, false) as $instance) {
                 $title = $instance->get('name');
-                if (strpos($textlib->strtolower($title), $query) !== false) {
+                if (strpos(textlib::strtolower($title), $query) !== false) {
                     $found = true;
                     break;
                 }
@@ -5285,7 +5227,6 @@ class admin_page_managerepositories extends admin_externalpage {
         }
 
         $found = false;
-        $textlib = textlib_get_instance();
         $repositories= get_plugin_list('repository');
         foreach ($repositories as $p => $dir) {
             if (strpos($p, $query) !== false) {
@@ -5296,7 +5237,7 @@ class admin_page_managerepositories extends admin_externalpage {
         if (!$found) {
             foreach (repository::get_types() as $instance) {
                 $title = $instance->get_typename();
-                if (strpos($textlib->strtolower($title), $query) !== false) {
+                if (strpos(textlib::strtolower($title), $query) !== false) {
                     $found = true;
                     break;
                 }
@@ -5368,7 +5309,6 @@ class admin_setting_manageauths extends admin_setting {
             return true;
         }
 
-        $textlib = textlib_get_instance();
         $authsavailable = get_plugin_list('auth');
         foreach ($authsavailable as $auth => $dir) {
             if (strpos($auth, $query) !== false) {
@@ -5376,7 +5316,7 @@ class admin_setting_manageauths extends admin_setting {
             }
             $authplugin = get_auth_plugin($auth);
             $authtitle = $authplugin->get_title();
-            if (strpos($textlib->strtolower($authtitle), $query) !== false) {
+            if (strpos(textlib::strtolower($authtitle), $query) !== false) {
                 return true;
             }
         }
@@ -5571,13 +5511,12 @@ class admin_setting_manageeditors extends admin_setting {
             return true;
         }
 
-        $textlib = textlib_get_instance();
         $editors_available = editors_get_available();
         foreach ($editors_available as $editor=>$editorstr) {
             if (strpos($editor, $query) !== false) {
                 return true;
             }
-            if (strpos($textlib->strtolower($editorstr), $query) !== false) {
+            if (strpos(textlib::strtolower($editorstr), $query) !== false) {
                 return true;
             }
         }
@@ -5808,9 +5747,8 @@ class admin_page_managefilters extends admin_externalpage {
 
         $found = false;
         $filternames = filter_get_all_installed();
-        $textlib = textlib_get_instance();
         foreach ($filternames as $path => $strfiltername) {
-            if (strpos($textlib->strtolower($strfiltername), $query) !== false) {
+            if (strpos(textlib::strtolower($strfiltername), $query) !== false) {
                 $found = true;
                 break;
             }
@@ -6045,25 +5983,6 @@ function admin_write_settings($formdata) {
         $data[$fullname] = $value;
     }
 
-    /**
-     * Validation checks for enabling and disabling public/private and group
-     * members only settings. Public/private can only be enabled if group
-     * members only is enabled, and group members only cannot be disabled if
-     * public/private is enabled.
-     *
-     * @author ebollens
-     * @version 20110719
-     */
-    if(isset($formdata['section']) && $formdata['section'] == 'experimentalsettings'
-            && array_key_exists('s__enablegroupmembersonly', $data)
-            && array_key_exists('s__enablepublicprivate', $data))
-    {
-        // Disable public private is groupmembersonly is off
-        if ($data['s__enablegroupmembersonly'] == '0' && $data['s__enablepublicprivate'] == '1') {
-            $data['s__enablepublicprivate'] = '0';
-        }
-    }
-
     $adminroot = admin_get_root();
     $settings = admin_find_write_settings($adminroot, $data);
 
@@ -6144,11 +6063,10 @@ function admin_find_write_settings($node, $data) {
 function admin_search_settings_html($query) {
     global $CFG, $OUTPUT;
 
-    $textlib = textlib_get_instance();
-    if ($textlib->strlen($query) < 2) {
+    if (textlib::strlen($query) < 2) {
         return '';
     }
-    $query = $textlib->strtolower($query);
+    $query = textlib::strtolower($query);
 
     $adminroot = admin_get_root();
     $findings = $adminroot->search($query);
@@ -6479,7 +6397,6 @@ class admin_setting_managerepository extends admin_setting {
             return true;
         }
 
-        $textlib = textlib_get_instance();
         $repositories= get_plugin_list('repository');
         foreach ($repositories as $p => $dir) {
             if (strpos($p, $query) !== false) {
@@ -6488,7 +6405,7 @@ class admin_setting_managerepository extends admin_setting {
         }
         foreach (repository::get_types() as $instance) {
             $title = $instance->get_typename();
-            if (strpos($textlib->strtolower($title), $query) !== false) {
+            if (strpos(textlib::strtolower($title), $query) !== false) {
                 return true;
             }
         }
@@ -6884,10 +6801,9 @@ class admin_setting_manageexternalservices extends admin_setting {
             return true;
         }
 
-        $textlib = textlib_get_instance();
         $services = $DB->get_records('external_services', array(), 'id, name');
         foreach ($services as $service) {
-            if (strpos($textlib->strtolower($service->name), $query) !== false) {
+            if (strpos(textlib::strtolower($service->name), $query) !== false) {
                 return true;
             }
         }
@@ -7442,14 +7358,13 @@ class admin_setting_managewebserviceprotocols extends admin_setting {
             return true;
         }
 
-        $textlib = textlib_get_instance();
         $protocols = get_plugin_list('webservice');
         foreach ($protocols as $protocol=>$location) {
             if (strpos($protocol, $query) !== false) {
                 return true;
             }
             $protocolstr = get_string('pluginname', 'webservice_'.$protocol);
-            if (strpos($textlib->strtolower($protocolstr), $query) !== false) {
+            if (strpos(textlib::strtolower($protocolstr), $query) !== false) {
                 return true;
             }
         }
@@ -7969,6 +7884,8 @@ class admin_setting_devicedetectregex extends admin_setting {
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class admin_setting_configmultiselect_modules extends admin_setting_configmultiselect {
+    private $excludesystem;
+
     /**
      * Calls parent::__construct - note array $choices is not required
      *
@@ -7976,9 +7893,12 @@ class admin_setting_configmultiselect_modules extends admin_setting_configmultis
      * @param string $visiblename localised setting name
      * @param string $description setting description
      * @param array $defaultsetting a plain array of default module ids
+     * @param bool $excludesystem If true, excludes modules with 'system' archetype
      */
-    public function __construct($name, $visiblename, $description, $defaultsetting = array()) {
+    public function __construct($name, $visiblename, $description, $defaultsetting = array(),
+            $excludesystem = true) {
         parent::__construct($name, $visiblename, $description, $defaultsetting, null);
+        $this->excludesystem = $excludesystem;
     }
 
     /**
@@ -7995,8 +7915,14 @@ class admin_setting_configmultiselect_modules extends admin_setting_configmultis
         global $CFG, $DB;
         $records = $DB->get_records('modules', array('visible'=>1), 'name');
         foreach ($records as $record) {
+            // Exclude modules if the code doesn't exist
             if (file_exists("$CFG->dirroot/mod/$record->name/lib.php")) {
-                $this->choices[$record->id] = $record->name;
+                // Also exclude system modules (if specified)
+                if (!($this->excludesystem &&
+                        plugin_supports('mod', $record->name, FEATURE_MOD_ARCHETYPE) ===
+                        MOD_ARCHETYPE_SYSTEM)) {
+                    $this->choices[$record->id] = $record->name;
+                }
             }
         }
         return true;

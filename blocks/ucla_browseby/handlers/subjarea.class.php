@@ -91,6 +91,18 @@ class subjarea_handler extends browseby_handler {
                 unset($subjectareas[$k]);
             }
         }
+        
+        // START UCLA MOD CCLE-2309
+        global $CFG;
+        $ucla_search = $CFG->dirroot . '/blocks/ucla_search/block_ucla_search.php';
+        
+        if(file_exists($ucla_search)) {
+            require_once($ucla_search);
+            
+            block_ucla_search::load_browseby_search_js();
+            $s .= block_ucla_search::print_browseby_search();
+        }
+        // END UCLA MOD CCLE-2309
 
         list($w, $p) = $this->render_terms_restricted_helper($terms);
         $s .= block_ucla_browseby_renderer::render_terms_selector(

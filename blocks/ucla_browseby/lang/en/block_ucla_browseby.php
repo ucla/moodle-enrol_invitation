@@ -37,8 +37,11 @@ $string['coursesinsubjarea'] = 'Courses in {$a}';
 // Collaborations
 $string['collab_notfound'] = 'No collaboration sites found.';
 $string['collab_notcollab'] = 'This category is not considered a category for collaboration sites.';
-$string['collab_coursesincat'] = 'Sites in this category';
+$string['collab_coursesincat'] = 'Sites in {$a}';
+$string['collab_catsincat'] = 'Categories in {$a}';
+$string['collab_nocatsincat'] = 'Available collaboration site categories';
 $string['collab_viewall'] = 'Collaboration sites';
+$string['collab_allcatsincat'] = 'Available collaboration site categories';
 $string['collab_viewin'] = 'Collaboration sites in {$a}';
 $string['collab_nocoursesincat'] = 'No sites were found in this category';
 
@@ -68,6 +71,7 @@ $string['title_use_local_courses'] = 'Use local courses';
 $string['desc_use_local_courses'] = 'Check box to allow for local courses to override the URL that has been provided by the Registrar. Otherwise, the data that the Registrar has provided will be considered infallible.';
 
 // Courses view
+$string['moreusers'] = 'MORE...';
 $string['nousersinrole'] = 'N / A';
 $string['session_break'] = 'Summer session {$a}';
 $string['registrar_link'] = 'Registrar';
@@ -79,10 +83,19 @@ $string['instructors'] = 'Instructors';
 $string['coursetitle'] = 'Course title';
 
 // CCLE-3141 - Prepare for post M2 deployment
-$string['spring2012'] = 'If you cannot find the course for which ' . 
+$string['cutoff12S'] = 'If you cannot find the course for which ' . 
         'you\'re looking, please visit our archive server ' . 
         '(<a href="https://archive.ccle.ucla.edu">https://archive.ccle.ucla.edu</a>).';
-$string['prespring2012'] = 'You are currently on the CCLE production server ' . 
+$string['before12S'] = 'You are currently on the CCLE production server ' . 
         '(<a href="https://ccle.ucla.edu">https://ccle.ucla.edu</a>). For ' . 
         'courses from Winter 2012 or earlier, please visit our archive server ' . 
         '(<a href="https://archive.ccle.ucla.edu">https://archive.ccle.ucla.edu</a>).';
+
+$string['cutoff12F'] = 'If you cannot find the course for which ' . 
+        'you\'re looking, please visit our Production Server ' . 
+        '(<a href="https://classes.sscnet.ucla.edu">https://classes.sscnet.ucla.edu</a>).';
+$string['before12F'] = 'You are currently on the CCLE SSC Moodle 2 Pilot Server ' . 
+        '(<a href="https://moodle2.sscnet.ucla.edu">https://moodle2.sscnet.ucla.edu</a>). For ' . 
+        'courses from Summer 2012 or earlier, please visit our Production Server ' . 
+        '(<a href="https://classes.sscnet.ucla.edu">https://classes.sscnet.ucla.edu</a>).';
+

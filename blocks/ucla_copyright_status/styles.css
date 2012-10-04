@@ -1,0 +1,45 @@
+div#block_ucla_copyright_status_filter, div#block_ucla_copyright_status_id_cp_list, span#block_ucla_copyright_status_t1{
+    margin:10px 2px 20px 0;
+}
+
+#block_ucla_copyright_status_stat{
+    background: #FEFCF6;
+    border: 1px solid #B7AA96;    
+}
+#block_ucla_copyright_status_stat legend {
+    width: auto;
+    background: #FCE096;
+    color: #394A6E;    
+    padding: 0 20px;
+    font-weight: bold;
+    margin-left: 0.5em;    
+}
+
+.block-ucla-copyright-status-stat-num-red{
+    padding-left:5px;
+    color:red;
+}
+
+.block-ucla-copyright-status-stat-num{
+    padding-left:5px;
+    color: green;
+}
+
+.block-ucla-copyright-status-list{
+    margin-top:5px;
+}
+
+.block-ucla-copyright-status-save-button{
+    padding-left: 1%;
+    text-align:left;
+}
+
+.block-ucla-copyright-status-red-text-item{
+    color:red;
+}
+
+#block-ucla-copyright-status-noscript{
+    margin-left:100px;
+    color:red;
+    font-weight:bold;
+}

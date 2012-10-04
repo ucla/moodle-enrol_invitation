@@ -53,17 +53,21 @@ $PAGE->set_url(new moodle_url('/enrol/invitation/history.php',
         array('courseid' => $courseid)));
 $PAGE->set_pagelayout('course');
 $PAGE->set_course($course);
-$PAGE->set_heading(get_string('invitehistory', 'enrol_invitation'));
-$PAGE->set_title(get_string('invitehistory', 'enrol_invitation'));
-$PAGE->navbar->add(get_string('invitehistory', 'enrol_invitation'));
+$page_title = get_string('invitehistory', 'enrol_invitation');
+$PAGE->set_heading($page_title);
+$PAGE->set_title($page_title);
+$PAGE->navbar->add($page_title);
 
 // Do not display the page if we are going to be redirecting the user
 if ($actionid != invitation_manager::INVITE_RESEND) {
     // OUTPUT form
     echo $OUTPUT->header();
+
+    // Print out a heading
+    echo $OUTPUT->heading($page_title, 2, 'headingblock');
+        
     // OUTPUT page tabs
     print_page_tabs('history');
-    echo $OUTPUT->heading(get_string('invitehistory', 'enrol_invitation'));
 }
 
 $invitationmanager = new invitation_manager($courseid);
@@ -90,11 +94,14 @@ if (empty($invites)) {
             $DB->set_field('enrol_invitation', 'timeexpiration', time()-1, 
                     array('courseid' => $curr_invite->courseid, 'id' => $curr_invite->id) );
             
+            add_to_log($course->id, 'course', 'invitation revoke', 
+                            "../enrol/invitation/history.php?courseid=$course->id", $course->fullname);
+            
             echo $OUTPUT->box_start('noticebox');
             echo html_writer::tag('span', get_string('revoke_invite_sucess', 'enrol_invitation'));
             echo $OUTPUT->box_end();
             
-        } else if ($actionid == invitation_manager::INVITE_EXTEND) {            
+        } else if ($actionid == invitation_manager::INVITE_EXTEND) {
             // Resend the invite and email
             $invitationmanager->send_invitations($curr_invite, true);
 
@@ -131,7 +138,7 @@ if (empty($invites)) {
     $table->define_columns(array_keys($columns));
     $table->define_headers(array_values($columns));
     $table->define_baseurl($PAGE->url);
-    $table->set_attribute('class', 'generaltable generalbox');
+    $table->set_attribute('class', 'generaltable');
 
     $table->setup();
     

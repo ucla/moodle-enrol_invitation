@@ -8,45 +8,43 @@
  * @author Remote Learner - http://www.remote-learner.net/
  */
 
-
+	global $DB,$PAGE;
     require_once dirname(dirname(dirname(__FILE__))) . '/config.php';
     require_once dirname(__FILE__) . '/lib.php';
-    global $PAGE;
     $PAGE->requires->js('/mod/elluminate/jquery-1.4.2.min.js');
     $PAGE->requires->js('/mod/elluminate/add_remove_submit.js');
-   	global $DB;
+   	
 
     $id           = required_param('id', PARAM_INT);
+    $PAGE->set_url('/mod/elluminate/participants.php', array('id'=>$id));
+    
     $firstinitial = optional_param('firstinitial', '', PARAM_ALPHA);
     $lastinitial  = optional_param('lastinitial', '', PARAM_ALPHA);
     $sort         = optional_param('sort', '', PARAM_ALPHA);
     $dir          = optional_param('dir', '', PARAM_ALPHA);
 
 	if (!$elluminate = $DB->get_record('elluminate', array('id'=>$id))) {
-        error('Could not get meeting (' . $id . ')');
+        print_error('Could not get meeting (' . $id . ')');
     }
     if (!$course = $DB->get_record('course', array('id'=>$elluminate->course))) {
-        error('Invalid course.');
+        print_error('Invalid course.');
     }    
     if($elluminate->groupmode == 0 && $elluminate->groupparentid == 0) {
 	    if (! $cm = get_coursemodule_from_instance('elluminate', $elluminate->id, $course->id)) {
-	        error('Course Module ID was incorrect');
+	        print_error('Course Module ID was incorrect');
 	    }
 	} else if ($elluminate->groupmode != 0 && $elluminate->groupparentid != 0){
 		if (! $cm = get_coursemodule_from_instance('elluminate', $elluminate->groupparentid, $course->id)) {
-	        error('Course Module ID was incorrect');
+	        print_error('Course Module ID was incorrect');
 	    }
 	} else if ($elluminate->groupmode != 0 && $elluminate->groupparentid == 0){
 	    if (! $cm = get_coursemodule_from_instance('elluminate', $elluminate->id, $course->id)) {
-	        error('Course Module ID was incorrect');
+	        print_error('Course Module ID was incorrect');
 	    }
 	} else {
-		error('Elluminate Live! Group Error');
+		print_error('Blackboard Collaborate Group Error');
 	}
-
-    $url = new moodle_url('/mod/elluminate/moderators.php', array('id'=>$id));
-    $PAGE->set_url($url);             
-                
+	
 	$groupmode    = groups_get_activity_groupmode($cm);
     $currentgroup = groups_get_activity_group($cm, true);
 
@@ -71,6 +69,13 @@
 	        $currentgroup = 0;
 	    }
 	}
+        
+    // START UCLA MOD: CCLE-2966 - Replace Elluminate with Blackboard Web Conferencing
+    // fixing bug in which empty description was causing errors when adding a moderator
+    if (!isset($elluminate->description)) {
+        $elluminate->description = '';
+    }
+    // END UCLA MOD: CCLE-2966
 
 /// Process data submission.
     if (($data = data_submitted($CFG->wwwroot . '/mod/elluminate/moderators.php')) && confirm_sesskey()) {
@@ -115,7 +120,7 @@
 	}
 
 	/// Available moderators are teachers in this course who have an account on the
-	/// Elluminate server.
+	/// Blackboard Collaborate server.
     $allmods = get_users_by_capability($modcontext, 'mod/elluminate:moderatemeeting',
                                         'u.id, u.firstname, u.lastname, u.username', 'u.lastname, u.firstname',
                                         '', '', '', '', false);
@@ -165,4 +170,4 @@
 	echo $OUTPUT->box_end();
     echo $OUTPUT->footer();
 
-?>
+

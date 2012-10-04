@@ -29,5 +29,24 @@ function xmldb_block_ucla_video_furnace_upgrade($oldversion = 0) {
         upgrade_block_savepoint(true, 2012062200, 'ucla_video_furnace');
     }
    
+    // drop _del_flag column that was causing errors on fresh install because of
+    // invalid characters
+    if ($oldversion < 2012091900) {
+
+        // Define field _del_flag to be dropped from ucla_video_furnace
+        $table = new xmldb_table('ucla_video_furnace');
+        $field = new xmldb_field('_del_flag');
+
+        // Conditionally launch drop field _del_flag
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+
+        // video_furnace savepoint reached
+        upgrade_block_savepoint(true, 2012091900, 'ucla_video_furnace');
+    }
+
+    
+    
     return true;
 }

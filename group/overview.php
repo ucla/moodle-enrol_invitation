@@ -1,11 +1,26 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+
 /**
  * Print an overview of groupings & group membership
  *
- * @author  Matt Clarkson mattc@catalyst.net.nz
- * @version 0.0.1
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @package groups
+ * @copyright  Matt Clarkson mattc@catalyst.net.nz
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    core_group
  */
 
 require_once('../config.php');
@@ -116,6 +131,7 @@ require('tabs.php');
 /// Print overview
 echo $OUTPUT->heading(format_string($course->shortname, true, array('context' => $context)) .' '.$stroverview, 3);
 
+/** CCLE-2302 - Disabling groupings option, buggy and innaccurate.
 echo $strfiltergroups;
 
 $options = array();
@@ -139,6 +155,7 @@ $select = new single_select($popupurl, 'group', $options, $groupid, array());
 $select->label = $strgroup;
 $select->formid = 'selectgroup';
 echo $OUTPUT->render($select);
+//*/
 
 /// Print table
 $printed = false;
@@ -174,7 +191,10 @@ foreach ($members as $gpgid=>$groupdata) {
         foreach ($users as $user) {
             $fullnames[] = '<a href="'.$CFG->wwwroot.'/user/view.php?id='.$user->id.'&amp;course='.$course->id.'">'.fullname($user, true).'</a>';
         }
-        $line[] = implode(', ', $fullnames);
+
+        // START UCLA MOD CCLE-2302 - Change delimiter for sets of names
+        $line[] = implode(' / ', $fullnames);
+        // END UCLA MOD CCLE-2302
         $line[] = count($users);
         $table->data[] = $line;
     }
@@ -194,10 +214,11 @@ foreach ($members as $gpgid=>$groupdata) {
     echo html_writer::table($table);
     $printed = true;
 }
-
+/** CCLE-2302 - Buggy code, broken in core moodle, disabling
+// As per functionality meeting
 if (count($hoverevents)>0) {
     $PAGE->requires->string_for_js('description', 'moodle');
     $PAGE->requires->js_init_call('M.core_group.init_hover_events', array($hoverevents));
 }
-
+//*/
 echo $OUTPUT->footer();

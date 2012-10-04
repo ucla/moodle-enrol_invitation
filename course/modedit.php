@@ -34,8 +34,10 @@ $add    = optional_param('add', '', PARAM_ALPHA);     // module name
 $update = optional_param('update', 0, PARAM_INT);
 $return = optional_param('return', 0, PARAM_BOOL);    //return to course/view.php if false or mod/modname/view.php if true
 $type   = optional_param('type', '', PARAM_ALPHANUM); //TODO: hopefully will be removed in 2.0
+$sectionreturn = optional_param('sr', 0, PARAM_INT);
 
 $url = new moodle_url('/course/modedit.php');
+$url->param('sr', $sectionreturn);
 if (!empty($return)) {
     $url->param('return', $return);
 }
@@ -51,14 +53,14 @@ if (!empty($add)) {
 
     $course = $DB->get_record('course', array('id'=>$course), '*', MUST_EXIST);
     $module = $DB->get_record('modules', array('name'=>$add), '*', MUST_EXIST);
-
+    
     require_login($course);
     $context = get_context_instance(CONTEXT_COURSE, $course->id);
     require_capability('moodle/course:manageactivities', $context);
 
     $cw = get_course_section($section, $course->id);
 
-    if (!course_allowed_module($course, $module->id)) {
+    if (!course_allowed_module($course, $module->name)) {
         print_error('moduledisable');
     }
 
@@ -78,6 +80,7 @@ if (!empty($add)) {
     $data->coursemodule     = '';
     $data->add              = $add;
     $data->return           = 0; //must be false if this is an add, go back to course view on cancel
+    $data->sr               = $sectionreturn;
 
     if (plugin_supports('mod', $data->modulename, FEATURE_MOD_INTRO, true)) {
         $draftid_editor = file_get_submitted_draft_itemid('introeditor');
@@ -114,18 +117,18 @@ if (!empty($add)) {
         $heading->what = $fullmodulename;
         $heading->to   = $sectionname;
         $pageheading = get_string('addinganewto', 'moodle', $heading);
-    } else {
-        $pageheading = get_string('addinganew', 'moodle', $fullmodulename);
+    } else { 
+       $pageheading = get_string('addinganew', 'moodle', $fullmodulename);
     }
 
 } else if (!empty($update)) {
-
+    
     $url->param('update', $update);
     $PAGE->set_url($url);
-
+    
     $cm = get_coursemodule_from_id('', $update, 0, false, MUST_EXIST);
     $course = $DB->get_record('course', array('id'=>$cm->course), '*', MUST_EXIST);
-
+    
     require_login($course, false, $cm); // needed to setup proper $COURSE
     $context = get_context_instance(CONTEXT_MODULE, $cm->id);
     require_capability('moodle/course:manageactivities', $context);
@@ -146,6 +149,7 @@ if (!empty($add)) {
     $data->modulename         = $module->name;
     $data->instance           = $cm->instance;
     $data->return             = $return;
+    $data->sr                 = $sectionreturn;
     $data->update             = $update;
     $data->completion         = $cm->completion;
     $data->completionview     = $cm->completionview;
@@ -259,7 +263,7 @@ if ($mform->is_cancelled()) {
     if ($return && !empty($cm->id)) {
         redirect("$CFG->wwwroot/mod/$module->name/view.php?id=$cm->id");
     } else {
-        redirect("$CFG->wwwroot/course/view.php?id=$course->id#section-".$cw->section);
+        redirect(course_get_url($course, $sectionreturn));
     }
 } else if ($fromform = $mform->get_data()) {
     if (empty($fromform->coursemodule)) {
@@ -319,7 +323,7 @@ if ($mform->is_cancelled()) {
     $eventname = '';
 
     if (!empty($fromform->update)) {
-
+        
         if (!empty($course->groupmodeforce) or !isset($fromform->groupmode)) {
             $fromform->groupmode = $cm->groupmode; // keep original
         }
@@ -363,7 +367,7 @@ if ($mform->is_cancelled()) {
         }
 
         if (!$updateinstancefunction($fromform, $mform)) {
-            print_error('cannotupdatemod', '', "view.php?id={$course->id}#section-{$cw->section}", $fromform->modulename);
+            print_error('cannotupdatemod', '', course_get_url($course, $cw->section), $fromform->modulename);
         }
 
         // make sure visibility is set correctly (in particular in calendar)
@@ -392,7 +396,7 @@ if ($mform->is_cancelled()) {
                    "$fromform->instance", $fromform->coursemodule);
 
     } else if (!empty($fromform->add)) {
-
+        
 
         if (!empty($course->groupmodeforce) or !isset($fromform->groupmode)) {
             $fromform->groupmode = 0; // do not set groupmode
@@ -449,9 +453,9 @@ if ($mform->is_cancelled()) {
             $DB->delete_records('course_modules', array('id'=>$fromform->coursemodule));
 
             if (!is_number($returnfromfunc)) {
-                print_error('invalidfunction', '', "view.php?id={$course->id}#section-{$cw->section}");
+                print_error('invalidfunction', '', course_get_url($course, $cw->section));
             } else {
-                print_error('cannotaddnewmodule', '', "view.php?id={$course->id}#section-{$cw->section}", $fromform->modulename);
+                print_error('cannotaddnewmodule', '', course_get_url($course, $cw->section), $fromform->modulename);
             }
         }
 
@@ -643,12 +647,12 @@ if ($mform->is_cancelled()) {
             redirect($gradingman->get_management_url($returnurl));
         }
     } else {
-        redirect("$CFG->wwwroot/course/view.php?id={$course->id}#section-{$cw->section}");
+        redirect(course_get_url($course, $sectionreturn));
     }
     exit;
 
 } else {
-
+    
     $streditinga = get_string('editinga', 'moodle', $fullmodulename);
     $strmodulenameplural = get_string('modulenameplural', $module->name);
 
@@ -670,6 +674,6 @@ if ($mform->is_cancelled()) {
     }
 
     $mform->display();
-
+    
     echo $OUTPUT->footer();
 }

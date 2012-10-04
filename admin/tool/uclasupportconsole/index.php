@@ -9,6 +9,7 @@ require_once($CFG->dirroot . '/local/ucla/lib.php');
 $admintooldir = '/' . $CFG->admin . '/tool/';
 require_once($CFG->dirroot . $admintooldir . 'uclasupportconsole/lib.php');
 require_once($CFG->dirroot . $admintooldir . 'uclacoursecreator/uclacoursecreator.class.php');
+require_once($CFG->dirroot . '/admin/tool/ucladatasourcesync/lib.php');
 
 // Force debugging errors 
 error_reporting(E_ALL); 
@@ -394,6 +395,57 @@ if ($displayforms) {
 $consoles->push_console_html('logs', $title, $sectionhtml);
 
 ////////////////////////////////////////////////////////////////////
+$title = "moodlevideofurnacelist";
+$sectionhtml = '';
+
+if ($displayforms) {
+    $sectionhtml = supportconsole_simple_form($title);
+} else if ($consolecommand == "$title") {
+    $result = get_reserve_data('video_furnace');
+    
+    $sourcelocation = get_config('block_ucla_video_furnace', 'source_url');
+    $sourcelink = html_writer::link($sourcelocation, $sourcelocation, array('target' => '_blank'));
+    $sourcefile = get_string('sourcefile', 'tool_uclasupportconsole', $sourcelink);
+    
+    $sectionhtml = supportconsole_render_section_shortcut($title, $result, array(), $sourcefile);
+}
+$consoles->push_console_html('logs', $title, $sectionhtml);
+
+////////////////////////////////////////////////////////////////////
+$title = "moodlelibraryreserveslist";
+$sectionhtml = '';
+
+if ($displayforms) {
+    $sectionhtml = supportconsole_simple_form($title);
+} else if ($consolecommand == "$title") {
+    $result = get_reserve_data('library_reserves');
+    
+    $sourcelocation = get_config('block_ucla_library_reserves', 'source_url');
+    $sourcelink = html_writer::link($sourcelocation, $sourcelocation, array('target' => '_blank'));
+    $sourcefile = get_string('sourcefile', 'tool_uclasupportconsole', $sourcelink);    
+    
+    $sectionhtml = supportconsole_render_section_shortcut($title, $result, array(), $sourcefile);
+}
+$consoles->push_console_html('logs', $title, $sectionhtml);
+
+////////////////////////////////////////////////////////////////////
+$title = "moodlebruincastlist";
+$sectionhtml = '';
+
+if ($displayforms) {
+    $sectionhtml = supportconsole_simple_form($title);
+} else if ($consolecommand == "$title") {
+    $result = get_reserve_data('bruincast');
+    
+    $sourcelocation = get_config('block_ucla_bruincast', 'source_url');
+    $sourcelink = html_writer::link($sourcelocation, $sourcelocation, array('target' => '_blank'));
+    $sourcefile = get_string('sourcefile', 'tool_uclasupportconsole', $sourcelink);    
+    
+    $sectionhtml = supportconsole_render_section_shortcut($title, $result, array(), $sourcefile);
+}
+$consoles->push_console_html('logs', $title, $sectionhtml);
+
+////////////////////////////////////////////////////////////////////
 // TODO ghost courses in request classes table
 
 ////////////////////////////////////////////////////////////////////
@@ -439,7 +491,7 @@ if ($displayforms) {
     $sectionhtml .= supportconsole_simple_form($title, get_uid_input($title));
 } else if ($consolecommand == $title) {
     # tie-in to link from name lookup
-    $uid = required_param('uid', PARAM_INT);
+    $uid = required_param('uid', PARAM_RAW);
     ucla_require_registrar();
     $adodb = registrar_query::open_registrar_connection();
 
@@ -456,7 +508,7 @@ if ($displayforms) {
 
         $sectionhtml .= supportconsole_render_section_shortcut($title, $usercourses, $uid);
     } else {
-        $sectionhtml .= $OUTPUT->box($OUTPUT->heading($title, 2));
+        $sectionhtml .= $OUTPUT->box($OUTPUT->heading($title, 3));
         $sectionhtml .= 'Invalid UID: [' . $uid . ']';
     }
 }
@@ -465,70 +517,65 @@ $consoles->push_console_html('srdb', $title, $sectionhtml);
 
 // Dynamic hardcoded (TODO make reqistrar_query return parameter types it expects)
 ucla_require_registrar();
-$qs = registrar_query::get_all_available_queries();
+$qs = get_all_available_registrar_queries();
 
 foreach ($qs as $query) {
     $sectionhtml = '';
+    $input_html = '';
     if ($displayforms) {
         // generate input parameters
-        $input_html = '';
-        switch ($query) {
-            // uid, term
-            case 'ucla_get_user_classes':
-                $input_html .= get_uid_input($query);      
-                $input_html .= get_term_selector($query);                
-                break;
-            // term, subject area
-            case 'ccle_coursegetall': 
-            case 'ccle_getinstrinfo':
-            case 'cis_coursegetall':                                
-                $input_html .= get_term_selector($query);
-                $input_html .= get_subject_area_selector($query);
-                break;            
-            // term, srs
-            case 'ccle_courseinstructorsget':            
-            case 'ccle_getclasses':
-            case 'ccle_roster_class':
-                $input_html .= get_term_selector($query);
-                $input_html .= get_srs_input($query);      
-                break;
-            // term
-            case 'cis_subjectareagetall': 
-            case 'ucla_getterms':
-                $input_html .= get_term_selector($query);
-                break;
-            // unknown
-            default: 
-                break;
+        $storedproc = registrar_query::get_registrar_query($query);
+
+        if (!$storedproc) {
+            continue;
         }
-        
+
+        $params = $storedproc->get_query_params();
+
+        foreach ($params as $param) {
+            switch($param) {
+                case 'term':
+                    $input_html .= get_term_selector($query);
+                    break;
+                case 'subjarea':
+                    $input_html .= get_subject_area_selector($query);
+                    break;
+                case 'uid':
+                    $input_html .= get_uid_input($query);
+                    break;
+                case 'srs':
+                    $input_html .= get_srs_input($query);
+                    break;
+                default:
+                    $input_html .= get_string('unknownstoredprocparam',
+                        'tool_uclasupportconsole');
+                    break;
+            }
+        }
+
         if (empty($input_html)) {
             continue;   // skip it
         }     
 
         $sectionhtml .= supportconsole_simple_form($query, $input_html);
     } else if ($consolecommand == $query) {
-        
-        /* Possible params:
-         * term
-         * subjarea
-         * srs
-         * uid
-         */
-        $params = array();
-        $possible_params = array('term', 'subjarea', 'srs', 'uid');
-        foreach ($possible_params as $param_name) {
+        // generate input parameters (optimized by putting inside 
+        // conditionals)
+        $storedproc = registrar_query::get_registrar_query($query);
+        $spparams = $storedproc->get_query_params();
+
+        foreach ($spparams as $param_name) {
             if ($param_value = optional_param($param_name, '', PARAM_NOTAGS)) {
                 $params[$param_name] = $param_value;
             }
         }
-        $sendparams = array($params);
         
-        $allresults = registrar_query::run_registrar_query($query, $sendparams);
-
-        $results = array_merge($allresults[registrar_query::query_results], 
-            $allresults[registrar_query::failed_outputs]);
-
+                
+        // get all data, even bad, and uncached
+        $results = registrar_query::run_registrar_query($query, $params, false);
+        
+        $results = array_merge($results[registrar_query::query_results], $results[registrar_query::failed_outputs]);
+        
         $sectionhtml .= supportconsole_render_section_shortcut($title, 
             $results, $params);
     }
@@ -782,8 +829,8 @@ $sectionhtml = '';
 if ($displayforms) {
     // add filter for term/subject area, because this table can get very big
     // and the query get return a ton of data
-    $input_html = get_term_selector($query);
-    $input_html .= get_subject_area_selector($query);        
+    $input_html = get_term_selector($title);
+    $input_html .= get_subject_area_selector($title);        
     
     $sectionhtml = supportconsole_simple_form($title, $input_html);
 } else if ($consolecommand == "$title") {  

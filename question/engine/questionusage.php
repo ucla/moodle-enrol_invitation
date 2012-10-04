@@ -63,7 +63,7 @@ class question_usage_by_activity {
      */
     protected $preferredbehaviour = null;
 
-    /** @var object the context this usage belongs to. */
+    /** @var context the context this usage belongs to. */
     protected $context;
 
     /** @var string plugin name of the plugin this usage belongs to. */
@@ -104,7 +104,7 @@ class question_usage_by_activity {
         return $this->preferredbehaviour;
     }
 
-    /** @return object the context this usage belongs to. */
+    /** @return context the context this usage belongs to. */
     public function get_owning_context() {
         return $this->context;
     }
@@ -171,7 +171,8 @@ class question_usage_by_activity {
         } else {
             $this->questionattempts[] = $qa;
         }
-        $qa->set_slot(end(array_keys($this->questionattempts)));
+        end($this->questionattempts); // Ready to get the last key on the next line.
+        $qa->set_slot(key($this->questionattempts));
         $this->observer->notify_attempt_added($qa);
         return $qa->get_slot();
     }
@@ -510,7 +511,14 @@ class question_usage_by_activity {
      * instead of the data from $_POST.
      */
     public function process_all_actions($timestamp = null, $postdata = null) {
-        $slots = question_attempt::get_submitted_var('slots', PARAM_SEQUENCE, $postdata);
+        // note: we must not use "question_attempt::get_submitted_var()" because there is no attempt instance!!!
+        if (is_null($postdata)) {
+            $slots = optional_param('slots', null, PARAM_SEQUENCE);
+        } else if (array_key_exists('slots', $postdata)) {
+            $slots = clean_param($postdata['slots'], PARAM_SEQUENCE);
+        } else {
+            $slots = null;
+        }
         if (is_null($slots)) {
             $slots = $this->get_slots();
         } else if (!$slots) {
@@ -705,6 +713,14 @@ class question_usage_by_activity {
         $quba->set_preferred_behaviour($record->preferredbehaviour);
 
         $quba->observer = new question_engine_unit_of_work($quba);
+
+        // If slot is null then the current pointer in $records will not be
+        // advanced in the while loop below, and we get stuck in an infinite loop,
+        // since this method is supposed to always consume at least one record.
+        // Therefore, in this case, advance the record here.
+        if (is_null($record->slot)) {
+            $records->next();
+        }
 
         while ($record && $record->qubaid == $qubaid && !is_null($record->slot)) {
             $quba->questionattempts[$record->slot] =

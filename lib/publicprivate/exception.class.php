@@ -16,5 +16,3 @@ if(method_exists('Exception', 'getPrevious')) {
 } else {
     include_once($CFG->libdir.'/publicprivate/exception.compat.class.php');
 }
-
-?>

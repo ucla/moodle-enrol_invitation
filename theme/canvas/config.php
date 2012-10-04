@@ -40,9 +40,7 @@ $THEME->name = 'canvas';
 // the directory in which this file resides.
 ////////////////////////////////////////////////////
 
-$THEME->parents = array(
-    'base',
-);
+$THEME->parents = array('base');
 
 /////////////////////////////////////////////////////
 // Which existing theme(s) in the /theme/ directory
@@ -73,12 +71,7 @@ $THEME->sheets = array(
 // this theme's /styles/ directory.
 ////////////////////////////////////////////////////
 
-$THEME->parents_exclude_sheets = array(
-    'base'=>array(
-        'navigation',
-        'browser',
-    ),
-);
+$THEME->parents_exclude_sheets = array();
 
 ////////////////////////////////////////////////////
 // An array of stylesheets not to inherit from the
@@ -89,32 +82,32 @@ $THEME->layouts = array(
     'base' => array(
         'file' => 'general.php',
         'regions' => array('side-pre', 'side-post'),
-        'defaultregion' => 'side-post',
+        'defaultregion' => 'side-pre',
     ),
     'standard' => array(
         'file' => 'general.php',
         'regions' => array('side-pre', 'side-post'),
-        'defaultregion' => 'side-post',
+        'defaultregion' => 'side-pre',
     ),
     'course' => array(
         'file' => 'general.php',
         'regions' => array('side-pre', 'side-post'),
-        'defaultregion' => 'side-post'
+        'defaultregion' => 'side-pre'
     ),
     'coursecategory' => array(
         'file' => 'general.php',
         'regions' => array('side-pre', 'side-post'),
-        'defaultregion' => 'side-post',
+        'defaultregion' => 'side-pre',
     ),
     'incourse' => array(
         'file' => 'general.php',
         'regions' => array('side-pre', 'side-post'),
-        'defaultregion' => 'side-post',
+        'defaultregion' => 'side-pre',
     ),
     'frontpage' => array(
         'file' => 'frontpage.php',
         'regions' => array('side-pre', 'side-post'),
-        'defaultregion' => 'side-post',
+        'defaultregion' => 'side-pre',
     ),
     'admin' => array(
         'file' => 'general.php',
@@ -124,13 +117,13 @@ $THEME->layouts = array(
     'mydashboard' => array(
         'file' => 'general.php',
         'regions' => array('side-pre', 'side-post'),
-        'defaultregion' => 'side-post',
+        'defaultregion' => 'side-pre',
         'options' => array('langmenu'=>true),
     ),
     'mypublic' => array(
         'file' => 'general.php',
         'regions' => array('side-pre', 'side-post'),
-        'defaultregion' => 'side-post',
+        'defaultregion' => 'side-pre',
     ),
     'login' => array(
         'file' => 'general.php',
@@ -194,16 +187,13 @@ $THEME->hidefromselector = true;
 // switched on.
 /////////////////////////////////////////////////////
 
-
-
 // $THEME->enable_dock = false;
 
 ////////////////////////////////////////////////////
 // Do you want to use the new navigation dock?
 ////////////////////////////////////////////////////
 
-
-// $THEME->editor_sheets
+$THEME->editor_sheets = array('editor');
 
 ////////////////////////////////////////////////////
 // An array of stylesheets to include within the
@@ -265,5 +255,3 @@ $THEME->hidefromselector = true;
 // Sets a custom render factory to use with the
 // theme, used when working with custom renderers.
 ////////////////////////////////////////////////////
-
-$THEME->editor_sheets = array('editor');

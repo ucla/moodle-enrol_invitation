@@ -44,37 +44,54 @@ class ucla_reg_classinfo_cron {
             return true;
         }
 
+        echo "\n";
+
         $reg = registrar_query::get_registrar_query('ccle_getclasses');
 
         // Get courses from our request table
         list($sqlin, $params) = $DB->get_in_or_equal($terms);
         $where = 'term ' . $sqlin;
 
+        // TODO use recordset?
         $records = $DB->get_records_select('ucla_request_classes',
             $where, $params);
 
-        $courses = index_ucla_course_requests($records);
+        echo "Got " . count($records) . " requests to update in "
+            . implode(', ', $terms) . ".\n";
 
-        echo "\nGot " . count($courses) . " courses to update.\n";
-
-        if (empty($courses)) {
+        if (empty($records)) {
             return true;
         }
 
-        // Prep the data to send to registrar
-        $get_from_registrar = array();
-        foreach ($courses as $setid => $reqset) {
-            foreach ($reqset as $reqkey => $req) {
-                // We can just put in $req, except it needs to be an array.
-                $get_from_registrar[] = array(
-                    'term' => $req->term,
-                    'srs' => $req->srs
+        // Get the data
+        $regs = array();
+
+        $t = microtime(true);
+        foreach ($records as $request) {
+            // We can just put in $req, except it needs to be an array.
+            $reginfo = $reg->retrieve_registrar_info(
+                    array(
+                        'term' => $request->term,
+                        'srs' => $request->srs
+                    )
                 );
+            if (!$reginfo) {
+                echo "No data for {$request->term} {$request->srs}\n";
+            } else {
+                $regs[] = reset($reginfo);
             }
         }
 
-        // Get the data
-        $regs = $reg->retrieve_registrar_info($get_from_registrar);
+        if (empty($regs)) {
+            debugging('ERROR: empty regs for ucla_reg_classinfo_cron');
+            return true;
+        }
+
+        $el = microtime(true) - $t;
+        $tpe = $el / count($records);
+        echo "Took $tpe per element.\n";
+
+        echo "Got " . count($regs) . " requests from Registrar.";
 
         $termsrses = array();
         $sqls = array();
@@ -133,11 +150,7 @@ class ucla_reg_classinfo_cron {
         }
         
         // mark courses that the registrar didn't have data for as "cancelled"
-        
-        /* $reg->get_bad_data() returns an array in following format:
-         * 
-         */
-        $not_found_at_registrar = $reg->get_bad_data();
+        $not_found_at_registrar = $reg->get_bad_outputs();
         $num_not_found = 0;
         foreach ((array) $not_found_at_registrar as $term_srs) {
             // try to update entry in ucla_reg_classinfo (if exists) and 
@@ -179,8 +192,24 @@ class ucla_reg_subjectarea_cron {
         if (!$reg) {
             echo "No registrar module found.";
         }
+  
+        $subjareas = array();
+        foreach ($terms as $term) {
+            try {            
+                $regdata = 
+                    $reg->retrieve_registrar_info(
+                            array('term' => $term)
+                        );
+            } catch(Exception $e) {
+                // mostly likely couldn't connect to registrar
+                mtrace($e->getMessage());
+                return false;
+            }                      
 
-        $subjareas = $reg->retrieve_registrar_info($terms);
+            if ($regdata) {
+                $subjareas = array_merge($subjareas, $regdata);
+            }
+        }
 
         if (empty($subjareas)) {
             debugging('ERROR: empty $subjareas for ucla_reg_subjectarea_cron');

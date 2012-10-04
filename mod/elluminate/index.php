@@ -8,17 +8,20 @@
 
     if ($id) {
         if (! $course = $DB->get_record('course', array('id'=>$id))) {
-            error("Course ID is incorrect");
+            print_error("Course ID is incorrect");
         }
     } else {
         if (! $course = get_site()) {
-            error("Could not find a top-level course!");
+            print_error("Could not find a top-level course!");
         }
     }
 
     require_course_login($course);
 
-
+    // START UCLA MOD: CCLE-2966 - Replace Elluminate with Blackboard Web Conferencing
+    $PAGE->set_url('/mod/elluminate/index.php', array('id'=>$id));
+    // END UCLA MOD: CCLE-2966
+    
     add_to_log($course->id, "elluminate", "view all", "index.php?id=$course->id", "");
 
 
@@ -36,14 +39,15 @@
 
 /// Print header.
     $navigation = build_navigation($strelluminates);
-    print_header_simple($strelluminates, "", $navigation, "", "", true, '');
-
+    // START UCLA MOD: CCLE-2966 - Replace Elluminate with Blackboard Web Conferencing
+    print_header_simple($strelluminates, $COURSE->fullname, $navigation, "", "", true, '');
+    // END UCLA MOD: CCLE-2966
     
 
 /// Get all the appropriate data
 
     if (! $elluminates = get_all_instances_in_course("elluminate", $course)) {
-        notice("There are no Elluminate Live! meetings ", "../../course/view.php?id=$course->id");
+        notice("There are no Blackboard Collaborate meetings ", "../../course/view.php?id=$course->id");
         die;
     }
 
@@ -53,7 +57,9 @@
     $strname  = get_string("name");
     $strweek  = get_string("week");
     $strtopic  = get_string("topic");
-
+    $strsection  = get_string("section");
+    
+    $table = new html_table();
     if ($course->format == "weeks") {
         $table->head  = array ($strweek, $strname);
         $table->align = array ("center", "left");
@@ -61,8 +67,8 @@
         $table->head  = array ($strtopic, $strname);
         $table->align = array ("center", "left", "left", "left");
     } else {
-        $table->head  = array ($strname);
-        $table->align = array ("left", "left", "left");
+        $table->head  = array ($strsection, $strname);
+        $table->align = array ("center", "left", "left", "left");
     }
 
 	$search =  array("@", "#", "$", "%", "^", "?", "&", "/", "\\", "'", ";", "\"", ",", ".", "<", ">","*");
@@ -83,20 +89,29 @@
 	            $link = "<a href=\"view.php?id=$elluminate->coursemodule\">$name</a>";
 	        }
 	
-	        if ($course->format == "weeks" or $course->format == "topics") {
-	            $table->data[] = array ($elluminate->section, $link);
-	        } else {
-	            $table->data[] = array ($link);
-	        }
+                // START UCLA MOD: CCLE-2966 - Replace Elluminate with Blackboard Web Conferencing
+//	        if ($course->format == "weeks" or $course->format == "topics") {
+//	            $table->data[] = array ($elluminate->section, $link);
+//	        } else {
+//	            $table->data[] = array ($link);
+//	        }
+	        $table->data[] = array ($elluminate->section, $link);
+                // END UCLA MOD: CCLE-2966
 		//}
     }
 
     echo "<br />";
 
-    print_table($table);
-
+    // START UCLA MOD: CCLE-2966 - Replace Elluminate with Blackboard Web Conferencing
+    //print_table($table);
+    echo html_writer::table($table);
+    // END UCLA MOD: CCLE-2966 
+    
 /// Finish the page
 
-    print_footer($course);
+    // START UCLA MOD: CCLE-2966 - Replace Elluminate with Blackboard Web Conferencing
+    //print_footer($course);
+    $OUTPUT->footer();
+    // END UCLA MOD: CCLE-2966 
 
-?>
+

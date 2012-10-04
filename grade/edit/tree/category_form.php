@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -14,6 +13,14 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * A moodleform to edit the grade options for an individual grade category
+ *
+ * @package   core_grades
+ * @copyright 2007 Petr Skoda
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.');    ///  It must be included from a Moodle page
@@ -218,7 +225,7 @@ class edit_category_form extends moodleform {
         $mform->addElement('header', 'headerparent', get_string('parentcategory', 'grades'));
 
         $options = array();
-        $default = '';
+        $default = -1;
         $categories = grade_category::fetch_all(array('courseid'=>$COURSE->id));
 
         foreach ($categories as $cat) {
@@ -231,6 +238,7 @@ class edit_category_form extends moodleform {
 
         if (count($categories) > 1) {
             $mform->addElement('select', 'parentcategory', get_string('parentcategory', 'grades'), $options);
+            $mform->setDefault('parentcategory', $default);
             $mform->addElement('static', 'currentparentaggregation', get_string('currentparentaggregation', 'grades'));
         }
 

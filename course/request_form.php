@@ -73,7 +73,7 @@ class course_request_form extends moodleform {
                 'class' => 'indicator-form',
                 'value' => $type['shortname']
             );
-            $radioarray[] = &MoodleQuickForm::createElement('radio', 'indicator_type', '', $descstring, $type['shortname'], $attributes);
+            $radioarray[] = $mform->createElement('radio', 'indicator_type', '', $descstring, $type['shortname'], $attributes);
         }
         
         $mform->addGroup($radioarray, 'indicator_type_radios', get_string('req_type', 'tool_uclasiteindicator'), array('<br/>'), false);

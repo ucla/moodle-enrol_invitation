@@ -147,10 +147,10 @@ class block_ucla_office_hours extends block_base {
             // TODO make this more modular
             $desired_info = array(
                 'fullname' => $title,
-                'email' => get_string('email', 'format_ucla'),                            
-                'officelocation' => get_string('office', 'format_ucla'),
-                'officehours' => get_string('office_hours', 'format_ucla'),
-                'phone' => get_string('phone', 'format_ucla'),                            
+                'email' => get_string('email', 'block_ucla_office_hours'),                            
+                'officelocation' => get_string('office', 'block_ucla_office_hours'),
+                'officehours' => get_string('office_hours', 'block_ucla_office_hours'),
+                'phone' => get_string('phone', 'block_ucla_office_hours'),                            
             );
 
             $cdi = count($desired_info);
@@ -161,7 +161,7 @@ class block_ucla_office_hours extends block_base {
 
             $table->align = $aligns;
 
-            $table->attributes['class'] = 'boxalignleft';
+            $table->attributes['class'] = 'boxalignleft generaltable cellborderless';
 
             // use array_values, to remove array keys, which are 
             // mistaken as another css class for given column
@@ -201,8 +201,8 @@ class block_ucla_office_hours extends block_base {
                                     array('class' => 'editbutton'));
                         }
                         if (!empty($instr_website)) {
-                            if (strpos($instr_website, 'http://') === false 
-                                    && strpos($instr_website, 'https://') === false) {
+                            if (textlib::strpos($instr_website, 'http://') === false 
+                                    && textlib::strpos($instr_website, 'https://') === false) {
                                 $instr_website = 'http://' . $instr_website;
                             }
                             $dest_data .= html_writer::link($instr_website, 
