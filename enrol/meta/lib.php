@@ -33,6 +33,7 @@ defined('MOODLE_INTERNAL') || die();
 class enrol_meta_plugin extends enrol_plugin {
     /**
      *  API call - lib/enrollib.php.
+     *  UCLA MOD CCLE-2386 - TA sites
      **/
     function add_course_navigation($instancesnode, stdclass $instance) {
         global $PAGE;
@@ -61,7 +62,7 @@ class enrol_meta_plugin extends enrol_plugin {
 
     /**
      *  Returns which role to assign a user based on promotion rules.
-     *  CCLE-2386
+     *  UCLA MOD CCLE-2386 - TA sites
      **/
     static function get_target_role($roleid, 
                                     $promoroleid, $promotoroleid, 
@@ -83,7 +84,7 @@ class enrol_meta_plugin extends enrol_plugin {
 
     /**
      *  Convenience function.
-     *  CCLE-2386
+     *  UCLA MOD CCLE-2386
      **/
     static function get_role_promotion($ra) {
         if (!isset($ra->roleid) 
@@ -227,7 +228,7 @@ class enrol_meta_plugin extends enrol_plugin {
 
     /**
      *  Check to see if this is an automatically created connection.
-     *  CCLE-2386
+     *  UCLA MOD CCLE-2386
      **/
     function instance_deleteable($instance) {
         global $DB;
