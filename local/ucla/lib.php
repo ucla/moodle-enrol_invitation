@@ -327,6 +327,55 @@ function ucla_get_courses_by_terms($terms) {
 
     return index_ucla_course_requests($records, 'courseid');
 }
+    
+/**
+ *  Based on what is set by the enrolment plugin, match user info
+ *  provided by the Registrar to the local database.
+ **/
+function ucla_registrar_user_to_moodle_user($reginfo,
+                                            $cachedconfigs=null) {
+    global $DB;
+
+    if ($cachedconfigs) {
+        $configs = $cachedconfigs;
+    } else {
+        $configs = get_config('enrol_database');
+    }
+
+    $userfield         = strtolower($configs->remoteuserfield);
+
+    $localuserfield   = $configs->localuserfield;
+
+    $sqlparams = array();
+    $sqlbuilder = array();
+
+    $usersearch = array();
+
+    if ($localuserfield === 'username') {
+        $usersearch['mnethostid'] = $CFG->mnet_localhost_id; 
+        $usersearch['deleted'] = 0;
+    }
+
+    foreach ($usersearch as $f => $v) {
+        $sqlbuilder[] = "$f = ?";
+        $sqlparams[] = $v;
+    }
+
+    $mapping = false;
+
+    if (!empty($reginfo[$userfield])) {
+        $mapping = $reginfo[$userfield];
+    }
+    
+    $searchstr = "$localuserfield = ?";
+    $sqlparams[] = $mapping;
+
+    $sqlbuilder[] = $searchstr;
+    $usersql = implode(' AND ', $sqlbuilder);
+
+    return $DB->get_record_select('user', $usersql, $sqlparams, 
+        "*", IGNORE_MULTIPLE);
+}
 
 /**
  *  Returns a pretty looking term in the format of 12S => Spring 2012.
@@ -494,6 +543,12 @@ function local_ucla_cron($terms = array()) {
         }
     }
 
+    // delete repo keys of users who haven't done anything in a short while,
+    // like uploading a file
+    include_once($CFG->dirroot . '/local/ucla/eventslib.php');
+    echo "Deleting repo keys\n";
+    delete_repo_keys();
+    
     return true;
 }
 

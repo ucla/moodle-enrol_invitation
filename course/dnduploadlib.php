@@ -490,7 +490,7 @@ class dndupload_ajax_processor {
         if ($instanceid === 'invalidfunction') {
             throw new coding_exception("{$this->module->name} does not support drag and drop upload (missing {$this->module->name}_dndupload_handle function");
         }
-
+        
         // Finish setting up the course module.
         $this->finish_setup_course_module($instanceid);
     }
@@ -666,7 +666,27 @@ class dndupload_ajax_processor {
         $resp->elementid = 'module-'.$mod->id;
         $resp->commands = make_editing_buttons($mod, true, true, 0, $mod->sectionnum);
         $resp->onclick = $mod->get_on_click();
-
+        
+        // START UCLA MOD: CCLE-3531 - Drag and drop files automatically public material
+        // default drag/drop uploads to be private
+        @include_once($CFG->libdir.'/publicprivate/course.class.php');
+        @include_once($CFG->libdir . '/publicprivate/module.class.php');      
+        $groupingid = false;
+        if (class_exists('PublicPrivate_Course') && PublicPrivate_Site::is_enabled()) {
+            $publicprivate_course = new PublicPrivate_Course($this->course->id);
+            if($publicprivate_course->is_activated()) {    
+                $pp = new PublicPrivate_Module($mod);
+                $pp->enable();  
+                $groupingid = $publicprivate_course->get_grouping();
+            }
+        }
+        
+        if (!empty($groupingid) && has_capability('moodle/course:managegroups', $this->context)) {
+            $groupings = groups_get_all_groupings($this->course->id);
+            $resp->groupingname = format_string($groupings[$groupingid]->name);
+        }
+        // END UCLA MOD: CCLE-3531
+        
         echo $OUTPUT->header();
         echo json_encode($resp);
         die();

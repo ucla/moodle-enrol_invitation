@@ -13,6 +13,21 @@ class theme_uclashared_core_renderer extends core_renderer {
 
         return $this->sep;
     }
+    
+    /**
+     * Attaches the meta tag needed for mobile display support
+     * 
+     * @return string 
+     */
+    function standard_head_html() {
+        $out = parent::standard_head_html();
+        
+        // Add mobile support with option to switch
+        if(get_user_device_type() != 'default') {
+            $out .= '<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=2.0; user-scalable=1;" />' . "\n";
+        }
+        return $out;
+    }
 
     /** 
      *  Displays what user you are logged in as, and if needed, along with the 
@@ -273,11 +288,11 @@ class theme_uclashared_core_renderer extends core_renderer {
 
         $footer_string = '';
         
-//        $custom_text = get_config($this->theme, 'footer_links');
-//        if ($custom_text != '') {
-//            $footer_string = $custom_text; 
-//            array_unshift($links, 'separator');
-//        }
+        $custom_text = trim(get_config($this->theme, 'footer_links'));
+        if (!empty($custom_text)) {
+            $footer_string = $custom_text; 
+            array_unshift($links, 'separator');
+        }
 
         // keep all links before seperator from opening into new window
         $open_new_window = false;

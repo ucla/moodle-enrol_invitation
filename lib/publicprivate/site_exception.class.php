@@ -15,5 +15,3 @@ class PublicPrivate_Site_Exception extends PublicPrivate_Exception
 {
 
 }
-
-?>

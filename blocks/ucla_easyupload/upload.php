@@ -373,6 +373,14 @@ if ($uploadform->is_cancelled()) {
     add_to_log($data->course_id, $data->modulename, 'add', 
             "/view.php?id=$data->coursemodule", $data->name);
     
+    $eventdata = new stdClass();
+    $eventdata->modulename = $data->modulename;
+    $eventdata->name       = $data->name;
+    $eventdata->cmid       = $data->coursemodule;
+    $eventdata->courseid   = $data->course_id;
+    $eventdata->userid     = $USER->id;
+    events_trigger('mod_created', $eventdata);    
+    
     rebuild_course_cache($course_id);
 }
 

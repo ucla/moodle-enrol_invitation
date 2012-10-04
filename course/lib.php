@@ -4102,8 +4102,7 @@ function update_course($data, $editoroptions = NULL) {
          * @throws PublicPrivate_Course_Exception
          */
         if($course->enablepublicprivate == 1) {
-            $pubpriv_course->activate();
-            $pubpriv_course->add_enrolled_users();
+            $pubpriv_course->activate();    // activate calls add_enrolled_users
         } else if($pubpriv_course->is_activated()) {
             $pubpriv_course->deactivate();
         }

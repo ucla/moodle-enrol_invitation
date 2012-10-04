@@ -113,7 +113,7 @@ $CFG->shib_logged_in_cookie = '_ucla_sso';
 $CFG->forced_plugin_settings['block_ucla_help']['send_to'] = 'jira';
 $CFG->forced_plugin_settings['block_ucla_help']['jira_endpoint'] = 'https://jira.ats.ucla.edu/CreateIssueDetails.jspa';
 $CFG->forced_plugin_settings['block_ucla_help']['jira_default_assignee'] = 'dkearney';
-$block_ucla_help_support_contacts['System'] = 'dkearney';  // default
+//$block_ucla_help_support_contacts['System'] = 'dkearney';  // default
 
 // CCLE-2312 - LIBRARY RESERVES BLOCK
 $CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url'] = 'ftp://ftp.library.ucla.edu/incoming/eres/voyager_reserves_data.txt';
@@ -123,6 +123,7 @@ $CFG->forced_plugin_settings['block_ucla_course_menu']['trimlength'] = 22;
 
 // UCLA Theme settings
 $CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'prod';
+$CFG->forced_plugin_settings['theme_uclashared']['footer_links'] = '';
 
 // Newly created courses for ucla formats should only have the course menu block
 $CFG->defaultblocks_ucla = 'ucla_course_menu';
@@ -171,6 +172,9 @@ $CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 0;
 // Site administration > Courses > Course request
 $CFG->enablecourserequests = 1;
 
+// Site administration > Courses > Backups > General backup defaults
+$CFG->forced_plugin_settings['backup']['backup_general_users'] = 0;
+
 // Site administration > Grades > General settings
 $CFG->recovergradesdefault = 1;
 
@@ -217,6 +221,13 @@ $CFG->forced_plugin_settings['assignfeedback_file']['default'] = 1;
 $CFG->forced_plugin_settings['enrol_guest']['defaultenrol'] = 1;
 $CFG->forced_plugin_settings['enrol_guest']['status'] = 0;  // 0 is yes, 1 is no
 
+// Site administration > Plugins > Blocks > UCLA bruincast
+$CFG->forced_plugin_settings['block_ucla_bruincast']['source_url'] = 'http://www.oid.ucla.edu/help/info/bcastlinks/';
+$CFG->forced_plugin_settings['block_ucla_bruincast']['errornotify_email'] = 'ccle-operations@lists.ucla.edu';
+
+// Data Source Sync (bruincast, video furnace, library reserves) contact Email
+$CFG->forced_plugin_settings['tool_ucladatasourcesync']['contact_email']='ccle-operations@lists.ccle.ucla.edu';
+
 // Site administration > Plugins > Blocks > i>clicker Moodle integrate
 $CFG->forced_plugin_settings['block_iclicker']['block_iclicker_notify_emails'] = 'ccle-operations@lists.ucla.edu';
 $CFG->block_iclicker_notify_emails = 'ccle-operations@lists.ucla.edu';  // due to bad coding, two variables exist to do the same thing 
@@ -225,7 +236,7 @@ $CFG->block_iclicker_notify_emails = 'ccle-operations@lists.ucla.edu';  // due t
 $CFG->sitedefaultlicense = 'tbd';
 
 // Site administration > Plugins > Repositories > Common repository settings
-$CFG->legacyfilesinnewcourses = 0;  // disallow new course to enable legacy course files
+$CFG->legacyfilesinnewcourses = 1;  // enable new course to enable legacy course files
 
 // Site administration > Plugins > Local plugins > UCLA configurations
 $CFG->forced_plugin_settings['local_ucla']['registrar_cache_ttl'] = 3600;   // 1 hour

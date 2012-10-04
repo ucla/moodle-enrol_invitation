@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="local/ucla_syllabus/db" VERSION="20120906" COMMENT="XMLDB file for Moodle local/ucla_syllabus"
+<XMLDB PATH="local/ucla_syllabus/db" VERSION="20120926" COMMENT="XMLDB file for Moodle local/ucla_syllabus"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="ucla_syllabus" COMMENT="Table containing settings for uploaded syllabi.">
+    <TABLE NAME="ucla_syllabus" COMMENT="Table containing settings for uploaded syllabi." NEXT="ucla_syllabus_webservice">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="courseid"/>
         <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="display_name"/>
@@ -19,6 +19,30 @@
       <INDEXES>
         <INDEX NAME="unique-syllabus-type" UNIQUE="true" FIELDS="courseid, access_type" COMMENT="Real uniqueness is courseid to access_type (1 or 2) and 3. Need to enforce that in code."/>
       </INDEXES>
+    </TABLE>
+    <TABLE NAME="ucla_syllabus_webservice" COMMENT="ucla_syllabus_webservice table retrofitted from MySQL" PREVIOUS="ucla_syllabus" NEXT="ucla_syllabus_client">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="subjectarea"/>
+        <FIELD NAME="subjectarea" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="id" NEXT="leadingsrs"/>
+        <FIELD NAME="leadingsrs" TYPE="char" LENGTH="9" NOTNULL="false" SEQUENCE="false" PREVIOUS="subjectarea" NEXT="url"/>
+        <FIELD NAME="url" TYPE="char" LENGTH="200" NOTNULL="true" SEQUENCE="false" PREVIOUS="leadingsrs" NEXT="token"/>
+        <FIELD NAME="token" TYPE="char" LENGTH="64" NOTNULL="false" SEQUENCE="false" PREVIOUS="url" NEXT="contact"/>
+        <FIELD NAME="contact" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" PREVIOUS="token" NEXT="enabled"/>
+        <FIELD NAME="enabled" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false" PREVIOUS="contact" NEXT="action"/>
+        <FIELD NAME="action" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="enabled"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="id" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="ucla_syllabus_client" COMMENT="ucla_syllabus_client table retrofitted from MySQL" PREVIOUS="ucla_syllabus_webservice">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="data"/>
+        <FIELD NAME="data" TYPE="text" NOTNULL="true" SEQUENCE="false" PREVIOUS="id"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="id" TYPE="primary" FIELDS="id"/>
+      </KEYS>
     </TABLE>
   </TABLES>
 </XMLDB>

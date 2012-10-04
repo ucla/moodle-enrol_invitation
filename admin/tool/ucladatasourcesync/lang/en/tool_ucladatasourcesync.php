@@ -16,10 +16,11 @@ $string['errbcmsglocation'] = "ERROR: No location set for bruincast data.";
 $string['errbcmsgemail'] = "ERROR: No email set for bruincast error notification.";
 $string['errbcmsgquiet'] = "ERROR: Cannot access configuration option quiet_mode.";
 $string['errbcinsert'] = "ERROR: Problem writing to the database.";
+$string['errbcinvalidrowlen'] = "ERROR: Invalid row length in provided bruincast data.";
 
 // Notication messages
 $string['bcstartnoti'] = "Starting bruincast DB update:";
-$string['bcsuccessnoti'] = "records successfully inserted.";
+$string['bcsuccessnoti'] = '... {$a} records successfully inserted.';
 
 /** Strings for libraryreserves_dbsync **/
 // Error messages
@@ -27,7 +28,8 @@ $string['errlrmsglocation'] = "ERROR: No location set for library reserves data.
 $string['errinvalidrowlen'] = 'ERROR: Invalid row length in line {$a}.';
 $string['errlrfileopen'] = "ERROR: Problem accessing data URL";;
 $string['warninvalidfields'] = 'WARNING: Found invalid field(s) {$a->fields} in parsed line {$a->line_num}: {$a->data}';
-$string['warnnonexistentsrs'] = 'WARNING: Found non-existent srs {$a->srs}: {$a->term}-{$a->srs}-{$a->subject_area}-{$a->cat_num}-{$a->sec_num}';
+$string['warnnonexistentsrs'] = 'WARNING: Found non-existent srs {$a->term} {$a->srs}';
+$string['noticediscussionsrs'] = 'NOTICE: Found discussion srs {$a->srs}, using primary {$a->primary_srs}';
 $string['noticefoundaltcourseid'] = 'NOTICE: Found courseid {$a->courseid} by using term/subject/cat_num: {$a->term}-{$a->subject_area}-{$a->cat_num}-{$a->sec_num}';
 
 //Notification messages

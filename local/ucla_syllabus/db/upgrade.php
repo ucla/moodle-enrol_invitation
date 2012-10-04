@@ -52,6 +52,54 @@ function xmldb_local_ucla_syllabus_upgrade($oldversion) {
     // if ($oldversion < YYYYMMDD00) { //New version in version.php
     //
     // }
+    
+    if ($oldversion < 2012092701) {
+
+        // Define table ucla_syllabus_webservice to be created
+        $table = new xmldb_table('ucla_syllabus_webservice');
+
+        // Adding fields to table ucla_syllabus_webservice
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('subjectarea', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('leadingsrs', XMLDB_TYPE_CHAR, '9', null, null, null, null);
+        $table->add_field('url', XMLDB_TYPE_CHAR, '200', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('token', XMLDB_TYPE_CHAR, '64', null, null, null, null);
+        $table->add_field('contact', XMLDB_TYPE_CHAR, '100', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('enabled', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('action', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+
+        // Adding keys to table ucla_syllabus_webservice
+        $table->add_key('id', XMLDB_KEY_PRIMARY, array('id'));
+
+        // Conditionally launch create table for ucla_syllabus_webservice
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // ucla_syllabus savepoint reached
+        upgrade_plugin_savepoint(true, 2012092701, 'local', 'ucla_syllabus');
+    }
+    
+    if ($oldversion < 2012100400) {
+
+        // Define table ucla_syllabus_client to be created
+        $table = new xmldb_table('ucla_syllabus_client');
+
+        // Adding fields to table ucla_syllabus_client
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('data', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
+
+        // Adding keys to table ucla_syllabus_client
+        $table->add_key('id', XMLDB_KEY_PRIMARY, array('id'));
+
+        // Conditionally launch create table for ucla_syllabus_client
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // ucla_syllabus savepoint reached
+        upgrade_plugin_savepoint(true, 2012100400, 'local', 'ucla_syllabus');
+    }
 
     // Final return of upgrade result (true, all went good) to Moodle.
     return true;

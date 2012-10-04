@@ -166,25 +166,7 @@ function local_ucla_syllabus_pluginfile($course, $cm, $context, $filearea, array
         print_error('err_syllabus_mismatch', 'local_ucla_syllabus');
     }
     
-    // now check access type
-    $allow_download = false;
-    switch ($syllabus->access_type) {
-        case UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC:
-            $allow_download = true;
-            break;
-        case UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN:
-            require_login($course, true, $cm);
-            if (isloggedin()) {
-                $allow_download = true;
-            }
-            break;
-        case UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE:
-            // TODO later
-            break;
-        default:
-            break;
-    }
-    
+    // see if syllabus allows itself to be viewed
     if ($syllabus->can_view()) {
         // finally send the file
         send_stored_file($syllabus->stored_file, 86400, 0, $forcedownload);

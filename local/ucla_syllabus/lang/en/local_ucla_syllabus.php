@@ -32,14 +32,12 @@ $string['pluginname'] = 'UCLA syllabus';
 // strings for uploading syllabus form
 $string['syllabus_manager'] = 'Syllabus Manager';
 
-//$string['public_syllabus'] = 'Public syllabus';
-//$string['public_syllabus_help'] = 'A public syllabus is viewable by viewers who are not associated with the course.';
-//@todo once private syllabus is working uncomment the previous lines and delete the following:
-$string['public_syllabus'] = 'Syllabus';
-$string['public_syllabus_help'] = 'A syllabus can be viewable by people who are not associated with the course.';
+$string['public_syllabus'] = 'Public syllabus';
+$string['public_syllabus_help'] = 'A public syllabus is viewable by people who are not associated with the course.';
+$string['private_syllabus'] = 'Private syllabus';
+$string['private_syllabus_help'] = 'A private syllabus is only viewable by people enrolled in the course.';
 
-$string['public_syllabus_none_uploaded'] = 'Please upload a file';
-$string['pdf_only'] = 'PDF only';
+$string['upload_file'] = 'Please upload a PDF';
 $string['access'] = 'Access';
 $string['accesss_public_info'] = 'Public: Anyone can view (incuding non-logged in users)';
 $string['accesss_loggedin_info'] = 'UCLA community: Only logged in users can view';
@@ -49,17 +47,21 @@ $string['preview_info'] = 'Is this a "preview syllabus"? Which is a summarized v
 $string['display_name'] = 'Display name';
 $string['display_name_default'] = 'Syllabus';
 $string['display_name_none_entered'] = 'Please enter a display name';
-$string['cannnot_make_db_entry'] = 'Cannot insert entry into syllabus table.';
+$string['cannnot_make_db_entry'] = 'Cannot insert entry into syllabus table';
 $string['invalid_public_syllabus'] = 'Can only have one public syllabus for course';
 $string['public_syllabus_add'] = 'Add public syllabus';
 $string['private_syllabus_add'] = 'Add private syllabus';
-$string['no_syllabus'] = 'No syllabus uploaded';
+$string['no_syllabus'] = 'No syllabus uploaded yet';
 
 // strings for displaying syllabus
-$string['no_syllabus_uploaded'] = 'No syllabus has been uploaded yet.';
-$string['no_syllabus_uploaded_help'] = 'To upload a syllabus file, please "Turn on editing".';
+$string['no_syllabus_uploaded'] = 'No syllabus has been uploaded yet';
+$string['no_syllabus_uploaded_help'] = 'Please "Turn editing on" to upload a syllabus';
 $string['clicktodownload'] = 'Download: {$a}';
 $string['syllabus_needs_setup'] = 'Syllabus (empty)';
+$string['public_disclaimer'] = 'This is a public syllabus and may not be ' . 
+        'indicative of the final syllabus and is subject to change.';
+$string['preview_disclaimer'] = 'This is a preview syllabus, meaing that it ' . 
+        'is a summarized version that gives a generalized overview of the course.';
 
 // success strings
 $string['successful_add'] = 'Successfully added a syllabus';
@@ -67,6 +69,7 @@ $string['successful_delete'] = 'Successfully deleted a syllabus';
 $string['successful_update'] = 'Successfully updated a syllabus';
 
 // error strings
+$string['err_file_not_uploaded'] = 'Please upload a PDF';
 $string['err_missing_courseid'] = 'Missing required courseid';
 $string['err_syllabus_mismatch'] = 'Selected syllabus does not belong to course';
 $string['err_syllabus_not_allowed'] = 'Sorry, you must be logged in or assciated with the course to view this syllabus';
@@ -75,3 +78,34 @@ $string['err_noembed'] = 'Unable to show embedded file. Please download file to 
 
 // capability strings
 $string['ucla_syllabus:managesyllabus'] = 'Allows ability to add, edit, and delete syllabus for a course';
+// web service
+$string['ws_header'] = 'Add web service subscription';
+$string['subject_area'] = 'Subject area';
+$string['subject_area_help'] = 'Subject area to monitor';
+$string['leading_srs'] = 'Leading SRS';
+$string['leading_srs_rule'] = 'Numeric values only';
+$string['post_url'] = 'POST URL';
+$string['post_url_required'] = 'You must provide a POST url.';
+$string['contact_email'] = 'Contact email';
+$string['contact_email_help'] = 'This email will be used to report any problems 
+    encountered while attempting to access the provided url.';
+$string['contact_email_required'] = 'You must provide a valid contact email.';
+$string['token'] = 'Token';
+$string['token_help'] = 'Use a token to verify the authenticity of the 
+    messages you receive on the POST url.';
+$string['select_action'] = 'Service action';
+$string['action_alert'] = 'Course alert';
+$string['action_transfer'] = 'Syllabus transfer';
+
+$string['heading'] = 'UCLA syllabus web service';
+$string['status'] = 'Status';
+$string['enable'] = 'Enable';
+$string['disable'] = 'Disable';
+$string['delete'] = 'Delete';
+
+$string['email_subject'] = 'UCLA syllabus service error';
+$string['email_msg'] = 'The following URL returned errors when attempting
+to nofiy of syllaubs update.:
+    {$a->url}
+    
+Please update this URL.';
