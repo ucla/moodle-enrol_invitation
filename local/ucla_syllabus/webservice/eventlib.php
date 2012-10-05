@@ -9,7 +9,7 @@ require_once($CFG->dirroot . '/local/ucla_syllabus/locallib.php');
  * 
  * @param type $data syllabus id
  */
-function ucla_syllabus_handler($data) {
+function ucla_syllabus_updated($data) {
 
     if($syllabus = ucla_syllabus_manager::instance($data)) {
         global $DB;
@@ -51,10 +51,67 @@ function ucla_syllabus_handler($data) {
         
         // Prepare criteria and payload
         list($criteria, $payload) = syllabus_ws_manager::setup_transfer($outgoing);
+        
         // Handle event
         syllabus_ws_manager::handle(syllabus_ws_manager::ACTION_TRANSFER, $criteria, $payload);
     }
 
+}
+
+/**
+ * Handle deletion of syllabus
+ * 
+ * @param type $data 
+ */
+function ucla_syllabus_deleted($data) {
+    global $DB;
+
+    $course = $DB->get_record('course', array('id' => $data->courseid));
+
+    // Get all the syllabi
+    $manager = new ucla_syllabus_manager($course);
+    $syllabi = $manager->get_syllabi();
+    
+    switch(intval($data->access_type)) {
+        case UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE:
+            
+            /**
+             * Case where syllabus is private
+             * 
+             * If no public syllabus exists, POST delete
+             * If public syllabus exists, POST public syllabus 
+             */
+            
+            if(empty($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC])) {
+                list($criteria, $payload) = syllabus_ws_manager::setup_delete($data);
+                syllabus_ws_manager::handle(syllabus_ws_manager::ACTION_TRANSFER, $criteria, $payload);
+            } else {
+                $public_syllabus = array_shift($syllabi);
+                
+                // Pass it on to another handler...
+                ucla_syllabus_updated($public_syllabus->id);
+            }
+            
+            break;
+        case UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC:
+        case UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN:
+            
+            /**
+             * Case where syllabus is public
+             * 
+             * If no private syllabus exists, POST delete
+             * Else do nothing.. 
+             */
+            
+            if(empty($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE])) {
+                list($criteria, $payload) = syllabus_ws_manager::setup_delete($data);
+                syllabus_ws_manager::handle(syllabus_ws_manager::ACTION_TRANSFER, $criteria, $payload);
+            }
+            // Else do nothing
+            break;
+    }
+    
+    return true;
 }
 
 /**

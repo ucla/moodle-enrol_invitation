@@ -149,7 +149,7 @@ class syllabus_ws_manager {
             $notifications->notify($payload);
         }
     }
-    
+
     static function setup($courseid) {
         global $DB;
         
@@ -197,7 +197,11 @@ class syllabus_ws_manager {
         $path = $cr->_tmp_file_post_params['file'];
 
         $payload['file'] = $path;
-        $payload['file_name'] = $file->get_filename();
+        $payload['file_name_real'] = $file->get_filename();
+        
+        // Anderson needs the filenamehash to locate the file
+        $filename_hash = $file->get_contenthash();
+        $payload['file_name'] = $filename_hash;
         
         return array($criteria, $payload);
     }
@@ -210,6 +214,14 @@ class syllabus_ws_manager {
         // Ignore subjectarea
         $criteria['subjectarea'] = -1;
         $payload['url'] = $CFG->wwwroot . '/course/view.php?id=' . $course->id;
+        
+        return array($criteria, $payload);
+    }
+    
+        
+    static function setup_delete($data) {
+        list($criteria, $payload) = self::setup($data->courseid);
+        $payload['delete'] = true;
         
         return array($criteria, $payload);
     }

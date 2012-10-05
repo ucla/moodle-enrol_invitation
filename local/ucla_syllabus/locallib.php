@@ -98,8 +98,13 @@ class ucla_syllabus_manager {
         // next, delete entry in syllabus table
         $DB->delete_records('ucla_syllabus', array('id' => $syllabus->id));
         
+        // Data to handle events
+        $data = new stdClass();
+        $data->courseid = $syllabus->courseid;
+        $data->access_type = $syllabus->access_type;
+        
         // trigger events
-        events_trigger('ucla_syllabus_deleted', $syllabus);
+        events_trigger('ucla_syllabus_deleted', $data);
     }
     
     /**

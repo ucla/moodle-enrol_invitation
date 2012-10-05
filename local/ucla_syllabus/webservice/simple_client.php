@@ -12,7 +12,8 @@ $token = optional_param('token', '', PARAM_RAW);
 $term = optional_param('term', '', PARAM_ALPHANUM);
 $srs = optional_param('srs', 0, PARAM_INT);
 $url = optional_param('url', '', PARAM_URL);
-$filename = optional_param('file_name', '', PARAM_RAW);
+$filename = optional_param('file_name_real', '', PARAM_RAW);
+$delete = optional_param('delete', false, PARAM_BOOL);
 
 // Decode filsize
 function human_filesize($bytes, $decimals = 2) {
@@ -32,6 +33,10 @@ if(!empty($token) && $servername == $self['host']) {
     if($dtoken == base64_decode($token)) {
         $filesize = empty($filename) ? '' : filesize($_FILES['file']['tmp_name']);
         $action = empty($filename) ? 'course' : 'syllabus';
+        
+        if($delete) {
+            $action = 'syllabus delete';
+        }
         
         $data = array(
             'action' => $action,
