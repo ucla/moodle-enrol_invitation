@@ -13,7 +13,7 @@ $term = optional_param('term', '', PARAM_ALPHANUM);
 $srs = optional_param('srs', 0, PARAM_INT);
 $url = optional_param('url', '', PARAM_URL);
 $filename = optional_param('file_name_real', '', PARAM_RAW);
-$delete = optional_param('delete', false, PARAM_BOOL);
+$delete = optional_param('deleted', false, PARAM_BOOL);
 
 // Decode filsize
 function human_filesize($bytes, $decimals = 2) {
