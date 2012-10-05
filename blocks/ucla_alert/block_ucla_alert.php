@@ -3,7 +3,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once(dirname(__FILE__) . '/../moodleblock.class.php');
-require_once($CFG->dirroot . '/blocks/ucla_alert/lib.php');
+require_once($CFG->dirroot . '/blocks/ucla_alert/locallib.php');
 
 class block_ucla_alert extends block_base {
     
@@ -28,10 +28,13 @@ class block_ucla_alert extends block_base {
             return $this->content;
         }
         
+        $b = new ucla_alert_block_site(23);
+        
         // Hook modules here
         $this->content = new stdClass;
         
-        $this->content->text = $this->get_mod_content();
+//        $this->content->text = $this->get_mod_content();
+        $this->content->text = $b->render();
         
 //        $this->content->footer = 'Footer here...';
 
@@ -45,6 +48,7 @@ class block_ucla_alert extends block_base {
     public function html_attributes() {
         $attributes = parent::html_attributes(); // Get default values
         $attributes['class'] .= ' block-ucla-alert'; // Append our class to class attribute
+        $attributes['id'] = 'ucla-alert';
         // Append alert style
         return $attributes;
     }
@@ -52,7 +56,7 @@ class block_ucla_alert extends block_base {
     public function applicable_formats() {
         return array(
             'site-index' => true,
-            'course-view' => false,
+            'course-view' => true,
             'my' => true,
         );
     }
