@@ -32,9 +32,9 @@ $string['pluginname'] = 'UCLA syllabus';
 // strings for uploading syllabus form
 $string['syllabus_manager'] = 'Syllabus Manager';
 
-$string['public_syllabus'] = 'Public syllabus';
+$string['public_syllabus'] = 'Public syllabus (PDF only)';
 $string['public_syllabus_help'] = 'A public syllabus is viewable by people who are not associated with the course.';
-$string['private_syllabus'] = 'Private syllabus';
+$string['private_syllabus'] = 'Private syllabus (PDF only)';
 $string['private_syllabus_help'] = 'A private syllabus is only viewable by people enrolled in the course.';
 
 $string['upload_file'] = 'Please upload a PDF';

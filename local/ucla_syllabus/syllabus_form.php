@@ -121,9 +121,6 @@ class syllabus_form extends moodleform {
         
         $mform->addElement('header', 'header_private_syllabus', 
                 get_string('private_syllabus', 'local_ucla_syllabus'));
-        $mform->addElement('html', html_writer::tag('div', 
-                get_string('private_syllabus_help', 'local_ucla_syllabus'),
-                array('class' => 'syllabus_help')));        
         
         // show upload form if user is editing
         if ($this->action == UCLA_SYLLABUS_ACTION_EDIT || 
@@ -154,6 +151,10 @@ class syllabus_form extends moodleform {
                 $mform->addElement('html', $display_syllabus . $edit_links);
             } else {
                 // no syllabus added, so give a "add syllabus now" link
+                $mform->addElement('html', html_writer::tag('div', 
+                        get_string('private_syllabus_help', 'local_ucla_syllabus'),
+                        array('class' => 'syllabus_help')));                        
+                
                 $text = html_writer::tag('div', get_string('no_syllabus', 
                         'local_ucla_syllabus'), array('class' => 'no_syllabus'));
                 $mform->addElement('html', '' . $text);     
@@ -183,9 +184,6 @@ class syllabus_form extends moodleform {
         
         $mform->addElement('header', 'header_public_syllabus', 
                 get_string('public_syllabus', 'local_ucla_syllabus'));
-        $mform->addElement('html', html_writer::tag('div', 
-                get_string('public_syllabus_help', 'local_ucla_syllabus'),
-                array('class' => 'syllabus_help')));        
         
         // show upload form if user is editing
         if ($this->action == UCLA_SYLLABUS_ACTION_EDIT || 
@@ -216,6 +214,10 @@ class syllabus_form extends moodleform {
                 $mform->addElement('html', $display_syllabus . $edit_links);
             } else {
                 // no syllabus added, so give a "add syllabus now" link
+                $mform->addElement('html', html_writer::tag('div', 
+                        get_string('public_syllabus_help', 'local_ucla_syllabus'),
+                        array('class' => 'syllabus_help')));                        
+                
                 $text = html_writer::tag('div', get_string('no_syllabus', 
                         'local_ucla_syllabus'), array('class' => 'no_syllabus'));
                 $mform->addElement('html', '' . $text);     

@@ -31,3 +31,7 @@
     font-style: italic;
     text-align: center;
 }
+
+.syllabus_form label {
+    padding-left: 3pt;
+}

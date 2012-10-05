@@ -110,7 +110,7 @@ if (!empty($USER->editing) && $can_manage_syllabus) {
         
         if ($type == UCLA_SYLLABUS_TYPE_PUBLIC && !empty($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC])) {
             $todel = $syllabi[UCLA_SYLLABUS_TYPE_PUBLIC];
-        } else if ($type == UCLA_SYLLABUS_TYPE_PRIVATE && !empty($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC])) {
+        } else if ($type == UCLA_SYLLABUS_TYPE_PRIVATE && !empty($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE])) {
             $todel = $syllabi[UCLA_SYLLABUS_TYPE_PRIVATE];
         }
         
