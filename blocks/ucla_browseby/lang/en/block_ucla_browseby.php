@@ -81,7 +81,6 @@ $string['coursesnotfound'] = 'No courses found for given subject area and term';
 $string['course'] = 'Course';
 $string['instructors'] = 'Instructors';
 $string['coursetitle'] = 'Course title';
-$string['syllabus'] = 'Syllabus';
 
 // CCLE-3141 - Prepare for post M2 deployment
 $string['cutoff12S'] = 'If you cannot find the course for which ' . 

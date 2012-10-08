@@ -329,7 +329,7 @@ class course_handler extends browseby_handler {
                 $sessioncell->text = get_string(
                     'session_break', 'block_ucla_browseby', $session);
 
-                $sessioncell->colspan = '4';
+                $sessioncell->colspan = '3';
                 $sessionrow = new html_table_row();
                 $sessionrow->attributes['class'] = 'header summersession';
                 $sessionrow->cells[] = $sessioncell;

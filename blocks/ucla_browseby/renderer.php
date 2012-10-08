@@ -65,13 +65,15 @@ class block_ucla_browseby_renderer extends block_navigation_renderer {
      *      )
      **/
     static function ucla_browseby_courses_list($courses) {
+        global $CFG;
+        require_once($CFG->dirroot . '/local/ucla_syllabus/locallib.php');
+        
         $disptable = new html_table();
         $disptable->id = self::browsebytableid;
         $disptable->head = self::ucla_browseby_course_list_headers();
 
         $data = array();
         if (!empty($courses)) {
-            global $CFG, $DB;
             
             foreach ($courses as $termsrs => $course) {
                 if (!empty($course->nonlinkdispname)) {
@@ -88,49 +90,16 @@ class block_ucla_browseby_renderer extends block_navigation_renderer {
                 $term = substr($termsrs, 0, $delim);
                 $srs = substr($termsrs, $delim + 1);
                 $courseid = ucla_map_termsrs_to_courseid($term, $srs);
-                $syllabus_icon = '';
-                if ( $syllabus = $DB->get_record('ucla_syllabus', array('courseid' => $courseid)) ) {
-                    require_once($CFG->dirroot . '/local/ucla_syllabus/locallib.php');
-                    
-                    $syllabus_icon = html_writer::start_tag('a', 
-                            array('href' => $CFG->wwwroot . '/local/ucla_syllabus/index.php?id=' . $courseid));
-                    
-                    // TODO: Get proper icons for public/private syllabuses
-                    $syllabus_type = $syllabus->access_type;
-                    if ($syllabus_type == UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC) {
-                        $syllabus_icon .= html_writer::tag('img', '', 
-                                array('src' => 'http://www.ucla.edu/img/weather/sun.png', 
-                                    'alt' => 'public syllabus', 
-                                    'title' => 'public syllabus')
-                                );
-                    } else if ($syllabus_type == UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN) {
-                        $syllabus_icon .= html_writer::tag('img', '', 
-                                array('src' => 'http://www.ucla.edu/img/weather/sun.png', 
-                                    'alt' => 'public syllabus (login required)', 
-                                    'title' => 'public syllabus (login required)')
-                                );
-                    } else if ($syllabus_type == UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE) {
-                        $syllabus_icon .= html_writer::tag('img', '', 
-                                array('src' => 'http://www.ucla.edu/img/weather/sun.png', 
-                                    'alt' => 'private syllabus', 
-                                    'title' => 'private syllabus')
-                                );
-                    }
-                    
-                    $syllabus_icon .= html_writer::end_tag('a');
-                } else {
-                    // No syllabus found for this course
-                    // Display an empty string or maybe a special icon
-                }
+                $syllabus = ucla_syllabus_manager::get_syllabus_icon($courseid);
 
-                $data[] = array($courselink, $course->instructors, 
-                    $course->fullname, $syllabus_icon);
+                $data[] = array($syllabus . ' ' . $courselink, 
+                    $course->instructors, $course->fullname);
                 
-                $disptable->data = $data;                
+                $disptable->data = $data; 
             }
         } else {
             $cell = new html_table_cell(get_string('noresults', 'admin'));
-            $cell->colspan = 4;
+            $cell->colspan = 3;
             $cell->style = 'text-align: center';
             $row = new html_table_row(array($cell));            
             $disptable->data[] = $row;
@@ -140,7 +109,7 @@ class block_ucla_browseby_renderer extends block_navigation_renderer {
     }
 
     static function ucla_browseby_course_list_headers() {
-        $headelements = array('course', 'instructors', 'coursetitle', 'syllabus');
+        $headelements = array('course', 'instructors', 'coursetitle');
         $headstrs = array();
 
         foreach ($headelements as $headelement) {
