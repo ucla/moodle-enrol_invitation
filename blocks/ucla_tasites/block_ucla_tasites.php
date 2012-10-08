@@ -327,6 +327,8 @@ class block_ucla_tasites extends block_base {
         // @throws
         $newcourse = create_course($course);
 
+        self::set_site_indicator($newcourse);
+    
         $course->id = $newcourse->id;
 
         // TODO move into function?
@@ -341,6 +343,30 @@ class block_ucla_tasites extends block_base {
         $meta->course_updated(false, $course, null);
 
         return $newcourse;
+    }
+
+    /**
+     *  Attempts to attach a site indicator.
+     **/
+    static function set_site_indicator($newcourse) {
+        global $CFG;
+        static $has_uclasiteindicator;
+
+        if (!isset($has_uclasiteindicator)) {
+            require_once($CFG->dirroot . '/lib/pluginlib.php');
+            $pm = plugin_manager::instance();
+            $plugins = $pm->get_plugins();
+            $has_uclasiteindicator = isset(
+                    $plugins['tool']['uclasiteindicator']
+                ); 
+        }
+
+        if ($has_uclasiteindicator) {
+            require_once($CFG->dirroot . '/' . $CFG->admin 
+                    . '/tool/uclasiteindicator/lib.php');
+            $sitetype = siteindicator_site::create($newcourse->id);
+            $sitetype->set_type('instruction');
+        }
     }
 
     /**

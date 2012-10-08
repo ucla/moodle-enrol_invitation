@@ -18,6 +18,7 @@ if (block_ucla_tasites::is_tasite($courseid)) {
     throw new block_ucla_tasites_exception('xzibit');
 }
 
+
 $PAGE->set_url(new moodle_url(
         '/blocks/ucla_tasites/index.php', 
         array('courseid' => $courseid)
