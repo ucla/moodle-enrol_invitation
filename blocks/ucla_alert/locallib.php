@@ -65,9 +65,10 @@ class html_element {
             $out = '';
 
             foreach($content as $c) {
-                if($c instanceof html_tag) {
-                    $out .= $c->render();
-                }
+                $out .= $c->render();
+//                if($c instanceof html_tag) {
+//                    $out .= $c->render();
+//                }
             }
             
         // Handle plain ol strings
@@ -102,18 +103,38 @@ class html_element {
     }
 }
 
+/**
+ * An alert header contains:
+ *  alert_box[title, subtitle]
+ *  alert_section[items, ...] 
+ */
 class alert_html_header extends html_element {
     
     public function __construct($text) {
         
+        $items = explode('$$', $text);
+        $header = array_shift($items);
+        
+        // Prepare items
+        $section = new stdClass();
+        $section->title = '';
+        $section->items = $items;
+        
         $content = array(
-            new alert_html_header_box($text),
-            new alert_html_section_item($text),
+            new alert_html_header_box($header),
+            new alert_html_section($section),
         );
         
         parent::__construct('div', $content, array());
     }
 
+}
+
+class alert_html_header_box extends alert_html_box_content {
+    public function __construct($text) {
+        $content = alert_text_parser::parse_header($text);
+        parent::__construct($content, array('class' => 'header-box'));
+    }
 }
 
 class alert_html_header_title extends html_element {
@@ -128,37 +149,36 @@ class alert_html_header_subtitle extends html_element {
     }
 }
 
-class alert_html_header_box extends alert_html_box_content {
-    public function __construct($text) {
-        $content = alert_text_parser::parse_header($text);
-        parent::__construct($content, array('class' => 'header-box'));
-    }
-}
-
-class alert_html_section_title extends html_element {
-    public function __construct($content = null) {
-        parent::__construct('div', $content, array('class' => 'box-section'));
-    }
-}
-
-class alert_html_box_title extends html_element {
-    public function __construct($content = null) {
-        parent::__construct('div', $content, array('class' => 'box-title'));
-    }
-}
-
-class alert_html_box_text extends html_element {
-    public function __construct($content = null) {
-        parent::__construct('div', $content, array('class' => 'box-text'));
-    }
-}
-
+/**
+ * A general boxing element
+ */
 class alert_html_box_content extends html_element {
     public function __construct($content = null, $attributes = array('class' => 'box-boundary')) {
         parent::__construct('div', $content, $attributes);
     }
 }
 
+/**
+ * An item title element
+ */
+class alert_html_box_title extends alert_html_box_content {
+    public function __construct($content = null) {
+        parent::__construct($content, array('class' => 'box-title'));
+    }
+}
+
+/**
+ * An item text element
+ */
+class alert_html_box_text extends alert_html_box_content {
+    public function __construct($content = null) {
+        parent::__construct($content, array('class' => 'box-text'));
+    }
+}
+
+/**
+ * An item list element
+ */
 class alert_html_box_list extends alert_html_box_content {
     
     static $colors = array('blue');
@@ -178,6 +198,9 @@ class alert_html_box_list extends alert_html_box_content {
     }
 }
 
+/**
+ * An item link
+ */
 class alert_html_box_link extends alert_html_box_content {
     public function __construct($content = null) {
         list($content, $link) = alert_text_parser::parse_braces($content);
@@ -194,6 +217,18 @@ class alert_html_box_link extends alert_html_box_content {
     }
 }
 
+/**
+ * A section title
+ */
+class alert_html_section_title extends alert_html_box_content {
+    public function __construct($content = null) {
+        parent::__construct($content, array('class' => 'box-section-title'));
+    }
+}
+
+/**
+ * An section item
+ */
 class alert_html_section_item extends alert_html_box_content {
 
     public function __construct($text) {
@@ -203,7 +238,9 @@ class alert_html_section_item extends alert_html_box_content {
     }
 }
 
-
+/**
+ * An alert section renderer
+ */
 class alert_html_section extends alert_html_box_content {
     public function __construct($section) {
         // Expect:
@@ -216,15 +253,117 @@ class alert_html_section extends alert_html_box_content {
         $content = array(new alert_html_section_title($section->title));
         
         // Add the items
-        foreach($section->items as $item_raw) {
-            $content[] = new alert_html_section_item($item_raw);
+        foreach($section->items as $item_text) {
+            $content[] = new alert_html_section_item(trim($item_text));
         }
         
         parent::__construct($content);
     }
 }
 
+class alert_edit_header extends html_element {
+    public function __construct($headers, $section_text) {
+        
+        $items = explode('$$', $section_text);
+        
+        $allheaders = array();
+        foreach($headers as $hed) {
+            $box = new alert_html_header_box($hed->raw);
+            $box->add_class('alert-header-'. $hed->color)
+                ->add_class('box-boundary')
+                ->add_attrib('rel', $hed->raw)
+                ->add_attrib('visible', $hed->visible);
+            
+            $edit = new alert_edit_textarea_box($hed->raw, 2);
+            $edit->add_class('alert-header-' . $hed->color);
+            
+            $allheaders[$hed->color] = new alert_html_box_content(array($box, $edit),
+                    array('class' => 'alert-edit-header-wrapper alert-edit-element'));
+        }
 
+        // Create <li> list
+        $ullist = array();
+        foreach($items as $item_text) {
+            $item = new html_element('li', new alert_html_section_item(trim($item_text)));
+            $item->add_class('alert-edit-item')
+                 ->add_content(new alert_edit_textarea_box($item_text))
+                 ->add_attrib('rel', trim($item_text));
+            
+            $ullist[] = $item;
+        }
+        
+        $ul = new html_element('ul', $ullist);
+        
+        parent::__construct('div', array($allheaders, $ul), 
+                array('class' => 'alert-edit-header block-ucla-alert'));
+    }
+}
+
+class alert_edit_section extends html_element {
+    public function __construct($text) {
+
+        $items = explode('$$', $text);
+        
+        $section = new stdClass();
+        $section->title = array_shift($items);
+        $section->items = $items;
+        
+        $title = new alert_html_section_title($section->title);
+        
+        // Create <li> list
+        $ullist = array();
+        foreach($section->items as $item_text) {
+            $item = new html_element('li', new alert_html_section_item(trim($item_text)));
+            $item->add_class('alert-edit-item')
+                 ->add_class('alert-edit-element')
+                 ->add_attrib('rel', trim($item_text))
+                 ->add_content(new alert_edit_textarea_box($item_text));
+            
+            $ullist[] = $item;
+        }
+        
+        $ul = new html_element('ul', $ullist);
+        
+        parent::__construct('div', array($title, $ul), 
+                array('class' => 'alert-edit-section block-ucla-alert'));
+    }
+}
+
+class alert_edit_textarea_box extends html_element {
+    public function __construct($text, $rows = 8) {
+        
+        $textarea = new html_element('textarea');
+        $textarea->add_class('alert-edit-textarea')
+                 ->add_attrib('rows', $rows)
+                 ->add_content($text);
+        
+        parent::__construct('div', array($textarea, new alert_edit_button_box()), 
+                array('class' => 'alert-edit-text-box'));
+    }
+}
+
+class alert_edit_button_box extends html_element {
+    public function __construct() {
+        $save = new html_element('button', 'Save');
+        $save->add_class('btn')
+             ->add_class('btn-mini')
+             ->add_class('btn-active')
+             ->add_class('alert-edit-save');
+        
+        $cancel = new html_element('button', 'Cancel');
+        $cancel->add_class('btn')
+               ->add_class('btn-mini')
+               ->add_class('btn-danger')
+               ->add_class('alert-edit-cancel');
+        
+        parent::__construct('div', array($save, $cancel), 
+                array('class' => 'alert-edit-button-box'));
+    }
+}
+
+/**
+ * Alert text parser
+ */
 class alert_text_parser {
     const STRING_BRACES =   0;
     const STRING_INNER =    1;
@@ -235,6 +374,7 @@ class alert_text_parser {
     
     const HEADER_TITLE =    ':header';
     const HEADER_SUB =      ':subheader';
+    const HEADER_FUNCTION = ':function';
     
     public static function parse_item($text) {
         $lines = explode("\n", $text);
@@ -306,8 +446,14 @@ class alert_text_parser {
             } else if(strpos($l, self::HEADER_SUB) === 0) {
                 $output[] = new alert_html_header_subtitle(trim(str_replace(self::HEADER_SUB, '', $l)));
                 continue;
+            } else if(strpos($l, self::HEADER_FUNCTION) === 0) {
+                $function = trim(str_replace(self::HEADER_FUNCTION, '', $l));
+                
+                if(method_exists('alert_text_parser', $function)) {
+                    $output[] = alert_text_parser::$function();
+                }
+                continue;
             }
-            
         }
         
         return $output;
@@ -324,17 +470,32 @@ class alert_text_parser {
         
         return array($content, 0);
     }
+
+    
+    public static function now() {
+        $time = date("F j, Y - g:i a", time());
+        return new alert_html_header_subtitle($time);
+    }
+
+    public static function date() {
+        $time = date("F j, Y", time());
+        return new alert_html_header_subtitle($time);
+    }
 }
 
+/**
+ * UCLA alert
+ */
 abstract class ucla_alert {
     const DB_TABLE = 'ucla_alert';
     
-    const ENTITY_META =     10;
-    const ENTITY_HEADER =   20;
-    const ENTITY_SECTION =  30;
-    const ENTITY_ITEM =     40;
+    const ENTITY_HEADER         = 20;
+    const ENTITY_SECTION        = 30;
+    const ENTITY_HEADER_SECTION = 40;
     
-    const TEMPLATE_HEADER = 50;
+    const RENDER_CACHE             = 10;
+    const RENDER_REFRESH           = 20;
+    const RENDER_DAILY             = 30;
     
     public function __construct() {
         // empty
@@ -374,6 +535,82 @@ abstract class ucla_alert_block extends ucla_alert {
     }
 }
 
+class ucla_alert_block_editable extends ucla_alert_block {
+    
+    public function __construct($courseid) {
+        parent::__construct($courseid);
+    }
+    
+    public function render() {
+        
+        $alert_edit = new html_element('div');
+        $alert_edit->add_attrib('id', 'ucla-alert-edit');
+        
+        $raw_text = "ccle notices
+$$
+:title this is a title
+this is regular text that overflows
+text on a new line
+
+double spaced text
+:list{red} this is a list
+:list another list
+:link{http://www.google.com} google.com
+$$
+:title foo
+another test";
+
+        $disable_section = "scratch pad
+$$
+:title disabled item
+this item is disabled when it's left in this area.";
+
+        $header_text1 = ":header hello world!
+:function date ";
+        $header_text2 = ":header service alert
+:subheader You will survive";
+        $header_text3 = ":header ccle alert
+:function now";
+        $header_text4 = ":header maintenance alert
+:subheader Scheduled NOW!";
+        
+        $section_header_text = "Alert block presents itself to the world!";
+        
+        $o1 = new stdClass();
+        $o1->raw = $header_text1;
+        $o1->color = 'default';
+        $o1->visible = 1;
+
+        $o2 = new stdClass();
+        $o2->raw = $header_text2;
+        $o2->color = 'yellow';
+        $o2->visible = 0;
+        
+        $o3 = new stdClass();
+        $o3->raw = $header_text3;
+        $o3->color = 'red';
+        $o3->visible = 0;
+        
+        $o4 = new stdClass();
+        $o4->raw = $header_text4;
+        $o4->color = 'blue';
+        $o4->visible = 0;
+        
+        $allheaders = array(
+            $o1, $o2, $o3, $o4
+        );
+
+        
+        $mysections = array(
+            new alert_edit_section($disable_section),
+            new alert_edit_header($allheaders, $section_header_text),
+            new alert_edit_section($raw_text),
+        );
+        
+        return $alert_edit->add_content($mysections)->render();
+        
+    }
+}
 
 class ucla_alert_block_course extends ucla_alert_block {
     public function render() {
@@ -410,21 +647,24 @@ class ucla_alert_block_site extends ucla_alert_block {
 //        return $html;
         
         $t = ":header hello world!
-            :subheader " . time() ."
-            ccle is doing awesome!";
+:subheader " . time() ."
+$$
+alert block presents itself to the world!";
         
         $foo = new alert_html_header($t);
         
-//        $out = new alert_html_box_content(' test ');
-        
-        $text = array(":title this is a title
-            this is regular text that overflows
-            text on a new line
-            
-            double spaced text
-            :list{red} this is a list
-            :list another list
-            :link{http://www.google.com} google.com");
+        $text = array("
+:title this is a title
+this is regular text that overflows
+text on a new line
+
+double spaced text
+:list{red} this is a list
+:list another list
+:link{http://www.google.com} google.com
+",
+":title foo
+another test");
         
         $section = new stdClass();
         $section->title = 'ccle notices';
