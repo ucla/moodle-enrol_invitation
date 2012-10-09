@@ -251,6 +251,10 @@
     switch ($action) {
 
     case 'dresp':
+        // START UCLA MOD: CCLE-2723 - Students may be able to delete questionnaire responses if they can guess the URL
+        require_capability('mod/questionnaire:deleteresponses', $context);
+        // END UCLA MOD: CCLE-2723
+        
         if (empty($questionnaire->survey)) {
             $id = $questionnaire->survey;
             notify ("questionnaire->survey = /$id/");
@@ -299,6 +303,10 @@
         break;
 
     case 'delallresp': // delete all responses
+        // START UCLA MOD: CCLE-2723 - Students may be able to delete questionnaire responses if they can guess the URL
+        require_capability('mod/questionnaire:deleteresponses', $context);
+        // END UCLA MOD: CCLE-2723
+        
         $select = 'survey_id='.$sid.' AND complete = \'y\'';
         if (!($responses = $DB->get_records_select('questionnaire_response', $select, null, 'id', 'id'))) {
             return;
@@ -355,7 +363,10 @@
         break;
 
     case 'dvresp':
-
+        // START UCLA MOD: CCLE-2723 - Students may be able to delete questionnaire responses if they can guess the URL
+        require_capability('mod/questionnaire:deleteresponses', $context);
+        // END UCLA MOD: CCLE-2723
+        
         if (empty($questionnaire->survey)) {
             print_error('surveynotexists', 'questionnaire');
         } else if ($questionnaire->survey->owner != $course->id) {
@@ -392,7 +403,10 @@
         break;
 
     case 'dvallresp': // delete all responses in questionnaire (or group)
-
+        // START UCLA MOD: CCLE-2723 - Students may be able to delete questionnaire responses if they can guess the URL
+        require_capability('mod/questionnaire:deleteresponses', $context);
+        // END UCLA MOD: CCLE-2723
+        
         if (empty($questionnaire->survey)) {
             print_error('surveynotexists', 'questionnaire');
         } else if ($questionnaire->survey->owner != $course->id) {
@@ -490,6 +504,10 @@
         break;
 
     case 'dwnpg': // Download page options
+        // START UCLA MOD: CCLE-2723 - Students may be able to delete questionnaire responses if they can guess the URL
+        require_capability('mod/questionnaire:downloadresponses', $context);
+        // END UCLA MOD: CCLE-2723
+        
         $PAGE->set_title(get_string('questionnairereport', 'questionnaire'));
         $PAGE->set_heading(format_string($course->fullname));
         $PAGE->navbar->add(get_string('questionnairereport', 'questionnaire'));
@@ -546,7 +564,10 @@
         break;
 
     case 'dcsv': // download as text (cvs) format
-
+        // START UCLA MOD: CCLE-2723 - Students may be able to delete questionnaire responses if they can guess the URL
+        require_capability('mod/questionnaire:downloadresponses', $context);
+        // END UCLA MOD: CCLE-2723
+        
     /// Use the questionnaire name as the file name. Clean it and change any non-filename characters to '_'.
         $name = clean_param($questionnaire->name, PARAM_FILE);
         $name = preg_replace("/[^A-Z0-9]+/i", "_", trim($name));
