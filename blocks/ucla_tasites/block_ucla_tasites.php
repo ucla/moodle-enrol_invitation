@@ -450,9 +450,12 @@ class block_ucla_tasites extends block_base {
             foreach ($instructors as $ik => $instructor) {
                 $iid = $instructor->id;
                 if (isset($tasites[$iid])) {
-                    $appended_instdata[$ik]['tasite'] = new moodle_url(
-                        '/course/view.php',
-                        array('id' => $tasites[$iid]->id)
+                    $appended_instdata[$ik]['tasite'] = html_writer::link(
+                        new moodle_url(
+                            '/course/view.php',
+                            array('id' => $tasites[$iid]->id)
+                        ),
+                        get_string('view_tasite', 'block_ucla_tasites')
                     );
                 }
             }

@@ -26,6 +26,7 @@ $string['view_tasites'] = 'Existing TA sites';
 $string['view_tadesc'] = '{$a->fullname}';
 
 // Office hours hook
+$string['view_tasite'] = 'View TA site';
 $string['tasite'] = 'TA site';
 
 $string['returntocourse'] = 'Return to main course';
