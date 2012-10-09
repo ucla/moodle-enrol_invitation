@@ -7,10 +7,11 @@ $string['edit_office_hours'] = 'Update office hours & contact info';
 $string['edit_office_hours_post'] = 'Update your office hours, office location and phone number.';
 
 // Office hours and contact information heading displays
-$string['office'] = 'Office';
+$string['officelocation'] = 'Office';
 $string['phone'] = 'Phone';
 $string['email'] = 'Email';
-$string['office_hours'] = 'Office hours';
+$string['officehours'] = 'Office hours';
+$string['update_icon'] = '';
 
 $string['header'] = 'Update office hours and contact info for {$a}';
 
@@ -37,7 +38,6 @@ $string['confirmation_message'] =
 $string['confirmation_redirect1'] = 'Click ';
 $string['confirmation_redirect2'] =' to go to the Site Info page of your course where the updated information can be seen.';
 
-$string['update_'] = '';
 
 $string['cannotedit'] = 'Sorry, but you cannot edit office hours information for given user and course';
 

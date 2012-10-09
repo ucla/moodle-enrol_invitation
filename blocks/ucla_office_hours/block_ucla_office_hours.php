@@ -7,7 +7,9 @@ require_once($CFG->dirroot . '/course/lib.php');
 
 class block_ucla_office_hours extends block_base {
     const DISPLAYKEY_PREG = '/([0-9]+[_])(.*)/';
-    const TITLE_FLAG = '__title__';
+
+    // This is a hack for displaying table-dependent header
+    const TITLE_FLAG = '01__title__';
 
     public function init() {
         $this->title = get_string('pluginname', 'block_ucla_office_hours');
@@ -126,48 +128,14 @@ class block_ucla_office_hours extends block_base {
                                                      $course, $context) {
         global $DB, $OUTPUT, $PAGE, $USER, $CFG;
 
-        require_once($CFG->dirroot . '/mod/url/locallib.php');
-
         $instructor_types = $CFG->instructor_levels_roles;
-        
-        $has_capability_edit_office_hours = has_capability(
-                'block/ucla_office_hours:editothers', $context);
-        $editing = $PAGE->user_is_editing();
-        $editing_office_hours = $editing && $has_capability_edit_office_hours;
 
-        $streditsummary     = get_string('editcoursetitle', 'format_ucla');
         $instr_info_table = '';
             
-        // Determine if the user is enrolled in the course or is an admin
-        // Assuming 'moodle/course:update' is a sufficient capability to 
-        // to determine if a user is an admin or not
-        $enrolled_or_admin = is_enrolled($context, $USER) 
-                || has_capability('moodle/course:update', $context);
-      
-        // The number is an informal sorting system.
-        // Note the naming schema
-        // TODO put this in office_hours_append()
-        $desired_info = array(
-            '01_fullname' => self::TITLE_FLAG,
-            '02_email' => get_string('email', 
-                    'block_ucla_office_hours'),
-            '03_officelocation' => get_string('office', 
-                    'block_ucla_office_hours'),
-            '04_officehours' => get_string('office_hours', 
-                    'block_ucla_office_hours'),
-            '05_phone' => get_string('phone', 
-                    'block_ucla_office_hours'),
-        );
-
-        // Add another column for the "Update" link
-        if ($editing_office_hours) {
-            // This get_string should be blank
-            $desired_info['00_update_icon'] =  
-                get_string('update_', 'block_ucla_office_hours');
-        }
-
         $appended_info = self::blocks_office_hours_append($instructors, 
                 $course, $context);
+
+        $desired_info = array();
 
         // append to $desired_info and delegate values
         foreach ($appended_info as $blockname => $instructor_data) {
@@ -176,12 +144,20 @@ class block_ucla_office_hours extends block_base {
                     $fieldname = self::blocks_process_displaykey(
                             $field, $blockname
                         );
+                    $stripfield = self::blocks_strip_displaykey_sort($field);
 
                     if (!isset($desired_info[$fieldname])) {
-                        $desired_info[$fieldname] = get_string($field,
-                            'block_' . $blockname);
-                    } else {
-                        debugging('repeated info key ' . $fieldname);
+                        // Hack for titles
+                        if ($field == self::TITLE_FLAG) {
+                             $infoheader = self::TITLE_FLAG;
+                        } else {
+                            $infoheader = get_string(
+                                $stripfield,
+                                'block_' . $blockname
+                            );
+                        }
+
+                        $desired_info[$fieldname] = $infoheader;
                     }
                     
                     if (empty($instructors[$instkey])) {
@@ -211,66 +187,6 @@ class block_ucla_office_hours extends block_base {
                 $instructors, $course, $context
             );
 
-        $strupdate = get_string('editofficehours', 'format_ucla');
-        $streditsummary = get_string('editcoursetitle', 'format_ucla');
-        $link_options = array('title' => $strupdate);
-
-        // calculate invariants, and locally dependent data
-        foreach ($instructors as $uk => $user) {
-            // Name field
-            $user->fullname = fullname($user);
-
-            if (!empty($user->url) && url_appears_valid_url($user->url)) {
-                $user->fullname = html_writer::link(
-                    new moodle_url($user->url),
-                    $user->fullname
-                );
-            }
-          
-            // Update button
-            if ($editing_office_hours) {
-                $user->update_icon = html_writer::tag(
-                    'span',
-                    $OUTPUT->render(
-                        new action_link(
-                            new moodle_url(
-                                '/blocks/ucla_office_hours/officehours.php',
-                                array(
-                                    'courseid' => $course->id,
-                                    'editid' => $user->id
-                                )
-                            ),
-                            new pix_icon(
-                                't/edit', 
-                                $link_options['title'],
-                                'moodle',
-                                array(
-                                    'class' => 'icon edit iconsmall',
-                                    'alt' => $streditsummary
-                                )
-                            ),
-                            null,
-                            $link_options
-                        )
-                    )
-                );
-            }
-            
-            // Determine if we should display the instructor's email:
-            // 2 - Allow only other course members to see my email address
-            // 1 - Allow everyone to see my email address
-            // 0 - Hide my email address from everyone
-            // * - always display email if an alterative was set
-            $email_display = $user->maildisplay;
-            $display_email = ($email_display == 2 && $enrolled_or_admin) 
-                || ($email_display == 1) 
-                || $email_display == 0;
-            if (!empty($user->officeemail)) {
-                $user->email = $user->officeemail;
-            } else if (!$display_email) {
-                unset($user->email);
-            }
-        }
 
         // Filter and organize users here?
         foreach ($instructor_types as $title => $rolenames) {
@@ -311,7 +227,7 @@ class block_ucla_office_hours extends block_base {
             foreach ($type_table_headers as $field => $header) {
                 $found = false;
                 foreach ($goal_users as $user) {
-                    if (isset($user->{$field})) {
+                    if (!empty($user->{$field})) {
                         $found = true;
                         break;
                     }
@@ -456,5 +372,124 @@ class block_ucla_office_hours extends block_base {
                 'course' => $course, 
                 'context' => $context
             ));
+    }
+
+    function office_hours_append($params) {
+        global $CFG, $OUTPUT, $PAGE, $USER;
+        require_once($CFG->dirroot . '/mod/url/locallib.php');
+
+        extract($params);
+
+        $has_capability_edit_office_hours = has_capability(
+                'block/ucla_office_hours:editothers', $context);
+        $editing = $PAGE->user_is_editing();
+        $editing_office_hours = $editing && $has_capability_edit_office_hours;
+        
+        // Determine if the user is enrolled in the course or is an admin
+        // Assuming 'moodle/course:update' is a sufficient capability to 
+        // to determine if a user is an admin or not
+        $enrolled_or_admin = is_enrolled($context, $USER) 
+                || has_capability('moodle/course:update', $context);
+      
+        $streditsummary     = get_string('editcoursetitle', 'format_ucla');
+        $link_options = array('title' => get_string('editofficehours',
+            'format_ucla'));
+
+        // The number is an informal sorting system.
+        // Note the naming schema
+        $fullname = '01_fullname';
+        $defaultinfo = array(
+            $fullname,
+            '02_email',
+            '03_officelocation',
+            '04_officehours',
+            '05_phone'
+        );
+
+        // Add another column for the "Update" link
+        if ($editing_office_hours) {
+            // This get_string should be blank
+            $defaultinfo[] =  '00_update_icon';
+        }
+
+        $defaults = array();
+        foreach ($defaultinfo as $defaultdata) {
+            $defaults[self::blocks_strip_displaykey_sort($defaultdata)] = 
+                $defaultdata;
+        }
+
+        // custom hack for fullname
+        $defaults[self::blocks_strip_displaykey_sort($fullname)] = 
+            self::TITLE_FLAG;
+
+        // calculate invariants, and locally dependent data
+        foreach ($instructors as $uk => $user) {
+            // Name field
+            $fullname = fullname($user);
+
+            if (!empty($user->url) && url_appears_valid_url($user->url)) {
+                $fullname = html_writer::link(
+                    new moodle_url($user->url),
+                    $fullname
+                );
+            }
+
+            $user->fullname = $fullname;
+          
+            // Update button
+            if ($editing_office_hours) {
+                $user->update_icon = html_writer::tag(
+                    'span',
+                    $OUTPUT->render(
+                        new action_link(
+                            new moodle_url(
+                                '/blocks/ucla_office_hours/officehours.php',
+                                array(
+                                    'courseid' => $course->id,
+                                    'editid' => $user->id
+                                )
+                            ),
+                            new pix_icon(
+                                't/edit', 
+                                $link_options['title'],
+                                'moodle',
+                                array(
+                                    'class' => 'icon edit iconsmall',
+                                    'alt' => $streditsummary
+                                )
+                            ),
+                            null,
+                            $link_options
+                        )
+                    )
+                );
+            }
+            
+            // Determine if we should display the instructor's email:
+            // 2 - Allow only other course members to see my email address
+            // 1 - Allow everyone to see my email address
+            // 0 - Hide my email address from everyone
+            // * - always display email if an alterative was set
+            $email_display = $user->maildisplay;
+            $display_email = ($email_display == 2 && $enrolled_or_admin) 
+                || ($email_display == 1) 
+                || $email_display == 0;
+            if (!empty($user->officeemail)) {
+                $user->email = $user->officeemail;
+            } else if (!$display_email) {
+                unset($user->email);
+            }
+        }
+
+        $officehoursusers = array();
+        foreach ($instructors as $uk => $user) {
+            foreach ($user as $field => $value) {
+                if (isset($defaults[$field])) {
+                    $officehoursusers[$uk][$defaults[$field]] = $value;
+                }
+            }
+        }
+
+        return $officehoursusers;
     }
 }
