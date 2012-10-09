@@ -25,6 +25,9 @@ $string['built_tasite'] = 'TA site <a href="{$a->course_url}">{$a->course_shortn
 $string['view_tasites'] = 'Existing TA sites';
 $string['view_tadesc'] = '{$a->fullname}';
 
+// Office hours hook
+$string['tasite'] = 'TA site';
+
 $string['returntocourse'] = 'Return to main course';
 
 // Exceptions

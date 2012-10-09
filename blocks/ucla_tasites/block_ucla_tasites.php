@@ -434,6 +434,31 @@ class block_ucla_tasites extends block_base {
 
         return $cp_module;
     }
+
+    function office_hours_append($params) {
+        $instructors = $params['instructors'];
+        $course = $params['course'];
+        $tasites = self::get_tasites($course->id);
+
+        $appended_instdata = array();
+
+        if ($tasites) {
+            $fieldname = block_ucla_office_hours::blocks_process_displaykey(
+                'tasite', 'block_ucla_tasites'
+            );
+                
+            foreach ($instructors as $ik => $instructor) {
+                $iid = $instructor->id;
+                if (isset($tasites[$iid])) {
+                    $appended_instdata[$ik]['tasite'] = new moodle_url(
+                        '/course/view.php',
+                        array('id' => $tasites[$iid]->id)
+                    );
+                }
+            }
+        }
+        return $appended_instdata;
+    }
 }
 
 class block_ucla_tasites_exception extends moodle_exception {
