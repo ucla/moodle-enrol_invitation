@@ -6,7 +6,7 @@ require_once($CFG->dirroot . '/blocks/moodleblock.class.php');
 require_once($CFG->dirroot . '/course/lib.php');
 
 class block_ucla_office_hours extends block_base {
-    const DISPLAYKEY_PREG = '/([0-9]*[_])(.*)/';
+    const DISPLAYKEY_PREG = '/([0-9]+[_])(.*)/';
     const TITLE_FLAG = '__title__';
 
     public function init() {
@@ -171,7 +171,7 @@ class block_ucla_office_hours extends block_base {
 
         // append to $desired_info and delegate values
         foreach ($appended_info as $blockname => $instructor_data) {
-            foreach ($instructor_info as $instkey => $instfields) {
+            foreach ($instructor_data as $instkey => $instfields) {
                 foreach ($instfields as $field => $value) {
                     $fieldname = self::blocks_process_displaykey(
                             $field, $blockname
@@ -274,6 +274,7 @@ class block_ucla_office_hours extends block_base {
 
         // Filter and organize users here?
         foreach ($instructor_types as $title => $rolenames) {
+            $type_table_headers = $table_headers;
             $goal_users = array();
 
             foreach ($instructors as $uk => $user) {
@@ -306,24 +307,42 @@ class block_ucla_office_hours extends block_base {
 
             $table->head = array();
 
+            // Cleaning headers
+            foreach ($type_table_headers as $field => $header) {
+                $found = false;
+                foreach ($goal_users as $user) {
+                    if (isset($user->{$field})) {
+                        $found = true;
+                        break;
+                    }
+                }
+
+                if (!$found) {
+                    unset($type_table_headers[$field]);
+                }
+            }
+
+            // Determine which data to display.
+            foreach ($goal_users as $user) {
+                $user_row = array();
+
+                foreach ($type_table_headers as $field => $header) {
+                    if (isset($user->{$field})) {
+                        $user_row[$field] = $user->{$field};
+                    }
+                }
+
+                $table->data[] = $user_row;
+            }
+            
             // use array_values, to remove array keys, which are 
             // mistaken as another css class for given column
-            foreach ($table_headers as $table_header) {
+            foreach ($type_table_headers as $table_header) {
                 if ($table_header == self::TITLE_FLAG) {
                     $table_header = $title;
                 }
 
                 $table->head[] = $table_header;
-            }
-
-            foreach ($goal_users as $user) {
-                $user_row = array();
-
-                foreach ($table_headers as $field => $header) {
-                    $user_row[$field] = $user->{$field};
-                }
-
-                $table->data[] = $user_row;
             }
 
             $instr_info_table .= html_writer::table($table);
@@ -355,7 +374,7 @@ class block_ucla_office_hours extends block_base {
             $blockres = @block_method_result($blockname, $function, $param);
 
             if ($blockres) {
-                $blocksresults[$blockname] = $blockres;
+                $blockresults[$blockname] = $blockres;
             }
         }
 
@@ -368,10 +387,12 @@ class block_ucla_office_hours extends block_base {
      *  
      *  Allows blocks to specify arbitrary fields to add onto the display
      *      in section 0 of the course site.
-     *  @param $instructors The instructors that have been selected to be
-     *      in the office hours.
-     *  @param $course The course
-     *  @param $context The context
+     *  @param Array(
+     *      'instructors' => array the instructors that have been selected 
+     *          to be in the office hours,
+     *      'course'  => object the course,
+     *      'context' => object the context
+     *    )
      *  @return Array(
      *      <key in $instructors> => array(
      *          <field name to be appended> => <value>,
@@ -391,7 +412,11 @@ class block_ucla_office_hours extends block_base {
     static function blocks_office_hours_append($instructors, $course, 
                                                $context) {
         return self::all_blocks_method_results('office_hours_append',
-            array($instructors, $course, $context));
+            array(
+                'instructors' => $instructors, 
+                'course' => $course, 
+                'context' => $context
+            ));
     }
 
     /**
@@ -399,7 +424,7 @@ class block_ucla_office_hours extends block_base {
      *  display field in a block. Blocks implementing 
      *  office_hours_append() should use this function.
      **/
-    static function blocks_process_displaykey($displaykey, $dislaykey) {
+    static function blocks_process_displaykey($displaykey, $blockname) {
         return $displaykey . '_' . $blockname;
     }
 
@@ -419,16 +444,17 @@ class block_ucla_office_hours extends block_base {
      *
      *  Allows blocks to specify that a certain instructor should NOT
      *      be displayed in the office hours block of the course site.
-     *  @param $instructors
-     *  @param $course
-     *  @param $context
+     *  @param Array()
      *  @return Array(<key for $instructors>, ...)
      **/
     static function blocks_office_hours_filter_instructors($instructors,
                                                            $course, $context) {
         return self::all_blocks_method_results(
             'office_hours_filter_instructors',
-            array($instructors, $course, $context)
-        );
+            array(
+                'instructors' => $instructors, 
+                'course' => $course, 
+                'context' => $context
+            ));
     }
 }
