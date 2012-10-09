@@ -37,6 +37,8 @@ $string['confirmation_message'] =
 $string['confirmation_redirect1'] = 'Click ';
 $string['confirmation_redirect2'] =' to go to the Site Info page of your course where the updated information can be seen.';
 
+$string['update_'] = '';
+
 $string['cannotedit'] = 'Sorry, but you cannot edit office hours information for given user and course';
 
 // capabilities strings
