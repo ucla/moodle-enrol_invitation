@@ -440,7 +440,7 @@ class format_ucla_renderer extends format_section_renderer_base {
         if (!empty($this->instructors)) {
             include_once($CFG->dirroot . '/blocks/ucla_office_hours/block_ucla_office_hours.php');
             $instr_info = block_ucla_office_hours::render_office_hours_table(
-                    $this->instructors, $CFG->instructor_levels_roles, $this->course, $this->context);
+                    $this->instructors, $this->course, $this->context);
 
             $center_content .= html_writer::tag('div', $instr_info, array('class' => 'instr-info'));
         }        
