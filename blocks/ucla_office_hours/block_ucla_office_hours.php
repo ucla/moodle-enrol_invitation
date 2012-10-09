@@ -135,58 +135,13 @@ class block_ucla_office_hours extends block_base {
         $appended_info = self::blocks_office_hours_append($instructors, 
                 $course, $context);
 
-        $desired_info = array();
-
-        // append to $desired_info and delegate values
-        foreach ($appended_info as $blockname => $instructor_data) {
-            foreach ($instructor_data as $instkey => $instfields) {
-                foreach ($instfields as $field => $value) {
-                    $fieldname = self::blocks_process_displaykey(
-                            $field, $blockname
-                        );
-                    $stripfield = self::blocks_strip_displaykey_sort($field);
-
-                    if (!isset($desired_info[$fieldname])) {
-                        // Hack for titles
-                        if ($field == self::TITLE_FLAG) {
-                             $infoheader = self::TITLE_FLAG;
-                        } else {
-                            $infoheader = get_string(
-                                $stripfield,
-                                'block_' . $blockname
-                            );
-                        }
-
-                        $desired_info[$fieldname] = $infoheader;
-                    }
-                    
-                    if (empty($instructors[$instkey])) {
-                        debugging('got a custom office hours field'
-                            . ' for non-existant instructor: ' . $instkey);
-                    }
-                    
-                    $instructors[$instkey]->{
-                            self::blocks_strip_displaykey_sort($fieldname)
-                        } = $value;
-                }
-            }
-        }
-        
-        ksort($desired_info);
-
-        $table_headers = array();
-
-        // Clean up the keys to match
-        foreach ($desired_info as $dispkey => $dispval) {
-            $stripdispkey = self::blocks_strip_displaykey_sort($dispkey);
-            $table_headers[$stripdispkey] = $dispval;
-        }
+        list($table_headers, $ohinstructors) = 
+            self::combine_blocks_office_hours($appended_info);
 
         // Optionally remove some instructors from display
         $filtered_users = self::blocks_office_hours_filter_instructors(
                 $instructors, $course, $context
             );
-
 
         // Filter and organize users here?
         foreach ($instructor_types as $title => $rolenames) {
@@ -199,7 +154,7 @@ class block_ucla_office_hours extends block_base {
                 }
 
                 if (in_array($user->shortname, $rolenames)) {
-                    $goal_users[$user->id] = $user;
+                    $goal_users[$uk] = $ohinstructors[$uk];
                 }
             }
 
@@ -265,6 +220,64 @@ class block_ucla_office_hours extends block_base {
         }
         
         return $instr_info_table;
+    }
+
+    /**
+     *  Turns a set of combined instructor informations and 
+     *  detemines potential headers.
+     **/
+    static function combine_blocks_office_hours($appended_info) {
+        $instructors = array();
+        // append to $desired_info and delegate values
+        foreach ($appended_info as $blockname => $instructor_data) {
+            foreach ($instructor_data as $instkey => $instfields) {
+                if (!isset($instructors[$instkey])) {
+                    $instructors[$instkey] = new object();
+                }
+
+                foreach ($instfields as $field => $value) {
+                    $fieldname = self::blocks_process_displaykey(
+                            $field, $blockname
+                        );
+                    $stripfield = self::blocks_strip_displaykey_sort($field);
+
+                    if (!isset($desired_info[$fieldname])) {
+                        // Hack for titles
+                        if ($field == self::TITLE_FLAG) {
+                             $infoheader = self::TITLE_FLAG;
+                        } else {
+                            $infoheader = get_string(
+                                $stripfield,
+                                'block_' . $blockname
+                            );
+                        }
+
+                        $desired_info[$fieldname] = $infoheader;
+                    }
+                    
+                    if (empty($instructors[$instkey])) {
+                        debugging('got a custom office hours field'
+                            . ' for non-existant instructor: ' . $instkey);
+                    }
+                    
+                    $instructors[$instkey]->{
+                            self::blocks_strip_displaykey_sort($fieldname)
+                        } = $value;
+                }
+            }
+        }
+        
+        ksort($desired_info);
+
+        $table_headers = array();
+
+        // Clean up the keys to match
+        foreach ($desired_info as $dispkey => $dispval) {
+            $stripdispkey = self::blocks_strip_displaykey_sort($dispkey);
+            $table_headers[$stripdispkey] = $dispval;
+        }
+
+        return array($table_headers, $instructors);
     }
 
     /**
