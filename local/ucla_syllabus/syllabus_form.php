@@ -140,6 +140,15 @@ class syllabus_form extends moodleform {
                                   'action' => UCLA_SYLLABUS_ACTION_EDIT,
                                   'type' => UCLA_SYLLABUS_TYPE_PRIVATE)),
                         get_string('edit'));
+                $make_public_link = '';
+                if (! ucla_syllabus_manager::has_public_syllabus($this->courseid)) {
+                    $make_public_link = html_writer::link(
+                            new moodle_url('/local/ucla_syllabus/index.php', 
+                                array('id' => $this->courseid,
+                                    'action' => UCLA_SYLLABUS_ACTION_CONVERT,
+                                    'type' => UCLA_SYLLABUS_TYPE_PRIVATE)),
+                            get_string('make_public', 'local_ucla_syllabus'));
+                }
                 $del_link = html_writer::link(
                         new moodle_url('/local/ucla_syllabus/index.php', 
                             array('id' => $this->courseid,
@@ -147,7 +156,8 @@ class syllabus_form extends moodleform {
                                   'type' => UCLA_SYLLABUS_TYPE_PRIVATE)),
                         get_string('delete'));
                 
-                $edit_links = html_writer::tag('span', $edit_link . $del_link, array('class' => 'editing_links'));
+                $edit_links = html_writer::tag('span', $edit_link . $make_public_link . $del_link, 
+                        array('class' => 'editing_links'));
                 $mform->addElement('html', $display_syllabus . $edit_links);
             } else {
                 // no syllabus added, so give a "add syllabus now" link
@@ -203,6 +213,15 @@ class syllabus_form extends moodleform {
                                   'action' => UCLA_SYLLABUS_ACTION_EDIT,
                                   'type' => UCLA_SYLLABUS_TYPE_PUBLIC)),
                         get_string('edit'));
+                $make_private_link = '';
+                if (! ucla_syllabus_manager::has_private_syllabus($this->courseid)) {
+                    $make_private_link = html_writer::link(
+                            new moodle_url('/local/ucla_syllabus/index.php', 
+                                array('id' => $this->courseid,
+                                    'action' => UCLA_SYLLABUS_ACTION_CONVERT,
+                                    'type' => UCLA_SYLLABUS_TYPE_PUBLIC)),
+                            get_string('make_private', 'local_ucla_syllabus'));
+                }
                 $del_link = html_writer::link(
                         new moodle_url('/local/ucla_syllabus/index.php', 
                             array('id' => $this->courseid,
@@ -210,7 +229,8 @@ class syllabus_form extends moodleform {
                                   'type' => UCLA_SYLLABUS_TYPE_PUBLIC)),
                         get_string('delete'));
                 
-                $edit_links = html_writer::tag('span', $edit_link . $del_link, array('class' => 'editing_links'));
+                $edit_links = html_writer::tag('span', $edit_link . $make_private_link . $del_link, 
+                        array('class' => 'editing_links'));
                 $mform->addElement('html', $display_syllabus . $edit_links);
             } else {
                 // no syllabus added, so give a "add syllabus now" link

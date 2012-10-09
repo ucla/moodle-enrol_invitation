@@ -52,6 +52,8 @@ $string['invalid_public_syllabus'] = 'Can only have one public syllabus for cour
 $string['public_syllabus_add'] = 'Add public syllabus';
 $string['private_syllabus_add'] = 'Add private syllabus';
 $string['no_syllabus'] = 'No syllabus uploaded yet';
+$string['make_private'] = 'Make private';
+$string['make_public'] = 'Make public';
 
 // strings for displaying syllabus
 $string['no_syllabus_uploaded'] = 'No syllabus has been uploaded yet';
@@ -67,6 +69,7 @@ $string['preview_disclaimer'] = 'This is a preview syllabus, meaing that it ' .
 $string['successful_add'] = 'Successfully added a syllabus';
 $string['successful_delete'] = 'Successfully deleted a syllabus';
 $string['successful_update'] = 'Successfully updated a syllabus';
+$string['successful_convert'] = 'Successfully converted a syllabus from {$a->old} to {$a->new}';
 
 // error strings
 $string['err_file_not_uploaded'] = 'Please upload a PDF';

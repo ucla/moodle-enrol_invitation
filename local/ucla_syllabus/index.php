@@ -125,6 +125,33 @@ if (!empty($USER->editing) && $can_manage_syllabus) {
             $success_msg = get_string('successful_delete', 'local_ucla_syllabus');
             flash_redirect($url, $success_msg);            
         }
+    } else if ($action == UCLA_SYLLABUS_ACTION_CONVERT) {
+        // User is converting between public or private syllabus
+        $syllabi = $ucla_syllabus_manager->get_syllabi();
+        
+        $convertto = 0;
+        $fromto = new StdClass();
+        $fromto->old = $type;
+        if ($type == UCLA_SYLLABUS_TYPE_PUBLIC) {
+            $convertto = UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE;
+            $fromto->new = UCLA_SYLLABUS_TYPE_PRIVATE;
+        } else if ($type == UCLA_SYLLABUS_TYPE_PRIVATE) {
+            // Using the stricter version of public - require user login
+            $convertto = UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN;
+            $fromto->new = UCLA_SYLLABUS_TYPE_PUBLIC;
+        }
+        
+        if ($convertto == 0) {
+             print_error('err_syllabus_notexist', 'local_ucla_syllabus');
+        } else {
+            $ucla_syllabus_manager->convert_syllabus($syllabi[$type], $convertto);
+            
+            $url = new moodle_url('/local/ucla_syllabus/index.php',
+                    array('action' => UCLA_SYLLABUS_ACTION_VIEW,
+                          'id' => $course->id));
+            $success_msg = get_string('successful_convert', 'local_ucla_syllabus', $fromto);
+            flash_redirect($url, $success_msg);
+        }
     }
 
     display_header(get_string('syllabus_manager', 'local_ucla_syllabus'));    

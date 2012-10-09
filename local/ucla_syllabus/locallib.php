@@ -44,6 +44,7 @@ define('UCLA_SYLLABUS_ACTION_ADD', 'add');
 define('UCLA_SYLLABUS_ACTION_DELETE', 'delete');
 define('UCLA_SYLLABUS_ACTION_EDIT', 'edit');
 define('UCLA_SYLLABUS_ACTION_VIEW', 'view');
+define('UCLA_SYLLABUS_ACTION_CONVERT', 'convert');
 
 class ucla_syllabus_manager {
     private $courseid;
@@ -106,6 +107,43 @@ class ucla_syllabus_manager {
         // trigger events
         events_trigger('ucla_syllabus_deleted', $data);
     }
+    
+    /**
+     * Convert between public or private syllabuses
+     * 
+     * @param ucla_syllabus $syllabus   Expecting an object that is derived from
+     *                                  the ucla_syllabus class
+     * @param $converto   UCLA_SYLLABUS_TYPE_PUBLIC | UCLA_SYLLABUS_TYPE_PRIVATE
+     */
+    function convert_syllabus($syllabus, $convertto) {
+        global $DB;
+        
+        if (empty($syllabus)) {
+            print_error('err_syllabus_notexist', 'local_ucla_syllabus');
+        }
+        
+        // make sure parameter is valid object
+        if (!is_object($syllabus) || !($syllabus instanceof ucla_sylabus) ||
+                empty($syllabus->id)) {
+            print_error('err_syllabus_notexist', 'local_ucla_syllabus');
+        }
+        
+        // make sure that syllabus belongs to course
+        if ($syllabus->courseid != $this->courseid) {
+            print_error('err_syllabus_mismatch', 'local_ucla_syllabus');
+        }
+        
+        $data = new StdClass();
+        $data->id = $syllabus->id;
+        $data->courseid = $syllabus->courseid;
+        $data->display_name = $syllabus->display_name;
+        $data->access_type = $convertto;
+        $data->is_preview = $syllabus->is_preview;
+        $DB->update_record('ucla_syllabus', $data);
+        
+        // TODO: Add something to log or handle some event?
+    }
+    
     
     /**
      * Returns file picker config array.
