@@ -221,7 +221,7 @@ class syllabus_ws_manager {
         
     static function setup_delete($data) {
         list($criteria, $payload) = self::setup($data->courseid);
-        $payload['deleted'] = 1;
+        $payload['deleted'] = 'true';
         
         return array($criteria, $payload);
     }
