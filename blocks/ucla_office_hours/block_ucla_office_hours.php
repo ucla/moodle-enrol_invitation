@@ -474,7 +474,8 @@ class block_ucla_office_hours extends block_base {
                             null,
                             $link_options
                         )
-                    )
+                    ),
+                    array('class' => 'editbutton')
                 );
             }
             
