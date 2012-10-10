@@ -333,7 +333,7 @@ class iclicker_service {
      */
     public static function require_user() {
         global $USER;
-        if (!isset($USER->id) || !$USER->id) {
+        if (!isset($USER->id) || !$USER->id || isguestuser($USER)) {
             throw new ClickerSecurityException('User must be logged in');
         }
         return $USER->id;
