@@ -72,10 +72,8 @@ class syllabus_ws_item {
     }
     
     private function _match_srs() {
-        // @todo: trim the criteria SRS and compare the string to stored SRS
         if(!empty($this->_data->leadingsrs) && !empty($this->_criteria['srs'])) {
-            $trimmed = substr($this->_criteria['srs'], 0, strlen($this->_data->leadingsrs));
-            return strstr($trimmed, $this->_data->leadingsrs);
+            return (strpos($this->_criteria['srs'], $this->_data->leadingsrs) === 0);
         }
         
         return false;
@@ -221,7 +219,7 @@ class syllabus_ws_manager {
         
     static function setup_delete($data) {
         list($criteria, $payload) = self::setup($data->courseid);
-        $payload['deleted'] = true;
+        $payload['deleted'] = 'true';
         
         return array($criteria, $payload);
     }

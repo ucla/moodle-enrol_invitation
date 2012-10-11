@@ -2,6 +2,11 @@
 
 require_once(dirname(__FILE__) . '/../../../config.php');
 
+// Disable for production environment
+if($CFG->forced_plugin_settings['theme_uclashared']['running_environment'] === 'prod') {
+    die();
+}
+
 global $DB, $CFG;
 
 // Get server name
