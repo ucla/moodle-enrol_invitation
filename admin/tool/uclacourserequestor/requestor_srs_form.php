@@ -35,21 +35,13 @@ class requestor_srs_form extends requestor_shared_form {
     }
 
     function respond($data) {
+        require_once(dirname(__FILE__) . '/ucla_courserequests.class.php');
+        
         $ci = $data->{$this->groupname};
         
-        // Convert section srs into main course srs
-        global $CFG;
-        require_once($CFG->dirroot . '/local/ucla/registrar/registrar_ccle_get_primary_srs.class.php');
-        
-        $main_srs = $ci['srs'];
-        $t1 = registrar_query::run_registrar_query(
-                'ccle_get_primary_srs', array($ci['term'], $ci['srs']), true);
-        if (!empty($t1)) {
-            $t2 = array_shift($t1);
-            $main_srs = array_pop($t2);
-        }
-        
-        $hc = get_request_info($ci['term'], $main_srs);
+        $hc = get_request_info($ci['term'], 
+                ucla_courserequests::get_main_srs($ci['term'], $ci['srs'])
+                );
 
         if ($hc === false) {
             return $hc;

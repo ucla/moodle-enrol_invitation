@@ -667,6 +667,30 @@ class ucla_courserequests {
 
         return $results;
     }
+    
+    /**
+     * Convert course section srs to main course srs
+     * If the main cours srs is passed in, then it wil return the same value
+     * 
+     * @param $term
+     * @param $srs
+     * @return      course srs 
+     */
+    static function get_main_srs($term, $srs) {
+        ucla_require_registrar();
+        
+        $main_srs = $srs;
+        $t1 = registrar_query::run_registrar_query(
+                'ccle_get_primary_srs', array($term, $srs), true);
+        if (!empty($t1)) {
+            $t2 = array_shift($t1);
+            if (!empty($t2)) {
+                $main_srs = array_pop($t2);
+            }
+        }
+        
+        return $main_srs;
+    }
 }
 
 // EoF

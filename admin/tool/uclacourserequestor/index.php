@@ -215,6 +215,20 @@ if ($requests === null) {
             }
 
             $changes[$setid] = $changeset;
+            
+            // If we are crosslisting a course, make sure the srs is correct
+            if ( isset($changes[$setid]['add-crosslist']) ) {
+                $list_srs = $changes[$setid]['crosslists'];
+                $newest_srs = count($list_srs) - 1;
+                $hc = ($uclacrqs->setindex[$setid]);
+                $hcourse = array_pop($hc);
+                
+                // This assumes that crosslisting courses requires the 
+                // crosslisted courses to be in the same term (quarter)
+                $crs_srs = ucla_courserequests::get_main_srs($hcourse['term'], $list_srs[$newest_srs]);
+                $changes[$setid]['crosslists'][$newest_srs] = $crs_srs;
+            }
+            
         }
     }
 }
@@ -316,7 +330,7 @@ if ($processrequests) {
                         // If we need to get the course from the registrar
                         foreach ($changed[$setid]['crosslists']['added'] as $cross_course) {
                             $c_term = $cross_course['term'];
-                            $c_srs = $cross_course['srs'];
+                            $c_srs = ucla_courserequests::get_main_srs($c_term, $cross_course['srs']);
 
                             if ($cross_course['hostcourse'] == 0 && $cross_course['action'] == 'build') {
                                 crosslist_course_from_registrar($c_term, $c_srs);
