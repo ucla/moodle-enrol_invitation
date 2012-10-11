@@ -42,6 +42,9 @@ if ($id) {
     $nanogong = $DB->get_record('nanogong', array('id' => $cm->instance), '*', MUST_EXIST);
     $context = get_context_instance(CONTEXT_MODULE, $cm->id);
     $itemid = $nanogong->id;
+    // START UCLA MOD - trying to get rid of log failure
+    $course = $DB->get_record('course', array('id'=>$cm->course), '*', MUST_EXIST);
+    // END UCLA MOD
 }
 else {
     error('Invalid Parameters!');
