@@ -184,7 +184,7 @@ class enrol_database_plugin extends enrol_plugin {
         }
 
         if (empty($user->{$localuserfield})) {
-            debugging('MOODLE_ENROL_DATABASE: Cannot do login-time enrolment for ' . fullname($user));
+            //debugging('MOODLE_ENROL_DATABASE: Cannot do login-time enrolment for ' . fullname($user));
             return;
         }
 
