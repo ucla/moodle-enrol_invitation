@@ -103,7 +103,7 @@ M.alert_block.init = function(Y) {
             });
         });
         
-        // HELPER FUNCTIONS
+        // HELPER FUNCTION
         function toggleDisplayAreas(display, edit) {
             var d = display.getStyle('display');
             var e = edit.getStyle('display');
@@ -135,19 +135,17 @@ M.alert_block.init = function(Y) {
             e.stopPropagation();
         });
 
-        // Attach cancel events
+        // EDIT CANCEL
         Y.all('.alert-edit-text-box .alert-edit-cancel').on('click', function(e) {
             var targetNode = e.target.ancestor('.alert-edit-element');
             var displayNode = targetNode.one('.box-boundary');
             var editNode = targetNode.one('.alert-edit-text-box');
             
-            // Restore text
-//            editNode.one('textarea').set('value', targetNode.getAttribute('rel'));
-            
             // Toggle displays
             toggleDisplayAreas(displayNode, editNode);
         });
 
+        // EDIT SAVE
         Y.all('.alert-edit-text-box .alert-edit-save').on('click', function(e) {
             var targetNode = e.target.ancestor('.alert-edit-element');
             var displayNode = targetNode.one('.box-boundary');
@@ -157,7 +155,7 @@ M.alert_block.init = function(Y) {
 
             var json_out = JSON.stringify({
                 'text' : updatedText,
-                'type' : 'item'
+                'type' : targetNode.getAttribute('render')
             });
 
             // Send AJAX request
@@ -166,8 +164,6 @@ M.alert_block.init = function(Y) {
                 data: 'render=' + json_out,
                 on: {
                     success: function (id, result) {
-//                              console.log('success...');
-//                              console.log(result.responseText);
                         var newNode = Y.Node.create(result.responseText);
                         
                         // Update newNode
@@ -177,8 +173,8 @@ M.alert_block.init = function(Y) {
                         editNode.setStyle('display', 'none');
                     },
                     failure: function (id, result) {
-                          console.log('failure...');
-                          console.log(result.responseText);
+//                          console.log('failure...');
+//                          console.log(result.responseText);
                     }
                 }
             });
@@ -191,7 +187,7 @@ M.alert_block.init = function(Y) {
         headerNodes.each(function(node) {
             var target = node.one('.header-box');
             
-            if(target.getAttribute('visible') == '1') {
+            if(node.getAttribute('visible') == '1') {
                 target.addClass('header-selected');
             }
         });
@@ -199,14 +195,16 @@ M.alert_block.init = function(Y) {
         // HEADER SELECT ON 'CLICK'
         headerNodes.on('click', function(e) {
             var target = e.target.ancestor('.header-box');
+            
             if(target) {
                 headerNodes.each(function(node) {
                     var target = node.one('.header-box');
                     target.removeClass('header-selected');
-                    target.setAttribute('visible', '0');
-                })
+                    node.setAttribute('visible', '0');
+                });
+                
                 target.addClass('header-selected');
-                target.setAttribute('visible', '1');
+                target.ancestor('.alert-edit-header-wrapper').setAttribute('visible', '1');
             }
         })
         
@@ -216,11 +214,77 @@ M.alert_block.init = function(Y) {
             
             var displayArea = target.one('.header-box');
             var editArea = target.one('.alert-edit-text-box');
-            var savedText = displayArea.getAttribute('rel');
+            var savedText = target.getAttribute('rel');
             
             editArea.one('textarea').set('value', savedText);
             // Swap visibility
             toggleDisplayAreas(displayArea, editArea);
+        });
+        
+        // COMMIT CHANGES
+        Y.one('.alert-edit-commit-box .alert-edit-save').on('click', function(e) {
+            console.log('saved');
+            
+            var sections = Y.all('#ucla-alert-edit .alert-edit-section ul');
+            var headers = Y.all('#ucla-alert-edit .alert-edit-header-wrapper');
+            
+            // Save header data
+            var headerData = [];
+            
+            headers.each(function(node) {
+                headerData.push({
+                    'item' : node.getAttribute('rel'),
+                    'visible' : node.getAttribute('visible'),
+                    'color' : node.getAttribute('color'),
+                    'entity' : node.getAttribute('entity'),
+                    'recordid': node.getAttribute('recordid')
+                });
+                
+            });
+            
+            // Save section data
+            var sectionData = [];
+            
+            sections.each(function(node) {
+                var itemData = [];
+                node.all('li').each(function(n) {
+                    itemData.push(n.getAttribute('rel'));
+                });
+                
+                sectionData.push({
+                    'entity':   node.getAttribute('entity'),
+                    'title':    node.getAttribute('title'),
+                    'visible':  node.getAttribute('visible'),
+                    'recordid': node.getAttribute('recordid'),
+                    'class' : 'section',
+                    'items' :   itemData
+                });
+                
+            });
+
+            // Prepare data
+            var json_out = JSON.stringify({
+                'headers' : headerData,
+                'sections' : sectionData,
+                'courseid' : 1
+            });
+
+            // Send AJAX POST
+            Y.io('rest.php', {
+                method: 'POST',
+                data: 'update=' + json_out,
+                on: {
+                    success: function (id, result) {
+                        console.log('success...');
+                        console.log(result.responseText);
+                    },
+                    failure: function (id, result) {
+                        console.log('failure...');
+                        console.log(result.responseText);
+                    }
+                }
+            });
         })
-    });
+        
+    });// end
 }    
