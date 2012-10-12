@@ -110,24 +110,17 @@ class html_element {
  */
 class alert_html_header extends html_element {
     
-    public function __construct($text) {
-        
-        $items = explode('$$', $text);
-        $header = array_shift($items);
-        
-        // Prepare items
-        $section = new stdClass();
-        $section->title = '';
-        $section->items = $items;
-        
+    public function __construct($header, $section) {
+
+        $box = new alert_html_header_box($header->item);
+        $box->add_class('alert-header-' . $header->color);
         $content = array(
-            new alert_html_header_box($header),
+            $box,
             new alert_html_section($section),
         );
         
         parent::__construct('div', $content, array());
     }
-
 }
 
 class alert_html_header_box extends alert_html_box_content {
@@ -243,12 +236,7 @@ class alert_html_section_item extends alert_html_box_content {
  */
 class alert_html_section extends alert_html_box_content {
     public function __construct($section) {
-        // Expect:
-        // $section = {
-        //      'title' => 'section_title'
-        //      'items' => array('item_raw_text')
-        // }
-        
+
         // Give section a title
         $content = array(new alert_html_section_title($section->title));
         
@@ -262,52 +250,39 @@ class alert_html_section extends alert_html_box_content {
 }
 
 class alert_edit_header extends html_element {
-    public function __construct($headers, $section_text) {
-        
-        $items = explode('$$', $section_text);
-        
+    public function __construct($headers, $section) {
+
         $allheaders = array();
-        foreach($headers as $hed) {
-            $box = new alert_html_header_box($hed->raw);
-            $box->add_class('alert-header-'. $hed->color)
-                ->add_class('box-boundary')
-                ->add_attrib('rel', $hed->raw)
-                ->add_attrib('visible', $hed->visible);
+        
+        foreach($headers as $header) {
+            $box = new alert_html_header_box($header->item);
+            $box->add_class('alert-header-'. $header->color)
+                ->add_class('box-boundary');
             
-            $edit = new alert_edit_textarea_box($hed->raw, 2);
-            $edit->add_class('alert-header-' . $hed->color);
+            $edit = new alert_edit_textarea_box($header->item, 2);
+            $edit->add_class('alert-header-' . $header->color);
             
-            $allheaders[$hed->color] = new alert_html_box_content(array($box, $edit),
-                    array('class' => 'alert-edit-header-wrapper alert-edit-element'));
+            $box_header = new alert_html_box_content(array($box, $edit));
+            $box_header->add_attrib('rel', $header->item)
+                       ->add_attrib('render', 'header')
+                       ->add_attrib('visible', $header->visible)
+                       ->add_attrib('color', $header->color)
+                       ->add_attrib('recordid', $header->recordid)
+                       ->add_attrib('entity', $header->entity)
+                       ->add_class('alert-edit-header-wrapper')
+                       ->add_class('alert-edit-element');
+            
+            $allheaders[] = $box_header;
         }
 
-        // Create <li> list
-        $ullist = array();
-        foreach($items as $item_text) {
-            $item = new html_element('li', new alert_html_section_item(trim($item_text)));
-            $item->add_class('alert-edit-item')
-                 ->add_content(new alert_edit_textarea_box($item_text))
-                 ->add_attrib('rel', trim($item_text));
-            
-            $ullist[] = $item;
-        }
-        
-        $ul = new html_element('ul', $ullist);
-        
-        parent::__construct('div', array($allheaders, $ul), 
+        parent::__construct('div', array($allheaders, new alert_edit_section($section)), 
                 array('class' => 'alert-edit-header block-ucla-alert'));
     }
 }
 
 class alert_edit_section extends html_element {
-    public function __construct($text) {
+    public function __construct($section) {
 
-        $items = explode('$$', $text);
-        
-        $section = new stdClass();
-        $section->title = array_shift($items);
-        $section->items = $items;
-        
         $title = new alert_html_section_title($section->title);
         
         // Create <li> list
@@ -317,12 +292,17 @@ class alert_edit_section extends html_element {
             $item->add_class('alert-edit-item')
                  ->add_class('alert-edit-element')
                  ->add_attrib('rel', trim($item_text))
+                 ->add_attrib('render', 'item')
                  ->add_content(new alert_edit_textarea_box($item_text));
             
             $ullist[] = $item;
         }
         
         $ul = new html_element('ul', $ullist);
+        $ul->add_attrib('title', trim($section->title))
+           ->add_attrib('entity', $section->entity)
+           ->add_attrib('visible', $section->visible)
+           ->add_attrib('recordid', $section->recordid);
         
         parent::__construct('div', array($title, $ul), 
                 array('class' => 'alert-edit-section block-ucla-alert'));
@@ -358,6 +338,23 @@ class alert_edit_button_box extends html_element {
         
         parent::__construct('div', array($save, $cancel), 
                 array('class' => 'alert-edit-button-box'));
+    }
+}
+
+class alert_edit_commit_box extends html_element {
+    public function __construct() {
+        $save = new html_element('button', 'Save');
+        $save->add_class('btn')
+             ->add_class('btn-success')
+             ->add_class('alert-edit-save');
+        
+//        $cancel = new html_element('button', 'Cancel');
+//        $cancel->add_class('btn')
+//               ->add_class('btn-danger')
+//               ->add_class('alert-edit-cancel');
+        
+        parent::__construct('div', array($save), 
+                array('class' => 'alert-edit-commit-box'));
     }
 }
 
@@ -487,193 +484,348 @@ class alert_text_parser {
  * UCLA alert
  */
 abstract class ucla_alert {
-    const DB_TABLE = 'ucla_alert';
+    const DB_TABLE = 'ucla_alerts';
     
+    const ENTITY_ITEM           = 10;
     const ENTITY_HEADER         = 20;
-    const ENTITY_SECTION        = 30;
-    const ENTITY_HEADER_SECTION = 40;
+    const ENTITY_SCRATCH        = 30;
+    const ENTITY_SECTION        = 40;
+    const ENTITY_HEADER_SECTION = 50;
     
     const RENDER_CACHE             = 10;
     const RENDER_REFRESH           = 20;
     const RENDER_DAILY             = 30;
+    const RENDER_ALWAYS            = 40;
     
-    public function __construct() {
-        // empty
+    protected $courseid;
+
+        
+    public function __construct($courseid) {
+        $this->courseid = $courseid;
     }
     
     abstract public function render();
+    
+    public function install() {
+        global $DB;
+        
+        // Preinstall scratch
+        if(!$DB->record_exists(self::DB_TABLE, 
+                array('courseid' => $this->courseid, 'entity' => self::ENTITY_SCRATCH))) {
+
+            // Prepare data
+            $data = array(
+                'title' => get_string('scratch_title', 'block_ucla_alert'),
+                'visible' => 0,
+                'entity' => self::ENTITY_SCRATCH,
+                'items' => array(
+                    get_string('scratch_item_default', 'block_ucla_alert'),
+                    get_string('scratch_item_add', 'block_ucla_alert'),
+                )
+            );
+
+            // Prepare record
+            $record = array(
+                'courseid' => $this->courseid,
+                'entity' => self::ENTITY_SCRATCH,
+                'render' => self::RENDER_CACHE,
+                'json' => json_encode($data),
+                'html' => '',
+                'visible' => 0,
+            );
+            
+            $DB->insert_record(self::DB_TABLE, (object)$record);
+        }
+        
+        // Preinstall section
+        if(!$DB->record_exists(self::DB_TABLE, 
+                array('courseid' => $this->courseid, 'entity' => self::ENTITY_SECTION))) {
+
+            $data = array(
+                'title' => get_string('section_title_site', 'block_ucla_alert'),
+                'visible' => 1,
+                'entity' => self::ENTITY_SECTION,
+                'items' => array(
+                    get_string('section_item_default', 'block_ucla_alert')
+                ),
+            );
+
+            // Prepare record
+            $record = array(
+                'courseid' => $this->courseid,
+                'entity' => self::ENTITY_SECTION,
+                'render' => self::RENDER_REFRESH,
+                'json' => json_encode($data),
+                'html' => '',
+                'visible' => 1,
+            );
+            
+            $DB->insert_record(self::DB_TABLE, (object)$record);
+        }
+    }
+    
+    /**
+     * Run once to install the default SITE headers
+     */
+    static public function install_once() {
+        
+        global $DB;
+
+        // Install headers
+        $data = array(
+            'visible' => 1,
+            'color' => 'default',
+            'entity' => self::ENTITY_HEADER,
+            'item' => get_string('header_default', 'block_ucla_alert'),
+        );
+
+        $record = array(
+            'courseid' => SITEID,
+            'entity' => self::ENTITY_HEADER,
+            'render' => self::RENDER_REFRESH,
+            'json' => json_encode($data),
+            'html' => '',
+            'visible' => 1
+        );
+
+        $DB->insert_record(self::DB_TABLE, (object)$record);
+        
+        // Install yellow
+        $data['visible'] = 0;
+        $data['color'] = 'yellow';
+        $data['item'] = get_string('header_yellow', 'block_ucla_alert');
+        
+        $record['json'] = json_encode($data);
+        $record['visible'] = 0;
+        
+        $DB->insert_record(self::DB_TABLE, (object)$record);
+        
+        // Install red
+        $data['visible'] = 0;
+        $data['color'] = 'red';
+        $data['item'] = get_string('header_red', 'block_ucla_alert');
+        
+        $record['json'] = json_encode($data);
+        $record['visible'] = 0;
+        
+        $DB->insert_record(self::DB_TABLE, (object)$record);
+        
+        // Install blue
+        $data['visible'] = 0;
+        $data['color'] = 'blue';
+        $data['item'] = get_string('header_blue', 'block_ucla_alert');
+        
+        $record['json'] = json_encode($data);
+        $record['visible'] = 0;
+        
+        $DB->insert_record(self::DB_TABLE, (object)$record);
+        
+        // Install header section
+        $data = array(
+            'title' => '',
+            'visible' => 1,
+            'entity' => self::ENTITY_HEADER_SECTION,
+            'items' => array(
+                get_string('header_section_item', 'block_ucla_alert'),
+            )
+        );
+
+        // Prepare record
+        $record = array(
+            'courseid' => SITEID,
+            'entity' => self::ENTITY_HEADER_SECTION,
+            'render' => self::RENDER_REFRESH,
+            'json' => json_encode($data),
+            'html' => '',
+            'visible' => 1,
+        );
+
+        $DB->insert_record(self::DB_TABLE, (object)$record);
+    }
 }
 
 abstract class ucla_alert_block extends ucla_alert {
 
-    protected $courseid;
-
     public function __construct($courseid) {
-        parent::__construct();
-        
-        $this->courseid = $courseid;
+        parent::__construct($courseid);
     }
 
-    protected function get_body() {
+    protected function body() {
         global $DB;
         
-        $records = $DB->get_records(self::DB_TABLE, 
-                array(
-                    'courseid' => $this->courseid,
-                    'entity' => self::ENTITY_SECTION,
-                    'visible' => true,
-                ));
+        $buffer = '';
         
-        $html = '';
+        $sections = $DB->get_records(self::DB_TABLE, 
+                array('courseid' => $this->courseid, 'entity' => self::ENTITY_SECTION, 'visible' => 1));
         
-        foreach($records as $rec) {
-            $data = json_decode($rec->data);
-            $html .= $data->html;
+        foreach($sections as $section) {
+            switch($section->render) {
+                case self::RENDER_CACHE:
+                    $buffer .= $section->html;
+                    break;
+                case self::RENDER_REFRESH:
+                    $html = new alert_html_section(json_decode($section->json));
+                    $buffer .= $html->render();
+
+                    $section->html = $html->render();
+                    $section->render = self::RENDER_CACHE;
+
+                    // Cache it
+                    $DB->update_record(self::DB_TABLE, $section);
+                    break;
+            }
         }
         
-        return $html;
+        return $buffer;
+    }
+    
+    public function render() {
+        return $this->body();
     }
 }
 
 class ucla_alert_block_editable extends ucla_alert_block {
     
+    /**
+     * Elements this edit block is capable of displaying
+     * 
+     */
+    protected $elements;
+    
     public function __construct($courseid) {
         parent::__construct($courseid);
+        
+        $this->elements = array(
+            'scratch',
+            'section',
+        );
     }
     
-    public function render() {
+    /**
+     * Returns default section
+     * 
+     * @return \alert_edit_section 
+     */
+    protected function section() {
+        global $DB;
         
+        // Add the default section
+        $default_section = $DB->get_record(self::DB_TABLE,
+                array('courseid' => 1, 'entity' => self::ENTITY_SECTION, 'visible' => 1));
+        $default_section_data = json_decode($default_section->json);
+        $default_section_data->recordid = $default_section->id;
+        
+        return new alert_edit_section($default_section_data);
+    }
+    
+    /**
+     * Retruns scratch pad
+     * 
+     * @return \alert_edit_section 
+     */
+    protected function scratch() {
+        global $DB;
+        
+        // Add the scratch pad
+        $scratch_pad = $DB->get_record(self::DB_TABLE, 
+                array('courseid' => 1, 'entity' => self::ENTITY_SCRATCH));
+        $scratch_pad_data = json_decode($scratch_pad->json);
+        $scratch_pad_data->recordid = $scratch_pad->id;
+        
+        return new alert_edit_section($scratch_pad_data);
+    }
+
+    /**
+     * Get render-able elements
+     * 
+     * @return \alert_edit_commit_box 
+     */
+    protected function get_elements() {
+        $elements = array();
+        
+        foreach($this->elements as $element) {
+            $elements[] = $this->$element();
+        }
+  
+        $elements[] = new alert_edit_commit_box();
+        
+        return $elements;
+    }
+
+    public function render() {
+        // Create wrapping div
         $alert_edit = new html_element('div');
         $alert_edit->add_attrib('id', 'ucla-alert-edit');
-        
-        $raw_text = "ccle notices
-$$
-:title this is a title
-this is regular text that overflows
-text on a new line
 
-double spaced text
-:list{red} this is a list
-:list another list
-:link{http://www.google.com} google.com
-$$
-:title foo
-another test";
-
-        $disable_section = "scratch pad
-$$
-:title disabled item
-this item is disabled when it's left in this area.";
-
-        $header_text1 = ":header hello world!
-:function date ";
-        $header_text2 = ":header service alert
-:subheader You will survive";
-        $header_text3 = ":header ccle alert
-:function now";
-        $header_text4 = ":header maintenance alert
-:subheader Scheduled NOW!";
+        // Get renderable elements
+        $elements = $this->get_elements();
         
-        $section_header_text = "Alert block presents itself to the world!";
-        
-        $o1 = new stdClass();
-        $o1->raw = $header_text1;
-        $o1->color = 'default';
-        $o1->visible = 1;
-
-        $o2 = new stdClass();
-        $o2->raw = $header_text2;
-        $o2->color = 'yellow';
-        $o2->visible = 0;
-        
-        $o3 = new stdClass();
-        $o3->raw = $header_text3;
-        $o3->color = 'red';
-        $o3->visible = 0;
-        
-        $o4 = new stdClass();
-        $o4->raw = $header_text4;
-        $o4->color = 'blue';
-        $o4->visible = 0;
-        
-        $allheaders = array(
-            $o1, $o2, $o3, $o4
-        );
-
-        
-        $mysections = array(
-            new alert_edit_section($disable_section),
-            new alert_edit_header($allheaders, $section_header_text),
-            new alert_edit_section($raw_text),
-        );
-        
-        return $alert_edit->add_content($mysections)->render();
-        
+        return $alert_edit->add_content($elements)->render();
     }
 }
 
-class ucla_alert_block_course extends ucla_alert_block {
-    public function render() {
-        ;
+class ucla_alert_block_editable_site extends ucla_alert_block_editable {
+    public function __construct($courseid) {
+        parent::__construct($courseid);
+        
+        $this->elements = array(
+            'headers',
+            'scratch',
+            'section',
+        );
+    }
+    
+    protected function headers() {
+        global $DB;
+        
+        // Get the headers
+        $headers = $DB->get_records(self::DB_TABLE,
+                array('courseid' => 1, 'entity' =>self::ENTITY_HEADER));
+        $header_content = array();
+        
+        foreach($headers as $header) {
+            $data = json_decode($header->json);
+            $data->recordid = $header->id;
+            $header_content[] = $data;
+        }
+        
+        // Get header section
+        $header_section = $DB->get_record(self::DB_TABLE,
+                array('courseid' => 1, 'entity' => self::ENTITY_HEADER_SECTION));
+        $header_section_data = json_decode($header_section->json);
+        $header_section_data->recordid = $header_section->id;
+        
+        return new alert_edit_header($header_content, $header_section_data);
     }
 }
-
 
 class ucla_alert_block_site extends ucla_alert_block {
 
     public function __construct($courseid) {
         parent::__construct($courseid);
+        
+        // Install 
+        $this->install();
     }
 
-    protected function get_header() {
+    protected function header() {
         global $DB;
         
-        $record = $DB->get_records(self::DB_TABLE, 
-                array(
-                    'courseid' => $this->courseid,
-                    'entity' => self::ENTITY_HEADER,
-                    'visible' => true,
-                ));
+        $header = $DB->get_record(self::DB_TABLE,
+                array('courseid' => 1, 'entity' => self::ENTITY_HEADER, 'visible' => 1));
+        $section = $DB->get_record(self::DB_TABLE,
+                array('courseid' => 1, 'entity' => self::ENTITY_HEADER_SECTION, 'visible' => 1));
+
+        $render = new alert_html_header(
+                json_decode($header->json), 
+                json_decode($section->json)
+            );
         
-        $data = json_decode($record->data);
-        
-        return $data->html;
+        return $render->render();
     }
 
     public function render() {
-        
-//        $html = $this->get_header() . $this->get_body();
-        
-//        return $html;
-        
-        $t = ":header hello world!
-:subheader " . time() ."
-$$
-alert block presents itself to the world!";
-        
-        $foo = new alert_html_header($t);
-        
-        $text = array("
-:title this is a title
-this is regular text that overflows
-text on a new line
-
-double spaced text
-:list{red} this is a list
-:list another list
-:link{http://www.google.com} google.com
-",
-":title foo
-another test");
-        
-        $section = new stdClass();
-        $section->title = 'ccle notices';
-        $section->items = $text;
-        
-        $bar = new alert_html_section($section);
-        
-       
-        return $foo->render() . $bar->render();
+        return $this->header() . $this->body();
     }
 }
 

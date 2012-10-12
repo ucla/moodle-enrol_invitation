@@ -5,7 +5,11 @@ require_once(dirname(__FILE__) . '/locallib.php');
 
 require_login();
 
+global $DB;
+
+// Things that we can do...
 $render = optional_param('render', '', PARAM_TEXT);
+$update = optional_param('update', '', PARAM_TEXT);
 
 if(!empty($render)) {
     $data = json_decode($render);
@@ -17,5 +21,40 @@ if(!empty($render)) {
     }
     
     echo $out->render();
-//    echo print_object($data);
+}
+
+// We want to update data
+if(!empty($update)) {
+    $data = json_decode($update);
+    
+    if($data->sections) {
+        foreach($data->sections as $section) {
+            $record = new stdClass();
+            $record->id = $section->recordid;
+            $record->courseid = $data->courseid;
+            $record->entity = $section->entity;
+            $record->render = ucla_alert::RENDER_REFRESH;
+            $record->json = json_encode($section);
+            $record->html = '';
+            $record->visible = $section->visible;
+            
+            $DB->update_record('ucla_alerts', $record);
+        }
+    }
+    
+    if($data->headers) {
+        foreach($data->headers as $header) {
+            $record = new stdClass();
+            $record->id = $header->recordid;
+            $record->courseid = $data->courseid;
+            $record->entity = $header->entity;
+            $record->render = ucla_alert::RENDER_REFRESH;
+            $record->json = json_encode($header);
+            $record->html = '';
+            $record->visible = $header->visible;
+            
+            $DB->update_record('ucla_alerts', $record);
+        }
+    }
+    
 }
