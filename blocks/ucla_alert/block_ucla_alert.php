@@ -13,7 +13,6 @@ class block_ucla_alert extends block_base {
     }
     
     public function get_content() {
-        global $CFG;
         global $COURSE;
 
         if ($this->content !== null) {
@@ -23,13 +22,11 @@ class block_ucla_alert extends block_base {
         if($COURSE->id === SITEID) {
             $alertblock = new ucla_alert_block_site($COURSE->id);
         } else {
-            $alertblock = new ucla_alert_block_course($COURSE->id);
+            $alertblock = new ucla_alert_block($COURSE->id);
         }
         
         $this->content = new stdClass;
         $this->content->text = $alertblock->render();
-
-//        $this->content->footer = 'Footer here...';
 
         return $this->content;
     }
@@ -44,10 +41,6 @@ class block_ucla_alert extends block_base {
 //        $attributes['id'] = 'ucla-alert';
         // Append alert style
         return $attributes;
-    }
-    
-    public function instance_allow_multiple() {
-        return true;
     }
     
     public function applicable_formats() {

@@ -25,6 +25,12 @@ class html_element {
         $this->attribs = $attribs;
     }
     
+    /**
+     * Add an array of attributes
+     * 
+     * @param array $attribs
+     * @return \html_element
+     */
     public function add_attribs($attribs) {
         foreach($attribs as $k => $v) {
             $this->add_attrib($k, $v);
@@ -33,6 +39,15 @@ class html_element {
         return $this;
     }
     
+    /**
+     * Add a single attribute
+     * 
+     * If the attribute exists it is appended with a space
+     * 
+     * @param string $name
+     * @param string $val
+     * @return \html_element
+     */
     public function add_attrib($name, $val) {
         
         if(key_exists($name, $this->attribs)) {
@@ -44,10 +59,24 @@ class html_element {
         return $this;
     }
     
+    /**
+     * Add a class
+     * 
+     * This does not override previous classes.
+     * 
+     * @param string $class
+     * @return type
+     */
     function add_class($class) {
         return $this->add_attrib('class', $class);
     }
     
+    /**
+     * Add renderable content
+     * 
+     * @param mixed $content array, object or string
+     * @return \html_element
+     */
     public function add_content($content) {
         $this->content .= $this->_add_content($content);
         return $this;
@@ -79,6 +108,11 @@ class html_element {
         return $out;
     }
     
+    /**
+     * Render the contents of this element.
+     * 
+     * @return string
+     */
     public function render() {
         $out = '';
         $out .= '<' . $this->tag;
@@ -104,9 +138,7 @@ class html_element {
 }
 
 /**
- * An alert header contains:
- *  alert_box[title, subtitle]
- *  alert_section[items, ...] 
+ * Alert HTML header
  */
 class alert_html_header extends html_element {
     
@@ -114,6 +146,7 @@ class alert_html_header extends html_element {
 
         $box = new alert_html_header_box($header->item);
         $box->add_class('alert-header-' . $header->color);
+        
         $content = array(
             $box,
             new alert_html_section($section),
@@ -123,7 +156,16 @@ class alert_html_header extends html_element {
     }
 }
 
+/**
+ * Alert header box parser
+ */
 class alert_html_header_box extends alert_html_box_content {
+    
+    /**
+     * Creates a site header box
+     * 
+     * @param string $text to be parsed into a title and subtitle
+     */
     public function __construct($text) {
         $content = alert_text_parser::parse_header($text);
         parent::__construct($content, array('class' => 'header-box'));
@@ -143,7 +185,7 @@ class alert_html_header_subtitle extends html_element {
 }
 
 /**
- * A general boxing element
+ * A general boxing element with preset 'box-boundary' class
  */
 class alert_html_box_content extends html_element {
     public function __construct($content = null, $attributes = array('class' => 'box-boundary')) {
@@ -152,7 +194,7 @@ class alert_html_box_content extends html_element {
 }
 
 /**
- * An item title element
+ * An item title element with preset 'box-title' class
  */
 class alert_html_box_title extends alert_html_box_content {
     public function __construct($content = null) {
@@ -161,7 +203,7 @@ class alert_html_box_title extends alert_html_box_content {
 }
 
 /**
- * An item text element
+ * An item text element with preset 'box-text' class
  */
 class alert_html_box_text extends alert_html_box_content {
     public function __construct($content = null) {
@@ -170,7 +212,7 @@ class alert_html_box_text extends alert_html_box_content {
 }
 
 /**
- * An item list element
+ * An item list element with preset 'box-list' class
  */
 class alert_html_box_list extends alert_html_box_content {
     
@@ -220,7 +262,7 @@ class alert_html_section_title extends alert_html_box_content {
 }
 
 /**
- * An section item
+ * A section item parser
  */
 class alert_html_section_item extends alert_html_box_content {
 
@@ -248,6 +290,15 @@ class alert_html_section extends alert_html_box_content {
         parent::__construct($content);
     }
 }
+
+class alert_html_course_box extends html_element {
+    public function __construct($content = null) {
+        $title = new html_element('div', $content, array('class' => 'course-title'));
+        parent::__construct('div', $title, array('class' => 'course-title-box'));
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 class alert_edit_header extends html_element {
     public function __construct($headers, $section) {
@@ -288,14 +339,7 @@ class alert_edit_section extends html_element {
         // Create <li> list
         $ullist = array();
         foreach($section->items as $item_text) {
-            $item = new html_element('li', new alert_html_section_item(trim($item_text)));
-            $item->add_class('alert-edit-item')
-                 ->add_class('alert-edit-element')
-                 ->add_attrib('rel', trim($item_text))
-                 ->add_attrib('render', 'item')
-                 ->add_content(new alert_edit_textarea_box($item_text));
-            
-            $ullist[] = $item;
+            $ullist[] = new alert_edit_section_li($item_text);
         }
         
         $ul = new html_element('ul', $ullist);
@@ -306,6 +350,39 @@ class alert_edit_section extends html_element {
         
         parent::__construct('div', array($title, $ul), 
                 array('class' => 'alert-edit-section block-ucla-alert'));
+    }
+}
+
+class alert_edit_section_li extends html_element {
+    public function __construct($text) {
+        $item = new alert_html_section_item(trim($text));
+        $edit = new alert_edit_textarea_box($text);
+        
+        $attribs = array(
+            'class' => 'alert-edit-item alert-edit-element',
+            'rel' => trim($text),
+            'render' => 'item'
+        );
+        
+        parent::__construct('li', array($item, $edit), $attribs);
+    }
+    
+}
+
+class alert_edit_section_scratch extends alert_edit_section {
+    public function __construct($section) {
+        parent::__construct($section);
+        
+        $add = new html_element('button', get_string('scratch_button_add', 'block_ucla_alert'));
+        $add->add_class('btn')
+//            ->add_class('btn-mini')
+            ->add_class('btn-primary')
+            ->add_class('alert-edit-add');
+        
+        $div = new html_element('div', $add, array('class' => 'alert-edit-scratch-add'));
+        $div->add_attrib('rel', get_string('scratch_item_new', 'block_ucla_alert'));
+        
+        $this->add_content($div);
     }
 }
 
@@ -324,13 +401,13 @@ class alert_edit_textarea_box extends html_element {
 
 class alert_edit_button_box extends html_element {
     public function __construct() {
-        $save = new html_element('button', 'Save');
+        $save = new html_element('button', get_string('item_edit_save', 'block_ucla_alert'));
         $save->add_class('btn')
              ->add_class('btn-mini')
-             ->add_class('btn-active')
+             ->add_class('btn-success')
              ->add_class('alert-edit-save');
         
-        $cancel = new html_element('button', 'Cancel');
+        $cancel = new html_element('button', get_string('item_edit_cancel', 'block_ucla_alert'));
         $cancel->add_class('btn')
                ->add_class('btn-mini')
                ->add_class('btn-danger')
@@ -343,20 +420,22 @@ class alert_edit_button_box extends html_element {
 
 class alert_edit_commit_box extends html_element {
     public function __construct() {
-        $save = new html_element('button', 'Save');
+        $save = new html_element('button', get_string('alert_commit_save', 'block_ucla_alert'));
         $save->add_class('btn')
              ->add_class('btn-success')
              ->add_class('alert-edit-save');
         
-//        $cancel = new html_element('button', 'Cancel');
-//        $cancel->add_class('btn')
-//               ->add_class('btn-danger')
-//               ->add_class('alert-edit-cancel');
+        $cancel = new html_element('button', get_string('item_edit_cancel', 'block_ucla_alert'));
+        $cancel->add_class('btn')
+               ->add_class('btn-danger')
+               ->add_class('alert-edit-cancel');
         
-        parent::__construct('div', array($save), 
+        parent::__construct('div', array($save, $cancel), 
                 array('class' => 'alert-edit-commit-box'));
     }
 }
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /**
  * Alert text parser
@@ -365,14 +444,22 @@ class alert_text_parser {
     const STRING_BRACES =   0;
     const STRING_INNER =    1;
     
+    // Item tokens
     const BOX_TITLE =   ':title';
     const BOX_LIST =    ':list';
     const BOX_LINK =    ':link';
     
+    // Header tokens
     const HEADER_TITLE =    ':header';
     const HEADER_SUB =      ':subheader';
     const HEADER_FUNCTION = ':function';
     
+    /**
+     * Parse item text
+     * 
+     * @param type $text to be parsed
+     * @return array of renderable elements
+     */
     public static function parse_item($text) {
         $lines = explode("\n", $text);
         
@@ -429,6 +516,12 @@ class alert_text_parser {
         return $output;
     }
     
+    /**
+     * Parse header text
+     * 
+     * @param string $text to be parsed
+     * @return array of renderable elements
+     */
     public static function parse_header($text) {
         $lines = explode("\n", $text);
         
@@ -456,24 +549,39 @@ class alert_text_parser {
         return $output;
     }
     
-    public static function parse_braces($content) {
-        if(is_string($content) && preg_match('/\{(.+)\}/', $content, $matches)) {
+    /**
+     * Parse content inside braces
+     * 
+     * @param string $text to be parsed
+     * @return list of text with braces removed, content in braces
+     */
+    public static function parse_braces($text) {
+        if(is_string($text) && preg_match('/\{(.+)\}/', $text, $matches)) {
 
             return array(
-                trim(str_replace($matches[self::STRING_BRACES], '', $content)), 
+                trim(str_replace($matches[self::STRING_BRACES], '', $text)), 
                 trim($matches[self::STRING_INNER])
             );
         }
         
-        return array($content, 0);
+        return array($text, 0);
     }
 
-    
+    /**
+     * Get current time in human format
+     * 
+     * @return \alert_html_header_subtitle
+     */
     public static function now() {
         $time = date("F j, Y - g:i a", time());
         return new alert_html_header_subtitle($time);
     }
 
+    /**
+     * Get date and time in human format
+     * 
+     * @return \alert_html_header_subtitle
+     */
     public static function date() {
         $time = date("F j, Y", time());
         return new alert_html_header_subtitle($time);
@@ -486,26 +594,31 @@ class alert_text_parser {
 abstract class ucla_alert {
     const DB_TABLE = 'ucla_alerts';
     
+    // Define entities
     const ENTITY_ITEM           = 10;
     const ENTITY_HEADER         = 20;
     const ENTITY_SCRATCH        = 30;
     const ENTITY_SECTION        = 40;
     const ENTITY_HEADER_SECTION = 50;
     
+    // Define render modes
     const RENDER_CACHE             = 10;
     const RENDER_REFRESH           = 20;
     const RENDER_DAILY             = 30;
     const RENDER_ALWAYS            = 40;
     
+    // Course ID
     protected $courseid;
-
-        
+    
     public function __construct($courseid) {
         $this->courseid = $courseid;
     }
     
     abstract public function render();
     
+    /**
+     * Install default block entities
+     */
     public function install() {
         global $DB;
         
@@ -541,8 +654,10 @@ abstract class ucla_alert {
         if(!$DB->record_exists(self::DB_TABLE, 
                 array('courseid' => $this->courseid, 'entity' => self::ENTITY_SECTION))) {
 
+            $title = ($this->courseid == SITEID) ? 'section_title_site' : 'section_title_course';
+            
             $data = array(
-                'title' => get_string('section_title_site', 'block_ucla_alert'),
+                'title' => get_string($title, 'block_ucla_alert'),
                 'visible' => 1,
                 'entity' => self::ENTITY_SECTION,
                 'items' => array(
@@ -644,12 +759,28 @@ abstract class ucla_alert {
     }
 }
 
-abstract class ucla_alert_block extends ucla_alert {
+/**
+ * An alert block renderer
+ */
+class ucla_alert_block extends ucla_alert {
 
     public function __construct($courseid) {
         parent::__construct($courseid);
+        
+        // Install 
+        $this->install();
     }
 
+    protected function header() {
+        $h = new alert_html_course_box('Course alerts');
+        return $h->render();
+    }
+
+    /**
+     * Return rendered body of the block
+     * 
+     * @return string
+     */
     protected function body() {
         global $DB;
         
@@ -679,16 +810,23 @@ abstract class ucla_alert_block extends ucla_alert {
         return $buffer;
     }
     
+    /**
+     * Render contents of a block
+     * 
+     * @return string
+     */
     public function render() {
-        return $this->body();
+        return $this->header() . $this->body();
     }
 }
 
-class ucla_alert_block_editable extends ucla_alert_block {
+/**
+ * Alert block editor
+ */
+class ucla_alert_block_editable extends ucla_alert {
     
     /**
-     * Elements this edit block is capable of displaying
-     * 
+     * Elements this alert is capable of displaying
      */
     protected $elements;
     
@@ -732,7 +870,7 @@ class ucla_alert_block_editable extends ucla_alert_block {
         $scratch_pad_data = json_decode($scratch_pad->json);
         $scratch_pad_data->recordid = $scratch_pad->id;
         
-        return new alert_edit_section($scratch_pad_data);
+        return new alert_edit_section_scratch($scratch_pad_data);
     }
 
     /**
@@ -764,6 +902,9 @@ class ucla_alert_block_editable extends ucla_alert_block {
     }
 }
 
+/**
+ * An alert edit for the site
+ */
 class ucla_alert_block_editable_site extends ucla_alert_block_editable {
     public function __construct($courseid) {
         parent::__construct($courseid);
@@ -799,13 +940,13 @@ class ucla_alert_block_editable_site extends ucla_alert_block_editable {
     }
 }
 
+/**
+ * A special renderer for the sitewide alert block
+ */
 class ucla_alert_block_site extends ucla_alert_block {
 
     public function __construct($courseid) {
         parent::__construct($courseid);
-        
-        // Install 
-        $this->install();
     }
 
     protected function header() {
