@@ -1,7 +1,9 @@
 
 M.alert_block = {};
 M.alert_block.init = function(Y) {
-
+    
+    var courseID = arguments[1];
+    
     YUI().use('dd-constrain', 'dd-proxy', 'dd-drop', 'io', function(Y) {
         //Listen for all drop:over events
         Y.DD.DDM.on('drop:over', function(e) {
@@ -103,7 +105,9 @@ M.alert_block.init = function(Y) {
             });
         });
         
-        // HELPER FUNCTION
+        // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+        
+        // HELPER FUNCTIONS
         function toggleDisplayAreas(display, edit) {
             var d = display.getStyle('display');
             var e = edit.getStyle('display');
@@ -112,47 +116,39 @@ M.alert_block.init = function(Y) {
             edit.setStyle('display', (e == 'none' ? 'block' : 'none'));
         }
 
-        // ADD ITEM EDIT
-        Y.all('#ucla-alert-edit li').on('dblclick', function(e) {
-            
-            var target = e.target.ancestor('li');
+        function itemEditDblClick(targetNode) {
             // Get saved text
-            var savedText = target.getAttribute('rel');
-            
-            var displayArea = target.one('.box-boundary');
-            var editArea = target.one('.alert-edit-text-box');
+            var savedText = targetNode.getAttribute('rel');
 
-//            var displayHeight = displayArea.get('clientHeight');
-//            editArea.setStyle('height', displayHeight);
+            var displayArea = targetNode.one('.box-boundary');
+            var editArea = targetNode.one('.alert-edit-text-box');
+
             toggleDisplayAreas(displayArea, editArea);
 
             editArea.one('textarea').set('value', savedText);
-
-        });
+        }
         
-        // Prevent double click propagation on 'edit' area
-        Y.all('.alert-edit-text-box').on('dblclick', function(e) {
-            e.stopPropagation();
-        });
-
-        // EDIT CANCEL
-        Y.all('.alert-edit-text-box .alert-edit-cancel').on('click', function(e) {
-            var targetNode = e.target.ancestor('.alert-edit-element');
+        function itemEditCancel(targetNode) {
             var displayNode = targetNode.one('.box-boundary');
             var editNode = targetNode.one('.alert-edit-text-box');
             
             // Toggle displays
             toggleDisplayAreas(displayNode, editNode);
-        });
-
-        // EDIT SAVE
-        Y.all('.alert-edit-text-box .alert-edit-save').on('click', function(e) {
-            var targetNode = e.target.ancestor('.alert-edit-element');
+        }
+        
+        function itemEditSave(targetNode) {
             var displayNode = targetNode.one('.box-boundary');
             var editNode = targetNode.one('.alert-edit-text-box');
             
             var updatedText = editNode.one('textarea').get('value');
 
+            if(updatedText == "") {
+                // Destroy node
+                var li = displayNode.ancestor('li');
+                var ul = li.ancestor('ul');
+                ul.removeChild(li);
+                return;
+            }
             var json_out = JSON.stringify({
                 'text' : updatedText,
                 'type' : targetNode.getAttribute('render')
@@ -178,6 +174,26 @@ M.alert_block.init = function(Y) {
                     }
                 }
             });
+        }
+        
+        // ITEM EDIT DOUBLE CLICK
+        Y.all('#ucla-alert-edit li').on('dblclick', function(e) {
+            itemEditDblClick(e.target.ancestor('li'));
+        });
+
+        // Prevent double click propagation on 'edit' area
+        Y.all('.alert-edit-text-box').on('dblclick', function(e) {
+            e.stopPropagation();
+        });
+        
+        // EDIT CANCEL
+        Y.all('.alert-edit-text-box .alert-edit-cancel').on('click', function(e) {
+            itemEditCancel(e.target.ancestor('.alert-edit-element'));
+        });
+
+        // EDIT SAVE
+        Y.all('.alert-edit-text-box .alert-edit-save').on('click', function(e) {
+            itemEditSave(e.target.ancestor('.alert-edit-element'));
         });
         
 
@@ -223,7 +239,6 @@ M.alert_block.init = function(Y) {
         
         // COMMIT CHANGES
         Y.one('.alert-edit-commit-box .alert-edit-save').on('click', function(e) {
-            console.log('saved');
             
             var sections = Y.all('#ucla-alert-edit .alert-edit-section ul');
             var headers = Y.all('#ucla-alert-edit .alert-edit-header-wrapper');
@@ -266,7 +281,7 @@ M.alert_block.init = function(Y) {
             var json_out = JSON.stringify({
                 'headers' : headerData,
                 'sections' : sectionData,
-                'courseid' : 1
+                'courseid' : courseID
             });
 
             // Send AJAX POST
@@ -275,8 +290,7 @@ M.alert_block.init = function(Y) {
                 data: 'update=' + json_out,
                 on: {
                     success: function (id, result) {
-                        console.log('success...');
-                        console.log(result.responseText);
+                        window.location = 'edit.php?id=' + courseID;
                     },
                     failure: function (id, result) {
                         console.log('failure...');
@@ -284,7 +298,71 @@ M.alert_block.init = function(Y) {
                     }
                 }
             });
+        });
+        
+        // CANCEL CHANGES
+        Y.one('.alert-edit-commit-box .alert-edit-cancel').on('click', function(e) {
+            window.location = 'edit.php?id=' + courseID;
         })
+        
+        // ADD ITEM IN SCRATCH
+        Y.one('.alert-edit-scratch-add .alert-edit-add').on('click', function(e) {
+            var data = e.target.ancestor('.alert-edit-scratch-add').getAttribute('rel');
+            var section = e.target.ancestor('.alert-edit-section');
+            var ul = section.one('ul');
+            
+            var json_out = JSON.stringify({
+                'text' : data,
+                'type' : 'newnode'
+            });
+
+            // Send AJAX request
+            Y.io('rest.php', {
+                method: 'GET',
+                data: 'render=' + json_out,
+                on: {
+                    success: function (id, result) {
+                        var newNode = Y.Node.create(result.responseText);
+                        var li = ul.appendChild(newNode);
+                        
+                        // Attach drag events
+                        var dd = new Y.DD.Drag({
+                            node: li,
+                            target: {
+                                padding: '0 0 0 20'
+                            }
+                        }).plug(Y.Plugin.DDProxy, {
+                            moveOnEnd: false
+                        }).plug(Y.Plugin.DDConstrained, {
+                            constrain2node: nodeConstrain
+                        });
+                        
+                        // Attach double click edit
+                        li.on('dblclick', function(e) {
+                            itemEditDblClick(e.target.ancestor('li'));
+                        });
+                        // Prevent click propagation
+                        li.one('.alert-edit-text-box').on('dblclick', function(e) {
+                            e.stopPropagation();
+                        });
+                        // Attach 'cancel'
+                        li.one('.alert-edit-text-box .alert-edit-cancel').on('click', function(e) {
+                            itemEditCancel(e.target.ancestor('.alert-edit-element'));
+                        });
+                        // Attach 'save'
+                        li.one('.alert-edit-text-box .alert-edit-save').on('click', function(e) {
+                            itemEditSave(e.target.ancestor('.alert-edit-element'));
+                        });
+                        
+                    },
+                    failure: function (id, result) {
+//                          console.log('failure...');
+//                          console.log(result.responseText);
+                    }
+                }
+            });
+            
+        });
         
     });// end
 }    

@@ -14,10 +14,14 @@ $update = optional_param('update', '', PARAM_TEXT);
 if(!empty($render)) {
     $data = json_decode($render);
     
+    $out = '';
+    
     if($data->type == 'item') {
         $out = new alert_html_section_item($data->text);
     } else if($data->type == 'header') {
         $out = new alert_html_header_box($data->text);
+    } else if($data->type == 'newnode') {
+        $out = new alert_edit_section_li($data->text);
     }
     
     echo $out->render();
@@ -35,7 +39,6 @@ if(!empty($update)) {
             $record->entity = $section->entity;
             $record->render = ucla_alert::RENDER_REFRESH;
             $record->json = json_encode($section);
-            $record->html = '';
             $record->visible = $section->visible;
             
             $DB->update_record('ucla_alerts', $record);
@@ -50,7 +53,6 @@ if(!empty($update)) {
             $record->entity = $header->entity;
             $record->render = ucla_alert::RENDER_REFRESH;
             $record->json = json_encode($header);
-            $record->html = '';
             $record->visible = $header->visible;
             
             $DB->update_record('ucla_alerts', $record);

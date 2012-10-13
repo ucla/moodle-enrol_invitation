@@ -58,6 +58,8 @@
     font-size: 1.7em;
     font-family: Impact, Gill Sans, sans-serif;
     text-transform: uppercase;
+    line-height: 1.1em;
+    padding-top: 5px;
 }
 
 .block-ucla-alert .header-subtitle,
@@ -79,7 +81,11 @@
 .region-content .ucla-alert .box-text {
     margin: 2px 0;
     margin-left: 4px;
-    
+}
+
+.block-ucla-alert .box-text br,
+.region-content .ucla-alert .box-text br {
+    line-height: 0.75em;
 }
 
 .block-ucla-alert .box-link,
@@ -92,6 +98,11 @@
     margin-bottom: 2px;
 }
 
+.block-ucla-alert .box-link a {
+    width: 100%;
+    display: inline-block;
+}
+
 .block-ucla-alert .box-section-title,
 .region-content .ucla-alert .box-section-title {
     border-top: 1px solid #E9EBDF;
@@ -102,11 +113,29 @@
     text-transform: uppercase;
 }
 
+/* COURSE TITLE BOX */
+.course-title-box {
+    display: block;
+    background-color: #536895;
+    /*text-shadow: 1px 1px 3px #9DB2DD;*/
+    padding: 5px;
+    text-align: center;
+}
+
+.course-title {
+    font-family: Impact, Gill Sans, sans-serif;
+    display: block;
+    font-size: 1.5em;
+    text-transform: uppercase;
+    color: white;
+    /*line-height: 1.1em;*/
+}
+
 /* ALERT EDIT BOX */
 #ucla-alert-edit {
-    border: 1px solid black;
-    padding: 10px;
-    margin: 10px;
+    border: 1px solid #CDCDCD;
+/*    padding: 10px;
+    margin: 10px;*/
     zoom: 1;
 }
 #ucla-alert-edit:after { display: block; clear: both; visibility: hidden; content: '.'; height: 0;}
@@ -114,7 +143,7 @@
     border: 1px solid #CDCDCD;
     margin: 5px;
     width: 200px;
-    min-height: 100px;
+    min-height: 200px;
     float: left;
     padding: 0;
     zoom: 1;
@@ -151,6 +180,12 @@
     float: left;
     width: auto;
     margin: 10px;
+}
+.alert-edit-header {
+    margin: 0;
+    border: 0;
+    border-right: 1px solid #CDCDCD;
+    min-height: 600px;
 }
 .alert-edit-header .header-box {
     margin: 5px;
@@ -191,7 +226,6 @@
 .alert-edit-textarea {
     border: 0;
     width: 100%;
-    height: 100%;
 }
 .alert-edit-button-box {
     border-top: 1px solid #cdcdcd;
@@ -234,15 +268,30 @@
 
 /**/
 .alert-edit-commit-box {
-    width: 95%;
+    width: 100%;
     display: block;
     float: left;
     clear: both;
     text-align: right;
     border-top: 1px solid #ddd;
     padding: 10px;
+    background-color: #F9F9F9;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box; 
+    -webkit-box-sizing: border-box;
 }
-    
+
+.alert-edit-scratch-add {
+    border-top: 1px solid #ddd;
+    margin: 5px;
+    padding: 5px;
+    display: block;
+    clear: left;
+}
+.alert-edit-add {
+    width: 100%;
+}
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /** BOOTSTRAPPED STYLES **/
 
 .btn {
