@@ -78,6 +78,7 @@ $string['err_syllabus_mismatch'] = 'Selected syllabus does not belong to course'
 $string['err_syllabus_not_allowed'] = 'Sorry, you must be logged in or assciated with the course to view this syllabus';
 $string['err_syllabus_notexist'] = 'Sorry, but given syllabus does not exist';
 $string['err_noembed'] = 'Unable to show embedded file. Please download file to view.';
+$string['err_syllabus_convert'] = 'Cannot convert syllabus when both public and private syllabuses are uploaded';
 
 // capability strings
 $string['ucla_syllabus:managesyllabus'] = 'Allows ability to add, edit, and delete syllabus for a course';

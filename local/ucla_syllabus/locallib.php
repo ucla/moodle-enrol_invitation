@@ -116,7 +116,7 @@ class ucla_syllabus_manager {
      * @param $converto   UCLA_SYLLABUS_TYPE_PUBLIC | UCLA_SYLLABUS_TYPE_PRIVATE
      */
     function convert_syllabus($syllabus, $convertto) {
-        global $DB;
+        global $CFG, $DB;
         
         if (empty($syllabus)) {
             print_error('err_syllabus_notexist', 'local_ucla_syllabus');
@@ -133,6 +133,14 @@ class ucla_syllabus_manager {
             print_error('err_syllabus_mismatch', 'local_ucla_syllabus');
         }
         
+        // If a public and private syllabus already exists, then we cannot
+        // convert the syllabus
+        if (ucla_syllabus_manager::has_public_syllabus($this->courseid) && 
+                ucla_syllabus_manager::has_private_syllabus($this->courseid)
+                ) {
+            print_error('err_syllabus_convert', 'local_ucla_syllabus');
+        }
+        
         $data = new StdClass();
         $data->id = $syllabus->id;
         $data->courseid = $syllabus->courseid;
@@ -141,7 +149,9 @@ class ucla_syllabus_manager {
         $data->is_preview = $syllabus->is_preview;
         $DB->update_record('ucla_syllabus', $data);
         
-        // TODO: Add something to log or handle some event?
+        // Event handling
+        require_once(dirname(__FILE__) . '/webservice/eventlib.php');
+        ucla_syllabus_updated($data->id);
     }
     
     
