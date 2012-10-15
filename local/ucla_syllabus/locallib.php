@@ -116,7 +116,7 @@ class ucla_syllabus_manager {
      * @param $converto   UCLA_SYLLABUS_TYPE_PUBLIC | UCLA_SYLLABUS_TYPE_PRIVATE
      */
     function convert_syllabus($syllabus, $convertto) {
-        global $CFG, $DB;
+        global $DB;
         
         if (empty($syllabus)) {
             print_error('err_syllabus_notexist', 'local_ucla_syllabus');
@@ -149,9 +149,12 @@ class ucla_syllabus_manager {
         $data->is_preview = $syllabus->is_preview;
         $DB->update_record('ucla_syllabus', $data);
         
-        // Event handling
-        require_once(dirname(__FILE__) . '/webservice/eventlib.php');
-        ucla_syllabus_updated($data->id);
+        $old_data = $data;
+        $old_data->access_type = $syllabus->access_type;
+        
+        // Trigger events
+        events_trigger('ucla_syllabus_deleted', $old_data);
+        events_trigger('ucla_syllabus_added', $data);
     }
     
     
