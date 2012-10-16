@@ -20,6 +20,20 @@ require_once(dirname(__FILE__) . '/registrar_stored_procedure.base.php');
 
 abstract class registrar_cacheable_stored_procedure extends registrar_stored_procedure {
     /**
+     * If null, then will use the local_plugin setting. Here so that child
+     * classes can override plugin settings.
+     * @var int
+     */
+    static $registrar_cache_ttl = null;
+    
+    public function __construct() {
+        // see if ttl was manually set beforehand, else use plugin default
+        if (empty(static::$registrar_cache_ttl)) {
+            static::$registrar_cache_ttl = get_config('local_ucla', 'registrar_cache_ttl');
+        }
+    }
+
+    /**
      *  Returns the array describing the columns that are returned by the
      *  stored procedure.
      *  @return array
@@ -65,7 +79,7 @@ abstract class registrar_cacheable_stored_procedure extends registrar_stored_pro
         $columns_to_return = implode(',', $this->get_result_columns());
         
         // try to see if there is a valid cache copy
-        $sql = "SELECT  id, $columns_to_return
+        $sql = "SELECT  $columns_to_return
                 FROM    {{$storedproc_cache}}
                 WHERE   expires_on >= UNIX_TIMESTAMP() AND ";
         
@@ -102,8 +116,7 @@ abstract class registrar_cacheable_stored_procedure extends registrar_stored_pro
                 // save cache copy
                 
                 // set cache timeout
-                $registrar_cache_ttl = get_config('local_ucla', 'registrar_cache_ttl');
-                $expires_on = time() + $registrar_cache_ttl;  
+                $expires_on = time() + static::$registrar_cache_ttl; 
                 
                 $query_params['expires_on'] = $expires_on;
                 

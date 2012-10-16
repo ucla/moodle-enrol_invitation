@@ -253,6 +253,32 @@ function xmldb_local_ucla_upgrade($oldversion=0) {
         // ucla savepoint reached
         upgrade_plugin_savepoint(true, 2012073000, 'local', 'ucla');
     }    
+        
+    if ($oldversion < 2012101500) {
+        // Define table ccle_get_primary_srs_cache to be created
+        $table = new xmldb_table('ccle_get_primary_srs_cache');
+
+        // Adding fields to table ccle_get_primary_srs_cache
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('param_term', XMLDB_TYPE_CHAR, '3', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('param_srs', XMLDB_TYPE_CHAR, '9', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('expires_on', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('srs_crs_no', XMLDB_TYPE_CHAR, '9', null, XMLDB_NOTNULL, null, null);
+
+        // Adding keys to table ccle_get_primary_srs_cache
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+
+        // Adding indexes to table ccle_get_primary_srs_cache
+        $table->add_index('param_index', XMLDB_INDEX_NOTUNIQUE, array('param_term', 'param_srs', 'expires_on'));
+
+        // Conditionally launch create table for ccle_get_primary_srs_cache
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // ucla savepoint reached
+        upgrade_plugin_savepoint(true, 2012101500, 'local', 'ucla');
+    }    
     
     return $result;
 }
