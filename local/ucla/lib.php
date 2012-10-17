@@ -614,8 +614,16 @@ function require_user_finish_login() {
  * Given a registrar profcode and list of other roles a user has, returns what
  * Moodle role a user should have.
  * 
- * @param int $profcode             Registrar prof code
- * @param array $other_roles        Other roles a user has
+ * @param mixed $profcode       Can be either array or string. If array, then 
+ *                              expects prof code(s) for given user in an array 
+ *                              indexed by 'primary' and 'secondary'. If string
+ *                              then will assume profcode is for primary for
+ *                              backwards compatibility.
+ * @param array $other_roles    Expects all prof code(s) for all roles for all 
+ *                              course sections indexed by 'primary' and 
+ *                              'secondary'. However, if those keys are not
+ *                              found, then will assume given array is for
+ *                              primary section for backwards compability.
  * @param type $subject_area        Default "*SYSTEM*". What subject area we
  *                                  are assigning roles for.
  * @return type 
@@ -623,6 +631,16 @@ function require_user_finish_login() {
 function role_mapping($profcode, array $other_roles, 
         $subject_area="*SYSTEM*") {
 
+    // do backwards compability for those sections in the code that haven't
+    // been modified to use the new role mapping parameters of primary/secondary
+    // indexes either because it is too hard or dificult to convert
+    if (!is_array($profcode)) {
+        $profcode = array('primary' => $profcode);
+    }
+    if (!isset($other_roles['primary']) && !isset($other_roles['secondary'])) {
+        $other_roles['primary'] = $other_roles;
+    }
+        
     // logic to parse profcodes, and return pseudorole
     $pseudorole = get_pseudorole($profcode, $other_roles);
     
