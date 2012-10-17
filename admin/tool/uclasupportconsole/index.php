@@ -496,7 +496,7 @@ if ($displayforms) {
     $adodb = registrar_query::open_registrar_connection();
 
     if (ucla_validator('uid', $uid)) {
-        $recset = $adodb->Execute('SELECT * FROM enroll2 WHERE uid = ' . $uid 
+        $recset = $adodb->Execute('SELECT * FROM enroll2_test WHERE uid = ' . $uid 
             . ' ORDER BY term_int DESC, subj_area, catlg_no, sect_no');
 
         $usercourses = array();
