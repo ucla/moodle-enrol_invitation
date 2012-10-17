@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="blocks/ucla_alert/db" VERSION="20121011" COMMENT="XMLDB file for Moodle blocks/ucla_alert"
+<XMLDB PATH="blocks/ucla_alert/db" VERSION="20121016" COMMENT="XMLDB file for Moodle blocks/ucla_alert"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -12,11 +12,15 @@
         <FIELD NAME="render" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="entity" NEXT="json"/>
         <FIELD NAME="json" TYPE="text" NOTNULL="true" SEQUENCE="false" PREVIOUS="render" NEXT="html"/>
         <FIELD NAME="html" TYPE="text" NOTNULL="true" SEQUENCE="false" PREVIOUS="json" NEXT="visible"/>
-        <FIELD NAME="visible" TYPE="int" LENGTH="3" NOTNULL="true" SEQUENCE="false" PREVIOUS="html"/>
+        <FIELD NAME="visible" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false" PREVIOUS="html"/>
       </FIELDS>
       <KEYS>
-        <KEY NAME="id_key" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="id_key" TYPE="primary" FIELDS="id" NEXT="courseid_foreign"/>
+        <KEY NAME="courseid_foreign" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id" PREVIOUS="id_key"/>
       </KEYS>
+      <INDEXES>
+        <INDEX NAME="courseid_entity_visible" UNIQUE="false" FIELDS="courseid, entity, visible"/>
+      </INDEXES>
     </TABLE>
   </TABLES>
 </XMLDB>

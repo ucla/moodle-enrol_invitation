@@ -156,8 +156,8 @@ M.alert_block.init = function(Y) {
 
             // Send AJAX request
             Y.io('rest.php', {
-                method: 'GET',
-                data: 'render=' + json_out,
+                method: 'POST',
+                data: 'courseid=' + courseID +'&render=' + json_out,
                 on: {
                     success: function (id, result) {
                         var newNode = Y.Node.create(result.responseText);
@@ -287,7 +287,7 @@ M.alert_block.init = function(Y) {
             // Send AJAX POST
             Y.io('rest.php', {
                 method: 'POST',
-                data: 'update=' + json_out,
+                data: 'courseid=' + courseID + '&update=' + json_out,
                 on: {
                     success: function (id, result) {
                         window.location = 'edit.php?id=' + courseID;
@@ -319,7 +319,7 @@ M.alert_block.init = function(Y) {
             // Send AJAX request
             Y.io('rest.php', {
                 method: 'GET',
-                data: 'render=' + json_out,
+                data: 'courseid=' + courseID +'&render=' + json_out,
                 on: {
                     success: function (id, result) {
                         var newNode = Y.Node.create(result.responseText);
