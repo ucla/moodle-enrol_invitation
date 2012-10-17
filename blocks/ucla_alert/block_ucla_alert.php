@@ -13,8 +13,8 @@ class block_ucla_alert extends block_base {
     }
     
     public function get_content() {
-        global $COURSE;
-
+        global $COURSE, $PAGE, $CFG;
+        
         if ($this->content !== null) {
             return $this->content;
         }
@@ -28,6 +28,25 @@ class block_ucla_alert extends block_base {
         $this->content = new stdClass;
         $this->content->text = $alertblock->render();
 
+        // Block editing
+        if($PAGE->user_is_editing()) {
+            
+            $context = get_context_instance(CONTEXT_COURSE, $COURSE->id);
+            
+            if(has_capability('moodle/course:update', $context)) {
+                $editurl = $CFG->wwwroot . '/blocks/ucla_alert/edit.php?id=' . $COURSE->id;
+
+                $edit = new html_element('a', 'Edit');
+                $edit->add_class('btn alert-block-edit-on-btn');
+                $edit->add_attrib('href', $editurl);
+
+                $box = new alert_html_box_content($edit);
+                $box->add_class('alert-block-edit-on-box');
+
+                $this->content->footer = $box->render();
+            }
+        }
+        
         return $this->content;
     }
     
@@ -49,6 +68,14 @@ class block_ucla_alert extends block_base {
             'course-view' => true,
             'my' => true,
         );
+    }
+
+    // Delete records for deleted blocks
+    public function instance_delete() {
+        global $DB, $COURSE;
+
+        return $DB->delete_records(ucla_alert::DB_TABLE, 
+                array('courseid' => $COURSE->id));
     }
 
 }

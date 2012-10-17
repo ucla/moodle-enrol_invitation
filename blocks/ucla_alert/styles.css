@@ -34,21 +34,21 @@
 
 .block-ucla-alert .header-box {
     background-color: #88B851;
-    text-shadow:1px 1px 3px #465E2A;
+/*    text-shadow:1px 1px 3px #465E2A;*/
 }
 
 /* HEADER COLOR OVERRIDES */
 .block-ucla-alert .header-box.alert-header-yellow {
     background-color: #EDB83D;
-    text-shadow: 1px 1px 3px #9F730F;
+/*    text-shadow: 1px 1px 3px #9F730F;*/
 }
 .block-ucla-alert .header-box.alert-header-red {
     background-color: #E17D68;
-    text-shadow: 1px 1px 3px #802B19;
+/*    text-shadow: 1px 1px 3px #802B19;*/
 }
 .block-ucla-alert .header-box.alert-header-blue {
     background-color: #47BCBB;
-    text-shadow: 1px 1px 3px #196E80;
+/*    text-shadow: 1px 1px 3px #196E80;*/
 }
 
 /* HEADER TITLE & SUBTITLE */
@@ -291,6 +291,17 @@
 .alert-edit-add {
     width: 100%;
 }
+
+/* Block editing button */
+.alert-block-edit-on-btn {
+    width:80%;
+}
+.alert-block-edit-on-box {
+    text-align: center;
+    border-top: 1px solid #EBEBE2; 
+    padding-bottom: 0; 
+}
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /** BOOTSTRAPPED STYLES **/
 

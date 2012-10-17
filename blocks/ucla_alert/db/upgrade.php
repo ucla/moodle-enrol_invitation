@@ -7,10 +7,10 @@ function xmldb_block_ucla_alert_upgrade($oldversion = 0) {
     $result = true;
     $dbman = $DB->get_manager();
     
-    if ($oldversion < 2012101100) {
+    if ($oldversion < 2012101600) {
 
         // Define table ucla_alerts to be dropped
-        $table = new xmldb_table('ucla_alert');
+        $table = new xmldb_table('ucla_alerts');
 
         // Conditionally launch drop table for ucla_alerts
         if ($dbman->table_exists($table)) {
@@ -27,22 +27,24 @@ function xmldb_block_ucla_alert_upgrade($oldversion = 0) {
         $table->add_field('render', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
         $table->add_field('json', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
         $table->add_field('html', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
-        $table->add_field('visible', XMLDB_TYPE_INTEGER, '3', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('visible', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, null);
 
         // Adding keys to table ucla_alerts
         $table->add_key('id_key', XMLDB_KEY_PRIMARY, array('id'));
+        $table->add_key('courseid_foreign', XMLDB_KEY_FOREIGN, array('courseid'), 'course', array('id'));
+
+        // Adding indexes to table ucla_alerts
+        $table->add_index('courseid_entity_visible', XMLDB_INDEX_NOTUNIQUE, array('courseid', 'entity', 'visible'));
 
         // Conditionally launch create table for ucla_alerts
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
         }
 
-        // ucla_alert savepoint reached
-        upgrade_block_savepoint(true, 2012101100, 'ucla_alert');
-    }
-
-    if ($oldversion < 2012101202) {
         ucla_alert::install_once();
+        
+        // ucla_alert savepoint reached
+        upgrade_block_savepoint(true, 2012101600, 'ucla_alert');
     }
 
     return $result;

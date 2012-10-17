@@ -314,14 +314,15 @@ class alert_edit_header extends html_element {
             $edit->add_class('alert-header-' . $header->color);
             
             $box_header = new alert_html_box_content(array($box, $edit));
-            $box_header->add_attrib('rel', $header->item)
-                       ->add_attrib('render', 'header')
-                       ->add_attrib('visible', $header->visible)
-                       ->add_attrib('color', $header->color)
-                       ->add_attrib('recordid', $header->recordid)
-                       ->add_attrib('entity', $header->entity)
-                       ->add_class('alert-edit-header-wrapper')
-                       ->add_class('alert-edit-element');
+            $box_header->add_attribs(array(
+                'rel' => $header->item,
+                'render' => 'header',
+                'visible' => $header->visible,
+                'color' => $header->color,
+                'recordid' => $header->recordid,
+                'entity' => $header->entity,
+                'class' => 'alert-edit-header-wrapper alert-edit-element'
+            ));
             
             $allheaders[] = $box_header;
         }
@@ -445,14 +446,14 @@ class alert_text_parser {
     const STRING_INNER =    1;
     
     // Item tokens
-    const BOX_TITLE =   ':title';
-    const BOX_LIST =    ':list';
-    const BOX_LINK =    ':link';
+    const BOX_TITLE =   '#';
+    const BOX_LIST =    '*';
+    const BOX_LINK =    '>';
     
     // Header tokens
-    const HEADER_TITLE =    ':header';
-    const HEADER_SUB =      ':subheader';
-    const HEADER_FUNCTION = ':function';
+    const HEADER_TITLE =    '#';
+    const HEADER_SUB =      '##';
+    const HEADER_FUNCTION = '#!';
     
     /**
      * Parse item text
@@ -530,15 +531,17 @@ class alert_text_parser {
         foreach($lines as $line) {
             $l = trim($line);
             
-            if(strpos($l, self::HEADER_TITLE) === 0) {
+            if(preg_match('/^#[^#^!]/', $l)) {
                 $output[] = new alert_html_header_title(trim(str_replace(self::HEADER_TITLE, '', $l)));
                 continue;
-            } else if(strpos($l, self::HEADER_SUB) === 0) {
+            } else if(preg_match('/^##/', $l)) {
                 $output[] = new alert_html_header_subtitle(trim(str_replace(self::HEADER_SUB, '', $l)));
                 continue;
-            } else if(strpos($l, self::HEADER_FUNCTION) === 0) {
+            } else if(preg_match('/^#!/', $l)) {
                 $function = trim(str_replace(self::HEADER_FUNCTION, '', $l));
                 
+                // @todo: add parameter list parsing
+                // #!{param1, param2}
                 if(method_exists('alert_text_parser', $function)) {
                     $output[] = alert_text_parser::$function();
                 }
@@ -849,7 +852,7 @@ class ucla_alert_block_editable extends ucla_alert {
         
         // Add the default section
         $default_section = $DB->get_record(self::DB_TABLE,
-                array('courseid' => 1, 'entity' => self::ENTITY_SECTION, 'visible' => 1));
+                array('courseid' => $this->courseid, 'entity' => self::ENTITY_SECTION, 'visible' => 1));
         $default_section_data = json_decode($default_section->json);
         $default_section_data->recordid = $default_section->id;
         
@@ -866,7 +869,7 @@ class ucla_alert_block_editable extends ucla_alert {
         
         // Add the scratch pad
         $scratch_pad = $DB->get_record(self::DB_TABLE, 
-                array('courseid' => 1, 'entity' => self::ENTITY_SCRATCH));
+                array('courseid' => $this->courseid, 'entity' => self::ENTITY_SCRATCH));
         $scratch_pad_data = json_decode($scratch_pad->json);
         $scratch_pad_data->recordid = $scratch_pad->id;
         
