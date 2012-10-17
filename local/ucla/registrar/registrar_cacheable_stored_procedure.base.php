@@ -79,7 +79,10 @@ abstract class registrar_cacheable_stored_procedure extends registrar_stored_pro
         $columns_to_return = implode(',', $this->get_result_columns());
         
         // try to see if there is a valid cache copy
-        $sql = "SELECT  $columns_to_return
+        // NOTE: id needs to be returned so that we don't get "Did you remember 
+        // to make the first column something unique in your call to 
+        // get_records?" errors
+        $sql = "SELECT  id, $columns_to_return
                 FROM    {{$storedproc_cache}}
                 WHERE   expires_on >= UNIX_TIMESTAMP() AND ";
         
