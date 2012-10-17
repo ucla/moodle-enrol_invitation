@@ -64,6 +64,12 @@ $string['choosecopyright_helpicon'] = '<a title="Help with Copyright Status" hre
         $CFG->wwwroot.'/theme/image.php?theme=uclashared&image=help"></a>';
 $string['choosecopyright'] = 'Copyright status ' . $string['choosecopyright_helpicon'];
 
+// SSC-1306 - Let instructors know when if the announcements forum is hidden
+$string['announcementshidden'] = 'The Announcements forum is currently hidden: Emails will NOT be sent out to students.';
+$string['unhidelink'] = 'Click here to unhide';
+$string['askinstructortounhide'] = 'Please ask the instructor to unhide this forum.';
+// End SSC Modification
+
 // capability strings
 $string['ucla:assign_all'] = 'CCLE-2530: Can see the entire user database when assigning roles';
 $string['ucla:editadvancedcoursesettings'] = 'CCLE-3278: Can edit the course settings for category, format, maximum upload size, or language defaults';
