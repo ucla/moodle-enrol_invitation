@@ -291,6 +291,7 @@ class siteindicator_manager {
     const SITE_TYPE_NON_INSTRUCTION = 'non_instruction';
     const SITE_TYPE_RESEARCH = 'research';
     const SITE_TYPE_TEST = 'test';
+    const SITE_TYPE_PRIVATE = 'private';
     
     // special site type that is not displayed or assignable
     const SITE_TYPE_SRS_INSTRUCTION = 'srs_instruction';
@@ -298,6 +299,7 @@ class siteindicator_manager {
     const SITE_GROUP_TYPE_INSTRUCTION = 'instruction';
     const SITE_GROUP_TYPE_PROJECT = 'project';
     const SITE_GROUP_TYPE_TEST = 'test';
+    const SITE_GROUP_TYPE_PRIVATE = 'private';
     
     // A group of roles.  A group contains a set 
     // of roles that are mutually excluseive from other groups.
@@ -338,6 +340,7 @@ class siteindicator_manager {
             self::SITE_TYPE_NON_INSTRUCTION => self::SITE_GROUP_TYPE_PROJECT,
             self::SITE_TYPE_RESEARCH => self::SITE_GROUP_TYPE_PROJECT,
             self::SITE_TYPE_TEST => self::SITE_GROUP_TYPE_TEST,
+            self::SITE_TYPE_PRIVATE => self::SITE_GROUP_TYPE_PRIVATE,
             );
         
         // Define the roles allowed for a particular role group
@@ -479,6 +482,11 @@ class siteindicator_manager {
                     'shortname' => self::SITE_TYPE_TEST,
                     'fullname' => get_string('site_test', 'tool_uclasiteindicator'),
                     'description' => get_string('site_test_desc', 'tool_uclasiteindicator'),
+                    ),
+                self::SITE_TYPE_PRIVATE => array(
+                    'shortname' => self::SITE_TYPE_PRIVATE,
+                    'fullname' => get_string('site_private', 'tool_uclasiteindicator'),
+                    'description' => get_string('site_private_desc', 'tool_uclasiteindicator'),
                     ),
             );
         }
@@ -871,7 +879,8 @@ class siteindicator_manager {
     static function filter_category_tree(&$tree) {
         global $DB;
        
-        $recs = $DB->get_records_select('ucla_siteindicator', 'type NOT LIKE "test"',
+        $recs = $DB->get_records_select('ucla_siteindicator', 
+                'type NOT LIKE "test" AND type NOT LIKE "private"', 
                 null, '', 'courseid');
         
         $ids = array();

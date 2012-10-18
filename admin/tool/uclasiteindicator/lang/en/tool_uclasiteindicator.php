@@ -35,6 +35,8 @@ $string['site_test'] = 'Test';
 $string['site_test_desc'] = 'temporary sites used to evaluate CCLE/Moodle functionality and features.';
 $string['site_registrar'] = 'Instruction (listed at Registrar)';
 $string['site_registrar_desc'] = 'An instruction site with an SRS number that is listed at the registrar';
+$string['site_private'] = 'Private';
+$string['site_private_desc'] = 'Private courses for confidential subject matter';
 $string['notype'] = 'This site has no type';
 
 // Request
