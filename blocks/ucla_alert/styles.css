@@ -302,6 +302,58 @@
     padding-bottom: 0; 
 }
 
+/* Tutorial */
+
+.edit-alert-tutorial {
+    width: 100%; 
+    padding: 8px; 
+    border-top: 1px solid #DDDDDD; 
+    display: block;
+    float: left;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box; 
+    -webkit-box-sizing: border-box;
+}
+.edit-alert-tutorial h1 {
+    margin-bottom: 4px;
+}
+
+.edit-alert-tutorial .edit-alert-tutorial-summary {
+    margin-bottom: 8px;
+}
+
+.edit-alert-tutorial .edit-alert-tutorial-summary span {
+    background-color: #F5F5F5;
+    border: 1px solid #DDDDDD;
+    padding: 0 6px;
+    border-radius: 4px 4px 4px 4px;
+}
+
+.edit-alert-tutorial div.box-boundary {
+    width: 200px;
+    float: left;
+    border: 1px solid #DDDDDD;
+    margin: 5px;
+    padding: 4px;
+    position: relative;
+    padding-top: 30px;
+    border-radius: 4px 0 4px 0;
+}
+
+.edit-alert-tutorial div.box-boundary:after {
+    background-color: #F5F5F5;
+    border: 1px solid #DDDDDD;
+    border-radius: 4px 0 4px 0;
+    color: #9DA0A4;
+    content: "Tutorial";
+    font-size: 0.9em;
+    font-weight: bold;
+    left: -1px;
+    padding: 3px 7px;
+    position: absolute;
+    top: -1px;
+}
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /** BOOTSTRAPPED STYLES **/
 

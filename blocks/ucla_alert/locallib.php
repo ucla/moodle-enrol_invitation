@@ -9,6 +9,13 @@ class html_element {
     private $attribs;
     private $content;
     
+    /**
+     * Create an HTML element
+     * 
+     * @param string $tag 
+     * @param mixed $content
+     * @param array $attribs 
+     */
     public function __construct($tag, $content = null, $attribs = array()) {
         $this->tag = $tag;
         
@@ -469,7 +476,7 @@ class alert_text_parser {
         $h = '';
         
         foreach($lines as $line) {
-            $l = trim($line);
+            $l = $line;
             
             if(strpos($l, self::BOX_TITLE) === 0) {
                 if(!empty($h)) {
@@ -839,7 +846,35 @@ class ucla_alert_block_editable extends ucla_alert {
         $this->elements = array(
             'scratch',
             'section',
+            'commit',
+            'tutorial',
         );
+    }
+    
+    protected function tutorial() {
+        // Outer box
+        $box = new html_element('div');
+        $box->add_attrib('style', '');
+        $box->add_class('block-ucla-alert edit-alert-tutorial');
+
+        // box title
+        $h1 = new html_element('h1', get_string('edit_tutorial_h1', 'block_ucla_alert'));
+        $summary = new html_element('div', get_string('edit_tutorial_summary', 'block_ucla_alert'), array('class' => 'edit-alert-tutorial-summary'));
+        $markup = new html_element('div', get_string('edit_tutorial_markup', 'block_ucla_alert'), array('class' => 'edit-alert-tutorial-summary'));
+        $titles = new alert_html_section_item(get_string('edit_tutorial_title', 'block_ucla_alert'));
+        $list = new alert_html_section_item(get_string('edit_tutorial_list', 'block_ucla_alert'));
+        $link = new alert_html_section_item(get_string('edit_tutorial_link', 'block_ucla_alert'));
+        
+        $box->add_content(array(
+            $h1, 
+            $summary,
+            $markup, 
+            $titles, 
+            $list, 
+            $link
+        ));
+        
+        return $box;
     }
     
     /**
@@ -888,11 +923,13 @@ class ucla_alert_block_editable extends ucla_alert {
             $elements[] = $this->$element();
         }
   
-        $elements[] = new alert_edit_commit_box();
-        
         return $elements;
     }
 
+    protected function commit() {
+        return new alert_edit_commit_box();
+    }
+    
     public function render() {
         // Create wrapping div
         $alert_edit = new html_element('div');
@@ -916,6 +953,8 @@ class ucla_alert_block_editable_site extends ucla_alert_block_editable {
             'headers',
             'scratch',
             'section',
+            'commit',
+            'tutorial',
         );
     }
     
