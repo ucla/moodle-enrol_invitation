@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="local/ucla/db" VERSION="20120730" COMMENT="XMLDB file for Moodle local/ucla"
+<XMLDB PATH="local/ucla/db" VERSION="20121015" COMMENT="XMLDB file for Moodle local/ucla"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
     <TABLE NAME="ucla_reg_subjectarea" COMMENT="Holds information for subject areas obtained by cis_subjectareagetall" NEXT="ucla_reg_classinfo">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="subjarea"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="subjarea"/>
         <FIELD NAME="subjarea" TYPE="char" LENGTH="7" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="subj_area_full"/>
         <FIELD NAME="subj_area_full" TYPE="char" LENGTH="60" NOTNULL="true" SEQUENCE="false" PREVIOUS="subjarea" NEXT="home"/>
-        <FIELD NAME="home" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="subj_area_full" NEXT="modified"/>
-        <FIELD NAME="modified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="home"/>
+        <FIELD NAME="home" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="subj_area_full" NEXT="modified"/>
+        <FIELD NAME="modified" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="home"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -21,7 +21,7 @@
     </TABLE>
     <TABLE NAME="ucla_reg_classinfo" COMMENT="ucla_reg_classinfo table retrofitted from MySQL" PREVIOUS="ucla_reg_subjectarea" NEXT="ucla_rolemapping">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="subj_area"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" SEQUENCE="true" NEXT="subj_area"/>
         <FIELD NAME="subj_area" TYPE="char" LENGTH="7" NOTNULL="false" SEQUENCE="false" PREVIOUS="id" NEXT="coursenum"/>
         <FIELD NAME="coursenum" TYPE="char" LENGTH="8" NOTNULL="false" SEQUENCE="false" PREVIOUS="subj_area" NEXT="sectnum"/>
         <FIELD NAME="sectnum" TYPE="char" LENGTH="6" NOTNULL="false" SEQUENCE="false" PREVIOUS="coursenum" NEXT="crsidx"/>
@@ -39,7 +39,7 @@
         <FIELD NAME="session_group" TYPE="char" LENGTH="1" NOTNULL="false" SEQUENCE="false" PREVIOUS="enrolstat" NEXT="session"/>
         <FIELD NAME="session" TYPE="char" LENGTH="2" NOTNULL="false" SEQUENCE="false" PREVIOUS="session_group" NEXT="url"/>
         <FIELD NAME="url" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" PREVIOUS="session" NEXT="crs_desc"/>
-        <FIELD NAME="crs_desc" TYPE="text" LENGTH="small" NOTNULL="false" SEQUENCE="false" PREVIOUS="url"/>
+        <FIELD NAME="crs_desc" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="url"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="mdl_uclaregclas_tersrs_uix"/>
@@ -49,10 +49,10 @@
     </TABLE>
     <TABLE NAME="ucla_rolemapping" COMMENT="Table to map pseudorole from registrar to moodle roles" PREVIOUS="ucla_reg_classinfo" NEXT="ucla_reg_division">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="pseudo_role"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="pseudo_role"/>
         <FIELD NAME="pseudo_role" TYPE="char" LENGTH="50" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="description"/>
         <FIELD NAME="description" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="describes the rule that translates to a moodle role" PREVIOUS="pseudo_role" NEXT="moodle_roleid"/>
-        <FIELD NAME="moodle_roleid" TYPE="int" LENGTH="2" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" COMMENT="Id for the role whose shortname is in mdl_role table" PREVIOUS="description" NEXT="subject_area"/>
+        <FIELD NAME="moodle_roleid" TYPE="int" LENGTH="2" NOTNULL="true" SEQUENCE="false" COMMENT="Id for the role whose shortname is in mdl_role table" PREVIOUS="description" NEXT="subject_area"/>
         <FIELD NAME="subject_area" TYPE="char" LENGTH="50" NOTNULL="true" DEFAULT="*SYSTEM*" SEQUENCE="false" PREVIOUS="moodle_roleid"/>
       </FIELDS>
       <KEYS>
@@ -61,23 +61,23 @@
     </TABLE>
     <TABLE NAME="ucla_reg_division" COMMENT="ucla_reg_division table contains list of UCLA Divisions from Registrar, filled by hand first time." PREVIOUS="ucla_rolemapping" NEXT="ccle_roster_class_cache">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="code"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="11" NOTNULL="true" SEQUENCE="true" NEXT="code"/>
         <FIELD NAME="code" TYPE="char" LENGTH="2" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="fullname"/>
         <FIELD NAME="fullname" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="code" NEXT="home"/>
-        <FIELD NAME="home" TYPE="int" LENGTH="4" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="fullname" NEXT="timestamp"/>
-        <FIELD NAME="timestamp" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="home"/>
+        <FIELD NAME="home" TYPE="int" LENGTH="4" NOTNULL="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="fullname" NEXT="timestamp"/>
+        <FIELD NAME="timestamp" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" PREVIOUS="home"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="code"/>
         <KEY NAME="code" TYPE="unique" FIELDS="code" PREVIOUS="primary"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="ccle_roster_class_cache" COMMENT="Cache table for the stored procedure ccle_roster_class" PREVIOUS="ucla_reg_division">
+    <TABLE NAME="ccle_roster_class_cache" COMMENT="Cache table for the stored procedure ccle_roster_class" PREVIOUS="ucla_reg_division" NEXT="ccle_get_primary_srs_cache">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="param_term"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="param_term"/>
         <FIELD NAME="param_term" TYPE="char" LENGTH="3" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="param_srs"/>
         <FIELD NAME="param_srs" TYPE="char" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="param_term" NEXT="expires_on"/>
-        <FIELD NAME="expires_on" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="param_srs" NEXT="term_cd"/>
+        <FIELD NAME="expires_on" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="param_srs" NEXT="term_cd"/>
         <FIELD NAME="term_cd" TYPE="char" LENGTH="3" NOTNULL="false" SEQUENCE="false" PREVIOUS="expires_on" NEXT="stu_id"/>
         <FIELD NAME="stu_id" TYPE="char" LENGTH="9" NOTNULL="false" SEQUENCE="false" PREVIOUS="term_cd" NEXT="full_name_person"/>
         <FIELD NAME="full_name_person" TYPE="char" LENGTH="70" NOTNULL="false" SEQUENCE="false" COMMENT="Name of the student in “LAST, FIRST MIDDLE” format" PREVIOUS="stu_id" NEXT="enrl_stat_cd"/>
@@ -91,6 +91,21 @@
       <INDEXES>
         <INDEX NAME="param_index" UNIQUE="false" FIELDS="param_term, param_srs, expires_on" NEXT="student_uid_lookup"/>
         <INDEX NAME="student_uid_lookup" UNIQUE="false" FIELDS="param_term, param_srs, stu_id" PREVIOUS="param_index"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="ccle_get_primary_srs_cache" COMMENT="Cache table for the stored procedure ccle_get_primary_srs" PREVIOUS="ccle_roster_class_cache">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="param_term"/>
+        <FIELD NAME="param_term" TYPE="char" LENGTH="3" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="param_srs"/>
+        <FIELD NAME="param_srs" TYPE="char" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="param_term" NEXT="expires_on"/>
+        <FIELD NAME="expires_on" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="param_srs" NEXT="srs_crs_no"/>
+        <FIELD NAME="srs_crs_no" TYPE="char" LENGTH="9" NOTNULL="true" SEQUENCE="false" PREVIOUS="expires_on"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="param_index" UNIQUE="false" FIELDS="param_term, param_srs, expires_on"/>
       </INDEXES>
     </TABLE>
   </TABLES>

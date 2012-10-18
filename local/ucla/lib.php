@@ -614,8 +614,16 @@ function require_user_finish_login() {
  * Given a registrar profcode and list of other roles a user has, returns what
  * Moodle role a user should have.
  * 
- * @param int $profcode             Registrar prof code
- * @param array $other_roles        Other roles a user has
+ * @param mixed $profcode       Can be either array or string. If array, then 
+ *                              expects prof code(s) for given user in an array 
+ *                              indexed by 'primary' and 'secondary'. If string
+ *                              then will assume profcode is for primary for
+ *                              backwards compatibility.
+ * @param array $other_roles    Expects all prof code(s) for all roles for all 
+ *                              course sections indexed by 'primary' and 
+ *                              'secondary'. However, if those keys are not
+ *                              found, then will assume given array is for
+ *                              primary section for backwards compability.
  * @param type $subject_area        Default "*SYSTEM*". What subject area we
  *                                  are assigning roles for.
  * @return type 
@@ -623,6 +631,16 @@ function require_user_finish_login() {
 function role_mapping($profcode, array $other_roles, 
         $subject_area="*SYSTEM*") {
 
+    // do backwards compability for those sections in the code that haven't
+    // been modified to use the new role mapping parameters of primary/secondary
+    // indexes either because it is too hard or dificult to convert
+    if (!is_array($profcode)) {
+        $profcode = array('primary' => $profcode);
+    }
+    if (!isset($other_roles['primary']) && !isset($other_roles['secondary'])) {
+        $other_roles['primary'] = $other_roles;
+    }
+        
     // logic to parse profcodes, and return pseudorole
     $pseudorole = get_pseudorole($profcode, $other_roles);
     
@@ -633,44 +651,65 @@ function role_mapping($profcode, array $other_roles,
 }
 
 /**
- * This mapping definition will be used only for instructors
- * Refer to Jira: CCLE-2320
+ * Given 
+ * Refer to Jira: CCLE-2320 and https://ccle.ucla.edu/mod/page/view.php?id=82418
  * 
  * role InstSet     Pseudo Role
  * 01   any         editingteacher
- * 02	01,02       ta
- * 02	01,02,03    ta
- * 02	02,03       ta_instructor
  * 03	any	    supervising_instructor
- * 22	any	    editingteacher
+ * 22	any	    ? (NOT IMPLEMENTED YET)
+ * 02 (in any section)	01 (in any section)       ta
+ * 02 (primary)	03 (in any section)       ta_instructor
+ * 02 (secondary) 02 (primary) or 03 (in any section) ta
  * 
- * @param int $profcode        Registrar prof code
- * @param array $other_roles   Other roles a user has
+ * @param array $profcode       Prof code(s) for given user in an array indexed
+ *                              by 'primary' and 'secondary'.
+ * @param array $other_roles    All prof code(s) for all roles for all course
+ *                              sections indexed by 'primary' and 'secondary'.
  * 
- * @return string              Returns either: editingteacher, ta,
- *                             ta_instructor, or supervising_instructor
+ * @return string               Returns either: editingteacher, ta,
+ *                              ta_instructor, or supervising_instructor
+ *                              Returns null if no pseudo role can be found
  */
-function get_pseudorole($profcode, array $other_roles) {
-    $hasrole = array_pad(array(), 23, false);   // need to create 23, because 22 
-                                            // needs to be an index    
-    foreach ($other_roles as $other_role) {
-        $hasrole[intval($other_role)] = true;
+function get_pseudorole(array $prof_code, array $other_prof_codes) {
+    
+    // shortcuts for 01 and 03
+    if (isset($prof_code['primary']) && in_array('01', $prof_code['primary']) ||
+            isset($prof_code['secondary']) && in_array('01', $prof_code['secondary'])) {
+        return 'editingteacher';
     }
+    if (isset($prof_code['primary']) && in_array('03', $prof_code['primary']) ||
+            isset($prof_code['secondary']) && in_array('03', $prof_code['secondary'])) {
+        return 'supervising_instructor';
+    }
+    
+    // handling the complex 02 roles
+    if (isset($prof_code['primary']) && in_array('02', $prof_code['primary']) ||
+            isset($prof_code['secondary']) && in_array('02', $prof_code['secondary'])) {
 
-    switch (intval($profcode)) {
-        case 1:
-            return "editingteacher";
-        case 2:
-            if (!$hasrole[1] && $hasrole[3]) {
-                return "ta_instructor";
-            } else {
-                return "ta";
-            }
-        case 3:
-            return "supervising_instructor";
-        case 22:
-            return "editingteacher";
-    }
+        // Anyone with 02 on a course with an 01 is a ta
+        // 02 (in any section)	01 (in any section)       ta
+        if (isset($other_prof_codes['primary']) && in_array('01', $other_prof_codes['primary']) ||
+                isset($other_prof_codes['secondary']) && in_array('01', $other_prof_codes['secondary'])) {
+            return 'ta';
+        }
+
+        // if someone is an 02 in the primary section, and there is an 03, they 
+        // are a ta_instructor (assumes no 01, because of first condition)
+        // 02 (primary)	03 (in any section)       ta_instructor
+        if (isset($prof_code['primary']) && in_array('02', $prof_code['primary'])) {
+            if (isset($other_prof_codes['primary']) && in_array('03', $other_prof_codes['primary']) ||
+                    isset($other_prof_codes['secondary']) && in_array('03', $other_prof_codes['secondary'])) {
+                return 'ta_instructor';
+            }            
+        }
+        
+        // for all other 02 cases, default to ta
+        return 'ta';
+    }    
+
+    // no role to return
+    return null;
 }
 
 /**

@@ -520,10 +520,20 @@ class enrol_database_plugin extends enrol_plugin {
 
                 $otherroles = array();
 
-                // We need to flatten out all the available profcodes
-                foreach ($instrs as $instructor) {
+                
+                // Need to create mapping of role code to primary/secondary
+                // sections
+                foreach ($instrs as $index => $instructor) {
+                    // if srs is different than parameters given for 
+                    // ccle_courseinstructorsget, then it is a secondary srs
+                    $section_type = 'primary';
+                    if ($instructor['srs'] != $course->srs) {
+                        $section_type = 'secondary';
+                    }
+                    
                     $pc = $instructor['role'];
-                    $otherroles[$pc] = $pc;
+                    $otherroles[$section_type][] = $pc;
+                    $instrs[$index]['prof_codes'][$section_type][] = $pc;
                 }
 
                 // Now we need to save the roles per course
@@ -542,7 +552,7 @@ class enrol_database_plugin extends enrol_plugin {
 
                     try {
                         $role_mapping = role_mapping(
-                            $instructor['role'],
+                            $instructor['prof_codes'],
                             $otherroles,
                             $subjarea
                         );

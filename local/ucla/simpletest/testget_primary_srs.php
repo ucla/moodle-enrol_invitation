@@ -17,20 +17,23 @@ class primary_srs_test extends UnitTestCase {
         
         $term = '12F';
         $srs = '187093203';
-        $result = array_pop(array_shift(registrar_query::run_registrar_query(
-                'ccle_get_primary_srs', array($term, $srs), true)));
+        $result = registrar_query::run_registrar_query('ccle_get_primary_srs', array($term, $srs));
+        $result = array_shift($result);
+        $result = array_pop($result);
         $this->assertEqual($result, '187093200');
         
         $term = '12W';
         $srs = '104340202';
-        $result = array_pop(array_shift(registrar_query::run_registrar_query(
-                'ccle_get_primary_srs', array($term, $srs), true)));
+        $result = registrar_query::run_registrar_query('ccle_get_primary_srs', array($term, $srs));
+        $result = array_shift($result);
+        $result = array_pop($result);
         $this->assertEqual($result, '104340200');
         
         $term = '12S';
         $srs = '262268212';
-        $result = array_pop(array_shift(registrar_query::run_registrar_query(
-                'ccle_get_primary_srs', array($term, $srs), true)));
+        $result = registrar_query::run_registrar_query('ccle_get_primary_srs', array($term, $srs));
+        $result = array_shift($result);
+        $result = array_pop($result);
         $this->assertEqual($result, '262268210');
     }
 }

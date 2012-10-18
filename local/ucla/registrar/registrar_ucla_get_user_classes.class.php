@@ -10,6 +10,6 @@ class registrar_ucla_get_user_classes extends registrar_stored_procedure {
     }
 
     function get_stored_procedure() {
-        return 'ucla_get_user_classes';
+        return 'ucla_get_user_classes_test';
     }
 }
