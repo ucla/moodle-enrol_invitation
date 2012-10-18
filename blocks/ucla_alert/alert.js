@@ -318,7 +318,7 @@ M.alert_block.init = function(Y) {
 
             // Send AJAX request
             Y.io('rest.php', {
-                method: 'GET',
+                method: 'POST',
                 data: 'courseid=' + courseID +'&render=' + json_out,
                 on: {
                     success: function (id, result) {
