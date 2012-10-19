@@ -1,6 +1,6 @@
 <?php
 
-$string['pluginname'] = 'UCLA alert block';
+$string['pluginname'] = 'Course alerts';
 
 // Default values
 // Section
