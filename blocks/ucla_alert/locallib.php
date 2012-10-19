@@ -693,8 +693,11 @@ abstract class ucla_alert {
      * Run once to install the default SITE headers
      */
     static public function install_once() {
-        
         global $DB;
+        
+        if($DB->record_exists(self::DB_TABLE, array('courseid' => SITEID, 'entity' => self::ENTITY_HEADER))) {
+            return true;
+        }
 
         // Install headers
         $data = array(
@@ -766,6 +769,8 @@ abstract class ucla_alert {
         );
 
         $DB->insert_record(self::DB_TABLE, (object)$record);
+        
+        return true;
     }
 }
 

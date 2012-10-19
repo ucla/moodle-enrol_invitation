@@ -1,6 +1,6 @@
 <?php
 
-$string['pluginname'] = 'UCLA alert block';
+$string['pluginname'] = 'Course alerts';
 
 // Default values
 // Section
@@ -83,10 +83,11 @@ $string['edit_tutorial_summary'] = 'To re-order items in the alert block, you
     you make are not final until you "Update alerts."';
 
 $string['edit_tutorial_markup'] = 'The alert block uses a simple markdown 
-    language with three tokens to specify titles, lists and links.  The tokens are
+    language with three tokens to specify <span>titles</span>, <span>lists</span> 
+    and <span>links</span>.  The tokens are
     <span>#</span>, <span>*</span> and <span>></span> respectively.  Curly braces 
     <span>{ }</span> are used to specify extra information.  
-    This is done to keep all alert block items looking uniform.  You can edit 
+    This is done to keep all alert block items uniform.  You can edit 
     the alert block like a pro by reading the following brief tutorials.';
 
 // Error
