@@ -131,8 +131,6 @@ function ucla_course_alert($data) {
         foreach($courses as $course) {
             // Prepare criteria & payload
             list($criteria, $payload) = syllabus_ws_manager::setup_alert($course);
-            // Prepare criteria & payload
-            list($criteria, $payload) = syllabus_ws_manager::setup_alert($data);
             // Handle event
             syllabus_ws_manager::handle(syllabus_ws_manager::ACTION_ALERT, $criteria, $payload);        
         }       
