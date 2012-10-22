@@ -207,11 +207,17 @@ class syllabus_ws_manager {
     static function setup_alert($course) {
         global $CFG;
         
-        list($criteria, $payload) = self::setup($course->id);
+        $hostcourse = ucla_map_termsrs_to_courseid($course->term, $course->srs);
         
-        // Ignore subjectarea
-        $criteria['subjectarea'] = -1;
-        $payload['url'] = $CFG->wwwroot . '/course/view.php?id=' . $course->id;
+        $criteria = array(
+            'srs' => $course->srs,
+            'subjectarea' => -1,
+        );
+        $payload = array(
+            'srs' => $course->srs,
+            'term' => $course->term,
+            'url' => $CFG->wwwroot . '/course/view.php?id=' . $hostcourse,
+        );
         
         return array($criteria, $payload);
     }
