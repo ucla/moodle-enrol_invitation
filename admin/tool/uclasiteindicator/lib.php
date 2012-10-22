@@ -62,6 +62,8 @@ class siteindicator_site {
      * @param string $newtype of the site.
      */
     public function set_type($newtype) {  
+        global $CFG, $DB;
+        
         // Do we need to change role assignments?
         if($newtype != $this->property->type) {
             $uclaindicator = new siteindicator_manager();
@@ -88,6 +90,21 @@ class siteindicator_site {
                         role_assign($newrole->id, $u->id, $context->id);
                     }
                 }
+            }
+            
+            // CCLE-3599 - Private collab site
+            // Deactivate public/private, Disable guest access
+            if ($newtype == siteindicator_manager::SITE_TYPE_PRIVATE) {
+                require_once($CFG->dirroot . '/lib/enrollib.php');
+                
+                $course = $DB->get_record('course', array('id'=> $this->property->courseid) );
+                $pubpriv_course = new PublicPrivate_Course($course);
+                if($pubpriv_course->is_activated()) {
+                    $pubpriv_course->deactivate();
+                }
+                
+                $DB->set_field('enrol', 'status', ENROL_INSTANCE_DISABLED, 
+                        array('courseid' => $this->property->courseid, 'enrol' => 'guest'));
             }
             
             // Update new site type
@@ -299,7 +316,6 @@ class siteindicator_manager {
     const SITE_GROUP_TYPE_INSTRUCTION = 'instruction';
     const SITE_GROUP_TYPE_PROJECT = 'project';
     const SITE_GROUP_TYPE_TEST = 'test';
-    const SITE_GROUP_TYPE_PRIVATE = 'private';
     
     // A group of roles.  A group contains a set 
     // of roles that are mutually excluseive from other groups.
@@ -340,7 +356,7 @@ class siteindicator_manager {
             self::SITE_TYPE_NON_INSTRUCTION => self::SITE_GROUP_TYPE_PROJECT,
             self::SITE_TYPE_RESEARCH => self::SITE_GROUP_TYPE_PROJECT,
             self::SITE_TYPE_TEST => self::SITE_GROUP_TYPE_TEST,
-            self::SITE_TYPE_PRIVATE => self::SITE_GROUP_TYPE_PRIVATE,
+            self::SITE_TYPE_PRIVATE => self::SITE_GROUP_TYPE_INSTRUCTION,
             );
         
         // Define the roles allowed for a particular role group

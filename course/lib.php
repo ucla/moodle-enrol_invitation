@@ -3950,14 +3950,6 @@ function create_course($data, $editoroptions = NULL) {
 
     // Save any custom role names.
     save_local_role_names($course->id, (array)$data);
-
-    // BEGIN UCLA MOD: CCLE-3599 - Private collab site
-    // Deactivate guest access to private collab sites
-    if ($data->indicator_change == siteindicator_manager::SITE_TYPE_PRIVATE) {
-        $data->enrol_guest_status_0 = ENROL_INSTANCE_DISABLED;
-        $course->enablepublicprivate = 0;
-    }
-    // END UCLA MOD: CCLE-3599
     
     // set up enrolments
     enrol_course_updated(true, $course, $data);

@@ -729,7 +729,7 @@ function get_courses_wmanagers($categoryid=0, $sort="c.sortorder ASC", $fields=a
  */
 function get_courses_search($searchterms, $sort='fullname ASC', $page=0, $recordsperpage=50, &$totalcount, $otherargs = null) {
     global $CFG, $DB;
-    
+    print_object('watasdf');
     // START UCLA MOD CCLE-2309
     /// Collaboration join conditions
     $collab = null;
@@ -754,7 +754,7 @@ function get_courses_search($searchterms, $sort='fullname ASC', $page=0, $record
         // Search only collab sites
 
         $collab_join = 'JOIN {ucla_siteindicator} si ON c.id = si.courseid';
-        $collab_and = "AND si.type NOT LIKE 'test'";
+        $collab_and = "AND si.type NOT LIKE 'test' AND si.type NOT LIKE 'private'";
         $collab_select = ', si.courseid as collabcheck';
 
     } else if (!empty($course) && empty($collab)) {
@@ -781,7 +781,7 @@ function get_courses_search($searchterms, $sort='fullname ASC', $page=0, $record
     } else {
         $concat = $DB->sql_concat("COALESCE(c.summary, '". $DB->sql_empty() ."')", "' '", 'c.fullname', "' '", 'c.idnumber', "' '", 'c.shortname');
     }
-
+print_object('huugh');
     foreach ($searchterms as $searchterm) {
         $i++;
 
@@ -821,7 +821,7 @@ function get_courses_search($searchterms, $sort='fullname ASC', $page=0, $record
         $totalcount = 0;
         return array();
     }
-
+print_object(';;;;');
     $searchcond = implode(" AND ", $searchcond);
 
     $courses = array();
@@ -841,6 +841,9 @@ function get_courses_search($searchterms, $sort='fullname ASC', $page=0, $record
             $collab_and 
         ORDER BY $sort
             $rest_limit";
+    print_object('cmon');
+    print_object($sql);
+    print_object('asdf');
     // END UCLA MOD CCLE-2309
 
     $rs = $DB->get_recordset_sql($sql, $params);
