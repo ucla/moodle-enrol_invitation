@@ -115,17 +115,26 @@ function ucla_syllabus_deleted($data) {
 }
 
 /**
- * Event handler for course alert
+ * Event handler for course alert.  This handles crosslisted courses by 
+ * sending the 
  * 
  * @param type $data course object
  */
 function ucla_course_alert($data) {
     
     if(!is_collab_site($data->id)) {
-        // Prepare criteria & payload
-        list($criteria, $payload) = syllabus_ws_manager::setup_alert($data);
-
-        // Handle event
-        syllabus_ws_manager::handle(syllabus_ws_manager::ACTION_ALERT, $criteria, $payload);        
+        
+        // If a course is crosslisted, we want to send multiple alerts
+        $courses = ucla_get_course_info($data->id);
+        
+        // Do for all coures found
+        foreach($courses as $course) {
+            // Prepare criteria & payload
+            list($criteria, $payload) = syllabus_ws_manager::setup_alert($course);
+            // Prepare criteria & payload
+            list($criteria, $payload) = syllabus_ws_manager::setup_alert($data);
+            // Handle event
+            syllabus_ws_manager::handle(syllabus_ws_manager::ACTION_ALERT, $criteria, $payload);        
+        }       
     }
 }
