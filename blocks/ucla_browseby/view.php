@@ -67,6 +67,3 @@ if ($term == $cutoff) {
 echo html_writer::tag('div', $innercontents, array('id' => 'browsebymain'));
 
 echo $OUTPUT->footer();
-
-$tot;
-get_courses_search(array('new'), 'fullname ASC', 0, 50, $tot);
