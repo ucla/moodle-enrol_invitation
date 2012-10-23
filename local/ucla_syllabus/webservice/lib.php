@@ -148,11 +148,8 @@ class syllabus_ws_manager {
         }
     }
 
-    static function setup($courseid) {
+    static function setup($course) {
         global $DB;
-        
-        $termsrs = ucla_map_courseid_to_termsrses($courseid);
-        $course = array_shift($termsrs);
         
         $srs = $course->srs;
         $term = $course->term;
@@ -181,11 +178,12 @@ class syllabus_ws_manager {
      * the payload that they are expecting.
      * 
      * @param object $syllabus
+     * @param object $course
      * @return array of $criteria and $payload 
      */
-    static function setup_transfer($syllabus) {
+    static function setup_transfer($syllabus, $course) {
         
-        list($criteria, $payload) = self::setup($syllabus->courseid);
+        list($criteria, $payload) = self::setup($course);
         
         $file = $syllabus->stored_file;
             
@@ -223,8 +221,8 @@ class syllabus_ws_manager {
     }
     
         
-    static function setup_delete($data) {
-        list($criteria, $payload) = self::setup($data->courseid);
+    static function setup_delete($course) {
+        list($criteria, $payload) = self::setup($course);
         $payload['deleted'] = 'true';
         
         return array($criteria, $payload);
