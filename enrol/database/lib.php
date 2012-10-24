@@ -338,24 +338,28 @@ class enrol_database_plugin extends enrol_plugin {
                 // we want this user enrolled
                 continue;
             }
+            // START UCLA MOD CCLE-3603
+            // Temporarily disabling this code to prevent O2 (TAs) from 
+            // being unenroled.
 
             // deal with enrolments removed from external table
-            if ($unenrolaction == ENROL_EXT_REMOVED_UNENROL) {
-                // unenrol
-                $this->unenrol_user($instance, $user->id);
-
-            } else if ($unenrolaction == ENROL_EXT_REMOVED_KEEP) {
-                // keep - only adding enrolments
-
-            } else if ($unenrolaction == ENROL_EXT_REMOVED_SUSPEND or $unenrolaction == ENROL_EXT_REMOVED_SUSPENDNOROLES) {
-                // disable
-                if ($instance->ustatus != ENROL_USER_SUSPENDED) {
-                    $this->update_user_enrol($instance, $user->id, ENROL_USER_SUSPENDED);
-                }
-                if ($unenrolaction == ENROL_EXT_REMOVED_SUSPENDNOROLES) {
-                    role_unassign_all(array('contextid'=>$context->id, 'userid'=>$user->id, 'component'=>'enrol_database', 'itemid'=>$instance->id));
-                }
-            }
+//            if ($unenrolaction == ENROL_EXT_REMOVED_UNENROL) {
+//                // unenrol
+//                $this->unenrol_user($instance, $user->id);
+//
+//            } else if ($unenrolaction == ENROL_EXT_REMOVED_KEEP) {
+//                // keep - only adding enrolments
+//
+//            } else if ($unenrolaction == ENROL_EXT_REMOVED_SUSPEND or $unenrolaction == ENROL_EXT_REMOVED_SUSPENDNOROLES) {
+//                // disable
+//                if ($instance->ustatus != ENROL_USER_SUSPENDED) {
+//                    $this->update_user_enrol($instance, $user->id, ENROL_USER_SUSPENDED);
+//                }
+//                if ($unenrolaction == ENROL_EXT_REMOVED_SUSPENDNOROLES) {
+//                    role_unassign_all(array('contextid'=>$context->id, 'userid'=>$user->id, 'component'=>'enrol_database', 'itemid'=>$instance->id));
+//                }
+//            }
+            // END UCLA MOD CCLE-3603
         }
         $rs->close();
 
