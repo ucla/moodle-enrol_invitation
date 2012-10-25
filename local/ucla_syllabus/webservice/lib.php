@@ -30,6 +30,7 @@ class syllabus_ws_item {
             while(self::MAX_ATTEMPTS > $this->_attempt) {
                 
                 if($this->_post($payload)) {
+                    return true;
                     break;
                 } 
                 
@@ -38,9 +39,12 @@ class syllabus_ws_item {
             
             // If we kept ran out of tries, then report
             if($this->_attempt == self::MAX_ATTEMPTS) {
-                $this->_contact();
+                $this->_contact($payload);
+                return false;
             }
         }
+        
+        return true;
     }
     
     private function _contact() {
@@ -55,7 +59,7 @@ class syllabus_ws_item {
         
         $to = $this->_data->contact;
         
-        return mail($to, $subject, $message);
+        return ucla_send_mail($to, $subject, $message);
     }
 
 
@@ -104,11 +108,13 @@ class syllabus_ws_item {
         
         curl_close($ch);
 
-        if($result === FALSE) {
-            return false;
+        // Verify that we got a 'success' message
+        
+        if(strtolower(trim($result)) === "success") {
+            return true;
         }
         
-        return true;
+        return false;
     }
     
     
@@ -141,11 +147,15 @@ class syllabus_ws_manager {
         $records = $DB->get_records('ucla_syllabus_webservice', 
                 array('enabled' => 1, 'action' => $event));
 
+        $result = true;
         // Process actions
         foreach($records as $rec) {
+            
             $notifications = new syllabus_ws_item($rec, $criteria);
-            $notifications->notify($payload);
+            $result &= $notifications->notify($payload);
         }
+
+        return $result;
     }
 
     static function setup($course) {

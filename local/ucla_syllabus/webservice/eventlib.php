@@ -137,12 +137,15 @@ function ucla_course_alert($data) {
         // If a course is crosslisted, we want to send multiple alerts
         $courses = ucla_get_course_info($data->id);
         
+        $result = true;
         // Do for all coures found
         foreach($courses as $course) {
             // Prepare criteria & payload
             list($criteria, $payload) = syllabus_ws_manager::setup_alert($course);
             // Handle event
-            syllabus_ws_manager::handle(syllabus_ws_manager::ACTION_ALERT, $criteria, $payload);        
-        }       
+            $result &= syllabus_ws_manager::handle(syllabus_ws_manager::ACTION_ALERT, $criteria, $payload);        
+        }
+
+        return (boolean)$result;
     }
 }
