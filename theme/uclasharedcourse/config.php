@@ -16,13 +16,9 @@ $THEME->parents = array(
     'base',
 );
 
-//$THEME->sheets = array(
-//    'admin',    // custom admin style changes
-//    'base',
-//    'core',     // custom core stlye changes
-//    'general',
-//    'responsive',
-//);
+$THEME->sheets = array(
+    'uclasharedcourse',
+);
 
 $THEME->rendererfactory = 'theme_overridden_renderer_factory';
 $THEME->enable_dock = true;
