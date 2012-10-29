@@ -118,11 +118,16 @@ class theme_uclasharedcourse_core_renderer extends theme_uclashared_core_rendere
         $out = '';
         
         if(!empty($logos)) {
+            $pix_url = $this->pix_url('logo_divider', $this->theme);
+            $img = html_writer::empty_tag('img', array('src' => $pix_url));
+            $divider = html_writer::tag('div', $img, array('class' => 'uclashared-course-logo-divider'));
+            $out .= $divider;
+            
             foreach($logos as $logo) {
                 $url = "{$CFG->wwwroot}/pluginfile.php/{$logo->get_contextid()}/{$this->component}/{$this->filearea}";
                 $fileurl = $url . $logo->get_filepath() . $logo->get_itemid() . '/' . $logo->get_filename();
                 
-                $img = html_writer::tag('img', '', array(
+                $img = html_writer::empty_tag('img', array(
                     'src' => $fileurl,
                 ));
                 
