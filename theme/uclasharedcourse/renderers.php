@@ -54,6 +54,14 @@ class theme_uclasharedcourse_core_renderer extends theme_uclashared_core_rendere
         return '';
     }
 
+    /**
+     * We don't want to display sublogo
+     * 
+     * @return empty string 
+     */
+    public function sublogo() {
+        return '';
+    }
 
     /**
      * Save course logos
