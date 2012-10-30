@@ -24,17 +24,16 @@ function ucla_syllabus_updated($data) {
          *      send private
          */
         
-        
+        $hostcourse = $DB->get_record('course', array('id' => $syllabus->courseid));
+
         if($syllabus instanceof ucla_private_syllabus) {
             // Private syllabus added, we'll send it
             $outgoing = $syllabus;
         } else {
             // We got a public syllabus
         
-            $course = $DB->get_record('course', array('id' => $syllabus->courseid));
-            
             // Get all the syllabi
-            $manager = new ucla_syllabus_manager($course);
+            $manager = new ucla_syllabus_manager($hostcourse);
             $syllabi = $manager->get_syllabi();
 
             // Check if private syllabus exists
@@ -49,11 +48,15 @@ function ucla_syllabus_updated($data) {
             $outgoing = $syllabus;
         }
         
-        // Prepare criteria and payload
-        list($criteria, $payload) = syllabus_ws_manager::setup_transfer($outgoing);
+        $courses = ucla_get_course_info($hostcourse->id);
         
-        // Handle event
-        syllabus_ws_manager::handle(syllabus_ws_manager::ACTION_TRANSFER, $criteria, $payload);
+        foreach($courses as $course) {
+            // Prepare criteria and payload
+            list($criteria, $payload) = syllabus_ws_manager::setup_transfer($outgoing, $course);
+
+            // Handle event
+            syllabus_ws_manager::handle(syllabus_ws_manager::ACTION_TRANSFER, $criteria, $payload);
+        }
     }
 
 }
@@ -66,66 +69,83 @@ function ucla_syllabus_updated($data) {
 function ucla_syllabus_deleted($data) {
     global $DB;
 
-    $course = $DB->get_record('course', array('id' => $data->courseid));
+    $hostcourse = $DB->get_record('course', array('id' => $data->courseid));
+    $courses = ucla_get_course_info($hostcourse->id);
 
     // Get all the syllabi
-    $manager = new ucla_syllabus_manager($course);
+    $manager = new ucla_syllabus_manager($hostcourse);
     $syllabi = $manager->get_syllabi();
     
-    switch(intval($data->access_type)) {
-        case UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE:
-            
-            /**
-             * Case where syllabus is private
-             * 
-             * If no public syllabus exists, POST delete
-             * If public syllabus exists, POST public syllabus 
-             */
-            
-            if(empty($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC])) {
-                list($criteria, $payload) = syllabus_ws_manager::setup_delete($data);
-                syllabus_ws_manager::handle(syllabus_ws_manager::ACTION_TRANSFER, $criteria, $payload);
-            } else {
-                $public_syllabus = array_shift($syllabi);
-                
-                // Pass it on to another handler...
-                ucla_syllabus_updated($public_syllabus->id);
-            }
-            
-            break;
-        case UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC:
-        case UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN:
-            
-            /**
-             * Case where syllabus is public
-             * 
-             * If no private syllabus exists, POST delete
-             * Else do nothing.. 
-             */
-            
-            if(empty($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE])) {
-                list($criteria, $payload) = syllabus_ws_manager::setup_delete($data);
-                syllabus_ws_manager::handle(syllabus_ws_manager::ACTION_TRANSFER, $criteria, $payload);
-            }
-            // Else do nothing
-            break;
+    foreach($courses as $course) {
+        switch(intval($data->access_type)) {
+            case UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE:
+
+                /**
+                * Case where syllabus is private
+                * 
+                * If no public syllabus exists, POST delete
+                * If public syllabus exists, POST public syllabus 
+                */
+
+                if(empty($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC])) {
+                    list($criteria, $payload) = syllabus_ws_manager::setup_delete($course);
+                    syllabus_ws_manager::handle(syllabus_ws_manager::ACTION_TRANSFER, $criteria, $payload);
+                } else {
+                    $public_syllabus = array_shift($syllabi);
+
+                    // Pass it on to another handler...
+                    ucla_syllabus_updated($public_syllabus->id);
+                    
+                    // We want to break out of the loop as well... 
+                    // ucla_syllabus_updated() already checks if course is crosslisted
+                    break 2;
+                }
+
+                break;
+            case UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC:
+            case UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN:
+
+                /**
+                * Case where syllabus is public
+                * 
+                * If no private syllabus exists, POST delete
+                * Else do nothing.. 
+                */
+
+                if(empty($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE])) {
+                    list($criteria, $payload) = syllabus_ws_manager::setup_delete($course);
+                    syllabus_ws_manager::handle(syllabus_ws_manager::ACTION_TRANSFER, $criteria, $payload);
+                }
+                // Else do nothing
+                break;
+        }        
     }
     
     return true;
 }
 
 /**
- * Event handler for course alert
+ * Event handler for course alert.  This handles crosslisted courses by 
+ * sending the 
  * 
  * @param type $data course object
  */
 function ucla_course_alert($data) {
     
     if(!is_collab_site($data->id)) {
-        // Prepare criteria & payload
-        list($criteria, $payload) = syllabus_ws_manager::setup_alert($data);
+        
+        // If a course is crosslisted, we want to send multiple alerts
+        $courses = ucla_get_course_info($data->id);
+        
+        $result = true;
+        // Do for all coures found
+        foreach($courses as $course) {
+            // Prepare criteria & payload
+            list($criteria, $payload) = syllabus_ws_manager::setup_alert($course);
+            // Handle event
+            $result &= syllabus_ws_manager::handle(syllabus_ws_manager::ACTION_ALERT, $criteria, $payload);        
+        }
 
-        // Handle event
-        syllabus_ws_manager::handle(syllabus_ws_manager::ACTION_ALERT, $criteria, $payload);        
+        return (boolean)$result;
     }
 }

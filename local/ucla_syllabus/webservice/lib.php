@@ -30,6 +30,7 @@ class syllabus_ws_item {
             while(self::MAX_ATTEMPTS > $this->_attempt) {
                 
                 if($this->_post($payload)) {
+                    return true;
                     break;
                 } 
                 
@@ -38,9 +39,12 @@ class syllabus_ws_item {
             
             // If we kept ran out of tries, then report
             if($this->_attempt == self::MAX_ATTEMPTS) {
-                $this->_contact();
+                $this->_contact($payload);
+                return false;
             }
         }
+        
+        return true;
     }
     
     private function _contact() {
@@ -55,7 +59,7 @@ class syllabus_ws_item {
         
         $to = $this->_data->contact;
         
-        return mail($to, $subject, $message);
+        return ucla_send_mail($to, $subject, $message);
     }
 
 
@@ -104,11 +108,13 @@ class syllabus_ws_item {
         
         curl_close($ch);
 
-        if($result === FALSE) {
-            return false;
+        // Verify that we got a 'success' message
+        
+        if(strtolower(trim($result)) === "success") {
+            return true;
         }
         
-        return true;
+        return false;
     }
     
     
@@ -141,18 +147,19 @@ class syllabus_ws_manager {
         $records = $DB->get_records('ucla_syllabus_webservice', 
                 array('enabled' => 1, 'action' => $event));
 
+        $result = true;
         // Process actions
         foreach($records as $rec) {
+            
             $notifications = new syllabus_ws_item($rec, $criteria);
-            $notifications->notify($payload);
+            $result &= $notifications->notify($payload);
         }
+
+        return $result;
     }
 
-    static function setup($courseid) {
+    static function setup($course) {
         global $DB;
-        
-        $termsrs = ucla_map_courseid_to_termsrses($courseid);
-        $course = array_shift($termsrs);
         
         $srs = $course->srs;
         $term = $course->term;
@@ -181,11 +188,12 @@ class syllabus_ws_manager {
      * the payload that they are expecting.
      * 
      * @param object $syllabus
+     * @param object $course
      * @return array of $criteria and $payload 
      */
-    static function setup_transfer($syllabus) {
+    static function setup_transfer($syllabus, $course) {
         
-        list($criteria, $payload) = self::setup($syllabus->courseid);
+        list($criteria, $payload) = self::setup($course);
         
         $file = $syllabus->stored_file;
             
@@ -207,18 +215,24 @@ class syllabus_ws_manager {
     static function setup_alert($course) {
         global $CFG;
         
-        list($criteria, $payload) = self::setup($course->id);
+        $hostcourse = ucla_map_termsrs_to_courseid($course->term, $course->srs);
         
-        // Ignore subjectarea
-        $criteria['subjectarea'] = -1;
-        $payload['url'] = $CFG->wwwroot . '/course/view.php?id=' . $course->id;
+        $criteria = array(
+            'srs' => $course->srs,
+            'subjectarea' => -1,
+        );
+        $payload = array(
+            'srs' => $course->srs,
+            'term' => $course->term,
+            'url' => $CFG->wwwroot . '/course/view.php?id=' . $hostcourse,
+        );
         
         return array($criteria, $payload);
     }
     
         
-    static function setup_delete($data) {
-        list($criteria, $payload) = self::setup($data->courseid);
+    static function setup_delete($course) {
+        list($criteria, $payload) = self::setup($course);
         $payload['deleted'] = 'true';
         
         return array($criteria, $payload);
