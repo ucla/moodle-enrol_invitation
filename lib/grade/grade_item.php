@@ -25,6 +25,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 require_once('grade_object.php');
+// START UCLA MOD CCLE-2362
+require_once('ucla_grade_grade.php');
+// END UCLA MOD
 
 /**
  * Class representing a grade item.
@@ -1473,7 +1476,9 @@ class grade_item extends grade_object {
             return false;
         }
 
-        $grade = new grade_grade(array('itemid'=>$this->id, 'userid'=>$userid));
+        // START UCLA MOD CCLE-2362
+        $grade = new ucla_grade_grade(array('itemid'=>$this->id, 'userid'=>$userid));
+        // END UCLA MOD CCLE-2362
         $grade->grade_item =& $this; // prevent db fetching of this grade_item
 
         if (empty($usermodified)) {
