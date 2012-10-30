@@ -18,7 +18,7 @@ $string['log_apache_error'] = 'Apache error';
 $string['log_apache_access'] = 'Apache access';
 $string['log_apache_ssl_access'] = 'Apache SSL access';
 $string['log_apache_ssl_error'] = 'Apache SSL error';
-$string['log_apache_ssl_request'] = 'Apache SSL access';
+$string['log_apache_ssl_request'] = 'Apache SSL request';
 $string['log_shibboleth_shibd'] = 'Shibboleth daemon';
 $string['log_shibboleth_trans'] = 'Shibboleth transaction';
 $string['log_moodle_cron'] = 'Moodle cron';
@@ -47,7 +47,7 @@ $string['roleassignments'] = 'Count of role assignments on system';
 $string['countnewusers'] = 'Show most recently created users';
 
 // The SRDB
-$string['enrollview'] = 'Get courses for view enrollment (<a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=3318">enrol2</a>)';
+$string['enrollview'] = 'Get courses for view enrollment (<a target="_blank" href="https://ccle.ucla.edu/mod/page/view.php?id=3318">enroll2</a>)';
 
 // For each stored procedure, the name is dynamically generated.
 // The item itself will be there when the SP-object is coded, but there

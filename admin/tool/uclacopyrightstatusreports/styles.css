@@ -1,0 +1,15 @@
+.grouping-text{
+    color: #536895;
+}
+.spacer{
+    margin-right:40px;
+}
+.linespacer{
+    margin-top:20px;
+    color: #697F55;
+    font-weight:bold;
+    text-align:center;
+}
+.filter-item{
+	margin-top:10px;
+}

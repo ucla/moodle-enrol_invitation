@@ -883,6 +883,30 @@ if (!empty($parent)) {
     }
 }
 
+//Start SSC Modification - Logic to let instructors know if announcements forum is hidden
+//bchaidez/kfongson - SSC-1306
+$setvisible = optional_param('setvisible', 0, PARAM_INT);
+if($setvisible == 1 && has_capability('moodle/course:manageactivities', $coursecontext)) {
+    $DB->set_field('course_modules', 'visible', 1, array('id' => $cm->id));
+    rebuild_course_cache($course->id);
+}
+
+$sesskey = sesskey();
+if ($forum->type == 'news' && !instance_is_visible('forum', $forum)) {
+    // If the user has permission to hide/unhide the forum, show the link
+    if(has_capability('moodle/course:manageactivities', $coursecontext)) {
+        $unhideforumurl = new moodle_url('/mod/forum/post.php',
+                array('forum' => $forum->id, 'sesskey' => $sesskey, 'setvisible' => 1));
+        $unhidelinkhtml = html_writer::link($unhideforumurl, get_string('unhidelink', 'local_ucla'));
+        $warninghtml = get_string('announcementshidden', 'local_ucla') . ' ' . $unhidelinkhtml;
+    } else {
+        $warninghtml = get_string('askinstructortounhide', 'local_ucla');
+    }
+
+    echo $OUTPUT->box($warninghtml, 'errorbox announcementshidden');
+}
+
+// End SSC Modification
 $mform_post->display();
 
 echo $OUTPUT->footer();

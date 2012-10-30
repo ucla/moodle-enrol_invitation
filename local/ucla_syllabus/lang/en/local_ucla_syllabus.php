@@ -103,9 +103,11 @@ $string['enable'] = 'Enable';
 $string['disable'] = 'Disable';
 $string['delete'] = 'Delete';
 
-$string['email_subject'] = 'UCLA syllabus service error';
-$string['email_msg'] = 'The following URL returned errors when attempting
-to nofiy of syllaubs update.:
-    {$a->url}
+$string['email_subject'] = 'UCLA|CCLE web service error';
+$string['email_msg'] = 'The subscribed URL did not respond, or returned the wrong response.
     
-Please update this URL.';
+Make sure that your service is working.  The service will attempt to resend the message in 5 minutes.
+    
+URL in question:
+    {$a->url}
+';

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="blocks/ucla_alert/db" VERSION="20121016" COMMENT="XMLDB file for Moodle blocks/ucla_alert"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="ucla_alerts" COMMENT="ucla_alerts table retrofitted from MySQL">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="courseid"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="entity"/>
+        <FIELD NAME="entity" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="courseid" NEXT="render"/>
+        <FIELD NAME="render" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="entity" NEXT="json"/>
+        <FIELD NAME="json" TYPE="text" NOTNULL="true" SEQUENCE="false" PREVIOUS="render" NEXT="html"/>
+        <FIELD NAME="html" TYPE="text" NOTNULL="true" SEQUENCE="false" PREVIOUS="json" NEXT="visible"/>
+        <FIELD NAME="visible" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false" PREVIOUS="html"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="id_key" TYPE="primary" FIELDS="id" NEXT="courseid_foreign"/>
+        <KEY NAME="courseid_foreign" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id" PREVIOUS="id_key"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="courseid_entity_visible" UNIQUE="false" FIELDS="courseid, entity, visible"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>

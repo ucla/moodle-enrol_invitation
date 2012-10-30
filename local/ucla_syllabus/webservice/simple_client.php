@@ -56,6 +56,8 @@ if(!empty($token) && $servername == $self['host']) {
 
         $sdata = array('data' => serialize($data));
 
-        $DB->insert_record('ucla_syllabus_client', (object)$sdata);
+        if($DB->insert_record('ucla_syllabus_client', (object)$sdata)) {
+            echo "Success";
+        }
     }
 }
