@@ -754,7 +754,7 @@ function get_courses_search($searchterms, $sort='fullname ASC', $page=0, $record
         // Search only collab sites
 
         $collab_join = 'JOIN {ucla_siteindicator} si ON c.id = si.courseid';
-        $collab_and = "AND si.type NOT LIKE 'test'";
+        $collab_and = "AND si.type NOT LIKE 'test' AND si.type NOT LIKE 'private'";
         $collab_select = ', si.courseid as collabcheck';
 
     } else if (!empty($course) && empty($collab)) {
