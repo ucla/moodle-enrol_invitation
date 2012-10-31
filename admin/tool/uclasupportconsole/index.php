@@ -446,6 +446,256 @@ if ($displayforms) {
 $consoles->push_console_html('logs', $title, $sectionhtml);
 
 ////////////////////////////////////////////////////////////////////
+$title = "syllabusoverview";
+$sectionhtml = '';
+
+if ($displayforms) {
+    $overview_options = html_writer::tag('option', get_string('syllabus_division', 'tool_uclasupportconsole'), 
+            array('value' => 'division'));
+    $overview_options .= html_writer::tag('option', get_string('syllabus_subjarea', 'tool_uclasupportconsole'), 
+            array('value' => 'subjarea'));
+    
+    $syllabus_selectors = get_term_selector($title);
+    
+    $syllabus_selectors .= html_writer::tag('label', get_string('syllabus_browseby', 'tool_uclasupportconsole')) . 
+            html_writer::tag('select', $overview_options, array('name' => 'syllabus'));
+    
+    $sectionhtml = supportconsole_simple_form($title, $syllabus_selectors);
+    
+} else if ($consolecommand == "$title") {
+    $selected_term = required_param('term', PARAM_ALPHANUM);
+    $selected_type = required_param('syllabus', PARAM_ALPHA);
+    
+    $syllabus_table = new html_table();
+    $syllabus_header = array();
+    $syllabus_data = array();
+    $sql = '';
+    
+    if ($selected_type == 'subjarea') {
+        // List courses by subject area
+        $sql = 'SELECT      urci.id, urs.subjarea AS code, urs.subj_area_full AS fullname, urci.term, urci.srs
+                FROM        mdl_ucla_reg_subjectarea AS urs, mdl_ucla_reg_classinfo AS urci
+                WHERE       urci.term =:term AND urs.subjarea = urci.subj_area
+                ORDER BY    urs.subjarea';
+    }
+    
+    if ($selected_type == 'division') {
+        // List course by division
+        $sql = 'SELECT      urci.id, urd.code, urd.fullname, urci.term, urci.srs
+                FROM        mdl_ucla_reg_division AS urd, mdl_ucla_reg_classinfo AS urci
+                WHERE       urci.term =:term AND urd.code = urci.division
+                ORDER BY    urd.code';
+    }
+    
+    $params = array();
+    $params['term'] = $selected_term;
+    if ( $course_list = $DB->get_records_sql($sql, $params) ) {
+        
+        $crs = reset($course_list);
+        $code = $crs->code;
+        $divname = $crs->fullname;
+        $num_courses = 0;
+        $num_syllabuses = 0;
+        $total_courses = count($course_list);
+        $total_syllabuses = 0;
+        
+        do {
+            if ($crs->code == $code) {
+                $num_courses++;
+            }
+            
+            if ($crs->code != $code) {
+                $syllabus_data[$code] = array($divname, $num_courses, 
+                    $num_syllabuses . ' (' . sprintf('%.4f', $num_syllabuses/$num_courses) . '%)');
+                $code = $crs->code;
+                $divname = $crs->fullname;
+                
+                $total_syllabuses += $num_syllabuses;
+                $num_courses = 1;
+                $num_syllabuses = 0;
+            }
+            
+            $courseid = ucla_map_termsrs_to_courseid($crs->term, $crs->srs);
+            if ( $DB->record_exists('ucla_syllabus', array('courseid' => $courseid)) ) {
+                $num_syllabuses++;
+            }
+            
+        } while ($crs = next($course_list));
+        
+        // Process the last records
+        $syllabus_data[$code] = array($divname, $num_courses, 
+            $num_syllabuses . ' (' . sprintf('%.4f', $num_syllabuses/$num_courses) . '%)');
+        
+        $syllabus_header= array(get_string('syllabus_division', 'tool_uclasupportconsole'), 
+            get_string('course_count', 'tool_uclasupportconsole', $total_courses), 
+            get_string('syllabus_count', 'tool_uclasupportconsole', $total_syllabuses));
+    }
+    
+    $syllabus_table->data = $syllabus_data;
+    $syllabus_table->head = $syllabus_header;
+    
+    $sectionhtml .= html_writer::table($syllabus_table);
+}
+
+$consoles->push_console_html('logs', $title , $sectionhtml);
+
+////////////////////////////////////////////////////////////////////
+require_once($CFG->dirroot . '/local/ucla_syllabus/locallib.php');
+
+$title = "syllabusreoport";
+$sectionhtml = '';
+
+if ($displayforms) {
+    // Another way to get current terms
+    /*
+    $terms = get_active_terms(true);
+    if (empty($terms)) {
+        $terms["$CFG->currentterm"] = $CFG->currentterm;
+    }
+    */
+    
+    // Options for Syllabus report
+    $syllabus_types  = html_writer::tag('option', get_string('syllabus_noupload', 'tool_uclasupportconsole'), 
+            array('value' => 'noupload') );
+    $syllabus_types .= html_writer::tag('option', ucfirst(UCLA_SYLLABUS_TYPE_PUBLIC), 
+            array('value' => UCLA_SYLLABUS_TYPE_PUBLIC) );
+    $syllabus_types .= html_writer::tag('option', ucfirst(UCLA_SYLLABUS_TYPE_PRIVATE), 
+            array('value' => UCLA_SYLLABUS_TYPE_PRIVATE) );
+    $syllabus_types .= html_writer::tag('option', get_string('syllabus_public_private', 'tool_uclasupportconsole'),
+            array('value' => UCLA_SYLLABUS_TYPE_PUBLIC . UCLA_SYLLABUS_TYPE_PRIVATE) ) ;
+    
+    $syllabus_selectors = get_term_selector($title);
+    $syllabus_selectors .= get_subject_area_selector($title);
+    $syllabus_selectors .= html_writer::tag('label', get_string('syllabustype', 'tool_uclasupportconsole')) . 
+            html_writer::tag('select', $syllabus_types, array('name' => 'syllabus'));
+    
+    $sectionhtml = supportconsole_simple_form($title, $syllabus_selectors);
+    
+} else if ($consolecommand == "$title") {
+    $selected_term = required_param('term', PARAM_ALPHANUM);
+    $selected_subj = required_param('subjarea', PARAM_NOTAGS);
+    $selected_type = required_param('syllabus', PARAM_ALPHA);
+    
+    $type_public = $selected_type == UCLA_SYLLABUS_TYPE_PUBLIC || 
+            $selected_type == UCLA_SYLLABUS_TYPE_PUBLIC . UCLA_SYLLABUS_TYPE_PRIVATE;
+    $type_private = $selected_type == UCLA_SYLLABUS_TYPE_PRIVATE || 
+            $selected_type == UCLA_SYLLABUS_TYPE_PUBLIC . UCLA_SYLLABUS_TYPE_PRIVATE;
+    
+    $sql = '';
+    $params = array();
+    if ($selected_type == 'noupload') {
+        // Select all courses without a syllabus
+        $sql = 'SELECT  DISTINCT urc.id, urc.department, urc.course, urc.instructor
+                FROM    mdl_ucla_request_classes AS urc
+                WHERE   urc.term =:term AND urc.department =:department AND 
+                        NOT EXISTS
+                        (SELECT s.courseid
+                        FROM    mdl_ucla_syllabus AS s
+                        WHERE   urc.courseid = s.courseid
+                        )
+                ORDER BY urc.setid ASC';
+    } else {
+        // Select course with syllabus based on type
+        $cond = '';
+        if ($selected_type == UCLA_SYLLABUS_TYPE_PUBLIC) {
+            $cond = 'AND (s.access_type =:type1 OR s.access_type =:type2)';
+            $params['type1'] = UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC;
+            $params['type2'] = UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN;
+        } else if ($selected_type == UCLA_SYLLABUS_TYPE_PRIVATE) {
+            $cond = 'AND s.access_type =:type';
+            $params['type'] = UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE;
+        }
+        
+        $sql = 'SELECT      s.id, urc.department, urc.course, urc.instructor, s.access_type
+                FROM        mdl_ucla_request_classes AS urc, mdl_ucla_syllabus AS s
+                WHERE       urc.term =:term AND urc.courseid = s.courseid AND urc.department =:department'.$cond. 
+                'ORDER BY   urc.setid ASC, s.access_type DESC';
+        
+    }
+    
+    $params['term'] = $selected_term; 
+    $params['department'] = $selected_subj;
+    
+    $syllabus_info = array();
+    $num_public = 0;
+    $num_private = 0;
+    $num_courses = 0;
+    
+    if ($syllabus_report = $DB->get_records_sql($sql, $params)) {
+        
+        foreach ($syllabus_report as $crs_syl) {
+            $course_name = $crs_syl->department . ' ' . $crs_syl->course;
+            $syllabus_record = array($course_name, $crs_syl->instructor);
+
+            if ($selected_type == 'noupload') {
+                // Display courses without a syllabus
+                $syllabus_info[$num_courses] = $syllabus_record;
+                $num_courses++;
+                continue;
+            }
+
+            $private = '';
+            $public = '';
+            if ($crs_syl->access_type == UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC
+                    || $crs_syl->access_type == UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN) {
+                $public = 'x';
+                $num_public++;
+            }        
+            if ($crs_syl->access_type == UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE) {
+                $private = 'x';
+                $num_private++;
+            }
+
+            // If the previous course processed is the same course, then just update
+            // that course instead of creating a new row
+            if ($num_courses > 0 && $syllabus_info[$num_courses - 1][0] == $course_name) {
+                if ($selected_type == UCLA_SYLLABUS_TYPE_PUBLIC) {
+                    $syllabus_info[$num_courses - 1][2] .= $public;
+                } else if ($selected_type == UCLA_SYLLABUS_TYPE_PRIVATE) {
+                    $syllabus_info[$num_courses - 1][2] .= $private;
+                } else if ($selected_type == UCLA_SYLLABUS_TYPE_PUBLIC . UCLA_SYLLABUS_TYPE_PRIVATE) {
+                    $syllabus_info[$num_courses - 1][2] .= $public;
+                    $syllabus_info[$num_courses - 1][3] .= $private;
+                }
+            } else {
+                if ($type_public) {
+                    $syllabus_record[] = $public;
+                }
+                if ($type_private) {
+                    $syllabus_record[] = $private;
+                }
+                $syllabus_info[$num_courses] = $syllabus_record;
+                $num_courses++;
+            }
+
+        }
+    }
+    
+    $head_info = new StdClass();
+    $head_info->term = $selected_term;
+    $head_info->num_courses = $num_courses;
+    $syllabus_table = new html_table();
+    $table_headers = array(get_string('syllabus_header_course', 'tool_uclasupportconsole', $head_info),
+        get_string('syllabus_header_instructor', 'tool_uclasupportconsole'));
+    
+    if ($type_public) {
+        $head_info->public = $num_public;
+        $table_headers[] = get_string('syllabus_header_public', 'tool_uclasupportconsole', $head_info);
+    }
+    if ($type_private) {
+        $head_info->private = $num_private;
+        $table_headers[] = get_string('syllabus_header_private', 'tool_uclasupportconsole', $head_info);
+    } 
+
+    $syllabus_table->head = $table_headers;
+    $syllabus_table->data = $syllabus_info;
+    
+    $sectionhtml .= html_writer::table($syllabus_table);
+}
+
+$consoles->push_console_html('logs', $title , $sectionhtml);
+
+////////////////////////////////////////////////////////////////////
 // TODO ghost courses in request classes table
 
 ////////////////////////////////////////////////////////////////////
