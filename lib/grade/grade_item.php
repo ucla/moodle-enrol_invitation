@@ -25,9 +25,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 require_once('grade_object.php');
-// START UCLA MOD CCLE-2362
-require_once('ucla_grade_grade.php');
-// END UCLA MOD
 
 /**
  * Class representing a grade item.
@@ -1476,9 +1473,7 @@ class grade_item extends grade_object {
             return false;
         }
 
-        // START UCLA MOD CCLE-2362
-        $grade = new ucla_grade_grade(array('itemid'=>$this->id, 'userid'=>$userid));
-        // END UCLA MOD CCLE-2362
+        $grade = new grade_grade(array('itemid'=>$this->id, 'userid'=>$userid));
         $grade->grade_item =& $this; // prevent db fetching of this grade_item
 
         if (empty($usermodified)) {
@@ -2085,4 +2080,19 @@ class grade_item extends grade_object {
         }
         return true;
     }
+    
+    // START UCLA MOD CCLE-2362
+    // Adding overriden function that is called after insert/update/delete
+    public function notify_changed($deleted) {
+        global $COURSE, $USER;
+        parent::notify_changed($deleted);
+        
+        
+        if(!$deleted) {
+            $this->_course = $COURSE;
+            $this->_user = $USER;
+            events_trigger('ucla_grade_item_updated', $this);
+        }
+    }
+    // END UCLA MOD CCLE-2362
 }
