@@ -142,7 +142,7 @@ if ($editform->is_cancelled()) {
         global $OUTPUT;
         
         if(!empty($OUTPUT->coursetheme)) {
-            $OUTPUT->course_logo_save($course, $data);
+            $OUTPUT->course_logo_save($data);
         }
         // END UCLA MOD CCLE-2315
     }

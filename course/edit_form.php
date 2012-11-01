@@ -346,7 +346,7 @@ class course_edit_form extends moodleform {
 
                 // Add a file manager
                 $mform->addElement('filemanager', 'logo_attachments', get_string('additional_logos', 'theme_uclasharedcourse'), 
-                        null, $OUTPUT->course_logo_config($course));
+                        null, $OUTPUT->course_logo_config());
 
                 // Show logo guide
                 $pix_url = $OUTPUT->pix_url('guide', 'theme');
@@ -359,7 +359,7 @@ class course_edit_form extends moodleform {
                 file_prepare_draft_area($draftitemid, 
                         context_course::instance($course->id)->id, 
                         'theme_uclasharedcourse', 'course_logos', $course->id, 
-                        $OUTPUT->course_logo_config($course));   
+                        $OUTPUT->course_logo_config());   
                 
                 $data['logo_attachments'] = $draftitemid;                     
 

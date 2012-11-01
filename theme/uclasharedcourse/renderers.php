@@ -1,12 +1,14 @@
 <?php
 
 require_once($CFG->dirroot . '/admin/tool/uclasiteindicator/lib.php');
+
 /**
  * Theme renderer for uclasharedcourse 
  */
 class theme_uclasharedcourse_core_renderer extends theme_uclashared_core_renderer {
 
     public $coursetheme = true;
+    
     private $theme = 'theme';
     private $component = 'theme_uclasharedcourse';
     private $filearea = 'course_logos';
@@ -39,12 +41,13 @@ class theme_uclasharedcourse_core_renderer extends theme_uclashared_core_rendere
             $logo_img = html_writer::empty_tag('img', array('src' => $pix_url, 'alt' => $logo_alt));
             $link = html_writer::link($address, $logo_img);
             
-            $images = $this->course_logo_html($COURSE->id);
+            // NO extra logos by default
+            $images = '';
 
+            // If a site is 'private', then we only display logos to enrolled users
             if($collabsite = siteindicator_site::load($COURSE->id)) {
-                // For 'private' site types, we don't want to display extra logos when not logged in
-                if(isguestuser() && $collabsite->property->type == siteindicator_manager::SITE_TYPE_PRIVATE) {
-                    $images = '';
+                if($this->is_enrolled_user() && $collabsite->property->type == siteindicator_manager::SITE_TYPE_PRIVATE) {
+                    $images = $this->course_logo_html($COURSE->id);
                 }
             }
 
@@ -53,6 +56,19 @@ class theme_uclasharedcourse_core_renderer extends theme_uclashared_core_rendere
         
         // Use default logo as a fallback
         return parent::logo($pix, $pix_loc);
+    }
+    
+    /**
+     * Checks if a user is enrolled in the course
+     * 
+     * @return type 
+     */
+    function is_enrolled_user() {
+        global $USER, $COURSE;
+        $context = get_context_instance(CONTEXT_COURSE, $COURSE->id);
+        
+        // Also allow managers to view the logos
+        return (is_enrolled($context, $USER) || has_capability('moodle/course:update', $context));
     }
     
     /**
@@ -79,22 +95,25 @@ class theme_uclasharedcourse_core_renderer extends theme_uclashared_core_rendere
      * @param object $course
      * @param object $data
      */
-    public function course_logo_save($course, $data) {
-        $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+    public function course_logo_save($data) {
+        global $COURSE;
+        
+        $coursecontext = get_context_instance(CONTEXT_COURSE, $COURSE->id);
         
         file_save_draft_area_files($data->logo_attachments, 
             $coursecontext->id, $this->component, $this->filearea, 
-            $course->id, $this->course_logo_config($course));        
+            $COURSE->id, $this->course_logo_config());        
     }
     
     /**
      * Get filepicker config
      * 
-     * @param type $course
      * @return int
      */
-    public function course_logo_config($course) {
-        $maxbytes = get_max_upload_file_size(0, $course->maxbytes);
+    public function course_logo_config() {
+        global $COURSE;
+        
+        $maxbytes = get_max_upload_file_size(0, $COURSE->maxbytes);
         
         $config = array(
             'subdirs' => 0, 
@@ -109,15 +128,16 @@ class theme_uclasharedcourse_core_renderer extends theme_uclashared_core_rendere
     /**
      * Retrieve logo images for a course
      * 
-     * @param type $courseid
      * @return type
      */
-    private function course_logo_images($courseid) {
-        $coursecontext = context_course::instance($courseid);
+    private function course_logo_images() {
+        global $COURSE;
+        
+        $coursecontext = context_course::instance($COURSE->id);
         
         $fs = get_file_storage();
         $files = $fs->get_area_files($coursecontext->id, $this->component, 
-                $this->filearea, $courseid, '', false);
+                $this->filearea, $COURSE->id, '', false);
        
         return $files;
     }
@@ -125,13 +145,12 @@ class theme_uclasharedcourse_core_renderer extends theme_uclashared_core_rendere
     /**
      * Render HTML code for course logos
      * 
-     * @param type $courseid
      * @return type
      */
-    private function course_logo_html($courseid) {
-        global $CFG;
+    private function course_logo_html() {
+        global $CFG, $COURSE;
         
-        $logos = $this->course_logo_images($courseid);
+        $logos = $this->course_logo_images($COURSE->id);
         
         $out = '';
         
