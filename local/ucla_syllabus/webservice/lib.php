@@ -47,14 +47,12 @@ class syllabus_ws_item {
         return true;
     }
     
-    private function _contact() {
+    private function _contact($payload) {
         
         // Send email message
-        $data = array(
-            'url' => $this->_data->url
-        );
+        $payload['service'] = $this->_data->url;
         
-        $message = get_string('email_msg', 'local_ucla_syllabus', $data);
+        $message = get_string('email_msg', 'local_ucla_syllabus', $payload);
         $subject = get_string('email_subject', 'local_ucla_syllabus');
         
         $to = $this->_data->contact;
