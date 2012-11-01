@@ -4,9 +4,12 @@ $string['pluginname'] = 'Help & Feedback';
 // help form text
 $string['name_field'] = 'Name';
 $string['email_field'] = 'Email';
+$string['course_field'] = 'Course';
 $string['description_field'] = 'Details';
 
 $string['submit_button'] = 'Submit';
+
+$string['no_course'] = 'None';
 
 $string['error_empty_description'] = 'A description is required to send feedback';
 
