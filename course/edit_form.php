@@ -336,8 +336,38 @@ class course_edit_form extends moodleform {
                 }
             }
             $mform->addElement('select', 'theme', get_string('forcetheme'), $themes);
-        }
+            
+            // START UCLA MOD CCLE-2315 - enable editing of banner logo
+            global $OUTPUT;
+            
+            // If we're using the uclasharedcourse theme, we want to allow a course
+            // to upload extra logos
+            if(!empty($OUTPUT->coursetheme)) {
 
+                // Add a file manager
+                $mform->addElement('filemanager', 'logo_attachments', get_string('additional_logos', 'theme_uclasharedcourse'), 
+                        null, $OUTPUT->course_logo_config());
+
+                // Show logo guide
+                $pix_url = $OUTPUT->pix_url('guide', 'theme');
+                $img = html_writer::empty_tag('img', array('src' => $pix_url));
+                $mform->addElement('static', 'description', '', $img);
+
+                // Check if we already have images
+                $draftitemid = file_get_submitted_draft_itemid('logo_attachments');
+
+                file_prepare_draft_area($draftitemid, 
+                        context_course::instance($course->id)->id, 
+                        'theme_uclasharedcourse', 'course_logos', $course->id, 
+                        $OUTPUT->course_logo_config());   
+                
+                $data['logo_attachments'] = $draftitemid;                     
+
+                $this->set_data($data);
+            }
+            // END UCLA MOD CCLE-2315
+        }
+        
 //--------------------------------------------------------------------------------
         enrol_course_edit_form($mform, $course, $context);
 
