@@ -1,5 +1,6 @@
 <?php
 
+require_once($CFG->dirroot . '/admin/tool/uclasiteindicator/lib.php');
 /**
  * Theme renderer for uclasharedcourse 
  */
@@ -23,6 +24,7 @@ class theme_uclasharedcourse_core_renderer extends theme_uclashared_core_rendere
         global $CFG, $COURSE, $DB;
 
         $category = $DB->get_record('course_categories', array('id' => $COURSE->category));
+        $category->name = str_replace(' ', '_', $category->name);
         
         $img = $CFG->dirroot . '/theme/uclasharedcourse/pix/' . strtolower($category->name) . '/logo.png';
         
@@ -36,8 +38,16 @@ class theme_uclasharedcourse_core_renderer extends theme_uclashared_core_rendere
             $logo_alt = $COURSE->fullname; //get_string('UCLA_CCLE_text', 'theme_uclashared');
             $logo_img = html_writer::empty_tag('img', array('src' => $pix_url, 'alt' => $logo_alt));
             $link = html_writer::link($address, $logo_img);
-
+            
             $images = $this->course_logo_html($COURSE->id);
+
+            if($collabsite = siteindicator_site::load($COURSE->id)) {
+                // For 'private' site types, we don't want to display extra logos when not logged in
+                if(isguestuser() && $collabsite->property->type == siteindicator_manager::SITE_TYPE_PRIVATE) {
+                    $images = '';
+                }
+            }
+
             return $link . $images;
         } 
         
