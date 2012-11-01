@@ -316,7 +316,7 @@ function create_help_message(&$fromform)
     User_Agent: $_SERVER[HTTP_USER_AGENT]
     Host: $_SERVER[REMOTE_ADDR]
     Referer: $_SERVER[HTTP_REFERER]
-    Course Shortname: $fromform->ucla_help_course
+    Course Shortname: $fromform->course_name
     Access Time: $accesstime
     User Profile: $CFG->wwwroot/user/view.php?id=$USER->id
     SESSION_fromdiscussion   = " . @$SESSION->fromdiscussion . "

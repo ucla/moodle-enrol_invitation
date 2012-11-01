@@ -83,7 +83,7 @@ echo html_writer::tag('legend', get_string('helpform_header', 'block_ucla_help')
 
 // CCLE-3562 - Get the list of the user's courses for selection
 global $USER, $SITE;
-$sql = 'SELECT  DISTINCT crs.id, crs.shortname
+$sql = 'SELECT  DISTINCT crs.id, crs.shortname, ctx.instanceid
         FROM    mdl_context AS ctx JOIN mdl_course AS crs ON crs.id = ctx.instanceid
                 JOIN mdl_role_assignments ra ON ra.contextid = ctx.id
         WHERE   ra.userid=:userid';
@@ -91,9 +91,9 @@ $params['userid'] = $USER->id;
 
 $user_courses = $DB->get_records_sql($sql, $params);
 $courses = array();
-$courses[$SITE->shortname] = get_string('no_course', 'block_ucla_help');
+$courses[$SITE->id] = get_string('no_course', 'block_ucla_help');
 foreach ($user_courses as $crs) {
-    $courses[$crs->shortname] = $crs->shortname;
+    $courses[$crs->id] = $crs->shortname;
 }
 
 // create form object for page
@@ -116,12 +116,24 @@ if ($fromform = $mform->get_data()) {
     // get message header
     $header = get_string('message_header', 'block_ucla_help', $from_address);
     
+    // Set context to the selected course
+    $instanceid = 0;
+    $fromform->course_name = $SITE->shortname;
+    foreach ($user_courses as $c) {
+        if ($c->id == $fromform->ucla_help_course) {
+            $fromform->course_name = $c->shortname;
+            $instanceid = $c->instanceid;
+            break;
+        }
+    }
+    $context = context_course::instance($instanceid, false) ? : $context;
+    
     // get message body
     $body = create_help_message($fromform);
     
     // get support contact
     $support_contact = get_support_contact($context);
-        
+    
     $send_to = get_config('block_ucla_help', 'send_to');    
     if ('email' == $send_to) {
         // send message via email        
