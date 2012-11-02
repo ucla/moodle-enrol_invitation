@@ -107,8 +107,7 @@ class syllabus_ws_item {
         curl_close($ch);
 
         // Verify that we got a 'success' message
-        
-        if(strtolower(trim($result)) === "success") {
+        if(strtolower(trim(substr($result, 0, 8))) === "success") {
             return true;
         }
         
