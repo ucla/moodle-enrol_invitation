@@ -18,6 +18,7 @@ $THEME->parents = array(
 
 $THEME->sheets = array(
     'uclasharedcourse',
+    'responsive',
 );
 
 $THEME->rendererfactory = 'theme_overridden_renderer_factory';

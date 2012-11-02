@@ -3,7 +3,9 @@
     display: inline-block;
     margin-left: 5px;
     max-width: 225px;
-    height: 80px
+    height: 80px;
+    max-height: 80px;
+    overflow: hidden;
 }
 
 .uclashared-course-logo-divider {
