@@ -65,3 +65,7 @@ $string['back'] = 'Back';
 $string['mainmenu'] = 'Main menu';
 $string['filterpage'] = 'Filter report';
 $string['courselist'] = 'Course list';
+
+// capability strings
+$string['uclacopyrightstatusreports:view'] = 'View copyright status reports';
+$string['uclacopyrightstatusreports:edit'] = 'Edit copyright status reports';
