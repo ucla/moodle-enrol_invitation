@@ -1,6 +1,6 @@
 <?php
 
-$string['pluginname'] = 'Weeks Display';
+$string['pluginname'] = 'UCLA weeks display';
 
 $string['fall'] = 'Fall';
 $string['winter'] = 'Winter';

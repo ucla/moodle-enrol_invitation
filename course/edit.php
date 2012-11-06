@@ -136,7 +136,15 @@ if ($editform->is_cancelled()) {
         if (empty($is_course_site)) {
             siteindicator_manager::update_site($data);
         }
-        // END UCLA MOD CCLE-2389                
+        // END UCLA MOD CCLE-2389     
+        
+        // START UCLA MOD CCLE-2315
+        global $OUTPUT;
+        
+        if(!empty($OUTPUT->coursetheme)) {
+            $OUTPUT->course_logo_save($data);
+        }
+        // END UCLA MOD CCLE-2315
     }
     rebuild_course_cache($course->id);
 

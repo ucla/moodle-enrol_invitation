@@ -3950,7 +3950,7 @@ function create_course($data, $editoroptions = NULL) {
 
     // Save any custom role names.
     save_local_role_names($course->id, (array)$data);
-
+    
     // set up enrolments
     enrol_course_updated(true, $course, $data);
 

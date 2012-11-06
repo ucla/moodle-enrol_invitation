@@ -1,0 +1,22 @@
+
+.uclashared-course-logo {
+    display: inline-block;
+    margin-left: 5px;
+    max-width: 225px;
+    height: 80px;
+    max-height: 80px;
+    overflow: hidden;
+}
+
+.uclashared-course-logo-divider {
+    display: inline-block;
+    margin-left: 10px;
+}
+
+#uclalogo {
+    height: 89px;
+}
+
+#uclalogo  div > img {
+    display: inline;
+}

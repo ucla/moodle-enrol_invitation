@@ -16,7 +16,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['pluginname'] = 'UCLA configurations';
+$string['pluginname'] = 'UCLA customizations';
 
 $string['access_failure'] = 'Your access control systems are not properly set up, configuration files in the "local/ucla/" directory may be web visible!';
 
@@ -74,6 +74,7 @@ $string['askinstructortounhide'] = 'Please ask the instructor to unhide this for
 $string['ucla:assign_all'] = 'CCLE-2530: Can see the entire user database when assigning roles';
 $string['ucla:editadvancedcoursesettings'] = 'CCLE-3278: Can edit the course settings for category, format, maximum upload size, or language defaults';
 $string['ucla:deletecoursecontentsandrestore'] = 'CCLE-3446: Can delete course contents when restoring a course';
+$string['ucla:editcoursetheme'] = 'CCLE-2315: Can edit the theme a course uses';
 
 // START UCLA MOD: CCLE-3028 - Fix nonlogged users redirect on hidden content
 // If a user who is not logged in tries to access private course information

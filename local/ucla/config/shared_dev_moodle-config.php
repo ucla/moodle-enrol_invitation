@@ -143,7 +143,6 @@ $CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url'] = 'ftp
 $CFG->forced_plugin_settings['block_ucla_course_menu']['trimlength'] = 22;
 
 // UCLA Theme settings
-$CFG->themedesignermode = true;
 $CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'dev';
 $CFG->forced_plugin_settings['theme_uclashared']['footer_links'] = '';
 $CFG->cachejs = false;
@@ -297,6 +296,10 @@ $CFG->allowframembedding = 1; // CCLE-3021 - enabled because some collab sites n
 
 // Site administration > Appearance > Themes
 $CFG->theme = 'uclashared';
+
+// Site administration > Appearance > Themes > Theme settings
+$CFG->themedesignermode = 1;
+$CFG->allowcoursethemes = 1;
 
 // Site administration > Appearance > Navigation
 $CFG->defaulthomepage = 1;    // user's home page should be "My Moodle" (HOMEPAGE_MY)

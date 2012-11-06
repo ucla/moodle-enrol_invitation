@@ -635,7 +635,7 @@ function role_mapping($profcode, array $other_roles,
     // been modified to use the new role mapping parameters of primary/secondary
     // indexes either because it is too hard or dificult to convert
     if (!is_array($profcode)) {
-        $profcode = array('primary' => $profcode);
+        $profcode = array('primary' => array($profcode));
     }
     if (!isset($other_roles['primary']) && !isset($other_roles['secondary'])) {
         $other_roles['primary'] = $other_roles;

@@ -1,0 +1,33 @@
+
+/* MEDIA QUERIES FOR THEME */
+
+@media only screen and (max-width: 480px),
+only screen and (min-width: 480px) and (max-width: 767px),
+only screen and (device-width: 768px) and (orientation: portrait) {
+
+    /* ADJUST HOW LOGOS BEHAVE */
+    #page-header .headermain #uclalogo {
+        width: 100%;
+        text-align: center;
+        height: 65px;
+        margin-top: 10px;
+    }
+    #uclalogo a {
+/*        float: left;*/
+    }
+    #uclalogo a img {
+        width: auto;
+        height: 60px;
+    }
+    .uclashared-course-logo-divider {
+        height: 60px;
+        overflow: hidden;
+    }
+    .uclashared-course-logo {
+         height: 60px;
+    }
+    .uclashared-course-logo img {
+        height: 100%;
+        width: auto;
+    }
+}
