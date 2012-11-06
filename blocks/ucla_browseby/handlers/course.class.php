@@ -288,6 +288,7 @@ class course_handler extends browseby_handler {
                 }                
 
                 $courseobj->session_group = $course->session_group;
+                $courseobj->coursenum = $course->coursenum;
             }
 
             $fullcourseslist[$k] = $courseobj;

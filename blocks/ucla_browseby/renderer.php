@@ -70,6 +70,11 @@ class block_ucla_browseby_renderer extends block_navigation_renderer {
         $disptable->head = self::ucla_browseby_course_list_headers();
 
         $data = array();
+
+        // once a ugrad or grad course is found, then print out an anchor tag
+        $found_ugrad = false;
+        $found_grad = false;
+        
         if (!empty($courses)) {
             foreach ($courses as $course) {
                 if (!empty($course->nonlinkdispname)) {
@@ -81,12 +86,22 @@ class block_ucla_browseby_renderer extends block_navigation_renderer {
                         new moodle_url($course->url), $course->dispname);
                 }
 
+                if (!$found_ugrad && intval($course->coursenum) < 200) {
+                    $anchor = html_writer::tag('a', '', array('name' => 'ugrad'));
+                    $courselink = $anchor . $courselink;
+                    $found_ugrad = true;
+                }
+                if (!$found_grad && intval($course->coursenum) >= 200) {
+                    $anchor = html_writer::tag('a', '', array('name' => 'grad'));
+                    $courselink = $anchor . $courselink;
+                    $found_grad = true;
+                }
 
                 $data[] = array($courselink, $course->instructors, 
                     $course->fullname);
-                
-                $disptable->data = $data;                
+                                               
             }
+            $disptable->data = $data;
         } else {
             $cell = new html_table_cell(get_string('noresults', 'admin'));
             $cell->colspan = 3;
