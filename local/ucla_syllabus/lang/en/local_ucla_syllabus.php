@@ -108,6 +108,8 @@ $string['email_msg'] = 'The subscribed URL did not respond, or returned the wron
     
 Make sure that your service is working.  The service will attempt to resend the message in 5 minutes.
     
-URL in question:
-    {$a->url}
+data:
+    SRS: {$a->srs}
+    TERM: {$a->term}
+    URL: {$a->service}
 ';
