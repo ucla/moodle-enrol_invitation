@@ -1,6 +1,6 @@
 <?php
 
-$string['pluginname'] = 'UCLA Theme';
+$string['pluginname'] = 'UCLA theme';
 $string['region-side-post'] = 'Right';
 $string['region-side-pre'] = 'Left';
 $string['choosereadme'] = 'The theme from University of California, Los Angeles.';

@@ -326,7 +326,11 @@ class course_edit_form extends moodleform {
             $mform->setDefault('legacyfiles', $courseconfig->legacyfiles);
         }
 
-        if (!empty($CFG->allowcoursethemes)) {
+        // START UCLA MOD: CCLE-2315 - CUSTOM DEPARTMENT THEMES
+        //if (!empty($CFG->allowcoursethemes) {
+        if (!empty($CFG->allowcoursethemes) &&
+                has_capability('local/ucla:editcoursetheme', context_course::instance($course->id))) {
+        // END UCLA MOD: CCLE-2315
             $themeobjects = get_list_of_themes();
             $themes=array();
             $themes[''] = get_string('forceno');
