@@ -473,9 +473,9 @@ class format_ucla_renderer extends format_section_renderer_base {
         $completioninfo = new completion_info($course);
         echo $completioninfo->display_help_icon();
 
-        print_section($course, $thissection, $mods, $modnamesused, true, '100%', false, true);
+        print_section($course, $thissection, $mods, $modnamesused, true, '100%', false, $displaysection);
         if ($this->user_is_editing) {
-            print_section_add_menus($course, $displaysection, $modnames, false, false, true);
+            print_section_add_menus($course, $displaysection, $modnames, false, false, $displaysection);
         }
         echo $this->section_footer();
         echo $this->end_section_list();
