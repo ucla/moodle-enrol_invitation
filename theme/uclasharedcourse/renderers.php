@@ -26,14 +26,13 @@ class theme_uclasharedcourse_core_renderer extends theme_uclashared_core_rendere
         global $CFG, $COURSE, $DB;
 
         $category = $DB->get_record('course_categories', array('id' => $COURSE->category));
-        $category->name = str_replace(' ', '_', $category->name);
-        
-        $img = $CFG->dirroot . '/theme/uclasharedcourse/pix/' . strtolower($category->name) . '/logo.png';
+        $category->name = strtolower(str_replace(' ', '_', trim($category->name)));
+
+        $img = $CFG->dirroot . '/theme/uclasharedcourse/pix/' . $category->name . '/logo.png';
         
         // Override theme logo
         if(file_exists($img)) {
-
-            $pix = strtolower($category->name) . '/logo';
+            $pix = $category->name . '/logo';
             $address = new moodle_url($CFG->wwwroot . '/course/view.php?id=' . $COURSE->id);
             
             $pix_url = $this->pix_url($pix, $this->theme);
@@ -65,7 +64,7 @@ class theme_uclasharedcourse_core_renderer extends theme_uclashared_core_rendere
      */
     function is_enrolled_user() {
         global $USER, $COURSE;
-        $context = get_context_instance(CONTEXT_COURSE, $COURSE->id);
+        $context = context_course::instance($COURSE->id);
         
         // Also allow managers to view the logos
         return (is_enrolled($context, $USER) || has_capability('moodle/course:update', $context));
@@ -97,11 +96,10 @@ class theme_uclasharedcourse_core_renderer extends theme_uclashared_core_rendere
      */
     public function course_logo_save($data) {
         global $COURSE;
-        
-        $coursecontext = get_context_instance(CONTEXT_COURSE, $COURSE->id);
+        $context = context_course::instance($COURSE->id);
         
         file_save_draft_area_files($data->logo_attachments, 
-            $coursecontext->id, $this->component, $this->filearea, 
+            $context->id, $this->component, $this->filearea,
             $COURSE->id, $this->course_logo_config());        
     }
     
@@ -131,12 +129,11 @@ class theme_uclasharedcourse_core_renderer extends theme_uclashared_core_rendere
      * @return type
      */
     private function course_logo_images() {
-        global $COURSE;
-        
-        $coursecontext = context_course::instance($COURSE->id);
+        global $COURSE;        
+        $context = context_course::instance($COURSE->id);
         
         $fs = get_file_storage();
-        $files = $fs->get_area_files($coursecontext->id, $this->component, 
+        $files = $fs->get_area_files($context->id, $this->component,
                 $this->filearea, $COURSE->id, '', false);
        
         return $files;
@@ -149,7 +146,6 @@ class theme_uclasharedcourse_core_renderer extends theme_uclashared_core_rendere
      */
     private function course_logo_html() {
         global $CFG, $COURSE;
-        
         $logos = $this->course_logo_images($COURSE->id);
         
         $out = '';
