@@ -2,7 +2,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2012042700;        // The current plugin version (Date: YYYYMMDDXX)
+$plugin->version   = 2012110500;        // The current plugin version (Date: YYYYMMDDXX)
 $plugin->component = 'block_ucla_weeksdisplay'; // Full name of the plugin (used for diagnostics)
 
-$plugin->cron = 86400; // update once a day
+$plugin->cron = 21600; // update 4x a day
