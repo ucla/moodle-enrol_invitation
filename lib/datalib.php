@@ -741,7 +741,7 @@ function get_courses_search($searchterms, $sort='fullname ASC', $page=0, $record
     }
     
     $collab_join = 'LEFT JOIN {ucla_siteindicator} AS si ON si.courseid = c.id ';
-    $collab_and = 'AND si.type IS NULL';
+    $collab_and = "AND (si.type IS NULL OR si.type NOT LIKE 'private')";
     $collab_select = ', si.courseid as collabcheck';
     $rest_limit = '';
     
