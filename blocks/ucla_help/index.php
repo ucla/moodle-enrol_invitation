@@ -82,18 +82,19 @@ echo html_writer::tag('legend', get_string('helpform_header', 'block_ucla_help')
         array('id' => 'block_ucla_help_formbox_header'));
 
 // CCLE-3562 - Get the list of the user's courses for selection
-global $USER, $SITE;
-$sql = 'SELECT  DISTINCT crs.id, crs.shortname, ctx.instanceid
-        FROM    mdl_context AS ctx JOIN mdl_course AS crs ON crs.id = ctx.instanceid
-                JOIN mdl_role_assignments ra ON ra.contextid = ctx.id
-        WHERE   ra.userid=:userid';
+$sql = 'SELECT  DISTINCT crs.id, crs.fullname, crs.shortname, ctx.instanceid
+        FROM    mdl_context AS ctx 
+                JOIN mdl_course AS crs ON crs.id = ctx.instanceid
+                JOIN mdl_role_assignments AS ra ON ra.contextid = ctx.id
+        WHERE   ra.userid=:userid
+        ORDER BY ra.timemodified DESC';
 $params['userid'] = $USER->id;
 
 $user_courses = $DB->get_records_sql($sql, $params);
 $courses = array();
 $courses[$SITE->id] = get_string('no_course', 'block_ucla_help');
 foreach ($user_courses as $crs) {
-    $courses[$crs->id] = $crs->shortname;
+    $courses[$crs->id] = $crs->shortname . ' ' . $crs->fullname;
 }
 
 // create form object for page

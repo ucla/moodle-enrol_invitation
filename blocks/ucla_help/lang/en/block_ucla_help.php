@@ -9,7 +9,7 @@ $string['description_field'] = 'Details';
 
 $string['submit_button'] = 'Submit';
 
-$string['no_course'] = 'None';
+$string['no_course'] = 'Other, please describe below';
 
 $string['error_empty_description'] = 'A description is required to send feedback';
 
