@@ -8,7 +8,7 @@
 
 // Plugin
 $string['description'] = 'Description';
-$string['pluginname'] = 'UCLA copyright status reports';
+$string['pluginname'] = 'UCLA copyright status';
 
 // admin tool reports
 $string['all_by_course_current_term'] = 'All items for current term listed by course';
