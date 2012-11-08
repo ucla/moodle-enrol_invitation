@@ -30,41 +30,23 @@ class ucla_grade_grade extends grade_grade {
                 return true;
             } else {
  
-                // Set variables to notify deletion
-                if(!empty($this->deleted)) {
-                    $this->finalgrade = null;
-                    $this->feedback = "Deleted";
-                }
-                
                 $result = $this->send_to_myucla();
                 
-                switch($result) {
-                    case grade_reporter::SUCCESS:
-                        return true;
-                    case grade_reporter::BAD_REQUEST:
-                    case grade_reporter::CONNECTION_ERROR:
-                        return false;
-                }
+                return ($result === grade_reporter::SUCCESS);
             }
         }
-
+        
+        return true;
     }
     
-    protected function get_transactionid() {
-        global $DB;
-        
-        $history = $DB->get_records($this->table . '_history', 
-                array('oldid' => $this->id), 'id DESC', 'id', 0, 1);
-        return array_shift($history)->id;
-    }
-
     public function send_to_myucla() {
         global $DB;
         
         $course_obj = $this->_course;
         
         // Want the transaction ID to be the last record in the _history table
-        $transactionid = $this->get_transactionid();
+        $transactionid = grade_reporter::get_transactionid($this->table, $this->id);
+        $log = grade_reporter::prepare_log($this->_course->id, $this->grade_item->iteminstance, $this->grade_item->itemmodule, $this->_user->id);
         
         // Get crosslisted SRS list
         $courses = ucla_get_course_info($course_obj->id);
@@ -85,15 +67,15 @@ class ucla_grade_grade extends grade_grade {
         // We should only have a single record 
         if (empty($enrolledcourses)) {
             error_log(get_string('nousers', 'local_gradebook'));
-
+            
         } elseif (count($enrolledcourses) > 1) {
             error_log(get_string('badenrol', 'local_gradebook'));
-
+            
         } else {
             // We should only have a single course when when we get here
-            $childcourse = array_pop($enrolledcourses);
+            $course = array_pop($enrolledcourses);
 
-            $param = $this->make_myucla_parameters($childcourse, $transactionid);
+            $param = $this->make_myucla_parameters($course, $transactionid);
             
             if ($param) {
                 try {
@@ -107,22 +89,41 @@ class ucla_grade_grade extends grade_grade {
                         throw new Exception($result->moodleGradeModifyResult->message);
                     }
                     
+                    $log['action'] = get_string('gradesuccess', 'local_gradebook');
+                    $log['info'] = $result->moodleGradeModifyResult->message;
+                    
+                    grade_reporter::add_to_log($log);
+
+                    return grade_reporter::SUCCESS;
+                    
                 } catch (SoapFault $e) {
                     // Catch a SOAP failure
+
+                    $log['action'] = get_string('connectionfail', 'local_gradebook');
+                    $log['info'] = get_string('gradeconnectionfailinfo', 'local_gradebook', $this->id);
+                    
+                    grade_reporter::add_to_log($log);
+
                     return grade_reporter::CONNECTION_ERROR;
                     
                 } catch (Exception $e) {
                     // Catch a 'status' failure
+
+                    $log['action'] = get_string('gradefail', 'local_gradebook');
+                    $log['info'] = get_string('gradefailinfo', 'local_gradebook', $this->id);
+                    
+                    grade_reporter::add_to_log($log);
+
                     return  grade_reporter::BAD_REQUEST;
                     
                 }
             }
         }
         
-        return grade_reporter::SUCCESS;
+        return grade_reporter::DATABASE_ERROR;
     }
     
-    function make_myucla_parameters($childcourse, $transactionid) {
+    private function make_myucla_parameters($course, $transactionid) {
         global $CFG, $DB;
         
         $user_obj = $this->_user;
@@ -140,6 +141,12 @@ class ucla_grade_grade extends grade_grade {
             $comment = trim(substr($this->feedback, 0, grade_reporter::MAX_COMMENT_LENGTH)) 
                     . get_string('continue_comments', 'local_gradebook');
         }
+        
+        // Set variables to notify deletion
+        if(!empty($this->deleted)) {
+            $this->finalgrade = null;
+            $this->feedback = "Deleted";
+        }
 
         $uidstudent = $DB->get_field('user', 'idnumber', array('id' => $this->userid));
 
@@ -152,11 +159,11 @@ class ucla_grade_grade extends grade_grade {
             'mGrade' => array(
                 'gradeID' => intval($this->id),
                 'itemID' => intval($this->itemid),
-                'term' => $childcourse->term,
-                'subjectArea' => $childcourse->subj_area,
-                'catalogNumber' => $childcourse->crsidx,
-                'sectionNumber' => $childcourse->secidx,
-                'srs' => $childcourse->srs,
+                'term' => $course->term,
+                'subjectArea' => $course->subj_area,
+                'catalogNumber' => $course->crsidx,
+                'sectionNumber' => $course->secidx,
+                'srs' => $course->srs,
                 'uidStudent' => empty($uidstudent) ? '000000000' : $uidstudent,
                 'viewableGrade' => "$this->finalgrade",
                 'comment' => $comment,
@@ -165,10 +172,9 @@ class ucla_grade_grade extends grade_grade {
             'mTransaction' => array(
                 'userUID' => empty($user_obj->idnumber) ? '000000000' : $user_obj->idnumber,
                 'userName' => "$user_obj->firstname $user_obj->lastname",
-                'userIpAddress' => $user_obj->lastip,
-                'moodleTransactionID' => substr($transactionid, 0, 255)
+                'userIpAddress' => empty($user_obj->lastip) ? '0.0.0.0' : $user_obj->lastip,
+                'moodleTransactionID' => $transactionid,
             )
         );
     }
-
 }

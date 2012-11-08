@@ -21,6 +21,10 @@ class ucla_grade_item extends grade_item {
         
         if (!empty($CFG->gradebook_send_updates)) {
             
+            if(empty($this->itemmodule) || empty($this->iteminstance)) {
+                return true;
+            }
+            
             // We don't want to send grades for 'course' or 'category' itemtypes
             // Only for modules...
             // grade_item->itemtype -- we're only sending 'mod' grades 
@@ -32,16 +36,11 @@ class ucla_grade_item extends grade_item {
 
                 $result = $this->send_to_myucla();
                 
-                switch($result) {
-                    case grade_reporter::SUCCESS:
-                        return true;
-                    case grade_reporter::BAD_REQUEST:
-                    case grade_reporter::CONNECTION_ERROR:
-                        return false;
-                }
+                return ($result === grade_reporter::SUCCESS);
             }
         }
-
+        
+        return true;;
     }
     
     protected function get_transactionid() {
@@ -54,31 +53,45 @@ class ucla_grade_item extends grade_item {
 
     function send_to_myucla() {
         
-        $course = $this->_course;
+        $course_obj = $this->_course;
 
         // Want the transaction ID to be the last record in the _history table
-        $transactionid = $this->get_transactionid();
+        $transactionid = grade_reporter::get_transactionid($this->table, $this->id);
+        $log = grade_reporter::prepare_log($this->_course->id, $this->iteminstance, $this->itemmodule, $this->_user->id);
 
         // Get crosslisted SRS, and send update for each SRS
-        $courses = ucla_get_course_info($course->id);
+        $courses = ucla_get_course_info($course_obj->id);
 
         foreach ($courses as $c) {
             $param = $this->make_myucla_parameters($c, $transactionid);
 
-            if (is_array($param)) {
+            if ($param) {
                 try {
                     $client = grade_reporter::get_instance();
 
                     $result = $client->moodleItemModify($param);
-                    
+
                     if (!$result->moodleItemModifyResult->status) {
                         throw new Exception($result->moodleItemModifyResult->message);
                     }
+                    
+                    $log['action'] = get_string('itemsuccess', 'local_gradebook');
+                    $log['info'] = $result->moodleItemModifyResult->message;
+                    
+                    grade_reporter::add_to_log($log);
+                    
                 } catch (SoapFault $e) {
-
+                    $log['action'] = get_string('connectionfail', 'local_gradebook');
+                    $log['info'] = get_string('itemconnectionfailinfo', 'local_gradebook', $this->id);
+                    
+                    grade_reporter::add_to_log($log);
+                    
                     return grade_reporter::CONNECTION_ERROR;
                 } catch (Exception $e) {
-
+                    $log['action'] = get_string('itemfail', 'local_gradebook');
+                    $log['info'] = get_string('itemfailinfo', 'local_gradebook', $this->id);
+                    
+                    grade_reporter::add_to_log($log);
                     return grade_reporter::BAD_REQUEST;
                 }
             }
@@ -88,13 +101,13 @@ class ucla_grade_item extends grade_item {
     }
 
 
-    function make_myucla_parameters($childcourse, $transactionid) {
+    function make_myucla_parameters($course, $transactionid) {
         global $CFG;
         
-        $course = $this->_course;
-        $user = $this->_user;
+        $course_obj = $this->_course;
+        $user_obj = $this->_user;
 
-        if (empty($user->idnumber) && empty($CFG->gradebook_debugging)) {
+        if (empty($user_obj->idnumber) && empty($CFG->gradebook_debugging)) {
             return false;
         }
 
@@ -103,12 +116,12 @@ class ucla_grade_item extends grade_item {
 
         //In a crosslisted course, the parentcourse's id is required
         $url = $CFG->wwwroot . '/grade/edit/tree/item.php?courseid=' .
-                $course->id . '&id=' . $this->id .
-                '&gpr_type=edit&gpr_plugin=tree&gpr_courseid=' . $course->id;
+                $course_obj->id . '&id=' . $this->id .
+                '&gpr_type=edit&gpr_plugin=tree&gpr_courseid=' . $course_obj->id;
 
         //Need the individual child course
-        if (!$childcourse || !is_string($childcourse->subj_area) || !is_string($childcourse->crsidx)
-                || !is_string($childcourse->secidx)) {
+        if (!$course || !is_string($course->subj_area) || !is_string($course->crsidx)
+                || !is_string($course->secidx)) {
             return false;
         }
 
@@ -124,24 +137,24 @@ class ucla_grade_item extends grade_item {
                 'categoryID' => intval($this->categoryid),
                 'categoryName' => $categoryname,
                 'itemReleaseScores' => !($this->hidden),
-                'itemDue' => $this->locktime != '0' ? intval($this->locktime) : null, //locktime is both string and int
+                'itemDue' => empty($this->locktime) ? null : $this->locktime,
                 'itemURL' => $url,
                 'itemComment' => isset($this->iteminfo) ? $this->iteminfo : '',
             ),
             'mClassList' => array(
                 array(
-                    'term' => $childcourse->term,
-                    'subjectArea' => $childcourse->subj_area,
-                    'catalogNumber' => $childcourse->crsidx,
-                    'sectionNumber' => $childcourse->secidx,
-                    'srs' => $childcourse->srs
+                    'term' => $course->term,
+                    'subjectArea' => $course->subj_area,
+                    'catalogNumber' => $course->crsidx,
+                    'sectionNumber' => $course->secidx,
+                    'srs' => $course->srs
                 )
             ),
             'mTransaction' => array(
-                'userUID' => $user->idnumber,
-                'userName' => "$user->firstname $user->lastname",
-                'userIpAddress' => $user->lastip,
-                'moodleTransactionID' => substr($transactionid, 0, 255)
+                'userUID' => empty($user_obj->idnumber) ? '000000000' : $user_obj->idnumber,
+                'userName' => "$user_obj->firstname $user_obj->lastname",
+                'userIpAddress' => empty($user_obj->lastip) ? '0.0.0.0' : $user_obj->lastip,
+                'moodleTransactionID' => $transactionid,
             )
         );
     }

@@ -8,7 +8,7 @@ final class grade_reporter {
 
     // Vars
     const SUCCESS = 0;
-    const DATABASE_ERROR = 1;
+    const DATABASE_ERROR = 0;
     const BAD_REQUEST = 2;
     const CONNECTION_ERROR = 3;
     const MAX_COMMENT_LENGTH = 7900;
@@ -38,6 +38,70 @@ final class grade_reporter {
             self::$_instance = new SoapClient($CFG->gradebook_webservice, $settings);
         }
         return self::$_instance;
+    }
+    
+    public static function prepare_log($courseid, $instance, $modname, $userid, $cmid = null) {
+        global $DB;
+        
+        // Need the course module ID for logging purposes.  
+        // This will allow the module to be seen in the module log, as well as
+        // the general class log.  It also creates a correct link
+        if(empty($cmid)) {
+            $query = 'SELECT cm.id 
+                FROM {course_modules} as cm
+                JOIN {modules} as m on m.id = cm.module
+                WHERE cm.course = :courseid
+                AND cm.instance = :instance
+                AND m.name = :modname';
+
+            $result = $DB->get_records_sql($query, array(
+                'courseid' => $courseid,
+                'instance' => $instance,
+                'modname' => $modname,
+            ));
+
+            $cmid = empty($result) ? 0 : array_shift($result)->id;
+        }
+        
+        return array(
+            'courseid' => $courseid,
+            'module' => $modname,
+            'url' => 'view.php?id=' . $cmid,
+            'cm' => $cmid,
+            'user' => $userid,
+        );
+    }
+    
+    public static function get_cm_id($courseid, $instance, $modname) {
+        global $DB;
+        
+        $query = 'SELECT cm.id 
+            FROM {course_modules} as cm
+            JOIN {modules} as m on m.id = cm.module
+            WHERE cm.course = :courseid
+            AND cm.instance = :instance
+            AND m.name = :modname';
+        
+        $result = $DB->get_records_sql($query, array(
+            'courseid' => $courseid,
+            'instance' => $instance,
+            'modname' => $modname,
+        ));
+
+        return empty($result) ? 0 : array_shift($result)->id;
+    }
+    
+    public static function add_to_log($params) {
+        extract($params);
+        add_to_log($courseid, $module, $action, $url, $info, $cm, $user);
+    }
+    
+    public static function get_transactionid($table, $id) {
+        global $DB;
+        
+        $history = $DB->get_records($table . '_history', 
+                array('oldid' => $id), 'id DESC', 'id', 0, 1);
+        return array_shift($history)->id;
     }
     
     public static function change_class(&$obj, $class_type) {
