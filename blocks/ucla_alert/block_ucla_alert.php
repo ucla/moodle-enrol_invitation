@@ -19,18 +19,16 @@ class block_ucla_alert extends block_base {
             return $this->content;
         }
 
-        if($COURSE->id === SITEID) {
-            $alertblock = new ucla_alert_block_site($COURSE->id);
-        } else {
-            $alertblock = new ucla_alert_block($COURSE->id);
-        }
-        
+        // Get alert block renderer and display
+        $alertblock = new ucla_alert_block($COURSE->id);
         $this->content = new stdClass;
         $this->content->text = $alertblock->render();
 
-        // Block editing
+        // If 'editing' is ON, then we display a button to edit the 
+        // alert block contents
         if($PAGE->user_is_editing()) {
             
+            // Make sure proper pemissions are set
             $context = get_context_instance(CONTEXT_COURSE, $COURSE->id);
             
             if(has_capability('moodle/course:update', $context)) {
@@ -43,9 +41,14 @@ class block_ucla_alert extends block_base {
                 $box = new alert_html_box_content($edit);
                 $box->add_class('alert-block-edit-on-box');
 
+                // Render this in the footer
                 $this->content->footer = $box->render();
             }
         }
+        
+        // Load required modules
+        $PAGE->requires->yui_module('moodle-block_ucla_alert-tweet', 
+                'M.ucla_alert_tweet.init_tweets', array());
         
         return $this->content;
     }
@@ -70,7 +73,26 @@ class block_ucla_alert extends block_base {
         );
     }
 
-    // Delete records for deleted blocks
+    /**
+     * Installs base alert block elements
+     * 
+     * @global type $COURSE 
+     */
+    public function instance_create() {
+        global $COURSE;
+        
+        //
+        $alert = new ucla_alert_block($COURSE->id);
+        $alert->install();
+    }
+    
+    /**
+     * Deletes all alert records when block is removed
+     * 
+     * @global type $DB
+     * @global type $COURSE
+     * @return boolean 
+     */
     public function instance_delete() {
         global $DB, $COURSE;
 

@@ -40,23 +40,22 @@ $PAGE->navbar->add(get_string('edit_alert_heading', 'block_ucla_alert'));
 // I have no idea when this is used...
 $PAGE->set_heading($SITE->fullname);
 
-// We load a separate alert block for the main site
-if(intval($courseid) == SITEID) {
-    $alertedit = new ucla_alert_block_editable_site($courseid);
-} else {
-    if($DB->record_exists(ucla_alert::DB_TABLE, array('courseid' => $courseid))) {
-        $alertedit = new ucla_alert_block_editable($courseid);    
-    } else {
-        print_error('alert_block_dne', 'block_ucla_alert');
-    }
-}
 
-if($alertedit) {
-    // Load YUI script
+// Attempt to load an alert block for a course
+if((intval($courseid) == SITEID) || $DB->record_exists(ucla_alert::DB_TABLE, array('courseid' => $courseid))) {
+    $alertedit = new ucla_alert_block_editable($courseid);    
+
+    // Load edit YUI
+    // @todo: turn this into a module
     $PAGE->requires->js('/blocks/ucla_alert/alert.js');
     $PAGE->requires->js_init_call('M.alert_block.init', array($courseid));
+
+} else {
+    /// Or print an error if an alert block does not exits for that course
+    print_error('alert_block_dne', 'block_ucla_alert');
 }
 
+// Render page
 echo $OUTPUT->header();
 echo $alertedit->render();
 echo $OUTPUT->footer();

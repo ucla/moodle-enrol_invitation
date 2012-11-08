@@ -18,6 +18,7 @@
 #ucla-alert .content .box-boundary {
     display: block;
     padding: 4px;
+    padding-top: 0;
 }
 
 .region-content .ucla-alert .box-boundary.divider,
@@ -34,21 +35,22 @@
 
 .block-ucla-alert .header-box {
     background-color: #88B851;
-/*    text-shadow:1px 1px 3px #465E2A;*/
+    min-height: 30px;
+    text-shadow:1px 1px 3px #648A38;
 }
 
 /* HEADER COLOR OVERRIDES */
 .block-ucla-alert .header-box.alert-header-yellow {
     background-color: #EDB83D;
-/*    text-shadow: 1px 1px 3px #9F730F;*/
+    text-shadow: 1px 1px 3px #CD9513;
 }
 .block-ucla-alert .header-box.alert-header-red {
     background-color: #E17D68;
-/*    text-shadow: 1px 1px 3px #802B19;*/
+    text-shadow: 1px 1px 2px #D64F33;
 }
 .block-ucla-alert .header-box.alert-header-blue {
     background-color: #47BCBB;
-/*    text-shadow: 1px 1px 3px #196E80;*/
+    text-shadow: 1px 1px 3px #389998;
 }
 
 /* HEADER TITLE & SUBTITLE */
@@ -65,6 +67,8 @@
 .block-ucla-alert .header-subtitle,
 .region-content .ucla-alert .header-subtitle {
     color: white;
+    padding-left: 2px;
+    padding-right: 2px;
 }
 
 /* GENERAL FORMATTING */
@@ -75,6 +79,7 @@
     line-height: 1em;
     margin: 4px 0;
     text-transform: uppercase;
+    padding-top: 4px;
 }
 
 .block-ucla-alert .box-text,
@@ -98,6 +103,37 @@
     margin-bottom: 2px;
 }
 
+/* TWITTER DEFAUL LINK */
+.block-ucla-alert .box-link.box-twitter-link,
+.region-content .ucla-alert .box-link.box-twitter-link {
+    border-left-color: #00C0F7;
+}
+
+/* TWITTER CONTENT  */
+.alert-tweet-quote {
+    margin-top: 4px;
+    padding: 2px;
+    border-top: 1px solid #CCC;
+    border-bottom: 1px solid #CCC;
+    background-color: #FFF;
+    quotes: "\201C" "\201D";
+}
+.alert-tweet-quote:before { 
+    content: open-quote; 
+    font-weight: bold; 
+    font-size: 1.2em;
+}
+.alert-tweet-quote:after { 
+    font-size: 1.2em;
+    content: close-quote; 
+    font-weight: bold; 
+    color: #CCC;
+}
+.alert-tweet-date {
+    text-align: right;
+    font-size: 0.8em;
+    color: #CCC;
+} 
 .block-ucla-alert .box-link a {
     width: 100%;
     display: inline-block;
@@ -296,10 +332,11 @@
 .alert-block-edit-on-btn {
     width:80%;
 }
-.alert-block-edit-on-box {
+.region-content .ucla-alert .content .box-boundary.alert-block-edit-on-box {
     text-align: center;
     border-top: 1px solid #EBEBE2; 
     padding-bottom: 0; 
+    padding-top: 4px;
 }
 
 /* Tutorial */
@@ -352,6 +389,44 @@
     padding: 3px 7px;
     position: absolute;
     top: -1px;
+}
+
+/* BANNER ELEMENTS */
+
+.banner-alert-header {
+    clear: both;
+    display: inline-block;
+    width: 178px;
+}
+.banner-ucla-alert {
+    width: 100%;
+    margin-top: 10px;
+    padding: 0 10px;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+}
+.banner-ucla-alert-content {
+    background-color: #FAFAF8;
+    border: 1px solid #EBEBE2;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.067);
+}
+.banner-alert-section {
+    clear: both;
+    display: inline-block;
+    vertical-align: top;
+}
+.banner-alert-section .box-boundary {
+    display: inline-block;
+}
+.banner-alert-section .box-section-title {
+    display: none;
+}
+.banner-alert-section .box-boundary .box-text {
+    font-size: 1.1em;
+    line-height: 1.1em;
+    color: #463A45;
+    margin-top: 4px;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

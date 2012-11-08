@@ -160,13 +160,19 @@ M.alert_block.init = function(Y) {
                 data: 'courseid=' + courseID +'&render=' + json_out,
                 on: {
                     success: function (id, result) {
-                        var newNode = Y.Node.create(result.responseText);
+                        var data = JSON.parse(result.responseText);
                         
-                        // Update newNode
-                        newNode.replaceClass('box-boundary', displayNode.getAttribute('class'));
-                        displayNode.replace(newNode);
-                        targetNode.setAttribute('rel', updatedText);
-                        editNode.setStyle('display', 'none');
+                        if(data.status) {
+                            var newNode = Y.Node.create(data.data);
+
+                            // Update newNode
+                            newNode.replaceClass('box-boundary', displayNode.getAttribute('class'));
+                            displayNode.replace(newNode);
+                            targetNode.setAttribute('rel', updatedText);
+                            editNode.setStyle('display', 'none');
+                        } else {
+                            console.log(data);
+                        }
                     },
                     failure: function (id, result) {
 //                          console.log('failure...');
@@ -245,6 +251,7 @@ M.alert_block.init = function(Y) {
             
             // Save header data
             var headerData = [];
+            var bannerFlag = false;
             
             headers.each(function(node) {
                 headerData.push({
@@ -255,6 +262,9 @@ M.alert_block.init = function(Y) {
                     'recordid': node.getAttribute('recordid')
                 });
                 
+                if(node.getAttribute('color') == 'red' && node.getAttribute('visible') == '1') {
+                    bannerFlag = true;
+                }
             });
             
             // Save section data
@@ -281,7 +291,8 @@ M.alert_block.init = function(Y) {
             var json_out = JSON.stringify({
                 'headers' : headerData,
                 'sections' : sectionData,
-                'courseid' : courseID
+                'courseid' : courseID,
+                'banner' : bannerFlag
             });
 
             // Send AJAX POST
@@ -290,7 +301,15 @@ M.alert_block.init = function(Y) {
                 data: 'courseid=' + courseID + '&update=' + json_out,
                 on: {
                     success: function (id, result) {
-                        window.location = 'edit.php?id=' + courseID;
+                        var data = JSON.parse(result.responseText);
+                        
+                        if(data.status){
+                            window.location = 'edit.php?id=' + courseID;
+//                            console.log(data)
+                        } else {
+                            console.log(data);
+                        }
+                        
                     },
                     failure: function (id, result) {
                         console.log('failure...');
@@ -322,38 +341,43 @@ M.alert_block.init = function(Y) {
                 data: 'courseid=' + courseID +'&render=' + json_out,
                 on: {
                     success: function (id, result) {
-                        var newNode = Y.Node.create(result.responseText);
-                        var li = ul.appendChild(newNode);
+                        var data = JSON.parse(result.responseText);
                         
-                        // Attach drag events
-                        var dd = new Y.DD.Drag({
-                            node: li,
-                            target: {
-                                padding: '0 0 0 20'
-                            }
-                        }).plug(Y.Plugin.DDProxy, {
-                            moveOnEnd: false
-                        }).plug(Y.Plugin.DDConstrained, {
-                            constrain2node: nodeConstrain
-                        });
-                        
-                        // Attach double click edit
-                        li.on('dblclick', function(e) {
-                            itemEditDblClick(e.target.ancestor('li'));
-                        });
-                        // Prevent click propagation
-                        li.one('.alert-edit-text-box').on('dblclick', function(e) {
-                            e.stopPropagation();
-                        });
-                        // Attach 'cancel'
-                        li.one('.alert-edit-text-box .alert-edit-cancel').on('click', function(e) {
-                            itemEditCancel(e.target.ancestor('.alert-edit-element'));
-                        });
-                        // Attach 'save'
-                        li.one('.alert-edit-text-box .alert-edit-save').on('click', function(e) {
-                            itemEditSave(e.target.ancestor('.alert-edit-element'));
-                        });
-                        
+                        if(data.status) {
+                            var newNode = Y.Node.create(data.data);
+                            var li = ul.appendChild(newNode);
+
+                            // Attach drag events
+                            var dd = new Y.DD.Drag({
+                                node: li,
+                                target: {
+                                    padding: '0 0 0 20'
+                                }
+                            }).plug(Y.Plugin.DDProxy, {
+                                moveOnEnd: false
+                            }).plug(Y.Plugin.DDConstrained, {
+                                constrain2node: nodeConstrain
+                            });
+
+                            // Attach double click edit
+                            li.on('dblclick', function(e) {
+                                itemEditDblClick(e.target.ancestor('li'));
+                            });
+                            // Prevent click propagation
+                            li.one('.alert-edit-text-box').on('dblclick', function(e) {
+                                e.stopPropagation();
+                            });
+                            // Attach 'cancel'
+                            li.one('.alert-edit-text-box .alert-edit-cancel').on('click', function(e) {
+                                itemEditCancel(e.target.ancestor('.alert-edit-element'));
+                            });
+                            // Attach 'save'
+                            li.one('.alert-edit-text-box .alert-edit-save').on('click', function(e) {
+                                itemEditSave(e.target.ancestor('.alert-edit-element'));
+                            });
+                        } else {
+                            console.log(data);
+                        }
                     },
                     failure: function (id, result) {
 //                          console.log('failure...');
