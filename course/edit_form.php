@@ -327,9 +327,16 @@ class course_edit_form extends moodleform {
         }
 
         // START UCLA MOD: CCLE-2315 - CUSTOM DEPARTMENT THEMES
+
+        // make sure that user can edit course theme (either at course or category context)
+        $editcoursetheme = false;
+        if ((!empty($coursecontext) && has_capability('local/ucla:editcoursetheme', $coursecontext)) ||
+                !empty($categorycontext) && has_capability('local/ucla:editcoursetheme', $categorycontext)) {
+            $editcoursetheme = true;
+        }
+
         //if (!empty($CFG->allowcoursethemes) {
-        if (!empty($CFG->allowcoursethemes) &&
-                has_capability('local/ucla:editcoursetheme', context_course::instance($course->id))) {
+        if (!empty($CFG->allowcoursethemes) && $editcoursetheme) {
         // END UCLA MOD: CCLE-2315
             $themeobjects = get_list_of_themes();
             $themes=array();
@@ -361,7 +368,7 @@ class course_edit_form extends moodleform {
                 $draftitemid = file_get_submitted_draft_itemid('logo_attachments');
 
                 file_prepare_draft_area($draftitemid, 
-                        context_course::instance($course->id)->id, 
+                        $coursecontext->id,
                         'theme_uclasharedcourse', 'course_logos', $course->id, 
                         $OUTPUT->course_logo_config());   
                 

@@ -31,6 +31,7 @@ class theme_uclasharedcourse_core_renderer extends theme_uclashared_core_rendere
         $img = $CFG->dirroot . '/theme/uclasharedcourse/pix/' . $category->name . '/logo.png';
         
         // Override theme logo
+        $alternative_logo = '';
         if(file_exists($img)) {
             $pix = $category->name . '/logo';
             $address = new moodle_url($CFG->wwwroot . '/course/view.php?id=' . $COURSE->id);
@@ -38,23 +39,33 @@ class theme_uclasharedcourse_core_renderer extends theme_uclashared_core_rendere
             $pix_url = $this->pix_url($pix, $this->theme);
             $logo_alt = $COURSE->fullname; //get_string('UCLA_CCLE_text', 'theme_uclashared');
             $logo_img = html_writer::empty_tag('img', array('src' => $pix_url, 'alt' => $logo_alt));
-            $link = html_writer::link($address, $logo_img);
-            
-            // NO extra logos by default
-            $images = '';
+            $alternative_logo = html_writer::link($address, $logo_img);
+        }
 
-            // If a site is 'private', then we only display logos to enrolled users
-            if($collabsite = siteindicator_site::load($COURSE->id)) {
-                if($this->is_enrolled_user() && $collabsite->property->type == siteindicator_manager::SITE_TYPE_PRIVATE) {
-                    $images = $this->course_logo_html($COURSE->id);
-                }
-            }
+        // If a site is 'private', then we only display logos to enrolled users
+        $collabsite = siteindicator_site::load($COURSE->id);
+        $is_private = false;
+        if(!empty($collabsite) && $collabsite->property->type == siteindicator_manager::SITE_TYPE_PRIVATE) {
+            $is_private = true;
+        }
 
-            return $link . $images;
-        } 
-        
-        // Use default logo as a fallback
-        return parent::logo($pix, $pix_loc);
+        // Now look for additional logos
+        $additional_logos = '';
+        if (($is_private && $this->is_enrolled_user()) || !$is_private) {
+            $additional_logos = $this->course_logo_html($COURSE->id);
+        }
+
+        // if main logo is overridden, then return that html
+        if (!empty($alternative_logo)) {
+            return $alternative_logo . $additional_logos;
+        } else if (!empty($additional_logos)) {
+            // maybe we just have alternative sublogos, but keep main logo
+            $main_logo = parent::logo($pix, $pix_loc);
+            return $main_logo . $additional_logos;
+        } else {
+            // Use default logo as a fallback
+            return parent::logo($pix, $pix_loc);
+        }
     }
     
     /**
@@ -149,7 +160,6 @@ class theme_uclasharedcourse_core_renderer extends theme_uclashared_core_rendere
         $logos = $this->course_logo_images($COURSE->id);
         
         $out = '';
-        
         if(!empty($logos)) {
             $pix_url = $this->pix_url('logo_divider', $this->theme);
             $img = html_writer::empty_tag('img', array('src' => $pix_url));
@@ -164,11 +174,9 @@ class theme_uclasharedcourse_core_renderer extends theme_uclashared_core_rendere
                 if($logo2->get_filename() > $logo1->get_filename()) {
                     $logos[] = $logo1;
                     $logos[] = $logo2;
-
                 } else {
                     $logos[] = $logo2;
                     $logos[] = $logo1;
-
                 }
             }
             
