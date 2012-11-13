@@ -12,8 +12,8 @@ class ucla_grade_item extends grade_item {
         
         parent::__construct($params);
 
-        $this->_course = $DB->ger_record('course', array('id' => $this->courseid));
-        $this->_user = $DB->ger_record('user', array('id' => $userid));
+        $this->_course = $DB->get_record('course', array('id' => $this->courseid));
+        $this->_user = $DB->get_record('user', array('id' => $userid));
     }
 
     public function webservice_handler() {

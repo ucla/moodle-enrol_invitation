@@ -12,8 +12,8 @@ class ucla_grade_grade extends grade_grade {
         
         parent::__construct($params);
 
-        $this->_course = $DB->ger_record('course', array('id' => $courseid));
-        $this->_user = $DB->ger_record('user', array('id' => $this->userid));
+        $this->_course = $DB->get_record('course', array('id' => $courseid));
+        $this->_user = $DB->get_record('user', array('id' => $this->userid));
     }
 
     public function webservice_handler() {
