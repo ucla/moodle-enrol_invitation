@@ -46,5 +46,13 @@ $capabilities = array(
             'manager' => CAP_ALLOW,
         )
     ),
-
+    
+    'local/ucla:bulk_users' => array(
+        'riskbitmask'   => RISK_DATALOSS,
+        'captype'       => 'write',
+        'contextlevel'  => CONTEXT_MODULE,
+        'archetypes'    => array(
+            'manager'  => CAP_ALLOW
+        )
+    ),
 );

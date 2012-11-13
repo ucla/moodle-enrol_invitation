@@ -12,6 +12,10 @@ $sort = optional_param('sort', 'fullname', PARAM_ALPHA); //Sort by full name
 $dir  = optional_param('dir', 'asc', PARAM_ALPHA);       //Order to sort (ASC)
 
 require_login();
+// START UCLA MOD: CCLE-2970 - Cannot disable "bulk user actions" in site admin menu
+// adding capability check for ability to perform bulk user actions
+require_capability('local/ucla:bulk_users', get_context_instance(CONTEXT_SYSTEM));
+// END UCLA MOD: CCLE-2970
 admin_externalpage_setup('userbulk');
 require_capability('moodle/role:assign', get_context_instance(CONTEXT_SYSTEM)); //TODO: use some enrol cap
 $return = $CFG->wwwroot.'/'.$CFG->admin.'/user/user_bulk.php';
