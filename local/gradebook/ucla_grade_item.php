@@ -12,7 +12,6 @@ class ucla_grade_item extends grade_item {
         
         parent::__construct($params);
 
-        $this->_course = $DB->get_record('course', array('id' => $this->courseid));
         $this->_user = $DB->get_record('user', array('id' => $userid));
     }
 
@@ -52,15 +51,18 @@ class ucla_grade_item extends grade_item {
     }
 
     function send_to_myucla() {
-        
-        $course_obj = $this->_course;
+
+        if (isguestuser($this->_user)) {
+            // ignore grades assigned to the guest user
+            return grade_reporter::SUCCESS;
+        }
 
         // Want the transaction ID to be the last record in the _history table
         $transactionid = grade_reporter::get_transactionid($this->table, $this->id);
-        $log = grade_reporter::prepare_log($this->_course->id, $this->iteminstance, $this->itemmodule, $this->_user->id);
+        $log = grade_reporter::prepare_log($this->courseid, $this->iteminstance, $this->itemmodule, $this->_user->id);
 
         // Get crosslisted SRS, and send update for each SRS
-        $courses = ucla_get_course_info($course_obj->id);
+        $courses = ucla_get_course_info($this->courseid);
 
         foreach ($courses as $c) {
             $param = $this->make_myucla_parameters($c, $transactionid);
@@ -104,7 +106,6 @@ class ucla_grade_item extends grade_item {
     function make_myucla_parameters($course, $transactionid) {
         global $CFG;
         
-        $course_obj = $this->_course;
         $user_obj = $this->_user;
 
         if (empty($user_obj->idnumber) && empty($CFG->gradebook_debugging)) {
@@ -116,8 +117,8 @@ class ucla_grade_item extends grade_item {
 
         //In a crosslisted course, the parentcourse's id is required
         $url = $CFG->wwwroot . '/grade/edit/tree/item.php?courseid=' .
-                $course_obj->id . '&id=' . $this->id .
-                '&gpr_type=edit&gpr_plugin=tree&gpr_courseid=' . $course_obj->id;
+                $this->courseid . '&id=' . $this->id .
+                '&gpr_type=edit&gpr_plugin=tree&gpr_courseid=' . $this->courseid;
 
         //Need the individual child course
         if (!$course || !is_string($course->subj_area) || !is_string($course->crsidx)

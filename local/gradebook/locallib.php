@@ -47,22 +47,19 @@ final class grade_reporter {
         // This will allow the module to be seen in the module log, as well as
         // the general class log.  It also creates a correct link
         if(empty($cmid)) {
-            $query = 'SELECT cm.id 
-                FROM {course_modules} as cm
-                JOIN {modules} as m on m.id = cm.module
-                WHERE cm.course = :courseid
-                AND cm.instance = :instance
-                AND m.name = :modname';
+            $where = 'course = :courseid AND instance = :instance';
+            $cmid = $DB->get_fieldset_select('course_modules', 'id', $where,
+                    array('courseid' => $courseid, 'instance' => $instance));
 
-            $result = $DB->get_records_sql($query, array(
-                'courseid' => $courseid,
-                'instance' => $instance,
-                'modname' => $modname,
-            ));
+            // results are in an array
+            $cmid = array_pop($cmid);
 
-            $cmid = empty($result) ? 0 : array_shift($result)->id;
-        }
-        
+            if (empty($cmid)) {
+                // handle case if course module couldn't be found
+                $cmid = 0;
+            }
+        } 
+
         return array(
             'courseid' => $courseid,
             'module' => $modname,

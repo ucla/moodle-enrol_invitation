@@ -5,7 +5,7 @@ $string['pluginname'] = 'MyUCLA gradebook webservice';
 $string['continue_comments'] = '... [See full comments on the class website]';
 
 // Errors
-$string['nousers'] = 'WARNING: User in course but could not find matching role assignments in child courses.';
+$string['nousers'] = 'WARNING: User in course but could not find matching role assignments in child courses: userid - {$a->userid}, courseid - {$a->courseid}';
 $string['badenrol'] = 'WARNING: User enrolled in more than one child course of a cross-listed course.';
 
 // Log

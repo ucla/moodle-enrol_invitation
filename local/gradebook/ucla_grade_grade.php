@@ -7,12 +7,11 @@ class ucla_grade_grade extends grade_grade {
     public function __construct($params) {
         global $DB;
         
-        $courseid = $params['courseid'];
+        $this->courseid = $params['courseid'];
         unset($params['courseid']);
         
         parent::__construct($params);
 
-        $this->_course = $DB->get_record('course', array('id' => $courseid));
         $this->_user = $DB->get_record('user', array('id' => $this->userid));
     }
 
@@ -41,32 +40,38 @@ class ucla_grade_grade extends grade_grade {
     
     public function send_to_myucla() {
         global $DB;
-        
-        $course_obj = $this->_course;
-        
+
+        if (isguestuser($this->_user)) {
+            // ignore grades assigned to the guest user
+            return grade_reporter::SUCCESS;
+        }
+
         // Want the transaction ID to be the last record in the _history table
         $transactionid = grade_reporter::get_transactionid($this->table, $this->id);
-        $log = grade_reporter::prepare_log($this->_course->id, $this->grade_item->iteminstance, $this->grade_item->itemmodule, $this->_user->id);
-        
+        $log = grade_reporter::prepare_log($this->courseid, $this->grade_item->iteminstance, $this->grade_item->itemmodule, $this->_user->id);
+
         // Get crosslisted SRS list
-        $courses = ucla_get_course_info($course_obj->id);
+        $courses = ucla_get_course_info($this->courseid);
         $srs_list = implode(',', array_map(function($o) {return $o->srs;}, $courses));
 
         // If this is a crosslisted course, find out through what SRS he/she 
-        // enroled through.  This info is in the ccle_roster_class_cache table
-        $sql = "SELECT urc.id, param_term, param_srs, urc.term, urc.srs, urc.subj_area, urc.crsidx, urc.secidx
-                    FROM {ccle_roster_class_cache} crcc
-                    JOIN {user} AS u ON u.idnumber = stu_id
-                    JOIN {ucla_reg_classinfo} AS urc ON urc.srs = param_srs
-                WHERE u.id = $this->userid
-                    AND urc.term = param_term
-                    AND param_srs IN ($srs_list)";
+        // enrolled in.  This info is in the ccle_roster_class_cache table
+        $sql = "SELECT  urc.id, param_term, param_srs, urc.term, urc.srs, urc.subj_area, urc.crsidx, urc.secidx
+                FROM    {ccle_roster_class_cache} crcc
+                JOIN    {user} AS u ON u.idnumber = stu_id
+                JOIN    {ucla_reg_classinfo} AS urc ON urc.srs = param_srs
+                WHERE   u.id = $this->userid AND
+                        urc.term = param_term AND
+                        param_srs IN ($srs_list)";
 
         $enrolledcourses = $DB->get_records_sql($sql);
 
         // We should only have a single record 
         if (empty($enrolledcourses)) {
-            error_log(get_string('nousers', 'local_gradebook'));
+            $a = new stdClass();
+            $a->userid = $this->userid;
+            $a->courseid = $this->courseid;
+            error_log(get_string('nousers', 'local_gradebook', $a));
             
         } elseif (count($enrolledcourses) > 1) {
             error_log(get_string('badenrol', 'local_gradebook'));
@@ -114,7 +119,7 @@ class ucla_grade_grade extends grade_grade {
                     
                     grade_reporter::add_to_log($log);
 
-                    return  grade_reporter::BAD_REQUEST;
+                    return grade_reporter::BAD_REQUEST;
                     
                 }
             }

@@ -12,12 +12,13 @@
 
 define('CLI_SCRIPT', true);
 
-global $DB;
-
-//require(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once(dirname(__FILE__) . '/../../../config.php');
 require_once($CFG->dirroot . '/local/gradebook/ucla_grade_grade.php');
+require_once($CFG->dirroot . '/local/gradebook/ucla_grade_item.php');
 require_once($CFG->dirroot . '/local/gradebook/locallib.php');
+
+require_once($CFG->libdir . '/grade/constants.php');
+require_once($CFG->libdir . '/grade/grade_category.php');
 
 // Needs one argument, term or courseid
 if ($argc != 2) {
@@ -38,7 +39,9 @@ if (ucla_validator('term', $argv[1])) {
 }
 
 $num_grades_sent = 0;
+$num_grade_items_sent = 0;
 $num_courses = 0;
+$pushed_grade_items = array();
 foreach ($courses as $courseid) {
     $sql = "SELECT gg.id, gg.userid, gg.itemid
             FROM {course} as c
@@ -54,10 +57,33 @@ foreach ($courses as $courseid) {
     }
 
     foreach ($records as $record) {
-        $grade = new ucla_grade_grade(array('courseid' => $courseid, 'itemid' => $record->itemid, 'userid' => $record->userid));
+        $params = array('courseid' => $courseid, 'itemid' => $record->itemid,
+            'userid' => $record->userid);
 
-        //I wasn't 100% sure exactly what you wanted me to do for errors, so I just printed out a message if it failed.
-        //If grade_reporter is not SUCCESS (i.e. DATABASE_ERROR, BAD_REQUEST, or CONNECTION_ERROR)
+        $grade = new ucla_grade_grade($params);
+        $grade->load_grade_item();
+        $grade_item = $grade->grade_item;
+
+        // don't push course or category grading items
+        if ($grade_item->itemtype == 'course' || $grade_item->itemtype == 'category') {
+            continue;
+        }
+
+        // see if we need to push a grade item
+        if (!in_array($grade_item->id, $pushed_grade_items)) {
+            $pushed_grade_items[] = $grade_item->id;
+
+            // we didn't push it yet, so push it
+            unset($params['itemid']);
+            $params['id'] = $record->itemid;
+            $ucla_grade_item = new ucla_grade_item($params);
+            if ($ucla_grade_item->send_to_myucla() != grade_reporter::SUCCESS) {
+                echo get_string('gradeconnectionfailinfo', 'local_gradebook', $record->itemid) . "\n";
+            } else {
+                ++$num_grade_items_sent;
+            }            
+        }
+
         if ($grade->send_to_myucla() != grade_reporter::SUCCESS) {
             echo get_string('gradeconnectionfailinfo', 'local_gradebook', $record->id) . "\n";
         } else {
@@ -66,4 +92,5 @@ foreach ($courses as $courseid) {
     }
 }
     
-echo sprintf("Processed %d courses and sent %d grades to MyUCLA\n", $num_courses, $num_grades_sent);
+echo sprintf("Processed %d courses, sent %d grade items and %d grades to MyUCLA\n",
+        $num_courses, $num_grade_items_sent, $num_grades_sent);
