@@ -312,7 +312,9 @@ class WimbaUI {
                             "settings",
                             get_string('toolbar_settings', 'voiceboard'),
                             "javascript:editSettings('generateXmlSettingsPanel.php','all');");
-                                         
+
+            /* START UCLA - MOD: patch/CCLE-3638-delete-voice-board-causes-site-unavailable */
+            /*
             $this->xml->addButtonElement(
                             "instructor",
                             "all",
@@ -320,6 +322,8 @@ class WimbaUI {
                             "delete",
                             get_string('toolbar_delete', 'voiceboard'),
                             "javascript:deleteResource('manageAction.php');");
+            */
+            /* END UCLA - MOD: patch/CCLE-3638-delete-voice-board-causes-site-unavailable */
                                          
             $this->xml->addSpaceElement("50px", "instructor");
         }
