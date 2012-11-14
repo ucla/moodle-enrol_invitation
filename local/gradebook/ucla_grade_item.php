@@ -51,7 +51,8 @@ class ucla_grade_item extends grade_item {
     }
 
     function send_to_myucla() {
-
+        global $CFG;
+        
         if (isguestuser($this->_user)) {
             // ignore grades assigned to the guest user
             return grade_reporter::SUCCESS;
@@ -77,10 +78,12 @@ class ucla_grade_item extends grade_item {
                         throw new Exception($result->moodleItemModifyResult->message);
                     }
                     
-                    $log['action'] = get_string('itemsuccess', 'local_gradebook');
-                    $log['info'] = $result->moodleItemModifyResult->message;
-                    
-                    grade_reporter::add_to_log($log);
+                    // Success is logged conditionally
+                    if(!empty($CFG->gradebook_log_success)) {
+                        $log['action'] = get_string('itemsuccess', 'local_gradebook');
+                        $log['info'] = $result->moodleItemModifyResult->message;
+                        grade_reporter::add_to_log($log);
+                    }
                     
                 } catch (SoapFault $e) {
                     $log['action'] = get_string('connectionfail', 'local_gradebook');

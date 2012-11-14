@@ -39,7 +39,7 @@ class ucla_grade_grade extends grade_grade {
     }
     
     public function send_to_myucla() {
-        global $DB;
+        global $DB, $CFG;
 
         if (isguestuser($this->_user)) {
             // ignore grades assigned to the guest user
@@ -94,11 +94,13 @@ class ucla_grade_grade extends grade_grade {
                         throw new Exception($result->moodleGradeModifyResult->message);
                     }
                     
-                    $log['action'] = get_string('gradesuccess', 'local_gradebook');
-                    $log['info'] = $result->moodleGradeModifyResult->message;
+                    // Success is logged conditionally
+                    if(!empty($CFG->gradebook_log_success)) {
+                        $log['action'] = get_string('gradesuccess', 'local_gradebook');
+                        $log['info'] = $result->moodleGradeModifyResult->message;
+                        grade_reporter::add_to_log($log);
+                    }
                     
-                    grade_reporter::add_to_log($log);
-
                     return grade_reporter::SUCCESS;
                     
                 } catch (SoapFault $e) {
@@ -139,6 +141,13 @@ class ucla_grade_grade extends grade_grade {
             return false;
         }
 
+        $uidstudent = $DB->get_field('user', 'idnumber', array('id' => $this->userid));
+
+        // UID must exist, otherwise skip send
+        if(empty($uidstudent)) {
+            return false;
+        }
+        
         $comment = '';
         
         // Trim comment
@@ -152,8 +161,6 @@ class ucla_grade_grade extends grade_grade {
             $this->finalgrade = null;
             $this->feedback = "Deleted";
         }
-
-        $uidstudent = $DB->get_field('user', 'idnumber', array('id' => $this->userid));
 
         //Create array with all the parameters and return it
         return array(
@@ -169,7 +176,7 @@ class ucla_grade_grade extends grade_grade {
                 'catalogNumber' => $course->crsidx,
                 'sectionNumber' => $course->secidx,
                 'srs' => $course->srs,
-                'uidStudent' => empty($uidstudent) ? '000000000' : $uidstudent,
+                'uidStudent' => $uidstudent,
                 'viewableGrade' => "$this->finalgrade",
                 'comment' => $comment,
                 'excused' => $this->excluded != '0'
