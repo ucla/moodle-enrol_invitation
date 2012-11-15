@@ -13,8 +13,6 @@
 define('CLI_SCRIPT', true);
 
 require_once(dirname(__FILE__) . '/../../../config.php');
-require_once($CFG->dirroot . '/local/gradebook/ucla_grade_grade.php');
-require_once($CFG->dirroot . '/local/gradebook/ucla_grade_item.php');
 require_once($CFG->dirroot . '/local/gradebook/locallib.php');
 
 require_once($CFG->libdir . '/grade/constants.php');
@@ -38,10 +36,14 @@ if (ucla_validator('term', $argv[1])) {
     exit('ERROR: Invalid term or course-id did not belong to a SRS course' . "\n");    
 }
 
+// get system admin, so that they can be marked as the sender
+$system_admin = get_admin();
+
 $num_grades_sent = 0;
 $num_grade_items_sent = 0;
 $num_courses = 0;
 $pushed_grade_items = array();
+$skipped_grade_items = array();
 foreach ($courses as $courseid) {
     $sql = "SELECT gg.id, gg.userid, gg.itemid
             FROM {course} as c
@@ -64,27 +66,37 @@ foreach ($courses as $courseid) {
         $grade->load_grade_item();
         $grade_item = $grade->grade_item;
 
-        // don't push course or category grading items
-        if ($grade_item->itemtype == 'course' || $grade_item->itemtype == 'category') {
-            continue;
-        }
+//        if (in_array($grade_item->id, $skipped_grade_items)) {
+//            // don't process grades for these grade items
+//            continue;
+//        }
 
         // see if we need to push a grade item
         if (!in_array($grade_item->id, $pushed_grade_items)) {
-            $pushed_grade_items[] = $grade_item->id;
-
             // we didn't push it yet, so push it
             unset($params['itemid']);
             $params['id'] = $record->itemid;
             $ucla_grade_item = new ucla_grade_item($params);
-            if ($ucla_grade_item->send_to_myucla() != grade_reporter::SUCCESS) {
+            $result = $ucla_grade_item->send_to_myucla();
+            if ($result == grade_reporter::NOTSENT) {
+                // skip sending grades for this item
+                $skipped_grade_items[] = $grade_item->id;
+                continue;
+            } else if ($ucla_grade_item->send_to_myucla() != grade_reporter::SUCCESS) {
                 echo get_string('gradeconnectionfailinfo', 'local_gradebook', $record->itemid) . "\n";
             } else {
+                $pushed_grade_items[] = $grade_item->id;
                 ++$num_grade_items_sent;
             }            
         }
 
-        if ($grade->send_to_myucla() != grade_reporter::SUCCESS) {
+
+
+        $result = $grade->send_to_myucla();
+        if ($result == grade_reporter::NOTSENT) {
+            // user shouldn't have had their grade sent, skip them
+            continue;
+        } else if ($result != grade_reporter::SUCCESS) {
             echo get_string('gradeconnectionfailinfo', 'local_gradebook', $record->id) . "\n";
         } else {
             ++$num_grades_sent;

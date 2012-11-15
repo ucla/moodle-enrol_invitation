@@ -23,19 +23,14 @@ class ucla_grade_item extends grade_item {
             if(empty($this->itemmodule) || empty($this->iteminstance)) {
                 return true;
             }
-            
-            // We don't want to send grades for 'course' or 'category' itemtypes
-            // Only for modules...
-            // grade_item->itemtype -- we're only sending 'mod' grades 
-            if (isset($this->grade_item) && isset($this->grade_item->itemtype) &&
-                ($this->grade_item->itemtype === 'course' || $this->grade_item->itemtype === 'category')) {
-                
-                return true;
-            } else {
 
-                $result = $this->send_to_myucla();
-                
-                return ($result === grade_reporter::SUCCESS);
+            $result = $this->send_to_myucla();
+            if ($result !== grade_reporter::SUCCESS &&
+                    $result !== grade_reporter::NOTSENT) {
+                // report failure if there was a problem on MyUCLA's end
+                // NOTSENT is if a grade item isn't suppose to be sent via
+                // processing on our end
+                return false;
             }
         }
         
@@ -51,15 +46,18 @@ class ucla_grade_item extends grade_item {
     }
 
     function send_to_myucla() {
-
-        if (isguestuser($this->_user)) {
-            // ignore grades assigned to the guest user
-            return grade_reporter::SUCCESS;
+        // We don't want to send grades for 'course' or 'category' itemtypes
+        // Only for modules...
+        // grade_item->itemtype -- we're only sending 'mod' grades
+        if ($this->itemtype === 'course' ||
+                $this->itemtype === 'category') {
+            return grade_reporter::NOTSENT;
         }
 
         // Want the transaction ID to be the last record in the _history table
         $transactionid = grade_reporter::get_transactionid($this->table, $this->id);
-        $log = grade_reporter::prepare_log($this->courseid, $this->iteminstance, $this->itemmodule, $this->_user->id);
+        $log = grade_reporter::prepare_log($this->courseid, $this->iteminstance,
+                $this->itemmodule, $this->_user->id);
 
         // Get crosslisted SRS, and send update for each SRS
         $courses = ucla_get_course_info($this->courseid);
@@ -138,7 +136,9 @@ class ucla_grade_item extends grade_item {
                 'categoryID' => intval($this->categoryid),
                 'categoryName' => $categoryname,
                 'itemReleaseScores' => !($this->hidden),
-                'itemDue' => empty($this->locktime) ? null : $this->locktime,
+// itemDue shouldn't be sent right now, but in the future change this to be
+// the real due date for an activity
+//                'itemDue' => empty($this->locktime) ? null : $this->locktime,
                 'itemURL' => $url,
                 'itemComment' => isset($this->iteminfo) ? $this->iteminfo : '',
             ),

@@ -43,12 +43,8 @@ class ucla_grade_grade extends grade_grade {
 
         if (isguestuser($this->_user)) {
             // ignore grades assigned to the guest user
-            return grade_reporter::SUCCESS;
+            return grade_reporter::NOTSENT;
         }
-
-        // Want the transaction ID to be the last record in the _history table
-        $transactionid = grade_reporter::get_transactionid($this->table, $this->id);
-        $log = grade_reporter::prepare_log($this->courseid, $this->grade_item->iteminstance, $this->grade_item->itemmodule, $this->_user->id);
 
         // Get crosslisted SRS list
         $courses = ucla_get_course_info($this->courseid);
@@ -68,15 +64,28 @@ class ucla_grade_grade extends grade_grade {
 
         // We should only have a single record 
         if (empty($enrolledcourses)) {
-            $a = new stdClass();
-            $a->userid = $this->userid;
-            $a->courseid = $this->courseid;
-            error_log(get_string('nousers', 'local_gradebook', $a));
-            
+            // user is most likely the Instructor or TA or manually added guest
+            // just skip user
+            return grade_reporter::NOTSENT;
         } elseif (count($enrolledcourses) > 1) {
-            error_log(get_string('badenrol', 'local_gradebook'));
-            
+            error_log(get_string('badenrol', 'local_gradebook'));            
         } else {
+            // do another sanity check to make sure that certain grade items
+            // aren't being sent over
+            if (empty($this->grade_item)) {
+                $this->load_grade_item();
+            }
+            
+            if ($this->grade_item->itemtype === 'course' ||
+                    $this->grade_item->itemtype === 'category') {
+                return grade_reporter::NOTSENT;
+            }
+
+            // Want the transaction ID to be the last record in the _history table
+            $transactionid = grade_reporter::get_transactionid($this->table, $this->id);
+            $log = grade_reporter::prepare_log($this->courseid,
+                    $this->grade_item->iteminstance, $this->grade_item->itemmodule, $this->_user->id);
+
             // We should only have a single course when when we get here
             $course = array_pop($enrolledcourses);
 
