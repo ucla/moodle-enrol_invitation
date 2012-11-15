@@ -777,7 +777,6 @@ class grade_grade extends grade_object {
         // START UCLA MOD CCLE-2362
         // Saving object to rebuild when sending via webservice
         $this->deleted = $deleted;
-        $this->_course = $COURSE;
         $this->_user = $USER;
         events_trigger('ucla_grade_grade_updated', $this);
         // END UCLA MOD CCLE-2362

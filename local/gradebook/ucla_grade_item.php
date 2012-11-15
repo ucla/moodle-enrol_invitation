@@ -4,22 +4,34 @@ require_once($CFG->libdir . '/grade/grade_item.php');
 
 class ucla_grade_item extends grade_item {
 
+    /**
+     * Only called by CLI
+     * 
+     * @global type $DB
+     * @param type $params 
+     */
     public function __construct($params = NULL) {
         global $DB;
 
-        $userid = $params['userid'];
         unset($params['userid']);
-        
         parent::__construct($params);
-
-        $this->_user = $DB->get_record('user', array('id' => $userid));
     }
 
+    /**
+     * Only called by event handler
+     * 
+     * @global type $CFG
+     * @return boolean 
+     */
     public function webservice_handler() {
         global $CFG;
         
         if (!empty($CFG->gradebook_send_updates)) {
             
+            // A grade item update will sometimes happen twice -- observed 
+            // when clicking 'show' icon for module, but not when clicking 'hide'
+            // When this happens a second time, these params are missing, and 
+            // they are needed for logging purposes later...
             if(empty($this->itemmodule) || empty($this->iteminstance)) {
                 return true;
             }
@@ -36,16 +48,10 @@ class ucla_grade_item extends grade_item {
         
         return true;;
     }
-    
-    protected function get_transactionid() {
-        global $DB;
-        
-        $history = $DB->get_records($this->table . '_history', 
-                array('oldid' => $this->id), 'id DESC', 'id', 0, 1);
-        return array_shift($history)->id;
-    }
 
     function send_to_myucla() {
+        global $DB;
+        
         // We don't want to send grades for 'course' or 'category' itemtypes
         // Only for modules...
         // grade_item->itemtype -- we're only sending 'mod' grades
@@ -53,9 +59,16 @@ class ucla_grade_item extends grade_item {
                 $this->itemtype === 'category') {
             return grade_reporter::NOTSENT;
         }
-
+        
         // Want the transaction ID to be the last record in the _history table
-        $transactionid = grade_reporter::get_transactionid($this->table, $this->id);
+        list($transactionid, $loggeduser) = grade_reporter::get_transactionid($this->table, $this->id);
+
+        // Get the user that made the last grade edit.  When called by the 
+        // event handler, this will be stored in the $this->_user property
+        if(empty($this->_user)) {
+            $this->_user = $DB->get_record('user', array('id' => $loggeduser));
+        } 
+
         $log = grade_reporter::prepare_log($this->courseid, $this->iteminstance,
                 $this->itemmodule, $this->_user->id);
 

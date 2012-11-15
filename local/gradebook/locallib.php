@@ -97,12 +97,22 @@ final class grade_reporter {
         add_to_log($courseid, $module, $action, $url, $info, $cm, $user);
     }
     
+    /**
+     * Return the ID of the last record in the *_history table.
+     * Also sends back the userid of the user to last modify the grade
+     * 
+     * @param type $table
+     * @param type $id
+     * @return type 
+     */
     public static function get_transactionid($table, $id) {
         global $DB;
         
         $history = $DB->get_records($table . '_history', 
-                array('oldid' => $id), 'id DESC', 'id', 0, 1);
-        return array_shift($history)->id;
+                array('oldid' => $id), 'id DESC', 'id, loggeduser', 0, 1);
+        $rec = array_shift($history);
+        
+        return array($rec->id, $rec->loggeduser);
     }
     
     public static function change_class(&$obj, $class_type) {

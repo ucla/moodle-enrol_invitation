@@ -4,17 +4,29 @@ require_once($CFG->libdir . '/grade/grade_grade.php');
 
 class ucla_grade_grade extends grade_grade {
 
+    /**
+     * Constructor for a custom ucla grade_grade object.  This is only used 
+     * by the CLI script.
+     * 
+     * @global type $DB
+     * @param type $params 
+     */
     public function __construct($params) {
-        global $DB;
         
+        // courseid is unknown in the CLI context
         $this->courseid = $params['courseid'];
         unset($params['courseid']);
         
         parent::__construct($params);
-
-        $this->_user = $DB->get_record('user', array('id' => $this->userid));
     }
 
+    /**
+     * Handler for grade updates.  This should only be called by a grade udpate
+     * event handler.  
+     * 
+     * @global type $CFG
+     * @return boolean 
+     */
     public function webservice_handler() {
         global $CFG;
         
@@ -28,10 +40,17 @@ class ucla_grade_grade extends grade_grade {
                 
                 return true;
             } else {
- 
+                // Make sure we have a course ID
+                $this->courseid = $this->grade_item->courseid;
                 $result = $this->send_to_myucla();
                 
-                return ($result === grade_reporter::SUCCESS);
+                if ($result !== grade_reporter::SUCCESS &&
+                        $result !== grade_reporter::NOTSENT) {
+                    // report failure if there was a problem on MyUCLA's end
+                    // NOTSENT is if a grade item isn't suppose to be sent via
+                    // processing on our end
+                    return false;
+                }
             }
         }
         
@@ -41,18 +60,13 @@ class ucla_grade_grade extends grade_grade {
     public function send_to_myucla() {
         global $DB, $CFG;
 
-        if (empty($this->_user->idnumber)) {
-            // ignore grades assigned to users with no uid
-            return grade_reporter::NOTSENT;
-        }
-
         // Get crosslisted SRS list
         $courses = ucla_get_course_info($this->courseid);
         $srs_list = implode(',', array_map(function($o) {return $o->srs;}, $courses));
 
         // If this is a crosslisted course, find out through what SRS he/she 
         // enrolled in.  This info is in the ccle_roster_class_cache table
-        $sql = "SELECT  urc.id, param_term, param_srs, urc.term, urc.srs, urc.subj_area, urc.crsidx, urc.secidx
+        $sql = "SELECT  urc.id, param_term, param_srs, urc.term, urc.srs, urc.subj_area, urc.crsidx, urc.secidx, u.idnumber as uidstudent
                 FROM    {ccle_roster_class_cache} crcc
                 JOIN    {user} AS u ON u.idnumber = stu_id
                 JOIN    {ucla_reg_classinfo} AS urc ON urc.srs = param_srs
@@ -80,15 +94,22 @@ class ucla_grade_grade extends grade_grade {
                     $this->grade_item->itemtype === 'category') {
                 return grade_reporter::NOTSENT;
             }
-
+            
             // Want the transaction ID to be the last record in the _history table
-            $transactionid = grade_reporter::get_transactionid($this->table, $this->id);
+            list($transactionid, $loggeduser) = grade_reporter::get_transactionid($this->table, $this->id);
+
+            // Get the user that made the last grade edit.  When called by the 
+            // event handler, this will be stored in the $this->_user property
+            if(empty($this->_user)) {
+                $this->_user = $DB->get_record('user', array('id' => $loggeduser));
+            }
+
             $log = grade_reporter::prepare_log($this->courseid,
                     $this->grade_item->iteminstance, $this->grade_item->itemmodule, $this->_user->id);
 
             // We should only have a single course when when we get here
             $course = array_pop($enrolledcourses);
-
+            
             $param = $this->make_myucla_parameters($course, $transactionid);
             
             if ($param) {
@@ -140,21 +161,22 @@ class ucla_grade_grade extends grade_grade {
     }
     
     private function make_myucla_parameters($course, $transactionid) {
-        global $CFG, $DB;
+        global $CFG;
         
+        // Represents the user who was logged making changes to gradebook
         $user_obj = $this->_user;
-
-        // idnumber => BOL ID
-        // We want to allow dev environment to get through
-        if (empty($user_obj->idnumber) && empty($CFG->gradebook_debugging)) {
-            return false;
-        }
         
         // Trim comment
         $comment = '';
         if (isset($this->feedback)) {
-            $comment = trim(substr($this->feedback, 0, grade_reporter::MAX_COMMENT_LENGTH)) 
-                    . get_string('continue_comments', 'local_gradebook');
+            
+            // Trim long messages
+            $comment = trim(substr($this->feedback, 0, grade_reporter::MAX_COMMENT_LENGTH));
+            
+            // If we truncated, then append continue comments..
+            if(strlen($comment) == grade_reporter::MAX_COMMENT_LENGTH) {
+                $comment .= get_string('continue_comments', 'local_gradebook');
+            }
         }
         
         // Set variables to notify deletion
@@ -177,7 +199,7 @@ class ucla_grade_grade extends grade_grade {
                 'catalogNumber' => $course->crsidx,
                 'sectionNumber' => $course->secidx,
                 'srs' => $course->srs,
-                'uidStudent' => $uidstudent,
+                'uidStudent' => $course->uidstudent,
                 'viewableGrade' => "$this->finalgrade",
                 'comment' => $comment,
                 'excused' => $this->excluded != '0'

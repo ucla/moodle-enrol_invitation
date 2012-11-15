@@ -2089,7 +2089,6 @@ class grade_item extends grade_object {
         
         
         if(!$deleted) {
-            $this->_course = $COURSE;
             $this->_user = $USER;
             events_trigger('ucla_grade_item_updated', $this);
         }
