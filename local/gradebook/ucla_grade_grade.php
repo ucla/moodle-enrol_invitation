@@ -41,8 +41,8 @@ class ucla_grade_grade extends grade_grade {
     public function send_to_myucla() {
         global $DB, $CFG;
 
-        if (isguestuser($this->_user)) {
-            // ignore grades assigned to the guest user
+        if (empty($this->_user->idnumber)) {
+            // ignore grades assigned to users with no uid
             return grade_reporter::NOTSENT;
         }
 
@@ -149,17 +149,9 @@ class ucla_grade_grade extends grade_grade {
         if (empty($user_obj->idnumber) && empty($CFG->gradebook_debugging)) {
             return false;
         }
-
-        $uidstudent = $DB->get_field('user', 'idnumber', array('id' => $this->userid));
-
-        // UID must exist, otherwise skip send
-        if(empty($uidstudent)) {
-            return false;
-        }
-        
-        $comment = '';
         
         // Trim comment
+        $comment = '';
         if (isset($this->feedback)) {
             $comment = trim(substr($this->feedback, 0, grade_reporter::MAX_COMMENT_LENGTH)) 
                     . get_string('continue_comments', 'local_gradebook');
