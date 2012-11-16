@@ -2084,10 +2084,11 @@ class grade_item extends grade_object {
     // START UCLA MOD CCLE-2362
     // Adding overriden function that is called after insert/update/delete
     public function notify_changed($deleted) {
-        global $COURSE, $USER;
-        parent::notify_changed($deleted);
-        
-        
+        global $USER;
+        parent::notify_changed($deleted);        
+
+        // Don't send MyUCLA grade updates about item deletion because they
+        // don't handle them
         if(!$deleted) {
             $this->_user = $USER;
             events_trigger('ucla_grade_item_updated', $this);

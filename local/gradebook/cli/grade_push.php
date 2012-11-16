@@ -36,9 +36,6 @@ if (ucla_validator('term', $argv[1])) {
     exit('ERROR: Invalid term or course-id did not belong to a SRS course' . "\n");    
 }
 
-// get system admin, so that they can be marked as the sender
-$system_admin = get_admin();
-
 $num_grades_sent = 0;
 $num_grade_items_sent = 0;
 $num_courses = 0;
@@ -55,50 +52,50 @@ foreach ($courses as $courseid) {
     if (empty($records)) {
         echo sprintf("NOTICE: no grades found for courseid %d; skipping\n", $courseid);
     } else {
+        echo sprintf("Processing courseid %d\n", $courseid);
         ++$num_courses;
     }
 
     foreach ($records as $record) {
         $params = array('courseid' => $courseid, 'itemid' => $record->itemid,
-            'userid' => $record->userid);
+            'userid' => $record->userid, 'id' => $record->id);
 
         $grade = new ucla_grade_grade($params);
         $grade->load_grade_item();
         $grade_item = $grade->grade_item;
 
-//        if (in_array($grade_item->id, $skipped_grade_items)) {
-//            // don't process grades for these grade items
-//            continue;
-//        }
-
         // see if we need to push a grade item
         if (!in_array($grade_item->id, $pushed_grade_items)) {
             // we didn't push it yet, so push it
             unset($params['itemid']);
+            unset($params['userid']);
             $params['id'] = $record->itemid;
             $ucla_grade_item = new ucla_grade_item($params);
+
             $result = $ucla_grade_item->send_to_myucla();
             if ($result == grade_reporter::NOTSENT) {
                 // skip sending grades for this item
                 $skipped_grade_items[] = $grade_item->id;
+                echo sprintf("Skipping sending grade item %d\n", $grade_item->id);
                 continue;
             } else if ($ucla_grade_item->send_to_myucla() != grade_reporter::SUCCESS) {
                 echo get_string('gradeconnectionfailinfo', 'local_gradebook', $record->itemid) . "\n";
             } else {
+                echo sprintf("Sent grade item %d\n", $record->itemid);
                 $pushed_grade_items[] = $grade_item->id;
                 ++$num_grade_items_sent;
-            }            
+            }
         }
-
-
 
         $result = $grade->send_to_myucla();
         if ($result == grade_reporter::NOTSENT) {
             // user shouldn't have had their grade sent, skip them
+            echo sprintf("Skipping sending grade %d for userid %d\n", $record->id, $record->userid);
             continue;
         } else if ($result != grade_reporter::SUCCESS) {
             echo get_string('gradeconnectionfailinfo', 'local_gradebook', $record->id) . "\n";
         } else {
+            echo sprintf("Sent grade %d for userid %d\n", $record->id, $record->userid);
             ++$num_grades_sent;
         }
     }

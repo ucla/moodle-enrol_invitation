@@ -2,21 +2,7 @@
 
 require_once($CFG->libdir . '/grade/grade_item.php');
 
-class ucla_grade_item extends grade_item {
-
-    /**
-     * Only called by CLI
-     * 
-     * @global type $DB
-     * @param type $params 
-     */
-    public function __construct($params = NULL) {
-        global $DB;
-
-        unset($params['userid']);
-        parent::__construct($params);
-    }
-
+class ucla_grade_item extends grade_item {    
     /**
      * Only called by event handler
      * 
@@ -46,98 +32,99 @@ class ucla_grade_item extends grade_item {
             }
         }
         
-        return true;;
+        return true;
     }
 
+    /**
+     * Validates grade, queries for student data, and then sends info to the
+     * MyUCLA gradebook service.
+     *
+     * @global object $DB
+     * @global object $CFG
+     * @return int          Returns a status value
+     */
     function send_to_myucla() {
-        global $DB;
+        global $CFG, $DB;
         
         // We don't want to send grades for 'course' or 'category' itemtypes
         // Only for modules...
         // grade_item->itemtype -- we're only sending 'mod' grades
-        if ($this->itemtype === 'course' ||
-                $this->itemtype === 'category') {
+        if ($this->itemtype === 'course' || $this->itemtype === 'category') {
             return grade_reporter::NOTSENT;
         }
         
         // Want the transaction ID to be the last record in the _history table
-        list($transactionid, $loggeduser) = grade_reporter::get_transactionid($this->table, $this->id);
+        list($transactionid, $loggeduser) =
+                grade_reporter::get_transactionid($this->table, $this->id);
 
         // Get the user that made the last grade edit.  When called by the 
         // event handler, this will be stored in the $this->_user property
-        if(empty($this->_user)) {
-            $this->_user = $DB->get_record('user', array('id' => $loggeduser));
-        } 
+        $transaction_user = grade_reporter::get_transaction_user($this,
+                        $loggeduser);
 
         $log = grade_reporter::prepare_log($this->courseid, $this->iteminstance,
-                $this->itemmodule, $this->_user->id);
+                $this->itemmodule, $transaction_user->id);
 
         // Get crosslisted SRS, and send update for each SRS
         $courses = ucla_get_course_info($this->courseid);
 
         foreach ($courses as $c) {
             $param = $this->make_myucla_parameters($c, $transactionid);
-
-            if ($param) {
-                try {
-                    $client = grade_reporter::get_instance();
-
-                    $result = $client->moodleItemModify($param);
-
-                    if (!$result->moodleItemModifyResult->status) {
-                        throw new Exception($result->moodleItemModifyResult->message);
-                    }
-                    
-                    // Success is logged conditionally
-                    if(!empty($CFG->gradebook_log_success)) {
-                        $log['action'] = get_string('itemsuccess', 'local_gradebook');
-                        $log['info'] = $result->moodleItemModifyResult->message;
-                        grade_reporter::add_to_log($log);
-                    }
-                    
-                } catch (SoapFault $e) {
-                    $log['action'] = get_string('connectionfail', 'local_gradebook');
-                    $log['info'] = get_string('itemconnectionfailinfo', 'local_gradebook', $this->id);
-                    
-                    grade_reporter::add_to_log($log);
-                    
-                    return grade_reporter::CONNECTION_ERROR;
-                } catch (Exception $e) {
-                    $log['action'] = get_string('itemfail', 'local_gradebook');
-                    $log['info'] = get_string('itemfailinfo', 'local_gradebook', $this->id);
-                    
-                    grade_reporter::add_to_log($log);
-                    return grade_reporter::BAD_REQUEST;
+            try {
+                $client = grade_reporter::get_instance();
+                $result = $client->moodleItemModify($param);
+                if (!$result->moodleItemModifyResult->status) {
+                    throw new Exception($result->moodleItemModifyResult->message);
                 }
+
+                // Success is logged conditionally
+                if(!empty($CFG->gradebook_log_success)) {
+                    $log['action'] = get_string('itemsuccess', 'local_gradebook');
+                    $log['info'] = $result->moodleItemModifyResult->message;
+                    grade_reporter::add_to_log($log);
+                }
+
+            } catch (SoapFault $e) {
+                $log['action'] = get_string('connectionfail', 'local_gradebook');
+                $log['info'] = get_string('itemconnectionfailinfo', 'local_gradebook', $this->id);
+
+                grade_reporter::add_to_log($log);                    
+                return grade_reporter::CONNECTION_ERROR;
+            } catch (Exception $e) {
+                $log['action'] = get_string('itemfail', 'local_gradebook');
+                $log['info'] = get_string('itemfailinfo', 'local_gradebook', $this->id);
+
+                grade_reporter::add_to_log($log);
+                return grade_reporter::BAD_REQUEST;
             }
         }
         
         return grade_reporter::SUCCESS;
     }
 
-
+    /**
+     * Creates array of values to be used when creating message about
+     * grade_items to MyUCLA
+     *
+     * @global object $CFG
+     * @param object $course
+     * @param int $transactionid
+     * @return array    Returns an array to create the SOAP message that will
+     *                  be sent to MyUCLA
+     */
     function make_myucla_parameters($course, $transactionid) {
         global $CFG;
-        
-        $user_obj = $this->_user;
 
-        if (empty($user_obj->idnumber) && empty($CFG->gradebook_debugging)) {
-            return false;
-        }
+        // person who made/changed grade item
+        $transaction_user = grade_reporter::get_transaction_user($this);
 
         $parentcategory = $this->get_parent_category();
         $categoryname = empty($parentcategory) ? '' : $parentcategory->fullname;
 
-        //In a crosslisted course, the parentcourse's id is required
+        // In a crosslisted course, the parentcourse's id is required
         $url = $CFG->wwwroot . '/grade/edit/tree/item.php?courseid=' .
                 $this->courseid . '&id=' . $this->id .
                 '&gpr_type=edit&gpr_plugin=tree&gpr_courseid=' . $this->courseid;
-
-        //Need the individual child course
-        if (!$course || !is_string($course->subj_area) || !is_string($course->crsidx)
-                || !is_string($course->secidx)) {
-            return false;
-        }
 
         //Create array with all the parameters and return it
         return array(
@@ -167,9 +154,11 @@ class ucla_grade_item extends grade_item {
                 )
             ),
             'mTransaction' => array(
-                'userUID' => empty($user_obj->idnumber) ? '000000000' : $user_obj->idnumber,
-                'userName' => "$user_obj->firstname $user_obj->lastname",
-                'userIpAddress' => empty($user_obj->lastip) ? '0.0.0.0' : $user_obj->lastip,
+                'userUID' => empty($transaction_user->idnumber) ?
+                    '000000000' : $transaction_user->idnumber,
+                'userName' => fullname($transaction_user, true),
+                'userIpAddress' => empty($transaction_user->lastip) ?
+                    '0.0.0.0' : $transaction_user->lastip,
                 'moodleTransactionID' => $transactionid,
             )
         );

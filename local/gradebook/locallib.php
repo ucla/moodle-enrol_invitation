@@ -114,7 +114,7 @@ final class grade_reporter {
         
         return array($rec->id, $rec->loggeduser);
     }
-    
+
     public static function change_class(&$obj, $class_type) {
         if (class_exists($class_type, true)) {
             $obj = unserialize(preg_replace("/^O:[0-9]+:\"[^\"]+\":/i", "O:" . strlen($class_type) . ":\"" . $class_type . "\":", serialize($obj)));
@@ -122,4 +122,27 @@ final class grade_reporter {
         }
     }
 
+    /**
+     * Get the user that made the last grade edit. When called by the
+     * event handler, this will be stored in the $this->_user property.
+     *
+     * Else should be the person from the grade history table. If that user
+     * no longer exists or wasn't recorded, them use admin user.
+     *
+     * @param object $grade_object  Grade object that you are trying to get
+     *                              transaction user for
+     * @param int $loggeduser       User from grading history table. Can be null
+     * @return object               Returns user who made edit
+     */
+    public static function get_transaction_user($grade_object, $loggeduser = null) {
+        global $DB;
+        if (empty($grade_object->_user)) {
+            $grade_object->_user = $DB->get_record('user', array('id' => $loggeduser));
+            if (empty($grade_object->_user)) {
+                // user was still not found, so use admin user
+                $grade_object->_user = get_admin();
+            }
+        }
+        return $grade_object->_user;
+    }
 }
