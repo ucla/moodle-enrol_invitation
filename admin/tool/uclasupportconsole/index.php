@@ -1332,6 +1332,35 @@ if ($displayforms) {
 
 $consoles->push_console_html('logs', $title, $sectionhtml);
 
+////////////////////////////////////////////////////////////////////
+$title = "pushgrades";
+$sectionhtml = '';
+if ($displayforms) {
+    $sectionhtml = supportconsole_simple_form($title, 
+        html_writer::label('Moodle course.id', 'gradepush-courseid')
+            . html_writer::empty_tag('input', array(
+                    'type' => 'text',
+                    'length' => 10,
+                    'id' => 'gradepush-courseid',
+                    'name' => 'courseid'
+                )));
+} else if ($consolecommand == "$title") { 
+    $sectionhtml = '';
+
+    $courseid =  required_param('courseid', PARAM_INT);
+    $output = null;
+    
+    exec("php $CFG->dirroot/local/gradebook/cli/grade_push.php $courseid", $output);
+    
+    echo "<pre>";
+    echo implode("\n", $output);
+    echo "</pre>";
+    
+    $consoles->no_finish = true;
+}
+
+$consoles->push_console_html('users', $title, $sectionhtml);
+
 if (isset($consoles->no_finish)) {
     echo html_writer::link(new moodle_url($PAGE->url), 'Back');
     die();
