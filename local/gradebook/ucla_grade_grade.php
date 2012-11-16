@@ -167,6 +167,8 @@ class ucla_grade_grade extends grade_grade {
                 $comment = trim(substr($this->feedback, 0,
                         grade_reporter::MAX_COMMENT_LENGTH)) .
                         get_string('continue_comments', 'local_gradebook');
+            } else {
+                $comment = trim($this->feedback);
             }
         }
         
@@ -183,15 +185,15 @@ class ucla_grade_grade extends grade_grade {
                 'miPassword' => $CFG->gradebook_password
             ),
             'mGrade' => array(
-                'gradeID' => intval($this->id),
-                'itemID' => intval($this->itemid),
+                'gradeID' => $this->id,
+                'itemID' => $this->itemid,
                 'term' => $course->term,
                 'subjectArea' => $course->subj_area,
                 'catalogNumber' => $course->crsidx,
                 'sectionNumber' => $course->secidx,
                 'srs' => $course->srs,
                 'uidStudent' => $course->uidstudent,
-                'viewableGrade' => "$this->finalgrade",
+                'viewableGrade' => $this->finalgrade,
                 'comment' => $comment,
                 'excused' => $this->excluded != '0'
             ),

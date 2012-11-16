@@ -133,9 +133,9 @@ class ucla_grade_item extends grade_item {
                 'miPassword' => $CFG->gradebook_password
             ),
             'mItem' => array(
-                'itemID' => intval($this->id),
+                'itemID' => $this->id,
                 'itemName' => $this->itemname,
-                'categoryID' => intval($this->categoryid),
+                'categoryID' => $this->categoryid,
                 'categoryName' => $categoryname,
                 'itemReleaseScores' => !($this->hidden),
 // itemDue shouldn't be sent right now, but in the future change this to be
