@@ -1068,6 +1068,68 @@ if ($displayforms) {
 
 $consoles->push_console_html('users', $title, $sectionhtml);
 
+////////////////////////////////////////////////////////////////////
+$title = "recentlysentgrades";
+$sectionhtml = '';
+
+if ($displayforms) {
+
+    $sectionhtml = get_term_selector($title);
+    $sectionhtml .= get_subject_area_selector($title);
+
+    $sectionhtml = supportconsole_simple_form($title, $input_html);
+} else if ($consolecommand == "$title") {
+
+    // get optional filters
+    $term = optional_param('term', null, PARAM_ALPHANUM);
+    if (!ucla_validator('term', $term)) {
+        $term = null;
+    }
+    $subjarea = optional_param('subjarea', null, PARAM_NOTAGS);
+
+    //List of gradebook related actions for the log table.
+    $actions = array(get_string('gradesuccess', 'local_gradebook'), get_string('gradefail', 'local_gradebook'),
+                    get_string('itemsuccess', 'local_gradebook'), get_string('itemfail', 'local_gradebook'),
+                    get_string('connectionfail', 'local_gradebook'));
+
+    list($in, $params) = $DB->get_in_or_equal($actions);
+    $wheresql = 'l.action ' . $in;
+    
+    $sql = "SELECT l.id, from_unixtime(l.time) as time, urc.term, urc.srs, urc.department, l.course, l.userid, l.module, l.action, l.info
+            FROM {log} l
+            JOIN {course} c ON l.course = c.id
+            JOIN {ucla_request_classes} urc ON c.id = urc.courseid
+            WHERE $wheresql";
+
+    // handle term/subject area filter
+    if (!empty($term) && !empty($subjarea)) {
+        $sql .= " AND
+                  urc.term='$term' AND
+                  urc.department='$subjarea'";
+    } else if (!empty($term)) {
+        $sql .= " AND
+                  urc.term='$term'";
+    } else if (!empty($subjarea)) {
+        $sql .= " AND
+                  urc.department='$subjarea'";
+    }
+    $sql .= " ORDER BY time DESC
+              LIMIT 100";   //Prints from newest to oldest and limits to 100 results.
+
+    $results = $DB->get_records_sql($sql, $params);
+
+    foreach ($results as $k => $result) {
+        $result->view = html_writer::link(new moodle_url('/user/view.php',
+            array('id' => $result->id)), 'View');
+
+        $results[$k] = $result;
+    }
+
+    $sectionhtml .= supportconsole_render_section_shortcut($title, $results);
+}
+
+$consoles->push_console_html('modules', $title, $sectionhtml);
+
 if (isset($consoles->no_finish)) {
     echo html_writer::link(new moodle_url($PAGE->url), 'Back');
     die();

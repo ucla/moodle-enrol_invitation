@@ -73,6 +73,7 @@ $string['courseregistrardifferences'] = 'Show courses with changed descriptions'
 $string['nosyllabuscourses'] = 'Show courses with no syllabus';
 $string['assignmentquizzesduesoon'] = 'Show courses with assignments or quizzes due soon';
 $string['modulespercourse'] = 'Count module totals and module types per course';
+$string['recentlysentgrades'] = 'Show recently sent grades';
 
 // Course
 $string['collablist'] = 'Show collaboration sites';
