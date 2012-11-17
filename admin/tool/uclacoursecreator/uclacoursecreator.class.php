@@ -102,6 +102,13 @@ class uclacoursecreator {
     // These are the requests of courses that have been built
     private $built_requests;
 
+    // cache of MyUCLA url updater
+    private $myucla_urlupdater;
+
+    // How many courses to process at once (too many courses can lead to MySQL
+    // database timeouts for long running processes)
+    private $MAX_COURSES_TO_PROCESS = 200;
+
     // Note: There are dynamically generated fields for this class, which
     // contain references to the enrollment object.
 
@@ -145,6 +152,12 @@ class uclacoursecreator {
             $this->finish_cron();
             return false;
         }
+
+        // check if we need to revert any failed requests
+        if ($this->get_config('revert_failed_cron')) {
+            $this->revert_failed_requests();
+        }
+
         /** Run the course creator **/
         // Figure out what terms we're running
         $termlist = $this->get_terms_creating();
@@ -451,20 +464,13 @@ class uclacoursecreator {
     function get_myucla_urlupdater() {
         global $CFG;
 
-        $cn = 'myucla_urlupdater';
-
-        $path = $CFG->dirroot . '/' . $CFG->admin . '/tool/myucla_url/'
-            . $cn . '.class.php';
-
-        if (class_exists($cn)) {
-            return new $cn();
+        if (empty($this->myucla_urlupdater)) {
+            require_once($CFG->dirroot . '/' . $CFG->admin .
+                    '/tool/myucla_url/myucla_urlupdater.class.php');
+            $this->myucla_urlupdater = new myucla_urlupdater();
         }
 
-        if (file_exists($path)) {
-            require_once($path);
-        }
-
-        return new $cn();
+        return $this->myucla_urlupdater;
     }
 
     /**
@@ -663,21 +669,6 @@ class uclacoursecreator {
 
                     // Save the created course for the trigger later...
                     $this->build_courseids[$courseid] = $courseid;
-                } else {
-                    if ($reverting) {
-                        ob_start();
-                        $result = delete_course($courseid);
-                        $delete_results = ob_get_clean();
-
-                        $action = UCLA_COURSE_TOBUILD;
-
-                        $numdeletedcourses = true;
-
-                        $this->debugln($delete_results);
-                    } else {
-                        $this->debugln('leaving course ' . $courseid . ' '
-                            . $course->shortname);
-                    }
                 }
             } else if (isset(
                         $this->cron_term_cache['retry_requests'][$reqkey]
@@ -786,6 +777,11 @@ class uclacoursecreator {
         // cron run
         $course_sets = array();
         foreach ($course_requests as $cr) {
+            // check if there are too many course requests to process
+            if (count($course_sets) > $this->MAX_COURSES_TO_PROCESS) {
+                break;
+            }
+
             $setid = $cr->setid;
             if (empty($course_sets[$setid])) {
                 $course_sets[$setid] = array();
@@ -796,8 +792,15 @@ class uclacoursecreator {
                 [self::cron_requests_key($cr)] = $cr;
         }
 
-        $this->debugln('--- ' . count($course_sets) . ' courses expected'
-            . ' ---');
+        if (count($course_sets) >= $this->MAX_COURSES_TO_PROCESS) {
+            // $course_sets shouldn't have more than MAX_COURSES_TO_PROCESS
+            // because of earlier loop break condition
+            $this->println('Too many course requests to process at once, ' .
+                    'processing only the first ' . $this->MAX_COURSES_TO_PROCESS);
+        } else {
+            $this->debugln('--- ' . count($course_sets) . ' courses requests found'
+                . ' ---');
+        }
 
         unset($course_requests);
    
@@ -2013,7 +2016,8 @@ class uclacoursecreator {
             if ($crecou_cnt > 1) {
                 $req_subj_subj = $crecou_cnt . ' courses';
             } else {
-                $req_subj_subj = reset(array_keys($created_courses));
+                $temp = array_keys($created_courses);
+                $req_subj_subj = reset($temp);
             }
 
             $req_subj = "Your request for $req_subj_subj has been processed.";
@@ -2437,6 +2441,82 @@ class uclacoursecreator {
      **/
     function match_summer($term) {
         return is_summer_term($term);
+    }
+
+    /**
+     * Will revert failed course builds. Will do the following:
+     *  1) Query for failed course builds (for given term, if applicable)
+     *  2) Check if a course was built, if so, then delete it
+     *  3) Reinsert the course request as a new entry with action of "to build"
+     *     and empty courseid
+     *
+     * @param string $term  If term is passed, then only requests for that
+     *                      term will be reverted.
+     */
+    function revert_failed_requests($term = null) {
+        global $DB;
+
+        // 1) Query for failed course builds (for given term, if applicable)
+        $params['action'] = UCLA_COURSE_FAILED;
+        $params['hostcourse'] = 1;  // only interested in the failed hosts
+        if (!empty($term)) {
+            $params['term'] = $term;
+        }
+
+        $failed_requests = $DB->get_records('ucla_request_classes', $params);
+        $this->println(sprintf('Reverting %d course requests', count($failed_requests)));
+
+        foreach ($failed_requests as $failed_request) {
+            $this->println(sprintf('Reverting request %d for term/srs: %s/%s courseid/setid %d/%d',
+                    $failed_request->id, $failed_request->term, 
+                    $failed_request->srs, $failed_request->courseid,
+                    $failed_request->setid));
+
+            // get all associated course request entries (need to do this before
+            // a delete, because a delete will also clear the requests)
+            $associated_requests = $DB->get_records('ucla_request_classes',
+                    array('setid' => $failed_request->setid, 'hostcourse' => 0));
+
+            // 2) Check if a course was built, if so, then delete it
+            if (!empty($failed_request->courseid)) {
+                if (!delete_course($failed_request->courseid, false)) {
+                    // returning false, meaning that course was deleted before
+                    // somehow, but the request was never deleted. Need to
+                    // invoke the course_deleted event for cleanup of request
+                    // table
+                    $course = new stdClass();
+                    $course->id = $failed_request->courseid;
+                    $this->debugln('Manually invoking the course_deleted event');
+                    events_trigger('course_deleted', $course);
+                }
+                $this->debugln('Deleted courseid ' . $failed_request->courseid);
+            } else {
+                $this->debugln('No course to delete for request ' . $failed_request->id);
+                // If no course found, then delete existing requests
+                $DB->delete_records('ucla_request_classes', array('setid' => $failed_request->setid));
+            }
+
+            // combine request and associated requests
+            $combo_requests = array_merge(array($failed_request), $associated_requests);
+
+            foreach ($combo_requests as $request) {
+                // 3) Reinsert the course request as a new entry with action of
+                // "to build" and empty courseid
+                unset($request->id);    // make this a new request
+                unset($request->courseid);
+                $request->timerequested = time();
+                $request->action = UCLA_COURSE_TOBUILD;
+                try {
+                    $DB->insert_record('ucla_request_classes', $request);
+                } catch (Exception $e) {
+                    die($e->error);
+                }
+
+                $this->println(sprintf('Reinserted request for %s, %s',
+                        $failed_request->term, $failed_request->srs));
+            }
+
+        }
     }
 }
 

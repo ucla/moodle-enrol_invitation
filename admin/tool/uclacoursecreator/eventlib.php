@@ -33,7 +33,7 @@ function build_courses_now($terms) {
  */
 function handle_course_deleted($course) {
     global $CFG, $DB;
-    
+
     // check if course exists in ucla_request_classes
     $ucla_request_classes = ucla_map_courseid_to_termsrses($course->id);
     if (empty($ucla_request_classes)) {
@@ -51,26 +51,16 @@ function handle_course_deleted($course) {
     }
     
     $has_error = false;
-    foreach ($ucla_request_classes as $ucla_request_class) {
-        $course = array();  // make sure it is clean for each loop
-        $course = array('term'  => $ucla_request_class->term, 
-                        'srs'   => $ucla_request_class->srs);        
-
-        $result = $myucla_urlupdater->send_MyUCLA_urls(array($course));        
-        $class_url = array_pop($result);  // returns indexed array    
-        
-        // 2a) If has urls and they aren't pointing to current server, skip them
-        if (strpos($class_url, $CFG->wwwroot) === false) {
-            continue;
-        }
-
-        // 2b) If has urls and they are pointing to the current server, then clear them        
-        $course['url'] = '';
-        $result = $myucla_urlupdater->send_MyUCLA_urls(array($course), true);        
-        if (false === strpos(array_pop($result), $myucla_urlupdater::expected_success_message)) {
-            // has error, track it and continue
+    foreach ($ucla_request_classes as $request) {
+        $result = $myucla_urlupdater->set_url_if_same_server($request->term,
+                $request->srs, '');
+        if ($result == $myucla_urlupdater::url_set) {
+            // url cleared
+        } else if ($result == $myucla_urlupdater::url_notset) {
+            // url didn't belong to current server
+        } else {
             $has_error = true;
-        }            
+        }
     }
     
     return !$has_error;

@@ -19,7 +19,12 @@ class myucla_urlupdater {
     const error_denied              = 'Unauthorized Access!';    
     const error_failed              = 'Update Unsuccessful. SQL Update Failed.';
     const error_invalid             = 'Update Unsuccessful. Invalid Course.'; 
-    
+
+    // responses for set_url_if_same_server
+    const url_set = 1;      // if url was set at MyUCLA
+    const url_notset = 0;   // if url at MyUCLA didn't belong to current server
+    const url_error = -1;   // if problem with web service
+
     // Cache, skip checking the $CFG...
     var $myucla_login = null;
 
@@ -197,6 +202,45 @@ class myucla_urlupdater {
      */
     function trim_strip_tags($string) {
         return trim(strip_tags($string), " \r\n\t");
+    }
+
+    /**
+     * Sets the url at MyUCLA only if it belongs to the same server that is
+     * sending the url out.
+     *
+     * @global object $CFG
+     *
+     * @param string $term
+     * @param string $srs
+     * @param string $url   If blank, will clear url, else will be
+     *
+     * @return boolean      Returns myucla_urlupdater::url_set if url set.
+     *                      Returns myucla_urlupdater::url_notset if existing
+     *                      url belongs to another server
+     *                      Returns myucla_urlupdater::url_error if problem with
+     *                      web service
+     */
+    function set_url_if_same_server($term, $srs, $url) {
+        global $CFG;
+
+        $course = array(0 => array('term' => $term, 'srs' => $srs));
+        
+        $results = $this->send_MyUCLA_urls($course, false);
+        $response_url = array_pop($results);
+
+        if ((strpos($response_url, $CFG->wwwroot) !== false) || empty($response_url)) {
+            $course[0]['url'] = $url;
+            $results = $this->send_MyUCLA_urls($course, true);
+
+            $response_back = array_pop($results);
+            if (strpos($response_back, self::expected_success_message) === false) {
+                return self::url_error;
+            } else {
+                return self::url_set;
+            }
+        }
+
+        return self::url_notset;
     }
 }
 
