@@ -1026,11 +1026,11 @@ function term_get_prev($term) {
 /**
  *  PHP side function to order terms.
  *  @param  $term   term
- *  @return string sortable term
+ *  @return string sortable term        Returns false on error
  **/
 function term_enum($term) {
     if (!ucla_validator('term', $term)) {
-        print_error('improperenum');
+        return false;
     }
     
     // assumption: 65F is the oldest term that registrar has
