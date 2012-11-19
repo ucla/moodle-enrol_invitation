@@ -23,6 +23,9 @@ if ($argc != 2) {
     exit('Usage: php grade_push.php <term or course-id>' . "\n");
 }
 
+// when pushing grades using this script, disable logging successful grade updates
+$CFG->gradebook_log_success = 0;
+
 $courses = array();
 if (ucla_validator('term', $argv[1])) {
     //Checks if paramater is a term
