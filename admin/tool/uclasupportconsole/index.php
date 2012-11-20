@@ -537,7 +537,7 @@ if ($displayforms) {
     $sectionhtml .= html_writer::table($syllabus_table);
 }
 
-$consoles->push_console_html('logs', $title , $sectionhtml);
+$consoles->push_console_html('modules', $title , $sectionhtml);
 
 ////////////////////////////////////////////////////////////////////
 require_once($CFG->dirroot . '/local/ucla_syllabus/locallib.php');
@@ -627,7 +627,7 @@ if ($displayforms) {
     $sectionhtml .= html_writer::table($syllabus_table);
 }
 
-$consoles->push_console_html('logs', $title , $sectionhtml);
+$consoles->push_console_html('modules', $title , $sectionhtml);
 
 ////////////////////////////////////////////////////////////////////
 // TODO ghost courses in request classes table
