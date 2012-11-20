@@ -579,8 +579,7 @@ function forum_cron() {
                 $cm         =& $coursemodules[$forum->id];
 
                 // BEGIN UCLA MOD: CCLE-3045 - Add capability to disable emailing of forum posts to certain roles
-                $coursecontext = context_course::instance($forum->course);
-                if (!has_capability('mod/forum:receivemail', $coursecontext)) {
+                if (!has_capability('mod/forum:receivemail', $modcontext)) {
                     continue;   // user shouldn't get email
                 }
                 // END UCLA MOD: CCLE-3045                
