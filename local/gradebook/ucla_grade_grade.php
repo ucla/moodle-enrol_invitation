@@ -4,16 +4,6 @@ require_once($CFG->libdir . '/grade/grade_grade.php');
 
 class ucla_grade_grade extends grade_grade {
     /**
-     * Returns the courseid for the given grade object
-     */
-    public function get_courseid() {
-        if (empty($this->grade_item)) {
-            $this->load_grade_item();
-        }
-        return $this->grade_item->courseid;
-    }
-
-    /**
      * Handler for grade updates.  This should only be called by a grade udpate
      * event handler.  
      * 
@@ -49,6 +39,11 @@ class ucla_grade_grade extends grade_grade {
     public function send_to_myucla() {
         global $DB, $CFG;
 
+        // need access to the grade_item object
+        if (empty($this->grade_item)) {
+            $this->load_grade_item();
+        }
+
         // don't push certain grade types
         if ($this->grade_item->itemtype === 'course' ||
                 $this->grade_item->itemtype === 'category') {
@@ -56,7 +51,7 @@ class ucla_grade_grade extends grade_grade {
         }
 
         // Get crosslisted SRS list
-        $courses = ucla_get_course_info($this->get_courseid());
+        $courses = ucla_get_course_info($this->grade_item->courseid);
 
         if (empty($courses)) {
             // course was not a srs course, so skip it
@@ -96,7 +91,7 @@ class ucla_grade_grade extends grade_grade {
         $transaction_user = grade_reporter::get_transaction_user($this,
                         $loggeduser);
 
-        $log = grade_reporter::prepare_log($this->get_courseid(),
+        $log = grade_reporter::prepare_log($this->grade_item->courseid,
                 $this->grade_item->iteminstance,
                 $this->grade_item->itemmodule, $transaction_user->id);
 
