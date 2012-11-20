@@ -176,6 +176,14 @@ $CFG->filter_mediaplugin_enable_rm = true;
 // to enable database unit testing
 $CFG->unittestprefix = 'tst_';
 
+// CCLE-2362 - MyUCLA Gradebook Integration
+$CFG->gradebook_webservice = 'https://stage.cis.ucla.edu/ws/moodleitemgrade/service.svc?wsdl';
+// this ID is discountinued, if you need a real gradebook_id, please contact
+// the CCLE lead developer and assign it via your config_private.php file
+$CFG->gradebook_id = 1;
+$CFG->gradebook_password = '123';
+$CFG->gradebook_send_updates = 0;
+
 /// CCLE-2810 - My Sites - disallow customized "My Moodle" page
 $CFG->forcedefaultmymoodle = true;
 

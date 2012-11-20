@@ -51,6 +51,7 @@ $string['syllabus_division'] = 'Division';
 $string['syllabus_subjarea'] = 'Subject area';
 $string['course_count'] = 'Total courses ({$a})';
 $string['syllabus_count'] = 'Courses with syllabuses ({$a})';
+$string['recentlysentgrades'] = 'Show 100 most recent MyUCLA grade log entries';
 
 // Users
 $string['moodleusernamesearch'] = 'Show users with firstname and/or lastname';

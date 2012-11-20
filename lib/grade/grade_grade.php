@@ -774,6 +774,13 @@ class grade_grade extends grade_object {
     function notify_changed($deleted) {
         global $USER, $SESSION, $CFG,$COURSE, $DB;
 
+        // START UCLA MOD CCLE-2362
+        // Saving object to rebuild when sending via webservice
+        $this->deleted = $deleted;
+        $this->_user = $USER;
+        events_trigger('ucla_grade_grade_updated', $this);
+        // END UCLA MOD CCLE-2362
+
         // Grades may be cached in user session
         if ($USER->id == $this->userid) {
             unset($SESSION->gradescorecache[$this->itemid]);
