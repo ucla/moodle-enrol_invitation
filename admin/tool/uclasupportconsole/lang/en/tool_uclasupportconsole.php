@@ -40,6 +40,7 @@ $string['moodlevideofurnacelist'] = 'Video furnace';
 $string['moodlelibraryreserveslist'] = 'Library reserves';
 $string['moodlebruincastlist'] = 'Bruincast';
 $string['sourcefile'] = 'Data source: {$a}';
+$string['recentlysentgrades'] = 'Show 100 most recent MyUCLA grade log entries';
 
 // Users
 $string['moodleusernamesearch'] = 'Show users with firstname and/or lastname';
@@ -73,6 +74,17 @@ $string['courseregistrardifferences'] = 'Show courses with changed descriptions'
 $string['nosyllabuscourses'] = 'Show courses with no syllabus';
 $string['assignmentquizzesduesoon'] = 'Show courses with assignments or quizzes due soon';
 $string['modulespercourse'] = 'Count module totals and module types per course';
+$string['syllabusreoport'] = 'Syllabus report';
+$string['syllabus_header_course'] = '{$a->term} Course ({$a->num_courses})';
+$string['syllabus_header_instructor'] = 'Instructors';
+$string['syllabus_header_public'] = 'Public ({$a})';
+$string['syllabus_header_private'] = 'Private ({$a})';
+$string['syllabusoverview'] = 'Syllabus overview';
+$string['syllabus_browseby'] = 'Browse by';
+$string['syllabus_division'] = 'Division';
+$string['syllabus_subjarea'] = 'Subject area';
+$string['course_count'] = 'Total courses ({$a})';
+$string['syllabus_count'] = 'Courses with syllabuses ({$a})';
 
 // Course
 $string['collablist'] = 'Show collaboration sites';
