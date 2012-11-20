@@ -40,6 +40,7 @@ $string['moodlevideofurnacelist'] = 'Video furnace';
 $string['moodlelibraryreserveslist'] = 'Library reserves';
 $string['moodlebruincastlist'] = 'Bruincast';
 $string['sourcefile'] = 'Data source: {$a}';
+$string['recentlysentgrades'] = 'Show 100 most recent MyUCLA grade log entries';
 
 // Users
 $string['moodleusernamesearch'] = 'Show users with firstname and/or lastname';
@@ -73,7 +74,6 @@ $string['courseregistrardifferences'] = 'Show courses with changed descriptions'
 $string['nosyllabuscourses'] = 'Show courses with no syllabus';
 $string['assignmentquizzesduesoon'] = 'Show courses with assignments or quizzes due soon';
 $string['modulespercourse'] = 'Count module totals and module types per course';
-$string['recentlysentgrades'] = 'Show recently sent grades';
 
 // Course
 $string['collablist'] = 'Show collaboration sites';

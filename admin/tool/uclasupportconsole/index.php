@@ -1095,7 +1095,7 @@ if ($displayforms) {
     list($in, $params) = $DB->get_in_or_equal($actions);
     $wheresql = 'l.action ' . $in;
     
-    $sql = "SELECT l.id, from_unixtime(l.time) as time, urc.term, urc.srs, urc.department, l.course, l.userid, l.module, l.action, l.info
+    $sql = "SELECT DISTINCT l.id AS logid, from_unixtime(l.time) as time, c.shortname AS course, c.id AS courseid, l.userid, l.module, l.action, l.info
             FROM {log} l
             JOIN {course} c ON l.course = c.id
             JOIN {ucla_request_classes} urc ON c.id = urc.courseid
@@ -1117,18 +1117,18 @@ if ($displayforms) {
               LIMIT 100";   //Prints from newest to oldest and limits to 100 results.
 
     $results = $DB->get_records_sql($sql, $params);
-
     foreach ($results as $k => $result) {
-        $result->view = html_writer::link(new moodle_url('/user/view.php',
-            array('id' => $result->id)), 'View');
-
+        $result->course = html_writer::link(new moodle_url('/course/view.php',
+            array('id' => $result->courseid)), $result->course,
+                array('target' => '_blank'));
+        unset($result->courseid);
         $results[$k] = $result;
     }
 
     $sectionhtml .= supportconsole_render_section_shortcut($title, $results);
 }
 
-$consoles->push_console_html('modules', $title, $sectionhtml);
+$consoles->push_console_html('logs', $title, $sectionhtml);
 
 if (isset($consoles->no_finish)) {
     echo html_writer::link(new moodle_url($PAGE->url), 'Back');
