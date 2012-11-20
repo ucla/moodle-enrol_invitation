@@ -40,6 +40,17 @@ $string['moodlevideofurnacelist'] = 'Video furnace';
 $string['moodlelibraryreserveslist'] = 'Library reserves';
 $string['moodlebruincastlist'] = 'Bruincast';
 $string['sourcefile'] = 'Data source: {$a}';
+$string['syllabusreoport'] = 'Syllabus report';
+$string['syllabus_header_course'] = '{$a->term} Course ({$a->num_courses})';
+$string['syllabus_header_instructor'] = 'Instructors';
+$string['syllabus_header_public'] = 'Public ({$a})';
+$string['syllabus_header_private'] = 'Private ({$a})';
+$string['syllabusoverview'] = 'Syllabus overview';
+$string['syllabus_browseby'] = 'Browse by';
+$string['syllabus_division'] = 'Division';
+$string['syllabus_subjarea'] = 'Subject area';
+$string['course_count'] = 'Total courses ({$a})';
+$string['syllabus_count'] = 'Courses with syllabuses ({$a})';
 
 // Users
 $string['moodleusernamesearch'] = 'Show users with firstname and/or lastname';
