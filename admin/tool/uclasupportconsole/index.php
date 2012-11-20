@@ -474,7 +474,7 @@ if ($displayforms) {
     if ($selected_type == 'subjarea') {
         // List courses by subject area
         $sql = 'SELECT      urci.id, urs.subjarea AS code, urs.subj_area_full AS fullname, urci.term, urci.srs
-                FROM        mdl_ucla_reg_subjectarea AS urs, mdl_ucla_reg_classinfo AS urci
+                FROM        {ucla_reg_subjectarea} AS urs, {ucla_reg_classinfo} AS urci
                 WHERE       urci.term =:term AND urs.subjarea = urci.subj_area
                 ORDER BY    urs.subjarea';
     }
@@ -482,7 +482,7 @@ if ($displayforms) {
     if ($selected_type == 'division') {
         // List course by division
         $sql = 'SELECT      urci.id, urd.code, urd.fullname, urci.term, urci.srs
-                FROM        mdl_ucla_reg_division AS urd, mdl_ucla_reg_classinfo AS urci
+                FROM        {ucla_reg_division} AS urd, {ucla_reg_classinfo} AS urci
                 WHERE       urci.term =:term AND urd.code = urci.division
                 ORDER BY    urd.code';
     }
@@ -506,7 +506,7 @@ if ($displayforms) {
             
             if ($crs->code != $code) {
                 $syllabus_data[$code] = array($divname, $num_courses, 
-                    $num_syllabuses . ' (' . sprintf('%.4f', $num_syllabuses/$num_courses) . '%)');
+                     sprintf('%d (%.2f%%)', $num_syllabuses, ($num_syllabuses/$num_courses)*100));
                 $code = $crs->code;
                 $divname = $crs->fullname;
                 
@@ -522,9 +522,9 @@ if ($displayforms) {
             
         } while ($crs = next($course_list));
         
-        // Process the last records
+        // Process the last record
         $syllabus_data[$code] = array($divname, $num_courses, 
-            $num_syllabuses . ' (' . sprintf('%.4f', $num_syllabuses/$num_courses) . '%)');
+            sprintf('%d (%.2f%%)', $num_syllabuses, ($num_syllabuses/$num_courses)*100));
         
         $syllabus_header= array(get_string('syllabus_division', 'tool_uclasupportconsole'), 
             get_string('course_count', 'tool_uclasupportconsole', $total_courses), 
@@ -557,11 +557,17 @@ if ($displayforms) {
     $selected_subj = required_param('subjarea', PARAM_NOTAGS);
     
     $sql = "SELECT      CONCAT(COALESCE(s.id, ''), urc.srs) AS idsrs, 
-                            urc.department, urc.course, urc.instructor, s.access_type
-            FROM        mdl_ucla_request_classes AS urc LEFT JOIN mdl_ucla_syllabus AS s 
-                        ON urc.courseid = s.courseid 
-            WHERE       urc.term =:term AND urc.department =:department 
-            ORDER BY    urc.setid ASC, s.access_type DESC";
+                        urc.department,
+                        urc.course,
+                        s.access_type,
+                        urc.courseid
+            FROM        {ucla_request_classes} AS urc
+            JOIN        {ucla_reg_classinfo} AS uri ON (
+                        urc.term=uri.term AND
+                        urc.srs=uri.srs)
+            LEFT JOIN   {ucla_syllabus} AS s ON (urc.courseid = s.courseid)
+            WHERE       urc.term =:term AND urc.department =:department
+            ORDER BY    uri.term, uri.subj_area, uri.crsidx, uri.secidx";
     
     $params = array();
     $params['term'] = $selected_term; 
@@ -571,7 +577,6 @@ if ($displayforms) {
     $num_public = 0;
     $num_private = 0;
     $num_courses = 0;
-    
     if ($syllabus_report = $DB->get_records_sql($sql, $params)) {
         
         foreach ($syllabus_report as $crs_syl) {
@@ -580,7 +585,9 @@ if ($displayforms) {
             $access_private = $crs_syl->access_type == UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE;
             
             $course_name = $crs_syl->department . ' ' . $crs_syl->course;
-            $syllabus_record = array($course_name, $crs_syl->instructor);
+            $course_name = html_writer::link($CFG->wwwroot . '/course/view.php?id=' .
+                    $crs_syl->courseid, $course_name, array('target' => '_blank'));
+            $syllabus_record = array($course_name);
             
             if (empty($crs_syl->access_type)) {
                 $syllabus_record[2] = '';
@@ -616,7 +623,6 @@ if ($displayforms) {
     $head_info->num_courses = $num_courses;
     $syllabus_table = new html_table();
     $table_headers = array(get_string('syllabus_header_course', 'tool_uclasupportconsole', $head_info),
-        get_string('syllabus_header_instructor', 'tool_uclasupportconsole'), 
         get_string('syllabus_header_public', 'tool_uclasupportconsole', $num_public), 
         get_string('syllabus_header_private', 'tool_uclasupportconsole', $num_private)
         );
