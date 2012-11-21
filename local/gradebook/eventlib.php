@@ -1,6 +1,6 @@
 <?php
 
-require_once('locallib.php');
+require_once($CFG->dirroot.'/local/gradebook/locallib.php');
 
 function ucla_grade_grade_updated($data) {
     // Want to use ucla_grade_grade class
