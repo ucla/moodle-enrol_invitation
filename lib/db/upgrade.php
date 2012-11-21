@@ -248,7 +248,7 @@ function xmldb_main_upgrade($oldversion) {
         if ($CFG->restrictmodulesfor === 'all') {
             $courses = $DB->get_records_menu('course', array(), 'id', 'id, 1');
         } else if ($CFG->restrictmodulesfor === 'requested') {
-            $courses = $DB->get_records_menu('course', array('retrictmodules' => 1), 'id', 'id, 1');
+            $courses = $DB->get_records_menu('course', array('restrictmodules' => 1), 'id', 'id, 1');
         } else {
             $courses = array();
         }
@@ -314,7 +314,7 @@ function xmldb_main_upgrade($oldversion) {
 
     if ($oldversion < 2012031500.02) {
 
-        // Define field retrictmodules to be dropped from course
+        // Define field restrictmodules to be dropped from course
         $table = new xmldb_table('course');
         $field = new xmldb_field('restrictmodules');
 
@@ -959,185 +959,30 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2012062501.14);
     }
 
-    // Moodle v2.2.0 release upgrade line
-    // Put any upgrade step following this
+    if ($oldversion < 2012062502.03) {
+        // Some folders still have a sortorder set, which is used for main files but is not
+        // supported by the folder resource. We reset the value here.
+        $sql = 'UPDATE {files} SET sortorder = ? WHERE component = ? AND filearea = ? AND sortorder <> ?';
+        $DB->execute($sql, array(0, 'mod_folder', 'content', 0));
 
-    if ($oldversion < 2011120500.02) {
-
-        upgrade_set_timeout(60*20); // This may take a while
-        // MDL-28180. Some missing restrictions in certain backup & restore operations
-        // were causing incorrect duplicates in the course_completion_aggr_methd table.
-        // This upgrade step takes rid of them.
-        $sql = 'SELECT course, criteriatype, MIN(id) AS minid
-                  FROM {course_completion_aggr_methd}
-              GROUP BY course, criteriatype
-                HAVING COUNT(*) > 1';
-        $duprs = $DB->get_recordset_sql($sql);
-        foreach ($duprs as $duprec) {
-            // We need to handle NULLs in criteriatype diferently
-            if (is_null($duprec->criteriatype)) {
-                $where = 'course = ? AND criteriatype IS NULL AND id > ?';
-                $params = array($duprec->course, $duprec->minid);
-            } else {
-                $where = 'course = ? AND criteriatype = ? AND id > ?';
-                $params = array($duprec->course, $duprec->criteriatype, $duprec->minid);
-            }
-            $DB->delete_records_select('course_completion_aggr_methd', $where, $params);
-        }
-        $duprs->close();
-
-        // Main savepoint reached
-        upgrade_main_savepoint(true, 2011120500.02);
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2012062502.03);
     }
 
-    if ($oldversion < 2011120500.03) {
-
-        // Changing precision of field value on table user_preferences to (1333)
-        $table = new xmldb_table('user_preferences');
-        $field = new xmldb_field('value', XMLDB_TYPE_CHAR, '1333', null, XMLDB_NOTNULL, null, null, 'name');
-
-        // Launch change of precision for field value
-        $dbman->change_field_precision($table, $field);
-
-        // Main savepoint reached
-        upgrade_main_savepoint(true, 2011120500.03);
-    }
-
-    if ($oldversion < 2011120501.08) {
-        // Check if we need to fix post.uniquehash
-        $columns = $DB->get_columns('post');
-        if (array_key_exists('uniquehash', $columns) && $columns['uniquehash']->max_length != 255) {
-            // Fix discrepancies in the post table after upgrade from 1.9
-            $table = new xmldb_table('post');
-
-            // Uniquehash should be 255 chars, fixed in earlier upgrade code
-            $field = new xmldb_field('uniquehash', XMLDB_TYPE_CHAR, 255, null, XMLDB_NOTNULL, null, null, 'content');
-            if ($dbman->field_exists($table, $field)) {
-                $dbman->change_field_precision($table, $field);
-            }
+    if ($oldversion < 2012062502.07) {
+        // Find all orphaned blog associations that might exist.
+        $sql = "SELECT ba.id
+                  FROM {blog_association} ba
+             LEFT JOIN {post} p
+                    ON p.id = ba.blogid
+                 WHERE p.id IS NULL";
+        $orphanedrecordids = $DB->get_records_sql($sql);
+        // Now delete these associations.
+        foreach ($orphanedrecordids as $orphanedrecord) {
+            $DB->delete_records('blog_association', array('id' => $orphanedrecord->id));
         }
 
-        upgrade_main_savepoint(true, 2011120501.08);
-    }
-
-    if ($oldversion < 2011120501.09) {
-        // Somewhere before 1.9 summary and content column in post table were not null. In 1.9+
-        // not null became false.
-        $columns = $DB->get_columns('post');
-
-        // Fix discrepancies in summary field after upgrade from 1.9
-        if (array_key_exists('summary', $columns) && $columns['summary']->not_null != false) {
-            $table = new xmldb_table('post');
-            $summaryfield = new xmldb_field('summary', XMLDB_TYPE_TEXT, 'big', null, null, null, null, 'subject');
-
-            if ($dbman->field_exists($table, $summaryfield)) {
-                $dbman->change_field_notnull($table, $summaryfield);
-            }
-
-        }
-
-        // Fix discrepancies in content field after upgrade from 1.9
-        if (array_key_exists('content', $columns) && $columns['content']->not_null != false) {
-            $table = new xmldb_table('post');
-            $contentfield = new xmldb_field('content', XMLDB_TYPE_TEXT, 'big', null, null, null, null, 'summary');
-
-            if ($dbman->field_exists($table, $contentfield)) {
-                $dbman->change_field_notnull($table, $contentfield);
-            }
-
-        }
-
-        upgrade_main_savepoint(true, 2011120501.09);
-    }
-
-    // The ability to backup user (private) files is out completely - MDL-29248
-    if ($oldversion < 2011120501.12) {
-        unset_config('backup_general_user_files', 'backup');
-        unset_config('backup_general_user_files_locked', 'backup');
-        unset_config('backup_auto_user_files', 'backup');
-
-        upgrade_main_savepoint(true, 2011120501.12);
-    }
-
-    if ($oldversion < 2011120502.08) {
-        require_once($CFG->libdir . '/completion/completion_criteria.php');
-        // Delete orphaned criteria which were left when modules were removed
-        if ($DB->get_dbfamily() === 'mysql') {
-            $sql = "DELETE cc FROM {course_completion_criteria} cc
-                    LEFT JOIN {course_modules} cm ON cm.id = cc.moduleinstance
-                    WHERE cm.id IS NULL AND cc.criteriatype = ".COMPLETION_CRITERIA_TYPE_ACTIVITY;
-        } else {
-            $sql = "DELETE FROM {course_completion_criteria}
-                    WHERE NOT EXISTS (
-                        SELECT 'x' FROM {course_modules}
-                        WHERE {course_modules}.id = {course_completion_criteria}.moduleinstance)
-                    AND {course_completion_criteria}.criteriatype = ".COMPLETION_CRITERIA_TYPE_ACTIVITY;
-        }
-        $DB->execute($sql);
-
-        // Main savepoint reached
-        upgrade_main_savepoint(true, 2011120502.08);
-    }
-
-    if ($oldversion < 2011120503.03) { // fix invalid course_completion_records MDL-27368
-        //first get all instances of duplicate records
-        $sql = 'SELECT userid, course FROM {course_completions} WHERE (deleted IS NULL OR deleted <> 1) GROUP BY userid, course HAVING (count(id) > 1)';
-        $duplicates = $DB->get_recordset_sql($sql, array());
-
-        foreach ($duplicates as $duplicate) {
-            $pointer = 0;
-            //now get all the records for this user/course
-            $sql = 'userid = ? AND course = ? AND (deleted IS NULL OR deleted <> 1)';
-            $completions = $DB->get_records_select('course_completions', $sql,
-                array($duplicate->userid, $duplicate->course), 'timecompleted DESC, timestarted DESC');
-            $needsupdate = false;
-            $origcompletion = null;
-            foreach ($completions as $completion) {
-                $pointer++;
-                if ($pointer === 1) { //keep 1st record but delete all others.
-                    $origcompletion = $completion;
-                } else {
-                    //we need to keep the "oldest" of all these fields as the valid completion record.
-                    $fieldstocheck = array('timecompleted', 'timestarted', 'timeenrolled');
-                    foreach ($fieldstocheck as $f) {
-                        if ($origcompletion->$f > $completion->$f) {
-                            $origcompletion->$f = $completion->$f;
-                            $needsupdate = true;
-                        }
-                    }
-                    $DB->delete_records('course_completions', array('id'=>$completion->id));
-                }
-            }
-            if ($needsupdate) {
-                $DB->update_record('course_completions', $origcompletion);
-            }
-        }
-
-        // Main savepoint reached
-        upgrade_main_savepoint(true, 2011120503.03);
-    }
-
-    if ($oldversion < 2011120503.09) {
-        // Drop some old backup tables, not used anymore
-
-        // Define table backup_files to be dropped
-        $table = new xmldb_table('backup_files');
-
-        // Conditionally launch drop table for backup_files
-        if ($dbman->table_exists($table)) {
-            $dbman->drop_table($table);
-        }
-
-        // Define table backup_ids to be dropped
-        $table = new xmldb_table('backup_ids');
-
-        // Conditionally launch drop table for backup_ids
-        if ($dbman->table_exists($table)) {
-            $dbman->drop_table($table);
-        }
-
-        // Main savepoint reached
-        upgrade_main_savepoint(true, 2011120503.09);
+        upgrade_main_savepoint(true, 2012062502.07);
     }
 
     return true;
