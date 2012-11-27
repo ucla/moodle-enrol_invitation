@@ -161,6 +161,10 @@ class delete_repo_keys_test extends advanced_testcase {
         $this->create_repo_keys($user2->id);
         $this->create_repo_keys($user3->id);
         
+        // Create other preferences
+        $this->create_other_prefs($user1->id);
+        $this->create_other_prefs($user3->id);
+        
         // make sure keys exist
         $result = $DB->record_exists('user_preferences', array('userid' => $user1->id));
         $this->assertTrue($result);               
@@ -174,10 +178,32 @@ class delete_repo_keys_test extends advanced_testcase {
         $this->assertTrue($result);
         
         // make sure that $user1 & $user2 have no more repo keys
-        $result = $DB->record_exists('user_preferences', array('userid' => $user1->id));
-        $this->assertFalse($result);        
+        $result = $DB->record_exists('user_preferences', 
+                array('userid' => $user1->id, 'name' => 'boxnet__auth_token'));
+        $this->assertFalse($result);
+        $result = $DB->record_exists('user_preferences', 
+                array('userid' => $user1->id, 'name' => 'dropbox__access_secret'));
+        $this->assertFalse($result);
+        $result = $DB->record_exists('user_preferences', 
+                array('userid' => $user1->id, 'name' => 'dropbox__request_secret'));
+        $this->assertFalse($result);
+        $result = $DB->record_exists('user_preferences', 
+                array('userid' => $user1->id, 'name' => 'boxnet__auth_token'));
+        $this->assertFalse($result);
+        // userid=2 should have nothing
         $result = $DB->record_exists('user_preferences', array('userid' => $user2->id));
-        $this->assertFalse($result);         
+        $this->assertFalse($result);
+        
+        // make sure that the other preferences were not deleted
+        $result = $DB->record_exists('user_preferences', 
+                array('userid' => $user1->id, 'name' => 'noeditingicons'));
+        $this->assertTrue($result);        
+        $result = $DB->record_exists('user_preferences', 
+                array('userid' => $user1->id, 'name' => 'otherpref'));
+        $this->assertTrue($result);
+        $result = $DB->record_exists('user_preferences', 
+                array('userid' => $user3->id, 'name' => 'noeditingicons'));
+        $this->assertTrue($result);
         
         // make sure that $user3 still has their keys        
         $result = $DB->record_exists('user_preferences', array('userid' => $user3->id));
@@ -211,5 +237,19 @@ class delete_repo_keys_test extends advanced_testcase {
         
         $dataset = $this->createArrayDataSet($data);
         $this->loadDataSet($dataset);        
+    }
+    
+    /**
+     * Creates other preferences to test that they are not deleted
+     * 
+     * @param type $userid 
+     */
+    private function create_other_prefs($userid) {
+        $data['user_preferences'][] = array('userid', 'name', 'value');
+        $data['user_preferences'][] = array($userid, 'noeditingicons', '0');
+        $data['user_preferences'][] = array($userid, 'otherpref', 'yes');
+        
+        $dataset = $this->createArrayDataSet($data);
+        $this->loadDataSet($dataset);
     }
 }
