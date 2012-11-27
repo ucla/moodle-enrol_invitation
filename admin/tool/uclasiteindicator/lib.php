@@ -95,16 +95,7 @@ class siteindicator_site {
             // CCLE-3599 - Private collab site
             // Deactivate public/private, Disable guest access
             if ($newtype == siteindicator_manager::SITE_TYPE_PRIVATE) {
-                require_once($CFG->dirroot . '/lib/enrollib.php');
-                
-                $course = $DB->get_record('course', array('id'=> $this->property->courseid) );
-                $pubpriv_course = new PublicPrivate_Course($course);
-                if($pubpriv_course->is_activated()) {
-                    $pubpriv_course->deactivate();
-                }
-                
-                $DB->set_field('enrol', 'status', ENROL_INSTANCE_DISABLED, 
-                        array('courseid' => $this->property->courseid, 'enrol' => 'guest'));
+                siteindicator_manager::make_private($this->property->courseid);
             }
             
             // Update new site type
@@ -152,6 +143,10 @@ class siteindicator_site {
         }
         
         $DB->insert_record('ucla_siteindicator', $site);
+
+        if ($site->type == siteindicator_manager::SITE_TYPE_PRIVATE) {
+            siteindicator_manager::make_private($site->courseid);
+        }
         
         return new siteindicator_site($site->courseid);
     }
@@ -990,5 +985,26 @@ class siteindicator_manager {
         
         // Return as JSON text
         return json_encode($out);
+    }
+
+    /**
+     * Makes a given course private by:
+     *  - turning off public/private
+     *  - turning off guest access
+     *
+     * @param int $courseid
+     */
+    static function make_private($courseid) {
+        global $DB, $CFG;
+        require_once($CFG->dirroot . '/lib/enrollib.php');
+        require_once($CFG->libdir . '/publicprivate/course.class.php');
+
+        $pubpriv_course = new PublicPrivate_Course($courseid);
+        if($pubpriv_course->is_activated()) {
+            $pubpriv_course->deactivate();
+        }
+
+        $DB->set_field('enrol', 'status', ENROL_INSTANCE_DISABLED,
+                array('courseid' => $courseid, 'enrol' => 'guest'));
     }
 }
