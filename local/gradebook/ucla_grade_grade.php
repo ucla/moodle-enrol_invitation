@@ -91,9 +91,14 @@ class ucla_grade_grade extends grade_grade {
         $transaction_user = grade_reporter::get_transaction_user($this,
                         $loggeduser);
 
-        $log = grade_reporter::prepare_log($this->grade_item->courseid,
-                $this->grade_item->iteminstance,
-                $this->grade_item->itemmodule, $transaction_user->id);
+        // Prepare log variables
+        $log = array(
+            'itemmodule' => $this->grade_item->itemmodule,
+            'itemtype' => $this->grade_item->itemtype,
+            'iteminstance' => $this->grade_item->iteminstance,
+            'courseid' => $this->grade_item->courseid,
+            'transactionuser' => $transaction_user->id,
+        );
 
         foreach ($enrolledcourses as $course) {
             if (empty($course->uidstudent)) {

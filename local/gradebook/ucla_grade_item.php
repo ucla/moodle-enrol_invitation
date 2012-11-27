@@ -62,8 +62,14 @@ class ucla_grade_item extends grade_item {
         $transaction_user = grade_reporter::get_transaction_user($this,
                         $loggeduser);
 
-        $log = grade_reporter::prepare_log($this->courseid, $this->iteminstance,
-                $this->itemmodule, $transaction_user->id);
+        // Prepare log variables
+        $log = array(
+            'itemmodule' => $this->itemmodule,
+            'itemtype' => $this->itemtype,
+            'iteminstance' => $this->iteminstance,
+            'courseid' => $this->courseid,
+            'transactionuser' => $transaction_user->id,
+        );
 
         // Get crosslisted SRS, and send update for each SRS
         $courses = ucla_get_course_info($this->courseid);
