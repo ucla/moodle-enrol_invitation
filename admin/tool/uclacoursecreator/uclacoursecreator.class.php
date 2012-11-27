@@ -75,7 +75,6 @@ class uclacoursecreator {
     // Caches
     private $categories_cache = array();
     private $course_defaults = array();
-    private $publicprivate_enabled;
 
     /** Non Variants **/
     // These are just simple caches.
@@ -1256,14 +1255,8 @@ class uclacoursecreator {
      **/
     function bulk_create_courses($courses) {
         $returns = array();
-        // Give public private a chance to install....
-
-        $ppe = $this->publicprivate_enabled();
+        
         foreach ($courses as $key => $course) {
-            if ($ppe) {
-                $course->enablepublicprivate = 1;
-            }
-
             $returns[$key] = create_course($course);
         }
 
@@ -2335,29 +2328,6 @@ class uclacoursecreator {
         }
 
         return new moodle_url('/course/view.php', array('id' => $course->id));
-    }
-
-    /**
-     *  Checks and caches the fact that public private has been enabled.
-     *  Loads public private code if public private is found.
-     **/
-    function publicprivate_enabled() {
-        global $CFG;
-
-        if (!isset($this->publicprivate_enabled)) {
-       
-            $cv = false;
-            $ppfile = $CFG->dirroot . '/lib/publicprivate/course.class.php';
-            if (file_exists($ppfile)) {
-                require_once($ppfile);
-                $cv = true;
-            }
-
-            $this->publicprivate_enabled = $cv;
-        }
-
-        return $this->publicprivate_enabled;
-
     }
 
     /**
