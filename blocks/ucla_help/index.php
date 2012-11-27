@@ -91,10 +91,16 @@ $sql = 'SELECT  DISTINCT crs.id, crs.fullname, crs.shortname, ctx.instanceid
 $params['userid'] = $USER->id;
 
 $user_courses = $DB->get_records_sql($sql, $params);
+if ($courseid != 0) {
+    $user_courses[] = $course;
+}
 $courses = array();
 $courses[$SITE->id] = get_string('no_course', 'block_ucla_help');
+$maxlength = 40;
 foreach ($user_courses as $crs) {
-    $courses[$crs->id] = $crs->shortname . ' ' . $crs->fullname;
+    $course_name = $crs->shortname . ' ' . $crs->fullname;
+    $courses[$crs->id] = textlib::strlen($course_name) < $maxlength ? 
+            $course_name : textlib::substr($course_name, 0, $maxlength);
 }
 
 // create form object for page
