@@ -50,14 +50,14 @@ function delete_repo_keys($param = null) {
         $DB->delete_records_select('user_preferences', "name $repo_where AND " . 
                 "userid=:userid", $repo_params);
     } else {
-        // delete all repo keys
+        // delete ONLY the repo keys
+        $repo_params['timelimit'] = $REPO_TIMEOUT_INTERVAL;
         $where = "userid IN (
                     SELECT  id
                     FROM    {user}
                     WHERE   lastaccess<=UNIX_TIMESTAMP()-:timelimit
                 )";
-        $DB->delete_records_select('user_preferences', $where, 
-                array('timelimit' => $REPO_TIMEOUT_INTERVAL));
+        $DB->delete_records_select('user_preferences', "$where AND name $repo_where", $repo_params);
     }
     
     return true;
