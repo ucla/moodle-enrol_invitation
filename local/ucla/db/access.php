@@ -46,5 +46,13 @@ $capabilities = array(
             'manager' => CAP_ALLOW,
         )
     ),
+    
+    'local/ucla:viewotherusers' => array(
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'manager' => CAP_ALLOW,
+        )
+    ),
 
 );

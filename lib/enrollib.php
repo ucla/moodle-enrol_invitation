@@ -463,7 +463,12 @@ function enrol_add_course_navigation(navigation_node $coursenode, $course) {
      // Deal somehow with users that are not enrolled but still got a role somehow
     if ($course->id != SITEID) {
         //TODO, create some new UI for role assignments at course level
-        if (has_capability('moodle/role:assign', $coursecontext)) {
+        if (has_capability('moodle/role:assign', $coursecontext) 
+            // START UCLA MOD: CCLE-3584 - Restrict "Other users" using a capability
+            // Requires that the user has the viewotherusers capability enabled
+            // in order to view the 'Other users' menu item
+            && has_capability('local/ucla:viewotherusers', $coursecontext)) {
+            // END UCLA MOD: CCLE-3584
             $url = new moodle_url('/enrol/otherusers.php', array('id'=>$course->id));
             $usersnode->add(get_string('notenrolledusers', 'enrol'), $url, navigation_node::TYPE_SETTING, null, 'otherusers', new pix_icon('i/roles', ''));
         }
