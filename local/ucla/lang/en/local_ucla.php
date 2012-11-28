@@ -76,6 +76,7 @@ $string['ucla:editadvancedcoursesettings'] = 'CCLE-3278: Can edit the course set
 $string['ucla:deletecoursecontentsandrestore'] = 'CCLE-3446: Can delete course contents when restoring a course';
 $string['ucla:editcoursetheme'] = 'CCLE-2315: Can edit the theme a course uses';
 $string['ucla:viewotherusers'] = 'CCLE-3584: Can view other users when viewing a course';
+$string['ucla:bulk_users'] = 'CCLE-2970: Can perform bulk user actions';
 
 // START UCLA MOD: CCLE-3028 - Fix nonlogged users redirect on hidden content
 // If a user who is not logged in tries to access private course information

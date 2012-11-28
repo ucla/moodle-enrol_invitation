@@ -6,6 +6,10 @@ require_once($CFG->libdir.'/adminlib.php');
 $sort = optional_param('sort', 'fullname', PARAM_ALPHA);
 $dir  = optional_param('dir', 'asc', PARAM_ALPHA);
 
+// START UCLA MOD: CCLE-2970 - Cannot disable "bulk user actions" in site admin menu
+// adding capability check for ability to perform bulk user actions
+require_capability('local/ucla:bulk_users', get_context_instance(CONTEXT_SYSTEM));
+// END UCLA MOD: CCLE-2970
 admin_externalpage_setup('userbulk');
 
 $return = $CFG->wwwroot.'/'.$CFG->admin.'/user/user_bulk.php';
