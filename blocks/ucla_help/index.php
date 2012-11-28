@@ -81,8 +81,30 @@ echo html_writer::start_tag('fieldset', array('id' => 'block_ucla_help_formbox')
 echo html_writer::tag('legend', get_string('helpform_header', 'block_ucla_help'), 
         array('id' => 'block_ucla_help_formbox_header'));
 
+// CCLE-3562 - Get the list of the user's courses for selection
+$sql = 'SELECT  DISTINCT crs.id, crs.fullname, crs.shortname, ctx.instanceid
+        FROM    mdl_context AS ctx 
+                JOIN mdl_course AS crs ON crs.id = ctx.instanceid
+                JOIN mdl_role_assignments AS ra ON ra.contextid = ctx.id
+        WHERE   ra.userid=:userid
+        ORDER BY ra.timemodified DESC';
+$params['userid'] = $USER->id;
+
+$user_courses = $DB->get_records_sql($sql, $params);
+if ($courseid != 0) {
+    $user_courses[] = $course;
+}
+$courses = array();
+$courses[$SITE->id] = get_string('no_course', 'block_ucla_help');
+$maxlength = 40;
+foreach ($user_courses as $crs) {
+    $course_name = $crs->shortname . ' ' . $crs->fullname;
+    $courses[$crs->id] = textlib::strlen($course_name) < $maxlength ? 
+            $course_name : textlib::substr($course_name, 0, $maxlength);
+}
+
 // create form object for page
-$mform = new help_form();
+$mform = new help_form(NULL, array('courses' => $courses));
 
 // handle form post
 if ($fromform = $mform->get_data()) {
@@ -101,12 +123,24 @@ if ($fromform = $mform->get_data()) {
     // get message header
     $header = get_string('message_header', 'block_ucla_help', $from_address);
     
+    // Set context to the selected course
+    $instanceid = 0;
+    $fromform->course_name = $SITE->shortname;
+    foreach ($user_courses as $c) {
+        if ($c->id == $fromform->ucla_help_course) {
+            $fromform->course_name = $c->shortname;
+            $instanceid = $c->instanceid;
+            break;
+        }
+    }
+    $context = context_course::instance($instanceid, false) ? : $context;
+    
     // get message body
     $body = create_help_message($fromform);
     
     // get support contact
     $support_contact = get_support_contact($context);
-        
+    
     $send_to = get_config('block_ucla_help', 'send_to');    
     if ('email' == $send_to) {
         // send message via email        
@@ -184,7 +218,11 @@ if ($fromform = $mform->get_data()) {
     
 } else {
     // else display form and header text
-    echo get_string('helpform_text', 'block_ucla_help');    
+    echo get_string('helpform_text', 'block_ucla_help');
+    if (!isloggedin()) {
+        echo html_writer::start_tag('br') . get_string('helpform_login', 'block_ucla_help', 
+                html_writer::link($CFG->wwwroot . '/login/index.php', 'login'));
+    }
     $mform->display();    
 }
 echo html_writer::end_tag('fieldset');

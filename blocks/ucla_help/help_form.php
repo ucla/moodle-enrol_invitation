@@ -25,16 +25,22 @@ class help_form extends moodleform {
         
         $this->_form->_attributes['id'] = 'help_form';
         
+        $courses = $this->_customdata['courses'];
+        
         $mform =& $this->_form;
         
         // css should be used to define widths of input/textarea fields
         $mform->addElement('text', 'ucla_help_name', 
                 get_string('name_field', 'block_ucla_help'));
         $mform->addElement('text', 'ucla_help_email', 
-                get_string('email_field', 'block_ucla_help'));            
+                get_string('email_field', 'block_ucla_help')); 
+        $mform->addElement('select', 'ucla_help_course', 
+                get_string('course_field', 'block_ucla_help'), $courses);
         $mform->addElement('textarea', 'ucla_help_description', 
                 get_string("description_field", "block_ucla_help"), 
                 'wrap="virtual" rows="6"');        
+        
+        $mform->setDefault('ucla_help_course', $COURSE->id);
         
         // no point in having a cancel option
         $this->add_action_buttons(false, get_string('submit_button', 'block_ucla_help'));
