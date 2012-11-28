@@ -55,5 +55,24 @@ class ucla_modify_coursemenu_form extends moodleform {
         
         $this->add_action_buttons();
     }
-}
     
+    function validation($data, $files) {
+        $errors = array();
+        
+        $landing_pagestring = $data['landingpage'];
+        $landing_page = intval($landing_pagestring);
+        if ($landing_page < 0 || $landing_page == null) {
+            $data['landingpage'] = 0;
+            $this->_form->updateSubmission($data, $files);
+        }
+        
+        $sectionstring = $data['section'];
+        $section = intval($sectionstring);
+        if ($section < 0 || $section == null) {
+            $data['section'] = 0;
+            $this->_form->updateSubmission($data, $files);
+        }
+        
+        return $errors;
+    }
+}   
