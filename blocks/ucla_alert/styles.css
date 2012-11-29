@@ -429,6 +429,11 @@
     margin-top: 4px;
 }
 
+/* EXPIRES ITEM */
+.alert-item-expires {
+    border-top: 1px solid #CCC;
+}
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /** BOOTSTRAPPED STYLES **/
 

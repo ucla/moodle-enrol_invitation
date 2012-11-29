@@ -369,6 +369,11 @@ abstract class ucla_alert {
     public function install() {
         global $DB;
         
+        // Install SITE headers
+        if($this->is_site) {
+            $this->install_site_headers();
+        }
+        
         // Preinstall scratch
         if(!$DB->record_exists(self::DB_TABLE, 
                 array('courseid' => $this->courseid, 'entity' => self::ENTITY_SCRATCH))) {
@@ -468,7 +473,28 @@ abstract class ucla_alert {
                 'json' => json_encode((object)$json),
                 'visible' => 1,
             );
+            
+            // If block doesn't exist, add it to the course
+            if(!$DB->record_exists(self::DB_TABLE, array('courseid' => $courseid))) {
+                echo "adding block for: $courseid<br/>";
+                // Get the course
+                $course = $DB->get_record('course', array('id' => $courseid));
+                
+                // Add the block
+                $page = new moodle_page();
+                $page->set_course($course);
+                $page->blocks->add_regions(array(BLOCK_POS_RIGHT));
+                $page->blocks->add_block('ucla_alert', BLOCK_POS_RIGHT, -10, 0, 'course-view-*');
+                
+                // Still need to install base elements
+                // This happens automatically when the block is installed 
+                // via the 'add block' dropdown -- but not when you add
+                // the block this way...
+                $alert = new ucla_alert_block($courseid);
+                $alert->install();
+            }
 
+            // Now add the item
             $DB->insert_record(self::DB_TABLE, $record);
         }
     }
@@ -476,9 +502,10 @@ abstract class ucla_alert {
     /**
      * Run once to install the default SITE headers
      */
-    static public function install_once() {
+    private function install_site_headers() {
         global $DB;
         
+        /// Sanity check..
         if($DB->record_exists(self::DB_TABLE, array('courseid' => SITEID, 'entity' => self::ENTITY_HEADER))) {
             return true;
         }

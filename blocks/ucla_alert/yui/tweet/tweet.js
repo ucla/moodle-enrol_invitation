@@ -1,6 +1,7 @@
 YUI.add('moodle-block_ucla_alert-tweet', function(Y) {
     
     var ModulenameNAME = 'block_ucla_alert_tweet';
+    var PostURL;
     
     var TWEET = function() {
         TWEET.superclass.constructor.apply(this, arguments);
@@ -9,6 +10,7 @@ YUI.add('moodle-block_ucla_alert-tweet', function(Y) {
     Y.extend(TWEET, Y.Base, {
         initializer : function(config) { // 'config' contains the parameter values
             // Grab all the twitter classes we're going to replace
+            PostURL = this.get('post_url');
             Y.all('.box-twitter-link').each(this.tweets);
         },
         
@@ -35,7 +37,7 @@ YUI.add('moodle-block_ucla_alert-tweet', function(Y) {
                 }
                 
                 // Get rendered tweet html
-                Y.io('rest.php', {
+                Y.io(PostURL, {
                     method: 'POST',
                     data: 'render=' + JSON.stringify({
                             'text' : text,
@@ -68,7 +70,7 @@ YUI.add('moodle-block_ucla_alert-tweet', function(Y) {
                                 // It should be in lower case without space 
                                 // as YUI use it for name space sometimes.
         ATTRS : {
-                 aparam : {}
+                 post_url : {value : ''}
         } // Attributes are the parameters sent when the $PAGE->requires->yui_module calls the module. 
           // Here you can declare default values or run functions on the parameter. 
           // The param names must be the same as the ones declared 

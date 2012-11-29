@@ -7,8 +7,7 @@ $string['pluginname'] = 'Course alerts';
 $string['section_title_site'] = 'CCLE notices';
 $string['section_title_course'] = 'Notices';
 $string['section_item_default'] = '# Hi there
-Notice me!
->{http://www.ccle.ucla.edu} CCLE Home';
+Watch this space for course alerts!';
 
 // Scratch
 $string['scratch_title'] = 'Scratch pad';

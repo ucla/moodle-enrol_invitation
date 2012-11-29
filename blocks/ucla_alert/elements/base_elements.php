@@ -173,7 +173,7 @@ class ucla_alert_block extends ucla_alert {
                     }
                     
                     // Check if we're allowed to display
-                    if($jobj->starts >= $now) {
+                    if($jobj->starts <= $now) {
                         $buffer .= $item->html;
                     }
             }

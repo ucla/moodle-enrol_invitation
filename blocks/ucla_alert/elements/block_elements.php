@@ -154,8 +154,8 @@ class alert_html_box_tweet extends alert_html_box_content {
         $text = preg_replace('/#([a-zA-Z0-9_]+)/', '<a href="http://search.twitter.com/search?q=%23$1" target="_blank" class="hashtag">#$1</a>', $text);
 
         $quote = new html_element('div', $text, array('class' => 'alert-tweet-quote'));
-        
-        $datestr = date('F j, Y, g:i a', strtotime($content->date));
+
+        $datestr = date('F j, Y, g:i a', strtotime(substr($content->date, 0, 20)));
         $date = new html_element('div', $datestr, array('class' => 'alert-tweet-date'));
         
         parent::__construct(array($a, $quote, $date), array('class' => 'alert-tweet-box'));

@@ -48,7 +48,8 @@ class block_ucla_alert extends block_base {
         
         // Load required modules
         $PAGE->requires->yui_module('moodle-block_ucla_alert-tweet', 
-                'M.ucla_alert_tweet.init_tweets', array());
+                'M.ucla_alert_tweet.init_tweets', 
+                array(array('post_url' => $CFG->wwwroot . '/blocks/ucla_alert/rest.php')));
         
         return $this->content;
     }
@@ -74,14 +75,14 @@ class block_ucla_alert extends block_base {
     }
 
     /**
-     * Installs base alert block elements
+     * Installs base alert block elements when block is installed 
+     * via 'add blocks' dropdown
      * 
      * @global type $COURSE 
      */
     public function instance_create() {
         global $COURSE;
         
-        //
         $alert = new ucla_alert_block($COURSE->id);
         $alert->install();
     }

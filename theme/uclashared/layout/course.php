@@ -148,9 +148,9 @@ echo $OUTPUT->doctype() ?>
                             <?php
                                 // Alert banner display for courses
                                 // @todo: finish implementing
-                                if($banner = ucla_alert_banner::load($COURSE->id)) {
-                                    echo $banner->alert();
-                                }
+//                                if($banner = ucla_alert_banner::load($COURSE->id)) {
+//                                    echo $banner->alert();
+//                                }
                             ?>
                             <?php echo core_renderer::MAIN_CONTENT_TOKEN ?>
                         </div>
