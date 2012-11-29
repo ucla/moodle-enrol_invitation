@@ -219,10 +219,6 @@ if ($fromform = $mform->get_data()) {
 } else {
     // else display form and header text
     echo get_string('helpform_text', 'block_ucla_help');
-    if (!isloggedin()) {
-        echo html_writer::start_tag('br') . get_string('helpform_login', 'block_ucla_help', 
-                html_writer::link($CFG->wwwroot . '/login/index.php', 'login'));
-    }
     $mform->display();    
 }
 echo html_writer::end_tag('fieldset');

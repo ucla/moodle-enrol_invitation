@@ -16,7 +16,7 @@ defined('MOODLE_INTERNAL') || die();
 class help_form extends moodleform {
  
     function definition() {
-        global $COURSE, $USER;
+        global $CFG, $COURSE, $USER;
 
         // if on a real course, be sure to include courseid as GET variable
         if($COURSE->id > 1) {
@@ -36,6 +36,12 @@ class help_form extends moodleform {
                 get_string('email_field', 'block_ucla_help')); 
         $mform->addElement('select', 'ucla_help_course', 
                 get_string('course_field', 'block_ucla_help'), $courses);
+
+        if (!isloggedin()) {
+            $mform->addElement('static', '', '', get_string('helpform_login', 'block_ucla_help',
+                    html_writer::link($CFG->wwwroot . '/login/index.php', 'login')));
+        }
+
         $mform->addElement('textarea', 'ucla_help_description', 
                 get_string("description_field", "block_ucla_help"), 
                 'wrap="virtual" rows="6"');        
