@@ -90,7 +90,19 @@ class block_ucla_browseby_renderer extends block_navigation_renderer {
                 $term = substr($termsrs, 0, $delim);
                 $srs = substr($termsrs, $delim + 1);
                 $courseid = ucla_map_termsrs_to_courseid($term, $srs);
-                $syllabus = ucla_syllabus_manager::get_syllabus_icon($courseid);
+                
+                $syllabus = '';
+                if (isset($course->syllabus)) {
+                    $syllabus = html_writer::start_tag('a', 
+                        array('href' => $CFG->wwwroot . '/local/ucla_syllabus/index.php?id=' . $courseid));
+                    $syllabus .= html_writer::tag('img', '', 
+                        array('src' => $CFG->wwwroot . '/local/ucla_syllabus/pix/icon.png', 
+                            'alt' => 'Course syllabus', 
+                            'title' => 'Course syllabus'
+                            )
+                        );
+                    $syllabus .= html_writer::end_tag('a');
+                }
 
                 $data[] = array($syllabus . ' ' . $courselink, 
                     $course->instructors, $course->fullname);

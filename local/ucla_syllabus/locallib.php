@@ -309,47 +309,6 @@ class ucla_syllabus_manager {
         return $recordid;
     }
     
-    /**
-     * Generate html for displaying the course syllabus symbol.
-     * If a course has both a public and private syllabus
-     * then display the public syllabus icon.
-     * 
-     * (TODO: Display a different logo for public/private syllabuses?)
-     * 
-     * @param $courseid
-     * 
-     * @return string   string html to display course syllabus icon.
-     *                  If no syllabus is found, then returns an empty string.
-     */
-    static function get_syllabus_icon($courseid) {
-        global $CFG;
-        
-        $syllabus_icon = html_writer::start_tag('a', 
-                    array('href' => $CFG->wwwroot . '/local/ucla_syllabus/index.php?id=' . $courseid));
-        
-        if (ucla_syllabus_manager::has_public_syllabus($courseid)) {
-            $syllabus_icon .= html_writer::tag('img', '', 
-                    array('src' => $CFG->wwwroot . '/local/ucla_syllabus/pix/icon.png', 
-                        'alt' => get_string('public_syllabus', 'local_ucla_syllabus'), 
-                        'title' => get_string('public_syllabus', 'local_ucla_syllabus')
-                        )
-                    );
-            $syllabus_icon .= html_writer::end_tag('a');
-        } else if (ucla_syllabus_manager::has_private_syllabus($courseid)) {
-            $syllabus_icon .= html_writer::tag('img', '', 
-                    array('src' => $CFG->wwwroot . '/local/ucla_syllabus/pix/icon.png', 
-                        'alt' => get_string('private_syllabus', 'local_ucla_syllabus'), 
-                        'title' => get_string('private_syllabus', 'local_ucla_syllabus')
-                        )
-                    );
-            $syllabus_icon .= html_writer::end_tag('a');
-        } else {
-            // If no syllabus is found, then don't display an icon
-            $syllabus_icon = '';
-        }
-        
-        return $syllabus_icon;
-    }
 }
 
 abstract class ucla_sylabus {

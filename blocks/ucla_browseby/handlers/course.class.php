@@ -29,7 +29,8 @@ class course_handler extends browseby_handler {
             ubii.profcode,
             user.url AS userlink,
             mco.shortname AS shortname,
-            mco.idnumber AS idnumber
+            mco.idnumber AS idnumber, 
+            us.syllabus AS syllabus
     ";
 
     const browseall_order_helper = "
@@ -84,6 +85,10 @@ class course_handler extends browseby_handler {
 
             $t = get_string('coursesinsubjarea', 'block_ucla_browseby',
                 $subjareapretty);
+            
+            // Get courses with syllabuses
+            $syllabus_sql = "(SELECT DISTINCT syl.courseid, syl.courseid AS syllabus
+                FROM {ucla_syllabus} syl)";
 
             // Get all courses in this subject area but from 
             // our browseall tables
@@ -95,8 +100,10 @@ class course_handler extends browseby_handler {
                     USING(term, srs)
                 LEFT JOIN {user} user
                     ON ubii.uid = user.idnumber
-                LEFT JOIN {course} mco
+                LEFT JOIN {course} mco 
                     ON mco.id = urc.courseid
+                LEFT JOIN ". $syllabus_sql . " AS us
+                    ON urc.courseid = us.courseid
                 WHERE ubci.subjarea = :subjarea
                 $termwhere
             " . self::browseall_order_helper;
@@ -289,6 +296,8 @@ class course_handler extends browseby_handler {
 
                 $courseobj->session_group = $course->session_group;
             }
+            
+            $courseobj->syllabus = $course->syllabus;
 
             $fullcourseslist[$k] = $courseobj;
         }
@@ -336,7 +345,7 @@ class course_handler extends browseby_handler {
                 
                 $subtable = block_ucla_browseby_renderer::
                     ucla_browseby_courses_list($courses);
-
+                
                 $table->data[] = $sessionrow;
                 $table->data = array_merge($table->data, $subtable->data);
             }
