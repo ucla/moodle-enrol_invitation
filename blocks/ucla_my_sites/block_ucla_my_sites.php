@@ -324,12 +324,12 @@ class block_ucla_my_sites extends block_base {
                                 course_handler::registrar_url(reset(
                                     $class->reg_info))
                             ),
-                            '(' . html_writer::tag(
+                            html_writer::tag(
                                     'span', 
                                     get_string('registrar_link', 
                                         'block_ucla_browseby'),
                                     array('class' => 'registrar-link')
-                                ) . ')'
+                                )
                         );
                     }
                 }
@@ -523,7 +523,7 @@ class block_ucla_my_sites extends block_base {
      */
     private function format_roles($roles) {
         if (empty($roles)) {
-            debugging('no roles');
+            //debugging('no roles');
             return '';
         }
                 

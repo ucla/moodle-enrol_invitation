@@ -74,7 +74,7 @@ $string['desc_use_local_courses'] = 'Check box to allow for local courses to ove
 $string['moreusers'] = 'MORE...';
 $string['nousersinrole'] = 'N / A';
 $string['session_break'] = 'Summer session {$a}';
-$string['registrar_link'] = 'Registrar';
+$string['registrar_link'] = '(Registrar)';
 $string['coursesnotfound'] = 'No courses found for given subject area and term';
 
 // Headers in courses view

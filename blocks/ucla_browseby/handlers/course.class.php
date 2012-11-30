@@ -273,10 +273,10 @@ class course_handler extends browseby_handler {
                     );
 
                     $courseobj->nonlinkdispname = $courseobj->dispname;
-                    $courseobj->dispname =  '(' . html_writer::tag(
+                    $courseobj->dispname =  html_writer::tag(
                         'span', get_string('registrar_link', 
                             'block_ucla_browseby'),
-                        array('class' => 'registrar-link')) . ')';
+                        array('class' => 'registrar-link'));
                 } else {
                     continue;
                 }
