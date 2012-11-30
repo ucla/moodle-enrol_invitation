@@ -56,6 +56,7 @@ $string['make_private'] = 'Make private';
 $string['make_public'] = 'Make public';
 
 // strings for displaying syllabus
+$string['cannot_view_syllabus'] = 'Private syllabus uploaded, but you need to be associated with the course to view it';
 $string['no_syllabus_uploaded'] = 'No syllabus has been uploaded yet';
 $string['no_syllabus_uploaded_help'] = 'Please "Turn editing on" to upload a syllabus';
 $string['clicktodownload'] = 'Download: {$a}';

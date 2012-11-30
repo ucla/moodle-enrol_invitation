@@ -164,10 +164,15 @@ if (!empty($USER->editing) && $can_manage_syllabus) {
     $syllabi = $ucla_syllabus_manager->get_syllabi();
 
     $syllabus_to_display = null;
-    if (!empty($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE]) && 
-            $syllabi[UCLA_SYLLABUS_TYPE_PRIVATE]->can_view()) {
-        // see if logged in user can view private syllabus
-        $syllabus_to_display = $syllabi[UCLA_SYLLABUS_TYPE_PRIVATE];            
+    if (!empty($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE])) {
+        if ($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE]->can_view()) {
+            // see if logged in user can view private syllabus
+            $syllabus_to_display = $syllabi[UCLA_SYLLABUS_TYPE_PRIVATE];
+        } else {
+            // there is a private syllabus, but user cannot view it. Need to
+            // indicate this to the user
+            $syllabus_to_display = false;
+        }
     } else if (!empty($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC]) && 
             $syllabi[UCLA_SYLLABUS_TYPE_PUBLIC]->can_view()) {
         // fallback on trying to see if user can view public syllabus
@@ -175,7 +180,13 @@ if (!empty($USER->editing) && $can_manage_syllabus) {
     }    
     
     // setup what to display
-    if (empty($syllabus_to_display)) {
+    if ($syllabus_to_display === false) {
+        // syllabus is avaialble, but user cannot view it
+        $title = get_string('display_name_default', 'local_ucla_syllabus');
+        $body = html_writer::tag('p', get_string('cannot_view_syllabus', 'local_ucla_syllabus'),
+                    array('class' => 'no_syllabus'));
+
+    } else if (empty($syllabus_to_display)) {
         // no syllabus, so display no info
         $title = get_string('display_name_default', 'local_ucla_syllabus');
         $body = html_writer::tag('p', get_string('no_syllabus_uploaded', 'local_ucla_syllabus'), 
