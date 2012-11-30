@@ -66,7 +66,6 @@ class block_ucla_browseby_renderer extends block_navigation_renderer {
      **/
     static function ucla_browseby_courses_list($courses) {
         global $CFG;
-        require_once($CFG->dirroot . '/local/ucla_syllabus/locallib.php');
         
         $disptable = new html_table();
         $disptable->id = self::browsebytableid;
@@ -74,7 +73,9 @@ class block_ucla_browseby_renderer extends block_navigation_renderer {
 
         $data = array();
         if (!empty($courses)) {
-            
+            $public_syllabus_string = get_string('public_syllabus', 'block_ucla_browseby');
+            $private_syllabus_string = get_string('public_syllabus', 'block_ucla_browseby');
+
             foreach ($courses as $termsrs => $course) {
                 if (!empty($course->nonlinkdispname)) {
                     $courselink = $course->nonlinkdispname . ' '
@@ -92,19 +93,29 @@ class block_ucla_browseby_renderer extends block_navigation_renderer {
                 $courseid = ucla_map_termsrs_to_courseid($term, $srs);
                 
                 $syllabus = '';
-                if (isset($course->syllabus)) {
+                if (isset($course->has_public_syllabus) || isset($course->has_private_syllabus)) {
                     $syllabus = html_writer::start_tag('a', 
                         array('href' => $CFG->wwwroot . '/local/ucla_syllabus/index.php?id=' . $courseid));
-                    $syllabus .= html_writer::tag('img', '', 
-                        array('src' => $CFG->wwwroot . '/local/ucla_syllabus/pix/icon.png', 
-                            'alt' => 'Course syllabus', 
-                            'title' => 'Course syllabus'
-                            )
-                        );
+
+                    if (isset($course->has_public_syllabus)) {
+                        $syllabus .= html_writer::tag('img', '',
+                            array('src' => $CFG->wwwroot . '/local/ucla_syllabus/pix/public.png',
+                                'alt' => $public_syllabus_string,
+                                'title' => $public_syllabus_string
+                                )
+                            );
+                    } else {
+                        $syllabus .= html_writer::tag('img', '',
+                            array('src' => $CFG->wwwroot . '/local/ucla_syllabus/pix/private.png',
+                                'alt' => $private_syllabus_string,
+                                'title' => $private_syllabus_string
+                                )
+                            );
+                    }
                     $syllabus .= html_writer::end_tag('a');
                 }
 
-                $data[] = array($syllabus . ' ' . $courselink, 
+                $data[] = array($syllabus, $courselink,
                     $course->instructors, $course->fullname);
                 
                 $disptable->data = $data; 
@@ -122,7 +133,7 @@ class block_ucla_browseby_renderer extends block_navigation_renderer {
 
     static function ucla_browseby_course_list_headers() {
         $headelements = array('course', 'instructors', 'coursetitle');
-        $headstrs = array();
+        $headstrs = array(0 => ''); // include empty column for syllabus icon
 
         foreach ($headelements as $headelement) {
             $headstrs[] = get_string($headelement, 

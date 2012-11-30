@@ -82,6 +82,10 @@ $string['course'] = 'Course';
 $string['instructors'] = 'Instructors';
 $string['coursetitle'] = 'Course title';
 
+// Syllabus integration
+$string['public_syllabus'] = 'Has public syllabus';
+$string['private_syllabus'] = 'Has private syllabus';
+
 // CCLE-3141 - Prepare for post M2 deployment
 $string['cutoff12S'] = 'If you cannot find the course for which ' . 
         'you\'re looking, please visit our archive server ' . 
