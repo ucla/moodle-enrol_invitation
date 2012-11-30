@@ -29,12 +29,22 @@ class course_handler extends browseby_handler {
             ubii.profcode,
             user.url AS userlink,
             mco.shortname AS shortname,
-            mco.idnumber AS idnumber
+            mco.idnumber AS idnumber, 
+            public_syllabus.id>0 AS has_public_syllabus,
+            private_syllabus.id>0 AS has_private_syllabus
     ";
 
     const browseall_order_helper = "
-        ORDER BY session_group, subj_area, course_code 
+        ORDER BY session_group, subj_area, course_code, ubci.sect_no
     ";
+
+    // Get syllabi information for courses
+    const browseall_syllabus_helper =  "
+        LEFT JOIN {ucla_syllabus} public_syllabus
+            ON  (urc.courseid = public_syllabus.courseid AND
+                (public_syllabus.access_type=1 OR public_syllabus.access_type=2))
+        LEFT JOIN {ucla_syllabus} private_syllabus
+            ON  (urc.courseid = private_syllabus.courseid AND private_syllabus.access_type=3)";
 
     function get_params() {
         // This uses division in breadcrumbs
@@ -95,14 +105,14 @@ class course_handler extends browseby_handler {
                     USING(term, srs)
                 LEFT JOIN {user} user
                     ON ubii.uid = user.idnumber
-                LEFT JOIN {course} mco
-                    ON mco.id = urc.courseid
-                WHERE ubci.subjarea = :subjarea
+                LEFT JOIN {course} mco 
+                    ON mco.id = urc.courseid " .
+            self::browseall_syllabus_helper .
+            "   WHERE ubci.subjarea = :subjarea
                 $termwhere
             " . self::browseall_order_helper;
 
-            $param['subjarea'] = $subjarea;
-
+            $param['subjarea'] = $subjarea;            
             $courseslist = $this->get_records_sql($sql, $param);
 
             // We came here from subjarea, so add some stuff
@@ -146,8 +156,9 @@ class course_handler extends browseby_handler {
                 LEFT JOIN {user} user
                     ON ubii.uid = user.idnumber
                 LEFT JOIN {course} mco
-                    ON mco.id = urc.courseid
-                WHERE 
+                    ON mco.id = urc.courseid " .
+            self::browseall_syllabus_helper .
+            "   WHERE
                     ubi.userid = :user
             " . self::browseall_order_helper;
 
@@ -290,6 +301,10 @@ class course_handler extends browseby_handler {
                 $courseobj->session_group = $course->session_group;
                 $courseobj->coursenum = $course->coursenum;
             }
+            
+            $courseobj->has_public_syllabus = $course->has_public_syllabus;
+            $courseobj->has_private_syllabus = $course->has_private_syllabus;
+            $courseobj->courseid = $course->courseid;
 
             $fullcourseslist[$k] = $courseobj;
         }
@@ -337,7 +352,7 @@ class course_handler extends browseby_handler {
                 
                 $subtable = block_ucla_browseby_renderer::
                     ucla_browseby_courses_list($courses);
-
+                
                 $table->data[] = $sessionrow;
                 $table->data = array_merge($table->data, $subtable->data);
             }

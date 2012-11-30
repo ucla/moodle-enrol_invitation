@@ -313,6 +313,7 @@ class ucla_syllabus_manager {
         
         return $recordid;
     }
+    
 }
 
 abstract class ucla_sylabus {
@@ -523,4 +524,5 @@ class ucla_public_syllabus extends ucla_sylabus {
         
         return $ret_val;
     }
+
 }
