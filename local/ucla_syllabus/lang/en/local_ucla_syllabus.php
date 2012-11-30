@@ -52,6 +52,8 @@ $string['invalid_public_syllabus'] = 'Can only have one public syllabus for cour
 $string['public_syllabus_add'] = 'Add public syllabus';
 $string['private_syllabus_add'] = 'Add private syllabus';
 $string['no_syllabus'] = 'No syllabus uploaded yet';
+$string['make_private'] = 'Make private';
+$string['make_public'] = 'Make public';
 
 // strings for displaying syllabus
 $string['no_syllabus_uploaded'] = 'No syllabus has been uploaded yet';
@@ -67,6 +69,7 @@ $string['preview_disclaimer'] = 'This is a preview syllabus, meaing that it ' .
 $string['successful_add'] = 'Successfully added a syllabus';
 $string['successful_delete'] = 'Successfully deleted a syllabus';
 $string['successful_update'] = 'Successfully updated a syllabus';
+$string['successful_convert'] = 'Successfully converted a syllabus from {$a->old} to {$a->new}';
 
 // error strings
 $string['err_file_not_uploaded'] = 'Please upload a PDF';
@@ -75,6 +78,7 @@ $string['err_syllabus_mismatch'] = 'Selected syllabus does not belong to course'
 $string['err_syllabus_not_allowed'] = 'Sorry, you must be logged in or assciated with the course to view this syllabus';
 $string['err_syllabus_notexist'] = 'Sorry, but given syllabus does not exist';
 $string['err_noembed'] = 'Unable to show embedded file. Please download file to view.';
+$string['err_syllabus_convert'] = 'Cannot convert syllabus when both public and private syllabuses are uploaded';
 
 // capability strings
 $string['ucla_syllabus:managesyllabus'] = 'Allows ability to add, edit, and delete syllabus for a course';
