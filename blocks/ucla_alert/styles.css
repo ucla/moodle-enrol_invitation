@@ -53,6 +53,14 @@
     text-shadow: 1px 1px 3px #389998;
 }
 
+.block-ucla-alert .header-box.alert-header-empty {
+    background-color: #D1DBEF;
+    text-shadow: 1px 1px 3px #6083C8;
+}
+.block-ucla-alert .content .header-box.alert-header-empty {
+    display: none;
+}
+
 /* HEADER TITLE & SUBTITLE */
 .block-ucla-alert .header-title,
 .region-content .ucla-alert .header-title {

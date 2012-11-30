@@ -38,6 +38,8 @@ $string['header_red'] = '# ccle alert
 #! now';
 $string['header_blue'] = '# maintenance alert
 ## Scheduled NOW!';
+$string['header_empty'] = '# &lt; empty &gt;
+## Do not display header';
 
 $string['header_section_item'] = 'Alert block presents itself to the world';
 

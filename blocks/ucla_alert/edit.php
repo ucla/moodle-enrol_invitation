@@ -17,6 +17,7 @@ require_capability('moodle/course:update', $context);
 
 // Set up the page.
 $PAGE->set_context($context);
+$PAGE->set_url('/blocks/ucla_alert/edit.php', array('id' => $courseid));
 
 if($courseid == SITEID) {
     $PAGE->set_course($SITE);
@@ -27,7 +28,6 @@ if($courseid == SITEID) {
     $PAGE->set_pagetype('course-view-' . $course->format);
 }
 
-$PAGE->set_url('/blocks/ucla_alert/edit.php', array('id' => $courseid));
 
 // Keep the site 'edit' button
 $go_back_url = new moodle_url('/course/view.php',
@@ -40,9 +40,11 @@ $PAGE->navbar->add(get_string('edit_alert_heading', 'block_ucla_alert'));
 // I have no idea when this is used...
 $PAGE->set_heading($SITE->fullname);
 
+// Render page
+echo $OUTPUT->header();
 
 // Attempt to load an alert block for a course
-if((intval($courseid) == SITEID) || $DB->record_exists(ucla_alert::DB_TABLE, array('courseid' => $courseid))) {
+if($DB->record_exists(ucla_alert::DB_TABLE, array('courseid' => $courseid))) {
     $alertedit = new ucla_alert_block_editable($courseid);    
 
     // Load edit YUI
@@ -55,7 +57,5 @@ if((intval($courseid) == SITEID) || $DB->record_exists(ucla_alert::DB_TABLE, arr
     print_error('alert_block_dne', 'block_ucla_alert');
 }
 
-// Render page
-echo $OUTPUT->header();
 echo $alertedit->render();
 echo $OUTPUT->footer();

@@ -524,7 +524,7 @@ abstract class ucla_alert {
             'render' => self::RENDER_REFRESH,
             'json' => json_encode($data),
             'html' => '',
-            'visible' => 1
+            'visible' => 0
         );
 
         $DB->insert_record(self::DB_TABLE, (object)$record);
@@ -556,6 +556,16 @@ abstract class ucla_alert {
         
         $record['json'] = json_encode($data);
         $record['visible'] = 0;
+        
+        $DB->insert_record(self::DB_TABLE, (object)$record);
+        
+        // Install blue <empty> header and make it default 
+        $data['visible'] = 0;
+        $data['color'] = 'empty';
+        $data['item'] = get_string('header_empty', 'block_ucla_alert');
+        
+        $record['json'] = json_encode($data);
+        $record['visible'] = 1;
         
         $DB->insert_record(self::DB_TABLE, (object)$record);
         

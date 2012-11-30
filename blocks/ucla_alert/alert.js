@@ -234,6 +234,11 @@ M.alert_block.init = function(Y) {
         headerNodes.on('dblclick', function(e) {
             var target = e.target.ancestor('.alert-edit-header-wrapper');
             
+            // Do NOT allow editing of 'empty' header
+            if(target.getAttribute('color') == 'empty') {
+                return;
+            }
+            
             var displayArea = target.one('.header-box');
             var editArea = target.one('.alert-edit-text-box');
             var savedText = target.getAttribute('rel');
