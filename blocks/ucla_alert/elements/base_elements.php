@@ -106,15 +106,23 @@ class ucla_alert_block extends ucla_alert {
             $section = $DB->get_record(self::DB_TABLE,
                     array('courseid' => 1, 'entity' => self::ENTITY_HEADER_SECTION, 'visible' => 1));
 
+            $header_json = json_decode($header->json);
+            
+            // Check for the <empty> header -- in that case, do not display anything
+            if($header_json->color == 'empty') {
+                return '';
+            }
+ 
+            // Or continue rendering header elements
             $render = new alert_html_header(
-                    json_decode($header->json), 
+                    $header_json, 
                     json_decode($section->json)
                 );
 
             $buffer = $render->render();
         } else {
             // Courses get simple alert block header
-            $h = new alert_html_course_box('Course alerts');
+            $h = new alert_html_course_box('Notices');
             $buffer = $h->render();
 
         }

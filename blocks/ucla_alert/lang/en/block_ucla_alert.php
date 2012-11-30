@@ -5,7 +5,7 @@ $string['pluginname'] = 'Course alerts';
 // Default values
 // Section
 $string['section_title_site'] = 'CCLE notices';
-$string['section_title_course'] = 'Notices';
+$string['section_title_course'] = '';
 $string['section_item_default'] = '# Hi there
 Watch this space for course alerts!';
 
