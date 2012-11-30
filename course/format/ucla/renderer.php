@@ -690,7 +690,10 @@ class format_ucla_renderer extends format_section_renderer_base {
                     array('class' => 'hidden'));
         }
         
-        return $title . $hidden;
+        // make section title a permalink
+        $moodle_url = new moodle_url('view.php',array('id' => $course->id,
+            'sectionid' => $section->id));
+        return html_writer::link($moodle_url,$title) . $hidden;
     }   
    
     /**
