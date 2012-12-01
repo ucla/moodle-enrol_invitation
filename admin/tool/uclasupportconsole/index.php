@@ -470,16 +470,16 @@ if ($displayforms) {
     $syllabus_header = array();
     $syllabus_data = array();
     $sql = '';
-    
+
+    $table_colum_name = get_string('syllabus_division', 'tool_uclasupportconsole');
     if ($selected_type == 'subjarea') {
         // List courses by subject area
         $sql = 'SELECT      urci.id, urs.subjarea AS code, urs.subj_area_full AS fullname, urci.term, urci.srs
                 FROM        {ucla_reg_subjectarea} AS urs, {ucla_reg_classinfo} AS urci
                 WHERE       urci.term =:term AND urs.subjarea = urci.subj_area
                 ORDER BY    urs.subjarea';
-    }
-    
-    if ($selected_type == 'division') {
+        $table_colum_name = get_string('syllabus_subjarea', 'tool_uclasupportconsole');
+    } else {
         // List course by division
         $sql = 'SELECT      urci.id, urd.code, urd.fullname, urci.term, urci.srs
                 FROM        {ucla_reg_division} AS urd, {ucla_reg_classinfo} AS urci
@@ -493,7 +493,7 @@ if ($displayforms) {
         
         $crs = reset($course_list);
         $code = $crs->code;
-        $divname = $crs->fullname;
+        $col_name = $crs->fullname;
         $num_courses = 0;
         $num_syllabuses = 0;
         $total_courses = count($course_list);
@@ -505,11 +505,11 @@ if ($displayforms) {
             }
             
             if ($crs->code != $code) {
-                $syllabus_data[$code] = array($divname, $num_courses, 
+                $syllabus_data[$code] = array($col_name, $num_courses,
                      sprintf('%d (%.2f%%)', $num_syllabuses, ($num_syllabuses/$num_courses)*100));
                 $code = $crs->code;
-                $divname = $crs->fullname;
                 
+                $col_name = $crs->fullname;                
                 $total_syllabuses += $num_syllabuses;
                 $num_courses = 1;
                 $num_syllabuses = 0;
@@ -523,10 +523,22 @@ if ($displayforms) {
         } while ($crs = next($course_list));
         
         // Process the last record
-        $syllabus_data[$code] = array($divname, $num_courses, 
+        $syllabus_data[$code] = array($col_name, $num_courses,
             sprintf('%d (%.2f%%)', $num_syllabuses, ($num_syllabuses/$num_courses)*100));
-        
-        $syllabus_header= array(get_string('syllabus_division', 'tool_uclasupportconsole'), 
+
+        // go through row and create link to browseby
+        foreach ($syllabus_data as $code => $row) {
+            // we are reusing $params from above, since it already has term set
+            if ($selected_type == 'subjarea') {
+                $params['subjarea'] = $code;
+            } else {
+                $params['division'] = $code;
+            }
+            $params['display_string'] = $row[0];
+            $syllabus_data[$code][0] = get_browseby_link($selected_type, $params);
+        }
+
+        $syllabus_header= array($table_colum_name,
             get_string('course_count', 'tool_uclasupportconsole', $total_courses), 
             get_string('syllabus_count', 'tool_uclasupportconsole', $total_syllabuses));
     }

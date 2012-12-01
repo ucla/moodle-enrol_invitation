@@ -79,7 +79,7 @@ class block_ucla_browseby_renderer extends block_navigation_renderer {
         
         if (!empty($courses)) {
             $public_syllabus_string = get_string('public_syllabus', 'block_ucla_browseby');
-            $private_syllabus_string = get_string('public_syllabus', 'block_ucla_browseby');
+            $private_syllabus_string = get_string('private_syllabus', 'block_ucla_browseby');
 
             foreach ($courses as $termsrs => $course) {
                 if (!empty($course->nonlinkdispname)) {

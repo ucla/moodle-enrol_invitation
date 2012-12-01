@@ -29,6 +29,38 @@ function get_all_available_registrar_queries() {
 }
 
 /**
+ * Generates appropiate browseby link
+ * 
+ * @param string $type      Type of browseby link to generate: subjarea or
+ *                          division
+ * @param array $params     Needed params to generate link. Different depending
+ *                          on type of link
+ * 
+ * @return string           Returns html link text
+ */
+function get_browseby_link($type, $params) {
+    $ret_val = '';
+    if ($type == 'subjarea') {
+        /* Expects params to have: subjarea, term, display_string
+         */
+        $ret_val = html_writer::link(new moodle_url('/blocks/ucla_browseby/view.php',
+                array('subjarea' => $params['subjarea'],
+                      'term' => $params['term'],
+                      'type' => 'course')), $params['display_string'],
+                array('target' => '_blank'));
+    } else if ($type == 'division') {
+        /* Expects params to have: division, term, display_string
+         */
+        $ret_val = html_writer::link(new moodle_url('/blocks/ucla_browseby/view.php',
+                array('division' => $params['division'],
+                      'term' => $params['term'],
+                      'type' => 'subjarea')), $params['display_string'],
+                array('target' => '_blank'));
+    }
+    return $ret_val;
+}
+
+/**
  * Generates input field for SRS number
  * 
  * @param string $id        Id to use for label

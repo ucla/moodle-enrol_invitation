@@ -43,7 +43,7 @@ $string['accesss_public_info'] = 'Public: Anyone can view (incuding non-logged i
 $string['accesss_loggedin_info'] = 'UCLA community: Only logged in users can view';
 $string['access_none_selected'] = 'Please select an access type';
 $string['access_invalid'] = 'Invalid access type selected';
-$string['preview_info'] = 'Is this a "preview syllabus"? Which is a summarized version of the course syllabus intended for public consumption.';
+$string['preview_info'] = 'Is this a "preview syllabus"? (i.e. a representative sample of the course contents)';
 $string['display_name'] = 'Display name';
 $string['display_name_default'] = 'Syllabus';
 $string['display_name_none_entered'] = 'Please enter a display name';
@@ -56,15 +56,14 @@ $string['make_private'] = 'Make private';
 $string['make_public'] = 'Make public';
 
 // strings for displaying syllabus
-$string['cannot_view_syllabus'] = 'Private syllabus uploaded, but you need to be associated with the course to view it';
-$string['no_syllabus_uploaded'] = 'No syllabus has been uploaded yet';
+$string['cannot_view_private_syllabus'] = 'A private syllabus is available to course participants.';
+$string['cannot_view_public_syllabus'] = 'A syllabus is available to logged in users.';
+$string['no_syllabus_uploaded'] = 'No syllabus is not avaiable yet';
 $string['no_syllabus_uploaded_help'] = 'Please "Turn editing on" to upload a syllabus';
 $string['clicktodownload'] = 'Download: {$a}';
 $string['syllabus_needs_setup'] = 'Syllabus (empty)';
-$string['public_disclaimer'] = 'This is a public syllabus and may not be ' . 
-        'indicative of the final syllabus and is subject to change.';
-$string['preview_disclaimer'] = 'This is a preview syllabus, meaing that it ' . 
-        'is a summarized version that gives a generalized overview of the course.';
+$string['public_disclaimer'] = 'This is a public syllabus and may not reflect the complete contents of the final syllabus for this course.';
+$string['preview_disclaimer'] = 'This is a preview syllabus (i.e. a representative sample of the course contents)';
 
 // success strings
 $string['successful_add'] = 'Successfully added a syllabus';
