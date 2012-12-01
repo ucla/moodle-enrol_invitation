@@ -75,7 +75,7 @@ if ($can_manage_syllabus) {
         $url = new moodle_url('/local/ucla_syllabus/index.php', 
                 array('id' => $course->id,
                       'sesskey' => sesskey(),
-                      'edit' => 'off'));
+                      'edit' => 'on'));
         redirect($url);
     }
 }
