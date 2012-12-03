@@ -122,12 +122,36 @@ echo $OUTPUT->doctype() ?>
     <?php $twocolumnlayout = $hassidepost ? '' : 'two-col-responsive'; ?>
 
     <div id="page-content">
+        <?php
+            // Determine if we need to display banner
+            // @todo: right now it only works for 'red' alerts
+            if(get_config('block_ucla_alert', 'alert_sitewide')) {
+
+                // If config is set, then alert-block exists... 
+                // There might be some pages that don't load the block however..
+                if(!class_exists('ucla_alert_banner_site')) {
+                    $file = $CFG->dirroot . '/blocks/ucla_alert/locallib.php';
+                    require_once($file);
+                }
+                
+                // Display banner
+                $banner = new ucla_alert_banner(SITEID);
+                echo $banner->render();
+            }
+        ?>
         <div id="region-main-box">
             <div id="region-post-box">
             
                 <div id="region-main-wrap" class="<?php echo $twocolumnlayout ?>">
                     <div id="region-main">
                         <div class="region-content">
+                            <?php
+                                // Alert banner display for courses
+                                // @todo: finish implementing
+//                                if($banner = ucla_alert_banner::load($COURSE->id)) {
+//                                    echo $banner->alert();
+//                                }
+                            ?>
                             <?php echo core_renderer::MAIN_CONTENT_TOKEN ?>
                         </div>
                     </div>
