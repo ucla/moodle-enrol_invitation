@@ -78,6 +78,7 @@ $string['registrar_link'] = '(Registrar)';
 $string['coursesnotfound'] = 'No courses found for given subject area and term';
 
 // Headers in courses view
+$string['syllabus'] = 'Syllabus';
 $string['course'] = 'Course';
 $string['instructors'] = 'Instructors';
 $string['coursetitle'] = 'Course title';

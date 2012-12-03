@@ -35,7 +35,7 @@ $string['syllabus_manager'] = 'Syllabus Manager';
 $string['public_syllabus'] = 'Public syllabus (PDF only)';
 $string['public_syllabus_help'] = 'A public syllabus is viewable by people who are not associated with the course.';
 $string['private_syllabus'] = 'Private syllabus (PDF only)';
-$string['private_syllabus_help'] = 'A private syllabus is only viewable by people enrolled in the course.';
+$string['private_syllabus_help'] = 'A private syllabus is only viewable by people who are associated with the course.';
 
 $string['upload_file'] = 'Please upload a PDF';
 $string['access'] = 'Access';
@@ -58,12 +58,16 @@ $string['make_public'] = 'Make public';
 // strings for displaying syllabus
 $string['cannot_view_private_syllabus'] = 'A private syllabus is available to course participants.';
 $string['cannot_view_public_syllabus'] = 'A syllabus is available to logged in users.';
-$string['no_syllabus_uploaded'] = 'No syllabus is not avaiable yet';
-$string['no_syllabus_uploaded_help'] = 'Please "Turn editing on" to upload a syllabus';
+$string['no_syllabus_uploaded'] = 'No syllabus is not avaiable yet.';
+$string['no_syllabus_uploaded_help'] = 'Please "Turn editing on" to upload a syllabus.';
 $string['clicktodownload'] = 'Download: {$a}';
 $string['syllabus_needs_setup'] = 'Syllabus (empty)';
-$string['public_disclaimer'] = 'This is a public syllabus and may not reflect the complete contents of the final syllabus for this course.';
-$string['preview_disclaimer'] = 'This is a preview syllabus (i.e. a representative sample of the course contents)';
+$string['public_disclaimer'] = 'A public syllabus may not reflect the complete contents of the final syllabus for this course.';
+$string['preview_disclaimer'] = 'A preview syllabus is a representative sample of the course contents and may not reflect the complete contents of the final syllabus for this course.';
+$string['private_disclaimer'] = 'A private syllabus is only available to course participants.';
+$string['public'] = 'public';
+$string['preview'] = 'preview';
+$string['private'] = 'private';
 
 // success strings
 $string['successful_add'] = 'Successfully added a syllabus';

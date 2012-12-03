@@ -70,9 +70,10 @@
     background-color: inherit;
 }
 
-/* make syllabus column very narrow */
-#browsebycourseslist .header.c0 {
+/* make syllabus column as narrow as possible */
+#browsebycourseslist .cell.c0 {
     width: 16px;
+    text-align: center;
 }
 
 #browsebymain h3 {

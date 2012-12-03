@@ -142,8 +142,7 @@ class block_ucla_browseby_renderer extends block_navigation_renderer {
     }
 
     static function ucla_browseby_course_list_headers() {
-        $headelements = array('course', 'instructors', 'coursetitle');
-        $headstrs = array(0 => ''); // include empty column for syllabus icon
+        $headelements = array('syllabus', 'course', 'instructors', 'coursetitle');
 
         foreach ($headelements as $headelement) {
             $headstrs[] = get_string($headelement, 

@@ -203,30 +203,40 @@ if (!empty($USER->editing) && $can_manage_syllabus) {
         $clicktoopen = get_string('err_noembed', 'local_ucla_syllabus');
         $download_link = $syllabus_to_display->get_download_link();        
 
+        // add download link
+        $body .= html_writer::tag('div', $download_link, array('id' => 'download_link'));
+
         // try to embed file using resource functions
         if ($mimetype === 'application/pdf') {
             $body .= resourcelib_embed_pdf($fullurl, $title, $clicktoopen);
         } else {            
             $body .= resourcelib_embed_general($fullurl, $title, $clicktoopen, $mimetype);
         }
-
-        // also add download link
-        $body .= html_writer::tag('div', $download_link, array('id' => 'download_link')); 
         
         // if this is a preview syllabus, give some disclaimer text
         // add some disclaimer text for public syllabus
+        $disclaimer_text = ''; $type_text = '';
         if ($syllabus_to_display instanceof ucla_public_syllabus) {
-            $title .= '*';
-            $disclaimer_text = '';
+            if ($syllabus_to_display->is_preview) {
+                $type_text = get_string('preview', 'local_ucla_syllabus');
+            } else {
+                $type_text = get_string('public', 'local_ucla_syllabus');
+            }
+
             if ($syllabus_to_display->is_preview) {
                 $disclaimer_text = get_string('preview_disclaimer', 'local_ucla_syllabus');
 
             } else {                
                 $disclaimer_text = get_string('public_disclaimer', 'local_ucla_syllabus');
             }
-            $body .= html_writer::tag('p', '*' . $disclaimer_text, 
-                    array('class' => 'syllabus_disclaimer'));
-        }        
+        } else {
+            $type_text = get_string('private', 'local_ucla_syllabus');
+            $disclaimer_text = get_string('private_disclaimer', 'local_ucla_syllabus');
+        }
+
+        $title .= sprintf(' (%s)*',$type_text);
+        $body .= html_writer::tag('p', '*' . $disclaimer_text,
+                array('class' => 'syllabus_disclaimer'));
     }
     
     // now display content
