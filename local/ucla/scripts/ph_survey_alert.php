@@ -1,22 +1,19 @@
 <?php
-
-/*
+/**
  * CCLE-3679
  * 
- * Script to show end-of-course survey on alert block for school of public health courses:
+ * Script to show end-of-course survey on alert block for school of public
+ * health courses for Fall 2012:
  * 
- * Usage: php ph_survey_alert.php <division> <term>
- * 
- * 
+ * Usage: php ph_survey_alert.php
  */
-
 
 define('CLI_SCRIPT', true);
 
 require_once(dirname(__FILE__).'/../../../config.php');
 require_once($CFG->dirroot . '/blocks/ucla_alert/locallib.php');
 
-echo "Adding alert notice to Humanities Fall 2012\n";
+echo "Adding alert notice to Public Health Fall 2012\n";
 ///
 // Select all the course IDs where block will be installed
 $sql = "SELECT c.id
@@ -25,10 +22,9 @@ $sql = "SELECT c.id
         JOIN {ucla_request_classes} AS urc ON urc.courseid = c.id
         JOIN {ucla_reg_classinfo} AS rci ON rci.srs = urc.srs AND rci.term = urc.term
         
-        WHERE 
-            rci.term = :term
-        AND rci.division = :division
-        AND urc.hostcourse = 1";
+        WHERE   rci.term = :term AND
+                rci.division = :division AND
+                urc.hostcourse = 1";
 
 // Get records
 $records = $DB->get_records_sql($sql, array('term' => '12F', 'division' => 'PH'));
@@ -42,10 +38,10 @@ foreach($records as $r) {
 }
 
 // Message we want to display
-$text = "# survey alert
-As part of our transition to a competencies-based curriculum, we are implementing an online course assessment system called SPHweb. This will replace the scantron course evaluations.  
+$text = "# Course Evaulation
+As part of our transition to a competencies-based curriculum, we are implementing an online course assessment system called <strong>SPHweb</strong> to replace the scantron course evaluations.
 
-For Fall quarter 2012, we are asking you to complete end of quarter evaluations for your courses using the online system by Dec. 9. The online end-of-course surveys should be activated on your course websites effective immediately.  Please log on to the system using the link below, then click [MyHome] and use your bol online login to access the system.
+For Fall 2012, we are asking you to complete end of quarter courses evaluations <strong>by Dec. 9</strong>.  Please login with your UCLA LogonID using the link below, then click [MyHome].
 >{http://portal.ph.ucla.edu/sphweb/} Survey link";
 
 // Only apply if we have any records to display
