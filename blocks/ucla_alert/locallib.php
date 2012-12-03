@@ -364,9 +364,12 @@ abstract class ucla_alert {
     abstract public function render();
     
     /**
-     * Install default block entities
+     * Install default block elements.  This happens only when you install 
+     * the block.
+     * 
+     * @param bool $empty if set to true, it will not install the default item
      */
-    public function install() {
+    public function install($empty = false) {
         global $DB;
         
         // Install SITE headers
@@ -408,13 +411,14 @@ abstract class ucla_alert {
 
             $title = ($this->courseid == SITEID) ? 'section_title_site' : 'section_title_course';
             
+            // Default item to show
+            $default_item = empty($empty) ? array(get_string('section_item_default', 'block_ucla_alert')) : array();
+            
             $data = array(
                 'title' => get_string($title, 'block_ucla_alert'),
                 'visible' => 1,
                 'entity' => self::ENTITY_SECTION,
-                'items' => array(
-                    get_string('section_item_default', 'block_ucla_alert')
-                ),
+                'items' => $default_item,
             );
 
             // Prepare record
@@ -476,7 +480,6 @@ abstract class ucla_alert {
             
             // If block doesn't exist, add it to the course
             if(!$DB->record_exists(self::DB_TABLE, array('courseid' => $courseid))) {
-                echo "adding block for: $courseid<br/>";
                 // Get the course
                 $course = $DB->get_record('course', array('id' => $courseid));
                 
@@ -491,7 +494,10 @@ abstract class ucla_alert {
                 // via the 'add block' dropdown -- but not when you add
                 // the block this way...
                 $alert = new ucla_alert_block($courseid);
-                $alert->install();
+                
+                // Install block without any default items.  This will ensure
+                // that block is hidden after alert expires
+                $alert->install(true);
             }
 
             // Now add the item

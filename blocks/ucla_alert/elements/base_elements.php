@@ -85,8 +85,13 @@ class ucla_alert_banner extends ucla_alert {
  */
 class ucla_alert_block extends ucla_alert {
 
+    private $itemcount;
+    
     public function __construct($courseid) {
         parent::__construct($courseid);
+        
+        // Will keep count of number of items rendered
+        $this->itemcount = 0;
     }
 
     /**
@@ -145,6 +150,13 @@ class ucla_alert_block extends ucla_alert {
                 array('courseid' => $this->courseid, 'entity' => self::ENTITY_SECTION, 'visible' => 1));
         
         foreach($sections as $section) {
+            
+            // Decode internal json object
+            $json = json_decode($section->json);
+            
+            // Keep internal tally of number of items in a section
+            $this->itemcount += count($json->items);
+            
             switch($section->render) {
                 case self::RENDER_CACHE:
                     // If content is cached, avoid overhead of rendering
@@ -152,7 +164,7 @@ class ucla_alert_block extends ucla_alert {
                     break;
                 case self::RENDER_REFRESH:
                     // Render content and then cache it
-                    $html = new alert_html_section(json_decode($section->json));
+                    $html = new alert_html_section($json);
                     $buffer .= $html->render();
 
                     $section->html = $html->render();
@@ -167,6 +179,9 @@ class ucla_alert_block extends ucla_alert {
         // Grab individual items
         $items = $DB->get_records(self::DB_TABLE, 
                 array('courseid' => $this->courseid, 'entity' => self::ENTITY_ITEM, 'visible' => 1));
+        
+        // Count items
+        $this->itemcount += count($items);
         
         foreach($items as $item) {
             switch($item->render) {
@@ -191,12 +206,22 @@ class ucla_alert_block extends ucla_alert {
     }
     
     /**
-     * Render contents of a block
+     * Render contents of a block if there are items to render
      * 
-     * @return string
+     * @return string html buffer
      */
     public function render() {
-        return $this->header() . $this->body();
+        // Render the body first
+        $buffer = $this->body();
+        
+        // Only display if there are items to display
+        if($this->itemcount) {
+            // Render the header at this
+            return $this->header() . $buffer;
+        } else {
+            // There are 0 items to display, so don't display the block
+            return '';
+        }
     }
 }
 
