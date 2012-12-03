@@ -326,7 +326,7 @@ function ucla_format_display_instructors($course) {
     
     // Join on office hours info as well to get all information in one query
     $sql = "
-        SELECT 
+        SELECT DISTINCT
             CONCAT(u.id, '-', r.id) as recordset_id,
             u.id,
             u.firstname,
