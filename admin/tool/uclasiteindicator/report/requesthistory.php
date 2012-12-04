@@ -64,6 +64,11 @@ if (empty($history)) {
         if($h->courseid) {
             $course = $DB->get_record('course', array('id' => $h->courseid));
 
+            // if course was not found, then course was deleted
+            if (empty($course)) {
+                continue;
+            }
+
             // Site name
             $sitename = $course->fullname;
             $link = html_writer::link($CFG->wwwroot . '/course/view.php?id=' . $h->courseid, $sitename);

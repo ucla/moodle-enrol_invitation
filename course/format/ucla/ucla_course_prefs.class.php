@@ -43,7 +43,11 @@ class ucla_course_prefs {
 
     function get_preference($preference, $default=false) {
         if (isset($this->preferences[$preference])) {
-            return $this->preferences[$preference]->value;
+            $value = $this->preferences[$preference]->value;
+            
+            if ($value != null) {
+                return $value;
+            }
         }
 
         return $default;
@@ -59,6 +63,10 @@ class ucla_course_prefs {
         }
         
         $newpref->value = $value;
+        if ($value == null ) {
+            $commit = false;
+        }
+        
         $newpref->timestamp = time();
 
         $this->preferences[$preference] = $newpref;

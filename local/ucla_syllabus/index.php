@@ -75,7 +75,7 @@ if ($can_manage_syllabus) {
         $url = new moodle_url('/local/ucla_syllabus/index.php', 
                 array('id' => $course->id,
                       'sesskey' => sesskey(),
-                      'edit' => 'off'));
+                      'edit' => 'on'));
         redirect($url);
     }
 }
@@ -125,6 +125,33 @@ if (!empty($USER->editing) && $can_manage_syllabus) {
             $success_msg = get_string('successful_delete', 'local_ucla_syllabus');
             flash_redirect($url, $success_msg);            
         }
+    } else if ($action == UCLA_SYLLABUS_ACTION_CONVERT) {
+        // User is converting between public or private syllabus
+        $syllabi = $ucla_syllabus_manager->get_syllabi();
+        
+        $convertto = 0;
+        $fromto = new StdClass();
+        $fromto->old = $type;
+        if ($type == UCLA_SYLLABUS_TYPE_PUBLIC) {
+            $convertto = UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE;
+            $fromto->new = UCLA_SYLLABUS_TYPE_PRIVATE;
+        } else if ($type == UCLA_SYLLABUS_TYPE_PRIVATE) {
+            // Using the stricter version of public - require user login
+            $convertto = UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN;
+            $fromto->new = UCLA_SYLLABUS_TYPE_PUBLIC;
+        }
+        
+        if ($convertto == 0) {
+             print_error('err_syllabus_notexist', 'local_ucla_syllabus');
+        } else {
+            $ucla_syllabus_manager->convert_syllabus($syllabi[$type], $convertto);
+            
+            $url = new moodle_url('/local/ucla_syllabus/index.php',
+                    array('action' => UCLA_SYLLABUS_ACTION_VIEW,
+                          'id' => $course->id));
+            $success_msg = get_string('successful_convert', 'local_ucla_syllabus', $fromto);
+            flash_redirect($url, $success_msg);
+        }
     }
 
     display_header(get_string('syllabus_manager', 'local_ucla_syllabus'));    
@@ -136,23 +163,32 @@ if (!empty($USER->editing) && $can_manage_syllabus) {
 
     $syllabi = $ucla_syllabus_manager->get_syllabi();
 
-    $syllabus_to_display = null;
-    if (!empty($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE]) && 
+     $syllabus_to_display = null;
+    if (!empty($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE]) &&
             $syllabi[UCLA_SYLLABUS_TYPE_PRIVATE]->can_view()) {
         // see if logged in user can view private syllabus
-        $syllabus_to_display = $syllabi[UCLA_SYLLABUS_TYPE_PRIVATE];            
-    } else if (!empty($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC]) && 
+        $syllabus_to_display = $syllabi[UCLA_SYLLABUS_TYPE_PRIVATE];
+    } else if (!empty($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC]) &&
             $syllabi[UCLA_SYLLABUS_TYPE_PUBLIC]->can_view()) {
         // fallback on trying to see if user can view public syllabus
-        $syllabus_to_display = $syllabi[UCLA_SYLLABUS_TYPE_PUBLIC];  
-    }    
+        $syllabus_to_display = $syllabi[UCLA_SYLLABUS_TYPE_PUBLIC];
+    }
     
     // setup what to display
     if (empty($syllabus_to_display)) {
         // no syllabus, so display no info
         $title = get_string('display_name_default', 'local_ucla_syllabus');
-        $body = html_writer::tag('p', get_string('no_syllabus_uploaded', 'local_ucla_syllabus'), 
-                    array('class' => 'no_syllabus'));
+
+        $error_string = '';
+        if (!empty($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC])) {
+            $error_string = get_string('cannot_view_public_syllabus', 'local_ucla_syllabus');
+        } else if (!empty($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE])) {
+            $error_string = get_string('cannot_view_private_syllabus', 'local_ucla_syllabus');
+        } else {
+            $error_string = get_string('no_syllabus_uploaded', 'local_ucla_syllabus');
+        }
+
+        $body = html_writer::tag('p', $error_string, array('class' => 'no_syllabus'));
 
         // if user can upload a syllabus, let them know about turning editing on
         if ($can_manage_syllabus) {
@@ -167,30 +203,40 @@ if (!empty($USER->editing) && $can_manage_syllabus) {
         $clicktoopen = get_string('err_noembed', 'local_ucla_syllabus');
         $download_link = $syllabus_to_display->get_download_link();        
 
+        // add download link
+        $body .= html_writer::tag('div', $download_link, array('id' => 'download_link'));
+
         // try to embed file using resource functions
         if ($mimetype === 'application/pdf') {
             $body .= resourcelib_embed_pdf($fullurl, $title, $clicktoopen);
         } else {            
             $body .= resourcelib_embed_general($fullurl, $title, $clicktoopen, $mimetype);
         }
-
-        // also add download link
-        $body .= html_writer::tag('div', $download_link, array('id' => 'download_link')); 
         
         // if this is a preview syllabus, give some disclaimer text
         // add some disclaimer text for public syllabus
+        $disclaimer_text = ''; $type_text = '';
         if ($syllabus_to_display instanceof ucla_public_syllabus) {
-            $title .= '*';
-            $disclaimer_text = '';
+            if ($syllabus_to_display->is_preview) {
+                $type_text = get_string('preview', 'local_ucla_syllabus');
+            } else {
+                $type_text = get_string('public', 'local_ucla_syllabus');
+            }
+
             if ($syllabus_to_display->is_preview) {
                 $disclaimer_text = get_string('preview_disclaimer', 'local_ucla_syllabus');
 
             } else {                
                 $disclaimer_text = get_string('public_disclaimer', 'local_ucla_syllabus');
             }
-            $body .= html_writer::tag('p', '*' . $disclaimer_text, 
-                    array('class' => 'syllabus_disclaimer'));
-        }        
+        } else {
+            $type_text = get_string('private', 'local_ucla_syllabus');
+            $disclaimer_text = get_string('private_disclaimer', 'local_ucla_syllabus');
+        }
+
+        $title .= sprintf(' (%s)*',$type_text);
+        $body .= html_writer::tag('p', '*' . $disclaimer_text,
+                array('class' => 'syllabus_disclaimer'));
     }
     
     // now display content

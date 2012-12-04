@@ -3959,29 +3959,6 @@ function create_course($data, $editoroptions = NULL) {
     // Trigger events
     events_trigger('course_created', $course);
 
-    /**
-     * Set the course up with public/private settings correctly.
-     * 
-     * If public/private is set, then it should be activated (creating group/
-     * grouping) and enrolled users as per earlier in this routine should be
-     * added to the group. Otherwise, if public/private is not set, then this
-     * makes sure that it's not activated somewhere earlier in this script and,
-     * if it is, then it should be deactivated.
-     *
-     * @author ebollens
-     * @version 20110719
-     *
-     * @throws PublicPrivate_Course_Exception
-     */
-
-    $pubpriv_course = new PublicPrivate_Course($course);
-
-    if($course->enablepublicprivate == 1) {
-        $pubpriv_course->activate();
-    } else if($pubpriv_course->is_activated()) {
-        $pubpriv_course->deactivate();
-    }
-
     return $course;
 }
 
@@ -4082,31 +4059,6 @@ function update_course($data, $editoroptions = NULL) {
 
     // Trigger events
     events_trigger('course_updated', $course);
-
-    /**
-     * Detect if this update changed the public/private state for the course.
-     *
-     * @author ebollens
-     * @version 20110719
-     */
-    if($data->enablepublicprivate != $oldcourse->enablepublicprivate) {
-
-        $pubpriv_course = new PublicPrivate_Course($course);
-        
-        /**
-         * If public/private was enabled, activate it (creating group/grouping)
-         * and add all enrolled users to the public/private group. Otherwise,
-         * if public/private was disabled and is activated currently, then
-         * deactivate it (deleting group/grouping).
-         *
-         * @throws PublicPrivate_Course_Exception
-         */
-        if($course->enablepublicprivate == 1) {
-            $pubpriv_course->activate();    // activate calls add_enrolled_users
-        } else if($pubpriv_course->is_activated()) {
-            $pubpriv_course->deactivate();
-        }
-    }
 }
 
 /**

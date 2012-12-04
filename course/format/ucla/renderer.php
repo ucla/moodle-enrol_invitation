@@ -61,6 +61,9 @@ class format_ucla_renderer extends format_section_renderer_base {
     
     // edit icons style preference
     private $noeditingicons;
+
+    // How many crosslists to limit for display
+    const MAX_CROSSLIST_SHOWN = 5;
     
     /**
      * Constructor method, do necessary setup for UCLA format.
@@ -132,6 +135,7 @@ class format_ucla_renderer extends format_section_renderer_base {
         $regcoursetext = '';
         $termtext = '';
         if (!empty($this->courseinfo)) {
+            // don't show too many
             $regcoursetext = implode(' / ', $this->displayinfo);
             $termtext = ucla_term_to_text($this->term);
         }
@@ -341,8 +345,10 @@ class format_ucla_renderer extends format_section_renderer_base {
             // We need the stuff...
             $regclassurls = array();
             $regfinalurls = array();
-            foreach ($this->courseinfo as $key => $courseinfo) {
+            $num_displayinfo = count($this->displayinfo);
+            for ($key = 0; $key < $num_displayinfo; $key++) {
                 $displayinfo = $this->displayinfo[$key];
+                $courseinfo = $this->courseinfo[$key];
 
                 $url = new moodle_url($courseinfo->url);
                 $regclassurls[$key] = html_writer::link($url, $displayinfo);
@@ -690,7 +696,10 @@ class format_ucla_renderer extends format_section_renderer_base {
                     array('class' => 'hidden'));
         }
         
-        return $title . $hidden;
+        // make section title a permalink
+        $moodle_url = new moodle_url('view.php',array('id' => $course->id,
+            'sectionid' => $section->id));
+        return html_writer::link($moodle_url,$title) . $hidden;
     }   
    
     /**
@@ -763,6 +772,13 @@ class format_ucla_renderer extends format_section_renderer_base {
         
         $theterm = false;
         foreach ($this->courseinfo as $key => $courseinfo) {
+            if (count($this->displayinfo) > self::MAX_CROSSLIST_SHOWN) {
+                // going over the limit of crosslists to show, replace them
+                // with ...
+                $this->displayinfo[$key] = '...';
+                break;
+            }
+
             $thisterm = $courseinfo->term;
             if (!$theterm) {
                 $theterm = $thisterm;

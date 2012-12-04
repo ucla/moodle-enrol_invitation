@@ -326,7 +326,7 @@ function ucla_format_display_instructors($course) {
     
     // Join on office hours info as well to get all information in one query
     $sql = "
-        SELECT 
+        SELECT DISTINCT
             CONCAT(u.id, '-', r.id) as recordset_id,
             u.id,
             u.firstname,
@@ -367,6 +367,16 @@ function ucla_format_display_instructors($course) {
  *  @return int       Returns section number that user is viewing
  */
 function ucla_format_figure_section($course, $course_prefs = null) {
+
+    // see if user is requesting a permalink section
+    $sectionid = optional_param('sectionid', null, PARAM_INT);
+    if (!is_null($sectionid)) {
+        // NOTE: use section
+        global $section;
+        // This means that a sectionid was explicitly declared, so just use
+        // $displaysection, because it has been converted to a section number
+        return $section;
+    }
 
     // see if user is requesting a specific section
     $section = optional_param('section', null, PARAM_INT);

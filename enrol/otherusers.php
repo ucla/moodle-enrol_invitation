@@ -36,6 +36,13 @@ $course = $DB->get_record('course', array('id'=>$id), '*', MUST_EXIST);
 $context = get_context_instance(CONTEXT_COURSE, $course->id, MUST_EXIST);
 
 require_login($course);
+
+// START UCLA MOD: CCLE-3584 - Restrict "Other users" using a capability
+// Requires that the user must have the viewotherusers capability enabled in
+// order to view other users
+require_capability('local/ucla:viewotherusers', $context);
+// END UCLA MOD: CCLE-3584
+
 require_capability('moodle/role:assign', $context);
 
 if ($course->id == SITEID) {

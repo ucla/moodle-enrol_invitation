@@ -4,9 +4,12 @@ $string['pluginname'] = 'Help & Feedback';
 // help form text
 $string['name_field'] = 'Name';
 $string['email_field'] = 'Email';
+$string['course_field'] = 'Course';
 $string['description_field'] = 'Details';
 
 $string['submit_button'] = 'Submit';
+
+$string['no_course'] = 'Other, please describe below';
 
 $string['error_empty_description'] = 'A description is required to send feedback';
 
@@ -15,6 +18,7 @@ $string['helpbox_text_default'] = 'Please use the settings option of the help bl
 
 $string['helpform_header'] = 'Report a problem';
 $string['helpform_text'] = 'Use the form below to report a problem or error. Include your email address so we can get back to you.';
+$string['helpform_login'] = 'Please {$a} if requesting help with a particular course.';
 
 // used by message being sent
 $string['message_header'] = 'Moodle feedback from {$a}';

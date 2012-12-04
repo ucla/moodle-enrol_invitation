@@ -41,59 +41,30 @@ final class grade_reporter {
         return self::$_instance;
     }
     
-    public static function prepare_log($courseid, $instance, $modname, $userid, $cmid = null) {
-        global $DB;
-        
-        // Need the course module ID for logging purposes.  
-        // This will allow the module to be seen in the module log, as well as
-        // the general class log.  It also creates a correct link
-        if(empty($cmid)) {
-            $query = 'SELECT cm.id 
-                FROM {course_modules} as cm
-                JOIN {modules} as m on m.id = cm.module
-                WHERE cm.course = :courseid
-                AND cm.instance = :instance
-                AND m.name = :modname';
-
-            $result = $DB->get_records_sql($query, array(
-                'courseid' => $courseid,
-                'instance' => $instance,
-                'modname' => $modname,
-            ));
-
-            $cmid = empty($result) ? 0 : array_shift($result)->id;
-        }
-        
-        return array(
-            'courseid' => $courseid,
-            'module' => $modname,
-            'url' => 'view.php?id=' . $cmid,
-            'cm' => $cmid,
-            'user' => $userid,
-        );
-    }
-    
-    public static function get_cm_id($courseid, $instance, $modname) {
-        global $DB;
-        
-        $query = 'SELECT cm.id 
-            FROM {course_modules} as cm
-            JOIN {modules} as m on m.id = cm.module
-            WHERE cm.course = :courseid
-            AND cm.instance = :instance
-            AND m.name = :modname';
-        
-        $result = $DB->get_records_sql($query, array(
-            'courseid' => $courseid,
-            'instance' => $instance,
-            'modname' => $modname,
-        ));
-
-        return empty($result) ? 0 : array_shift($result)->id;
-    }
-    
+    /**
+     * Add entry to mdl_log
+     * 
+     * @param array $params these are variables needed to create a proper log entry
+     */
     public static function add_to_log($params) {
-        extract($params);
+        
+        // It's possible for a grade item not to be a module, in this case
+        // module name cannot be NULL in the log, so we use the 'itemtype' instead
+        $modname = empty($params['itemmodule']) ? $params['itemtype'] : $params['itemmodule'];
+        
+        // We need the module ID if it exists
+        $cmid = get_coursemodule_from_instance($modname, $params['iteminstance']);
+        $cmid = empty($cmid) ? 0 : $cmid->module;
+        
+        // Log vars
+        $courseid = $params['courseid'];
+        $module = $modname;
+        $action = $params['action'];
+        $url = 'view.php?id=' . $cmid;
+        $info = $params['info'];
+        $cm = $cmid;
+        $user = $params['transactionuser'];
+        
         add_to_log($courseid, $module, $action, $url, $info, $cm, $user);
     }
     

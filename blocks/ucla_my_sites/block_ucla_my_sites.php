@@ -25,6 +25,9 @@ require_once($CFG->dirroot.'/blocks/ucla_browseby/handlers/course.class.php');
 class block_ucla_my_sites extends block_base {
     private $cache = array();
 
+    // How many crosslists to limit for display
+    const MAX_CROSSLIST_SHOWN = 5;
+
     /**
      * block initializations
      */
@@ -287,17 +290,25 @@ class block_ucla_my_sites extends block_base {
             foreach ($class_sites as $class) {
                 // build class title in following format:
                 // <subject area> <cat_num>, <activity_type e.g. Lec, Sem> <sec_num> (<term name e.g. Winter 2012>): <full name>
-                
+
                 // there might be multiple reg_info records for cross-listed 
                 // courses
-                $class_title = ''; $first_entry = true;
+                $class_title = ''; $first_entry = true; $num_entries = 0;
                 foreach ($class->reg_info as $reg_info) {
                     $first_entry ? $first_entry = false : $class_title .= '/';
+
+                    // don't show too many cross-listed entries
+                    if ($num_entries > self::MAX_CROSSLIST_SHOWN) {
+                        $class_title .= '...';
+                        break;
+                    }
+
                     $class_title .= sprintf('%s %s, %s %s', 
                             $reg_info->subj_area,
                             $reg_info->coursenum,
                             $reg_info->acttype,
                             $reg_info->sectnum);
+                    ++$num_entries;
                 }
                 
                 $reg_info = reset($class->reg_info);
@@ -324,12 +335,12 @@ class block_ucla_my_sites extends block_base {
                                 course_handler::registrar_url(reset(
                                     $class->reg_info))
                             ),
-                            '(' . html_writer::tag(
+                            html_writer::tag(
                                     'span', 
                                     get_string('registrar_link', 
                                         'block_ucla_browseby'),
                                     array('class' => 'registrar-link')
-                                ) . ')'
+                                )
                         );
                     }
                 }
@@ -523,7 +534,7 @@ class block_ucla_my_sites extends block_base {
      */
     private function format_roles($roles) {
         if (empty($roles)) {
-            debugging('no roles');
+            //debugging('no roles');
             return '';
         }
                 

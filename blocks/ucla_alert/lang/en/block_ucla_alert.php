@@ -5,10 +5,9 @@ $string['pluginname'] = 'Course alerts';
 // Default values
 // Section
 $string['section_title_site'] = 'CCLE notices';
-$string['section_title_course'] = 'Notices';
+$string['section_title_course'] = '';
 $string['section_item_default'] = '# Hi there
-Notice me!
->{http://www.ccle.ucla.edu} CCLE Home';
+Watch this space for course alerts!';
 
 // Scratch
 $string['scratch_title'] = 'Scratch pad';
@@ -39,6 +38,8 @@ $string['header_red'] = '# ccle alert
 #! now';
 $string['header_blue'] = '# maintenance alert
 ## Scheduled NOW!';
+$string['header_empty'] = '# &lt; empty &gt;
+## Do not display header';
 
 $string['header_section_item'] = 'Alert block presents itself to the world';
 

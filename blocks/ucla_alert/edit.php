@@ -17,6 +17,7 @@ require_capability('moodle/course:update', $context);
 
 // Set up the page.
 $PAGE->set_context($context);
+$PAGE->set_url('/blocks/ucla_alert/edit.php', array('id' => $courseid));
 
 if($courseid == SITEID) {
     $PAGE->set_course($SITE);
@@ -27,7 +28,6 @@ if($courseid == SITEID) {
     $PAGE->set_pagetype('course-view-' . $course->format);
 }
 
-$PAGE->set_url('/blocks/ucla_alert/edit.php', array('id' => $courseid));
 
 // Keep the site 'edit' button
 $go_back_url = new moodle_url('/course/view.php',
@@ -40,23 +40,22 @@ $PAGE->navbar->add(get_string('edit_alert_heading', 'block_ucla_alert'));
 // I have no idea when this is used...
 $PAGE->set_heading($SITE->fullname);
 
-// We load a separate alert block for the main site
-if(intval($courseid) == SITEID) {
-    $alertedit = new ucla_alert_block_editable_site($courseid);
-} else {
-    if($DB->record_exists(ucla_alert::DB_TABLE, array('courseid' => $courseid))) {
-        $alertedit = new ucla_alert_block_editable($courseid);    
-    } else {
-        print_error('alert_block_dne', 'block_ucla_alert');
-    }
-}
+// Render page
+echo $OUTPUT->header();
 
-if($alertedit) {
-    // Load YUI script
+// Attempt to load an alert block for a course
+if($DB->record_exists(ucla_alert::DB_TABLE, array('courseid' => $courseid))) {
+    $alertedit = new ucla_alert_block_editable($courseid);    
+
+    // Load edit YUI
+    // @todo: turn this into a module
     $PAGE->requires->js('/blocks/ucla_alert/alert.js');
     $PAGE->requires->js_init_call('M.alert_block.init', array($courseid));
+
+} else {
+    /// Or print an error if an alert block does not exits for that course
+    print_error('alert_block_dne', 'block_ucla_alert');
 }
 
-echo $OUTPUT->header();
 echo $alertedit->render();
 echo $OUTPUT->footer();

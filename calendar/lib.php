@@ -1502,9 +1502,11 @@ function calendar_get_default_courses() {
     } else {
         // inefficient function call and subsequent reordering
         $fields = 'category, sortorder, shortname, fullname, idnumber, startdate, visible, groupmode, groupmodeforce';
-        $category_courses = get_user_capability_course('moodle/course:view', NULL, true, $fields);
-        foreach ($category_courses as $course_obj) {
-            $courses[$course_obj->id] = $course_obj;
+        $category_courses = get_user_capability_course('moodle/course:view', null, true, $fields);
+        if (!empty($category_courses)) {
+            foreach ($category_courses as $course_obj) {
+                $courses[$course_obj->id] = $course_obj;
+            }
         }
     }
     // END UCLA MOD: CCLE-3099
