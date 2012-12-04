@@ -46,6 +46,23 @@ function xmldb_block_ucla_alert_upgrade($oldversion = 0) {
         // ucla_alert savepoint reached
         upgrade_block_savepoint(true, 2012101600, 'ucla_alert');
     }
+    
+    // A new header <empty> was added to main SITE, so an upgrade is required.
+    // This upgrade will delete the old headers and reinstall them.
+    if($oldversion < 2012120305) {
+
+        // Delete old SITE headers
+        $DB->delete_records(ucla_alert::DB_TABLE, 
+                array('courseid' => SITEID, 'entity' => ucla_alert::ENTITY_HEADER));
+        
+        // The install process will detech that the headers are missing and 
+        // reinstall them...
+        $alert = new ucla_alert_block(SITEID);
+        $alert->install();
+        
+        // Save version
+        upgrade_block_savepoint(true, 2012120305, 'ucla_alert');
+    }
 
     return $result;
 }

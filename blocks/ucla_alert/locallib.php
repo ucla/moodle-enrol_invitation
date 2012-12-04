@@ -518,7 +518,7 @@ abstract class ucla_alert {
 
         // Install headers
         $data = array(
-            'visible' => 1,
+            'visible' => 0,
             'color' => 'default',
             'entity' => self::ENTITY_HEADER,
             'item' => get_string('header_default', 'block_ucla_alert'),
@@ -574,29 +574,35 @@ abstract class ucla_alert {
         $record['visible'] = 1;
         
         $DB->insert_record(self::DB_TABLE, (object)$record);
-        
-        // Install header section
-        $data = array(
-            'title' => '',
-            'visible' => 1,
-            'entity' => self::ENTITY_HEADER_SECTION,
-            'items' => array(
-                get_string('header_section_item', 'block_ucla_alert'),
-            )
-        );
 
-        // Prepare record
-        $record = array(
-            'courseid' => SITEID,
-            'entity' => self::ENTITY_HEADER_SECTION,
-            'render' => self::RENDER_REFRESH,
-            'json' => json_encode($data),
-            'html' => '',
-            'visible' => 1,
-        );
+        // Install section conditionally
+        if(!$DB->record_exists(self::DB_TABLE, 
+                array('courseid' => SITEID, 'entity' => self::ENTITY_HEADER_SECTION))) {
+            
+            // Install header section
+            $data = array(
+                'title' => '',
+                'visible' => 1,
+                'entity' => self::ENTITY_HEADER_SECTION,
+                'items' => array(
+                    get_string('header_section_item', 'block_ucla_alert'),
+                )
+            );
 
-        $DB->insert_record(self::DB_TABLE, (object)$record);
-        
+            // Prepare record
+            $record = array(
+                'courseid' => SITEID,
+                'entity' => self::ENTITY_HEADER_SECTION,
+                'render' => self::RENDER_REFRESH,
+                'json' => json_encode($data),
+                'html' => '',
+                'visible' => 1,
+            );
+
+            $DB->insert_record(self::DB_TABLE, (object)$record);
+
+        }
+
         return true;
     }
 }
