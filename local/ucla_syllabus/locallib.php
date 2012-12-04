@@ -61,7 +61,17 @@ class ucla_syllabus_manager {
                 'maxbytes' => $maxbytes, 'maxfiles' => 1, 
                 'accepted_types' => array('.pdf'));        
     }
-    
+
+    /**
+     * Returns if given course can host syllabus files. Currently, only SRS 
+     * based courses can have syllabus files.
+     *
+     * @return boolean
+     */
+    public function can_host_syllabi() {
+        return !is_collab_site($this->courseid);
+    }
+
     /**
      * Returns if logged in user has the ability to manage syllabi for course.
      * 
@@ -181,7 +191,7 @@ class ucla_syllabus_manager {
         $ret_val = null;
 
         // restrict syllabus tool to only SRS sites
-        if (is_collab_site($this->courseid)) {
+        if (!$this->can_host_syllabi()) {
             return $ret_val;
         }
         

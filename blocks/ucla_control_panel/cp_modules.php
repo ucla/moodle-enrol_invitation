@@ -11,6 +11,7 @@ require_once(dirname(__FILE__) . '/modules/ucla_cp_myucla_row_module.php');
 
 global $CFG, $DB, $USER;
 require_once($CFG->dirroot . '/local/ucla/lib.php');
+require_once($CFG->dirroot . '/local/ucla_syllabus/locallib.php');
 // Please note that we should have
 // $course - the course that we are currently on
 // $context - the context of the course
@@ -119,9 +120,17 @@ $modules[] = new ucla_cp_module('view_roster', new moodle_url(
 
 // Site invitation
 if (enrol_invitationenrol_available($course->id)) {
-    $modules[] = new ucla_cp_module('site_invitation', new moodle_url(
+    $modules[] = new ucla_cp_module('invitation', new moodle_url(
                             $CFG->wwwroot . '/enrol/invitation/invitation.php', array('courseid' => $course->id)),
                     $temp_tag, 'enrol/invitation:enrol');    
+}
+
+// Syllabus tool
+$syllabus_manager = new ucla_syllabus_manager($course);
+if ($syllabus_manager->can_host_syllabi()) {
+    $modules[] = new ucla_cp_module('manage_syllabus', new moodle_url(
+            '/local/ucla_syllabus/index.php', array('id' => $course->id)),
+            $temp_tag, 'local/ucla_syllabus:managesyllabus');
 }
 
 /******************************** Advanced Functions *********************/
