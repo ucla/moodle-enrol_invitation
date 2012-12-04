@@ -528,8 +528,10 @@ if ($USER->id != $post->userid) {   // Not the original author, so add a message
     unset($data);
 }
 
+$formheading = '';
 if (!empty($parent)) {
     $heading = get_string("yourreply", "forum");
+    $formheading = get_string('reply', 'forum');
 } else {
     if ($forum->type == 'qanda') {
         $heading = get_string('yournewquestion', 'forum');
@@ -905,8 +907,11 @@ if ($forum->type == 'news' && !instance_is_visible('forum', $forum)) {
 
     echo $OUTPUT->box($warninghtml, 'errorbox announcementshidden');
 }
-
 // End SSC Modification
+
+if (!empty($formheading)) {
+    echo $OUTPUT->heading($formheading, 2, array('class' => 'accesshide'));
+}
 $mform_post->display();
 
 echo $OUTPUT->footer();

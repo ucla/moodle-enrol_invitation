@@ -454,7 +454,9 @@ class block_manager {
      * @return bool True if all of the blocks within that region are docked
      */
     public function region_completely_docked($region, $output) {
-        if (!$this->page->theme->enable_dock) {
+        global $CFG;
+        // If theme doesn't allow docking or allowblockstodock is not set, then return.
+        if (!$this->page->theme->enable_dock || empty($CFG->allowblockstodock)) {
             return false;
         }
 
@@ -1158,9 +1160,7 @@ class block_manager {
             $PAGE->set_title($blocktitle . ': ' . $strdeletecheck);
             $PAGE->set_heading($site->fullname);
             echo $OUTPUT->header();
-            // BEING UCLA MOD: CCLE-3513 - Cannot delete blocks off frontpage
             $confirmurl = new moodle_url($deletepage->url, array('sesskey' => sesskey(), 'bui_deleteid' => $block->instance->id, 'bui_confirm' => 1));
-            // END UCLA MOD: CCLE-3513
             $cancelurl = new moodle_url($deletepage->url);
             $yesbutton = new single_button($confirmurl, get_string('yes'));
             $nobutton = new single_button($cancelurl, get_string('no'));
