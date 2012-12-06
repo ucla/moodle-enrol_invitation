@@ -15,7 +15,12 @@ function check_mod_parent_visiblity($mod) {
     // needs to be fast, so just do everything in one database query
     $sql = "UPDATE  {course_modules} AS cm
             INNER JOIN  {course_sections} as cs ON (cm.section=cs.id)
-            SET     cm.visible=cs.visible
+            SET     cm.visible=
+                CASE WHEN(cs.visible = 0)
+                    THEN 0
+                WHEN (cs.visible = 1)
+                    THEN cm.visible
+                END
             WHERE   cm.id=:cmid";
     $DB->execute($sql, array('cmid' => $mod->cmid));
     
