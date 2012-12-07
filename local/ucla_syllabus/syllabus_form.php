@@ -77,7 +77,7 @@ class syllabus_form extends moodleform {
      * @return array of "element_name"=>"error_description" if there are errors,
      */
     public function validation($data, $files) {
-        global $DB;
+        global $DB, $USER;
         
         $err = array();
         
@@ -95,10 +95,27 @@ class syllabus_form extends moodleform {
             $data['access_types']['access_type'] = UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE;
         }
         
+        // Need to make sure we have URL or file
+        $nourl = empty($data['syllabus_url']);
+        $nofile = false;
+       
         // make sure file was uploaded
-        $draftitemid = file_get_submitted_draft_itemid('syllabus_file');  
+        $draftitemid = file_get_submitted_draft_itemid('syllabus_file');    
         if (empty($draftitemid)) {
-            $err['syllabus_file'] = get_string('err_file_not_uploaded', 'local_ucla_syllabus');
+            $nofile = true;
+        } 
+        
+        // Make sure we have a real file.  We need to test that an actual file 
+        // was uploaded since $draftitemid can be unreliable 
+        $fs = get_file_storage();
+        $context = get_context_instance(CONTEXT_USER, $USER->id);
+        if (!$files = $fs->get_area_files($context->id, 'user', 'draft', $draftitemid, 'id DESC', false)) {
+            $nofile = true;
+        }
+        
+        // If we're missing both file & URL, then send warning
+        if($nourl && $nofile) {
+            $err['syllabus_upload_desc'] = get_string('err_file_not_uploaded', 'local_ucla_syllabus');
         }
         
         return $err;
@@ -129,10 +146,18 @@ class syllabus_form extends moodleform {
         } else {
             // display edit links for syllabus
             if (!empty($existing_syllabus)) {
+                
+                // Give preference to URL
+                if(empty($existing_syllabus->url)) {
+                    $display_name = $existing_syllabus->display_name;
+                    $filename = $existing_syllabus->stored_file->get_filename();
+                } else {
+                    $display_name = 'Syllabus link';
+                    $filename = $existing_syllabus->url;
+                }
+                
                 $display_syllabus = html_writer::tag('span', sprintf('%s (%s)', 
-                        $existing_syllabus->display_name, 
-                        $existing_syllabus->stored_file->get_filename()), 
-                        array('class' => 'displayname_filename'));         
+                        $display_name, $filename), array('class' => 'displayname_filename'));         
                 
                 $edit_link = html_writer::link(
                         new moodle_url('/local/ucla_syllabus/index.php', 
@@ -202,10 +227,18 @@ class syllabus_form extends moodleform {
         } else {
             // display edit links for syllabus
             if (!empty($existing_syllabus)) {
+                
+                // Give preference to URL
+                if(empty($existing_syllabus->url)) {
+                    $display_name = $existing_syllabus->display_name;
+                    $filename = $existing_syllabus->stored_file->get_filename();
+                } else {
+                    $display_name = 'Syllabus link';
+                    $filename = $existing_syllabus->url;
+                }
+                
                 $display_syllabus = html_writer::tag('span', sprintf('%s (%s)', 
-                        $existing_syllabus->display_name, 
-                        $existing_syllabus->stored_file->get_filename()), 
-                        array('class' => 'displayname_filename'));         
+                        $display_name, $filename), array('class' => 'displayname_filename'));         
                 
                 $edit_link = html_writer::link(
                         new moodle_url('/local/ucla_syllabus/index.php', 
@@ -258,14 +291,23 @@ class syllabus_form extends moodleform {
     private function display_private_syllabus_form($existing_syllabus) {
         $mform = $this->_form;        
         
-        // single file upload (pdf only)
+        // Add description
+        $mform->addElement('static', 'syllabus_upload_desc', 'Provide a syllabus URL or upload a file', 
+                get_string('syllabus_choice', 'local_ucla_syllabus'));
+        
+        // Add URL field
+        $mform->addElement('text', 'syllabus_url', get_string('url', 'local_ucla_syllabus'), 
+                array('size'=>'50'));
+        // Validate URL as being good if it starts with usual http and contains no spaces
+        $mform->addRule('syllabus_url', get_string('err_invalid_url', 'local_ucla_syllabus'), 
+                'regex', '/^https?:\/\/\S*$/', 'server', false, false);
+        $mform->addElement('static', 'desc', '', 'OR');
+
+        // single file upload 
         $mform->addElement('filemanager', 'syllabus_file', 
                 get_string('upload_file', 'local_ucla_syllabus'), null, 
                 $this->ucla_syllabus_manager->get_filemanager_config());
-        $mform->addRule('syllabus_file', 
-                get_string('err_file_not_uploaded', 'local_ucla_syllabus'), 
-                'required');
-
+        
         // access type
         $mform->addElement('hidden', 'access_types[access_type]', UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE);
         
@@ -291,6 +333,7 @@ class syllabus_form extends moodleform {
             // set existing syllabus values
             $data['display_name'] = $existing_syllabus->display_name;
             $data['syllabus_file'] = $draftitemid;                     
+            $data['syllabus_url'] = empty($existing_syllabus->url) ? '' : $existing_syllabus->url;
             
             $this->set_data($data);
             
@@ -307,13 +350,22 @@ class syllabus_form extends moodleform {
     private function display_public_syllabus_form($existing_syllabus) {
         $mform = $this->_form;        
         
-        // single file upload (pdf only)
+        // Add description
+        $mform->addElement('static', 'syllabus_upload_desc', 'Provide a syllabus URL or upload a file', 
+                get_string('syllabus_choice', 'local_ucla_syllabus'));
+        
+        // Add URL field
+        $mform->addElement('text', 'syllabus_url', get_string('url', 'local_ucla_syllabus'), 
+                array('size'=>'50'));
+        // Validate URL as being good if it starts with usual http and contains no spaces
+        $mform->addRule('syllabus_url', get_string('err_invalid_url', 'local_ucla_syllabus'), 
+                'regex', '/^https?:\/\/\S*$/', 'server', false, false);
+        $mform->addElement('static', 'desc', '', 'OR');
+
+        // single file upload 
         $mform->addElement('filemanager', 'syllabus_file', 
                 get_string('upload_file', 'local_ucla_syllabus'), null, 
                 $this->ucla_syllabus_manager->get_filemanager_config());
-        $mform->addRule('syllabus_file', 
-                get_string('err_file_not_uploaded', 'local_ucla_syllabus'), 
-                'required');
 
         // access type
         $label = get_string('access', 'local_ucla_syllabus');
@@ -356,7 +408,8 @@ class syllabus_form extends moodleform {
             $data['access_types[access_type]'] = $existing_syllabus->access_type;
             $data['display_name'] = $existing_syllabus->display_name;
             $data['is_preview'] = $existing_syllabus->is_preview;         
-            $data['syllabus_file'] = $draftitemid;                     
+            $data['syllabus_file'] = $draftitemid;
+            $data['syllabus_url'] = empty($existing_syllabus->url) ? '' : $existing_syllabus->url;
             
             $this->set_data($data);
             

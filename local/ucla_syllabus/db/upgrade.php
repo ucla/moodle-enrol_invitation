@@ -100,6 +100,35 @@ function xmldb_local_ucla_syllabus_upgrade($oldversion) {
         // ucla_syllabus savepoint reached
         upgrade_plugin_savepoint(true, 2012100400, 'local', 'ucla_syllabus');
     }
+    
+    if ($oldversion < 2012120601) {
+
+        // Define field url to be added to ucla_syllabus
+        $table = new xmldb_table('ucla_syllabus');
+        $field = new xmldb_field('url', XMLDB_TYPE_CHAR, '255', null, null, null, null, 'is_preview');
+
+        // Conditionally launch add field url
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        
+        $field = new xmldb_field('timemodified', XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, null, 'url');
+
+        // Conditionally launch add field timemodified
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('timecreated', XMLDB_TYPE_CHAR, '20', null, XMLDB_NOTNULL, null, null, 'timemodified');
+
+        // Conditionally launch add field timecreated
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // ucla_syllabus savepoint reached
+        upgrade_plugin_savepoint(true, 2012120601, 'local', 'ucla_syllabus');
+    }
 
     // Final return of upgrade result (true, all went good) to Moodle.
     return true;

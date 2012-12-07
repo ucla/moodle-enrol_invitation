@@ -10,7 +10,10 @@
         <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="display_name"/>
         <FIELD NAME="display_name" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="Syllabus" SEQUENCE="false" PREVIOUS="courseid" NEXT="access_type"/>
         <FIELD NAME="access_type" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="2" SEQUENCE="false" COMMENT="1 - public 2 - logged in users 3 - private" PREVIOUS="display_name" NEXT="is_preview"/>
-        <FIELD NAME="is_preview" TYPE="int" LENGTH="1" NOTNULL="false" UNSIGNED="false" SEQUENCE="false" PREVIOUS="access_type"/>
+        <FIELD NAME="is_preview" TYPE="int" LENGTH="1" NOTNULL="false" UNSIGNED="false" SEQUENCE="false" PREVIOUS="access_type" NEXT="url"/>
+        <FIELD NAME="url" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Let's instructors specify a URL instead of a file" PREVIOUS="is_preview" NEXT="timemodified"/>
+        <FIELD NAME="timemodified" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" PREVIOUS="url" NEXT="timecreated"/>
+        <FIELD NAME="timecreated" TYPE="char" LENGTH="20" NOTNULL="false" SEQUENCE="false" PREVIOUS="timemodified"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="fk-courseid"/>

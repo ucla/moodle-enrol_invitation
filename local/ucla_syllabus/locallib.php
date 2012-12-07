@@ -59,7 +59,8 @@ class ucla_syllabus_manager {
         $maxbytes = get_max_upload_file_size(0, $course->maxbytes);        
         $this->filemanager_config = array('subdirs' => 0, 
                 'maxbytes' => $maxbytes, 'maxfiles' => 1, 
-                'accepted_types' => array('.pdf'));        
+                'accepted_types' => array('*'));        
+        // Accept everything '*' - restricting to 'documents' does not seem to work
     }
     
     /**
@@ -328,6 +329,8 @@ class ucla_syllabus_manager {
         $ucla_syllabus_entry->display_name  = $data->display_name;
         $ucla_syllabus_entry->access_type   = $data->access_types['access_type'];
         $ucla_syllabus_entry->is_preview    = isset($data->is_preview) ? 1 : 0;
+        $ucla_syllabus_entry->url           = $data->syllabus_url;
+        $ucla_syllabus_entry->timemodified  = time();
 
         if (isset($data->entryid)) {
             // if id passed, then we are updating a current record
@@ -345,6 +348,9 @@ class ucla_syllabus_manager {
             
             $eventname = 'ucla_syllabus_updated';            
         } else {
+            // Save when this syllabi was created
+            $ucla_syllabus_entry->timecreated  = time();
+
             // insert new record
             $recordid = $DB->insert_record('ucla_syllabus', $ucla_syllabus_entry);        
             if (empty($recordid)) {        
@@ -545,7 +551,12 @@ class ucla_private_syllabus extends ucla_sylabus {
      * @return boolean
      */    
     public function can_view() {
-        $coursecontext = context::instance_by_id($this->stored_file->get_contextid());
+        // Need to check if we have URL
+        if(empty($this->url)) {
+            $coursecontext = context::instance_by_id($this->stored_file->get_contextid());        
+        } else {
+            $coursecontext = context_course::instance($this->courseid);
+        }
         return is_enrolled($coursecontext) || 
                 has_capability('local/ucla_syllabus:managesyllabus', $coursecontext);
     }    

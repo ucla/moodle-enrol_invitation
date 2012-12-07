@@ -198,10 +198,19 @@ if (!empty($USER->editing) && $can_manage_syllabus) {
     } else {
         $title = $syllabus_to_display->display_name;
 
-        $fullurl = $syllabus_to_display->get_file_url();
-        $mimetype = $syllabus_to_display->get_mimetype();
-        $clicktoopen = get_string('err_noembed', 'local_ucla_syllabus');
-        $download_link = $syllabus_to_display->get_download_link();        
+        // Give preference to URL
+        if(empty($syllabus_to_display->url)) {
+            $fullurl = $syllabus_to_display->get_file_url();
+            $mimetype = $syllabus_to_display->get_mimetype();
+            $clicktoopen = get_string('err_noembed', 'local_ucla_syllabus');
+            $download_link = $syllabus_to_display->get_download_link();        
+            
+        } else {
+            $fullurl = $syllabus_to_display->url;
+            $mimetype = 'text/html';
+            $clicktoopen = get_string('err_noembed', 'local_ucla_syllabus');
+            $download_link = html_writer::link($syllabus_to_display->url, $syllabus_to_display->url);
+        }
 
         // add download link
         $body .= html_writer::tag('div', $download_link, array('id' => 'download_link'));
