@@ -28,6 +28,7 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once(dirname(__FILE__).'/locallib.php');
 require_once($CFG->libdir . '/formslib.php');
+require_once($CFG->libdir . '/validateurlsyntax.php');
 
 class syllabus_form extends moodleform {
     private $courseid;
@@ -98,7 +99,12 @@ class syllabus_form extends moodleform {
         // Need to make sure we have URL or file
         $nourl = empty($data['syllabus_url']);
         $nofile = false;
-       
+        
+        // Validate URL syntax
+        if(!$nourl && !validateUrlSyntax($data['syllabus_url'], 's+')) {
+            $err['syllabus_url'] = get_string('err_invalid_url', 'local_ucla_syllabus');
+        }
+
         // make sure file was uploaded
         $draftitemid = file_get_submitted_draft_itemid('syllabus_file');    
         if (empty($draftitemid)) {
@@ -298,9 +304,6 @@ class syllabus_form extends moodleform {
         // Add URL field
         $mform->addElement('text', 'syllabus_url', get_string('url', 'local_ucla_syllabus'), 
                 array('size'=>'50'));
-        // Validate URL as being good if it starts with usual http and contains no spaces
-        $mform->addRule('syllabus_url', get_string('err_invalid_url', 'local_ucla_syllabus'), 
-                'regex', '/^https?:\/\/\S*$/', 'server', false, false);
         $mform->addElement('static', 'desc', '', 'OR');
 
         // single file upload 
@@ -357,9 +360,6 @@ class syllabus_form extends moodleform {
         // Add URL field
         $mform->addElement('text', 'syllabus_url', get_string('url', 'local_ucla_syllabus'), 
                 array('size'=>'50'));
-        // Validate URL as being good if it starts with usual http and contains no spaces
-        $mform->addRule('syllabus_url', get_string('err_invalid_url', 'local_ucla_syllabus'), 
-                'regex', '/^https?:\/\/\S*$/', 'server', false, false);
         $mform->addElement('static', 'desc', '', 'OR');
 
         // single file upload 

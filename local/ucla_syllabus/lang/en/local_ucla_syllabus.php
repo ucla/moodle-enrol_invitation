@@ -70,6 +70,7 @@ $string['private_disclaimer'] = 'A private syllabus is only available to course 
 $string['public'] = 'public';
 $string['preview'] = 'preview';
 $string['private'] = 'private';
+$string['modified'] = 'Last modified: ';
 
 // success strings
 $string['successful_add'] = 'Successfully added a syllabus';

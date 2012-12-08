@@ -242,10 +242,19 @@ if (!empty($USER->editing) && $can_manage_syllabus) {
             $type_text = get_string('private', 'local_ucla_syllabus');
             $disclaimer_text = get_string('private_disclaimer', 'local_ucla_syllabus');
         }
+        
+        // Add modified date
+        $modified_text = '';
+        if(!empty($syllabus_to_display->timemodified)) {
+            $modified_text = get_string('modified', 'local_ucla_syllabus') 
+                    . userdate($syllabus_to_display->timemodified);
+        }
 
         $title .= sprintf(' (%s)*',$type_text);
         $body .= html_writer::tag('p', '*' . $disclaimer_text,
                 array('class' => 'syllabus_disclaimer'));
+        $body .= html_writer::tag('p', $modified_text, 
+                array('class' => 'syllabus-modified'));
     }
     
     // now display content
