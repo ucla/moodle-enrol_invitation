@@ -686,6 +686,11 @@ input[readonly="readonly"], input[readonly], textarea[readonly="readonly"], text
     border-width: 0;
     background-color: inherit;
 }
-#page-mod-wiki-create #general, #page-mod-wiki-create .fdescription {
+#page-mod-wiki-create .req, #page-mod-wiki-create .fstaticlabel,
+#page-mod-wiki-create .fdescription, #page-mod-wiki-create #fitem_id_pageformat_html {
     display: none;
+}
+#page-mod-wiki-create #fitem_id_pagetitle {
+    color: black;
+    font-weight: bold;
 }
