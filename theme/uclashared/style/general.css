@@ -677,3 +677,15 @@ table.userenrolment tbody td.lastcol {
     color: #394A6E;    
     padding: 0 20px;
 }
+
+/* style readonly and disabled form fields the same */
+input[disabled="disabled"], input[disabled], textarea[disabled="disabled"], textarea[disabled],
+input[readonly="readonly"], input[readonly], textarea[readonly="readonly"], textarea[readonly] {
+    color: rgb(84, 84, 84);
+    border-style: none;
+    border-width: 0;
+    background-color: inherit;
+}
+#page-mod-wiki-create #general, #page-mod-wiki-create .fdescription {
+    display: none;
+}
