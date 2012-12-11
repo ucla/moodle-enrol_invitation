@@ -299,4 +299,55 @@ class syllabus_ws_manager {
         $DB->delete_records('ucla_syllabus_webservice', array('id' => $id));
     }
     
+    /**
+     * Checks if a given course is subscribed to syllabus web service
+     * 
+     * @global type $DB
+     * @param type $courseid 
+     */
+    static public function is_subscribed($courseid) {
+        global $DB;
+        
+        // Retrive all the courses associated with this courseID
+        $courses = ucla_map_courseid_to_termsrses($courseid);
+        
+        $course = new stdClass();
+        // Get SRS
+        foreach($courses as $c) {
+            if($c->hostcourse) {
+                $course->srs = $c->srs;
+                $course->term = $c->term;
+            }
+        }
+        
+        // Get subject area
+        $query = "SELECT rs.id
+            FROM {ucla_reg_classinfo} AS urc
+            JOIN {ucla_reg_subjectarea} AS rs ON rs.subjarea = urc.subj_area
+            WHERE urc.srs = :srs AND urc.term = :term";
+        
+        $record = $DB->get_records_sql($query, 
+                array('srs' => $course->srs, 'term' => $course->term));
+        $course->subjarea = array_pop($record)->id;
+
+        // Get all the web service subscribers
+        $subscribers = $DB->get_records('ucla_syllabus_webservice',
+                array('enabled' => 1, 'action' => self::ACTION_TRANSFER));
+        
+        // Check if the course is subscribed
+        foreach($subscribers as $s) {
+            // Try to match by SRS
+            if(!empty($s->leadingsrs) && strpos($course->srs, $s->leadingsrs) === 0) {
+                return true;
+            }
+            
+            // Try to match subject area
+            if(!empty($s->subjectarea) && $course->subjarea === $s->subjectarea) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
 }

@@ -14,11 +14,6 @@ function ucla_syllabus_updated($data) {
     if($syllabus = ucla_syllabus_manager::instance($data)) {
         global $DB;
         
-        // Ignore updates that contain URLs
-        if(!empty($syllabus->url)) {
-            return true;
-        }
-        
         /* outgoing syllabus logic:
          * 
          *  If public syllabus added/updated and no private syllabus exist, 
@@ -53,12 +48,6 @@ function ucla_syllabus_updated($data) {
             $outgoing = $syllabus;
         }
         
-        // Check that we only send PDF files, ignore everything else
-        if(strpos($outgoing->stored_file->get_mimetype(), 'pdf') === FALSE) {
-            return true;
-        }
-        
-        // Send to all crosslisted courses
         $courses = ucla_get_course_info($hostcourse->id);
         
         foreach($courses as $course) {

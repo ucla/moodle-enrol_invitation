@@ -6,14 +6,14 @@
   <TABLES>
     <TABLE NAME="ucla_syllabus" COMMENT="Table containing settings for uploaded syllabi." NEXT="ucla_syllabus_webservice">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="courseid"/>
-        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" PREVIOUS="id" NEXT="display_name"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="courseid"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="display_name"/>
         <FIELD NAME="display_name" TYPE="char" LENGTH="255" NOTNULL="true" DEFAULT="Syllabus" SEQUENCE="false" PREVIOUS="courseid" NEXT="access_type"/>
-        <FIELD NAME="access_type" TYPE="int" LENGTH="1" NOTNULL="true" UNSIGNED="true" DEFAULT="2" SEQUENCE="false" COMMENT="1 - public 2 - logged in users 3 - private" PREVIOUS="display_name" NEXT="is_preview"/>
-        <FIELD NAME="is_preview" TYPE="int" LENGTH="1" NOTNULL="false" UNSIGNED="false" SEQUENCE="false" PREVIOUS="access_type" NEXT="url"/>
+        <FIELD NAME="access_type" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="2" SEQUENCE="false" COMMENT="1 - public 2 - logged in users 3 - private" PREVIOUS="display_name" NEXT="is_preview"/>
+        <FIELD NAME="is_preview" TYPE="int" LENGTH="1" NOTNULL="false" SEQUENCE="false" PREVIOUS="access_type" NEXT="url"/>
         <FIELD NAME="url" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false" COMMENT="Let's instructors specify a URL instead of a file" PREVIOUS="is_preview" NEXT="timemodified"/>
-        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" PREVIOUS="url" NEXT="timecreated"/>
-        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false" PREVIOUS="timemodified"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="url" NEXT="timecreated"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="timemodified"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="fk-courseid"/>

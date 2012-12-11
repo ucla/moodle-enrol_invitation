@@ -29,6 +29,7 @@ defined('MOODLE_INTERNAL') || die;
 require_once(dirname(__FILE__).'/locallib.php');
 require_once($CFG->libdir . '/formslib.php');
 require_once($CFG->libdir . '/validateurlsyntax.php');
+require_once(dirname(__FILE__).'/webservice/lib.php');
 
 class syllabus_form extends moodleform {
     private $courseid;
@@ -297,20 +298,36 @@ class syllabus_form extends moodleform {
     private function display_private_syllabus_form($existing_syllabus) {
         $mform = $this->_form;        
         
-        // Add description
-        $mform->addElement('static', 'syllabus_upload_desc', 'Provide a syllabus URL or upload a file', 
-                get_string('syllabus_choice', 'local_ucla_syllabus'));
+        // Check if course is subscribed to web service
+        $webserviced = syllabus_ws_manager::is_subscribed($this->courseid);
+        $config = $this->ucla_syllabus_manager->get_filemanager_config();
         
-        // Add URL field
-        $mform->addElement('text', 'syllabus_url', get_string('url', 'local_ucla_syllabus'), 
-                array('size'=>'50'));
-        $mform->addElement('static', 'desc', '', 'OR');
+        if($webserviced) {
+            // Limit web service to accept PDF files only
+            $config['accepted_types'] = array('.pdf');
+            
+            $mform->addElement('hidden', 'syllabus_url', '');
+            // single file upload 
+            $mform->addElement('filemanager', 'syllabus_file', 
+                    get_string('upload_file', 'local_ucla_syllabus'), null, $config);
+            $mform->addRule('syllabus_file', 
+                    get_string('err_file_not_uploaded', 'local_ucla_syllabus'), 
+                    'required');
+        } else {
+            // Add description
+            $mform->addElement('static', 'syllabus_upload_desc', get_string('syllabus_url_file', 'local_ucla_syllabus'), 
+                    get_string('syllabus_choice', 'local_ucla_syllabus'));
 
-        // single file upload 
-        $mform->addElement('filemanager', 'syllabus_file', 
-                get_string('upload_file', 'local_ucla_syllabus'), null, 
-                $this->ucla_syllabus_manager->get_filemanager_config());
-        
+            // Add URL field
+            $mform->addElement('text', 'syllabus_url', get_string('url', 'local_ucla_syllabus'), 
+                    array('size'=>'50'));
+            $mform->addElement('static', 'desc', '', 'OR');
+
+            // single file upload 
+            $mform->addElement('filemanager', 'syllabus_file', 
+                    get_string('file', 'local_ucla_syllabus'), null, $config);
+        }
+
         // access type
         $mform->addElement('hidden', 'access_types[access_type]', UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE);
         
@@ -353,19 +370,35 @@ class syllabus_form extends moodleform {
     private function display_public_syllabus_form($existing_syllabus) {
         $mform = $this->_form;        
         
-        // Add description
-        $mform->addElement('static', 'syllabus_upload_desc', 'Provide a syllabus URL or upload a file', 
-                get_string('syllabus_choice', 'local_ucla_syllabus'));
+        $webserviced = syllabus_ws_manager::is_subscribed($this->courseid);
+        $config = $this->ucla_syllabus_manager->get_filemanager_config();
         
-        // Add URL field
-        $mform->addElement('text', 'syllabus_url', get_string('url', 'local_ucla_syllabus'), 
-                array('size'=>'50'));
-        $mform->addElement('static', 'desc', '', 'OR');
+        if($webserviced) {
+            // Limit web service to accept PDF files only
+            $config['accepted_types'] = array('.pdf');
+            
+            $mform->addElement('hidden', 'syllabus_url', '');
+            // single file upload 
+            $mform->addElement('filemanager', 'syllabus_file', 
+                    get_string('upload_file', 'local_ucla_syllabus'), null, $config);
+            $mform->addRule('syllabus_file', 
+                    get_string('err_file_not_uploaded', 'local_ucla_syllabus'), 
+                    'required');
+        } else {
+            
+            // Add description
+            $mform->addElement('static', 'syllabus_upload_desc', get_string('syllabus_url_file', 'local_ucla_syllabus'), 
+                    get_string('syllabus_choice', 'local_ucla_syllabus'));
 
-        // single file upload 
-        $mform->addElement('filemanager', 'syllabus_file', 
-                get_string('upload_file', 'local_ucla_syllabus'), null, 
-                $this->ucla_syllabus_manager->get_filemanager_config());
+            // Add URL field
+            $mform->addElement('text', 'syllabus_url', get_string('url', 'local_ucla_syllabus'), 
+                    array('size'=>'50'));
+            $mform->addElement('static', 'desc', '', 'OR');
+
+            // single file upload 
+            $mform->addElement('filemanager', 'syllabus_file', 
+                    get_string('file', 'local_ucla_syllabus'), null, $config);
+        }
 
         // access type
         $label = get_string('access', 'local_ucla_syllabus');

@@ -31,7 +31,8 @@ $string['pluginname'] = 'UCLA syllabus';
 
 // strings for uploading syllabus form
 $string['syllabus_manager'] = 'Syllabus Manager';
-$string['syllabus_choice'] = 'If you select both a file and URL, the URL will be displayed';
+$string['syllabus_choice'] = 'If you select both a file and URL, the URL will be displayed.';
+$string['syllabus_url_file'] = 'Please provide a syllabus URL or upload a file';
 
 $string['public_syllabus'] = 'Public syllabus';
 $string['public_syllabus_help'] = 'A public syllabus is viewable by people who are not associated with the course.';
@@ -39,7 +40,8 @@ $string['private_syllabus'] = 'Private syllabus';
 $string['private_syllabus_help'] = 'A private syllabus is only viewable by people who are associated with the course.';
 
 $string['url'] = 'URL';
-$string['upload_file'] = 'File';
+$string['file'] = 'File';
+$string['upload_file'] = 'Please upload a PDF';
 $string['access'] = 'Access';
 $string['accesss_public_info'] = 'Public: Anyone can view (incuding non-logged in users)';
 $string['accesss_loggedin_info'] = 'UCLA community: Only logged in users can view';
@@ -79,7 +81,7 @@ $string['successful_update'] = 'Successfully updated a syllabus';
 $string['successful_convert'] = 'Successfully converted a syllabus from {$a->old} to {$a->new}';
 
 // error strings
-$string['err_file_not_uploaded'] = 'Please upload a document or add a valid URL for your syllabus';
+$string['err_file_not_uploaded'] = 'Please upload a file or add a valid URL for your syllabus.';
 $string['err_missing_courseid'] = 'Missing required courseid';
 $string['err_syllabus_mismatch'] = 'Selected syllabus does not belong to course';
 $string['err_syllabus_not_allowed'] = 'Sorry, you must be logged in or assciated with the course to view this syllabus';
