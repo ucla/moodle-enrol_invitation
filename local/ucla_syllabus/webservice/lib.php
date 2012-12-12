@@ -326,10 +326,9 @@ class syllabus_ws_manager {
             JOIN {ucla_reg_subjectarea} AS rs ON rs.subjarea = urc.subj_area
             WHERE urc.srs = :srs AND urc.term = :term";
         
-        $record = $DB->get_records_sql($query, 
+        $course->subjarea = $DB->get_field_sql($query, 
                 array('srs' => $course->srs, 'term' => $course->term));
-        $course->subjarea = array_pop($record)->id;
-
+        
         // Get all the web service subscribers
         $subscribers = $DB->get_records('ucla_syllabus_webservice',
                 array('enabled' => 1, 'action' => self::ACTION_TRANSFER));

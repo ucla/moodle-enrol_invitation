@@ -122,7 +122,7 @@ class syllabus_form extends moodleform {
         
         // If we're missing both file & URL, then send warning
         if($nourl && $nofile) {
-            $err['syllabus_upload_desc'] = get_string('err_file_not_uploaded', 'local_ucla_syllabus');
+            $err['syllabus_upload_desc'] = get_string('err_file_url_not_uploaded', 'local_ucla_syllabus');
         }
         
         return $err;

@@ -81,14 +81,15 @@ $string['successful_update'] = 'Successfully updated a syllabus';
 $string['successful_convert'] = 'Successfully converted a syllabus from {$a->old} to {$a->new}';
 
 // error strings
-$string['err_file_not_uploaded'] = 'Please upload a file or add a valid URL for your syllabus.';
+$string['err_file_not_uploaded'] = 'Please upload a PDF.';
+$string['err_file_url_not_uploaded'] = 'Please upload a file or add a valid URL for your syllabus.';
 $string['err_missing_courseid'] = 'Missing required courseid';
 $string['err_syllabus_mismatch'] = 'Selected syllabus does not belong to course';
 $string['err_syllabus_not_allowed'] = 'Sorry, you must be logged in or assciated with the course to view this syllabus';
 $string['err_syllabus_notexist'] = 'Sorry, but given syllabus does not exist';
 $string['err_noembed'] = 'Unable to show embedded file. Please download file to view.';
 $string['err_syllabus_convert'] = 'Cannot convert syllabus when both public and private syllabuses are uploaded';
-$string['err_invalid_url'] = 'Please enter a valid URL';
+$string['err_invalid_url'] = 'Please enter a valid URL.';
 
 // capability strings
 $string['ucla_syllabus:managesyllabus'] = 'Allows ability to add, edit, and delete syllabus for a course';
