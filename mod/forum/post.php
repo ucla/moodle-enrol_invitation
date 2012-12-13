@@ -849,6 +849,11 @@ $PAGE->set_heading($course->fullname);
 
 echo $OUTPUT->header();
 
+// START UCLA MOD: CCLE-3582 - Warn instructors and students that they're at an old course site
+require_once($CFG->dirroot.'/local/ucla/lib.php');
+echo notice_oldcourse($course);
+// END UCLA MOD: CCLE-3582
+
 // checkup
 if (!empty($parent) && !forum_user_can_see_post($forum, $discussion, $post, null, $cm)) {
     print_error('cannotreply', 'forum');

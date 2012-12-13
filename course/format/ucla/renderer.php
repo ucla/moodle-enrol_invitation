@@ -27,6 +27,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot.'/course/format/renderer.php');
+require_once($CFG->dirroot.'/local/publicprivate/lib.php');
 
 /**
  * Basic renderer for ucla format. Based off the topic renderer.
@@ -165,34 +166,22 @@ class format_ucla_renderer extends format_section_renderer_base {
         
         // display page header
         echo $OUTPUT->heading($heading_text . $this->course->fullname, 2, 'headingblock');
-        
-        // next, display public private notice
-        
-        /**
-         * Alert that displays when a visitor is not logged in, as the course will
-         * only show public content (a partial view) in this case.
-         *
-         * @author ebollens
-         * @version 20110719
-         */
-        include_once($CFG->libdir . '/publicprivate/course.class.php');
-        $publicprivate_course = new PublicPrivate_Course($this->course);
-        if ($publicprivate_course->is_activated() && isguestuser()) {
-            echo $OUTPUT->box_start('noticebox');
 
-            echo get_string('publicprivatenotice');
-            $loginbutton = new single_button(new moodle_url($CFG->wwwroot
-                                    . '/login/index.php'), get_string('publicprivatelogin'));
-            $loginbutton->class = 'continuebutton';
+        // display notices
 
-            echo $OUTPUT->render($loginbutton);
-            echo $OUTPUT->box_end();
-        }        
-        
         // Handle cancelled classes
         if (is_course_cancelled($this->courseinfo)) {
             echo $OUTPUT->box(get_string('coursecancelled', 'format_ucla'), 'noticebox coursecancelled');
-        }        
+        } else {
+            // display message if user is viewing an old course
+            $notice = notice_oldcourse($this->course);
+            if (!empty($notice)) {
+                echo $notice;
+            } else {
+                // display public/private notice, if applicable
+                echo notice_nonenrolled_users($this->course);
+            }
+        }
     }
     
     /**

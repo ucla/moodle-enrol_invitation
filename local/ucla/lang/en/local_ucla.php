@@ -83,3 +83,5 @@ $string['ucla:bulk_users'] = 'CCLE-2970: Can perform bulk user actions';
 $string['notloggedin'] = 'Please login to view this content.';
 $string['loginredirect'] = 'Login required';
 // END UCLA MOD: CCLE-3028
+
+$string['notice_oldcourse'] = 'You are viewing a course that is no longer in session.';
