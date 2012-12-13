@@ -296,7 +296,10 @@ if ($mform->is_cancelled()) {
         $fromform->groupingid = 0;
     }
 
-    if (!isset($fromform->groupmembersonly)) {
+    // START UCLA MOD: CCLE-3697
+    // do not allow groupmembersonly flag to be set if no grouping is set
+    if (!isset($fromform->groupmembersonly) || empty($fromform->groupingid)) {
+    // END UCLA MOD: CCLE-3697
         $fromform->groupmembersonly = 0;
     }
 

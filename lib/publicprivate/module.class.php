@@ -87,18 +87,13 @@ class PublicPrivate_Module {
     }
 
     /**
-     * Returns true if public/private is enabled on the course_module, meaning
-     * that the grouping id set for it is the public/private grouping and that
-     * it is visible to members only.
-     *
-     * @throws PublicPrivate_Course_Exception
-     * @throws PublicPrivate_Module_Exception
+     * Returns true if course module is private, meaning that it belongs to a
+     * grouping and that is visible only to those members.
+     * 
      * @return bool
      */
     public function is_private() {
-        return $this->get_grouping() > 0
-                && $this->get_groupmembersonly() != 0
-                && $this->_publicprivate_course()->is_grouping($this->_course_module()->groupingid);
+        return $this->get_grouping() > 0 && $this->get_groupmembersonly() != 0;
     }
 
     /**
@@ -113,9 +108,10 @@ class PublicPrivate_Module {
     }
 
     /**
-     * Enables public/private for the represented course_module by setting the
-     * groupingid to the course's public/private grouping and setting the module
-     * so that it can only be viewed by group members.
+     * Enables public/private for course_module:
+     *  - If groupingid is not set, then set the groupingid to the course's
+     *    public/private grouping. Otherwise keep the current grouping
+     *  - Make sure that it can only be viewed by group members.
      *
      * @global Moodle_Database $DB
      * @link $CFG->enablegroupmembersonly
@@ -126,17 +122,26 @@ class PublicPrivate_Module {
         
         try {
             $conditions = array('id'=>$this->get_id());
-            $DB->set_field('course_modules', 'groupingid', $this->_publicprivate_course()->get_grouping(), $conditions);
-            $DB->set_field('course_modules', 'groupmembersonly', 1, $conditions);
+            $grouping = $this->get_grouping();
+            if (empty($grouping)) {
+                $DB->set_field('course_modules', 'groupingid',
+                        $this->_publicprivate_course()->get_grouping(), $conditions);
+            }
+            $groupmembersonly = $this->get_groupmembersonly();
+            if (empty($groupmembersonly)) {
+                $DB->set_field('course_modules', 'groupmembersonly', 1, $conditions);
+            }
         } catch(DML_Exception $e) {
             throw new PublicPrivate_Module_Exception('Failed to set public/private visibility settings for module.', 300, $e);
         }
     }
 
     /**
-     * Disables public/private for the represented course_module by setting the
-     * groupingid to 0 and setting the module so that it can only be viewed by
-     * anyone rather than just group members.
+     * Disables public/private for course_module:
+     *  - If groupingid matches course's public/private grouping, then set
+     *    groupingid to 0. Otherwise keep the current grouping.
+     *  - Disable restriction so that it can only be viewed by anyone rather
+     *    than just group members.
      *
      * @global Moodle_Database $DB
      * @throws PublicPrivate_Module_Exception
@@ -146,8 +151,13 @@ class PublicPrivate_Module {
         
         try {
             $conditions = array('id'=>$this->get_id());
-            $DB->set_field('course_modules', 'groupingid', 0, $conditions);
-            $DB->set_field('course_modules', 'groupmembersonly', 0, $conditions);
+            if ($this->_publicprivate_course()->get_grouping() == $this->get_grouping()) {
+                $DB->set_field('course_modules', 'groupingid', 0, $conditions);
+            }
+            $groupmembersonly = $this->get_groupmembersonly();
+            if (!empty($groupmembersonly)) {
+                $DB->set_field('course_modules', 'groupmembersonly', 0, $conditions);
+            }
         } catch(DML_Exception $e) {
             throw new PublicPrivate_Module_Exception('Failed to set public/private visibility settings for module.', 400, $e);
         }
