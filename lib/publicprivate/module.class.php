@@ -93,7 +93,7 @@ class PublicPrivate_Module {
      * @return bool
      */
     public function is_private() {
-        return $this->get_grouping() > 0 && $this->get_groupmembersonly() != 0;
+        return $this->get_groupmembersonly() != 0;
     }
 
     /**
