@@ -78,7 +78,8 @@ class block_ucla_browseby_renderer extends block_navigation_renderer {
         $found_grad = false;
         
         if (!empty($courses)) {
-            $public_syllabus_string = get_string('public_syllabus', 'block_ucla_browseby');
+            $public_world_syllabus_string = get_string('public_world_syllabus', 'block_ucla_browseby');
+            $public_ucla_syllabus_string = get_string('public_ucla_syllabus', 'block_ucla_browseby');
             $private_syllabus_string = get_string('private_syllabus', 'block_ucla_browseby');
 
             foreach ($courses as $termsrs => $course) {
@@ -104,15 +105,24 @@ class block_ucla_browseby_renderer extends block_navigation_renderer {
 
                 // Generate icon for course syllabus link                
                 $syllabus = '';
-                if (isset($course->has_public_syllabus) || isset($course->has_private_syllabus)) {
+                if (isset($course->has_public_world_syllabus) ||
+                        isset($course->has_public_ucla_syllabus) ||
+                        isset($course->has_private_syllabus)) {
                     $syllabus = html_writer::start_tag('a', 
                         array('href' => $CFG->wwwroot . '/local/ucla_syllabus/index.php?id=' . $course->courseid));
 
-                    if (isset($course->has_public_syllabus)) {
+                    if (isset($course->has_public_world_syllabus)) {
                         $syllabus .= html_writer::tag('img', '',
-                            array('src' => $CFG->wwwroot . '/local/ucla_syllabus/pix/public.png',
-                                'alt' => $public_syllabus_string,
-                                'title' => $public_syllabus_string
+                            array('src' => $CFG->wwwroot . '/local/ucla_syllabus/pix/public_world.png',
+                                'alt' => $public_world_syllabus_string,
+                                'title' => $public_world_syllabus_string
+                                )
+                            );
+                    } else if (isset($course->has_public_ucla_syllabus)) {
+                        $syllabus .= html_writer::tag('img', '',
+                            array('src' => $CFG->wwwroot . '/local/ucla_syllabus/pix/public_ucla.png',
+                                'alt' => $public_ucla_syllabus_string,
+                                'title' => $public_ucla_syllabus_string
                                 )
                             );
                     } else {
@@ -132,7 +142,7 @@ class block_ucla_browseby_renderer extends block_navigation_renderer {
             $disptable->data = $data;
         } else {
             $cell = new html_table_cell(get_string('noresults', 'admin'));
-            $cell->colspan = 3;
+            $cell->colspan = 4;
             $cell->style = 'text-align: center';
             $row = new html_table_row(array($cell));            
             $disptable->data[] = $row;
