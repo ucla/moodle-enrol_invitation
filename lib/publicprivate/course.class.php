@@ -3,6 +3,7 @@
 include_once($CFG->libdir.'/publicprivate/course_exception.class.php');
 include_once($CFG->libdir.'/publicprivate/site.class.php');
 include_once($CFG->dirroot.'/group/lib.php');
+include_once($CFG->dirroot . '/lib/enrollib.php');
 
 /**
  * PublicPrivate_Course
@@ -301,6 +302,33 @@ class PublicPrivate_Course {
             throw new PublicPrivate_Course_Exception('Failed to add enrolled users to public/private group.', 208, $e);
         }
 
+        /*
+         * Make sure guest access enrolment plugin is installed and enabled
+         */
+
+        $enrol_instances = enrol_get_instances($this->_course->id, false);
+        $guest_plugin = null;
+        if (!empty($enrol_instances)) {            
+            foreach ($enrol_instances as $enrol_instance) {
+                if ($enrol_instance->enrol == 'guest') {
+                    $guest_plugin = $enrol_instance;
+                    break;
+                }
+            }
+        }
+
+        if (empty($guest_plugin)) {
+            // no guest enrolment plugin found, so add one
+            $guest_plugin = enrol_get_plugin('guest');
+            $guest_plugin->add_instance($this->_course);
+        } else {
+            // make sure existing plugin is enabled
+            if ($guest_plugin->status != ENROL_INSTANCE_ENABLED) {
+                $DB->set_field('enrol', 'status', ENROL_INSTANCE_ENABLED,
+                        array('courseid' => $this->_course->id, 'enrol' => 'guest'));
+            }
+        }
+
         rebuild_course_cache($this->_course->id);
     }
 
@@ -366,6 +394,13 @@ class PublicPrivate_Course {
         } catch(DML_Exception $e) {
             throw new PublicPrivate_Course_Exception('Failed to delete public/private group and grouping.', 303, $e);
         }
+
+        /*
+         * Deactivate guest enrollment plugin (if any)
+         */
+
+        $DB->set_field('enrol', 'status', ENROL_INSTANCE_DISABLED,
+                array('courseid' => $this->_course->id, 'enrol' => 'guest'));
 
         rebuild_course_cache($this->_course->id);
     }
