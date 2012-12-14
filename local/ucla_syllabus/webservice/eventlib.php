@@ -48,6 +48,12 @@ function ucla_syllabus_updated($data) {
             $outgoing = $syllabus;
         }
         
+        // Check that file still exists, this may happen when user deletes 
+        // syllabus before cron runs
+        if(empty($outgoing->stored_file)) {
+            return true;
+        }
+        
         $courses = ucla_get_course_info($hostcourse->id);
         
         foreach($courses as $course) {

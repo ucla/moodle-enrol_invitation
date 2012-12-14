@@ -31,12 +31,16 @@ $string['pluginname'] = 'UCLA syllabus';
 
 // strings for uploading syllabus form
 $string['syllabus_manager'] = 'Syllabus Manager';
+$string['syllabus_choice'] = 'If you select both a file and URL, the URL will be displayed.';
+$string['syllabus_url_file'] = 'Please provide a syllabus URL or upload a file';
 
-$string['public_syllabus'] = 'Public syllabus (PDF only)';
+$string['public_syllabus'] = 'Public syllabus';
 $string['public_syllabus_help'] = 'A public syllabus is viewable by people who are not associated with the course.';
-$string['private_syllabus'] = 'Private syllabus (PDF only)';
+$string['private_syllabus'] = 'Private syllabus';
 $string['private_syllabus_help'] = 'A private syllabus is only viewable by people who are associated with the course.';
 
+$string['url'] = 'URL';
+$string['file'] = 'File';
 $string['upload_file'] = 'Please upload a PDF';
 $string['access'] = 'Access';
 $string['accesss_public_info'] = 'Public: Anyone can view (incuding non-logged in users)';
@@ -68,6 +72,7 @@ $string['private_disclaimer'] = 'A private syllabus is only available to course 
 $string['public'] = 'public';
 $string['preview'] = 'preview';
 $string['private'] = 'private';
+$string['modified'] = 'Last modified: ';
 
 // success strings
 $string['successful_add'] = 'Successfully added a syllabus';
@@ -76,13 +81,15 @@ $string['successful_update'] = 'Successfully updated a syllabus';
 $string['successful_convert'] = 'Successfully converted a syllabus from {$a->old} to {$a->new}';
 
 // error strings
-$string['err_file_not_uploaded'] = 'Please upload a PDF';
+$string['err_file_not_uploaded'] = 'Please upload a PDF.';
+$string['err_file_url_not_uploaded'] = 'Please upload a file or add a valid URL for your syllabus.';
 $string['err_missing_courseid'] = 'Missing required courseid';
 $string['err_syllabus_mismatch'] = 'Selected syllabus does not belong to course';
 $string['err_syllabus_not_allowed'] = 'Sorry, you must be logged in or assciated with the course to view this syllabus';
 $string['err_syllabus_notexist'] = 'Sorry, but given syllabus does not exist';
 $string['err_noembed'] = 'Unable to show embedded file. Please download file to view.';
 $string['err_syllabus_convert'] = 'Cannot convert syllabus when both public and private syllabuses are uploaded';
+$string['err_invalid_url'] = 'Please enter a valid URL.';
 
 // capability strings
 $string['ucla_syllabus:managesyllabus'] = 'Allows ability to add, edit, and delete syllabus for a course';
