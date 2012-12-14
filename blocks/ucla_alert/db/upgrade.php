@@ -40,8 +40,6 @@ function xmldb_block_ucla_alert_upgrade($oldversion = 0) {
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
         }
-
-        ucla_alert::install_once();
         
         // ucla_alert savepoint reached
         upgrade_block_savepoint(true, 2012101600, 'ucla_alert');
