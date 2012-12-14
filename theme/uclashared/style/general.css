@@ -677,3 +677,20 @@ table.userenrolment tbody td.lastcol {
     color: #394A6E;    
     padding: 0 20px;
 }
+
+/* style readonly and disabled form fields the same */
+input[disabled="disabled"], input[disabled], textarea[disabled="disabled"], textarea[disabled],
+input[readonly="readonly"], input[readonly], textarea[readonly="readonly"], textarea[readonly] {
+    color: rgb(84, 84, 84);
+    border-style: none;
+    border-width: 0;
+    background-color: inherit;
+}
+#page-mod-wiki-create .req, #page-mod-wiki-create .fstaticlabel,
+#page-mod-wiki-create .fdescription, #page-mod-wiki-create #fitem_id_pageformat_html {
+    display: none;
+}
+#page-mod-wiki-create #fitem_id_pagetitle {
+    color: black;
+    font-weight: bold;
+}

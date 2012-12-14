@@ -737,7 +737,10 @@ class group_members_selector extends groups_user_selector_base {
  * Used on the add group members page.
  */
 class group_non_members_selector extends groups_user_selector_base {
-    const MAX_USERS_PER_PAGE = 100;
+    // START UCLA MOD: CCLE-3702 - Increase max users to choose from in group add/remove users
+    const MAX_USERS_PER_PAGE = 500;
+//    const MAX_USERS_PER_PAGE = 100;
+    // END UCLA MOD: CCLE-3702
 
     /**
      * An array of user ids populated by find_users() used in print_user_summaries()
