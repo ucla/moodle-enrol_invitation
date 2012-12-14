@@ -155,11 +155,10 @@ class syllabus_form extends moodleform {
             if (!empty($existing_syllabus)) {
                 
                 // Give preference to URL
+                $display_name = $existing_syllabus->display_name;
                 if(empty($existing_syllabus->url)) {
-                    $display_name = $existing_syllabus->display_name;
                     $filename = $existing_syllabus->stored_file->get_filename();
                 } else {
-                    $display_name = 'Syllabus link';
                     $filename = $existing_syllabus->url;
                 }
                 
@@ -181,12 +180,16 @@ class syllabus_form extends moodleform {
                                     'type' => UCLA_SYLLABUS_TYPE_PRIVATE)),
                             get_string('make_public', 'local_ucla_syllabus'));
                 }
+                
+                // then add link to delete (with very bad javascript confirm prompt)
+                // TODO: use YUI or put the javascript prompt in separate js file
                 $del_link = html_writer::link(
-                        new moodle_url('/local/ucla_syllabus/index.php', 
+                        new moodle_url('/local/ucla_syllabus/index.php',
                             array('id' => $this->courseid,
                                   'action' => UCLA_SYLLABUS_ACTION_DELETE,
                                   'type' => UCLA_SYLLABUS_TYPE_PRIVATE)),
-                        get_string('delete'));
+                        get_string('delete'),
+                        array('onclick' => 'return confirm("'.get_string('confirm_deletion', 'local_ucla_syllabus').'")'));
                 
                 $edit_links = html_writer::tag('span', $edit_link . $make_public_link . $del_link, 
                         array('class' => 'editing_links'));
@@ -236,11 +239,10 @@ class syllabus_form extends moodleform {
             if (!empty($existing_syllabus)) {
                 
                 // Give preference to URL
+                $display_name = $existing_syllabus->display_name;
                 if(empty($existing_syllabus->url)) {
-                    $display_name = $existing_syllabus->display_name;
                     $filename = $existing_syllabus->stored_file->get_filename();
                 } else {
-                    $display_name = 'Syllabus link';
                     $filename = $existing_syllabus->url;
                 }
                 
@@ -262,12 +264,16 @@ class syllabus_form extends moodleform {
                                     'type' => UCLA_SYLLABUS_TYPE_PUBLIC)),
                             get_string('make_private', 'local_ucla_syllabus'));
                 }
+
+                // then add link to delete (with very bad javascript confirm prompt)
+                // TODO: use YUI or put the javascript prompt in separate js file
                 $del_link = html_writer::link(
                         new moodle_url('/local/ucla_syllabus/index.php', 
                             array('id' => $this->courseid,
                                   'action' => UCLA_SYLLABUS_ACTION_DELETE,
                                   'type' => UCLA_SYLLABUS_TYPE_PUBLIC)),
-                        get_string('delete'));
+                        get_string('delete'),
+                        array('onclick' => 'return confirm("'.get_string('confirm_deletion', 'local_ucla_syllabus').'")'));
                 
                 $edit_links = html_writer::tag('span', $edit_link . $make_private_link . $del_link, 
                         array('class' => 'editing_links'));
@@ -318,14 +324,14 @@ class syllabus_form extends moodleform {
             $mform->addElement('static', 'syllabus_upload_desc', get_string('syllabus_url_file', 'local_ucla_syllabus'), 
                     get_string('syllabus_choice', 'local_ucla_syllabus'));
 
-            // Add URL field
-            $mform->addElement('text', 'syllabus_url', get_string('url', 'local_ucla_syllabus'), 
-                    array('size'=>'50'));
+            // single file upload
+            $mform->addElement('filemanager', 'syllabus_file',
+                    get_string('file', 'local_ucla_syllabus'), null, $config);
             $mform->addElement('static', 'desc', '', 'OR');
 
-            // single file upload 
-            $mform->addElement('filemanager', 'syllabus_file', 
-                    get_string('file', 'local_ucla_syllabus'), null, $config);
+            // Add URL field
+            $mform->addElement('text', 'syllabus_url', get_string('url', 'local_ucla_syllabus'),
+                    array('size'=>'50'));
         }
 
         // access type
@@ -390,14 +396,14 @@ class syllabus_form extends moodleform {
             $mform->addElement('static', 'syllabus_upload_desc', get_string('syllabus_url_file', 'local_ucla_syllabus'), 
                     get_string('syllabus_choice', 'local_ucla_syllabus'));
 
-            // Add URL field
-            $mform->addElement('text', 'syllabus_url', get_string('url', 'local_ucla_syllabus'), 
-                    array('size'=>'50'));
+            // single file upload
+            $mform->addElement('filemanager', 'syllabus_file',
+                    get_string('file', 'local_ucla_syllabus'), null, $config);
             $mform->addElement('static', 'desc', '', 'OR');
 
-            // single file upload 
-            $mform->addElement('filemanager', 'syllabus_file', 
-                    get_string('file', 'local_ucla_syllabus'), null, $config);
+            // Add URL field
+            $mform->addElement('text', 'syllabus_url', get_string('url', 'local_ucla_syllabus'),
+                    array('size'=>'50'));
         }
 
         // access type
