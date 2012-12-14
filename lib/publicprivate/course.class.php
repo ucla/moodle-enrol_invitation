@@ -305,28 +305,17 @@ class PublicPrivate_Course {
         /*
          * Make sure guest access enrolment plugin is installed and enabled
          */
+        
+        $guest_plugin = $DB->get_record('enrol', array('enrol' => 'guest',
+            'courseid' => $this->_course->id));
 
-        $enrol_instances = enrol_get_instances($this->_course->id, false);
-        $guest_plugin = null;
-        if (!empty($enrol_instances)) {            
-            foreach ($enrol_instances as $enrol_instance) {
-                if ($enrol_instance->enrol == 'guest') {
-                    $guest_plugin = $enrol_instance;
-                    break;
-                }
-            }
-        }
-
+        $enrol_guest_plugin = enrol_get_plugin('guest');
         if (empty($guest_plugin)) {
             // no guest enrolment plugin found, so add one
-            $guest_plugin = enrol_get_plugin('guest');
-            $guest_plugin->add_instance($this->_course);
+            $enrol_guest_plugin->add_instance($this->_course);
         } else {
             // make sure existing plugin is enabled
-            if ($guest_plugin->status != ENROL_INSTANCE_ENABLED) {
-                $DB->set_field('enrol', 'status', ENROL_INSTANCE_ENABLED,
-                        array('courseid' => $this->_course->id, 'enrol' => 'guest'));
-            }
+            $enrol_guest_plugin->update_status($guest_plugin, ENROL_INSTANCE_ENABLED);
         }
 
         rebuild_course_cache($this->_course->id);
@@ -398,9 +387,15 @@ class PublicPrivate_Course {
         /*
          * Deactivate guest enrollment plugin (if any)
          */
+        
+        $guest_plugin = $DB->get_record('enrol', array('enrol' => 'guest',
+            'courseid' => $this->_course->id));
 
-        $DB->set_field('enrol', 'status', ENROL_INSTANCE_DISABLED,
-                array('courseid' => $this->_course->id, 'enrol' => 'guest'));
+        $enrol_guest_plugin = enrol_get_plugin('guest');
+        if (!empty($guest_plugin)) {
+            // make sure existing plugin is enabled
+            $enrol_guest_plugin->update_status($guest_plugin, ENROL_INSTANCE_DISABLED);
+        }
 
         rebuild_course_cache($this->_course->id);
     }
