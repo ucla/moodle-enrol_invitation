@@ -10,6 +10,9 @@ if (!defined('MOODLE_INTERNAL')) {
 global $CFG;
 require_once($CFG->dirroot . '/blocks/ucla_weeksdisplay/block_ucla_weeksdisplay.php'); // Include the code to test
 
+/**
+ * Extends ucla_session to add some new powers. 
+ */
 class ucla_session_ext extends ucla_session {
     function __construct($session, $today) {
         parent::__construct($session);
@@ -24,78 +27,25 @@ class ucla_session_ext extends ucla_session {
 class ucla_weeksdisplay_test extends advanced_testcase {
 
     protected function setUp() {
-        global $CFG;
-        
-        ucla_require_registrar();
         $this->resetAfterTest(true);
     }
-    
+
+    /**
+     * Tests the weeks display output for summer 2012 session and rollover
+     * into Fall 2012
+     * 
+     */
     function test_summer_2012() {
 
-        // Test a whole year
-        // This list was retrieved from the registrar
-        $terms = array(
-            'summer11A' => array(
-                'term' => '111',
-                'session' => '8A',
-                'session_start' => '2011-06-20',
-                'session_end' => '2011-08-12',
-                'instruction_start' => '2011-06-20',
-                ),
-            'summer11C' => array(
-                'term' => '111',
-                'session' => '6C',
-                'session_start' => '2011-08-01',
-                'session_end' => '2011-09-09',
-                'instruction_start' => '2011-08-01',
-                ),
-            'fall11' => array(
-                'term' => '11F',
-                'session' => 'RG',
-                'session_start' => '2011-09-19',
-                'session_end' => '2011-12-09',
-                'instruction_start' => '2011-09-22',
-                ),
-            'winter12' => array(
-                'term' => '12W',
-                'session' => 'RG',
-                'session_start' => '2012-01-04',
-                'session_end' => '2012-03-23',
-                'instruction_start' => '2012-01-09',
-                ),
-            'spring12' => array(
-                'term' => '12S',
-                'session' => 'RG',
-                'session_start' => '2012-03-28',
-                'session_end' => '2012-06-15',
-                'instruction_start' => '2012-04-02',
-                ),
-            'summer12A' => array(
-                'term' => '121',
-                'session' => '8A',
-                'session_start' => '2012-06-25',
-                'session_end' => '2012-08-17',
-                'instruction_start' => '2012-06-25',
-                ),
-            'summer12C' => array(
-                'term' => '121',
-                'session' => '6C',
-                'session_start' => '2012-08-06',
-                'session_end' => '2012-09-14',
-                'instruction_start' => '2012-08-06',
-                ),
-            );
-        
-        
-        // Test summer 12
-        $today = $terms['summer12A']['session_start'];
+        // Test summer 12 sessions A & C
+        $today = '2012-06-25';
         
         /// Test ability to set term
         block_ucla_weeksdisplay::init_currentterm($today);
         $this->assertEquals('121', get_config('', 'currentterm'));
         
         // At start of session A
-        $query = registrar_query::run_registrar_query('ucla_getterms', array('121'), true);
+        $query = $this->registrar_query('121');
         $session = new ucla_session_ext($query, $today);
         $session->update();
 
@@ -150,7 +100,7 @@ class ucla_weeksdisplay_test extends advanced_testcase {
         unset($session);
         
         $today = date('Y-m-d', strtotime('+1 hour', strtotime($today)));
-        $query = registrar_query::run_registrar_query('ucla_getterms', array('12F'), true);
+        $query = $this->registrar_query('12F');
         $session = new ucla_session_ext($query, $today);
         $session->update();
         
@@ -162,6 +112,9 @@ class ucla_weeksdisplay_test extends advanced_testcase {
 
     }
     
+    /**
+     * Test Fall 2012 session and rolloever into winter break 
+     */
     function test_fall_2012() {
         
         // Fall 2012 session start
@@ -171,8 +124,8 @@ class ucla_weeksdisplay_test extends advanced_testcase {
         block_ucla_weeksdisplay::init_currentterm($today);
         $this->assertEquals('12F', get_config('', 'currentterm'));
         
-        // At start of session A
-        $query = registrar_query::run_registrar_query('ucla_getterms', array('12F'), true);
+        // At start of session
+        $query = $this->registrar_query('12F');
         $session = new ucla_session_ext($query, $today);
         $session->update();
 
@@ -235,7 +188,7 @@ class ucla_weeksdisplay_test extends advanced_testcase {
         // Turnover to Winter with brand new registrar query, 
         // we should be displaying Winter break
         $today = date('Y-m-d', strtotime('+1 week', strtotime($today)));
-        $query = registrar_query::run_registrar_query('ucla_getterms', array('13W'), true);
+        $query = $this->registrar_query('13W');
         $session = new ucla_session_ext($query, $today);
         $session->update();
         
@@ -246,6 +199,9 @@ class ucla_weeksdisplay_test extends advanced_testcase {
         
     }
     
+    /**
+     * Test Winter 2013 session and rolloever into Spring quarter
+     */
     function test_winter_2013() {
         
         // Winter 2013 session start
@@ -255,8 +211,8 @@ class ucla_weeksdisplay_test extends advanced_testcase {
         block_ucla_weeksdisplay::init_currentterm($today);
         $this->assertEquals('13W', get_config('', 'currentterm'));
         
-        // At start of session A
-        $query = registrar_query::run_registrar_query('ucla_getterms', array('13W'), true);
+        // At start of session
+        $query = $this->registrar_query('13W');
         $session = new ucla_session_ext($query, $today);
         $session->update();
 
@@ -306,7 +262,7 @@ class ucla_weeksdisplay_test extends advanced_testcase {
         
         // Make sure Spring happens
         $today = date('Y-m-d', strtotime('+1 hour', strtotime($today)));
-        $query = registrar_query::run_registrar_query('ucla_getterms', array('13S'), true);
+        $query = $this->registrar_query('13S');
         $session = new ucla_session_ext($query, $today);
         $session->update();
         
@@ -314,6 +270,67 @@ class ucla_weeksdisplay_test extends advanced_testcase {
         $this->assertEquals('-1', get_config('local_ucla', 'current_week'));        
         $this->assertEquals('13S,131,13F,14W', get_config('local_ucla', 'active_terms'));
         $this->assertEquals('13S', get_config('', 'currentterm'));
+    }
+    
+    /**
+     * Fake registrar calls with real registrar data.  This is to avoid calling
+     * registrar directly through tests.  The data was built from 
+     * stored procedure: ucla_getterms.
+     * 
+     * To add more tests, update this data
+     * 
+     * @param type $term
+     * @return array 
+     */
+    private function registrar_query($term) {
+        // This list was retrieved from the registrar
+        $terms = array(
+            '121' => array(
+                array(
+                'term' => '121',
+                'session' => '8A',
+                'session_start' => '2012-06-25',
+                'session_end' => '2012-08-17',
+                'instruction_start' => '2012-06-25',
+                ),
+                array(
+                'term' => '121',
+                'session' => '6C',
+                'session_start' => '2012-08-06',
+                'session_end' => '2012-09-14',
+                'instruction_start' => '2012-08-06',
+                ),
+            ),
+            '12F' => array(
+                array(
+                'term' => '12F',
+                'session' => 'RG',
+                'session_start' => '2012-09-24',
+                'session_end' => '2012-12-14',
+                'instruction_start' => '2012-09-27',
+                ),
+            ),
+            '13W' => array(
+                array(
+                'term' => '13W',
+                'session' => 'RG',
+                'session_start' => '2013-01-02',
+                'session_end' => '2013-03-22',
+                'instruction_start' => '2013-01-07',
+                ),
+            ),
+            '13S' => array(
+                array(
+                'term' => '13S',
+                'session' => 'RG',
+                'session_start' => '2013-03-27',
+                'session_end' => '2013-06-14',
+                'instruction_start' => '2013-04-01',
+                ),
+            ),
+        );
+        
+        return $terms[$term];
     }
 
 }
