@@ -72,9 +72,14 @@
     if ($sectionid) {
         $section = $DB->get_field('course_sections', 'section', array('id' => $sectionid, 'course' => $course->id), MUST_EXIST);
     }
-    if ($section) {
+    
+    // START UCLA MOD CCLE-3520 - Need to use isset() here since section = 0 
+    // is technically 'false', and the param is never forwarded.  This results 
+    // in section 0 redirecting to landing page.
+    if (isset($section)) {
         $urlparams['section'] = $section;
     }
+    // END UCLA MOD CCLE-3520
     
     $PAGE->set_url('/course/view.php', $urlparams); // Defined here to avoid notices on errors etc
 
