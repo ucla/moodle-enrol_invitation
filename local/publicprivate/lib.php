@@ -215,3 +215,41 @@ function local_publicprivate_cron() {
         }
     }
 }
+
+/**
+ * Notify nonenrolled users that they are viewing a public display of the
+ * course. If they are not logged in, will display a login button.
+ *
+ * @global object $CFG
+ * @global object $OUTPUT
+ * @param object $course
+ * @return string           Returns notice if any is needed.
+ */
+function notice_nonenrolled_users($course) {
+    global $CFG, $OUTPUT;
+
+    $context = context_course::instance($course->id);
+    // if user is not enrolled in the course, then will need to display a notice
+    if (is_enrolled($context) || has_capability('moodle/site:accessallgroups', $context)) {
+        return; 
+    }
+
+    require_once($CFG->libdir . '/publicprivate/course.class.php');
+    $publicprivate_course = new PublicPrivate_Course($course);
+    if ($publicprivate_course->is_activated()) {
+        $display_string = '';
+        // if user is not logged in, then give them a login button
+        if (isguestuser()) {
+            $display_string = get_string('publicprivatenotice_notloggedin');
+            $loginbutton = new single_button(new moodle_url('/login/index.php'),
+                    get_string('publicprivatelogin'));
+            $loginbutton->class = 'continuebutton';
+            $display_string .= $OUTPUT->render($loginbutton);
+        } else {
+            $display_string = get_string('publicprivatenotice_notenrolled');
+        }
+        return $OUTPUT->box($display_string, 'noticebox notice_nonenrolled_users');
+    }
+
+    return;
+}

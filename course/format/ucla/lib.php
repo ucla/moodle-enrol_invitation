@@ -21,7 +21,7 @@
  * @copyright 2012 UC Regents
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
+global $CFG;
 require_once($CFG->dirroot . '/local/ucla/lib.php');
 /**  Course Preferences API **/
 require_once(dirname(__FILE__) . '/ucla_course_prefs.class.php');
