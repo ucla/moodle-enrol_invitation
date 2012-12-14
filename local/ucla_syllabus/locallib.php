@@ -94,9 +94,11 @@ class ucla_syllabus_manager {
             print_error('err_syllabus_mismatch', 'local_ucla_syllabus');
         }
         
-        // first, delete files
-        $syllabus->stored_file->delete();
-        
+        // first, delete files if they exist.  We may have URL-only syllabus
+        if(!empty($syllabus->stored_file)) {
+            $syllabus->stored_file->delete();
+        }
+            
         // next, delete entry in syllabus table
         $DB->delete_records('ucla_syllabus', array('id' => $syllabus->id));
         
@@ -528,8 +530,8 @@ abstract class ucla_sylabus {
                 'syllabus', $this->properties->id, '', false);
         
         // should really have just one file uploaded, but handle weird cases
-        if (count($files) < 1) {
-            // no files uploaded!
+        if (count($files) < 1 && empty($this->properties->url)) {
+            // no files uploaded and no URL added!
             debugging('Warning, no file uploaded for given ucla_syllabus entry');
         } else {
             if (count($files) >1) {
