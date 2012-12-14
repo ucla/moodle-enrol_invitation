@@ -996,15 +996,11 @@ class siteindicator_manager {
      */
     static function make_private($courseid) {
         global $DB, $CFG;
-        require_once($CFG->dirroot . '/lib/enrollib.php');
         require_once($CFG->libdir . '/publicprivate/course.class.php');
 
         $pubpriv_course = new PublicPrivate_Course($courseid);
         if($pubpriv_course->is_activated()) {
             $pubpriv_course->deactivate();
         }
-
-        $DB->set_field('enrol', 'status', ENROL_INSTANCE_DISABLED,
-                array('courseid' => $courseid, 'enrol' => 'guest'));
     }
 }
