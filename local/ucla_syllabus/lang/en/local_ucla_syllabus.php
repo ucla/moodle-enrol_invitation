@@ -31,8 +31,8 @@ $string['pluginname'] = 'UCLA syllabus';
 
 // strings for uploading syllabus form
 $string['syllabus_manager'] = 'Syllabus Manager';
-$string['syllabus_choice'] = 'If you select both a file and URL, the URL will be displayed.';
-$string['syllabus_url_file'] = 'Please provide a syllabus URL or upload a file';
+$string['syllabus_choice'] = 'If you select both a file and URL, the URL will be displayed instead.';
+$string['syllabus_url_file'] = 'Please provide a:';
 
 $string['public_syllabus'] = 'Public syllabus';
 $string['public_syllabus_help'] = 'A public syllabus is viewable by people who are not associated with the course.';
@@ -58,6 +58,7 @@ $string['private_syllabus_add'] = 'Add private syllabus';
 $string['no_syllabus'] = 'No syllabus uploaded yet';
 $string['make_private'] = 'Make private';
 $string['make_public'] = 'Make public';
+$string['confirm_deletion'] = 'Are you sure you want to delete this syllabus?';
 
 // strings for displaying syllabus
 $string['cannot_view_private_syllabus'] = 'A private syllabus is available to course participants.';

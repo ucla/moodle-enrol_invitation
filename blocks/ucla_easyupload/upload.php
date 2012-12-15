@@ -34,7 +34,7 @@ require_capability('moodle/course:manageactivities', $context);
 // Set up the page.
 $PAGE->set_context($context);
 
-$PAGE->set_pagelayout('course');
+$PAGE->set_pagelayout('incourse');
 $PAGE->set_pagetype('course-view-' . $course->format);
 
 $PAGE->set_url('/blocks/ucla_easyupload/upload.php', 

@@ -91,8 +91,8 @@ $THEME->layouts = array(
     // $cm specified in require_login()
     'incourse' => array(
         'file' => $tf_course,
-        'regions' => $enabledregions,
-        'defaultregion' => $defaultregion,
+        'regions' => array('side-pre'),
+        'defaultregion' => 'side-pre',
         'options' => array(
             'controlpanel' => true
         )
