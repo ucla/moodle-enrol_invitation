@@ -24,9 +24,9 @@
  * @since Moodle 2.3
  */
 
-
 defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot.'/course/format/renderer.php');
+require_once($CFG->dirroot . '/course/format/ucla/lib.php');
 require_once($CFG->dirroot.'/local/publicprivate/lib.php');
 
 /**
