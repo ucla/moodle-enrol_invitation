@@ -148,7 +148,7 @@ function init_page($course, $course_id, $context) {
 
     $PAGE->set_heading($course->fullname);
 
-    $PAGE->set_pagelayout('course');
+    $PAGE->set_pagelayout('incourse');
     $PAGE->set_pagetype('course-view-' . $course->format);
 }
 

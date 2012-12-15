@@ -103,7 +103,14 @@ class syllabus_form extends moodleform {
         
         // Validate URL syntax
         if(!$nourl && !validateUrlSyntax($data['syllabus_url'], 's+')) {
-            $err['syllabus_url'] = get_string('err_invalid_url', 'local_ucla_syllabus');
+            // maybe it failed because the url is missing http://?
+            if (validateUrlSyntax('http://' . $data['syllabus_url'], 's+')) {
+                // works!
+                $data['syllabus_url'] = 'http://' . $data['syllabus_url'];
+                $this->_form->updateSubmission($data, $files);
+            } else {
+                $err['syllabus_url'] = get_string('err_invalid_url', 'local_ucla_syllabus');
+            }
         }
 
         // make sure file was uploaded
