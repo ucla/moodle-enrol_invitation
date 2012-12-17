@@ -35,6 +35,7 @@ $string['noticefoundaltcourseid'] = 'NOTICE: Found courseid {$a->courseid} by us
 //Notification messages
 $string['lrstartnoti'] = "Starting library reserves DB update:";
 $string['lrsuccessnoti'] = '{$a} records successfully inserted.';
+$string['lrnoentries'] = 'No library reserve entries found.';
 
 /** Strings for videofurnace_dbsync **/
 // Error messages

@@ -186,7 +186,8 @@ function update_libraryreserves_db($datasource_url) {
 
     $parsed_data = parse_datasource($datasource_url);    
     if (empty($parsed_data)) {
-        echo get_string('lrstartnoti', 'tool_ucladatasourcesync') . "\n";        
+        echo get_string('lrnoentries', 'tool_ucladatasourcesync') . "\n";
+        exit;
     }
 
     // wrap everything in a transaction, because we don't want to have an empty
