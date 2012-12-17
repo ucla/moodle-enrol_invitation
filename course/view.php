@@ -20,6 +20,7 @@
     $marker      = optional_param('marker',-1 , PARAM_INT);
     $switchrole  = optional_param('switchrole',-1, PARAM_INT);
     $modchooser  = optional_param('modchooser', -1, PARAM_BOOL);
+    $return      = optional_param('return', 0, PARAM_LOCALURL);
 
     $params = array();
     if (!empty($name)) {
@@ -71,9 +72,14 @@
     if ($sectionid) {
         $section = $DB->get_field('course_sections', 'section', array('id' => $sectionid, 'course' => $course->id), MUST_EXIST);
     }
-    if ($section) {
+    
+    // START UCLA MOD CCLE-3520 - Need to use isset() here since section = 0 
+    // is technically 'false', and the param is never forwarded.  This results 
+    // in section 0 redirecting to landing page.
+    if (isset($section)) {
         $urlparams['section'] = $section;
     }
+    // END UCLA MOD CCLE-3520
     
     $PAGE->set_url('/course/view.php', $urlparams); // Defined here to avoid notices on errors etc
 
@@ -170,6 +176,8 @@
             // Redirect to site root if Editing is toggled on frontpage
             if ($course->id == SITEID) {
                 redirect($CFG->wwwroot .'/?redirect=0');
+            } else if (!empty($return)) {
+                redirect($CFG->wwwroot . $return);
             } else {
                 $url = new moodle_url($PAGE->url, array('notifyeditingon' => 1));
                 redirect($url);
@@ -183,6 +191,8 @@
             // Redirect to site root if Editing is toggled on frontpage
             if ($course->id == SITEID) {
                 redirect($CFG->wwwroot .'/?redirect=0');
+            } else if (!empty($return)) {
+                redirect($CFG->wwwroot . $return);
             } else {
                 redirect($PAGE->url);
             }

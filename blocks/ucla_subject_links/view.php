@@ -33,7 +33,7 @@ $PAGE->set_title($page_title);
 $PAGE->set_course($course);
 $PAGE->set_heading($course->fullname);
 
-$PAGE->set_pagelayout('course');
+$PAGE->set_pagelayout('incourse');
 $PAGE->set_pagetype('course-view-'.$course->format);
 
 function callback_subject_area($buffer) {

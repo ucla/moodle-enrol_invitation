@@ -3,6 +3,7 @@
 include_once($CFG->libdir.'/publicprivate/course_exception.class.php');
 include_once($CFG->libdir.'/publicprivate/site.class.php');
 include_once($CFG->dirroot.'/group/lib.php');
+include_once($CFG->dirroot . '/lib/enrollib.php');
 
 /**
  * PublicPrivate_Course
@@ -301,6 +302,22 @@ class PublicPrivate_Course {
             throw new PublicPrivate_Course_Exception('Failed to add enrolled users to public/private group.', 208, $e);
         }
 
+        /*
+         * Make sure guest access enrolment plugin is installed and enabled
+         */
+        
+        $guest_plugin = $DB->get_record('enrol', array('enrol' => 'guest',
+            'courseid' => $this->_course->id));
+
+        $enrol_guest_plugin = enrol_get_plugin('guest');
+        if (empty($guest_plugin)) {
+            // no guest enrolment plugin found, so add one
+            $enrol_guest_plugin->add_instance($this->_course);
+        } else {
+            // make sure existing plugin is enabled
+            $enrol_guest_plugin->update_status($guest_plugin, ENROL_INSTANCE_ENABLED);
+        }
+
         rebuild_course_cache($this->_course->id);
     }
 
@@ -365,6 +382,19 @@ class PublicPrivate_Course {
             groups_delete_grouping($oldgroupingpublicprivate);
         } catch(DML_Exception $e) {
             throw new PublicPrivate_Course_Exception('Failed to delete public/private group and grouping.', 303, $e);
+        }
+
+        /*
+         * Deactivate guest enrollment plugin (if any)
+         */
+        
+        $guest_plugin = $DB->get_record('enrol', array('enrol' => 'guest',
+            'courseid' => $this->_course->id));
+
+        $enrol_guest_plugin = enrol_get_plugin('guest');
+        if (!empty($guest_plugin)) {
+            // make sure existing plugin is enabled
+            $enrol_guest_plugin->update_status($guest_plugin, ENROL_INSTANCE_DISABLED);
         }
 
         rebuild_course_cache($this->_course->id);

@@ -923,6 +923,10 @@ class enrol_database_plugin extends enrol_plugin {
 
                     $requested_roles[$userid][$roleid] = $roleid;
                 }
+                $rs->Close();
+            } else {
+                mtrace("  error: skipping course '$course->mapping' - could not match with external database");
+                continue;
             }
             unset($user_mapping);
 
@@ -1084,7 +1088,7 @@ class enrol_database_plugin extends enrol_plugin {
         if ($idnumber) {
             $sqlfields[] = $idnumber;
         }
-        $sql = $this->db_get_sql($table, array(), $sqlfields);
+        $sql = $this->db_get_sql($table, array(), $sqlfields, true);
         $createcourses = array();
         if ($rs = $extdb->Execute($sql)) {
             if (!$rs->EOF) {

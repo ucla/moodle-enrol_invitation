@@ -51,7 +51,7 @@ $PAGE->set_url('/local/ucla_syllabus/index.php', array('id' => $id));
 $PAGE->set_title(format_string($course->fullname));
 $PAGE->set_heading(format_string($course->fullname));
 $PAGE->set_context($coursecontext);
-$PAGE->set_pagelayout('course');
+$PAGE->set_pagelayout('incourse');
 $PAGE->set_pagetype('course-view-' . $course->format);
 
 // set editing button
@@ -198,10 +198,19 @@ if (!empty($USER->editing) && $can_manage_syllabus) {
     } else {
         $title = $syllabus_to_display->display_name;
 
-        $fullurl = $syllabus_to_display->get_file_url();
-        $mimetype = $syllabus_to_display->get_mimetype();
-        $clicktoopen = get_string('err_noembed', 'local_ucla_syllabus');
-        $download_link = $syllabus_to_display->get_download_link();        
+        // Give preference to URL
+        if(empty($syllabus_to_display->url)) {
+            $fullurl = $syllabus_to_display->get_file_url();
+            $mimetype = $syllabus_to_display->get_mimetype();
+            $clicktoopen = get_string('err_noembed', 'local_ucla_syllabus');
+            $download_link = $syllabus_to_display->get_download_link();        
+            
+        } else {
+            $fullurl = $syllabus_to_display->url;
+            $mimetype = 'text/html';
+            $clicktoopen = get_string('err_noembed', 'local_ucla_syllabus');
+            $download_link = html_writer::link($syllabus_to_display->url, $syllabus_to_display->url);
+        }
 
         // add download link
         $body .= html_writer::tag('div', $download_link, array('id' => 'download_link'));
@@ -233,10 +242,19 @@ if (!empty($USER->editing) && $can_manage_syllabus) {
             $type_text = get_string('private', 'local_ucla_syllabus');
             $disclaimer_text = get_string('private_disclaimer', 'local_ucla_syllabus');
         }
+        
+        // Add modified date
+        $modified_text = '';
+        if(!empty($syllabus_to_display->timemodified)) {
+            $modified_text = get_string('modified', 'local_ucla_syllabus') 
+                    . userdate($syllabus_to_display->timemodified);
+        }
 
         $title .= sprintf(' (%s)*',$type_text);
         $body .= html_writer::tag('p', '*' . $disclaimer_text,
                 array('class' => 'syllabus_disclaimer'));
+        $body .= html_writer::tag('p', $modified_text, 
+                array('class' => 'syllabus-modified'));
     }
     
     // now display content

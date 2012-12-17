@@ -578,13 +578,6 @@ function forum_cron() {
                 $course     = $courses[$forum->course];
                 $cm         =& $coursemodules[$forum->id];
 
-                // BEGIN UCLA MOD: CCLE-3045 - Add capability to disable emailing of forum posts to certain roles
-                $coursecontext = context_course::instance($forum->course);
-                if (!has_capability('mod/forum:receivemail', $coursecontext)) {
-                    continue;   // user shouldn't get email
-                }
-                // END UCLA MOD: CCLE-3045                
-                
                 // Do some checks  to see if we can bail out now
                 // Only active enrolled users are in the list of subscribers
                 if (!isset($subscribedusers[$forum->id][$userto->id])) {
@@ -2867,7 +2860,7 @@ function forum_get_potential_subscribers($forumcontext, $groupid, $fields, $sort
     global $DB;
 
     // only active enrolled users or everybody on the frontpage
-    list($esql, $params) = get_enrolled_sql($forumcontext, '', $groupid, true);
+    list($esql, $params) = get_enrolled_sql($forumcontext, 'mod/forum:allowforcesubscribe', $groupid, true);
 
     $sql = "SELECT $fields
               FROM {user} u
@@ -3372,7 +3365,7 @@ function forum_print_post($post, $discussion, $forum, &$cm, $course, $ownpost=fa
     }
 
     if ($reply) {
-        $commands[] = array('url'=>new moodle_url('/mod/forum/post.php', array('reply'=>$post->id)), 'text'=>$str->reply);
+        $commands[] = array('url'=>new moodle_url('/mod/forum/post.php#mform1', array('reply'=>$post->id)), 'text'=>$str->reply);
     }
 
     if ($CFG->enableportfolios && ($cm->cache->caps['mod/forum:exportpost'] || ($ownpost && $cm->cache->caps['mod/forum:exportownpost']))) {
@@ -4134,15 +4127,34 @@ function forum_get_file_info($browser, $areas, $course, $cm, $context, $filearea
         return new forum_file_info_container($browser, $course, $cm, $context, $areas, $filearea);
     }
 
-    if (!$post = $DB->get_record('forum_posts', array('id' => $itemid))) {
+    static $cached = array();
+    // $cached will store last retrieved post, discussion and forum. To make sure that the cache
+    // is cleared between unit tests we check if this is the same session
+    if (!isset($cached['sesskey']) || $cached['sesskey'] != sesskey()) {
+        $cached = array('sesskey' => sesskey());
+    }
+
+    if (isset($cached['post']) && $cached['post']->id == $itemid) {
+        $post = $cached['post'];
+    } else if ($post = $DB->get_record('forum_posts', array('id' => $itemid))) {
+        $cached['post'] = $post;
+    } else {
         return null;
     }
 
-    if (!$discussion = $DB->get_record('forum_discussions', array('id' => $post->discussion))) {
+    if (isset($cached['discussion']) && $cached['discussion']->id == $post->discussion) {
+        $discussion = $cached['discussion'];
+    } else if ($discussion = $DB->get_record('forum_discussions', array('id' => $post->discussion))) {
+        $cached['discussion'] = $discussion;
+    } else {
         return null;
     }
 
-    if (!$forum = $DB->get_record('forum', array('id' => $cm->instance))) {
+    if (isset($cached['forum']) && $cached['forum']->id == $cm->instance) {
+        $forum = $cached['forum'];
+    } else if ($forum = $DB->get_record('forum', array('id' => $cm->instance))) {
+        $cached['forum'] = $forum;
+    } else {
         return null;
     }
 
@@ -4159,12 +4171,10 @@ function forum_get_file_info($browser, $areas, $course, $cm, $context, $filearea
         return null;
     }
     // Make sure groups allow this user to see this file
-    if ($discussion->groupid > 0) {
+    if ($discussion->groupid > 0 && !has_capability('moodle/site:accessallgroups', $context)) {
         $groupmode = groups_get_activity_groupmode($cm, $course);
-        if ($groupmode == SEPARATEGROUPS) {
-            if (!groups_is_member($discussion->groupid) and !has_capability('moodle/site:accessallgroups', $context)) {
-                return null;
-            }
+        if ($groupmode == SEPARATEGROUPS && !groups_is_member($discussion->groupid)) {
+            return null;
         }
     }
 
@@ -4634,7 +4644,10 @@ function forum_is_subscribed($userid, $forum) {
     if (is_numeric($forum)) {
         $forum = $DB->get_record('forum', array('id' => $forum));
     }
-    if (forum_is_forcesubscribed($forum)) {
+    // If forum is force subscribed and has allowforcesubscribe, then user is subscribed.
+    $cm = get_coursemodule_from_instance('forum', $forum->id);
+    if (forum_is_forcesubscribed($forum) && $cm &&
+            has_capability('mod/forum:allowforcesubscribe', context_module::instance($cm->id), $userid)) {
         return true;
     }
     return $DB->record_exists("forum_subscriptions", array("userid" => $userid, "forum" => $forum->id));
@@ -5330,7 +5343,7 @@ function forum_user_can_see_post($forum, $discussion, $post, $user=NULL, $cm=NUL
 
         return (($userfirstpost !== false && (time() - $userfirstpost >= $CFG->maxeditingtime)) ||
                 $firstpost->id == $post->id || $post->userid == $user->id || $firstpost->userid == $user->id ||
-                has_capability('mod/forum:viewqandawithoutposting', $modcontext, $user->id, false));
+                has_capability('mod/forum:viewqandawithoutposting', $modcontext, $user->id));
     }
     return true;
 }
@@ -6087,6 +6100,7 @@ function forum_update_subscriptions_button($courseid, $forumid) {
 /**
  * This function gets run whenever user is enrolled into course
  *
+ * @deprecated deprecating this function as we will be using forum_user_role_assigned
  * @param stdClass $cp
  * @return void
  */
@@ -6106,6 +6120,43 @@ function forum_user_enrolled($cp) {
     $forums = $DB->get_records_sql($sql, $params);
     foreach ($forums as $forum) {
         forum_subscribe($cp->userid, $forum->id);
+    }
+}
+
+/**
+ * This function gets run whenever user is assigned role in course
+ *
+ * @param stdClass $cp
+ * @return void
+ */
+function forum_user_role_assigned($cp) {
+    global $DB;
+
+    $context = context::instance_by_id($cp->contextid, MUST_EXIST);
+
+    // If contextlevel is course then only subscribe user. Role assignment
+    // at course level means user is enroled in course and can subscribe to forum.
+    if ($context->contextlevel != CONTEXT_COURSE) {
+        return;
+    }
+
+    $sql = "SELECT f.id, cm.id AS cmid
+              FROM {forum} f
+              JOIN {course_modules} cm ON (cm.instance = f.id)
+              JOIN {modules} m ON (m.id = cm.module)
+         LEFT JOIN {forum_subscriptions} fs ON (fs.forum = f.id AND fs.userid = :userid)
+             WHERE f.course = :courseid
+               AND f.forcesubscribe = :initial
+               AND m.name = 'forum'
+               AND fs.id IS NULL";
+    $params = array('courseid'=>$context->instanceid, 'userid'=>$cp->userid, 'initial'=>FORUM_INITIALSUBSCRIBE);
+
+    $forums = $DB->get_records_sql($sql, $params);
+    foreach ($forums as $forum) {
+        // If user doesn't have allowforcesubscribe capability then don't subscribe.
+        if (has_capability('mod/forum:allowforcesubscribe', context_module::instance($forum->cmid), $cp->userid)) {
+            forum_subscribe($cp->userid, $forum->id);
+        }
     }
 }
 
@@ -7588,12 +7639,7 @@ function forum_extend_settings_navigation(settings_navigation $settingsnav, navi
     $canmanage  = has_capability('mod/forum:managesubscriptions', $PAGE->cm->context);
     $subscriptionmode = forum_get_forcesubscribed($forumobject);
     $cansubscribe = ($activeenrolled && $subscriptionmode != FORUM_FORCESUBSCRIBE && ($subscriptionmode != FORUM_DISALLOWSUBSCRIBE || $canmanage));
-    // BEGIN UCLA MOD: CCLE-3045 - Add capability to disable emailing of forum posts to certain roles
-    if ($cansubscribe && !has_capability('mod/forum:receivemail', $PAGE->cm->context)) {
-        $cansubscribe = false;   // user shouldn't get email
-    }
-    // END UCLA MOD: CCLE-3045   
-    
+
     if ($canmanage) {
         $mode = $forumnode->add(get_string('subscriptionmode', 'forum'), null, navigation_node::TYPE_CONTAINER);
 
@@ -8007,29 +8053,37 @@ function forum_get_courses_user_posted_in($user, $discussionsonly = false, $incl
 function forum_get_forums_user_posted_in($user, array $courseids = null, $discussionsonly = false, $limitfrom = null, $limitnum = null) {
     global $DB;
 
-    $where = array("m.name = 'forum'");
-    $params = array();
     if (!is_null($courseids)) {
         list($coursewhere, $params) = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, 'courseid');
-        $where[] = 'f.course '.$coursewhere;
-    }
-    if (!$discussionsonly) {
-        $joinsql = 'JOIN {forum_discussions} fd ON fd.forum = f.id
-                    JOIN {forum_posts} fp ON fp.discussion = fd.id';
-        $where[] = 'fp.userid = :userid';
+        $coursewhere = ' AND f.course '.$coursewhere;
     } else {
-        $joinsql = 'JOIN {forum_discussions} fd ON fd.forum = f.id';
-        $where[] = 'fd.userid = :userid';
+        $coursewhere = '';
+        $params = array();
     }
     $params['userid'] = $user->id;
-    $wheresql = join(' AND ', $where);
+    $params['forum'] = 'forum';
 
-    $sql = "SELECT DISTINCT f.*, cm.id AS cmid
-            FROM {forum} f
-            JOIN {course_modules} cm ON cm.instance = f.id
-            JOIN {modules} m ON m.id = cm.module
-            $joinsql
-            WHERE $wheresql";
+    if ($discussionsonly) {
+        $join = 'JOIN {forum_discussions} ff ON ff.forum = f.id';
+    } else {
+        $join = 'JOIN {forum_discussions} fd ON fd.forum = f.id
+                 JOIN {forum_posts} ff ON ff.discussion = fd.id';
+    }
+
+    $sql = "SELECT f.*, cm.id AS cmid
+              FROM {forum} f
+              JOIN {course_modules} cm ON cm.instance = f.id
+              JOIN {modules} m ON m.id = cm.module
+              JOIN (
+                  SELECT f.id
+                    FROM {forum} f
+                    {$join}
+                   WHERE ff.userid = :userid
+                GROUP BY f.id
+                   ) j ON j.id = f.id
+             WHERE m.name = :forum
+                 {$coursewhere}";
+
     $courseforums = $DB->get_records_sql($sql, $params, $limitfrom, $limitnum);
     return $courseforums;
 }
@@ -8284,8 +8338,10 @@ function forum_get_posts_by_user($user, array $courses, $musthaveaccess = false,
         $forumsearchwhere[] = "(d.forum $fullidsql)";
     }
 
-    // Prepare SQL to both count and search
-    $userfields = user_picture::fields('u', null, 'userid');
+    // Prepare SQL to both count and search.
+    // We alias user.id to useridx because we forum_posts already has a userid field and not aliasing this would break
+    // oracle and mssql.
+    $userfields = user_picture::fields('u', null, 'useridx');
     $countsql = 'SELECT COUNT(*) ';
     $selectsql = 'SELECT p.*, d.forum, d.name AS discussionname, '.$userfields.' ';
     $wheresql = implode(" OR ", $forumsearchwhere);

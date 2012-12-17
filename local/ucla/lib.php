@@ -1308,5 +1308,25 @@ function flash_redirect($url, $success_msg) {
     // message to indicate to user that content was edited
     $_SESSION['flash_success_msg']  = $success_msg;
     redirect($url);
-} 
-// EOF
+}
+
+/**
+ * Notify students and instructor if the course is from a past term.
+ *
+ * @global object $CFG
+ * @global object $OUTPUT
+ * @param object $course
+ * @return string           Returns notice if any is needed.
+ */
+function notice_oldcourse($course) {
+    global $CFG, $OUTPUT;
+    $courseinfos = ucla_get_course_info($course->id);
+    if (empty($courseinfos)) {
+        return; // don't print anything for collab sites
+    }
+    // only notify for old courses
+    $courseinfo = current($courseinfos);
+    if (term_cmp_fn($courseinfo->term, $CFG->currentterm) == -1) {
+        return $OUTPUT->box(get_string('notice_oldcourse', 'local_ucla'), 'noticebox notice_oldcourse');
+    }
+}

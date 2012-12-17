@@ -14,6 +14,7 @@ YUI.add('moodle-course-dragdrop-ucla', function(Y) {
         ICONCLASS : 'iconsmall',
         GROUPINGSPAN : 'span.groupinglabel',
         MODINDENTDIV : 'div.mod-indent',
+        PAGECONTENT : 'div#page-content',
         PUBLICPRIVATE_PRIVATE : 'a.editing_makeprivate',
         PUBLICPRIVATE_PUBLIC : 'a.editing_makepublic',
         SECTIONLI : 'li.section',
@@ -196,14 +197,15 @@ YUI.add('moodle-course-dragdrop-ucla', function(Y) {
     /**
      * Hook public private click events
      */
-    RESOURCETOOLBOX_UCLA.prototype._setup_for_resource = function(toolboxtarget) {
-        RESOURCETOOLBOX_UCLA.superclass._setup_for_resource.apply(this, [toolboxtarget]);
+    RESOURCETOOLBOX_UCLA.prototype.initializer = function(config) {
+        RESOURCETOOLBOX_UCLA.superclass.initializer.apply(this, [config]);
 
         // Show/Hide public private
-        RESOURCETOOLBOX_UCLA.superclass.replace_button.apply(this, [toolboxtarget, CSS.COMMANDSPAN + ' ' + CSS.PUBLICPRIVATE_PUBLIC, this.toggle_publicprivate]);
-        RESOURCETOOLBOX_UCLA.superclass.replace_button.apply(this, [toolboxtarget, CSS.COMMANDSPAN + ' ' + CSS.PUBLICPRIVATE_PRIVATE, this.toggle_publicprivate]);
+        // As of 2.3.3 the new way to hook these events is to use delegation,
+        // The method: _setup_for_resource was also deprecated, so we need to hook on 'initializer'
+        Y.delegate('click', this.toggle_publicprivate, CSS.PAGECONTENT, CSS.COMMANDSPAN + ' ' + CSS.PUBLICPRIVATE_PUBLIC, this);
+        Y.delegate('click', this.toggle_publicprivate, CSS.PAGECONTENT, CSS.COMMANDSPAN + ' ' + CSS.PUBLICPRIVATE_PRIVATE, this);
     }
-
 
     /** 
      * Toggle show/hide section text

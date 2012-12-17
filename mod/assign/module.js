@@ -117,13 +117,11 @@ M.mod_assign.init_grading_options = function(Y) {
             Y.one('form.gradingoptionsform').submit();
         });
         var filterelement = Y.one('#id_filter');
-        // START UCLA MOD: CCLE-3588 - No way to logically save quick grading
         if (filterelement) {
             filterelement.on('change', function(e) {
                 Y.one('form.gradingoptionsform').submit();
             });
         }
-        // END UCLA MOD: CCLE-3588
         var quickgradingelement = Y.one('#id_quickgrading');
         if (quickgradingelement) {
             quickgradingelement.on('change', function(e) {

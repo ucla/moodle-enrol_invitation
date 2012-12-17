@@ -443,7 +443,7 @@ class file_storage {
      */
     public function get_area_tree($contextid, $component, $filearea, $itemid) {
         $result = array('dirname'=>'', 'dirfile'=>null, 'subdirs'=>array(), 'files'=>array());
-        $files = $this->get_area_files($contextid, $component, $filearea, $itemid, "sortorder, itemid, filepath, filename", true);
+        $files = $this->get_area_files($contextid, $component, $filearea, $itemid, "itemid, filepath, filename", true);
         // first create directory structure
         foreach ($files as $hash=>$dir) {
             if (!$dir->is_directory()) {
@@ -1821,10 +1821,7 @@ class file_storage {
      * @param stored_file $storedfile
      */
     public function update_references_to_storedfile(stored_file $storedfile) {
-        // BEGIN UCLA MOD: CCLE 3510 - fixing problems with file alias updating
-        //global $CFG;
         global $CFG, $DB;
-        // END UCLA MOD: CCLE 3510
         $params = array();
         $params['contextid'] = $storedfile->get_contextid();
         $params['component'] = $storedfile->get_component();

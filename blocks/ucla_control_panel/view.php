@@ -50,7 +50,7 @@ $PAGE->set_title($page_title);
 
 $PAGE->set_heading($course->fullname);
 
-$PAGE->set_pagelayout('course');
+$PAGE->set_pagelayout('incourse');
 $PAGE->set_pagetype('course-view-'.$course->format);
 
 set_editing_mode_button();

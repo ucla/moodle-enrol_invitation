@@ -85,7 +85,7 @@ class block_ucla_subject_links extends block_base {
         return $subjname; 
     }
     
-    public function subject_exist($course, $subjarea) {
+    public static function subject_exist($course, $subjarea) {
         $subjname = self::get_subject_areas($course);
         return in_array($subjarea, $subjname);
     }

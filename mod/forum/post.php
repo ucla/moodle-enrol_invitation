@@ -528,8 +528,10 @@ if ($USER->id != $post->userid) {   // Not the original author, so add a message
     unset($data);
 }
 
+$formheading = '';
 if (!empty($parent)) {
     $heading = get_string("yourreply", "forum");
+    $formheading = get_string('reply', 'forum');
 } else {
     if ($forum->type == 'qanda') {
         $heading = get_string('yournewquestion', 'forum');
@@ -847,6 +849,11 @@ $PAGE->set_heading($course->fullname);
 
 echo $OUTPUT->header();
 
+// START UCLA MOD: CCLE-3582 - Warn instructors and students that they're at an old course site
+require_once($CFG->dirroot.'/local/ucla/lib.php');
+echo notice_oldcourse($course);
+// END UCLA MOD: CCLE-3582
+
 // checkup
 if (!empty($parent) && !forum_user_can_see_post($forum, $discussion, $post, null, $cm)) {
     print_error('cannotreply', 'forum');
@@ -905,8 +912,11 @@ if ($forum->type == 'news' && !instance_is_visible('forum', $forum)) {
 
     echo $OUTPUT->box($warninghtml, 'errorbox announcementshidden');
 }
-
 // End SSC Modification
+
+if (!empty($formheading)) {
+    echo $OUTPUT->heading($formheading, 2, array('class' => 'accesshide'));
+}
 $mform_post->display();
 
 echo $OUTPUT->footer();
