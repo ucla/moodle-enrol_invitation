@@ -255,6 +255,16 @@ class block_ucla_tasites extends block_base {
      *  A site is a TA-site if there is a specialized enrol_meta.
      **/
     static function is_tasite($courseid) {
+        return self::is_tasite_enrol_meta_instance(
+                self::get_tasite_enrol_meta_instance($courseid)
+            );
+    }
+
+    /**
+     *  Returns the relevant enrollment entry that is related to
+     *  the particular ta_site.
+     **/
+    static function get_tasite_enrol_meta_instance($courseid) {
         $instances = enrol_get_instances($courseid, true);
 
         $tasite_enrol = false;
@@ -263,15 +273,12 @@ class block_ucla_tasites extends block_base {
         foreach ($instances as $instance) {
             if ($instance->enrol == 'meta') {
                 $tasite_enrol = $instance;
+                // Small convenience naming
+                $tasite_enrol->ownerid = $tasite_enrol->customint4;
             }
         }
 
-        // No link to another course, definitely not a tasite
-        if (!$tasite_enrol) {
-            return false;
-        }
-
-        return self::is_tasite_enrol_meta_instance($tasite_enrol);
+        return $tasite_enrol;
     }
 
     /**
@@ -433,6 +440,31 @@ class block_ucla_tasites extends block_base {
         }
 
         return $cp_module;
+    }
+
+    /**
+     *  Reply to hook. 
+     *  If the course is a TA site, we only want to display the valid
+     *  TA.
+     **/
+    function office_hours_filter_instructors($params) {
+        $filtered = array();
+        $course = $params['course'];
+        $instructors = $params['instructors'];
+
+        if (($tasite_enrol = self::get_tasite_enrol_meta_instance($course->id))
+                && self::is_tasite_enrol_meta_instance($tasite_enrol)) {
+
+            // Filter out all the people displayed in the office hours block
+            // that is not the TA
+            foreach ($instructors as $key => $instructor) {
+                if ($tasite_enrol->ownerid != $instructor->id) {
+                    $filtered[] = $key;
+                }
+            }
+        }
+
+        return $filtered;
     }
 
     function office_hours_append($params) {

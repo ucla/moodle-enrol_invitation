@@ -139,9 +139,17 @@ class block_ucla_office_hours extends block_base {
             self::combine_blocks_office_hours($appended_info);
 
         // Optionally remove some instructors from display
-        $filtered_users = self::blocks_office_hours_filter_instructors(
+        $block_filtered_users = self::blocks_office_hours_filter_instructors(
                 $instructors, $course, $context
             );
+
+        // Flatten out results
+        $filtered_users = array();
+        foreach ($block_filtered_users as $block => $filtered_user_keys) {
+            foreach ($filtered_user_keys as $filtered_user_key) {
+                $filtered_users[$filtered_user_key] = $filtered_user_key;
+            }
+        }
 
         // Filter and organize users here?
         foreach ($instructor_types as $title => $rolenames) {
