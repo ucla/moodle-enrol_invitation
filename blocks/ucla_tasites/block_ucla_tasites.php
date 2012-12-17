@@ -443,11 +443,14 @@ class block_ucla_tasites extends block_base {
     }
 
     /**
-     *  Reply to hook. 
-     *  If the course is a TA site, we only want to display the valid
-     *  TA.
+     *  Reply to hook when displaying office hours.
+     *  If the course is a TA site, we only want to display the valid TA.
      **/
     function office_hours_filter_instructors($params) {
+        if (!get_config('block_ucla_tasites', 'filter_non_ta')) {
+            return array();
+        }
+
         $filtered = array();
         $course = $params['course'];
         $instructors = $params['instructors'];
