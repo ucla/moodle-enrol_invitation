@@ -129,10 +129,6 @@ $CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url'] = 'ftp
 // CCLE-2301 - COURSE MENU BLOCK
 $CFG->forced_plugin_settings['block_ucla_course_menu']['trimlength'] = 22;
 
-// CCLE-3711 - Office hours filters out users that are not a TA site's 
-// primary admin
-$CFG->forced_plugin_settings['block_ucla_tasites']['filter_non_ta'] = 1;
-
 // UCLA Theme settings
 $CFG->forced_plugin_settings['theme_uclashared']['running_environment'] = 'stage';
 
