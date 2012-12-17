@@ -1000,27 +1000,59 @@ function terms_range($startterm, $endterm) {
 }
 
 /**
- *  Wrapper for block_weekdisplay.
  *  Takes in a UCLA term (Ex: 11F) and returns the term after it.
  * 
  *  @param current_term a valid term string (Ex: '11F')
  *  @return the term after the current term.
- **/       
+ */       
 function term_get_next($term) {
-    return block_method_result('ucla_weeksdisplay', 'get_next_term', 
-        $term);
+    if (empty($term)) {
+        return null;
+    }
+    $year = intval(substr($term,0 , 2));
+    $quarter = substr($term, -1);
+
+    switch($quarter) {
+        case 'F':
+            $next_year = ($year == 99) ? '00' : sprintf('%02d', intval($year)+1);
+            return $next_year.'W';
+        case 'W':
+            return $year.'S';
+        case 'S':
+            return $year.'1';
+        case '1':
+            return $year.'F';
+        default:
+            return null;
+    }
 }
 
 /**
- *  Wrapper for block_weekdisplay.
  *  Takes in a UCLA term (Ex: 11F) and returns the term before it.
  * 
  *  @param current_term a valid term string (Ex: '11F')
  *  @return the term after the current term.
- **/       
+ */       
 function term_get_prev($term) {
-    return block_method_result('ucla_weeksdisplay', 'get_prev_term',
-        $term);
+    if (empty($term)) {
+        return null;
+    }
+    $year = intval(substr($term, 0 , 2));
+    $quarter = substr($term, -1);
+
+    switch ($quarter) {
+        case 'F':
+            return $year.'1';
+        case 'W':
+            $prev_year = ($year == 0) ? '99' : sprintf('%02d', intval($year)-1);
+            return $prev_year.'F';
+        case 'S':
+            return $year.'W';
+        case '1':
+            return $year.'S';
+        default:
+            return null;
+    }
 }
 
 /**
