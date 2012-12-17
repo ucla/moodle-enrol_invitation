@@ -29,8 +29,9 @@ class course_handler extends browseby_handler {
             ubii.profcode,
             user.url AS userlink,
             mco.shortname AS shortname,
-            mco.idnumber AS idnumber, 
-            public_syllabus.id>0 AS has_public_syllabus,
+            mco.idnumber AS idnumber,
+            public_world_syllabus.id>0 AS has_public_world_syllabus,
+            public_ucla_syllabus.id>0 AS has_public_ucla_syllabus,
             private_syllabus.id>0 AS has_private_syllabus
     ";
 
@@ -40,11 +41,15 @@ class course_handler extends browseby_handler {
 
     // Get syllabi information for courses
     const browseall_syllabus_helper =  "
-        LEFT JOIN {ucla_syllabus} public_syllabus
-            ON  (urc.courseid = public_syllabus.courseid AND
-                (public_syllabus.access_type=1 OR public_syllabus.access_type=2))
+        LEFT JOIN {ucla_syllabus} public_world_syllabus
+            ON  (urc.courseid = public_world_syllabus.courseid AND
+                 public_world_syllabus.access_type=1)
+        LEFT JOIN {ucla_syllabus} public_ucla_syllabus
+            ON  (urc.courseid = public_ucla_syllabus.courseid AND
+                 public_ucla_syllabus.access_type=2)
         LEFT JOIN {ucla_syllabus} private_syllabus
-            ON  (urc.courseid = private_syllabus.courseid AND private_syllabus.access_type=3)";
+            ON  (urc.courseid = private_syllabus.courseid AND
+                 private_syllabus.access_type=3)";
 
     function get_params() {
         // This uses division in breadcrumbs
@@ -302,7 +307,8 @@ class course_handler extends browseby_handler {
                 $courseobj->coursenum = $course->coursenum;
             }
             
-            $courseobj->has_public_syllabus = $course->has_public_syllabus;
+            $courseobj->has_public_world_syllabus = $course->has_public_world_syllabus;
+            $courseobj->has_public_ucla_syllabus = $course->has_public_ucla_syllabus;
             $courseobj->has_private_syllabus = $course->has_private_syllabus;
             $courseobj->courseid = $course->courseid;
 
@@ -345,7 +351,7 @@ class course_handler extends browseby_handler {
                 $sessioncell->text = get_string(
                     'session_break', 'block_ucla_browseby', $session);
 
-                $sessioncell->colspan = '3';
+                $sessioncell->colspan = '4';
                 $sessionrow = new html_table_row();
                 $sessionrow->attributes['class'] = 'header summersession';
                 $sessionrow->cells[] = $sessioncell;
