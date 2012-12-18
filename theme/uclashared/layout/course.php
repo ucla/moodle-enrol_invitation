@@ -50,6 +50,7 @@ echo $OUTPUT->doctype() ?>
     <link rel="shortcut icon" href="<?php echo $OUTPUT->pix_url('favicon', 'theme')?>" />
     <link rel="apple-touch-icon" href="<?php echo $OUTPUT->pix_url('apple-touch-icon', 'theme')?>" />
     <?php echo $OUTPUT->standard_head_html() ?>
+    <link rel="stylesheet" type="text/css" media="print" href="<?php echo $CFG->wwwroot .'/theme/'. current_theme() ?>/style/print.css" />
 </head>
 <body id="<?php echo $PAGE->bodyid ?>" class="<?php echo $PAGE->bodyclasses.' '.join(' ', $bodyclasses) ?>">
 <?php echo $OUTPUT->standard_top_of_body_html() ?>

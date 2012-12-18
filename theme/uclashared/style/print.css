@@ -1,0 +1,46 @@
+/* 
+    Document   : print.css
+    Created on : Dec 17, 2012, 3:03:22 PM
+    Author     : yufeichen
+    Description:
+        Purpose of the stylesheet follows.
+*/
+#page-header, #region-pre, #page-footer{
+    display: none;
+    width:0px;
+}
+
+.headingblock{
+    color:black;
+}
+a:link, .instancename{
+    color:black;
+}
+#page-footer #footer-links a{
+    color:white;
+}
+#page-content #region-main-wrap{
+    width:60%;
+}
+a.editing-link:link, a.editing-link:visited, .course-content .editbutton a, .sectionheader .right.side a, 
+.sectionheader .right.side span, .jit_links a:link, .jit_links a:visited, span.commands a, .editing_move_totext,
+.block_ucla_my_sites .content .termselector, #browsebymain .term_selector{
+    color:black;
+}
+.headingblock, h2.main {
+    border-bottom:1px solid black;    
+    border-top:1px solid black;
+}
+
+.block {
+    border: 1px solid grey;
+}
+a:visited, a:hover, a:link {
+    color:black;
+    text-decoration:underline;
+}
+
+.mysitesdivider {
+    border-bottom: 1px solid black;
+    color:black;
+}
