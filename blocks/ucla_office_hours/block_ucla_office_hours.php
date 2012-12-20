@@ -162,7 +162,7 @@ class block_ucla_office_hours extends block_base {
                 }
 
                 if (in_array($user->shortname, $rolenames)) {
-                    $goal_users[$uk] = $ohinstructors[$uk];
+                    $goal_users[$user->id] = $user;
                 }
             }
 
