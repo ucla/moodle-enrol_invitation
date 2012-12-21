@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="report/uclastats/db" VERSION="20121218" COMMENT="XMLDB file for Moodle report/uclastats"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="ucla_statsconsole" COMMENT="Stores cached query results from UCLA stats console">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="name"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="30" NOTNULL="true" SEQUENCE="false" COMMENT="Report that query results belongs" PREVIOUS="id" NEXT="userid"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="User that ran report." PREVIOUS="name" NEXT="params"/>
+        <FIELD NAME="params" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Parameters used to generate query. Stored as serialized PHP value" PREVIOUS="userid" NEXT="results"/>
+        <FIELD NAME="results" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Cached query results stored as serialized PHP value" PREVIOUS="params" NEXT="locked"/>
+        <FIELD NAME="locked" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="If locked, then query results cannot be deleted unless unlocked. Used to try to prevent accidental deletes." PREVIOUS="results" NEXT="timecreated"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Time query was generated" PREVIOUS="locked"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="names" UNIQUE="false" FIELDS="name" NEXT="userids"/>
+        <INDEX NAME="userids" UNIQUE="false" FIELDS="userid" PREVIOUS="names"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>
