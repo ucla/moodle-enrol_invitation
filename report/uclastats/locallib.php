@@ -42,14 +42,88 @@ abstract class uclastats_base {
     }
 
     /**
-     * Abstract method that needs to be defined by reports.
+     * Generates HTML output for display of query results with title,
+     * parameters, result table, and other information.
      *
-     * Generates HTML output for display of query results.
+     * Assumes that first row has every column needed to display and that lang
+     * strings exist for each key.
      *
-     * @params mixed $results
+     * @params mixed $results   Expects to be cached result array processed by
+     *                          get_results($resultid).
      * @return string           Returns generated HTML
      */
-    public abstract function display($results);
+    public function display($results) {
+        global $OUTPUT;
+        $ret_val = '';
+
+        // do sanity check (
+        if (empty($results)) {
+            return get_string('nocachedresults','report_uclastats');
+        }
+        
+        // display report title header
+        $title = get_string(get_class($this), 'report_uclastats');
+        $ret_val .= $OUTPUT->heading($title, 2, 'headingblock');
+
+        // display report help
+        $ret_val .= html_writer::tag('p', get_string(get_class($this) .
+                '_help', 'report_uclastats'), array('class' => 'report-help'));
+
+        // display parameters
+        if (!empty($results->params)) {
+            $param_list = array();
+            foreach ($results->params as $name => $value) {
+                $param_list[] = get_string($name, 'report_uclastats') . ' = ' .
+                        $value;
+            }
+            $ret_val .= html_writer::tag('p', implode(', ', $param_list),
+                    array('class' => 'parameters'));
+        }
+        
+        if (empty($results->results)) {
+            $ret_val .= html_writer::tag('p', get_string('noresults','admin'),
+                    array('class' => 'noresults'));
+        } else {
+            // now display results table
+            $results_table = new html_table();
+            $results_table->attributes = array('class' => 'results-table ' .
+                get_class($this));
+
+            // get first element and get its array keys to generate header
+            $header = reset($results->results);
+
+            // generate header
+            foreach ($header as $name => $value) {
+                $results_table->head[] = get_string($name, 'report_uclastats');
+            }
+
+            // assumes that results are an array of arrays
+            $results_table->data = $results->results;
+
+            $ret_val .= html_writer::table($results_table);
+        }
+
+        // display information on who ran the query and the timestamp
+        $footer_info = new stdClass();
+        $footer_info->who = fullname($results->user);
+        $footer_info->when = $results->timecreated;
+        $footer = get_string('lastran', 'report_uclastats', $footer_info);
+        $ret_val .= html_writer::tag('p', $footer, array('class' => 'lastran'));
+
+        return $ret_val;
+    }
+
+    /**
+     * Displays given cached result id.
+     * 
+     * @param int $resultid
+     * 
+     * @return string
+     */
+    public function display_result($resultid) {
+        $results = $this->get_results($resultid);
+        return $this->display($results);
+    }
 
     /**
      * Returns either a list of cached results for current report or specified
@@ -60,7 +134,6 @@ abstract class uclastats_base {
      *                          cached results for gieven report. If id
      *                          specified, then returns that specific cached
      *                          results.
-     *
      * @return mixed            Returns either a result listing or specified
      *                          cached results.
      */
@@ -69,7 +142,7 @@ abstract class uclastats_base {
 
         $ret_val = null;
         $params = array('name' => get_class($this));
-        
+
         if (empty($resultid)) {
             // user wants list of cached results
             $results = $DB->get_records('ucla_statsconsole', $params, 'timecreated DESC');
@@ -95,7 +168,7 @@ abstract class uclastats_base {
      * Processes cached result so that it is displayable. Meaning it will:
      *  - convert userid to a user object
      *  - format timecreated into a human readable timestamp
-     *  - unserialize parameters and results
+     *  - json_decode parameters and results
      *
      * @global object $DB
      * @param object $cached_result
@@ -111,8 +184,8 @@ abstract class uclastats_base {
         }
 
         $cached_result->user = self::$_cache['user'][$cached_result->userid];
-        $cached_result->params = unserialize($cached_result->params);
-        $cached_result->results = unserialize($cached_result->results);
+        $cached_result->params = json_decode($cached_result->params, true);
+        $cached_result->results = json_decode($cached_result->results, true);
         $cached_result->timecreated = userdate($cached_result->timecreated);
 
         return $cached_result;
@@ -125,8 +198,8 @@ abstract class uclastats_base {
      *
      * @throws  moodle_exception
      *
-     * @params mixed $params
-     * @return mixed            Returns result as defined by query.
+     * @params array $params
+     * @return array            Returns an array of result arrays.
      */
     public abstract function query($params);
 
@@ -136,8 +209,8 @@ abstract class uclastats_base {
      * @throws  moodle_exception
      *
      * @global object $DB
-     * @param mixed $params
-     * @return mixed            Returns results of query.
+     * @param array $params
+     * @return int            Returns cached result id of the query.
      */
     public function run($params) {
         global $DB;
@@ -148,13 +221,26 @@ abstract class uclastats_base {
         $cache_result = new stdClass();
         $cache_result->name = get_class($this);
         $cache_result->userid = $this->_userid;
-        $cache_result->params = serialize($params);
-        $cache_result->results = serialize($results);
+        $cache_result->params = json_encode($params);
+        $cache_result->results = json_encode($results);
         $cache_result->locked = 0;
         $cache_result->timecreated = time();
 
         $cached_resultid = $DB->insert_record('ucla_statsconsole', $cache_result);
 
-        return $results;
+        return $cached_resultid;
+    }
+
+    /**
+     * Runs query with given parameters and then displays results.
+     *
+     * @throws  moodle_exception
+     * 
+     * @param array $params
+     * @return string
+     */
+    public function run_and_display($params) {
+        $resultid = $this->run($params);
+        return $this->display_result($resultid);
     }
 }

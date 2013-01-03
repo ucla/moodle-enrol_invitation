@@ -11,3 +11,17 @@ $string['pluginname'] = 'UCLA stats console';
 $string['uclastats:view'] = 'View UCLA stats console cached queries';
 $string['uclastats:query'] = 'Run UCLA stats console queries';
 $string['uclastats:manage'] = 'Manage UCLA stats console cached queries (delete or lock results)';
+
+$string['parameters'] = 'Parameters: {$a}';
+$string['lastran'] = 'Last ran by {$a->who} on {$a->when}';
+
+// error strings
+$string['nocachedresults'] = 'No cached results found';
+
+// strings for unit testing
+$string['param1'] = 'Parameter 1';
+$string['param2'] = 'Parameter 2';
+$string['result1'] = 'Result 1';
+$string['result2'] = 'Result 2';
+$string['uclastats_base_mock'] = 'UCLA stats base class';
+$string['uclastats_base_mock_help'] = 'Text explaining what report does.';

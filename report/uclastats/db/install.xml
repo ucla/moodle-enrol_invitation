@@ -7,7 +7,7 @@
     <TABLE NAME="ucla_statsconsole" COMMENT="Stores cached query results from UCLA stats console">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="name"/>
-        <FIELD NAME="name" TYPE="char" LENGTH="30" NOTNULL="true" SEQUENCE="false" COMMENT="Report that query results belongs" PREVIOUS="id" NEXT="userid"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Report that query results belongs" PREVIOUS="id" NEXT="userid"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="User that ran report." PREVIOUS="name" NEXT="params"/>
         <FIELD NAME="params" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Parameters used to generate query. Stored as serialized PHP value" PREVIOUS="userid" NEXT="results"/>
         <FIELD NAME="results" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Cached query results stored as serialized PHP value" PREVIOUS="params" NEXT="locked"/>
