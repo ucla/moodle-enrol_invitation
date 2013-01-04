@@ -38,6 +38,9 @@ abstract class uclastats_base {
      * @param int $userid   User who is running the report. Used for logging.
      */
     public function __construct($userid) {
+        if (is_object($userid)) {
+            $userid = $userid->id;
+        }
         $this->_userid = $userid;
     }
 
@@ -196,10 +199,14 @@ abstract class uclastats_base {
      *
      * Should validate params and throw an exception if there is an error.
      *
+     * NOTE: Do not worry about casting array of objects returned by Moodle's
+     * DB API to arrays, because when they are encoded and then decoded to and
+     * from JSON, they will be cast as arrays.
+     *
      * @throws  moodle_exception
      *
      * @params array $params
-     * @return array            Returns an array of result arrays.
+     * @return array            Returns an array of results.
      */
     public abstract function query($params);
 

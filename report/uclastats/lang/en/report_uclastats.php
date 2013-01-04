@@ -15,8 +15,13 @@ $string['uclastats:manage'] = 'Manage UCLA stats console cached queries (delete 
 $string['parameters'] = 'Parameters: {$a}';
 $string['lastran'] = 'Last ran by {$a->who} on {$a->when}';
 
+// strings for sites_per_term
+$string['sites_per_term'] = 'Sites per term';
+$string['sites_per_term_help'] = 'Returns number of Registrar course sites built on the current server.';
+
 // error strings
 $string['nocachedresults'] = 'No cached results found';
+$string['invalidterm'] = 'Invalid term';
 
 // strings for unit testing
 $string['param1'] = 'Parameter 1';
