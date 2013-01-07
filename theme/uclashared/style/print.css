@@ -21,3 +21,27 @@
 #page-content #region-main  {
     margin-left: 0 !important;
 }
+
+/* Tweaks to force 3-column layout to align properly */
+
+#page-content #region-main-box {
+    float: left;
+    position: relative;
+    width: 100%;
+    left: 0;
+}
+#page-content #region-post-box {
+    left: 0;
+    margin: 0;
+}
+
+#page-content #region-main-wrap {
+    float: left;
+    right: 0;
+    width: 100%;
+}
+
+/* Tweak to force 2-coumn content to align properly */
+.side-pre-only #page-content #region-post-box {
+    margin: 0;
+}
