@@ -20,12 +20,18 @@ class theme_uclashared_core_renderer extends core_renderer {
      * @return string 
      */
     function standard_head_html() {
+        global $CFG;
+        
         $out = parent::standard_head_html();
         
         // Add mobile support with option to switch
         if(get_user_device_type() != 'default') {
             $out .= '<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=2.0; user-scalable=1;" />' . "\n";
         }
+        
+        // Attach print CSS
+        $out .= '<link rel="stylesheet" type="text/css" media="print" href="' . $CFG->wwwroot .'/theme/uclashared/style/print.css" />' . "\n";
+        
         return $out;
     }
 
