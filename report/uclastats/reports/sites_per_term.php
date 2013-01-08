@@ -14,6 +14,13 @@ require_once($CFG->dirroot . '/report/uclastats/locallib.php');
 
 class sites_per_term extends uclastats_base {
     /**
+     * Returns an array of form elements used to run report.
+     */
+    public function get_parameters() {
+        return array('term');
+    }
+
+    /**
      * 
      * @param type $params
      */

@@ -84,7 +84,7 @@ class uclastats_base_test extends advanced_testcase {
         $this->assertEquals(1, count($results)); // should only have one result
 
         // get resultid of first element
-        $result = array_pop($results);
+        $result = $results->current();
         $pop_resultid = $result->id;
         $this->assertEquals($resultid, $pop_resultid);
         
@@ -94,22 +94,23 @@ class uclastats_base_test extends advanced_testcase {
     }
 
     /**
-     * Test run_and_display to make sure that output is generated.
+     * Test run and display_result to make sure that output is generated.
      *
      * @dataProvider providerTestCase
      */
     public function testRunAndDisplay($param, $expected_result) {
         // run test to get results cached
         $stub = $this->createMockObject($expected_result);
-        $html_output = $stub->run_and_display($param);
-
-        // make sure that title is properly set
-        $this->assertContains(get_string('uclastats_base_mock',
-                'report_uclastats'), $html_output);
+        $resultid = $stub->run($param);
+        $html_output = $stub->display_result($resultid);
 
         // if there are no results, make sure message regarding so is printed
         if (empty($expected_result)) {
             $this->assertContains(get_string('noresults', 'admin'), $html_output);
+        } else {
+            // make sure that data was properly set by making sure that result
+            // table is generated
+            $this->assertContains('results-table uclastats_base_mock', $html_output);
         }
     }
 }

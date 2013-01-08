@@ -1,0 +1,20 @@
+/**
+ * Styles for UCLA stats console
+ *
+ * @package    report
+ * @subpackage uclastats
+ * @copyright  UC Regents
+ */
+
+.uclastats-report-list {
+    float: right;
+    min-width: 200px;
+}
+
+#page-admin-report-uclastats-view .run-form {
+    width: 65%;
+}
+
+.cached-results-table .current-result .cell {
+    background-color: #FFB300 !important;
+}

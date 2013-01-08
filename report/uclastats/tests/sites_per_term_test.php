@@ -95,12 +95,12 @@ class sites_per_term_test extends advanced_testcase {
 
         // call get_results to get all results
         $results = $report->get_results();
-        $this->assertEquals(2, count($results));
+        $this->assertEquals(2, $results->count());
 
         $report->run(array('term' => '12S'));
         // call get_results to get all results
         $results = $report->get_results();
-        $this->assertEquals(3, count($results));
+        $this->assertEquals(3, $results->count());
     }
 
     /**
@@ -113,7 +113,8 @@ class sites_per_term_test extends advanced_testcase {
         foreach ($this->courses as $term => $courselist) {
             $resultid = $report->run(array('term' => $term));
             $result = $report->get_results($resultid);
-            $site_count = reset($result->results);
+            $results_array = $result->results;
+            $site_count = reset($results_array);
             $this->assertEquals(count($courselist), $site_count['site_count']);
         }
     }
