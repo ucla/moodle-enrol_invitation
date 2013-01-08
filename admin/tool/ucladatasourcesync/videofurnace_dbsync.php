@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Command line script to parse, verify, and update Video Furnace entries in the Moodle database.
  *
@@ -132,16 +131,26 @@ function update_videofurnace_db($datasource_url) {
         } catch (Exception $e) {
             // Handle CCLE-3378 - Video furnace crashing on video title "ClŽo de 5 ˆ 7"
             if (strpos($e->error, 'video_title')) {
+                print_r($row_data);
                 //try to recover by converting titles to ASCII
-                $row_data[6] = textlib::specialtoascii($row_data[6]);
+                $row_data['video_title'] = textlib::specialtoascii($row_data['video_title']);
                 try {
                     $id = $DB->insert_record('ucla_video_furnace', $row_data);                    
                 } catch (Exception $e) {
-                    // error, log this and print out error
-                    log_ucla_data('video furnace', 'write', 'Inserting video furnace data',
-                            get_string('errcannotinsert', 'tool_ucladatasourcesync', $e->error));
-                    echo get_string('errcannotinsert', 'tool_ucladatasourcesync', $e->error);
+                    // cannot fix invalid title
+                    $error = new stdClass();
+                    $error->fields = implode(', ', $invalid_fields);
+                    $error->line_num = $row;
+                    $error->data = print_r($row_data, true);
+                    log_ucla_data('video furnace', 'write', 'Invalid title',
+                            get_string('errinvalidtitle', 'tool_ucladatasourcesync', $error));
+                    echo get_string('errinvalidtitle', 'tool_ucladatasourcesync', $error);
                 }
+            } else {
+                // error, log this and print out error
+                log_ucla_data('video furnace', 'write', 'Inserting video furnace data',
+                        get_string('errcannotinsert', 'tool_ucladatasourcesync', $e->error));
+                echo get_string('errcannotinsert', 'tool_ucladatasourcesync', $e->error);
             }
         }
                 

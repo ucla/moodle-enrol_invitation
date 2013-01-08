@@ -42,6 +42,7 @@ $string['lrnoentries'] = 'No library reserve entries found.';
 $string['errvfmsglocation'] = "ERROR: No location set for video furnace data.";
 $string['errvfinvalidrowlen'] = "ERROR: Invalid row length in provided video furnace data.";
 $string['errvffileopen'] = "ERROR: Problem accessing data URL";
+$string['errinvalidtitle'] = 'ERROR: Title has invalid characters in parsed line {$a->line_num}: {$a->data}';
 
 //Notification messages
 $string['vfstartnoti'] = "Starting video furnace DB update:";

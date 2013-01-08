@@ -115,9 +115,6 @@ $CFG->forced_plugin_settings['block_ucla_help']['jira_endpoint'] = 'https://jira
 $CFG->forced_plugin_settings['block_ucla_help']['jira_default_assignee'] = 'dkearney';
 //$block_ucla_help_support_contacts['System'] = 'dkearney';  // default
 
-// CCLE-2312 - LIBRARY RESERVES BLOCK
-$CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url'] = 'ftp://ftp.library.ucla.edu/incoming/eres/voyager_reserves_data.txt';
-
 // CCLE-2301 - COURSE MENU BLOCK
 $CFG->forced_plugin_settings['block_ucla_course_menu']['trimlength'] = 22;
 
@@ -236,6 +233,12 @@ $CFG->forced_plugin_settings['enrol_self']['sendcoursewelcomemessage'] = 0;
 // Site administration > Plugins > Blocks > UCLA bruincast
 $CFG->forced_plugin_settings['block_ucla_bruincast']['source_url'] = 'http://www.oid.ucla.edu/help/info/bcastlinks/';
 $CFG->forced_plugin_settings['block_ucla_bruincast']['errornotify_email'] = 'ccle-operations@lists.ucla.edu';
+
+// Site administration > Plugins > Blocks > UCLA library reserves
+$CFG->forced_plugin_settings['block_ucla_library_reserves']['source_url'] = 'ftp://ftp.library.ucla.edu/incoming/eres/voyager_reserves_data.txt';
+
+// Site administration > Plugins > Blocks > UCLA video furnace
+$CFG->forced_plugin_settings['block_ucla_video_furnace']['source_url'] = 'ftp://guest:access270@164.67.141.31//Users/guest/Sites/VF_LINKS.txt';
 
 // Data Source Sync (bruincast, video furnace, library reserves) contact Email
 $CFG->forced_plugin_settings['tool_ucladatasourcesync']['contact_email']='ccle-operations@lists.ccle.ucla.edu';
