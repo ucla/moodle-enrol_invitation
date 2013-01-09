@@ -33,8 +33,14 @@ $string['view_results'] = 'View results';
 
 // strings for sites_per_term
 $string['sites_per_term'] = 'Sites per term';
-$string['sites_per_term_help'] = 'Returns number of Registrar course sites built on the current server.';
+$string['sites_per_term_help'] = 'Returns number of Registrar course sites built for given term.';
 $string['site_count'] = 'Site count';
+
+// strings for course_modules_used
+$string['course_modules_used'] = 'Course modules used by courses';
+$string['course_modules_used_help'] = 'Returns name and number of course modules used for given term.';
+$string['module'] = 'Activity/Resource module';
+$string['count'] = 'Count';
 
 // error strings
 $string['nocachedresults'] = 'No cached results found';

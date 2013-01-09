@@ -37,8 +37,10 @@ class sites_per_term extends uclastats_base {
     }
 
     /**
-     * 
-     * @param type $params
+     * Query for number of courses for given term.
+     *
+     * @param array $params
+     * @param return array
      */
     public function query($params) {
         global $DB;
@@ -55,6 +57,6 @@ class sites_per_term extends uclastats_base {
                 WHERE   urc.courseid=c.id AND
                         urc.term=:term AND
                         urc.hostcourse=1";
-        return $DB->get_records_sql($sql, $params);;
+        return $DB->get_records_sql($sql, $params);
     }
 }
