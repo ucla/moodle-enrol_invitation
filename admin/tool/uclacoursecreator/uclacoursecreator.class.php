@@ -1112,7 +1112,7 @@ class uclacoursecreator {
 
             $courseobj = clone($this->course_defaults);
             $courseobj->summary_format = FORMAT_HTML;
-            $courseobj->summary = $rci_object->crs_desc;
+            $courseobj->summary = "";
 
             // See if we can get certain information from the requests
             if (!isset($requests[$reqkey])) {
