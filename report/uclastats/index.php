@@ -20,10 +20,10 @@ $PAGE->set_url(new moodle_url('/report/uclastats/index.php'));
 
 admin_externalpage_setup('reportuclastats');
 
+$output = $PAGE->get_renderer('report_uclastats');
+
 echo $OUTPUT->header();
 echo $output->render_header();
-
-$output = $PAGE->get_renderer('report_uclastats');
 
 echo get_string('index_welcome', 'report_uclastats');
 

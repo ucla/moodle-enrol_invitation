@@ -105,8 +105,8 @@ abstract class uclastats_base implements renderable {
                     $row->attributes = array('class' => 'current-result');
                 }
 
-                $row->cells['param'] = implode(', ', $result->params);
-                $row->cells['results'] = count($result->results);
+                $row->cells['param'] = $this->format_cached_params($result->params);
+                $row->cells['results'] = $this->format_cached_results($result->results);
 
                 // display information on who ran the query and the timestamp
                 $lastran = new stdClass();
@@ -155,13 +155,9 @@ abstract class uclastats_base implements renderable {
         // display parameters
         $params = $uclastats_result->params;
         if (!empty($params)) {
-            $param_list = array();
-            foreach ($params as $name => $value) {
-                $param_list[] = get_string($name, 'report_uclastats') . ' = ' .
-                        $value;
-            }
+            $params_display = $this->format_cached_params($params);
             $ret_val .= html_writer::tag('p', get_string('parameters',
-                    'report_uclastats', implode(', ', $param_list)),
+                    'report_uclastats', $params_display),
                     array('class' => 'parameters'));
         }
 
@@ -196,6 +192,33 @@ abstract class uclastats_base implements renderable {
         $ret_val .= html_writer::tag('p', $footer, array('class' => 'lastran'));
 
         return $ret_val;
+    }
+
+    /**
+     * Helper function to figure how to best display parameters column in cached
+     * results table.
+     *
+     * @param array $params
+     * @return string
+     */
+    public function format_cached_params($params) {
+        $param_list = array();
+        foreach ($params as $name => $value) {
+            $param_list[] = get_string($name, 'report_uclastats') . ' = ' .
+                    $value;
+        }
+        return implode(', ', $param_list);
+    }
+
+    /**
+     * Helper function to figure how to best display results column in cached
+     * results table.
+     *
+     * @param array $results
+     * @return string
+     */
+    public function format_cached_results($results) {
+        return count($results);
     }
 
     /**

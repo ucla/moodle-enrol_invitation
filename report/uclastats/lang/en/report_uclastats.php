@@ -26,7 +26,7 @@ $string['term'] = 'Term';
 // cached results strings
 $string['cached_results_table'] = 'Cached results';
 $string['header_param'] = 'Parameters';
-$string['header_results'] = '# of Results';
+$string['header_results'] = 'Results';
 $string['header_lastran'] = 'Last ran';
 $string['header_actions'] = 'Actions';
 $string['view_results'] = 'View results';

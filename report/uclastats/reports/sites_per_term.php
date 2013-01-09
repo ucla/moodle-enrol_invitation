@@ -14,6 +14,22 @@ require_once($CFG->dirroot . '/report/uclastats/locallib.php');
 
 class sites_per_term extends uclastats_base {
     /**
+     * Instead of counting results, but return actual count.
+     *
+     * @param array $results
+     * @return string
+     */
+    public function format_cached_results($results) {
+        if (!empty($results)) {
+            $result = array_pop($results);
+            if (isset($result['site_count'])) {
+                return $result['site_count'];
+            }
+        }
+        return 0;
+    }
+
+    /**
      * Returns an array of form elements used to run report.
      */
     public function get_parameters() {
