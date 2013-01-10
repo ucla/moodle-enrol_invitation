@@ -244,6 +244,16 @@
         // This course is not a real course.
         redirect($CFG->wwwroot .'/');
     }
+    
+    // BEGIN UCLA MOD: CCLE-3685 - Redirect to syllabus if the syllabus is the landing page
+    require_once($CFG->dirroot.'/course/format/ucla/lib.php');
+    $on_landing_page = ucla_format_figure_section($course);
+    if ($on_landing_page === UCLA_FORMAT_DISPLAY_SYLLABUS) {
+        // user wants to view syllabus as the landing page
+        $syllabusurl = $CFG->wwwroot . '/local/ucla_syllabus/index.php?id=' . $course->id;
+        redirect($syllabusurl);
+    }
+    // END UCLA MOD: CCLE-3685
 
     $completion = new completion_info($course);
     if ($completion->is_enabled() && ajaxenabled()) {
