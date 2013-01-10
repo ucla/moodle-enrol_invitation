@@ -13,7 +13,8 @@
 
 #page-content #region-post, 
 #page-content #region-pre,
-#page-header {
+#page-header,
+#page-footer {
     display: none !important;
 }
 
