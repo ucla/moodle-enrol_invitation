@@ -1,0 +1,48 @@
+/* 
+    Print only CSS
+
+    This will remove the side blocks, the header and grayscale elements on page.
+*/
+
+* {
+    background-color: white !important;
+    background-image: none !important;
+    color: black !important;
+    border-color: #999 !important;
+}
+
+#page-content #region-post, 
+#page-content #region-pre,
+#page-header,
+#page-footer {
+    display: none !important;
+}
+
+.side-pre-only #page-content #region-main,
+#page-content #region-main  {
+    margin-left: 0 !important;
+}
+
+/* Tweaks to force 3-column layout to align properly */
+
+#page-content #region-main-box {
+    float: left;
+    position: relative;
+    width: 100%;
+    left: 0;
+}
+#page-content #region-post-box {
+    left: 0;
+    margin: 0;
+}
+
+#page-content #region-main-wrap {
+    float: left;
+    right: 0;
+    width: 100%;
+}
+
+/* Tweak to force 2-coumn content to align properly */
+.side-pre-only #page-content #region-post-box {
+    margin: 0;
+}

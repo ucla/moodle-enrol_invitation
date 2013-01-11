@@ -125,7 +125,19 @@ foreach ($elements as $view => $section_contents) {
         echo html_writer::start_tag('div', array('class' => $tags));
         
         echo $OUTPUT->heading($viewstring, 2, 'main copan-title');
-  
+        
+        // obtain the section number here
+        $section = ucla_format_figure_section($course);
+        // only add param if it is a section here. show_all is not a 'real' 
+        // section that material can be added to
+        if($section >= 0) {
+            foreach($modules as $submodule) {
+                if(isset($submodule->action)) {
+                    $submodule->action->params(array("section" => $section));
+                }
+            }
+        }
+        
         if ($tags == 'ucla_cp_mod_common') {
             $section_contents = ucla_cp_renderer::get_content_array(
                 $modules, 2
