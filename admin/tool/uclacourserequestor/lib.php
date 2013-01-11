@@ -729,7 +729,11 @@ function request_ignored($request) {
 }
 
 function request_get_editables() {
-    return array('mailinst', 'nourlupdate', 'action', 'requestoremail');
+    if (get_config('tool_uclacourserequestor', 'nourlupdate_hide')) {
+        return array('mailinst', 'action', 'requestoremail');
+    } else {
+        return array('mailinst', 'nourlupdate', 'action', 'requestoremail');
+    }
 }
 
 /**
