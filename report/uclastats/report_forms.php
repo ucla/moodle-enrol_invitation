@@ -53,6 +53,18 @@ class runreport_form extends moodleform {
                         // need to give user friendly names
                         $mform->addElement('select', 'term', get_string('term',
                                 'report_uclastats'), $terms);
+                        break;
+                    case 'subjarea':
+                        $subjareas = $DB->get_records('ucla_reg_subjectarea');
+                        
+                        $s = array();
+                        foreach ($subjareas as $subjarea) {
+                            $s[$subjarea->subj_area_full] = ucfirst(strtolower($subjarea->subj_area_full));
+                        }
+                        
+                        $mform->addElement('select', 'subjarea', 
+                                get_string('subjarea', 'report_uclastats'), $s);
+                        break;
                 }
             }
         }

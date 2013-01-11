@@ -22,6 +22,15 @@ $string['run_report'] = 'Run report';
 
 // parameter strings
 $string['term'] = 'Term';
+$string['subjarea'] = 'Subject area';
+
+$string['course_id'] = 'Course ID';
+$string['course_shortname'] = 'Shortname';
+$string['course_fullname'] = 'Fullname';
+$string['course_students'] = 'Enrolled students';
+$string['course_instructors'] = 'Instructors (role)';
+$string['course_forums'] = 'Forum (topic count)'; 
+$string['course_hits'] = 'Course hits [student id (visits)]';
 
 // cached results strings
 $string['cached_results_table'] = 'Cached results';
@@ -41,6 +50,10 @@ $string['course_modules_used'] = 'Course modules used by courses';
 $string['course_modules_used_help'] = 'Returns name and number of course modules used for given term.';
 $string['module'] = 'Activity/Resource module';
 $string['count'] = 'Count';
+
+// strings for subject_area_report
+$string['subject_area_report'] = 'Subject area report';
+$string['subject_area_report_help'] = 'This is a help string';
 
 // error strings
 $string['nocachedresults'] = 'No cached results found';
