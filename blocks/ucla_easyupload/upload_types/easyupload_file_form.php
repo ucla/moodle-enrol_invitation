@@ -11,9 +11,11 @@ class easyupload_file_form extends easy_upload_form {
     private $draftitem = 0;
 
     function specification() {
+        global $CFG;
         $mform =& $this->_form;
 
-        $this->set_maxsize();   // important to call this before the file upload
+        // important to call this before the file upload
+        $mform->setMaxFileSize(get_max_upload_file_size($CFG->maxbytes, $this->course->maxbytes));
         
         $mform->addElement('uclafile', 'repo_upload_file', 
             get_string('dialog_add_file_box', self::associated_block));
@@ -45,14 +47,5 @@ class easyupload_file_form extends easy_upload_form {
 
     function get_coursemodule() {
         return 'resource';
-    }
-
-    /**
-     * Sets the form's _maxFileSize variable since for some reason, it isn't set 
-     * by Moodle form object.
-     */
-    function set_maxsize() {
-        global $CFG;
-        $this->_form->_maxFileSize = get_max_upload_file_size($CFG->maxbytes, $this->course->maxbytes);                  
     }
 }
