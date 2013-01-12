@@ -416,6 +416,9 @@ class ucla_courserequests {
         $builtcourses = array();
         $requestinfos = $this->setindex;
 
+        // handle cases in which nourlupdate is not set
+        $nourlupdate_default = get_config('tool_uclacourserequestor', 'nourlupdate_default');
+
         $h = 'hostcourse';
         $errs = UCLA_REQUESTOR_ERROR;
         $e = UCLA_REQUESTOR_BADCL;
@@ -426,6 +429,17 @@ class ucla_courserequests {
                         && enrolstat_is_cancelled($course['enrolstat'])) {
                     $course[UCLA_REQUESTOR_WARNING][UCLA_REQUESTOR_CANCELLED]
                         = true;
+                }
+
+                // if nourlupdate is not set, then it is most likely because 
+                // nourlupdate_hide is set
+                if (!isset($course['nourlupdate'])) {
+                    $course['nourlupdate'] = $nourlupdate_default;
+                }
+
+                // handle case when requestoremail is not set
+                if (empty($course['requestoremail'])) {
+                    $course['requestoremail'] = '';
                 }
 
                 /*
