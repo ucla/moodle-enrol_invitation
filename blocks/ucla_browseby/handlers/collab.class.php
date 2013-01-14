@@ -174,6 +174,12 @@ class collab_handler extends browseby_handler {
                 'block_ucla_browseby', $collab_cat->name);
             $data = array();
 
+            // sort courselist of fullname (using closures, see:
+            // http://stackoverflow.com/a/10159521/6001)
+            usort($courselist, function($a, $b) {
+                return strcmp($a->fullname, $b->fullname);
+            });
+
             foreach ($courselist as $course) {
                 $datum = array();
                 $datum[] = html_writer::link(
