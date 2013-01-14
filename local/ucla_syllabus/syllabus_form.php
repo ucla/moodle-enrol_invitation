@@ -64,8 +64,8 @@ class syllabus_form extends moodleform {
             $mform->addElement('hidden', 'id', $this->courseid);            
         } else {
             // if viewing, then display both public/private syllabus forums
-            $this->display_public_syllabus($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC]);
             $this->display_private_syllabus($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE]);
+            $this->display_public_syllabus($syllabi[UCLA_SYLLABUS_TYPE_PUBLIC]);
         }                
     }
     
