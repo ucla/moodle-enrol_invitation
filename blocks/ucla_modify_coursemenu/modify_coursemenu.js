@@ -309,9 +309,9 @@ M.block_ucla_modify_coursemenu.start = function() {
     // Prevent some js errors
     $('#' + thetableid + ' thead tr').addClass('nodrag').addClass('nodrop');
     
-    // If the course has a syllabus, add it to the table as the first row
+    // CCLE-3685 - If the course has a syllabus, add it to the table as the first row
     syllabusdata = bumc.syllabusdata;
-    if (syllabusdata.id !== undefined) {
+    if (syllabusdata.can_host_syllabi) {
         var syllabussection = {
             'name': syllabusdata.display_name,
             'section': syllabusdata.section,
