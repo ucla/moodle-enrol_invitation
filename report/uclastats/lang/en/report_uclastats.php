@@ -29,8 +29,12 @@ $string['course_shortname'] = 'Shortname';
 $string['course_fullname'] = 'Fullname';
 $string['course_students'] = 'Enrolled students';
 $string['course_instructors'] = 'Instructors (role)';
-$string['course_forums'] = 'Forum (topic count)'; 
+$string['course_forums'] = 'Forum (topic count) (post count)'; 
+$string['course_posts'] = 'Total forum posts';
 $string['course_hits'] = 'Course hits [student id (visits)]';
+$string['course_files'] = 'File count';
+$string['course_size'] = 'Course size';
+$string['course_syllabus'] = 'Syllabus (type)';
 
 // cached results strings
 $string['cached_results_table'] = 'Cached results';
@@ -53,7 +57,9 @@ $string['count'] = 'Count';
 
 // strings for subject_area_report
 $string['subject_area_report'] = 'Subject area report';
-$string['subject_area_report_help'] = 'This is a help string';
+$string['subject_area_report_help'] = 'Report that generates a collection of useful statistics that 
+    departments can use. Some statistical statistics include, number of enrolled students, 
+    class site hits, and forum activity. Was originally requested by Psychology in CCLE-2673.';
 
 // error strings
 $string['nocachedresults'] = 'No cached results found';

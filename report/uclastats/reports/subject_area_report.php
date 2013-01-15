@@ -5,6 +5,14 @@ class subject_area_report extends uclastats_base {
     private $data = array();
     private $params;
     
+    /**
+     * This query will get all the courses for a given term/subjarea.  It will
+     * also get the number of students enrolled.
+     * 
+     * @global type $DB
+     * @global type $CFG
+     * @return bool true if there are records
+     */
     private function query_courses() {
         global $DB, $CFG;
         
@@ -16,9 +24,11 @@ class subject_area_report extends uclastats_base {
                 JOIN {context} ctx ON ctx.instanceid = c.id
                 JOIN {role_assignments} ra ON ra.contextid = ctx.id
                 JOIN {role} AS r ON r.id = ra.roleid
-                JOIN {ucla_reg_classinfo} AS rci ON c.shortname = concat( :term, '-', rci.subj_area, rci.coursenum, '-', rci.sectnum )
+                JOIN {ucla_request_classes} AS rc ON rc.courseid = c.id
+                JOIN {ucla_reg_classinfo} AS rci ON rci.term = rc.term AND rci.srs = rc.srs
                 JOIN {ucla_reg_subjectarea} AS rsa ON rsa.subjarea = rci.subj_area
-            WHERE   ctx.contextlevel = 50
+            WHERE   rc.term = :term
+                AND ctx.contextlevel = :context
                 AND r.shortname = 'student'
                 AND rsa.subj_area_full = :subjarea
             GROUP BY c.id            
@@ -37,6 +47,10 @@ class subject_area_report extends uclastats_base {
                 'course_students' => $r->num_students,
                 'course_hits' => '',
                 'course_forums' => '',
+                'course_posts' => 0,
+                'course_files' => 0,
+                'course_size' => 0,
+                'course_syllabus' => '',
             );
             
             // Key by course ID
@@ -46,20 +60,28 @@ class subject_area_report extends uclastats_base {
         return !empty($records);
     }
     
+    /**
+     * This query will return the instructors for classes in a given 
+     * term/subjectarea.  The instructors are filtered via role shortnames.
+     * 
+     * @global type $DB
+     */
     private function query_instructors() {
         global $DB;
         
         // Query to get instructor names for courses in a subject area
         $query = "
-            SELECT c.id AS id , u.id AS userid, u.firstname, u.lastname, r.shortname AS role
+            SELECT c.id AS courseid , u.id AS userid, u.firstname, u.lastname, r.shortname AS role
                 FROM {course} c
                 JOIN {context} ctx ON ctx.instanceid = c.id
                 JOIN {role_assignments} ra ON ra.contextid = ctx.id
                 JOIN {role} AS r ON r.id = ra.roleid
-                JOIN {ucla_reg_classinfo} AS rci ON c.shortname = concat( :term, '-', rci.subj_area, rci.coursenum, '-', rci.sectnum )
+                JOIN {ucla_request_classes} AS rc ON rc.courseid = c.id
+                JOIN {ucla_reg_classinfo} AS rci ON rci.term = rc.term AND rci.srs = rc.srs
                 JOIN {ucla_reg_subjectarea} AS rsa ON rsa.subjarea = rci.subj_area
                 JOIN {user} AS u ON u.id = ra.userid
-            WHERE   ctx.contextlevel = 50
+            WHERE   rc.term = :term
+                AND ctx.contextlevel = :context
                 AND rsa.subj_area_full = :subjarea
                 AND r.shortname IN (
                     'editinginstructor', 'supervising_instructor'
@@ -72,26 +94,39 @@ class subject_area_report extends uclastats_base {
         
         foreach($records as $r) {
             $content = $r->lastname . ', ' . $r->firstname . ' (' . $r->role .  ')';
-            $this->data[$r->id]->course_instructors .= html_writer::tag('div', $content);
+            $this->data[$r->courseid]->course_instructors .= html_writer::tag('div', $content);
         }
         
     }
     
+    /**
+     * Query to get the discussion forums for a given term/subjarea.
+     * The forum name, topic count, and post count per topic is retrieved.  
+     * The total post count is tabulated in a separate column
+     * 
+     * @global type $DB
+     */
     private function query_forums() {
         global $DB;
         
-        // Query to get the discussion topics per forum per course
+        // Query to get the discussion topics per forum per course, along with 
+        // the number of posts per discussion topic
         $query = "
-            SELECT f.id as fid, c.id as id, fd.id AS fdid, f.name AS forum_name, count( DISTINCT fd.name ) AS discussion_count
+            SELECT f.id AS fid, c.id AS courseid, fd.id AS fdid, f.name AS forum_name, 
+                    count( DISTINCT fd.name ) AS discussion_count, 
+                    count( DISTINCT fp.id ) AS posts
                 FROM {course} c
                 JOIN {context} ctx ON ctx.instanceid = c.id
                 JOIN {role_assignments} ra ON ra.contextid = ctx.id
                 JOIN {role} AS r ON r.id = ra.roleid
-                JOIN {ucla_reg_classinfo} AS rci ON c.shortname = concat( :term, '-', rci.subj_area, rci.coursenum, '-', rci.sectnum )
+                JOIN {ucla_request_classes} AS rc ON rc.courseid = c.id
+                JOIN {ucla_reg_classinfo} AS rci ON rci.term = rc.term AND rci.srs = rc.srs                
                 JOIN {ucla_reg_subjectarea} AS rsa ON rsa.subjarea = rci.subj_area
-                JOIN {forum_discussions} AS fd ON fd.course = c.id
-                JOIN {forum} AS f ON f.id = fd.forum
-            WHERE   ctx.contextlevel = 50
+                JOIN {forum} AS f ON f.course = c.id
+                JOIN {forum_discussions} AS fd ON fd.forum = f.id
+                JOIN {forum_posts} AS fp ON fp.discussion = fd.id
+            WHERE   rc.term = :term
+                AND ctx.contextlevel = :context
                 AND rsa.subj_area_full = :subjarea
             GROUP BY fd.forum
         ";
@@ -99,11 +134,22 @@ class subject_area_report extends uclastats_base {
         $records = $DB->get_records_sql($query, $this->params);
 
         foreach($records as $r) {
-            $content = $r->forum_name . ' (' . $r->discussion_count . ')';
-            $this->data[$r->id]->course_forums .= html_writer::tag('div', $content);
+            $content = html_writer::tag('strong', $r->forum_name) 
+                    . ', topics (' . $r->discussion_count . '), posts (' . $r->posts . ')';
+            $this->data[$r->courseid]->course_forums .= html_writer::tag('div', $content);
+            $this->data[$r->courseid]->course_posts += $r->posts;
         }
     }
     
+    /**
+     * Query to get the number of times students visited a given course.  The 
+     * output will show: student (number of times visited)
+     * 
+     * This is based on how many times the mld_log logs a 'view *' action
+     * 
+     * @global type $DB
+     * @global type $CFG
+     */
     private function query_visits() {
         global $DB, $CFG;
         
@@ -142,6 +188,13 @@ class subject_area_report extends uclastats_base {
         }
     }
     
+    /**
+     * Retrieve the student IDs for a given course
+     * 
+     * @global type $DB
+     * @param type $courseid
+     * @return string of comma separated IDs
+     */
     private function get_students_ids($courseid) {
         global $DB;
         
@@ -151,12 +204,13 @@ class subject_area_report extends uclastats_base {
                 JOIN {context} ctx ON ctx.instanceid = c.id
                 JOIN {role_assignments} ra ON ra.contextid = ctx.id
                 JOIN {role} AS r ON r.id = ra.roleid
-            WHERE   c.id = $courseid
-                AND ctx.contextlevel =50
+            WHERE   c.id = :courseid
+                AND ctx.contextlevel = :context
                 AND r.shortname = 'student'
             ";
         
-        $records = $DB->get_records_sql($query);
+        $records = $DB->get_records_sql($query, 
+                array('courseid' => $courseid, 'context' => CONTEXT_COURSE));
         
         return implode(',', array_map(function($o) {return $o->userid;}, $records));
     }
@@ -176,6 +230,7 @@ class subject_area_report extends uclastats_base {
             if($r['session'] == 'RG') {
                 $term['start'] = strtotime($r['session_start']);
                 $term['end'] = strtotime($r['session_end']);
+                break;
             } else if($r['session'] == '8A') {
                 $term['start'] = strtotime($r['session_start']);
             } else if($r['session'] == '6C') {
@@ -186,10 +241,79 @@ class subject_area_report extends uclastats_base {
         return (object)$term;
     }
     
+    /**
+     * This will retrieve the file count and course size (based on overall 
+     * filesize) for set of courses
+     * 
+     * @global type $DB
+     */
+    private function query_files() {
+        global $DB;
+        
+        $courses = implode(',', array_keys($this->data));
+        
+        $query = "
+            SELECT f.id, f.filename, f.filesize, f.mimetype, c.id as courseid
+                FROM {files} AS f
+                JOIN {context} AS ctx ON ctx.id = f.contextid
+                JOIN {course_modules} AS cm ON cm.id = ctx.instanceid
+                JOIN {course} AS c ON c.id = cm.course
+            WHERE   c.id IN ($courses)
+                AND f.mimetype IS NOT NULL 
+            ";
+        
+        $records = $DB->get_records_sql($query);            
+
+        // Store counts
+        foreach($records as $r) {
+            $this->data[$r->courseid]->course_size += $r->filesize;
+            $this->data[$r->courseid]->course_files++;
+        }
+        
+        // Make filesize human readable
+        foreach($this->data as $d) {
+            $d->course_size = display_size($d->course_size);
+        }
+    }
+    
+    /**
+     * Query to get the available syllabi for a set of courses
+     * 
+     * @global type $DB
+     */
+    private function query_syllabus() {
+        global $DB;
+        
+        $courses = implode(',', array_keys($this->data));
+        
+        $query = "
+            SELECT s.*
+                FROM {ucla_syllabus} AS s
+                JOIN {course} AS c ON c.id = s.courseid
+            WHERE   c.id
+                    IN ( $courses ) 
+            ";
+        
+        $records = $DB->get_records_sql($query);
+        
+        // Syllabi types
+        $access = array(
+            1 => 'public',
+            2 => 'logged in',
+            3 => 'private',
+        );
+        
+        foreach($records as $r) {
+            $contents = html_writer::tag('strong', $r->display_name). ' (' . $access[$r->access_type] . ')';
+            $this->data[$r->courseid]->course_syllabus .= html_writer::tag('div', $contents);
+        }
+    }
+    
     public function query($params) {
         
         // Save params
         $this->params = $params;
+        $this->params['context'] = CONTEXT_COURSE;
 
         // Check if we have any classes in given subjarea/term
         // and if we do, then run all other queries
@@ -197,6 +321,8 @@ class subject_area_report extends uclastats_base {
             $this->query_instructors();
             $this->query_forums();
             $this->query_visits();
+            $this->query_files();
+            $this->query_syllabus();
         }
   
         return $this->data;
