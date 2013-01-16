@@ -100,6 +100,7 @@ $CFG->forced_plugin_settings['block_ucla_browseby']['allow_acttypes'] = 'LEC,SEM
 //$CFG->forced_plugin_settings['tool_uclacourserequestor']['selected_term'] = $CFG->currentterm;
 $CFG->forced_plugin_settings['tool_uclacourserequestor']['mailinst_default'] = false; 
 $CFG->forced_plugin_settings['tool_uclacourserequestor']['nourlupdate_default'] = true;
+$CFG->forced_plugin_settings['tool_uclacourserequestor']['nourlupdate_hide'] = true;
 
 // Course Creator
 //$CFG->forced_plugin_settings['tool_uclacoursecreator']['terms'] = $terms_to_built;

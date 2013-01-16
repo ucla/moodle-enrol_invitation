@@ -8,12 +8,12 @@ $handlers = array(
     ),
     'mod_created' => array(
         'handlerfile'     => '/local/ucla/eventslib.php',
-        'handlerfunction' => 'local_ucla_handle_mod',
+        'handlerfunction' => 'delete_repo_keys',
         'schedule'        => 'instant'
     ),
     'mod_updated' => array(
         'handlerfile'     => '/local/ucla/eventslib.php',
-        'handlerfunction' => 'local_ucla_handle_mod',
+        'handlerfunction' => 'delete_repo_keys',
         'schedule'        => 'instant'
     ),
     'assessable_file_uploaded' => array(

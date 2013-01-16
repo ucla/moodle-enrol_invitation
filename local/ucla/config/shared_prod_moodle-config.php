@@ -91,6 +91,7 @@ $CFG->forced_plugin_settings['block_ucla_browseby']['allow_acttypes'] = 'LEC,SEM
 // Course Requestor
 $CFG->forced_plugin_settings['tool_uclacourserequestor']['mailinst_default'] = true; 
 $CFG->forced_plugin_settings['tool_uclacourserequestor']['nourlupdate_default'] = false;
+$CFG->forced_plugin_settings['tool_uclacourserequestor']['nourlupdate_hide'] = true;
 
 // Course Creator
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['course_creator_email'] = 'ccle-operations@lists.ucla.edu';

@@ -292,8 +292,9 @@ if ($uploadform->is_cancelled()) {
         $newcm->showavailability = $data->showavailability;
     }
    
-    // TODO Handle section visibility
-    $newcm->visible = 1;
+    // Make course content the same visibility as parent section
+    $newcm->visible = $DB->get_field('course_sections', 'visible',
+            array('course' => $course->id, 'section' => $targetsection));
 
     $coursemoduleid = add_course_module($newcm);
     if (!$coursemoduleid) {

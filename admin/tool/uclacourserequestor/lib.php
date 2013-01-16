@@ -610,10 +610,17 @@ function prepare_requests_for_display($requestinfos, $context) {
     $displayrows = array();
     $errorrows = array();
 
+    $nourlupdate_hide = get_config('tool_uclacourserequestor', 'nourlupdate_hide');
+
     foreach ($requestinfos as $setid => $set) {
         $displaykey = set_find_host_key($set);
 
         $displayrow = $set[$displaykey];
+
+        // hide MyUCLA url
+        if (!empty($nourlupdate_hide)) {
+            unset($displayrow['nourlupdate']);
+        }
 
         // Add crosslists
         $displayrow[$c] = array();
@@ -729,7 +736,11 @@ function request_ignored($request) {
 }
 
 function request_get_editables() {
-    return array('mailinst', 'nourlupdate', 'action', 'requestoremail');
+    if (get_config('tool_uclacourserequestor', 'nourlupdate_hide')) {
+        return array('mailinst', 'action', 'requestoremail');
+    } else {
+        return array('mailinst', 'nourlupdate', 'action', 'requestoremail');
+    }
 }
 
 /**

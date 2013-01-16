@@ -19,6 +19,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once(dirname(__FILE__) . '/../moodleblock.class.php');
 require_once(dirname(__FILE__) . '/ucla_cp_module.php');
 require_once($CFG->dirroot.'/local/ucla/lib.php');
+require_once($CFG->dirroot.'/course/format/ucla/lib.php');
 class block_ucla_control_panel extends block_base {
     /** Static variables for the static function **/
     const hook_fn = 'ucla_cp_hook';
@@ -103,9 +104,20 @@ class block_ucla_control_panel extends block_base {
         global $CFG;
 
         $courseid = $course->id;
-
-        return new moodle_url($CFG->wwwroot . '/blocks/ucla_control_panel/'
-            . 'view.php', array('course_id' => $courseid));
+                // obtain the section number here
+        $section = ucla_format_figure_section($course);
+        if($section >= 0) {
+            return new moodle_url($CFG->wwwroot . '/blocks/ucla_control_panel/'
+                . 'view.php', array('course_id' => $courseid,
+                                    'section' => $section));
+        } else if($section == UCLA_FORMAT_DISPLAY_ALL) {
+            return new moodle_url($CFG->wwwroot . '/blocks/ucla_control_panel/'
+                . 'view.php', array('course_id' => $courseid,
+                                    'show_all' => 1));
+        } else {
+            return new moodle_url($CFG->wwwroot . '/blocks/ucla_control_panel/'
+                . 'view.php', array('course_id' => $courseid));
+        }
     }
 
     /**
