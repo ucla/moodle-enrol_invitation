@@ -34,7 +34,7 @@ $string['course_posts'] = 'Total forum posts';
 $string['course_hits'] = 'Course hits [student id (visits)]';
 $string['course_files'] = 'File count';
 $string['course_size'] = 'Course size';
-$string['course_syllabus'] = 'Syllabus (type)';
+$string['course_syllabus'] = 'Syllabus';
 
 // cached results strings
 $string['cached_results_table'] = 'Cached results';

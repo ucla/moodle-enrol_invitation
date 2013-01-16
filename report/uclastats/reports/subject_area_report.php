@@ -49,8 +49,8 @@ class subject_area_report extends uclastats_base {
                 'course_forums' => '',
                 'course_posts' => 0,
                 'course_files' => 0,
-                'course_size' => 0,
-                'course_syllabus' => '',
+                'course_size' => '0KB',
+                'course_syllabus' => 'N',
             );
             
             // Key by course ID
@@ -157,7 +157,7 @@ class subject_area_report extends uclastats_base {
         $term = $this->get_term_info();
         
         foreach($courses as $id) {
-            $students = $this->get_students_ids($id);
+            list($in_or_equal, $params) = $this->get_students_ids($id);
             
             $query = "
                 SELECT l.id, l.course, l.userid, COUNT( DISTINCT l.time ) AS num_hits
@@ -166,11 +166,11 @@ class subject_area_report extends uclastats_base {
                     AND l.course = $id
                     AND l.time > $term->start
                     AND l.time < $term->end
-                    AND l.userid IN( $students )
+                    AND l.userid $in_or_equal
                 GROUP BY l.userid
                 ";
             
-            $records = $DB->get_records_sql($query);
+            $records = $DB->get_records_sql($query, $params);
             
             $content = '';
             $tally = 0;
@@ -212,7 +212,7 @@ class subject_area_report extends uclastats_base {
         $records = $DB->get_records_sql($query, 
                 array('courseid' => $courseid, 'context' => CONTEXT_COURSE));
         
-        return implode(',', array_map(function($o) {return $o->userid;}, $records));
+        return $DB->get_in_or_equal(array_map(function($o) {return $o->userid;}, $records));
     }
     
     private function get_term_info() {
@@ -250,29 +250,25 @@ class subject_area_report extends uclastats_base {
     private function query_files() {
         global $DB;
         
-        $courses = implode(',', array_keys($this->data));
+        list($in_or_equal, $params) = $DB->get_in_or_equal(array_keys($this->data));
         
         $query = "
-            SELECT f.id, f.filename, f.filesize, f.mimetype, c.id as courseid
+            SELECT f.id, SUM( f.filesize ) AS filesize, f.mimetype, c.id AS courseid, COUNT( f.id ) AS filecount
                 FROM {files} AS f
                 JOIN {context} AS ctx ON ctx.id = f.contextid
                 JOIN {course_modules} AS cm ON cm.id = ctx.instanceid
                 JOIN {course} AS c ON c.id = cm.course
-            WHERE   c.id IN ($courses)
+            WHERE   c.id $in_or_equal
                 AND f.mimetype IS NOT NULL 
+            GROUP BY c.id
             ";
         
-        $records = $DB->get_records_sql($query);            
+        $records = $DB->get_records_sql($query, $params);            
 
         // Store counts
         foreach($records as $r) {
-            $this->data[$r->courseid]->course_size += $r->filesize;
-            $this->data[$r->courseid]->course_files++;
-        }
-        
-        // Make filesize human readable
-        foreach($this->data as $d) {
-            $d->course_size = display_size($d->course_size);
+            $this->data[$r->courseid]->course_size = display_size($r->filesize);
+            $this->data[$r->courseid]->course_files = $r->filecount;
         }
     }
     
@@ -284,28 +280,19 @@ class subject_area_report extends uclastats_base {
     private function query_syllabus() {
         global $DB;
         
-        $courses = implode(',', array_keys($this->data));
+        list($in_or_equal, $params) = $DB->get_in_or_equal(array_keys($this->data));
         
         $query = "
             SELECT s.*
                 FROM {ucla_syllabus} AS s
                 JOIN {course} AS c ON c.id = s.courseid
-            WHERE   c.id
-                    IN ( $courses ) 
+            WHERE   c.id $in_or_equal 
             ";
         
-        $records = $DB->get_records_sql($query);
-        
-        // Syllabi types
-        $access = array(
-            1 => 'public',
-            2 => 'logged in',
-            3 => 'private',
-        );
+        $records = $DB->get_records_sql($query, $params);
         
         foreach($records as $r) {
-            $contents = html_writer::tag('strong', $r->display_name). ' (' . $access[$r->access_type] . ')';
-            $this->data[$r->courseid]->course_syllabus .= html_writer::tag('div', $contents);
+            $this->data[$r->courseid]->course_syllabus = 'Y';
         }
     }
     
