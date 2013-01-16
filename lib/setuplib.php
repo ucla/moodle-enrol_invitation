@@ -356,7 +356,7 @@ function default_exception_handler($ex) {
     }
 
     if (is_early_init($info->backtrace)) {
-        echo bootstrap_renderer::early_error($info->message, $info->moreinfourl, $info->link, $info->backtrace, $info->debuginfo);
+        echo bootstrap_renderer::early_error($info->message, $info->moreinfourl, $info->link, $info->backtrace, $info->debuginfo, $info->errorcode);
     } else {
         try {
             if ($DB) {
@@ -370,7 +370,7 @@ function default_exception_handler($ex) {
             // so we just print at least something instead of "Exception thrown without a stack frame in Unknown on line 0":-(
             if (CLI_SCRIPT or AJAX_SCRIPT) {
                 // just ignore the error and send something back using the safest method
-                echo bootstrap_renderer::early_error($info->message, $info->moreinfourl, $info->link, $info->backtrace, $info->debuginfo);
+                echo bootstrap_renderer::early_error($info->message, $info->moreinfourl, $info->link, $info->backtrace, $info->debuginfo, $info->errorcode);
             } else {
                 echo bootstrap_renderer::early_error_content($info->message, $info->moreinfourl, $info->link, $info->backtrace, $info->debuginfo);
                 $outinfo = get_exception_info($out_ex);
@@ -761,17 +761,21 @@ function initialise_fullme() {
             if (!defined('NO_MOODLE_COOKIES')) {
                 define('NO_MOODLE_COOKIES', true);
             }
-            // BEGIN UCLA MOD: CCLE-3241 - Error about url mismatch when trying to go to pilot.ccle.ucla.edu
-            // Also includes patch for CCLE-2977
-            //redirect($CFG->wwwroot, get_string('wwwrootmismatch', 'error', $CFG->wwwroot), 3);
-            // do hack to handle pilot.ccle.ucla.edu urls
-            if ($rurl['host'] == 'pilot.ccle.ucla.edu' || $rurl['host'] == 'www.ccle.ucla.edu') {                
-                $url_to_redirect = $rurl['scheme'] . '://' . $wwwroot['host'] . $rurl['fullpath'];
-            } else {
-                $url_to_redirect = $CFG->wwwroot;   // if you are going here, then something is wrong...
+            // The login/token.php script should call the correct url/port.
+            if (defined('REQUIRE_CORRECT_ACCESS') && REQUIRE_CORRECT_ACCESS) {
+                $wwwrootport = empty($wwwroot['port'])?'':$wwwroot['port'];
+                $calledurl = $rurl['host'];
+                if (!empty($rurl['port'])) {
+                    $calledurl .=  ':'. $rurl['port'];
+                }
+                $correcturl = $wwwroot['host'];
+                if (!empty($wwwrootport)) {
+                    $correcturl .=  ':'. $wwwrootport;
+                }
+                throw new moodle_exception('requirecorrectaccess', 'error', '', null,
+                    'You called ' . $calledurl .', you should have called ' . $correcturl);
             }
-            redirect($url_to_redirect, get_string('wwwrootmismatch', 'error', $CFG->wwwroot), 0);
-            // END UCLA MOD: CCLE-3241
+            redirect($CFG->wwwroot, get_string('wwwrootmismatch', 'error', $CFG->wwwroot), 3);
         }
     }
 
@@ -1507,7 +1511,7 @@ width: 80%; -moz-border-radius: 20px; padding: 15px">
      * @param string $debuginfo extra information for developers
      * @return string
      */
-    public static function early_error($message, $moreinfourl, $link, $backtrace, $debuginfo = null) {
+    public static function early_error($message, $moreinfourl, $link, $backtrace, $debuginfo = null, $errorcode = null) {
         global $CFG;
 
         if (CLI_SCRIPT) {
@@ -1535,6 +1539,7 @@ width: 80%; -moz-border-radius: 20px; padding: 15px">
                     $e->stacktrace = format_backtrace($backtrace, true);
                 }
             }
+            $e->errorcode  = $errorcode;
             @header('Content-Type: application/json; charset=utf-8');
             echo json_encode($e);
             return;

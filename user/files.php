@@ -32,8 +32,7 @@ if (isguestuser()) {
     die();
 }
 
-$returnurl = optional_param('returnurl', '', PARAM_URL);
-$returnbutton = true;
+$returnurl = optional_param('returnurl', '', PARAM_LOCALURL);
 
 if (empty($returnurl)) {
     $returnbutton = false;
