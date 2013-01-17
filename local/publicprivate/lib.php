@@ -196,7 +196,7 @@ function local_publicprivate_cron() {
     }
 
     // 3) Make sure that enablegroupmembersonly is enabled for course content
-    //    using the public/private goruping if enablepublicprivate is true 
+    //    using the public/private grouping if enablepublicprivate is true
     mtrace('Looking for private course content with enablepublicprivate=0');
 
     $sql = "SELECT  cm.id
@@ -204,7 +204,9 @@ function local_publicprivate_cron() {
                     {course_modules} AS cm
             WHERE   c.id=cm.course AND
                     c.groupingpublicprivate=cm.groupingid AND
-                    cm.groupmembersonly=0";
+                    cm.groupmembersonly=0 AND
+                    c.groupingpublicprivate>0 AND
+                    c.enablepublicprivate=1";
     $results = $DB->get_records_sql($sql);
     if (!empty($results)) {
         foreach ($results as $result) {
