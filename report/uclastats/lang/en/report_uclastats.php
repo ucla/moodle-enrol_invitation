@@ -42,6 +42,17 @@ $string['course_modules_used_help'] = 'Returns name and number of course modules
 $string['module'] = 'Activity/Resource module';
 $string['count'] = 'Count';
 
+// strings for unique_logins_per_term
+$string['unique_logins_per_term'] = 'Unique logins per term';
+$string['unique_logins_per_term_help'] = 'Counts the average number of unique ' .
+        'logins per day and week for a given term. Then gives the total unique ' .
+        'logins for the term. Uses the term start and end date to calculate results';
+$string['per_day'] = 'Per day';
+$string['per_week'] = 'Per week';
+$string['per_term'] = 'Per term';
+$string['start_end_times'] = 'Start/End';
+$string['unique_logins_per_term_cached_results'] = 'Per day: {$a->day} | Per week: {$a->week} | Per term: {$a->term}';
+
 // error strings
 $string['nocachedresults'] = 'No cached results found';
 $string['invalidterm'] = 'Invalid term';
