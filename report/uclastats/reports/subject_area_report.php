@@ -4,6 +4,7 @@ class subject_area_report extends uclastats_base {
     
     private $data = array();
     private $params;
+    private $courseids = array();
     
     /**
      * This query will get all the courses for a given term/subjarea.  It will
@@ -19,19 +20,13 @@ class subject_area_report extends uclastats_base {
         // Query to get courses in a subject area and the number of students 
         // enrolled in the courses
          $query = "
-            SELECT c.id, c.shortname, c.fullname, COUNT( DISTINCT ra.userid ) AS num_students
-                FROM {course} c
-                JOIN {context} ctx ON ctx.instanceid = c.id
-                JOIN {role_assignments} ra ON ra.contextid = ctx.id
-                JOIN {role} AS r ON r.id = ra.roleid
-                JOIN {ucla_request_classes} AS rc ON rc.courseid = c.id
-                JOIN {ucla_reg_classinfo} AS rci ON rci.term = rc.term AND rci.srs = rc.srs
-                JOIN {ucla_reg_subjectarea} AS rsa ON rsa.subjarea = rci.subj_area
-            WHERE   rc.term = :term
-                AND ctx.contextlevel = :context
-                AND r.shortname = 'student'
+            SELECT bci.id, bci.coursetitleshort, bci.coursetitlelong, bci.activitytype, c.id as courseid
+                FROM {ucla_browseall_classinfo} AS bci
+                JOIN {ucla_reg_subjectarea} AS rsa ON rsa.subjarea = bci.subjarea
+                LEFT JOIN {ucla_request_classes} AS rc ON rc.term = bci.term AND rc.srs = bci.srs
+                LEFT JOIN {course} AS c ON c.id = rc.courseid
+            WHERE   bci.term = :term
                 AND rsa.subj_area_full = :subjarea
-            GROUP BY c.id            
             ";
 
         $records = $DB->get_records_sql($query, $this->params);
@@ -40,21 +35,28 @@ class subject_area_report extends uclastats_base {
             
             // Course object to be printed
             $course = array(
-                'course_id' => html_writer::link($CFG->wwwroot . '/course/view.php?id=' . $r->id, $r->id),
-                'course_shortname' => $r->shortname,
-                'course_fullname' => $r->fullname,
+                'course_id' => empty($r->courseid) ? '' : html_writer::link($CFG->wwwroot . '/course/view.php?id=' . $r->courseid, $r->courseid),
+                'course_shortname' => $r->coursetitleshort,
+                'course_fullname' => $r->coursetitlelong,
                 'course_instructors' => '',
-                'course_students' => $r->num_students,
-                'course_hits' => '',
+                'course_students' => 'N/A',
+                'course_hits' => 'N/A ',
+                'course_student_percent' => 'N/A',
                 'course_forums' => '',
                 'course_posts' => 0,
                 'course_files' => 0,
-                'course_size' => '0KB',
+                'course_size' => '0 KB',
                 'course_syllabus' => 'N',
             );
             
             // Key by course ID
-            $this->data[$r->id] = (object)$course;
+            if(empty($r->courseid)) {
+                $course['course_size'] = 'N/A';
+                $this->data['null' . $r->id] = (object)$course;
+            } else {
+                $this->data[$r->courseid] = (object)$course;
+                $this->courseids[] = $r->courseid;
+            }
         }
 
         return !empty($records);
@@ -134,11 +136,15 @@ class subject_area_report extends uclastats_base {
         $records = $DB->get_records_sql($query, $this->params);
 
         foreach($records as $r) {
-            $content = html_writer::tag('strong', $r->forum_name) 
-                    . ', topics (' . $r->discussion_count . '), posts (' . $r->posts . ')';
-            $this->data[$r->courseid]->course_forums .= html_writer::tag('div', $content);
+            $this->data[$r->courseid]->course_forums += $r->discussion_count;
             $this->data[$r->courseid]->course_posts += $r->posts;
         }
+//        foreach($records as $r) {
+//            $content = html_writer::tag('strong', $r->forum_name) 
+//                    . ', topics (' . $r->discussion_count . '), posts (' . $r->posts . ')';
+//            $this->data[$r->courseid]->course_forums .= html_writer::tag('div', $content);
+//            $this->data[$r->courseid]->course_posts += $r->posts;
+//        }
     }
     
     /**
@@ -153,11 +159,10 @@ class subject_area_report extends uclastats_base {
     private function query_visits() {
         global $DB, $CFG;
         
-        $courses = array_keys($this->data);
         $term = $this->get_term_info();
         
-        foreach($courses as $id) {
-            list($in_or_equal, $params) = $this->get_students_ids($id);
+        foreach($this->courseids as $id) {
+            list($in_or_equal, $params, $count) = $this->get_students_ids($id);
             
             $query = "
                 SELECT l.id, l.course, l.userid, COUNT( DISTINCT l.time ) AS num_hits
@@ -172,19 +177,15 @@ class subject_area_report extends uclastats_base {
             
             $records = $DB->get_records_sql($query, $params);
             
-            $content = '';
             $tally = 0;
             
             foreach($records as $r) {
                 $tally += $r->num_hits;
-                
-                $l = html_writer::link($CFG->wwwroot . '/user/view.php?id=' . $r->userid, $r->userid);
-                $c = $l . ' (' . $r->num_hits . ')';
-                $content .= html_writer::tag('div', $c);
             }
             
-            $tc = html_writer::tag('div', 'Total visits: ' . $tally);
-            $this->data[$id]->course_hits = $tc . $content;
+            $this->data[$id]->course_hits = $tally;
+            $this->data[$id]->course_students = $count;
+            $this->data[$id]->course_student_percent = (count($records) / $count) . ' %';
         }
     }
     
@@ -212,7 +213,11 @@ class subject_area_report extends uclastats_base {
         $records = $DB->get_records_sql($query, 
                 array('courseid' => $courseid, 'context' => CONTEXT_COURSE));
         
-        return $DB->get_in_or_equal(array_map(function($o) {return $o->userid;}, $records));
+        $count = count($records);
+        
+        list($sql, $params) = $DB->get_in_or_equal(array_map(function($o) {return $o->userid;}, $records));
+        
+        return array($sql, $params, $count);
     }
     
     private function get_term_info() {
@@ -243,14 +248,14 @@ class subject_area_report extends uclastats_base {
     
     /**
      * This will retrieve the file count and course size (based on overall 
-     * filesize) for set of courses
+     * filesize) for set of courses.  This only counts course resources
      * 
      * @global type $DB
      */
     private function query_files() {
         global $DB;
         
-        list($in_or_equal, $params) = $DB->get_in_or_equal(array_keys($this->data));
+        list($in_or_equal, $params) = $DB->get_in_or_equal($this->courseids);
         
         $query = "
             SELECT f.id, SUM( f.filesize ) AS filesize, f.mimetype, c.id AS courseid, COUNT( f.id ) AS filecount
@@ -260,6 +265,7 @@ class subject_area_report extends uclastats_base {
                 JOIN {course} AS c ON c.id = cm.course
             WHERE   c.id $in_or_equal
                 AND f.mimetype IS NOT NULL 
+                AND f.component LIKE '%resource'
             GROUP BY c.id
             ";
         
@@ -280,7 +286,7 @@ class subject_area_report extends uclastats_base {
     private function query_syllabus() {
         global $DB;
         
-        list($in_or_equal, $params) = $DB->get_in_or_equal(array_keys($this->data));
+        list($in_or_equal, $params) = $DB->get_in_or_equal($this->courseids);
         
         $query = "
             SELECT s.*
