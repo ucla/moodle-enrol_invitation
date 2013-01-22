@@ -53,6 +53,11 @@ $string['per_term'] = 'Per term';
 $string['start_end_times'] = 'Start/End';
 $string['unique_logins_per_term_cached_results'] = 'Per day: {$a->day} | Per week: {$a->week} | Per term: {$a->term}';
 
+//strings for file_size_report
+$string['file_size'] = 'File Size';
+$string['file_size_help'] = 'Finds number of files over 1 MB';
+$string['file_count'] = 'File Count';
+
 // error strings
 $string['nocachedresults'] = 'No cached results found';
 $string['invalidterm'] = 'Invalid term';
