@@ -32,12 +32,9 @@ function handle_ucla_format_notices($eventdata) {
     $course = new stdClass();
     $ucla_syllabus_manager = new ucla_syllabus_manager($eventdata->course);
 
-    if (!$ucla_syllabus_manager->can_manage()) {
-        return true;
-    }
-
-    // see if course already has a syllabus
-    if ($ucla_syllabus_manager->has_syllabus()) {
+    // ignore alert if user cannot upload syllabi or if course has one uploaded
+    if (!$ucla_syllabus_manager->can_manage() || 
+            $ucla_syllabus_manager->has_syllabus()) {
         return true;
     }
 
