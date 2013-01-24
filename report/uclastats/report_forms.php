@@ -26,7 +26,7 @@ class runreport_form extends moodleform {
      *
      */
     public function definition(){
-        global $DB;
+        global $CFG, $DB;
         $mform =& $this->_form;
         $fields = $this->_customdata['fields'];
 
@@ -53,6 +53,7 @@ class runreport_form extends moodleform {
                         // need to give user friendly names
                         $mform->addElement('select', 'term', get_string('term',
                                 'report_uclastats'), $terms);
+                        $mform->setDefault('term', $CFG->currentterm);
                         break;
                     case 'subjarea':
                         $query = "
