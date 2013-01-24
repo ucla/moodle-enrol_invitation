@@ -73,6 +73,11 @@ $string['subject_area_report_help'] = 'Report that generates a collection of use
     departments can use. Some statistical statistics include, number of enrolled students, 
     class site hits, and forum activity. Was originally requested by Psychology in CCLE-2673.';
 
+//strings for file_size_report
+$string['file_size'] = 'File Size';
+$string['file_size_help'] = 'Finds number of files over 1 MB';
+$string['file_count'] = 'File Count';
+
 // error strings
 $string['nocachedresults'] = 'No cached results found';
 $string['invalidterm'] = 'Invalid term';
