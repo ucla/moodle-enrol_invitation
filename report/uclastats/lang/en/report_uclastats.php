@@ -22,6 +22,20 @@ $string['run_report'] = 'Run report';
 
 // parameter strings
 $string['term'] = 'Term';
+$string['subjarea'] = 'Subject area';
+
+$string['course_id'] = 'Course ID';
+$string['course_shortname'] = 'Shortname';
+$string['course_fullname'] = 'Fullname';
+$string['course_students'] = 'Enrolled students';
+$string['course_instructors'] = 'Instructors (role)';
+$string['course_forums'] = 'Forum topics'; 
+$string['course_posts'] = 'Forum posts';
+$string['course_hits'] = 'Total student views';
+$string['course_student_percent'] = 'Students visiting site';
+$string['course_files'] = 'File count';
+$string['course_size'] = 'Course size';
+$string['course_syllabus'] = 'Syllabus';
 
 // cached results strings
 $string['cached_results_table'] = 'Cached results';
@@ -52,6 +66,12 @@ $string['per_week'] = 'Per week';
 $string['per_term'] = 'Per term';
 $string['start_end_times'] = 'Start/End';
 $string['unique_logins_per_term_cached_results'] = 'Per day: {$a->day} | Per week: {$a->week} | Per term: {$a->term}';
+
+// strings for subject_area_report
+$string['subject_area_report'] = 'Subject area report';
+$string['subject_area_report_help'] = 'Report that generates a collection of useful statistics that 
+    departments can use. Some statistical statistics include, number of enrolled students, 
+    class site hits, and forum activity. Was originally requested by Psychology in CCLE-2673.';
 
 // error strings
 $string['nocachedresults'] = 'No cached results found';
