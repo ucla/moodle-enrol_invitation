@@ -185,7 +185,10 @@ class subject_area_report extends uclastats_base {
             
             $this->data[$id]->course_hits = $tally;
             $this->data[$id]->course_students = $count;
-            $this->data[$id]->course_student_percent = (count($records) / $count) . ' %';
+            // Avoid division by 0
+            if(!empty($count)){
+                $this->data[$id]->course_student_percent = (count($records) / $count) . ' %';
+            }
         }
     }
     
@@ -257,11 +260,14 @@ class subject_area_report extends uclastats_base {
         
         list($in_or_equal, $params) = $DB->get_in_or_equal($this->courseids);
         
+        // Module context
+        $context = CONTEXT_MODULE;
+        
         $query = "
             SELECT f.id, SUM( f.filesize ) AS filesize, f.mimetype, c.id AS courseid, COUNT( f.id ) AS filecount
                 FROM {files} AS f
                 JOIN {context} AS ctx ON ctx.id = f.contextid
-                JOIN {course_modules} AS cm ON cm.id = ctx.instanceid
+                JOIN {course_modules} AS cm ON cm.id = ctx.instanceid AND ctx.contextlevel = $context
                 JOIN {course} AS c ON c.id = cm.course
             WHERE   c.id $in_or_equal
                 AND f.mimetype IS NOT NULL 
