@@ -259,4 +259,29 @@ class ucla_reg_subjectarea_cron {
     }
 }
 
+// CCLE-3739 - Do not allow "UCLA registrar" enrollment plugin to be hidden 
+class ucla_reg_enrolment_plugin_cron {
+    public function run($terms) {
+        global $DB;
+        
+        // Find courses whose registrar (database) enrolment has been disabled
+        $records = $DB->get_records('enrol', array('enrol' => 'database', 
+            'status' => ENROL_INSTANCE_DISABLED));
+        
+        // Now enable them the Moodle way
+        foreach($records as $r) {
+            $instances = enrol_get_instances($r->courseid, false);
+            $plugins   = enrol_get_plugins(false);
+            
+            // Straight out of enrol/instances.php
+            // $r->id === $instanceid
+            $instance = $instances[$r->id];
+            $plugin = $plugins[$instance->enrol];
+            if ($instance->status != ENROL_INSTANCE_ENABLED) {
+                $plugin->update_status($instance, ENROL_INSTANCE_ENABLED);
+            }
+        }
+    }
+}
+
 // EoF
