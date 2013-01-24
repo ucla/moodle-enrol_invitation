@@ -53,6 +53,17 @@ $string['per_term'] = 'Per term';
 $string['start_end_times'] = 'Start/End';
 $string['unique_logins_per_term_cached_results'] = 'Per day: {$a->day} | Per week: {$a->week} | Per term: {$a->term}';
 
+
+//strings for inactive_collab_sites
+$string['inactive_collab_sites'] = 'Inactive Collab Sites';
+$string['inactive_collab_sites_help'] = 'Reports number of inactive collab sites.';
+$string['inactive_collab_count'] = "Inactive Collab Count";
+//strings for inactive_course_sites
+$string['inactive_course_sites'] = 'Inactive Course Sites';
+$string['inactive_course_sites_help'] = 'Reports number of inactive course sites.';
+$string['inactive_course_count'] = 'Inactive Course Count';
+
+
 // error strings
 $string['nocachedresults'] = 'No cached results found';
 $string['invalidterm'] = 'Invalid term';
