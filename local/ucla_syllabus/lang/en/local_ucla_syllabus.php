@@ -136,7 +136,7 @@ $string['alert_msg'] = 'A syllabus has not been added to your site, would you li
 $string['alert_yes'] = 'Yes';
 $string['alert_no'] = 'No, don\'t ask again';
 $string['alert_later'] = 'Ask me later';
-$string['alert_no_redirect'] = 'You will not be prompted to add a syllabus ' .
-        'anymore. If you later wish to add a syllabus please use syllabus ' .
-        'tool in the Control Panel.';
-$string['alert_later_redirect'] = 'You will be reminded to upload a syllabus tomorrow.';
+$string['alert_no_redirect'] = 'You will no longer be prompted to add a syllabus. ' .
+        'Use the Syllabus link in the Site menu block at the left or the tool in ' .
+        'the Control Panel to add one later.';
+$string['alert_later_redirect'] = 'Syllabus reminder set.';
