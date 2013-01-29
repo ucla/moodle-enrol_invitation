@@ -57,9 +57,9 @@ class inactive_course_sites extends uclastats_base {
                 $ret_val['end'] = strtotime($r['session_end']);
                 break;
             } else if ($r['session'] == '8A') {
-                $ret_val['start'] = strtotime($r['session_start']);
+                $ret_val['start_a'] = strtotime($r['session_start']);
             } else if ($r['session'] == '6C') {
-                $ret_val['end'] = strtotime($r['session_end']);
+                $ret_val['start_c'] = strtotime($r['session_start']);
             }
         }
 
@@ -84,9 +84,9 @@ class inactive_course_sites extends uclastats_base {
         // get start and end dates for term
         $term_info = $this->get_term_info($params['term']);
 
-        if (preg_match('/^\d\d1$/', $params['term'])) { //if it is a summer sessions
+        if (is_summer_term($params['term'])) { //if it is a summer sessions
 
-            $sql = "SELECT count(DISTINCT urc.id) AS inactive_course_count, urd.fullname
+            $sql = "SELECT count(DISTINCT urc.id) AS inactive_course_count, urd.fullname as division
             FROM mdl_ucla_request_classes AS urc
             JOIN mdl_ucla_reg_classinfo urci ON (
             urci.term=urc.term AND
@@ -115,8 +115,8 @@ class inactive_course_sites extends uclastats_base {
             GROUP BY urci.division";
 
             return $DB->get_records_sql($sql, array('term' => $params['term'],
-                        'first_week_of_a' => strtotime('+1 week', $term_info['start']),
-                        'first_week_of_c' => strtotime('+1 week', $term_info['end'])));
+                        'first_week_of_a' => strtotime('+1 week', $term_info['start_a']),
+                        'first_week_of_c' => strtotime('+1 week', $term_info['start_c'])));
         } else {
 
             $sql = "SELECT COUNT(c.id) as inactive_course_count

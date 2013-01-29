@@ -62,7 +62,7 @@ $string['inactive_collab_count'] = "Inactive Collab Count";
 $string['inactive_course_sites'] = 'Inactive Course Sites';
 $string['inactive_course_sites_help'] = 'Reports number of inactive course sites.';
 $string['inactive_course_count'] = 'Inactive Course Count';
-$string['fullname'] = 'Department';
+$string['division'] = 'Division';
 
 
 // error strings
