@@ -157,12 +157,17 @@ class subject_area_report extends uclastats_base {
      * @global type $CFG
      */
     private function query_visits() {
-        global $DB, $CFG;
+        global $DB;
         
         $term = $this->get_term_info();
         
         foreach($this->courseids as $id) {
             list($in_or_equal, $params, $count) = $this->get_students_ids($id);
+            
+            // Check if there are students in course
+            if(empty($count)) {
+                continue;
+            }
             
             $query = "
                 SELECT l.id, l.course, l.userid, COUNT( DISTINCT l.time ) AS num_hits
@@ -217,6 +222,11 @@ class subject_area_report extends uclastats_base {
                 array('courseid' => $courseid, 'context' => CONTEXT_COURSE));
         
         $count = count($records);
+        
+        // If there are 0 students in course, nothing to return
+        if(empty($count)) {
+            return array(false, false, false);
+        }
         
         list($sql, $params) = $DB->get_in_or_equal(array_map(function($o) {return $o->userid;}, $records));
         
