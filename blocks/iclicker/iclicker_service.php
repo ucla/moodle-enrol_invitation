@@ -1222,7 +1222,10 @@ class iclicker_service {
             $user_id = self::get_current_user_id();
         }
         //$results = get_user_courses_bycap($user_id, 'moodle/course:update', $accessinfo, false, 'c.sortorder', array('fullname','summary','timecreated','visible'), 50);
-        $results = enrol_get_users_courses($user_id, true, array('fullname','summary','timecreated','visible'), null);
+        // START UCLA MOD: CCLE-3769 - Add shortname to course title for iclicker integration
+        //$results = enrol_get_users_courses($user_id, true, array('fullname','summary','timecreated','visible'), null);
+        $results = enrol_get_users_courses($user_id, true, array('shortname', 'fullname','summary','timecreated','visible'), null);
+        // END UCLA MOD: CCLE-3769
         foreach ($results as $id=>$course) {
             $context = context_course::instance($id);
             if (!has_capability('moodle/course:update', $context, $user_id)) {
@@ -1232,6 +1235,13 @@ class iclicker_service {
         if (!$results) {
             $results = array();
         }
+        // START UCLA MOD: CCLE-3769 - Add shortname to course title for iclicker integration
+        else {
+            foreach ($results as $index => $result) {
+                $results[$index]->fullname = $result->shortname . ': ' . $result->fullname;
+            }
+        }
+        // END UCLA MOD: CCLE-3769
         return $results;
     }
 
