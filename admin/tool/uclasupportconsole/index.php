@@ -490,14 +490,23 @@ if ($displayforms) {
     $params = array();
     $params['term'] = $selected_term;
     if ( $course_list = $DB->get_records_sql($sql, $params) ) {
+        // include locallib for syllabus constants, not the manager
+        // (too much overhead)
+        require_once($CFG->dirroot . '/local/ucla_syllabus/locallib.php');
         
         $crs = reset($course_list);
         $code = $crs->code;
         $col_name = $crs->fullname;
         $num_courses = 0;
-        $num_syllabuses = 0;
+        $num_courses_with_syllabus = 0;
+        $num_courses_with_public_syllabus = 0;
+        $num_courses_with_preview_syllabus = 0;
+        $num_courses_with_private_syllabus = 0;
         $total_courses = count($course_list);
-        $total_syllabuses = 0;
+        $total_courses_with_syllabus = 0;
+        $total_courses_with_public_syllabus = 0;
+        $total_courses_with_preview_syllabus = 0;
+        $total_courses_with_private_syllabus = 0;
         
         do {
             if ($crs->code == $code) {
@@ -505,26 +514,86 @@ if ($displayforms) {
             }
             
             if ($crs->code != $code) {
-                $syllabus_data[$code] = array($col_name, $num_courses,
-                     sprintf('%d (%.2f%%)', $num_syllabuses, ($num_syllabuses/$num_courses)*100));
+                $syllabus_data[$code] = array($col_name,
+                        sprintf('%d/%d (%.2f%%)', $num_courses_with_syllabus, $num_courses,
+                        ($num_courses_with_syllabus/$num_courses)*100));
+
+                // add other totals for syllabus types, taking into account div by 0
+                if (empty($num_courses_with_syllabus)) {
+                    $syllabus_data[$code][] = $num_courses_with_public_syllabus;
+                    $syllabus_data[$code][] = $num_courses_with_preview_syllabus;
+                    $syllabus_data[$code][] = $num_courses_with_private_syllabus;
+                } else {
+                    $syllabus_data[$code][] = sprintf('%d/%d (%.2f%%)',
+                            $num_courses_with_public_syllabus, $num_courses_with_syllabus,
+                            ($num_courses_with_public_syllabus/$num_courses_with_syllabus)*100);
+                    $syllabus_data[$code][] = sprintf('%d/%d (%.2f%%)',
+                            $num_courses_with_preview_syllabus, $num_courses_with_syllabus,
+                            ($num_courses_with_preview_syllabus/$num_courses_with_syllabus)*100);
+                    $syllabus_data[$code][] = sprintf('%d/%d (%.2f%%)',
+                            $num_courses_with_private_syllabus, $num_courses_with_syllabus,
+                            ($num_courses_with_private_syllabus/$num_courses_with_syllabus)*100);
+                }
                 $code = $crs->code;
                 
-                $col_name = $crs->fullname;                
-                $total_syllabuses += $num_syllabuses;
+                $col_name = $crs->fullname;
+
+                $total_courses_with_syllabus += $num_courses_with_syllabus;
+                $total_courses_with_public_syllabus += $num_courses_with_public_syllabus;
+                $total_courses_with_preview_syllabus += $num_courses_with_preview_syllabus;
+                $total_courses_with_private_syllabus += $num_courses_with_private_syllabus;
+
+                // reset counts for division/subject area
                 $num_courses = 1;
-                $num_syllabuses = 0;
+                $num_courses_with_syllabus = 0;
+                $num_courses_with_public_syllabus = 0;
+                $num_courses_with_preview_syllabus = 0;
+                $num_courses_with_private_syllabus = 0;
             }
-            
+
+            // get syllabi and their types
             $courseid = ucla_map_termsrs_to_courseid($crs->term, $crs->srs);
-            if ( $DB->record_exists('ucla_syllabus', array('courseid' => $courseid)) ) {
-                $num_syllabuses++;
+            $syllabi = $DB->get_records('ucla_syllabus', array('courseid' => $courseid));
+            if (!empty($syllabi)) {
+                $num_courses_with_syllabus++;
+                foreach ($syllabi as $syllabus) {
+                    if ($syllabus->access_type == UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC ||
+                            $syllabus->access_type == UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN) {
+                        // is public, but is it preview?
+                        if (!empty($syllabus->is_preview)) {
+                            $num_courses_with_preview_syllabus++;
+                        } else {
+                            $num_courses_with_public_syllabus++;
+                        }
+                    } else {
+                        $num_courses_with_private_syllabus++;
+                    }
+                }
             }
             
         } while ($crs = next($course_list));
         
         // Process the last record
-        $syllabus_data[$code] = array($col_name, $num_courses,
-            sprintf('%d (%.2f%%)', $num_syllabuses, ($num_syllabuses/$num_courses)*100));
+        $syllabus_data[$code] = array($col_name,
+            sprintf('%d/%d (%.2f%%)', $num_courses_with_syllabus, $num_courses,
+                ($num_courses_with_syllabus/$num_courses)*100));
+
+        // add other totals for syllabus types, taking into account div by 0
+        if (empty($num_courses_with_syllabus)) {
+            $syllabus_data[$code][] = $num_courses_with_public_syllabus;
+            $syllabus_data[$code][] = $num_courses_with_preview_syllabus;
+            $syllabus_data[$code][] = $num_courses_with_private_syllabus;
+        } else {
+            $syllabus_data[$code][] = sprintf('%d/%d (%.2f%%)',
+                    $num_courses_with_public_syllabus, $num_courses_with_syllabus,
+                    ($num_courses_with_public_syllabus/$num_courses_with_syllabus)*100);
+            $syllabus_data[$code][] = sprintf('%d/%d (%.2f%%)',
+                    $num_courses_with_preview_syllabus, $num_courses_with_syllabus,
+                    ($num_courses_with_preview_syllabus/$num_courses_with_syllabus)*100);
+            $syllabus_data[$code][] = sprintf('%d/%d (%.2f%%)',
+                    $num_courses_with_private_syllabus, $num_courses_with_syllabus,
+                    ($num_courses_with_private_syllabus/$num_courses_with_syllabus)*100);
+        }
 
         // go through row and create link to browseby
         foreach ($syllabus_data as $code => $row) {
@@ -538,9 +607,30 @@ if ($displayforms) {
             $syllabus_data[$code][0] = get_browseby_link($selected_type, $params);
         }
 
+        // format header totals into percentages
+        $syllabus_count = sprintf('%d/%d (%.2f%%)', $total_courses_with_syllabus, $total_courses,
+                ($total_courses_with_syllabus/$total_courses)*100);
+        if (!empty($total_courses_with_syllabus)) {
+            $public_syllabus_count = sprintf('%d/%d (%.2f%%)',
+                    $total_courses_with_public_syllabus, $total_courses_with_syllabus,
+                    ($total_courses_with_public_syllabus/$total_courses_with_syllabus)*100);
+            $preview_syllabus_count = sprintf('%d/%d (%.2f%%)',
+                    $total_courses_with_preview_syllabus, $total_courses_with_syllabus,
+                    ($total_courses_with_preview_syllabus/$total_courses_with_syllabus)*100);
+            $private_syllabus_count = sprintf('%d/%d (%.2f%%)',
+                    $total_courses_with_private_syllabus, $total_courses_with_syllabus,
+                    ($total_courses_with_private_syllabus/$total_courses_with_syllabus)*100);
+        } else {
+            $public_syllabus_count = $total_courses_with_public_syllabus;
+            $preview_syllabus_count = $total_courses_with_preview_syllabus;
+            $private_syllabus_count = $total_courses_with_private_syllabus;
+        }
+
         $syllabus_header= array($table_colum_name,
-            get_string('course_count', 'tool_uclasupportconsole', $total_courses), 
-            get_string('syllabus_count', 'tool_uclasupportconsole', $total_syllabuses));
+            get_string('syllabus_count', 'tool_uclasupportconsole', $syllabus_count),
+            get_string('public_syllabus_count', 'tool_uclasupportconsole', $public_syllabus_count),
+            get_string('preview_syllabus_count', 'tool_uclasupportconsole', $preview_syllabus_count),
+            get_string('private_syllabus_count', 'tool_uclasupportconsole', $private_syllabus_count));
     }
     
     $syllabus_table->data = $syllabus_data;

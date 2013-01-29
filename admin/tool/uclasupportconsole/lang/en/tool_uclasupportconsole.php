@@ -84,8 +84,10 @@ $string['syllabusoverview'] = 'Syllabus overview';
 $string['syllabus_browseby'] = 'Browse by';
 $string['syllabus_division'] = 'Division';
 $string['syllabus_subjarea'] = 'Subject area';
-$string['course_count'] = 'Total courses ({$a})';
-$string['syllabus_count'] = 'Courses with syllabuses ({$a})';
+$string['syllabus_count'] = 'Syllabus/Courses ({$a})';
+$string['public_syllabus_count'] = 'Public syllabus ({$a})';
+$string['preview_syllabus_count'] = 'Preview syllabus ({$a})';
+$string['private_syllabus_count'] = 'Private syllabus ({$a})';
 
 // Course
 $string['collablist'] = 'Show collaboration sites';
