@@ -61,6 +61,11 @@ class ucla_grade_grade extends grade_grade {
         $srs_list = implode(',', array_map(function($o) {return $o->srs;}, $courses));
         $term = $courses[0]->term;
 
+        if (empty($srs_list) || empty($term)) {
+            // course somehow got here and did not have term/srs, so skip it
+            return grade_reporter::NOTSENT;
+        }
+
         // If this is a crosslisted course, find out through what SRS he/she 
         // enrolled in.  This info is in the ccle_roster_class_cache table
         $sql = "SELECT  urc.id, urc.term, urc.srs,
