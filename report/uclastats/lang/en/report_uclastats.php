@@ -53,6 +53,12 @@ $string['per_term'] = 'Per term';
 $string['start_end_times'] = 'Start/End';
 $string['unique_logins_per_term_cached_results'] = 'Per day: {$a->day} | Per week: {$a->week} | Per term: {$a->term}';
 
+//strings for role_count
+$string['role_count'] = 'Role Count';
+$string['role_count_help'] = 'Counts the total for each role for all the courses in the specified term';
+$string['role'] = 'Role';
+$string['count_for_role'] = 'Count';
+
 // error strings
 $string['nocachedresults'] = 'No cached results found';
 $string['invalidterm'] = 'Invalid term';
