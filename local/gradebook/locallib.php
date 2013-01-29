@@ -53,7 +53,12 @@ final class grade_reporter {
         $modname = empty($params['itemmodule']) ? $params['itemtype'] : $params['itemmodule'];
         
         // We need the module ID if it exists
-        $cmid = get_coursemodule_from_instance($modname, $params['iteminstance']);
+        $cmid = 0;
+        try {
+            $cmid = get_coursemodule_from_instance($modname, $params['iteminstance']);
+        } catch (dml_exception $e) {
+            // error happens if trying to look for a non-existant module table            
+        }
         $cmid = empty($cmid) ? 0 : $cmid->module;
         
         // Log vars
