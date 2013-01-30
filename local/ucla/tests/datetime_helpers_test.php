@@ -8,9 +8,10 @@ if (!defined('MOODLE_INTERNAL')) {
 }
  
 // Make sure the code being tested is accessible.
+global $CFG;
 require_once($CFG->dirroot . '/local/ucla/datetimehelpers.php'); // Include the code to test
- 
-class datetimehelpers_test extends UnitTestCase {
+
+class datetimehelpers_test extends basic_testcase {
     /**
      * Test distance_of_time_in_words when using seconds
      */
@@ -19,17 +20,17 @@ class datetimehelpers_test extends UnitTestCase {
         
         // less than 5 seconds
         $result = distance_of_time_in_words($start_time, $start_time + 4, true);
-        $this->assertEqual($result, get_string('less_than_x_seconds', 'local_ucla', 5));        
+        $this->assertEquals($result, get_string('less_than_x_seconds', 'local_ucla', 5));        
         
         // less than 20 seconds
         $result = distance_of_time_in_words($start_time, $start_time + 19, true);
-        $this->assertEqual($result, get_string('less_than_x_seconds', 'local_ucla', 20));        
+        $this->assertEquals($result, get_string('less_than_x_seconds', 'local_ucla', 20));        
 
         // exactly 1 minute
         $result = distance_of_time_in_words($start_time, $start_time + 60, true);
-        $this->assertEqual($result, get_string('a_minute', 'local_ucla'));        
+        $this->assertEquals($result, get_string('a_minute', 'local_ucla'));        
         $result = distance_of_time_in_words($start_time, $start_time + 60);
-        $this->assertEqual($result, get_string('a_minute', 'local_ucla'));         
+        $this->assertEquals($result, get_string('a_minute', 'local_ucla'));         
     }
     
     /**
@@ -40,15 +41,15 @@ class datetimehelpers_test extends UnitTestCase {
 
         // less than a minute
         $result = distance_of_time_in_words($start_time, $start_time + 5);
-        $this->assertEqual($result, get_string('less_minute', 'local_ucla'));         
+        $this->assertEquals($result, get_string('less_minute', 'local_ucla'));         
         
         // a minute
         $result = distance_of_time_in_words($start_time, $start_time + 59);
-        $this->assertEqual($result, get_string('a_minute', 'local_ucla'));         
+        $this->assertEquals($result, get_string('a_minute', 'local_ucla'));         
         
         // x_minutes
         $result = distance_of_time_in_words($start_time, $start_time + 60*44);
-        $this->assertEqual($result, get_string('x_minutes', 'local_ucla', 44));                 
+        $this->assertEquals($result, get_string('x_minutes', 'local_ucla', 44));                 
     }
     
     /**
@@ -59,15 +60,15 @@ class datetimehelpers_test extends UnitTestCase {
                 
         // about_hour
         $result = distance_of_time_in_words($start_time, $start_time + 60*46);
-        $this->assertEqual($result, get_string('about_hour', 'local_ucla')); 
+        $this->assertEquals($result, get_string('about_hour', 'local_ucla')); 
         $result = distance_of_time_in_words($start_time, $start_time + 60*89);
-        $this->assertEqual($result, get_string('about_hour', 'local_ucla'));                 
+        $this->assertEquals($result, get_string('about_hour', 'local_ucla'));                 
         
         // about_x_hour
         $result = distance_of_time_in_words($start_time, $start_time + 60*60*6);
-        $this->assertEqual($result, get_string('about_x_hours', 'local_ucla', 6));                        
+        $this->assertEquals($result, get_string('about_x_hours', 'local_ucla', 6));                        
         $result = distance_of_time_in_words($start_time, $start_time + 60*60*23);
-        $this->assertEqual($result, get_string('about_x_hours', 'local_ucla', 23));                                
+        $this->assertEquals($result, get_string('about_x_hours', 'local_ucla', 23));                                
     }
 
     /**
@@ -78,14 +79,14 @@ class datetimehelpers_test extends UnitTestCase {
                 
         // a_day (less than 2 days)
         $result = distance_of_time_in_words($start_time, $start_time + 60*60*24);
-        $this->assertEqual($result, get_string('a_day', 'local_ucla')); 
+        $this->assertEquals($result, get_string('a_day', 'local_ucla')); 
         $result = distance_of_time_in_words($start_time, $start_time + 60*60*47);
-        $this->assertEqual($result, get_string('a_day', 'local_ucla'));                 
+        $this->assertEquals($result, get_string('a_day', 'local_ucla'));                 
         
         // x_days
         $result = distance_of_time_in_words($start_time, $start_time + 60*60*24*2);
-        $this->assertEqual($result, get_string('x_days', 'local_ucla', 2));         
+        $this->assertEquals($result, get_string('x_days', 'local_ucla', 2));         
         $result = distance_of_time_in_words($start_time, $start_time + 60*60*24*30);
-        $this->assertEqual($result, get_string('x_days', 'local_ucla', 30)); 
+        $this->assertEquals($result, get_string('x_days', 'local_ucla', 30)); 
     }    
 }

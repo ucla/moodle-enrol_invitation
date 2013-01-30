@@ -54,7 +54,7 @@ class format_ucla_renderer extends format_section_renderer_base {
     // term for course that is being rendered
     private $term = null;
     
-    // is user editign the page?
+    // is user editing the page?
     private $user_is_editing = false;
     
     // strings to generate jit links
@@ -122,6 +122,50 @@ class format_ucla_renderer extends format_section_renderer_base {
      */
     protected function page_title() {
         return get_string('topicoutline');
+    }
+
+    /**
+     * Calls ucla_format_notices event and sees if any notices are returned.
+     * Expects notices to be returned in an array of HTML content. Just displays
+     * content as is.
+     *
+     * Then echos those notices out.
+     */
+    public function print_external_notices() {
+        global $OUTPUT, $USER;
+
+        // maybe some external notice system is redirecting back with a message
+        flash_display();
+
+        // Provide following information to event:
+        //      userid, course, user_is_editing, roles, term (if any), notices
+        // Expects functions that respond to ucla_format_notices to modify
+        // notices and add notices.
+        $eventdata = new stdClass();
+        $eventdata->userid = $USER->id;
+        $eventdata->course = $this->course;
+        $eventdata->user_is_editing = $this->user_is_editing;
+        $eventdata->roles = get_user_roles($this->context, $USER->id);
+
+        // check if courseinfo is set, so that we can get a possible term
+        if (!empty($this->courseinfo)) {
+            // use reset instead of array_pop, because pop alters the array
+            $courseinfo = reset($this->courseinfo);
+            $eventdata->term = $courseinfo->term;
+        } else {
+            $eventdata->term = null;
+        }
+        
+        $eventdata->notices = array();  // populated by external sources
+
+        events_trigger('ucla_format_notices', $eventdata);
+
+        if (!empty($eventdata->notices)) {
+            // we got something back! let's display it
+            foreach ($eventdata->notices as $notice) {
+                echo $OUTPUT->box($notice, 'ucla-format-notice-box');
+            }
+        }
     }
 
     /**
@@ -318,15 +362,18 @@ class format_ucla_renderer extends format_section_renderer_base {
             echo $this->end_section_list();
         }
 
-    }    
-    
+    }
+
     /**
      * Output html for content that belong in section 0, such as course 
      * description, final location, registrar links and the office hours block.
      */
     public function print_section_zero_content() {
         global $CFG, $OUTPUT;
-        
+
+        // print any external notices
+        $this->print_external_notices();
+
         $center_content = '';
         
         // Course Information specific has a different section header

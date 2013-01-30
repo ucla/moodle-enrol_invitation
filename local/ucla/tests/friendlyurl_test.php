@@ -1,10 +1,11 @@
 <?php
 
 defined('MOODLE_INTERNAL') || die();
-
+global $CFG;
 require_once($CFG->dirroot . '/course/externservercourse.php');
+require_once($CFG->dirroot . '/lib/simpletestlib/mock_objects.php');
 
-class friendly_url_test extends UnitTestCase {
+class friendly_url_test extends basic_testcase {
     var $realCFG;
     var $real_SERVER;
     var $real_GET;
@@ -14,7 +15,7 @@ class friendly_url_test extends UnitTestCase {
         'course/externservercourse.php'
     );
 
-    function setUp() {
+    protected function setUp() {
         global $CFG, $DB;
         Mock::generate(get_class($DB), 'mockDB');
         $this->realCFG = $CFG;
@@ -23,7 +24,7 @@ class friendly_url_test extends UnitTestCase {
         $this->real_GET = $_GET;
     }
 
-    function tearDown() {
+    protected function tearDown() {
         global $CFG, $DB;
 
         $CFG = $this->realCFG;
@@ -45,6 +46,8 @@ class friendly_url_test extends UnitTestCase {
             = true;
 
         // Hack for aliases
+        // Hack is no longer working for PHPUnit
+        print_r($_SERVER);
         $rurihack = str_replace('https://' . $_SERVER['HTTP_HOST'], '', 
             $CFG->wwwroot);
 

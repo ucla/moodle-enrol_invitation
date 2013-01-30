@@ -7,11 +7,12 @@
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.'); //  It must be included from a Moodle page
 }
-
+global $CFG;
 // Make sure the code being tested is accessible.
 require_once($CFG->dirroot . '/local/ucla/registrar/registrar_ccle_get_primary_srs.class.php'); // Include the code to test
-
-class primary_srs_test extends UnitTestCase {
+require_once($CFG->dirroot . '/local/ucla/lib.php');
+//echo $CFG->dirroot . '/local/ucla/registrar/registrar_ccle_get_primary_srs.class.php';
+class primary_srs_test extends basic_testcase {
     function test_get_primary_srs() {
         ucla_require_registrar();
         

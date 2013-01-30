@@ -6,11 +6,13 @@
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.'); //  It must be included from a Moodle page
 }
- 
+
+global $CFG;
+
 // Make sure the code being tested is accessible.
 require_once($CFG->dirroot . '/local/ucla/lib.php'); // Include the code to test
  
-class ucla_term_fn_test extends UnitTestCase {
+class ucla_term_fn_test extends basic_testcase {
     function test_sorts() {
         // Test year sort
         $test_cases[] = array(
@@ -55,10 +57,10 @@ class ucla_term_fn_test extends UnitTestCase {
             shuffle($tmp_list);
             
             // maybe once in a blue moon this will fail?
-            $this->assertNotEqual($ordered_list, $tmp_list);
+            $this->assertNotEquals($ordered_list, $tmp_list);
             
             $tmp_list = terms_arr_sort($tmp_list);            
-            $this->assertEqual($ordered_list, array_values($tmp_list));
+            $this->assertEquals($ordered_list, array_values($tmp_list));
         }      
     }
     
@@ -87,10 +89,10 @@ class ucla_term_fn_test extends UnitTestCase {
             shuffle($tmp_list);
             
             // maybe once in a blue moon this will fail?
-            $this->assertNotEqual($ordered_list, $tmp_list);
+            $this->assertNotEquals($ordered_list, $tmp_list);
             
             $tmp_list = terms_arr_sort($tmp_list, true);            
-            $this->assertEqual($ordered_list, array_values($tmp_list));
+            $this->assertEquals($ordered_list, array_values($tmp_list));
         }    
     }
 
@@ -114,28 +116,28 @@ class ucla_term_fn_test extends UnitTestCase {
 
         // Result
         $r = terms_range('11F', '13F');
-        $this->assertEqual($r, $f);
+        $this->assertEquals($r, $f);
 
         $r = terms_arr_fill($a);
-        $this->assertEqual($r, $f);
+        $this->assertEquals($r, $f);
     }
 
     function test_termrolefilter() {
         // Previous term, before cutoff week
         $r = term_role_can_view('11F', 'student', '12W', 1, 2);
-        $this->assertTrue($r !== false);
+        $this->assertTrue((bool)($r !== false));
 
         // Previous term, after cutoff week
         $r = term_role_can_view('11F', 'student', '12W', 3, 2);
-        $this->assertTrue($r === false);
+        $this->assertTrue((bool)($r === false));
       
         // Future term, after cutoff week
         $r = term_role_can_view('121', 'student', '12W', 3, 2);
-        $this->assertTrue($r !== false);
+        $this->assertTrue((bool)($r !== false));
         
         // Previous term, after cutoff week, with powerful role
         $r = term_role_can_view('11F', 'editinginstructor', '12W', 3, 2);
-        $this->assertTrue($r !== false);
+        $this->assertTrue((bool)($r !== false));
     }
 
     function test_validator() {

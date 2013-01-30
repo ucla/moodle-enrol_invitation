@@ -267,8 +267,7 @@ class ucla_syllabus_manager {
      * 
      * @return int              Returns false if no syllabus found
      */
-    public static function has_private_syllabus($courseid)
-    {
+    public static function has_private_syllabus($courseid) {
         global $DB;
 
         $where = 'courseid=:courseid AND access_type=:private';
@@ -289,8 +288,7 @@ class ucla_syllabus_manager {
      * 
      * @return int              Returns false if no syllabus found
      */
-    public static function has_public_syllabus($courseid)
-    {
+    public static function has_public_syllabus($courseid) {
         global $DB;
 
         $where = 'courseid=:courseid AND (access_type=:public OR access_type=:loggedin)';
@@ -301,8 +299,23 @@ class ucla_syllabus_manager {
         
         return $result;
     }
+
+    /**
+     * Checks if course has any type of syllabus. If so, then returns true,
+     * otherwise false.
+     *
+     * @global moodle_database $DB
+     *
+     * @return boolean
+     */
+    public function has_syllabus() {
+        global $DB;
+        
+        return $DB->record_exists('ucla_syllabus',
+                array('courseid' => $this->courseid));
+    }
     
-    static function instance($entryid) {
+    public static function instance($entryid) {
         global $DB;
 
         // first find access_type so we know which         

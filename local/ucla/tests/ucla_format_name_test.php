@@ -6,36 +6,36 @@
 if (!defined('MOODLE_INTERNAL')) {
     die('Direct access to this script is forbidden.'); //  It must be included from a Moodle page
 }
-
+global $CFG;
 // Make sure the code being tested is accessible.
 require_once($CFG->dirroot . '/local/ucla/lib.php'); // Include the code to test
  
-class ucla_format_name_test extends UnitTestCase {
+class ucla_format_name_test extends basic_testcase {
     
     function test_space() {
         $result = ucla_format_name('FIRST LAST');
-        $this->assertTrue($result, 'First Last'); 
+        $this->assertTrue((bool)$result, 'First Last'); 
         // should also trim
         $result = ucla_format_name('AN N EA	');
-        $this->assertEqual($result, 'An N Ea'); 
+        $this->assertEquals($result, 'An N Ea'); 
     }
     
     function test_hypen() {
         $result = ucla_format_name('FIRST-LAST');
-        $this->assertEqual($result, 'First-Last'); 
+        $this->assertEquals($result, 'First-Last'); 
     }
     
     function test_aprostrophe() {
         $result = ucla_format_name("FIRST'LAST");
-        $this->assertEqual($result, "First'Last");    
+        $this->assertEquals($result, "First'Last");    
     }
  
     function test_mc() {
         $result = ucla_format_name("OLD MCDONALD");
-        $this->assertEqual($result, "Old McDonald");
+        $this->assertEquals($result, "Old McDonald");
         // should also trim
         $result = ucla_format_name("OLD   MCDONALD");
-        $this->assertEqual($result, "Old McDonald"); 
+        $this->assertEquals($result, "Old McDonald"); 
     }    
     
     /**
@@ -45,10 +45,10 @@ class ucla_format_name_test extends UnitTestCase {
      */
     function test_ampersand() {        
         $result = ucla_format_name("FIRST & LAST");
-        $this->assertEqual($result, "First & Last"); 
+        $this->assertEquals($result, "First & Last"); 
         // should also trim
         $result = ucla_format_name("FIRST     &      LAST");
-        $this->assertEqual($result, "First & Last");           
+        $this->assertEquals($result, "First & Last");           
     }
 
     /**
@@ -59,10 +59,10 @@ class ucla_format_name_test extends UnitTestCase {
     function test_slash() {
         // function should still have spaces around /
         $result = ucla_format_name("DESIGN / MEDIA ARTS");
-        $this->assertEqual($result, "Design / Media Arts"); 
+        $this->assertEquals($result, "Design / Media Arts"); 
         // should also trim
         $result = ucla_format_name("DESIGN    /    MEDIA ARTS");
-        $this->assertEqual($result, "Design / Media Arts");           
+        $this->assertEquals($result, "Design / Media Arts");           
     }    
     
     /**
@@ -72,7 +72,7 @@ class ucla_format_name_test extends UnitTestCase {
      */
     function test_posessive_s() {
         $result = ucla_format_name("WOMEN'S STUDIES");
-        $this->assertEqual($result, "Women's Studies");              
+        $this->assertEquals($result, "Women's Studies");              
     }
 
     /**
@@ -81,10 +81,10 @@ class ucla_format_name_test extends UnitTestCase {
      */
     function test_conjunctions() {
         $result = ucla_format_name("Conservation Of Archaeological And Ethnographic Materials");
-        $this->assertEqual($result, "Conservation of Archaeological and Ethnographic Materials");   
+        $this->assertEquals($result, "Conservation of Archaeological and Ethnographic Materials");   
 
         $result = ucla_format_name("Indigenous Languages OF THE Americas");
-        $this->assertEqual($result, "Indigenous Languages of the Americas");          
+        $this->assertEquals($result, "Indigenous Languages of the Americas");          
     }
     
     /**
@@ -92,7 +92,7 @@ class ucla_format_name_test extends UnitTestCase {
      */
     function test_complex_string() {
         $result = ucla_format_name("MCMARY HAD A LITTLE-LAMB & IT'S FLEECE / WAS WHITE AS SNOW");
-        $this->assertEqual($result, "McMary Had a Little-Lamb & It's Fleece / Was White as Snow");    
+        $this->assertEquals($result, "McMary Had a Little-Lamb & It's Fleece / Was White as Snow");    
     }
 }
 ?>

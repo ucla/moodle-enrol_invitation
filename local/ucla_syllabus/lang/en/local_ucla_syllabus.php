@@ -63,7 +63,7 @@ $string['confirm_deletion'] = 'Are you sure you want to delete this syllabus?';
 // strings for displaying syllabus
 $string['cannot_view_private_syllabus'] = 'A private syllabus is available to course participants.';
 $string['cannot_view_public_syllabus'] = 'A syllabus is available to logged in users.';
-$string['no_syllabus_uploaded'] = 'No syllabus is not avaiable yet.';
+$string['no_syllabus_uploaded'] = 'No syllabus is not available yet.';
 $string['no_syllabus_uploaded_help'] = 'Please "Turn editing on" to upload a syllabus.';
 $string['clicktodownload'] = 'Download: {$a}';
 $string['syllabus_needs_setup'] = 'Syllabus (empty)';
@@ -89,8 +89,9 @@ $string['err_syllabus_mismatch'] = 'Selected syllabus does not belong to course'
 $string['err_syllabus_not_allowed'] = 'Sorry, you must be logged in or assciated with the course to view this syllabus';
 $string['err_syllabus_notexist'] = 'Sorry, but given syllabus does not exist';
 $string['err_noembed'] = 'Unable to show embedded file. Please download file to view.';
-$string['err_syllabus_convert'] = 'Cannot convert syllabus when both public and private syllabuses are uploaded';
+$string['err_syllabus_convert'] = 'Cannot convert syllabus when both public and private syllabi are uploaded';
 $string['err_invalid_url'] = 'Please enter a valid URL.';
+$string['err_cannot_manage'] = 'Sorry, but you do not have the capaiblity to manage syllabi for course';
 
 // capability strings
 $string['ucla_syllabus:managesyllabus'] = 'Allows ability to add, edit, and delete syllabus for a course';
@@ -129,3 +130,13 @@ data:
     TERM: {$a->term}
     URL: {$a->service}
 ';
+
+// strings for alert notice
+$string['alert_msg'] = 'A syllabus has not been added to your site, would you like to add one now?';
+$string['alert_yes'] = 'Yes';
+$string['alert_no'] = 'No, don\'t ask again';
+$string['alert_later'] = 'Ask me later';
+$string['alert_no_redirect'] = 'You will no longer be prompted to add a syllabus. ' .
+        'Use the Syllabus link in the Site menu block at the left or the tool in ' .
+        'the Control Panel to add one later.';
+$string['alert_later_redirect'] = 'Syllabus reminder set.';

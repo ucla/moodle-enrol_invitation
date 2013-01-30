@@ -29,4 +29,11 @@ $handlers = array (
         'schedule'         => 'cron',
         'internal'         => 0,
     ),
+
+    'ucla_format_notices' => array(
+        'handlerfile'      => '/local/ucla_syllabus/eventlib.php',
+        'handlerfunction'  => 'handle_ucla_format_notices',
+        'schedule'         => 'instant',    // instant for message passing
+        'internal'         => 1,
+    ),
 );

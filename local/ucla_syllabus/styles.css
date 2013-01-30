@@ -35,3 +35,13 @@
 .syllabus_form label {
     padding-left: 3pt;
 }
+
+.ucla-syllabus-alert-form .fgroup_id_alert_buttons {
+    display: inline;
+}
+.ucla-syllabus-alert-form > fieldset {
+    margin: 0;
+}
+.ucla-syllabus-alert-form.mform > fieldset > div {
+    margin: 0;
+}
