@@ -78,6 +78,11 @@ $string['file_size'] = 'File Size';
 $string['file_size_help'] = 'Finds number of files over 1 MB';
 $string['file_count'] = 'File Count';
 
+//strings for custom_theme_report
+$string['custom_theme'] = 'Custom theme report';
+$string['custom_theme_help'] = 'Counts sites that are using a custom theme';
+$string['theme_count'] = 'Count';
+
 // error strings
 $string['nocachedresults'] = 'No cached results found';
 $string['invalidterm'] = 'Invalid term';
