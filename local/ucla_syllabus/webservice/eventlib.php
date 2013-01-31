@@ -11,9 +11,11 @@ require_once($CFG->dirroot . '/local/ucla_syllabus/locallib.php');
  */
 function ucla_syllabus_updated($data) {
 
-    if($syllabus = ucla_syllabus_manager::instance($data)) {
+    $instanceid = is_object($data) ? $data->id : $data;
+
+    if($syllabus = ucla_syllabus_manager::instance($instanceid)) {
         global $DB;
-        
+
         /* outgoing syllabus logic:
          * 
          *  If public syllabus added/updated and no private syllabus exist, 
@@ -23,15 +25,22 @@ function ucla_syllabus_updated($data) {
          *  If private syllabus added/updated and public syllabus exists/does not exist, 
          *      send private
          */
-        
+
         $hostcourse = $DB->get_record('course', array('id' => $syllabus->courseid));
+        
+        // Given that events can be held up in the queue, the course associated
+        // with the sillabus might have been deleted by the time it's our turn...
+        if(empty($hostcourse)) {
+            // Don't send anything.. dequeue
+            return true;
+        }
 
         if($syllabus instanceof ucla_private_syllabus) {
             // Private syllabus added, we'll send it
             $outgoing = $syllabus;
         } else {
             // We got a public syllabus
-        
+
             // Get all the syllabi
             $manager = new ucla_syllabus_manager($hostcourse);
             $syllabi = $manager->get_syllabi();
@@ -43,28 +52,34 @@ function ucla_syllabus_updated($data) {
                     return true;
                 }
             }
-            
+
             // Public syllabus added, and private syllabus does not exist
             $outgoing = $syllabus;
         }
-        
+
         // Check that file still exists, this may happen when user deletes 
         // syllabus before cron runs
         if(empty($outgoing->stored_file)) {
             return true;
         }
-        
+
         $courses = ucla_get_course_info($hostcourse->id);
+
+        $result = true;
         
         foreach($courses as $course) {
             // Prepare criteria and payload
             list($criteria, $payload) = syllabus_ws_manager::setup_transfer($outgoing, $course);
 
             // Handle event
-            syllabus_ws_manager::handle(syllabus_ws_manager::ACTION_TRANSFER, $criteria, $payload);
+            $result &= syllabus_ws_manager::handle(syllabus_ws_manager::ACTION_TRANSFER, $criteria, $payload);
         }
+        
+        // Handler requires a bool result
+        return (bool)$result;
     }
 
+    return true;
 }
 
 /**
@@ -76,6 +91,13 @@ function ucla_syllabus_deleted($data) {
     global $DB;
 
     $hostcourse = $DB->get_record('course', array('id' => $data->courseid));
+    
+    // The course may not exist if the event is delayed...
+    if(empty($hostcourse)) {
+        // Don't send anything and dequeue
+        return true;
+    }
+    
     $courses = ucla_get_course_info($hostcourse->id);
 
     // Get all the syllabi
