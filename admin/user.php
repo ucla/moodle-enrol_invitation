@@ -23,7 +23,12 @@
     $site = get_site();
 
     if (!has_capability('moodle/user:update', $sitecontext) and !has_capability('moodle/user:delete', $sitecontext)) {
-        print_error('nopermissions', 'error', '', 'edit/delete users');
+        // START UCLA MOD: CCLE-3529 - Manager Limited unable to browse users from Site administration
+        if (!has_capability('moodle/user:viewalldetails', $sitecontext)) {
+            print_error('nopermissions', 'error', '', 'edit/delete users');
+        }
+        //print_error('nopermissions', 'error', '', 'edit/delete users');
+        // END UCLA MOD: CCLE-3529
     }
 
     $stredit   = get_string('edit');
