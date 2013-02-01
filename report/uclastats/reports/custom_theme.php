@@ -23,16 +23,15 @@ class custom_theme extends uclastats_base {
      */
     public function format_cached_results($results) {
         if (!empty($results)) {
-            $result = array_pop($results);
-            if (isset($result['theme_count'])) {
-                return $result['theme_count'];
-            }
+
+            return count($results);
         }
         return 0;
     }
 
     /**
-     *  In addition to showing the count, add a table for a linked shortname,title of courses with custom themes
+     *  In  addition to creating a table for a linked shortname,title of courses with custom themes
+     *  also include a header indicating total count 
      * 
      * @global $DB
      * @param  int $resultid
@@ -42,36 +41,23 @@ class custom_theme extends uclastats_base {
 
         global $DB;
 
-        $display = parent::display_result($resultid);
+        try {
 
-        $sql = "SELECT DISTINCT c.id,shortname,fullname,c.theme 
-                FROM mdl_course c, mdl_config config
-                WHERE c.theme != '' 
-                AND config.name = 'theme' 
-                AND config.value != c.theme";
-
-        $table_string = '';
-        $courses = $DB->get_records_sql($sql);
-
-        if (count($courses) > 0) {
-            $results_table = new html_table();
-
-            $results_table->head = array("Course", "Course title", "Theme");
-            $results_table->data = $courses;
-
-
-            foreach ($courses as $key => $course) {
-
-                //create link on course
-                $course->shortname = html_writer::link(new moodle_url('/course/view.php', array('id' => $course->id)), $course->shortname, null);
-
-                unset($course->id);
-            }
-
-            $table_string = html_writer::table($results_table);
+            $result = new uclastats_result($resultid);
+        } catch (dml_exception $e) {
+            return get_string('nocachedresults', 'report_uclastats');
         }
 
-        return $display . $table_string;
+        //set up header containing total count
+        $header_text = html_writer::tag('strong', get_string('theme_count', 'report_uclastats'), array());
+
+        $header = html_writer::tag('p', $header_text . count($result->results), array());
+
+        //create table for a linked shortname,title of courses with custom themes
+        $display = parent::display_result($resultid);
+
+
+        return $header . $display;
     }
 
     /**
@@ -90,13 +76,22 @@ class custom_theme extends uclastats_base {
     public function query($params) {
         global $DB;
 
-        $sql = "SELECT COUNT( * ) as theme_count
+        $sql = "SELECT DISTINCT c.id,shortname as course_shortname,fullname as course_title ,c.theme 
                 FROM mdl_course c, mdl_config config
                 WHERE c.theme != ''
                 AND config.name = 'theme'
                 AND config.value != c.theme";
 
-        return $DB->get_records_sql($sql, $params);
+        $courses = $DB->get_records_sql($sql, $params);
+        foreach ($courses as $key => $course) {
+
+            //create link on course shortname
+            $course->course_shortname = html_writer::link(new moodle_url('/course/view.php', array('id' => $course->id)), $course->course_shortname, null);
+
+            unset($course->id);
+        }
+
+        return $courses;
     }
 
 }

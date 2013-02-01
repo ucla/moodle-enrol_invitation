@@ -81,7 +81,10 @@ $string['file_count'] = 'File Count';
 //strings for custom_theme_report
 $string['custom_theme'] = 'Custom theme report';
 $string['custom_theme_help'] = 'Counts sites that are using a custom theme';
-$string['theme_count'] = 'Count';
+$string['theme_count'] = 'Number of sites using custom theme: ';;
+$string['course_shortname'] = 'Course';
+$string['course_title'] = 'Course Title';
+$string['theme'] = 'Theme';
 
 // error strings
 $string['nocachedresults'] = 'No cached results found';
