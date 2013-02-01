@@ -307,7 +307,7 @@ M.block_ucla_rearrange.compare_section_toggle = function(text) {
 M.block_ucla_rearrange.initialize_rearrange_tool = function(topicNumber, secNum) {
      
     $(M.block_ucla_rearrange.containerjq).html(M.block_ucla_rearrange.sections);
-
+    
     M.block_ucla_rearrange.create_sortable();
     M.block_ucla_rearrange.create_nested_sortable();
     M.block_ucla_rearrange.create_expandables();
