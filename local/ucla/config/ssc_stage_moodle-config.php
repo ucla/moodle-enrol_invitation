@@ -86,7 +86,9 @@ $CFG->forced_plugin_settings['tool_uclacourserequestor']['nourlupdate_default'] 
 
 // Course Creator
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['course_creator_email'] = '';
-$CFG->forced_plugin_settings['tool_uclacoursecreator']['email_template_dir'] = '';
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['email_template_dir'] = '/data/email_setup/course_creator';
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['make_division_categories'] = false;
+$CFG->forced_plugin_settings['tool_uclacoursecreator']['desc_no_autofill'] = 1;
 
 // MyUCLA url updater
 $CFG->forced_plugin_settings['tool_myucla_url']['url_service'] = 'https://m2test.ccle.ucla.edu/rex/myucla_url_updater/update.php';  // test server
