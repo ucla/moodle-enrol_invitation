@@ -15,7 +15,10 @@
     $show        = optional_param('show', 0, PARAM_INT);
     $idnumber    = optional_param('idnumber', '', PARAM_RAW);
     $sectionid   = optional_param('sectionid', 0, PARAM_INT);
-    $section     = optional_param('section', 0, PARAM_INT);
+    // START UCLA MOD CCLE-3740
+    // If no section param, use -1 as flag
+    $section     = optional_param('section', -1, PARAM_INT);
+    // END UCLA MOD CCLE-3740
     $move        = optional_param('move', 0, PARAM_INT);
     $marker      = optional_param('marker',-1 , PARAM_INT);
     $switchrole  = optional_param('switchrole',-1, PARAM_INT);
@@ -73,13 +76,17 @@
         $section = $DB->get_field('course_sections', 'section', array('id' => $sectionid, 'course' => $course->id), MUST_EXIST);
     }
     
-    // START UCLA MOD CCLE-3520 - Need to use isset() here since section = 0 
-    // is technically 'false', and the param is never forwarded.  This results 
-    // in section 0 redirecting to landing page.
-    if (isset($section)) {
+    // START UCLA MOD CCLE-3740 - this overrides CCLE-3520
+    // If section === -1, then we set $section to landing page so that the value
+    // propagates to 'turn editing on/off' button
+    if ($section >= 0) {
         $urlparams['section'] = $section;
+    } else {
+        // We need to load this a little earlier than expected...
+        require_once(dirname(__FILE__) . '/format/ucla/lib.php');
+        $urlparams['section'] = ucla_format_figure_section($course);
     }
-    // END UCLA MOD CCLE-3520
+    // END UCLA MOD CCLE-3740
     
     $PAGE->set_url('/course/view.php', $urlparams); // Defined here to avoid notices on errors etc
 
