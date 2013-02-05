@@ -47,9 +47,10 @@ class file_size extends uclastats_base {
     public function query($params) {
         global $DB;
 
-        $sql = "SELECT COUNT(*) as file_count 
+        $sql = "SELECT COUNT(DISTINCT contenthash) as file_count 
                 FROM mdl_files 
                 WHERE filesize > 1048576";
+               
         return $DB->get_records_sql($sql, $params);
     }
 
