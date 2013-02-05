@@ -381,6 +381,11 @@ function ucla_format_figure_section($course, $course_prefs = null) {
     // see if user is requesting a specific section
     $section = optional_param('section', null, PARAM_INT);
     if (!is_null($section)) {
+        // CCLE-3740 - section === -1 is an alias for section 0 (Site info)
+        // This is set by uclatheme renderer so that we can handle this redirect correctly
+        if($section === -1) {
+            $section = 0;
+        }
         // This means that a section was explicitly declared
         return $section;
     }
