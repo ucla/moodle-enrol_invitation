@@ -78,6 +78,17 @@ $string['file_size'] = 'File Size';
 $string['file_size_help'] = 'Finds number of files over 1 MB';
 $string['file_count'] = 'File Count';
 
+//string for course_block_sites
+$string['course_block_sites'] = 'Course block report';
+$string['course_block_sites_help'] = 'Report to get the number of course blocks and their block names';
+$string['blockname'] = 'Block Name';
+$string['course_block_count'] = 'Course Block Count';
+
+//string for collab_block_sites
+$string['collab_block_sites'] = 'Collab block report';
+$string['collab_block_sites_help'] = 'Report to get the number of collab blocks and their block names';
+$string['collab_block_count'] = 'Collab Block Count';
+
 // error strings
 $string['nocachedresults'] = 'No cached results found';
 $string['invalidterm'] = 'Invalid term';
