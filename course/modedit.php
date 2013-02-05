@@ -82,6 +82,13 @@ if (!empty($add)) {
     $data->return           = 0; //must be false if this is an add, go back to course view on cancel
     $data->sr               = $sectionreturn;
 
+    // START UCLA MOD: CCLE-3781 - Control Panel: Add Resource/Activity as public not working
+    $private = optional_param('private', true, PARAM_BOOL);
+    if (empty($private)) {
+        $data->groupingid = 0;  // make content public
+    }
+    // END UCLA MOD: CCLE-3781
+
     if (plugin_supports('mod', $data->modulename, FEATURE_MOD_INTRO, true)) {
         $draftid_editor = file_get_submitted_draft_itemid('introeditor');
         file_prepare_draft_area($draftid_editor, null, null, null, null);
