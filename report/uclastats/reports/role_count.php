@@ -15,6 +15,25 @@ require_once($CFG->dirroot . '/report/uclastats/locallib.php');
 
 class role_count extends uclastats_base {
     /**
+     * Instead of counting results, but return actual count.
+     *
+     * @param array $results
+     * @return string
+     */
+    public function format_cached_results($results) {
+        
+        $sum = 0;
+        
+        if (!empty($results)) {
+            
+            foreach($results as $record){
+               $sum += $record['count_for_role'];
+            }
+          
+        }
+        return $sum;
+    }
+    /**
      * Returns an array of form elements used to run report.
      */
     public function get_parameters() {
