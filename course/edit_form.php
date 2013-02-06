@@ -233,7 +233,7 @@ class course_edit_form extends moodleform {
             array(COURSE_DISPLAY_SINGLEPAGE => get_string('coursedisplay_single'),
                 COURSE_DISPLAY_MULTIPAGE => get_string('coursedisplay_multi')));
         $mform->addHelpButton('coursedisplay', 'coursedisplay');
-        $mform->setDefault('coursedisplay', COURSE_DISPLAY_SINGLEPAGE);         
+        $mform->setDefault('coursedisplay', $courseconfig->coursedisplay);
         */
         if ($has_editadvancedcoursesettings) {
             $courseformats = get_plugin_list('format');
@@ -261,8 +261,12 @@ class course_edit_form extends moodleform {
                     $coursedisplay_strings[$coursedisplay_default]);            
         }
         // END UCLA MOD: CCLE-3278
-        
-        for ($i = 0; $i <= $courseconfig->maxsections; $i++) {
+
+        $max = $courseconfig->maxsections;
+        if (!isset($max) || !is_numeric($max)) {
+            $max = 52;
+        }
+        for ($i = 0; $i <= $max; $i++) {
             $sectionmenu[$i] = "$i";
         }
         $mform->addElement('select', 'numsections', get_string('numberweeks'), $sectionmenu);
