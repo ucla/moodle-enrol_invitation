@@ -481,6 +481,21 @@ if ($data && empty($sectionsnotify) || $verifydata) {
     redirect($redirector);
 }
 
+// CCLE-3685 - If the course contains a syllabus, add it to array of sections
+// Allows for the syllabus to be selected as the landing page
+require_once($CFG->dirroot . '/local/ucla_syllabus/locallib.php');
+$syllabus_manager = new ucla_syllabus_manager($course);
+$syllabus_data = new StdClass();
+$syllabus_data->can_host_syllabi = $syllabus_manager->can_host_syllabi();
+if ($syllabus_data->can_host_syllabi) {
+    $syllabus_list = $syllabus_manager->get_syllabi();
+    $syllabus_section = is_null($syllabus_list[UCLA_SYLLABUS_TYPE_PRIVATE]) ? 
+        $syllabus_list[UCLA_SYLLABUS_TYPE_PUBLIC] : $syllabus_list[UCLA_SYLLABUS_TYPE_PRIVATE];
+    $syllabus_data->display_name = is_null($syllabus_section) ? 
+        get_string('syllabus_needs_setup', 'local_ucla_syllabus') : $syllabus_section->__get('display_name');
+    $syllabus_data->section = UCLA_FORMAT_DISPLAY_SYLLABUS;
+}
+
 $PAGE->requires->js('/blocks/ucla_modify_coursemenu/js/jquery-1.3.2.min.js');
 $PAGE->requires->js('/blocks/ucla_modify_coursemenu/js/jquery.tablednd_0_5.js');
 $PAGE->requires->js('/blocks/ucla_modify_coursemenu/modify_coursemenu.js');
@@ -504,6 +519,7 @@ block_ucla_modify_coursemenu::many_js_init_code_helpers(array(
         'serialized_id' => 
             block_ucla_modify_coursemenu::serialized_domnode,
         'sectiondata' => $sections,
+        'syllabusdata' => $syllabus_data,
     ));
 
 $PAGE->requires->js_init_code(

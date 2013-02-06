@@ -7,6 +7,14 @@ require_once($CFG->dirroot . '/local/ucla/lib.php');
 function extern_server_course($course) {
     // This is a hack for friendly urls
     global $CFG, $PAGE;
+    
+    //CCLE-3685 - Redirect to syllabus if the syllabus is the landing page
+    require_once($CFG->dirroot.'/course/format/ucla/lib.php');
+    $on_landing_page = ucla_format_figure_section($course);
+    if ($on_landing_page === UCLA_FORMAT_DISPLAY_SYLLABUS) {
+        $syllabusurl = $CFG->wwwroot . '/local/ucla_syllabus/index.php?id=' . $course->id;
+        redirect($syllabusurl);
+    }
         
     // This is very sad, but this is the only way, $PAGE->url
     // does not actually represent the page's url, so we have to 

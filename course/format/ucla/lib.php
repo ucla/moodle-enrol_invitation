@@ -27,6 +27,7 @@ require_once($CFG->dirroot . '/local/ucla/lib.php');
 require_once(dirname(__FILE__) . '/ucla_course_prefs.class.php');
 require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/uclasiteindicator/lib.php');
 
+define('UCLA_FORMAT_DISPLAY_SYLLABUS', 'syllabus');
 define('UCLA_FORMAT_DISPLAY_ALL', -2);
 define('UCLA_FORMAT_DISPLAY_LANDING', -4);
 
