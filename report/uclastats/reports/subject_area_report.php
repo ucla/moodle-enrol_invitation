@@ -95,8 +95,12 @@ class subject_area_report extends uclastats_base {
         $records = $DB->get_records_sql($query, $this->params);
         
         foreach($records as $r) {
-            $content = $r->lastname . ', ' . $r->firstname . ' (' . $r->role .  ')';
-            $this->data[$r->courseid]->course_instructors .= html_writer::tag('div', $content);
+            // If an array key does not exist, it means the course is no longer
+            // listed by the registrar, but still exists on the site
+            if(array_key_exists($r->courseid, $this->data)) {
+                $content = $r->lastname . ', ' . $r->firstname . ' (' . $r->role .  ')';
+                $this->data[$r->courseid]->course_instructors .= html_writer::tag('div', $content);
+            }
         }
         
     }
@@ -192,7 +196,9 @@ class subject_area_report extends uclastats_base {
             $this->data[$id]->course_students = $count;
             // Avoid division by 0
             if(!empty($count)){
-                $this->data[$id]->course_student_percent = (count($records) / $count) . ' %';
+                $val = (count($records) / $count) * 100;
+                $formatted = sprintf("%01.2f", $val);
+                $this->data[$id]->course_student_percent = $formatted . ' %';
             }
         }
     }
@@ -323,6 +329,7 @@ class subject_area_report extends uclastats_base {
         // Save params
         $this->params = $params;
         $this->params['context'] = CONTEXT_COURSE;
+        $this->courseids = array();
 
         // Check if we have any classes in given subjarea/term
         // and if we do, then run all other queries
