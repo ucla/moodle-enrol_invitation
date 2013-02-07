@@ -118,37 +118,37 @@ abstract class easy_upload_form extends moodleform {
                 );   
        }
 
-        if (class_exists('PublicPrivate_Site')) {
-            if (PublicPrivate_Site::is_enabled() 
-                    && PublicPrivate_Course::is_publicprivate_capable(
-                        $this->course
-                    )) {
-                // Generate the public private elements
-                $t = array('public', 'private');
+        if (class_exists('PublicPrivate_Site') && $this->allow_publicprivate) {
+            if (PublicPrivate_Site::is_enabled()) {
+                // make sure public/private is enabled for course
+                $ppcourse = PublicPrivate_Course::build($course);
+                if ($ppcourse->is_activated()) {
+                    // Generate the public private elements
+                    $t = array('public', 'private');
 
-                $pubpriels = array();
+                    $pubpriels = array();
 
-                foreach ($t as $p) {
-                    $pubpriels[] = $mform->createElement('radio', 
-                        'publicprivate', '', 
-                        get_string('publicprivatemake' . $p),
-                        $p);
-                }
+                    foreach ($t as $p) {
+                        $pubpriels[] = $mform->createElement('radio',
+                            'publicprivate', '',
+                            get_string('publicprivatemake' . $p),
+                            $p);
+                    }
 
-                $mform->addElement('header', '', get_string(
-                    'publicprivateenable'));
+                    $mform->addElement('header', '', get_string(
+                        'publicprivateenable'));
 
-                $mform->addGroup($pubpriels, 'publicprivateradios', 
-                    get_string('publicprivate'), ' ', true);
+                    $mform->addGroup($pubpriels, 'publicprivateradios',
+                        get_string('publicprivate'), ' ', true);
 
-                $mform->setDefaults(
-                    array(
-                        'publicprivateradios' => array(
-                            'publicprivate' => $this->default_publicprivate
+                    $mform->setDefaults(
+                        array(
+                            'publicprivateradios' => array(
+                                'publicprivate' => $this->default_publicprivate
+                            )
                         )
-                    )
-                );
-
+                    );
+                }
             }
         }
 

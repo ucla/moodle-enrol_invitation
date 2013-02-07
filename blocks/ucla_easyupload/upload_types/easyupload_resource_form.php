@@ -1,7 +1,7 @@
 <?php
 
 class easyupload_resource_form extends easy_upload_form {
-    var $allow_publicprivate = false;
+    var $allow_publicprivate = true;
     var $enable_availability = false;
 
     function specification() {
@@ -28,7 +28,7 @@ class easyupload_resource_form extends easy_upload_form {
      *  These are the parameters sent when the form wants to redirect.
      **/
     function get_send_params() {
-        return array('course', 'add', 'section');
+        return array('course', 'add', 'section', 'private');
     }
 }
 

@@ -247,7 +247,19 @@ if ($uploadform->is_cancelled()) {
 
         $get_sends = array();
         foreach ($params as $param) {
-            if (!isset($data->$param)) {
+            if ($param == 'private') {
+                // check if user wants to upload public activity/resource
+                if (isset($data->publicprivateradios) &&
+                        !empty($data->publicprivateradios)) {
+                    $ppsetting = $data->publicprivateradios['publicprivate'];
+
+                    // wants to upload, so set private=0
+                    if ($ppsetting == 'public') {
+                        $get_sends[$param] = 0;
+                    }
+                }
+                continue;
+            } else if (!isset($data->$param)) {
                 print_error('missingparam', $param);
             }
 
