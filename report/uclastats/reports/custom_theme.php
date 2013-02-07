@@ -76,8 +76,8 @@ class custom_theme extends uclastats_base {
     public function query($params) {
         global $DB;
 
-        $sql = "SELECT DISTINCT c.id,shortname as course_shortname,fullname as course_title ,c.theme 
-                FROM mdl_course c, mdl_config config
+        $sql = "SELECT DISTINCT c.id, shortname as course_shortname, fullname as course_title , c.theme 
+                FROM {course} c, {config} config
                 WHERE c.theme != ''
                 AND config.name = 'theme'
                 AND config.value != c.theme";
