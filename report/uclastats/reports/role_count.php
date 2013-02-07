@@ -57,12 +57,12 @@ class role_count extends uclastats_base {
 
         $sql = "SELECT r.name as role, count(DISTINCT ra.userid) as count_for_role
                 FROM mdl_course c
-                    JOIN mdl_context ctx ON ctx.instanceid = c.id
-                    JOIN mdl_role_assignments ra ON ra.contextid = ctx.id
-                    JOIN mdl_role r ON ra.roleid = r.id
-                WHERE c.shortname LIKE :shortname
+                    JOIN {context} ctx ON ctx.instanceid = c.id
+                    JOIN {role_assignments} ra ON ra.contextid = ctx.id
+                    JOIN {role} r ON ra.roleid = r.id
+                    JOIN {ucla_request_classes} rc ON rc.term = :term
                 AND ctx.contextlevel = 50
                 GROUP BY ra.roleid";
-        return $DB->get_records_sql($sql, array('shortname'=> $params['term'] . "-%") );
+        return $DB->get_records_sql($sql, $params);
     }
 }
