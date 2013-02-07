@@ -21,13 +21,19 @@ class inactive_course_sites extends uclastats_base {
      * @return string
      */
     public function format_cached_results($results) {
+
+        $sum = 0;
+
         if (!empty($results)) {
-            $result = array_pop($results);
-            if (isset($result['inactive_course_count'])) {
-                return $result['inactive_course_count'];
+
+
+            foreach ($results as $record) {
+
+                $sum += $record['inactive_course_count'];
             }
         }
-        return 0;
+
+        return $sum;
     }
 
     /**
@@ -85,22 +91,21 @@ class inactive_course_sites extends uclastats_base {
         $term_info = $this->get_term_info($params['term']);
 
         if (is_summer_term($params['term'])) { //if it is a summer sessions
-
             $sql = "SELECT count(DISTINCT urc.id) AS inactive_course_count, urd.fullname as division
-            FROM mdl_ucla_request_classes AS urc
-            JOIN mdl_ucla_reg_classinfo urci ON (
-            urci.term=urc.term AND
-            urci.srs=urc.srs
+            FROM {ucla_request_classes} AS urc
+            JOIN {ucla_reg_classinfo} urci ON (
+                urci.term=urc.term AND
+                urci.srs=urc.srs
             )
-            JOIN mdl_ucla_reg_division urd ON (
-            urci.division=urd.code
+            JOIN {ucla_reg_division} urd ON (
+                urci.division=urd.code
             ) 
             WHERE urc.term = :term  AND
             urc.hostcourse=1 AND
             (urci.session IN ('6A', '8A', '1A') AND
             urc.courseid NOT IN (
                 SELECT l.course
-                FROM mdl_log l 
+                FROM {log} l 
                 WHERE l.userid > 1 AND 
                 l.time > (:first_week_of_a))
             )
@@ -108,7 +113,7 @@ class inactive_course_sites extends uclastats_base {
             (urci.session IN ('6C') AND
             urc.courseid NOT IN (
                 SELECT l.course
-                FROM mdl_log l 
+                FROM {log} l 
                 WHERE l.userid > 1 AND 
                 l.time > (:first_week_of_c))
             )
@@ -120,14 +125,15 @@ class inactive_course_sites extends uclastats_base {
         } else {
 
             $sql = "SELECT COUNT(c.id) as inactive_course_count
-                    FROM mdl_course c
+                    FROM {course} c
                     WHERE 
                     c.shortname LIKE :shortname AND 
                     c.id NOT IN (
                          SELECT l.course
-                         FROM mdl_log l 
+                         FROM {log} l 
                          WHERE l.userid > 1 AND 
-                         l.time > :first_week_of_term)";
+                         l.time > :first_week_of_term
+                    )";
 
 
             return $DB->get_records_sql($sql, array('shortname' => $params['term'] . "-%", 'first_week_of_term' => strtotime('+1 week', $term_info['start'])));
