@@ -469,19 +469,25 @@ if ($displayforms) {
     $syllabus_table = new html_table();
     $syllabus_header = array();
     $syllabus_data = array();
+    $grad_syllabus_table = new html_table();
+    $grad_syllabus_header = array();
+    $grad_syllabus_data = array();
+    
     $sql = '';
 
     $table_colum_name = get_string('syllabus_division', 'tool_uclasupportconsole');
     if ($selected_type == 'subjarea') {
         // List courses by subject area
-        $sql = 'SELECT      urci.id, urs.subjarea AS code, urs.subj_area_full AS fullname, urci.term, urci.srs
+        $sql = 'SELECT      urci.id, urs.subjarea AS code, urs.subj_area_full AS fullname, 
+                            urci.term, urci.srs, urci.crsidx AS catalognum
                 FROM        {ucla_reg_subjectarea} AS urs, {ucla_reg_classinfo} AS urci
                 WHERE       urci.term =:term AND urs.subjarea = urci.subj_area
                 ORDER BY    urs.subjarea';
         $table_colum_name = get_string('syllabus_subjarea', 'tool_uclasupportconsole');
     } else {
         // List course by division
-        $sql = 'SELECT      urci.id, urd.code, urd.fullname, urci.term, urci.srs
+        $sql = 'SELECT      urci.id, urd.code, urd.fullname, 
+                            urci.term, urci.srs, urci.crsidx AS catalognum
                 FROM        {ucla_reg_division} AS urd, {ucla_reg_classinfo} AS urci
                 WHERE       urci.term =:term AND urd.code = urci.division
                 ORDER BY    urd.code';
@@ -497,6 +503,8 @@ if ($displayforms) {
         $crs = reset($course_list);
         $code = $crs->code;
         $col_name = $crs->fullname;
+        
+        // vars for undergrad courses
         $num_courses = 0;
         $num_courses_with_syllabus = 0;
         $num_courses_with_public_syllabus = 0;
@@ -508,135 +516,239 @@ if ($displayforms) {
         $total_courses_with_preview_syllabus = 0;
         $total_courses_with_private_syllabus = 0;
         
+        // vars for graduate courses
+        $grad_num_courses = 0;
+        $grad_num_courses_with_syllabus = 0;
+        $grad_num_courses_with_public_syllabus = 0;
+        $grad_num_courses_with_preview_syllabus = 0;
+        $grad_num_courses_with_private_syllabus = 0;
+        $grad_total_courses = count($course_list);
+        $grad_total_courses_with_syllabus = 0;
+        $grad_total_courses_with_public_syllabus = 0;
+        $grad_total_courses_with_preview_syllabus = 0;
+        $grad_total_courses_with_private_syllabus = 0;
+        
+        // reference vars for undergrad/grad vars
+        $curr_data = &$syllabus_data;
+        $curr_num_courses = 0;
+        $curr_num_courses_with_syllabus = 0;
+        $curr_num_courses_with_public_syllabus = 0;
+        $curr_num_courses_with_preview_syllabus = 0;
+        $curr_num_courses_with_private_syllabus = 0;
+        $curr_total_courses = count($course_list);
+        $curr_total_courses_with_syllabus = 0;
+        $curr_total_courses_with_public_syllabus = 0;
+        $curr_total_courses_with_preview_syllabus = 0;
+        $curr_total_courses_with_private_syllabus = 0;
+        
         do {
+            // Place graduate courses in thier own table, unless crosslisted with
+            // with an undergraduate course, in which case the course should be 
+            // listed under both tables.
+            if ( intval(preg_replace("/[a-zA-Z]+/", '', $crs->catalognum)) >= 200 ) {
+                // Graduate course
+                // Set the reference vars to reference the grad vars
+                $curr_data = &$grad_syllabus_data;
+                $curr_num_courses = &$grad_num_courses;
+                $curr_num_courses_with_syllabus = &$grad_num_courses_with_syllabus;
+                $curr_num_courses_with_public_syllabus = &$grad_num_courses_with_public_syllabus;
+                $curr_num_courses_with_preview_syllabus = &$grad_num_courses_with_preview_syllabus;
+                $curr_num_courses_with_private_syllabus = &$grad_num_courses_with_private_syllabus;
+                $curr_total_courses = &$grad_total_courses;
+                $curr_total_courses_with_syllabus = &$grad_total_courses_with_syllabus;
+                $curr_total_courses_with_public_syllabus = &$grad_total_courses_with_public_syllabus;
+                $curr_total_courses_with_preview_syllabus = &$grad_total_courses_with_preview_syllabus;
+                $curr_total_courses_with_private_syllabus = &$grad_total_courses_with_private_syllabus;
+                
+                $total_courses--;
+            } else {
+                // Undergraduate course
+                // Set the reference vars to reference the undergrad vars
+                $curr_data = &$syllabus_data;
+                $curr_num_courses = &$num_courses;
+                $curr_num_courses_with_syllabus = &$num_courses_with_syllabus;
+                $curr_num_courses_with_public_syllabus = &$num_courses_with_public_syllabus;
+                $curr_num_courses_with_preview_syllabus = &$num_courses_with_preview_syllabus;
+                $curr_num_courses_with_private_syllabus = &$num_courses_with_private_syllabus;
+                $curr_total_courses = &$total_courses;
+                $curr_total_courses_with_syllabus = &$total_courses_with_syllabus;
+                $curr_total_courses_with_public_syllabus = &$total_courses_with_public_syllabus;
+                $curr_total_courses_with_preview_syllabus = &$total_courses_with_preview_syllabus;
+                $curr_total_courses_with_private_syllabus = &$total_courses_with_private_syllabus;
+                
+                $grad_total_courses--;
+            }
+            
             if ($crs->code == $code) {
-                $num_courses++;
+                $curr_num_courses++;
             }
             
             if ($crs->code != $code) {
-                $syllabus_data[$code] = array($col_name,
-                        sprintf('%d/%d (%.2f%%)', $num_courses_with_syllabus, $num_courses,
-                        ($num_courses_with_syllabus/$num_courses)*100));
+                $curr_data[$code] = array($col_name,
+                        sprintf('%d/%d (%.2f%%)', $curr_num_courses_with_syllabus, $curr_num_courses,
+                        ($curr_num_courses_with_syllabus/$num_courses)*100));
 
                 // add other totals for syllabus types, taking into account div by 0
-                if (empty($num_courses_with_syllabus)) {
-                    $syllabus_data[$code][] = $num_courses_with_public_syllabus;
-                    $syllabus_data[$code][] = $num_courses_with_preview_syllabus;
-                    $syllabus_data[$code][] = $num_courses_with_private_syllabus;
+                if (empty($curr_num_courses_with_syllabus)) {
+                    $curr_data[$code][] = $curr_num_courses_with_public_syllabus;
+                    $curr_data[$code][] = $curr_num_courses_with_preview_syllabus;
+                    $curr_data[$code][] = $curr_num_courses_with_private_syllabus;
                 } else {
-                    $syllabus_data[$code][] = sprintf('%d/%d (%.2f%%)',
-                            $num_courses_with_public_syllabus, $num_courses_with_syllabus,
-                            ($num_courses_with_public_syllabus/$num_courses_with_syllabus)*100);
-                    $syllabus_data[$code][] = sprintf('%d/%d (%.2f%%)',
-                            $num_courses_with_preview_syllabus, $num_courses_with_syllabus,
-                            ($num_courses_with_preview_syllabus/$num_courses_with_syllabus)*100);
-                    $syllabus_data[$code][] = sprintf('%d/%d (%.2f%%)',
-                            $num_courses_with_private_syllabus, $num_courses_with_syllabus,
-                            ($num_courses_with_private_syllabus/$num_courses_with_syllabus)*100);
+                    $curr_data[$code][] = sprintf('%d/%d (%.2f%%)',
+                            $curr_num_courses_with_public_syllabus, $curr_num_courses_with_syllabus,
+                            ($curr_num_courses_with_public_syllabus/$curr_num_courses_with_syllabus)*100);
+                    $curr_data[$code][] = sprintf('%d/%d (%.2f%%)',
+                            $curr_num_courses_with_preview_syllabus, $curr_num_courses_with_syllabus,
+                            ($curr_num_courses_with_preview_syllabus/$curr_num_courses_with_syllabus)*100);
+                    $curr_data[$code][] = sprintf('%d/%d (%.2f%%)',
+                            $curr_num_courses_with_private_syllabus, $curr_num_courses_with_syllabus,
+                            ($curr_num_courses_with_private_syllabus/$curr_num_courses_with_syllabus)*100);
                 }
                 $code = $crs->code;
                 
                 $col_name = $crs->fullname;
 
-                $total_courses_with_syllabus += $num_courses_with_syllabus;
-                $total_courses_with_public_syllabus += $num_courses_with_public_syllabus;
-                $total_courses_with_preview_syllabus += $num_courses_with_preview_syllabus;
-                $total_courses_with_private_syllabus += $num_courses_with_private_syllabus;
+                $curr_total_courses_with_syllabus += $curr_num_courses_with_syllabus;
+                $curr_total_courses_with_public_syllabus += $curr_num_courses_with_public_syllabus;
+                $curr_total_courses_with_preview_syllabus += $curr_num_courses_with_preview_syllabus;
+                $curr_total_courses_with_private_syllabus += $curr_num_courses_with_private_syllabus;
 
                 // reset counts for division/subject area
-                $num_courses = 1;
-                $num_courses_with_syllabus = 0;
-                $num_courses_with_public_syllabus = 0;
-                $num_courses_with_preview_syllabus = 0;
-                $num_courses_with_private_syllabus = 0;
+                $curr_num_courses = 1;
+                $curr_num_courses_with_syllabus = 0;
+                $curr_num_courses_with_public_syllabus = 0;
+                $curr_num_courses_with_preview_syllabus = 0;
+                $curr_num_courses_with_private_syllabus = 0;
             }
 
             // get syllabi and their types
             $courseid = ucla_map_termsrs_to_courseid($crs->term, $crs->srs);
             $syllabi = $DB->get_records('ucla_syllabus', array('courseid' => $courseid));
             if (!empty($syllabi)) {
-                $num_courses_with_syllabus++;
+                $curr_num_courses_with_syllabus++;
                 foreach ($syllabi as $syllabus) {
                     if ($syllabus->access_type == UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC ||
                             $syllabus->access_type == UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN) {
                         // is public, but is it preview?
                         if (!empty($syllabus->is_preview)) {
-                            $num_courses_with_preview_syllabus++;
+                            $curr_num_courses_with_preview_syllabus++;
                         } else {
-                            $num_courses_with_public_syllabus++;
+                            $curr_num_courses_with_public_syllabus++;
                         }
                     } else {
-                        $num_courses_with_private_syllabus++;
+                        $curr_num_courses_with_private_syllabus++;
                     }
                 }
             }
             
         } while ($crs = next($course_list));
-        
-        // Process the last record
-        $syllabus_data[$code] = array($col_name,
-            sprintf('%d/%d (%.2f%%)', $num_courses_with_syllabus, $num_courses,
-                ($num_courses_with_syllabus/$num_courses)*100));
 
-        // add other totals for syllabus types, taking into account div by 0
-        if (empty($num_courses_with_syllabus)) {
-            $syllabus_data[$code][] = $num_courses_with_public_syllabus;
-            $syllabus_data[$code][] = $num_courses_with_preview_syllabus;
-            $syllabus_data[$code][] = $num_courses_with_private_syllabus;
-        } else {
-            $syllabus_data[$code][] = sprintf('%d/%d (%.2f%%)',
-                    $num_courses_with_public_syllabus, $num_courses_with_syllabus,
-                    ($num_courses_with_public_syllabus/$num_courses_with_syllabus)*100);
-            $syllabus_data[$code][] = sprintf('%d/%d (%.2f%%)',
-                    $num_courses_with_preview_syllabus, $num_courses_with_syllabus,
-                    ($num_courses_with_preview_syllabus/$num_courses_with_syllabus)*100);
-            $syllabus_data[$code][] = sprintf('%d/%d (%.2f%%)',
-                    $num_courses_with_private_syllabus, $num_courses_with_syllabus,
-                    ($num_courses_with_private_syllabus/$num_courses_with_syllabus)*100);
-        }
+        // Process last record and finish table for undergrad courses
+        $curr_data = &$syllabus_data;
+        $curr_header = &$syllabus_header;
+        $curr_num_courses = &$num_courses;
+        $curr_num_courses_with_syllabus = &$num_courses_with_syllabus;
+        $curr_num_courses_with_public_syllabus = &$num_courses_with_public_syllabus;
+        $curr_num_courses_with_preview_syllabus = &$num_courses_with_preview_syllabus;
+        $curr_num_courses_with_private_syllabus = &$num_courses_with_private_syllabus;
+        $curr_total_courses = &$total_courses;
+        $curr_total_courses_with_syllabus = &$total_courses_with_syllabus;
+        $curr_total_courses_with_public_syllabus = &$total_courses_with_public_syllabus;
+        $curr_total_courses_with_preview_syllabus = &$total_courses_with_preview_syllabus;
+        $curr_total_courses_with_private_syllabus = &$total_courses_with_private_syllabus;
+        // Loop twice, once for undergrad, once for grad courses
+        foreach (array(0, 1) as $v) {
+            // Process the last record
+            $curr_data[$code] = array($col_name,
+                sprintf('%d/%d (%.2f%%)', $curr_num_courses_with_syllabus, $curr_num_courses,
+                    ($curr_num_courses_with_syllabus/$curr_num_courses)*100));
 
-        // go through row and create link to browseby
-        foreach ($syllabus_data as $code => $row) {
-            // we are reusing $params from above, since it already has term set
-            if ($selected_type == 'subjarea') {
-                $params['subjarea'] = $code;
+            // add other totals for syllabus types, taking into account div by 0
+            if (empty($curr_num_courses_with_syllabus)) {
+                $curr_data[$code][] = $curr_num_courses_with_public_syllabus;
+                $curr_data[$code][] = $curr_num_courses_with_preview_syllabus;
+                $curr_data[$code][] = $curr_num_courses_with_private_syllabus;
             } else {
-                $params['division'] = $code;
+                $curr_data[$code][] = sprintf('%d/%d (%.2f%%)',
+                        $curr_num_courses_with_public_syllabus, $curr_num_courses_with_syllabus,
+                        ($curr_num_courses_with_public_syllabus/$curr_num_courses_with_syllabus)*100);
+                $curr_data[$code][] = sprintf('%d/%d (%.2f%%)',
+                        $curr_num_courses_with_preview_syllabus, $curr_num_courses_with_syllabus,
+                        ($curr_num_courses_with_preview_syllabus/$curr_num_courses_with_syllabus)*100);
+                $curr_data[$code][] = sprintf('%d/%d (%.2f%%)',
+                        $curr_num_courses_with_private_syllabus, $curr_num_courses_with_syllabus,
+                        ($curr_num_courses_with_private_syllabus/$curr_num_courses_with_syllabus)*100);
             }
-            $params['display_string'] = $row[0];
-            $syllabus_data[$code][0] = get_browseby_link($selected_type, $params);
-        }
+            
+            // go through row and create link to browseby
+            foreach ($curr_data as $code => $row) {
+                // we are reusing $params from above, since it already has term set
+                if ($selected_type == 'subjarea') {
+                    $params['subjarea'] = $code;
+                } else {
+                    $params['division'] = $code;
+                }
+                $params['display_string'] = $row[0];
+                $curr_data[$code][0] = get_browseby_link($selected_type, $params);
+            }
 
-        // format header totals into percentages
-        $syllabus_count = sprintf('%d/%d (%.2f%%)', $total_courses_with_syllabus, $total_courses,
-                ($total_courses_with_syllabus/$total_courses)*100);
-        if (!empty($total_courses_with_syllabus)) {
-            $public_syllabus_count = sprintf('%d/%d (%.2f%%)',
-                    $total_courses_with_public_syllabus, $total_courses_with_syllabus,
-                    ($total_courses_with_public_syllabus/$total_courses_with_syllabus)*100);
-            $preview_syllabus_count = sprintf('%d/%d (%.2f%%)',
-                    $total_courses_with_preview_syllabus, $total_courses_with_syllabus,
-                    ($total_courses_with_preview_syllabus/$total_courses_with_syllabus)*100);
-            $private_syllabus_count = sprintf('%d/%d (%.2f%%)',
-                    $total_courses_with_private_syllabus, $total_courses_with_syllabus,
-                    ($total_courses_with_private_syllabus/$total_courses_with_syllabus)*100);
-        } else {
-            $public_syllabus_count = $total_courses_with_public_syllabus;
-            $preview_syllabus_count = $total_courses_with_preview_syllabus;
-            $private_syllabus_count = $total_courses_with_private_syllabus;
+            // format header totals into percentages
+            $syllabus_count = sprintf('%d/%d (%.2f%%)', $curr_total_courses_with_syllabus, $curr_total_courses,
+                    ($curr_total_courses_with_syllabus/$curr_total_courses)*100);
+            if (!empty($curr_total_courses_with_syllabus)) {
+                $public_syllabus_count = sprintf('%d/%d (%.2f%%)',
+                        $curr_total_courses_with_public_syllabus, $curr_total_courses_with_syllabus,
+                        ($curr_total_courses_with_public_syllabus/$curr_total_courses_with_syllabus)*100);
+                $preview_syllabus_count = sprintf('%d/%d (%.2f%%)',
+                        $curr_total_courses_with_preview_syllabus, $curr_total_courses_with_syllabus,
+                        ($curr_total_courses_with_preview_syllabus/$curr_total_courses_with_syllabus)*100);
+                $private_syllabus_count = sprintf('%d/%d (%.2f%%)',
+                        $curr_total_courses_with_private_syllabus, $curr_total_courses_with_syllabus,
+                        ($curr_total_courses_with_private_syllabus/$curr_total_courses_with_syllabus)*100);
+            } else {
+                $public_syllabus_count = $curr_total_courses_with_public_syllabus;
+                $preview_syllabus_count = $curr_total_courses_with_preview_syllabus;
+                $private_syllabus_count = $curr_total_courses_with_private_syllabus;
+            }
+        
+            $curr_header= array($table_colum_name,
+                get_string('syllabus_count', 'tool_uclasupportconsole', $syllabus_count),
+                get_string('public_syllabus_count', 'tool_uclasupportconsole', $public_syllabus_count),
+                get_string('preview_syllabus_count', 'tool_uclasupportconsole', $preview_syllabus_count),
+                get_string('private_syllabus_count', 'tool_uclasupportconsole', $private_syllabus_count));
+            
+            // Process last record and finish table for grad courses
+            $curr_data = &$grad_syllabus_data;
+            $curr_header = &$grad_syllabus_header;
+            $curr_num_courses = &$grad_num_courses;
+            $curr_num_courses_with_syllabus = &$grad_num_courses_with_syllabus;
+            $curr_num_courses_with_public_syllabus = &$grad_num_courses_with_public_syllabus;
+            $curr_num_courses_with_preview_syllabus = &$grad_num_courses_with_preview_syllabus;
+            $curr_num_courses_with_private_syllabus = &$grad_num_courses_with_private_syllabus;
+            $curr_total_courses = &$grad_total_courses;
+            $curr_total_courses_with_syllabus = &$grad_total_courses_with_syllabus;
+            $curr_total_courses_with_public_syllabus = &$grad_total_courses_with_public_syllabus;
+            $curr_total_courses_with_preview_syllabus = &$grad_total_courses_with_preview_syllabus;
+            $curr_total_courses_with_private_syllabus = &$grad_total_courses_with_private_syllabus;
         }
-
-        $syllabus_header= array($table_colum_name,
-            get_string('syllabus_count', 'tool_uclasupportconsole', $syllabus_count),
-            get_string('public_syllabus_count', 'tool_uclasupportconsole', $public_syllabus_count),
-            get_string('preview_syllabus_count', 'tool_uclasupportconsole', $preview_syllabus_count),
-            get_string('private_syllabus_count', 'tool_uclasupportconsole', $private_syllabus_count));
     }
     
     $syllabus_table->data = $syllabus_data;
     $syllabus_table->head = $syllabus_header;
     
+    $grad_syllabus_table->data = $grad_syllabus_data;
+    $grad_syllabus_table->head = $grad_syllabus_header;
+    
+    global $OUTPUT;
+    $sectionhtml .= $OUTPUT->box_start();
+    $sectionhtml .= html_writer::tag('h3', get_string('syllabus_ugrad_table', 'tool_uclasupportconsole'));
     $sectionhtml .= html_writer::table($syllabus_table);
+    $sectionhtml .= $OUTPUT->box_end();
+    
+    $sectionhtml .= $OUTPUT->box_start();
+    $sectionhtml .= html_writer::tag('h3', get_string('syllabus_grad_table', 'tool_uclasupportconsole'));
+    $sectionhtml .= html_writer::table($grad_syllabus_table);
+    $sectionhtml .= $OUTPUT->box_end();
 }
 
 $consoles->push_console_html('modules', $title , $sectionhtml);
