@@ -20,10 +20,10 @@ class subject_area_report extends uclastats_base {
         // Query to get courses in a subject area and the number of students 
         // enrolled in the courses
          $query = "
-            SELECT bci.id, bci.coursetitleshort, bci.coursetitlelong, bci.activitytype, c.id as courseid
+            SELECT bci.id, bci.coursetitleshort, bci.coursetitlelong, bci.activitytype, c.id as courseid, c.shortname
                 FROM {ucla_browseall_classinfo} AS bci
                 JOIN {ucla_reg_subjectarea} AS rsa ON rsa.subjarea = bci.subjarea
-                LEFT JOIN {ucla_request_classes} AS rc ON rc.term = bci.term AND rc.srs = bci.srs
+                LEFT JOIN {ucla_request_classes} AS rc ON rc.term = bci.term AND rc.srs = bci.srs AND rc.hostcourse = 1
                 LEFT JOIN {course} AS c ON c.id = rc.courseid
             WHERE   bci.term = :term
                 AND rsa.subj_area_full = :subjarea
@@ -36,7 +36,7 @@ class subject_area_report extends uclastats_base {
             // Course object to be printed
             $course = array(
                 'course_id' => empty($r->courseid) ? '' : html_writer::link($CFG->wwwroot . '/course/view.php?id=' . $r->courseid, $r->courseid),
-                'course_shortname' => $r->coursetitleshort,
+                'course_shortname' => empty($r->shortname) ? $r->coursetitleshort : $r->shortname,
                 'course_fullname' => $r->coursetitlelong,
                 'course_instructors' => '',
                 'course_students' => 'N/A',
@@ -59,7 +59,8 @@ class subject_area_report extends uclastats_base {
             }
         }
 
-        return !empty($records);
+        // True if we found sites from (subjarea,term) on our system
+        return !empty($r->courseids);
     }
     
     /**
@@ -331,7 +332,7 @@ class subject_area_report extends uclastats_base {
         $this->params['context'] = CONTEXT_COURSE;
         $this->courseids = array();
 
-        // Check if we have any classes in given subjarea/term
+        // Check if we have any sites in given subjarea/term on our system 
         // and if we do, then run all other queries
         if($this->query_courses()) {
             $this->query_instructors();
