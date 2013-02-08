@@ -60,6 +60,11 @@ class mod_lti_mod_form extends moodleform_mod {
         $this->typeid = 0;
 
         $mform =& $this->_form;
+
+        // START UCLA MOD: CCLE-3780 - Add warning when using External tools (LTI)
+        $mform->addElement('html', $OUTPUT->box(get_string('lti_warning', 'local_ucla'), 'noticebox'));
+        // END UCLA MOD: CCLE-3780
+
         //-------------------------------------------------------------------------------
         // Adding the "general" fieldset, where all the common settings are shown
         $mform->addElement('header', 'general', get_string('general', 'form'));

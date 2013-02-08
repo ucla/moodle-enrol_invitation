@@ -86,3 +86,7 @@ $string['loginredirect'] = 'Login required';
 // END UCLA MOD: CCLE-3028
 
 $string['notice_oldcourse'] = 'You are viewing a course that is no longer in session.';
+
+$string['lti_warning'] = 'There are risks using external tools. Please read ' . 
+        'this help document for more information: ' .
+        '<a target="_blank" href="https://docs.ccle.ucla.edu/w/LTI">https://docs.ccle.ucla.edu/w/LTI</a>';
