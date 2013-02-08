@@ -130,7 +130,7 @@ function update_copyright_status($data) {
                 $id_array_with_same_contenthash = get_file_ids($id);
                 // loop through all files with same contenthash
                 foreach ($id_array_with_same_contenthash as $fid => $other) {
-                    $params = array('id' => $fid, 'license' => $value, 'timemodified' => time(), 'author' => trim($USER->lastname) . ", " . trim($USER->firstname));
+                    $params = array('id' => $fid, 'license' => $value, 'timemodified' => time());
                     $DB->update_record('files', $params);
                 }
             }
