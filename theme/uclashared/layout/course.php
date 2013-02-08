@@ -125,7 +125,7 @@ echo $OUTPUT->doctype() ?>
         <?php
             // Determine if we need to display banner
             // @todo: right now it only works for 'red' alerts
-            if(get_config('block_ucla_alert', 'alert_sitewide')) {
+            if(!during_initial_install() && get_config('block_ucla_alert', 'alert_sitewide')) {
 
                 // If config is set, then alert-block exists... 
                 // There might be some pages that don't load the block however..
