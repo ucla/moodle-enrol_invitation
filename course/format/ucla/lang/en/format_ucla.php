@@ -50,7 +50,7 @@ $string['show_all'] = 'Show all';
 
 // Custom format strings
 $string['editcoursetitle'] = 'Edit course description';
-$string['editsectiontitle'] = 'Edit title';
+$string['editsectiontitle'] = 'Edit section';
 $string['editofficehours'] = 'Update';
 $string['movealt'] = 'Click and drag to move';
 $string['markthistopic'] = 'Highlight section';
