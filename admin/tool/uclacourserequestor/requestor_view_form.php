@@ -82,8 +82,25 @@ class requestor_view_form extends requestor_shared_form {
             $filters['hostcourse'] = 1;
         }
 
-        $reqs = $DB->get_records('ucla_request_classes', $filters,
-            'term, department, course');
+        // try to sort on ucla_reg_classinfo's crsidx/secidx columns, since they
+        // allow us to properly sort courses
+        $sql = "SELECT  urc.*
+                FROM    {ucla_request_classes} AS urc
+                LEFT JOIN   {ucla_reg_classinfo} AS urci ON (
+                            urc.term=urci.term AND
+                            urc.srs=urci.srs
+                        )
+                WHERE   ";
+
+        $first_entry = true;
+        foreach ($filters as $name => $value) {
+            $first_entry ? $first_entry = false : $sql .= ' AND ';
+            $sql .= sprintf("urc.%s='%s'", $name, $value);
+        }
+
+        $sql .= ' ORDER BY urc.department, urci.crsidx, urci.secidx';
+
+        $reqs = $DB->get_records_sql($sql);
 
         $sets = array();
         foreach ($reqs as $req) {
