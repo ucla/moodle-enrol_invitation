@@ -21,4 +21,9 @@ $handlers = array(
         'handlerfunction' => 'delete_repo_keys',
         'schedule'        => 'instant'
     ),
+    'course_restored' => array(
+        'handlerfile'     => '/local/ucla/eventslib.php',
+        'handlerfunction' => 'course_restored_enrol_check',
+        'schedule'        => 'instant'
+    ),
 );
