@@ -41,7 +41,7 @@ class course_block_sites extends uclastats_base {
     }
 
     /**
-     * Query for number of files over 1 MB
+     * Query get the number of course blocks and their block names
      *
      * @param array $params
      * @param return array
@@ -60,10 +60,15 @@ class course_block_sites extends uclastats_base {
                 JOIN {block} b ON (
                     bi.blockname = b.name
                 )
-                WHERE c.shortname LIKE :shortname
+                JOIN {ucla_request_classes} rc ON (
+                    rc.courseid = c.id AND 
+                    rc.term = :term AND
+                    hostcourse = 1
+                )
                 GROUP BY b.id
                 ORDER BY b.name";
-        return $DB->get_records_sql($sql, array('shortname' => $params['term'] . "-%"));
+       
+        return $DB->get_records_sql($sql, $params);
     }
 
 }

@@ -40,7 +40,7 @@ class collab_block_sites extends uclastats_base {
     }
 
     /**
-     * Query for number of files over 1 MB
+     *  Query to get the number of collab blocks and their block names
      *
      * @param array $params
      * @param return array
