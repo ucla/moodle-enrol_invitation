@@ -393,6 +393,26 @@ class theme_uclashared_core_renderer extends core_renderer {
 
         return false;
     }
+    
+    public function edit_button(moodle_url $url) {
+        // CCLE-3740 - In order to handle correct redirects for landing
+        // page, we use an alias for section 0 that UCLA format expects.
+        $section = optional_param('section', null, PARAM_INT);
+        if(!is_null($section) && $section === 0) {
+            $url->param('section', -1);
+        }
+        
+        $url->param('sesskey', sesskey());
+        if ($this->page->user_is_editing()) {
+            $url->param('edit', 'off');
+            $editstring = get_string('turneditingoff');
+        } else {
+            $url->param('edit', 'on');
+            $editstring = get_string('turneditingon');
+        }
+
+        return $this->single_button($url, $editstring);
+    }
 }
 
 // TODO move this to a more relevant location?
