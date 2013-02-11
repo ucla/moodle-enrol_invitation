@@ -560,11 +560,11 @@ Turning off style, but leaving it here in case we need to reenable it in the fut
     height: 0;
     clear: right;
 }
-.text-icons .mod-indent span {
+.text-icons .mod-indent span.commands {
     float: none;
     width: auto;
 }
-.text-icons .mod-indent span > a {
+.text-icons .mod-indent span.commands > a {
     border: none;
     margin-right: 19px;
     margin-left: 0;
