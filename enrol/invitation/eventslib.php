@@ -8,17 +8,17 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * Automatically add enrollment plugin for newly created courses.
  * 
- * @param mixed $course     Can be object or int
+ * @param mixed $param
  * @return boolean          Returns false on error, otherwise true. 
  */
-function add_site_invitation_plugin($course) {
+function add_site_invitation_plugin($param) {
     global $DB;
     
-    // handle different parameter types
-    if (is_object($course)) {
-        $courseid = $course->id;
+    // handle different parameter types (course_created vs course_restored)
+    if (isset($param->id)) {
+        $courseid = $param->id;    // course created
     } else {
-        $courseid = $course;
+        $courseid = $param->courseid;  // course restored
     }
     
     // make sure you aren't trying something silly like adding enrollment plugin
