@@ -123,11 +123,11 @@ switch($requestmethod) {
                      */
                     case 'public':
 
-                        require_once($CFG->libdir.'/publicprivate/course.class.php');
+                        require_once($CFG->dirroot.'/local/publicprivate/lib/course.class.php');
                         $publicprivate_course = new PublicPrivate_Course($cm->course);
 
                         if($publicprivate_course->is_activated()) {
-                            require_once($CFG->libdir.'/publicprivate/module.class.php');
+                            require_once($CFG->dirroot.'/local/publicprivate/lib/module.class.php');
                             PublicPrivate_Module::build($cm)->disable();
                         }
                         
@@ -145,11 +145,11 @@ switch($requestmethod) {
                      */
                     case 'private':
 
-                        require_once($CFG->libdir.'/publicprivate/course.class.php');
+                        require_once($CFG->dirroot.'/local/publicprivate/lib/course.class.php');
                         $publicprivate_course = new PublicPrivate_Course($cm->course);
 
                         if($publicprivate_course->is_activated()) {
-                            require_once($CFG->libdir.'/publicprivate/module.class.php');
+                            require_once($CFG->dirroot.'/local/publicprivate/lib/module.class.php');
                             PublicPrivate_Module::build($cm)->enable();
                         }
 

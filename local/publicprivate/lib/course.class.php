@@ -1,7 +1,7 @@
 <?php
 
-include_once($CFG->libdir.'/publicprivate/course_exception.class.php');
-include_once($CFG->libdir.'/publicprivate/site.class.php');
+include_once($CFG->dirroot.'/local/publicprivate/lib/course_exception.class.php');
+include_once($CFG->dirroot.'/local/publicprivate/lib/site.class.php');
 include_once($CFG->dirroot.'/group/lib.php');
 include_once($CFG->dirroot . '/lib/enrollib.php');
 

@@ -1,9 +1,9 @@
 <?php
 
 include_once($CFG->dirroot.'/backup/moodle2/restore_course_task.class.php');
-include_once($CFG->libdir.'/publicprivate/restore_publicprivate_stepslib.php');
-include_once($CFG->libdir.'/publicprivate/course.class.php');
-include_once($CFG->libdir.'/publicprivate/site.class.php');
+include_once($CFG->dirroot.'/local/publicprivate/lib/restore_publicprivate_stepslib.php');
+include_once($CFG->dirroot.'/local/publicprivate/lib/course.class.php');
+include_once($CFG->dirroot.'/local/publicprivate/lib/site.class.php');
 
 /**
  * Restore_PublicPrivate_Course_Task

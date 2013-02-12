@@ -319,11 +319,11 @@ if ((!empty($movetosection) or !empty($moveto)) and confirm_sesskey()) {
         print_error('invalidcoursemodule');
     }
 
-    require_once($CFG->libdir.'/publicprivate/course.class.php');
+    require_once($CFG->dirroot.'/local/publicprivate/lib/course.class.php');
     $publicprivate_course = new PublicPrivate_Course($cm->course);
     
     if($publicprivate_course->is_activated()) {
-        require_once($CFG->libdir.'/publicprivate/module.class.php');
+        require_once($CFG->dirroot.'/local/publicprivate/lib/module.class.php');
         PublicPrivate_Module::build($cm)->disable();
     } else {
         throw new PublicPrivate_Module_Exception('Illegal action as public/private is not enabled for the course.', 900);
@@ -348,11 +348,11 @@ if ((!empty($movetosection) or !empty($moveto)) and confirm_sesskey()) {
         print_error('invalidcoursemodule');
     }
 
-    require_once($CFG->libdir.'/publicprivate/course.class.php');
+    require_once($CFG->dirroot.'/local/publicprivate/lib/course.class.php');
     $publicprivate_course = new PublicPrivate_Course($cm->course);
 
     if($publicprivate_course->is_activated()) {
-        require_once($CFG->libdir.'/publicprivate/module.class.php');
+        require_once($CFG->dirroot.'/local/publicprivate/lib/module.class.php');
         PublicPrivate_Module::build($cm)->enable();
     } else {
         throw new PublicPrivate_Module_Exception('Illegal action as public/private is not enabled for the course.', 900);

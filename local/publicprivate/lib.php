@@ -21,7 +21,7 @@
 function handle_course_created($course) {
     global $CFG;
 
-    require_once($CFG->libdir . '/publicprivate/course.class.php');
+    require_once($CFG->dirroot . '/local/publicprivate/lib/course.class.php');
     $pubpriv_course = new PublicPrivate_Course($course);
     $pubpriv_course->activate();
 }
@@ -35,7 +35,7 @@ function handle_course_created($course) {
 function handle_course_updated($course) {
     global $CFG;
 
-    require_once($CFG->libdir . '/publicprivate/course.class.php');
+    require_once($CFG->dirroot . '/local/publicprivate/lib/course.class.php');
     $pubpriv_course = new PublicPrivate_Course($course);
 
     // activate public/private if form has enabled set or creating a course
@@ -70,7 +70,7 @@ function handle_course_updated($course) {
 function handle_mod($mod) {
     global $CFG;
 
-    require_once($CFG->libdir . '/publicprivate/module.class.php');
+    require_once($CFG->dirroot . '/local/publicprivate/lib/module.class.php');
     $changes_made = false;  // if true, then need to clear course cache
 
     $ppmod = PublicPrivate_Module::build($mod->cmid);
@@ -89,7 +89,7 @@ function handle_mod($mod) {
         // everything else is do nothing if groupmembersonly=1         
     } else {
         // need to get public/private grouping
-        require_once($CFG->libdir . '/publicprivate/course.class.php');
+        require_once($CFG->dirroot . '/local/publicprivate/lib/course.class.php');
         $ppcourse = PublicPrivate_Course::build($mod->courseid);
         $ppgrouping = $ppcourse->get_grouping();
         if (!empty($ppgrouping)) {
@@ -120,7 +120,7 @@ function handle_mod($mod) {
  */
 function local_publicprivate_cron() {
     global $CFG, $DB;
-    require_once($CFG->libdir . '/publicprivate/course.class.php');
+    require_once($CFG->dirroot . '/local/publicprivate/lib/course.class.php');
 
     // 1) courses with public/private enabled should have the public/private
     //    grouping as the default grouping
@@ -236,7 +236,7 @@ function notice_nonenrolled_users($course) {
         return; 
     }
 
-    require_once($CFG->libdir . '/publicprivate/course.class.php');
+    require_once($CFG->dirroot . '/local/publicprivate/lib/course.class.php');
     $publicprivate_course = new PublicPrivate_Course($course);
     if ($publicprivate_course->is_activated()) {
         $display_string = '';
