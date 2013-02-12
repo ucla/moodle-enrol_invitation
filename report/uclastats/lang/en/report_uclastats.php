@@ -78,6 +78,12 @@ $string['file_size'] = 'File Size';
 $string['file_size_help'] = 'Finds number of files over 1 MB';
 $string['file_count'] = 'File Count';
 
+//strings for repository usage report
+$string['repository_usage'] = 'Repository Usage';
+$string['repository_usage_help'] = 'Find repository usage for various files : Dropbox, Google Docs, Box, Server Files, My CCLE files';
+$string['repo_name'] = 'Data';
+$string['repo_count'] = 'File Count';
+
 // error strings
 $string['nocachedresults'] = 'No cached results found';
 $string['invalidterm'] = 'Invalid term';
