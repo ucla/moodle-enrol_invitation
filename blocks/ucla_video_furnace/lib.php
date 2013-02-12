@@ -44,7 +44,10 @@ function get_video_data($courseid) {
     $past_vids = array();
     $cur_date = time();
     
-    $videos = $DB->get_records('ucla_video_furnace', array('courseid' => $courseid));    
+    // Adding this to the where clause of the database query
+    // ensures no duplicate videos are displayed for crosslisted courses
+    $select = "courseid = $courseid GROUP BY video_title";
+    $videos = $DB->get_records_select('ucla_video_furnace', $select);    
     
     // Sort the data chronologically
     foreach ($videos as $video) {
