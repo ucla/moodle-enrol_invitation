@@ -41,7 +41,7 @@ class role_count extends uclastats_base {
     }
 
     /**
-     * Query for course modules used for by courses for given term
+     * Query to get the total count per role for a given term
      *
      * @param array $params
      * @param return array
@@ -58,10 +58,16 @@ class role_count extends uclastats_base {
         $sql = "SELECT r.name as role, count(DISTINCT ra.userid) as count_for_role
                 FROM mdl_course c
                     JOIN {context} ctx ON ctx.instanceid = c.id
-                    JOIN {role_assignments} ra ON ra.contextid = ctx.id
+                    JOIN {role_assignments} ra ON (
+                        ra.contextid = ctx.id
+                        ctx.contextlevel = 50
+                    )
                     JOIN {role} r ON ra.roleid = r.id
-                    JOIN {ucla_request_classes} rc ON rc.term = :term
-                AND ctx.contextlevel = 50
+                    JOIN {ucla_request_classes} rc ON (
+                        rc.courseid = c.id AND 
+                        rc.term = :term AND
+                        hostcourse = 1
+                    )
                 GROUP BY ra.roleid";
         return $DB->get_records_sql($sql, $params);
     }
