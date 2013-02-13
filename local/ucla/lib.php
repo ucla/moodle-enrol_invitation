@@ -522,7 +522,7 @@ function local_ucla_cron($terms = array()) {
 
     // Customize these times...?
     //$works = array('classinfo', 'subjectarea', 'division');
-    $works = array('classinfo', 'subjectarea');
+    $works = array('classinfo', 'subjectarea', 'enrolment_plugin');
     
     foreach ($works as $work) {
         $cn = 'ucla_reg_' . $work . '_cron';

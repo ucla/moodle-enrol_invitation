@@ -21,7 +21,10 @@ if ($hassiteconfig
         $securewwwroot = str_replace('http:','https:',$CFG->wwwroot);
     }
     // stuff under the "accounts" subcategory
-    $ADMIN->add('accounts', new admin_externalpage('editusers', new lang_string('userlist','admin'), "$CFG->wwwroot/$CFG->admin/user.php", array('moodle/user:update', 'moodle/user:delete')));
+    // START UCLA MOD: CCLE-3529 - Manager Limited unable to browse users from Site administration
+    $ADMIN->add('accounts', new admin_externalpage('editusers', new lang_string('userlist','admin'), "$CFG->wwwroot/$CFG->admin/user.php", array('moodle/user:update', 'moodle/user:delete', 'moodle/user:viewalldetails')));
+    //$ADMIN->add('accounts', new admin_externalpage('editusers', new lang_string('userlist','admin'), "$CFG->wwwroot/$CFG->admin/user.php", array('moodle/user:update', 'moodle/user:delete')));
+    // END UCLA MOD: CCLE-3529
     // START UCLA MOD: CCLE-2970 - Cannot disable "bulk user actions" in site admin menu
     // changed the required capability to 'local/ucla:bulk_users' in order to view "Bulk user actions"
     $ADMIN->add('accounts', new admin_externalpage('userbulk', new lang_string('userbulk','admin'), "$CFG->wwwroot/$CFG->admin/user/user_bulk.php", 'local/ucla:bulk_users'));

@@ -25,8 +25,7 @@ $string['term'] = 'Term';
 $string['subjarea'] = 'Subject area';
 
 $string['course_id'] = 'Course ID';
-$string['course_shortname'] = 'Shortname';
-$string['course_fullname'] = 'Fullname';
+$string['course_title'] = 'Course';
 $string['course_students'] = 'Enrolled students';
 $string['course_instructors'] = 'Instructors (role)';
 $string['course_forums'] = 'Forum topics'; 
@@ -71,7 +70,10 @@ $string['unique_logins_per_term_cached_results'] = 'Per day: {$a->day} | Per wee
 $string['subject_area_report'] = 'Subject area report';
 $string['subject_area_report_help'] = 'Report that generates a collection of useful statistics that 
     departments can use. Some statistical statistics include, number of enrolled students, 
-    class site hits, and forum activity. Was originally requested by Psychology in CCLE-2673.';
+    class site hits, and forum activity. Was originally requested by Psychology in CCLE-2673.' . 
+    '<br /><br />' . 
+    'Includes all courses listed at Registrar for given subject area. If course
+     does not have a "Course ID" listed, it was not built on the current server.';
 
 //strings for file_size_report
 $string['file_size'] = 'File Size';

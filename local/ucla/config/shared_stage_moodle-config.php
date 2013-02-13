@@ -186,7 +186,9 @@ $CFG->forced_plugin_settings['moodlecourse']['enablecompletion'] = 0;
 $CFG->enablecourserequests = 1;
 
 // Site administration > Courses > Backups > General backup defaults
-$CFG->forced_plugin_settings['backup']['backup_general_users'] = 0;
+// Commenting this out until following tracker issue is resolved:
+// MDL-27886 - backup_general_users forbids all users to backup user data
+//$CFG->forced_plugin_settings['backup']['backup_general_users'] = 0;
 
 // Site administration > Grades > General settings
 $CFG->recovergradesdefault = 1;

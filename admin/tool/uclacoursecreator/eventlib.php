@@ -65,39 +65,3 @@ function handle_course_deleted($course) {
     
     return !$has_error;
 }
-
-/**
- * Checks if course has a ucla_course_menu block. If so, then it makes the
- * block have a defaultweight of -10 (move to the very 1st element)
- *  
- * @param mixed $course     Can be object or int
- * 
- * @return boolean
- */
-function move_site_menu_block($course) {
-    global $DB;
-    
-    // handle different parameter types
-    if (is_object($course)) {
-        $courseid = $course->id;
-    } else {
-        $courseid = $course;
-    }    
-    
-    // get course context
-    $context = context_course::instance($courseid);    
-    if (empty($context)) {
-        return false;
-    }
-
-    // get block instance, if any
-    $block_instance = $DB->get_record('block_instances', 
-            array('blockname' => 'ucla_course_menu', 
-                  'parentcontextid' => $context->__get('id')));
-    if (!empty($block_instance)) {
-        // calling block_instance will call set_default_location()
-        $ucla_course_menu = block_instance('ucla_course_menu', $block_instance);
-    }
-
-    return true;
-}

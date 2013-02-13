@@ -82,6 +82,13 @@ if (!empty($add)) {
     $data->return           = 0; //must be false if this is an add, go back to course view on cancel
     $data->sr               = $sectionreturn;
 
+    // START UCLA MOD: CCLE-3781 - Control Panel: Add Resource/Activity as public not working
+    $private = optional_param('private', true, PARAM_BOOL);
+    if (empty($private)) {
+        $data->groupingid = 0;  // make content public
+    }
+    // END UCLA MOD: CCLE-3781
+
     if (plugin_supports('mod', $data->modulename, FEATURE_MOD_INTRO, true)) {
         $draftid_editor = file_get_submitted_draft_itemid('introeditor');
         file_prepare_draft_area($draftid_editor, null, null, null, null);
@@ -399,7 +406,6 @@ if ($mform->is_cancelled()) {
                    "$fromform->instance", $fromform->coursemodule);
 
     } else if (!empty($fromform->add)) {
-        
 
         if (!empty($course->groupmodeforce) or !isset($fromform->groupmode)) {
             $fromform->groupmode = 0; // do not set groupmode
@@ -489,20 +495,6 @@ if ($mform->is_cancelled()) {
             // set cm idnumber - uniqueness is already verified by form validation
             set_coursemodule_idnumber($fromform->coursemodule, $fromform->cmidnumber);
         }
-
-        // START UCLA MOD: CCLE-2946 - Uploading resources via Moodle's 
-        // "Add a resource" dropdown adds content as public, not private.
-        $publicprivatelib = $CFG->libdir . '/publicprivate/module.class.php';
-        if (file_exists($publicprivatelib)) {        
-            require_once($publicprivatelib);
-            if (PublicPrivate_Course::build($course)->is_activated()){
-                // If grouping isn't choosen, then default to public/private group
-                if (empty($fromform->groupingid)){
-                    PublicPrivate_Module::build($fromform->coursemodule)->enable();
-                }
-            }
-        }
-        // END UCLA MOD: CCLE-2946
 
         // Set up conditions
         if ($CFG->enableavailability) {

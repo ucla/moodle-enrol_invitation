@@ -47,6 +47,8 @@ if (!empty($data) && confirm_sesskey()) {
         $success_msg = get_string('alert_later_redirect', 'local_ucla_syllabus');
     }
 
-    // redirect no/later responses to course page
-    flash_redirect(new moodle_url('/course/view.php', array('id' => $id)), $success_msg);    
+    // redirect no/later responses to course page (make sure to redirect to
+    // section 0 or user wouldn't get success message)
+    flash_redirect(new moodle_url('/course/view.php', 
+            array('id' => $id, 'section' => 0)), $success_msg);    
 }

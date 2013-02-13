@@ -204,6 +204,7 @@ class block_ucla_rearrange extends block_base {
         // This file contains all the library functions that we need
         $PAGE->requires->js('/blocks/ucla_rearrange'
             . '/javascript/block_ucla_rearrange.js');
+        $PAGE->requires->js('/blocks/ucla_rearrange/yui/unload.js');
 
         // These are all the sections, neatly split by section
         $PAGE->requires->js_init_code(self::js_variable_code(
@@ -244,7 +245,7 @@ class block_ucla_rearrange extends block_base {
                 );
             }
         }
-
+        $PAGE->requires->js_init_call('M.block_ucla_rearrange.init', array());
         $PAGE->requires->js_init_code(
             'M.block_ucla_rearrange.build_ns_config();'
         );

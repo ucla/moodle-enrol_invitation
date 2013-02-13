@@ -27,6 +27,7 @@ require_once($CFG->dirroot . '/local/ucla/lib.php');
 require_once(dirname(__FILE__) . '/ucla_course_prefs.class.php');
 require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/uclasiteindicator/lib.php');
 
+define('UCLA_FORMAT_DISPLAY_SYLLABUS', 'syllabus');
 define('UCLA_FORMAT_DISPLAY_ALL', -2);
 define('UCLA_FORMAT_DISPLAY_LANDING', -4);
 
@@ -381,6 +382,11 @@ function ucla_format_figure_section($course, $course_prefs = null) {
     // see if user is requesting a specific section
     $section = optional_param('section', null, PARAM_INT);
     if (!is_null($section)) {
+        // CCLE-3740 - section === -1 is an alias for section 0 (Site info)
+        // This is set by uclatheme renderer so that we can handle this redirect correctly
+        if($section === -1) {
+            $section = 0;
+        }
         // This means that a section was explicitly declared
         return $section;
     }

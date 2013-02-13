@@ -17,7 +17,7 @@ class ucla_rearrange_form extends moodleform {
         $mform->addElement('hidden', 'section', $section);        
         
         $mform->addElement('hidden', 'serialized', '',
-            array('id' => 'serialized'));
+                array('id' => 'serialized'));
         $mform->setType('serialized', PARAM_RAW);
 
         foreach ($sections as $section) {

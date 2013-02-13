@@ -4,7 +4,7 @@
  *  This could be abstracted out another level.
  **/
 class easyupload_activity_form extends easy_upload_form {
-    var $allow_publicprivate = false;
+    var $allow_publicprivate = true;
     var $enable_availability = false;
 
     function specification() {
@@ -69,7 +69,7 @@ class easyupload_activity_form extends easy_upload_form {
      *  Required for redirection forms.
      **/
     function get_send_params() {
-        return array('course', 'add', 'section');
+        return array('course', 'add', 'section', 'private');
     }
 }
 

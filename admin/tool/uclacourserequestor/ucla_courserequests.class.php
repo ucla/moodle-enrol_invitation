@@ -340,13 +340,14 @@ class ucla_courserequests {
                     $nr = get_request_info($theterm, $ncl);
                 }
 
+                $nr_built = $nr['action'] == 'built';
                 $e = UCLA_REQUESTOR_ERROR;
-                if (!$nr) {
+                if (!$nr || $nr_built) {
                     $nr = array(
                         'term' => $theterm,
                         'srs' => $ncl,
                         UCLA_REQUESTOR_ERROR => array(
-                            UCLA_REQUESTOR_NOCOURSE => true
+                            ($nr_built ? UCLA_REQUESTOR_BADCL : UCLA_REQUESTOR_NOCOURSE) => true
                         ),
                         'instructor' => array(),
                     );

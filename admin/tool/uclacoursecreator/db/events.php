@@ -1,17 +1,14 @@
 <?php
 /*
- * Definition of event triggers related to course management (creating and 
- * destroying). For now we are just defining a trigger for when courses are 
- * created. But in the future we hope to include a trigger for when courses are 
- * deleted.
+ * Definition of event triggers related to course management (creating, building
+ * and destroying).
  */
 
-/* Course Creation:
- *  - ensure that ucla_course_menu block is properly located in the top of the 
- *    left-hand side of the screen
+/* Build courses now:
+ *  - For DEV/TEST/STAGE environments, trigger a course build at the next cron
  */
 
-/* Course Deletion: (to do)
+/* Course Deletion:
  *  - ensure that if a course has a My.UCLA url pointing to it, it should be
  *    cleared
  *  - ensure that entry in ucla_request_classes table is deleted

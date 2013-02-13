@@ -20,10 +20,15 @@ class subject_area_report extends uclastats_base {
         // Query to get courses in a subject area and the number of students 
         // enrolled in the courses
          $query = "
-            SELECT bci.id, bci.coursetitleshort, bci.coursetitlelong, bci.activitytype, c.id as courseid
+            SELECT  bci.id, 
+                    CONCAT(bci.subjarea, ' ', bci.course, ', ', 
+                        bci.activitytype, ' ', bci.section) AS course_title, 
+                    c.id as courseid,
+                    bci.url AS ext_url
                 FROM {ucla_browseall_classinfo} AS bci
                 JOIN {ucla_reg_subjectarea} AS rsa ON rsa.subjarea = bci.subjarea
-                LEFT JOIN {ucla_request_classes} AS rc ON rc.term = bci.term AND rc.srs = bci.srs
+                LEFT JOIN {ucla_request_classes} AS rc ON 
+                    rc.term = bci.term AND rc.srs = bci.srs AND rc.hostcourse = 1
                 LEFT JOIN {course} AS c ON c.id = rc.courseid
             WHERE   bci.term = :term
                 AND rsa.subj_area_full = :subjarea
@@ -31,18 +36,28 @@ class subject_area_report extends uclastats_base {
 
         $records = $DB->get_records_sql($query, $this->params);
 
-        foreach($records as $r) {
+        foreach($records as $r) {         
+            $course_url = null;
+            if (empty($r->courseid)) {
+                // not on current server, so see if there is a url set
+                if (!empty($r->ext_url)) {
+                    $course_url = html_writer::link($r->ext_url, get_string('url'));
+                }
+            } else {
+                // link to site on current server
+                $course_url = html_writer::link(new moodle_url('/course/view.php', 
+                        array('id' => $r->courseid)), $r->courseid);
+            }
             
             // Course object to be printed
             $course = array(
-                'course_id' => empty($r->courseid) ? '' : html_writer::link($CFG->wwwroot . '/course/view.php?id=' . $r->courseid, $r->courseid),
-                'course_shortname' => $r->coursetitleshort,
-                'course_fullname' => $r->coursetitlelong,
+                'course_id' => $course_url,
+                'course_title' => $r->course_title,
                 'course_instructors' => '',
                 'course_students' => 'N/A',
                 'course_hits' => 'N/A ',
                 'course_student_percent' => 'N/A',
-                'course_forums' => '',
+                'course_forums' => 0,
                 'course_posts' => 0,
                 'course_files' => 0,
                 'course_size' => '0 KB',
@@ -51,7 +66,8 @@ class subject_area_report extends uclastats_base {
             
             // Key by course ID
             if(empty($r->courseid)) {
-                $course['course_size'] = 'N/A';
+                $course['course_size'] = '-';
+                $course['course_syllabus'] = '-';                
                 $this->data['null' . $r->id] = (object)$course;
             } else {
                 $this->data[$r->courseid] = (object)$course;
@@ -59,7 +75,8 @@ class subject_area_report extends uclastats_base {
             }
         }
 
-        return !empty($records);
+        // True if we found sites from (subjarea,term) on our system
+        return !empty($this->courseids);
     }
     
     /**
@@ -95,8 +112,12 @@ class subject_area_report extends uclastats_base {
         $records = $DB->get_records_sql($query, $this->params);
         
         foreach($records as $r) {
-            $content = $r->lastname . ', ' . $r->firstname . ' (' . $r->role .  ')';
-            $this->data[$r->courseid]->course_instructors .= html_writer::tag('div', $content);
+            // If an array key does not exist, it means the course is no longer
+            // listed by the registrar, but still exists on the site
+            if(array_key_exists($r->courseid, $this->data)) {
+                $content = $r->lastname . ', ' . $r->firstname . ' (' . $r->role .  ')';
+                $this->data[$r->courseid]->course_instructors .= html_writer::tag('div', $content);
+            }
         }
         
     }
@@ -192,7 +213,9 @@ class subject_area_report extends uclastats_base {
             $this->data[$id]->course_students = $count;
             // Avoid division by 0
             if(!empty($count)){
-                $this->data[$id]->course_student_percent = (count($records) / $count) . ' %';
+                $val = (count($records) / $count) * 100;
+                $formatted = sprintf("%01.2f", $val);
+                $this->data[$id]->course_student_percent = $formatted . ' %';
             }
         }
     }
@@ -323,8 +346,9 @@ class subject_area_report extends uclastats_base {
         // Save params
         $this->params = $params;
         $this->params['context'] = CONTEXT_COURSE;
+        $this->courseids = array();
 
-        // Check if we have any classes in given subjarea/term
+        // Check if we have any sites in given subjarea/term on our system 
         // and if we do, then run all other queries
         if($this->query_courses()) {
             $this->query_instructors();

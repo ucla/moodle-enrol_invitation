@@ -547,7 +547,7 @@ if (!empty($requeststable->data)) {
     if ('views' == $groupid) {
         foreach ($requestswitherrors as $course) {
             foreach($course as $value) {
-                if($value['action'] == "build") {
+                if(isset($value['action']) && $value['action'] == "build") {
                     $showbutton = true;
                     break;
                 }

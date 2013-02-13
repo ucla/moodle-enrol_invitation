@@ -298,11 +298,11 @@ class format_ucla_renderer extends format_section_renderer_base {
             $showsection = $thissection->uservisible ||
                     ($thissection->visible && !$thissection->available && $thissection->showavailability);
             if (!$showsection) {
-                // Hidden section message is overridden by 'unavailable' control
-                // (showavailability option).
-                if (!$course->hiddensections && $thissection->available) {
-                    echo $this->section_hidden($section);
-                }
+//                // Hidden section message is overridden by 'unavailable' control
+//                // (showavailability option).
+//                if (!$course->hiddensections && $thissection->available) {
+//                    echo $this->section_hidden($section);
+//                }
 
                 unset($sections[$section]);
                 continue;
