@@ -19,8 +19,8 @@ class repository_usage extends uclastats_base {
      * Instead of counting results, return actual count.
      *
      * @param array $results
-     * @return string
-     */
+     * @return string 
+    */
     public function format_cached_results($results) {
 
         $sum = 0;
@@ -72,7 +72,11 @@ class repository_usage extends uclastats_base {
             //create new object such that ordering of attributes is Repository Name | File Count
             $repo = new stdClass();
             $repo->repo_name = $repo_name;
-            $repo->repo_count = $record[0]->repo_count;
+
+            //get the result object that was just queried
+            $record = array_pop($record);
+            
+            $repo->repo_count = $record->repo_count;
             $records[] = $repo;
         }
 
