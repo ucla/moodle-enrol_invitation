@@ -80,7 +80,6 @@ $string['file_size'] = 'File Size';
 $string['file_size_help'] = 'Finds number of files over 1 MB';
 $string['file_count'] = 'File Count';
 
-
 //strings for inactive_collab_sites
 $string['inactive_collab_sites'] = 'Inactive Collab Sites';
 $string['inactive_collab_sites_help'] = 'Reports number of inactive collab sites.';
@@ -107,6 +106,14 @@ $string['course_block_count'] = 'Course Block Count';
 $string['collab_block_sites'] = 'Collab block report';
 $string['collab_block_sites_help'] = 'Report to get the number of collab blocks and their block names';
 $string['collab_block_count'] = 'Collab Block Count';
+
+//strings for custom_theme_report
+$string['custom_theme'] = 'Custom theme report';
+$string['custom_theme_help'] = 'Counts sites that are using a custom theme';
+$string['theme_count'] = 'Number of sites using custom theme: ';
+$string['course_shortname'] = 'Course';
+$string['course_title'] = 'Course Title';
+$string['theme'] = 'Theme';
 
 // error strings
 $string['nocachedresults'] = 'No cached results found';
