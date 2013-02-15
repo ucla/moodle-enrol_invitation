@@ -20,7 +20,7 @@ class repository_usage extends uclastats_base {
      *
      * @param array $results
      * @return string 
-    */
+     */
     public function format_cached_results($results) {
 
         $sum = 0;
@@ -56,7 +56,7 @@ class repository_usage extends uclastats_base {
                     "Google Docs" => "LIKE '%google%'",
                     "Box" => "LIKE '%box.net%'",
                     "Server Files" => "LIKE '%Server files%'",
-                    "My CCLE files" => "LIKE '%My CCLE files%'"
+                    "My CCLE files" => "LIKE '%CCLE files%'"
         );
 
         $sql = "SELECT COUNT(*) as repo_count
@@ -75,7 +75,7 @@ class repository_usage extends uclastats_base {
 
             //get the result object that was just queried
             $record = array_pop($record);
-            
+
             $repo->repo_count = $record->repo_count;
             $records[] = $repo;
         }
