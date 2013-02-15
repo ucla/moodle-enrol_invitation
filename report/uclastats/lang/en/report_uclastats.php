@@ -90,6 +90,12 @@ $string['inactive_course_sites_help'] = 'Reports number of inactive course sites
 $string['inactive_course_count'] = 'Inactive Course Count';
 $string['division'] = 'Division';
 
+//strings for role_count
+$string['role_count'] = 'Role Count';
+$string['role_count_help'] = 'Counts the total for each role for all the courses in the specified term';
+$string['role'] = 'Role';
+$string['count_for_role'] = 'Count';
+
 // error strings
 $string['nocachedresults'] = 'No cached results found';
 $string['invalidterm'] = 'Invalid term';
