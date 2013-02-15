@@ -1,8 +1,7 @@
 <?php
 
 /**
- * Report to get the number of course modules used for course sites for a given
- * term.
+ * Report to get the number of files that exceed 1MB
  *
  * @package    report
  * @subpackage uclastats
@@ -47,9 +46,10 @@ class file_size extends uclastats_base {
     public function query($params) {
         global $DB;
 
-        $sql = "SELECT COUNT(*) as file_count 
-                FROM mdl_files 
+        $sql = "SELECT COUNT(DISTINCT contenthash) as file_count 
+                FROM {files} 
                 WHERE filesize > 1048576";
+               
         return $DB->get_records_sql($sql, $params);
     }
 
