@@ -679,6 +679,10 @@ if ($displayforms) {
                         $curr_num_courses_with_private_syllabus, $curr_num_courses_with_syllabus,
                         ($curr_num_courses_with_private_syllabus/$curr_num_courses_with_syllabus)*100);
             }
+            $curr_total_courses_with_syllabus += $curr_num_courses_with_syllabus;
+            $curr_total_courses_with_public_syllabus += $curr_num_courses_with_public_syllabus;
+            $curr_total_courses_with_preview_syllabus += $curr_num_courses_with_preview_syllabus;
+            $curr_total_courses_with_private_syllabus += $curr_num_courses_with_private_syllabus;
             
             // go through row and create link to browseby
             foreach ($curr_data as $code => $row) {
