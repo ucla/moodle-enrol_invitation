@@ -24,19 +24,21 @@ $string['r_test'] = 'Test';
 
 // Site descriptions
 $string['site_instruction'] = 'Instruction (degree-related)';
-$string['site_instruction_desc'] = 'instructional sites that supplement or support work being done toward the completion of a UCLA degree.';
+$string['site_instruction_desc'] = 'Instructional sites that supplement or support work being done toward the completion of a UCLA degree.';
 $string['site_instruction_noniei'] = 'Instruction (non-degree-related)';
-$string['site_instruction_noniei_desc'] = 'instructional sites that do not contribute toward the completion of a UCLA degree.';
+$string['site_instruction_noniei_desc'] = 'Instructional sites that do not contribute toward the completion of a UCLA degree.';
 $string['site_non_instruction'] = 'Other';
-$string['site_non_instruction_desc'] = 'collaboration sites used for administering or managing campus groups, organizing specific events (short-term or long-term), training, etc.';
+$string['site_non_instruction_desc'] = 'Collaboration sites used for administering or managing campus groups, organizing specific events (short-term or long-term), training, etc.';
 $string['site_research'] = 'Research';
-$string['site_research_desc'] = 'collaboration sites primarily focused on research.';
+$string['site_research_desc'] = 'Collaboration sites primarily focused on research.';
 $string['site_test'] = 'Test';
-$string['site_test_desc'] = 'temporary sites used to evaluate CCLE/Moodle functionality and features.';
+$string['site_test_desc'] = 'Temporary sites used to evaluate CCLE/Moodle functionality and features.';
 $string['site_registrar'] = 'Instruction (listed at Registrar)';
 $string['site_registrar_desc'] = 'An instruction site with an SRS number that is listed at the registrar';
 $string['site_private'] = 'Private';
-$string['site_private_desc'] = 'Private courses for confidential subject matter';
+$string['site_private_desc'] = 'Instructional site for confidential subject matter. Will not show up in course search and will have public/private functionality turned off.';
+$string['site_tasite'] = 'TA site';
+$string['site_tasite_desc'] = 'Site created by the TA site creator. This site type that cannot be manually choosen.';
 $string['notype'] = 'This site has no type';
 
 // Request
