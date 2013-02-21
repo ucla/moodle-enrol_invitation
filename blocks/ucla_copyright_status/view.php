@@ -32,7 +32,7 @@ if (isset($action)) {
     update_copyright_status($data->block_ucla_copyright_status_n1);
 }
 
-$context = get_context_instance(CONTEXT_COURSE, $courseid, MUST_EXIST);
+$context = context_course::instance($courseid);
 
 init_copyright_page($course, $courseid, $context);
 
