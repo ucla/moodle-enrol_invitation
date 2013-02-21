@@ -66,11 +66,18 @@ class ucla_syllabus_manager {
     /**
      * Returns if given course can host syllabus files. Currently, only SRS 
      * based courses can have syllabus files.
+     * CCLE-3792: Instructional collab sites can host syllabus files 
+     * (along with SRS based courses).
      *
      * @return boolean
      */
     public function can_host_syllabi() {
-        return !is_collab_site($this->courseid);
+        global $CFG;
+        require_once($CFG->dirroot . '/admin/tool/uclasiteindicator/lib.php');
+        
+        $site = siteindicator_site::load($this->courseid);
+        return !is_collab_site($this->courseid) || (!is_null($site) &&
+            $site->property->type == siteindicator_manager::SITE_TYPE_INSTRUCTION);
     }
 
     /**
