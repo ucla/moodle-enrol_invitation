@@ -12,6 +12,8 @@ class block_ucla_course_menu extends block_navigation {
    
     // Hook function used to get other blocks' junk into this trunk
     const BLOCK_HOOK_FN = 'get_navigation_nodes';
+
+    const BLOCK_EDITORS_FN = 'get_editing_link';
    
     /**
      *  Called by Moodle.
@@ -117,34 +119,24 @@ class block_ucla_course_menu extends block_navigation {
         if ($this->page->user_is_editing() && 
                 $this->get_course_format() == 'ucla') {
 
-            //CCLE-2379 Modify Course Menu Sections 	
-	   $modify_coursemenu = html_writer::link(
-                    new moodle_url('/blocks/ucla_modify_coursemenu/modify_coursemenu.php', 
-                        array('courseid' => $this->page->course->id, 
-                              'section' => $this->displaysection)), 
-                    get_string('pluginname', 'block_ucla_modify_coursemenu'));            
-            $this->content->text .= html_writer::tag('div', $modify_coursemenu, 
-                    array('class' => 'edit_control_links'));            
-            
-            // rearrange link
-            $rearrange = html_writer::link(
-                    new moodle_url('/blocks/ucla_rearrange/rearrange.php', 
-                        array('courseid' => $this->page->course->id, 
-                              'section' => $this->displaysection)), 
-                    get_string('pluginname', 'block_ucla_rearrange'));            
-            $this->content->text .= html_writer::tag('div', $rearrange, 
-                    array('class' => 'edit_control_links'));
-            
-            // copyright link
-            $copyright = html_writer::link(
-                    new moodle_url('/blocks/ucla_copyright_status/view.php', 
-                        array('courseid' => $this->page->course->id, 
-                              'section' => $this->displaysection)), 
-                    get_string('pluginname', 'block_ucla_copyright_status'));            
-            $this->content->text .= html_writer::tag('div', $copyright, 
-                    array('class' => 'edit_control_links'));            
+            $special_editing_links = $this->create_block_elements(
+                    self::BLOCK_EDITORS_FN
+                );
+
+            if (!empty($special_editing_links)) {
+                // we don't always want the editing links to be in alpha order
+                ksort($special_editing_links);
+                $links_html = '';
+                foreach ($special_editing_links as $special_editing_link) {
+                    $links_html .= html_writer::tag('div', 
+                        $special_editing_link, array(
+                            'class' => 'edit_control_links'
+                        ));
+                }
+                $this->content->text .= $links_html;
+            }      
         }
-                       
+
         // get section nodes
         $section_elements = $this->create_section_elements();
         
@@ -223,7 +215,21 @@ class block_ucla_course_menu extends block_navigation {
             'id' => $course_id,
             'show_all' => 1
         );              
-        
+
+        // Special case for meta-sites
+        $enrols = enrol_get_instances($course_id, true);
+        foreach ($enrols as $enrol) {
+            if ($enrol->enrol == 'meta') {
+                $elements['parent-course'] = navigation_node::create(
+                    get_string('parentcourse', 'block_ucla_course_menu'),
+                    new moodle_url('/course/view.php', array(
+                            'id' => $enrol->customint1
+                        )),
+                    navigation_node::TYPE_SECTION
+                );
+            }
+        }
+
         // set active url to make sure that section 0 and show all are highlighted
         if ($this->get_course_format() == 'ucla') {
             // This will allow the navigation node to highlight the 
@@ -299,10 +305,14 @@ class block_ucla_course_menu extends block_navigation {
      *  Iterates through the blocks and attempts to generate course menu
      *  items.
      **/
-    function create_block_elements() {
+    function create_block_elements($fn=null) {
         global $CFG, $COURSE;
 
         $elements = array();
+
+        if ($fn === null) {
+            $fn = self::BLOCK_HOOK_FN;
+        }
 
         if (!isset($this->page)) {
             return $elements;
@@ -313,19 +323,25 @@ class block_ucla_course_menu extends block_navigation {
         $elements = array();
 
         foreach ($allblocks as $block) {
-            $classname = 'block_' . $block->name;
+            // This function provided by core Moodle does not check for
+            // the existance of the function, thus the @ will suppress
+            // warning messages
 
-            if (!class_exists($classname)) {
-                @include_once($CFG->dirroot . '/blocks/' . $block->name . '/' 
-                        . $classname . '.php');
+            // if calling BLOCK_EDITORS_FN, then need to also pass in section
+            if ($fn == self::BLOCK_EDITORS_FN) {
+                $block_elements = @block_method_result($block->name, $fn,
+                        $course, $this->displaysection);
+            } else {
+                $block_elements = @block_method_result($block->name, $fn, $course);
             }
 
-            if (method_exists($classname, self::BLOCK_HOOK_FN)) {
-                $fn = self::BLOCK_HOOK_FN;
-                $block_elements = 
-                    $classname::$fn($course);
-
-                $elements = array_merge($elements, $block_elements);
+            if ($block_elements) {
+                if ($fn == self::BLOCK_EDITORS_FN) {
+                    // add arrays instead of using array_merge to keep keys
+                    $elements = $elements + $block_elements;
+                } else {
+                    $elements = array_merge($elements, $block_elements);
+                }
             }
         }
 

@@ -31,6 +31,8 @@ $string['subchapter'] = 'Sub-chapter';
 $string['topicsweeks'] = 'Topics / Weeks';
 $string['noicon'] = 'No icon';
 
+$string['parentcourse'] = 'Back to parent site';
+
 $string['showallsections'] = 'Show all sections';
 $string['linkfileorsite'] = 'Link to a file or web site';
 $string['displaydirectory'] = 'Display directory';
