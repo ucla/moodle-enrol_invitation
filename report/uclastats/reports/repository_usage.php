@@ -54,7 +54,7 @@ class repository_usage extends uclastats_base {
                 array(
                     "Dropbox" => "LIKE '%dropbox%' OR source LIKE 'Dropbox%'",
                     "Google Docs" => "LIKE '%google%'",
-                    "Box" => "LIKE '%box.net%'",
+                    "Box" => "LIKE 'Box %'",
                     "Server Files" => "LIKE '%Server files%'",
                     "My CCLE files" => "LIKE '%CCLE files%'"
         );
