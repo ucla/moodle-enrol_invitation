@@ -14,9 +14,8 @@ class tasites_form extends moodleform {
         $mform->addElement('hidden', 'courseid', $courseid);
 
         $formactions = array(
-            'build' => array(), 
-//            'delete' => array(),
-            'view' => array()
+            'view' => array(),
+            'build' => array() 
         );
 
         foreach ($tasiteinfo as $tainfo) {
@@ -45,22 +44,24 @@ class tasites_form extends moodleform {
             foreach ($tas as $ta) {
                 // view is special
                 if ($action == 'view') {
-                    $mform->addElement(
-                        'html',
-                        html_writer::tag('li', html_writer::link(
+                    $ta_link = html_writer::link(
                             $ta->course_url,
                             get_string(
-                                $action . '_tadesc', 'block_ucla_tasites', 
+                                $action . '_tadesc', 'block_ucla_tasites',
                                 $ta
-                            )
-                        ))
-                    );
+                            ));
+                    $ta_grouping = get_string('view_tadesc_grouping',
+                            'block_ucla_tasites',
+                            $ta->ta_site->defaultgroupingname);
+
+                    $mform->addElement('html',
+                        html_writer::tag('li', $ta_link . $ta_grouping));
                 } else {    
                     // This specifies whether to take the action or not
                     $mform->addElement(
                         'checkbox', 
                         block_ucla_tasites::checkbox_naming($ta),
-                        $ta->fullname,
+                        '',
                         get_string($action . '_tadesc', 'block_ucla_tasites', 
                             $ta)
                     );

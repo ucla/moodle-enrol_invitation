@@ -142,6 +142,10 @@ class block_ucla_tasites extends block_base {
             $course = $courses[$courseids[$key]];
             $course->enrol = $enrol;
 
+            // get default grouping for each course
+            $course->defaultgroupingname =
+                    groups_get_grouping_name($course->defaultgroupingid);
+
             $tacourses[$enrol->ownerid] = $course;
         }
     
@@ -489,6 +493,8 @@ class block_ucla_tasites extends block_base {
                         ),
                         get_string('view_tasite', 'block_ucla_tasites')
                     );
+                } else {
+                    $appended_instdata[$ik]['tasite'] = '';
                 }
             }
         }

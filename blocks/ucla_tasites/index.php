@@ -83,7 +83,7 @@ if (!empty($tas_ra)) {
         'tasiteinfo' => $tasiteinfo
     );
 
-    $tasites_form = new tasites_form(null, $formdata);
+    $tasites_form = new tasites_form(null, $formdata, 'post', '', array('class' => 'tasites_form'));
     if ($data = $tasites_form->get_data()) {
         foreach ($tasiteinfo as $tasite) {
             $actionname = block_ucla_tasites::action_naming($tasite);
