@@ -6,6 +6,7 @@ require_oncE($CFG->dirroot . '/user/lib.php');
 require_once($CFG->dirroot . '/blocks/ucla_tasites/block_ucla_tasites.php');
 require_once($CFG->dirroot . '/blocks/ucla_tasites/tasites_form.php');
 require_once($CFG->dirroot . '/blocks/ucla_tasites/form_response.php');
+require_once($CFG->dirroot . '/local/ucla/lib.php');
 
 $courseid = required_param('courseid', PARAM_INT);
 
@@ -29,8 +30,6 @@ $PAGE->set_title(get_string('pluginname', 'block_ucla_tasites'));
 $PAGE->set_heading($course->fullname);
 $PAGE->set_pagelayout('course');
 $PAGE->set_pagetype('course-view-' . $course->format);
-
-$messages = array();
 
 // Get all potentional TA users and their according TA sites
 // from {role_assignments}
@@ -84,59 +83,77 @@ if (!empty($tas_ra)) {
     );
 
     $tasites_form = new tasites_form(null, $formdata, 'post', '', array('class' => 'tasites_form'));
-    if ($data = $tasites_form->get_data()) {
-        foreach ($tasiteinfo as $tasite) {
-            $actionname = block_ucla_tasites::action_naming($tasite);
-
-            if (empty($data->{$actionname})) {
-                debugging('Could not find registered action for '   
-                    . $tasite->username);
-
-                continue;
-            }
-            
-            $action = $data->{$actionname};
-            $fn = 'block_ucla_tasites_respond_' . $action;
-
-            // Confirm?
-            // Create and Delete
-            if (!empty($data->{block_ucla_tasites::checkbox_naming($tasite)})) {
-                if (!function_exists($fn)) {
-                    throw new block_ucla_tasites_exception('badresponse', $fn);
-                }
-
-                $messages[] = $fn($tasite);
-            }
-        }
-    }
 }
 
-// Display everything!
+// process any forms, if user confirmed
+if (optional_param('confirm', 0, PARAM_BOOL) && confirm_sesskey()) {
+    foreach ($tasiteinfo as $tasite) {
+        // what action is user trying to do?
+        $actionname = block_ucla_tasites::action_naming($tasite);
+        $action = optional_param($actionname, false, PARAM_ALPHA);
+        if (empty($action)) {
+            debugging('Could not find registered action for '
+                . $tasite->username);
+            continue;
+        }
+
+        $fn = 'block_ucla_tasites_respond_' . $action;
+
+        // perform action
+        $checkboxname = block_ucla_tasites::checkbox_naming($tasite);
+        $checked = optional_param($checkboxname, false, PARAM_BOOL);
+        if (!empty($checked)) {
+            if (!function_exists($fn)) {
+                throw new block_ucla_tasites_exception('badresponse', $fn);
+            }
+            $a = $fn($tasite);
+            $messages[] = get_string($a->mstr, 'block_ucla_tasites', $a->mstra);
+        }
+    }
+
+    // save messages in flash and redirect user
+    $redirect = $url = new moodle_url('/blocks/ucla_tasites/index.php',
+            array('courseid' => $courseid));
+    flash_redirect($redirect, html_writer::alist($messages));
+
+}
+
+// Display everything else
 echo $OUTPUT->header();
 echo $OUTPUT->heading($PAGE->title);
-   
 if (empty($tas_ra)) {
+    // user is accessing TA sites page when they cannot set one up
     $rolefullname = $DB->get_field('role', 'name', array(
             'id' => block_ucla_tasites::get_ta_role_id()
         ));
 
     throw new moodle_exception('no_tasites', 'block_ucla_tasites', '', 
             $rolefullname);
-} else if (isset($data)) {
-    foreach ($messages as $message) {
-        echo $OUTPUT->box(get_string($message->mstr, 
-            'block_ucla_tasites', $message->mstra));
-    }
+} else if (($params = $tasites_form->get_data()) && confirm_sesskey()) {
+    // user submitted form, but first needs to confirm it
+    
+    // unset submit button value
+    unset($params->submitbutton);
 
-    $courseurl = new moodle_url('/course/view.php',
-        array('id' => $courseid));
+    // create confirm message, url passed needs to have all form elements. the
+    // single_button renderer will make the url param array into hidden form
+    // elements
+    $params->sesskey = sesskey();
+    $params->confirm = 1;
+    $url = new moodle_url('/blocks/ucla_tasites/index.php', (array)$params);
+    $button = new single_button($url, get_string('yes'), 'post');
 
-    $parentbutton = new single_button($courseurl, 
-        get_string('returntocourse', 'block_ucla_tasites'), 'get');
-    $parentbutton->class = 'continuebutton';
+    // Cancel button takes them back to the page the TA site page
+    $return = $url = new moodle_url('/blocks/ucla_tasites/index.php',
+            array('courseid' => $courseid));
 
-    echo $OUTPUT->render($parentbutton);
+    echo $OUTPUT->confirm(get_string('tasitecreateconfirm', 'block_ucla_tasites'),
+            $button, $return);
+
+
 } else {
+    // display any messages, if any
+    flash_display();
     $tasites_form->display();
 }
 

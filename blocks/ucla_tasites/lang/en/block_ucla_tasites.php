@@ -2,7 +2,7 @@
 
 $string['pluginname'] = 'UCLA TA sites';
 
-$string['no_tasites'] = 'There is no elegible {$a} to make a site for.';
+$string['no_tasites'] = 'There is no eligible {$a} to make a site for.';
 
 $string['tasitefor'] = '{$a->fullname} TA site: {$a->course_fullname}';
 
@@ -11,6 +11,7 @@ $string['ucla_make_tasites'] = 'TA sites';
 $string['ucla_make_tasites_post'] = 'Create or view existing TA sites.';
 
 // Building
+$string['tasitecreateconfirm'] = 'I understand and agree that I will use this site for legitimate purposes in accordance with UCLA and UC policy and regulations.';
 $string['delete_tasites'] = 'Delete existing TA sites';
 $string['delete_tadesc'] = 'Check to delete TA site <a href="{$a->course_url}">{$a->course_shortname}</a> for {$a->fullname}.';
 
