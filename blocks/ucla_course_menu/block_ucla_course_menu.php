@@ -140,22 +140,10 @@ class block_ucla_course_menu extends block_navigation {
         // get section nodes
         $section_elements = $this->create_section_elements();
         
-        // add node for syllabus (if needed)
-        include_once($CFG->dirroot . '/local/ucla_syllabus/locallib.php');
-        if (class_exists('ucla_syllabus_manager')) {
-            global $COURSE;
-            $ucla_syllabus_manager = new ucla_syllabus_manager($COURSE);
-            $syllabus_node = $ucla_syllabus_manager->get_navigation_nodes();
-            if (!empty($syllabus_node)) {
-                // found node, so prepend to section elements
-                array_unshift($section_elements, $syllabus_node);
-            }
-        }        
-        
-        $section_elements = $this->trim_nodes($section_elements);        
+        $section_elements = $this->trim_nodes($section_elements);
         $this->content->text .= $renderer->navigation_node($section_elements,
             array('class' => 'block_tree list'));
-        
+
         // Separate out non-section nodes so that we can have a different style
         // to them.
         $block_elements = $this->create_block_elements();
@@ -201,6 +189,7 @@ class block_ucla_course_menu extends block_navigation {
      *  displayed in the block.
      **/
     function create_section_elements() {
+        global $CFG;
         $course_id = $this->page->course->id;
 
         // Create section links
@@ -227,6 +216,18 @@ class block_ucla_course_menu extends block_navigation {
                         )),
                     navigation_node::TYPE_SECTION
                 );
+            }
+        }
+
+        // add node for syllabus (if needed)
+        include_once($CFG->dirroot . '/local/ucla_syllabus/locallib.php');
+        if (class_exists('ucla_syllabus_manager')) {
+            global $COURSE;
+            $ucla_syllabus_manager = new ucla_syllabus_manager($COURSE);
+            $syllabus_node = $ucla_syllabus_manager->get_navigation_nodes();
+            if (!empty($syllabus_node)) {
+                // found node, so add to section elements
+                $elements[] = $syllabus_node;
             }
         }
 

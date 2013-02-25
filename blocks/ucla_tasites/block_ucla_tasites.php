@@ -376,7 +376,7 @@ class block_ucla_tasites extends block_base {
             require_once($CFG->dirroot . '/' . $CFG->admin 
                     . '/tool/uclasiteindicator/lib.php');
             $sitetype = siteindicator_site::create($newcourse->id);
-            $sitetype->set_type('instruction');
+            $sitetype->set_type('tasite');
         }
     }
 

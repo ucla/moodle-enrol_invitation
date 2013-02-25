@@ -80,8 +80,8 @@ class course_edit_form extends moodleform {
             }
             
             if(!empty($indicator)) {                
-                $indicator_type = '<strong>' . siteindicator_manager::get_types_list($indicator->property->type) . ' '
-                        . get_string('site', 'tool_uclasiteindicator') . '</strong>';
+                $indicator_type = html_writer::tag('strong',
+                        siteindicator_manager::get_types_list($indicator->property->type));
                 $mform->addElement('static', 'indicator', get_string('type', 'tool_uclasiteindicator'), 
                         $indicator_type);
                 

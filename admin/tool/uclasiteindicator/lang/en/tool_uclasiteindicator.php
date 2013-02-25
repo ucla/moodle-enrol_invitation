@@ -11,7 +11,6 @@ $string['description'] = 'Description';
 $string['pluginname'] = 'UCLA site indicator';
 $string['type'] = 'Site type';
 $string['roles'] = 'Assignable roles';
-$string['site'] = 'site';
 $string['del_msg'] = 'Site indicator entry';
 $string['change'] = 'Change site type';
 $string['sitecreate'] = 'Create site indicator';
