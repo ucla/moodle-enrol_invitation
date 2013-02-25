@@ -114,7 +114,15 @@ if (optional_param('confirm', 0, PARAM_BOOL) && confirm_sesskey()) {
     // save messages in flash and redirect user
     $redirect = $url = new moodle_url('/blocks/ucla_tasites/index.php',
             array('courseid' => $courseid));
-    flash_redirect($redirect, html_writer::alist($messages));
+
+    // if there are many success messages, then display in list, else just
+    // show one message
+    if (count($messages) > 1) {
+        $messages = html_writer::alist($messages);
+    } else {
+        $messages = array_pop($messages);
+    }
+    flash_redirect($redirect, $messages);
 
 }
 

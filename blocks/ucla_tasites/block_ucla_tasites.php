@@ -163,14 +163,30 @@ class block_ucla_tasites extends block_base {
         static $retrar;
 
         if (!isset($retrar[$courseid])) {
+            // allow ta and ta-admins to have ta sites
             $role = new object();
-            $role->id = self::get_ta_role_id();
+            $context = context_course::instance($courseid);
 
-            $context = get_context_instance(CONTEXT_COURSE, $courseid);
-            $retrar[$courseid] = get_users_from_role_on_context(
-                $role,
-                $context
-            );
+            $role->id = self::get_ta_role_id();
+            $tas = get_users_from_role_on_context($role, $context);
+
+            $role->id = self::get_ta_admin_role_id();
+            $taadmins = get_users_from_role_on_context($role, $context);
+
+            // merge both roles
+            $ta_users = $tas + $taadmins;
+
+            // then remove any duplicated users
+            $userids = array();
+            foreach ($ta_users as $index => $ta_user) {
+                if (in_array($ta_user->userid, $userids)) {
+                    // exist already, so unset it
+                    unset($ta_users[$index]);
+                } else {
+                    $userids[] = $ta_user->userid;
+                }
+            }
+            $retrar[$courseid] = $ta_users;
         }
 
         return $retrar[$courseid];
@@ -334,7 +350,10 @@ class block_ucla_tasites extends block_base {
         // Hacks for public private
         unset($course->grouppublicprivate);
         unset($course->groupingpublicprivate);
-    
+
+        // remove course description, because it doesn't make sense for tasites
+        unset($course->summary);
+
         // @throws
         $newcourse = create_course($course);
 
