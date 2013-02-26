@@ -75,6 +75,8 @@ class runreport_form extends moodleform {
                         break;
                 }
             }
+        } else {
+            $mform->addElement('html', get_string('noparams', 'report_uclastats'));
         }
         $this->add_action_buttons(false,
                 get_string('run_report', 'report_uclastats'));
