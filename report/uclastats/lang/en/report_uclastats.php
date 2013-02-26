@@ -80,6 +80,19 @@ $string['file_size'] = 'File Size';
 $string['file_size_help'] = 'Finds number of files over 1 MB';
 $string['file_count'] = 'File Count';
 
+//strings for large courses report
+$string['large_courses'] = 'Large Courses';
+$string['large_courses_help'] = 'List all the courses over the configure max size, for a given term';
+$string['other'] = 'Other';
+$string['video'] = 'Video';
+$string['audio'] = 'Audio';
+$string['image'] = 'Image';
+$string['web_file'] = 'Web file';
+$string['spreadsheet'] = 'Spreadsheet';
+$string['document'] = 'Document';
+$string['archive'] = 'Archive';
+$string['presentation'] = 'Presentation';
+
 // error strings
 $string['nocachedresults'] = 'No cached results found';
 $string['invalidterm'] = 'Invalid term';
