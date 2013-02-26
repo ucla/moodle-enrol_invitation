@@ -59,7 +59,9 @@ $top_forms = array(
     UCLA_REQUESTOR_VIEW => array('view', 'hidden_srs_view')
 );
 
-$terms = get_active_terms(true);
+// merge future and existing terms
+$terms = $prefieldsdata['term'] + get_active_terms();
+$terms = terms_arr_sort($terms, true);
 if (empty($terms)) {
     $terms[$selected_term] = $selected_term;
 }

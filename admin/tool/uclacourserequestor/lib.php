@@ -25,6 +25,7 @@ define('UCLA_REQUEST_IGNORE', 'ignore');
 define('UCLA_REQUESTOR_ERROR', 'error');
 define('UCLA_REQUESTOR_WARNING', 'warning');
 define('UCLA_REQUESTOR_KEEP', 'keepintable');
+define('UCLA_REQUESTOR_PASTTERM_ALERT', 'pasttermalert');
 
 define('UCLA_REQUEST_WARNING_CHECKED', 'warning-checked');
 
@@ -753,8 +754,9 @@ function prep_request_entry($requestinfo) {
 
     $errs = UCLA_REQUESTOR_ERROR;
     $wars = UCLA_REQUESTOR_WARNING;
+    $alert = UCLA_REQUESTOR_PASTTERM_ALERT;
     $worstnote = null;
-
+    
     // Shortcut/optimization
     $br = html_writer::empty_tag('br');
 
@@ -765,6 +767,21 @@ function prep_request_entry($requestinfo) {
 
     // Will be used to identify changes for sets
     $key = $requestinfo['setid'];
+
+    // Check if course is from a past term
+    $is_past_term = true;
+    $active_terms = get_active_terms();
+    foreach ($active_terms as $active_term) {
+        if($requestinfo['term'] == $active_term) {
+            $is_past_term = false;
+        }
+    }
+    
+    // If course is from a past term, set past term alert
+    // This alert will be overwritten by requestor warnings and errors, if any
+    if($is_past_term) {
+        $worstnote = $alert;
+    }
 
     // Add build/delete button
     $actiondefault = null;
