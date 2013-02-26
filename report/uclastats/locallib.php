@@ -272,6 +272,18 @@ abstract class uclastats_base implements renderable {
     }
 
     /**
+     * Allows reports to indicate if they run complex queries that might take
+     * a long time to run or puts a high load on the server. An example of such
+     * a query is one that makes extensive use of the mdl_log table, since 
+     * none of those columns are indexed.
+     *
+     * @return boolean  Default return value is false
+     */
+    public function is_high_load() {
+        return false;
+    }
+
+    /**
      * Abstract method that needs to be defined by reports.
      *
      * Should validate params and throw an exception if there is an error.

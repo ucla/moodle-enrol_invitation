@@ -21,18 +21,12 @@ class inactive_collab_sites extends uclastats_base {
      * @return string
      */
     public function format_cached_results($results) {
-
         $sum = 0;
-
         if (!empty($results)) {
-
-
             foreach ($results as $record) {
-
-                $sum += $record['inactive_collab_count'];
+                $sum += $record['count'];
             }
         }
-
         return $sum;
     }
 
@@ -52,9 +46,12 @@ class inactive_collab_sites extends uclastats_base {
     public function query($params) {
         global $DB;
 
-        $sql = "SELECT COUNT(c.id) as inactive_collab_count
+        // get guest role, so that we can filter out that id
+        $guest_role = get_guest_role();
+
+        $sql = "SELECT COUNT(c.id) as count
                 FROM {course} c
-                    LEFT JOIN {ucla_siteindicator} AS si ON ( c.id = si.courseid )
+                    LEFT JOIN {ucla_siteindicator} AS si ON (c.id = si.courseid)
                 WHERE c.id NOT IN (
                     SELECT courseid
                     FROM {ucla_request_classes} 
@@ -62,12 +59,13 @@ class inactive_collab_sites extends uclastats_base {
                 AND c.id NOT IN (
                     SELECT course
                     FROM {log} l
-                    WHERE userid > 1 AND
+                    WHERE userid != :guestid AND
                     time > :six_months_ago
-                ) 
-                AND si.type != 'test' ";
+                )";
 
-        return $DB->get_records_sql($sql, array("six_months_ago" => strtotime('-6 month', strtotime("now"))));
+        return $DB->get_records_sql($sql, 
+                array('six_months_ago' => strtotime('-6 month', strtotime('now')),
+                      'guestid' => $guest_role->id));
     }
 
 }

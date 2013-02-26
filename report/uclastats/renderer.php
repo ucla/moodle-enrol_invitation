@@ -64,6 +64,11 @@ class report_uclastats_renderer extends plugin_renderer_base {
         $ret_val .= html_writer::tag('p', get_string(get_class($report) .
                 '_help', 'report_uclastats'), array('class' => 'report-help'));
 
+        // does the report run a long time? if so, we need to note that
+        if ($report->is_high_load()) {
+            $ret_val .= $OUTPUT->box(get_string('warning_high_load', 'report_uclastats'), 'noticebox');
+        }
+
         // if displaying results, then display parameters used and other info
         if (!empty($resultid)) {
             $ret_val .= $report->display_result($resultid);
@@ -117,32 +122,5 @@ class report_uclastats_renderer extends plugin_renderer_base {
         $bc->attributes = array('class' => 'block uclastats-report-list');
 
         echo $OUTPUT->block($bc, BLOCK_POS_RIGHT);
-    }
-
-    /**
-     * Helper function to display form field to run given report for, if any,
-     * given parameters.
-     */
-    protected function render_report_run($parameters = null) {
-        global $PAGE;
-        $ret_val = '';
-
-        // start form
-        $formhtml = html_writer::start_tag('form',
-                array('method' => 'post', 'action' => $PAGE->url));
-
-        if (!empty($parameters)) {
-
-
-        }
-
-        // end form
-        $formhtml .= html_writer::empty_tag('input', array(
-                'type' => 'submit',
-                'name' => 'submit-button',
-                'value' => get_string('run_report', 'report_uclastats')
-            ));
-        $formhtml .= html_writer::end_tag('form');
-
     }
 }

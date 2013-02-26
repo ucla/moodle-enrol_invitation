@@ -27,7 +27,7 @@ class role_count extends uclastats_base {
         if (!empty($results)) {
             
             foreach($results as $record){
-               $sum += $record['count_for_role'];
+               $sum += $record['count'];
             }
           
         }
@@ -54,13 +54,14 @@ class role_count extends uclastats_base {
                 !ucla_validator('term', $params['term'])) {
             throw new moodle_exception('invalidterm', 'report_uclastats');
         }
+        $params['contextlevel'] = CONTEXT_COURSE;
 
-        $sql = "SELECT r.name as role, count(DISTINCT ra.userid) as count_for_role
+        $sql = "SELECT r.name as role, count(DISTINCT ra.userid) as count
                 FROM mdl_course c
                     JOIN {context} ctx ON ctx.instanceid = c.id
                     JOIN {role_assignments} ra ON (
-                        ra.contextid = ctx.id
-                        ctx.contextlevel = 50
+                        ra.contextid = ctx.id AND
+                        ctx.contextlevel = :contextlevel
                     )
                     JOIN {role} r ON ra.roleid = r.id
                     JOIN {ucla_request_classes} rc ON (

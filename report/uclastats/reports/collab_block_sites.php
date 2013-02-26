@@ -21,12 +21,10 @@ class collab_block_sites extends uclastats_base {
      * @return string
      */
     public function format_cached_results($results) {
-
         $sum = 0;
         if (!empty($results)) {
-
             foreach ($results as $record) {
-                $sum += $record['collab_block_count'];
+                $sum += $record['count'];
             }
         }
         return $sum;
@@ -48,7 +46,7 @@ class collab_block_sites extends uclastats_base {
     public function query($params) {
         global $DB;
 
-        $sql = "SELECT bi.blockname,COUNT(bi.id) as collab_block_count
+        $sql = "SELECT bi.blockname,COUNT(bi.id) as count
                 FROM {course} c
                 JOIN {context} ct ON (
                     ct.contextlevel = 50 AND
