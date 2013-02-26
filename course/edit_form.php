@@ -66,15 +66,22 @@ class course_edit_form extends moodleform {
             if (!empty($course->id)) {
                 $indicator = siteindicator_site::load($course->id);
             }            
-            
+
+            // do not allow TA site type to be changed via GUI
+            if (!empty($indicator) &&
+                    $indicator->property->type == siteindicator_manager::SITE_TYPE_TASITE) {
+                $can_edit_sitetype = false;
+            }
+
+
             // only display site type info if there is a type and user can edit
             if ($can_edit_sitetype || !empty($indicator)) {
                 $mform->addElement('header','uclasiteindicator', get_string('pluginname', 'tool_uclasiteindicator'));
             }
             
             if(!empty($indicator)) {                
-                $indicator_type = '<strong>' . siteindicator_manager::get_types_list($indicator->property->type) . ' '
-                        . get_string('site', 'tool_uclasiteindicator') . '</strong>';
+                $indicator_type = html_writer::tag('strong',
+                        siteindicator_manager::get_types_list($indicator->property->type));
                 $mform->addElement('static', 'indicator', get_string('type', 'tool_uclasiteindicator'), 
                         $indicator_type);
                 
@@ -96,6 +103,10 @@ class course_edit_form extends moodleform {
                 $types = siteindicator_manager::get_types_list();
                 $radioarray = array();
                 foreach($types as $type) {
+                    // don't allow tasite type to be selected
+                    if (siteindicator_manager::SITE_TYPE_TASITE == $type['shortname']) {
+                        continue;
+                    }
                     $descstring = '<strong>' . $type['fullname'] . '</strong> - ' . $type['description'];
                     $attributes = array(
                         'class' => 'indicator-form',

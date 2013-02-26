@@ -282,11 +282,11 @@ function ucla_format_display_instructors($course) {
     
     require_once($CFG->dirroot . '/admin/tool/uclasiteindicator/lib.php');
 
-    // only display office hours for registrar sites or instructional or test
-    // collaboration sites
+    // only display office hours for registrar sites or instructional, tasite
+    // or test collaboration sites
     $site_type = siteindicator_site::load($course->id);    
-    if (!empty($site_type) && $site_type->property->type != 'instruction' && 
-            $site_type->property->type != 'test') {
+    if (!empty($site_type) && !in_array($site_type->property->type,
+            array('instruction', 'tasite', 'test'))) {
         return false;
     }
     

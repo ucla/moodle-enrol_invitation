@@ -29,6 +29,25 @@ class block_ucla_copyright_status extends block_base {
     }
 
     /**
+     * Adding link to site menu block header.
+     *
+     * @param object $course
+     * @param int $displaysection
+     *
+     * @return array   Returns link to tool. 
+     */
+    static function get_editing_link($course, $displaysection) {
+        $link = html_writer::link(
+                new moodle_url('/blocks/ucla_copyright_status/view.php',
+                    array('courseid' => $course->id,
+                          'section' => $displaysection)),
+                get_string('pluginname', 'block_ucla_copyright_status'));
+        // site menu block arranges editing links by key, make sure this is the
+        // 3rd link
+        return array(3 => $link);
+    }
+
+    /**
      * Adding link to copyright management in control panel, in "Other tools".
      * 
      * @global type $CFG

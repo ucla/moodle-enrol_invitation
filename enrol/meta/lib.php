@@ -31,6 +31,82 @@ defined('MOODLE_INTERNAL') || die();
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class enrol_meta_plugin extends enrol_plugin {
+    /**
+     *  API call - lib/enrollib.php.
+     *  UCLA MOD CCLE-2386 - TA sites
+     **/
+    function add_course_navigation($instancesnode, stdclass $instance) {
+        global $PAGE;
+
+        // This is technically a hack, $instancenode provides us
+        // the node from settings_navigation, not global_navigation
+        if (!empty($instance->customint1)) {
+            $pcourseid = $instance->customint1;
+            $courseid = $instance->courseid;
+
+            $pcoursenode = $PAGE->navigation->find($pcourseid,
+                    navigation_node::TYPE_COURSE);
+
+            if (empty($pcoursenode)) {
+                return;
+            }
+
+            $coursenode = $PAGE->navigation->find($courseid,
+                    navigation_node::TYPE_COURSE);
+
+            $pcoursenode->set_parent($coursenode->parent);
+            $coursenode->set_parent($pcoursenode);
+        }
+
+    }
+
+    /**
+     *  Returns which role to assign a user based on promotion rules.
+     *  UCLA MOD CCLE-2386 - TA sites
+     **/
+    static function get_target_role($roleid, 
+                                    $promoroleid, $promotoroleid, 
+                                    $userid=null, $promouserid=null) {
+        $toroleid = $roleid;
+        if ($roleid == $promoroleid) {
+            // If there is a specific user only
+            if ($promouserid) {
+                if ($userid == $promouserid) {
+                    $toroleid = $promotoroleid;
+                }
+            } else {
+                $toroleid = $promotoroleid;
+            }
+        }
+
+        return $toroleid;
+    }
+
+    /**
+     *  Convenience function.
+     *  UCLA MOD CCLE-2386
+     **/
+    static function get_role_promotion($ra) {
+        if (!isset($ra->roleid) 
+                || !isset($ra->promoroleid) 
+                || !isset($ra->promotoroleid)) {
+            return false;
+        }
+
+        $userid = null;
+        $promouserid = null;
+
+        if (isset($ra->userid)) {
+            $userid = $ra->userid;
+        }
+
+        if (isset($ra->promouserid)) {
+            $promouserid = $ra->promouserid;
+        }
+
+        return self::get_target_role($ra->roleid, $ra->promoroleid, 
+                $ra->promotoroleid, $userid, $promouserid);
+    }
 
     /**
      * Returns localised name of enrol instance
@@ -148,6 +224,23 @@ class enrol_meta_plugin extends enrol_plugin {
 
         require_once("$CFG->dirroot/enrol/meta/locallib.php");
         enrol_meta_sync();
+    }
+
+    /**
+     *  Check to see if this is an automatically created connection.
+     *  UCLA MOD CCLE-2386
+     **/
+    function instance_deleteable($instance) {
+        global $DB;
+
+        if (isset($instance->customint2) 
+                && $DB->get_record('course', 
+                    array('id' => $instance->customint1))) {
+
+            return false;
+        }
+
+        return true;
     }
 }
 
