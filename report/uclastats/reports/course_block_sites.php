@@ -46,14 +46,16 @@ class course_block_sites extends uclastats_base {
      */
     public function query($params) {
         global $DB;
+        
+        $params['contextlevel'] = CONTEXT_COURSE;
 
         $sql = "SELECT bi.blockname, COUNT(bi.id) as count
                 FROM {course} c
-                JOIN {context} ct ON (
-                    ct.contextlevel = 50 AND
-                    ct.instanceid = c.id)
+                JOIN {context} ctx ON (
+                    ctx.contextlevel = :contextlevel AND
+                    ctx.instanceid = c.id)
                 JOIN {block_instances} bi ON (
-                    bi.parentcontextid = ct.id
+                    bi.parentcontextid = ctx.id
                 )
                 JOIN {block} b ON (
                     bi.blockname = b.name
