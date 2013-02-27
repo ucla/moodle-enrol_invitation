@@ -129,8 +129,7 @@ class block_ucla_my_sites extends block_base {
                 $class_sites[] = $c;
             } else {
                 // ignore tasites
-                $site_indicator = new siteindicator_site($c->id);
-                if (!empty($site_indicator)) {
+                if ($site_indicator = siteindicator_site::load($c->id)) {
                     $site_type = $site_indicator->property->type;
                     unset($site_indicator);
                     if (siteindicator_manager::SITE_TYPE_TASITE == $site_type) {
