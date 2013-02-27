@@ -275,9 +275,7 @@ class block_ucla_tasites extends block_base {
      *  A site is a TA-site if there is a specialized enrol_meta.
      **/
     static function is_tasite($courseid) {
-        return self::is_tasite_enrol_meta_instance(
-                self::get_tasite_enrol_meta_instance($courseid)
-            );
+        return is_object(self::get_tasite_enrol_meta_instance($courseid));
     }
 
     /**
@@ -292,9 +290,12 @@ class block_ucla_tasites extends block_base {
         // Do a search?
         foreach ($instances as $instance) {
             if ($instance->enrol == 'meta') {
-                $tasite_enrol = $instance;
-                // Small convenience naming
-                $tasite_enrol->ownerid = $tasite_enrol->customint4;
+                // check to see if instance is a tasite enrol meta instance
+                if (self::is_tasite_enrol_meta_instance($instance)) {
+                    $tasite_enrol = $instance;
+                    // Small convenience naming
+                    $tasite_enrol->ownerid = $tasite_enrol->customint4;
+                }
             }
         }
 
@@ -306,15 +307,20 @@ class block_ucla_tasites extends block_base {
      *  Maybe named is enrol meta instance for tasite?
      **/
     static function is_tasite_enrol_meta_instance($enrol) {
-        if (       empty($enrol->customint2) 
-                || empty($enrol->customint3)
-                || empty($enrol->customint4)
-                || $enrol->customint2 != self::get_ta_role_id()
-                || $enrol->customint3 != self::get_ta_admin_role_id()) {
-            return false;
+        // this can get called a lot from the meta sync
+        static $cache_is_tasite;
+        if (!empty($cache_is_tasite) || !isset($cache_is_tasite[$enrol->id])) {
+            $result = true;
+            if (empty($enrol->customint2)
+                    || empty($enrol->customint3)
+                    || empty($enrol->customint4)
+                    || $enrol->customint2 != self::get_ta_role_id()
+                    || $enrol->customint3 != self::get_ta_admin_role_id()) {
+                $result = false;
+            }
+            $cache_is_tasite[$enrol->id] = $result;
         }
-
-        return true;
+        return $cache_is_tasite[$enrol->id];
     }
 
     /**

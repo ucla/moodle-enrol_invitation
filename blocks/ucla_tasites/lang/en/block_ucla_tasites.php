@@ -19,7 +19,7 @@ $string['delete_tadesc'] = 'Check to delete TA site <a href="{$a->course_url}">{
 $string['deleted_tasite'] = 'Deletion of TA sites by this interface has been disabled.';
 
 $string['build_tasites'] = 'Create TA sites';
-$string['build_tadesc'] = 'Create TA site for {$a->fullname}.';
+$string['build_tadesc'] = 'Create TA site for {$a->fullname}';
 
 $string['built_tasite'] = 'TA site <a href="{$a->course_url}">{$a->course_shortname}</a> for {$a->fullname} was successfully built.';
 
