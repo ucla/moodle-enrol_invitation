@@ -13,11 +13,15 @@ defined('MOODLE_INTERNAL') || die();
  */
 function add_site_invitation_plugin($param) {
     global $DB;
-    
+
     // handle different parameter types (course_created vs course_restored)
     if (isset($param->id)) {
         $courseid = $param->id;    // course created
     } else {
+        // only respond to course restores
+        if ($param->type != backup::TYPE_1COURSE) {
+            return true;
+        }
         $courseid = $param->courseid;  // course restored
     }
     

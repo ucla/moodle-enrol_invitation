@@ -356,6 +356,25 @@ class block_ucla_rearrange extends block_base {
         }
     }
 
+    /**
+     * Adding link to site menu block header.
+     *
+     * @param object $course
+     * @param int $displaysection
+     *
+     * @return array   Returns link to tool.
+     */
+    static function get_editing_link($course, $displaysection) {
+        $link = html_writer::link(
+                    new moodle_url('/blocks/ucla_rearrange/rearrange.php',
+                        array('courseid' => $course->id,
+                              'section' => $displaysection)),
+                    get_string('pluginname', 'block_ucla_rearrange'));
+        // site menu block arranges editing links by key, make sure this is the
+        // 2nd link
+        return array(2 => $link);
+    }
+
     static function ucla_cp_hook($course, $context) {
         global $CFG;
 

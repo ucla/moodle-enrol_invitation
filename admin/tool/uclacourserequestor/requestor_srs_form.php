@@ -35,9 +35,13 @@ class requestor_srs_form extends requestor_shared_form {
     }
 
     function respond($data) {
+        require_once(dirname(__FILE__) . '/ucla_courserequests.class.php');
+        
         $ci = $data->{$this->groupname};
         
-        $hc = get_request_info($ci['term'], $ci['srs']);
+        $hc = get_request_info($ci['term'], 
+                ucla_courserequests::get_main_srs($ci['term'], $ci['srs'])
+                );
 
         if ($hc === false) {
             return $hc;

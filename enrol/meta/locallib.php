@@ -25,6 +25,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+// START UCLA MOD: CCLE-2386 - TA Site Creator
+require_once($CFG->dirroot . '/blocks/ucla_tasites/block_ucla_tasites.php');
+// END UCLA MOD: CCLE-2386
 
 /**
  * Event handler for meta enrolment plugin.
@@ -181,8 +184,28 @@ class enrol_meta_handler {
             return;
         }
 
+        // START UCLA MOD: CCLE-2386 - TA Site Creator
+        // see if we need to promote a role (but do so only for TA sites)
+        $is_tasite = block_ucla_tasites::is_tasite_enrol_meta_instance($instance);
+        if ($is_tasite) {
+            $promoroleid = isset($instance->customint2)
+                ? $instance->customint2
+                : false;
+            $promotorole = $promoroleid ? $instance->customint3 : false;
+            $promouserid = $promotorole
+                && (empty($instance->customint4)
+                    || $instance->customint4 == $userid);
+        }
+        // END UCLA MOD: CCLE-2386
+
         // add new roles
         foreach ($parentroles as $rid) {
+            // START UCLA MOD: CCLE-2386 - TA Site Creator
+            if ($is_tasite && ($rid == $promoroleid && $promouserid)) {
+                $rid = $promotorole;
+            }
+            // END UCLA MOD: CCLE-2386
+
             if (!isset($roles[$rid])) {
                 role_assign($rid, $userid, $context->id, 'enrol_meta', $instance->id);
             }
@@ -577,7 +600,18 @@ function enrol_meta_sync($courseid = NULL, $verbose = false) {
     $params['courseid'] = $courseid;
     $params['activeuser'] = ENROL_USER_ACTIVE;
     $params['enabledinstance'] = ENROL_INSTANCE_ENABLED;
+    // START UCLA MOD: CCLE-2386 - TA Site Creator
+//    $sql = "SELECT DISTINCT pra.roleid, pra.userid, c.id AS contextid, e.id AS enrolid, e.courseid
+//              FROM {role_assignments} pra
+//              JOIN {user} u ON (u.id = pra.userid AND u.deleted = 0)
+//              JOIN {context} pc ON (pc.id = pra.contextid AND pc.contextlevel = :coursecontext AND pra.component $enabled)
+//              JOIN {enrol} e ON (e.customint1 = pc.instanceid AND e.enrol = 'meta' $onecourse AND e.status = :enabledinstance)
+//              JOIN {user_enrolments} ue ON (ue.enrolid = e.id AND ue.userid = u.id AND ue.status = :activeuser)
+//              JOIN {context} c ON (c.contextlevel = pc.contextlevel AND c.instanceid = e.courseid)
+//         LEFT JOIN {role_assignments} ra ON (ra.contextid = c.id AND ra.userid = pra.userid AND ra.roleid = pra.roleid AND ra.itemid = e.id AND ra.component = 'enrol_meta')
+//             WHERE ra.id IS NULL";
     $sql = "SELECT DISTINCT pra.roleid, pra.userid, c.id AS contextid, e.id AS enrolid, e.courseid
+        , e.id AS enrolid, e.customint2 AS promoroleid, e.customint3 AS promotoroleid, e.customint4 AS promouserid
               FROM {role_assignments} pra
               JOIN {user} u ON (u.id = pra.userid AND u.deleted = 0)
               JOIN {context} pc ON (pc.id = pra.contextid AND pc.contextlevel = :coursecontext AND pra.component $enabled)
@@ -586,7 +620,7 @@ function enrol_meta_sync($courseid = NULL, $verbose = false) {
               JOIN {context} c ON (c.contextlevel = pc.contextlevel AND c.instanceid = e.courseid)
          LEFT JOIN {role_assignments} ra ON (ra.contextid = c.id AND ra.userid = pra.userid AND ra.roleid = pra.roleid AND ra.itemid = e.id AND ra.component = 'enrol_meta')
              WHERE ra.id IS NULL";
-
+    // END UCLA MOD: CCLE-2386
     if ($ignored = $meta->get_config('nosyncroleids')) {
         list($notignored, $xparams) = $DB->get_in_or_equal(explode(',', $ignored), SQL_PARAMS_NAMED, 'ig', false);
         $params = array_merge($params, $xparams);
@@ -595,9 +629,33 @@ function enrol_meta_sync($courseid = NULL, $verbose = false) {
 
     $rs = $DB->get_recordset_sql($sql, $params);
     foreach($rs as $ra) {
+        // START UCLA MOD: CCLE-2386 - TA Site Creator
+        // check if working with meta enrollment plugin for tasites
+        $enrol = new stdClass();
+        $enrol->id = $ra->enrolid;
+        $enrol->customint2 = $ra->promoroleid;
+        $enrol->customint3 = $ra->promotoroleid;
+        $enrol->customint4 = $ra->promouserid;
+        $is_tasite = block_ucla_tasites::is_tasite_enrol_meta_instance($enrol);
+        if ($is_tasite) {
+            $oldrole = $ra->roleid;
+            $ra->roleid = enrol_meta_plugin::get_role_promotion($ra);
+            // TODO add check to make sure not to reassign roles
+        }
+        // END UCLA MOD: CCLE-2386
+
         role_assign($ra->roleid, $ra->userid, $ra->contextid, 'enrol_meta', $ra->enrolid);
         if ($verbose) {
-            mtrace("  assigning role: $ra->userid ==> $ra->courseid as ".$allroles[$ra->roleid]->shortname);
+            // START UCLA MOD: CCLE-2386 - TA Site Creator
+            //mtrace("  assigning role: $ra->userid ==> $ra->courseid as ".$allroles[$ra->roleid]->shortname);
+            if ($is_tasite && $oldrole != $ra->roleid) {
+                $promostr = ' (promoted)';
+            } else {
+                $promostr = '';
+            }
+
+            mtrace("  assigning role: $ra->userid ==> $ra->courseid as ".$allroles[$ra->roleid]->shortname.$promostr);
+            // END UCLA MOD: CCLE-2386
         }
     }
     $rs->close();
@@ -617,16 +675,50 @@ function enrol_meta_sync($courseid = NULL, $verbose = false) {
     } else {
         $notignored = "";
     }
+    // START UCLA MOD: CCLE-2386 - TA Site Creator
+//    $sql = "SELECT ra.roleid, ra.userid, ra.contextid, ra.itemid, e.courseid
+//              FROM {role_assignments} ra
+//              JOIN {enrol} e ON (e.id = ra.itemid AND ra.component = 'enrol_meta' AND e.enrol = 'meta' $onecourse)
+//              JOIN {context} pc ON (pc.instanceid = e.customint1 AND pc.contextlevel = :coursecontext)
+//         LEFT JOIN {role_assignments} pra ON (pra.contextid = pc.id AND pra.userid = ra.userid AND pra.roleid = ra.roleid AND pra.component <> 'enrol_meta' $notignored)
+//         LEFT JOIN {user_enrolments} ue ON (ue.enrolid = e.id AND ue.userid = ra.userid AND ue.status = :activeuser)
+//             WHERE pra.id IS NULL OR ue.id IS NULL OR e.status <> :enabledinstance";
     $sql = "SELECT ra.roleid, ra.userid, ra.contextid, ra.itemid, e.courseid
+        , e.id AS enrolid, e.customint2 AS promoroleid, e.customint3 AS promotoroleid, e.customint4 AS promouserid, spra.roleid AS unpromoroleid
               FROM {role_assignments} ra
               JOIN {enrol} e ON (e.id = ra.itemid AND ra.component = 'enrol_meta' AND e.enrol = 'meta' $onecourse)
               JOIN {context} pc ON (pc.instanceid = e.customint1 AND pc.contextlevel = :coursecontext)
          LEFT JOIN {role_assignments} pra ON (pra.contextid = pc.id AND pra.userid = ra.userid AND pra.roleid = ra.roleid AND pra.component <> 'enrol_meta' $notignored)
+         LEFT JOIN {role_assignments} spra ON (spra.contextid = pc.id AND spra.userid = ra.userid AND spra.roleid = e.customint2 AND spra.component <> 'enrol_meta' $notignored)
          LEFT JOIN {user_enrolments} ue ON (ue.enrolid = e.id AND ue.userid = ra.userid AND ue.status = :activeuser)
              WHERE pra.id IS NULL OR ue.id IS NULL OR e.status <> :enabledinstance";
+    // END UCLA MOD: CCLE-2386
 
     $rs = $DB->get_recordset_sql($sql, $params);
     foreach($rs as $ra) {
+        // START UCLA MOD: CCLE-2386 - TA Site Creator
+        // check if working with meta enrollment plugin for tasites
+        $enrol = new stdClass();
+        $enrol->id = $ra->enrolid;
+        $enrol->customint2 = $ra->promoroleid;
+        $enrol->customint3 = $ra->promotoroleid;
+        $enrol->customint4 = $ra->promouserid;
+        $is_tasite = block_ucla_tasites::is_tasite_enrol_meta_instance($enrol);
+        // Check to make sure the role was NOT a promoted role
+        if ($is_tasite && isset($ra->unpromoroleid)) {
+            $checkra = clone($ra);
+            $checkra->roleid = $ra->unpromoroleid;
+            if ($ra->roleid == enrol_meta_plugin::get_role_promotion($checkra)) {
+                $skip = true;
+            }
+            unset($check);
+            if (isset($skip)) {
+                unset($skip);
+                continue;
+            }
+        }
+        // END UCLA MOD: CCLE-2386
+        
         role_unassign($ra->roleid, $ra->userid, $ra->contextid, 'enrol_meta', $ra->itemid);
         if ($verbose) {
             mtrace("  unassigning role: $ra->userid ==> $ra->courseid as ".$allroles[$ra->roleid]->shortname);

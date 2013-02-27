@@ -1,0 +1,8 @@
+/* Remove lefthand padding for checkboxes in "Create TA sites" section  */
+#build_header .fcheckbox {
+    margin-left: 0;
+}
+#build_header .fcheckbox input {
+    margin-right: 3pt;
+}
+

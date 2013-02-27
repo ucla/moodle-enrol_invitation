@@ -19,6 +19,9 @@ require_once($CFG->dirroot.'/'.$CFG->admin.'/tool/uclacoursecreator/uclacoursecr
 // Need this for host-course information
 require_once($CFG->dirroot.'/'.$CFG->admin.'/tool/uclacourserequestor/lib.php');
 
+// Need this to get site types
+require_once($CFG->dirroot.'/'.$CFG->admin.'/tool/uclasiteindicator/lib.php');
+
 require_once($CFG->dirroot.'/blocks/ucla_browseby/handlers/browseby.class.php');
 require_once($CFG->dirroot.'/blocks/ucla_browseby/handlers/course.class.php');
 
@@ -125,6 +128,15 @@ class block_ucla_my_sites extends block_base {
                 // display it twice
                 $class_sites[] = $c;
             } else {
+                // ignore tasites
+                $site_indicator = new siteindicator_site($c->id);
+                if (!empty($site_indicator)) {
+                    $site_type = $site_indicator->property->type;
+                    unset($site_indicator);
+                    if (siteindicator_manager::SITE_TYPE_TASITE == $site_type) {
+                        continue;
+                    }
+                }
                 $collaboration_sites[] = $c;
             }
         }

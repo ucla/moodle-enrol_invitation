@@ -74,11 +74,14 @@ function ucla_sync_built_courses($edata) {
 
 function course_restored_enrol_check($data) {
     global $DB;
-    
-    $courseid = is_object($data) ? $data->courseid : $data;
+
+   // only respond to course restores
+   if ($data->type != backup::TYPE_1COURSE) {
+       return true;
+   }
     
     $record = $DB->get_record('enrol', array('enrol' => 'database', 
-        'courseid' => $courseid, 'status' => ENROL_INSTANCE_DISABLED));
+        'courseid' => $data->courseid, 'status' => ENROL_INSTANCE_DISABLED));
     
     if(!empty($record)) {
         ucla_reg_enrolment_plugin_cron::update_plugin($courseid, $record->id);

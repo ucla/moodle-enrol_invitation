@@ -2283,7 +2283,18 @@ class uclacoursecreator {
      *  Will change the state of the object.
      **/
     function figure_terms() {
-        $terms_list = get_active_terms();        
+        global $DB;
+
+        // get all terms that have pending course builds (also running, since
+        // they might have been left off to complete running the next build
+        // cycle)
+        $sql = "SELECT  DISTINCT term
+                FROM    {ucla_request_classes}
+                WHERE   action=:build OR
+                        action=:running";
+        $terms_list = $DB->get_fieldset_sql($sql,
+                array('build' => UCLA_COURSE_TOBUILD,
+                      'running' => UCLA_COURSE_LOCKED));
         if (!empty($terms_list)) {
             $this->terms_list = $terms_list;
             return $terms_list;

@@ -147,6 +147,23 @@ abstract class base_ui {
         if ($this->progress < self::PROGRESS_SAVED) {
             throw new base_ui_exception('backupsavebeforedisplay');
         }
+        // START UCLA MOD CCLE-3791
+        // At schema stage, we want to show syllabus message
+        if($this->stage instanceof backup_ui_stage_schema) {
+            $syllabus = dirname(__FILE__) . '/../../../local/ucla_syllabus/locallib.php';
+            
+            if(file_exists($syllabus)) {
+                require_once($syllabus);
+                
+                $courseid = $this->controller->get_courseid();
+                if(ucla_syllabus_manager::has_private_syllabus($courseid)
+                        || ucla_syllabus_manager::has_public_syllabus($courseid)) {
+                    echo html_writer::tag('div', get_string('backup_notice', 'local_ucla_syllabus'),
+                            array('class' => 'box noticebox'));
+                }
+            }
+        }
+        // END UCLA MOD CCLE-3791
         return $this->stage->display($renderer);
     }
     /**

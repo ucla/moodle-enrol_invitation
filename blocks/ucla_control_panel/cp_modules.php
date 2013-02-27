@@ -258,7 +258,8 @@ if (has_role_in_context('student', $context) || $is_role_switched_student) {
         $modules[] = new ucla_cp_module('ucla_cp_mod_myucla', null, null, $temp_cap);
 
         $myucla_row = new ucla_cp_myucla_row_module($temp_tag, $temp_cap);
-        $first_course = array_shift(array_values($course_info));
+        $tmp = array_values($course_info);
+        $first_course = array_shift($tmp);
         $course_term = $first_course->term;
         $course_srs = $first_course->srs;
         $myucla_row->add_element(new ucla_cp_module('student_myucla_grades', 

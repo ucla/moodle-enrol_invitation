@@ -18,6 +18,10 @@ function move_site_menu_block($param) {
     if (isset($param->id)) {
         $courseid = $param->id;    // course created
     } else {
+        // only respond to course restores
+        if ($param->type != backup::TYPE_1COURSE) {
+            return true;
+        }
         $courseid = $param->courseid;  // course restored
     }
 

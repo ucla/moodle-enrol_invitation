@@ -320,6 +320,11 @@ class syllabus_ws_manager {
             }
         }
         
+        // for instructional collab sites
+        if (empty($course->srs) || empty($course->term)) {
+            return false;
+        }
+        
         // Get subject area
         $query = "SELECT rs.id
             FROM {ucla_reg_classinfo} AS urc

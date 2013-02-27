@@ -10,12 +10,12 @@
 
 $handlers = array (
     'course_created' => array (
-         'handlerfile'      => '/admin/tool/uclacoursecreator/eventlib.php',
+         'handlerfile'      => '/blocks/ucla_course_menu/eventlib.php',
          'handlerfunction'  => 'move_site_menu_block',
          'schedule'         => 'instant'
      ),
     'course_restored' => array (
-         'handlerfile'      => '/admin/tool/uclacoursecreator/eventlib.php',
+         'handlerfile'      => '/blocks/ucla_course_menu/eventlib.php',
          'handlerfunction'  => 'move_site_menu_block',
          'schedule'         => 'instant'
      ),    

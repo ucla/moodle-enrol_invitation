@@ -304,6 +304,7 @@ class siteindicator_manager {
     const SITE_TYPE_RESEARCH = 'research';
     const SITE_TYPE_TEST = 'test';
     const SITE_TYPE_PRIVATE = 'private';
+    const SITE_TYPE_TASITE = 'tasite';
     
     // special site type that is not displayed or assignable
     const SITE_TYPE_SRS_INSTRUCTION = 'srs_instruction';
@@ -334,7 +335,6 @@ class siteindicator_manager {
         
         $this->_indicator_rolegroups = array(
             self::SITE_GROUP_TYPE_INSTRUCTION => get_string('r_instruction', 'tool_uclasiteindicator'),
-            self::SITE_TYPE_INSTRUCTION_NONIEI => get_string('r_instruction', 'tool_uclasiteindicator'),
             self::SITE_GROUP_TYPE_PROJECT => get_string('r_project', 'tool_uclasiteindicator'),
             self::SITE_GROUP_TYPE_TEST => get_string('r_test', 'tool_uclasiteindicator'),
             );
@@ -352,6 +352,7 @@ class siteindicator_manager {
             self::SITE_TYPE_RESEARCH => self::SITE_GROUP_TYPE_PROJECT,
             self::SITE_TYPE_TEST => self::SITE_GROUP_TYPE_TEST,
             self::SITE_TYPE_PRIVATE => self::SITE_GROUP_TYPE_INSTRUCTION,
+            self::SITE_TYPE_TASITE => self::SITE_GROUP_TYPE_INSTRUCTION,
             );
         
         // Define the roles allowed for a particular role group
@@ -361,6 +362,7 @@ class siteindicator_manager {
             'editor',
             'grader',            
             'student',
+            'participant',
             'visitor'
             );
 
@@ -498,6 +500,11 @@ class siteindicator_manager {
                     'shortname' => self::SITE_TYPE_PRIVATE,
                     'fullname' => get_string('site_private', 'tool_uclasiteindicator'),
                     'description' => get_string('site_private_desc', 'tool_uclasiteindicator'),
+                    ),
+                self::SITE_TYPE_TASITE => array(
+                    'shortname' => self::SITE_TYPE_TASITE,
+                    'fullname' => get_string('site_tasite', 'tool_uclasiteindicator'),
+                    'description' => get_string('site_tasite_desc', 'tool_uclasiteindicator'),
                     ),
             );
         }
@@ -741,9 +748,14 @@ class siteindicator_manager {
             // no indicator yet, so create it
             $indicator = siteindicator_site::create($data->id);          
         }
-        
-        // Handle a type change
-        if(!empty($data->indicator_change)) {
+
+        // Handle a type change (but do not allow change to/from tasites)
+        if(!empty($data->indicator_change) &&
+                $data->indicator_change != self::SITE_TYPE_TASITE &&
+                $indicator->property->type != self::SITE_TYPE_TASITE) {
+            // make change here instead of at siteindicator_site->set_type,
+            // because we still want to be able to programatically set the
+            // site type to tasite in the TA site creator block
             $indicator->set_type($data->indicator_change);
         }
         
