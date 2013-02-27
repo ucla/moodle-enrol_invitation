@@ -167,6 +167,9 @@ $CFG->forcedefaultmymoodle = true;
 // to enable database unit testing
 $CFG->unittestprefix = 'tst_';
 
+// email address to notify in case of system problems
+$CFG->forced_plugin_settings['local_ucla']['admin_email'] = 'ccle-operations@lists.ccle.ucla.edu';
+
 // Site administration > Advanced features
 $CFG->usetags = 0;
 $CFG->enablenotes = 0;
