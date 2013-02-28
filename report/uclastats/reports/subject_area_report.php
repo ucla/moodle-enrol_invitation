@@ -17,24 +17,50 @@ class subject_area_report extends uclastats_base {
     private function query_courses() {
         global $DB, $CFG;
         
-        // Query to get courses in a subject area and the number of students 
-        // enrolled in the courses
-         $query = "
-            SELECT  bci.id, 
-                    CONCAT(bci.subjarea, ' ', bci.course, ', ', 
-                        bci.activitytype, ' ', bci.section) AS course_title, 
-                    c.id as courseid,
-                    bci.url AS ext_url
-                FROM {ucla_browseall_classinfo} AS bci
-                JOIN {ucla_reg_subjectarea} AS rsa ON rsa.subjarea = bci.subjarea
-                LEFT JOIN {ucla_request_classes} AS rc ON 
-                    rc.term = bci.term AND rc.srs = bci.srs AND rc.hostcourse = 1
-                LEFT JOIN {course} AS c ON c.id = rc.courseid
+        // Query to get courses in a subject area 
+        $query = "
+            SELECT bci.id, 
+                   CONCAT( bci.subjarea, ' ', bci.course, ', ', 
+                        bci.activitytype, ' ', bci.section ) AS course_title, 
+                   c.id AS courseid, 
+                   bci.url AS ext_url, 
+                   rc.hostcourse
+                FROM {course} AS c
+                JOIN {ucla_request_classes} AS rc ON rc.courseid = c.id
+                JOIN {ucla_browseall_classinfo} AS bci ON rc.term = bci.term
+                    AND rc.srs = bci.srs
+                JOIN mdl_ucla_reg_subjectarea AS rsa ON rsa.subjarea = bci.subjarea
             WHERE   bci.term = :term
                 AND rsa.subj_area_full = :subjarea
-            ";
+                ";
 
         $records = $DB->get_records_sql($query, $this->params);
+        
+        // If a course is crosslisted with another course in a different subj area, 
+        // find the hostcourse and report it
+        $crosslisted = array_map(function($o) {if(empty($o->hostcourse)) return $o->courseid;}, $records);
+        $crosslisted = array_filter($crosslisted, function($o) {return !empty($o);});
+        
+        if(!empty($crosslisted)) {
+            
+            list($in_or_equal, $params) = $DB->get_in_or_equal($crosslisted);
+            
+            $query = "
+                SELECT  c.id, 
+                        CONCAT( bci.subjarea, ' ', bci.course, ', ', 
+                            bci.activitytype, ' ', bci.section ) AS course_title, 
+                        rc.hostcourse
+                    FROM {course} AS c
+                    JOIN {ucla_request_classes} AS rc ON rc.courseid = c.id
+                        AND rc.hostcourse =1
+                    JOIN {ucla_browseall_classinfo} AS bci ON rc.term = bci.term
+                        AND rc.srs = bci.srs
+                WHERE rc.courseid $in_or_equal
+            ";
+            
+            $xlistrecords = $DB->get_records_sql($query, $params);
+        }
+        
 
         foreach($records as $r) {         
             $course_url = null;
@@ -49,10 +75,20 @@ class subject_area_report extends uclastats_base {
                         array('id' => $r->courseid)), $r->courseid);
             }
             
+            $course_title = $r->course_title;
+            
+            // Set crosslist name
+            if(isset($xlistrecords[$r->courseid])) {
+                $course_title .= html_writer::empty_tag('br');
+                $course_title .= html_writer::tag('strong', 'crosslisted:');
+                $course_title .= html_writer::empty_tag('br');
+                $course_title .= html_writer::tag('em', $xlistrecords[$r->courseid]->course_title);
+            }
+            
             // Course object to be printed
             $course = array(
                 'course_id' => $course_url,
-                'course_title' => $r->course_title,
+                'course_title' => $course_title,
                 'course_instructors' => '',
                 'course_students' => 'N/A',
                 'course_hits' => 'N/A ',
@@ -65,11 +101,7 @@ class subject_area_report extends uclastats_base {
             );
             
             // Key by course ID
-            if(empty($r->courseid)) {
-                $course['course_size'] = '-';
-                $course['course_syllabus'] = '-';                
-                $this->data['null' . $r->id] = (object)$course;
-            } else {
+            if(!empty($r->courseid)) {
                 $this->data[$r->courseid] = (object)$course;
                 $this->courseids[] = $r->courseid;
             }

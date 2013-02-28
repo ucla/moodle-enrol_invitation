@@ -62,6 +62,7 @@ class runreport_form extends moodleform {
                                 JOIN {ucla_request_classes} AS urc ON urc.department = urs.subjarea
                             WHERE urc.action = 'built'
                             GROUP BY urs.id 
+                            ORDER BY urs.subjarea
                             ";
                         $subjareas = $DB->get_records_sql($query);
                         
