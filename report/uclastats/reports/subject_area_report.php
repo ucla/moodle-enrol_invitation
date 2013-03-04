@@ -32,6 +32,7 @@ class subject_area_report extends uclastats_base {
                 JOIN mdl_ucla_reg_subjectarea AS rsa ON rsa.subjarea = bci.subjarea
             WHERE   bci.term = :term
                 AND rsa.subj_area_full = :subjarea
+            GROUP BY c.id
                 ";
 
         $records = $DB->get_records_sql($query, $this->params);
@@ -122,7 +123,7 @@ class subject_area_report extends uclastats_base {
         
         // Query to get instructor names for courses in a subject area
         $query = "
-            SELECT c.id AS courseid , u.id AS userid, u.firstname, u.lastname, r.shortname AS role
+            SELECT u.id, c.id AS courseid , u.id AS userid, u.firstname, u.lastname, r.shortname AS role
                 FROM {course} c
                 JOIN {context} ctx ON ctx.instanceid = c.id
                 JOIN {role_assignments} ra ON ra.contextid = ctx.id
