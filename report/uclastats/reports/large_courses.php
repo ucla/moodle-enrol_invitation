@@ -76,6 +76,7 @@ class large_courses extends uclastats_base {
                            f.contextid = ctx.id
                       ) 
                       WHERE urc.term = :term AND
+                      f.filename <> '.' AND
                       f.component = 'mod_resource' ";
 
         //query to locate all large courses
@@ -99,7 +100,7 @@ class large_courses extends uclastats_base {
             //retrieve all related course files
             $course_files = $DB->get_records_sql($sql2, $params);
             $file_break_down = $groups;
-
+            
             foreach ($course_files as $file) {
 
                 $group_name = $types_to_group[$file->mimetype][0]; //use first groupname so we don't count file multiple times

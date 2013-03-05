@@ -81,8 +81,8 @@ $string['file_size_help'] = 'Finds number of files over 1 MB';
 $string['file_count'] = 'File Count';
 
 //strings for large courses report
-$string['large_courses'] = 'Large Courses';
-$string['large_courses_help'] = 'List all the courses over the configure max size, for a given term';
+$string['large_courses'] = 'Large sites (course)';
+$string['large_courses_help'] = 'List all the courses over the configured max size, for a given term';
 $string['other'] = 'Other';
 $string['video'] = 'Video';
 $string['audio'] = 'Audio';
