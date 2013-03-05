@@ -18,3 +18,10 @@
 .cached-results-table .current-result .cell {
     background-color: #FFB300 !important;
 }
+
+#page-admin-report-uclastats-view .parameters {
+    background: #FEFCF6;
+    border: 1px solid #B7AA96;
+    padding: 0.5em;
+    width: 65%;
+}
