@@ -26,17 +26,6 @@ $string['warning_high_load'] = 'WARNING: Report may take a long time to run. ' .
 $string['noparams'] = 'No additional parameters needed to run report';
 $string['term'] = 'Term';
 $string['subjarea'] = 'Subject area';
-$string['course_id'] = 'Course ID';
-$string['course_title'] = 'Course';
-$string['course_students'] = 'Enrolled students';
-$string['course_instructors'] = 'Instructors (role)';
-$string['course_forums'] = 'Forum topics'; 
-$string['course_posts'] = 'Forum posts';
-$string['course_hits'] = 'Total student views';
-$string['course_student_percent'] = 'Students visiting site';
-$string['course_files'] = 'File count';
-$string['course_size'] = 'Course size';
-$string['course_syllabus'] = 'Syllabus';
 
 // cached results strings
 $string['cached_results_table'] = 'Cached results';
@@ -76,10 +65,18 @@ $string['unique_logins_per_term_cached_results'] = 'Per day: {$a->day} | Per wee
 $string['subject_area_report'] = 'Subject area report (course)';
 $string['subject_area_report_help'] = 'Report that generates a collection of useful statistics that 
     departments can use. Some statistical statistics include, number of enrolled students, 
-    class site hits, and forum activity. Was originally requested by Psychology in CCLE-2673.' . 
-    '<br /><br />' . 
-    'Includes all courses listed at Registrar for given subject area. If course
-     does not have a "Course ID" listed, it was not built on the current server.';
+    class site hits, and forum activity. Was originally requested by Psychology in CCLE-2673.';
+$string['course_id'] = 'Course ID';
+$string['course_title'] = 'Course';
+$string['course_students'] = 'Enrolled students';
+$string['course_instructors'] = 'Instructors (role)';
+$string['course_forums'] = 'Forum topics'; 
+$string['course_posts'] = 'Forum posts';
+$string['course_hits'] = 'Total student views';
+$string['course_student_percent'] = 'Students visiting site';
+$string['course_files'] = 'Resource files';
+$string['course_size'] = 'Resource file size (MB)';
+$string['course_syllabus'] = 'Syllabus';
 
 //strings for file_size_report
 $string['file_size'] = 'File size (system)';
