@@ -21,6 +21,7 @@ $string['report_list'] = 'Report list';
 $string['run_report'] = 'Run report';
 $string['warning_high_load'] = 'WARNING: Report may take a long time to run. ' .
         'Please run new reports during off peak hours. Viewing cached results is fine.';
+$string['export_options'] = 'Export: ';
 
 // parameter strings
 $string['noparams'] = 'No additional parameters needed to run report';

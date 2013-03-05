@@ -132,6 +132,35 @@ abstract class uclastats_base implements renderable {
     }
 
     /**
+     * Generates HTML output for display of export options for given report 
+     * resultid.
+     * 
+     * @param int $resultid
+     * @return string
+     */
+    public function display_export_options($resultid) {
+        global $OUTPUT;
+        $export_options = html_writer::start_tag('div',
+                array('class' => 'export-options'));
+        $export_options .= get_string('export_options', 'report_uclastats');
+
+        // right now, only supporting xls
+        $xls_string = get_string('application/vnd.ms-excel', 'mimetypes');
+        $icon = html_writer::empty_tag('img',
+                array('src' => $OUTPUT->pix_url('f/spreadsheet'),
+                      'alt' => $xls_string,
+                      'title' => $xls_string));
+        $export_options .= html_writer::link(
+                new moodle_url('/report/uclastats/view.php',
+                        array('report' => get_class($this),
+                              'resultid' => $resultid,
+                              'export' => 'xls')), $icon);
+
+        $export_options .= html_writer::end_tag('div');
+        return $export_options;
+    }
+
+    /**
      * Generates HTML output for display of query results with parameters,
      * result table, and other information.
      *
@@ -171,18 +200,14 @@ abstract class uclastats_base implements renderable {
             $results_table->attributes = array('class' => 'results-table ' .
                 get_class($this));
 
-            // get first element and get its array keys to generate header
-            $header = reset($results);
-
-            // generate header
-            foreach ($header as $name => $value) {
-                $results_table->head[] = get_string($name, 'report_uclastats');
-            }
-
+            $results_table->head = $uclastats_result->get_header();
             $results_table->data = $results;
 
             $ret_val .= html_writer::table($results_table);
         }
+
+        // display export options
+        $ret_val .= $this->display_export_options($resultid);
 
         // display information on who ran the query and the timestamp
         $footer_info = new stdClass();
@@ -192,6 +217,88 @@ abstract class uclastats_base implements renderable {
         $ret_val .= html_writer::tag('p', $footer, array('class' => 'lastran'));
 
         return $ret_val;
+    }
+
+    /**
+     * Sends result data as a xls file.
+     *
+     * @params int $resultid    Result to send
+     */
+    public function export_result_xls($resultid) {
+        global $CFG;
+        require_once($CFG->dirroot.'/lib/excellib.class.php');
+
+        // do sanity check (
+        try {
+            $uclastats_result = new uclastats_result($resultid);
+        } catch (dml_exception $e) {
+            return get_string('nocachedresults','report_uclastats');
+        }
+
+        // file name is report name
+        $report_name = get_string(get_class($this), 'report_uclastats');
+        $filename = clean_filename($report_name . '.xls');
+        
+        // creating a workbook (use "-" for writing to stdout)
+        $workbook = new MoodleExcelWorkbook("-");
+        // sending HTTP headers
+        $workbook->send($filename);
+        // adding the worksheet
+        $worksheet = $workbook->add_worksheet($report_name);
+        $bold_format = new MoodleExcelFormat($workbook->pear_excel_workbook);
+        $bold_format->set_bold(true);
+
+        // add title
+        $worksheet->write_string(0, 0, $report_name, $bold_format);
+
+        // add parameters (if any)
+        $params = $uclastats_result->params;
+        if (!empty($params)) {
+            $params_display = $this->format_cached_params($params);
+            $worksheet->write_string(1, 0, get_string('parameters',
+                    'report_uclastats', $params_display));
+        }
+
+        // now go through the result set
+        $results = $uclastats_result->results;
+        $row = 3; $col = 0;
+        if (empty($results)) {
+            $worksheet->write_string(2, 0, get_string('noresults','admin'));
+        } else {
+            // first display table header
+            $header = $uclastats_result->get_header();
+            foreach ($header as $name) {
+                $worksheet->write_string($row, $col, $name, $bold_format);
+                ++$col;
+            }
+
+            // now go through result set
+            foreach ($results as $result) {
+                ++$row; $col = 0;
+                foreach ($result as $value) {
+                    // values might have HTML in them
+                    $value = clean_param($value, PARAM_NOTAGS);
+                    if (is_numeric($value)) {
+                        $worksheet->write_number($row, $col, $value);
+                    } else {
+                        $worksheet->write_string($row, $col, $value);
+                    }
+                    ++$col;
+                }
+            }
+        }
+
+        // display information on who ran the query and the timestamp
+        $row += 2;
+        $footer_info = new stdClass();
+        $footer_info->who = $uclastats_result->userfullname;
+        $footer_info->when = $uclastats_result->timecreated;
+        $footer = get_string('lastran', 'report_uclastats', $footer_info);
+        $worksheet->write_string($row, 0, $footer);
+
+        // close the workbook
+        $workbook->close();
+        exit;
     }
 
     /**
@@ -336,7 +443,7 @@ class uclastats_result implements renderable {
      * Stores results array.
      * @var array
      */
-    protected $results;
+    protected $result;
 
     /**
      * Creates an instance of result object with specified cache result id.
@@ -369,11 +476,13 @@ class uclastats_result implements renderable {
      * @param string $name
      */
     public function __get($name) {
-        switch ($name) {
+        switch ($name) {            
             case 'params':
-            case 'results':
                 // stored as json, so decode it
-                return json_decode($this->result->$name, true);
+                return json_decode($this->result->params, true);
+            case 'results':
+                // results might be obtained multiple times
+                return $this->decode_results();
             case 'timecreated':
                 // give pretty version of timestamp
                 return userdate($this->result->timecreated);
@@ -387,6 +496,40 @@ class uclastats_result implements renderable {
             default:
                 return $this->result->$name;
         }
+    }
+
+    /**
+     * Returns an array of strings to use as the header for displaying the
+     * results.
+     *
+     * @return array
+     */
+    public function get_header() {
+        $ret_val = array();
+        // get first element and get its array keys to generate header
+        $results = $this->decode_results();
+        $header = reset($results);
+
+        // generate header
+        foreach ($header as $name => $value) {
+            $ret_val[] = get_string($name, 'report_uclastats');
+        }
+
+        return $ret_val;
+    }
+
+    /**
+     * Since the result is encoded as a JSON object, need to decode it. Might
+     * be returning the result many times, so cache it.
+     *
+     * @return array
+     */
+    private function decode_results() {
+        if (!isset(self::$_cache['decode_results'][$this->result->id])) {
+            self::$_cache['decode_results']
+                    = json_decode($this->result->results, true);
+        }
+        return self::$_cache['decode_results'];
     }
 
     /**

@@ -35,6 +35,15 @@ admin_externalpage_setup('reportuclastats');
 require_once($CFG->dirroot . '/report/uclastats/reports/' . $report . '.php');
 $report_object = new $report($USER);
 
+// handle if user is trying to export report
+$export_type = optional_param('export', false, PARAM_ALPHA);
+if (!empty($export_type) && !empty($resultid)) {
+    // NOTE: all exports will die after they send their file
+    if ($export_type == 'xls') {
+        $report_object->export_result_xls($resultid);
+    }
+}
+
 // handle if user is trying to run a report
 $report_form = $report_object->get_run_form();
 $params = $report_form->get_data();
