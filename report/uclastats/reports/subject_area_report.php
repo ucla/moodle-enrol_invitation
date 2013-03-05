@@ -19,72 +19,30 @@ class subject_area_report extends uclastats_base {
         
         // Query to get courses in a subject area 
         $query = "
-            SELECT bci.id, 
-                   CONCAT( bci.subjarea, ' ', bci.course, ', ', 
-                        bci.activitytype, ' ', bci.section ) AS course_title, 
-                   c.id AS courseid, 
-                   bci.url AS ext_url, 
-                   rc.hostcourse
+            SELECT DISTINCT c.id AS courseid
                 FROM {course} AS c
                 JOIN {ucla_request_classes} AS rc ON rc.courseid = c.id
-                JOIN {ucla_browseall_classinfo} AS bci ON rc.term = bci.term
-                    AND rc.srs = bci.srs
-                JOIN mdl_ucla_reg_subjectarea AS rsa ON rsa.subjarea = bci.subjarea
-            WHERE   bci.term = :term
-                AND rsa.subj_area_full = :subjarea
-            GROUP BY c.id
-                ";
-
+                JOIN {ucla_reg_classinfo} AS rci ON
+                    (rc.term=rci.term AND rc.srs=rci.srs)
+            WHERE   rc.term = :term
+                AND rc.department = :subjarea
+            ORDER BY rci.term, rci.subj_area, rci.crsidx, rci.secidx";
         $records = $DB->get_records_sql($query, $this->params);
         
-        // If a course is crosslisted with another course in a different subj area, 
-        // find the hostcourse and report it
-        $crosslisted = array_map(function($o) {if(empty($o->hostcourse)) return $o->courseid;}, $records);
-        $crosslisted = array_filter($crosslisted, function($o) {return !empty($o);});
-        
-        if(!empty($crosslisted)) {
-            
-            list($in_or_equal, $params) = $DB->get_in_or_equal($crosslisted);
-            
-            $query = "
-                SELECT  c.id, 
-                        CONCAT( bci.subjarea, ' ', bci.course, ', ', 
-                            bci.activitytype, ' ', bci.section ) AS course_title, 
-                        rc.hostcourse
-                    FROM {course} AS c
-                    JOIN {ucla_request_classes} AS rc ON rc.courseid = c.id
-                        AND rc.hostcourse =1
-                    JOIN {ucla_browseall_classinfo} AS bci ON rc.term = bci.term
-                        AND rc.srs = bci.srs
-                WHERE rc.courseid $in_or_equal
-            ";
-            
-            $xlistrecords = $DB->get_records_sql($query, $params);
-        }
-        
-
         foreach($records as $r) {         
             $course_url = null;
-            if (empty($r->courseid)) {
-                // not on current server, so see if there is a url set
-                if (!empty($r->ext_url)) {
-                    $course_url = html_writer::link($r->ext_url, get_string('url'));
-                }
-            } else {
-                // link to site on current server
-                $course_url = html_writer::link(new moodle_url('/course/view.php', 
-                        array('id' => $r->courseid)), $r->courseid);
+            // link to site
+            $course_url = html_writer::link(new moodle_url('/course/view.php', 
+                    array('id' => $r->courseid)), $r->courseid,
+                    array('target' => '_blank'));
+
+            // build course title
+            $courseinfos = ucla_get_course_info($r->courseid);
+            $titles = array();
+            foreach ($courseinfos as $courseinfo) {
+                $titles[] = ucla_make_course_title($courseinfo);
             }
-            
-            $course_title = $r->course_title;
-            
-            // Set crosslist name
-            if(isset($xlistrecords[$r->courseid])) {
-                $course_title .= html_writer::empty_tag('br');
-                $course_title .= html_writer::tag('strong', 'crosslisted:');
-                $course_title .= html_writer::empty_tag('br');
-                $course_title .= html_writer::tag('em', $xlistrecords[$r->courseid]->course_title);
-            }
+            $course_title = implode(' / ', $titles);            
             
             // Course object to be printed
             $course = array(
@@ -123,23 +81,21 @@ class subject_area_report extends uclastats_base {
         
         // Query to get instructor names for courses in a subject area
         $query = "
-            SELECT u.id, c.id AS courseid , u.id AS userid, u.firstname, u.lastname, r.shortname AS role
+            SELECT DISTINCT CONCAT(u.id, '-', c.id), u.id, c.id AS courseid, u.id AS userid,
+                    CONCAT(u.lastname, ', ', u.firstname, ' (', r.shortname, ')') AS name_role
                 FROM {course} c
                 JOIN {context} ctx ON ctx.instanceid = c.id
                 JOIN {role_assignments} ra ON ra.contextid = ctx.id
                 JOIN {role} AS r ON r.id = ra.roleid
                 JOIN {ucla_request_classes} AS rc ON rc.courseid = c.id
                 JOIN {ucla_reg_classinfo} AS rci ON rci.term = rc.term AND rci.srs = rc.srs
-                JOIN {ucla_reg_subjectarea} AS rsa ON rsa.subjarea = rci.subj_area
                 JOIN {user} AS u ON u.id = ra.userid
             WHERE   rc.term = :term
                 AND ctx.contextlevel = :context
-                AND rsa.subj_area_full = :subjarea
+                AND rc.department = :subjarea
                 AND r.shortname IN (
                     'editinginstructor', 'supervising_instructor'
-                )
-            GROUP BY u.id
-            ";
+                )";
 
         // Get the records
         $records = $DB->get_records_sql($query, $this->params);
@@ -148,11 +104,10 @@ class subject_area_report extends uclastats_base {
             // If an array key does not exist, it means the course is no longer
             // listed by the registrar, but still exists on the site
             if(array_key_exists($r->courseid, $this->data)) {
-                $content = $r->lastname . ', ' . $r->firstname . ' (' . $r->role .  ')';
-                $this->data[$r->courseid]->course_instructors .= html_writer::tag('div', $content);
+                $this->data[$r->courseid]->course_instructors .=
+                        html_writer::tag('div', $r->name_role);
             }
         }
-        
     }
     
     /**
@@ -232,18 +187,16 @@ class subject_area_report extends uclastats_base {
                     AND l.time < $term->end
                     AND l.userid $in_or_equal
                 GROUP BY l.userid
-                ";
-            
+                ";            
             $records = $DB->get_records_sql($query, $params);
             
-            $tally = 0;
-            
+            $tally = 0;            
             foreach($records as $r) {
                 $tally += $r->num_hits;
             }
             
-            $this->data[$id]->course_hits = $tally;
-            $this->data[$id]->course_students = $count;
+            $this->data[$id]->course_hits = number_format($tally);
+            $this->data[$id]->course_students = number_format($count);
             // Avoid division by 0
             if(!empty($count)){
                 $val = (count($records) / $count) * 100;
