@@ -139,6 +139,10 @@ $string['document'] = 'Document';
 $string['archive'] = 'Archive';
 $string['presentation'] = 'Presentation';
 
+//strings for large collab sites report
+$string['large_collab_sites'] = 'Large sites (collab)';
+$string['large_collab_sites_help'] = 'List all the collaboration sites over the configured max size';
+
 // error strings
 $string['nocachedresults'] = 'No cached results found';
 $string['invalidterm'] = 'Invalid term';
