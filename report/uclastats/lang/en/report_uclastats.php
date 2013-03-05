@@ -126,6 +126,19 @@ $string['repository_usage_help'] = 'Find repository usage for: Dropbox, Google, 
 $string['repo_name'] = 'Repository';
 $string['repo_count'] = 'File count';
 
+//strings for large collab sites report
+$string['large_collab_sites'] = 'Large sites (collab)';
+$string['large_collab_sites_help'] = 'List all the collaboration sites over the configured max size';
+$string['other'] = 'Other';
+$string['video'] = 'Video';
+$string['audio'] = 'Audio';
+$string['image'] = 'Image';
+$string['web_file'] = 'Web file';
+$string['spreadsheet'] = 'Spreadsheet';
+$string['document'] = 'Document';
+$string['archive'] = 'Archive';
+$string['presentation'] = 'Presentation';
+
 // error strings
 $string['nocachedresults'] = 'No cached results found';
 $string['invalidterm'] = 'Invalid term';
