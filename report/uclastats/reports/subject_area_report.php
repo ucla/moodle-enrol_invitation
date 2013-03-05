@@ -97,7 +97,7 @@ class subject_area_report extends uclastats_base {
                 'course_forums' => 0,
                 'course_posts' => 0,
                 'course_files' => 0,
-                'course_size' => '0 KB',
+                'course_size' => 0,
                 'course_syllabus' => 'N',
             );
             
@@ -345,7 +345,11 @@ class subject_area_report extends uclastats_base {
 
         // Store counts
         foreach($records as $r) {
-            $this->data[$r->courseid]->course_size = display_size($r->filesize);
+            // Store size (only as MB, so it is sortable)
+            $course_size = round($r->filesize / 1048576 * 10) / 10;
+            // make sure it has proper commas for readablity
+            $course_size = number_format($course_size);
+            $this->data[$r->courseid]->course_size = $course_size;
             $this->data[$r->courseid]->course_files = $r->filecount;
         }
     }
