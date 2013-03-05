@@ -248,7 +248,7 @@ class subject_area_report extends uclastats_base {
             if(!empty($count)){
                 $val = (count($records) / $count) * 100;
                 $formatted = sprintf("%01.2f", $val);
-                $this->data[$id]->course_student_percent = $formatted . ' %';
+                $this->data[$id]->course_student_percent = $formatted . '%';
             }
         }
     }
@@ -314,7 +314,16 @@ class subject_area_report extends uclastats_base {
         
         return (object)$term;
     }
-    
+
+    /**
+     * Querying on the mdl_log can take a long time.
+     * 
+     * @return boolean
+     */
+    public function is_high_load() {
+        return true;
+    }
+
     /**
      * This will retrieve the file count and course size (based on overall 
      * filesize) for set of courses.  This only counts course resources

@@ -197,6 +197,7 @@ abstract class uclastats_base implements renderable {
         } else {
             // now display results table
             $results_table = new html_table();
+            $results_table->id = 'uclastats-results-table';
             $results_table->attributes = array('class' => 'results-table ' .
                 get_class($this));
 
@@ -371,7 +372,8 @@ abstract class uclastats_base implements renderable {
         $report_url = new moodle_url('/report/uclastats/view.php',
                         array('report' => get_class($this)));
         $run_form = new runreport_form($report_url->out(),
-                array('fields' => $this->get_parameters()),
+                array('fields' => $this->get_parameters(),
+                      'is_high_load' => $this->is_high_load()),
                 'post',
                 '',
                 array('class' => 'run-form'));

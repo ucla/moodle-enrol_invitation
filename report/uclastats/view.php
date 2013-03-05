@@ -11,6 +11,7 @@ require_once('../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->dirroot.'/report/uclastats/report_forms.php');
 require_once($CFG->dirroot.'/report/uclastats/locallib.php');
+require_once($CFG->dirroot.'/local/ucla/lib.php');
 
 require_login();
 $context = get_context_instance(CONTEXT_COURSE, SITEID);
@@ -59,6 +60,11 @@ if (!empty($params) && confirm_sesskey()) {
     $resultid = $report_object->run($params);
     redirect(new moodle_url('/report/uclastats/view.php',
             array('report' => $report, 'resultid' => $resultid)));
+}
+
+// if user is viewing a result table, make it sortable
+if (!empty($resultid)) {
+    setup_js_tablesorter('uclastats-results-table');
 }
 
 echo $OUTPUT->header();
