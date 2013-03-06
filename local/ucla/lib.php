@@ -657,7 +657,7 @@ function role_mapping($profcode, array $other_roles,
  * role InstSet     Pseudo Role
  * 01   any         editingteacher
  * 03	any	    supervising_instructor
- * 22	any	    ? (NOT IMPLEMENTED YET)
+ * 22	any	    student_instructor
  * 02 (in any section)	01 (in any section)       ta
  * 02 (primary)	03 (in any section)       ta_instructor
  * 02 (secondary) 02 (primary) or 03 (in any section) ta
@@ -706,7 +706,13 @@ function get_pseudorole(array $prof_code, array $other_prof_codes) {
         
         // for all other 02 cases, default to ta
         return 'ta';
-    }    
+    }
+    
+    // Handle role mapping of prof code 22
+    if (isset($prof_code['primary']) && in_array('22', $prof_code['primary']) ||
+            isset($prof_code['secondary']) && in_array('22', $prof_code['secondary'])) {
+        return 'student_instructor';
+    }
 
     // no role to return
     return null;

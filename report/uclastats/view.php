@@ -11,6 +11,7 @@ require_once('../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->dirroot.'/report/uclastats/report_forms.php');
 require_once($CFG->dirroot.'/report/uclastats/locallib.php');
+require_once($CFG->dirroot.'/local/ucla/lib.php');
 
 require_login();
 $context = get_context_instance(CONTEXT_COURSE, SITEID);
@@ -35,6 +36,15 @@ admin_externalpage_setup('reportuclastats');
 require_once($CFG->dirroot . '/report/uclastats/reports/' . $report . '.php');
 $report_object = new $report($USER);
 
+// handle if user is trying to export report
+$export_type = optional_param('export', false, PARAM_ALPHA);
+if (!empty($export_type) && !empty($resultid)) {
+    // NOTE: all exports will die after they send their file
+    if ($export_type == 'xls') {
+        $report_object->export_result_xls($resultid);
+    }
+}
+
 // handle if user is trying to run a report
 $report_form = $report_object->get_run_form();
 $params = $report_form->get_data();
@@ -50,6 +60,11 @@ if (!empty($params) && confirm_sesskey()) {
     $resultid = $report_object->run($params);
     redirect(new moodle_url('/report/uclastats/view.php',
             array('report' => $report, 'resultid' => $resultid)));
+}
+
+// if user is viewing a result table, make it sortable
+if (!empty($resultid)) {
+    setup_js_tablesorter('uclastats-results-table');
 }
 
 echo $OUTPUT->header();
