@@ -84,10 +84,13 @@ $string['syllabusoverview'] = 'Syllabus overview';
 $string['syllabus_browseby'] = 'Browse by';
 $string['syllabus_division'] = 'Division';
 $string['syllabus_subjarea'] = 'Subject area';
-$string['syllabus_count'] = 'Syllabus/Courses ({$a})';
-$string['public_syllabus_count'] = 'Public syllabus ({$a})';
-$string['preview_syllabus_count'] = 'Preview syllabus ({$a})';
-$string['private_syllabus_count'] = 'Private syllabus ({$a})';
+$string['syllabus_count'] = 'Syllabus/Courses<br />{$a}';
+$string['syllabus_ugrad_table'] = 'Undergraduate courses';
+$string['syllabus_grad_table'] = 'Graduate courses';
+$string['public_syllabus_count'] = 'Public<br />{$a}';
+$string['loggedin_syllabus_count'] = 'UCLA community<br />{$a}';
+$string['preview_syllabus_count'] = 'Preview<br />{$a}';
+$string['private_syllabus_count'] = 'Private<br />{$a}';
 
 // Course
 $string['collablist'] = 'Show collaboration sites';
