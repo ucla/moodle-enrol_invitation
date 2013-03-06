@@ -100,3 +100,11 @@
 .block_ucla_course_menu_hidden > a:first-child {
     color: #A6ACBA;
 }
+
+.block_ucla_course_menu .content .block_tree.list.tasites .type_structure,
+.block_ucla_course_menu .content .block_tree.list.tasites .type_activity,
+.block_ucla_course_menu .content .block_tree.list.tasites .type_custom {
+    border-bottom: 1px solid #FFD732;
+    border-top: 1px solid #FFF0B3;
+    background-color: #FFE67E;
+}
