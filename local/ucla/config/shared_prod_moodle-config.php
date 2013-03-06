@@ -69,6 +69,7 @@ $CFG->registrar_dbencoding = 'ISO-8859-1';
 // displayed, we need to determine which roles should be displayed.
 $CFG->instructor_levels_roles['Instructor'] = array('editinginstructor', 'ta_instructor');
 $CFG->instructor_levels_roles['Teaching Assistant'] = array('ta', 'ta_admin');
+$CFG->instructor_levels_roles['Student Facilitator'] = array('studentfacilitator');
 
 // CCLE-2283: Friendly URLs
 // CCLE-2283: Redirect to archive 

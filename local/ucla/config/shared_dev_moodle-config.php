@@ -73,6 +73,7 @@ $CFG->registrar_dbencoding = 'ISO-8859-1';
 // displayed, we need to determine which roles should be displayed.
 $CFG->instructor_levels_roles['Instructor'] = array('editinginstructor', 'ta_instructor');
 $CFG->instructor_levels_roles['Teaching Assistant'] = array('ta', 'ta_admin');
+$CFG->instructor_levels_roles['Student Facilitator'] = array('studentfacilitator');
 
 // To enable friendly urls in your dev instance, please add the config values to
 // your config_private.php
