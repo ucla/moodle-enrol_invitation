@@ -56,12 +56,12 @@ if (!empty($course_info)) {
     // Add individual links for each crosslisted course
     foreach ($course_info as $info_for_one_course) {
         $myucla_row = new ucla_cp_myucla_row_module($temp_tag, $ta_cap);
-        if (count($course_info) > 1) {
-            // add course title if displaying cross-listed courses
-            $myucla_row->add_element(new ucla_cp_text_module($info_for_one_course->subj_area
-                            . $info_for_one_course->coursenum . '-' . $info_for_one_course->sectnum,
-                            $temp_tag, $temp_cap));
-        }
+
+        // add course title
+        $myucla_row->add_element(new ucla_cp_text_module(
+                ucla_make_course_title($info_for_one_course),
+                        $temp_tag, $temp_cap));
+
         $course_term = $info_for_one_course->term;
         $course_srs = $info_for_one_course->srs;
         $myucla_row->add_element(new ucla_cp_module('download_roster',
@@ -82,6 +82,47 @@ if (!empty($course_info)) {
         $myucla_row->add_element(new ucla_cp_module('asucla_textbooks',
                         new moodle_url('http://www.collegestore.org/textbookstore/main.asp?remote=1&ref=ucla&term='
                                 . $course_term . $session . '&course=' . $course_srs . '&getbooks=Display+books'), $temp_tag, $ta_cap));
+        $modules[] = $myucla_row;
+    }
+}
+/******************************** Admin Functions *********************/
+if(has_capability('tool/uclasupportconsole:view', context_system::instance()) &&
+        !empty($course_info)) {
+    $modules[] = new ucla_cp_module('ucla_cp_mod_admin_advanced', null, null, 'moodle/course:manageactivities');
+
+    // Saving typing...again
+    $temp_tag = array('ucla_cp_mod_admin_advanced');
+
+    if (ucla_cp_module::load('run_prepop')) {
+        $modules[] = new ucla_cp_module_run_prepop($course);
+    }
+
+    if (ucla_cp_module::load('push_grades')) {
+        $modules[] = new ucla_cp_module_push_grades($course);
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    // new way of approaching by using the code from myUCLA functions
+    $temp_tag = array('ucla_cp_mod_admin_advanced');
+    // Add individual links for each crosslisted course
+    foreach ($course_info as $info_for_one_course) {
+        $myucla_row = new ucla_cp_myucla_row_module($temp_tag);
+        
+        // add course title
+        $myucla_row->add_element(new ucla_cp_text_module(
+                ucla_make_course_title($info_for_one_course),
+                        $temp_tag, $temp_cap));
+        
+        $course_term = $info_for_one_course->term;
+        $course_srs = $info_for_one_course->srs;
+        $link_arguments = array('console'=>'ccle_courseinstructorsget', 'term'=> $course_term, 'srs'=> $course_srs);
+        $myucla_row->add_element(new ucla_cp_module('ccle_courseinstructorsget',
+                                new moodle_url($CFG->wwwroot. '/admin/tool/uclasupportconsole/index.php',
+                                $link_arguments, $temp_tag), $temp_tag));
+        $link_arguments = array('console'=>'ccle_roster_class', 'term'=> $course_term, 'srs'=> $course_srs);
+        $myucla_row->add_element(new ucla_cp_module('ccle_roster_class',
+                                new moodle_url($CFG->wwwroot. '/admin/tool/uclasupportconsole/index.php',
+                                $link_arguments, $temp_tag), $temp_tag));
         $modules[] = $myucla_row;
     }
 }

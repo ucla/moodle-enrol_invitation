@@ -145,7 +145,8 @@ foreach ($elements as $view => $section_contents) {
 
             echo ucla_cp_renderer::control_panel_contents($section_contents, 
                 false, 'row', 'general_icon_link');
-        } else if ($tags == 'ucla_cp_mod_myucla') {
+        } else if ($tags == 'ucla_cp_mod_myucla' || 
+                ($tags == 'ucla_cp_mod_admin_advanced')) {
             echo ucla_cp_myucla_row_renderer::control_panel_contents($modules);             
         } else {
             $altrend = $tags . '_cp_render';
