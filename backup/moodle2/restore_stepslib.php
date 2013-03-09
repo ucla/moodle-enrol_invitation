@@ -1113,6 +1113,19 @@ class restore_section_structure_step extends restore_structure_step {
                 }
             }
 
+            // START UCLA MOD: CCLE-3483 - Retain section names when restoring
+
+            // If the existing section name is in the following format:
+            // "Week <num>" and the backup section is not, then replace the
+            // existing section name ("Week <num>" is used instead of "default
+            // section name" because of CCLE-3483).
+            $pattern = '/^Week [0-9]+$/';
+            if (preg_match($pattern, $secrec->name) &&
+                    !preg_match($pattern, $data->name) ) {
+                $section->name = $data->name;
+            }
+            // END UCLA MOD: CCLE-3483
+
             // Don't update available from, available until, or show availability
             // (I didn't see a useful way to define whether existing or new one should
             // take precedence).
