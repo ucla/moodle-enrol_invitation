@@ -317,7 +317,10 @@ class HTML_QuickForm_file extends HTML_QuickForm_input
     * @access    private
     * @return    mixed
     */
-    function _findValue()
+// START UCLA MOD: CCLE-3833 - Fix Easy File Upload so it works in PHP 5.4
+//  function _findValue()
+    function _findValue(&$values = null)
+// END UCLA MOD: CCLE-3833
     {
         if (empty($_FILES)) {
             return null;
