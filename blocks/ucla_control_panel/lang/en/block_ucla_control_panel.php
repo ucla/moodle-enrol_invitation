@@ -114,6 +114,22 @@ $string['groups_post'] = 'Set up and manage course groups. These provide separat
 $string['quiz_bank'] = 'Quiz question bank';
 $string['quiz_bank_post'] = 'Edit the quiz questions for this course.';
 
+/** Stuff for Admin **/
+$string['z_admin_functions'] = 'Admin functions';
+
+$string['ucla_cp_mod_admin_advanced'] = 'Admin functions';
+$string['run_prepop'] = 'Run prepop';
+$string['run_prepop_post'] = "Updates roster with latest enrollment from Registrar";
+
+$string['ccle_courseinstructorsget'] = 'Get instructors';
+$string['ccle_courseinstructorsget_post'] = "";
+
+$string['ccle_roster_class'] = 'Get student roster';
+$string['ccle_roster_class_post'] = "";
+
+$string['push_grades'] = 'Push grades';
+$string['push_grades_post'] = "Forces all current grades and grade items to be sent to MyUCLA's gradebook service";
+
 /** Stuff for Student Control Panel **/
 $string['ucla_cp_mod_student'] = 'Other commands';
 $string['student_grades'] = 'Grades';

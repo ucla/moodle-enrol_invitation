@@ -117,6 +117,7 @@ if ($displayforms) {
     $courseid = required_param('courseid', PARAM_INT);
     $dbenrol = enrol_get_plugin('database');
     // Sadly, this cannot be output buffered...so
+    echo html_writer::tag('h1', get_string('prepoprun', 'tool_uclasupportconsole'));
     echo "<pre>";
     $dbenrol->sync_enrolments(true, null, $courseid);
     echo "</pre>";
@@ -1517,7 +1518,8 @@ if ($displayforms) {
     $output = null;
     
     exec("php $CFG->dirroot/local/gradebook/cli/grade_push.php $courseid", $output);
-    
+
+    echo html_writer::tag('h1', get_string('pushgrades', 'tool_uclasupportconsole'));
     echo "<pre>";
     echo implode("\n", $output);
     echo "</pre>";
@@ -1527,8 +1529,18 @@ if ($displayforms) {
 
 $consoles->push_console_html('users', $title, $sectionhtml);
 
+// see if user came from a specific page, if so, then direct them back there
+$gobackurl = $PAGE->url;
+if (!empty($_SERVER['HTTP_REFERER'])) {
+    // make sure link came from same server
+     if (strpos($_SERVER['HTTP_REFERER'], $CFG->wwwroot) !== false) {
+         $gobackurl = $_SERVER['HTTP_REFERER'];
+     }
+}
+
 if (isset($consoles->no_finish)) {
-    echo html_writer::link(new moodle_url($PAGE->url), 'Back');
+    echo html_writer::link(new moodle_url($gobackurl),
+            get_string('goback', 'tool_uclasupportconsole'));
     die();
 }
 
@@ -1538,7 +1550,8 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('pluginname', 'tool_uclasupportconsole'), 2, 'headingblock');
 
 if (!$displayforms) {
-    echo html_writer::link(new moodle_url($PAGE->url), 'Back');
+    echo html_writer::link(new moodle_url($gobackurl), 
+            get_string('goback', 'tool_uclasupportconsole'));
     echo $consoles->render_results();
 } else {
     // Put srdb stuff first

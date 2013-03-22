@@ -30,19 +30,27 @@ class ucla_cp_myucla_row_renderer extends ucla_cp_renderer {
         $table->id = 'my_ucla_functions';
         
         //For each row module
+        $nonRowContent = "";
         foreach ($contents as $content_rows) {
-            
-            $content_rows_elements = $content_rows->elements;
-            $table_row = new html_table_row();
-            //For each element in the row module
-            foreach ($content_rows_elements as $content_item) {
-               $table_row->cells[] = 
-                       ucla_cp_renderer::general_descriptive_link($content_item, 
-                               array("target"=>"_blank"));
+            if(isset($content_rows->elements))
+            {
+                $content_rows_elements = $content_rows->elements;
+                $table_row = new html_table_row();
+                //For each element in the row module
+                foreach ($content_rows_elements as $content_item) {
+                   $table_row->cells[] = 
+                           ucla_cp_renderer::general_descriptive_link($content_item, 
+                                   array("target"=>"_blank"));
+                }
+                $table->data[] = $table_row;
             }
-            $table->data[] = $table_row;
+            else
+            {
+                $nonRowContent.= ucla_cp_renderer::control_panel_contents(Array($content_rows), true);
+            }
         }
-
-        return html_writer::table($table);
+        // make sure content that is not part of the row is rendered before the
+        // row content to avoid layout problem
+        return $nonRowContent.html_writer::table($table);
     }
 }
