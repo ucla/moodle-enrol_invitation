@@ -108,5 +108,7 @@ $string['uid'] = 'UID';
 
 $string['srslookup'] = "SRS number lookup (Registrar)";
 
+$string['goback'] = 'Go back';
+
 // capability strings
 $string['uclasupportconsole:view'] = 'Use UCLA support console';

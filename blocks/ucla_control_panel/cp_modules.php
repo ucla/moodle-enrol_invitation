@@ -56,11 +56,12 @@ if (!empty($course_info)) {
     // Add individual links for each crosslisted course
     foreach ($course_info as $info_for_one_course) {
         $myucla_row = new ucla_cp_myucla_row_module($temp_tag, $ta_cap);
-
-        // add course title
-        $myucla_row->add_element(new ucla_cp_text_module(
-                ucla_make_course_title($info_for_one_course),
-                        $temp_tag, $temp_cap));
+        if (count($course_info) > 1) {
+            // add course title if displaying cross-listed courses
+            $myucla_row->add_element(new ucla_cp_text_module($info_for_one_course->subj_area
+                             . $info_for_one_course->coursenum . '-' . $info_for_one_course->sectnum,
+                             $temp_tag, $temp_cap));
+        }
 
         $course_term = $info_for_one_course->term;
         $course_srs = $info_for_one_course->srs;
