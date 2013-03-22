@@ -140,7 +140,7 @@ if($publicprivate_course->is_grouping($grouping)) {
     echo '<h3 class="main">';
     print_string('addgroupstogroupings', 'group');
     echo ': '.$groupingname.'</h3>';
-    echo $OUTPUT->notification(get_string('publicprivatecannotedit'));
+    echo $OUTPUT->notification(get_string('publicprivatecannotedit','local_publicprivate'));
     echo $OUTPUT->continue_button('groupings.php?id='.$groupingid);
     echo $OUTPUT->footer();
     die;

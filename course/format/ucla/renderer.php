@@ -848,9 +848,9 @@ class format_ucla_renderer extends format_section_renderer_base {
         
         $strishidden      = '(' . get_string('hidden', 'calendar') . ')';
         $strmovealt         = get_string('movealt', 'format_ucla');
-        $pp_make_private = get_string('publicprivatemakeprivate');
-        $pp_make_public = get_string('publicprivatemakepublic');
-        $pp_private_material = get_string('publicprivategroupingname');
+        $pp_make_private = get_string('publicprivatemakeprivate','local_publicprivate');
+        $pp_make_public = get_string('publicprivatemakepublic','local_publicprivate');
+        $pp_private_material = get_string('publicprivategroupingname','local_publicprivate');
         
         $noeditingicons = get_user_preferences('noeditingicons', 1);
 

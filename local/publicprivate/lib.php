@@ -242,13 +242,13 @@ function notice_nonenrolled_users($course) {
         $display_string = '';
         // if user is not logged in, then give them a login button
         if (isguestuser()) {
-            $display_string = get_string('publicprivatenotice_notloggedin');
+            $display_string = get_string('publicprivatenotice_notloggedin','local_publicprivate');
             $loginbutton = new single_button(new moodle_url('/login/index.php'),
-                    get_string('publicprivatelogin'));
+                    get_string('publicprivatelogin','local_publicprivate'));
             $loginbutton->class = 'continuebutton';
             $display_string .= $OUTPUT->render($loginbutton);
         } else {
-            $display_string = get_string('publicprivatenotice_notenrolled');
+            $display_string = get_string('publicprivatenotice_notenrolled','local_publicprivate');
         }
         return $OUTPUT->box($display_string, 'noticebox notice_nonenrolled_users');
     }
