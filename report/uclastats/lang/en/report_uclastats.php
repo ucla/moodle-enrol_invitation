@@ -124,6 +124,10 @@ $string['repository_usage_help'] = 'Find repository usage for: Dropbox, Google, 
 $string['repo_name'] = 'Repository';
 $string['repo_count'] = 'File count';
 
+//strings for final quiz report
+$string['final_quiz_report'] = 'Final quiz report (course)';
+$string['final_quiz_report_help'] = 'Displays the number of quizzes taken during finals week by division';
+
 // error strings
 $string['nocachedresults'] = 'No cached results found';
 $string['invalidterm'] = 'Invalid term';
