@@ -254,11 +254,6 @@ class block_ucla_my_sites extends block_base {
                     (get_config('local_ucla', 'archiveserver'))) {
                 $content[] = $OUTPUT->box(get_string('shared_server_archive_notice', 
                     'block_ucla_my_sites'), 'noticebox');
-            } else if (term_cmp_fn($showterm, $CFG->currentterm) == -1) {
-                // commented out until we actually start hiding past courses
-//                // if viewing old term, give notice about student access
-//                $content[] = $OUTPUT->box(get_string('student_access_notice', 
-//                    'block_ucla_my_sites'), 'noticebox');                
             }
         }
         

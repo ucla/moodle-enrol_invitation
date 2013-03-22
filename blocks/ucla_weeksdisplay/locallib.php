@@ -190,6 +190,7 @@ class ucla_session {
         // Update current week
         if($weeks > $this->_current_week) {
             $this->_current_week = $weeks;
+            events_trigger('ucla_weeksdisplay_changed', $weeks);
         }
         
         return $week_str;

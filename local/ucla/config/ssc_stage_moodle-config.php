@@ -72,7 +72,7 @@ $CFG->forced_plugin_settings['local_ucla']['archiveserver'] = null;
 
 // My Sites CCLE-2810
 // Term limiting
-$CFG->forced_plugin_settings['local_ucla']['student_access_ends_week'] = 3;
+$CFG->forced_plugin_settings['local_ucla']['student_access_ends_week'] = 0;
 $CFG->forced_plugin_settings['local_ucla']['oldest_available_term'] = '08S';
 
 // Browseby CCLE-2894
