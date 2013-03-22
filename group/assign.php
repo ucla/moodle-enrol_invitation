@@ -46,7 +46,7 @@ require_capability('moodle/course:managegroups', $context);
 $returnurl = $CFG->wwwroot.'/group/groupings.php?id='.$courseid;
 
 
-require_once($CFG->libdir.'/publicprivate/course.class.php');
+require_once($CFG->dirroot.'/local/publicprivate/lib/course.class.php');
 $publicprivate_course = new PublicPrivate_Course($course);
 
 if ($frm = data_submitted() and confirm_sesskey() and !$publicprivate_course->is_grouping($grouping)) {

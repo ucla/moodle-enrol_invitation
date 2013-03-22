@@ -1648,7 +1648,7 @@ function role_assign($roleid, $userid, $contextid, $component = '', $itemid = 0,
          */
 
         if($context->contextlevel == CONTEXT_COURSE) {
-            require_once($CFG->libdir.'/publicprivate/course.class.php');
+            require_once($CFG->dirroot.'/local/publicprivate/lib/course.class.php');
 
             $pubpriv_course = new PublicPrivate_Course($context->instanceid);
 
@@ -1682,7 +1682,7 @@ function role_assign($roleid, $userid, $contextid, $component = '', $itemid = 0,
      */
 
     if($context->contextlevel == CONTEXT_COURSE) {
-        require_once($CFG->libdir.'/publicprivate/course.class.php');
+        require_once($CFG->dirroot.'/local/publicprivate/lib/course.class.php');
 
         $pubpriv_course = new PublicPrivate_Course($context->instanceid);
 
@@ -1844,7 +1844,7 @@ function role_unassign_all(array $params, $subcontexts = false, $includemanual =
     
     if($context->contextlevel == CONTEXT_COURSE && !$DB->record_exists('role_assignments', array('userid'=>$params['userid'], 'contextid'=>$params['contextid']))) {
 
-        require_once($CFG->libdir.'/publicprivate/course.class.php');
+        require_once($CFG->dirroot.'/local/publicprivate/lib/course.class.php');
         
         $pubpriv_course = new PublicPrivate_Course($context->instanceid);
 

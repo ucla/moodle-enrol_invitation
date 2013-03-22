@@ -1,6 +1,6 @@
 <?php
 
-include_once($CFG->libdir.'/publicprivate/exception.class.php');
+include_once($CFG->dirroot.'/local/publicprivate/lib/exception.class.php');
 
 /**
  * An exception for the PublicPrivate_Module object.

@@ -189,7 +189,7 @@ if (ajaxenabled()) {
      * @author ebollens
      * @version 20110719
      */
-    require_once($CFG->libdir.'/publicprivate/course.class.php');
+    require_once($CFG->dirroot.'/local/publicprivate/lib/course.class.php');
     $publicprivate_course = new PublicPrivate_Course($course);
     $onchange = 'M.core_group.membersCombo.refreshMembersPublicPrivate('.$publicprivate_course->get_group().')';
 } else {

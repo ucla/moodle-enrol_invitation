@@ -1,8 +1,8 @@
 <?php
 
-include_once($CFG->libdir.'/publicprivate/module_exception.class.php');
-include_once($CFG->libdir.'/publicprivate/course.class.php');
-include_once($CFG->libdir.'/publicprivate/site.class.php');
+include_once($CFG->dirroot.'/local/publicprivate/lib/module_exception.class.php');
+include_once($CFG->dirroot.'/local/publicprivate/lib/course.class.php');
+include_once($CFG->dirroot.'/local/publicprivate/lib/site.class.php');
 include_once($CFG->libdir.'/datalib.php');
 
 /**

@@ -1008,7 +1008,7 @@ class siteindicator_manager {
      */
     static function make_private($courseid) {
         global $DB, $CFG;
-        require_once($CFG->libdir . '/publicprivate/course.class.php');
+        require_once($CFG->dirroot . '/local/publicprivate/lib/course.class.php');
 
         $pubpriv_course = new PublicPrivate_Course($courseid);
         if($pubpriv_course->is_activated()) {

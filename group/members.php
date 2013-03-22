@@ -57,7 +57,7 @@ $potentialmembersselector = new group_non_members_selector('addselect', array('g
  * @version 20110719
  */
 
-require_once($CFG->libdir.'/publicprivate/course.class.php');
+require_once($CFG->dirroot.'/local/publicprivate/lib/course.class.php');
 $publicprivate_course = new PublicPrivate_Course($course);
 
 if (optional_param('add', false, PARAM_BOOL) && confirm_sesskey() && !$publicprivate_course->is_group($group)) {

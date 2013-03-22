@@ -3025,7 +3025,7 @@ function forum_get_course_forum($courseid, $type) {
 
     // UCLA MOD CCLE-3101: Forums created for courses should be private by
     // default.
-    $publicprivatelib = $CFG->libdir . '/publicprivate/module.class.php';
+    $publicprivatelib = $CFG->dirroot . '/local/publicprivate/lib/module.class.php';
     if (file_exists($publicprivatelib)) {
         require_once($publicprivatelib);
         if (PublicPrivate_Course::build($courseid)->is_activated()) {

@@ -164,13 +164,13 @@ abstract class backup_factory {
          * @version 20110719
          */
         global $CFG;
-        if(file_exists($CFG->libdir.'/publicprivate/backup_publicprivate_course_task.class.php')
-                && file_exists($CFG->libdir.'/publicprivate/site.class.php')
-                && file_exists($CFG->libdir.'/publicprivate/course.class.php')) {
-            include_once($CFG->libdir.'/publicprivate/site.class.php');
-            include_once($CFG->libdir.'/publicprivate/course.class.php');
+        if(file_exists($CFG->dirroot.'/local/publicprivate/lib/backup_publicprivate_course_task.class.php')
+                && file_exists($CFG->dirroot.'/local/publicprivate/lib/site.class.php')
+                && file_exists($CFG->dirroot.'/local/publicprivate/lib/course.class.php')) {
+            include_once($CFG->dirroot.'/local/publicprivate/lib/site.class.php');
+            include_once($CFG->dirroot.'/local/publicprivate/lib/course.class.php');
             if(PublicPrivate_Site::is_enabled() && PublicPrivate_Course::build($course)->is_activated()) {
-                include_once($CFG->libdir.'/publicprivate/backup_publicprivate_course_task.class.php');
+                include_once($CFG->dirroot.'/local/publicprivate/lib/backup_publicprivate_course_task.class.php');
                 return new Backup_PublicPrivate_Course_Task($course->shortname, $courseid);
             }
         }
