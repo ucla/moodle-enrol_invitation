@@ -151,6 +151,24 @@ class rolemapping_test extends advanced_testcase {
         }              
     }
     
+    /**
+     * Make sure that get_pseudorole always returns student_instructor if passing in
+     * anyone with a role code of 22
+     * 
+     * @dataProvider role_combo_provider
+     */
+    function test_get_pseudorole_student_instructor($role_combo) {
+        $params[] = array('primary' => array('22'));
+        $params[] = array('secondary' => array('22'));    
+        $params[] = array('primary' => array('22'),
+            'secondary' => array('22'));
+        
+        foreach ($params as $param) {
+            $pseudorole = get_pseudorole($param, $role_combo); 
+            $this->assertEquals('student_instructor', $pseudorole);
+        }        
+    }
+    
     function test_get_student_pseudorole() {
         $should_return_waitlisted = array('W', 'H', 'P');
         foreach ($should_return_waitlisted as $code) {

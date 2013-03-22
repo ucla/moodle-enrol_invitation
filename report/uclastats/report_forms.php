@@ -29,9 +29,18 @@ class runreport_form extends moodleform {
         global $CFG, $DB;
         $mform =& $this->_form;
         $fields = $this->_customdata['fields'];
+        $is_high_load = $this->_customdata['is_high_load'];
 
         $mform->addElement('header', 'run-report-header',
                 get_string('run_report', 'report_uclastats'));
+
+        // does the report run a long time? if so, we need to note that
+        if ($is_high_load) {
+            $mform->addElement('html', html_writer::tag('div',
+                    get_string('warning_high_load', 'report_uclastats'),
+                    array('class' => 'warning-high-load')));
+        }
+
         if (!empty($fields)) {
             foreach ($fields as $field) {
                 if (is_array($field)) {
@@ -57,17 +66,19 @@ class runreport_form extends moodleform {
                         break;
                     case 'subjarea':
                         $query = "
-                            SELECT urs . *
+                            SELECT DISTINCT urs.subjarea, urs.subj_area_full
                                 FROM {ucla_reg_subjectarea} AS urs
-                                JOIN {ucla_request_classes} AS urc ON urc.department = urs.subjarea
+                                JOIN {ucla_request_classes} AS urc ON
+                                    urc.department = urs.subjarea
                             WHERE urc.action = 'built'
-                            GROUP BY urs.id 
+                            ORDER BY urs.subjarea
                             ";
                         $subjareas = $DB->get_records_sql($query);
-                        
+
                         $s = array();
                         foreach ($subjareas as $subjarea) {
-                            $s[$subjarea->subj_area_full] = ucla_format_name($subjarea->subj_area_full);
+                            $s[$subjarea->subjarea] =
+                                    ucla_format_name($subjarea->subj_area_full);
                         }
                         
                         $mform->addElement('select', 'subjarea', 
