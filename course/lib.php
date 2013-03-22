@@ -3224,8 +3224,8 @@ function make_editing_buttons(stdClass $mod, $absolute_ignored = true, $movesele
          * @author ebollens
          * @version 20110719
          */
-        $str->public         = get_string("publicprivatemakepublic");
-        $str->private        = get_string("publicprivatemakeprivate");        
+        $str->public         = get_string("publicprivatemakepublic", "local_publicprivate");
+        $str->private        = get_string("publicprivatemakeprivate", "local_publicprivate");
     }
 
     $baseurl = new moodle_url('/course/mod.php', array('sesskey' => sesskey()));
