@@ -115,6 +115,7 @@ function parse_datasource($datasource_url)
         die("\n" . get_string('errlrfileopen', 'tool_ucladatasourcesync') . "\n");
     }    
     
+    $invalidfields_errors = array();
     $num_entries = 0;
     foreach ($lines as $line_num => $line) {
         # stop processing data if we hit the end of the file
@@ -163,10 +164,9 @@ function parse_datasource($datasource_url)
             $error->line_num = $line_num;
             $error->data = print_r($incoming_data, true); 
 
-            // @todo commenting out for now, better to compile a list of these
-            // and send all errors in one email
-//            log_ucla_data('library reserve', 'read', 'Reading data source', 
-//                    get_string('warninvalidfields', 'tool_ucladatasourcesync', $error) );
+            // compile a list of parsing errors and send all errors in one email            
+            $invalidfields_errors[] = get_string('warninvalidfields', 
+                    'tool_ucladatasourcesync', $error) . "\n";
             
             echo(get_string('warninvalidfields', 'tool_ucladatasourcesync', 
                     $error) . "\n");      
@@ -174,7 +174,11 @@ function parse_datasource($datasource_url)
                 
         ++$num_entries;
     }
- 
+
+    // Email ccle support about invalid field errors
+    log_ucla_data('library reserves', 'read', 'library reserve invalid',
+            implode("\r\n", $invalidfields_errors));
+    
     return $parsed_data;
 }
 
