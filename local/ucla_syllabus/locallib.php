@@ -48,12 +48,10 @@ define('UCLA_SYLLABUS_ACTION_CONVERT', 'convert');
 
 class ucla_syllabus_manager {
     private $courseid;
-    private $coursecontext;
     private $filemanager_config;
     
     public function __construct($course) {
-        $this->courseid = $course->id;
-        $this->coursecontext = context_course::instance($course->id);
+        $this->courseid = $course->id;        
         
         // config for filepicker
         $maxbytes = get_max_upload_file_size(0, $course->maxbytes);        
@@ -86,8 +84,9 @@ class ucla_syllabus_manager {
      * @return boolean
      */
     public function can_manage() {
+        $coursecontext = context_course::instance($this->courseid);
         return has_capability('local/ucla_syllabus:managesyllabus', 
-                $this->coursecontext);
+                $coursecontext);
     }
     
     /**
@@ -393,8 +392,9 @@ class ucla_syllabus_manager {
         }
         
         // then save file, with link to ucla_syllabus
+        $coursecontext = context_course::instance($this->courseid);
         file_save_draft_area_files($data->syllabus_file, 
-                $this->coursecontext->id, 'local_ucla_syllabus', 'syllabus', 
+                $coursecontext->id, 'local_ucla_syllabus', 'syllabus',
                 $recordid, $this->filemanager_config);        
         
         // no errors, so trigger events

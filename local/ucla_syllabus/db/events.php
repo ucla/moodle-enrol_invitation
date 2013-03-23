@@ -36,4 +36,11 @@ $handlers = array (
         'schedule'         => 'instant',    // instant for message passing
         'internal'         => 1,
     ),
+
+    'course_deleted' => array(
+        'handlerfile'      => '/local/ucla_syllabus/eventlib.php',
+        'handlerfunction'  => 'delete_syllabi',
+        'schedule'         => 'instant',
+        'internal'         => 1,
+    ),
 );

@@ -11,6 +11,50 @@ require_once($CFG->dirroot . '/local/ucla_syllabus/locallib.php');
 require_once($CFG->dirroot . '/local/ucla_syllabus/alert_form.php');
 
 /**
+ * Delete a course's syllabus when a course is deleted.
+ *
+ * NOTE: Unfortunately cannot use ucla_syllabus_manager to delete syllabus
+ * entry and files, because course context is already deleted. Need to manually
+ * find the syllabus entries and delete associated files.
+ *
+ * @param object $course
+ */
+function delete_syllabi($course) {
+    global $DB;
+
+    // get all syllabus entries for course
+    $syllabi = $DB->get_records('ucla_syllabus',
+            array('courseid' => $course->id));
+
+    if (empty($syllabi)) {
+        return true;
+    }
+
+    $fs = get_file_storage();
+    foreach ($syllabi as $syllabus) {
+        // delete any files associated with syllabus entry
+        $files = $fs->get_area_files($course->context->id, 
+                'local_ucla_syllabus', 'syllabus', $syllabus->id, '', false);
+        if (!empty($files)) {
+            foreach ($files as $file) {
+                $file->delete();
+            }            
+        }
+
+        // next, delete entry in syllabus table
+        $DB->delete_records('ucla_syllabus', array('id' => $syllabus->id));
+
+        // Data to handle events
+        $data = new stdClass();
+        $data->courseid = $course->id;
+        $data->access_type = $syllabus->access_type;
+
+        // trigger events
+        events_trigger('ucla_syllabus_deleted', $data);        
+    }
+}
+
+/**
  * Alert instructors to upload syllabus if they haven't done so already.
  * 
  * @param object $eventdata Contains userid, course, user_is_editing, roles,
