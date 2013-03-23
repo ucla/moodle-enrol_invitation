@@ -371,9 +371,6 @@ class format_ucla_renderer extends format_section_renderer_base {
     public function print_section_zero_content() {
         global $CFG, $OUTPUT;
 
-        // print any external notices
-        $this->print_external_notices();
-
         $center_content = '';
         
         // Course Information specific has a different section header
@@ -676,6 +673,13 @@ class format_ucla_renderer extends format_section_renderer_base {
 
         $o.= html_writer::start_tag('li', array('id' => 'section-'.$section->section,
             'class' => 'section main clearfix'.$sectionstyle));
+
+        // if we are on the langing page, then print any external notices
+        $ucla_course_prefs = new ucla_course_prefs($course->id);
+        $landing_page = $ucla_course_prefs->get_preference('landing_page');
+        if (empty($landing_page) || $landing_page == $section->section) {
+            $this->print_external_notices();
+        }
 
         // For site info, instead of printing section title/summary, just 
         // print site info releated stuff instead
