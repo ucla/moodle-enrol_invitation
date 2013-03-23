@@ -432,7 +432,7 @@ if (!isset($data) || !$data) {
     $sectret = new single_button($secturl, get_string('returntosection', 
             'block_ucla_easyupload'), 'get');
 
-    echo $OUTPUT->confirm($message, $sectret, $courseret);
+    echo $OUTPUT->confirm($message, $courseret, $sectret);
 }
 
 echo $OUTPUT->footer();
