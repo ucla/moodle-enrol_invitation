@@ -2539,6 +2539,21 @@ function print_course($course, $highlightterms = '') {
     echo html_writer::link($linkhref, $linktext, $linkparams);
     echo html_writer::end_tag('h3');
 
+    // START UCLA MOD: CCLE-3821 - Profiles of manager, instructor, project
+    // lead, etc. roles are visible to UCLA logons
+
+    // To fix this issue we unset the $CFG->coursecontact values, but doing that
+    // removed the instructor listfor the course search. We are going to
+    // replace $CFG->coursecontact with a search for a set of roles and remove
+    // the link to the user's profile
+    if (empty($CFG->coursecontact)) {
+        list($select, $params) = $DB->get_in_or_equal(array('editinginstructor',
+            'projectlead', 'studentfacilitator'));
+        $coursecontact = $DB->get_fieldset_select('role', 'id',
+                'shortname ' . $select, $params);
+        $CFG->coursecontact = implode(',', $coursecontact);
+    }
+    // END UCLA MOD: CCLE-3821
     /// first find all roles that are supposed to be displayed
     if (!empty($CFG->coursecontact)) {
         $managerroles = explode(',', $CFG->coursecontact);
@@ -2581,8 +2596,11 @@ function print_course($course, $highlightterms = '') {
             }
 
             $fullname = fullname($ra, $canviewfullnames);
-            $namesarray[$ra->id] = format_string($ra->rolename).': '.
-                html_writer::link(new moodle_url('/user/view.php', array('id'=>$ra->id, 'course'=>SITEID)), $fullname);
+            // START UCLA MOD: CCLE-3821
+//            $namesarray[$ra->id] = format_string($ra->rolename).': '.
+//                html_writer::link(new moodle_url('/user/view.php', array('id'=>$ra->id, 'course'=>SITEID)), $fullname);
+            $namesarray[$ra->id] = format_string($ra->rolename).': '.$fullname;
+            // END UCLA MOD: CCLE-3821
         }
 
         if (!empty($namesarray)) {
