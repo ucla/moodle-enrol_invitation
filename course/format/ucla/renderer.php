@@ -190,7 +190,8 @@ class format_ucla_renderer extends format_section_renderer_base {
         $inst_text = '';
         if (!empty($this->instructors)) {
             foreach ($this->instructors as $instructor) {
-                if (in_array($instructor->shortname, $CFG->instructor_levels_roles['Instructor'])) {
+                if (in_array($instructor->shortname, $CFG->instructor_levels_roles['Instructor'])
+                        || in_array($instructor->shortname, $CFG->instructor_levels_roles['Student Facilitator'])) {
                     $imploder[$instructor->id] = $instructor->lastname;
                 }
             }
