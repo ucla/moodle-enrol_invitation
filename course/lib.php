@@ -2483,10 +2483,25 @@ function print_courses($category) {
     }
 
     if ($courses) {
+
+        // START UCLA MOD CCLE-3669 - require siteindicator support
+        $lib = dirname(__FILE__) . '/../admin/tool/uclasiteindicator/lib.php';
+        require_once($lib);
+        // END UCLA MOD CCLE-3669
+
         echo html_writer::start_tag('ul', array('class'=>'unlist'));
         foreach ($courses as $course) {
             $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
             if ($course->visible == 1 || has_capability('moodle/course:viewhiddencourses', $coursecontext)) {
+                
+                // START UCLA MOD CCLE-3669 - hide private collab sites from 
+                // public category listing
+                $site = siteindicator_site::load($course->id);
+                if ($site && $site->property->type == siteindicator_manager::SITE_TYPE_PRIVATE
+                        && !has_capability('moodle/course:update', $coursecontext)) {
+                    continue;
+                }
+                // END UCLA MOD CCLE-3669
                 echo html_writer::start_tag('li');
                 print_course($course);
                 echo html_writer::end_tag('li');
