@@ -101,33 +101,31 @@ class block_ucla_alert extends block_base {
      * Deletes all alert records when block is removed
      * 
      * @global type $DB
-     * @global type $COURSE
      * @return boolean 
      */
     public function instance_delete() {
-        global $DB, $COURSE;
+        global $DB;
 
-        // The SITE block exists in two pages, my-sites and frontpage so it 
-        // has two instances.  
-        // When the block is deleted from the front page (site-index), it 
-        // will also delete it from my-sites. 
-        if(intval($COURSE->id) === intval(SITEID)) {
-            $query = "SELECT *
-                      FROM {block_instances}
-                      WHERE 
-                          blockname = 'ucla_alert'
-                      AND pagetypepattern = 'my-index'
-                      AND id <> :id";
-            
-            if($records = $DB->get_records_sql($query, array('id' => $this->instance->id))) {
-                $instance = array_pop($records);
-                blocks_delete_instance($instance);
-            }
+        $query = "
+            SELECT c.id
+                FROM {block_instances} AS bi
+                JOIN {context} AS ctx ON ctx.id = bi.parentcontextid
+                    AND ctx.contextlevel = :contextlevel
+                JOIN {course} AS c ON c.id = ctx.instanceid
+            WHERE bi.id = :instanceid
+            ";
+        
+        $courseid = $DB->get_field_sql($query, 
+                array('instanceid' => $this->instance->id, 
+                      'contextlevel' => CONTEXT_COURSE));
+        
+        if($courseid) {
+            // Delete records from alert table
+            return $DB->delete_records(ucla_alert::DB_TABLE, 
+                    array('courseid' => $courseid));
         }
         
-        // Delete records from alert table
-        return $DB->delete_records(ucla_alert::DB_TABLE, 
-                array('courseid' => $COURSE->id));
+        return parent::instance_delete();
     }
 
 }
