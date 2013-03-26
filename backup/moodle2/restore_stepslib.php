@@ -1371,9 +1371,6 @@ class restore_course_structure_step extends restore_structure_step {
 
         // Add course related files, without itemid to match
         $this->add_related_files('course', 'summary', null);
-        // START UCLA MOD: CCLE-2902 - Enable "legacy course files" repository for restored M19 courses on M2
-        //$this->add_related_files('course', 'legacy', null);
-        // END UCLA MOD: CCLE-2902
 
         // Deal with legacy allowed modules.
         if ($this->legacyrestrictmodules) {
@@ -1400,31 +1397,15 @@ class restore_course_structure_step extends restore_structure_step {
     }
 }
 
-// START UCLA MOD: CCLE-2902 - Enable "legacy course files" repository for restored M19 courses on M2
 /**
- * Structure step that will migrate legacy files if present.
+ * Execution step that will migrate legacy files if present.
  */
-class restore_course_legacy_files_step extends restore_structure_step {
-    protected function define_structure() {
-        $course = new restore_path_element('course', '/course');
+class restore_course_legacy_files_step extends restore_execution_step {
+    public function define_execution() {
+        global $DB;
 
-        return array($course);
-    }
-
-    /**
-     * Processing functions go here.
-     *
-     * @global moodledatabase $DB
-     * @param stdClass $data
-     */
-    public function process_course($data) {
-        global $CFG, $DB;
-
-        $data = new object();
-        $data->id = $this->get_courseid();
-
-        // Check if we have legacy files, and enable them if we do.
-        $sql = 'SELECT count(*) AS newitemid
+        // Do a check for legacy files and skip if there are none.
+        $sql = 'SELECT count(*)
                   FROM {backup_files_temp}
                  WHERE backupid = ?
                    AND contextid = ?
@@ -1433,24 +1414,12 @@ class restore_course_legacy_files_step extends restore_structure_step {
         $params = array($this->get_restoreid(), $this->task->get_old_contextid(), 'course', 'legacy');
 
         if ($DB->count_records_sql($sql, $params)) {
-            // Enable the legacy files.
-            $data->legacyfiles = 2;
-
-            // Course record ready, update it.
-            $DB->update_record('course', $data);
+            $DB->set_field('course', 'legacyfiles', 2, array('id' => $this->get_courseid()));
+            restore_dbops::send_files_to_pool($this->get_basepath(), $this->get_restoreid(), 'course',
+                'legacy', $this->task->get_old_contextid(), $this->task->get_userid());
         }
-
     }
-
-    protected function after_execute() {
-        global $DB;
-
-        // Add course legacy files, without itemid to match.
-        $this->add_related_files('course', 'legacy', null);
-    }
-
 }
-// END UCLA MOD: CCLE-2902
 
 /*
  * Structure step that will read the roles.xml file (at course/activity/block levels)
