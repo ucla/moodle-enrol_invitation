@@ -17,6 +17,18 @@ require_once($CFG->dirroot . '/report/uclastats/locallib.php');
 class large_collab_sites extends uclastats_base {
 
     /**
+     * Returns associated help text for given report.
+     *
+     * @return string
+     */
+    public function get_help() {
+        return html_writer::tag('p', get_string(get_class($this) .
+                '_help', 'report_uclastats',
+                display_size(get_config('moodlecourse', 'maxbytes'))),
+                array('class' => 'report-help'));
+    }
+
+    /**
      * Returns an array of form elements used to run report.
      */
     public function get_parameters() {
@@ -87,7 +99,7 @@ class large_collab_sites extends uclastats_base {
         $query_result = $DB->get_records_sql($sql, $params);
 
         //query to get all files belonging to large collab sites
-        $sql2 = "SELECT f.id,f.mimetype, f.filesize"
+        $sql2 = "SELECT DISTINCT f.id,f.mimetype, f.filesize"
                 . $sql_body .
                 " AND c.id = :collab_id";
 

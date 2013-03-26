@@ -75,15 +75,6 @@ class final_quiz_report extends uclastats_base {
     }
 
     /**
-     * Since we are querying the mdl_log table a lot, we need to give a warning.
-     * 
-     * @return boolean  Returns true
-     */
-    public function is_high_load() {
-        return true;
-    }
-
-    /**
      * Query to get the number of quizzes taken during finals week by division
      *
      * @param array $params
@@ -102,7 +93,7 @@ class final_quiz_report extends uclastats_base {
         $term_info = $this->get_term_info($params['term']);
 
         if (is_summer_term($params['term'])) { //if it is a summer session
-            $sql = "SELECT urd.fullname as division,COUNT(*) as count
+            $sql = "SELECT urd.fullname as division,COUNT(DISTINCT q.id) as count
                     FROM {ucla_request_classes} AS urc
                     JOIN {ucla_reg_classinfo} urci ON (
                         urci.term=urc.term AND
@@ -117,39 +108,28 @@ class final_quiz_report extends uclastats_base {
                     JOIN {quiz_attempts} qa ON (
                         q.id = qa.quiz
                     )
-
-                    WHERE urc.term = :term  AND
-                    urc.hostcourse=1 AND ((
-
-                     urci.session = '6A' AND
-                     q.timeopen >= :finals_start_6a AND
-                     q.timeclose < :finals_end_6a
-
-                    ) OR (
-
-                      urci.session = '8A' AND
-                      q.timeopen >= :finals_start_8a AND
-                      q.timeclose < :finals_end_8a
-
-                    ) OR (
-
-                      urci.session = '9A' AND
-                      q.timeopen >= :finals_start_9a AND
-                      q.timeclose < :finals_end_9a
-
-                    ) OR (
-
-                      urci.session = '1A' AND
-                      q.timeopen >= :finals_start_1a AND
-                      q.timeclose < :finals_end_1a
-
-                    ) OR (
-
-                      urci.session IN ('6C') AND
-                      q.timeopen >= :finals_start_c AND
-                      q.timeclose < :finals_end_c
-                    ))
-
+                    WHERE   urc.term = :term  AND
+                            urc.hostcourse=1 AND ((
+                             urci.session = '6A' AND
+                             q.timeopen >= :finals_start_6a AND
+                             q.timeclose < :finals_end_6a
+                            ) OR (
+                              urci.session = '8A' AND
+                              q.timeopen >= :finals_start_8a AND
+                              q.timeclose < :finals_end_8a
+                            ) OR (
+                              urci.session = '9A' AND
+                              q.timeopen >= :finals_start_9a AND
+                              q.timeclose < :finals_end_9a
+                            ) OR (
+                              urci.session = '1A' AND
+                              q.timeopen >= :finals_start_1a AND
+                              q.timeclose < :finals_end_1a
+                            ) OR (
+                              urci.session IN ('6C') AND
+                              q.timeopen >= :finals_start_c AND
+                              q.timeclose < :finals_end_c
+                            ))
                     GROUP BY urci.division
                     ORDER BY urd.fullname";
 
@@ -170,7 +150,7 @@ class final_quiz_report extends uclastats_base {
                         'finals_end_c' => strtotime('+1 day', $term_info['end_c']),
                     ));
         } else {
-            $sql = "SELECT urd.fullname as division,COUNT(*) as count
+            $sql = "SELECT urd.fullname as division,COUNT(DISTINCT q.id) as count
                     FROM {ucla_request_classes} AS urc
                     JOIN {ucla_reg_classinfo} urci ON (
                         urci.term = urc.term AND
@@ -181,16 +161,14 @@ class final_quiz_report extends uclastats_base {
                     )
                     JOIN {quiz} q ON(
                         urc.courseid = q.course
-
                     )
                     JOIN {quiz_attempts} qa ON (
                         q.id = qa.quiz
-                    )
-                
-                    WHERE urc.term = :term  AND
-                    urc.hostcourse = 1 AND
-                    q.timeopen >= :finals_start AND
-                    q.timeclose < :finals_end 
+                    )                
+                    WHERE   urc.term = :term  AND
+                            urc.hostcourse = 1 AND
+                            q.timeopen >= :finals_start AND
+                            q.timeclose < :finals_end
                     GROUP BY urci.division
                     ORDER BY urd.fullname";
 
