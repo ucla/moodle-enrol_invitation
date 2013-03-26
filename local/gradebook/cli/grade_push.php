@@ -18,9 +18,9 @@ require_once($CFG->dirroot . '/local/gradebook/locallib.php');
 require_once($CFG->libdir . '/grade/constants.php');
 require_once($CFG->libdir . '/grade/grade_category.php');
 
-// Needs one argument, term or courseid
-if ($argc != 2) {
-    exit('Usage: php grade_push.php <term or course-id>' . "\n");
+// Needs one argument, term or courseid, plus optional second argument
+if ($argc > 3) {
+    exit('Usage: php grade_push.php <term or course-id> <onlyitems (optional)>' . "\n");
 }
 
 // when pushing grades using this script, disable logging successful grade updates
@@ -37,6 +37,13 @@ if (ucla_validator('term', $argv[1])) {
     $courses[] = $argv[1];
 } else {
     exit('ERROR: Invalid term or course-id did not belong to a SRS course' . "\n");    
+}
+
+// check if we only want to send grade items
+$onlyitems = false;
+if (!empty($argv[2]) && $argv[2] == 'onlyitems') {
+    $onlyitems = true;
+    echo "NOTICE: Only sending grade items\n";
 }
 
 $num_grades_sent = 0;
@@ -67,6 +74,11 @@ foreach ($courses as $courseid) {
         } else {
             echo sprintf("Sent grade item %d\n", $gradeitem->id);
             ++$num_grade_items_sent;
+        }
+
+        // check if we only want to resent grade items
+        if (!empty($onlyitems)) {
+            continue;
         }
 
         // next, get grades
