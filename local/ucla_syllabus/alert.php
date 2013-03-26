@@ -8,6 +8,7 @@ require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once($CFG->dirroot . '/local/ucla_syllabus/locallib.php');
 require_once($CFG->dirroot . '/local/ucla_syllabus/alert_form.php');
 require_once($CFG->dirroot . '/local/ucla/lib.php');
+require_once($CFG->dirroot . '/course/format/ucla/ucla_course_prefs.class.php');
 
 $id = required_param('id', PARAM_INT);   // course
 $course = $DB->get_record('course', array('id' => $id), '*', MUST_EXIST);
@@ -48,7 +49,13 @@ if (!empty($data) && confirm_sesskey()) {
     }
 
     // redirect no/later responses to course page (make sure to redirect to
-    // section 0 or user wouldn't get success message)
+    // landing page or user wouldn't get success message)
+    $section = 0;    
+    $ucla_course_prefs = new ucla_course_prefs($course->id);
+    $landing_page = $ucla_course_prefs->get_preference('landing_page');
+    if (!empty($landing_page)) {
+        $section = $landing_page;
+    }
     flash_redirect(new moodle_url('/course/view.php', 
-            array('id' => $id, 'section' => 0)), $success_msg);    
+            array('id' => $id, 'section' => $section)), $success_msg);
 }
