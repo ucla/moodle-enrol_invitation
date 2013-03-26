@@ -61,8 +61,7 @@ class report_uclastats_renderer extends plugin_renderer_base {
         $ret_val = '';
 
         // display report help
-        $ret_val .= html_writer::tag('p', get_string(get_class($report) .
-                '_help', 'report_uclastats'), array('class' => 'report-help'));
+        $ret_val .= $report->get_help();
 
         // if displaying results, then display parameters used and other info
         if (!empty($resultid)) {

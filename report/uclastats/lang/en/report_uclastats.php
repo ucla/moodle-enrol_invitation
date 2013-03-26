@@ -120,9 +120,30 @@ $string['theme'] = 'Theme';
 
 //strings for repository usage report
 $string['repository_usage'] = 'Repository usage (system)';
-$string['repository_usage_help'] = 'Find repository usage for: Dropbox, Google, Box, Server files, and My CCLE files';
+$string['repository_usage_help'] = 'Find repository usage for: Dropbox, Google, Box, Server files, and My CCLE files.';
 $string['repo_name'] = 'Repository';
 $string['repo_count'] = 'File count';
+
+//strings for large courses report
+$string['large_courses'] = 'Large sites (course)';
+$string['large_courses_help'] = 'For a given term, list all the courses over {$a}.';
+$string['other'] = 'Other';
+$string['video'] = 'Video';
+$string['audio'] = 'Audio';
+$string['image'] = 'Image';
+$string['web_file'] = 'Web file';
+$string['spreadsheet'] = 'Spreadsheet';
+$string['document'] = 'Document';
+$string['archive'] = 'Archive';
+$string['presentation'] = 'Presentation';
+
+//strings for large collab sites report
+$string['large_collab_sites'] = 'Large sites (collab)';
+$string['large_collab_sites_help'] = 'List all the collaboration sites over {$a}.';
+
+//strings for final quiz report
+$string['final_quiz_report'] = 'Final quiz report (course)';
+$string['final_quiz_report_help'] = 'Displays the number of quizzes taken during finals week by division.';
 
 // error strings
 $string['nocachedresults'] = 'No cached results found';
