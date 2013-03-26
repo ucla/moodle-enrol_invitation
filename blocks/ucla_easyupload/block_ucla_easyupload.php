@@ -4,6 +4,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/blocks/moodleblock.class.php');
 require_once($CFG->dirroot . '/course/lib.php');
+require_once($CFG->dirroot.'/course/format/ucla/lib.php');
 
 class block_ucla_easyupload extends block_base {
     function init() {
@@ -117,6 +118,16 @@ class block_ucla_easyupload extends block_base {
         $other_components = array('activity', 'resource', 'subheading', 
             'text');
 
+        // give proper section
+        $section = ucla_format_figure_section($course);
+        $section_type = 'section';
+        $section_value = $section;
+        // handle special case for show_all
+        if ($section == UCLA_FORMAT_DISPLAY_ALL) {
+            $section_type = 'show_all';
+            $section_value = 1;
+        }
+
         $allmods = array();
 
         foreach ($common_components as $common) {
@@ -124,7 +135,8 @@ class block_ucla_easyupload extends block_base {
                 'item_name' => 'add_' . $common,
                 'tags' => array('ucla_cp_mod_common'),
                 'action' => new moodle_url($thispath,
-                    array('course_id' => $course->id, 'type' => $common)),
+                    array('course_id' => $course->id, 'type' => $common,
+                        $section_type => $section_value)),
                 'required_cap' => 'moodle/course:manageactivities'
             );
         }
@@ -134,7 +146,8 @@ class block_ucla_easyupload extends block_base {
                 'item_name' => 'add_' . $common,
                 'tags' => array('ucla_cp_mod_other'),
                 'action' => new moodle_url($thispath,
-                    array('course_id' => $course->id, 'type' => $common)),
+                    array('course_id' => $course->id, 'type' => $common,
+                        $section_type => $section_value)),
                 'required_cap' => 'moodle/course:manageactivities'
             );
         }

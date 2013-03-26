@@ -330,6 +330,16 @@ abstract class uclastats_base implements renderable {
     }
 
     /**
+     * Returns associated help text for given report.
+     *
+     * @return string
+     */
+    public function get_help() {
+        return html_writer::tag('p', get_string(get_class($this) .
+                '_help', 'report_uclastats'), array('class' => 'report-help'));
+    }
+
+    /**
      * Abstract method to return parameters needed to run report.
      *
      * @return array

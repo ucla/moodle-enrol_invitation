@@ -4,8 +4,8 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->libdir.'/formslib.php');
 require_once($CFG->libdir.'/completionlib.php');
-require_once($CFG->libdir.'/publicprivate/course.class.php');
-require_once($CFG->libdir.'/publicprivate/site.class.php');
+require_once($CFG->dirroot.'/local/publicprivate/lib/course.class.php');
+require_once($CFG->dirroot.'/local/publicprivate/lib/site.class.php');
 require_once($CFG->dirroot . '/admin/tool/uclasiteindicator/lib.php');
 
 class course_edit_form extends moodleform {
@@ -416,8 +416,8 @@ class course_edit_form extends moodleform {
             $choices = array();
             $choices[0] = get_string('disable');
             $choices[1] = get_string('enable');
-            $mform->addElement('select', 'enablepublicprivate', get_string('publicprivate'), $choices);
-            $mform->addHelpButton('enablepublicprivate', 'publicprivateenable');
+            $mform->addElement('select', 'enablepublicprivate', get_string('publicprivate','local_publicprivate'), $choices);
+            $mform->addHelpButton('enablepublicprivate', 'publicprivateenable', 'local_publicprivate');
             $mform->setDefault('enablepublicprivate', empty($course->enablepublicprivate) ? 1 : $course->enablepublicprivate);
         }
 

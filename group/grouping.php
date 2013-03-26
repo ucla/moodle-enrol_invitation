@@ -68,7 +68,7 @@ require_capability('moodle/course:managegroups', $context);
 
 $returnurl = $CFG->wwwroot.'/group/groupings.php?id='.$course->id;
 
-require_once($CFG->libdir.'/publicprivate/course.class.php');
+require_once($CFG->dirroot.'/local/publicprivate/lib/course.class.php');
 $publicprivate_course = new PublicPrivate_Course($course);
 
 if ($id and $delete) {
@@ -89,7 +89,7 @@ if ($id and $delete) {
          */
         if($publicprivate_course->is_grouping($grouping)) {
             echo $OUTPUT->heading($course->fullname. ': '. get_string('deletegrouping', 'group'));
-            echo $OUTPUT->notification(get_string('publicprivatecannotremove'));
+            echo $OUTPUT->notification(get_string('publicprivatecannotremove','local_publicprivate'));
             echo $OUTPUT->continue_button('groupings.php?id='.$courseid);
         } else {
             $optionsyes = array('id'=>$id, 'delete'=>1, 'courseid'=>$courseid, 'sesskey'=>sesskey(), 'confirm'=>1);
@@ -169,7 +169,7 @@ echo $OUTPUT->heading($strheading);
  * @version 20110719
  */
 if($publicprivate_course->is_grouping($grouping)) {
-    echo $OUTPUT->notification(get_string('publicprivatecannotremove'));
+    echo $OUTPUT->notification(get_string('publicprivatecannotremove','local_publicprivate'));
     echo $OUTPUT->continue_button('groupings.php?id='.$courseid);
     echo $OUTPUT->footer();
     die;

@@ -31,8 +31,8 @@
  * @author ebollens
  * @version 20110719
  */
-if(file_exists($CFG->libdir.'/publicprivate/restore_publicprivate_course_task.class.php')) {
-    include_once($CFG->libdir.'/publicprivate/restore_publicprivate_course_task.class.php');
+if(file_exists($CFG->dirroot.'/local/publicprivate/lib/restore_publicprivate_course_task.class.php')) {
+    include_once($CFG->dirroot.'/local/publicprivate/lib/restore_publicprivate_course_task.class.php');
 }
 
 /**

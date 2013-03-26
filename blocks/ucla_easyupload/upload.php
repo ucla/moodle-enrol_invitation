@@ -8,7 +8,7 @@ $thispath = '/blocks/ucla_easyupload';
 require_once($CFG->dirroot . $thispath . '/block_ucla_easyupload.php');
 require_once($CFG->dirroot . $thispath . '/upload_form.php');
 
-@include_once($CFG->libdir . '/publicprivate/module.class.php');
+@include_once($CFG->dirroot . '/local/publicprivate/lib/module.class.php');
 // Need to inlucde here.  License is not treated as plugin in the code
 @include_once($CFG->libdir. '/licenselib.php');
 
@@ -432,7 +432,7 @@ if (!isset($data) || !$data) {
     $sectret = new single_button($secturl, get_string('returntosection', 
             'block_ucla_easyupload'), 'get');
 
-    echo $OUTPUT->confirm($message, $sectret, $courseret);
+    echo $OUTPUT->confirm($message, $courseret, $sectret);
 }
 
 echo $OUTPUT->footer();

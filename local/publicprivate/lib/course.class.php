@@ -1,7 +1,7 @@
 <?php
 
-include_once($CFG->libdir.'/publicprivate/course_exception.class.php');
-include_once($CFG->libdir.'/publicprivate/site.class.php');
+include_once($CFG->dirroot.'/local/publicprivate/lib/course_exception.class.php');
+include_once($CFG->dirroot.'/local/publicprivate/lib/site.class.php');
 include_once($CFG->dirroot.'/group/lib.php');
 include_once($CFG->dirroot . '/lib/enrollib.php');
 
@@ -172,10 +172,10 @@ class PublicPrivate_Course {
          * Change name of an existing group with name get_string('publicprivategroupname')
          */
         
-        if($groupid = groups_get_group_by_name($this->_course->id, get_string('publicprivategroupname'))) {
+        if($groupid = groups_get_group_by_name($this->_course->id, get_string('publicprivategroupname','local_publicprivate'))) {
             $data = groups_get_group($groupid);
-            if(!groups_get_group_by_name($this->_course->id,  $data->name . ' ' . get_string('publicprivategroupdeprecated'))) {
-                $data->name = $data->name . ' ' . get_string('publicprivategroupdeprecated');
+            if(!groups_get_group_by_name($this->_course->id,  $data->name . ' ' . get_string('publicprivategroupdeprecated','local_publicprivate'))) {
+                $data->name = $data->name . ' ' . get_string('publicprivategroupdeprecated','local_publicprivate');
             } else {
                 for($i = 1; groups_get_group_by_name($this->_course->id,  $data->name . ' ' . get_string('autoassigndeprecatedgroup') . ' [' . $i . ']'); $i++);
                 $data->name = $data->name . ' ' . get_string('autoassigndeprecatedgroup') . ' [' . $i . ']';
@@ -194,13 +194,13 @@ class PublicPrivate_Course {
          * Change name of an existing grouping with name get_string('publicprivategroupingname')
          */
 
-        if($groupingid = groups_get_grouping_by_name($this->_course->id, get_string('publicprivategroupingname'))) {
+        if($groupingid = groups_get_grouping_by_name($this->_course->id, get_string('publicprivategroupingname','local_publicprivate'))) {
             $data = groups_get_group($groupingid);
-            if(!groups_get_grouping_by_name($this->_course->id,  $data->name . ' ' . get_string('publicprivategroupingdeprecated'))) {
-                $data->name = $data->name . ' ' . get_string('publicprivategroupingdeprecated');
+            if(!groups_get_grouping_by_name($this->_course->id,  $data->name . ' ' . get_string('publicprivategroupingdeprecated','local_publicprivate'))) {
+                $data->name = $data->name . ' ' . get_string('publicprivategroupingdeprecated','local_publicprivate');
             } else {
-                for($i = 1; groups_get_grouping_by_name($this->_course->id,  $data->name . ' ' . get_string('publicprivategroupingdeprecated') . ' [' . $i . ']'); $i++);
-                $data->name = $data->name . ' ' . get_string('publicprivategroupingdeprecated') . ' [' . $i . ']';
+                for($i = 1; groups_get_grouping_by_name($this->_course->id,  $data->name . ' ' . get_string('publicprivategroupingdeprecated','local_publicprivate') . ' [' . $i . ']'); $i++);
+                $data->name = $data->name . ' ' . get_string('publicprivategroupingdeprecated','local_publicprivate') . ' [' . $i . ']';
             }
 
             try {
@@ -218,8 +218,8 @@ class PublicPrivate_Course {
 
         $data = new object();
         $data->courseid = $this->_course->id;
-        $data->name = get_string('publicprivategroupname');
-        $data->description = get_string('publicprivategroupdescription');
+        $data->name = get_string('publicprivategroupname','local_publicprivate');
+        $data->description = get_string('publicprivategroupdescription','local_publicprivate');
 
         try {
             if(!$newgroupid = groups_create_group($data)) {
@@ -235,8 +235,8 @@ class PublicPrivate_Course {
 
         $data = new object();
         $data->courseid = $this->_course->id;
-        $data->name = get_string('publicprivategroupingname');
-        $data->description = get_string('publicprivategroupingdescription');
+        $data->name = get_string('publicprivategroupingname','local_publicprivate');
+        $data->description = get_string('publicprivategroupingdescription','local_publicprivate');
 
         try {
             if(!$newgroupingid = groups_create_grouping($data)) {

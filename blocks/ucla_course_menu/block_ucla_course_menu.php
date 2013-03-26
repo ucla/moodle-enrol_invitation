@@ -3,6 +3,7 @@
  *
  **/
 require_once($CFG->dirroot . '/blocks/navigation/block_navigation.php');
+require_once($CFG->dirroot . '/blocks/ucla_tasites/block_ucla_tasites.php');
 
 class block_ucla_course_menu extends block_navigation {
     var $contentgenerated = false;
@@ -138,12 +139,15 @@ class block_ucla_course_menu extends block_navigation {
         }
 
         // get section nodes
-        $section_elements = $this->create_section_elements();
+        $section_elements = $this->create_section_elements();        
+        $section_elements = $this->trim_nodes($section_elements);        
         
-        $section_elements = $this->trim_nodes($section_elements);
-        $this->content->text .= $renderer->navigation_node($section_elements,
-            array('class' => 'block_tree list'));
-
+        $section_class = array('class' => 'block_tree list');
+        if (block_ucla_tasites::is_tasite($this->page->course->id)) {
+            $section_class['class'] .= ' tasites';
+        }
+        $this->content->text .= $renderer->navigation_node($section_elements, $section_class);
+        
         // Separate out non-section nodes so that we can have a different style
         // to them.
         $block_elements = $this->create_block_elements();

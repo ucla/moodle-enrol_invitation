@@ -131,15 +131,15 @@ abstract class easy_upload_form extends moodleform {
                     foreach ($t as $p) {
                         $pubpriels[] = $mform->createElement('radio',
                             'publicprivate', '',
-                            get_string('publicprivatemake' . $p),
+                            get_string('publicprivatemake' . $p, 'local_publicprivate'),
                             $p);
                     }
 
                     $mform->addElement('header', '', get_string(
-                        'publicprivateenable'));
+                        'publicprivateenable','local_publicprivate'));
 
                     $mform->addGroup($pubpriels, 'publicprivateradios',
-                        get_string('publicprivate'), ' ', true);
+                        get_string('publicprivate','local_publicprivate'), ' ', true);
 
                     $mform->setDefaults(
                         array(

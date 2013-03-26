@@ -29,7 +29,7 @@ defined('MOODLE_INTERNAL') || die;
 require_once($CFG->libdir.'/completionlib.php');
 require_once($CFG->libdir.'/filelib.php');
 require_once($CFG->dirroot.'/course/dnduploadlib.php');
-require_once($CFG->libdir.'/publicprivate/course.class.php');
+require_once($CFG->dirroot.'/local/publicprivate/lib/course.class.php');
 
 define('COURSE_MAX_LOGS_PER_PAGE', 1000);       // records
 define('COURSE_MAX_RECENT_PERIOD', 172800);     // Two days, in seconds
@@ -3224,8 +3224,8 @@ function make_editing_buttons(stdClass $mod, $absolute_ignored = true, $movesele
          * @author ebollens
          * @version 20110719
          */
-        $str->public         = get_string("publicprivatemakepublic");
-        $str->private        = get_string("publicprivatemakeprivate");        
+        $str->public         = get_string("publicprivatemakepublic", "local_publicprivate");
+        $str->private        = get_string("publicprivatemakeprivate", "local_publicprivate");
     }
 
     $baseurl = new moodle_url('/course/mod.php', array('sesskey' => sesskey()));
@@ -3344,12 +3344,12 @@ function make_editing_buttons(stdClass $mod, $absolute_ignored = true, $movesele
      * @author ebollens
      * @version 20110719
      */
-    require_once($CFG->libdir.'/publicprivate/course.class.php');
+    require_once($CFG->dirroot.'/local/publicprivate/lib/course.class.php');
     $publicprivate_course = new PublicPrivate_Course($mod->course);
     $pubpriv = '';
 
     if($publicprivate_course->is_activated()) {
-        require_once($CFG->libdir.'/publicprivate/module.class.php');
+        require_once($CFG->dirroot.'/local/publicprivate/lib/module.class.php');
         $publicprivate_module = new PublicPrivate_Module($mod->id);
 
         /**

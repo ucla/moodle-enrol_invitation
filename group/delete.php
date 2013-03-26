@@ -65,7 +65,7 @@ if(count($groupidarray)==0) {
 }
 
 
-require_once($CFG->libdir.'/publicprivate/course.class.php');
+require_once($CFG->dirroot.'/local/publicprivate/lib/course.class.php');
 $publicprivate_course = new PublicPrivate_Course($courseid);
 
 if ($confirm && data_submitted()) {
@@ -108,7 +108,7 @@ if ($confirm && data_submitted()) {
             $pluralize = 'publicprivatecannotremove_one';
         }
 
-        $pluralizestr = get_string($pluralize);
+        $pluralizestr = get_string($pluralize,'local_publicprivate');
         echo $OUTPUT->notification($pluralizestr);
         echo $OUTPUT->continue_button('index.php?id='.$courseid);
     } else {
