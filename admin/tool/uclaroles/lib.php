@@ -152,6 +152,9 @@ class uclaroles_manager {
         }
         
         if (!empty($site_type)) {
+            if (!empty($role_type)) {
+                $where .= ' AND ';
+            }
             // get assignable roles for site type
             $assignable_roles = self::get_assignable_roles($site_type);
             $where .= '(';
