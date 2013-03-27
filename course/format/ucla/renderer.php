@@ -130,12 +130,26 @@ class format_ucla_renderer extends format_section_renderer_base {
      * content as is.
      *
      * Then echos those notices out.
+     *
+     * @param int sectionnum            Section being displayed
      */
-    public function print_external_notices() {
+    public function print_external_notices($sectionnum) {
         global $OUTPUT, $USER;
 
         // maybe some external notice system is redirecting back with a message
         flash_display();
+
+        /* show notices if:
+         * 1) user is on landing page
+         * 2) user is on show_all and section is 0
+         */
+        $course_prefs = new ucla_course_prefs($this->course->id);
+        $landing_page = $course_prefs->get_preference('landing_page');
+        $sectionon = ucla_format_figure_section($this->course, $course_prefs);
+        if (($landing_page != $sectionnum) &&
+                ($sectionon == UCLA_FORMAT_DISPLAY_ALL && $sectionnum != 0)) {
+            return;
+        }
 
         // Provide following information to event:
         //      userid, course, user_is_editing, roles, term (if any), notices
@@ -675,12 +689,8 @@ class format_ucla_renderer extends format_section_renderer_base {
         $o.= html_writer::start_tag('li', array('id' => 'section-'.$section->section,
             'class' => 'section main clearfix'.$sectionstyle));
 
-        // if we are on the langing page, then print any external notices
-        $ucla_course_prefs = new ucla_course_prefs($course->id);
-        $landing_page = $ucla_course_prefs->get_preference('landing_page');
-        if (empty($landing_page) || $landing_page == $section->section) {
-            $this->print_external_notices();
-        }
+        // print any external notices
+        $this->print_external_notices($section->section);
 
         // For site info, instead of printing section title/summary, just 
         // print site info releated stuff instead
