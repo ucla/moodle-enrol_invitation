@@ -9,8 +9,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-// Include local_ucla generator code, because "getDataGenerator" does not yet
-// work for local plugins. When local plugins are support, please change
+// @todo Include local_ucla generator code, because "getDataGenerator" does not
+// yet work for local plugins. When local plugins are support, please change
 // $generator = new local_ucla_generator();
 // to
 // $generator = $this->getDataGenerator()->get_plugin_generator('local_ucla');

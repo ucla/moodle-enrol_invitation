@@ -82,8 +82,8 @@ function hide_past_courses($weeknum) {
         return true;
     }
 
-    list($num_hidden_courses, $num_problem_courses, $error_messages) =
-            hide_courses($past_term);
+    list($num_hidden_courses, $num_hidden_tasites, $num_problem_courses,
+            $error_messages) = hide_courses($past_term);
 
     // Finished hiding courses, notify admins.
     $to = get_config('local_ucla', 'admin_email');
@@ -94,6 +94,7 @@ function hide_past_courses($weeknum) {
 
     $subj = 'Hiding courses for ' . $past_term;
     $body = sprintf("Hid %d courses.\n\n", $num_hidden_courses);
+    $body = sprintf("Hid %d TA sites.\n\n", $num_hidden_tasites);
     $body .= sprintf("Had %d problem courses.\n\n", $num_problem_courses);
     $body .= $error_messages;
     ucla_send_mail($to, $subj, $body);

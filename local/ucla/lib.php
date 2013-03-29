@@ -1400,11 +1400,12 @@ function is_past_course($course) {
  * @global object $DB
  * @param string $term
  * @return mixed            Returns false on invalid term. Otherwise returns an
- *                          array of $num_hidden_courses, $num_problem_courses,
- *                          $error_messages.
+ *                          array of $num_hidden_courses, $num_hidden_tasites,
+ *                          $num_problem_courses, $error_messages.
  */
 function hide_courses($term) {
-    global $DB;
+    global $CFG, $DB;
+    require_once($CFG->dirroot . '/blocks/ucla_tasites/block_ucla_tasites.php');
 
     if (!ucla_validator('term', $term)) {
         return false;
@@ -1412,16 +1413,17 @@ function hide_courses($term) {
 
     // Track some stats.
     $num_hidden_courses = 0;
+    $num_hidden_tasites = 0;
     $num_problem_courses = 0;
     $error_messages = '';
 
     // Get list of courses to hide.
-    $courses = $DB->get_recordset('ucla_request_classes',
-            array('term' => $term), '', 'courseid');
+    $courses = ucla_get_courses_by_terms(array($term));
 
-    if (!$courses->valid()) {
+    if (empty($courses)) {
         // No courses to hide.
-        return array($num_hidden_courses, $num_problem_courses, $error_messages);
+        return array($num_hidden_courses, $num_hidden_tasites,
+                     $num_problem_courses, $error_messages);
     }
 
     // Now run command to hide all courses for given term. Don't worry about
@@ -1429,11 +1431,23 @@ function hide_courses($term) {
     // because if might be slow and trigger unnecessary events.
     $courseobj = new stdClass();
     $courseobj->visible = 0;
-    foreach ($courses as $course) {
-        $courseobj->id = $course->courseid;
+    foreach ($courses as $courseid => $courseinfo) {
+        $courseobj->id = $courseid;
         try {
             $DB->update_record('course', $courseobj, true);
             ++$num_hidden_courses;
+
+            // Try to see if course had any TA sites.
+            $existing_tasites = block_ucla_tasites::get_tasites($courseid);
+            if (empty($existing_tasites)) {
+                continue;
+            }
+            foreach ($existing_tasites as $tasite) {
+                $courseobj->id = $tasite->id;
+                $DB->update_record('course', $courseobj, true);
+                ++$num_hidden_tasites;
+            }
+
         } catch (dml_exception $e) {
             $error_messages .= sprintf("Could not hide courseid %d\n%s\n",
                     $courseobj->id, $e->getMessage());
@@ -1441,5 +1455,6 @@ function hide_courses($term) {
         }
     }
 
-    return array($num_hidden_courses, $num_problem_courses, $error_messages);
+    return array($num_hidden_courses, $num_hidden_tasites,
+                 $num_problem_courses, $error_messages);
 }

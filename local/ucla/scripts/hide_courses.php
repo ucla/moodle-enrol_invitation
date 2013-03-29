@@ -43,10 +43,11 @@ $term = $unrecognized[0];
 
 echo "Hiding courses for term: " . $term . "\n";
 
-list($num_hidden_courses, $num_problem_courses, $error_messages) =
-        hide_courses($term);
+list($num_hidden_courses, $num_hidden_tasites, $num_problem_courses,
+        $error_messages) = hide_courses($term);
 
 echo sprintf("Hid %d courses.\n", $num_hidden_courses);
+echo sprintf("Hid %d TA sites.\n", $num_hidden_tasites);
 echo sprintf("Had %d problem courses.\n", $num_problem_courses);
 echo $error_messages;
 die("\nDONE!\n");
