@@ -1,20 +1,28 @@
-.mysitesdivider {
+.block_ucla_my_sites.block .mysitesdivider {
     display: block;
-    margin-bottom: 0.5em !important;
+    margin: 8px 0;
     border-bottom: 1px solid #536895;
     font-weight: bold;
     color: #394A6E;
     padding-bottom: 1px;
 }
 
-.block_ucla_my_sites, .block_ucla_my_sites .content {
-    background-color: white !important;
+.block_ucla_my_sites.block .termselector {
+    margin: 8px 0;
 }
 
-.block_ucla_my_sites .header {
-    margin-bottom: 0.5em;
+.block_ucla_my_sites.block,
+.block_ucla_my_sites.block .content,
+.block_ucla_my_sites.block .content .header {
+    background-color: white;
 }
 
+.block_ucla_my_sites.block .content .header {
+    line-height: 20px;
+    padding: 8px;
+}
+
+/*
 .block_ucla_my_sites table {
     width: 100%;
 }
@@ -33,18 +41,18 @@
 
 .block_ucla_my_sites .lastcol {
     width: 120px;
-}
+}*/
 
 .block_ucla_my_sites .content .termselector {
     color: #536895;
-    font-size: 0.8em;
-    margin-top: -6px;
+/*    font-size: 0.8em;
+    margin-top: -6px;*/
 }
-
+/*
 .block_ucla_my_sites .content .termselector select {
     font-size: 9px;
 }
-
+*/
 .block_ucla_my_sites .content .termselector .urlselect {
     display: inline-block;
 }

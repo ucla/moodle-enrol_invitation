@@ -209,7 +209,17 @@ class block_ucla_office_hours extends block_base {
 
                 foreach ($type_table_headers as $field => $header) {
                     if (isset($user->{$field})) {
-                        $user_row[$field] = $user->{$field};
+                        
+                        // We need to attach attribute in order to make 
+                        // this table responsive
+                        $cell = new html_table_cell($user->{$field});
+                        if ($header == self::TITLE_FLAG) {
+                            $header = $title;
+                        }
+                        // Put in the header title in a special attribute
+                        $cell->attributes['data-responsive'] = $header; 
+                        
+                        $user_row[$field] = $cell;
                     }
                 }
 

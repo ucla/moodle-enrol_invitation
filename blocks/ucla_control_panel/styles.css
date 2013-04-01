@@ -1,4 +1,4 @@
-#cpanel-wrapper {
+/*#cpanel-wrapper {
     margin-right: 20px;
     margin-bottom: 10px;
     border: 2px solid rgb(199,195,197);
@@ -8,10 +8,10 @@
 
 #cpanel-wrapper .cpheading {
     padding-top: 10px;
-    filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr=#B2C7C3C5, endColorstr=#FFFFFF); /* for IE */    
-    background-image: -webkit-linear-gradient(top, rgba(199,195,197,0.7), white); /* for webkit browsers */
-    background-image: -moz-linear-gradient(top, rgba(199,195,197,0.7), white); /* for firefox 3.6+ */
-    background-image: -o-linear-gradient(top, rgba(199,195,197,0.7), white); /* for opera */
+    filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr=#B2C7C3C5, endColorstr=#FFFFFF);  for IE     
+    background-image: -webkit-linear-gradient(top, rgba(199,195,197,0.7), white);  for webkit browsers 
+    background-image: -moz-linear-gradient(top, rgba(199,195,197,0.7), white);  for firefox 3.6+ 
+    background-image: -o-linear-gradient(top, rgba(199,195,197,0.7), white);  for opera 
     text-align: center;
 }
 
@@ -68,10 +68,10 @@
     border-top: solid 1px rgba(235,235,230,0.9);
     padding: 5px 5px 5px 10px;
     margin-bottom: 5px;
-    filter: progid:DXImageTransform.Microsoft.gradient(GradientType=1,startColorstr=#E5F0EBED, endColorstr=#FFFFFF); /* for IE */        
-    background-image: -webkit-linear-gradient(top left, rgba(240,235,237,0.9), white ); /* for webkit browsers */
-    background-image: -moz-linear-gradient(top left, rgba(240,235,237,0.9), white ); /* for firefox 3.6+ */
-    background-image: -o-linear-gradient(top left, rgba(199,195,197,0.7), white); /* for opera */
+    filter: progid:DXImageTransform.Microsoft.gradient(GradientType=1,startColorstr=#E5F0EBED, endColorstr=#FFFFFF);  for IE         
+    background-image: -webkit-linear-gradient(top left, rgba(240,235,237,0.9), white );  for webkit browsers 
+    background-image: -moz-linear-gradient(top left, rgba(240,235,237,0.9), white );  for firefox 3.6+ 
+    background-image: -o-linear-gradient(top left, rgba(199,195,197,0.7), white);  for opera 
 }
 
 #cpanel-wrapper .item {
@@ -88,9 +88,9 @@
     padding: 10px 50px;
 }
 
-/*#cpanel-wrapper .item .post-link {
+#cpanel-wrapper .item .post-link {
     margin-left: 44px;
-}*/
+}
 
 #cpanel-wrapper .item span, #cpanel-wrapper #my_ucla_functions .post-link {
     color: gray;
@@ -109,14 +109,14 @@
     padding-left: 1em;
 }
 
-/* Control panel button in header  */
+ Control panel button in header  
 .control-panel-button img {
     margin-top: 10px;
 }
 
-/* Add spaces after links in "Other tools" section */
+ Add spaces after links in "Other tools" section 
 #cpanel-wrapper .ucla_cp_mod_other .item, 
 #cpanel-wrapper .ucla_cp_mod_advanced .item {
     padding-bottom: 1.0em;
     width: 100%;
-}
+}*/

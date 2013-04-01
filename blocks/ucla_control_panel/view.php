@@ -122,7 +122,7 @@ foreach ($elements as $view => $section_contents) {
         }
 
         // start container for tags
-        echo html_writer::start_tag('div', array('class' => $tags));
+        echo html_writer::start_tag('div', array('class' => 'cpanel-group'));
         
         echo $OUTPUT->heading($viewstring, 2, 'main copan-title');
         
