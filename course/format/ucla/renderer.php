@@ -54,9 +54,6 @@ class format_ucla_renderer extends format_section_renderer_base {
     // term for course that is being rendered
     private $term = null;
     
-    // is user editing the page?
-    private $user_is_editing = false;
-    
     // strings to generate jit links
     private $jit_links = array();
     
@@ -92,12 +89,7 @@ class format_ucla_renderer extends format_section_renderer_base {
         $this->course =& $page->course;
         
         // save context object
-        $this->context =& $page->context;       
-        
-        // is user editing the page?
-        if ($page->user_is_editing() && has_capability('moodle/course:update', $this->context)) {
-            $this->user_is_editing = true;
-        }
+        $this->context =& $page->context;        
         
         // CCLE-2800 - cache strings for JIT links
         $this->jit_links = array('file' => get_string('file', 'format_ucla'),
@@ -134,7 +126,7 @@ class format_ucla_renderer extends format_section_renderer_base {
      * @param int sectionnum            Section being displayed
      */
     public function print_external_notices($sectionnum) {
-        global $OUTPUT, $USER;
+        global $OUTPUT, $PAGE, $USER;
 
         // maybe some external notice system is redirecting back with a message
         flash_display();
@@ -158,7 +150,7 @@ class format_ucla_renderer extends format_section_renderer_base {
         $eventdata = new stdClass();
         $eventdata->userid = $USER->id;
         $eventdata->course = $this->course;
-        $eventdata->user_is_editing = $this->user_is_editing;
+        $eventdata->user_is_editing = $PAGE->user_is_editing();
         $eventdata->roles = get_user_roles($this->context, $USER->id);
 
         // check if courseinfo is set, so that we can get a possible term
@@ -248,7 +240,8 @@ class format_ucla_renderer extends format_section_renderer_base {
      * to be printed after the headers, but before the footers.
      */
     public function print_js() {
-        if (ajaxenabled() && !empty($this->user_is_editing)) {
+        global $PAGE;
+        if (ajaxenabled() && $PAGE->user_is_editing()) {
             echo html_writer::script(false, new moodle_url('/course/format/ucla/module_override.js'));
         }        
     }
@@ -288,7 +281,7 @@ class format_ucla_renderer extends format_section_renderer_base {
         echo $this->section_header($thissection, $course, true);
 
         print_section($course, $thissection, $mods, $modnamesused, true);
-        if ($this->user_is_editing) {
+        if ($PAGE->user_is_editing()) {
             print_section_add_menus($course, 0, $modnames);
         }
         echo $this->section_footer();
@@ -327,7 +320,7 @@ class format_ucla_renderer extends format_section_renderer_base {
             echo $this->section_header($thissection, $course, false);
             if ($thissection->uservisible) {
                 print_section($course, $thissection, $mods, $modnamesused);
-                if ($this->user_is_editing) {
+                if ($PAGE->user_is_editing()) {
                     print_section_add_menus($course, $section, $modnames);
                 }
             }
@@ -336,7 +329,7 @@ class format_ucla_renderer extends format_section_renderer_base {
             unset($sections[$section]);
         }
 
-        if ($this->user_is_editing) {
+        if ($PAGE->user_is_editing()) {
             // Print stealth sections if present.
             $modinfo = get_fast_modinfo($course);
             foreach ($sections as $section => $thissection) {
@@ -384,7 +377,7 @@ class format_ucla_renderer extends format_section_renderer_base {
      * description, final location, registrar links and the office hours block.
      */
     public function print_section_zero_content() {
-        global $CFG, $OUTPUT;
+        global $CFG, $OUTPUT, $PAGE;
 
         $center_content = '';
         
@@ -419,7 +412,7 @@ class format_ucla_renderer extends format_section_renderer_base {
         }
 
         // Editing button for course summary
-        if ($this->user_is_editing) {
+        if ($PAGE->user_is_editing()) {
             $streditsummary = get_string('editcoursetitle', 'format_ucla');
             $url_options = array(
                 'id' => $this->course->id,
@@ -528,7 +521,7 @@ class format_ucla_renderer extends format_section_renderer_base {
         echo $completioninfo->display_help_icon();
 
         print_section($course, $thissection, $mods, $modnamesused, true, '100%', false, $displaysection);
-        if ($this->user_is_editing) {
+        if ($PAGE->user_is_editing()) {
             print_section_add_menus($course, $displaysection, $modnames, false, false, $displaysection);
         }
         echo $this->section_footer();
@@ -559,13 +552,9 @@ class format_ucla_renderer extends format_section_renderer_base {
      * @return array of links with edit controls
      */
     protected function section_edit_controls($course, $section, $onsectionpage = false) {
-        global $OUTPUT;
+        global $OUTPUT, $PAGE;
 
-        if (!$this->user_is_editing) {
-            return array();
-        }
-
-        if (!$this->user_is_editing) {
+        if (!$PAGE->user_is_editing()) {
             return array();
         }
 
@@ -712,7 +701,7 @@ class format_ucla_renderer extends format_section_renderer_base {
             $o.= html_writer::end_tag('div');
             // End section header
             
-            if ($this->user_is_editing) {
+            if ($PAGE->user_is_editing()) {
                 $o .= $this->get_jit_links($section->section);
             }
             
