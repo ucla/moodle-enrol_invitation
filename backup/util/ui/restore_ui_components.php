@@ -72,7 +72,7 @@ abstract class restore_search_base implements renderable {
      * Indicates if we have more than maxresults found.
      * @var boolean
      */
-    private $has_more_results = false;
+    private $hasmoreresults = false;
 
     /**
      * Constructor
@@ -198,7 +198,7 @@ abstract class restore_search_base implements renderable {
                 }
                 // Check if we are over the limit.
                 if ($this->totalcount+1 > self::$MAXRESULTS) {
-                    $this->has_more_results = true;
+                    $this->hasmoreresults = true;
                     break;
                 }
                 // If not, then continue.
@@ -215,7 +215,7 @@ abstract class restore_search_base implements renderable {
         if ($this->results === null) {
             $this->search();
         }
-        return $this->has_more_results;
+        return $this->hasmoreresults;
     }
 
     /**
