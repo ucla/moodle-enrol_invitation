@@ -61,12 +61,12 @@
 // This is an editable activity
 li.activity {
     // Style action links
-    & .mod-indent > a {
+    .mod-indent > a {
         color: #2980b9;
     }
     
-    & span.autocompletion,
-    & form.togglecompletion {
+    span.autocompletion,
+    form.togglecompletion {
         float: right;
         padding: 0 4px;
         right: 0;
@@ -108,7 +108,7 @@ li.activity {
         // This is a <span> element that holds icons/text
         & > .commands {
             
-            width: 220px;
+            width: 230px;
             float: right;
             margin-right: 19px;
             
@@ -136,7 +136,7 @@ li.activity {
 
 // Text icons overrides
 .section.text-icons {
-    & li.activity {
+    li.activity {
         & > .mod-indent > .commands {
             float: none;
             width: auto;
@@ -198,5 +198,5 @@ span.commands a:hover {
     @include ccle-button-action;
     
     margin-right: 10px;
-    
+    color: white;
 }

@@ -76,27 +76,28 @@
             }
         }
         
-        // Styles for 'MyUCLA functions'
-        & #my_ucla_functions {
+    }
+}
+        
+// Styles for 'MyUCLA functions'
+#my_ucla_functions {
+    width: 100%;
+
+    // Remove borders from table
+    .generaltable {
+        border: 0;
+    }
+    // Make links in cell 100% clickable
+    .generaltable .cell {
+        padding-left: 10px;
+        border: 0;
+        & > a {
             width: 100%;
-            
-            // Remove borders from table
-            &.generaltable {
-                border: 0;
-            }
-            // Make links in cell 100% clickable
-            &.generaltable .cell {
-                padding-left: 10px;
-                border: 0;
-                & > a {
-                    width: 100%;
-                    display: inline-block;
-                }
-            }
-            & .post-link {
-                color: gray;
-                display: block;
-            }
+            display: inline-block;
         }
+    }
+    .post-link {
+        color: gray;
+        display: block;
     }
 }

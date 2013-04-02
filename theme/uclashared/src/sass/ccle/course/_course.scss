@@ -10,7 +10,7 @@
     
     // Course header
     // Contains title 
-    & > .headingblock {
+    > .headingblock {
         @extend ccle-typography-h2;
         
         background-color: $ccle-light-blue;
@@ -19,7 +19,7 @@
         padding: 4px 2px;
         
         // Course registrar/crosslist metadata
-        & > .course-meta  {
+        > .course-meta  {
             color: scale-lightness($ccle-dark-blue, 35%);
             font-weight: normal;
             font-size: $type-font-size;
@@ -28,7 +28,7 @@
     }
     
     // Registrar info in the 'site info' summary
-    & .registrar-info {
+    .registrar-info {
         color: scale-lightness($type-font-color, 25%);
         line-height: 1.2;
         border-bottom: 1px solid #ccc;
@@ -38,7 +38,7 @@
     }
     
     // Office hours table
-    & .instr-info {
+    .instr-info {
         margin-top: 10px;
     }
 }

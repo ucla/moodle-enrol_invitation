@@ -41,7 +41,7 @@
 }
 
 /* red editing link styling (try to keep colors consistent */
-a.editing-link:link,
+/*a.editing-link:link,
 a.editing-link:visited,
 .course-content .editbutton a,
 .sectionheader .right.side a,
@@ -58,16 +58,16 @@ a.editing-link:hover,
 span.commands a:hover {
     color: red;
     text-decoration: underline;
-}
+}*/
 
 .course-content .content.editing {
     margin: 0 0 0 20px;
 }
 
-.course-content .registrar-info {
+/*.course-content .registrar-info {
     color: gray;
     font-weight: bold;
-}
+}*/
 
 .course-content ul.topics li.section .content .sectionname {
     margin: 0;

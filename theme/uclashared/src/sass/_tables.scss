@@ -2,6 +2,9 @@
 // TABLE
 // --------------------------------------------------
 
+// General tables
+// --------------------------------------------------
+
 // Propagate bootstrap table styles
 .generaltable,
 .userenrolment {
@@ -10,6 +13,29 @@
     @extend .table-bordered;
     
     @include border-radius(0);
+}
+
+// Office hours table
+// --------------------------------------------------
+
+// This will align the columns
+.office-hours-table {
+    // Target the instructor column
+    tbody tr td:first-child:not([data-content=""]) {
+        width: 30%;
+    }
+    // Target the update button
+    tbody tr td:first-child[data-content=""] {
+        width: 5%;
+    }
+    // Target the instructor column in editing mode
+    tbody tr td:first-child[data-content=""] + td {
+        width: 30%;
+    }
+    // Everything else can adjust on its own...
+    tbody tr td {
+        width: auto;
+    }
 }
 
 // Responsive fixes
@@ -85,15 +111,15 @@ only screen and (min-width: $breakpoint-xsmall) and (max-width: $breakpoint-medi
         }
         
         // This will display table heading
-        & td:nth-of-type(1):before { content: attr(data-responsive); }
-        & td:nth-of-type(2):before { content: attr(data-responsive); }
-        & td:nth-of-type(3):before { content: attr(data-responsive); }
-        & td:nth-of-type(4):before { content: attr(data-responsive); }
-        & td:nth-of-type(5):before { content: attr(data-responsive); }
-        & td:nth-of-type(6):before { content: attr(data-responsive); }
-        & td:nth-of-type(7):before { content: attr(data-responsive); }
-        & td:nth-of-type(8):before { content: attr(data-responsive); }
-        & td:nth-of-type(9):before { content: attr(data-responsive); }
+        & td:nth-of-type(1):before { content: attr(data-content); }
+        & td:nth-of-type(2):before { content: attr(data-content); }
+        & td:nth-of-type(3):before { content: attr(data-content); }
+        & td:nth-of-type(4):before { content: attr(data-content); }
+        & td:nth-of-type(5):before { content: attr(data-content); }
+        & td:nth-of-type(6):before { content: attr(data-content); }
+        & td:nth-of-type(7):before { content: attr(data-content); }
+        & td:nth-of-type(8):before { content: attr(data-content); }
+        & td:nth-of-type(9):before { content: attr(data-content); }
     }
 }
 

@@ -17,7 +17,6 @@ $THEME->sheets = array(
     'base',
     'core',     // custom core stlye changes
     'general',
-//    'responsive',
     'blocks',
 //    'blocks-ie'
 );

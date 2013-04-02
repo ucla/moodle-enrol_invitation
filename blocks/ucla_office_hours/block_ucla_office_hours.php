@@ -184,7 +184,7 @@ class block_ucla_office_hours extends block_base {
             $table->align = $aligns;
 
             $table->attributes['class'] = 
-                    'boxalignleft generaltable cellborderless';
+                    'boxalignleft generaltable cellborderless office-hours-table';
 
             $table->head = array();
 
@@ -217,7 +217,7 @@ class block_ucla_office_hours extends block_base {
                             $header = $title;
                         }
                         // Put in the header title in a special attribute
-                        $cell->attributes['data-responsive'] = $header; 
+                        $cell->attributes['data-content'] = $header; 
                         
                         $user_row[$field] = $cell;
                     }

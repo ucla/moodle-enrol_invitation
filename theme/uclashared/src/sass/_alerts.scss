@@ -2,16 +2,16 @@
 // ALERTS
 // --------------------------------------------------
 
-.alert {
+// CCLE alerts should share these characteristics
+@mixin ccle-alert-box {
     font-size: $type-font-size * 1.1;
     color: #394A6E;
-}
-
-@mixin ccle-alert-box {
     margin: 20px 15%;
 }
 
-// Override the default syllabus alertbox
+// Syllabus alertbox
+// --------------------------------------------------
+
 // This also normalizes the form so that it doesn't look out of place
 .ucla-format-notice-box {
     @extend .alert;
@@ -28,8 +28,8 @@
             margin-top: 10px;
             padding: 0;
             
-            & #id_yesbutton {
-                /*@extend .btn-success;*/
+            // Add action button
+            #id_yesbutton {
                 @include ccle-button-action;
             }
         }
@@ -44,7 +44,17 @@
     }
 }
 
-// Targetted notice
+// Target general boxes
+// --------------------------------------------------
+
+.box.noticebox {
+    @extend .alert;
+    @include ccle-alert-box;
+}
+
+// Target notices
+// --------------------------------------------------
+
 .box.notice_nonenrolled_users,
 .box.notice_oldcourse {
     @extend .alert;
