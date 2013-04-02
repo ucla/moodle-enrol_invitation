@@ -137,6 +137,9 @@ class large_collab_sites extends uclastats_base {
             //also update course size into readable format
             $course->course_size = display_size($course->course_size);
 
+            //create link to shortname
+            $course->course_title = html_writer::link(new moodle_url('/course/view.php', array('id' => $course->id)), $course->course_title, null);
+           
             //remove id we used originally to look up file information
             unset($course->id);
         }
