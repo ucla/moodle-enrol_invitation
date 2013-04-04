@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 width="24px" height="24px" viewBox="0 0 24 24" enable-background="new 0 0 24 24" xml:space="preserve">
+<linearGradient id="SVGID_1_" gradientUnits="userSpaceOnUse" x1="12" y1="25" x2="12" y2="1" gradientTransform="matrix(1 0 0 -1 0 25)">
+	<stop  offset="0" style="stop-color:#95BFF8"/>
+	<stop  offset="0.5569" style="stop-color:#84ADEF"/>
+	<stop  offset="1" style="stop-color:#7CA4EB"/>
+</linearGradient>
+<rect fill="url(#SVGID_1_)" width="24" height="24"/>
+<linearGradient id="SVGID_2_" gradientUnits="userSpaceOnUse" x1="12" y1="24" x2="12" y2="2" gradientTransform="matrix(1 0 0 -1 0 25)">
+	<stop  offset="0" style="stop-color:#E7F4FC"/>
+	<stop  offset="1" style="stop-color:#DEEFFC"/>
+</linearGradient>
+<rect x="1" y="1" fill="url(#SVGID_2_)" width="22" height="22"/>
+<linearGradient id="SVGID_3_" gradientUnits="userSpaceOnUse" x1="12" y1="23" x2="12" y2="3" gradientTransform="matrix(1 0 0 -1 0 25)">
+	<stop  offset="0" style="stop-color:#CEE9F9"/>
+	<stop  offset="1" style="stop-color:#BBDFF8"/>
+</linearGradient>
+<rect x="2" y="2" fill="url(#SVGID_3_)" width="20" height="20"/>
+<text transform="matrix(1 0 0 1 1 11.3926)" fill="#333366" font-family="'MyriadPro-Regular'" font-size="14.7599">Q</text>
+<text transform="matrix(1 0 0 1 10.5625 15.5625)" fill="#141038" font-family="'MyriadPro-Regular'" font-size="8">&amp;</text>
+<text transform="matrix(1 0 0 1 13.3037 22.3652)" fill="#FFB300" font-family="'MyriadPro-Regular'" font-size="15.6224">A</text>
+</svg>
