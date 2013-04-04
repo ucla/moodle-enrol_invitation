@@ -495,9 +495,7 @@ class block_ucla_office_hours extends block_base {
             // 0 - Hide my email address from everyone
             // * - always display email if an alterative was set
             $email_display = $user->maildisplay;
-            $display_email = ($email_display == 2 && $enrolled_or_admin) 
-                || ($email_display == 1) 
-                || $email_display == 0;
+            $display_email = ($email_display == 2 && $enrolled_or_admin) || ($email_display == 1);
             if (!empty($user->officeemail)) {
                 $user->email = $user->officeemail;
             } else if (!$display_email) {
