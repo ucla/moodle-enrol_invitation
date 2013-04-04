@@ -144,6 +144,8 @@ $string['large_collab_sites_help'] = 'List all the collaboration sites over {$a}
 //strings for final quiz report
 $string['final_quiz_report'] = 'Final quiz report (course)';
 $string['final_quiz_report_help'] = 'Displays the number of quizzes taken during finals week by division.';
+$string['last_week_count'] = 'Last Week';
+$string['final_count'] = 'Finals';
 
 // error strings
 $string['nocachedresults'] = 'No cached results found';
