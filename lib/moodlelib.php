@@ -2946,7 +2946,23 @@ function require_login($courseorid = NULL, $autologinguest = true, $cm = NULL, $
                 // been added to the navigation and thus the navigation will mess up
                 // when trying to find it.
                 navigation_node::override_active_url(new moodle_url('/'));
-                notice(get_string('coursehidden'), $CFG->wwwroot .'/');
+                // START UCLA MOD: CCLE-3786 - Preventing past course access for students
+                //notice(get_string('coursehidden'), $CFG->wwwroot .'/');
+                $config_week = get_config('local_ucla', 'student_access_ends_week');
+                $alt_msg_shown = false;
+                if (!empty($config_week)) {
+                    // need to give different message if user is viewing a past
+                    // hidden site
+                    require_once($CFG->dirroot . '/local/ucla/lib.php');
+                    if (is_past_course($course)) {
+                        notice(get_string('coursehidden', 'local_ucla'), $CFG->wwwroot .'/');
+                        $alt_msg_shown = true;
+                    }
+                }
+                if (empty($alt_msg_shown)) {
+                    notice(get_string('coursehidden'), $CFG->wwwroot .'/');
+                }
+                // END UCLA MOD: CCLE-3786
             }
         }
     }
