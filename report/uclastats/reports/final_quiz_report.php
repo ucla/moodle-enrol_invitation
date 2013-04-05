@@ -130,7 +130,7 @@ class final_quiz_report extends uclastats_base {
                 '1a' => "'1A'",
                 $last_session => "'6C'");
             
-            $sql = "SELECT urd.fullname as division,COUNT(DISTINCT q.id) as count,
+            $sql = "SELECT urd.fullname as division,
                            COUNT(DISTINCT (CASE WHEN (";
             //filter last week quizzes
             /*(urci.session = '6A' AND q.timeclose < :last_week_end_6a) OR
