@@ -48,7 +48,7 @@ function get_files_copyright_status_by_course($courseid, $filter = null) {
             INNER JOIN {resource} r ON cm.instance = r.id
             WHERE r.course = $courseid
             AND f.filename NOT LIKE  '.%'
-			GROUP BY c.id, cm.id";
+            GROUP BY c.id, cm.id";
       // include files have null value in copyright status as default status
     if ($filter && $filter == $CFG->sitedefaultlicense) {
         $sql .= " HAVING (f.license is null or f.license = '' or f.license = '$filter')";
