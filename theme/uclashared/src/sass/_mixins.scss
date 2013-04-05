@@ -1,0 +1,78 @@
+//
+// MIXINS
+// --------------------------------------------------
+
+// Define mixins here
+
+@mixin ccle-admin-header {
+
+    border-bottom: 1px solid #ccc;
+    font-size: $type-font-size * 1.8;
+    margin-top: 0;
+    padding-bottom: 4px;
+    
+    & > a {
+        font-size: $type-font-size;
+        @extend .btn;
+        
+        margin-top: 20px;
+    }
+
+}
+// Action buttons
+@mixin ccle-button-action {
+    @extend .btn-success;
+}
+
+@mixin ccle-form-commit {
+    @include buttonBackground(#2ecc71, #27ae60);
+}
+
+@mixin ccle-form-cancel {
+    @include buttonBackground(#e74c3c, #c0392b);
+}
+
+@mixin ccle-form-defer {
+    @include buttonBackground(#95a5a6, #7f8c8d);
+}
+
+@mixin ccle-form-neutral {
+    
+}
+
+//
+
+
+// Typography mixins
+@mixin ccle-typography-h1 {
+    font-size: 3.1rem;
+    font-weight: 900;
+    line-height: 3.9rem;
+}
+@mixin ccle-typography-h2 {
+    font-size: 2.6rem;
+    font-weight: 700;
+    line-height: 3.9rem;
+}
+@mixin ccle-typography-h3 {
+    font-size: 2.3rem;
+    font-weight: 700;
+    line-height: 3.9rem;
+}
+@mixin ccle-typography-h4 {
+    font-size: 1.8rem;
+    font-weight: 500;
+    line-height: 1.9rem;
+}
+@mixin ccle-typography-h5 {
+    font-size: 1.4rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    line-height: 1.9rem;
+}
+@mixin ccle-typography-h6 {
+    font-size: 1.3rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    line-height: 1.9rem;
+}

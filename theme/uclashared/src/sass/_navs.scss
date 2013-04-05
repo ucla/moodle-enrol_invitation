@@ -1,0 +1,22 @@
+//
+// NAVS (tabs)
+// --------------------------------------------------
+
+.tabrow0 {
+  @extend .nav;
+  @extend .nav-tabs;
+    
+    > .selected {
+        font-weight: bold;
+    }
+}
+
+.tabrow0 > .selected > a,
+.tabrow0 > .selected > a:hover,
+.tabrow0 > .selected > a:focus {
+  color: $gray;
+  background-color: $bodyBackground;
+  border: 1px solid #ddd;
+  border-bottom-color: transparent;
+  cursor: default;
+}

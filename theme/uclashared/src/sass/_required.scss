@@ -1,0 +1,45 @@
+//
+// REQUIRED THEME COMPONENTS
+// --------------------------------------------------
+
+// Bring in bootstrap
+// --------------------------------------------------
+@import "sass-twitter-bootstrap/lib/variables";
+@import "sass-twitter-bootstrap/lib/mixins";
+@import "sass-twitter-bootstrap/lib/reset";
+
+@import "sass-twitter-bootstrap/lib/tables";
+
+// Components: Buttons & Alerts
+@import "sass-twitter-bootstrap/lib/buttons";
+/*@import "sass-twitter-bootstrap/lib/button-groups";*/
+@import "sass-twitter-bootstrap/lib/alerts";
+
+@import "sass-twitter-bootstrap/lib/navs";
+/*@import "sass-twitter-bootstrap/lib/wells";*/
+/*@import "sass-twitter-bootstrap/lib/forms";*/
+
+
+// CCLE Mixins
+// ------------------
+@import "mixins";
+
+// Base elements
+// ------------------
+@import "buttons";
+@import "tables";
+@import "navs";
+@import "form";
+@import "type";
+@import "labels-badges";
+
+// Components
+// -------------------
+@import "header";
+@import "footer";
+@import "alerts";
+
+// Media queries
+// -------------------
+// Adds responsive capabilities to moodle's layout
+@import "responsive";

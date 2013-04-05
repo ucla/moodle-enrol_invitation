@@ -1,0 +1,83 @@
+//
+// Responsive grid
+// --------------------------------------------------
+
+// WebBlocks vars 
+
+// $breakpoint-xsmall:         480px;
+// $breakpoint-medium-small    768px;
+// $breakpoint-medium          960px;
+// $breakpoint-medium-large    1024px;
+
+
+// Override Bootstrap grid's padding rules
+@media (max-width: 767px) {
+    body {
+        padding: 0
+    }
+}
+
+// This will make the left side blocks collapse into right side
+//
+//  [-A-][--B--][-C-]
+//
+//  [-A-][----B-----]
+//  [-C-][----B-----]
+
+// Tablet rules
+@media only screen and (max-width: $breakpoint-medium) {
+    #page-content #region-post {
+        clear: left;
+        margin-left: -50%;
+        left: 0;
+    }
+    #page-content #region-pre {
+        left: 0;
+    }
+    #page-content #region-post-box {
+        margin-left: -200px;
+    }
+    #page-content #region-main {
+        margin-left: 200px;
+    }
+    #page #page-content {
+        min-width: 0;
+    }
+}
+
+// This will make the all the blocks collapse
+//
+//  [-A-][--B--][-C-]
+//
+//  [-------B-------]
+//  [-------A-------]
+//  [-------C-------]
+
+// Mobile phones
+@media only screen and (max-width: $breakpoint-xsmall),
+only screen and (min-width: $breakpoint-xsmall) and (max-width: $breakpoint-medium-small) {
+    #page-content #region-main-wrap {
+        // nothing here
+    }
+    .side-pre-only #page-content #region-main, 
+    #page-content #region-main {
+        margin-left: 0;
+    }
+    #page-content #region-pre {
+        clear: right;
+        width: 50%;
+    }
+    #page-content #region-post {
+        clear: left;
+        margin-left: -50%;
+        left: 0;
+        width: 50%;
+    }
+}
+
+@media only screen and (max-width: 480px),
+only screen and (min-width: 480px) and (max-width: 767px),
+only screen and (device-width: 768px) and (orientation: portrait) {
+
+
+}

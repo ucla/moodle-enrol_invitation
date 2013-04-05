@@ -212,7 +212,7 @@ class format_ucla_renderer extends format_section_renderer_base {
         $heading_text = '';
         if (!empty($termtext)) {
             $heading_text = $termtext . ' - ' . $regcoursetext . ' - ' . $inst_text;
-            $heading_text = html_writer::tag('div', $heading_text);
+            $heading_text = html_writer::tag('div', $heading_text, array('class' => 'course-meta'));
         }        
         
         // display page header

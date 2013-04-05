@@ -1,0 +1,24 @@
+//
+// CCLE / course specific admin
+// --------------------------------------------------
+
+// Normalize all course administration headers
+.region-content > h2.main:not(.help) {
+    @include ccle-admin-header;
+}
+
+// Create horizontal bars to hold different actions
+.region-content {
+    & > .urlselect {
+        float: right;
+    }
+    & > .singleselect {
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 8px;
+        margin-bottom: 20px;
+    }
+    & > .loginfo {
+        float: right;
+        margin-bottom: 10px;
+    }
+}

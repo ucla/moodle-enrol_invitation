@@ -179,48 +179,24 @@ class ucla_cp_renderer {
             $orient='col', $handler='general_descriptive_link') {
 
         if ($format) {
-            $contents = ucla_cp_renderer::get_content_array($contents);
+            $contents = ucla_cp_renderer::get_content_array($contents, 2);
         }
-
+        
         $full_table = '';
         
         $columns = ($orient == 'col');
 
-        // even odd toggle
-        $eo = false;
-
-        // left-right enable
-        $lre = false;
-
-        if (!$columns && count($contents) == 2) {
-            $lre = true;
-        }
-
         foreach ($contents as $content_row) {
-            if ($eo) {
-                $evenodd = ' even';
-            } else {
-                $evenodd = ' odd';
-            }
 
             $row_contents = '';
+            
+            // This corresponds to bootstrap grid
+            $responsive_class = 'panel-6 item';
 
-            if (!$columns && count($content_row) <= 2) {
-                $lre = true;
-            } 
-
-            $add_class = '';
             foreach ($content_row as $content_item => $content_link) {
-                if (!$columns && $lre) {
-                    if ($add_class == ' left') {
-                        $add_class = ' right';
-                    } else {
-                        $add_class = ' left';
-                    }
-                }
 
-                $the_output = html_writer::start_tag('div', 
-                    array('class' => 'item' . $add_class));
+                $the_output = html_writer::start_tag('div',
+                    array('class' => $responsive_class));
                 
                 $the_output .= ucla_cp_renderer::$handler(
                     $content_link);
@@ -229,21 +205,8 @@ class ucla_cp_renderer {
                 $row_contents .= $the_output;
             }
             
-            // Flip per row
-            $eo = !$eo;
-            
-            if ($columns) {
-                if ($lre) {
-                    $evenodd = ' right';
-                } else {
-                    $evenodd = ' left';
-                }
-
-                $lre = !$lre;
-            }
-
-            $full_table .= html_writer::tag('div', $row_contents, 
-                array('class' => 'table' . $orient . $evenodd));
+            $full_table .= html_writer::tag('div', $row_contents,
+                array('class' => 'row small-collapse'));
         }
         
         return $full_table;

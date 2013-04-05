@@ -1,0 +1,46 @@
+//
+// CCLE / moodle blocks
+// --------------------------------------------------
+
+/* Add light shadows to blocks (looks good on mobile!) */
+.block {
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.067);
+    border: 1px solid #D1DBEF;
+}
+
+/*.box.noticebox {
+  padding: 8px 35px 8px 14px;
+  margin-bottom: 18px;
+  color: #c09853;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  background-color: #fcf8e3;
+  border: 1px solid #fbeed5;
+  -webkit-border-radius: 4px;
+     -moz-border-radius: 4px;
+          border-radius: 4px;
+}*/
+
+#theme_switch_link a {
+    color: #FFB300;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+#theme_switch_link {
+    border-top: 1px solid white;
+    padding-top: 4px;
+}
+
+// Imported CSS
+// --------------------------------------------------
+
+
+/** Blocks **/
+.block {border:none;background-color:#DFE7F4;margin-bottom:10px;overflow:hidden;}
+.block h1,
+.block h2,
+.block h3,
+.block h4 {margin:0px;}
+.block .header {padding:4px 6px;background-color:#D1DBEF;}
+.block .content {padding:0px 6px 0px 6px;background-color:#DFE7F4;}
+
