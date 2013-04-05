@@ -2,96 +2,21 @@
 // NAVS (tabs)
 // --------------------------------------------------
 
+.tabrow0 {
+  @extend .nav;
+  @extend .nav-tabs;
+    
+    > .selected {
+        font-weight: bold;
+    }
+}
 
-// Imported CSS
-// --------------------------------------------------
-
-/**
- * Tabs
- */
-.tabtree {
-    /* leave space after first tab row for additional tab rows */
-   margin-bottom: 3.5em; 
-}
-.tabtree .tabrow1.empty {
-    /* if there is not a second row, then remove spacing after first row */
-    margin-bottom: -3.5em;
-}
-.tabtree ul {
-    text-align:center;
-}
-.tabtree .tabrow0 {
-    width:100%;margin:1em 0px;
-}
-.tabtree .tabrow0 li {
-    margin-right:-4px;
-}
-.tabtree .tabrow0 li.last {
-    margin-right:0;
-}
-.tabtree .tabrow0 li.here {
-    font-weight: bold;
-}
-.tabtree .tabrow0 li.here a {
-    position:relative;z-index:102;
-}
-.tabtree .tabrow0 li a {
-    background-image:url([[pix:theme|tab/left]]);
-    padding-left:14px;
-    padding-top:10px;
-    background-repeat:no-repeat;
-    padding-bottom:3px;
-    margin-bottom:-1px;
-}
-.tabtree .tabrow0 li a:hover {
-    background-image:url([[pix:theme|tab/left_hover]]);
-}
-.tabtree .tabrow0 li a span {
-    background-image:url([[pix:theme|tab/right]]);
-    background-repeat:no-repeat;
-    background-position:100% 0%;
-    padding-right:14px;
-    padding-top:10px;
-    padding-bottom:3px;
-}
-.tabtree .tabrow0 li a:hover span {
-    background-image:url([[pix:theme|tab/right_hover]]);
-}
-.tabtree .tabrow0 ul,
-.tabtree .tabrow0 div {
-    font-weight: normal;
-    background-position:0% 50%;
-    border-top: 2px solid #ddd;
-    padding: 0;
-    margin: 0;
-}
-.tabtree .tabrow0 li.here .empty {
-    display:block;
-    height:1px;
-    overflow:hidden;
-    padding:0px;
-    position:absolute;
-    width:100%;
-}
-.tabtree .tabrow1 {
-    background-color: #ddd;
-}
-.tabtree .tabrow1 li a,
-.tabtree .tabrow1 li a:hover,
-.tabtree .tabrow1 li a span,
-.tabtree .tabrow1 li a:hover span {
-    background-image:none !important;
-}
-.tabtree a.nolink,
-.tabtree .here ul a.nolink,
-.tabtree a.nolink:hover,
-.tabtree .here ul a.nolink:hover {
-    color: #888;
-    text-decoration: none;
-}
-.tabtree .here a.nolink,
-.tabtree .here ul .here a.nolink,
-.tabtree .here a.nolink:hover,
-.tabtree .here ul .here a.nolink:hover {
-    color: black;text-decoration: none;
+.tabrow0 > .selected > a,
+.tabrow0 > .selected > a:hover,
+.tabrow0 > .selected > a:focus {
+  color: $gray;
+  background-color: $bodyBackground;
+  border: 1px solid #ddd;
+  border-bottom-color: transparent;
+  cursor: default;
 }

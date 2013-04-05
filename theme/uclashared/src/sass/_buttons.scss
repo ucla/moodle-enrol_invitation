@@ -24,6 +24,9 @@ input[type="submit"] {
     @extend .btn-small;
 }
 
+.forumaddnew input[type="submit"] {
+    @include ccle-button-action; 
+}
 
 // Improve CCLE style semantics by using wrappers
 // --------------------------------------------------

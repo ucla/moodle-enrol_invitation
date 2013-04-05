@@ -5,6 +5,8 @@
 
 #cpanel-wrapper {
     
+    width: 100%;
+    
     & > .cpheading {
         @include ccle-admin-header;
     }
@@ -28,7 +30,7 @@
         width: 100%;
     }
     // Subsections
-    & h2.copan-title {
+    h2.copan-title {
         padding: 0 5px;
         border-bottom: 1px solid #CCC;
         font-size: 20px;
@@ -36,10 +38,10 @@
     }
     
     // Affects all rows
-    & .row {
+    .row {
         margin-left: 0;
 
-        & .item {
+        .item {
             min-height: 50px;
             display : inline-block;
             clear : none;
@@ -52,22 +54,22 @@
                 font-size: 16px;
             }
             
-            & .general_icon {
+            .general_icon {
                 float: left;
                 
-                & > a {
+                > a {
                     width: 100%;
                     display: inline-block;
                 }
             }
             
-            & .general_icon_text {
+            .general_icon_text {
                 padding: 10px 50px;
                 display: block;
                 color: gray;
             }
             
-            & .post-link {
+            .post-link {
                 margin-top: 5px;
                 color: gray;
                 display: inline-block;

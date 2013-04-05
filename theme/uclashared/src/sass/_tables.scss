@@ -7,6 +7,7 @@
 
 // Propagate bootstrap table styles
 .generaltable,
+.path-mod-forum .forumheaderlist,
 .userenrolment {
     @extend .table;
     @extend .table-striped;

@@ -29,7 +29,7 @@
             padding: 0;
             
             // Add action button
-            #id_yesbutton {
+            input[name="yesbutton"] {
                 @include ccle-button-action;
             }
         }
@@ -47,9 +47,14 @@
 // Target general boxes
 // --------------------------------------------------
 
+.box.generalbox,
 .box.noticebox {
     @extend .alert;
     @include ccle-alert-box;
+}
+
+.box.generalbox {
+    
 }
 
 // Target notices
