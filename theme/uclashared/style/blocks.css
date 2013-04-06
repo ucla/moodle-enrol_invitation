@@ -685,7 +685,7 @@ table [class*=span], .row-fluid table [class*=span] { display: table-cell; float
 input[type="submit"].btn-block, input[type="reset"].btn-block, input[type="button"].btn-block { width: 100%; }
 
 /* line 139, ../../../package/sass-twitter-bootstrap/lib/_buttons.scss */
-.btn-primary.active, .btn-warning.active, .btn-danger.active, .btn-success.active, .forumaddnew input.active[type="submit"], .active.ccle-action-btn, .section > .content .section-modchooser .active.section-modchooser-text, .section > .content .section_add_menus .active.section-modchooser-text, .ucla-format-notice-box > .ucla-syllabus-alert-form > fieldset input.active[name="yesbutton"], .box.notice_nonenrolled_users > .continuebutton input.active[type="submit"], .editbutton > a.active, .btn-info.active, .btn-inverse.active { color: rgba(255, 255, 255, 0.75); }
+.btn-primary.active, .btn-warning.active, .btn-danger.active, .btn-success.active, .forumaddnew input.active[type="submit"], .active.ccle-action-btn, .section > .content .section-modchooser .active.section-modchooser-text, .section > .content .section_add_menus .active.section-modchooser-text, .ucla-format-notice-box > .ucla-syllabus-alert-form > fieldset input.active[name="yesbutton"], .ucla-format-notice-box > .ucla-copyright-status-alert-form > fieldset input.active[name="yesbutton"], .box.notice_nonenrolled_users > .continuebutton input.active[type="submit"], .editbutton > a.active, .btn-info.active, .btn-inverse.active { color: rgba(255, 255, 255, 0.75); }
 
 /* line 145, ../../../package/sass-twitter-bootstrap/lib/_buttons.scss */
 .btn, input[type="submit"], .navbutton > .singlebutton > form > div > input[type="submit"], h2.headingblock > a, #addadmisform > h3.main > a, .region-content > h2.main:not(.help) > a, .section > .content .section-modchooser .section-modchooser-text, .section > .content .section_add_menus .section-modchooser-text, .editbutton > a, #cpanel-wrapper > .cpheading > a { border-color: #c5c5c5; border-color: rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.25); }
@@ -712,11 +712,11 @@ input[type="submit"].btn-block, input[type="reset"].btn-block, input[type="butto
 .btn-danger:active, .btn-danger.active { background-color: #942a25 \9; }
 
 /* line 162, ../../../package/sass-twitter-bootstrap/lib/_buttons.scss */
-.btn-success, .forumaddnew input[type="submit"], .ccle-action-btn, .section > .content .section-modchooser .section-modchooser-text, .section > .content .section_add_menus .section-modchooser-text, .ucla-format-notice-box > .ucla-syllabus-alert-form > fieldset input[name="yesbutton"], .box.notice_nonenrolled_users > .continuebutton input[type="submit"], .editbutton > a { color: white; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25); background-color: #5bb75b; background-image: -moz-linear-gradient(top, #62c462, #51a351); background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#62c462), to(#51a351)); background-image: -webkit-linear-gradient(top, #62c462, #51a351); background-image: -o-linear-gradient(top, #62c462, #51a351); background-image: linear-gradient(to bottom, #62c462, #51a351); background-repeat: repeat-x; filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FF62C462', endColorstr='#FF51A351', GradientType=0); border-color: #51a351 #51a351 #387038; border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25); *background-color: #51a351; /* Darken IE7 buttons by default so they stand out more given they won't have borders */ filter: progid:DXImageTransform.Microsoft.gradient(enabled=false); }
+.btn-success, .forumaddnew input[type="submit"], .ccle-action-btn, .section > .content .section-modchooser .section-modchooser-text, .section > .content .section_add_menus .section-modchooser-text, .ucla-format-notice-box > .ucla-syllabus-alert-form > fieldset input[name="yesbutton"], .ucla-format-notice-box > .ucla-copyright-status-alert-form > fieldset input[name="yesbutton"], .box.notice_nonenrolled_users > .continuebutton input[type="submit"], .editbutton > a { color: white; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25); background-color: #5bb75b; background-image: -moz-linear-gradient(top, #62c462, #51a351); background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#62c462), to(#51a351)); background-image: -webkit-linear-gradient(top, #62c462, #51a351); background-image: -o-linear-gradient(top, #62c462, #51a351); background-image: linear-gradient(to bottom, #62c462, #51a351); background-repeat: repeat-x; filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FF62C462', endColorstr='#FF51A351', GradientType=0); border-color: #51a351 #51a351 #387038; border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25); *background-color: #51a351; /* Darken IE7 buttons by default so they stand out more given they won't have borders */ filter: progid:DXImageTransform.Microsoft.gradient(enabled=false); }
 /* line 495, ../../../package/sass-twitter-bootstrap/lib/_mixins.scss */
-.btn-success:hover, .forumaddnew input[type="submit"]:hover, .ccle-action-btn:hover, .section > .content .section-modchooser .section-modchooser-text:hover, .section > .content .section_add_menus .section-modchooser-text:hover, .ucla-format-notice-box > .ucla-syllabus-alert-form > fieldset input[name="yesbutton"]:hover, .box.notice_nonenrolled_users > .continuebutton input[type="submit"]:hover, .editbutton > a:hover, .btn-success:active, .forumaddnew input[type="submit"]:active, .ccle-action-btn:active, .section > .content .section-modchooser .section-modchooser-text:active, .section > .content .section_add_menus .section-modchooser-text:active, .ucla-format-notice-box > .ucla-syllabus-alert-form > fieldset input[name="yesbutton"]:active, .box.notice_nonenrolled_users > .continuebutton input[type="submit"]:active, .editbutton > a:active, .btn-success.active, .forumaddnew input.active[type="submit"], .active.ccle-action-btn, .section > .content .section-modchooser .active.section-modchooser-text, .section > .content .section_add_menus .active.section-modchooser-text, .ucla-format-notice-box > .ucla-syllabus-alert-form > fieldset input.active[name="yesbutton"], .box.notice_nonenrolled_users > .continuebutton input.active[type="submit"], .editbutton > a.active, .btn-success.disabled, .forumaddnew input.disabled[type="submit"], .disabled.ccle-action-btn, .section > .content .section-modchooser .disabled.section-modchooser-text, .section > .content .section_add_menus .disabled.section-modchooser-text, .ucla-format-notice-box > .ucla-syllabus-alert-form > fieldset input.disabled[name="yesbutton"], .box.notice_nonenrolled_users > .continuebutton input.disabled[type="submit"], .editbutton > a.disabled, .btn-success[disabled], .forumaddnew input[disabled][type="submit"], [disabled].ccle-action-btn, .section > .content .section-modchooser [disabled].section-modchooser-text, .section > .content .section_add_menus [disabled].section-modchooser-text, .ucla-format-notice-box > .ucla-syllabus-alert-form > fieldset input[disabled][name="yesbutton"], .box.notice_nonenrolled_users > .continuebutton input[disabled][type="submit"], .editbutton > a[disabled] { color: white; background-color: #51a351; *background-color: #499249; }
+.btn-success:hover, .forumaddnew input[type="submit"]:hover, .ccle-action-btn:hover, .section > .content .section-modchooser .section-modchooser-text:hover, .section > .content .section_add_menus .section-modchooser-text:hover, .ucla-format-notice-box > .ucla-syllabus-alert-form > fieldset input[name="yesbutton"]:hover, .ucla-format-notice-box > .ucla-copyright-status-alert-form > fieldset input[name="yesbutton"]:hover, .box.notice_nonenrolled_users > .continuebutton input[type="submit"]:hover, .editbutton > a:hover, .btn-success:active, .forumaddnew input[type="submit"]:active, .ccle-action-btn:active, .section > .content .section-modchooser .section-modchooser-text:active, .section > .content .section_add_menus .section-modchooser-text:active, .ucla-format-notice-box > .ucla-syllabus-alert-form > fieldset input[name="yesbutton"]:active, .ucla-format-notice-box > .ucla-copyright-status-alert-form > fieldset input[name="yesbutton"]:active, .box.notice_nonenrolled_users > .continuebutton input[type="submit"]:active, .editbutton > a:active, .btn-success.active, .forumaddnew input.active[type="submit"], .active.ccle-action-btn, .section > .content .section-modchooser .active.section-modchooser-text, .section > .content .section_add_menus .active.section-modchooser-text, .ucla-format-notice-box > .ucla-syllabus-alert-form > fieldset input.active[name="yesbutton"], .ucla-format-notice-box > .ucla-copyright-status-alert-form > fieldset input.active[name="yesbutton"], .box.notice_nonenrolled_users > .continuebutton input.active[type="submit"], .editbutton > a.active, .btn-success.disabled, .forumaddnew input.disabled[type="submit"], .disabled.ccle-action-btn, .section > .content .section-modchooser .disabled.section-modchooser-text, .section > .content .section_add_menus .disabled.section-modchooser-text, .ucla-format-notice-box > .ucla-syllabus-alert-form > fieldset input.disabled[name="yesbutton"], .ucla-format-notice-box > .ucla-copyright-status-alert-form > fieldset input.disabled[name="yesbutton"], .box.notice_nonenrolled_users > .continuebutton input.disabled[type="submit"], .editbutton > a.disabled, .btn-success[disabled], .forumaddnew input[disabled][type="submit"], [disabled].ccle-action-btn, .section > .content .section-modchooser [disabled].section-modchooser-text, .section > .content .section_add_menus [disabled].section-modchooser-text, .ucla-format-notice-box > .ucla-syllabus-alert-form > fieldset input[disabled][name="yesbutton"], .ucla-format-notice-box > .ucla-copyright-status-alert-form > fieldset input[disabled][name="yesbutton"], .box.notice_nonenrolled_users > .continuebutton input[disabled][type="submit"], .editbutton > a[disabled] { color: white; background-color: #51a351; *background-color: #499249; }
 /* line 503, ../../../package/sass-twitter-bootstrap/lib/_mixins.scss */
-.btn-success:active, .forumaddnew input[type="submit"]:active, .ccle-action-btn:active, .section > .content .section-modchooser .section-modchooser-text:active, .section > .content .section_add_menus .section-modchooser-text:active, .ucla-format-notice-box > .ucla-syllabus-alert-form > fieldset input[name="yesbutton"]:active, .box.notice_nonenrolled_users > .continuebutton input[type="submit"]:active, .editbutton > a:active, .btn-success.active, .forumaddnew input.active[type="submit"], .active.ccle-action-btn, .section > .content .section-modchooser .active.section-modchooser-text, .section > .content .section_add_menus .active.section-modchooser-text, .ucla-format-notice-box > .ucla-syllabus-alert-form > fieldset input.active[name="yesbutton"], .box.notice_nonenrolled_users > .continuebutton input.active[type="submit"], .editbutton > a.active { background-color: #408140 \9; }
+.btn-success:active, .forumaddnew input[type="submit"]:active, .ccle-action-btn:active, .section > .content .section-modchooser .section-modchooser-text:active, .section > .content .section_add_menus .section-modchooser-text:active, .ucla-format-notice-box > .ucla-syllabus-alert-form > fieldset input[name="yesbutton"]:active, .ucla-format-notice-box > .ucla-copyright-status-alert-form > fieldset input[name="yesbutton"]:active, .box.notice_nonenrolled_users > .continuebutton input[type="submit"]:active, .editbutton > a:active, .btn-success.active, .forumaddnew input.active[type="submit"], .active.ccle-action-btn, .section > .content .section-modchooser .active.section-modchooser-text, .section > .content .section_add_menus .active.section-modchooser-text, .ucla-format-notice-box > .ucla-syllabus-alert-form > fieldset input.active[name="yesbutton"], .ucla-format-notice-box > .ucla-copyright-status-alert-form > fieldset input.active[name="yesbutton"], .box.notice_nonenrolled_users > .continuebutton input.active[type="submit"], .editbutton > a.active { background-color: #408140 \9; }
 
 /* line 166, ../../../package/sass-twitter-bootstrap/lib/_buttons.scss */
 .btn-info { color: white; text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25); background-color: #4ab0ce; background-image: -moz-linear-gradient(top, #5bc0de, #2f96b4); background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#5bc0de), to(#2f96b4)); background-image: -webkit-linear-gradient(top, #5bc0de, #2f96b4); background-image: -o-linear-gradient(top, #5bc0de, #2f96b4); background-image: linear-gradient(to bottom, #5bc0de, #2f96b4); background-repeat: repeat-x; filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#FF5BC0DE', endColorstr='#FF2F96B4', GradientType=0); border-color: #2f96b4 #2f96b4 #1f6377; border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25); *background-color: #2f96b4; /* Darken IE7 buttons by default so they stand out more given they won't have borders */ filter: progid:DXImageTransform.Microsoft.gradient(enabled=false); }
@@ -757,19 +757,19 @@ button.btn.btn-mini, .section > .content .section-modchooser button.btn-mini.sec
 
 /*@import "sass-twitter-bootstrap/lib/button-groups";*/
 /* line 9, ../../../package/sass-twitter-bootstrap/lib/_alerts.scss */
-.alert, .ucla-format-notice-box, .box.generalbox, .box.noticebox, .box.notice_nonenrolled_users, .box.notice_oldcourse { padding: 8px 35px 8px 14px; margin-bottom: 20px; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5); background-color: #fcf8e3; border: 1px solid #fbeed5; -webkit-border-radius: 4px; -moz-border-radius: 4px; border-radius: 4px; color: #c09853; }
+.alert, .ucla-format-notice-box, #notice, .notifysuccess, .box.errorbox, .box.noticebox, .box.notice_nonenrolled_users, .box.notice_oldcourse { padding: 8px 35px 8px 14px; margin-bottom: 20px; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5); background-color: #fcf8e3; border: 1px solid #fbeed5; -webkit-border-radius: 4px; -moz-border-radius: 4px; border-radius: 4px; color: #c09853; }
 
 /* line 18, ../../../package/sass-twitter-bootstrap/lib/_alerts.scss */
-.alert h4, .ucla-format-notice-box h4, .box.generalbox h4, .box.noticebox h4, .box.notice_nonenrolled_users h4, .box.notice_oldcourse h4 { margin: 0; }
+.alert h4, .ucla-format-notice-box h4, #notice h4, .notifysuccess h4, .box.errorbox h4, .box.noticebox h4, .box.notice_nonenrolled_users h4, .box.notice_oldcourse h4 { margin: 0; }
 
 /* line 23, ../../../package/sass-twitter-bootstrap/lib/_alerts.scss */
-.alert .close, .ucla-format-notice-box .close, .box.generalbox .close, .box.noticebox .close, .box.notice_nonenrolled_users .close, .box.notice_oldcourse .close { position: relative; top: -2px; right: -21px; line-height: 20px; }
+.alert .close, .ucla-format-notice-box .close, #notice .close, .notifysuccess .close, .box.errorbox .close, .box.noticebox .close, .box.notice_nonenrolled_users .close, .box.notice_oldcourse .close { position: relative; top: -2px; right: -21px; line-height: 20px; }
 
 /* line 34, ../../../package/sass-twitter-bootstrap/lib/_alerts.scss */
-.alert-success { background-color: #dff0d8; border-color: #d6e9c6; color: #468847; }
+.alert-success, .notifysuccess { background-color: #dff0d8; border-color: #d6e9c6; color: #468847; }
 
 /* line 40, ../../../package/sass-twitter-bootstrap/lib/_alerts.scss */
-.alert-danger, .alert-error { background-color: #f2dede; border-color: #eed3d7; color: #b94a48; }
+.alert-danger, .box.errorbox, .alert-error { background-color: #f2dede; border-color: #eed3d7; color: #b94a48; }
 
 /* line 45, ../../../package/sass-twitter-bootstrap/lib/_alerts.scss */
 .alert-info, .ucla-format-notice-box { background-color: #d9edf7; border-color: #bce8f1; color: #3a87ad; }
@@ -991,7 +991,7 @@ button.btn.btn-mini, .section > .content .section-modchooser button.btn-mini.sec
 .btn-danger { /*@include buttonBackground(#E15450, #E56A67)*/ }
 
 /* line 14, ../../../../moodle/theme/uclashared/src/sass/_buttons.scss */
-.btn-success, .forumaddnew input[type="submit"], .ccle-action-btn, .section > .content .section-modchooser .section-modchooser-text, .section > .content .section_add_menus .section-modchooser-text, .ucla-format-notice-box > .ucla-syllabus-alert-form > fieldset input[name="yesbutton"], .box.notice_nonenrolled_users > .continuebutton input[type="submit"], .editbutton > a { /*@include buttonBackground(#5FBE5F, #72C672)*/ }
+.btn-success, .forumaddnew input[type="submit"], .ccle-action-btn, .section > .content .section-modchooser .section-modchooser-text, .section > .content .section_add_menus .section-modchooser-text, .ucla-format-notice-box > .ucla-syllabus-alert-form > fieldset input[name="yesbutton"], .ucla-format-notice-box > .ucla-copyright-status-alert-form > fieldset input[name="yesbutton"], .box.notice_nonenrolled_users > .continuebutton input[type="submit"], .editbutton > a { /*@include buttonBackground(#5FBE5F, #72C672)*/ }
 
 /* line 33, ../../../../moodle/theme/uclashared/src/sass/_buttons.scss */
 .ccle-action-btn, .section > .content .section-modchooser .section-modchooser-text, .section > .content .section_add_menus .section-modchooser-text { /*@extend .btn-success;*/ }
@@ -999,101 +999,132 @@ button.btn.btn-mini, .section > .content .section-modchooser button.btn-mini.sec
 /* line 11, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
 .generaltable, .path-mod-forum .forumheaderlist, .userenrolment { -webkit-border-radius: 0; -moz-border-radius: 0; border-radius: 0; }
 
-/* line 25, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
-.office-hours-table tbody tr td:first-child:not([data-content=""]) { width: 30%; }
+/* line 21, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+table thead { background-color: #EFEFEF; color: #222; }
+
 /* line 29, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
-.office-hours-table tbody tr td:first-child[data-content=""] { width: 5%; }
-/* line 33, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
-.office-hours-table tbody tr td:first-child[data-content=""] + td { width: 30%; }
+.block_ucla_my_sites.block .content .header { background-color: #EFEFEF; }
+
 /* line 37, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+table.generaltable thead:first-child tr:first-child th:first-child, table thead:first-child tr:first-child th:first-child { border-top-left-radius: 0; }
+/* line 40, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+table.generaltable thead:first-child tr:first-child th:last-child, table thead:first-child tr:first-child th:last-child { border-top-right-radius: 0; }
+/* line 43, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+table.generaltable tbody:last-child tr:last-child td:first-child, table tbody:last-child tr:last-child td:first-child { border-radius: 0 0 0 0; }
+
+/* line 55, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+.office-hours-table tbody tr td:first-child:not([data-content=""]) { width: 30%; }
+@media only screen and (max-width: 480px) { /* line 55, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .office-hours-table tbody tr td:first-child:not([data-content=""]) { width: auto; } }
+@media only screen and (min-width: 480px) and (max-width: 768px) { /* line 55, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .office-hours-table tbody tr td:first-child:not([data-content=""]) { width: auto; } }
+/* line 64, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+.office-hours-table tbody tr td:first-child[data-content=""] { width: 5%; }
+@media only screen and (max-width: 480px) { /* line 64, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .office-hours-table tbody tr td:first-child[data-content=""] { width: auto; } }
+@media only screen and (min-width: 480px) and (max-width: 768px) { /* line 64, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .office-hours-table tbody tr td:first-child[data-content=""] { width: auto; } }
+/* line 73, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+.office-hours-table tbody tr td:first-child[data-content=""] + td { width: 30%; }
+@media only screen and (max-width: 480px) { /* line 73, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .office-hours-table tbody tr td:first-child[data-content=""] + td { width: auto; } }
+@media only screen and (min-width: 480px) and (max-width: 768px) { /* line 73, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .office-hours-table tbody tr td:first-child[data-content=""] + td { width: auto; } }
+/* line 82, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+.office-hours-table tbody tr td[data-content="Email"] { width: 25%; }
+@media only screen and (max-width: 480px) { /* line 82, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .office-hours-table tbody tr td[data-content="Email"] { width: auto; } }
+@media only screen and (min-width: 480px) and (max-width: 768px) { /* line 82, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .office-hours-table tbody tr td[data-content="Email"] { width: auto; } }
+/* line 91, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
 .office-hours-table tbody tr td { width: auto; }
 
-@media only screen and (max-width: 480px), only screen and (min-width: 480px) and (max-width: 768px) { /* line 49, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+@media only screen and (max-width: 480px), only screen and (min-width: 480px) and (max-width: 768px) { /* line 103, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
   .boxwidthnormal { -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; width: 100%; } }
-/* line 62, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+/* line 116, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
 .ccle-responsive-table-collapse, .instr-info > table.generaltable { width: 100%; border-collapse: collapse; }
 
-@media only screen and (max-width: 480px), only screen and (min-width: 480px) and (max-width: 768px) { /* line 71, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+@media only screen and (max-width: 480px), only screen and (min-width: 480px) and (max-width: 768px) { /* line 125, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
   .ccle-responsive-table-collapse { display: block; }
-  /* line 75, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  /* line 129, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
   .ccle-responsive-table-collapse, .instr-info > table { display: block; }
-  /* line 81, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  /* line 136, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
   .ccle-responsive-table-collapse thead, .ccle-responsive-table-collapse tbody, .ccle-responsive-table-collapse th, .ccle-responsive-table-collapse td, .ccle-responsive-table-collapse tr, .instr-info > table thead, .instr-info > table tbody, .instr-info > table th, .instr-info > table td, .instr-info > table tr { display: block; }
-  /* line 85, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  /* line 140, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
   .ccle-responsive-table-collapse thead tr, .instr-info > table thead tr { position: absolute; top: -9999px; left: -9999px; }
-  /* line 91, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  /* line 146, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
   .ccle-responsive-table-collapse tr, .instr-info > table tr { border-left: 1px solid #cccccc; }
-  /* line 94, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
-  .ccle-responsive-table-collapse td, .instr-info > table td { /* Behave  like a "row" */ border: none; border-bottom: 1px solid #eeeeee; position: relative; padding-left: 30%; height: 15px; }
-  /* line 102, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
-  .ccle-responsive-table-collapse td:before, .instr-info > table td:before { /* Now like a table header */ position: absolute; /* Top/left values mimic padding */ top: 6px; left: 6px; width: 45%; padding-right: 10px; white-space: nowrap; }
-  /* line 115, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
-  .ccle-responsive-table-collapse td:nth-of-type(1):before, .instr-info > table td:nth-of-type(1):before { content: attr(data-content); }
-  /* line 116, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
-  .ccle-responsive-table-collapse td:nth-of-type(2):before, .instr-info > table td:nth-of-type(2):before { content: attr(data-content); }
-  /* line 117, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
-  .ccle-responsive-table-collapse td:nth-of-type(3):before, .instr-info > table td:nth-of-type(3):before { content: attr(data-content); }
-  /* line 118, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
-  .ccle-responsive-table-collapse td:nth-of-type(4):before, .instr-info > table td:nth-of-type(4):before { content: attr(data-content); }
-  /* line 119, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
-  .ccle-responsive-table-collapse td:nth-of-type(5):before, .instr-info > table td:nth-of-type(5):before { content: attr(data-content); }
-  /* line 120, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
-  .ccle-responsive-table-collapse td:nth-of-type(6):before, .instr-info > table td:nth-of-type(6):before { content: attr(data-content); }
-  /* line 121, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
-  .ccle-responsive-table-collapse td:nth-of-type(7):before, .instr-info > table td:nth-of-type(7):before { content: attr(data-content); }
-  /* line 122, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
-  .ccle-responsive-table-collapse td:nth-of-type(8):before, .instr-info > table td:nth-of-type(8):before { content: attr(data-content); }
-  /* line 123, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
-  .ccle-responsive-table-collapse td:nth-of-type(9):before, .instr-info > table td:nth-of-type(9):before { content: attr(data-content); } }
-@media only screen and (max-width: 480px), only screen and (min-width: 480px) and (max-width: 768px) { /* line 138, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
-  .userenrolment { display: block; position: relative; width: 100%; }
-  /* line 143, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
-  .userenrolment thead { display: block; float: left; }
-  /* line 147, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
-  .userenrolment tbody { display: block; width: auto; position: relative; overflow-x: auto; white-space: nowrap; }
-  /* line 154, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
-  .userenrolment thead tr { display: block; }
+  /* line 149, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .ccle-responsive-table-collapse td, .instr-info > table td { /* Behave  like a "row" */ border: none; border-bottom: 1px solid #eeeeee; position: relative; padding-left: 45%; height: 15px; }
   /* line 157, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
-  .userenrolment tbody tr { display: inline-block; vertical-align: top; border-right: 1px solid #cccccc; /*width: $ccle-userenrollment-row-width;*/ }
-  /* line 163, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
-  .userenrolment th { display: block; max-width: 135px; border: 1px solid #cccccc; height: 30px; max-height: 30px; }
-  /* line 170, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
-  .userenrolment td { display: block; border-left: 0; border-right: 0; max-height: 30px; width: auto; }
+  .ccle-responsive-table-collapse td:before, .instr-info > table td:before { /* Now like a table header */ position: absolute; /* Top/left values mimic padding */ top: 6px; left: 6px; width: 45%; padding-right: 10px; white-space: nowrap; font-weight: bold; }
+  /* line 171, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .ccle-responsive-table-collapse td:nth-of-type(1):before, .instr-info > table td:nth-of-type(1):before { content: attr(data-content); }
+  /* line 172, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .ccle-responsive-table-collapse td:nth-of-type(2):before, .instr-info > table td:nth-of-type(2):before { content: attr(data-content); }
+  /* line 173, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .ccle-responsive-table-collapse td:nth-of-type(3):before, .instr-info > table td:nth-of-type(3):before { content: attr(data-content); }
+  /* line 174, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .ccle-responsive-table-collapse td:nth-of-type(4):before, .instr-info > table td:nth-of-type(4):before { content: attr(data-content); }
+  /* line 175, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .ccle-responsive-table-collapse td:nth-of-type(5):before, .instr-info > table td:nth-of-type(5):before { content: attr(data-content); }
+  /* line 176, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .ccle-responsive-table-collapse td:nth-of-type(6):before, .instr-info > table td:nth-of-type(6):before { content: attr(data-content); }
   /* line 177, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .ccle-responsive-table-collapse td:nth-of-type(7):before, .instr-info > table td:nth-of-type(7):before { content: attr(data-content); }
+  /* line 178, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .ccle-responsive-table-collapse td:nth-of-type(8):before, .instr-info > table td:nth-of-type(8):before { content: attr(data-content); }
+  /* line 179, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .ccle-responsive-table-collapse td:nth-of-type(9):before, .instr-info > table td:nth-of-type(9):before { content: attr(data-content); } }
+@media only screen and (max-width: 480px), only screen and (min-width: 480px) and (max-width: 768px) { /* line 194, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .userenrolment { display: block; position: relative; width: 100%; }
+  /* line 199, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .userenrolment thead { display: block; float: left; }
+  /* line 203, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .userenrolment tbody { display: block; width: auto; position: relative; overflow-x: auto; white-space: nowrap; }
+  /* line 210, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .userenrolment thead tr { display: block; }
+  /* line 213, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .userenrolment tbody tr { display: inline-block; vertical-align: top; border-right: 1px solid #cccccc; /*width: $ccle-userenrollment-row-width;*/ }
+  /* line 219, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .userenrolment th { display: block; max-width: 135px; border: 1px solid #cccccc; height: 30px; max-height: 30px; }
+  /* line 226, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  .userenrolment td { display: block; border-left: 0; border-right: 0; max-height: 30px; width: auto; }
+  /* line 233, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
   .userenrolment td:first-child { border-top: 0; }
-  /* line 181, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  /* line 237, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
   .userenrolment td.col_userdetails, .userenrolment th.col_userdetails { min-height: 70px; }
-  /* line 184, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  /* line 240, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
   .userenrolment .col_lastseen { width: auto; } }
-@media only screen and (max-width: 480px) { /* line 190, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+@media only screen and (max-width: 480px) { /* line 246, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
   .userenrolment th { max-width: 70px; padding: 4px; }
-  /* line 194, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  /* line 250, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
   .userenrolment td { padding: 4px; }
-  /* line 198, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+  /* line 254, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
   .userenrolment td.col_userdetails, .userenrolment th.col_userdetails { min-height: 125px; } }
-/* line 206, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+/* line 262, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
 table.rolecap { margin-left: auto; margin-right: auto; }
 
-/* line 207, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+/* line 263, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
 table.rolecap tr.rolecap th { text-align: left; font-weight: normal; }
 
-/* line 208, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+/* line 264, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
 .rolecaps th { color: black !important; }
 
 /*.generaltable {border:1px solid #DDD;}
 .generaltable .cell {background-color:#FFF;border:1px solid #EEE;border-collapse: collapse;}
 .generaltable .header {background-color:#EEE;border:1px solid #EEE;font-weight:bold;}*/
 /* CCLE-2909 - Browser cutting off tables with many columns */
-/* line 224, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+/* line 280, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
 #attemptsform .no-overflow, #page-admin-roles-allow #page-content .region-content, #page-admin-tool-uclasupportconsole-index .region-content, #page-admin-uclacourserequestor .region-content { overflow: auto; }
 
-/* line 228, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+/* line 284, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
 .groupmanagementtable { width: 90%; }
 
-/* line 229, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+/* line 285, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
 .groupmanagementtable td { vertical-align: top; border-width: 0px; }
 
-/* line 230, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
+/* line 286, ../../../../moodle/theme/uclashared/src/sass/_tables.scss */
 .groupmanagementtable td p { margin: 0px; }
 
 /* line 9, ../../../../moodle/theme/uclashared/src/sass/_navs.scss */
@@ -1331,21 +1362,36 @@ a.ccle-label:hover, li.activity > .mod-indent > a.groupinglabel:hover, li.activi
 /* line 36, ../../../../moodle/theme/uclashared/src/sass/_footer.scss */
 #page-footer .purgecaches a { color: #A3BFFD; font-weight: bold; }
 
-/* line 16, ../../../../moodle/theme/uclashared/src/sass/_alerts.scss */
+/* line 12, ../../../../moodle/theme/uclashared/src/sass/_alerts.scss */
+#uclacourserequestor_notice { color: #394A6E; }
+
+/* line 20, ../../../../moodle/theme/uclashared/src/sass/_alerts.scss */
 .ucla-format-notice-box { font-size: 1.54rem; color: #394A6E; margin: 20px 15%; box-shadow: 0 0 0; padding: 8px 8px; }
-/* line 27, ../../../../moodle/theme/uclashared/src/sass/_alerts.scss */
-.ucla-format-notice-box > .ucla-syllabus-alert-form > fieldset { margin-top: 10px; padding: 0; }
-/* line 39, ../../../../moodle/theme/uclashared/src/sass/_alerts.scss */
+/* line 32, ../../../../moodle/theme/uclashared/src/sass/_alerts.scss */
+.ucla-format-notice-box > .ucla-syllabus-alert-form > fieldset, .ucla-format-notice-box > .ucla-copyright-status-alert-form > fieldset { margin-top: 10px; padding: 0; }
+/* line 44, ../../../../moodle/theme/uclashared/src/sass/_alerts.scss */
 .ucla-format-notice-box > .mform .fitem fieldset.felement { -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; width: 100%; margin: 0; text-align: right; }
 
-/* line 51, ../../../../moodle/theme/uclashared/src/sass/_alerts.scss */
-.box.generalbox, .box.noticebox { font-size: 1.54rem; color: #394A6E; margin: 20px 15%; }
+/* line 58, ../../../../moodle/theme/uclashared/src/sass/_alerts.scss */
+#notice, .notifysuccess, .box.errorbox, .box.noticebox { font-size: 1.54rem; color: #394A6E; margin: 20px 15%; }
 
-/* line 64, ../../../../moodle/theme/uclashared/src/sass/_alerts.scss */
+/* line 63, ../../../../moodle/theme/uclashared/src/sass/_alerts.scss */
+.box.errorbox { color: #CC0000; }
+
+/* line 76, ../../../../moodle/theme/uclashared/src/sass/_alerts.scss */
 .box.notice_nonenrolled_users, .box.notice_oldcourse { font-size: 1.54rem; color: #394A6E; margin: 20px 15%; }
 
-/* line 68, ../../../../moodle/theme/uclashared/src/sass/_alerts.scss */
+/* line 80, ../../../../moodle/theme/uclashared/src/sass/_alerts.scss */
 .box.notice_nonenrolled_users > .continuebutton { margin-top: 20px; }
+
+/* line 8, ../../../../moodle/theme/uclashared/src/sass/_dock.scss */
+#dock { background: url([[pix:theme|dock_bg]]); border-right: 0; -webkit-box-shadow: inset -3px 1px 2px #cccccc; -moz-box-shadow: inset -3px 1px 2px #cccccc; box-shadow: inset -3px 1px 2px #cccccc; }
+/* line 15, ../../../../moodle/theme/uclashared/src/sass/_dock.scss */
+#dock .controls, #dock .buttons_container { background-color: white; border-right: 1px solid #444444; -webkit-box-shadow: -2px 3px 3px #cccccc; -moz-box-shadow: -2px 3px 3px #cccccc; box-shadow: -2px 3px 3px #cccccc; }
+/* line 21, ../../../../moodle/theme/uclashared/src/sass/_dock.scss */
+#dock .docktitle h2 { font-weight: bold; }
+/* line 25, ../../../../moodle/theme/uclashared/src/sass/_dock.scss */
+#dock .controls { bottom: 0; height: 30px; width: 29px; border-right: 1px solid #cccccc; -webkit-box-shadow: -5px -2px 2px #cccccc; -moz-box-shadow: -5px -2px 2px #cccccc; box-shadow: -5px -2px 2px #cccccc; }
 
 @media (max-width: 767px) { /* line 15, ../../../../moodle/theme/uclashared/src/sass/_responsive.scss */
   body { padding: 0; } }
@@ -1418,12 +1464,12 @@ a.ccle-label:hover, li.activity > .mod-indent > a.groupinglabel:hover, li.activi
 
 /* line 6, ../../../../moodle/theme/uclashared/src/sass/ccle/_admin.scss */
 h2.headingblock { border-bottom: 1px solid #cccccc; font-size: 2.52rem; margin-top: 0; padding-bottom: 4px; }
-/* line 14, ../../../../moodle/theme/uclashared/src/sass/_mixins.scss */
+/* line 18, ../../../../moodle/theme/uclashared/src/sass/_mixins.scss */
 h2.headingblock > a { font-size: 1.4rem; margin-top: 20px; }
 
 /* line 10, ../../../../moodle/theme/uclashared/src/sass/ccle/_admin.scss */
 #addadmisform > h3.main { border-bottom: 1px solid #cccccc; font-size: 2.52rem; margin-top: 0; padding-bottom: 4px; }
-/* line 14, ../../../../moodle/theme/uclashared/src/sass/_mixins.scss */
+/* line 18, ../../../../moodle/theme/uclashared/src/sass/_mixins.scss */
 #addadmisform > h3.main > a { font-size: 1.4rem; margin-top: 20px; }
 
 /* line 14, ../../../../moodle/theme/uclashared/src/sass/ccle/_admin.scss */
@@ -1458,7 +1504,7 @@ h2.headingblock > a { font-size: 1.4rem; margin-top: 20px; }
 
 /* line 6, ../../../../moodle/theme/uclashared/src/sass/ccle/course/_admin.scss */
 .region-content > h2.main:not(.help) { border-bottom: 1px solid #cccccc; font-size: 2.52rem; margin-top: 0; padding-bottom: 4px; }
-/* line 14, ../../../../moodle/theme/uclashared/src/sass/_mixins.scss */
+/* line 18, ../../../../moodle/theme/uclashared/src/sass/_mixins.scss */
 .region-content > h2.main:not(.help) > a { font-size: 1.4rem; margin-top: 20px; }
 
 /* line 12, ../../../../moodle/theme/uclashared/src/sass/ccle/course/_admin.scss */
@@ -1613,7 +1659,7 @@ li.activity > .mod-indent > .commands > .editing_delete { float: right; }
 #cpanel-wrapper { width: 100%; /*border: 1px solid #CCC;*/ float: left; /*padding: 5px;*/ margin-bottom: 20px; /*    @include box-shadow(#AAA 0 2px 3px);*/ /*    & .cpheading { padding: 5px; text-align: left; background-color: $ucla_secondary_orange; margin-top: 0; color: white; }*/ }
 /* line 10, ../../../../moodle/theme/uclashared/src/sass/ccle/course/_cpanel.scss */
 #cpanel-wrapper > .cpheading { border-bottom: 1px solid #cccccc; font-size: 2.52rem; margin-top: 0; padding-bottom: 4px; }
-/* line 14, ../../../../moodle/theme/uclashared/src/sass/_mixins.scss */
+/* line 18, ../../../../moodle/theme/uclashared/src/sass/_mixins.scss */
 #cpanel-wrapper > .cpheading > a { font-size: 1.4rem; margin-top: 20px; }
 /* line 29, ../../../../moodle/theme/uclashared/src/sass/ccle/course/_cpanel.scss */
 #cpanel-wrapper > .cpanel-group { width: 100%; }

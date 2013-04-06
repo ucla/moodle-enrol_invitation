@@ -9,6 +9,10 @@
     margin: 20px 15%;
 }
 
+#uclacourserequestor_notice {
+    color: #394A6E;
+}
+
 // Syllabus alertbox
 // --------------------------------------------------
 
@@ -22,8 +26,9 @@
     // Padding to suppress the form styles
     padding: 8px 8px;
     
-    & > .ucla-syllabus-alert-form {
-
+    & > .ucla-syllabus-alert-form,
+    & > .ucla-copyright-status-alert-form {
+        
         & > fieldset {
             margin-top: 10px;
             padding: 0;
@@ -47,14 +52,21 @@
 // Target general boxes
 // --------------------------------------------------
 
-.box.generalbox,
+#notice,
+.notifysuccess,
+.box.errorbox,
 .box.noticebox {
     @extend .alert;
     @include ccle-alert-box;
 }
 
-.box.generalbox {
-    
+.box.errorbox {
+    @extend .alert-danger;
+    color: #CC0000;
+}
+
+.notifysuccess {
+    @extend .alert-success;
 }
 
 // Target notices
