@@ -2,11 +2,29 @@
 // CCLE / moodle blocks
 // --------------------------------------------------
 
-/* Add light shadows to blocks (looks good on mobile!) */
+// Target alert block
+// --------------------------------------------------
+
+// Add light shadows to blocks (looks good on mobile!) 
 .block {
+    background-color: #DFE7F4; 
+    margin-bottom:10px; 
+    overflow: hidden;
+    // 
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.067);
     border: 1px solid #D1DBEF;
+    
+    h1,
+    h2,
+    h3,
+    h4 {
+        margin:0px;
+    }
+    
+    .header {padding:4px 6px;background-color:#D1DBEF;}
+    .content {padding:0px 6px 0px 6px;background-color:#DFE7F4;}
 }
+
 
 /*.box.noticebox {
   padding: 8px 35px 8px 14px;
@@ -31,16 +49,13 @@
     padding-top: 4px;
 }
 
-// Imported CSS
+
+// Target alert block
 // --------------------------------------------------
 
-
-/** Blocks **/
-.block {border:none;background-color:#DFE7F4;margin-bottom:10px;overflow:hidden;}
-.block h1,
-.block h2,
-.block h3,
-.block h4 {margin:0px;}
-.block .header {padding:4px 6px;background-color:#D1DBEF;}
-.block .content {padding:0px 6px 0px 6px;background-color:#DFE7F4;}
+// Keep alert font the same
+.block.block-ucla-alert {
+    font-family: 'Arial';
+    font-size: 1.3rem;
+}
 

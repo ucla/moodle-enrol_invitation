@@ -2,12 +2,20 @@
 // CCLE / course specific admin
 // --------------------------------------------------
 
+// Admin headers
+// --------------------------------------------------
+
 // Normalize all course administration headers
 .region-content > h2.main:not(.help) {
     @include ccle-admin-header;
 }
 
+
+// Admin actions
+// --------------------------------------------------
+
 // Create horizontal bars to hold different actions
+// This is similar to how Github divides their actions
 .region-content {
     & > .urlselect {
         float: right;
@@ -16,9 +24,16 @@
         border-bottom: 1px solid #ccc;
         padding-bottom: 8px;
         margin-bottom: 20px;
+        height: 30px;
     }
     & > .loginfo {
         float: right;
         margin-bottom: 10px;
+    }
+}
+
+.enrol_user_buttons {
+    @include respond-to(handhelds) {
+        // @todo: implement
     }
 }
