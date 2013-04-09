@@ -7,7 +7,7 @@
 // This will will make the dock more noticeable
 #dock {
     
-    background: url([[pix:theme|dock_bg]]);
+    //background: url([[pix:theme|dock_bg]]);
     border-right: 0;
     @include single-box-shadow(#ccc, -3px, 1px, 2px, false, true);
 

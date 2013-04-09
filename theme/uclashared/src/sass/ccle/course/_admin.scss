@@ -6,7 +6,7 @@
 // --------------------------------------------------
 
 // Normalize all course administration headers
-.region-content > h2.main:not(.help) {
+.region-content > h2.main {
     @include ccle-admin-header;
 }
 
