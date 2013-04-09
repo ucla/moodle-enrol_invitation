@@ -83,3 +83,65 @@
 #page-header #sublogo .dropdownlist li {list-style-type:none;float:left;width:185px;text-align:left;line-height:1em;}
 .RightArrow:before {content:'► ';}
 .DownArrow:before {content:'▼ ';}
+
+@media only screen and (max-width: $breakpoint-xsmall),
+only screen and (min-width: $breakpoint-xsmall) and (max-width: $breakpoint-medium-small) {
+
+    /* FRONT PAGE ADJUSTMENTS */
+    .introbanner {
+        clear: right;
+        background-size: 150% Auto;
+        height: 75px;
+    }
+    .ribbon {
+        width: 280px;
+    }
+    .ribbon h3 {
+        width: 300px;
+    }
+    
+    /* HEADER ADJUSTMENTS */
+    #page-header .headermenu{
+        width: 100%;
+        text-align: center;
+        font-size: 1em;
+        margin: 5px;
+        margin-top: 0px;
+    }
+    #page-header .headermenu .weeks-display {
+        margin: 0;
+    }
+    #page-header .headermain {
+        margin-bottom: 0;
+        margin-top: 7px;
+        text-align: center;
+        margin: 0;
+        width: 100%;
+    }
+    #page-header .headermain #uclalogo {
+        width: 150px;
+        overflow: hidden;
+        display: inline-block;
+    }
+    #page-header #sublogo {
+        display: none;
+    }
+    .side-pre-only #page-content #region-main {
+/* margin-left: 0;
+float: left;*/
+    }
+    #page #page-content {
+        min-width: 0;
+    }
+    
+    #uclalogo a img {
+        width: 250px;
+    }
+    #control-panel {
+        display: none;
+    }
+    #weeks-display {
+        text-align: center;
+        padding-top: 4px;
+    }
+}

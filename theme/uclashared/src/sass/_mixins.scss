@@ -4,6 +4,10 @@
 
 // Define mixins here
 
+// CCLE admin header
+// --------------------------------------------------
+
+// Defines how all CCLE admin page headers should look like
 @mixin ccle-admin-header {
 
     border-bottom: 1px solid #ccc;
@@ -19,7 +23,10 @@
     }
 
 }
+
 // Action buttons
+// --------------------------------------------------
+
 @mixin ccle-button-action {
     @extend .btn-success;
 }
@@ -40,10 +47,31 @@
     
 }
 
-//
+// Responsive on-demand
+// --------------------------------------------------
+
+// Useful mixin to generate on demand responsive design changes
+// NOTE: This is buggy when using @extend inside block you're modifying
+@mixin respond-to($media) {
+    @if $media == handhelds {
+        @media only screen and (max-width: $breakpoint-xsmall) { @content; }
+    }
+    @else if $media == wide-handhelds {
+        @media only screen and (max-width: $breakpoint-xsmall) { @content; }
+        @media only screen and (min-width: $breakpoint-xsmall) and (max-width: $breakpoint-medium-small) { @content; }
+    }
+    @else if $media == tablets {
+        @media only screen and (min-width: $breakpoint-medium-small) and (max-width: $breakpoint-medium - 1) { @content; }
+    }
+}
 
 
 // Typography mixins
+// --------------------------------------------------
+
+// Defines how all CCLE typography should look
+// @todo: define these from variables
+
 @mixin ccle-typography-h1 {
     font-size: 3.1rem;
     font-weight: 900;

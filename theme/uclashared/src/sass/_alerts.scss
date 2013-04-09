@@ -4,9 +4,34 @@
 
 // CCLE alerts should share these characteristics
 @mixin ccle-alert-box {
+    
+    // Inherit from Bootstrap
+    @extend .alert;
+
+    // Make text more distinctive
     font-size: $type-font-size * 1.1;
     color: #394A6E;
+    
+    // Adjust so that box is always centerd
     margin: 20px 15%;
+    padding: 8px 14px;
+    width: auto;
+    
+    // Adjust for smaller screens
+    @include respond-to(handhelds) {
+        // Adjust box to fill in more screen space
+        margin: 20px 5%;
+        
+        // Resize buttons to be mobile friendly
+        form input {
+            width: 100%;
+            margin-top: 5px;
+        }
+    }
+}
+
+#uclacourserequestor_notice {
+    color: #394A6E;
 }
 
 // Syllabus alertbox
@@ -14,16 +39,20 @@
 
 // This also normalizes the form so that it doesn't look out of place
 .ucla-format-notice-box {
-    @extend .alert;
-    @extend .alert-info;
+    // This will use the 'info' clor
     @include ccle-alert-box;
+    @extend .alert-info;
+
+    // Remove box shadow
+    // @todo: remove in original styles.css
     box-shadow: 0 0 0;
 
     // Padding to suppress the form styles
     padding: 8px 8px;
     
-    & > .ucla-syllabus-alert-form {
-
+    & > .ucla-syllabus-alert-form,
+    & > .ucla-copyright-status-alert-form {
+        
         & > fieldset {
             margin-top: 10px;
             padding: 0;
@@ -47,14 +76,21 @@
 // Target general boxes
 // --------------------------------------------------
 
-.box.generalbox,
+#notice,
+#notice.generalbox,
+.notifysuccess,
+.box.errorbox,
 .box.noticebox {
-    @extend .alert;
     @include ccle-alert-box;
 }
 
-.box.generalbox {
-    
+.box.errorbox {
+    @extend .alert-danger;
+    color: #CC0000;
+}
+
+.notifysuccess {
+    @extend .alert-success;
 }
 
 // Target notices
@@ -62,9 +98,9 @@
 
 .box.notice_nonenrolled_users,
 .box.notice_oldcourse {
-    @extend .alert;
     @include ccle-alert-box;
 }
+
 .box.notice_nonenrolled_users > .continuebutton {
     margin-top: 20px;
     

@@ -59,6 +59,10 @@ html, body {background-color:#FFF; height:100%;}
     text-decoration: underline;
 }
 
+.generalbox {
+    border: 1px solid #ccc;
+}
+
 /** Notice **/
 /*.box.noticebox, #notice.generalbox {
     background-color: #FF9;
