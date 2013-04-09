@@ -136,6 +136,7 @@ only screen and (min-width: $breakpoint-xsmall) and (max-width: $breakpoint-medi
         td,
         tr {
             display: block;
+            word-wrap: break-word;
         }
         // Hide the table header
         thead tr {
@@ -153,7 +154,8 @@ only screen and (min-width: $breakpoint-xsmall) and (max-width: $breakpoint-medi
             border-bottom: 1px solid #eee; 
             position: relative;
             padding-left: 45%; 
-            height: 15px;
+            height: auto;
+            min-height: 15px;
         }
         td:before {
             /* Now like a table header */

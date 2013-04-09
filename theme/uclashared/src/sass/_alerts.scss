@@ -15,6 +15,7 @@
     // Adjust so that box is always centerd
     margin: 20px 15%;
     padding: 8px 14px;
+    width: auto;
     
     // Adjust for smaller screens
     @include respond-to(handhelds) {
@@ -76,6 +77,7 @@
 // --------------------------------------------------
 
 #notice,
+#notice.generalbox,
 .notifysuccess,
 .box.errorbox,
 .box.noticebox {

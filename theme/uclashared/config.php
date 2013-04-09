@@ -17,8 +17,6 @@ $THEME->sheets = array(
     'base',
     'core',     // custom core stlye changes
     'general',
-    'blocks',
-//    'blocks-ie'
 );
 
 $tf_general     = 'course.php';

@@ -24,8 +24,9 @@ $ccle-link-color:               #536895;
 $ccle-light-gray:               #F5F5F5;
 $ccle-lighter-gray:             #F9F9F9;  
 
-
-@import url("https://fonts.googleapis.com/css?family=Lato:400,700,900,400italic");
+// This is loaded directly in document head
+// @todo: consider moving source fonts locally?
+// @import url("https://fonts.googleapis.com/css?family=Lato:400,700,900,400italic");
 
 $type-font-family:               "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
 
