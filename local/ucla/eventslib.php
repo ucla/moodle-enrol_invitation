@@ -94,7 +94,7 @@ function hide_past_courses($weeknum) {
 
     $subj = 'Hiding courses for ' . $past_term;
     $body = sprintf("Hid %d courses.\n\n", $num_hidden_courses);
-    $body = sprintf("Hid %d TA sites.\n\n", $num_hidden_tasites);
+    $body .= sprintf("Hid %d TA sites.\n\n", $num_hidden_tasites);
     $body .= sprintf("Had %d problem courses.\n\n", $num_problem_courses);
     $body .= $error_messages;
     ucla_send_mail($to, $subj, $body);

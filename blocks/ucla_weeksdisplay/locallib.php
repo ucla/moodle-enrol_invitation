@@ -30,8 +30,13 @@ class ucla_session {
         // All session dates are tested against today
         $this->_today = substr(date('c'), 0, 10);
         
-        // Start with undetermined week
-        $this->_current_week = -1;
+        // Use current week
+        $this->_current_week = (int)get_config('local_ucla', 'current_week');
+        
+        if(empty($this->_current_week)) {
+            // Start with undetermined week
+            $this->_current_week = -1;
+        }
         
         // Number of active terms to retrieve (not including current term)
         $this->_lookahead = 3;
@@ -68,6 +73,8 @@ class ucla_session {
             } else { // Update term when quarter is not in session
                 $next_term = $this->next_term();
                 $this->update_term($next_term);
+                $this->_current_week = -1;
+                $this->update_week();
             }
             
         } else { // Summer
@@ -98,6 +105,8 @@ class ucla_session {
             if(!$this->in_session($this->_session['6C']->session_end)) {
                 $next_term = $this->next_term();
                 $this->update_term($next_term);
+                $this->_current_week = -1;
+                $this->update_week();
             }
             
             // Update quarter string
