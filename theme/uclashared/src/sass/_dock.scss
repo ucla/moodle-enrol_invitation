@@ -1,0 +1,32 @@
+//
+// DOCK
+// --------------------------------------------------
+
+@import "compass/css3/box-shadow";
+
+// This will will make the dock more noticeable
+#dock {
+    
+    //background: url([[pix:theme|dock_bg]]);
+    border-right: 0;
+    @include single-box-shadow(#ccc, -3px, 1px, 2px, false, true);
+
+    .controls,
+    .buttons_container {
+        background-color: white;
+        border-right: 1px solid #444;
+        @include single-box-shadow(#ccc, -2px, 3px, 3px);
+    }
+    
+    .docktitle h2 {
+        font-weight: bold;
+    }
+    
+    .controls {
+        bottom: 0;
+        height: 30px;
+        width: 29px;
+        border-right: 1px solid #ccc;
+        @include single-box-shadow(#ccc, -5px, -2px, 2px);
+    }
+}

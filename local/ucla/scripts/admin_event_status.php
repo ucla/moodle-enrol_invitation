@@ -63,15 +63,19 @@ try {
         $to = get_config('local_ucla', 'admin_email');
         if (empty($to)) {
             // variable not properly set
+            echo "Event queue check: Error -- you're missing the 'to' email field!\n";
             return 0;
         }
         
+        echo "Event queue check: Event queue has grown too much, email sent\n";
         return ucla_send_mail($to, $subject, $message);
     }
     
+    echo "Event queue check: Successfully ran the script\n";
     return 1;
     
 } catch (Exception $e) {
     // DB error
+    echo "Event queue check: There was an error in the script.\n";
     return 0;
 }

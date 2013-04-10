@@ -278,8 +278,23 @@ function xmldb_local_ucla_upgrade($oldversion=0) {
 
         // ucla savepoint reached
         upgrade_plugin_savepoint(true, 2012101500, 'local', 'ucla');
-    }    
-    
+    }
+
+    if ($oldversion < 2013040900) {
+
+        // Define index mdl_uclaregclas_subjarea_ix (not unique) to be added to ucla_reg_classinfo
+        $table = new xmldb_table('ucla_reg_classinfo');
+        $index = new xmldb_index('mdl_uclaregclas_subjarea_ix', XMLDB_INDEX_NOTUNIQUE, array('subj_area'));
+
+        // Conditionally launch add index mdl_uclaregclas_subjarea_ix
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        // ucla savepoint reached
+        upgrade_plugin_savepoint(true, 2013040900, 'local', 'ucla');
+    }
+
     return $result;
 }
 

@@ -90,3 +90,17 @@ $string['notice_oldcourse'] = 'You are viewing a course that is no longer in ses
 $string['lti_warning'] = 'There are risks using external tools. Please read ' . 
         'this help document for more information: ' .
         '<a target="_blank" href="https://docs.ccle.ucla.edu/w/LTI">https://docs.ccle.ucla.edu/w/LTI</a>';
+
+// Settings
+$string['student_access_ends_week'] = 'Prevent student access on week';
+$string['student_access_ends_week_description'] = 'When the specified week starts, the system will automatically ' . 
+        'hide all courses for previous term. For example, if "3" is given, then when "Week 3" starts for Spring ' .
+        'Quarter, then all courses for Winter will be hidden automatically. Also, if set, will prevent "My sites" ' .
+        'from listing the previous term\'s courses for students. If set to "0" no courses will be hidden ' .
+        'automatically and "My sites" is not restricted.';
+$string['coursehidden'] = '<p>This course is unavailable for students. Students ' .
+        'can access their course sites from a prior term during the first ' .
+        'two weeks of the subsequent term.</p><p>If additional access is ' .
+        'needed, students should contact the appropiate ' .
+        '<a href="https://ccle.ucla.edu/course/view/aboutccle?sectionid=926">' .
+        'CCLE Support staff</a>.</p>';

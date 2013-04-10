@@ -22,3 +22,11 @@
     <li><a href="http://www.oid.ucla.edu/units/imlab">OID's Instructional Media Lab</a> (for streaming video)</li>
 </ul>
 <p>All users of CCLE are encouraged to contact <a href="mailto:martinjbrennan@library.ucla.edu?subject=CCLE Copyright Question">Martin Brennan</a>, the <a href="mailto:martinjbrennan@library.ucla.edu?subject=CCLE Copyright Question">CCLE Copyright and Licensing Librarian</a>, with any questions about copyright law, using copyrighted works within CCLE, and related concerns.</p>
+
+<?php
+$config_week = get_config('local_ucla', 'student_access_ends_week');
+if (!empty($config_week)) {
+    // display past course access policy
+    echo '<h2>Past course access</h2>
+    <p>For copyright compliance, students will only have access to the previous quarter data for the first two weeks of the current quarter.</p>';
+}

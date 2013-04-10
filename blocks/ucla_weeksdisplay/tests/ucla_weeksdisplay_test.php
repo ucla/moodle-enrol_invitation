@@ -91,7 +91,7 @@ class ucla_weeksdisplay_test extends advanced_testcase {
         $session->update();
         
         $this->assertEquals('Summer 2012', get_config('local_ucla', 'current_week_display'));
-        $this->assertEquals('8', get_config('local_ucla', 'current_week'));
+        $this->assertEquals('-1', get_config('local_ucla', 'current_week'));
         $this->assertEquals('121,12F,13W,13S', get_config('local_ucla', 'active_terms'));
         $this->assertEquals('12F', get_config('', 'currentterm'));
         
@@ -179,7 +179,7 @@ class ucla_weeksdisplay_test extends advanced_testcase {
 
         // still final's week... haven't changed terms
         $this->assertEquals('Fall 2012 - Finals week', get_config('local_ucla', 'current_week_display'));
-        $this->assertEquals('11', get_config('local_ucla', 'current_week'));
+        $this->assertEquals('-1', get_config('local_ucla', 'current_week'));
         $this->assertEquals('12F,13W,13S,131', get_config('local_ucla', 'active_terms'));
         $this->assertEquals('13W', get_config('', 'currentterm'));
         

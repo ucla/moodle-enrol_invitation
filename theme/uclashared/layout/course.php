@@ -49,7 +49,12 @@ echo $OUTPUT->doctype() ?>
     <title><?php echo $PAGE->title ?></title>
     <link rel="shortcut icon" href="<?php echo $OUTPUT->pix_url('favicon', 'theme')?>" />
     <link rel="apple-touch-icon" href="<?php echo $OUTPUT->pix_url('apple-touch-icon', 'theme')?>" />
+    <link href='https://fonts.googleapis.com/css?family=Lato:400,400italic,700,900' rel='stylesheet' type='text/css'>
     <?php echo $OUTPUT->standard_head_html() ?>
+    <link rel="stylesheet" type="text/css" href="<?php echo $CFG->wwwroot . '/theme/uclashared/style/'?>blocks.css" />
+    <!--[if IE]>
+	<link rel="stylesheet" type="text/css" href="<?php echo $CFG->wwwroot . '/theme/uclashared/style/'?>blocks-ie.css" />
+    <![endif]-->
 </head>
 <body id="<?php echo $PAGE->bodyid ?>" class="<?php echo $PAGE->bodyclasses.' '.join(' ', $bodyclasses) ?>">
 <?php echo $OUTPUT->standard_top_of_body_html() ?>
@@ -119,8 +124,6 @@ echo $OUTPUT->doctype() ?>
 <?php } ?>
 <!-- END OF HEADER -->
 
-    <?php $twocolumnlayout = $hassidepost ? '' : 'two-col-responsive'; ?>
-
     <div id="page-content">
         <?php
             // Determine if we need to display banner
@@ -142,7 +145,7 @@ echo $OUTPUT->doctype() ?>
         <div id="region-main-box">
             <div id="region-post-box">
             
-                <div id="region-main-wrap" class="<?php echo $twocolumnlayout ?>">
+                <div id="region-main-wrap" >
                     <div id="region-main">
                         <div class="region-content">
                             <?php
@@ -158,8 +161,7 @@ echo $OUTPUT->doctype() ?>
                 </div>
                 
                 <?php if ($hassidepre) { ?>
-                <br class="clear-responsive-left" />
-                <div id="region-pre" class="block-region <?php echo $twocolumnlayout ?>">
+                <div id="region-pre" class="block-region">
                     <div class="region-content">
                         <?php echo $OUTPUT->blocks_for_region('side-pre') ?>
                     </div>
@@ -167,7 +169,6 @@ echo $OUTPUT->doctype() ?>
                 <?php } ?>
                 
                 <?php if ($hassidepost) { ?>
-                <br class="clear-responsive-right" />
                 <div id="region-post" class="block-region">
                     <div class="region-content">
                         <?php echo $OUTPUT->blocks_for_region('side-post') ?>

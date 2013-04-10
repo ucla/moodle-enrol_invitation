@@ -28,7 +28,6 @@ $context = get_context_instance(CONTEXT_COURSE, $course_id);
 
 
 // Make sure you can view this page.
-require_capability('moodle/course:update', $context);
 require_capability('moodle/course:manageactivities', $context);
 
 // Set up the page.

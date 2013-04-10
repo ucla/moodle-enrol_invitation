@@ -9,8 +9,6 @@ require_once($CFG->dirroot . '/course/lib.php');
 /**
  *  Class that contains the library of function calls that control logic
  *  for TA-site functionality.
- *  
- *  Currently restricted to 1 role duple (ta, ta-admin)
  **/
 class block_ucla_tasites extends block_base {
     /**

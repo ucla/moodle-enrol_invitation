@@ -14,11 +14,9 @@ $tn = 'theme_' . $THEME->name;
 $THEME->parents = array('base');
 
 $THEME->sheets = array(
-    'admin',    // custom admin style changes
     'base',
     'core',     // custom core stlye changes
     'general',
-    'responsive',
 );
 
 $tf_general     = 'course.php';

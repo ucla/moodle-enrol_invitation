@@ -842,6 +842,11 @@ function get_moodlerole($pseudorole, $subject_area='*SYSTEM*') {
 function ucla_send_mail($to, $subj, $body='', $header='') {
     global $CFG;
 
+    if ($CFG->noemailever) {
+        // We don't want any email sent.
+        return true;
+    }
+
     if (!empty($CFG->divertallemailsto)) {
         // change subject to have divert message
         $subj = "[DIVERTED $to] $subj";      
@@ -939,9 +944,9 @@ function term_role_can_view($term, $roleshortname, $currterm=null,
     if (in_array($roleshortname, array(
                 // Role-mapped course editors
                 'ta_admin', 'ta_instructor', 'editinginstructor', 
-                    'supervising_instructor',
+                    'supervising_instructor', 'studentfacilitator',
                 // Site adjuncts
-                'sa_1', 'sa_2', 'sa_3', 'sa_4'
+                'manager', 'instructional_assistant', 'editor'
             ))) {
         $canviewprev = true;
     }
@@ -1351,20 +1356,127 @@ function flash_redirect($url, $success_msg) {
 /**
  * Notify students and instructor if the course is from a past term.
  *
- * @global object $CFG
+ * If we are viewing a course from exactly the previous term, then only display
+ * notice if we are not in between terms.
+ *
  * @global object $OUTPUT
  * @param object $course
  * @return string           Returns notice if any is needed.
  */
 function notice_oldcourse($course) {
     global $CFG, $OUTPUT;
+    $displaynotice = false;
+    
+    if (is_past_course($course)) {
+        $currentweek = get_config('local_ucla', 'current_week');
+        if ($currentweek == -1) {
+            // We are between terms, so make sure if this is a course for
+            // exactly term before current term, that we don't display notice.
+            $courseinfos = ucla_get_course_info($course->id);
+            $courseinfo = current($courseinfos);
+            $previousterm = term_get_prev($CFG->currentterm);
+            if (term_cmp_fn($courseinfo->term, $previousterm) != 0) {
+                $displaynotice = true;
+            }
+        } else {
+            $displaynotice = true;
+        }
+    }
+
+    if ($displaynotice) {
+        return $OUTPUT->box(get_string('notice_oldcourse', 'local_ucla'),
+                'noticebox notice_oldcourse');
+    }
+}
+
+/**
+ * Checks if given course belongs to a past term.
+ * 
+ * @global type $CFG
+ * @param object $course
+ * @return boolean          Returns false if course is not a reg course or is
+ *                          not in past term. Otherwise true.
+ */
+function is_past_course($course) {
+    global $CFG;
     $courseinfos = ucla_get_course_info($course->id);
     if (empty($courseinfos)) {
-        return; // don't print anything for collab sites
+        return false;
     }
     // only notify for old courses
     $courseinfo = current($courseinfos);
     if (term_cmp_fn($courseinfo->term, $CFG->currentterm) == -1) {
-        return $OUTPUT->box(get_string('notice_oldcourse', 'local_ucla'), 'noticebox notice_oldcourse');
+        return true;
     }
+    return false;
+}
+
+/**
+ * Handles the hiding of courses and related TA sites, and reports  any 
+ * successes or failures. 
+ * 
+ * Please do not call this method directly. It should only be called from
+ * local/ucla/eventslib.php:hide_past_courses or the command line script
+ * local/ucla/scripts/hide_courses.php.
+ * 
+ * @global object $DB
+ * @param string $term
+ * @return mixed            Returns false on invalid term. Otherwise returns an
+ *                          array of $num_hidden_courses, $num_hidden_tasites,
+ *                          $num_problem_courses, $error_messages.
+ */
+function hide_courses($term) {
+    global $CFG, $DB;
+    require_once($CFG->dirroot . '/blocks/ucla_tasites/block_ucla_tasites.php');
+
+    if (!ucla_validator('term', $term)) {
+        return false;
+    }
+
+    // Track some stats.
+    $num_hidden_courses = 0;
+    $num_hidden_tasites = 0;
+    $num_problem_courses = 0;
+    $error_messages = '';
+
+    // Get list of courses to hide.
+    $courses = ucla_get_courses_by_terms(array($term));
+
+    if (empty($courses)) {
+        // No courses to hide.
+        return array($num_hidden_courses, $num_hidden_tasites,
+                     $num_problem_courses, $error_messages);
+    }
+
+    // Now run command to hide all courses for given term. Don't worry about
+    // updating visibleold (don't care) and we aren't using update_course,
+    // because if might be slow and trigger unnecessary events.
+    $courseobj = new stdClass();
+    $courseobj->visible = 0;
+    foreach ($courses as $courseid => $courseinfo) {
+        $courseobj->id = $courseid;
+        try {
+            $DB->update_record('course', $courseobj, true);
+            ++$num_hidden_courses;
+
+            // Try to see if course had any TA sites.
+            $existing_tasites = block_ucla_tasites::get_tasites($courseid);
+            if (empty($existing_tasites)) {
+                continue;
+            }
+            foreach ($existing_tasites as $tasite) {
+                $courseobj->id = $tasite->id;
+                $DB->update_record('course', $courseobj, true);
+                ++$num_hidden_tasites;
+            }
+
+        } catch (dml_exception $e) {
+            $error_messages .= sprintf("Could not hide courseid %d\n%s\n",
+                    $courseobj->id, $e->getMessage());
+            ++$num_problem_courses;
+        }
+    }
+
+    return array($num_hidden_courses, $num_hidden_tasites,
+                 $num_problem_courses, $error_messages);
 }

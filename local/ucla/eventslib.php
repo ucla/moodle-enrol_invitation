@@ -2,6 +2,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot . '/local/ucla/lib.php');
+
 /**
  * Deletes a given user's repo keys or all users whose lastaccess is passed a 
  * given time interval.
@@ -38,6 +40,64 @@ function delete_repo_keys($param = null) {
                 )";
         $DB->delete_records_select('user_preferences', "$where AND name $repo_where", $repo_params);
     }
+    
+    return true;
+}
+
+/**
+ * Determines if, given current week, whether or not to hide the past term's 
+ * courses. Uses local_ucla|student_access_ends_week to determine if courses
+ * should be hidden.
+ *
+ * If local_ucla|student_access_ends_week is 0, not set, or not equal to
+ * $weeknum then will do nothing.
+ *
+ * If local_ucla|student_access_ends_week is equal to $weeknum, then will hide
+ * the previous term's courses.
+ *
+ * Responds to the ucla_weeksdisplay_changed event.
+ *
+ * @param int $weeknum
+ */
+function hide_past_courses($weeknum) {
+    global $CFG, $DB;
+    $config_week = get_config('local_ucla', 'student_access_ends_week');
+
+    // If local_ucla|student_access_ends_week is 0, not set, or not equal to
+    // $weeknum then will do nothing.
+    if (empty($config_week) || $config_week != $weeknum) {
+        return true;
+    }
+
+    // If local_ucla|student_access_ends_week is equal to $weeknum, then will 
+    // hide the previous term's courses.
+    if (empty($CFG->currentterm)) {
+        // For some reason, currentterm is empty, just exit.
+        return true;
+    }
+
+    $past_term = term_get_prev($CFG->currentterm);
+    if (!ucla_validator('term', $past_term)) {
+        // Strange, cannot figure out past_term, just exit.
+        return true;
+    }
+
+    list($num_hidden_courses, $num_hidden_tasites, $num_problem_courses,
+            $error_messages) = hide_courses($past_term);
+
+    // Finished hiding courses, notify admins.
+    $to = get_config('local_ucla', 'admin_email');
+    if (empty($to)) {
+        // Did not have admin contact setup, just exit.
+        return true;
+    }
+
+    $subj = 'Hiding courses for ' . $past_term;
+    $body = sprintf("Hid %d courses.\n\n", $num_hidden_courses);
+    $body .= sprintf("Hid %d TA sites.\n\n", $num_hidden_tasites);
+    $body .= sprintf("Had %d problem courses.\n\n", $num_problem_courses);
+    $body .= $error_messages;
+    ucla_send_mail($to, $subj, $body);
     
     return true;
 }

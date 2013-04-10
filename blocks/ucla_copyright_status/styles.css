@@ -43,3 +43,13 @@ div#block_ucla_copyright_status_filter, div#block_ucla_copyright_status_id_cp_li
     color:red;
     font-weight:bold;
 }
+
+.ucla-copyright-status-alert-form .fgroup_id_alert_buttons {
+    display: inline;
+}
+.ucla-copyright-status-alert-form > fieldset {
+    margin: 0;
+}
+.ucla-copyright-status-alert-form.mform > fieldset > div {
+    margin: 0;
+}
