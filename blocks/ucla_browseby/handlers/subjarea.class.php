@@ -70,8 +70,6 @@ class subjarea_handler extends browseby_handler {
             FROM {ucla_browseall_classinfo} ubc
             INNER JOIN {ucla_reg_subjectarea} urs
                 ON ubc.subjarea = urs.subjarea
-            INNER JOIN {ucla_reg_classinfo} rci
-                ON rci.subj_area = urs.subjarea
             $where
             ORDER BY urs.subj_area_full
         ";
