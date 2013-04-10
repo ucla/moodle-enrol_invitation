@@ -1356,14 +1356,36 @@ function flash_redirect($url, $success_msg) {
 /**
  * Notify students and instructor if the course is from a past term.
  *
+ * If we are viewing a course from exactly the previous term, then only display
+ * notice if we are not in between terms.
+ *
  * @global object $OUTPUT
  * @param object $course
  * @return string           Returns notice if any is needed.
  */
 function notice_oldcourse($course) {
-    global $OUTPUT;
+    global $CFG, $OUTPUT;
+    $displaynotice = false;
+    
     if (is_past_course($course)) {
-        return $OUTPUT->box(get_string('notice_oldcourse', 'local_ucla'), 'noticebox notice_oldcourse');
+        $currentweek = get_config('local_ucla', 'current_week');
+        if ($currentweek == -1) {
+            // We are between terms, so make sure if this is a course for
+            // exactly term before current term, that we don't display notice.
+            $courseinfos = ucla_get_course_info($course->id);
+            $courseinfo = current($courseinfos);
+            $previousterm = term_get_prev($CFG->currentterm);
+            if (term_cmp_fn($courseinfo->term, $previousterm) != 0) {
+                $displaynotice = true;
+            }
+        } else {
+            $displaynotice = true;
+        }
+    }
+
+    if ($displaynotice) {
+        return $OUTPUT->box(get_string('notice_oldcourse', 'local_ucla'),
+                'noticebox notice_oldcourse');
     }
 }
 

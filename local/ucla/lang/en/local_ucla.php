@@ -98,6 +98,9 @@ $string['student_access_ends_week_description'] = 'When the specified week start
         'Quarter, then all courses for Winter will be hidden automatically. Also, if set, will prevent "My sites" ' .
         'from listing the previous term\'s courses for students. If set to "0" no courses will be hidden ' .
         'automatically and "My sites" is not restricted.';
-$string['coursehidden'] = 'This course is unavailable for students. For ' .
-        'copyright compliance, students will only have access to the ' .
-        'previous quarter data for the first two weeks of the current quarter.';
+$string['coursehidden'] = '<p>This course is unavailable for students. Students ' .
+        'can access their course sites from a prior term during the first ' .
+        'two weeks of the subsequent term.</p><p>If additional access is ' .
+        'needed, students should contact the appropiate ' .
+        '<a href="https://ccle.ucla.edu/course/view/aboutccle?sectionid=926">' .
+        'CCLE Support staff</a>.</p>';
