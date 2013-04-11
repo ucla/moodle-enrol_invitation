@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Report to get the number of quizzes taken during finals week by division
+ * Report to get the number of quizzes taken during 10th week and Finals week by division
  *
  * @package    report
  * @subpackage uclastats
@@ -60,11 +60,15 @@ class final_quiz_report extends uclastats_base {
         foreach ($results as $r) {
 
             $session = $r['session'];
-
-            $term_end = strtotime($r['session_end']);
+            
+            //upper bound end of finals week is Saturday 12:00 A.M. 
+            $term_end = strtotime('+1 day',strtotime($r['session_end']));
 
             if ($session == 'RG') {
-
+                
+                //For regular
+                //10th week starts on Sat after 9th's week Friday until the Friday before Final's week Monday.
+                //Finals week starts on Sat after 10th's week Friday until end of Friday for Final's week.
                 $ret_val['last_week_start'] = strtotime('-2 week', $term_end);
                 $ret_val['last_week_end'] = strtotime('-1 week', $term_end);
                 
@@ -83,7 +87,10 @@ class final_quiz_report extends uclastats_base {
                 } else {
                     $session_lowercase = strtolower($session);
                 }
-
+                //For summer:
+                //Last week begins Sat after previous week's Friday and ends before the Friday.
+                //Finals is the last day of class.
+                
                 //For summer sessions, last week of each respective session is considered last_week
                 $ret_val['last_week_start_' . $session_lowercase] = strtotime('-1 week', $term_end);
 
@@ -101,7 +108,7 @@ class final_quiz_report extends uclastats_base {
     }
 
     /**
-     * Query to get the number of quizzes taken during finals week by division
+     * Query to get the number of quizzes taken during 10th week and Finals week by division
      *
      * @param array $params
      * @param return array
