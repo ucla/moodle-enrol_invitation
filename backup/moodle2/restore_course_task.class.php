@@ -71,6 +71,13 @@ class restore_course_task extends restore_task {
             $this->add_step(new restore_course_structure_step('course_info', 'course.xml'));
         }
 
+        // BEGIN UCLA MOD: CCLE-3797 - Add additional step in retore procedure 
+        // to hide all course sections if the option was selected.
+        if ($this->get_setting_value('hide_crs_sections') == true) {
+            $this->add_step(new restore_course_hide_sections_step('hide_crs_sections'));
+        }
+        // END UCLA MOD: CCLE-3797
+
         // Restore course role assignments and overrides (internally will observe the role_assignments setting)
         $this->add_step(new restore_ras_and_caps_structure_step('course_ras_and_caps', 'roles.xml'));
 
@@ -176,5 +183,14 @@ class restore_course_task extends restore_task {
         }
         $this->add_setting($overwrite);
 
+        // BEGIN UCLA MOD: CCLE-3797 - Add option (setting) in the restore 
+        // process to hide all course sections
+        $hidesectionsetting = new restore_generic_setting('hide_crs_sections', base_setting::IS_BOOLEAN, false);
+        $hidesectionsetting->set_ui(
+                new backup_setting_ui_checkbox($hidesectionsetting, get_string('hide_crs_sections', 'backup')));
+        $hidesectionsetting->get_ui()->set_label(get_string('hide_crs_sections', 'backup'));
+        $hidesectionsetting->set_value(true);
+        $this->add_setting($hidesectionsetting);
+        // END UCLA MOD: CCLE-3797
     }
 }
