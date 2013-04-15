@@ -32,7 +32,10 @@ $string['invisible'] = '(to be continued)';
 $string['lastmodified'] = 'Last modified entry';
 $string['nextone'] = 'Next entry';
 $string['noentriesyet'] = 'There are no entries yet in the chosen glossary.';
-$string['notyetconfigured'] = 'Please configure this block using the edit icon.';
+// START UCLA MOD: CCLE-3766 - Changed the content of unconfigured Random glossary entry
+// $string['notyetconfigured'] = 'Please configure this block using the edit icon.';
+$string['notyetconfigured'] = 'The Random Glossary Entry block is not visible to students until configured. <br><br>Please configure this block using the edit icon.';
+// END UCLA MOD : CCLE-3766
 $string['notyetglossary'] = 'You need to have at least one glossary to choose.';
 $string['pluginname'] = 'Random glossary entry';
 $string['random'] = 'Random entry';
