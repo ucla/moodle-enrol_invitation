@@ -11,7 +11,7 @@
     // Course header
     // Contains title 
     > .headingblock {
-        @extend ccle-typography-h2;
+        @extend .ccle-typography-h2;
         
         background-color: $ccle-light-blue;
         border: 1px solid $ccle-border-blue;
@@ -24,6 +24,26 @@
             font-weight: normal;
             font-size: $type-font-size;
             margin-bottom: 4px;
+            
+            // Crosslist metadata will be truncated and limited
+            // to a single line.  
+            @include respond-to(handhelds) {
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                height: $type-line-height;
+            }
+            
+            /// Term and hostcourse will be bolded and darkened
+            > .reg-term {
+                text-transform: uppercase;
+                font-weight: bold;
+                color: $ccle-dark-blue;
+            }
+            > .reg-courses > .reg-hostcourse {
+                font-weight: bold;
+                color: $ccle-dark-blue;
+            }
         }
     }
     
@@ -40,6 +60,11 @@
     // Office hours table
     .instr-info {
         margin-top: 10px;
+    }
+    
+    // Put a border around hidden sections
+    .hidden .content {
+        border: 4px dotted #ccc;
     }
 }
 
