@@ -25,7 +25,8 @@ class easyupload_activity_form extends easy_upload_form {
         foreach ($this->activities as $cursor => $actname) {
             $prefix = '-';
             if (is_array($actname)) {
-                $cursor = reset(array_keys($actname));
+                $temp = array_keys($actname);
+                $cursor = reset($temp);
                 $actname = reset($actname);
             }
 
@@ -37,7 +38,8 @@ class easyupload_activity_form extends easy_upload_form {
                 $temppop = array_pop($tempstack);
 
                 $objname = reset($temppop);
-                $objref = reset(array_keys($temppop));
+                $temppop = array_keys($temppop);
+                $objref = reset($temppop);
 
                 if (is_array($objname)) {
                     $tempstack[] = array($prefix);
