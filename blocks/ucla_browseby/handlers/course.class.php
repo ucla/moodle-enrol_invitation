@@ -70,7 +70,7 @@ class course_handler extends browseby_handler {
 
         // This is the parameters for one of the two possible query
         // types in this function...
-        $params = array();
+        $param = array();
 
         $fullcourselist = array();
 
@@ -141,6 +141,11 @@ class course_handler extends browseby_handler {
             $urlobj->remove_params('subjarea');
             $urlobj->params(array('type' => 'subjarea'));
             $PAGE->navbar->add($navbarstr, $urlobj);
+            
+            $sql = "SELECT DISTINCT term
+                        FROM {ucla_browseall_classinfo} ubci
+                    WHERE ubci.subjarea = :subjarea";
+
         } else if (isset($args['user'])) {
             ucla_require_db_helper();
 
@@ -149,6 +154,7 @@ class course_handler extends browseby_handler {
 
             $sqlhelp = instructor_handler::combined_select_sql_helper();
 
+            // Query that selects courses for selected term only
             // This will not include people enrolled only locally.
             $sql = self::browseall_sql_helper . "
                 FROM $sqlhelp ubi
@@ -165,26 +171,18 @@ class course_handler extends browseby_handler {
             self::browseall_syllabus_helper .
             "   WHERE
                     ubi.userid = :user
+                    $termwhere
             " . self::browseall_order_helper;
 
             $param['user'] = $instructor;
 
             $courseslist = $this->get_records_sql($sql, $param);
-
-            // hack to hide some terms
-            // Also, we're going to get the actual user information
+            
+            // Get the actual user information from courses
             $instruser = false;
-            $terms_avail = array();
-            foreach ($courseslist as $coursekey => $course) {
-                $tt = $course->term;
-                $terms_avail[$tt] = $tt;
-
+            foreach ($courseslist as $course) {
                 if ($instruser == false && $course->userid == $instructor) {
                     $instruser = $course;
-                }
-                
-                if ($term && $course->term != $term) {
-                   unset($courseslist[$coursekey]);
                 }
             }
 
@@ -199,9 +197,6 @@ class course_handler extends browseby_handler {
                 $t = get_string('coursesbyinstr', 'block_ucla_browseby',
                     fullname($instruser));
             }
-
-            list($terms_select_where, $terms_select_param) =
-                $this->render_terms_restricted_helper($terms_avail);
 
             if (!empty($args['alpha'])) {
                 instructor_handler::alter_navbar();
@@ -221,13 +216,23 @@ class course_handler extends browseby_handler {
             $urlobj->remove_params('user');
             $urlobj->params(array('type' => 'instructor'));
             $PAGE->navbar->add($navbarstr, $urlobj);
+            
+            // Query for available terms (for the terms dropdown)
+            $sql = "SELECT DISTINCT term
+                    FROM (
+                        SELECT us.id AS userid, term
+                        FROM {user} us
+                        INNER JOIN {ucla_browseall_instrinfo} ubii
+                            ON ubii.uid = us.idnumber) ubi
+                    WHERE ubi.userid = :user";
+        
         } else {
             // There is no way to know what we are looking at
             return array(false, false);
         }
 
         $s .= block_ucla_browseby_renderer::render_terms_selector(
-            $args['term'], $terms_select_where, $terms_select_param);
+            $args['term'], $sql, $param);
 
         if (empty($courseslist)) {
             //print_error('noresults');
