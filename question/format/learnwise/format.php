@@ -66,7 +66,7 @@ class qformat_learnwise extends qformat_default {
         return $questions;
     }
 
-    function readquestion($lines) {
+    protected function readquestion($lines) {
         global $OUTPUT;
 
         $text = implode(' ', $lines);
