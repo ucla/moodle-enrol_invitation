@@ -24,8 +24,9 @@ require_once($CFG->dirroot . '/local/ucla/lib.php');
 // be handled within the module itself
 
 $course_id = required_param('course_id', PARAM_INT); // course ID
+$section_id = optional_param('section', 0, PARAM_INT);
 $module_view = optional_param('module', 'default', PARAM_ALPHANUMEXT);
-
+         
 if (! $course = $DB->get_record('course', array('id' => $course_id))) {
     print_error('coursemisconf');
 }
@@ -37,6 +38,24 @@ $context = get_context_instance(CONTEXT_COURSE, $course_id);
 if (isguestuser()) {
     redirect($CFG->wwwroot . '/course/view.php?id=' . $course_id);
 }
+
+// For Control Panel views logging purposes 
+if ($module_view == 'default') {
+    if ($section_id > 0) {
+        $infoparam = "Section $section_id - Common functions";
+    } else {
+        $infoparam = "Common functions";
+    }
+} else if ($module_view == 'more_advanced') {
+    $infoparam = "Advanced functions";
+} else {
+    $infoparam = "Admin functions";
+}
+
+$params = array('course_id' => $course_id, 'section' => $section_id, 'module' => $module_view);
+$log_url = new moodle_url('../blocks/ucla_control_panel/view.php', $params);
+
+add_to_log($course_id, 'course', "control panel view", $log_url, $infoparam);
 
 // Initialize $PAGE
 $PAGE->set_url('/blocks/ucla_control_panel/view.php', 

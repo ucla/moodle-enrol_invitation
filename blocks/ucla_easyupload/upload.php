@@ -383,7 +383,7 @@ if ($uploadform->is_cancelled()) {
     }
     
     add_to_log($data->course_id, $data->modulename, 'add', 
-            "/view.php?id=$data->coursemodule", $data->name);
+            "/view.php?id=$data->coursemodule", $data->name . " - via Control Panel");
     
     $eventdata = new stdClass();
     $eventdata->modulename = $data->modulename;
