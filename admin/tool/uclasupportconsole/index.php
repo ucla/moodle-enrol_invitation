@@ -489,11 +489,15 @@ if ($displayforms) {
     $timeendstr = optional_param('enddate', '', PARAM_RAW);
     
     $timesql = '';
+    $timerange = '';
+    $uploaddisplaymsg = get_string('syllabustimerange', 'tool_uclasupportconsole');
     if ($timestart = strtotime($timestartstr)) {
         $timesql .= ' AND s.timecreated >= ' . $timestart;
+        $timerange .= $uploaddisplaymsg . ' starting from ' . $timestartstr;
     }
     if ($timeend = strtotime($timeendstr)) {
         $timesql .= ' AND s.timecreated <= ' . $timeend;
+        $timerange .= ($timestart ? '' : $uploaddisplaymsg) . ' up to '. $timeendstr;
     }
     
     $syllabus_table = new html_table();
@@ -729,13 +733,10 @@ if ($displayforms) {
     }
         
     global $OUTPUT;
-    $timerange = new StdClass();
-    $timerange->starttime = $timestart ? $timestartstr : ' -- ';
-    $timerange->endtime = $timeend ? $timeendstr : ' -- ';
     $sectionhtml .= $OUTPUT->box_start();
     $sectionhtml .= html_writer::tag('h3',
             get_string('syllabus_ugrad_table', 'tool_uclasupportconsole') . html_writer::start_tag('br') .
-            get_string('syllabustimerange', 'tool_uclasupportconsole', $timerange));
+            $timerange);
     $sectionhtml .= isset($processing['ugrad']['table']) ? html_writer::table($processing['ugrad']['table']) : 
         get_string('nocourses', 'tool_uclasupportconsole');
     $sectionhtml .= $OUTPUT->box_end();
@@ -743,7 +744,7 @@ if ($displayforms) {
     $sectionhtml .= $OUTPUT->box_start();
     $sectionhtml .= html_writer::tag('h3',
             get_string('syllabus_grad_table', 'tool_uclasupportconsole') . html_writer::start_tag('br') .
-            get_string('syllabustimerange', 'tool_uclasupportconsole', $timerange));
+            $timerange);
     $sectionhtml .= isset($processing['grad']['table']) ? html_writer::table($processing['grad']['table']) : 
         get_string('nocourses', 'tool_uclasupportconsole');
     $sectionhtml .= $OUTPUT->box_end();
@@ -774,11 +775,15 @@ if ($displayforms) {
     $timeendstr = optional_param('enddate', '', PARAM_RAW);
     
     $timesql = '';
+    $timerange = '';
+    $uploaddisplaymsg = get_string('syllabustimerange', 'tool_uclasupportconsole');
     if ($timestart = strtotime($timestartstr)) {
         $timesql .= ' AND s.timecreated >= ' . $timestart . ' ';
+        $timerange .= $uploaddisplaymsg . ' starting from ' . $timestartstr;
     }
     if ($timeend = strtotime($timeendstr)) {
         $timesql .= ' AND s.timecreated <= ' . $timeend . ' ';
+        $timerange .= ($timestart ? '' : $uploaddisplaymsg) . ' up to '. $timeendstr;
     }
     
     $sql = "SELECT      CONCAT(COALESCE(s.id, ''), urc.srs) AS idsrs, 
@@ -843,16 +848,12 @@ if ($displayforms) {
         }
     }
     
-    $timerange = new StdClass();
-    $timerange->starttime = $timestart ? $timestartstr : ' -- ';
-    $timerange->endtime = $timeend ? $timeendstr : ' -- ';
-    
     $head_info = new StdClass();
     $head_info->term = $selected_term;
     $head_info->num_courses = $num_courses;
     $syllabus_table = new html_table();
     $table_headers = array(get_string('syllabus_header_course', 'tool_uclasupportconsole', $head_info) .
-        html_writer::start_tag('br') . get_string('syllabustimerange', 'tool_uclasupportconsole', $timerange),
+        html_writer::start_tag('br') . $timerange,
         get_string('syllabus_header_public', 'tool_uclasupportconsole', $num_public), 
         get_string('syllabus_header_private', 'tool_uclasupportconsole', $num_private)
         );
