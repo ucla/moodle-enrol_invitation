@@ -19,6 +19,18 @@
     background-color: #FFB300 !important;
 }
 
+.cached-results-table .locked {
+    font-weight: bold;
+}
+
+.cached-results-table .cannot_manage {
+    opacity: 0.7;
+    /* IE 8 */
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=70)";
+    /* IE 5-7 */
+    filter: alpha(opacity=70);
+}
+
 #page-admin-report-uclastats-view .parameters {
     background: #FEFCF6;
     border: 1px solid #B7AA96;

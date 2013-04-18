@@ -9,6 +9,11 @@
 
 defined('MOODLE_INTERNAL') || die;
 
+/* Constants */
+define('UCLA_STATS_ACTION_DELETE', 'delete');
+define('UCLA_STATS_ACTION_UNLOCK', 'unlock');
+define('UCLA_STATS_ACTION_LOCK', 'lock');
+
 /**
  * Returns list of all reports available for UCLA stats console.
  *
@@ -95,15 +100,32 @@ abstract class uclastats_base implements renderable {
             foreach ($header as $name) {
                 $cached_table->head[] = get_string($name, 'report_uclastats');
             }
+            
+            $can_manage_report = has_capability('report/uclastats:manage', 
+                                 context_course::instance(SITEID));
 
             // format cached results
             foreach ($cached_results as $index => $result) {
+                
+                $is_locked = $result->locked;
                 $row = new html_table_row();
 
                 // if result is currently being viewed, give some styling
                 if ($result->id == $current_resultid) {
                     $row->attributes = array('class' => 'current-result');
                 }
+                
+                
+                //indicate to user if row is locked
+                if ($is_locked) {
+                    
+                    if(isset($row->attributes['class'])) {
+                         $row->attributes['class'] .= ' locked'; 
+                    } else {
+                         $row->attributes['class'] = 'locked';
+                    }
+                }
+
 
                 $row->cells['param'] = $this->format_cached_params($result->params);
                 $row->cells['results'] = $this->format_cached_results($result->results);
@@ -115,12 +137,43 @@ abstract class uclastats_base implements renderable {
                 $row->cells['lastran'] =
                         get_string('lastran', 'report_uclastats', $lastran);
 
-                // TODO: implement result locking/unlocking/deleting
-                $row->cells['actions'] = html_writer::link(
-                        new moodle_url('/report/uclastats/view.php',
-                                array('report' => get_class($this),
-                                      'resultid' => $result->id)),
-                        get_string('view_results', 'report_uclastats'));
+                $row->cells['actions'][] = html_writer::link(
+                new moodle_url('/report/uclastats/view.php',
+                array('report' => get_class($this),
+                      'resultid' => $result->id)), 
+                get_string('view_results', 'report_uclastats'));
+
+                if ($can_manage_report) {
+                    
+                    //lock/unlock
+                    $row->cells['actions'][] = html_writer::link(
+                    new moodle_url('/report/uclastats/view.php',
+                    array('report' => get_class($this),
+                          'resultid' => $result->id,
+                          'action' => ($is_locked)? UCLA_STATS_ACTION_UNLOCK : UCLA_STATS_ACTION_LOCK )),
+                          get_string(($is_locked)? 'unlock_results' : 'lock_results', 'report_uclastats'));
+
+                    //delete
+                    $row->cells['actions'][] = html_writer::link(
+                    new moodle_url('/report/uclastats/view.php',
+                    array('report' => get_class($this),
+                          'resultid' => $result->id,
+                          'action' => UCLA_STATS_ACTION_DELETE)), 
+                          get_string('delete_results', 'report_uclastats'));
+                    
+                } else {
+                    
+                    //otherwise include strings with no links
+                    
+                    $row->cells['actions'][] = html_writer::tag('span',
+                     get_string(($is_locked)? 'unlock_results' : 'lock_results',
+                     'report_uclastats'), array('class' => 'cannot_manage'));
+                    $row->cells['actions'][] = html_writer::tag('span',
+                     get_string('delete_results', 'report_uclastats'),
+                                array('class' => 'cannot_manage'));
+                }
+
+                $row->cells['actions'] = implode(' ', $row->cells['actions']);
 
                 $cached_table->data[$index] = $row;
             }
@@ -559,6 +612,8 @@ class uclastats_result implements renderable {
         }
         return self::$_cache['user'][$userid];
     }
+    
+     private static $table = 'ucla_statsconsole';
 
     /**
      * Static method to take report results and encode and then save them.
@@ -581,7 +636,49 @@ class uclastats_result implements renderable {
         $cache_result->locked = 0;
         $cache_result->timecreated = time();
 
-        return $DB->insert_record('ucla_statsconsole', $cache_result);
+       return $DB->insert_record(self::$table, $cache_result);
+    }
+    
+    /**
+     * Static method to delete result
+     * 
+     * @param int $resultid
+     */
+    public static function delete($resultid){
+        global $DB;
+        $DB->delete_records(self::$table,array('id' => $resultid));
+    }
+    
+    /**
+     * Static method to lock result
+     * 
+     * @param int $resultid
+     */
+    public static function lock($resultid) {
+        self::change_lock($resultid,true);
+    }
+    
+    /**
+     * Static method to unlock result
+     * 
+     * @param int $resultid
+     */
+    public static function unlock($resultid) {
+        self::change_lock($resultid,false);
+    }
+    
+    /**
+     * Static private method to toggle lock
+     * 
+     * @param int $resultid
+     * @param bool $lock true to lock,false to unlock
+     */
+    private static function change_lock($resultid,$lock) {
+        global $DB;
+        $params = new stdClass();
+        $params->id = $resultid;
+        $params->locked = ($lock) ? 1 : 0;
+        $DB->update_record(self::$table, $params, false);
     }
 }
 

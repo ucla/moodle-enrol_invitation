@@ -14,13 +14,14 @@ require_once($CFG->dirroot.'/report/uclastats/locallib.php');
 require_once($CFG->dirroot.'/local/ucla/lib.php');
 
 require_login();
-$context = get_context_instance(CONTEXT_COURSE, SITEID);
+$context = context_course::instance(SITEID);
 $PAGE->set_context($context);
 require_capability('report/uclastats:view', $context);
 
 $reports = get_all_reports();
 $report     = required_param('report', PARAM_ALPHAEXT);
 $resultid   = optional_param('resultid', null, PARAM_INT);
+$action     = optional_param('action', null, PARAM_ALPHAEXT);
 
 // make sure user is accessing a valid report
 if (!array_key_exists($report, $reports)) {
@@ -62,6 +63,57 @@ if (!empty($params) && confirm_sesskey()) {
             array('report' => $report, 'resultid' => $resultid)));
 }
 
+//handle deletion/locking of cached results
+if (!empty($action) && !empty($resultid)) {
+    
+    //fail if user cannot modify cached results
+    require_capability('report/uclastats:manage', $context);
+    
+    $undefined_action = false;
+    
+    switch ($action) {
+        case UCLA_STATS_ACTION_DELETE:
+            uclastats_result::delete($resultid);
+            $url_params = array('report' => $report);
+            $success_msg = get_string('successful_delete', 'report_uclastats'); 
+
+        break;
+        case UCLA_STATS_ACTION_LOCK: 
+            uclastats_result::lock($resultid);
+            $url_params =  array('report' => $report, 'resultid' => $resultid);
+            $success_msg = get_string('successful_lock', 'report_uclastats');
+        break;
+        case UCLA_STATS_ACTION_UNLOCK:
+            uclastats_result::unlock($resultid);
+            $url_params =   array('report' => $report, 'resultid' => $resultid);
+            $success_msg = get_string('successful_unlock', 'report_uclastats');
+        break;
+        default:
+            $undefined_action = true;
+    }
+    
+    if ($undefined_action) {
+        
+        print_error('undefined_action','report_uclastats',
+                    new moodle_url('/report/uclastats/view.php',
+                    array('report' => $report)),$action);
+        
+    } else {
+        
+        //build up url that we used to access site
+        $log_url = '/report/uclastats/view.php';
+        foreach ($url_params as $key => $value) {
+            $log_url .= "&$key=$value"; 
+        }
+        $log_url .= "&action=$action";
+        
+        //courseid 0 indicates that we are not accessing a specific course
+        add_to_log(0, 'report_uclastats', $action, $log_url, '');  
+        flash_redirect(new moodle_url('/report/uclastats/view.php',$url_params), $success_msg);
+         
+    }
+}
+
 // if user is viewing a result table, make it sortable
 if (!empty($resultid)) {
     setup_js_tablesorter('uclastats-results-table');
@@ -72,6 +124,10 @@ echo $OUTPUT->header();
 $output = $PAGE->get_renderer('report_uclastats');
 
 echo $output->render_header($report);
+
+//print out flash message if a result has been deleted/(un)locked
+flash_display();
+
 echo $output->render_report_list($reports, $report);
 
 echo $output->render_report($report_object, $resultid);
