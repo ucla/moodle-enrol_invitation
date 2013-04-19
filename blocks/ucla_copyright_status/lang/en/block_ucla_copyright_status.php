@@ -1,5 +1,5 @@
 <?php
-$string['pluginname'] = 'Manage copyright status';
+$string['pluginname'] = 'Manage copyright';
 $string['title'] = 'Manage copyright status';
 $string['statistics'] = 'Statistics';
 $string['updated_dt'] = 'Updated date';

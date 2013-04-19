@@ -200,3 +200,17 @@ span.commands a:hover {
     margin-right: 10px;
     color: white;
 }
+
+// Style the course menu block editiing mode
+.block_ucla_course_menu .edit_control_links {
+    background-color: white;
+    padding: 2px 0 4px;
+
+    > a {
+        display: inline;
+    }
+    
+    .badge {
+        margin-left: 8px;
+    }
+}
