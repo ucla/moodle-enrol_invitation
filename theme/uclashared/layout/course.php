@@ -41,6 +41,10 @@ if ($hascustommenu) {
 
 $envflag = $OUTPUT->get_environment();
 
+// Detect OS via user agent
+$agent = $_SERVER['HTTP_USER_AGENT'];
+$windowsos = strpos($agent, 'Windows') ? true : false;
+
 // Do all drawing
 
 echo $OUTPUT->doctype() ?>
@@ -49,12 +53,22 @@ echo $OUTPUT->doctype() ?>
     <title><?php echo $PAGE->title ?></title>
     <link rel="shortcut icon" href="<?php echo $OUTPUT->pix_url('favicon', 'theme')?>" />
     <link rel="apple-touch-icon" href="<?php echo $OUTPUT->pix_url('apple-touch-icon', 'theme')?>" />
-    <link href='https://fonts.googleapis.com/css?family=Lato:400,400italic,700,900' rel='stylesheet' type='text/css'>
+    <?php 
+    // Do not load font on Windows OS
+    // Chrome and Firefox don't have proper font-smoothing
+    // IE does have font-smoothing, so load font for IE 8 and above
+    if(!$windowsos) { ?>
+        <link href='https://fonts.googleapis.com/css?family=Lato:400,400italic,700,900' rel='stylesheet' type='text/css'>
+    <?php } ?>
     <?php echo $OUTPUT->standard_head_html() ?>
     <link rel="stylesheet" type="text/css" href="<?php echo $CFG->wwwroot . '/theme/uclashared/style/'?>blocks.css" />
+    <!--[if gt IE 7]>
+        <link href='https://fonts.googleapis.com/css?family=Lato:400,400italic,700,900' rel='stylesheet' type='text/css'>   
+    <![endif]-->
     <!--[if IE]>
 	<link rel="stylesheet" type="text/css" href="<?php echo $CFG->wwwroot . '/theme/uclashared/style/'?>blocks-ie.css" />
     <![endif]-->
+    
 </head>
 <body id="<?php echo $PAGE->bodyid ?>" class="<?php echo $PAGE->bodyclasses.' '.join(' ', $bodyclasses) ?>">
 <?php echo $OUTPUT->standard_top_of_body_html() ?>
