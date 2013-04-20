@@ -161,18 +161,8 @@ abstract class uclastats_base implements renderable {
                           'action' => UCLA_STATS_ACTION_DELETE)), 
                           get_string('delete_results', 'report_uclastats'));
                     
-                } else {
-                    
-                    //otherwise include strings with no links
-                    
-                    $row->cells['actions'][] = html_writer::tag('span',
-                     get_string(($is_locked)? 'unlock_results' : 'lock_results',
-                     'report_uclastats'), array('class' => 'cannot_manage'));
-                    $row->cells['actions'][] = html_writer::tag('span',
-                     get_string('delete_results', 'report_uclastats'),
-                                array('class' => 'cannot_manage'));
-                }
-
+                } 
+                
                 $row->cells['actions'] = implode(' ', $row->cells['actions']);
 
                 $cached_table->data[$index] = $row;

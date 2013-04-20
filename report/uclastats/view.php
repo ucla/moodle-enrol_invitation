@@ -100,15 +100,10 @@ if (!empty($action) && !empty($resultid)) {
         
     } else {
         
-        //build up url that we used to access site
-        $log_url = '/report/uclastats/view.php';
-        foreach ($url_params as $key => $value) {
-            $log_url .= "&$key=$value"; 
-        }
-        $log_url .= "&action=$action";
         
-        //courseid 0 indicates that we are not accessing a specific course
-        add_to_log(0, 'report_uclastats', $action, $log_url, '');  
+        $log_url =  new moodle_url('../report/uclastats/view.php',array_merge($url_params,array('action' => $action)));
+        
+        add_to_log(SITEID,'admin', $action, $log_url->out());  
         flash_redirect(new moodle_url('/report/uclastats/view.php',$url_params), $success_msg);
          
     }
