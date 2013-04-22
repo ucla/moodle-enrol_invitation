@@ -84,12 +84,12 @@
 
 /* term selector stylings */
 #browsebymain .term_selector {
-    color: #536895;
+/*    color: #536895;
     font-size: 0.8em;
-    margin-top: -6px;
+    margin-top: -6px;*/
 }
 #browsebymain .term_selector input, #browsebymain .term_selector select {
-    font-size: 9px;
+    /*font-size: 9px;*/
 }
 #browsebymain .term_selector .urlselect, #browsebymain .term_selector .urlselect form {
     padding-left: 2px;

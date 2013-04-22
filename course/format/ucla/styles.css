@@ -28,7 +28,7 @@
 }
 
 .course-content ul.topics li.section.hidden {
-    background-color: #C0C0C0;
+    /*background-color: #C0C0C0;*/
 }
 
 .course-content ul.topics li.section .content {

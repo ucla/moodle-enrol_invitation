@@ -15,6 +15,10 @@ fieldset.hidden {
 /* Formatting for UCLA Course Requestor */
 .mform .fitem fieldset.felement {margin-left:0%;padding-left:1%;margin-bottom:0}
 
+// Line height adjustments
+.mform fieldset br {
+    line-height: 2rem;
+}
 // -------------
 
 .form-item {width:100%;margin:1em 1em 2em 1em ;}
