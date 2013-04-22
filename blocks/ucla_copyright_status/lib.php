@@ -39,23 +39,31 @@ function init_copyright_page($course, $courseid, $context) {
  */
 
 function get_files_copyright_status_by_course($courseid, $filter = null) {
-    global $DB;
-    global $CFG;
-    $sql = "SELECT MAX( f.id ) as id, f.filename, f.author, f.license, f.timemodified, f.contenthash, cm.id AS cmid, r.name AS rname
-            FROM {files} f
-            INNER JOIN {context} c ON c.id = f.contextid
-            INNER JOIN {course_modules} cm ON cm.id = c.instanceid
-            INNER JOIN {resource} r ON cm.instance = r.id
-            WHERE r.course = $courseid
-            AND f.filename NOT LIKE  '.%'
-            GROUP BY c.id, cm.id";
-      // include files have null value in copyright status as default status
-    if ($filter && $filter == $CFG->sitedefaultlicense) {
-        $sql .= " HAVING (f.license is null or f.license = '' or f.license = '$filter')";
-    } else if ($filter && $filter != 'all') {
-        $sql .= " HAVING f.license = '$filter'";
+    global $DB, $CFG;
+    
+    // Cache results
+    static $output = null;
+    
+    if(is_null($output)) {
+        $sql = "SELECT MAX( f.id ) as id, f.filename, f.author, f.license, f.timemodified, f.contenthash, cm.id AS cmid, r.name AS rname
+                FROM {files} f
+                INNER JOIN {context} c ON c.id = f.contextid
+                INNER JOIN {course_modules} cm ON cm.id = c.instanceid
+                INNER JOIN {resource} r ON cm.instance = r.id
+                WHERE r.course = $courseid
+                AND f.filename NOT LIKE  '.%'
+                GROUP BY c.id, cm.id";
+          // include files have null value in copyright status as default status
+        if ($filter && $filter == $CFG->sitedefaultlicense) {
+            $sql .= " HAVING (f.license is null or f.license = '' or f.license = '$filter')";
+        } else if ($filter && $filter != 'all') {
+            $sql .= " HAVING f.license = '$filter'";
+        }
+        
+        $output = $DB->get_records_sql($sql);        
     }
-    return $DB->get_records_sql($sql);
+    
+    return $output;
 }
 
 /*
