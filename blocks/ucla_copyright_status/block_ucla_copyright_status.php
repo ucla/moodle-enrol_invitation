@@ -48,14 +48,18 @@ class block_ucla_copyright_status extends block_base {
             $span = '';
         } else {
             $span = html_writer::tag('span', $a, 
-                    array('class' => 'badge badge-warning'));
+                    array('class' => 'badge badge-warning', 
+                          'tabindex' => '0',
+                          'aria-label' => $a . get_string('aria_copyright_badge', 'block_ucla_copyright_status'), 
+                          'aria-describedby' => 'id-copyright-status'));
         }
         
         $link = html_writer::link(
                 new moodle_url('/blocks/ucla_copyright_status/view.php',
                     array('courseid' => $course->id,
                           'section' => $displaysection)),
-                get_string('pluginname', 'block_ucla_copyright_status'));
+                get_string('pluginname', 'block_ucla_copyright_status'),
+                array('id' => 'id-copyright-status'));
         
         // site menu block arranges editing links by key, make sure this is the
         // 3rd link

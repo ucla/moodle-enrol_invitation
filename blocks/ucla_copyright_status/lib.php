@@ -42,9 +42,9 @@ function get_files_copyright_status_by_course($courseid, $filter = null) {
     global $DB, $CFG;
     
     // Cache results
-    static $output = null;
+    static $output = array();
     
-    if(is_null($output)) {
+    if(!isset($output[$courseid])) {
         $sql = "SELECT MAX( f.id ) as id, f.filename, f.author, f.license, f.timemodified, f.contenthash, cm.id AS cmid, r.name AS rname
                 FROM {files} f
                 INNER JOIN {context} c ON c.id = f.contextid
@@ -60,10 +60,10 @@ function get_files_copyright_status_by_course($courseid, $filter = null) {
             $sql .= " HAVING f.license = '$filter'";
         }
         
-        $output = $DB->get_records_sql($sql);        
+        $output[$courseid] = $DB->get_records_sql($sql);        
     }
     
-    return $output;
+    return $output[$courseid];
 }
 
 /*
