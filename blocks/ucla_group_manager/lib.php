@@ -25,7 +25,7 @@ class ucla_group_manager {
     // This is at the level of the request
     // for same course number, but can have more than one lecture
     static function course_lecture_name_fields() {  
-        return 'subj_area coursenum acttype';
+        return 'subj_area coursenum lectnum acttype';
     }
 
     // Bi-lateral groupings
@@ -307,7 +307,7 @@ class ucla_group_manager {
                 $groupingdata = ucla_synced_grouping::get_groupingdata(
                         $groupingname, $courseid
                     );
-
+                
                 // We want to avoid groupings that just has ALL groups
                 // There is an unoptimization, can't simply compare
                 // equality for an array of groups
