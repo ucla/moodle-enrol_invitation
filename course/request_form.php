@@ -68,6 +68,12 @@ class course_request_form extends moodleform {
         $types = siteindicator_manager::get_types_list();
         $radioarray = array();
         foreach($types as $type) {
+            // START UCLA MOD: CCLE-3879 - Option for "TA site" visible on Collab Site Request
+            // Suppresses "TA site" option, as it shouldn't be chosen manually 
+            if (siteindicator_manager::SITE_TYPE_TASITE == $type['shortname']) {
+                continue;
+            }
+            // END ULCA MOD: CCLE-3879
             $descstring = '<strong>' . $type['fullname'] . '</strong> - ' . $type['description'];
             $attributes = array(
                 'class' => 'indicator-form',
