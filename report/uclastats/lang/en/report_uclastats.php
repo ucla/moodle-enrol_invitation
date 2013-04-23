@@ -145,6 +145,15 @@ $string['large_collab_sites_help'] = 'List all the collaboration sites over {$a}
 $string['final_quiz_report'] = 'Final quiz report (course)';
 $string['final_quiz_report_help'] = 'Displays the number of quizzes taken during finals week by division.';
 
+//strings for most active course site report
+$string['most_active_course_sites'] = 'Most active (course)';
+$string['most_active_course_sites_help'] = 'Most active course site is one that has the most views.';
+$string['viewcount'] = 'Number of Views';
+
+//strings for most active collab site report
+$string['most_active_collab_sites'] = 'Most active (collab)';
+$string['most_active_collab_sites_help'] =  'Most active collab site is one that has the most views.';
+
 // error strings
 $string['nocachedresults'] = 'No cached results found';
 $string['invalidterm'] = 'Invalid term';
