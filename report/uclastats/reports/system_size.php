@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Report to get the number of files that exceed 1MB
+ * Returns number of files over 1 MB, size of file system, and size of database
  *
  * @package    report
  * @subpackage uclastats
@@ -12,7 +12,7 @@ defined('MOODLE_INTERNAL') || die;
 require_once($CFG->dirroot . '/local/ucla/lib.php');
 require_once($CFG->dirroot . '/report/uclastats/locallib.php');
 
-class file_size extends uclastats_base {
+class system_size extends uclastats_base {
 
     /**
      * Instead of counting results, but return actual count.
@@ -46,11 +46,33 @@ class file_size extends uclastats_base {
     public function query($params) {
         global $DB;
 
-        $sql = "SELECT COUNT(DISTINCT contenthash) as file_count 
+        global $CFG;
+        
+        $ret_val = array();
+
+        //get count of distinct files over 1MB
+        $sql = "SELECT COUNT(DISTINCT contenthash) 
                 FROM {files} 
                 WHERE filesize > 1048576";
-               
-        return $DB->get_records_sql($sql, $params);
+
+        
+        $ret_val['file_count'] = $DB->get_field_sql($sql);
+        
+        //get file system size
+        //note that the shell command returns the actual size in bytes
+        //whereas the -b return the apparent size(ignores fragmentation,
+        //indirect blocks)
+        $ret_val['file_system_size'] = display_size(shell_exec("du -s --block-size=1 $CFG->dataroot/filedir"));
+     
+        //get size of database in bytes
+        $sql = "SELECT Sum(data_length + index_length) 
+                FROM   information_schema.tables 
+                WHERE table_schema = 'moodle'";
+     
+        
+        $ret_val['database_size'] = display_size($DB->get_field_sql($sql));
+        
+        return array($ret_val);
     }
 
 }
