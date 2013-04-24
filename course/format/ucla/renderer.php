@@ -167,10 +167,14 @@ class format_ucla_renderer extends format_section_renderer_base {
         events_trigger('ucla_format_notices', $eventdata);
 
         if (!empty($eventdata->notices)) {
-            // we got something back! let's display it
-            foreach ($eventdata->notices as $notice) {
-                echo $OUTPUT->box($notice, 'ucla-format-notice-box');
-            }
+            // until we can get a better, more compact notice display, we are
+            // only going to display the last notice
+            $notice = array_pop($eventdata->notices);
+            echo $OUTPUT->box($notice, 'ucla-format-notice-box');
+//            // we got something back! let's display it
+//            foreach ($eventdata->notices as $notice) {
+//                echo $OUTPUT->box($notice, 'ucla-format-notice-box');
+//            }
         }
     }
 
