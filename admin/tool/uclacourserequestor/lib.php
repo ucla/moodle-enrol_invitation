@@ -517,8 +517,9 @@ function get_crosslist_set_for_host($host) {
 
     // These are entries from the registrar, so they need to have their
     // crosslists checked
+    global $DB;
     $clists = get_crosslisted_courses($host['term'], $host['srs']);
-
+    
     foreach ($clists as $clist) {
         $clkey = make_idnumber($clist);
         
@@ -529,7 +530,14 @@ function get_crosslist_set_for_host($host) {
             $setter = get_request_info($clist['term'], $clist['srs']);
         }
 
-        $set[$clkey] = $setter;
+        // CCLE-3870 - If the crosslist does not exist in our local DB, then do 
+        // not include it as a crosslist, even if it is in the registrar.
+        // If the course is not even in our local DB, then include the 
+        // registrar's crosslistings.
+        if ( !isset($setter['setid']) || 
+                $DB->record_exists('ucla_request_classes', array('srs' => $host['srs'], 'setid' => $setter['setid'])) ) {
+            $set[$clkey] = $setter;
+        }
     }
 
     $set = set_host_calculate($hostkey, $set);
@@ -556,7 +564,7 @@ function set_host_calculate($orighost, $set) {
 
     if (!$hostexists) {
         $set[$orighost][$h] = 1;
-    } else if ($hostexists != $hostkey) {
+    } else if ($hostexists != $orighost) {
         $set[$orighost][$h] = 2;
     }
 
