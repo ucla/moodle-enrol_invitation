@@ -447,6 +447,22 @@ if ($displayforms) {
 $consoles->push_console_html('logs', $title, $sectionhtml);
 
 ////////////////////////////////////////////////////////////////////
+// Date selector for both Syllabus overview and Syllabus report
+$syllabusdateselector = html_writer::label('Start date ("MM/DD/YYYY")', 'startdate') .
+            html_writer::empty_tag('input', array(
+                    'type' => 'text',
+                    'length' => 10,
+                    'name' => 'startdate',
+                    'id' => 'startdate'
+                )) . 
+            html_writer::label('End date ("MM/DD/YYYY")', 'enddate') .
+            html_writer::empty_tag('input', array(
+                    'type' => 'text',
+                    'length' => 10,
+                    'name' => 'enddate',
+                    'id' => 'enddate'
+                ));
+
 $title = "syllabusoverview";
 $sectionhtml = '';
 
@@ -461,18 +477,30 @@ if ($displayforms) {
     $syllabus_selectors .= html_writer::tag('label', get_string('syllabus_browseby', 'tool_uclasupportconsole')) . 
             html_writer::tag('select', $overview_options, array('name' => 'syllabus'));
     
+    $syllabus_selectors .= html_writer::start_tag('br') . $syllabusdateselector;
+    
     $sectionhtml = supportconsole_simple_form($title, $syllabus_selectors);
     
 } else if ($consolecommand == "$title") {
     $selected_term = required_param('term', PARAM_ALPHANUM);
     $selected_type = required_param('syllabus', PARAM_ALPHA);
     
+    $timestartstr = optional_param('startdate', '', PARAM_RAW);
+    $timeendstr = optional_param('enddate', '', PARAM_RAW);
+    
+    $timesql = '';
+    $timerange = '';
+    $uploaddisplaymsg = get_string('syllabustimerange', 'tool_uclasupportconsole');
+    if ($timestart = strtotime($timestartstr)) {
+        $timesql .= ' AND s.timecreated >= ' . $timestart;
+        $timerange .= $uploaddisplaymsg . ' starting from ' . $timestartstr;
+    }
+    if ($timeend = strtotime($timeendstr)) {
+        $timesql .= ' AND s.timecreated <= ' . $timeend;
+        $timerange .= ($timestart ? '' : $uploaddisplaymsg) . ' up to '. $timeendstr;
+    }
+    
     $syllabus_table = new html_table();
-    $syllabus_header = array();
-    $syllabus_data = array();
-    $grad_syllabus_table = new html_table();
-    $grad_syllabus_header = array();
-    $grad_syllabus_data = array();
     
     $sql = '';
 
@@ -541,9 +569,11 @@ if ($displayforms) {
 
             // now get syllabus information
             if (!isset($syllabus_cache[$course->courseid])) {
-                $syllabus_cache[$course->courseid] =
-                        $DB->get_records('ucla_syllabus',
-                                array('courseid' => $course->courseid));
+                $sql = 'SELECT *
+                        FROM {ucla_syllabus} AS s
+                        WHERE s.courseid =:courseid' . $timesql;
+                $params['courseid'] = $course->courseid;
+                $syllabus_cache[$course->courseid] = $DB->get_records_sql($sql, $params);
             }
             $syllabi = $syllabus_cache[$course->courseid];
             if (!empty($syllabi)) {
@@ -705,14 +735,18 @@ if ($displayforms) {
     global $OUTPUT;
     $sectionhtml .= $OUTPUT->box_start();
     $sectionhtml .= html_writer::tag('h3',
-            get_string('syllabus_ugrad_table', 'tool_uclasupportconsole'));
-    $sectionhtml .= html_writer::table($processing['ugrad']['table']);
+            get_string('syllabus_ugrad_table', 'tool_uclasupportconsole') . html_writer::start_tag('br') .
+            $timerange);
+    $sectionhtml .= isset($processing['ugrad']['table']) ? html_writer::table($processing['ugrad']['table']) : 
+        get_string('nocourses', 'tool_uclasupportconsole');
     $sectionhtml .= $OUTPUT->box_end();
     
     $sectionhtml .= $OUTPUT->box_start();
     $sectionhtml .= html_writer::tag('h3',
-            get_string('syllabus_grad_table', 'tool_uclasupportconsole'));
-    $sectionhtml .= html_writer::table($processing['grad']['table']);
+            get_string('syllabus_grad_table', 'tool_uclasupportconsole') . html_writer::start_tag('br') .
+            $timerange);
+    $sectionhtml .= isset($processing['grad']['table']) ? html_writer::table($processing['grad']['table']) : 
+        get_string('nocourses', 'tool_uclasupportconsole');
     $sectionhtml .= $OUTPUT->box_end();
 }
 
@@ -729,11 +763,28 @@ if ($displayforms) {
     $syllabus_selectors = get_term_selector($title);
     $syllabus_selectors .= get_subject_area_selector($title);
     
+    $syllabus_selectors .= html_writer::start_tag('br') . $syllabusdateselector;
+    
     $sectionhtml = supportconsole_simple_form($title, $syllabus_selectors);
     
 } else if ($consolecommand == "$title") {
     $selected_term = required_param('term', PARAM_ALPHANUM);
     $selected_subj = required_param('subjarea', PARAM_NOTAGS);
+    
+    $timestartstr = optional_param('startdate', '', PARAM_RAW);
+    $timeendstr = optional_param('enddate', '', PARAM_RAW);
+    
+    $timesql = '';
+    $timerange = '';
+    $uploaddisplaymsg = get_string('syllabustimerange', 'tool_uclasupportconsole');
+    if ($timestart = strtotime($timestartstr)) {
+        $timesql .= ' AND s.timecreated >= ' . $timestart . ' ';
+        $timerange .= $uploaddisplaymsg . ' starting from ' . $timestartstr;
+    }
+    if ($timeend = strtotime($timeendstr)) {
+        $timesql .= ' AND s.timecreated <= ' . $timeend . ' ';
+        $timerange .= ($timestart ? '' : $uploaddisplaymsg) . ' up to '. $timeendstr;
+    }
     
     $sql = "SELECT      CONCAT(COALESCE(s.id, ''), urc.srs) AS idsrs, 
                         urc.department,
@@ -745,7 +796,7 @@ if ($displayforms) {
                         urc.term=uri.term AND
                         urc.srs=uri.srs)
             LEFT JOIN   {ucla_syllabus} AS s ON (urc.courseid = s.courseid)
-            WHERE       urc.term =:term AND urc.department =:department
+            WHERE       urc.term =:term AND urc.department =:department {$timesql}
             ORDER BY    uri.term, uri.subj_area, uri.crsidx, uri.secidx";
     
     $params = array();
@@ -801,7 +852,8 @@ if ($displayforms) {
     $head_info->term = $selected_term;
     $head_info->num_courses = $num_courses;
     $syllabus_table = new html_table();
-    $table_headers = array(get_string('syllabus_header_course', 'tool_uclasupportconsole', $head_info),
+    $table_headers = array(get_string('syllabus_header_course', 'tool_uclasupportconsole', $head_info) .
+        html_writer::start_tag('br') . $timerange,
         get_string('syllabus_header_public', 'tool_uclasupportconsole', $num_public), 
         get_string('syllabus_header_private', 'tool_uclasupportconsole', $num_private)
         );

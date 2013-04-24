@@ -421,6 +421,7 @@ if ($mform->is_cancelled()) {
         $newcm->module           = $fromform->module;
         $newcm->instance         = 0; // not known yet, will be updated later (this is similar to restore code)
         $newcm->visible          = $fromform->visible;
+        $newcm->visibleold       = $fromform->visible;
         $newcm->groupmode        = $fromform->groupmode;
         $newcm->groupingid       = $fromform->groupingid;
         $newcm->groupmembersonly = $fromform->groupmembersonly;

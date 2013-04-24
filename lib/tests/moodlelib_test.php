@@ -1405,46 +1405,46 @@ class moodlelib_testcase extends advanced_testcase {
         $longvalue = str_repeat('a', 1334);
         try {
             set_user_preference('_test_long_user_preference', $longvalue);
-            $this->assertFail('Exception expected - longer than 1333 chars not allowed as preference value');
-        } catch (Exception $e) {
-            $this->assertTrue($e instanceof coding_exception);
+            $this->fail('Exception expected - longer than 1333 chars not allowed as preference value');
+        } catch (coding_exception $ex) {
+            $this->assertTrue(true);
         }
 
         //test invalid params
         try {
             set_user_preference('_test_user_preferences_pref', array());
-            $this->assertFail('Exception expected - array not valid preference value');
-        } catch (Exception $ex) {
+            $this->fail('Exception expected - array not valid preference value');
+        } catch (coding_exception $ex) {
             $this->assertTrue(true);
         }
         try {
             set_user_preference('_test_user_preferences_pref', new stdClass);
-            $this->assertFail('Exception expected - class not valid preference value');
-        } catch (Exception $ex) {
+            $this->fail('Exception expected - class not valid preference value');
+        } catch (coding_exception $ex) {
             $this->assertTrue(true);
         }
         try {
-            set_user_preference('_test_user_preferences_pref', 1, array('xx'=>1));
-            $this->assertFail('Exception expected - user instance expected');
-        } catch (Exception $ex) {
+            set_user_preference('_test_user_preferences_pref', 1, array('xx' => 1));
+            $this->fail('Exception expected - user instance expected');
+        } catch (coding_exception $ex) {
             $this->assertTrue(true);
         }
         try {
             set_user_preference('_test_user_preferences_pref', 1, 'abc');
-            $this->assertFail('Exception expected - user instance expected');
-        } catch (Exception $ex) {
+            $this->fail('Exception expected - user instance expected');
+        } catch (coding_exception $ex) {
             $this->assertTrue(true);
         }
         try {
             set_user_preference('', 1);
-            $this->assertFail('Exception expected - invalid name accepted');
-        } catch (Exception $ex) {
+            $this->fail('Exception expected - invalid name accepted');
+        } catch (coding_exception $ex) {
             $this->assertTrue(true);
         }
         try {
             set_user_preference('1', 1);
-            $this->assertFail('Exception expected - invalid name accepted');
-        } catch (Exception $ex) {
+            $this->fail('Exception expected - invalid name accepted');
+        } catch (coding_exception $ex) {
             $this->assertTrue(true);
         }
 
@@ -1534,6 +1534,59 @@ class moodlelib_testcase extends advanced_testcase {
         // in-memory anyhow
         $CFG->showuseridentity = $oldshowuseridentity;
         $USER = $olduser;
+    }
+
+    /**
+     * Test some critical TZ/DST.
+     *
+     * This method tests some special TZ/DST combinations that were fixed
+     * by MDL-38999. The tests are done by comparing the results of the
+     * output using Moodle TZ/DST support and PHP native one.
+     *
+     * Note: If you don't trust PHP TZ/DST support, can verify the
+     * harcoded expectations below with:
+     * http://www.tools4noobs.com/online_tools/unix_timestamp_to_datetime/
+     */
+    public function test_some_moodle_special_dst() {
+        $stamp = 1365386400; // 2013/04/08 02:00:00 GMT/UTC.
+
+        // In Europe/Tallinn it was 2013/04/08 05:00:00.
+        $expectation = '2013/04/08 05:00:00';
+        $phpdt = DateTime::createFromFormat('U', $stamp, new DateTimeZone('UTC'));
+        $phpdt->setTimezone(new DateTimeZone('Europe/Tallinn'));
+        $phpres = $phpdt->format('Y/m/d H:i:s'); // PHP result.
+        $moodleres = userdate($stamp, '%Y/%m/%d %H:%M:%S', 'Europe/Tallinn', false); // Moodle result.
+        $this->assertSame($expectation, $phpres);
+        $this->assertSame($expectation, $moodleres);
+
+        // In St. Johns it was 2013/04/07 23:30:00.
+        $expectation = '2013/04/07 23:30:00';
+        $phpdt = DateTime::createFromFormat('U', $stamp, new DateTimeZone('UTC'));
+        $phpdt->setTimezone(new DateTimeZone('America/St_Johns'));
+        $phpres = $phpdt->format('Y/m/d H:i:s'); // PHP result.
+        $moodleres = userdate($stamp, '%Y/%m/%d %H:%M:%S', 'America/St_Johns', false); // Moodle result.
+        $this->assertSame($expectation, $phpres);
+        $this->assertSame($expectation, $moodleres);
+
+        $stamp = 1383876000; // 2013/11/08 02:00:00 GMT/UTC.
+
+        // In Europe/Tallinn it was 2013/11/08 04:00:00.
+        $expectation = '2013/11/08 04:00:00';
+        $phpdt = DateTime::createFromFormat('U', $stamp, new DateTimeZone('UTC'));
+        $phpdt->setTimezone(new DateTimeZone('Europe/Tallinn'));
+        $phpres = $phpdt->format('Y/m/d H:i:s'); // PHP result.
+        $moodleres = userdate($stamp, '%Y/%m/%d %H:%M:%S', 'Europe/Tallinn', false); // Moodle result.
+        $this->assertSame($expectation, $phpres);
+        $this->assertSame($expectation, $moodleres);
+
+        // In St. Johns it was 2013/11/07 22:30:00.
+        $expectation = '2013/11/07 22:30:00';
+        $phpdt = DateTime::createFromFormat('U', $stamp, new DateTimeZone('UTC'));
+        $phpdt->setTimezone(new DateTimeZone('America/St_Johns'));
+        $phpres = $phpdt->format('Y/m/d H:i:s'); // PHP result.
+        $moodleres = userdate($stamp, '%Y/%m/%d %H:%M:%S', 'America/St_Johns', false); // Moodle result.
+        $this->assertSame($expectation, $phpres);
+        $this->assertSame($expectation, $moodleres);
     }
 
     public function test_userdate() {

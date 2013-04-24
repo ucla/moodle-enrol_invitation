@@ -37,7 +37,7 @@ $string['site_registrar_desc'] = 'An instruction site with an SRS number that is
 $string['site_private'] = 'Private';
 $string['site_private_desc'] = 'Instructional site for confidential subject matter. Will not show up in course search and will have public/private functionality turned off.';
 $string['site_tasite'] = 'TA site';
-$string['site_tasite_desc'] = 'Site created by the TA site creator. This site type that cannot be manually choosen.';
+$string['site_tasite_desc'] = 'Site created by the TA site creator. This site type cannot be manually chosen.';
 $string['notype'] = 'This site has no type';
 
 // Request

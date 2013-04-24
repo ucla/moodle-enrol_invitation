@@ -542,12 +542,6 @@ function local_ucla_cron($terms = array()) {
             // Something?
         }
     }
-
-    // delete repo keys of users who haven't done anything in a short while,
-    // like uploading a file
-    include_once($CFG->dirroot . '/local/ucla/eventslib.php');
-    echo "Deleting repo keys\n";
-    delete_repo_keys();
     
     return true;
 }
@@ -842,7 +836,7 @@ function get_moodlerole($pseudorole, $subject_area='*SYSTEM*') {
 function ucla_send_mail($to, $subj, $body='', $header='') {
     global $CFG;
 
-    if ($CFG->noemailever) {
+    if (!empty($CFG->noemailever)) {
         // We don't want any email sent.
         return true;
     }

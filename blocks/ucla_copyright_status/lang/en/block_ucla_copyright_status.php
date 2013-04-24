@@ -1,5 +1,5 @@
 <?php
-$string['pluginname'] = 'Manage copyright status';
+$string['pluginname'] = 'Manage copyright';
 $string['title'] = 'Manage copyright status';
 $string['statistics'] = 'Statistics';
 $string['updated_dt'] = 'Updated date';
@@ -25,3 +25,6 @@ $string['alert_no_redirect'] = 'You will no longer be prompted to assign copyrig
         'Use the Manage copyright status link in the Site menu block at the left or the tool in ' .
         'the Control Panel to assign copyright status later.';
 $string['alert_later_redirect'] = 'Assign copyright status reminder set.';
+
+// aria strings
+$string['aria_copyright_badge'] = ' items without copyright status.';

@@ -23,7 +23,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['addentry'] = 'Add your own favorite quotes!';
+$string['addentry'] = 'Add a new entry';
 $string['askaddentry'] = 'When users can add entries to the glossary, show a link with this text';
 $string['askinvisible'] = 'When users cannot edit or view the glossary, show this text (without link)';
 $string['askviewglossary'] = 'When users can view the glossary but not add entries, show a link with this text';
@@ -32,7 +32,10 @@ $string['invisible'] = '(to be continued)';
 $string['lastmodified'] = 'Last modified entry';
 $string['nextone'] = 'Next entry';
 $string['noentriesyet'] = 'There are no entries yet in the chosen glossary.';
-$string['notyetconfigured'] = 'Please configure this block using the edit icon.';
+// START UCLA MOD: CCLE-3766 - Changed the content of unconfigured Random glossary entry
+// $string['notyetconfigured'] = 'Please configure this block using the edit icon.';
+$string['notyetconfigured'] = 'The Random Glossary Entry block is not visible to students until configured. <br><br>Please configure this block using the edit icon.';
+// END UCLA MOD : CCLE-3766
 $string['notyetglossary'] = 'You need to have at least one glossary to choose.';
 $string['pluginname'] = 'Random glossary entry';
 $string['random'] = 'Random entry';
@@ -41,5 +44,5 @@ $string['select_glossary'] = 'Take entries from this glossary';
 $string['showconcept'] = 'Show concept (heading) for each entry';
 $string['title'] = 'Title';
 $string['type'] = 'How a new entry is chosen';
-$string['viewglossary'] = 'More quotes...';
+$string['viewglossary'] = 'View all entries';
 $string['whichfooter'] = 'You can display links to actions of the glossary this block is associated with. The block will only display links to actions which are enabled for that glossary.';

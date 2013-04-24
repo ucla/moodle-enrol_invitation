@@ -116,7 +116,11 @@ define('PARAM_BOOL',     'bool');
 define('PARAM_CAPABILITY',   'capability');
 
 /**
- * PARAM_CLEANHTML - cleans submitted HTML code. use only for text in HTML format. This cleaning may fix xhtml strictness too.
+ * PARAM_CLEANHTML - cleans submitted HTML code. Note that you almost never want
+ * to use this. The normal mode of operation is to use PARAM_RAW when recieving
+ * the input (required/optional_param or formslib) and then sanitse the HTML
+ * using format_text on output. This is for the rare cases when you want to
+ * sanitise the HTML on input. This cleaning may also fix xhtml strictness.
  */
 define('PARAM_CLEANHTML', 'cleanhtml');
 
@@ -6502,28 +6506,18 @@ class core_string_manager implements string_manager {
     }
 
     /**
-     * Returns dependencies of current language, en is not included.
+     * Returns list of all explicit parent languages for the given language.
      *
-     * @param string $lang
-     * @return array all parents, the lang itself is last
+     * English (en) is considered as the top implicit parent of all language packs
+     * and is not included in the returned list. The language itself is appended to the
+     * end of the list. The method is aware of circular dependency risk.
+     *
+     * @see self::populate_parent_languages()
+     * @param string $lang the code of the language
+     * @return array all explicit parent languages with the lang itself appended
      */
     public function get_language_dependencies($lang) {
-        if ($lang === 'en') {
-            return array();
-        }
-        if (!file_exists("$this->otherroot/$lang/langconfig.php")) {
-            return array();
-        }
-        $string = array();
-        include("$this->otherroot/$lang/langconfig.php");
-
-        if (empty($string['parentlanguage'])) {
-            return array($lang);
-        } else {
-            $parentlang = $string['parentlanguage'];
-            unset($string);
-            return array_merge($this->get_language_dependencies($parentlang), array($lang));
-        }
+        return $this->populate_parent_languages($lang);
     }
 
     /**
@@ -7027,6 +7021,46 @@ class core_string_manager implements string_manager {
         // and re-populate it again
         fulldelete($this->menucache);
         $this->get_list_of_translations(true);
+    }
+
+    /// End of external API ////////////////////////////////////////////////////
+
+    /**
+     * Helper method that recursively loads all parents of the given language.
+     *
+     * @see self::get_language_dependencies()
+     * @param string $lang language code
+     * @param array $stack list of parent languages already populated in previous recursive calls
+     * @return array list of all parents of the given language with the $lang itself added as the last element
+     */
+    protected function populate_parent_languages($lang, array $stack = array()) {
+
+        // English does not have a parent language.
+        if ($lang === 'en') {
+            return $stack;
+        }
+
+        // Prevent circular dependency (and thence the infinitive recursion loop).
+        if (in_array($lang, $stack)) {
+            return $stack;
+        }
+
+        // Load language configuration and look for the explicit parent language.
+        if (!file_exists("$this->otherroot/$lang/langconfig.php")) {
+            return $stack;
+        }
+        $string = array();
+        include("$this->otherroot/$lang/langconfig.php");
+
+        if (empty($string['parentlanguage']) or $string['parentlanguage'] === 'en') {
+            unset($string);
+            return array_merge(array($lang), $stack);
+
+        } else {
+            $parentlang = $string['parentlanguage'];
+            unset($string);
+            return $this->populate_parent_languages($parentlang, array_merge(array($lang), $stack));
+        }
     }
 }
 

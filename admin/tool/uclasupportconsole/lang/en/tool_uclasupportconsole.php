@@ -91,6 +91,8 @@ $string['public_syllabus_count'] = 'Public<br />{$a}';
 $string['loggedin_syllabus_count'] = 'UCLA community<br />{$a}';
 $string['preview_syllabus_count'] = 'Preview<br />{$a}';
 $string['private_syllabus_count'] = 'Private<br />{$a}';
+$string['syllabustimerange'] = 'Displaying uploaded syllabi';
+$string['nocourses'] = 'No courses found.';
 
 // Course
 $string['collablist'] = 'Show collaboration sites';

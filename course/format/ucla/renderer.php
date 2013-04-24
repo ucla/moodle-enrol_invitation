@@ -167,10 +167,14 @@ class format_ucla_renderer extends format_section_renderer_base {
         events_trigger('ucla_format_notices', $eventdata);
 
         if (!empty($eventdata->notices)) {
-            // we got something back! let's display it
-            foreach ($eventdata->notices as $notice) {
-                echo $OUTPUT->box($notice, 'ucla-format-notice-box');
-            }
+            // until we can get a better, more compact notice display, we are
+            // only going to display the last notice
+            $notice = array_pop($eventdata->notices);
+            echo $OUTPUT->box($notice, 'ucla-format-notice-box');
+//            // we got something back! let's display it
+//            foreach ($eventdata->notices as $notice) {
+//                echo $OUTPUT->box($notice, 'ucla-format-notice-box');
+//            }
         }
     }
 
@@ -185,10 +189,26 @@ class format_ucla_renderer extends format_section_renderer_base {
         // Formatting and determining information to display for these courses
         $regcoursetext = '';
         $termtext = '';
+        
+        foreach($this->courseinfo as $c) {
+            if($c->hostcourse == 1) {
+                $hostcourse = str_replace(' ', '', ucla_make_course_title($c));
+                break;
+            }
+        }
+        
         if (!empty($this->courseinfo)) {
             // don't show too many
-            $regcoursetext = implode(' / ', $this->displayinfo);
-            $termtext = ucla_term_to_text($this->term);
+            $regcourseinfo = implode(' / ', $this->displayinfo);
+            $hostfocus = html_writer::tag('span', $hostcourse, 
+                    array('class' => 'reg-hostcourse'));
+            $regcourseinfo = str_replace($hostcourse, $hostfocus, $regcourseinfo);
+            
+            $regcoursetext = html_writer::tag('span', $regcourseinfo,
+                    array('class' => 'reg-courses'));
+            $termtext = html_writer::tag('span', ucla_term_to_text($this->term),
+                    array('class' => 'reg-term'));
+            
         }
 
         // This is for the sets of instructors in a course
@@ -302,9 +322,10 @@ class format_ucla_renderer extends format_section_renderer_base {
                 $thissection->showavailability = 0;
             }
             // Show the section if the user is permitted to access it, OR if it's not available
-            // but showavailability is turned on
+            // but showavailability is turned on (and there is some available info text).
             $showsection = $thissection->uservisible ||
-                    ($thissection->visible && !$thissection->available && $thissection->showavailability);
+                    ($thissection->visible && !$thissection->available && $thissection->showavailability
+                    && !empty($thissection->availableinfo));
             if (!$showsection) {
 //                // Hidden section message is overridden by 'unavailable' control
 //                // (showavailability option).
@@ -710,7 +731,9 @@ class format_ucla_renderer extends format_section_renderer_base {
 
             $o.= html_writer::end_tag('div');
 
-            $o .= $this->section_availability_message($section);            
+            $context = context_course::instance($course->id);
+            $o .= $this->section_availability_message($section,
+                    has_capability('moodle/course:viewhiddensections', $context));
         }
 
         return $o;
