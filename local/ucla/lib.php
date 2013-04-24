@@ -836,7 +836,7 @@ function get_moodlerole($pseudorole, $subject_area='*SYSTEM*') {
 function ucla_send_mail($to, $subj, $body='', $header='') {
     global $CFG;
 
-    if ($CFG->noemailever) {
+    if (!empty($CFG->noemailever)) {
         // We don't want any email sent.
         return true;
     }
