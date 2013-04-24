@@ -11,7 +11,10 @@
     // Course header
     // Contains title 
     > .headingblock {
-        @extend .ccle-typography-h2;
+        // temporary fix for XP/IE8 headers
+        // @todo: turn this conversion into a sass function
+        font-size: 26px;
+        font-size: 2.6rem;
         
         background-color: $ccle-light-blue;
         border: 1px solid $ccle-border-blue;
@@ -22,6 +25,8 @@
         > .course-meta  {
             color: scale-lightness($ccle-dark-blue, 35%);
             font-weight: normal;
+            // @todo: turn this into a sass function
+            font-size: 14px;
             font-size: $type-font-size;
             margin-bottom: 4px;
             
