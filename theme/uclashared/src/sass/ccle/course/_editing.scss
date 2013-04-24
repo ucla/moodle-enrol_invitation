@@ -205,10 +205,9 @@ span.commands a:hover {
     color: white;
 }
 
-// Style the course menu block editiing mode
+// Style the course menu block editing mode
 .block_ucla_course_menu .edit_control_links {
-    background-color: white;
-    padding: 2px 0 4px;
+    padding-bottom: 4px;
 
     > a {
         display: inline;
