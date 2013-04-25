@@ -772,7 +772,7 @@ function qanda_print_entry_default($entry, $qanda, $cm) {
     $question = $entry->question;
     $question = file_rewrite_pluginfile_urls($question, 'pluginfile.php', $context->id, 'mod_qanda', 'question', $entry->id);
     $answer = $entry->answer;
-    $answer = file_rewrite_pluginfile_urls($answer, 'pluginfile.php', $context->id, 'mod_qanda', 'entry', $entry->id);
+    $answer = file_rewrite_pluginfile_urls($answer, 'pluginfile.php', $context->id, 'mod_qanda', 'answer', $entry->id);
 
 
     $question = preg_replace('/^<p[^>]*>(.*?)<\/p>$/i', '$1', $question); //Remove outer <p></p>
