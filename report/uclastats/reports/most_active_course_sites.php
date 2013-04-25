@@ -26,7 +26,7 @@ class most_active_course_sites extends uclastats_base {
             
             //get greatest view count
             $ret_val = array_shift($results);
-            return $ret_val['viewcount'];
+            return $ret_val['course_title'] . ' : ' . $ret_val['viewcount'];
             
         }
         
@@ -40,6 +40,16 @@ class most_active_course_sites extends uclastats_base {
     public function get_parameters() {
         return array('term');
     }
+    
+    /**
+     * Querying on the mdl_log can take a long time.
+     * 
+     * @return boolean
+     */
+    public function is_high_load() {
+        return true;
+    }
+
 
     /**
      * Query to get the activity of course sites
@@ -58,11 +68,11 @@ class most_active_course_sites extends uclastats_base {
    
 
         $sql = "SELECT c.shortname AS course_title, COUNT(l.id) AS viewcount
-                FROM mdl_log AS l
-                JOIN mdl_course AS c ON (
+                FROM {log} AS l
+                JOIN {course} AS c ON (
                     l.course = c.id
                 )
-                JOIN mdl_ucla_request_classes AS urc ON (
+                JOIN {ucla_request_classes} AS urc ON (
                     urc.courseid = c.id
                 )
                 WHERE urc.term = :term AND 

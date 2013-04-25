@@ -26,7 +26,7 @@ class most_active_collab_sites extends uclastats_base {
             
             //get greatest view count
             $ret_val = array_shift($results);
-            return $ret_val['viewcount'];
+            return $ret_val['course_title'] . ' : ' . $ret_val['viewcount'];
             
         }
         
@@ -39,6 +39,15 @@ class most_active_collab_sites extends uclastats_base {
      */
     public function get_parameters() {
         return array();
+    }
+    
+    /**
+     * Querying on the mdl_log can take a long time.
+     * 
+     * @return boolean
+     */
+    public function is_high_load() {
+        return true;
     }
 
     /**
