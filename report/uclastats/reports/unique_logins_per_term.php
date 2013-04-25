@@ -74,6 +74,15 @@ class unique_logins_per_term extends uclastats_base {
 
         return $ret_val;
     }
+    
+    /**
+     * Querying on the mdl_log can take a long time.
+     * 
+     * @return boolean
+     */
+    public function is_high_load() {
+        return true;
+    }
 
     /**
      * Query for average and total unique logins per term
@@ -131,11 +140,6 @@ class unique_logins_per_term extends uclastats_base {
         $per_term = $DB->get_field_sql($sql, $term_info);
         $ret_val['per_term'] = $per_term;
 
-        // might be useful to display the start/end times used
-        $ret_val['start_end_times'] = sprintf('%s/%s',
-                date('M j, Y', $term_info['start']),
-                date('M j, Y', $term_info['end']));
-
         //get total number of users for the given term
         $params['contextlevel'] = CONTEXT_COURSE;
         
@@ -160,6 +164,11 @@ class unique_logins_per_term extends uclastats_base {
         $total_users = $DB->get_field_sql($sql,$params);
         $ret_val['total_users'] = $total_users;
         
+        // might be useful to display the start/end times used
+        $ret_val['start_end_times'] = sprintf('%s/%s',
+                date('M j, Y', $term_info['start']),
+                date('M j, Y', $term_info['end']));
+
         // the base class is expecting an array of arrays
         return array($ret_val);
     }
