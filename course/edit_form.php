@@ -86,8 +86,12 @@ class course_edit_form extends moodleform {
                         $indicator_type);
                 
                 $roles = $indicator->get_assignable_roles();
+                $rolenames = array();
+                foreach ($roles as $role) {
+                    $rolenames[] = $role->name;
+                }
                 $mform->addElement('static', 'indicator_roles', get_string('roles', 'tool_uclasiteindicator'), 
-                        '<strong>' . implode('</strong>, <strong>', $roles) . '</strong>');
+                        '<strong>' . implode('</strong>, <strong>', $rolenames) . '</strong>');
             }
                                 
             // Change the site type

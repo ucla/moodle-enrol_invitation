@@ -32,33 +32,6 @@ $string['pluginname_desc'] = 'The site invitation module allows to send invitati
 // email message strings
 $string['reminder'] = 'Reminder: ';
 
-$string['emailmsghtml'] = 
-    'INSTRUCTIONS:'.
-    '<hr />'.
-    'You have been invited to access the site: {$a->fullname}. You will ' . 
-    'need to log in to CCLE with your UCLA logon in order to confirm your access ' . 
-    'to the site. If you do not have a UCLA logon, please see the instructions ' . 
-    'below. Be advised that by clicking on the site access link provided in this ' . 
-    'email you are acknowledging that:<br />' .
-    ' --you are the person to whom this email was addressed and for whom this ' . 
-    '   invitation is intended;<br />' . 
-    ' --the link below will expire 14 days after the date of issue ({$a->expiration}).<br /><br />' .      
-    'ACCESS LINK:'.
-    '<hr />'.
-    '{$a->inviteurl} <br /><br />'.
-    'UCLA LOGON:'.
-    '<hr />'.
-    'If you currently do not have a UCLA Logon ID, you can obtain one here: ' . 
-    'https://logon.ucla.edu/activate.php. You do not need to be an enrolled ' . 
-    'student at UCLA or have a 9 digit UID to create a UCLA Logon. When you are ' . 
-    'asked to identify your role in the UCLA system, select the following  ' . 
-    'option: <br />' . 
-    '"I do not have a UCLA Identification Number and I am NONE OF THE ABOVE."<br /><br />'.
-    'CONTACT CCLE:'.
-    '<hr />'.    
-    'If you believe that you have received this message in error or are in need<br />' . 
-    'of assistance, please contact: {$a->supportemail}.';
-
 $string['emailmsgtxt'] = 
     'INSTRUCTIONS:' . "\n" .
     '------------------------------------------------------------' . "\n" .
@@ -69,7 +42,7 @@ $string['emailmsgtxt'] =
     'email you are acknowledging that:' . "\n" .
     ' --you are the person to whom this email was addressed and for whom this' . 
     '   invitation is intended;' . "\n" . 
-    ' --the link below will expire 14 days after the date of issue ({$a->expiration}).' . "\n\n" .      
+    ' --the link below will expire on ({$a->expiration}).' . "\n\n" .
     'ACCESS LINK:' . "\n" .
     '------------------------------------------------------------' . "\n" .
     '{$a->inviteurl}' . "\n\n" .
@@ -96,6 +69,10 @@ $string['project_privacy_notice'] = 'Please be aware that if you accept this ' .
         'invitation your profile information will be available to the other ' . 
         'members of this project.';
 
+// add special notice when access end date is set
+$string['accessenddatenotice'] = 'After accepting this invitation, ' .
+        'your access to the site will expire on {$a}';
+
 // invite form strings
 $string['assignrole'] = 'Assign role';
 $string['defaultrole'] = 'Default role assignment';
@@ -120,9 +97,9 @@ $string['emailmessageuserenrolled'] = 'Hello,
 -------------
 {$a->supportemail}';
 
-$string['enrolenddate'] = 'End date';
-$string['enrolenddate_help'] = 'If enabled, users can be enrolled until this date only.';
-$string['enrolenddaterror'] = 'enrollment end date cannot be earlier than start date';
+$string['enrolenddate'] = 'Access end date';
+$string['enrolenddate_help'] = 'If enabled, will be the date the invitee will no longer be able to access the site.';
+$string['enrolenddaterror'] = 'Access end date cannot be earlier than today';
 $string['enrolperiod'] = 'enrollment duration';
 $string['enrolperiod_desc'] = 'Default length of time that the enrollment is valid (in seconds). If set to zero, the enrollment duration will be unlimited by default.';
 $string['enrolperiod_help'] = 'Length of time that the enrollment is valid, starting with the moment the user is enrolled. If disabled, the enrollment duration will be unlimited.';
@@ -147,7 +124,7 @@ $string['message_help'] =
     'email you are acknowledging that:<br />' .
     ' --you are the person to whom this email was addressed and for whom this ' . 
     '   invitation is intended;<br />' . 
-    ' --the link below will expire 14 days after the date of issue ([expiration date]).<br /><br />' .      
+    ' --the link below will expire on ([expiration date]).<br /><br />' .
     'ACCESS LINK:'.
     '<hr />'.
     '[invite url]<br /><br />'.
@@ -170,7 +147,7 @@ $string['norole'] = 'Please choose a role.';
 $string['notify_inviter'] = 'Notify me at {$a->email} when invited users accept this invitation';
 $string['header_role'] = 'What role do you want to assign to the invitee?';
 $string['email_clarification'] = 'You may specify multiple email addresses by separating 
-    them with semi-colons, commas, spaces, or individual lines';
+    them with semi-colons, commas, spaces, or new lines';
 $string['subject'] = 'Subject';
 $string['status'] = 'Allow site invitations';
 $string['status_desc'] = 'Allow users to invite people to enroll into a course by default.';
@@ -242,3 +219,10 @@ $string['invitation:enrol'] = 'Invite users';
 $string['invitation:manage'] = 'Manage site invitation assignments';
 $string['invitation:unenrol'] = 'Unassign users from the course';
 $string['invitation:unenrolself'] = 'Unassign self from the course';
+
+// setting strings
+$string['enabletempparticipant'] = 'Enable Temporary Participant role handling';
+$string['enabletempparticipant_desc'] = 'If enabled, will display ' .
+        '"Temporary Participant" as an invitable role for site invitation. ' .
+        'Requires the "Temporary Participant" role to exist on the server or ' .
+        'site invitation will not work.';

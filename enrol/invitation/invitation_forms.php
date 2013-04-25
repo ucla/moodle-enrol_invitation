@@ -124,7 +124,13 @@ class invitations_form extends moodleform {
                 get_string('notify_inviter', 'enrol_invitation', $temp));
         $mform->setDefault('show_from_email', 1);
         $mform->setDefault('notify_inviter', 0);        
-        
+
+        $mform->addElement('date_selector', 'enrolenddate',
+                get_string('enrolenddate', 'enrol_invitation'),
+                array('optional' => true));
+        $mform->setDefault('enrolenddate', 0);
+        $mform->addHelpButton('enrolenddate', 'enrolenddate', 'enrol_invitation');
+
         // Set defaults if the user is resending an invite that expired
         if ( !empty($prefilled) ) {
             $mform->setDefault('role_group[roleid]', $prefilled['roleid']);
@@ -147,34 +153,38 @@ class invitations_form extends moodleform {
      * @return array            Returns array of roles indexed by role type
      */
     private function get_appropiate_roles($course) {
-        global $CFG, $DB;
-        $roles = array();
-        
-        $roles = uclaroles_manager::get_assignable_roles_by_courseid($course->id);
-        // convert to just an array of shortnames
-        $roles = array_keys($roles);
-        $roles = $DB->get_records_list('role', 'shortname', $roles, 'name');
-        
+        $roles = uclaroles_manager::get_assignable_roles_by_courseid($course);        
         // sort roles into type
-        $roles = uclaroles_manager::orderby_role_type($roles);
-        
-        // now get role names and descriptions
-        return $roles;        
+        return uclaroles_manager::orderby_role_type($roles);
     }
     
     /*
-     * Validate the email field here, rather than in definition, to allow 
-     * multiple email addresses to be specified
+     * Provides custom validation rules.
+     *  - Validating the email field here, rather than in definition, to allow
+     *    multiple email addresses to be specified
+     *  - Validating that access end date is in the future
      */
     function validation($data, $files) {
         $errors = array();
         $delimiters = "/[;, \r\n]/";
         $email_list = invitations_form::parse_dsv_emails($data['email'], $delimiters);
         
-        if ( empty($email_list) ) {
+        if (empty($email_list)) {
             $errors['email'] = get_string('err_email', 'form');
         }
-        
+
+        if (isset($data['enrolenddate']) && is_array($data['enrolenddate'])) {
+            // use the end of the day to make sure access end date isn't set
+            // for today
+            $timestamp = mktime(23, 59, 59, $data['enrolenddate']['month'], 
+                    $data['enrolenddate']['day'], $data['enrolenddate']['year']);
+            if ($timestamp <= time()) {
+                $errors['enrolenddate'] = get_string('enrolenddaterror', 'enrol_invitation');
+            }
+        }
+
+        debugging('returning errors: ' . print_r($errors, true));
+
         return $errors;
     }
     

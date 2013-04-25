@@ -59,7 +59,7 @@ class invitation_manager {
         $inviteicon = '';
         $link = '';
 
-        if (has_capability('enrol/invitation:enrol', get_context_instance(CONTEXT_COURSE, $this->courseid))) {
+        if (has_capability('enrol/invitation:enrol', context_course::instance($this->courseid))) {
 
             //display an icon with requested (css can be changed in stylesheet)
             if ($withicon) {
@@ -123,7 +123,7 @@ class invitation_manager {
     public function send_invitations($data, $resend = false) {
         global $DB, $CFG, $COURSE, $SITE, $USER;
 
-        if (has_capability('enrol/invitation:enrol', get_context_instance(CONTEXT_COURSE, $data->courseid))) {
+        if (has_capability('enrol/invitation:enrol', context_course::instance($data->courseid))) {
 
             // get course record, to be used later
             $course = $DB->get_record('course', array('id' => $data->courseid), '*', MUST_EXIST);            
@@ -190,6 +190,19 @@ class invitation_manager {
                 $privacy_notice = $this->get_project_privacy_notice($course->id, false);
                 if (!empty($privacy_notice)) {
                     $inviteurl .= $privacy_notice;
+                }
+
+                // append access end date, if needed
+                if (isset($data['enrolenddate']) && is_array($data['enrolenddate'])) {
+                    $timestamp = mktime(23, 59, 59,
+                            $data['enrolenddate']['month'],
+                            $data['enrolenddate']['day'],
+                            $data['enrolenddate']['year']);
+                    $message_params->accessenddatenotice =
+                            get_string('accessenddatenotice', 'enrol_invitation',
+                                    date('M j, Y', $timestamp));
+                } else {
+                    $message_params->accessenddatenotice = '';
                 }
                 
                 $message_params->inviteurl = $inviteurl;

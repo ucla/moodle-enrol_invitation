@@ -891,12 +891,7 @@ class siteindicator_manager {
         $roleids = $this->get_roles_for_type($type);
         $roles = $DB->get_records_list('role', 'shortname', $roleids, 'sortorder');   
         
-        $list = array();        
-        foreach($roles as $r) {
-            $list[$r->shortname] = trim($r->name);
-        }
-        
-        return $list;
+        return $roles;
     }        
     
     static function filter_category_tree(&$tree) {

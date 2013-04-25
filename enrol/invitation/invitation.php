@@ -37,7 +37,7 @@ $inviteid = optional_param('inviteid', 0, PARAM_INT);
 
 $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 $fullname = $course->fullname;
-$context = get_context_instance(CONTEXT_COURSE, $courseid);
+$context = context_course::instance($courseid);
 
 if (!has_capability('enrol/invitation:enrol', $context)) {
     throw new moodle_exception('nopermissiontosendinvitation' , 'enrol_invitation', $courseurl);
@@ -86,7 +86,7 @@ $mform->set_data($invitationmanager);
 
 $data = $mform->get_data();
 if ($data and confirm_sesskey()) {
-    
+
     // BEGIN UCLA MOD: CCLE-2955-Invite-multiple-users
     // Check for the invitation of multiple users
     $delimiters = "/[;, \r\n]/";

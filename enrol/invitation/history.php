@@ -40,7 +40,7 @@ $inviteid = optional_param('inviteid', 0, PARAM_INT);
 $actionid = optional_param('actionid', 0, PARAM_INT);
 $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 
-$context = get_context_instance(CONTEXT_COURSE, $courseid);
+$context = context_course::instance($courseid);
 if (!has_capability('enrol/invitation:enrol', $context)) {
     $courseurl = new moodle_url('/course/view.php', array('id' => $courseid));    
     throw new moodle_exception('nopermissiontosendinvitation' , 
