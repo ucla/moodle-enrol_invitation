@@ -26,7 +26,7 @@ class most_active_course_sites extends uclastats_base {
             
             //get greatest view count
             $ret_val = array_shift($results);
-            return $ret_val['course_title'] . ' : ' . $ret_val['viewcount'];
+            return $ret_val['course_title'];
             
         }
         

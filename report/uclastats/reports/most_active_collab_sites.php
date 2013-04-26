@@ -26,7 +26,7 @@ class most_active_collab_sites extends uclastats_base {
             
             //get greatest view count
             $ret_val = array_shift($results);
-            return $ret_val['course_title'] . ' : ' . $ret_val['viewcount'];
+            return $ret_val['course_title'];
             
         }
         
@@ -69,11 +69,11 @@ class most_active_collab_sites extends uclastats_base {
                 )
                 WHERE urc.id IS NULL AND
                       l.action = 'view' AND
-                      c.id != 1
+                      c.id != ?
                 GROUP BY c.id
                 ORDER BY viewcount DESC
                 LIMIT 10";
-        
-        return $DB->get_records_sql($sql);
+
+        return $DB->get_records_sql($sql, array(SITEID));
     }
 }
