@@ -22,6 +22,10 @@ $reports = get_all_reports();
 $report     = required_param('report', PARAM_ALPHAEXT);
 $resultid   = optional_param('resultid', null, PARAM_INT);
 $action     = optional_param('action', null, PARAM_ALPHAEXT);
+$confirmdel = optional_param('confirmdel', 0, PARAM_BOOL);
+
+$action_confirmed = (($action != UCLA_STATS_ACTION_DELETE) ||
+                    ($action == UCLA_STATS_ACTION_DELETE) && $confirmdel);
 
 // make sure user is accessing a valid report
 if (!array_key_exists($report, $reports)) {
@@ -73,9 +77,11 @@ if (!empty($action) && !empty($resultid)) {
     
     switch ($action) {
         case UCLA_STATS_ACTION_DELETE:
-            uclastats_result::delete($resultid);
-            $url_params = array('report' => $report);
-            $success_msg = get_string('successful_delete', 'report_uclastats'); 
+            if($action_confirmed) {
+                uclastats_result::delete($resultid);
+                $url_params = array('report' => $report);
+                $success_msg = get_string('successful_delete', 'report_uclastats');
+            } 
 
         break;
         case UCLA_STATS_ACTION_LOCK: 
@@ -98,7 +104,7 @@ if (!empty($action) && !empty($resultid)) {
                     new moodle_url('/report/uclastats/view.php',
                     array('report' => $report)),$action);
         
-    } else {
+    } else if ($action_confirmed) {
         
         
         $log_url =  new moodle_url('../report/uclastats/view.php',array_merge($url_params,array('action' => $action)));
@@ -120,11 +126,27 @@ $output = $PAGE->get_renderer('report_uclastats');
 
 echo $output->render_header($report);
 
-//print out flash message if a result has been deleted/(un)locked
-flash_display();
+if ($action_confirmed) {
+    
+    //print out flash message if a result has been deleted/(un)locked
+    flash_display();
 
-echo $output->render_report_list($reports, $report);
+    echo $output->render_report_list($reports, $report);
 
-echo $output->render_report($report_object, $resultid);
+    echo $output->render_report($report_object, $resultid);
+    
+} else {
+    
+    //render confirm button for deletion
+    echo   $OUTPUT->confirm( get_string('confirm_delete', 'report_uclastats'),
+                    new moodle_url('/report/uclastats/view.php',
+                                   array('report' => $report,
+                                         'action' => $action,
+                                         'resultid' => $resultid,
+                                         'confirmdel' => 1)),
+                    new moodle_url('/report/uclastats/view.php',
+                                   array('report' => $report,
+                                         'resultid' => $resultid)));
+}
 
 echo $OUTPUT->footer();

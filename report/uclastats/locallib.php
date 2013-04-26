@@ -151,15 +151,20 @@ abstract class uclastats_base implements renderable {
                     array('report' => get_class($this),
                           'resultid' => $result->id,
                           'action' => ($is_locked)? UCLA_STATS_ACTION_UNLOCK : UCLA_STATS_ACTION_LOCK )),
-                          get_string(($is_locked)? 'unlock_results' : 'lock_results', 'report_uclastats'));
+                          get_string(($is_locked)? 'unlock_results' : 'lock_results', 'report_uclastats'),
+                    //if action is lock make the lock text red
+                    (!$is_locked) ? array('class' => 'red') : array());
 
+                    if(!$is_locked) {
                     //delete
                     $row->cells['actions'][] = html_writer::link(
                     new moodle_url('/report/uclastats/view.php',
                     array('report' => get_class($this),
                           'resultid' => $result->id,
                           'action' => UCLA_STATS_ACTION_DELETE)), 
-                          get_string('delete_results', 'report_uclastats'));
+                          get_string('delete_results', 'report_uclastats'),
+                    array('class' => 'red'));
+                    }
                     
                 } 
                 
@@ -636,7 +641,10 @@ class uclastats_result implements renderable {
      */
     public static function delete($resultid){
         global $DB;
-        $DB->delete_records(self::$table,array('id' => $resultid));
+        
+        //ensure that the record being deleted is currently unlocked
+        $DB->delete_records(self::$table,array('id' => $resultid, 'locked'=> 0));
+        
     }
     
     /**

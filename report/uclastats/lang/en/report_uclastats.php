@@ -42,6 +42,7 @@ $string['successful_delete'] = 'Successfully deleted result';
 $string['successful_unlock'] = 'Successfully unlocked result';
 $string['successful_lock'] = 'Successfully locked result';
 $string['undefined_action'] = 'The requested action , {$a} , is undefined';
+$string['confirm_delete'] = 'Are you sure you want to delete the result?';
 
 // strings for sites_per_term
 $string['sites_per_term'] = 'Sites per term (course)';
