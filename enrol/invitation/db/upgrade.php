@@ -215,20 +215,21 @@ function xmldb_enrol_invitation_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2012071303, 'enrol', 'invitation');                         
     }
 
-    // add accessenddate
-    if ($oldversion < 2013042200) {
+    // Add daysexpire column.
+    if ($oldversion < 2013042600) {
 
-        // Define field accessenddate to be added to enrol_invitation
+        // Define field daysexpire to be added to enrol_invitation
         $table = new xmldb_table('enrol_invitation');
-        $field = new xmldb_field('accessenddate', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'show_from_email');
-        
-        // Conditionally launch add field accessenddate
+        $field = new xmldb_field('daysexpire', XMLDB_TYPE_INTEGER, '3', null,
+                XMLDB_NOTNULL, null, '0', 'show_from_email');
+
+        // Conditionally launch add field daysexpire
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
 
         // invitation savepoint reached
-        upgrade_plugin_savepoint(true, 2013042200, 'enrol', 'invitation');
+        upgrade_plugin_savepoint(true, 2013042600, 'enrol', 'invitation');
     }
     
     return true;

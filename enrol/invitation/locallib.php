@@ -81,11 +81,10 @@ class invitation_manager {
      * @global type $CFG
      * 
      * @param int $courseid
-     * @param boolean $html_format
      * 
      * @return string       Returns null if there is no privacy notice
      */
-    public static function get_project_privacy_notice($courseid, $html_format=false) {
+    public static function get_project_privacy_notice($courseid) {
         global $CFG;
         require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/uclasiteindicator/lib.php');
         $ret_val = null;
@@ -99,12 +98,7 @@ class invitation_manager {
             
             // if site type group is project, then return some notice
             if ($site_type_group == siteindicator_manager::SITE_GROUP_TYPE_PROJECT) {
-                if ($html_format) {
-                    $ret_val = html_writer::tag('p', 
-                            get_string('project_privacy_notice', 'enrol_invitation'));
-                } else {
-                    $ret_val = "\n\n" . get_string('project_privacy_notice', 'enrol_invitation');                   
-                }
+                $ret_val = "\n\n" . get_string('project_privacy_notice', 'enrol_invitation');                   
             }            
         } catch (Exception $e) {
             // throws exception if no site type found
@@ -187,24 +181,27 @@ class invitation_manager {
                 $inviteurl = $inviteurl->out(false);
                 
                 // append privacy notice, if needed
-                $privacy_notice = $this->get_project_privacy_notice($course->id, false);
+                $privacy_notice = $this->get_project_privacy_notice($course->id);
                 if (!empty($privacy_notice)) {
                     $inviteurl .= $privacy_notice;
                 }
 
-                // append access end date, if needed
-                if (isset($data['enrolenddate']) && is_array($data['enrolenddate'])) {
-                    $timestamp = mktime(23, 59, 59,
-                            $data['enrolenddate']['month'],
-                            $data['enrolenddate']['day'],
-                            $data['enrolenddate']['year']);
-                    $message_params->accessenddatenotice =
-                            get_string('accessenddatenotice', 'enrol_invitation',
-                                    date('M j, Y', $timestamp));
-                } else {
-                    $message_params->accessenddatenotice = '';
+                // Append days expired, if needed.
+                if (get_config('enrol_invitation', 'enabletempparticipant')) {
+                    $tempparticipant = $DB->get_record('role',
+                            array('shortname' => 'tempparticipant'));
+
+                    // If for some reason the daysexpire is empty, default to 3.
+                    $daysexpire = 3;
+                    if (!empty($data->daysexpire)) {
+                        $daysexpire = $data->daysexpire;
+                    }
+                    
+                    $inviteurl .= "\n\n" . get_string('daysexpire_notice',
+                            'enrol_invitation', $daysexpire);
+                    $invitation->daysexpire = $daysexpire;
                 }
-                
+
                 $message_params->inviteurl = $inviteurl;
                 $message_params->supportemail = $CFG->supportemail;
                 $message .= get_string('emailmsgtxt', 'enrol_invitation', $message_params);
@@ -331,8 +328,23 @@ class invitation_manager {
     public function enroluser($invitation) {
         global $USER;
 
+        // Handle daysexpire by adding making the enrollment expiration be the
+        // end of the day after daysexpire days.
+        $timeend = 0;
+        if (!empty($invitation->daysexpire)) {
+            // Get today's date as a timestamp. Ignore the current time.
+            $today = strtotime(date('Y/m/d'));
+            // Get the day in the future.
+            $timeend = strtotime(sprintf('+%d days', $invitation->daysexpire), $today);
+            // But make sure the timestamp is for the end of that day. Remember
+            // that 604800 is the total seconds in a day. So -1 that is right
+            // before midnight.
+            $timeend += 604799;
+        }
+
         $enrol = enrol_get_plugin('invitation');
-        $enrol->enrol_user($this->enrol_instance, $USER->id, $invitation->roleid);
+        $enrol->enrol_user($this->enrol_instance, $USER->id,
+                $invitation->roleid, 0, $timeend);
     }
 
     /**

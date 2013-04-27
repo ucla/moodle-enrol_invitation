@@ -294,15 +294,6 @@ class uclaroles_manager {
             $ret_val = $siteindicator_manager->get_assignable_roles($site_type);
         }
 
-        // CCLE-3787 - Add Temporary participant role for Reg and TA sites
-        if ($site_type == siteindicator_manager::SITE_TYPE_SRS_INSTRUCTION ||
-                $site_type == siteindicator_manager::SITE_TYPE_TASITE) {
-            if (get_config('enrol_invitation', 'enabletempparticipant')) {
-                $ret_val[] = $DB->get_record('role',
-                        array('shortname' => 'tempparticipant'));
-            }
-        }
-
         return $ret_val;
     }
     

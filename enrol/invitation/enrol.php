@@ -74,7 +74,7 @@ if (isguestuser()) {
     // Print out a heading
     echo $OUTPUT->heading($page_title, 2, 'headingblock');
     
-    echo $OUTPUT->box_start('generalbox');
+    echo $OUTPUT->box_start('generalbox', 'notice');
 
     $notice_object = prepare_notice_object($invitation);        
     echo get_string('loggedinnot', 'enrol_invitation', $notice_object);
@@ -121,6 +121,13 @@ if (empty($confirm)) {
     $privacy_notice = invitation_manager::get_project_privacy_notice($course->id, true);
     if (!empty($privacy_notice)) {
         $invitationacceptance .= $privacy_notice;
+    }
+
+    // If invitation has "daysexpire" set, then give notice.
+    if (!empty($invitation->daysexpire)) {
+        $invitationacceptance .= html_writer::tag('p',
+                get_string('daysexpire_notice', 'enrol_invitation',
+                        $invitation->daysexpire));
     }
     
     echo $OUTPUT->confirm($invitationacceptance, $accept, $cancel);    

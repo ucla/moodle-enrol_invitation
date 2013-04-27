@@ -69,10 +69,6 @@ $string['project_privacy_notice'] = 'Please be aware that if you accept this ' .
         'invitation your profile information will be available to the other ' . 
         'members of this project.';
 
-// add special notice when access end date is set
-$string['accessenddatenotice'] = 'After accepting this invitation, ' .
-        'your access to the site will expire on {$a}';
-
 // invite form strings
 $string['assignrole'] = 'Assign role';
 $string['defaultrole'] = 'Default role assignment';
@@ -220,9 +216,13 @@ $string['invitation:manage'] = 'Manage site invitation assignments';
 $string['invitation:unenrol'] = 'Unassign users from the course';
 $string['invitation:unenrolself'] = 'Unassign self from the course';
 
-// setting strings
+// Strings to handle "Temporary Participant"
 $string['enabletempparticipant'] = 'Enable Temporary Participant role handling';
 $string['enabletempparticipant_desc'] = 'If enabled, will display ' .
         '"Temporary Participant" as an invitable role for site invitation. ' .
         'Requires the "Temporary Participant" role to exist on the server or ' .
         'site invitation will not work.';
+$string['tempgroup'] = 'Temporary';
+$string['daysexpire_string'] = 'Expires {$a} days after being accepted.';
+$string['daysexpire_notice'] = 'After accepting this invitation, your access to the site will expire in {$a} days.';
+$string['err_daysexpire'] = 'Invalid choice option for days expiration.';

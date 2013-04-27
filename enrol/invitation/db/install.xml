@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="enrol/invitation/db" VERSION="20130422" COMMENT="XMLDB file for Moodle enrol/invitation"
+<XMLDB PATH="enrol/invitation/db" VERSION="20130426" COMMENT="XMLDB file for Moodle enrol/invitation"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -20,8 +20,8 @@
         <FIELD NAME="subject" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="inviterid" NEXT="message"/>
         <FIELD NAME="message" TYPE="text" NOTNULL="false" SEQUENCE="false" PREVIOUS="subject" NEXT="notify_inviter"/>
         <FIELD NAME="notify_inviter" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="If true, will sent email to inviter that invite was used" PREVIOUS="message" NEXT="show_from_email"/>
-        <FIELD NAME="show_from_email" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="If true, when email is sent will show inviter's email in the &quot;FROM&quot; field" PREVIOUS="notify_inviter" NEXT="accessenddate"/>
-        <FIELD NAME="accessenddate" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Date to set for an enrollment end time when enrolling a user that has accepted an invitation." PREVIOUS="show_from_email"/>
+        <FIELD NAME="show_from_email" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="If true, when email is sent will show inviter's email in the &quot;FROM&quot; field" PREVIOUS="notify_inviter" NEXT="daysexpire"/>
+        <FIELD NAME="daysexpire" TYPE="int" LENGTH="3" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Number of days that role will expire after being accepted." PREVIOUS="show_from_email"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="userid"/>
