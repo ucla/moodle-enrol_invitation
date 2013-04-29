@@ -26,7 +26,7 @@
 
 require(dirname(__FILE__) . '/../../config.php');
 require_once(dirname(__FILE__) . '/locallib.php');
-require_once(dirname(__FILE__) . '/invitation_forms.php');
+require_once(dirname(__FILE__) . '/invitation_form.php');
 
 require_once($CFG->dirroot . '/enrol/locallib.php');
 require_once($CFG->libdir . '/tablelib.php');

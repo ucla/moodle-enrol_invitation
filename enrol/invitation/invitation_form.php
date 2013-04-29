@@ -38,7 +38,7 @@ require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/uclaroles/lib.php');
  * @package enrol
  * @subpackage invitation
  */
-class invitations_form extends moodleform {
+class invitation_form extends moodleform {
     public static $daysexpire_options = array(3 => 3, 7 => 7, 30 => 30, 90 => 90, 180 => 180);
 
     /**
@@ -107,7 +107,7 @@ class invitations_form extends moodleform {
 
                 // Create dropdown for choosing day expiration.
                 $daysexpire_dropdown = &$mform->createElement('select',
-                        'daysexpire', '', invitations_form::daysexpire_options);
+                        'daysexpire', '', invitation_form::$daysexpire_options);
                 $daysexpire_string = html_writer::tag('span',
                         get_string('daysexpire_string', 'enrol_invitation',
                                 $daysexpire_dropdown->toHtml()),
@@ -218,7 +218,7 @@ class invitations_form extends moodleform {
     function validation($data, $files) {
         $errors = array();
         $delimiters = "/[;, \r\n]/";
-        $email_list = invitations_form::parse_dsv_emails($data['email'], $delimiters);
+        $email_list = invitation_form::parse_dsv_emails($data['email'], $delimiters);
         
         if (empty($email_list)) {
             $errors['email'] = get_string('err_email', 'form');

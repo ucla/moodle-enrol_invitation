@@ -10,7 +10,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
-require_once($CFG->dirroot . '/enrol/invitation/invitation_forms.php');
+require_once($CFG->dirroot . '/enrol/invitation/invitation_form.php');
 require_once($CFG->dirroot . '/enrol/invitation/locallib.php');
 
 /**
@@ -33,7 +33,7 @@ class invitation_manager_testcase extends advanced_testcase {
     public function test_enroluser_withdaysexpire() {
         $invite = $this->create_invite();
 
-        $daystotest = invitations_form::$daysexpire_options;
+        $daystotest = invitation_form::$daysexpire_options;
         
         $invite->daysexpire = 3;        
     }
