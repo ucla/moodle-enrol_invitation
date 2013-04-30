@@ -78,9 +78,22 @@ if (!empty($action) && !empty($resultid)) {
     switch ($action) {
         case UCLA_STATS_ACTION_DELETE:
             if($action_confirmed) {
-                uclastats_result::delete($resultid);
-                $url_params = array('report' => $report);
-                $success_msg = get_string('successful_delete', 'report_uclastats');
+                
+                if(uclastats_result::delete($resultid)) {
+                    
+                    $url_params = array('report' => $report);
+                    $success_msg = get_string('successful_delete', 'report_uclastats');
+                
+                    
+                } else {
+                    
+                    //indicate the deletion failed
+                    //either because it was locked 
+                    print_error('error_delete_locked', 'report_uclastats',
+                                 new moodle_url('/report/uclastats/view.php',
+                                 array('report' => $report , 'resultid' => $resultid)));
+                }
+                
             } 
 
         break;

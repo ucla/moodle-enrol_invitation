@@ -41,6 +41,8 @@ $string['delete_results'] = 'Delete';
 $string['successful_delete'] = 'Successfully deleted result';
 $string['successful_unlock'] = 'Successfully unlocked result';
 $string['successful_lock'] = 'Successfully locked result';
+$string['error_delete_locked'] = 'The current result could not be deleted ' . 
+                                  'because it is locked';
 $string['undefined_action'] = 'The requested action , {$a} , is undefined';
 $string['confirm_delete'] = 'Are you sure you want to delete the result?';
 

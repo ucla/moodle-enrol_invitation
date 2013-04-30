@@ -137,7 +137,7 @@ abstract class uclastats_base implements renderable {
                 $row->cells['lastran'] =
                         get_string('lastran', 'report_uclastats', $lastran);
 
-                $row->cells['actions'][] = html_writer::link(
+                $row->cells['actions'] = html_writer::link(
                 new moodle_url('/report/uclastats/view.php',
                 array('report' => get_class($this),
                       'resultid' => $result->id)), 
@@ -146,29 +146,29 @@ abstract class uclastats_base implements renderable {
                 if ($can_manage_report) {
                     
                     //lock/unlock
-                    $row->cells['actions'][] = html_writer::link(
+                    $row->cells['actions'] .= html_writer::link(
                     new moodle_url('/report/uclastats/view.php',
                     array('report' => get_class($this),
                           'resultid' => $result->id,
                           'action' => ($is_locked)? UCLA_STATS_ACTION_UNLOCK : UCLA_STATS_ACTION_LOCK )),
                           get_string(($is_locked)? 'unlock_results' : 'lock_results', 'report_uclastats'),
-                    //if action is lock make the lock text red
-                    (!$is_locked) ? array('class' => 'red') : array());
+                    array('class' => 'edit'));
 
                     if(!$is_locked) {
                     //delete
-                    $row->cells['actions'][] = html_writer::link(
+                    $row->cells['actions'] .= html_writer::link(
                     new moodle_url('/report/uclastats/view.php',
                     array('report' => get_class($this),
                           'resultid' => $result->id,
                           'action' => UCLA_STATS_ACTION_DELETE)), 
                           get_string('delete_results', 'report_uclastats'),
-                    array('class' => 'red'));
+                    array('class' => 'edit'));
                     }
                     
                 } 
                 
-                $row->cells['actions'] = implode(' ', $row->cells['actions']);
+                $row->cells['actions'] = html_writer::tag('span',
+                        $row->cells['actions'],array('class'=>'editing_links'));
 
                 $cached_table->data[$index] = $row;
             }
@@ -637,14 +637,31 @@ class uclastats_result implements renderable {
     /**
      * Static method to delete result
      * 
-     * @param int $resultid
+     * @param int $resultid the corresponding id of result
+     * 
+     * @return boolean true if deletion was sucessful.
+     *                 false if resultid is locked. 
+     *                 exception automatically thrown if query error.
      */
     public static function delete($resultid){
         global $DB;
         
-        //ensure that the record being deleted is currently unlocked
-        $DB->delete_records(self::$table,array('id' => $resultid, 'locked'=> 0));
         
+        $params =  array('id' => $resultid, 'locked'=> 0);
+        
+        //ensure that the record being deleted exists and is currently unlocked
+        //delete_records returns true if the query is successful
+        //even if nothing is matched/deleted
+        //but we need any extra check that returns false
+        //to indicate record was not deleted because it was locked
+        //if the query fails an exception will be thrown
+        if($DB->record_exists(self::$table,$params)) {
+        
+              return $DB->delete_records(self::$table,$params);
+        
+        }
+        
+        return false;
     }
     
     /**

@@ -23,12 +23,12 @@
     font-weight: bold;
 }
 
-.cached-results-table .red {
-    color: red;
+.cached-results-table .editing_links a {
+    margin-left: 19px;
 }
 
-.cached-results-table .cactions a {
-    padding: 0 1em;
+.cached-results-table .edit {
+    color: #FF6666;
 }
 
 #page-admin-report-uclastats-view .parameters {
