@@ -12,8 +12,8 @@ function xmldb_report_uclastats_upgrade($oldversion = 0) {
     //file size reports are renamed to system_size reports
     //Note: used execute to avoid overhead of locating all records
     //and then deleting them
-    //only use execute if there are no variable params to avoid sql injectionS
-    $DB->execute("UPDATE mdl_ucla_statsconsole 
+    //only use execute if there are no variable params to avoid sql injections
+    $DB->execute("UPDATE {ucla_statsconsole} 
                   SET name = 'system_size' 
                   WHERE name = 'file_size'");
         
