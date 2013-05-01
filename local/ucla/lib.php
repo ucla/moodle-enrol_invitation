@@ -1358,8 +1358,9 @@ function flash_redirect($url, $success_msg) {
  * @return string           Returns notice if any is needed.
  */
 function notice_oldcourse($course) {
-    global $CFG, $OUTPUT;
+    global $CFG, $OUTPUT, $USER;
     $displaynotice = false;
+    $noticestring = '';
     
     if (is_past_course($course)) {
         $currentweek = get_config('local_ucla', 'current_week');
@@ -1378,7 +1379,25 @@ function notice_oldcourse($course) {
     }
 
     if ($displaynotice) {
-        return $OUTPUT->box(get_string('notice_oldcourse', 'local_ucla'),
+        $noticestring = get_string('notice_oldcourse', 'local_ucla');
+    }
+
+    // Let user know if the course is currently hidden.
+    if (empty($course->visible)) {
+        $noticestring .= get_string('notice_oldcourse_hidden', 'local_ucla');
+    }
+
+    // Display helpful text if user's enrollment is expiring.
+    if (!isguestuser($USER)) {
+        $timeend = enrol_get_enrolment_end($course->id, $USER->id);
+        if ($timeend > 0) {
+            $noticestring .= get_string('notice_oldcourse_expiration',
+                    'local_ucla', date('M j, Y', $timeend));
+        }
+    }
+
+    if (!empty($noticestring)) {
+        return $OUTPUT->box($noticestring,
                 'noticebox notice_oldcourse');
     }
 }

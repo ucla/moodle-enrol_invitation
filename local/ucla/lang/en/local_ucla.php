@@ -85,7 +85,9 @@ $string['notloggedin'] = 'Please login to view this content.';
 $string['loginredirect'] = 'Login required';
 // END UCLA MOD: CCLE-3028
 
-$string['notice_oldcourse'] = 'You are viewing a course that is no longer in session.';
+$string['notice_oldcourse'] = 'You are viewing a course that is no longer in session. ';
+$string['notice_oldcourse_hidden'] = 'Site is unavailable to users, because it is hidden. ';
+$string['notice_oldcourse_expiration'] = 'Your access will expire after {$a}.';
 
 $string['lti_warning'] = 'There are risks using external tools. Please read ' . 
         'this help document for more information: ' .
