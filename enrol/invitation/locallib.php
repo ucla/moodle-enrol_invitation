@@ -259,6 +259,10 @@ class invitation_manager {
     public function get_access_expiration($invite) {
         $expiration = '';
 
+        if (empty($invite->userid)) {
+            return $expiration;
+        }
+
         // Check to see if user has a time restriction on their access.
         $timeend = enrol_get_enrolment_end($invite->courseid, $invite->userid);
         if ($timeend === false) {
