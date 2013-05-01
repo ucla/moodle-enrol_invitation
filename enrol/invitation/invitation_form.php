@@ -75,7 +75,7 @@ class invitation_form extends moodleform {
             }
         }
 
-        // give "Temporary Participant" option if site is Registrar or TA site
+        // Give "Temporary Participant" option if site is Registrar or TA site.
         if (get_config('enrol_invitation', 'enabletempparticipant')) {
             $site_type = null;
             if (is_collab_site($course)) {

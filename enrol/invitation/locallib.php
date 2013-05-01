@@ -191,15 +191,19 @@ class invitation_manager {
                     $tempparticipant = $DB->get_record('role',
                             array('shortname' => 'tempparticipant'));
 
-                    // If for some reason the daysexpire is empty, default to 3.
-                    $daysexpire = 3;
-                    if (!empty($data->daysexpire)) {
-                        $daysexpire = $data->daysexpire;
+                    // If inviting a temporary role, check how many days the
+                    // role should be limited to.
+                    if ($tempparticipant->id == $invitation->roleid) {
+                        // If for some reason the daysexpire is empty, default to 3.
+                        $daysexpire = 3;
+                        if (!empty($data->daysexpire)) {
+                            $daysexpire = $data->daysexpire;
+                        }
+
+                        $inviteurl .= "\n\n" . get_string('daysexpire_notice',
+                                'enrol_invitation', $daysexpire);
+                        $invitation->daysexpire = $daysexpire;
                     }
-                    
-                    $inviteurl .= "\n\n" . get_string('daysexpire_notice',
-                            'enrol_invitation', $daysexpire);
-                    $invitation->daysexpire = $daysexpire;
                 }
 
                 $message_params->inviteurl = $inviteurl;
@@ -244,11 +248,36 @@ class invitation_manager {
     }
     
     /**
+     * Checks if user who accepted invite has an access expiration for their
+     * enrollment.
+     * 
+     * @param object $invite    Database record
+     * 
+     * @return string           Returns expiration string. Blank if no 
+     *                          restriction.
+     */
+    public function get_access_expiration($invite) {
+        $expiration = '';
+
+        // Check to see if user has a time restriction on their access.
+        $timeend = enrol_get_enrolment_end($invite->courseid, $invite->userid);
+        if ($timeend === false) {
+            // No active enrollment now.
+            $expiration = get_string('status_invite_used_noaccess', 'enrol_invitation');
+        } else if ($timeend > 0) {
+            // Access will end on a certain date.
+            $expiration = get_string('status_invite_used_expiration',
+                    'enrol_invitation', date('M j, Y', $timeend));
+        }
+        return $expiration;
+    }
+
+    /**
      * Returns status of given invite. 
      * 
      * @param object $invite    Database record
      * 
-     * @return string              Returns invite status string.
+     * @return string           Returns invite status string.
      */
     public function get_invite_status($invite) {
         if (!is_object($invite)) {
@@ -257,7 +286,8 @@ class invitation_manager {
 
         if ($invite->tokenused) {
             // invite was used already
-            return get_string('status_invite_used', 'enrol_invitation');
+            $status = get_string('status_invite_used', 'enrol_invitation');
+            return $status;
         } else if ($invite->timeexpiration < time()) {
             // invite is expired
             return get_string('status_invite_expired', 'enrol_invitation');
@@ -337,9 +367,9 @@ class invitation_manager {
             // Get the day in the future.
             $timeend = strtotime(sprintf('+%d days', $invitation->daysexpire), $today);
             // But make sure the timestamp is for the end of that day. Remember
-            // that 604800 is the total seconds in a day. So -1 that is right
+            // that 86400 is the total seconds in a day. So -1 that is right
             // before midnight.
-            $timeend += 604799;
+            $timeend += 86399;
         }
 
         $enrol = enrol_get_plugin('invitation');

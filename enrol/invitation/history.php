@@ -178,7 +178,13 @@ if (empty($invites)) {
         if (!empty($result)) {
             $row[2] .= get_string('used_by', 'enrol_invitation', $result);                
         }
-        
+
+        // If user's enrollment expired or will expire, let viewer know.
+        $result = $invitationmanager->get_access_expiration($invite);
+        if (!empty($result)) {
+            $row[2] .= ' ' . $result;
+        }
+
         // when was the invite sent?
         $row[3] = date('M j, Y g:ia', $invite->timesent);
         

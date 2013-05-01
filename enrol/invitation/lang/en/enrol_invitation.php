@@ -101,6 +101,7 @@ $string['enrolperiod_desc'] = 'Default length of time that the enrollment is val
 $string['enrolperiod_help'] = 'Length of time that the enrollment is valid, starting with the moment the user is enrolled. If disabled, the enrollment duration will be unlimited.';
 $string['enrolstartdate'] = 'Start date';
 $string['enrolstartdate_help'] = 'If enabled, users can be enrolled from this date onward only.';
+$string['editenrolment'] = 'Edit enrolment';
 
 $string['show_from_email'] = 'Allow invited user to contact me at {$a->email} (your address will be on the "FROM" field. If not selected, the "FROM" field will be {$a->supportemail})';
 $string['inviteusers'] = 'Invite user';
@@ -200,6 +201,8 @@ $string['used_by'] = ' by {$a->username} ({$a->roles}, {$a->useremail}) on {$a->
 $string['status_invite_invalid'] = 'Invalid';
 $string['status_invite_expired'] = 'Expired';
 $string['status_invite_used'] = 'Accepted';
+$string['status_invite_used_noaccess'] = '(no longer has access)';
+$string['status_invite_used_expiration'] = '(access ends on {$a})';
 $string['status_invite_revoked'] = 'Revoked';
 $string['status_invite_resent'] = 'Resent';
 $string['status_invite_active'] = 'Active';
