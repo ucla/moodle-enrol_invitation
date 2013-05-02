@@ -1,90 +1,87 @@
 /** General Styles **/
 .path-mod-qanda .qanda-post {
-	border-collapse: separate;
-	margin: 0px auto;
-	text-align: left; }
- 
-	/*.path-mod-qanda .qanda-post.entrylist { border-width: 0px; }*/
- 
-	.path-mod-qanda .qanda-post.continuous .question { display: inline; }
- 
-	.path-mod-qanda .qanda-post .commands {
-		width: 200px;
-		white-space: nowrap; }
- 
-	.path-mod-qanda .qanda-post td.picture { width: 35px; }
- 
-	.path-mod-qanda .qanda-post .entry-lower-section .aliases { text-align: center; }
- 
-	.path-mod-qanda .qanda-post .entry-lower-section .icons {
-		text-align: right;
-		padding-right: 5px; }
- 
-	.path-mod-qanda .qanda-post .entry-lower-section .ratings {
-		text-align: right;
-		padding-right: 5px;
-		padding-bottom: 2px; }
- 
-	.path-mod-qanda .qanda-post .qanda-hidden-note { margin: 0 .45em; }
- 
+    border-collapse: separate;
+    margin: 0px auto;
+    text-align: left; }
+
+/*.path-mod-qanda .qanda-post.entrylist { border-width: 0px; }*/
+
+.path-mod-qanda .qanda-post.continuous .question { display: inline; }
+
+.path-mod-qanda .qanda-post .commands {
+    width: 200px;
+    white-space: nowrap; }
+
+.path-mod-qanda .qanda-post td.picture { width: 35px; }
+
+.path-mod-qanda .qanda-post .entry-lower-section .aliases { text-align: center; }
+
+.path-mod-qanda .qanda-post .entry-lower-section .icons {
+    text-align: right;
+    padding-right: 5px; }
+
+.path-mod-qanda .qanda-post .entry-lower-section .ratings {
+    text-align: right;
+    padding-right: 5px;
+    padding-bottom: 2px; }
+
+.path-mod-qanda .qanda-post .qanda-hidden-note { margin: 0 .45em; }
+
 .path-mod-qanda .qanda-display {
-	margin-left: auto;
-	margin-right: auto; }
- 
-	.path-mod-qanda .qanda-display .tabs {
-		width: 100%;
-		margin-bottom: 0px; }
- 
-		.path-mod-qanda .qanda-display .tabs .side {
-			border-style: none;
-			border-width: 0px;
-			width: auto; }
- 
-	.path-mod-qanda .qanda-display .separator { width: 4px; }
- 
+    margin-left: auto;
+    margin-right: auto; }
+
+.path-mod-qanda .qanda-display .tabs {
+    width: 100%;
+    margin-bottom: 0px; }
+
+.path-mod-qanda .qanda-display .tabs .side {
+    border-style: none;
+    border-width: 0px;
+    width: auto; }
+
+.path-mod-qanda .qanda-display .separator { width: 4px; }
+
 .path-mod-qanda table.qandapopup { width: 95%; }
- 
+
 /** Used in tabs.php **/
 .path-mod-qanda .entrybox, 
 .path-mod-qanda table.qanda-approval,
 .path-mod-qanda .qanda-post .entry-lower-section table {
-	width: 100%;
-	margin-bottom: 0em; }
- 
+    width: 100%;
+    margin-bottom: 0em; }
+
 .qanda-activity-picture { float: left; }
- 
+
 .qanda-activity-content { margin-left: 40px; }
- 
+
 /** Page specific styles **/
 #page-mod-qanda-view .qanda-control {
-	float: left;
-	text-align: right;
-	white-space: nowrap;
-	margin: 0px;
-	margin-left: .5em; }
- 
+    float: left;
+    text-align: right;
+    white-space: nowrap;
+    margin: 0px;
+    margin-left: .5em; }
+
 #page-mod-qanda-view table.qanda-category-header,
 #page-mod-qanda-import table.qanda-import-export {
-	margin-left: auto;
-	margin-right: auto; }
- 
-#page-mod-qanda-view table.qanda-category-header { margin-bottom: 0em; }
- 
-	#page-mod-qanda-view table.qanda-category-header th { padding: 0px; }
- 
-#page-mod-qanda-showentry #page-content { min-width: 600px; }
- 
-/*#page-mod-qanda-print .mod-qanda-entrylist .mod-qanda-entry { vertical-align: top; }*/
- 
-.path-mod-qanda.dir-rtl .qanda-post { text-align: right; }
- 
+    margin-left: auto;
+    margin-right: auto; }
 
+#page-mod-qanda-view table.qanda-category-header { margin-bottom: 0em; }
+
+#page-mod-qanda-view table.qanda-category-header th { padding: 0px; }
+
+#page-mod-qanda-showentry #page-content { min-width: 600px; }
+
+/*#page-mod-qanda-print .mod-qanda-entrylist .mod-qanda-entry { vertical-align: top; }*/
+
+.path-mod-qanda.dir-rtl .qanda-post { text-align: right; }
 
 /* Hide answer editor from students */
 #page-mod-qanda-edit div.editor-not-admin {
     display:none;
 }
-
 
 #page-mod-qanda-edit table#id_answer_editor_tbl,
 #page-mod-qanda-edit table#id_question_editor_tbl {
@@ -104,8 +101,6 @@
     padding:1em;
     width:auto ;
 }
-
-
 
 .path-mod-qanda div.add-and-search-box div.qanda-add-entry {
     float:left;
@@ -130,7 +125,6 @@
     margin-bottom:0;
 }
 
-
 .path-mod-qanda div.qanda-entry div.qanda-entry-count {
     float:left;
 }
@@ -144,7 +138,6 @@
     padding-top:1em;
     margin-right:.5em;
     z-index:3;
-
 }
 
 /** Style the Q&A pair block **/
@@ -343,30 +336,9 @@
     display:none;
 }
 
-
-
 /* Create a button in place of the Waiting Approval link 
     link text ex: Waiting approval (1)
 */
-
-.path-mod-qanda div.qanda-control span.help-link a.approve-link,
-.path-mod-qanda div.qanda-add-entry input[type=submit] {
-    -moz-box-shadow:inset 0px 1px 0px 0px #bbdaf7;
-    -webkit-box-shadow:inset 0px 1px 0px 0px #bbdaf7;
-    box-shadow:inset 0px 1px 0px 0px #bbdaf7;
-    background-color:#79bbff;
-    -moz-border-radius:6px;
-    -webkit-border-radius:6px;
-    border-radius:6px;
-    border:1px solid #84bbf3;
-    display:inline-block;
-    color:#ffffff;
-    font-family:arial;
-    font-size:1em;
-    padding:7px 24px;
-}
-
-
 
 /* Styling for the alternate Q&A format with images in place of "Question" and "Answer" */
 .path-mod-qanda .qanda-post th.entry-header div.question_alt div.question_image,
@@ -464,14 +436,28 @@
     margin-bottom:0px;
 }
 
-
-
 .path-mod-qanda div.controls {
     float:left;
     text-align:center;
 }
 
-
+.path-mod-qanda div.qanda-control span.help-link a.approve-link,
+.path-mod-qanda div.qanda-add-entry input[type=submit] {
+    -moz-box-shadow:inset 0px 1px 0px 0px #bbdaf7;
+    -webkit-box-shadow:inset 0px 1px 0px 0px #bbdaf7;
+    box-shadow:inset 0px 1px 0px 0px #bbdaf7;
+    background-color:#79bbff;
+    background-image: none;
+    -moz-border-radius:6px;
+    -webkit-border-radius:6px;
+    border-radius:6px;
+    border:1px solid #84bbf3;
+    display:inline-block;
+    color:#ffffff;
+    font-family:arial;
+    font-size:1em;
+    padding:7px 24px;
+}
 
 .path-mod-qanda div.qanda-control span.help-link a.approve-link:hover,
 .path-mod-qanda div.qanda-add-entry input[type=submit]:hover {

@@ -372,7 +372,7 @@ if ($showcommonelements) {
     echo '<div class="search-box">';
     echo '<form method="post" action="view.php">';
 
-    echo '<table class="box-align-center" width="70%" border="0">';
+    echo '<table class="box-align-center" border="0">';
     echo '<tr><td align="center" class="qanda-search-box">';
 
 
