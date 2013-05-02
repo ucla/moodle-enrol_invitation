@@ -1,0 +1,10 @@
+To Do List
+
+------------------------
+
+1. Need attributes for screeen readers.
+2. Dynamic Q&A text searching, live searching.
+3. Keyboard accessible math editor.
+4. Category grouping / word cloud. 
+5. Multiple answers for a single question.
+6. Discussion spawning.
