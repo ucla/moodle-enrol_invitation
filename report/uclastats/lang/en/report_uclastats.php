@@ -61,7 +61,7 @@ $string['per_day'] = 'Per day';
 $string['per_week'] = 'Per week';
 $string['per_term'] = 'Per term';
 $string['start_end_times'] = 'Start/End';
-$string['unique_logins_per_term_cached_results'] = 'Per day: {$a->day} | Per week: {$a->week} | Per term: {$a->term}';
+$string['unique_logins_per_term_cached_results'] = 'Per day: {$a->day} | Per week: {$a->week} | Per term: {$a->term} | Total users: {$a->total_users}';
 $string['total_users'] = 'Total Users';
 
 // strings for subject_area_report

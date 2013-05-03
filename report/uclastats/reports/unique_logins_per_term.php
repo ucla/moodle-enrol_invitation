@@ -26,6 +26,7 @@ class unique_logins_per_term extends uclastats_base {
             $stats->day = $result['per_day'];
             $stats->week = $result['per_week'];
             $stats->term = $result['per_term'];
+            $stats->total_users = $result['total_users'];
             return get_string('unique_logins_per_term_cached_results',
                     'report_uclastats', $stats);
         }
