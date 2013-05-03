@@ -193,6 +193,18 @@ class quiz_overview_report extends quiz_attempts_report {
                     echo '<div class="quizattemptcounts">' . $strattempthighlight . '</div>';
                 }
             }
+            
+            // BEGIN UCLA MOD: CCLE-3771 - Display notice if there are quiz attempts that are not yet graded
+            if ($options->onlygraded) {
+                $countungraded = $DB->count_records('quiz_attempts',
+                        array('quiz' => $params['quizid'],
+                              'state' => quiz_attempt::FINISHED,
+                              'sumgrades' => NULL));
+                if ($countungraded > 0) {
+                    echo $OUTPUT->notification(get_string('hasnongradeditems', 'quiz_overview'));
+                }
+            }
+            // END UCLA MOD: CCLE-3771
 
             // Define table columns.
             $columns = array();

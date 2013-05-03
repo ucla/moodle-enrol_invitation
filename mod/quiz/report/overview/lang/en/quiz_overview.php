@@ -70,3 +70,7 @@ $string['showinggraded'] = 'Showing only the attempt graded for each user.';
 $string['showinggradedandungraded'] = 'Showing graded and ungraded attempts for each user. The one attempt for each user that is graded is highlighted. The grading method for this quiz is {$a}.';
 $string['studentingroup'] = '\'{$a->coursestudent}\' in group \'{$a->groupname}\'';
 $string['studentingrouplong'] = '\'{$a->coursestudent}\' in this group';
+
+// START UCLA MOD: CCLE-3771 - Display notice if there are quiz attempts that are not yet graded
+$string['hasnongradeditems'] = 'Some items could not be displayed. Please grade attempts with ungraded manual items.';
+// END UCLA MOD: CCLE-3771
