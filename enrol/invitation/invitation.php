@@ -26,7 +26,7 @@
 
 require(dirname(__FILE__) . '/../../config.php');
 require_once(dirname(__FILE__) . '/locallib.php');
-require_once(dirname(__FILE__) . '/invitation_forms.php');
+require_once(dirname(__FILE__) . '/invitation_form.php');
 require_once($CFG->dirroot . '/enrol/locallib.php');
 require_login();
 
@@ -37,7 +37,7 @@ $inviteid = optional_param('inviteid', 0, PARAM_INT);
 
 $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 $fullname = $course->fullname;
-$context = get_context_instance(CONTEXT_COURSE, $courseid);
+$context = context_course::instance($courseid);
 
 if (!has_capability('enrol/invitation:enrol', $context)) {
     throw new moodle_exception('nopermissiontosendinvitation' , 'enrol_invitation', $courseurl);
@@ -81,16 +81,16 @@ if ($inviteid) {
     }
 }
 
-$mform = new invitations_form(null, array('course' => $course, 'prefilled' => $prefilled));
+$mform = new invitation_form(null, array('course' => $course, 'prefilled' => $prefilled));
 $mform->set_data($invitationmanager);
 
 $data = $mform->get_data();
 if ($data and confirm_sesskey()) {
-    
+
     // BEGIN UCLA MOD: CCLE-2955-Invite-multiple-users
     // Check for the invitation of multiple users
     $delimiters = "/[;, \r\n]/";
-    $email_list = invitations_form::parse_dsv_emails($data->email, $delimiters);
+    $email_list = invitation_form::parse_dsv_emails($data->email, $delimiters);
     $email_list = array_unique($email_list);
     
     foreach ($email_list as $email) {

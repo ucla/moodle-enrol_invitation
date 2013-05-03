@@ -26,7 +26,7 @@
 
 require(dirname(__FILE__) . '/../../config.php');
 require_once(dirname(__FILE__) . '/locallib.php');
-require_once(dirname(__FILE__) . '/invitation_forms.php');
+require_once(dirname(__FILE__) . '/invitation_form.php');
 
 require_once($CFG->dirroot . '/enrol/locallib.php');
 require_once($CFG->libdir . '/tablelib.php');
@@ -40,7 +40,7 @@ $inviteid = optional_param('inviteid', 0, PARAM_INT);
 $actionid = optional_param('actionid', 0, PARAM_INT);
 $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
 
-$context = get_context_instance(CONTEXT_COURSE, $courseid);
+$context = context_course::instance($courseid);
 if (!has_capability('enrol/invitation:enrol', $context)) {
     $courseurl = new moodle_url('/course/view.php', array('id' => $courseid));    
     throw new moodle_exception('nopermissiontosendinvitation' , 
@@ -178,7 +178,13 @@ if (empty($invites)) {
         if (!empty($result)) {
             $row[2] .= get_string('used_by', 'enrol_invitation', $result);                
         }
-        
+
+        // If user's enrollment expired or will expire, let viewer know.
+        $result = $invitationmanager->get_access_expiration($invite);
+        if (!empty($result)) {
+            $row[2] .= ' ' . $result;
+        }
+
         // when was the invite sent?
         $row[3] = date('M j, Y g:ia', $invite->timesent);
         

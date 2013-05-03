@@ -33,3 +33,8 @@
     border-bottom: 1px dotted #536895;
     font-size: x-small;    
 }
+
+#page-enrol-invitation-invitation .daysexpire_string {
+    color: #444;
+    padding-left: 1.5em;
+}

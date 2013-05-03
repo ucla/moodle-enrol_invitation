@@ -1358,8 +1358,9 @@ function flash_redirect($url, $success_msg) {
  * @return string           Returns notice if any is needed.
  */
 function notice_oldcourse($course) {
-    global $CFG, $OUTPUT;
+    global $CFG, $OUTPUT, $USER;
     $displaynotice = false;
+    $noticestring = '';
     
     if (is_past_course($course)) {
         $currentweek = get_config('local_ucla', 'current_week');
@@ -1378,7 +1379,25 @@ function notice_oldcourse($course) {
     }
 
     if ($displaynotice) {
-        return $OUTPUT->box(get_string('notice_oldcourse', 'local_ucla'),
+        $noticestring = get_string('notice_oldcourse', 'local_ucla');
+    }
+
+    // Let user know if the course is currently hidden.
+    if (empty($course->visible)) {
+        $noticestring .= get_string('notice_oldcourse_hidden', 'local_ucla');
+    }
+
+    // Display helpful text if user's enrollment is expiring.
+    if (!isguestuser($USER)) {
+        $timeend = enrol_get_enrolment_end($course->id, $USER->id);
+        if ($timeend > 0) {
+            $noticestring .= get_string('notice_oldcourse_expiration',
+                    'local_ucla', date('M j, Y', $timeend));
+        }
+    }
+
+    if (!empty($noticestring)) {
+        return $OUTPUT->box($noticestring,
                 'noticebox notice_oldcourse');
     }
 }
@@ -1408,7 +1427,11 @@ function is_past_course($course) {
 /**
  * Handles the hiding of courses and related TA sites, and reports  any 
  * successes or failures. 
- * 
+ *
+ * When hiding a course we will also disable the guest enrollment plugin,
+ * because, due to a Moodle bug, users with a disabled enrollment can still
+ * access a hidden site if they have the the "Temporary Participant" role.
+ *
  * Please do not call this method directly. It should only be called from
  * local/ucla/eventslib.php:hide_past_courses or the command line script
  * local/ucla/scripts/hide_courses.php.
@@ -1422,7 +1445,7 @@ function is_past_course($course) {
 function hide_courses($term) {
     global $CFG, $DB;
     require_once($CFG->dirroot . '/blocks/ucla_tasites/block_ucla_tasites.php');
-
+    
     if (!ucla_validator('term', $term)) {
         return false;
     }
@@ -1442,12 +1465,15 @@ function hide_courses($term) {
                      $num_problem_courses, $error_messages);
     }
 
+    $enrol_guest_plugin = enrol_get_plugin('guest');
+
     // Now run command to hide all courses for given term. Don't worry about
     // updating visibleold (don't care) and we aren't using update_course,
     // because if might be slow and trigger unnecessary events.
     $courseobj = new stdClass();
     $courseobj->visible = 0;
     foreach ($courses as $courseid => $courseinfo) {
+        $courses_processed = array($courseid);
         $courseobj->id = $courseid;
         try {
             $DB->update_record('course', $courseobj, true);
@@ -1455,14 +1481,27 @@ function hide_courses($term) {
 
             // Try to see if course had any TA sites.
             $existing_tasites = block_ucla_tasites::get_tasites($courseid);
-            if (empty($existing_tasites)) {
-                continue;
+            if (!empty($existing_tasites)) {
+                foreach ($existing_tasites as $tasite) {
+                    $courseobj->id = $tasite->id;
+                    $DB->update_record('course', $courseobj, true);
+                    ++$num_hidden_tasites;
+                    $courses_processed[] = $tasite->id;
+                }
             }
-            foreach ($existing_tasites as $tasite) {
-                $courseobj->id = $tasite->id;
-                $DB->update_record('course', $courseobj, true);
-                ++$num_hidden_tasites;
-            }
+
+            // Hide guest plugins for all courses.
+            foreach ($courses_processed as $courseid) {
+                // There might be mutiple guest enrollment plugins.
+                $guest_plugins = $DB->get_records('enrol',
+                        array('enrol' => 'guest', 'courseid' => $courseid));
+                if (!empty($guest_plugins)) {
+                    foreach ($guest_plugins as $guest_plugin) {
+                       $enrol_guest_plugin->update_status($guest_plugin,
+                                ENROL_INSTANCE_DISABLED);
+                    }
+                }
+           }
 
         } catch (dml_exception $e) {
             $error_messages .= sprintf("Could not hide courseid %d\n%s\n",

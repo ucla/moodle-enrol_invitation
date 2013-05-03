@@ -59,8 +59,12 @@ foreach($types as $type) {
     $row[] = $type['description'];
 
     // get roles
-    $roles = $siteindicator_manager->get_assignable_roles($type['shortname']);    
-    $row[] = implode(', ', $roles);
+    $roles = $siteindicator_manager->get_assignable_roles($type['shortname']);
+    $rolenames = array();
+    foreach ($roles as $role) {
+        $rolenames[] = $role->name;
+    }
+    $row[] = implode(', ', $rolenames);
 
     $table->data[] = $row;
 }

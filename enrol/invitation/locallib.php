@@ -59,7 +59,7 @@ class invitation_manager {
         $inviteicon = '';
         $link = '';
 
-        if (has_capability('enrol/invitation:enrol', get_context_instance(CONTEXT_COURSE, $this->courseid))) {
+        if (has_capability('enrol/invitation:enrol', context_course::instance($this->courseid))) {
 
             //display an icon with requested (css can be changed in stylesheet)
             if ($withicon) {
@@ -81,11 +81,10 @@ class invitation_manager {
      * @global type $CFG
      * 
      * @param int $courseid
-     * @param boolean $html_format
      * 
      * @return string       Returns null if there is no privacy notice
      */
-    public static function get_project_privacy_notice($courseid, $html_format=false) {
+    public static function get_project_privacy_notice($courseid) {
         global $CFG;
         require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/uclasiteindicator/lib.php');
         $ret_val = null;
@@ -99,12 +98,7 @@ class invitation_manager {
             
             // if site type group is project, then return some notice
             if ($site_type_group == siteindicator_manager::SITE_GROUP_TYPE_PROJECT) {
-                if ($html_format) {
-                    $ret_val = html_writer::tag('p', 
-                            get_string('project_privacy_notice', 'enrol_invitation'));
-                } else {
-                    $ret_val = "\n\n" . get_string('project_privacy_notice', 'enrol_invitation');                   
-                }
+                $ret_val = "\n\n" . get_string('project_privacy_notice', 'enrol_invitation');                   
             }            
         } catch (Exception $e) {
             // throws exception if no site type found
@@ -123,7 +117,7 @@ class invitation_manager {
     public function send_invitations($data, $resend = false) {
         global $DB, $CFG, $COURSE, $SITE, $USER;
 
-        if (has_capability('enrol/invitation:enrol', get_context_instance(CONTEXT_COURSE, $data->courseid))) {
+        if (has_capability('enrol/invitation:enrol', context_course::instance($data->courseid))) {
 
             // get course record, to be used later
             $course = $DB->get_record('course', array('id' => $data->courseid), '*', MUST_EXIST);            
@@ -187,11 +181,31 @@ class invitation_manager {
                 $inviteurl = $inviteurl->out(false);
                 
                 // append privacy notice, if needed
-                $privacy_notice = $this->get_project_privacy_notice($course->id, false);
+                $privacy_notice = $this->get_project_privacy_notice($course->id);
                 if (!empty($privacy_notice)) {
                     $inviteurl .= $privacy_notice;
                 }
-                
+
+                // Append days expired, if needed.
+                if (get_config('enrol_invitation', 'enabletempparticipant')) {
+                    $tempparticipant = $DB->get_record('role',
+                            array('shortname' => 'tempparticipant'));
+
+                    // If inviting a temporary role, check how many days the
+                    // role should be limited to.
+                    if ($tempparticipant->id == $invitation->roleid) {
+                        // If for some reason the daysexpire is empty, default to 3.
+                        $daysexpire = 3;
+                        if (!empty($data->daysexpire)) {
+                            $daysexpire = $data->daysexpire;
+                        }
+
+                        $inviteurl .= "\n\n" . get_string('daysexpire_notice',
+                                'enrol_invitation', $daysexpire);
+                        $invitation->daysexpire = $daysexpire;
+                    }
+                }
+
                 $message_params->inviteurl = $inviteurl;
                 $message_params->supportemail = $CFG->supportemail;
                 $message .= get_string('emailmsgtxt', 'enrol_invitation', $message_params);
@@ -234,11 +248,40 @@ class invitation_manager {
     }
     
     /**
+     * Checks if user who accepted invite has an access expiration for their
+     * enrollment.
+     * 
+     * @param object $invite    Database record
+     * 
+     * @return string           Returns expiration string. Blank if no 
+     *                          restriction.
+     */
+    public function get_access_expiration($invite) {
+        $expiration = '';
+
+        if (empty($invite->userid)) {
+            return $expiration;
+        }
+
+        // Check to see if user has a time restriction on their access.
+        $timeend = enrol_get_enrolment_end($invite->courseid, $invite->userid);
+        if ($timeend === false) {
+            // No active enrollment now.
+            $expiration = get_string('status_invite_used_noaccess', 'enrol_invitation');
+        } else if ($timeend > 0) {
+            // Access will end on a certain date.
+            $expiration = get_string('status_invite_used_expiration',
+                    'enrol_invitation', date('M j, Y', $timeend));
+        }
+        return $expiration;
+    }
+
+    /**
      * Returns status of given invite. 
      * 
      * @param object $invite    Database record
      * 
-     * @return string              Returns invite status string.
+     * @return string           Returns invite status string.
      */
     public function get_invite_status($invite) {
         if (!is_object($invite)) {
@@ -247,7 +290,8 @@ class invitation_manager {
 
         if ($invite->tokenused) {
             // invite was used already
-            return get_string('status_invite_used', 'enrol_invitation');
+            $status = get_string('status_invite_used', 'enrol_invitation');
+            return $status;
         } else if ($invite->timeexpiration < time()) {
             // invite is expired
             return get_string('status_invite_expired', 'enrol_invitation');
@@ -318,8 +362,23 @@ class invitation_manager {
     public function enroluser($invitation) {
         global $USER;
 
+        // Handle daysexpire by adding making the enrollment expiration be the
+        // end of the day after daysexpire days.
+        $timeend = 0;
+        if (!empty($invitation->daysexpire)) {
+            // Get today's date as a timestamp. Ignore the current time.
+            $today = strtotime(date('Y/m/d'));
+            // Get the day in the future.
+            $timeend = strtotime(sprintf('+%d days', $invitation->daysexpire), $today);
+            // But make sure the timestamp is for the end of that day. Remember
+            // that 86400 is the total seconds in a day. So -1 that is right
+            // before midnight.
+            $timeend += 86399;
+        }
+
         $enrol = enrol_get_plugin('invitation');
-        $enrol->enrol_user($this->enrol_instance, $USER->id, $invitation->roleid);
+        $enrol->enrol_user($this->enrol_instance, $USER->id,
+                $invitation->roleid, 0, $timeend);
     }
 
     /**
