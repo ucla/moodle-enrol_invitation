@@ -80,11 +80,13 @@
 #notice.generalbox,
 .notifysuccess,
 .box.errorbox,
-.box.noticebox {
+.box.noticebox,
+.notifyproblem {
     @include ccle-alert-box;
 }
 
-.box.errorbox {
+.box.errorbox,
+.notifyproblem {
     @extend .alert-danger;
     color: #CC0000;
 }
