@@ -55,12 +55,14 @@ $string['collab_modules_used_help'] = 'Returns name and number of collab modules
 $string['unique_logins_per_term'] = 'Unique logins per term (system)';
 $string['unique_logins_per_term_help'] = 'Counts the average number of unique ' .
         'logins per day and week for a given term. Then gives the total unique ' .
-        'logins for the term. Uses the term start and end date to calculate results';
+        'logins for the term. Uses the term start and end date to calculate results. ' .
+        'Also reports total number of users for the given term.';
 $string['per_day'] = 'Per day';
 $string['per_week'] = 'Per week';
 $string['per_term'] = 'Per term';
 $string['start_end_times'] = 'Start/End';
 $string['unique_logins_per_term_cached_results'] = 'Per day: {$a->day} | Per week: {$a->week} | Per term: {$a->term}';
+$string['total_users'] = 'Total Users';
 
 // strings for subject_area_report
 $string['subject_area_report'] = 'Subject area report (course)';
