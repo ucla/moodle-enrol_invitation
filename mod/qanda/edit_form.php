@@ -172,7 +172,17 @@ class mod_qanda_entry_form extends moodleform {
                             'qandaid' => $qanda->id,
                             'question' => textlib::strtolower($temp_question),
                             'id' => $id))) {
-                    $errors['question'] = get_string('errquestionalreadyexists', 'qanda');
+                    $result = $DB->get_record_select('qanda_entries', 'qandaid = :qandaid AND LOWER(question) = :question AND id != :id', array(
+                        'qandaid' => $qanda->id,
+                        'question' => textlib::strtolower($temp_question),
+                        'id' => $id), 'id,approved');
+                    if ($result->approved == '1') {
+                        $link = "view.php?id=$cm->id&mode=entry&hook=" . urlencode($result->id);
+                        $link = html_writer::link($link, get_string("qanda_link", "qanda"), array('title' => get_string("view")));
+                    } else {
+                        $link = get_string('qanda_questionnotapproved', 'qanda');
+                    }
+                    $errors['question_editor'] = get_string('errquestionalreadyexists', 'qanda') . ' ' . $link . '<br />';
                 }
             }
         } else {
@@ -180,7 +190,17 @@ class mod_qanda_entry_form extends moodleform {
                 if ($DB->record_exists_select('qanda_entries', 'qandaid = :qandaid AND LOWER(question) = :question', array(
                             'qandaid' => $qanda->id,
                             'question' => textlib::strtolower($temp_question)))) {
-                    $errors['question'] = get_string('errquestionalreadyexists', 'qanda');
+                    $result = $DB->get_record_select('qanda_entries', 'qandaid = :qandaid AND LOWER(question) = :question AND id != :id', array(
+                        'qandaid' => $qanda->id,
+                        'question' => textlib::strtolower($temp_question),
+                        'id' => $id), 'id,approved');
+                    if ($result->approved == '1') {
+                        $link = "view.php?id=$cm->id&mode=entry&hook=" . urlencode($result->id);
+                        $link = html_writer::link($link, get_string("qanda_link", "qanda"), array('title' => get_string("view")));
+                    } else {
+                        $link = get_string('qanda_questionnotapproved', 'qanda');
+                    }
+                    $errors['question_editor'] = get_string('errquestionalreadyexists', 'qanda') . ' ' . $link . '<br />';
                 }
             }
         }
