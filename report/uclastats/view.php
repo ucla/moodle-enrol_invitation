@@ -81,7 +81,6 @@ if (!empty($action) && !empty($resultid)) {
                 
                 if(uclastats_result::delete($resultid)) {
                     
-                    $url_params = array('report' => $report);
                     $success_msg = get_string('successful_delete', 'report_uclastats');
                 
                     
@@ -99,12 +98,10 @@ if (!empty($action) && !empty($resultid)) {
         break;
         case UCLA_STATS_ACTION_LOCK: 
             uclastats_result::lock($resultid);
-            $url_params =  array('report' => $report, 'resultid' => $resultid);
             $success_msg = get_string('successful_lock', 'report_uclastats');
         break;
         case UCLA_STATS_ACTION_UNLOCK:
             uclastats_result::unlock($resultid);
-            $url_params =   array('report' => $report, 'resultid' => $resultid);
             $success_msg = get_string('successful_unlock', 'report_uclastats');
         break;
         default:
@@ -119,12 +116,39 @@ if (!empty($action) && !empty($resultid)) {
         
     } else if ($action_confirmed) {
         
+      
+        $log_url =  new moodle_url('../report/uclastats/view.php',
+                    array('report' => $report,'resultid'=> $resultid,
+                    'action' => $action));
         
-        $log_url =  new moodle_url('../report/uclastats/view.php',array_merge($url_params,array('action' => $action)));
+        add_to_log(SITEID,'admin', $action, $log_url->out());
         
-        add_to_log(SITEID,'admin', $action, $log_url->out());  
-        flash_redirect(new moodle_url('/report/uclastats/view.php',$url_params), $success_msg);
-         
+        $referer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : "";
+        //escape / in base url pattern for regex
+        $base_pattern = '/' . preg_replace('/\//','\/',
+        new moodle_url('/report/uclastats/')) . '/';
+        
+        //When (un)locking a result, the cached result is loaded. The cached result 
+        //shouldn't be loaded, just locked and keep whatever 
+        //what was viewed still on the screen.
+        //this is done by redirecting back to the referer
+       
+        //also check that referer comes within jursidictions of the plugin
+        //otherwise redirect to the specified redirect params
+        if(($action == UCLA_STATS_ACTION_LOCK || $action == UCLA_STATS_ACTION_UNLOCK)
+            && !empty($referer) && preg_match($base_pattern,$referer)) {
+            
+            $redirect_url = $referer;
+            
+        } else {
+            
+            $redirect_url = new moodle_url('/report/uclastats/view.php',
+                    array('report' => $report));
+        }
+       
+        
+        flash_redirect($redirect_url, $success_msg);
+        
     }
 }
 

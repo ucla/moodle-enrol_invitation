@@ -76,6 +76,8 @@ abstract class uclastats_base implements renderable {
      */
     public function display_cached_results($current_resultid = null) {
         global $OUTPUT;
+        global $USER;
+        
         $ret_val = '';
 
         $ret_val .= html_writer::tag('h3',
@@ -103,11 +105,17 @@ abstract class uclastats_base implements renderable {
             
             $can_manage_report = has_capability('report/uclastats:manage', 
                                  context_course::instance(SITEID));
-
+           
             // format cached results
             foreach ($cached_results as $index => $result) {
                 
                 $is_locked = $result->locked;
+                
+                //only person who locked the result or site admins
+                //should be able to unlock the result
+                
+                $can_unlock = ($result->userid == $USER->id) || is_siteadmin();
+                
                 $row = new html_table_row();
 
                 // if result is currently being viewed, give some styling
@@ -137,32 +145,49 @@ abstract class uclastats_base implements renderable {
                 $row->cells['lastran'] =
                         get_string('lastran', 'report_uclastats', $lastran);
 
+                //view results
                 $row->cells['actions'] = html_writer::link(
                 new moodle_url('/report/uclastats/view.php',
                 array('report' => get_class($this),
                       'resultid' => $result->id)), 
                 get_string('view_results', 'report_uclastats'));
+                 
 
                 if ($can_manage_report) {
                     
-                    //lock/unlock
-                    $row->cells['actions'] .= html_writer::link(
-                    new moodle_url('/report/uclastats/view.php',
-                    array('report' => get_class($this),
-                          'resultid' => $result->id,
-                          'action' => ($is_locked)? UCLA_STATS_ACTION_UNLOCK : UCLA_STATS_ACTION_LOCK )),
-                          get_string(($is_locked)? 'unlock_results' : 'lock_results', 'report_uclastats'),
-                    array('class' => 'edit'));
+                    //unlock
+                    if($is_locked && $can_unlock) {
+                        
+                        $row->cells['actions'] .= html_writer::link(
+                        new moodle_url('/report/uclastats/view.php',
+                        array('report' => get_class($this),
+                              'resultid' => $result->id,
+                              'action' => UCLA_STATS_ACTION_UNLOCK)),
+                              get_string('unlock_results' , 'report_uclastats'),
+                        array('class' => 'edit'));
+                    
+                    } 
+                    
 
                     if(!$is_locked) {
-                    //delete
-                    $row->cells['actions'] .= html_writer::link(
-                    new moodle_url('/report/uclastats/view.php',
-                    array('report' => get_class($this),
-                          'resultid' => $result->id,
-                          'action' => UCLA_STATS_ACTION_DELETE)), 
-                          get_string('delete_results', 'report_uclastats'),
-                    array('class' => 'edit'));
+                    
+                        //lock
+                        $row->cells['actions'] .= html_writer::link(
+                        new moodle_url('/report/uclastats/view.php',
+                        array('report' => get_class($this),
+                             'resultid' => $result->id,
+                             'action' => UCLA_STATS_ACTION_LOCK )),
+                             get_string('lock_results', 'report_uclastats'),
+                        array('class' => 'edit'));
+
+                        //delete
+                        $row->cells['actions'] .= html_writer::link(
+                        new moodle_url('/report/uclastats/view.php',
+                        array('report' => get_class($this),
+                              'resultid' => $result->id,
+                              'action' => UCLA_STATS_ACTION_DELETE)), 
+                              get_string('delete_results', 'report_uclastats'),
+                        array('class' => 'edit'));
                     }
                     
                 } 
