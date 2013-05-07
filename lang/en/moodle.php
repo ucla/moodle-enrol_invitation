@@ -315,7 +315,10 @@ $string['coursehelpmaximumupload'] = 'Define the largest size of file that can b
 $string['coursehelpnewsitemsnumber'] = 'Number of recent items appearing on the course home page, in a news box down the right-hand side (0 means the news box won\'t appear).';
 $string['coursehelpnumberweeks'] = 'Number of sections in the course (applies to certain course formats only).';
 $string['coursehelpshowgrades'] = 'Enable the display of the gradebook. It does not prevent grades from being displayed within the individual activities.';
-$string['coursehidden'] = 'This course is currently unavailable to students';
+// START UCLA MOD: CCLE-3787 - Temporary participant role
+$string['coursehidden'] = 'This site is unavailable.';
+//$string['coursehidden'] = 'This course is currently unavailable to students';
+// END UCLA MOD: CCLE-3787
 $string['courseinfo'] = 'Course info';
 $string['coursemessage'] = 'Message course users';
 $string['coursenotaccessible'] = 'This course does not allow public access';

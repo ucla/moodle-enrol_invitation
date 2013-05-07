@@ -98,8 +98,7 @@
 // Target notices
 // --------------------------------------------------
 
-.box.notice_nonenrolled_users,
-.box.notice_oldcourse {
+.box.notice_nonenrolled_users {
     @include ccle-alert-box;
 }
 

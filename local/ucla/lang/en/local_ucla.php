@@ -85,9 +85,16 @@ $string['notloggedin'] = 'Please login to view this content.';
 $string['loginredirect'] = 'Login required';
 // END UCLA MOD: CCLE-3028
 
-$string['notice_oldcourse'] = 'You are viewing a course that is no longer in session. ';
-$string['notice_oldcourse_hidden'] = 'Site is unavailable to users, because it is hidden. ';
-$string['notice_oldcourse_expiration'] = 'Your access will expire after {$a}.';
+// Strings for notice_course_status.
+$string['notice_course_status_paststudent'] = 'You are viewing a site for a course that is no longer in session. Your access will expire at the end of Week 2 of the subsequent term.';
+$string['notice_course_status_pastinstructor'] = 'You are viewing a site for a course that is no longer in session. Student access will expire at the end of Week 2 of the subsequent term.';
+$string['notice_course_status_hidden'] = 'This site is unavailable.';
+$string['notice_course_status_temp'] = 'You have temporary access to this site. Your access will expire after {$a}.';
+$string['notice_course_status_pasthidden_tempparticipant'] = 'You are viewing a site for a course that is no longer in session. Student access has expired. Use the <a href="{$a}">Site invitation tool</a>/Temporary Participant role to grant temporary access to this site.';
+$string['notice_course_status_pasthidden'] = 'You are viewing a course that is no longer in session. ';
+$string['notice_course_status_pasttemp'] = 'You have temporary access to a site for a course that is no longer in session. Your access will expire after {$a}.';
+$string['notice_course_status_hiddentemp'] = 'You have temporary access to a site that is currently unavailable. Your access will expire after {$a}.';
+$string['notice_course_status_pasthiddentemp'] = 'You have temporary access to a site for a course that is no longer in session. Your access will expire after {$a}.';
 
 $string['lti_warning'] = 'There are risks using external tools. Please read ' . 
         'this help document for more information: ' .
@@ -103,6 +110,4 @@ $string['student_access_ends_week_description'] = 'When the specified week start
 $string['coursehidden'] = '<p>This course is unavailable for students. Students ' .
         'can access their course sites from a prior term during the first ' .
         'two weeks of the subsequent term.</p><p>If additional access is ' .
-        'needed, students should contact the appropriate ' .
-        '<a href="https://ccle.ucla.edu/course/view/aboutccle?sectionid=926">' .
-        'CCLE Support staff</a>.</p>';
+        'needed, students should contact the course instructor. </p>';

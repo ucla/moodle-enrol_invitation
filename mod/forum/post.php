@@ -851,7 +851,7 @@ echo $OUTPUT->header();
 
 // START UCLA MOD: CCLE-3582 - Warn instructors and students that they're at an old course site
 require_once($CFG->dirroot.'/local/ucla/lib.php');
-echo notice_oldcourse($course);
+echo notice_course_status($course);
 // END UCLA MOD: CCLE-3582
 
 // checkup

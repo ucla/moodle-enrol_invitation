@@ -1348,19 +1348,23 @@ function flash_redirect($url, $success_msg) {
 }
 
 /**
- * Notify students and instructor if the course is from a past term.
- *
- * If we are viewing a course from exactly the previous term, then only display
- * notice if we are not in between terms.
+ * Notify students and instructors the status of a course.
  *
  * @global object $OUTPUT
  * @param object $course
  * @return string           Returns notice if any is needed.
  */
-function notice_oldcourse($course) {
+function notice_course_status($course) {
     global $CFG, $OUTPUT, $USER;
-    $displaynotice = false;
+
+    // Will display a different message depending on the combination of the
+    // following statuses.
+    $ispastcourse   = false;
+    $ishidden       = false;
+    $istemprole     = false;
+
     $noticestring = '';
+    $noticeparam = null;
     
     if (is_past_course($course)) {
         $currentweek = get_config('local_ucla', 'current_week');
@@ -1371,34 +1375,76 @@ function notice_oldcourse($course) {
             $courseinfo = current($courseinfos);
             $previousterm = term_get_prev($CFG->currentterm);
             if (term_cmp_fn($courseinfo->term, $previousterm) != 0) {
-                $displaynotice = true;
+                $ispastcourse = true;
             }
         } else {
-            $displaynotice = true;
+            $ispastcourse = true;
         }
-    }
-
-    if ($displaynotice) {
-        $noticestring = get_string('notice_oldcourse', 'local_ucla');
     }
 
     // Let user know if the course is currently hidden.
     if (empty($course->visible)) {
-        $noticestring .= get_string('notice_oldcourse_hidden', 'local_ucla');
+        $ishidden = true;
     }
 
     // Display helpful text if user's enrollment is expiring.
     if (!isguestuser($USER)) {
         $timeend = enrol_get_enrolment_end($course->id, $USER->id);
         if ($timeend > 0) {
-            $noticestring .= get_string('notice_oldcourse_expiration',
-                    'local_ucla', date('M j, Y', $timeend));
+            $noticeparam = date('M j, Y', $timeend);
+            $istemprole = true;
         }
     }
 
+    // For matrix of status/message, please see
+    // CCLE-3787 - Temporary participant role.
+    if (!$ispastcourse && !$ishidden && !$istemprole) {
+        return;
+    } else if ($ispastcourse && !$ishidden && !$istemprole) {
+        // Do not indicate that access expires if we do not it enabled.
+        if (get_config('local_ucla', 'student_access_ends_week')) {
+            // Slightly different message if user is instructor vs student.
+            if (has_capability('moodle/course:viewhiddencourses',
+                    context_course::instance($course->id))) {
+                $noticestring = 'notice_course_status_pastinstructor';
+            } else {
+                $noticestring = 'notice_course_status_paststudent';
+            }
+        } else {
+            $noticestring = 'notice_course_status_pasthidden';
+        }
+    } else if (!$ispastcourse && $ishidden && !$istemprole) {
+        $noticestring = 'notice_course_status_hidden';
+    } else if (!$ispastcourse && !$ishidden && $istemprole) {
+        $noticestring = 'notice_course_status_temp';
+    } else if ($ispastcourse && $ishidden && !$istemprole) {
+        // Give different message if Temporary Participant is not enabled.
+        if (get_config('enrol_invitation', 'enabletempparticipant')) {
+            // Give message if user can use invitation.
+            if (has_capability('enrol/invitation:enrol',
+                    context_course::instance($course->id))) {
+                // Create link to invite.
+                $inviteurl = new moodle_url('/enrol/invitation/invitation.php',
+                        array('courseid' => $course->id));
+                $noticeparam = $inviteurl->out();
+                $noticestring = 'notice_course_status_pasthidden_tempparticipant';
+            } else {
+                $noticestring = 'coursehidden';
+            }
+        } else {
+            $noticestring = 'notice_course_status_pasthidden';
+        }        
+    } else if ($ispastcourse && !$ishidden && $istemprole) {
+        $noticestring = 'notice_course_status_pasttemp';
+    } else if (!$ispastcourse && $ishidden && $istemprole) {
+        $noticestring = 'notice_course_status_hiddentemp';
+    } else if ($ispastcourse && $ishidden && $istemprole) {
+        $noticestring = 'notice_course_status_pasthiddentemp';
+    }
+
     if (!empty($noticestring)) {
-        return $OUTPUT->box($noticestring,
-                'noticebox notice_oldcourse');
+        return $OUTPUT->box(get_string($noticestring, 'local_ucla', 
+                $noticeparam), 'noticebox');
     }
 }
 
