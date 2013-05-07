@@ -18,6 +18,9 @@ require_once($CFG->dirroot . '/blocks/ucla_copyright_status/alert_form.php');
 function handle_ucla_copyright_status_notice($eventdata) {
     global $CFG, $DB, $OUTPUT;
 
+    // Turning off copyright tool until CCLE-3935 is fixed.
+    return true;
+
     // ignore any old terms or if term is not set (meaning it is a collab site)
     if (!isset($eventdata->term) ||
             term_cmp_fn($eventdata->term, $CFG->currentterm) == -1) {
