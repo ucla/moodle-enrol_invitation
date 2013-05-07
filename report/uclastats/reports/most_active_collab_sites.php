@@ -59,7 +59,9 @@ class most_active_collab_sites extends uclastats_base {
     public function query($params) {
         global $DB;
 
-        $sql = "SELECT c.shortname as course_title, COUNT(l.id) AS viewcount
+        $sql = "SELECT  c.id,
+                        c.shortname as course_title,
+                        COUNT(l.id) AS viewcount
                 FROM {log} AS l
                 JOIN {course} AS c ON (
                     l.course = c.id
@@ -73,7 +75,20 @@ class most_active_collab_sites extends uclastats_base {
                 GROUP BY c.id
                 ORDER BY viewcount DESC
                 LIMIT 10";
+        $results = $DB->get_records_sql($sql, array(SITEID));
 
-        return $DB->get_records_sql($sql, array(SITEID));
+        foreach ($results as &$course) {
+            // Create link to course.
+            $course->course_title = html_writer::link(
+                    new moodle_url('/course/view.php',
+                            array('id' => $course->id)),
+                                  $course->course_title,
+                            array('target' => '_blank'));
+
+            // Remove id since we don't need it anymore.
+            unset($course->id);
+        }
+
+        return $results;
     }
 }

@@ -65,9 +65,10 @@ class most_active_course_sites extends uclastats_base {
                 !ucla_validator('term', $params['term'])) {
             throw new moodle_exception('invalidterm', 'report_uclastats');
         }
-   
 
-        $sql = "SELECT c.shortname AS course_title, COUNT(l.id) AS viewcount
+        $sql = "SELECT  c.id,
+                        c.shortname AS course_title,
+                        COUNT(l.id) AS viewcount
                 FROM {log} AS l
                 JOIN {course} AS c ON (
                     l.course = c.id
@@ -80,7 +81,20 @@ class most_active_course_sites extends uclastats_base {
                 GROUP BY c.id
                 ORDER BY viewcount DESC
                 LIMIT 10";
-        
-        return $DB->get_records_sql($sql, $params);
+        $results = $DB->get_records_sql($sql, $params);
+
+        foreach ($results as &$course) {
+            // Create link to course.
+            $course->course_title = html_writer::link(
+                    new moodle_url('/course/view.php',
+                            array('id' => $course->id)),
+                                  $course->course_title,
+                            array('target' => '_blank'));
+
+            // Remove id since we don't need it anymore.
+            unset($course->id);
+        }
+
+        return $results;
     }
 }
