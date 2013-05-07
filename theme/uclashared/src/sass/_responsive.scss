@@ -17,6 +17,11 @@
     }
 }
 
+// Fix rendering of images on questionnaire module
+img {
+    width: auto;
+}
+
 // This will make the left side blocks collapse into right side
 //
 //  [-A-][--B--][-C-]
