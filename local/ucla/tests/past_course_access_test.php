@@ -53,7 +53,7 @@ class past_course_access_test extends advanced_testcase {
                     $enrol_guest_plugin->add_instance($course);
                     $count = $DB->count_records('enrol',
                             array('enrol' => 'guest', 'courseid' => $course->id));
-                    $this->assertEquals($count, 2);
+                    $this->assertEquals(2, intval($count));
                     break;
                 // Site with TA site.
                 case 2:

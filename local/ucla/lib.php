@@ -1396,6 +1396,9 @@ function notice_course_status($course) {
         }
     }
 
+//    debugging(sprintf('$ispastcourse = %d, $ishidden = %d, $istemprole = %d',
+//            $ispastcourse, $ishidden, $istemprole));
+
     // For matrix of status/message, please see
     // CCLE-3787 - Temporary participant role.
     if (!$ispastcourse && !$ishidden && !$istemprole) {
@@ -1491,7 +1494,8 @@ function is_past_course($course) {
 function hide_courses($term) {
     global $CFG, $DB;
     require_once($CFG->dirroot . '/blocks/ucla_tasites/block_ucla_tasites.php');
-    
+    require_once($CFG->dirroot . '/local/publicprivate/lib/course.class.php');
+
     if (!ucla_validator('term', $term)) {
         return false;
     }
@@ -1522,32 +1526,26 @@ function hide_courses($term) {
         $courses_processed = array($courseid);
         $courseobj->id = $courseid;
         try {
-            $DB->update_record('course', $courseobj, true);
             ++$num_hidden_courses;
 
             // Try to see if course had any TA sites.
             $existing_tasites = block_ucla_tasites::get_tasites($courseid);
             if (!empty($existing_tasites)) {
                 foreach ($existing_tasites as $tasite) {
-                    $courseobj->id = $tasite->id;
-                    $DB->update_record('course', $courseobj, true);
                     ++$num_hidden_tasites;
                     $courses_processed[] = $tasite->id;
                 }
             }
 
-            // Hide guest plugins for all courses.
+            // Hide courses and guest plugins.
             foreach ($courses_processed as $courseid) {
-                // There might be mutiple guest enrollment plugins.
-                $guest_plugins = $DB->get_records('enrol',
-                        array('enrol' => 'guest', 'courseid' => $courseid));
-                if (!empty($guest_plugins)) {
-                    foreach ($guest_plugins as $guest_plugin) {
-                       $enrol_guest_plugin->update_status($guest_plugin,
-                                ENROL_INSTANCE_DISABLED);
-                    }
-                }
-           }
+                $courseobj->id = $courseid;
+                $DB->update_record('course', $courseobj, true);
+
+                $course = $DB->get_record('course', array('id' => $courseid),
+                        '*', MUST_EXIST);
+                PublicPrivate_Course::set_guest_plugin($course, ENROL_INSTANCE_DISABLED);
+            }
 
         } catch (dml_exception $e) {
             $error_messages .= sprintf("Could not hide courseid %d\n%s\n",
