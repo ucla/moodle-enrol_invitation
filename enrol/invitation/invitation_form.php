@@ -171,6 +171,27 @@ class invitation_form extends moodleform {
     }
 
     /**
+     * Overriding get_data, because we need to be able to handle daysexpire,
+     * which is not defined as a regular form element.
+     *
+     * @return object
+     */
+    public function get_data() {
+        $retval = parent::get_data();
+
+        // Check if user submitted daysexpire from POST.
+        if (isset($_POST['daysexpire'])) {
+            if (in_array($_POST['daysexpire'], self::$daysexpire_options)) {
+                // Cannot indicate to user a real error message, so just slightly
+                // ignore user setting.
+                $retval->daysexpire = $_POST['daysexpire'];
+            }
+        }
+
+        return $retval;
+    }
+
+    /**
      * Given a role record, format string to be displayable to user. Filter out
      * role notes and other information.
      *
@@ -222,11 +243,6 @@ class invitation_form extends moodleform {
         
         if (empty($email_list)) {
             $errors['email'] = get_string('err_email', 'form');
-        }
-
-        if (isset($data['daysexpire']) && !in_array($data['daysexpire'],
-                $this->daysexpire_options)) {
-            $errors['daysexpire'] = get_string('err_daysexpire', 'enrol_invitation');
         }
 
         return $errors;
