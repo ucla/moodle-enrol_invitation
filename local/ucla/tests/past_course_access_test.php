@@ -19,6 +19,99 @@ class past_course_access_test extends advanced_testcase {
     private $generator = null;
 
     /**
+     * Make sure that hiding a course or TA site also disables guest access.
+     */
+    public function test_guest_access_disabled() {
+        global $DB;
+
+        $enrol_guest_plugin = enrol_get_plugin('guest');
+
+        /* Some edges that we need to test for:
+         *  - Site with more than one guest enrollment plugin
+         *  - Site with TA site
+         *  - Site with no guest enrollment plugin
+         *  - Regular, default site
+         */
+
+        // Need to create one more test site.
+        $this->generator->create_class(array('term' => '131'));
+
+        $summer_courses = ucla_get_courses_by_terms(array('131'));
+        $this->assertEquals(count($summer_courses), 4);
+
+        $i = 0;
+        $summer_courseids = array();
+        foreach ($summer_courses as $urc_record) {
+            $record = array_pop($urc_record);   // Crosslists should not matter.
+            $course = $DB->get_record('course', array('id' => $record->courseid));
+            $summer_courseids[] = $course->id;
+            ++$i;
+            switch($i) {
+                // Site with more than one guest enrollment plugin.
+                case 1:
+                    // Sites should already have guest enrollment plugin added.
+                    $enrol_guest_plugin->add_instance($course);
+                    $count = $DB->count_records('enrol',
+                            array('enrol' => 'guest', 'courseid' => $course->id));
+                    $this->assertEquals(2, intval($count));
+                    break;
+                // Site with TA site.
+                case 2:
+                    $tasite_generator = $this->getDataGenerator()
+                            ->get_plugin_generator('block_ucla_tasites');
+                    $tasite_generator->setup();
+                    $tasite = $tasite_generator->create_instance($course);
+                    $summer_courseids[] = $tasite->id;
+                    break;
+                // Site with no guest enrollment plugin.
+                case 3:
+                    $guest_plugin = $DB->get_record('enrol', array('enrol' => 'guest',
+                                'courseid' => $course->id));
+                    $enrol_guest_plugin->delete_instance($guest_plugin);
+                    break;
+                // Regular, default site.
+                default:
+                    break;
+            }
+        }
+        
+        // Verify that guest enrollment plugins are active.
+        $first_entry = true;
+        foreach ($summer_courseids as $courseid) {
+            $guest_plugins = $DB->get_records('enrol', array('enrol' => 'guest',
+                        'courseid' => $courseid));
+            if (!empty($guest_plugins)) {
+                foreach ($guest_plugins as $guest_plugin) {
+                    $this->assertEquals($guest_plugin->status, ENROL_INSTANCE_ENABLED);
+                }
+            }
+        }
+
+        // Now hide summer courses.
+        hide_courses('131');
+
+        // Verify that guest enroll (if exists) is disabled.
+        foreach ($summer_courseids as $courseid) {
+            $guest_plugins = $DB->get_records('enrol', array('enrol' => 'guest',
+                        'courseid' => $courseid));
+            if (!empty($guest_plugins)) {
+                foreach ($guest_plugins as $guest_plugin) {
+                    $this->assertEquals($guest_plugin->status, ENROL_INSTANCE_DISABLED);
+                }
+            }
+        }
+
+        // Make sure that other terms were not affected.
+        $fall_courses = ucla_get_courses_by_terms(array('13F'));
+        foreach ($fall_courses as $courseid => $courseinfo) {
+            $guest_plugin = $DB->get_record('enrol', array('enrol' => 'guest',
+                        'courseid' => $courseid));
+            $this->assertTrue(!empty($guest_plugin));
+            $this->assertEquals($guest_plugin->status, ENROL_INSTANCE_ENABLED);
+        }
+    }
+
+    /**
      * Make sure that no courses are hidden if
      * 'local_ucla'|'student_access_ends_week' is not set.
      */

@@ -29,6 +29,10 @@ function handle_course_created($course) {
 /**
  * Enables/disables public/private depending on $course->enablepublicprivate.
  *
+ * For courses with public/private enabled:
+ *  - if hidden, then make sure guest enrollment plugin is disabled
+ *  - if visible, then make sure guest enrollment plugin is enabled
+ *
  * @param object $course
  * @throws PublicPrivate_Course_Exception
  */
@@ -37,13 +41,31 @@ function handle_course_updated($course) {
 
     require_once($CFG->dirroot . '/local/publicprivate/lib/course.class.php');
     $pubpriv_course = new PublicPrivate_Course($course);
+    $changehappened = false;
 
     // activate public/private if form has enabled set or creating a course
     // not through the course edit form (i.e. collab site requestor)
     if ($course->enablepublicprivate == 1 && !$pubpriv_course->is_activated()) {
         $pubpriv_course->activate();
+        $changehappened = true;
+
     } else if ($course->enablepublicprivate == 0 && $pubpriv_course->is_activated()) {
         $pubpriv_course->deactivate();
+        $changehappened - true;
+    }
+
+    // If we enabled or disabled public/private, then guest enrollment plugin
+    // was properly set anyways.
+    if (!$changehappened) {
+        if ($pubpriv_course->is_activated()) {
+            if ($course->visible == 0) {
+                // Course is hidden, need to disable guest enrollment plugin.
+                PublicPrivate_Course::set_guest_plugin($course, ENROL_INSTANCE_DISABLED);
+            } else {
+                // Course is visible, need to enable guest enrollment plugin.
+                PublicPrivate_Course::set_guest_plugin($course, ENROL_INSTANCE_ENABLED);
+            }
+        }
     }
 }
 

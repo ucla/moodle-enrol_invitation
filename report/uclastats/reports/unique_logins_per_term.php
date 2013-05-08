@@ -1,6 +1,6 @@
 <?php
 /**
- * Report to get the total number of course sites for a given term.
+ * Report to get the number of unique logins for a given term.
  *
  * @package    report
  * @subpackage uclastats
@@ -26,6 +26,7 @@ class unique_logins_per_term extends uclastats_base {
             $stats->day = $result['per_day'];
             $stats->week = $result['per_week'];
             $stats->term = $result['per_term'];
+            $stats->total_users = $result['total_users'];
             return get_string('unique_logins_per_term_cached_results',
                     'report_uclastats', $stats);
         }
@@ -73,6 +74,15 @@ class unique_logins_per_term extends uclastats_base {
         }
 
         return $ret_val;
+    }
+    
+    /**
+     * Querying on the mdl_log can take a long time.
+     * 
+     * @return boolean
+     */
+    public function is_high_load() {
+        return true;
     }
 
     /**
@@ -131,6 +141,30 @@ class unique_logins_per_term extends uclastats_base {
         $per_term = $DB->get_field_sql($sql, $term_info);
         $ret_val['per_term'] = $per_term;
 
+        //get total number of users for the given term
+        $params['contextlevel'] = CONTEXT_COURSE;
+        
+        $sql = "SELECT COUNT(DISTINCT ra.userid) AS total_users
+                FROM {ucla_request_classes} AS urc
+                JOIN {ucla_reg_classinfo} urci ON (
+                    urci.term = urc.term AND
+                    urci.srs = urc.srs
+                )
+                JOIN {ucla_reg_division} urd ON (
+                    urci.division = urd.code
+                ) 
+                JOIN {context} ctx ON (
+                    urc.courseid = ctx.instanceid AND
+                    ctx.contextlevel = :contextlevel
+                )
+                JOIN {role_assignments} ra ON (
+                    ra.contextid = ctx.id
+                )
+                WHERE urc.term = :term";
+        
+        $total_users = $DB->get_field_sql($sql,$params);
+        $ret_val['total_users'] = $total_users;
+        
         // might be useful to display the start/end times used
         $ret_val['start_end_times'] = sprintf('%s/%s',
                 date('M j, Y', $term_info['start']),

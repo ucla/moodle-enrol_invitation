@@ -1348,18 +1348,23 @@ function flash_redirect($url, $success_msg) {
 }
 
 /**
- * Notify students and instructor if the course is from a past term.
- *
- * If we are viewing a course from exactly the previous term, then only display
- * notice if we are not in between terms.
+ * Notify students and instructors the status of a course.
  *
  * @global object $OUTPUT
  * @param object $course
  * @return string           Returns notice if any is needed.
  */
-function notice_oldcourse($course) {
-    global $CFG, $OUTPUT;
-    $displaynotice = false;
+function notice_course_status($course) {
+    global $CFG, $OUTPUT, $USER;
+
+    // Will display a different message depending on the combination of the
+    // following statuses.
+    $ispastcourse   = false;
+    $ishidden       = false;
+    $istemprole     = false;
+
+    $noticestring = '';
+    $noticeparam = null;
     
     if (is_past_course($course)) {
         $currentweek = get_config('local_ucla', 'current_week');
@@ -1370,16 +1375,79 @@ function notice_oldcourse($course) {
             $courseinfo = current($courseinfos);
             $previousterm = term_get_prev($CFG->currentterm);
             if (term_cmp_fn($courseinfo->term, $previousterm) != 0) {
-                $displaynotice = true;
+                $ispastcourse = true;
             }
         } else {
-            $displaynotice = true;
+            $ispastcourse = true;
         }
     }
 
-    if ($displaynotice) {
-        return $OUTPUT->box(get_string('notice_oldcourse', 'local_ucla'),
-                'noticebox notice_oldcourse');
+    // Let user know if the course is currently hidden.
+    if (empty($course->visible)) {
+        $ishidden = true;
+    }
+
+    // Display helpful text if user's enrollment is expiring.
+    if (!isguestuser($USER)) {
+        $timeend = enrol_get_enrolment_end($course->id, $USER->id);
+        if ($timeend > 0) {
+            $noticeparam = date('M j, Y', $timeend);
+            $istemprole = true;
+        }
+    }
+
+//    debugging(sprintf('$ispastcourse = %d, $ishidden = %d, $istemprole = %d',
+//            $ispastcourse, $ishidden, $istemprole));
+
+    // For matrix of status/message, please see
+    // CCLE-3787 - Temporary participant role.
+    if (!$ispastcourse && !$ishidden && !$istemprole) {
+        return;
+    } else if ($ispastcourse && !$ishidden && !$istemprole) {
+        // Do not indicate that access expires if we do not it enabled.
+        if (get_config('local_ucla', 'student_access_ends_week')) {
+            // Slightly different message if user is instructor vs student.
+            if (has_capability('moodle/course:viewhiddencourses',
+                    context_course::instance($course->id))) {
+                $noticestring = 'notice_course_status_pastinstructor';
+            } else {
+                $noticestring = 'notice_course_status_paststudent';
+            }
+        } else {
+            $noticestring = 'notice_course_status_pasthidden';
+        }
+    } else if (!$ispastcourse && $ishidden && !$istemprole) {
+        $noticestring = 'notice_course_status_hidden';
+    } else if (!$ispastcourse && !$ishidden && $istemprole) {
+        $noticestring = 'notice_course_status_temp';
+    } else if ($ispastcourse && $ishidden && !$istemprole) {
+        // Give different message if Temporary Participant is not enabled.
+        if (get_config('enrol_invitation', 'enabletempparticipant')) {
+            // Give message if user can use invitation.
+            if (has_capability('enrol/invitation:enrol',
+                    context_course::instance($course->id))) {
+                // Create link to invite.
+                $inviteurl = new moodle_url('/enrol/invitation/invitation.php',
+                        array('courseid' => $course->id));
+                $noticeparam = $inviteurl->out();
+                $noticestring = 'notice_course_status_pasthidden_tempparticipant';
+            } else {
+                $noticestring = 'coursehidden';
+            }
+        } else {
+            $noticestring = 'notice_course_status_pasthidden';
+        }        
+    } else if ($ispastcourse && !$ishidden && $istemprole) {
+        $noticestring = 'notice_course_status_pasttemp';
+    } else if (!$ispastcourse && $ishidden && $istemprole) {
+        $noticestring = 'notice_course_status_hiddentemp';
+    } else if ($ispastcourse && $ishidden && $istemprole) {
+        $noticestring = 'notice_course_status_pasthiddentemp';
+    }
+
+    if (!empty($noticestring)) {
+        return $OUTPUT->box(get_string($noticestring, 'local_ucla', 
+                $noticeparam), 'noticebox');
     }
 }
 
@@ -1408,7 +1476,11 @@ function is_past_course($course) {
 /**
  * Handles the hiding of courses and related TA sites, and reports  any 
  * successes or failures. 
- * 
+ *
+ * When hiding a course we will also disable the guest enrollment plugin,
+ * because, due to a Moodle bug, users with a disabled enrollment can still
+ * access a hidden site if they have the the "Temporary Participant" role.
+ *
  * Please do not call this method directly. It should only be called from
  * local/ucla/eventslib.php:hide_past_courses or the command line script
  * local/ucla/scripts/hide_courses.php.
@@ -1422,6 +1494,7 @@ function is_past_course($course) {
 function hide_courses($term) {
     global $CFG, $DB;
     require_once($CFG->dirroot . '/blocks/ucla_tasites/block_ucla_tasites.php');
+    require_once($CFG->dirroot . '/local/publicprivate/lib/course.class.php');
 
     if (!ucla_validator('term', $term)) {
         return false;
@@ -1442,26 +1515,36 @@ function hide_courses($term) {
                      $num_problem_courses, $error_messages);
     }
 
+    $enrol_guest_plugin = enrol_get_plugin('guest');
+
     // Now run command to hide all courses for given term. Don't worry about
     // updating visibleold (don't care) and we aren't using update_course,
     // because if might be slow and trigger unnecessary events.
     $courseobj = new stdClass();
     $courseobj->visible = 0;
     foreach ($courses as $courseid => $courseinfo) {
+        $courses_processed = array($courseid);
         $courseobj->id = $courseid;
         try {
-            $DB->update_record('course', $courseobj, true);
             ++$num_hidden_courses;
 
             // Try to see if course had any TA sites.
             $existing_tasites = block_ucla_tasites::get_tasites($courseid);
-            if (empty($existing_tasites)) {
-                continue;
+            if (!empty($existing_tasites)) {
+                foreach ($existing_tasites as $tasite) {
+                    ++$num_hidden_tasites;
+                    $courses_processed[] = $tasite->id;
+                }
             }
-            foreach ($existing_tasites as $tasite) {
-                $courseobj->id = $tasite->id;
+
+            // Hide courses and guest plugins.
+            foreach ($courses_processed as $courseid) {
+                $courseobj->id = $courseid;
                 $DB->update_record('course', $courseobj, true);
-                ++$num_hidden_tasites;
+
+                $course = $DB->get_record('course', array('id' => $courseid),
+                        '*', MUST_EXIST);
+                PublicPrivate_Course::set_guest_plugin($course, ENROL_INSTANCE_DISABLED);
             }
 
         } catch (dml_exception $e) {

@@ -305,18 +305,7 @@ class PublicPrivate_Course {
         /*
          * Make sure guest access enrolment plugin is installed and enabled
          */
-        
-        $guest_plugin = $DB->get_record('enrol', array('enrol' => 'guest',
-            'courseid' => $this->_course->id));
-
-        $enrol_guest_plugin = enrol_get_plugin('guest');
-        if (empty($guest_plugin)) {
-            // no guest enrolment plugin found, so add one
-            $enrol_guest_plugin->add_instance($this->_course);
-        } else {
-            // make sure existing plugin is enabled
-            $enrol_guest_plugin->update_status($guest_plugin, ENROL_INSTANCE_ENABLED);
-        }
+        self::set_guest_plugin($this->_course, ENROL_INSTANCE_ENABLED);
 
         rebuild_course_cache($this->_course->id);
     }
@@ -387,17 +376,49 @@ class PublicPrivate_Course {
         /*
          * Deactivate guest enrollment plugin (if any)
          */
-        
-        $guest_plugin = $DB->get_record('enrol', array('enrol' => 'guest',
-            'courseid' => $this->_course->id));
-
-        $enrol_guest_plugin = enrol_get_plugin('guest');
-        if (!empty($guest_plugin)) {
-            // make sure existing plugin is enabled
-            $enrol_guest_plugin->update_status($guest_plugin, ENROL_INSTANCE_DISABLED);
-        }
+        self::set_guest_plugin($this->_course, ENROL_INSTANCE_DISABLED);
 
         rebuild_course_cache($this->_course->id);
+    }
+
+    /**
+     * Helper method to make sure guest enrollment plugin is enabled or disabled
+     * for given course.
+     * 
+     * @param object $course    Course record.
+     * @param int $enrolstatus
+     *
+     * return boolean           Returns false on error, otherwise true.
+     */
+    public static function set_guest_plugin($course, $enrolstatus) {
+        global $DB;
+
+        if (!in_array($enrolstatus, array(ENROL_INSTANCE_ENABLED, ENROL_INSTANCE_DISABLED))) {
+            return false;
+        }
+
+        $enrolguestplugin = enrol_get_plugin('guest');
+        if (empty($enrolguestplugin)) {
+            return false;
+        }
+
+        // For some reason, there might be multiple guest enrollment plugins.
+        $guestplugins = $DB->get_records('enrol', array('enrol' => 'guest',
+            'courseid' => $course->id));
+        
+        if (empty($guestplugins)) {
+            if ($enrolstatus == ENROL_INSTANCE_ENABLED) {
+                // No guest enrolment plugin found, so add one.
+                $enrolguestplugin->add_instance($course);
+            }
+        } else {
+            // make sure existing plugin is enabled or disabled
+            foreach ($guestplugins as $guestplugin) {
+                $enrolguestplugin->update_status($guestplugin, $enrolstatus);
+            }
+        }
+
+        return true;
     }
 
     /**

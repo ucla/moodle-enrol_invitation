@@ -38,7 +38,8 @@ require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/uclaroles/lib.php');
  * @package enrol
  * @subpackage invitation
  */
-class invitations_form extends moodleform {
+class invitation_form extends moodleform {
+    public static $daysexpire_options = array(3 => 3, 7 => 7, 30 => 30, 90 => 90, 180 => 180);
 
     /**
      * The form definition
@@ -68,23 +69,54 @@ class invitations_form extends moodleform {
                     '', $role_type_string);            
             
             foreach ($roles as $role) {
-                $role_string = html_writer::tag('span', $role->name . ':', 
-                        array('class' => 'role-name'));
-
-                // role description has a <hr> tag to separate out info for users
-                // and admins
-                $role_description = explode('<hr />', $role->description);
-                
-                // need to clean html, because tinymce adds a lot of extra tags that mess up formatting
-                $role_description = $role_description[0];
-                // whitelist some formatting tags
-                $role_description = strip_tags($role_description, '<b><i><strong><ul><li><ol>');
-            
-                $role_string .= ' ' . $role_description;
+                $role_string = $this->format_role_string($role);
                 $role_group[] = &$mform->createElement('radio', 'roleid', '', 
                         $role_string, $role->id);                
             }
         }
+
+        // Give "Temporary Participant" option if site is Registrar or TA site.
+        if (get_config('enrol_invitation', 'enabletempparticipant')) {
+            $site_type = null;
+            if (is_collab_site($course)) {
+                $siteindicator = siteindicator_site::load($course->id);
+                if (!empty($siteindicator)) {
+                    $site_type = $siteindicator->property->type;
+                }
+            } else {
+                $site_type = siteindicator_manager::SITE_TYPE_SRS_INSTRUCTION;
+            }
+            
+            if ($site_type == siteindicator_manager::SITE_TYPE_SRS_INSTRUCTION ||
+                    $site_type == siteindicator_manager::SITE_TYPE_TASITE) {
+
+                // Create Temporary Roles group.
+                $role_type_string = html_writer::tag('span', 
+                        get_string('tempgroup', 'enrol_invitation'),
+                        array('class' => 'role_type_header'));
+                $role_group[] = &$mform->createElement('static', 'role_type_header', 
+                        '', $role_type_string);
+                
+                // Add Temporary Participant role.
+                $role = $DB->get_record('role',
+                        array('shortname' => 'tempparticipant'));
+                $role_string = $this->format_role_string($role);
+
+                $role_group[] = &$mform->createElement('radio', 'roleid', '', 
+                        $role_string, $role->id);
+
+                // Create dropdown for choosing day expiration.
+                $daysexpire_dropdown = &$mform->createElement('select',
+                        'daysexpire', '', invitation_form::$daysexpire_options);
+                $daysexpire_string = html_writer::tag('span',
+                        get_string('daysexpire_string', 'enrol_invitation',
+                                $daysexpire_dropdown->toHtml()),
+                        array('class' => 'daysexpire_string'));
+                $role_group[] = &$mform->createElement('static', 
+                        'daysexpire_string', '', $daysexpire_string);
+            }
+        }
+
         $mform->addGroup($role_group, 'role_group', $label, 
                 html_writer::empty_tag('br'));
         $mform->addRule('role_group', 
@@ -124,7 +156,7 @@ class invitations_form extends moodleform {
                 get_string('notify_inviter', 'enrol_invitation', $temp));
         $mform->setDefault('show_from_email', 1);
         $mform->setDefault('notify_inviter', 0);        
-        
+
         // Set defaults if the user is resending an invite that expired
         if ( !empty($prefilled) ) {
             $mform->setDefault('role_group[roleid]', $prefilled['roleid']);
@@ -137,7 +169,53 @@ class invitations_form extends moodleform {
         
         $this->add_action_buttons(false, get_string('inviteusers', 'enrol_invitation'));
     }
-    
+
+    /**
+     * Overriding get_data, because we need to be able to handle daysexpire,
+     * which is not defined as a regular form element.
+     *
+     * @return object
+     */
+    public function get_data() {
+        $retval = parent::get_data();
+
+        // Check if user submitted daysexpire from POST.
+        if (isset($_POST['daysexpire'])) {
+            if (in_array($_POST['daysexpire'], self::$daysexpire_options)) {
+                // Cannot indicate to user a real error message, so just slightly
+                // ignore user setting.
+                $retval->daysexpire = $_POST['daysexpire'];
+            }
+        }
+
+        return $retval;
+    }
+
+    /**
+     * Given a role record, format string to be displayable to user. Filter out
+     * role notes and other information.
+     *
+     * @param object $role  Record from role table.
+     * @return string
+     */
+    private function format_role_string($role) {
+        $role_string = html_writer::tag('span', $role->name . ':',
+                array('class' => 'role-name'));
+
+        // role description has a <hr> tag to separate out info for users
+        // and admins
+        $role_description = explode('<hr />', $role->description);
+
+        // need to clean html, because tinymce adds a lot of extra tags that mess up formatting
+        $role_description = $role_description[0];
+        // whitelist some formatting tags
+        $role_description = strip_tags($role_description, '<b><i><strong><ul><li><ol>');
+
+        $role_string .= ' ' . $role_description;
+
+        return $role_string;
+    }
+
     /**
      * Private class method to return a list of appropiate roles for given
      * course.
@@ -147,34 +225,26 @@ class invitations_form extends moodleform {
      * @return array            Returns array of roles indexed by role type
      */
     private function get_appropiate_roles($course) {
-        global $CFG, $DB;
-        $roles = array();
-        
-        $roles = uclaroles_manager::get_assignable_roles_by_courseid($course->id);
-        // convert to just an array of shortnames
-        $roles = array_keys($roles);
-        $roles = $DB->get_records_list('role', 'shortname', $roles, 'name');
-        
+        $roles = uclaroles_manager::get_assignable_roles_by_courseid($course);        
         // sort roles into type
-        $roles = uclaroles_manager::orderby_role_type($roles);
-        
-        // now get role names and descriptions
-        return $roles;        
+        return uclaroles_manager::orderby_role_type($roles);
     }
     
     /*
-     * Validate the email field here, rather than in definition, to allow 
-     * multiple email addresses to be specified
+     * Provides custom validation rules.
+     *  - Validating the email field here, rather than in definition, to allow
+     *    multiple email addresses to be specified
+     *  - Validating that access end date is in the future
      */
     function validation($data, $files) {
         $errors = array();
         $delimiters = "/[;, \r\n]/";
-        $email_list = invitations_form::parse_dsv_emails($data['email'], $delimiters);
+        $email_list = invitation_form::parse_dsv_emails($data['email'], $delimiters);
         
-        if ( empty($email_list) ) {
+        if (empty($email_list)) {
             $errors['email'] = get_string('err_email', 'form');
         }
-        
+
         return $errors;
     }
     
@@ -206,8 +276,6 @@ class invitations_form extends moodleform {
             return array();
         }
         
-        return $parsed_emails;
-        
+        return $parsed_emails;   
     }
-
 }

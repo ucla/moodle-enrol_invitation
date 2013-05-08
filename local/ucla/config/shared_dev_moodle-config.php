@@ -267,6 +267,9 @@ $CFG->forced_plugin_settings['assignfeedback_file']['default'] = 1;
 $CFG->forced_plugin_settings['enrol_guest']['defaultenrol'] = 1;
 $CFG->forced_plugin_settings['enrol_guest']['status'] = 0;  // 0 is yes, 1 is no
 
+// Site administration > Plugins > Enrollments > Site invitation
+$CFG->forced_plugin_settings['enrol_invitation']['enabletempparticipant'] = 1;
+
 // Site administration > Plugins > Enrollments > Self enrolment
 $CFG->forced_plugin_settings['enrol_self']['defaultenrol'] = 0;
 $CFG->forced_plugin_settings['enrol_self']['status'] = 1;  // 0 is yes, 1 is no

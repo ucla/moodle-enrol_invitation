@@ -54,7 +54,7 @@ if ($course->id == SITEID) {
 }
 
 require_login($course);
-require_capability("enrol/invitation:unenrol", get_context_instance(CONTEXT_COURSE, $course->id, MUST_EXIST));
+require_capability("enrol/invitation:unenrol", context_course::instance($course->id, MUST_EXIST));
 
 $manager = new course_enrolment_manager($PAGE, $course, $filter);
 $table = new course_enrolment_users_table($manager, $PAGE);

@@ -245,7 +245,7 @@ class format_ucla_renderer extends format_section_renderer_base {
             echo $OUTPUT->box(get_string('coursecancelled', 'format_ucla'), 'noticebox coursecancelled');
         } else {
             // display message if user is viewing an old course
-            $notice = notice_oldcourse($this->course);
+            $notice = notice_course_status($this->course);
             if (!empty($notice)) {
                 echo $notice;
             } else {

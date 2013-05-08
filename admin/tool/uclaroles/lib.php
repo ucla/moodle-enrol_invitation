@@ -159,9 +159,9 @@ class uclaroles_manager {
             $assignable_roles = self::get_assignable_roles($site_type);
             $where .= '(';
             $first_entry = true;
-            foreach ($assignable_roles as $shortname => $name) {
+            foreach ($assignable_roles as $role) {
                 $first_entry ? $first_entry = false : $where .= ' OR ';
-                $where .= sprintf("shortname = '%s'", $shortname);
+                $where .= sprintf("shortname = '%s'", $role->shortname);
             }
             $where .= ')';
         }
@@ -183,7 +183,10 @@ class uclaroles_manager {
         $site_types = self::get_site_types();
         $assignable_roles = array();
         foreach ($site_types as $site_type => $type_text) {
-            $assignable_roles[$site_type] = self::get_assignable_roles($site_type);
+            $roles = self::get_assignable_roles($site_type);
+            foreach ($roles as $role) {
+                $assignable_roles[$site_type][$role->shortname] = $role->name;
+            }
         }            
         
         // get all context levels
@@ -271,46 +274,49 @@ class uclaroles_manager {
      * @param string $site_type
      * 
      * @return array        Returns an array in the following format:
-     *                      [shortname] => [name]
+     *                      [roleid] => [id]
+     *                                  [name]
+     *                                  [shortname]
+     *                                  [description]
+     *                                  [sortorder]
+     *                                  [archetype]
      */
     static function get_assignable_roles($site_type) {
         global $DB;
         $ret_val = array();
         
         if ($site_type == siteindicator_manager::SITE_TYPE_SRS_INSTRUCTION) {
-            $roleids = array('instructional_assistant', 'editor', 'grader', 
+            $shortnams = array('instructional_assistant', 'editor', 'grader',
                 'participant', 'visitor');
-            $roles = $DB->get_records_list('role', 'shortname', $roleids, 'sortorder');   
-            foreach($roles as $r) {
-                $ret_val[$r->shortname] = trim($r->name);
-            }        
+            $ret_val = $DB->get_records_list('role', 'shortname', $shortnams, 'sortorder');
         } else {
             $siteindicator_manager = new siteindicator_manager();
             $ret_val = $siteindicator_manager->get_assignable_roles($site_type);
         }
-        
+
         return $ret_val;
     }
     
     /**
-     * Returns the list of assignable roles for given courseid.
+     * Returns the list of assignable roles for given course.
      * 
-     * @param int $courseid
+     * @param object $course    Course record
      * 
      * @return array        Returns an array in the following format:
      *                      [shortname] => [name]
      */
-    static function get_assignable_roles_by_courseid($courseid) {
+    static function get_assignable_roles_by_courseid($course) {
+        global $DB;
         // first, find out what site type course is
         $site_type = null;
         
         // see if it is a registrar course
-        $result = ucla_map_courseid_to_termsrses($courseid);        
+        $result = ucla_map_courseid_to_termsrses($course->id);
         if (!empty($result)) {  // found registrar course
             $site_type = siteindicator_manager::SITE_TYPE_SRS_INSTRUCTION;
         } else {
             try {
-                $indicator = new siteindicator_site($courseid);
+                $indicator = new siteindicator_site($course->id);
                 $site_type = $indicator->property->type;            
             } catch (Exception $e) {
                 // throws an exception if no site type found, so just do nothing
@@ -322,8 +328,23 @@ class uclaroles_manager {
         if (empty($site_type)) {
             $site_type =  siteindicator_manager::SITE_TYPE_INSTRUCTION;
         }
+
+        $assignableroles = self::get_assignable_roles($site_type);
+
+        // for hidden sites, only return roles that can access hidden sites
+        if ($course->visible == 0) {
+            list($needed, $forbidden) = get_roles_with_cap_in_context(
+                    context_course::instance($course->id),
+                    'moodle/course:viewhiddencourses');
+            foreach ($assignableroles as $checkrole) {
+                if (!in_array($checkrole->id, $needed) ||
+                        in_array($checkrole->id, $forbidden)) {
+                    unset($assignableroles[$checkrole->id]);
+                }
+            }
+        }
         
-        return self::get_assignable_roles($site_type);
+        return $assignableroles;
     }
     
     /**

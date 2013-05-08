@@ -41,7 +41,9 @@ set_editing_mode_button();
 if (has_capability('moodle/course:manageactivities', $context)) {
     $filter = optional_param('filter_copyright', $CFG->sitedefaultlicense,
             PARAM_TEXT);
-    display_copyright_status_contents($courseid, isset($filter) ? $filter : 'all');
+    print_error('not_working', 'block_ucla_copyright_status');
+
+//    display_copyright_status_contents($courseid, isset($filter) ? $filter : 'all');
 } else {
     print_error('permission_not_allow', 'block_ucla_copyright_status');
 }
