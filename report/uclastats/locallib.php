@@ -345,7 +345,58 @@ abstract class uclastats_base implements renderable {
      * @return array
      */
     public abstract function get_parameters();
+    
+    /**
+     * Gets the start and end times for term.
+     * Regular terms are indexed by 'start' and 'end'.
+     * 
+     * For summer term, 121, the sessions
+     * 6A 8A  9A 1A are indexed as 'start_Xa', 'end_Xa'  
+     * and 6C is indexed as 'start_c' and 'end_c' 
+     * because there is only one session C
+     *
+     * 
+     * @param string $term the school term
+     * @return array
+     */
+    protected function get_term_info($term) {
+        // We need to query the registrar
+        ucla_require_registrar();
 
+        $results = registrar_query::run_registrar_query('ucla_getterms', array($term), true);
+
+        if (empty($results)) {
+            return null;
+        }
+
+        $ret_val = array();
+
+        // Get the term start and term end,
+        //if it's a summer session,
+        // then get start and end of entire summer
+
+        $summer_session_a = array('6A','8A','9A','1A');
+        
+        foreach ($results as $r) {
+            
+            $session = $r['session'];
+
+            if ($session == 'RG') {
+                $ret_val['start'] = strtotime($r['session_start']);
+                $ret_val['end'] = strtotime($r['session_end']);
+                break;
+            } else if (in_array($session,$summer_session_a)) {
+                $ret_val['start_' . strtolower($session)] = strtotime($r['session_start']);
+                $ret_val['end_' . strtolower($session)] = strtotime($r['session_end']);
+            } else if ($session == '6C') {
+                $ret_val['start_c'] = strtotime($r['session_start']);
+                $ret_val['end_c'] = strtotime($r['session_end']);
+            }
+        }
+        
+        return $ret_val;
+    }
+    
     /**
      * Returns either a list of cached results for current report or specified
      * cached results.
@@ -358,6 +409,7 @@ abstract class uclastats_base implements renderable {
      * @return mixed            Returns either a uclastats_result_list or
      *                          uclastats_result.
      */
+    
     public function get_results($resultid = null) {
         global $DB;
 

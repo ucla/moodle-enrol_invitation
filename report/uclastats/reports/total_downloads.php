@@ -49,38 +49,7 @@ class total_downloads extends uclastats_base {
     public function is_high_load() {
         return true;
     }
-
-    private function get_term_info($term) {
-        // We need to query the registrar
-        ucla_require_registrar();
-
-        $results = registrar_query::run_registrar_query('ucla_getterms', array($term), true);
-
-        if (empty($results)) {
-            return null;
-        }
-
-        $ret_val = array();
-
-        // Get the term start and term end
-        // if it's summer, summer spans from beginning of session A 
-        // to end of session C
-        
-        foreach ($results as $r) {
-            if ($r['session'] == 'RG') {
-                $ret_val['start'] = strtotime($r['session_start']);
-                $ret_val['end'] = strtotime($r['session_end']);
-                break;
-            } else if ($r['session'] == '1A') {
-                $ret_val['start'] = strtotime($r['session_start']);
-            } else if ($r['session'] == '6C') {
-                $ret_val['end'] = strtotime($r['session_end']);
-            }
-        }
-
-        return $ret_val;
-    }
-    
+ 
     /**
      * Query for total downloads for given term
      *
@@ -93,24 +62,24 @@ class total_downloads extends uclastats_base {
         $params['contextlevel'] = CONTEXT_MODULE;
         
         $sql =  "SELECT COUNT(DISTINCT l.id) as count
-                 FROM mdl_log AS l
-                 JOIN mdl_course c ON (
+                 FROM {log} AS l
+                 JOIN {course} c ON (
                     l.course = c.id
                  )
-                 JOIN mdl_course_modules AS cm ON (
+                 JOIN {course_modules} AS cm ON (
                     cm.course = c.id
                  )
-                 JOIN mdl_modules AS m ON (
-                    cm.module=m.id
+                 JOIN {modules} AS m ON (
+                    cm.module = m.id
                  )
-                 JOIN mdl_context ctx ON (
+                 JOIN {context} ctx ON (
                     cm.id = ctx.instanceid AND
-                    ctx.contextlevel= :contextlevel
+                    ctx.contextlevel = :contextlevel
                  )
-                 JOIN mdl_files f ON (
+                 JOIN {files} f ON (
                      f.contextid = ctx.id
                  )
-                 JOIN mdl_ucla_request_classes urc ON (
+                 JOIN {ucla_request_classes} urc ON (
                     c.id = urc.courseid
                  )  
                  WHERE urc.term = :term AND
@@ -124,8 +93,22 @@ class total_downloads extends uclastats_base {
                  l.action = 'view'";
        
         $term_info = $this->get_term_info($params['term']);
-        $params = array_merge($term_info,$params);
-
+        
+     
+        if (is_summer_term($params['term'])) {
+        
+        // summer spans from beginning of session A 
+        // to end of session C
+            
+            $params['start'] = $term_info['start_1a'];
+            $params['end'] = $term_info['end_c'];
+            
+        } else {
+            
+            $params = array_merge($term_info,$params);
+            
+        }
+        
         return $DB->get_records_sql($sql, $params);
       
     }
