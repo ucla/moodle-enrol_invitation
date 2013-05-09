@@ -162,6 +162,10 @@ $string['viewcount'] = 'Number of Views';
 $string['most_active_collab_sites'] = 'Most active (collab)';
 $string['most_active_collab_sites_help'] =  'Most active collab site is one that has the most views.';
 
+//strings for total downloads
+$string['total_downloads'] = 'Total downloads (course)';
+$string['total_downloads_help'] = 'For a given term, get a count of all total downloads.';
+
 // error strings
 $string['nocachedresults'] = 'No cached results found';
 $string['invalidterm'] = 'Invalid term';
