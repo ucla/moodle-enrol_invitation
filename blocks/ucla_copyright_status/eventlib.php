@@ -18,9 +18,6 @@ require_once($CFG->dirroot . '/blocks/ucla_copyright_status/alert_form.php');
 function handle_ucla_copyright_status_notice($eventdata) {
     global $CFG, $DB, $OUTPUT;
 
-    // Turning off copyright tool until CCLE-3935 is fixed.
-    return true;
-
     // ignore any old terms or if term is not set (meaning it is a collab site)
     if (!isset($eventdata->term) ||
             term_cmp_fn($eventdata->term, $CFG->currentterm) == -1) {
@@ -33,8 +30,10 @@ function handle_ucla_copyright_status_notice($eventdata) {
     $context =  context_course::instance($eventdata->course->id);
 
     // ignore alert if user cannot assign copyright status for the course
-    // or if user can assign copyright status, but there is file has not assign copyright status, give alert
-    $a = sizeof(get_files_copyright_status_by_course($eventdata->course->id,$CFG->sitedefaultlicense));
+    // or if user can assign copyright status, but there is file has not assign
+    // copyright status, give alert
+    $a = sizeof(get_files_copyright_status_by_course($eventdata->course->id,
+            $CFG->sitedefaultlicense));
 
     if (!has_capability('moodle/course:manageactivities', $context)||
         $a==0) {
