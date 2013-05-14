@@ -219,12 +219,10 @@ class course_handler extends browseby_handler {
             
             // Query for available terms (for the terms dropdown)
             $sql = "SELECT DISTINCT term
-                    FROM (
-                        SELECT us.id AS userid, term
-                        FROM {user} us
-                        INNER JOIN {ucla_browseall_instrinfo} ubii
-                            ON ubii.uid = us.idnumber) ubi
-                    WHERE ubi.userid = :user";
+                    FROM {user} us
+                    INNER JOIN {ucla_browseall_instrinfo} ubii
+                            ON ubii.uid = us.idnumber
+                    WHERE us.id = :user";
         
         } else {
             // There is no way to know what we are looking at

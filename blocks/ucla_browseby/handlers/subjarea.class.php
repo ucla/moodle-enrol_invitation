@@ -101,9 +101,7 @@ class subjarea_handler extends browseby_handler {
         // Query for available terms (for the terms dropdown)
         // Filter by division, if a division selected
         $sql = "SELECT DISTINCT term
-                FROM (
-                    SELECT urc.division AS division, term
-                    FROM {ucla_reg_classinfo} urc) rci
+                FROM {ucla_reg_classinfo} rci
                 $divwhere";
 
         $s .= block_ucla_browseby_renderer::render_terms_selector(

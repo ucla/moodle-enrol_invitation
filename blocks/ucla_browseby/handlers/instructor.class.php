@@ -77,7 +77,7 @@ class instructor_handler extends browseby_handler {
 
             $letter = strtoupper($rawletter);
             $params['letter'] = $letter . '%';
-            $letterwhere = "WHERE ubi.lastname like :letter";
+            $letterwhere = "WHERE us.lastname like :letter";
 
             if ($term) {
                 $t = get_string('instructorswith', 'block_ucla_browseby', 
@@ -181,11 +181,9 @@ class instructor_handler extends browseby_handler {
         // Query for available terms (for the terms dropdown)
         // Filter by division, if a division selected
         $sql = "SELECT DISTINCT term
-                FROM (
-                    SELECT us.lastname AS lastname, term
-                    FROM {user} us
-                    INNER JOIN {ucla_browseall_instrinfo} ubii
-                        ON ubii.uid = us.idnumber) ubi
+                FROM {user} us
+                INNER JOIN {ucla_browseall_instrinfo} ubii
+                    ON ubii.uid = us.idnumber
                 $letterwhere";
 
         $s .= block_ucla_browseby_renderer::render_terms_selector($term, 
