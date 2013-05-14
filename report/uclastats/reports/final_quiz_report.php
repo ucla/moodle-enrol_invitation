@@ -40,7 +40,7 @@ class final_quiz_report extends uclastats_base {
         return array('term');
     }
 
-    private function get_term_info($term) {
+    protected function get_term_info($term) {
         // We need to query the registrar
         ucla_require_registrar();
 
@@ -172,11 +172,12 @@ class final_quiz_report extends uclastats_base {
             $sql .= ") then q.id end)) as final_count
                     FROM {ucla_request_classes} AS urc
                     JOIN {ucla_reg_classinfo} urci ON (
-                        urci.term=urc.term AND
-                        urci.srs=urc.srs
+                        urci.term = urc.term AND
+                        urci.srs = urc.srs AND
+                        urci.enrolstat <> 'X'
                     )
                     JOIN {ucla_reg_division} urd ON (
-                        urci.division=urd.code
+                        urci.division = urd.code
                     )
                     JOIN {quiz} q ON(
                         urc.courseid = q.course
@@ -185,28 +186,28 @@ class final_quiz_report extends uclastats_base {
                         q.id = qa.quiz
                     )
                     WHERE   urc.term = :term  AND
-                            urc.hostcourse=1 AND (";
+                            urc.hostcourse = 1 AND (";
             
-                //check that quizzes are within range of last_week to end of term
-                /*(urci.session = '6A' AND
-                q.timeopen >= :last_week_start_6a AND
-                q.timeclose < :finals_end_6a
-                ...
-                ) OR (
-                urci.session IN ('6C') AND
-                q.timeopen >= :last_week_start_c AND
-                q.timeclose < :finals_end_c)*/
-               
-               foreach ($summer_session as $key => $val) {
+            //check that quizzes are within range of last_week to end of term
+            /*(urci.session = '6A' AND
+            q.timeopen >= :last_week_start_6a AND
+            q.timeclose < :finals_end_6a
+            ...
+            ) OR (
+            urci.session IN ('6C') AND
+            q.timeopen >= :last_week_start_c AND
+            q.timeclose < :finals_end_c)*/
 
-                   $sql .= ' (urci.session = ' . $val . ' AND q.timeopen >= :last_week_start_' . $key . ' AND '
-                        . 'q.timeclose < :finals_end_' . $key . ' ) ';
+           foreach ($summer_session as $key => $val) {
 
-                   if ($key != $last_session) {
-                       $sql .= ' OR ';
-                   }
+               $sql .= ' (urci.session = ' . $val . ' AND q.timeopen >= :last_week_start_' . $key . ' AND '
+                    . 'q.timeclose < :finals_end_' . $key . ' ) ';
 
+               if ($key != $last_session) {
+                   $sql .= ' OR ';
                }
+
+           }
   
         $sql .= ")
                  GROUP BY urci.division
@@ -223,10 +224,11 @@ class final_quiz_report extends uclastats_base {
                     FROM {ucla_request_classes} AS urc
                     JOIN {ucla_reg_classinfo} urci ON (
                         urci.term = urc.term AND
-                        urci.srs = urc.srs
+                        urci.srs = urc.srs AND
+                        urci.enrolstat <> 'X'
                     )
                     JOIN {ucla_reg_division} urd ON (
-                        urci.division=urd.code
+                        urci.division = urd.code
                     )
                     JOIN {quiz} q ON(
                         urc.courseid = q.course
