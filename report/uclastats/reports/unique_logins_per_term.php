@@ -41,42 +41,6 @@ class unique_logins_per_term extends uclastats_base {
     }
 
     /**
-     * Returns start/end times for a given term.
-     *
-     * @return array   Returns array with start/end times in unix timestamp.
-     *                 Returns null on error.
-     */
-    private function get_term_info($term) {
-        // We need to query the registrar
-        ucla_require_registrar();
-
-        $results = registrar_query::run_registrar_query('ucla_getterms',
-                    array($term));
-
-        if (empty($results)) {
-            return null;
-        }
-
-        $ret_val = array();
-
-        // Get ther term start and term end, if it's a summer session,
-        // then get start and end of entire summer
-        foreach($results as $r) {
-            if($r['session'] == 'RG') {
-                $ret_val['start'] = strtotime($r['session_start']);
-                $ret_val['end'] = strtotime($r['session_end']);
-                break;
-            } else if($r['session'] == '8A') {
-                $ret_val['start'] = strtotime($r['session_start']);
-            } else if($r['session'] == '6C') {
-                $ret_val['end'] = strtotime($r['session_end']);
-            }
-        }
-
-        return $ret_val;
-    }
-    
-    /**
      * Querying on the mdl_log can take a long time.
      * 
      * @return boolean
@@ -103,7 +67,13 @@ class unique_logins_per_term extends uclastats_base {
         }
 
         // get start and end dates for term
+     
         $term_info = $this->get_term_info($params['term']);
+        
+        if(is_summer_term($params['term'])) {
+            $term_info['start'] = $term_info['start_8a'];
+            $term_info['end'] = $term_info['end_c'];
+        }
 
         // count average unique logins per day (using derived tables! slow, but
         // a way to do all the calculation in the DB layer)

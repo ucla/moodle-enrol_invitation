@@ -359,6 +359,7 @@ abstract class uclastats_base implements renderable {
      * @param string $term the school term
      * @return array
      */
+    
     protected function get_term_info($term) {
         // We need to query the registrar
         ucla_require_registrar();
