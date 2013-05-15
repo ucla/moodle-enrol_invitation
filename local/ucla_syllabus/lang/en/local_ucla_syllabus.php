@@ -35,7 +35,7 @@ $string['syllabus_choice'] = 'If you select both a file and URL, the URL will be
 $string['syllabus_url_file'] = 'Please provide a:';
 
 $string['public_syllabus'] = 'Public syllabus';
-$string['public_syllabus_help'] = 'A public syllabus can be limited to the UCLA community or expanded to the general public.';
+$string['public_syllabus_help'] = 'A public syllabus can be limited to logged in users or open to the general public.';
 $string['private_syllabus'] = 'Private syllabus';
 $string['private_syllabus_help'] = 'A private syllabus is viewable only by enrolled students and appropriate technical staff.';
 
@@ -43,8 +43,8 @@ $string['url'] = 'URL';
 $string['file'] = 'File';
 $string['upload_file'] = 'Please upload a PDF';
 $string['access'] = 'Access';
-$string['accesss_public_info'] = 'Public: Anyone can view (incuding non-logged in users)';
-$string['accesss_loggedin_info'] = 'UCLA community: Only logged in users can view';
+$string['accesss_public_info'] = 'Anyone can view (incuding non-logged in users)';
+$string['accesss_loggedin_info'] = 'Only logged in users can view';
 $string['access_none_selected'] = 'Please select an access type';
 $string['access_invalid'] = 'Invalid access type selected';
 $string['preview_info'] = 'Is this a “preview syllabus”? (i.e., a draft or representative sample of the course content.)';
