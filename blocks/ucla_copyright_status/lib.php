@@ -128,12 +128,11 @@ function get_file_ids($fileid) {
 function update_copyright_status($data) {
     // loop through submitted data
     global $DB, $USER;
-    $data_array = explode('|', $data);
-    foreach ($data_array as $key => $value) {
-        if (!empty($value)) {
-            $a = explode('_', $value);
+   // $data_array = explode('|', $data);
+    foreach ($data as $key => $value) {
+        if (!empty($value)&& preg_match('/^file/',$key)) {
+            $a = explode('_', $key);
             $id = trim($a[1]);
-            $value = trim($a[2]);
             if (isset($id)) {
                 $id_array_with_same_contenthash = get_file_ids($id);
                 // loop through all files with same contenthash
@@ -280,9 +279,6 @@ function display_copyright_status_contents($courseid, $filter) {
     echo html_writer::start_tag('div',
             array('id' => 'block_ucla_copyright_status_id_cp_list'));
     if (count($course_copyright_status_list) > 0) {
-//        echo html_writer::tag('div',
-//                get_string('instruction_text1', 'block_ucla_copyright_status'),
-//                array('class' => 'block-ucla-copyright-status-red-text-item'));
         echo html_writer::table($t);
     } else {
         echo html_writer::tag('span',
@@ -298,8 +294,6 @@ function display_copyright_status_contents($courseid, $filter) {
                         array('id' => 'block_ucla_copyright_status_btn1', 'name' => 'action_edit', 'value' => get_string('save_button',
                             'block_ucla_copyright_status'), 'type' => 'submit')),
                 array('class' => 'block-ucla-copyright-status-save-button'));
-        echo html_writer::empty_tag('input',
-                array('id' => 'block_ucla_copyright_status_d1', 'name' => 'block_ucla_copyright_status_n1', 'type' => 'hidden', 'value' => ''));
     }
     // end display save changes button
     echo html_writer::end_tag('form');
