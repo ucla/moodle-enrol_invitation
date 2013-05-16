@@ -198,7 +198,8 @@ YUI.add('moodle-course-dragdrop-ucla', function(Y) {
      * Hook public private click events
      */
     RESOURCETOOLBOX_UCLA.prototype.initializer = function(config) {
-        RESOURCETOOLBOX_UCLA.superclass.initializer.apply(this, [config]);
+        // Potential bug: this is initializing twice!!
+        // RESOURCETOOLBOX_UCLA.superclass.initializer.apply(this, [config]);
 
         // Show/Hide public private
         // As of 2.3.3 the new way to hook these events is to use delegation,
