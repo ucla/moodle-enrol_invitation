@@ -17,9 +17,11 @@
     }
 }
 
-// Fix rendering of images on questionnaire module
-img {
-    width: auto;
+// Questionnaire module does not seem to be overridden 
+// by hard-coded img height -- must target specifically
+// --------------------------------------------------
+.reportQuestionTitle + table.generaltable img[height="9"] {
+    height: 9px;
 }
 
 // This will make the left side blocks collapse into right side
