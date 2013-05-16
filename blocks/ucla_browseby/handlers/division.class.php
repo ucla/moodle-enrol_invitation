@@ -36,15 +36,16 @@ class division_handler extends browseby_handler {
         
         $divisions = $this->get_records_sql($sql, $params);
         
+        $s .= block_ucla_browseby_renderer::render_terms_selector(
+            $args['term']);
+                
         if (empty($divisions)) {
             $s .= get_string('division_noterm', 'block_ucla_browseby');
+            return array($t, $s);
         } else {
             $table = $this->list_builder_helper($divisions, 'code',
                 'fullname', 'subjarea', 'division');
         }
-        
-        $s .= block_ucla_browseby_renderer::render_terms_selector(
-            $args['term']);
         
         $s .= block_ucla_browseby_renderer::ucla_custom_list_render(
             $table);

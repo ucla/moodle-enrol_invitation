@@ -116,10 +116,6 @@ class instructor_handler extends browseby_handler {
         ";
 
         $users = $this->get_records_sql($sql, $params);
-        
-        if (empty($users)) {
-            return array(false, false);
-        }
 
         // Decide which users to have the ability to display in the 
         // chart
@@ -197,6 +193,8 @@ class instructor_handler extends browseby_handler {
             } else {
                 $s .= get_string('noinstructors', 'block_ucla_browseby');
             }
+
+            return array($t, $s);
         } else {
             if ($letter == null) {
                 $s .= html_writer::tag('div', get_string(

@@ -16,6 +16,7 @@ $string['illegaltype'] = 'Browse by "{$a}" does not exist.';
 // Subject area
 $string['subjarea_title'] = 'Subject areas in {$a}';
 $string['all_subjareas'] = 'Subject areas'; 
+$string['subjarea_noterm'] = 'No subject areas were found for this term, please try another term.';
 
 // Divisions
 $string['division_title'] = 'Divisions';
