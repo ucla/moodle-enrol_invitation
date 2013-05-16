@@ -125,8 +125,7 @@ abstract class uclastats_base implements renderable {
                 
                 
                 //indicate to user if row is locked
-                if ($is_locked) {
-                    
+                if ($is_locked) {                    
                     if(isset($row->attributes['class'])) {
                          $row->attributes['class'] .= ' locked'; 
                     } else {
@@ -152,25 +151,27 @@ abstract class uclastats_base implements renderable {
                       'resultid' => $result->id)), 
                 get_string('view_results', 'report_uclastats'));
                  
+                // Indicate if result is locked and user cannot unlock it.
+                if ($is_locked && !$can_unlock) {
+                    $row->cells['actions'] .= ' (';
+                    $row->cells['actions'] .= html_writer::tag('span',
+                            get_string('locked_results' , 'report_uclastats'));
+                    $row->cells['actions'] .= ')';
+                }
 
-                if ($can_manage_report) {
-                    
+                if ($can_manage_report) {                    
                     //unlock
                     if($is_locked && $can_unlock) {
-                        
                         $row->cells['actions'] .= html_writer::link(
-                        new moodle_url('/report/uclastats/view.php',
-                        array('report' => get_class($this),
-                              'resultid' => $result->id,
-                              'action' => UCLA_STATS_ACTION_UNLOCK)),
-                              get_string('unlock_results' , 'report_uclastats'),
-                        array('class' => 'edit'));
-                    
+                            new moodle_url('/report/uclastats/view.php',
+                            array('report' => get_class($this),
+                                  'resultid' => $result->id,
+                                  'action' => UCLA_STATS_ACTION_UNLOCK)),
+                                  get_string('unlock_results' , 'report_uclastats'),
+                            array('class' => 'edit'));
                     } 
                     
-
-                    if(!$is_locked) {
-                    
+                    if(!$is_locked) {                    
                         //lock
                         $row->cells['actions'] .= html_writer::link(
                         new moodle_url('/report/uclastats/view.php',

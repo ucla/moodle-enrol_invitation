@@ -36,6 +36,7 @@ $string['header_lastran'] = 'Last ran';
 $string['header_actions'] = 'Actions';
 $string['view_results'] = 'View results';
 $string['lock_results'] = 'Lock';
+$string['locked_results'] = 'Locked';
 $string['unlock_results'] = 'Unlock';
 $string['delete_results'] = 'Delete';
 $string['successful_delete'] = 'Successfully deleted result';
