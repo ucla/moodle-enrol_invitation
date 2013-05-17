@@ -165,10 +165,17 @@ class subject_area_report extends uclastats_base {
      * @global type $DB
      * @global type $CFG
      */
-    private function query_visits() {
+    private function query_visits($term) {
         global $DB;
         
-        $term = $this->get_term_info();
+        $term_info = $this->get_term_info($term);
+        
+        if(is_summer_term($term)) {
+            $term_info['start'] = $term_info['start_8a'];
+            $term_info['end'] = $term_info['end_c'];
+        }
+        
+        $term_info = (object)$term_info;
         
         foreach($this->courseids as $id) {
             list($in_or_equal, $params, $count) = $this->get_students_ids($id);
@@ -183,8 +190,8 @@ class subject_area_report extends uclastats_base {
                     FROM {log} l
                 WHERE l.action LIKE 'view%'
                     AND l.course = $id
-                    AND l.time > $term->start
-                    AND l.time < $term->end
+                    AND l.time > $term_info->start
+                    AND l.time < $term_info->end
                     AND l.userid $in_or_equal
                 GROUP BY l.userid
                 ";            
@@ -242,32 +249,6 @@ class subject_area_report extends uclastats_base {
         return array($sql, $params, $count);
     }
     
-    private function get_term_info() {
-        // We need to query the registrar
-        ucla_require_registrar();
-        
-        $result = registrar_query::run_registrar_query('ucla_getterms', 
-                    array($this->params['term']), true);
-        
-        $term = array();
-        
-        // Get ther term start and term end, if it's a summer session,
-        // then get start and end of entire summer
-        foreach($result as $r) {
-            if($r['session'] == 'RG') {
-                $term['start'] = strtotime($r['session_start']);
-                $term['end'] = strtotime($r['session_end']);
-                break;
-            } else if($r['session'] == '8A') {
-                $term['start'] = strtotime($r['session_start']);
-            } else if($r['session'] == '6C') {
-                $term['end'] = strtotime($r['session_end']);
-            }
-        }
-        
-        return (object)$term;
-    }
-
     /**
      * Querying on the mdl_log can take a long time.
      * 
@@ -352,7 +333,7 @@ class subject_area_report extends uclastats_base {
         if($this->query_courses()) {
             $this->query_instructors();
             $this->query_forums();
-            $this->query_visits();
+            $this->query_visits($params['term']);
             $this->query_files();
             $this->query_syllabus();
         }

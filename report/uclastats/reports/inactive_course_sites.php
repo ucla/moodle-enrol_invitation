@@ -37,37 +37,6 @@ class inactive_course_sites extends uclastats_base {
         return array('term');
     }
 
-    private function get_term_info($term) {
-        // We need to query the registrar
-        ucla_require_registrar();
-
-        $results = registrar_query::run_registrar_query('ucla_getterms', array($term), true);
-
-        if (empty($results)) {
-            return null;
-        }
-
-        $ret_val = array();
-
-        // Get ther term start and term end, if it's a summer session,
-        // then get start and end of entire summer
-        foreach ($results as $r) {
-            if ($r['session'] == 'RG') {
-                $ret_val['start'] = strtotime($r['session_start']);
-                $ret_val['end'] = strtotime($r['session_end']);
-                break;
-            } else if ($r['session'] == '8A') {
-                $ret_val['start_a'] = strtotime($r['session_start']);
-                $ret_val['end_a'] = strtotime($r['session_end']);
-            } else if ($r['session'] == '6C') {
-                $ret_val['start_c'] = strtotime($r['session_start']);
-                $ret_val['end_c'] = strtotime($r['session_end']);
-            }
-        }
-
-        return $ret_val;
-    }
-
     /**
      * Since we are querying the mdl_log table a lot, we need to give a warning.
      * 
@@ -94,6 +63,11 @@ class inactive_course_sites extends uclastats_base {
 
         // get start and end dates for term
         $term_info = $this->get_term_info($params['term']);
+        
+        if(is_summer_term($params['term'])) {
+            $term_info['start_a'] = $term_info['start_1a'];
+            $term_info['end_a'] = $term_info['end_1a'];
+        }
 
         // get guest role, so that we can filter out that id
         $guest_role = get_guest_role();
