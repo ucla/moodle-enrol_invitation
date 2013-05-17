@@ -163,39 +163,16 @@ class block_ucla_browseby_renderer extends block_navigation_renderer {
     }
 
     /**
-     *  Convenience function, use this.
-     *  @param  $terms Array() Possible terms to select from, in form
-     *     YYT (i.e. 11F)
-     *  @param  $default string default one to pick
-     **/
-    static function make_terms_selector($terms, $default=false) {        
-        list($w, $p) = self::render_terms_restricted_helper($terms);
-        return self::render_terms_selector($default, $w, $p);
-    }
-    
-    /**
-     *  Another convenience function.
-     **/
-    static function render_terms_restricted_helper($restrict_terms=false) {
-        global $DB;
-
-        list($ti, $tp) = $DB->get_in_or_equal($restrict_terms);
-        $tw = 'term ' . $ti;
-
-        return array($tw, $tp);
-    }
-
-    /**
      *  Convenience function for drawing a terms-drop down
      **/
     static function render_terms_selector($defaultterm=false, 
-                                   $restrictor_where=false,
-                                   $restrictor_params=null) {
+                                   $sql=false,
+                                   $sqlparams=null) {
         global $OUTPUT;
 
         $contents = get_string('term', 'local_ucla') . ':' 
             . $OUTPUT->render(self::terms_selector($defaultterm, 
-                $restrictor_where, $restrictor_params));               
+                $sql, $sqlparams));               
         return html_writer::tag('div', $contents, array('class' => 'term_selector'));
     }
 
@@ -204,12 +181,11 @@ class block_ucla_browseby_renderer extends block_navigation_renderer {
      *  with terms. Returns a thing you $OUTPUT->render()
      **/
     static function terms_selector($defaultterm=false, 
-            $restrictor_where=false, $restrictor_params=null) {
+            $sql=false, $sqlparams=null) {
         global $DB, $PAGE;
 
-        if (!empty($restrictor_where)) {
-            $termobjs = $DB->get_records_select('ucla_reg_classinfo', 
-                $restrictor_where, $restrictor_params, '', 'DISTINCT term');
+        if (!empty($sql)) {
+            $termobjs = $DB->get_records_sql($sql, $sqlparams);
         } else {
             $termobjs = $DB->get_records('ucla_reg_classinfo', null, '',
                 'DISTINCT term');
