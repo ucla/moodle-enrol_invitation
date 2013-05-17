@@ -5,7 +5,11 @@
 if (!during_initial_install()) { //do not use during installation
     $frontpagecontext = get_context_instance(CONTEXT_COURSE, SITEID);
 
-    if ($hassiteconfig or has_any_capability(array(
+    // START UCLA MOD: CCLE-3864 - Prevent access to site frontpage settings
+    // Requires the user to have site-level admin capabilities to access this page 
+    //if ($hassiteconfig or has_any_capability(array(
+    if ($hassiteconfig and has_any_capability(array(
+    // END UCLA MOD: CCLE-3684 
             'moodle/course:update',
             'moodle/role:assign',
             'moodle/restore:restorecourse',

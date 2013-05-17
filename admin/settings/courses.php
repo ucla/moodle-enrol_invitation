@@ -2,12 +2,17 @@
 
 // This file defines settingpages and externalpages under the "courses" category
 
+// START UCLA MOD: CCLE-3863 - Prevent access to site backup settings
+// Requires the user to have site-level admin capabilities to access this page 
 if ($hassiteconfig
- or has_capability('moodle/backup:backupcourse', $systemcontext)
+ //or has_capability('moodle/backup:backupcourse', $systemcontext)
+ and (has_capability('moodle/backup:backupcourse', $systemcontext) 
  or has_capability('moodle/category:manage', $systemcontext)
  or has_capability('moodle/course:create', $systemcontext)
- or has_capability('moodle/site:approvecourse', $systemcontext)) { // speedup for non-admins, add all caps used on this page
-
+ //or has_capability('moodle/site:approvecourse', $systemcontext)) { // speedup for non-admins, add all caps used on this page
+ or has_capability('moodle/site:approvecourse', $systemcontext))) { // speedup for non-admins, add all caps used on this page 
+// END UCLA MOD: CCLE-3683 
+    
     // START UCLA MOD: CCLE-3773 - Manager limited should be able to delete courses for their own categories
     $ADMIN->add('courses', new admin_externalpage('coursemgmt', new lang_string('coursemgmt', 'admin'), $CFG->wwwroot . '/course/index.php?categoryedit=on',
             array('moodle/category:manage', 'moodle/course:create', 'local/ucla:browsecourses')));
