@@ -46,7 +46,7 @@ class instructor_handler extends browseby_handler {
      *  Fetches a list of instructors with an alphabetized index.
      **/
     function handle($args) {
-        global $PAGE;
+        global $OUTPUT, $PAGE;
 
         $s = '';
 
@@ -187,13 +187,8 @@ class instructor_handler extends browseby_handler {
         
         // This case can be reached if the current term has no instructors.
         if (empty($users) || count($users) == $no_display_hack) {
-            if ($term) {
-                $s .= get_string('noinstructorsterm', 'block_ucla_browseby',
-                    $prettyterm);
-            } else {
-                $s .= get_string('noinstructors', 'block_ucla_browseby');
-            }
-
+            $s .= $OUTPUT->notification(get_string('noinstructors',
+                    'block_ucla_browseby'));
             return array($t, $s);
         } else {
             if ($letter == null) {

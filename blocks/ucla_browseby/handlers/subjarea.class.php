@@ -92,7 +92,8 @@ class subjarea_handler extends browseby_handler {
             $args['term'], $sql, $conds);
         
         if (empty($subjectareas)) {
-            $s .= get_string('subjarea_noterm', 'block_ucla_browseby');
+            $s .= $OUTPUT->notification(get_string('subjarea_noterm',
+                    'block_ucla_browseby'));
             return array($t, $s);
         }
         // START UCLA MOD CCLE-2309

@@ -27,8 +27,7 @@ $string['division_noterm'] = 'No divisions were found for this term, please try 
 $string['instructorsall'] = 'Instructors';
 $string['instructorswith'] = 'Instructors with a last name starting with "{$a}"';
 $string['instructosallterm'] = 'All instructors for {$a}';
-$string['noinstructorsterm'] = 'There are no instructors teaching on this server for {$a}, please try another term.';
-$string['noinstructors'] = 'There were no instructors found.';
+$string['noinstructors'] = 'There are no instructors for given parameters found.';
 $string['selectinstructorletter'] = "Please select a letter to view instructors.";
 
 // Instructors -> courses

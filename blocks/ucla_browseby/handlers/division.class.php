@@ -11,6 +11,8 @@ class division_handler extends browseby_handler {
      *  A list of divisions.
      **/
     function handle($args) {
+        global $OUTPUT;
+        
         $s = '';
         $t = get_string('division_title', 'block_ucla_browseby');
 
@@ -40,7 +42,8 @@ class division_handler extends browseby_handler {
             $args['term']);
                 
         if (empty($divisions)) {
-            $s .= get_string('division_noterm', 'block_ucla_browseby');
+            $s .= $OUTPUT->notification(get_string('division_noterm',
+                    'block_ucla_browseby'));
             return array($t, $s);
         } else {
             $table = $this->list_builder_helper($divisions, 'code',
