@@ -29,7 +29,7 @@ require_login($course);
 
 if (isset($action)) {
     $data = data_submitted();
-    update_copyright_status($data->block_ucla_copyright_status_n1);
+    update_copyright_status($data);
 }
 
 $context = context_course::instance($courseid);
