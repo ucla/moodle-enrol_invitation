@@ -143,9 +143,9 @@ $string['large_collab_sites_help'] = 'List all the collaboration sites over {$a}
 
 //strings for final quiz report
 $string['final_quiz_report'] = 'Final quiz report (course)';
-$string['final_quiz_report_help'] = 'Displays the number of quizzes taken during 10th week and Finals week by division. ' .
-                                    'Regular: 10th week: Sat-Friday before Finals, Finals: Sat-Friday of end of term. ' .
-                                    'Summer: 10th: Sat-Thursday of end of term, Finals: Friday of end of term';
+$string['final_quiz_report_help'] = 'Displays the number of quizzes taken during 10th week and Finals week by division.<br/> ' .
+                                    '<strong>Regular:</strong> 10th week: Sat-Friday before Finals, Finals: Sat-Friday of end of term.<br/>' .
+                                    '<strong>Summer:</strong> 10th: Sat-Thursday of end of term, Finals: Friday of end of term';
 $string['last_week_count'] = 'Last Week';
 $string['final_count'] = 'Finals';
 
