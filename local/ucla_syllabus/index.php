@@ -150,15 +150,11 @@ if (!empty($USER->editing) && $can_manage_syllabus) {
         $syllabi = $ucla_syllabus_manager->get_syllabi();
         
         $convertto = 0;
-        $fromto = new StdClass();
-        $fromto->old = $type;
         if ($type == UCLA_SYLLABUS_TYPE_PUBLIC) {
             $convertto = UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE;
-            $fromto->new = UCLA_SYLLABUS_TYPE_PRIVATE;
         } else if ($type == UCLA_SYLLABUS_TYPE_PRIVATE) {
             // Using the stricter version of public - require user login
             $convertto = UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN;
-            $fromto->new = UCLA_SYLLABUS_TYPE_PUBLIC;
         }
         
         if ($convertto == 0) {
@@ -169,7 +165,12 @@ if (!empty($USER->editing) && $can_manage_syllabus) {
             $url = new moodle_url('/local/ucla_syllabus/index.php',
                     array('action' => UCLA_SYLLABUS_ACTION_VIEW,
                           'id' => $course->id));
-            $success_msg = get_string('successful_convert', 'local_ucla_syllabus', $fromto);
+
+            if ($convertto == UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE) {
+                $success_msg = get_string('successful_restrict', 'local_ucla_syllabus');
+            } else {
+                $success_msg = get_string('successful_unrestrict', 'local_ucla_syllabus');
+            }
             flash_redirect($url, $success_msg);
         }
     }
@@ -243,20 +244,11 @@ if (!empty($USER->editing) && $can_manage_syllabus) {
         }
         
         // if this is a preview syllabus, give some disclaimer text
-        // add some disclaimer text for public syllabus
         $disclaimer_text = ''; $type_text = '';
         if ($syllabus_to_display instanceof ucla_public_syllabus) {
             if ($syllabus_to_display->is_preview) {
                 $type_text = get_string('preview', 'local_ucla_syllabus');
-            } else {
-                $type_text = get_string('public', 'local_ucla_syllabus');
-            }
-
-            if ($syllabus_to_display->is_preview) {
                 $disclaimer_text = get_string('preview_disclaimer', 'local_ucla_syllabus');
-
-            } else {                
-                $disclaimer_text = get_string('public_disclaimer', 'local_ucla_syllabus');
             }
         } else {
             $type_text = get_string('private', 'local_ucla_syllabus');
@@ -270,9 +262,11 @@ if (!empty($USER->editing) && $can_manage_syllabus) {
                     . userdate($syllabus_to_display->timemodified);
         }
 
-        $title .= sprintf(' (%s)*',$type_text);
-        $body .= html_writer::tag('p', '*' . $disclaimer_text,
-                array('class' => 'syllabus_disclaimer'));
+        if (!empty($type_text)) {
+            $title .= sprintf(' (%s)*',$type_text);
+            $body .= html_writer::tag('p', '*' . $disclaimer_text,
+                    array('class' => 'syllabus_disclaimer'));
+        }
         $body .= html_writer::tag('p', $modified_text, 
                 array('class' => 'syllabus-modified'));
     }

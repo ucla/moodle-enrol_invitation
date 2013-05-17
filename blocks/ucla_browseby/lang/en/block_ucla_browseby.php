@@ -84,9 +84,9 @@ $string['instructors'] = 'Instructors';
 $string['coursetitle'] = 'Course title';
 
 // Syllabus integration
-$string['public_world_syllabus'] = 'Public syllabus';
-$string['public_ucla_syllabus'] = 'Public syllabus (login required)';
-$string['private_syllabus'] = 'Private syllabus';
+$string['public_world_syllabus'] = 'Syllabus (no login required)';
+$string['public_ucla_syllabus'] = 'Syllabus (login required)';
+$string['private_syllabus'] = 'Restricted syllabus (only enrolled students)';
 
 // CCLE-3141 - Prepare for post M2 deployment
 $string['cutoff12S'] = 'If you cannot find the course for which ' . 
