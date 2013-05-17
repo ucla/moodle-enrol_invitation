@@ -28,6 +28,3 @@ $string['alert_later_redirect'] = 'Assign copyright status reminder set.';
 
 // aria strings
 $string['aria_copyright_badge'] = ' items without copyright status.';
-
-// Turning off copyright tool until CCLE-3935 is fixed.
-$string['not_working'] = 'Temporarily not available';

@@ -61,10 +61,7 @@ class block_ucla_copyright_status extends block_base {
                 get_string('pluginname', 'block_ucla_copyright_status'),
                 array('id' => 'id-copyright-status'));
         
-        // Turning off copyright tool until CCLE-3935 is fixed.
-        return array(3 => $link);
-
-        // site menu block arranges editing links by key, make sure this is the
+           // site menu block arranges editing links by key, make sure this is the
         // 3rd link
         return array(3 => $link . $span);
     }
