@@ -509,20 +509,30 @@ if ($displayforms) {
         // List courses by subject area
         $sql = 'SELECT      urci.id, urs.subjarea AS code, urs.subj_area_full AS fullname, 
                             urci.crsidx AS catalognum, urc.courseid
-                FROM        {ucla_reg_subjectarea} AS urs, {ucla_reg_classinfo} AS urci,
+                FROM        {ucla_reg_subjectarea} AS urs,
+                            {ucla_reg_classinfo} AS urci,
                             {ucla_request_classes} AS urc
-                WHERE       urci.term =:term AND urs.subjarea = urci.subj_area AND
-                            urci.term = urc.term AND urci.srs = urc.srs
+                WHERE       urci.term =:term AND
+                            urs.subjarea = urci.subj_area AND
+                            urci.term = urc.term AND 
+                            urci.srs = urc.srs AND
+                            urci.enrolstat != \'X\' AND
+                            urci.acttype != \'TUT\'
                 ORDER BY    urs.subjarea';
         $table_colum_name = get_string('syllabus_subjarea', 'tool_uclasupportconsole');
     } else {
         // List course by division
         $sql = 'SELECT      urci.id, urd.code, urd.fullname, 
                             urci.crsidx AS catalognum, urc.courseid
-                FROM        {ucla_reg_division} AS urd, {ucla_reg_classinfo} AS urci,
+                FROM        {ucla_reg_division} AS urd,
+                            {ucla_reg_classinfo} AS urci,
                             {ucla_request_classes} AS urc
-                WHERE       urci.term =:term AND urd.code = urci.division AND
-                            urci.term = urc.term AND urci.srs = urc.srs
+                WHERE       urci.term =:term AND
+                            urd.code = urci.division AND
+                            urci.term = urc.term AND 
+                            urci.srs = urc.srs AND
+                            urci.enrolstat != \'X\' AND
+                            urci.acttype != \'TUT\'
                 ORDER BY    urd.fullname';
     }
     
@@ -628,11 +638,11 @@ if ($displayforms) {
                 if (empty($syllabi_counts['total_courses'])) {
                     $table_row[] = 0;
                 } else {
-                    @$table_row[] = sprintf('%d/%d (%.2f%%)',
+                    @$table_row[] = sprintf('%d/%d (%d%%)',
                             $syllabi_counts['syllabi_courses'], 
                             $syllabi_counts['total_courses'],
-                            ($syllabi_counts['syllabi_courses']/
-                             $syllabi_counts['total_courses'])*100);
+                            round(($syllabi_counts['syllabi_courses']/
+                             $syllabi_counts['total_courses'])*100));
                 }
 
                 // if there are no courses with syllabi, then we can skip
@@ -647,35 +657,35 @@ if ($displayforms) {
 
                 // col3: public syllabus
                 @$header_totals[UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC] += $syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC];
-                @$table_row[] = sprintf('%d/%d (%.2f%%)',
+                @$table_row[] = sprintf('%d/%d (%d%%)',
                         $syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC],
                         $syllabi_counts['syllabi_courses'],
-                        ($syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC]/
-                         $syllabi_counts['syllabi_courses'])*100);
+                        round(($syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC]/
+                         $syllabi_counts['syllabi_courses'])*100));
             
                 // col4: loggedin syllabus
                 @$header_totals[UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN] += $syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN];
-                @$table_row[] = sprintf('%d/%d (%.2f%%)',
+                @$table_row[] = sprintf('%d/%d (%d%%)',
                         $syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN],
                         $syllabi_counts['syllabi_courses'],
-                        ($syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN]/
-                         $syllabi_counts['syllabi_courses'])*100);                
+                        round(($syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN]/
+                         $syllabi_counts['syllabi_courses'])*100));
 
                 // col5: preview syllabus
                 @$header_totals['preview'] += $syllabi_counts['preview'];
-                @$table_row[] = sprintf('%d/%d (%.2f%%)',
+                @$table_row[] = sprintf('%d/%d (%d%%)',
                         $syllabi_counts['preview'],
                         $syllabi_counts['syllabi_courses'],
-                        ($syllabi_counts['preview']/
-                         $syllabi_counts['syllabi_courses'])*100);
+                        round(($syllabi_counts['preview']/
+                         $syllabi_counts['syllabi_courses'])*100));
 
                 // col6: private syllabus
                 @$header_totals[UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE] += $syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE];
-                @$table_row[] = sprintf('%d/%d (%.2f%%)',
+                @$table_row[] = sprintf('%d/%d (%d%%)',
                         $syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE],
                         $syllabi_counts['syllabi_courses'],
-                        ($syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE]/
-                         $syllabi_counts['syllabi_courses'])*100);
+                        round(($syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE]/
+                         $syllabi_counts['syllabi_courses'])*100));
 
                 $table_data[] = $table_row;
             }
@@ -684,11 +694,11 @@ if ($displayforms) {
             // create header information
             $syllabus_count = 0;
             if (!empty($header_totals['total_courses'])) {
-                $syllabus_count = sprintf('%d/%d (%.2f%%)', 
+                $syllabus_count = sprintf('%d/%d (%d%%)',
                         $header_totals['syllabi_courses'],
                         $header_totals['total_courses'],
-                        ($header_totals['syllabi_courses']/
-                         $header_totals['total_courses'])*100);
+                        round(($header_totals['syllabi_courses']/
+                         $header_totals['total_courses'])*100));
             }
 
             $public_syllabus_count = 0;
@@ -696,26 +706,26 @@ if ($displayforms) {
             $preview_syllabus_count = 0;
             $private_syllabus_count = 0;
             if (!empty($header_totals['syllabi_courses'])) {
-                $public_syllabus_count = sprintf('%d/%d (%.2f%%)',
+                $public_syllabus_count = sprintf('%d/%d (%d%%)',
                         $header_totals[UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC],
                         $header_totals['syllabi_courses'],
-                        ($header_totals[UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC]/
-                         $header_totals['syllabi_courses'])*100);
-                $loggedin_syllabus_count = sprintf('%d/%d (%.2f%%)',
+                        round(($header_totals[UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC]/
+                         $header_totals['syllabi_courses'])*100));
+                $loggedin_syllabus_count = sprintf('%d/%d (%d%%)',
                         $header_totals[UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN],
                         $header_totals['syllabi_courses'],
-                        ($header_totals[UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN]/
-                         $header_totals['syllabi_courses'])*100);
-                $preview_syllabus_count = sprintf('%d/%d (%.2f%%)',
+                        round(($header_totals[UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN]/
+                         $header_totals['syllabi_courses'])*100));
+                $preview_syllabus_count = sprintf('%d/%d (%d%%)',
                         $header_totals['preview'],
                         $header_totals['syllabi_courses'],
-                        ($header_totals['preview']/
-                         $header_totals['syllabi_courses'])*100);
-                $private_syllabus_count = sprintf('%d/%d (%.2f%%)',
+                        round(($header_totals['preview']/
+                         $header_totals['syllabi_courses'])*100));
+                $private_syllabus_count = sprintf('%d/%d (%d%%)',
                         $header_totals[UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE],
                         $header_totals['syllabi_courses'],
-                        ($header_totals[UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE]/
-                         $header_totals['syllabi_courses'])*100);
+                        round(($header_totals[UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE]/
+                         $header_totals['syllabi_courses'])*100));
             }
 
             $working_table->head = array($table_colum_name,
@@ -796,7 +806,11 @@ if ($displayforms) {
                         urc.term=uri.term AND
                         urc.srs=uri.srs)
             LEFT JOIN   {ucla_syllabus} AS s ON (urc.courseid = s.courseid)
-            WHERE       urc.term =:term AND urc.department =:department {$timesql}
+            WHERE       urc.term =:term AND
+                        urc.department =:department AND
+                        uri.enrolstat != 'X' AND
+                        uri.acttype != 'TUT'
+                        {$timesql}
             ORDER BY    uri.term, uri.subj_area, uri.crsidx, uri.secidx";
     
     $params = array();
