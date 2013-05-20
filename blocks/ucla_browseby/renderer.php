@@ -78,9 +78,9 @@ class block_ucla_browseby_renderer extends block_navigation_renderer {
         $found_grad = false;
         
         if (!empty($courses)) {
-            $public_world_syllabus_string = get_string('public_world_syllabus', 'block_ucla_browseby');
-            $public_ucla_syllabus_string = get_string('public_ucla_syllabus', 'block_ucla_browseby');
-            $private_syllabus_string = get_string('private_syllabus', 'block_ucla_browseby');
+            $public_world_syllabus_string = get_string('icon_public_world_syllabus', 'local_ucla_syllabus');
+            $public_ucla_syllabus_string = get_string('icon_public_ucla_syllabus', 'local_ucla_syllabus');
+            $private_syllabus_string = get_string('icon_private_syllabus', 'local_ucla_syllabus');
 
             foreach ($courses as $termsrs => $course) {
                 if (!empty($course->nonlinkdispname)) {

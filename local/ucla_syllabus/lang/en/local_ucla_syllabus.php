@@ -21,7 +21,7 @@ $string['syllabus_url_file'] = 'Please provide a:';
 $string['public_syllabus'] = 'Syllabus';
 $string['public_syllabus_help'] = 'A syllabus can be available to the UCLA community (login required) or the general public (no login required).';
 $string['private_syllabus'] = 'Restricted syllabus';
-$string['private_syllabus_help'] = 'A restricted syllabus is viewable only by enrolled students.';
+$string['private_syllabus_help'] = 'A restricted syllabus is viewable only by enrolled students in the course.';
 
 $string['url'] = 'URL';
 $string['file'] = 'File';
@@ -45,7 +45,7 @@ $string['make_public'] = 'Unrestrict';
 $string['confirm_deletion'] = 'Are you sure you want to delete this syllabus?';
 
 // strings for displaying syllabus
-$string['cannot_view_private_syllabus'] = 'This syllabus is available only to enrolled students.';
+$string['cannot_view_private_syllabus'] = 'This syllabus is available only to enrolled students in the course.';
 $string['cannot_view_public_syllabus'] = 'This syllabus is available only to logged in users.';
 $string['no_syllabus_uploaded'] = 'Syllabus is not available yet.';
 $string['no_syllabus_uploaded_help'] = 'Please "Turn editing on" to upload a syllabus.';
@@ -53,7 +53,7 @@ $string['clicktodownload'] = 'Download: {$a}';
 $string['syllabus_needs_setup'] = 'Syllabus (empty)';
 $string['public_disclaimer'] = '';
 $string['preview_disclaimer'] = 'May not reflect the complete contents of the final syllabus for this course.';
-$string['private_disclaimer'] = 'This syllabus is available only to enrolled students.';
+$string['private_disclaimer'] = 'This syllabus is available only to enrolled students in the course.';
 $string['preview'] = 'preview';
 $string['private'] = 'restricted';
 $string['modified'] = 'Last modified: ';
@@ -128,3 +128,8 @@ $string['alert_later_redirect'] = 'Syllabus reminder set.';
 // strings for syllabus backup
 $string['backup_notice'] = 'Files uploaded via the syllabus tool will not 
 be included in your backup.  You will need to re-upload those files manually.';
+
+// strings for syllabus icons
+$string['icon_public_world_syllabus'] = 'Syllabus (no login required)';
+$string['icon_public_ucla_syllabus'] = 'Syllabus (login required)';
+$string['icon_private_syllabus'] = 'Restricted syllabus (only enrolled students)';

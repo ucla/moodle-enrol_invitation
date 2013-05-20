@@ -163,20 +163,14 @@ class syllabus_form extends moodleform {
                 $this->action == UCLA_SYLLABUS_ACTION_ADD) {
             $this->display_private_syllabus_form($existing_syllabus);
         } else {
+            $mform->addElement('html', html_writer::tag('div',
+                    get_string('private_syllabus_help', 'local_ucla_syllabus'),
+                    array('class' => 'syllabus_help')));
+
             // display edit links for syllabus
             if (!empty($existing_syllabus)) {
-                
-                // Give preference to URL
-                $display_name = $existing_syllabus->display_name;
-                if(empty($existing_syllabus->url)) {
-                    $filename = $existing_syllabus->stored_file->get_filename();
-                } else {
-                    $filename = $existing_syllabus->url;
-                }
-                
-                $display_syllabus = html_writer::tag('span', sprintf('%s (%s)', 
-                        $display_name, $filename), array('class' => 'displayname_filename'));         
-                
+                $display_syllabus = $this->display_syllabus_info($existing_syllabus);
+
                 $edit_link = html_writer::link(
                         new moodle_url('/local/ucla_syllabus/index.php', 
                             array('id' => $this->courseid,
@@ -207,11 +201,7 @@ class syllabus_form extends moodleform {
                         array('class' => 'editing_links'));
                 $mform->addElement('html', $display_syllabus . $edit_links);
             } else {
-                // no syllabus added, so give a "add syllabus now" link
-                $mform->addElement('html', html_writer::tag('div', 
-                        get_string('private_syllabus_help', 'local_ucla_syllabus'),
-                        array('class' => 'syllabus_help')));                        
-                
+                // no syllabus added, so give a "add syllabus now" link                
                 $url = new moodle_url('/local/ucla_syllabus/index.php', 
                             array('id' => $this->courseid,
                                   'action' => UCLA_SYLLABUS_ACTION_ADD,
@@ -244,25 +234,13 @@ class syllabus_form extends moodleform {
                 $this->action == UCLA_SYLLABUS_ACTION_ADD) {
             $this->display_public_syllabus_form($existing_syllabus);
         } else {
-            // display edit links for syllabus
-            if (!empty($existing_syllabus)) {
-                
-                // Give preference to URL
-                $display_name = $existing_syllabus->display_name;
-                if(empty($existing_syllabus->url)) {
-                    $filename = $existing_syllabus->stored_file->get_filename();
-                } else {
-                    $filename = $existing_syllabus->url;
-                }
+            $mform->addElement('html', html_writer::tag('div',
+                    get_string('public_syllabus_help', 'local_ucla_syllabus'),
+                    array('class' => 'syllabus_help')));                        
 
-                $type_text = '';
-                if ($existing_syllabus->is_preview) {
-                    $type_text = sprintf('(%s)',
-                            get_string('preview', 'local_ucla_syllabus'));
-                }
-                $display_syllabus = html_writer::tag('span', sprintf('%s %s (%s)',
-                        $display_name, $type_text, $filename),
-                        array('class' => 'displayname_filename'));
+            // display edit links for syllabus
+            if (!empty($existing_syllabus)) {                
+                $display_syllabus = $this->display_syllabus_info($existing_syllabus);
 
                 $edit_link = html_writer::link(
                         new moodle_url('/local/ucla_syllabus/index.php', 
@@ -271,7 +249,7 @@ class syllabus_form extends moodleform {
                                   'type' => UCLA_SYLLABUS_TYPE_PUBLIC)),
                         get_string('edit'));
                 $make_private_link = '';
-                if (! ucla_syllabus_manager::has_private_syllabus($this->courseid)) {
+                if (!ucla_syllabus_manager::has_private_syllabus($this->courseid)) {
                     $make_private_link = html_writer::link(
                             new moodle_url('/local/ucla_syllabus/index.php', 
                                 array('id' => $this->courseid,
@@ -294,11 +272,7 @@ class syllabus_form extends moodleform {
                         array('class' => 'editing_links'));
                 $mform->addElement('html', $display_syllabus . $edit_links);
             } else {
-                // no syllabus added, so give a "add syllabus now" link
-                $mform->addElement('html', html_writer::tag('div', 
-                        get_string('public_syllabus_help', 'local_ucla_syllabus'),
-                        array('class' => 'syllabus_help')));                        
-                
+                // no syllabus added, so give a "add syllabus now" link                
                 $url = new moodle_url('/local/ucla_syllabus/index.php', 
                             array('id' => $this->courseid,
                                   'action' => UCLA_SYLLABUS_ACTION_ADD,
@@ -470,5 +444,48 @@ class syllabus_form extends moodleform {
         }
         
         $this->add_action_buttons();
+    }
+
+    /**
+     * Helper function to generate output to display syllabus information for
+     * use in a form.
+     *
+     * @param ucla_sylabus $syllabus
+     */
+    protected function display_syllabus_info($syllabus) {
+        global $CFG;
+        
+        $syllabus_info = array(UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC => 'public_world',
+                               UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN => 'public_ucla',
+                               UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE => 'private');
+        $syllabus_type = $syllabus_info[$syllabus->access_type];
+        $image_string = get_string($syllabus_type.'_syllabus', 'local_ucla_syllabus');
+
+        // Display icon for syllabus.
+        $display_name = html_writer::tag('img', '',
+            array('src' => $CFG->wwwroot.'/local/ucla_syllabus/pix/'.$syllabus_type.'.png',
+                'alt' => $image_string,
+                'title' => $image_string
+                )
+            );
+
+        // Give preference to URL
+        $display_name .= $syllabus->display_name;
+        if(empty($syllabus->url)) {
+            $filename = $syllabus->stored_file->get_filename();
+        } else {
+            $filename = $syllabus->url;
+        }
+
+        $type_text = '';
+        if ($syllabus->is_preview) {
+            $type_text = sprintf('(%s)',
+                    get_string('preview', 'local_ucla_syllabus'));
+        }
+        $display_syllabus = html_writer::tag('span', sprintf('%s %s (%s)',
+                $display_name, $type_text, $filename),
+                array('class' => 'displayname_filename'));
+
+        return $display_syllabus;
     }
 }
