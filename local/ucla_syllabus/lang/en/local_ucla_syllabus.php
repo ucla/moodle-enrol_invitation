@@ -19,7 +19,7 @@ $string['syllabus_choice'] = 'If you select both a file and URL, the URL will be
 $string['syllabus_url_file'] = 'Please provide a:';
 
 $string['public_syllabus'] = 'Syllabus';
-$string['public_syllabus_help'] = 'A syllabus can be available to logged in users or to the general public.';
+$string['public_syllabus_help'] = 'A syllabus can be available to the UCLA community (login required) or the general public (no login required).';
 $string['private_syllabus'] = 'Restricted syllabus';
 $string['private_syllabus_help'] = 'A restricted syllabus is viewable only by enrolled students.';
 
@@ -70,7 +70,7 @@ $string['err_file_not_uploaded'] = 'Please upload a PDF.';
 $string['err_file_url_not_uploaded'] = 'Please upload a file or add a valid URL for your syllabus.';
 $string['err_missing_courseid'] = 'Missing required courseid';
 $string['err_syllabus_mismatch'] = 'Selected syllabus does not belong to course';
-$string['err_syllabus_not_allowed'] = 'Sorry, you must be logged in or assciated with the course to view this syllabus';
+$string['err_syllabus_not_allowed'] = 'Sorry, you must be logged in or associated with the course to view this syllabus';
 $string['err_syllabus_notexist'] = 'Sorry, but given syllabus does not exist';
 $string['err_noembed'] = 'Unable to show embedded file. Please download file to view.';
 $string['err_syllabus_convert'] = 'Cannot convert syllabus when both a restricted and unrestricted syllabi are uploaded';

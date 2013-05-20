@@ -23,10 +23,10 @@ class alert_form extends moodleform {
         $alert_buttons = array();
         $alert_buttons[] = $mform->createElement('submit', 'yesbutton',
                 get_string('alert_yes', 'local_ucla_syllabus'));
-        $alert_buttons[] = $mform->createElement('submit', 'nobutton',
-                get_string('alert_no', 'local_ucla_syllabus'));
         $alert_buttons[] = $mform->createElement('submit', 'laterbutton',
                 get_string('alert_later', 'local_ucla_syllabus'));
+        $alert_buttons[] = $mform->createElement('submit', 'nobutton',
+                get_string('alert_no', 'local_ucla_syllabus'));
         $mform->addGroup($alert_buttons, 'alert_buttons', '', array(' '), false);
         $mform->closeHeaderBefore('alert_buttons');
     }
