@@ -459,7 +459,7 @@ class syllabus_form extends moodleform {
                                UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN => 'public_ucla',
                                UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE => 'private');
         $syllabus_type = $syllabus_info[$syllabus->access_type];
-        $image_string = get_string($syllabus_type.'_syllabus', 'local_ucla_syllabus');
+        $image_string = get_string('icon_'.$syllabus_type.'_syllabus', 'local_ucla_syllabus');
 
         // Display icon for syllabus.
         $display_name = html_writer::tag('img', '',
@@ -478,7 +478,8 @@ class syllabus_form extends moodleform {
         }
 
         $type_text = '';
-        if ($syllabus->is_preview) {
+        if ($syllabus->is_preview &&
+                $syllabus->access_type != UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE) {
             $type_text = sprintf('(%s)',
                     get_string('preview', 'local_ucla_syllabus'));
         }
