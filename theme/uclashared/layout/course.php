@@ -42,6 +42,19 @@ if ($hascustommenu) {
 
 $envflag = $OUTPUT->get_environment();
 
+// Attach login check
+// This prevents forms from being submitted when the user is not logged into site
+$PAGE->requires->yui_module('moodle-local_ucla-logincheck', 
+        'M.local_ucla.logincheck.init', 
+        array(array('userid' => $USER->id)));
+$PAGE->requires->strings_for_js(
+        array(
+            'logincheck_success', 
+            'longincheck_login', 
+            'logincheck_idfail', 
+            'logincheck_networkfail'), 
+        'local_ucla');
+
 // Detect OS via user agent
 $agent = $_SERVER['HTTP_USER_AGENT'];
 $windowsos = strpos($agent, 'Windows') ? true : false;
