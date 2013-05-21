@@ -147,13 +147,35 @@ class ucla_synced_group {
             array('id' => $membershipid));
     }
 
+    /**
+     * Ensures that record in ucla_group_members exists for given
+     * group member id.
+     *
+     * @global dml $DB
+     * @param int $groups_membersid
+     * @return int      Returns newly added record id or the existing id.
+     *                  Returns false on an error.
+     */
     static function new_membership($groups_membersid) {
         global $DB;
+        $retval = false;
 
         $tracker = new object();
         $tracker->groups_membersid = $groups_membersid;
 
-        return $DB->insert_record('ucla_group_members', $tracker);
+        try {
+            $retval = $DB->insert_record('ucla_group_members', $tracker);
+        } catch (dml_write_exception $e) {
+            // Found a write exception, must be trying insert a duplicate row,
+            // so record already exists.
+            $record = $DB->get_record('ucla_group_members',
+                    array('groups_membersid' => $tracker->groups_membersid));
+            if (!empty($record)) {
+                $retval = $record->id;
+            }
+        }
+
+        return $retval;
     }
 
     function create_membership($moodleuserid) {
