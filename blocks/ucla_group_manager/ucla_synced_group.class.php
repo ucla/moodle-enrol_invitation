@@ -143,7 +143,7 @@ class ucla_synced_group {
     static function delete_membership($membershipid) {
         global $DB;
 
-        $DB->delete_record('ucla_group_memberships',
+        $DB->delete_records('ucla_group_members',
             array('id' => $membershipid));
     }
 
