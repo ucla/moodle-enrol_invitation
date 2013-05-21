@@ -27,6 +27,9 @@ M.block_ucla_rearrange.init = function(Y) {
             // Ignore errors.  When you end up here, it means 
             // the form has already been submitted and IDs are no longer in scope
         }
+        
+        // Enable form submit - the rearrange form is disabled by default
+        Y.all('.mform input[type="submit"]').removeAttribute('disabled');
 
     });
 }
