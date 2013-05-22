@@ -13,7 +13,8 @@ $haslogininfo = (empty($PAGE->layout_options['nologininfo']));
 $hasintrobanner = (!empty($PAGE->layout_options['introbanner']));
 
 // START UCLA MODIFICATION CCLE-2452
-$showcontrolpanel = (!empty($PAGE->layout_options['controlpanel'])); 
+// Hide Control Panel button if user is not logged in
+$showcontrolpanel = (!empty($PAGE->layout_options['controlpanel']) && isloggedin() && !isguestuser());
 
 $showsidepre = ($hassidepre 
     && !$PAGE->blocks->region_completely_docked('side-pre', $OUTPUT));
@@ -40,6 +41,19 @@ if ($hascustommenu) {
 }
 
 $envflag = $OUTPUT->get_environment();
+
+// Attach login check
+// This prevents forms from being submitted when the user is not logged into site
+$PAGE->requires->yui_module('moodle-local_ucla-logincheck', 
+        'M.local_ucla.logincheck.init', 
+        array(array('userid' => $USER->id)));
+$PAGE->requires->strings_for_js(
+        array(
+            'logincheck_success', 
+            'longincheck_login', 
+            'logincheck_idfail', 
+            'logincheck_networkfail'), 
+        'local_ucla');
 
 // Detect OS via user agent
 $agent = $_SERVER['HTTP_USER_AGENT'];

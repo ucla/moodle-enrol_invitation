@@ -23,10 +23,10 @@ class copyright_alert_form extends moodleform {
         $alert_buttons = array();
         $alert_buttons[] = $mform->createElement('submit', 'yesbutton',
                 get_string('alert_yes', 'block_ucla_copyright_status'));
-        $alert_buttons[] = $mform->createElement('submit', 'nobutton',
-                get_string('alert_no', 'block_ucla_copyright_status'));
         $alert_buttons[] = $mform->createElement('submit', 'laterbutton',
                 get_string('alert_later', 'block_ucla_copyright_status'));
+        $alert_buttons[] = $mform->createElement('submit', 'nobutton',
+                get_string('alert_no', 'block_ucla_copyright_status'));
         $mform->addGroup($alert_buttons, 'alert_buttons', '', array(' '), false);
         $mform->closeHeaderBefore('alert_buttons');
     }

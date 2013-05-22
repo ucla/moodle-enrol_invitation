@@ -60,6 +60,10 @@
 
 // This is an editable activity
 li.activity {
+    // Add a dashed line to indicate where target will drop
+    &.yui3-dd-draggable + &.yui3-dd-drop-active-valid {
+        border-top: 2px dashed orange;
+    }
     // Style action links
     .mod-indent > a {
         color: #2980b9;
@@ -112,9 +116,9 @@ li.activity {
         // This is a <span> element that holds icons/text
         & > .commands {
             
-            width: 230px;
+            width: 280px;
             float: right;
-            margin-right: 19px;
+            margin-right: 20px;
             
             & > .editing_update {
                 border-left: 1px solid #DDDDDD;
@@ -133,6 +137,11 @@ li.activity {
             }
             & > .editing_delete {
                 float: right;
+            }
+            & > .spinner {
+                float: left;
+                margin-left: -20px;
+                margin-top: 5px;
             }
         }
     }
@@ -153,6 +162,11 @@ li.activity {
             & > .editing_delete {
                 float: none;
             }
+            & > .spinner {
+                float: none;
+                margin-left: 0;
+                margin-top: 5px;
+            }
         }
     }
 }
@@ -166,9 +180,9 @@ li.activity {
 }
 
 
-// Add resource or activity dialog
+// Add resource or activity modal dialog
 // This fixes alignment bugs
-.option {
+.alloptions > .option {
     & > label {
         float: left;
         & > .typename {

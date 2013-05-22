@@ -144,11 +144,6 @@ abstract class browseby_handler {
         return $this->configs->{$name};
     }
 
-    protected function render_terms_restricted_helper($rt=false) {
-        return block_ucla_browseby_renderer::render_terms_restricted_helper(
-            $rt);
-    }
-
     protected function get_records_sql($sql, $params=null) {
         global $DB;
 

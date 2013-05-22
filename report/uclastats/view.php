@@ -14,13 +14,18 @@ require_once($CFG->dirroot.'/report/uclastats/locallib.php');
 require_once($CFG->dirroot.'/local/ucla/lib.php');
 
 require_login();
-$context = get_context_instance(CONTEXT_COURSE, SITEID);
+$context = context_course::instance(SITEID);
 $PAGE->set_context($context);
 require_capability('report/uclastats:view', $context);
 
 $reports = get_all_reports();
 $report     = required_param('report', PARAM_ALPHAEXT);
 $resultid   = optional_param('resultid', null, PARAM_INT);
+$action     = optional_param('action', null, PARAM_ALPHAEXT);
+$confirmdel = optional_param('confirmdel', 0, PARAM_BOOL);
+
+$action_confirmed = (($action != UCLA_STATS_ACTION_DELETE) ||
+                    ($action == UCLA_STATS_ACTION_DELETE) && $confirmdel);
 
 // make sure user is accessing a valid report
 if (!array_key_exists($report, $reports)) {
@@ -62,18 +67,96 @@ if (!empty($params) && confirm_sesskey()) {
             array('report' => $report, 'resultid' => $resultid)));
 }
 
+//handle deletion/locking of cached results
+if (!empty($action) && !empty($resultid)) {    
+    //fail if user cannot modify cached results
+    require_capability('report/uclastats:manage', $context);    
+    $undefined_action = false;    
+    switch ($action) {
+        case UCLA_STATS_ACTION_DELETE:
+            if($action_confirmed) {                
+                if(uclastats_result::delete($resultid)) {                    
+                    $success_msg = get_string('successful_delete', 'report_uclastats');                                    
+                } else {                    
+                    //indicate the deletion failed
+                    //either because it was locked 
+                    print_error('error_delete_locked', 'report_uclastats',
+                                 new moodle_url('/report/uclastats/view.php',
+                                 array('report' => $report , 'resultid' => $resultid)));
+                }                
+            } 
+        break;
+        case UCLA_STATS_ACTION_LOCK: 
+            uclastats_result::lock($resultid);
+            $success_msg = get_string('successful_lock', 'report_uclastats');
+        break;
+        case UCLA_STATS_ACTION_UNLOCK:
+            uclastats_result::unlock($resultid);
+            $success_msg = get_string('successful_unlock', 'report_uclastats');
+        break;
+        default:
+            $undefined_action = true;
+    }
+    
+    if ($undefined_action) {        
+        print_error('undefined_action','report_uclastats',
+                    new moodle_url('/report/uclastats/view.php',
+                    array('report' => $report)),$action);
+        
+    } else if ($action_confirmed) {
+        $log_url =  new moodle_url('../report/uclastats/view.php',
+                    array('report' => $report,'resultid'=> $resultid,
+                    'action' => $action));        
+        add_to_log(SITEID,'admin', $action, $log_url->out());
+        
+        $referer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : "";
+        //escape / in base url pattern for regex
+        $base_pattern = '/' . preg_replace('/\//','\/',
+        new moodle_url('/report/uclastats/')) . '/';
+        
+        //When (un)locking a result, the cached result is loaded. The cached result 
+        //shouldn't be loaded, just locked and keep whatever 
+        //what was viewed still on the screen.
+        //this is done by redirecting back to the referer
+       
+        //also check that referer comes within jursidictions of the plugin
+        //otherwise redirect to the specified redirect params
+        if(($action == UCLA_STATS_ACTION_LOCK || $action == UCLA_STATS_ACTION_UNLOCK)
+            && !empty($referer) && preg_match($base_pattern,$referer)) {            
+            $redirect_url = $referer;            
+        } else {            
+            $redirect_url = new moodle_url('/report/uclastats/view.php',
+                    array('report' => $report));
+        }               
+        flash_redirect($redirect_url, $success_msg);        
+    }
+}
+
 // if user is viewing a result table, make it sortable
 if (!empty($resultid)) {
     setup_js_tablesorter('uclastats-results-table');
 }
 
 echo $OUTPUT->header();
-
 $output = $PAGE->get_renderer('report_uclastats');
-
 echo $output->render_header($report);
-echo $output->render_report_list($reports, $report);
 
-echo $output->render_report($report_object, $resultid);
+if ($action_confirmed) {   
+    //print out flash message if a result has been deleted/(un)locked
+    flash_display();
+    echo $output->render_report_list($reports, $report);
+    echo $output->render_report($report_object, $resultid);    
+} else {    
+    //render confirm button for deletion
+    echo   $OUTPUT->confirm( get_string('confirm_delete', 'report_uclastats'),
+                    new moodle_url('/report/uclastats/view.php',
+                                   array('report' => $report,
+                                         'action' => $action,
+                                         'resultid' => $resultid,
+                                         'confirmdel' => 1)),
+                    new moodle_url('/report/uclastats/view.php',
+                                   array('report' => $report,
+                                         'resultid' => $resultid)));
+}
 
 echo $OUTPUT->footer();

@@ -2,8 +2,14 @@
 
 // This file defines settingpages and externalpages under the "grades" section
 
-if (has_capability('moodle/grade:manage', $systemcontext)
- or has_capability('moodle/grade:manageletters', $systemcontext)) { // speedup for non-admins, add all caps used on this page
+// START UCLA MOD: CCLE-3861 - Prevent access to site config settings for grades
+// Requires the user to have site-level admin capabilities to access this page
+//if (has_capability('moodle/grade:manage', $systemcontext)
+// or has_capability('moodle/grade:manageletters', $systemcontext)) { // speedup for non-admins, add all caps used on this page
+if ((has_capability('moodle/grade:manage', $systemcontext)
+    or has_capability('moodle/grade:manageletters', $systemcontext))    
+    and has_capability('moodle/site:config', $systemcontext)) { // speedup for non-admins, add all caps used on this page 
+// END UCLA MOD: CCLE-3681
 
     require_once $CFG->libdir.'/grade/constants.php';
     $display_types = array(GRADE_DISPLAY_TYPE_REAL => new lang_string('real', 'grades'),

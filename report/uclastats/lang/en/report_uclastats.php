@@ -35,6 +35,16 @@ $string['header_results'] = 'Results';
 $string['header_lastran'] = 'Last ran';
 $string['header_actions'] = 'Actions';
 $string['view_results'] = 'View results';
+$string['lock_results'] = 'Lock';
+$string['locked_results'] = 'Locked';
+$string['unlock_results'] = 'Unlock';
+$string['delete_results'] = 'Delete';
+$string['successful_delete'] = 'Successfully deleted result';
+$string['successful_unlock'] = 'Successfully unlocked result';
+$string['successful_lock'] = 'Successfully locked result';
+$string['error_delete_locked'] = 'Cannot delete locked results';
+$string['undefined_action'] = 'The requested action , {$a} , is undefined';
+$string['confirm_delete'] = 'Are you sure you want to delete the result?';
 
 // strings for sites_per_term
 $string['sites_per_term'] = 'Sites per term (course)';
@@ -151,7 +161,11 @@ $string['large_collab_sites_help'] = 'List all the collaboration sites over {$a}
 
 //strings for final quiz report
 $string['final_quiz_report'] = 'Final quiz report (course)';
-$string['final_quiz_report_help'] = 'Displays the number of quizzes taken during finals week by division.';
+$string['final_quiz_report_help'] = 'Displays the number of quizzes taken during 10th week and Finals week by division.<br/> ' .
+                                    '<strong>Regular:</strong> 10th week: Sat-Friday before Finals, Finals: Sat-Friday of end of term.<br/>' .
+                                    '<strong>Summer:</strong> 10th: Sat-Thursday of end of term, Finals: Friday of end of term';
+$string['last_week_count'] = 'Last Week';
+$string['final_count'] = 'Finals';
 
 //strings for most active course site report
 $string['most_active_course_sites'] = 'Most active (course)';
@@ -161,6 +175,10 @@ $string['viewcount'] = 'Number of Views';
 //strings for most active collab site report
 $string['most_active_collab_sites'] = 'Most active (collab)';
 $string['most_active_collab_sites_help'] =  'Most active collab site is one that has the most views.';
+
+//strings for total downloads
+$string['total_downloads'] = 'Total downloads (course)';
+$string['total_downloads_help'] = 'For a given term, get a count of all total downloads.';
 
 // error strings
 $string['nocachedresults'] = 'No cached results found';

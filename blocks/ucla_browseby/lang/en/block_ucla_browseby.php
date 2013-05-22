@@ -16,6 +16,7 @@ $string['illegaltype'] = 'Browse by "{$a}" does not exist.';
 // Subject area
 $string['subjarea_title'] = 'Subject areas in {$a}';
 $string['all_subjareas'] = 'Subject areas'; 
+$string['subjarea_noterm'] = 'No subject areas were found for this term, please try another term.';
 
 // Divisions
 $string['division_title'] = 'Divisions';
@@ -26,8 +27,7 @@ $string['division_noterm'] = 'No divisions were found for this term, please try 
 $string['instructorsall'] = 'Instructors';
 $string['instructorswith'] = 'Instructors with a last name starting with "{$a}"';
 $string['instructosallterm'] = 'All instructors for {$a}';
-$string['noinstructorsterm'] = 'There are no instructors teaching on this server for {$a}, please try another term.';
-$string['noinstructors'] = 'There were no instructors found.';
+$string['noinstructors'] = 'There are no instructors for given parameters found.';
 $string['selectinstructorletter'] = "Please select a letter to view instructors.";
 
 // Instructors -> courses
@@ -82,11 +82,6 @@ $string['syllabus'] = 'Syllabus';
 $string['course'] = 'Course';
 $string['instructors'] = 'Instructors';
 $string['coursetitle'] = 'Course title';
-
-// Syllabus integration
-$string['public_world_syllabus'] = 'Public syllabus';
-$string['public_ucla_syllabus'] = 'Public syllabus (login required)';
-$string['private_syllabus'] = 'Private syllabus';
 
 // CCLE-3141 - Prepare for post M2 deployment
 $string['cutoff12S'] = 'If you cannot find the course for which ' . 

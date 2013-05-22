@@ -2,6 +2,21 @@
 // FORM
 // --------------------------------------------------
 
+// General styling for radios
+// --------------------------------------------------
+
+input[type="radio"] {
+    margin-right: 5px;
+}
+
+
+// --------------------------------------------------
+
+.mform.attention {
+    border: 2px dashed #EED3D7;
+    padding: 8px;
+}
+
 fieldset.hidden {
     padding-bottom: 0;
 }

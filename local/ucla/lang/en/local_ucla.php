@@ -111,3 +111,13 @@ $string['coursehidden'] = '<p>This course is unavailable for students. Students 
         'can access their course sites from a prior term during the first ' .
         'two weeks of the subsequent term.</p><p>If additional access is ' .
         'needed, students should contact the course instructor. </p>';
+
+// Form submit login check
+$string['longincheck_login'] = 'Your session has timed out. In order to save 
+         your work login again and save your changes.';
+$string['logincheck_idfail'] = 'Your user ID does not match!  This form has been ' .
+        'disabled in order to prevent an erroneous submission. ' .
+        'Save your work and reload this page.';
+$string['logincheck_networkfail'] = 'There was no response from the server. ' .
+        'You might be disconnected from your network. Please reconnect and try again.';
+$string['logincheck_success'] = 'You\'re logged in.  You can now submit this form.';

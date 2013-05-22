@@ -31,10 +31,7 @@ $string['f_phone'] = 'Phone number';
 $string['f_phone_text'] = 'Enter a number where students can reach you or leave a message. This number will be public.';
 $string['f_website'] = 'Personal website';
 
-$string['success'] = 'Success!';
-$string['confirmation_message'] = 
-    'Your office hours and contact information has been successfully updated! 
-     The information will be displayed on the Site Info page for this course.';
+$string['confirmation_message'] = 'Successfully updated office hours and contact information.';
 $string['confirmation_redirect1'] = 'Click ';
 $string['confirmation_redirect2'] =' to go to the Site Info page of your course where the updated information can be seen.';
 

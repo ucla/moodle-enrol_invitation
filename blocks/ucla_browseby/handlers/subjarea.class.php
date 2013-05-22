@@ -29,18 +29,13 @@ class subjarea_handler extends browseby_handler {
             $division = $args['division'];
         }
 
-        if (isset($args['term'])) {
-            $term = $args['term'];
-        } else {
-            $term = false;
-        }
-
         $conds = array();
-        $where = '';
-
+        $divwhere = '';
+        $termwhere = '';
+        
         if ($division) {
             $conds['division'] = $division;
-            $where = 'WHERE rci.division = :division';
+            $divwhere = 'WHERE rci.division = :division';
 
             $division = $this->get_division($division);
 
@@ -50,6 +45,14 @@ class subjarea_handler extends browseby_handler {
                 $division);
         } else {
             $t = get_string('all_subjareas', 'block_ucla_browseby');
+        }
+        
+        if (isset($args['term'])) {
+            $term = $args['term'];
+            $termwhere = 'AND ubc.term = :term';
+            $conds['term'] = $term;
+        } else {
+            $term = false;
         }
 
         if (empty($conds)) {
@@ -72,26 +75,27 @@ class subjarea_handler extends browseby_handler {
                 ON ubc.subjarea = urs.subjarea
             INNER JOIN {ucla_reg_classinfo} rci
                 ON rci.subj_area = urs.subjarea
-            $where
+            $divwhere
+            $termwhere
             ORDER BY urs.subj_area_full
-        ";
+        "; 
 
         $subjectareas = $this->get_records_sql($sql, $conds);
-
-        if (empty($subjectareas)) {
-            print_error('noresultsfound');
-        }
-
-        $terms = array();
-        foreach ($subjectareas as $k => $subjarea) {
-            // Figure out which terms we can include in the drop down
-            $tt = $subjarea->term;
-            $terms[$tt] = $tt;
-            if ($term !== false && $tt != $term) {
-                unset($subjectareas[$k]);
-            }
-        }
         
+        // Query for available terms (for the terms dropdown)
+        // Filter by division, if a division selected
+        $sql = "SELECT DISTINCT term
+                FROM {ucla_reg_classinfo} rci
+                $divwhere";
+
+        $s .= block_ucla_browseby_renderer::render_terms_selector(
+            $args['term'], $sql, $conds);
+        
+        if (empty($subjectareas)) {
+            $s .= $OUTPUT->notification(get_string('subjarea_noterm',
+                    'block_ucla_browseby'));
+            return array($t, $s);
+        }
         // START UCLA MOD CCLE-2309
         global $CFG;
         $ucla_search = $CFG->dirroot . '/blocks/ucla_search/block_ucla_search.php';
@@ -103,10 +107,6 @@ class subjarea_handler extends browseby_handler {
             $s .= block_ucla_search::print_browseby_search();
         }
         // END UCLA MOD CCLE-2309
-
-        list($w, $p) = $this->render_terms_restricted_helper($terms);
-        $s .= block_ucla_browseby_renderer::render_terms_selector(
-            $args['term'], $w, $p);
 
         $table = $this->list_builder_helper($subjectareas, 'subjarea',
             'subj_area_full', 'course', 'subjarea', $term);

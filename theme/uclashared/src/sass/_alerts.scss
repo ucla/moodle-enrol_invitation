@@ -30,6 +30,10 @@
     }
 }
 
+.alert {
+    @include ccle-alert-box;
+}
+
 #uclacourserequestor_notice {
     color: #394A6E;
 }

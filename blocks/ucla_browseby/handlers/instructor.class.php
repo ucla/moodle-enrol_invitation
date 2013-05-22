@@ -46,18 +46,23 @@ class instructor_handler extends browseby_handler {
      *  Fetches a list of instructors with an alphabetized index.
      **/
     function handle($args) {
-        global $PAGE;
+        global $OUTPUT, $PAGE;
 
         $s = '';
 
+        $params = array();
         $term = false;
+        $termwhere = '';
         if (isset($args['term'])) {
             $term = $args['term'];
+            $params['term'] = $term;
+            $termwhere = 'WHERE ubi.term = :term';
             $prettyterm = ucla_term_to_text($term);
         }
 
         // Used for restricting choices
         $letter = null;
+        $letterwhere = '';
 
         // These are the letters that are available for filtering
         $lastnamefl = array();
@@ -71,6 +76,8 @@ class instructor_handler extends browseby_handler {
             $rawletter = $args['alpha'];
 
             $letter = strtoupper($rawletter);
+            $params['letter'] = $letter . '%';
+            $letterwhere = "WHERE us.lastname like :letter";
 
             if ($term) {
                 $t = get_string('instructorswith', 'block_ucla_browseby', 
@@ -104,16 +111,11 @@ class instructor_handler extends browseby_handler {
             INNER JOIN {ucla_browseall_classinfo} ubci 
                 ON  ubi.term = ubci.term 
                 AND ubi.srs = ubci.srs
+            $termwhere
             ORDER BY ubi.lastname, ubi.firstname
         ";
 
-        $users = $this->get_records_sql($sql);
-        
-        if (empty($users)) {
-            return array(false, false);
-        }
-
-        $valid_terms = array();
+        $users = $this->get_records_sql($sql, $params);
 
         // Decide which users to have the ability to display in the 
         // chart
@@ -148,32 +150,13 @@ class instructor_handler extends browseby_handler {
 
             $user->fullname = fullname($user);
             $lnletter = textlib::strtoupper(substr($user->lastname, 0, 1));
-            $lettermatches = ($letter !== null && $lnletter == $letter);
-
-            // If a letter is selected, then we need to limit the number
-            // of terms selectable to prevent dead-end results
-            // TODO optimize with another query?
-            $uterm = $user->term;
-            if ($letter !== null) {
-                if ($lnletter == $letter) {
-                    $valid_terms[$uterm] = $uterm;
-                }
-            } else {
-                // Without a letter selected, allow all terms to be selected
-                $valid_terms[$uterm] = $uterm;
-            }
 
             // If a term is selected and we need to limit instructor last 
             // name letter choices
-            if ($uterm == $term) {
-                $lastnamefl[$lnletter] = true;
+            $lastnamefl[$lnletter] = true;
 
-                if ($letter !== null && $lnletter != $letter) {
-                    unset($users[$k]);
-                }
-            } else {
+            if ($letter !== null && $lnletter != $letter) {
                 unset($users[$k]);
-                continue;
             }
         }
 
@@ -191,19 +174,22 @@ class instructor_handler extends browseby_handler {
             $lettertable[$lnletter] = $content;
         }
 
-        list($w, $p) = $this->render_terms_restricted_helper($valid_terms);
+        // Query for available terms (for the terms dropdown)
+        // Filter by division, if a division selected
+        $sql = "SELECT DISTINCT term
+                FROM {user} us
+                INNER JOIN {ucla_browseall_instrinfo} ubii
+                    ON ubii.uid = us.idnumber
+                $letterwhere";
 
         $s .= block_ucla_browseby_renderer::render_terms_selector($term, 
-            $w, $p);
+            $sql, $params);
         
         // This case can be reached if the current term has no instructors.
         if (empty($users) || count($users) == $no_display_hack) {
-            if ($term) {
-                $s .= get_string('noinstructorsterm', 'block_ucla_browseby',
-                    $prettyterm);
-            } else {
-                $s .= get_string('noinstructors', 'block_ucla_browseby');
-            }
+            $s .= $OUTPUT->notification(get_string('noinstructors',
+                    'block_ucla_browseby'));
+            return array($t, $s);
         } else {
             if ($letter == null) {
                 $s .= html_writer::tag('div', get_string(
