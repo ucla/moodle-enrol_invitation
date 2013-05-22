@@ -2,16 +2,11 @@
 
 // This file defines settingpages and externalpages under the "courses" category
 
-// START UCLA MOD: CCLE-3863 - Prevent access to site backup settings
-// Requires the user to have site-level admin capabilities to access this page 
 if ($hassiteconfig
- //or has_capability('moodle/backup:backupcourse', $systemcontext)
- and (has_capability('moodle/backup:backupcourse', $systemcontext) 
+ or has_capability('moodle/backup:backupcourse', $systemcontext)
  or has_capability('moodle/category:manage', $systemcontext)
  or has_capability('moodle/course:create', $systemcontext)
- //or has_capability('moodle/site:approvecourse', $systemcontext)) { // speedup for non-admins, add all caps used on this page
- or has_capability('moodle/site:approvecourse', $systemcontext))) { // speedup for non-admins, add all caps used on this page 
-// END UCLA MOD: CCLE-3683 
+ or has_capability('moodle/site:approvecourse', $systemcontext)) { // speedup for non-admins, add all caps used on this page
     
     // START UCLA MOD: CCLE-3773 - Manager limited should be able to delete courses for their own categories
     $ADMIN->add('courses', new admin_externalpage('coursemgmt', new lang_string('coursemgmt', 'admin'), $CFG->wwwroot . '/course/index.php?categoryedit=on',
@@ -104,6 +99,10 @@ if ($hassiteconfig
                 $CFG->wwwroot . '/course/pending.php', array('moodle/site:approvecourse')));
     }
 
+    // START UCLA MOD: CCLE-3863 - Prevent access to site backup settings
+    if ($hassiteconfig) {
+    // END UCLA MOD: CCLE-3863
+
     // Add a category for backups
     $ADMIN->add('courses', new admin_category('backups', new lang_string('backups','admin')));
 
@@ -195,5 +194,8 @@ if ($hassiteconfig
     //$temp->add(new admin_setting_configcheckbox('backup/backup_auto_blogs', new lang_string('blogs', 'blog'), new lang_string('backupblogshelp','blog'), 0));
 
     $ADMIN->add('backups', $temp);
+    // START UCLA MOD: CCLE-3863 - Prevent access to site backup settings
+    }
+    // END UCLA MOD: CCLE-3863
 
 } // end of speedup
