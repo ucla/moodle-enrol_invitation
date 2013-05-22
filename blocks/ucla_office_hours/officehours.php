@@ -102,12 +102,10 @@ if ($data = $updateform->get_data()) { //Otherwise, process data
     }
 
     // display success message
-    echo $OUTPUT->box_start('noticebox');
-    echo html_writer::tag('h1', get_string('success', 'block_ucla_office_hours'));
-    echo html_writer::tag('p', get_string('confirmation_message', 'block_ucla_office_hours'));
-    echo $OUTPUT->continue_button(new moodle_url($CFG->wwwroot . '/course/view.php',
-                    array('id' => $courseid, 'topic' => 0)));
-    echo $OUTPUT->box_end();    
+    echo $OUTPUT->notification(get_string('confirmation_message', 
+            'block_ucla_office_hours'), 'notifysuccess');
+    echo $OUTPUT->continue_button(new moodle_url('/course/view.php',
+                    array('id' => $courseid, 'section' => 0)));
 
 } else {
     $updateform->display();
