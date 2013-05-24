@@ -111,3 +111,6 @@ $string['coursehidden'] = '<p>This course is unavailable for students. Students 
         'can access their course sites from a prior term during the first ' .
         'two weeks of the subsequent term.</p><p>If additional access is ' .
         'needed, students should contact the course instructor. </p>';
+
+// CCLE-3652 - Students unable to see "Submission Grading" link on Assignment module
+$string['submissionsgrading'] = 'Grading info for this assignment';
