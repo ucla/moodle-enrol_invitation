@@ -180,6 +180,15 @@ $string['most_active_collab_sites_help'] =  'Most active collab site is one that
 $string['total_downloads'] = 'Total downloads (course)';
 $string['total_downloads_help'] = 'For a given term, get a count of all total downloads.';
 
+//strings for forum usage
+$string['collab_forum_usage'] = 'Forum usage (collab)';
+$string['collab_forum_usage_help'] = 'Forum usage by average number of posters, average number of threads';
+$string['course_forum_usage'] = 'Forum usage (course)';
+$string['course_forum_usage_help'] = $string['collab_forum_usage_help'];
+$string['avg_num_threads'] = 'Threads per Forum';
+$string['avg_num_posters'] = 'Posters per Forum';
+$string['forum_usage_cached_results'] = 'Avg Posters: {$a->avg_num_posters} | '.
+                                        'Avg Threads: {$a->avg_num_threads}';
 // error strings
 $string['nocachedresults'] = 'No cached results found';
 $string['invalidterm'] = 'Invalid term';
