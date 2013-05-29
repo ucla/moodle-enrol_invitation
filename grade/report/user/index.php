@@ -126,6 +126,11 @@ if (has_capability('moodle/grade:viewall', $context)) { //Teachers will see all 
             echo "<p style = 'page-break-after: always;'></p>";
         }
         $gui->close();
+
+        // START UCLA MOD: CCLE-3980 - Add logging to Gradebook & Export to MyUCLA format pages
+        $url = '/report/user/index.php?id=' . $course->id . '&userid=0';    // all users
+        add_to_log($course->id, 'grade', 'view user all', $url);
+        // END UCLA MOD: CCLE-3980
     } else { // Only show one user's report
         $report = new grade_report_user($courseid, $gpr, $context, $userid);
 
@@ -146,6 +151,11 @@ if (has_capability('moodle/grade:viewall', $context)) { //Teachers will see all 
                 echo '<br />'.$report->print_table(true);
             }
         }
+
+        // START UCLA MOD: CCLE-3980 - Add logging to Gradebook & Export to MyUCLA format pages
+        $url = '/report/user/index.php?id=' . $course->id . '&userid=' . $userid;
+        add_to_log($course->id, 'grade', 'view user', $url, fullname($report->user));
+        // END UCLA MOD: CCLE-3980
     }
 } else { //Students will see just their own report
 
@@ -158,6 +168,11 @@ if (has_capability('moodle/grade:viewall', $context)) { //Teachers will see all 
     if ($report->fill_table()) {
         echo '<br />'.$report->print_table(true);
     }
+
+    // START UCLA MOD: CCLE-3980 - Add logging to Gradebook & Export to MyUCLA format pages
+    $url = '/report/user/index.php?id=' . $course->id . '&userid=' . $userid;
+    add_to_log($course->id, 'grade', 'view user self', $url, fullname($report->user));
+    // END UCLA MOD: CCLE-3980    
 }
 
 echo $OUTPUT->footer();
