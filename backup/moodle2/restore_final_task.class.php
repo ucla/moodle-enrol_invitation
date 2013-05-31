@@ -143,6 +143,11 @@ class restore_final_task extends restore_task {
         $rules[] = new restore_log_rule('course', 'report stats', 'report/stats/index.php?id={course}', '{course}');
         $rules[] = new restore_log_rule('course', 'view section', 'view.php?id={course}&sectionid={course_section}', '{course_section}');
 
+        // START UCLA MOD: CCLE-3980 - Add logging to Gradebook & Export to MyUCLA format pages
+        // module 'grade' rules
+        $rules[] = new restore_log_rule('grade', 'update', 'report/grader/index.php?id={course}', null);
+        // END UCLA MOD: CCLE-3980
+
         // module 'user' rules
         $rules[] = new restore_log_rule('user', 'view', 'view.php?id={user}&course={course}', '{user}');
         $rules[] = new restore_log_rule('user', 'change password', 'view.php?id={user}&course={course}', '{user}');

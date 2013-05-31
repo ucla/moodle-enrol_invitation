@@ -163,4 +163,7 @@ print_grade_page_head($courseid, 'report', 'outcomes');
 echo $html;
 echo $OUTPUT->footer();
 
-
+// START UCLA MOD: CCLE-3980 - Add logging to Gradebook & Export to MyUCLA format pages
+$url = '/report/outcomes/index.php?id=' . $course->id;
+add_to_log($course->id, 'grade', 'view outcomes', $url);
+// END UCLA MOD: CCLE-3980

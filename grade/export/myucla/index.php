@@ -26,7 +26,7 @@ $PAGE->set_title($course->shortname.': '.get_string('grades'));
 $PAGE->set_heading($course->fullname);
 $PAGE->set_cacheable(true);
 print_grade_page_head($course->id, 'export', 'myucla', 
-        get_string('exportto', 'grades'). ''. 
+        get_string('exportto', 'grades'). ' '.
         get_string('pluginname', 'gradeexport_myucla'));
 
 if (!empty($CFG->gradepublishing)) {
@@ -56,3 +56,8 @@ echo '<div class="clearer"></div>';
 $mform->display();
 
 echo $OUTPUT->footer();
+
+// START UCLA MOD: CCLE-3980 - Add logging to Gradebook & Export to MyUCLA format pages
+$url = '/export/myucla/index.php?id=' . $course->id;
+add_to_log($course->id, 'grade', 'view myucla', $url);
+// END UCLA MOD: CCLE-3980

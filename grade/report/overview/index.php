@@ -150,4 +150,7 @@ if (has_capability('moodle/grade:viewall', $systemcontext)) { //Admins will see 
 
 echo $OUTPUT->footer();
 
-
+// START UCLA MOD: CCLE-3980 - Add logging to Gradebook & Export to MyUCLA format pages
+$url = '/report/overview/index.php?id=' . $course->id . '&userid=' . $userid;
+add_to_log($course->id, 'grade', 'view overview', $url, fullname($report->user));
+// END UCLA MOD: CCLE-3980

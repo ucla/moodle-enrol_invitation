@@ -44,6 +44,11 @@ if (groups_get_course_groupmode($COURSE) == SEPARATEGROUPS and !has_capability('
     }
 }
 
+// START UCLA MOD: CCLE-3980 - Add logging to Gradebook & Export to MyUCLA format pages
+$url = '/export/xls/export.php?id=' . $course->id;
+add_to_log($course->id, 'grade', 'export xls', $url);
+// END UCLA MOD: CCLE-3980
+
 // print all the exported data here
 $export = new grade_export_xls($course, $groupid, $itemids, $export_feedback, $updatedgradesonly, $displaytype, $decimalpoints, $onlyactive);
 $export->print_grades();

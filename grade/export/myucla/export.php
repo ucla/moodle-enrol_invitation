@@ -23,6 +23,10 @@ $context = get_context_instance(CONTEXT_COURSE, $id);
 require_capability('moodle/grade:export', $context);
 require_capability('gradeexport/myucla:view', $context);
 
+// START UCLA MOD: CCLE-3980 - Add logging to Gradebook & Export to MyUCLA format pages
+$url = '/export/myucla/export.php?id=' . $course->id;
+add_to_log($course->id, 'grade', 'export myucla', $url);
+// END UCLA MOD: CCLE-3980
 
 // print all the exported data here
 $export = new grade_export_myucla($course, $groupid, $itemids, $export_feedback, $updatedgradesonly, $displaytype, $decimalpoints, $filetype);

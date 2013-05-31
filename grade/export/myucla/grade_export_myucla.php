@@ -169,9 +169,10 @@ class grade_export_myucla extends grade_export {
     
     /**
      * Prints preview of exported grades on screen as a feedback mechanism
+     * @param bool $require_user_idnumber true means skip users without idnumber
      * @return none
      */	
-    function display_preview() {
+    public function display_preview($require_user_idnumber=false) {
         //Override parent function in grade_export (see /moodle/grade/export/lib.php  
         global $OUTPUT; 
         echo $OUTPUT->heading(get_string('previewrows', 'grades'));   
@@ -190,9 +191,10 @@ class grade_export_myucla extends grade_export {
             // Since we need to sort later, keep all rows (don't break early)
                         
             $user = $userdata->user;
-            // if (empty($user->idnumber)) {   // Not sure why this was here, ccommented out for MDL-13722
-            //     continue;
-            // }
+            if ($require_user_idnumber && empty($user->idnumber)) {
+                // some exports require user idnumber
+                continue;
+            }
             
             $gradeupdated = false; // if no grade is update at all for this user, do not display this row
             //
