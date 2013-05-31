@@ -118,6 +118,16 @@ switch ($action) {
                 echo json_encode($json_object);
                 die();
             } else {
+                // START UCLA MOD: CCLE-3980 - Add logging to Gradebook & Export to MyUCLA format pages
+                $url = '/report/grader/index.php?id=' . $course->id;
+
+                $user = $DB->get_record('user', array('id'=>$userid), '*', MUST_EXIST);
+                $fullname = fullname($user);
+
+                $info = "{$grade_item->itemname}: $fullname";
+                add_to_log($course->id, 'grade', 'update', $url, $info);
+                // END UCLA MOD: CCLE-3980
+
                 $json_object->gradevalue = $finalvalue;
 
                 if ($grade_item->update_final_grade($userid, $finalgrade, 'gradebook', $feedback, FORMAT_MOODLE)) {

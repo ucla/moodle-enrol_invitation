@@ -51,6 +51,11 @@ if ($groupmode == SEPARATEGROUPS and !$currentgroup and !has_capability('moodle/
 
 // process post information
 if ($data = $mform->get_data()) {
+    // START UCLA MOD: CCLE-3980 - Add logging to Gradebook & Export to MyUCLA format pages
+    $url = '/export/xls/index.php?id=' . $course->id;
+    add_to_log($course->id, 'grade', 'preview xls', $url);
+    // END UCLA MOD: CCLE-3980
+
     $export = new grade_export_xls($course, $currentgroup, '', false, false, $data->display, $data->decimals, $data->export_onlyactive);
 
     // print the grades on screen for feedbacks
@@ -68,3 +73,7 @@ $mform->display();
 
 echo $OUTPUT->footer();
 
+// START UCLA MOD: CCLE-3980 - Add logging to Gradebook & Export to MyUCLA format pages
+$url = '/export/xls/index.php?id=' . $course->id;
+add_to_log($course->id, 'grade', 'view xls', $url);
+// END UCLA MOD: CCLE-3980

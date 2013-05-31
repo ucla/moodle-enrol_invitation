@@ -297,6 +297,14 @@ class grade_report_grader extends grade_report {
                         }
                     }
 
+                    // START UCLA MOD: CCLE-3980 - Add logging to Gradebook & Export to MyUCLA format pages
+                    $url = '/report/grader/index.php?id=' . $this->course->id;
+                    $fullname = fullname($this->users[$userid]);
+
+                    $info = "{$gradeitem->itemname}: $fullname";
+                    add_to_log($this->course->id, 'grade', 'update', $url, $info);
+                    // END UCLA MOD: CCLE-3980
+
                     $gradeitem->update_final_grade($userid, $finalgrade, 'gradebook', $feedback, FORMAT_MOODLE);
 
                     // We can update feedback without reloading the grade item as it doesn't affect grade calculations

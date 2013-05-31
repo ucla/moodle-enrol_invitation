@@ -200,6 +200,20 @@ if ($mform->is_cancelled()) {
         $data->feedback       = $old_grade_grade->feedback;
         $data->feedbackformat = $old_grade_grade->feedbackformat;
     }
+
+    // START UCLA MOD: CCLE-3980 - Add logging to Gradebook & Export to MyUCLA format pages
+    // Only log a grade override if they actually changed the student grade.
+    if ($data->finalgrade != $old_grade_grade->finalgrade) {
+        $url = '/report/grader/index.php?id=' . $course->id;
+
+        $user = $DB->get_record('user', array('id'=>$data->userid), '*', MUST_EXIST);
+        $fullname = fullname($user);
+
+        $info = "{$grade_item->itemname}: $fullname";
+        add_to_log($course->id, 'grade', 'update', $url, $info);
+    }
+    // END UCLA MOD: CCLE-3980
+
     // update final grade or feedback
     // when we set override grade the first time, it happens here
     $grade_item->update_final_grade($data->userid, $data->finalgrade, 'editgrade', $data->feedback, $data->feedbackformat);
@@ -213,6 +227,21 @@ if ($mform->is_cancelled()) {
             $data->overridden = 0; // checkbox unticked
         }
         $grade_grade->set_overridden($data->overridden);
+
+        // START UCLA MOD: CCLE-3980 - Add logging to Gradebook & Export to MyUCLA format pages
+        if ($data->overridden == 0 && $data->overridden != $old_grade_grade->overridden) {
+            // Log removing an override.
+            // The addition of an override is logged above.
+            // One or the other will happen but never both.
+            $url = '/report/grader/index.php?id=' . $course->id;
+
+            $user = $DB->get_record('user', array('id'=>$data->userid), '*', MUST_EXIST);
+            $fullname = fullname($user);
+
+            $info = "{$grade_item->itemname}: $fullname";
+            add_to_log($course->id, 'grade', 'update', $url, $info);
+        }
+        // END UCLA MOD: CCLE-3980
     }
 
     if (has_capability('moodle/grade:manage', $context) or has_capability('moodle/grade:hide', $context)) {
