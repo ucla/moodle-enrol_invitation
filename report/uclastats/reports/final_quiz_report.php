@@ -169,24 +169,19 @@ class final_quiz_report extends uclastats_base {
                     $sql .= ' OR ';
                 }
             }
-            $sql .= ") then q.id end)) as final_count
-                    FROM {ucla_request_classes} AS urc
-                    JOIN {ucla_reg_classinfo} urci ON (
-                        urci.term = urc.term AND
-                        urci.srs = urc.srs AND
-                        urci.enrolstat <> 'X'
-                    )
+            $sql .= ") then q.id end)) as final_count"
+                    . $this->from_filtered_courses() .
+                    "
                     JOIN {ucla_reg_division} urd ON (
                         urci.division = urd.code
                     )
-                    JOIN {quiz} q ON(
-                        urc.courseid = q.course
+                    JOIN {quiz} q ON (
+                        c.id = q.course 
                     )
                     JOIN {quiz_attempts} qa ON (
                         q.id = qa.quiz
                     )
-                    WHERE   urc.term = :term  AND
-                            urc.hostcourse = 1 AND (";
+                    WHERE (";
             
             //check that quizzes are within range of last_week to end of term
             /*(urci.session = '6A' AND
@@ -220,13 +215,10 @@ class final_quiz_report extends uclastats_base {
                            ) as last_week_count,
                            COUNT(
                                DISTINCT (CASE WHEN q.timeclose >= :finals_start then q.id end)
-                           ) as final_count
-                    FROM {ucla_request_classes} AS urc
-                    JOIN {ucla_reg_classinfo} urci ON (
-                        urci.term = urc.term AND
-                        urci.srs = urc.srs AND
-                        urci.enrolstat <> 'X'
-                    )
+
+                           ) as final_count "
+                    . $this->from_filtered_courses() .
+                    "
                     JOIN {ucla_reg_division} urd ON (
                         urci.division = urd.code
                     )
@@ -236,10 +228,8 @@ class final_quiz_report extends uclastats_base {
                     JOIN {quiz_attempts} qa ON (
                         q.id = qa.quiz
                     )                
-                    WHERE   urc.term = :term  AND
-                            urc.hostcourse = 1 AND
-                            q.timeopen >= :last_week_start AND
-                            q.timeclose < :finals_end
+                    WHERE q.timeopen >= :last_week_start AND
+                          q.timeclose < :finals_end
                     GROUP BY urci.division
                     ORDER BY urd.fullname";
         }//end regular term sql statement

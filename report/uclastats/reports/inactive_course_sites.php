@@ -73,17 +73,14 @@ class inactive_course_sites extends uclastats_base {
         $guest_role = get_guest_role();
 
         if (is_summer_term($params['term'])) { //if it is a summer sessions
-            $sql = "SELECT urd.fullname as division, count(DISTINCT urc.id) AS count
-            FROM {ucla_request_classes} AS urc
-            JOIN {ucla_reg_classinfo} urci ON (
-                urci.term=urc.term AND
-                urci.srs=urc.srs
-            )
+
+            $sql = "SELECT urd.fullname as division, count(DISTINCT urc.id) AS count"
+            . $this->from_filtered_courses() .
+            "
             JOIN {ucla_reg_division} urd ON (
                 urci.division=urd.code
             ) 
-            WHERE urc.term = :term  AND
-            urc.hostcourse=1 AND
+            WHERE 
             ((urci.session IN ('6A', '8A', '1A') AND
             urc.courseid NOT IN (
                 SELECT l.course
@@ -113,17 +110,13 @@ class inactive_course_sites extends uclastats_base {
                           'guestida' => $guest_role->id,
                           'guestidc' => $guest_role->id));
         } else {
-            $sql = "SELECT urd.fullname as division, count(DISTINCT urc.id) AS count
-                    FROM {ucla_request_classes} AS urc
-                    JOIN {ucla_reg_classinfo} urci ON (
-                        urci.term=urc.term AND
-                        urci.srs=urc.srs
-                    )
+            $sql = "SELECT urd.fullname as division, count(DISTINCT urc.id) AS count"
+                    . $this->from_filtered_courses() .
+                    "
                     JOIN {ucla_reg_division} urd ON (
                         urci.division=urd.code
                     )
-                    WHERE urc.term = :term  AND
-                    urc.hostcourse=1 AND
+                    WHERE 
                     urc.courseid  NOT IN (
                          SELECT l.course
                          FROM {log} l 
