@@ -232,8 +232,8 @@
             jQuery.fn.dataTableExt.oStdClasses.sSortAsc = "header asc";
             jQuery.fn.dataTableExt.oStdClasses.sSortDesc = "header desc";
             jQuery.fn.dataTableExt.oStdClasses.sWrapper = "submissionTable";
-            jQuery.fn.dataTableExt.oStdClasses.sStripeOdd = "row r0";
-            jQuery.fn.dataTableExt.oStdClasses.sStripeEven = "row r1";
+            jQuery.fn.dataTableExt.oStdClasses.sStripeOdd = "r0";
+            jQuery.fn.dataTableExt.oStdClasses.sStripeEven = "r1";
             jQuery("#unlink").dataTable( {
                 "bProcessing": true,
                 "bServerSide": true,
@@ -442,8 +442,8 @@
             jQuery.fn.dataTableExt.oStdClasses.sSortAsc = "header asc";
             jQuery.fn.dataTableExt.oStdClasses.sSortDesc = "header desc";
             jQuery.fn.dataTableExt.oStdClasses.sWrapper = "submissionTable";
-            jQuery.fn.dataTableExt.oStdClasses.sStripeOdd = "row r0";
-            jQuery.fn.dataTableExt.oStdClasses.sStripeEven = "row r1";
+            jQuery.fn.dataTableExt.oStdClasses.sStripeOdd = "r0";
+            jQuery.fn.dataTableExt.oStdClasses.sStripeEven = "r1";
             jQuery("#files").dataTable( {
                 "fnDrawCallback": function ( oSettings ) {
                     if ( oSettings.aiDisplay.length == 0 )

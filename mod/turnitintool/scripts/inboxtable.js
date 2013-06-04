@@ -5,8 +5,8 @@
         $.fn.dataTableExt.oStdClasses.sSortAsc = "header asc";
         $.fn.dataTableExt.oStdClasses.sSortDesc = "header desc";
         $.fn.dataTableExt.oStdClasses.sWrapper = "submissionTable";
-        $.fn.dataTableExt.oStdClasses.sStripeOdd = "row r0";
-        $.fn.dataTableExt.oStdClasses.sStripeEven = "row r1";
+        $.fn.dataTableExt.oStdClasses.sStripeOdd = "r0";
+        $.fn.dataTableExt.oStdClasses.sStripeEven = "r1";
         var oTable = $("#inboxTable").dataTable( {
             "aoColumns": [
                     { "bSearchable": false, "bSortable": true, "bVisible": false }, // [0] Sort ID Column, Unique to preserver sorting when filtering

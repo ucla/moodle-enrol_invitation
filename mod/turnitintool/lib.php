@@ -1776,7 +1776,7 @@ function turnitintool_introduction($cm,$turnitintool,$notice='') {
         $table->rows[$row] = new stdClass();
         $table->rows[$row]->cells = new stdClass();
         $table->rows[$row]->cells=$cells;
-        $table->rows[$row]->class="row r".(($row%2) ? 0 : 1);
+        $table->rows[$row]->class="r".(($row%2) ? 0 : 1);
         unset($cells);
 
     }
