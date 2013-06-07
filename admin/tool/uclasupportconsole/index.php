@@ -482,6 +482,9 @@ if ($displayforms) {
     $sectionhtml = supportconsole_simple_form($title, $syllabus_selectors);
     
 } else if ($consolecommand == "$title") {
+    $sectionhtml .= $OUTPUT->box(get_string('syllabus_notes',
+            'tool_uclasupportconsole'));
+
     $selected_term = required_param('term', PARAM_ALPHANUM);
     $selected_type = required_param('syllabus', PARAM_ALPHA);
     
@@ -535,7 +538,9 @@ if ($displayforms) {
                             urci.acttype != \'TUT\'
                 ORDER BY    urd.fullname';
     }
-    
+
+    $table_colum_name .= ' (' . $selected_term . ')';
+
     $params = array();
     $params['term'] = $selected_term;
     if ( $course_list = $DB->get_records_sql($sql, $params) ) {
@@ -611,6 +616,16 @@ if ($displayforms) {
                         @++$working_bin[$course->fullname]['preview'];
                     }
                 }
+            } else {
+                // There was no syllabus added, see if there are any manual syllabi.
+                $courserecord = $DB->get_record('course', array('id' =>  $course->courseid));
+                $ucla_syllabus_manager = new ucla_syllabus_manager($courserecord);
+                $manualsyllabi = $ucla_syllabus_manager->get_all_manual_syllabi();
+                if (!empty($manualsyllabi)) {
+                    @++$working_bin[$course->fullname]['manual'];
+                    @++$working_bin[$course->fullname]['syllabi_courses'];
+                }
+                unset($ucla_syllabus_manager);
             }
         }
         unset($syllabus_cache); // no need to keep this cache anymore
@@ -651,41 +666,48 @@ if ($displayforms) {
                     $table_row[] = 0;   // loggedin
                     $table_row[] = 0;   // preview
                     $table_row[] = 0;   // private
-                    $table_data[] = $table_row;
-                    continue;
+                    $table_row[] = 0;   // manual
+                } else {
+                    // col3: public syllabus
+                    @$header_totals[UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC] += $syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC];
+                    @$table_row[] = sprintf('%d/%d (%d%%)',
+                            $syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC],
+                            $syllabi_counts['syllabi_courses'],
+                            round(($syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC]/
+                             $syllabi_counts['syllabi_courses'])*100));
+
+                    // col4: loggedin syllabus
+                    @$header_totals[UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN] += $syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN];
+                    @$table_row[] = sprintf('%d/%d (%d%%)',
+                            $syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN],
+                            $syllabi_counts['syllabi_courses'],
+                            round(($syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN]/
+                             $syllabi_counts['syllabi_courses'])*100));
+
+                    // col5: preview syllabus
+                    @$header_totals['preview'] += $syllabi_counts['preview'];
+                    @$table_row[] = sprintf('%d/%d (%d%%)',
+                            $syllabi_counts['preview'],
+                            $syllabi_counts['syllabi_courses'],
+                            round(($syllabi_counts['preview']/
+                             $syllabi_counts['syllabi_courses'])*100));
+
+                    // col6: private syllabus
+                    @$header_totals[UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE] += $syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE];
+                    @$table_row[] = sprintf('%d/%d (%d%%)',
+                            $syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE],
+                            $syllabi_counts['syllabi_courses'],
+                            round(($syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE]/
+                             $syllabi_counts['syllabi_courses'])*100));
+
+                    // col7: manual syllabus
+                    @$header_totals['manual'] += $syllabi_counts['manual'];
+                    @$table_row[] = sprintf('%d/%d (%d%%)',
+                            $syllabi_counts['manual'],
+                            $syllabi_counts['syllabi_courses'],
+                            round(($syllabi_counts['manual']/
+                             $syllabi_counts['syllabi_courses'])*100));
                 }
-
-                // col3: public syllabus
-                @$header_totals[UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC] += $syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC];
-                @$table_row[] = sprintf('%d/%d (%d%%)',
-                        $syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC],
-                        $syllabi_counts['syllabi_courses'],
-                        round(($syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC]/
-                         $syllabi_counts['syllabi_courses'])*100));
-            
-                // col4: loggedin syllabus
-                @$header_totals[UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN] += $syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN];
-                @$table_row[] = sprintf('%d/%d (%d%%)',
-                        $syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN],
-                        $syllabi_counts['syllabi_courses'],
-                        round(($syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN]/
-                         $syllabi_counts['syllabi_courses'])*100));
-
-                // col5: preview syllabus
-                @$header_totals['preview'] += $syllabi_counts['preview'];
-                @$table_row[] = sprintf('%d/%d (%d%%)',
-                        $syllabi_counts['preview'],
-                        $syllabi_counts['syllabi_courses'],
-                        round(($syllabi_counts['preview']/
-                         $syllabi_counts['syllabi_courses'])*100));
-
-                // col6: private syllabus
-                @$header_totals[UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE] += $syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE];
-                @$table_row[] = sprintf('%d/%d (%d%%)',
-                        $syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE],
-                        $syllabi_counts['syllabi_courses'],
-                        round(($syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE]/
-                         $syllabi_counts['syllabi_courses'])*100));
 
                 $table_data[] = $table_row;
             }
@@ -705,6 +727,7 @@ if ($displayforms) {
             $loggedin_syllabus_count = 0;
             $preview_syllabus_count = 0;
             $private_syllabus_count = 0;
+            $manual_syllabus_count = 0;
             if (!empty($header_totals['syllabi_courses'])) {
                 $public_syllabus_count = sprintf('%d/%d (%d%%)',
                         $header_totals[UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC],
@@ -726,6 +749,11 @@ if ($displayforms) {
                         $header_totals['syllabi_courses'],
                         round(($header_totals[UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE]/
                          $header_totals['syllabi_courses'])*100));
+                $manual_syllabus_count = sprintf('%d/%d (%d%%)',
+                        $header_totals['manual'],
+                        $header_totals['syllabi_courses'],
+                        round(($header_totals['manual']/
+                         $header_totals['syllabi_courses'])*100));
             }
 
             $working_table->head = array($table_colum_name,
@@ -738,11 +766,12 @@ if ($displayforms) {
                 get_string('preview_syllabus_count', 'tool_uclasupportconsole',
                         $preview_syllabus_count),
                 get_string('private_syllabus_count', 'tool_uclasupportconsole',
-                        $private_syllabus_count));
+                        $private_syllabus_count),
+                get_string('manual_syllabus_count', 'tool_uclasupportconsole',
+                        $manual_syllabus_count));
         }
     }
         
-    global $OUTPUT;
     $sectionhtml .= $OUTPUT->box_start();
     $sectionhtml .= html_writer::tag('h3',
             get_string('syllabus_ugrad_table', 'tool_uclasupportconsole') . html_writer::start_tag('br') .
@@ -778,6 +807,9 @@ if ($displayforms) {
     $sectionhtml = supportconsole_simple_form($title, $syllabus_selectors);
     
 } else if ($consolecommand == "$title") {
+    $sectionhtml .= $OUTPUT->box(get_string('syllabus_notes',
+            'tool_uclasupportconsole'));
+
     $selected_term = required_param('term', PARAM_ALPHANUM);
     $selected_subj = required_param('subjarea', PARAM_NOTAGS);
     
@@ -821,8 +853,8 @@ if ($displayforms) {
     $num_public = 0;
     $num_private = 0;
     $num_courses = 0;
-    if ($syllabus_report = $DB->get_records_sql($sql, $params)) {
-        
+    $num_manual = 0;
+    if ($syllabus_report = $DB->get_records_sql($sql, $params)) {        
         foreach ($syllabus_report as $crs_syl) {
             $access_public = $crs_syl->access_type == UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC
                     || $crs_syl->access_type == UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN;
@@ -836,13 +868,27 @@ if ($displayforms) {
             if (empty($crs_syl->access_type)) {
                 $syllabus_record[2] = '';
                 $syllabus_record[3] = '';
+
+                // Check if course has a manual syllabus.
+                $courserecord = $DB->get_record('course', array('id' =>  $crs_syl->courseid));
+                $ucla_syllabus_manager = new ucla_syllabus_manager($courserecord);
+                $manualsyllabi = $ucla_syllabus_manager->get_all_manual_syllabi();
+                if (!empty($manualsyllabi)) {
+                    $syllabus_record[4] = 'x';
+                    $num_manual++;
+                } else {
+                    $syllabus_record[4] = '';
+                }
+                unset($ucla_syllabus_manager);
             } else if ($access_public) {
                 $syllabus_record[2] = 'x';
                 $syllabus_record[3] = '';
+                $syllabus_record[4] = '';
                 $num_public++;
             } else if ($access_private) {
                 $syllabus_record[2] = '';
                 $syllabus_record[3] = 'x';
+                $syllabus_record[4] = '';
                 $num_private++;
             }
 
@@ -858,18 +904,19 @@ if ($displayforms) {
                 $syllabus_info[$num_courses] = $syllabus_record;
                 $num_courses++;
             }
-
         }
     }
     
-    $head_info = new StdClass();
+    $head_info = new stdClass();
     $head_info->term = $selected_term;
     $head_info->num_courses = $num_courses;
     $syllabus_table = new html_table();
+    $syllabus_table->id = 'syllabusreoport';
     $table_headers = array(get_string('syllabus_header_course', 'tool_uclasupportconsole', $head_info) .
         html_writer::start_tag('br') . $timerange,
         get_string('syllabus_header_public', 'tool_uclasupportconsole', $num_public), 
-        get_string('syllabus_header_private', 'tool_uclasupportconsole', $num_private)
+        get_string('syllabus_header_private', 'tool_uclasupportconsole', $num_private),
+        get_string('syllabus_header_manual', 'tool_uclasupportconsole', $num_manual)
         );
 
     $syllabus_table->head = $table_headers;
