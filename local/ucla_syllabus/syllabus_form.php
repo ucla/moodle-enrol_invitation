@@ -36,6 +36,7 @@ class syllabus_form extends moodleform {
     private $action;
     private $type;
     private $ucla_syllabus_manager;
+    private $manualsyllabus;
     
     public function definition(){
         global $CFG, $DB, $OUTPUT, $USER;
@@ -45,9 +46,10 @@ class syllabus_form extends moodleform {
         $this->action = $this->_customdata['action'];     
         if (isset($this->_customdata['type'])) {
             $this->type = $this->_customdata['type'];        
-        }        
+        }
         $this->ucla_syllabus_manager = $this->_customdata['ucla_syllabus_manager'];
-            
+        $this->manualsyllabus = $this->_customdata['manualsyllabus'];
+        
         // get course syllabi
         $syllabi = $this->ucla_syllabus_manager->get_syllabi();
                 
@@ -73,7 +75,7 @@ class syllabus_form extends moodleform {
             $this->display_private_syllabus($syllabi[UCLA_SYLLABUS_TYPE_PRIVATE]);
         }                
     }
-    
+
     /**
      * Make sure the following is true:
      *  - access_type is valid value
@@ -334,13 +336,16 @@ class syllabus_form extends moodleform {
         if (empty($existing_syllabus)) {
             $defaults['display_name'] = get_string('display_name_default', 'local_ucla_syllabus');
             $mform->setDefaults($defaults);
+
+            // Check if user is trying to use an manually uploaded syllabus.
+            $this->handle_manual_syllabus();
         } else {            
             // load existing files
             $draftitemid = file_get_submitted_draft_itemid('syllabus_file');   
             file_prepare_draft_area($draftitemid, 
                     context_course::instance($this->courseid)->id, 
                     'local_ucla_syllabus', 'syllabus', $existing_syllabus->id, 
-                    $this->ucla_syllabus_manager->get_filemanager_config());        
+                    $config);
 
             // set existing syllabus values
             $data['display_name'] = $existing_syllabus->display_name;
@@ -361,7 +366,7 @@ class syllabus_form extends moodleform {
      */
     private function display_public_syllabus_form($existing_syllabus) {
         $mform = $this->_form;        
-        
+
         $webserviced = syllabus_ws_manager::is_subscribed($this->courseid);
         $config = $this->ucla_syllabus_manager->get_filemanager_config();
         
@@ -415,20 +420,22 @@ class syllabus_form extends moodleform {
         // preview syllabus?
         $mform->addElement('checkbox', 'is_preview', '', get_string('preview_info', 'local_ucla_syllabus'));
 
-
         // set defaults or use existing syllabus
         $defaults = array();
         if (empty($existing_syllabus)) {
             $defaults['access_types[access_type]'] = UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN;
             $defaults['display_name'] = get_string('display_name_default', 'local_ucla_syllabus');
             $mform->setDefaults($defaults);
-        } else {            
+
+            // Check if user is trying to use an manually uploaded syllabus.
+            $this->handle_manual_syllabus();
+        } else {
             // load existing files
             $draftitemid = file_get_submitted_draft_itemid('syllabus_file');   
             file_prepare_draft_area($draftitemid, 
                     context_course::instance($this->courseid)->id, 
                     'local_ucla_syllabus', 'syllabus', $existing_syllabus->id, 
-                    $this->ucla_syllabus_manager->get_filemanager_config());        
+                    $config);
 
             // set existing syllabus values
             $data['access_types[access_type]'] = $existing_syllabus->access_type;
@@ -488,5 +495,65 @@ class syllabus_form extends moodleform {
                 array('class' => 'displayname_filename'));
 
         return $display_syllabus;
+    }
+
+    /////// MANUALLY UPLOADED SYLLABUS METHODS
+
+    /**
+     * Returns the necessary information to make a manually uploaded syllabus.
+     *
+     * @return object   Returns null if there is no manual syllabus. Else
+     *                  returns an object with coursemodule record plus url or
+     *                  file information.
+     */
+    private function get_manual_syllabus_info() {
+        global $DB;
+
+        if (empty($this->manualsyllabus)) {
+            return null;
+        }
+
+        $cm = get_coursemodule_from_id(null, $this->manualsyllabus, $this->courseid);
+        if (empty($cm)) {
+            return null;
+        }
+
+        $module = $DB->get_record($cm->modname, array('id' => $cm->instance,
+            'course' => $this->courseid));
+        if (empty($module)) {
+            // something is wrong here, just don't try to use this module.
+            return null;
+        }
+
+        $cm->module = $module;
+        return $cm;
+    }
+
+    /**
+     * Sets the form's initial values if a manually uploaded syllabus is found.
+     *
+     * For url resources, it will set the url. For file resources, it will copy
+     * the file into the file manager.
+     *
+     * For both resources it will set the display name to be the module name.
+     */
+    private function handle_manual_syllabus() {
+        $manualsyllabus = $this->get_manual_syllabus_info();
+        if (!empty($manualsyllabus)) {
+            $data['display_name'] = $manualsyllabus->module->name;
+            if ($manualsyllabus->modname == 'url') {
+                // Set value for URL.
+                $data['syllabus_url'] = $manualsyllabus->module->externalurl;
+            } else if ($manualsyllabus->modname == 'resource') {
+                // Copy existing resouce file (assume we are getting first file).
+                $draftitemid = file_get_submitted_draft_itemid('syllabus_file');
+                file_prepare_draft_area($draftitemid,
+                        context_module::instance($manualsyllabus->id)->id,
+                        'mod_resource', 'content', 0,
+                        $this->ucla_syllabus_manager->get_filemanager_config());
+                $data['syllabus_file'] = $draftitemid;
+            }
+            $this->set_data($data);
+        }
     }
 }

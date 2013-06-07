@@ -176,7 +176,54 @@ class ucla_syllabus_manager {
         events_trigger('ucla_syllabus_added', $data);
     }
     
-    
+    /**
+     * Returns an array of file and url resources that might be a manually
+     * uploaded syllabus.
+     * 
+     * @global moodle_database $DB
+     * 
+     * @return array    Returns an array of objects with fields 'cmid', 'name',
+     *                  and 'type' (resource or url). Returns cmid
+     *                  (course_module id) instead of resource/url id, because
+     *                  the later might not be unique.
+     */
+    public function get_all_manual_syllabi() {
+        global $DB;
+
+        $searchstring = '%syllabus%';
+
+        // Check file and url resources.
+        $sql = "(
+                    SELECT  cm.id AS cmid,
+                            r.name AS name,
+                            m.name AS type
+                    FROM    {resource} r
+                    JOIN    {course_modules} cm ON (r.id=cm.instance)
+                    JOIN    {modules} m ON (cm.module=m.id)
+                    WHERE   cm.course=:courseid1 AND
+                            m.name='resource' AND " .
+                            $DB->sql_like('r.name', ':searchstring1', false, false)
+                . ") UNION ALL
+                (
+                    SELECT  cm.id AS cmid,
+                            u.name AS name,
+                            m.name AS type
+                    FROM    {url} u
+                    JOIN    {course_modules} cm ON (u.id=cm.instance)
+                    JOIN    {modules} m ON (cm.module=m.id)
+                    WHERE   cm.course=:courseid2 AND
+                            m.name='url' AND " .
+                            $DB->sql_like('u.name', ':searchstring2', false, false)
+                . ")";
+        $manualsyllabi = $DB->get_records_sql($sql,
+                array('courseid1' => $this->courseid,
+                      'courseid2' => $this->courseid,
+                      'searchstring1' => $searchstring,
+                      'searchstring2' => $searchstring));
+
+        return $manualsyllabi;
+    }
+
     /**
      * Returns file picker config array.
      * 
@@ -261,7 +308,7 @@ class ucla_syllabus_manager {
         }
         
         return $ret_val;
-    }    
+    }
 
     /**
      * Checks if given course has a private syllabus. If so, then returns 

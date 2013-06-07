@@ -44,6 +44,37 @@ $can_manage_syllabus = $ucla_syllabus_manager->can_manage();
 $action = optional_param('action', null, PARAM_ALPHA);
 $type = optional_param('type', null, PARAM_ALPHA);
 
+// See if user wants to handle a manually uploaded syllabus.
+$manualsyllabusid = optional_param('manualsyllabus', null, PARAM_INT);
+if (!empty($manualsyllabusid)) {
+    // Check if manually uploaded syllabus is valid.
+    $validsyllabus = false;
+    if ($can_manage_syllabus) {
+        $manualsyllabi = $ucla_syllabus_manager->get_all_manual_syllabi();
+        foreach ($manualsyllabi as $syllabus) {
+            if ($syllabus->cmid == $manualsyllabusid) {
+                $validsyllabus = true;
+                break;
+            }
+        }
+    }
+
+    if ($validsyllabus) {
+        $action = UCLA_SYLLABUS_ACTION_ADD;
+        // See if this will be a public or private syllabus.
+        require_once($CFG->dirroot . '/local/publicprivate/lib/module.class.php');
+        $ppmod = PublicPrivate_Module::build($manualsyllabusid);
+        if ($ppmod->is_public()) {
+            $type = UCLA_SYLLABUS_TYPE_PUBLIC;
+        } else {
+            $type = UCLA_SYLLABUS_TYPE_PRIVATE;
+        }
+    } else {
+        // Sliently ignore an invalid manual syllabus.
+        $manualsyllabusid = null;
+    }
+}
+
 require_course_login($course);
 
 // setup page
@@ -65,7 +96,8 @@ if ($can_manage_syllabus) {
             array('courseid' => $course->id, 
                   'action' => $action,
                   'type' => $type,
-                  'ucla_syllabus_manager' => $ucla_syllabus_manager),
+                  'ucla_syllabus_manager' => $ucla_syllabus_manager,
+                  'manualsyllabus' => $manualsyllabusid),
             'post',
             '',
             array('class' => 'syllabus_form'));    
@@ -79,7 +111,6 @@ if ($can_manage_syllabus) {
         redirect($url);
     }
 }
-    
 
 if (!empty($USER->editing) && $can_manage_syllabus) {        
     // User uploaded/edited a syllabus file, so handle it

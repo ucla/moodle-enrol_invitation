@@ -124,6 +124,8 @@ $string['alert_no_redirect'] = 'You will no longer be prompted to add a syllabus
         'Use the Syllabus link in the Site menu block at the left or the tool in ' .
         'the Control Panel to add one later.';
 $string['alert_later_redirect'] = 'Syllabus reminder set.';
+$string['alert_msg_manual'] = 'We found a {$a->type} that might be a syllabus ' .
+        'called "{$a->name}". Would you like to make this your official syllabus?';
 
 // strings for syllabus backup
 $string['backup_notice'] = 'Files uploaded via the syllabus tool will not 
