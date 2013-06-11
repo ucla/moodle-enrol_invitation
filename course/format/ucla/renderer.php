@@ -459,7 +459,27 @@ class format_ucla_renderer extends format_section_renderer_base {
         }
 
         $center_content .= html_writer::start_tag('div', array('class' => 'summary'));
-        $center_content .= format_text($this->course->summary);
+        // If something is entered for the course summary then display that.
+        if (!empty($this->course->summary)) {
+            $center_content .= format_text($this->course->summary);
+        } else {
+            // Else display Registrar class or course description.
+            if (!empty($this->courseinfo)) {
+                $desc_no_autofill = get_config('tool_uclacoursecreator', 'desc_no_autofill');
+                if (!$desc_no_autofill) {
+                    foreach ($this->courseinfo as $courseinfo) {
+                        if (!empty($courseinfo->hostcourse)) {
+                            if (!empty($courseinfo->crs_summary)) {
+                                $center_content .= format_text($courseinfo->crs_summary);
+                            } else {
+                                $center_content .= format_text($courseinfo->crs_desc);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }        
         $center_content .= html_writer::end_tag('div');
 
         // Instructor information
