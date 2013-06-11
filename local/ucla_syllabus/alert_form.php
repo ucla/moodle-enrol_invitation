@@ -20,7 +20,6 @@ class alert_form extends moodleform {
         // need for js onclick handlers.
         $alert_buttons = array();
 
-
         // Handling manually uploaded syllabus?
         $manualsyllabusid = 0;
         if (!empty($this->_customdata['manualsyllabus'])) {

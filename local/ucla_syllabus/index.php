@@ -44,12 +44,22 @@ $can_manage_syllabus = $ucla_syllabus_manager->can_manage();
 $action = optional_param('action', null, PARAM_ALPHA);
 $type = optional_param('type', null, PARAM_ALPHA);
 
+require_course_login($course);
+
+// setup page
+$PAGE->set_url('/local/ucla_syllabus/index.php', array('id' => $id));
+$PAGE->set_title(format_string($course->fullname));
+$PAGE->set_heading(format_string($course->fullname));
+$PAGE->set_context($coursecontext);
+$PAGE->set_pagelayout('incourse');
+$PAGE->set_pagetype('course-view-' . $course->format);
+
 // See if user wants to handle a manually uploaded syllabus.
 $manualsyllabusid = optional_param('manualsyllabus', null, PARAM_INT);
 if (!empty($manualsyllabusid)) {
     // Check if manually uploaded syllabus is valid.
     $validsyllabus = false;
-    if ($can_manage_syllabus) {
+    if ($can_manage_syllabus && !$ucla_syllabus_manager->has_syllabus()) {
         $manualsyllabi = $ucla_syllabus_manager->get_all_manual_syllabi();
         foreach ($manualsyllabi as $syllabus) {
             if ($syllabus->cmid == $manualsyllabusid) {
@@ -61,29 +71,13 @@ if (!empty($manualsyllabusid)) {
 
     if ($validsyllabus) {
         $action = UCLA_SYLLABUS_ACTION_ADD;
-        // See if this will be a public or private syllabus.
-        require_once($CFG->dirroot . '/local/publicprivate/lib/module.class.php');
-        $ppmod = PublicPrivate_Module::build($manualsyllabusid);
-        if ($ppmod->is_public()) {
-            $type = UCLA_SYLLABUS_TYPE_PUBLIC;
-        } else {
-            $type = UCLA_SYLLABUS_TYPE_PRIVATE;
-        }
+        // Only public syllabus can handle a manual syllabus.
+        $type = UCLA_SYLLABUS_TYPE_PUBLIC;
     } else {
         // Sliently ignore an invalid manual syllabus.
         $manualsyllabusid = null;
     }
 }
-
-require_course_login($course);
-
-// setup page
-$PAGE->set_url('/local/ucla_syllabus/index.php', array('id' => $id));
-$PAGE->set_title(format_string($course->fullname));
-$PAGE->set_heading(format_string($course->fullname));
-$PAGE->set_context($coursecontext);
-$PAGE->set_pagelayout('incourse');
-$PAGE->set_pagetype('course-view-' . $course->format);
 
 // set editing button
 if ($can_manage_syllabus) {

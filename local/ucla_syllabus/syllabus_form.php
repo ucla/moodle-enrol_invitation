@@ -336,9 +336,6 @@ class syllabus_form extends moodleform {
         if (empty($existing_syllabus)) {
             $defaults['display_name'] = get_string('display_name_default', 'local_ucla_syllabus');
             $mform->setDefaults($defaults);
-
-            // Check if user is trying to use an manually uploaded syllabus.
-            $this->handle_manual_syllabus();
         } else {            
             // load existing files
             $draftitemid = file_get_submitted_draft_itemid('syllabus_file');   
@@ -428,6 +425,7 @@ class syllabus_form extends moodleform {
             $mform->setDefaults($defaults);
 
             // Check if user is trying to use an manually uploaded syllabus.
+            // Only public syllabus can handle a manual syllabus.
             $this->handle_manual_syllabus();
         } else {
             // load existing files
