@@ -195,6 +195,11 @@ $CFG->forced_plugin_settings['resource']['requiremodintro'] = 0;
 $CFG->forced_plugin_settings['resource']['printheading'] = 1;
 $CFG->forced_plugin_settings['resource']['display'] = 4;   // "Force Download"
 
+// Site administration > Plugins > Activity modules > Turnitin Assignment
+$CFG->turnitin_apiurl = 'https://api.turnitin.com/api.asp';
+$CFG->turnitin_studentemail = 0;
+$CFG->turnitin_tutoremail = 0;
+
 // Site administration > Plugins > Activity modules > URL
 $CFG->forced_plugin_settings['url']['requiremodintro'] = 0;
 $CFG->forced_plugin_settings['url']['printheading'] = 1;
