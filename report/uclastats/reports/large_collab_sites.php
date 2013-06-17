@@ -80,12 +80,10 @@ class large_collab_sites extends uclastats_base {
                        JOIN {files} f ON (
                            f.contextid = ctx.id
                        )
-                       WHERE c.id NOT IN (
-                           SELECT courseid
-                           FROM {ucla_request_classes} 
-                       ) AND
-                       f.filename <> '.' AND
-                       f.component = 'mod_resource' ";
+                       LEFT JOIN {ucla_request_classes} AS urc ON (c.id=urc.courseid)
+                       WHERE    urc.id IS NULL AND
+                                f.filename <> '.' AND
+                                f.component = 'mod_resource' ";
            
         
 
