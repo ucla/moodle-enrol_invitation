@@ -59,12 +59,10 @@ class collab_block_sites extends uclastats_base {
                 JOIN {block} b ON (
                     bi.blockname = b.name
                 )
-                LEFT JOIN {ucla_siteindicator} AS si ON ( c.id = si.courseid )
-                WHERE c.id NOT IN (
-                    SELECT courseid
-                    FROM {ucla_request_classes}
-                 ) AND
-                si.type!='test'
+                LEFT JOIN {ucla_siteindicator} AS si ON (c.id = si.courseid)
+                LEFT JOIN {ucla_request_classes} AS urc ON (c.id=urc.courseid)
+                WHERE   urc.id IS NULL AND
+                        si.type!='test'
                 GROUP BY b.id
                 ORDER BY b.name";
         return $DB->get_records_sql($sql, $params);

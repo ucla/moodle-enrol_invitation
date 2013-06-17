@@ -62,7 +62,7 @@ class system_size extends uclastats_base {
         //note that the shell command returns the actual size in bytes
         //whereas the -b return the apparent size(ignores fragmentation,
         //indirect blocks)
-        $ret_val['file_system_size'] = display_size(shell_exec("du -s --block-size=1 $CFG->dataroot/filedir"));
+        $ret_val['file_system_size'] = display_size(shell_exec("du -s --block-size=1 $CFG->dataroot/filedir/"));
      
         //get size of database in bytes
         $sql = "SELECT Sum(data_length + index_length) 

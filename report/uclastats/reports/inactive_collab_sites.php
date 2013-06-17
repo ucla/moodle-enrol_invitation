@@ -49,20 +49,16 @@ class inactive_collab_sites extends uclastats_base {
         // get guest role, so that we can filter out that id
         $guest_role = get_guest_role();
 
-        $sql = "SELECT COUNT(c.id) as count
-                FROM {course} c
-                    LEFT JOIN {ucla_siteindicator} AS si ON (c.id = si.courseid)
-                WHERE c.id NOT IN (
-                    SELECT courseid
-                    FROM {ucla_request_classes} 
-                )
-                AND c.id NOT IN (
-                    SELECT course
-                    FROM {log} l
-                    WHERE userid != :guestid AND
-                    time > :six_months_ago
-                )";
-
+        $sql = "SELECT  COUNT(c.id) as count
+                FROM    {course} c
+                LEFT JOIN {ucla_siteindicator} AS si ON (c.id = si.courseid)
+                LEFT JOIN {ucla_request_classes} AS urc ON (c.id=urc.courseid)
+                WHERE   urc.id IS NULL AND
+                        c.id NOT IN (
+                            SELECT course
+                            FROM {log} l
+                            WHERE userid != :guestid AND
+                            time > :six_months_ago)";
         return $DB->get_records_sql($sql, 
                 array('six_months_ago' => strtotime('-6 month', strtotime('now')),
                       'guestid' => $guest_role->id));

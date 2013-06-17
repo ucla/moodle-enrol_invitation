@@ -36,13 +36,11 @@ class collab_modules_used extends uclastats_base {
                 JOIN    {course_modules} cm ON
                         (cm.course=c.id)
                 JOIN    {modules} m ON
-                        (m.id = cm.module)
-                LEFT JOIN {ucla_siteindicator} AS si ON ( c.id = si.courseid )
-                WHERE c.id NOT IN (
-                    SELECT courseid
-                    FROM {ucla_request_classes}
-                 ) AND
-                si.type!='test'
+                        (m.id=cm.module)
+                LEFT JOIN {ucla_siteindicator} AS si ON (c.id = si.courseid)
+                LEFT JOIN {ucla_request_classes} AS urc ON (c.id=urc.courseid)
+                WHERE   urc.id IS NULL AND
+                        si.type!='test'
                 GROUP BY m.id
                 ORDER BY m.name";
         return $DB->get_records_sql($sql, $params);
