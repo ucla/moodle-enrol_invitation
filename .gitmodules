@@ -4,3 +4,6 @@
 [submodule "blocks/quickmail"]
 	path = blocks/quickmail
 	url = git@github.com:ccle/quickmail.git
+[submodule "filter/rtmp"]
+	path = filter/rtmp
+	url = git@github.com:ccle/moodle-filter_rtmp.git
