@@ -56,6 +56,10 @@ $string['movealt'] = 'Click and drag to move';
 $string['markthistopic'] = 'Highlight section';
 $string['markedthistopic'] = 'Section is highlighted';
 
+// Collapsed registrar description links
+$string['collapsed_show'] = 'Show registrar info';
+$string['collapsed_hide'] = 'Hide registrar info';
+
 // JIT strings
 $string['file'] = 'Upload file';
 $string['link'] = 'Add link';

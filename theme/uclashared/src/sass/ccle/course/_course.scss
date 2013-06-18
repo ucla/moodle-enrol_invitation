@@ -2,12 +2,73 @@
 // CCLE / COURSE / course site
 // --------------------------------------------------
 
+// Generic CCLE box with drop shadow and rounded coreners
+.ccle-generic-box {
+    display: block;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    padding: 4px 8px;
+    width: 100%;
+    margin-bottom: 8px;
+    
+    @include box-sizing(border-box);
+    @include box-shadow(#ddd 1px 1px 1px);
+}
+
 // These are contents of a course
 .course-content {
     
     font-size: $type-font-size;
     line-height: $type-line-height;
     
+    // Collapse block
+    .collapsed {
+        @extend .ccle-generic-box;
+        
+        display: none;
+        padding: 8px;
+        background-color: #fdfdfd;
+        
+        @include border-bottom-radius(4px);
+        
+        &:focus {
+            display: block;
+        }
+
+    }
+    .collapse-hide {
+        @extend .ccle-generic-box;
+        
+        font-size: 1.3rem;
+        display: none;
+        border-bottom: 0;
+        margin-bottom: 0;
+        
+        @include border-top-radius(4px);
+    }
+    .collapse-show {
+        @extend .ccle-generic-box;
+
+        font-size: 1.3rem;
+
+        @include border-radius(4px);
+
+        // Hide myself
+        &:focus {
+            display: none;
+        }
+        // Show collapsed sibling
+        &:focus ~ .collapsed {
+            display: block;
+        }
+        // Show hidden 'show' link
+        &:focus + .collapse-hide {
+            display: block
+        }
+    }
+    .course-summary {
+        
+    }
     // Course header
     // Contains title 
     > .headingblock {
@@ -73,6 +134,18 @@
     }
 }
 
+// Course search highlight -- yellowish osx-like color used
+.summary {
+    .highlight {
+        border: 1px solid #EBD742;
+        background-color: yellow;
+        padding: 0 1px;
+        
+        @include background-image(linear-gradient(top, yellow, #EBD742));
+        @include border-radius(4px);
+        @include box-shadow(#aaa 1px 2px 2px);
+    }
+}
 
 // Imported CSS
 // --------------------------------------------------
