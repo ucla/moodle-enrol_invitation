@@ -49,7 +49,7 @@ $string['landing_page'] = 'Landing page';
 $string['show_all'] = 'Show all';
 
 // Custom format strings
-$string['editcoursetitle'] = 'Edit course description';
+$string['editcoursetitle'] = 'Edit course summary';
 $string['editsectiontitle'] = 'Edit section';
 $string['editofficehours'] = 'Update';
 $string['movealt'] = 'Click and drag to move';

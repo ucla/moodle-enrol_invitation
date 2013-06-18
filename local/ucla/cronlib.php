@@ -72,9 +72,6 @@ class ucla_reg_classinfo_cron {
         if (empty($terms)) {
             return true;
         }
-
-        // If config is set, then don't update/set course summaries.
-        $desc_no_autofill = get_config('tool_uclacoursecreator', 'desc_no_autofill');
         
         echo "\n";
 
