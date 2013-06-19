@@ -482,7 +482,7 @@ if ($displayforms) {
     $sectionhtml = supportconsole_simple_form($title, $syllabus_selectors);
     
 } else if ($consolecommand == "$title") {
-    $sectionhtml .= $OUTPUT->box(get_string('syllabus_notes',
+    $sectionhtml .= $OUTPUT->box(get_string('syllabusoverviewnotes',
             'tool_uclasupportconsole'));
 
     $selected_term = required_param('term', PARAM_ALPHANUM);
@@ -616,17 +616,21 @@ if ($displayforms) {
                         @++$working_bin[$course->fullname]['preview'];
                     }
                 }
-            } else {
-                // There was no syllabus added, see if there are any manual syllabi.
-                $courserecord = $DB->get_record('course', array('id' =>  $course->courseid));
-                $ucla_syllabus_manager = new ucla_syllabus_manager($courserecord);
-                $manualsyllabi = $ucla_syllabus_manager->get_all_manual_syllabi();
-                if (!empty($manualsyllabi)) {
-                    @++$working_bin[$course->fullname]['manual'];
+            }
+
+            // Check if there were any manual syllabi.
+            $courserecord = $DB->get_record('course', array('id' =>  $course->courseid));
+            $ucla_syllabus_manager = new ucla_syllabus_manager($courserecord);
+            $manualsyllabi = $ucla_syllabus_manager->get_all_manual_syllabi($timestart, $timeend);
+            if (!empty($manualsyllabi)) {
+                @++$working_bin[$course->fullname]['manual'];
+                // Only increment number of courses that have syllabi if syllabus tool wasn't used.
+                if (empty($syllabi)) {
                     @++$working_bin[$course->fullname]['syllabi_courses'];
                 }
-                unset($ucla_syllabus_manager);
             }
+            unset($ucla_syllabus_manager);
+            
         }
         unset($syllabus_cache); // no need to keep this cache anymore
 
@@ -685,12 +689,18 @@ if ($displayforms) {
                              $syllabi_counts['syllabi_courses'])*100));
 
                     // col5: preview syllabus
+                    @$totalpublic = $syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC] +
+                            $syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN];
                     @$header_totals['preview'] += $syllabi_counts['preview'];
-                    @$table_row[] = sprintf('%d/%d (%d%%)',
-                            $syllabi_counts['preview'],
-                            $syllabi_counts['syllabi_courses'],
-                            round(($syllabi_counts['preview']/
-                             $syllabi_counts['syllabi_courses'])*100));
+                    if (empty($totalpublic)) {
+                        $table_row[] = 0;
+                    } else {
+                        @$table_row[] = sprintf('%d/%d (%d%%)',
+                                $syllabi_counts['preview'],
+                                $totalpublic,
+                                round(($syllabi_counts['preview']/
+                                 $totalpublic)*100));
+                    }
 
                     // col6: private syllabus
                     @$header_totals[UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE] += $syllabi_counts[UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE];
@@ -739,11 +749,15 @@ if ($displayforms) {
                         $header_totals['syllabi_courses'],
                         round(($header_totals[UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN]/
                          $header_totals['syllabi_courses'])*100));
-                $preview_syllabus_count = sprintf('%d/%d (%d%%)',
-                        $header_totals['preview'],
-                        $header_totals['syllabi_courses'],
-                        round(($header_totals['preview']/
-                         $header_totals['syllabi_courses'])*100));
+                $totalpublic = $header_totals[UCLA_SYLLABUS_ACCESS_TYPE_PUBLIC] +
+                        $header_totals[UCLA_SYLLABUS_ACCESS_TYPE_LOGGEDIN];
+                if (!empty($totalpublic)) {
+                    $preview_syllabus_count = sprintf('%d/%d (%d%%)',
+                            $header_totals['preview'],
+                            $totalpublic,
+                            round(($header_totals['preview']/
+                             $totalpublic)*100));
+                }
                 $private_syllabus_count = sprintf('%d/%d (%d%%)',
                         $header_totals[UCLA_SYLLABUS_ACCESS_TYPE_PRIVATE],
                         $header_totals['syllabi_courses'],
@@ -807,7 +821,7 @@ if ($displayforms) {
     $sectionhtml = supportconsole_simple_form($title, $syllabus_selectors);
     
 } else if ($consolecommand == "$title") {
-    $sectionhtml .= $OUTPUT->box(get_string('syllabus_notes',
+    $sectionhtml .= $OUTPUT->box(get_string('syllabusreoportnotes',
             'tool_uclasupportconsole'));
 
     $selected_term = required_param('term', PARAM_ALPHANUM);
@@ -837,12 +851,11 @@ if ($displayforms) {
             JOIN        {ucla_reg_classinfo} AS uri ON (
                         urc.term=uri.term AND
                         urc.srs=uri.srs)
-            LEFT JOIN   {ucla_syllabus} AS s ON (urc.courseid = s.courseid)
+            LEFT JOIN   {ucla_syllabus} AS s ON (urc.courseid = s.courseid {$timesql})
             WHERE       urc.term =:term AND
                         urc.department =:department AND
                         uri.enrolstat != 'X' AND
-                        uri.acttype != 'TUT'
-                        {$timesql}
+                        uri.acttype != 'TUT'                        
             ORDER BY    uri.term, uri.subj_area, uri.crsidx, uri.secidx";
     
     $params = array();
@@ -868,18 +881,6 @@ if ($displayforms) {
             if (empty($crs_syl->access_type)) {
                 $syllabus_record[2] = '';
                 $syllabus_record[3] = '';
-
-                // Check if course has a manual syllabus.
-                $courserecord = $DB->get_record('course', array('id' =>  $crs_syl->courseid));
-                $ucla_syllabus_manager = new ucla_syllabus_manager($courserecord);
-                $manualsyllabi = $ucla_syllabus_manager->get_all_manual_syllabi();
-                if (!empty($manualsyllabi)) {
-                    $syllabus_record[4] = 'x';
-                    $num_manual++;
-                } else {
-                    $syllabus_record[4] = '';
-                }
-                unset($ucla_syllabus_manager);
             } else if ($access_public) {
                 $syllabus_record[2] = 'x';
                 $syllabus_record[3] = '';
@@ -891,6 +892,18 @@ if ($displayforms) {
                 $syllabus_record[4] = '';
                 $num_private++;
             }
+
+            // Check if course has a manual syllabus.
+            $courserecord = $DB->get_record('course', array('id' =>  $crs_syl->courseid));
+            $ucla_syllabus_manager = new ucla_syllabus_manager($courserecord);
+            $manualsyllabi = $ucla_syllabus_manager->get_all_manual_syllabi($timestart, $timeend);
+            if (!empty($manualsyllabi)) {
+                $syllabus_record[4] = count($manualsyllabi);
+                $num_manual++;
+            } else {
+                $syllabus_record[4] = '';
+            }
+            unset($ucla_syllabus_manager);
 
             // If the previous course processed is the same course, then just update
             // that course instead of creating a new row

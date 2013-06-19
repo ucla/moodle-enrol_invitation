@@ -181,16 +181,31 @@ class ucla_syllabus_manager {
      * uploaded syllabus.
      * 
      * @global moodle_database $DB
-     * 
+     *
+     * @param int $timestart        Optional. If given, will restrict the search
+     *                              to only course modules added on or after
+     *                              given unix timestamp.
+     * @param int $timeend          Optional. If given, will restrict the search
+     *                              to only course modules added on or before
+     *                              given unix timestamp.
+     *
      * @return array    Returns an array of objects with fields 'cmid', 'name',
      *                  and 'type' (resource or url). Returns cmid
      *                  (course_module id) instead of resource/url id, because
      *                  the later might not be unique.
      */
-    public function get_all_manual_syllabi() {
+    public function get_all_manual_syllabi($timestart=null, $timeend=null) {
         global $DB;
 
         $searchstring = '%syllabus%';
+
+        $timesql = '';
+        if (!empty($timestart)) {
+            $timesql .= ' AND cm.added >= ' . intval($timestart);
+        }
+        if (!empty($timeend)) {
+            $timesql .= ' AND cm.added <= ' . intval($timeend);
+        }
 
         // Check file and url resources.
         $sql = "(
@@ -202,7 +217,8 @@ class ucla_syllabus_manager {
                     JOIN    {modules} m ON (cm.module=m.id)
                     WHERE   cm.course=:courseid1 AND
                             m.name='resource' AND " .
-                            $DB->sql_like('r.name', ':searchstring1', false, false)
+                            $DB->sql_like('r.name', ':searchstring1', false, false) .
+                            $timesql
                 . ") UNION ALL
                 (
                     SELECT  cm.id AS cmid,
@@ -213,7 +229,8 @@ class ucla_syllabus_manager {
                     JOIN    {modules} m ON (cm.module=m.id)
                     WHERE   cm.course=:courseid2 AND
                             m.name='url' AND " .
-                            $DB->sql_like('u.name', ':searchstring2', false, false)
+                            $DB->sql_like('u.name', ':searchstring2', false, false) .
+                            $timesql
                 . ")";
         $manualsyllabi = $DB->get_records_sql($sql,
                 array('courseid1' => $this->courseid,
