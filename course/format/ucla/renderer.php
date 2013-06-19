@@ -454,10 +454,10 @@ class format_ucla_renderer extends format_section_renderer_base {
                 if (!empty($this->course->summary) && $this->course->summary != $regsummary) {
                     $regsummarycontent .= html_writer::link('#',
                             get_string('collapsed_show', 'format_ucla'),
-                            array('class' => 'collapse-show'));
+                            array('class' => 'collapse-show', 'onclick' => 'javascript:this.focus();return false;'));
                     $regsummarycontent .= html_writer::link('#',
                             get_string('collapsed_hide', 'format_ucla'),
-                            array('class' => 'collapse-hide'));
+                            array('class' => 'collapse-hide', 'onclick' => 'javascript:this.focus();return false;'));
                     $regsummarycontent .= html_writer::tag('div',
                             $formattedregsummary, array('class' => 'collapsed'));
                 } else {
