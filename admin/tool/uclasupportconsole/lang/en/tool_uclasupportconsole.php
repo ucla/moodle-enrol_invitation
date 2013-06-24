@@ -80,6 +80,7 @@ $string['syllabus_header_course'] = '{$a->term} Course ({$a->num_courses})';
 $string['syllabus_header_instructor'] = 'Instructors';
 $string['syllabus_header_public'] = 'Public ({$a})';
 $string['syllabus_header_private'] = 'Private ({$a})';
+$string['syllabus_header_manual'] = 'Manual ({$a})';
 $string['syllabusoverview'] = 'Syllabus overview';
 $string['syllabus_browseby'] = 'Browse by';
 $string['syllabus_division'] = 'Division';
@@ -91,8 +92,13 @@ $string['public_syllabus_count'] = 'Public<br />{$a}';
 $string['loggedin_syllabus_count'] = 'UCLA community<br />{$a}';
 $string['preview_syllabus_count'] = 'Preview<br />{$a}';
 $string['private_syllabus_count'] = 'Private<br />{$a}';
+$string['manual_syllabus_count'] = 'Manual<br />{$a}';
 $string['syllabustimerange'] = 'Displaying uploaded syllabi';
 $string['nocourses'] = 'No courses found.';
+$string['syllabusoverviewnotes'] = 'Does not include cancelled or tutorial courses. ' .
+        'The preview syllabus percentage is counted against the total number of "Public" and "UCLA community" syllabi. ' .
+        'A manual syllabus is always counted, but only increments the total number of syllabi if no other syllabus type is found.';
+$string['syllabusreoportnotes'] = 'Does not include cancelled or tutorial courses. The manual syllabus column counts the number of manual syllabi in a course.';
 
 // Course
 $string['collablist'] = 'Show collaboration sites';

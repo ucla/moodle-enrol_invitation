@@ -16,3 +16,7 @@
 #log-action-types {
     list-style-type: none;
 }
+
+#syllabusreoport .c1, #syllabusreoport .c2, #syllabusreoport .c3 {
+    text-align: center;
+}
