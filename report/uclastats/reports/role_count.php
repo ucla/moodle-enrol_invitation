@@ -56,19 +56,15 @@ class role_count extends uclastats_base {
         }
         $params['contextlevel'] = CONTEXT_COURSE;
 
-        $sql = "SELECT r.name as role, count(DISTINCT ra.userid) as count
-                FROM mdl_course c
+        $sql = "SELECT r.name as role, count(DISTINCT ra.userid) as count"
+                    . $this->from_filtered_courses() .
+                    "
                     JOIN {context} ctx ON ctx.instanceid = c.id
                     JOIN {role_assignments} ra ON (
                         ra.contextid = ctx.id AND
                         ctx.contextlevel = :contextlevel
                     )
                     JOIN {role} r ON ra.roleid = r.id
-                    JOIN {ucla_request_classes} rc ON (
-                        rc.courseid = c.id AND 
-                        rc.term = :term AND
-                        hostcourse = 1
-                    )
                 GROUP BY ra.roleid";
         return $DB->get_records_sql($sql, $params);
     }

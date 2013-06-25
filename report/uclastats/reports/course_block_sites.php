@@ -49,8 +49,9 @@ class course_block_sites extends uclastats_base {
         
         $params['contextlevel'] = CONTEXT_COURSE;
 
-        $sql = "SELECT bi.blockname, COUNT(bi.id) as count
-                FROM {course} c
+        $sql = "SELECT bi.blockname, COUNT(bi.id) as count"
+                . $this->from_filtered_courses() .
+                "
                 JOIN {context} ctx ON (
                     ctx.contextlevel = :contextlevel AND
                     ctx.instanceid = c.id)
@@ -59,11 +60,6 @@ class course_block_sites extends uclastats_base {
                 )
                 JOIN {block} b ON (
                     bi.blockname = b.name
-                )
-                JOIN {ucla_request_classes} rc ON (
-                    rc.courseid = c.id AND 
-                    rc.term = :term AND
-                    hostcourse = 1
                 )
                 GROUP BY b.id
                 ORDER BY b.name";

@@ -68,16 +68,13 @@ class most_active_course_sites extends uclastats_base {
 
         $sql = "SELECT  c.id,
                         c.shortname AS course_title,
-                        COUNT(l.id) AS viewcount
-                FROM {log} AS l
-                JOIN {course} AS c ON (
-                    l.course = c.id
+                        COUNT(l.id) AS viewcount"
+                . $this->from_filtered_courses() .
+                "
+                JOIN {log} AS l ON (
+                 c.id = l.course AND
+                 l.action = 'view'
                 )
-                JOIN {ucla_request_classes} AS urc ON (
-                    urc.courseid = c.id
-                )
-                WHERE urc.term = :term AND 
-                      l.action = 'view'
                 GROUP BY c.id
                 ORDER BY viewcount DESC
                 LIMIT 10";
