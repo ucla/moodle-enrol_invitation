@@ -455,9 +455,9 @@ class format_ucla_renderer extends format_section_renderer_base {
                     }
                 }
 
-                // If there's a modified course summary, then collapse registrar info
+                // If there's a modified course summary, then collapse registrar descriptions.
                 $formattedregsummary = format_text($regsummary);
-                if (!empty($this->course->summary) && $this->course->summary != $regsummary) {
+                if (!empty($this->course->summary) && $this->course->summary != $courseinfo->crs_desc) {
                     $regsummarycontent .= html_writer::link('#',
                             get_string('collapsedshow', 'format_ucla'),
                             array('class' => 'collapse-show', 'onclick' => 'javascript:this.focus();return false;'));
