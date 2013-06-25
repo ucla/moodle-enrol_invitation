@@ -13,6 +13,7 @@
     
     @include box-sizing(border-box);
     @include box-shadow(#ddd 1px 1px 1px);
+    @include border-radius(6px);
 }
 
 // These are contents of a course
@@ -21,53 +22,17 @@
     font-size: $type-font-size;
     line-height: $type-line-height;
     
-    // Collapse block
-    .collapsed {
+    .registrar-summary {
         @extend .ccle-generic-box;
-        
-        display: none;
-        padding: 8px;
-        background-color: #fdfdfd;
-        
-        @include border-bottom-radius(4px);
-        
-        &:focus {
-            display: block;
-        }
-
+        overflow: hidden;
     }
-    .collapse-hide {
-        @extend .ccle-generic-box;
+    .collapse-toggle {
+        width: 100%;
+        display: inline-block;
+        padding: 2px;
         
-        font-size: 1.3rem;
-        display: none;
-        border-bottom: 0;
-        margin-bottom: 0;
-        
-        @include border-top-radius(4px);
-    }
-    .collapse-show {
-        @extend .ccle-generic-box;
-
-        font-size: 1.3rem;
-
-        @include border-radius(4px);
-
-        // Hide myself
-        &:focus {
-            display: none;
-        }
-        // Show collapsed sibling
-        &:focus ~ .collapsed {
-            display: block;
-        }
-        // Show hidden 'show' link
-        &:focus + .collapse-hide {
-            display: block
-        }
-    }
-    .course-summary {
-        
+        @include box-sizing(border-box);
+        @include border-radius(6px);
     }
     // Course header
     // Contains title 

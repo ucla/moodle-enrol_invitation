@@ -186,6 +186,10 @@ class format_ucla_renderer extends format_section_renderer_base {
     public function print_header() {
         global $CFG, $OUTPUT, $PAGE;
         
+        $PAGE->requires->yui_module('moodle-format_ucla-utils', 
+                'M.format_ucla.utils.init', 
+                array(array()));
+        
         // Formatting and determining information to display for these courses
         $regcoursetext = '';
         $termtext = '';
@@ -460,9 +464,8 @@ class format_ucla_renderer extends format_section_renderer_base {
                 if (!empty($this->course->summary) && $this->course->summary != $courseinfo->crs_desc) {
                     $regsummarycontent .= html_writer::link('#',
                             get_string('collapsedshow', 'format_ucla'),
-                            array('class' => 'collapse-show', 'onclick' => 'javascript:this.focus();return false;'));
-                    $regsummarycontent .= html_writer::tag('div',
-                            $formattedregsummary, array('class' => 'collapsed'));
+                            array('class' => 'collapse-toggle'));
+                    $regsummarycontent .= $formattedregsummary;
                 } else {
                    $regsummarycontent .= $formattedregsummary;
                    $supresscoursesummary = true;
