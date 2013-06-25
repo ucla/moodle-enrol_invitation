@@ -72,7 +72,7 @@ class ucla_reg_classinfo_cron {
         if (empty($terms)) {
             return true;
         }
-        
+
         echo "\n";
 
         $reg = registrar_query::get_registrar_query('ccle_getclasses');

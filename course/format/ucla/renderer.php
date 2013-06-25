@@ -439,11 +439,17 @@ class format_ucla_renderer extends format_section_renderer_base {
                 $regsummarycontent = '';
                 foreach ($this->courseinfo as $courseinfo) {
                     if (!empty($courseinfo->hostcourse)) {
+                        if (!empty($courseinfo->crs_desc)) {
+                            $regsummary .= html_writer::tag('p',
+                                    html_writer::tag('strong',
+                                            get_string('coursedescription', 'format_ucla'))
+                                    . ': ' . $courseinfo->crs_desc);
+                        } 
                         if (!empty($courseinfo->crs_summary)) {
-                            // Prefer term based class description.
-                            $regsummary = $courseinfo->crs_summary;
-                        } else {
-                            $regsummary = $courseinfo->crs_desc;
+                            $regsummary .= html_writer::tag('p',
+                                    html_writer::tag('strong',
+                                            get_string('classdescription', 'format_ucla'))
+                                    . ': ' . $courseinfo->crs_summary);
                         }
                         break;
                     }
@@ -453,11 +459,8 @@ class format_ucla_renderer extends format_section_renderer_base {
                 $formattedregsummary = format_text($regsummary);
                 if (!empty($this->course->summary) && $this->course->summary != $regsummary) {
                     $regsummarycontent .= html_writer::link('#',
-                            get_string('collapsed_show', 'format_ucla'),
+                            get_string('collapsedshow', 'format_ucla'),
                             array('class' => 'collapse-show', 'onclick' => 'javascript:this.focus();return false;'));
-                    $regsummarycontent .= html_writer::link('#',
-                            get_string('collapsed_hide', 'format_ucla'),
-                            array('class' => 'collapse-hide', 'onclick' => 'javascript:this.focus();return false;'));
                     $regsummarycontent .= html_writer::tag('div',
                             $formattedregsummary, array('class' => 'collapsed'));
                 } else {

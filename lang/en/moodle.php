@@ -355,7 +355,9 @@ $string['coursesettings'] = 'Course default settings';
 $string['coursesmovedout'] = 'Courses moved out from {$a}';
 $string['coursespending'] = 'Courses pending approval';
 $string['coursestart'] = 'Course start';
-$string['coursesummary'] = 'Course summary';
+// START UCLA MOD: CCLE-3819 - Lock down course summary
+$string['coursesummary'] = 'Course comments';
+// END UCLA MOD: CCLE-3819
 $string['coursesummary_help'] = 'The course summary is displayed in the list of courses. A course search searches course summary text in addition to course names.';
 $string['courseupdates'] = 'Course updates';
 $string['courseuploadlimit'] = 'Course upload limit';

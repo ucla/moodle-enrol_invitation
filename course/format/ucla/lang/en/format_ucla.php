@@ -49,16 +49,18 @@ $string['landing_page'] = 'Landing page';
 $string['show_all'] = 'Show all';
 
 // Custom format strings
-$string['editcoursetitle'] = 'Edit course summary';
+$string['editcoursetitle'] = 'Edit course comments';
 $string['editsectiontitle'] = 'Edit section';
 $string['editofficehours'] = 'Update';
 $string['movealt'] = 'Click and drag to move';
 $string['markthistopic'] = 'Highlight section';
 $string['markedthistopic'] = 'Section is highlighted';
 
-// Collapsed registrar description links
-$string['collapsed_show'] = 'Show registrar info';
-$string['collapsed_hide'] = 'Hide registrar info';
+// Registrar description strings.
+$string['collapsedshow'] = 'Show registrar description';
+$string['collapsedhide'] = 'Hide registrar description';
+$string['coursedescription'] = 'Course description';
+$string['classdescription'] = 'Class description';
 
 // JIT strings
 $string['file'] = 'Upload file';
