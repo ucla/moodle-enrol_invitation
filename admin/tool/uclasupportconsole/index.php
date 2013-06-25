@@ -157,7 +157,7 @@ if ($displayforms) {
         // Todo descriptions
         $checkboxes[] = html_writer::tag('li', 
             html_writer::checkbox('actiontypes[]', $action, 
-                true, $actiondesc));
+                false, $actiondesc));
 
     }
 
