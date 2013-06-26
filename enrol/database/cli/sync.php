@@ -39,26 +39,15 @@ require_once("$CFG->libdir/clilib.php");
 // Now get cli options.
 list($options, $unrecognized) = cli_get_params(array('verbose'=>false, 'help'=>false), array('v'=>'verbose', 'h'=>'help'));
 
-list($options, $unrecognized) = cli_get_params(
-    array(
-        'current-term' => false,
-        'course-id' => false,
-        'help' => false,
-        'verbose' => false
-    ),
-    array(
-        'h' => 'help',
-        'v' => 'verbose'
-    )
-);
+if ($unrecognized) {
+    $unrecognized = implode("\n  ", $unrecognized);
+    cli_error(get_string('cliunknowoption', 'admin', $unrecognized));
+}
 
 if ($options['help']) {
-    $help = 
+    $help =
 "Execute enrol sync with external database.
 The enrol_database plugin must be enabled and properly configured.
-
-If no term is specified it will run for the terms defined in 
-get_config('tool_uclacoursecreator', 'terms')
 
 Options:
 -v, --verbose         Print verbose progress information
@@ -71,75 +60,9 @@ Sample cron entry:
 # 5 minutes past 4am
 5 4 * * * sudo -u www-data /usr/bin/php /var/www/moodle/enrol/database/cli/sync.php
 ";
+
     echo $help;
     die;
-}
-
-// Figure out non dashed options
-$reg_argv = array();
-
-$is_courseid = false;
-$singlecourseid = false;
-
-foreach ($argv as $arg) {
-    if (strpos($arg, '-') !== false) {
-        if ($arg == '--course-id') {
-            $is_courseid = true;
-        }
-
-        continue;
-    }
-
-    if ($is_courseid) {
-        $is_courseid = false;
-        if (is_numeric($arg)) {
-            $singlecourseid = $arg;
-        } 
-
-        continue;
-    }
-
-    $reg_argv[] = $arg;
-}
-
-// If we're doing a course, we don't need to figure out our terms.
-if ($singlecourseid !== false) {
-    $terms = null;
-} else {
-    // Figure out terms
-    $terms = array();
-
-    // Terms provided in arguments?
-    if (count($reg_argv) > 1) {
-        $terms = $reg_argv;
-    } 
-
-    // Include current term?
-    if ($options['current-term']) {
-        if (!empty($CFG->currentterm)) {
-            $terms = array($CFG->currentterm);
-        } else {
-            echo "Current term not set.";
-        }
-    }
-
-    // If use the terms in enrol_database configuration
-    if (empty($terms)) {
-        $terms = get_active_terms();
-    }
-}
-
-if (!empty($terms)) {
-    foreach ($terms as $key => $term) {
-        if (!ucla_validator('term', $term)) {
-            unset($terms[$key]);
-        }
-    }
-}
-
-if ($terms !== null && empty($terms)) {
-    echo "No terms to run for.\n";
-    exit(0);
 }
 
 if (!enrol_is_enabled('database')) {

@@ -26,12 +26,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/local/ucla/lib.php');
-require_once($CFG->dirroot .'/user/lib.php');
-// BEGIN UCLA MOD: CCLE-2824 - Making sure that being assigned/unassigned/re-assigned doesn't lose grading data  
-require_once($CFG->libdir .'/gradelib.php');
-// END UCLA MOD: CCLE-2824
-
 /**
  * Database enrolment plugin implementation.
  * @author  Petr Skoda - based on code by Martin Dougiamas, Martin Langhoff and others
@@ -94,56 +88,6 @@ class enrol_database_plugin extends enrol_plugin {
     }
 
     /**
-     *  Function to translate the stored procedures results to Moodle 
-     *  user results (named after the stored procedure).
-     **/
-    public function translate_ccle_roster_class($reg) {
-        $names = explode(',', trim($reg['full_name_person']));
-
-        if (empty($names)) {
-            // no name?!
-            mtrace('WARNING: Found user with no name from class roster: '. print_r($reg, true));    
-            $names[0] = '';
-            $firstmiddle = array('');
-        } else if (empty($names[1])) {
-            // No first name, they must be a rock star
-            $firstmiddle = array('');
-        } else {
-            $firstmiddle = explode(' ', trim($names[1]));
-        }
-
-        return array(
-            $this->get_config('remoteuserfield') => $reg['stu_id'],
-            'firstname' => $firstmiddle[0],
-            'lastname'  => $names[0],
-            'email'     => $reg['ss_email_addr'],
-            'username'  => $this->normalize_bolid($reg['bolid'])
-        );
-    }
-
-    /**
-     *  Function to translate the stored procedures results to Moodle 
-     *  user results (named after the stored procedure).
-     **/
-    public function translate_ccle_course_instructorsget($reg) {
-        return array(
-            $this->get_config('remoteuserfield') => $reg['ucla_id'],
-            'firstname' => $reg['first_name_person'],
-            'lastname'  => $reg['last_name_person'],
-            'email'     => $reg['ursa_email'],
-            'username'  => $this->normalize_bolid($reg['bolid'])
-        );
-    }
-
-    public function normalize_bolid($bolid) {
-        if (!empty($bolid)) {
-            return $bolid . '@ucla.edu';
-        }
-
-        return '';
-    }    
-    
-    /**
      * Forces synchronisation of user enrolments with external database,
      * does not create new courses.
      *
@@ -191,6 +135,10 @@ class enrol_database_plugin extends enrol_plugin {
         if (!isset($allroles[$defaultrole])) {
             $defaultrole = 0;
         }
+        $roles = array();
+        foreach ($allroles as $role) {
+            $roles[$role->$localrolefield] = $role->id;
+        }
 
         $enrols = array();
         $instances = array();
@@ -216,7 +164,6 @@ class enrol_database_plugin extends enrol_plugin {
                     if (!$course = $DB->get_record('course', array($localcoursefield=>$fields[$coursefield_l]), 'id,visible')) {
                         continue;
                     }
-
                     if (!$course->visible and $ignorehidden) {
                         continue;
                     }
@@ -269,12 +216,6 @@ class enrol_database_plugin extends enrol_plugin {
             } else {
                 $roleid = reset($roles);
                 $this->enrol_user($instance, $user->id, $roleid, 0, 0, ENROL_USER_ACTIVE);
-                // BEGIN UCLA MOD: CCLE-2824 - Making sure that being assigned/unassigned/re-assigned doesn't lose grading data        
-                // attempt to recover grades for a newly assigned user
-                if ($CFG->recovergradesdefault) {
-                    grade_recover_history_grades($user->id, $instance->courseid);
-                }                
-                // END UCLA MOD: CCLE-2824
             }
 
             if (!$context = context_course::instance($instance->courseid, IGNORE_MISSING)) {
@@ -290,7 +231,7 @@ class enrol_database_plugin extends enrol_plugin {
                 } else {
                     role_unassign($r->roleid, $user->id, $context->id, 'enrol_database', $instance->id);
                 }
-            }            
+            }
             foreach ($roles as $rid) {
                 if (!isset($existing[$rid])) {
                     role_assign($rid, $user->id, $context->id, 'enrol_database', $instance->id);
@@ -319,9 +260,6 @@ class enrol_database_plugin extends enrol_plugin {
                 // We want this user enrolled.
                 continue;
             }
-            // START UCLA MOD CCLE-3603
-            // Temporarily disabling this code to prevent O2 (TAs) from 
-            // being unenroled.
 
             // Deal with enrolments removed from external table
             if ($unenrolaction == ENROL_EXT_REMOVED_UNENROL) {
@@ -341,13 +279,6 @@ class enrol_database_plugin extends enrol_plugin {
             }
         }
         $rs->close();
-
-        // START UCLA MOD: Events for login-time enrolment
-        $edata = new object();
-        $edata->user = $user;
-        $edata->enrols = $enrols;
-        events_trigger('sync_user_enrolments_finished', $edata);
-        // END UCLA MOD
     }
 
     /**
@@ -515,30 +446,7 @@ class enrol_database_plugin extends enrol_plugin {
         if ($rolefield) {
             $sqlfields[] = $rolefield;
         }
-        
-        // UCLA MOD CCLE-2924: Update user data with prepop.
-        $user_caches = array();
-
-        // These are fields that are arbitrarily updated.
-        // THe auth plugins are not usable in determining what fields to update
-        $updateuserfields = array('firstname', 'lastname', 'email');
-
-        // This configuration value comes in days, so multiply
-        // This value is in seconds, or is false which is 0, meaning instantly/always
-        // 86400 == 60 * 60 * 24 (seconds in a day)
-        $minuserupdatewait = $this->get_config('minuserupdatewaitdays') * 86400;
-       
-        // This may cause seconds/minutes of disparity
-        $currtime = time();
-
         foreach ($existing as $course) {
-            // CCLE-2275: Ignoring courses that are not selected to be
-            // synchronized (such as courses in other terms)
-            if (!isset($enrolment_info[$course->mapping])) {
-                continue;
-            }
-            // End Modification CCLE-2275
-
             if ($ignorehidden and !$course->visible) {
                 continue;
             }
@@ -551,8 +459,7 @@ class enrol_database_plugin extends enrol_plugin {
             $current_roles  = array();
             $current_status = array();
             $user_mapping   = array();
-
-            $sql = "SELECT u.$localuserfield AS mapping, ue.status, ue.userid, ra.roleid
+            $sql = "SELECT u.$localuserfield AS mapping, u.id, ue.status, ue.userid, ra.roleid
                       FROM {user} u
                       JOIN {user_enrolments} ue ON (ue.userid = u.id AND ue.enrolid = :enrolid)
                       JOIN {role_assignments} ra ON (ra.userid = u.id AND ra.itemid = ue.enrolid AND ra.component = 'enrol_database')
@@ -566,11 +473,7 @@ class enrol_database_plugin extends enrol_plugin {
             foreach ($rs as $ue) {
                 $current_roles[$ue->userid][$ue->roleid] = $ue->roleid;
                 $current_status[$ue->userid] = $ue->status;
-
-                // This is for UNEX students
-                if (!empty($ue->mapping)) {
-                    $user_mapping[$ue->mapping] = $ue->userid;
-                }
+                $user_mapping[$ue->mapping] = $ue->userid;
             }
             $rs->close();
 
@@ -611,84 +514,8 @@ class enrol_database_plugin extends enrol_plugin {
                             $roleid = $roles[$fields[$rolefield_l]];
                         }
 
-                        if ($needsupdate) {
-                            $DB->update_record('user', $user);
-                        }
-
-                        if (!empty($mapping)) {
-                            $user_mapping[$mapping] = $userid;
-                        }
-                    } else {
-                        // Don't use fallback
-                        $userid = $user_mapping[$mapping];
+                        $requested_roles[$userid][$roleid] = $roleid;
                     }
-
-                    // CCLE-2924: Update users: Match the user and update information if needed.
-                    if (!isset($user_cache[$userid])) {
-                        $user_cache[$userid] = $DB->get_record('user', array('id' => $userid));
-                    }
-
-                    // This clone might not be necessary, but this is useful for debugging purposes...
-                    $userinfo = clone($user_cache[$userid]);
-                    $needsupdate = false;
-
-                    $updatedebugstr = '';
-
-                    // Go through updater fields and sync with registrar
-                    foreach ($updateuserfields as $updateuserfield) {
-                        if (!empty($fields[$updateuserfield]) && $userinfo->{$updateuserfield} != $fields[$updateuserfield]) {
-                            if (!empty($updatedebugstr)) {
-                                $updatedebugstr .= "\n";
-                            }
-
-                            $updatedebugstr .= "Updating user $userid data: "
-                                . "$updateuserfield [{$userinfo->{$updateuserfield}}] "
-                                . "=> [{$fields[$updateuserfield]}]";
-
-                            $userinfo->{$updateuserfield} = $fields[$updateuserfield];
-
-                            $needsupdate = true;
-                        }
-                    }
-
-                    if ($needsupdate) {
-                        if ($currtime - $userinfo->lastaccess > $minuserupdatewait) {
-                            if ($verbose) {
-                                mtrace($updatedebugstr);
-                            }
-
-                            unset($userinfo->password); // we aren't updating a user's password
-                            user_update_user($userinfo);
-
-                            // If the clone() is not above, then this line is not necessary
-                            $user_cache[$userid] = $userinfo;
-                        }  else if ($verbose) {
-                            // If the clone() is not above, this debugging message won't work
-                            $origuserinfo = $user_cache[$userid];
-
-                            $userstr = fullname($origuserinfo) . ' ' . $origuserinfo->email;
-                            $remoteuserstr = fullname($userinfo) . ' ' . $userinfo->email;
-
-                            mtrace('User data (' . $userstr 
-                                . ') does not match externaldb (' . $remoteuserstr 
-                                . '), but ignoring (minuserupdatewaitdays)');
-                        }
-                    }
-
-                    // Since we cloned, we want to clear memory
-                    unset($userinfo);
-
-                    if (empty($fields[$rolefield]) or !isset($roles[$fields[$rolefield]])) {
-                        if (!$defaultrole) {
-                            // role is mandatory
-                            continue;
-                        }
-                        $roleid = $defaultrole;
-                    } else {
-                        $roleid = $roles[$fields[$rolefield]];
-                    }
-
-                    $requested_roles[$userid][$roleid] = $roleid;
                 }
                 $rs->Close();
             } else {
@@ -772,12 +599,6 @@ class enrol_database_plugin extends enrol_plugin {
 
         $trace->output('...user enrolment synchronisation finished.');
         $trace->finished();
-
-        // START UCLA MOD: adding event to prepop 
-        $edata = new object();
-        $edata->courses = $course_indexed;
-        events_trigger('sync_enrolments_finished', $edata);
-        // END UCLA MOD
 
         return 0;
     }
