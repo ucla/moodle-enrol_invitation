@@ -94,12 +94,10 @@ $string['course_syllabus'] = 'Syllabus';
 
 //strings for system_size_report
 $string['system_size'] = 'System size (system)';
-$string['system_size_help'] = 'Returns number of files over 1 MB, ' .
-                              'size of file system, and ' .
+$string['system_size_help'] = 'Returns number of files over 1 MB and ' .
                               'size of database';
 $string['file_count'] = 'Number of files over 1 MB';
-$string['file_system_size'] = 'Size of Moodle file system';
-$string['database_size'] = 'Size of the Moodle database';
+$string['database_size'] = 'Size of database';
 
 
 //strings for inactive_collab_sites
