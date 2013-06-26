@@ -546,6 +546,37 @@ abstract class uclastats_base implements renderable {
     public abstract function query($params);
 
     /**
+     * Generate FROM statement that joins {course} c with {ucla_request_classes} urc 
+     * and {ucla_reg_classinfo} urci to enforce that 
+     * we are filtering out non-hostcourses and cancelled courses
+     *
+     * 
+     * NOTE: for consistency and simplicity use c as the alias of {course}
+     * urc as the alias of {ucla_request classes}
+     * and urci as the alias of {ucla_reg_classinfo}. 
+     *
+     * @param boolean $include_hostcourese
+     * 
+     * @return string
+     */   
+    protected function from_filtered_courses($include_hostcourse = true) {
+
+        $sql =  " FROM {course} c
+                  JOIN {ucla_request_classes} urc 
+                  ON ( c.id = urc.courseid AND
+                       urc.term = :term "
+                . ($include_hostcourse ? " AND urc.hostcourse = 1 "  : "")
+                . ")
+                  JOIN {ucla_reg_classinfo} urci ON (
+                    urci.term = urc.term AND
+                    urci.srs = urc.srs AND
+                    urci.enrolstat <> 'X' 
+                  )" ;
+        
+        return $sql;
+    }
+
+    /**
      * Runs query for given parameters and caches the results.
      *
      * @throws  moodle_exception

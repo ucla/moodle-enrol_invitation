@@ -121,3 +121,7 @@ $string['logincheck_idfail'] = 'Your user ID does not match!  This form has been
 $string['logincheck_networkfail'] = 'There was no response from the server. ' .
         'You might be disconnected from your network. Please reconnect and try again.';
 $string['logincheck_success'] = 'You\'re logged in.  You can now submit this form.';
+
+// CCLE-3652 - Students unable to see "Submission Grading" link on Assignment module
+$string['submissionsgrading'] = 'Grading info for this assignment';
+

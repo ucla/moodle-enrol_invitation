@@ -186,6 +186,10 @@ class format_ucla_renderer extends format_section_renderer_base {
     public function print_header() {
         global $CFG, $OUTPUT, $PAGE;
         
+        $PAGE->requires->yui_module('moodle-format_ucla-utils', 
+                'M.format_ucla.utils.init', 
+                array(array()));
+        
         // Formatting and determining information to display for these courses
         $regcoursetext = '';
         $termtext = '';
@@ -429,7 +433,45 @@ class format_ucla_renderer extends format_section_renderer_base {
             $registrar_info .= implode(', ', $regfinalurls);
 
             $center_content .= html_writer::tag('div', $registrar_info, array('class' => 'registrar-info'));
-            $center_content .= html_writer::empty_tag('br');
+        }
+
+        $supresscoursesummary = false;
+        if (!empty($this->courseinfo)) {
+            $hideregsummary = get_config('format_ucla', 'hideregsummary');
+            if (!$hideregsummary) {
+                $regsummary = '';
+                $regsummarycontent = '';
+                foreach ($this->courseinfo as $courseinfo) {
+                    if (!empty($courseinfo->hostcourse)) {
+                        if (!empty($courseinfo->crs_desc)) {
+                            $regsummary .= html_writer::tag('p',
+                                    html_writer::tag('strong',
+                                            get_string('coursedescription', 'format_ucla'))
+                                    . ': ' . $courseinfo->crs_desc);
+                        } 
+                        if (!empty($courseinfo->crs_summary)) {
+                            $regsummary .= html_writer::tag('p',
+                                    html_writer::tag('strong',
+                                            get_string('classdescription', 'format_ucla'))
+                                    . ': ' . $courseinfo->crs_summary);
+                        }
+                        break;
+                    }
+                }
+
+                // If there's a modified course summary, then collapse registrar descriptions.
+                $formattedregsummary = format_text($regsummary);
+                if (!empty($this->course->summary) && $this->course->summary != $courseinfo->crs_desc) {
+                    $regtogglelink = html_writer::link('#',
+                            get_string('collapsedshow', 'format_ucla'),
+                            array('class' => 'collapse-toggle'));
+                    $regsummarycontent .= html_writer::tag('div', $regtogglelink . $formattedregsummary, array('class' => 'registrar-collapsed'));
+                } else {
+                   $regsummarycontent .= $formattedregsummary;
+                   $supresscoursesummary = true;
+                }
+                $center_content .= html_writer::tag('div', $regsummarycontent, array('class' => 'registrar-summary'));
+            }
         }
 
         // Editing button for course summary
@@ -455,11 +497,14 @@ class format_ucla_renderer extends format_section_renderer_base {
                 $OUTPUT->render(new action_link($moodle_url, 
                     $innards, null, $link_options)),
                 array('class' => 'editbutton'));
-
         }
 
         $center_content .= html_writer::start_tag('div', array('class' => 'summary'));
-        $center_content .= format_text($this->course->summary);
+        // If something is entered for the course summary then display that.        
+        if (!empty($this->course->summary) && !$supresscoursesummary) {
+            $center_content .= format_text($this->course->summary);
+        } 
+  
         $center_content .= html_writer::end_tag('div');
 
         // Instructor information

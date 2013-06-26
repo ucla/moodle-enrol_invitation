@@ -66,16 +66,10 @@ class large_courses extends uclastats_base {
         }
 
         //this segment of query is used for each query string
-        $sql_body = " FROM {ucla_request_classes} AS urc
-                      JOIN {ucla_reg_classinfo} urci ON (
-                          urci.term = urc.term AND
-                          urci.srs = urc.srs
-                      )
+        $sql_body =   $this->from_filtered_courses() .
+                      "
                       JOIN {ucla_reg_division} urd ON (
                           urci.division = urd.code
-                      ) 
-                      JOIN {course} c ON (
-                          c.id = urc.courseid
                       )
                       JOIN {course_modules} AS cm ON (
                           cm.course = c.id
@@ -87,8 +81,7 @@ class large_courses extends uclastats_base {
                       JOIN {files} f ON (
                            f.contextid = ctx.id
                       ) 
-                      WHERE urc.term = :term AND
-                      f.filename <> '.' AND
+                      WHERE f.filename <> '.' AND
                       f.component = 'mod_resource' ";
 
         //query to locate all large courses

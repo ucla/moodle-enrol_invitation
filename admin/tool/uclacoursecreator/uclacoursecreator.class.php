@@ -1111,15 +1111,7 @@ class uclacoursecreator {
             unset($req_course);
 
             $courseobj = clone($this->course_defaults);
-            $courseobj->summary_format = FORMAT_HTML;
-
-            //START SSC #1596 Don't auto fill course description if config variable set
-            if($this->get_config('desc_no_autofill')) {
-                $courseobj->summary = "";
-            } else {
-                $courseobj->summary = $rci_object->crs_desc;
-            }
-             //END SSC #1596
+            $courseobj->summaryformat = FORMAT_HTML;
 
             // See if we can get certain information from the requests
             if (!isset($requests[$reqkey])) {

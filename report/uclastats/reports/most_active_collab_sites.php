@@ -58,7 +58,8 @@ class most_active_collab_sites extends uclastats_base {
      */
     public function query($params) {
         global $DB;
-
+        
+        // we do not want to eliminate sites that are not in the registrar
         $sql = "SELECT  c.id,
                         c.shortname as course_title,
                         COUNT(l.id) AS viewcount

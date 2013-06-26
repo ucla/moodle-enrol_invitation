@@ -61,9 +61,9 @@ class total_downloads extends uclastats_base {
         
         $params['contextlevel'] = CONTEXT_MODULE;
         
-        $sql =  "SELECT COUNT(DISTINCT l.id) as count
-                 FROM {log} AS l
-                 JOIN {course} c ON (
+        $sql =  "SELECT COUNT(DISTINCT l.id) as count"
+                 . $this->from_filtered_courses() .
+                "JOIN {log} AS l ON (
                     l.course = c.id
                  )
                  JOIN {course_modules} AS cm ON (
@@ -79,11 +79,7 @@ class total_downloads extends uclastats_base {
                  JOIN {files} f ON (
                      f.contextid = ctx.id
                  )
-                 JOIN {ucla_request_classes} urc ON (
-                    c.id = urc.courseid
-                 )  
-                 WHERE urc.term = :term AND
-                 f.component = 'mod_resource' AND
+                 WHERE f.component = 'mod_resource' AND
                  l.time >= :start AND
                  l.time < :end AND
                  m.name ='resource' AND

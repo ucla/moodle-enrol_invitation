@@ -2,12 +2,38 @@
 // CCLE / COURSE / course site
 // --------------------------------------------------
 
+// Generic CCLE box with drop shadow and rounded coreners
+.ccle-generic-box {
+    display: block;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    padding: 4px 8px;
+    width: 100%;
+    margin-bottom: 8px;
+    
+    @include box-sizing(border-box);
+    @include box-shadow(#ddd 1px 1px 1px);
+    @include border-radius(6px);
+}
+
 // These are contents of a course
 .course-content {
     
     font-size: $type-font-size;
     line-height: $type-line-height;
     
+    .registrar-collapsed {
+        @extend .ccle-generic-box;
+        overflow: hidden;
+    }
+    .collapse-toggle {
+        width: 100%;
+        display: inline-block;
+        padding: 2px;
+        
+        @include box-sizing(border-box);
+        @include border-radius(6px);
+    }
     // Course header
     // Contains title 
     > .headingblock {
@@ -73,6 +99,18 @@
     }
 }
 
+// Course search highlight -- yellowish osx-like color used
+.summary {
+    .highlight {
+        border: 1px solid #EBD742;
+        background-color: yellow;
+        padding: 0 1px;
+        
+        @include background-image(linear-gradient(top, yellow, #EBD742));
+        @include border-radius(4px);
+        @include box-shadow(#aaa 1px 2px 2px);
+    }
+}
 
 // Imported CSS
 // --------------------------------------------------

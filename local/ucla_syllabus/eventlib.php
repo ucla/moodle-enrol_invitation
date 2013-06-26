@@ -61,7 +61,7 @@ function delete_syllabi($course) {
  *                          and term
  *                          
  */
-function handle_ucla_format_notices($eventdata) {
+function ucla_syllabus_handle_ucla_format_notices($eventdata) {
     global $CFG, $DB, $OUTPUT;
 
     // ignore any old terms or if term is not set (meaning it is a collab site)
@@ -82,27 +82,52 @@ function handle_ucla_format_notices($eventdata) {
         return true;
     }
 
-    // user can upload syllabus, but course does not have syllabus, give alert
+    $alert_form = null;
 
-    // but first, see if they turned off the syllabus alert for their account
-    // ucla_syllabus_noprompt_<courseid>
-    $timestamp = get_user_preferences('ucla_syllabus_noprompt_' .
-            $eventdata->course->id, null, $eventdata->userid);
+//    // User can add syllabus, but course does not have syllabus. Check to see
+//    // if someone manually uploaded a syllabus.
+//    $manuallysyllabi = $ucla_syllabus_manager->get_all_manual_syllabi();
+//    if (!empty($manuallysyllabi)) {
+//        // There might be multiple manually uploaded syllabus, and user might
+//        // choose to ignore some of them.
+//        foreach ($manuallysyllabi as $syllabus) {
+//            $noprompt = get_user_preferences('ucla_syllabus_noprompt_manual_' .
+//                    $syllabus->cmid, null, $eventdata->userid);
+//            if (is_null($noprompt)) {
+//                // Display form.
+//                $alert_form = new alert_form(new moodle_url('/local/ucla_syllabus/alert.php',
+//                        array('id' => $eventdata->course->id)),
+//                        array('manualsyllabus' => $syllabus), 'post', '',
+//                        array('class' => 'ucla-syllabus-alert-form'));
+//                // Only want one alert to be shown.
+//                break;
+//            }
+//        }
+//    }
 
-    // do not display alert if user turned off syllabus alerts or if remind me
-    // time has not passed
-    if (!is_null($timestamp) && (intval($timestamp) === 0 ||
-            $timestamp > time())) {
-        return true;
+    if (empty($alert_form)) {
+        // User can add syllabus, but course doesn't have syllabus, give alert.
+
+        // But first, see if they turned off the syllabus alert for their
+        // account ucla_syllabus_noprompt_<courseid>.
+        $timestamp = get_user_preferences('ucla_syllabus_noprompt_' .
+                $eventdata->course->id, null, $eventdata->userid);
+
+        // Do not display alert if user turned off syllabus alerts or if remind
+        // me time has not passed.
+        if (!is_null($timestamp) && (intval($timestamp) === 0 ||
+                $timestamp > time())) {
+            return true;
+        }
+
+        // Now we can display the alert.
+        $alert_form = new alert_form(new moodle_url('/local/ucla_syllabus/alert.php',
+                array('id' => $eventdata->course->id)), null, 'post', '',
+                array('class' => 'ucla-syllabus-alert-form'));
     }
 
-    // now we can display the alert
-    $alert_form = new alert_form(new moodle_url('/local/ucla_syllabus/alert.php',
-            array('id' => $eventdata->course->id)), null, 'post', '',
-            array('class' => 'ucla-syllabus-alert-form'));
-
-    // unfortunately, the display function outputs HTML, rather than returning
-    // it, so we need to capture it
+    // Unfortunately, the display function outputs HTML, rather than returning
+    // it, so we need to capture it.
     ob_start();
     $alert_form->display();
     $eventdata->notices[] = ob_get_clean();

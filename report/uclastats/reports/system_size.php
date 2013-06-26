@@ -50,26 +50,16 @@ class system_size extends uclastats_base {
         
         $ret_val = array();
 
-        //get count of distinct files over 1MB
+        // Get count of distinct files over 1MB.
         $sql = "SELECT COUNT(DISTINCT contenthash) 
                 FROM {files} 
-                WHERE filesize > 1048576";
-
-        
+                WHERE filesize > 1048576";        
         $ret_val['file_count'] = $DB->get_field_sql($sql);
         
-        //get file system size
-        //note that the shell command returns the actual size in bytes
-        //whereas the -b return the apparent size(ignores fragmentation,
-        //indirect blocks)
-        $ret_val['file_system_size'] = display_size(shell_exec("du -s --block-size=1 $CFG->dataroot/filedir/"));
-     
-        //get size of database in bytes
+        // Get size of database in bytes.
         $sql = "SELECT Sum(data_length + index_length) 
                 FROM   information_schema.tables 
-                WHERE table_schema = 'moodle'";
-     
-        
+                WHERE table_schema = 'moodle'";        
         $ret_val['database_size'] = display_size($DB->get_field_sql($sql));
         
         return array($ret_val);

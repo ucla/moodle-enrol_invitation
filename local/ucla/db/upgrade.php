@@ -295,6 +295,21 @@ function xmldb_local_ucla_upgrade($oldversion=0) {
         upgrade_plugin_savepoint(true, 2013040900, 'local', 'ucla');
     }
 
+    if ($oldversion < 2013061000) {
+        
+        // Define field crs_summary to be added to ucla_reg_classinfo
+        $table = new xmldb_table('ucla_reg_classinfo');
+        $field = new xmldb_field('crs_summary', XMLDB_TYPE_TEXT, null, null, null, null, null, 'crs_desc');
+
+        // Conditionally launch add field crs_summary
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // ucla savepoint reached
+        upgrade_plugin_savepoint(true, 2013061000, 'local', 'ucla');
+    }
+
     return $result;
 }
 

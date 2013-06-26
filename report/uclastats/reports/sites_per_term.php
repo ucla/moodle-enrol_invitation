@@ -51,12 +51,9 @@ class sites_per_term extends uclastats_base {
             throw new moodle_exception('invalidterm', 'report_uclastats');
         }
 
-        $sql = "SELECT  COUNT(DISTINCT c.id) AS site_count
-                FROM    {course} AS c,
-                        {ucla_request_classes} AS urc
-                WHERE   urc.courseid=c.id AND
-                        urc.term=:term AND
-                        urc.hostcourse=1";
+        $sql = "SELECT  COUNT(DISTINCT urc.courseid) AS site_count"
+                . $this->from_filtered_courses();
+        
         return $DB->get_records_sql($sql, $params);
     }
 }

@@ -114,23 +114,19 @@ class unique_logins_per_term extends uclastats_base {
         //get total number of users for the given term
         $params['contextlevel'] = CONTEXT_COURSE;
         
-        $sql = "SELECT COUNT(DISTINCT ra.userid) AS total_users
-                FROM {ucla_request_classes} AS urc
-                JOIN {ucla_reg_classinfo} urci ON (
-                    urci.term = urc.term AND
-                    urci.srs = urc.srs
-                )
+        $sql = "SELECT COUNT(DISTINCT ra.userid) AS total_users"
+                . $this->from_filtered_courses() .
+                "
                 JOIN {ucla_reg_division} urd ON (
                     urci.division = urd.code
                 ) 
                 JOIN {context} ctx ON (
-                    urc.courseid = ctx.instanceid AND
+                    ctx.instanceid = c.id AND
                     ctx.contextlevel = :contextlevel
                 )
                 JOIN {role_assignments} ra ON (
                     ra.contextid = ctx.id
-                )
-                WHERE urc.term = :term";
+                )";
         
         $total_users = $DB->get_field_sql($sql,$params);
         $ret_val['total_users'] = $total_users;

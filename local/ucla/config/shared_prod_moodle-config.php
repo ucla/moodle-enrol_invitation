@@ -155,7 +155,6 @@ $CFG->gradebook_webservice = 'https://cis.ucla.edu/ws/moodleitemgrade/service.sv
 $CFG->gradebook_id = 3;
 $CFG->gradebook_password = '123';
 $CFG->gradebook_send_updates = 1;
-$CFG->gradebook_log_success = 1;
 
 /// CCLE-2810 - My Sites - disallow customized "My Moodle" page
 $CFG->forcedefaultmymoodle = true;
@@ -213,6 +212,11 @@ $CFG->forced_plugin_settings['resource']['requiremodintro'] = 0;
 $CFG->forced_plugin_settings['resource']['printheading'] = 1;
 $CFG->forced_plugin_settings['resource']['display'] = 4;   // "Force Download"
 
+// Site administration > Plugins > Activity modules > Turnitin Assignment
+$CFG->turnitin_apiurl = 'https://api.turnitin.com/api.asp';
+$CFG->turnitin_studentemail = 0;
+$CFG->turnitin_tutoremail = 0;
+
 // Site administration > Plugins > Activity modules > URL
 $CFG->forced_plugin_settings['url']['requiremodintro'] = 0;
 $CFG->forced_plugin_settings['url']['displayoptions'] = '0,1,2,3,4,5,6';    // allow every option
@@ -269,6 +273,7 @@ $CFG->forced_plugin_settings['local_ucla']['registrar_cache_ttl'] = 3600;   // 1
 // Site administration > Security > Site policies
 $CFG->forceloginforprofiles = true; 
 $CFG->forceloginforprofileimage = true; // temporary until "CCLE-2368 - PIX.PHP security fix" is done
+$CFG->allowobjectembed = 1;
 $CFG->maxeditingtime = 900; // 15 minutes
 $CFG->fullnamedisplay = 'language'; // CCLE-2550 - Lastname, Firstname sorting
 $CFG->cronclionly = true;
@@ -373,9 +378,7 @@ $CFG->forced_plugin_settings['enrol_database']['remoteuserfield'] = 'uid';
 $CFG->forced_plugin_settings['enrol_database']['remoterolefield'] = 'role';
 $CFG->forced_plugin_settings['enrol_database']['localcoursefield'] = 'id';
 $CFG->forced_plugin_settings['enrol_database']['localrolefield'] = 'id';
-// CCLE-2824 - Making sure that being assigned/unassigned/re-assigned doesn't
-// lose grading data
-$CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 3;    // Disable course enrolment and remove roles
+$CFG->forced_plugin_settings['enrol_database']['unenrolaction'] = 0;    // ENROL_EXT_REMOVED_UNENROL
 
 // CCLE-2910 - UNEX student support
 $CFG->forced_plugin_settings['enrol_database']['fblocaluserfield'] = 'username';

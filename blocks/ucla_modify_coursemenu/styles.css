@@ -52,7 +52,7 @@
 }
 
 /** This one must come AFTER hidden-section **/
-#sections-table tr.delete-section {
+#sections-table tr.delete-section td {
     background-color: #FFA6A6;
 }
 

@@ -37,16 +37,13 @@ class course_modules_used extends uclastats_base {
         }
 
         $sql = "SELECT  m.name AS module,
-                        COUNT(cm.id) AS count
-                FROM    {course} AS c
-                JOIN    {ucla_request_classes} AS urc ON
-                        (urc.courseid=c.id)
+               COUNT(cm.id) AS count"
+                . $this->from_filtered_courses() .
+                "
                 JOIN    {course_modules} cm ON
-                        (cm.course=c.id)
+                        (cm.course = c.id)
                 JOIN    {modules} m ON
                         (m.id = cm.module)
-                WHERE   urc.term=:term AND
-                        urc.hostcourse=1
                 GROUP BY m.id
                 ORDER BY m.name";
         return $DB->get_records_sql($sql, $params);

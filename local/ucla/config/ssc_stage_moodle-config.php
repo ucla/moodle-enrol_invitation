@@ -88,7 +88,7 @@ $CFG->forced_plugin_settings['tool_uclacourserequestor']['nourlupdate_default'] 
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['course_creator_email'] = '';
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['email_template_dir'] = '/data/email_setup/course_creator';
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['make_division_categories'] = false;
-$CFG->forced_plugin_settings['tool_uclacoursecreator']['desc_no_autofill'] = 1;
+$CFG->forced_plugin_settings['format_ucla']['hideregsummary'] = 1;
 
 // MyUCLA url updater
 $CFG->forced_plugin_settings['tool_myucla_url']['url_service'] = 'https://m2test.ccle.ucla.edu/rex/myucla_url_updater/update.php';  // test server
@@ -194,6 +194,11 @@ $CFG->forced_plugin_settings['page']['printheading'] = 1;
 $CFG->forced_plugin_settings['resource']['requiremodintro'] = 0;
 $CFG->forced_plugin_settings['resource']['printheading'] = 1;
 $CFG->forced_plugin_settings['resource']['display'] = 4;   // "Force Download"
+
+// Site administration > Plugins > Activity modules > Turnitin Assignment
+$CFG->turnitin_apiurl = 'https://api.turnitin.com/api.asp';
+$CFG->turnitin_studentemail = 0;
+$CFG->turnitin_tutoremail = 0;
 
 // Site administration > Plugins > Activity modules > URL
 $CFG->forced_plugin_settings['url']['requiremodintro'] = 0;

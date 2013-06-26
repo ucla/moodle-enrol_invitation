@@ -23,6 +23,35 @@ class ucla_reg_classinfo_cron {
     }
 
     /**
+     * Compares old and new entries from Registrar. An update is really needed
+     * only if the following fields are different:
+     *  - acttype
+     *  - coursetitle
+     *  - sectiontitle
+     *  - enrolstat
+     *  - url
+     *  - crs_desc (course description)
+     *  - crs_summary (class description)
+     *
+     * @param object $old   Database object.
+     * @param array $new    Note, $new comes in as an array, not object.
+     * @return boolean      Returns true if records needs to be updated,
+     *                      otherwise returns false.
+     */
+    function needs_updating($old, $new) {
+        $checkfields = array('acttype', 'coursetitle', 'sectiontitle',
+            'enrolstat', 'url', 'crs_desc', 'crs_summary');
+
+        foreach ($checkfields as $field) {
+            if ($old->$field != $new[$field]) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Get courses from the ucla_request_classes table for a given term. Query 
      * the registrar for those courses. 
      * 
@@ -33,8 +62,8 @@ class ucla_reg_classinfo_cron {
      * the registrar, then mark those courses as cancelled in the 
      * ucla_reg_classinfo table.
      * 
-     * @global type $DB
-     * @param type $terms
+     * @global moodle_database $DB
+     * @param array $terms
      * @return boolean 
      */
     function run($terms) {
@@ -65,6 +94,7 @@ class ucla_reg_classinfo_cron {
 
         // Get the data
         $regs = array();
+        $not_found_at_registrar = array();  // for cancelled courses later
 
         $t = microtime(true);
         foreach ($records as $request) {
@@ -77,6 +107,8 @@ class ucla_reg_classinfo_cron {
                 );
             if (!$reginfo) {
                 echo "No data for {$request->term} {$request->srs}\n";
+                $not_found_at_registrar[] =
+                        array('term' => $request->term, 'srs' => $request->srs);
             } else {
                 $regs[] = reset($reginfo);
             }
@@ -91,7 +123,7 @@ class ucla_reg_classinfo_cron {
         $tpe = $el / count($records);
         echo "Took $tpe per element.\n";
 
-        echo "Got " . count($regs) . " requests from Registrar.";
+        echo "Got " . count($regs) . " requests from Registrar.\n";
 
         $termsrses = array();
         $sqls = array();
@@ -127,8 +159,8 @@ class ucla_reg_classinfo_cron {
 
         // Updated
         $uc = 0; 
-        // Failed sanity check
-        $fscc = 0;
+        // No change needed
+        $nc = 0;
         // Inserted
         $ic = 0;
 
@@ -137,11 +169,11 @@ class ucla_reg_classinfo_cron {
             if (isset($reind[$indk])) {
                 // Exists in the get_records_select() we called earlier
                 $rege['id'] = $reind[$indk]->id;
-                if (self::sanity_check($rege, $reind[$indk])) {
+                if (self::needs_updating($reind[$indk], $rege)) {
                     $DB->update_record(self::table, $rege);
                     $uc++;
                 } else {
-                    $fscc++;
+                    $nc++;
                 }
             } else {
                 $DB->insert_record(self::table, $rege);
@@ -150,26 +182,19 @@ class ucla_reg_classinfo_cron {
         }
         
         // mark courses that the registrar didn't have data for as "cancelled"
-        $not_found_at_registrar = $reg->get_bad_outputs();
         $num_not_found = 0;
-        foreach ((array) $not_found_at_registrar as $term_srs) {
-            // try to update entry in ucla_reg_classinfo (if exists) and 
-            // mark it as cancelled
-            $DB->set_field('ucla_reg_classinfo', 'enrolstat', 'X', $term_srs);
-            ++$num_not_found;
-        }       
+        if (!empty($not_found_at_registrar)) {
+            foreach ($not_found_at_registrar as $term_srs) {
+                // try to update entry in ucla_reg_classinfo (if exists) and
+                // mark it as cancelled
+                $DB->set_field('ucla_reg_classinfo', 'enrolstat', 'X', $term_srs);
+                ++$num_not_found;
+            }
+        }
         
         echo "\nUpdated: $uc . Inserted: $ic . Not found at registrar: "
-            . "$num_not_found . Failed sanity: $fscc\n";
+            . "$num_not_found . No update needed: $nc\n";
 
-        return true;
-    }
-
-    /**
-     *  Sanity checks that prevents blind updating of entries in the table.
-     *
-     **/
-    function sanity_check($old, $new) {
         return true;
     }
 }

@@ -7,3 +7,9 @@
 [submodule "filter/rtmp"]
 	path = filter/rtmp
 	url = git@github.com:ccle/moodle-filter_rtmp.git
+[submodule "local/moodlecheck"]
+	path = local/moodlecheck
+	url = https://github.com/moodlehq/moodle-local_moodlecheck.git
+[submodule "local/codechecker"]
+	path = local/codechecker
+	url = https://github.com/moodlehq/moodle-local_codechecker.git

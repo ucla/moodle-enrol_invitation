@@ -94,12 +94,10 @@ $string['course_syllabus'] = 'Syllabus';
 
 //strings for system_size_report
 $string['system_size'] = 'System size (system)';
-$string['system_size_help'] = 'Returns number of files over 1 MB, ' .
-                              'size of file system, and ' .
+$string['system_size_help'] = 'Returns number of files over 1 MB and ' .
                               'size of database';
 $string['file_count'] = 'Number of files over 1 MB';
-$string['file_system_size'] = 'Size of Moodle file system';
-$string['database_size'] = 'Size of the Moodle database';
+$string['database_size'] = 'Size of database';
 
 
 //strings for inactive_collab_sites
@@ -180,6 +178,15 @@ $string['most_active_collab_sites_help'] =  'Most active collab site is one that
 $string['total_downloads'] = 'Total downloads (course)';
 $string['total_downloads_help'] = 'For a given term, get a count of all total downloads.';
 
+//strings for forum usage
+$string['collab_forum_usage'] = 'Forum usage (collab)';
+$string['collab_forum_usage_help'] = 'Forum usage by average number of posters, average number of threads';
+$string['course_forum_usage'] = 'Forum usage (course)';
+$string['course_forum_usage_help'] = $string['collab_forum_usage_help'];
+$string['avg_num_threads'] = 'Threads per Forum';
+$string['avg_num_posters'] = 'Posters per Forum';
+$string['forum_usage_cached_results'] = 'Avg Posters: {$a->avg_num_posters} | '.
+                                        'Avg Threads: {$a->avg_num_threads}';
 // error strings
 $string['nocachedresults'] = 'No cached results found';
 $string['invalidterm'] = 'Invalid term';

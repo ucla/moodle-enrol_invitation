@@ -19,14 +19,11 @@ class subject_area_report extends uclastats_base {
         
         // Query to get courses in a subject area 
         $query = "
-            SELECT DISTINCT c.id AS courseid
-                FROM {course} AS c
-                JOIN {ucla_request_classes} AS rc ON rc.courseid = c.id
-                JOIN {ucla_reg_classinfo} AS rci ON
-                    (rc.term=rci.term AND rc.srs=rci.srs)
-            WHERE   rc.term = :term
-                AND rc.department = :subjarea
-            ORDER BY rci.term, rci.subj_area, rci.crsidx, rci.secidx";
+            SELECT DISTINCT c.id AS courseid"
+            . $this->from_filtered_courses(false) .
+            "
+            WHERE urc.department = :subjarea
+            ORDER BY urci.term, urci.subj_area, urci.crsidx, urci.secidx";
         $records = $DB->get_records_sql($query, $this->params);
         
         foreach($records as $r) {         
@@ -82,20 +79,18 @@ class subject_area_report extends uclastats_base {
         // Query to get instructor names for courses in a subject area
         $query = "
             SELECT DISTINCT CONCAT(u.id, '-', c.id), u.id, c.id AS courseid, u.id AS userid,
-                    CONCAT(u.lastname, ', ', u.firstname, ' (', r.shortname, ')') AS name_role
-                FROM {course} c
+            CONCAT(u.lastname, ', ', u.firstname, ' (', r.shortname, ')') AS name_role"
+            . $this->from_filtered_courses(false) .
+                "
                 JOIN {context} ctx ON ctx.instanceid = c.id
                 JOIN {role_assignments} ra ON ra.contextid = ctx.id
                 JOIN {role} AS r ON r.id = ra.roleid
-                JOIN {ucla_request_classes} AS rc ON rc.courseid = c.id
-                JOIN {ucla_reg_classinfo} AS rci ON rci.term = rc.term AND rci.srs = rc.srs
                 JOIN {user} AS u ON u.id = ra.userid
-            WHERE   rc.term = :term
-                AND ctx.contextlevel = :context
-                AND rc.department = :subjarea
-                AND r.shortname IN (
-                    'editinginstructor', 'supervising_instructor'
-                )";
+            WHERE ctx.contextlevel = :context 
+            AND urc.department = :subjarea
+            AND r.shortname IN (
+                'editinginstructor', 'supervising_instructor'
+            )";
 
         // Get the records
         $records = $DB->get_records_sql($query, $this->params);
@@ -126,19 +121,18 @@ class subject_area_report extends uclastats_base {
             SELECT f.id AS fid, c.id AS courseid, fd.id AS fdid, f.name AS forum_name, 
                     count( DISTINCT fd.name ) AS discussion_count, 
                     count( DISTINCT fp.id ) AS posts
-                FROM {course} c
-                JOIN {context} ctx ON ctx.instanceid = c.id
+                "
+                . $this->from_filtered_courses(false) .
+                "
+                JOIN {context} ctx ON ctx.instanceid = urc.courseid
                 JOIN {role_assignments} ra ON ra.contextid = ctx.id
                 JOIN {role} AS r ON r.id = ra.roleid
-                JOIN {ucla_request_classes} AS rc ON rc.courseid = c.id
-                JOIN {ucla_reg_classinfo} AS rci ON rci.term = rc.term AND rci.srs = rc.srs                
-                JOIN {ucla_reg_subjectarea} AS rsa ON rsa.subjarea = rci.subj_area
+                JOIN {ucla_reg_subjectarea} AS rsa ON rsa.subjarea = urci.subj_area
                 JOIN {forum} AS f ON f.course = c.id
                 JOIN {forum_discussions} AS fd ON fd.forum = f.id
                 JOIN {forum_posts} AS fp ON fp.discussion = fd.id
-            WHERE   rc.term = :term
-                AND ctx.contextlevel = :context
-                AND rsa.subj_area_full = :subjarea
+            WHERE  ctx.contextlevel = :context AND
+                   rsa.subj_area_full = :subjarea
             GROUP BY fd.forum
         ";
         
