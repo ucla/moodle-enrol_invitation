@@ -848,7 +848,7 @@ function quiz_get_recent_mod_activity(&$activities, &$index, $timestart,
         return;
     }
 
-    $context         = get_context_instance(CONTEXT_MODULE, $cm->id);
+    $context         = context_module::instance($cm->id);
     $accessallgroups = has_capability('moodle/site:accessallgroups', $context);
     $viewfullnames   = has_capability('moodle/site:viewfullnames', $context);
     $grader          = has_capability('mod/quiz:viewreports', $context);
@@ -894,6 +894,7 @@ function quiz_get_recent_mod_activity(&$activities, &$index, $timestart,
         $tmpactivity->sectionnum = $cm->sectionnum;
         $tmpactivity->timestamp  = $attempt->timefinish;
 
+        $tmpactivity->content = new stdClass();
         $tmpactivity->content->attemptid = $attempt->id;
         $tmpactivity->content->attempt   = $attempt->attempt;
         if (quiz_has_grades($quiz) && $options->marks >= question_display_options::MARK_AND_MAX) {
@@ -904,6 +905,7 @@ function quiz_get_recent_mod_activity(&$activities, &$index, $timestart,
             $tmpactivity->content->maxgrade  = null;
         }
 
+        $tmpactivity->user = new stdClass();
         $tmpactivity->user->id        = $attempt->userid;
         $tmpactivity->user->firstname = $attempt->firstname;
         $tmpactivity->user->lastname  = $attempt->lastname;
@@ -1086,7 +1088,7 @@ function quiz_after_add_or_update($quiz) {
 
     // We need to use context now, so we need to make sure all needed info is already in db.
     $DB->set_field('course_modules', 'instance', $quiz->id, array('id'=>$cmid));
-    $context = get_context_instance(CONTEXT_MODULE, $cmid);
+    $context = context_module::instance($cmid);
 
     // Save the feedback.
     $DB->delete_records('quiz_feedback', array('quizid' => $quiz->id));
@@ -1380,54 +1382,6 @@ function quiz_reset_userdata($data) {
 }
 
 /**
- * Checks whether the current user is allowed to view a file uploaded in a quiz.
- * Teachers can view any from their courses, students can only view their own.
- *
- * @param int $attemptuniqueid int attempt id
- * @param int $questionid int question id
- * @return bool to indicate access granted or denied
- */
-function quiz_check_file_access($attemptuniqueid, $questionid, $context = null) {
-    global $USER, $DB, $CFG;
-    require_once($CFG->dirroot . '/mod/quiz/locallib.php');
-
-    $attempt = $DB->get_record('quiz_attempts', array('uniqueid' => $attemptuniqueid));
-    $attemptobj = quiz_attempt::create($attempt->id);
-
-    // Does the question exist?
-    if (!$question = $DB->get_record('question', array('id' => $questionid))) {
-        return false;
-    }
-
-    if ($context === null) {
-        $quiz = $DB->get_record('quiz', array('id' => $attempt->quiz));
-        $cm = get_coursemodule_from_id('quiz', $quiz->id);
-        $context = get_context_instance(CONTEXT_MODULE, $cm->id);
-    }
-
-    // Load those questions and the associated states.
-    $attemptobj->load_questions(array($questionid));
-    $attemptobj->load_question_states(array($questionid));
-
-    // Obtain the state.
-    $state = $attemptobj->get_question_state($questionid);
-    // Obtain the question.
-    $question = $attemptobj->get_question($questionid);
-
-    // Access granted if the current user submitted this file.
-    if ($attempt->userid != $USER->id) {
-        return false;
-    }
-    // Access granted if the current user has permission to grade quizzes in this course.
-    if (!(has_capability('mod/quiz:viewreports', $context) ||
-            has_capability('mod/quiz:grade', $context))) {
-        return false;
-    }
-
-    return array($question, $state, array());
-}
-
-/**
  * Prints quiz summaries on MyMoodle Page
  * @param arry $courses
  * @param array $htmlarray
@@ -1463,7 +1417,7 @@ function quiz_print_overview($courses, &$htmlarray) {
                     userdate($quiz->timeclose)) . '</div>';
 
             // Now provide more information depending on the uers's role.
-            $context = get_context_instance(CONTEXT_MODULE, $quiz->coursemodule);
+            $context = context_module::instance($quiz->coursemodule);
             if (has_capability('mod/quiz:viewreports', $context)) {
                 // For teacher-like people, show a summary of the number of student attempts.
                 // The $quiz objects returned by get_all_instances_in_course have the necessary $cm
@@ -1601,48 +1555,6 @@ function quiz_get_extra_capabilities() {
 }
 
 /**
- * This fucntion extends the global navigation for the site.
- * It is important to note that you should not rely on PAGE objects within this
- * body of code as there is no guarantee that during an AJAX request they are
- * available
- *
- * @param navigation_node $quiznode The quiz node within the global navigation
- * @param object $course The course object returned from the DB
- * @param object $module The module object returned from the DB
- * @param object $cm The course module instance returned from the DB
- */
-function quiz_extend_navigation($quiznode, $course, $module, $cm) {
-    global $CFG;
-
-    $context = get_context_instance(CONTEXT_MODULE, $cm->id);
-
-    if (has_capability('mod/quiz:view', $context)) {
-        $url = new moodle_url('/mod/quiz/view.php', array('id'=>$cm->id));
-        $quiznode->add(get_string('info', 'quiz'), $url, navigation_node::TYPE_SETTING,
-                null, null, new pix_icon('i/info', ''));
-    }
-
-    if (has_any_capability(array('mod/quiz:viewreports', 'mod/quiz:grade'), $context)) {
-        require_once($CFG->dirroot . '/mod/quiz/report/reportlib.php');
-        $reportlist = quiz_report_list($context);
-
-        $url = new moodle_url('/mod/quiz/report.php',
-                array('id' => $cm->id, 'mode' => reset($reportlist)));
-        $reportnode = $quiznode->add(get_string('results', 'quiz'), $url,
-                navigation_node::TYPE_SETTING,
-                null, null, new pix_icon('i/report', ''));
-
-        foreach ($reportlist as $report) {
-            $url = new moodle_url('/mod/quiz/report.php',
-                    array('id' => $cm->id, 'mode' => $report));
-            $reportnode->add(get_string($report, 'quiz_'.$report), $url,
-                    navigation_node::TYPE_SETTING,
-                    null, 'quiz_report_' . $report, new pix_icon('i/item', ''));
-        }
-    }
-}
-
-/**
  * This function extends the settings navigation block for the site.
  *
  * It is safe to rely on PAGE here as we will only ever be within the module
@@ -1650,6 +1562,7 @@ function quiz_extend_navigation($quiznode, $course, $module, $cm) {
  *
  * @param settings_navigation $settings
  * @param navigation_node $quiznode
+ * @return void
  */
 function quiz_extend_settings_navigation($settings, $quiznode) {
     global $PAGE, $CFG;
@@ -1695,8 +1608,27 @@ function quiz_extend_settings_navigation($settings, $quiznode) {
                 array('cmid'=>$PAGE->cm->id, 'sesskey'=>sesskey()));
         $node = navigation_node::create(get_string('preview', 'quiz'), $url,
                 navigation_node::TYPE_SETTING, null, 'mod_quiz_preview',
-                new pix_icon('t/preview', ''));
+                new pix_icon('i/preview', ''));
         $quiznode->add_node($node, $beforekey);
+    }
+
+    if (has_any_capability(array('mod/quiz:viewreports', 'mod/quiz:grade'), $PAGE->cm->context)) {
+        require_once($CFG->dirroot . '/mod/quiz/report/reportlib.php');
+        $reportlist = quiz_report_list($PAGE->cm->context);
+
+        $url = new moodle_url('/mod/quiz/report.php',
+                array('id' => $PAGE->cm->id, 'mode' => reset($reportlist)));
+        $reportnode = $quiznode->add_node(navigation_node::create(get_string('results', 'quiz'), $url,
+                navigation_node::TYPE_SETTING,
+                null, null, new pix_icon('i/report', '')), $beforekey);
+
+        foreach ($reportlist as $report) {
+            $url = new moodle_url('/mod/quiz/report.php',
+                    array('id' => $PAGE->cm->id, 'mode' => $report));
+            $reportnode->add_node(navigation_node::create(get_string($report, 'quiz_'.$report), $url,
+                    navigation_node::TYPE_SETTING,
+                    null, 'quiz_report_' . $report, new pix_icon('i/item', '')));
+        }
     }
 
     question_extend_settings_navigation($quiznode, $PAGE->cm->context)->trim_if_empty();

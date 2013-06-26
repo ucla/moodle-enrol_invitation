@@ -114,6 +114,32 @@ function message_send($eventdata) {
 
     $savemessage->timecreated = time();
 
+    if (PHPUNIT_TEST and class_exists('phpunit_util')) {
+        // Add some more tests to make sure the normal code can actually work.
+        $componentdir = get_component_directory($eventdata->component);
+        if (!$componentdir or !is_dir($componentdir)) {
+            throw new coding_exception('Invalid component specified in message-send(): '.$eventdata->component);
+        }
+        if (!file_exists("$componentdir/db/messages.php")) {
+            throw new coding_exception("$eventdata->component does not contain db/messages.php necessary for message_send()");
+        }
+        $messageproviders = null;
+        include("$componentdir/db/messages.php");
+        if (!isset($messageproviders[$eventdata->name])) {
+            throw new coding_exception("Missing messaging defaults for event '$eventdata->name' in '$eventdata->component' messages.php file");
+        }
+        unset($componentdir);
+        unset($messageproviders);
+        // Now ask phpunit if it wants to catch this message.
+        if (phpunit_util::is_redirecting_messages()) {
+            $savemessage->timeread = time();
+            $messageid = $DB->insert_record('message_read', $savemessage);
+            $message = $DB->get_record('message_read', array('id'=>$messageid));
+            phpunit_util::message_sent($message);
+            return $messageid;
+        }
+    }
+
     // Fetch enabled processors
     $processors = get_message_processors(true);
     // Fetch default (site) preferences
@@ -258,6 +284,7 @@ function message_update_providers($component='moodle') {
         $DB->delete_records('message_providers', array('id' => $dbprovider->id));
         $DB->delete_records_select('config_plugins', "plugin = 'message' AND ".$DB->sql_like('name', '?', false), array("%_provider_{$component}_{$dbprovider->name}_%"));
         $DB->delete_records_select('user_preferences', $DB->sql_like('name', '?', false), array("message_provider_{$component}_{$dbprovider->name}_%"));
+        cache_helper::invalidate_by_definition('core', 'config', array(), 'message');
     }
 
     return true;
@@ -371,11 +398,12 @@ function message_set_default_message_preference($component, $messagename, $filep
  *
  * @see message_get_providers_for_user()
  * @deprecated since 2.1
- * @todo Remove in 2.2 (MDL-31031)
+ * @todo Remove in 2.5 (MDL-34454)
  * @return array An array of message providers
  */
 function message_get_my_providers() {
     global $USER;
+    debugging('message_get_my_providers is deprecated please update your code', DEBUG_DEVELOPER);
     return message_get_providers_for_user($USER->id);
 }
 
@@ -547,6 +575,8 @@ function message_provider_uninstall($component) {
     $DB->delete_records_select('config_plugins', "plugin = 'message' AND ".$DB->sql_like('name', '?', false), array("%_provider_{$component}_%"));
     $DB->delete_records_select('user_preferences', $DB->sql_like('name', '?', false), array("message_provider_{$component}_%"));
     $transaction->allow_commit();
+    // Purge all messaging settings from the caches. They are stored by plugin so we have to clear all message settings.
+    cache_helper::invalidate_by_definition('core', 'config', array(), 'message');
 }
 
 /**
@@ -564,4 +594,6 @@ function message_processor_uninstall($name) {
     // defaults, they will be removed on the next attempt to update the preferences
     $DB->delete_records_select('config_plugins', "plugin = 'message' AND ".$DB->sql_like('name', '?', false), array("{$name}_provider_%"));
     $transaction->allow_commit();
+    // Purge all messaging settings from the caches. They are stored by plugin so we have to clear all message settings.
+    cache_helper::invalidate_by_definition('core', 'config', array(), array('message', "message_{$name}"));
 }

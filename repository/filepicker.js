@@ -114,7 +114,7 @@ YUI.add('moodle-core_filepicker', function(Y) {
 
     /** scan TreeView to find which node contains image with id=imgid and replace it's html
      * with the new image source. */
-    YAHOO.widget.Node.prototype.refreshPreviews = function(imgid, newsrc, regex) {
+    Y.YUI2.widget.Node.prototype.refreshPreviews = function(imgid, newsrc, regex) {
         if (!regex) {
             regex = new RegExp("<img\\s[^>]*id=\""+imgid+"\"[^>]*?(/?)>", "im");
         }
@@ -209,7 +209,7 @@ YUI.add('moodle-core_filepicker', function(Y) {
             }
             // create node
             tmpnodedata.html = el.getContent();
-            var tmpNode = new YAHOO.widget.HTMLNode(tmpnodedata, level, false);
+            var tmpNode = new Y.YUI2.widget.HTMLNode(tmpnodedata, level, false);
             if (node.dynamicLoadComplete) {
                 tmpNode.dynamicLoadComplete = true;
             }
@@ -229,7 +229,7 @@ YUI.add('moodle-core_filepicker', function(Y) {
         var initialize_tree_view = function() {
             var parentid = scope.one('.'+classname).get('id');
             // TODO MDL-32736 use YUI3 gallery TreeView
-            scope.treeview = new YAHOO.widget.TreeView(parentid);
+            scope.treeview = new Y.YUI2.widget.TreeView(parentid);
             if (options.dynload) {
                 scope.treeview.setDynamicLoad(Y.bind(options.treeview_dynload, options.callbackcontext), 1);
             }
@@ -283,7 +283,7 @@ YUI.add('moodle-core_filepicker', function(Y) {
                     callback = options.rightclickcallback;
                 }
                 Y.bind(callback, options.callbackcontext)(e, e.node.fileinfo);
-                YAHOO.util.Event.stopEvent(e.event)
+                Y.YUI2.util.Event.stopEvent(e.event)
             });
             // TODO MDL-32736 support right click
             /*if (options.rightclickcallback) {
@@ -552,6 +552,8 @@ M.core_filepicker.init = function(Y, options) {
             params['client_id'] = args.client_id;
             params['itemid'] = this.options.itemid?this.options.itemid:0;
             params['maxbytes'] = this.options.maxbytes?this.options.maxbytes:-1;
+            // The unlimited value of areamaxbytes is -1, it is defined by FILE_AREA_MAX_BYTES_UNLIMITED.
+            params['areamaxbytes'] = this.options.areamaxbytes ? this.options.areamaxbytes : -1;
             if (this.options.context && this.options.context.id) {
                 params['ctx_id'] = this.options.context.id;
             }
@@ -718,7 +720,7 @@ M.core_filepicker.init = function(Y, options) {
                 this.process_dlg = new Y.Panel({
                     srcNode      : node,
                     headerContent: M.str.repository.fileexistsdialogheader,
-                    zIndex       : 800000,
+                    zIndex       : 8000,
                     centered     : true,
                     modal        : true,
                     visible      : false,
@@ -760,7 +762,7 @@ M.core_filepicker.init = function(Y, options) {
 
                 this.msg_dlg = new Y.Panel({
                     srcNode      : this.msg_dlg_node,
-                    zIndex       : 800000,
+                    zIndex       : 8000,
                     centered     : true,
                     modal        : true,
                     visible      : false,
@@ -1288,7 +1290,7 @@ M.core_filepicker.init = function(Y, options) {
             this.mainui = new Y.Panel({
                 srcNode      : this.fpnode,
                 headerContent: M.str.repository.filepicker,
-                zIndex       : 500000,
+                zIndex       : 7500,
                 centered     : true,
                 modal        : true,
                 visible      : false,
@@ -1309,7 +1311,7 @@ M.core_filepicker.init = function(Y, options) {
                 set('id', 'filepicker-select-'+client_id);
             this.selectui = new Y.Panel({
                 srcNode      : this.selectnode,
-                zIndex       : 600000,
+                zIndex       : 7600,
                 centered     : true,
                 modal        : true,
                 close        : true,
@@ -1327,8 +1329,10 @@ M.core_filepicker.init = function(Y, options) {
                 this.pathbar.removeChild(this.pathnode);
             }
             // assign callbacks for view mode switch buttons
-            this.fpnode.all('.fp-vb-icons,.fp-vb-tree,.fp-vb-details').
-                on('click', this.viewbar_clicked, this);
+            this.fpnode.one('.fp-vb-icons').on('click', this.viewbar_clicked, this);
+            this.fpnode.one('.fp-vb-tree').on('click', this.viewbar_clicked, this);
+            this.fpnode.one('.fp-vb-details').on('click', this.viewbar_clicked, this);
+
             // assign callbacks for toolbar links
             this.setup_toolbar();
             this.setup_select_file();
@@ -1850,10 +1854,8 @@ M.core_filepicker.init = function(Y, options) {
             Y.one('#fp-tb-help-'+client_id+'-link').set('href', r.help);
 
             // message
-            if (toolbar.one('.fp-tb-message')) {
-                enable_tb_control(toolbar.one('.fp-tb-message'), r.message);
-                toolbar.one('.fp-tb-message').setContent(r.message);
-            }
+            enable_tb_control(toolbar.one('.fp-tb-message'), r.message);
+            toolbar.one('.fp-tb-message').setContent(r.message);
         },
         print_path: function() {
             if (!this.pathbar) {

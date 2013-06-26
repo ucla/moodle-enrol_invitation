@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -16,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Strings for component 'auth_db', language 'en', branch 'MOODLE_20_STABLE'
+ * Strings for component 'auth_db', language 'en'.
  *
  * @package   auth_db
  * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
@@ -40,6 +39,7 @@ $string['auth_dbhost'] = 'The computer hosting the database server.';
 $string['auth_dbhost_key'] = 'Host';
 $string['auth_dbchangepasswordurl_key'] = 'Password-change URL';
 $string['auth_dbinsertuser'] = 'Inserted user {$a->name} id {$a->id}';
+$string['auth_dbinsertuserduplicate'] = 'Error inserting user {$a->username} - user with this username was already created through \'{$a->auth}\' plugin.';
 $string['auth_dbinsertusererror'] = 'Error inserting user {$a}';
 $string['auth_dbname'] = 'Name of the database itself';
 $string['auth_dbname_key'] = 'DB name';

@@ -70,7 +70,7 @@ function user_create_user($user) {
     $newuser = $DB->get_record('user', array('id' => $newuserid));
 
     // create USER context for this user
-    get_context_instance(CONTEXT_USER, $newuserid);
+    context_user::instance($newuserid);
 
     // update user password if necessary
     if (isset($userpassword)) {
@@ -166,6 +166,22 @@ function user_get_users_by_id($userids) {
     return $DB->get_records_list('user', 'id', $userids);
 }
 
+/**
+ * Returns the list of default 'displayable' fields
+ *
+ * Contains database field names but also names used to generate information, such as enrolledcourses
+ *
+ * @return array of user fields
+ */
+function user_get_default_fields() {
+    return array( 'id', 'username', 'fullname', 'firstname', 'lastname', 'email',
+        'address', 'phone1', 'phone2', 'icq', 'skype', 'yahoo', 'aim', 'msn', 'department',
+        'institution', 'interests', 'firstaccess', 'lastaccess', 'auth', 'confirmed',
+        'idnumber', 'lang', 'theme', 'timezone', 'mailformat', 'description', 'descriptionformat',
+        'city', 'url', 'country', 'profileimageurlsmall', 'profileimageurl', 'customfields',
+        'groups', 'roles', 'preferences', 'enrolledcourses'
+    );
+}
 
 /**
  *
@@ -179,20 +195,14 @@ function user_get_users_by_id($userids) {
  * @param stdClass $context context object
  * @param stdClass $course moodle course
  * @param array $userfields required fields
- * @return array
+ * @return array|null
  */
 function user_get_user_details($user, $course = null, array $userfields = array()) {
     global $USER, $DB, $CFG;
     require_once($CFG->dirroot . "/user/profile/lib.php"); //custom field library
     require_once($CFG->dirroot . "/lib/filelib.php");      // file handling on description and friends
 
-    $defaultfields = array( 'id', 'username', 'fullname', 'firstname', 'lastname', 'email',
-        'address', 'phone1', 'phone2', 'icq', 'skype', 'yahoo', 'aim', 'msn', 'department',
-        'institution', 'interests', 'firstaccess', 'lastaccess', 'auth', 'confirmed',
-        'idnumber', 'lang', 'theme', 'timezone', 'mailformat', 'description', 'descriptionformat',
-        'city', 'url', 'country', 'profileimageurlsmall', 'profileimageurl', 'customfields',
-        'groups', 'roles', 'preferences', 'enrolledcourses'
-    );
+    $defaultfields = user_get_default_fields();
 
     if (empty($userfields)) {
         $userfields = $defaultfields;
@@ -215,11 +225,11 @@ function user_get_user_details($user, $course = null, array $userfields = array(
     }
 
     if (!empty($course)) {
-        $context = get_context_instance(CONTEXT_COURSE, $course->id);
-        $usercontext = get_context_instance(CONTEXT_USER, $user->id);
+        $context = context_course::instance($course->id);
+        $usercontext = context_user::instance($user->id);
         $canviewdetailscap = (has_capability('moodle/user:viewdetails', $context) || has_capability('moodle/user:viewdetails', $usercontext));
     } else {
-        $context = get_context_instance(CONTEXT_USER, $user->id);
+        $context = context_user::instance($user->id);
         $usercontext = $context;
         $canviewdetailscap = has_capability('moodle/user:viewdetails', $usercontext);
     }
@@ -234,7 +244,7 @@ function user_get_user_details($user, $course = null, array $userfields = array(
     } else {
         $canviewhiddenuserfields = has_capability('moodle/user:viewhiddendetails', $context);
     }
-    $canviewfullnames        = has_capability('moodle/site:viewfullnames', $context);
+    $canviewfullnames = has_capability('moodle/site:viewfullnames', $context);
     if (!empty($course)) {
         $canviewuseremail = has_capability('moodle/course:useremail', $context);
     } else {
@@ -449,10 +459,10 @@ function user_get_user_details($user, $course = null, array $userfields = array(
         if ($mycourses = enrol_get_users_courses($user->id, true)) {
             foreach ($mycourses as $mycourse) {
                 if ($mycourse->category) {
-                    $coursecontext = get_context_instance(CONTEXT_COURSE, $mycourse->id);
+                    $coursecontext = context_course::instance($mycourse->id);
                     $enrolledcourse = array();
                     $enrolledcourse['id'] = $mycourse->id;
-                    $enrolledcourse['fullname'] = format_string($mycourse->fullname, true, array('context' => get_context_instance(CONTEXT_COURSE, $mycourse->id)));
+                    $enrolledcourse['fullname'] = format_string($mycourse->fullname, true, array('context' => $coursecontext));
                     $enrolledcourse['shortname'] = format_string($mycourse->shortname, true, array('context' => $coursecontext));
                     $enrolledcourses[] = $enrolledcourse;
                 }
@@ -472,6 +482,59 @@ function user_get_user_details($user, $course = null, array $userfields = array(
     }
 
     return $userdetails;
+}
+
+/**
+ * Tries to obtain user details, either recurring directly to the user's system profile
+ * or through one of the user's course enrollments (course profile).
+ *
+ * @param object $user The user.
+ * @return array if unsuccessful or the allowed user details.
+ */
+function user_get_user_details_courses($user) {
+    global $USER;
+    $userdetails = null;
+
+    //  Get the courses that the user is enrolled in (only active).
+    $courses = enrol_get_users_courses($user->id, true);
+
+    $systemprofile = false;
+    if (can_view_user_details_cap($user) || ($user->id == $USER->id) || has_coursecontact_role($user->id)) {
+        $systemprofile = true;
+    }
+
+    // Try using system profile.
+    if ($systemprofile) {
+        $userdetails = user_get_user_details($user, null);
+    } else {
+        // Try through course profile.
+        foreach ($courses as $course) {
+            if ($can_view_user_details_cap($user, $course) || ($user->id == $USER->id) || has_coursecontact_role($user->id)) {
+                $userdetails = user_get_user_details($user, $course);
+            }
+        }
+    }
+
+    return $userdetails;
+}
+
+/**
+ * Check if $USER have the necessary capabilities to obtain user details.
+ *
+ * @param object $user
+ * @param object $course if null then only consider system profile otherwise also consider the course's profile.
+ * @return bool true if $USER can view user details.
+ */
+function can_view_user_details_cap($user, $course = null) {
+    // Check $USER has the capability to view the user details at user context.
+    $usercontext = get_context_instance(CONTEXT_USER, $user->id);
+    $result = has_capability('moodle/user:viewdetails', $usercontext);
+    // Otherwise can $USER see them at course context.
+    if (!$result && !empty($course)) {
+        $context = get_context_instance(CONTEXT_COURSE, $course->id);
+        $result = has_capability('moodle/user:viewdetails', $context);
+    }
+    return $result;
 }
 
 /**

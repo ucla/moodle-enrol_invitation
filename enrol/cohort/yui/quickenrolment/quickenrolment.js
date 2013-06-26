@@ -229,7 +229,7 @@ YUI.add('moodle-enrol_cohort-quickenrolment', function(Y) {
             var rawcohorts = response.cohorts;
             var cohorts = [], i=0;
             for (i in rawcohorts) {
-                cohorts[rawcohorts[i].cohortid] = new COHORT(rawcohorts[i]);
+                cohorts[i] = new COHORT(rawcohorts[i]);
             }
             this.set(COHORTS, cohorts);
         },
@@ -393,4 +393,4 @@ YUI.add('moodle-enrol_cohort-quickenrolment', function(Y) {
         }
     }
 
-}, '@VERSION@', {requires:['base','node', 'overlay', 'io-base', 'test', 'json-parse', 'event-delegate', 'dd-plugin', 'event-key', 'moodle-enrol-notification']});
+}, '@VERSION@', {requires:['base','node', 'overlay', 'io-base', 'test', 'json-parse', 'event-delegate', 'dd-plugin', 'event-key', 'moodle-core-notification']});

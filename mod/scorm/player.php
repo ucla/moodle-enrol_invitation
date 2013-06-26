@@ -87,7 +87,7 @@ $strscorm  = get_string('modulename', 'scorm');
 $strpopup = get_string('popup', 'scorm');
 $strexit = get_string('exitactivity', 'scorm');
 
-$coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+$coursecontext = context_course::instance($course->id);
 
 if ($displaymode == 'popup') {
     $PAGE->set_pagelayout('popup');
@@ -186,10 +186,14 @@ if (empty($scorm->popup) || $displaymode=='popup') {
     $PAGE->set_button($exitlink);
 }
 
-$PAGE->requires->yui2_lib('connection');
-$PAGE->requires->data_for_js('scormplayerdata', Array('cwidth'=>$scorm->width,
-                                                      'cheight'=>$scorm->height,
-                                                      'popupoptions' => $scorm->options), true);
+$PAGE->requires->data_for_js('scormplayerdata', Array('launch' => false,
+                                                       'currentorg' => '',
+                                                       'sco' => 0,
+                                                       'scorm' => 0,
+                                                       'courseid' => $scorm->course,
+                                                       'cwidth' => $scorm->width,
+                                                       'cheight' => $scorm->height,
+                                                       'popupoptions' => $scorm->options), true);
 $PAGE->requires->js('/mod/scorm/request.js', true);
 $PAGE->requires->js('/lib/cookies.js', true);
 echo $OUTPUT->header();
@@ -270,12 +274,19 @@ if ($result->prerequisites) {
 ?>
     </div> <!-- SCORM page -->
 <?php
+$scoes = scorm_get_toc_object($USER, $scorm, "", $sco->id, $mode, $attempt);
+$adlnav = scorm_get_adlnav_json($scoes['scoes']);
 // NEW IMS TOC
 if (empty($scorm->popup) || $displaymode == 'popup') {
     if (!isset($result->toctitle)) {
         $result->toctitle = get_string('toc', 'scorm');
     }
-    $PAGE->requires->js_init_call('M.mod_scorm.init', array($scorm->hidenav, $scorm->hidetoc, $result->toctitle, $name, $sco->id));
+    $jsmodule = array(
+        'name' => 'mod_scorm',
+        'fullpath' => '/mod/scorm/module.js',
+        'requires' => array('json'),
+    );
+    $PAGE->requires->js_init_call('M.mod_scorm.init', array($scorm->hidenav, $scorm->hidetoc, $result->toctitle, $name, $sco->id, $adlnav), false, $jsmodule);
 }
 if (!empty($forcejs)) {
     echo $OUTPUT->box(get_string("forcejavascriptmessage", "scorm"), "generalbox boxaligncenter forcejavascriptmessage");

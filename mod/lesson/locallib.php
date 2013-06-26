@@ -484,7 +484,7 @@ function lesson_mediafile_block_contents($cmid, $lesson) {
  **/
 function lesson_clock_block_contents($cmid, $lesson, $timer, $page) {
     // Display for timed lessons and for students only
-    $context = get_context_instance(CONTEXT_MODULE, $cmid);
+    $context = context_module::instance($cmid);
     if(!$lesson->timed || has_capability('mod/lesson:manage', $context)) {
         return null;
     }
@@ -696,7 +696,7 @@ abstract class lesson_add_page_form_base extends moodleform {
         $mform = $this->_form;
         $editoroptions = $this->_customdata['editoroptions'];
 
-        $mform->addElement('header', 'qtypeheading', get_string('addaquestionpage', 'lesson', get_string($this->qtypestring, 'lesson')));
+        $mform->addElement('header', 'qtypeheading', get_string('createaquestionpage', 'lesson', get_string($this->qtypestring, 'lesson')));
 
         $mform->addElement('hidden', 'id');
         $mform->setType('id', PARAM_INT);
@@ -722,6 +722,7 @@ abstract class lesson_add_page_form_base extends moodleform {
 
         if ($this->_customdata['edit'] === true) {
             $mform->addElement('hidden', 'edit', 1);
+            $mform->setType('edit', PARAM_BOOL);
             $this->add_action_buttons(get_string('cancel'), get_string('savepage', 'lesson'));
         } else if ($this->qtype === 'questiontype') {
             $this->add_action_buttons(get_string('cancel'), get_string('addaquestionpage', 'lesson'));
@@ -761,10 +762,14 @@ abstract class lesson_add_page_form_base extends moodleform {
         if ($label === null) {
             $label = get_string("score", "lesson");
         }
+        $elname = $name;
         if (is_int($name)) {
             $name = "score[$name]";
+            $elname = 'score';
         }
         $this->_form->addElement('text', $name, $label, array('size'=>5));
+        // Temporary fix until MDL-38885 gets integrated.
+        $this->_form->setType($elname, PARAM_INT);
         if ($value !== null) {
             $this->_form->setDefault($name, $value);
         }
@@ -774,12 +779,12 @@ abstract class lesson_add_page_form_base extends moodleform {
      * Convenience function: Adds an answer editor
      *
      * @param int $count The count of the element to add
-     * @param string $label, NULL means default
+     * @param string $label, null means default
      * @param bool $required
      * @return void
      */
-    protected final function add_answer($count, $label = NULL, $required = false) {
-        if ($label === NULL) {
+    protected final function add_answer($count, $label = null, $required = false) {
+        if ($label === null) {
             $label = get_string('answer', 'lesson');
         }
         $this->_form->addElement('editor', 'answer_editor['.$count.']', $label, array('rows'=>'4', 'columns'=>'80'), array('noclean'=>true));
@@ -792,12 +797,12 @@ abstract class lesson_add_page_form_base extends moodleform {
      * Convenience function: Adds an response editor
      *
      * @param int $count The count of the element to add
-     * @param string $label, NULL means default
+     * @param string $label, null means default
      * @param bool $required
      * @return void
      */
-    protected final function add_response($count, $label = NULL, $required = false) {
-        if ($label === NULL) {
+    protected final function add_response($count, $label = null, $required = false) {
+        if ($label === null) {
             $label = get_string('response', 'lesson');
         }
         $this->_form->addElement('editor', 'response_editor['.$count.']', $label, array('rows'=>'4', 'columns'=>'80'), array('noclean'=>true));
@@ -948,7 +953,7 @@ class lesson extends lesson_base {
         require_once($CFG->libdir.'/gradelib.php');
         require_once($CFG->dirroot.'/calendar/lib.php');
 
-        $DB->delete_records("lesson", array("id"=>$this->properties->id));;
+        $DB->delete_records("lesson", array("id"=>$this->properties->id));
         $DB->delete_records("lesson_pages", array("lessonid"=>$this->properties->id));
         $DB->delete_records("lesson_answers", array("lessonid"=>$this->properties->id));
         $DB->delete_records("lesson_attempts", array("lessonid"=>$this->properties->id));
@@ -963,7 +968,7 @@ class lesson extends lesson_base {
             }
         }
 
-        grade_update('mod/lesson', $this->properties->course, 'mod', 'lesson', $this->properties->id, 0, NULL, array('deleted'=>1));
+        grade_update('mod/lesson', $this->properties->course, 'mod', 'lesson', $this->properties->id, 0, null, array('deleted'=>1));
         return true;
     }
 
@@ -2378,7 +2383,7 @@ abstract class lesson_page extends lesson_base {
             if (!isset($this->properties->contentsformat)) {
                 $this->properties->contentsformat = FORMAT_HTML;
             }
-            $context = get_context_instance(CONTEXT_MODULE, $PAGE->cm->id);
+            $context = context_module::instance($PAGE->cm->id);
             $contents = file_rewrite_pluginfile_urls($this->properties->contents, 'pluginfile.php', $context->id, 'mod_lesson', 'page_contents', $this->properties->id); // must do this BEFORE format_text()!!!!!!
             return format_text($contents, $this->properties->contentsformat, array('context'=>$context, 'noclean'=>true)); // page edit is marked with XSS, we want all content here
         } else {

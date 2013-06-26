@@ -168,9 +168,9 @@ define('RISK_SPAM',        0x0010);
 /** capability allows mass delete of data belonging to other users - see {@link http://docs.moodle.org/dev/Hardening_new_Roles_system} */
 define('RISK_DATALOSS',    0x0020);
 
-/** rolename displays - the name as defined in the role definition */
+/** rolename displays - the name as defined in the role definition, localised if name empty */
 define('ROLENAME_ORIGINAL', 0);
-/** rolename displays - the name as defined by a role alias */
+/** rolename displays - the name as defined by a role alias at the course level, falls back to ROLENAME_ORIGINAL if alias not present */
 define('ROLENAME_ALIAS', 1);
 /** rolename displays - Both, like this:  Role alias (Original) */
 define('ROLENAME_BOTH', 2);
@@ -216,8 +216,8 @@ $ACCESSLIB_PRIVATE->capabilities     = null;    // detailed information about th
  * @return void
  */
 function accesslib_clear_all_caches_for_unit_testing() {
-    global $UNITTEST, $USER;
-    if (empty($UNITTEST->running) and !PHPUNIT_TEST) {
+    global $USER;
+    if (!PHPUNIT_TEST) {
         throw new coding_exception('You must not call clear_all_caches outside of unit tests.');
     }
 
@@ -269,10 +269,9 @@ function get_role_access($roleid) {
 
     $accessdata['ra']['/'.SYSCONTEXTID] = array((int)$roleid => (int)$roleid);
 
-    //
-    // Overrides for the role IN ANY CONTEXTS
-    // down to COURSE - not below -
-    //
+    // Overrides for the role IN ANY CONTEXTS down to COURSE - not below -.
+
+    /*
     $sql = "SELECT ctx.path,
                    rc.capability, rc.permission
               FROM {context} ctx
@@ -281,6 +280,19 @@ function get_role_access($roleid) {
                    ON (cctx.contextlevel = ".CONTEXT_COURSE." AND ctx.path LIKE ".$DB->sql_concat('cctx.path',"'/%'").")
              WHERE rc.roleid = ? AND cctx.id IS NULL";
     $params = array($roleid);
+    */
+
+    // Note: the commented out query is 100% accurate but slow, so let's cheat instead by hardcoding the blocks mess directly.
+
+    $sql = "SELECT COALESCE(ctx.path, bctx.path) AS path, rc.capability, rc.permission
+              FROM {role_capabilities} rc
+         LEFT JOIN {context} ctx ON (ctx.id = rc.contextid AND ctx.contextlevel <= ".CONTEXT_COURSE.")
+         LEFT JOIN ({context} bctx
+                    JOIN {block_instances} bi ON (bi.id = bctx.instanceid)
+                    JOIN {context} pctx ON (pctx.id = bi.parentcontextid AND pctx.contextlevel < ".CONTEXT_COURSE.")
+                   ) ON (bctx.id = rc.contextid AND bctx.contextlevel = ".CONTEXT_BLOCK.")
+             WHERE rc.roleid = :roleid AND (ctx.id IS NOT NULL OR bctx.id IS NOT NULL)";
+    $params = array('roleid'=>$roleid);
 
     // we need extra caching in CLI scripts and cron
     $rs = $DB->get_recordset_sql($sql, $params);
@@ -381,6 +393,7 @@ function has_capability($capability, context $context, $user = null, $doanything
     if (!isset($USER->id)) {
         // should never happen
         $USER->id = 0;
+        debugging('Capability check being performed on a user with no ID.', DEBUG_DEVELOPER);
     }
 
     // make sure there is a real user specified
@@ -1621,8 +1634,6 @@ function role_assign($roleid, $userid, $contextid, $component = '', $itemid = 0,
     }
 
     // Check for existing entry
-    // TODO: Revisit this sql_empty() use once Oracle bindings are improved. MDL-29765
-    $component = ($component === '') ? $DB->sql_empty() : $component;
     $ras = $DB->get_records('role_assignments', array('roleid'=>$roleid, 'contextid'=>$context->id, 'userid'=>$userid, 'component'=>$component, 'itemid'=>$itemid), 'id');
 
     if ($ras) {
@@ -1773,10 +1784,6 @@ function role_unassign_all(array $params, $subcontexts = false, $includemanual =
         }
     }
 
-    // TODO: Revisit this sql_empty() use once Oracle bindings are improved. MDL-29765
-    if (isset($params['component'])) {
-        $params['component'] = ($params['component'] === '') ? $DB->sql_empty() : $params['component'];
-    }
     $ras = $DB->get_records('role_assignments', $params);
     foreach($ras as $ra) {
         $DB->delete_records('role_assignments', array('id'=>$ra->id));
@@ -2115,6 +2122,7 @@ function can_access_course(stdClass $course, $user = null, $withcapability = '',
     if (!isset($USER->id)) {
         // should never happen
         $USER->id = 0;
+        debugging('Course access check being performed on a user with no ID.', DEBUG_DEVELOPER);
     }
 
     // make sure there is a user specified
@@ -2372,12 +2380,14 @@ function get_enrolled_sql(context $context, $withcapability = '', $groupid = 0, 
  * @param string $orderby
  * @param int $limitfrom return a subset of records, starting at this point (optional, required if $limitnum is set).
  * @param int $limitnum return a subset comprising this many records (optional, required if $limitfrom is set).
+ * @param bool $onlyactive consider only active enrolments in enabled plugins and time restrictions
  * @return array of user records
  */
-function get_enrolled_users(context $context, $withcapability = '', $groupid = 0, $userfields = 'u.*', $orderby = '', $limitfrom = 0, $limitnum = 0) {
+function get_enrolled_users(context $context, $withcapability = '', $groupid = 0, $userfields = 'u.*', $orderby = null,
+        $limitfrom = 0, $limitnum = 0, $onlyactive = false) {
     global $DB;
 
-    list($esql, $params) = get_enrolled_sql($context, $withcapability, $groupid);
+    list($esql, $params) = get_enrolled_sql($context, $withcapability, $groupid, $onlyactive);
     $sql = "SELECT $userfields
               FROM {user} u
               JOIN ($esql) je ON je.id = u.id
@@ -2386,7 +2396,9 @@ function get_enrolled_users(context $context, $withcapability = '', $groupid = 0
     if ($orderby) {
         $sql = "$sql ORDER BY $orderby";
     } else {
-        $sql = "$sql ORDER BY u.lastname ASC, u.firstname ASC";
+        list($sort, $sortparams) = users_order_by_sql('u');
+        $sql = "$sql ORDER BY $sort";
+        $params = array_merge($params, $sortparams);
     }
 
     return $DB->get_records_sql($sql, $params, $limitfrom, $limitnum);
@@ -2401,12 +2413,13 @@ function get_enrolled_users(context $context, $withcapability = '', $groupid = 0
  * @param context $context
  * @param string $withcapability
  * @param int $groupid 0 means ignore groups, any other value limits the result by group id
+ * @param bool $onlyactive consider only active enrolments in enabled plugins and time restrictions
  * @return array of user records
  */
-function count_enrolled_users(context $context, $withcapability = '', $groupid = 0) {
+function count_enrolled_users(context $context, $withcapability = '', $groupid = 0, $onlyactive = false) {
     global $DB;
 
-    list($esql, $params) = get_enrolled_sql($context, $withcapability, $groupid);
+    list($esql, $params) = get_enrolled_sql($context, $withcapability, $groupid, $onlyactive);
     $sql = "SELECT count(u.id)
               FROM {user} u
               JOIN ($esql) je ON je.id = u.id
@@ -2905,8 +2918,15 @@ function get_profile_roles(context $context) {
     list($contextlist, $cparams) = $DB->get_in_or_equal($context->get_parent_context_ids(true), SQL_PARAMS_NAMED, 'p');
     $params = array_merge($params, $cparams);
 
-    $sql = "SELECT DISTINCT r.id, r.name, r.shortname, r.sortorder
+    if ($coursecontext = $context->get_course_context(false)) {
+        $params['coursecontext'] = $coursecontext->id;
+    } else {
+        $params['coursecontext'] = 0;
+    }
+
+    $sql = "SELECT DISTINCT r.id, r.name, r.shortname, r.sortorder, rn.name AS coursealias
               FROM {role_assignments} ra, {role} r
+         LEFT JOIN {role_names} rn ON (rn.contextid = :coursecontext AND rn.roleid = r.id)
              WHERE r.id = ra.roleid
                    AND ra.contextid $contextlist
                    AND r.id $rallowed
@@ -2924,10 +2944,17 @@ function get_profile_roles(context $context) {
 function get_roles_used_in_context(context $context) {
     global $DB;
 
-    list($contextlist, $params) = $DB->get_in_or_equal($context->get_parent_context_ids(true));
+    list($contextlist, $params) = $DB->get_in_or_equal($context->get_parent_context_ids(true), SQL_PARAMS_NAMED, 'cl');
 
-    $sql = "SELECT DISTINCT r.id, r.name, r.shortname, r.sortorder
+    if ($coursecontext = $context->get_course_context(false)) {
+        $params['coursecontext'] = $coursecontext->id;
+    } else {
+        $params['coursecontext'] = 0;
+    }
+
+    $sql = "SELECT DISTINCT r.id, r.name, r.shortname, r.sortorder, rn.name AS coursealias
               FROM {role_assignments} ra, {role} r
+         LEFT JOIN {role_names} rn ON (rn.contextid = :coursecontext AND rn.roleid = r.id)
              WHERE r.id = ra.roleid
                    AND ra.contextid $contextlist
           ORDER BY r.sortorder ASC";
@@ -2965,8 +2992,15 @@ function get_user_roles_in_course($userid, $courseid) {
     list($contextlist, $cparams) = $DB->get_in_or_equal($context->get_parent_context_ids(true), SQL_PARAMS_NAMED, 'p');
     $params = array_merge($params, $cparams);
 
-    $sql = "SELECT DISTINCT r.id, r.name, r.shortname, r.sortorder
+    if ($coursecontext = $context->get_course_context(false)) {
+        $params['coursecontext'] = $coursecontext->id;
+    } else {
+        $params['coursecontext'] = 0;
+    }
+
+    $sql = "SELECT DISTINCT r.id, r.name, r.shortname, r.sortorder, rn.name AS coursealias
               FROM {role_assignments} ra, {role} r
+         LEFT JOIN {role_names} rn ON (rn.contextid = :coursecontext AND rn.roleid = r.id)
              WHERE r.id = ra.roleid
                    AND ra.contextid $contextlist
                    AND r.id $rallowed
@@ -2977,11 +3011,7 @@ function get_user_roles_in_course($userid, $courseid) {
     $rolestring = '';
 
     if ($roles = $DB->get_records_sql($sql, $params)) {
-        foreach ($roles as $userrole) {
-            $rolenames[$userrole->id] = $userrole->name;
-        }
-
-        $rolenames = role_fix_names($rolenames, $context);   // Substitute aliases
+        $rolenames = role_fix_names($roles, $context, ROLENAME_ALIAS, true);   // Substitute aliases
 
         foreach ($rolenames as $roleid => $rolename) {
             $rolenames[$roleid] = '<a href="'.$CFG->wwwroot.'/user/index.php?contextid='.$context->id.'&amp;roleid='.$roleid.'">'.$rolename.'</a>';
@@ -3028,11 +3058,29 @@ function user_can_assign(context $context, $targetroleid) {
 /**
  * Returns all site roles in correct sort order.
  *
- * @return array
+ * Note: this method does not localise role names or descriptions,
+ *       use role_get_names() if you need role names.
+ *
+ * @param context $context optional context for course role name aliases
+ * @return array of role records with optional coursealias property
  */
-function get_all_roles() {
+function get_all_roles(context $context = null) {
     global $DB;
-    return $DB->get_records('role', null, 'sortorder ASC');
+
+    if (!$context or !$coursecontext = $context->get_course_context(false)) {
+        $coursecontext = null;
+    }
+
+    if ($coursecontext) {
+        $sql = "SELECT r.*, rn.name AS coursealias
+                  FROM {role} r
+             LEFT JOIN {role_names} rn ON (rn.contextid = :coursecontext AND rn.roleid = r.id)
+              ORDER BY r.sortorder ASC";
+        return $DB->get_records_sql($sql, array('coursecontext'=>$coursecontext->id));
+
+    } else {
+        return $DB->get_records('role', array(), 'sortorder ASC');
+    }
 }
 
 /**
@@ -3215,14 +3263,8 @@ function get_assignable_roles(context $context, $rolenamedisplay = ROLENAME_ALIA
         }
     }
 
-    $parents = $context->get_parent_context_ids(true);
-    $contexts = implode(',' , $parents);
-
     $params = array();
     $extrafields = '';
-    if ($rolenamedisplay == ROLENAME_ORIGINALANDSHORT or $rolenamedisplay == ROLENAME_SHORT) {
-        $extrafields .= ', r.shortname';
-    }
 
     if ($withusercounts) {
         $extrafields = ', (SELECT count(u.id)
@@ -3236,6 +3278,8 @@ function get_assignable_roles(context $context, $rolenamedisplay = ROLENAME_ALIA
         // show all roles allowed in this context to admins
         $assignrestriction = "";
     } else {
+        $parents = $context->get_parent_context_ids(true);
+        $contexts = implode(',' , $parents);
         $assignrestriction = "JOIN (SELECT DISTINCT raa.allowassign AS id
                                       FROM {role_allow_assign} raa
                                       JOIN {role_assignments} ra ON ra.roleid = raa.roleid
@@ -3244,28 +3288,22 @@ function get_assignable_roles(context $context, $rolenamedisplay = ROLENAME_ALIA
         $params['userid'] = $userid;
     }
     $params['contextlevel'] = $context->contextlevel;
-    $sql = "SELECT r.id, r.name $extrafields
+
+    if ($coursecontext = $context->get_course_context(false)) {
+        $params['coursecontext'] = $coursecontext->id;
+    } else {
+        $params['coursecontext'] = 0; // no course aliases
+        $coursecontext = null;
+    }
+    $sql = "SELECT r.id, r.name, r.shortname, rn.name AS coursealias $extrafields
               FROM {role} r
               $assignrestriction
-              JOIN {role_context_levels} rcl ON r.id = rcl.roleid
-             WHERE rcl.contextlevel = :contextlevel
+              JOIN {role_context_levels} rcl ON (rcl.contextlevel = :contextlevel AND r.id = rcl.roleid)
+         LEFT JOIN {role_names} rn ON (rn.contextid = :coursecontext AND rn.roleid = r.id)
           ORDER BY r.sortorder ASC";
     $roles = $DB->get_records_sql($sql, $params);
 
-    $rolenames = array();
-    foreach ($roles as $role) {
-        if ($rolenamedisplay == ROLENAME_SHORT) {
-            $rolenames[$role->id] = $role->shortname;
-            continue;
-        }
-        $rolenames[$role->id] = $role->name;
-        if ($rolenamedisplay == ROLENAME_ORIGINALANDSHORT) {
-            $rolenames[$role->id] .= ' (' . $role->shortname . ')';
-        }
-    }
-    if ($rolenamedisplay != ROLENAME_ORIGINALANDSHORT and $rolenamedisplay != ROLENAME_SHORT) {
-        $rolenames = role_fix_names($rolenames, $context, $rolenamedisplay);
-    }
+    $rolenames = role_fix_names($roles, $coursecontext, $rolenamedisplay, true);
 
     if (!$withusercounts) {
         return $rolenames;
@@ -3309,17 +3347,25 @@ function get_switchable_roles(context $context) {
         $params['userid'] = $USER->id;
     }
 
+    if ($coursecontext = $context->get_course_context(false)) {
+        $params['coursecontext'] = $coursecontext->id;
+    } else {
+        $params['coursecontext'] = 0; // no course aliases
+        $coursecontext = null;
+    }
+
     $query = "
-        SELECT r.id, r.name
+        SELECT r.id, r.name, r.shortname, rn.name AS coursealias
           FROM (SELECT DISTINCT rc.roleid
                   FROM {role_capabilities} rc
                   $extrajoins
                   $extrawhere) idlist
           JOIN {role} r ON r.id = idlist.roleid
+     LEFT JOIN {role_names} rn ON (rn.contextid = :coursecontext AND rn.roleid = r.id)
       ORDER BY r.sortorder";
+    $roles = $DB->get_records_sql($query, $params);
 
-    $rolenames = $DB->get_records_sql_menu($query, $params);
-    return role_fix_names($rolenames, $context, ROLENAME_ALIAS);
+    return role_fix_names($roles, $context, ROLENAME_ALIAS, true);
 }
 
 /**
@@ -3349,9 +3395,6 @@ function get_overridable_roles(context $context, $rolenamedisplay = ROLENAME_ALI
 
     $params = array();
     $extrafields = '';
-    if ($rolenamedisplay == ROLENAME_ORIGINALANDSHORT) {
-        $extrafields .= ', ro.shortname';
-    }
 
     $params['userid'] = $USER->id;
     if ($withcounts) {
@@ -3360,16 +3403,24 @@ function get_overridable_roles(context $context, $rolenamedisplay = ROLENAME_ALI
         $params['conid'] = $context->id;
     }
 
+    if ($coursecontext = $context->get_course_context(false)) {
+        $params['coursecontext'] = $coursecontext->id;
+    } else {
+        $params['coursecontext'] = 0; // no course aliases
+        $coursecontext = null;
+    }
+
     if (is_siteadmin()) {
         // show all roles to admins
         $roles = $DB->get_records_sql("
-            SELECT ro.id, ro.name$extrafields
+            SELECT ro.id, ro.name, ro.shortname, rn.name AS coursealias $extrafields
               FROM {role} ro
+         LEFT JOIN {role_names} rn ON (rn.contextid = :coursecontext AND rn.roleid = ro.id)
           ORDER BY ro.sortorder ASC", $params);
 
     } else {
         $roles = $DB->get_records_sql("
-            SELECT ro.id, ro.name$extrafields
+            SELECT ro.id, ro.name, ro.shortname, rn.name AS coursealias $extrafields
               FROM {role} ro
               JOIN (SELECT DISTINCT r.id
                       FROM {role} r
@@ -3377,23 +3428,15 @@ function get_overridable_roles(context $context, $rolenamedisplay = ROLENAME_ALI
                       JOIN {role_assignments} ra ON rao.roleid = ra.roleid
                      WHERE ra.userid = :userid AND ra.contextid IN ($contexts)
                    ) inline_view ON ro.id = inline_view.id
+         LEFT JOIN {role_names} rn ON (rn.contextid = :coursecontext AND rn.roleid = ro.id)
           ORDER BY ro.sortorder ASC", $params);
     }
 
-    $rolenames = array();
-    foreach ($roles as $role) {
-        $rolenames[$role->id] = $role->name;
-        if ($rolenamedisplay == ROLENAME_ORIGINALANDSHORT) {
-            $rolenames[$role->id] .= ' (' . $role->shortname . ')';
-        }
-    }
-    if ($rolenamedisplay != ROLENAME_ORIGINALANDSHORT) {
-        $rolenames = role_fix_names($rolenames, $context, $rolenamedisplay);
-    }
+    $rolenames = role_fix_names($roles, $context, $rolenamedisplay, true);
 
     if (!$withcounts) {
         return $rolenames;
-}
+    }
 
     $rolecounts = array();
     $nameswithcounts = array();
@@ -3417,22 +3460,31 @@ function get_default_enrol_roles(context $context, $addroleid = null) {
     global $DB;
 
     $params = array('contextlevel'=>CONTEXT_COURSE);
+
+    if ($coursecontext = $context->get_course_context(false)) {
+        $params['coursecontext'] = $coursecontext->id;
+    } else {
+        $params['coursecontext'] = 0; // no course names
+        $coursecontext = null;
+    }
+
     if ($addroleid) {
         $addrole = "OR r.id = :addroleid";
         $params['addroleid'] = $addroleid;
     } else {
         $addrole = "";
     }
-    $sql = "SELECT r.id, r.name
+
+    $sql = "SELECT r.id, r.name, r.shortname, rn.name AS coursealias
               FROM {role} r
          LEFT JOIN {role_context_levels} rcl ON (rcl.roleid = r.id AND rcl.contextlevel = :contextlevel)
+         LEFT JOIN {role_names} rn ON (rn.contextid = :coursecontext AND rn.roleid = r.id)
              WHERE rcl.id IS NOT NULL $addrole
           ORDER BY sortorder DESC";
 
-    $roles = $DB->get_records_sql_menu($sql, $params);
-    $roles = role_fix_names($roles, $context, ROLENAME_BOTH);
+    $roles = $DB->get_records_sql($sql, $params);
 
-    return $roles;
+    return role_fix_names($roles, $context, ROLENAME_BOTH, true);
 }
 
 /**
@@ -3875,25 +3927,27 @@ function sort_by_roleassignment_authority($users, context $context, $roles = arr
  * @param context $context
  * @param bool $parent if true, get list of users assigned in higher context too
  * @param string $fields fields from user (u.) , role assignment (ra) or role (r.)
- * @param string $sort sort from user (u.) , role assignment (ra) or role (r.)
- * @param bool $gethidden_ignored use enrolments instead
+ * @param string $sort sort from user (u.) , role assignment (ra.) or role (r.).
+ *      null => use default sort from users_order_by_sql.
+ * @param bool $all true means all, false means limit to enrolled users
  * @param string $group defaults to ''
  * @param mixed $limitfrom defaults to ''
  * @param mixed $limitnum defaults to ''
  * @param string $extrawheretest defaults to ''
- * @param string|array $whereparams defaults to ''
+ * @param array $whereorsortparams any paramter values used by $sort or $extrawheretest.
  * @return array
  */
 function get_role_users($roleid, context $context, $parent = false, $fields = '',
-        $sort = 'u.lastname, u.firstname', $gethidden_ignored = null, $group = '',
-        $limitfrom = '', $limitnum = '', $extrawheretest = '', $whereparams = array()) {
+        $sort = null, $all = true, $group = '',
+        $limitfrom = '', $limitnum = '', $extrawheretest = '', $whereorsortparams = array()) {
     global $DB;
 
     if (empty($fields)) {
         $fields = 'u.id, u.confirmed, u.username, u.firstname, u.lastname, '.
                   'u.maildisplay, u.mailformat, u.maildigest, u.email, u.emailstop, u.city, '.
                   'u.country, u.picture, u.idnumber, u.department, u.institution, '.
-                  'u.lang, u.timezone, u.lastaccess, u.mnethostid, r.name AS rolename, r.sortorder';
+                  'u.lang, u.timezone, u.lastaccess, u.mnethostid, r.name AS rolename, r.sortorder, '.
+                  'r.shortname AS roleshortname, rn.name AS rolecoursealias';
     }
 
     $parentcontexts = '';
@@ -3906,35 +3960,64 @@ function get_role_users($roleid, context $context, $parent = false, $fields = ''
     }
 
     if ($roleid) {
-        list($rids, $params) = $DB->get_in_or_equal($roleid, SQL_PARAMS_QM);
+        list($rids, $params) = $DB->get_in_or_equal($roleid, SQL_PARAMS_NAMED, 'r');
         $roleselect = "AND ra.roleid $rids";
     } else {
         $params = array();
         $roleselect = '';
     }
 
+    if ($coursecontext = $context->get_course_context(false)) {
+        $params['coursecontext'] = $coursecontext->id;
+    } else {
+        $params['coursecontext'] = 0;
+    }
+
     if ($group) {
         $groupjoin   = "JOIN {groups_members} gm ON gm.userid = u.id";
-        $groupselect = " AND gm.groupid = ? ";
-        $params[] = $group;
+        $groupselect = " AND gm.groupid = :groupid ";
+        $params['groupid'] = $group;
     } else {
         $groupjoin   = '';
         $groupselect = '';
     }
 
-    array_unshift($params, $context->id);
+    $params['contextid'] = $context->id;
 
     if ($extrawheretest) {
         $extrawheretest = ' AND ' . $extrawheretest;
-        $params = array_merge($params, $whereparams);
+    }
+
+    if ($whereorsortparams) {
+        $params = array_merge($params, $whereorsortparams);
+    }
+
+    if (!$sort) {
+        list($sort, $sortparams) = users_order_by_sql('u');
+        $params = array_merge($params, $sortparams);
+    }
+
+    if ($all === null) {
+        // Previously null was used to indicate that parameter was not used.
+        $all = true;
+    }
+    if (!$all and $coursecontext) {
+        // Do not use get_enrolled_sql() here for performance reasons.
+        $ejoin = "JOIN {user_enrolments} ue ON ue.userid = u.id
+                  JOIN {enrol} e ON (e.id = ue.enrolid AND e.courseid = :ecourseid)";
+        $params['ecourseid'] = $coursecontext->instanceid;
+    } else {
+        $ejoin = "";
     }
 
     $sql = "SELECT DISTINCT $fields, ra.roleid
               FROM {role_assignments} ra
               JOIN {user} u ON u.id = ra.userid
               JOIN {role} r ON ra.roleid = r.id
+            $ejoin
+         LEFT JOIN {role_names} rn ON (rn.contextid = :coursecontext AND rn.roleid = r.id)
         $groupjoin
-             WHERE (ra.contextid = ? $parentcontexts)
+             WHERE (ra.contextid = :contextid $parentcontexts)
                    $roleselect
                    $groupselect
                    $extrawheretest
@@ -4243,87 +4326,194 @@ function user_has_role_assignment($userid, $roleid, $contextid = 0) {
 }
 
 /**
- * Get role name or alias if exists and format the text.
+ * Get localised role name or alias if exists and format the text.
  *
  * @param stdClass $role role object
- * @param context_course $coursecontext
- * @return string name of role in course context
+ *      - optional 'coursealias' property should be included for performance reasons if course context used
+ *      - description property is not required here
+ * @param context|bool $context empty means system context
+ * @param int $rolenamedisplay type of role name
+ * @return string localised role name or course role name alias
  */
-function role_get_name($role, context_course $coursecontext) {
+function role_get_name(stdClass $role, $context = null, $rolenamedisplay = ROLENAME_ALIAS) {
     global $DB;
 
-    if ($r = $DB->get_record('role_names', array('roleid'=>$role->id, 'contextid'=>$coursecontext->id))) {
-        return strip_tags(format_string($r->name));
+    if ($rolenamedisplay == ROLENAME_SHORT) {
+        return $role->shortname;
+    }
+
+    if (!$context or !$coursecontext = $context->get_course_context(false)) {
+        $coursecontext = null;
+    }
+
+    if ($coursecontext and !property_exists($role, 'coursealias') and ($rolenamedisplay == ROLENAME_ALIAS or $rolenamedisplay == ROLENAME_BOTH or $rolenamedisplay == ROLENAME_ALIAS_RAW)) {
+        $role = clone($role); // Do not modify parameters.
+        if ($r = $DB->get_record('role_names', array('roleid'=>$role->id, 'contextid'=>$coursecontext->id))) {
+            $role->coursealias = $r->name;
+        } else {
+            $role->coursealias = null;
+        }
+    }
+
+    if ($rolenamedisplay == ROLENAME_ALIAS_RAW) {
+        if ($coursecontext) {
+            return $role->coursealias;
+        } else {
+            return null;
+        }
+    }
+
+    if (trim($role->name) !== '') {
+        // For filtering always use context where was the thing defined - system for roles here.
+        $original = format_string($role->name, true, array('context'=>context_system::instance()));
+
     } else {
-        return strip_tags(format_string($role->name));
+        // Empty role->name means we want to see localised role name based on shortname,
+        // only default roles are supposed to be localised.
+        switch ($role->shortname) {
+            case 'manager':         $original = get_string('manager', 'role'); break;
+            case 'coursecreator':   $original = get_string('coursecreators'); break;
+            case 'editingteacher':  $original = get_string('defaultcourseteacher'); break;
+            case 'teacher':         $original = get_string('noneditingteacher'); break;
+            case 'student':         $original = get_string('defaultcoursestudent'); break;
+            case 'guest':           $original = get_string('guest'); break;
+            case 'user':            $original = get_string('authenticateduser'); break;
+            case 'frontpage':       $original = get_string('frontpageuser', 'role'); break;
+            // We should not get here, the role UI should require the name for custom roles!
+            default:                $original = $role->shortname; break;
+        }
+    }
+
+    if ($rolenamedisplay == ROLENAME_ORIGINAL) {
+        return $original;
+    }
+
+    if ($rolenamedisplay == ROLENAME_ORIGINALANDSHORT) {
+        return "$original ($role->shortname)";
+    }
+
+    if ($rolenamedisplay == ROLENAME_ALIAS) {
+        if ($coursecontext and trim($role->coursealias) !== '') {
+            return format_string($role->coursealias, true, array('context'=>$coursecontext));
+        } else {
+            return $original;
+        }
+    }
+
+    if ($rolenamedisplay == ROLENAME_BOTH) {
+        if ($coursecontext and trim($role->coursealias) !== '') {
+            return format_string($role->coursealias, true, array('context'=>$coursecontext)) . " ($original)";
+        } else {
+            return $original;
+        }
+    }
+
+    throw new coding_exception('Invalid $rolenamedisplay parameter specified in role_get_name()');
+}
+
+/**
+ * Returns localised role description if available.
+ * If the name is empty it tries to find the default role name using
+ * hardcoded list of default role names or other methods in the future.
+ *
+ * @param stdClass $role
+ * @return string localised role name
+ */
+function role_get_description(stdClass $role) {
+    if (!html_is_blank($role->description)) {
+        return format_text($role->description, FORMAT_HTML, array('context'=>context_system::instance()));
+    }
+
+    switch ($role->shortname) {
+        case 'manager':         return get_string('managerdescription', 'role');
+        case 'coursecreator':   return get_string('coursecreatorsdescription');
+        case 'editingteacher':  return get_string('defaultcourseteacherdescription');
+        case 'teacher':         return get_string('noneditingteacherdescription');
+        case 'student':         return get_string('defaultcoursestudentdescription');
+        case 'guest':           return get_string('guestdescription');
+        case 'user':            return get_string('authenticateduserdescription');
+        case 'frontpage':       return get_string('frontpageuserdescription', 'role');
+        default:                return '';
     }
 }
 
 /**
  * Get all the localised role names for a context.
- * @param context $context the context
+ *
+ * In new installs default roles have empty names, this function
+ * add localised role names using current language pack.
+ *
+ * @param context $context the context, null means system context
  * @param array of role objects with a ->localname field containing the context-specific role name.
+ * @param int $rolenamedisplay
+ * @param bool $returnmenu true means id=>localname, false means id=>rolerecord
+ * @return array Array of context-specific role names, or role objects with a ->localname field added.
  */
-function role_get_names(context $context) {
-    return role_fix_names(get_all_roles(), $context);
+function role_get_names(context $context = null, $rolenamedisplay = ROLENAME_ALIAS, $returnmenu = null) {
+    return role_fix_names(get_all_roles($context), $context, $rolenamedisplay, $returnmenu);
 }
 
 /**
- * Prepare list of roles for display, apply aliases and format text
+ * Prepare list of roles for display, apply aliases and localise default role names.
  *
- * @param array $roleoptions array roleid => rolename or roleid => roleobject
- * @param context $context a context
+ * @param array $roleoptions array roleid => roleobject (with optional coursealias), strings are accepted for backwards compatibility only
+ * @param context $context the context, null means system context
  * @param int $rolenamedisplay
+ * @param bool $returnmenu null means keep the same format as $roleoptions, true means id=>localname, false means id=>rolerecord
  * @return array Array of context-specific role names, or role objects with a ->localname field added.
  */
-function role_fix_names($roleoptions, context $context, $rolenamedisplay = ROLENAME_ALIAS) {
+function role_fix_names($roleoptions, context $context = null, $rolenamedisplay = ROLENAME_ALIAS, $returnmenu = null) {
     global $DB;
 
-    // Make sure we have a course context.
-    $coursecontext = $context->get_course_context(false);
+    if (empty($roleoptions)) {
+        return array();
+    }
 
-    // Make sure we are working with an array roleid => name. Normally we
-    // want to use the unlocalised name if the localised one is not present.
-    $newnames = array();
-    foreach ($roleoptions as $rid => $roleorname) {
-        if ($rolenamedisplay != ROLENAME_ALIAS_RAW) {
-            if (is_object($roleorname)) {
-                $newnames[$rid] = $roleorname->name;
-            } else {
-                $newnames[$rid] = $roleorname;
-            }
-        } else {
-            $newnames[$rid] = '';
+    if (!$context or !$coursecontext = $context->get_course_context(false)) {
+        $coursecontext = null;
+    }
+
+    // We usually need all role columns...
+    $first = reset($roleoptions);
+    if ($returnmenu === null) {
+        $returnmenu = !is_object($first);
+    }
+
+    if (!is_object($first) or !property_exists($first, 'shortname')) {
+        $allroles = get_all_roles($context);
+        foreach ($roleoptions as $rid => $unused) {
+            $roleoptions[$rid] = $allroles[$rid];
         }
     }
 
-    // If necessary, get the localised names.
-    if ($rolenamedisplay != ROLENAME_ORIGINAL && !empty($coursecontext->id)) {
-        // The get the relevant renames, and use them.
-        $aliasnames = $DB->get_records('role_names', array('contextid'=>$coursecontext->id));
-        foreach ($aliasnames as $alias) {
-            if (isset($newnames[$alias->roleid])) {
-                if ($rolenamedisplay == ROLENAME_ALIAS || $rolenamedisplay == ROLENAME_ALIAS_RAW) {
-                    $newnames[$alias->roleid] = $alias->name;
-                } else if ($rolenamedisplay == ROLENAME_BOTH) {
-                    $newnames[$alias->roleid] = $alias->name . ' (' . $roleoptions[$alias->roleid] . ')';
+    // Inject coursealias if necessary.
+    if ($coursecontext and ($rolenamedisplay == ROLENAME_ALIAS_RAW or $rolenamedisplay == ROLENAME_ALIAS or $rolenamedisplay == ROLENAME_BOTH)) {
+        $first = reset($roleoptions);
+        if (!property_exists($first, 'coursealias')) {
+            $aliasnames = $DB->get_records('role_names', array('contextid'=>$coursecontext->id));
+            foreach ($aliasnames as $alias) {
+                if (isset($roleoptions[$alias->roleid])) {
+                    $roleoptions[$alias->roleid]->coursealias = $alias->name;
                 }
             }
         }
     }
 
-    // Finally, apply format_string and put the result in the right place.
-    foreach ($roleoptions as $rid => $roleorname) {
-        if ($rolenamedisplay != ROLENAME_ALIAS_RAW) {
-            $newnames[$rid] = strip_tags(format_string($newnames[$rid]));
-        }
-        if (is_object($roleorname)) {
-            $roleoptions[$rid]->localname = $newnames[$rid];
-        } else {
-            $roleoptions[$rid] = $newnames[$rid];
-        }
+    // Add localname property.
+    foreach ($roleoptions as $rid => $role) {
+        $roleoptions[$rid]->localname = role_get_name($role, $coursecontext, $rolenamedisplay);
     }
-    return $roleoptions;
+
+    if (!$returnmenu) {
+        return $roleoptions;
+    }
+
+    $menu = array();
+    foreach ($roleoptions as $rid => $role) {
+        $menu[$rid] = $role->localname;
+    }
+
+    return $menu;
 }
 
 /**
@@ -4536,19 +4726,14 @@ function get_role_names_with_caps_in_context($context, $capabilities) {
     global $DB;
 
     $rolesthatcanrate = get_roles_with_caps_in_context($context, $capabilities);
+    $allroles = $DB->get_records('role', null, 'sortorder DESC');
 
-    $allroles = array();
-    $roles = $DB->get_records('role', null, 'sortorder DESC');
-    foreach ($roles as $roleid=>$role) {
-        $allroles[$roleid] = $role->name;
-    }
-
-    $rolenames = array();
+    $roles = array();
     foreach ($rolesthatcanrate as $r) {
-        $rolenames[$r] = $allroles[$r];
+        $roles[$r] = $allroles[$r];
     }
-    $rolenames = role_fix_names($rolenames, $context);
-    return $rolenames;
+
+    return role_fix_names($roles, $context, ROLENAME_ALIAS, true);
 }
 
 /**
@@ -6175,7 +6360,7 @@ class context_coursecat extends context {
      * @return moodle_url
      */
     public function get_url() {
-        return new moodle_url('/course/category.php', array('id'=>$this->_instanceid));
+        return new moodle_url('/course/index.php', array('categoryid' => $this->_instanceid));
     }
 
     /**
@@ -7529,4 +7714,62 @@ function get_related_contexts_string(context $context) {
     } else {
         return (' ='.$context->id);
     }
+}
+
+/**
+ * Given context and array of users, returns array of users whose enrolment status is suspended,
+ * or enrolment has expired or has not started. Also removes those users from the given array
+ *
+ * @param context $context context in which suspended users should be extracted.
+ * @param array $users list of users.
+ * @param array $ignoreusers array of user ids to ignore, e.g. guest
+ * @return array list of suspended users.
+ */
+function extract_suspended_users($context, &$users, $ignoreusers=array()) {
+    global $DB;
+
+    // Get active enrolled users.
+    list($sql, $params) = get_enrolled_sql($context, null, null, true);
+    $activeusers = $DB->get_records_sql($sql, $params);
+
+    // Move suspended users to a separate array & remove from the initial one.
+    $susers = array();
+    if (sizeof($activeusers)) {
+        foreach ($users as $userid => $user) {
+            if (!array_key_exists($userid, $activeusers) && !in_array($userid, $ignoreusers)) {
+                $susers[$userid] = $user;
+                unset($users[$userid]);
+            }
+        }
+    }
+    return $susers;
+}
+
+/**
+ * Given context and array of users, returns array of user ids whose enrolment status is suspended,
+ * or enrolment has expired or not started.
+ *
+ * @param context $context context in which user enrolment is checked.
+ * @return array list of suspended user id's.
+ */
+function get_suspended_userids($context){
+    global $DB;
+
+    // Get all enrolled users.
+    list($sql, $params) = get_enrolled_sql($context);
+    $users = $DB->get_records_sql($sql, $params);
+
+    // Get active enrolled users.
+    list($sql, $params) = get_enrolled_sql($context, null, null, true);
+    $activeusers = $DB->get_records_sql($sql, $params);
+
+    $susers = array();
+    if (sizeof($activeusers) != sizeof($users)) {
+        foreach ($users as $userid => $user) {
+            if (!array_key_exists($userid, $activeusers)) {
+                $susers[$userid] = $userid;
+            }
+        }
+    }
+    return $susers;
 }

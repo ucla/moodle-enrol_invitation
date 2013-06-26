@@ -46,9 +46,9 @@ $user = $DB->get_record('user', array('id'=>$id), '*', MUST_EXIST);
 $course = $DB->get_record('course', array('id'=>$courseid), '*', MUST_EXIST);
 $currentuser = ($user->id == $USER->id);
 
-$systemcontext = get_context_instance(CONTEXT_SYSTEM);
-$coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
-$usercontext   = get_context_instance(CONTEXT_USER, $user->id, IGNORE_MISSING);
+$systemcontext = context_system::instance();
+$coursecontext = context_course::instance($course->id);
+$usercontext   = context_user::instance($user->id, IGNORE_MISSING);
 
 // Require login first
 if (isguestuser($user)) {
@@ -237,8 +237,7 @@ echo '</div>';
 
 // Print all the little details in a list
 
-echo '<table class="list">';
-
+echo html_writer::start_tag('dl', array('class'=>'list'));
 // Show email if any of the following conditions match.
 // 1. User is viewing his own profile.
 // 2. Has allowed everyone to see email
@@ -249,7 +248,8 @@ if ($currentuser
    or ($user->maildisplay == 2 && is_enrolled($coursecontext, $USER))
    or has_capability('moodle/course:viewhiddenuserfields', $coursecontext)
    or has_capability('moodle/site:viewuseridentity', $coursecontext)) {
-    print_row(get_string("email").":", obfuscate_mailto($user->email, ''));
+    echo html_writer::tag('dt', get_string('email'));
+    echo html_writer::tag('dd', obfuscate_mailto($user->email, ''));
 }
 
 // Show last time this user accessed this course
@@ -259,12 +259,14 @@ if (!isset($hiddenfields['lastaccess'])) {
     } else {
         $datestring = get_string("never");
     }
-    print_row(get_string("lastaccess").":", $datestring);
+    echo html_writer::tag('dt', get_string('lastaccess'));
+    echo html_writer::tag('dd', $datestring);
 }
 
 // Show roles in this course
 if ($rolestring = get_user_roles_in_course($id, $course->id)) {
-    print_row(get_string('roles').':', $rolestring);
+    echo html_writer::tag('dt', get_string('roles'));
+    echo html_writer::tag('dd', $rolestring);
 }
 
 // Show groups this user is in
@@ -286,7 +288,8 @@ if (!isset($hiddenfields['groups'])) {
             }
         }
         if ($groupstr !== '') {
-            print_row(get_string("group").":", rtrim($groupstr, ', '));
+            echo html_writer::tag('dt', get_string('group'));
+            echo html_writer::tag('dd', rtrim($groupstr, ', '));
         }
     }
 }
@@ -331,18 +334,19 @@ if (!isset($hiddenfields['mycourses'])) {
                 break;
             }
         }
-        print_row(get_string('courseprofiles').':', rtrim($courselisting,', '));
+        echo html_writer::tag('dt', get_string('courseprofiles'));
+        echo html_writer::tag('dd', rtrim($courselisting,', '));
     }
 }
 
 if (!isset($hiddenfields['suspended'])) {
     if ($user->suspended) {
-        print_row('', get_string('suspended', 'auth'));
+        echo html_writer::tag('dt', "&nbsp;");
+        echo html_writer::tag('dd', get_string('suspended', 'auth'));
     }
 }
-
-echo "</table></div></div>";
-
+echo html_writer::end_tag('dl');
+echo "</div></div>"; // Closing desriptionbox and userprofilebox.
 // Print messaging link if allowed
 if (isloggedin() && has_capability('moodle/site:sendmessage', $usercontext)
     && !empty($CFG->messaging) && !isguestuser() && !isguestuser($user) && ($USER->id != $user->id)) {
@@ -370,11 +374,3 @@ if ($currentuser || has_capability('moodle/user:viewdetails', $usercontext) || h
 echo '</div>';  // userprofile class
 
 echo $OUTPUT->footer();
-
-/// Functions ///////
-
-function print_row($left, $right) {
-    echo "\n<tr><th class=\"label c0\">$left</th><td class=\"info c1\">$right</td></tr>\n";
-}
-
-

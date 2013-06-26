@@ -39,7 +39,7 @@ if ($cancel) {
 //HTTPS is required in this page when $CFG->loginhttps enabled
 $PAGE->https_required();
 
-$context = get_context_instance(CONTEXT_SYSTEM);
+$context = context_system::instance();
 $PAGE->set_url("$CFG->httpswwwroot/login/index.php");
 $PAGE->set_context($context);
 $PAGE->set_pagelayout('login');
@@ -149,8 +149,6 @@ if ($frm and isset($frm->username)) {                             // Login WITH 
         die;
     }
 
-    update_login_count();
-
     if ($user) {
 
         // language setup
@@ -245,13 +243,6 @@ if ($frm and isset($frm->username)) {                             // Login WITH 
                 exit;
             }
         }
-
-        reset_login_count();
-
-        // START SSC Modification for auto-login
-        // daveng - CCLE-2590
-        auto_login_as_guest();
-        // END SSC Modification
 
         // test the session actually works by redirecting to self
         $SESSION->wantsurl = $urltogo;

@@ -56,7 +56,7 @@ class moodle_block_manager_testcase extends basic_testcase {
     protected function setUp() {
         parent::setUp();
         $this->testpage = new moodle_page();
-        $this->testpage->set_context(get_context_instance(CONTEXT_SYSTEM));
+        $this->testpage->set_context(context_system::instance());
         $this->blockmanager = new testable_block_manager($this->testpage);
     }
 
@@ -205,7 +205,7 @@ class moodle_block_manager_test_saving_loading_testcase extends advanced_testcas
 
         // Set up fixture.
         list($page, $blockmanager) = $this->get_a_page_and_block_manager(array('a-region'),
-            get_context_instance(CONTEXT_SYSTEM), 'page-type');
+            context_system::instance(), 'page-type');
         // Exercise SUT.
         $blockmanager->load_blocks();
         // Validate.
@@ -219,7 +219,7 @@ class moodle_block_manager_test_saving_loading_testcase extends advanced_testcas
         // Set up fixture.
         $regionname = 'a-region';
         $blockname = $this->get_a_known_block_type();
-        $context = get_context_instance(CONTEXT_SYSTEM);
+        $context = context_system::instance();
 
         list($page, $blockmanager) = $this->get_a_page_and_block_manager(array($regionname),
             $context, 'page-type');
@@ -238,7 +238,7 @@ class moodle_block_manager_test_saving_loading_testcase extends advanced_testcas
         // Set up fixture.
         $regionname = 'a-region';
         $blockname = $this->get_a_known_block_type();
-        $context = get_context_instance(CONTEXT_SYSTEM);
+        $context = context_system::instance();
 
         list($page, $blockmanager) = $this->get_a_page_and_block_manager(array($regionname),
             $context, 'page-type');
@@ -253,20 +253,12 @@ class moodle_block_manager_test_saving_loading_testcase extends advanced_testcas
     }
 
     public function test_block_not_included_in_different_context() {
-        global $DB;
         $this->purge_blocks();
 
         // Set up fixture.
-        $syscontext = get_context_instance(CONTEXT_SYSTEM);
-        $cat = new stdClass();
-        $cat->name         = 'testcategory';
-        $cat->parent       = 0;
-        $cat->depth        = 1;
-        $cat->sortorder    = 100;
-        $cat->timemodified = time();
-        $catid = $DB->insert_record('course_categories', $cat);
-        $DB->set_field('course_categories', 'path', '/' . $catid, array('id' => $catid));
-        $fakecontext = context_coursecat::instance($catid);
+        $syscontext = context_system::instance();
+        $cat = $this->getDataGenerator()->create_category(array('name' => 'testcategory'));
+        $fakecontext = context_coursecat::instance($cat->id);
         $regionname = 'a-region';
         $blockname = $this->get_a_known_block_type();
 
@@ -286,7 +278,7 @@ class moodle_block_manager_test_saving_loading_testcase extends advanced_testcas
         $this->purge_blocks();
 
         // Set up fixture.
-        $syscontext = get_context_instance(CONTEXT_SYSTEM);
+        $syscontext = context_system::instance();
         $childcontext = context_coursecat::instance(1);
         $regionname = 'a-region';
         $blockname = $this->get_a_known_block_type();
@@ -307,7 +299,7 @@ class moodle_block_manager_test_saving_loading_testcase extends advanced_testcas
         $this->purge_blocks();
 
         // Set up fixture.
-        $syscontext = get_context_instance(CONTEXT_SYSTEM);
+        $syscontext = context_system::instance();
         $regionname = 'a-region';
         $blockname = $this->get_a_known_block_type();
 
@@ -329,7 +321,7 @@ class moodle_block_manager_test_saving_loading_testcase extends advanced_testcas
         // Set up fixture.
         $regionname = 'a-region';
         $blockname = $this->get_a_known_block_type();
-        $syscontext = get_context_instance(CONTEXT_SYSTEM);
+        $syscontext = context_system::instance();
 
         list($page, $blockmanager) = $this->get_a_page_and_block_manager(array($regionname),
             $syscontext, 'page-type', 'sub-page');
@@ -349,7 +341,7 @@ class moodle_block_manager_test_saving_loading_testcase extends advanced_testcas
         // Set up fixture.
         $regionname = 'a-region';
         $blockname = $this->get_a_known_block_type();
-        $syscontext = get_context_instance(CONTEXT_SYSTEM);
+        $syscontext = context_system::instance();
 
         list($page, $blockmanager) = $this->get_a_page_and_block_manager(array($regionname),
             $syscontext, 'page-type', 'sub-page');
@@ -369,7 +361,7 @@ class moodle_block_manager_test_saving_loading_testcase extends advanced_testcas
         // Set up fixture.
         $regionname = 'a-region';
         $blockname = $this->get_a_known_block_type();
-        $syscontext = get_context_instance(CONTEXT_SYSTEM);
+        $syscontext = context_system::instance();
 
         list($page, $blockmanager) = $this->get_a_page_and_block_manager(array($regionname),
             $syscontext, 'page-type', 'sub-page');

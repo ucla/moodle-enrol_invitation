@@ -66,8 +66,6 @@ abstract class moodle_database {
     protected $database_manager;
     /** @var moodle_temptables temptables manager to provide cross-db support for temp tables. */
     protected $temptables;
-    /** @var array Cache of column info. */
-    protected $columns = array(); // I wish we had a shared memory cache for this :-(
     /** @var array Cache of table info. */
     protected $tables  = null;
 
@@ -117,6 +115,9 @@ abstract class moodle_database {
     private $transactions = array();
     /** @var bool Flag used to force rollback of all current transactions. */
     private $force_rollback = false;
+
+    /** @var string MD5 of settings used for connection. Used by MUC as an identifier. */
+    private $settingshash;
 
     /**
      * @var int internal temporary variable used to fix params. Its used by {@link _fix_sql_params_dollar_callback()}.
@@ -289,6 +290,20 @@ abstract class moodle_database {
     }
 
     /**
+     * Returns a hash for the settings used during connection.
+     *
+     * If not already requested it is generated and stored in a private property.
+     *
+     * @return string
+     */
+    protected function get_settings_hash() {
+        if (empty($this->settingshash)) {
+            $this->settingshash = md5($this->dbhost . $this->dbuser . $this->dbname . $this->prefix);
+        }
+        return $this->settingshash;
+    }
+
+    /**
      * Attempt to create the database
      * @param string $dbhost The database host.
      * @param string $dbuser The database user to connect as.
@@ -324,11 +339,13 @@ abstract class moodle_database {
             }
             $this->force_transaction_rollback();
         }
-        if ($this->used_for_db_sessions) {
-            // this is needed because we need to save session to db before closing it
+        // Always terminate sessions here to make it consistent,
+        // this is needed because we need to save session to db before closing it.
+        if (function_exists('session_get_instance')) {
             session_get_instance()->write_close();
-            $this->used_for_db_sessions = false;
         }
+        $this->used_for_db_sessions = false;
+
         if ($this->temptables) {
             $this->temptables->dispose();
             $this->temptables = null;
@@ -337,7 +354,6 @@ abstract class moodle_database {
             $this->database_manager->dispose();
             $this->database_manager = null;
         }
-        $this->columns = array();
         $this->tables  = null;
     }
 
@@ -389,6 +405,7 @@ abstract class moodle_database {
             // free memory
             $this->last_sql    = null;
             $this->last_params = null;
+            $this->print_debug_time();
             return;
         }
 
@@ -396,7 +413,6 @@ abstract class moodle_database {
         $type   = $this->last_type;
         $sql    = $this->last_sql;
         $params = $this->last_params;
-        $time   = microtime(true) - $this->last_time;
         $error  = $this->get_last_error();
 
         $this->query_log($error);
@@ -497,6 +513,25 @@ abstract class moodle_database {
             if (!is_null($params)) {
                 echo "[".s(var_export($params, true))."]\n";
             }
+            echo "<hr />\n";
+        }
+    }
+
+    /**
+     * Prints the time a query took to run.
+     * @return void
+     */
+    protected function print_debug_time() {
+        if (!$this->get_debug()) {
+            return;
+        }
+        $time = microtime(true) - $this->last_time;
+        $message = "Query took: {$time} seconds.\n";
+        if (CLI_SCRIPT) {
+            echo $message;
+            echo "--------------------------------\n";
+        } else {
+            echo s($message);
             echo "<hr />\n";
         }
     }
@@ -907,8 +942,10 @@ abstract class moodle_database {
      * @return void
      */
     public function reset_caches() {
-        $this->columns = array();
         $this->tables  = null;
+        // Purge MUC as well
+        $identifiers = array('dbfamily' => $this->get_dbfamily(), 'settings' => $this->get_settings_hash());
+        cache_helper::purge_by_definition('core', 'databasemeta', $identifiers);
     }
 
     /**
@@ -1601,11 +1638,11 @@ abstract class moodle_database {
      * @throws dml_exception A DML specific exception is thrown for any errors.
      */
     public function count_records_sql($sql, array $params=null) {
-        if ($count = $this->get_field_sql($sql, $params)) {
-            return $count;
-        } else {
-            return 0;
+        $count = $this->get_field_sql($sql, $params);
+        if ($count === false or !is_number($count) or $count < 0) {
+            throw new coding_exception("count_records_sql() expects the first field to contain non-negative number from COUNT(), '$count' found instead.");
         }
+        return (int)$count;
     }
 
     /**
@@ -1971,12 +2008,14 @@ abstract class moodle_database {
     }
 
     /**
-     * Returns the empty string char used by every supported DB. To be used when
-     * we are searching for that values in our queries. Only Oracle uses this
-     * for now (will be out, once we migrate to proper NULLs if that days arrives)
+     * This used to return empty string replacement character.
+     *
+     * @deprecated use bound parameter with empty string instead
+     *
      * @return string An empty string.
      */
     function sql_empty() {
+        debugging("sql_empty() is deprecated, please use empty string '' as sql parameter value instead", DEBUG_DEVELOPER);
         return '';
     }
 
@@ -1995,9 +2034,13 @@ abstract class moodle_database {
      *
      *     ... AND fieldname = '';
      *
-     * are being used. Final result should be:
+     * are being used. Final result for text fields should be:
      *
-     *     ... AND ' . sql_isempty('tablename', 'fieldname', true/false, true/false);
+     *     ... AND ' . sql_isempty('tablename', 'fieldname', true/false, true);
+     *
+     * and for varchar fields result should be:
+     *
+     *    ... AND fieldname = :empty; "; $params['empty'] = '';
      *
      * (see parameters description below)
      *
@@ -2025,9 +2068,13 @@ abstract class moodle_database {
      *
      *     ... AND fieldname != '';
      *
-     * are being used. Final result should be:
+     * are being used. Final result for text fields should be:
      *
      *     ... AND ' . sql_isnotempty('tablename', 'fieldname', true/false, true/false);
+     *
+     * and for varchar fields result should be:
+     *
+     *    ... AND fieldname != :empty; "; $params['empty'] = '';
      *
      * (see parameters description below)
      *

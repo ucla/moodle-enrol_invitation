@@ -30,4 +30,6 @@ phpunit.xml
 composer.phar
 composer.lock
 /vendor/
-/config_private.php
+/behat.yml
+*/yui/build/*/*-coverage.js
+/lib/yuilib/*/build/*/*-coverage.js

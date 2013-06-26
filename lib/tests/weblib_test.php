@@ -156,6 +156,31 @@ class web_testcase extends advanced_testcase {
         $this->assertEquals($strurl, $url->out(false));
     }
 
+    /**
+     * Test Moodle URL objects created with a param with empty value.
+     */
+    function test_moodle_url_empty_param_values() {
+        $strurl = 'http://moodle.org/course/view.php?id=0';
+        $url = new moodle_url($strurl, array('id' => 0));
+        $this->assertEquals($strurl, $url->out(false));
+
+        $strurl = 'http://moodle.org/course/view.php?id';
+        $url = new moodle_url($strurl, array('id' => false));
+        $this->assertEquals($strurl, $url->out(false));
+
+        $strurl = 'http://moodle.org/course/view.php?id';
+        $url = new moodle_url($strurl, array('id' => null));
+        $this->assertEquals($strurl, $url->out(false));
+
+        $strurl = 'http://moodle.org/course/view.php?id';
+        $url = new moodle_url($strurl, array('id' => ''));
+        $this->assertEquals($strurl, $url->out(false));
+
+        $strurl = 'http://moodle.org/course/view.php?id';
+        $url = new moodle_url($strurl);
+        $this->assertEquals($strurl, $url->out(false));
+    }
+
     function test_moodle_url_round_trip_array_params() {
         $strurl = 'http://example.com/?a%5B1%5D=1&a%5B2%5D=2';
         $url = new moodle_url($strurl);
@@ -270,5 +295,93 @@ class web_testcase extends advanced_testcase {
 
         $PAGE->set_url('/course/view.php', array('id'=>1));
         $this->assertEquals($CFG->wwwroot.'/course/view.php?id=1', qualified_me());
+    }
+
+    public function test_null_progres_trace() {
+        $this->resetAfterTest(false);
+
+        $trace = new null_progress_trace();
+        $trace->output('do');
+        $trace->output('re', 1);
+        $trace->output('mi', 2);
+        $trace->finished();
+        $output = ob_get_contents();
+        $this->assertSame('', $output);
+        $this->expectOutputString('');
+    }
+
+    public function test_text_progres_trace() {
+        $this->resetAfterTest(false);
+
+        $trace = new text_progress_trace();
+        $trace->output('do');
+        $trace->output('re', 1);
+        $trace->output('mi', 2);
+        $trace->finished();
+        $this->expectOutputString("do\n  re\n    mi\n");
+    }
+
+    public function test_html_progres_trace() {
+        $this->resetAfterTest(false);
+
+        $trace = new html_progress_trace();
+        $trace->output('do');
+        $trace->output('re', 1);
+        $trace->output('mi', 2);
+        $trace->finished();
+        $this->expectOutputString("<p>do</p>\n<p>&#160;&#160;re</p>\n<p>&#160;&#160;&#160;&#160;mi</p>\n");
+    }
+
+    public function test_html_list_progress_trace() {
+        $this->resetAfterTest(false);
+
+        $trace = new html_list_progress_trace();
+        $trace->output('do');
+        $trace->output('re', 1);
+        $trace->output('mi', 2);
+        $trace->finished();
+        $this->expectOutputString("<ul>\n<li>do<ul>\n<li>re<ul>\n<li>mi</li>\n</ul>\n</li>\n</ul>\n</li>\n</ul>\n");
+    }
+
+    public function test_progres_trace_buffer() {
+        $this->resetAfterTest(false);
+
+        $trace = new progress_trace_buffer(new html_progress_trace());
+        ob_start();
+        $trace->output('do');
+        $trace->output('re', 1);
+        $trace->output('mi', 2);
+        $trace->finished();
+        $output = ob_get_contents();
+        ob_end_clean();
+        $this->assertSame("<p>do</p>\n<p>&#160;&#160;re</p>\n<p>&#160;&#160;&#160;&#160;mi</p>\n", $output);
+        $this->assertSame($output, $trace->get_buffer());
+
+        $trace = new progress_trace_buffer(new html_progress_trace(), false);
+        $trace->output('do');
+        $trace->output('re', 1);
+        $trace->output('mi', 2);
+        $trace->finished();
+        $this->assertSame("<p>do</p>\n<p>&#160;&#160;re</p>\n<p>&#160;&#160;&#160;&#160;mi</p>\n", $trace->get_buffer());
+        $this->assertSame("<p>do</p>\n<p>&#160;&#160;re</p>\n<p>&#160;&#160;&#160;&#160;mi</p>\n", $trace->get_buffer());
+        $trace->reset_buffer();
+        $this->assertSame('', $trace->get_buffer());
+        $this->expectOutputString('');
+    }
+
+    public function test_combined_progres_trace() {
+        $this->resetAfterTest(false);
+
+        $trace1 = new progress_trace_buffer(new html_progress_trace(), false);
+        $trace2 = new progress_trace_buffer(new text_progress_trace(), false);
+
+        $trace = new combined_progress_trace(array($trace1, $trace2));
+        $trace->output('do');
+        $trace->output('re', 1);
+        $trace->output('mi', 2);
+        $trace->finished();
+        $this->assertSame("<p>do</p>\n<p>&#160;&#160;re</p>\n<p>&#160;&#160;&#160;&#160;mi</p>\n", $trace1->get_buffer());
+        $this->assertSame("do\n  re\n    mi\n", $trace2->get_buffer());
+        $this->expectOutputString('');
     }
 }

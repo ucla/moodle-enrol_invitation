@@ -30,7 +30,7 @@ require_once 'calculation_form.php';
 $courseid  = required_param('courseid', PARAM_INT);
 $id        = required_param('id', PARAM_INT);
 $section   = optional_param('section', 'calculation', PARAM_ALPHA);
-$idnumbers = optional_param('idnumbers', null, PARAM_RAW);
+$idnumbers = optional_param_array('idnumbers', null, PARAM_RAW);
 
 $url = new moodle_url('/grade/edit/tree/calculation.php', array('id'=>$id, 'courseid'=>$courseid));
 if ($section !== 'calculation') {
@@ -43,7 +43,7 @@ if (!$course = $DB->get_record('course', array('id' => $courseid))) {
 }
 
 require_login($course);
-$context = get_context_instance(CONTEXT_COURSE, $course->id);
+$context = context_course::instance($course->id);
 require_capability('moodle/grade:manage', $context);
 
 // default return url

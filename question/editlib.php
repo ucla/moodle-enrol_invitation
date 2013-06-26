@@ -117,7 +117,7 @@ function question_can_delete_cat($todelete) {
         print_error('cannotdeletecate', 'question');
     } else {
         $contextid = $DB->get_field('question_categories', 'contextid', array('id' => $todelete));
-        require_capability('moodle/question:managecategory', get_context_instance_by_id($contextid));
+        require_capability('moodle/question:managecategory', context::instance_by_id($contextid));
     }
 }
 
@@ -251,9 +251,9 @@ abstract class question_bank_column_base {
     protected function get_sort_icon($reverse) {
         global $OUTPUT;
         if ($reverse) {
-            return ' <img src="' . $OUTPUT->pix_url('t/up') . '" alt="' . get_string('desc') . '" />';
+            return $OUTPUT->pix_icon('t/sort_desc', get_string('desc'), '', array('class' => 'iconsort'));
         } else {
-            return ' <img src="' . $OUTPUT->pix_url('t/down') . '" alt="' . get_string('asc') . '" />';
+            return $OUTPUT->pix_icon('t/sort_asc', get_string('asc'), '', array('class' => 'iconsort'));
         }
     }
 
@@ -439,9 +439,16 @@ class question_bank_checkbox_column extends question_bank_column_base {
         echo '<input title="' . $this->strselect . '" type="checkbox" name="q' .
                 $question->id . '" id="checkq' . $question->id . '" value="1"/>';
         if ($this->firstrow) {
-            $PAGE->requires->js('/question/qbank.js');
-            $PAGE->requires->js_function_call('question_bank.init_checkbox_column', array(get_string('selectall'),
-                    get_string('deselectall'), 'checkq' . $question->id));
+            $PAGE->requires->js('/question/qengine.js');
+            $module = array(
+                'name'      => 'qbank',
+                'fullpath'  => '/question/qbank.js',
+                'requires'  => array('yui2-dom', 'yui2-event', 'yui2-container'),
+                'strings'   => array(),
+                'async'     => false,
+            );
+            $PAGE->requires->js_init_call('question_bank.init_checkbox_column', array(get_string('selectall'),
+                    get_string('deselectall'), 'checkq' . $question->id), false, $module);
             $this->firstrow = false;
         }
     }
@@ -697,7 +704,7 @@ class question_bank_preview_action_column extends question_bank_action_column_ba
         global $OUTPUT;
         if (question_has_capability_on($question, 'use')) {
             // Build the icon.
-            $image = $OUTPUT->pix_icon('t/preview', $this->strpreview);
+            $image = $OUTPUT->pix_icon('t/preview', $this->strpreview, '', array('class' => 'iconsmall'));
 
             $link = $this->qbank->preview_question_url($question);
             $action = new popup_action('click', $link, 'questionpreview',
@@ -919,8 +926,6 @@ class question_bank_view {
         $this->init_column_types();
         $this->init_columns($this->wanted_columns(), $this->heading_column());
         $this->init_sort();
-
-        $PAGE->requires->yui2_lib('container');
     }
 
     protected function wanted_columns() {
@@ -1235,8 +1240,6 @@ class question_bank_view {
             return;
         }
 
-        $PAGE->requires->js('/question/qbank.js');
-
         // Category selection form
         echo $OUTPUT->heading(get_string('questionbank', 'question'), 2);
 
@@ -1370,7 +1373,7 @@ class question_bank_view {
         $strdelete = get_string('delete');
 
         list($categoryid, $contextid) = explode(',', $categoryandcontext);
-        $catcontext = get_context_instance_by_id($contextid);
+        $catcontext = context::instance_by_id($contextid);
 
         $canadd = has_capability('moodle/question:add', $catcontext);
         $caneditall =has_capability('moodle/question:editall', $catcontext);
@@ -1514,7 +1517,7 @@ class question_bank_view {
             if (! $tocategory = $DB->get_record('question_categories', array('id' => $tocategoryid, 'contextid' => $contextid))) {
                 print_error('cannotfindcate', 'question');
             }
-            $tocontext = get_context_instance_by_id($contextid);
+            $tocontext = context::instance_by_id($contextid);
             require_capability('moodle/question:add', $tocontext);
             $rawdata = (array) data_submitted();
             $questionids = array();
@@ -1568,6 +1571,10 @@ class question_bank_view {
         if(($unhide = optional_param('unhide', '', PARAM_INT)) and confirm_sesskey()) {
             question_require_capability_on($unhide, 'edit');
             $DB->set_field('question', 'hidden', 0, array('id' => $unhide));
+
+            // Purge these questions from the cache.
+            question_bank::notify_question_edited($unhide);
+
             redirect($this->baseurl);
         }
     }
@@ -1636,7 +1643,7 @@ function question_edit_setup($edittab, $baseurl, $requirecmid = false, $requirec
         $courseid = $cm->course;
         $thispageurl->params(compact('cmid'));
         require_login($courseid, false, $cm);
-        $thiscontext = get_context_instance(CONTEXT_MODULE, $cmid);
+        $thiscontext = context_module::instance($cmid);
     } else {
         $module = null;
         $cm = null;
@@ -1648,7 +1655,7 @@ function question_edit_setup($edittab, $baseurl, $requirecmid = false, $requirec
         if ($courseid){
             $thispageurl->params(compact('courseid'));
             require_login($courseid, false);
-            $thiscontext = get_context_instance(CONTEXT_COURSE, $courseid);
+            $thiscontext = context_course::instance($courseid);
         } else {
             $thiscontext = null;
         }
@@ -1764,7 +1771,7 @@ function question_get_display_preference($param, $default, $type, $thispageurl) 
 function require_login_in_context($contextorid = null){
     global $DB, $CFG;
     if (!is_object($contextorid)){
-        $context = get_context_instance_by_id($contextorid);
+        $context = context::instance_by_id($contextorid, IGNORE_MISSING);
     } else {
         $context = $contextorid;
     }
@@ -1800,7 +1807,7 @@ function require_login_in_context($contextorid = null){
  */
 function print_choose_qtype_to_add_form($hiddenparams, array $allowedqtypes = null) {
     global $CFG, $PAGE, $OUTPUT;
-    $PAGE->requires->js('/question/qbank.js');
+
     echo '<div id="chooseqtypehead" class="hd">' . "\n";
     echo $OUTPUT->heading(get_string('chooseqtypetoadd', 'question'), 3);
     echo "</div>\n";
@@ -1836,7 +1843,16 @@ function print_choose_qtype_to_add_form($hiddenparams, array $allowedqtypes = nu
     echo '<input type="submit" id="chooseqtypecancel" name="addcancel" value="' . get_string('cancel') . '" />' . "\n";
     echo "</div></form>\n";
     echo "</div>\n";
-    $PAGE->requires->js_init_call('qtype_chooser.init', array('chooseqtype'));
+
+    $PAGE->requires->js('/question/qengine.js');
+    $module = array(
+        'name'      => 'qbank',
+        'fullpath'  => '/question/qbank.js',
+        'requires'  => array('yui2-dom', 'yui2-event', 'yui2-container'),
+        'strings'   => array(),
+        'async'     => false,
+    );
+    $PAGE->requires->js_init_call('qtype_chooser.init', array('chooseqtype'), false, $module);
 }
 
 /**
@@ -1877,8 +1893,6 @@ function create_new_question_button($categoryid, $params, $caption, $tooltip = '
     $url = new moodle_url('/question/addquestion.php', $params);
     echo $OUTPUT->single_button($url, $caption, 'get', array('disabled'=>$disabled, 'title'=>$tooltip));
 
-    $PAGE->requires->yui2_lib('dragdrop');
-    $PAGE->requires->yui2_lib('container');
     if (!$choiceformprinted) {
         echo '<div id="qtypechoicecontainer">';
         print_choose_qtype_to_add_form(array());

@@ -183,7 +183,7 @@ function quiz_add_random_questions($quiz, $addonpage, $categoryid, $number,
         print_error('invalidcategoryid', 'error');
     }
 
-    $catcontext = get_context_instance_by_id($category->contextid);
+    $catcontext = context::instance_by_id($category->contextid);
     require_capability('moodle/question:useall', $catcontext);
 
     // Find existing random questions in this category that are
@@ -433,7 +433,7 @@ function quiz_print_question_list($quiz, $pageurl, $allowdelete, $reordertool,
         $pagingdisabled . ' />';
 
     $reordercontrols2top = '<div class="moveselectedonpage">' .
-        get_string('moveselectedonpage', 'quiz', $a) .
+        '<label>' . get_string('moveselectedonpage', 'quiz', $a) . '</label>' .
         '<input type="submit" name="savechanges" value="' .
         $strmove . '"  ' . $pagingdisabled . ' />' . '
         <br /><input type="submit" name="savechanges" value="' .
@@ -441,7 +441,7 @@ function quiz_print_question_list($quiz, $pageurl, $allowdelete, $reordertool,
     $reordercontrols2bottom = '<div class="moveselectedonpage">' .
         '<input type="submit" name="savechanges" value="' .
         $strreorderquestions . '" /><br />' .
-        get_string('moveselectedonpage', 'quiz', $b) .
+        '<label>' . get_string('moveselectedonpage', 'quiz', $b) . '</label>' .
         '<input type="submit" name="savechanges" value="' .
         $strmove . '"  ' . $pagingdisabled . ' /> ' . '</div>';
 
@@ -650,7 +650,10 @@ function quiz_print_question_list($quiz, $pageurl, $allowdelete, $reordertool,
                         ?>
 <div class="qorder">
                         <?php
+                        echo '<label class="accesshide" for="o' . $question->id . '">' .
+                                get_string('questionposition', 'quiz', $qnodisplay) . '</label>';
                         echo '<input type="text" name="o' . $question->id .
+                                '" id="o' . $question->id . '"' .
                                 '" size="2" value="' . (10*$count + 10) .
                                 '" tabindex="' . ($lastindex + $qno) . '" />';
                         ?>
@@ -744,7 +747,7 @@ function quiz_print_pagecontrols($quiz, $pageurl, $page, $hasattempts,
     echo '<div class="pagecontrols">';
 
     // Get the current context.
-    $thiscontext = get_context_instance(CONTEXT_COURSE, $quiz->course);
+    $thiscontext = context_course::instance($quiz->course);
     $contexts = new question_edit_contexts($thiscontext);
 
     // Get the default category.
@@ -1314,7 +1317,7 @@ function quiz_print_status_bar($quiz) {
     if (empty($dates)) {
         $dates[] = get_string('alwaysavailable', 'quiz');
     }
-    $tooltip = implode(', ', $dates);;
+    $tooltip = implode(', ', $dates);
 
     // Brief summary on the page.
     if ($timenow < $quiz->timeopen) {

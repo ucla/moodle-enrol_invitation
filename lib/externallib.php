@@ -266,10 +266,16 @@ class external_api {
             }
 
         } else if ($description instanceof external_single_structure) {
-            if (!is_array($response)) {
-                throw new invalid_response_exception('Only arrays accepted. The bad value is: \'' .
+            if (!is_array($response) && !is_object($response)) {
+                throw new invalid_response_exception('Only arrays/objects accepted. The bad value is: \'' .
                         print_r($response, true) . '\'');
             }
+
+            // Cast objects into arrays.
+            if (is_object($response)) {
+                $response = (array) $response;
+            }
+
             $result = array();
             foreach ($description->keys as $key=>$subdesc) {
                 if (!array_key_exists($key, $response)) {
@@ -328,7 +334,7 @@ class external_api {
             throw new invalid_parameter_exception('Context does not exist');
         }
         if (empty(self::$contextrestriction)) {
-            self::$contextrestriction = get_context_instance(CONTEXT_SYSTEM);
+            self::$contextrestriction = context_system::instance();
         }
         $rcontext = self::$contextrestriction;
 
@@ -520,7 +526,7 @@ function external_generate_token($tokentype, $serviceorid, $userid, $contextorid
         $service = $serviceorid;
     }
     if (!is_object($contextorid)){
-        $context = get_context_instance_by_id($contextorid, MUST_EXIST);
+        $context = context::instance_by_id($contextorid, MUST_EXIST);
     } else {
         $context = $contextorid;
     }
@@ -598,15 +604,15 @@ class external_warnings extends external_multiple_structure {
      *
      * @since Moodle 2.3
      */
-    public function __construct() {
+    public function __construct($itemdesc = 'item', $itemiddesc = 'item id',
+        $warningcodedesc = 'the warning code can be used by the client app to implement specific behaviour') {
 
         parent::__construct(
             new external_single_structure(
                 array(
-                    'item' => new external_value(PARAM_TEXT, 'item', VALUE_OPTIONAL),
-                    'itemid' => new external_value(PARAM_INT, 'item id', VALUE_OPTIONAL),
-                    'warningcode' => new external_value(PARAM_ALPHANUM,
-                            'the warning code can be used by the client app to implement specific behaviour'),
+                    'item' => new external_value(PARAM_TEXT, $itemdesc, VALUE_OPTIONAL),
+                    'itemid' => new external_value(PARAM_INT, $itemiddesc, VALUE_OPTIONAL),
+                    'warningcode' => new external_value(PARAM_ALPHANUM, $warningcodedesc),
                     'message' => new external_value(PARAM_TEXT,
                             'untranslated english message to explain the warning')
                 ), 'warning'),

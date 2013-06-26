@@ -1,20 +1,29 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @author Martin Dougiamas
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @package moodle multiauth
- *
  * Authentication Plugin: Moodle Network Authentication
- *
  * Multiple host authentication support for Moodle Network.
  *
- * 2006-11-01  File created.
+ * @package auth_mnet
+ * @author Martin Dougiamas
+ * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
  */
 
-if (!defined('MOODLE_INTERNAL')) {
-    die('Direct access to this script is forbidden.');    ///  It must be included from a Moodle page
-}
+defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir.'/authlib.php');
 
@@ -81,7 +90,7 @@ class auth_plugin_mnet extends auth_plugin_base {
 
         if (array_key_exists('picture', $userdata) && !empty($user->picture)) {
             $fs = get_file_storage();
-            $usercontext = get_context_instance(CONTEXT_USER, $user->id, MUST_EXIST);
+            $usercontext = context_user::instance($user->id, MUST_EXIST);
             if ($usericonfile = $fs->get_file($usercontext->id, 'user', 'icon', 0, '/', 'f1.png')) {
                 $userdata['_mnet_userpicture_timemodified'] = $usericonfile->get_timemodified();
                 $userdata['_mnet_userpicture_mimetype'] = $usericonfile->get_mimetype();
@@ -299,7 +308,7 @@ class auth_plugin_mnet extends auth_plugin_base {
 
             if ($key == '_mnet_userpicture_timemodified' and empty($CFG->disableuserimages) and isset($remoteuser->picture)) {
                 // update the user picture if there is a newer verion at the identity provider
-                $usercontext = get_context_instance(CONTEXT_USER, $localuser->id, MUST_EXIST);
+                $usercontext = context_user::instance($localuser->id, MUST_EXIST);
                 if ($usericonfile = $fs->get_file($usercontext->id, 'user', 'icon', 0, '/', 'f1.png')) {
                     $localtimemodified = $usericonfile->get_timemodified();
                 } else if ($usericonfile = $fs->get_file($usercontext->id, 'user', 'icon', 0, '/', 'f1.jpg')) {
@@ -1141,7 +1150,7 @@ class auth_plugin_mnet extends auth_plugin_base {
 
         if ($user = $DB->get_record('user', array('username' => $username, 'mnethostid' => $CFG->mnet_localhost_id))) {
             $fs = get_file_storage();
-            $usercontext = get_context_instance(CONTEXT_USER, $user->id, MUST_EXIST);
+            $usercontext = context_user::instance($user->id, MUST_EXIST);
             $return = array();
             if ($f1 = $fs->get_file($usercontext->id, 'user', 'icon', 0, '/', 'f1.png')) {
                 $return['f1'] = base64_encode($f1->get_content());

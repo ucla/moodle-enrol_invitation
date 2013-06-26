@@ -3,8 +3,10 @@
 define('BGR_RANDOMLY',     '0');
 define('BGR_LASTMODIFIED', '1');
 define('BGR_NEXTONE',      '2');
+define('BGR_NEXTALPHA',    '3');
 
 class block_glossary_random extends block_base {
+
     function init() {
         $this->title = get_string('pluginname','block_glossary_random');
     }
@@ -41,14 +43,26 @@ class block_glossary_random extends block_base {
                 $this->instance_config_commit();
             }
 
-            // Get module and context, to be able to rewrite urls
-            if (! $cm = get_coursemodule_from_instance("glossary", $this->config->glossary, $this->course->id)) {
+            // Get glossary instance, if not found then return without error, as this will be handled in get_content.
+            if (!$glossary = $DB->get_record('glossary', array('id' => $this->config->glossary))) {
                 return false;
             }
-            $glossaryctx = get_context_instance(CONTEXT_MODULE, $cm->id);
+
+            $this->config->globalglossary = $glossary->globalglossary;
+
+            // Save course id in config, so we can get correct course module.
+            $this->config->courseid = $glossary->course;
+
+            // Get module and context, to be able to rewrite urls
+            if (! $cm = get_coursemodule_from_instance('glossary', $glossary->id, $this->config->courseid)) {
+                return false;
+            }
+            $glossaryctx = context_module::instance($cm->id);
 
             $limitfrom = 0;
             $limitnum = 1;
+
+            $BROWSE = 'timemodified';
 
             switch ($this->config->type) {
 
@@ -71,6 +85,20 @@ class block_glossary_random extends block_base {
                     $SORT = 'ASC';
                     break;
 
+                case BGR_NEXTALPHA:
+                    $BROWSE = 'concept';
+                    if (isset($this->config->previous)) {
+                        $i = $this->config->previous + 1;
+                    } else {
+                        $i = 1;
+                    }
+                    if ($i > $numberofentries) {  // Loop back to beginning
+                        $i = 1;
+                    }
+                    $limitfrom = $i-1;
+                    $SORT = 'ASC';
+                    break;
+
                 default:  // BGR_LASTMODIFIED
                     $i = $numberofentries;
                     $limitfrom = 0;
@@ -81,7 +109,7 @@ class block_glossary_random extends block_base {
             if ($entry = $DB->get_records_sql("SELECT id, concept, definition, definitionformat, definitiontrust
                                                  FROM {glossary_entries}
                                                 WHERE glossaryid = ? AND approved = 1
-                                             ORDER BY timemodified $SORT", array($this->config->glossary), $limitfrom, $limitnum)) {
+                                             ORDER BY $BROWSE $SORT", array($this->config->glossary), $limitfrom, $limitnum)) {
 
                 $entry = reset($entry);
 
@@ -126,13 +154,22 @@ class block_glossary_random extends block_base {
         }
 
         require_once($CFG->dirroot.'/course/lib.php');
-        $course = $this->page->course;
-        $modinfo = get_fast_modinfo($course);
-        $glossaryid = $this->config->glossary;
 
-        if (!isset($modinfo->instances['glossary'][$glossaryid])) {
-            // we can get here if the glossary has been deleted, so
-            // unconfigure the glossary from the block..
+        // If $this->config->globalglossary is not set then get glossary info from db.
+        if (!isset($this->config->globalglossary)) {
+            if (!$glossary = $DB->get_record('glossary', array('id' => $this->config->glossary))) {
+                return '';
+            } else {
+                $this->config->courseid = $glossary->course;
+                $this->config->globalglossary = $glossary->globalglossary;
+                $this->instance_config_commit();
+            }
+        }
+
+        $modinfo = get_fast_modinfo($this->config->courseid);
+        // If deleted glossary or non-global glossary on different course page, then reset.
+        if (!isset($modinfo->instances['glossary'][$this->config->glossary])
+                || ((empty($this->config->globalglossary) && ($this->config->courseid != $this->page->course->id)))) {
             $this->config->glossary = 0;
             $this->config->cache = '';
             $this->instance_config_commit();
@@ -143,9 +180,8 @@ class block_glossary_random extends block_base {
             return $this->content;
         }
 
-        $cm = $modinfo->instances['glossary'][$glossaryid];
-
-        if (!has_capability('mod/glossary:view', get_context_instance(CONTEXT_MODULE, $cm->id))) {
+        $cm = $modinfo->instances['glossary'][$this->config->glossary];
+        if (!has_capability('mod/glossary:view', context_module::instance($cm->id))) {
             return '';
         }
 
@@ -158,13 +194,11 @@ class block_glossary_random extends block_base {
         }
 
         $this->content = new stdClass();
-        $this->content->text = $this->config->cache;
 
-        // place link to glossary in the footer if the glossary is visible
-
-        //Obtain the visible property from the instance
-        if ($cm->uservisible) {
-            if (has_capability('mod/glossary:write', get_context_instance(CONTEXT_MODULE, $cm->id))) {
+        // Show glossary if visible and place links in footer.
+        if ($cm->visible) {
+            $this->content->text = $this->config->cache;
+            if (has_capability('mod/glossary:write', context_module::instance($cm->id))) {
                 $this->content->footer = '<a href="'.$CFG->wwwroot.'/mod/glossary/edit.php?cmid='.$cm->id
                 .'" title="'.$this->config->addentry.'">'.$this->config->addentry.'</a><br />';
             } else {
@@ -174,7 +208,7 @@ class block_glossary_random extends block_base {
             $this->content->footer .= '<a href="'.$CFG->wwwroot.'/mod/glossary/view.php?id='.$cm->id
                 .'" title="'.$this->config->viewglossary.'">'.$this->config->viewglossary.'</a>';
 
-        // otherwise just place some text, no link
+        // Otherwise just place some text, no link.
         } else {
             $this->content->footer = $this->config->invisible;
         }

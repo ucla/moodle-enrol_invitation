@@ -22,8 +22,7 @@
  * If PayPal verifies this then it sets up the enrolment for that
  * user.
  *
- * @package    enrol
- * @subpackage paypal
+ * @package    enrol_paypal
  * @copyright 2010 Eugene Venter
  * @author     Eugene Venter - based on code by others
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -77,7 +76,7 @@ if (! $course = $DB->get_record("course", array("id"=>$data->courseid))) {
     die;
 }
 
-if (! $context = get_context_instance(CONTEXT_COURSE, $course->id)) {
+if (! $context = context_course::instance($course->id, IGNORE_MISSING)) {
     message_paypal_error_to_admin("Not a valid context id", $data);
     die;
 }
@@ -185,11 +184,11 @@ if (strlen($result) > 0) {
         }
 
         if (!$course = $DB->get_record('course', array('id'=>$data->courseid))) { // Check that course exists
-            message_paypal_error_to_admin("Course $data->courseid doesn't exist", $data);;
+            message_paypal_error_to_admin("Course $data->courseid doesn't exist", $data);
             die;
         }
 
-        $coursecontext = get_context_instance(CONTEXT_COURSE, $course->id);
+        $coursecontext = context_course::instance($course->id, IGNORE_MISSING);
 
         // Check that amount paid is the correct amount
         if ( (float) $plugin_instance->cost <= 0 ) {

@@ -939,11 +939,15 @@ class flexible_table {
     function download_buttons() {
         if ($this->is_downloadable() && !$this->is_downloading()) {
             $downloadoptions = $this->get_download_menu();
+
+            $downloadelements = new stdClass();
+            $downloadelements->formatsmenu = html_writer::select($downloadoptions,
+                    'download', $this->defaultdownloadformat, false);
+            $downloadelements->downloadbutton = '<input type="submit" value="'.
+                    get_string('download').'"/>';
             $html = '<form action="'. $this->baseurl .'" method="post">';
             $html .= '<div class="mdl-align">';
-            $html .= '<input type="submit" value="'.get_string('downloadas', 'table').'"/>';
-            $html .= html_writer::label(get_string('downloadoptions', 'table'), 'menudownload', false, array('class' => 'accesshide'));
-            $html .= html_writer::select($downloadoptions, 'download', $this->defaultdownloadformat, false);
+            $html .= html_writer::tag('label', get_string('downloadas', 'table', $downloadelements));
             $html .= '</div></form>';
 
             return $html;
@@ -965,6 +969,7 @@ class flexible_table {
         } else {
             $this->start_html();
             $this->print_headers();
+            echo html_writer::start_tag('tbody');
         }
     }
 
@@ -1028,6 +1033,7 @@ class flexible_table {
             $this->print_nothing_to_display();
 
         } else {
+            echo html_writer::end_tag('tbody');
             echo html_writer::end_tag('table');
             echo html_writer::end_tag('div');
             $this->wrap_html_finish();
@@ -1075,6 +1081,7 @@ class flexible_table {
     function print_headers() {
         global $CFG, $OUTPUT;
 
+        echo html_writer::start_tag('thead');
         echo html_writer::start_tag('tr');
         foreach ($this->columns as $column => $index) {
 
@@ -1149,6 +1156,7 @@ class flexible_table {
         }
 
         echo html_writer::end_tag('tr');
+        echo html_writer::end_tag('thead');
     }
 
     /**
@@ -1166,10 +1174,10 @@ class flexible_table {
 
         if ($order == SORT_ASC) {
             return html_writer::empty_tag('img',
-                    array('src' => $OUTPUT->pix_url('t/down'), 'alt' => get_string('asc')));
+                    array('src' => $OUTPUT->pix_url('t/sort_asc'), 'alt' => get_string('asc'), 'class' => 'iconsort'));
         } else {
             return html_writer::empty_tag('img',
-                    array('src' => $OUTPUT->pix_url('t/up'), 'alt' => get_string('desc')));
+                    array('src' => $OUTPUT->pix_url('t/sort_desc'), 'alt' => get_string('desc'), 'class' => 'iconsort'));
         }
     }
 
@@ -1586,18 +1594,19 @@ class table_ods_export_format extends table_spreadsheet_export_format_parent {
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class table_text_export_format_parent extends table_default_export_format_parent {
-    protected $seperator = "\t";
+    protected $seperator = "tab";
     protected $mimetype = 'text/tab-separated-values';
     protected $ext = '.txt';
+    protected $myexporter;
+
+    public function __construct() {
+        $this->myexporter = new csv_export_writer($this->seperator, '"', $this->mimetype);
+    }
 
     public function start_document($filename) {
-        $this->filename = $filename . $this->ext;
-        header('Content-Type: ' . $this->mimetype . '; charset=UTF-8');
-        header('Content-Disposition: attachment; filename="' . $this->filename . '"');
-        header('Expires: 0');
-        header('Cache-Control: must-revalidate,post-check=0,pre-check=0');
-        header('Pragma: public');
+        $this->filename = $filename;
         $this->documentstarted = true;
+        $this->myexporter->set_filename($filename, $this->ext);
     }
 
     public function start_table($sheettitle) {
@@ -1605,19 +1614,20 @@ class table_text_export_format_parent extends table_default_export_format_parent
     }
 
     public function output_headers($headers) {
-        echo $this->format_row($headers);
+        $this->myexporter->add_data($headers);
     }
 
     public function add_data($row) {
-        echo $this->format_row($row);
+        $this->myexporter->add_data($row);
         return true;
     }
 
     public function finish_table() {
-        echo "\n\n";
+        //nothing to do here
     }
 
     public function finish_document() {
+        $this->myexporter->download_file();
         exit;
     }
 
@@ -1641,23 +1651,22 @@ class table_text_export_format_parent extends table_default_export_format_parent
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class table_tsv_export_format extends table_text_export_format_parent {
-    protected $seperator = "\t";
+    protected $seperator = "tab";
     protected $mimetype = 'text/tab-separated-values';
     protected $ext = '.txt';
 }
 
-
+require_once($CFG->libdir . '/csvlib.class.php');
 /**
  * @package   moodlecore
  * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class table_csv_export_format extends table_text_export_format_parent {
-    protected $seperator = ",";
+    protected $seperator = "comma";
     protected $mimetype = 'text/csv';
     protected $ext = '.csv';
 }
-
 
 /**
  * @package   moodlecore
@@ -1744,6 +1753,7 @@ EOF;
 
     function output_headers($headers) {
         $this->table->print_headers();
+        echo html_writer::start_tag('tbody');
     }
 
     function add_data($row) {

@@ -70,13 +70,15 @@ abstract class user_selector_base {
     protected static $jsmodule = array(
                 'name' => 'user_selector',
                 'fullpath' => '/user/selector/module.js',
-                'requires'  => array('node', 'event-custom', 'datasource', 'json'),
+                'requires'  => array('node', 'event-custom', 'datasource', 'json', 'moodle-core-notification'),
                 'strings' => array(
                     array('previouslyselectedusers', 'moodle', '%%SEARCHTERM%%'),
                     array('nomatchingusers', 'moodle', '%%SEARCHTERM%%'),
                     array('none', 'moodle')
                 ));
 
+    /** @var int this is used to define maximum number of users visible in list */
+    public $maxusersperpage = 100;
 
     // Public API ==============================================================
 
@@ -98,7 +100,7 @@ abstract class user_selector_base {
         if (isset($options['accesscontext'])) {
             $this->accesscontext = $options['accesscontext'];
         } else {
-            $this->accesscontext = get_context_instance(CONTEXT_SYSTEM);
+            $this->accesscontext = context_system::instance();
         }
 
         if (isset($options['extrafields'])) {
@@ -120,6 +122,10 @@ abstract class user_selector_base {
         $this->preserveselected = $this->initialise_option('userselector_preserveselected', $this->preserveselected);
         $this->autoselectunique = $this->initialise_option('userselector_autoselectunique', $this->autoselectunique);
         $this->searchanywhere = $this->initialise_option('userselector_searchanywhere', $this->searchanywhere);
+
+        if (!empty($CFG->maxusersperpage)) {
+            $this->maxusersperpage = $CFG->maxusersperpage;
+        }
     }
 
     /**
@@ -149,7 +155,7 @@ abstract class user_selector_base {
 
     /**
      * @return array of user objects. The users that were selected. This is a more sophisticated version
-     * of optional_param($this->name, array(), PARAM_INTEGER) that validates the
+     * of optional_param($this->name, array(), PARAM_INT) that validates the
      * returned list of ids against the rules for this user selector.
      */
     public function get_selected_users() {
@@ -368,8 +374,8 @@ abstract class user_selector_base {
     protected function load_selected_users() {
         // See if we got anything.
         if ($this->multiselect) {
-            $userids = optional_param_array($this->name, array(), PARAM_INTEGER);
-        } else if ($userid = optional_param($this->name, 0, PARAM_INTEGER)) {
+            $userids = optional_param_array($this->name, array(), PARAM_INT);
+        } else if ($userid = optional_param($this->name, 0, PARAM_INT)) {
             $userids = array($userid);
         }
         // If there are no users there is nobody to load
@@ -428,63 +434,8 @@ abstract class user_selector_base {
      *      this uses ? style placeholders.
      */
     protected function search_sql($search, $u) {
-        global $DB, $CFG;
-        $params = array();
-        $tests = array();
-
-        if ($u) {
-            $u .= '.';
-        }
-
-        // If we have a $search string, put a field LIKE '$search%' condition on each field.
-        if ($search) {
-            $conditions = array(
-                $DB->sql_fullname($u . 'firstname', $u . 'lastname'),
-                $conditions[] = $u . 'lastname'
-            );
-            foreach ($this->extrafields as $field) {
-                $conditions[] = $u . $field;
-            }
-            if ($this->searchanywhere) {
-                $searchparam = '%' . $search . '%';
-            } else {
-                $searchparam = $search . '%';
-            }
-            $i = 0;
-            foreach ($conditions as $key=>$condition) {
-                $conditions[$key] = $DB->sql_like($condition, ":con{$i}00", false, false);
-                $params["con{$i}00"] = $searchparam;
-                $i++;
-            }
-            $tests[] = '(' . implode(' OR ', $conditions) . ')';
-        }
-
-        // Add some additional sensible conditions
-        $tests[] = $u . "id <> :guestid";
-        $params['guestid'] = $CFG->siteguest;
-        $tests[] = $u . 'deleted = 0';
-        $tests[] = $u . 'confirmed = 1';
-
-        // If we are being asked to exclude any users, do that.
-        if (!empty($this->exclude)) {
-            list($usertest, $userparams) = $DB->get_in_or_equal($this->exclude, SQL_PARAMS_NAMED, 'ex', false);
-            $tests[] = $u . 'id ' . $usertest;
-            $params = array_merge($params, $userparams);
-        }
-
-        // If we are validating a set list of userids, add an id IN (...) test.
-        if (!empty($this->validatinguserids)) {
-            list($usertest, $userparams) = $DB->get_in_or_equal($this->validatinguserids, SQL_PARAMS_NAMED, 'val');
-            $tests[] = $u . 'id ' . $usertest;
-            $params = array_merge($params, $userparams);
-        }
-
-        if (empty($tests)) {
-            $tests[] = '1 = 1';
-        }
-
-        // Combing the conditions and return.
-        return array(implode(' AND ', $tests), $params);
+        return users_search_sql($search, $u, $this->searchanywhere, $this->extrafields,
+                $this->exclude, $this->validatinguserids);
     }
 
     /**
@@ -578,6 +529,12 @@ abstract class user_selector_base {
                 unset($this->selected[$user->id]);
                 $output .= '    <option' . $attributes . ' value="' . $user->id . '">' .
                         $this->output_user($user) . "</option>\n";
+                if (!empty($user->infobelow)) {
+                    // 'Poor man's indent' here is because CSS styles do not work
+                    // in select options, except in Firefox.
+                    $output .= '    <option disabled="disabled" class="userselector-infobelow">' .
+                            '&nbsp;&nbsp;&nbsp;&nbsp;' . s($user->infobelow) . '</option>';
+                }
             }
         } else {
             $output = '  <optgroup label="' . htmlspecialchars($groupname) . '">' . "\n";
@@ -676,7 +633,7 @@ abstract class groups_user_selector_base extends user_selector_base {
      */
     public function __construct($name, $options) {
         global $CFG;
-        $options['accesscontext'] = get_context_instance(CONTEXT_COURSE, $options['courseid']);
+        $options['accesscontext'] = context_course::instance($options['courseid']);
         parent::__construct($name, $options);
         $this->groupid = $options['groupid'];
         $this->courseid = $options['courseid'];
@@ -712,6 +669,10 @@ abstract class groups_user_selector_base extends user_selector_base {
             foreach ($groupedusers[$groupname] as &$user) {
                 unset($user->roles);
                 $user->fullname = fullname($user);
+                if (!empty($user->component)) {
+                    $user->infobelow = get_string('addedby', 'group',
+                        get_string('pluginname', $user->component));
+                }
             }
         }
         return $groupedusers;
@@ -725,9 +686,13 @@ abstract class groups_user_selector_base extends user_selector_base {
 class group_members_selector extends groups_user_selector_base {
     public function find_users($search) {
         list($wherecondition, $params) = $this->search_sql($search, 'u');
+
+        list($sort, $sortparams) = users_order_by_sql('u', $search, $this->accesscontext);
+
         $roles = groups_get_members_by_role($this->groupid, $this->courseid,
-                $this->required_fields_sql('u'), 'u.lastname, u.firstname',
-                $wherecondition, $params);
+                $this->required_fields_sql('u') . ', gm.component',
+                $sort, $wherecondition, array_merge($params, $sortparams));
+
         return $this->convert_array_format($roles, $search);
     }
 }
@@ -737,11 +702,6 @@ class group_members_selector extends groups_user_selector_base {
  * Used on the add group members page.
  */
 class group_non_members_selector extends groups_user_selector_base {
-    // START UCLA MOD: CCLE-3702 - Increase max users to choose from in group add/remove users
-    const MAX_USERS_PER_PAGE = 500;
-//    const MAX_USERS_PER_PAGE = 100;
-    // END UCLA MOD: CCLE-3702
-
     /**
      * An array of user ids populated by find_users() used in print_user_summaries()
      */
@@ -812,7 +772,7 @@ class group_non_members_selector extends groups_user_selector_base {
         global $DB;
 
         // Get list of allowed roles.
-        $context = get_context_instance(CONTEXT_COURSE, $this->courseid);
+        $context = context_course::instance($this->courseid);
         if ($validroleids = groups_get_possible_roles($context)) {
             list($roleids, $roleparams) = $DB->get_in_or_equal($validroleids, SQL_PARAMS_NAMED, 'r');
         } else {
@@ -825,7 +785,7 @@ class group_non_members_selector extends groups_user_selector_base {
 
         // Build the SQL
         list($enrolsql, $enrolparams) = get_enrolled_sql($context);
-        $fields = "SELECT r.id AS roleid, r.shortname AS roleshortname, r.name AS rolename, u.id AS userid,
+        $fields = "SELECT r.id AS roleid, u.id AS userid,
                           " . $this->required_fields_sql('u') . ",
                           (SELECT count(igm.groupid)
                              FROM {groups_members} igm
@@ -839,7 +799,9 @@ class group_non_members_selector extends groups_user_selector_base {
                   WHERE u.deleted = 0
                         AND gm.id IS NULL
                         AND $searchcondition";
-        $orderby = "ORDER BY u.lastname, u.firstname";
+
+        list($sort, $sortparams) = users_order_by_sql('u', $search, $this->accesscontext);
+        $orderby = ' ORDER BY ' . $sort;
 
         $params = array_merge($searchparams, $roleparams, $enrolparams);
         $params['courseid'] = $this->courseid;
@@ -847,12 +809,12 @@ class group_non_members_selector extends groups_user_selector_base {
 
         if (!$this->is_validating()) {
             $potentialmemberscount = $DB->count_records_sql("SELECT COUNT(DISTINCT u.id) $sql", $params);
-            if ($potentialmemberscount > group_non_members_selector::MAX_USERS_PER_PAGE) {
+            if ($potentialmemberscount > $this->maxusersperpage) {
                 return $this->too_many_results($search, $potentialmemberscount);
             }
         }
 
-        $rs = $DB->get_recordset_sql("$fields $sql $orderby", $params);
+        $rs = $DB->get_recordset_sql("$fields $sql $orderby", array_merge($params, $sortparams));
         $roles =  groups_calculate_role_people($rs, $context);
 
         //don't hold onto user IDs if we're doing validation

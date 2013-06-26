@@ -88,48 +88,67 @@ function xmldb_workshop_upgrade($oldversion) {
     }
 
     // Moodle v2.3.0 release upgrade line
-    // Put any upgrade step following this
+
+    /**
+     * Add new fields conclusion and conclusionformat
+     */
+    if ($oldversion < 2012102400) {
+        $table = new xmldb_table('workshop');
+
+        $field = new xmldb_field('conclusion', XMLDB_TYPE_TEXT, null, null, null, null, null, 'phaseswitchassessment');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('conclusionformat', XMLDB_TYPE_INTEGER, '3', null, XMLDB_NOTNULL, null, '1', 'conclusion');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2012102400, 'workshop');
+    }
 
 
-    // Moodle v2.2.0 release upgrade line
+    // Moodle v2.4.0 release upgrade line
     // Put any upgrade step following this
 
     /**
-     * Remove all workshop calendar events
+     * Add overall feedback related fields into the workshop table.
      */
-    if ($oldversion < 2011112901) {
-        require_once($CFG->dirroot . '/calendar/lib.php');
-        $events = $DB->get_records('event', array('modulename' => 'workshop'));
-        foreach ($events as $event) {
-            $event = calendar_event::load($event);
-            $event->delete();
+    if ($oldversion < 2013032500) {
+        $table = new xmldb_table('workshop');
+
+        $field = new xmldb_field('overallfeedbackmode', XMLDB_TYPE_INTEGER, '3', null, null, null, '1', 'conclusionformat');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
         }
-        upgrade_mod_savepoint(true, 2011112901, 'workshop');
+
+        $field = new xmldb_field('overallfeedbackfiles', XMLDB_TYPE_INTEGER, '3', null, null, null, '0', 'overallfeedbackmode');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('overallfeedbackmaxbytes', XMLDB_TYPE_INTEGER, '10', null, null, null, '100000', 'overallfeedbackfiles');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2013032500, 'workshop');
     }
 
     /**
-     * Recreate all workshop calendar events
+     * Add feedbackauthorattachment field into the workshop_assessments table.
      */
-    if ($oldversion < 2011112902) {
-        require_once(dirname(dirname(__FILE__)) . '/lib.php');
-
-        $sql = "SELECT w.id, w.course, w.name, w.intro, w.introformat, w.submissionstart,
-                       w.submissionend, w.assessmentstart, w.assessmentend,
-                       cm.id AS cmid
-                  FROM {workshop} w
-                  JOIN {modules} m ON m.name = 'workshop'
-                  JOIN {course_modules} cm ON (cm.module = m.id AND cm.course = w.course AND cm.instance = w.id)";
-
-        $rs = $DB->get_recordset_sql($sql);
-
-        foreach ($rs as $workshop) {
-            $cmid = $workshop->cmid;
-            unset($workshop->cmid);
-            workshop_calendar_update($workshop, $cmid);
+    if ($oldversion < 2013032501) {
+        $table = new xmldb_table('workshop_assessments');
+        $field = new xmldb_field('feedbackauthorattachment', XMLDB_TYPE_INTEGER, '3', null, null, null, '0', 'feedbackauthorformat');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
         }
-        $rs->close();
-        upgrade_mod_savepoint(true, 2011112902, 'workshop');
+
+        upgrade_mod_savepoint(true, 2013032501, 'workshop');
     }
+
 
     return true;
 }

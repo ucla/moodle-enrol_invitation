@@ -365,6 +365,8 @@ class moodle1_converter_testcase extends advanced_testcase {
         $fileman   = $converter->get_file_manager($contextid, 'mod_unittest', 'testarea');
         // Try to migrate a subdirectory passed with the trailing slash.
         $returned = $fileman->migrate_directory('course_files/sub1/');
+        // Debugging message must be thrown in this case.
+        $this->assertDebuggingCalled(null, DEBUG_DEVELOPER);
         $this->assertEquals(gettype($returned), 'array');
         $this->assertEquals(2, count($returned)); // One file, one directory.
 

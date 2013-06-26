@@ -14,7 +14,7 @@ require_login();
 require_capability('local/ucla:bulk_users', get_context_instance(CONTEXT_SYSTEM));
 // END UCLA MOD: CCLE-2970
 admin_externalpage_setup('userbulk');
-require_capability('moodle/user:update', get_context_instance(CONTEXT_SYSTEM));
+require_capability('moodle/user:update', context_system::instance());
 
 $return = $CFG->wwwroot.'/'.$CFG->admin.'/user/user_bulk.php';
 

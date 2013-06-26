@@ -33,7 +33,7 @@ if (!$course = $DB->get_record('course', array('id'=>$id))) {
 }
 
 require_login($course);
-$context = get_context_instance(CONTEXT_COURSE, $id);
+$context = context_course::instance($id);
 
 require_capability('moodle/grade:export', $context);
 require_capability('gradeexport/ods:view', $context);
@@ -50,7 +50,7 @@ add_to_log($course->id, 'grade', 'export ods', $url);
 // END UCLA MOD: CCLE-3980
 
 // print all the exported data here
-$export = new grade_export_ods($course, $groupid, $itemids, $export_feedback, $updatedgradesonly, $displaytype, $decimalpoints, $onlyactive);
+$export = new grade_export_ods($course, $groupid, $itemids, $export_feedback, $updatedgradesonly, $displaytype, $decimalpoints, $onlyactive, true);
 $export->print_grades();
 
 

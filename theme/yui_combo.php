@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -18,7 +17,7 @@
 /**
  * This file is responsible for serving of yui images
  *
- * @package   moodlecore
+ * @package   core
  * @copyright 2009 Petr Skoda (skodak)  {@link http://skodak.org}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -73,6 +72,7 @@ foreach ($parts as $part) {
     if (empty($part)) {
         continue;
     }
+    $filecontent = '';
     $part = min_clean_param($part, 'SAFEPATH');
     $bits = explode('/', $part);
     if (count($bits) < 2) {
@@ -81,11 +81,17 @@ foreach ($parts as $part) {
     }
     //debug($bits);
     $version = array_shift($bits);
-    if ($version == 'moodle') {
-        //TODO: this is a ugly hack because we should not load any libs here!
-        if (!defined('MOODLE_INTERNAL')) {
-            define('MOODLE_INTERNAL', true);
-            require_once($CFG->libdir.'/moodlelib.php');
+    if ($version === 'moodle') {
+        if (count($bits) <= 3) {
+            // This is an invalid module load attempt.
+            $content .= "\n// Incorrect moodle module inclusion. Not enough component information in {$part}.\n";
+            continue;
+        }
+        if (!defined('ABORT_AFTER_CONFIG_CANCEL')) {
+            define('ABORT_AFTER_CONFIG_CANCEL', true);
+            define('NO_UPGRADE_CHECK', true);
+            define('NO_MOODLE_COOKIES', true);
+            require($CFG->libdir.'/setup.php');
         }
         $revision = (int)array_shift($bits);
         if ($revision === -1) {
@@ -94,26 +100,54 @@ foreach ($parts as $part) {
         }
         $frankenstyle = array_shift($bits);
         $filename = array_pop($bits);
+        $modulename = $bits[0];
         $dir = get_component_directory($frankenstyle);
+
+        // For shifted YUI modules, we need the YUI module name in frankenstyle format.
+        $frankenstylemodulename = join('-', array($version, $frankenstyle, $modulename));
+        $frankenstylefilename = preg_replace('/' . $modulename . '/', $frankenstylemodulename, $filename);
+
+        // By default, try and use the /yui/build directory.
         if ($mimetype == 'text/css') {
+            // CSS assets are in a slightly different place to the JS.
+            $contentfile = $dir . '/yui/build/' . $frankenstylemodulename . '/assets/skins/sam/' . $frankenstylefilename;
+
+            // Add the path to the bits to handle fallback for non-shifted assets.
             $bits[] = 'assets';
             $bits[] = 'skins';
             $bits[] = 'sam';
+        } else {
+            $contentfile = $dir . '/yui/build/' . $frankenstylemodulename . '/' . $frankenstylefilename;
         }
-        $contentfile = $dir.'/yui/'.join('/', $bits).'/'.$filename;
+
+        // If the shifted versions don't exist, fall back to the non-shifted file.
+        if (!file_exists($contentfile) or !is_file($contentfile)) {
+            // We have to revert to the non-minified and non-debug versions.
+            $filename = preg_replace('/-(min|debug)\./', '.', $filename);
+            $contentfile = $dir . '/yui/' . join('/', $bits) . '/' . $filename;
+        }
+    } else if ($version === '2in3') {
+        $contentfile = "$CFG->libdir/yuilib/$part";
+
+    } else if ($version == 'gallery') {
+        $contentfile = "$CFG->libdir/yui/$part";
+
     } else {
-        if ($version != $CFG->yui3version and $version != $CFG->yui2version and $version != 'gallery') {
+        if ($version != $CFG->yui3version) {
             $content .= "\n// Wrong yui version $part!\n";
             continue;
         }
-        $contentfile = "$CFG->libdir/yui/$part";
+        $contentfile = "$CFG->libdir/yuilib/$part";
     }
     if (!file_exists($contentfile) or !is_file($contentfile)) {
         $location = '$CFG->dirroot'.preg_replace('/^'.preg_quote($CFG->dirroot, '/').'/', '', $contentfile);
         $content .= "\n// Combo resource $part ($location) not found!\n";
         continue;
     }
-    $filecontent = file_get_contents($contentfile);
+
+    if (empty($filecontent)) {
+        $filecontent = file_get_contents($contentfile);
+    }
     $fmodified = filemtime($contentfile);
     if ($fmodified > $lastmodified) {
         $lastmodified = $fmodified;
@@ -124,10 +158,29 @@ foreach ($parts as $part) {
 
     if ($mimetype === 'text/css') {
         if ($version == 'moodle') {
-            $filecontent = preg_replace('/([a-z0-9_-]+)\.(png|gif)/', $relroot.'/theme/yui_image.php'.$sep.$version.'/'.$frankenstyle.'/'.array_shift($bits).'/$1.$2', $filecontent);
+            // Search for all images in the file and replace with an appropriate link to the yui_image.php script
+            $imagebits = array(
+                $sep . $version,
+                $frankenstyle,
+                $modulename,
+                array_shift($bits),
+                '$1.$2'
+            );
+
+            $filecontent = preg_replace('/([a-z0-9_-]+)\.(png|gif)/', $relroot . '/theme/yui_image.php' . implode('/', $imagebits), $filecontent);
+        } else if ($version == '2in3') {
+            // First we need to remove relative paths to images. These are used by YUI modules to make use of global assets.
+            // I've added this as a separate regex so it can be easily removed once
+            // YUI standardise there CSS methods
+            $filecontent = preg_replace('#(\.\./\.\./\.\./\.\./assets/skins/sam/)?([a-z0-9_-]+)\.(png|gif)#', '$2.$3', $filecontent);
+
+            // search for all images in yui2 CSS and serve them through the yui_image.php script
+            $filecontent = preg_replace('/([a-z0-9_-]+)\.(png|gif)/', $relroot.'/theme/yui_image.php'.$sep.$CFG->yui2version.'/$1.$2', $filecontent);
+
         } else if ($version == 'gallery') {
             // search for all images in gallery module CSS and serve them through the yui_image.php script
             $filecontent = preg_replace('/([a-z0-9_-]+)\.(png|gif)/', $relroot.'/theme/yui_image.php'.$sep.$version.'/'.$bits[0].'/'.$bits[1].'/$1.$2', $filecontent);
+
         } else {
             // First we need to remove relative paths to images. These are used by YUI modules to make use of global assets.
             // I've added this as a separate regex so it can be easily removed once

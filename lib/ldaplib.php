@@ -7,11 +7,11 @@
  * data structures, useful for both ldap authentication (or ldap based
  * authentication like CAS) and enrolment plugins.
  *
- * @author     I�aki Arenaza
+ * @author     Iñaki Arenaza
  * @package    core
  * @subpackage lib
  * @copyright  1999 onwards Martin Dougiamas  http://dougiamas.com
- * @copyright  2010 onwards I�aki Arenaza
+ * @copyright  2010 onwards Iñaki Arenaza
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -20,6 +20,11 @@ defined('MOODLE_INTERNAL') || die();
 // rootDSE is defined as the root of the directory data tree on a directory server.
 if (!defined('ROOTDSE')) {
     define ('ROOTDSE', '');
+}
+
+// Default page size when using LDAP paged results
+if (!defined('LDAP_DEFAULT_PAGESIZE')) {
+    define('LDAP_DEFAULT_PAGESIZE', 250);
 }
 
 /**
@@ -158,9 +163,10 @@ function ldap_isgroupmember($ldapconnection, $userid, $group_dns, $member_attrib
  * @param string $bind_pw the password for the binding user. Ignored for anonymous bindings.
  * @param boolean $opt_deref whether to set LDAP_OPT_DEREF on this connection or not.
  * @param string &$debuginfo the debugging information in case the connection fails.
+ * @param boolean $start_tls whether to use LDAP with TLS (not to be confused with LDAP+SSL)
  * @return mixed connection result or false.
  */
-function ldap_connect_moodle($host_url, $ldap_version, $user_type, $bind_dn, $bind_pw, $opt_deref, &$debuginfo) {
+function ldap_connect_moodle($host_url, $ldap_version, $user_type, $bind_dn, $bind_pw, $opt_deref, &$debuginfo, $start_tls=false) {
     if (empty($host_url) || empty($ldap_version) || empty($user_type)) {
         $debuginfo = 'No LDAP Host URL, Version or User Type specified in your LDAP settings';
         return false;
@@ -187,6 +193,11 @@ function ldap_connect_moodle($host_url, $ldap_version, $user_type, $bind_dn, $bi
 
         if (!empty($opt_deref)) {
             ldap_set_option($connresult, LDAP_OPT_DEREF, $opt_deref);
+        }
+
+        if ($start_tls && (!ldap_start_tls($connresult))) {
+            $debuginfo .= "Server: '$server', Connection: '$connresult', STARTTLS failed.\n";
+            continue;
         }
 
         if (!empty($bind_dn)) {
@@ -363,4 +374,25 @@ function ldap_stripslashes($text) {
     $text = preg_replace('/\\\([0-9A-Fa-f]{2})/e', "chr(hexdec('\\1'))", $text);
 
     return $text;
+}
+
+
+/**
+ * Check if PHP supports LDAP paged results and we can use them (we have to use LDAP
+ * version 3, otherwise the server doesn't use them).
+ *
+ * @param ldapversion integer The LDAP protocol version we use.
+ *
+ * @return boolean true is paged results can be used, false otherwise.
+ */
+function ldap_paged_results_supported($ldapversion) {
+
+    if (((int)$ldapversion === 3) &&
+        function_exists('ldap_control_paged_result') &&
+        function_exists('ldap_control_paged_result_response')) {
+
+        return true;
+    }
+
+    return false;
 }

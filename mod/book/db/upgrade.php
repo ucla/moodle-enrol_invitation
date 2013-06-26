@@ -40,16 +40,19 @@ function xmldb_book_upgrade($oldversion) {
     // Moodle v2.3.0 release upgrade line
     // Put any upgrade step following this
 
-    // Note: The next steps (up to 2012061710 included, are a "replay" of old upgrade steps,
+    // Note: The next steps (up to 2012090408 included, are a "replay" of old upgrade steps,
     // because some sites updated to Moodle 2.3 didn't have the latest contrib mod_book
     // installed, so some required changes were missing.
     //
     // All the steps are run conditionally so sites upgraded from latest contrib mod_book or
     // new (2.3 and upwards) sites won't get affected.
     //
+    // Warn: It will be safe to delete these steps once Moodle 2.5 (not 2.4!) is declared as minimum
+    // requirement (environment.xml) in some future Moodle 2.x version. Never, never, before!
+    //
     // See MDL-35297 and commit msg for more information.
 
-    if ($oldversion < 2012061703) {
+    if ($oldversion < 2012090401) {
         // Rename field summary on table book to intro
         $table = new xmldb_table('book');
         $field = new xmldb_field('summary', XMLDB_TYPE_TEXT, null, null, null, null, null, 'name');
@@ -60,10 +63,10 @@ function xmldb_book_upgrade($oldversion) {
         }
 
         // book savepoint reached
-        upgrade_mod_savepoint(true, 2012061703, 'book');
+        upgrade_mod_savepoint(true, 2012090401, 'book');
     }
 
-    if ($oldversion < 2012061704) {
+    if ($oldversion < 2012090402) {
         // Define field introformat to be added to book
         $table = new xmldb_table('book');
         $field = new xmldb_field('introformat', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '0', 'intro');
@@ -87,10 +90,10 @@ function xmldb_book_upgrade($oldversion) {
         }
 
         // book savepoint reached
-        upgrade_mod_savepoint(true, 2012061704, 'book');
+        upgrade_mod_savepoint(true, 2012090402, 'book');
     }
 
-    if ($oldversion < 2012061705) {
+    if ($oldversion < 2012090403) {
         // Define field introformat to be added to book
         $table = new xmldb_table('book_chapters');
         $field = new xmldb_field('contentformat', XMLDB_TYPE_INTEGER, '4', null, XMLDB_NOTNULL, null, '0', 'content');
@@ -103,10 +106,10 @@ function xmldb_book_upgrade($oldversion) {
         }
 
         // book savepoint reached
-        upgrade_mod_savepoint(true, 2012061705, 'book');
+        upgrade_mod_savepoint(true, 2012090403, 'book');
     }
 
-    if ($oldversion < 2012061706) {
+    if ($oldversion < 2012090404) {
         require_once("$CFG->dirroot/mod/book/db/upgradelib.php");
 
         $sqlfrom = "FROM {book} b
@@ -139,10 +142,10 @@ function xmldb_book_upgrade($oldversion) {
         }
 
         // book savepoint reached
-        upgrade_mod_savepoint(true, 2012061706, 'book');
+        upgrade_mod_savepoint(true, 2012090404, 'book');
     }
 
-    if ($oldversion < 2012061707) {
+    if ($oldversion < 2012090405) {
         // Define field disableprinting to be dropped from book
         $table = new xmldb_table('book');
         $field = new xmldb_field('disableprinting');
@@ -153,25 +156,25 @@ function xmldb_book_upgrade($oldversion) {
         }
 
         // book savepoint reached
-        upgrade_mod_savepoint(true, 2012061707, 'book');
+        upgrade_mod_savepoint(true, 2012090405, 'book');
     }
 
-    if ($oldversion < 2012061708) {
+    if ($oldversion < 2012090406) {
         unset_config('book_tocwidth');
 
         // book savepoint reached
-        upgrade_mod_savepoint(true, 2012061708, 'book');
+        upgrade_mod_savepoint(true, 2012090406, 'book');
     }
 
-    if ($oldversion < 2012061709) {
+    if ($oldversion < 2012090407) {
         require_once("$CFG->dirroot/mod/book/db/upgradelib.php");
 
         mod_book_migrate_all_areas();
 
-        upgrade_mod_savepoint(true, 2012061709, 'book');
+        upgrade_mod_savepoint(true, 2012090407, 'book');
     }
 
-    if ($oldversion < 2012061710) {
+    if ($oldversion < 2012090408) {
 
         // Define field revision to be added to book
         $table = new xmldb_table('book');
@@ -183,9 +186,13 @@ function xmldb_book_upgrade($oldversion) {
         }
 
         // book savepoint reached
-        upgrade_mod_savepoint(true, 2012061710, 'book');
+        upgrade_mod_savepoint(true, 2012090408, 'book');
     }
     // End of MDL-35297 "replayed" steps.
+
+    // Moodle v2.4.0 release upgrade line
+    // Put any upgrade step following this
+
 
     return true;
 }

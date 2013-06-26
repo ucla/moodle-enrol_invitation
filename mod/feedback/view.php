@@ -41,9 +41,7 @@ if (! $feedback = $DB->get_record("feedback", array("id"=>$cm->instance))) {
     print_error('invalidcoursemodule');
 }
 
-if (!$context = get_context_instance(CONTEXT_MODULE, $cm->id)) {
-        print_error('badcontext');
-}
+$context = context_module::instance($cm->id);
 
 $feedback_complete_cap = false;
 
@@ -184,7 +182,7 @@ if (has_capability('mod/feedback:edititems', $context)) {
     if ($feedback->timeclose) {
         echo $OUTPUT->box_start('feedback_info');
         echo '<span class="feedback_info">';
-        echo get_string('timeclose', 'feedback').': ';
+        echo get_string('feedbackclose', 'feedback').': ';
         echo '</span>';
         echo '<span class="feedback_info_value">';
         echo userdate($feedback->timeclose);

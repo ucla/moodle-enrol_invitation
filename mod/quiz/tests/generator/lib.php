@@ -23,7 +23,7 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright 2012 The Open University
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_quiz_generator extends phpunit_module_generator {
+class mod_quiz_generator extends testing_module_generator {
 
     /**
      * Create new quiz module instance.
@@ -54,7 +54,7 @@ class mod_quiz_generator extends phpunit_module_generator {
                 mod_quiz_display_options::LATER_WHILE_OPEN | mod_quiz_display_options::AFTER_CLOSE;
 
         $defaultquizsettings = array(
-            'name'                   => get_string('pluginname', 'data').' '.$i,
+            'name'                   => get_string('pluginname', 'quiz').' '.$i,
             'intro'                  => 'Test quiz ' . $i,
             'introformat'            => FORMAT_MOODLE,
             'timeopen'               => 0,

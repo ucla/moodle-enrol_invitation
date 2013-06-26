@@ -18,8 +18,7 @@
 /**
  * Keeps track of upgrades to the enrol_mnet plugin
  *
- * @package    enrol
- * @subpackage mnet
+ * @package    enrol_mnet
  * @copyright  2010 David Mudrak <david@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -33,6 +32,10 @@ function xmldb_enrol_mnet_upgrade($oldversion) {
 
 
     // Moodle v2.3.0 release upgrade line
+    // Put any upgrade step following this
+
+
+    // Moodle v2.4.0 release upgrade line
     // Put any upgrade step following this
 
 

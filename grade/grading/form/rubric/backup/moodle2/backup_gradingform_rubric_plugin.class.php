@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -18,8 +17,7 @@
 /**
  * Support for backup API
  *
- * @package    gradingform
- * @subpackage rubric
+ * @package    gradingform_rubric
  * @copyright  2011 David Mudrak <david@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -28,6 +26,10 @@ defined('MOODLE_INTERNAL') || die();
 
 /**
  * Defines rubric backup structures
+ *
+ * @package    gradingform_rubric
+ * @copyright  2011 David Mudrak <david@moodle.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class backup_gradingform_rubric_plugin extends backup_gradingform_plugin {
 
@@ -106,7 +108,7 @@ class backup_gradingform_rubric_plugin extends backup_gradingform_plugin {
 
         // Set sources to populate the data
 
-        // MDL-32499 Binding criterionid to ensure it's existence
+        // Binding criterionid to ensure it's existence
         $filling->set_source_sql('SELECT rf.*
                 FROM {gradingform_rubric_fillings} rf
                 JOIN {grading_instances} gi ON gi.id = rf.instanceid

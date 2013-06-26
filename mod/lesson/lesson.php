@@ -36,7 +36,7 @@ $id     = required_param('id', PARAM_INT);         // Course Module ID
 $action = required_param('action', PARAM_ALPHA);   // Action
 $pageid = required_param('pageid', PARAM_INT);
 
-$cm = get_coursemodule_from_id('lesson', $id, 0, false, MUST_EXIST);;
+$cm = get_coursemodule_from_id('lesson', $id, 0, false, MUST_EXIST);
 $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
 $lesson = new lesson($DB->get_record('lesson', array('id' => $cm->instance), '*', MUST_EXIST));
 
@@ -45,7 +45,7 @@ require_login($course, false, $cm);
 $url = new moodle_url('/mod/lesson/lesson.php', array('id'=>$id,'action'=>$action));
 $PAGE->set_url($url);
 
-$context = get_context_instance(CONTEXT_MODULE, $cm->id);
+$context = context_module::instance($cm->id);
 require_capability('mod/lesson:edit', $context);
 require_sesskey();
 
@@ -58,7 +58,7 @@ switch ($action) {
 
         $thispage = $lesson->load_page($pageid);
 
-        echo $lessonoutput->header($lesson, $cm);
+        echo $lessonoutput->header($lesson, $cm, '', false, null, get_string('deletingpage', 'lesson', format_string($thispage->title)));
         echo $OUTPUT->heading(get_string("deletingpage", "lesson", format_string($thispage->title)));
         // print the jumps to this page
         $params = array("lessonid" => $lesson->id, "pageid" => $pageid);
@@ -80,7 +80,7 @@ switch ($action) {
 
         $title = $DB->get_field("lesson_pages", "title", array("id" => $pageid));
 
-        echo $lessonoutput->header($lesson, $cm);
+        echo $lessonoutput->header($lesson, $cm, '', false, null, get_string('moving', 'lesson', format_String($title)));
         echo $OUTPUT->heading(get_string("moving", "lesson", format_string($title)));
 
         $params = array ("lessonid" => $lesson->id, "prevpageid" => 0);

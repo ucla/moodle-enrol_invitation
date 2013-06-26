@@ -73,7 +73,7 @@ if (!$cm = get_coursemodule_from_instance("wiki", $subwiki->wikiid)) {
 // Checking course instance
 $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
 
-$context = get_context_instance(CONTEXT_MODULE, $cm->id);
+$context = context_module::instance($cm->id);
 
 
 $PAGE->set_url('/mod/wiki/files.php', array('pageid'=>$pageid));
@@ -86,7 +86,7 @@ echo $OUTPUT->header();
 
 $renderer = $PAGE->get_renderer('mod_wiki');
 
-$tabitems = array('view' => 'view', 'edit' => 'edit', 'comments' => 'comments', 'history' => 'history', 'map' => 'map', 'files' => 'files');
+$tabitems = array('view' => 'view', 'edit' => 'edit', 'comments' => 'comments', 'history' => 'history', 'map' => 'map', 'files' => 'files', 'admin' => 'admin');
 
 $options = array('activetab'=>'files');
 echo $renderer->tabs($page, $tabitems, $options);

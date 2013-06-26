@@ -5,6 +5,10 @@ class block_course_summary extends block_base {
         $this->title = get_string('pluginname', 'block_course_summary');
     }
 
+    function applicable_formats() {
+        return array('all' => true, 'mod' => false, 'tag' => false, 'my' => false);
+    }
+
     function specialization() {
         if($this->page->pagetype == PAGE_COURSE_VIEW && $this->page->course->id != SITEID) {
             $this->title = get_string('coursesummary', 'block_course_summary');
@@ -28,7 +32,7 @@ class block_course_summary extends block_base {
         $options = new stdClass();
         $options->noclean = true;    // Don't clean Javascripts etc
         $options->overflowdiv = true;
-        $context = get_context_instance(CONTEXT_COURSE, $this->page->course->id);
+        $context = context_course::instance($this->page->course->id);
         $this->page->course->summary = file_rewrite_pluginfile_urls($this->page->course->summary, 'pluginfile.php', $context->id, 'course', 'summary', NULL);
         $this->content->text = format_text($this->page->course->summary, $this->page->course->summaryformat, $options);
         if ($this->page->user_is_editing()) {

@@ -226,28 +226,18 @@ class mod_quiz_renderer extends plugin_renderer_base {
     /**
      * Returns either a liink or button
      *
-     * @param $url contains a url for the review link
+     * @param quiz_attempt $attemptobj instance of quiz_attempt
      */
-    public function finish_review_link($url) {
+    public function finish_review_link(quiz_attempt $attemptobj) {
+        $url = $attemptobj->view_url();
 
-        // This is an ugly hack to fix MDL-34733 without changing the renderer API.
-        global $attemptobj;
-        if (!empty($attemptobj)) {
-            // I think that every page in standard Moodle that ends up calling
-            // this method will actually end up coming down this branch.
-            $inpopup = $attemptobj->get_access_manager(time())->attempt_must_be_in_popup();
-        } else {
-            // Else fall back to old (not very good) heuristic.
-            $inpopup = $this->page->pagelayout == 'popup';
-        }
-
-        if ($inpopup) {
-            // In a 'secure' popup window.
+        if ($attemptobj->get_access_manager(time())->attempt_must_be_in_popup()) {
             $this->page->requires->js_init_call('M.mod_quiz.secure_window.init_close_button',
                     array($url), quiz_get_js_module());
             return html_writer::empty_tag('input', array('type' => 'button',
                     'value' => get_string('finishreview', 'quiz'),
                     'id' => 'secureclosebutton'));
+
         } else {
             return html_writer::link($url, get_string('finishreview', 'quiz'));
         }
@@ -262,7 +252,7 @@ class mod_quiz_renderer extends plugin_renderer_base {
      */
     public function review_next_navigation(quiz_attempt $attemptobj, $page, $lastpage) {
         if ($lastpage) {
-            $nav = $this->finish_review_link($attemptobj->view_url());
+            $nav = $this->finish_review_link($attemptobj);
         } else {
             $nav = link_arrow_right(get_string('next'), $attemptobj->review_url(null, $page + 1));
         }
@@ -600,7 +590,7 @@ class mod_quiz_renderer extends plugin_renderer_base {
             $flag = '';
             if ($attemptobj->is_question_flagged($slot)) {
                 $flag = html_writer::empty_tag('img', array('src' => $this->pix_url('i/flagged'),
-                        'alt' => get_string('flagged', 'question'), 'class' => 'questionflag'));
+                        'alt' => get_string('flagged', 'question'), 'class' => 'questionflag icon-post'));
             }
             if ($attemptobj->can_navigate_to($slot)) {
                 $row = array(html_writer::link($attemptobj->attempt_url($slot),
@@ -1176,11 +1166,7 @@ class mod_quiz_renderer extends plugin_renderer_base {
     public function graph(moodle_url $url, $title) {
         global $CFG;
 
-        if (empty($CFG->gdversion)) {
-            $graph = get_string('gdneed');
-        } else {
-            $graph = html_writer::empty_tag('img', array('src' => $url, 'alt' => $title));
-        }
+        $graph = html_writer::empty_tag('img', array('src' => $url, 'alt' => $title));
 
         return $this->heading($title) . html_writer::tag('div', $graph, array('class' => 'graph'));
     }

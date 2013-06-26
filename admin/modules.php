@@ -29,6 +29,9 @@
     $stractivitymodule = get_string("activitymodule");
     $strshowmodulecourse = get_string('showmodulecourse');
 
+    // Purge all caches related to activity modules administration.
+    cache::make('core', 'plugininfo_mod')->purge();
+
 /// If data submitted, then process and store.
 
     if (!empty($hide) and confirm_sesskey()) {
@@ -161,11 +164,11 @@
             $class   = '';
         } else if ($module->visible) {
             $visible = "<a href=\"modules.php?hide=$module->name&amp;sesskey=".sesskey()."\" title=\"$strhide\">".
-                       "<img src=\"" . $OUTPUT->pix_url('i/hide') . "\" class=\"icon\" alt=\"$strhide\" /></a>";
+                       "<img src=\"" . $OUTPUT->pix_url('t/hide') . "\" class=\"iconsmall\" alt=\"$strhide\" /></a>";
             $class   = '';
         } else {
             $visible = "<a href=\"modules.php?show=$module->name&amp;sesskey=".sesskey()."\" title=\"$strshow\">".
-                       "<img src=\"" . $OUTPUT->pix_url('i/show') . "\" class=\"icon\" alt=\"$strshow\" /></a>";
+                       "<img src=\"" . $OUTPUT->pix_url('t/show') . "\" class=\"iconsmall\" alt=\"$strshow\" /></a>";
             $class =   ' class="dimmed_text"';
         }
         if ($module->name == "forum") {

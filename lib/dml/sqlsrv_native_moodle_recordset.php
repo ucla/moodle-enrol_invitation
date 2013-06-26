@@ -93,6 +93,24 @@ class sqlsrv_native_moodle_recordset extends moodle_recordset {
 
         unset($row['sqlsrvrownumber']);
         $row = array_change_key_case($row, CASE_LOWER);
+        // Moodle expects everything from DB as strings.
+        foreach ($row as $k=>$v) {
+            if (is_null($v)) {
+                continue;
+            }
+            if (!is_string($v)) {
+                $row[$k] = (string)$v;
+            }
+        }
+        if (!$row = sqlsrv_fetch_array($this->rsrc, SQLSRV_FETCH_ASSOC)) {
+            sqlsrv_free_stmt($this->rsrc);
+            $this->rsrc = null;
+            $this->unregister();
+            return false;
+        }
+
+        unset($row['sqlsrvrownumber']);
+        $row = array_change_key_case($row, CASE_LOWER);
         return $row;
     }
 

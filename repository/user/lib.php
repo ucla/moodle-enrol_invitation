@@ -63,7 +63,7 @@ class repository_user extends repository {
         if (!empty($encodedpath)) {
             $params = unserialize(base64_decode($encodedpath));
             if (is_array($params)) {
-                $filepath = clean_param($params['filepath'], PARAM_PATH);;
+                $filepath = clean_param($params['filepath'], PARAM_PATH);
                 $filename = clean_param($params['filename'], PARAM_FILE);
             }
         } else {
@@ -74,7 +74,7 @@ class repository_user extends repository {
         $filearea = 'private';
         $component = 'user';
         $itemid  = 0;
-        $context = get_context_instance(CONTEXT_USER, $USER->id);
+        $context = context_user::instance($USER->id);
 
         try {
             $browser = get_file_browser();
@@ -168,5 +168,14 @@ class repository_user extends repository {
     public function get_reference_file_lifetime($ref) {
         // this should be realtime
         return 0;
+    }
+
+    /**
+     * Is this repository accessing private data?
+     *
+     * @return bool
+     */
+    public function contains_private_data() {
+        return false;
     }
 }

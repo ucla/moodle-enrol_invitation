@@ -77,11 +77,11 @@ if ($chapter) {
         require_capability('mod/book:viewhiddenchapters', $context);
     }
 
-    add_to_log($course->id, 'book', 'print', 'tool/print/index.php?id='.$cm->id.'&chapterid='.$chapter->id, $book->id, $cm->id);
+    add_to_log($course->id, 'book', 'print chapter', 'tool/print/index.php?id='.$cm->id.'&chapterid='.$chapter->id, $chapter->id, $cm->id);
 
     // page header
     ?>
-    <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+    <!DOCTYPE HTML>
     <html>
     <head>
       <title><?php echo format_string($book->name, true, array('context'=>$context)) ?></title>
@@ -90,6 +90,13 @@ if ($chapter) {
       <link rel="stylesheet" type="text/css" href="print.css" />
     </head>
     <body>
+    <?php
+    // Print dialog link.
+    $printtext = get_string('printchapter', 'booktool_print');
+    $printicon = $OUTPUT->pix_icon('chapter', $printtext, 'booktool_print', array('class' => 'book_print_icon'));
+    $printlinkatt = array('onclick' => 'window.print();return false;', 'class' => 'book_no_print');
+    echo html_writer::link('#', $printicon.$printtext, $printlinkatt);
+    ?>
     <a name="top"></a>
     <h1 class="book_title"><?php echo format_string($book->name, true, array('context'=>$context)) ?></h1>
     <div class="chapter">
@@ -119,7 +126,7 @@ if ($chapter) {
 
     // page header
     ?>
-    <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+    <!DOCTYPE HTML>
     <html>
     <head>
       <title><?php echo format_string($book->name, true, array('context'=>$context)) ?></title>
@@ -128,6 +135,13 @@ if ($chapter) {
       <link rel="stylesheet" type="text/css" href="print.css" />
     </head>
     <body>
+    <?php
+    // Print dialog link.
+    $printtext = get_string('printbook', 'booktool_print');
+    $printicon = $OUTPUT->pix_icon('book', $printtext, 'booktool_print', array('class' => 'book_print_icon'));
+    $printlinkatt = array('onclick' => 'window.print();return false;', 'class' => 'book_no_print');
+    echo html_writer::link('#', $printicon.$printtext, $printlinkatt);
+    ?>
     <a name="top"></a>
     <h1 class="book_title"><?php echo format_string($book->name, true, array('context'=>$context)) ?></h1>
     <p class="book_summary"><?php echo format_text($book->intro, $book->introformat, array('noclean'=>true, 'context'=>$context)) ?></p>

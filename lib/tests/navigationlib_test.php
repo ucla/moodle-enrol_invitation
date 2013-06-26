@@ -68,7 +68,7 @@ class navigation_node_testcase extends basic_testcase {
         $demo5->add('activity1', null, navigation_node::TYPE_ACTIVITY, null, 'activity1')->make_active();
         $hiddendemo1 = $this->node->add('hiddendemo1', $this->inactiveurl, navigation_node::TYPE_CATEGORY, null, 'hiddendemo1', new pix_icon('i/course', ''));
         $hiddendemo1->hidden = true;
-        $hiddendemo1->add('hiddendemo2', $this->inactiveurl, navigation_node::TYPE_COURSE, null, 'hiddendemo2', new pix_icon('i/course', ''))->helpbutton = 'Here is a help button';;
+        $hiddendemo1->add('hiddendemo2', $this->inactiveurl, navigation_node::TYPE_COURSE, null, 'hiddendemo2', new pix_icon('i/course', ''))->helpbutton = 'Here is a help button';
         $hiddendemo1->add('hiddendemo3', $this->inactiveurl, navigation_node::TYPE_COURSE,null, 'hiddendemo3', new pix_icon('i/course', ''))->display = false;
     }
 
@@ -353,11 +353,6 @@ class global_navigation_testcase extends basic_testcase {
         $res3 = $section2->add('resource 3', null, navigation_node::TYPE_RESOURCE, null, 'res3');
     }
 
-    public function test_format_display_course_content() {
-        $this->assertTrue($this->node->exposed_format_display_course_content('topic'));
-        $this->assertFalse($this->node->exposed_format_display_course_content('scorm'));
-        $this->assertTrue($this->node->exposed_format_display_course_content('dummy'));
-    }
     public function test_module_extends_navigation() {
         $this->assertTrue($this->node->exposed_module_extends_navigation('data'));
         $this->assertFalse($this->node->exposed_module_extends_navigation('test1'));

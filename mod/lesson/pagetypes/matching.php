@@ -71,7 +71,7 @@ class lesson_page_type_matching extends lesson_page {
         $responses = array();
         foreach ($answers as $answer) {
             // get all the response
-            if ($answer->response != NULL) {
+            if ($answer->response != null) {
                 $responses[$answer->id] = trim($answer->response);
             }
         }
@@ -223,7 +223,7 @@ class lesson_page_type_matching extends lesson_page {
 
         foreach ($answers as $answer) {
             if ($n < 2) {
-                if ($answer->answer != NULL) {
+                if ($answer->answer != null) {
                     $cells = array();
                     if ($n == 0) {
                         $cells[] = "<span class=\"label\">".get_string("correctresponse", "lesson").'</span>';
@@ -298,7 +298,7 @@ class lesson_page_type_matching extends lesson_page {
         $answers  = $this->get_answers();
         $properties->id = $this->properties->id;
         $properties->lessonid = $this->lesson->id;
-        $properties = file_postupdate_standard_editor($properties, 'contents', array('noclean'=>true, 'maxfiles'=>EDITOR_UNLIMITED_FILES, 'maxbytes'=>$PAGE->course->maxbytes), get_context_instance(CONTEXT_MODULE, $PAGE->cm->id), 'mod_lesson', 'page_contents', $properties->id);
+        $properties = file_postupdate_standard_editor($properties, 'contents', array('noclean'=>true, 'maxfiles'=>EDITOR_UNLIMITED_FILES, 'maxbytes'=>$PAGE->course->maxbytes), context_module::instance($PAGE->cm->id), 'mod_lesson', 'page_contents', $properties->id);
         $DB->update_record("lesson_pages", $properties);
 
         // need to add two to offset correct response and wrong response
@@ -377,8 +377,8 @@ class lesson_page_type_matching extends lesson_page {
         $formattextdefoptions = new stdClass;
         $formattextdefoptions->para = false;  //I'll use it widely in this page
         foreach ($answers as $answer) {
-            if ($n == 0 && $useranswer != NULL && $useranswer->correct) {
-                if ($answer->response == NULL && $useranswer != NULL) {
+            if ($n == 0 && $useranswer != null && $useranswer->correct) {
+                if ($answer->response == null && $useranswer != null) {
                     $answerdata->response = get_string("thatsthecorrectanswer", "lesson");
                 } else {
                     $answerdata->response = $answer->response;
@@ -388,8 +388,8 @@ class lesson_page_type_matching extends lesson_page {
                 } else {
                     $answerdata->score = get_string("receivedcredit", "lesson");
                 }
-            } elseif ($n == 1 && $useranswer != NULL && !$useranswer->correct) {
-                if ($answer->response == NULL && $useranswer != NULL) {
+            } elseif ($n == 1 && $useranswer != null && !$useranswer->correct) {
+                if ($answer->response == null && $useranswer != null) {
                     $answerdata->response = get_string("thatsthewronganswer", "lesson");
                 } else {
                     $answerdata->response = $answer->response;
@@ -402,7 +402,7 @@ class lesson_page_type_matching extends lesson_page {
             } elseif ($n > 1) {
                 $data = '<label class="accesshide" for="answer_' . $n . '">' . get_string('answer', 'lesson') . '</label>';
                 $data .= "<select id=\"answer_". $n ."\" disabled=\"disabled\"><option selected=\"selected\">".strip_tags(format_string($answer->answer))."</option></select>";
-                if ($useranswer != NULL) {
+                if ($useranswer != null) {
                     $userresponse = explode(",", $useranswer->useranswer);
                     $data .= '<label class="accesshide" for="stu_answer_response_' . $n . '">' . get_string('matchesanswer', 'lesson') . '</label>';
                     $data .= "<select id=\"stu_answer_response_" . $n . "\" disabled=\"disabled\"><option selected=\"selected\">";
@@ -472,11 +472,13 @@ class lesson_add_page_form_matching extends lesson_add_page_form_base {
 
         for ($i = 2; $i < $this->_customdata['lesson']->maxanswers+2; $i++) {
             $this->_form->addElement('header', 'matchingpair'.($i-1), get_string('matchingpair', 'lesson', $i-1));
-            $this->add_answer($i, NULL, ($i < 4));
+            $this->add_answer($i, null, ($i < 4));
             $required = ($i < 4);
             $label = get_string('matchesanswer','lesson');
             $count = $i;
             $this->_form->addElement('text', 'response_editor['.$count.']', $label, array('size'=>'50'));
+            // Temporary fix until MDL-38885 gets integrated.
+            $this->_form->setType('response_editor', PARAM_TEXT);
             $this->_form->setDefault('response_editor['.$count.']', '');
             if ($required) {
                 $this->_form->addRule('response_editor['.$count.']', get_string('required'), 'required', null, 'client');
@@ -520,12 +522,13 @@ class lesson_display_answer_form_matching extends moodleform {
         $i = 0;
         foreach ($answers as $answer) {
             $mform->addElement('html', '<div class="answeroption">');
-            if ($answer->response != NULL) {
+            if ($answer->response != null) {
                 $responseid = 'response['.$answer->id.']';
                 if ($hasattempt) {
                     $responseid = 'response_'.$answer->id;
                     $mform->addElement('hidden', 'response['.$answer->id.']', htmlspecialchars(trim($answers[$useranswers[$i]]->response)));
-                    $mform->setType('response['.$answer->id.']', PARAM_TEXT);
+                    // Temporary fixed until MDL-38885 gets integrated
+                    $mform->setType('response', PARAM_TEXT);
                 }
                 $mform->addElement('select', $responseid, format_text($answer->answer,$answer->answerformat,$options), $responseoptions, $disabled);
                 $mform->setType($responseid, PARAM_TEXT);

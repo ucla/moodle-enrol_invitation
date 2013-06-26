@@ -203,7 +203,7 @@ class grade_report_user extends grade_report {
 
         $this->tabledata = array();
 
-        $this->canviewhidden = has_capability('moodle/grade:viewhidden', get_context_instance(CONTEXT_COURSE, $this->courseid));
+        $this->canviewhidden = has_capability('moodle/grade:viewhidden', context_course::instance($this->courseid));
 
         // get the user (for full name)
         $this->user = $DB->get_record('user', array('id' => $userid));
@@ -219,7 +219,14 @@ class grade_report_user extends grade_report {
         $this->calculate_averages();
     }
 
+    /**
+     * Recurses through a tree of elements setting the rowspan property on each element
+     *
+     * @param array $element Either the top element or, during recursion, the current element
+     * @return int The number of elements processed
+     */
     function inject_rowspans(&$element) {
+
         if ($element['depth'] > $this->maxdepth) {
             $this->maxdepth = $element['depth'];
         }
@@ -227,9 +234,11 @@ class grade_report_user extends grade_report {
             return 1;
         }
         $count = 1;
+
         foreach ($element['children'] as $key=>$child) {
             $count += $this->inject_rowspans($element['children'][$key]);
         }
+
         $element['rowspan'] = $count;
         return $count;
     }
@@ -876,7 +885,7 @@ function grade_report_user_profilereport($course, $user) {
     global $OUTPUT;
     if (!empty($course->showgrades)) {
 
-        $context = get_context_instance(CONTEXT_COURSE, $course->id);
+        $context = context_course::instance($course->id);
 
         //first make sure we have proper final grades - this must be done before constructing of the grade tree
         grade_regrade_final_grades($course->id);

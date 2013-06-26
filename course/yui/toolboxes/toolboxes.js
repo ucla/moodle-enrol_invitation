@@ -15,7 +15,6 @@ YUI.add('moodle-course-toolboxes', function(Y) {
         GROUPSNONE : 'a.editing_groupsnone',
         GROUPSSEPARATE : 'a.editing_groupsseparate',
         GROUPSVISIBLE : 'a.editing_groupsvisible',
-        HASLABEL : 'label',
         HIDE : 'a.editing_hide',
         HIGHLIGHT : 'a.editing_highlight',
         INSTANCENAME : 'span.instancename',
@@ -62,9 +61,9 @@ YUI.add('moodle-course-toolboxes', function(Y) {
 
             var dimarea;
             var toggle_class;
-            if (this.is_label(element)) {
+            if (this.get_instance_name(element) == null) {
                 toggle_class = CSS.DIMMEDTEXT;
-                dimarea = element.one(CSS.MODINDENTDIV + ' div');
+                dimarea = element.all(CSS.MODINDENTDIV + ' > div').item(1);
             } else {
                 toggle_class = CSS.DIMCLASS;
                 dimarea = element.one('a');
@@ -172,8 +171,19 @@ YUI.add('moodle-course-toolboxes', function(Y) {
             Y.io(uri, config);
             return responsetext;
         },
-        is_label : function(target) {
-            return target.hasClass(CSS.HASLABEL);
+        /**
+         * Return the name of the activity instance
+         *
+         * If activity has no name (for example label) null is returned
+         *
+         * @param element The <li> element to determine a name for
+         * @return string|null Instance name
+         */
+        get_instance_name : function(target) {
+            if (target.one(CSS.INSTANCENAME)) {
+                return target.one(CSS.INSTANCENAME).get('firstChild').get('data');
+            }
+            return null;
         },
         /**
          * Return the module ID for the specified element
@@ -330,19 +340,16 @@ YUI.add('moodle-course-toolboxes', function(Y) {
             // Get the element we're working on
             var element   = e.target.ancestor(CSS.ACTIVITYLI);
 
+            // Create confirm string (different if element has or does not have name)
             var confirmstring = '';
-            if (this.is_label(element)) {
-                // Labels are slightly different to other activities
-                var plugindata = {
-                    type : M.util.get_string('pluginname', 'label')
-                }
-                confirmstring = M.util.get_string('deletechecktype', 'moodle', plugindata)
-            } else {
-                var plugindata = {
-                    type : M.util.get_string('pluginname', element.getAttribute('class').match(/modtype_([^\s]*)/)[1]),
-                    name : element.one(CSS.INSTANCENAME).get('firstChild').get('data')
-                }
+            var plugindata = {
+                type : M.util.get_string('pluginname', element.getAttribute('class').match(/modtype_([^\s]*)/)[1])
+            }
+            if (this.get_instance_name(element) != null) {
+                plugindata.name = this.get_instance_name(element)
                 confirmstring = M.util.get_string('deletechecktypename', 'moodle', plugindata);
+            } else {
+                confirmstring = M.util.get_string('deletechecktype', 'moodle', plugindata)
             }
 
             // Confirm element removal
@@ -478,6 +485,7 @@ YUI.add('moodle-course-toolboxes', function(Y) {
         edit_resource_title : function(e) {
             // Get the element we're working on
             var element = e.target.ancestor(CSS.ACTIVITYLI);
+            var elementdiv = element.one('div');
             var instancename  = element.one(CSS.INSTANCENAME);
             var currenttitle = instancename.get('firstChild');
             var oldtitle = currenttitle.get('data');
@@ -514,20 +522,20 @@ YUI.add('moodle-course-toolboxes', function(Y) {
                 })
                 .addClass('titleeditor');
             var editform = Y.Node.create('<form />')
-                .setStyle('padding', '0')
-                .setStyle('display', 'inline')
+                .addClass('activityinstance')
                 .setAttribute('action', '#');
-
             var editinstructions = Y.Node.create('<span />')
                 .addClass('editinstructions')
                 .setAttrs({'id' : 'id_editinstructions'})
                 .set('innerHTML', M.util.get_string('edittitleinstructions', 'moodle'));
+            var activityicon = element.one('img.activityicon').cloneNode();
 
             // Clear the existing content and put the editor in
             currenttitle.set('data', '');
+            editform.appendChild(activityicon);
             editform.appendChild(editor);
             anchor.replace(editform);
-            element.appendChild(editinstructions);
+            elementdiv.appendChild(editinstructions);
             e.preventDefault();
 
             // Focus and select the editor text

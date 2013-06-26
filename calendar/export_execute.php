@@ -37,7 +37,7 @@ $time = optional_param('preset_time', 'weeknow', PARAM_ALPHA);
 $now = usergetdate(time());
 // Let's see if we have sufficient and correct data
 $allowed_what = array('all', 'courses');
-$allowed_time = array('weeknow', 'weeknext', 'monthnow', 'monthnext', 'recentupcoming');
+$allowed_time = array('weeknow', 'weeknext', 'monthnow', 'monthnext', 'recentupcoming', 'custom');
 
 if (!empty($generateurl)) {
     $authtoken = sha1($user->id . $user->password . $CFG->calendar_exportsalt);
@@ -127,6 +127,11 @@ if(!empty($what) && !empty($time)) {
                 $timestart = time() - 432000;
                 $timeend = time() + 5184000;
             break;
+            case 'custom':
+                // Events based on custom date range.
+                $timestart = time() - $CFG->calendar_exportlookback * DAYSECS;
+                $timeend = time() + $CFG->calendar_exportlookahead * DAYSECS;
+            break;
         }
     }
     else {
@@ -162,7 +167,7 @@ foreach($events as $event) {
         $ev->add_property('dtend', Bennu::timestamp_to_datetime($event->timestart + $event->timeduration));
     }
     if ($event->courseid != 0) {
-        $coursecontext = get_context_instance(CONTEXT_COURSE, $event->courseid);
+        $coursecontext = context_course::instance($event->courseid);
         $ev->add_property('categories', format_string($courses[$event->courseid]->shortname, true, array('context' => $coursecontext)));
     }
     $ical->add_component($ev);

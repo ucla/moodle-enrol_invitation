@@ -24,9 +24,8 @@
  */
 
 $string['managemyfiles'] = 'Manage my files';
-// START UCLA MOD: CCLE-3470-Rename-private-files-to-my-ccle-files
-$string['pluginname'] = 'My CCLE files';
-$string['privatefiles'] = 'My CCLE files';
-//$string['pluginname'] = 'My private files';
-//$string['privatefiles'] = 'Private files';
-// END UCLA MOD: CCLE-3470
+$string['pluginname'] = 'My private files';
+$string['privatefiles'] = 'Private files';
+$string['private_files:addinstance'] = 'Add a new private files block';
+$string['private_files:myaddinstance'] = 'Add a new my private files block to My home';
+
