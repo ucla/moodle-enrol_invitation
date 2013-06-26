@@ -1,6 +1,6 @@
 <?php
 /**
- * PHPUnit invitation_manager tests.
+ * PHPUnit site invitation tests.
  *
  * @package    local_ucla
  * @category   phpunit
@@ -11,15 +11,9 @@ defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 require_once($CFG->dirroot . '/enrol/invitation/invitation_form.php');
+require_once($CFG->dirroot . '/enrol/invitation/lib.php');
 require_once($CFG->dirroot . '/enrol/invitation/locallib.php');
 
-/**
- * PHPUnit invitation_manager tests.
- *
- * @package    local_ucla
- * @category   phpunit
- * @copyright  2013 UC Regents
- */
 class invitation_manager_testcase extends advanced_testcase {
     private $invitation_manager = null;
     private $testcourse = null;
@@ -51,6 +45,70 @@ class invitation_manager_testcase extends advanced_testcase {
         // Do not count today as one of the days.
         $expectedexpiration = strtotime(date('Y-m-d'))+86400*($daystoexpire+1)-1;
         $this->assertEquals($expectedexpiration, intval($timeend));
+    }
+
+    /**
+     * Makes sure that someone who was granted the role of Temorary Participant
+     * and has their site invitation user enrollment expired, that they are
+     * unenrolled from the course.
+     */
+    public function test_unenrolexpiredtempparticipant() {
+        global $DB;
+
+        // Create Temporary Participant role.
+        $roleid = create_role('Temporary Participant', 'tempparticipant', '', 'student');
+        $this->assertGreaterThan(0, $roleid);
+
+        // Test setup.
+        $invitation = enrol_get_plugin('invitation');
+        $this->setUser($this->testinvitee);
+        $context = context_course::instance($this->testcourse->id);
+        set_config('enabletempparticipant', 1, 'enrol_invitation');
+
+        // Enrol user with an timeend in the past.
+        $invitation->enrol_user($this->invitation_manager->enrol_instance, 
+                $this->testinvitee->id, $roleid, 0, strtotime('yesterday'));
+        $hasrole = has_role_in_context('tempparticipant', $context);
+        $this->assertTrue($hasrole);
+        $isenrolled = is_enrolled($context, $this->testinvitee->id);
+        $this->assertTrue($isenrolled);
+
+        // Run the enrollment plugin cron and make sure user is unenrolled.
+        $invitation->cron();
+        $hasrole = has_role_in_context('tempparticipant', $context);
+        $this->assertFalse($hasrole);
+        $isenrolled = is_enrolled($context, $this->testinvitee->id);
+        $this->assertFalse($isenrolled);
+
+        // Now do the opposite, enroll a user with a timeend in the future.
+        $invitation->enrol_user($this->invitation_manager->enrol_instance,
+                $this->testinvitee->id, $roleid, 0, strtotime('tomorrow'));
+        $hasrole = has_role_in_context('tempparticipant', $context);
+        $this->assertTrue($hasrole);
+        $isenrolled = is_enrolled($context, $this->testinvitee->id);
+        $this->assertTrue($isenrolled);
+
+        // Run the enrollment plugin cron and make sure user is not unenrolled.
+        $invitation->cron();
+        $hasrole = has_role_in_context('tempparticipant', $context);
+        $this->assertTrue($hasrole);
+        $isenrolled = is_enrolled($context, $this->testinvitee->id);
+        $this->assertTrue($isenrolled);
+
+        // Enroll someone with a role other than Temporary Participant and
+        // make sure they are not unenrolled.
+        $studentroleid = $DB->get_field('role', 'id', array('shortname' => 'student'));
+        $invitation->enrol_user($this->invitation_manager->enrol_instance,
+                $this->testinvitee->id, $studentroleid);
+        $hasrole = has_role_in_context('student', $context);
+        $this->assertTrue($hasrole);
+        $isenrolled = is_enrolled($context, $this->testinvitee->id);
+        $this->assertTrue($isenrolled);
+        $invitation->cron();
+        $hasrole = has_role_in_context('student', $context);
+        $this->assertTrue($hasrole);
+        $isenrolled = is_enrolled($context, $this->testinvitee->id);
+        $this->assertTrue($isenrolled);
     }
 
     public function daystoexpire_provider() {
