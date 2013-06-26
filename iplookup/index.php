@@ -104,18 +104,6 @@ if (empty($CFG->googlemapkey3)) {
 
     echo '<div id="map" style="width: 650px; height: 360px"></div>';
     echo '<div id="note">'.$info['note'].'</div>';
-
-} else {
-    if (strpos($CFG->wwwroot, 'https:') === 0) {
-        $PAGE->requires->js(new moodle_url('https://maps.googleapis.com/maps/api/js', array('key'=>$CFG->googlemapkey3, 'sensor'=>'false')));
-    } else {
-        $PAGE->requires->js(new moodle_url('http://maps.googleapis.com/maps/api/js', array('key'=>$CFG->googlemapkey3, 'sensor'=>'false')));
-    }
-    $module = array('name'=>'core_iplookup', 'fullpath'=>'/iplookup/module.js');
-    $PAGE->requires->js_init_call('M.core_iplookup.init3', array($info['latitude'], $info['longitude'], $ip), true, $module);
-
-    echo '<div id="map" style="width: 650px; height: 360px"></div>';
-    echo '<div id="note">'.$info['note'].'</div>';
 }
 
 echo $OUTPUT->footer();
