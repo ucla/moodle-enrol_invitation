@@ -487,13 +487,16 @@ class mod_assign_renderer extends plugin_renderer_base {
             $modcontext = get_context_instance(CONTEXT_MODULE, $status->coursemoduleid);
             $gradingmanager = get_grading_manager($modcontext, 'mod_assign', 'submissions');
             $gradingmethod = $gradingmanager->get_active_method();
-            $controller = $gradingmanager->get_controller($gradingmethod);
-            
-            $o .= $this->output->single_button(
-                    new moodle_url('/grade/grading/form/'.$gradingmethod.'/preview.php',
-                    array('areaid' => $controller->get_areaid())),
-                    get_string('submissionsgrading', 'local_ucla'),
-                    'get');
+            // If there is an active grading method, display link to it.
+            if (!empty($gradingmethod)) {
+                $controller = $gradingmanager->get_controller($gradingmethod);
+
+                $o .= $this->output->single_button(
+                        new moodle_url('/grade/grading/form/'.$gradingmethod.'/preview.php',
+                        array('areaid' => $controller->get_areaid())),
+                        get_string('submissionsgrading', 'local_ucla'),
+                        'get');
+            }
         }
         // END UCLA MOD: CCLE-3652
 
