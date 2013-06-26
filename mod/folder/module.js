@@ -39,7 +39,7 @@ M.mod_folder.init_tree = function(Y, id, expand_all) {
             // Else just expand the top node.
             tree.getRoot().children[0].expand();
         }
-        
+
         tree.render();
     });
 }

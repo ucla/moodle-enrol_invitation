@@ -35,8 +35,3 @@ if ($ADMIN->fulltree) {
             get_string('showexpanded', 'folder'),
             get_string('showexpanded_help', 'folder'), 1));
 }
-
-// START UCLA MOD: CCLE-3260 - Show folders collapsed by default
-$settings->add(new admin_setting_configcheckbox('folder/show_expanded', get_string('show_expanded', 'folder'), 
-        get_string('config_show_expanded', 'folder'), 1));
-// END UCLA MOD: CCLE-3260
