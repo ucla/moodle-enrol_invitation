@@ -22,7 +22,7 @@
     font-size: $type-font-size;
     line-height: $type-line-height;
     
-    .registrar-summary {
+    .registrar-collapsed {
         @extend .ccle-generic-box;
         overflow: hidden;
     }
