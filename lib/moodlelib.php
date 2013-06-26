@@ -8344,15 +8344,6 @@ function is_valid_plugin_name($name) {
 }
 
 /**
- * This method validates a plug name. It is much faster than calling clean_param.
- * @param string $name a string that might be a plugin name.
- * @return bool if this string is a valid plugin name.
- */
-function is_valid_plugin_name($name) {
-    return (bool) preg_match('/^[a-z](?:[a-z0-9_](?!__))*[a-z0-9]$/', $name);
-}
-
-/**
  * Simplified version of get_list_of_plugins()
  * @param string $plugintype type of plugin
  * @return array name=>fulllocation pairs of plugins of given type

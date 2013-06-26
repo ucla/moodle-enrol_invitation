@@ -2014,6 +2014,7 @@ function course_get_cm_edit_actions(cm_info $mod, $indent = -1, $sr = null) {
             array('class' => 'editing_assign', 'title' => $str->assign)
         );
     }
+    //*/
 
     return $actions;
 }

@@ -9,6 +9,7 @@
 #
 # See gitignore(5) man page for more details
 #
+/config_private.php
 /config.php
 /lib/editor/tinymce/extra/tools/temp/
 *~

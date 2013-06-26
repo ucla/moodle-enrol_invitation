@@ -1357,9 +1357,6 @@ class MoodleQuickForm extends HTML_QuickForm_DHTMLRulesTableless {
     /** @var bool whether to automatically initialise M.formchangechecker for this form. */
     protected $_use_form_change_checker = true;
 
-    /** @var bool whether to automatically initialise M.formchangechecker for this form. */
-    protected $_use_form_change_checker = true;
-
     /**
      * The form name is derived from the class name of the wrapper minus the trailing form
      * It is a name with words joined by underscores whereas the id attribute is words joined by underscores.
