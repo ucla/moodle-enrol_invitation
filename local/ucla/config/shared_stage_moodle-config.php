@@ -160,7 +160,6 @@ $CFG->gradebook_webservice = 'https://stage.cis.ucla.edu/ws/moodleitemgrade/serv
 $CFG->gradebook_id = 6;
 $CFG->gradebook_password = '123';
 $CFG->gradebook_send_updates = 1;
-$CFG->gradebook_log_success = 1;
 
 /// CCLE-2810 - My Sites - disallow customized "My Moodle" page
 $CFG->forcedefaultmymoodle = true;
