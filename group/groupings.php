@@ -67,7 +67,7 @@ echo $OUTPUT->heading($strgroupings);
 
 $data = array();
 if ($groupings = $DB->get_records('groupings', array('courseid'=>$course->id), 'name')) {
-    require_once($CFG->dirroot.'/local/publicprivate/lib/site.class.php');
+    require_once($CFG->dirroot.'/local/publicprivate/lib/course.class.php');
     $publicprivate_course = new PublicPrivate_Course($course);    
     
     $canchangeidnumber = has_capability('moodle/course:changeidnumber', $context);

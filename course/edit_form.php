@@ -5,6 +5,11 @@ defined('MOODLE_INTERNAL') || die;
 require_once($CFG->libdir.'/formslib.php');
 require_once($CFG->libdir.'/completionlib.php');
 require_once($CFG->libdir. '/coursecatlib.php');
+// START UCLA MOD
+require_once($CFG->dirroot.'/local/publicprivate/lib/course.class.php');
+require_once($CFG->dirroot.'/local/publicprivate/lib/site.class.php');
+require_once($CFG->dirroot . '/admin/tool/uclasiteindicator/lib.php');
+// END UCLA MOD
 
 class course_edit_form extends moodleform {
     protected $course;
