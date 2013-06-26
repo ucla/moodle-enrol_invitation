@@ -19,6 +19,20 @@ class block_ucla_tasites extends block_base {
     }
 
     /**
+     * Do not make this block available to add via "Add a block" dropdown.
+     * 
+     * @return array
+     */
+    public function applicable_formats() {
+        return array(
+            'site-index' => false,
+            'course-view' => false,
+            'my' => false,
+            'not-really-applicable' => true
+        );
+    }
+
+    /**
      *  Semantic (currying?) function.
      **/
     static function get_ta_admin_role_id() {
