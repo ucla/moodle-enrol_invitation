@@ -3,15 +3,39 @@
  * Unit tests for myucla_urlupdater.class.php.
  */
  
-if (!defined('MOODLE_INTERNAL')) {
-    die('Direct access to this script is forbidden.'); //  It must be included from a Moodle page
-}
- 
+defined('MOODLE_INTERNAL') || die();
+
+global $CFG;
 require_once($CFG->dirroot.'/'.$CFG->admin.'/tool/myucla_url/myucla_urlupdater.class.php');
  
-class myucla_urlupdater_test extends UnitTestCase {
+class myucla_urlupdater_test extends advanced_testcase {
     private $myucla_urlupdater = null;
     
+    /**
+     * Try updating a url when you do not have access to the MyUCLA url service.
+     * Should get an error returned.
+     *
+     * @group access_denied
+     */
+    function test_access_denied_update() {
+        // Overwrite previous value of the 'url_service' config variable.
+        if (!defined('MYUCLA_URL_UPDATER_TEST_CONFIG_ACCESSDENIED_URL')) {
+            $this->markTestSkipped('To run this MyUCLA url updater unit test you must setup the access denied url.');
+        }
+        set_config('url_service', MYUCLA_URL_UPDATER_TEST_CONFIG_ACCESSDENIED_URL, 'tool_myucla_url');
+
+        $course = array('term' => '12W',
+                        'srs' => '123456789',
+                        'url' => 'http://ucla.edu');
+
+        // Try to set URL at MyUCLA. Expecting result to only contain failures.
+        $this->assertEmpty($this->myucla_urlupdater->failed);
+        $this->myucla_urlupdater->sync_MyUCLA_urls(array('12W-123456789' => $course));
+        $this->assertEmpty($this->myucla_urlupdater->successful);
+        $this->assertNotEmpty($this->myucla_urlupdater->skipped);
+        $this->assertNotEmpty($this->myucla_urlupdater->failed);
+    }
+
     /**
      * Try to set a valid course's url.
      */
@@ -142,12 +166,9 @@ class myucla_urlupdater_test extends UnitTestCase {
         $failed = $this->myucla_urlupdater->failed;
         $this->assertTrue(false === strpos($failed['invalid'] , myucla_urlupdater::expected_success_message));
     }
-    
-    
-    // helper functions
-
+        
     /**
-     * Gets url from MyUCLA for given course.
+     * Helper method. Gets url from MyUCLA for given course.
      * 
      * @param mixed $url    Expects url to have following keys:
      *                      term, srs, url
@@ -160,7 +181,7 @@ class myucla_urlupdater_test extends UnitTestCase {
     }    
     
     /**
-     * Sends given course and url to MyUCLA.
+     * Helper method. Sends given course and url to MyUCLA.
      * 
      * @param mixed $url    Expects url to have following keys:
      *                      term, srs, url
@@ -172,14 +193,34 @@ class myucla_urlupdater_test extends UnitTestCase {
         return false !== strpos(array_pop($result), myucla_urlupdater::expected_success_message);
     }
     
-    // setup/teardown functions
-    public function setUp() {
-        // ...
+    /**
+     * Creates instance of MyUCLA url updater class.
+     */
+    protected function setUp() {
+        $this->resetAfterTest();
+
+        // Since PHPunit has no access to the regular config.php $CFG variables
+        // we need to look for some global variables.
+        if (!defined('MYUCLA_URL_UPDATER_TEST_CONFIG_URL') ||
+                !defined('MYUCLA_URL_UPDATER_TEST_CONFIG_NAME') ||
+                !defined('MYUCLA_URL_UPDATER_TEST_CONFIG_EMAIL')) {
+            $this->markTestSkipped('To run MyUCLA url updater unit tests you must setup some global variables.');
+        }
+
+        set_config('url_service', MYUCLA_URL_UPDATER_TEST_CONFIG_URL, 'tool_myucla_url');
+        set_config('user_name', MYUCLA_URL_UPDATER_TEST_CONFIG_NAME, 'tool_myucla_url');
+        set_config('user_email', MYUCLA_URL_UPDATER_TEST_CONFIG_EMAIL, 'tool_myucla_url');
+        if (defined('MYUCLA_URL_UPDATER_TEST_CONFIG_OVERRIDE_DEBUGGING')) {
+            set_config('override_debugging', MYUCLA_URL_UPDATER_TEST_CONFIG_OVERRIDE_DEBUGGING, 'tool_myucla_url');
+        }
+
         $this->myucla_urlupdater = new myucla_urlupdater();
     }
 
-    public function tearDown() {
+    /**
+     * Destroys instance of MyUCLA url updater class.
+     */
+    protected function tearDown() {
         $this->myucla_urlupdater = null;
     }    
 }
-?>

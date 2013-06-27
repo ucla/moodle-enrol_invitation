@@ -142,15 +142,20 @@ class myucla_urlupdater {
                 $this->successful[$idnumber] = $result;
             }
 
-            // We got a result but we're not supposed to overwrite it
+            // We got a result but we're not supposed to overwrite it.
             if (!empty($result)) {
-                if ($flag == self::nooverwriteflag) {
+                // Check if result is an error, like access denied or db error.
+                if ((strpos($result, self::error_connection) !== false) ||
+                        (strpos($result, self::error_denied) !== false)) {
+                    $this->failed[$idnumber] = $result;
+                } else if ($flag == self::nooverwriteflag) {
                     $this->successful[$idnumber] = $result;
                 }
             }
 
-            // We don't need to push urls that are supposedly done
-            if (isset($this->successful[$idnumber])) {
+            // We don't need to push urls that are done or had errors.
+            if (isset($this->successful[$idnumber]) ||
+                    isset($this->failed[$idnumber])) {
                 $this->skipped[$idnumber] = true;
                 unset($courses[$idnumber]);
             }

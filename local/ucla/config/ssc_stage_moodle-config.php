@@ -96,6 +96,18 @@ $CFG->forced_plugin_settings['tool_myucla_url']['user_name'] = 'SSC Admin';   //
 $CFG->forced_plugin_settings['tool_myucla_url']['user_email'] = 'ssc@ucla.edu';  // email for registering URL with My.UCLA
 $CFG->forced_plugin_settings['tool_myucla_url']['override_debugging'] = true;   // test sending MyUCLA urls
 
+// For MyUCLA url updater phpunit tests.
+define('MYUCLA_URL_UPDATER_TEST_CONFIG_URL',
+        $CFG->forced_plugin_settings['tool_myucla_url']['url_service']);
+define('MYUCLA_URL_UPDATER_TEST_CONFIG_NAME',
+        $CFG->forced_plugin_settings['tool_myucla_url']['user_name']);
+define('MYUCLA_URL_UPDATER_TEST_CONFIG_EMAIL',
+        $CFG->forced_plugin_settings['tool_myucla_url']['user_email']);
+define('MYUCLA_URL_UPDATER_TEST_CONFIG_OVERRIDE_DEBUGGING',
+        $CFG->forced_plugin_settings['tool_myucla_url']['override_debugging']);
+define('MYUCLA_URL_UPDATER_TEST_CONFIG_ACCESSDENIED_URL',
+        'https://m2test.ccle.ucla.edu/rex/myucla_url_updater/accessdenied.php');
+
 // turn off messaging (CCLE-2318 - MESSAGING)
 $CFG->messaging = false;
 
