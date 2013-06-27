@@ -339,8 +339,15 @@ function create_help_message(&$fromform)
     USER_screenreader        = " . @$description['screenreader'][$USER->screenreader];
     $body .= "\n";
     
-    // get logging records
-    $log_records = $DB->get_records('log', array('userid' => $USER->id), 'time DESC', '*', 0, 10);        
+    // Get logging records. If the user is logged in as a guest (user ID 1), then
+    // use IP address to generate log. Otherwise, use user ID.
+    $log_records;
+    if ($USER->id == 1) {
+        $log_records = $DB->get_records('log', array('ip' => $USER->lastip), 'time DESC', '*', 0, 10);
+    } else {
+        $log_records = $DB->get_records('log', array('userid' => $USER->id), 'time DESC', '*', 0, 10);
+    }
+    
     if (empty($log_records)) {
         $body .= "No log entries\n";
     } else {
