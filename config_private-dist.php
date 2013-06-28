@@ -22,7 +22,7 @@ $CFG->registrar_dbpass = '';
 // Course Creator
 /* To use the CCLE email templates please do the following:
  *  - In your host machine, go to ~/Projects/ccle
- *  - mkdir moodle_configs
+ *  - mkdir moodle_configs && cd moodle_configs
  *  - git clone git@github.com:ucla/ccle_email_templates.git
  *  - If not using vagrant, put files in a path that your web server can access
  */

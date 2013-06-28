@@ -1330,9 +1330,10 @@ class uclacoursecreator {
                     // updater module 
                     $this->println('  Url update ' . $k . ': ');
                     foreach ($urlupdater->{$k} as $kid => $ked) {
-                        // If it was skipped (not sent on purpose)
-                        // then also document that fact
-                        if (isset($urlupdater->skipped[$kid])
+                        // If it was skipped (not sent on purpose) then also
+                        // document that fact. But only for successful entries
+                        // do you document why an entry was skipped.
+                        if ($k != 'failed' && isset($urlupdater->skipped[$kid])
                                 && isset($urlarr[$kid]['flag'])) {
 
                             $string = get_string($urlarr[$kid]['flag'],
