@@ -71,7 +71,18 @@ $strfulllistofcourses = get_string('fulllistofcourses');
 
 
 /// Unless it's an editing admin, just print the regular listing of courses/categories
-if (!$adminediting) {
+
+// BEGIN UCLA MOD: CCLE-3858
+// If the user is a manager, and attempting to delete/hide/show/move a subcategory,
+// then we don't list the courses and instead move on to the respective function.
+if (!$adminediting && empty($delete) && empty($hide) &&
+                      empty($show) && empty($moveup) && empty($movedown)) {
+    
+// The old if statement is:
+// 
+// if (!$adminediting) {
+// 
+// END UCLA MOD: CCLE-3858
 
 /// Print form for creating new categories
     $countcategories = $DB->count_records('course_categories');

@@ -276,7 +276,7 @@ $table = new html_table;
 $table->attributes = array('border' => '0', 'cellspacing' => '2', 'cellpadding' => '4', 'class' => 'generalbox boxaligncenter category_subcategories');
 // BEGIN UCLA MOD: CCLE-3858 - Allow users with manage capabilities to edit subcategories
 //$table->head = array(new lang_string('subcategories'));
-if ($editingon && can_edit_in_category()) {
+if ($editingon && $canmanage) {
     $table->head = array(new lang_string('subcategories'), new lang_string('edit'));
 } else {
     $table->head = array(new lang_string('subcategories'));    
@@ -296,7 +296,7 @@ foreach ($subcategories as $subcategory) {
     $baseurl->param('id', $subcategory->id);
     // BEGIN UCLA MOD: CCLE-3858 - Allow users with manage capabilities to edit subcategories
     //$table->data[] = array(html_writer::link($baseurl, $text, $attributes));
-    if ($editingon && can_edit_in_category()) {
+    if ($editingon && $canmanage) {
         $table->data[] = array(html_writer::link($baseurl, $text, $attributes),
             generate_category_editing_icon_links($subcategory, $id, !$first, true));
         $first = false;
@@ -306,7 +306,7 @@ foreach ($subcategories as $subcategory) {
     // END UCLA MOD: CCLE-3858
 }
 // BEGIN UCLA MOD: CCLE-3858 - Last category should not be able to move down
-if ($editingon && can_edit_in_category() && !$first) {
+if ($editingon && $canmanage && !$first) {
     $table->data[count($table->data)-1] = 
         array(html_writer::link($baseurl, $text, $attributes),
             generate_category_editing_icon_links($subcategory, $id, true, false));
@@ -533,7 +533,7 @@ function generate_category_editing_icon_links($category, $parentcategoryid, $up,
                 'alt' => get_string('delete')));
     $htmlediticons .= html_writer::link($editurl, $editicon, 
             array('title' => get_string('delete')));
-    
+
     // Hide category
     if (!empty($category->visible)) {
         $editurl = new moodle_url('/course/index.php', 
@@ -573,8 +573,6 @@ function generate_category_editing_icon_links($category, $parentcategoryid, $up,
                     'alt' => get_string('moveup')));
         $htmlediticons .= html_writer::link($editurl, $editicon, 
                 array('title' => get_string('moveup')));
-    } else {
-        $htmlediticons .= $OUTPUT->spacer().' ';
     }
     
     // Move category down
