@@ -46,7 +46,7 @@ class instructor_handler extends browseby_handler {
      *  Fetches a list of instructors with an alphabetized index.
      **/
     function handle($args) {
-        global $OUTPUT, $PAGE;
+        global $OUTPUT, $PAGE, $CFG;
 
         $s = '';
 
@@ -94,10 +94,12 @@ class instructor_handler extends browseby_handler {
         ucla_require_db_helper();
 
         // Show all users form local and browseall tables
+        // CCLE-3989 - Supervising Instructor Shown On Course List:
+        // Join role table to limit display to only instructor types in CFG.
         $sql = "
             SELECT
                 CONCAT(
-                    ubi.userid, '-', ubi.term, '-', ubi.srs
+                    ubi.userid, '-', ubi.term, '-', ubi.srs, '-', r.shortname
                 ) AS rsid,
                 ubi.userid,
                 ubi.term,
@@ -106,11 +108,21 @@ class instructor_handler extends browseby_handler {
                 ubi.lastname,
                 ubci.catlg_no AS course_code,
                 ubci.activitytype,
-                ubci.subjarea
+                ubci.subjarea,
+                r.shortname AS role_shortname
             FROM " . self::combined_select_sql_helper() . " ubi
-            INNER JOIN {ucla_browseall_classinfo} ubci 
-                ON  ubi.term = ubci.term 
-                AND ubi.srs = ubci.srs
+            JOIN {ucla_browseall_classinfo} ubci 
+                USING (term, srs)
+            JOIN {ucla_request_classes} urc
+                USING (term, srs)
+            JOIN {course} mco
+                ON urc.courseid = mco.id
+            JOIN {context} ct
+                ON mco.id = ct.instanceid
+            JOIN {role_assignments} ra
+                ON ct.id = ra.contextid AND ubi.userid = ra.userid
+            JOIN {role} r
+                ON ra.roleid = r.id
             $termwhere
             ORDER BY ubi.lastname, ubi.firstname
         ";
@@ -137,12 +149,16 @@ class instructor_handler extends browseby_handler {
 
         $no_display_hack = 0;
         foreach ($users as $k => $user) {
-            if (isset($user->profcode) 
-                    && !isset($rolecaps[$this->role_mapping(
-                        intval($user->profcode), 
-                        $coursepcs[$user->srs], 
-                        $user->subjarea
-                    )])) {
+            
+            // CCLE-3989 - Supervising Instructor Shown On Course List:
+            // Set display to true only if role_shortname is in $CFG.
+            if (!in_array($user->role_shortname, $CFG->instructor_levels_roles['Instructor']) 
+                    || (isset($user->profcode) 
+                         && !isset($rolecaps[$this->role_mapping(
+                                    intval($user->profcode), 
+                                    $coursepcs[$user->srs], 
+                                    $user->subjarea)]))
+                ) {
                 $users[$k]->no_display = true;
                 $no_display_hack++;
                 continue;
