@@ -157,7 +157,7 @@ M.alert_block.init = function(Y) {
             // Send AJAX request
             Y.io('rest.php', {
                 method: 'POST',
-                data: 'courseid=' + courseID +'&render=' + json_out,
+                data: 'courseid=' + courseID +'&render=' +  encodeURIComponent(json_out),
                 on: {
                     success: function (id, result) {
                         var data = JSON.parse(result.responseText);
@@ -303,7 +303,7 @@ M.alert_block.init = function(Y) {
             // Send AJAX POST
             Y.io('rest.php', {
                 method: 'POST',
-                data: 'courseid=' + courseID + '&update=' + json_out,
+                data: 'courseid=' + courseID + '&update=' + encodeURIComponent(json_out),
                 on: {
                     success: function (id, result) {
                         var data = JSON.parse(result.responseText);
