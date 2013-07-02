@@ -2251,6 +2251,17 @@ EOD;
         if (empty($CFG->rolesactive)) {
             // continue does not make much sense if moodle is not installed yet because error is most probably not recoverable
         } else if (!empty($link)) {
+            // BEGIN UCLA MOD: CCLE-2984
+            // Redirect back to referring page if available
+            if (isset($_SERVER['HTTP_REFERER'])) {
+                $link = clean_param($_SERVER['HTTP_REFERER'], PARAM_LOCALURL);
+                if ($link == '') {
+                    $link = $CFG->wwwroot .'/';
+                }
+            } else {
+                $link = $CFG->wwwroot .'/';
+            }
+            // END UCLA MOD-CCLE-2984
             $output .= $this->continue_button($link);
         }
 
