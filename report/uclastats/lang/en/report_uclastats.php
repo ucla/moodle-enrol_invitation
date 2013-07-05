@@ -27,6 +27,7 @@ $string['export_options'] = 'Export: ';
 $string['noparams'] = 'No additional parameters needed to run report';
 $string['term'] = 'Term';
 $string['subjarea'] = 'Subject area';
+$string['threshold'] = 'Threshold';
 
 // cached results strings
 $string['cached_results_table'] = 'Cached results';
@@ -217,6 +218,18 @@ $string['exportedgrades'] = 'Exported grades';
 $string['usedgradebook'] = 'Total courses using gradebook';
 $string['totalcourses'] = 'Total courses';
                                    
+// Strings for Course activity (Instructor focused)
+$string['active_instructor_focused'] = 'Course activity (Instructor focused)';
+$string['active_instructor_focused_help'] = 'A course is determined to be active ' . 
+        'if the total points it earns is over the given threshold. Scoring is defined as:' .
+        '<ul><li>1 point for each visible resource</li><li>1 point for each block added</li>' .
+        '<li>2 points for each visible activity (not including the default Announcement and Discussion forums)</li>' .
+        '<li>1 point for each post by the Instructor/TA in either the default Announcement and Discussion forums</li></ul>';
+$string['numactive'] = 'Active';
+$string['numinactive'] = 'Inactive';
+$string['totalcourses'] = 'Total courses';
+$string['averagescore'] = 'Average score';
+
 // error strings
 $string['nocachedresults'] = 'No cached results found';
 $string['invalidterm'] = 'Invalid term';
