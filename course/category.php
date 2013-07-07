@@ -282,7 +282,15 @@ $subcategories = $DB->get_recordset_sql($sql, array('parentid' => $category->id,
 // Prepare a table to display the sub categories.
 $table = new html_table;
 $table->attributes = array('border' => '0', 'cellspacing' => '2', 'cellpadding' => '4', 'class' => 'generalbox boxaligncenter category_subcategories');
-$table->head = array(new lang_string('subcategories'));
+// BEGIN UCLA MOD: CCLE-3858 - Allow users with manage capabilities to edit subcategories
+//$table->head = array(new lang_string('subcategories'));
+if ($editingon && $canmanage) {
+    $table->head = array(new lang_string('subcategories'), new lang_string('edit'));
+} else {
+    $table->head = array(new lang_string('subcategories'));    
+}
+$first = true;
+// END UCLA MOD: CCLE-3858
 $table->data = array();
 $baseurl = new moodle_url('/course/category.php');
 foreach ($subcategories as $subcategory) {
@@ -294,8 +302,24 @@ foreach ($subcategories as $subcategory) {
     $text = format_string($subcategory->name, true, array('context' => $context));
     // Add the subcategory to the table
     $baseurl->param('id', $subcategory->id);
-    $table->data[] = array(html_writer::link($baseurl, $text, $attributes));
+    // BEGIN UCLA MOD: CCLE-3858 - Allow users with manage capabilities to edit subcategories
+    //$table->data[] = array(html_writer::link($baseurl, $text, $attributes));
+    if ($editingon && $canmanage) {
+        $table->data[] = array(html_writer::link($baseurl, $text, $attributes),
+            generate_category_editing_icon_links($subcategory, $id, !$first, true));
+        $first = false;
+    } else {
+        $table->data[] = array(html_writer::link($baseurl, $text, $attributes));
+    }
+    // END UCLA MOD: CCLE-3858
 }
+// BEGIN UCLA MOD: CCLE-3858 - Last category should not be able to move down
+if ($editingon && $canmanage && !$first) {
+    $table->data[count($table->data)-1] = 
+        array(html_writer::link($baseurl, $text, $attributes),
+            generate_category_editing_icon_links($subcategory, $id, true, false));
+}
+// END UCLA MOD: CCLE-3858
 
 $subcategorieswereshown = (count($table->data) > 0);
 if ($subcategorieswereshown) {
@@ -478,3 +502,100 @@ echo '</div>';
 print_course_search();
 
 echo $OUTPUT->footer();
+
+/** 
+ * BEGIN UCLA MOD: CCLE-3858 - Allow editing of categories beyond the site level
+ * Generate html string for editing icons for categories beyond the site level.
+ * Editing capabilities should be checked before calling this function.
+ * 
+ * @param object $category  DB record from mdl_course_categories that specifies
+ *                          a category
+ * @param int $id   Category id of parent category. Used for redirection purposes
+ * @param bool $up  Determines if this category can move up
+ * @param bool $down    Determines if this category can move down
+ * 
+ * @return string html  html string that generates the editing icons
+ */
+function generate_category_editing_icon_links($category, $parentcategoryid, $up, $down) {
+    global $OUTPUT;
+    
+    if (!isset($category->context)) {
+        $category->context = get_context_instance(CONTEXT_COURSECAT, $category->id);
+    }
+    
+    $htmlediticons = '';
+    
+    // Edit category
+    $editurl = new moodle_url('/course/editcategory.php', array('id' => $category->id));
+    $editicon = html_writer::tag('img', '', 
+            array('src' => $OUTPUT->pix_url('t/edit'), 'class' => 'iconsmall', 
+                'alt' => get_string('editthiscategory')));
+    $htmlediticons .= html_writer::link($editurl, $editicon, 
+            array('title' => get_string('editthiscategory')));
+    
+    // Delete category
+    $editurl = new moodle_url('/course/index.php', 
+            array('subcategory' => $parentcategoryid, 'delete' => $category->id, 'sesskey' => sesskey()));
+    $editicon = html_writer::tag('img', '', 
+            array('src' => $OUTPUT->pix_url('t/delete'), 'class' => 'iconsmall', 
+                'alt' => get_string('delete')));
+    $htmlediticons .= html_writer::link($editurl, $editicon, 
+            array('title' => get_string('delete')));
+
+    // Hide category
+    if (!empty($category->visible)) {
+        $editurl = new moodle_url('/course/index.php', 
+                array('subcategory' => $parentcategoryid, 'hide' => $category->id, 'sesskey' => sesskey()));
+        $editicon = html_writer::tag('img', '', 
+                array('src' => $OUTPUT->pix_url('t/hide'), 'class' => 'iconsmall', 
+                    'alt' => get_string('hide')));
+        $htmlediticons .= html_writer::link($editurl, $editicon, 
+                array('title' => get_string('hide')));
+    } else { // Show category
+        $editurl = new moodle_url('/course/index.php', 
+                array('subcategory' => $parentcategoryid, 'show' => $category->id, 'sesskey' => sesskey()));
+        $editicon = html_writer::tag('img', '', 
+                array('src' => $OUTPUT->pix_url('t/show'), 'class' => 'iconsmall', 
+                    'alt' => get_string('show')));
+        $htmlediticons .= html_writer::link($editurl, $editicon, 
+                array('title' => get_string('show')));
+    }
+    
+    // Cohorts
+    if (has_capability('moodle/cohort:manage', $category->context) || 
+            has_capability('moodle/cohort:view', $category->context)) {
+        $editurl = new moodle_url('/cohort/index.php', array('contextid' => $category->context->id));
+        $editicon = html_writer::tag('img', '', 
+                array('src' => $OUTPUT->pix_url('i/cohort'), 'class' => 'iconsmall', 
+                    'alt' => get_string('cohorts', 'cohort')));
+        $htmlediticons .= html_writer::link($editurl, $editicon, 
+                array('title' => get_string('cohorts', 'cohort')));
+    }
+    
+    // Move category up
+    if ($up) {
+        $editurl = new moodle_url('/course/index.php', 
+                array('subcategory' => $parentcategoryid, 'moveup' => $category->id, 'sesskey' => sesskey()));
+        $editicon = html_writer::tag('img', '', 
+                array('src' => $OUTPUT->pix_url('t/up'), 'class' => 'iconsmall', 
+                    'alt' => get_string('moveup')));
+        $htmlediticons .= html_writer::link($editurl, $editicon, 
+                array('title' => get_string('moveup')));
+    }
+    
+    // Move category down
+    if ($down) {
+        $editurl = new moodle_url('/course/index.php', 
+                array('subcategory' => $parentcategoryid, 'movedown' => $category->id, 'sesskey' => sesskey()));
+        $editicon = html_writer::tag('img', '', 
+                array('src' => $OUTPUT->pix_url('t/down'), 'class' => 'iconsmall', 
+                    'alt' => get_string('movedown')));
+        $htmlediticons .= html_writer::link($editurl, $editicon, 
+                array('title' => get_string('movedown')));
+    } else {
+        $htmlediticons .= $OUTPUT->spacer().' ';
+    }
+    
+    return $htmlediticons;
+}
+// END UCLA MOD: CCLE-3858
