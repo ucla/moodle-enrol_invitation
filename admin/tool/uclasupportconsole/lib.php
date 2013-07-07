@@ -118,7 +118,6 @@ function get_subject_area_selector($id, $selected_subject_area = null) {
  * Either creates or returns a term selector dropdown.
  * 
  * @global object $DB
- * @staticvar array $_term_selector_terms
  * 
  * @param string $id        Id to use for label
  * @param string $selected_term If passed, will be the default term selected
@@ -127,35 +126,16 @@ function get_subject_area_selector($id, $selected_subject_area = null) {
  */
 function get_term_selector($id, $selected_term = null) {
     global $CFG, $DB;  
-    static $_term_selector_terms;  // to store cached copy of db record
     $ret_val = '';
     
     if (!ucla_validator('term', $selected_term)) {
         $selected_term = $CFG->currentterm;
     }
-  
-    if (!isset($_term_selector_terms)) {
-        // generate associative array: term => term
-        $sql = 'SELECT DISTINCT term AS term_index,
-                                term AS term_value
-                FROM            {ucla_request_classes}
-                WHERE           1';
-        $terms = $DB->get_records_sql_menu($sql);
-        if (empty($terms)) {
-            return '';
-        }
-        
-        // sort array in decending order
-        uksort($terms, 'term_cmp_fn');    
-        $_term_selector_terms = array_reverse($terms, true);
-        
-    }
 
     $ret_val .= html_writer::label(get_string('term', 'tool_uclasupportconsole'), $id.'_term_selector');
-    $ret_val .= html_writer::select($_term_selector_terms, 'term', $selected_term, 
-            get_string('choose_term', 'tool_uclasupportconsole'), 
-            array('id' => $id.'_term_selector'));
-    
+    $ret_val .= html_writer::empty_tag('input', 
+            array('type' => 'text', 'name' => 'term', 'id' => $id.'_term_selector', 
+                'value' => $selected_term, 'maxlength' => 3, 'size' => 3));
     
     return $ret_val;
 }
