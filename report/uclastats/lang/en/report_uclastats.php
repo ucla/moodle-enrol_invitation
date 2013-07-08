@@ -193,6 +193,15 @@ $string['avg_num_threads'] = 'Threads per Forum';
 $string['avg_num_posters'] = 'Posters per Forum';
 $string['forum_usage_cached_results'] = 'Avg Posters: {$a->avg_num_posters} | '.
                                         'Avg Threads: {$a->avg_num_threads}';
+
+//string for users by division
+$string['users_by_division'] = 'Users by division (course)';
+$string['users_by_division_help'] = 'Counts the number of hits, users, ' .
+        'ratio of (hits/users) for a division by term, ' .
+        'and number of users of the entire system by term';
+$string['hits'] = 'Hits';
+$string['ratio_hits_users'] = 'Hits to Users';
+                                   
 // error strings
 $string['nocachedresults'] = 'No cached results found';
 $string['invalidterm'] = 'Invalid term';
