@@ -4129,6 +4129,9 @@ function delete_user(stdClass $user) {
     // unauthorise the user for all services
     $DB->delete_records('external_services_users', array('userid'=>$user->id));
 
+    // Remove users private keys.
+    $DB->delete_records('user_private_key', array('userid' => $user->id));
+
     // force logout - may fail if file based sessions used, sorry
     session_kill_user($user->id);
 
@@ -4775,9 +4778,6 @@ function delete_course($courseorid, $showfeedback = true) {
         return false;
     }
 
-    // Handle course badges.
-    badges_handle_course_deletion($courseid);
-
     // make the course completely empty
     remove_course_contents($courseid, $showfeedback);
 
@@ -4819,6 +4819,7 @@ function delete_course($courseorid, $showfeedback = true) {
  */
 function remove_course_contents($courseid, $showfeedback = true, array $options = null) {
     global $CFG, $DB, $OUTPUT;
+    require_once($CFG->libdir.'/badgeslib.php');
     require_once($CFG->libdir.'/completionlib.php');
     require_once($CFG->libdir.'/questionlib.php');
     require_once($CFG->libdir.'/gradelib.php');
@@ -4826,6 +4827,9 @@ function remove_course_contents($courseid, $showfeedback = true, array $options 
     require_once($CFG->dirroot.'/tag/coursetagslib.php');
     require_once($CFG->dirroot.'/comment/lib.php');
     require_once($CFG->dirroot.'/rating/lib.php');
+
+    // Handle course badges.
+    badges_handle_course_deletion($courseid);
 
     // NOTE: these concatenated strings are suboptimal, but it is just extra info...
     $strdeleted = get_string('deleted').' - ';
@@ -6104,6 +6108,7 @@ function get_file_packer($mimetype='application/zip') {
     switch ($mimetype) {
         case 'application/zip':
         case 'application/vnd.moodle.backup':
+        case 'application/vnd.moodle.profiling':
             $classname = 'zip_packer';
             break;
         case 'application/x-tar':
@@ -8269,7 +8274,14 @@ function get_plugin_types($fullpaths=true) {
     $cache = cache::make('core', 'plugintypes');
 
     if ($fullpaths) {
-        $cached = $cache->get(1);
+        // First confirm that dirroot and the stored dirroot match.
+        if ($CFG->dirroot === $cache->get('dirroot')) {
+            // They match we can use it.
+            $cached = $cache->get(1);
+        } else {
+            // Oops they didn't match. The moodle directory has been moved on us.
+            $cached = false;
+        }
     } else {
         $cached = $cache->get(0);
     }
@@ -8329,6 +8341,9 @@ function get_plugin_types($fullpaths=true) {
 
         $cache->set(0, $info);
         $cache->set(1, $fullinfo);
+        // We cache the dirroot as well so that we can compare it when we
+        // retrieve full info from the cache.
+        $cache->set('dirroot', $CFG->dirroot);
 
         return ($fullpaths ? $fullinfo : $info);
     }
@@ -8351,7 +8366,9 @@ function is_valid_plugin_name($name) {
 function get_plugin_list($plugintype) {
     global $CFG;
 
-    $cache = cache::make('core', 'pluginlist');
+    // We use the dirroot as an identifier here because if it has changed the whole cache
+    // can be considered invalid.
+    $cache = cache::make('core', 'pluginlist', array('dirroot' => $CFG->dirroot));
     $cached = $cache->get($plugintype);
     if ($cached !== false) {
         return $cached;
@@ -9720,9 +9737,10 @@ function format_float($float, $decimalpoints=1, $localized=true, $stripzeros=fal
  * Do NOT try to do any math operations before this conversion on any user submitted floats!
  *
  * @param string $locale_float locale aware float representation
- * @return float
+ * @param bool $strict If true, then check the input and return false if it is not a valid number.
+ * @return mixed float|bool - false or the parsed float.
  */
-function unformat_float($locale_float) {
+function unformat_float($locale_float, $strict = false) {
     $locale_float = trim($locale_float);
 
     if ($locale_float == '') {
@@ -9730,8 +9748,13 @@ function unformat_float($locale_float) {
     }
 
     $locale_float = str_replace(' ', '', $locale_float); // no spaces - those might be used as thousand separators
+    $locale_float = str_replace(get_string('decsep', 'langconfig'), '.', $locale_float);
 
-    return (float)str_replace(get_string('decsep', 'langconfig'), '.', $locale_float);
+    if ($strict && !is_numeric($locale_float)) {
+        return false;
+    }
+
+    return (float)$locale_float;
 }
 
 /**
@@ -10653,8 +10676,8 @@ function get_performance_info() {
     $info['html'] .= '<span class="included">Included '.$info['includecount'].' files</span> ';
     $info['txt']  .= 'includecount: '.$info['includecount'].' ';
 
-    if (!empty($CFG->early_install_lang)) {
-        // We can not track more performance before installation, sorry.
+    if (!empty($CFG->early_install_lang) or empty($PAGE)) {
+        // We can not track more performance before installation or before PAGE init, sorry.
         return $info;
     }
 

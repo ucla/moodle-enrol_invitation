@@ -105,11 +105,9 @@ function make_log_url($module, $url) {
         case 'role':
             $url = '/'.$url;
             break;
-        // START UCLA MOD: CCLE-3980 - Add logging to Gradebook & Export to MyUCLA format pages
         case 'grade':
             $url = "/grade/$url";
             break;
-        // END UCLA MOD: CCLE-3980
         default:
             $url = "/mod/$module/$url";
             break;
