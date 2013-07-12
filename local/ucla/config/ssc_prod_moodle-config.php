@@ -138,6 +138,10 @@ $CFG->filter_mediaplugin_enable_rm = true;
 /// CCLE-2810 - My Sites - disallow customized "My Moodle" page
 //$CFG->forcedefaultmymoodle = true;
 
+// CCLE-3966 - Include self when messaging participants.
+// Emails should still be sent to users that are logged in.
+$CFG->forced_plugin_settings['message']['message_provider_moodle_instantmessage_loggedin'] = 'popup,email';
+
 // Site administration > Advanced features
 $CFG->usetags = 0;
 $CFG->enablenotes = 0;

@@ -183,6 +183,10 @@ $CFG->forcedefaultmymoodle = false;
 // to enable database unit testing
 $CFG->unittestprefix = 'tst_';
 
+// CCLE-3966 - Include self when messaging participants.
+// Emails should still be sent to users that are logged in.
+$CFG->forced_plugin_settings['message']['message_provider_moodle_instantmessage_loggedin'] = 'popup,email';
+
 // Site administration > Advanced features
 $CFG->usetags = 0;
 $CFG->enablenotes = 0;
