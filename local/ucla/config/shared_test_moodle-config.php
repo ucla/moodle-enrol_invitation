@@ -110,7 +110,7 @@ $CFG->forced_plugin_settings['tool_uclacoursecreator']['email_template_dir'] = '
 $CFG->forced_plugin_settings['tool_uclacoursecreator']['make_division_categories'] = true;
 
 // MyUCLA url updater
-$CFG->forced_plugin_settings['tool_myucla_url']['url_service'] = 'https://m2test.ccle.ucla.edu/rex/myucla_url_updater/update.php';  // test server
+$CFG->forced_plugin_settings['tool_myucla_url']['url_service'] = 'https://test.ccle.ucla.edu/myucla_url_updater/update.php';  // test server
 $CFG->forced_plugin_settings['tool_myucla_url']['user_name'] = 'CCLE Admin';   // name for registering URL with My.UCLA
 $CFG->forced_plugin_settings['tool_myucla_url']['user_email'] = 'ccle@ucla.edu';  // email for registering URL with My.UCLA
 $CFG->forced_plugin_settings['tool_myucla_url']['override_debugging'] = true;   // test sending MyUCLA urls
@@ -125,7 +125,7 @@ define('MYUCLA_URL_UPDATER_TEST_CONFIG_EMAIL',
 define('MYUCLA_URL_UPDATER_TEST_CONFIG_OVERRIDE_DEBUGGING',
         $CFG->forced_plugin_settings['tool_myucla_url']['override_debugging']);
 define('MYUCLA_URL_UPDATER_TEST_CONFIG_ACCESSDENIED_URL',
-        'https://m2test.ccle.ucla.edu/rex/myucla_url_updater/accessdenied.php');
+        'https://test.ccle.ucla.edu/myucla_url_updater/accessdenied.php');
 
 // Pre-pop
 //$CFG->forced_plugin_settings['enrol_database']['terms'] = $terms_to_built;
