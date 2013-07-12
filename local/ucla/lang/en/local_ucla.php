@@ -123,5 +123,5 @@ $string['logincheck_networkfail'] = 'There was no response from the server. ' .
 $string['logincheck_success'] = 'You\'re logged in.  You can now submit this form.';
 
 // CCLE-3652 - Students unable to see "Submission Grading" link on Assignment module
-$string['submissionsgrading'] = 'Grading info for this assignment';
+$string['submissionsgrading'] = 'Grading criteria';
 
