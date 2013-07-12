@@ -54,6 +54,17 @@ function ucla_verify_configuration_setup() {
 }
 
 /**
+ *  Function to sort an array of strings in alphabetical order
+ **/
+function array_alphasort(&$array, $sortkey) {
+    usort($array, function($a, $b) use ($sortkey) {
+        if(!empty($a) && !empty($b)) {
+            return strcmp(strtolower($a->$sortkey), strtolower($b->$sortkey));
+        }
+    });
+}
+
+/**
  *  Convenience function to include db-helpers.
  **/
 function ucla_require_db_helper() {

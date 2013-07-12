@@ -357,7 +357,8 @@ class block_ucla_my_sites extends block_base {
             $content[] = html_writer::table($t);
         }
         
-        usort($collaboration_sites, array(get_class(), 'collaboration_sites_sort'));
+        // Sort a bunch of collabortation sites via fullname
+        array_alphasort($collaboration_sites, "fullname");
         
         // print collaboration sites (if any)
         if (!empty($collaboration_sites)) {
@@ -447,14 +448,6 @@ class block_ucla_my_sites extends block_base {
         }
     
         return $selects = new url_select($urls, $default);
-    }
-    
-    /**
-     *  Used with usort(), sorts a bunch of collaboration sites 
-     *  via fullname
-     **/
-    static function collaboration_sites_sort($a, $b) {
-        return strcmp(strtolower($a->fullname), strtolower($b->fullname));
     }
 
     /**
