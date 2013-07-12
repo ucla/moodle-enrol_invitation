@@ -236,6 +236,9 @@ $string['sectionactivities'] = 'Activities';
 $string['selectacategory'] = 'Select a category';
 $string['selectacourse'] = 'Select a course';
 $string['setting_overwriteconf'] = 'Overwrite course configuration';
+// BEGIN UCLA MOD: CCLE-3797 - Hide all course sections on course restore option
+$string['hide_crs_sections'] = 'Hide course sections';
+// END UCLA MOD: CCLE-3797
 $string['setting_course_fullname'] = 'Course name';
 $string['setting_course_shortname'] = 'Course short name';
 $string['setting_course_startdate'] = 'Course start date';
